@@ -355,7 +355,7 @@ public class MeasureToolPanel extends ToolPanel {
           bio.mm.changed = true;
           bio.state.saveState(false);
           bio.mm.pool2.refresh(true);
-          bio.mm.pool3.refresh(true);
+          if (bio.mm.pool3 != null) bio.mm.pool3.refresh(true);
         }
       }
     });
@@ -443,6 +443,9 @@ public class MeasureToolPanel extends ToolPanel {
 
 
   // -- API METHODS --
+
+  /** Initializes this tool panel. */
+  public void init() { }
 
   /** Enables or disables this tool panel. */
   public void setEnabled(boolean enabled) {

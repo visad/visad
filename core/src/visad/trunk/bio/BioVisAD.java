@@ -33,7 +33,7 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.rmi.RemoteException;
-import java.util.Vector;
+import java.util.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import visad.*;
@@ -59,6 +59,9 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   /** Application title. */
   private static final String TITLE = "BioVisAD";
 
+  /** Flag for enabling or disabling Java3D, for debugging. */
+  private static final boolean ALLOW_3D = true;
+
   /** Amount of detail for color. */
   static final int COLOR_DETAIL = 256;
 
@@ -67,6 +70,9 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
   /** Starting contrast value. */
   static final int NORMAL_CONTRAST = COLOR_DETAIL / 2;
+
+  /** Amount of detail for resolution sliders. */
+  static final int RESOLUTION_DETAIL = 384;
 
   /** Default measurement group. */
   static MeasureGroup noneGroup;
@@ -191,7 +197,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     pane.add(displayPane, BorderLayout.CENTER);
 
     // 2-D and 3-D displays
-    if (Util.canDoJava3D()) {
+    if (Util.canDoJava3D() && ALLOW_3D) {
       display2 = new DisplayImplJ3D("display2", new TwoDDisplayRendererJ3D());
       display3 = new DisplayImplJ3D("display3");
       previous = new DisplayImplJ3D("previous");
@@ -273,9 +279,6 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     display3.getComponent().setVisible(threeD);
   }
 
-  /** Toggles the 3-D display between image stack and volume render modes. */
-  public void setVolume(boolean volume) { sm.setVolumeRender(volume); }
-
   /** Toggles the visibility of the preview displays. */
   public void setPreview(boolean preview) {
     if (previewPane == null) return;
@@ -303,6 +306,9 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     catch (RemoteException exc) { exc.printStackTrace(); }
   }
 
+  /** Toggles the 3-D display between image stack and volume render modes. */
+  public void setVolume(boolean volume) { sm.setVolumeRender(volume); }
+
   /** Adjusts the aspect ratio of the displays. */
   public void setAspect(double x, double y, double z) {
     double d = x > y ? x : y;
@@ -310,7 +316,10 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     double yasp = y / d;
     double zasp = z == z ? z / d : 1.0;
     ProjectionControl pc2 = display2.getProjectionControl();
-    try { pc2.setAspect(new double[] {xasp, yasp, zasp}); }
+    try {
+      if (display3 == null) pc2.setAspect(new double[] {xasp, yasp});
+      else pc2.setAspect(new double[] {xasp, yasp, zasp});
+    }
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }
     if (display3 != null) {
@@ -344,11 +353,8 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     green = g;
     blue = b;
 
-    // get color controls
-    BaseColorControl[] cc2 = sm.getColorControls2D();
-    if (cc2 == null) return;
-    BaseColorControl[] cc3 = sm.getColorControls3D();
-    BaseColorControl[][] ccP = sm.getColorControlsPreview();
+    // get color widgets
+    LabeledColorWidget[] widgets = sm.getColorWidgets();
 
     // compute center and slope from brightness and contrast
     double mid = COLOR_DETAIL / 2.0;
@@ -356,8 +362,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     if (contrast <= mid) slope = contrast / mid;
     else slope = mid / (COLOR_DETAIL - contrast);
     if (slope == Double.POSITIVE_INFINITY) slope = Double.MAX_VALUE;
-    double mag = slope + 1;
-    double center = mag * brightness / COLOR_DETAIL - 0.5 * (mag - 1);
+    double center = (slope + 1) * brightness / COLOR_DETAIL - 0.5 * slope;
 
     // compute color channel table values from center and slope
     float[] vals = new float[COLOR_DETAIL];
@@ -390,46 +395,25 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     }
 
     // initialize color tables
-    for (int i=0; i<cc2.length; i++) {
+    for (int i=0; i<widgets.length; i++) {
       if (i >= sm.rtypes.length) break;
       RealType rt = sm.rtypes[i];
 
-      // color table without alpha
-      float[][] t2 = new float[3][COLOR_DETAIL];
-      if (composite) {
-        for (int j=0; j<3; j++) {
-          System.arraycopy(rainbow[j], 0, t2[j], 0, COLOR_DETAIL);
-        }
-      }
-      if (composite) {
-        t2[0] = rvals;
-        t2[1] = gvals;
-        t2[2] = bvals;
-      }
+      // fill in color table elements
+      float[][] t;
+      if (composite) t = new float[][] {rvals, gvals, bvals};
       else {
-        if (rt.equals(r)) System.arraycopy(rvals, 0, t2[0], 0, COLOR_DETAIL);
-        if (rt.equals(g)) System.arraycopy(gvals, 0, t2[1], 0, COLOR_DETAIL);
-        if (rt.equals(b)) System.arraycopy(bvals, 0, t2[2], 0, COLOR_DETAIL);
+        t = new float[3][];
+        t[0] = rt.equals(r) ? rvals : new float[COLOR_DETAIL];
+        t[1] = rt.equals(g) ? gvals : new float[COLOR_DETAIL];
+        t[2] = rt.equals(b) ? bvals : new float[COLOR_DETAIL];
       }
 
-      // color table with alpha
-      float[][] t3 = new float[4][];
-      System.arraycopy(t2, 0, t3, 0, 3);
-      t3[3] = new float[COLOR_DETAIL];
-      for (int j=0; j<COLOR_DETAIL; j++) t3[3][j] = 1.0f; // alpha
-
-      // set color tables
-      try {
-        if (cc2[i] != null) cc2[i].setTable(t2);
-        if (cc3 != null && cc3[i] != null) cc3[i].setTable(t3);
-        if (ccP != null) {
-          for (int j=0; j<ccP.length; j++) {
-            if (ccP[j] != null && ccP[j][i] != null) ccP[j][i].setTable(t3);
-          }
-        }
-      }
-      catch (VisADException exc) { exc.printStackTrace(); }
-      catch (RemoteException exc) { exc.printStackTrace(); }
+      // set widget color table
+      boolean doAlpha = display3 != null;
+      float[][] oldt = widgets[i].getTable();
+      t = adjustColorTable(t, oldt.length > 3 ? oldt[3] : null, doAlpha);
+      widgets[i].setTable(t);
     }
     state.saveState(true);
   }
@@ -654,6 +638,35 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
       Real real = (Real) comps[i];
       System.out.println("#" + i +
         ": type=" + real.getType() + "; value=" + real.getValue());
+    }
+  }
+
+  /**
+   * Ensures the color table is of the proper type (RGB or RGBA).
+   *
+   * If the alpha is not required but the table has an alpha channel,
+   * a new table is returned with the alpha channel stripped out.
+   *
+   * If alpha is required but the table does not have an alpha channel,
+   * a new table is returned with an alpha channel matching the provided
+   * one (or all 1s if the provided alpha channel is null).
+   */
+  public static float[][] adjustColorTable(float[][] table,
+    float[] alpha, boolean doAlpha)
+  {
+    if (table == null || table[0] == null) return null;
+    if (table.length == 3) {
+      if (!doAlpha) return table;
+      int len = table[0].length;
+      if (alpha == null || alpha.length != len) {
+        alpha = new float[len];
+        Arrays.fill(alpha, 1.0f);
+      }
+      return new float[][] {table[0], table[1], table[2], alpha};
+    }
+    else { // table.length == 4
+      if (doAlpha) return table;
+      return new float[][] {table[0], table[1], table[2]};
     }
   }
 

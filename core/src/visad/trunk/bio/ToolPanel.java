@@ -64,6 +64,9 @@ public abstract class ToolPanel extends JScrollPane {
 
   // -- ABSTRACT METHODS --
 
+  /** Initializes this tool panel. */
+  public abstract void init();
+
   /** Enables or disables this tool panel. */
   public abstract void setEnabled(boolean enabled);
 

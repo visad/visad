@@ -106,7 +106,7 @@ public class PlaneSelector implements DisplayListener {
           if (tuple[i] == null) {
             if (xtype == null) return;
             double vx = i < 2 ? lox : hix;
-            double vy = i < 2 ? loy : hiy;
+            double vy = i == 0 ? loy : hiy;
             double vz = i == 0 ? loz : hiz;
             setData(i, vx, vy, vz);
             return;

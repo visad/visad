@@ -33,7 +33,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 import visad.*;
 import visad.browser.Divider;
-import visad.util.Util;
+import visad.util.*;
 
 /**
  * ColorToolPanel is the tool panel for
@@ -198,7 +198,9 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     // colorize across slice level checkbox
     colorize = new JCheckBox("Colorize image stack across slices", false);
     colorize.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) { doColorTable(); }
+      public void itemStateChanged(ItemEvent e) {
+        // CTR - TODO - colorize across slices - need to rearrange ScalarMaps
+      }
     });
     colorize.setEnabled(false);
     controls.add(pad(colorize));
@@ -218,6 +220,7 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     p.add(selLabel);
 
     // color widget selector
+    //BaseRGBMap.USE_COLOR_CURSORS = true;
     selector = new JComboBox();
     selector.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -234,6 +237,19 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
 
 
   // -- API METHODS --
+
+  /** Initializes this tool panel. */
+  public void init() {
+    red.removeItemListener(this);
+    green.removeItemListener(this);
+    blue.removeItemListener(this);
+    red.guessType();
+    green.guessType();
+    blue.guessType();
+    red.addItemListener(this);
+    green.addItemListener(this);
+    blue.addItemListener(this);
+  }
 
   /** Enables or disables this tool panel. */
   public void setEnabled(boolean enabled) {
@@ -273,19 +289,6 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
       green.getSelectedItem(), blue.getSelectedItem());
     brightnessValue.setText("" + bright);
     contrastValue.setText("" + cont);
-  }
-
-  /** Chooses most desirable range types for color widgets. */
-  void guessTypes() {
-    red.removeItemListener(this);
-    green.removeItemListener(this);
-    blue.removeItemListener(this);
-    red.guessType();
-    green.guessType();
-    blue.guessType();
-    red.addItemListener(this);
-    green.addItemListener(this);
-    blue.addItemListener(this);
   }
 
   /** Updates color components to match those specified. */

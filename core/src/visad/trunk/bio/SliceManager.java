@@ -90,7 +90,10 @@ public class SliceManager
   int res_x, res_y;
 
   /** X and Y resolution for arbitrary slices. */
-  int sliceRes_x, sliceRes_y;
+  private int sliceRes_x, sliceRes_y;
+
+  /** X, Y and Z resolution for volume rendering. */
+  private int volumeRes;
 
 
   // -- SLICE-RELATED FIELDS --
@@ -137,11 +140,11 @@ public class SliceManager
   /** Low-resolution field for all timesteps. */
   private FieldImpl lowresField;
 
-  /**
-   * Collapsed field for current timestep, used
-   * with arbitrary slicing and volume rendering.
-   */
-  private FieldImpl collapsedField;
+  /** Collapsed field at current timestep, for arbitrary slicing. */
+  private FlatField sliceField;
+
+  /** Collapsed, squarized field at current timestep, for volume rendering. */
+  private FlatField volumeField;
 
   /** List of range component mappings for 2-D display. */
   private ScalarMap[] rmaps2;
@@ -151,6 +154,9 @@ public class SliceManager
 
   /** List of range component mappings for preview displays. */
   private ScalarMap[][] rmapsP;
+
+  /** List of color widgets associated with mappings to RGB and RGBA. */
+  private LabeledColorWidget[] widgets;
 
 
   // -- DATA REFERENCES --
@@ -347,6 +353,7 @@ public class SliceManager
     ps.toggle(value);
     planeRenderer2.toggle(value);
     renderer2.toggle(!value);
+    if (value && planeRef.getData() == null) updateSlice();
   }
 
   /** Sets whether arbitrary plane is continuously updated. */
@@ -365,11 +372,7 @@ public class SliceManager
     if (this.volume == volume) return;
     this.volume = volume;
     try {
-      if (volume) {
-        if (collapsedField == null) updateCollapsedField();
-        if (lowres) lowresRef3.setData(collapsedField);
-        else ref3.setData(collapsedField);
-      }
+      if (volume) updateVolumeField();
       else {
         if (lowres) lowresRef3.setData(lowresField);
         else ref3.setData(field);
@@ -377,6 +380,13 @@ public class SliceManager
     }
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }
+  }
+
+  /** Sets the resolution at which volume rendering occurs. */
+  public void setVolumeResolution(int res) {
+    if (volumeRes == res) return;
+    volumeRes = res;
+    if (volume) updateVolumeField();
   }
 
   /** Links the data series to the given list of files. */
@@ -422,12 +432,53 @@ public class SliceManager
 
   /** ControlListener method used for programmatically updating GUI. */
   public void controlChanged(ControlEvent e) {
-    if (anim_control2 != null) {
-      int index = anim_control2.getCurrent();
-      if (this.index != index) bio.horiz.setValue(index + 1);
+    Control c = e.getControl();
+    if (c == anim_control2 || c == value_control2) {
+      // update sliders to match current timestep and slice values
+      if (anim_control2 != null) {
+        int index = anim_control2.getCurrent();
+        if (this.index != index) bio.horiz.setValue(index + 1);
+      }
+      int slice = (int) value_control2.getValue();
+      if (this.slice != slice) bio.vert.setValue(slice + 1);
     }
-    int slice = (int) value_control2.getValue();
-    if (this.slice != slice) bio.vert.setValue(slice + 1);
+    else {
+      // update color controls to match current color table
+      int index = -1;
+      ScalarMap[] maps = bio.display3 == null ? rmaps2 : rmaps3;
+      for (int i=0; i<maps.length; i++) {
+        if (c == maps[i].getControl()) {
+          index = i;
+          break;
+        }
+      }
+      float[][] table = widgets[index].getTable();
+      try {
+        BaseColorControl cc2 = (BaseColorControl) rmaps2[index].getControl();
+        float[][] t2 = null;
+        if (cc2 != c) {
+          t2 = BioVisAD.adjustColorTable(table, null, false);
+          cc2.setTable(t2);
+        }
+        if (bio.display3 != null) {
+          BaseColorControl cc3 = (BaseColorControl) rmaps3[index].getControl();
+          if (cc3 != c) {
+            float[][] t3 = cc3.getTable();
+            cc3.setTable(BioVisAD.adjustColorTable(table, t3[3], true));
+          }
+        }
+        if (hasThumbs && bio.previous != null && bio.next != null) {
+          if (t2 == null) t2 = BioVisAD.adjustColorTable(table, null, false);
+          for (int j=0; j<rmapsP.length; j++) {
+            BaseColorControl ccP = (BaseColorControl)
+              rmapsP[j][index].getControl();
+            ccP.setTable(t2);
+          }
+        }
+      }
+      catch (VisADException exc) { exc.printStackTrace(); }
+      catch (RemoteException exc) { exc.printStackTrace(); }
+    }
   }
 
   /** DisplayListener method used for mouse activity in 3-D display. */
@@ -468,7 +519,7 @@ public class SliceManager
 
         // load new data
         field = loadData(files[index], true);
-        collapsedField = null;
+        sliceField = volumeField = null;
         if (field != null) {
           ref2.setData(field);
           ref3.setData(field);
@@ -499,43 +550,16 @@ public class SliceManager
 
   /** Sets the arbitrary slice resolution. */
   void setSliceRange(int x, int y) {
+    if (sliceRes_x == x && sliceRes_y == y) return;
     sliceRes_x = x;
     sliceRes_y = y;
     bio.state.saveState(true);
+    if (planeSelect) updateSlice();
+    else sliceField = null;
   }
 
-  /** Gets the color controls for 2-D range type color mappings. */
-  BaseColorControl[] getColorControls2D() {
-    if (rmaps2 == null) return null;
-    BaseColorControl[] controls = new BaseColorControl[rmaps2.length];
-    for (int i=0; i<rmaps2.length; i++) {
-      controls[i] = (BaseColorControl) rmaps2[i].getControl();
-    }
-    return controls;
-  }
-
-  /** Gets the color controls for 3-D range type color mappings. */
-  BaseColorControl[] getColorControls3D() {
-    if (rmaps3 == null) return null;
-    BaseColorControl[] controls = new BaseColorControl[rmaps3.length];
-    for (int i=0; i<rmaps3.length; i++) {
-      controls[i] = (BaseColorControl) rmaps3[i].getControl();
-    }
-    return controls;
-  }
-
-  /** Gets the color controls for preview range type color mappings. */
-  BaseColorControl[][] getColorControlsPreview() {
-    if (rmapsP == null) return null;
-    BaseColorControl[][] controls = new BaseColorControl[rmapsP.length][];
-    for (int j=0; j<rmapsP.length; j++) {
-      controls[j] = new BaseColorControl[rmapsP[j].length];
-      for (int i=0; i<rmapsP[j].length; i++) {
-        controls[j][i] = (BaseColorControl) rmapsP[j][i].getControl();
-      }
-    }
-    return controls;
-  }
+  /** Gets the color widgets for color mappings to RGB and RGBA. */
+  LabeledColorWidget[] getColorWidgets() { return widgets; }
 
   /** Writes the current program state to the given output stream. */
   void saveState(PrintWriter fout) throws IOException, VisADException {
@@ -546,7 +570,7 @@ public class SliceManager
     fout.println(thumbSize[1]);
     fout.println(sliceRes_x);
     fout.println(sliceRes_y);
-    ps.saveState(fout);
+    if (ps != null) ps.saveState(fout);
   }
 
   /** Restores the current program state from the given input stream. */
@@ -561,8 +585,7 @@ public class SliceManager
     int sliceY = Integer.parseInt(fin.readLine().trim());
     setThumbnails(thumbs, thumbX, thumbY);
     setSeries(files);
-    bio.toolView.setSliceRange(sliceX, sliceY);
-    ps.restoreState(fin);
+    if (ps != null) ps.restoreState(fin);
   }
 
 
@@ -588,7 +611,7 @@ public class SliceManager
           if (bio.mm.lists != null) bio.mm.clear();
 
           field = null;
-          collapsedField = null;
+          sliceField = volumeField = null;
           FieldImpl[][] thumbs = null;
           mode_index = mode_slice = 0;
 
@@ -714,8 +737,13 @@ public class SliceManager
             ref_next.setData(lowresField);
           }
 
-          bio.toolColor.guessTypes();
           configureDisplays();
+
+          // initialize tool panels
+          bio.toolView.init();
+          bio.toolColor.init();
+          bio.toolAlign.init();
+          bio.toolMeasure.init();
 
           // initialize measurement list array
           bio.mm.initLists(timesteps);
@@ -847,7 +875,16 @@ public class SliceManager
     ScalarMap g_map3 = null;
     ScalarMap b_map3 = null;
     DisplayRenderer dr3 = null;
-    if (bio.display3 != null) {
+    widgets = new LabeledColorWidget[rtypes.length];
+    if (bio.display3 == null) {
+      for (int i=0; i<rtypes.length; i++) {
+        widgets[i] = new LabeledColorWidget(
+          new ColorMapWidget(rmaps2[i], false));
+        bio.toolColor.addWidget(rmaps2[i].getScalarName(), widgets[i]);
+        rmaps2[i].getControl().addControlListener(this);
+      }
+    }
+    else {
       x_map3 = new ScalarMap(dtypes[0], Display.XAxis);
       y_map3 = new ScalarMap(dtypes[1], Display.YAxis);
       z_map3a = new ScalarMap(dtypes[2], Display.ZAxis);
@@ -870,8 +907,10 @@ public class SliceManager
       for (int i=0; i<rtypes.length; i++) {
         rmaps3[i] = new ScalarMap(rtypes[i], Display.RGBA);
         bio.display3.addMap(rmaps3[i]);
-        bio.toolColor.addWidget(rmaps3[i].getScalarName(),
-          new LabeledColorWidget(rmaps3[i]));
+        widgets[i] = new LabeledColorWidget(
+          new ColorMapWidget(rmaps3[i], false));
+        bio.toolColor.addWidget(rmaps3[i].getScalarName(), widgets[i]);
+        rmaps3[i].getControl().addControlListener(this);
       }
 
       // set up 3-D data references
@@ -940,7 +979,7 @@ public class SliceManager
         // add color maps for all range components
         rmapsP[j] = new ScalarMap[rtypes.length];
         for (int i=0; i<rtypes.length; i++) {
-          rmapsP[j][i] = new ScalarMap(rtypes[i], Display.RGBA);
+          rmapsP[j][i] = new ScalarMap(rtypes[i], Display.RGB);
           display.addMap(rmapsP[j][i]);
         }
 
@@ -998,16 +1037,11 @@ public class SliceManager
     // adjust display aspect ratio
     bio.setAspect(res_x, res_y, Double.NaN);
 
-    // set up display listener for 3-D display
-    bio.display3.addDisplayListener(this);
-
     // set up color table characteristics
     bio.toolColor.doColorTable();
 
-    // update arbitrary slice range with a reasonable default setting
-    double range_x = max_x - min_x;
-    double range_y = max_y - min_y;
-    bio.toolView.setSliceRange((int) range_x + 1, (int) range_y + 1);
+    // set up display listener for 3-D display
+    if (bio.display3 != null) bio.display3.addDisplayListener(this);
   }
 
   /** Refreshes the current image slice shown onscreen. */
@@ -1021,6 +1055,10 @@ public class SliceManager
         catch (VisADException exc) { exc.printStackTrace(); }
         catch (RemoteException exc) { exc.printStackTrace(); }
       }
+
+      // do volume rendering
+      if (volume) updateVolumeField();
+
       updateList();
       updateAnimationControls();
     }
@@ -1035,20 +1073,9 @@ public class SliceManager
       catch (RemoteException exc) { exc.printStackTrace(); }
     }
 
-    // do volume rendering
-    if (volume) {
-      updateCollapsedField();
-      try {
-        if (lowres) lowresRef3.setData(collapsedField);
-        else ref3.setData(collapsedField);
-      }
-      catch (VisADException exc) { exc.printStackTrace(); }
-      catch (RemoteException exc) { exc.printStackTrace(); }
-    }
-
     // switch resolution in 2-D display
     if (planeSelect) {
-      collapsedField = null;
+      sliceField = null;
       updateSlice();
     }
     else if (lowres) {
@@ -1089,8 +1116,8 @@ public class SliceManager
   private void updateSlice() {
     bio.setWaitCursor(true);
     try {
-      if (collapsedField == null) updateCollapsedField();
-      planeRef.setData(ps.extractSlice(collapsedField,
+      if (sliceField == null) updateSliceField();
+      planeRef.setData(ps.extractSlice(sliceField,
         sliceRes_x, sliceRes_y, res_x, res_y));
     }
     catch (VisADException exc) { exc.printStackTrace(); }
@@ -1098,14 +1125,46 @@ public class SliceManager
     bio.setWaitCursor(false);
   }
 
-  /** Updates collapsed field to match current data. */
-  private void updateCollapsedField() {
+  /** Updates arbitrary slice field to match the current timestep. */
+  private void updateSliceField() {
     try {
       FieldImpl f = lowres ? (FieldImpl) lowresField.getSample(index) : field;
-      collapsedField = (FieldImpl) f.domainMultiply();
+      sliceField = (FlatField) f.domainMultiply();
     }
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }
+  }
+
+  /** Updates volume rendering field to match the current timestep. */
+  private void updateVolumeField() {
+    bio.setWaitCursor(true);
+    if (sliceField == null) updateSliceField();
+    GriddedSet set = (GriddedSet) sliceField.getDomainSet();
+    int[] len = set.getLengths();
+    if (len[0] == volumeRes && len[1] == volumeRes && len[2] == volumeRes) {
+      volumeField = sliceField;
+    }
+    else {
+      float[] lo = set.getLow();
+      float[] hi = set.getHi();
+      try {
+        Linear3DSet nset = new Linear3DSet(set.getType(), lo[0], hi[0],
+          volumeRes, lo[1], hi[1], volumeRes, lo[2], hi[2], volumeRes);
+        volumeField = (FlatField) sliceField.resample(nset,
+          Data.WEIGHTED_AVERAGE, Data.NO_ERRORS);
+      }
+      catch (VisADException exc) { exc.printStackTrace(); }
+      catch (RemoteException exc) { exc.printStackTrace(); }
+    }
+    if (volume) {
+      try {
+        if (lowres) lowresRef3.setData(volumeField);
+        else ref3.setData(volumeField);
+      }
+      catch (VisADException exc) { exc.printStackTrace(); }
+      catch (RemoteException exc) { exc.printStackTrace(); }
+    }
+    bio.setWaitCursor(false);
   }
 
   /** Updates measurement pools with new measurement list. */

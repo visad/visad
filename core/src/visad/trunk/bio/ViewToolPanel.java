@@ -67,9 +67,6 @@ public class ViewToolPanel extends ToolPanel {
   /** Button for zooming out on 3-D display. */
   private JButton zoomOut3;
 
-  /** Toggle for 3-D volume rendering. */
-  private JCheckBox volume;
-
   /** Toggle for preview displays. */
   private JCheckBox preview;
 
@@ -85,17 +82,32 @@ public class ViewToolPanel extends ToolPanel {
   /** Animation widget. */
   private BioAnimWidget anim;
 
+  /** Toggle for 3-D volume rendering. */
+  private JCheckBox doVolume;
+
+  /** Label for current volume rendering resolution value. */
+  private JLabel volumeValue;
+
+  /** Slider for volume rendering resolution. */
+  private JSlider volumeRes;
+
   /** Toggle for whether 2-D plane is user-selected arbitrarily. */
-  private JCheckBox planeSelect;
+  private JCheckBox doSlice;
 
-  /** Labels for arbitrary slice resolution. */
-  private JLabel sliceResLabel1, sliceResLabel2;
+  /** Label for current arbitrary slice resolution value. */
+  private JLabel sliceValue;
 
-  /** Text fields for arbitrary slice resolution. */
-  private JTextField sliceResX, sliceResY;
+  /** Slider for arbitrary slice resolution. */
+  private JSlider sliceRes;
 
   /** Toggle for whether arbitrary slice is continuously recomputed. */
-  private JCheckBox sliceUpdate;
+  private JCheckBox sliceContinuous;
+
+
+  // -- OTHER FIELDS --
+
+  /** Maximum resolution for volume rendering. */
+  private int maxVolRes;
 
 
   // -- CONSTRUCTOR --
@@ -153,7 +165,6 @@ public class ViewToolPanel extends ToolPanel {
         zoomIn3.setEnabled(b);
         zoomReset3.setEnabled(b);
         zoomOut3.setEnabled(b);
-        volume.setEnabled(b);
       }
     });
     threeD.setEnabled(okay3d);
@@ -183,17 +194,6 @@ public class ViewToolPanel extends ToolPanel {
     zoomOut3.setEnabled(okay3d);
     p.add(zoomOut3);
     controls.add(pad(p));
-
-    // 3-D volume rendering checkbox
-    volume = new JCheckBox("Render 3-D image stack as a volume", false);
-    volume.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {
-        boolean b = volume.isSelected();
-        bio.setVolume(b);
-      }
-    });
-    volume.setEnabled(okay3d);
-    controls.add(pad(volume));
 
     // Preview checkbox
     preview = new JCheckBox("Previous/next preview displays", false);
@@ -263,80 +263,112 @@ public class ViewToolPanel extends ToolPanel {
     controls.add(new Divider());
     controls.add(Box.createVerticalStrut(10));
 
-    // plane selector checkbox
+    // volume rendering checkbox
     p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    planeSelect = new JCheckBox("Arbitrary data slice", false);
-    planeSelect.addItemListener(new ItemListener() {
+    doVolume = new JCheckBox("3-D volume rendering: ", false);
+    doVolume.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
-        boolean ps = planeSelect.isSelected();
-        sliceResLabel1.setEnabled(ps);
-        sliceResX.setEnabled(ps);
-        sliceResLabel2.setEnabled(ps);
-        sliceResY.setEnabled(ps);
-        sliceUpdate.setEnabled(ps);
-        bio.sm.setPlaneSelect(ps);
-        bio.vert.setEnabled(!ps);
-        bio.toolMeasure.setEnabled(!ps);
-        bio.mm.pool2.setSlice(ps ? -1 : bio.sm.getSlice());
+        boolean b = doVolume.isSelected();
+        volumeValue.setEnabled(b);
+        volumeRes.setEnabled(b);
+        bio.setVolume(b);
       }
     });
-    planeSelect.setEnabled(false);
-    p.add(planeSelect);
+    doVolume.setEnabled(false);
+    p.add(doVolume);
+
+    // current volume value
+    int detail = BioVisAD.RESOLUTION_DETAIL;
+    int normal = detail / 2;
+    volumeValue = new JLabel("");
+    Dimension d = doVolume.getPreferredSize();
+    //volumeValue.setPreferredSize(new Dimension(detail - d.width, d.height));
+    volumeValue.setEnabled(false);
+    p.add(volumeValue);
+    controls.add(pad(p));
+
+    // volume slider
+    volumeRes = new JSlider(0, detail, normal);
+    volumeRes.addChangeListener(new ChangeListener() {
+      public void stateChanged(ChangeEvent e) {
+        doVolumeRes(!volumeRes.getValueIsAdjusting());
+      }
+    });
+    volumeRes.setEnabled(false);
+    volumeRes.setMajorTickSpacing(detail / 4);
+    volumeRes.setMinorTickSpacing(detail / 16);
+    volumeRes.setPaintTicks(true);
+    controls.add(pad(volumeRes));
+
+    // arbitrary slice checkbox
+    p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    doSlice = new JCheckBox("Arbitrary data slice: ", false);
+    doSlice.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        boolean b = doSlice.isSelected();
+        sliceValue.setEnabled(b);
+        sliceRes.setEnabled(b);
+        sliceContinuous.setEnabled(b);
+        bio.sm.setPlaneSelect(b);
+        bio.vert.setEnabled(!b);
+        bio.toolMeasure.setEnabled(!b);
+        bio.mm.pool2.setSlice(b ? -1 : bio.sm.getSlice());
+      }
+    });
+    doSlice.setEnabled(false);
+    p.add(doSlice);
+
+    // current slice value
+    sliceValue = new JLabel("");
+    d = doSlice.getPreferredSize();
+    //sliceValue.setPreferredSize(new Dimension(detail - d.width, d.height));
+    sliceValue.setEnabled(false);
+    p.add(sliceValue);
+    controls.add(pad(p));
+
+    // slice slider
+    sliceRes = new JSlider(0, detail, normal);
+    sliceRes.addChangeListener(new ChangeListener() {
+      public void stateChanged(ChangeEvent e) {
+        doSliceRes(!sliceRes.getValueIsAdjusting());
+      }
+    });
+    sliceRes.setEnabled(false);
+    sliceRes.setMajorTickSpacing(detail / 4);
+    sliceRes.setMinorTickSpacing(detail / 16);
+    sliceRes.setPaintTicks(true);
+    controls.add(pad(sliceRes));
 
     // continuous update checkbox
-    sliceUpdate = new JCheckBox("Update continuously", false);
-    sliceUpdate.addItemListener(new ItemListener() {
+    sliceContinuous = new JCheckBox("Update slice continuously", false);
+    sliceContinuous.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
-        bio.sm.setPlaneContinuous(sliceUpdate.isSelected());
+        bio.sm.setPlaneContinuous(sliceContinuous.isSelected());
       }
     });
-    sliceUpdate.setEnabled(false);
-    p.add(Box.createHorizontalStrut(10));
-    p.add(sliceUpdate);
-    controls.add(p);
-
-    // arbitrary slice resolution
-    p = new JPanel();
-    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    sliceResLabel1 = new JLabel("Slice resolution: ");
-    sliceResX = new JTextField();
-    sliceResLabel2 = new JLabel(" by ");
-    sliceResY = new JTextField();
-    DocumentListener doc = new DocumentListener() {
-      public void changedUpdate(DocumentEvent e) { update(e); }
-      public void insertUpdate(DocumentEvent e) { update(e); }
-      public void removeUpdate(DocumentEvent e) { update(e); }
-      public void update(DocumentEvent e) {
-        String sx = sliceResX.getText();
-        String sy = sliceResY.getText();
-        try {
-          int resx = Integer.parseInt(sx);
-          int resy = Integer.parseInt(sy);
-          bio.sm.setSliceRange(resx, resy);
-        }
-        catch (NumberFormatException exc) { }
-      }
-    };
-    Util.adjustTextField(sliceResX);
-    Util.adjustTextField(sliceResY);
-    sliceResX.getDocument().addDocumentListener(doc);
-    sliceResY.getDocument().addDocumentListener(doc);
-    sliceResLabel1.setForeground(Color.black);
-    sliceResLabel2.setForeground(Color.black);
-    sliceResLabel1.setEnabled(false);
-    sliceResLabel2.setEnabled(false);
-    sliceResX.setEnabled(false);
-    sliceResY.setEnabled(false);
-    p.add(sliceResLabel1);
-    p.add(sliceResX);
-    p.add(sliceResLabel2);
-    p.add(sliceResY);
-    controls.add(p);
+    sliceContinuous.setEnabled(false);
+    controls.add(pad(sliceContinuous));
   }
 
 
   // -- API METHODS --
+
+  /** Initializes this tool panel. */
+  public void init() {
+    maxVolRes = bio.sm.res_x;
+    if (bio.sm.res_y > maxVolRes) maxVolRes = bio.sm.res_y;
+    int slices = bio.sm.getNumberOfSlices();
+    if (slices > maxVolRes) maxVolRes = slices;
+    int volVal = maxVolRes < 64 ? maxVolRes : 64;
+    double volPercent = (double) volVal / maxVolRes;
+    volumeRes.setValue((int) (volPercent * BioVisAD.RESOLUTION_DETAIL));
+    int max = bio.sm.res_x < bio.sm.res_y ? bio.sm.res_x : bio.sm.res_y;
+    int sliceVal = max < 64 ? max : 64;
+    double slicePercent = (double) sliceVal / max;
+    sliceRes.setValue((int) (slicePercent * BioVisAD.RESOLUTION_DETAIL));
+  }
 
   /** Enables or disables this tool panel. */
   public void setEnabled(boolean enabled) {
@@ -345,12 +377,9 @@ public class ViewToolPanel extends ToolPanel {
     hiRes.setEnabled(b);
     autoSwitch.setEnabled(b);
     anim.setEnabled(b);
-    planeSelect.setEnabled(enabled && bio.sm.getNumberOfSlices() > 1);
-    b = enabled && planeSelect.isSelected();
-    sliceResLabel1.setEnabled(b);
-    sliceResX.setEnabled(b);
-    sliceResLabel2.setEnabled(b);
-    sliceResY.setEnabled(b);
+    b = enabled && bio.sm.getNumberOfSlices() > 1;
+    doVolume.setEnabled(b && bio.display3 != null);
+    doSlice.setEnabled(b && bio.display3 != null);
   }
 
   /** Switches between lo-res and hi-res mode. */
@@ -365,10 +394,29 @@ public class ViewToolPanel extends ToolPanel {
   /** Sets the animation widget's animation control. */
   void setControl(AnimationControl control) { anim.setControl(control); }
 
-  /** Updates x and y slice resolution text fields. */
-  void setSliceRange(int x, int y) {
-    sliceResX.setText("" + x);
-    sliceResY.setText("" + y);
+
+  // -- HELPER METHODS --
+
+  /** Recomputes volume resolution based on slider value. */
+  private void doVolumeRes(boolean go) {
+    int value = volumeRes.getValue();
+    double percent = (double) value / BioVisAD.RESOLUTION_DETAIL;
+    int res = (int) (percent * maxVolRes);
+    if (res < 2) res = 2;
+    volumeValue.setText(res + " x " + res + " x " + res);
+    if (go) bio.sm.setVolumeResolution(res);
+  }
+
+  /** Recomputes slice resolution based on slider value. */
+  private void doSliceRes(boolean go) {
+    int value = sliceRes.getValue();
+    double percent = (double) value / BioVisAD.RESOLUTION_DETAIL;
+    int x = (int) (percent * bio.sm.res_x);
+    int y = (int) (percent * bio.sm.res_y);
+    if (x < 2) x = 2;
+    if (y < 2) y = 2;
+    sliceValue.setText(x + " x " + y);
+    if (go) bio.sm.setSliceRange(x, y);
   }
 
 }

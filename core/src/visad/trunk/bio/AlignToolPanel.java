@@ -150,6 +150,9 @@ public class AlignToolPanel extends ToolPanel {
 
   // -- API METHODS --
 
+  /** Initializes this tool panel. */
+  public void init() { }
+
   /** Enables or disables this tool panel. */
   public void setEnabled(boolean enabled) {
     if (enabled) {
