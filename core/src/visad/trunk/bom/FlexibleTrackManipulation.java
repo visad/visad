@@ -189,7 +189,50 @@ public class FlexibleTrackManipulation extends Object {
     // construct symbols
     int nv = 16;
     float size = 0.1f;
+    VisADGeometryArray[][] ga = makeStormShapes(nv, size);
 
+    shape_control1 = (ShapeControl) shape_map1.getControl();
+    shape_control1.setShapeSet(new Integer1DSet(8));
+    shape_control1.setShapes(ga[0]);
+
+    shape_control2 = (ShapeControl) shape_map2.getControl();
+    shape_control2.setShapeSet(new Integer1DSet(8));
+    shape_control2.setShapes(ga[1]);
+
+    track_ref = new DataReferenceImpl("track_ref");
+    track_ref.setData(storm_track);
+    display.addReference(track_ref);
+    which_time = -1;
+    if (acontrol == null) {
+      track_refs = new DataReferenceImpl[ntimes];
+      direct_manipulation_renderers = new DirectManipulationRendererJ3D[ntimes];
+      track_monitors = new TrackMonitor[ntimes];
+      for (int i=0; i<ntimes; i++) {
+        track_refs[i] = new DataReferenceImpl("station_ref" + i);
+        track_refs[i].setData(tuples[i]);
+        direct_manipulation_renderers[i] = new DirectManipulationRendererJ3D();
+        display.addReferences(direct_manipulation_renderers[i], track_refs[i]);
+        track_monitors[i] = new TrackMonitor(track_refs[i], i);
+        track_monitors[i].addReference(track_refs[i]);
+      }
+    }
+    else {
+      track_refs = new DataReferenceImpl[1];
+      direct_manipulation_renderers = new DirectManipulationRendererJ3D[1];
+      track_monitors = new TrackMonitor[1];
+      track_refs[0] = new DataReferenceImpl("station_ref");
+      track_refs[0].setData(tuples[0]);
+      direct_manipulation_renderers[0] = new DirectManipulationRendererJ3D();
+      display.addReferences(direct_manipulation_renderers[0], track_refs[0]);
+      track_monitors[0] = new TrackMonitor(track_refs[0], 0);
+      track_monitors[0].addReference(track_refs[0]);
+    }
+
+    if (acontrol != null) acontrol.setCurrent(0);
+  }
+
+  public static VisADGeometryArray[][] makeStormShapes(int nv, float size)
+         throws VisADException {
     VisADLineArray circle = new VisADLineArray();
     circle.vertexCount = 2 * nv;
     float[] coordinates = new float[3 * circle.vertexCount];
@@ -291,48 +334,10 @@ public class FlexibleTrackManipulation extends Object {
     VisADLineArray north_circle =
       VisADLineArray.merge(new VisADLineArray[] {circle, north});
 
-    shape_control1 = (ShapeControl) shape_map1.getControl();
-    shape_control1.setShapeSet(new Integer1DSet(8));
-    VisADLineArray[] line_shapes =
-      {null, ell, circle, null, south_circle, south, north_circle, north};
-    shape_control1.setShapes(line_shapes);
-
-    shape_control2 = (ShapeControl) shape_map2.getControl();
-    shape_control2.setShapeSet(new Integer1DSet(8));
-    VisADTriangleArray[] triangle_shapes =
-      {null, null, null, filled_circle, null, filled_circle, null, filled_circle};
-    shape_control2.setShapes(triangle_shapes);
-
-    track_ref = new DataReferenceImpl("track_ref");
-    track_ref.setData(storm_track);
-    display.addReference(track_ref);
-    which_time = -1;
-    if (acontrol == null) {
-      track_refs = new DataReferenceImpl[ntimes];
-      direct_manipulation_renderers = new DirectManipulationRendererJ3D[ntimes];
-      track_monitors = new TrackMonitor[ntimes];
-      for (int i=0; i<ntimes; i++) {
-        track_refs[i] = new DataReferenceImpl("station_ref" + i);
-        track_refs[i].setData(tuples[i]);
-        direct_manipulation_renderers[i] = new DirectManipulationRendererJ3D();
-        display.addReferences(direct_manipulation_renderers[i], track_refs[i]);
-        track_monitors[i] = new TrackMonitor(track_refs[i], i);
-        track_monitors[i].addReference(track_refs[i]);
-      }
-    }
-    else {
-      track_refs = new DataReferenceImpl[1];
-      direct_manipulation_renderers = new DirectManipulationRendererJ3D[1];
-      track_monitors = new TrackMonitor[1];
-      track_refs[0] = new DataReferenceImpl("station_ref");
-      track_refs[0].setData(tuples[0]);
-      direct_manipulation_renderers[0] = new DirectManipulationRendererJ3D();
-      display.addReferences(direct_manipulation_renderers[0], track_refs[0]);
-      track_monitors[0] = new TrackMonitor(track_refs[0], 0);
-      track_monitors[0].addReference(track_refs[0]);
-    }
-
-    if (acontrol != null) acontrol.setCurrent(0);
+    VisADGeometryArray[][] ga =
+      {{null, ell, circle, null, south_circle, south, north_circle, north},
+       {null, null, null, filled_circle, null, filled_circle, null, filled_circle}};
+    return ga;
   }
 
   public void endManipulation()
