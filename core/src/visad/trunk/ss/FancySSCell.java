@@ -164,8 +164,9 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   }
 
   /** switch to 3-D mode if necessary and available, then call setMaps() */
-  public void setMapsAuto(ScalarMap[] maps) throws VisADException,
-                                                   RemoteException {
+  public void setMapsAuto(ScalarMap[] maps)
+    throws VisADException, RemoteException
+  {
     if (AutoSwitch && maps != null) {
       int need = 0;
       for (int i=0; i<maps.length; i++) {
@@ -185,8 +186,9 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   }
 
   /** set the ScalarMaps for this cell and creates needed control widgets */
-  public void setMaps(ScalarMap[] maps) throws VisADException,
-                                               RemoteException {
+  public void setMaps(ScalarMap[] maps)
+    throws VisADException, RemoteException
+  {
     super.setMaps(maps);
     if (WidgetFrame != null && WidgetFrame.isVisible() ||
         AutoShowControls) showWidgetFrame();

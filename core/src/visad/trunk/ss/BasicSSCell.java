@@ -250,7 +250,7 @@ public class BasicSSCell extends JPanel {
 
       setDimClone();
 
-      VDisplay.addDisplayListener(new DisplayListener() {
+      addDisplayListener(new DisplayListener() {
         public void displayChanged(DisplayEvent e) {
           int id = e.getId();
           if (id == DisplayEvent.TRANSFORM_DONE) {
@@ -553,7 +553,7 @@ public class BasicSSCell extends JPanel {
         lMapsCell.addReference(drMap);
       }
       // server can receive a remote data object update from any client;
-      // clients simply recieve data object updates through the RemoteDisplay
+      // clients simply receive data object updates through the RemoteDisplay
       CellImpl lLoadedCell = new CellImpl() {
         public void doAction() {
           try {
@@ -589,15 +589,9 @@ public class BasicSSCell extends JPanel {
   }
 
   private void setupRemoteDataChangeCell() {
-    // attempt to obtain DataReference from cloned display
-    DataReference dr = null;
-    Vector v = VDisplay.getLinks();
-    if (v != null && v.size() > 0) {
-      DataDisplayLink ddl = (DataDisplayLink) v.elementAt(0);
-      dr = (DataReference) ddl.getThingReference();
-    }
+    DataReference dr = getReference();
     if (dr != null) {
-      // if successful, use cell to listen for data changes
+      // use a VisAD Cell to listen for data changes
       CellImpl lrdccell = new CellImpl() {
         public void doAction() {
           // data has changed; notify listeners
@@ -781,7 +775,7 @@ public class BasicSSCell extends JPanel {
         public void paint(Graphics g) {
           g.setColor(Color.white);
           String s = (m.length == 1 ? "An error" : "Errors") +
-                     " occurred while computing this cell:";
+            " occurred while computing this cell:";
           g.drawString(s, 8, 20);
           for (int i=0; i<m.length; i++) g.drawString(m[i], 8, 15*i + 50);
         }
@@ -828,7 +822,8 @@ public class BasicSSCell extends JPanel {
 
   /** remove this SSCell from the given RemoteServer */
   public void removeFromRemoteServer(RemoteServerImpl rs)
-                                     throws RemoteException {
+    throws RemoteException
+  {
     if (rs == null) return;
     if (IsRemote) {
       throw new RemoteException("Cannot remove a cloned cell from a server");
@@ -1789,18 +1784,20 @@ public class BasicSSCell extends JPanel {
   /** clear this cell completely and permanently remove it from the
       list of created cells */
   public void destroyCell() throws VisADException, RemoteException {
-    if (!IsRemote) clearCell();
+    if (!IsRemote) {
+      clearCell();
 
-    // remove cell from all servers
-    int slen = Servers.size();
-    if (slen > 0) {
-      for (int i=0; i<slen; i++) {
-        RemoteServerImpl rs = (RemoteServerImpl) Servers.elementAt(i);
-        removeFromRemoteServer(rs);
+      // remove cell from all servers
+      int slen = Servers.size();
+      if (slen > 0) {
+        for (int i=0; i<slen; i++) {
+          RemoteServerImpl rs = (RemoteServerImpl) Servers.elementAt(i);
+          removeFromRemoteServer(rs);
+        }
       }
-    }
 
-    if (!IsRemote) fm.remove(Name);
+      fm.remove(Name);
+    }
     SSCellVector.remove(this);
   }
 
@@ -2238,10 +2235,9 @@ public class BasicSSCell extends JPanel {
   }
 
   /** @deprecated use saveData(File, Form) instead */
-  public void saveData(File f, boolean netcdf) throws BadFormException,
-                                                      IOException,
-                                                      VisADException,
-                                                      RemoteException {
+  public void saveData(File f, boolean netcdf)
+    throws BadFormException, IOException, VisADException, RemoteException
+  {
     Form form;
     if (netcdf) form = new visad.data.netcdf.Plain();
     else form = new visad.data.visad.VisADForm();
@@ -2249,10 +2245,9 @@ public class BasicSSCell extends JPanel {
   }
 
   /** export a data object to a given file name, using the given Data form */
-  public void saveData(File f, Form form) throws BadFormException,
-                                                 IOException,
-                                                 VisADException,
-                                                 RemoteException {
+  public void saveData(File f, Form form)
+    throws BadFormException, IOException, VisADException, RemoteException
+  {
     Data d = getData();
     if (f == null || d == null) return;
     Saving++;
