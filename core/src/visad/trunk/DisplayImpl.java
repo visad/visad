@@ -1541,7 +1541,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
           initialize = badScale;
           if (always_initialize) initialize = true;
 
-          if (initialize != lastinitialize) {
+          if (initialize && !lastinitialize) {
             displayRenderer.prepareAction(temp, tmap, go, initialize);
           }
 
