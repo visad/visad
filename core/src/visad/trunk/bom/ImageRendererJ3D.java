@@ -485,6 +485,7 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
     AnimationControl animation_control =
       (AnimationControl) animation_map.getControl();
     animation_control.setStep(step);
+    animation_control.setOn(true);
 
 /*
     // link the Display to image_ref
