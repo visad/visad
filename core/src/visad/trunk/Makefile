@@ -225,6 +225,8 @@ SAVE_FILES = \
 	edu/wisc/ssec/mcidas/adde/*.java		\
 	visad/data/mcidas/*.java			\
 	visad/data/mcidas/README.mcidas			\
+	visad/data/avi/*.java				\
+	visad/data/bio/*.java				\
 	visad/data/biorad/*.java			\
 	visad/data/ij/*.java				\
 	visad/data/jai/*.java				\
@@ -328,6 +330,8 @@ DOC_PACKAGES = \
 		edu.wisc.ssec.mcidas \
 		edu.wisc.ssec.mcidas.adde \
 		visad.data.mcidas \
+		visad.data.avi \
+		visad.data.bio \
 		visad.data.biorad \
 		visad.data.ij \
 		visad.data.jai \

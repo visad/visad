@@ -140,6 +140,8 @@ visad\data\in\package.html \
 visad\data\units\*.java \
 visad\data\units\*.jj \
 visad\data\amanda\*.java \
+visad\data\avi\*.java \
+visad\data\bio\*.java \
 visad\data\biorad\*.java \
 visad\data\dods\*.java \
 visad\data\dods\package.html \
@@ -311,6 +313,8 @@ edu\wisc\ssec\mcidas\*.java \
 edu\wisc\ssec\mcidas\adde\*.java \
 visad\data\mcidas\*.java \
 visad\data\mcidas\README.mcidas \
+visad\data\avi\*.java \
+visad\data\bio\*.java \
 visad\data\biorad\*.java \
 visad\data\ij\*.java \
 visad\data\jai\*.java \
@@ -457,6 +461,10 @@ save:
 		$(DEL) $(BACKUP)\edu\wisc\ssec\mcidas\adde\*.java
 	if exist $(BACKUP)\visad\data\mcidas\*.java \
 		$(DEL) $(BACKUP)\visad\data\mcidas\*.java
+	if exist $(BACKUP)\visad\data\avi\*.java \
+		$(DEL) $(BACKUP)\visad\data\avi\*.java
+	if exist $(BACKUP)\visad\data\bio\*.java \
+		$(DEL) $(BACKUP)\visad\data\bio\*.java
 	if exist $(BACKUP)\visad\data\biorad\*.java \
 		$(DEL) $(BACKUP)\visad\data\biorad\*.java
 	if exist $(BACKUP)\visad\data\ij\*.java \
@@ -564,6 +572,8 @@ visad\data\vis5d\*.class \
 edu\wisc\ssec\mcidas\*.class \
 edu\wisc\ssec\mcidas\adde\*.class \
 visad\data\mcidas\*.class \
+visad\data\avi\*.class \
+visad\data\bio\*.class \
 visad\data\biorad\*.class \
 visad\data\ij\*.class \
 visad\data\jai\*.class \
@@ -654,6 +664,8 @@ clear:
 	if exist ..\edu\wisc\ssec\mcidas\*.java $(DEL) ..\edu\wisc\ssec\mcidas\*.java
 	if exist ..\edu\wisc\ssec\mcidas\adde\*.java $(DEL) ..\edu\wisc\ssec\mcidas\adde\*.java
 	if exist data\mcidas\*.java $(DEL) data\mcidas\*.java
+	if exist data\avi\*.java $(DEL) data\avi\*.java
+	if exist data\bio\*.java $(DEL) data\bio\*.java
 	if exist data\biorad\*.java $(DEL) data\biorad\*.java
 	if exist data\ij\*.java $(DEL) data\ij\*.java
 	if exist data\jai\*.java $(DEL) data\jai\*.java
@@ -719,6 +731,8 @@ clean:
 	if exist ..\edu\wisc\ssec\mcidas\*.class $(DEL) ..\edu\wisc\ssec\mcidas\*.class
 	if exist ..\edu\wisc\ssec\mcidas\adde\*.class $(DEL) ..\edu\wisc\ssec\mcidas\adde\*.class
 	if exist data\mcidas\*.class $(DEL) data\mcidas\*.class
+	if exist data\avi\*.class $(DEL) data\avi\*.class
+	if exist data\bio\*.class $(DEL) data\bio\*.class
 	if exist data\biorad\*.class $(DEL) data\biorad\*.class
 	if exist data\ij\*.class $(DEL) data\ij\*.class
 	if exist data\jai\*.class $(DEL) data\jai\*.class
@@ -811,6 +825,8 @@ data\vis5d\*.class \
 ..\edu\wisc\ssec\mcidas\*.class \
 ..\edu\wisc\ssec\mcidas\adde\*.class \
 data\mcidas\*.class \
+data\avi\*.class \
+data\bio\*.class \
 data\biorad\*.class \
 data\ij\*.class \
 data\jai\*.class \
@@ -887,6 +903,8 @@ compile: clean
 	$(JC) $(JFLAGS) ..\edu\wisc\ssec\mcidas\*.java
 	$(JC) $(JFLAGS) ..\edu\wisc\ssec\mcidas\adde\*.java
 	$(JC) $(JFLAGS) data\mcidas\*.java
+	$(JC) $(JFLAGS) data\avi\*.java
+	$(JC) $(JFLAGS) data\bio\*.java
 	$(JC) $(JFLAGS) data\biorad\*.java
 	$(JC) $(JFLAGS) data\ij\*.java
 	$(JC) $(JFLAGS) data\jai\*.java
@@ -979,6 +997,8 @@ visad.data.gis \
 visad.data.tiff \
 edu.wisc.ssec.mcidas \
 visad.data.mcidas \
+visad.data.avi \
+visad.data.bio \
 visad.data.biorad \
 visad.data.ij \
 visad.data.jai \
