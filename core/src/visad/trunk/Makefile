@@ -160,6 +160,7 @@ SAVE_FILES = \
 	visad/examples/*.html				\
 	visad/java3d/*.java				\
 	visad/java2d/*.java				\
+	visad/browser/*.java				\
 	visad/util/*.java				\
 	visad/matrix/*.java				\
 	visad/formula/*.java				\
@@ -193,8 +194,8 @@ SAVE_FILES = \
 	visad/data/hdfeos/hdfeosc/Makefile		\
 	edu/wisc/ssec/mcidas/*.java			\
 	edu/wisc/ssec/mcidas/adde/*.java		\
-	visad/data/mcidas/*.java                        \
-	visad/data/mcidas/README.mcidas                 \
+	visad/data/mcidas/*.java			\
+	visad/data/mcidas/README.mcidas			\
 	visad/data/vis5d/*.java				\
 	visad/data/gif/*.java				\
 	visad/data/visad/*.java				\
@@ -221,19 +222,19 @@ SAVE_FILES = \
 	visad/aune/*.f					\
 	visad/aune/*.c					\
 	visad/aune/*.h					\
-	visad/benjamin/README.benjamin                  \
-	visad/benjamin/Makefile                         \
-	visad/benjamin/*.java                           \
-	visad/benjamin/*.f                              \
-	visad/benjamin/*.c                              \
-	visad/benjamin/*.h                              \
-	visad/benjamin/switch.inp                       \
-	visad/benjamin/*.table                          \
-	visad/rabin/*.java                              \
-	visad/bom/*.java                                \
-	visad/aeri/*.java                               \
-	visad/georef/*.java                             \
-	visad/meteorology/*.java                        \
+	visad/benjamin/README.benjamin			\
+	visad/benjamin/Makefile				\
+	visad/benjamin/*.java				\
+	visad/benjamin/*.f				\
+	visad/benjamin/*.c				\
+	visad/benjamin/*.h				\
+	visad/benjamin/switch.inp			\
+	visad/benjamin/*.table				\
+	visad/rabin/*.java				\
+	visad/bom/*.java				\
+	visad/aeri/*.java				\
+	visad/georef/*.java				\
+	visad/meteorology/*.java			\
 	visad/Gridded1D.txt				\
 	visad/Gridded2D.txt				\
 	visad/Gridded3D.txt				\
@@ -253,6 +254,7 @@ DOC_PACKAGES = \
 		visad.collab \
 		visad.java3d \
 		visad.java2d \
+                visad.browser \
 		visad.util \
 		ucar.multiarray \
 		ucar.util \
@@ -400,7 +402,7 @@ clean:
 	      if [ -f $$dir/Makefile ]; then				\
 		(cd $$dir && make -k clean);				\
 	      else							\
-		(cd $$dir && $(RM) *.class *.o *.so *~);			\
+		(cd $$dir && $(RM) *.class *.o *.so *~);		\
 	      fi;							\
 	    fi;								\
 	  fi;								\
@@ -483,7 +485,7 @@ docs:
 tardocs: docs
 	(cd $(DOC_DIR)/.. &&						\
 	 DNAME=`basename $(DOC_DIR)` &&					\
-	 date > $$DNAME/DATE &&					\
+	 date > $$DNAME/DATE &&						\
 	 tar -cvf - $$DNAME) > visad_doc-2.0.tar;			\
 	compress visad_doc-2.0.tar;					\
 	ln visad_doc-2.0.tar.Z visaddoc.taz;				\
@@ -492,8 +494,8 @@ tardocs: docs
 jardocs: docs
 	(cd $(DOC_DIR)/.. &&						\
 	 DNAME=`basename $(DOC_DIR)` &&					\
-	 date > $$DNAME/DATE &&					\
-	 jar cv $$DNAME) > visad_doc-2.0.jar;			\
+	 date > $$DNAME/DATE &&						\
+	 jar cv $$DNAME) > visad_doc-2.0.jar;				\
 	ln visad_doc-2.0.jar visaddoc.jar;				\
 	ls -l visad_doc-2.0.jar visaddoc.jar
 

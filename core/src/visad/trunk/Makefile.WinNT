@@ -83,6 +83,7 @@ visad\java3d\Makefile \
 visad\java3d\*.java \
 visad\java3d\*.c \
 visad\java2d\*.java \
+visad\browser\*.java \
 visad\util\*.java \
 visad\matrix\*.java \
 visad\formula\*.java \
@@ -195,6 +196,7 @@ visad\examples\*.java \
 visad\examples\*.html \
 visad\java3d\*.java \
 visad\java2d\*.java \
+visad\browser\*.java \
 visad\util\*.java \
 visad\matrix\*.java \
 visad\formula\*.java \
@@ -289,6 +291,8 @@ save:
 		$(DEL) $(BACKUP)\visad\java3d\*.java
 	if exist $(BACKUP)\visad\java2d\*.java \
 		$(DEL) $(BACKUP)\visad\java2d\*.java
+	if exist $(BACKUP)\visad\browser\*.java \
+		$(DEL) $(BACKUP)\visad\browser\*.java
 	if exist $(BACKUP)\visad\util\*.java \
 		$(DEL) $(BACKUP)\visad\util\*.java
 	if exist $(BACKUP)\visad\formula\*.java \
@@ -376,6 +380,7 @@ DATE \
 visad\*.class \
 visad\java3d\*.class \
 visad\java2d\*.class \
+visad\browser\*.class \
 visad\util\*.class \
 visad\matrix\*.class \
 visad\formula\*.class \
@@ -440,6 +445,7 @@ clear:
 	if exist collab\*.java $(DEL) collab\*.java
 	if exist java3d\*.java $(DEL) java3d\*.java
 	if exist java2d\*.java $(DEL) java2d\*.java
+	if exist browser\*.java $(DEL) browser\*.java
 	if exist util\*.java $(DEL) util\*.java
 	if exist matrix\*.java $(DEL) matrix\*.java
 	if exist formula\*.java $(DEL) formula\*.java
@@ -486,6 +492,7 @@ clean:
 	if exist collab\*.class $(DEL) collab\*.class
 	if exist java3d\*.class $(DEL) java3d\*.class
 	if exist java2d\*.class $(DEL) java2d\*.class
+	if exist browser\*.class $(DEL) browser\*.class
 	if exist util\*.class $(DEL) util\*.class
 	if exist matrix\*.class $(DEL) matrix\*.class
 	if exist formula\*.class $(DEL) formula\*.class
@@ -574,6 +581,7 @@ $(NCSA)\*.class \
 $(NCSA)\exceptions\*.class \
 data\hdf5\hdf5objects\*.class \
 data\hdf5\*.class \
+browser\*.class \
 util\*.class \
 formula\*.class \
 ss\*.class \
@@ -624,6 +632,7 @@ compile: clean
 	$(JC) $(JFLAGS) $(NCSA)\*.java
 	$(JC) $(JFLAGS) data\hdf5\hdf5objects\*.java
 	$(JC) $(JFLAGS) data\hdf5\*.java
+	$(JC) $(JFLAGS) browser\*.java
 	$(JC) $(JFLAGS) util\*.java
 	$(JC) $(JFLAGS) formula\*.java
 	$(JC) $(JFLAGS) ss\*.java
@@ -654,6 +663,7 @@ visad \
 visad.collab \
 visad.java3d \
 visad.java2d \
+visad.browser \
 visad.util \
 visad.matrix \
 visad.formula \
