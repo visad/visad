@@ -49,15 +49,6 @@ import visad.data.visad.object.*;
 public class BinaryReader
   implements BinaryFile
 {
-  private static final boolean DEBUG_RD_CSYS = false;
-  private static final boolean DEBUG_RD_DATA = false;
-  private static final boolean DEBUG_RD_DATA_DETAIL = false;
-  private static final boolean DEBUG_RD_ERRE = false;
-  private static final boolean DEBUG_RD_MATH = false;
-  private static final boolean DEBUG_RD_STR = false;
-  private static final boolean DEBUG_RD_TIME = false;
-  private static final boolean DEBUG_RD_UNIT = false;
-
   private DataInput file;
 
   private int version;
