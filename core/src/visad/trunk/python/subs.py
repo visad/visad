@@ -338,22 +338,22 @@ class _vdisp:
     """
     self.getGraphicsModeControl().setScaleEnable(on)
 
-  def enableRubberBandBoxZoomer(self,useKey,callback=None):
+  def enableRubberBandBoxZoomer(self,useKey,callback=None,color=None,x=None,y=None):
     """
     Method to attach a Rubber Band Box zoomer to this
     display.  Once attached, it is there foreever!  The useKey
     parameter can be 0 (no key), 1(CTRL), 2(SHIFT)
     """
-    rrbz = RubberBandZoomer(self,useKey,1,callback)
+    rrbz = RubberBandZoomer(self,useKey,1,callback,color,x,y)
     return rrbz.ref
 
-  def enableRubberBandBox(self,useKey,callback=None):
+  def enableRubberBandBox(self,useKey,callback=None,color=None,x=None,y=None):
     """
     Method to attach a Rubber Band Box to this display.  Once
     attached, it is there forever!  The useKey parameter can 
     be 0 (no key), 1(CTRL), 2(SHIFT)
     """
-    rrbz = RubberBandZoomer(self,useKey,0,callback)
+    rrbz = RubberBandZoomer(self,useKey,0,callback,color,x,y)
     return rrbz.ref
 
   def getDisplayScalarMaps(self, includeShapes=0):
@@ -364,6 +364,18 @@ class _vdisp:
     may be a Display, or the name of a 'plot()' window.
     """
     return (getDisplayScalarMaps(self,includeShapes))
+
+  def getDisplayScalarMapLists(self, includeShapes=0):
+    """
+    Return a list of the scalarmaps mappings for this display. The list
+    elements are ordered: x,y,z,display.  If <includeShapes> is
+    true, then mappings for Shape will be appended.  The <display>
+    may be a Display, or the name of a 'plot()' window.
+    Note: this is identical to getDisplayScalarMaps except that
+    the return type is a list of lists since there may more than
+    one ScalarMap to x, y or z.
+    """
+    return (getDisplayScalarMapLists(self,includeShapes))
 
   def getDisplayMaps(self, includeShapes=0):
     """
@@ -594,7 +606,7 @@ def makeDisplay(maps):
       mousehelper.setFunctionMap([[[MouseHelper.NONE, MouseHelper.ZOOM],
                                    [MouseHelper.TRANSLATE, MouseHelper.NONE]],
                                   [[MouseHelper.CURSOR_TRANSLATE, MouseHelper.CURSOR_ZOOM],
-                                   [MouseHelper.CURSOR_ROTATE, MouseHelper.NONE]],
+                                   [MouseHelper.NONE, MouseHelper.NONE]],
                                   [[MouseHelper.DIRECT, MouseHelper.DIRECT],
                                    [MouseHelper.DIRECT, MouseHelper.DIRECT]]])
     else:
@@ -721,21 +733,21 @@ def zoomBox(display, factor):
   """
   display.zoomBox(factor)
 
-def enableRubberBandBoxZoomer(display,useKey,callback=None):
+def enableRubberBandBoxZoomer(display,useKey,callback=None,color=None,x=None,y=None):
   """
   Method to attach a Rubber Band Box zoomer to this
   display.  Once attached, it is there foreever!  The useKey
   parameter can be 0 (no key), 1(CTRL), 2(SHIFT)
   """
-  display.enableRubberBandBoxZoomer(useKey,callback)
+  display.enableRubberBandBoxZoomer(useKey,callback,color,x,y)
 
-def enableRubberBandBox(display,useKey,callback=None):
+def enableRubberBandBox(display,useKey,callback=None,color=None,x=None,y=None):
   """
   Method to attach a Rubber Band Box to this display.
   Once attached, it is there foreever!  The useKey
   parameter can be 0 (no key), 1(CTRL), 2(SHIFT)
   """
-  display.enableRubberBandBox(useKey,callback)
+  display.enableRubberBandBox(useKey,callback,color,x,y)
 
 def getDisplayScalarMaps(display, includeShapes=0):
   """
@@ -775,6 +787,50 @@ def getDisplayScalarMaps(display, includeShapes=0):
   else:
     return [x,y,z,disp]
 
+def getDisplayScalarMapLists(display, includeShapes=0):
+  """
+  Return a list of the scalarmaps mappings for this display. The list
+  elements are ordered: x,y,z,display.  If <includeShapes> is
+  true, then mappings for Shape will be appended.  The <display>
+  may be a Display, or the name of a 'plot()' window.
+  Note: this is identical to getDisplayScalarMaps except that
+  the return type is a list of lists since there may more than
+  one ScalarMap to x, y or z.
+  """
+                                                                                                                                   
+  if type(display) == StringType:
+    d = BasicSSCell.getSSCellByName(display)
+    disp = d.getDisplay()
+    maps = d.getMaps()
+                                                                                                                                   
+  elif isinstance(display, DisplayImpl):
+    maps = display.getMapVector()
+    disp = display
+                                                                                                                                   
+  else:
+    maps = None
+    disp = None
+                                                                                                                                   
+  x = []
+  y = []
+  z = []
+  shape = []
+                                                                                                                                   
+  if maps != None:
+    for m in maps:
+      if m.getDisplayScalar().toString() == "DisplayXAxis":
+        x.append(m)
+      if m.getDisplayScalar().toString() == "DisplayYAxis":
+        y.append(m)
+      if m.getDisplayScalar().toString() == "DisplayZAxis":
+        z.append(m)
+      if m.getDisplayScalar().toString() == "DisplayShape":
+        shape.append(m)
+                                                                                                                                   
+  if includeShapes:
+    return [x,y,z,disp,shape]
+  else:
+    return [x,y,z,disp]
 
 def getDisplayMaps(display, includeShapes=0):
   """
@@ -1347,12 +1403,17 @@ class RubberBandZoomer:
   image is moved and zoomed to fill the window.
   """
 
-  def __init__(self, display, requireKey, zoom, callback):
+  def __init__(self, display, requireKey, zoom, callback, color, x, y):
     """
     display is the display object.  requireKey = 0 (no key),
     = 1 (CTRL), = 2 (SHIFT)
     """
-    self.x, self.y, self.z, self.display = getDisplayMaps(display)
+    if x != None and y != None:
+      self.x = x
+      self.y = y
+      self.display = display
+    else:
+      self.x, self.y, self.z, self.display = getDisplayMaps(display)
     self.xy = RealTupleType(self.x, self.y)
     self.dummy_set = Gridded2DSet(self.xy,None,1)
     mask = 0
@@ -1363,7 +1424,10 @@ class RubberBandZoomer:
       mask = InputEvent.SHIFT_MASK
 
     self.rbb = RubberBandBoxRendererJ3D(self.x, self.y, mask, mask)
-    self.ref = addData('rbb',self.dummy_set,self.display, renderer=self.rbb)
+    constMap = None
+    if color != None:
+      constMap = makeColorMap(color)
+    self.ref = addData('rbb',self.dummy_set,self.display, constMap, renderer=self.rbb)
     self.callback = callback
     self.zoom = zoom
     
