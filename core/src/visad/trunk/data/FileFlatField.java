@@ -102,11 +102,6 @@ public class FileFlatField extends FlatField {
   public FileFlatField( FileAccessor accessor, CacheStrategy strategy )
     throws VisADException 
   {
-
-/* WLH 3 April 98
-    super( accessor.getFunctionType(), 
-           (accessor.getFunctionType()).getDomain().getDefaultSet() );
-*/
     super( accessor.getFunctionType(), 
            getNullDomainSet(accessor.getFunctionType().getDomain()) );
 
