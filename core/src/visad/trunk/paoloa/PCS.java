@@ -26,8 +26,8 @@ import javax.swing.border.*;
 public class PCS {
 
   /** the width and height of the UI frame */
-  public static int WIDTH = 800;
-  public static int HEIGHT = 600;
+  public static int WIDTH = 1200;
+  public static int HEIGHT = 800;
 
   // number of times
   int ntimes;
@@ -126,9 +126,11 @@ public class PCS {
 
   // precomputed helper values for slider_cell
   float[][][] eigen_values;
+  float[][] eigen_mags;
   float[][] mean_values;
   Gridded1DSet pressureSet;
   FlatField ll_field;
+  RealTuple[] ll_select;
   FlatField[] tp;
   FlatField[] wvp;
 
@@ -329,23 +331,26 @@ public class PCS {
 
     DisplayImpl displayll =
       new DisplayImplJ3D("displayll", new TwoDDisplayRendererJ3D());
-    displayll.addMap(new ScalarMap(longitude, Display.XAxis));
-    displayll.addMap(new ScalarMap(latitude, Display.YAxis));
+    ScalarMap lonmap = new ScalarMap(longitude, Display.XAxis);
+    displayll.addMap(lonmap);
+    ScalarMap latmap = new ScalarMap(latitude, Display.YAxis);
+    displayll.addMap(latmap);
     GraphicsModeControl modell = displayll.getGraphicsModeControl();
     modell.setScaleEnable(true);
-    ConstantMap[] point = {new ConstantMap(0.0, Display.Blue),
-                           new ConstantMap(2.0, Display.PointSize)};
-    ConstantMap[] select = {new ConstantMap(0.0, Display.Blue),
-                            new ConstantMap(5.0, Display.PointSize)};
-    displayll.addReference(ll_ref, point);
-    displayll.addReference(select_ll_ref, select);
+    modell.setPointSize(5);
+    yellow = new ConstantMap[] {new ConstantMap(0.0, Display.Blue)};
+    cyan = new ConstantMap[] {new ConstantMap(0.0, Display.Red)};
+    displayll.addReference(select_ll_ref, cyan);
+    displayll.addReference(ll_ref, yellow);
     displayll.addReference(map_ref);
 
     DisplayImpl displayprof =
       new DisplayImplJ3D("displayprof", new TwoDDisplayRendererJ3D());
     displayprof.addMap(new ScalarMap(temperature, Display.XAxis));
     displayprof.addMap(new ScalarMap(watervapor, Display.XAxis));
-    displayprof.addMap(new ScalarMap(pressure, Display.YAxis));
+    ScalarMap pmap = new ScalarMap(pressure, Display.YAxis);
+    pmap.setRange(1050.0, 0.0);
+    displayprof.addMap(pmap);
     GraphicsModeControl modeprof = displayprof.getGraphicsModeControl();
     modeprof.setScaleEnable(true);
     ConstantMap[] red = {new ConstantMap(0.0, Display.Blue),
@@ -386,8 +391,8 @@ public class PCS {
     // in sliders JPanel
     sliders.add(new VisADSlider("time", 1, ntimes, 1, 1.0, time_ref,
                                  time));
-    sliders.add(new JLabel("  "));
-    sliders.add(new VisADSlider("number of eigen vectors", 1, npcs, 1, 1.0,
+    // sliders.add(new JLabel("  "));
+    sliders.add(new VisADSlider("neigen", 0, npcs, 0, 1.0,
                                  num_eigen_ref,  numpcs));
 
     // create sliders JPanel
@@ -426,21 +431,99 @@ public class PCS {
     // compute eigen_values
     values = eigen_vectors.getFloats(false);
     eigen_values = new float[3][npcs][nbands];
+    eigen_mags = new float[3][npcs];
     for (int k=0; k<3; k++) {
       int kb = k * nbands;
       for (int j=0; j<npcs; j++) {
         int m = j + npcs * kb;
+        double mag = 0.0;
         for (int i=0; i<nbands; i++) {
           // eigen_values[k][j][i] = values[0][j + npcs * (i + kb)];
           eigen_values[k][j][i] = values[0][m];
           m += npcs;
+          mag += eigen_values[k][j][i] * eigen_values[k][j][i];
+        }
+        // System.out.println("mag eigen[" + k + "][" + j + "] = " + mag);
+        eigen_mags[k][j] = (float) Math.sqrt(mag);
+      }
+    }
+/*
+    // check eigen_values
+    for (int k=0; k<3; k++) {
+      for (int j=0; j<npcs; j++) {
+        for (int m=0; m<=j; m++) {
+          double prod = 0.0;
+          for (int i=0; i<nbands; i++) {
+            prod += eigen_values[k][j][i] * eigen_values[k][m][i];
+          }
+          System.out.println("prod eigen[" + k + "][" + j + "] * " +
+                             "eigen[" + k + "][" + m + "] = " + prod);
+          if (j == m) System.out.println(" ");
         }
       }
     }
+*/
+/*
+prod eigen[0][0] * eigen[0][0] = 0.3927127128278888
+ 
+prod eigen[0][1] * eigen[0][0] = 0.046502664672846805
+prod eigen[0][1] * eigen[0][1] = 0.13929564212833562
+ 
+prod eigen[0][2] * eigen[0][0] = 8.471525264610591E-4
+prod eigen[0][2] * eigen[0][1] = -0.007017152542599714
+prod eigen[0][2] * eigen[0][2] = 0.3791186445107675
+ 
+prod eigen[0][3] * eigen[0][0] = -0.05942929745970174
+prod eigen[0][3] * eigen[0][1] = 0.09623972822503282
+prod eigen[0][3] * eigen[0][2] = 0.018622585404625802
+prod eigen[0][3] * eigen[0][3] = 0.22188370825622428
+ 
+prod eigen[0][4] * eigen[0][0] = 0.062092655729202306
+prod eigen[0][4] * eigen[0][1] = 0.07900949019188452
+prod eigen[0][4] * eigen[0][2] = -0.010294666320233903
+prod eigen[0][4] * eigen[0][3] = -0.04979079395437114
+prod eigen[0][4] * eigen[0][4] = 0.37299805189663104
+ 
+prod eigen[0][5] * eigen[0][0] = 0.0803897273440839
+prod eigen[0][5] * eigen[0][1] = -0.018783214214082022
+prod eigen[0][5] * eigen[0][2] = 0.1004138049628791
+prod eigen[0][5] * eigen[0][3] = -0.05983648844837186
+prod eigen[0][5] * eigen[0][4] = -0.10526212742651353
+prod eigen[0][5] * eigen[0][5] = 0.20662060311035807
+ 
+prod eigen[0][6] * eigen[0][0] = 0.016786827642334856
+prod eigen[0][6] * eigen[0][1] = -0.043491916254701835
+prod eigen[0][6] * eigen[0][2] = 0.03371628361720802
+prod eigen[0][6] * eigen[0][3] = 0.06179943025961167
+prod eigen[0][6] * eigen[0][4] = -0.19640585599544558
+prod eigen[0][6] * eigen[0][5] = 0.023829713935333174
+prod eigen[0][6] * eigen[0][6] = 0.48228903710801685
+ 
+prod eigen[0][7] * eigen[0][0] = 0.18066514195135053
+prod eigen[0][7] * eigen[0][1] = 0.06622231007214197
+prod eigen[0][7] * eigen[0][2] = -0.06523913142047277
+prod eigen[0][7] * eigen[0][3] = 0.07455097875344957
+prod eigen[0][7] * eigen[0][4] = -0.06012227921048208
+prod eigen[0][7] * eigen[0][5] = 0.04336063668323664
+prod eigen[0][7] * eigen[0][6] = 0.2775049062494389
+prod eigen[0][7] * eigen[0][7] = 0.49982027209381596
+ 
+prod eigen[0][8] * eigen[0][0] = -0.10791195443054136
+prod eigen[0][8] * eigen[0][1] = -0.040771661349454646
+prod eigen[0][8] * eigen[0][2] = -0.06078896198145345
+prod eigen[0][8] * eigen[0][3] = -0.0453104544980516
+prod eigen[0][8] * eigen[0][4] = -0.009595986045525251
+prod eigen[0][8] * eigen[0][5] = -0.0960424067838872
+prod eigen[0][8] * eigen[0][6] = -0.003850559658600261
+prod eigen[0][8] * eigen[0][7] = 0.07232794834273548
+prod eigen[0][8] * eigen[0][8] = 0.394083296731774
+. . .
+*/
+
     // compute pressureSet
     values = pressures.getFloats(false);
     Gridded1DSet pressureSet = new Gridded1DSet(pressure, values, nlevels);
-    // compute ll_field
+    // compute ll_field and ll_select
     float latmin = Float.MAX_VALUE;
     float latmax = Float.MIN_VALUE;
     float lonmin = Float.MAX_VALUE;
@@ -448,21 +531,32 @@ public class PCS {
     float del_lat = 1.0f;
     float del_lon = 1.0f;
     float[][] lls = new float[2][ntimes];
+    ll_select = new RealTuple[ntimes];
     for (int i=0; i<ntimes; i++) {
       Tuple tup = (Tuple) time_series.getSample(i);
       FlatField ll = (FlatField) tup.getComponent(1);
       values = ll.getFloats(false);
-      lls[0][i] = -values[0][0];
-      lls[1][i] = -values[1][0];
+      lls[0][i] = values[0][0];
+      lls[1][i] = values[1][0];
       if (lls[0][i] < latmin) latmin = lls[0][i];
       if (lls[0][i] > latmax) latmax = lls[0][i];
       if (lls[1][i] < lonmin) lonmin = lls[1][i];
       if (lls[1][i] > lonmax) lonmax = lls[1][i];
+      double[] vals = {values[0][0], values[1][0]};
+      ll_select[i] = new RealTuple(latlon, vals);
     }
     ll_field = new FlatField(latlon_func, new Integer1DSet(time, ntimes));
     ll_field.setSamples(lls);
     ll_ref.setData(ll_field);
-    BaseMapAdapter baseMap = new BaseMapAdapter("OUTLUSAM");
+    // adjust map boundaries
+    lonmap.setRange(lonmax, lonmin);
+    latmap.setRange(latmin, latmax);
+    // get map
+    BaseMapAdapter baseMap = new BaseMapAdapter("OUTLSUPW");
+    if ( baseMap.isEastPositive() ) {
+      baseMap.setEastPositive(false);
+    }
+
     baseMap.setLatLonLimits(latmin-del_lat, latmax+del_lat,
                             lonmin-del_lon, lonmax+del_lon);
     DataImpl map = baseMap.getData();
@@ -488,15 +582,102 @@ public class PCS {
     CellImpl slider_cell = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
         int t = (int) ((Real) time_ref.getData()).getValue() - 1;
-        int ne = (int) ((Real) num_eigen_ref.getData()).getValue() - 1;
-        if (t < 0 || ntimes <= t || ne < 0 || npcs <= ne) {
+        int ne = (int) ((Real) num_eigen_ref.getData()).getValue();
+        if (t < 0 || ntimes <= t || ne < 0 || npcs < ne) {
           System.out.println("time " + t + " or number of eigen vectors " +
                              ne + " out of bounds");
           return;
         }
         Tuple tup = (Tuple) time_series.getSample(t);
         FlatField bn = (FlatField) tup.getComponent(0);
+        float[][] cvalues = bn.getFloats(false);
+        float[][] bcoefs = new float[3][ne];
+        float[][] ncoefs = new float[3][ne];
+        for (int k=0; k<3; k++) {
+          float[] bm = mean_values[k];
+          float[] b = cvalues[k];
+          float[] n = cvalues[3 + k];
+          for (int j=0; j<ne; j++) {
+            double bcoef = 0.0;
+            double ncoef = 0.0;
+            float[] pc = eigen_values[k][j];
+            for (int i=0; i<nbands; i++) {
+              bcoef += pc[i] * (b[i] - bm[i]);
+              ncoef += pc[i] * n[i];
+            }
+            bcoefs[k][j] = (float) (bcoef / eigen_mags[k][j]);
+            ncoefs[k][j] = (float) (ncoef / eigen_mags[k][j]);
+          }
+        }
+        float[][] rvalues = new float[6][nbands];
+        for (int k=0; k<3; k++) {
+          for (int i=0; i<nbands; i++) {
+            float bv = mean_values[k][i];
+            float nv = 0.0f;
+            for (int j=0; j<ne; j++) {
+              bv += bcoefs[k][j] * eigen_values[k][j][i];
+              nv += ncoefs[k][j] * eigen_values[k][j][i];
+            }
+            rvalues[k][i] = bv;
+            rvalues[3 + k][i] = nv;
+          }
+        }
 
+        float[][] vals = {cvalues[0]};
+        FlatField b1 = new FlatField(b1_func, band_set);
+        b1.setSamples(vals, false);
+        b1_ref.setData(b1);
+        vals = new float[][] {rvalues[0]};
+        FlatField b1r = new FlatField(b1_func, band_set);
+        b1r.setSamples(vals, false);
+        b1r_ref.setData(b1r);
+
+        vals = new float[][] {cvalues[1]};
+        FlatField b2 = new FlatField(b2_func, band_set);
+        b2.setSamples(vals, false);
+        b2_ref.setData(b2);
+        vals = new float[][] {rvalues[1]};
+        FlatField b2r = new FlatField(b2_func, band_set);
+        b2r.setSamples(vals, false);
+        b2r_ref.setData(b2r);
+
+        vals = new float[][] {cvalues[2]};
+        FlatField b3 = new FlatField(b3_func, band_set);
+        b3.setSamples(vals, false);
+        b3_ref.setData(b3);
+        vals = new float[][] {rvalues[2]};
+        FlatField b3r = new FlatField(b3_func, band_set);
+        b3r.setSamples(vals, false);
+        b3r_ref.setData(b3r);
+
+        vals = new float[][] {cvalues[3]};
+        FlatField n1 = new FlatField(n1_func, band_set);
+        n1.setSamples(vals, false);
+        n1_ref.setData(n1);
+        vals = new float[][] {rvalues[3]};
+        FlatField n1r = new FlatField(n1_func, band_set);
+        n1r.setSamples(vals, false);
+        n1r_ref.setData(n1r);
+
+        vals = new float[][] {cvalues[4]};
+        FlatField n2 = new FlatField(n2_func, band_set);
+        n2.setSamples(vals, false);
+        n2_ref.setData(n2);
+        vals = new float[][] {rvalues[4]};
+        FlatField n2r = new FlatField(n2_func, band_set);
+        n2r.setSamples(vals, false);
+        n2r_ref.setData(n2r);
+
+        vals = new float[][] {cvalues[5]};
+        FlatField n3 = new FlatField(n3_func, band_set);
+        n3.setSamples(vals, false);
+        n3_ref.setData(n3);
+        vals = new float[][] {rvalues[5]};
+        FlatField n3r = new FlatField(n3_func, band_set);
+        n3r.setSamples(vals, false);
+        n3r_ref.setData(n3r);
+
+        select_ll_ref.setData(ll_select[t]);
 
         temp_ref.setData(tp[t]);
         wv_ref.setData(wvp[t]);
