@@ -183,6 +183,8 @@ public final class RADRnav extends AREAnav
             zlon = isEastPositive 
                      ?  -latlon[indexLon][point]
                      : latlon[indexLon][point];
+            if (zlon > 180) zlon -= 360;
+            if (zlon < -180) zlon += 360;
             xrlon = zlon - xlon;
             xrlat = zlat - xlat;
             xldif = xblat*xrlat;
@@ -297,6 +299,8 @@ public final class RADRnav extends AREAnav
             zlon = isEastPositive 
                      ?  -latlon[indexLon][point]
                      : latlon[indexLon][point];
+            if (zlon > 180) zlon -= 360;
+            if (zlon < -180) zlon += 360;
             xrlon = zlon - xlon;
             xrlat = zlat - xlat;
             xldif = xblat*xrlat;
