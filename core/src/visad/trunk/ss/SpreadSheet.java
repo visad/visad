@@ -612,14 +612,27 @@ public class SpreadSheet extends JFrame implements ActionListener,
     // set up display panel's individual VisAD displays
     if (clone != null) {
       // construct cells from specified server
+      boolean success = true;
       RemoteServer rs = null;
       try {
         rs = (RemoteServer) Naming.lookup("//" + clone);
       }
-      catch (NotBoundException exc) { exc.printStackTrace(); } // CTR: TEMP
-      catch (RemoteException exc) { exc.printStackTrace(); } // CTR: TEMP
-      catch (MalformedURLException exc) { exc.printStackTrace(); } // CTR: TEMP
+      catch (NotBoundException exc) {
+        success = false;
+        exc.printStackTrace(); // CTR: TEMP
+      }
+      catch (RemoteException exc) {
+        success = false;
+        exc.printStackTrace(); // CTR: TEMP
+      }
+      catch (MalformedURLException exc) {
+        success = false;
+        exc.printStackTrace(); // CTR: TEMP
+      }
       constructSpreadsheetCells(rs);
+      if (success) {
+        sTitle = sTitle + " [collaborative mode: " + clone + "]";
+      }
     }
     else {
       // construct cells from scratch
@@ -628,19 +641,15 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
     // initialize RemoteServer
     if (server != null) {
-      RemoteDataReferenceImpl[] rdri =
-        new RemoteDataReferenceImpl[NumVisX*NumVisY];
-      RemoteDisplayImpl[] rdi = new RemoteDisplayImpl[NumVisX*NumVisY];
       boolean success = true;
-      for (int i=0; i<NumVisX*NumVisY; i++) {
-        FancySSCell f = DisplayCells[i%NumVisX][i/NumVisX];
-        rdri[i] = f.getRemoteDataRef();
-        rdi[i] = (RemoteDisplayImpl) f.getRemoteDisplay();
-      }
       try {
-        rsi = new RemoteServerImpl(rdri);
-        for (int i=0; i<NumVisX*NumVisY; i++) rsi.addDisplay(rdi[i]);
+        rsi = new RemoteServerImpl();
         Naming.rebind("//:/" + server, rsi);
+        for (int j=0; j<NumVisY; j++) {
+          for (int i=0; i<NumVisX; i++) {
+            DisplayCells[i][j].addToRemoteServer(rsi);
+          }
+        }
       }
       catch (java.rmi.ConnectException exc) {
         final SpreadSheet ss = this;
@@ -669,6 +678,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
         success = false;
       }
       catch (RemoteException exc) {
+        final SpreadSheet ss = this;
+        SwingUtilities.invokeLater(new Runnable() {
+          public void run() {
+            JOptionPane.showMessageDialog(ss,
+              "Unable to export cells as RMI addresses.",
+              "Failed to initialize RemoteServer", JOptionPane.ERROR_MESSAGE);
+          }
+        });
         success = false;
       }
       if (success) bTitle = bTitle + " (" + server + ")";
@@ -1075,9 +1092,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     for (int j=0; j<NumVisY; j++) {
       for (int i=0; i<NumVisX; i++) {
         try {
-          RemoteDisplay rd = null;
-          if (rs != null) rd = rs.getDisplay(l[i][j]);
-          DisplayCells[i][j] = new FancySSCell(l[i][j], rd, this);
+          DisplayCells[i][j] = new FancySSCell(l[i][j], rs, this);
           DisplayCells[i][j].addSSCellChangeListener(this);
           DisplayCells[i][j].addMouseListener(this);
           DisplayCells[i][j].setAutoSwitch(CanDo3D);

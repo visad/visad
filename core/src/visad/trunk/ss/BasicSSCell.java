@@ -82,6 +82,9 @@ public class BasicSSCell extends JPanel {
   /** BasicSSCell's associated VisAD RemoteDataReference */
   RemoteDataReferenceImpl RemoteDataRef;
 
+  /** encapsulates needed information for remote SSCell cloning */
+  RemoteDataReference RemoteStuff = null;
+
   /** BasicSSCell's associated VisAD DisplayPanel */
   JPanel VDPanel;
 
@@ -97,11 +100,11 @@ public class BasicSSCell extends JPanel {
   /** FormulaManager object used by all BasicSSCells with formulas */
   static final FormulaManager fm = FormulaUtil.createStandardManager();
 
-  /** whether the DisplayPanel is 2-D or 3-D, Java2D or Java3D */
-  int Dimension2D = -1;
-
   /** this BasicSSCell's DisplayListener */
   DisplayListener DListen = null;
+
+  /** whether the DisplayPanel is 2-D or 3-D, Java2D or Java3D */
+  int Dimension2D = -1;
 
   /** whether the BasicSSCell contains any data */
   boolean HasData = false;
@@ -123,13 +126,14 @@ public class BasicSSCell extends JPanel {
 
   /** construct a new BasicSSCell with the given name */
   public BasicSSCell(String name) throws VisADException, RemoteException {
-    this(name, (RemoteDisplay) null);
+    this(name, (RemoteServer) null);
   }
 
-  /** construct a new BasicSSCell with the given name, that uses the
-      given RemoteDisplay for its display */
-  public BasicSSCell(String name, RemoteDisplay rd) throws VisADException,
-                                                           RemoteException {
+  /** construct a new BasicSSCell with the given name, that gets its
+      information from the given RemoteServer. The associated SSCell on the
+      server end must have already called its addToRemoteServer method */
+  public BasicSSCell(String name, RemoteServer rs) throws VisADException,
+                                                          RemoteException {
     if (name == null) {
       throw new VisADException("BasicSSCell: name cannot be null");
     }
@@ -142,8 +146,46 @@ public class BasicSSCell extends JPanel {
     }
     Name = name;
     SSCellVector.add(this);
-    RemoteVDisplay = rd;
+
+    if (rs != null) RemoteVDisplay = rs.getDisplay(name);
     remote = (RemoteVDisplay != null);
+    if (remote) {
+      // retrieve RemoteStuff object
+      RemoteStuff = rs.getDataReference(Name + "_needed_data");
+      CellImpl cell = new CellImpl() {
+        public void doAction() {
+          // RemoteStuff has changed; update local variables
+          try {
+            Tuple tpl = (Tuple) RemoteStuff.getData();
+            Text txt = (Text) tpl.getComponent(0);
+            Real r1 = (Real) tpl.getComponent(1);
+            Real r2 = (Real) tpl.getComponent(2);
+            // CTR: TEMP: ignore txt (Name) and r1 (Dimension2D) for now
+            int composite = (int) r2.getValue();
+            setX(composite % 2 == 1);
+            composite /= 2;
+            setHasData(composite % 2 == 1);
+            composite /= 2;
+            setHasDisplay(composite % 2 == 1);
+            composite /= 2;
+            setHasFormula(composite % 2 == 1);
+            composite /= 2;
+            setHasMappings(composite % 2 == 1);
+          }
+          catch (VisADException exc) { }
+          catch (RemoteException exc) { }
+        }
+      };
+      RemoteCellImpl rcell = new RemoteCellImpl(cell);
+      rcell.addReference(RemoteStuff);
+    }
+    else {
+      // create RemoteStuff object
+      DataReferenceImpl dri = new DataReferenceImpl(Name + "_needed_data");
+      RemoteStuff = new RemoteDataReferenceImpl(dri);
+      updateRemoteStuff();
+    }
+
     CellImpl ucell = new CellImpl() {
       public void doAction() {
         // redisplay this cell's data when it changes
@@ -166,7 +208,7 @@ public class BasicSSCell extends JPanel {
 
         if (value == null) {
           // no value; clear display
-          HasData = false;
+          setHasData(false);
           try {
             clearDisplay();
           }
@@ -187,12 +229,12 @@ public class BasicSSCell extends JPanel {
         }
         else {
           // update cell's data
-          HasData = true;
+          setHasData(true);
           setX(false);
           if (!HasDisplay) {
             add(VDPanel);
             validate();
-            HasDisplay = true;
+            setHasDisplay(true);
           }
         }
         String[] es = fm.getErrors(Name);
@@ -209,8 +251,9 @@ public class BasicSSCell extends JPanel {
     RemoteDataRef = new RemoteDataReferenceImpl(DataRef);
     fm.createVar(Name, DataRef);
     ucell.addReference(DataRef);
-    /* CTR: TEMP: */
-    //setDimension(JAVA2D_2D);
+    /* CTR: TEMP:
+    setDimension(JAVA2D_2D);
+    */
     setDimension(JAVA3D_3D);
     VDPanel = (JPanel) VDisplay.getComponent();
     setPreferredSize(new Dimension(0, 0));
@@ -231,6 +274,91 @@ public class BasicSSCell extends JPanel {
   /** get this SSCell's VisAD RemoteDisplay */
   public RemoteDisplay getRemoteDisplay() {
     return RemoteVDisplay;
+  }
+
+  /** turn the large X on or off */
+  void setX(boolean value) {
+    if (BigX == value) return;
+    BigX = value;
+    updateRemoteStuff();
+
+    // queue up action in event dispatch thread
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        if (BigX) add(BigXCanvas);
+        else remove(BigXCanvas);
+        validate();
+        repaint();
+      }
+    });
+  }
+
+  /** toggle HasData variable */
+  void setHasData(boolean value) {
+    if (HasData == value) return;
+    HasData = value;
+    updateRemoteStuff();
+  }
+
+  /** toggle HasDisplay variable */
+  void setHasDisplay(boolean value) {
+    if (HasDisplay == value) return;
+    HasDisplay = value;
+    updateRemoteStuff();
+  }
+
+  /** toggle HasFormula variable */
+  void setHasFormula(boolean value) {
+    if (HasFormula == value) return;
+    HasFormula = value;
+    updateRemoteStuff();
+  }
+
+  /** toggle HasMappings variable */
+  void setHasMappings(boolean value) {
+    if (HasMappings == value) return;
+    HasMappings = value;
+    updateRemoteStuff();
+  }
+
+  /** update data for remote cell clones */
+  void updateRemoteStuff() {
+    try {
+      TextType txtt = (TextType)
+        ScalarType.getScalarTypeByName("BasicSSCell_Name");
+      RealType rt1 = (RealType)
+        ScalarType.getScalarTypeByName("BasicSSCell_Dimension2D");
+      RealType rt2 = (RealType)
+        ScalarType.getScalarTypeByName("BasicSSCell_booleans");
+      if (txtt == null) txtt = new TextType("BasicSSCell_Name");
+      if (rt1 == null) rt1 = new RealType("BasicSSCell_Dimension2D");
+      if (rt2 == null) rt2 = new RealType("BasicSSCell_booleans");
+      TupleType tplt = new TupleType(new MathType[] {txtt, rt1, rt2});
+
+      int composite = (HasMappings ? 16 : 0) + (HasFormula ? 8 : 0) +
+                      (HasDisplay  ?  4 : 0) + (HasData    ? 2 : 0) +
+                      (BigX        ?  1 : 0);
+      Data[] d = new Data[3];
+      d[0] = new Text(txtt, Name);
+      d[1] = new Real(rt1, Dimension2D);
+      d[2] = new Real(rt2, composite);
+      Tuple t = new Tuple(tplt, d);
+      RemoteStuff.setData(t);
+    }
+    catch (VisADException exc) { }
+    catch (RemoteException exc) { }
+  }
+
+  /** add this SSCell to the given RemoteServer. SSCell servers must call this
+      method for their cells before clients can clone the cells with the
+      BasicSSCell(String name, RemoteServer rs) constructor */
+  public void addToRemoteServer(RemoteServerImpl rs) throws RemoteException {
+    if (!remote) {
+      rs.addDataReference(RemoteDataRef);
+      rs.addDisplay((RemoteDisplayImpl) RemoteVDisplay);
+      rs.addDataReference((RemoteDataReferenceImpl) RemoteStuff);
+    }
+    else throw new RemoteException("This cell is a clone of another cell!");
   }
 
   /** list of SSCellListeners to be notified of changes */
@@ -600,7 +728,7 @@ public class BasicSSCell extends JPanel {
     }
     VDisplay.addReference(DataRef);
     VDisplay.enableAction();
-    HasMappings = true;
+    setHasMappings(true);
     if (vexc != null) throw vexc;
     if (rexc != null) throw rexc;
   }
@@ -620,7 +748,7 @@ public class BasicSSCell extends JPanel {
     if (HasMappings) {
       VDisplay.removeReference(DataRef);
       VDisplay.clearMaps();
-      HasMappings = false;
+      setHasMappings(false);
     }
   }
 
@@ -631,7 +759,7 @@ public class BasicSSCell extends JPanel {
     if (HasDisplay) {
       remove(VDPanel);
       validate();
-      HasDisplay = false;
+      setHasDisplay(false);
     }
   }
 
@@ -656,9 +784,9 @@ public class BasicSSCell extends JPanel {
   public void setData(Data data) throws VisADException, RemoteException {
     fm.setThing(Name, data);
 
-    if (data == null) HasData = false;
+    if (data == null) setHasData(false);
     else {
-      HasData = true;
+      setHasData(true);
       // add this Data's RealTypes to FormulaManager variable registry
       Vector v = new Vector();
       getRealTypes(data, v);
@@ -725,7 +853,7 @@ public class BasicSSCell extends JPanel {
     if (HasData) {
       add(VDPanel);
       validate();
-      HasDisplay = true;
+      setHasDisplay(true);
     }
 
     // put listener back
@@ -745,11 +873,11 @@ public class BasicSSCell extends JPanel {
   public void setFormula(String f) throws VisADException, RemoteException {
     String nf = (f == null ? "" : f);
     if (Formula.equals(nf)) return;
-    HasData = false;
-    HasFormula = false;
+    setHasData(false);
+    setHasFormula(false);
     Formula = "";
     fm.assignFormula(Name, nf);
-    HasFormula = !nf.equals("");
+    setHasFormula(!nf.equals(""));
     Formula = nf;
   }
 
@@ -965,22 +1093,6 @@ public class BasicSSCell extends JPanel {
       g.drawLine(s.width, 0, 0, s.height);
     }
   };
-
-  /** turns the large X on or off */
-  void setX(boolean value) {
-    if (BigX == value) return;
-    BigX = value;
-
-    // queue up action in event dispatch thread
-    SwingUtilities.invokeLater(new Runnable() {
-      public void run() {
-        if (BigX) add(BigXCanvas);
-        else remove(BigXCanvas);
-        validate();
-        repaint();
-      }
-    });
-  }
 
   /** pop up a message in a dialog box */
   void showMsg(String title, String msg) {

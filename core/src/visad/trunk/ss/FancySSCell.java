@@ -77,10 +77,10 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   /** Specify whether this cell should auto-display its widget frame */
   boolean AutoShowControls = true;
 
-  /** constructor for non-null RemoteDisplay */
-  public FancySSCell(String name, RemoteDisplay rd, Frame parent)
+  /** constructor for non-null RemoteServer */
+  public FancySSCell(String name, RemoteServer rs, Frame parent)
                                   throws VisADException, RemoteException {
-    super(name, rd);
+    super(name, rs);
     finishConstruction(name, parent);
   }
 
@@ -91,14 +91,14 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     finishConstruction(name, parent);
   }
 
-  /** constructor for null RemoteDisplay and null info string */
+  /** constructor for null RemoteServer and null info string */
   public FancySSCell(String name, Frame parent) throws VisADException,
                                                        RemoteException {
     super(name);
     finishConstruction(name, parent);
   }
 
-  /** constructor for null RemoteDisplay, info string, and parent Frame */
+  /** constructor for null RemoteServer, info string, and parent Frame */
   public FancySSCell(String name) throws VisADException, RemoteException {
     super(name);
     finishConstruction(name, null);
