@@ -6,7 +6,7 @@ c     Sun is at X=0, y=+8.5, Z=0
       parameter(XSUN=0.,YSUN=8.5,ZSUN=0.)
       parameter( PI=3.14159265359 )
       real LBD(3)
-      
+
       dist = sqrt(X*X+(Y-8.5)*(Y-8.5)+Z*Z)
       if (dist.eq.0) then
         print *, 'Cant give l/b for R=Rsun!'

@@ -14,14 +14,14 @@ c     ----------------------------------
 
       parameter (T0=1.00e10)
       parameter (V0=1.18e6)
-c     Solar 
-c      parameter (RHO0=2.27658539681219E-24) 
+c     Solar
+c      parameter (RHO0=2.27658539681219E-24)
 c     Solar Morrison
 c      parameter (RHO0=2.3822596E-24)
 c     Junk solar
 c      parameter (RHO0=1.6738875E-24)
 c     1/10 solar
-c      parameter (RHO0=2.243592876072399E-24) 
+c      parameter (RHO0=2.243592876072399E-24)
 c     Grevesse and Anders solar 30 elements
 c      parameter (RHO0=2.3678660E-24)
 c     Ferriere
@@ -32,7 +32,7 @@ c      parameter (RHO0=2.2720894E-24)
 
 
 c     -------------------------------
-c     Radiative transfer coefficients  
+c     Radiative transfer coefficients
 c     Using 4 pt Gaussian quadrature
 c     -------------------------------
       common /rad1/costh(4),wt(4)

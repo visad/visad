@@ -4,17 +4,17 @@
 //
 
 /*
- 
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 1, or (at your option)
 any later version.
- 
+
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License in file NOTICE for more details.
- 
+
 You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -47,11 +47,11 @@ public class Swells extends Exception {
   // four points of a zero-degree arrow in polar coordinates
   private static float[][] arrow_zero =
     {{0.0f, 0.0f, 7.0f, -7.0f}, {0.9f*SIZE, 1.9f*SIZE, 1.6f*SIZE, 1.6f*SIZE}};
-  
+
   /** set up ScalarMaps from swellDir and swellHeight to Display.Shape
       in display; swellDir default Unit must be degree and swellHeight
       default Unit must be meter */
-  public static void setupSwellDisplay(RealType swellDir, RealType swellHeight, 
+  public static void setupSwellDisplay(RealType swellDir, RealType swellHeight,
                 DisplayImpl display) throws VisADException, RemoteException {
 
     if (wcs == null) wcs = new WindPolarCoordinateSystem();
@@ -174,17 +174,17 @@ public class Swells extends Exception {
     frame.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0);}
     });
- 
+
     // create JPanel in JFrame
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
     panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
     panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     frame.getContentPane().add(panel);
- 
+
     // add display to JPanel
     panel.add(display.getComponent());
- 
+
     // set size of JFrame and make it visible
     frame.setSize(500, 500);
     frame.setVisible(true);

@@ -1,12 +1,12 @@
 	subroutine tcdensity(x,y,z,ne1,ne2,nea,negum)
 
-c  Returns four components of the free electron density of the 
-c  interstellar medium at Galactic location (x,y,z).  Add them together 
+c  Returns four components of the free electron density of the
+c  interstellar medium at Galactic location (x,y,z).  Add them together
 c  to get the total density.  Combine terms with `fluctuation'
-c  parameters to get the scattering measure.  
+c  parameters to get the scattering measure.
 c
-c  Origin of coordinate system is at Galactic center; 
-c  x,y,z are in kpc; 
+c  Origin of coordinate system is at Galactic center;
+c  x,y,z are in kpc;
 c  the sun os at (x,y,z) = (0,R0,0), x is in l=90 direction;
 c  electron densities in cm^-3.
 
@@ -119,7 +119,7 @@ C          first=.false.
 40	    continue
 	    smin=sqrt(sqmin)		! Distance of (x,y,z) from arm axis
 	    if(smin.lt.3*wa) then	! If (x,y,z) is close to this
-	      ga=exp(-(smin/wa)**2)	! arm, get the arm weighting factor 
+	      ga=exp(-(smin/wa)**2)	! arm, get the arm weighting factor
 	      if(rr.gt.Aa) ga=ga*sech2((rr-Aa)/2.0) ! Radial dependence of arms
 	      if(j.eq.2.and.k.ge.101) then
 		fac=2.0

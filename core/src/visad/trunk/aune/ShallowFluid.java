@@ -34,7 +34,7 @@ import java.awt.event.*;
    shallow.v application developed for VisAD 1.1 by Bob Aune.<P>
 */
 public class ShallowFluid extends Object {
- 
+
   /** RemoteServerImpl for server
       this ShallowFluid is a server if server_server != null */
   RemoteServerImpl server_server;
@@ -305,7 +305,7 @@ public class ShallowFluid extends Object {
     //
 
     // flag for initial time step
-    initial = true; 
+    initial = true;
 
     // construct a shalstepCell
     shalstepCell shalstep_cell = new shalstepCell("shalstep_cell");
@@ -457,13 +457,13 @@ public class ShallowFluid extends Object {
     ScalarMap map2cc = new ScalarMap(cc, Display.Green);
     map2cc.setRange(-40.0, 40.0);
     display2.addMap(map2cc);
- 
+
     GraphicsModeControl mode = display2.getGraphicsModeControl();
     mode.setTextureEnable(false);
- 
+
     display2.addMap(new ConstantMap(0.5f, Display.Red));
     display2.addMap(new ConstantMap(0.5f, Display.Blue));
- 
+
     // link new state Data object to display2
     if (client) {
       RemoteDisplayImpl remote_display2 =
@@ -648,7 +648,7 @@ public class ShallowFluid extends Object {
     public shalstepCell(String name) throws VisADException, RemoteException {
       super(name);
     }
- 
+
     public void doAction() throws VisADException, RemoteException {
       // get time step number
       int step = (int) ((Real) sim_time_ref.getData()).getValue();
@@ -703,7 +703,7 @@ public class ShallowFluid extends Object {
                  iopt, ibc, gravity, alat, ubar1, vbar1, hprm11, hprm12,
                  delt, eps, adiff, tfilt);
 /*
-System.out.println("shalstep: initial = " + initial + " step = " + step + 
+System.out.println("shalstep: initial = " + initial + " step = " + step +
                    " iopt = " + iopt + " new_x[3][1234] = " + new_x[3][1234]);
 */
       ((FlatField) new_state_ref.getData()).setSamples(new_x);
@@ -738,7 +738,7 @@ System.out.println("new_state = " + new_state_ref.getData());
   class initializeCell extends CellImpl {
     public initializeCell() throws VisADException, RemoteException {
     }
- 
+
     public void doAction() throws VisADException, RemoteException {
       initial = true;
     }

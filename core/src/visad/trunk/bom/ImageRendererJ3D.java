@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -109,7 +109,7 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
   }
   // end of logic to allow ShadowImageFunctionTypeJ3D to 'mark' missing frames
 
-  public BranchGroup doTransform() throws VisADException, RemoteException { 
+  public BranchGroup doTransform() throws VisADException, RemoteException {
     BranchGroup branch = getBranch();
     if (branch == null) {
       branch = new BranchGroup();
@@ -120,14 +120,14 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
     }
     DataDisplayLink link = getLinks()[0];
     ShadowTypeJ3D type = (ShadowTypeJ3D) link.getShadow();
- 
+
     // initialize valueArray to missing
     int valueArrayLength = getDisplay().getValueArrayLength();
     float[] valueArray = new float[valueArrayLength];
     for (int i=0; i<valueArrayLength; i++) {
       valueArray[i] = Float.NaN;
     }
- 
+
     Data data = link.getData();
     if (data == null) {
       branch = null;

@@ -12,7 +12,7 @@ c        NOTHER=# of non-ionic species
 c        NTEMP=# of temperature zones
 c              in atomic data tables
 c        NPHOT=# of photoionization bins
-c        NZR=# of spatial zones    
+c        NZR=# of spatial zones
 c     -----------------------------------
       parameter(NEL=30)
       parameter(NIONS=495)

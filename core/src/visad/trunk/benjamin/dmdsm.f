@@ -5,14 +5,14 @@ c  from model of Galactic electron distribution.
 
 c  Input: real l	(galactic longitude in radians)
 c         real b	(galactic latitude in radians)
-c         integer ndir  (>= 0 calculates dist from dmpsr; 
+c         integer ndir  (>= 0 calculates dist from dmpsr;
 c                         < 0 for dmpsr from dist)
 c Input or output:
 c	  real dmpsr	(dispersion measure in pc/cm^3)
 c         real dist	(distance in kpc)
 
 c  Output:
-c	  char*1 limit	(set to '>' if only a lower distance limit can be 
+c	  char*1 limit	(set to '>' if only a lower distance limit can be
 c			 given; otherwise set to ' ')
 c         sm            (scattering measure, uniform weighting) (kpc/m^{20/3})
 c         smtau         (scattering measure, weighting for pulse broadening)
@@ -55,7 +55,7 @@ c       parameter(c_sm = (alpha - 3.) / 2. * (2.*pi)**(4.-alpha) )
 	limit=' '
 	dstep=0.02			! Step size in kpc
         dstep = min(h1, h2) / 10.       ! step size in terms of scale heights
-        if(ndir.lt.0) dtest=dist     
+        if(ndir.lt.0) dtest=dist
 c        if(ndir.ge.0) dtest=dmpsr/(n1h1/h1)   ! approximate test distance
         nstep = dtest / dstep	        ! approximate number of steps
         if(nstep.lt.10) dstep=dtest/10  ! make # steps >= 10
@@ -79,7 +79,7 @@ c	if(ndir.ge.3) call tcdensity(x+dx0,y+dy0,z+dz0,ne1,ne2,nea,negum)
 	dmstep=1000.0*dstep*ne
 	dm=dm+dmstep			! Add DM for this step
 
-c        sm_term = 
+c        sm_term =
 c     .       F1 * ne1**2 + F2 * ne2**2 + Fa * nea**2 + Fg * negum**2
 c        sm_sum1 = sm_sum1 + sm_term
 c        sm_sum2 = sm_sum2 + sm_term * d
@@ -103,20 +103,20 @@ c	if(ndir.ge.0.and.dm.ge.dmpsr) go to 30	! Reached pulsar's DM?
 
 cRAB
 c        dsm = sm_term * (d+0.5*dstep - dist)
-c        sm_sum1 = sm_sum1 - dsm         
-c        sm_sum2 = sm_sum2 - dsm * d         
-c        sm_sum3 = sm_sum3 - dsm * d**2 
+c        sm_sum1 = sm_sum1 - dsm
+c        sm_sum2 = sm_sum2 - dsm * d
+c        sm_sum3 = sm_sum3 - dsm * d**2
         sm=0
         smtau=0
         smtheta=0
-c        sm = sm_factor * dstep * sm_sum1 
-c        smtau = 
+c        sm = sm_factor * dstep * sm_sum1
+c        smtau =
 c     +     6. * sm_factor * dstep * (sm_sum2 / dist - sm_sum3 / dist**2)
-c        smtheta = 
-c     +     3. * sm_factor * dstep * (sm_sum1 + sm_sum3 / dist**2 - 
+c        smtheta =
+c     +     3. * sm_factor * dstep * (sm_sum1 + sm_sum3 / dist**2 -
 c     +     2. * sm_sum2 / dist)
 
-        return 
+        return
 	end
 
 

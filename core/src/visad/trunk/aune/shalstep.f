@@ -310,8 +310,8 @@ C      CALL ADRM2D(2, 4, CC1(1,1,3), MY, MX)
        DO 30 J=1,NY
        U13(I, J) = U1(I, J, 3)
        V13(I, J) = V1(I, J, 3)
-       H13(I, J) = H1(I, J, 3) 
-       CC13(I, J) = CC1(I, J, 3) 
+       H13(I, J) = H1(I, J, 3)
+       CC13(I, J) = CC1(I, J, 3)
 30     CONTINUE
       return
       END

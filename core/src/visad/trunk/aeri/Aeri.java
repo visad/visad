@@ -49,7 +49,7 @@ import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
 
-public class Aeri 
+public class Aeri
        implements ScalarMapListener
 {
   RealType latitude;
@@ -70,7 +70,7 @@ public class Aeri
   //- (T,TD,WV,AGE)
   //
   RealTupleType advect_range;
- 
+
   FunctionType advect_type;
   FunctionType advect_field_type;
 
@@ -112,7 +112,7 @@ public class Aeri
     Aeri aeri = new Aeri(args);
   }
 
-  public Aeri(String[] args) 
+  public Aeri(String[] args)
          throws VisADException, RemoteException, IOException
   {
 
@@ -148,8 +148,8 @@ public class Aeri
     }
     if (vadfile != null) {
       init_from_vad(vadfile);
-    } 
-    else { 
+    }
+    else {
       init_from_cdf(baseDate);
     }
     wvmr.alias("MR");
@@ -159,7 +159,7 @@ public class Aeri
     frame.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0);}
     });
- 
+
     // create JPanel in frame
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
@@ -322,12 +322,12 @@ public class Aeri
     DataReference advect_ref = new DataReferenceImpl("advect_ref");
     advect_ref.setData(stations_field);
 
-    ConstantMap[] map_constMap = 
-      new ConstantMap[] 
+    ConstantMap[] map_constMap =
+      new ConstantMap[]
     {
       new ConstantMap(1., Display.Red),
       new ConstantMap(1., Display.Green),
-      new ConstantMap(1., Display.Blue), 
+      new ConstantMap(1., Display.Blue),
       new ConstantMap(-.99, Display.ZAxis)
     };
 
@@ -426,7 +426,7 @@ public class Aeri
       latmax = (float)y_range[1];
       lonmin = (float)x_range[0];
       lonmax = (float)x_range[1];
-      baseMap.setLatLonLimits(latmin-del_lat, latmax+del_lat, 
+      baseMap.setLatLonLimits(latmin-del_lat, latmax+del_lat,
                               lonmin-del_lon, lonmax+del_lon);
       DataImpl map = baseMap.getData();
       map_ref.setData(map);
@@ -458,7 +458,7 @@ System.out.println("lon = " + lonmin + " " + lonmax +
     RealType alt;
     RealType spd;
     RealType dir;
-    
+
     RealType u_wind = new RealType("u_wind", null, null);
     RealType v_wind = new RealType("v_wind", null, null);
 
@@ -480,9 +480,9 @@ System.out.println("lon = " + lonmin + " " + lonmax +
     spd = (RealType)((RealTupleType)f_type1.getRange()).getComponent(4);
     dir = (RealType)((RealTupleType)f_type1.getRange()).getComponent(3);
     RealType[] r_types = { dir, spd };
- 
+
     /* WLH 28 Dec 99 */
-    RealType[] uv_types = { u_wind, v_wind }; 
+    RealType[] uv_types = { u_wind, v_wind };
     // EarthVectorType uv = new EarthVectorType(uv_types); WLH meeds m/s
     RealTupleType uv = new RealTupleType(uv_types);
     CoordinateSystem cs = new WindPolarCoordinateSystem(uv);
@@ -498,7 +498,7 @@ System.out.println("lon = " + lonmin + " " + lonmax +
     FunctionType new_type = new FunctionType(RealType.Time, alt_to_uv);
 
     FieldImpl[] winds = new FieldImpl[n_stations];
-    
+
     for ( int ii = 0; ii < n_stations; ii++ )
     {
       base_date[ii] = (double)
@@ -541,7 +541,7 @@ time_offset looks like seconds since 0Z
       for ( int jj = 0; jj < length; jj++ )
       {
         Tuple range = (Tuple) time_field[ii].getSample(jj);
-        time_offset[0][jj] = (double)((Real)range.getComponent(0)).getValue();  
+        time_offset[0][jj] = (double)((Real)range.getComponent(0)).getValue();
 
         FlatField p_field = (FlatField) range.getComponent(10);
         double[][] values =
@@ -631,7 +631,7 @@ start or end altitudes - but it does nothing if all winds are missing */
       }
 
 
-      Gridded1DSet domain_set = new Gridded1DSet(domain_type, 
+      Gridded1DSet domain_set = new Gridded1DSet(domain_type,
                                     Set.doubleToFloat(time_offset), length);
 
 /* resample() doesn't work for doubles
@@ -682,7 +682,7 @@ start or end altitudes - but it does nothing if all winds are missing */
     temp = (RealType) rtt.getComponent(1);
     dwpt = (RealType) rtt.getComponent(2);
     wvmr = (RealType) rtt.getComponent(3);
-   
+
 
     RealType domain_type = (RealType)
       ((TupleType)f_type0.getRange()).getComponent(0);
@@ -723,7 +723,7 @@ time_offset looks like seconds since 0Z
         FlatField p_field = (FlatField) range.getComponent(1);
         double[][] values = p_field.getValues();
         double[][] new_values = new double[4][values[0].length];
-        
+
         for ( int mm = 0; mm < values[0].length; mm++ )
         {
           if ( values[0][mm] == -9999 ) {
@@ -735,21 +735,21 @@ time_offset looks like seconds since 0Z
 
           if ( values[1][mm] == -9999 ) {
             new_values[1][mm] = Float.NaN;
-          } 
+          }
           else {
             new_values[1][mm] = values[1][mm];
           }
 
           if ( values[2][mm] == -9999 ) {
             new_values[2][mm] = Float.NaN;
-          } 
+          }
           else {
             new_values[2][mm] = values[2][mm];
           }
 
           if ( values[3][mm] == -9999 ) {
             new_values[3][mm] = Float.NaN;
-          } 
+          }
           else {
             new_values[3][mm] = values[3][mm];
           }
@@ -768,7 +768,7 @@ time_offset looks like seconds since 0Z
       for (int i=0; i<length; i++) {
         times[0][i] = base_time[0] + time_offset[0][i];
       }
-      Gridded1DDoubleSet domain_set = 
+      Gridded1DDoubleSet domain_set =
         new Gridded1DDoubleSet(domain_type, times, length);
 */
 
@@ -780,7 +780,7 @@ time_offset looks like seconds since 0Z
 
   FieldImpl makeAdvect( FieldImpl winds, FieldImpl rtvls, int stn_idx )
             throws VisADException, RemoteException, IOException
-  { 
+  {
     float wind_time;
     float[][] value_s = new float[1][1];
     int[] index_s = new int[1];
@@ -816,7 +816,7 @@ time_offset looks like seconds since 0Z
 
     //- time(rtvl) -> (lon,lat,alt) -> (T,TD,WV,AGE)
     //
-    advect_field = new FieldImpl(advect_field_type, rtvls.getDomainSet()); 
+    advect_field = new FieldImpl(advect_field_type, rtvls.getDomainSet());
 
     //- resample winds domain (time) to rtvls
     //
@@ -860,12 +860,12 @@ time_offset looks like seconds since 0Z
                               Data.WEIGHTED_AVERAGE,
                               Data.NO_ERRORS );
     }
-                                   
+
     //- get rtvls time domain samples
     //
     float[][] f_array = rtvls_domain.getSamples();
     rtvl_times = f_array[0];
-    
+
     //- loop over rtvl sampling in time   -*
     //
     for ( int tt = n_advect_pts; tt < len; tt++ )
@@ -877,13 +877,13 @@ time_offset looks like seconds since 0Z
 
       uv_wind = alt_to_wind.getValues();
 
-      //- get wind data height sampling 
+      //- get wind data height sampling
       //
       float[][] heights = alt_to_wind.getDomainSet().getSamples();
-     
+
       n_samples = 0;
       rtvl_time_0 = rtvl_times[tt];
-      
+
       //- loop over wind profiler vertical range  -*
       //
       for ( int jj = 0; jj < alt_len; jj++ )
@@ -924,7 +924,7 @@ time_offset looks like seconds since 0Z
       }
       int lengthX = n_samples/alt_len;
       int lengthY = alt_len;
-     
+
       float[][] samples = new float[3][lengthX*lengthY];
       System.arraycopy(advect_locs[0], 0, samples[0], 0, n_samples);
       System.arraycopy(advect_locs[1], 0, samples[1], 0, n_samples);
@@ -936,8 +936,8 @@ time_offset looks like seconds since 0Z
       System.arraycopy(rtvl_vals[2], 0, range[2], 0, n_samples);
       System.arraycopy(rtvl_vals[3], 0, range[3], 0, n_samples);
 
-      Gridded3DSet g3d_set = 
-         new Gridded3DSet(spatial_domain, samples, lengthX, lengthY); 
+      Gridded3DSet g3d_set =
+         new Gridded3DSet(spatial_domain, samples, lengthX, lengthY);
 
       advect = new FlatField(advect_type, g3d_set);
       advect.setSamples(range);

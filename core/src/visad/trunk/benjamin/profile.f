@@ -3,7 +3,7 @@ c
 c     Given coordinates (X,Y,Z) of pt in galaxy profile returns
 c     two 1D arrays, xprof, yprof with NPROF_PT values each.
 c     itype=1 gives xprof=distance from sun, yprof=density
-c     itype=2 will give xprof=velocity, yprof=emission measure 
+c     itype=2 will give xprof=velocity, yprof=emission measure
 
 
 cRAB 9/7/99
@@ -32,12 +32,12 @@ c     itype=2.
 
       if (itype .eq.1) then
        ds=1./(NPROF_PT-1.)
-       do is=1,NPROF_PT  
+       do is=1,NPROF_PT
          s=(is-1)*ds
          xs=XSUN+(X-XSUN)*s
 	 ys=YSUN+(Y-YSUN)*s
          zs=ZSUN+(Z-ZSUN)*s
-         call tcdensity(xs,ys,zs,dne1,dne2,dnea,dnegum) 
+         call tcdensity(xs,ys,zs,dne1,dne2,dnea,dnegum)
          xprof(is)=sqrt(xs*xs+ys*ys+zs*zs)
          yprof(is)=dne1+dne2+dnea
          write(7,*) xprof(is),yprof(is)
@@ -45,16 +45,16 @@ c     itype=2.
       else if (itype.eq.2) then
 
 c     Calculate the density squared (sI) and
-c     line-of-sight velocity (sV) 
+c     line-of-sight velocity (sV)
        ds=1./(NPTMAX-1)
        sVmin=1e20
        sVmax=-1e20
-       do is=1,NPTMAX 
+       do is=1,NPTMAX
          s=(is-1)*ds
          xs=XSUN+(X-XSUN)*s
 	 ys=YSUN+(Y-YSUN)*s
          zs=ZSUN+(Z-ZSUN)*s
-         call tcdensity(xs,ys,zs,dne1,dne2,dnea,dnegum) 
+         call tcdensity(xs,ys,zs,dne1,dne2,dnea,dnegum)
          sI(is)=(dne1+dne2+dnea+dnegum)**2.
          call rotv(xs,ys,zs,vxs,vys,vzs)
          sV(is)=vlos_fcn(xs,ys,zs,vxs,vys,vzs)
@@ -85,9 +85,9 @@ c     line-of-sight velocity (sV)
           end do
           yprof(iV)=yprof(iV)*dL/2.75/(t4**0.9)
        end do
-       
 
-      else 
+
+      else
          print *, 'bad itype in profile'
          stop
       end if
@@ -112,12 +112,12 @@ c     Old version used preset rotation curve...
       vY=-X/R*vrot
       vZ=0
       return
-      end  
+      end
 
       function rcur1(R)
       rcur1=220*(1.0074*(R/8.5)**(0.0382)+0.00698)
       return
-      end 
+      end
 
 c=======================================================================
       function vlos_fcn(X,Y,Z,v_X,v_Y,v_z)
@@ -134,4 +134,4 @@ c     v_X1 is motion relative to sun using Burton curve
       end
 c=======================================================================
 
-      
+

@@ -2,11 +2,11 @@
 //
 // Galaxy.java
 //
- 
+
 // Sun is at ix=0.0, Yy(iy)=8.5, iz=0.0
- 
+
 package visad.benjamin;
- 
+
 // the VisAD packages
 import visad.*;
 import visad.util.Delay;
@@ -15,7 +15,7 @@ import visad.util.LabeledColorWidget;
 import visad.java3d.DisplayImplJ3D;
 import visad.java3d.DirectManipulationRendererJ3D;
 import visad.java2d.DisplayImplJ2D;
- 
+
 // Java packages
 import java.rmi.RemoteException;
 import java.rmi.NotBoundException;
@@ -23,17 +23,17 @@ import java.rmi.AccessException;
 import java.rmi.Naming;
 import java.net.MalformedURLException;
 import java.io.*;
- 
+
 // JFC packages
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.text.*;
 import javax.swing.border.*;
- 
+
 // AWT packages
 import java.awt.*;
 import java.awt.event.*;
- 
+
 /**
    Galaxy implements the interactive Milky Way model
    application using VisAD 2.0.<P>
@@ -43,7 +43,7 @@ public class Galaxy extends Object implements ActionListener {
   /** RemoteServerImpl for server
       this Galaxy is a server if server_server != null */
   RemoteServerImpl server_server;
- 
+
   /** RemoteServer for client
       this Galaxy is a client if client_server != null */
   RemoteServer client_server;
@@ -100,8 +100,8 @@ public class Galaxy extends Object implements ActionListener {
   float[][] image_b;
   int length_0;
   int length_1;
-  
-  
+
+
 
   /** declare MathTypes */
   RealType gridx;
@@ -118,7 +118,7 @@ public class Galaxy extends Object implements ActionListener {
   FunctionType vel_intensity;
   FlatField field_D;
   FlatField field_E;
- 
+
   RealType line;
   RealType element;
   RealTupleType image_domain;
@@ -129,7 +129,7 @@ public class Galaxy extends Object implements ActionListener {
   RealType lat;
   RealTupleType lonlat_range;
   FunctionType lonlat_type;
- 
+
   /** declare DataReferences */
   DataReference grid_ref;
   DataReference image_ref;
@@ -221,7 +221,7 @@ public class Galaxy extends Object implements ActionListener {
       // stand-alone (neither client nor server)
       // load native method library
       System.loadLibrary("Galaxy");
-      galaxy.setupServer(); 
+      galaxy.setupServer();
     }
   }
 
@@ -229,7 +229,7 @@ public class Galaxy extends Object implements ActionListener {
 
     if (args.length > 0) {
       // this is a client
- 
+
       // try to connect to RemoteServer
       String domain = "//" + args[0] + "/Galaxy";
       try {
@@ -254,7 +254,7 @@ public class Galaxy extends Object implements ActionListener {
     }
     else { // args.length == 0
       // this is a server
- 
+
       // try to set up a RemoteServer
       server_server = new RemoteServerImpl();
       try {
@@ -274,7 +274,7 @@ public class Galaxy extends Object implements ActionListener {
       }
     }
   }
- 
+
   /** set up as server */
   void setupServer() throws VisADException, RemoteException {
 
@@ -381,15 +381,15 @@ public class Galaxy extends Object implements ActionListener {
     samples[0][1] = (float) 20.;
     samples[1][1] = sol_y;
     samples[2][1] = sol_z;
-    x_to_sol = new Gridded3DSet( grid_domain, samples, npts, null, null, null ); 
+    x_to_sol = new Gridded3DSet( grid_domain, samples, npts, null, null, null );
     samples[0][1] = sol_x;
     samples[1][1] = (float) 20.;
     samples[2][1] = sol_z;
-    y_to_sol = new Gridded3DSet( grid_domain, samples, npts, null, null, null ); 
+    y_to_sol = new Gridded3DSet( grid_domain, samples, npts, null, null, null );
     samples[0][1] = sol_x;
     samples[1][1] = sol_y;
     samples[2][1] = (float) 80.;
-    z_to_sol = new Gridded3DSet( grid_domain, samples, npts, null, null, null ); 
+    z_to_sol = new Gridded3DSet( grid_domain, samples, npts, null, null, null );
     set_s[0] = x_to_sol;
     set_s[1] = y_to_sol;
     set_s[2] = z_to_sol;
@@ -399,7 +399,7 @@ public class Galaxy extends Object implements ActionListener {
     RealTuple sol = new RealTuple( new Real[] {
                                    new Real( gridx, 0.0 ),
                                    new Real( gridy, 8.5 ),
-                                   new Real( gridz, 0.0 ) } ); 
+                                   new Real( gridz, 0.0 ) } );
     sol_ref.setData( sol );
     line_to_sol_ref = new DataReferenceImpl("line_to_sol_ref");
 
@@ -408,7 +408,7 @@ public class Galaxy extends Object implements ActionListener {
     DisplayImpl[] displays = new DisplayImpl[5];
     VisADSlider[] sliders = new VisADSlider[1];
     setupDisplays(false, displays, sliders);
- 
+
     // set up user interface
     setupUI(displays, sliders);
 
@@ -464,7 +464,7 @@ public class Galaxy extends Object implements ActionListener {
         System.arraycopy(lonlat_a[0], 0, lonlat_b[0], 0, lonlat_b[0].length);
         System.arraycopy(lonlat_a[1], 0, lonlat_b[1], 0, lonlat_b[1].length);
 
-        // create spherical sky map 
+        // create spherical sky map
         FlatField f_field = makeSphericalSkyMap();
         sphrSkyMap_ref.setData( f_field );
 
@@ -541,7 +541,7 @@ public class Galaxy extends Object implements ActionListener {
           samples[1][ii] = (float) (sol_y + ii*step_y);
           samples[2][ii] = (float) (sol_z + ii*step_z);
         }
-        line_to_sol = new Gridded3DSet( red_cursor.getType(), samples, npts, 
+        line_to_sol = new Gridded3DSet( red_cursor.getType(), samples, npts,
                                         null, null, null );
         line_to_sol_ref.setData( line_to_sol );
         galtosol( last_x, last_y, last_z, lbd );
@@ -561,7 +561,7 @@ public class Galaxy extends Object implements ActionListener {
     CellImpl computeDensityEmission_cell = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
         i_type = 1;
-        profile_c(i_type, n_profpts, last_x, last_y, last_z, xprof, yprof); 
+        profile_c(i_type, n_profpts, last_x, last_y, last_z, xprof, yprof);
         distDomain = new Linear1DSet( distance, (double)xprof[0],
                                       (double)xprof[n_profpts-1], n_profpts );
         field_D = new FlatField(dist_density, distDomain);
@@ -571,7 +571,7 @@ public class Galaxy extends Object implements ActionListener {
 
     /*- i_type = 2 not implemented  */
         i_type = 2;
-        profile_c(i_type, n_profpts, last_x, last_y, last_z, xprof, yprof); 
+        profile_c(i_type, n_profpts, last_x, last_y, last_z, xprof, yprof);
 /*
 System.out.println("last_x = " + last_x + " " + last_y + " " + last_z);
 System.out.println("xprof = " + xprof[0] + " " + xprof[n_profpts-1] +
@@ -670,17 +670,17 @@ yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
 
   /** set up as client */
   void setupClient() throws VisADException, RemoteException {
- 
+
     //
     // get RemoteDataReferences
     //
- 
+
     RemoteDataReference[] refs = client_server.getDataReferences();
     if (refs == null) {
       System.out.println("Cannot connect to server");
       System.exit(0);
     }
- 
+
     grid_ref = refs[0];
     image_ref = refs[1];
     lonlat_ref = refs[2];
@@ -755,7 +755,7 @@ yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
     DisplayImpl[] displays = new DisplayImpl[5];
     VisADSlider[] sliders = new VisADSlider[1];
     setupDisplays(true, displays, sliders);
- 
+
     // set up user interface
     setupUI(displays, sliders);
   }
@@ -772,7 +772,7 @@ yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
     /* WLH 23 Sept 98
     display1.setAlwaysAutoScale(true);
     */
- 
+
     // map grid_domain to the Display spatial coordinates;
     display1.addMap(new ScalarMap(gridx, Display.XAxis));
     display1.addMap(new ScalarMap(gridy, Display.YAxis));
@@ -781,7 +781,7 @@ yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
     display1.addMap(mapz);
     GraphicsModeControl mode1 = display1.getGraphicsModeControl();
     mode1.setScaleEnable(true);
- 
+
     // display1.addMap(new ScalarMap(density, Display.RGB));
 
     // construct mapping for interactive iso-surface
@@ -797,13 +797,13 @@ yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
     cmaps[2] =  new ConstantMap(0.0, Display.Green);
     cmaps[3] =  new ConstantMap(4.0, Display.PointSize);
 
-    cmaps_sol = new ConstantMap[4]; 
+    cmaps_sol = new ConstantMap[4];
     cmaps_sol[0] = new ConstantMap(0.0, Display.Blue);
     cmaps_sol[1] = new ConstantMap(1.0, Display.Red);
     cmaps_sol[2] = new ConstantMap(1.0, Display.Green);
     cmaps_sol[3] = new ConstantMap(6.0, Display.PointSize);
 
-    cmaps_line = new ConstantMap[3]; 
+    cmaps_line = new ConstantMap[3];
     cmaps_line[0] =  new ConstantMap(0.0, Display.Blue);
     cmaps_line[1] =  new ConstantMap(1.0, Display.Green);
     cmaps_line[2] =  new ConstantMap(0.0, Display.Red);
@@ -820,7 +820,7 @@ yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
       remote_display1.addReference(sol_ref, cmaps_sol);
       remote_display1.addReference(line_to_sol_ref, cmaps_line);
       remote_display1.addReference(sol_sightRef, yellow );
-      remote_display1.addReferences(new DirectManipulationRendererJ3D(), 
+      remote_display1.addReferences(new DirectManipulationRendererJ3D(),
                                              red_cursor_ref, cmaps);
     }
     else { // server
@@ -828,7 +828,7 @@ yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
       display1.addReference(sol_ref, cmaps_sol);
       display1.addReference(line_to_sol_ref, cmaps_line);
       display1.addReference( sol_sightRef, yellow );
-      display1.addReferences(new DirectManipulationRendererJ3D(), 
+      display1.addReferences(new DirectManipulationRendererJ3D(),
                              red_cursor_ref, cmaps);
     }
 
@@ -849,7 +849,7 @@ yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
     mode2.setScaleEnable(false);
     DisplayRenderer displayRenderer = display2.getDisplayRenderer();
     displayRenderer.setBoxOn(false);
- 
+
     // map grid_domain to the Display spatial coordinates;
     display2.addMap(new ScalarMap(element, Display.XAxis));
     linemap = new ScalarMap(line, Display.YAxis);
@@ -876,7 +876,7 @@ yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
     ContourControl latcontrol = (ContourControl) latmap.getControl();
     latcontrol.enableContours(true);
     latcontrol.setContourInterval(30.0f, -90.0f, 89.0f, -90.0f);
- 
+
     if (client) {
       // set range for sky map image lines
       linemap.setRange(-0.5 * llast, 1.5 * llast + 1.0);
@@ -908,7 +908,7 @@ yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
 
     display3 = new DisplayImplJ2D("display3");
     display4 = new DisplayImplJ2D("display4");
-    
+
     display3.setAlwaysAutoScale(true);
     display4.setAlwaysAutoScale(true);
 
@@ -974,7 +974,7 @@ yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
     frame.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0);}
     });
- 
+
     // size of JFrame
     int WIDTH = 1200;
     int HEIGHT = 950;
@@ -1125,7 +1125,7 @@ yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
     contour.addActionListener(this);
     contour.setActionCommand("contour");
     contour_panel.add(contour);
- 
+
     // get Display panels
     JPanel panel1 = (JPanel) displays[0].getComponent();
     panel2 = (JPanel) displays[1].getComponent();
@@ -1200,7 +1200,7 @@ yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
     center.add(flat_sphere_button);
     center.add(display2_label);
     center.add(display2a_label);
- 
+
 /*
     JFrame frame2 = new JFrame("Density/Emission Plots");
     WIDTH = 400;
@@ -1224,7 +1224,7 @@ yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
     frame2.getContentPane().add(right);
 */
     big_panel.add(right);
- 
+
 /*
     JPanel panelA = new JPanel();
     panelA.setLayout(new BoxLayout(panelA, BoxLayout.X_AXIS));
@@ -1254,7 +1254,7 @@ yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
     frame3.getContentPane().add(panel5);
     frame3.setVisible(true);
 */
- 
+
     // make the JFrame visible
     frame.setVisible(true);
 /*
@@ -1336,14 +1336,14 @@ yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
     ContourControl control;
     DataReference ref;
     double value;
- 
+
     ContourCell(ContourControl c, DataReference r)
            throws VisADException, RemoteException {
       control = c;
       ref = r;
       value = ((Real) ref.getData()).getValue();
     }
- 
+
     public void doAction() throws VisADException, RemoteException {
       double val = ((Real) ref.getData()).getValue();
       if (val == val && val != value) {
@@ -1352,7 +1352,7 @@ yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
         value = val;
       }
     }
- 
+
   }
 
   private float[][] getLonLat( float[][] lonlat, int length_0, int length_1 )
@@ -1368,8 +1368,8 @@ yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
           int kk = jj*length_0 + ii;
 
           if ( lonlat[1][kk] < -400 ) {
-            float x = ((2*ii_a - 1f) -181f)/180f; 
-            float y = ((2*jj_a - 1f) -91f)/180f; 
+            float x = ((2*ii_a - 1f) -181f)/180f;
+            float y = ((2*jj_a - 1f) -91f)/180f;
             float rad = (float)Math.sqrt( x*x + 4*y*y );
             float sinalp = (float)Math.sqrt((4*y*y -1f)*(4*y*y -1f)+
                                             (x*y*2)*(x*y*2) );
@@ -1386,7 +1386,7 @@ yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
               gl = 180f;
               gl = (float) Math.IEEEremainder( (double)gl, 360d );
             }
-            else { 
+            else {
               cosbet = (1f - x*x - 4f*y*y)/sinalp;
               if (cosbet > 1f ) {
                 gl = 0f;
@@ -1420,7 +1420,7 @@ yprof = 1.8238283E-5 2.7213662E-5 4.006669E-5 5.8206664E-5 8.878365E-4
   {
     float[][] lonlat_c = new float[2][ length_0 * length_1 ];
     float[] samples_c = new float[ length_0 * length_1 ];
-    lonlat_c = getLonLat( lonlat_b, length_0, length_1 ); 
+    lonlat_c = getLonLat( lonlat_b, length_0, length_1 );
 
     float[][] lonlat_e = new float[2][length_0 * (length_1 - 1)];
     float[][] samples_e = new float[1][length_0 * (length_1 - 1)];

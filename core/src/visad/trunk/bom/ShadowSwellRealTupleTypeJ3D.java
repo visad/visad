@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -49,7 +49,7 @@ public class ShadowSwellRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
                 float flowScale, float[][] spatial_values,
                 byte[][] color_values, boolean[][] range_select)
          throws VisADException {
- 
+
     DataRenderer renderer = getLink().getRenderer();
     boolean direct = renderer.getIsDirectManipulation();
     if (direct && renderer instanceof SwellManipulationRendererJ3D) {
@@ -58,8 +58,8 @@ public class ShadowSwellRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
                  range_select, renderer, true);
     }
     else {
-      return ShadowSwellRealTupleTypeJ3D.staticMakeFlow(getDisplay(), which, 
-                 flow_values, flowScale, spatial_values, color_values, 
+      return ShadowSwellRealTupleTypeJ3D.staticMakeFlow(getDisplay(), which,
+                 flow_values, flowScale, spatial_values, color_values,
                  range_select, renderer, false);
     }
   }
@@ -74,7 +74,7 @@ public class ShadowSwellRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
          throws VisADException {
     if (flow_values[0] == null) return null;
     if (spatial_values[0] == null) return null;
- 
+
     int len = spatial_values[0].length;
     int flen = flow_values[0].length;
     int rlen = 0; // number of non-missing values
@@ -105,7 +105,7 @@ public class ShadowSwellRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
       vblue = new byte[NUM];
     }
     int[] numv = {0};
- 
+
     float scale = flowScale; // ????
     float pt_size = 0.25f * flowScale; // ????
 
@@ -183,7 +183,7 @@ public class ShadowSwellRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
     VisADGeometryArray[] arrays = null;
     VisADLineArray array = new VisADLineArray();
     array.vertexCount = nv;
- 
+
     float[] coordinates = new float[3 * nv];
 
     int m = 0;
@@ -227,13 +227,13 @@ public class ShadowSwellRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
 
     int lenv = vx.length;
     int nv = numv[0];
- 
+
     //determine the initial (minimum) length of the flag pole
     if (swell_height >= 0.1f) {
       // normalize direction
       x0 = -f0 / swell_height;
       y0 = -f1 / swell_height;
- 
+
       float start_arrow = 0.9f * sscale;
       float end_arrow = 1.9f * sscale;
       float arrow_head = 0.3f * sscale;
@@ -302,7 +302,7 @@ public class ShadowSwellRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
       }
     }
     else { // if (swell_height < 0.1)
- 
+
       // wind < 2.5 kts.  Plot a circle
       float rad = (0.7f * pt_size);
 

@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -67,7 +67,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
   public boolean doTransform(Group group, Data data, float[] value_array,
                              float[] default_values, DataRenderer renderer)
          throws VisADException, RemoteException {
- 
+
     DataDisplayLink link = renderer.getLink();
 
 // System.out.println("start doTransform " + (System.currentTimeMillis() - link.start_time));
@@ -103,10 +103,10 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     // mapping from ValueArray to MapVector
     int[] valueToMap = display.getValueToMap();
     Vector MapVector = display.getMapVector();
- 
+
     // array to hold values for various mappings
     float[][] display_values = new float[valueArrayLength][];
- 
+
     int[] inherited_values = adaptedShadowType.getInheritedValues();
 
     for (int i=0; i<valueArrayLength; i++) {
@@ -153,7 +153,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
       // check that range is single RealType mapped to RGB only
       ShadowRealType[] RangeComponents = adaptedShadowType.getRangeComponents();
-      Vector mvector = RangeComponents[0].getSelectedMapVector();     
+      Vector mvector = RangeComponents[0].getSelectedMapVector();
       if (mvector.size() != 1) {
         throw new BadMappingException("image values must be mapped to RGB only");
       }
@@ -323,7 +323,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                              (domain_set instanceof Linear2DSet ||
                               (domain_set instanceof LinearNDSet &&
                                domain_set.getDimension() == 2));
-   
+
       int curved_size = display.getGraphicsModeControl().getCurvedSize();
       boolean curvedTexture = adaptedShadowType.getCurvedTexture() &&
                               !isTextureMap &&
@@ -348,7 +348,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       float[] texCoordsY = null;
       float[] normalsY = null;
       byte[] colorsY = null;
-  
+
       if (isTextureMap) {
 
 // System.out.println("start texture map " + (System.currentTimeMillis() - link.start_time));
@@ -368,17 +368,17 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         limits[0][1] = (float) X.getLast();
         limits[1][0] = (float) Y.getFirst();
         limits[1][1] = (float) Y.getLast();
-   
+
         // convert values to default units (used in display)
         limits = Unit.convertTuple(limits, dataUnits, domain_units);
-   
+
         // get domain_set sizes
         data_width = X.getLength();
         data_height = Y.getLength();
         // texture sizes must be powers of two
         texture_width = textureWidth(data_width);
         texture_height = textureHeight(data_height);
-   
+
         int[] tuple_index = new int[3];
         if (DomainComponents.length != 2) {
           throw new DisplayException("texture domain dimension != 2:" +
@@ -419,7 +419,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
             break;
           }
         }
-   
+
         // create VisADQuadArray that texture is mapped onto
         coordinates = new float[12];
         // corner 0
@@ -438,15 +438,15 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         coordinates[9 + tuple_index[0]] = limits[0][0];
         coordinates[9 + tuple_index[1]] = limits[1][1];
         coordinates[9 + tuple_index[2]] = value2;
-   
+
         // move image back in Java3D 2-D mode
         adjustZ(coordinates);
-   
+
         texCoords = new float[8];
         float ratiow = ((float) data_width) / ((float) texture_width);
         float ratioh = ((float) data_height) / ((float) texture_height);
         setTexCoords(texCoords, ratiow, ratioh);
-   
+
         normals = new float[12];
         float n0 = ((coordinates[3+2]-coordinates[0+2]) *
                     (coordinates[6+1]-coordinates[0+1])) -
@@ -460,12 +460,12 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                     (coordinates[6+0]-coordinates[0+0])) -
                    ((coordinates[3+0]-coordinates[0+0]) *
                     (coordinates[6+1]-coordinates[0+1]));
-   
+
         float nlen = (float) Math.sqrt(n0 *  n0 + n1 * n1 + n2 * n2);
         n0 = n0 / nlen;
         n1 = n1 / nlen;
         n2 = n2 / nlen;
-   
+
         // corner 0
         normals[0] = n0;
         normals[1] = n1;
@@ -482,10 +482,10 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         normals[9] = n0;
         normals[10] = n1;
         normals[11] = n2;
-   
+
         colors = new byte[12];
         for (int i=0; i<12; i++) colors[i] = (byte) 127;
-  
+
         VisADQuadArray qarray = new VisADQuadArray();
         qarray.vertexCount = 4;
         qarray.coordinates = coordinates;
@@ -523,10 +523,10 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         // compute size of triangle array to mapped texture onto
         int size = (data_width + data_height) / 2;
         curved_size = Math.max(2, Math.min(curved_size, size / 32));
-   
+
         int nwidth = 2 + (data_width - 1) / curved_size;
         int nheight = 2 + (data_height - 1) / curved_size;
-  
+
         // compute locations of triangle vertices in texture
         int nn = nwidth * nheight;
         int[] is = new int[nwidth];
@@ -664,7 +664,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         normals = Gridded3DSet.makeNormals(coordinates, nwidth, nheight);
         colors = new byte[3 * nn];
         for (int i=0; i<3*nn; i++) colors[i] = (byte) 127;
- 
+
         float ratiow = ((float) data_width) / ((float) texture_width);
         float ratioh = ((float) data_height) / ((float) texture_height);
         int mt = 0;
@@ -675,7 +675,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
             texCoords[mt++] = 1.0f - ratioh * js[j] / (data_height - 1.0f);
           }
         }
- 
+
         VisADTriangleStripArray tarray = new VisADTriangleStripArray();
         tarray.stripVertexCounts = new int[nheight - 1];
         for (int i=0; i<nheight - 1; i++) {
@@ -687,7 +687,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         tarray.coordinates = new float[3 * len];
         tarray.colors = new byte[3 * len];
         tarray.texCoords = new float[2 * len];
- 
+
         // shuffle normals into tarray.normals, etc
         k = 0;
         int kt = 0;
@@ -703,26 +703,26 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
             tarray.coordinates[k+3] = coordinates[m+nwidth3];
             tarray.coordinates[k+4] = coordinates[m+nwidth3+1];
             tarray.coordinates[k+5] = coordinates[m+nwidth3+2];
- 
+
             tarray.normals[k] = normals[m];
             tarray.normals[k+1] = normals[m+1];
             tarray.normals[k+2] = normals[m+2];
             tarray.normals[k+3] = normals[m+nwidth3];
             tarray.normals[k+4] = normals[m+nwidth3+1];
             tarray.normals[k+5] = normals[m+nwidth3+2];
- 
+
             tarray.colors[k] = colors[m];
             tarray.colors[k+1] = colors[m+1];
             tarray.colors[k+2] = colors[m+2];
             tarray.colors[k+3] = colors[m+nwidth3];
             tarray.colors[k+4] = colors[m+nwidth3+1];
             tarray.colors[k+5] = colors[m+nwidth3+2];
- 
+
             tarray.texCoords[kt] = texCoords[mt];
             tarray.texCoords[kt+1] = texCoords[mt+1];
             tarray.texCoords[kt+2] = texCoords[mt+nwidth2];
             tarray.texCoords[kt+3] = texCoords[mt+nwidth2+1];
- 
+
             k += 6;
             m += 3;
             kt += 4;
@@ -740,7 +740,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         tarray = (VisADTriangleStripArray) tarray.adjustSeam(renderer);
 
 // System.out.println("start createImage " + (System.currentTimeMillis() - link.start_time));
- 
+
         // create BufferedImage for texture from color_ints
         BufferedImage image = createImage(data_width, data_height, texture_width,
                                           texture_height, color_ints);
@@ -783,7 +783,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         Node g = ((BranchGroup) group).getChild(0);
         if (g instanceof Switch) {
           old_swit = (Switch) g;
-  
+
           old_len = old_swit.numChildren();
           if (old_len > 0) {
             old_nodes = new BranchGroup[old_len];
@@ -973,7 +973,7 @@ if (i == (len / 2)) {
       } else {
         baseMap = new BaseMapAdapter(mapFile);
       }
- 
+
       //--- map data to display ---//
       if (threeD)
       {

@@ -5,7 +5,7 @@
 
 /*
 This sofware is part of the Australian Integrated Forecast System (AIFS)
-Copyright (C) 1999 Bureau of Meteorology 
+Copyright (C) 1999 Bureau of Meteorology
 */
 
 package visad.bom;
@@ -21,13 +21,13 @@ import visad.*;
 import visad.util.*;
 import visad.java3d.*;
 
-/** 
+/**
  * RadarAdapter
  *
  * @authors - James Kelly : J.Kelly@bom.gov.au
- *          - Bill Hibbard (mainly, while working at BOM August 1999) 
- *            
- * 
+ *          - Bill Hibbard (mainly, while working at BOM August 1999)
+ *
+ *
  */
 public class RadarAdapter {
   public RadarFile rf;
@@ -69,7 +69,7 @@ public class RadarAdapter {
     // create an array "azs" containing all the azimuth values
     // example:
   	//    azs[0] = 61 degrees    = radlow +   0
-		//    azs[1] = 183 degrees   = radlow + 122 
+		//    azs[1] = 183 degrees   = radlow + 122
     //    azs[2] = 261 degrees   = radlow + 200
     //    azs[3] = 262 degrees   = radlow + 201
     //    azs[4] = 262 degrees   = radlow + 202
@@ -102,11 +102,11 @@ public class RadarAdapter {
 	//
 	// The old array above (azs) has only got "azimuth" values for
 	// radials with non-null data
-	// We want to fill in the array with these nulls 
+	// We want to fill in the array with these nulls
     // So using the example above, newToOld will contain:
 	//    newToOld[0] = 0
 	//    newToOld[1] = -1 ......
-	//    newToOld[122] = 1 
+	//    newToOld[122] = 1
 	//    newToOld[123] = -1 ......
     //    newToOld[200] = 2
     //    newToOld[201] = 3
@@ -188,7 +188,7 @@ public class RadarAdapter {
 
     // float[][] samples = new float[2][nrad * naz];
 	//
-	// For convenience, the "values" array has all the 
+	// For convenience, the "values" array has all the
 	// > 0 data values at the start of the array (indexed by k)
 	// while null data values are stored together at the end of the array
 	//
@@ -200,7 +200,7 @@ public class RadarAdapter {
     float[][] values = new float[1][nrad * bignaz]; // WLH - 21 Sept 99
     int m = 0;
     for (int i=0; i<newnaz; i++) {
-      int k = newToOld[i];   
+      int k = newToOld[i];
       if (k >= 0) {
 	    // there is data for this azimuth
         byte[] bd = rf.pbdataArray[newToOld[i]].bdata;
@@ -297,7 +297,7 @@ public class RadarAdapter {
 	  // rgbMap.setRange(0.,6.);
 	display.addMap(rgbMap);
 
-				
+
 
     GraphicsModeControl mode = display.getGraphicsModeControl();
     mode.setScaleEnable(true);

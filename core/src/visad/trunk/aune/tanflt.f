@@ -14,7 +14,7 @@ C
       DATA IJUMP/0/
 C
 C---APPLY HORIZONTAL FILTER ALONG GRID COLS
-      ICHK=0 
+      ICHK=0
       BBB(J1)=0.0
       BBB(JL)=0.0
 C     DO 3335 I=I2,NXM1
@@ -104,7 +104,7 @@ C
       OMEP=1.-EP
       IF(ICHECK.GT.1)GOTO 100
 C     PRINT *,' INITIALISE CONSTANTS IN INVER2'
-      DO 10 I=4,NNNN 
+      DO 10 I=4,NNNN
          Z(I)=OMEP
          A(I)=6.*OPEP
          B(I)=15.*OMEP

@@ -61,7 +61,7 @@ JNIEXPORT void JNICALL Java_visad_benjamin_Galaxy_profile_1c
    (*env)->ReleaseFloatArrayElements(env, yprof_j, yprof, 0);
 }
 
-/* 
+/*
  * Class:      visad_benjamin_Galaxy
  * Method:     galtosol
  * Signature: (FFF[F)V

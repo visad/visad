@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -25,7 +25,7 @@ MA 02111-1307, USA
 */
 
 package visad.bom;
- 
+
 import visad.*;
 import visad.java2d.*;
 
@@ -48,7 +48,7 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
   public BarbManipulationRendererJ2D () {
     super();
   }
- 
+
   public ShadowType makeShadowFunctionType(
          FunctionType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
@@ -303,7 +303,7 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
       Tuple data = (Tuple) link.getData();
       int n = ((TupleType) data.getType()).getNumberOfRealComponents();
       Real[] reals = new Real[n];
- 
+
       int k = 0;
       int m = data.getDimension();
       for (int i=0; i<m; i++) {
@@ -584,17 +584,17 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
     frame.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0);}
     });
- 
+
     // create JPanel in JFrame
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
     panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
     panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     frame.getContentPane().add(panel);
- 
+
     // add display to JPanel
     panel.add(display.getComponent());
- 
+
     // set size of JFrame and make it visible
     frame.setSize(500, 500);
     frame.setVisible(true);

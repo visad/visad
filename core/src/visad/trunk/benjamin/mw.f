@@ -50,7 +50,7 @@ C
 c NEED 2) TO EXAMINE ROTATION CURVES AS A FUNCTION OF HALO PARAMETERS
 c      3) TO PUT IN OTHER SOURCES OF WEIGHT/PRESSURE
 c      4) SQUARE WITH BOULARES AND COX
-c      5) DO L.O.S. CALCULATIONS      
+c      5) DO L.O.S. CALCULATIONS
 c==========================================================================
 c     Bob Benjamin's ISM Galactic Structure Code
 c     --------------------------------------------
@@ -58,7 +58,7 @@ c     Calculates various physical parameters as a function of
 c     galactic coordinates
 
 c     This program represents a compilation of various global models
-c     of the galaxy (abundance gradients, velocity fields, mass 
+c     of the galaxy (abundance gradients, velocity fields, mass
 c     distributions, etc for the Milky Way Galaxy)
 c==========================================================================
       include "dimen.h"
@@ -120,7 +120,7 @@ C      dimension rhogrz(NRMAX,NZMAX)
 
 
 
-c     -----------------------------      
+c     -----------------------------
 c     Array of abundances
 c     -----------------------------
       dimension abrzZ(NRMAX,NZMAX,NEL)
@@ -192,7 +192,7 @@ C      read *, icase
       end if
  990  format(i1)
  991  format(i2)
-      
+
       dirname='Case'//ccase//'/'
 
       switchfile='switch.inp'
@@ -202,7 +202,7 @@ C      parfile=dirname//'switch.out'
 
 c     -------------------------------
 c     Set up file with info about the
-c     run... close file at end of 
+c     run... close file at end of
 c     program...
 c     -------------------------------
 C WLH
@@ -218,7 +218,7 @@ c     -----------------------------
       call switch_init(PARAMS,ndes,switchfile,parfile,descrfile,abfile)
 
 c     -----------------------
-c     Set up geometrical grid 
+c     Set up geometrical grid
 c     in R/Z for galaxy
 c     -----------------------
       call rzgrid_init(ndes,nr,nz,Rcyl,Zcyl)
@@ -258,7 +258,7 @@ c     ------------------------------
       call Bavgcalc(iBgeom,nr,nz,Rcyl,Zcyl,przp,Bavgrz)
 
 c     ------------------------
-c     Calculate gravity      
+c     Calculate gravity
 c     ------------------------
 
 
@@ -266,16 +266,16 @@ c     ------------------------
 
       do ir=1,nr
          do iz=1,nz
-            if (gRrz(ir,iz).lt.0) then 
+            if (gRrz(ir,iz).lt.0) then
                print *, 'gR less than 0:', Rcyl(ir),Zcyl(iz)
                stop
-            else if (gzrz(ir,iz).lt.0) then 
+            else if (gzrz(ir,iz).lt.0) then
                print *, 'gz less than 0:', Rcyl(ir),Zcyl(iz)
                stop
             end if
           end do
       end do
-            
+
 
 c     ----------------------------
 c     Calculate radiation pressure
@@ -286,7 +286,7 @@ c     ----------------------------
 
 c     ----------------------------
 c     Calculate "effective gravity"
-c     (gravity - radiation pressure)      
+c     (gravity - radiation pressure)
 c     ----------------------------
 
       call grzsum(nr,nz,gzrz,radrz,geffrz)
@@ -300,7 +300,7 @@ c     ------------------------
       end do
 
 c     ilid=1 is for column density, ilid=2 for int_rho*g_eff
-      ilid=2  
+      ilid=2
 c      call grzlid(ilid,abfile,Zcyl(nz),ztop,nr,Rcyl,rhoglid)
 c     ------------------------
 c     Calculate rho*g for grid
@@ -313,7 +313,7 @@ c     ----------------------
 
 c      call zinteg(nr,nz,Rcyl,Zcyl,rhoglid,rhogrz,wtrz)
 
-      
+
       do j=1,NZMAX
          do i=1,NRMAX
             wtrz(i,j)=wtrz(i,j)*RHO0
@@ -368,8 +368,8 @@ c     ---------------
 
 c     -----------------------
 c     Normally would convert
-c     cylindrical coord to 
-c     cartesian. right now 
+c     cylindrical coord to
+c     cartesian. right now
 c     skip to new density fcn
 c     -----------------------
 c      do iz=1,nz
@@ -381,7 +381,7 @@ c      call cyl2xyz(nr,nz,Rcyl,Zcyl,dumrz,
 c     >             nxx,nyy,nzz,Xx,Yy,Zz,dumxyz)
 
 
-      call tcden(nxx,nyy,nzz,Xx,Yy,Zz,dHxyz,xyzmask) 
+      call tcden(nxx,nyy,nzz,Xx,Yy,Zz,dHxyz,xyzmask)
 
 c     ----------------------------
 c     Call all-sky survey
@@ -435,7 +435,7 @@ c      call skysamp(NSKYMAX,nskypt,res,gL,gB)
 c     convert l and b to pixel number in map projection
 c      call Aitoffproj(intk,intj,center,nskypt,gL,gB,iprox,iproy)
 
-c     calculate 
+c     calculate
       call tcsky(nxx,nyy,nzz,Xx,Yy,Zz,dHxyz,xyzmask,
      >                 Nxpx,Nypx,gL,gB,dHsky)
 
@@ -443,7 +443,7 @@ c     calculate
 c     ------------
 c     Output loop
 c     ------------
-c     Loop through possible things to print out...      
+c     Loop through possible things to print out...
       do i=1,NNOUT
          if (iout(i).ne.0) then
 C WLH
@@ -456,7 +456,7 @@ C           blockfile=dirname//outlab(i)//'.blk'
      >                   ffrzp,sigrzp,Trzp,przp,
      >                   radrz,Bavgrz)
            call prtblk(nr,nz,Rcyl,Zcyl,outrz,blockfile)
-           
+
            do j=1,NSLICE
              if (islice(j).ne.0) then
                write(cslice(1:1),990) j
@@ -481,7 +481,7 @@ c     -------------------------
 c     close description file...
 c     -------------------------
       close(unit=ndes)
-      
+
       ISIZES(1) = Nxpx
       ISIZES(2) = Nypx
       ISIZES(3) = 1+2*nxx
@@ -581,7 +581,7 @@ c==========================================================================
       nz=igrinfo(2)
       nr=int((rmax-rmin)/dr)+1
 
-     
+
       if ((izlog.eq.1).and.(zmin.eq.0)) then
          zmin=0.001
          zeroflag=1
@@ -595,7 +595,7 @@ c==========================================================================
         if (zeroflag.eq.1) then
          dzlog=(zmalog-zmilog)/(nz-2)
         else
-         dzlog=(zmalog-zmilog)/(nz-1)           
+         dzlog=(zmalog-zmilog)/(nz-1)
         end if
       end if
 
@@ -627,7 +627,7 @@ c==========================================================================
       do i=1,nr
          r(i)=rmin+(i-1)*dr
       end do
-      
+
       return
       end
 c==========================================================================
@@ -651,7 +651,7 @@ c           xx,yy,zz go from -nxx,nyy,nzz to +nxx,nyy,nzz
       nxx=nr-1
       nyy=nr-1
       nzz=nz-1
-      
+
       Xx(0)=0.
       Yy(0)=0.
       Zz(0)=0.
@@ -686,7 +686,7 @@ c==========================================================================
 c     ----------------------------------
 c     imask=1: only cylinder with R<Rmax
 c     ----------------------------------
-      
+
       if (imask(1).eq.1) then
         Rmax=pmask(1)
         do  ix=-nxx,nxx
@@ -749,7 +749,7 @@ c        to be the same...
       end do
 
 c     if the grid point is within the bounds of the cylindrical
-c     array,do linear interpolation     
+c     array,do linear interpolation
       do iy=-nyy,nyy
        do ix=-nxx,nxx
         do iz=-nzz,nzz
@@ -771,7 +771,7 @@ c==========================================================================
 
 
 c==========================================================================
-      subroutine xyzzero(Axyz) 
+      subroutine xyzzero(Axyz)
 c==========================================================================
       include "dimen.h"
       dimension Axyz(-NXP:NXP,-NYP:NYP,-NZP:NZP)
@@ -793,18 +793,18 @@ c      function trilin(x,y,z,nxx,nyy,nzz,Xx,Yy,Zz,Axyz)
 c==========================================================================
 c      include "dimen.h"
 c      dimension Xx(-NXP:NXP),Yy(-NYP:NYP),Zz(-NZP:NZP)
-c      dimension Axyz(-NXP:NXP,-NYP:NYP,-NZP:NZP)      
-c      dimension 
+c      dimension Axyz(-NXP:NXP,-NYP:NYP,-NZP:NZP)
+c      dimension
 
 c      call 3dbrac(x,y,z,nxx,nyy,nzz,
 c      call hunt(Xx,nxx,x,jx)
 c      call hunt(Yy,nyy,y,jy)
-c      call hunt(Zz,nzz,z,jz)      
+c      call hunt(Zz,nzz,z,jz)
 
 c      if ((jx.eq.0).or.(jy.eq.0).or.(jz.eq.0))
 
 
-c==========================================================================   
+c==========================================================================
       subroutine tcsky(nxx,nyy,nzz,Xx,Yy,Zz,dHxyz,xyzmask,
      >                 Nxpx,Nypx,gL,gB,dHsky)
 c==========================================================================
@@ -837,7 +837,7 @@ c==========================================================================
 c==========================================================================
 
 c==========================================================================
-      subroutine tcden(nxx,nyy,nzz,Xx,Yy,Zz,dHxyz,xyzmask) 
+      subroutine tcden(nxx,nyy,nzz,Xx,Yy,Zz,dHxyz,xyzmask)
 c==========================================================================
       include "dimen.h"
       dimension Xx(-NXP:NXP),Yy(-NYP:NYP),Zz(-NZP:NZP)
@@ -848,10 +848,10 @@ c==========================================================================
 C WLH
 C      print *, 'Density model leaves out gum nebula for now'
 
-      call xyzzero(dHxyz) 
+      call xyzzero(dHxyz)
 
       ii = 1
-      do iz=-nzz,nzz 
+      do iz=-nzz,nzz
        do iy=-nyy,nyy
         do ix=-nxx,nxx
          if (xyzmask(ix,iy,iz).ne.0.) then
@@ -879,7 +879,7 @@ c==========================================================================
       character*80 comment
 c     set switchfile=unit 10
 c         parfile=unit 11
-      
+
 c      character*5 plab(NFORCE)
       data plab/'p_th','p_kin','p_CR','p_B'/
 
@@ -948,7 +948,7 @@ c    loops 3 sets of 5phases
      >            'P_th bal'/
 
       data rplab/'Thick disk ',
-     >           'Thin disk ', 
+     >           'Thin disk ',
      >           'Blank     '/
 
       data ablab/'Input file',
@@ -969,54 +969,54 @@ c     Ex: parameter 2 of phase=3,function=2 would be
 c     the third entry of the block 2/line2
 
       data abparlab/'a1  ','a1  ','a1  ','a1  ',
-     >              'a2  ','a2  ','a2  ','a2  ', 
+     >              'a2  ','a2  ','a2  ','a2  ',
      >              'a3  ','a3  ','a3  ','a3  '/
 
       data rpparlab/'a1  ','a1  ','a1  ',
-     >              'a2  ','a2  ','a2  ', 
-     >              'a3  ','a3  ','a3  ', 
-     >              'a4  ','a4  ','a4  ', 
+     >              'a2  ','a2  ','a2  ',
+     >              'a3  ','a3  ','a3  ',
+     >              'a4  ','a4  ','a4  ',
      >              'a5  ','a5  ','a5  ',
      >              'a6  ','a6  ','a6  ',
      >              'a7  ','a7  ','a7  '/
 
       data ffparlab/'a1  ','a1  ','a1  ',
-     >              'a2  ','a2  ','a2  ', 
-     >              'a3  ','a3  ','a3  ', 
-     >              'a4  ','a4  ','a4  ', 
+     >              'a2  ','a2  ','a2  ',
+     >              'a3  ','a3  ','a3  ',
+     >              'a4  ','a4  ','a4  ',
      >              'a5  ','a5  ','a5  '/
 
-      data dparlab/'a1  ','a1  ','a1  ','a1  ','a1  ',     
-     >             'a1  ','a1  ','a1  ','a1  ','a1  ',   
-     >             'a1  ','a1  ','a1  ','a1  ','a1  ',    
+      data dparlab/'a1  ','a1  ','a1  ','a1  ','a1  ',
+     >             'a1  ','a1  ','a1  ','a1  ','a1  ',
+     >             'a1  ','a1  ','a1  ','a1  ','a1  ',
 
-     >             'a2  ','a2  ','a2  ','a2  ','a2  ',     
-     >             'a2  ','a2  ','a2  ','a2  ','a2  ',   
-     >             'a2  ','a2  ','a2  ','a2  ','a2  ',     
+     >             'a2  ','a2  ','a2  ','a2  ','a2  ',
+     >             'a2  ','a2  ','a2  ','a2  ','a2  ',
+     >             'a2  ','a2  ','a2  ','a2  ','a2  ',
 
-     >             'a3  ','a3  ','a3  ','a3  ','a3  ',   
-     >             'a3  ','a3  ','a3  ','a3  ','a3  ',    
-     >             'a3  ','a3  ','a3  ','a3  ','a3  '/    
+     >             'a3  ','a3  ','a3  ','a3  ','a3  ',
+     >             'a3  ','a3  ','a3  ','a3  ','a3  ',
+     >             'a3  ','a3  ','a3  ','a3  ','a3  '/
 
-      data pparlab/'a1  ','a1  ','a1  ','a1  ',     
-     >             'a1  ','a1  ','a1  ','a1  ',   
-     >             'a1  ','a1  ','a1  ','a1  ',    
-     >             'a1  ','a1  ','a1  ','a1  ',    
-     >             'a1  ','a1  ','a1  ','a1  ',    
-                                               
-     >             'a2  ','a2  ','a2  ','a2  ',     
-     >             'a2  ','a2  ','a2  ','a2  ',   
-     >             'a2  ','a2  ','a2  ','a2  ',     
-     >             'a2  ','a2  ','a2  ','a2  ',     
-     >             'a2  ','a2  ','a2  ','a2  ',     
-                                               
-     >             'a3  ','a3  ','a3  ','a3  ',   
-     >             'a3  ','a3  ','a3  ','a3  ',    
-     >             'a3  ','a3  ','a3  ','a3  ',    
-     >             'a3  ','a3  ','a3  ','a3  ',    
-     >             'a3  ','a3  ','a3  ','a3  '/    
+      data pparlab/'a1  ','a1  ','a1  ','a1  ',
+     >             'a1  ','a1  ','a1  ','a1  ',
+     >             'a1  ','a1  ','a1  ','a1  ',
+     >             'a1  ','a1  ','a1  ','a1  ',
+     >             'a1  ','a1  ','a1  ','a1  ',
 
-      data gparlab/'a1  ','a1  ','a1  ',     
+     >             'a2  ','a2  ','a2  ','a2  ',
+     >             'a2  ','a2  ','a2  ','a2  ',
+     >             'a2  ','a2  ','a2  ','a2  ',
+     >             'a2  ','a2  ','a2  ','a2  ',
+     >             'a2  ','a2  ','a2  ','a2  ',
+
+     >             'a3  ','a3  ','a3  ','a3  ',
+     >             'a3  ','a3  ','a3  ','a3  ',
+     >             'a3  ','a3  ','a3  ','a3  ',
+     >             'a3  ','a3  ','a3  ','a3  ',
+     >             'a3  ','a3  ','a3  ','a3  '/
+
+      data gparlab/'a1  ','a1  ','a1  ',
      >             'a1  ','a1  ','a1  ',
      >             'a1  ','a1  ','a1  ',
 
@@ -1026,7 +1026,7 @@ c     the third entry of the block 2/line2
 
      >             'a3  ','a3  ','a3  ',
      >             'a3  ','a3  ','a3  ',
-     >             'a3  ','a3  ','a3  '/    
+     >             'a3  ','a3  ','a3  '/
 
       open(unit=10,file=switchfile,status='unknown')
       open(unit=11,file=parfile,status='new')
@@ -1088,7 +1088,7 @@ c     pressure switches
 
       read(10,'(a80)') comment
       write(11,'(a80)') comment
-C      write(6,'(a80)') comment      
+C      write(6,'(a80)') comment
 c     gravity switches
       read(10,*) i1,i2,i3
       write(11,*) i1,i2,i3
@@ -1202,7 +1202,7 @@ c     Density parameters
       write(11,'(a80)') comment
 C      write(6,'(a80)') comment
 
-c     
+c
 c     Pressure parameters
       do i1=1,NFORCE
          do i2=1,NPFCN
@@ -1298,8 +1298,8 @@ c     Print out text info on functions/parameters chosen....
 
       write(ndes,*)
 
-c     Density info      
-      write(ndes,1201) 
+c     Density info
+      write(ndes,1201)
       do i1=1,NPHASE
          if (iden(i1).eq.1) then
             write(ndes,1301) phaselab(i1)
@@ -1318,8 +1318,8 @@ c     Density info
          end if
       end do
 
-c     Pressure info      
-      write(ndes,1202) 
+c     Pressure info
+      write(ndes,1202)
       do i1=1,NFORCE
          if (ipres(i1).eq.1) then
             write(ndes,1302) plab(i1)
@@ -1339,8 +1339,8 @@ c     Pressure info
          end if
       end do
 
-c     Gravity info      
-      write(ndes,1203) 
+c     Gravity info
+      write(ndes,1203)
       do i1=1,NGRAV
          if (igrav(i1).eq.1) then
             write(ndes,1303) gravlab(i1)
@@ -1410,7 +1410,7 @@ c     Abundance info
  1222 format('Abundance table: ', a40)
       do i1=1,NAB
          if (iab(i1).eq.1) then
-            write(ndes,2001) ablab(i1) 
+            write(ndes,2001) ablab(i1)
                if ((abpars(i1,1).ne.0).or.(abpars(i1,2).ne.0).or.
      >             (abpars(i1,3).ne.0) ) then
                      write(ndes,2002) (abparlab(i1,k),abpars(i1,k),
@@ -1455,7 +1455,7 @@ c==========================================================================
 c                 *********************************
 c                        ABUNDANCE ROUTINES
 c                  Calculates abundance patterns of
-c                  different elements as a function 
+c                  different elements as a function
 c                  of position in the Galaxy
 c                 *********************************
 c==========================================================================
@@ -1497,7 +1497,7 @@ c     and assume they come from input table
            end do
         end do
 c     Use slope of oxygen abundance gradient for all
-c     elements *except* H, He, and molecules designed to 
+c     elements *except* H, He, and molecules designed to
 c     match input file at solar circle....
       else if (iab(2).eq.1) then
         if (abund(indexel(8)).eq.0) then
@@ -1514,7 +1514,7 @@ c     match input file at solar circle....
               if((indexel(izZ).le.2).or.(indexel(izZ).ge.27)) then
                 abrzZ(ir,iz,izZ)=abund(indexel(izZ))
               else
-                abrzZ(ir,iz,izZ)=fac*abund(indexel(izZ))                
+                abrzZ(ir,iz,izZ)=fac*abund(indexel(izZ))
               end if
             end do
           end do
@@ -1541,11 +1541,11 @@ c     Set all abundances = 1....
               if((indexel(izZ).le.2).or.(indexel(izZ).ge.27)) then
                 abrzZ(ir,iz,izZ)=abund(indexel(izZ))
               else
-                abrzZ(ir,iz,izZ)=fac*abund(indexel(izZ))                
+                abrzZ(ir,iz,izZ)=fac*abund(indexel(izZ))
               end if
             end do
            end do
-        end do 
+        end do
       end if
 
       return
@@ -1567,12 +1567,12 @@ c==========================================================================
       include "galstruct.h"
 c     * R in kpc, Z in kpc
 c     * returns particle density of hydrogen nuclei
-c     * iden is 5 element array, 0= off, 1=on 
+c     * iden is 5 element array, 0= off, 1=on
 c              iden(1)=molecules
 c              iden(2)=cnm
 c              iden(3)=wnm
 c              iden(4)=wim
-c              iden(5)=hm 
+c              iden(5)=hm
 
       dimension Rr(NRMAX),Zz(NZMAX)
       dimension drz(NRMAX,NZMAX)
@@ -1664,9 +1664,9 @@ c     -----------------------
          if (idfcn(5,1).eq.1) call df(df51,nr,nz,Rr,Zz,drzp(1,1,5))
          if (idfcn(5,2).eq.1) call df(df52,nr,nz,Rr,Zz,drzp(1,1,5))
          if (idfcn(5,3).eq.1) call df(df53,nr,nz,Rr,Zz,drzp(1,1,5))
-      end if 
+      end if
 
-      
+
        do iz=1,nz
         do ir=1,nr
          do ip=1,NPHASE
@@ -1761,7 +1761,7 @@ c              figure out where we are nonzero
                  do ik=1,iks-1
                     ffrzp(ir,iz,is(ik))=0.
                  end do
-                    
+
 
                end if
 
@@ -1779,7 +1779,7 @@ c              figure out where we are nonzero
       end
 
 c==========================================================================
-    
+
 
 c==========================================================================
       subroutine dtotcalc(nr,nz,dHrzp,dtotrzp)
@@ -1787,7 +1787,7 @@ c==========================================================================
       include "dimen.h"
       include "const.h"
       include "atomic.h"
-      
+
       dimension dHrzp(NRMAX,NZMAX,NPHASE)
       dimension dtotrzp(NRMAX,NZMAX,NPHASE)
 
@@ -1802,14 +1802,14 @@ c==========================================================================
 c     --------------------------------------
 c     Calculate total ionic particle density
 c     assuming all elements are atomic
-c     (will subtract for molecules or 
+c     (will subtract for molecules or
 c      add in electrons later)
 c     --------------------------------------
       ab=0
       do i=1,NEL
          ab=ab+abund(indexel(i))
       end do
-       
+
 c     convert to total particle density
 c     MM=all H in H2, everything else atomic
       do iz=1,nz
@@ -1828,7 +1828,7 @@ c         HM=all H and He ionized, everything else neutral
       return
       end
 c==========================================================================
-     
+
 c==========================================================================
       subroutine df(dfunc,nr,nz,Rr,Zz,drz)
 c==========================================================================
@@ -1837,7 +1837,7 @@ c==========================================================================
       dimension drz(NRMAX,NZMAX)
 
 
-         
+
       do iz=1,nz
          do ir=1,nr
             drz(ir,iz)=drz(ir,iz)+dfunc(Rr(ir),Zz(iz))
@@ -1860,7 +1860,7 @@ c     Molecular component (from Ferriere 98)
       if (R.gt.3.0) then
       h=(81*(R/RSUN)**0.58)/1000.
       rfac= (R/RSUN)**(-0.58)
-      else 
+      else
       h=(81*(3.0/RSUN)**0.58)/1000.
       rfac=(3.0/RSUN)**(-0.58)
       end if
@@ -1894,7 +1894,7 @@ c     column diff        x 0.38    x 0.34  x 0.73
       end if
       df12=facn*0.58*exp(-( (R-4.5)**2-(RSUN-4.5)**2 )/(2.9)**2)*
      >          (R/RSUN)**(-0.58)*exp(-(Z/h)**2)
-      
+
       return
       end
 c==========================================================================
@@ -1997,8 +1997,8 @@ c     WNM component
       include "dimen.h"
       include "galstruct.h"
 
-c     Crudely estimated parameters of 
-c     Kalberla layer  (from abstract of Kalberla et al 
+c     Crudely estimated parameters of
+c     Kalberla layer  (from abstract of Kalberla et al
 c     Local Bubble meeting)
 
       df32=1.03e-3*exp(-Z/4.4)
@@ -2043,7 +2043,7 @@ c==========================================================================
 c==========================================================================
 c     Attempt to include possible extended WIM component...
 c     Take the Ferriere formulation of the ISM thick disk
-c     and decrease midplane density by x5 and increase 
+c     and decrease midplane density by x5 and increase
 c     scaleheight by 5
 c     This all assumes that filling factor is 1, so provides
 c     maximum estimate of what might be there...
@@ -2054,7 +2054,7 @@ c     maximum estimate of what might be there...
 
       fac1=dpars(4,2,1)
       fac2=dpars(4,2,2)
-      
+
       h1=1.0
       df42=fac1*0.0237*exp(-(R*R-RSUN*RSUN)/(37*37))*
      >                 exp(-z/(fac2*h1))
@@ -2080,10 +2080,10 @@ c     WIM component
       h2=1
       A2=1
       c2=dn2*exp(-((R-A2)/1.8)**2.)*(sech(Z/h2))**2
-      
+
       dna=0
       ha=0
-      
+
       df43=0
       return
       end
@@ -2119,7 +2119,7 @@ c      z in pc; density in cm-3
       zkpc=z/1000.
       T=1e6
       T6=1
-      df52=2250*sqrt(T6)*(1+(zkpc*zkpc)/19.6)**(-1.35/T6)/T/2.     
+      df52=2250*sqrt(T6)*(1+(zkpc*zkpc)/19.6)**(-1.35/T6)/T/2.
       return
       end
 c==========================================================================
@@ -2205,7 +2205,7 @@ c     common block
       if (ipres(2).eq.1) then
          call pfa(pf21,nr,nz,R,Z,dHrzp,sigrzp,przp(1,1,2))
       end if
-         
+
       if (ipres(3).eq.1) then
          if (ipfcn(3,1).eq.1) call pfb(pf31,nr,nz,R,Z,przp(1,1,3))
          if (ipfcn(3,2).eq.1) call pfb(pf32,nr,nz,R,Z,przp(1,1,3))
@@ -2334,7 +2334,7 @@ c==========================================================================
       include "galstruct.h"
 
       dimension den(NPHASE),sig(NPHASE)
-c     ppars is velocity dispersion in km/s      
+c     ppars is velocity dispersion in km/s
 
       pf21=0
       do i=1,NPHASE
@@ -2499,7 +2499,7 @@ c==========================================================================
 
 
 
-c==========================================================================    
+c==========================================================================
       function bCRfer(R)
 c==========================================================================
 c     Fit to numerical curves output by program sech.f
@@ -2527,7 +2527,7 @@ c--------------------------------------------------------------------------
       if (R.gt.16) then
          print *, 'Warning! Fit to n(R) worse than 20%'
       end if
-      
+
       return
       end
 
@@ -2565,7 +2565,7 @@ c     p_B=B^2/(8*PI)
       end if
 
       return
-      end 
+      end
 c==========================================================================
 
 
@@ -2691,7 +2691,7 @@ c     common block
      >                         gzrzp(1,1,1),phirzp(1,1,1))
          if (igfcn(1,2).eq.1) call gf(gf12,nr,nz,R,Z,gRrzp(1,1,1),
      >                         gzrzp(1,1,1),phirzp(1,1,1))
-         if (igfcn(1,3).eq.1) then 
+         if (igfcn(1,3).eq.1) then
            call gf(gf13,nr,nz,R,Z,gRrzp(1,1,1),
      >                         gzrzp(1,1,1),phirzp(1,1,1))
          end if
@@ -2759,7 +2759,7 @@ c==========================================================================
 c==========================================================================
 
 
-      
+
 c==========================================================================
       subroutine gf11(R,Z,gvec)
 c==========================================================================
@@ -2773,7 +2773,7 @@ c==========================================================================
       C2=gpars(1,1,1)
       a2=gpars(1,1,2)
 
-      if ((R.eq.0).and.(Z.eq.0)) then 
+      if ((R.eq.0).and.(Z.eq.0)) then
         gvec(1)=0
         gvec(2)=0
       else
@@ -2860,7 +2860,7 @@ c==========================================================================
       include "galstruct.h"
       dimension gvec(NGRAV)
 
-      
+
 
 c     Calculate rotational term...
       if (R.lt.3) then
@@ -2892,7 +2892,7 @@ c     set radial component and phi = 0
       gvec(2)=4.4e-9*exp(-(R-RSUN)/4.9)*Z/sqrt(Z*Z+0.2*0.2)
       gvec(3)=0.
 
-c     subtract off rotation term that I don't understand...      
+c     subtract off rotation term that I don't understand...
       gvec(2)=gvec(2)-2*om*(om+Gsh)*(Z*1000*PC1)
 
       return
@@ -2954,7 +2954,7 @@ c==========================================================================
       gvec(3)=UNIT2*(C3*vc*vc*log(a3*a3+R*R+z*z))
 
 c     For very large distances replace gvec(3) with
-c     below expression...      
+c     below expression...
       top=sqrt(1+(a3*a3+R*R+z*z)/(rh*rh))-1
       bot=sqrt(1+(a3*a3+R*R+z*z)/(rh*rh))+1
       phi3mod=C3*vc*vc*log(top/bot)
@@ -3003,7 +3003,7 @@ c     Calculate rotational term...
       gvec(2)=1.7e-9*(RSUN*RSUN+2.2*2.2)/(R*R+2.2*2.2)*Z
       gvec(3)=0.
 
-c     subtract off rotation term that I don't understand...      
+c     subtract off rotation term that I don't understand...
       gvec(2)=gvec(2)-2*om*(om+Gsh)*(Z*1000*PC1)
 
       return
@@ -3025,7 +3025,7 @@ c     This routine must be run in double precision...
       double precision a,b,c,h,gamm,rmu,rnu
       double precision gvec(NGRAV)
       double precision rtil,rsq
-      
+
       R=DBLE(Rin)
       Z=DBLE(Zin)
 
@@ -3080,12 +3080,12 @@ c     Have to break gravity into different cases...
        gvec(2)=-vH*vH*z*gamm/(h*atan(gamm))*
      >      ( atan(gamm*rmu)/(gamm*rmu)-
      >        atan(gamm*rnu)/(gamm*rnu) )
-       
+
 
        gvec(1)=-vH*vH*R*gamm/(h*atan(gamm))*
-     >       (rmu*rmu/(rmu*rmu-1)* 
+     >       (rmu*rmu/(rmu*rmu-1)*
      >          (atan(gamm*rmu)/(gamm*rmu)-
-     >           atan(gamm)/(gamm)) 
+     >           atan(gamm)/(gamm))
      >       -rnu*rnu/(rnu*rnu-1)*
      >          (atan(gamm*rnu)/(gamm*rnu)-
      >           atan(gamm)/(gamm))        )
@@ -3093,7 +3093,7 @@ c     Have to break gravity into different cases...
 
       end if
 
-c     formula on phi comes from integrating 
+c     formula on phi comes from integrating
 c     formula (5) in Sackett et al 1994 ApJ 436,629
 c     Set = to zero for time being...
 
@@ -3101,7 +3101,7 @@ c     Set = to zero for time being...
 
 
 c     if round halo....
-      else 
+      else
 
       rsq=R*R+z*z
       rtil=sqrt(rsq)/rc
@@ -3115,7 +3115,7 @@ c     if round halo....
        gvec(3)=0
       end if
 
-      end if      
+      end if
 
 c     ----------------------
 c     Set to the right units
@@ -3172,10 +3172,10 @@ c      parameter(GSCL=3.5)
 c      parameter(ZCUT=0.03)
       ZCUT=rppars(2,6)
 
-c     Sum each of the radiation pressure components into 
+c     Sum each of the radiation pressure components into
 c     the following array...
 
-      
+
       do iz=1,NZMAX
          do ir=1,NRMAX
             radrz(ir,iz)=0.
@@ -3276,7 +3276,7 @@ c==========================================================================
          end do
       end do
 
-      
+
       do iz=1,nz
          do ir=1,nr
             if (dHrz(ir,iz).ne.0) then
@@ -3288,7 +3288,7 @@ c==========================================================================
             vtrmrz(ir,iz)=min(VESC,vtrmrz(ir,iz))
          end do
       end do
-      
+
       return
       end
 c==========================================================================
@@ -3422,7 +3422,7 @@ c     to derivative one zone in
      >                       (R(ir)-R(ir-1)))
          end do
       end do
-      
+
       do iz=1,nz
          dAdr(1,iz)=dAdr(2,iz)
          dAdr(nr,iz)=dAdr(nr-1,iz)
@@ -3461,7 +3461,7 @@ c     to derivative one zone in
      >                       (Z(iz)-Z(iz-1)))
          end do
       end do
-      
+
       do ir=1,nr
          dAdz(ir,1)=dAdz(ir,2)
          dAdz(ir,nz)=dAdz(ir,nz-1)
@@ -3547,7 +3547,7 @@ c==========================================================================
 c     choose closer of two grid points
       if (dlo.lt.dhi) then
          islice=islice
-      else 
+      else
          islice=islice+1
       end if
 
@@ -3565,9 +3565,9 @@ c     choose closer of two grid points
          end do
  2001    format('Slice at Z= ',f9.3,' kpc')
       end if
-      
+
       close(unit=nun)
-      
+
       return
       end
 c==========================================================================
@@ -3631,7 +3631,7 @@ c     the resultant integral is placed in the array Alid
 c     which includes all R points...
 c     ilid=1: H particle density
 c     ilid=2: denH*g=(rho/mean molecular weight)
-c     
+c
       include "dimen.h"
       include "const.h"
       include "atomic.h"
@@ -3663,7 +3663,7 @@ c     converged answer to within 10%
 
       dimension suma(NRMAX),sumb(NRMAX)
       dimension sum1(NRMAX),sum2(NRMAX)
-      dimension sumpd(NRMAX)      
+      dimension sumpd(NRMAX)
 
 c---------------------------------------------------------------------------
       ndum=NZ2MAX
@@ -3673,19 +3673,19 @@ c---------------------------------------------------------------------------
       end if
 
 c     Start with number of z point equal to 100.
-c     If doesn't converge, double each time. 
+c     If doesn't converge, double each time.
       nza=NZINIT
       nzb=2*NZINIT
 
-c     -------------------------      
-c     Set up integration 
-c     boundaries, and step size      
+c     -------------------------
+c     Set up integration
+c     boundaries, and step size
 c     -------------------------
       itop=1
 
  500  if (ztop.eq.0) then
          zmax=zmin*2**(itop)
-      else 
+      else
          zmax=ztop
       end if
 
@@ -3716,7 +3716,7 @@ c     the other call...
         call gcalc(nr,nza,Rcyl,Z2a,gunk1,gz,gunk2)
         call abcalc(nr,nza,Rcyl,Z2a,abrzZ,abfile)
         call rpcalc(nr,nza,Rcyl,Z2a,abrzZ,radz)
-        call grzsum(nr,nz,gz,radz,gz)       
+        call grzsum(nr,nz,gz,radz,gz)
 
         call grzmult(nr,nza,rh,gz,A2a)
       else
@@ -3735,11 +3735,11 @@ c     the other call...
 
       end if
 
-      
+
 c     -----------------------------------
 c     Process B array (higher resolution)
 c     -----------------------------------
-      dzb=(zmax-zmin)/(nzb-1)      
+      dzb=(zmax-zmin)/(nzb-1)
 
       do iz=1,nzb
         Z2b(iz)=zmin+(iz-1)*dzb
@@ -3753,8 +3753,8 @@ c     the other call...
         call dHcalc(nr,nzb,Rcyl,Z2b,rh,A2bp)
         call gcalc(nr,nzb,Rcyl,Z2b,gunk1,gz,gunk2)
         call abcalc(nr,nzb,Rcyl,Z2b,abrzZ,abfile)
-        call rpcalc(nr,nzb,Rcyl,Z2b,abrzZ,radz) 
-        call grzsum(nr,nz,gz,radz,gz)      
+        call rpcalc(nr,nzb,Rcyl,Z2b,abrzZ,radz)
+        call grzsum(nr,nz,gz,radz,gz)
 
         call grzmult(nr,nzb,rh,gz,A2b)
       else
@@ -3780,8 +3780,8 @@ c     -----------------------------------
       end do
 
 c     -----------------------------------
-c     if not converged over the interval, 
-c     move array b to array a, 
+c     if not converged over the interval,
+c     move array b to array a,
 c     double number of steps and try again...
 c     -----------------------------------
       if ((summax.gt.CONV).and.(iiter.lt.(NZ2IT-1))) then
@@ -3799,7 +3799,7 @@ c     -----------------------------------------------------------
 
       if (iiter.eq.NZ2IT-1) then
          print *, 'Reached max no of iterations'
-         print *, 'grzlid:  iiter>NZ2IT' 
+         print *, 'grzlid:  iiter>NZ2IT'
          stop
       end if
 
@@ -3828,7 +3828,7 @@ c         to get same resolution
           go to 500
         else
 c   store sum to sum2 and compare results of calculation
-           
+
           do ir=1,nr
              sum2(ir)=sumb(ir)
           end do
@@ -3844,7 +3844,7 @@ c   store sum to sum2 and compare results of calculation
              do ir=1,nr
                 sum1(ir)=sum2(ir)
              end do
-             itop=itop+1      
+             itop=itop+1
              nza=2*nzb
              nzb=2*nza
              go to 500
@@ -3858,7 +3858,7 @@ c       over pc rather than cm
 c       ------------------------------
         if (ilid.eq.2) then
            fac=RHO0*(PC1*1000)
-        else 
+        else
            fac=(PC1*1000)
         end if
 
@@ -3954,7 +3954,7 @@ c     blocks of possible output...
       dimension gRrz(NRMAX,NZMAX)
       dimension phirz(NRMAX,NZMAX)
       dimension vrrz(NRMAX,NZMAX)
-      
+
       dimension vrprz(NRMAX,NZMAX)
       dimension pwtrz(NRMAX,NZMAX)
       dimension abrzZ(NRMAX,NZMAX,NEL)

@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -49,7 +49,7 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
                 float flowScale, float[][] spatial_values,
                 byte[][] color_values, boolean[][] range_select)
          throws VisADException {
- 
+
     DataRenderer renderer = getLink().getRenderer();
     boolean direct = renderer.getIsDirectManipulation();
     if (direct && renderer instanceof BarbManipulationRendererJ2D) {
@@ -58,8 +58,8 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
                  range_select, renderer, true);
     }
     else {
-      return ShadowBarbRealTupleTypeJ2D.staticMakeFlow(getDisplay(), which, 
-                 flow_values, flowScale, spatial_values, color_values, 
+      return ShadowBarbRealTupleTypeJ2D.staticMakeFlow(getDisplay(), which,
+                 flow_values, flowScale, spatial_values, color_values,
                  range_select, renderer, false);
     }
   }
@@ -74,7 +74,7 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
          throws VisADException {
     if (flow_values[0] == null) return null;
     if (spatial_values[0] == null) return null;
- 
+
     int len = spatial_values[0].length;
     int flen = flow_values[0].length;
     int rlen = 0; // number of non-missing values
@@ -108,7 +108,7 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
         throw new VisADException(
           "ShadowBarbRealTupleTypeJ2D: Unable to get FlowControl");
       }
-      boolean isSouth = 
+      boolean isSouth =
         (fcontrol.getBarbOrientation() == FlowControl.SH_ORIENTATION);
       for (int i=0; i<len; i++) south[i] = isSouth;
     }
@@ -138,7 +138,7 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
     }
     int[] numv = {0};
     int[] numt = {0};
- 
+
     float scale = flowScale; // ????
     float pt_size = 0.25f * flowScale; // ????
 
@@ -245,7 +245,7 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
     VisADGeometryArray[] arrays = null;
     VisADLineArray array = new VisADLineArray();
     array.vertexCount = nv;
- 
+
     float[] coordinates = new float[3 * nv];
 
     int m = 0;
@@ -283,7 +283,7 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
         coordinates[m++] = 0.0f;
       }
       tarray.coordinates = coordinates;
-   
+
       if (color_values != null) {
         colors = new byte[3 * nt];
         m = 0;
@@ -330,10 +330,10 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
     int lent = tx.length;
     int nv = numv[0];
     int nt = numt[0];
- 
+
     //determine the initial (minimum) length of the flag pole
     if (wnd_spd >= 2.5) {
- 
+
       wsp25 = (float) Math.max(wnd_spd + 2.5, 5.0);
       slant = 0.15f * scale;
       barb = 0.4f * scale;
@@ -358,19 +358,19 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
       nv++;
       // g.drawLine(x,y,x1,y1);
 */
- 
+
       //determine number of wind barbs needed for 10 and 50 kt winds
       nbarb50 = (int)(wsp25/50.f);
       nbarb10 = (int)((wsp25 - (nbarb50 * 50.f))/10.f);
       nbarb5 =  (int)((wsp25 - (nbarb50 * 50.f) - (nbarb10 * 10.f))/5.f);
- 
+
       //2.5 to 7.5 kt winds are plotted with the barb part way done the pole
       if (nbarb5 == 1) {
         barb = barb * 0.4f;
         slant = slant * 0.4f;
         x1 = (x + x0 * d);
         y1 = (y + y0 * d);
- 
+
         if (south) {
           x2 = (x + x0 * (d + slant) - y0 * barb);
           y2 = (y + y0 * (d + slant) + x0 * barb);
@@ -406,7 +406,7 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
 // System.out.println("wsp25 " + x + " " + y + "" + x1 + " " + y1);
         // g.drawLine(x, y, x1, y1);
       }
- 
+
       //now plot any 10 kt wind barbs
       barb = 0.4f * scale;
       slant = 0.15f * scale;
@@ -422,7 +422,7 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
           x2 = (x + x0 * (d + slant) + y0 * barb);
           y2 = (y + y0 * (d + slant) - x0 * barb);
         }
- 
+
         vx[nv] = x1;
         vy[nv] = y1;
         nv++;
@@ -442,7 +442,7 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
 */
 // System.out.println("line " + x + " " + y + "" + x1 + " " + y1);
       // g.drawLine(x,y,x1,y1);
- 
+
       //lengthen the pole to accomodate the 50 knot barbs
       if (nbarb50 > 0) {
         d = d +0.125f * scale;
@@ -459,7 +459,7 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
 // System.out.println("line50 " + x + " " + y + "" + x1 + " " + y1);
         // g.drawLine(x,y,x1,y1);
       }
- 
+
       //plot the 50 kt wind barbs
 /* WLH 5 Nov 99
       s195 = (float) Math.sin(195 * Data.DEGREES_TO_RADIANS);
@@ -524,7 +524,7 @@ System.out.println("barb50 " + x1 + " " + y1 + "" + x2 + " " + y2 +
       mbarb[3] = y1;
     }
     else { // if (wnd_spd < 2.5)
- 
+
       // wind < 2.5 kts.  Plot a circle
       float rad = (0.7f * pt_size);
 

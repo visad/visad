@@ -7,7 +7,7 @@ C   IOPT = 1 :1D SINE WAVE PERTURBATION ON MEAN FIELD.
 C          2 :2D VORTEX.
 C          3 :2D VORTEX WITH BALANCED WIND FIELD.
 C          4 :2D STEP FUNCTION.
-C          5 :2D ANAYLTIC SOLUTION (STEADY STATE)        
+C          5 :2D ANAYLTIC SOLUTION (STEADY STATE)
 C   NOTE: KRAD = CONTROLS RADIUS OF VORTEX
 C==================================================================
 C
@@ -153,7 +153,7 @@ C        CC(i,j,1)=CC(i,j,2)
  68      CONTINUE
  66   CONTINUE
  62   CONTINUE
-      ENDIF            
+      ENDIF
 C
 C---INITIALIZE CONCENTRATION
 C        jbot=jcntr-1-5
@@ -178,7 +178,7 @@ C---EAST-WEST BC
          V(1,J,2)=V(2,J,2)
          V(IL,J,2)=V(NXM1,J,2)
  34   CONTINUE
-C 
+C
 C---NORTH-SOUTH BC
       DO 36 I=1,IL
          U(I,1,2)=U(I,2,2)

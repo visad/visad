@@ -5,7 +5,7 @@
 
 /*
 This sofware is part of the Australian Integrated Forecast System (AIFS)
-Copyright (C) 1999 Bureau of Meteorology 
+Copyright (C) 1999 Bureau of Meteorology
 */
 
 package visad.bom;
@@ -18,13 +18,13 @@ import java.net.URLConnection;
 import java.util.*;
 import visad.*;
 
-/** 
+/**
  * RadarFile
  *
  * @authors - James Kelly : J.Kelly@bom.gov.au
  *            converted from Phil Purdam's radl_cnvt.c
- *            
- * 
+ *
+ *
  */
 
 
@@ -35,7 +35,7 @@ public class RadarFile {
   public float rngres = 250.0f;    // Resolution of range rings, in metres
   public float startrng = 4000.0f; // Start Range in metres
   public float azimuthres = 1.0f;  // Resolution of azmuth, in degrees
-  public float elev = 0.0f;        // Elevation of radar beam          
+  public float elev = 0.0f;        // Elevation of radar beam
   // public float center_latitiude = -30.0f;
   // public float center_longitiude = 160.0f;
   private boolean fileok;
@@ -62,7 +62,7 @@ public class RadarFile {
     public byte[] bdata;
     public PolarByteData() { azimuth = 0.0; bdata = new byte[maxSize];}
     public PolarByteData(double az, byte[] bdata) {
-      azimuth = az; 
+      azimuth = az;
       this.bdata = new byte[bdata.length];
       System.arraycopy(bdata, 0, this.bdata, 0, bdata.length);
     }
@@ -92,17 +92,17 @@ public class RadarFile {
   }
 
  /**
-   * Retrieves the time of the radar image as a double.  
+   * Retrieves the time of the radar image as a double.
    *
-   * @ returns image time 
+   * @ returns image time
    */
-  public double getTime() 
+  public double getTime()
 	{
 		return dRadarTime;
 	}
 
 
-  public void setTime(String radarTime) 
+  public void setTime(String radarTime)
   {
 		try {
 		 	dRadarTime = Double.valueOf(radarTime).doubleValue();
@@ -114,17 +114,17 @@ public class RadarFile {
 
 
  /**
-   * Retrieves the time of the radar image as a VisAD DateTime.  
+   * Retrieves the time of the radar image as a VisAD DateTime.
    *
-   * @ returns image time 
+   * @ returns image time
    */
-  public DateTime getRadarTime() 
+  public DateTime getRadarTime()
   {
     return (dtTime);
   }
 
-  public void setRadarTime(String timeStamp) 
-      throws VisADException 
+  public void setRadarTime(String timeStamp)
+      throws VisADException
   {
     // TIMESTAMP: 19990915024004
     int year;
@@ -137,7 +137,7 @@ public class RadarFile {
 		String[] ids = TimeZone.getAvailableIDs(0);
 		TimeZone timeZone = new SimpleTimeZone(0, ids[0]);
 		Calendar cal = new GregorianCalendar(timeZone);
-		
+
 		year  = Integer.valueOf(timeStamp.substring(0,4)).intValue();
 		month = Integer.valueOf(timeStamp.substring(4,6)).intValue();
 		day   = Integer.valueOf(timeStamp.substring(6,8)).intValue();
@@ -145,8 +145,8 @@ public class RadarFile {
 		mins  = Integer.valueOf(timeStamp.substring(10,12)).intValue();
 		secs  = Integer.valueOf(timeStamp.substring(12,14)).intValue();
     System.out.println("timeStamp: " + timeStamp);
-    System.out.println("year,month,day,hour,mins,secs: " + year+ " " + month + " " +day+ " " + hours+ " " + mins+ " " + secs); 
-		// Subtract 1 from month since Jan = 0, Feb = 1 etc 
+    System.out.println("year,month,day,hour,mins,secs: " + year+ " " + month + " " +day+ " " + hours+ " " + mins+ " " + secs);
+		// Subtract 1 from month since Jan = 0, Feb = 1 etc
 		cal.clear();
 		cal.set(year,month-1,day,hours,mins,secs);
     System.out.println("Initialized with date: " + (cal.getTime()).toString());
@@ -156,9 +156,9 @@ public class RadarFile {
   }
 
 
-  public void readHeader(char[] cbuff ) { 
-  	String radarTime;  
-  	String timeStamp;  
+  public void readHeader(char[] cbuff ) {
+  	String radarTime;
+  	String timeStamp;
 		String thisLine = new String(cbuff);
 		String label;
 		// System.out.println("line = " + thisLine);
@@ -247,11 +247,11 @@ public class RadarFile {
 		} else
 		if (thisLine.startsWith("NOISETHRESH:")) {
 			System.out.println("line = " + thisLine);
-		} 
+		}
   }
-/* Header format: 
+/* Header format:
 COUNTRY: 036
-NAME: Adel    
+NAME: Adel
 STNID: 11
 DATE: 25899
 TIME: 02.40
@@ -265,10 +265,10 @@ ENDRNG: 512000
 PRODUCT: NORMAL
 IMGFMT: CompPPI
 ELEV: 000.5
-DBZLVL: 11.8 27.8 39.0 43.8 48.6 55.0 
+DBZLVL: 11.8 27.8 39.0 43.8 48.6 55.0
 CLEARAIR: OFF
-DBZCALDLVL: 11.8 23.0 28.0 31.0 34.0 37.0 40.0 43.0 46.0 49.0 52.0 55.0 58.0 61.0 64.0 
-DIGCALDLVL: 17 34 43 50 56 61 68 73 77 84 90 96 101 107 113 
+DBZCALDLVL: 11.8 23.0 28.0 31.0 34.0 37.0 40.0 43.0 46.0 49.0 52.0 55.0 58.0 61.0 64.0
+DIGCALDLVL: 17 34 43 50 56 61 68 73 77 84 90 96 101 107 113
 BEAMWIDTH: 3.00
 PULSELENGTH: 1.7
 STCRANGE: 111
@@ -279,26 +279,26 @@ NOISETHRESH: 14
 */
 
 
-  public void readRadial() throws IOException { 
-  
-    int pos = 0; 
+  public void readRadial() throws IOException {
+
+    int pos = 0;
     int numChars, skipBytes;
     boolean done = false;
-    int  rptCount; 
+    int  rptCount;
     int sizeBuff;
-    
+
     double dval = 0.0;
     char[] cbuff;
     char thisChar;
     StringBuffer sbuff;
     String ipString;
-      
+
     sbuff = new StringBuffer();
     bdata = new byte[maxSize];
-  
+
     //
-    // %ddd or %ddd.d  
-    //  
+    // %ddd or %ddd.d
+    //
     // % = first character
     //
     ipString = rf.readLine();
@@ -338,14 +338,14 @@ if (sizeBuff == 0) {
     try {
        // System.out.println("azimuth: " + az);
        // System.out.println("sbuff, length = " + sbuff + " " + sbuff.length());
-	   if (sbuff.length() != 0) 
+	   if (sbuff.length() != 0)
          az = Math.round((Float.valueOf(sbuff.toString())).floatValue());
 
     }
     catch (NumberFormatException e) {
        System.out.println("error converting radial " + e );
     }
-    
+
     pos--;
     // assert: next char is alpha
     while (!done) {
@@ -397,14 +397,14 @@ if (sizeBuff == 0) {
      } // endwhile
 
 	// System.out.print("bdata = ");
-	// for (int i=0; i < maxSize; i++) { 
+	// for (int i=0; i < maxSize; i++) {
 	//      System.out.print(bdata[i] + " ");
     // }
 	// System.out.println(" ");
-   
+
     // System.out.println("end readRadial");
   } // readRadial
- 
+
 
 } // RadarFile
 

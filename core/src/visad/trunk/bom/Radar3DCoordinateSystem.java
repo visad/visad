@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -46,22 +46,22 @@ public class Radar3DCoordinateSystem extends CoordinateSystem {
   private float radlow, radres, azlow, azres, elevlow, elevres;
   private double coscentlat, lonscale, latscale;
 
-  /** 
+  /**
    * construct a CoordinateSystem for (range, azimuth, elevation_angle)
    * relative to an Earth (Latitude, Longitude, Altitude) Reference;
-   * this constructor supplies units = 
+   * this constructor supplies units =
    * {CommonUnit.meter, CommonUnit.degree, CommonUnit.degree}
    * to the super constructor, in order to ensure Unit
    * compatibility with its use of trigonometric functions.  Values
-   * of range, azimuth, and elevation angle are in terms of absolute values of 
-   * range, azimuth and elevation angle (tilt) from the center point where 
-   * range is in meters, azimuth = 0 at north and elevation angle is in 
+   * of range, azimuth, and elevation angle are in terms of absolute values of
+   * range, azimuth and elevation angle (tilt) from the center point where
+   * range is in meters, azimuth = 0 at north and elevation angle is in
    * degrees.
-   * 
+   *
    * @param  clat        latitude of center point
    * @param  clon        longitude of center point
    * @param  calt        altitude (meters) of center point
-   * 
+   *
    * @throws  VisADException   necessary VisAD object couldn't be created.
    */
   public Radar3DCoordinateSystem(float clat, float clon, float calt)
@@ -71,32 +71,32 @@ public class Radar3DCoordinateSystem extends CoordinateSystem {
          clat, clon, calt, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
   }
 
-  /** 
+  /**
    * construct a CoordinateSystem for (range, azimuth, elevation_angle)
    * relative to an Earth (Latitude, Longitude, Altitude) Reference;
-   * this constructor supplies units = 
+   * this constructor supplies units =
    * {CommonUnit.meter, CommonUnit.degree, CommonUnit.degree}
    * to the super constructor, in order to ensure Unit
    * compatibility with its use of trigonometric functions.  Values
-   * of range, azimuth and elevation angle are in terms of multiples of range, 
-   * azimuth and elevation angle resolutions away from the low values 
-   * (radl, azl, elevl). The absolute range is (radl + range_value * radr) 
-   * the absolute azimuth is (azl + azimuth_value * azr) with azimuth = 0 at 
-   * north and the absolute elevation angle is 
-   * (elevl + elevation_angle_value * elevr).  This allows the use of 
-   * Integer3DSets for the values assuming linear spacing of range, azimuth 
+   * of range, azimuth and elevation angle are in terms of multiples of range,
+   * azimuth and elevation angle resolutions away from the low values
+   * (radl, azl, elevl). The absolute range is (radl + range_value * radr)
+   * the absolute azimuth is (azl + azimuth_value * azr) with azimuth = 0 at
+   * north and the absolute elevation angle is
+   * (elevl + elevation_angle_value * elevr).  This allows the use of
+   * Integer3DSets for the values assuming linear spacing of range, azimuth
    * and elevation angle.
-   * 
+   *
    * @param  clat        latitude of center point
    * @param  clon        longitude of center point
-   * @param  radl        distance from center point for first possible echo 
+   * @param  radl        distance from center point for first possible echo
    *                     (meters)
    * @param  radr        distance between subsequent range increments (meters)
    * @param  azl         starting azimuth (degrees)
    * @param  azr         resolution of degrees between azimuths.
    * @param  elevl       starting elevation angle (tilt) (degrees)
    * @param  elevr       resolution of degrees between elevation angles.
-   * 
+   *
    * @throws  VisADException   necessary VisAD object couldn't be created.
    */
   public Radar3DCoordinateSystem(float clat, float clon, float calt,
@@ -108,36 +108,36 @@ public class Radar3DCoordinateSystem extends CoordinateSystem {
          clat, clon, calt, radl, radr, azl, azr, elevl, elevr);
   }
 
-  /** 
+  /**
    * construct a CoordinateSystem for (range, azimuth, elevation_angle)
    * relative to an Earth (Latitude, Longitude, Altitude) Reference;
-   * this constructor supplies units = 
+   * this constructor supplies units =
    * {CommonUnit.meter, CommonUnit.degree, CommonUnit.degree}
    * to the super constructor, in order to ensure Unit
    * compatibility with its use of trigonometric functions.  Values
-   * of range, azimuth and elevation angle are in terms of multiples of range, 
-   * azimuth and elevation angle resolutions away from the low values 
-   * (radl, azl, elevl). The absolute range is (radl + range_value * radr) 
-   * the absolute azimuth is (azl + azimuth_value * azr) with azimuth = 0 at 
-   * north and the absolute elevation angle is 
-   * (elevl + elevation_angle_value*elevr). This allows the use of 
-   * Integer3DSets for the values assuming linear spacing of range, azimuth 
+   * of range, azimuth and elevation angle are in terms of multiples of range,
+   * azimuth and elevation angle resolutions away from the low values
+   * (radl, azl, elevl). The absolute range is (radl + range_value * radr)
+   * the absolute azimuth is (azl + azimuth_value * azr) with azimuth = 0 at
+   * north and the absolute elevation angle is
+   * (elevl + elevation_angle_value*elevr). This allows the use of
+   * Integer3DSets for the values assuming linear spacing of range, azimuth
    * and elevation angle.
-   * 
+   *
    * @deprecated use constructors with station altitude to get a true
    *             altitude above sea level.
-   * @param  reference   reference RealTupleType 
+   * @param  reference   reference RealTupleType
    *                     (should be Latitude, Longitude, Altitude)
    * @param  clat        latitude of center point
    * @param  clon        longitude of center point
-   * @param  radl        distance from center point for first possible echo 
+   * @param  radl        distance from center point for first possible echo
    *                     (meters)
    * @param  radr        distance between subsequent range values (meters)
    * @param  azl         starting azimuth (degrees)
    * @param  azr         resolution of degrees between azimuths.
    * @param  elevl       starting elevation angle (tilt) (degrees)
    * @param  elevr       resolution of degrees between elevation angles.
-   * 
+   *
    * @throws  VisADException   necessary VisAD object couldn't be created.
    */
   public Radar3DCoordinateSystem(RealTupleType reference, float clat, float clon,
@@ -147,38 +147,38 @@ public class Radar3DCoordinateSystem extends CoordinateSystem {
     this(reference, clat, clon, 0.0f, radl, radr, azl, azr, elevl, elevr);
   }
 
-  /** 
+  /**
    * construct a CoordinateSystem for (range, azimuth, elevation_angle)
    * relative to an Earth (Latitude, Longitude, Altitude) Reference;
-   * this constructor supplies units = 
+   * this constructor supplies units =
    * {CommonUnit.meter, CommonUnit.degree, CommonUnit.degree}
    * to the super constructor, in order to ensure Unit
    * compatibility with its use of trigonometric functions.  Values
-   * of range, azimuth and elevation angle are in terms of multiples of range, 
-   * azimuth and elevation angle resolutions away from the low values 
-   * (radl, azl, elevl). The absolute range is (radl + range_value * radr) 
-   * the absolute azimuth is (azl + azimuth_value * azr) with azimuth = 0 at 
-   * north and the absolute elevation angle is 
-   * (elevl + elevation_angle_value*elevr). This allows the use of 
-   * Integer3DSets for the values assuming linear spacing of range, azimuth 
+   * of range, azimuth and elevation angle are in terms of multiples of range,
+   * azimuth and elevation angle resolutions away from the low values
+   * (radl, azl, elevl). The absolute range is (radl + range_value * radr)
+   * the absolute azimuth is (azl + azimuth_value * azr) with azimuth = 0 at
+   * north and the absolute elevation angle is
+   * (elevl + elevation_angle_value*elevr). This allows the use of
+   * Integer3DSets for the values assuming linear spacing of range, azimuth
    * and elevation angle.
-   * 
-   * @param  reference   reference RealTupleType 
+   *
+   * @param  reference   reference RealTupleType
    *                     (should be Latitude, Longitude, Altitude)
    * @param  clat        latitude of center point
    * @param  clon        longitude of center point
    * @param  calt        altitude (meters) of center point
-   * @param  radl        distance from center point for first possible echo 
+   * @param  radl        distance from center point for first possible echo
    *                     (meters)
    * @param  radr        distance between subsequent range values (meters)
    * @param  azl         starting azimuth (degrees)
    * @param  azr         resolution of degrees between azimuths.
    * @param  elevl       starting elevation angle (tilt) (degrees)
    * @param  elevr       resolution of degrees between elevation angles.
-   * 
+   *
    * @throws  VisADException   necessary VisAD object couldn't be created.
    */
-  public Radar3DCoordinateSystem(RealTupleType reference, 
+  public Radar3DCoordinateSystem(RealTupleType reference,
                                  float clat, float clon, float calt,
                                  float radl, float radr, float azl, float azr,
                                  float elevl, float elevr)
@@ -202,8 +202,8 @@ public class Radar3DCoordinateSystem extends CoordinateSystem {
   /**
    * Convert from range/azimuth/elevation to latitude/longitude/altitude.
    * Values input are in terms of multiples of the value resolution
-   * from the low value (ex: low + value * resolution).  Returned Altitude 
-   * is in meters above the station elevation if this was constructed 
+   * from the low value (ex: low + value * resolution).  Returned Altitude
+   * is in meters above the station elevation if this was constructed
    * without the calt parameter.
    *
    * @param  tuples  range/azimuth/elevation values
@@ -343,7 +343,7 @@ public class Radar3DCoordinateSystem extends CoordinateSystem {
   /**
    * Convert from range/azimuth/elevation to latitude/longitude/altitude.
    * Values input are in terms of multiples of the value resolution
-   * from the low value (ex: low + value * resolution).  Returned Altitude 
+   * from the low value (ex: low + value * resolution).  Returned Altitude
    * is in meters above the station elevation if this was constructed
    * without the calt parameter.
    *

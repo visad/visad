@@ -13,14 +13,14 @@ c============================================================================
       else if (ierr.eq.4) then
 	 print *, 'Temperature arrays not spaced uniformly in log T'
       else if (ierr.eq.5) then
-         print *, 'Exceeded MAXIT iterations in equil'  
+         print *, 'Exceeded MAXIT iterations in equil'
       else if (ierr.eq.6) then
 	 print *, 'Need to increase NWORK in balance'
       else if (ierr.eq.7) then
          print *, 'Photoionization cross section is nonzero below'
          print *, 'ionization threshhold in subroutine heating.'
       else if (ierr.eq.8) then
-         print *, 'Exceeded maximum iterations in THBAL'  
+         print *, 'Exceeded maximum iterations in THBAL'
       end if
       print *, '---error---error---error---error---error---error'
       stop

@@ -4,10 +4,10 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -42,19 +42,19 @@ public class Radar2DCoordinateSystem extends CoordinateSystem {
   private float radlow, radres, azlow, azres;
   private double coscentlat, lonscale, latscale;
 
-  /** 
+  /**
    * construct a CoordinateSystem for (range, azimuth)
    * relative to an Earth (Latitude, Longitude) Reference;
    * this constructor supplies units = {CommonUnit.meter, CommonUnit.degree}
    * to the super constructor, in order to ensure Unit
    * compatibility with its use of trigonometric functions.  Values
-   * of range and azimuth are in terms of absolute values of range and azimuth 
-   * away from the center point where range is in meters and azimuth = 0 at 
+   * of range and azimuth are in terms of absolute values of range and azimuth
+   * away from the center point where range is in meters and azimuth = 0 at
    * north.
-   * 
+   *
    * @param  clat        latitude of center point
    * @param  clon        longitude of center point
-   * 
+   *
    * @throws  VisADException   necessary VisAD object couldn't be created.
    */
   public Radar2DCoordinateSystem(float clat, float clon)
@@ -63,27 +63,27 @@ public class Radar2DCoordinateSystem extends CoordinateSystem {
             0.0f, 1.0f, 0.0f, 1.0f);
   }
 
-  /** 
+  /**
    * construct a CoordinateSystem for (range, azimuth)
    * relative to an Earth (Latitude, Longitude) Reference;
    * this constructor supplies units = {CommonUnit.meter, CommonUnit.degree}
    * to the super constructor, in order to ensure Unit
    * compatibility with its use of trigonometric functions.  Values
-   * of range and azimuth are in terms of multiples of range and azimuth 
+   * of range and azimuth are in terms of multiples of range and azimuth
    * resolutions away from the low value (radl, azl). The absolute
    * range is (radl + range_value * radr) and the absolute azimuth
    * is (azl + azimuth_value * azr) with azimuth = 0 at north.  This
    * allows the use of Integer2DSets for the values assuming linear
    * spacing of range and azimuth.
-   * 
+   *
    * @param  clat        latitude of center point
    * @param  clon        longitude of center point
-   * @param  radl        distance from center point for first possible echo 
+   * @param  radl        distance from center point for first possible echo
    *                     (meters)
    * @param  radr        distance between subsequent radials (meters)
    * @param  azl         starting azimuth (degrees)
-   * @param  azr         resolution of degrees between azimuths. 
-   * 
+   * @param  azr         resolution of degrees between azimuths.
+   *
    * @throws  VisADException   necessary VisAD object couldn't be created.
    */
   public Radar2DCoordinateSystem(float clat, float clon,
@@ -94,29 +94,29 @@ public class Radar2DCoordinateSystem extends CoordinateSystem {
   }
 
 
-  /** 
+  /**
    * construct a CoordinateSystem for (range, azimuth)
    * relative to an Earth (Latitude, Longitude) Reference;
    * this constructor supplies units = {CommonUnit.meter, CommonUnit.degree}
    * to the super constructor, in order to ensure Unit
    * compatibility with its use of trigonometric functions.  Values
-   * of range and azimuth are in terms of multiples of range and azimuth 
+   * of range and azimuth are in terms of multiples of range and azimuth
    * resolutions away from the low value (radl, azl). The absolute
    * range is (radl + range_value * radr) and the absolute azimuth
    * is (azl + azimuth_value * azr) with azimuth = 0 at north.  This
    * allows the use of Integer2DSets for the values assuming linear
    * spacing of range and azimuth.
-   * 
-   * @param  reference   reference RealTupleType 
+   *
+   * @param  reference   reference RealTupleType
    *                     (should be RealTupleType.LatitudeLongitudeTuple)
    * @param  clat        latitude of center point
    * @param  clon        longitude of center point
-   * @param  radl        distance from center point for first possible echo 
+   * @param  radl        distance from center point for first possible echo
    *                     (meters)
    * @param  radr        distance between subsequent radials (meters)
    * @param  azl         starting azimuth (degrees)
    * @param  azr         resolution of degrees between azimuths.
-   * 
+   *
    * @throws  VisADException   necessary VisAD object couldn't be created.
    */
   public Radar2DCoordinateSystem(RealTupleType reference, float clat, float clon,
@@ -138,7 +138,7 @@ public class Radar2DCoordinateSystem extends CoordinateSystem {
   /**
    * Convert from range/azimuth to latitude/longitude.
    * Values input are in terms of multiples of the value resolution
-   * from the low value (ex: low + value * resolution).  
+   * from the low value (ex: low + value * resolution).
    *
    * @param  tuples  range/azimuth values
    * @return  lat/lon values
@@ -180,7 +180,7 @@ System.out.println(tuples[0][i] + " " + tuples[1][i] + " -> " +
   /**
    * Convert from latitude/longitude to range/azimuth.
    * Returned values are in terms of multiples of the value resolution
-   * from the low value (ex: low + value * resolution).  
+   * from the low value (ex: low + value * resolution).
    *
    * @param  tuples  lat/lon values
    * @return  range/azimuth values
@@ -209,7 +209,7 @@ System.out.println(tuples[0][i] + " " + tuples[1][i] + " -> " +
   /**
    * Convert from range/azimuth to latitude/longitude.
    * Values input are in terms of multiples of the value resolution
-   * from the low value (ex: low + value * resolution).  
+   * from the low value (ex: low + value * resolution).
    *
    * @param  tuples  range/azimuth values
    * @return  lat/lon values
@@ -245,7 +245,7 @@ System.out.println(tuples[0][i] + " " + tuples[1][i] + " -> " +
   /**
    * Convert from latitude/longitude to range/azimuth.
    * Returned values are in terms of multiples of the value resolution
-   * from the low value (ex: low + value * resolution).  
+   * from the low value (ex: low + value * resolution).
    *
    * @param  tuples  lat/lon values
    * @return  range/azimuth values

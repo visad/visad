@@ -5,7 +5,7 @@
 
 /*
 This sofware is part of the Australian Integrated Forecast System (AIFS)
-Copyright (C) 1999 Bureau of Meteorology 
+Copyright (C) 1999 Bureau of Meteorology
 */
 
 package visad.bom;
@@ -23,13 +23,13 @@ import visad.util.LabeledColorWidget;
 import visad.data.mcidas.BaseMapAdapter;
 import visad.jmet.DumpType;
 
-/** 
+/**
  * RadarDisplay
  *
  * @authors - James Kelly : J.Kelly@bom.gov.au
  *            based on RadarAdapter.java, largely written by Bill Hibbard
- *            
- * 
+ *
+ *
  */
 
 public class RadarDisplay {
@@ -41,7 +41,7 @@ public class RadarDisplay {
     setColorMap(ScalarMap colorMap, float min, float max)
 			throws VisADException, RemoteException
     {
-			
+
             float[][] table = new float[3][256];
             for (int i=0; i<256; i++) {
                     if (i <= 15)
@@ -56,7 +56,7 @@ public class RadarDisplay {
                         table[1][i] = 240.0f/255.0f;
                         table[2][i] = 240.0f/255.0f;
                     }
-                    else if (i > 31 && i <= 47)                    
+                    else if (i > 31 && i <= 47)
 										{
                        table[0][i] = 0.0f;
                         table[1][i] = 144.0f/255.0f;
@@ -64,7 +64,7 @@ public class RadarDisplay {
                     }
                     else if (i > 47 && i <= 63)
                     {
-                        table[0][i] = 128.0f/255.0f;                        
+                        table[0][i] = 128.0f/255.0f;
 												table[1][i] = 224.0f/255.0f;
                         table[2][i] = 80.0f/255.0f;
                     }
@@ -140,10 +140,10 @@ public class RadarDisplay {
                         table[1][i] = 128.0f/255.0f;
                         table[2][i] = 224.0f/255.0f;
                     }
-                    
+
             }
       LabeledColorWidget lw =
-	  	new LabeledColorWidget(colorMap, table); 
+	  	new LabeledColorWidget(colorMap, table);
 
       Frame frame = new Frame("VisAD Color Widget");
       frame.addWindowListener(new WindowAdapter() {
@@ -185,7 +185,7 @@ public class RadarDisplay {
 		// Adelaide Airport: location of example radar data file radar.dat
 	  float centlat = -34.9581f;
 	  float centlon = 138.5342f;
-		float radius = 6.0f; // degrees 
+		float radius = 6.0f; // degrees
     String radarSource = "radar.dat";
     RadarDisplay rd = null;
     RadarAdapter ra = null;

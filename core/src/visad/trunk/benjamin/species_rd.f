@@ -5,7 +5,7 @@ c     Reads in a file that contains generic information on atomic data
 c     There is very little error checking. Beware.
 c     INPUT :            atomic.inp
 c     INCLUDE FILES:     atomic.h
-c     FORMAT OF INPUT FILE:  
+c     FORMAT OF INPUT FILE:
 c     Line 1   :   Text
 c     Line 2   :   number of elements, number of molecules
 c     Line 3   :   Text
@@ -18,7 +18,7 @@ c                  5) Gam      (=Cp/Cv; 5/3 for ideal monatomic gas)
 c                              (        7/5 for diatomic molecules )
 c                  6) Abundance(=1 for molecules                   )
 c     OUTPUT:  fills up arrays in common block atdat1
-c               
+c
 c---------------------------------------------------------------------------
 
       include "dimen.h"
@@ -36,8 +36,8 @@ c---------------------------------------------------------------------------
      >           'XXVI  ','XXVII ','XXVIII','XXIX  ','XXX   ',
      >           'XXXI  '/
 c----------------------------------------------------------------------------
- 
-      
+
+
       read(nunit,1001) explan_text
 1001  format(a80)
       read(nunit,*) Nel_,Nother_
@@ -45,14 +45,14 @@ c----------------------------------------------------------------------------
       if ( (Nel_.ne.NEL).or.(Nother_.ne.NOTHER) ) call errmsg(1)
 
 c     ------------------------
-c     Fill up element arrays  
-c     ------------------------    
+c     Fill up element arrays
+c     ------------------------
       i=1
       read(nunit,1001) explan_text
       do 10 iel=1,NEL
           read(nunit,1002) label_, no_, ncharge_,amu_, gam_, abund_
 1002      format(a4,2x,i3,6x,i3,3x,f9.4,f8.4,e9.2 )
- 
+
           indexel(iel)=i
           noel(iel)=no_
 
