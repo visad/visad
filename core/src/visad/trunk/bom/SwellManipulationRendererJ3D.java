@@ -38,7 +38,7 @@ import java.rmi.*;
 
 /**
    SwellManipulationRendererJ3D is the VisAD class for direct
-   manipulation rendering of wind barbs under Java3D
+   manipulation rendering of swells under Java3D
 */
 // public class SwellManipulationRendererJ3D extends DirectManipulationRendererJ3D {
 public class SwellManipulationRendererJ3D extends BarbManipulationRendererJ3D {
@@ -53,36 +53,32 @@ public class SwellManipulationRendererJ3D extends BarbManipulationRendererJ3D {
   public ShadowType makeShadowRealTupleType(
          RealTupleType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
-    // return new ShadowSwellRealTupleTypeJ3D(type, link, parent);
     return new ShadowBarbRealTupleTypeJ3D(type, link, parent);
   }
 
   public ShadowType makeShadowTupleType(
          TupleType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
-    // return new ShadowSwellTupleTypeJ3D(type, link, parent);
     return new ShadowBarbTupleTypeJ3D(type, link, parent);
   }
 
-/*
   public ShadowType makeShadowFunctionType(
          FunctionType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
-    return new ShadowSwellFunctionTypeJ3D(type, link, parent);
+    return new ShadowBarbFunctionTypeJ3D(type, link, parent);
   }
 
   public ShadowType makeShadowRealType(
          RealType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
-    return new ShadowSwellRealTypeJ3D(type, link, parent);
+    return new ShadowBarbRealTypeJ3D(type, link, parent);
   }
 
   public ShadowType makeShadowSetType(
          SetType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
-    return new ShadowSwellSetTypeJ3D(type, link, parent);
+    return new ShadowBarbSetTypeJ3D(type, link, parent);
   }
-*/
 
   /** information calculated by checkDirect */
   /** explanation for invalid use of DirectManipulationRenderer */
