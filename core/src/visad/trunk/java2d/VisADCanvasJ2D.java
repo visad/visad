@@ -249,17 +249,17 @@ System.out.println("VisADCanvasJ2D.createImages: len = " + len +
       if (component != null) {
         Graphics g = getGraphics();
         if (g != null) {
-          paint(g);
+          paintComponent(g);
           g.dispose();
         }
       }
       else {
-        paint(null);
+        paintComponent(null);
       }
     }
   }
 
-  public void paint(Graphics g) {
+  public void paintComponent(Graphics g) {
     AffineTransform tsave = null;
     BufferedImage image = null;
     boolean valid = false;
