@@ -85,6 +85,7 @@ TAR_FILES = \
 	ucar/multiarray/*.java				\
 	ucar/util/*.java				\
 	ucar/netcdf/*.java				\
+	ucar/netcdf/Makefile				\
 	ucar/tests/*.java				\
 	ucar/tests/test.nc				\
 	ucar/tests/test.out				\
