@@ -29,9 +29,6 @@ package visad.browser;
 import java.awt.*;
 import java.awt.event.*;
 
-import visad.PlotText;
-import visad.ScalarMap;
-
 /**
  * A slider widget that allows users to select a lower and upper bound.
  */
@@ -285,13 +282,6 @@ public class RangeSlider extends Component
   }
 
   /**
-   * Returns true if (px, py) is inside (x, y, w, h)
-   */
-  protected boolean containedIn(int px, int py, int x, int y, int w, int h) {
-    return new Rectangle(x, y, w, h).contains(px, py);
-  }
-
-  /**
    * MouseListener method for moving slider.
    */
   public void mousePressed(MouseEvent e) {
@@ -300,24 +290,24 @@ public class RangeSlider extends Component
     int y = e.getY();
     oldX = x;
 
-    if (containedIn(x, y, minGrip - (GRIP_WIDTH - 1),
+    if (Widget.containedIn(x, y, minGrip - (GRIP_WIDTH - 1),
       GRIP_TOP_Y, GRIP_WIDTH, GRIP_HEIGHT))
     {
       // mouse pressed in left grip
       minSlide = true;
     }
-    else if (containedIn(x, y, maxGrip, GRIP_TOP_Y, GRIP_WIDTH, GRIP_HEIGHT)) {
+    else if (Widget.containedIn(x, y, maxGrip, GRIP_TOP_Y, GRIP_WIDTH, GRIP_HEIGHT)) {
       // mouse pressed in right grip
       maxSlide = true;
     }
-    else if (containedIn(x, y, minGrip, GRIP_TOP_Y - 3, maxGrip-minGrip,
+    else if (Widget.containedIn(x, y, minGrip, GRIP_TOP_Y - 3, maxGrip-minGrip,
       GRIP_TOP_Y + SLIDER_LINE_HEIGHT - 1))
     {
       // mouse pressed in pink rectangle
       minSlide = true;
       maxSlide = true;
     }
-    else if (containedIn(x, y, 0, GRIP_TOP_Y-3, minGrip-GRIP_WIDTH,
+    else if (Widget.containedIn(x, y, 0, GRIP_TOP_Y-3, minGrip-GRIP_WIDTH,
       GRIP_TOP_Y+SLIDER_LINE_HEIGHT-1))
     {
       // mouse pressed to left of grips
@@ -329,7 +319,7 @@ public class RangeSlider extends Component
       valuesUpdated();
       repaint();
     }
-    else if (containedIn(x, y, maxGrip + 1 - GRIP_WIDTH, GRIP_TOP_Y - 3,
+    else if (Widget.containedIn(x, y, maxGrip + 1 - GRIP_WIDTH, GRIP_TOP_Y - 3,
       w - maxGrip + GRIP_WIDTH, GRIP_TOP_Y + SLIDER_LINE_HEIGHT - 1))
     {
       // mouse pressed to right of grips
@@ -594,8 +584,8 @@ public class RangeSlider extends Component
       g.fillRect(lastW - 4 - sw, FONT_TOP_Y, sw, FONT_HEIGHT);
       lastMaxLimit = maxLimit;
     }
-    String minS = PlotText.shortString(minValue);
-    String maxS = PlotText.shortString(maxValue);
+    String minS = Convert.shortString(minValue);
+    String maxS = Convert.shortString(maxValue);
     String curStr = name + " = (" + minS + ", " + maxS + ")";
     if (!curStr.equals(lastCurStr) || lastW != w) {
       g.setColor(Color.black);
@@ -604,8 +594,8 @@ public class RangeSlider extends Component
       lastCurStr = curStr;
     }
     g.setColor(Color.white);
-    g.drawString(PlotText.shortString(minLimit), 1, FONT_BOTTOM_Y);
-    String maxStr = PlotText.shortString(maxLimit);
+    g.drawString(Convert.shortString(minLimit), 1, FONT_BOTTOM_Y);
+    String maxStr = Convert.shortString(maxLimit);
     g.drawString(maxStr, w - 4 - fm.stringWidth(maxStr), FONT_BOTTOM_Y);
     g.drawString(curStr, (w - fm.stringWidth(curStr)) / 2, FONT_BOTTOM_Y);
   }
@@ -615,7 +605,7 @@ public class RangeSlider extends Component
    */
   public static void main(String[] argv) {
     RangeSlider rs = new RangeSlider("", 0.0f, 100.0f);
-    Frame f = new Frame("VisAD RangeSlider test");
+    Frame f = new Frame("RangeSlider test");
     f.addWindowListener(new WindowAdapter() {
         public void windowClosing(WindowEvent e) {
           System.exit(0);

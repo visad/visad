@@ -41,8 +41,8 @@ public class ContourWidget extends Widget implements ActionListener, ItemListene
   TextField interval;
   TextField base;
   Label surfaceLabel;
-  //CTR: TODO: Slider surface;
-  //CTR: TODO: ContourRangeSlider contourRange;
+  Slider surface;
+  ContourRangeSlider contourRange;
 
   private boolean cwMainContours;
   private boolean cwLabels;
@@ -66,9 +66,9 @@ public class ContourWidget extends Widget implements ActionListener, ItemListene
     dashed = new Checkbox("dashed lines below base", cwContourInterval < 0);
     interval = new TextField(Convert.shortString(Math.abs(cwContourInterval)));
     base = new TextField(Convert.shortString(cwBase));
-    surfaceLabel = new Label("--- = ---");
-    //CTR: TODO: surface = new Slider();
-    //CTR: TODO: contourRange = new ContourRangeSlider();
+    surfaceLabel = new Label(RangeSlider.DEFAULT_NAME + " = ---");
+    surface = new Slider();
+    contourRange = new ContourRangeSlider(0, 1, this);
 
     // add listeners
     contours.addItemListener(this);
@@ -86,7 +86,7 @@ public class ContourWidget extends Widget implements ActionListener, ItemListene
     addComponent(new Label("base:"), gridbag, 2, 2, 1, 1, 0.0, 0.0);
     addComponent(base, gridbag, 3, 2, 1, 1, 1.0, 0.0);
     addComponent(surfaceLabel, gridbag, 0, 3, 4, 1, 1.0, 0.0);
-    //CTR: TODO: addComponent(surface, gridbag, 0, 4, 4, 1, 1.0, 0.0);
+    addComponent(surface, gridbag, 0, 4, 4, 1, 1.0, 0.0);
     //CTR: TODO: addComponent(contourRange, gridbag, 0, 5, 4, 1, 1.0, 1.0);
   }
 
@@ -132,7 +132,7 @@ public class ContourWidget extends Widget implements ActionListener, ItemListene
    */
   public void setSurfaceValue(float sv) {
     cwSurfaceValue = sv;
-    //CTR: TODO: surface.setValue(sv);
+    surface.setValue(sv);
   }
 
   /**
@@ -171,7 +171,7 @@ public class ContourWidget extends Widget implements ActionListener, ItemListene
   public void setLimits(float lo, float hi) {
     cwLowLimit = lo;
     cwHiLimit = hi;
-    //CTR: TODO: contourRange.setValues(lo, hi);
+    contourRange.setValues(lo, hi);
   }
 
   /**
@@ -283,6 +283,33 @@ public class ContourWidget extends Widget implements ActionListener, ItemListene
    */
   public static void main(String[] args) {
     new ContourWidget().testWidget();
+  }
+
+  /**
+   * Subclass of RangeSlider for selecting min and max values.
+   */
+  class ContourRangeSlider extends RangeSlider {
+
+    /**
+     * Parent of this range slider.
+     */
+    private ContourWidget widget;
+
+    /**
+     * Constructs a new range slider for the contour widget.
+     */
+    ContourRangeSlider(float min, float max, ContourWidget parent) {
+      super(DEFAULT_NAME, min, max);
+      widget = parent;
+    }
+
+    /**
+     * Tells parent when the values have changed.
+     */
+    public void valuesUpdated() {
+      //CTR: TODO: widget.setLimits(minValue, maxValue);
+    }
+
   }
 
 }

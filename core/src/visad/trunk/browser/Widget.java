@@ -58,6 +58,15 @@ public abstract class Widget extends Panel {
   private Vector listeners = new Vector();
 
   /**
+   * Returns true if (px, py) is inside (x, y, w, h)
+   */
+  public static boolean containedIn(int px, int py,
+    int x, int y, int w, int h)
+  {
+    return new Rectangle(x, y, w, h).contains(px, py);
+  }
+
+  /**
    * Performs GUI setup common to all widgets.
    */
   public Widget() {
