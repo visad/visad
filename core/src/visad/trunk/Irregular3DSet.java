@@ -202,10 +202,9 @@ public class Irregular3DSet extends IrregularSet {
     return value;
   }
 
-  /* a private method used by valueToIndex and valueToInterp,
-     valueToTri returns an array of containing triangles given
+  /* valueToTri returns an array of containing triangles given
      an array of points in R^DomainDimension */
-  private int[] valueToTri(float[][] value) throws VisADException {
+  public int[] valueToTri(float[][] value) throws VisADException {
     if (ManifoldDimension != 3) {
       throw new SetException("Irregular3DSet.valueToTri: " +
                              "ManifoldDimension must be 3, not " +

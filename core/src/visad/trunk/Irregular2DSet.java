@@ -207,10 +207,9 @@ public class Irregular2DSet extends IrregularSet {
     return value;
   }
 
-  /** a private method used by valueToIndex and valueToInterp,
-      valueToTri returns an array of containing triangles given
+  /** valueToTri returns an array of containing triangles given
       an array of points in R^DomainDimension */
-  private int[] valueToTri(float[][] value) throws VisADException {
+  public int[] valueToTri(float[][] value) throws VisADException {
     if (ManifoldDimension != 2) {
       throw new SetException("Irregular2DSet.valueToTri: " +
                              "ManifoldDimension must be 2, not " +
