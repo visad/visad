@@ -19,7 +19,7 @@ import visad.data.fits.FitsForm;
 
 import visad.data.gif.GIFForm;
 
-import visad.data.hdfeos.HdfeosDefault;
+import visad.data.hdfeos.HdfeosAdaptedForm;
 
 import visad.data.netcdf.Plain;
 
@@ -327,7 +327,7 @@ public class DefaultFamily
     } catch (Throwable t) {
     }
     try {
-      list[i] = new HdfeosDefault();
+      list[i] = new HdfeosAdaptedForm();
       i++;
     } catch (Throwable t) {
     }
