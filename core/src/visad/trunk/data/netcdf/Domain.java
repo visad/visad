@@ -16,9 +16,9 @@ import visad.VisADException;
 
 
 /**
- * Class for associating a VisAD domain and netCDF variables.
+ * Class for associating a VisAD domain with netCDF variables.
  */
-public class
+class
 Domain
 {
     /**
@@ -50,10 +50,13 @@ Domain
 
 
     /**
-     * Construct.
+     * Construct from an array of adapted, netCDF variables.
+     *
+     * @exception UnimplementedException	Not yet!
+     * @exception VisADException	Couldn't create necessary VisAD object.
+     * @exception IOException		I/O error.
      */
-    public
-    Domain(NcVar[] vars, DimensionTable dimTable)
+    Domain(NcVar[] vars)
 	throws UnimplementedException, VisADException, IOException
     {
 	if (vars.length == 0)
@@ -66,27 +69,27 @@ Domain
 
 	rank = dims.length;
 
-	setMathType(dimTable);
-
-	setSet();
+	setMathType(dims);
     }
 
 
     /**
      * Set the VisAD math type of the domain.
+     *
+     * @exception VisADException	Couldn't create necessary VisAD object.
      */
     protected void
-    setMathType(DimensionTable dimTable)
+    setMathType(NcDim[] dims)
 	throws VisADException
     {
 	if (dims.length == 1)
-	    mathType = dimTable.getRealType(dims[0]);
+	    mathType = dims[0].getMathType();
 	else
 	{
 	    RealType[]	types = new RealType[dims.length];
 
 	    for (int i = 0; i < dims.length; ++i)
-		types[i] = dimTable.getRealType(dims[visadIdim(i)]);
+		types[i] = dims[visadIdim(i)].getMathType();
 
 	    mathType = new RealTupleType(types);
 	}
@@ -104,146 +107,9 @@ Domain
 
 
     /**
-     * Set the VisAD sampled set of the domain.
+     * Return the variables associated with this domain.
      */
-    protected void
-    setSet()
-	throws VisADException, IOException, BadFormException
-    {
-	boolean		coordinateVariables = false;
-	boolean	 	arithmeticProgressions = true;
-	ArithProg[]	aps = new ArithProg[rank];
-
-	for (int idim = 0; idim < rank; ++idim)
-	{
-	    NcVar	var = dims[visadIdim(idim)].getCoordinateVariable();
-
-	    if (var != null)
-	    {
-		coordinateVariables = true;
-
-		if (var.isLongitude())
-		    aps[idim] = new LonArithProg();
-		else
-		    aps[idim] = new ArithProg();
-
-		if (!aps[idim].accumulate((double[])var.getValues()))
-		{
-		    arithmeticProgressions = false;
-		    break;
-		}
-	    }
-	}
-
-	if (!coordinateVariables)
-	{
-	    /*
-	     * This domain has no co-ordinate variables.
-	     */
-
-	    int[]	lengths = new int[rank];
-
-	    /*
-	     * Reverse the order of the dimensional lengths for VisAD.
-	     */
-	    for (int idim = 0; idim < rank; ++idim)
-		lengths[idim] = dims[visadIdim(idim)].getLength();
-
-	    set = IntegerSet.create(mathType, lengths);
-	}
-	else
-	if (arithmeticProgressions)
-	{
-	    /*
-	     * This domain has co-ordinate variables -- all of which are
-	     * arithmetic progressions.
-	     */
-
-	    double[]	firsts = new double[rank];
-	    double[]	lasts = new double[rank];
-	    int[]	lengths = new int[rank];
-
-	    for (int idim = 0; idim < rank; ++idim)
-	    {
-		NcDim	dim = dims[visadIdim(idim)];
-		NcVar	var = dim.getCoordinateVariable();
-
-		if (var == null)
-		{
-		    /*
-		     * The dimension doesn't have a co-ordinate variable.
-		     */
-		    firsts[idim] = 0;
-		    lengths[idim] = dim.getLength();
-		    lasts[idim] = lengths[idim] - 1;
-		}
-		else
-		{
-		    /*
-		     * The dimension has a co-ordinate variable.
-		     */
-		    firsts[idim] = aps[idim].getFirst();
-		    lasts[idim] = aps[idim].getLast();
-		    lengths[idim] = aps[idim].getNumber();
-		}
-	    }
-
-	    set = LinearSet.create(mathType, firsts, lasts, lengths);
-	}
-	else
-	{
-	    /*
-	     * This domain has at least one co-ordinate variable which is 
-	     * not an arithmetic progression.  This is the general case.
-	     */
-
-	    int[]	lengths = new int[rank];
-	    float[][]	values = new float[rank][];
-	    int		ntotal = 1;
-
-	    for (int idim = 0; idim < rank; ++idim)
-	    {
-		lengths[idim] = dims[visadIdim(idim)].getLength();
-		ntotal *= lengths[idim];
-	    }
-
-	    for (int idim = 0; idim < rank; ++idim)
-	    {
-		NcDim		dim = dims[visadIdim(idim)];
-		NcVar		var = dim.getCoordinateVariable();
-		float[]		vals;
-
-		values[idim] = new float[ntotal];
-
-		if (var != null)
-		    vals = (float[])var.getValues();
-		else
-		{
-		    int	npts = lengths[idim];
-
-		    vals = new float[npts];
-
-		    for (int ipt = 0; ipt < npts; ++ipt)
-			vals[ipt] = ipt;
-		}
-
-		for (int pos = 0; pos < ntotal/vals.length; pos += vals.length)
-		    System.arraycopy(vals, 0, values[idim], pos, vals.length);
-	    }
-
-	    // System.out.println("lengths[0]=" + lengths[0]);
-	    // System.out.println("lengths[1]=" + lengths[1]);
-	    // System.out.println("lengths[2]=" + lengths[2]);
-
-	    set = GriddedSet.create(mathType, values, lengths);
-	}
-    }
-
-
-    /**
-     * Return the variables associated with the domain.
-     */
-    public NcVar[]
+    NcVar[]
     getVariables()
     {
 	return vars;
@@ -251,23 +117,32 @@ Domain
 
 
     /**
-     * Return the VisAD MathType of the domain.
+     * Return the dimensions associated with this domain.
      */
-    public MathType
-    getMathType()
+    NcDim[]
+    getDimensions()
     {
-	return mathType;
+	return dims;
     }
 
 
     /**
-     * Return the VisAD sampled set of the domain.
+     * Return the rank of this domain.
      */
-    public Set
-    getSet()
-	throws VisADException
+    int
+    getRank()
     {
-	return set;
+	return rank;
+    }
+
+
+    /**
+     * Return the VisAD MathType of the domain.
+     */
+    MathType
+    getMathType()
+    {
+	return mathType;
     }
 
 

@@ -2,7 +2,6 @@ package visad.data.netcdf;
 
 
 import java.io.IOException;
-import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 import visad.data.BadFormException;
@@ -16,7 +15,7 @@ import visad.VisADException;
  * Class for managing the correspondence between VisAD domains and
  * netCDF variables.
  */
-public class
+class
 DomainTable
 {
     /**
@@ -25,30 +24,25 @@ DomainTable
      */
     protected Hashtable		table;
 
-    /**
-     * The dimension table
-     * Effectively "final".
-     */
-    protected DimensionTable 	dimTable;
-
 
     /**
      * Construct.
      */
-    public
-    DomainTable(int initialNumEntries, DimensionTable dimTable)
+    DomainTable(int initialNumEntries)
     {
 	table = new Hashtable(initialNumEntries);
-	this.dimTable = dimTable;
     }
 
 
     /**
      * Add a variable entry.
      * NB: Variables with the same domain accumulate.
+     *
+     * @exception BadFormException	netCDF couldn't handle VisAD object.
+     * @exception VisADException	Couldn't create necessary VisAD object.
      */
-    public void
-    add(NcVar var)
+    void
+    put(NcVar var)
 	throws BadFormException, VisADException
     {
 	// System.out.println(this.getClass().getName() + 
@@ -76,19 +70,55 @@ DomainTable
 
     /**
      * Return the domains of the table.
+     *
+     * @exception UnimplementedException	Not yet!
+     * @exception VisADException	Couldn't create necessary VisAD object.
+     * @exception IOException		I/O error.
      */
-    public Domain[]
+    Domain[]
     getDomains()
 	throws UnimplementedException, VisADException, IOException
     {
-	Domain[]	domains = new Domain[table.size()];
-	Enumeration	enum = table.elements();
+	Domain[]		domains = new Domain[table.size()];
+	java.util.Enumeration	enum = table.elements();
 
 	for (int i = 0; i < domains.length; ++i)
-	    domains[i] = new Domain(((Entry)enum.nextElement()).getVariables(),
-				    dimTable);
+	    domains[i] = new Domain(((Entry)enum.nextElement()).getVariables());
 
 	return domains;
+    }
+
+
+    /**
+     * Return an enumeration of the domains in the table.
+     */
+    Enumeration
+    getEnumeration()
+    {
+	return new Enumeration();
+    }
+
+
+    /**
+     * Inner class for enumerating the domains in the table.
+     */
+    class
+    Enumeration
+    {
+	java.util.Enumeration	enum = table.elements();
+
+	public boolean
+	hasMoreElements()
+	{
+	    return enum.hasMoreElements();
+	}
+
+	public Domain
+	nextElement()
+	    throws IOException, UnimplementedException, VisADException
+	{
+	    return new Domain(((Entry)enum.nextElement()).getVariables());
+	}
     }
 
 
@@ -206,7 +236,7 @@ DomainTable
 	    for (int i = 0; i < rank; ++i)
 	    {
 		NcDim		dim = dims[i];
-		RealType	type = dimTable.getRealType(dim);
+		RealType	type = (RealType)dim.getMathType();
 
 		if (type == null)
 		    throw new BadFormException(
@@ -264,24 +294,25 @@ DomainTable
 
     /**
      * Test this class.
+     *
+     * @exception Exception	Something went wrong.
      */
     public static void main(String[] args)
 	throws Exception
     {
+	// TODO
+	/*
 	NcDim[]		dims = {new NcDim("dim0", 4), new NcDim("dim1", 5)};
 	NcVar		var0 = new NcFloat("var0", dims);
 	NcVar		var1 = new NcFloat("var1", dims);
-	DimensionTable	dimTable = new DimensionTable(dims.length);
 
-	dimTable.put(dims[0]);
-	dimTable.put(dims[1]);
-
-	DomainTable	domTable = new DomainTable(7, dimTable);
+	DomainTable	domTable = new DomainTable(7);
 
 	domTable.add(var0);
 	domTable.add(var0);
 	domTable.add(var1);
 
 	System.out.println("main(): domain table:\n" + domTable.toString());
+	*/
     }
 }

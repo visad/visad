@@ -2,118 +2,90 @@ package visad.data.netcdf;
 
 
 import java.io.IOException;
-import ucar.netcdf.ArrayInput;
 import ucar.netcdf.Attribute;
 import ucar.netcdf.Dimension;
 import ucar.netcdf.DimensionIterator;
+import ucar.netcdf.IndexIterator;
+import ucar.netcdf.MultiArray;
+import ucar.netcdf.Netcdf;
 import ucar.netcdf.Variable;
 import visad.MathType;
+import visad.OffsetUnit;
+import visad.RealType;
+import visad.SI;
+import visad.Text;
+import visad.TextType;
 import visad.Unit;
 import visad.VisADException;
 import visad.data.BadFormException;
+import visad.data.netcdf.units.ParseException;
+import visad.data.netcdf.units.Parser;
 
 
 /**
- * Abstract adaptor/decorator class for netCDF variables.
+ * Decorator class for netCDF variables.
  */
-public abstract class
+abstract class
 NcVar
 {
     /**
+     * The netCDF dataset.
+     */
+    protected final Netcdf	netcdf;
+
+    /**
      * The netCDF variable.
-     * Effectively "final".
      */
-    protected Variable	var;
-
-    /**
-     * The name of the variable.
-     * Effectively "final".
-     */
-    protected String	name;
-
-    /**
-     * The netCDF file.
-     * Effectively "final".
-     */
-    protected NcFile	file;
+    protected final Variable	var;
 
 
     /**
-     * Static factory method for instantiating the correct object.
+     * Construct from a netCDF variable and dataset.
      */
-    public static NcVar
-    instantiate(Variable var, NcFile file)
+    NcVar(Variable var, Netcdf netcdf)
     {
-	Class	varClass = var.getComponentType();
-
-	if (varClass.equals(Character.TYPE))
-	    return new NcText(var, file);
-
-	if (varClass.equals(Byte.TYPE))
-	    return new NcByte(var, file);
-
-	if (varClass.equals(Short.TYPE))
-	    return new NcShort(var, file);
-
-	if (varClass.equals(Integer.TYPE))
-	    return new NcLong(var, file);
-
-	if (varClass.equals(Float.TYPE))
-	    return new NcFloat(var, file);
-
-	return new NcDouble(var, file);
-    }
-
-
-    /**
-     * Construct.
-     */
-    public
-    NcVar(Variable var, NcFile file)
-    {
-	this.file = file;
 	this.var = var;
-	name = var.getName();
+	this.netcdf = netcdf;
     }
 
 
     /**
-     * Construct.
+     * Factory method for creating an instance of the correct subtype.
      */
-    public
-    NcVar(String name, Class type, NcDim[] ncDims)
+    static NcVar
+    create(Variable var, Netcdf netcdf)
     {
-	this(name, type, ncDims, (Unit)null);
-    }
+	Class	type = var.getComponentType();
+	NcVar	ncVar;
 
+	if (Character.TYPE.equals(type))
+	    ncVar = new NcText(var, netcdf);
+	else
+	if (Byte.TYPE.equals(type))
+	    ncVar = new NcByte(var, netcdf);
+	else
+	if (Short.TYPE.equals(type))
+	    ncVar = new NcShort(var, netcdf);
+	else
+	if (Integer.TYPE.equals(type))
+	    ncVar = new NcInt(var, netcdf);
+	else
+	if (Float.TYPE.equals(type))
+	    ncVar = new NcFloat(var, netcdf);
+	else
+	if (Double.TYPE.equals(type))
+	    ncVar = new NcDouble(var, netcdf);
+	else
+	    throw new UnsupportedOperationException("Unknown netCDF type");
 
-    /**
-     * Construct.
-     */
-    public
-    NcVar(String name, Class type, NcDim[] ncDims, Unit unit)
-    {
-	this.file = null;
-	this.name = name;
-
-	Dimension[]	dims = new Dimension[ncDims.length];
-
-	for (int i = 0; i < dims.length; ++i)
-	    dims[i] = ncDims[i].getDimension();
-
-	Attribute[]	attributes = unit == null
-			    ? null
-			    : new Attribute[] {
-				new Attribute("unit", unit.toString())};
-
-	this.var = new Variable(name, type, dims, attributes);
+	return ncVar;
     }
 
 
     /**
      * Return the rank of this variable.
      */
-    public int
+    int
     getRank()
     {
 	return var.getRank();
@@ -123,7 +95,7 @@ NcVar
     /**
      * Return the shape of this variable.
      */
-    public int[]
+    int[]
     getLengths()
     {
 	return var.getLengths();
@@ -131,69 +103,9 @@ NcVar
 
 
     /**
-     * Indicate if this variable is textual.
-     */
-    public boolean
-    isText()
-    {
-	return false;
-    }
-
-
-    /**
-     * Indicate if this variable is byte.
-     */
-    public boolean
-    isByte()
-    {
-	return false;
-    }
-
-
-    /**
-     * Indicate if this variable is short.
-     */
-    public boolean
-    isShort()
-    {
-	return false;
-    }
-
-
-    /**
-     * Indicate if this variable is *netCDF* long.
-     */
-    public boolean
-    isLong()
-    {
-	return false;
-    }
-
-
-    /**
-     * Indicate if this variable is float.
-     */
-    public boolean
-    isFloat()
-    {
-	return false;
-    }
-
-
-    /**
-     * Indicate if this variable is double.
-     */
-    public boolean
-    isDouble()
-    {
-	return false;
-    }
-
-
-    /**
      * Return the dimensions of this variable.
      */
-    public NcDim[]
+    NcDim[]
     getDimensions()
     {
 	int			rank = var.getRank();
@@ -201,16 +113,78 @@ NcVar
 	DimensionIterator	iter = var.getDimensionIterator();
 
 	for (int i = 0; i < rank; ++i)
-	    dims[i] = new NcDim(iter.next(), file);
+	    dims[i] = NcDim.create(iter.next(), netcdf);
 
 	return dims;
     }
 
 
     /**
-     * Return the VisAD math type of this variable.
+     * Indicate if the values of this variable are textual.
      */
-    public abstract MathType
+    boolean
+    isText()
+    {
+	return false;
+    }
+
+
+    /**
+     * Indicate if the values of this variable are byte.
+     */
+    boolean
+    isByte()
+    {
+	return false;
+    }
+
+
+    /**
+     * Indicate if the values of this variable are short.
+     */
+    boolean
+    isShort()
+    {
+	return false;
+    }
+
+
+    /**
+     * Indicate if the values of this variable are 32-bit *netCDF* integers.
+     */
+    boolean
+    isInt()
+    {
+	return false;
+    }
+
+
+    /**
+     * Indicate if the values of this variable are float.
+     */
+    boolean
+    isFloat()
+    {
+	return false;
+    }
+
+
+    /**
+     * Indicate if the values of this variable are double.
+     */
+    boolean
+    isDouble()
+    {
+	return false;
+    }
+
+
+    /**
+     * Return the VisAD math type of this variable.
+     *
+     * @exception VisADException	Couldn't create necessary VisAD object.
+     */
+    abstract MathType
     getMathType()
 	throws VisADException;
 
@@ -228,30 +202,30 @@ NcVar
     /**
      * Indicate whether or not this variable is the same as another.
      */
-    public boolean
+    boolean
     equals(NcVar that)
     {
-	return name.equals(that.name);
+	return var.getName().equals(that.getName());
     }
 
 
     /**
-     * Return the hash code of this variable.
+     * Return the hash code of this variable information.
      */
     public int
     hashCode()
     {
-	return name.hashCode();
+	return var.getName().hashCode();
     }
 
 
     /**
-     * Return the name of this variable.
+     * Return the name of the variable.
      */
-    public String
+    String
     getName()
     {
-	return name;
+	return var.getName();
     }
 
 
@@ -261,30 +235,105 @@ NcVar
     public String
     toString()
     {
-	return getName();
+	return var.getName();
     }
 
 
     /**
-     * Indicate whether or not this variable is a co-ordinate variable.
+     * Indicate whether or not the variable is a co-ordinate variable.
      */
-    public boolean
-    isCoordinateVariable()
+    abstract boolean
+    isCoordinateVariable();
+
+
+    /**
+     * Indicate whether or not the variable is longitude.
+     */
+    abstract boolean
+    isLongitude();
+
+
+    /**
+     * Indicate whether or not the variable is temporal in nature.
+     */
+    abstract boolean
+    isTime();
+
+
+    /**
+     * Return the values of this variable as a packed array of floats.
+     *
+     * @exception IOException		I/O error.
+     */
+    abstract float[]
+    getFloatValues()
+	throws IOException;
+
+
+    /**
+     * Return the values of this variable as a packed array of doubles.
+     *
+     * @exception IOException		I/O error.
+     */
+    abstract double[]
+    getDoubleValues()
+	throws IOException;
+
+
+    /**
+     * Return the values of this variable -- at a given point of the outermost
+     * dimension -- as a packed array of doubles.
+     *
+     * @exception IOException		I/O error.
+     */
+    abstract double[]
+    getDoubleValues(int ipt)
+	throws IOException;
+}
+
+
+/**
+ * Adaptor/decorator class for netCDF textual variables.
+ */
+class
+NcText
+    extends NcVar
+{
+    /**
+     * Construct.
+     */
+    NcText(Variable var, Netcdf netcdf)
     {
-	NcDim[]	dims = getDimensions();
-
-	for (int i = 0; i < dims.length; ++i)
-	    if (name.equals(dims[i].getName()))
-		return true;
-
-	return false;
+	super(var, netcdf);
     }
 
 
     /**
-     * Indicate whether or not this variable is longitude.
+     * Return the VisAD math type of this variable.
+     *
+     * @exception VisADException	Couldn't create necessary VisAD object.
      */
-    public boolean
+    MathType
+    getMathType()
+	throws VisADException
+    {
+	return new TextType(var.getName());
+    }
+
+
+    /**
+     * Indicate if this variable is textual.
+     */
+    boolean
+    isText()
+    {
+	return true;
+    }
+
+    /**
+     * Indicate if this variable is longitude.
+     */
+    boolean
     isLongitude()
     {
 	return false;
@@ -292,150 +341,831 @@ NcVar
 
 
     /**
-     * Return the values of this variable.
+     * Indicate whether or not the variable is temporal in nature.
      */
-    public Object
-    getValues()
-	throws IOException, BadFormException
+    boolean
+    isTime()
     {
-	int		rank = var.getRank();
-	int		ioRank = getIORank();
-	int[]		shape = var.getLengths();
-	Object		values = createValues();
-	Unraveler	unraveler = getUnraveler(values);
-	int[]		origin = new int[rank];
+	return false;
+    }
 
-	for (int i = 0; i < origin.length; ++i)
-	    origin[i] = 0;
 
-	recurse(0, ioRank, origin, unraveler, shape);
+    /**
+     * Indicate whether or not the variable is a co-ordinate variable.
+     */
+    boolean
+    isCoordinateVariable()
+    {
+	return false;
+    }
+
+
+    /**
+     * Return the values of this variable as a packed array of floats.
+     *
+     * @exception IOException		I/O error.
+     */
+    float[]
+    getFloatValues()
+    {
+	throw new UnsupportedOperationException();
+    }
+
+
+    /**
+     * Return the values of this variable as a packed array of doubles.
+     *
+     * @exception IOException		I/O error.
+     */
+    double[]
+    getDoubleValues()
+    {
+	throw new UnsupportedOperationException();
+    }
+
+
+    /**
+     * Return the values of this variable -- at a given point of the outermost
+     * dimension -- as a packed array of doubles.
+     *
+     * @exception IOException		I/O error.
+     */
+    double[]
+    getDoubleValues(int ipt)
+    {
+	throw new UnsupportedOperationException();
+    }
+}
+
+
+/**
+ * Abstract adaptor/decorator class for netCDF arithmetic variables.
+ */
+abstract class
+NcNumber
+    extends NcVar
+{
+    /**
+     * The fill value:
+     */
+    protected double		fillValue;
+
+    /**
+     * The missing-value value:
+     */
+    protected double		missingValue;
+
+    /**
+     * The minimum, valid value:
+     */
+    protected double		validMin;
+
+    /**
+     * The maximum, valid value:
+     */
+    protected double		validMax;
+
+    /**
+     * Whether or not value-vetting is necessary:
+     */
+    protected boolean		isVettingRequired;
+
+    /**
+     * Whether or not the variable is a co-ordinate variable.
+     */
+    protected final boolean	isCoordVar;
+
+    /**
+     * Whether or not the variable is longitude in nature.
+     */
+    protected final boolean	isLongitude;
+
+    /**
+     * Whether or not the variable is temporal in nature.
+     */
+    protected final boolean	isTime;
+
+    /**
+     * A temporal offset unit for comparison purposes.
+     */
+    static final Unit		offsetTime = new OffsetUnit(0.0, SI.second);
+
+
+    /**
+     * Construct.
+     */
+    NcNumber(Variable var, Netcdf netcdf)
+    {
+	super(var, netcdf);
+	setVettingParameters();
+	isCoordVar = setIsCoordVar();
+	isLongitude = setIsLongitude();
+	isTime = setIsTime();
+    }
+
+
+    /**
+     * Set the value-vetting parameters.
+     */
+    protected void
+    setVettingParameters()
+    {
+	Attribute	attr;
+
+	isVettingRequired = isVettingTheDefault();
+	fillValue = getDefaultFillValue();
+	missingValue = Double.NaN;
+	validMin = getDefaultValidMin(fillValue);
+	validMax = getDefaultValidMax(fillValue);
+
+	if ((attr = var.getAttribute("_FillValue")) != null)
+	{
+	    fillValue = attr.getNumericValue().doubleValue();
+	    isVettingRequired = true;
+	}
+
+	if ((attr = var.getAttribute("missing_value")) != null)
+	{
+	    missingValue = attr.getNumericValue().doubleValue();
+	    isVettingRequired = true;
+	}
+
+	if ((attr = var.getAttribute("valid_range")) != null)
+	{
+	    validMin = attr.getNumericValue(0).doubleValue();
+	    validMax = attr.getNumericValue(1).doubleValue();
+	    isVettingRequired = true;
+	}
+	else
+	{
+	    if ((attr = var.getAttribute("valid_min")) != null)
+	    {
+		validMin = attr.getNumericValue().doubleValue();
+		isVettingRequired = true;
+	    }
+
+	    if ((attr = var.getAttribute("valid_max")) != null)
+	    {
+		validMax = attr.getNumericValue().doubleValue();
+		isVettingRequired = true;
+	    }
+	}
+    }
+
+
+    /**
+     * Set whether or not the variable is a co-ordinate variable.
+     */
+    boolean
+    setIsCoordVar()
+    {
+	if (var.getRank() == 1)
+	{
+	    String		varName = var.getName();
+	    DimensionIterator	dimIter = var.getDimensionIterator();
+
+	    while (dimIter.hasNext())
+		if (dimIter.next().getName().equals(varName))
+		    return true;
+	}
+
+	return false;
+    }
+
+
+    /**
+     * Set whether or not this variable is longitude.
+     */
+    boolean
+    setIsLongitude()
+    {
+	String	varName = var.getName();
+
+	return varName.equals("Lon") ||
+	       varName.equals("lon") ||
+	       varName.equals("Longitude") ||
+	       varName.equals("longitude");
+    }
+
+
+    /**
+     * Set whether or not this variable is temporal in nature.
+     */
+    protected boolean
+    setIsTime()
+    {
+	Attribute	attr = var.getAttribute("units");
+
+	if (attr != null && attr.isString())
+	{
+	    try
+	    {
+		Unit	unit = Parser.parse((String)attr.getValue());
+
+		if (Unit.canConvert(unit, SI.second) ||
+		    Unit.canConvert(unit, offsetTime))
+		{
+		    return true;
+		}
+	    }
+	    catch (ParseException e)
+	    {}
+	}
+
+	return false;
+    }
+
+
+    /**
+     * Indicate whether or not value-vetting is the default.
+     */
+    protected boolean
+    isVettingTheDefault()
+    {
+	return true;	// default; overridden in NcByte
+    }
+
+
+    /**
+     * Return the default fill value.
+     */
+    protected abstract double
+    getDefaultFillValue();
+
+
+    /**
+     * Return the default minimum value.
+     */
+     protected abstract double
+     getDefaultValidMin(double fillValue);
+
+
+    /**
+     * Return the default maximum value.
+     */
+     protected abstract double
+     getDefaultValidMax(double fillValue);
+
+
+    /**
+     * Return the VisAD math type of this variable.
+     *
+     * @exception VisADException	Couldn't create necessary VisAD object.
+     */
+    MathType
+    getMathType()
+	throws VisADException
+    {
+	RealType	mathType = RealType.getRealTypeByName(getName());
+
+	// TODO: support "units" attribute
+	if (mathType == null)
+	    mathType = new RealType(getName(), null, null);
+	
+	return mathType;
+    }
+
+
+    /**
+     * Indicate whether or not the variable is a co-ordinate variable.
+     */
+    boolean
+    isCoordinateVariable()
+    {
+	return isCoordVar;
+    }
+
+
+    /**
+     * Indicate whether or not this variable is longitude.
+     */
+    boolean
+    isLongitude()
+    {
+	return isLongitude;
+    }
+
+
+    /**
+     * Indicate whether or not the variable is temporal in nature.
+     */
+    boolean
+    isTime()
+    {
+	return isTime;
+    }
+
+
+    /**
+     * Return the values of this variable as a packed array of floats.
+     *
+     * @exception IOException		I/O error.
+     */
+    float[]
+    getFloatValues()
+	throws IOException
+    {
+	int[]	lengths = var.getLengths();
+	int	npts = 1;
+
+	for (int i = 0; i < lengths.length; ++i)
+	    npts *= lengths[i];
+
+	float[]		values = new float[npts];
+	IndexIterator	iter = new IndexIterator(lengths);
+
+	for (int i = 0; i < npts; ++i)
+	{
+	    values[i] = var.getFloat(iter.value());
+	    iter.incr();
+	}
 
 	vet(values);
-
-	unpack(values);
 
 	return values;
     }
 
 
     /**
-     * Recursively traverse the I/O points of the array.
+     * Compute the number of points in a shape vector.
      */
-    protected void
-    recurse(int idim, int ioRank, int[] origin, Unraveler unraveler, 
-	    int[] shape)
+    protected static int
+    product(int[] shape)
+    {
+	int	npts = 1;
+
+	for (int i = 0; i < shape.length; ++i)
+	    npts *= shape[i];
+
+	return npts;
+    }
+
+
+    /**
+     * Return all the values of this variable as a packed array of doubles.
+     *
+     * @exception IOException		I/O error.
+     */
+    double[]
+    getDoubleValues()
 	throws IOException
     {
-	if (idim == ioRank)
-	    unraveler.unravel(origin);
-	else
-	{
-	    for (int i = 0; i < shape[idim]; ++i)
-	    {
-		recurse(idim+1, ioRank, origin, unraveler, shape);
-		origin[idim]++;
-	    }
+	return getDoubleValues(var);
+    }
+
+
+    /**
+     * Return the values of this variable -- at a given point of the outermost
+     * dimension -- as a packed array of doubles.
+     *
+     * @precondition	The variable is rank 2 or greater.
+     * @precondition	<code>ipt</code> lies within the outermost dimension.
+     *
+     * @exception IOException		I/O error.
+     */
+    double[]
+    getDoubleValues(int ipt)
+	throws IOException
+    {
+	int	rank = var.getRank();
+	int[]	origin = new int[rank];
+	int[]	lengths = var.getLengths();
+
+	for (int idim = 1; idim < rank; ++idim)
 	    origin[idim] = 0;
+	origin[0] = ipt;
+	lengths[0] = 1;
+
+	return getDoubleValues(var.get(origin, lengths));
+    }
+
+
+    /**
+     * Return a selected subset of the double values of this variable as a
+     * packed array of doubles.
+     */
+    protected double[]
+    getDoubleValues(MultiArray ma)
+	throws IOException
+    {
+	int[]		lengths = ma.getLengths();
+	int		npts = product(lengths);
+	double[]	values = new double[npts];
+	IndexIterator	iter = new IndexIterator(lengths);
+
+	for (int i = 0; i < npts; ++i)
+	{
+	    values[i] = ma.getDouble(iter.value());
+	    iter.incr();
+	}
+
+	vet(values);
+
+	return values;
+    }
+
+
+    /**
+     * Vet values.
+     */
+    protected void
+    vet(float[] values)
+    {
+	if (isVettingRequired)
+	{
+	    for (int i = 0; i < values.length; ++i)
+	    {
+		float  val = values[i];
+
+		if (val == missingValue || val == fillValue ||
+		    val < validMin || val > validMax)
+		{
+		    values[i] = Float.NaN;
+		}
+	    }
 	}
     }
 
 
     /**
-     * Return the rank of the I/O vector.
+     * Vet values.
      */
-    protected abstract int
-    getIORank();
-
-
-    /**
-     * Create the buffer to hold the values.
-     */
-    protected abstract Object
-    createValues();
-
-
-    /**
-     * Return the appropriate unraveler for the nested, netCDF array.
-     */
-    protected abstract Unraveler
-    getUnraveler(Object values)
-	throws BadFormException;
-
-
-    /**
-     * Vet the values.
-     */
-    protected abstract void
-    vet(Object values);
-
-
-    /**
-     * Unpack the values.
-     */
-    protected abstract void
-    unpack(Object values);
-
-
-    /**
-     * Abstract inner class for unraveling a nested, netCDF array.
-     */
-    public abstract class
-    Unraveler
+    protected void
+    vet(double[] values)
     {
-	/**
-	 * The netCDF input array
-	 */
-	protected final	ArrayInput	input;
-
-	/**
-	 * The index of the location in the value buffer for the next value.
-	 */
-	protected int			next = 0;
-
-	/**
-	 * The "shape" vector for the I/O transfer.
-	 */
-	protected int[]			ioShape;
-
-
-	/**
-	 * Construct.
-	 */
-	protected
-	Unraveler()
-	    throws BadFormException
+	if (isVettingRequired)
 	{
-	    input = file.getArrayInput(name);
+	    for (int i = 0; i < values.length; ++i)
+	    {
+		double  val = values[i];
 
-	    if (input == null)
-		throw new BadFormException("variable \"" + name + 
-		    "\" doesn't exist");
+		if (val == missingValue || val == fillValue ||
+		    val < validMin || val > validMax)
+		{
+		    values[i] = Double.NaN;
+		}
+	    }
 	}
+    }
+}
 
 
-	/**
-	 * Unravel a netCDF variable beginning at an I/O point.
-	 */
-	public void
-	unravel(int[] origin)
-	    throws IOException
-	{
-	    Object	array = input.read(origin, ioShape);
-
-	    for (int i = 0; i < ioShape.length-1; ++i)
-		array = ((Object[])array)[0];
-
-	    // System.out.println(this.getClass().getName() + 
-		// ".unravel(): next = " + next);
-
-	    copy(array);
-	}
+/**
+ * Abstract adaptor/decorator class for netCDF integer variables.
+ */
+abstract class
+NcInteger
+    extends NcNumber
+{
+    /**
+     * Construct.
+     */
+    NcInteger(Variable var, Netcdf netcdf)
+    {
+	super(var, netcdf);
+    }
 
 
-	/**
-	 * Copy a 1-D vector of values into the value buffer.
-	 */
-	protected abstract void
-	copy(Object array);
+    /**
+     * Return the default, minimum valid value.
+     */
+     protected double
+     getDefaultValidMin(double fillValue)
+     {
+	return fillValue < 0
+		    ? fillValue + 1
+		    : getMinValue();
+     }
+
+
+    /**
+     * Return the default, maximum valid value.
+     */
+     protected double
+     getDefaultValidMax(double fillValue)
+     {
+	return fillValue > 0
+		    ? fillValue - 1
+		    : getMaxValue();
+     }
+
+
+     /**
+      * Return the minimum possible value.
+      */
+    protected abstract double
+    getMinValue();
+
+
+     /**
+      * Return the maximum possible value.
+      */
+    protected abstract double
+    getMaxValue();
+}
+
+
+/**
+ * Adaptor/decorator class for netCDF byte variables.
+ */
+class
+NcByte
+    extends NcInteger
+{
+    /**
+     * Construct.
+     */
+    NcByte(Variable var, Netcdf netcdf)
+    {
+	super(var, netcdf);
+    }
+
+
+    /**
+     * Indicate whether or not value-vetting is the default.
+     */
+    protected boolean
+    isVettingTheDefault()
+    {
+	return false;
+    }
+
+
+    /**
+     * Return the default fill value.
+     */
+    protected double
+    getDefaultFillValue()
+    {
+	return Double.MAX_VALUE;	// there is no default fill value
+    }
+
+
+    /**
+     * Indicate if this variable is byte.
+     */
+    boolean
+    isByte()
+    {
+	return true;
+    }
+
+
+    /**
+     * Return the default, minimum valid value.
+     */
+     protected double
+     getDefaultValidMin(double fillValue)
+     {
+	return getMinValue();
+     }
+
+
+    /**
+     * Return the default, maximum valid value.
+     */
+     protected double
+     getDefaultValidMax(double fillValue)
+     {
+	return getMaxValue();
+     }
+
+
+     /**
+      * Return the minimum possible value.
+      */
+    protected double
+    getMinValue()
+    {
+	return Byte.MIN_VALUE;
+    }
+
+
+     /**
+      * Return the maximum possible value.
+      */
+    protected double
+    getMaxValue()
+    {
+	return Byte.MAX_VALUE;
+    }
+}
+
+
+/**
+ * Adaptor/decorator class for netCDF short variables.
+ */
+class
+NcShort
+    extends NcInteger
+{
+    /**
+     * Construct.
+     */
+    NcShort(Variable var, Netcdf netcdf)
+    {
+	super(var, netcdf);
+    }
+
+
+    /**
+     * Indicate if this variable is short.
+     */
+    boolean
+    isShort()
+    {
+	return true;
+    }
+
+
+    /**
+     * Return the default fill value.
+     */
+    protected double
+    getDefaultFillValue()
+    {
+	return -32767;
+    }
+
+
+     /**
+      * Return the minimum possible value.
+      */
+    protected double
+    getMinValue()
+    {
+	return Short.MIN_VALUE;
+    }
+
+
+     /**
+      * Return the maximum possible value.
+      */
+    protected double
+    getMaxValue()
+    {
+	return Short.MAX_VALUE;
+    }
+}
+
+
+/**
+ * Adaptor/decorator class for 32-bit netCDF integers.
+ */
+class
+NcInt
+    extends NcInteger
+{
+    /**
+     * Construct.
+     */
+    NcInt(Variable var, Netcdf netcdf)
+    {
+	super(var, netcdf);
+    }
+
+
+    /**
+     * Indicate if this variable is a 32-bit netCDF integer.
+     */
+    boolean
+    isInt()
+    {
+	return true;
+    }
+
+
+    /**
+     * Return the default fill value.
+     */
+    protected double
+    getDefaultFillValue()
+    {
+	return -2147483647;
+    }
+
+
+     /**
+      * Return the minimum possible value.
+      */
+    protected double
+    getMinValue()
+    {
+	return Integer.MIN_VALUE;
+    }
+
+
+     /**
+      * Return the maximum possible value.
+      */
+    protected double
+    getMaxValue()
+    {
+	return Integer.MAX_VALUE;
+    }
+}
+
+
+/**
+ * Abstract adaptor/decorator class for netCDF floating-point variables.
+ */
+abstract class
+NcReal
+    extends NcNumber
+{
+    /**
+     * Construct.
+     */
+    NcReal(Variable var, Netcdf netcdf)
+    {
+	super(var, netcdf);
+    }
+
+
+    /**
+     * Return the default fill value.
+     */
+    protected double
+    getDefaultFillValue()
+    {
+	return 9.9692099683868690e+36;
+    }
+
+
+    /**
+     * Return the default minimum value.
+     */
+     protected double
+     getDefaultValidMin(double fillValue)
+     {
+	return fillValue < 0
+		    ? fillValue/2
+		    : -Double.MAX_VALUE;
+     }
+
+
+    /**
+     * Return the default maximum value.
+     */
+     protected double
+     getDefaultValidMax(double fillValue)
+     {
+	return fillValue > 0
+		    ? fillValue/2
+		    : Double.MAX_VALUE;
+     }
+}
+
+
+/**
+ * Adaptor/decorator class for netCDF float variables.
+ */
+class
+NcFloat
+    extends NcReal
+{
+    /**
+     * Construct.
+     */
+    NcFloat(Variable var, Netcdf netcdf)
+    {
+	super(var, netcdf);
+    }
+
+
+    /**
+     * Indicate if this variable is float.
+     */
+    boolean
+    isFloat()
+    {
+	return true;
+    }
+}
+
+
+/**
+ * Adaptor/decorator class for netCDF double variables.
+ */
+class
+NcDouble
+    extends NcReal
+{
+    /**
+     * Construct.
+     */
+    NcDouble(Variable var, Netcdf netcdf)
+    {
+	super(var, netcdf);
+    }
+
+
+    /**
+     * Indicate if this variable is double.
+     */
+    boolean
+    isDouble()
+    {
+	return true;
     }
 }

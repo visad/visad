@@ -2,91 +2,85 @@ package visad.data.netcdf;
 
 
 import ucar.netcdf.Dimension;
+import ucar.netcdf.Netcdf;
+import ucar.netcdf.Variable;
+import visad.RealType;
+import visad.VisADException;
 
 
 /**
- * Decorator class for netCDF dimensions.
+ * Decorator class for a netCDF dimension.
  */
-public class
+class
 NcDim
+    extends	Dimension
 {
     /**
-     * The netCDF dimension:
+     * Factory method for constructing the right type of dimension decorator.
      */
-    protected final Dimension	dim;
-
-    /**
-     * The name of the dimension:
-     */
-    protected final String	name;
-
-    /**
-     * The netCDF file:
-     */
-    protected final NcFile	file;
-
-
-    /**
-     * Construct.
-     */
-    public
-    NcDim(Dimension dim, NcFile file)
+    static NcDim
+    create(Dimension dim, Netcdf netcdf)
     {
-	this.dim = dim;
-	this.file = file;
-	name = dim.getName();
+	Variable	var = netcdf.get(dim.getName());
+
+	return (var == null || var.getRank() != 1 ||
+		var.getComponentType().equals(Character.TYPE))
+		    ? new NcDim(dim)
+		    : new NcCoordDim(dim, netcdf);
     }
 
 
     /**
-     * Construct.
+     * Construct from a netCDF dimension.  Protected to ensure use of
+     * the NcDim factory method.
+     *
+     * @precondition	The given dimension is non-null.
      */
-    public
-    NcDim(String name, int length)
+    protected
+    NcDim(Dimension dim)
     {
-	file = null;
-	this.name = name;
-	dim = new Dimension(name, length);
+	super(dim.getName(), dim.getLength());
     }
 
 
     /**
-     * Return the length of this dimension.
+     * Return the VisAD MathType for this dimension.
      */
-    public int
-    getLength()
+    RealType
+    getMathType()
+	throws VisADException
     {
-	return dim.getLength();
-    }
+	RealType	mathType = RealType.getRealTypeByName(getName());
 
-
-    /**
-     * Return the netCDF dimension.
-     */
-    Dimension
-    getDimension()
-    {
-	return dim;
-    }
-
-
-    /**
-     * Return the co-ordinate variable of the dimension.
-     */
-    NcVar
-    getCoordinateVariable()
-    {
-	return file.getVariable(name);
+	// TODO: support "units" attribute
+	if (mathType == null)
+	    mathType = new RealType(getName(), null, null);
+	
+	return mathType;
     }
 
 
     /**
      * Indicate whether or not this dimension is the same as another.
      */
-    public boolean
+    boolean
     equals(NcDim that)
     {
-	return name.equals(that.name);
+	return getName().equals(that.getName());
+    }
+
+
+    /**
+     * Indicate whether or not this dimension is temporal in nature.
+     */
+    boolean
+    isTime()
+    {
+	String	name = getName();
+
+	return name.equals("time") ||
+	       name.equals("Time") ||
+	       name.equals("TIME");
     }
 
 
@@ -96,26 +90,77 @@ NcDim
     public int
     hashCode()
     {
-	return name.hashCode();
-    }
-
-
-    /**
-     * Return the name of this dimension.
-     */
-    public String
-    getName()
-    {
-	return name;
+	return getName().hashCode();
     }
 
 
     /**
      * Convert this dimension to a string.
+     *
+     * @deprecated
      */
     public String
     toString()
     {
 	return getName();
+    }
+
+
+    /**
+     * Return the co-ordinate variable associated with this dimension.
+     */
+    NcVar
+    getCoordVar()
+    {
+	return null;
+    }
+}
+
+
+/**
+ * Decorator class for a netCDF dimension that has a co-ordinate variable.
+ */
+class
+NcCoordDim
+    extends	NcDim
+{
+    /**
+     * The associated coordinate variable.
+     */
+    protected final NcVar	coordVar;
+
+
+    /**
+     * Construct from a netCDF dimension and dataset.  Protected to ensure
+     * use of the NcDim factory method.
+     *
+     * @precondition	The dimension has a co-ordinate variable in the
+     *			dataset.
+     */
+    protected
+    NcCoordDim(Dimension dim, Netcdf netcdf)
+    {
+	super(dim);
+	coordVar = NcVar.create(netcdf.get(dim.getName()), netcdf);
+    }
+
+
+    /**
+     * Indicate whether or not this dimension is temporal in nature.
+     */
+    boolean
+    isTime()
+    {
+	return super.isTime() || coordVar.isTime();
+    }
+
+
+    /**
+     * Return the co-ordinate variable associated with this dimension.
+     */
+    NcVar
+    getCoordVar()
+    {
+	return coordVar;
     }
 }
