@@ -182,10 +182,7 @@ public class AreaAdapter {
         dirBlock[6] = dirBlock[6] + (startEle  * dirBlock[12]);
         dirBlock[8] = nLines;
         dirBlock[9] = nEles;
-        cs = new AREACoordinateSystem(
-                RealTupleType.LatitudeLongitudeTuple,
-                dirBlock,
-                nav);
+        cs = new AREACoordinateSystem( dirBlock, nav);
     }
     catch (VisADException e)
     {
