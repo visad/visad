@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: SimpleColorMapWidget.java,v 1.2 1998-02-20 16:55:29 billh Exp $
+@(#) $Id: SimpleColorMapWidget.java,v 1.3 1998-06-24 14:14:27 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -40,7 +40,7 @@ import java.awt.swing.*;
  * RGB tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.2 $, $Date: 1998-02-20 16:55:29 $
+ * @version $Revision: 1.3 $, $Date: 1998-06-24 14:14:27 $
  * @since Visad Utility Library v0.7.1
  */
 
@@ -60,6 +60,10 @@ public class LabeledRGBWidget extends Panel  {
 		this(new ColorWidget(), new ArrowSlider(min, max, (min + max) / 2, name));
 	}
 	
+	public LabeledRGBWidget(String name, float min, float max, float[][] table) {
+		this(new ColorWidget(new RGBMap(table)), new ArrowSlider(min, max, (min + max) / 2, name));
+	}
+	
 	public LabeledRGBWidget(ColorWidget c, Slider s) {
 		this(c, s, new SliderLabel(s));
 	}
@@ -77,8 +81,6 @@ public class LabeledRGBWidget extends Panel  {
 		add(label);
 	}
 
-  final static int TABLE_SIZE = 256;
-  final static float SCALE = 1.0f / (TABLE_SIZE - 1.0f);
   ColorControl colorcontrol;
 
   /** construct a LabeledRGBWidget linked to the ColorControl
@@ -86,7 +88,7 @@ public class LabeledRGBWidget extends Panel  {
       values from map.getRange() */
   public LabeledRGBWidget(ScalarMap smap)
          throws VisADException, RemoteException {
-    this(smap, smap.getRange());
+    this(smap, smap.getRange(), null);
   }
 
   /** construct a LabeledRGBWidget linked to the ColorControl
@@ -94,13 +96,24 @@ public class LabeledRGBWidget extends Panel  {
       values (min, max) */
   public LabeledRGBWidget(ScalarMap smap, float min, float max)
          throws VisADException, RemoteException {
-    this(smap, make_range(min, max));
+    this(smap, make_range(min, max), null);
     smap.setRange((double) min, (double) max);
   }
 
-  private LabeledRGBWidget(ScalarMap smap, double[] range)
+  /** construct a LabeledRGBWidget linked to the ColorControl
+      in map (which must be to Display.RGB), with range of
+      values (min, max), and initial color table in format
+      float[TABLE_SIZE][3] with values between 0.0f and 1.0f */
+  public LabeledRGBWidget(ScalarMap smap, float min, float max, float[][] table)
          throws VisADException, RemoteException {
-    this(smap.getScalar().getName(), (float) range[0], (float) range[1]);
+    this(smap, make_range(min, max), table);
+    smap.setRange((double) min, (double) max);
+  }
+
+  private LabeledRGBWidget(ScalarMap smap, double[] range, float[][] in_table)
+         throws VisADException, RemoteException {
+    this(smap.getScalar().getName(), (float) range[0], (float) range[1],
+         table_reorg(in_table));
     if (!Display.RGB.equals(smap.getDisplayScalar())) {
       throw new DisplayException("LabeledRGBWidget: ScalarMap must " +
                                  "be to Display.RGB");
@@ -112,9 +125,12 @@ public class LabeledRGBWidget extends Panel  {
     }
     colorcontrol = (ColorControl) smap.getControl();
  
+    ColorMap map = widget.getColorMap();
+    final int TABLE_SIZE = map.getMapResolution(); 
+    final float SCALE = 1.0f / (TABLE_SIZE - 1.0f);
+
     float[][] table = new float[3][TABLE_SIZE];
  
-    ColorMap map = widget.getColorMap();
     for (int i=0; i<TABLE_SIZE; i++) {
       float[] t = map.getRGBTuple(SCALE * i);
       table[0][i] = t[0];
@@ -143,6 +159,23 @@ public class LabeledRGBWidget extends Panel  {
       }
     });
 
+  }
+
+  private static float[][] table_reorg(float[][] table) {
+    if (table == null || table[0] == null) return null;
+    try {
+      int len = table[0].length;
+      float[][] out = new float[len][3];
+      for (int i=0; i<len; i++) {
+        out[i][0] = table[0][i];
+        out[i][1] = table[1][i];
+        out[i][2] = table[2][i];
+      }
+      return out;
+    }
+    catch (ArrayIndexOutOfBoundsException e) {
+      return null;
+    }
   }
 
   private static double[] make_range(float min, float max) {

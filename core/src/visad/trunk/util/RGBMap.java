@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: RGBMap.java,v 1.3 1998-02-20 16:55:29 billh Exp $
+@(#) $Id: RGBMap.java,v 1.4 1998-06-24 14:14:28 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -35,7 +35,7 @@ import java.awt.*;
  * between the red, green and blue curves.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.3 $, $Date: 1998-02-20 16:55:29 $
+ * @version $Revision: 1.4 $, $Date: 1998-06-24 14:14:28 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -78,6 +78,26 @@ public class RGBMap extends ColorMap
 		this.resolution = resolution;
 		val = new float[resolution][3];
 		this.initColormap();
+		addMouseListener(this);
+		addMouseMotionListener(this);
+		//this.addColorChangeListener(this);
+	}
+	
+	public RGBMap(float[][] vals) {
+               if (vals == null) {
+                  this.resolution = 256;
+                  val = new float[this.resolution][3];
+                  this.initColormap();
+                }
+                else {
+                  this.resolution = vals.length;
+                  val = new float[this.resolution][3];
+                  for (int i = 0; i < this.resolution; i++) {
+                          val[i][0] = vals[i][0];
+                          val[i][1] = vals[i][1];
+                          val[i][2] = vals[i][2];
+                  }
+                }
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		//this.addColorChangeListener(this);

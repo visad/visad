@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: LabeledRGBAWidget.java,v 1.1 1998-02-20 16:55:29 billh Exp $
+@(#) $Id: LabeledRGBAWidget.java,v 1.2 1998-06-24 14:14:27 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -40,7 +40,7 @@ import java.awt.swing.*;
  * RGB tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.1 $, $Date: 1998-02-20 16:55:29 $
+ * @version $Revision: 1.2 $, $Date: 1998-06-24 14:14:27 $
  * @since Visad Utility Library v0.7.1
  */
 
@@ -60,6 +60,10 @@ public class LabeledRGBAWidget extends Panel  {
 		this(new ColorWidget(new RGBAMap()), new ArrowSlider(min, max, (min + max) / 2, name));
 	}
 	
+	public LabeledRGBAWidget(String name, float min, float max, float[][] table) {
+		this(new ColorWidget(new RGBAMap(table)), new ArrowSlider(min, max, (min + max) / 2, name));
+	}
+	
 	public LabeledRGBAWidget(ColorWidget c, Slider s) {
 		this(c, s, new SliderLabel(s));
 	}
@@ -77,8 +81,6 @@ public class LabeledRGBAWidget extends Panel  {
 		add(label);
 	}
 
-  final static int TABLE_SIZE = 256;
-  final static float SCALE = 1.0f / (TABLE_SIZE - 1.0f);
   ColorAlphaControl color_alpha_control;
 
   /** construct a LabeledRGBAWidget linked to the ColorControl
@@ -86,7 +88,7 @@ public class LabeledRGBAWidget extends Panel  {
       values from map.getRange() */
   public LabeledRGBAWidget(ScalarMap smap)
          throws VisADException, RemoteException {
-    this(smap, smap.getRange());
+    this(smap, smap.getRange(), null);
   }
 
   /** construct a LabeledRGBAWidget linked to the ColorControl
@@ -94,13 +96,23 @@ public class LabeledRGBAWidget extends Panel  {
       values (min, max) */
   public LabeledRGBAWidget(ScalarMap smap, float min, float max)
          throws VisADException, RemoteException {
-    this(smap, make_range(min, max));
+    this(smap, min, max, null);
+  }
+
+  /** construct a LabeledRGBAWidget linked to the ColorControl
+      in map (which must be to Display.RGB), with range of
+      values (min, max), and initial color table in format
+      float[TABLE_SIZE][4] with values between 0.0f and 1.0f */
+  public LabeledRGBAWidget(ScalarMap smap, float min, float max, float[][] table)
+         throws VisADException, RemoteException {
+    this(smap, make_range(min, max), table);
     smap.setRange((double) min, (double) max);
   }
 
-  private LabeledRGBAWidget(ScalarMap smap, double[] range)
+  private LabeledRGBAWidget(ScalarMap smap, double[] range, float[][] in_table)
          throws VisADException, RemoteException {
-    this(smap.getScalar().getName(), (float) range[0], (float) range[1]);
+    this(smap.getScalar().getName(), (float) range[0], (float) range[1],
+         table_reorg(in_table));
     if (!Display.RGBA.equals(smap.getDisplayScalar())) {
       throw new DisplayException("LabeledRGBAWidget: ScalarMap must " +
                                  "be to Display.RGBA");
@@ -112,9 +124,12 @@ public class LabeledRGBAWidget extends Panel  {
     }
     color_alpha_control = (ColorAlphaControl) smap.getControl();
  
+    ColorMap map = widget.getColorMap();
+    final int TABLE_SIZE = map.getMapResolution();
+    final float SCALE = 1.0f / (TABLE_SIZE - 1.0f);
+
     float[][] table = new float[4][TABLE_SIZE];
  
-    ColorMap map = widget.getColorMap();
     for (int i=0; i<TABLE_SIZE; i++) {
       float[] t = map.getTuple(SCALE * i);
       table[0][i] = t[0];
@@ -145,6 +160,24 @@ public class LabeledRGBAWidget extends Panel  {
       }
     });
 
+  }
+
+  private static float[][] table_reorg(float[][] table) {
+    if (table == null || table[0] == null) return null;
+    try {
+      int len = table[0].length;
+      float[][] out = new float[len][4];
+      for (int i=0; i<len; i++) {
+        out[i][0] = table[0][i];
+        out[i][1] = table[1][i];
+        out[i][2] = table[2][i];
+        out[i][3] = table[3][i];
+      }
+      return out;
+    }
+    catch (ArrayIndexOutOfBoundsException e) {
+      return null;
+    }
   }
 
   private static double[] make_range(float min, float max) {
