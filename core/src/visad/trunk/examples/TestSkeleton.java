@@ -23,7 +23,7 @@ MA 02111-1307, USA
 import java.rmi.RemoteException;
 
 
-import visad.DataSourceListener;
+import visad.RemoteSourceListener;
 import visad.DisplayImpl;
 import visad.LocalDisplay;
 import visad.RemoteDisplayImpl;
@@ -35,7 +35,7 @@ import visad.util.ClientServer;
 
 public abstract class TestSkeleton
   extends Thread
-  implements DataSourceListener
+  implements RemoteSourceListener
 {
   boolean startServer = false;
   String hostName = null;
@@ -193,6 +193,11 @@ public abstract class TestSkeleton
     System.err.println("Lost Data object \"" + name + "\"");
   }
 
+  public void collabSourceLost(int connectionID)
+  {
+    System.err.println("Lost collaboration source #" + connectionID);
+  }
+
   LocalDisplay[] setupClientData()
     throws RemoteException, VisADException
   {
@@ -212,7 +217,7 @@ public abstract class TestSkeleton
     }
 
     for (int i = 0; i < dpys.length; i++) {
-      ((DisplayImpl )dpys[i]).addDataSourceListener(this);
+      ((DisplayImpl )dpys[i]).addRemoteSourceListener(this);
     }
 
     // fetch any data references from server

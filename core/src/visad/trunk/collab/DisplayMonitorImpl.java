@@ -597,6 +597,9 @@ public class DisplayMonitorImpl
         MonitorSyncer li = (MonitorSyncer )iter.next();
 
         if (li.isDead()) {
+          // notify Display that this connection is gone
+          myDisplay.lostCollabConnection(li.getID());
+
           // delete dead listeners
           iter.remove();
           continue;

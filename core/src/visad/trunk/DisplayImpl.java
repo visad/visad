@@ -85,7 +85,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
   /** list of objects interested in learning when Data objects
       are deleted from this Display */
-  private Vector DataSourceListeners = new Vector();
+  private Vector RmtSrcListeners = new Vector();
 
   /** list of objects interested in receiving messages
       from this Display */
@@ -1761,15 +1761,15 @@ if (initialize) {
       }
     }
 
-    Enumeration enum = DataSourceListeners.elements();
+    Enumeration enum = RmtSrcListeners.elements();
     while (enum.hasMoreElements()) {
-      DataSourceListener l = (DataSourceListener )enum.nextElement();
+      RemoteSourceListener l = (RemoteSourceListener )enum.nextElement();
       l.dataSourceLost(link.getName());
     }
   }
 
   /**
-   * Inform <tt>listener</tt> of deleted <tt>DataRenderer</tt>s.
+   * Inform <tt>listener</tt> of deleted {@link DataRenderer}s.
    *
    * @param listener Object to add.
    */
@@ -1779,7 +1779,7 @@ if (initialize) {
   }
 
   /**
-   * Remove <tt>listener</tt> from the <tt>DataRenderer</tt> deletion list.
+   * Remove <tt>listener</tt> from the {@link DataRenderer} deletion list.
    *
    * @param listener Object to remove.
    */
@@ -1789,7 +1789,7 @@ if (initialize) {
   }
 
   /**
-   * Stop using a <tt>DataRenderer</tt>.
+   * Stop using a {@link DataRenderer}.
    *
    * @param renderer Renderer to delete
    */
@@ -1803,14 +1803,58 @@ if (initialize) {
     }
   }
 
-  public void addDataSourceListener(DataSourceListener listener)
+  /**
+   * @deprecated
+   */
+  public void addDataSourceListener(RemoteSourceListener listener)
   {
-    DataSourceListeners.addElement(listener);
+    addRemoteSourceListener(listener);
   }
 
-  public void removeDataSourceListener(DataSourceListener listener)
+  /**
+   * @deprecated
+   */
+  public void removeDataSourceListener(RemoteSourceListener listener)
   {
-    DataSourceListeners.removeElement(listener);
+    removeRemoteSourceListener(listener);
+  }
+
+  /**
+   * Inform <tt>listener</tt> of changes in the availability
+   * of remote data/collaboration sources.
+   *
+   * @param listener Object to send change notifications.
+   */
+  public void addRemoteSourceListener(RemoteSourceListener listener)
+  {
+    RmtSrcListeners.addElement(listener);
+  }
+
+  /**
+   * Remove <tt>listener</tt> from the remote source notification list.
+   *
+   * @param listener Object to be removed.
+   */
+  public void removeRemoteSourceListener(RemoteSourceListener listener)
+  {
+    RmtSrcListeners.removeElement(listener);
+  }
+
+  /**
+   * Inform {@link RemoteSourceListener}s that the specified collaborative
+   * connection has been lost.<br>
+   * <br>
+   * <b>WARNING!</b>  This should only be called from within the
+   * visad.collab package!
+   *
+   * @param id ID of lost connection.
+   */
+  public void lostCollabConnection(int id)
+  {
+    Enumeration enum = RmtSrcListeners.elements();
+    while (enum.hasMoreElements()) {
+      ((RemoteSourceListener )enum.nextElement()).collabSourceLost(id);
+    }
   }
 
   /**
