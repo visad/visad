@@ -1242,7 +1242,7 @@ System.out.println(" " + newcoords[i] + " " + newcoords[i+1] + " " +
   }
 
   public void setBounds(int x, int y, int width, int height) {
-    if (width < 0 || height < 0) return;
+    if (width < 1 || height < 1) return;
     super.setBounds(x, y, width, height);
     if (autoAspect) {
       ProjectionControl pc = display.getProjectionControl();
