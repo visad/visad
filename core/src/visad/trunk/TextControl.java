@@ -39,7 +39,8 @@ public class TextControl extends Control {
 
   private Font font = null;
 
-  private boolean center = false;
+  // abcd 5 February 2001
+  //private boolean center = false;
 
   private double size = 1.0;
 
@@ -52,6 +53,34 @@ public class TextControl extends Control {
   // abcd 1 February 2001
   // Rotation, in degrees, clockwise along positive x axis
   private double rotation = 0.0;
+
+  /**
+   * Class to represent the different types of justification
+   * Use a class so the user can't just pass in an arbitrary integer
+   *
+   * abcd 5 February 2001
+   */
+  public static class Justification {
+    String name;
+
+    /** Predefined value for left justification */
+    public static final Justification LEFT = new Justification("Left");;
+
+    /** Predefined value for center justification */
+    public static final Justification CENTER = new Justification("Center");;
+
+    /** Predefined value for right justification */
+    public static final Justification RIGHT = new Justification("Right");;
+
+    /**
+     * Constructor - simply store the name
+     */
+    public Justification(String newName)
+    {
+      name = newName;
+    }
+  }
+  private Justification justification = Justification.LEFT;
 
   public TextControl(DisplayImpl d) {
     super(d);
@@ -74,13 +103,49 @@ public class TextControl extends Control {
       of mapped locations */
   public void setCenter(boolean c)
          throws VisADException, RemoteException {
-    center = c;
+    // abcd 5 February 2001
+    justification = Justification.CENTER;
+    //center = c;
     changeControl(true);
   }
 
+// TODO: Deprecate this?
   /** return the centering flag */
   public boolean getCenter() {
-    return center;
+    // abcd 5 February 2001
+    //return center;
+    if (justification == Justification.CENTER) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  /**
+   * Set the justifcation flag
+   * Possible values are TextControl.Justification.LEFT,
+   * TextControl.Justification.CENTER and TextControl.Justification.RIGHT
+   *
+   * abcd 5 February 2001
+   */
+  public void setJustification(Justification newJustification)
+         throws VisADException, RemoteException
+  {
+    // Store the new value
+    justification = newJustification;
+
+    // Tell the control it's changed
+    changeControl(true);
+  }
+
+  /**
+   * Return the justification value
+   *
+   * abcd 5 February 2001
+   */
+  public Justification getJustification()
+  {
+    return justification;
   }
 
   /** set the size of characters; the default is 1.0 */
@@ -210,9 +275,14 @@ public class TextControl extends Control {
       font = tc.font;
     }
 
-    if (center != tc.center) {
+    // abcd 5 February 2001
+    //if (center != tc.center) {
+    //  changed = true;
+    //  center = tc.center;
+    //}
+    if (justification != tc.justification) {
       changed = true;
-      center = tc.center;
+      justification = tc.justification;
     }
 
     if (!Util.isApproximatelyEqual(size, tc.size)) {
@@ -260,7 +330,9 @@ public class TextControl extends Control {
       return false;
     }
 
-    if (center != tc.center) {
+    // abcd 5 February 2001
+    //if (center != tc.center) {
+    if (justification != tc.justification) {
       return false;
     }
 

@@ -2387,7 +2387,9 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
     if (n > spatial_values[0].length) n = spatial_values[0].length;
 
     VisADGeometryArray[] as = new VisADGeometryArray[n];
-    boolean center = text_control.getCenter();
+    // abcd 5 February 2001
+    //boolean center = text_control.getCenter();
+    TextControl.Justification justification = text_control.getJustification();
     double size = text_control.getSize();
     Font font = text_control.getFont();
 
@@ -2432,11 +2434,17 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
           rotateVectors(base, up, text_control.getRotation());
 
           if (font == null) {
-            as[k] = PlotText.render_label(text_values[i], start, base, up, center);
+            // abcd 5 Feb 2001
+            as[k] = PlotText.render_label(text_values[i], start, base, up,
+                                          justification);
+            // as[k] = PlotText.render_label(text_values[i], start, base, up, center);
           }
           else {
+            // abcd 5 Feb 2001
             as[k] = PlotText.render_font(text_values[i], font,
-                                         start, base, up, center);
+                                         start, base, up, justification);
+            // as[k] = PlotText.render_font(text_values[i], font,
+            //                              start, base, up, center);
           }
           int len = (as[k] == null) ? 0 : as[k].coordinates.length;
           if (len > 0) {
@@ -2477,11 +2485,17 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
                                 spatial_values[1][i],
                                 spatial_values[2][i]};
           if (font == null) {
-            as[k] = PlotText.render_label(text_values[i], start, base, up, center);
+            // abcd 5 Feb 2001
+            as[k] = PlotText.render_label(text_values[i], start, base, up,
+                                          justification);
+            // as[k] = PlotText.render_label(text_values[i], start, base, up, center);
           }
           else {
+            // abcd 5 Feb 2001
             as[k] = PlotText.render_font(text_values[i], font,
-                                         start, base, up, center);
+                                         start, base, up, justification);
+            // as[k] = PlotText.render_font(text_values[i], font,
+            //                              start, base, up, center);
           }
         }
         int len = (as[k] == null) ? 0 : as[k].coordinates.length;
