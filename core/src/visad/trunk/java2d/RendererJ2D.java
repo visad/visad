@@ -72,7 +72,7 @@ public abstract class RendererJ2D extends DataRenderer {
     swit.addChild(empty);
     swit.setWhichChild(0);
     addSwitch((DisplayRendererJ2D) getDisplayRenderer(), swit);
-    toggle(enabled);
+    toggle(getEnabled());
   }
 
   public void toggle(boolean on) {

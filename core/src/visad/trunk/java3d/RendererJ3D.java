@@ -101,7 +101,7 @@ public abstract class RendererJ3D extends DataRenderer {
 System.out.println("setLinks: sw.setWhichChild(" + currentIndex + ")");
 */
     sw.setWhichChild(currentIndex);
-    toggle(enabled);
+    toggle(getEnabled());
   }
 
   public void toggle(boolean on) {
