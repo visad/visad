@@ -75,10 +75,12 @@ public class CutAndPasteFields extends Object implements ActionListener {
   private RealTupleType xy = null;
   private MathType range = null; // RealType or RealTupleType
   private int rangedim = 0;
-  private int nts = 0;
+  private int nts = 0; // number of steps in sequence
 
   Set tset = null; // t domain Set
   Set xyset = null; // (x, y) domain Set
+
+  AnimationControl acontrol = null;
 
   ScalarMap tmap = null;
   ScalarMap xmap = null;
@@ -98,6 +100,13 @@ public class CutAndPasteFields extends Object implements ActionListener {
   private DataReferenceImpl ref_xhyl = null;
   private DataReferenceImpl ref_xhyh = null;
   private DataReferenceImpl ref_rect = null;
+
+  private RubberBandBoxRendererJ3D rbbr = null;
+  private BoxDragRendererJ3D xlylr = null;
+  private BoxDragRendererJ3D xlyhr = null;
+  private BoxDragRendererJ3D xhylr = null;
+  private BoxDragRendererJ3D xhyhr = null;
+  private DefaultRendererJ3D rectr = null;
 
   private CutAndPasteFields thiscp = null;
 
@@ -174,7 +183,10 @@ public class CutAndPasteFields extends Object implements ActionListener {
       ScalarType scalar = map.getScalar();
       DisplayRealType dreal = map.getDisplayScalar();
       if (scalar.equals(t)) {
-        if (Display.Animation.equals(dreal)) tmap = map;
+        if (Display.Animation.equals(dreal)) {
+          tmap = map;
+          acontrol = (AnimationControl) tmap.getControl();
+        }
       }
       else if (scalar.equals(x)) {
         if (Display.XAxis.equals(dreal) ||
@@ -199,17 +211,43 @@ public class CutAndPasteFields extends Object implements ActionListener {
       throw new VisADException("grid sequence must be mapped to Animation");
     }
 
-
-
-
-
-
     ref_rbb = new DataReferenceImpl("rbb");
     ref_xlyl = new DataReferenceImpl("xlyl");
     ref_xlyh = new DataReferenceImpl("xlyh");
     ref_xhyl = new DataReferenceImpl("xhyl");
     ref_xhyh = new DataReferenceImpl("xhyh");
     ref_rect = new DataReferenceImpl("rect");
+
+    rbbr = new RubberBandBoxRendererJ3D(x, y);
+    display.addReferences(rbbr, ref_rbb);
+    rbbr.suppressExceptions(true);
+    rbbr.toggle(false);
+
+    xlylr = new BoxDragRendererJ3D(thiscp);
+    display.addReferences(xlylr, ref_xlyl);
+    xlylr.suppressExceptions(true);
+    xlylr.toggle(false);
+
+    xlyhr = new BoxDragRendererJ3D(thiscp);
+    display.addReferences(xlyhr, ref_xlyh);
+    xlyhr.suppressExceptions(true);
+    xlyhr.toggle(false);
+
+    xhylr = new BoxDragRendererJ3D(thiscp);
+    display.addReferences(xhylr, ref_xhyl);
+    xhylr.suppressExceptions(true);
+    xhylr.toggle(false);
+
+    xhyhr = new BoxDragRendererJ3D(thiscp);
+    display.addReferences(xhyhr, ref_xhyh);
+    xhyhr.suppressExceptions(true);
+    xhyhr.toggle(false);
+
+    rectr = new DefaultRendererJ3D();
+    display.addReferences(rectr, ref_rect);
+    rectr.suppressExceptions(true);
+    rectr.toggle(false);
+
 
     cell_xlyl = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
@@ -294,12 +332,12 @@ public class CutAndPasteFields extends Object implements ActionListener {
         cell_xhyh.addReference(ref_xhyh);
 
         display.disableAction();
-        display.addReferences(new BoxDragRendererJ3D(thiscp), ref_xlyl);
-        display.addReferences(new BoxDragRendererJ3D(thiscp), ref_xlyh);
-        display.addReferences(new BoxDragRendererJ3D(thiscp), ref_xhyl);
-        display.addReferences(new BoxDragRendererJ3D(thiscp), ref_xhyh);
-        display.addReference(ref_rect);
-        display.removeReference(ref_rbb);
+        xlylr.toggle(true);
+        xlyhr.toggle(true);
+        xhylr.toggle(true);
+        xhyhr.toggle(true);
+        rectr.toggle(true);
+        rbbr.toggle(false);
         display.enableAction();
       }
     };
@@ -307,14 +345,42 @@ public class CutAndPasteFields extends Object implements ActionListener {
 
   }
 
+  private float[][] getRect() throws VisADException, RemoteException {
+    FlatField ff = null;
+    if (t != null) {
+      int index = getAnimationIndex();
+      if (index < 0 || index >= nts) return null;
+      ff = (FlatField) grids.getSample(index);
+    }
+    else {
+      ff = (FlatField) grids;
+    }
+    return null;
+  }
+
+  private float[][] replaceRect() throws VisADException, RemoteException {
+    int index = getAnimationIndex();
+    if (index < 0) return null;
+
+    return null;
+  }
+
+  private int getAnimationIndex() throws VisADException {
+    int[] indices = {acontrol.getCurrent()};
+    Set aset = acontrol.getSet();
+    double[][] values = aset.indexToDouble(indices);
+    int[] tindices = tset.doubleToIndex(values);
+    return tindices[0];
+  }
+
   public void start() throws VisADException, RemoteException {
     cell_rbb.addReference(ref_rbb);
     Gridded2DSet dummy_set = new Gridded2DSet(xy, null, 1);
     ref_rbb.setData(dummy_set);
-    display.addReferences(new RubberBandBoxRendererJ3D(x, y), ref_rbb);
+    rbbr.toggle(true);
   }
 
-  public void drag() throws VisADException, RemoteException {
+  private void drag() throws VisADException, RemoteException {
     display.disableAction();
     ref_xlyl.setData(new RealTuple(xy, new double[] {xlow, ylow}));
     ref_xlyh.setData(new RealTuple(xy, new double[] {xlow, yhi}));
@@ -346,11 +412,17 @@ public class CutAndPasteFields extends Object implements ActionListener {
 
   public void stop() throws VisADException, RemoteException {
     display.disableAction();
-    display.removeReference(ref_rbb);
-    display.removeReference(ref_xlyl);
-    display.removeReference(ref_xlyh);
-    display.removeReference(ref_xhyl);
-    display.removeReference(ref_xhyh);
+    rbbr.toggle(false);
+    xlylr.toggle(false);
+    xlyhr.toggle(false);
+    xhylr.toggle(false);
+    xhyhr.toggle(false);
+    rectr.toggle(false);
+    ref_xlyl.setData(null);
+    ref_xlyh.setData(null);
+    ref_xhyl.setData(null);
+    ref_xhyh.setData(null);
+    ref_rect.setData(null);
     display.enableAction();
 
     try { cell_rbb.removeReference(ref_rbb); }
@@ -488,7 +560,9 @@ public class CutAndPasteFields extends Object implements ActionListener {
     panel3.add(stop);
 
     panel2.add(new AnimationWidget(amap));
-    panel2.add(new LabeledColorWidget(cmap));
+    LabeledColorWidget lcw = new LabeledColorWidget(cmap);
+    lcw.setMaximumSize(new Dimension(400, 200));
+    panel2.add(lcw);
     panel2.add(new JLabel(" "));
     panel2.add(panel3);
     panel2.setMaximumSize(new Dimension(400, 600));
