@@ -41,9 +41,11 @@ import java.util.Vector;
 import ucar.netcdf.RandomAccessFile;
 
 /** BioRadForm is the VisAD data format adapter for Bio-Rad .PIC files. */
-public class BioRadForm extends Form implements FormFileInformer {
+public class BioRadForm extends Form
+  implements FormFileInformer, FormProgressInformer, FormBlockReader
+{
 
-  private static CacheStrategy strategy = new CacheStrategy();
+  // -- Constants --
 
   /** Debugging flag. */
   static final boolean DEBUG = false;
@@ -51,9 +53,8 @@ public class BioRadForm extends Form implements FormFileInformer {
   /** Debugging level. 1=basic, 2=extended, 3=everything. */
   static final int DEBUG_LEVEL = 1;
 
-  /** Numerical ID of a valid BioRad .PIC file. */
+  /** Numerical ID of a valid Bio-Rad .PIC file. */
   private static final int PIC_FILE_ID = 12345;
-
 
   // Merge types
 
@@ -90,7 +91,6 @@ public class BioRadForm extends Form implements FormFileInformer {
     "MERGE_ROW", "MERGE_MAXIMUM", "MERGE_OPT12", "MERGE_OPT12_V2"
   };
 
-
   // Look-up table constants
 
   /** A red pane appears on the screen. */
@@ -102,98 +102,9 @@ public class BioRadForm extends Form implements FormFileInformer {
   /** A blue pane appears on the screen. */
   private static final int BLUE_LUT = 0x04;
 
+  // RealTypes
 
-  /** Form instantiation counter. */
-  private static int num = 0;
-
-  /** Constructs a new BioRad file form. */
-  public BioRadForm() {
-    super("BioRadForm" + num++);
-  }
-
-  /** Converts two bytes to an unsigned short. */
-  private static int getUnsignedShort(byte b1, byte b2) {
-    int i1 = 0x000000ff & b1;
-    int i2 = 0x000000ff & b2;
-    return (i2 << 8) | i1;
-  }
-
-  /** Converts four bytes to a float. */
-  private static float getFloat(byte b1, byte b2, byte b3, byte b4) {
-    int i1 = 0x000000ff & b1;
-    int i2 = 0x000000ff & b2;
-    int i3 = 0x000000ff & b3;
-    int i4 = 0x000000ff & b4;
-    int bits = (i4 << 24) | (i3 << 16) | (i2 << 8) | i1;
-    return Float.intBitsToFloat(bits);
-  }
-
-  /** Writes the given value as a short, least-significant byte first. */
-  static void writeShort(DataOutputStream out, int val) throws IOException {
-    int q0 = 0x000000ff & val;
-    int q1 = (0x0000ff00 & val) >> 8;
-    byte[] b = new byte[2];
-    b[0] = (byte) q0;
-    b[1] = (byte) q1;
-    out.write(b, 0, 2);
-  }
-
-  /** Writes the given value as an int, least-significant byte first. */
-  static void writeInt(DataOutputStream out, int val) throws IOException {
-    int q0 = 0x000000ff & val;
-    int q1 = (0x0000ff00 & val) >> 8;
-    int q2 = (0x00ff0000 & val) >> 16;
-    int q3 = (0xff000000 & val) >> 24;
-    byte[] b = new byte[4];
-    b[0] = (byte) q0;
-    b[1] = (byte) q1;
-    b[2] = (byte) q2;
-    b[3] = (byte) q3;
-    out.write(b, 0, 4);
-  }
-
-  /** Writes the given value as a float, in reverse byte order. */
-  static void writeFloat(DataOutputStream out, float val) throws IOException {
-    int q = Float.floatToIntBits(val);
-    int q0 = (0x000000ff & q) << 24;
-    int q1 = (0x0000ff00 & q) << 8;
-    int q2 = (0x00ff0000 & q) >> 8;
-    int q3 = (0xff000000 & q) >> 24;
-    byte[] b = new byte[4];
-    b[0] = (byte) q0;
-    b[1] = (byte) q1;
-    b[2] = (byte) q2;
-    b[3] = (byte) q3;
-    out.write(b, 0, 4);
-  }
-
-  /** Writes the given string out using exactly len bytes. */
-  static void writeString(DataOutputStream out, String s, int len)
-    throws IOException
-  {
-    byte[] b = s.getBytes();
-    byte[] bytes = new byte[len];
-    System.arraycopy(b, 0, bytes, 0, b.length < len ? b.length : len);
-    out.write(bytes, 0, len);
-  }
-
-  /** Checks if the given string is a valid filename for a BioRad .PIC file. */
-  public boolean isThisType(String name) {
-    return name.toLowerCase().endsWith(".pic");
-  }
-
-  /** Checks if the given block is a valid header for a BioRad .PIC file. */
-  public boolean isThisType(byte[] block) {
-    if (block.length < 56) return false;
-    return getUnsignedShort(block[54], block[55]) == PIC_FILE_ID;
-  }
-
-  /** Returns the default file suffixes for the BioRad .PIC file format. */
-  public String[] getDefaultSuffixes() {
-    return new String[] {"pic"};
-  }
-
-  /** RealType for indexing BioRad notes. */
+  /** RealType for indexing Bio-Rad notes. */
   private static final RealType noteIndex =
     RealType.getRealType("NoteIndex");
 
@@ -234,6 +145,14 @@ public class BioRadForm extends Form implements FormFileInformer {
     "RAMP2_MAX", "RAMP3_MAX", "PIC_FF_VERSION", "Z_CORRECT_FACTOR"
   };
 
+
+  // -- Static fields --
+
+  private static CacheStrategy strategy = new CacheStrategy();
+
+  /** Form instantiation counter. */
+  private static int num = 0;
+
   /** MathType of a 2-D image with 1-D range. */
   private static MathType image;
 
@@ -246,7 +165,7 @@ public class BioRadForm extends Form implements FormFileInformer {
   /** MathType of a sequence of color tables. */
   private static MathType tableSequence;
 
-  /** MathType for indexed list of BioRad notes. */
+  /** MathType for indexed list of Bio-Rad notes. */
   private static FunctionType noteFunction;
 
   static {
@@ -262,7 +181,70 @@ public class BioRadForm extends Form implements FormFileInformer {
     }
   }
 
-  /** Saves a VisAD Data object to BioRad .PIC format at the given location. */
+
+  // -- Fields --
+
+  /** Filename of current Bio-Rad .PIC. */
+  private String current_id;
+
+  /** Input stream for current Bio-Rad .PIC. */
+  private DataInputStream in;
+
+  /** Dimensions of each image in current Bio-Rad .PIC. */
+  private int nx, ny;
+
+  /** Number of images in current Bio-Rad .PIC. */
+  private int npic;
+
+  private int ramp1_min, ramp1_max;
+  private String name;
+  private int ramp2_min, ramp2_max;
+  private int lens;
+  private float mag_factor;
+
+  /** Flag indicating notes are present in current Bio-Rad .PIC. */
+  private boolean notes;
+
+  /** Flag indicating current Bio-Rad .PIC is packed with bytes. */
+  private boolean byte_format;
+
+  /** Percent complete with current operation. */
+  private double percent;
+
+
+  // -- Constructor --
+
+  /** Constructs a new Bio-Rad file form. */
+  public BioRadForm() {
+    super("BioRadForm" + num++);
+  }
+
+
+  // -- FormFileInformer methods --
+
+  /** Checks if the given string is a valid filename for a Bio-Rad .PIC file. */
+  public boolean isThisType(String name) {
+    return name.toLowerCase().endsWith(".pic");
+  }
+
+  /** Checks if the given block is a valid header for a Bio-Rad .PIC file. */
+  public boolean isThisType(byte[] block) {
+    if (block.length < 56) return false;
+    return getUnsignedShort(block[54], block[55]) == PIC_FILE_ID;
+  }
+
+  /** Returns the default file suffixes for the Bio-Rad .PIC file format. */
+  public String[] getDefaultSuffixes() {
+    return new String[] {"pic"};
+  }
+
+
+  // -- API methods --
+
+  /**
+   * Saves a VisAD Data object to Bio-Rad .PIC
+   * format at the given location.
+   */
   public void save(String id, Data data, boolean replace)
     throws BadFormException, IOException, RemoteException, VisADException
   {
@@ -313,7 +295,7 @@ public class BioRadForm extends Form implements FormFileInformer {
         for (int j=0; j<flen; j++) v_tables.add(f.getSample(j));
       }
       else if (mt.equalsExceptName(noteFunction)) {
-        // found BioRad note tuple
+        // found Bio-Rad note tuple
         v_notes.removeAllElements();
         FieldImpl f = (FieldImpl) d;
         int flen = f.getLength();
@@ -606,7 +588,7 @@ public class BioRadForm extends Form implements FormFileInformer {
   }
 
   /**
-   * Adds data to an existing BioRad file.
+   * Adds data to an existing Bio-Rad file.
    *
    * @exception BadFormException Always thrown (this method not implemented).
    */
@@ -617,9 +599,9 @@ public class BioRadForm extends Form implements FormFileInformer {
   }
 
   /**
-   * Opens an existing BioRad .PIC file from the given location.
+   * Opens an existing Bio-Rad .PIC file from the given location.
    *
-   * @return VisAD Data object containing BioRad data.
+   * @return VisAD Data object containing Bio-Rad data.
    */
   public DataImpl open(String id)
     throws BadFormException, IOException, VisADException
@@ -628,9 +610,9 @@ public class BioRadForm extends Form implements FormFileInformer {
   }
 
   /**
-   * Opens an existing BioRad .PIC file from the given URL.
+   * Opens an existing Bio-Rad .PIC file from the given URL.
    *
-   * @return VisAD Data object containing BioRad data.
+   * @return VisAD Data object containing Bio-Rad data.
    */
   public DataImpl open(URL url)
     throws BadFormException, VisADException, IOException
@@ -652,67 +634,22 @@ public class BioRadForm extends Form implements FormFileInformer {
   DataImpl readFile(DataInput fin, boolean isRandom)
     throws IOException, RemoteException, VisADException
   {
-    // read header
-    byte[] header = new byte[76];
-    fin.readFully(header);
-    int nx = getUnsignedShort(header[0], header[1]);
-    int ny = getUnsignedShort(header[2], header[3]);
-    int npic = getUnsignedShort(header[4], header[5]);
-    int ramp1_min = getUnsignedShort(header[6], header[7]);
-    int ramp1_max = getUnsignedShort(header[8], header[9]);
-    boolean notes = (header[10] | header[11] | header[12] | header[13]) != 0;
-    boolean byte_format = getUnsignedShort(header[14], header[15]) != 0;
-    int image_number = getUnsignedShort(header[16], header[17]);
-    String name = new String(header, 18, 32);
-    int merged = getUnsignedShort(header[50], header[51]);
-    int color1 = getUnsignedShort(header[52], header[53]);
-    int file_id = getUnsignedShort(header[54], header[55]);
-    int ramp2_min = getUnsignedShort(header[56], header[57]);
-    int ramp2_max = getUnsignedShort(header[58], header[59]);
-    int color2 = getUnsignedShort(header[60], header[61]);
-    int edited = getUnsignedShort(header[62], header[63]);
-    int lens = getUnsignedShort(header[64], header[65]);
-    float mag_factor =
-      getFloat(header[66], header[67], header[68], header[69]);
-    if (DEBUG && DEBUG_LEVEL >= 2) {
-      System.out.println("\nBioRad header:\n" +
-        "nx = " + nx + "\n" +
-        "ny = " + ny + "\n" +
-        "npic = " + npic + "\n" +
-        "ramp1_min = " + ramp1_min + "\n" +
-        "ramp1_max = " + ramp1_max + "\n" +
-        "notes = " + notes + "\n" +
-        "byte_format = " + byte_format + "\n" +
-        "image_number = " + image_number + "\n" +
-        "name = " + name + "\n" +
-        "merged = " + mergeNames[merged] + "\n" +
-        "color1 = " + color1 + "\n" +
-        "file_id = " + file_id + "\n" +
-        "ramp2_min = " + ramp2_min + "\n" +
-        "ramp2_max = " + ramp2_max + "\n" +
-        "color2 = " + color2 + "\n" +
-        "edited = " + edited + "\n" +
-        "lens = " + lens + "\n" +
-        "mag_factor = " + mag_factor);
-    }
-
-    // check validity of header
-    if (file_id != PIC_FILE_ID) {
-      throw new BadFormException("Invalid file header: " + file_id);
-    }
-
+    initStream(fin);
+    percent = 0;
     final int image_len = nx * ny;
 
     float[][][] samples;
     long filePtr;
 
     if (isRandom) {
-      filePtr = ((RandomAccessFile )fin).getFilePointer();
+      filePtr = ((RandomAccessFile) fin).getFilePointer();
 
       fin.skipBytes(npic * image_len);
 
       samples = null;
-    } else {
+      percent = 100;
+    }
+    else {
       filePtr = 0;
 
       // read image bytes & convert to floats
@@ -728,6 +665,7 @@ public class BioRadForm extends Form implements FormFileInformer {
             int q = 0x000000ff & buf[l];
             samples[i][0][l] = (float) q;
           }
+          percent = (double) (i + 1) / npic;
         }
       }
       else {
@@ -742,6 +680,7 @@ public class BioRadForm extends Form implements FormFileInformer {
             int q = getUnsignedShort(buf[l], buf[l + 1]);
             samples[i][0][l/2] = (float) q;
           }
+          percent = (double) (i + 1) / npic;
         }
       }
     }
@@ -945,12 +884,232 @@ public class BioRadForm extends Form implements FormFileInformer {
     // convert vector into VisAD tuple
     Data[] dataArray = new Data[data.size()];
     data.copyInto(dataArray);
-    return new Tuple(dataArray, false);
+    Tuple tuple = new Tuple(dataArray, false);
+    percent = -1;
+    return tuple;
   }
 
   public FormNode getForms(Data data) {
     return null;
   }
+
+
+  // -- FormBlockReader methods --
+
+  public DataImpl open(String id, int block_number)
+    throws BadFormException, IOException, VisADException
+  {
+    if (!id.equals(current_id)) {
+      initStream(new DataInputStream(new FileInputStream(id)));
+      current_id = id;
+    }
+
+    if (block_number < 0 || block_number >= npic) {
+      throw new BadFormException("Invalid image number: " + block_number);
+    }
+
+    // read image bytes & convert to floats
+    int image_len = nx * ny;
+    float[][] samples = new float[1][image_len];
+    if (byte_format) {
+      // jump to proper image number
+      in.reset();
+      in.skip(block_number * image_len);
+
+      // read in image_len bytes
+      byte[] buf = new byte[image_len];
+      for (int i=0; i<npic; i++) {
+        in.readFully(buf);
+
+        // each pixel is 8 bits
+        for (int l=0; l<image_len; l++) {
+          int q = 0x000000ff & buf[l];
+          samples[0][l] = (float) q;
+        }
+      }
+    }
+    else {
+      // jump to proper image number
+      in.reset();
+      in.skip(block_number * 2 * image_len);
+
+      // read in 2 * image_len bytes
+      final int data_len = 2 * image_len;
+      byte[] buf = new byte[data_len];
+      in.readFully(buf);
+
+      // each pixel is 16 bits
+      for (int l=0; l<data_len; l+=2) {
+        int q = getUnsignedShort(buf[l], buf[l + 1]);
+        samples[0][l/2] = (float) q;
+      }
+    }
+
+    RealType index = RealType.getRealType("index");
+    RealType x = RealType.getRealType("ImageElement");
+    RealType y = RealType.getRealType("ImageLine");
+    RealType value = RealType.getRealType("intensity");
+    RealTupleType xy = new RealTupleType(x, y);
+    FunctionType imageFunction = new FunctionType(xy, value);
+    FunctionType stackFunction = new FunctionType(index, imageFunction);
+    Integer2DSet imageSet = new Integer2DSet(xy, nx, ny);
+    FlatField field = new FlatField(imageFunction, imageSet);
+    field.setSamples(samples, false);
+
+    return field;
+  }
+
+  public int getBlockCount(String id)
+    throws BadFormException, IOException, VisADException
+  {
+    if (!id.equals(current_id)) {
+      initStream(new DataInputStream(new FileInputStream(id)));
+      current_id = id;
+    }
+    return npic;
+  }
+
+  public void close() throws BadFormException, IOException, VisADException {
+    if (current_id == null) return;
+    in.close();
+    current_id = null;
+  }
+
+
+  // -- FormProgressInformer methods --
+
+  public double getPercentComplete() { return percent; }
+
+
+  // -- Helper methods --
+
+  /** Converts two bytes to an unsigned short. */
+  private static int getUnsignedShort(byte b1, byte b2) {
+    int i1 = 0x000000ff & b1;
+    int i2 = 0x000000ff & b2;
+    return (i2 << 8) | i1;
+  }
+
+  /** Converts four bytes to a float. */
+  private static float getFloat(byte b1, byte b2, byte b3, byte b4) {
+    int i1 = 0x000000ff & b1;
+    int i2 = 0x000000ff & b2;
+    int i3 = 0x000000ff & b3;
+    int i4 = 0x000000ff & b4;
+    int bits = (i4 << 24) | (i3 << 16) | (i2 << 8) | i1;
+    return Float.intBitsToFloat(bits);
+  }
+
+  /** Writes the given value as a short, least-significant byte first. */
+  static void writeShort(DataOutputStream out, int val) throws IOException {
+    int q0 = 0x000000ff & val;
+    int q1 = (0x0000ff00 & val) >> 8;
+    byte[] b = new byte[2];
+    b[0] = (byte) q0;
+    b[1] = (byte) q1;
+    out.write(b, 0, 2);
+  }
+
+  /** Writes the given value as an int, least-significant byte first. */
+  static void writeInt(DataOutputStream out, int val) throws IOException {
+    int q0 = 0x000000ff & val;
+    int q1 = (0x0000ff00 & val) >> 8;
+    int q2 = (0x00ff0000 & val) >> 16;
+    int q3 = (0xff000000 & val) >> 24;
+    byte[] b = new byte[4];
+    b[0] = (byte) q0;
+    b[1] = (byte) q1;
+    b[2] = (byte) q2;
+    b[3] = (byte) q3;
+    out.write(b, 0, 4);
+  }
+
+  /** Writes the given value as a float, in reverse byte order. */
+  static void writeFloat(DataOutputStream out, float val) throws IOException {
+    int q = Float.floatToIntBits(val);
+    int q0 = (0x000000ff & q) << 24;
+    int q1 = (0x0000ff00 & q) << 8;
+    int q2 = (0x00ff0000 & q) >> 8;
+    int q3 = (0xff000000 & q) >> 24;
+    byte[] b = new byte[4];
+    b[0] = (byte) q0;
+    b[1] = (byte) q1;
+    b[2] = (byte) q2;
+    b[3] = (byte) q3;
+    out.write(b, 0, 4);
+  }
+
+  /** Writes the given string out using exactly len bytes. */
+  static void writeString(DataOutputStream out, String s, int len)
+    throws IOException
+  {
+    byte[] b = s.getBytes();
+    byte[] bytes = new byte[len];
+    System.arraycopy(b, 0, bytes, 0, b.length < len ? b.length : len);
+    out.write(bytes, 0, len);
+  }
+
+  private void initStream(DataInput fin)
+    throws BadFormException, IOException, VisADException
+  {
+    // close any currently open files
+    close();
+
+    // read header
+    byte[] header = new byte[76];
+    fin.readFully(header);
+    nx = getUnsignedShort(header[0], header[1]);
+    ny = getUnsignedShort(header[2], header[3]);
+    npic = getUnsignedShort(header[4], header[5]);
+    ramp1_min = getUnsignedShort(header[6], header[7]);
+    ramp1_max = getUnsignedShort(header[8], header[9]);
+    notes = (header[10] | header[11] | header[12] | header[13]) != 0;
+    byte_format = getUnsignedShort(header[14], header[15]) != 0;
+    int image_number = getUnsignedShort(header[16], header[17]);
+    name = new String(header, 18, 32);
+    int merged = getUnsignedShort(header[50], header[51]);
+    int color1 = getUnsignedShort(header[52], header[53]);
+    int file_id = getUnsignedShort(header[54], header[55]);
+    ramp2_min = getUnsignedShort(header[56], header[57]);
+    ramp2_max = getUnsignedShort(header[58], header[59]);
+    int color2 = getUnsignedShort(header[60], header[61]);
+    int edited = getUnsignedShort(header[62], header[63]);
+    lens = getUnsignedShort(header[64], header[65]);
+    mag_factor = getFloat(header[66], header[67], header[68], header[69]);
+    if (DEBUG && DEBUG_LEVEL >= 2) {
+      System.out.println("\nBio-Rad header:\n" +
+        "nx = " + nx + "\n" +
+        "ny = " + ny + "\n" +
+        "npic = " + npic + "\n" +
+        "ramp1_min = " + ramp1_min + "\n" +
+        "ramp1_max = " + ramp1_max + "\n" +
+        "notes = " + notes + "\n" +
+        "byte_format = " + byte_format + "\n" +
+        "image_number = " + image_number + "\n" +
+        "name = " + name + "\n" +
+        "merged = " + mergeNames[merged] + "\n" +
+        "color1 = " + color1 + "\n" +
+        "file_id = " + file_id + "\n" +
+        "ramp2_min = " + ramp2_min + "\n" +
+        "ramp2_max = " + ramp2_max + "\n" +
+        "color2 = " + color2 + "\n" +
+        "edited = " + edited + "\n" +
+        "lens = " + lens + "\n" +
+        "mag_factor = " + mag_factor);
+    }
+
+    // check validity of header
+    if (file_id != PIC_FILE_ID) {
+      throw new BadFormException("Invalid file header: " + file_id);
+    }
+    if (fin instanceof DataInputStream) {
+      in = (DataInputStream) fin;
+      in.mark(4 * npic * nx * ny);
+    }
+  }
+
+
+  // -- Helper classes --
 
   class BioRadAccessor
     extends FileAccessor
@@ -1040,24 +1199,27 @@ public class BioRadForm extends Form implements FormFileInformer {
     }
   }
 
+
+  // -- Main method --
+
   /**
    * Run 'java visad.data.biorad.BioRadForm in_file out_file' to convert
-   * in_file to out_file in BioRad .PIC data format.
+   * in_file to out_file in Bio-Rad .PIC data format.
    */
   public static void main(String[] args)
     throws VisADException, RemoteException, IOException
   {
     if (args == null || args.length < 1 || args.length > 2) {
-      System.out.println("To convert a file to BioRad .PIC, run:");
+      System.out.println("To convert a file to Bio-Rad .PIC, run:");
       System.out.println(
         "  java visad.data.biorad.BioRadForm in_file out_file");
-      System.out.println("To test read a BioRad .PIC file, run:");
+      System.out.println("To test read a Bio-Rad .PIC file, run:");
       System.out.println("  java visad.data.biorad.BioRadForm in_file");
       System.exit(2);
     }
 
     if (args.length == 1) {
-      // Test read BioRad .PIC file
+      // Test read Bio-Rad .PIC file
       BioRadForm form = new BioRadForm();
       System.out.print("Reading " + args[0] + " ");
       Data data = form.open(args[0]);
@@ -1065,7 +1227,7 @@ public class BioRadForm extends Form implements FormFileInformer {
       System.out.println("MathType =\n" + data.getType().prettyString());
     }
     else if (args.length == 2) {
-      // Convert file to BioRad .PIC format
+      // Convert file to Bio-Rad .PIC format
       System.out.print(args[0] + " -> " + args[1] + " ");
       DefaultFamily loader = new DefaultFamily("loader");
       DataImpl data = loader.open(args[0]);
@@ -1078,4 +1240,3 @@ public class BioRadForm extends Form implements FormFileInformer {
   }
 
 }
-
