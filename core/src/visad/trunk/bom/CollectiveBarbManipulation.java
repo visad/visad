@@ -1448,6 +1448,14 @@ public class CollectiveBarbManipulation extends Object
                                      new double[] {0.5, 0.5, 0.0}, 2) :
       null;
 
+    CollectiveBarbManipulation[] cbms = (cbm2 == null) ?
+      new CollectiveBarbManipulation[] {cbm} :
+      new CollectiveBarbManipulation[] {cbm, cbm2};
+    DisplayRendererJ3D dr = (DisplayRendererJ3D) display1.getDisplayRenderer();
+    CBMKeyboardBehaviorJ3D kbd = new CBMKeyboardBehaviorJ3D(dr);
+    dr.addKeyboardBehavior(kbd);
+    kbd.setWhichCBM(cbm);
+
     // construct invisible starter set
     Gridded2DSet set1 =
       new Gridded2DSet(earth, new float[][] {{0.0f}, {0.0f}}, 1);
@@ -1723,4 +1731,52 @@ class CSwellManipulationRendererJ3D extends SwellManipulationRendererJ3D {
     super.drag_direct(ray, first, mouseModifiers);
   }
 }
+
+/*
+
+> 2) Keyboard Input:
+> ------------------
+> Keyboard commands are needed as alternatives to mouse-driven commands.
+> I know this has already been done in the generic sense, but we also
+> want the possibility of keyboard adjustment of CBM for example (with sensible
+> increments per keyboard stroke, eg 10deg rotation clockwise per keystroke right
+> arrow mayble, and 5 knots change per + keystroke; allow for user to "tab" their
+> way between different wind barbs).
+>
+> Ref: Survey #22
+
+This will require a new extension of DisplayRendererJ3D which
+BOM applications will need to use in DisplayImplJ3D constructors.
+I estimate 1.5 weeks to write this and apply it to
+CollectiveBarbManipulation. The "tab" logic may be a bit complex.
+
+[****
+extend KeyboardBehaviorJ3D with corresponding extensions
+of DisplayRendererJ3D and RendererJ3D
+
+1.5 weeks for CollectiveBarbManipulation
+****]
+
+MouseHelper.java invokes:
+  DisplayRenderer.findDirect()
+  DataRenderer.drag_direct()
+  DataRenderer.release_direct()
+
+DisplayRendererJ3D.java:
+  public void addKeyboardBehavior(KeyboardBehaviorJ3D behavior)
+
+
+KeyboardBehaviorJ3D.java:
+
+
+from HSVDisplay.java:
+    DisplayRendererJ3D dr = (DisplayRendererJ3D) display1.getDisplayRenderer();
+    KeyboardBehaviorJ3D kbd = new KeyboardBehaviorJ3D(dr);
+    dr.addKeyboardBehavior(kbd);
+
+visad/bom/CBMKeyboardBehaviorJ3D.java
+
+
+
+*/
 
