@@ -176,6 +176,7 @@ public class AreaFile {
   int[][][] data;
   private AreaDirectory areaDirectory;
   private String imageSource;
+  private AREAnav areaNav;
   
   /**
    * creates an AreaFile object that allows reading
@@ -513,6 +514,24 @@ public class AreaFile {
 
     return nav;
 
+  }
+
+  /**
+   * Get the navigation 
+   * @return  AREAnav for this image  (may be null)
+   */
+  public AREAnav getNavigation()
+      throws AreaFileException
+  {
+    if (areaNav == null) {
+      // make the nav module
+      try {
+        areaNav = AREAnav.makeAreaNav(getNav());
+      } catch (McIDASException excp) {
+        areaNav = null;
+      }
+    }
+    return areaNav;
   }
 
   /** 

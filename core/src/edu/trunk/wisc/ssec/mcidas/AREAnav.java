@@ -365,6 +365,61 @@ public abstract class AREAnav
     }
 
   /**
+   * Return an AREAnav based on the input nav block.
+   * @param navBlock  block to use
+   * @return corresponding navigation routine.
+   */
+  public static AREAnav makeAreaNav(int[] navBlock) throws McIDASException {
+    AREAnav anav = null;
+    try
+    {
+        switch (navBlock[0]) {
+            case GVAR:
+                anav = new GVARnav(navBlock);
+                break;
+            case MOLL:
+                anav = new MOLLnav(navBlock);
+                break;
+            case MSAT:
+                anav = new MSATnav(navBlock);
+                break;
+            case RADR:
+                anav = new RADRnav(navBlock);
+                break;
+            case RECT:
+                anav = new RECTnav(navBlock);
+                break;
+            case GMSX:
+                anav = new GMSXnav(navBlock);
+                break;
+            case GOES:
+                anav = new GOESnav(navBlock);
+                break;
+            case PS:
+                anav = new PSnav(navBlock);
+                break;
+            case MERC:
+                anav = new MERCnav(navBlock);
+                break;
+            case LAMB:
+                anav = new LAMBnav(navBlock);
+                break;
+            case TANC:
+                anav = new TANCnav(navBlock);
+                break;
+            default:
+                throw new McIDASException(
+                     "makeAreaNav: Unknown navigation type" + navBlock[0]);
+        }
+    }
+    catch (IllegalArgumentException excp)
+    {
+        throw new McIDASException( "Wrong nav block passed to AREAnav module");
+    }
+    return anav;
+  }
+
+  /**
    * Determines whether or not the <code>Object</code> in question is
    * the same as this <code>AREAnav</code>.   Right now, this returns
    * false until we can figure out when two navigations are equal.  
