@@ -436,7 +436,7 @@ docs:
 	$(DOC) $(DOCFLAGS) $(VISAD_PACKAGES)
 
 nexusrmi_compile:
-	make RMIC=nexusrmic CC=gcc compile
+	make RMIC=nexusrmic compile
 
 tonexus:
 	java2nexus `find . -name "*.java"`
