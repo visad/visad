@@ -27,8 +27,9 @@ MA 02111-1307, USA
 package visad.sounder;
 
 import visad.*;
-import visad.data.netcdf.units.UnitsDB;
-import visad.data.netcdf.units.DefaultUnitsDB;
+import visad.data.netcdf.units.Parser;
+import visad.data.netcdf.units.ParseException;
+import visad.data.netcdf.units.NoSuchUnitException;
 import visad.data.netcdf.StandardQuantityDB;
 
 import java.rmi.RemoteException;
@@ -39,32 +40,12 @@ import java.rmi.RemoteException;
 */
 public abstract class SounderInstrument 
 {
-  static private UnitsDB udb;
-  static 
-  {
-    try {
-      udb = DefaultUnitsDB.instance();
-    }
-    catch (VisADException e) {
-      e.printStackTrace();
-    }
-  }
-
   double[] model_parms;
-  int n_parms;
   RealType[] model_parm_types;
   DataReferenceImpl[] parm_refs;
-  Sounding firstGuess;
-  DataReferenceImpl firstGuess_ref;
+  int n_parms;
 
   public SounderInstrument(String[] names, String[] units, double[] parms)
-         throws VisADException, RemoteException
-  {
-    this(names, units, parms, null);
-  }
-
-  public SounderInstrument(String[] names, String[] units, 
-                           double[] parms, Sounding first_guess)
          throws VisADException, RemoteException
   {
     n_parms = parms.length;
@@ -76,8 +57,6 @@ public abstract class SounderInstrument
     model_parm_types = new RealType[n_parms];
     model_parms = new double[n_parms];
     parm_refs = new DataReferenceImpl[n_parms];
-    firstGuess = first_guess;
-    firstGuess_ref = new DataReferenceImpl("sounding_first_guess");
 
     CellImpl update_cell = new CellImpl()
     {
@@ -86,22 +65,30 @@ public abstract class SounderInstrument
         for ( int ii = 0; ii < n_parms; ii++ ) {
           model_parms[ii] = ((Real)parm_refs[ii].getData()).getValue();
         }
-        firstGuess = (Sounding) firstGuess_ref.getData();
       }
     };
 
     for ( int ii = 0; ii < n_parms; ii++ ) {
-      model_parm_types[ii] = new RealType(names[ii], udb.get(units[ii]), null);
+      Unit u = null;
+      try {
+        u = Parser.parse(units[ii]);
+      }
+      catch ( NoSuchUnitException e ) {
+        e.printStackTrace();  
+      }
+      catch ( ParseException e ) {
+        e.printStackTrace();
+      }
+
+      model_parm_types[ii] = new RealType(names[ii], u, null);
       model_parms[ii] = parms[ii];
       parm_refs[ii] = new DataReferenceImpl(names[ii]);
       parm_refs[ii].setData(new Real(model_parm_types[ii], model_parms[ii]));
     }
-    firstGuess_ref.setData(firstGuess);
 
     for ( int ii = 0; ii < n_parms; ii++ ) {
       update_cell.addReference(parm_refs[ii]);
     }
-    update_cell.addReference(firstGuess_ref);
   }
 
   public DataReferenceImpl[] getParamReferences()
@@ -109,12 +96,19 @@ public abstract class SounderInstrument
     return parm_refs;
   }
 
-  public DataReferenceImpl getFirstGuessReference()
-  {
-    return firstGuess_ref;
+  public void add(DisplayImpl display) {
+
   }
-   
-  public abstract Sounding retrieval(Spectrum spectrum);
+
+  public void add(DisplayImpl[] display_s) {
+
+  }
+
+  public void remove() {
+
+  }
+
+  public abstract Sounding retrieval(Spectrum spectrum, Sounding firstGuess);
 
   public abstract Spectrum foward(Sounding sounding);
 }

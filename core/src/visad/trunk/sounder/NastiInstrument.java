@@ -31,23 +31,23 @@ import java.rmi.RemoteException;
 
 
 /**
-   NastiInstrument is the VisAD for the NAST-I sounding instrument.<p>
+   NastiInstrument is the VisAD class for the NAST-I sounding instrument.<p>
 */
 public class NastiInstrument extends SounderInstrument
 {
 
   public NastiInstrument( String[] scalar_names,  //- names of retrieval/foward algorith parameters
                           String[] units,         //- units of the above
-                          double[] model_parms,   //- initial values of the above
-                          Sounding first_guess    //- first guess sounding
+                          double[] model_parms    //- initial values of the above
                                                 ) 
          throws VisADException, RemoteException
   { 
-    super(scalar_names, units, model_parms, first_guess);
+    super(scalar_names, units, model_parms);
   }
 
-  public Sounding retrieval(Spectrum spectrum)
+  public Sounding retrieval(Spectrum spectrum, Sounding first_guess)
   {
+
 
     //-nasti_retrvl_c(  );
     return null;
@@ -55,6 +55,7 @@ public class NastiInstrument extends SounderInstrument
 
   public Spectrum foward(Sounding sounding)
   {
+
 
     //-nastirte_c(   );
     return null;
