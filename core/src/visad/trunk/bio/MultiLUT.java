@@ -45,18 +45,24 @@ public class MultiLUT extends Object implements ActionListener {
 
   private static final int NFILES = 17;
 
+  private TextType text = null;
+  private RealType element = null, line = null, value = null;
+  private TupleType text_tuple = null;
+
   private float[][] data_values = null;
   private float[][] values = null;
-
   private float[][] wedge_samples = null;
 
   private FlatField data = null;
+  private FieldImpl text_field = null;
   private FlatField wedge = null;
 
   private DataReferenceImpl[] value_refs = null;
   private DataReferenceImpl[] hue_refs = null;
 
   private int npixels = 0;
+
+  private JLabel minmax = null;
 
   private DisplayImplJ3D display1 = null;
 
@@ -78,8 +84,14 @@ public class MultiLUT extends Object implements ActionListener {
   public void go(String args[])
          throws IOException, VisADException, RemoteException {
 
+    String dir = "";
+    String slash = System.getProperty("file.separator");
+    if (args.length > 0) {
+      dir = args[0];
+      if (!dir.endsWith(slash)) dir = dir + slash;
+    }
+
     RealTupleType domain = null;
-    RealType element = null, line = null, value = null;
     Unit unit = null;
     String name = null;
     Set set = null;
@@ -89,7 +101,7 @@ public class MultiLUT extends Object implements ActionListener {
     DefaultFamily loader = new DefaultFamily("loader");
 
     for (int i=0; i<NFILES; i++) {
-      Tuple tuple = (Tuple) loader.open("SPB" + (i+1) + ".PIC");
+      Tuple tuple = (Tuple) loader.open(dir + "SPB" + (i+1) + ".PIC");
       FieldImpl field = (FieldImpl) tuple.getComponent(0);
       FlatField ff = (FlatField) field.getSample(0);
       set = ff.getDomainSet();
@@ -130,6 +142,17 @@ set = Linear2DSet: Length = 393216
     DataReferenceImpl ref1 = new DataReferenceImpl("ref1");
     ref1.setData(data);
 
+    text = TextType.getTextType("text");
+    RealType[] time = {RealType.Time};
+    RealTupleType time_type = new RealTupleType(time);
+    MathType[] mtypes = {element, line, text};
+    text_tuple = new TupleType(mtypes);
+    FunctionType text_function = new FunctionType(RealType.Time, text_tuple);
+    Set time_set = new Linear1DSet(time_type, 0.0, 1.0, 2);
+    text_field = new FieldImpl(text_function, time_set);
+    DataReferenceImpl text_ref = new DataReferenceImpl("text_ref");
+    text_ref.setData(text_field);
+
     Linear2DSet wedge_set =
       new Linear2DSet(domain, 0.0, 767.0, 768, 550.0, 570.0, 21);
     wedge = new FlatField(new_func, wedge_set);
@@ -152,7 +175,17 @@ set = Linear2DSet: Length = 393216
     display1.addMap(vmap);
     hmap = new ScalarMap(hue, Display.Hue);
     display1.addMap(hmap);
+    ScalarMap textmap = new ScalarMap(text, Display.Text);
+    display1.addMap(textmap);
     display1.addMap(new ConstantMap(1.0, Display.Saturation));
+
+    Control ctrl = textmap.getControl();
+    if (ctrl != null && ctrl instanceof TextControl) {
+      TextControl text_control = (TextControl) ctrl;
+      text_control.setSize(1.0);
+      text_control.setJustification(TextControl.Justification.CENTER);
+      text_control.setAutoSize(true);
+    }
 
     display1.getGraphicsModeControl().setScaleEnable(true);
 
@@ -161,6 +194,10 @@ set = Linear2DSet: Length = 393216
     DefaultRendererJ3D renderer = new DefaultRendererJ3D();
     display1.addReferences(renderer, xref);
     renderer.suppressExceptions(true);
+
+    DefaultRendererJ3D text_renderer = new DefaultRendererJ3D();
+    display1.addReferences(text_renderer, text_ref);
+    text_renderer.suppressExceptions(true);
 
     DefaultRendererJ3D wedge_renderer = new DefaultRendererJ3D();
     display1.addReferences(wedge_renderer, wedge_ref);
@@ -293,14 +330,47 @@ set = Linear2DSet: Length = 393216
       center.add(hue_sliders[i]);
     }
 
+    // slider button for setting all value sliders to 0
+    JButton value_clear = new JButton("Zero values");
+    value_clear.addActionListener(this);
+    value_clear.setActionCommand("value_clear");
+    left.add(Box.createVerticalStrut(10));
+    left.add(value_clear);
+
+    // slider button for setting all value sliders to 1
+    JButton value_set = new JButton("One values");
+    value_set.addActionListener(this);
+    value_set.setActionCommand("value_set");
+    left.add(value_set);
+
+    // slider button for setting all hue sliders to 0
+    JButton hue_clear = new JButton("Zero hues");
+    hue_clear.addActionListener(this);
+    hue_clear.setActionCommand("hue_clear");
+    center.add(Box.createVerticalStrut(10));
+    center.add(hue_clear);
+
+    // slider button for setting all hue sliders to 1
+    JButton hue_set = new JButton("One hues");
+    hue_set.addActionListener(this);
+    hue_set.setActionCommand("hue_set");
+    center.add(hue_set);
+
+    // slider button for setting all hue sliders to 0
     right.add(display1.getComponent());
     right.add(display2.getComponent());
+
+    // vmin and vmax labels
+    minmax = new JLabel(" ");
+    left.add(Box.createVerticalStrut(30));
+    left.add(minmax);
 
     // "GO" button for applying computation in sliders
     JButton compute = new JButton("Compute");
     compute.addActionListener(this);
     compute.setActionCommand("compute");
-    right.add(compute);
+    left.add(Box.createVerticalStrut(10));
+    left.add(compute);
 
     frame.setSize(WIDTH, HEIGHT);
     frame.setVisible(true);
@@ -314,6 +384,42 @@ set = Linear2DSet: Length = 393216
     String cmd = e.getActionCommand();
     if (cmd.equals("compute")) {
       doit();
+    }
+    else if (cmd.equals("value_clear")) {
+      try {
+        for (int i=0; i<NFILES; i++) {
+          value_refs[i].setData(new Real(0.0));
+        }
+      }
+      catch (VisADException exc) { exc.printStackTrace(); }
+      catch (RemoteException exc) { exc.printStackTrace(); }
+    }
+    else if (cmd.equals("value_set")) {
+      try {
+        for (int i=0; i<NFILES; i++) {
+          value_refs[i].setData(new Real(1.0));
+        }
+      }
+      catch (VisADException exc) { exc.printStackTrace(); }
+      catch (RemoteException exc) { exc.printStackTrace(); }
+    }
+    else if (cmd.equals("hue_clear")) {
+      try {
+        for (int i=0; i<NFILES; i++) {
+          hue_refs[i].setData(new Real(0.0));
+        }
+      }
+      catch (VisADException exc) { exc.printStackTrace(); }
+      catch (RemoteException exc) { exc.printStackTrace(); }
+    }
+    else if (cmd.equals("hue_set")) {
+      try {
+        for (int i=0; i<NFILES; i++) {
+          hue_refs[i].setData(new Real(1.0));
+        }
+      }
+      catch (VisADException exc) { exc.printStackTrace(); }
+      catch (RemoteException exc) { exc.printStackTrace(); }
     }
   }
 
@@ -344,14 +450,22 @@ set = Linear2DSet: Length = 393216
         if (h < hmin) hmin = h;
         if (h > hmax) hmax = h;
       }
-      int k = 0;
-      for (int j=0; j<21; j++) {
-        for (int i=0; i<768; i++) {
+      for (int i=0; i<768; i++) {
+        float hue = hmin + (((float) i) / 767.0f) * (hmax - hmin);
+        for (int k=i; k<768*21; k+=768) {
           wedge_samples[0][k] = vmax;
-          wedge_samples[1][k] = hmin + (((float) i) / 767.0f) * (hmax - hmin);
-          k++;
+          wedge_samples[1][k] = hue;
         }
       }
+
+      minmax.setText("vmin = " + vmin + "; vmax = " + vmax);
+      double x1 = 0.0, x2 = 767.0, y = 525.0;
+      text_field.setSample(0, new Tuple(text_tuple, new Scalar[] {
+        new Real(element, x1), new Real(line, y), new Text(text, "" + hmin)
+      }));
+      text_field.setSample(1, new Tuple(text_tuple, new Scalar[] {
+        new Real(element, x2), new Real(line, y), new Text(text, "" + hmax)
+      }));
 
       display1.disableAction();
       vmap.setRange(vmin, vmax);
@@ -359,23 +473,9 @@ set = Linear2DSet: Length = 393216
       data.setSamples(data_values, false);
       wedge.setSamples(wedge_samples, false);
       display1.enableAction();
-
-/* NEEDED:
-
-display vmin and vmax
-text labels at each end of wedge for hmin and hmax
-
-put JButton under VisADSliders rather than on right JPanel
-another JButton to force all hue sliders to 0.0
-
-*/
-
     }
-    catch (VisADException ex) {
-      System.out.println( ex.getMessage() );
-    }
-    catch (RemoteException ex) {
-    }
+    catch (VisADException ex) { ex.printStackTrace(); }
+    catch (RemoteException ex) { ex.printStackTrace(); }
   }
 
 }
