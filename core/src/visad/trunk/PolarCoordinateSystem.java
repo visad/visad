@@ -80,7 +80,8 @@ public class PolarCoordinateSystem extends CoordinateSystem {
                               tuples[1][i] * tuples[1][i]);
       value[0][i] =
         Data.RADIANS_TO_DEGREES * Math.atan2(tuples[0][i], tuples[1][i]);
-      if (value[0][i] < 0.0) value[0][i] += 180.0;
+      // if (value[0][i] < 0.0) value[0][i] += 180.0;
+      if (value[0][i] < 0.0) value[0][i] += 360.0; // WLH 9 Sept 99
     }
     return value;
   }
@@ -119,7 +120,8 @@ public class PolarCoordinateSystem extends CoordinateSystem {
                                       tuples[1][i] * tuples[1][i]);
       value[0][i] = (float)
         (Data.RADIANS_TO_DEGREES * Math.atan2(tuples[0][i], tuples[1][i]));
-      if (value[0][i] < 0.0) value[0][i] += 180.0;
+      // if (value[0][i] < 0.0) value[0][i] += 180.0;
+      if (value[0][i] < 0.0) value[0][i] += 360.0; // WLH 9 Sept 99
     }
     return value;
   }
