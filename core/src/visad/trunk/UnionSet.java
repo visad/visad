@@ -290,7 +290,6 @@ public class UnionSet extends SampledSet {
   }
 
   public Set makeSpatial(SetType type, float[][] samples) throws VisADException {
-System.out.println("start makeSpatial");
     int n = Sets.length;
     int dim = samples.length;
 /* WLH 28 Aug 98
@@ -310,7 +309,6 @@ System.out.println("start makeSpatial");
       base += len;
     }
     UnionSet set = new UnionSet((SetType) sets[0].getType(), sets);
-System.out.println("end makeSpatial");
     return set;
   }
 
@@ -403,7 +401,6 @@ System.out.println("end makeSpatial");
   /** create a 1-D GeometryArray from this Set and color_values */
   public VisADGeometryArray make1DGeometry(byte[][] color_values)
          throws VisADException {
-System.out.println("start make1DGeometry");
     if (DomainDimension != 3) {
       throw new SetException("UnionSet.make1DGeometry: " +
                               "DomainDimension must be 3");
@@ -438,9 +435,7 @@ System.out.println("start make1DGeometry");
       }
       base += len;
     }
-System.out.println("start merge");
     VisADLineStripArray array = VisADLineStripArray.merge(arrays);
-System.out.println("end make1DGeometry");
     return array;
   }
 
