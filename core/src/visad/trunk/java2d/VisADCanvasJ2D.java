@@ -312,9 +312,6 @@ System.out.println("VisADCanvasJ2D.createImages: len = " + len +
       try {
         synchronized (this) {
           if (!wakeup) {
-/* WLH 28 Aug 98
-            wait(2000);
-*/
             wait();
           }
         }
