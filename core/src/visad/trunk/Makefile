@@ -156,6 +156,7 @@ TAR_FILES = \
 	visad/README.nexusrmi				\
 	visad/rmic_script				\
 	visad/*.java					\
+	visad/collab/*.java				\
 	visad/examples/*.java				\
 	visad/java3d/Makefile				\
 	visad/java3d/*.java				\
