@@ -65,7 +65,8 @@ public abstract class RendererJ3D extends DataRenderer {
   public void setLinks(DataDisplayLink[] links, DisplayImpl d)
        throws VisADException {
     if (getDisplay() != null || getLinks() != null) {
-      throw new DisplayException("RendererJ3D.setLinks: already set");
+      throw new DisplayException("RendererJ3D.setLinks: already set\n" +
+                                 "you are probably re-using a DataRenderer");
     }
     if (!(d instanceof DisplayImplJ3D)) {
       throw new DisplayException("RendererJ3D.setLinks: must be DisplayImplJ3D");
