@@ -49,17 +49,20 @@ public class ArrayVariableAdapter
 	    VariableAdapterFactory factory)
 	throws VisADException, RemoteException
     {
-	vectorAdapter =
-	    factory.vectorAdapter(array.getPrimitiveVector(), das);
+	vectorAdapter = factory.vectorAdapter(array.getPrimitiveVector(), das);
 	int		rank = array.numDimensions();
 	RealType[]	realTypes = new RealType[rank];
 	for (int i = 0; i < rank; ++i)
 	{
 	    try
 	    {
-		String	dimName = array.getDimension(i).getName();
-		realTypes[rank-1-i] =	// reverse dimension order
-		    realType(dimName, das);
+		/*
+		 * The following reverses the dimension order to conform to
+		 * the VisAD convention of innermost first.
+		 */
+		realTypes[rank-1-i] =
+		    RealType.getRealType(
+			array.getDimension(i).getName() + "_dim");
 	    }
 	    catch (InvalidParameterException e)
 	    {
