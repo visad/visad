@@ -327,7 +327,7 @@ public interface Data extends Thing {
 
   /** return range of values of RealType real[i] in
       return[i][0], return[i][1] */
-  public double[][] computeRanges(RealType[] reals)
+  double[][] computeRanges(RealType[] reals)
          throws VisADException, RemoteException;
 
   /** compute ranges of values for each of 'n' RealType-s in
