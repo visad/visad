@@ -35,7 +35,9 @@ import java.rmi.*;
 */
 public interface ThingChangedListener extends EventListener {
 
-  public abstract void thingChanged(ThingChangedEvent e)
+  // WLH 4 Dec 98
+  // public abstract void thingChanged(ThingChangedEvent e)
+  public abstract boolean thingChanged(ThingChangedEvent e)
          throws VisADException, RemoteException;
  
 }

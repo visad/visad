@@ -41,13 +41,17 @@ public abstract class RemoteActionImpl extends UnicastRemoteObject
     AdaptedAction = a;
   }
 
-  public void thingChanged(ThingChangedEvent e)
+  // WLH 4 Dec 98
+  // public void thingChanged(ThingChangedEvent e)
+  public boolean thingChanged(ThingChangedEvent e)
          throws VisADException, RemoteException {
     if (AdaptedAction == null) {
       throw new RemoteVisADException("RemoteActionImpl.thingChanged: " +
                                      "AdaptedAction is null");
     }
-    AdaptedAction.thingChanged(e);
+    // WLH 4 Dec 98
+    // AdaptedAction.thingChanged(e);
+    return AdaptedAction.thingChanged(e);
   }
 
   /** create link to ThingReference;

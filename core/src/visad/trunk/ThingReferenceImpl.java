@@ -117,8 +117,13 @@ public class ThingReferenceImpl extends Object implements ThingReference {
             new ThingChangedEvent(listener.getId(), Tick);
           if (listener.getBall()) {
             Action a = listener.getAction();
+/* WLH 4 Dec 98
             a.thingChanged(e);
             listener.setBall(false);
+*/
+            // WLH 4 Dec 98
+            boolean ball = a.thingChanged(e);
+            listener.setBall(ball);
           }
           else {
             listener.setThingChangedEvent(e);

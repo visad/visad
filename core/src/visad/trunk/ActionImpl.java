@@ -212,7 +212,9 @@ System.out.println("doAction: Name = " + Name + " checkTicks = " + check +
 
   public abstract void doAction() throws VisADException, RemoteException;
 
-  public void thingChanged(ThingChangedEvent e)
+  // WLH 4 Dec 98
+  // public void thingChanged(ThingChangedEvent e)
+  public boolean thingChanged(ThingChangedEvent e)
          throws VisADException, RemoteException {
     long id = e.getId();
     ReferenceActionLink link = findLink(id);
@@ -224,6 +226,10 @@ System.out.println("doAction: Name = " + Name + " checkTicks = " + check +
         dontSleep = true;
         notify();
       }
+      return false; // WLH 4 Dec 98
+    }
+    else {
+      return true; // WLH 4 Dec 98
     }
   }
 
