@@ -11,7 +11,7 @@ import visad.DisplayImpl;
 
 public class DisplayActivity
 {
-  private static final int DEFAULT_IDLE_SECONDS = 1;
+  private static final int DEFAULT_IDLE_MILLISECONDS = 250;
 
   private static final boolean DEBUG = false;
 
@@ -27,13 +27,13 @@ public class DisplayActivity
 
   /**
    * Manage busy/idle handlers for a Display, using a default
-   * idle time of 1 second.
+   * idle time of 0.25 second.
    *
    * @param dpy Display to manage.
    */
   public DisplayActivity(DisplayImpl dpy)
   {
-    this(dpy, DEFAULT_IDLE_SECONDS);
+    this(dpy, DEFAULT_IDLE_MILLISECONDS);
   }
 
   /**
@@ -41,13 +41,13 @@ public class DisplayActivity
    * idle time.
    *
    * @param dpy Display to manage.
-   * @param seconds Number of seconds to wait before the Display
-   *                is considered idle.
+   * @param milliseconds Number of milliseconds to wait before
+   *                     the Display is considered idle.
    */
-  public DisplayActivity(DisplayImpl dpy, int seconds)
+  public DisplayActivity(DisplayImpl dpy, int milliseconds)
   {
     this.dpy = dpy;
-    this.interval = seconds * 1000;
+    this.interval = milliseconds;
 
     lastBusyEvt = System.currentTimeMillis() - this.interval;
     isBusy = false;
