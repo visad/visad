@@ -40,21 +40,27 @@ public class Hit
     RealType.getRealType("Hit_Index");
   public static final RealType leadingEdgeTimeType =
     RealType.getRealType("Hit_Leading_Edge_Time");
-
+  public static final RealType moduleType =
+    RealType.getRealType("Hit_Module");
   private static final RealType timeOverThresholdType =
     RealType.getRealType("Hit_Time_Over_Threshold");
 
   public static RealTupleType tupleType;
 
+  public static RealTuple missing;
+
   static {
     try {
       tupleType = new RealTupleType(new RealType[] {
-        RealType.XAxis, RealType.YAxis, RealType.ZAxis,
+        moduleType, RealType.XAxis, RealType.YAxis, RealType.ZAxis,
         amplitudeType, leadingEdgeTimeType, timeOverThresholdType
       });
+
+      missing = new RealTuple(tupleType);
     } catch (VisADException ve) {
       ve.printStackTrace();
       tupleType = null;
+      missing = null;
     }
   }
 
@@ -116,21 +122,20 @@ public class Hit
   public final float getTimeOverThreshold() { return timeOverThreshold; }
 
   final RealTuple makeData()
-    throws VisADException
   {
-    double[] values = {mod.getX(), mod.getY(), mod.getZ(),
-                       amplitude, leadEdgeTime, timeOverThreshold};
-
     // construct Tuple for hit
-    RealTuple rt;
     try {
-      rt = new RealTuple(tupleType, values);
+      return new RealTuple(tupleType, new double[] {
+        mod.getNumber(), mod.getX(), mod.getY(), mod.getZ(),
+          amplitude, leadEdgeTime, timeOverThreshold
+          });
     } catch (RemoteException re) {
       re.printStackTrace();
-      rt = null;
+      return missing;
+    } catch (VisADException ve) {
+      ve.printStackTrace();
+      return missing;
     }
-
-    return rt;
   }
 
   public String toString()
