@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DependentTextVar.java,v 1.2 1998-06-17 20:32:40 visad Exp $
+ * $Id: DependentTextVar.java,v 1.3 2000-01-18 18:56:14 steve Exp $
  */
 
 package visad.data.netcdf.out;
@@ -60,7 +60,9 @@ DependentTextVar
     myAttributes()
     {
 	return new Attribute[]
-	    {new Attribute("_FillValue", getFillValue())};
+	    {new Attribute(
+		"_FillValue",
+		new String(new char[] {getFillValue().charValue()}))};
     }
 
 
