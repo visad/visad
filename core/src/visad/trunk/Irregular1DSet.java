@@ -57,7 +57,7 @@ public class Irregular1DSet extends IrregularSet {
     this(type, samples, coord_sys, units, errors, true);
   }
 
-  Irregular1DSet(MathType type, float[][] samples,
+  public Irregular1DSet(MathType type, float[][] samples,
                  CoordinateSystem coord_sys, Unit[] units,
                  ErrorEstimate[] errors, boolean copy)
          throws VisADException {
