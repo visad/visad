@@ -149,7 +149,7 @@ public class FormulaUtil {
   }
 
   /** evaluate the link function */
-  public static Data link(VMethod m, Object[] o) {
+  public static Data link(VMethod m, Object[] o) throws VisADException {
     Data ans = null;
     if (o != null) {
       for (int i=0; i<o.length; i++) {
@@ -162,10 +162,21 @@ public class FormulaUtil {
     try {
       ans = (Data) FormulaUtil.invokeMethod(m.getMethod(), o);
     }
-    catch (ClassCastException exc) { }
-    catch (IllegalAccessException exc) { }
-    catch (IllegalArgumentException exc) { }
-    catch (InvocationTargetException exc) { }
+    catch (ClassCastException exc) {
+      throw new VisADException("Link error: invalid linked method");
+    }
+    catch (IllegalAccessException exc) {
+      throw new VisADException("Link error: cannot access linked method");
+    }
+    catch (IllegalArgumentException exc) {
+      throw new VisADException("Link error: bad method argument");
+    }
+    catch (InvocationTargetException exc) {
+      throw new VisADException("Link error: linked method threw an exception");
+    }
+    if (ans == null) {
+      throw new VisADException("Link error: linked method returned null data");
+    }
     return ans;
   }
 

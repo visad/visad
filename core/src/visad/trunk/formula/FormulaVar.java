@@ -154,12 +154,15 @@ public class FormulaVar extends ActionImpl {
             }
             catch (IllegalAccessException exc) {
               if (DEBUG) exc.printStackTrace();
+              evalError("Preparsing access exception", exc);
             }
             catch (IllegalArgumentException exc) {
               if (DEBUG) exc.printStackTrace();
+              evalError("Preparsing argument exception", exc);
             }
             catch (InvocationTargetException exc) {
               if (DEBUG) exc.printStackTrace();
+              evalError("Preparsing exception", exc);
             }
             postfix = new Postfix(pf, fm);
             int len = (postfix.tokens == null ? 0 : postfix.tokens.length);
@@ -181,13 +184,13 @@ public class FormulaVar extends ActionImpl {
                     evalError("\"" + token + "\" is an illegal variable name");
                   }
                   catch (VisADException exc) {
-                    evalError("Internal error: " + exc);
+                    evalError("Internal VisAD error", exc);
                   }
                   if (v != null) {
                     if (v.isDependentOn(this)) {
                       clearDependencies();
-                      throw new FormulaException("This formula creates " +
-                                                 "an infinite loop");
+                      throw new FormulaException(
+                        "This formula creates an infinite loop");
                     }
                     setDependentOn(v);
                   }
@@ -196,15 +199,15 @@ public class FormulaVar extends ActionImpl {
             }
           }
           catch (FormulaException exc) {
-            evalError("Syntax error in formula: " + exc);
+            evalError("Syntax error in formula", exc);
             try {
               tref.setThing(null);
             }
             catch (VisADException exc2) {
-              evalError("Internal error: " + exc2);
+              evalError("Internal VisAD error", exc2);
             }
             catch (RemoteException exc2) {
-              evalError("Internal error: " + exc2);
+              evalError("Internal remote error", exc2);
             }
           }
         }
@@ -358,6 +361,13 @@ public class FormulaVar extends ActionImpl {
     }
   }
 
+  /** add an error to the list of errors that have occurred during formula
+      evaluation, appending the given exception's message if any */
+  private void evalError(String s, Exception e) {
+    String msg = (e == null ? null : e.getMessage());
+    evalError(s + (msg == null ? "" : ": " + msg));
+  }
+
   /** recompute this variable */
   public void doAction() {
     synchronized (Lock) {
@@ -368,7 +378,7 @@ public class FormulaVar extends ActionImpl {
         evalError("Could not store final value in variable");
       }
       catch (RemoteException exc) {
-        evalError("Could not store final value in variable");
+        evalError("Could not store final value in variable (remote)");
       }
       computing = false;
       Lock.notify();
@@ -378,7 +388,7 @@ public class FormulaVar extends ActionImpl {
   /** used by compute method for convenience */
   private Thing popStack(Stack s) {
     if (s.empty()) {
-      evalError("Syntax error in formula (a)");
+      evalError("Syntax error in formula (stack empty)");
       return null;
     }
     else return (Thing) s.pop();
@@ -391,6 +401,7 @@ public class FormulaVar extends ActionImpl {
     Stack stack = new Stack();
     for (int i=0; i<len; i++) {
       String token = formula.tokens[i];
+      String op = "\"" + token + "\"";
       int code = formula.codes[i];
       if (code == Postfix.BINARY) {
         Object[] o = new Object[2];
@@ -406,18 +417,24 @@ public class FormulaVar extends ActionImpl {
               }
               catch (IllegalAccessException exc) {
                 if (DEBUG) System.out.println(exc.toString());
+                evalError(
+                  "Cannot access binary method for operator " + op, exc);
               } // no access
               catch (IllegalArgumentException exc) {
                 if (DEBUG) System.out.println(exc.toString());
+                evalError(
+                  "Invalid argument to binary method for operator " + op, exc);
               } // wrong type of method
               catch (InvocationTargetException exc) {
                 if (DEBUG) System.out.println(exc.toString());
+                evalError("Binary method for operator " + op +
+                  " threw an exception", exc);
               } // method threw exception
             }
           }
         }
         if (ans == null) {
-          evalError("Could not evaluate binary operator \"" + token +"\"");
+          evalError("Could not evaluate binary operator " + op);
           stack.push(null);
         }
         else stack.push(ans);
@@ -435,18 +452,24 @@ public class FormulaVar extends ActionImpl {
               }
               catch (IllegalAccessException exc) {
                 if (DEBUG) System.out.println(exc.toString());
+                evalError(
+                  "Cannot access unary method for operator " + op, exc);
               } // no access
               catch (IllegalArgumentException exc) {
                 if (DEBUG) System.out.println(exc.toString());
+                evalError(
+                  "Invalid argument to unary method for operator " + op, exc);
               } // wrong type of method
               catch (InvocationTargetException exc) {
                 if (DEBUG) System.out.println(exc.toString());
+                evalError("Unary method for operator " + op +
+                  " threw an exception", exc);
               } // method threw exception
             }
           }
         }
         if (ans == null) {
-          evalError("Could not evaluate unary operator \"" + token + "\"");
+          evalError("Could not evaluate unary operator " + op);
           stack.push(null);
         }
         else stack.push(ans);
@@ -464,7 +487,7 @@ public class FormulaVar extends ActionImpl {
             if (DEBUG) exc.printStackTrace();
           }
           if (num < 0) {
-            evalError("Syntax error in formula (b)");
+            evalError("Syntax error in formula (invalid function arg length)");
             num = 1;
           }
           Object[] o;
@@ -484,18 +507,23 @@ public class FormulaVar extends ActionImpl {
                 }
                 catch (IllegalAccessException exc) {
                   if (DEBUG) System.out.println(exc.toString());
+                  evalError("Cannot access method for function " + op, exc);
                 } // no access
                 catch (IllegalArgumentException exc) {
                   if (DEBUG) System.out.println(exc.toString());
+                  evalError(
+                    "Invalid argument to method for function " + op, exc);
                 } // wrong type of method
                 catch (InvocationTargetException exc) {
                   if (DEBUG) System.out.println(exc.toString());
+                  evalError(
+                    "Method for function " + op + " threw an exception", exc);
                 } // method threw exception
               }
             }
           }
           if (ans == null) {
-            evalError("Could not evaluate function \"" + token + "\"");
+            evalError("Could not evaluate function " + op);
             stack.push(null);
           }
           else stack.push(ans);
@@ -510,7 +538,7 @@ public class FormulaVar extends ActionImpl {
             if (DEBUG) exc.printStackTrace();
           }
           if (num <= 0) {
-            evalError("Syntax error in formula (c)");
+            evalError("Syntax error in formula (invalid implicit arg length)");
             num = 1;
           }
           Object[] o = new Object[num];
@@ -528,12 +556,17 @@ public class FormulaVar extends ActionImpl {
                 }
                 catch (IllegalAccessException exc) {
                   if (DEBUG) System.out.println(exc.toString());
+                  evalError("Cannot access method for implicit function", exc);
                 } // no access
                 catch (IllegalArgumentException exc) {
                   if (DEBUG) System.out.println(exc.toString());
+                  evalError(
+                    "Invalid argument to method for implicit function", exc);
                 } // wrong type of method
                 catch (InvocationTargetException exc) {
                   if (DEBUG) System.out.println(exc.toString());
+                  evalError(
+                    "Method for implicit function threw an exception", exc);
                 } // method threw exception
               }
             }
@@ -558,11 +591,11 @@ public class FormulaVar extends ActionImpl {
             v = fm.getVarByNameOrCreate(token);
           }
           catch (FormulaException exc) {
-            evalError("\"" + token + "\" is an illegal variable name");
+            evalError(op + " is an illegal variable name");
             stack.push(null);
           }
           catch (VisADException exc) {
-            evalError("Internal error: " + exc);
+            evalError("Internal error", exc);
             stack.push(null);
           }
           if (v != null) {
@@ -580,7 +613,7 @@ public class FormulaVar extends ActionImpl {
               }
             }
             if (t == null) {
-              evalError("Variable \"" + token + "\" has no value");
+              evalError("Variable " + op + " has no value");
               stack.push(null);
             }
             else stack.push(t);
@@ -603,7 +636,7 @@ public class FormulaVar extends ActionImpl {
     // return the final answer
     Thing answer = popStack(stack);
     if (!stack.empty()) {
-      evalError("Syntax error in formula (d)");
+      evalError("Syntax error in formula (leftover objects on stack)");
     }
     // return answer in local form
     if (answer instanceof Data) {
@@ -615,11 +648,11 @@ public class FormulaVar extends ActionImpl {
         }
       }
       catch (VisADException exc) {
-        evalError("The answer could not be converted to local data.");
+        evalError("The answer could not be converted to local data");
         answer = null;
       }
       catch (RemoteException exc) {
-        evalError("The answer could not be converted to local data.");
+        evalError("The answer could not be converted to local data (remote)");
         answer = null;
       }
     }
