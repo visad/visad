@@ -1,0 +1,5 @@
+SUBPACKAGE	= in
+
+include ../../macros.make
+
+include ../../rules.make
