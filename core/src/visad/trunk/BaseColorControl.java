@@ -179,9 +179,9 @@ public abstract class BaseColorControl extends Control {
     sb.append(" x ");
     sb.append(len0);
     sb.append('\n');
-    for (int i=0; i<len; i++) {
-      sb.append(table[i][0]);
-      for (int j=1; j<len0; j++) {
+    for (int j=0; j<len0; j++) {
+      sb.append(table[0][j]);
+      for (int i=1; i<len; i++) {
         sb.append(' ');
         sb.append(table[i][j]);
       }
@@ -228,8 +228,8 @@ public abstract class BaseColorControl extends Control {
 
     // get table entries
     float[][] t = new float[len][len0];
-    for (int i=0; i<len; i++) {
-      for (int j=0; j<len0; j++) {
+    for (int j=0; j<len0; j++) {
+      for (int i=0; i<len; i++) {
         String token = st.nextToken();
         if (token.equalsIgnoreCase("NaN")) t[i][j] = Float.NaN;
         else {
