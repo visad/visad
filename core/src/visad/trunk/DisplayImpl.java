@@ -1089,6 +1089,11 @@ if (initialize) {
       linked to this Display */
   public void addMap(ScalarMap map)
          throws VisADException, RemoteException {
+    addMap(map, VisADEvent.LOCAL_SOURCE);
+  }
+
+  public void addMap(ScalarMap map, int remoteId)
+         throws VisADException, RemoteException {
     synchronized (mapslock) {
       int index;
       if (!RendererVector.isEmpty()) {
@@ -1154,7 +1159,8 @@ if (initialize) {
         map.setControl();
       } // end !(map instanceof ConstantMap)
       addDisplayScalar(map);
-      notifyListeners(new DisplayMapEvent(this, DisplayEvent.MAP_ADDED, map));
+      notifyListeners(new DisplayMapEvent(this, DisplayEvent.MAP_ADDED, map,
+                                          remoteId));
 
       // make sure we monitor all changes to this ScalarMap
       map.addScalarMapListener(displayMonitor);

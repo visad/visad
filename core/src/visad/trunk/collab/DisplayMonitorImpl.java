@@ -225,7 +225,8 @@ e.printStackTrace();
     Control ctlClone = (Control )(evt.getControl().clone());
     ControlMonitorEvent ctlEvt;
     try {
-      ctlEvt = new ControlMonitorEvent(MonitorEvent.CONTROL_CHANGED, ctlClone);
+      ctlEvt = new ControlMonitorEvent(MonitorEvent.CONTROL_CHANGED,
+                                       evt.getRemoteId(), ctlClone);
     } catch (VisADException ve) {
       ve.printStackTrace();
       ctlEvt = null;
@@ -260,7 +261,7 @@ e.printStackTrace();
         id == ScalarMapEvent.CONTROL_ADDED)
     {
       Control ctl = evt.getScalarMap().getControl();
-      controlChanged(new ControlEvent(ctl));
+      controlChanged(new ControlEvent(ctl, evt.getRemoteId()));
       ctl.addControlListener(this);
     }
   }
@@ -306,7 +307,8 @@ e.printStackTrace();
     case DisplayEvent.MAP_ADDED:
       ScalarMap map = (ScalarMap )((DisplayMapEvent )evt).getMap().clone();
       try {
-        mapEvt = new MapMonitorEvent(MonitorEvent.MAP_ADDED, map);
+        mapEvt = new MapMonitorEvent(MonitorEvent.MAP_ADDED,
+                                     evt.getRemoteId(), map);
       } catch (VisADException ve) {
         ve.printStackTrace();
         mapEvt = null;
@@ -325,7 +327,8 @@ e.printStackTrace();
 
       if (sendClear) {
         try {
-          mapEvt = new MapMonitorEvent(MonitorEvent.MAPS_CLEARED, null);
+          mapEvt = new MapMonitorEvent(MonitorEvent.MAPS_CLEARED,
+                                       evt.getRemoteId(), null);
         } catch (VisADException ve) {
           ve.printStackTrace();
           mapEvt = null;
@@ -361,7 +364,7 @@ e.printStackTrace();
         if (rrl != null) {
           try {
             refEvt = new ReferenceMonitorEvent(MonitorEvent.REFERENCE_ADDED,
-                                               rrl);
+                                               evt.getRemoteId(), rrl);
           } catch (VisADException ve) {
             ve.printStackTrace();
             refEvt = null;
@@ -487,7 +490,8 @@ e.printStackTrace();
 
     MapMonitorEvent mapEvt;
     try {
-      mapEvt = new MapMonitorEvent(MonitorEvent.MAP_CHANGED, mapClone);
+      mapEvt = new MapMonitorEvent(MonitorEvent.MAP_CHANGED,
+                                   evt.getRemoteId(),  mapClone);
     } catch (VisADException ve) {
       ve.printStackTrace();
       mapEvt = null;

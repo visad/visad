@@ -148,7 +148,7 @@ public class RemoteDisplayImpl extends RemoteActionImpl
     MouseEvent ne = new MouseEvent(c, id, when, mods, x, y, clicks, popup);
 
     // send mouse event with remote source flag set
-    mh.processEvent(ne, true);
+    mh.processEvent(ne, VisADEvent.UNKNOWN_REMOTE_SOURCE);
   }
 
   /* CTR 21 Sep 1999 - end code for slaved displays */

@@ -26,16 +26,13 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.rmi.*;
-import java.awt.Event;
-
 /**
  * <CODE>ScalarMapEvent</CODE> is the VisAD class for <CODE>Event</CODE>s
  * from <CODE>ScalarMap</CODE> objects.  They are
  * sourced by <CODE>ScalarMap</CODE> objects and received by
  * <CODE>ScalarMapListener</CODE> objects.<P>
  */
-public class ScalarMapEvent extends Event {
+public class ScalarMapEvent extends VisADEvent {
 
   /** values for id */
   public final static int UNKNOWN = 0;
@@ -57,9 +54,20 @@ public class ScalarMapEvent extends Event {
    */
   public ScalarMapEvent(ScalarMap map, int id)
   {
+    this(map, id, LOCAL_SOURCE);
+  }
+
+  /**
+   * Create a <CODE>ScalarMap</CODE> event
+   *
+   * @param map map to which this event refers
+   * @param id the event type.
+   */
+  public ScalarMapEvent(ScalarMap map, int id, int remoteId)
+  {
     // don't pass map as the source, since source
     // is transient inside Event
-    super(null, 0, null);
+    super(null, 0, null, remoteId);
     this.map = map;
     this.id = id;
   }
@@ -79,7 +87,7 @@ public class ScalarMapEvent extends Event {
   {
     // don't pass map as the source, since source
     // is transient inside Event
-    super(null, 0, null);
+    super(null, 0, null, LOCAL_SOURCE);
     this.map = map;
     this.id = auto ? AUTO_SCALE : MANUAL;
   }

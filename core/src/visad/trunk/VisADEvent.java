@@ -1,7 +1,3 @@
-//
-// ControlEvent.java
-//
-
 /*
 VisAD system for interactive analysis and visualization of numerical
 data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
@@ -26,31 +22,44 @@ MA 02111-1307, USA
 
 package visad;
 
+import java.awt.Event;
+
 /**
-   ControlEvent is the VisAD class for changes in Control
-   objects.  They are sourced by Control objects and
-   received by ControlListener objects.<P>
-*/
-public class ControlEvent extends VisADEvent {
+ * <CODE>VisADEvent</CODE> is the VisAD class for <CODE>Event</CODE>s
+ * passed between <CODE>Display</CODE>s.
+ */
+public class VisADEvent
+  extends Event
+{
+  public static final int LOCAL_SOURCE = 0;
+  public static final int UNKNOWN_REMOTE_SOURCE = -1;
 
-  private Control control; // source of event
+  /** non-zero if this event came from a remote source */
+  private int remoteId; 
 
-  public ControlEvent(Control c) {
-    this(c, LOCAL_SOURCE);
+  public VisADEvent(Object target, int id, Object arg, int remoteId)
+  {
+    super(target, id, arg);
+    this.remoteId = remoteId;
   }
 
-  public ControlEvent(Control c, int remoteId) {
-    // don't pass control as the source, since source
-    // is transient inside Event
-    super(null, 0, null, remoteId);
-    control = c;
+  /**
+   * Get the remote event source id.
+   *
+   * @return the remote id (or 0 if this was a local event)
+   */
+  public int getRemoteId()
+  {
+    return remoteId;
   }
 
-  /** get the Control that sent this ControlEvent (or a copy
-      if the Control was on a different JVM) */
-  public Control getControl() {
-    return control;
+  /**
+   * Get whether the event came from a remote source.
+   *
+   * @return true if remote, false if local
+   */
+  public boolean isRemote()
+  {
+    return remoteId != LOCAL_SOURCE;
   }
-
 }
-

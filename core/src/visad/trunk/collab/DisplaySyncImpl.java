@@ -287,7 +287,7 @@ public class DisplaySyncImpl
           System.err.println("Late addMap: " + rmtMap);
         } else {
           try {
-            myDisplay.addMap(rmtMap);
+            myDisplay.addMap(rmtMap, evt.getOriginator());
           } catch (VisADException ve) {
             ve.printStackTrace();
             throw new RemoteVisADException("Map " + rmtMap + " not added: " +
@@ -307,7 +307,7 @@ public class DisplaySyncImpl
       double[] lclRng = lclMap.getRange();
       if (rng[0] != lclRng[0] || rng[1] != lclRng[1]) {
         try {
-          lclMap.setRange(rng[0], rng[1]);
+          lclMap.setRange(rng[0], rng[1], evt.getOriginator());
         } catch (VisADException ve) {
           throw new RemoteVisADException("Map not changed: " + ve);
         }

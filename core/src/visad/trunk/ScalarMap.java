@@ -361,8 +361,21 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
       the display scale */
   public void setRange(double low, double hi)
          throws VisADException, RemoteException {
+    setRange(low, hi, VisADEvent.LOCAL_SOURCE);
+  }
+
+  /** explicitly set the range of data (RealType) values; used for
+      linear map from Scalar to DisplayScalar values;
+      if neither this nor setRangeByUnits is invoked, then the
+      range will be computed from the initial values of Data
+      objects linked to the Display by autoscaling logic;
+      if the range of data values is (0.0, 1.0), for example, this
+      method may be invoked with low = 1.0 and hi = 0.0 to invert
+      the display scale */
+  public void setRange(double low, double hi, int remoteId)
+         throws VisADException, RemoteException {
     isManual = true;
-    setRange(null, low, hi, false);
+    setRange(null, low, hi, false, remoteId);
     if (scale == scale && offset == offset) {
       incTick(); // did work, so wake up Display
     }
@@ -375,13 +388,21 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
       this is the call for automatic scaling */
   void setRange(DataShadow shadow)
          throws VisADException, RemoteException {
-    if (!isManual) setRange(shadow, 0.0, 0.0, false);
+    if (!isManual) setRange(shadow, 0.0, 0.0, false, VisADEvent.LOCAL_SOURCE);
   }
 
   /** set range used for linear map from Scalar to
       DisplayScalar values */
   private synchronized void setRange(DataShadow shadow, double low, double hi,
           boolean unit_flag) throws VisADException, RemoteException {
+    setRange(shadow, low, hi, unit_flag, VisADEvent.LOCAL_SOURCE);
+  }
+
+  /** set range used for linear map from Scalar to
+      DisplayScalar values */
+  private synchronized void setRange(DataShadow shadow, double low, double hi,
+          boolean unit_flag, int remoteId)
+         throws VisADException, RemoteException {
     int i = ScalarIndex;
     if (shadow != null) {
       // WLH - 23 Sept 99
@@ -515,7 +536,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
       ScalarMapEvent evt;
       evt = new ScalarMapEvent(this, (shadow == null ?
                                       ScalarMapEvent.MANUAL :
-                                      ScalarMapEvent.AUTO_SCALE));
+                                      ScalarMapEvent.AUTO_SCALE), remoteId);
       Vector listeners_clone = null;
       synchronized (ListenerVector) {
         listeners_clone = (Vector) ListenerVector.clone();

@@ -26,15 +26,12 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.rmi.*;
-import java.awt.Event;
-
 /**
    DisplayEvent is the VisAD class for Events from Display
    objects.  They are sourced by Display objects and
    received by DisplayListener objects.<P>
 */
-public class DisplayEvent extends Event {
+public class DisplayEvent extends VisADEvent {
 
   // <<<< if you add more events, be sure to add them to the getID javadoc >>>
 
@@ -144,9 +141,6 @@ public class DisplayEvent extends Event {
   /** source of event */
   private Display display;
 
-  /** whether DisplayEvent came from remote source */
-  private boolean remote_source; 
-
   /**
    * Constructs a DisplayEvent object with the specified source display,
    * and type of event.
@@ -155,9 +149,21 @@ public class DisplayEvent extends Event {
    * @param  id_d  type of DisplayEvent that is sent
    */
   public DisplayEvent(Display d, int id_d) {
+    this(d, id_d, LOCAL_SOURCE);
+  }
+
+  /**
+   * Constructs a DisplayEvent object with the specified source display,
+   * and type of event.
+   *
+   * @param  d  display that sends the event
+   * @param  id_d  type of DisplayEvent that is sent
+   * @param  remote  true if this DisplayEvent came from a remote source
+   */
+  public DisplayEvent(Display d, int id_d, int remoteId) {
     // don't pass display as the source, since source
     // is transient inside Event
-    super(null, 0, null);
+    super(null, 0, null, remoteId);
     display = d;
     id = id_d;
   }
@@ -174,7 +180,7 @@ public class DisplayEvent extends Event {
    *            the display component
    */
   public DisplayEvent(Display d, int id_d, int x, int y) {
-    this(d, id_d, x, y, false);
+    this(d, id_d, x, y, LOCAL_SOURCE);
   }
 
   /**
@@ -190,15 +196,14 @@ public class DisplayEvent extends Event {
    *            the display component
    * @param  remote  true if this DisplayEvent came from a remote source
    */
-  public DisplayEvent(Display d, int id_d, int x, int y, boolean remote) {
+  public DisplayEvent(Display d, int id_d, int x, int y, int remoteId) {
     // don't pass display as the source, since source
     // is transient inside Event
-    super(null, 0, null);
+    super(null, 0, null, remoteId);
     display = d;
     id = id_d;
     mouse_x = x;
     mouse_y = y;
-    remote_source = remote;
   }
 
   /**
@@ -207,7 +212,7 @@ public class DisplayEvent extends Event {
    */
   public DisplayEvent cloneButDisplay(Display dpy)
   {
-    return new DisplayEvent(dpy, id, mouse_x, mouse_y, remote_source);
+    return new DisplayEvent(dpy, id, mouse_x, mouse_y, getRemoteId());
   }
 
   /** get the DisplayImpl that sent this DisplayEvent (or
@@ -262,15 +267,6 @@ public class DisplayEvent extends Event {
    */
   public int getY() {
     return mouse_y;
-  }
-
-  /**
-   * Get whether the event came from a remote source.
-   *
-   * @return true if remote, false if local
-   */
-  public boolean isRemote() {
-    return remote_source;
   }
 
 }

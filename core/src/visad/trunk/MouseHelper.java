@@ -97,12 +97,12 @@ public class MouseHelper {
   }
 
   public void processEvent(AWTEvent event) {
-    processEvent(event, false);
+    processEvent(event, VisADEvent.LOCAL_SOURCE);
   }
 
   /** process the given event, treating it as coming from a remote source
       if remote flag is set */
-  public void processEvent(AWTEvent event, boolean remote) {
+  public void processEvent(AWTEvent event, int remoteId) {
     if (!(event instanceof MouseEvent)) {
       System.out.println("MouseHelper.processStimulus: non-" +
                          "MouseEvent");
@@ -123,7 +123,7 @@ event_switch:
             !mouseCombo1 && !mouseCombo2 && !mouseCombo3) {
           try {
             DisplayEvent e = new DisplayEvent(display,
-              DisplayEvent.MOUSE_PRESSED, mouse_x, mouse_y, remote);
+              DisplayEvent.MOUSE_PRESSED, mouse_x, mouse_y, remoteId);
             display.notifyListeners(e);
           }
           catch (VisADException e) {
@@ -241,7 +241,7 @@ event_switch:
             if (mctrl == 0 && !z1Pressed) {
               try {
                 DisplayEvent e = new DisplayEvent(display,
-                  DisplayEvent.MOUSE_PRESSED_LEFT, mouse_x, mouse_y, remote);
+                  DisplayEvent.MOUSE_PRESSED_LEFT, mouse_x, mouse_y, remoteId);
                 display.notifyListeners(e);
               }
               catch (VisADException e) {
@@ -281,7 +281,8 @@ event_switch:
             if (!t2Pressed && !z2Pressed) {
               try {
                 DisplayEvent e = new DisplayEvent(display,
-                  DisplayEvent.MOUSE_PRESSED_CENTER, mouse_x, mouse_y, remote);
+                  DisplayEvent.MOUSE_PRESSED_CENTER, mouse_x, mouse_y,
+                  remoteId);
                 display.notifyListeners(e);
               }
               catch (VisADException e) {
@@ -311,7 +312,7 @@ event_switch:
             // WLH 19 July 99
             try {
               DisplayEvent e = new DisplayEvent(display,
-                DisplayEvent.MOUSE_PRESSED_RIGHT, mouse_x, mouse_y, remote);
+                DisplayEvent.MOUSE_PRESSED_RIGHT, mouse_x, mouse_y, remoteId);
               display.notifyListeners(e);
             }
             catch (VisADException e) {
@@ -332,7 +333,7 @@ event_switch:
             mouseCombo1 || mouseCombo2 || mouseCombo3) {
           try {
             DisplayEvent e = new DisplayEvent(display,
-              DisplayEvent.MOUSE_RELEASED, mouse_x, mouse_y, remote);
+              DisplayEvent.MOUSE_RELEASED, mouse_x, mouse_y, remoteId);
             display.notifyListeners(e);
           }
           catch (VisADException e) {
@@ -354,7 +355,7 @@ event_switch:
           // DRM add 17 Sep 1999
           try {
             DisplayEvent e = new DisplayEvent(display,
-              DisplayEvent.MOUSE_RELEASED_LEFT, mouse_x, mouse_y, remote);
+              DisplayEvent.MOUSE_RELEASED_LEFT, mouse_x, mouse_y, remoteId);
             display.notifyListeners(e);
           }
           catch (VisADException e) {
@@ -369,7 +370,7 @@ event_switch:
           // DRM add 17 Sep 1999
           try {
             DisplayEvent e = new DisplayEvent(display,
-              DisplayEvent.MOUSE_RELEASED_LEFT, mouse_x, mouse_y, remote);
+              DisplayEvent.MOUSE_RELEASED_LEFT, mouse_x, mouse_y, remoteId);
             display.notifyListeners(e);
           }
           catch (VisADException e) {
@@ -385,7 +386,7 @@ event_switch:
           // DRM add 17 Sep 1999
           try {
             DisplayEvent e = new DisplayEvent(display,
-              DisplayEvent.MOUSE_RELEASED_CENTER, mouse_x, mouse_y, remote);
+              DisplayEvent.MOUSE_RELEASED_CENTER, mouse_x, mouse_y, remoteId);
             display.notifyListeners(e);
           }
           catch (VisADException e) {
@@ -401,7 +402,7 @@ event_switch:
           // DRM add 17 Sep 1999
           try {
             DisplayEvent e = new DisplayEvent(display,
-              DisplayEvent.MOUSE_RELEASED_CENTER, mouse_x, mouse_y, remote);
+              DisplayEvent.MOUSE_RELEASED_CENTER, mouse_x, mouse_y, remoteId);
             display.notifyListeners(e);
           }
           catch (VisADException e) {
@@ -416,7 +417,7 @@ event_switch:
           // DRM add 17 Sep 1999
           try {
             DisplayEvent e = new DisplayEvent(display,
-              DisplayEvent.MOUSE_RELEASED_RIGHT, mouse_x, mouse_y, remote);
+              DisplayEvent.MOUSE_RELEASED_RIGHT, mouse_x, mouse_y, remoteId);
             display.notifyListeners(e);
           }
           catch (VisADException e) {
@@ -431,7 +432,7 @@ event_switch:
           // DRM add 17 Sep 1999
           try {
             DisplayEvent e = new DisplayEvent(display,
-              DisplayEvent.MOUSE_RELEASED_RIGHT, mouse_x, mouse_y, remote);
+              DisplayEvent.MOUSE_RELEASED_RIGHT, mouse_x, mouse_y, remoteId);
             display.notifyListeners(e);
           }
           catch (VisADException e) {
