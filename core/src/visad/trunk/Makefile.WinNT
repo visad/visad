@@ -128,6 +128,8 @@ dods\dap\parser\*.java \
 dods\dap\test\*.java \
 dods\util\*.java \
 dods\util\gui\*.java \
+gnu\regexp\*.java \
+gnu\regexp\util\*.java \
 visad\data\hdfeos\*.java \
 visad\data\hdfeos\README.hdfeos \
 visad\data\hdfeos\hdfeosc\*.java \
@@ -276,6 +278,8 @@ dods\dap\parser\*.java \
 dods\dap\test\*.java \
 dods\util\*.java \
 dods\util\gui\*.java \
+gnu\regexp\*.java \
+gnu\regexp\util\*.java \
 visad\data\hdfeos\*.java \
 visad\data\hdfeos\hdfeosc\*.java \
 visad\data\hdfeos\hdfeosc\*.c \
@@ -426,6 +430,10 @@ save:
 		$(DEL) $(BACKUP)\dods\util\*.java
 	if exist $(BACKUP)\dods\util\gui\*.java \
 		$(DEL) $(BACKUP)\dods\util\gui\*.java
+	if exist $(BACKUP)\gnu\regexp\*.java \
+		$(DEL) $(BACKUP)\gnu\regexp\*.java
+	if exist $(BACKUP)\gnu\regexp\util\*.java \
+		$(DEL) $(BACKUP)\gnu\regexp\util\*.java
 	if exist $(BACKUP)\visad\data\hdfeos\*.java \
 		$(DEL) $(BACKUP)\visad\data\hdfeos\*.java
 	if exist $(BACKUP)\visad\data\hdfeos\hdfeosc\*.java \
@@ -521,6 +529,8 @@ dods\dap\parser\*.class \
 dods\dap\test\*.class \
 dods\util\*.class \
 dods\util\gui\*.class \
+gnu\regexp\*.class \
+gnu\regexp\util\*.class \
 visad\data\fits\*.class \
 nom\tam\fits\*.class \
 nom\tam\util\*.class \
@@ -619,6 +629,8 @@ clear:
 	if exist ..\dods\dap\test\*.java $(DEL) ..\dods\dap\test\*.java 
 	if exist ..\dods\util\*.java $(DEL) ..\dods\util\*.java 
 	if exist ..\dods\util\gui\*.java $(DEL) ..\dods\util\gui\*.java 
+	if exist ..\gnu\regexp\*.java $(DEL) ..\gnu\regexp\*.java 
+	if exist ..\gnu\regexp\util\*.java $(DEL) ..\gnu\regexp\util\*.java 
 	if exist data\hdfeos\*.java $(DEL) data\hdfeos\*.java
 	if exist data\hdfeos\hdfeosc\*.java $(DEL) data\hdfeos\hdfeosc\*.java
 	if exist data\vis5d\*.java $(DEL) data\vis5d\*.java
@@ -694,6 +706,8 @@ clean:
 	if exist ..\dods\dap\test\*.class $(DEL) ..\dods\dap\test\*.class 
 	if exist ..\dods\util\*.class $(DEL) ..\dods\util\*.class 
 	if exist ..\dods\util\gui\*.class $(DEL) ..\dods\util\gui\*.class 
+	if exist ..\gnu\regexp\*.class $(DEL) ..\gnu\regexp\*.class 
+	if exist ..\gnu\regexp\util\*.class $(DEL) ..\gnu\regexp\util\*.class 
 	if exist data\hdfeos\*.class $(DEL) data\hdfeos\*.class
 	if exist data\hdfeos\hdfeosc\*.class $(DEL) data\hdfeos\hdfeosc\*.class
 	if exist data\vis5d\*.class $(DEL) data\vis5d\*.class
@@ -774,6 +788,8 @@ data\*.class \
 ..\dods\dap\test\*.class \
 ..\dods\util\*.class \
 ..\dods\util\gui\*.class \
+..\gnu\regexp\*.class \
+..\gnu\regexp\util\*.class \
 data\units\*.class \
 data\in\*.class \
 data\dods\*.class \
@@ -858,6 +874,8 @@ compile: clean
 	$(JC) $(JFLAGS) ..\dods\dap\test\*.java
 	$(JC) $(JFLAGS) ..\dods\util\*.java
 	$(JC) $(JFLAGS) ..\dods\util\gui\*.java
+	$(JC) $(JFLAGS) ..\gnu\regexp\*.java \
+	$(JC) $(JFLAGS) ..\gnu\regexp\util\*.java \
 	$(JC) $(JFLAGS) data\in\*.java
 	$(JC) $(JFLAGS) data\dods\*.java
 	$(JC) $(JFLAGS) data\netcdf\units\*.java
@@ -963,6 +981,8 @@ dods.dap.parser \
 dods.dap.test \
 dods.util \
 dods.util.gui \
+gnu.regexp \
+gnu.regexp.util \
 visad.data.hdfeos \
 visad.data.hdfeos.hdfeosc \
 visad.data.vis5d \

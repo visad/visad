@@ -204,6 +204,8 @@ SAVE_FILES = \
 	dods/dap/test/*.java				\
 	dods/util/*.java				\
 	dods/util/gui/*.java				\
+	gnu/regexp/*.java				\
+	gnu/regexp/util/*.java				\
 	visad/data/hdfeos/*.java			\
 	visad/data/hdfeos/hdfeosc/*.java		\
 	visad/data/hdfeos/hdfeosc/*.c			\
@@ -304,6 +306,8 @@ DOC_PACKAGES = \
 		dods.dap.test \
 		dods.util \
 		dods.util.gui \
+		gnu.regexp \
+		gnu.regexp.util \
 		visad.data \
 		visad.data.in \
 		visad.data.dods \
@@ -578,6 +582,7 @@ tonexus:
 	java2nexus `find . -name "*.java"`
 	java2nexus `find ../ucar -name "*.java"`
 	java2nexus `find ../dods -name "*.java"`
+	java2nexus `find ../gnu -name "*.java"`
 	java2nexus `find ../nom -name "*.java"`
 	java2nexus `find ../edu -name "*.java"`
 
@@ -585,6 +590,7 @@ tojava:
 	nexus2java `find . -name "*.java"`
 	nexus2java `find ../ucar -name "*.java"`
 	nexus2java `find ../dods -name "*.java"`
+	nexus2java `find ../gnu -name "*.java"`
 	nexus2java `find ../nom -name "*.java"`
 	nexus2java `find ../edu -name "*.java"`
 
