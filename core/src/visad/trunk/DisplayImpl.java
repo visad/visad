@@ -479,6 +479,23 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
   public int getDisplayScalarIndex(DisplayRealType dreal) {
     int dindex;
     synchronized (DisplayRealTypeVector) {
+      DisplayTupleType tuple = dreal.getTuple();
+      if (tuple != null) {
+        int n = tuple.getDimension();
+        for (int i=0; i<n; i++) {
+          try {
+            DisplayRealType ereal =
+              (DisplayRealType) tuple.getComponent(i);
+            int eindex = DisplayRealTypeVector.indexOf(dreal);
+            if (eindex < 0) {
+              DisplayRealTypeVector.addElement(ereal);
+              eindex = DisplayRealTypeVector.indexOf(ereal);
+            }
+          }
+          catch (VisADException e) {
+          }
+        }
+      }
       dindex = DisplayRealTypeVector.indexOf(dreal);
       if (dindex < 0) {
         DisplayRealTypeVector.addElement(dreal);

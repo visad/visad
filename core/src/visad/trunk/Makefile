@@ -90,6 +90,14 @@ TAR_FILES = \
 	visad/aune/*.f					\
 	visad/aune/*.c					\
 	visad/aune/*.h					\
+	visad/benjamin/README.benjamin			\
+	visad/benjamin/Makefile				\
+	visad/benjamin/*.java				\
+	visad/benjamin/*.f				\
+	visad/benjamin/*.c				\
+	visad/benjamin/*.h				\
+	visad/benjamin/switch.inp			\
+	visad/benjamin/*.table				\
 	ucar.jar					\
 	visad/Gridded1D.txt				\
 	visad/Gridded2D.txt				\
