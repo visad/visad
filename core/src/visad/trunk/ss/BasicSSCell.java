@@ -588,13 +588,6 @@ public class BasicSSCell extends JPanel {
                                                RemoteException {
     if (maps == null) return;
     clearMaps();
-    /* CTR: TEMP */ if (Name.equals("A1")) (new VisADException("setMaps")).printStackTrace();
-    /* CTR: START HERE: this exception is still being thrown.. I think it should be, but not
-    from the autoDetect routine... because the autoDetect should be being disabled!  Try
-    printing the status of AutoDetect whenever setAutoDetect is called to see if it's not
-    lining up right (stupid thread crap)..... the goal is to fix the openFile routine in
-    the SpreadSheet so that it works again, and loads the correct mappings... what the hell
-    happened to it?  It used to work, but I must have messed it up somehow. */
     VisADException vexc = null;
     RemoteException rexc = null;
     VDisplay.disableAction();
@@ -930,7 +923,16 @@ public class BasicSSCell extends JPanel {
 
   /** whether the cell has data */
   public boolean hasData() {
-    return DataRef.getData() != null;
+    if (IsRemote) {
+      Vector v = null;
+      try {
+        v = RemoteVDisplay.getReferenceLinks();
+      }
+      catch (VisADException exc) { }
+      catch (RemoteException exc) { }
+      return v != null && !v.isEmpty();
+    }
+    else return DataRef.getData() != null;
   }
 
   /** whether the cell has a formula */
