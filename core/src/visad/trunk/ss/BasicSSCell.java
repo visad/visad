@@ -1558,14 +1558,16 @@ public class BasicSSCell extends JPanel {
       clearMaps();
       VDisplay.disableAction();
       for (int i=0; i<maps.length; i++) {
-        try {
-          VDisplay.addMap(maps[i]);
-        }
-        catch (VisADException exc) {
-          vexc = exc;
-        }
-        catch (RemoteException exc) {
-          rexc = exc;
+        if (maps[i] != null) {
+          try {
+            VDisplay.addMap(maps[i]);
+          }
+          catch (VisADException exc) {
+            vexc = exc;
+          }
+          catch (RemoteException exc) {
+            rexc = exc;
+          }
         }
       }
       VDisplay.addReference(dr);
