@@ -636,7 +636,12 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         }
         else {
           CoordinateSystem coord = spatial_tuple.getCoordinateSystem();
-          spatial_values = coord.toReference(spatial_values);
+
+          // WLH 2 March 2000
+          // spatial_values = coord.toReference(spatial_values);
+          float[][] new_spatial_values = coord.toReference(spatial_values);
+          for (int i=0; i<3; i++) spatial_values[i] = new_spatial_values[i];
+
           renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
                    spatial_value_indices, default_values, null);
         }
