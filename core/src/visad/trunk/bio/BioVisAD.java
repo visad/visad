@@ -119,16 +119,10 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   private String prefix;
 
 
-  // -- CONSTRUCTORS --
+  // -- CONSTRUCTOR --
 
   /** Constructs a new instance of BioVisAD. */
-  public BioVisAD() throws VisADException, RemoteException { this(32); }
-
-  /**
-   * Constructs a new instance of BioVisAD with the specified
-   * maximum low-resolution thumbnail size in megabytes.
-   */
-  public BioVisAD(int thumbSize) throws VisADException, RemoteException {
+  public BioVisAD() throws VisADException, RemoteException {
     super(true);
     setTitle(TITLE);
     seriesBox = new SeriesChooser();
@@ -178,7 +172,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
     // logic managers
     mm = new MeasureManager(this);
-    sm = new SliceManager(this, thumbSize);
+    sm = new SliceManager(this);
 
     // vertical slider
     vert = new ImageStackWidget(this);
@@ -276,7 +270,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
         // load first file in series
         File[] f = seriesBox.getSeries();
         prefix = seriesBox.getPrefix();
-        sm.setThumbnails(seriesBox.getThumbs());
+        sm.setThumbnails(seriesBox.getThumbs(), seriesBox.getThumbSize());
         if (f == null || f.length < 1) {
           JOptionPane.showMessageDialog(frame,
             "Invalid series", "Cannot load series",
@@ -406,12 +400,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
   /** Launches the BioVisAD GUI. */
   public static void main(String[] args) throws Exception {
-    int thumbSize = 32;
-    if (args.length > 0) {
-      try { thumbSize = Integer.parseInt(args[0]); }
-      catch (NumberFormatException exc) { }
-    }
-    final BioVisAD bio = new BioVisAD(thumbSize);
+    BioVisAD bio = new BioVisAD();
     bio.pack();
     bio.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) { System.exit(0); }

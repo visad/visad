@@ -85,9 +85,14 @@ public class SelectionBox {
             MathType type = values[0].getType();
 
             try {
-              box = dim == 3 ?
-                (GriddedSet) new Gridded3DSet(type, samples, len) :
-                (GriddedSet) new Gridded2DSet(type, samples, len);
+              if (dim == 3) {
+                box = (GriddedSet) new Gridded3DSet(type,
+                  samples, len, null, null, null, false);
+              }
+              else {
+                box = (GriddedSet) new Gridded2DSet(type,
+                  samples, len, null, null, null, false);
+              }
             }
             catch (VisADException exc) { exc.printStackTrace(); }
           }

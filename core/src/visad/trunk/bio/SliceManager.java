@@ -219,11 +219,8 @@ public class SliceManager
   // -- CONSTRUCTORS --
 
   /** Constructs a slice manager. */
-  public SliceManager(BioVisAD biovis, int thumbSize)
-    throws VisADException, RemoteException
-  {
+  public SliceManager(BioVisAD biovis) throws VisADException, RemoteException {
     bio = biovis;
-    this.thumbSize = thumbSize;
     lowres = false;
     doThumbs = true;
     autoSwitch = true;
@@ -300,7 +297,10 @@ public class SliceManager
   public void setAutoSwitch(boolean value) { autoSwitch = value; }
 
   /** Sets whether to create low-resolution thumbnails of the data. */
-  public void setThumbnails(boolean thumbnails) { doThumbs = thumbnails; }
+  public void setThumbnails(boolean thumbnails, int size) {
+    doThumbs = thumbnails;
+    thumbSize = size;
+  }
 
   /** Sets whether to do arbitrary plane selection. */
   public void setPlaneSelect(boolean value) {

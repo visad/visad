@@ -62,6 +62,12 @@ public class SeriesChooser extends JPanel implements ActionListener {
   /** Toggle for creation of low-resolution thumbnails. */
   private JCheckBox thumbs;
 
+  /** Text field for number of megabytes to use for thumbnails. */
+  private JTextField thumbSize;
+
+  /** Label for thumbnail megabyte size. */
+  private JLabel thumbLabel;
+
   /** Ok button. */
   private JButton ok;
 
@@ -99,13 +105,16 @@ public class SeriesChooser extends JPanel implements ActionListener {
     JLabel l1 = new JLabel("File prefix");
     JLabel l2 = new JLabel("Count");
     JLabel l3 = new JLabel("Type");
+    thumbLabel = new JLabel(" MB");
     l1.setForeground(Color.black);
     l2.setForeground(Color.black);
     l3.setForeground(Color.black);
+    thumbLabel.setForeground(Color.black);
 
     // create text fields
     prefix = new JTextField();
     count = new JTextField();
+    thumbSize = new JTextField("  32");
     Vector items = new Vector(types.length);
     for (int i=0; i<types.length; i++) items.add(types[i]);
     type = new JComboBox(items);
@@ -113,10 +122,18 @@ public class SeriesChooser extends JPanel implements ActionListener {
     count.setAlignmentX(JLabel.LEFT_ALIGNMENT);
     type.setAlignmentX(JLabel.LEFT_ALIGNMENT);
     Util.adjustTextField(prefix);
+    Util.adjustTextField(thumbSize);
     type.setEditable(true);
 
     // create check box
     thumbs = new JCheckBox("Create low-resolution thumbnails", true);
+    thumbs.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        boolean enabled = thumbs.isSelected();
+        thumbSize.setEnabled(enabled);
+        thumbLabel.setEnabled(enabled);
+      }
+    });
 
     // create buttons
     JButton select = new JButton("Choose file");
@@ -144,9 +161,13 @@ public class SeriesChooser extends JPanel implements ActionListener {
     mid1.add(mid1Left);
     mid1.add(mid1Right);
     mid2.add(thumbs);
+    mid2.add(thumbSize);
+    mid2.add(thumbLabel);
+    bottom.add(Box.createHorizontalGlue());
     bottom.add(select);
     bottom.add(ok);
     bottom.add(cancel);
+    bottom.add(Box.createHorizontalGlue());
     mid1Left.add(l2);
     mid1Left.add(count);
     mid1Right.add(l3);
@@ -204,6 +225,14 @@ public class SeriesChooser extends JPanel implements ActionListener {
 
   /** Gets whether to make low-resolution thumbnails. */
   public boolean getThumbs() { return thumbs.isSelected(); }
+
+  /** Gets number of megabytes to use for low-resolution thumbnails. */
+  public int getThumbSize() {
+    int size = -1;
+    try { size = Integer.parseInt(thumbSize.getText().trim()); }
+    catch (NumberFormatException exc) { }
+    return size;
+  }
 
 
   // -- INTERNAL API METHODS --

@@ -213,7 +213,8 @@ public class MeasurePool implements DisplayListener {
               {(float) s0[0], (float) s1[0]},
               {(float) s0[1], (float) s1[1]}
             };
-            set = new Gridded2DSet(bio.sm.domain2, samples, 2);
+            set = new Gridded2DSet(bio.sm.domain2, samples, 2,
+              null, null, null, false);
           }
           else { // dim == 3
             float[][] samples = {
@@ -221,7 +222,8 @@ public class MeasurePool implements DisplayListener {
               {(float) s0[1], (float) s1[1]},
               {(float) s0[2], (float) s1[2]}
             };
-            set = new Gridded3DSet(bio.sm.domain3, samples, 2);
+            set = new Gridded3DSet(bio.sm.domain3, samples, 2,
+              null, null, null, false);
           }
           strips.add(set);
         }
@@ -239,12 +241,12 @@ public class MeasurePool implements DisplayListener {
         try {
           GriddedSet set;
           if (dim == 2) {
-            set =
-              new Gridded2DSet(bio.sm.domain2, samples, values.length + 1);
+            set = new Gridded2DSet(bio.sm.domain2, samples,
+              values.length + 1, null, null, null, false);
           }
           else { // dim == 3
-            set =
-              new Gridded3DSet(bio.sm.domain3, samples, values.length + 1);
+            set = new Gridded3DSet(bio.sm.domain3, samples,
+              values.length + 1, null, null, null, false);
           }
           strips.add(set);
         }
@@ -271,8 +273,10 @@ public class MeasurePool implements DisplayListener {
             {(float) (s[1] + x_width), (float) (s[1] - x_width)}
           };
           try {
-            strips.add(new Gridded2DSet(bio.sm.domain2, samples1, 2));
-            strips.add(new Gridded2DSet(bio.sm.domain2, samples2, 2));
+            strips.add(new Gridded2DSet(bio.sm.domain2,
+              samples1, 2, null, null, null, false));
+            strips.add(new Gridded2DSet(bio.sm.domain2,
+              samples2, 2, null, null, null, false));
             for (int k=0; k<4; k++) colors.add(color);
           }
           catch (VisADException exc) { exc.printStackTrace(); }
@@ -302,7 +306,7 @@ public class MeasurePool implements DisplayListener {
           samples[1][j] = line_colors[j].getGreen();
           samples[2][j] = line_colors[j].getBlue();
         }
-        field.setSamples(samples);
+        field.setSamples(samples, false);
 
         lines.setData(field);
         line_renderer.toggle(true);

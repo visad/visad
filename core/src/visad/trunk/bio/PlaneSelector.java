@@ -276,7 +276,8 @@ public class PlaneSelector {
             samples[0][vcount] = samples[0][0];
             samples[1][vcount] = samples[1][0];
             samples[2][vcount] = samples[2][0];
-            lines = new Gridded3DSet(type, samples, vcount + 1);
+            lines = new Gridded3DSet(type, samples,
+              vcount + 1, null, null, null, false);
 
             if (vcount == 3) {
               // planar slice is a triangle
@@ -287,7 +288,8 @@ public class PlaneSelector {
                 samps[i][2] = samples[i][2];
                 samps[i][3] = samples[i][1];
               }
-              plane = new Gridded3DSet(type, samps, 2, 2);
+              plane = new Gridded3DSet(type, samps,
+                2, 2, null, null, null, false);
             }
             else if (vcount == 4) {
               // planar slice is a quadrilateral
@@ -298,7 +300,8 @@ public class PlaneSelector {
                 samps[i][2] = samples[i][3];
                 samps[i][3] = samples[i][2];
               }
-              plane = new Gridded3DSet(type, samps, 2, 2);
+              plane = new Gridded3DSet(type, samps,
+                2, 2, null, null, null, false);
             }
             else if (vcount == 5) {
               // planar slice is a pentagon
@@ -311,7 +314,8 @@ public class PlaneSelector {
                 samps[i][4] = samples[i][3];
                 samps[i][5] = samples[i][2];
               }
-              plane = new Gridded3DSet(type, samps, 2, 3);
+              plane = new Gridded3DSet(type, samps,
+                2, 3, null, null, null, false);
             }
             else if (vcount == 6) {
               // planar slice is a hexagon
@@ -324,7 +328,8 @@ public class PlaneSelector {
                 samps[i][4] = samples[i][4];
                 samps[i][5] = samples[i][3];
               }
-              plane = new Gridded3DSet(type, samps, 2, 3);
+              plane = new Gridded3DSet(type, samps,
+                2, 3, null, null, null, false);
             }
           }
           refs[0].setData(lines);
@@ -426,7 +431,7 @@ public class PlaneSelector {
     if (lines == null) return null;
 
     // extract hull points from lines data object
-    float[][] samples = lines.getSamples();
+    float[][] samples = lines.getSamples(false);
     float[] x = samples[0];
     float[] y = samples[1];
     float[] z = samples[2];
@@ -472,8 +477,8 @@ public class PlaneSelector {
       {c1[1], c2[1], c3[1], c4[1]},
       {c1[2], c2[2], c3[2], c4[2]}
     };
-    Gridded3DSet box3 =
-      new Gridded3DSet(type3, samp3, 2, 2, null, null, null, false);
+    Gridded3DSet box3 = new Gridded3DSet(type3, samp3,
+      2, 2, null, null, null, false);
     int rx = resx - 1;
     int ry = resy - 1;
     int len = resx * resy;
@@ -503,14 +508,14 @@ public class PlaneSelector {
         samp2[1][index] = (float) hiy * j / resy;
       }
     }
-    Gridded2DSet set2 =
-      new Gridded2DSet(type2, samp2, resx, resy, null, null, null, false);
+    Gridded2DSet set2 = new Gridded2DSet(type2,
+      samp2, resx, resy, null, null, null, false);
 
     // convert slice data to 2-D
     FunctionType ftype3 = (FunctionType) slice3.getType();
     FunctionType ftype2 = new FunctionType(type2, ftype3.getRange());
     FlatField slice2 = new FlatField(ftype2, set2);
-    slice2.setSamples(slice3.getValues(), false);
+    slice2.setSamples(slice3.getValues(false), false);
 
     return slice2;
   }
