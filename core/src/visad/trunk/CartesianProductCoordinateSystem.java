@@ -1,5 +1,5 @@
 //
-// $Id: CartesianProductCoordinateSystem.java,v 1.3 2001-05-01 19:31:42 dglo Exp $
+// $Id: CartesianProductCoordinateSystem.java,v 1.4 2001-11-06 17:36:08 donm Exp $
 //
 
 /*
@@ -143,7 +143,7 @@ public class CartesianProductCoordinateSystem extends CoordinateSystem
             double[][] temp = new double[dimension][numElements];
             // assign input values
             for (int j = 0; j < dimension; j++)
-                temp[j] = input[pointer + j];
+                temp[j] = (double[]) input[pointer + j].clone();
             // do the transformation
             temp = csArray[i].toReference(temp);
             // assign values to the output array
@@ -176,7 +176,72 @@ public class CartesianProductCoordinateSystem extends CoordinateSystem
             double[][] temp = new double[dimension][numElements];
             // assign over the input values
             for (int j = 0; j < dimension; j++)
-                temp[j] = refTuple[pointer + j];
+                temp[j] = (double[]) refTuple[pointer + j].clone();
+            // do the transformation
+            temp = csArray[i].fromReference(temp);
+            // assign values to the output array
+            for (int j = 0; j < dimension; j++) 
+                output[pointer + j] = temp[j];
+            pointer += dimension;
+        }
+        return output;
+    }
+
+    /**
+     * Convert input array to reference coordinates.  
+     *
+     * @param input   input array
+     * @return  array of values in reference space
+     * @throws VisADException  input array has the wrong dimension or is null
+     */
+    public float[][] toReference(float[][] input)
+        throws VisADException
+    {
+        if (input.length != getDimension() || input == null)
+            throw new VisADException("input has wrong dimension");
+        int numElements = input[0].length;
+        float[][] output = new float[getDimension()][numElements];
+        int pointer = 0;
+        for (int i = 0; i < csArray.length; i++)
+        {
+            int dimension = csArray[i].getDimension();
+            float[][] temp = new float[dimension][numElements];
+            // assign input values
+            for (int j = 0; j < dimension; j++)
+                temp[j] = (float[]) input[pointer + j].clone();
+            // do the transformation
+            temp = csArray[i].toReference(temp);
+            // assign values to the output array
+            for (int j = 0; j < dimension; j++)
+                output[pointer + j] = (float[]) temp[j].clone();
+            pointer += dimension;
+        }
+        return output;
+    }
+        
+    /**
+     * Convert array of reference valeus from Reference coordinates.  Input
+     * values are modified in this transaction.
+     *
+     * @param refTuple   reference tuple array
+     * @return  array of values in non-reference space
+     * @throws VisADException  input array has the wrong dimension or is null
+     */
+    public float[][] fromReference(float[][] refTuple)
+        throws VisADException
+    {
+        if (refTuple.length != getDimension() || refTuple == null)
+            throw new VisADException("refTuple has wrong dimension");
+        int numElements = refTuple[0].length;
+        float[][] output = new float[getDimension()][numElements];
+        int pointer = 0;
+        for (int i = 0; i < csArray.length; i++)
+        {
+            int dimension = csArray[i].getDimension();
+            float[][] temp = new float[dimension][numElements];
+            // assign over the input values
+            for (int j = 0; j < dimension; j++)
+                temp[j] = (float[]) refTuple[pointer + j].clone();
             // do the transformation
             temp = csArray[i].fromReference(temp);
             // assign values to the output array
