@@ -466,7 +466,11 @@ public class BasicSSCell extends JPanel {
     add(pleaseWait);
 
     validate();
-    paint(getGraphics());
+    Graphics g = getGraphics();
+    if (g != null) {
+      paint(g);
+      g.dispose();
+    }
     boolean error = false;
     Data data = null;
     try {

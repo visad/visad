@@ -113,6 +113,9 @@ public class MappingDialog extends JDialog implements ActionListener,
   /** Whether DRT image has been initialized */
   static boolean Inited = false;
 
+  /** For synchronization */
+  private Vector Lock = new Vector();
+
   /** Pre-loads the display.gif file, so it's ready when
       mapping dialog is requested */
   static void initDialog() {
@@ -165,6 +168,7 @@ public class MappingDialog extends JDialog implements ActionListener,
     for (int i=0; i<mtype.length; i++) {
       g.drawString(mtype[i], 5, (ScH+2)*(i+1));
     }
+    g.dispose();
 
     // set up MathType canvas
     MathCanvas = new JComponent() {
@@ -644,136 +648,149 @@ public class MappingDialog extends JDialog implements ActionListener,
   public void actionPerformed(ActionEvent e) {
     String cmd = e.getActionCommand();
 
-    if (cmd.equals("all")) { // clear all
-      if (CurMaps.getSize() > 0) {
-        // take all maps off list
-        CurrentMaps.clearSelection(); // work-around for nasty swing bug
-        CurMaps.removeAllElements();
+    synchronized (Lock) {
+      if (cmd.equals("all")) { // clear all
+        if (CurMaps.getSize() > 0) {
+          // take all maps off list
+          CurrentMaps.clearSelection(); // work-around for nasty swing bug
+          CurMaps.removeAllElements();
+          for (int i=0; i<CurMapLabel.length; i++) {
+            for (int j=0; j<7; j++) {
+              for (int k=0; k<5; k++) Maps[i][j][k] = false;
+            }
+          }
+          // update components
+          Graphics g = DisplayCanvas.getGraphics();
+          DisplayCanvas.paint(g);
+          g.dispose();
+          CurrentMaps.repaint();
+          CurrentMapsView.validate();
+        }
+      }
+
+      else if (cmd.equals("sel")) { // clear selected
+        int[] ind = CurrentMaps.getSelectedIndices();
+        int len = ind.length;
+        for (int x=len-1; x>=0; x--) {
+          String s = (String) CurMaps.getElementAt(ind[x]);
+          boolean looking = true;
+          for (int i=0; i<CurMapLabel.length && looking; i++) {
+            for (int j=0; j<7 && looking; j++) {
+              for (int k=0; k<5 && looking; k++) {
+                if (CurMapLabel[i][j][k] == s) {
+                  Maps[i][j][k] = false;
+                  looking = false;
+                }
+              }
+            }
+          }
+          // take map off list
+          CurMaps.removeElementAt(ind[x]);
+        }
+        if (len > 0) {
+          // update components
+          Graphics g = DisplayCanvas.getGraphics();
+          DisplayCanvas.paint(g);
+          g.dispose();
+          CurrentMaps.repaint();
+          CurrentMapsView.validate();
+        }
+      }
+
+      else if (cmd.equals("done")) {
+        boolean okay = true;
+        int size = CurMaps.getSize();
+        ScalarMaps = new ScalarMap[size];
+        int s = 0;
         for (int i=0; i<CurMapLabel.length; i++) {
           for (int j=0; j<7; j++) {
-            for (int k=0; k<5; k++) Maps[i][j][k] = false;
-          }
-        }
-        // update components
-        DisplayCanvas.paint(DisplayCanvas.getGraphics());
-        CurrentMaps.repaint();
-        CurrentMapsView.validate();
-      }
-    }
-
-    else if (cmd.equals("sel")) { // clear selected
-      int[] ind = CurrentMaps.getSelectedIndices();
-      int len = ind.length;
-      for (int x=len-1; x>=0; x--) {
-        String s = (String) CurMaps.getElementAt(ind[x]);
-        boolean looking = true;
-        for (int i=0; i<CurMapLabel.length && looking; i++) {
-          for (int j=0; j<7 && looking; j++) {
-            for (int k=0; k<5 && looking; k++) {
-              if (CurMapLabel[i][j][k] == s) {
-                Maps[i][j][k] = false;
-                looking = false;
+            for (int k=0; k<5; k++) {
+              if (Maps[i][j][k]) {
+                try {
+                  ScalarMaps[s++] = new ScalarMap(MathTypes[i], MapTypes[j][k]);
+                }
+                catch (VisADException exc) {
+                  okay = false;
+                  JOptionPane.showMessageDialog(this, "The mapping ("
+                          +Scalars[i]+" -> "+MapNames[j][k]
+                          +") is not valid.", "Illegal mapping",
+                           JOptionPane.ERROR_MESSAGE);
+                }
               }
             }
           }
         }
-        // take map off list
-        CurMaps.removeElementAt(ind[x]);
-      }
-      if (len > 0) {
-        // update components
-        DisplayCanvas.paint(DisplayCanvas.getGraphics());
-        CurrentMaps.repaint();
-        CurrentMapsView.validate();
-      }
-    }
-
-    else if (cmd.equals("done")) {
-      boolean okay = true;
-      int size = CurMaps.getSize();
-      ScalarMaps = new ScalarMap[size];
-      int s = 0;
-      for (int i=0; i<CurMapLabel.length; i++) {
-        for (int j=0; j<7; j++) {
-          for (int k=0; k<5; k++) {
-            if (Maps[i][j][k]) {
-              try {
-                ScalarMaps[s++] = new ScalarMap(MathTypes[i], MapTypes[j][k]);
-              }
-              catch (VisADException exc) {
-                okay = false;
-                JOptionPane.showMessageDialog(this, "The mapping ("
-                        +Scalars[i]+" -> "+MapNames[j][k]
-                        +") is not valid.", "Illegal mapping",
-                         JOptionPane.ERROR_MESSAGE);
-              }
-            }
-          }
+        if (okay) {
+          Confirm = true;
+          setVisible(false);
         }
       }
-      if (okay) {
-        Confirm = true;
-        setVisible(false);
-      }
-    }
 
-    else if (cmd.equals("cancel")) setVisible(false);
+      else if (cmd.equals("cancel")) setVisible(false);
+    }
   }
 
   /** Handles list selection change events */
   public void valueChanged(ListSelectionEvent e) {
-    if (!e.getValueIsAdjusting()) {
-      if ((JList) e.getSource() == MathList) {
-        DisplayCanvas.paint(DisplayCanvas.getGraphics());
-        int i = MathList.getSelectedIndex();
-        Rectangle r = new Rectangle(ScX[i][0]+5, (ScH+2)*ScY[i][0]+6,
-                                    ScW[i], ScH);
-        MathList.ensureIndexIsVisible(i);
-        MathCanvas.scrollRectToVisible(r);
-        MathCanvas.repaint();
+    synchronized (Lock) {
+      if (!e.getValueIsAdjusting()) {
+        if ((JList) e.getSource() == MathList) {
+          Graphics g = DisplayCanvas.getGraphics();
+          DisplayCanvas.paint(g);
+          g.dispose();
+          int i = MathList.getSelectedIndex();
+          Rectangle r = new Rectangle(ScX[i][0]+5, (ScH+2)*ScY[i][0]+6,
+                                      ScW[i], ScH);
+          MathList.ensureIndexIsVisible(i);
+          MathCanvas.scrollRectToVisible(r);
+          MathCanvas.repaint();
+        }
       }
     }
   }
 
   /** Handles mouse clicks in the "map to" canvas */
   public void mousePressed(MouseEvent e) {
-    Component c = e.getComponent();
-    if (c == MathCanvas) {
-      Point p = e.getPoint();
-      for (int i=0; i<Scalars.length; i++) {
-        for (int j=0; j<ScX[i].length; j++) {
-          Rectangle r = new Rectangle(ScX[i][j]+5, (ScH+2)*ScY[i][j]+6,
-                                      ScW[i], ScH);
-          if (r.contains(p)) {
-            MathList.setSelectedIndex(i);
-            MathList.ensureIndexIsVisible(i);
-            MathCanvas.scrollRectToVisible(r);
-            return;
+    synchronized (Lock) {
+      Component c = e.getComponent();
+      if (c == MathCanvas) {
+        Point p = e.getPoint();
+        for (int i=0; i<Scalars.length; i++) {
+          for (int j=0; j<ScX[i].length; j++) {
+            Rectangle r = new Rectangle(ScX[i][j]+5, (ScH+2)*ScY[i][j]+6,
+                                        ScW[i], ScH);
+            if (r.contains(p)) {
+              MathList.setSelectedIndex(i);
+              MathList.ensureIndexIsVisible(i);
+              MathCanvas.scrollRectToVisible(r);
+              return;
+            }
           }
         }
       }
-    }
-    else if (c == DisplayCanvas) {
-      int col = e.getX() / 40;
-      int row = e.getY() / 40;
-      int ind = MathList.getSelectedIndex();
-      if (ind >= 0) {
-        Maps[ind][col][row] = !Maps[ind][col][row];
-        if (Maps[ind][col][row]) {
-          CurMaps.addElement(CurMapLabel[ind][col][row]);
-        }
-        else {
-          CurrentMaps.clearSelection();
-          CurMaps.removeElement(CurMapLabel[ind][col][row]);
-        }
-        // redraw DisplayCanvas
-        Graphics g = DisplayCanvas.getGraphics();
-        g.setClip(40*col, 40*row, 41, 41);
-        DisplayCanvas.paint(g);
+      else if (c == DisplayCanvas) {
+        int col = e.getX() / 40;
+        int row = e.getY() / 40;
+        int ind = MathList.getSelectedIndex();
+        if (ind >= 0) {
+          Maps[ind][col][row] = !Maps[ind][col][row];
+          if (Maps[ind][col][row]) {
+            CurMaps.addElement(CurMapLabel[ind][col][row]);
+          }
+          else {
+            CurrentMaps.clearSelection();
+            CurMaps.removeElement(CurMapLabel[ind][col][row]);
+          }
+          // redraw DisplayCanvas
+          Graphics g = DisplayCanvas.getGraphics();
+          g.setClip(40*col, 40*row, 41, 41);
+          DisplayCanvas.paint(g);
+          g.dispose();
 
-        // redraw CurrentMaps
-        CurrentMaps.repaint();
-        CurrentMapsView.validate();
+          // redraw CurrentMaps
+          CurrentMaps.repaint();
+          CurrentMapsView.validate();
+        }
       }
     }
   }

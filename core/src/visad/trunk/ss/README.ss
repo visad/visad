@@ -272,7 +272,12 @@ Any of the following can be used in formula construction:
    where DATA is a Tuple and N is a literal integer.
    This syntax calls Tuple's getComponent() method.
 
-9) Formulas are not case sensitive.
+9) You can extract part of a field with the syntax:
+       EXTRACT(DATA, N)
+   where DATA is a Field and N is a literal integer.
+   This syntax calls Field's extract() method.
+
+10) Formulas are not case sensitive.
 
 Some examples of valid formulas for cell A1 are:
     SQRT(A2 + B2^5 - MIN(B1, -C1))

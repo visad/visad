@@ -355,7 +355,11 @@ public class FancySSCell extends BasicSSCell {
       setBorder(NORM);
       hideWidgetFrame();
     }
-    paint(getGraphics());
+    Graphics g = getGraphics();
+    if (g != null) {
+      paint(g);
+      g.dispose();
+    }
   }
 
   /** Asks user to confirm clearing the cell if any other cell depends on it */

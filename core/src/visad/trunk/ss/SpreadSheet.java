@@ -57,7 +57,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
                                                    DisplayListener,
                                                    KeyListener,
                                                    ItemListener,
-                                                   MouseListener {
+                                                   MouseListener,
+                                                   MouseMotionListener {
 
   // starting size of the application, in percentage of screen size
   static final int WIDTH_PERCENT = 60;
@@ -83,6 +84,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
   JPanel ScrollPanel;
   ScrollPane HorizLabels;
   ScrollPane VertLabels;
+  JPanel[] HorizLabel, VertLabel;
+  JPanel[] HorizDrag, VertDrag;
   FancySSCell[] DisplayCells;
   JTextField FormulaField;
   MenuItem EditPaste;
@@ -387,14 +390,25 @@ public class SpreadSheet extends JFrame implements ActionListener,
       }
     };
     horizPanel.setLayout(new BoxLayout(horizPanel, BoxLayout.X_AXIS));
+    HorizLabel = new JPanel[NumVisX];
+    HorizDrag = new JPanel[NumVisX-1];
     for (int i=0; i<NumVisX; i++) {
-      JPanel lp = new JPanel();
-      lp.setBorder(new LineBorder(Color.black, 1));
-      lp.setLayout(new GridLayout(1, 1));
-      lp.setPreferredSize(new Dimension(MIN_VIS_WIDTH+5, 0));
-      lp.add(new JLabel(String.valueOf(Letters.charAt(i)),
-                        SwingConstants.CENTER));
-      horizPanel.add(lp);
+      String curLet = String.valueOf(Letters.charAt(i));
+      HorizLabel[i] = new JPanel();
+      HorizLabel[i].setBorder(new LineBorder(Color.black, 1));
+      HorizLabel[i].setLayout(new BorderLayout());
+      HorizLabel[i].setMinimumSize(new Dimension(MIN_VIS_WIDTH, 0));
+      HorizLabel[i].add("Center", new JLabel(curLet, SwingConstants.CENTER));
+      horizPanel.add(HorizLabel[i]);
+      if (i < NumVisX-1) {
+        HorizDrag[i] = new JPanel();
+        HorizDrag[i].setBackground(Color.white);
+        HorizDrag[i].setPreferredSize(new Dimension(5, 0));
+        HorizDrag[i].setMaximumSize(new Dimension(5, Integer.MAX_VALUE));
+        HorizDrag[i].addMouseListener(this);
+        HorizDrag[i].addMouseMotionListener(this);
+        horizPanel.add(HorizDrag[i]);
+      }
     }
     ScrollPane hl = new ScrollPane(ScrollPane.SCROLLBARS_NEVER) {
       public Dimension getMinimumSize() {
@@ -433,13 +447,24 @@ public class SpreadSheet extends JFrame implements ActionListener,
       }
     };
     vertPanel.setLayout(new BoxLayout(vertPanel, BoxLayout.Y_AXIS));
+    VertLabel = new JPanel[NumVisY];
+    VertDrag = new JPanel[NumVisY-1];
     for (int i=0; i<NumVisY; i++) {
-      JPanel lp = new JPanel();
-      lp.setBorder(new LineBorder(Color.black, 1));
-      lp.setLayout(new GridLayout(1, 1));
-      lp.setPreferredSize(new Dimension(0, MIN_VIS_HEIGHT+5));
-      lp.add(new JLabel(""+(i+1), SwingConstants.CENTER));
-      vertPanel.add(lp);
+      VertLabel[i] = new JPanel();
+      VertLabel[i].setBorder(new LineBorder(Color.black, 1));
+      VertLabel[i].setLayout(new BorderLayout());
+      VertLabel[i].setPreferredSize(new Dimension(0, MIN_VIS_HEIGHT));
+      VertLabel[i].add("Center", new JLabel(""+(i+1), SwingConstants.CENTER));
+      vertPanel.add(VertLabel[i]);
+      if (i < NumVisY-1) {
+        VertDrag[i] = new JPanel();
+        VertDrag[i].setBackground(Color.white);
+        VertDrag[i].setPreferredSize(new Dimension(0, 5));
+        VertDrag[i].setMaximumSize(new Dimension(Integer.MAX_VALUE, 5));
+        VertDrag[i].addMouseListener(this);
+        VertDrag[i].addMouseMotionListener(this);
+        vertPanel.add(VertDrag[i]);
+      }
     }
     ScrollPane vl = new ScrollPane(ScrollPane.SCROLLBARS_NEVER) {
       public Dimension getMinimumSize() {
@@ -482,6 +507,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     // set up display panel
     DisplayPanel = new Panel();
     DisplayPanel.setBackground(Color.darkGray);
+    DisplayPanel.setLayout(new BoxLayout(DisplayPanel, BoxLayout.X_AXIS));
     DisplayPanel.setLayout(new GridLayout(NumVisY, NumVisX, 5, 5));
     scpane.add(DisplayPanel);
 
@@ -941,23 +967,77 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   public void keyTyped(KeyEvent e) { }
 
-  /** Handles mouse presses */
+  // used with cell resizing logic
+  private int oldX;
+  private int oldY;
+
+  /** Handles mouse presses and cell resizing */
   public void mousePressed(MouseEvent e) {
     Component c = e.getComponent();
-    int cnum = -1;
     for (int i=0; i<DisplayCells.length; i++) {
-      if (c == DisplayCells[i]) cnum = i;
+      if (c == DisplayCells[i]) {
+        selectCell(i);
+        return;
+      }
     }
-    selectCell(cnum);
+    oldX = e.getX();
+    oldY = e.getY();
   }
 
-  public void mouseReleased(MouseEvent e) { }
+  /** Handles cell resizing */
+  public void mouseReleased(MouseEvent e) {
+    int x = e.getX();
+    int y = e.getY();
+    Component c = e.getComponent();
+    for (int j=0; j<NumVisX-1; j++) {
+      if (c == HorizDrag[j]) {
+        if (oldX != x) {
+          // resize columns
+/* CTR: DOESN'T WORK YET
+          Dimension s1 = HorizLabel[j].getSize();
+          Dimension s2 = HorizLabel[j+1].getSize();
+          s1.width += x - oldX;
+          s2.width += oldX - x;
+          HorizLabel[j].setSize(s1);
+          HorizLabel[j+1].setSize(s2);
+          HorizLabels.invalidate();
+          HorizLabels.validate();
+          for (int i=0; i<NumVisX; i++) {
+            HorizLabel[i].setPreferredSize(HorizLabel[i].getSize());
+          }
+*/
+        }
+        return;
+      }
+    }
+    for (int j=0; j<NumVisY-1; j++) {
+      if (c == VertDrag[j]) {
+        if (oldX != x) {
+          // resize rows
+        }
+        return;
+      }
+    }
+  }
 
+  /** Handles cell resizing */
+  public void mouseDragged(MouseEvent e) {
+    Component c = e.getComponent();
+    for (int j=0; j<NumVisX-1; j++) {
+      if (c == HorizDrag[j]) { } // CTR: eventually do something
+    }
+    for (int j=0; j<NumVisY-1; j++) {
+      if (c == VertDrag[j]) { } // CTR: eventually do something
+    }
+  }
+
+  // unused MouseListener methods
   public void mouseClicked(MouseEvent e) { }
-
   public void mouseEntered(MouseEvent e) { }
-
   public void mouseExited(MouseEvent e) { }
+
+  // unused MouseMotionListener method
+  public void mouseMoved(MouseEvent e) { }
 
 }
 

@@ -200,6 +200,10 @@ class FormulaCell extends CellImpl {
             else if (token.equalsIgnoreCase("atan2Degrees")) {
               value = val1.atan2Degrees(val2);
             }
+            else if (token.equalsIgnoreCase("extract")) {
+              int v = (int) (((Real) val2).getValue());
+              value = ((Field) val1).extract(v);
+            }
             else if (token.equals("%")) value = val1.remainder(val2);
             if (value == null) {
               throw new VisADException(
@@ -374,7 +378,9 @@ class FormulaCell extends CellImpl {
     if (BigX) SSCell.add(BigXCanvas);
     else SSCell.remove(BigXCanvas);
     SSCell.validate();
-    SSCell.paint(SSCell.getGraphics());
+    Graphics g = SSCell.getGraphics();
+    SSCell.paint(g);
+    g.dispose();
   }
 
 }

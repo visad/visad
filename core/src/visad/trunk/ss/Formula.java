@@ -44,7 +44,7 @@ public class Formula {
                  = {10, 20, 40, 50, 60, 60, 60, 80, 80, 96, 97, 97, 98, 99};
   // Binary functions that can be used in the infix formula
   private static String[] BinaryFunctions
-                 = {"max", "min", "atan2", "atan2Degrees"};
+                 = {"max", "min", "atan2", "atan2Degrees", "extract"};
   // Unary functions that can be used in the infix formula
   private static String[] UnaryFunctions
                  = {"abs", "acos", "acosDegrees", "asin", "asinDegrees",
@@ -159,18 +159,26 @@ public class Formula {
       }
       else if (token.equals(")")) {
         // pop all operators off stack until left paren reached
+        if (opPt < 1) return null;
         String op = opStack[--opPt];
         while (!op.equals("(") && !op.equals("{")) {
-          pfix[pfixlen++] = op.equals(",") ? funcStack[--funcPt] : op;
+          if (op.equals(",")) {
+            if (funcPt < 1) return null;
+            pfix[pfixlen++] = funcStack[--funcPt];
+          }
+          else pfix[pfixlen++] = op;
+          if (opPt < 1) return null;
           op = opStack[--opPt];
         }
         if (op.equals("{")) {
           // pop operators with greater precedence off stack onto pfix
+          if (opPt < 1) return null;
           op = opStack[opPt-1];
           int prec = getPrecLevel("@");
           while (getPrecLevel(op) <= prec) {
             opPt--;
             pfix[pfixlen++] = op;
+            if (opPt < 1) return null;
             op = opStack[opPt-1];
           }
           //opStack[opPt++] = "@";
@@ -188,10 +196,12 @@ public class Formula {
 
         if (prec > 0) { // token is an operator or a unary function
           // pop operators with greater precedence off stack onto pfix
+          if (opPt < 1) return null;
           String op = opStack[opPt-1];
           while (getPrecLevel(op) <= prec) {
             opPt--;
             pfix[pfixlen++] = op;
+            if (opPt < 1) return null;
             op = opStack[opPt-1];
           }
           // push token onto operator stack
