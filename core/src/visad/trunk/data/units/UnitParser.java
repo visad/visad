@@ -635,7 +635,12 @@ MA 02111-1307, USA
                             new StringTokenizer(t.image, ":");
                         int     sign = t.image.startsWith("-") ? -1 : 1;
 
-                        zoneHour = Integer.parseInt(zoneSpec.nextToken());
+                        String zoneHrString = zoneSpec.nextToken();
+                        zoneHrString = 
+                          zoneHrString.startsWith("+")
+                             ? zoneHrString.substring(1)
+                             : zoneHrString;
+                        zoneHour = Integer.parseInt(zoneHrString);
                         zoneMinute = Integer.parseInt(zoneSpec.nextToken());
 
                         zone = zoneHour*60 + zoneMinute*sign;
