@@ -149,6 +149,7 @@ visad\data\gif\*.java \
 visad\data\gif\sseclogo.gif \
 visad\data\tiff\*.java \
 visad\data\visad\*.java \
+visad\data\visad\object\*.java \
 visad\data\text\*.java \
 visad\data\text\README.text \
 visad\data\text\example1.txt \
@@ -300,6 +301,7 @@ visad\data\biorad\*.java \
 visad\data\jai\*.java \
 visad\data\qt\*.java \
 visad\data\visad\*.java \
+visad\data\visad\object\*.java \
 visad\data\text\*.java \
 visad\data\text\*.java \
 visad\data\text\README.text \
@@ -459,6 +461,8 @@ save:
 		$(DEL) $(BACKUP)\visad\data\tiff\*.java
 	if exist $(BACKUP)\visad\data\visad\*.java \
 		$(DEL) $(BACKUP)\visad\data\visad\*.java
+	if exist $(BACKUP)\visad\data\visad\object\*.java \
+		$(DEL) $(BACKUP)\visad\data\visad\object\*.java
 	if exist $(BACKUP)\visad\data\text\*.java \
 		$(DEL) $(BACKUP)\visad\data\text\*.java
 	if exist $(BACKUP)\visad\data\hdf5\*.java \
@@ -556,6 +560,7 @@ ij\text\*.class \
 ij\util\*.class \
 visad\data\tiff\*.class \
 visad\data\visad\*.class \
+visad\data\visad\object\*.class \
 visad\data\text\*.class \
 visad\data\hdf5\*.class \
 visad\data\hdf5\hdf5objects\*.class \
@@ -650,6 +655,7 @@ clear:
 	if exist data\jai\*.java $(DEL) data\jai\*.java
 	if exist data\qt\*.java $(DEL) data\qt\*.java
 	if exist data\visad\*.java $(DEL) data\visad\*.java
+	if exist data\visad\object\*.java $(DEL) data\visad\object\*.java
 	if exist data\text\*.java $(DEL) data\text\*.java
 	if exist data\hdf5\*.java $(DEL) data\hdf5\*.java
 	if exist data\hdf5\hdf5objects\*.java $(DEL) data\hdf5\hdf5objects\*.java
@@ -725,6 +731,7 @@ clean:
 	if exist ..\ij\util\*.class $(DEL) ..\ij\util\*.class
 	if exist data\tiff\*.class $(DEL) data\tiff\*.class
 	if exist data\visad\*.class $(DEL) data\visad\*.class
+	if exist data\visad\object\*.class $(DEL) data\visad\object\*.class
 	if exist data\text\*.class $(DEL) data\text\*.class
 	if exist data\hdf5\*.class $(DEL) data\hdf5\*.class
 	if exist data\hdf5\hdf5objects\*.class $(DEL) data\hdf5\hdf5objects\*.class
@@ -823,6 +830,7 @@ data\gif\*.class \
 ..\ij\util\*.class \
 data\tiff\*.class \
 data\visad\*.class \
+data\visad\object\*.class \
 data\text\*.class \
 data\hdfeos\hdfeosc\*.class \
 data\hdfeos\*.class \
@@ -906,6 +914,7 @@ compile: clean
 	$(JC) $(JFLAGS) ..\ij\util\*.java
 	$(JC) $(JFLAGS) data\tiff\*.java
 	$(JC) $(JFLAGS) data\visad\*.java
+	$(JC) $(JFLAGS) data\visad\object\*.java
 	$(JC) $(JFLAGS) data\text\*.java
 	$(JC) $(JFLAGS) data\hdfeos\hdfeosc\*.java
 	$(JC) $(JFLAGS) data\hdfeos\*.java
@@ -1002,6 +1011,7 @@ visad.data.biorad \
 visad.data.jai \
 visad.data.qt \
 visad.data.visad \
+visad.data.visad.object \
 visad.data.text \
 ncsa.hdf.hdf5lib \
 ncsa.hdf.hdf5lib.exceptions \

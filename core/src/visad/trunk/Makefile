@@ -238,6 +238,7 @@ SAVE_FILES = \
 	ij/util/*.java					\
 	visad/data/tiff/*.java				\
 	visad/data/visad/*.java				\
+	visad/data/visad/object/*.java			\
 	visad/data/hdf5/*.java				\
 	visad/data/hdf5/hdf5objects/*.java		\
 	ncsa/hdf/hdf5lib/*.java				\
@@ -341,6 +342,7 @@ DOC_PACKAGES = \
 		ij.util \
 		visad.data.tiff \
 		visad.data.visad \
+		visad.data.visad.object \
 		visad.data.hdfeos.hdfeosc \
 		visad.data.hdfeos \
 		ncsa.hdf.hdf5lib.exceptions \
