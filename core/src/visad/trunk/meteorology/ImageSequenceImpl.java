@@ -40,7 +40,7 @@ public class ImageSequenceImpl extends FieldImpl
                 (imageRange.equals(rangeType))
                     ? images[i]
                     : (SingleBandedImage) images[i].changeMathType(rangeType);
-            setSample(timeTuple, image);
+            setSample(timeTuple, image, false);
         }
     }
 
