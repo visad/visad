@@ -778,6 +778,7 @@ class CurveDelete implements ActionListener {
   DataReferenceImpl ref;
   DisplayImpl display;
   boolean lines = false;
+  DataReferenceImpl new_ref;
 
   CurveDelete(DataReferenceImpl r, DisplayImpl d) {
     ref = r;
@@ -802,34 +803,18 @@ class CurveDelete implements ActionListener {
     else if (cmd.equals("fill")) {
       try {
         UnionSet set = (UnionSet) ref.getData();
-        SampledSet[] sets = set.getSets();
-        SampledSet[] new_sets = new SampledSet[sets.length];
-        float area = 0.0f;
-        int k = 0;	
-        for (int i=0; i<sets.length; i++) {
-          try {
-            area += DelaunayCustom.computeArea((Gridded2DSet) sets[i]);
-            new_sets[k] = DelaunayCustom.fill((Gridded2DSet) sets[i]);
-            if (new_sets[k] != null) k++;
+        System.out.println("area = " + DelaunayCustom.computeArea(set));
+        Irregular2DSet new_set = DelaunayCustom.fill(set);
+        if (new_set != null) {
+          if (new_ref == null) {
+            new_ref = new DataReferenceImpl("fill");
+            ConstantMap[] cmaps = new ConstantMap[]
+              {new ConstantMap(1.0, Display.Blue),
+               new ConstantMap(1.0, Display.Red),
+               new ConstantMap(0.0, Display.Green)};
+            display.addReference(new_ref, cmaps);
           }
-          catch (VisADException ex) {
-            System.out.println(ex.getMessage());
-          }
-        }
-        if (k > 0) {
-          System.out.println("area = " + area);
-          sets = new SampledSet[k];
-          System.arraycopy(new_sets, 0, sets, 0, k);
-          DataReferenceImpl new_ref = new DataReferenceImpl("fill");
-          new_ref.setData(new UnionSet(set.getType(), sets));
-          ConstantMap[] cmaps = new ConstantMap[]
-            {new ConstantMap(1.0, Display.Blue),
-             new ConstantMap(1.0, Display.Red),
-             new ConstantMap(0.0, Display.Green)};
-          display.addReference(new_ref, cmaps);
-        }
-        else {
-          System.out.println("no successful fills");
+          new_ref.setData(new_set);
         }
       }
       catch (VisADException ex) {

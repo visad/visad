@@ -164,7 +164,8 @@ public class DelaunayCustom extends Delaunay {
     return false;
   }
 
-  private final static float SELF = 0.999f;
+  // private final static float SELF = 0.999f;
+  private final static float SELF = 0.9999f;
   private final static float PULL = 1.0f - SELF;
   private final static float PULL2 = 0.5f * (1.0f - SELF);
 
@@ -199,6 +200,7 @@ public class DelaunayCustom extends Delaunay {
     if (k != n) {
       samples[0] = new float[k];
       samples[1] = new float[k];
+      if (k == 0) return false;
       System.arraycopy(new_samples[0], 0, samples[0], 0, k);
       System.arraycopy(new_samples[1], 0, samples[1], 0, k);
       n = k;
@@ -261,6 +263,36 @@ public class DelaunayCustom extends Delaunay {
       }
     }
     return intersect;
+  }
+
+  /** compute area inside closed path */
+  public static float computeArea(UnionSet set) throws VisADException {
+    if (set == null) return 0.0f;
+    if (set.getManifoldDimension() != 1) {
+      throw new SetException("UnionSet must have manifold dimension = 1");
+    }
+    SampledSet[] sets = set.getSets();
+    if (sets == null) return 0.0f;
+    int n = sets.length;
+    if (n == 0) return 0.0f;
+    float[][][] ss = new float[n][][];
+    int k = 0;
+    for (int i=0; i<n; i++) {
+      if (!(sets[i] instanceof Gridded2DSet)) {
+        throw new SetException("UnionSet must contain only Gridded2DSets");
+      }
+      ss[k] = sets[i].getSamples();
+      if (ss[k] != null && ss[k].length == 2 && ss[k][0].length > 2) {
+        k++;
+      }
+    }
+    if (k == 0) return 0.0f;
+    float[][][] new_ss = new float[k][][];
+    System.arraycopy(ss, 0, new_ss, 0, k);
+    ss = new_ss;
+    float[][] samples = link(ss);
+    if (samples == null) return 0.0f;
+    return computeArea(samples);
   }
 
   /** compute area inside closed path */
@@ -460,6 +492,42 @@ if (bug && !in) System.out.println("bug " + i + " intersect in = " + in);
     return tris;
   }
 
+  /**  check that set describes the boundary of a simply connected plane
+      region; return a decomposition of that region into triangles whose
+      vertices are all boundary points from samples, as an Irregular2DSet */
+  public static Irregular2DSet fill(UnionSet set) throws VisADException {
+    if (set == null) return null;
+    if (set.getManifoldDimension() != 1) {
+      throw new SetException("UnionSet must have manifold dimension = 1");
+    }
+    SampledSet[] sets = set.getSets();
+    if (sets == null) return null;
+    int n = sets.length;
+    if (n == 0) return null;
+    float[][][] ss = new float[n][][];
+    int k = 0;
+    for (int i=0; i<n; i++) {
+      if (!(sets[i] instanceof Gridded2DSet)) {
+        throw new SetException("UnionSet must contain only Gridded2DSets");
+      }
+      ss[k] = sets[i].getSamples();
+      if (ss[k] != null && ss[k].length == 2 && ss[k][0].length > 2) {
+        k++;
+      }
+    }
+    if (k == 0) return null;
+    float[][][] new_ss = new float[k][][];
+    System.arraycopy(ss, 0, new_ss, 0, k);
+    ss = new_ss;
+    float[][] samples = link(ss);
+    int[][] tris = fill(samples);
+    if (tris == null || tris[0].length == 0) return null;
+    DelaunayCustom delaunay = new DelaunayCustom(samples, tris);
+    if (delaunay == null) return null;
+    return new Irregular2DSet(set.getType(), samples,
+                              null, null, null, delaunay);
+  }
+
   /** link multiple paths into a single path */
   public static float[][] link(float[][][] ss) throws VisADException {
     if (ss == null || ss.length == 0) return null;
@@ -472,9 +540,21 @@ if (bug && !in) System.out.println("bug " + i + " intersect in = " + in);
         throw new VisADException("path self intersects");
       }
     }
+    float[][][] new_ss = new float[nn][][];
+    int k = 0;
+    for (int ii=0; ii<nn; ii++) {
+      if (ss[ii][0].length > 2) {
+        new_ss[k] = ss[ii];
+        k++;
+      }
+    }
+    if (k == 0) return null;
+    if (k == 1) return new_ss[0];
+    ss = new float[k][][];
+    System.arraycopy(new_ss, 0, ss, 0, k);
+    nn = k;
+
     float[][] s = ss[0];
-    if (nn == 1) return s;
-    if (s[0].length < 3) return null;
 
     // compute which paths are inside other paths
     // this assumes that paths do not intersect
@@ -495,7 +575,7 @@ if (bug && !in) System.out.println("bug " + i + " intersect in = " + in);
       boolean any_outer = false;
       for (int jj=ii; jj<nn; jj++) {
         // don't allow short path as outer path
-        boolean in_any = (ss[jj][0].length < 3);
+        boolean in_any = false;
         for (int kk=ii; kk<nn; kk++) {
           if (in[kk][jj]) { in_any = true; break; }
         }
@@ -570,7 +650,7 @@ if (bug && !in) System.out.println("bug " + i + " intersect in = " + in);
       // link paths in s and t at nearest points
       int new_n = n + m + 2;
       float[][] new_s = new float[2][new_n];
-      int k = 0;
+      k = 0;
       System.arraycopy(s[0], 0, new_s[0], k, near_i + 1);
       System.arraycopy(s[1], 0, new_s[1], k, near_i + 1);
       k += near_i + 1;

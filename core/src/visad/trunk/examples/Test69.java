@@ -92,6 +92,7 @@ public class Test69
     tcontrol.setFont(font);
     tcontrol.setSphere(sphere);
     tcontrol.setCenter(true);
+    tcontrol.setSize(2.0);
     if (sphere) {
       dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.Latitude));
       dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.Longitude));
