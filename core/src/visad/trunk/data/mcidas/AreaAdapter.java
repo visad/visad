@@ -240,20 +240,34 @@ public class AreaAdapter {
     try {
       float[][] samples = new float[numBands][nEles*nLines];
 
-      for (int b=0; b<numBands; b++) {
-        for (int i=0; i<nLines; i++) {
-          for (int j=0; j<nEles; j++) {
+      if (areaDirectory.getCalibrationType().equalsIgnoreCase("BRIT")) {
 
-            int val = int_samples[bandIndices[b]][startLine+i][startEle+j];
-            samples[b][j + (nEles * i) ] =
-               (areaDirectory.getCalibrationType().equalsIgnoreCase("BRIT") &&
-                val == 255)
+        for (int b=0; b<numBands; b++) {
+          for (int i=0; i<nLines; i++) {
+            for (int j=0; j<nEles; j++) {
+  
+              int val = int_samples[bandIndices[b]][startLine+i][startEle+j];
+              samples[b][j + (nEles * i) ] =
+                (val == 255)
                    ? 254.0f                   // push 255 into 254 for BRIT
                    : (float) val;
+            }
           }
         }
       }
+      else {
 
+        for (int b=0; b<numBands; b++) {
+          for (int i=0; i<nLines; i++) {
+            for (int j=0; j<nEles; j++) {
+
+              samples[b][j + (nEles * i) ] = 
+                (float) int_samples[bandIndices[b]][startLine+i][startEle+j];
+
+            }
+          }
+        }
+      }
       field.setSamples( samples, false);
 
     } catch (RemoteException e) {

@@ -41,6 +41,7 @@ public class GRIDCoordinateSystem
   private GRIDnav gnav = null;
   private int rows;
   private int columns;
+  private int[] dirBlock;
 
   private static Unit[] coordinate_system_units =
     {null, null};
@@ -53,16 +54,7 @@ public class GRIDCoordinateSystem
   public GRIDCoordinateSystem(GridDirectory gridDirectory)
         throws VisADException
   {
-    super(RealTupleType.LatitudeLongitudeTuple, coordinate_system_units);
-    rows = gridDirectory.getRows();
-    columns = gridDirectory.getColumns();
-    gnav = gridDirectory.getNavigation();
-    if (gnav != null) {
-      gnav.setStart(0,0);
-      gnav.setFlipRowCoordinates(rows);
-    } else {
-      throw new VisADException( "Grid cannot be navigated");
-    }
+    this(gridDirectory.getDirBlock());
   }
 
   /** 
@@ -87,6 +79,7 @@ public class GRIDCoordinateSystem
     {
       throw new VisADException( "Grid cannot be navigated");
     }
+    this.dirBlock = dirBlock;
   }
 
   /**
@@ -131,6 +124,14 @@ public class GRIDCoordinateSystem
   public Rectangle2D getDefaultMapArea() 
   { 
       return new Rectangle2D.Double(0.0, 0.0, columns-1, rows-1);
+  }
+
+  /**
+   * Get the directory block used to initialize this GRIDCoordinateSystem
+   */
+  public int[] getDirBlock()
+  { 
+      return dirBlock;
   }
 
   /**

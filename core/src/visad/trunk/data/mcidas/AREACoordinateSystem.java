@@ -48,6 +48,8 @@ public class AREACoordinateSystem
   private AREAnav anav = null;
   private int lines;
   private int elements;
+  private int[] dirBlock;
+  private int[] navBlock;
 
   private static Unit[] coordinate_system_units =
     {null, null};
@@ -58,7 +60,22 @@ public class AREACoordinateSystem
     * This routine uses a flipped Y axis (first line of
     * the image file is number 0)
     *
-    * @param reference is the CoordinateSystem reference
+    * @param dir[] is the AREA file directory block
+    * @param nav[] is the AREA file navigation block
+    *
+    */
+  public AREACoordinateSystem(int[] dir, int[] nav) throws VisADException {
+      this(RealTupleType.LatitudeLongitudeTuple, dir, nav);
+  }
+
+  /** create a AREA coordinate system from the Area file's
+    * directory and navigation blocks.
+    *
+    * This routine uses a flipped Y axis (first line of
+    * the image file is number 0)
+    *
+    * @param reference the CoordinateSystem reference (must be equivalent
+    *                  to RealTupleType.LatitudeLongitudeTuple)
     * @param dir[] is the AREA file directory block
     * @param nav[] is the AREA file navigation block
     *
@@ -73,6 +90,8 @@ public class AREACoordinateSystem
       throw new CoordinateSystemException(
           "AREACoordinateSystem: problem creating navigation" + excp);
     }
+    dirBlock = dir;
+    navBlock = nav;
     anav.setImageStart(dir[5], dir[6]);
     anav.setRes(dir[11], dir[12]);
     anav.setStart(1,1);
@@ -82,6 +101,16 @@ public class AREACoordinateSystem
     anav.setFlipLineCoordinates(dir[8]); // invert Y axis coordinates
   }
 
+
+  /** Get the directory block used to initialize this AREACoordinateSystem */
+  public int[] getDirBlock() {
+    return dirBlock;
+  }
+
+  /** Get the navigation block used to initialize this AREACoordinateSystem */
+  public int[] getNavBlock() {
+    return navBlock;
+  }
 
   /** convert from image element,line to latitude,longitude
     *
