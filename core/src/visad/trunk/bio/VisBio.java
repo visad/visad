@@ -716,7 +716,7 @@ public class VisBio extends GUIFrame implements ChangeListener {
       return;
     }
 
-    Util.invoke(true, new Runnable() {
+    Thread t = new Thread(new Runnable() {
       public void run() {
         FileSaver saver = new FileSaver(new ImagePlus("null", getSnapshot()));
         if (tiff) saver.saveAsTiff(file);
@@ -725,6 +725,7 @@ public class VisBio extends GUIFrame implements ChangeListener {
         setWaitCursor(false);
       }
     });
+    t.start();
   }
 
   /** Sends a snapshot of the displays to ImageJ. */
