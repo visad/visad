@@ -47,13 +47,8 @@ public interface LocalDisplay
   /** add a DisplayListener */
   void addDisplayListener(DisplayListener listener);
 
-  /**
-   * Removes a DisplayListener.
-   * @param listener		The listener to be removed.  Nothing happens
-   *				if the listener isn't registered with this
-   *				instance.
-   */
-  void removeDisplayListener(DisplayListener listener);
+  /** add a MessageListener */
+  void addMessageListener(MessageListener listener);
 
   /** link refs to this Display using the non-default renderer;
       must be local DataRendererImpls;
@@ -118,4 +113,20 @@ public interface LocalDisplay
 		       double transx, double transy, double transz);
 
   double[] multiply_matrix(double[] a, double[] b);
+
+  /**
+   * Removes a DisplayListener.
+   * @param listener		The listener to be removed.  Nothing happens
+   *				if the listener isn't registered with this
+   *				instance.
+   */
+  void removeDisplayListener(DisplayListener listener);
+
+  /**
+   * Removes a MessageListener.
+   *
+   * @param listener The listener to be removed.  Nothing happens if
+   *		     the listener isn't registered with this instance.
+   */
+  void removeMessageListener(MessageListener listener);
 }

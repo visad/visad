@@ -391,4 +391,15 @@ public class RemoteDisplayImpl extends RemoteActionImpl
     DisplaySync dpySync = ((DisplayImpl )AdaptedAction).getDisplaySync();
     return new RemoteDisplaySyncImpl((DisplaySyncImpl )dpySync);
   }
+
+  /**
+   * Send a message to all </tt>MessageListener</tt>s.
+   *
+   * @param msg - message being sent.
+   */
+  public void sendMessage(MessageEvent msg)
+    throws RemoteException
+  {
+    ((DisplayImpl )AdaptedAction).sendMessage(msg);
+  }
 }

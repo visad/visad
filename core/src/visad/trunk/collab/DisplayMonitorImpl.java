@@ -38,6 +38,7 @@ import visad.DisplayEvent;
 import visad.DisplayImpl;
 import visad.DisplayMapEvent;
 import visad.DisplayReferenceEvent;
+import visad.MessageEvent;
 import visad.RemoteDisplay;
 import visad.RemoteReferenceLinkImpl;
 import visad.RemoteVisADException;
@@ -92,6 +93,7 @@ public class DisplayMonitorImpl
     Name = dpy.getName() + ":Mon";
 
     dpy.addDisplayListener(this);
+    dpy.addMessageListener(this);
 
     myDisplay = dpy;
 
@@ -566,6 +568,35 @@ e.printStackTrace();
 
         li.addEvent(evt);
       }
+    }
+  }
+
+  /**
+   * Handles <tt>MessageEvent</tt> forwarding.
+   *
+   * @param msg The message to forward.
+   */
+  public void receiveMessage(MessageEvent msg)
+  {
+    // don't bother if nobody's listening
+    if (!hasListeners()) {
+      return;
+    }
+
+    MessageMonitorEvent msgEvt;
+    try {
+      msgEvt = new MessageMonitorEvent(MonitorEvent.MESSAGE_SENT,
+                                   msg.getOriginatorId(),  msg);
+    } catch (RemoteException re) {
+      re.printStackTrace();
+      msgEvt = null;
+    } catch (VisADException ve) {
+      ve.printStackTrace();
+      msgEvt = null;
+    }
+
+    if (msgEvt != null) {
+      notifyListeners(msgEvt);
     }
   }
 

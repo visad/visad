@@ -337,5 +337,13 @@ public interface Display extends Action {
 
   Vector getConstantMapVector()
          throws VisADException, RemoteException;
+
+  /**
+   * Send a message to all </tt>MessageListener</tt>s.
+   *
+   * @param msg - message being sent.
+   */
+  void sendMessage(MessageEvent msg)
+    throws RemoteException;
 }
 

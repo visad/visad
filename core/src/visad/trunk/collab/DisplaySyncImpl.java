@@ -377,6 +377,9 @@ public class DisplaySyncImpl
       }
 
       break;
+    case MonitorEvent.MESSAGE_SENT:
+      myDisplay.sendMessage(((MessageMonitorEvent )evt).getMessage());
+      break;
     default:
       throw new RemoteVisADException("Event " + evt + " not handled");
     }

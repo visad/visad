@@ -87,6 +87,10 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       are deleted from this Display */
   private Vector DataSourceListeners = new Vector();
 
+  /** list of objects interested in receiving messages
+      from this Display */
+  private Vector MessageListeners = new Vector();
+
   /** DisplayRenderer object for background and metadata rendering */
   private DisplayRenderer displayRenderer;
 
@@ -1775,5 +1779,45 @@ if (initialize) {
   public void removeDataSourceListener(DataSourceListener listener)
   {
     DataSourceListeners.removeElement(listener);
+  }
+
+  public void addMessageListener(MessageListener listener)
+  {
+    MessageListeners.addElement(listener);
+  }
+
+  public void removeMessageListener(MessageListener listener)
+  {
+    MessageListeners.removeElement(listener);
+  }
+
+  /**
+   * Send a message to all </tt>MessageListener</tt>s.
+   *
+   * @param msg - message being sent.
+   */
+  public void sendMessage(MessageEvent msg)
+    throws RemoteException
+  {
+    RemoteException exception = null;
+    Enumeration enum = MessageListeners.elements();
+    while (enum.hasMoreElements()) {
+      MessageListener l = (MessageListener )enum.nextElement();
+      try {
+        l.receiveMessage(msg);
+      } catch (RemoteException re) {
+        if (visad.collab.CollabUtil.isDisconnectException(re)) {
+          // remote side disconnected; forget about it
+          MessageListeners.removeElement(l);
+        } else {
+          // save this exception for later
+          exception = re;
+        }
+      }
+    }
+
+    if (exception != null) {
+      throw exception;
+    }
   }
 }

@@ -70,6 +70,11 @@ public abstract class MonitorEvent
    */
   public static final int CONTROL_CHANGED = 21;
 
+  /**
+   * This event occurs whenever a message is sent.
+   */
+  public static final int MESSAGE_SENT = 22;
+
   // these two variables provide a unique number for each event
   private static int nextSeqNum = 0;
   protected int seqNum = nextSeqNum++;

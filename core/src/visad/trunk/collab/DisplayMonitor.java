@@ -29,6 +29,7 @@ import java.rmi.RemoteException;
 import visad.Control;
 import visad.ControlListener;
 import visad.DisplayListener;
+import visad.MessageListener;
 import visad.RemoteDisplay;
 import visad.RemoteVisADException;
 import visad.ScalarMapListener;
@@ -40,7 +41,8 @@ import visad.VisADException;
  * <CODE>ScalarMap</CODE>s.
  */
 public interface DisplayMonitor
-  extends ControlListener, DisplayListener, ScalarMapListener, Serializable
+  extends ControlListener, DisplayListener, MessageListener,
+          ScalarMapListener, Serializable
 {
   /**
    * Adds the specified listener to receive <CODE>MonitorEvent</CODE>s

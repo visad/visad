@@ -29,6 +29,7 @@ import java.rmi.server.UnicastRemoteObject;
 import visad.Control;
 import visad.ControlEvent;
 import visad.DisplayEvent;
+import visad.MessageEvent;
 import visad.RemoteDisplay;
 import visad.RemoteVisADException;
 import visad.ScalarMapControlEvent;
@@ -220,6 +221,20 @@ public class RemoteDisplayMonitorImpl
     throws RemoteException
   {
     throw new RemoteException("Unimplemented");
+  }
+
+  /**
+   * Handles <tt>MessageEvent</tt> forwarding.
+   *
+   * @param msg The message to forward.
+   */
+  public void receiveMessage(MessageEvent msg)
+    throws RemoteException
+  {
+    if (AdaptedMonitor == null) {
+      throw new RemoteException("AdaptedMonitor is null");
+    }
+    AdaptedMonitor.receiveMessage(msg);
   }
 
   /**
