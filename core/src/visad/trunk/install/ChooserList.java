@@ -5,6 +5,8 @@ import java.awt.Dimension;
 
 import java.io.File;
 
+import java.util.ArrayList;
+
 import javax.swing.JFileChooser;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -52,14 +54,28 @@ public class ChooserList
   extends JFileChooser
   implements ListSelectionListener
 {
+  public ChooserList()
+  {
+    this((File[] )null);
+  }
+
+  public ChooserList(ArrayList list)
+  {
+    this((File[] )(list == null ? null : list.toArray(new File[list.size()])));
+  }
+
   public ChooserList(File[] list)
   {
-    super(list[0]);
+    super();
 
-    FileListAccessory accessory = new FileListAccessory("Found", list);
-    accessory.addListSelectionListener(this);
+    if (list != null) {
+      updateSelectedFile(list[0]);
 
-    setAccessory(accessory);
+      FileListAccessory accessory = new FileListAccessory("Found", list);
+      accessory.addListSelectionListener(this);
+
+      setAccessory(accessory);
+    }
   }
 
   public void valueChanged(ListSelectionEvent evt)
@@ -68,29 +84,34 @@ public class ChooserList
       JList source = (JList )evt.getSource();
       File sel = (File )source.getSelectedValue();
 
-      // make sure filter doesn't exclude this file
-      FileFilter filter = getFileFilter();
-      if (filter != null) {
-        if (!filter.accept(sel)) {
-          setFileFilter(getAcceptAllFileFilter());
-        }
-      }
-
-      // point to the appropriate directory
-      File parent = sel.getParentFile();
-      if (parent != null) {
-        setCurrentDirectory(parent);
-      }
-
-      // clear out the current choice
-      setSelectedFile(null);
-
-      // set the new choice
-      setSelectedFile(sel);
+      updateSelectedFile(sel);
 
       // refresh
       invalidate();
       repaint();
     }
+  }
+
+  private void updateSelectedFile(File file)
+  {
+    // make sure filter doesn't exclude this file
+    FileFilter filter = getFileFilter();
+    if (filter != null) {
+      if (!filter.accept(file)) {
+        setFileFilter(getAcceptAllFileFilter());
+      }
+    }
+
+    // point to the appropriate directory
+    File parent = file.getParentFile();
+    if (parent != null) {
+      setCurrentDirectory(parent);
+    }
+
+    // clear out the current choice
+    setSelectedFile(null);
+
+    // set the new choice
+    setSelectedFile(file);
   }
 }

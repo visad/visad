@@ -60,22 +60,70 @@ public class Main
     }
   }
 
-  private final File chooseInstallDirectory()
+  private final static File chooseDirectory(ArrayList list, String title)
   {
-    System.out.println("Ask where supplied JVM should be installed");
-    return null;
+    final int listLen = (list == null ? 0 : list.size());
+
+    boolean allDirs = true;
+    for (int i = 0; i < listLen; i++) {
+      File f = (File )list.get(i);
+      if (!f.isDirectory()) {
+        allDirs = false;
+        break;
+      }
+    }
+
+    ChooserList chooser;
+    if (allDirs) {
+      chooser = new ChooserList(list);
+    } else {
+      // build list containing only files
+      File[] fList = new File[listLen];
+      for (int i = 0; i < listLen; i++) {
+        File f = (File )list.get(i);
+        if (f.isDirectory()) {
+          fList[i] = f;
+        } else {
+          fList[i] = new File(f.getParent());
+        }
+      }
+
+      chooser = new ChooserList(fList);
+    }
+
+    chooser.setFileSelectionMode(ChooserList.DIRECTORIES_ONLY);
+    chooser.setDialogTitle(title);
+
+    int option = chooser.showOpenDialog(null);
+    if (option == ChooserList.CANCEL_OPTION) {
+      return null;
+    }
+
+    File choice = chooser.getSelectedFile();
+    if (!choice.exists()) {
+      return choice;
+    }
+
+    if (choice.isDirectory()) {
+      return choice;
+    }
+
+    return new File(choice.getParent());
   }
 
-  private final File chooseJarDirectory()
+  private static final File chooseFile(ArrayList list, String title)
   {
-    System.out.println("Ask where visad.jar should be installed");
-    return null;
-  }
+    ChooserList chooser = new ChooserList(list);
+    chooser.setFileSelectionMode(ChooserList.FILES_ONLY);
+    chooser.setDialogTitle(title);
+    //chooser.setApproveButtonText("Choose...");
 
-  private final File chooseJVM()
-  {
-    System.out.println("Ask user which JVM should be used");
-    return null;
+    int option = chooser.showOpenDialog(null);
+    if (option == ChooserList.CANCEL_OPTION) {
+      return null;
+    }
+
+    return chooser.getSelectedFile();
   }
 
   private final void dumpInitialState()
@@ -101,6 +149,30 @@ public class Main
                            getPath((File )javaList.get(i)));
       }
     }
+  }
+
+  private static final void dumpInstallState(boolean useSuppliedJava,
+                                             File javaInstallDir,
+                                             File jvmToUse,
+                                             File jarInstallDir,
+                                             boolean downloadLatestJar)
+  {
+    if (useSuppliedJava) {
+      System.err.println("Install java in " + javaInstallDir);
+      if (jvmToUse != null) {
+        System.err.println("!! 'jvmToUse' is set !!");
+      }
+    } else {
+      System.err.println("Use jvm in " + jvmToUse);
+      if (javaInstallDir != null) {
+        System.err.println("!! 'javaInstallDir' is set !!");
+      }
+    }
+
+    if (downloadLatestJar) {
+      System.err.println("Download latest visad.jar");
+    }
+    System.err.println("Install visad.jar in " + jarInstallDir);
   }
 
   /**
@@ -197,11 +269,14 @@ public class Main
     final int STEP_USE_SUPPLIED = 0;
     final int STEP_INSTALL_JAVA = 1;
     final int STEP_INSTALL_JAR = 2;
-    final int STEP_FINISHED = 3;
+    final int STEP_DOWNLOAD_JAR = 3;
+    final int STEP_FINISHED = 4;
 
     dumpInitialState();
 
-    boolean useSuppliedJava = false;
+    boolean useSuppliedJava, downloadLatestJar;
+    useSuppliedJava = downloadLatestJar = false;
+
     File jvmToUse, javaInstallDir, jarInstallDir;
     jvmToUse = javaInstallDir = jarInstallDir = null;
 
@@ -209,20 +284,32 @@ public class Main
     while (step < STEP_FINISHED) {
       switch (step) {
       case STEP_USE_SUPPLIED:
-        useSuppliedJava = installSuppliedJava(installerJava);
+        if (installerJava == null) {
+          useSuppliedJava = false;
+        } else {
+          String usMsg = "Would you like to install the supplied " +
+            " Java Development Kit " + installerJava.getMajor() + "." +
+            installerJava.getMinor() + " (" +
+            installerJava.getFullString() + ")?";
+
+          int n = JOptionPane.showConfirmDialog(null, usMsg,
+                                                "Install supplied JDK?",
+                                                JOptionPane.YES_NO_OPTION);
+          useSuppliedJava = (n == JOptionPane.YES_OPTION);
+        }
         step++;
         break;
       case STEP_INSTALL_JAVA:
         javaInstallDir = jvmToUse = null;
         if (useSuppliedJava) {
-          javaInstallDir = chooseInstallDirectory();
+          javaInstallDir = chooseDirectory(null, "Select the directory in which the JDK should be installed");
           if (javaInstallDir == null) {
             step--;
           } else {
             step++;
           }
         } else {
-          jvmToUse = chooseJVM();
+          jvmToUse = chooseFile(javaList, "Select the java program to use");
           if (jvmToUse == null) {
             step--;
           } else {
@@ -231,37 +318,27 @@ public class Main
         }
         break;
       case STEP_INSTALL_JAR:
-        jarInstallDir = chooseJarDirectory();
+        jarInstallDir = chooseDirectory(jarList, "Select the directory where the VisAD jar file should be installed");
         if (jarInstallDir == null) {
           step--;
         } else {
           step++;
         }
         break;
+      case STEP_DOWNLOAD_JAR:
+        String djMsg = "Would you like to download the latest visad.jar?";
+
+        int n = JOptionPane.showConfirmDialog(null, djMsg,
+                                              "Download latest visad.jar?",
+                                              JOptionPane.YES_NO_OPTION);
+        downloadLatestJar = (n == JOptionPane.YES_OPTION);
+        step++;
+        break;
       }
     }
-  }
 
-  /**
-   * Ask user if they'd like to install the supplied JDK.
-   *
-   * @param java the JavaFile object for the supplied JDK
-   *
-   * @return <tt>true</tt> if the supplied JDK should be installed.
-   */
-  private static final boolean installSuppliedJava(JavaFile java)
-  {
-    if (java == null) {
-      return false;
-    }
-
-    String msg = "Would you like to install the supplied " +
-      " Java Development Kit " + java.getMajor() + "." + java.getMinor() +
-      " (" + java.getFullString() + ")?";
-
-    int n = JOptionPane.showConfirmDialog(null, msg, "Install supplied JDK?",
-                                          JOptionPane.YES_NO_OPTION);
-    return (n == JOptionPane.YES_OPTION);
+    dumpInstallState(useSuppliedJava, javaInstallDir, jvmToUse, jarInstallDir,
+                     downloadLatestJar);
   }
 
   /**
