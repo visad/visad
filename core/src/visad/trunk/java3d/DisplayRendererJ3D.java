@@ -1432,17 +1432,21 @@ if (image == null) System.out.println("image is null");
     trans.addChild(bg);
   }
 
+  public void render_trigger() {
+    ProjectionControl proj = getDisplay().getProjectionControl();
+    try {
+      if (proj != null) proj.setMatrix(proj.getMatrix());
+    }
+    catch (VisADException e) { }
+    catch (RemoteException e) { }
+  }
+
   public void setWaitFlag(boolean b) {
     if (not_destroyed == null) return;
     boolean old = getWaitFlag();
     super.setWaitFlag(b);
     if (b != old) {
-      ProjectionControl proj = getDisplay().getProjectionControl();
-      try {
-        if (proj != null) proj.setMatrix(proj.getMatrix());
-      }
-      catch (VisADException e) { }
-      catch (RemoteException e) { }
+      render_trigger();
     }
   }
 
