@@ -44,7 +44,7 @@ public class RemoteAgentContactImpl extends UnicastRemoteObject
     agent = ag;
   }
 
-  public void sendToNode(Serializable message) {
+  public void sendToNode(Serializable message) throws RemoteException {
     agent.sendToNode(message);
   }
 

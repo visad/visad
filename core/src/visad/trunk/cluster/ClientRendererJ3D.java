@@ -54,7 +54,7 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
   private ClientDisplayRendererJ3D cdr = null;
   private boolean cluster = true;
 
-  private RemoteClientRendererAgentImpl[] agents = null;
+  private RemoteClientAgentImpl[] agents = null;
   private RemoteClientAgentImpl focus_agent = null;
   private RemoteAgentContact[] contacts = null;
 
@@ -110,10 +110,10 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
         focus_agent = new RemoteClientAgentImpl(null, -1);
         RemoteClusterData[] jvmTable = rcdi.getTable();
         int nagents = jvmTable.length - 1;
-        agents = new RemoteClientRendererAgentImpl[nagents];
+        agents = new RemoteClientAgentImpl[nagents];
         contacts = new RemoteAgentContact[nagents];
         for (int i=0; i<nagents; i++) {
-          agents[i] = new RemoteClientRendererAgentImpl(focus_agent, i);
+          agents[i] = new RemoteClientAgentImpl(focus_agent, i);
           DefaultNodeRendererAgent node_agent =
             new DefaultNodeRendererAgent(agents[i], rdisplay, cmaps);
           contacts[i] = ((RemoteNodeData) jvmTable[i]).sendAgent(node_agent);
