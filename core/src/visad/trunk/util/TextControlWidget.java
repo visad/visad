@@ -22,7 +22,6 @@ import java.util.Enumeration;
 import visad.*;
 import visad.util.HersheyFont;
 import visad.java2d.DisplayImplJ2D;
-import visad.java3d.DisplayImplJ3D;
 
 
 /**
@@ -789,7 +788,6 @@ public class TextControlWidget extends javax.swing.JPanel {
     throws RemoteException, VisADException
   {
     display = new DisplayImplJ2D("Preview_Display_in_Text_Control_Widget");
-    //display = new DisplayImplJ3D("Preview_Display");
 
     textType = TextType.getTextType("Preview_text_type_for_display_in_Text_Control_Widget");
     RealTupleType coord_tuple_type = new RealTupleType(new RealType[]
