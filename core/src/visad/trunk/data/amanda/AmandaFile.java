@@ -377,7 +377,20 @@ public class AmandaFile
   public final Tuple makeData()
     throws VisADException
   {
-    // Field of event Tuples
+    Tuple t;
+    try {
+      t = new Tuple(new Data[] {makeEventData(), makeModuleData()});
+    } catch (RemoteException re) {
+      re.printStackTrace();
+      t = null;
+    }
+
+    return t;
+  }
+
+  public final FieldImpl makeEventData()
+    throws RemoteException, VisADException
+  {
     final int nevents = events.size();
     Integer1DSet eventsSet =
       new Integer1DSet(eventIndexType, (nevents == 0 ? 1 : nevents));
@@ -395,6 +408,12 @@ public class AmandaFile
       }
     }
 
+    return eventsField;
+  }
+
+  public final FlatField makeModuleData()
+    throws RemoteException, VisADException
+  {
     // Field of modules
     final int nmodules = modules.size();
     Integer1DSet moduleSet = new Integer1DSet(moduleIndexType, nmodules);
@@ -414,15 +433,7 @@ public class AmandaFile
       return null;
     }
 
-    Tuple t;
-    try {
-      t = new Tuple(new Data[] {eventsField, moduleField});
-    } catch (RemoteException re) {
-      re.printStackTrace();
-      t = null;
-    }
-
-    return t;
+    return moduleField;
   }
 
   private String nextLine(BufferedReader rdr)
