@@ -3865,6 +3865,44 @@ if (pr) System.out.println("value = " + new_values[0][0]);
      return TupleDimension;
   }
 
+  public boolean equals(Object obj) {
+    if (obj == null || !(obj instanceof FlatField)) {
+      return false;
+    }
+
+    FlatField fld = (FlatField )obj;
+
+    if (RangeMode == null || fld.RangeMode == null) {
+      if (RangeMode != null || fld.RangeMode != null) {
+        return false;
+      }
+    } else if (RangeMode.length != fld.RangeMode.length) {
+      return false;
+    } else {
+      for (int i = 0; i < RangeMode.length; i++) {
+        if (RangeMode[i] != fld.RangeMode[i]) {
+          return false;
+        }
+      }
+    }
+
+    if (RangeSet == null || fld.RangeSet == null) {
+      if (RangeSet != null || fld.RangeSet != null) {
+        return false;
+      }
+    } else if (RangeSet.length != fld.RangeSet.length) {
+      return false;
+    } else {
+      for (int i = 0; i < RangeSet.length; i++) {
+        if (!RangeSet[i].equals(fld.RangeSet[i])) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
   /** construct a FlatField of given type; used for testing */
   public static FlatField makeField(FunctionType type, int length, boolean irregular)
          throws VisADException, RemoteException {
