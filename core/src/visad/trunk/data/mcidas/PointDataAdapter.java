@@ -43,7 +43,7 @@ public class PointDataAdapter {
   AddePointDataReader reader;
   FieldImpl field = null;
   private boolean debug = false;
-
+  private boolean useAliases = true;
 
   /**
    * Construct a PointDataAdapter using the adde request passed as a string.
@@ -57,10 +57,29 @@ public class PointDataAdapter {
   public PointDataAdapter(String addePointRequest)
       throws VisADException
   {
+      this(addePointRequest, true);
+  }
+
+  /**
+   * Construct a PointDataAdapter using the adde request passed as a string.
+   * This will take the data returned from the request and turn it into
+   * VisAD Data objects that can be returned by the getData() call.
+   *
+   * @param  addePointRequest  - string representing the ADDE request
+   * @param  useAliases        - for quantities like Latitude, Longitude,etc
+   *                             alias the RealTypes to the original McIDAS
+   *                             variable name.
+   * @throws VisADException  bad request, no data available, VisAD error
+   * @see #getData()
+   */
+  public PointDataAdapter(String addePointRequest, boolean useAliases)
+      throws VisADException
+  {
     try
     {
       reader = new AddePointDataReader(addePointRequest);
       debug = addePointRequest.indexOf("debug=true") > 0;
+      this.useAliases = useAliases;
     }
     catch (AddeException excp)
     {
@@ -295,7 +314,7 @@ public class PointDataAdapter {
         System.err.println("Using RealType with name " + name);
       }
     }
-    if (RealType.getRealTypeByName(name) == null) {
+    if (RealType.getRealTypeByName(name) == null && useAliases) {
         type.alias(name);
     } else if (!RealType.getRealTypeByName(name).equals(type)) { // alias used
         throw new VisADException(
