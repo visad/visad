@@ -20,7 +20,15 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-import java.awt.Component;
+// JFC packages
+import javax.swing.*;
+import javax.swing.event.*;
+import javax.swing.text.*;
+import javax.swing.border.*;
+
+// AWT packages
+import java.awt.*;
+import java.awt.event.*;
 
 import java.rmi.RemoteException;
 
@@ -28,16 +36,32 @@ import visad.*;
 
 import visad.java3d.DisplayImplJ3D;
 import visad.util.ContourWidget;
+import visad.util.LabeledColorWidget;
 
 public class Test02
   extends UISkeleton
 {
+  ScalarMap map1color = null;
+  ScalarMap map1contour = null;
+  static int size3d = 6;
+
   public Test02() { }
 
   public Test02(String[] args)
     throws RemoteException, VisADException
   {
     super(args);
+  }
+
+  int checkExtraKeyword(String testName, int argc, String[] args) {
+    try {
+      size3d = Integer.parseInt(args[0]);
+      if (size3d < 1) size3d = 6;
+    }
+    catch(NumberFormatException e) {
+      size3d = 6;
+    }
+    return 1;
   }
 
   DisplayImpl[] setupServerDisplays()
@@ -59,17 +83,17 @@ public class Test02
     RealTupleType radiance = new RealTupleType(types2);
     FunctionType grid_tuple = new FunctionType(earth_location3d, radiance);
 
-    int size3d = 6;
     float level = 2.5f;
     FlatField grid3d = FlatField.makeField(grid_tuple, size3d, true);
 
     dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
     dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
     dpys[0].addMap(new ScalarMap(RealType.Radius, Display.ZAxis));
-    dpys[0].addMap(new ScalarMap(ir_radiance, Display.Green));
-    dpys[0].addMap(new ConstantMap(0.5, Display.Blue));
-    dpys[0].addMap(new ConstantMap(0.5, Display.Red));
-    ScalarMap map1contour;
+    // dpys[0].addMap(new ScalarMap(ir_radiance, Display.Green));
+    // dpys[0].addMap(new ConstantMap(0.5, Display.Blue));
+    // dpys[0].addMap(new ConstantMap(0.5, Display.Red));
+    map1color = new ScalarMap(vis_radiance, Display.RGB);
+    dpys[0].addMap(map1color);
     map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
     dpys[0].addMap(map1contour);
 
@@ -83,8 +107,15 @@ public class Test02
   Component getSpecialComponent(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
-    ScalarMap map1contour = (ScalarMap )dpys[0].getMapVector().lastElement();
-    return new ContourWidget(map1contour);
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+    panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+    panel.add(new ContourWidget(map1contour));
+    panel.add(new LabeledColorWidget(map1color));
+    return panel;
+    // ScalarMap map1contour = (ScalarMap )dpys[0].getMapVector().lastElement();
+    // return new ContourWidget(map1contour);
   }
 
   public String toString()

@@ -561,8 +561,10 @@ public class BaseColorControl
           }
         }
       } else if (function != null) {
-        Linear1DSet set = new Linear1DSet(functionDomainType, (double )left,
-                                          (double )right, valLen,
+        double scale = (double) tableLength;
+        Linear1DSet set = new Linear1DSet(functionDomainType,
+                                          (double ) (left / scale),
+                                          (double ) (right / scale), valLen,
                                           functionCoordinateSystem,
                                           functionUnits, null);
         Field field =
