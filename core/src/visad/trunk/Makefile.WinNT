@@ -614,6 +614,7 @@ $(NCSA)\exceptions\*.class \
 data\hdf5\hdf5objects\*.class \
 data\hdf5\*.class \
 python\*.class \
+matrix\*.class \
 math\*.class \
 browser\*.class \
 util\*.class \
@@ -670,6 +671,7 @@ compile: clean
 	$(JC) $(JFLAGS) data\hdf5\hdf5objects\*.java
 	$(JC) $(JFLAGS) data\hdf5\*.java
 	$(JC) $(JFLAGS) python\*.java
+	$(JC) $(JFLAGS) matrix\*.java
 	$(JC) $(JFLAGS) math\*.java
 	$(JC) $(JFLAGS) browser\*.java
 	$(JC) $(JFLAGS) util\*.java
