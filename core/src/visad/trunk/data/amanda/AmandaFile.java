@@ -310,6 +310,8 @@ public class AmandaFile
     return (Event )events.get(index);
   }
 
+  public final int getNumberOfEvents() { return events.size(); }
+
   public final double getXMax() { return xmax; }
   public final double getXMin() { return xmin; }
 
@@ -604,12 +606,14 @@ public class AmandaFile
     try {
       amplitude = parseFloat("htAmp", tok.nextToken());
 
-      // skip next two tokens
+      // skip pulse id & parent track
       tok.nextToken();
       tok.nextToken();
 
       leadEdgeTime = parseFloat("htLet", tok.nextToken());
       timeOverThreshold = parseFloat("htTot", tok.nextToken());
+
+      // ignore number of TDC edges
     } catch(NumberFormatException e) {
       throw new BadFormException("Bad HIT line \"" + line + "\": " +
                                  e.getMessage());
