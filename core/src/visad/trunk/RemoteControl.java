@@ -27,7 +27,6 @@ MA 02111-1307, USA
 package visad;
  
 import java.rmi.Remote;
-import java.rmi.RemoteException;
  
 /**
    RemoteControl is the interface for Remote VisAD Control-s.
