@@ -1348,16 +1348,17 @@ if (initialize) {
       }
       v.addElement(gmc);
     }
-
-    synchronized (ControlVector) {
-      Enumeration enum = ControlVector.elements();
-      while(enum.hasMoreElements()) {
-        Control c = (Control )enum.nextElement();
-        if (ctlClass.isInstance(c)) {
-          if (v != null) {
-            v.addElement(c);
-          } else if (c.getInstanceNumber() == inst) {
-            return c;
+    else {
+      synchronized (ControlVector) {
+        Enumeration enum = ControlVector.elements();
+        while(enum.hasMoreElements()) {
+          Control c = (Control )enum.nextElement();
+          if (ctlClass.isInstance(c)) {
+            if (v != null) {
+              v.addElement(c);
+            } else if (c.getInstanceNumber() == inst) {
+              return c;
+            }
           }
         }
       }
