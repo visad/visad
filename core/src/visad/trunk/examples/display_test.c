@@ -27,7 +27,7 @@
  *
  *   cc -I/usr/java/include -I/usr/java/include/solaris \
  *      -o display_test display_test.c \
- *      -L/usr/java/jre/lib/sparc -ljvm
+ *      -L/usr/java/jre/lib/sparc -R/usr/java/jre/lib/sparc -ljvm
  *
  * (You will probably need to change all the "/usr/java" paths
  *  to whatever is appropriate on your machine.)
@@ -116,7 +116,7 @@ startJVM(JavaVM **jvmPtr, JNIEnv **envPtr)
   jvm_args.nOptions = nOptions;
   jvm_args.ignoreUnrecognized = 1;
 
-  return JNI_CreateJavaVM(jvmPtr, envPtr, &jvm_args);
+  return JNI_CreateJavaVM(jvmPtr, (void **)envPtr, (void *)&jvm_args);
 }
 
 static jclass
@@ -132,15 +132,15 @@ getTestClass(JNIEnv *env, int num)
 static jobject
 toString(JNIEnv *env, jclass class, jobject obj)
 {
-  jmethodID toString;
+  jmethodID toStringMethod;
 
-  toString = (*env)->GetMethodID(env, class, "toString",
+  toStringMethod = (*env)->GetMethodID(env, class, "toString",
 				 "()Ljava/lang/String;");
-  if (toString == NULL) {
+  if (toStringMethod == NULL) {
     return NULL;
   }
 
-  return (*env)->CallObjectMethod(env, obj, toString);
+  return (*env)->CallObjectMethod(env, obj, toStringMethod);
 }
 
 static int
@@ -241,7 +241,6 @@ describeTests(JNIEnv *env)
   printf("  java DisplayTest N, where N =\n");
 
   for (n = 0; 1; n++) {
-    jmethodID constructor;
     jobject testObj, classStr;
     const char *strChars;
 
