@@ -151,6 +151,9 @@ public class VisBio extends GUIFrame implements ChangeListener {
   /** Export dialog for saving data series. */
   private ExportDialog exporter;
 
+  /** Options dialog for configuring VisBio. */
+  OptionDialog options;
+
   /** Help dialog for detailing basic program usage. */
   private BioHelpWindow help;
 
@@ -191,12 +194,14 @@ public class VisBio extends GUIFrame implements ChangeListener {
     JPopupMenu.setDefaultLightWeightPopupEnabled(false);
     importer = new ImportDialog();
     exporter = new ExportDialog(this);
+    options = new OptionDialog(this);
     help = new BioHelpWindow();
 
     // menu bar
     addMenuItem("File", "Open...", "fileOpen", 'o');
     fileExport = addMenuItem("File", "Export...", "fileExport", 'e');
     addMenuItem("File", "Take snapshot...", "fileSnap", 's');
+    addMenuItem("File", "Options...", "fileOptions", 't');
     addMenuSeparator("File");
     addMenuItem("File", "Exit", "fileExit", 'x');
     fileExport.setEnabled(false);
@@ -580,6 +585,16 @@ public class VisBio extends GUIFrame implements ChangeListener {
     t.start();
   }
 
+  /** Displays the VisBio options dialog box. */
+  public void fileOptions() {
+    Util.invoke(false, new Runnable() {
+      public void run() {
+        // display options dialog
+        options.showDialog();
+      }
+    });
+  }
+
   /** Exits the application. */
   public void fileExit() {
     mm.checkSave();
@@ -668,6 +683,10 @@ public class VisBio extends GUIFrame implements ChangeListener {
     });
     Util.centerWindow(bio);
     bio.show();
+    if (bio.options.isQTAuto()) {
+      bio.options.searchQT();
+      bio.options.writeIni();
+    }
     bio.state.checkState();
   }
 

@@ -54,9 +54,6 @@ public class ExportDialog extends JPanel
   /** Return value if cancel is chosen. */
   public static final int CANCEL_OPTION = 2;
 
-  /** Flag indicating whether QuickTime support is available. */
-  private static final boolean CAN_DO_QT = Util.canDoQuickTime();
-
 
   // -- FIELDS --
 
@@ -121,7 +118,6 @@ public class ExportDialog extends JPanel
     picFormat = new JRadioButton("Bio-Rad PIC", true);
     tiffFormat = new JRadioButton("Multi-page TIFF");
     qtFormat = new JRadioButton("QuickTime movie");
-    qtFormat.setEnabled(CAN_DO_QT);
     ButtonGroup group = new ButtonGroup();
     group.add(picFormat);
     group.add(tiffFormat);
@@ -215,6 +211,7 @@ public class ExportDialog extends JPanel
       chooser.end.setText("" + maxIndex);
     }
 
+    qtFormat.setEnabled(bio.options.isQTEnabled());
     dialog.setContentPane(this);
     dialog.pack();
     Util.centerWindow(dialog);
