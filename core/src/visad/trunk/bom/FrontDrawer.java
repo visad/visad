@@ -94,7 +94,7 @@ public class FrontDrawer extends Object {
   private float[][][] curves = null;
   private boolean[] flips = null;
 
-  private FieldImpl fronts = null; //
+  private FieldImpl fronts = null;
   // (RealType.Time -> (front_index ->
   //       ((Latitude, Longitude) -> (front_red, front_green, front_blue))))
   private static FunctionType fronts_type = null;
@@ -519,22 +519,22 @@ public class FrontDrawer extends Object {
 
   /** manipulable front with predefined pattern front_kind and
       user specified color arrays */
-  public FrontDrawer(DataReferenceImpl cr, DisplayImplJ3D d, int fw,
-                     int front_kind,
+  public FrontDrawer(FieldImpl fs, float[][][] cs,
+                     DisplayImplJ3D d, int fw, int front_kind,
                      float[] fred, float[] fgreen, float[] fblue,
                      float[] rred, float[] rgreen, float[] rblue)
          throws VisADException, RemoteException {
-    this(cr, d, fw, segmentarray[front_kind],
+    this(fs, cs, d, fw, segmentarray[front_kind],
          fshapesarray[front_kind], fred, fgreen, fblue,
          rshapesarray[front_kind], rred, rgreen, rblue);
   }
 
   /** manipulable front with predefined pattern front_kind and
       default color arrays */
-  public FrontDrawer(DataReferenceImpl cr, DisplayImplJ3D d, int fw,
-                     int front_kind)
+  public FrontDrawer(FieldImpl fs, float[][][] cs,
+                     DisplayImplJ3D d, int fw, int front_kind)
          throws VisADException, RemoteException {
-    this(cr, d, fw, segmentarray[front_kind],
+    this(fs, cs, d, fw, segmentarray[front_kind],
          fshapesarray[front_kind], fredarray[front_kind],
          fgreenarray[front_kind], fbluearray[front_kind],
          rshapesarray[front_kind], rredarray[front_kind],
@@ -543,17 +543,20 @@ public class FrontDrawer extends Object {
 
 
   /**
-     cr should be null or cr.getData() should have MathType:
-       Set(RealType.Latitude, RealType.Longitude)
+     fs is null or has MathType
+       (RealType.Time -> (front_index ->
+           ((Latitude, Longitude) -> (front_red, front_green, front_blue))))
+     cs is null or contains a time array of curves for fs
+     fw is the filter window size for smoothing the curve
+     segment is length in graphics coordinates of entire profile
      fshapes is dimensioned [nfshapes][2][points_per_shape]
      fred, fgreen and fblue are dimensioned [nfshapes]
      rshapes is dimensioned [nrshapes][2][points_per_shape]
      rred, rgreen and rblue are dimensioned [nrshapes]
-     segment is length in graphics coordinates of entire profile
      fshapes[*][0][*] and rshapes[*][0][*] generally in range 0.0f to segment
-     fw is the filter window size for smoothing the curve
   */
-  public FrontDrawer(DataReferenceImpl cr, DisplayImplJ3D d,
+  public FrontDrawer(FieldImpl fs, float[][][] cs,
+                     DisplayImplJ3D d,
                      int fw, float segment,
                      float[][][] fshapes,
                      float[] fred, float[] fgreen, float[] fblue,
@@ -567,14 +570,14 @@ public class FrontDrawer extends Object {
       // if (debug) System.out.println("caught " + e.toString());
     }
 
-    if (cr == null) {
-      curve_ref = new DataReferenceImpl("curve_ref");
+    curve_ref = new DataReferenceImpl("curve_ref");
+    Gridded2DSet set = null;
+    if (cs == null) {
+      set = new Gridded2DSet(curve_type, new float[][] {{0.0f}, {0.0f}}, 1);
     }
     else {
-      curve_ref = cr;
+      set = new Gridded2DSet(curve_type, cs[0], cs[0][0].length);
     }
-    Gridded2DSet set =
-      new Gridded2DSet(curve_type, new float[][] {{0.0f}, {0.0f}}, 1); // ??
     init_curve = new UnionSet(curve_type, new Gridded2DSet[] {set});
 
     Data data = curve_ref.getData();
@@ -713,9 +716,27 @@ public class FrontDrawer extends Object {
     Set aset = acontrol.getSet();
     ntimes = aset.getLength();
     current_time_step = acontrol.getCurrent();
-    curves = new float[ntimes][][];
+    if (cs == null) {
+      curves = new float[ntimes][][];
+    }
+    else {
+      curves = cs;
+      if (cs.length != ntimes) {
+        throw new VisADException("cs bad number of times " +
+                                 cs.length + " != " + ntimes);
+      }
+    }
     flips = new boolean[ntimes];
-    fronts = new FieldImpl(fronts_type, aset);
+    if (fs == null) {
+      fronts = new FieldImpl(fronts_type, aset);
+    }
+    else {
+      fronts = fs;
+      if (!aset.equals(fs.getDomainSet())) {
+        throw new VisADException("fs bad time Set " +
+                                 fs.getDomainSet() + " != " + aset);
+      }
+    }
 
     // find spatial maps for Latitude and Longitude
     lat_map = null;
@@ -750,6 +771,7 @@ public class FrontDrawer extends Object {
     display.addReferences(front_manipulation_renderer, curve_ref);
 
     front_ref = new DataReferenceImpl("front");
+    front_ref.setData(fronts);
     front_renderer = new DefaultRendererJ3D();
     front_renderer.suppressExceptions(true);
     display.addReferences(front_renderer, front_ref);
@@ -808,12 +830,19 @@ public class FrontDrawer extends Object {
 
   class ReleaseCell extends CellImpl {
 
+    private boolean first = true;
+
     public ReleaseCell() {
     }
 
     public void doAction() throws VisADException, RemoteException {
+      if (first) {
+        first = false;
+        return;
+      }
       if (acontrol.getOn()) return;
       current_time_step = acontrol.getCurrent();
+      // System.out.println("ReleaseCell " + current_time_step + " " + ntimes);
       if (current_time_step < 0 || current_time_step >= ntimes) return;
 
       synchronized (data_lock) {
@@ -821,7 +850,7 @@ public class FrontDrawer extends Object {
         if (curve_ref != null) data = curve_ref.getData();
         Gridded2DSet curve_set = null;
         if (data == null || !(data instanceof UnionSet)) {
-          // if (debug) System.out.println("data null or not UnionSet");
+          if (debug) System.out.println("data null or not UnionSet");
           if (curve_ref != null) curve_ref.setData(init_curve);
           curve_set = last_curve_set;
         }
@@ -864,11 +893,11 @@ public class FrontDrawer extends Object {
             if (curve_set != null) curve_samples = curve_set.getSamples(false);
             if (curve_samples == null || curve_samples[0].length < 2) {
               if (curve_ref != null) curve_ref.setData(init_curve);
-              throw new VisADException("bad last curve_samples");
+              // throw new VisADException("bad last curve_samples");
             }
           }
           catch (VisADException ee) {
-            // if (debug) System.out.println("release " + ee);
+            if (debug) System.out.println("release " + ee);
             return;
           }
         }
@@ -895,10 +924,10 @@ public class FrontDrawer extends Object {
         front = robustCurveToFront(curve, flip);
         curves[current_time_step] = curve;
         flips[current_time_step] = flip;
-        fronts.setSample(current_time_step, front);
+        if (front != null) fronts.setSample(current_time_step, front);
 
+        // System.out.println("front_ref.setData in ReleaseCell");
         front_ref.setData(fronts);
-        // front_ref.setData(front);
 
         if (curve_ref != null) curve_ref.setData(init_curve);
       } // end synchronized (data_lock)
@@ -914,7 +943,8 @@ public class FrontDrawer extends Object {
       synchronized (data_lock) {
         for (int i=0; i<ntimes; i++) {
           if (curves[i] != null) {
-            fronts.setSample(i, robustCurveToFront(curves[i], flips[i]));
+            front = robustCurveToFront(curves[i], flips[i]);
+            if (front != null) fronts.setSample(i, front);
           }
         }
       } // end synchronized (data_lock)
@@ -992,7 +1022,7 @@ public class FrontDrawer extends Object {
 
   /** called by the application to end manipulation;
       returns the final front */
-  public FieldImpl endItAll()
+  public Vector endItAll()
          throws VisADException, RemoteException {
     synchronized (data_lock) {
       if (curve_ref != null) display.removeReference(curve_ref);
@@ -1005,7 +1035,10 @@ public class FrontDrawer extends Object {
       }
       front_ref = null;
     }
-    return front;
+    Vector vector = new Vector();
+    vector.addElement(fronts);
+    vector.addElement(curves);
+    return vector;
   }
 
   private static final float CLIP_DELTA = 0.001f;
@@ -1341,6 +1374,7 @@ public class FrontDrawer extends Object {
 
     initColormaps(display);
 
+/*
     float[][] curve = {{-35.0f, -30.0f, -25.0f}, {10.0f, 10.0f, 10.0f}};
     Gridded2DSet set =
       new Gridded2DSet(curve_type, curve, 3);
@@ -1348,6 +1382,7 @@ public class FrontDrawer extends Object {
 
     DataReferenceImpl curve_ref = new DataReferenceImpl("curve_ref");
     curve_ref.setData(init_curve);
+*/
 
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("test FrontDrawer");
@@ -1372,18 +1407,17 @@ public class FrontDrawer extends Object {
     }
     catch(NumberFormatException e) {
     }
-    FrontDrawer fd = new FrontDrawer(curve_ref, display, 8, front_kind);
-
+    FrontDrawer fd = new FrontDrawer(null, null, display, 8, front_kind);
 
     JPanel button_panel = new JPanel();
     button_panel.setLayout(new BoxLayout(button_panel, BoxLayout.X_AXIS));
     button_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
     button_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
 
-    FrontActionListener fal = new FrontActionListener(fd);
-    JButton end = new JButton("end manip");
+    JButton end = new JButton("detach");
+    FrontActionListener fal = new FrontActionListener(fd, end, display, front_kind);
     end.addActionListener(fal);
-    end.setActionCommand("end");
+    end.setActionCommand("detach");
     button_panel.add(end);
     panel.add(button_panel);
 
@@ -1394,23 +1428,49 @@ public class FrontDrawer extends Object {
 }
 
 class FrontActionListener implements ActionListener {
-  FrontDrawer fd;
+  private FrontDrawer fd;
   private static boolean debug = true;
+  private JButton end;
+  private DisplayImplJ3D display;
+  private int front_kind;
 
-  FrontActionListener(FrontDrawer f) {
+  private FieldImpl fronts = null;
+  private float[][][] curves = null;
+
+  FrontActionListener(FrontDrawer f, JButton e, DisplayImplJ3D d, int fk) {
     fd = f;
+    end = e;
+    display = d;
+    front_kind = fk;
   }
 
   public void actionPerformed(ActionEvent e) {
     String cmd = e.getActionCommand();
-    if (cmd.equals("end")) {
-      try {
-        fd.endManipulation();
-        // if (debug) System.out.println("end " + front.getType());
+    if (cmd.equals("detach")) {
+      if (end.getText().equals("detach")) {
+        end.setText("attach");
+        Vector vector = null;
+        try {
+          vector = fd.endItAll();
+        }
+        catch (VisADException ex) {
+        }
+        catch (RemoteException ex) {
+        }
+        fronts = (FieldImpl) vector.elementAt(0);
+        curves = (float[][][]) vector.elementAt(1);
       }
-      catch (VisADException ex) {
-      }
-      catch (RemoteException ex) {
+      else {
+        end.setText("detach");
+        try {
+          // System.out.println("fronts " + fronts);
+          // System.out.println("curves " + curves);
+          fd = new FrontDrawer(fronts, curves, display, 8, front_kind);
+        }
+        catch (VisADException ex) {
+        }
+        catch (RemoteException ex) {
+        }
       }
     }
   }
