@@ -68,26 +68,24 @@ public class Hits
     }
   }
 
+  private float[] timeSteps = null;
+
   public Hits() { }
 
-  public final void add(Hit hit) { super.add(hit); }
+  public final void add(Hit hit)
+  {
+    super.add(hit);
 
-  public final Hit get(int i) { return (Hit )super.internalGet(i); }
+    // need to recompute timesteps
+    timeSteps = null;
+  }
 
-  final FieldImpl makeTimeSequence()
+  /**
+   * Build the array of timesteps
+   */
+  private final void computeTimeSteps()
   {
     final int numHits = size();
-
-    // build some VisAD Data objects which will be used later
-    Integer1DSet subSet;
-    FlatField missingFld;
-    try {
-      subSet = new Integer1DSet(indexType, numHits);
-      missingFld = new FlatField(indexTupleType, subSet);
-    } catch (VisADException ve) {
-      ve.printStackTrace();
-      return null;
-    }
 
     float startTime = Float.MAX_VALUE;
     float endTime = Float.MIN_VALUE;
@@ -114,22 +112,56 @@ public class Hits
       }
     }
 
-    final float dist = endTime - startTime;
+    final float totalTime = endTime - startTime;
 
-    int steps = (int )(dist / minLen);
+    // figure out how many time steps we can fit into the total interval
+    int steps = (int )(totalTime / minLen);
     if (steps < MIN_TIMESTEPS) {
       steps = MIN_TIMESTEPS;
     } else if (steps > MAX_TIMESTEPS) {
       steps = MAX_TIMESTEPS;
     }
 
-    final float stepLen = dist / (float )steps;
+    // compute amount of time for each step
+    final float stepLen = totalTime / (float )steps;
 
-    float[] timeSteps = new float[steps+1];
+    timeSteps = new float[steps+1];
 
+    // build array of time steps
     timeSteps[0] = startTime;
     for (int i = 0; i < steps; i++) {
       timeSteps[i+1] = timeSteps[i] + stepLen;
+    }
+  }
+
+  public final Hit get(int i) { return (Hit )super.internalGet(i); }
+
+  final float[] getTimeSteps()
+  {
+    if (timeSteps == null) {
+      computeTimeSteps();
+    }
+
+    return timeSteps;
+  }
+
+  final FieldImpl makeTimeSequence()
+  {
+    final int numHits = size();
+
+    // build some VisAD Data objects which will be used later
+    Integer1DSet subSet;
+    FlatField missingFld;
+    try {
+      subSet = new Integer1DSet(indexType, numHits);
+      missingFld = new FlatField(indexTupleType, subSet);
+    } catch (VisADException ve) {
+      ve.printStackTrace();
+      return null;
+    }
+
+    if (timeSteps == null) {
+      computeTimeSteps();
     }
 
     FlatField[] data = new FlatField[timeSteps.length];

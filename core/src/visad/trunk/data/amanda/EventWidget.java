@@ -42,14 +42,15 @@ public class EventWidget
   private Event thisEvent;
 
   public EventWidget(AmandaFile fileData, DataReferenceImpl eventRef,
-                     AnimationControl animCtl)
+                     DataReferenceImpl trackRef, AnimationControl animCtl)
     throws RemoteException, VisADException
   {
-    this(fileData, eventRef, animCtl, null);
+    this(fileData, eventRef, trackRef, animCtl, null);
   }
 
   public EventWidget(AmandaFile fileData, DataReferenceImpl eventRef,
-                     AnimationControl animCtl, ScalarMap trackMap)
+                     DataReferenceImpl trackRef, AnimationControl animCtl,
+                     ScalarMap trackMap)
     throws RemoteException, VisADException
   {
     super();
@@ -66,7 +67,7 @@ public class EventWidget
     if (trackMap == null) {
       trackWidget = null;
     } else {
-      trackWidget = new TrackWidget(trackMap);
+      trackWidget = new TrackWidget(trackMap, trackRef);
     }
     dateLabel = new JLabel();
 
@@ -82,12 +83,12 @@ public class EventWidget
   private VisADSlider buildSlider(int initialLength)
     throws RemoteException, VisADException
   {
-    final DataReferenceImpl eventRef = new DataReferenceImpl("event");
+    final DataReferenceImpl eSliderRef = new DataReferenceImpl("eSlider");
 
     sliderLength = initialLength;
 
     VisADSlider slider = new VisADSlider("event", 0, initialLength - 1, 0, 1.0,
-                                         eventRef, Event.indexType, true);
+                                         eSliderRef, Event.indexType, true);
     slider.hardcodeSizePercent(110); // leave room for label changes
 
     // call setIndex() whenever slider changes
@@ -95,7 +96,7 @@ public class EventWidget
       public void doAction()
         throws RemoteException, VisADException
       {
-        Real r = (Real )eventRef.getData();
+        Real r = (Real )eSliderRef.getData();
         if (r != null) {
           int index = (int )r.getValue();
           if (index < 0) {
@@ -107,7 +108,7 @@ public class EventWidget
         }
       }
     };
-    cell.addReference(eventRef);
+    cell.addReference(eSliderRef);
 
     return slider;
   }
@@ -154,10 +155,10 @@ public class EventWidget
       eventRef.setData(Event.missing);
       dateLabel.setText("*** NO DATE ***");
     } else {
-      FieldImpl seq = thisEvent.makeTimeSequence();
+      final FieldImpl hitSeq = thisEvent.makeHitSequence();
+      eventRef.setData(hitSeq);
 
-      eventRef.setData(seq);
-      animCtl.setSet(seq.getDomainSet());
+      animCtl.setSet(hitSeq.getDomainSet());
 
       dateLabel.setText(getDate(thisEvent.getYear(), thisEvent.getDay(),
                                 thisEvent.getTime()).toGMTString());
@@ -165,7 +166,6 @@ public class EventWidget
     }
 
     if (trackWidget != null) trackWidget.setEvent(thisEvent);
-
     this.invalidate();
   }
 }

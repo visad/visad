@@ -87,6 +87,9 @@ public class Event
 
   public final int getDay() { return day; }
   public final int getNumber() { return number; }
+
+  public final int getNumberOfTracks() { return tracks.size(); }
+
   public final int getRun() { return run; }
   public final double getTime() { return time; }
   public final double getTimeShift() { return timeShift; }
@@ -95,9 +98,14 @@ public class Event
 
   public final int getYear() { return year; }
 
-  public final FieldImpl makeTimeSequence()
+  public final FieldImpl makeHitSequence()
   {
     return hits.makeTimeSequence();
+  }
+
+  public final FieldImpl makeTrackSequence(int idx)
+  {
+    return tracks.get(idx).makeTimeSequence(hits.getTimeSteps());
   }
 
   public String toString()

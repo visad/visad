@@ -50,7 +50,18 @@ public class Tracks
 
   public final void add(BaseTrack track) { super.add(track); }
 
-  public final BaseTrack get(int i) { return (BaseTrack )super.internalGet(i); }
+  public final void computeSamples(float[] timeSteps)
+  {
+    final int num = size();
+    for (int i = 0; i < num; i++) {
+      get(i).computeSamples(timeSteps);
+    }
+  }
+
+  public final BaseTrack get(int i)
+  {
+    return (BaseTrack )super.internalGet(i);
+  }
 
   public final Data makeData()
     throws RemoteException, VisADException

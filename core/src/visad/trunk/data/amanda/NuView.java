@@ -104,6 +104,10 @@ public class NuView
     ScalarMap shapeMap = new ScalarMap(Hit.amplitudeType, Display.Shape);
     display.addMap(shapeMap);
 
+    ScalarMap trackMap =
+      new ScalarMap(BaseTrack.indexType, Display.SelectValue);
+    display.addMap(trackMap);
+
     ShapeControl sctl = (ShapeControl )shapeMap.getControl();
     sctl.setShapeSet(new Integer1DSet(Hit.amplitudeType, 1));
     sctl.setShapes(F2000Util.getCubeArray());
@@ -141,6 +145,10 @@ public class NuView
     // data set by eventWidget below
     display.addReference(eventRef);
 
+    final DataReferenceImpl trackRef = new DataReferenceImpl("track");
+    // data set by eventWidget below
+    display.addReference(trackRef);
+
     final DataReferenceImpl modulesRef = new DataReferenceImpl("modules");
     modulesRef.setData(file.makeModuleData());
     display.addReference(modulesRef);
@@ -152,7 +160,8 @@ public class NuView
 
     AnimationControl animCtl = (AnimationControl )animMap.getControl();
 
-    EventWidget eventWidget = new EventWidget(file, eventRef, animCtl);
+    EventWidget eventWidget = new EventWidget(file, eventRef, trackRef,
+                                              animCtl, trackMap);
 
     AnimationWidget animWidget;
     try {

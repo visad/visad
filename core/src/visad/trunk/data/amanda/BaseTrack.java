@@ -25,11 +25,14 @@ package visad.data.amanda;
 import java.rmi.RemoteException;
 
 import visad.Data;
+import visad.FieldImpl;
 import visad.FlatField;
 import visad.FunctionType;
+import visad.Gridded1DSet;
 import visad.Gridded3DSet;
 import visad.RealTupleType;
 import visad.RealType;
+import visad.SetType;
 import visad.VisADException;
 
 public abstract class BaseTrack
@@ -41,19 +44,36 @@ public abstract class BaseTrack
     RealType.getRealType("Track_Energy");
 
   public static FunctionType functionType;
+  public static FunctionType timeSequenceType;
+  public static FieldImpl missing;
+
+  private static FunctionType indexTupleType;
 
   static {
     try {
       functionType =
         new FunctionType(AmandaFile.xyzType,
                          new RealTupleType(RealType.Time, energyType));
+
+      timeSequenceType = new FunctionType(RealType.Time,
+                                          new SetType(AmandaFile.xyzType));
+
+      Gridded1DSet set = new Gridded1DSet(RealType.Time, new float[1][1], 1);
+      missing = new FieldImpl(timeSequenceType, set);
     } catch (VisADException ve) {
       ve.printStackTrace();
       functionType = null;
+      indexTupleType = null;
+      timeSequenceType = null;
+      missing = null;
     }
   }
 
   private static final float LENGTH_SCALE = 1000.0f;
+
+  private static final int X_SAMPLE = 0;
+  private static final int Y_SAMPLE = 1;
+  private static final int Z_SAMPLE = 2;
 
   private float xstart;
   private float ystart;
@@ -64,6 +84,9 @@ public abstract class BaseTrack
   private float energy;
   private float time;
   private float maxLength;
+
+  private float[] timeSteps;
+  private float[][] samples;
 
   BaseTrack(float xstart, float ystart, float zstart, float zenith,
             float azimuth, float length, float energy, float time)
@@ -76,10 +99,106 @@ public abstract class BaseTrack
     this.length = length;
     this.energy = energy;
     this.time = time;
+
+    timeSteps = null;
+    samples = null;
+  }
+
+  final void computeSamples(float[] timeSteps)
+  {
+    final double degrees2radians = Data.DEGREES_TO_RADIANS;
+
+    final double sinZenith = Math.sin(zenith * degrees2radians);
+    final double cosZenith = Math.cos(zenith * degrees2radians);
+
+    final double sinAzimuth = Math.sin(azimuth * degrees2radians);
+    final double cosAzimuth = Math.cos(azimuth * degrees2radians);
+
+    // speed of light (.3 m/nanosecond)
+    final double SPEED_OF_LIGHT = 0.3 /* * 1000.0 */;
+
+    final float timeOrigin, xOrigin, yOrigin, zOrigin;
+    if (timeSteps.length == 0) {
+      timeOrigin = time;
+      xOrigin = xstart;
+      yOrigin = ystart;
+      zOrigin = zstart;
+      samples = null;
+    } else {
+      timeOrigin = timeSteps[0];
+
+      final double length = (timeOrigin - time) * SPEED_OF_LIGHT;
+
+      xOrigin = xstart + (float )(length * sinZenith * cosAzimuth);
+      yOrigin = ystart + (float )(length * sinZenith * sinAzimuth);
+      zOrigin = zstart + (float )(length * cosZenith);
+
+      samples = new float[timeSteps.length + 1][3];
+
+      samples[0][X_SAMPLE] = xOrigin;
+      samples[0][Y_SAMPLE] = yOrigin;
+      samples[0][Z_SAMPLE] = zOrigin;
+    }
+
+    for (int i = 0; i < timeSteps.length; i++) {
+
+      final double length = (timeSteps[i] - timeOrigin) * SPEED_OF_LIGHT;
+
+      float xDelta = (float )(length * sinZenith * cosAzimuth);
+      float yDelta = (float )(length * sinZenith * sinAzimuth);
+      float zDelta = (float )(length * cosZenith);
+
+      samples[i][X_SAMPLE] = xOrigin + xDelta;
+      samples[i][Y_SAMPLE] = yOrigin + yDelta;
+      samples[i][Z_SAMPLE] = zOrigin + zDelta;
+    }
+
+    this.timeSteps = timeSteps;
   }
 
   public final float getEnergy() { return energy; }
   public final float getLength() { return length; }
+
+  private final float getMaxSample(int sample, float dfltValue)
+  {
+    if (samples == null) {
+      System.err.println("BaseTrack.getMaxSample() called before " +
+                         "BaseTrack.computeSamples()");
+      Thread.dumpStack();
+      return dfltValue;
+    }
+
+    float max = samples[0][sample];
+    for (int i = 1; i < samples.length; i++) {
+      if (samples[i][sample] > max) max = samples[i][sample];
+    }
+
+    return max;
+  }
+
+  private final float getMinSample(int sample, float dfltValue)
+  {
+    if (samples == null) {
+      System.err.println("BaseTrack.getMinSample() called before " +
+                         "BaseTrack.computeSamples()");
+      Thread.dumpStack();
+      return dfltValue;
+    }
+
+    float min = samples[0][sample];
+    for (int i = 1; i < samples.length; i++) {
+      if (samples[i][sample] < min) min = samples[i][sample];
+    }
+
+    return min;
+  }
+
+  public final float getXMax() { return getMaxSample(X_SAMPLE, xstart); }
+  public final float getXMin() { return getMinSample(X_SAMPLE, xstart); }
+  public final float getYMax() { return getMaxSample(Y_SAMPLE, xstart); }
+  public final float getYMin() { return getMinSample(Y_SAMPLE, ystart); }
+  public final float getZMax() { return getMaxSample(Z_SAMPLE, xstart); }
+  public final float getZMin() { return getMinSample(Z_SAMPLE, zstart); }
 
   abstract FlatField makeData()
     throws VisADException;
@@ -129,6 +248,162 @@ public abstract class BaseTrack
     return field;
   }
 
+  final FieldImpl makeTimeSequence()
+  {
+    Gridded3DSet[] sets = new Gridded3DSet[timeSteps.length];
+    Gridded3DSet missingSet = null;
+
+    for (int i = 0; i < timeSteps.length; i++) {
+
+      float[][] locs = {
+        { samples[0][X_SAMPLE], samples[i][X_SAMPLE] },
+        { samples[0][Y_SAMPLE], samples[i][Y_SAMPLE] },
+        { samples[0][Z_SAMPLE], samples[i][Z_SAMPLE] },
+      };
+
+      Gridded3DSet subSet;
+      try {
+        subSet = new Gridded3DSet(AmandaFile.xyzType, locs, 2);
+      } catch (VisADException ve) {
+        ve.printStackTrace();
+
+        if (missingSet == null) {
+          try {
+            missingSet =
+              new Gridded3DSet(AmandaFile.xyzType, new float[3][1], 1);
+          } catch (VisADException ve2) {
+            ve2.printStackTrace();
+          }
+        }
+        subSet = missingSet;
+      }
+
+      sets[i] = subSet;
+    }
+
+    Gridded1DSet set;
+    try {
+      set = new Gridded1DSet(RealType.Time,
+                             new float[][] { timeSteps },
+                             timeSteps.length);
+    } catch (VisADException ve) {
+      ve.printStackTrace();
+      set = null;
+    }
+
+    FieldImpl fld;
+    try {
+      fld = new FieldImpl(timeSequenceType, set);
+      fld.setSamples(sets, false);
+    } catch (VisADException ve) {
+      ve.printStackTrace();
+      fld = missing;
+    } catch (RemoteException re) {
+      re.printStackTrace();
+      fld = missing;
+    }
+
+    return fld;
+  }
+
+  final FieldImpl makeTimeSequence(float[] timeSteps)
+  {
+    final double degrees2radians = Data.DEGREES_TO_RADIANS;
+
+    final double sinZenith = Math.sin(zenith * degrees2radians);
+    final double cosZenith = Math.cos(zenith * degrees2radians);
+
+    final double sinAzimuth = Math.sin(azimuth * degrees2radians);
+    final double cosAzimuth = Math.cos(azimuth * degrees2radians);
+
+    // speed of light (.3 m/nanosecond)
+    final double SPEED_OF_LIGHT = 0.3 * 100.0;
+
+    Gridded3DSet[] sets = new Gridded3DSet[timeSteps.length];
+    Gridded3DSet missingSet = null;
+
+    final float timeOrigin, xOrigin, yOrigin, zOrigin;
+    if (timeSteps.length == 0) {
+      timeOrigin = time;
+      xOrigin = xstart;
+      yOrigin = ystart;
+      zOrigin = zstart;
+      samples = null;
+    } else {
+      timeOrigin = timeSteps[0];
+
+      final double length = (timeOrigin - time) * SPEED_OF_LIGHT;
+
+      xOrigin = xstart + (float )(length * sinZenith * cosAzimuth);
+      yOrigin = ystart + (float )(length * sinZenith * sinAzimuth);
+      zOrigin = zstart + (float )(length * cosZenith);
+
+      samples = new float[timeSteps.length + 1][3];
+
+      samples[0][X_SAMPLE] = xOrigin;
+      samples[0][Y_SAMPLE] = yOrigin;
+      samples[0][Z_SAMPLE] = zOrigin;
+    }
+
+    for (int i = 0; i < timeSteps.length; i++) {
+
+      final double length = (timeSteps[i] - timeOrigin) * SPEED_OF_LIGHT;
+
+      float xDelta = (float )(length * sinZenith * cosAzimuth);
+      float yDelta = (float )(length * sinZenith * sinAzimuth);
+      float zDelta = (float )(length * cosZenith);
+
+      float[][] locs = {
+        { xOrigin, xOrigin + xDelta },
+        { yOrigin, yOrigin + yDelta },
+        { zOrigin, zOrigin + zDelta },
+      };
+
+      Gridded3DSet subSet;
+      try {
+        subSet = new Gridded3DSet(AmandaFile.xyzType, locs, 2);
+      } catch (VisADException ve) {
+        ve.printStackTrace();
+
+        if (missingSet == null) {
+          try {
+            missingSet =
+              new Gridded3DSet(AmandaFile.xyzType, new float[3][1], 1);
+          } catch (VisADException ve2) {
+            ve2.printStackTrace();
+          }
+        }
+        subSet = missingSet;
+      }
+
+      sets[i] = subSet;
+    }
+
+    Gridded1DSet set;
+    try {
+      set = new Gridded1DSet(RealType.Time,
+                             new float[][] { timeSteps },
+                             timeSteps.length);
+    } catch (VisADException ve) {
+      ve.printStackTrace();
+      set = null;
+    }
+
+    FieldImpl fld;
+    try {
+      fld = new FieldImpl(timeSequenceType, set);
+      fld.setSamples(sets, false);
+    } catch (VisADException ve) {
+      ve.printStackTrace();
+      fld = missing;
+    } catch (RemoteException re) {
+      re.printStackTrace();
+      fld = missing;
+    }
+
+    return fld;
+  }
+
   public String toString()
   {
     String fullName = getClass().getName();
@@ -140,6 +415,7 @@ public abstract class BaseTrack
     String className = fullName.substring(pt == -1 ? 0 : pt + 1);
 
     return className + "[" + xstart + "," + ystart + "," + zstart +
-      " LA#" + zenith + " LO#" + azimuth + "]";
+      " LA#" + zenith + " LO#" + azimuth + " LE#" + length + " NRG#" +
+      energy + " TIM#" + time + "]";
   }
 }

@@ -343,7 +343,7 @@ public class AmandaFile
     if (num > 0) {
       Data[] samples = new Data[num];
       for (int e = 0; e < num; e++) {
-        samples[e] = ((Event )events.get(e)).makeTimeSequence();
+        samples[e] = ((Event )events.get(e)).makeHitSequence();
       }
       try {
         fld.setSamples(samples, false);
