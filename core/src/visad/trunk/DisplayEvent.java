@@ -39,6 +39,9 @@ public class DisplayEvent extends Event {
   public final static int MOUSE_PRESSED = 1;
   /* WLH 28 Oct 98 */
   public final static int TRANSFORM_DONE = 2;
+  /* TDR 1 Nov 98 */
+  //- Center mouse button pressed
+  public final static int MOUSE_PRESSED_CENTER = 3;
 
   private int id = 0;
 

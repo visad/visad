@@ -248,6 +248,18 @@ event_switch:
                 display_renderer.drag_cursor(cursor_ray, true);
               }
             }
+           //- TDR, Oct. 1998
+           if (!t2Pressed && !z2Pressed)
+           {
+             try {
+               display.notifyListeners(DisplayEvent.MOUSE_PRESSED_CENTER);
+             }
+             catch (VisADException e) {
+             }
+             catch (RemoteException e) {
+             }
+           }
+           //--
           }
           else if (mousePressed3 || mouseCombo3) {
             if (display_renderer.anyDirects()) {
