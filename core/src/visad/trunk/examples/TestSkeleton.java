@@ -223,6 +223,11 @@ public abstract class TestSkeleton
     }
   }
 
+  void getClientDataReferences(RemoteServer client)
+	throws RemoteException
+  {
+  }
+
   DisplayImpl[] setupClientData()
 	throws VisADException, RemoteException
   {
@@ -250,7 +255,15 @@ public abstract class TestSkeleton
       }
     }
 
+    // add any data references to server
+    getClientDataReferences(client);
+
     return dpys;
+  }
+
+  void setServerDataReferences(RemoteServerImpl server)
+	throws RemoteException
+  {
   }
 
   RemoteServerImpl setupServer(DisplayImpl[] dpys)
@@ -273,6 +286,9 @@ public abstract class TestSkeleton
 	server.addDisplay(new RemoteDisplayImpl(dpys[i]));
       }
     }
+
+    // add any data references to server
+    setServerDataReferences(server);
 
     return server;
   }
