@@ -460,6 +460,11 @@ public class SliceManager implements ControlListener {
           bio.toolView.guessTypes();
           configureDisplays();
 
+          // CTR - FIXME - plane selector logic
+          //PlaneSelector ps = new PlaneSelector(bio);
+          //ps.init();
+          //ps.toggle(true);
+
           // initialize measurement list array
           bio.mm.initLists(timesteps);
         }

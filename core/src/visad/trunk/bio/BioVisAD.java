@@ -213,17 +213,19 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     if (cc2 == null) return;
     ColorControl[] cc3 = sm.getColorControls3D();
 
+    // compute center and slope from brightness and contrast
     double mid = COLOR_DETAIL / 2.0;
     double center = (double) brightness / COLOR_DETAIL;
     double slope;
     if (contrast <= mid) slope = contrast / mid;
     else slope = mid / (COLOR_DETAIL - contrast);
 
+    // compute color channel table values from center and slope
     float[] vals = new float[COLOR_DETAIL];
     for (int i=0; i<COLOR_DETAIL; i++) {
       vals[i] = (float) (0.5 * slope * (i / mid - 1.0) + center);
-      if (vals[i] < 0) vals[i] = 0;
-      else if (vals[i] > 1) vals[i] = 1;
+      if (vals[i] < 0.0f) vals[i] = 0.0f;
+      else if (vals[i] > 1.0f) vals[i] = 1.0f;
     }
 
     // initialize color tables
