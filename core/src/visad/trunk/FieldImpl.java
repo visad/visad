@@ -1161,6 +1161,51 @@ public class FieldImpl extends FunctionImpl implements Field {
     return new_field;
   }
 
+  /** extract Field from this.component using the MathType
+  * of one of the range componenets
+  */
+
+  public Field extract(MathType type) throws VisADException, RemoteException {
+    int index = -1;
+    MathType rangeType = ((FunctionType)Type).getRange();
+    int n_comps = ((TupleType)rangeType).getDimension();
+    for (int i=0; i<n_comps; i++) {
+      MathType test_comp = ((TupleType)rangeType).getComponent(i);
+      if (test_comp.equals(type) ) {
+        index = i;
+        break;
+      }
+    }
+
+    if (index != -1) {
+      return extract(index);
+    } else {
+      return null; //?
+    }
+  }
+
+  /** extract Field from this.component using the name
+  * of one of the range componenets
+  */
+
+  public Field extract(String name) throws VisADException, RemoteException {
+    int index = -1;
+    MathType rangeType = ((FunctionType)Type).getRange();
+    int n_comps = ((TupleType)rangeType).getDimension();
+    for (int i=0; i<n_comps; i++) {
+      String test_comp = ((TupleType)rangeType).getComponent(i).toString();
+      if (test_comp.equals(name) || test_comp.equals("("+name+")")) {
+        index = i;
+        break;
+      }
+    }
+    if (index != -1) {
+      return extract(index);
+    } else {
+      return null; //?
+    }
+  }
+
   /** extract field from this[].component */
   public Field extract(int component)
          throws VisADException, RemoteException
