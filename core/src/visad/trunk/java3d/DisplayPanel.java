@@ -28,8 +28,10 @@ package visad.java3d;
 import visad.*;
  
 // GUI handling
-import com.sun.java.swing.*;
-import com.sun.java.swing.border.*;
+import java.awt.swing.*;
+import java.awt.swing.border.*;
+// import com.sun.java.swing.*;
+// import com.sun.java.swing.border.*;
 
 import java.awt.BorderLayout;
 import java.awt.event.*;

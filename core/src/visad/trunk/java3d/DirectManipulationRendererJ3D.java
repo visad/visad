@@ -53,7 +53,6 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
   private transient DataDisplayLink link = null;
   private transient ShadowTypeJ3D type = null;
   private transient DataReference ref = null;
-  private transient Data data = null;
 
   /** point on direct manifold line or plane */
   private float point_x, point_y, point_z;
@@ -116,17 +115,13 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
   }
 
   public void checkDirect() throws VisADException, RemoteException {
-    isDirectManipulation = false;
+    setIsDirectManipulation(false);
 
-    link = Links[0];
+    link = getLinks()[0];
     ref = link.getDataReference();
-    data = link.getData();
     ShadowType shadow = link.getShadow().getAdaptedShadowType();
-/* WLH 7 Feb 98
-    ShadowType shadow = Links[0].getShadow().getAdaptedShadowType();
-    Data data = Links[0].getData();
-*/
-    MathType type = data.getType();
+    MathType type = link.getType();
+
     if (type instanceof FunctionType) {
       ShadowRealTupleType domain =
         ((ShadowFunctionType) shadow).getDomain();
@@ -135,33 +130,27 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
       // there is some redundancy among these conditions
       if (!((FunctionType) type).getReal()) {
         whyNotDirect = notRealFunction;
-        data = null;
         return;
       }
       else if (shadow.getLevelOfDifficulty() != ShadowType.SIMPLE_FIELD) {
         whyNotDirect = notSimpleTuple;
-        data = null;
         return;
       }
       else if (shadow.getMultipleDisplayScalar()) {
         whyNotDirect = multipleMapping;
-        data = null;
         return;
       }
       else if (domain.getDimension() != 1) {
         whyNotDirect = domainDimension;
-        data = null;
         return;
       }
       else if(!(Display.DisplaySpatialCartesianTuple.equals(
                            domain.getDisplaySpatialTuple() ) ) ) {
         whyNotDirect = domainNotSpatial;
-        data = null;
         return;
       }
       else if (domain.getSpatialReference()) {
         whyNotDirect = viaReference;
-        data = null;
         return;
       }
       DisplayTupleType tuple = null;
@@ -173,7 +162,6 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
       }
       else {
         whyNotDirect = rangeType;
-        data = null;
         return;
       }
       if (!Display.DisplaySpatialCartesianTuple.equals(tuple)) {
@@ -183,16 +171,14 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
       else if (range instanceof ShadowRealTupleType &&
                ((ShadowRealTupleType) range).getSpatialReference()) {
         whyNotDirect = viaReference;
-        data = null;
         return;
       }
-      else if (!(data instanceof Field) ||
-               !(((Field) data).getDomainSet() instanceof Gridded1DSet)) {
+      else if (!(link.getData() instanceof Field) ||
+               !(((Field) link.getData()).getDomainSet() instanceof Gridded1DSet)) {
         whyNotDirect = domainSet;
-        data = null;
         return;
       }
-      isDirectManipulation = true;
+      setIsDirectManipulation(true);
    
       domainAxis = -1;
       for (int i=0; i<3; i++) {
@@ -230,26 +216,22 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
       //
       if (shadow.getLevelOfDifficulty() != ShadowType.SIMPLE_TUPLE) {
         whyNotDirect = notSimpleTuple;
-        data = null;
         return;
       }
       else if (shadow.getMultipleDisplayScalar()) {
         whyNotDirect = multipleMapping;
-        data = null;
         return;
       }
       else if (!Display.DisplaySpatialCartesianTuple.equals(
                    ((ShadowRealTupleType) shadow).getDisplaySpatialTuple())) {
         whyNotDirect = nonCartesian;
-        data = null;
         return;
       }
       else if (((ShadowRealTupleType) shadow).getSpatialReference()) {
         whyNotDirect = viaReference;
-        data = null;
         return;
       }
-      isDirectManipulation = true;
+      setIsDirectManipulation(true);
    
       domainAxis = -1;
       for (int i=0; i<3; i++) {
@@ -266,21 +248,18 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
     else if (type instanceof RealType) {
       if (shadow.getLevelOfDifficulty() != ShadowType.SIMPLE_TUPLE) {
         whyNotDirect = notSimpleTuple;
-        data = null;
         return;
       }
       else if (shadow.getMultipleDisplayScalar()) {
         whyNotDirect = multipleMapping;
-        data = null;
         return;
       }
       else if(!Display.DisplaySpatialCartesianTuple.equals(
                    ((ShadowRealType) shadow).getDisplaySpatialTuple())) {
         whyNotDirect = nonCartesian;
-        data = null;
         return;
       }
-      isDirectManipulation = true;
+      setIsDirectManipulation(true);
    
       domainAxis = -1;
       for (int i=0; i<3; i++) {
@@ -446,6 +425,7 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
     //
     try {
       Data newData = null;
+      Data data = link.getData();
       if (type instanceof ShadowRealTypeJ3D) {
         for (int i=0; i<3; i++) {
           if (getAxisToComponent(i) >= 0) {
@@ -457,7 +437,7 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
             Vector vect = new Vector();
             float g = (float) d[0];
             vect.addElement(rtype.getName() + " = " + g);
-            displayRenderer.setCursorStringVector(vect);
+            getDisplayRenderer().setCursorStringVector(vect);
             break;
           }
         }
@@ -480,7 +460,7 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
             vect.addElement(rtype.getName() + " = " + g);
           }
         }
-        displayRenderer.setCursorStringVector(vect);
+        getDisplayRenderer().setCursorStringVector(vect);
         for (int j=0; j<n; j++) {
           if (reals[j] == null) {
             reals[j] = (Real) ((RealTuple) data).getComponent(j);
@@ -536,7 +516,7 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
             directComponent[j] = true;
           }
         }
-        displayRenderer.setCursorStringVector(vect);
+        getDisplayRenderer().setCursorStringVector(vect);
         if (lastIndex < 0) {
           lastIndex = thisIndex;
           lastD = new double[n];
@@ -581,12 +561,8 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
             }
             tuple = new RealTuple(reals);
           }
-/* WLH 7 Feb 98
-          ((Field) ref.getData()).setSample(index, tuple);
-*/
           ((Field) data).setSample(index, tuple);
         } // end for (int i=0; i<m; i++)
-        /* WLH 7 Feb 98 */
         if (ref instanceof RemoteDataReference &&
             !(data instanceof RemoteData)) {
           // ref is Remote and data is local, so we have only modified
@@ -618,29 +594,24 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
     branch.setCapability(BranchGroup.ALLOW_DETACH); // J3D
 
     // values needed by drag_direct, which cannot throw Exceptions
-/* WLH 7 Feb 98
-    link = Links[0];
-    ref = link.getDataReference();
-    data = link.getData();
-*/
     type = (ShadowTypeJ3D) link.getShadow();
 
     // check type and maps for valid direct manipulation
-    if (!isDirectManipulation) {
+    if (!getIsDirectManipulation()) {
       throw new BadDirectManipulationException(
         "DirectManipulationRendererJ3D.doTransform: " + getWhyNotDirect());
     }
 
     // initialize valueArray to missing
-    int valueArrayLength = display.getValueArrayLength();
+    int valueArrayLength = getDisplay().getValueArrayLength();
     float[] valueArray = new float[valueArrayLength];
     for (int i=0; i<valueArrayLength; i++) {
       valueArray[i] = Float.NaN;
     }
 
     // no preProcess or postProcess for direct manipulation */
-    type.doTransform(branch, data, valueArray, link.getDefaultValues(), this);
-
+    type.doTransform(branch, link.getData(), valueArray,
+                     link.getDefaultValues(), this);
     return branch;
   }
 

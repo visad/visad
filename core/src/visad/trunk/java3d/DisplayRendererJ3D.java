@@ -168,7 +168,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
 
     // initialize scale
     double scale = 0.5;
-    ProjectionControl proj = display.getProjectionControl();
+    ProjectionControl proj = getDisplay().getProjectionControl();
     Transform3D tstart = new Transform3D(proj.getMatrix());
     Transform3D t1 =
       MouseBehavior.make_matrix(0.0, 0.0, 0.0, scale, 0.0, 0.0, 0.0);
@@ -351,7 +351,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
           VisADLineArray array =
             PlotText.render_label(string, start, base, up, false,
                                   GeometryArray.COORDINATES);
-          graphics.draw(((DisplayImplJ3D) display).makeGeometry(array));
+          graphics.draw(((DisplayImplJ3D) getDisplay()).makeGeometry(array));
           start[1] -= 1.2 * up[1];
         }
         catch (VisADException e) {
@@ -361,7 +361,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     double[] startl = {(double) position3.x,
                        (double) -position3.y,
                        (double) position3.z};
-    Vector rendererVector = display.getRendererVector();
+    Vector rendererVector = getDisplay().getRendererVector();
     Enumeration renderers = rendererVector.elements();
     while (renderers.hasMoreElements()) {
       DataRenderer renderer = (DataRenderer) renderers.nextElement();
@@ -373,7 +373,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
           VisADLineArray array =
             PlotText.render_label(string, startl, base, up, false,
                                   GeometryArray.COORDINATES);
-          graphics.draw(((DisplayImplJ3D) display).makeGeometry(array));
+          graphics.draw(((DisplayImplJ3D) getDisplay()).makeGeometry(array));
           startl[1] += 1.2 * up[1];
         }
         catch (VisADException e) {

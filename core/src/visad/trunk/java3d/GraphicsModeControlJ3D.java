@@ -42,6 +42,7 @@ public class GraphicsModeControlJ3D extends Control
   private float lineWidth; // for LineAttributes; >= 1.0
   private float pointSize; // for PointAttributes; >= 1.0
   private boolean pointMode; // true => points in place of lines and surfaces
+  private boolean textureEnable; // true => allow use of texture mapping
   /** for TransparencyAttributes; see list below in setTransparencyMode */
   private int transparencyMode;
   /** View.PARALLEL_PROJECTION or View.PERSPECTIVE_PROJECTION */
@@ -52,6 +53,7 @@ public class GraphicsModeControlJ3D extends Control
     lineWidth = 1.0f;
     pointSize = 1.0f;
     pointMode = false;
+    textureEnable = false;
     // note SCREEN_DOOR does not seem to work with variable transparency
     transparencyMode = TransparencyAttributes.FASTEST; // J3D
   }
@@ -88,6 +90,15 @@ public class GraphicsModeControlJ3D extends Control
 
   public boolean getPointMode() {
     return pointMode;
+  }
+
+  public void setTextureEnable(boolean enable) {
+    textureEnable = enable;
+    changeControl();
+  }
+
+  public boolean getTextureEnable() {
+    return textureEnable;
   }
 
   public void setPointMode(boolean mode) {

@@ -152,11 +152,25 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       }
     }
 
+    int alpha_index = display.getDisplayScalarIndex(Display.Alpha);
+
     boolean isTextureMap = adaptedShadowType.getIsTextureMap() &&
-                           (domain_set instanceof Linear2DSet);
+                           default_values[alpha_index] > 0.99 &&
+                           (domain_set instanceof Linear2DSet ||
+                            (domain_set instanceof LinearNDSet &&
+                             domain_set.getDimension() == 2));
+/*
+System.out.println("isTextureMap = " + isTextureMap + " " +
+                   adaptedShadowType.getIsTextureMap() + " " +
+                   (default_values[alpha_index] > 0.99) + " " +
+                   (domain_set instanceof Linear2DSet) + " " +
+                   (domain_set instanceof LinearNDSet) + " " +
+                   (domain_set.getDimension() == 2));
+*/
     float[] coordinates = null;
     float[] texCoords = null;
     float[] normals = null;
+    float[] colors = null;
     int texture_width = 0;
     int texture_height = 0;
     if (isTextureMap) {
@@ -164,16 +178,26 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
         throw new DisplayException("ShadowFunctionOrSetTypeJ3D.doTransform" +
                                    " DirectManipulationRendererJ3D");
       }
-      Linear1DSet X = ((Linear2DSet) domain_set).getX();
-      Linear1DSet Y = ((Linear2DSet) domain_set).getY();
+      Linear1DSet X = null;
+      Linear1DSet Y = null;
+      if (domain_set instanceof Linear2DSet) {
+        X = ((Linear2DSet) domain_set).getX();
+        Y = ((Linear2DSet) domain_set).getY();
+      }
+      else {
+        X = ((LinearNDSet) domain_set).getLinear1DComponent(0);
+        Y = ((LinearNDSet) domain_set).getLinear1DComponent(1);
+      }
       float[][] limits = new float[2][2];
       limits[0][0] = (float) X.getFirst();
       limits[0][1] = (float) X.getLast();
       limits[1][0] = (float) Y.getFirst();
       limits[1][1] = (float) Y.getLast();
+
       float value2 = 0.0f;
       // convert values to default units (used in display)
       limits = Unit.convertTuple(limits, dataUnits, domain_units);
+
       // get domain_set sizes
       texture_width = X.getLength();
       texture_height = Y.getLength();
@@ -222,27 +246,27 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       coordinates[3 + tuple_index[1]] = limits[1][0];
       coordinates[3 + tuple_index[2]] = value2;
       // corner 2
-      coordinates[6 + tuple_index[0]] = limits[0][0];
+      coordinates[6 + tuple_index[0]] = limits[0][1];
       coordinates[6 + tuple_index[1]] = limits[1][1];
       coordinates[6 + tuple_index[2]] = value2;
       // corner 3
-      coordinates[9 + tuple_index[0]] = limits[0][1];
+      coordinates[9 + tuple_index[0]] = limits[0][0];
       coordinates[9 + tuple_index[1]] = limits[1][1];
       coordinates[9 + tuple_index[2]] = value2;
 
       texCoords = new float[8];
       // corner 0
-      texCoords[0] = 0;
-      texCoords[1] = 0;
+      texCoords[0] = 0.0f;
+      texCoords[1] = 0.0f;
       // corner 1
-      texCoords[2] = texture_width - 1;
-      texCoords[3] = 0;
+      texCoords[2] = 1.0f;
+      texCoords[3] = 0.0f;
       // corner 2
-      texCoords[2] = 0;
-      texCoords[3] = texture_height - 1;
+      texCoords[4] = 1.0f;
+      texCoords[5] = 1.0f;
       // corner 3
-      texCoords[2] = texture_width - 1;
-      texCoords[3] = texture_height - 1;
+      texCoords[6] = 0.0f;
+      texCoords[7] = 1.0f;
 
       normals = new float[12];
       float n0 = ((coordinates[3+2]-coordinates[0+2]) *
@@ -257,6 +281,12 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
                   (coordinates[6+0]-coordinates[0+0])) -
                  ((coordinates[3+0]-coordinates[0+0]) *
                   (coordinates[6+1]-coordinates[0+1]));
+
+      float nlen = (float) Math.sqrt(n0 *  n0 + n1 * n1 + n2 * n2);
+      n0 = n0 / nlen;
+      n1 = n1 / nlen;
+      n2 = n2 / nlen;
+
       // corner 0
       normals[0] = n0;
       normals[1] = n1;
@@ -273,17 +303,28 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       normals[9] = n0;
       normals[10] = n1;
       normals[11] = n2;
+
+      colors = new float[12];
+      for (int i=0; i<12; i++) colors[i] = 0.5f;
+/*
+for (int i=0; i < 4; i++) {
+  System.out.println("i = " + i + " texCoords = " + texCoords[2 * i] + " " +
+                     texCoords[2 * i + 1]);
+  System.out.println(" coordinates = " + coordinates[3 * i] + " " +
+                     coordinates[3 * i + 1] + " " + coordinates[3 * i + 2]);
+  System.out.println(" normals = " + normals[3 * i]  + " " + normals[3 * i + 1] +
+                     " " + normals[3 * i + 2]);
+}
+*/
     }
     else { // !isTextureMap
-/* WLH 7 Feb 98
-    if (domain_values == null) {
-*/
       // get values from Function Domain
       // NOTE - may defer this until needed, if needed
       domain_values = domain_set.getSamples(false);
+
       // convert values to default units (used in display)
       domain_values = Unit.convertTuple(domain_values, dataUnits, domain_units);
-      // System.out.println("got domain_values");
+      // System.out.println("got domain_values: domain_length = " + domain_length);
 
       // map domain_values to appropriate DisplayRealType-s
       // MEM
@@ -451,6 +492,8 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
         return false;
       }
 
+      // System.out.println("assembleFlow");
+
       // assemble an array of Display.DisplaySpatialCartesianTuple values
       // and possibly spatial_set
       float[][] spatial_values = new float[3][];
@@ -510,9 +553,9 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
 
       // System.out.println("assembleColor, color_length = " + color_length);
 
-      Appearance appearance; // J3D
-      TransparencyAttributes constant_alpha = new TransparencyAttributes(); // J3D
-      constant_alpha.setTransparencyMode(mode.getTransparencyMode());
+      Appearance appearance;
+      TransparencyAttributes constant_alpha =
+        new TransparencyAttributes(mode.getTransparencyMode(), 0.0f);
       ColoringAttributes constant_color = null;
       // note alpha_length <= color_length
       if (alpha_length == 1) {
@@ -524,19 +567,40 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
         // System.out.println("single alpha " + color_values[3][0]);
         // constant alpha, so put it in appearance
         if (color_values[3][0] > 0.999999f) {
+          // constant opaque alpha = NONE
           constant_alpha =
             new TransparencyAttributes(TransparencyAttributes.NONE, 0.0f);
+          /* broken alpha */
+          // remove alpha from color_values
+          float[][] c = new float[3][];
+          c[0] = color_values[0];
+          c[1] = color_values[1];
+          c[2] = color_values[2];
+          color_values = c;
         }
         else {
+/* TransparencyAttributes with constant alpha seems to have broken
           // note transparency 0.0 = opaque, 1.0 = clear
-          constant_alpha.setTransparency(1.0f - color_values[3][0]);
+          constant_alpha =
+            new TransparencyAttributes(TransparencyAttributes.NICEST,
+                                       1.0f - color_values[3][0]);
+so expand constant alpha to variable alpha:
+*/
+          float v = color_values[3][0];
+          color_values[3] = new float[color_values[0].length];
+          for (int i=0; i<color_values[0].length; i++) {
+            color_values[3][i] = v;
+          }
         }
+/*
+  broken alpha
         // remove alpha from color_values
         float[][] c = new float[3][];
         c[0] = color_values[0];
         c[1] = color_values[1];
         c[2] = color_values[2];
         color_values = c;
+*/
       }
       if (color_length == 1) {
         if (color_values[0][0] != color_values[0][0] ||
@@ -586,7 +650,6 @@ END MISSING TEST */
         // NaN spatial component values of lines are rendered at infinity
         // NaN spatial component values of triangles are a mess ??
         //
-
 /*
         System.out.println("spatialDomainDimension = " +
                            spatialDomainDimension +
@@ -595,7 +658,6 @@ END MISSING TEST */
                            " anyContour = " + anyContour +
                            " pointMode = " + pointMode);
 */
-
         VisADGeometryArray array;
         boolean anyFlowCreated = false;
         if (anyFlow) {
@@ -715,7 +777,7 @@ END MISSING TEST */
               if (constant_alpha != null) {
                 alpha = constant_alpha.getTransparency();
               }
-/*
+/* ????
               if (color_values == null) {
                 float[] colf = null;
                 if (constant_color != null) {
@@ -757,6 +819,7 @@ END MISSING TEST */
 
             int vertexFormat = GeometryArray.COORDINATES |
                                GeometryArray.NORMALS |
+                               GeometryArray.COLOR_3 |
                                GeometryArray.TEXTURE_COORDINATE_2;
 
             // MEM
@@ -764,12 +827,14 @@ END MISSING TEST */
             geometry.setCoordinates(0, coordinates);
             geometry.setNormals(0, normals);
             geometry.setTextureCoordinates(0, texCoords);
+            geometry.setColors(0, colors);
 
-            // System.out.println("geometry");
+            // System.out.println("texture geometry");
    
             // crreate basic Appearance
             appearance = makeAppearance(mode, constant_alpha,
                                         constant_color, geometry);
+            // appearance = makeAppearance(mode, null, null, geometry);
             // create TextureAttributes
             TextureAttributes texture_attributes = new TextureAttributes();
             texture_attributes.setTextureMode(TextureAttributes.REPLACE);
@@ -777,15 +842,82 @@ END MISSING TEST */
                                   TextureAttributes.NICEST);
             appearance.setTextureAttributes(texture_attributes);
             // create Texture2D
-            Texture2D texture = new Texture2D();
+// TextureLoader uses 1st argument = 1
+/*
+System.out.println("Texture.BASE_LEVEL = " + Texture.BASE_LEVEL); // 1
+System.out.println("Texture.RGBA = " + Texture.RGBA); // 6
+*/
+            Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
+                                              texture_width, texture_height);
             // Component component = display.getComponent();
 
 
-
+/* JDK 1.2 stuff */
             BufferedImage image = null;
             ImageComponent2D image2d = null;
             int[] rgbArray = new int[texture_width * texture_height];
-/* JDK 1.2 stuff ??
+            if (color_values.length > 3) {
+              for (int i=0; i<domain_length; i++) {
+                int r, g, b, a;
+                r = Math.min(255, Math.max(0, (int) (color_values[0][i] * 255.0)));
+                g = Math.min(255, Math.max(0, (int) (color_values[1][i] * 255.0)));
+                b = Math.min(255, Math.max(0, (int) (color_values[2][i] * 255.0)));
+                a = Math.min(255, Math.max(0, (int) (color_values[3][i] * 255.0)));
+                rgbArray[i] = (r << 24) | (g << 16) | (b << 8) | a;
+              }
+// transparency does not work yet
+              image = new BufferedImage(texture_width, texture_height,
+                                        BufferedImage.TYPE_INT_ARGB);
+              int k = 0;
+              for (int j=0; j<texture_height; j++) {
+                for (int i=0; i<texture_width; i++) {
+                  image.setRGB(i, j, rgbArray[k++]);
+                }
+              }
+              // image.setRGB(0, 0, texture_width, texture_height,
+              //              rgbArray, 0, texture_width);
+              image2d = new ImageComponent2D(ImageComponent.FORMAT_RGBA, image);
+            }
+            else {
+              for (int i=0; i<domain_length; i++) {
+                int r, g, b, a;
+                r = Math.min(255, Math.max(0, (int) (color_values[0][i] * 255.0)));
+                g = Math.min(255, Math.max(0, (int) (color_values[1][i] * 255.0)));
+                b = Math.min(255, Math.max(0, (int) (color_values[2][i] * 255.0)));
+                a = 255;
+                rgbArray[i] = (r << 24) | (g << 16) | (b << 8) | a; 
+              }
+              image = new BufferedImage(texture_width, texture_height,
+                                        BufferedImage.TYPE_INT_ARGB);
+              int k = 0;
+              for (int j=0; j<texture_height; j++) {
+                for (int i=0; i<texture_width; i++) {
+                  image.setRGB(i, j, rgbArray[k++]);
+                }
+              }
+              //
+              // this does not work ??? why not ???
+              // image.setRGB(0, 0, texture_width, texture_height,
+              //              rgbArray, 0, texture_width);
+              //
+              image2d = new ImageComponent2D(ImageComponent.FORMAT_RGBA, image);
+            }
+/* */
+
+/*
+            DirectColorModel cm =
+              new DirectColorModel(32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+
+            int[] bitMasks = {0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000};
+            // int dataType = BufferedImage.TYPE_INT_ARGB;
+            int dataType = DataBuffer.INT_DATA;
+            SampleModel sampleModel =
+              new MultiBandPackedSampleModel(dataType, texture_width,
+                                             texture_height, bitMasks);
+
+            WritableRaster raster = new myWritableRaster(sampleModel, new Point(0, 0));
+ 
+            int[] rgbArray = new int[texture_width * texture_height];
             if (color_values.length > 3) {
               for (int i=0; i<domain_length; i++) {
                 int r, g, b, a;
@@ -795,32 +927,96 @@ END MISSING TEST */
                 a = Math.min(255, Math.max(0, (int) (color_values[3][i] * 255.0)));
                 rgbArray[i] = (a << 24) | (r << 16) | (g << 8) | b;
               }
-              image = new BufferedImage(texture_width, texture_height,
-                                        BufferedImage.TYPE_INT_ARGB);
-              image.setRGB(0, 0, texture_width, texture_height,
-                           rgbArray, 0, texture_width);
-              image2d = new ImageComponent2D(ImageComponent.FORMAT_RGBA, image);
             }
             else {
               for (int i=0; i<domain_length; i++) {
-                int r, g, b;
+                int r, g, b, a;
                 r = Math.min(255, Math.max(0, (int) (color_values[0][i] * 255.0)));
                 g = Math.min(255, Math.max(0, (int) (color_values[1][i] * 255.0)));
                 b = Math.min(255, Math.max(0, (int) (color_values[2][i] * 255.0)));
-                rgbArray[i] = (r << 16) | (g << 8) | b; 
+                a = 128;
+                rgbArray[i] = (a << 24) | (r << 16) | (g << 8) | b;
               }
-              image = new BufferedImage(texture_width, texture_height,
-                                        BufferedImage.TYPE_INT_RGB);
-              image.setRGB(0, 0, texture_width, texture_height,
-                           rgbArray, 0, texture_width);
-              image2d = new ImageComponent2D(ImageComponent.FORMAT_RGB, image);
             }
+ 
+            raster.setPixel(0, 0, texture_width, texture_height, rgbArray);
+
+java.lang.ArrayIndexOutOfBoundsException: 4096
+        at java.awt.image.MultiBandPackedSampleModel.setPixel(MultiBandPackedSampleModel.java:541)
+        at java.awt.image.WritableRaster.setPixel(WritableRaster.java:338)
+        at visad.java3d.ShadowFunctionOrSetTypeJ3D.doTransform(ShadowFunctionOrSetTypeJ3D.java:959)
+        at visad.java3d.DefaultRendererJ3D.doTransform(DefaultRendererJ3D.java:71)
+        at visad.java3d.RendererJ3D.doAction(RendererJ3D.java:153)
+        at visad.DisplayImpl.doAction(DisplayImpl.java:355)
+        at visad.ActionImpl.run(ActionImpl.java:145)
+        at java.lang.Thread.run(Thread.java:484)
+
+ 
+            boolean isRasterPremultiplied = false;
+ 
+            BufferedImage image =
+              new BufferedImage(cm, raster, isRasterPremultiplied);
+            ImageComponent2D image2d =
+              new ImageComponent2D(ImageComponent.FORMAT_RGBA, image);
 */
+
+/*
+            // DataBuffer dataBuffer =
+            //   new DataBuffer(dataType, texture_width * texture_height);
+
+            DataBuffer dataBuffer = sampleModel.createCompatibleDataBuffer();
+
+            if (color_values.length > 3) {
+              for (int i=0; i<domain_length; i++) {
+                int r, g, b, a;
+                r = Math.min(255, Math.max(0, (int) (color_values[0][i] * 255.0)));
+                g = Math.min(255, Math.max(0, (int) (color_values[1][i] * 255.0)));
+                b = Math.min(255, Math.max(0, (int) (color_values[2][i] * 255.0)));
+                a = Math.min(255, Math.max(0, (int) (color_values[3][i] * 255.0)));
+                dataBuffer.setElem(i, (a << 24) | (r << 16) | (g << 8) | b);
+              }
+            }
+            else {
+              for (int i=0; i<domain_length; i++) {
+                int r, g, b, a;
+                r = Math.min(255, Math.max(0, (int) (color_values[0][i] * 255.0)));
+                g = Math.min(255, Math.max(0, (int) (color_values[1][i] * 255.0)));
+                b = Math.min(255, Math.max(0, (int) (color_values[2][i] * 255.0)));
+                a = 128;
+                dataBuffer.setElem(i, (a << 24) | (r << 16) | (g << 8) | b);
+              }
+            }
+
+            WritableRaster raster =
+              new WritableRaster(sampleModel, dataBuffer, new Point(0, 0));
+*/
+
             texture.setImage(0, image2d);
-            appearance.setTexture(texture);
+
+
+            //
+            // from TextureLoader
+            // TextureLoader uses 3 for both setMinFilter and setMagFilter
+/*
+System.out.println("Texture.FASTEST = " + Texture.FASTEST); // 0
+System.out.println("Texture.NICEST = " + Texture.NICEST); // 1
+System.out.println("Texture.BASE_LEVEL_POINT = " + Texture.BASE_LEVEL_POINT); // 2
+System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); // 3
+*/
+            texture.setMinFilter(Texture.BASE_LEVEL_LINEAR);
+            texture.setMagFilter(Texture.BASE_LEVEL_LINEAR);
+            texture.setEnable(true);
+            // end of from TextureLoader
+            //
+
 
             Shape3D shape = new Shape3D(geometry, appearance);
+            appearance.setTexture(texture);
+
             group.addChild(shape);
+
+            // System.out.println("isTextureMap done");
+
             return false;
           }
           else if (range_select[0] != null) {
@@ -1036,6 +1232,12 @@ END MISSING TEST */
       Range.postProcess(group);
     }
     AccumulationVector.removeAllElements();
+  }
+
+  private class myWritableRaster extends WritableRaster {
+    myWritableRaster(SampleModel sm, Point p) {
+      super(sm, p);
+    }
   }
 
 }

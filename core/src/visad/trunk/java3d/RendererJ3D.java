@@ -55,37 +55,21 @@ public abstract class RendererJ3D extends DataRenderer {
   boolean[] branchNonEmpty = {false, false, false};
   int actualIndex;
 
-/*
-  DisplayImplJ3D display;
-  DisplayRendererJ3D displayRenderer;
-
-  transient DataDisplayLink[] Links;
-  boolean[] feasible; // it's a miracle if this is correct
-  boolean[] changed;
-
-  private boolean any_changed;
-  private boolean all_feasible;
-  private boolean any_transform_control;
-*/
-
   public RendererJ3D() {
     super();
   }
 
   public void setLinks(DataDisplayLink[] links, DisplayImpl d)
        throws VisADException {
-    if (display != null || Links != null) {
+    if (getDisplay() != null || getLinks() != null) {
       throw new DisplayException("RendererJ3D.setLinks: already set");
     }
     if (!(d instanceof DisplayImplJ3D)) {
       throw new DisplayException("RendererJ3D.setLinks: must be DisplayImplJ3D");
     }
-    display = d;
-    displayRenderer = display.getDisplayRenderer();
-    Links = links;
-    feasible = new boolean[Links.length];
-    changed = new boolean[Links.length];
-    for (int i=0; i<Links.length; i++) feasible[i] = false;
+    setDisplay(d);
+    setDisplayRenderer(d.getDisplayRenderer());
+    setLinks(links);
 
     // set up switch logic for clean BranchGroup replacement
     sw = new Switch(); // J3D
@@ -99,7 +83,7 @@ public abstract class RendererJ3D extends DataRenderer {
     swParent.setCapability(BranchGroup.ALLOW_DETACH);
     swParent.addChild(sw);
     // make it 'live'
-    addSwitch((DisplayRendererJ3D) displayRenderer, swParent);
+    addSwitch((DisplayRendererJ3D) getDisplayRenderer(), swParent);
 
     branches = new BranchGroup[3];
     for (int i=0; i<3; i++) {
@@ -113,7 +97,6 @@ public abstract class RendererJ3D extends DataRenderer {
     sw.setWhichChild(currentIndex);
     currentIndex = 0;
     actualIndex = 0;
-
   }
 
   public ShadowType makeShadowFunctionType(
@@ -159,10 +142,14 @@ public abstract class RendererJ3D extends DataRenderer {
       return false if not done */
   public boolean doAction() throws VisADException, RemoteException {
     BranchGroup branch; // J3D
+    boolean all_feasible = get_all_feasible();
+    boolean any_changed = get_any_changed();
+    boolean any_transform_control = get_any_transform_control();
     if (all_feasible && (any_changed || any_transform_control)) {
      // exceptionVector.removeAllElements();
       clearAVControls();
       try {
+        // doTransform creates a BranchGroup from a Data object
         branch = doTransform();
       }
       catch (BadMappingException e) {
@@ -203,11 +190,19 @@ public abstract class RendererJ3D extends DataRenderer {
           } // end if (branches[currentIndex].numChildren() != 0)
         } // end synchronized (this)
         if (doRemove) {
-          ((DisplayRendererJ3D) displayRenderer).switchScene(this, nextIndex);
+          ((DisplayRendererJ3D) getDisplayRenderer()).
+                 switchScene(this, nextIndex);
         }
       }
       else { // if (branch == null)
         all_feasible = false;
+        set_all_feasible(all_feasible);
+      }
+    }
+    else { // !(all_feasible && (any_changed || any_transform_control))
+      DataDisplayLink[] links = getLinks();
+      for (int i=0; i<links.length; i++) {
+        links[i].clearData();
       }
     }
     return all_feasible;
@@ -237,7 +232,7 @@ public abstract class RendererJ3D extends DataRenderer {
 
   public void clearScene() {
     swParent.detach(); // J3D
-    ((DisplayRendererJ3D) displayRenderer).clearScene(this);
+    ((DisplayRendererJ3D) getDisplayRenderer()).clearScene(this);
   }
 
   /** create a BranchGroup scene graph for Data in links;

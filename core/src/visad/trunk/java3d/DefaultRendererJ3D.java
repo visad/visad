@@ -56,12 +56,11 @@ public class DefaultRendererJ3D extends RendererJ3D {
   public BranchGroup doTransform() throws VisADException, RemoteException { // J3D
     BranchGroup branch = new BranchGroup();
     branch.setCapability(BranchGroup.ALLOW_DETACH);
-    DataDisplayLink link = Links[0];
-    Data data = link.getData();
+    DataDisplayLink link = getLinks()[0];
     ShadowTypeJ3D type = (ShadowTypeJ3D) link.getShadow();
 
     // initialize valueArray to missing
-    int valueArrayLength = display.getValueArrayLength();
+    int valueArrayLength = getDisplay().getValueArrayLength();
     float[] valueArray = new float[valueArrayLength];
     for (int i=0; i<valueArrayLength; i++) {
       valueArray[i] = Float.NaN;
@@ -69,8 +68,10 @@ public class DefaultRendererJ3D extends RendererJ3D {
 
     type.preProcess();
     boolean post_process =
-      type.doTransform(branch, data, valueArray, link.getDefaultValues(), this);
+      type.doTransform(branch, link.getData(), valueArray,
+                       link.getDefaultValues(), this);
     if (post_process) type.postProcess(branch);
+    link.clearData();
     return branch;
   }
 
