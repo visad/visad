@@ -29,12 +29,13 @@ package visad.cluster;
 import visad.*;
 import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
+import java.io.Serializable;
 
 /**
-   RemoteClientAgentImpl is the class for agents on the client, 
-   which typically send NodeAgents to each node.<P> 
+   RemoteClientAgentImpl is the abstract super-class for agents on
+   the client, which typically send NodeAgents to each node.<P> 
 */
-public class RemoteClientAgentImpl extends UnicastRemoteObject
+public abstract class RemoteClientAgentImpl extends UnicastRemoteObject
        implements RemoteClientAgent {
 
   public RemoteClientAgentImpl() throws RemoteException {

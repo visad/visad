@@ -145,7 +145,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   }
 
   /** clear AccumulationVector */
-  void preProcess() throws VisADException {
+  public void preProcess() throws VisADException {
   }
 
   /** transform data into a Java3D scene graph;
@@ -162,7 +162,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
   /** render accumulated Vector of value_array-s to
       and add to group; then clear AccumulationVector */
-  void postProcess(Object group) throws VisADException {
+  public void postProcess(Object group) throws VisADException {
   }
 
 

@@ -28,13 +28,16 @@ package visad.cluster;
 
 import visad.*;
 import visad.java3d.*;
+import visad.java2d.*;
+
+import javax.media.j3d.*;
 
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import java.util.*;
 import java.rmi.*;
-
+import java.io.Serializable;
 
 /**
    NodeRendererJ3D is the VisAD class for transforming
@@ -43,10 +46,20 @@ import java.rmi.*;
 */
 public class NodeRendererJ3D extends DefaultRendererJ3D {
 
+  private NodeAgent agent = null;
+
   /** this DataRenderer transforms data into VisADSceneGraphObjects,
       but does not render, on cluster nodes */
   public NodeRendererJ3D () {
+    this(null);
+  }
+
+  /** this DataRenderer transforms data into VisADSceneGraphObjects,
+      but does not render, on cluster nodes;
+      send scene graphs back via NodeAgent */
+  public NodeRendererJ3D (NodeAgent a) {
     super();
+    agent = a;
   }
 
   public ShadowType makeShadowFunctionType(
@@ -77,6 +90,49 @@ public class NodeRendererJ3D extends DefaultRendererJ3D {
          TupleType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
     return new ShadowNodeTupleTypeJ3D(type, link, parent);
+  }
+
+  /** create a VisADGroup scene graph for Data in links[0] */
+  public BranchGroup doTransform() throws VisADException, RemoteException {
+    VisADGroup branch = new VisADGroup();
+    DataDisplayLink link = getLinks()[0];
+    ShadowTypeJ3D type = (ShadowTypeJ3D) link.getShadow();
+
+    // initialize valueArray to missing
+    int valueArrayLength = getDisplay().getValueArrayLength();
+    float[] valueArray = new float[valueArrayLength];
+    for (int i=0; i<valueArrayLength; i++) {
+      valueArray[i] = Float.NaN;
+    }
+
+    Data data = link.getData();
+    if (data == null) {
+      branch = null;
+      addException(
+        new DisplayException("Data is null: NodeRendererJ3D.doTransform"));
+    }
+    else {
+      link.start_time = System.currentTimeMillis();
+      link.time_flag = false;
+      type.preProcess();
+      boolean post_process =
+        type.doTransform(branch, data, valueArray,
+                         link.getDefaultValues(), this);
+      if (post_process) type.postProcess(branch);
+    }
+    link.clearData();
+
+    // send VisADGroup scene graph in branch back to client
+    if (agent != null) agent.sendToClient(branch);
+
+    // RendererJ3D.doAction is expecting a BranchGroup
+    // so fake it
+    BranchGroup fake_branch = new BranchGroup();
+    fake_branch.setCapability(BranchGroup.ALLOW_DETACH);
+    fake_branch.setCapability(Group.ALLOW_CHILDREN_READ);
+    fake_branch.setCapability(Group.ALLOW_CHILDREN_WRITE);
+    fake_branch.setCapability(Group.ALLOW_CHILDREN_EXTEND);
+    return fake_branch;
   }
 
   public static void main(String args[])

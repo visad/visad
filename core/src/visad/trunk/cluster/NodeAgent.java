@@ -28,12 +28,14 @@ package visad.cluster;
 
 import visad.*;
 import java.rmi.*;
+import java.io.Serializable;
 
 /**
-   NodeAgent is the agent sent from client to nodes.<P>
+   NodeAgent is the abstract super-class for agents sent from
+   client to nodes.<P>
 */
 public abstract class NodeAgent extends Object
-       implements java.io.Serializable, Runnable {
+       implements Serializable, Runnable {
 
   /** source of agent */
   private RemoteClientAgent source = null;
@@ -46,6 +48,15 @@ public abstract class NodeAgent extends Object
 
   public NodeAgent(RemoteClientAgent s) {
     source = s;
+  }
+
+  public void sendToClient(Serializable message) {
+    try {
+      source.sendToClient(message);
+    }
+    catch (RemoteException e) {
+      System.out.println("unable to send: " + message);
+    }
   }
 
   /** create and start Thread, and return contact */

@@ -50,7 +50,7 @@ public class ShadowTextTypeJ3D extends ShadowScalarTypeJ3D {
   }
 
   /** clear AccumulationVector */
-  void preProcess() throws VisADException {
+  public void preProcess() throws VisADException {
     AccumulationVector.removeAllElements();
   }
 
@@ -68,7 +68,7 @@ public class ShadowTextTypeJ3D extends ShadowScalarTypeJ3D {
 
   /** render accumulated Vector of value_array-s to
       and add to group; then clear AccumulationVector */
-  void postProcess(Object group) throws VisADException {
+  public void postProcess(Object group) throws VisADException {
     if (adaptedShadowType.getIsTerminal()) {
       int LevelOfDifficulty = adaptedShadowType.getLevelOfDifficulty();
       if (LevelOfDifficulty == LEGAL) {
