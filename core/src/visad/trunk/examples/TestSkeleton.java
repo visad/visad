@@ -52,7 +52,7 @@ public abstract class TestSkeleton
     startThreads();
   }
 
-  int checkExtraOption(String progName, char ch, int argc, String[] args)
+  int checkExtraOption(String progName, char ch, String arg)
   {
     return 0;
   }
@@ -119,8 +119,21 @@ public abstract class TestSkeleton
           }
           break;
         default:
-          int handled = checkExtraOption(progName, ch, i+1, args);
+          boolean strInOption = false;
+          if (args[i].length() > 2) {
+            str = args[i].substring(2);
+            strInOption = true;
+          } else if ((i + 1) < args.length) {
+            str = args[i+1];
+          } else {
+            str = null;
+          }
+
+          int handled = checkExtraOption(progName, ch, str);
           if (handled > 0) {
+            if (strInOption && handled > 1) {
+              handled--;
+            }
             i += (handled - 1);
           } else {
             System.err.println(progName + ": Unknown option \"-" + ch + "\"");
