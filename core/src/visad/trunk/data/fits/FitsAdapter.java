@@ -247,6 +247,7 @@ public class FitsAdapter
       throw new VisADException("Couldn't get image axes");
     }
     if (axes.length != 2) {
+System.err.println("Punting on " + axes.length + "-D image");
       throw new VisADException("Not a two-dimensional image");
     }
 
