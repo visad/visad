@@ -167,6 +167,9 @@ public class ReflectedUniverse {
       String varName = command.substring(0, dot).trim();
       String methodName = command.substring(dot + 1).trim();
       Object var = getVar(varName);
+      if (var == null) {
+        throw new VisADException("No such variable: " + varName);
+      }
       Class varClass = var instanceof Class ? (Class) var : var.getClass();
 
       // Search for a method that matches the arguments. Unfortunately,
