@@ -201,6 +201,7 @@ TAR_FILES = \
 	visad/data/hdf5/COPYING				\
 	visad/data/hdf5/hdf5objects/*.java		\
 	ncsa/hdf/hdf5lib/*.java				\
+	ncsa/hdf/hdf5lib/Makefile			\
 	ncsa/hdf/hdf5lib/exceptions/*.java		\
 	visad/jmet/*.java				\
 	visad/paoloa/README.paoloa			\
