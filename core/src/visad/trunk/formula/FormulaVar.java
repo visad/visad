@@ -324,7 +324,6 @@ public class FormulaVar extends ActionImpl {
 
   /** recompute this variable */
   public void doAction() {
-    /* CTR: TEMP */ System.out.println("GUESS WHAT?  ACTION!");
     try {
       tref.setThing(compute(postfix));
     }

@@ -542,8 +542,9 @@ public class BasicSSCell extends JPanel {
 
   /** set up the DisplayListener for this cell */
   public void setDisplayListener(DisplayListener d) {
+    if (DListen != null) VDisplay.removeDisplayListener(DListen);
     DListen = d;
-    if (d != null) VDisplay.addDisplayListener(d);
+    if (DListen != null) VDisplay.addDisplayListener(DListen);
   }
 
   /** map RealTypes to the display according to the specified ScalarMaps */
@@ -553,6 +554,7 @@ public class BasicSSCell extends JPanel {
     clearMaps();
     VisADException vexc = null;
     RemoteException rexc = null;
+    VDisplay.disableAction();
     for (int i=0; i<maps.length; i++) {
       try {
         VDisplay.addMap(maps[i]);
@@ -565,6 +567,7 @@ public class BasicSSCell extends JPanel {
       }
     }
     VDisplay.addReference(DataRef);
+    VDisplay.enableAction();
     HasMappings = true;
     if (vexc != null) throw vexc;
     if (rexc != null) throw rexc;
