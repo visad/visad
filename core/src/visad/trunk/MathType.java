@@ -296,14 +296,15 @@ public abstract class MathType extends Object implements java.io.Serializable {
     }
 
     // compile a FunctionType and SetType list to search for template matches
-    Vector flist = new Vector();
-    Vector slist = new Vector();
-    if (timeFunc < 0) buildTypeList(m, flist, slist);
+    Vector flist = new Vector(); // functions
+    Vector slist = new Vector(); // sets
+    Vector tlist = new Vector(); // tuples of reals
+    if (timeFunc < 0) buildTypeList(m, flist, slist, tlist);
     else {
       // found a "time" RealType; only search ranges of "time" FunctionTypes
       for (int i=0; i<ds[0][timeFunc].funcs.size(); i++) {
         FunctionType f = (FunctionType) ds[0][timeFunc].funcs.elementAt(i);
-        buildTypeList(f.getRange(), flist, slist);
+        buildTypeList(f.getRange(), flist, slist, tlist);
       }
     }
 
@@ -1082,8 +1083,9 @@ public abstract class MathType extends Object implements java.io.Serializable {
     final DisplayRealType[] spatial =
       {Display.XAxis, Display.YAxis, Display.ZAxis};
     final boolean[] mark = {false, false, false};
+    int maxdim = threeD ? 3 : 2;
     int numsets = slist.size();
-    for (int dim=(threeD ? 3 : 2); dim>=1; --dim) {
+    for (int dim=maxdim; dim>=1; --dim) {
       for (int si=0; si<numsets; si++) {
         //   Set(x, y, z)
         // x -> X, y -> Y, z -> Z
@@ -1135,19 +1137,58 @@ public abstract class MathType extends Object implements java.io.Serializable {
       }
     }
 
+    // if the only match is a RealTupleType, map to first few tuple elements
+    int numtuples = tlist.size();
+    if (numtuples >= 1) {
+      // use first RealTupleType - (x, y, z, ...)
+      // x -> X, y -> Y, z -> Z
+      RealTupleType domain = (RealTupleType) tlist.elementAt(0);
+      CoordinateSystem cs = domain.getCoordinateSystem();
+      if (cs != null) {
+        // use CoordinateSystem reference instead of original RealTupleType
+        domain = cs.getReference();
+      }
+      int dim = domain.getDimension();
+      if (dim > maxdim) dim = maxdim;
+      try {
+        ScalarMap[] smaps = new ScalarMap[timeFunc < 0 ? dim : dim + 1];
+        for (int i=0; i<dim; i++) {
+          RealType rt = (RealType) domain.getComponent(i);
+          smaps[i] = new ScalarMap(rt, spatial[i]);
+        }
+        if (timeFunc >= 0) {
+          Object o = ds[0][timeFunc].funcs.elementAt(0);
+          RealTupleType rtt = ((FunctionType) o).getDomain();
+          RealType time = (RealType) rtt.getComponent(0);
+          smaps[dim] = new ScalarMap(time, Display.Animation);
+        }
+        return smaps;
+      }
+      catch (VisADException exc) { }
+    }
+
     return null;
   }
 
   /** used by guessMaps to recursively build a list of FunctionTypes to
       attempt template matching with */
-  private void buildTypeList(MathType mt, Vector flist, Vector slist) {
+  private void buildTypeList(MathType mt,
+    Vector flist, Vector slist, Vector tlist)
+  {
     if (mt instanceof TupleType) {
       TupleType tt = (TupleType) mt;
-      for (int i=0; i<tt.getDimension(); i++) {
-        try {
-          buildTypeList(tt.getComponent(i), flist, slist);
+      if (tt instanceof RealTupleType) {
+        // found a tuple of reals; add it to RealTuple list
+        tlist.addElement(mt);
+      }
+      else {
+        // search each tuple component
+        for (int i=0; i<tt.getDimension(); i++) {
+          try {
+            buildTypeList(tt.getComponent(i), flist, slist, tlist);
+          }
+          catch (VisADException exc) { }
         }
-        catch (VisADException exc) { }
       }
     }
     else if (mt instanceof SetType) {
@@ -1158,7 +1199,7 @@ public abstract class MathType extends Object implements java.io.Serializable {
       // found a function; add it to function list and recurse function range
       flist.addElement(mt);
       FunctionType ft = (FunctionType) mt;
-      buildTypeList(ft.getRange(), flist, slist);
+      buildTypeList(ft.getRange(), flist, slist, tlist);
     }
     return;
   }
@@ -1214,13 +1255,13 @@ public abstract class MathType extends Object implements java.io.Serializable {
         if (SI.second.isConvertible(rtc0_unit) ||
             CommonUnit.secondsSinceTheEpoch.isConvertible(rtc0_unit)) {
           int len = info[0].length;
-          DataStruct[][] temp = new DataStruct[1][len + 1];
+          DataStruct[] temp = new DataStruct[len + 1];
           for (int i=0; i<len; i++) {
-            temp[0][i] = info[0][i];
+            temp[i] = info[0][i];
           }
-          temp[0][len] = new DataStruct(rtname);
-          temp[0][len].funcs.addElement(ft);
-          info[0] = temp[0];
+          temp[len] = new DataStruct(rtname);
+          temp[len].funcs.addElement(ft);
+          info[0] = temp;
           found = true;
         }
 
