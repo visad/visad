@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: RGBMap.java,v 1.10 1999-08-24 22:28:31 dglo Exp $
+@(#) $Id: RGBMap.java,v 1.11 1999-08-24 22:55:01 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -35,7 +35,7 @@ import java.awt.*;
  * between the red, green and blue curves.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.10 $, $Date: 1999-08-24 22:28:31 $
+ * @version $Revision: 1.11 $, $Date: 1999-08-24 22:55:01 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -106,8 +106,7 @@ public class RGBMap extends ColorMap
         this.resolution = 256;
         val = new float[this.resolution][3];
         this.initColormap();
-      }
-      else {
+      } else {
         this.resolution = vals.length;
         val = new float[this.resolution][3];
         for (int i = 0; i < this.resolution; i++) {
@@ -150,12 +149,38 @@ public class RGBMap extends ColorMap
   }
 
   /** Returns the tuple at a floating point value val */
-  public float[] getTuple(float val) {
-    return getRGBTuple(val);
+  public float[] getTuple(float value) {
+    synchronized (mutex_val) {
+      float arrayIndex = value * (resolution - 1);
+      int index = (int) Math.floor(arrayIndex);
+      float partial = arrayIndex - index;
+
+      if (index >= resolution || index < 0 ||
+          (index == (resolution - 1) && partial != 0))
+      {
+        float[] f = {0,0,0};
+        return f;
+      }
+
+      float red, green, blue;
+      if (partial != 0) {
+        red = val[index][RED] * (1 - partial) +
+          val[index+1][RED] * partial;
+        green = val[index][GREEN] * (1 - partial) +
+          val[index+1][GREEN] * partial;
+        blue = val[index][BLUE] * (1 - partial) +
+          val[index+1][BLUE] * partial;
+      } else {
+        red = val[index][RED];
+        green = val[index][GREEN];
+        blue = val[index][BLUE];
+      }
+      float[] f = {red, green, blue};
+      return f;
+    }
   }
 
   protected void sendUpdate(int left, int right) {
-
 
     synchronized (mutex) {
       if (left < valLeft)
@@ -169,13 +194,12 @@ public class RGBMap extends ColorMap
     repaint();
   }
 
-
   /** Used internally to post areas to update to the objects listening
    * to the map
    */
   protected void notifyListeners(int left, int right) {
 
-    // !!!fix this to reflect a more acurate region of affectation
+    // !!!fix this to reflect a more accurate region of affectation
     if (left != 0) {
       left--;
     }
@@ -196,33 +220,7 @@ public class RGBMap extends ColorMap
    * range 0 to 1
    */
   public float[] getRGBTuple(float value) {
-    synchronized (mutex_val) {
-      float arrayIndex = value * (resolution - 1);
-      int index = (int) Math.floor(arrayIndex);
-      float partial = arrayIndex - index;
-      if (index >= resolution || index < 0 ||
-          (index == (resolution - 1) && partial != 0)) {
-        float[] f = {0,0,0};
-        return f;
-      }
-
-      float red, green, blue;
-      if (partial != 0) {
-        red = val[index][RED] * (1 - partial) +
-          val[index+1][RED] * partial;
-        green = val[index][GREEN] * (1 - partial) +
-          val[index+1][GREEN] * partial;
-        blue = val[index][BLUE] * (1 - partial) +
-          val[index+1][BLUE] * partial;
-      }
-      else {
-        red = val[index][RED];
-        green = val[index][GREEN];
-        blue = val[index][BLUE];
-      }
-      float[] f = {red, green, blue};
-      return f;
-    }
+    return getTuple(value);
   }
 
   /** Present to implement MouseListener, currently ignored */
@@ -254,7 +252,8 @@ public class RGBMap extends ColorMap
   public void mousePressed(MouseEvent e) {
     //System.out.println(e.paramString());
     if ((e.getModifiers() & e.BUTTON1_MASK) == 0 &&
-        e.getModifiers() != 0) {
+        e.getModifiers() != 0)
+    {
       return;
     }
 
@@ -293,12 +292,10 @@ public class RGBMap extends ColorMap
   /** Listens for releases of the right mouse button, and changes the active color */
   public void mouseReleased(MouseEvent e) {
     //System.out.println(e.paramString());
-    if ((e.getModifiers() & e.BUTTON2_MASK) != 0 ||
-        (e.getModifiers() & e.BUTTON3_MASK) != 0) {
-      state = (state + 1) % 3;
-      // return;
+    if ((e.getModifiers() & (e.BUTTON2_MASK|e.BUTTON3_MASK)) == 0) {
+      return;
     }
-    // state = (state + 1) % 3;
+    state = (state + 1) % 3;
   }
 
   /** Updates the internal array and sends notification to the
