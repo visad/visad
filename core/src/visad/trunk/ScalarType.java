@@ -7,7 +7,7 @@ VisAD system for interactive analysis and visualization of numerical
 data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
- 
+
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
@@ -29,19 +29,25 @@ package visad;
 import java.util.Hashtable;
 
 /**
-   ScalarType is the superclass of the VisAD hierarchy of scalar data types.<P>
-*/
+ * ScalarType is the superclass of the VisAD hierarchy of scalar data types.
+ */
 public abstract class ScalarType extends MathType {
 
   // name of scalar type - enforce uniqueness locally
   // but do not rely on it - names may be duplicated on remote systems
   String Name;
 
-  // Vector of scalar names used to make sure scalar names are unique
+  // Hashtable of scalar names used to make sure scalar names are unique
   // (within local VM)
   private static Hashtable ScalarHash = new Hashtable();
 
-  /** all scalar types have a name */
+  /**
+   * Create a <CODE>ScalarType</CODE> with the specified name.
+   *
+   * @param name The name of this <CODE>ScalarType</CODE>
+   *
+   * @exception VisADException If the name is not valid.
+   */
   public ScalarType(String name) throws VisADException {
     super();
     if (name == null) {
@@ -61,20 +67,36 @@ public abstract class ScalarType extends MathType {
     ScalarHash.put(name, this);
   }
 
-  /** trusted constructor for initializers */
+  /**
+   * Trusted constructor used to create standard VisAD <CODE>RealType</CODE>s
+   * without all the name-checking overhead.
+   *
+   * @param name Trusted name.
+   * @param b Dummy value used to indicate that this is a trusted constructor.
+   */
   ScalarType(String name, boolean b) {
     super(b);
     Name = name;
     ScalarHash.put(name, this);
   }
 
-  public static ScalarType getScalarTypeByName(String name) {
-    return (ScalarType )ScalarHash.get(name);
-  }
-
+  /**
+   * Returns this <CODE>ScalarType</CODE>'s name.
+   *
+   * @return The name of this <CODE>ScalarType</CODE>.
+   */
   public String getName() {
     return Name;
   }
 
+  /**
+   * Get the <CODE>ScalarType</CODE> which has the specified name.
+   *
+   * @param name Name of <CODE>ScalarType</CODE>.
+   * @return Either the <CODE>ScalarType</CODE> if found,
+   *          or <CODE>null</CODE>.
+   */
+  public static ScalarType getScalarTypeByName(String name) {
+    return (ScalarType )ScalarHash.get(name);
+  }
 }
-
