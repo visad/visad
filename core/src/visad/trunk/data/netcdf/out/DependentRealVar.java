@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DependentRealVar.java,v 1.2 1998-06-17 20:32:39 visad Exp $
+ * $Id: DependentRealVar.java,v 1.3 1998-08-04 19:14:00 visad Exp $
  */
 
 package visad.data.netcdf.out;
@@ -80,7 +80,7 @@ DependentRealVar
 	RealType	realType = (RealType)real.getType();
 	Number		fillNumber = getFillValue(getJavaClass(
 	    realType.getDefaultSet()));
-	Unit		unit = realType.getDefaultUnit();
+	Unit		unit = real.getUnit();
 	Attribute[]	attrs;
 
 	if (unit == null)
