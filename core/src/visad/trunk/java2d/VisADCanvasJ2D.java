@@ -347,11 +347,18 @@ so:
         float[] colors = array.colors;
         if (colors == null) {
           if (appearance.color_flag) {
-            g2.setColor(new Color(appearance.red, appearance.green,
-                                  appearance.blue));
+            float red = (float) Math.max(Math.min(appearance.red, 1.0f), 0.0f);
+            float green = (float) Math.max(Math.min(appearance.green, 1.0f), 0.0f);
+            float blue = (float) Math.max(Math.min(appearance.blue, 1.0f), 0.0f);
+            g2.setColor(new Color(red, green, blue));
           }
           else {
             g2.setColor(new Color(1.0f, 1.0f, 1.0f));
+          }
+        }
+        else {
+          for (int i=0; i<colors.length; i++) {
+            colors[i] = (float) Math.max(Math.min(colors[i], 1.0f), 0.0f);
           }
         }
         if (array instanceof VisADPointArray ||
