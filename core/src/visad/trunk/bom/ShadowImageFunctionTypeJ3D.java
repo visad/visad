@@ -148,6 +148,9 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
 // System.out.println("start colors " + (System.currentTimeMillis() - link.start_time));
 
+      float constant_alpha = Float.NaN;
+      float[] constant_color = null;
+
       // check that range is single RealType mapped to RGB only
       ShadowRealType[] RangeComponents = adaptedShadowType.getRangeComponents();
       Vector mvector = RangeComponents[0].getSelectedMapVector();     
@@ -155,12 +158,19 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         throw new BadMappingException("image values must be mapped to RGB only");
       }
       ScalarMap cmap = (ScalarMap) mvector.elementAt(0);
-      if (!Display.RGB.equals(cmap.getDisplayScalar())) {
-        throw new BadMappingException("image values must be mapped to RGB");
+      int color_length;
+      if (Display.RGB.equals(cmap.getDisplayScalar())) {
+        color_length = 3;
+      }
+      else if (Display.RGBA.equals(cmap.getDisplayScalar())) {
+        color_length = 4;
+      }
+      else {
+        throw new BadMappingException("image values must be mapped to RGB or RGBA");
       }
 
       // build texture colors in color_ints array
-      ColorControl control = (ColorControl) cmap.getControl();
+      BaseColorControl control = (BaseColorControl) cmap.getControl();
       float[][] table = control.getTable();
       byte[][] bytes = null;
       Set rset = null;
@@ -197,6 +207,10 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
           c = (int) (255.0 * table[2][j]);
           b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+          if (color_length == 4) {
+            c = (int) (255.0 * table[3][j]);
+            a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+          }
           itable[j] = ((a << 24) | (r << 16) | (g << 8) | b);
         }
         int tblEnd = table[0].length - 1;
@@ -286,6 +300,10 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
             g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
             c = (int) (255.0 * color_values[2][i]);
             b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+            if (color_length == 4) {
+              c = (int) (255.0 * color_values[3][i]);
+              a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+            }
             color_ints[i] = ((a << 24) | (r << 16) | (g << 8) | b);
           }
         }
@@ -484,8 +502,8 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 // System.out.println("start textureToGroup " + (System.currentTimeMillis() - link.start_time));
 
         // add texture as sub-node of group in scene graph
-        textureToGroup(group, qarray, image, mode, 1.0f, null,
-                       texture_width, texture_height);
+        textureToGroup(group, qarray, image, mode, constant_alpha,
+                       constant_color, texture_width, texture_height);
 
 // System.out.println("end texture map " + (System.currentTimeMillis() - link.start_time));
 
@@ -724,8 +742,8 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 // System.out.println("start textureToGroup " + (System.currentTimeMillis() - link.start_time));
 
         // add texture as sub-node of group in scene graph
-        textureToGroup(group, tarray, image, mode, 1.0f, null,
-                       texture_width, texture_height);
+        textureToGroup(group, tarray, image, mode, constant_alpha,
+                       constant_color, texture_width, texture_height);
 
 // System.out.println("end curved texture " + (System.currentTimeMillis() - link.start_time));
 
@@ -975,7 +993,7 @@ if (i == (len / 2)) {
       colMap[0] = new ConstantMap(0., Display.Blue);
       colMap[1] = new ConstantMap(1., Display.Red);
       colMap[2] = new ConstantMap(0., Display.Green);
-      colMap[3] = new ConstantMap(1.001, Display.Radius);
+      colMap[3] = new ConstantMap(1.001, Display.Radius); // map lines above image
 
       AreaAdapter aa = new AreaAdapter(areaFile);
 
@@ -997,11 +1015,17 @@ if (i == (len / 2)) {
 
       // select which band to show...
       ScalarMap rgbmap = new ScalarMap( (RealType) rtype.getComponent(0),
-                                        Display.RGB);
+                                        Display.RGBA);
       display.addMap(rgbmap);
-      ColorControl control = (ColorControl) rgbmap.getControl();
+      BaseColorControl control = (BaseColorControl) rgbmap.getControl();
       control.initGreyWedge();
-
+/* test for RGBA */
+      float[][] table = control.getTable();
+      for (int i=0; i<table[3].length; i++) {
+        table[3][i] = table[0][i];
+      }
+      control.setTable(table);
+/* end test for RGBA */
 
       DataReferenceImpl ref_image = new DataReferenceImpl("ref_image");
 
