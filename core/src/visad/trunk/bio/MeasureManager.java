@@ -506,11 +506,8 @@ public class MeasureManager {
     bio.toolMeasure.updateInfo(microns, mw, mh, sd);
   }
 
-
-  // -- HELPER METHODS --
-
   /** Gets the width, height and slice distance in microns. */
-  private double[] getMicronDistances() {
+  double[] getMicronDistances() {
     double mw = Double.NaN, mh = Double.NaN, sd = Double.NaN;
     if (bio.toolAlign.getUseMicrons()) {
       mw = bio.toolAlign.getMicronWidth();
@@ -519,6 +516,7 @@ public class MeasureManager {
     }
     return new double[] {mw, mh, sd};
   }
+
 
   // -- UTILITY METHODS --
 

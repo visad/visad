@@ -168,8 +168,8 @@ public class AlignToolPanel extends ToolPanel {
       useMicrons.setEnabled(true);
       zAspect.setEnabled(true);
       bio.toolMeasure.updateFileButtons();
-      //drift.setEnabled(true);
-      //lock.setEnabled(true);
+      drift.setEnabled(true);
+      lock.setEnabled(true);
     }
     else {
       useMicrons.setEnabled(false);
