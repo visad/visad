@@ -6,17 +6,24 @@ include ../../../macros.make
 include ../../../rules.make
 
 TESTS	= \
-	scalar.test \
-	sounding.test \
-	time.test \
-	small.test \
-	pmsl.test \
-	big.test \
-	lwc3rms.test \
-	b2rlc.test \
-	rueden.test \
-	images.test \
-	2332_2365.test
+	    2332_2365.test	\
+	    98101409_ruc.test	\
+	    SSECImages.test	\
+	    b2rlc.test	\
+	    big.test	\
+	    images.test	\
+	    imagesNoTimeVar.test	\
+	    lowresTerrain.test	\
+	    lwc3rms.test	\
+	    pmsl.test	\
+	    rueden.test	\
+	    scalar.test	\
+	    small.test	\
+	    smc3ars1.test	\
+	    sounding.test	\
+	    time.test	\
+	    timeNoTimeVar.test	\
+	    timeNoUnit.test
 
 DEBUGS	= $(TESTS:.test=.debug)
 

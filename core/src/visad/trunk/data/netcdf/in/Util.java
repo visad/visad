@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Util.java,v 1.3 1998-11-16 18:23:43 steve Exp $
+ * $Id: Util.java,v 1.4 1998-11-20 20:17:04 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -530,18 +530,23 @@ Util
 	{
 	    String	name = dim.getName();
 
-	    type = RealType.getRealTypeByName(name);
+	    type = quantityDB.getFirst(name);	// should use getIfUnique()?
 
 	    if (type == null)
 	    {
-		type = new RealType(name);
+		type = RealType.getRealTypeByName(name);
 
-		/*
-		 * QUESTION: add co-ordinate system?  I don't think so for 
-		 * a netCDF dimension that doesn't have a co-ordinate 
-		 * variable.
-		 */
-		type.setDefaultSet(new FloatSet(type));
+		if (type == null)
+		{
+		    type = new RealType(name);
+
+		    /*
+		     * QUESTION: add co-ordinate system?  I don't think so for 
+		     * a netCDF dimension that doesn't have a co-ordinate 
+		     * variable.
+		     */
+		    type.setDefaultSet(new FloatSet(type));
+		}
 	    }
 	}
 	
