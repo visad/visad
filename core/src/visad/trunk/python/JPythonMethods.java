@@ -304,6 +304,22 @@ public abstract class JPythonMethods {
     return matrix1.solve(matrix2);
   }
 
+  /** invert a matrix using Jama */
+  public static JamaMatrix inverse(FlatField data)
+         throws VisADException, RemoteException, IllegalAccessException,
+                InstantiationException, InvocationTargetException {
+    JamaMatrix matrix = JamaMatrix.convertToMatrix(data);
+    return matrix.inverse();
+  }
+
+  /** get determinant of a matrix using Jama */
+  public static double det(FlatField data)
+         throws VisADException, RemoteException, IllegalAccessException,
+                InstantiationException, InvocationTargetException {
+    JamaMatrix matrix = JamaMatrix.convertToMatrix(data);
+    return matrix.det();
+  }
+
   /** return Cholesky Decomposition using Jama */
   public static JamaCholeskyDecomposition chol(FlatField data)
          throws VisADException, RemoteException, IllegalAccessException,
