@@ -100,6 +100,8 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
   private transient MathType type = null;
   private transient ShadowTupleType shadow = null;
 
+  private CoordinateSystem coord = null;
+
   /** point on direct manifold line or plane */
   private float point_x, point_y, point_z;
   /** normalized direction of line or perpendicular to plane */
@@ -154,9 +156,19 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
     DisplayTupleType[] tuples = {null};
     whyNotDirect = findFlow(shadow, display, tuples, flowToComponent);
     if (whyNotDirect != null) return;
-    if (tuples[0] == null || flowToComponent[0] < 0 || flowToComponent[1] < 0) {
-      whyNotDirect = noFlow;
-      return;
+    if (coord == null) {
+      if (tuples[0] == null ||
+          flowToComponent[0] < 0 || flowToComponent[1] < 0) {
+        whyNotDirect = noFlow;
+        return;
+      }
+    }
+    else {
+      if (tuples[0] == null ||
+          flowToComponent[1] < 0 || flowToComponent[2] < 0) {
+        whyNotDirect = noFlow;
+        return;
+      }
     }
 
     ShadowRealType[] components = shadow.getRealComponents();
@@ -204,7 +216,26 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
           flowToComponent[index] = i;
           directMap[index] = map;
         }
-      }
+        else if (Display.DisplayFlow1SphericalTuple.equals(tuple) ||
+                 Display.DisplayFlow2SphericalTuple.equals(tuple)) {
+          if (tuples[0] != null) {
+            if (!tuples[0].equals(tuple)) {
+              return multipleFlowTuples;
+            }
+          }
+          else {
+            tuples[0] = tuple;
+            coord = tuple.getCoordinateSystem();
+          }
+          num_flow_per_real++;
+          if (num_flow_per_real > 1) {
+            return multipleFlowMapping;
+          }
+          int index = dreal.getTupleIndex();
+          flowToComponent[index] = i;
+          directMap[index] = map;
+        }
+      } // while (maps.hasMoreElements())
     }
     return null;
   }
@@ -324,6 +355,15 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
           int j = flowToComponent[i];
           data_flow[i] = (j >= 0) ? (float) reals[j].getValue() : 0.0f;
         }
+
+        if (coord != null) {
+          float[][] ds = {{data_flow[0]}, {data_flow[1]}, {data_flow[2]}};
+          ds = coord.toReference(ds);
+          data_flow[0] = ds[0][0];
+          data_flow[1] = ds[1][0];
+          data_flow[2] = ds[2][0];
+        }
+
         data_speed = (float) Math.sqrt(data_flow[0] * data_flow[0] +
                                        data_flow[1] * data_flow[1] +
                                        data_flow[2] * data_flow[2]);
@@ -450,6 +490,14 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
         }
       }
 
+      if (coord != null) {
+        float[][] xs = {{x[0]}, {x[1]}, {x[2]}};
+        xs = coord.fromReference(xs);
+        x[0] = xs[0][0];
+        x[1] = xs[1][0];
+        x[2] = xs[2][0];
+      }
+
       // now replace flow values
       Vector vect = new Vector();
       for (int i=0; i<3; i++) {
@@ -511,8 +559,10 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
     // construct RealTypes for wind record components
     RealType lat = RealType.Latitude;
     RealType lon = RealType.Longitude;
-    RealType windx = new RealType("windx");
-    RealType windy = new RealType("windy");
+    RealType windx = new RealType("windx",
+                          CommonUnit.meterPerSecond, null);     
+    RealType windy = new RealType("windy",
+                          CommonUnit.meterPerSecond, null);
     RealType red = new RealType("red");
     RealType green = new RealType("green");
 
@@ -521,6 +571,18 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
     // to Longitude (positive east) and Latitude (positive north)
     EarthVectorType windxy = new EarthVectorType(windx, windy);
 
+    RealType wind_dir = new RealType("wind_dir",
+                          CommonUnit.degree, null);
+    RealType wind_speed = new RealType("wind_speed",
+                          CommonUnit.meterPerSecond, null);
+    RealTupleType windds = null;
+    if (args.length > 0) {
+      System.out.println("polar winds");
+      windds =
+        new RealTupleType(new RealType[] {wind_dir, wind_speed},
+        new WindPolarCoordinateSystem(windxy), null);
+    }
+
     // construct Java2D display and mappings that govern
     // how wind records are displayed
     DisplayImpl display = new DisplayImplJ2D("display1");
@@ -528,14 +590,29 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
     display.addMap(lonmap);
     ScalarMap latmap = new ScalarMap(lat, Display.YAxis);
     display.addMap(latmap);
-    ScalarMap windx_map = new ScalarMap(windx, Display.Flow1X);
-    display.addMap(windx_map);
-    windx_map.setRange(-1.0, 1.0); // do this for barb rendering
-    ScalarMap windy_map = new ScalarMap(windy, Display.Flow1Y);
-    display.addMap(windy_map);
-    windy_map.setRange(-1.0, 1.0); // do this for barb rendering
-    FlowControl flow_control = (FlowControl) windy_map.getControl();
-    flow_control.setFlowScale(0.15f); // this controls size of barbs
+
+    FlowControl flow_control;
+    if (args.length > 0) {
+      ScalarMap winds_map = new ScalarMap(wind_speed, Display.Flow1Radial);
+      display.addMap(winds_map);
+      winds_map.setRange(0.0, 1.0); // do this for barb rendering
+      ScalarMap windd_map = new ScalarMap(wind_dir, Display.Flow1Azimuth);
+      display.addMap(windd_map);
+      windd_map.setRange(0.0, 360.0); // do this for barb rendering
+      flow_control = (FlowControl) windd_map.getControl();
+      flow_control.setFlowScale(0.15f); // this controls size of barbs
+    }
+    else {
+      ScalarMap windx_map = new ScalarMap(windx, Display.Flow1X);
+      display.addMap(windx_map);
+      windx_map.setRange(-1.0, 1.0); // do this for barb rendering
+      ScalarMap windy_map = new ScalarMap(windy, Display.Flow1Y);
+      display.addMap(windy_map);
+      windy_map.setRange(-1.0, 1.0); // do this for barb rendering
+      flow_control = (FlowControl) windy_map.getControl();
+      flow_control.setFlowScale(0.15f); // this controls size of barbs
+    }
+
     display.addMap(new ScalarMap(red, Display.Red));
     display.addMap(new ScalarMap(green, Display.Green));
     display.addMap(new ConstantMap(1.0, Display.Blue));
@@ -550,10 +627,23 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
 
         // each wind record is a Tuple (lon, lat, (windx, windy), red, green)
         // set colors by wind components, just for grins
-        Tuple tuple = new Tuple(new Data[]
-          {new Real(lon, 10.0 * u), new Real(lat, 10.0 * v - 40.0),
-           new RealTuple(windxy, new double[] {30.0 * u, 30.0 * v}),
-           new Real(red, u), new Real(green, v)});
+        Tuple tuple;
+        double fx = 30.0 * u;
+        double fy = 30.0 * v;
+        if (args.length > 0) {
+          double fd = Data.RADIANS_TO_DEGREES * Math.atan2(-fx, -fy);
+          double fs = Math.sqrt(fx * fx + fy * fy);
+          tuple = new Tuple(new Data[]
+            {new Real(lon, 10.0 * u), new Real(lat, 10.0 * v - 40.0),
+             new RealTuple(windds, new double[] {fd, fs}),
+             new Real(red, u), new Real(green, v)});
+        }
+        else {
+          tuple = new Tuple(new Data[]
+            {new Real(lon, 10.0 * u), new Real(lat, 10.0 * v - 40.0),
+             new RealTuple(windxy, new double[] {fx, fy}),
+             new Real(red, u), new Real(green, v)});
+        }
 
         // construct reference for wind record
         refs[k] = new DataReferenceImpl("ref_" + k);
