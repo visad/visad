@@ -181,14 +181,6 @@ public class SelectionBox {
         }
       }
     };
-
-    // configure selection box renderers
-    DisplayRenderer displayRenderer = display.getDisplayRenderer();
-    for (int i=0; i<refs.length; i++) {
-      renderers[i] = displayRenderer.makeDefaultRenderer();
-      renderers[i].suppressExceptions(true);
-      renderers[i].toggle(false);
-    }
   }
 
 
@@ -208,7 +200,10 @@ public class SelectionBox {
         cell.removeAllReferences();
         if (thing == null) {
           // hide selection box
-          for (int i=0; i<renderers.length; i++) renderers[i].toggle(false);
+          for (int i=0; i<renderers.length; i++) {
+            if (renderers[i] == null) return;
+            renderers[i].toggle(false);
+          }
         }
         else {
           // select given object
@@ -226,7 +221,11 @@ public class SelectionBox {
 
   /** Adds the selection box to its display. */
   public void init() throws VisADException, RemoteException {
+    DisplayRenderer displayRenderer = display.getDisplayRenderer();
     for (int i=0; i<refs.length; i++) {
+      renderers[i] = displayRenderer.makeDefaultRenderer();
+      renderers[i].suppressExceptions(true);
+      renderers[i].toggle(false);
       ConstantMap[] maps = {
         new ConstantMap(1.0f, Display.Red),
         new ConstantMap(1.0f, Display.Green),

@@ -118,6 +118,9 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
   /** Button for adding points. */
   private JButton addMarker;
 
+  /** Button for clearing all measurements. */
+  private JButton clearAll;
+
 
   // -- LINE FUNCTIONS --
 
@@ -168,6 +171,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
       }
     });
     p.add(saveLines);
+    p.add(Box.createHorizontalStrut(5));
 
     // restore measurements button
     restoreLines = new JButton("Restore measurements");
@@ -257,6 +261,21 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
     });
     addMarker.setEnabled(false);
     p.add(addMarker);
+    p.add(Box.createHorizontalStrut(5));
+
+    // clear all measurements button
+    clearAll = new JButton("Clear all");
+    clearAll.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        int ans = JOptionPane.showConfirmDialog(tool,
+          "Are you sure?", "Clear all measurements",
+          JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        if (ans != JOptionPane.YES_OPTION) return;
+        bio.clear();
+      }
+    });
+    clearAll.setEnabled(false);
+    p.add(clearAll);
     controls.add(pad(p));
     controls.add(Box.createVerticalStrut(5));
 
@@ -452,6 +471,7 @@ public class MeasureToolPanel extends ToolPanel implements SwingConstants {
     // CTR: TODO: file IO stuff should be affected by this
     addLine.setEnabled(enabled);
     addMarker.setEnabled(enabled);
+    clearAll.setEnabled(enabled);
   }
 
   /** Selects the given measurement object. */

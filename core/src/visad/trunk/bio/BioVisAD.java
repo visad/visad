@@ -286,9 +286,14 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
       display3.clearMaps();
     }
 
+    // reset measurements
+    if (lists != null) clear();
+
+    /*
     // reset measurement pools
     pool2.releaseAll();
     if (pool3 != null) pool3.releaseAll();
+    */
 
     // The FieldImpl must be in one of the following forms:
     //     (index -> ((x, y) -> range))
@@ -425,6 +430,14 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     for (int i=0; i<timesteps; i++) lists[i] = new MeasureList(this);
 
     return true;
+  }
+
+  /** Clears all measurements from all image slices. */
+  public void clear() {
+    int index = getIndex();
+    for (int i=0; i<lists.length; i++) {
+      lists[i].removeAllMeasurements(i == index);
+    }
   }
 
   /**

@@ -51,15 +51,7 @@ public class PoolPoint {
   /** Constructs a pool of measurements. */
   public PoolPoint(DisplayImpl display, String name) {
     this.display = display;
-    try {
-      ref = new DataReferenceImpl("bio_" + name);
-      renderer = display instanceof DisplayImplJ3D ?
-        (DataRenderer) new DirectManipulationRendererJ3D() :
-        (DataRenderer) new DirectManipulationRendererJ2D();
-      renderer.setPickCrawlToCursor(false);
-      renderer.suppressExceptions(true);
-      renderer.toggle(false);
-    }
+    try { ref = new DataReferenceImpl("bio_" + name); }
     catch (VisADException exc) { exc.printStackTrace(); }
   }
 
@@ -71,6 +63,12 @@ public class PoolPoint {
 
   /** Adds the point to the associated display. */
   public void init() throws VisADException, RemoteException {
+    renderer = display instanceof DisplayImplJ3D ?
+      (DataRenderer) new DirectManipulationRendererJ3D() :
+      (DataRenderer) new DirectManipulationRendererJ2D();
+    renderer.setPickCrawlToCursor(false);
+    renderer.suppressExceptions(true);
+    renderer.toggle(false);
     display.addReferences(renderer, ref);
   }
 

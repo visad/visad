@@ -126,6 +126,9 @@ public class MeasureList {
 
   /** Removes all measurements, notifying the measurement pool if specified. */
   void removeAllMeasurements(boolean updatePool) {
+    Measurement[] m = new Measurement[measureList.size()];
+    measureList.copyInto(m);
+    for (int i=0; i<m.length; i++) m[i].killed = true;
     measureList.removeAllElements();
     if (updatePool) {
       Measurement[] mm = getMeasurements();

@@ -89,13 +89,7 @@ public class MeasurePool implements DisplayListener {
     box = new SelectionBox(display);
     free = new Vector();
     things = new Vector();
-    try {
-      // add lines reference to display
-      lines = new DataReferenceImpl("bio_colored_lines");
-      line_renderer = display.getDisplayRenderer().makeDefaultRenderer();
-      line_renderer.suppressExceptions(true);
-      line_renderer.toggle(false);
-    }
+    try { lines = new DataReferenceImpl("bio_colored_lines"); }
     catch (VisADException exc) { exc.printStackTrace(); }
 
     cell = new CellImpl() {
@@ -114,6 +108,9 @@ public class MeasurePool implements DisplayListener {
     int total = free.size();
     for (int i=0; i<total; i++) ((PoolPoint) free.elementAt(i)).init();
     box.init();
+    line_renderer = display.getDisplayRenderer().makeDefaultRenderer();
+    line_renderer.suppressExceptions(true);
+    line_renderer.toggle(false);
     display.addReferences(line_renderer, lines);
   }
 
@@ -177,6 +174,8 @@ public class MeasurePool implements DisplayListener {
 
   /** Refreshes the connecting lines of the measurements in the pool. */
   public void refresh() {
+    if (line_renderer == null) return;
+
     // redraw line segments when endpoints change
     Vector strips = new Vector();
     Vector colors = new Vector();
