@@ -319,7 +319,15 @@ public class ContourWidget
   {
     if (cSurface == cSurface) {
       Surface.setEnabled(true);
-      Surface.setValue((int) ((sliderScale*cSurface)+0.5));
+
+      int val;
+      double tmp = sliderScale * cSurface;
+      if (tmp < 0) {
+        val = (int )(tmp - 0.5);
+      } else {
+        val = (int )(tmp + 0.5);
+      }
+      Surface.setValue(val);
       SurfaceLabel.setText(name + " = " + PlotText.shortString(cSurface));
     }
     else {
@@ -396,14 +404,17 @@ public class ContourWidget
 
   /** ChangeListener method for JSlider. */
   public void stateChanged(ChangeEvent e) {
-    cSurface = (float) (Surface.getValue()/sliderScale);
-    SurfaceLabel.setText(name + " = " + PlotText.shortString(cSurface));
+    float newVal = (float) (Surface.getValue()/sliderScale);
+    if (!Util.isApproximatelyEqual(cSurface, newVal)) {
+      cSurface = newVal;
+      SurfaceLabel.setText(name + " = " + PlotText.shortString(cSurface));
 
-    try {
-      control.setSurfaceValue(cSurface);
+      try {
+        control.setSurfaceValue(cSurface);
+      }
+      catch (VisADException exc) { }
+      catch (RemoteException exc) { }
     }
-    catch (VisADException exc) { }
-    catch (RemoteException exc) { }
   }
 
   /** ItemListener method for JCheckBoxes. */
