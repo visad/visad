@@ -105,11 +105,16 @@ public class RangeWidget extends JPanel implements ActionListener,
     double[] data = new double[2];
     data[0] = Double.parseDouble(data_low.getText());
     data[1] = Double.parseDouble(data_hi.getText());
+// System.out.println("actionPerformed " + data[0] + " " + data[1]);
     try {
       map.setRange(data[0], data[1]);
     }
-    catch (VisADException exc) { }
-    catch (RemoteException exc) { }
+    catch (VisADException exc) {
+// System.out.println(e);
+    }
+    catch (RemoteException exc) {
+// System.out.println(e);
+    }
   }
 
   /** handle ScalarMap changes */
