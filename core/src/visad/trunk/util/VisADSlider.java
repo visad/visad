@@ -141,13 +141,25 @@ public class VisADSlider extends JPanel implements ChangeListener,
     slider = new JSlider(0, sTicks, sTicks / 2) {
       public Dimension getPreferredSize() {
         Dimension d = super.getPreferredSize();
-        return new Dimension(450, d.height);
+        return new Dimension(150, d.height);
+      }
+      public Dimension getMaximumSize() {
+        Dimension d = super.getMaximumSize();
+        return new Dimension(150, d.height);
+      }
+      public Dimension getMinimumSize() {
+        Dimension d = super.getMinimumSize();
+        return new Dimension(150, d.height);
       }
     };
     label = new JLabel() {
       public Dimension getPreferredSize() {
         Dimension d = super.getPreferredSize();
-        return new Dimension(150, d.height);
+        return new Dimension(200, d.height);
+      }
+      public Dimension getMinimumSize() {
+        Dimension d = super.getMinimumSize();
+        return new Dimension(200, d.height);
       }
     };
     label.setAlignmentX(JLabel.CENTER_ALIGNMENT);
