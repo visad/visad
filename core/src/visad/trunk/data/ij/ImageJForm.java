@@ -26,15 +26,13 @@ MA 02111-1307, USA
 
 package visad.data.ij;
 
-import ij.*;
-import ij.io.*;
-import ij.process.ImageProcessor;
+import java.awt.Image;
 import java.io.*;
 import java.net.URL;
 import java.rmi.RemoteException;
 import visad.*;
 import visad.data.*;
-import visad.util.DataUtility;
+import visad.util.*;
 
 /**
  * ImageJForm is the VisAD data form for the image formats
@@ -47,22 +45,52 @@ public class ImageJForm extends Form
   implements FormFileInformer, FormBlockReader, FormProgressInformer
 {
 
+  // -- Static fields --
+
+  /** Counter for ImageJ form instantiation. */
   private static int num = 0;
 
+  /** Legal ImageJ suffixes. */
   private static final String[] suffixes = {
     "tif", "tiff", "dicom", "fits", "pgm", "jpg",
     "jpeg", "gif", "lut", "bmp", "zip", "roi"
   };
 
-  private Opener opener;
+  /** Message produced when attempting to use ImageJ without it installed. */
+  private static final String NO_IJ = "This feature requires ImageJ, " +
+    "avialable online at http://rsb.info.nih.gov/ij/download.html";
 
+
+  // -- Fields --
+
+  /** Reflection tool for ImageJ and JAI calls. */
+  private ReflectedUniverse r;
+
+  /** Flag indicating ImageJ is not installed. */
+  private boolean noImageJ = false;
+
+  /** Percent complete with current operation. */
   private double percent = -1;
+
+
+  // -- Constructor --
 
   /** Constructs a new ImageJ file form. */
   public ImageJForm() {
     super("ImageJForm" + num++);
-    opener = new Opener();
+    r = new ReflectedUniverse();
+
+    // ImageJ imports
+    try {
+      r.exec("import ij.ImagePlus");
+      r.exec("import ij.ImageStack");
+      r.exec("import ij.io.Opener");
+      r.exec("import ij.process.ImageProcessor");
+      r.exec("opener = new Opener()");
+    }
+    catch (VisADException exc) { noImageJ = true; }
   }
+
 
   // -- FormFileInformer methods --
 
@@ -121,19 +149,26 @@ public class ImageJForm extends Form
   public DataImpl open(String id)
     throws BadFormException, IOException, VisADException
   {
+    if (noImageJ) throw new BadFormException(NO_IJ);
+
     percent = 0;
     File file = new File(id);
-    ImagePlus image = opener.openImage(file.getParent() +
-      System.getProperty("file.separator"), file.getName());
-    int size = image.getStackSize();
-    if (size == 1) return DataUtility.makeField(image.getImage());
+    r.setVar("dir", file.getParent() + System.getProperty("file.separator"));
+    r.setVar("name", file.getName());
+    r.exec("image = opener.openImage(dir, name)");
+    r.exec("size = image.getStackSize()");
+    int size = ((Integer) r.getVar("size")).intValue();
+    if (size == 1) {
+      return DataUtility.makeField((Image) r.exec("image.getImage()"));
+    }
 
     // combine data stack into time function
-    ImageStack stack = image.getStack();
+    r.exec("stack = image.getStack()");
     FieldImpl[] fields = new FieldImpl[size];
     for (int i=0; i<size; i++) {
-      ImageProcessor ip = stack.getProcessor(i + 1);
-      fields[i] = DataUtility.makeField(ip.createImage());
+      r.setVar("i1", i + 1);
+      r.exec("ip = stack.getProcessor(i1)");
+      fields[i] = DataUtility.makeField((Image) r.exec("ip.createImage()"));
     }
     RealType time = RealType.getRealType("time");
     FunctionType time_function = new FunctionType(time, fields[0].getType());
@@ -155,8 +190,11 @@ public class ImageJForm extends Form
   public DataImpl open(URL url)
     throws BadFormException, IOException, VisADException
   {
-    ImagePlus image = opener.openURL(url.toString());
-    return DataUtility.makeField(image.getImage());
+    if (noImageJ) throw new BadFormException(NO_IJ);
+
+    r.setVar("url", url.toString());
+    r.exec("image = opener.openURL(url)");
+    return DataUtility.makeField((Image) r.exec("image.getImage()"));
   }
 
   public FormNode getForms(Data data) {
