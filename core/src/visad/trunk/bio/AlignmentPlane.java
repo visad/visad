@@ -118,8 +118,8 @@ public class AlignmentPlane extends PlaneSelector {
    * endpoint distances to maintain size and shape.
    */
   public void setMode(int mode) {
-    if (mode != OFF_MODE && mode != SET_MODE &&
-      mode != ADJUST_MODE && mode != APPLY_MODE)
+    if (mode != OFF_MODE && mode != SET_MODE && mode != ADJUST_MODE &&
+      mode != APPLY_MODE || mode == this.mode)
     {
       return;
     }
@@ -183,17 +183,11 @@ public class AlignmentPlane extends PlaneSelector {
     index = -1; // force update
     setIndex(bio.sm.getIndex());
     while (!updatePlane());
+    computeDistances();
   }
 
 
   // -- HELPER METHODS --
-
-  /** Computes the appropriate plane from the current endpoints. */
-  protected boolean computePlane(RealTuple[] tuple)
-    throws VisADException, RemoteException
-  {
-    return super.computePlane(tuple);
-  }
 
   /** Refreshes the plane data from its endpoint locations. */
   protected boolean refresh() {
@@ -204,18 +198,18 @@ public class AlignmentPlane extends PlaneSelector {
       setPos(i, tuple.getValues());
     }
 
-    double[] p1 = pos[index][0], p2 = pos[index][1], p3 = pos[index][2];
-    double[] m = {1, 1, 1};
-
-    double[] u = new double[3];
-    for (int i=0; i<3; i++) u[i] = p2[i] - p1[i];
-    double[] v = new double[3];
-    for (int i=0; i<3; i++) v[i] = p3[i] - p1[i];
-    double d12 = BioUtil.getDistance(p1, p2, m);
-    double d13 = BioUtil.getDistance(p1, p3, m);
-    double d23 = BioUtil.getDistance(p2, p3, m);
-
     if (mode == ADJUST_MODE) {
+      double[] p1 = pos[index][0], p2 = pos[index][1], p3 = pos[index][2];
+      double[] m = {1, 1, 1};
+
+      double[] u = new double[3];
+      for (int i=0; i<3; i++) u[i] = p2[i] - p1[i];
+      double[] v = new double[3];
+      for (int i=0; i<3; i++) v[i] = p3[i] - p1[i];
+      double d12 = BioUtil.getDistance(p1, p2, m);
+      double d13 = BioUtil.getDistance(p1, p3, m);
+      double d23 = BioUtil.getDistance(p2, p3, m);
+
       // snap 2nd endpoint to bounding sphere
       if (!Util.isApproximatelyEqual(dist12, d12)) {
         double lamda = dist12 / d12;
@@ -261,16 +255,7 @@ public class AlignmentPlane extends PlaneSelector {
         return false;
       }
     }
-    else {
-      dist12 = d12;
-      dist13 = d13;
-      dist23 = d23;
-      d_dist = (u[0] * v[0] + u[1] * v[1] + u[2] * v[2]) /
-        (u[0] * u[0] + u[1] * u[1] + u[2] * u[2]);
-      double[] p4 = new double[3];
-      for (int i=0; i<3; i++) p4[i] = p1[i] + d_dist * u[i];
-      dist34 = BioUtil.getDistance(p3, p4, m);
-    }
+    else computeDistances();
 
     return super.refresh();
   }
@@ -283,12 +268,13 @@ public class AlignmentPlane extends PlaneSelector {
 
   /** Updates internal position values. */
   protected void setPos(int i, double[] vals) {
-    double[] m = getScale();
-    double[] v = new double[3];
+    double[] v = scale(vals);
     boolean equal = true;
     for (int j=0; j<3; j++) {
-      v[j] = m[j] * vals[j];
-      if (!Util.isApproximatelyEqual(pos[index][i][j], v[j])) equal = false;
+      if (!Util.isApproximatelyEqual(pos[index][i][j], v[j])) {
+        equal = false;
+        break;
+      }
     }
     if (equal) return;
     int startIndex = mode == ADJUST_MODE ? index : 0;
@@ -340,6 +326,25 @@ public class AlignmentPlane extends PlaneSelector {
       v2[i] = pos[ndx][2][i] - pos[ndx][0][i];
     }
     coord[ndx] = new OrthonormalCoordinateSystem(v1, v2);
+  }
+
+  /** Computes distances for constraining alignment plane size and shape. */
+  protected void computeDistances() {
+    double[] p1 = pos[index][0], p2 = pos[index][1], p3 = pos[index][2];
+    double[] m = {1, 1, 1};
+
+    double[] u = new double[3];
+    for (int i=0; i<3; i++) u[i] = p2[i] - p1[i];
+    double[] v = new double[3];
+    for (int i=0; i<3; i++) v[i] = p3[i] - p1[i];
+    dist12 = BioUtil.getDistance(p1, p2, m);
+    dist13 = BioUtil.getDistance(p1, p3, m);
+    dist23 = BioUtil.getDistance(p2, p3, m);
+    d_dist = (u[0] * v[0] + u[1] * v[1] + u[2] * v[2]) /
+        (u[0] * u[0] + u[1] * u[1] + u[2] * u[2]);
+    double[] p4 = new double[3];
+    for (int i=0; i<3; i++) p4[i] = p1[i] + d_dist * u[i];
+    dist34 = BioUtil.getDistance(p3, p4, m);
   }
 
 }

@@ -400,7 +400,7 @@ public class SliceManager implements ControlListener,
 
   /** Links the data series to the given list of files. */
   public void setSeries(File[] files) { setSeries(files, false); }
-  
+
   /**
    * Links the data series to the given list of files, treating
    * each file as a slice (instead of a timestep) if specified.
@@ -734,186 +734,190 @@ public class SliceManager implements ControlListener,
    * from the given files.
    */
   private void init(File[] files, int index) throws VisADException {
-    ProgressDialog dialog = new ProgressDialog(bio, "Loading");
-    dialog.go();
+    final ProgressDialog dialog = new ProgressDialog(bio, "Loading");
+    final File[] f = files;
+    final int fnum = index;
+    dialog.go(new Runnable() {
+      public void run() {
+        bio.display2.disableAction();
+        if (bio.display3 != null) bio.display3.disableAction();
+        try {
+          clearDisplays();
 
-    bio.display2.disableAction();
-    if (bio.display3 != null) bio.display3.disableAction();
-    try {
-      clearDisplays();
+          // reset measurements
+          if (bio.mm.lists != null) bio.mm.clear();
 
-      // reset measurements
-      if (bio.mm.lists != null) bio.mm.clear();
+          field = null;
+          sliceField = volumeField = null;
+          FieldImpl[][] thumbs = null;
+          mode_index = mode_slice = 0;
 
-      field = null;
-      sliceField = volumeField = null;
-      FieldImpl[][] thumbs = null;
-      mode_index = mode_slice = 0;
-
-      if (filesAsSlices) {
-        if (files.length == 1) {
-          // data is a single stack of timesteps
-          slices = 1;
-          FieldImpl stack = BioUtil.loadData(files[0], false);
-          if (stack == null) return;
-          timeField = stack;
-          timesteps = timeField.getLength();
-          FlatField image = (FlatField) timeField.getSample(index);
-          FunctionType stack_type =
-            new FunctionType(SLICE_TYPE, image.getType());
-          field = new FieldImpl(stack_type, new Integer1DSet(slices));
-          field.setSample(0, image, false);
-          dialog.setPercent(100);
-          doThumbs = false;
-        }
-        else {
-          // load data at all indices and compile into a single timestep
-          slices = files.length;
-          timesteps = 1;
-          for (int i=0; i<slices; i++) {
-            dialog.setText("Loading " + files[i].getName());
-            FieldImpl image = BioUtil.loadData(files[i], false);
-            if (image == null) return;
-            if (field == null) {
+          if (filesAsSlices) {
+            if (f.length == 1) {
+              // data is a single stack of timesteps
+              slices = 1;
+              FieldImpl stack = BioUtil.loadData(f[0], false);
+              if (stack == null) return;
+              timeField = stack;
+              timesteps = timeField.getLength();
+              FlatField image = (FlatField) timeField.getSample(fnum);
               FunctionType stack_type =
                 new FunctionType(SLICE_TYPE, image.getType());
               field = new FieldImpl(stack_type, new Integer1DSet(slices));
+              field.setSample(0, image, false);
+              dialog.setPercent(100);
+              doThumbs = false;
             }
-            field.setSample(i, image, false);
-            dialog.setPercent(100 * (i + 1) / slices);
+            else {
+              // load data at all indices and compile into a single timestep
+              slices = f.length;
+              timesteps = 1;
+              for (int i=0; i<slices; i++) {
+                dialog.setText("Loading " + f[i].getName());
+                FieldImpl image = BioUtil.loadData(f[i], false);
+                if (image == null) return;
+                if (field == null) {
+                  FunctionType stack_type =
+                    new FunctionType(SLICE_TYPE, image.getType());
+                  field = new FieldImpl(stack_type, new Integer1DSet(slices));
+                }
+                field.setSample(i, image, false);
+                dialog.setPercent(100 * (i + 1) / slices);
+              }
+              doThumbs = false;
+            }
           }
-          doThumbs = false;
-        }
-      }
-      else if (doThumbs) {
-        // load data at all indices and create thumbnails
-        timesteps = files.length;
-        for (int i=0; i<timesteps; i++) {
-          // do current timestep last
-          int ndx = i == timesteps - 1 ? index : (i >= index ? i + 1 : i);
-          purgeData(false);
-          dialog.setText("Loading " + files[ndx].getName());
-          field = BioUtil.loadData(files[ndx], true);
-          if (field == null) return;
-          if (thumbs == null) {
+          else if (doThumbs) {
+            // load data at all indices and create thumbnails
+            timesteps = f.length;
+            for (int i=0; i<timesteps; i++) {
+              // do current timestep last
+              int ndx = i == timesteps - 1 ? fnum : (i >= fnum ? i + 1 : i);
+              purgeData(false);
+              dialog.setText("Loading " + f[ndx].getName());
+              field = BioUtil.loadData(f[ndx], true);
+              if (field == null) return;
+              if (thumbs == null) {
+                slices = field.getLength();
+                thumbs = new FieldImpl[timesteps][slices];
+              }
+              for (int j=0; j<slices; j++) {
+                Data sample = field.getSample(j);
+                if (!(sample instanceof FieldImpl)) {
+                  throw new VisADException("Field is not an image stack");
+                }
+                FieldImpl image = (FieldImpl) sample;
+                thumbs[ndx][j] = DualRes.rescale(image, thumbSize);
+                dialog.setPercent(
+                  100 * (slices * i + j + 1) / (timesteps * slices));
+              }
+            }
+          }
+          else {
+            // load data at current index only
+            timesteps = f.length;
+            dialog.setText("Loading " + f[fnum].getName());
+            field = BioUtil.loadData(f[fnum], true);
+            if (field == null) return;
             slices = field.getLength();
-            thumbs = new FieldImpl[timesteps][slices];
+            dialog.setPercent(100);
           }
-          for (int j=0; j<slices; j++) {
-            Data sample = field.getSample(j);
-            if (!(sample instanceof FieldImpl)) {
-              throw new VisADException("Field is not an image stack");
+          if (field == null) return;
+
+          hasThumbs = doThumbs;
+          autoSwitch = hasThumbs;
+
+          dialog.setText("Analyzing data");
+
+          // The FieldImpl must be in one of the following forms:
+          //     (index -> ((x, y) -> range))
+          //     (index -> ((x, y) -> (r1, r2, ..., rn)))
+          //
+          // dtypes = {x, y, index}; rtypes = {r1, r2, ..., rn}
+
+          // extract types
+          FunctionType time_function = (FunctionType) field.getType();
+          RealTupleType time_domain = time_function.getDomain();
+          MathType time_range = time_function.getRange();
+          if (time_domain.getDimension() > 1 ||
+            !(time_range instanceof FunctionType))
+          {
+            throw new VisADException("Field is not an image stack");
+          }
+          RealType slice_type = (RealType) time_domain.getComponent(0);
+          FunctionType image_function = (FunctionType) time_range;
+          domain2 = image_function.getDomain();
+          RealType[] image_dtypes = domain2.getRealComponents();
+          if (image_dtypes.length < 2) {
+            throw new VisADException("Data stack does not contain images");
+          }
+          dtypes = new RealType[] {
+            image_dtypes[0], image_dtypes[1], slice_type
+          };
+          domain3 = new RealTupleType(dtypes);
+          MathType range = image_function.getRange();
+          if (!(range instanceof RealTupleType) &&
+            !(range instanceof RealType))
+          {
+            throw new VisADException("Invalid field range");
+          }
+          rtypes = range instanceof RealTupleType ?
+            ((RealTupleType) range).getRealComponents() :
+            new RealType[] {(RealType) range};
+
+          // convert thumbnails into animation stacks
+          lowresField = null;
+          if (doThumbs) {
+            FunctionType slice_function =
+              new FunctionType(slice_type, image_function);
+            FunctionType lowres_function =
+              new FunctionType(TIME_TYPE, slice_function);
+            lowresField = new FieldImpl(lowres_function,
+              new Integer1DSet(TIME_TYPE, timesteps));
+            Set lowres_set = new Integer1DSet(slice_type, slices);
+            for (int j=0; j<timesteps; j++) {
+              FieldImpl step = new FieldImpl(slice_function, lowres_set);
+              step.setSamples(thumbs[j], false);
+              lowresField.setSample(j, step, false);
             }
-            FieldImpl image = (FieldImpl) sample;
-            thumbs[ndx][j] = DualRes.rescale(image, thumbSize);
-            dialog.setPercent(
-              100 * (slices * i + j + 1) / (timesteps * slices));
           }
+
+          dialog.setText("Configuring displays");
+
+          // set new data
+          ref2.setData(field);
+          ref3.setData(field);
+          if (doThumbs) {
+            lowresRef2.setData(lowresField);
+            lowresRef3.setData(lowresField);
+            ref_prev.setData(lowresField);
+            ref_next.setData(lowresField);
+          }
+
+          bio.brightness = -1; // force color update
+          configureDisplays();
+
+          // initialize tool panels
+          bio.toolView.init();
+          bio.toolColor.init();
+          bio.toolAlign.init();
+          bio.toolMeasure.init();
+
+          // initialize measurement list array
+          bio.mm.initLists(timesteps);
         }
-      }
-      else {
-        // load data at current index only
-        timesteps = files.length;
-        dialog.setText("Loading " + files[index].getName());
-        field = BioUtil.loadData(files[index], true);
-        if (field == null) return;
-        slices = field.getLength();
-        dialog.setPercent(100);
-      }
-      if (field == null) return;
-
-      hasThumbs = doThumbs;
-      autoSwitch = hasThumbs;
-
-      dialog.setText("Analyzing data");
-
-      // The FieldImpl must be in one of the following forms:
-      //     (index -> ((x, y) -> range))
-      //     (index -> ((x, y) -> (r1, r2, ..., rn)))
-      //
-      // dtypes = {x, y, index}; rtypes = {r1, r2, ..., rn}
-
-      // extract types
-      FunctionType time_function = (FunctionType) field.getType();
-      RealTupleType time_domain = time_function.getDomain();
-      MathType time_range = time_function.getRange();
-      if (time_domain.getDimension() > 1 ||
-        !(time_range instanceof FunctionType))
-      {
-        throw new VisADException("Field is not an image stack");
-      }
-      RealType slice_type = (RealType) time_domain.getComponent(0);
-      FunctionType image_function = (FunctionType) time_range;
-      domain2 = image_function.getDomain();
-      RealType[] image_dtypes = domain2.getRealComponents();
-      if (image_dtypes.length < 2) {
-        throw new VisADException("Data stack does not contain images");
-      }
-      dtypes = new RealType[] {
-        image_dtypes[0], image_dtypes[1], slice_type
-      };
-      domain3 = new RealTupleType(dtypes);
-      MathType range = image_function.getRange();
-      if (!(range instanceof RealTupleType) &&
-        !(range instanceof RealType))
-      {
-        throw new VisADException("Invalid field range");
-      }
-      rtypes = range instanceof RealTupleType ?
-        ((RealTupleType) range).getRealComponents() :
-        new RealType[] {(RealType) range};
-
-      // convert thumbnails into animation stacks
-      lowresField = null;
-      if (doThumbs) {
-        FunctionType slice_function =
-          new FunctionType(slice_type, image_function);
-        FunctionType lowres_function =
-          new FunctionType(TIME_TYPE, slice_function);
-        lowresField = new FieldImpl(lowres_function,
-          new Integer1DSet(TIME_TYPE, timesteps));
-        Set lowres_set = new Integer1DSet(slice_type, slices);
-        for (int j=0; j<timesteps; j++) {
-          FieldImpl step = new FieldImpl(slice_function, lowres_set);
-          step.setSamples(thumbs[j], false);
-          lowresField.setSample(j, step, false);
+        catch (VisADException exc) { dialog.setException(exc); }
+        catch (RemoteException exc) {
+          dialog.setException(
+            new VisADException("RemoteException: " + exc.getMessage()));
         }
+
+        bio.display2.enableAction();
+        if (bio.display3 != null) bio.display3.enableAction();
+        bio.state.saveState(); // save initial state file
+        dialog.kill();
       }
-
-      dialog.setText("Configuring displays");
-
-      // set new data
-      ref2.setData(field);
-      ref3.setData(field);
-      if (doThumbs) {
-        lowresRef2.setData(lowresField);
-        lowresRef3.setData(lowresField);
-        ref_prev.setData(lowresField);
-        ref_next.setData(lowresField);
-      }
-
-      bio.brightness = -1; // force color update
-      configureDisplays();
-
-      // initialize tool panels
-      bio.toolView.init();
-      bio.toolColor.init();
-      bio.toolAlign.init();
-      bio.toolMeasure.init();
-
-      // initialize measurement list array
-      bio.mm.initLists(timesteps);
-    }
-    catch (VisADException exc) { dialog.setException(exc); }
-    catch (RemoteException exc) {
-      dialog.setException(
-        new VisADException("RemoteException: " + exc.getMessage()));
-    }
-
-    bio.display2.enableAction();
-    if (bio.display3 != null) bio.display3.enableAction();
-    bio.state.saveState(); // save initial state file
-    dialog.kill();
+    });
 
     try { dialog.checkException(); }
     catch (VisADException exc) {

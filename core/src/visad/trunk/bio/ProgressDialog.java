@@ -129,12 +129,15 @@ public class ProgressDialog extends JDialog {
     if (exc != null) throw exc;
   }
 
-  /** Displays the dialog in a separate thread. */
-  public void go() {
-    Thread t = new Thread(new Runnable() {
-      public void run() { show(); }
-    });
+  /**
+   * Displays the dialog and runs the given code in a separate thread.
+   * Blocks until the dialog is hidden. To accomplish this, the last line
+   * of the given Runnable object's code should be a call to kill().
+   */
+  public void go(Runnable r) {
+    Thread t = new Thread(r);
     t.start();
+    show();
   }
   
   /** Hides the progress dialog. */
@@ -145,17 +148,20 @@ public class ProgressDialog extends JDialog {
 
   /** Launches the ProgressDialog GUI. */
   public static void main(String[] args) throws Exception {
-    ProgressDialog dialog =
+    final ProgressDialog dialog =
       new ProgressDialog((Frame) null, "Testing ProgressDialog");
-    dialog.go();
-    int percent = 0;
-    while (percent <= 100) {
-      try { Thread.sleep((int) (Math.random() * 200)); }
-      catch (InterruptedException exc) { exc.printStackTrace(); }
-      dialog.setPercent(++percent);
-      if (percent == 90) dialog.setText("Almost done");
-    }
-    dialog.kill();
+    dialog.go(new Runnable() {
+      public void run() {
+        int percent = 0;
+        while (percent <= 100) {
+          try { Thread.sleep((int) (Math.random() * 200)); }
+          catch (InterruptedException exc) { exc.printStackTrace(); }
+          dialog.setPercent(++percent);
+          if (percent == 90) dialog.setText("Almost done");
+        }
+        dialog.kill();
+      }
+    });
     dialog.checkException();
     System.exit(0);
   }
