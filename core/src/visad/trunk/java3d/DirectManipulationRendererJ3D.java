@@ -660,7 +660,9 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
     Data data = link.getData();
     if (data == null) {
       branch = null;
-      addException("Data is null");
+      addException(
+        new DisplayException("DirectManipulationRendererJ3D." +
+                             "doTransform: Data is null"));
     }
     else {
       // no preProcess or postProcess for direct manipulation */

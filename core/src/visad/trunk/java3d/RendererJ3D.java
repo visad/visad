@@ -153,15 +153,15 @@ public abstract class RendererJ3D extends DataRenderer {
         branch = doTransform();
       }
       catch (BadMappingException e) {
-        addException(e.getMessage());
+        addException(e);
         branch = null;
       }
       catch (UnimplementedException e) {
-        addException(e.getMessage());
+        addException(e);
         branch = null;
       }
       catch (RemoteException e) {
-        addException(e.getMessage());
+        addException(e);
         branch = null;
       }
       catch (DisplayInterruptException e) {

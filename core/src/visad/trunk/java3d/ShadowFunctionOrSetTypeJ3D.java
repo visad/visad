@@ -692,7 +692,7 @@ System.out.println("replicate alpha = " + v + " " + constant_alpha +
           return false;
         }
         // constant color, so put it in appearance
-        constant_color = new ColoringAttributes(); // J3D
+        constant_color = new ColoringAttributes();
         constant_color.setColor(color_values[0][0], color_values[1][0],
                                 color_values[2][0]);
         color_values = null;

@@ -156,6 +156,8 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
   public BranchGroup createBasicSceneGraph(View v, Canvas3D c) {
     if (root != null) return root;
     view = v;
+    // WLH 14 April 98
+    v.setDepthBufferFreezeTransparent(false);
     canvas = c;
     // Create the root of the branch graph
     root = new BranchGroup();
@@ -394,7 +396,8 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
       Vector exceptionVector = renderer.getExceptionVector();
       Enumeration exceptions = exceptionVector.elements();
       while (exceptions.hasMoreElements()) {
-        String string = (String) exceptions.nextElement();
+        Exception error = (Exception) exceptions.nextElement();
+        String string = error.getMessage();
         try {
           VisADLineArray array =
             PlotText.render_label(string, startl, base, up, false);
@@ -474,14 +477,17 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
   }
 
   public void setScale(int axis, int axis_ordinal,
-              VisADLineArray array) throws VisADException {
+              VisADLineArray array, float[] scale_color)
+         throws VisADException {
     // add array to scale_on
     // replace any existing at axis, axis_ordinal
     DisplayImplJ3D display = (DisplayImplJ3D) getDisplay();
     GeometryArray geometry = display.makeGeometry(array);
     GraphicsModeControl mode = display.getGraphicsModeControl();
+    ColoringAttributes color = new ColoringAttributes();
+    color.setColor(scale_color[0], scale_color[1], scale_color[2]);
     Appearance appearance =
-      ShadowTypeJ3D.makeAppearance(mode, null, null, geometry);
+      ShadowTypeJ3D.makeAppearance(mode, null, color, geometry);
     Shape3D shape = new Shape3D(geometry, appearance);
     BranchGroup group = new BranchGroup();
     group.setCapability(BranchGroup.ALLOW_DETACH);
