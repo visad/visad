@@ -29,6 +29,7 @@ package visad.bio;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.math.BigInteger;
 import java.util.Vector;
 import javax.swing.*;
 
@@ -86,7 +87,6 @@ public class SeriesChooser extends JPanel {
       public Dimension getPreferredSize() {
         Dimension d = super.getPreferredSize();
         d.width = 150;
-                
         return d;
       }
     };
@@ -157,17 +157,19 @@ public class SeriesChooser extends JPanel {
     String s = start.getText();
     String e = end.getText();
     String t = (String) type.getSelectedItem();
-    int first = -1, last = -1;
+    boolean fixed = s.startsWith("0");
+    int width = s.length();
+    BigInteger first = null, last = null;
     try {
-      first = Integer.parseInt(s);
-      last = Integer.parseInt(e);
+      first = new BigInteger(s);
+      last = new BigInteger(e);
     }
     catch (NumberFormatException exc) { }
     boolean dot = (t != null && !t.equals(""));
     if (dot) t = "." + t;
 
     File[] series;
-    if (first < 0 || last < 0) {
+    if (first == null || last == null) {
       // single file
       series = new File[1];
       String name = p + (dot ? t : "");
@@ -175,11 +177,11 @@ public class SeriesChooser extends JPanel {
     }
     else {
       // series of files
-      int count = last - first + 1;
+      int count = last.subtract(first).add(BigInteger.ONE).intValue();
       series = new File[count];
-      int c = first;
-      for (int i=0; i<count; i++, c++) {
-        String name = p + c + (dot ? t : "");
+      BigInteger c = first;
+      for (int i=0; i<count; i++, c = c.add(BigInteger.ONE)) {
+        String name = p + BioUtil.getString(c, fixed, width) + (dot ? t : "");
         series[i] = new File(name);
       }
     }

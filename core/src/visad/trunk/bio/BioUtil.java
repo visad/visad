@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package visad.bio;
 
 import java.io.File;
+import java.math.BigInteger;
 import java.rmi.RemoteException;
 import java.util.*;
 import visad.*;
@@ -484,6 +485,21 @@ public class BioUtil {
     for (int i=0; i<c1.length; i++) c4[i] = c3[i] + c2[i] - c1[i];
     return c4;
   }
+
+
+  // -- Used in ImportDialog & SeriesChooser --
+
+  /** Converts a BigInteger to an (optionally fixed-width) String. */
+  public static String getString(BigInteger bi, boolean fixed, int width) {
+    String s = bi.toString();
+    if (fixed) {
+      // prepend leading zeroes
+      int w = s.length();
+      for (int i=w; i<width; i++) s = "0" + s;
+    }
+    return s;
+  }
+
 
   // -- Miscellaneous utility methods --
   

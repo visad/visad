@@ -186,7 +186,7 @@ public class OptionDialog extends JPanel implements ActionListener {
           if (qtjava != null) break;
         }
       }
-      /* CTR - disable this logic for now
+      /*
       if (qtjava == null) {
         final ProgressDialog searching =
           new ProgressDialog(dialog, "Searching");

@@ -29,6 +29,7 @@ package visad.bio;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.math.BigInteger;
 import java.util.Vector;
 import javax.swing.*;
 import visad.util.Util;
@@ -184,26 +185,40 @@ public class ImportDialog extends JPanel implements ActionListener {
       String last = "";
       if (series) {
         String end = (ext.equals("") ? "" : ".") + ext;
-        int num = -1;
-        try {
-          num = Integer.parseInt(dot >= 0 ?
-            name.substring(i + 1, dot) : name.substring(i + 1));
+        String snum = dot >= 0 ?
+          name.substring(i + 1, dot) : name.substring(i + 1);
+        BigInteger num = new BigInteger(snum);
+
+        // determine whether series numbering width is fixed or dynamic
+        boolean fixed;
+        int width = snum.length();
+        if (snum.startsWith("0")) fixed = true;
+        else {
+          char[] c = snum.toCharArray();
+          c[0] = '0';
+          for (i=1; i<c.length; i++) c[i] = '9';
+          fixed = new File(prefix + new String(c) + end).exists();
         }
-        catch (NumberFormatException exc) { }
-        int min = num;
-        int max = num;
 
         // find lower series bound
-        for (min=num; min>0; min--) {
-          if (!new File(prefix + (min - 1) + end).exists()) break;
+        BigInteger min = num;
+        while (min.compareTo(BigInteger.ZERO) > 0) {
+          BigInteger min1 = min.subtract(BigInteger.ONE);
+          String s = BioUtil.getString(min1, fixed, width);
+          if (!new File(prefix + s + end).exists()) break;
+          min = min1;
         }
-        first = "" + min;
+        first = BioUtil.getString(min, fixed, width);
 
         // find upper series bound
-        for (max=num;; max++) {
-          if (!new File(prefix + (max + 1) + end).exists()) break;
+        BigInteger max = num;
+        while (true) {
+          BigInteger max1 = max.add(BigInteger.ONE);
+          String s = BioUtil.getString(max1, fixed, width);
+          if (!new File(prefix + s + end).exists()) break;
+          max = max1;
         }
-        last = "" + max;
+        last = BioUtil.getString(max, fixed, width);
       }
 
       // fill in text fields appropriately
