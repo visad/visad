@@ -35,6 +35,9 @@ public class ReferenceActionLink extends Object {
   ActionImpl local_action;
   Action action;  // may be remote or local
 
+  /** this id is unique among ReferenceActionLink attached to action */
+  private long id;
+
   /** set by incTick */
   private long NewTick;
   /** value of NewTick at last setTicks() call */
@@ -48,8 +51,8 @@ public class ReferenceActionLink extends Object {
       true when ref is waiting for an acknowledgement */
   boolean Ball;
 
-  public ReferenceActionLink(DataReference r, ActionImpl local_a, Action a)
-                      throws VisADException {
+  public ReferenceActionLink(DataReference r, ActionImpl local_a, Action a,
+                             long jd) throws VisADException {
     if (r == null || a == null) {
       throw new ReferenceException("ReferenceActionLink: DataReference and " +
                                    "Action cannot be null");
@@ -58,6 +61,11 @@ public class ReferenceActionLink extends Object {
     local_action = local_a;
     action = a;
     Ball = true;
+    id = jd;
+  }
+
+  long getId() {
+    return id;
   }
 
   public DataReference getDataReference() {

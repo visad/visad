@@ -117,7 +117,7 @@ public class RemoteDataReferenceImpl extends UnicastRemoteObject
   /** addDataChangedListener and removeDataChangedListener
       provide DataChangedOccurrence source semantics;
       Action must be RemoteAction */
-  public void addDataChangedListener(Action a)
+  public void addDataChangedListener(Action a, long id)
          throws VisADException, RemoteException {
     if (a instanceof ActionImpl) {
       throw new RemoteVisADException("RemoteDataReferenceImpl.addDataChanged" +
@@ -128,7 +128,7 @@ public class RemoteDataReferenceImpl extends UnicastRemoteObject
                                      "addDataChangedListener: " +
                                      "AdaptedDataReference is null");
     }
-    AdaptedDataReference.adaptedAddDataChangedListener(((RemoteAction) a));
+    AdaptedDataReference.adaptedAddDataChangedListener(((RemoteAction) a), id);
   }
 
   /** DataChangedListener must be RemoteActionImpl */

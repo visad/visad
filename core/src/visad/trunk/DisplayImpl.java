@@ -128,8 +128,8 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       throw new TypeException("DisplayImpl.addReference: link already exists");
     }
     DataRenderer renderer = displayRenderer.makeDefaultRenderer();
-    DataDisplayLink[] links =
-      {new DataDisplayLink(ref, this, this, constant_maps, renderer)};
+    DataDisplayLink[] links = {new DataDisplayLink(ref, this, this, constant_maps,
+                                                   renderer, getLinkId())};
     addLink(links[0]);
     renderer.setLinks(links, this);
     RendererVector.addElement(renderer);
@@ -146,8 +146,8 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
                               "link already exists");
     }
     DataRenderer renderer = displayRenderer.makeDefaultRenderer();
-    DataDisplayLink[] links =
-      {new DataDisplayLink(ref, this, display, constant_maps, renderer)};
+    DataDisplayLink[] links = {new DataDisplayLink(ref, this, display, constant_maps,
+                                                   renderer, getLinkId())};
     addLink(links[0]);
     renderer.setLinks(links, this);
     RendererVector.addElement(renderer);
@@ -178,12 +178,12 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
         throw new TypeException("DisplayImpl.addReferences: link already exists");
       }
       if (constant_maps == null) {
-        links[i] =
-          new DataDisplayLink(refs[i], this, this, null, renderer);
+        links[i] = new DataDisplayLink(refs[i], this, this, null,
+                                       renderer, getLinkId());
       }
       else {
-        links[i] =
-          new DataDisplayLink(refs[i], this, this, constant_maps[i], renderer);
+        links[i] = new DataDisplayLink(refs[i], this, this, constant_maps[i],
+                                       renderer, getLinkId());
       }
       addLink(links[i]);
     }
@@ -214,23 +214,23 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       if (refs[i] instanceof DataReferenceImpl) {
         // refs[i] is local
         if (constant_maps == null) {
-          links[i] =
-            new DataDisplayLink(refs[i], this, this, null, renderer);
+          links[i] = new DataDisplayLink(refs[i], this, this, null,
+                                         renderer, getLinkId());
         }   
         else {
-          links[i] =
-            new DataDisplayLink(refs[i], this, this, constant_maps[i], renderer);
+          links[i] = new DataDisplayLink(refs[i], this, this, constant_maps[i],
+                                         renderer, getLinkId());
         }
       }
       else {
         // refs[i] is remote
         if (constant_maps == null) {
-          links[i] =
-            new DataDisplayLink(refs[i], this, display, null, renderer);
+          links[i] = new DataDisplayLink(refs[i], this, display, null,
+                                         renderer, getLinkId());
         }   
         else {
-          links[i] =
-            new DataDisplayLink(refs[i], this, display, constant_maps[i], renderer);
+          links[i] = new DataDisplayLink(refs[i], this, display, constant_maps[i],
+                                         renderer, getLinkId());
         }
       }
       addLink(links[i]);

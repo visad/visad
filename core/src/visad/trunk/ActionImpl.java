@@ -50,8 +50,13 @@ public abstract class ActionImpl extends Object
       ActionImpl is not Serializable, but mark as transient anyway */
   transient Vector LinkVector = new Vector();
 
+  /** counter used to give a unique id to each ReferenceActionLink
+      in LinkVector */
+  private long link_id;
+
   public ActionImpl(String name) {
     Name = name;
+    link_id = 0;
     actionThread = new Thread(this);
     actionThread.start();
   }
@@ -74,6 +79,12 @@ public abstract class ActionImpl extends Object
       }
       LinkVector.removeAllElements();
     }
+  }
+
+  synchronized long getLinkId() {
+    long i = link_id;
+    link_id++;
+    return i;
   }
 
   public void setTicks() {
@@ -179,8 +190,8 @@ if (Name != null && Name.equals("shalstep_cell")) {
 
   public void dataChanged(DataChangedOccurrence e)
          throws VisADException, RemoteException {
-    DataReference ref = e.getDataReference();
-    ReferenceActionLink link = findReference(ref);
+    long id = e.getId();
+    ReferenceActionLink link = findLink(id);
 
     if (link != null) {
       link.incTick(e.getTick());
@@ -193,7 +204,7 @@ if (Name != null && Name.equals("shalstep_cell")) {
 
   /** add a ReferenceActionLink */
   void addLink(ReferenceActionLink link)
-         throws VisADException, RemoteException {
+       throws VisADException, RemoteException {
     DataReference ref = link.getDataReference();
     if (findReference(ref) != null) {
       throw new ReferenceException("Action.addLink: link to " +
@@ -204,7 +215,7 @@ if (Name != null && Name.equals("shalstep_cell")) {
     synchronized (LinkVector) {
       LinkVector.addElement(link);
     }
-    ref.addDataChangedListener(link.getAction());
+    ref.addDataChangedListener(link.getAction(), link.getId());
   }
 
   void notifyAction() {
@@ -224,7 +235,7 @@ if (Name != null && Name.equals("shalstep_cell")) {
     if (findReference(ref) != null) {
       throw new TypeException("ActionImpl.addReference: link already exists");
     }
-    addLink(new ReferenceActionLink(ref, this, this));
+    addLink(new ReferenceActionLink(ref, this, this, getLinkId()));
     notifyAction();
   }
 
@@ -235,7 +246,7 @@ if (Name != null && Name.equals("shalstep_cell")) {
       throw new ReferenceException("ActionImpl.adaptedAddReference: " +
                                    "link already exists");
     }
-    addLink(new ReferenceActionLink(ref, this, action));
+    addLink(new ReferenceActionLink(ref, this, action, getLinkId()));
     notifyAction();
   }
 
@@ -305,6 +316,19 @@ if (Name != null && Name.equals("shalstep_cell")) {
       notify();
     }
   }
+
+  ReferenceActionLink findLink(long id) throws VisADException {
+    if (LinkVector == null) return null;
+    synchronized (LinkVector) {
+      Enumeration links = LinkVector.elements();
+      while (links.hasMoreElements()) {
+        ReferenceActionLink link = (ReferenceActionLink) links.nextElement();
+        if (id == link.getId()) return link;
+      }
+    }
+    return null;
+  }
+
 
   /** find link to a DataReference */
   public ReferenceActionLink findReference(DataReference ref)

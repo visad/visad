@@ -37,21 +37,21 @@ import java.rmi.*;
 public class DataChangedOccurrence extends Object
        implements java.io.Serializable {
 
-  private DataReference Source;
+  /** this is the id attached to the target ActionReferenceLink
+      of the target Action */
+  private long id;
+
+  /** this is the Tick value from the DataReference change
+      that generated this DataChangedOccurrence */
   private long Tick;
 
-  public DataChangedOccurrence(DataReference source, long tick)
-         throws VisADException, RemoteException {
-    if (!(source instanceof DataReference)) {
-      throw new ReferenceException("DataChangedOccurrence: source must be " +
-                                   "DataReference");
-    }
-    Source = source;
+  public DataChangedOccurrence(long jd, long tick) {
+    id = jd;
     Tick = tick;
   }
 
-  public DataReference getDataReference() {
-    return Source;
+  public long getId() {
+    return id;
   }
 
   public long getTick() {

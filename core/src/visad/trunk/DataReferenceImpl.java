@@ -118,9 +118,10 @@ public class DataReferenceImpl extends Object implements DataReference {
     synchronized (ListenerVector) {
       Enumeration listeners = ListenerVector.elements();
       while (listeners.hasMoreElements()) {
-        DataChangedOccurrence e = new DataChangedOccurrence(ref, Tick);
         DataChangedListener listener =
           (DataChangedListener) listeners.nextElement();
+        DataChangedOccurrence e =
+          new DataChangedOccurrence(listener.getId(), Tick);
         if (listener.getBall()) {
           Action a = listener.getAction();
           a.dataChanged(e);
@@ -186,7 +187,7 @@ public class DataReferenceImpl extends Object implements DataReference {
   /** addDataChangedListener and removeDataChangedListener provide
       DataChangedOccurrence source semantics;
       Action must be local ActionImpl */
-  public void addDataChangedListener(Action a)
+  public void addDataChangedListener(Action a, long id)
          throws VisADException {
     if (!(a instanceof ActionImpl)) {
       throw new RemoteVisADException("DataReferenceImpl.addDataChanged" +
@@ -200,13 +201,13 @@ public class DataReferenceImpl extends Object implements DataReference {
         throw new ReferenceException("DataReferenceImpl.addDataChangedListener:" +
                                      " link to Action already exists");
       }
-      ListenerVector.addElement(new DataChangedListener(a));
+      ListenerVector.addElement(new DataChangedListener(a, id));
     }
   }
 
   /** method for use by RemoteDataReferenceImpl that adapts this
       DataReferenceImpl */
-  void adaptedAddDataChangedListener(RemoteAction a)
+  void adaptedAddDataChangedListener(RemoteAction a, long id)
        throws VisADException {
     synchronized (this) {
       if (ListenerVector == null) ListenerVector = new Vector();
@@ -216,7 +217,7 @@ public class DataReferenceImpl extends Object implements DataReference {
         throw new ReferenceException("DataReferenceImpl.addDataChangedListener:" +
                                      " link to Action already exists");
       }
-      ListenerVector.addElement(new DataChangedListener(a));
+      ListenerVector.addElement(new DataChangedListener(a, id));
     }
   }
 

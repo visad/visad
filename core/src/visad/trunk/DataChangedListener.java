@@ -27,7 +27,9 @@ package visad;
 
 /**
    DataChangedListener objects are used by DataReference objects to
-   define their connections with Action objects.<P>
+   define their connections with Action objects.  That is, a
+   DataReference has a Vector of DataChangedListeners, one for
+   each attached Action.<P>
 */
 class DataChangedListener extends Object {
 
@@ -36,13 +38,20 @@ class DataChangedListener extends Object {
                 // false when this is waiting for an acknowledgement
   DataChangedOccurrence event; // non-null only when Ball = false;
 
-  DataChangedListener(Action a)
-                      throws VisADException {
+  /** this id is from the corresponding ReferenceActionLink */
+  private long id;
+
+  DataChangedListener(Action a, long jd) throws VisADException {
     if (a == null) {
       throw new ReferenceException("DataChangedListener: Action cannot be null");
     }
     action = a;
     Ball = false;
+    id = jd;
+  }
+
+  long getId() {
+    return id;
   }
 
   Action getAction() {

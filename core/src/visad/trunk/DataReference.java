@@ -56,7 +56,7 @@ public interface DataReference {
 
   public abstract String getName() throws VisADException, RemoteException;
 
-  public abstract void addDataChangedListener(Action a)
+  public abstract void addDataChangedListener(Action a, long id)
          throws VisADException, RemoteException;
 
   public abstract void removeDataChangedListener(Action a)

@@ -61,9 +61,9 @@ public class DataDisplayLink extends ReferenceActionLink {
   boolean[] isTransform;
 
   public DataDisplayLink(DataReference ref, DisplayImpl local_d, Display d,
-                  ConstantMap[] constant_maps, DataRenderer rend)
+                  ConstantMap[] constant_maps, DataRenderer rend, long jd)
                   throws VisADException, RemoteException {
-    super(ref, local_d, d);
+    super(ref, local_d, d, jd);
     renderer = rend;
 
     if (constant_maps != null) {
