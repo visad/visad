@@ -113,7 +113,7 @@ public class FluoviewTiffForm extends Form
    * "fluoview"
    */
   public boolean isThisType(byte[] block) {
-    if (block[2] != 42) { return false; }
+    if (block.length < 3 || block[2] != 42) { return false; }
     String test = new String(block);
     test = test.toLowerCase();
     return (test.indexOf("fluoview") != -1);
