@@ -377,6 +377,25 @@ public abstract class Set extends DataImpl {
     return val;
   }
 
+  public void getNeighbors( int[][] neighbors )
+              throws VisADException
+  {
+    throw new UnimplementedException("Set: getNeighbors()");
+  }
+
+  public void getNeighbors( int[][] neighbors, float[][] weights )
+         throws VisADException
+  {
+    throw new UnimplementedException("Set: getNeighbors()");
+  }
+
+  public int[][] getNeighbors( int dimension )
+                 throws VisADException
+  {
+    throw new UnimplementedException("Set: getNeighbors()");
+  }
+
+
   /** test set against a cache of Set-s not equal to this */
   public boolean testNotEqualsCache(Set set) {
 /* WLH 6 Nov 97

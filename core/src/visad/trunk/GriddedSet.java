@@ -393,6 +393,410 @@ public class GriddedSet extends SampledSet {
       weights[i] = cs;
     }
   }
+  public void getNeighbors( int[][] neighbors )
+              throws VisADException
+  {
+    int ii, ix, iy, iz, ii_R, ii_L, ii_U, ii_D, ii_F, ii_B;
+    int LengthX;
+    int LengthY;
+    int LengthZ;
+    int LengthXY;
+    int LengthXYZ;
+
+    switch( ManifoldDimension )
+    {
+       case 1:
+         neighbors[0] = new int[2];
+         neighbors[Length - 1] = new int[2];
+         neighbors[0][0] = 1;
+         neighbors[Length - 1][0] = Length - 2;
+
+         for ( ii = 1; ii < (Length - 1); ii++ ) {
+           neighbors[ii] = new int[2];
+           neighbors[ii][0] = ii - 1;
+           neighbors[ii][1] = ii + 1;
+         }
+         break;
+       case 2:
+
+         LengthX = Lengths[0];
+         LengthY = Lengths[1];
+
+         //- corners:
+         ii = 0;
+         neighbors[ii] = new int[2];
+         neighbors[ii][0] = ii + LengthX;
+         neighbors[ii][1] = ii + 1;
+
+         ii = Length - 1;
+         neighbors[ii] = new int[2];
+         neighbors[ii][0] = ii - LengthX;
+         neighbors[ii][1] = ii - 1;
+
+         ii = Length - LengthX;
+         neighbors[ii] = new int[2];
+         neighbors[ii][0] = ii - LengthX;
+         neighbors[ii][1] = ii + 1;
+
+         ii = LengthX - 1;
+         neighbors[ii] = new int[2];
+         neighbors[ii][0] = ii + LengthX;
+         neighbors[ii][1] = ii - 1;
+
+         //- edge points, not corners:
+         for ( iy = 1; iy < (LengthY - 1); iy++ )
+         {
+           ii = iy*LengthX;
+           neighbors[ii] = new int[3];
+           neighbors[ii][0] = ii + LengthX;
+           neighbors[ii][1] = ii - LengthX;
+           neighbors[ii][2] = ii + 1;
+
+           ii = iy*LengthX + LengthX - 1;
+           neighbors[ii] = new int[3];
+           neighbors[ii][0] = ii + LengthX;
+           neighbors[ii][1] = ii - LengthX;
+           neighbors[ii][2] = ii - 1;
+         }
+
+         for ( ix = 1; ix < (LengthX - 1); ix++ )
+         {
+           ii = ix;
+           neighbors[ii] = new int[3];
+           neighbors[ii][0] = ii - 1;
+           neighbors[ii][1] = ii + 1;
+           neighbors[ii][2] = ii + LengthX;
+
+           ii = (LengthY-1)*LengthX + ix;
+           neighbors[ii] = new int[3];
+           neighbors[ii][0] = ii - 1;
+           neighbors[ii][1] = ii + 1;
+           neighbors[ii][2] = ii - LengthX;
+         }
+         //- interior points:
+         for ( iy = 1; iy < (LengthY - 1); iy++) {
+           for ( ix = 1; ix < (LengthX - 1); ix++) {
+
+             ii   = iy*LengthX + ix;
+             ii_R = ii + 1;
+             ii_L = ii - 1;
+             ii_U = ii + LengthX;
+             ii_D = ii - LengthX;
+             neighbors[ii] = new int[4];
+             neighbors[ii][0] = ii_R;
+             neighbors[ii][1] = ii_L;
+             neighbors[ii][2] = ii_U;
+             neighbors[ii][3] = ii_D;
+           }
+         }
+         break;
+
+       case 3:
+
+         LengthX = Lengths[0];
+         LengthY = Lengths[1];
+         LengthZ = Lengths[2];
+         LengthXY = LengthX*LengthY;
+         LengthXYZ = LengthX*LengthY*LengthZ;
+
+         //- corners:
+         ii = 0;
+         neighbors[ii] = new int[3];
+         neighbors[ii][0] = ii + LengthX;
+         neighbors[ii][1] = ii + 1;
+         neighbors[ii][2] = ii + LengthXY;
+
+         ii = LengthX*LengthY*( LengthZ - 1);
+         neighbors[ii] = new int[3];
+         neighbors[ii][0] = ii + 1;
+         neighbors[ii][1] = ii + LengthX;
+         neighbors[ii][2] = ii - LengthXY;
+
+         ii = LengthX*LengthY - 1;
+         neighbors[ii] = new int[3];
+         neighbors[ii][0] = ii - LengthX;
+         neighbors[ii][1] = ii - 1;
+         neighbors[ii][2] = ii + LengthXY;
+
+         ii = LengthX*LengthY*LengthZ - 1;
+         neighbors[ii] = new int[3];
+         neighbors[ii][0] = ii - 1;
+         neighbors[ii][1] = ii - LengthX;
+         neighbors[ii][2] = ii - LengthXY;
+
+         ii = LengthX*(LengthY - 1);
+         neighbors[ii] = new int[3];
+         neighbors[ii][0] = ii - LengthX;
+         neighbors[ii][1] = ii + 1;
+         neighbors[ii][2] = ii + LengthXY;
+
+         ii = LengthXY*(LengthZ - 1) + LengthX*(LengthY - 1);
+         neighbors[ii] = new int[3];
+         neighbors[ii][0] = ii + 1;
+         neighbors[ii][1] = ii - LengthX;
+         neighbors[ii][2] = ii - LengthXY;
+
+         ii = LengthX - 1;
+         neighbors[ii] = new int[3];
+         neighbors[ii][0] = ii + LengthX;
+         neighbors[ii][1] = ii - 1;
+         neighbors[ii][2] = ii + LengthXY;
+
+         ii = LengthXY*(LengthZ - 1) + (LengthX - 1);
+         neighbors[ii] = new int[3];
+         neighbors[ii][0] = ii - 1;
+         neighbors[ii][1] = ii + LengthX;
+         neighbors[ii][2] = ii - LengthXY;
+
+         //- edges:
+         for ( iy = 1; iy < (LengthY - 1); iy++ )
+         {
+           ii = iy*LengthX;
+           neighbors[ii] = new int[4];
+           neighbors[ii][0] = ii + LengthX;
+           neighbors[ii][1] = ii - LengthX;
+           neighbors[ii][2] = ii + 1;
+           neighbors[ii][3] = ii + LengthXY;
+
+           ii = iy*LengthX + LengthX - 1;
+           neighbors[ii] = new int[4];
+           neighbors[ii][0] = ii + LengthX;
+           neighbors[ii][1] = ii - LengthX;
+           neighbors[ii][2] = ii - 1;
+           neighbors[ii][3] = ii + LengthXY;
+
+           ii = (LengthZ - 1)*LengthXY + iy*LengthY;
+           neighbors[ii] = new int[4];
+           neighbors[ii][0] = ii + LengthX;
+           neighbors[ii][1] = ii - LengthX;
+           neighbors[ii][2] = ii - 1;
+           neighbors[ii][3] = ii - LengthXY;
+
+           ii = (LengthZ - 1)*LengthXY + iy*LengthX + LengthX - 1;
+           neighbors[ii] = new int[4];
+           neighbors[ii][0] = ii + LengthX;
+           neighbors[ii][1] = ii - LengthX;
+           neighbors[ii][2] = ii - 1;
+           neighbors[ii][3] = ii - LengthXY;
+         }
+         for ( ix = 1; ix < (LengthX - 1); ix++ )
+         {
+           ii = ix;
+           neighbors[ii] = new int[4];
+           neighbors[ii][0] = ii - 1;
+           neighbors[ii][1] = ii + 1;
+           neighbors[ii][2] = ii + LengthX;
+           neighbors[ii][3] = ii + LengthXY;
+
+           ii = (LengthY-1)*LengthX + ix;
+           neighbors[ii] = new int[4];
+           neighbors[ii][0] = ii - 1;
+           neighbors[ii][1] = ii + 1;
+           neighbors[ii][2] = ii - LengthX;
+           neighbors[ii][3] = ii + LengthXY;
+
+           ii = (LengthZ - 1)*LengthXY + ix; 
+           neighbors[ii] = new int[4];
+           neighbors[ii][0] = ii - 1;
+           neighbors[ii][1] = ii + 1;
+           neighbors[ii][2] = ii + LengthX;
+           neighbors[ii][3] = ii - LengthXY;
+
+ 
+           ii = (LengthZ - 1)*LengthXY + (LengthY-1)*LengthX + ix;
+           neighbors[ii] = new int[4];
+           neighbors[ii][0] = ii - 1;
+           neighbors[ii][1] = ii + 1;
+           neighbors[ii][2] = ii - LengthX;
+           neighbors[ii][3] = ii - LengthXY;
+         }
+
+         for ( iz = 1; iz < (LengthZ - 1); iz++ ) 
+         {
+           ii = iz*LengthXY;
+           neighbors[ii] = new int[4];
+           neighbors[ii][0] = ii + 1;
+           neighbors[ii][1] = ii + LengthX;
+           neighbors[ii][2] = ii + LengthXY;
+           neighbors[ii][3] = ii - LengthXY;
+
+           ii = iz*LengthXY + ( LengthX - 1 );
+           neighbors[ii] = new int[4];
+           neighbors[ii][0] = ii - 1;
+           neighbors[ii][1] = ii + LengthX;
+           neighbors[ii][2] = ii + LengthXY;
+           neighbors[ii][3] = ii + LengthXY;
+
+           ii = iz*LengthXY + LengthX*(LengthY - 1);
+           neighbors[ii] = new int[4];
+           neighbors[ii][0] = ii + 1;
+           neighbors[ii][1] = ii - LengthX;
+           neighbors[ii][2] = ii + LengthXY;
+           neighbors[ii][3] = ii - LengthXY; 
+
+           ii = iz*LengthXY + (LengthXY - 1);
+           neighbors[ii] = new int[4];
+           neighbors[ii][0] = ii - 1;
+           neighbors[ii][1] = ii - LengthX;
+           neighbors[ii][2] = ii + LengthXY;
+           neighbors[ii][3] = ii - LengthXY;
+         }
+
+         //- sides:
+
+         for ( iy = 1; iy < (LengthY - 1); iy++ ) 
+         {
+           for ( ix = 1; ix < ( LengthX - 1); ix++ )
+           {
+             ii = iy*LengthX + ix;
+             neighbors[ii] = new int[5];
+             neighbors[ii][0] = ii + 1;
+             neighbors[ii][1] = ii - 1;
+             neighbors[ii][2] = ii + LengthX;
+             neighbors[ii][3] = ii - LengthX;
+             neighbors[ii][4] = ii + LengthXY;
+
+             ii = (LengthZ - 1)*LengthXY + iy*LengthX + ix; 
+             neighbors[ii] = new int[5];
+             neighbors[ii][0] = ii + 1;
+             neighbors[ii][1] = ii - 1;
+             neighbors[ii][2] = ii + LengthX;
+             neighbors[ii][3] = ii - LengthX;
+             neighbors[ii][4] = ii - LengthXY;
+           }
+         }
+
+         for ( iz = 1; iz < (LengthZ - 1); iz++ ) 
+         {
+           for ( ix = 1; ix < ( LengthX - 1); ix++ )
+           {
+             ii = iz*LengthXY + ix;
+             neighbors[ii] = new int[5];
+             neighbors[ii][0] = ii + 1;
+             neighbors[ii][1] = ii - 1;
+             neighbors[ii][2] = ii + LengthX;
+             neighbors[ii][3] = ii + LengthXY;
+             neighbors[ii][4] = ii - LengthXY;
+
+             ii = iz*LengthXY + LengthX*(LengthY - 1) + ix;
+             neighbors[ii] = new int[5];
+             neighbors[ii][0] = ii + 1;
+             neighbors[ii][1] = ii - 1;
+             neighbors[ii][2] = ii - LengthX;
+             neighbors[ii][3] = ii + LengthXY;
+             neighbors[ii][4] = ii - LengthXY;
+           }
+         }
+
+         for ( iz = 1; iz < (LengthZ - 1); iz++ ) 
+         {
+           for ( iy = 1; iy < ( LengthY - 1); iy++ )
+           {
+             ii = iz*LengthXY + iy*LengthX;
+             neighbors[ii] = new int[5];
+             neighbors[ii][0] = ii + 1;
+             neighbors[ii][1] = ii + LengthX;
+             neighbors[ii][2] = ii - LengthX;
+             neighbors[ii][3] = ii + LengthXY;
+             neighbors[ii][4] = ii - LengthXY;
+
+             ii = iz*LengthXY + iy*LengthX - 1;
+             neighbors[ii] = new int[5];
+             neighbors[ii][0] = ii - 1;
+             neighbors[ii][1] = ii + LengthX;
+             neighbors[ii][2] = ii - LengthX;
+             neighbors[ii][3] = ii + LengthXY;
+             neighbors[ii][4] = ii - LengthXY;
+           }
+         }
+
+         //- interior points:
+         for ( iz = 1; iz < (LengthZ - 1); iz++) {
+           for ( iy = 1; iy < (LengthY - 1); iy++) {
+             for ( ix = 1; ix < (LengthX - 1); ix++) {
+
+               ii   = iz*LengthXY + iy*LengthX + ix;
+               ii_R = ii + 1;
+               ii_L = ii - 1;
+               ii_F = ii + LengthX;
+               ii_B = ii - LengthX;
+               ii_U = ii + LengthXY;
+               ii_D = ii - LengthXY;
+               neighbors[ii] = new int[6];
+               neighbors[ii][0] = ii_R;
+               neighbors[ii][1] = ii_L;
+               neighbors[ii][2] = ii_F;
+               neighbors[ii][3] = ii_B;
+               neighbors[ii][4] = ii_U;
+               neighbors[ii][5] = ii_D;
+             }
+           }
+         }
+         break;
+
+       default:
+         throw new UnimplementedException("getNeighbors(): ManifoldDimension >"+
+                                 ManifoldDimension+" not currently implemented" );
+
+    }
+  }
+
+  public int[][] getNeighbors( int manifoldIndex )
+  {
+    int[][] neighbors = new int[ Length ][2];
+    int[] m_coords = new int[ ManifoldDimension ];
+    int[][] indeces = new int[2][ ManifoldDimension ];
+    int ii_tmp, idx_u, idx_d, mm, tt, ii, jj, kk, k;
+
+    for ( ii = 0; ii < Length; ii++ )
+    {
+      //- get the manifold coordinates for each index  -*
+      ii_tmp = ii;
+      for ( jj = 0; jj < (ManifoldDimension-1); jj++ ) {
+        m_coords[jj] = ii_tmp % Lengths[jj];
+        ii_tmp /= Lengths[jj];
+      }
+      m_coords[ManifoldDimension-1] = ii_tmp;
+
+      //- get coordinates of two neighbors on each side  -*
+      for ( kk = 0; kk < 2; kk++) {
+        for ( jj = 0; jj < ManifoldDimension; jj++) {
+          indeces[kk][jj] = m_coords[jj];
+        }
+      }
+
+      idx_u = m_coords[ manifoldIndex ] + 1;
+      idx_d = m_coords[ manifoldIndex ] - 1;
+      indeces[1][manifoldIndex] = idx_u;
+      indeces[0][manifoldIndex] = idx_d;
+      if ( idx_u >= Lengths[manifoldIndex] ) {
+        indeces[1][manifoldIndex] = -1;
+      }
+      else if ( idx_d < 0 ) {
+        indeces[0][manifoldIndex] = -1;
+      }
+
+      //- compute index for each new coordinates  -*
+      for ( kk = 0; kk < 2; kk++ )
+      {
+        if ( indeces[kk][manifoldIndex] != -1 ) {
+          ii_tmp = 0;
+          for ( mm = (ManifoldDimension-1); mm>=0; mm--) {
+            k = indeces[kk][mm];
+            for ( tt = 0; tt < mm; tt++ ) {
+              k = k*Lengths[tt];
+            }
+            ii_tmp += k;
+          }
+          neighbors[ii][kk] = ii_tmp;
+        }
+        else {
+          neighbors[ii][kk] = -1;
+        }
+      }
+    }
+    return neighbors;
+  }
 
   public boolean equals(Object set) {
     if (!(set instanceof GriddedSet) || set == null ||

@@ -136,6 +136,59 @@ public class IrregularSet extends SampledSet {
     throw new UnimplementedException("IrregularSet.valueToInterp");
   }
 
+  public void getNeighbors( int[][] neighbors )
+  {
+    if ( ManifoldDimension > 1 ) 
+    {
+      int[][] Vertices = Delan.Vertices;
+      int[][] Tri = Delan.Tri;
+      int n_samples = Vertices.length;
+      int n_triangles;
+      int cnt, ii, jj, kk, tt, index;
+      int[] indeces = new int[n_samples];
+      
+      for ( ii = 0; ii < n_samples; ii++ ) 
+      {
+        indeces = new int[n_samples];
+        n_triangles = Vertices[ii].length;
+        for ( jj = 0; jj < n_triangles; jj++ )
+        {
+          for ( kk = 0; kk < Tri[ Vertices[ii][jj] ].length; kk++ )
+          {
+            index = Tri[ Vertices[ii][jj] ][kk];
+            if ( index != ii ) indeces[ index ]++;
+          }
+        }
+        cnt = 0;
+        for ( tt = 0; tt < n_samples; tt++ ) {
+          if ( indeces[tt] > 0 ) cnt++;
+        }
+        neighbors[ii] = new int[ cnt ];
+        cnt = 0;
+        for ( tt = 0; tt < n_samples; tt++ ) {
+          if ( indeces[tt] > 0 ) {
+            neighbors[ii][cnt] = indeces[tt];
+            cnt++;
+          }
+        }
+        indeces = null;
+      }
+    }
+    else 
+    {
+      neighbors[0] = new int[2];
+      neighbors[Length - 1] = new int[2];
+      neighbors[0][0] = 1;
+      neighbors[Length - 1][0] = Length - 2;
+
+      for ( int ii = 1; ii < (Length - 1); ii++ ) {
+        neighbors[ii] = new int[2];
+        neighbors[ii][0] = ii - 1;
+        neighbors[ii][0] = ii + 1;
+      }
+    }
+  }
+
   public boolean equals(Object set) {
     if (!(set instanceof IrregularSet) || set == null ||
         set instanceof LinearSet) return false;

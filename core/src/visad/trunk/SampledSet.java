@@ -121,6 +121,39 @@ public abstract class SampledSet extends SimpleSet {
     }
   }
 
+  public void getNeighbors( int[][] neighbors, float[][] weights )
+              throws VisADException
+  {
+     getNeighbors( neighbors );
+
+     int n_points;
+     float distance;
+     float distance_squared;
+     float diff;
+     float lambda_squared;
+     float constant = 4f;
+     float pi_squared = (float) (Math.PI*Math.PI);
+
+     for ( int ii = 0; ii < Length; ii++ )
+     {
+        n_points = neighbors[ii].length;
+        weights[ii] = new float[ n_points ];
+
+        for ( int kk = 0; kk < n_points; kk++ ) 
+        {
+          distance_squared = 0f;
+          for ( int tt = 0; tt < DomainDimension; tt++ )
+          {
+            diff =  Samples[tt][ii] - Samples[tt][ neighbors[ii][kk] ]; 
+            distance_squared += diff*diff;
+          }
+          lambda_squared = ( distance_squared*constant )/pi_squared;
+      
+          weights[ii][kk] = (float) Math.exp( (double)(-1f*(distance_squared/lambda_squared)) );
+        }
+     }
+  }
+
   public boolean isMissing() {
     return (Samples == null);
   }

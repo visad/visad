@@ -549,6 +549,406 @@ public class FieldImpl extends FunctionImpl implements Field {
     throw new UnimplementedException("FieldImpl.insert");
   }
 
+  public Data derivative( RealTuple location, RealType[] d_partial_s,
+                          MathType[] derivType_s, int error_mode )
+         throws VisADException, RemoteException
+  {
+    if ( this.isMissing() )
+    {
+      throw new VisADException("derivative: FieldImpl should not be missing ");
+    }
+
+    int ii, jj, kk, dd, rr, tt, pp, ss;
+    Set domainSet = this.getDomainSet();
+    int domainDim = domainSet.getDimension();
+    int manifoldDimension = domainSet.getManifoldDimension();
+    int n_samples = domainSet.getLength();
+    CoordinateSystem d_coordsys = this.getDomainCoordinateSystem();
+    RealTupleType d_reference = (d_coordsys == null) ? null : d_coordsys.getReference();
+    MathType m_type = null;
+    MathType[] m_types = null;
+    RealType r_type = null;
+    RealType[] r_types = null;
+    TupleType t_type = null;
+    boolean thisDomainFlag = true;
+
+    if ( manifoldDimension != domainDim )
+    {
+      throw new SetException("derivative: manifoldDimension must equal "+
+                             "domain dimension" );
+    }
+    error_mode = Data.NO_ERRORS;
+    int sampling_mode = Data.WEIGHTED_AVERAGE;
+    
+    if ( location != null )
+    {
+      thisDomainFlag = false;
+    }
+
+    RealTupleType domainType = ((FunctionType)Type).getDomain();
+    RealType[] r_comps = domainType.getRealComponents();
+    RealType[] r_compsRef = (d_reference == null) ? null : d_reference.getRealComponents();
+
+    MathType RangeType = ((FunctionType)Type).getRange();
+
+    int n_partials;  // number of partial derivatives to compute -*
+
+  //- get all components for this function's domain -*
+    if ( d_partial_s == null )
+    {
+      n_partials = domainDim;
+      d_partial_s = r_comps;
+    }
+    else
+    {
+      n_partials = d_partial_s.length;
+      if ( n_partials > domainDim ) {
+        throw new VisADException("derivative: too many d_partial components");
+      }
+    }
+
+    int[] u_index = new int[n_partials];
+    double[][] u_vectors = new double[n_partials][domainDim];
+
+  //- verify that input RealType-s match the Function's domain -*
+  //- create unit vectors for the d_partial RealTypes -*
+    int found = 0;
+    int foundRef = 0;
+    for ( ii = 0; ii < n_partials; ii++ )
+    {
+      for ( jj = 0; jj < domainDim; jj++ )
+      {
+        u_vectors[ii][jj] = 0d;
+        if ( r_comps[jj].equals(d_partial_s[ii]) )
+        {
+          u_index[ii] = jj;
+          u_vectors[ii][jj] = 1d;
+          found++;
+        }
+        else if ( d_reference != null )
+        {
+          if ( r_compsRef[jj].equals(d_partial_s[ii]) )
+          {
+            u_index[ii] = jj;
+            u_vectors[jj][ii] = 1d;
+            foundRef++;
+          }
+        }
+      }
+    }
+
+    boolean transform;  //- flag indicating coordinate transform is required  --*
+
+    if ( found == 0 )
+    {
+      if ( foundRef == 0 )
+      {
+         throw new VisADException("derivative: d_partial_s not in domain or reference");
+      }
+      else if ( 0 < foundRef && foundRef < n_partials )
+      {
+        throw new VisADException("derivative: d_partial_s must ALL be in function's "+
+                                             "domain or ALL in domain's reference");
+      }
+      else
+      {
+        transform = true;
+      }
+    }
+    else if ( 0 < found && found < n_partials )
+    {
+      throw new VisADException("derivative: d_partial_s must ALL be in function's "+
+                                           "domain or ALL in domain's reference");
+    }
+    else
+    {
+      transform = false;
+    }
+
+    String[][] derivNames = null;
+    Unit[] D_units;
+    MathType[] new_range = new MathType[ n_partials ];
+    MathType[] new_types = new MathType[ n_partials ];
+
+    if ( !transform ) {
+      D_units = domainSet.getSetUnits();
+    }
+    else {
+      D_units = d_reference.getDefaultUnits();
+    }
+
+    if ( derivType_s == null )
+    {
+      for ( ii = 0; ii < n_partials; ii++ )
+      {
+        MathType M_type = Type.cloneDerivative( d_partial_s[ii] );
+        if ( thisDomainFlag ) {
+          new_types[ii] = M_type;
+        }
+        else {
+          new_types[ii] = ((FunctionType)M_type).getRange();
+        }
+      }
+      derivType_s = new_types;
+    }
+    else //- check supplied derivType-s for compatibility  -*
+    {
+      if ( derivType_s.length != n_partials ) {
+        throw new VisADException("derivative: must be a single MathType "+
+                                 "for each domain RealType");
+      }
+      for ( ii = 0; ii < n_partials; ii++ )
+      {
+        if ( thisDomainFlag ) {
+          if ( !Type.equalsExceptName(derivType_s[ii]) ) {
+            throw new TypeException("derivative: incompatible with function range");
+          }
+        }
+        else {
+          if ( !((((FunctionType)Type).getRange()).equalsExceptName(derivType_s[ii])) ) {
+            throw new TypeException("derivative: incompatible with function range");
+          }
+        }
+      }
+    }
+
+  //- compute derivative-s, return FlatField or Tuple of FlatFields, or Data --*
+
+    int[][] neighbors = null;
+    int n_points;
+    int n_index;
+    int m_index;
+    int index;
+    float distance;
+    float step;
+    float f_sum;
+    double d_sum;
+    Data[] p_derivatives = new Data[ n_partials ];
+ //-ErrorEstimate[][] rangeErrors_out = new ErrorEstimate[ n_partials ][ TupleDimension ];
+    ErrorEstimate[] domainErrors = domainSet.getSetErrors();
+    Real deltaDomain;
+    FieldImpl[] new_fields = new FieldImpl[ n_partials ];
+    Data data_0;
+    Data data_1;
+    Data rangeDiff;
+    Data newRange;
+    Data[] rangeValues = null;
+
+    for ( pp = 0; pp < n_partials; pp++ ) {
+      new_fields[pp] = new FieldImpl( (FunctionType)derivType_s[pp], domainSet );
+    }
+
+  //- Handle LinearSet case separately for efficiency   -*
+    if(( domainSet instanceof LinearSet )&&( thisDomainFlag ))
+    {
+      //- each partial derivative   -*
+      for ( kk = 0; kk < n_partials; kk++ )
+      {
+        RangeType = ((FunctionType)derivType_s[kk]).getRange();
+        //- get manifoldDimension index for this real axis ( LinearSet only )  -*
+        m_index = u_index[kk];
+
+        //- get neigbors and separation along this axis   -*
+        neighbors = domainSet.getNeighbors( m_index );
+        step = (float) (((LinearSet)domainSet).getLinear1DComponent(kk)).getStep();
+
+        //- compute derivative for each sample and each range component   -*
+        for ( ii = 0; ii < n_samples; ii++ )
+        {
+          if ( neighbors[ii][0] == -1) {
+            distance = step;
+            n_index = neighbors[ii][1];
+            index = ii;
+          }
+          else if ( neighbors[ii][1] == -1 ) {
+            distance = step;
+            n_index = ii;
+            index = neighbors[ii][0];
+          }
+          else {
+            distance = 2.f*step;
+            n_index = neighbors[ii][1];
+            index = neighbors[ii][0];
+          }
+
+          data_1 = getSample(n_index);
+          data_0 = getSample(index);
+        //deltaDomain = new Real( d_partial_s[kk], distance );
+          deltaDomain = new Real( d_partial_s[kk], distance, D_units[m_index] );
+
+          rangeDiff = data_1.binary( data_0, Data.SUBTRACT, sampling_mode, error_mode);
+          newRange = rangeDiff.binary( deltaDomain, Data.DIVIDE, RangeType,
+                                       sampling_mode, error_mode );
+
+          new_fields[kk].setSample( ii, newRange ); 
+        }
+      }
+    }
+    else  //- GriddedSet, IrregularSet    --*
+    {
+      float dotproduct;
+      float inv_dotproduct;
+      float[][] weights = null;
+      float sum_weights;
+      float[][] Samples;
+
+      //- compute derivative at this Set's sample locations  --*
+      if ( thisDomainFlag )
+      {
+        neighbors = new int[n_samples][];
+        weights = new float[n_samples][];
+        domainSet.getNeighbors( neighbors, weights );
+        if ( transform )
+        {
+          Samples = domainSet.getSamples(true);
+
+          Samples =
+          CoordinateSystem.transformCoordinates( d_reference, null, null, null,
+                           domainType, d_coordsys, null, null, Samples );
+        }
+        else
+        {
+          Samples = domainSet.getSamples(false);
+        }
+      }
+      //- compute derivative at selected ( probably interpolated locations )  --*
+      else
+      {
+        Data[] new_rangeValues;
+        int[][] new_neighbors;
+        n_samples = 1;
+        Field field;
+        float[][] new_Samples;
+        float[][] evalSamples;
+        float[][] org_Samples = domainSet.getSamples(false);
+
+        field = resample( new SingletonSet(location, null, null, null ),
+                          Data.WEIGHTED_AVERAGE, error_mode );
+
+        evalSamples = (field.getDomainSet()).getSamples(false);
+        neighbors = new int[n_samples][];
+        weights = new float[n_samples][];
+
+        ((SimpleSet)DomainSet).valueToInterp( evalSamples, neighbors, weights );
+
+        n_points = neighbors[0].length;
+        new_neighbors = new int[n_samples][ n_points ];
+
+        new_rangeValues = new Data[ n_points + 1 ];
+        new_Samples = new float[ domainDim ][ n_points + 1 ];
+        for ( ii = 0; ii < domainDim; ii++ )
+        {
+          new_Samples[ii][0] = evalSamples[ii][0];
+        }
+        new_rangeValues[0] = field.getSample(0);
+        for ( kk = 0; kk < n_points; kk++ )
+        {
+          new_neighbors[0][kk] = kk + 1;
+          new_rangeValues[kk+1] = getSample( neighbors[0][kk] );
+          for ( ii = 0; ii < domainDim; ii++ )
+          {
+            new_Samples[ii][kk+1] = org_Samples[ii][ neighbors[0][kk] ];
+          }
+        }
+
+        neighbors = new_neighbors;
+        rangeValues = new_rangeValues;
+        Samples = new_Samples;
+        if ( transform )
+        {
+          Samples =
+          CoordinateSystem.transformCoordinates( d_reference, null, null, null,
+                           domainType, d_coordsys, null, null, Samples );
+        }
+      }
+
+      //- compute derivatives for each sample   --*
+      for ( ii = 0; ii < n_samples; ii++ )
+      {
+        n_points = neighbors[ii].length;
+        Data[] rangeDiff_s = new Data[ n_points ];
+        Data p_derivative = null;
+        double[][] uvecPoint = new double[ n_points ][ domainDim ];
+        data_0 = (thisDomainFlag) ? getSample( ii ) : rangeValues[ii];
+        float factor;
+
+        //- neighbors loop   -*
+        for ( kk = 0; kk < n_points; kk++ )
+        {
+          for ( dd = 0; dd < domainDim; dd++ ) {
+            uvecPoint[kk][dd] = Samples[dd][ neighbors[ii][kk] ] - Samples[dd][ii];
+          }
+
+            data_1 = (thisDomainFlag) ? getSample( neighbors[ii][kk] ) :
+                                        rangeValues[ neighbors[ii][kk] ];
+
+            rangeDiff_s[kk] = data_1.binary( data_0, Data.SUBTRACT, sampling_mode,
+                                             error_mode );
+        }
+
+        //- Interpolate for each partial derivative  -*
+        boolean first = true;
+        for ( pp = 0; pp < n_partials; pp++ )
+        {
+          m_index = u_index[pp];
+          RangeType = ((FunctionType)derivType_s[pp]).getRange();
+          sum_weights = 0f;
+          for ( kk = 0; kk < n_points; kk++ )
+          {
+            dotproduct = 0;
+
+            for ( dd = 0; dd < domainDim; dd++ ) 
+            {
+              dotproduct += uvecPoint[kk][dd]*u_vectors[pp][dd];
+            }
+
+            inv_dotproduct = 1f/dotproduct;
+
+            if ( ! Float.isInfinite(inv_dotproduct) ) 
+            {
+              sum_weights += weights[ii][kk];
+              factor = inv_dotproduct*weights[ii][kk];
+              rangeDiff_s[kk] = rangeDiff_s[kk].binary( new Real( factor), Data.MULTIPLY,
+                                                        sampling_mode, error_mode );
+              if ( first ) {
+                p_derivative = rangeDiff_s[kk];
+                first = false;
+              }
+              else {
+                p_derivative = p_derivative.binary( rangeDiff_s[kk], Data.ADD, sampling_mode,
+                                                    error_mode );
+              }
+            }
+          }
+          Real real = new Real( d_partial_s[pp], sum_weights, D_units[ m_index] );
+          p_derivative = p_derivative.binary( real, Data.DIVIDE,
+                                              RangeType, sampling_mode, error_mode);
+
+          new_fields[pp].setSample( ii, p_derivative );
+        }
+      }
+    }
+
+    if ( n_partials == 1 )
+    {
+      return new_fields[0];
+    }
+    else
+    {
+      return new Tuple( new_fields );
+    }
+  }
+
+  public Function derivative( RealType d_partial, int error_mode )
+         throws VisADException, RemoteException
+  {
+    MathType[] derivType_s = null;
+    RealType[] d_partial_s = new RealType[1];
+    d_partial_s[0] = d_partial;
+
+    return (Function) this.derivative( null, d_partial_s, derivType_s, error_mode );
+  }
+
   /** resample range values of this to domain samples in set,
       either by nearest neighbor or mulit-linear interpolation
       NOTE may return this (i.e., not a copy);
