@@ -2426,9 +2426,11 @@ public class BasicSSCell extends JPanel {
   /** reconstruct this cell's display; called when dimension changes */
   public boolean constructDisplay() {
     boolean success = true;
+    DisplayImpl newDisplay = VDisplay;
+    RemoteDisplay rmtDisplay = RemoteVDisplay;
     if (IsSlave) {
       try {
-        VDisplay = new DisplayImplJ2D("DUMMY");
+        newDisplay = new DisplayImplJ2D("DUMMY");
       }
       catch (VisADException exc) {
         if (DEBUG) exc.printStackTrace();
@@ -2438,16 +2440,15 @@ public class BasicSSCell extends JPanel {
         if (DEBUG) exc.printStackTrace();
         success = false;
       }
-      return success;
     }
-    if (!CanDo3D && Dim != JAVA2D_2D) {
+    else if (!CanDo3D && Dim != JAVA2D_2D) {
       // dimension requires Java3D, but Java3D is disabled for this JVM
       success = false;
     }
     else if (IsRemote) {
       if (Dim == JAVA2D_2D) {
         try {
-          VDisplay = new DisplayImplJ2D(RemoteVDisplay);
+          newDisplay = new DisplayImplJ2D(rmtDisplay);
         }
         catch (VisADException exc) {
           if (DEBUG) exc.printStackTrace();
@@ -2461,11 +2462,11 @@ public class BasicSSCell extends JPanel {
       else {
         try {
           if (Dim == JAVA3D_3D) {
-            VDisplay = new DisplayImplJ3D(RemoteVDisplay);
+            newDisplay = new DisplayImplJ3D(rmtDisplay);
           }
           else { // Dim == JAVA3D_2D
             TwoDDisplayRendererJ3D tdr = new TwoDDisplayRendererJ3D();
-            VDisplay = new DisplayImplJ3D(RemoteVDisplay, tdr);
+            newDisplay = new DisplayImplJ3D(rmtDisplay, tdr);
           }
         }
         catch (NoClassDefFoundError err) {
@@ -2484,13 +2485,13 @@ public class BasicSSCell extends JPanel {
     }
     else {
       try {
-        if (Dim == JAVA3D_3D) VDisplay = new DisplayImplJ3D(Name);
-        else if (Dim == JAVA2D_2D) VDisplay = new DisplayImplJ2D(Name);
+        if (Dim == JAVA3D_3D) newDisplay = new DisplayImplJ3D(Name);
+        else if (Dim == JAVA2D_2D) newDisplay = new DisplayImplJ2D(Name);
         else { // Dim == JAVA3D_2D
           TwoDDisplayRendererJ3D tdr = new TwoDDisplayRendererJ3D();
-          VDisplay = new DisplayImplJ3D(Name, tdr);
+          newDisplay = new DisplayImplJ3D(Name, tdr);
         }
-        RemoteVDisplay = new RemoteDisplayImpl(VDisplay);
+        rmtDisplay = new RemoteDisplayImpl(newDisplay);
       }
       catch (VisADException exc) {
         if (DEBUG) exc.printStackTrace();
@@ -2500,6 +2501,10 @@ public class BasicSSCell extends JPanel {
         if (DEBUG) exc.printStackTrace();
         success = false;
       }
+    }
+    if (success) {
+      VDisplay = newDisplay;
+      RemoteVDisplay = rmtDisplay;
     }
     return success;
   }
