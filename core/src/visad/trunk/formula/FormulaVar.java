@@ -227,6 +227,10 @@ public class FormulaVar extends ActionImpl {
       }
     }
     enableAction();
+    if (depend.isEmpty()) {
+      // formula has no dependencies; trigger doAction manually
+      doAction();
+    }
   }
 
   /** set the formula for this variable */
