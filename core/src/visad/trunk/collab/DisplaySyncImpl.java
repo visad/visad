@@ -362,17 +362,16 @@ public class DisplaySyncImpl
                                     rmtCtl.getInstanceNumber());
 
       // skip this if we have change events to deliver for this control
-      if (!monitor.hasEventQueued(evt.getOriginator(), lclCtl)) {
+      if (lclCtl != null &&
+          !monitor.hasEventQueued(evt.getOriginator(), lclCtl))
+      {
 
-        if (lclCtl != null) {
-
-          try {
-            lclCtl.syncControl(rmtCtl);
-          } catch (VisADException ve) {
-            throw new RemoteVisADException("Control " + lclCtl +
-                                           " not changed by " + Name + ": " +
-                                           ve.getMessage());
-          }
+        try {
+          lclCtl.syncControl(rmtCtl);
+        } catch (VisADException ve) {
+          throw new RemoteVisADException("Control " + lclCtl +
+                                         " not changed by " + Name + ": " +
+                                         ve.getMessage());
         }
       }
 

@@ -219,6 +219,10 @@ class MonitorSyncer
 
   public boolean hasControlEventQueued(Control ctl)
   {
+    if (ctl == null) {
+      return false;
+    }
+
     return eventCache.containsKey(getKey(ctl));
   }
 
