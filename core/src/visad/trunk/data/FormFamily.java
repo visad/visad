@@ -1,6 +1,7 @@
 package visad.data;
 
 import java.io.IOException;
+import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.Enumeration;
 import java.util.Vector;
@@ -90,6 +91,28 @@ FormFamily
 	}
 
 	throw new BadFormException("Data object \"" + id + 
+		"\" not compatible with \"" + getName() + "\" data family");
+    }
+
+
+    /**
+     * Open an existing data object specified as a URL.
+     */
+    public DataImpl open(URL url)
+	throws BadFormException, IOException, VisADException
+    {
+	for (Enumeration e = forms.elements(); e.hasMoreElements(); )
+	{
+	    try
+	    {
+		return ((FormNode)e.nextElement()).open(url);
+	    }
+	    catch (BadFormException xcpt)
+	    {
+	    }
+	}
+
+	throw new BadFormException("Data object \"" + url + 
 		"\" not compatible with \"" + getName() + "\" data family");
     }
 

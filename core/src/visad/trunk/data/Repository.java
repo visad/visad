@@ -2,9 +2,9 @@ package visad.data;
 
 
 import java.io.IOException;
+import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.Enumeration;
-
 import visad.Data;
 import visad.DataImpl;
 import visad.VisADException;
@@ -72,7 +72,7 @@ public abstract class Repository
     }
 
     /**
-     * Return the forms of data that are supported by this repository
+     * Return the forms of data that are both supported by this repository
      * and compatible with a data object.
      */
     public FormNode getForms(DataImpl data)
@@ -116,10 +116,23 @@ public abstract class Repository
     /**
      * Open an existing data object in the repository.
      */
-    public Data open(String id)
+    public DataImpl open(String id)
 	throws VisADException, IOException
     {
 	return forms.open(fullName(id));
+    }
+
+    /**
+     * Open a data object specified as a URL.  Strictly speaking, this 
+     * shouldn't be here because a URL can lie outside the domain of the
+     * repository.  A repository, however, is characterized by the
+     * data forms that it handles as well as its "location".
+     * Consequently, we have this method.
+     */
+    public DataImpl open(URL url)
+	throws VisADException, IOException
+    {
+	return forms.open(url);
     }
 
 

@@ -1,6 +1,7 @@
 package visad.data;
 
 import java.io.IOException;
+import java.net.URL;
 import java.rmi.RemoteException;
 import visad.DataImpl;
 import visad.VisADException;
@@ -52,6 +53,13 @@ public abstract class FormNode
      */
     public abstract DataImpl open(String id)
 	throws BadFormException, IOException, VisADException;
+
+
+    /**
+     * Open a data object specified as a URL.
+     */
+    public abstract DataImpl open(URL url)
+	throws BadFormException, VisADException, IOException;
 
 
     /**
