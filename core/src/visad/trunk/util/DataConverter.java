@@ -168,9 +168,9 @@ public class DataConverter {
             println(data.getType().prettyString());
           }
         }
-        catch (Throwable t) {
+        catch (Throwable tt) {
           println("Error");
-          println(t);
+          println(tt);
         }
         setBusy(false);
       }
@@ -190,9 +190,9 @@ public class DataConverter {
           saver.save(file.getPath(), data, true);
           println("OK");
         }
-        catch (Throwable t) {
+        catch (Throwable tt) {
           println("Error");
-          println(t);
+          println(tt);
         }
         setBusy(false);
       }
