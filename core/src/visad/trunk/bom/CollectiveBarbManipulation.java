@@ -1442,14 +1442,14 @@ public class CollectiveBarbManipulation extends Object
     final DataReferenceImpl set_ref = new DataReferenceImpl("set_ref");
     set_ref.setData(set);
     int mask = InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK;
-    CurveManipulationRendererJ3D cmr =
+    final CurveManipulationRendererJ3D cmr =
       new CurveManipulationRendererJ3D(mask, mask, true);
     display1.addReferences(cmr, set_ref);
 
     RealTuple rt = new RealTuple(earth, new double[] {Double.NaN, Double.NaN});
     final DataReferenceImpl point_ref = new DataReferenceImpl("point_ref");
     point_ref.setData(rt);
-    PointManipulationRendererJ3D pmr =
+    final PointManipulationRendererJ3D pmr =
       new PointManipulationRendererJ3D(lat, lon, mask, mask);
     display1.addReferences(pmr, point_ref);
     pmr.toggle(false);
@@ -1516,6 +1516,7 @@ public class CollectiveBarbManipulation extends Object
     };
     cell2.addReference(set_ref);
 
+    final JButton add = new JButton("add");
     CellImpl cell3 = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
         RealTuple rt3 = (RealTuple) point_ref.getData();
@@ -1523,6 +1524,9 @@ public class CollectiveBarbManipulation extends Object
         float lon3 = (float) ((Real) rt3.getComponent(1)).getValue();
         if (lat3 == lat3 && lon3 == lon3) {
           cbm.addStation(lat3, lon3);
+          cmr.toggle(true);
+          pmr.toggle(false);
+          add.setText("add");
         }
       }
     };
@@ -1533,7 +1537,6 @@ public class CollectiveBarbManipulation extends Object
     button_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
     button_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
 
-    JButton add = new JButton("add");
     EndManipCBM emc =
       new EndManipCBM(cbm, cbm2, set_ref, add, cmr, pmr);
     JButton end = new JButton("end manip");
@@ -1571,7 +1574,7 @@ class EndManipCBM implements ActionListener {
   DataReferenceImpl set_ref;
   DisplayImpl display;
   int dir = 0;
-  boolean add_mode;
+  // boolean add_mode;
   JButton add;
   CurveManipulationRendererJ3D cmr;
   PointManipulationRendererJ3D pmr;
@@ -1585,7 +1588,7 @@ class EndManipCBM implements ActionListener {
     add = a;
     cmr = cm;
     pmr = p;
-    add_mode = false;
+    // add_mode = false;
   }
 
   public void actionPerformed(ActionEvent e) {
@@ -1613,18 +1616,20 @@ class EndManipCBM implements ActionListener {
     }
     else if (cmd.equals("add")) {
       try {
-        add_mode = !add_mode;
-        if (add_mode) {
+        // add_mode = !add_mode;
+        if (add.getText().equals("add")) {
           cmr.toggle(false);
           pmr.toggle(true);
-          add.setText("stop add");
+          add.setText("ready");
           del_curve();
         }
+/*
         else {
           cmr.toggle(true);
           pmr.toggle(false);
           add.setText("add");
         }
+*/
       }
       catch (VisADException ex) {
         ex.printStackTrace();

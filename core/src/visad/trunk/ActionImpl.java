@@ -197,10 +197,12 @@ public abstract class ActionImpl
     boolean	wasEnabled;
     synchronized (lockEnabled) {
       wasEnabled = enabled;
-      if (enable)
+      if (enable && !wasEnabled) {
 	enableAction();
-      else
+      }
+      else if (!enable && wasEnabled) {
 	disableAction();
+      }
     }
     return wasEnabled;
   }
