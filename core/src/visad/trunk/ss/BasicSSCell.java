@@ -70,6 +70,12 @@ public class BasicSSCell extends JPanel {
   /** BasicSSCell's associated VisAD Display */
   DisplayImpl VDisplay;
 
+  /** BasicSSCell's associated VisAD RemoteDisplay */
+  RemoteDisplay RemoteVDisplay = null;
+
+  /** whether this display is remote */
+  boolean remote;
+
   /** BasicSSCell's associated VisAD DataReference */
   DataReferenceImpl DataRef;
 
@@ -117,6 +123,13 @@ public class BasicSSCell extends JPanel {
 
   /** construct a new BasicSSCell with the given name */
   public BasicSSCell(String name) throws VisADException, RemoteException {
+    this(name, (RemoteDisplay) null);
+  }
+
+  /** construct a new BasicSSCell with the given name, that uses the
+      given RemoteDisplay for its display */
+  public BasicSSCell(String name, RemoteDisplay rd) throws VisADException,
+                                                           RemoteException {
     if (name == null) {
       throw new VisADException("BasicSSCell: name cannot be null");
     }
@@ -129,6 +142,8 @@ public class BasicSSCell extends JPanel {
     }
     Name = name;
     SSCellVector.add(this);
+    RemoteVDisplay = rd;
+    remote = (RemoteVDisplay != null);
     CellImpl ucell = new CellImpl() {
       public void doAction() {
         // redisplay this cell's data when it changes
@@ -194,7 +209,9 @@ public class BasicSSCell extends JPanel {
     RemoteDataRef = new RemoteDataReferenceImpl(DataRef);
     fm.createVar(Name, DataRef);
     ucell.addReference(DataRef);
-    setDimension(JAVA2D_2D);
+    /* CTR: TEMP: */
+    //setDimension(JAVA2D_2D);
+    setDimension(JAVA3D_3D);
     VDPanel = (JPanel) VDisplay.getComponent();
     setPreferredSize(new Dimension(0, 0));
     setBackground(Color.black);
@@ -204,6 +221,16 @@ public class BasicSSCell extends JPanel {
   /** get this SSCell's name */
   public String getName() {
     return Name;
+  }
+
+  /** get this SSCell's VisAD Display */
+  public DisplayImpl getDisplay() {
+    return VDisplay;
+  }
+
+  /** get this SSCell's VisAD RemoteDisplay */
+  public RemoteDisplay getRemoteDisplay() {
+    return RemoteVDisplay;
   }
 
   /** list of SSCellListeners to be notified of changes */
@@ -679,14 +706,19 @@ public class BasicSSCell extends JPanel {
 
     // switch display dimension
     if (Dimension2D == JAVA3D_3D) {
-      VDisplay = new DisplayImplJ3D(Name);
+      if (remote) VDisplay = new DisplayImplJ3D(RemoteVDisplay);
+      else VDisplay = new DisplayImplJ3D(Name);
     }
     else if (Dimension2D == JAVA2D_2D) {
-      VDisplay = new DisplayImplJ2D(Name);
+      if (remote) VDisplay = new DisplayImplJ2D(RemoteVDisplay);
+      else VDisplay = new DisplayImplJ2D(Name);
     }
     else {  // Dimension2D == JAVA3D_2D
-      VDisplay = new DisplayImplJ3D(Name, new TwoDDisplayRendererJ3D());
+      TwoDDisplayRendererJ3D tdr = new TwoDDisplayRendererJ3D();
+      if (remote) VDisplay = new DisplayImplJ3D(RemoteVDisplay, tdr);
+      else VDisplay = new DisplayImplJ3D(Name, tdr);
     }
+    if (!remote) RemoteVDisplay = new RemoteDisplayImpl(VDisplay);
 
     // reinitialize display
     VDPanel = (JPanel) VDisplay.getComponent();

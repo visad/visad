@@ -56,7 +56,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
   // minimum VisAD display size, including display border
   static final int MIN_VIS_WIDTH = 120;
   static final int MIN_VIS_HEIGHT = 120;
-  
+
   // spreadsheet letter order
   static final String Letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -104,16 +104,20 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** main method; gateway into Spread Sheet user interface */
   public static void main(String[] argv) { 
     String usage = "\n" +
-                   "Usage: java [-mx###m] visad.ss.SpreadSheet " +
-                   "[cols rows] [-server server_name]\n\n" +
+                   "Usage: java [-mx###m] visad.ss.SpreadSheet [cols rows]\n" +
+                   "       [-server server_name] [-client rmi_address]\n\n" +
                    "### = Maximum megabytes of memory to use\n" +
                    "cols = Number of columns in this Spread Sheet\n" +
                    "rows = Number of rows in this Spread Sheet\n" +
-                   "-server server_name = Initialize this Spread Sheet as " +
-                                         "an RMI server named server_name\n";
+                   "-server server_name = Initialize this Spread Sheet as\n" +
+                   "                      an RMI server named server_name\n" +
+                   "-client rmi_address = Initialize this Spread Sheet as\n" +
+                   "                      a copy of the Spread Sheet at\n" +
+                   "                      rmi_address\n";
     int cols = 2;
     int rows = 2;
     String servname = null;
+    String clonename = null;
     int len = argv.length;
     if (len > 0) {
       int ix = 0;
@@ -123,6 +127,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
         if (argv[ix].charAt(0) == '-') {
           if (ix < len-1 && argv[ix].equals("-server")) {
             servname = argv[++ix];
+          }
+          else if (ix < len-1 && argv[ix].equals("-client")) {
+            clonename = argv[++ix];
+            System.out.println("Warning: spreadsheet cloning option is " +
+                               "not fully implemented!");
           }
           else {
             // unknown flag
@@ -159,13 +168,13 @@ public class SpreadSheet extends JFrame implements ActionListener,
       }
     }
     SpreadSheet ss = new SpreadSheet(WIDTH_PERCENT, HEIGHT_PERCENT,
-                                     cols, rows, servname,
+                                     cols, rows, servname, clonename,
                                      "VisAD Spread Sheet");
   }
 
   /** constructor for the SpreadSheet class */
   public SpreadSheet(int sWidth, int sHeight, int cols, int rows,
-                     String server, String sTitle) {
+                     String server, String clone, String sTitle) {
     bTitle = sTitle;
     NumVisX = cols;
     NumVisY = rows;
@@ -601,18 +610,36 @@ public class SpreadSheet extends JFrame implements ActionListener,
     SCPane.add(DisplayPanel);
 
     // set up display panel's individual VisAD displays
-    constructSpreadsheetCells();
+    if (clone != null) {
+      // construct cells from specified server
+      RemoteServer rs = null;
+      try {
+        rs = (RemoteServer) Naming.lookup("//" + clone);
+      }
+      catch (NotBoundException exc) { exc.printStackTrace(); } // CTR: TEMP
+      catch (RemoteException exc) { exc.printStackTrace(); } // CTR: TEMP
+      catch (MalformedURLException exc) { exc.printStackTrace(); } // CTR: TEMP
+      constructSpreadsheetCells(rs);
+    }
+    else {
+      // construct cells from scratch
+      constructSpreadsheetCells(null);
+    }
 
     // initialize RemoteServer
     if (server != null) {
       RemoteDataReferenceImpl[] rdri =
-          new RemoteDataReferenceImpl[NumVisX*NumVisY];
+        new RemoteDataReferenceImpl[NumVisX*NumVisY];
+      RemoteDisplayImpl[] rdi = new RemoteDisplayImpl[NumVisX*NumVisY];
       boolean success = true;
       for (int i=0; i<NumVisX*NumVisY; i++) {
-        rdri[i] = DisplayCells[i%NumVisX][i/NumVisX].getRemoteDataRef();
+        FancySSCell f = DisplayCells[i%NumVisX][i/NumVisX];
+        rdri[i] = f.getRemoteDataRef();
+        rdi[i] = (RemoteDisplayImpl) f.getRemoteDisplay();
       }
       try {
         rsi = new RemoteServerImpl(rdri);
+        for (int i=0; i<NumVisX*NumVisY; i++) rsi.addDisplay(rdi[i]);
         Naming.rebind("//:/" + server, rsi);
       }
       catch (java.rmi.ConnectException exc) {
@@ -705,13 +732,13 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
   }
 
-  /** Creates a new spreadsheet file */
-  public void newFile(boolean safe) {
+  /** Creates a new spreadsheet file; returns true if successful */
+  public boolean newFile(boolean safe) {
     if (safe) {
       int ans = JOptionPane.showConfirmDialog(this,
                 "Clear all spreadsheet cells?", "Are you sure?",
                 JOptionPane.YES_NO_OPTION);
-      if (ans != JOptionPane.YES_OPTION) return;
+      if (ans != JOptionPane.YES_OPTION) return false;
     }
 
     // clear all cells (in smart order to prevent error dialogs)
@@ -740,6 +767,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
     CurrentFile = null;
     setTitle(bTitle);
+    return true;
   }
 
   /** Opens an existing spreadsheet file */
@@ -850,7 +878,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       }
     }
     DisplayPanel.removeAll();
-    constructSpreadsheetCells(cellNames);
+    constructSpreadsheetCells(cellNames, null); // CTR: TEMP???
 
     // refresh display
     HorizPanel.doLayout();
@@ -1030,24 +1058,26 @@ public class SpreadSheet extends JFrame implements ActionListener,
     ToolSave.setEnabled(b);
   }
 
-  private void constructSpreadsheetCells() {
+  private void constructSpreadsheetCells(RemoteServer rs) {
     String[][] labels = new String[NumVisX][NumVisY];
     for (int i=0; i<NumVisX; i++) {
       for (int j=0; j<NumVisY; j++) {
         labels[i][j] = "" + Letters.charAt(i) + (j+1);
       }
     }
-    constructSpreadsheetCells(labels);
+    constructSpreadsheetCells(labels, rs);
   }
 
-  private void constructSpreadsheetCells(String[][] l) {
+  private void constructSpreadsheetCells(String[][] l, RemoteServer rs) {
     DisplayPanel.setLayout(new SSLayout(NumVisX, NumVisY, MIN_VIS_WIDTH,
                                         MIN_VIS_HEIGHT, 5, 5, false));
     DisplayCells = new FancySSCell[NumVisX][NumVisY];
     for (int j=0; j<NumVisY; j++) {
       for (int i=0; i<NumVisX; i++) {
         try {
-          DisplayCells[i][j] = new FancySSCell(l[i][j], this);
+          RemoteDisplay rd = null;
+          if (rs != null) rd = rs.getDisplay(l[i][j]);
+          DisplayCells[i][j] = new FancySSCell(l[i][j], rd, this);
           DisplayCells[i][j].addSSCellChangeListener(this);
           DisplayCells[i][j].addMouseListener(this);
           DisplayCells[i][j].setAutoSwitch(CanDo3D);

@@ -424,16 +424,19 @@ clean:
 	if exist examples\*.class $(DEL) examples\*.class
 
 RMIC_FILES = \
-visad.RemoteCellImpl \
 visad.RemoteActionImpl \
-visad.RemoteDisplayImpl \
-visad.RemoteThingReferenceImpl \
-visad.RemoteDataReferenceImpl \
-visad.RemoteThingImpl \
+visad.RemoteCellImpl \
+visad.RemoteControlImpl \
 visad.RemoteDataImpl \
-visad.RemoteFunctionImpl \
+visad.RemoteDataReferenceImpl \
+visad.RemoteDisplayImpl \
 visad.RemoteFieldImpl \
-visad.RemoteServerImpl
+visad.RemoteFunctionImpl \
+visad.RemoteGraphicsModeControlImpl \
+visad.RemoteReferenceLinkImpl \
+visad.RemoteServerImpl \
+visad.RemoteThingImpl \
+visad.RemoteThingReferenceImpl
 
 recompile: \
 *.class \

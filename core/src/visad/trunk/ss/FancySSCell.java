@@ -77,10 +77,35 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   /** Specify whether this cell should auto-display its widget frame */
   boolean AutoShowControls = true;
 
-  /** constructor */
+  /** constructor for non-null RemoteDisplay */
+  public FancySSCell(String name, RemoteDisplay rd, Frame parent)
+                                  throws VisADException, RemoteException {
+    super(name, rd);
+    finishConstruction(name, parent);
+  }
+
+  /** constructor for non-null info string */
   public FancySSCell(String name, String info, Frame parent)
                                   throws VisADException, RemoteException {
     super(name, info);
+    finishConstruction(name, parent);
+  }
+
+  /** constructor for null RemoteDisplay and null info string */
+  public FancySSCell(String name, Frame parent) throws VisADException,
+                                                       RemoteException {
+    super(name);
+    finishConstruction(name, parent);
+  }
+
+  /** constructor for null RemoteDisplay, info string, and parent Frame */
+  public FancySSCell(String name) throws VisADException, RemoteException {
+    super(name);
+    finishConstruction(name, null);
+  }
+
+  /** used by constructors */
+  private void finishConstruction(String name, Frame parent) {
     Parent = parent;
     setHighlighted(false);
     WidgetFrame = new JFrame("Controls (" + name + ")");
@@ -88,17 +113,6 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
     WidgetFrame.setContentPane(pane);
     addSSCellChangeListener(this);
-  }
-
-  /** shortcut constructor */
-  public FancySSCell(String name, Frame parent) throws VisADException,
-                                                       RemoteException {
-    this(name, null, parent);
-  }
-
-  /** shortcut constructor */
-  public FancySSCell(String name) throws VisADException, RemoteException {
-    this(name, null, null);
   }
 
   /** change the FancySSCell's name */
@@ -439,7 +453,6 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
           success = false;
         }
         catch (NotBoundException exc) {
-          msg = msg + "";
           success = false;
         }
         catch (AccessException exc) {
