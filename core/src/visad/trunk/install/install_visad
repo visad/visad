@@ -4,8 +4,8 @@
 
 # name of various properties passed to install app
 #
-PATHPROP="visad.install.path"
 HOMEPROP="visad.install.home"
+PATHPROP="visad.install.path"
 
 # figure out where this script lives
 #
@@ -56,6 +56,6 @@ fi
 # and away we go!
 #
 exec java $CPARG \
-	"-D$PATHPROP=$PATH" \
 	"-D$HOMEPROP=$DISTDIR" \
+	"-D$PATHPROP=$PATH" \
 		visad.install.Main
