@@ -334,9 +334,29 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
           boolean unit_flag) throws VisADException, RemoteException {
     int i = ScalarIndex;
     if (shadow != null) {
-      if (i < 0) return;
-      dataRange[0] = shadow.ranges[0][i];
-      dataRange[1] = shadow.ranges[1][i];
+      // WLH - 23 Sept 99
+      if (DisplayScalar.equals(Display.Latitude) ||
+          DisplayScalar.equals(Display.Longitude)) {
+        Unit data_unit =
+          (Scalar instanceof RealType) ? ((RealType) Scalar).getDefaultUnit() :
+                                         null;
+        Unit display_unit = DisplayScalar.getDefaultUnit();
+        if (data_unit != null && display_unit != null &&
+            Unit.canConvert(data_unit, display_unit)) {
+          dataRange[0] = data_unit.toThis(displayRange[0], display_unit);
+          dataRange[1] = data_unit.toThis(displayRange[1], display_unit);
+        }
+        else {
+          if (i < 0) return;
+          dataRange[0] = shadow.ranges[0][i];
+          dataRange[1] = shadow.ranges[1][i];
+        }
+      }
+      else {
+        if (i < 0) return;
+        dataRange[0] = shadow.ranges[0][i];
+        dataRange[1] = shadow.ranges[1][i];
+      }
     }
     else if (unit_flag) {
       Unit data_unit =
