@@ -42,11 +42,108 @@ public class AreaDirectory
     private boolean flipwords = false;
     private int[] dir = new int[AreaFile.AD_DIRSIZE];   // single directory
     private Date nominalTime;          // time of the image
-    private int lines;                 // number of lines in the image
-    private int elements;              // number of elements in the image
     private int[] bands;               // array of the band numbers
-    private int numbands;              // number of bands
-    
+    private String calType;
+    private String memo;
+    private String[] sensors = {"derived data",
+                                "test patterns",
+                                "graphics",
+                                "miscellaneous",
+                                "PDUS Meteosat visible",
+                                "PDUS Meteosat infrared",
+                                "PDUS Meteosat water vapor",
+                                "radar",
+                                "miscellaneous aircraft data",
+                                "raw Meteosat",
+                                "composite image",
+                                "topography image",
+                                "GMS visible",
+                                "GMS infrared",
+                                "ATS 6 visible",
+                                "ATS 6 infrared",
+                                "SMS-1 visible",
+                                "SMS-1 infrared",
+                                "SMS-2 visible",
+                                "SMS-2 infrared",
+                                "GOES-1 visible",
+                                "GOES-1 infrared",
+                                "GOES-2 visible",
+                                "GOES-2 infrared",
+                                "GOES-3 visible",
+                                "GOES-3 infrared",
+                                "GOES-4 visible (VAS)",
+                                "GOES-4 infrared and water vapor (VAS)",
+                                "GOES-5 visible (VAS)",
+                                "GOES-5 infrared and water vapor (VAS)",
+                                "GOES-6 visible",
+                                "GOES-6 infrared",
+                                "GOES-7 visible, Block 1 supplemental data",
+                                "GOES-7 infrared",
+                                "FY-2B",
+                                "FY-2C",
+                                "FY-2D",
+                                "FY-2E",
+                                "FY-2F",
+                                "FY-2G",
+                                "FY-2H",
+                                "TIROS-N (POES)",
+                                "NOAA-6",
+                                "NOAA-7",
+                                "NOAA-8",
+                                "NOAA-9",
+                                "Venus",
+                                "Voyager 1",
+                                "Voyager 2",
+                                "Galileo",
+                                "Hubble space telescope",
+                                "",
+                                "",
+                                "",
+                                "Meteosat-3",
+                                "Meteosat-4",
+                                "Meteosat-5",
+                                "Meteosat-6",
+                                "Meteosat-7",
+                                "",
+                                "NOAA-10",
+                                "NOAA-11",
+                                "NOAA-12",
+                                "NOAA-13",
+                                "NOAA-14",
+                                "NOAA-15",
+                                "NOAA-16",
+                                "NOAA-17",
+                                "NOAA-18",
+                                "NOAA-19",
+                                "GOES 8 imager",
+                                "GOES 8 sounder",
+                                "GOES 9 imager",
+                                "GOES 9 sounder",
+                                "GOES 10 imager",
+                                "GOES 10 sounder",
+                                "GOES 11 imager",
+                                "GOES 11 sounder",
+                                "GOES 12 imager",
+                                "GOES 12 sounder",
+                                "ERBE",
+                                "",
+                                "GMS-4",
+                                "GMS-5",
+                                "GMS-6",
+                                "GMS-7",
+                                "GMS-8",
+                                "DMSP F-8",
+                                "DMSP F-9",
+                                "DMSP F-10",
+                                "DMSP F-11",
+                                "DMSP F-12",
+                                "DMSP F-13",
+                                "DMSP F-14",
+                                "DMSP F-15",
+                                "FY-1B",
+                                "FY-1C",
+                                "FY-1D"};
+
     /**
      * Create an AreaDirectory from the raw block of data of
      * an AreaFile.  Byte-flipping will be handled.
@@ -87,9 +184,7 @@ public class AreaDirectory
             new Date(1000* McIDASUtil.mcDayTimeToSecs(
                     dir[AreaFile.AD_IMGDATE], 
                         dir[AreaFile.AD_IMGTIME]));
-        lines = dir[AreaFile.AD_NUMLINES];
-        elements = dir[AreaFile.AD_NUMELEMS];
-        numbands = dir[AreaFile.AD_NUMBANDS];
+        int numbands = dir[AreaFile.AD_NUMBANDS];
         bands = new int[numbands];
         int j = 0;
         for (int i = 0; i < 32; i++)
@@ -102,6 +197,11 @@ public class AreaDirectory
             }
             if (j > numbands) break;
         }
+        // get memo field
+        int[] memoArray = new int[8];
+        System.arraycopy(dir, 24, memoArray, 0, memoArray.length);
+        memo = McIDASUtil.intBitsToString(memoArray);
+        calType = McIDASUtil.intBitsToString(dir[AreaFile.AD_CALTYPE]);
 
     }
 
@@ -148,11 +248,20 @@ public class AreaDirectory
      * returns the nominal time of the image
      *
      * @return the nominal time as a Date
-     *
      */
     public Date getNominalTime()
     {
         return nominalTime;
+    }
+
+    /**
+     * returns the number of bands in the image
+     *
+     * @return number of bands
+     */
+    public int getNumberOfBands()
+    {
+        return dir[AreaFile.AD_NUMBANDS];
     }
 
     /**
@@ -162,7 +271,7 @@ public class AreaDirectory
      */
     public int getLines()
     {
-        return lines;
+        return dir[AreaFile.AD_NUMLINES];
     }
 
     /**
@@ -172,20 +281,47 @@ public class AreaDirectory
      */
     public int getElements()
     {
-        return elements;
+        return dir[AreaFile.AD_NUMELEMS];
     }
 
     /**
      * returns the bands in each of the images
      *
      * @return a array of bands 
-     *
-     * @exception AreaFileException if there was a problem
-     *            reading the directory
      */
     public int[] getBands()
     {
         return bands;
+    }
+
+    /**
+     * Returns memo field of the directory
+     *
+     * @return string representing the memo
+     */
+    public String getMemoField()
+    {
+        return memo;
+    }
+
+    /**
+     * Returns the sensor type
+     *
+     * @return string representing the sensor type
+     */
+    public String getSensorType()
+    {
+        return sensors[dir[AreaFile.AD_SENSORID]];
+    }
+
+    /**
+     * Returns the sensor type
+     *
+     * @return string representing the sensor type
+     */
+    public String getCalibrationType()
+    {
+        return calType;
     }
 
     /**
@@ -201,9 +337,9 @@ public class AreaDirectory
         buf.append(sdf.format(nominalTime, 
             new StringBuffer(), new FieldPosition(0)).toString());
         buf.append("  ");
-        buf.append(Integer.toString(lines));
+        buf.append(Integer.toString(getLines()));
         buf.append("    ");
-        buf.append(Integer.toString(elements));
+        buf.append(Integer.toString(getElements()));
         buf.append("       ");
         for (int i = 0; i < bands.length; i++) buf.append(bands[i]);
         return buf.toString();

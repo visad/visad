@@ -151,6 +151,7 @@ public class AreaFile {
   int[] cal;
   int[] aux;
   int[][][] data;
+  private AreaDirectory areaDirectory;
   
   /**
    * creates an AreaFile object that allows reading
@@ -288,6 +289,8 @@ public class AreaFile {
       flipwords = true;
     }
 
+    areaDirectory = new AreaDirectory(dir);
+
     // pull together some values needed by other methods
     navLoc = dir[AD_NAVOFFSET];
     calLoc = dir[AD_CALOFFSET];
@@ -418,18 +421,35 @@ public class AreaFile {
    *                              reading the directory
    *
    */
-
-  public int[] getDir() throws AreaFileException {
-
-
-    if (status <= 0) {
+  public int[] getDir() throws AreaFileException 
+  {
+    if (status <= 0) 
+    {
       throw new AreaFileException("Error reading AreaFile directory");
     }
-
     return dir;
-
   }
 
+
+  /** 
+   * Returns the AreaDirectory object for this AreaFile
+   *
+   * @return AreaDirectory
+   *
+   * @exception AreaFileException if there was a problem
+   *                              reading the directory
+   *
+   */
+  public AreaDirectory getAreaDirectory() throws AreaFileException 
+  {
+    if (status <= 0) 
+    {
+      throw new AreaFileException("Error reading AreaFile directory");
+    }
+    return areaDirectory;
+  }
+
+  
   /** 
    * Returns the navigation block
    *
