@@ -26,13 +26,12 @@ package visad.util;
 import java.awt.Button;
 import java.awt.Dimension;
 import java.awt.Panel;
+import java.awt.FlowLayout;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import java.rmi.RemoteException;
-
-import javax.swing.BoxLayout;
 
 import visad.BaseColorControl;
 import visad.Control;
@@ -262,7 +261,7 @@ public class ColorMapWidget
     undo.addActionListener(this);
 
     Panel panel = new Panel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+    panel.setLayout(new FlowLayout(FlowLayout.CENTER,5,5));
     panel.add(apply);
     panel.add(undo);
 

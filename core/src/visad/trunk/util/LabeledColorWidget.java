@@ -26,13 +26,13 @@ package visad.util;
 import java.awt.Button;
 import java.awt.Dimension;
 import java.awt.Panel;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import java.rmi.RemoteException;
-
-import javax.swing.BoxLayout;
 
 import visad.ScalarMap;
 import visad.VisADException;
@@ -191,12 +191,12 @@ public class LabeledColorWidget
     // save the initial table
     original = wrappedWidget.copy_table(wrappedWidget.control.getTable());
 
-    setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-    add(wrappedWidget);
+    setLayout( new BorderLayout(5,5));
+    add("Center",wrappedWidget);
 
     Panel buttons = buildButtons();
     if (buttons != null) {
-      add(buttons);
+      add("South",buttons);
     }
   }
 
@@ -220,7 +220,7 @@ public class LabeledColorWidget
     Panel panel = wrappedWidget.getButtonPanel();
     if (panel == null) {
       panel = new Panel();
-      panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+      panel.setLayout(new FlowLayout(FlowLayout.CENTER,5,5));
       newPanel = true;
     }
 
