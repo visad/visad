@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Plain.java,v 1.17 2000-06-08 19:09:37 steve Exp $
+ * $Id: Plain.java,v 1.18 2000-06-13 16:01:37 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -129,7 +129,10 @@ Plain
 
 
     /**
-     * Open an existing netCDF file and return a VisAD data object.
+     * Open an existing netCDF file and return a VisAD data object.  This method
+     * uses the method NetcdfAdapter.getData() to instantiate the VisAD data
+     * object.  The user should look at that method for information on import
+     * strategies and customization.
      *
      * @param path	Pathname of the existing netCDF file.
      * @return		A VisAD object corresponding to the netCDF dataset.
@@ -140,6 +143,7 @@ Plain
      *			couldn't be created.
      * @exception IOException
      *			Data access I/O failure.
+     * @see NetcdfAdapter#getData()
      */
     public synchronized DataImpl
     open(String path)
