@@ -230,11 +230,11 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
 
   /**
    * Clear the link to the VisAD display.  This will subsequently
-   * cause @{link getDisplay()} and @{link getControl()} to return
+   * cause {@link getDisplay()} and {@link getControl()} to return
    * <code>null</code>; consequently, information stored in the Control
-   * might have to be reestablished.  This method invokes the method @{link
+   * might have to be reestablished.  This method invokes the method {@link
    * ScalarMapListener#controlChanged(ScalarMapControlEvent)} on all registered
-   * @{link ScalarMapListener}s with this instance as the event source, @{link
+   * {@link ScalarMapListener}s with this instance as the event source, {@link
    * ScalarMapEvent#CONTROL_REMOVED} as the event ID, and the control as the
    * event control.
    *
@@ -280,10 +280,10 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
 
   /**
    * Gets the Control for the DisplayScalar.  The Control is constructed when
-   * this ScalarMap is linked to a Display via an invocation of the @{link
+   * this ScalarMap is linked to a Display via an invocation of the {@link
    * Display#addMap(ScalarMap)} method.  Not all ScalarMaps have Controls,
    * generally depending on the ScalarMap's DisplayRealType.  If a ScalarMap is
-   * removed from a Display (via the @{link Display#clearMaps()} method, then,
+   * removed from a Display (via the {@link Display#clearMaps()} method, then,
    * in general, any information in the ScalarMap's control will be lost and
    * must be reestablished.
    *
@@ -296,13 +296,13 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
 
   /**
    * Creates the Control for the associated DisplayScalar.  This method invokes
-   * the method @{link ScalarMapListener#controlChanged(ScalarMapControlEvent)}
-   * on all registered @{link ScalarMapListener}s with this instance as
-   * the event source and @{link ScalarMapEvent#CONTROL_ADDED} or @{link
+   * the method {@link ScalarMapListener#controlChanged(ScalarMapControlEvent)}
+   * on all registered {@link ScalarMapListener}s with this instance as
+   * the event source and {@link ScalarMapEvent#CONTROL_ADDED} or {@link
    * ScalarMapEvent#CONTROL_REPLACED} as the event ID -- depending on whether
    * this is the first control or not.	The event control is the previous
-   * control if the event ID is @{link ScalarMapEvent#CONTROL_REPLACED}.  If the
-   * event ID is @{link ScalarMapEvent#CONTROL_ADDED}, then the event control is
+   * control if the event ID is {@link ScalarMapEvent#CONTROL_REPLACED}.  If the
+   * event ID is {@link ScalarMapEvent#CONTROL_ADDED}, then the event control is
    * the created control or <code>null</code> -- depending on whether or not the
    * control was successfully created.
    *
