@@ -46,8 +46,11 @@ import javax.swing.border.*;
 
 public class FFT {
 
-  /** invoke in SpreadSheet by:
-      link(visad.math.FFT.forwardFT(A1))
+  /** 
+   * for use by SpreadSheet only - ordinary applications
+   * should use other method signatures;
+   * invoke in SpreadSheet by:
+   * link(visad.math.FFT.forwardFT(A1))
   */
   public static FlatField forwardFT(Data[] datums) {
     FlatField result = null;
@@ -66,8 +69,11 @@ public class FFT {
     return result;
   }
 
-  /** invoke in SpreadSheet by:
-      link(visad.math.FFT.forwardFT(A1))
+  /**
+   * for use by SpreadSheet only - ordinary applications
+   * should use other method signatures;
+   * invoke in SpreadSheet by:
+   * link(visad.math.FFT.backwardFT(A1))
   */
   public static FlatField backwardFT(Data[] datums) {
     FlatField result = null;
@@ -86,17 +92,36 @@ public class FFT {
     return result;
   }
 
-  /** compute Fourier Transform of field */
+  /**
+   * return Fourier Transform of field, use FFT if domain dimension(s)
+   * are powers of 2
+   * @param field Field with domain dimension = 1 (1-D FT) or 2 (2-D FT)
+   *              and 1 (real part) or 2 (real & imaginary) range RealTypes
+   * @param forward true for forward and false for backward
+   * @return Fourier transform of field
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   public static FlatField fourierTransform(Field field, boolean forward)
          throws VisADException, RemoteException {
     return fourierTransform(field, forward, null, null, null, null, null);
   }
 
   /**
-      compute Fourier Transform of field; use ftype, domain_set,
-      range_coord_sys, range_sets and units to construct return
-      FlatField - if null, use values from field where appropriate;
-  */
+   * return Fourier Transform of field, use FFT if domain dimension(s)
+   * are powers of 2
+   * @param field Field with domain dimension = 1 (1-D FT) or 2 (2-D FT)
+   *              and 1 (real part) or 2 (real & imaginary) range RealTypes
+   * @param forward true for forward and false for backward
+   * @param ftype use for return Field (may be null)
+   * @param domain_set use for return Field (may be null)
+   * @param range_coord_sys use for return Field (may be null)
+   * @param range_sets use for return Field (may be null)
+   * @param units use for return Field (may be null)
+   * @return Fourier transform of field
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   public static FlatField fourierTransform(Field field, boolean forward,
                      FunctionType ftype, GriddedSet domain_set,
                      CoordinateSystem range_coord_sys,
@@ -276,12 +301,18 @@ public class FFT {
   }
 
 
-  /** compute 2-D Fourier Transform, calling 1-D FT twice;
-      input and output data to this and following static
-      methods are organized:
-        float[2][domain_length] or double[2][domain_length]
-      where the 2 index is over real and imaginary parts
-  */
+  /**
+   * compute 2-D Fourier transform, calling 1-D FT twice
+   * use FFT if rows and cols are powers of 2
+   * @param rows first dimension for 2-D
+   * @param cols second dimension for 2-D
+   * @param x array for take Fourier transform of, dimensioned
+   *          [2][length] where length = rows * cols, and the
+   *          first index (2) is over real & imaginary parts
+   * @param forward true for forward and false for backward
+   * @return Fourier transform of x
+   * @throws VisADException  a VisAD error occurred
+   */
   public static float[][] FT2D(int rows, int cols, float[][] x,
                                 boolean forward)
          throws VisADException {
@@ -325,7 +356,18 @@ public class FFT {
     return u;
   }
 
-  /** compute 2-D Fourier Transform, calling 1-D FT twice */
+  /**
+   * compute 2-D Fourier transform, calling 1-D FT twice
+   * use FFT if rows and cols are powers of 2
+   * @param rows first dimension for 2-D
+   * @param cols second dimension for 2-D
+   * @param x array for take Fourier transform of, dimensioned
+   *          [2][length] where length = rows * cols, and the
+   *          first index (2) is over real & imaginary parts
+   * @param forward true for forward and false for backward
+   * @return Fourier transform of x
+   * @throws VisADException  a VisAD error occurred
+   */
   public static double[][] FT2D(int rows, int cols, double[][] x,
                                 boolean forward)
          throws VisADException {
@@ -369,8 +411,16 @@ public class FFT {
     return u;
   }
 
-  /** compute 1-D Fourier Transform, using FFT if domain
-      length is a power of two */
+  /**
+   * compute 1-D Fourier transform
+   * use FFT if length (2nd dimension of x) is a power of 2
+   * @param x array for take Fourier transform of, dimensioned
+   *          [2][length], the first index (2) is over real &
+   *          imaginary parts
+   * @param forward true for forward and false for backward
+   * @return Fourier transform of x
+   * @throws VisADException  a VisAD error occurred
+   */
   public static float[][] FT1D(float[][] x, boolean forward)
          throws VisADException {
     if (x == null) return null;
@@ -416,7 +466,16 @@ public class FFT {
     return y;
   }
 
-  /** compute 1-D Fast Fourier Transform */
+  /**
+   * compute 1-D FFT transform
+   * length (2nd dimension of x) must be a power of 2
+   * @param x array for take Fourier transform of, dimensioned
+   *          [2][length], the first index (2) is over real &
+   *          imaginary parts
+   * @param forward true for forward and false for backward
+   * @return Fourier transform of x
+   * @throws VisADException  a VisAD error occurred
+   */
   public static float[][] FFT1D(float[][] x, boolean forward)
          throws VisADException {
     if (x == null) return null;
@@ -496,8 +555,16 @@ public class FFT {
     return y;
   }
 
-  /** compute 1-D Fourier Transform, using FFT if domain
-      length is a power of two */
+  /**
+   * compute 1-D Fourier transform
+   * use FFT if length (2nd dimension of x) is a power of 2
+   * @param x array for take Fourier transform of, dimensioned
+   *          [2][length], the first index (2) is over real &
+   *          imaginary parts
+   * @param forward true for forward and false for backward
+   * @return Fourier transform of x
+   * @throws VisADException  a VisAD error occurred
+   */
   public static double[][] FT1D(double[][] x, boolean forward)
          throws VisADException {
     if (x == null) return null;
@@ -543,7 +610,16 @@ public class FFT {
     return y;
   }
 
-  /** compute 1-D Fast Fourier Transform */
+  /**
+   * compute 1-D FFT transform
+   * length (2nd dimension of x) must be a power of 2
+   * @param x array for take Fourier transform of, dimensioned
+   *          [2][length], the first index (2) is over real &
+   *          imaginary parts
+   * @param forward true for forward and false for backward
+   * @return Fourier transform of x
+   * @throws VisADException  a VisAD error occurred
+   */
   public static double[][] FFT1D(double[][] x, boolean forward)
          throws VisADException {
     if (x == null) return null;
