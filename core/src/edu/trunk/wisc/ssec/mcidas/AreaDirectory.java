@@ -152,11 +152,11 @@ public class AreaDirectory
                 "", 
                 "",
                 "",
-                "MODIS 1KM", // 100
-                "MODIS",
-                "MODIS",
-                "MODIS",
-                "MODIS"};
+                "TERRA 1KM", // 101
+                "TERRA CLD",
+                "AQUA",
+                "AQUA CLD",
+                ""};
 
   /**
    * Create an AreaDirectory from the raw block of data of
