@@ -92,7 +92,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
   JPanel[] HorizLabel, VertLabel;
   JComponent[] HorizDrag, VertDrag;
   JPanel HorizPanel, VertPanel;
-  FancySSCell[][] DisplayCells;
+  FancySSCell[][] DisplayCells = null;
   JTextField FormulaField;
   MenuItem EditPaste;
   MenuItem FileSave1, FileSave2, DispEdit;
@@ -614,44 +614,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
     DisplayPanel.setBackground(Color.darkGray);
     SCPane.add(DisplayPanel);
 
-    // set up display panel's individual VisAD displays
-    if (clone != null) {
-      // construct cells from specified server
-      boolean success = true;
-      RemoteServer rs = null;
-      try {
-        rs = (RemoteServer) Naming.lookup("//" + clone);
-      }
-      catch (NotBoundException exc) {
-        success = false;
-      }
-      catch (RemoteException exc) {
-        success = false;
-      }
-      catch (MalformedURLException exc) {
-        success = false;
-      }
-      constructSpreadsheetCells(rs);
-      if (success) {
-        bTitle = bTitle + " [collaborative mode: " + clone + "]";
-      }
-    }
-    else {
-      // construct cells from scratch
-      constructSpreadsheetCells(null);
-    }
-
-    // initialize RemoteServer
     if (server != null) {
+      // initialize RemoteServer
       boolean success = true;
       try {
         rsi = new RemoteServerImpl();
         Naming.rebind("//:/" + server, rsi);
-        for (int j=0; j<NumVisY; j++) {
-          for (int i=0; i<NumVisX; i++) {
-            DisplayCells[i][j].addToRemoteServer(rsi);
-          }
-        }
       }
       catch (java.rmi.ConnectException exc) {
         final SpreadSheet ss = this;
@@ -692,6 +660,33 @@ public class SpreadSheet extends JFrame implements ActionListener,
         success = false;
       }
       if (success) bTitle = bTitle + " (" + server + ")";
+    }
+
+    // construct spreadsheet cells
+    if (clone != null) {
+      // construct cells from specified server
+      boolean success = true;
+      RemoteServer rs = null;
+      try {
+        rs = (RemoteServer) Naming.lookup("//" + clone);
+      }
+      catch (NotBoundException exc) {
+        success = false;
+      }
+      catch (RemoteException exc) {
+        success = false;
+      }
+      catch (MalformedURLException exc) {
+        success = false;
+      }
+      constructSpreadsheetCells(rs);
+      if (success) {
+        bTitle = bTitle + " [collaborative mode: " + clone + "]";
+      }
+    }
+    else {
+      // construct cells from scratch
+      constructSpreadsheetCells(null);
     }
 
     // display window on screen
@@ -1133,10 +1128,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
           DisplayCells[i][j].setAutoDetect(AutoDetect);
           DisplayCells[i][j].setAutoShowControls(AutoShowControls);
           if (rs == null) DisplayCells[i][j].setDimension(!CanDo3D, !CanDo3D);
-          DisplayCells[i][j].setDisplayListener(this);
+          DisplayCells[i][j].addDisplayListener(this);
           DisplayCells[i][j].setPreferredSize(new Dimension(MIN_VIS_WIDTH,
                                                             MIN_VIS_HEIGHT));
           if (i == 0 && j == 0) DisplayCells[i][j].setSelected(true);
+          if (rsi != null) {
+            // add new cell to server
+            DisplayCells[i][j].addToRemoteServer(rsi);
+          }
           DisplayPanel.add(DisplayCells[i][j]);
         }
         catch (VisADException exc) {
@@ -1335,12 +1334,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
           fcells[NumVisX][j].setAutoDetect(AutoDetect);
           fcells[NumVisX][j].setAutoShowControls(AutoShowControls);
           fcells[NumVisX][j].setDimension(!CanDo3D, !CanDo3D);
-          fcells[NumVisX][j].setDisplayListener(this);
+          fcells[NumVisX][j].addDisplayListener(this);
           fcells[NumVisX][j].setPreferredSize(new Dimension(MIN_VIS_WIDTH,
                                                             MIN_VIS_HEIGHT));
           if (rsi != null) {
-            rsi.setDataReference(NumVisX*NumVisY+j,
-                                 fcells[NumVisX][j].getRemoteDataRef());
+            // add new cell to server
+            fcells[NumVisX][j].addToRemoteServer(rsi);
           }
         }
         catch (VisADException exc) {
@@ -1408,12 +1407,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
         fcells[i][NumVisY].setAutoDetect(AutoDetect);
         fcells[i][NumVisY].setAutoShowControls(AutoShowControls);
         fcells[i][NumVisY].setDimension(!CanDo3D, !CanDo3D);
-        fcells[i][NumVisY].setDisplayListener(this);
+        fcells[i][NumVisY].addDisplayListener(this);
         fcells[i][NumVisY].setPreferredSize(new Dimension(MIN_VIS_WIDTH,
                                                           MIN_VIS_HEIGHT));
         if (rsi != null) {
-          rsi.setDataReference(NumVisX*NumVisY+i,
-                               fcells[i][NumVisY].getRemoteDataRef());
+          // add new cell to server
+          fcells[i][NumVisY].addToRemoteServer(rsi);
         }
       }
       catch (VisADException exc) {

@@ -127,8 +127,8 @@ public class BasicSSCell extends JPanel {
   RemoteDataReference RemoteErrors;
 
 
-  /** this BasicSSCell's DisplayListener */
-  DisplayListener DListen = null;
+  /** this BasicSSCell's DisplayListeners */
+  Vector DListen = new Vector();
 
   /** whether the BasicSSCell has mappings from Data to Display */
   boolean HasMappings = false;
@@ -482,7 +482,7 @@ public class BasicSSCell extends JPanel {
   public void addToRemoteServer(RemoteServerImpl rs) throws RemoteException {
     if (rs == null) return;
     if (IsRemote) {
-      throw new RemoteException("This cell is a clone of another cell!");
+      throw new RemoteException("Cannot add cloned cell to a server");
     }
 
     synchronized (Servers) {
@@ -495,6 +495,28 @@ public class BasicSSCell extends JPanel {
         rs.addDataReference((RemoteDataReferenceImpl) RemoteDim);
         rs.addDataReference((RemoteDataReferenceImpl) RemoteErrors);
         Servers.add(rs);
+      }
+    }
+  }
+
+  /** remove this SSCell from the given RemoteServer */
+  public void removeFromRemoteServer(RemoteServerImpl rs)
+                                     throws RemoteException {
+    if (rs == null) return;
+    if (IsRemote) {
+      throw new RemoteException("Cannot remove cloned cell from a server");
+    }
+
+    synchronized (Servers) {
+      if (Servers.contains(rs)) {
+        rs.removeDataReference(RemoteDataRef);
+        rs.removeDisplay((RemoteDisplayImpl) RemoteVDisplay);
+        rs.removeDataReference((RemoteDataReferenceImpl) RemoteFilename);
+        rs.removeDataReference((RemoteDataReferenceImpl) RemoteRMIAddress);
+        rs.removeDataReference((RemoteDataReferenceImpl) RemoteFormula);
+        rs.removeDataReference((RemoteDataReferenceImpl) RemoteDim);
+        rs.removeDataReference((RemoteDataReferenceImpl) RemoteErrors);
+        Servers.remove(rs);
       }
     }
   }
@@ -826,11 +848,24 @@ public class BasicSSCell extends JPanel {
     }
   }
 
-  /** set up the DisplayListener for this cell */
-  public void setDisplayListener(DisplayListener d) {
-    if (DListen != null) VDisplay.removeDisplayListener(DListen);
-    DListen = d;
-    if (DListen != null) VDisplay.addDisplayListener(DListen);
+  /** add a DisplayListener to this cell */
+  public void addDisplayListener(DisplayListener d) {
+    synchronized (DListen) {
+      if (!DListen.contains(d)) {
+        VDisplay.addDisplayListener(d);
+        DListen.add(d);
+      }
+    }
+  }
+
+  /** remove a DisplayListener from this cell */
+  public void removeDisplayListener(DisplayListener d) {
+    synchronized (DListen) {
+      if (DListen.contains(d)) {
+        VDisplay.removeDisplayListener(d);
+        DListen.remove(d);
+      }
+    }
   }
 
   /** map RealTypes to the display according to the specified ScalarMaps */
@@ -907,6 +942,16 @@ public class BasicSSCell extends JPanel {
       list of created cells */
   public void destroyCell() throws VisADException, RemoteException {
     clearCell();
+
+    // remove cell from all servers
+    int slen = Servers.size();
+    if (slen > 0) {
+      for (int i=0; i<slen; i++) {
+        RemoteServerImpl rs = (RemoteServerImpl) Servers.elementAt(i);
+        removeFromRemoteServer(rs);
+      }
+    }
+
     if (!IsRemote) fm.remove(Name);
     SSCellVector.remove(this);
   }
@@ -948,63 +993,74 @@ public class BasicSSCell extends JPanel {
     Dim = dim;
 
     if (!IsRemote) {
-      // remove listener temporarily
-      if (DListen != null) VDisplay.removeDisplayListener(DListen);
-
-      // save current mappings for restoration after dimension switch
-      ScalarMap[] maps = null;
-      if (VDisplay != null) {
-        Vector mapVector = VDisplay.getMapVector();
-        int mvs = mapVector.size();
-        if (mvs > 0) {
-          maps = new ScalarMap[mvs];
-          for (int i=0; i<mvs; i++) {
-            maps[i] = (ScalarMap) mapVector.elementAt(i);
+      synchronized (DListen) {
+        // remove listeners temporarily
+        int dlen = DListen.size();
+        if (dlen > 0) {
+          for (int i=0; i<dlen; i++) {
+            DisplayListener d = (DisplayListener) DListen.elementAt(i);
+            VDisplay.removeDisplayListener(d);
           }
         }
+
+        // save current mappings for restoration after dimension switch
+        ScalarMap[] maps = null;
+        if (VDisplay != null) {
+          Vector mapVector = VDisplay.getMapVector();
+          int mvs = mapVector.size();
+          if (mvs > 0) {
+            maps = new ScalarMap[mvs];
+            for (int i=0; i<mvs; i++) {
+              maps[i] = (ScalarMap) mapVector.elementAt(i);
+            }
+          }
+        }
+
+        // clear display completely
+        clearDisplay();
+
+        synchronized (Servers) {
+          // remove old display from all RemoteServers
+          int slen = Servers.size();
+          for (int i=0; i<slen; i++) {
+            RemoteServerImpl rsi = (RemoteServerImpl) Servers.elementAt(i);
+            rsi.removeDisplay((RemoteDisplayImpl) RemoteVDisplay);
+          }
+
+          // switch display dimension
+          if (Dim == JAVA3D_3D) VDisplay = new DisplayImplJ3D(Name);
+          else if (Dim == JAVA2D_2D) VDisplay = new DisplayImplJ2D(Name);
+          else { // Dim == JAVA3D_2D
+            TwoDDisplayRendererJ3D tdr = new TwoDDisplayRendererJ3D();
+            VDisplay = new DisplayImplJ3D(Name, tdr);
+          }
+          RemoteVDisplay = new RemoteDisplayImpl(VDisplay);
+
+          // add new display to all RemoteServers
+          for (int i=0; i<slen; i++) {
+            RemoteServerImpl rsi = (RemoteServerImpl) Servers.elementAt(i);
+            rsi.addDisplay((RemoteDisplayImpl) RemoteVDisplay);
+          }
+        }
+
+        // put mappings back
+        if (maps != null) {
+          try {
+            setMaps(maps);
+          }
+          catch (VisADException exc) { }
+        }
+
+        // reinitialize display
+        VDPanel = (JPanel) VDisplay.getComponent();
+        if (hasData()) setVDPanel(true);
+
+        // put listeners back
+        for (int i=0; i<dlen; i++) {
+          DisplayListener d = (DisplayListener) DListen.elementAt(i);
+          VDisplay.addDisplayListener(d);
+        }
       }
-
-      // clear display completely
-      clearDisplay();
-
-      synchronized (Servers) {
-        // remove old display from all RemoteServers
-        int len = Servers.size();
-        for (int i=0; i<len; i++) {
-          RemoteServerImpl rsi = (RemoteServerImpl) Servers.elementAt(i);
-          rsi.removeDisplay((RemoteDisplayImpl) RemoteVDisplay);
-        }
-
-        // switch display dimension
-        if (Dim == JAVA3D_3D) VDisplay = new DisplayImplJ3D(Name);
-        else if (Dim == JAVA2D_2D) VDisplay = new DisplayImplJ2D(Name);
-        else { // Dim == JAVA3D_2D
-          TwoDDisplayRendererJ3D tdr = new TwoDDisplayRendererJ3D();
-          VDisplay = new DisplayImplJ3D(Name, tdr);
-        }
-        RemoteVDisplay = new RemoteDisplayImpl(VDisplay);
-
-        // add new display to all RemoteServers
-        for (int i=0; i<len; i++) {
-          RemoteServerImpl rsi = (RemoteServerImpl) Servers.elementAt(i);
-          rsi.addDisplay((RemoteDisplayImpl) RemoteVDisplay);
-        }
-      }
-
-      // put mappings back
-      if (maps != null) {
-        try {
-          setMaps(maps);
-        }
-        catch (VisADException exc) { }
-      }
-
-      // reinitialize display
-      VDPanel = (JPanel) VDisplay.getComponent();
-      if (hasData()) setVDPanel(true);
-
-      // put listener back
-      if (DListen != null) VDisplay.addDisplayListener(DListen);
 
       // broadcast dimension change event
       notifyListeners(SSCellChangeEvent.DIMENSION_CHANGE);
@@ -1021,39 +1077,50 @@ public class BasicSSCell extends JPanel {
   /** update the dimension of a cloned cell to match that of the server */
   private void setDimClone() throws VisADException, RemoteException {
 
-    // remove listener temporarily
-    if (DListen != null) VDisplay.removeDisplayListener(DListen);
+    synchronized (DListen) {
+      // remove listeners temporarily
+      int dlen = DListen.size();
+      if (dlen > 0) {
+        for (int i=0; i<dlen; i++) {
+          DisplayListener d = (DisplayListener) DListen.elementAt(i);
+          VDisplay.removeDisplayListener(d);
+        }
+      }
 
-    // remove old display panel from cell
-    setVDPanel(false);
+      // remove old display panel from cell
+      setVDPanel(false);
 
-    // get updated display from server
-    RemoteVDisplay = RemoteVServer.getDisplay(Name);
+      // get updated display from server
+      RemoteVDisplay = RemoteVServer.getDisplay(Name);
 
-    // autodetect new dimension
-    String s = RemoteVDisplay.getDisplayRendererClassName();
-    if (s.equals(j33)) Dim = JAVA3D_3D;
-    else if (s.equals(j22)) Dim = JAVA2D_2D;
-    else if (s.equals(j32)) Dim = JAVA3D_2D;
+      // autodetect new dimension
+      String s = RemoteVDisplay.getDisplayRendererClassName();
+      if (s.equals(j33)) Dim = JAVA3D_3D;
+      else if (s.equals(j22)) Dim = JAVA2D_2D;
+      else if (s.equals(j32)) Dim = JAVA3D_2D;
 
-    // construct new display from server's display
-    if (Dim == JAVA3D_3D) {
-      VDisplay = new DisplayImplJ3D(RemoteVDisplay);
+      // construct new display from server's display
+      if (Dim == JAVA3D_3D) {
+        VDisplay = new DisplayImplJ3D(RemoteVDisplay);
+      }
+      else if (Dim == JAVA2D_2D) {
+        VDisplay = new DisplayImplJ2D(RemoteVDisplay);
+      }
+      else { // Dim == JAVA3D_2D
+        TwoDDisplayRendererJ3D tdr = new TwoDDisplayRendererJ3D();
+        VDisplay = new DisplayImplJ3D(RemoteVDisplay, tdr);
+      }
+
+      // reinitialize display
+      VDPanel = (JPanel) VDisplay.getComponent();
+      if (hasData()) setVDPanel(true);
+
+      // put listeners back
+      for (int i=0; i<dlen; i++) {
+        DisplayListener d = (DisplayListener) DListen.elementAt(i);
+        VDisplay.addDisplayListener(d);
+      }
     }
-    else if (Dim == JAVA2D_2D) {
-      VDisplay = new DisplayImplJ2D(RemoteVDisplay);
-    }
-    else { // Dim == JAVA3D_2D
-      TwoDDisplayRendererJ3D tdr = new TwoDDisplayRendererJ3D();
-      VDisplay = new DisplayImplJ3D(RemoteVDisplay, tdr);
-    }
-
-    // reinitialize display
-    VDPanel = (JPanel) VDisplay.getComponent();
-    if (hasData()) setVDPanel(true);
-
-    // put listener back
-    if (DListen != null) VDisplay.addDisplayListener(DListen);
 
     // broadcast dimension change event
     notifyListeners(SSCellChangeEvent.DIMENSION_CHANGE);
