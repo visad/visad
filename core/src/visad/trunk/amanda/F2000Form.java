@@ -322,7 +322,7 @@ System.out.println(line);
                 float zc = (float) Math.cos(zenith * Data.DEGREES_TO_RADIANS);
                 float as = (float) Math.sin(azimuth * Data.DEGREES_TO_RADIANS);
                 float ac = (float) Math.cos(azimuth * Data.DEGREES_TO_RADIANS);
-                float zinc = length * zc;
+                float zinc = -length * zc;
                 float xinc = length * zs * ac;
                 float yinc = length * zs * as;
 
@@ -365,7 +365,7 @@ System.out.println("tr (" + xstart + ", " + ystart + ", " +
                 float zc = (float) Math.cos(zenith * Data.DEGREES_TO_RADIANS);
                 float as = (float) Math.sin(azimuth * Data.DEGREES_TO_RADIANS);
                 float ac = (float) Math.cos(azimuth * Data.DEGREES_TO_RADIANS);
-                float zinc = length * zc;
+                float zinc = -length * zc;
                 float xinc = length * zs * ac;
                 float yinc = length * zs * as;
 
@@ -717,13 +717,13 @@ System.out.println("amanda MathType\n" + amanda.getType());
     widget_panel.setMaximumSize(d);
     panel.add(widget_panel);
     JPanel display_panel = (JPanel) display.getComponent();
-    d = new Dimension(600, 600);
+    d = new Dimension(800, 800);
     display_panel.setPreferredSize(d);
     display_panel.setMinimumSize(d);
     panel.add(display_panel);
 
-    int WIDTH = 1000;
-    int HEIGHT = 600;
+    int WIDTH = 1200;
+    int HEIGHT = 800;
 
     frame.setSize(WIDTH, HEIGHT);
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();

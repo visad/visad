@@ -239,6 +239,7 @@ SAVE_FILES = \
 	visad/rabin/*.java				\
 	visad/bom/*.java				\
 	visad/aeri/*.java				\
+	visad/amanda/*.java				\
 	visad/georef/*.java				\
 	visad/meteorology/*.java			\
 	visad/Gridded1D.txt				\
@@ -301,6 +302,7 @@ DOC_PACKAGES = \
 		visad.rabin \
 		visad.bom \
 		visad.aeri \
+		visad.amanda \
 		visad.georef \
 		visad.meteorology
 
