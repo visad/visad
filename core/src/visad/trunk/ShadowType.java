@@ -77,6 +77,7 @@ public abstract class ShadowType extends Object
   int LevelOfDifficulty;
   boolean isTextureMap;
   boolean curvedTexture;
+  boolean isTexture3D;
 
   /** Dtype and Rtype used only with ShadowSetType and
       Flat ShadowFunctionType */
@@ -133,6 +134,7 @@ public abstract class ShadowType extends Object
     isTerminal = false;
     isTextureMap = false;
     curvedTexture = false;
+    isTexture3D = false;
     LevelOfDifficulty = NOTHING_MAPPED;
     MultipleSpatialDisplayScalar = false;
     MultipleDisplayScalar = false;
@@ -157,6 +159,10 @@ public abstract class ShadowType extends Object
 
   public boolean getCurvedTexture() {
     return curvedTexture;
+  }
+
+  public boolean getIsTexture3D() {
+    return isTexture3D;
   }
 
   public int[] getRefToComponent() {
@@ -2693,12 +2699,6 @@ System.out.println("color_values: nummissing = " + nummissing);
           if (array != null) {
             shadow_api.addToGroup(group, array, mode,
                                   constant_alpha, constant_color);
-/*
-            geometry = display.makeGeometry(array);
-            appearance = makeAppearance(mode, null, constant_color, geometry);
-            shape = new Shape3D(geometry, appearance);
-            group.addChild(shape);
-*/
             if (renderer.getIsDirectManipulation()) {
               renderer.setSpatialValues(spatial_values);
             }
@@ -2714,16 +2714,6 @@ System.out.println("color_values: nummissing = " + nummissing);
                          color_values, range_select);
         shadow_api.addToGroup(group, array, mode,
                               constant_alpha, constant_color);
-/*
-        if (array != null) {
-          if (array.vertexCount > 0) {
-            geometry = display.makeGeometry(array);
-            appearance = makeAppearance(mode, null, constant_color, geometry);
-            shape = new Shape3D(geometry, appearance);
-            group.addChild(shape);
-          }
-        }
-*/
         anyTextCreated = true;
       }
 
@@ -2736,14 +2726,6 @@ System.out.println("color_values: nummissing = " + nummissing);
           if (arrays[i] != null) {
             shadow_api.addToGroup(group, arrays[i], mode,
                                   constant_alpha, constant_color);
-/*
-            if (arrays[i].vertexCount > 0) {
-              geometry = display.makeGeometry(arrays[i]);
-              appearance = makeAppearance(mode, null, constant_color, geometry);
-              shape = new Shape3D(geometry, appearance);
-              group.addChild(shape);
-            }
-*/
           }
         }
         anyFlowCreated = true;
@@ -2756,14 +2738,6 @@ System.out.println("color_values: nummissing = " + nummissing);
           if (arrays[i] != null) {
             shadow_api.addToGroup(group, arrays[i], mode,
                                   constant_alpha, constant_color);
-/*
-            if (arrays[i].vertexCount > 0) {
-              geometry = display.makeGeometry(arrays[i]);
-              appearance = makeAppearance(mode, null, constant_color, geometry);
-              shape = new Shape3D(geometry, appearance);
-              group.addChild(shape);
-            }
-*/
           }
         }
         anyFlowCreated = true;
@@ -2774,12 +2748,6 @@ System.out.println("color_values: nummissing = " + nummissing);
         if (array != null && array.vertexCount > 0) {
           shadow_api.addToGroup(group, array, mode,
                                 constant_alpha, constant_color);
-/*
-          geometry = display.makeGeometry(array);
-          appearance = makeAppearance(mode, null, constant_color, geometry);
-          shape = new Shape3D(geometry, appearance);
-          group.addChild(shape);
-*/
           if (renderer.getIsDirectManipulation()) {
             renderer.setSpatialValues(spatial_values);
           }
@@ -2808,10 +2776,18 @@ System.out.println("color_values: nummissing = " + nummissing);
     return data_height;
   }
 
+  public int textureDepth(int data_depth) {
+    return data_depth;
+  }
+
   public void adjustZ(float[] coordinates) {
   }
 
   public void setTexCoords(float[] texCoords, float ratiow, float ratioh) {
+  }
+
+  public void setTex3DCoords(float[] texCoords, int axis, float ratiow,
+                             float ratioh, float ratiod) {
   }
 
   public Vector getTextMaps(int i, int[] textIndices) {
@@ -2829,6 +2805,15 @@ System.out.println("color_values: nummissing = " + nummissing);
                             BufferedImage image, GraphicsModeControl mode,
                             float constant_alpha, float[] constant_color,
                             int texture_width, int texture_height)
+         throws VisADException {
+  }
+
+  public void texture3DToGroup(Object group, VisADGeometryArray arrayX,
+                    VisADGeometryArray arrayY, VisADGeometryArray arrayZ,
+                    BufferedImage[] images, GraphicsModeControl mode,
+                    float constant_alpha, float[] constant_color,
+                    int texture_width, int texture_height, int texture_depth,
+                    DataRenderer renderer)
          throws VisADException {
   }
 

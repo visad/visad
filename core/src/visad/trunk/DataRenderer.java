@@ -276,7 +276,11 @@ if (map.badRange()) {
       }
     }
 
-    // a convenient place to thorw this in
+    // a convenient place to throw this in
+    ProjectionControl control = display.getProjectionControl();
+    control.clearSwitches(this);
+
+    // a convenient place to throw this in
     lat_index = -1;
     lon_index = -1;
   }

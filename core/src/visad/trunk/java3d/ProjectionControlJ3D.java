@@ -30,6 +30,10 @@ import visad.*;
 import java.rmi.*;
 
 import javax.media.j3d.*;
+import javax.vecmath.*;
+
+import java.util.Vector;
+import java.util.Enumeration;
 
 /**
    ProjectionControlJ3D is the VisAD class for controlling the Projection
@@ -44,6 +48,10 @@ public class ProjectionControlJ3D extends ProjectionControl {
 
   private transient Transform3D Matrix;
   private double[] matrix;
+
+  // Vector of Switch nodes for volume rendering
+  transient Vector switches = new Vector();
+  int which_child = 2; // initial view along Z axis (?)
 
   public ProjectionControlJ3D(DisplayImpl d) throws VisADException {
     super(d);
@@ -70,6 +78,7 @@ public class ProjectionControlJ3D extends ProjectionControl {
     System.arraycopy(m, 0, matrix, 0, 16);
     Matrix = new Transform3D(matrix);
     ((DisplayRendererJ3D) getDisplayRenderer()).setTransform3D(Matrix);
+    if (!switches.isEmpty()) selectSwitches();
     changeControl(true);
   }
 
@@ -97,6 +106,61 @@ public class ProjectionControlJ3D extends ProjectionControl {
       MouseBehaviorJ3D.static_make_matrix(0.0, 0.0, 0.0, scale, 0.0, 0.0, 0.0) );
     mat.mul(t1);
     return mat;
+  }
+
+  void addPair(Switch sw, DataRenderer re) {
+    switches.addElement(new SwitchProjection(sw, re));
+    sw.setWhichChild(which_child);
+  }
+
+  private void selectSwitches() {
+    int old_which_child = which_child;
+    // calculate which axis is most parallel to eye direction
+    Transform3D tt = new Transform3D(Matrix);
+    tt.invert();
+    Point3d origin = new Point3d(0.0, 0.0, 0.0);
+    Point3d eye = new Point3d(0.0, 0.0, 1.0);
+    tt.transform(origin);
+    tt.transform(eye);
+    double dx = Math.abs(eye.x - origin.x);
+    double dy = Math.abs(eye.y - origin.y);
+    double dz = Math.abs(eye.z - origin.z);
+    if (dz >= dy && dz >= dx) which_child = 2;
+    else if (dy >= dx) which_child = 1;
+    else which_child = 0;
+
+    // axis did not change, so no need to change Switches
+    if (old_which_child == which_child) return;
+
+    // axis changed, so change Switches
+    Enumeration pairs = ((Vector) switches.clone()).elements();
+    while (pairs.hasMoreElements()) {
+      SwitchProjection ss = (SwitchProjection) pairs.nextElement();
+      ss.swit.setWhichChild(which_child);
+    }
+  }
+
+  /** clear all 'pairs' in switches that involve re */
+  public void clearSwitches(DataRenderer re) {
+    Enumeration pairs = ((Vector) switches.clone()).elements();
+    while (pairs.hasMoreElements()) {
+      SwitchProjection ss = (SwitchProjection) pairs.nextElement();
+      if (ss.renderer.equals(re)) {
+        switches.removeElement(ss);
+      }
+    }
+  }
+ 
+  /** SwitchProjection is an inner class of ProjectionControlJ3D for
+      (Switch, DataRenderer) structures */
+  private class SwitchProjection extends Object {
+    Switch swit;
+    DataRenderer renderer;
+ 
+    SwitchProjection(Switch sw, DataRenderer re) {
+      swit = sw;
+      renderer = re;
+    }
   }
 
 }

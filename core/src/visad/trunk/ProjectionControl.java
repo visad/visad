@@ -89,5 +89,8 @@ public abstract class ProjectionControl extends Control {
     return mat;
   }
 
+  public void clearSwitches(DataRenderer re) {
+  }
+
 }
 

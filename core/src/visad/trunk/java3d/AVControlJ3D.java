@@ -44,7 +44,7 @@ public abstract class AVControlJ3D extends Control implements AVControl {
     super(d);
   }
 
-  void addPair(Switch sw, Set se, DataRenderer re) { // J3D
+  void addPair(Switch sw, Set se, DataRenderer re) {
     switches.addElement(new SwitchSet(sw, se, re));
   }
 
@@ -130,11 +130,11 @@ DisplayImpl.printStack("selectSwitches: ss.swit.setWhichChild(Switch.CHILD_NONE)
   /** SwitchSet is an inner class of AVControlJ3D for
       (Switch, Set, DataRenderer) structures */
   private class SwitchSet extends Object {
-    Switch swit; // J3D
+    Switch swit;
     Set set;
     DataRenderer renderer;
  
-    SwitchSet(Switch sw, Set se, DataRenderer re) { // J3D
+    SwitchSet(Switch sw, Set se, DataRenderer re) {
       swit = sw;
       set = se;
       renderer = re;

@@ -188,7 +188,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   static Appearance makeAppearance(GraphicsModeControl mode,
                       TransparencyAttributes constant_alpha,
                       ColoringAttributes constant_color,
-                      GeometryArray geometry) {
+                      GeometryArray geometry, boolean no_material) {
     Appearance appearance = new Appearance();
 
     LineAttributes line = new LineAttributes();
@@ -217,11 +217,13 @@ public abstract class ShadowTypeJ3D extends ShadowType {
           geometry instanceof IndexedPointArray ||
           geometry instanceof IndexedLineStripArray ||
           geometry instanceof LineStripArray)) {
-      Material material = new Material();
-      material.setSpecularColor(0.0f, 0.0f, 0.0f);
-      // no lighting in 2-D mode
-      if (!mode.getMode2D()) material.setLightingEnable(true);
-      appearance.setMaterial(material);
+      if (!no_material) {
+        Material material = new Material();
+        material.setSpecularColor(0.0f, 0.0f, 0.0f);
+        // no lighting in 2-D mode
+        if (!mode.getMode2D()) material.setLightingEnable(true);
+        appearance.setMaterial(material);
+      }
       if (constant_alpha != null) {
         appearance.setTransparencyAttributes(constant_alpha);
       }
@@ -351,7 +353,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     colors[2] = 0.0f;
     geometry.setColors(0, colors);
     Appearance appearance =
-      makeAppearance(display.getGraphicsModeControl(), null, null, geometry);
+      makeAppearance(display.getGraphicsModeControl(), null, null, geometry, false);
     Shape3D shape = new Shape3D(geometry, appearance);
     group.addChild(shape);
   }
@@ -380,7 +382,8 @@ public abstract class ShadowTypeJ3D extends ShadowType {
         c_color = new ColoringAttributes();
         c_color.setColor(constant_color[0], constant_color[1], constant_color[2]);
       }
-      Appearance appearance = makeAppearance(mode, c_alpha, c_color, geometry);
+      Appearance appearance =
+        makeAppearance(mode, c_alpha, c_color, geometry, false);
       Shape3D shape = new Shape3D(geometry, appearance);
       ((Group) group).addChild(shape);
       return true;

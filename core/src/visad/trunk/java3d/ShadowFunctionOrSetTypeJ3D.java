@@ -118,17 +118,18 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
     return texture_height;
   }
 
+  public int textureDepth(int data_depth) {
+    // must be a power of 2 in Java3D
+    int texture_depth = 1;
+    while (texture_depth < data_depth) texture_depth *= 2;
+    return texture_depth;
+  }
+
   public void adjustZ(float[] coordinates) {
     if (display.getDisplayRenderer().getMode2D()) {
       for (int i=2; i<coordinates.length; i+=3) {
         coordinates[i] = DisplayImplJ3D.BACK2D;
       }
-/* WLH 27 March 99
-      coordinates[2] = DisplayImplJ3D.BACK2D;
-      coordinates[5] = DisplayImplJ3D.BACK2D;
-      coordinates[8] = DisplayImplJ3D.BACK2D;
-      coordinates[11] = DisplayImplJ3D.BACK2D;
-*/
     }
   }
 
@@ -145,6 +146,77 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
     // corner 3
     texCoords[6] = 0.0f;
     texCoords[7] = 1.0f - ratioh;
+  }
+
+  public void setTex3DCoords(float[] texCoords, int axis, float ratiow,
+                             float ratioh, float ratiod) {
+    int length = texCoords.length / 12;
+    if (axis == 2) {
+      for (int i=0; i<length; i++) {
+        int i12 = i * 12;
+        float depth = 0.0f + (ratiod - 0.0f) * i / (length - 1.0f);
+        // corner 0
+        texCoords[i12] = 0.0f;
+        texCoords[i12 + 1] = 1.0f;
+        texCoords[i12 + 2] = depth;
+        // corner 1
+        texCoords[i12 + 3] = ratiow;
+        texCoords[i12 + 4] = 1.0f;
+        texCoords[i12 + 5] = depth;
+        // corner 2
+        texCoords[i12 + 6] = ratiow;
+        texCoords[i12 + 7] = 1.0f - ratioh;
+        texCoords[i12 + 8] = depth;
+        // corner 3
+        texCoords[i12 + 9] = 0.0f;
+        texCoords[i12 + 10] = 1.0f - ratioh;
+        texCoords[i12 + 11] = depth;
+      }
+    }
+    else if (axis == 1) {
+      for (int i=0; i<length; i++) {
+        int i12 = i * 12;
+        float height = 1.0f - ratioh * i / (length - 1.0f);
+        // corner 0
+        texCoords[i12] = 0.0f;
+        texCoords[i12 + 1] = height;
+        texCoords[i12 + 2] = 0.0f;
+        // corner 1
+        texCoords[i12 + 3] = ratiow;
+        texCoords[i12 + 4] = height;
+        texCoords[i12 + 5] = 0.0f;
+        // corner 2
+        texCoords[i12 + 6] = ratiow;
+        texCoords[i12 + 7] = height;
+        texCoords[i12 + 8] = ratiod;
+        // corner 3
+        texCoords[i12 + 9] = 0.0f;
+        texCoords[i12 + 10] = height;
+        texCoords[i12 + 11] = ratiod;
+      }
+    }
+    else if (axis == 0) {
+      for (int i=0; i<length; i++) {
+        int i12 = i * 12;
+        float width = 0.0f + (ratiow - 0.0f) * i / (length - 1.0f);
+        // corner 0
+        texCoords[i12] = width;
+        texCoords[i12 + 1] = 1.0f;
+        texCoords[i12 + 2] = 0.0f;
+        // corner 1
+        texCoords[i12 + 3] = width;
+        texCoords[i12 + 4] = 1.0f - ratioh;
+        texCoords[i12 + 5] = 0.0f;
+        // corner 2
+        texCoords[i12 + 6] = width;
+        texCoords[i12 + 7] = 1.0f - ratioh;
+        texCoords[i12 + 8] = ratiod;
+        // corner 3
+        texCoords[i12 + 9] = width;
+        texCoords[i12 + 10] = 1.0f;
+        texCoords[i12 + 11] = ratiod;
+      }
+    }
   }
 
   public Vector getTextMaps(int i, int[] textIndices) {
@@ -186,7 +258,8 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       c_color = new ColoringAttributes();
       c_color.setColor(constant_color[0], constant_color[1], constant_color[2]);
     }
-    Appearance appearance = makeAppearance(mode, c_alpha, null, geometry);
+    Appearance appearance =
+      makeAppearance(mode, c_alpha, null, geometry, false);
     // create TextureAttributes
     TextureAttributes texture_attributes = new TextureAttributes();
     // texture_attributes.setTextureMode(TextureAttributes.REPLACE);
@@ -226,6 +299,99 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     Shape3D shape = new Shape3D(geometry, appearance);
     appearance.setTexture(texture);
     ((Group) group).addChild(shape);
+  }
+
+  public void texture3DToGroup(Object group, VisADGeometryArray arrayX,
+                    VisADGeometryArray arrayY, VisADGeometryArray arrayZ,
+                    BufferedImage[] images, GraphicsModeControl mode,
+                    float constant_alpha, float[] constant_color,
+                    int texture_width, int texture_height,
+                    int texture_depth, DataRenderer renderer)
+         throws VisADException {
+
+    GeometryArray geometryX = display.makeGeometry(arrayX);
+    GeometryArray geometryY = display.makeGeometry(arrayY);
+    GeometryArray geometryZ = display.makeGeometry(arrayZ);
+    // System.out.println("texture geometry");
+    // create basic Appearance
+    TransparencyAttributes c_alpha = null;
+
+    if (constant_alpha == 1.0f) {
+      // constant opaque alpha = NONE
+      c_alpha = null;
+    }
+    else if (constant_alpha == constant_alpha) {
+      // c_alpha = new TransparencyAttributes(mode.getTransparencyMode(),
+      c_alpha = new TransparencyAttributes(TransparencyAttributes.BLENDED,
+                                           constant_alpha);
+    }
+    else {
+      c_alpha = new TransparencyAttributes();
+      c_alpha.setTransparencyMode(TransparencyAttributes.BLENDED);
+    }
+    ColoringAttributes c_color = null;
+    if (constant_color != null && constant_color.length == 3) {
+      c_color = new ColoringAttributes();
+      c_color.setColor(constant_color[0], constant_color[1], constant_color[2]);
+    }
+    Appearance appearance =
+      makeAppearance(mode, c_alpha, null, geometryX, true);
+    // create TextureAttributes
+    TextureAttributes texture_attributes = new TextureAttributes();
+    // texture_attributes.setTextureMode(TextureAttributes.REPLACE);
+    texture_attributes.setTextureMode(TextureAttributes.MODULATE);
+    texture_attributes.setPerspectiveCorrectionMode(
+                          TextureAttributes.NICEST);
+    appearance.setTextureAttributes(texture_attributes);
+    // create Texture2D
+// TextureLoader uses 1st argument = 1
+/*
+System.out.println("Texture.BASE_LEVEL = " + Texture.BASE_LEVEL); // 1
+System.out.println("Texture.RGBA = " + Texture.RGBA); // 6
+*/
+    Texture3D texture = new Texture3D(Texture.BASE_LEVEL, Texture.RGBA,
+                          texture_width, texture_height, texture_depth);
+    ImageComponent3D image3d =
+      new ImageComponent3D(ImageComponent.FORMAT_RGBA, texture_width,
+                           texture_height, texture_depth);
+    for (int i=0; i<texture_depth; i++) {
+      image3d.set(i, images[i]);
+      images[i] = null; // take out the garbage
+    }
+    texture.setImage(0, image3d);
+    //
+    // from TextureLoader
+    // TextureLoader uses 3 for both setMinFilter and setMagFilter
+/*
+System.out.println("Texture.FASTEST = " + Texture.FASTEST); // 0
+System.out.println("Texture.NICEST = " + Texture.NICEST); // 1
+System.out.println("Texture.BASE_LEVEL_POINT = " + Texture.BASE_LEVEL_POINT); // 2
+System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); // 3
+*/
+/* for interpolation:
+    texture.setMinFilter(Texture.BASE_LEVEL_LINEAR);
+    texture.setMagFilter(Texture.BASE_LEVEL_LINEAR);
+*/
+    texture.setMinFilter(Texture.BASE_LEVEL_POINT);
+    texture.setMagFilter(Texture.BASE_LEVEL_POINT);
+    texture.setEnable(true);
+    // end of from TextureLoader
+
+    // OK to share appearance ??
+    Shape3D shapeX = new Shape3D(geometryX, appearance);
+    Shape3D shapeY = new Shape3D(geometryY, appearance);
+    Shape3D shapeZ = new Shape3D(geometryZ, appearance);
+    appearance.setTexture(texture);
+
+    Switch swit = (Switch) makeSwitch();
+    swit.addChild(shapeX);
+    swit.addChild(shapeY);
+    swit.addChild(shapeZ);
+    ((Group) group).addChild(swit);
+
+    ProjectionControlJ3D control =
+      (ProjectionControlJ3D) display.getProjectionControl();
+    control.addPair(swit, renderer);
   }
 
   public Object makeSwitch() {
