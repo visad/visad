@@ -1890,7 +1890,7 @@ public class Gridded3DDoubleSet extends Gridded3DSet
    * @return                    A clone of this instance.
    */
   public Object clone() {
-    Gridded2DDoubleSet clone = (Gridded2DDoubleSet)super.clone();
+    Gridded3DDoubleSet clone = (Gridded3DDoubleSet)super.clone();
     
     if (Samples != null) {
       /*
