@@ -137,15 +137,30 @@ public class IrregularSet extends SampledSet {
   }
 
   public void getNeighbors( int[][] neighbors )
+         throws VisADException
   {
-    if ( ManifoldDimension > 1 ) 
+    if ( ManifoldDimension == 1 )
     {
+      neighbors[0] = new int[2];
+      neighbors[Length - 1] = new int[2];
+      neighbors[0][0] = 1;
+      neighbors[Length - 1][0] = Length - 2;
+
+      for ( int ii = 1; ii < (Length - 1); ii++ ) {
+        neighbors[ii] = new int[2];
+        neighbors[ii][0] = ii - 1;
+        neighbors[ii][0] = ii + 1;
+      }
+    }
+    else if ( ManifoldDimension < 4 )
+    {
+        
       int[][] Vertices = Delan.Vertices;
       int[][] Tri = Delan.Tri;
       int n_samples = Vertices.length;
       int n_triangles;
       int cnt, ii, jj, kk, tt, index;
-      int[] indeces = new int[n_samples];
+      int[] indeces;
       
       for ( ii = 0; ii < n_samples; ii++ ) 
       {
@@ -167,25 +182,16 @@ public class IrregularSet extends SampledSet {
         cnt = 0;
         for ( tt = 0; tt < n_samples; tt++ ) {
           if ( indeces[tt] > 0 ) {
-            neighbors[ii][cnt] = indeces[tt];
+            neighbors[ii][cnt] = tt;
             cnt++;
           }
         }
         indeces = null;
       }
     }
-    else 
+    else
     {
-      neighbors[0] = new int[2];
-      neighbors[Length - 1] = new int[2];
-      neighbors[0][0] = 1;
-      neighbors[Length - 1][0] = Length - 2;
-
-      for ( int ii = 1; ii < (Length - 1); ii++ ) {
-        neighbors[ii] = new int[2];
-        neighbors[ii][0] = ii - 1;
-        neighbors[ii][0] = ii + 1;
-      }
+      throw new UnimplementedException("getNeighbors(): ManifoldDimension > 3 "); 
     }
   }
 
