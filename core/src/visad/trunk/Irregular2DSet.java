@@ -266,22 +266,47 @@ public class Irregular2DSet extends IrregularSet {
         boolean test2 = (tval2 == 0) || ( (tval2 > 0) == (
                         (Ax-Cx)*(By-Cy) - (Ay-Cy)*(Bx-Cx) > 0) );
 
+        // flip to prevent tight loop of two triangles in
+        // degenerate triangulation
+        int it2 = itnum / 2;
+        boolean flip = ((it2 % 2) == 0);
         // figure out which triangle to go to next
         if (!test0 && !test1 && !test2) curtri = -1;
         else if (!test0 && !test1) {
-          int nextri = Delan.Walk[curtri][0];
-          if (nextri >= 0) curtri = nextri;
-          else curtri = Delan.Walk[curtri][1];
+          if (flip) {
+            int nextri = Delan.Walk[curtri][1];
+            if (nextri >= 0) curtri = nextri;
+            else curtri = Delan.Walk[curtri][0];
+          }
+          else {
+            int nextri = Delan.Walk[curtri][0];
+            if (nextri >= 0) curtri = nextri;
+            else curtri = Delan.Walk[curtri][1];
+          }
         }
         else if (!test1 && !test2) {
-          int nextri = Delan.Walk[curtri][1];
-          if (nextri >= 0) curtri = nextri;
-          else curtri = Delan.Walk[curtri][2];
+          if (flip) {
+            int nextri = Delan.Walk[curtri][2];
+            if (nextri >= 0) curtri = nextri;
+            else curtri = Delan.Walk[curtri][1];
+          }
+          else {
+            int nextri = Delan.Walk[curtri][1];
+            if (nextri >= 0) curtri = nextri;
+            else curtri = Delan.Walk[curtri][2];
+          }
         }
         else if (!test2 && !test0) {
-          int nextri = Delan.Walk[curtri][2];
-          if (nextri >= 0) curtri = nextri;
-          else curtri = Delan.Walk[curtri][0];
+          if (flip) {
+            int nextri = Delan.Walk[curtri][0];
+            if (nextri >= 0) curtri = nextri;
+            else curtri = Delan.Walk[curtri][2];
+          }
+          else {
+            int nextri = Delan.Walk[curtri][2];
+            if (nextri >= 0) curtri = nextri;
+            else curtri = Delan.Walk[curtri][0];
+          }
         }
         else if (!test0) curtri = Delan.Walk[curtri][0];
         else if (!test1) curtri = Delan.Walk[curtri][1];
