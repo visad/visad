@@ -500,20 +500,29 @@ def makeMaps(*a):
 # you can set the size and title, if you want...
 def showDisplay(display, width=300, height=300, 
                 title="VisAD Display", bottom=None, top=None,
-                panel=None):
+                panel=None, right=None, left=None):
   """
   Quick display of <display> in a separate frame. <width> and
   <height> give the dimensions of the window; <title> is the
   text string for the titlebar, <bottom> is a panel to put
   below the <display>, <top> is a panel to put above the
   <display>, and <panel> is the panel to put everything into (default
-  is to make a new one)
+  is to make a new one, and display it).  Additionally, you may put
+  panels on the <right> and <left>.  
   """
 
-  myf = myFrame(display, width, height, title, bottom, top, panel)
+  myf = myFrame(display, width, height, title, bottom, top, right, left, panel)
   return myf
 
+
 class myFrame:
+  """
+  Creates a frame out of the display, with possible optional panels
+  (JPanels) to add to the "top", "bottom", "left", "right". The
+  'display' will be added to the 'center' of this panel.  If 'panel'
+  is None, a new JFrame is created, and will be shown; otherwise,
+  the contents are just put into the JPanel 'panel'.
+  """
 
   def destroy(self, event):
     self.desty(event)
@@ -522,7 +531,9 @@ class myFrame:
     self.display.destroy()
     self.frame.dispose()
 
-  def __init__(self, display, width, height, title, bottom, top, panel):
+  def __init__(self, display, width, height, title, 
+                         bottom, top, right, left, panel):
+
     from javax.swing import JFrame, JPanel
     from java.awt import BorderLayout, Dimension
     self.display = display
@@ -548,6 +559,14 @@ class myFrame:
       self.pt = JPanel(BorderLayout())
       self.pt.add(top)
       self.pane.add(self.pt, BorderLayout.NORTH)
+    if right != None: 
+      self.pt = JPanel(BorderLayout())
+      self.pt.add(right)
+      self.pane.add(self.pt, BorderLayout.EAST)
+    if left != None: 
+      self.pt = JPanel(BorderLayout())
+      self.pt.add(left)
+      self.pane.add(self.pt, BorderLayout.WEST)
 
     if autoShow:
       self.frame.pack()
