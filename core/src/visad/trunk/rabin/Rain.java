@@ -76,13 +76,6 @@ public class Rain implements ActionListener, ControlListener {
 
   JLabel[][] cell_fields = new JLabel[N_ROWS][N_COLUMNS];
 
-/* CTR: 20 Apr 1999
-  static final Real ten = new Real(10.0);
-  static final Real one = new Real(1.0);
-  static final Real three = new Real(3.0);
-  static final Real fifty_three = new Real(53.0);
-*/
-
   /** width and height of the UI frame */
   static final int WIDTH = 1100;
   static final int HEIGHT = 900;
@@ -480,18 +473,6 @@ public class Rain implements ActionListener, ControlListener {
     // DisplayImpl.delay(DELAY);
 
     // cell B1
-/* CTR: 20 Apr 1999
-    cells[0][1] = new CellImpl() {
-      public void doAction() throws VisADException, RemoteException {
-        Field field = (Field) cell_refs[0][0].getData();
-        if (field != null) {
-          cell_refs[0][1].setData(field.getSample(0));
-        }
-      }
-    };
-    cells[0][1].addReference(cell_refs[0][0]);
-*/
-
     displays[0][1].addMap(new ScalarMap(range_types[0], Display.Red));
     displays[0][1].addMap(new ScalarMap(range_types[1], Display.Green));
     displays[0][1].addMap(new ScalarMap(range_types[2], Display.Blue));
@@ -501,28 +482,6 @@ public class Rain implements ActionListener, ControlListener {
     // DisplayImpl.delay(DELAY);
 
     // cell C1
-/* CTR: 20 Apr 1999
-    cells[0][2] = new CellImpl() {
-      public void doAction() throws VisADException, RemoteException {
-        FlatField field = baseCell(cell_refs[0][1], 0);
-        if (field != null) {
-          cell_refs[0][2].setData(field);
-        }
-      }
-    };
-    cells[0][2].addReference(cell_refs[0][1]);
-
-    if (client_server != null) {
-      RemoteCellImpl remote_cell = new RemoteCellImpl(cells[0][2]);
-      remote_cell.addReference(ref300);
-      remote_cell.addReference(ref1_4);
-    }
-    else {
-      cells[0][2].addReference(ref300);
-      cells[0][2].addReference(ref1_4);
-    }
-*/
-
     color_mapC1 = new ScalarMap(rangeC1, Display.RGB);
     displays[0][2].addMap(color_mapC1);
     color_widgetC1 = new LabeledRGBWidget(color_mapC1, (float) MIN,
@@ -598,196 +557,41 @@ public class Rain implements ActionListener, ControlListener {
     // DisplayImpl.delay(DELAY);
 
     // cell A2
-/* CTR: 20 Apr 1999
-    cells[1][0] = new CellImpl() {
-      public void doAction() throws VisADException, RemoteException {
-        FlatField field = baseCell(cell_refs[0][1], 1);
-        if (field != null) {
-          cell_refs[1][0].setData(field);
-        }
-      }
-    };
-    cells[1][0].addReference(cell_refs[0][1]);
-    if (client_server != null) {
-      RemoteCellImpl remote_cell = new RemoteCellImpl(cells[1][0]);
-      remote_cell.addReference(ref300);
-      remote_cell.addReference(ref1_4);
-    } 
-    else {
-      cells[1][0].addReference(ref300);
-      cells[1][0].addReference(ref1_4);
-    }
-*/
     finishDisplay(client_server, (RealType) range.getComponent(1), 1, 0);
 
     // DisplayImpl.delay(DELAY);
 
     // cell B2
-/* CTR: 20 Apr 1999
-    cells[1][1] = new CellImpl() {
-      public void doAction() throws VisADException, RemoteException {
-        FlatField field = baseCell(cell_refs[0][1], 2);
-        if (field != null) {
-          cell_refs[1][1].setData(field);
-        }
-      }
-    };
-    cells[1][1].addReference(cell_refs[0][1]);
-    if (client_server != null) {
-      RemoteCellImpl remote_cell = new RemoteCellImpl(cells[1][1]);
-      remote_cell.addReference(ref300);
-      remote_cell.addReference(ref1_4);
-    }
-    else {
-      cells[1][1].addReference(ref300);
-      cells[1][1].addReference(ref1_4);
-    }
-*/
     finishDisplay(client_server, (RealType) range.getComponent(2), 1, 1);
 
     // DisplayImpl.delay(DELAY);
 
     // cell C2
-/* CTR: 20 Apr 1999
-    cells[1][2] = new CellImpl() {
-      public void doAction() throws VisADException, RemoteException {
-        FlatField field = baseCell(cell_refs[0][1], 3);
-        if (field != null) {
-          cell_refs[1][2].setData(field);
-        }
-      }
-    };
-    cells[1][2].addReference(cell_refs[0][1]);
-    if (client_server != null) {
-      RemoteCellImpl remote_cell = new RemoteCellImpl(cells[1][2]);
-      remote_cell.addReference(ref300);
-      remote_cell.addReference(ref1_4);
-    }
-    else {
-      cells[1][2].addReference(ref300);
-      cells[1][2].addReference(ref1_4);
-    }
-*/
     finishDisplay(client_server, (RealType) range.getComponent(3), 1, 2);
 
     // DisplayImpl.delay(DELAY);
 
     // cell A3
-/* CTR: 20 Apr 1999
-    cells[2][0] = new CellImpl() {
-      public void doAction() throws VisADException, RemoteException {
-        FlatField field = baseCell(cell_refs[0][1], 4);
-        if (field != null) {
-          cell_refs[2][0].setData(field);
-        }
-      }
-    };
-    cells[2][0].addReference(cell_refs[0][1]);
-    if (client_server != null) {
-      RemoteCellImpl remote_cell = new RemoteCellImpl(cells[2][0]);
-      remote_cell.addReference(ref300);
-      remote_cell.addReference(ref1_4);
-    }
-    else {
-      cells[2][0].addReference(ref300);
-      cells[2][0].addReference(ref1_4);
-    }
-*/
     finishDisplay(client_server, (RealType) range.getComponent(4), 2, 0);
 
     // DisplayImpl.delay(DELAY);
 
     // cell B3
-/* CTR: 20 Apr 1999
-    cells[2][1] = new CellImpl() {
-      public void doAction() throws VisADException, RemoteException {
-        FlatField field = baseCell(cell_refs[0][1], 5);
-        if (field != null) {
-          cell_refs[2][1].setData(field);
-        }
-      }
-    };
-    cells[2][1].addReference(cell_refs[0][1]);
-    if (client_server != null) {
-      RemoteCellImpl remote_cell = new RemoteCellImpl(cells[2][1]);
-      remote_cell.addReference(ref300);
-      remote_cell.addReference(ref1_4);
-    }
-    else {
-      cells[2][1].addReference(ref300);
-      cells[2][1].addReference(ref1_4);
-    }
-*/
     finishDisplay(client_server, (RealType) range.getComponent(5), 2, 1);
 
     // DisplayImpl.delay(DELAY);
 
     // cell C3
-/* CTR: 20 Apr 1999
-    cells[2][2] = new CellImpl() {
-      public void doAction() throws VisADException, RemoteException {
-        FlatField fieldC1 = (FlatField) cell_refs[0][2].getData();
-        FlatField fieldA2 = (FlatField) cell_refs[1][0].getData();
-        FlatField fieldB2 = (FlatField) cell_refs[1][1].getData();
-        FlatField fieldC2 = (FlatField) cell_refs[1][2].getData();
-        FlatField fieldA3 = (FlatField) cell_refs[2][0].getData();
-        FlatField fieldB3 = (FlatField) cell_refs[2][1].getData();
-        if (fieldC1 != null && fieldA2 != null && fieldB2 != null &&
-            fieldC2 != null && fieldA3 != null && fieldB3 != null) {
-          FlatField field = (FlatField) fieldC1.add(fieldA2);
-          field = (FlatField) field.add(fieldB2);
-          field = (FlatField) field.add(fieldC2);
-          field = (FlatField) field.add(fieldA3);
-          field = (FlatField) field.multiply(ten);
-          fieldB3 = (FlatField) fieldB3.multiply(three);
-          field = (FlatField) field.add(fieldB3);
-          field = (FlatField) field.divide(fifty_three);
-
-          cell_refs[2][2].setData(field);
-        }
-      }
-    };
-    cells[2][2].addReference(cell_refs[0][2]);
-    cells[2][2].addReference(cell_refs[1][0]);
-    cells[2][2].addReference(cell_refs[1][1]);
-    cells[2][2].addReference(cell_refs[1][2]);
-    cells[2][2].addReference(cell_refs[2][0]);
-    cells[2][2].addReference(cell_refs[2][1]);
-*/
     finishDisplay(client_server, rangeC1, 2, 2);
 
     // DisplayImpl.delay(DELAY);
 
     // cell A4
-/* CTR: 20 Apr 1999
-    cells[3][0] = new CellImpl() {
-      public void doAction() throws VisADException, RemoteException {
-        FlatField field = (FlatField) cell_refs[0][1].getData();
-        if (field != null) {
-          field = (FlatField) field.extract(6);
-          cell_refs[3][0].setData(field);
-        }
-      }
-    };
-    cells[3][0].addReference(cell_refs[0][1]);
-*/
     finishDisplay(client_server, (RealType) range.getComponent(6), 3, 0);
 
     // DisplayImpl.delay(DELAY);
 
     // cell B4
-/* CTR: 20 Apr 1999
-    cells[3][1] = new CellImpl() {
-      public void doAction() throws VisADException, RemoteException {
-        FlatField field = (FlatField) cell_refs[0][1].getData();
-        if (field != null) {
-          field = (FlatField) field.extract(7);
-          cell_refs[3][1].setData(field);
-        }
-      }
-    };
-    cells[3][1].addReference(cell_refs[0][1]);
-*/
     finishDisplay(client_server, (RealType) range.getComponent(7), 3, 1);
 
     GraphicsModeControl mode = displays[3][1].getGraphicsModeControl();
@@ -798,19 +602,6 @@ public class Rain implements ActionListener, ControlListener {
     // DisplayImpl.delay(DELAY);
 
     // cell C4
-/* CTR: 20 Apr 1999
-    cells[3][2] = new CellImpl() {
-      public void doAction() throws VisADException, RemoteException {
-        FlatField field = (FlatField) cell_refs[0][1].getData();
-        if (field != null) {
-          field = (FlatField) field.extract(8);
-          cell_refs[3][2].setData(field);
-        }
-      }
-    };
-    cells[3][2].addReference(cell_refs[0][1]);
-*/
-
     color_mapC4 = new ScalarMap(rangeC4, Display.RGB);
     displays[3][2].addMap(color_mapC4);
     color_widgetC4 = new LabeledRGBWidget(color_mapC4, (float) MIN,
@@ -978,21 +769,6 @@ public class Rain implements ActionListener, ControlListener {
     // make the JFrame visible
     frame.setVisible(true);
   }
-
-/* CTR: 20 Apr 1999
-  public static FlatField baseCell(DataReference ref, int component)
-         throws VisADException, RemoteException {
-    FlatField field = (FlatField) ref.getData();
-    if (field != null) {
-      field = (FlatField) field.extract(component);
-      field = (FlatField) field.divide(ten);
-      field = (FlatField) ten.pow(field);
-      field = (FlatField) field.divide(ref300.getData());
-      field = (FlatField) field.pow(one.divide(ref1_4.getData()));
-    }
-    return field;
-  }
-*/
 
   public void finishDisplay(RemoteServer cs, RealType rt, int i, int j)
          throws VisADException, RemoteException {
