@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: StandardQuantityDB.java,v 1.4 1998-12-16 16:08:24 steve Exp $
+ * $Id: StandardQuantityDB.java,v 1.5 1998-12-16 16:25:20 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -193,8 +193,8 @@ StandardQuantityDB
       super.add("ElectricCharge", "C");
       super.add("ElectricChargeDensity", "C/m3");
       super.add("ElectricFluxDensity", "C/m2");
-      super.add("ElectricResistance", "ohm");
-      super.add("ElectricConductance", "ohm");
+      super.add("ElectricResistance", "Ohm");
+      super.add("ElectricConductance", "S");
       quantity = new Quantity("EMF", "V");
       super.add("ElectricPotentialDifference", quantity);
       super.add("ElectromotiveForce", quantity);
