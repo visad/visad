@@ -295,6 +295,7 @@ public final class MOLLnav extends AREAnav
                     }
                 }
             }
+            // transform from McIDAS (west positive longitude) coordinates
             if (isEastPositive) xlon = -xlon;
             latlon[indexLat][point] = xlat;
             latlon[indexLon][point] = xlon;
@@ -331,7 +332,7 @@ public final class MOLLnav extends AREAnav
 
             xlat = latlon[indexLat][point];
 
-            // transform to McIDAS coordinates
+            // transform to McIDAS (west longitude positive) coordinates
             xlon = isEastPositive 
                      ? - latlon[indexLon][point]
                      :  latlon[indexLon][point];

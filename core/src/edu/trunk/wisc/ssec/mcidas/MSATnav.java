@@ -88,11 +88,7 @@ public final class MSATnav extends AREAnav
         deltax=18./2500.;
         deltay=18./2500.;
         rflon=0.0;     
-        int value = iparms[6];
-        sublon  = ((float) (value/10000) + 
-                  ((float) ((value/100)%100))/60.0 +
-                  (float) (value%100)/3600.0);
-        if (value < 0) sublon = -sublon;
+        sublon = McIDASUtil.integerLatLonToDouble(iparms[6]);
     }
 
     /** converts from satellite coordinates to latitude/longitude
@@ -227,7 +223,7 @@ public final class MSATnav extends AREAnav
 
             x1 = latlon[indexLat][point];
 
-            // transform to McIDAS coordinates
+            // expects positive East Longitude.
             y1 = isEastPositive 
                      ?  latlon[indexLon][point]
                      : -latlon[indexLon][point];
