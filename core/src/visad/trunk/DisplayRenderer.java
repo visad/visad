@@ -570,7 +570,8 @@ public abstract class DisplayRenderer
             Unit rtunit = real.getDefaultUnit();
             // units not part of Time string
             if (overrideUnit != null && !overrideUnit.equals(rtunit) &&
-                !RealType.Time.equals(real)) {
+                (!Unit.canConvert(rtunit, CommonUnit.secondsSinceTheEpoch) ||
+                 rtunit.getAbsoluteUnit().equals(rtunit))) {
               dval[0] = (float)
                 overrideUnit.toThis((double) dval[0], rtunit);
               r = new Real(real, dval[0], overrideUnit);

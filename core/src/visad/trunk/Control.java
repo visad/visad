@@ -196,7 +196,9 @@ if (tickFlag) {
     }
     // units not part of Time string
     if (overrideUnit != null && units != null &&
-        !overrideUnit.equals(units[0]) && !RealType.Time.equals(real)) {
+        !overrideUnit.equals(units[0]) && 
+        (!Unit.canConvert(units[0], CommonUnit.secondsSinceTheEpoch) ||
+         units[0].getAbsoluteUnit().equals(units[0]))) {
       value = overrideUnit.toThis(value, units[0]);
       units[0] = overrideUnit;
     }

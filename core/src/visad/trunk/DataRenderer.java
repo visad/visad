@@ -1763,7 +1763,8 @@ System.out.println("checkClose: distance = " + distance);
             Unit rtunit = rtype.getDefaultUnit();
             // units not part of Time string
             if (overrideUnit != null && !overrideUnit.equals(rtunit) &&
-                !RealType.Time.equals(rtype)) {
+                (!Unit.canConvert(rtunit, CommonUnit.secondsSinceTheEpoch) ||
+                 rtunit.getAbsoluteUnit().equals(rtunit))) {
               double dval =  overrideUnit.toThis((double) d[0], rtunit);
               r = new Real(rtype, dval, overrideUnit);
             }
@@ -1802,7 +1803,8 @@ System.out.println("checkClose: distance = " + distance);
             Unit rtunit = rtype.getDefaultUnit();
             // units not part of Time string
             if (overrideUnit != null && !overrideUnit.equals(rtunit) &&
-                !RealType.Time.equals(rtype)) {
+                (!Unit.canConvert(rtunit, CommonUnit.secondsSinceTheEpoch) ||
+                 rtunit.getAbsoluteUnit().equals(rtunit))) {
               double dval = overrideUnit.toThis((double) d[0], rtunit);
               r = new Real(rtype, dval, overrideUnit);
             }
@@ -1847,7 +1849,8 @@ System.out.println("checkClose: distance = " + distance);
         Unit rtunit = rtype.getDefaultUnit();
         // units not part of Time string
         if (overrideUnit != null && !overrideUnit.equals(rtunit) &&
-            !RealType.Time.equals(rtype)) {
+            (!Unit.canConvert(rtunit, CommonUnit.secondsSinceTheEpoch) ||
+             rtunit.getAbsoluteUnit().equals(rtunit))) {
           dsave = overrideUnit.toThis(dsave, rtunit);
           r = new Real(rtype, dsave, overrideUnit);
         }
@@ -1914,7 +1917,8 @@ System.out.println("checkClose: distance = " + distance);
             rtunit = rtype.getDefaultUnit();
             // units not part of Time string
             if (overrideUnit != null && !overrideUnit.equals(rtunit) &&
-                !RealType.Time.equals(rtype)) {
+                (!Unit.canConvert(rtunit, CommonUnit.secondsSinceTheEpoch) ||
+                 rtunit.getAbsoluteUnit().equals(rtunit))) {
               double dval = overrideUnit.toThis((double) d[0], rtunit);
               r = new Real(rtype, dval, overrideUnit);
             }

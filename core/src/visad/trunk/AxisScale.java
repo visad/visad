@@ -1301,13 +1301,31 @@ public class AxisScale implements java.io.Serializable
   /** create the default string for a value */
   private String createLabelString(double value)
   {
-    String label = 
-      (labelFormat != null) 
-        ? labelFormat.format(value)
-        : PlotText.shortString(value);
-    if (RealType.Time.equals(scalarMap.getScalar())) {
-      RealType rtype = (RealType) scalarMap.getScalar();
-      label = new Real(rtype, value).toValueString();
+    String     label = null;
+    ScalarType sType = scalarMap.getScalar();
+    if (sType instanceof RealType)
+    {
+      RealType rType = (RealType)sType;
+      Unit     unit = rType.getDefaultUnit();
+      if (Unit.canConvert(CommonUnit.secondsSinceTheEpoch, unit) &&
+        !unit.getAbsoluteUnit().equals(unit))
+      {
+         label = new Real(rType, value).toValueString();
+      }
+      else
+      {
+        label = 
+          (labelFormat != null) 
+            ? labelFormat.format(value)
+            : PlotText.shortString(value);
+      }
+    }
+    else
+    {
+      label = 
+        (labelFormat != null) 
+          ? labelFormat.format(value)
+          : PlotText.shortString(value);
     }
     return label;
   }

@@ -603,7 +603,8 @@ public class Real
       }
       else {
         return
-	  Type.equals(RealType.Time)
+	  (Unit.canConvert(getUnit(), CommonUnit.secondsSinceTheEpoch) &&
+	  !getUnit().getAbsoluteUnit().equals(getUnit()))
 	    ? new DateTime(this).toString()
 	    : Double.toString(Value);
       }
@@ -626,7 +627,8 @@ public class Real
         result = "missing";
       }
       else {
-	  if (Type.equals(RealType.Time)) {
+	  if (Unit.canConvert(getUnit(), CommonUnit.secondsSinceTheEpoch) &&
+	      !getUnit().getAbsoluteUnit().equals(getUnit())) {
 	    result = new DateTime(this).toValueString();
 	  }
 	  else {
@@ -646,7 +648,8 @@ public class Real
     if (Double.isNaN(Value)) {
       return pre + "missing\n";
     }
-    else if (Type.equals(RealType.Time)) {
+    else if (Unit.canConvert(getUnit(), CommonUnit.secondsSinceTheEpoch) &&
+	!getUnit().getAbsoluteUnit().equals(getUnit())) {
       return pre + "Real.Time: Value = " +
              new DateTime(this).toString() + "\n";
     }
