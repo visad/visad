@@ -126,30 +126,32 @@ public class MouseHelper
       VisADRay start_ray_x = behavior.findRay(start_x + 1, start_y);
       VisADRay start_ray_y = behavior.findRay(start_x, start_y + 1);
 
-      double[] tstart = proj.getMatrix();
-      double[] rot = new double[3];
-      double[] scale = new double[1];
-      double[] trans = new double[3];
-      behavior.instance_unmake_matrix(rot, scale, trans, tstart);
-      double[] trot = behavior.make_matrix(rot[0], rot[1], rot[2],
-                                           scale[0], 0.0, 0.0, 0.0);
-      double[] xmat = behavior.make_translate(
-                         start_ray_x.position[0] - start_ray.position[0],
-                         start_ray_x.position[1] - start_ray.position[1],
-                         start_ray_x.position[2] - start_ray.position[2]);
-      double[] ymat = behavior.make_translate(
-                         start_ray_y.position[0] - start_ray.position[0],
-                         start_ray_y.position[1] - start_ray.position[1],
-                         start_ray_y.position[2] - start_ray.position[2]);
-      double[] xmatmul = behavior.multiply_matrix(trot, xmat);
-      double[] ymatmul = behavior.multiply_matrix(trot, ymat);
-      behavior.instance_unmake_matrix(rot, scale, trans, xmatmul);
-      double xmul = trans[0];
-      behavior.instance_unmake_matrix(rot, scale, trans, ymatmul);
-      double ymul = trans[1];
-      xymul = Math.sqrt(xmul * xmul + ymul * ymul);
-      // System.out.println("xymul = " + xymul);
-      first = false;
+      if (start_ray != null && start_ray_x != null && start_ray_y != null) {
+        double[] tstart = proj.getMatrix();
+        double[] rot = new double[3];
+        double[] scale = new double[1];
+        double[] trans = new double[3];
+        behavior.instance_unmake_matrix(rot, scale, trans, tstart);
+        double[] trot = behavior.make_matrix(rot[0], rot[1], rot[2],
+                                             scale[0], 0.0, 0.0, 0.0);
+        double[] xmat = behavior.make_translate(
+                           start_ray_x.position[0] - start_ray.position[0],
+                           start_ray_x.position[1] - start_ray.position[1],
+                           start_ray_x.position[2] - start_ray.position[2]);
+        double[] ymat = behavior.make_translate(
+                           start_ray_y.position[0] - start_ray.position[0],
+                           start_ray_y.position[1] - start_ray.position[1],
+                           start_ray_y.position[2] - start_ray.position[2]);
+        double[] xmatmul = behavior.multiply_matrix(trot, xmat);
+        double[] ymatmul = behavior.multiply_matrix(trot, ymat);
+        behavior.instance_unmake_matrix(rot, scale, trans, xmatmul);
+        double xmul = trans[0];
+        behavior.instance_unmake_matrix(rot, scale, trans, ymatmul);
+        double ymul = trans[1];
+        xymul = Math.sqrt(xmul * xmul + ymul * ymul);
+        // System.out.println("xymul = " + xymul);
+        first = false;
+      }
     }
 
     if (!(event instanceof MouseEvent)) {
