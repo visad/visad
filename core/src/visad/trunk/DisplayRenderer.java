@@ -30,6 +30,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 
+import java.rmi.RemoteException;
+
 import java.util.*;
 
 
@@ -45,10 +47,15 @@ import java.util.*;
  * <CODE>DisplayRenderer</CODE> is not <CODE>Serializable</CODE> and
  * should not be copied between JVMs.<P>
  */
-public abstract class DisplayRenderer extends Object {
+public abstract class DisplayRenderer
+  implements ControlListener
+{
 
   /** DisplayImpl this renderer is attached to. */
-  private DisplayImpl display;
+  private transient DisplayImpl display;
+
+  /** RendererControl holds the shared renderer data */
+  private transient RendererControl rendererControl = null;
 
   /** Vector of Strings describing cursor location */
   private Vector cursorStringVector = new Vector();
@@ -83,6 +90,17 @@ public abstract class DisplayRenderer extends Object {
                                  "display already set");
     }
     display = d;
+
+    // reinitialize rendererControl
+    if (rendererControl == null) {
+      rendererControl = new RendererControl(display);
+    } else {
+      RendererControl rc = new RendererControl(display);
+      rc.syncControl(rendererControl);
+      rendererControl = rc;
+    }
+    rendererControl.addControlListener(this);
+    display.addControl(rendererControl);
   }
 
   /**
@@ -91,6 +109,16 @@ public abstract class DisplayRenderer extends Object {
    */
   public DisplayImpl getDisplay() {
     return display;
+  }
+
+  /**
+   * Get the <CODE>Control</CODE> which holds the "shared" data
+   * for this renderer.
+   * @return The renderer <CODE>Control</CODE>.
+   */
+  public RendererControl getRendererControl()
+  {
+    return rendererControl;
   }
 
   /**
@@ -159,13 +187,119 @@ public abstract class DisplayRenderer extends Object {
     return false;
   }
 
-  public abstract void setBackgroundColor(float r, float g, float b);
+  /**
+   * Set the background color.  All specified values should be in the
+   * range <CODE>[0.0f - 1.0f]</CODE>.
+   * @param r Red value.
+   * @param g Green value.
+   * @param b Blue value.
+   * @exception RemoteException If there was a problem making this change
+   *                            in a remote collaborative
+   *                            <CODE>DisplayRenderer</CODE>.
+   * @exception VisADException If this renderer as not yet been assigned
+   *                           to a <CODE>Display</CODE>.
+   */
+  public void setBackgroundColor(float r, float g, float b)
+    throws RemoteException, VisADException
+  {
+    if (rendererControl == null) {
+      throw new VisADException("DisplayRenderer not yet assigned to a Display");
+    }
+    rendererControl.setBackgroundColor(r, g, b);
+  }
 
-  public abstract void setBoxColor(float r, float g, float b);
+  /**
+   * Get the box visibility.
+   * @return <CODE>true</CODE> if the box is visible.
+   */
+  public boolean getBoxOn()
+    throws RemoteException, VisADException
+  {
+    if (rendererControl == null) {
+      throw new VisADException("DisplayRenderer not yet assigned to a Display");
+    }
+    return rendererControl.getBoxOn();
+  }
 
-  public abstract void setCursorColor(float r, float g, float b);
+  /**
+   * Set the box color.  All specified values should be in the range
+   * <CODE>[0.0f - 1.0f]</CODE>.
+   * @param r Red value.
+   * @param g Green value.
+   * @param b Blue value.
+   * @exception RemoteException If there was a problem making this change
+   *                            in a remote collaborative
+   *                            <CODE>DisplayRenderer</CODE>.
+   * @exception VisADException If this renderer as not yet been assigned
+   *                           to a <CODE>Display</CODE>.
+   */
+  public void setBoxColor(float r, float g, float b)
+    throws RemoteException, VisADException
+  {
+    if (rendererControl == null) {
+      throw new VisADException("DisplayRenderer not yet assigned to a Display");
+    }
+    rendererControl.setBoxColor(r, g, b);
+  }
 
-  public abstract float[] getCursorColor();
+  /**
+   * Set the box visibility.
+   * @param on <CODE>true</CODE> if the box should be visible.
+   * @exception RemoteException If there was a problem making this change
+   *                            in a remote collaborative
+   *                            <CODE>DisplayRenderer</CODE>.
+   * @exception VisADException If this renderer as not yet been assigned
+   *                           to a <CODE>Display</CODE>.
+   */
+  public void setBoxOn(boolean on)
+    throws RemoteException, VisADException
+  {
+    if (rendererControl == null) {
+      throw new VisADException("DisplayRenderer not yet assigned to a Display");
+    }
+    rendererControl.setBoxOn(on);
+  }
+
+  /**
+   * Get the cursor color.
+   * @return A 3 element array of <CODE>float</CODE> values
+   *         in the range <CODE>[0.0f - 1.0f]</CODE>
+   *         in the order <I>(Red, Green, Blue)</I>.
+   * @exception RemoteException If there was a problem making this change
+   *                            in a remote collaborative
+   *                            <CODE>DisplayRenderer</CODE>.
+   * @exception VisADException If this renderer as not yet been assigned
+   *                           to a <CODE>Display</CODE>.
+   */
+  public float[] getCursorColor()
+    throws RemoteException, VisADException
+  {
+    if (rendererControl == null) {
+      throw new VisADException("DisplayRenderer not yet assigned to a Display");
+    }
+    return rendererControl.getCursorColor();
+  }
+
+  /**
+   * Set the cursor color.  All specified values should be in the range
+   * <CODE>[0.0f - 1.0f]</CODE>.
+   * @param r Red value.
+   * @param g Green value.
+   * @param b Blue value.
+   * @exception RemoteException If there was a problem making this change
+   *                            in a remote collaborative
+   *                            <CODE>DisplayRenderer</CODE>.
+   * @exception VisADException If this renderer as not yet been assigned
+   *                           to a <CODE>Display</CODE>.
+   */
+  public void setCursorColor(float r, float g, float b)
+    throws RemoteException, VisADException
+  {
+    if (rendererControl == null) {
+      throw new VisADException("DisplayRenderer not yet assigned to a Display");
+    }
+    rendererControl.setCursorColor(r, g, b);
+  }
 
   /**
    * Factory for constructing a subclass of <CODE>Control</CODE>
@@ -204,12 +338,6 @@ public abstract class DisplayRenderer extends Object {
   public abstract double[] getCursor();
 
   public abstract void setCursorOn(boolean on);
-
-  /**
-   * Make the surrounding box visible if <CODE>on</CODE> is <CODE>true</CODE>.
-   * @param on Specifies whether or not the box should be visible.
-   */
-  public abstract void setBoxOn(boolean on);
 
   public abstract void depth_cursor(VisADRay ray);
 
