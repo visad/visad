@@ -44,14 +44,19 @@ public class JamaMatrix extends FlatField {
   private static final RealType principal_component =
     RealType.getRealType("principal_component");
 
+  private static final RealType coefficient =
+    RealType.getRealType("coefficient");
+
   private static final FunctionType matrixType = constructFunction();
 
   private static FunctionType constructFunction() {
     try {
-      return new FunctionType(wavelength, principal_component);
+      RealTupleType tuple = new RealTupleType(wavelength, principal_component);
+      FunctionType function = new FunctionType(tuple, coefficient);
+      return function;
     }
-    catch (VisADException e) {
-      e.printStackTrace();
+    catch (VisADException exc) {
+      exc.printStackTrace();
       return null;
     }
   }
@@ -61,67 +66,138 @@ public class JamaMatrix extends FlatField {
    */
   private Matrix matrix;
 
+
+  // Static methods
+
   /**
    * Attempt to convert the given VisAD Data object to a VisAD JamaMatrix
    * Data object.
-   *
    * @return The converted object, or null if it could not be converted
    */
   public static JamaMatrix convertToMatrix(Data data) {
-    // TODO
-    // check all sorts of crap, like domain dimensions, etc.
-    // then unrasterize range values into two dimensions and pass
-    // them to the Jama.Matrix constructor.  Have fun!
-    if (!(data instanceof FlatField)) return null;
+    // if data is already a JamaMatrix the task is trivial
     if (data instanceof JamaMatrix) return (JamaMatrix) data;
+
+    // data must be a flat field
+    if (!(data instanceof FlatField)) return null;
     FlatField field = (FlatField) data;
 
-    double[][] range = null;
-    JamaMatrix m = null;
-    try {
-      range = field.getValues();
-      m = new JamaMatrix();
-    }
-    catch (VisADException exc) { }
+    // get domain set (must be 2-D ordered samples)
+    Set set = field.getDomainSet();
+    if (!(set instanceof Gridded2DSet)) return null;
+    Gridded2DSet grid = (Gridded2DSet) set;
 
-    return m;
+    // construct matrix entry array
+    int[] dims = grid.getLengths();
+    int rows = dims[0];
+    int cols = dims[1];
+    double[][] entries = new double[rows][cols];
+
+    // get range values
+    double[][] range;
+    try {
+      range = field.getValues(false);
+    }
+    catch (VisADException exc) {
+      return null;
+    }
+
+    // unrasterize range values into matrix entry array
+    for (int i=0; i<rows; i++) {
+      for (int j=0; j<cols; j++) {
+        entries[i][j] = range[0][cols * i + j];
+      }
+    }
+
+    // construct the new JamaMatrix object and return it
+    try {
+      return new JamaMatrix(entries);
+    }
+    catch (VisADException exc) {
+      return null;
+    }
   }
 
   /**
-   * Construct a new JamaMatrix from the given JAMA Matrix.
+   * Test the JamaMatrix class.
    */
-  public JamaMatrix(Matrix matrix) throws VisADException {
-    this(null, null, null, null, null);
-    setMatrix(matrix);
+  public static void main(String[] args)
+    throws VisADException, RemoteException
+  {
+    double[][] e1 = { {4, 4, 4},
+                      {3, 3, 3},
+                      {2, 2, 2} };
+    JamaMatrix m1 = new JamaMatrix(e1);
+    double[][] e2 = { {5, 5, 5},
+                      {6, 6, 6},
+                      {7, 7, 7} };
+    JamaMatrix m2 = new JamaMatrix(e2);
+    JamaMatrix m3 = convertToMatrix(m1.add(m2));
+    JamaMatrix m4 = m1.plus(m2);
+    System.out.print("m1:");
+    m1.print(1, 0);
+    System.out.print("m2:");
+    m2.print(1, 0);
+    System.out.print("m3 = m1 + m2 (VisAD):");
+    m3.print(1, 0);
+    System.out.print("m4 = m1 + m2 (JAMA):");
+    m4.print(1, 0);
+  }
+
+
+  // Constructors
+
+  /**
+   * Constructs a domain set appropriate for the given matrix.
+   * @return An Integer2DSet with dimensions equal to those of the matrix
+   */
+  private static Integer2DSet getDomainSet(Matrix matrix) {
+    int rows = matrix.getRowDimension();
+    int cols = matrix.getColumnDimension();
+    try {
+      return new Integer2DSet(rows, cols);
+    }
+    catch (VisADException exc) {
+      return null;
+    }
+  }
+
+  /**
+   * Construct a new JamaMatrix from the given matrix dimensions.
+   */
+  public JamaMatrix(int rows, int cols) throws VisADException {
+    this(new Matrix(rows, cols), null, null, null, null);
   }
 
   /**
    * Construct a new JamaMatrix from the given matrix entries.
    */
   public JamaMatrix(double[][] entries) throws VisADException {
-    this(null, null, null, null, null);
-    setMatrix(entries);
+    this(new Matrix(entries), null, null, null, null);
   }
 
   /**
-   * Construct a new JamaMatrix with default domain set,
-   * coordinate systems, range sets and units.
+   * Construct a new JamaMatrix from the given JAMA Matrix.
    */
-  public JamaMatrix() throws VisADException {
-    this(null, null, null, null, null);
+  public JamaMatrix(Matrix matrix) throws VisADException {
+    this(matrix, null, null, null, null);
   }
 
   /**
    * Construct a new JamaMatrix with the specified domain set,
    * coordinate systems, range sets and units.
    */
-  public JamaMatrix(Set domain_set, CoordinateSystem range_coord_sys,
+  public JamaMatrix(Matrix matrix, CoordinateSystem range_coord_sys,
     CoordinateSystem[] range_coord_syses, Set[] range_sets, Unit[] units)
     throws VisADException
   {
-    super(matrixType, domain_set, range_coord_sys, range_coord_syses,
-      range_sets, units);
+    super(matrixType, getDomainSet(matrix), range_coord_sys,
+      range_coord_syses, range_sets, units);
+    setMatrix(matrix);
   }
+
+
+  // New methods
 
   /**
    * Return the associated JAMA Matrix object.
@@ -135,21 +211,23 @@ public class JamaMatrix extends FlatField {
    * JAMA Matrix.
    */
   public void setMatrix(Matrix matrix) throws VisADException {
+    // convert matrix entries into range sample values
     int rows = matrix.getRowDimension();
     int cols = matrix.getColumnDimension();
     double[][] entries = matrix.getArray();
     double[][] range = new double[1][rows * cols];
     for (int i=0; i<rows; i++) {
       for (int j=0; j<cols; j++) {
-        range[0][rows * j + i] = entries[i][j];
+        range[0][cols * i + j] = entries[i][j];
       }
     }
-    Integer2DSet set = new Integer2DSet(rows, cols);
+
+    // set range samples to new values
     try {
-      resample(set, Data.NEAREST_NEIGHBOR, Data.NO_ERRORS);
       setSamples(range, false);
     }
     catch (RemoteException exc) { }
+
     this.matrix = matrix;
   }
 
@@ -161,50 +239,21 @@ public class JamaMatrix extends FlatField {
   }
 
 
-  // Overridden methods
-
-  /**
-   * Do not use setSamples; use setMatrix instead.
-   * @see #setMatrix
-   */
-  public void setSamples(double[][] range, ErrorEstimate[] errors,
-    boolean copy) throws VisADException, RemoteException
-  {
-    super.setSamples(range, errors, copy);
-    matrix = null;
-  }
-
-  /**
-   * Do not use setSamples; use setMatrix instead.
-   * @see #setMatrix
-   */
-  public void setSamples(float[][] range, ErrorEstimate[] errors,
-    boolean copy) throws VisADException, RemoteException
-  {
-    super.setSamples(range, errors, copy);
-    matrix = null;
-  }
-
-
   // Method wrappers for JAMA Matrix functionality
 
   /**
    * Get row dimension.
    * @return     The number of rows
-   * @exception  VisADException No matrix
    */
-  public int getRowDimension() throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
+  public int getRowDimension() {
     return matrix.getRowDimension();
   }
 
   /**
    * Get column dimension.
    * @return     The number of columns
-   * @exception  VisADException No matrix
    */
-  public int getColumnDimension() throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
+  public int getColumnDimension() {
     return matrix.getColumnDimension();
   }
 
@@ -214,10 +263,8 @@ public class JamaMatrix extends FlatField {
    * @param j    Column index
    * @return     A(i,j)
    * @exception  ArrayIndexOutOfBoundsException
-   * @exception  VisADException No matrix
    */
-  public double get(int i, int j) throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
+  public double get(int i, int j) {
     return matrix.get(i, j);
   }
 
@@ -229,12 +276,10 @@ public class JamaMatrix extends FlatField {
    * @param j1   Final column index
    * @return     A(i0:i1,j0:j1)
    * @exception  ArrayIndexOutOfBoundsException Submatrix indices
-   * @exception  VisADException No matrix
    */
   public JamaMatrix getMatrix(int i0, int i1, int j0, int j1)
     throws VisADException
   {
-    if (matrix == null) throw new VisADException("No matrix");
     Matrix m = matrix.getMatrix(i0, i1, j0, j1);
     return new JamaMatrix(m);
   }
@@ -245,10 +290,8 @@ public class JamaMatrix extends FlatField {
    * @param c    Array of column indices
    * @return     A(r(:),c(:))
    * @exception  ArrayIndexOutOfBoundsException Submatrix indices
-   * @exception  VisADException No matrix
    */
   public JamaMatrix getMatrix(int[] r, int[] c) throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
     Matrix m = matrix.getMatrix(r, c);
     return new JamaMatrix(m);
   }
@@ -260,10 +303,8 @@ public class JamaMatrix extends FlatField {
    * @param c    Array of column indices
    * @return     A(i0:i1,c(:))
    * @exception  ArrayIndexOutOfBoundsException Submatrix indices
-   * @exception  VisADException No matrix
    */
   public JamaMatrix getMatrix(int i0, int i1, int[] c) throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
     Matrix m = matrix.getMatrix(i0, i1, c);
     return new JamaMatrix(m);
   }
@@ -275,10 +316,8 @@ public class JamaMatrix extends FlatField {
    * @param i1   Final column index
    * @return     A(r(:),j0:j1)
    * @exception  ArrayIndexOutOfBoundsException Submatrix indices
-   * @exception  VisADException No matrix
    */
   public JamaMatrix getMatrix(int[] r, int j0, int j1) throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix!");
     Matrix m = matrix.getMatrix(r, j0, j1);
     return new JamaMatrix(m);
   }
@@ -289,10 +328,8 @@ public class JamaMatrix extends FlatField {
    * @param j    Column index
    * @param s    A(i,j)
    * @exception  ArrayIndexOutOfBoundsException
-   * @exception  VisADException No matrix
    */
   public void set(int i, int j, double s) throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
     matrix.set(i, j, s);
     setMatrix(matrix);
   }
@@ -305,15 +342,11 @@ public class JamaMatrix extends FlatField {
    * @param j1   Final column index
    * @param X    A(i0:i1,j0:j1)
    * @exception  ArrayIndexOutOfBoundsException Submatrix indices
-   * @exception  VisADException No matrix
    */
   public void setMatrix(int i0, int i1, int j0, int j1, JamaMatrix X)
     throws VisADException
   {
-    if (matrix == null) throw new VisADException("No matrix");
-    Matrix Xm = X.getMatrix();
-    if (Xm == null) throw new VisADException("X: No matrix");
-    matrix.setMatrix(i0, i1, j0, j1, Xm);
+    matrix.setMatrix(i0, i1, j0, j1, X.getMatrix());
     setMatrix(matrix);
   }
 
@@ -323,13 +356,9 @@ public class JamaMatrix extends FlatField {
    * @param c    Array of column indices
    * @param X    A(r(:),c(:))
    * @exception  ArrayIndexOutOfBoundsException Submatrix indices
-   * @exception  VisADException No matrix
    */
   public void setMatrix(int[] r, int[] c, JamaMatrix X) throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
-    Matrix Xm = X.getMatrix();
-    if (Xm == null) throw new VisADException("X: No matrix");
-    matrix.setMatrix(r, c, Xm);
+    matrix.setMatrix(r, c, X.getMatrix());
     setMatrix(matrix);
   }
 
@@ -340,15 +369,11 @@ public class JamaMatrix extends FlatField {
    * @param j1   Final column index
    * @param X    A(r(:),j0:j1)
    * @exception  ArrayIndexOutOfBoundsException Submatrix indices
-   * @exception  VisADException No matrix
    */
   public void setMatrix(int[] r, int j0, int j1, JamaMatrix X)
     throws VisADException
   {
-    if (matrix == null) throw new VisADException("No matrix");
-    Matrix Xm = X.getMatrix();
-    if (Xm == null) throw new VisADException("X: No matrix");
-    matrix.setMatrix(r, j0, j1, Xm);
+    matrix.setMatrix(r, j0, j1, X.getMatrix());
     setMatrix(matrix);
   }
 
@@ -359,25 +384,19 @@ public class JamaMatrix extends FlatField {
    * @param c    Array of column indices
    * @param X    A(i0:i1,c(:))
    * @exception  ArrayIndexOutOfBoundsException Submatrix indices
-   * @exception  VisADException No matrix
    */
   public void setMatrix(int i0, int i1, int[] c, JamaMatrix X)
     throws VisADException
   {
-    if (matrix == null) throw new VisADException("No matrix");
-    Matrix Xm = X.getMatrix();
-    if (Xm == null) throw new VisADException("X: No matrix");
-    matrix.setMatrix(i0, i1, c, Xm);
+    matrix.setMatrix(i0, i1, c, X.getMatrix());
     setMatrix(matrix);
   }
 
   /**
    * Matrix transpose.
    * @return    A'
-   * @exception VisADException No matrix
    */
   public JamaMatrix transpose() throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
     Matrix m = matrix.transpose();
     return new JamaMatrix(m);
   }
@@ -385,51 +404,41 @@ public class JamaMatrix extends FlatField {
   /**
    * One norm.
    * @return    maximum column sum
-   * @exception VisADException No matrix
    */
-  public double norm1() throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
+  public double norm1() {
     return matrix.norm1();
   }
 
   /**
    * Two norm.
    * @return    maximum singular value
-   * @exception VisADException No matrix
    */
-  public double norm2() throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
+  public double norm2() {
     return matrix.norm2();
   }
 
   /**
    * Infinity norm.
    * @return    maximum row sum
-   * @exception VisADException No matrix
    */
-  public double normInf() throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
+  public double normInf() {
     return matrix.normInf();
   }
 
   /**
    * Frobenius norm.
    * @return    sqrt of sum of squares of all elements
-   * @exception VisADException No matrix
    */
 
-  public double normF() throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
+  public double normF() {
     return matrix.normF();
   }
 
   /**
    * Unary minus.
    * @return    -A
-   * @exception VisADException No matrix
    */
   public JamaMatrix uminus() throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
     Matrix m = matrix.uminus();
     return new JamaMatrix(m);
   }
@@ -438,13 +447,9 @@ public class JamaMatrix extends FlatField {
    * C = A + B
    * @param B    another matrix
    * @return     A + B
-   * @exception  VisADException No matrix
    */
   public JamaMatrix plus(JamaMatrix B) throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
-    Matrix Bm = B.getMatrix();
-    if (Bm == null) throw new VisADException("B: No matrix");
-    Matrix m = matrix.plus(Bm);
+    Matrix m = matrix.plus(B.getMatrix());
     return new JamaMatrix(m);
   }
 
@@ -452,13 +457,9 @@ public class JamaMatrix extends FlatField {
    * A = A + B
    * @param B    another matrix
    * @return     A + B
-   * @exception  VisADException No matrix
    */
   public JamaMatrix plusEquals(JamaMatrix B) throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
-    Matrix Bm = B.getMatrix();
-    if (Bm == null) throw new VisADException("B: No matrix");
-    matrix.plusEquals(Bm);
+    matrix.plusEquals(B.getMatrix());
     setMatrix(matrix);
     return this;
   }
@@ -467,13 +468,9 @@ public class JamaMatrix extends FlatField {
    * C = A - B
    * @param B    another matrix
    * @return     A - B
-   * @exception  VisADException No matrix
    */
   public JamaMatrix minus(JamaMatrix B) throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
-    Matrix Bm = B.getMatrix();
-    if (Bm == null) throw new VisADException("B: No matrix");
-    Matrix m = matrix.minus(Bm);
+    Matrix m = matrix.minus(B.getMatrix());
     return new JamaMatrix(m);
   }
 
@@ -481,13 +478,9 @@ public class JamaMatrix extends FlatField {
    * A = A - B
    * @param B    another matrix
    * @return     A - B
-   * @exception  VisADException No matrix
    */
   public JamaMatrix minusEquals(JamaMatrix B) throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
-    Matrix Bm = B.getMatrix();
-    if (Bm == null) throw new VisADException("B: No matrix");
-    matrix.minusEquals(Bm);
+    matrix.minusEquals(B.getMatrix());
     setMatrix(matrix);
     return this;
   }
@@ -496,13 +489,9 @@ public class JamaMatrix extends FlatField {
    * Element-by-element multiplication, C = A.*B
    * @param B    another matrix
    * @return     A.*B
-   * @exception  VisADException No matrix
    */
   public JamaMatrix arrayTimes(JamaMatrix B) throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
-    Matrix Bm = B.getMatrix();
-    if (Bm == null) throw new VisADException("B: No matrix");
-    Matrix m = matrix.arrayTimes(Bm);
+    Matrix m = matrix.arrayTimes(B.getMatrix());
     return new JamaMatrix(m);
   }
 
@@ -510,13 +499,9 @@ public class JamaMatrix extends FlatField {
    * Element-by-element multiplication in place, A = A.*B
    * @param B    another matrix
    * @return     A.*B
-   * @exception  VisADException No matrix
    */
   public JamaMatrix arrayTimesEquals(JamaMatrix B) throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
-    Matrix Bm = B.getMatrix();
-    if (Bm == null) throw new VisADException("B: No matrix");
-    matrix.arrayTimesEquals(Bm);
+    matrix.arrayTimesEquals(B.getMatrix());
     setMatrix(matrix);
     return this;
   }
@@ -525,13 +510,9 @@ public class JamaMatrix extends FlatField {
    * Element-by-element right division, C = A./B
    * @param B    another matrix
    * @return     A./B
-   * @exception  VisADException No matrix
    */
   public JamaMatrix arrayRightDivide(JamaMatrix B) throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
-    Matrix Bm = B.getMatrix();
-    if (Bm == null) throw new VisADException("B: No matrix");
-    Matrix m = matrix.arrayRightDivide(Bm);
+    Matrix m = matrix.arrayRightDivide(B.getMatrix());
     return new JamaMatrix(m);
   }
 
@@ -539,15 +520,11 @@ public class JamaMatrix extends FlatField {
    * Element-by-element right division in place, A = A./B
    * @param B    another matrix
    * @return     A./B
-   * @exception  VisADException No matrix
    */
   public JamaMatrix arrayRightDivideEquals(JamaMatrix B)
     throws VisADException
   {
-    if (matrix == null) throw new VisADException("No matrix");
-    Matrix Bm = B.getMatrix();
-    if (Bm == null) throw new VisADException("B: No matrix");
-    matrix.arrayRightDivideEquals(Bm);
+    matrix.arrayRightDivideEquals(B.getMatrix());
     setMatrix(matrix);
     return this;
   }
@@ -556,13 +533,9 @@ public class JamaMatrix extends FlatField {
    * Element-by-element left division, C = A.\B
    * @param B    another matrix
    * @return     A.\B
-   * @exception  VisADException No matrix
    */
   public JamaMatrix arrayLeftDivide(JamaMatrix B) throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
-    Matrix Bm = B.getMatrix();
-    if (Bm == null) throw new VisADException("B: No matrix");
-    Matrix m = matrix.arrayLeftDivide(Bm);
+    Matrix m = matrix.arrayLeftDivide(B.getMatrix());
     return new JamaMatrix(m);
   }
 
@@ -570,13 +543,9 @@ public class JamaMatrix extends FlatField {
    * Element-by-element left division in place, A = A.\B
    * @param B    another matrix
    * @return     A.\B
-   * @exception  VisADException No matrix
    */
   public JamaMatrix arrayLeftDivideEquals(JamaMatrix B) throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
-    Matrix Bm = B.getMatrix();
-    if (Bm == null) throw new VisADException("B: No matrix");
-    matrix.arrayLeftDivideEquals(Bm);
+    matrix.arrayLeftDivideEquals(B.getMatrix());
     setMatrix(matrix);
     return this;
   }
@@ -585,10 +554,8 @@ public class JamaMatrix extends FlatField {
    * Multiply a matrix by a scalar, C = s*A
    * @param s    scalar
    * @return     s*A
-   * @exception  VisADException No matrix
    */
   public JamaMatrix times(double s) throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
     Matrix m = matrix.times(s);
     return new JamaMatrix(m);
   }
@@ -597,10 +564,8 @@ public class JamaMatrix extends FlatField {
    * Multiply a matrix by a scalar in place, A = s*A
    * @param s    scalar
    * @return     replace A by s*A
-   * @exception  VisADException No matrix
    */
   public JamaMatrix timesEquals(double s) throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
     matrix.times(s);
     setMatrix(matrix);
     return this;
@@ -611,13 +576,9 @@ public class JamaMatrix extends FlatField {
    * @param B    another matrix
    * @return     Matrix product, A * B
    * @exception  IllegalArgumentException Matrix inner dimensions must agree
-   * @exception  VisADException No matrix
    */
   public JamaMatrix times(JamaMatrix B) throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
-    Matrix Bm = B.getMatrix();
-    if (Bm == null) throw new VisADException("B: No matrix");
-    Matrix m = matrix.times(Bm);
+    Matrix m = matrix.times(B.getMatrix());
     return new JamaMatrix(m);
   }
 
@@ -625,13 +586,9 @@ public class JamaMatrix extends FlatField {
    * Solve A*X = B
    * @param B    right hand side
    * @return     solution if A is square, least squares solution otherwise
-   * @exception  VisADException No matrix
    */
   public JamaMatrix solve(JamaMatrix B) throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
-    Matrix Bm = B.getMatrix();
-    if (Bm == null) throw new VisADException("B: No matrix");
-    Matrix m = matrix.solve(Bm);
+    Matrix m = matrix.solve(B.getMatrix());
     return new JamaMatrix(m);
   }
 
@@ -639,23 +596,17 @@ public class JamaMatrix extends FlatField {
    * Solve X*A = B, which is also A'*X' = B'
    * @param B    right hand side
    * @return     solution if A is square, least squares solution otherwise
-   * @exception  VisADException No matrix
    */
   public JamaMatrix solveTranspose(JamaMatrix B) throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
-    Matrix Bm = B.getMatrix();
-    if (Bm == null) throw new VisADException("B: No matrix");
-    Matrix m = matrix.solveTranspose(Bm);
+    Matrix m = matrix.solveTranspose(B.getMatrix());
     return new JamaMatrix(m);
   }
 
   /**
    * Matrix inverse or pseudoinverse.
    * @return     inverse(A) if A is square, pseudoinverse otherwise
-   * @exception  VisADException No matrix
    */
   public JamaMatrix inverse() throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
     Matrix m = matrix.inverse();
     return new JamaMatrix(m);
   }
@@ -663,40 +614,32 @@ public class JamaMatrix extends FlatField {
   /**
    * Matrix determinant.
    * @return     determinant
-   * @exception  VisADException No matrix
    */
-  public double det() throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
+  public double det() {
     return matrix.det();
   }
 
   /**
    * Matrix rank.
    * @return     effective numerical rank, obtained from SVD
-   * @exception  VisADException No matrix
    */
-  public int rank() throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
+  public int rank() {
     return matrix.rank();
   }
 
   /**
    * Matrix condition (2 norm).
    * @return     ratio of largest to smallest singular value
-   * @exception  VisADException No matrix
    */
-  public double cond() throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
+  public double cond() {
     return matrix.cond();
   }
 
   /**
    * Matrix trace.
    * @return     sum of the diagonal elements
-   * @exception  VisADException No matrix
    */
-  public double trace() throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
+  public double trace() {
     return matrix.trace();
   }
 
@@ -705,7 +648,6 @@ public class JamaMatrix extends FlatField {
    * @param m    Number of rows
    * @param n    Number of colums
    * @return     An m-by-n matrix with uniformly distributed random elements
-   * @exception  VisADException Problem constructing JamaMatrix
    */
   public static JamaMatrix random(int m, int n) throws VisADException {
     Matrix random = Matrix.random(m, n);
@@ -717,7 +659,6 @@ public class JamaMatrix extends FlatField {
    * @param m    Number of rows
    * @param n    Number of colums
    * @return     An m-by-n matrix with ones on the diagonal and zeros elsewhere
-   * @exception  VisADException Problem constructing JamaMatrix
    */
   public static JamaMatrix identity(int m, int n) throws VisADException {
     Matrix identity = Matrix.identity(m, n);
@@ -729,10 +670,8 @@ public class JamaMatrix extends FlatField {
    * with a Fortran-like 'Fw.d' style format
    * @param w    Column width
    * @param d    Number of digits after the decimal
-   * @exception  VisADException No matrix
    */
-  public void print(int w, int d) throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
+  public void print(int w, int d) {
     matrix.print(w, d);
   }
 
@@ -742,10 +681,8 @@ public class JamaMatrix extends FlatField {
    * @param output Output stream
    * @param w      Column width
    * @param d      Number of digits after the decimal
-   * @exception    VisADException No matrix
    */
-  public void print(PrintWriter output, int w, int d) throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
+  public void print(PrintWriter output, int w, int d) {
     matrix.print(output, w, d);
   }
 
@@ -755,10 +692,8 @@ public class JamaMatrix extends FlatField {
    * characters.
    * @param format Formatting object for individual elements
    * @param width  Field width for each column
-   * @exception    VisADException No matrix
    */
-  public void print(NumberFormat format, int width) throws VisADException {
-    if (matrix == null) throw new VisADException("No matrix");
+  public void print(NumberFormat format, int width) {
     matrix.print(format, width);
   }
 
@@ -769,12 +704,8 @@ public class JamaMatrix extends FlatField {
    * @param output the output stream
    * @param format A formatting object to format the matrix elements 
    * @param width  Column width
-   * @exception    VisADException No matrix
    */
-  public void print(PrintWriter output, NumberFormat format, int width)
-    throws VisADException
-  {
-    if (matrix == null) throw new VisADException("No matrix");
+  public void print(PrintWriter output, NumberFormat format, int width) {
     matrix.print(output, format, width);
   }
 
@@ -784,7 +715,6 @@ public class JamaMatrix extends FlatField {
    * whitespace, all the elements for each row appear on a single line,
    * the last row is followed by a blank line.
    * @param input the input stream
-   * @exception   VisADException Problem constructing JamaMatrix
    */
   public static JamaMatrix read(BufferedReader input)
     throws IOException, VisADException
