@@ -124,12 +124,12 @@ public class RangeSlider extends Component
   /**
    * Location of min gripper.
    */
-  private int minGrip = GRIP_WIDTH;
+  protected int minGrip = GRIP_WIDTH;
 
   /**
    * Location of max gripper.
    */
-  private int maxGrip = SLIDER_PREF_WIDTH - GRIP_WIDTH;
+  protected int maxGrip = SLIDER_PREF_WIDTH - GRIP_WIDTH;
 
   /**
    * Flag whether mouse is currently affecting min gripper.
@@ -144,17 +144,17 @@ public class RangeSlider extends Component
   /**
    * Flag whether left gripper has moved.
    */
-  private boolean lSlideMoved = false;
+  protected boolean lSlideMoved = false;
 
   /**
    * Flag whether right gripper has moved.
    */
-  private boolean rSlideMoved = false;
+  protected boolean rSlideMoved = false;
 
   /**
    * Flag whether current text string value needs updating.
    */
-  private boolean textChanged = false;
+  protected boolean textChanged = false;
 
   /**
    * Variable name for values.
@@ -465,12 +465,12 @@ public class RangeSlider extends Component
    */
   public void setMaximumSize(Dimension dim) { maxSize = dim; }
 
-  private float gripToValue(int pos, int width) {
+  protected float gripToValue(int pos, int width) {
     return (((maxLimit - minLimit) * ((float) (pos - GRIP_WIDTH))) /
       (float) (width - (GRIP_WIDTH * 2))) + minLimit;
   }
 
-  private int valueToGrip(float value, int width) {
+  protected int valueToGrip(float value, int width) {
     float rfloat = (((value - (float) minLimit) *
       (float) (width - (GRIP_WIDTH * 2))) / (maxLimit - minLimit));
 
