@@ -69,7 +69,11 @@ public class VisADTriangleStripArray extends VisADGeometryArray {
   public VisADGeometryArray adjustSeam(DataRenderer renderer)
          throws VisADException {
     CoordinateSystem coord_sys = renderer.getDisplayCoordinateSystem();
-    if (coord_sys == null) return this;
+    // WLH 13 March 2000
+    // if (coord_sys == null) return this;
+    if (coord_sys == null || coord_sys instanceof SphericalCoordinateSystem) { 
+      return this;
+    }
 
     int len = coordinates.length / 3;
     float[][] cs = new float[3][len];

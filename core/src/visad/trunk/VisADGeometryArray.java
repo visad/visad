@@ -59,8 +59,12 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
   /** default case: do nothing */
   public VisADGeometryArray adjustSeam(DataRenderer renderer)
          throws VisADException {
-    CoordinateSystem coord = renderer.getDisplayCoordinateSystem();
-    if (coord == null) return this;
+    CoordinateSystem coord_sys = renderer.getDisplayCoordinateSystem();
+    // WLH 13 March 2000
+    // if (coord_sys == null) return this;
+    if (coord_sys == null || coord_sys instanceof SphericalCoordinateSystem) {
+      return this;
+    }
     return this;
   }
 
