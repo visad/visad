@@ -46,8 +46,8 @@ public class MeasurePool implements DisplayListener {
   /** Associated VisAD display. */
   private DisplayImpl display;
 
-  /** Associated measurement toolbar. */
-  private MeasureToolbar toolbar;
+  /** Associated measurement tool panel. */
+  private MeasureToolPanel measureTools;
 
   /** Associated selection box. */
   private SelectionBox box;
@@ -81,13 +81,13 @@ public class MeasurePool implements DisplayListener {
 
 
   /** Constructs a pool of measurements. */
-  public MeasurePool(DisplayImpl display, MeasureToolbar toolbar,
+  public MeasurePool(DisplayImpl display, MeasureToolPanel measureTools,
     int dim, int blockSize)
   {
     lines = new Vector();
     points = new Vector();
     this.display = display;
-    this.toolbar = toolbar;
+    this.measureTools = measureTools;
     this.dim = dim;
     this.blockSize = blockSize < 1 ? 1 : blockSize;
     size = 0;
@@ -167,7 +167,7 @@ public class MeasurePool implements DisplayListener {
 
     // deselect
     if (box != null) box.select(null);
-    if (toolbar != null) toolbar.select(null);
+    if (measureTools != null) measureTools.select(null);
 
     // set each reference accordingly
     expand(size);
@@ -275,17 +275,17 @@ public class MeasurePool implements DisplayListener {
       // highlight picked line or point
       if (mindist > threshold) {
         if (box != null) box.select(null);
-        if (toolbar != null) toolbar.select(null);
+        if (measureTools != null) measureTools.select(null);
       }
       else if (pt) {
         MeasurePoint point = (MeasurePoint) points.elementAt(index);
         if (box != null) box.select(point);
-        if (toolbar != null) toolbar.select(point);
+        if (measureTools != null) measureTools.select(point);
       }
       else {
         MeasureLine line = (MeasureLine) lines.elementAt(index);
         if (box != null) box.select(line);
-        if (toolbar != null) toolbar.select(line);
+        if (measureTools != null) measureTools.select(line);
       }
     }
   }

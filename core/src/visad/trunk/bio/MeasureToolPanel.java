@@ -1,5 +1,5 @@
 //
-// MeasureToolbar.java
+// MeasureToolPanel.java
 //
 
 /*
@@ -28,14 +28,19 @@ package visad.bio;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.*;
 import java.rmi.RemoteException;
 import javax.swing.*;
 import javax.swing.event.*;
 import visad.*;
 import visad.browser.*;
+import visad.util.Util;
 
-/** MeasureToolbar is a custom toolbar. */
-public class MeasureToolbar extends JPanel implements SwingConstants {
+/**
+ * MeasureToolPanel is the tool panel for
+ * managing measurements between data points.
+ */
+public class MeasureToolPanel extends ToolPanel implements SwingConstants {
 
   /** List of colors for drop-down color box. */
   private static final Color[] COLORS = {
@@ -52,20 +57,15 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
   static int maxId = 0;
 
 
+  /** File chooser for loading and saving data. */
+  JFileChooser fileBox = Util.getVisADFileChooser();
+
+
   /** New group dialog box. */
   private GroupDialog groupBox = new GroupDialog();
 
   /** Currently selected measurement object. */
   private MeasureThing thing;
-
-  /** Measurement frame. */
-  private MeasureFrame frame;
-
-  /** File series widget. */
-  private FileSeriesWidget horiz;
-
-  /** Image stack widget. */
-  private ImageStackWidget vert;
 
   /** Computation cell for linking selection with measurement object. */
   private CellImpl cell;
@@ -77,7 +77,19 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
   private boolean ignoreGroup = false;
 
 
-  // -- GLOBAL FUNCTIONS --
+  // -- FILE IO FUNCTIONS --
+  
+  /** Button for saving measurements to a file. */
+  private JButton saveLines;
+
+  /** Button for restoring measurements from a file. */
+  private JButton restoreLines;
+
+  /**
+   * Check box for indicating file should be saved or restored
+   * using a micron-pixel conversion.
+   */
+  private JCheckBox useMicrons;
 
   /** Label for microns per pixel. */
   private JLabel mPixLabel;
@@ -91,20 +103,14 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
   /** Text field for specifying distance (in microns) between slices. */
   private JTextField sliceDistance;
 
+
+  // -- GLOBAL FUNCTIONS --
+
   /** Button for adding lines. */
   private JButton addLine;
 
   /** Button for adding points. */
   private JButton addMarker;
-
-  /** Toggle for grayscale mode. */
-  private JCheckBox grayscale;
-
-  /** Label for brightness. */
-  private JLabel brightnessLabel;
-
-  /** Slider for level of brightness. */
-  private JSlider brightness;
 
 
   // -- LINE FUNCTIONS --
@@ -140,45 +146,52 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
   private JTextArea descriptionBox;
 
 
-  /** Constructs a custom measurement toolbar. */
-  public MeasureToolbar(MeasureFrame f,
-    FileSeriesWidget h, ImageStackWidget v)
-  {
-    frame = f;
-    horiz = h;
-    vert = v;
+  // -- CONSTRUCTOR --
 
-    // main pane with horizontal spacing
-    setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-    JPanel pane = new JPanel();
-    pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
-    add(Box.createHorizontalStrut(10));
-    add(pane);
-    add(Box.createHorizontalStrut(10));
+  /** Constructs a tool panel for performing measurement operations. */
+  public MeasureToolPanel(BioVisAD biovis) {
+    super(biovis);
 
-    // controls panel
-    JPanel controls = new JPanel() {
-      public Dimension getMaximumSize() { return getPreferredSize(); }
-    };
-    controls.setLayout(new BoxLayout(controls, BoxLayout.Y_AXIS));
-    pane.add(Box.createVerticalStrut(10));
-    pane.add(controls);
-    pane.add(Box.createVerticalStrut(30));
-    pane.add(Box.createVerticalGlue());
-
-    // microns per pixel label
+    // save measurements button
     JPanel p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    saveLines = new JButton("Save measurements");
+    p.add(saveLines);
+
+    // restore measurements button
+    restoreLines = new JButton("Restore measurements");
+    p.add(restoreLines);
+    controls.add(pad(p));
+
+    // microns vs pixels checkbox
+    useMicrons = new JCheckBox("Use microns instead of pixels", false);
+    final MeasureToolPanel tool = this;
+    useMicrons.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        boolean microns = useMicrons.isSelected();
+	mPixLabel.setEnabled(microns);
+	micronsPerPixel.setEnabled(microns);
+	sliceDistLabel.setEnabled(microns);
+        sliceDistance.setEnabled(microns);
+	tool.updateFileButtons();
+      }
+    });
+    controls.add(pad(useMicrons));
+
+    // microns per pixel label
+    p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
     mPixLabel = new JLabel("Microns per pixel: ");
+    mPixLabel.setEnabled(false);
     p.add(mPixLabel);
 
     // microns per pixel text box
     micronsPerPixel = new JTextField();
-    final MeasureToolbar toolbar = this;
+    micronsPerPixel.setEnabled(false);
     micronsPerPixel.getDocument().addDocumentListener(new DocumentListener() {
-      public void changedUpdate(DocumentEvent e) { toolbar.updateMenuItems(); }
-      public void insertUpdate(DocumentEvent e) { toolbar.updateMenuItems(); }
-      public void removeUpdate(DocumentEvent e) { toolbar.updateMenuItems(); }
+      public void changedUpdate(DocumentEvent e) { tool.updateFileButtons(); }
+      public void insertUpdate(DocumentEvent e) { tool.updateFileButtons(); }
+      public void removeUpdate(DocumentEvent e) { tool.updateFileButtons(); }
     });
     p.add(micronsPerPixel);
     controls.add(pad(p));
@@ -187,17 +200,23 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
     sliceDistLabel = new JLabel("Microns between slices: ");
+    sliceDistLabel.setEnabled(false);
     p.add(sliceDistLabel);
 
     // distance between slices text box
     sliceDistance = new JTextField();
+    sliceDistance.setEnabled(false);
     sliceDistance.getDocument().addDocumentListener(new DocumentListener() {
-      public void changedUpdate(DocumentEvent e) { toolbar.updateMenuItems(); }
-      public void insertUpdate(DocumentEvent e) { toolbar.updateMenuItems(); }
-      public void removeUpdate(DocumentEvent e) { toolbar.updateMenuItems(); }
+      public void changedUpdate(DocumentEvent e) { tool.updateFileButtons(); }
+      public void insertUpdate(DocumentEvent e) { tool.updateFileButtons(); }
+      public void removeUpdate(DocumentEvent e) { tool.updateFileButtons(); }
     });
     p.add(sliceDistance);
     controls.add(pad(p));
+
+    // divider between file IO functions and other functions
+    controls.add(Box.createVerticalStrut(10));
+    controls.add(new Divider());
     controls.add(Box.createVerticalStrut(10));
 
     // add line button
@@ -226,41 +245,6 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     p.add(addMarker);
     controls.add(pad(p));
     controls.add(Box.createVerticalStrut(5));
-
-    // grayscale checkbox
-    grayscale = new JCheckBox("Grayscale");
-    grayscale.setSelected(true);
-    grayscale.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {
-        boolean gray = grayscale.isSelected();
-        vert.setGrayscale(gray);
-      }
-    });
-    grayscale.setEnabled(false);
-    controls.add(pad(grayscale));
-
-    // brightness label
-    p = new JPanel();
-    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    brightnessLabel = new JLabel("Brightness: ");
-    brightnessLabel.setEnabled(false);
-    p.add(brightnessLabel);
-
-    // brightness slider
-    brightness = new JSlider(1, 100, 50);
-    brightness.addChangeListener(new ChangeListener() {
-      public void stateChanged(ChangeEvent e) {
-        vert.setBrightness(brightness.getValue());
-      }
-    });
-    brightness.setEnabled(false);
-    p.add(brightness);
-    controls.add(p);
-
-    // divider between global functions and object functions
-    controls.add(Box.createVerticalStrut(10));
-    controls.add(new Divider());
-    controls.add(Box.createVerticalStrut(10));
 
     // measurement information label
     measureInfo = new JLabel(" ") {
@@ -314,12 +298,12 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
         }
         boolean std = setStandard.isSelected();
         Measurement m = thing.getMeasurement();
-        int index = horiz.getValue() - 1;
-        int slice = vert.getValue() - 1;
+        int index = bio.horiz.getValue() - 1;
+        int slice = bio.vert.getValue() - 1;
         if (std) {
           // set standard
           m.stdId = maxId++;
-          MeasureList[][] lists = horiz.getMatrix().getMeasureLists();
+          MeasureList[][] lists = bio.matrix.getMeasureLists();
           for (int j=0; j<lists.length; j++) {
             for (int i=0; i<lists[j].length; i++) {
               if (j == index && i == slice) continue;
@@ -329,8 +313,8 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
         }
         else {
           // unset standard
-          int ans = JOptionPane.showConfirmDialog(toolbar, "Are you sure?",
-            "Unset standard", JOptionPane.YES_NO_OPTION,
+          int ans = JOptionPane.showConfirmDialog(tool,
+	    "Are you sure?", "Unset standard", JOptionPane.YES_NO_OPTION,
             JOptionPane.QUESTION_MESSAGE);
           if (ans != JOptionPane.YES_OPTION) {
             ignoreNextStandard = true;
@@ -339,7 +323,7 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
           }
           int stdId = m.stdId;
           m.stdId = -1;
-          MeasureList[][] lists = horiz.getMatrix().getMeasureLists();
+          MeasureList[][] lists = bio.matrix.getMeasureLists();
           for (int j=0; j<lists.length; j++) {
             for (int i=0; i<lists[j].length; i++) {
               if (j == index && i == slice) continue;
@@ -459,18 +443,17 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     });
     descriptionBox.setEnabled(false);
     controls.add(new JScrollPane(descriptionBox));
-
-    updateMenuItems();
   }
 
-  /** Enables various toolbar controls. */
+  /** Enables or disables this tool panel. */
   public void setEnabled(boolean enabled) {
+    // CTR: TODO: file IO stuff should be affected by this
     addLine.setEnabled(enabled);
     addMarker.setEnabled(enabled);
-    grayscale.setEnabled(enabled);
-    brightnessLabel.setEnabled(enabled);
-    brightness.setEnabled(enabled);
   }
+
+  /** Updates the tool panel's contents. */
+  public void update() { /* CTR: TODO */ }
 
   /** Selects the given measurement object. */
   public void select(MeasureThing thing) {
@@ -512,9 +495,7 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
   /** Gets the micron distance between pixels entered by the user. */
   public double getMicronsPerPixel() {
     double d;
-    try {
-      d = Double.parseDouble(micronsPerPixel.getText());
-    }
+    try { d = Double.parseDouble(micronsPerPixel.getText()); }
     catch (NumberFormatException exc) { d = Double.NaN; }
     return d;
   }
@@ -522,11 +503,81 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
   /** Gets the micron distance between slices entered by the user. */
   public double getSliceDistance() {
     double d;
-    try {
-      d = Double.parseDouble(sliceDistance.getText());
-    }
+    try { d = Double.parseDouble(sliceDistance.getText()); }
     catch (NumberFormatException exc) { d = Double.NaN; }
     return d;
+  }
+
+  /** Restores a saved set of measurements. */
+  public void fileRestore(boolean microns) {
+    final MeasureToolPanel measureTools = this;
+    final boolean fmicrons = microns;
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        // get file name from file dialog
+        fileBox.setDialogType(JFileChooser.OPEN_DIALOG);
+        if (fileBox.showOpenDialog(bio) != JFileChooser.APPROVE_OPTION) {
+          setCursor(Cursor.getDefaultCursor());
+          return;
+        }
+      
+        // make sure file exists
+        File f = fileBox.getSelectedFile();
+        if (!f.exists()) {
+          JOptionPane.showMessageDialog(bio,
+            f.getName() + " does not exist", "Cannot load file",
+            JOptionPane.ERROR_MESSAGE);
+          setCursor(Cursor.getDefaultCursor());
+          return;
+        }
+      
+        // restore measurements
+        try {
+          MeasureDataFile mdf = new MeasureDataFile(f);
+          if (fmicrons) {
+            double mpp = measureTools.getMicronsPerPixel();
+            double sd = measureTools.getSliceDistance();
+            mdf.readMatrix(bio.matrix, mpp, sd);
+          }
+          else mdf.readMatrix(bio.matrix);
+        }
+        catch (IOException exc) { exc.printStackTrace(); }
+        catch (VisADException exc) { exc.printStackTrace(); }
+        setCursor(Cursor.getDefaultCursor());
+      }
+    });
+  }
+
+  /** Saves a set of measurements. */
+  public void fileSave(boolean microns) {
+    final MeasureToolPanel measureTools = this;
+    final boolean fmicrons = microns;
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        // get file name from file dialog
+        fileBox.setDialogType(JFileChooser.SAVE_DIALOG);
+        if (fileBox.showSaveDialog(bio) != JFileChooser.APPROVE_OPTION) {
+          setCursor(Cursor.getDefaultCursor());
+          return;
+        }
+    
+        // save measurements
+        File f = fileBox.getSelectedFile();
+        try {
+          MeasureDataFile mdf = new MeasureDataFile(f);
+          if (fmicrons) {
+            double mpp = measureTools.getMicronsPerPixel();
+            double sd = measureTools.getSliceDistance();
+            mdf.writeMatrix(bio.matrix, mpp, sd);
+          }
+          else mdf.writeMatrix(bio.matrix);
+        }
+        catch (IOException exc) { exc.printStackTrace(); }
+        setCursor(Cursor.getDefaultCursor());
+      }
+    });
   }
 
   /** Updates the group list to match the static MeasureGroup list. */
@@ -542,16 +593,20 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
   }
 
   /** Updates the micron-related menu items. */
-  private void updateMenuItems() {
-    boolean b = false;
-    try {
-      double d1 = Double.parseDouble(micronsPerPixel.getText());
-      double d2 = Double.parseDouble(sliceDistance.getText());
-      if (d1 == d1 && d1 > 0 && d2 == d2 && d2 > 0) b = true;
+  private void updateFileButtons() {
+    boolean b;
+    if (useMicrons.isSelected()) {
+      b = false;
+      try {
+        double d1 = Double.parseDouble(micronsPerPixel.getText());
+        double d2 = Double.parseDouble(sliceDistance.getText());
+        if (d1 == d1 && d1 > 0 && d2 == d2 && d2 > 0) b = true;
+      }
+      catch (NumberFormatException exc) { }
     }
-    catch (NumberFormatException exc) { }
-    frame.getMenuItem("File", "Restore lines (microns)...").setEnabled(b);
-    frame.getMenuItem("File", "Save lines (microns)...").setEnabled(b);
+    else b = true;
+    saveLines.setEnabled(b);
+    restoreLines.setEnabled(b);
   }
 
   /** Updates the text in the measurement information box. */
@@ -582,31 +637,9 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
 
   /** Gets the current measurement list from the slider widgets. */
   private MeasureList getList() {
-    int index = horiz.getValue() - 1;
-    int slice = vert.getValue() - 1;
-    return horiz.getMatrix().getMeasureList(index, slice);
-  }
-
-  /** Pads a component or group of components with horizontal space. */
-  private JPanel pad(Component c) {
-    JPanel p;
-    if (c instanceof JPanel) {
-      p = (JPanel) c;
-      p.add(Box.createHorizontalGlue(), 0);
-      p.add(Box.createHorizontalStrut(5), 0);
-      p.add(Box.createHorizontalGlue());
-      p.add(Box.createHorizontalStrut(5));
-    }
-    else {
-      p = new JPanel();
-      p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-      p.add(Box.createHorizontalStrut(5));
-      p.add(Box.createHorizontalGlue());
-      p.add(c);
-      p.add(Box.createHorizontalGlue());
-      p.add(Box.createHorizontalStrut(5));
-    }
-    return p;
+    int index = bio.horiz.getValue() - 1;
+    int slice = bio.vert.getValue() - 1;
+    return bio.matrix.getMeasureList(index, slice);
   }
 
 }

@@ -1,0 +1,96 @@
+//
+// ViewToolPanel.java
+//
+
+/*
+VisAD system for interactive analysis and visualization of numerical
+data.  Copyright (C) 1996 - 2002 Bill Hibbard, Curtis Rueden, Tom
+Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
+Tommy Jasmin.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Library General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Library General Public License for more details.
+
+You should have received a copy of the GNU Library General Public
+License along with this library; if not, write to the Free
+Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+MA 02111-1307, USA
+*/
+
+package visad.bio;
+
+import java.awt.event.*;
+import javax.swing.*;
+import javax.swing.event.*;
+import visad.browser.Convert;
+
+/**
+ * ViewToolPanel is the tool panel for
+ * adjusting viewing parameters.
+ */
+public class ViewToolPanel extends ToolPanel implements SwingConstants {
+
+  // -- GUI COMPONENTS --
+  
+  /** Toggle for grayscale mode. */
+  private JCheckBox grayscale;
+
+  /** Label for brightness. */
+  private JLabel brightnessLabel;
+
+  /** Slider for level of brightness. */
+  private JSlider brightness;
+
+
+  // -- CONSTRUCTOR --
+
+  /** Constructs a tool panel for adjusting viewing parameters. */
+  public ViewToolPanel(BioVisAD biovis) {
+    super(biovis);
+
+    // grayscale checkbox
+    grayscale = new JCheckBox("Grayscale");
+    grayscale.setSelected(true);
+    grayscale.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        boolean gray = grayscale.isSelected();
+        bio.vert.setGrayscale(gray);
+      }
+    });
+    controls.add(pad(grayscale));
+
+    // brightness label
+    JPanel p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    brightnessLabel = new JLabel("Brightness: ");
+    p.add(brightnessLabel);
+
+    // brightness slider
+    brightness = new JSlider(1, 100, 50);
+    brightness.addChangeListener(new ChangeListener() {
+      public void stateChanged(ChangeEvent e) {
+        bio.vert.setBrightness(brightness.getValue());
+      }
+    });
+    p.add(brightness);
+    controls.add(p);
+  }
+
+  /** Enables or disables this tool panel. */
+  public void setEnabled(boolean enabled) {
+    grayscale.setEnabled(enabled);
+    brightnessLabel.setEnabled(enabled);
+    brightness.setEnabled(enabled);
+  }
+
+  /** Updates the tool panel's contents. */
+  public void update() { }
+
+}

@@ -37,7 +37,7 @@ import visad.data.DefaultFamily;
  * FileSeriesWidget is a GUI component for stepping through data
  * from a series of files.
  */
-public class FileSeriesWidget extends StepWidget {
+public class FileSeriesWidget extends BioStepWidget {
 
   static final RealType COLOR_TYPE = RealType.getRealType("color");
 
@@ -45,46 +45,26 @@ public class FileSeriesWidget extends StepWidget {
   private DataReferenceImpl ref;
   private File[] files;
   private int curFile;
-  private ImageStackWidget isw;
-  private MeasureToolbar toolbar;
   private ScalarMap animMap2, xMap2, yMap2;
   private ScalarMap xMap3, yMap3, zMap3, zMap3b;
-  private MeasureMatrix matrix;
-  private DisplayImpl display2;
-  private DisplayImpl display3;
 
   /** Constructs a new FileSeriesWidget. */
-  public FileSeriesWidget(boolean horizontal) {
-    super(horizontal);
+  public FileSeriesWidget(BioVisAD biovis, boolean horizontal) {
+    super(biovis, horizontal);
     try {
       ref = new DataReferenceImpl("ref");
     }
     catch (VisADException exc) { exc.printStackTrace(); }
   }
 
-  /** Gets the matrix of measurements linked to the widget. */
-  public MeasureMatrix getMatrix() { return matrix; }
-
   /** Links the FileSeriesWidget with the given series of files. */
   public void setSeries(File[] files) {
     this.files = files;
-    matrix = new MeasureMatrix(files.length, display2, display3, toolbar);
-    isw.setMatrix(matrix);
+    bio.matrix = new MeasureMatrix(files.length,
+      bio.display2, bio.display3, bio.toolMeasure);
     loadFile(true);
     updateSlider();
   }
-
-  /** Links the FileSeriesWidget with the given display. */
-  public void setDisplay(DisplayImpl display2) { this.display2 = display2; }
-
-  /** Links the FileSeriesWidget with the given 3-D display. */
-  public void setDisplay3d(DisplayImpl display3) { this.display3 = display3; }
-
-  /** Links the FileSeriesWidget with the given ImageStackWidget. */
-  public void setWidget(ImageStackWidget widget) { isw = widget; }
-
-  /** Links the FileSeriesWidget with the given MeasureToolbar. */
-  public void setToolbar(MeasureToolbar toolbar) { this.toolbar = toolbar; }
 
   /** Updates the current file of the image series. */
   public void updateStep() {
@@ -97,11 +77,11 @@ public class FileSeriesWidget extends StepWidget {
   private void updateSlider() {
     int max = 1;
     if (files == null) {
-      toolbar.setEnabled(false);
+      bio.toolMeasure.setEnabled(false);
       setEnabled(false);
     }
     else {
-      toolbar.setEnabled(true);
+      bio.toolMeasure.setEnabled(true);
       setEnabled(true);
       max = files.length;
       curFile = 0;
@@ -152,14 +132,14 @@ public class FileSeriesWidget extends StepWidget {
       return;
     }
 
-    if (doMaps && display2 != null) {
+    if (doMaps && bio.display2 != null) {
       try {
         // clear old displays
-        display2.removeAllReferences();
-        display2.clearMaps();
-        if (display3 != null) {
-          display3.removeAllReferences();
-          display3.clearMaps();
+        bio.display2.removeAllReferences();
+        bio.display2.clearMaps();
+        if (bio.display3 != null) {
+          bio.display3.removeAllReferences();
+          bio.display3.clearMaps();
         }
       }
       catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
@@ -176,7 +156,7 @@ public class FileSeriesWidget extends StepWidget {
         ScalarMap smap3 = anim ? null : (ScalarMap) smap2.clone();
         if (anim) {
           animMap2 = smap2;
-          if (display3 != null) {
+          if (bio.display3 != null) {
             try {
               smap3 = zMap3 = new ScalarMap(smap2.getScalar(), Display.ZAxis);
             }
@@ -185,32 +165,32 @@ public class FileSeriesWidget extends StepWidget {
         }
         else if (Display.XAxis.equals(drt)) {
           xMap2 = smap2;
-          if (display3 != null) xMap3 = smap3;
+          if (bio.display3 != null) xMap3 = smap3;
         }
         else if (Display.YAxis.equals(drt)) {
           yMap2 = smap2;
-          if (display3 != null) yMap3 = smap3;
+          if (bio.display3 != null) yMap3 = smap3;
         }
         try {
-          display2.addMap(smap2);
-          if (display3 != null) display3.addMap(smap3);
+          bio.display2.addMap(smap2);
+          if (bio.display3 != null) bio.display3.addMap(smap3);
         }
         catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
         catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }
       }
 
       // add mapping to RGB
-      isw.setGrayscale(true); // default to grayscale color mode
+      bio.vert.setGrayscale(true); // default to grayscale color mode
       try {
         ScalarMap colorMap = new ScalarMap(COLOR_TYPE, Display.RGB);
         colorMap.setRange(0, 255);
-        display2.addMap(colorMap);
-        display2.addReference(ref);
-        if (display3 != null) {
-          display3.addMap((ScalarMap) colorMap.clone());
+        bio.display2.addMap(colorMap);
+        bio.display2.addReference(ref);
+        if (bio.display3 != null) {
+          bio.display3.addMap((ScalarMap) colorMap.clone());
           zMap3b = new ScalarMap(MeasureMatrix.ZAXIS_TYPE, Display.ZAxis);
-          display3.addMap(zMap3b);
-          display3.addReference(ref);
+          bio.display3.addMap(zMap3b);
+          bio.display3.addReference(ref);
         }
       }
       catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
@@ -219,11 +199,11 @@ public class FileSeriesWidget extends StepWidget {
 
     try {
       ref.setData(field);
-      matrix.init(field, new ScalarMap[][] {
+      bio.matrix.init(field, new ScalarMap[][] {
         {xMap2, xMap3}, {yMap2, yMap3}, {zMap3, zMap3b}
       });
-      matrix.setIndex(curFile);
-      if (isw != null && animMap2 != null) isw.setMap(animMap2);
+      bio.matrix.setIndex(curFile);
+      if (bio.vert != null && animMap2 != null) bio.vert.setMap(animMap2);
     }
     catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
     catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }

@@ -44,8 +44,8 @@ public class MeasureMatrix {
   /** Associated VisAD display for 3-D window. */
   private DisplayImpl display3;
 
-  /** Associated measurement toolbar. */
-  private MeasureToolbar toolbar;
+  /** Associated measurement tool panel. */
+  private MeasureToolPanel measureTools;
 
   /** Pool of measurements. */
   private MeasurePool pool;
@@ -67,12 +67,16 @@ public class MeasureMatrix {
 
   /** Constructs a list of measurements. */
   public MeasureMatrix(int length, DisplayImpl display2,
-    DisplayImpl display3, MeasureToolbar toolbar)
+    DisplayImpl display3, MeasureToolPanel measureTools)
   {
     matrix = new MeasureList[length][];
     this.display2 = display2;
     this.display3 = display3;
-    this.toolbar = toolbar;
+    this.measureTools = measureTools;
+  }
+
+  /** 
+  private void extractMaps(FieldImpl field) {
   }
 
   /** Initializes the measurement matrix. */
@@ -108,6 +112,12 @@ public class MeasureMatrix {
     }
 
     // CTR: 3-D stuff probably completely broken; fix it
+    /* TEMP */ System.out.println("MeasureMatrix.init: field=" + field.getType());
+    /* TEMP */ for (int i=0; i<xyzMaps.length; i++) {
+    /* TEMP */   for (int j=0; j<xyzMaps[i].length; j++) {
+    /* TEMP */     System.out.println("map[" + i + "][" + j + "]=" + xyzMaps[i][j]);
+    /* TEMP */   }
+    /* TEMP */ }
 
     // construct MathType with 3-D domain for display lines on image stack
     FieldImpl image = (FieldImpl) field.getSample(0);
@@ -149,7 +159,8 @@ public class MeasureMatrix {
     }
 
     // initialize measurement pools
-    pool = new MeasurePool(display2, toolbar, 2, MeasurePool.MINIMUM_SIZE / 2);
+    pool = new MeasurePool(display2, measureTools, 2,
+      MeasurePool.MINIMUM_SIZE / 2);
     pool.expand(MeasurePool.MINIMUM_SIZE, domain);
     pool3d = new MeasurePool[numSlices];
     if (display3 != null) {
@@ -178,7 +189,7 @@ public class MeasureMatrix {
   /** Refreshes the onscreen measurements to match the current matrix entry. */
   public void refresh() {
     setEntry(index, slice);
-    toolbar.updateGroupList();
+    measureTools.updateGroupList();
   }
 
   /** Sets the measurement pool to match the given matrix index. */

@@ -31,7 +31,9 @@ import java.io.*;
 import java.util.*;
 import visad.*;
 
-/** MeasureDataFile maintains a 2-D matrix of measurements. */
+/**
+ * MeasureDataFile represents a file on disk containing 2-D measurement data.
+ */
 public class MeasureDataFile {
 
   /** Filename containing the measurement data. */
@@ -47,7 +49,8 @@ public class MeasureDataFile {
 
   /**
    * Writes the specified measurement matrix to the data file,
-   * using the given conversion values between pixels and microns.
+   * using the given conversion value between pixels and microns,
+   * and distance between measurement slices.
    */
   public void writeMatrix(MeasureMatrix mm, double mpp, double sd)
     throws IOException
@@ -58,7 +61,7 @@ public class MeasureDataFile {
     Vector points = new Vector();
     int numIndices = lists.length;
     int numSlices = lists[0].length;
-    int numStd = MeasureToolbar.maxId;
+    int numStd = MeasureToolPanel.maxId;
     MData[][][] stdData = new MData[numStd][numIndices][numSlices];
 
     for (int index=0; index<numIndices; index++) {
@@ -108,7 +111,7 @@ public class MeasureDataFile {
 
     // write file
     PrintWriter fout = new PrintWriter(new FileWriter(file));
-    fout.println("# BioVisAD measurement tool data file");
+    fout.println("# BioVisAD data file");
     fout.println();
     fout.println();
     fout.println("# Standard measurements");
@@ -198,7 +201,8 @@ public class MeasureDataFile {
 
   /**
    * Sets the given measurement matrix to match data from the data file,
-   * using the given conversion values between pixels and microns.
+   * using the given conversion values between pixels and microns,
+   * and distance between measurement slices.
    */
   public void readMatrix(MeasureMatrix mm, double mpp, double sd)
     throws IOException, VisADException

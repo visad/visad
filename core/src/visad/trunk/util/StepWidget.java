@@ -24,20 +24,19 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-package visad.bio;
+package visad.util;
 
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.plaf.basic.BasicArrowButton;
-import visad.*;
 
 /**
  * StepWidget is a slider GUI component with
  * directional step arrows at either end.
  */
-public abstract class StepWidget extends JPanel
+public class StepWidget extends JPanel
   implements ActionListener, ChangeListener
 {
 
@@ -215,7 +214,11 @@ public abstract class StepWidget extends JPanel
     updateStep();
   }
 
-  /** Takes action when the slider's current value changes. */
-  protected abstract void updateStep();
+  /**
+   * Takes action when the slider's current value changes.
+   *
+   * This method is a stub that can be overridden to define behavior.
+   */
+  protected void updateStep() { }
 
 }

@@ -30,23 +30,20 @@ import java.rmi.RemoteException;
 import visad.*;
 
 /** ImageStackWidget is a GUI component for stepping through an image stack. */
-public class ImageStackWidget extends StepWidget
+public class ImageStackWidget extends BioStepWidget
   implements ControlListener, ScalarMapListener
 {
-
   private static final int NORMAL_BRIGHTNESS = 50;
 
   private ScalarMap smap;
   private AnimationControl control;
-  private MeasureMatrix mm;
   private boolean grayscale = false;
   private int brightness = NORMAL_BRIGHTNESS;
 
   /** Constructs a new ImageStackWidget. */
-  public ImageStackWidget(boolean horizontal) { super(horizontal); }
-
-  /** Links the widget with the given measurement matrix. */
-  public void setMatrix(MeasureMatrix mm) { this.mm = mm; }
+  public ImageStackWidget(BioVisAD biovis, boolean horizontal) {
+    super(biovis, horizontal);
+  }
 
   /** Links the widget with the given scalar map. */
   public void setMap(ScalarMap smap) throws VisADException, RemoteException {
@@ -97,8 +94,8 @@ public class ImageStackWidget extends StepWidget
     }
 
     // get color controls
-    DisplayImpl display2 = mm.getDisplay();
-    DisplayImpl display3 = mm.getDisplay3d();
+    DisplayImpl display2 = bio.matrix.getDisplay();
+    DisplayImpl display3 = bio.matrix.getDisplay3d();
     ColorControl cc2 = (ColorControl) display2.getControl(ColorControl.class);
     ColorControl cc3 = display3 == null ? null :
       (ColorControl) display3.getControl(ColorControl.class);
@@ -135,7 +132,7 @@ public class ImageStackWidget extends StepWidget
     if (control != null && cur != control.getCurrent() + 1) {
       try {
         control.setCurrent(cur - 1);
-        mm.setSlice(cur - 1);
+        bio.matrix.setSlice(cur - 1);
       }
       catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
       catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }
