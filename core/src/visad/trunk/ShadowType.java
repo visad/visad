@@ -1776,18 +1776,18 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       float factor_vert = inv_scale * 1000.0f;
       for (int j=0; j<flen; j++) {
         earth_locs[2][j] += factor_vert * flow_values[2][j];
-        earth_locs[1][j] += factor_lat * flow_values[1][j] *
+        earth_locs[1][j] += factor_lat * flow_values[0][j] /
                             ((float) Math.cos(earth_locs[0][j]));
-        earth_locs[0][j] += factor_lat * flow_values[0][j];
+        earth_locs[0][j] += factor_lat * flow_values[1][j];
       }
     }
     else {
-      float factor_lat = inv_scale * renderer.getLatLonRange() *
-                         0.5f * flowScale;
+      float factor_lat = 0.00001f * inv_scale *
+                         (0.5f * renderer.getLatLonRange());
       for (int j=0; j<flen; j++) {
-        earth_locs[1][j] += inv_scale * flow_values[1][j] *
+        earth_locs[1][j] += factor_lat * flow_values[0][j] /
                             ((float) Math.cos(earth_locs[0][j]));
-        earth_locs[0][j] += inv_scale * flow_values[0][j];
+        earth_locs[0][j] += factor_lat * flow_values[1][j];
       }
     }
 
@@ -1814,7 +1814,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     }
     else {
       // apply vertical flow in earthToSpatial
-      float factor_vert = inv_scale * flowScale;
+      float factor_vert = 0.00001f * inv_scale;
       float[] vert = new float[flen];
       for (int j=0; j<flen; j++) {
         vert[j] = factor_vert * flow_values[2][j];

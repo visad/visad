@@ -696,7 +696,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
         new_values[i] = values[i];
       }
     }
-      return new_values;
+    return new_values;
   }
 
   /** ensure that non-Manual components of flow_tuple have equal

@@ -673,7 +673,7 @@ if (map.badRange()) {
       // map spatial DisplayRealTypes to lat & lon, not in
       // allSpatial RealTupleType
       tuple_locs[0] = lat_map.inverseScaleValues(spatial_locs[lat_spatial_index]);
-      tuple_locs[1] = lat_map.inverseScaleValues(spatial_locs[lon_spatial_index]);
+      tuple_locs[1] = lon_map.inverseScaleValues(spatial_locs[lon_spatial_index]);
     }
     else {
       // should never happen
@@ -903,26 +903,24 @@ if (map.badRange()) {
     Vector MapVector = display.getMapVector();
 
     for (int i=0; i<valueArrayLength; i++) {
-      if (display_values[i] != null) {
-        ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
-        ScalarType real = map.getScalar();
-        DisplayRealType dreal = map.getDisplayScalar();
-        DisplayTupleType tuple = dreal.getTuple();
-        if (tuple != null &&
-            (tuple.equals(Display.DisplaySpatialCartesianTuple) ||
-             (tuple.getCoordinateSystem() != null &&
-              tuple.getCoordinateSystem().getReference().equals(
-                  Display.DisplaySpatialCartesianTuple)))) {
-          if (RealType.Latitude.equals(real)) {
-            lat_index = 0;
-            lat_map = map;
-            lat_spatial_index = dreal.getTupleIndex();
-          }
-          if (RealType.Longitude.equals(real)) {
-            lon_index = 1;
-            lon_map = map;
-            lon_spatial_index = dreal.getTupleIndex();
-          }
+      ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
+      ScalarType real = map.getScalar();
+      DisplayRealType dreal = map.getDisplayScalar();
+      DisplayTupleType tuple = dreal.getTuple();
+      if (tuple != null &&
+          (tuple.equals(Display.DisplaySpatialCartesianTuple) ||
+           (tuple.getCoordinateSystem() != null &&
+            tuple.getCoordinateSystem().getReference().equals(
+                Display.DisplaySpatialCartesianTuple)))) {
+        if (RealType.Latitude.equals(real)) {
+          lat_index = 0;
+          lat_map = map;
+          lat_spatial_index = dreal.getTupleIndex();
+        }
+        if (RealType.Longitude.equals(real)) {
+          lon_index = 1;
+          lon_map = map;
+          lon_spatial_index = dreal.getTupleIndex();
         }
       }
     }
