@@ -117,6 +117,10 @@ public class BasicSSCell extends JPanel {
   /** errors currently being displayed in this cell, if any */
   String[] Errors;
 
+  /** string representation of this cell's mappings,
+      for use only with remote clones */
+  String Maps;
+
 
   /** list of servers to which this cell has been added */
   Vector Servers = new Vector();
@@ -139,6 +143,9 @@ public class BasicSSCell extends JPanel {
 
   /** remote clone's copy of Errors */
   RemoteDataReference RemoteErrors;
+
+  /** remote clone's copy of Maps */
+  RemoteDataReference RemoteMaps;
 
 
   /** this BasicSSCell's DisplayListeners */
@@ -218,6 +225,7 @@ public class BasicSSCell extends JPanel {
     DataReferenceImpl drForm = null;
     DataReferenceImpl drDim = null;
     DataReferenceImpl drErr = null;
+    DataReferenceImpl drMap = null;
 
     if (IsRemote) {
       RemoteFilename = rs.getDataReference(name + "_Filename");
@@ -225,6 +233,7 @@ public class BasicSSCell extends JPanel {
       RemoteFormula = rs.getDataReference(name + "_Formula");
       RemoteDim = rs.getDataReference(name + "_Dim");
       RemoteErrors = rs.getDataReference(name + "_Errors");
+      RemoteMaps = rs.getDataReference(name + "_Maps");
 
       setDimClone();
       //setupRemoteDataChangeCell();
@@ -245,7 +254,6 @@ public class BasicSSCell extends JPanel {
     }
     else {
       // redisplay this cell's data when it changes
-      final FormulaManager ffm = fm;
       CellImpl ucell = new CellImpl() {
         public void doAction() {
           // clear old errors
@@ -254,7 +262,7 @@ public class BasicSSCell extends JPanel {
           // get new data
           Data value = null;
           try {
-            value = (Data) ffm.getThing(Name);
+            value = (Data) fm.getThing(Name);
           }
           catch (ClassCastException exc) {
             if (DEBUG) exc.printStackTrace();
@@ -285,7 +293,7 @@ public class BasicSSCell extends JPanel {
           }
 
           // display new errors, if any
-          String[] es = ffm.getErrors(Name);
+          String[] es = fm.getErrors(Name);
           if (es != null) setErrors(es);
 
           // broadcast data change event
@@ -313,6 +321,9 @@ public class BasicSSCell extends JPanel {
       drErr = new DataReferenceImpl(Name + "_Errors");
       RemoteErrors = new RemoteDataReferenceImpl(drErr);
       synchErrors();
+      drMap = new DataReferenceImpl(Name + "_Maps");
+      RemoteMaps = new RemoteDataReferenceImpl(drMap);
+      // Note: We don't ever need to call synchMaps from the server
 
       setDimension(JAVA2D_2D);
     }
@@ -500,6 +511,38 @@ public class BasicSSCell extends JPanel {
       else throw exc;
     }
 
+    if (!IsRemote) {
+      // only clients remotely update mappings; servers simply set them,
+      // and the clients receive the changes through the RemoteDisplay
+      CellImpl lMapsCell = new CellImpl() {
+        public void doAction() {
+          try {
+            Text t = (Text) RemoteMaps.getData();
+            if (t != null) {
+              String s = t.getValue();
+              if (s != null) {
+                ScalarMap[] maps = convertStringToMaps(s, false);
+                if (maps != null) setMaps(maps);
+              }
+            }
+          }
+          catch (VisADException exc) {
+            if (DEBUG) exc.printStackTrace();
+          }
+          catch (RemoteException exc) {
+            if (DEBUG) exc.printStackTrace();
+          }
+        }
+      };
+      try {
+        RemoteCellImpl rMapsCell = new RemoteCellImpl(lMapsCell);
+        rMapsCell.addReference(RemoteMaps);
+      }
+      catch (RemoteException exc) {
+        lMapsCell.addReference(drMap);
+      }
+    }
+
     // setup save string
     if (save != null) setSaveString(save);
 
@@ -628,6 +671,19 @@ public class BasicSSCell extends JPanel {
     }
   }
 
+  private void synchMaps(ScalarMap[] maps) {
+    try {
+      Text t = new Text(convertMapsToString(maps));
+      RemoteMaps.setData(t);
+    }
+    catch (VisADException exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
+    catch (RemoteException exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
+  }
+
   /** get this SSCell's name */
   public String getName() {
     return Name;
@@ -728,6 +784,7 @@ public class BasicSSCell extends JPanel {
         rs.addDataReference((RemoteDataReferenceImpl) RemoteFormula);
         rs.addDataReference((RemoteDataReferenceImpl) RemoteDim);
         rs.addDataReference((RemoteDataReferenceImpl) RemoteErrors);
+        rs.addDataReference((RemoteDataReferenceImpl) RemoteMaps);
         Servers.add(rs);
       }
     }
@@ -750,6 +807,7 @@ public class BasicSSCell extends JPanel {
         rs.removeDataReference((RemoteDataReferenceImpl) RemoteFormula);
         rs.removeDataReference((RemoteDataReferenceImpl) RemoteDim);
         rs.removeDataReference((RemoteDataReferenceImpl) RemoteErrors);
+        rs.removeDataReference((RemoteDataReferenceImpl) RemoteMaps);
         Servers.remove(rs);
       }
     }
@@ -901,6 +959,138 @@ public class BasicSSCell extends JPanel {
     }
   }
 
+  /** converts the given vector of mappings to an easy-to-read String form */
+  private static String convertMapsToString(Vector v) {
+    int len = v.size();
+    ScalarMap[] sm = new ScalarMap[len];
+    for (int i=0; i<len; i++) sm[i] = (ScalarMap) v.elementAt(i);
+    return convertMapsToString(sm);
+  }
+
+  /** converts the given array of mappings to an easy-to-read String form */
+  private static String convertMapsToString(ScalarMap[] sm) {
+    StringBuffer sb = new StringBuffer(128);
+    for (int i=0; i<sm.length; i++) {
+      ScalarMap m = sm[i];
+      ScalarType domain = m.getScalar();
+      DisplayRealType range = m.getDisplayScalar();
+      int q = -1;
+      for (int j=0; j<Display.DisplayRealArray.length; j++) {
+        if (range.equals(Display.DisplayRealArray[j])) q = j;
+      }
+      sb.append(' ');
+      sb.append(domain.getName());
+      sb.append(' ');
+      sb.append(q);
+    }
+    return sb.toString();
+  }
+
+  /** converts the given map string to its corresponding array of mappings */
+  private ScalarMap[] convertStringToMaps(
+    String mapString, boolean showErrors)
+  {
+    // extract mapping information from string
+    if (DEBUG) showErrors = true;
+    StringTokenizer st = new StringTokenizer(mapString);
+    Vector dnames = new Vector();
+    Vector rnames = new Vector();
+    while (true) {
+      if (!st.hasMoreTokens()) break;
+      String s = st.nextToken();
+      if (!st.hasMoreTokens()) {
+        if (showErrors) {
+          System.err.println("Warning: trailing maps value " + s +
+            " has no corresponding number and will be ignored");
+        }
+        continue;
+      }
+      String si = st.nextToken();
+      Integer i = null;
+      try {
+        i = new Integer(Integer.parseInt(si));
+      }
+      catch (NumberFormatException exc) {
+        if (DEBUG) exc.printStackTrace();
+      }
+      if (i == null) {
+        if (showErrors) {
+          System.err.println("Warning: maps value " + si + " is not a " +
+            "valid integer and the maps pair (" + s + ", " + si + ") " +
+            "will be ignored");
+        }
+      }
+      else {
+        dnames.add(s);
+        rnames.add(i);
+      }
+    }
+
+    // set up mappings
+    if (dnames != null) {
+      int len = dnames.size();
+      if (len > 0) {
+        // get Vector of all ScalarTypes in this data object
+        Vector types = new Vector();
+        Data data = getData();
+        if (data != null) getRealTypes(data, types);
+        int vLen = types.size();
+        int dLen = Display.DisplayRealArray.length;
+
+        // construct ScalarMaps
+        ScalarMap[] maps = new ScalarMap[len];
+        for (int j=0; j<len; j++) {
+          // find appropriate ScalarType
+          ScalarType mapDomain = null;
+          String name = (String) dnames.elementAt(j);
+          for (int k=0; k<vLen && mapDomain==null; k++) {
+            ScalarType type = (ScalarType) types.elementAt(k);
+            if (name.equals(type.getName())) mapDomain = type;
+          }
+          if (mapDomain == null) {
+            // still haven't found type; look in static Vector for it
+            mapDomain = ScalarType.getScalarTypeByName(name);
+          }
+
+          // find appropriate DisplayRealType
+          int q = ((Integer) rnames.elementAt(j)).intValue();
+          DisplayRealType mapRange = null;
+          if (q >= 0 && q < dLen) mapRange = Display.DisplayRealArray[q];
+
+          // construct mapping
+          if (mapDomain == null || mapRange == null) {
+            if (showErrors) {
+              System.err.print("Warning: maps pair (" + name + ", " +
+                q + ") has an invalid ");
+              if (mapDomain == null && mapRange == null) {
+                System.err.print("domain and range");
+              }
+              else if (mapDomain == null) System.err.print("domain");
+              else System.err.print("range");
+              System.err.println(" and will be ignored");
+            }
+            maps[j] = null;
+          }
+          else {
+            try {
+              maps[j] = new ScalarMap(mapDomain, mapRange);
+            }
+            catch (VisADException exc) {
+              if (showErrors) {
+                System.err.println("Warning: maps pair (" + name + ", " +
+                  q + ") cannot be converted to a ScalarMap");
+              }
+              maps[j] = null;
+            }
+          }
+        }
+        return maps;
+      }
+    }
+
+    return null;
+  }
+
   /** return true if any BasicSSCell is currently saving data */
   public static boolean isSaving() {
     return Saving > 0;
@@ -921,8 +1111,7 @@ public class BasicSSCell extends JPanel {
     String rmi = null;
     String formula = null;
     int dim = -1;
-    Vector rnames = null;
-    Vector dnames = null;
+    ScalarMap[] maps = null;
     Vector mapMins = null;
     Vector mapMaxs = null;
     String proj = null;
@@ -1036,35 +1225,7 @@ public class BasicSSCell extends JPanel {
       else if (keyword.equalsIgnoreCase("maps") ||
         keyword.equalsIgnoreCase("mappings"))
       {
-        st = new StringTokenizer(surplus);
-        dnames = new Vector();
-        rnames = new Vector();
-        while (true) {
-          if (!st.hasMoreTokens()) break;
-          String s = st.nextToken();
-          if (!st.hasMoreTokens()) {
-            System.err.println("Warning: trailing maps value " + s +
-              " has no corresponding number and will be ignored");
-            break;
-          }
-          String si = st.nextToken();
-          Integer i = null;
-          try {
-            i = new Integer(Integer.parseInt(si));
-          }
-          catch (NumberFormatException exc) {
-            if (DEBUG) exc.printStackTrace();
-          }
-          if (i == null) {
-            System.err.println("Warning: maps value " + si + " is not a " +
-              "valid integer and the maps pair (" + s + ", " + si + ") " +
-              "will be ignored");
-          }
-          else {
-            dnames.add(s);
-            rnames.add(i);
-          }
-        }
+        maps = convertStringToMaps(surplus, true);
       }
 
       // mapping ranges
@@ -1203,66 +1364,24 @@ public class BasicSSCell extends JPanel {
       waitForFormula();
     }
 
-    // set up mappings
-    if (dnames != null) {
-      int len = dnames.size();
+    // set up map ranges; then set maps
+    if (maps != null) {
       int lmin = mapMins == null ? -1 : mapMins.size();
       int lmax = mapMaxs == null ? -1 : mapMaxs.size();
       int cmin = 0, cmax = 0;
-      if (len > 0) {
-        // get Vector of all ScalarTypes in this data object
-        Vector types = new Vector();
-        Data data = getData();
-        if (data != null) getRealTypes(data, types);
-        int vLen = types.size();
-        int dLen = Display.DisplayRealArray.length;
-
-        // construct ScalarMaps
-        ScalarMap[] maps = new ScalarMap[len];
-        for (int j=0; j<len; j++) {
-          // find appropriate ScalarType
-          ScalarType mapDomain = null;
-          String name = (String) dnames.elementAt(j);
-          for (int k=0; k<vLen && mapDomain==null; k++) {
-            ScalarType type = (ScalarType) types.elementAt(k);
-            if (name.equals(type.getName())) mapDomain = type;
-          }
-          if (mapDomain == null) {
-            // still haven't found type; look in static Vector for it
-            mapDomain = ScalarType.getScalarTypeByName(name);
-          }
-
-          // find appropriate DisplayRealType
-          int q = ((Integer) rnames.elementAt(j)).intValue();
-          DisplayRealType mapRange = null;
-          if (q >= 0 && q < dLen) mapRange = Display.DisplayRealArray[q];
-
-          // construct mapping
-          if (mapDomain == null || mapRange == null) {
-            System.err.print("Warning: maps pair (" + name + ", " +
-              q + ") has an invalid ");
-            if (mapDomain == null && mapRange == null) {
-              System.err.print("domain and range");
-            }
-            else if (mapDomain == null) System.err.print("domain");
-            else System.err.print("range");
-            System.err.println(" and will be ignored");
-            maps[j] = null;
-          }
-          else {
-            // set map's minimum and maximum range value, if applicable
-            ScalarMap sm = new ScalarMap(mapDomain, mapRange);
-            boolean scale = sm.getScale(
-              new double[2], new double[2], new double[2]);
-            if (scale && cmin < lmin && cmax < lmax) {
-              sm.setRange(((Double) mapMins.elementAt(cmin++)).doubleValue(),
-                ((Double) mapMaxs.elementAt(cmax++)).doubleValue());
-            }
-            maps[j] = sm;
+      for (int j=0; j<maps.length; j++) {
+        if (maps[j] != null) {
+          // set map's minimum and maximum range value, if applicable
+          ScalarMap sm = maps[j];
+          boolean scale = sm.getScale(
+            new double[2], new double[2], new double[2]);
+          if (scale && cmin < lmin && cmax < lmax) {
+            sm.setRange(((Double) mapMins.elementAt(cmin++)).doubleValue(),
+              ((Double) mapMaxs.elementAt(cmax++)).doubleValue());
           }
         }
-        setMaps(maps);
       }
+      setMaps(maps);
     }
 
     // set up projection control
@@ -1392,19 +1511,7 @@ public class BasicSSCell extends JPanel {
         if (mvs > 0) {
           // add mappings to save string
           sb.append("maps =");
-          for (int i=0; i<mvs; i++) {
-            ScalarMap m = (ScalarMap) mapVector.elementAt(i);
-            ScalarType domain = m.getScalar();
-            DisplayRealType range = m.getDisplayScalar();
-            int q = -1;
-            for (int j=0; j<Display.DisplayRealArray.length; j++) {
-              if (range.equals(Display.DisplayRealArray[j])) q = j;
-            }
-            sb.append(' ');
-            sb.append(domain.getName());
-            sb.append(' ');
-            sb.append(q);
-          }
+          sb.append(convertMapsToString(mapVector));
           sb.append('\n');
 
           // add map ranges to save string
@@ -1536,34 +1643,11 @@ public class BasicSSCell extends JPanel {
 
     VisADException vexc = null;
     RemoteException rexc = null;
-    DataReference dr = getReference();
-    if (IsRemote) {
-      if (true) {
-        throw new UnimplementedException("Cannot setMaps " +
-          "on a cloned cell (yet).");
-      }
-      setVDPanel(false);
-      clearMaps();
-      for (int i=0; i<maps.length; i++) {
-        if (maps[i] != null) {
-          try {
-            RemoteVDisplay.addMap(maps[i]);
-          }
-          catch (VisADException exc) {
-            vexc = exc;
-          }
-          catch (RemoteException exc) {
-            rexc = exc;
-          }
-        }
-      }
-      RemoteVDisplay.addReference(dr);
-      constructDisplay();
-      setVDPanel(true);
-    }
+    if (IsRemote) synchMaps(maps);
     else {
-      clearMaps();
+      DataReference dr = getReference();
       VDisplay.disableAction();
+      clearMaps();
       for (int i=0; i<maps.length; i++) {
         if (maps[i] != null) {
           try {
@@ -1615,18 +1699,25 @@ public class BasicSSCell extends JPanel {
 
   /** clear this cell's mappings */
   public void clearMaps() throws VisADException, RemoteException {
+    if (IsRemote) clearMapsClone(true);
+    else if (hasMappings()) {
+      VDisplay.removeReference(DataRef);
+      VDisplay.clearMaps();
+      HasMappings = false;
+    }
+  }
+
+  private void clearMapsClone(boolean display)
+    throws VisADException, RemoteException
+  {
     if (hasMappings()) {
-      if (IsRemote) {
-        RemoteVDisplay.removeAllReferences();
-        RemoteVDisplay.clearMaps();
+      RemoteVDisplay.removeAllReferences();
+      RemoteVDisplay.clearMaps();
+      if (display) {
         setVDPanel(false);
         constructDisplay();
         VDPanel = (JPanel) VDisplay.getComponent();
         setVDPanel(true);
-      }
-      else {
-        VDisplay.removeReference(DataRef);
-        VDisplay.clearMaps();
       }
       HasMappings = false;
     }
@@ -1634,7 +1725,8 @@ public class BasicSSCell extends JPanel {
 
   /** clear this cell's display */
   public void clearDisplay() throws VisADException, RemoteException {
-    clearMaps();
+    if (IsRemote) clearMapsClone(false);
+    else clearMaps();
     setErrors(null);
     setVDPanel(false);
   }
@@ -1828,8 +1920,7 @@ public class BasicSSCell extends JPanel {
           errorCanvas = new JComponent() {
             public void paint(Graphics g) {
               g.setColor(Color.white);
-              g.drawString("This machine does not support 3-D " +
-                           "displays.", 8, 20);
+              g.drawString("This machine does not support Java3D.", 8, 20);
               g.drawString("Switch the dimension to 2-D (Java2D) to " +
                            "view this display.", 8, 35);
             }
@@ -2138,11 +2229,21 @@ public class BasicSSCell extends JPanel {
   /** return the data reference of this cell */
   public DataReference getReference() {
     if (IsRemote) {
-      Vector v = VDisplay.getLinks();
-      if (v == null || v.isEmpty()) return null;
-      DataDisplayLink ddli = (DataDisplayLink) v.elementAt(0);
-      ThingReference tr = ddli.getThingReference();
-      return (tr instanceof DataReference ? (DataReference) tr : null);
+      try {
+        Vector v = RemoteVDisplay.getReferenceLinks();
+        if (v == null || v.isEmpty()) return null;
+        RemoteReferenceLink rrli = (RemoteReferenceLink) v.elementAt(0);
+        RemoteDataReference rdr = rrli.getReference();
+        return rdr;
+      }
+      catch (VisADException exc) {
+        if (DEBUG) exc.printStackTrace();
+        return null;
+      }
+      catch (RemoteException exc) {
+        if (DEBUG) exc.printStackTrace();
+        return null;
+      }
     }
     else return DataRef;
   }
