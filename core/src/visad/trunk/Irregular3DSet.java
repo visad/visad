@@ -436,8 +436,8 @@ public class Irregular3DSet extends IrregularSet {
                   float[] fieldValues, float[][] color_values,
                   boolean[] swap) throws VisADException {
     if (ManifoldDimension != 2) {
-      throw new SetException("Irregular3DSet.makeIsoLines: " +
-                             "ManifoldDimension must be 2");
+      throw new DisplayException("Irregular3DSet.makeIsoLines: " +
+                                 "ManifoldDimension must be 2");
     }
 
 
@@ -666,8 +666,8 @@ public class Irregular3DSet extends IrregularSet {
          throws VisADException {
 
     if (ManifoldDimension != 3) {
-      throw new SetException("Irregular3DSet.main_isosurf: " +
-                             "ManifoldDimension must be 3");
+      throw new DisplayException("Irregular3DSet.main_isosurf: " +
+                                 "ManifoldDimension must be 3");
     }
 
     float[][] fieldVertices = new float[3][];
@@ -861,41 +861,41 @@ public class Irregular3DSet extends IrregularSet {
                               int[][][] vertToPoly) throws VisADException {
     boolean DEBUG = false;
     if (ManifoldDimension != 3) {
-      throw new SetException("Irregular3DSet.makeIsosurface: " +
-                             "ManifoldDimension must be 3");
+      throw new DisplayException("Irregular3DSet.makeIsosurface: " +
+                                 "ManifoldDimension must be 3");
     }
     if (fieldValues.length != Length) {
-      throw new SetException("Irregular3DSet.makeIsosurface: "
-                            +"fieldValues length does't match");
+      throw new DisplayException("Irregular3DSet.makeIsosurface: "
+                                 +"fieldValues length does't match");
     }
     if (Double.isNaN(isolevel)) {
-      throw new SetException("Irregular3DSet.makeIsosurface: "
-                            +"isolevel cannot be missing");
+      throw new DisplayException("Irregular3DSet.makeIsosurface: "
+                                 +"isolevel cannot be missing");
     }
     if (fieldVertices.length != 3 || polyToVert.length != 1
                                   || vertToPoly.length != 1) {
-      throw new SetException("Irregular3DSet.makeIsosurface: return value"
-                             + " arrays not correctly initialized " +
-                             fieldVertices.length + " " + polyToVert.length +
-                             " " + vertToPoly.length);
+      throw new DisplayException("Irregular3DSet.makeIsosurface: return value"
+                                 + " arrays not correctly initialized " +
+                                 fieldVertices.length + " " + polyToVert.length +
+                                 " " + vertToPoly.length);
     }
     int naux = (auxValues != null) ? auxValues.length : 0;
     if (naux > 0) {
       if (auxLevels == null || auxLevels.length != naux) {
-        throw new SetException("Irregular3DSet.makeIsosurface: "
-                              +"auxLevels length doesn't match");
+        throw new DisplayException("Irregular3DSet.makeIsosurface: "
+                                   +"auxLevels length doesn't match");
       }
       for (int i=0; i<naux; i++) {
         if (auxValues[i].length != Length) {
-          throw new SetException("Irregular3DSet.makeIsosurface: "
-                                +"auxValues lengths don't match");
+          throw new DisplayException("Irregular3DSet.makeIsosurface: "
+                                     +"auxValues lengths don't match");
         }
       }
     }
     else {
       if (auxLevels != null) {
-        throw new SetException("Irregular3DSet.makeIsosurface: "
-                              +"auxValues null but auxLevels not null");
+        throw new DisplayException("Irregular3DSet.makeIsosurface: "
+                                   +"auxValues null but auxLevels not null");
       }
     }
 

@@ -1386,8 +1386,8 @@ public class Gridded3DSet extends GriddedSet {
                   float[] fieldValues, float[][] color_values,
                   boolean[] swap) throws VisADException {
     if (ManifoldDimension != 2) {
-      throw new SetException("Gridded3DSet.makeIsoLines: " +
-                             "ManifoldDimension must be 2");
+      throw new DisplayException("Gridded3DSet.makeIsoLines: " +
+                                 "ManifoldDimension must be 2");
     }
 
     int nr = LengthX;
@@ -1924,8 +1924,8 @@ public class Gridded3DSet extends GriddedSet {
     int nvertex_estimate;
 
     if (ManifoldDimension != 3) {
-      throw new SetException("Gridded3DSet.makeIsoSurface: " +
-                             "ManifoldDimension must be 3");
+      throw new DisplayException("Gridded3DSet.makeIsoSurface: " +
+                                 "ManifoldDimension must be 3");
     }
 
     /* adapt isosurf algorithm to Gridded3DSet variables */

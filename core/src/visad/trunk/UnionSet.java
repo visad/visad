@@ -314,18 +314,18 @@ public class UnionSet extends SampledSet {
                       float[][] color_values, boolean[] swap)
          throws VisADException {
     if (DomainDimension != 3) {
-      throw new SetException("UnionSet.makeIsoLines: " +
-                             "DomainDimension must be 3");
+      throw new DisplayException("UnionSet.makeIsoLines: " +
+                                 "DomainDimension must be 3");
     }
     if (ManifoldDimension != 2) {
-      throw new SetException("UnionSet.makeIsoLines: " +
-                             "ManifoldDimension must be 2");
+      throw new DisplayException("UnionSet.makeIsoLines: " +
+                                 "ManifoldDimension must be 2");
     }
     int n = Sets.length;
     int dim = color_values.length;
     if (dim != DomainDimension) {
-      throw new SetException("UnionSet.makeIsoLines: " +
-                             "color_values bad dimension");
+      throw new DisplayException("UnionSet.makeIsoLines: " +
+                                 "color_values bad dimension");
     }
     VisADLineArray[][] arrays = new VisADLineArray[n][];
     int kbase = 0;
@@ -357,18 +357,18 @@ public class UnionSet extends SampledSet {
          float[] fieldValues, float[][] color_values)
          throws VisADException {
     if (DomainDimension != 3) {
-      throw new SetException("UnionSet.makeIsoSurface: " +
-                             "DomainDimension must be 3");
+      throw new DisplayException("UnionSet.makeIsoSurface: " +
+                                 "DomainDimension must be 3");
     }
     if (ManifoldDimension != 3) {
-      throw new SetException("UnionSet.makeIsoSurface: " +
-                             "ManifoldDimension must be 3");
+      throw new DisplayException("UnionSet.makeIsoSurface: " +
+                                 "ManifoldDimension must be 3");
     }
     int n = Sets.length;
     int dim = color_values.length;
     if (dim != DomainDimension) {
-      throw new SetException("UnionSet.makeIsoSurface: " +
-                             "color_values bad dimension");
+      throw new DisplayException("UnionSet.makeIsoSurface: " +
+                                 "color_values bad dimension");
     }
     VisADIndexedTriangleStripArray[] arrays =
       new VisADIndexedTriangleStripArray[n];
