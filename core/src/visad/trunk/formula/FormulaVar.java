@@ -196,20 +196,49 @@ public class FormulaVar extends ActionImpl {
   /** set the formula for this variable */
   void setFormula(String f) throws FormulaException {
     formula = f;
+    if (textRef != null) {
+      Text text = new Text(formula);
+      try {
+        textRef.setThing(text);
+      }
+      catch (VisADException exc) { }
+      catch (RemoteException exc) { }
+    }
     postfix = null;
     rebuildDependencies();
   }
 
-  /** references a Text object equal to this variable's formula */
+  /** reference to a Text object equal to this variable's formula */
   ThingReference textRef = null;
 
-  /** set the formula to be equal to a Text object referenced by tr */
-  void setFormula(ThingReference tr) throws VisADException, RemoteException {
+  /** cell for recomputing formula from referenced Text object */
+  Cell textCell = new CellImpl() {
+    public void doAction() {
+      boolean textChanged = false;
+      if (textRef != null) {
+        try {
+          Thing thing = textRef.getThing();
+          if (thing instanceof Text) {
+            Text t = (Text) thing;
+            String newForm = t.getValue();
+            if (!postfix.equals(newForm)) {
+              textChanged = true;
+              setFormula(newForm);
+            }
+          }
+        }
+        catch (VisADException exc) { }
+        catch (RemoteException exc) { }
+      }
+    }
+  };
+
+  /** set the formula to be dependent on a Text object referenced by tr */
+  void setTextRef(ThingReference tr) throws VisADException, RemoteException {
     if (textRef == tr) return;
-    if (textRef != null) removeReference(textRef);
+    if (textRef != null) textCell.removeReference(textRef);
     textRef = tr;
-    if (textRef != null) addReference(textRef);
-    doAction();
+    if (textRef != null) textCell.addReference(textRef);
   }
 
   /** set the Thing for this variable directly */
@@ -275,23 +304,7 @@ public class FormulaVar extends ActionImpl {
 
   /** recompute this variable */
   public void doAction() {
-    boolean textChanged = false;
-    if (textRef != null) {
-      try {
-        Thing thing = textRef.getThing();
-        if (thing instanceof Text) {
-          Text t = (Text) thing;
-          String newForm = t.getValue();
-          if (!postfix.equals(newForm)) {
-            textChanged = true;
-            setFormula(newForm);
-          }
-        }
-      }
-      catch (VisADException exc) { }
-      catch (RemoteException exc) { }
-    }
-    if (reallyDoIt && !textChanged) {
+    if (reallyDoIt) {
       try {
         tref.setThing(compute(postfix));
       }

@@ -213,14 +213,14 @@ public class FormulaManager {
     v.setFormula(formula);
   }
 
-  /** assign a formula to a variable based on a Text object referenced by
-      a ThingReference, so that the formula can be remotely updated */
-  public void assignFormula(String name, ThingReference textRef)
-                                         throws FormulaException,
-                                                VisADException,
-                                                RemoteException {
+  /** set a variable to auto-update its formula based on a Text object
+      referenced by a ThingReference (useful for remote formula updates) */
+  public void setTextRef(String name, ThingReference textRef)
+                                      throws FormulaException,
+                                             VisADException,
+                                             RemoteException {
     FormulaVar v = getVarByNameOrCreate(name);
-    v.setFormula(textRef);
+    v.setTextRef(textRef);
   }
 
   /** get the current list of errors that occurred when evaluating
