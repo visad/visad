@@ -29,6 +29,7 @@ package visad.cluster;
 import visad.*;
 import java.rmi.*;
 import java.rmi.server.UnicastRemoteObject;
+import java.io.Serializable;
 
 /**
    RemoteAgentContactImpl is the class for RemoteClientAgent 
@@ -37,7 +38,14 @@ import java.rmi.server.UnicastRemoteObject;
 public class RemoteAgentContactImpl extends UnicastRemoteObject
        implements RemoteAgentContact {
 
-  public RemoteAgentContactImpl() throws RemoteException {
+  NodeAgent agent;
+
+  public RemoteAgentContactImpl(NodeAgent ag) throws RemoteException {
+    agent = ag;
+  }
+
+  public void sendToNode(Serializable message) {
+    agent.sendToNode(message);
   }
 
 }

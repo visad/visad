@@ -54,6 +54,7 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
   boolean cluster = true;
 
   RemoteClientRendererAgentImpl[] agents = null;
+  RemoteAgentContact[] contacts = null;
 
   public ClientRendererJ3D () {
   }
@@ -67,6 +68,7 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
     if (Links != null && Links.length > 0) {
       link = Links[0];
 
+      // initialize rdisplay and cmaps if not already
       if (rdisplay == null) {
         display = getDisplay();
         rdisplay = new RemoteDisplayImpl(display);
@@ -78,8 +80,10 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
             cmaps[i] = (ConstantMap) cvector.elementAt(i);
           }
         }
+        cdr = (ClientDisplayRendererJ3D) display.getDisplayRenderer();
       }
 
+      // get the data
       try {
         data = link.getData();
       } catch (RemoteException re) {
@@ -90,29 +94,29 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
         }
         throw re;
       }
-  
       if (data == null) {
         addException(
           new DisplayException("Data is null: ClientRendererJ3D.doTransform"));
       }
   
+      // is this cluster data?
       cluster = (data instanceof RemoteClientDataImpl);
-      cdr = (ClientDisplayRendererJ3D) getDisplay().getDisplayRenderer();
-      cdr.setCluster(cluster);
 
       if (cluster && data != old_data) {
-        // send agents to nodes
+        // send agents to nodes if data changed
         RemoteClusterData[] jvmTable = ((RemoteClientDataImpl) data).getTable();
-        int nnodes = jvmTable.length - 1;
-        agents = new RemoteClientRendererAgentImpl[nnodes];
-        for (int i=0; i<nnodes; i++) {
+        int nagents = jvmTable.length - 1;
+        agents = new RemoteClientRendererAgentImpl[nagents];
+        contacts = new RemoteAgentContact[nagents];
+        for (int i=0; i<nagents; i++) {
           agents[i] = new RemoteClientRendererAgentImpl(this);
           DefaultNodeRendererAgent node_agent =
             new DefaultNodeRendererAgent(agents[i], rdisplay, cmaps);
-          ((RemoteNodeData) jvmTable[i]).sendAgent(node_agent);
+          contacts[i] = ((RemoteNodeData) jvmTable[i]).sendAgent(node_agent);
         }
       }
     }
+    // now do usual prepareAction()
     return super.prepareAction(go, initialize, shadow);
   }
 
@@ -161,18 +165,26 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
     link.clearData();
 */
 
-    // RendererJ3D.doAction is expecting a BranchGroup
-    // so fake it
-    BranchGroup fake_branch = new BranchGroup();
-    fake_branch.setCapability(BranchGroup.ALLOW_DETACH);
-    fake_branch.setCapability(Group.ALLOW_CHILDREN_READ);
-    fake_branch.setCapability(Group.ALLOW_CHILDREN_WRITE);
-    fake_branch.setCapability(Group.ALLOW_CHILDREN_EXTEND);
-    return fake_branch;
+    BranchGroup branch = new BranchGroup();
+    branch.setCapability(BranchGroup.ALLOW_DETACH);
+    branch.setCapability(Group.ALLOW_CHILDREN_READ);
+    branch.setCapability(Group.ALLOW_CHILDREN_WRITE);
+    branch.setCapability(Group.ALLOW_CHILDREN_EXTEND);
+    return branch;
   }
 
   public DataShadow computeRanges(Data data, ShadowType type, DataShadow shadow) 
          throws VisADException, RemoteException {
+    if (!cluster) {
+      return super.computeRanges(data, type, shadow);
+    }
+    int nagents = agents.length;
+    for (int i=0; i<nagents; i++) {
+      // note ShadowType and DataShadow are both Serializable
+      // message should really be (computeRanges, type, shadow)
+      contacts[i].sendToNode(null);
+    }
+
     if (shadow == null) {
       shadow =
         data.computeRanges(type, getDisplay().getScalarCount());

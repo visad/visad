@@ -28,12 +28,15 @@ package visad.cluster;
 
 import visad.*;
 import java.rmi.*;
+import java.io.Serializable;
 
 /**
    RemoteAgentContact is the interface for RemoteClientAgent
    to communicate to NodeAgent.<P>
 */
 public interface RemoteAgentContact extends Remote {
+
+  void sendToNode(Serializable message);
 
 }
 

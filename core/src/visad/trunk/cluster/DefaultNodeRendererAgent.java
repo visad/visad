@@ -58,6 +58,10 @@ public class DefaultNodeRendererAgent extends NodeAgent {
     cmaps = cms;
   }
 
+  public void sendToNode(Serializable me) {
+    message = me;
+  }
+
   public void run() {
     Object o = (RemoteNodeDataImpl) getObject();
     if (o == null || !(o instanceof RemoteNodeDataImpl)) {
@@ -97,7 +101,9 @@ public class DefaultNodeRendererAgent extends NodeAgent {
 
     Thread me = Thread.currentThread();
     while (getAgentThread() == me) {
-
+      Serializable message = getMessage();
+      if (message instanceof String &&
+          ((String) message).equals("stop")) return;
 
 
     }

@@ -49,8 +49,17 @@ public abstract class NodeAgent extends Object
   /** NodeAgent is Serializable, mark as transient */
   private transient Thread agentThread;
 
+  /** message from client, if non-null */
+  Serializable message = null;
+
   public NodeAgent(RemoteClientAgent s) {
     source = s;
+  }
+
+  // should only one NodeAgent of this class exist on a
+  // RemoteNodeDataImpl's agents Vector?
+  public boolean onlyOne() {
+    return true;
   }
 
   public Object getObject() {
@@ -59,6 +68,26 @@ public abstract class NodeAgent extends Object
 
   public Thread getAgentThread() {
     return agentThread;
+  }
+
+  // message from client
+  public synchronized void sendToNode(Serializable me) {
+    message = me;
+    notify();
+  }
+
+  // called from run() methods of sub-classes
+  public synchronized Serializable getMessage() {
+    while (message == null) {
+      try {
+        wait();
+      }
+      catch (InterruptedException e) {
+      }
+    }
+    Serializable me = message;
+    message = null;
+    return me;
   }
 
   public void sendToClient(Serializable message) {
@@ -76,7 +105,7 @@ public abstract class NodeAgent extends Object
     agentThread = new Thread(this);
     agentThread.start();
     try {
-      contact = new RemoteAgentContactImpl();
+      contact = new RemoteAgentContactImpl(this);
       return contact;
     }
     catch (RemoteException e) {
@@ -85,6 +114,7 @@ public abstract class NodeAgent extends Object
   }
 
   public void stop() {
+    sendToNode("stop");
     agentThread = null;
   }
 

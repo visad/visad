@@ -46,8 +46,6 @@ import java.util.*;
  */
 public class ClientDisplayRendererJ3D extends DefaultDisplayRendererJ3D {
 
-  private boolean cluster = true;
-
   /**
    * This is the <CODE>DisplayRenderer</CODE> used for cluster clients.
    */
@@ -61,36 +59,6 @@ public class ClientDisplayRendererJ3D extends DefaultDisplayRendererJ3D {
 
   public boolean legalDataRenderer(DataRenderer renderer) {
     return (renderer instanceof ClientRendererJ3D);
-  }
-
-  void setCluster(boolean cl) {
-    cluster = cl;
-  }
-
-  public void autoscale(Vector temp, Vector tmap, boolean go,
-                        boolean initialize) 
-         throws VisADException, RemoteException {
-
-    if (!cluster) super.autoscale(temp, tmap, go, initialize);
-
-    DataShadow shadow = null;
-    Enumeration renderers = temp.elements();
-    while (renderers.hasMoreElements()) {
-      DataRenderer renderer = (DataRenderer) renderers.nextElement();
-      shadow = renderer.prepareAction(go, initialize, shadow);
-    }
-
-    if (shadow != null) {
-      // apply RealType ranges and animationSampling
-      Enumeration maps = tmap.elements();
-      while(maps.hasMoreElements()) {
-        ScalarMap map = ((ScalarMap) maps.nextElement());
-        map.setRange(shadow);
-      }
-    }
-
-    ScalarMap.equalizeFlow(tmap, Display.DisplayFlow1Tuple);
-    ScalarMap.equalizeFlow(tmap, Display.DisplayFlow2Tuple);
   }
 
 }
