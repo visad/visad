@@ -33,7 +33,7 @@ import java.awt.event.*;
 import java.lang.*;
 import javax.swing.*;
 
-/** PrintAction is an ActionListener which is used to
+/** PrintActionListener is an ActionListener which is used to
 * print the contents of the VisAD DisplayImpl.  A
 * simple way to use this is:
 *
@@ -41,7 +41,7 @@ import javax.swing.*;
 *  DisplayImpl di = new DisplayImpl(...);
 *  ...
 *  JButton pb = new JButton("Print Me");
-*  pb.addActionListener(new PrintAction(di));
+*  pb.addActionListener(new PrintActionListener(di));
 *</pre>
 *
 */
