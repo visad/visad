@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.18 2000-06-05 18:46:50 steve Exp $
+ * $Id: NetcdfAdapter.java,v 1.19 2000-06-08 19:13:45 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -12,31 +12,35 @@ import java.io.IOException;
 import java.rmi.RemoteException;
 import ucar.netcdf.Netcdf;
 import ucar.netcdf.NetcdfFile;
-import visad.DataImpl;
-import visad.FieldImpl;
-import visad.VisADException;
+import visad.*;
 import visad.data.BadFormException;
-import visad.data.netcdf.QuantityDB;
-import visad.data.netcdf.QuantityDBImpl;
-import visad.data.netcdf.QuantityDBManager;
+import visad.data.netcdf.*;
 
 
 /**
  * The NetcdfAdapter class adapts a netCDF dataset to a VisAD API.  It is
  * useful for importing a netCDF dataset.
+ *
+ * @author Steven R. Emmerson
  */
 public class
 NetcdfAdapter
 {
-    /*
+    /**
+     * The name of the import-strategy property.
+     */
+    public static String	IMPORT_STRATEGY_PROPERTY =
+	"visad.data.netcdf.in.Strategy";
+
+    /**
      * The view of the netCDF datset.
      */
-    private final View		view;
+    private View	view;
 
-    /*
-     * The data-item consolidator for the netCDF dataset.
+    /**
+     * The top-level VisAD data object corresponding to the netCDF datset.
      */
-    private final Consolidator	consolidator;
+    private DataImpl	data;
 
 
     /**
@@ -55,69 +59,159 @@ NetcdfAdapter
     NetcdfAdapter(Netcdf netcdf, QuantityDB quantityDB)
 	throws VisADException, RemoteException, IOException, BadFormException
     {
-	this(new DefaultView(netcdf, quantityDB), new DefaultConsolidator());
+	this(new DefaultView(netcdf, quantityDB));
     }
 
 
     /**
-     * Constructs from a view of a netCDF dataset and a data-item
-     * consolidator.
+     * Constructs from a view of a netCDF dataset.
      *
      * @param view		The view of the netCDF dataset to be adapted.
-     * @param consolidator	The data-item consolidator.
-     * @throws VisADException	Problem in core VisAD.  Probably some VisAD
-     *				object couldn't be created.
-     * @throws RemoteException	Remote data access failure.
-     * @throws IOException	Data access I/O failure.
-     * @throws BadFormException	netCDF dataset doesn't conform to conventions
-     *				implicit in <code>view</code>.
      */
     public
-    NetcdfAdapter(View view, Consolidator consolidator)
-	throws VisADException, RemoteException, IOException, BadFormException
+    NetcdfAdapter(View view)
     {
 	this.view = view;
-	this.consolidator = consolidator;
-
-	VirtualDataIterator	iter = view.getVirtualDataIterator();
-
-	while (iter.hasNext())
-	    consolidator.add(iter.next());
     }
 
 
     /**
-     * Gets the VisAD data object corresponding to the netCDF dataset.
+     * Gets the VisAD data object corresponding to the netCDF dataset.  This
+     * is a potentially expensive method in either time or space.</p>
+     *
+     * <p>This method uses the Java property
+     * <code>IMPORT_STRATEGY_PROPERTY</code> to determine the strategy with
+     * which to import the netCDF dataset.  If the property is not set, then the
+     * default strategy of inner class <em>Strategy</em> is used.  Otherwise;
+     * the value of the property is used as a class name to instantiate the
+     * strategy for importing the netCDF dataset.
      *
      * @return			The top-level, VisAD data object in the netCDF
      *				dataset.
      * @throws VisADException	Problem in core VisAD.  Probably some VisAD
      *				object couldn't be created.
      * @throws IOException	Data access I/O failure.
+     * @throws BadFormException	netCDF dataset doesn't conform to conventions
+     *				implicit in constructing View.
+     * @throws OutOfMemoryError	Couldn't read netCDF dataset into memory.
+     * @see #IMPORT_STRATEGY_PROPERTY
+     * @see Strategy#getData
      */
     public DataImpl
     getData()
-	throws IOException, VisADException, RemoteException
+	throws IOException, VisADException, RemoteException, BadFormException,
+	    OutOfMemoryError
     {
-	return consolidator.getData();
+	if (data == null)
+	{
+	    String	strategyName =
+		System.getProperty(IMPORT_STRATEGY_PROPERTY);
+	    Strategy	strategy;
+
+	    try
+	    {
+		strategy =
+		    strategyName == null
+			? Strategy.instance()
+			: (Strategy)Class.forName(strategyName).getMethod(
+			    "instance", new Class[0])
+			    .invoke(null, new Object[0]);
+	    }
+	    catch (NoSuchMethodException e)
+	    {
+		throw new VisADException(
+		    getClass().getName() + ".getData(): " +
+		    "Import strategy \"" + strategyName + "\" doesn't have an "
+		    + "\"instance()\" method");
+	    }
+	    catch (ClassNotFoundException e)
+	    {
+		throw new VisADException(
+		    getClass().getName() + ".getData(): " +
+		    "Import strategy \"" + strategyName + "\" not found");
+	    }
+	    catch (IllegalAccessException e)
+	    {
+		throw new VisADException(
+		    getClass().getName() + ".getData(): " +
+		    "Permission to access import strategy \"" + strategyName +
+		    "\" denied");
+	    }
+	    catch (java.lang.reflect.InvocationTargetException e)
+	    {
+		throw new VisADException(
+                    getClass().getName() + ".getData(): Import strategy's \"" +
+                    strategyName + "\" \"instance()\" method threw exception: "
+		    + e.getMessage());
+	    }
+
+	    data = strategy.getData(this);
+	}
+
+	return data;
     }
 
 
     /**
-     * Gets a proxy for the VisAD data object corresponding to the
-     * netCDF dataset.
+     * Returns a proxy for the VisAD data object corresponding to the netCDF 
+     * dataset.  Because of the way import strategies are used, this just
+     * invokes the <em>getData()</em> method.
      *
-     * @return			The top-level, VisAD data object in the netCDF
-     *				dataset.
+     * @return			A proxy for the top-level, VisAD data object in
+     *				the netCDF dataset.
      * @throws VisADException	Problem in core VisAD.  Probably some VisAD
      *				object couldn't be created.
      * @throws IOException	Data access I/O failure.
+     * @throws BadFormException	netCDF dataset doesn't conform to conventions
+     *				implicit in constructing View.
+     * @throws OutOfMemoryError	Couldn't read netCDF dataset into memory.
+     * @see Strategy#getData
      */
     public DataImpl
     getProxy()
-	throws IOException, VisADException
+	throws IOException, VisADException, RemoteException, BadFormException,
+	    OutOfMemoryError
     {
-	return consolidator.getProxy();
+	return getData();
+    }
+
+
+    /**
+     * Returns the VisAD data object corresponding to the netCDF dataset.  This
+     * is a potentially expensive method in either time or space.  This method
+     * is designed to be used by a <em>Strategy</em>.
+     *
+     * @param view		The view of the netCDF dataset.
+     * @param merger		The object that merges the data objects in the
+     *				netCDF dataset.
+     * @param dataFactory	The factory that creates VisAD data objects from
+     *				virtual data objects.
+     * @return			The VisAD data object corresponding to the
+     *				netCDF dataset.
+     * @throws VisADException	Problem in core VisAD.  Probably some VisAD
+     *				object couldn't be created.
+     * @throws IOException	Data access I/O failure.
+     * @throws BadFormException	netCDF dataset doesn't conform to conventions
+     *				implicit in constructing View.
+     * @throws OutOfMemoryError	Couldn't read netCDF dataset into memory.
+     * @see Strategy
+     */
+    protected static DataImpl
+    importData(View view, Merger merger, DataFactory dataFactory)
+	throws IOException, VisADException, RemoteException, BadFormException,
+	    OutOfMemoryError
+    {
+	VirtualTuple	topTuple = new VirtualTuple();
+
+	for (VirtualDataIterator iter = view.getVirtualDataIterator();
+	    iter.hasNext(); )
+	{
+	    merger.merge(topTuple, iter.next());
+	}
+
+	topTuple.setDataFactory(dataFactory);
+
+	return topTuple.getData();
     }
 
 
@@ -130,18 +224,6 @@ NetcdfAdapter
     getView()
     {
 	return view;
-    }
-
-
-    /**
-     * Gets the netCDF dataset data-item consolidator.
-     *
-     * @return			The data-item consolidator.
-     */
-    protected Consolidator
-    getConsolidator()
-    {
-	return consolidator;
     }
 
 
@@ -168,8 +250,10 @@ NetcdfAdapter
 				    /*readonly=*/true);
 	    NetcdfAdapter	adapter =
 		new NetcdfAdapter(file, QuantityDBManager.instance());
-	    // Data		data = adapter.getProxy();
 	    DataImpl		data = adapter.getData();
+
+	    System.out.println("data.getClass().getName() = " +
+		data.getClass().getName());
 
 	    System.out.println("data.getType().prettyString():\n" +
 		data.getType().prettyString());
@@ -178,6 +262,133 @@ NetcdfAdapter
 	    // System.out.println("Data:\n" + data);
 	}
     }
+
+
+    /**
+     * Provides support for implementing strategies for importing netCDF
+     * datasets.
+     *
+     * @author Steven R. Emmerson
+     */
+    public static class Strategy
+    {
+	/**
+	 * The singleton instance of this class.
+	 */
+	private static Strategy	instance;
+
+
+	/**
+	 * Returns an instance of this class.
+	 *
+	 * @return			An instance of this class.
+	 */
+	public static Strategy instance()
+	{
+	    if (instance == null)
+	    {
+		synchronized(Strategy.class)
+		{
+		    if (instance == null)
+			instance = new Strategy();
+		}
+	    }
+	    return instance;
+	}
+
+
+	/**
+	 * Constructs from nothing.  Protected to ensure use of 
+	 * <code>instance()</code> method.
+	 *
+	 * @see #instance()
+	 */
+	protected Strategy()
+	{}
+
+
+	/**
+	 * Returns a VisAD data object corresponding to the netCDF dataset.
+	 * </p>
+	 *
+	 * <p>The following tactics are used, in order, to import the netCDF
+	 * dataset.  The first one to succeed determines the details of the
+	 * returned VisAD data object.
+	 * <nl>
+	 * <li>Attempt to import the entire dataset into memory;</li>
+	 * <li>Attempt to import the entire dataset into memory -- using
+	 * visad.data.FileFlatField-s wherever possible;</li>
+	 * <li>Attempt to import the entire dataset into memory -- using
+	 * visad.data.FileFlatField-s wherever possible and maximizing
+	 * their number.</li>
+	 * </nl>
+	 * Tactic #1 and #2 will yield VisAD data objects with identical
+	 * MathType-s.  Tactic #3 above can yield a VisAD data object with a 
+	 * different MathType than either #1 or #2 because multiple FlatField-s
+	 * with the same domain will not be consolidated.
+	 *
+	 * @param adapter		The netCDF-to-VisAD adapter.
+	 * @return			The top-level, VisAD data object in the
+	 *				netCDF dataset.
+	 * @throws VisADException	Problem in core VisAD.  Probably some
+	 *				VisAD object couldn't be created.
+	 * @throws IOException		Data access I/O failure.
+	 * @throws BadFormException	netCDF dataset doesn't conform to
+	 *				conventions implicit in constructing
+	 *				View.
+	 * @throws OutOfMemoryError	Couldn't import netCDF dataset into 
+	 *				memory.
+	 */
+	public DataImpl
+	getData(NetcdfAdapter adapter)
+	    throws IOException, VisADException, RemoteException,
+		BadFormException, OutOfMemoryError
+	{
+	    DataImpl	data;
+	    View	view = adapter.getView();
+	    Merger	merger = Merger.instance();		// default
+	    DataFactory	dataFactory = DataFactory.instance();	// default
+
+	    try
+	    {
+		data = adapter.importData(view, merger, dataFactory);
+	    }
+	    catch (OutOfMemoryError e1)
+	    {
+		System.err.println(
+		    getClass().getName() + ".getData(): " +
+		    "Couldn't import netCDF dataset into memory; " + 
+		    "Attempting to use FileFlatField-s");
+		try
+		{
+		    dataFactory = FileDataFactory.instance();
+
+		    data = adapter.importData(view, merger, dataFactory);
+		}
+		catch (OutOfMemoryError e2)
+		{
+		    System.err.println(
+			getClass().getName() + ".getData(): " +
+			"Couldn't import netCDF dataset into memory; " + 
+			"Attempting to maximize the number of FileFlatField-s");
+		    try
+		    {
+			merger = FlatMerger.instance();
+
+			data = adapter.importData(view, merger, dataFactory);
+		    }
+		    catch (OutOfMemoryError e3)
+		    {
+			System.err.println(
+			    getClass().getName() + ".getData(): " +
+			    "Couldn't import netCDF dataset into memory; " +
+			    "Giving up");
+			throw e3;
+		    }
+		}
+	    }
+
+	    return data;
+	}
+    }
 }
-
-

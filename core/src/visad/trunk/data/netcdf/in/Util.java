@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Util.java,v 1.6 2000-04-26 15:45:19 dglo Exp $
+ * $Id: Util.java,v 1.7 2000-06-08 19:13:45 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -82,7 +82,13 @@ Util
     /**
      * A cache of netCDF dimensions and their VisAD domain sets.
      */
-    private final Map			domainSetMap =
+    private final Map			dimToDomainSetMap =
+	Collections.synchronizedMap(new WeakHashMap());
+
+    /**
+     * A cache of ordered-sets of netCDF dimensions and their VisAD domain sets.
+     */
+    private final Map			dimSetToDomainSetMap =
 	Collections.synchronizedMap(new WeakHashMap());
 
     /**
@@ -639,39 +645,51 @@ Util
     getDomainSet(Dimension[] dims)
 	throws IOException, VisADException
     {
-	GriddedSet	set;
-	Gridded1DSet[]	sets = new Gridded1DSet[dims.length];
+	/*
+         * This implementation caches earlier results because this
+         * operation is potentially expensive and may be invoked many
+         * times for any given dimension.
+	 */
 
-	int	j = dims.length;
-	for (int i = 0; i < dims.length; ++i)
-	    sets[--j] = getDomainSet(dims[i]);	// reverse order
+	GriddedSet	set = (GriddedSet)dimSetToDomainSetMap.get(dims);
 
-	boolean	allInteger1DSets = true;
-
-	for (int i = 0; allInteger1DSets && i < sets.length; ++i)
-	    allInteger1DSets = sets[i] instanceof Integer1DSet;
-
-	MathType	type = getDomainType(dims);
-
-	if (allInteger1DSets)
+	if (set == null)
 	{
-	    set = (GriddedSet)getIntegerSet(sets, type);
-	}
-	else
-	{
-	    boolean	allLinear1DSets = true;
+	    Gridded1DSet[]	sets = new Gridded1DSet[dims.length];
 
-	    for (int i = 0; allLinear1DSets && i < sets.length; ++i)
-		allLinear1DSets = sets[i] instanceof Linear1DSet;
+	    int	j = dims.length;
+	    for (int i = 0; i < dims.length; ++i)
+		sets[--j] = getDomainSet(dims[i]);	// reverse order
 
-	    if (allLinear1DSets)
+	    boolean	allInteger1DSets = true;
+
+	    for (int i = 0; allInteger1DSets && i < sets.length; ++i)
+		allInteger1DSets = sets[i] instanceof Integer1DSet;
+
+	    MathType	type = getDomainType(dims);
+
+	    if (allInteger1DSets)
 	    {
-		set = (GriddedSet)getLinearSet(sets, type);
+		set = (GriddedSet)getIntegerSet(sets, type);
 	    }
 	    else
 	    {
-		set = getGriddedSet(sets, type);
+		boolean	allLinear1DSets = true;
+
+		for (int i = 0; allLinear1DSets && i < sets.length; ++i)
+		    allLinear1DSets = sets[i] instanceof Linear1DSet;
+
+		if (allLinear1DSets)
+		{
+		    set = (GriddedSet)getLinearSet(sets, type);
+		}
+		else
+		{
+		    set = getGriddedSet(sets, type);
+		}
 	    }
+
+	    dimSetToDomainSetMap.put(dims, set);
 	}
 
 	return set;
@@ -701,9 +719,9 @@ Util
 	 * The order of get() and containsKey() are reversed because the map
 	 * is a WeakHashMap.
 	 */
-	Gridded1DSet	set = (Gridded1DSet)domainSetMap.get(dim);
+	Gridded1DSet	set = (Gridded1DSet)dimToDomainSetMap.get(dim);
 
-	if (!domainSetMap.containsKey(dim))
+	if (!dimToDomainSetMap.containsKey(dim))
 	{
 	    Variable	coordVar = getCoordinateVariable(dim);
 
@@ -753,7 +771,7 @@ Util
 		}
 	    }
 
-	    domainSetMap.put(dim, set);
+	    dimToDomainSetMap.put(dim, set);
 	}
 
 	return set;

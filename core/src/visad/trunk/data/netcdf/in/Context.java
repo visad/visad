@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Context.java,v 1.1 1998-09-23 17:31:31 steve Exp $
+ * $Id: Context.java,v 1.2 2000-06-08 19:13:43 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -20,7 +20,7 @@ Context
     /**
      * The indexes of this context.
      */
-    private final int[]	indexes;
+    private int[]	indexes;
 
 
     /**
@@ -111,5 +111,19 @@ Context
 	buf.append("}");
 
 	return buf.toString();
+    }
+
+
+    /**
+     * Returns a clone of this instance.
+     *
+     * @return			A clone of this instance.
+     */
+    public Object clone()
+    {
+	Context	clone = new Context();
+
+	clone.indexes = (int[])indexes.clone();
+	return clone;
     }
 }

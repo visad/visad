@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DefaultView.java,v 1.4 2000-04-26 15:45:17 dglo Exp $
+ * $Id: DefaultView.java,v 1.5 2000-06-08 19:13:44 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -313,10 +313,11 @@ DefaultView
 
 
 	/**
-	 * Gets the next virtual VisAD data object.
+	 * Returns a clone of the next virtual VisAD data object.
 	 *
-	 * @return			The next virtual VisAD data object or
-	 *				<code> null</code> if there is none.
+         * @return                      A clone of the next virtual VisAD data
+         *                              object or <code> null</code> if there is
+         *                              none.
 	 * @throws VisADException	Couldn't create necessary VisAD object.
 	 */
 	protected VirtualData

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: VirtualDataIterator.java,v 1.2 2000-04-26 15:45:20 dglo Exp $
+ * $Id: VirtualDataIterator.java,v 1.3 2000-06-08 19:13:45 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -66,7 +66,8 @@ VirtualDataIterator
 
 
     /**
-     * Gets the next virtual VisAD data object.
+     * Gets the next virtual VisAD data object.  The next object will be either
+     * a VirtualScalar, a VirtualField, or a VirtualFlatField.
      *
      * @return			The next virtual VisAD data object.
      * @throws BadFormException	Non-conforming netCDF dataset.
@@ -90,10 +91,10 @@ VirtualDataIterator
 
 
     /**
-     * Gets the next virtual VisAD data object.  This method must be
+     * Gets a clone of the next virtual VisAD data object.  This method must be
      * overridden in subclasses.
      *
-     * @return			The next virtual VisAD data object or
+     * @return			A clone of the next virtual VisAD data object or
      *				<code>null</code> if there is none.
      * @throws VisADException	Couldn't create necessary VisAD object.
      */
