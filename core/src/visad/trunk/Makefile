@@ -208,9 +208,9 @@ SAVE_FILES = \
 	visad/data/vis5d/*.java				\
 	visad/data/gif/*.java				\
 	visad/data/text/*.java				\
-	visad/data/text/example1.txt				\
-	visad/data/text/example2.csv				\
-	visad/data/text/README.text				\
+	visad/data/text/example1.txt			\
+	visad/data/text/example2.csv			\
+	visad/data/text/README.text			\
 	ij/*.java					\
 	ij/gui/*.java					\
 	ij/io/*.java					\
