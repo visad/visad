@@ -82,7 +82,6 @@ public class OrthonormalCoordinateSystem extends CoordinateSystem {
     double[][] vals = new double[3][len];
     for (int i=0; i<len; i++) {
       for (int j=0; j<3; j++) {
-        double q = values[j][i];
         vals[j][i] = u[j] * values[0][i] +
           v[j] * values[1][i] +
           w[j] * values[2][i];
@@ -103,7 +102,11 @@ public class OrthonormalCoordinateSystem extends CoordinateSystem {
     double[][] vals = new double[3][len];
     double[] origin = {0, 0, 0};
     for (int i=0; i<len; i++) {
-      // use BioUtil.project(double[], double[], double[])
+      double[] pt = {values[0][i], values[1][i], values[2][i]};
+      double[] q = {BioUtil.project(origin, u, pt)[0],
+        BioUtil.project(origin, v, pt)[1],
+        BioUtil.project(origin, w, pt)[2]};
+      for (int j=0; j<3; j++) vals[j][i] = q[j];
     }
     return vals;
   }

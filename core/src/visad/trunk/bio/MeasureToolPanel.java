@@ -45,6 +45,18 @@ public class MeasureToolPanel extends ToolPanel {
 
   // -- CONSTANTS --
 
+  /** Standard flag for standalone measurements. */
+  public static final int STD_SINGLE = 0;
+
+  /**
+   * Standard flag for measurements distributed
+   * across all slices of all timesteps.
+   */
+  public static final int STD_2D = 1;
+
+  /** Standard flag for measurements distributed across all timesteps. */
+  public static final int STD_3D = 2;
+
   /** List of colors for drop-down color box. */
   private static final Color[] COLORS = {
     Color.white, Color.red, Color.orange, Color.green,
@@ -75,7 +87,7 @@ public class MeasureToolPanel extends ToolPanel {
   private CellImpl cell;
 
   /** Flag marking whether to ignore next set standard checkbox toggle. */
-  private boolean ignoreNextStandard = false;
+  private boolean ignoreStandard = false;
 
   /** Flag marking whether to ignore group list changes. */
   private boolean ignoreGroup = false;
@@ -113,8 +125,17 @@ public class MeasureToolPanel extends ToolPanel {
   /** Label for displaying measurement distance. */
   private JLabel measureDist;
 
-  /** Button for distributing measurement object through all focal planes. */
-  private JCheckBox setStandard;
+  /** Button for standalone measurement (this focal plane/timestep only). */
+  private JRadioButton single;
+
+  /**
+   * Button for distributing measurement through
+   * all focal planes of all timesteps.
+   */
+  private JRadioButton standard2D;
+
+  /** Button for distributing measurement through all timesteps. */
+  private JRadioButton standard3D;
 
   /** Button for removing objects. */
   private JButton removeSelected;
@@ -188,6 +209,21 @@ public class MeasureToolPanel extends ToolPanel {
     merge.setToolTipText("Allows for merging multiple measurement endpoints");
     merge.setEnabled(false);
     p.add(merge);
+    p.add(Box.createHorizontalStrut(5));
+
+    // remove button
+    removeSelected = new JButton("Remove");
+    removeSelected.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        bio.mm.getList().removeSelected();
+        bio.state.saveState();
+        updateSelection();
+      }
+    });
+    removeSelected.setMnemonic('r');
+    removeSelected.setToolTipText("Removes the selected measurements");
+    removeSelected.setEnabled(false);
+    p.add(removeSelected);
     p.add(Box.createHorizontalStrut(5));
 
     // clear all measurements button
@@ -271,53 +307,85 @@ public class MeasureToolPanel extends ToolPanel {
       public void doAction() { updateMeasureInfo(); }
     };
 
-    // set standard button
+    // single measurement button
+    ButtonGroup group = new ButtonGroup();
     p = new JPanel();
     p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
-    setStandard = new JCheckBox("Set standard");
-    setStandard.addItemListener(new ItemListener() {
+    single = new JRadioButton("Single", true);
+    single.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
-        if (ignoreNextStandard) {
-          ignoreNextStandard = false;
+        if (!single.isSelected()) return;
+        if (ignoreStandard) {
+          ignoreStandard = false;
           return;
         }
-        boolean std = setStandard.isSelected();
-        if (!std) {
-          int ans = JOptionPane.showConfirmDialog(tool,
-            "Are you sure?", "Unset standard", JOptionPane.YES_NO_OPTION,
-            JOptionPane.QUESTION_MESSAGE);
-          if (ans != JOptionPane.YES_OPTION) {
-            ignoreNextStandard = true;
-            setStandard.setSelected(true);
-            return;
-          }
+        int ans = JOptionPane.showConfirmDialog(tool,
+          "Are you sure?", "Unset standard", JOptionPane.YES_NO_OPTION,
+          JOptionPane.QUESTION_MESSAGE);
+        if (ans != JOptionPane.YES_OPTION) {
+          ignoreStandard = true;
+          // CTR - TODO - reset proper standard type
+          standard2D.setSelected(true);
+          return;
         }
         MeasureThing[] things = bio.mm.pool2.getSelection();
-        for (int i=0; i<things.length; i++) doStandard(things[i], std);
+        for (int i=0; i<things.length; i++) doStandard(things[i], STD_SINGLE);
         bio.mm.changed = true;
         bio.state.saveState();
       }
     });
-    setStandard.setMnemonic('s');
-    setStandard.setToolTipText("Distributes the current " +
-      "measurement across all slices");
-    setStandard.setEnabled(false);
-    p.add(setStandard);
+    group.add(single);
+    single.setMnemonic('s');
+    single.setToolTipText("Sets selected measurements " +
+      "to this slice & timestep only");
+    single.setEnabled(false);
+    p.add(single);
     p.add(Box.createHorizontalStrut(5));
 
-    // remove button
-    removeSelected = new JButton("Remove");
-    removeSelected.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        bio.mm.getList().removeSelected();
+    // 2-D standard button
+    standard2D = new JRadioButton("2-D standard");
+    standard2D.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        if (!standard2D.isSelected()) return;
+        if (ignoreStandard) {
+          ignoreStandard = false;
+          return;
+        }
+        MeasureThing[] things = bio.mm.pool2.getSelection();
+        for (int i=0; i<things.length; i++) doStandard(things[i], STD_2D);
+        bio.mm.changed = true;
         bio.state.saveState();
-        updateSelection();
       }
     });
-    removeSelected.setMnemonic('r');
-    removeSelected.setToolTipText("Removes the selected measurements");
-    removeSelected.setEnabled(false);
-    p.add(removeSelected);
+    group.add(standard2D);
+    standard2D.setMnemonic('2');
+    standard2D.setToolTipText("Distributes selected " +
+      "measurements across all slices & timesteps");
+    standard2D.setEnabled(false);
+    p.add(standard2D);
+    p.add(Box.createHorizontalStrut(5));
+
+    // 3-D standard button
+    standard3D = new JRadioButton("3-D standard");
+    standard3D.addItemListener(new ItemListener() {
+      public void itemStateChanged(ItemEvent e) {
+        if (!standard3D.isSelected()) return;
+        if (ignoreStandard) {
+          ignoreStandard = false;
+          return;
+        }
+        MeasureThing[] things = bio.mm.pool2.getSelection();
+        for (int i=0; i<things.length; i++) doStandard(things[i], STD_3D);
+        bio.mm.changed = true;
+        bio.state.saveState();
+      }
+    });
+    group.add(standard3D);
+    standard3D.setMnemonic('3');
+    standard3D.setToolTipText("Distributes selected " +
+      "measurements across all slices & timesteps");
+    standard3D.setEnabled(false);
+    p.add(standard3D);
     controls.add(pad(p));
     controls.add(Box.createVerticalStrut(5));
 
@@ -469,13 +537,19 @@ public class MeasureToolPanel extends ToolPanel {
   /** Enables or disables the "set standard" checkbox. */
   public void setStandardEnabled(boolean enabled) {
     stdEnabled = enabled;
-    setStandard.setEnabled(bio.mm.pool2.hasSelection() && enabled);
+    boolean b = bio.mm.pool2.hasSelection() && enabled;
+    single.setEnabled(b);
+    standard2D.setEnabled(b);
+    //standard3D.setEnabled(b);
   }
 
   /** Updates the selection data to match the current measurement list. */
   public void updateSelection() {
     boolean enabled = bio.mm.pool2.hasSelection();
-    setStandard.setEnabled(enabled && stdEnabled);
+    boolean b = enabled && stdEnabled;
+    single.setEnabled(b);
+    standard2D.setEnabled(b);
+    //standard3D.setEnabled(b);
     updateRemove();
     colorLabel.setEnabled(enabled);
     colorList.setEnabled(enabled);
@@ -486,9 +560,9 @@ public class MeasureToolPanel extends ToolPanel {
     descriptionBox.setEnabled(enabled);
     if (enabled) {
       boolean std = bio.mm.pool2.isSelectionStandard();
-      if (setStandard.isSelected() != std) {
-        ignoreNextStandard = true;
-        setStandard.setSelected(std);
+      if (standard2D.isSelected() != std) {
+        ignoreStandard = true;
+        standard2D.setSelected(std);
       }
       Color c = bio.mm.pool2.getSelectionColor();
       if (colorList.getSelectedItem() != c) colorList.setSelectedItem(c);
@@ -619,35 +693,11 @@ public class MeasureToolPanel extends ToolPanel {
   }
 
   /** Sets or unsets the given measurement as standard. */
-  private void doStandard(MeasureThing thing, boolean std) {
+  private void doStandard(MeasureThing thing, int std) {
     boolean isLine = thing instanceof MeasureLine;
     int index = bio.sm.getIndex();
     int slice = bio.sm.getSlice();
-    if (std) {
-      // set standard
-      if (thing.stdId != -1) {
-        // line already standard; skip it
-        return;
-      }
-      thing.setStdId(maxId++);
-      int numSlices = bio.sm.getNumberOfSlices();
-      for (int j=0; j<bio.mm.lists.length; j++) {
-        MeasureList list = bio.mm.lists[j];
-        boolean update = j == index;
-        for (int i=0; i<numSlices; i++) {
-          if (j == index && i == slice) continue;
-          if (isLine) {
-            MeasureLine line = new MeasureLine((MeasureLine) thing, i);
-            list.addLine(line, update);
-          }
-          else {
-            MeasurePoint point = new MeasurePoint((MeasurePoint) thing, i);
-            list.addMarker(point, update);
-          }
-        }
-      }
-    }
-    else {
+    if (std == STD_SINGLE) {
       // unset standard
       if (thing.stdId == -1) {
         // line not standard; skip it
@@ -673,6 +723,33 @@ public class MeasureToolPanel extends ToolPanel {
           else k++;
         }
       }
+    }
+    else if (std == STD_2D) {
+      // set standard
+      if (thing.stdId != -1) {
+        // line already standard; skip it
+        return;
+      }
+      thing.setStdId(maxId++);
+      int numSlices = bio.sm.getNumberOfSlices();
+      for (int j=0; j<bio.mm.lists.length; j++) {
+        MeasureList list = bio.mm.lists[j];
+        boolean update = j == index;
+        for (int i=0; i<numSlices; i++) {
+          if (j == index && i == slice) continue;
+          if (isLine) {
+            MeasureLine line = new MeasureLine((MeasureLine) thing, i);
+            list.addLine(line, update);
+          }
+          else {
+            MeasurePoint point = new MeasurePoint((MeasurePoint) thing, i);
+            list.addMarker(point, update);
+          }
+        }
+      }
+    }
+    else if (std == STD_3D) {
+      // CTR - TODO - 3-D standard
     }
     updateRemove();
   }

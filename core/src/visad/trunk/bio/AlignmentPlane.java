@@ -68,6 +68,9 @@ public class AlignmentPlane extends PlaneSelector {
   /** Position of plane selector for each timestep. */
   protected double[][][] pos;
 
+  /** Associated coordinate system for each timestep. */
+  protected CoordinateSystem[] coord;
+
   /** Current timestep value. */
   protected int index;
 
@@ -86,6 +89,7 @@ public class AlignmentPlane extends PlaneSelector {
     bio = biovis;
     numIndices = bio.sm.getNumberOfIndices();
     pos = new double[numIndices][3][3];
+    coord = new CoordinateSystem[numIndices];
     mode = OFF_MODE;
   }
 
@@ -120,8 +124,14 @@ public class AlignmentPlane extends PlaneSelector {
    * to its location at the given destination index.
    */
   public double[] transform(double[] pt, int ndx1, int ndx2) {
-    double[] v = new double[3];
-    // CTR START HERE
+    double[][] d = {{pt[0]}, {pt[1]}, {pt[2]}};
+    try {
+      if (coord[ndx1] == null) doCoordSys(ndx1);
+      if (coord[ndx2] == null) doCoordSys(ndx2);
+      double[][] q = coord[ndx2].fromReference(coord[ndx1].toReference(d));
+      return new double[] {q[0][0], q[1][0], q[2][0]};
+    }
+    catch (VisADException exc) { }
     return null;
   }
 
@@ -284,14 +294,15 @@ public class AlignmentPlane extends PlaneSelector {
     boolean equal = true;
     for (int j=0; j<3; j++) {
       v[j] = m[j] * vals[j];
-      if (!Util.isApproximatelyEqual(pos[index][i][j], v[j], 0.0001)) {
-        equal = false;
-      }
+      if (!Util.isApproximatelyEqual(pos[index][i][j], v[j])) equal = false;
     }
     if (equal) return;
     int startIndex = mode == ADJUST_MODE ? index : 0;
     for (int ndx=startIndex; ndx<numIndices; ndx++) {
-      for (int j=0; j<3; j++) pos[ndx][i][j] = v[j];
+      for (int j=0; j<3; j++) {
+        pos[ndx][i][j] = v[j];
+        coord[ndx] = null;
+      }
     }
   }
 
@@ -316,6 +327,17 @@ public class AlignmentPlane extends PlaneSelector {
       m[2] = 1.0 / bio.sm.getNumberOfSlices();
     }
     return m;
+  }
+
+  /** Constructs coordinate system from alignment plane orientation. */
+  protected void doCoordSys(int ndx) throws VisADException {
+    double[] v1 = new double[3];
+    double[] v2 = new double[3];
+    for (int i=0; i<3; i++) {
+      v1[i] = pos[ndx][1][i] - pos[ndx][0][i];
+      v2[i] = pos[ndx][2][i] - pos[ndx][0][i];
+    }
+    coord[ndx] = new OrthonormalCoordinateSystem(v1, v2);
   }
 
 }
