@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: VirtualField.java,v 1.3 2000-06-08 19:13:46 steve Exp $
+ * $Id: VirtualField.java,v 1.4 2001-01-08 17:12:59 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -33,7 +33,7 @@ VirtualField
     /**
      * The range tuple of this field.
      */
-    private final VirtualTuple	rangeTuple;
+    private final VirtualTuple  rangeTuple;
 
 
     /**
