@@ -1692,6 +1692,7 @@ public class BasicSSCell extends JPanel
           cmaps[i] = cellData.getConstantMaps();
         }
       }
+      String save = getPartialSaveString();
       VDisplay.disableAction();
       clearMaps();
       for (int i=0; i<maps.length; i++) {
@@ -1733,6 +1734,7 @@ public class BasicSSCell extends JPanel
         }
       }
       VDisplay.enableAction();
+      setPartialSaveString(save, true);
     }
     HasMappings = true;
     if (vexc != null) throw vexc;
@@ -2048,8 +2050,30 @@ public class BasicSSCell extends JPanel
     sb.append(Dim);
     sb.append('\n');
 
+    // add mapping and control information to save string
+    sb.append(getPartialSaveString());
+
+    return sb.toString();
+  }
+
+  /**
+   * Reconstructs this cell using the specified save string.
+   */
+  public void setSaveString(String save)
+    throws VisADException, RemoteException
+  {
+    setPartialSaveString(save, false);
+  }
+
+  /**
+   * Gets a string for reconstructing ScalarMap range
+   * and Control information.
+   */
+  protected String getPartialSaveString() {
+    StringBuffer sb = new StringBuffer();
+    Vector mapVector = null;
     if (hasMappings()) {
-      Vector mapVector = VDisplay.getMapVector();
+      mapVector = VDisplay.getMapVector();
       int mvs = mapVector.size();
       if (mvs > 0) {
         // add mappings to save string
@@ -2164,9 +2188,9 @@ public class BasicSSCell extends JPanel
   }
 
   /**
-   * Reconstructs this cell using the specified save string.
+   * Reconstructs parts of this cell using the specified save string.
    */
-  public void setSaveString(String save)
+  protected void setPartialSaveString(String save, boolean preserveMaps)
     throws VisADException, RemoteException
   {
     // make sure cell is not remote
@@ -2406,56 +2430,91 @@ public class BasicSSCell extends JPanel
       }
     }
 
-    // clear old stuff from cell
-    clearCell();
-
-    // set up dimension
-    setDimension(dim);
-
-    // set up data objects
-    int ilen = ids.size();
-    int slen = sources.size();
-    int tlen = types.size();
-    if (ilen != slen || ilen != tlen) {
-      warn("some data object entries are corrupt and will be ignored");
-    }
-    int len = ilen < slen && ilen < tlen ? ilen : (slen < tlen ? slen : tlen);
-    setDisplayEnabled(false);
-    for (int i=0; i<len; i++) {
-      int id = ((Integer) ids.elementAt(i)).intValue();
-      String source = (String) sources.elementAt(i);
-      int type = ((Integer) types.elementAt(i)).intValue();
-      addDataSource(id, source, type, true);
-    }
-    waitForData();
-
-    // set up map ranges; then set maps
-    maps = DataUtility.convertStringToMaps(mapString, getData(), true);
-    if (maps != null) {
-      int lmin = mapMins == null ? -1 : mapMins.size();
-      int lmax = mapMaxs == null ? -1 : mapMaxs.size();
-      int cmin = 0, cmax = 0;
-      for (int j=0; j<maps.length; j++) {
-        if (maps[j] != null) {
-          // set map's minimum and maximum range value, if applicable
-          ScalarMap sm = maps[j];
-          boolean scale = sm.getScale(
-            new double[2], new double[2], new double[2]);
-          if (scale && cmin < lmin && cmax < lmax) {
-            sm.setRange(((Double) mapMins.elementAt(cmin++)).doubleValue(),
-              ((Double) mapMaxs.elementAt(cmax++)).doubleValue());
+    if (preserveMaps) {
+      // detect which maps are the same and set appropriate ranges
+      maps = DataUtility.convertStringToMaps(mapString, getData(), true);
+      if (maps != null) {
+        int lmin = mapMins == null ? -1 : mapMins.size();
+        int lmax = mapMaxs == null ? -1 : mapMaxs.size();
+        int cmin = 0, cmax = 0;
+        Vector mapVector = VDisplay.getMapVector();
+        for (int j=0; j<maps.length; j++) {
+          if (maps[j] != null) {
+            // detect whether map needs a range
+            boolean scale = maps[j].getScale(
+              new double[2], new double[2], new double[2]);
+            if (scale && cmin < lmin && cmax < lmax) {
+              // find map in current display vector
+              int mapIndex = mapVector.indexOf(maps[j]);
+              if (mapIndex >= 0) {
+                // set map's minimum and maximum range values
+                ScalarMap map = (ScalarMap) mapVector.elementAt(mapIndex);
+                map.setRange(
+                  ((Double) mapMins.elementAt(cmin++)).doubleValue(),
+                  ((Double) mapMaxs.elementAt(cmax++)).doubleValue());
+              }
+              else {
+                // skip current minimum and maximum range values
+                cmin++;
+                cmax++;
+              }
+            }
           }
         }
       }
-      setMaps(maps);
     }
-    setDisplayEnabled(true);
+    else {
+      // clear old stuff from cell
+      clearCell();
+
+      // set up dimension
+      setDimension(dim);
+
+      // set up data objects
+      int ilen = ids.size();
+      int slen = sources.size();
+      int tlen = types.size();
+      if (ilen != slen || ilen != tlen) {
+        warn("some data object entries are corrupt and will be ignored");
+      }
+      int len = ilen < slen && ilen < tlen ? ilen : (slen < tlen ? slen : tlen);
+      setDisplayEnabled(false);
+      for (int i=0; i<len; i++) {
+        int id = ((Integer) ids.elementAt(i)).intValue();
+        String source = (String) sources.elementAt(i);
+        int type = ((Integer) types.elementAt(i)).intValue();
+        addDataSource(id, source, type, true);
+      }
+      waitForData();
+
+      // set up map ranges; then set maps
+      maps = DataUtility.convertStringToMaps(mapString, getData(), true);
+      if (maps != null) {
+        int lmin = mapMins == null ? -1 : mapMins.size();
+        int lmax = mapMaxs == null ? -1 : mapMaxs.size();
+        int cmin = 0, cmax = 0;
+        for (int j=0; j<maps.length; j++) {
+          if (maps[j] != null) {
+            // set map's minimum and maximum range value, if applicable
+            ScalarMap sm = maps[j];
+            boolean scale = sm.getScale(
+              new double[2], new double[2], new double[2]);
+            if (scale && cmin < lmin && cmax < lmax) {
+              sm.setRange(((Double) mapMins.elementAt(cmin++)).doubleValue(),
+                ((Double) mapMaxs.elementAt(cmax++)).doubleValue());
+            }
+          }
+        }
+        setMaps(maps);
+      }
+      setDisplayEnabled(true);
+    }
 
     // set up projection control
     if (proj != null) {
       ProjectionControl pc = VDisplay.getProjectionControl();
       if (pc != null) pc.setSaveString(proj);
-      else warn("display has no ProjectionControl; " +
+      else if (!preserveMaps) warn("display has no ProjectionControl; " +
         "the provided projection matrix will be ignored");
     }
 
@@ -2463,20 +2522,20 @@ public class BasicSSCell extends JPanel
     if (mode != null) {
       GraphicsModeControl gmc = VDisplay.getGraphicsModeControl();
       if (gmc != null) gmc.setSaveString(mode);
-      else warn("display has no GraphicsModeControl; " +
+      else if (!preserveMaps) warn("display has no GraphicsModeControl; " +
         "the provided graphics mode settings will be ignored");
     }
 
     // set up color control(s)
-    len = color.size();
+    int len = color.size();
     if (len > 0) {
       for (int i=0; i<len; i++) {
         String s = (String) color.elementAt(i);
         ColorControl cc = (ColorControl)
           VDisplay.getControl(ColorControl.class, i);
         if (cc != null) cc.setSaveString(s);
-        else warn("display has no ColorControl #" + (i + 1) + "; " +
-          "the provided color table will be ignored");
+        else if (!preserveMaps) warn("display has no ColorControl #" +
+          (i + 1) + "; " + "the provided color table will be ignored");
       }
     }
 
@@ -2488,8 +2547,8 @@ public class BasicSSCell extends JPanel
         ContourControl cc = (ContourControl)
           VDisplay.getControl(ContourControl.class, i);
         if (cc != null) cc.setSaveString(s);
-        else warn("display has no ContourControl #" + (i + 1) + "; " +
-          "the provided contour settings will be ignored");
+        else if (!preserveMaps) warn("display has no ContourControl #" +
+          (i + 1) + "; " + "the provided contour settings will be ignored");
       }
     }
 
@@ -2501,8 +2560,8 @@ public class BasicSSCell extends JPanel
         RangeControl rc = (RangeControl)
           VDisplay.getControl(RangeControl.class, i);
         if (rc != null) rc.setSaveString(s);
-        else warn("display has no RangeControl #" + (i + 1) + "; " +
-          "the provided range will be ignored");
+        else if (!preserveMaps) warn("display has no RangeControl #" +
+          (i + 1) + "; " + "the provided range will be ignored");
       }
     }
 
@@ -2527,8 +2586,8 @@ public class BasicSSCell extends JPanel
           }
           ac.setSaveString(s);
         }
-        else warn("display has no AnimationControl #" + (i + 1) + "; " +
-          "the provided animation settings will be ignored");
+        else if (!preserveMaps) warn("display has no AnimationControl #" +
+          (i + 1) + "; " + "the provided animation settings will be ignored");
       }
     }
 
@@ -2540,8 +2599,8 @@ public class BasicSSCell extends JPanel
         ValueControl vc = (ValueControl)
           VDisplay.getControl(ValueControl.class, i);
         if (vc != null) vc.setSaveString(s);
-        else warn("display has no ValueControl #" + (i + 1) + "; " +
-          "the provided value will be ignored");
+        else if (!preserveMaps) warn("display has no ValueControl #" +
+          (i + 1) + "; " + "the provided value will be ignored");
       }
     }
   }
