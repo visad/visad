@@ -165,6 +165,10 @@ also need to support FileFlatFields
 only needed for testing client and nodes in same JVM
 BUT, dglo should make this waitForTasks() more precise
 */
+/*
+possible deadlock in ThreadPool, if all running ActionImpls
+are waiting for other ActionImpls to run
+*/
 
 /* VisAD Data Model on various file formats
 

@@ -29,6 +29,8 @@ package visad.cluster;
 import visad.*;
 import visad.java3d.*;
 import visad.java2d.*;
+import visad.util.*;
+import visad.collab.DisplayMonitor;
 
 import javax.media.j3d.*;
 
@@ -137,6 +139,12 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
       return super.doTransform();
     }
 
+    DisplayMonitor dm = display.getDisplayMonitor();
+    while (!dm.isEmpty()) {
+      System.out.println("wait for DisplayMonitor");
+      new Delay(10);
+    }
+
     String message = "transform";
     // responses are VisADGroups
     Serializable[] responses =
@@ -164,7 +172,6 @@ System.out.println("ClientRendererJ3D.doTransform messages received");
       branch.addChild(convertSceneGraph(vsgo));
     }
     if (n == 0) ShadowTypeJ3D.ensureNotEmpty(branch, display);
-
     return branch;
   }
 

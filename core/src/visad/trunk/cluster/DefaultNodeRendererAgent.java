@@ -150,7 +150,7 @@ System.out.println("DefaultNodeRendererAgent.run trigger " +
       }
       if (response == null) response = "error";
       sendToClient(response);
-    }
+    } // end while (getAgentThread() == me)
   }
 
 }

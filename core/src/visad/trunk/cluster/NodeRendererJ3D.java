@@ -109,6 +109,12 @@ System.out.println("NodeRendererJ3D.enableTransform");
   /** create a VisADGroup scene graph for Data in links[0] */
   public BranchGroup doTransform() throws VisADException, RemoteException {
 System.out.println("NodeRendererJ3D.doTransform enter");
+
+/*
+should wait until all collab events are quiet
+especially ScalarMapEvent.AUTO_SCALE
+*/
+
     // RendererJ3D.doAction is expecting a BranchGroup
     // so fake it
     BranchGroup fake_branch = new BranchGroup();
