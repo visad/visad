@@ -75,8 +75,6 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     if (data.isMissing()) return false;
     if (getLevelOfDifficulty() == NOTHING_MAPPED) return false;
 
-    boolean sequence = ((ImageRendererJ3D) renderer).getSequence();
-
     ShadowFunctionOrSetType adaptedShadowType =
       (ShadowFunctionOrSetType) getAdaptedShadowType();
     DisplayImpl display = getDisplay();
@@ -114,6 +112,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       }
     }
 
+    // analyze data's domain (its a Field)
     Set domain_set = ((Field) data).getDomainSet();
     Unit[] dataUnits = ((Function) data).getDomainUnits();
     CoordinateSystem dataCoordinateSystem =
@@ -136,7 +135,12 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     // ShadowRealTypes of Domain
     ShadowRealType[] DomainComponents = adaptedShadowType.getDomainComponents();
 
+    // check whether this ShadowImageFunctionTypeJ3D is for an
+    // image (terminal - no recursive calls to doTransform) or an
+    // image sequence (non-terminal - recursive calls to doTransform
+    // for each image in the sequence
     if (adaptedShadowType.getIsTerminal()) {
+      // terminal, so this is an image
 
 // System.out.println("start colors " + (System.currentTimeMillis() - link.start_time));
 
@@ -151,7 +155,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         throw new BadMappingException("image values must be mapped to RGB");
       }
 
-      // build texture colors in color_ints
+      // build texture colors in color_ints array
       ColorControl control = (ColorControl) cmap.getControl();
       float[][] table = control.getTable();
       byte[][] bytes = null;
@@ -252,11 +256,12 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           values = null; // take out the garbage
         }
       }
-      else {
+      else { // if (table == null)
         // slower, more general way to build texture colors
         bytes = null; // take out the garbage
         float[][] values = ((Field) data).getFloats(false);
         values[0] = cmap.scaleValues(values[0]);
+        // call lookupValues which will use function since table == null
         float[][] color_values = control.lookupValues(values[0]);
         // combine color RGB components into ints
         int r, g, b, a = 255;
@@ -343,6 +348,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         // get domain_set sizes
         data_width = X.getLength();
         data_height = Y.getLength();
+        // texture sizes must be powers of two
         texture_width = textureWidth(data_width);
         texture_height = textureHeight(data_height);
    
@@ -351,6 +357,8 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           throw new DisplayException("texture domain dimension != 2:" +
                                      "ShadowFunctionOrSetType.doTransform");
         }
+
+        // find the spatial ScalarMaps
         for (int i=0; i<DomainComponents.length; i++) {
           Enumeration maps = DomainComponents[i].getSelectedMapVector().elements();
           ScalarMap map = (ScalarMap) maps.nextElement();
@@ -379,11 +387,13 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         for (int i=0; i<valueArrayLength; i++) {
           if (inherited_values[i] > 0 &&
               real.equals(display.getDisplayScalar(valueToScalar[i])) ) {
+            // value for unmapped spatial dimension
             value2 = value_array[i];
             break;
           }
         }
    
+        // create VisADQuadArray that texture is mapped onto
         coordinates = new float[12];
         // corner 0
         coordinates[tuple_index[0]] = limits[0][0];
@@ -458,11 +468,13 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
 // System.out.println("start createImage " + (System.currentTimeMillis() - link.start_time));
 
+        // create BufferedImage for texture from color_ints
         BufferedImage image = createImage(data_width, data_height, texture_width,
                                           texture_height, color_ints);
 
 // System.out.println("start textureToGroup " + (System.currentTimeMillis() - link.start_time));
 
+        // add texture as sub-node of group in scene graph
         textureToGroup(group, qarray, image, mode, 1.0f, null,
                        texture_width, texture_height);
 
@@ -473,18 +485,22 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
 // System.out.println("start curved texture " + (System.currentTimeMillis() - link.start_time));
 
+        // get domain_set sizes
         int[] lengths = ((GriddedSet) domain_set).getLengths();
         data_width = lengths[0];
         data_height = lengths[1];
+        // texture sizes must be powers of two
         texture_width = textureWidth(data_width);
         texture_height = textureHeight(data_height);
-   
+
+        // compute size of triangle array to mapped texture onto
         int size = (data_width + data_height) / 2;
         curved_size = Math.max(2, Math.min(curved_size, size / 32));
    
         int nwidth = 2 + (data_width - 1) / curved_size;
         int nheight = 2 + (data_height - 1) / curved_size;
   
+        // compute locations of triangle vertices in texture
         int nn = nwidth * nheight;
         int[] is = new int[nwidth];
         int[] js = new int[nheight];
@@ -495,6 +511,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           js[j] = Math.min(j * curved_size, data_height - 1);
         }
 
+        // get spatial coordinates at triangle vertices
         int[] indices = new int[nn];
         int k=0;
         for (int j=0; j<nheight; j++) {
@@ -503,10 +520,10 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
             k++;
           }
         }
-
         float[][] spline_domain = domain_set.indexToValue(indices);
         spline_domain = Unit.convertTuple(spline_domain, dataUnits, domain_units);
 
+        // transform for any CoordinateSystem in data (Field) Domain
         ShadowRealTupleType domain_reference = Domain.getReference();
 
         ShadowRealType[] DC = DomainComponents;
@@ -681,19 +698,23 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           }
         }
 
+        // do surgery to remove any missing spatial coordinates in texture
         if (!spatial_all_select) {
           tarray = (VisADTriangleStripArray) tarray.removeMissing();
         }
 
+        // do surgery along any longitude split (e.g., date line) in texture
         tarray = (VisADTriangleStripArray) tarray.adjustLongitude(renderer);
 
 // System.out.println("start createImage " + (System.currentTimeMillis() - link.start_time));
-
+ 
+        // create BufferedImage for texture from color_ints
         BufferedImage image = createImage(data_width, data_height, texture_width,
                                           texture_height, color_ints);
 
 // System.out.println("start textureToGroup " + (System.currentTimeMillis() - link.start_time));
 
+        // add texture as sub-node of group in scene graph
         textureToGroup(group, tarray, image, mode, 1.0f, null,
                        texture_width, texture_height);
 
@@ -724,7 +745,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       double[] old_times = null;
       boolean[] old_mark = null;
       int old_len = 0;
-      boolean reuse = ((ImageRendererJ3D) renderer).getAndClearReUseFrames();
+      boolean reuse = ((ImageRendererJ3D) renderer).getReUseFrames();
       if (((BranchGroup) group).numChildren() > 0) {
         Node g = ((BranchGroup) group).getChild(0);
         if (g instanceof Switch) {
@@ -810,7 +831,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       // make sure group is live
       ((ImageRendererJ3D) renderer).setBranchEarly((BranchGroup) group);
       // change animation sampling, but don't trigger re-transform
-      if (((ImageRendererJ3D) renderer).getAndClearReUseFrames()) {
+      if (((ImageRendererJ3D) renderer).getReUseFrames()) {
         control.setSet(domain_set, true);
       }
 

@@ -44,7 +44,8 @@ import javax.swing.*;
    ImageRendererJ3D is the VisAD class for fast loading of images
    and image sequences under Java3D.
 
-   WARNING - this DataREnderer makes assumptions:
+   WARNING - when reUseFrames is true during doTransform()
+   this DataREnderer makes these assumptions:
    1. That the images in a new time sequence are identical to
    any images at the same time in a previous sequence.
    2. That the image sequence defines the entire animation
@@ -54,7 +55,6 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
 
   private MathType image_sequence_type, image_type;
   private MathType image_sequence_type2, image_type2;
-  private boolean sequence;
 
   private boolean reUseFrames = false;
 
@@ -81,15 +81,11 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
     return new ShadowImageFunctionTypeJ3D(type, link, parent);
   }
 
-  public boolean getSequence() {
-    return sequence;
-  }
-
   public void setReUseFrames() {
     reUseFrames = true;
   }
 
-  public boolean getAndClearReUseFrames() {
+  public boolean getReUseFrames() {
     return reUseFrames;
   }
 
@@ -119,14 +115,14 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
         new DisplayException("Data is null: DefaultRendererJ3D.doTransform"));
     }
     else {
+      // check MathType of non-nul data, to make sure it is a single-band
+      // image or a sequence of single-band images
       MathType mtype = link.getType();
       if (image_sequence_type.equalsExceptName(mtype) ||
           image_sequence_type2.equalsExceptName(mtype)) {
-        sequence = true;
       }
       else if (image_type.equalsExceptName(mtype) ||
                image_type2.equalsExceptName(mtype)) {
-        sequence = false;
       }
       else {
         reUseFrames = false;
@@ -142,7 +138,9 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
     return branch;
   }
 
-  // type 'java visad.bom.ImageRendererJ3D' to run this test
+  /** render three image frames for times = 0, 1, 2, wait
+      ten seconds, then change to times = 1, 2, 3
+      type 'java visad.bom.ImageRendererJ3D' to run this test */
   public static void main(String args[])
          throws VisADException, RemoteException, IOException {
 
