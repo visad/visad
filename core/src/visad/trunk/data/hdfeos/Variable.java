@@ -33,24 +33,22 @@ package visad.data.hdfeos;
     DimensionSet  dimSet;
 
 
-    Variable( String name, DimensionSet set, int rank, int type ) 
+    Variable( String name, DimensionSet dimSet, int rank, int type ) 
+            throws HdfeosException
     {
-  
-       if ( set.getSize() != rank ) 
-       {
-         /* throw Exception:  problem with DimensionSet size */
-       }
+      if ( dimSet.getSize() != rank )
+      {
+        throw new HdfeosException(" rank and DimensionSet length don't match");
+      }
  
-
-       this.name = name;
-       this.dimSet = set;
-       this.type = type;
-       this.rank = rank;
+      this.name = name;
+      this.dimSet = dimSet;
+      this.type = type;
+      this.rank = rank;
     }
 
     public String getName() 
     {
-
       String name = this.name;
       return name;
     }
@@ -62,7 +60,6 @@ package visad.data.hdfeos;
 
     public boolean equals( Variable obj ) 
     {
-
       if( this.name.equals( obj.getName()) ) {
 
          return true;
@@ -81,7 +78,6 @@ package visad.data.hdfeos;
     public NamedDimension getDim( int ii )
     {
        return dimSet.getElement( ii );
-
     }
 
     public int getNumberType()
@@ -89,12 +85,11 @@ package visad.data.hdfeos;
        return this.type;
     }
 
-    public String toString()  {
-
+    public String toString() 
+    {
        String str = "Variable:  "+name+"\n"+
                     "    rank:  "+rank+"\n"+
                     "    type:  "+type+"\n"+"  "+dimSet.toString()+"\n";
        return str;
     }
-
   }
