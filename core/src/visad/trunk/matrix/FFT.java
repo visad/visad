@@ -28,7 +28,17 @@ MA 02111-1307, USA
 package visad.matrix;
 
 import visad.*;
+import visad.util.*;
+import visad.data.mcidas.*;
+import visad.java3d.*;
+import visad.bom.*;
+
 import java.rmi.*;
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+import javax.swing.border.*;
+import java.io.IOException;
 
 /**
  FFT is the VisAD class for Fourier Transforms, using
@@ -37,6 +47,22 @@ import java.rmi.*;
 */
 
 public class FFT {
+
+  /** invoke in SpreadSheet by:
+      link(visad.matrix.FFT.forwardFT(A1))
+  */
+  public static FlatField forwardFT(Data[] datums)
+         throws VisADException, RemoteException {
+    return fourierTransform((Field) datums[0], true);
+  }
+
+  /** invoke in SpreadSheet by:
+      link(visad.matrix.FFT.forwardFT(A1))
+  */
+  public static FlatField backwardFT(Data[] datums)
+         throws VisADException, RemoteException {
+    return fourierTransform((Field) datums[0], false);
+  }
 
   /** compute Fourier Transform of field */
   public static FlatField fourierTransform(Field field, boolean forward)
@@ -567,6 +593,23 @@ public class FFT {
     int n = 16;
     int rows = 1, cols = 1;
     boolean twod = false;
+
+/*
+    if (args.length > 0 && args[0].startsWith("AREA")) {
+      DisplayImpl display1 = new DisplayImplJ3D("display");
+      DisplayImpl display1 = new DisplayImplJ3D("display");
+      AreaAdapter areaAdapter = new AreaAdapter(args[0]);
+      Data image = areaAdapter.getData();
+      FunctionType imageFunctionType = (FunctionType) image.getType();
+      RealType radianceType = (RealType)
+        ((RealTupleType) imageFunctionType.getRange()).getComponent(0);
+      display.addMap(new ScalarMap(RealType.Latitude, Display.Latitude));
+      display.addMap(new ScalarMap(RealType.Longitude, Display.Longitude));
+      ScalarMap rgbMap = new ScalarMap(radianceType, Display.RGB);
+      display.addMap(rgbMap);
+
+    }
+*/
 
     if (args.length > 0) n = Integer.valueOf(args[0]).intValue();
     if (args.length > 1) {
