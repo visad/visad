@@ -385,7 +385,7 @@ def drawString(display, string, point, color=None, center=0, font="futural",
                  start=[0.,0.,0.], base=[.1,0.,0.], up=[0.,.1,0.],size=None ):
 
   textfs = textShape(string, center, font, start, base, up, size)
-  i = py_shapes.addShape(None, color=color, shape=textfs)
+  i = py_shapes.addShape(textfs, color=color)
   py_shapes.moveShape(i, point)
 
   return py_shapes 
