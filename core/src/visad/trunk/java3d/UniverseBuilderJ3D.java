@@ -92,7 +92,7 @@ public class UniverseBuilderJ3D extends Object {
     }
 
     public void addBranchGraph(BranchGroup bg) {
-        locale.addBranchGraph(bg);
+      if (locale != null) locale.addBranchGraph(bg);
     }
 
     public void destroy() {
@@ -108,5 +108,14 @@ public class UniverseBuilderJ3D extends Object {
             throw new RuntimeException("Assertion failure: " + ex);
         }
       }
+
+      canvas = null;
+      universe = null;
+      locale = null;
+      vpTrans = null;
+      view = null;
+      vpRoot = null;
+      vp = null;
     }
 }
+

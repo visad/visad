@@ -71,7 +71,10 @@ public class DisplayPanelJ3D extends JPanel {
   public void destroy() {
     display = null;
     renderer = null;
-    if (universe != null) universe.destroy();
+    if (universe != null) {
+      universe.destroy();
+      universe = null;
+    }
   }
 
 }

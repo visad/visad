@@ -1424,6 +1424,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     RmtSrcListeners.removeAllElements();
     MessageListeners.removeAllElements();
     ListenerVector.removeAllElements();
+    Slaves.removeAllElements();
     displayRenderer = null; // this disables most DisplayImpl methods
     component = null;
     mouse = null;
@@ -1432,7 +1433,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     displayActivity = null;
     printer = null;
     rd = null;
-    Slaves = null;
     widgetPanel = null;
   }
 
