@@ -115,6 +115,7 @@ public class DisplayTupleType extends RealTupleType {
       for (int i=0; i<n; i++) {
         Unit u = types[i].getDefaultUnit();
         if (u != null && Unit.canConvert(CommonUnit.degree, u)) {
+// System.out.println(types[i] + " unit " + u);
           double[][] test = new double[n][3];
           for (int j=0; j<n; j++) {
             if (j == i) {
@@ -128,6 +129,7 @@ public class DisplayTupleType extends RealTupleType {
               test[j][2] = defaults[j];
             }
           }
+// System.out.println(test[i][0] + " " + test[i][1] + " " + test[i][2]);
           double[][] tt = coord_sys.toReference(test);
           double diff180 = Math.sqrt(
             (tt[0][1] - tt[0][0]) * (tt[0][1] - tt[0][0]) +
@@ -138,6 +140,8 @@ public class DisplayTupleType extends RealTupleType {
             (tt[1][2] - tt[1][0]) * (tt[1][2] - tt[1][0]) +
             (tt[2][2] - tt[2][0]) * (tt[2][2] - tt[2][0]));
           if (diff360 < 0.01 * diff180) circulars[i] = true;
+// System.out.println("diff180 = " + diff180 + " diff360 = " + diff360 +
+//                    " " + circulars[i]);
         } // end if (u != null && Unit.canConvert(CommonUnit.degree, u))
       } // end for (int i=0; i<n; i++)
     }
