@@ -200,6 +200,18 @@ public class FormulaVar extends ActionImpl {
     rebuildDependencies();
   }
 
+  /** references a Text object equal to this variable's formula */
+  ThingReference textRef = null;
+
+  /** set the formula to be equal to a Text object referenced by tr */
+  void setFormula(ThingReference tr) throws VisADException, RemoteException {
+    if (textRef == tr) return;
+    if (textRef != null) removeReference(textRef);
+    textRef = tr;
+    if (textRef != null) addReference(textRef);
+    doAction();
+  }
+
   /** set the Thing for this variable directly */
   void setThing(Thing t) throws VisADException, RemoteException {
     if (tref.getThing() == t) return;
@@ -263,7 +275,23 @@ public class FormulaVar extends ActionImpl {
 
   /** recompute this variable */
   public void doAction() {
-    if (reallyDoIt) {
+    boolean textChanged = false;
+    if (textRef != null) {
+      try {
+        Thing thing = textRef.getThing();
+        if (thing instanceof Text) {
+          Text t = (Text) thing;
+          String newForm = t.getValue();
+          if (!postfix.equals(newForm)) {
+            textChanged = true;
+            setFormula(newForm);
+          }
+        }
+      }
+      catch (VisADException exc) { }
+      catch (RemoteException exc) { }
+    }
+    if (reallyDoIt && !textChanged) {
       try {
         tref.setThing(compute(postfix));
       }
