@@ -1242,11 +1242,23 @@ System.out.println(" " + newcoords[i] + " " + newcoords[i+1] + " " +
   }
 
   public void setBounds(int x, int y, int width, int height) {
+    if (width < 0 || height < 0) return;
     super.setBounds(x, y, width, height);
     if (autoAspect) {
       ProjectionControl pc = display.getProjectionControl();
       try {
-        pc.setAspect(new double[] {1.0, (double) height / width});
+        // WLH 28 Nov 2000
+        // pc.setAspect(new double[] {1.0, (double) height / width});
+        double a, b;
+        if (height > width) {
+          a = 1.0;
+          b = (double) (height / width);
+        }
+        else {
+          a = (double) (width / height);
+          b = 1.0;
+        }
+        pc.setAspect2(new double[] {a, b});
       }
       catch (VisADException exc) { }
       catch (RemoteException exc) { }
