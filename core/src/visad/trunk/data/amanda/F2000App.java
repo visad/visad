@@ -51,7 +51,7 @@ import visad.ShapeControl;
 import visad.Tuple;
 import visad.VisADException;
 
-import visad.data.amanda.F2000Form;
+import visad.data.amanda.AmandaFile;
 import visad.data.amanda.F2000Util;
 
 import visad.java3d.DisplayImplJ3D;
@@ -96,17 +96,17 @@ class DisplayMaps
 {
   ScalarMap trackmap, shapemap, letmap;
 
-  DisplayMaps(F2000Form form, Display display)
+  DisplayMaps(AmandaFile file, Display display)
     throws RemoteException, VisADException
   {
     // compute x, y and z ranges with unity aspect ratios
-    final double xrange = form.getXMax() - form.getXMin();
-    final double yrange = form.getYMax() - form.getYMin();
-    final double zrange = form.getZMax() - form.getZMin();
+    final double xrange = file.getXMax() - file.getXMin();
+    final double yrange = file.getYMax() - file.getYMin();
+    final double zrange = file.getZMax() - file.getZMin();
     final double half_range = -0.5 * Math.max(xrange, Math.max(yrange, zrange));
-    final double xmid = 0.5 * (form.getXMax() + form.getXMin());
-    final double ymid = 0.5 * (form.getYMax() + form.getYMin());
-    final double zmid = 0.5 * (form.getZMax() + form.getZMin());
+    final double xmid = 0.5 * (file.getXMax() + file.getXMin());
+    final double ymid = 0.5 * (file.getYMax() + file.getYMin());
+    final double zmid = 0.5 * (file.getZMax() + file.getZMin());
     final double xmin = xmid - half_range;
     final double xmax = xmid + half_range;
     final double ymin = ymid - half_range;
@@ -114,37 +114,40 @@ class DisplayMaps
     final double zmin = zmid - half_range;
     final double zmax = zmid + half_range;
 
-    ScalarMap xmap = new ScalarMap(form.getX(), Display.XAxis);
+    ScalarMap xmap = new ScalarMap(AmandaFile.getXType(), Display.XAxis);
     display.addMap(xmap);
     xmap.setRange(xmin, xmax);
 
-    ScalarMap ymap = new ScalarMap(form.getY(), Display.YAxis);
+    ScalarMap ymap = new ScalarMap(AmandaFile.getYType(), Display.YAxis);
     display.addMap(ymap);
     ymap.setRange(ymin, ymax);
 
-    ScalarMap zmap = new ScalarMap(form.getZ(), Display.ZAxis);
+    ScalarMap zmap = new ScalarMap(AmandaFile.getZType(), Display.ZAxis);
     display.addMap(zmap);
     zmap.setRange(zmin, zmax);
 
-    // ScalarMap eventmap = new ScalarMap(form.getEventIndex(),
+    // ScalarMap eventmap = new ScalarMap(file.getEventIndex(),
     //                                    Display.SelectValue);
     // display.addMap(eventmap);
 
-    this.trackmap = new ScalarMap(form.getTrackIndex(), Display.SelectValue);
+    this.trackmap = new ScalarMap(AmandaFile.getTrackIndexType(),
+                                  Display.SelectValue);
     display.addMap(this.trackmap);
 
     // ScalarMap energymap = new ScalarMap(energy, Display.RGB);
     // display.addMap(energymap);
 
-    this.shapemap = new ScalarMap(form.getAmplitude(), Display.Shape);
+    this.shapemap = new ScalarMap(AmandaFile.getAmplitudeType(),
+                                  Display.Shape);
     display.addMap(this.shapemap);
 
-    ScalarMap shape_scalemap = new ScalarMap(form.getAmplitude(),
+    ScalarMap shape_scalemap = new ScalarMap(AmandaFile.getAmplitudeType(),
                                              Display.ShapeScale);
     display.addMap(shape_scalemap);
     shape_scalemap.setRange(-20.0, 50.0);
 
-    this.letmap = new ScalarMap(form.getLet(), Display.RGB);
+    this.letmap = new ScalarMap(AmandaFile.getLeadEdgeTimeType(),
+                                Display.RGB);
     display.addMap(this.letmap);
   }
 }
@@ -159,28 +162,27 @@ public class F2000App
   {
     if (args == null || args.length != 1) {
       System.out.println("to test read an F2000 file, run:");
-      System.out.println("  'java visad.amanda.F2000Form in_file'");
+      System.out.println("  'java F2000App in_file'");
       System.exit(1);
       return;
     }
 
-    F2000Form form = new F2000Form();
-    Data temp = null;
+    AmandaFile file;
     if (args[0].startsWith("http://")) {
       // with "ftp://" this throws "sun.net.ftp.FtpProtocolException: RETR ..."
-      URL url = new URL(args[0]);
-      temp = form.open(url);
+      file = new AmandaFile(new URL(args[0]));
+    } else {
+      file = new AmandaFile(args[0]);
     }
-    else {
-      temp = form.open(args[0]);
-    }
+
+    Data temp = file.makeData();
 
     final FieldImpl amanda = (FieldImpl) ((Tuple) temp).getComponent(0);
     final FieldImpl modules = (FieldImpl) ((Tuple) temp).getComponent(1);
 
     DisplayImpl display = new DisplayImplJ3D("amanda");
 
-    DisplayMaps maps = new DisplayMaps(form, display);
+    DisplayMaps maps = new DisplayMaps(file, display);
 
     // GraphicsModeControl mode = display.getGraphicsModeControl();
     // mode.setScaleEnable(true);
@@ -188,7 +190,7 @@ public class F2000App
     displayRenderer.setBoxOn(false);
 
     ShapeControl scontrol = (ShapeControl) maps.shapemap.getControl();
-    scontrol.setShapeSet(new Integer1DSet(form.getAmplitude(), 1));
+    scontrol.setShapeSet(new Integer1DSet(AmandaFile.getAmplitudeType(), 1));
     scontrol.setShapes(F2000Util.getCubeArray());
 
     final int nevents = amanda.getLength();
@@ -240,7 +242,7 @@ System.out.println("amanda MathType\n" + amanda.getType());
 
     VisADSlider event_slider = new VisADSlider("event", 0, nevents - 1,
                                                0, 1.0, event_ref,
-                                               form.getEventIndex());
+                                               AmandaFile.getEventIndexType());
 
     JPanel widget_panel = new JPanel();
     widget_panel.setLayout(new BoxLayout(widget_panel, BoxLayout.Y_AXIS));
