@@ -170,39 +170,40 @@ public class PointDataAdapter {
       for (int j = 0; j < numParams; j++)
       {
         if (types[j] instanceof TextType) {
-        try
-        {
-          scalars[j] = 
-              new Text( (TextType) types[j], 
-                       McIDASUtil.intBitsToString(data[j][i]));
-        }
-        catch (VisADException ex) {;} // shouldn't happen
-      } 
-      else
-      {
-          double value =
-              data[j][i] == McIDASUtil.MCMISSING
-                ? Double.NaN
-                : data[j][i]/Math.pow(10.0, 
-                    (double) scalingFactors[j] );
           try
           {
-            scalars[j] =
-              new Real(
-                  (RealType) types[j], value, defaultUnits[j]);
-          } catch (VisADException excp) {  // units problem
-             scalars[j] = new Real((RealType) types[j], value);
+            scalars[j] = 
+                new Text( (TextType) types[j], 
+                         McIDASUtil.intBitsToString(data[j][i]));
           }
+          catch (VisADException ex) {;} // shouldn't happen
+        } 
+        else
+        {
+            double value =
+                data[j][i] == McIDASUtil.MCMISSING
+                  ? Double.NaN
+                  : data[j][i]/Math.pow(10.0, 
+                      (double) scalingFactors[j] );
+            try
+            {
+              scalars[j] =
+                new Real(
+                    (RealType) types[j], value, defaultUnits[j]);
+            } catch (VisADException excp) {  // units problem
+               scalars[j] = new Real((RealType) types[j], value);
+            }
+        }
       }
-    }
-    try
-    {
-      field.setSample(i, (noText == true)
-                             ? new RealTuple((Real[]) scalars)
-                             : new Tuple(scalars));
-    }
-    catch (VisADException e) {e.printStackTrace();} 
-    catch (java.rmi.RemoteException e) {;}
+      try
+      {
+        Data sample = (noText == true)
+                               ? new RealTuple((Real[]) scalars)
+                               : new Tuple(scalars,false);
+        field.setSample(i, sample, false);  // don't make copy
+      }
+      catch (VisADException e) {e.printStackTrace();} 
+      catch (java.rmi.RemoteException e) {;}
     }
   }
 
@@ -256,13 +257,10 @@ public class PointDataAdapter {
     RealType type = null;
     if (name.equalsIgnoreCase("lat")) {
       type = RealType.Latitude;
-      //type.alias(name);
     } else if (name.equalsIgnoreCase("lon")) {
       type = RealType.Longitude;
-      //type.alias(name);
     } else if (name.equalsIgnoreCase("z")) {
       type = RealType.Altitude;
-      //type.alias(name);
     } else {
       type = RealType.getRealType(name, unit);
       if (type == null) {
