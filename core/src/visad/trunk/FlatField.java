@@ -2434,32 +2434,44 @@ public class FlatField extends FieldImpl {
   /**
    * Ensure that numeric values and units are in rational form, i.e. one in
    * which ratios of data values make sense (e.g. Temperature values in Kelvin
-   * rather than Celsius).  All conversions are done in-place.
+   * rather than Celsius).  Additionally, if an input unit is a non-unity
+   * dimensionless unit, then the associated values will be converted to the
+   * dimensionless unity unit (this conditions the values for operations like
+   * exp() and pow()).  All conversions are done in-place.
    *
-   * @param values		The numeric values.
-   * @param units		The units for the values and error
-   *				estimates.  It's length shall be 
-   *				<code>values.length</code>.
-   * @param errors		The error estimates.  It's length shall be
-   *				<code>values.length</code>.
+   * @param values              The numeric values.  On output,
+   *                            <code>values[i]</code> will have been replaced
+   *                            if necessary.
+   * @param units               The units for the values and error estimates.
+   *                            It's length shall be <code>values.length</code>.
+   *                            On output, <code>units[i]</code> will have been
+   *                            replaced with the absolute form of the input
+   *                            unit if necessary.
+   * @param errors              The error estimates.  It's length shall be
+   *                            <code>values.length</code>.  On output,
+   *                            <code>errors[i]</code> will have been replaced
+   *                            if necessary.
    * @throws UnitException	Unit conversion error.
    */
   protected static void makeRational(double[][] values, Unit[] units,
     ErrorEstimate[] errors) throws UnitException
   {
     for (int j=0; j<values.length; j++) {
-      if (units[j] != null) {
-	Unit	absoluteUnit = units[j].getAbsoluteUnit();
-	if (!absoluteUnit.equals(units[j])) {
-	  values[j] = absoluteUnit.toThis(values[j], units[j]);
+      Unit	inputUnit = units[j];
+      if (inputUnit != null && !(inputUnit instanceof PromiscuousUnit)) {
+	Unit	outputUnit = inputUnit.getAbsoluteUnit();
+	if (Unit.canConvert(outputUnit, CommonUnit.dimensionless))
+	  outputUnit = CommonUnit.dimensionless;
+	if (!outputUnit.equals(inputUnit)) {
+	  values[j] = outputUnit.toThis(values[j], inputUnit);
 	  if (errors[j] != null) {
 	    errors[j] =
 	      new ErrorEstimate(
-		absoluteUnit.toThis(errors[j].getMean(), units[j]),
+		outputUnit.toThis(errors[j].getMean(), inputUnit),
 		errors[j].getErrorValue(),
-		absoluteUnit);
+		outputUnit);
 	  }
-	  units[j] = absoluteUnit;
+	  units[j] = outputUnit;
 	}
       }
     }
