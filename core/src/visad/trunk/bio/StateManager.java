@@ -47,6 +47,15 @@ public class StateManager {
   /** Temp file for storing temporary measurement information. */
   private File lines;
 
+  /** Thread for saving state information. */
+  private Thread saveThread;
+
+  /** Is a state save needed? */
+  private boolean stateDirty = false;
+
+  /** Is a measurement save needed? */
+  private boolean measureDirty = false;
+
   /** Is state currently being restored? */
   private boolean restoring = false;
 
@@ -83,18 +92,33 @@ public class StateManager {
   }
 
   /** Saves the current state to the temp file. */
-  public void saveState(boolean doState, boolean doLines) {
+  public void saveState(boolean doState) {
     if (restoring) return;
-    try {
-      if (doState) {
-        PrintWriter fout = new PrintWriter(new FileWriter(state));
-        bio.saveState(fout);
-        fout.close();
-      }
-      if (doLines) new MeasureDataFile(bio, lines).write();
+    stateDirty = stateDirty || doState;
+    measureDirty = measureDirty || !doState;
+    if (saveThread == null || !saveThread.isAlive()) {
+      saveThread = new Thread(new Runnable() {
+        public void run() {
+          while (stateDirty || measureDirty) {
+            try {
+              if (stateDirty) {
+                stateDirty = false;
+                PrintWriter fout = new PrintWriter(new FileWriter(state));
+                bio.saveState(fout);
+                fout.close();
+              }
+              if (measureDirty) {
+                measureDirty = false;
+                new MeasureDataFile(bio, lines).write(); // do measurements
+              }
+            }
+            catch (IOException exc) { exc.printStackTrace(); }
+            catch (VisADException exc) { exc.printStackTrace(); }
+          }
+        }
+      });
+      saveThread.start();
     }
-    catch (IOException exc) { exc.printStackTrace(); }
-    catch (VisADException exc) { exc.printStackTrace(); }
   }
 
   /**

@@ -253,6 +253,7 @@ public class MeasureToolPanel extends ToolPanel {
     addLine.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         bio.mm.getList().addMeasurement();
+        bio.state.saveState(false);
       }
     });
     addLine.setEnabled(false);
@@ -264,6 +265,7 @@ public class MeasureToolPanel extends ToolPanel {
     addMarker.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         bio.mm.getList().addMeasurement(1);
+        bio.state.saveState(false);
       }
     });
     addMarker.setEnabled(false);
@@ -279,6 +281,7 @@ public class MeasureToolPanel extends ToolPanel {
           JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (ans != JOptionPane.YES_OPTION) return;
         bio.mm.clear();
+        bio.state.saveState(false);
       }
     });
     clearAll.setEnabled(false);
@@ -362,6 +365,7 @@ public class MeasureToolPanel extends ToolPanel {
             }
           }
         }
+        bio.state.saveState(false);
       }
     });
     setStandard.setEnabled(false);
@@ -373,6 +377,7 @@ public class MeasureToolPanel extends ToolPanel {
     removeThing.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         bio.mm.getList().removeMeasurement(thing.getMeasurement());
+        bio.state.saveState(false);
       }
     });
     removeThing.setEnabled(false);
@@ -394,6 +399,7 @@ public class MeasureToolPanel extends ToolPanel {
       public void itemStateChanged(ItemEvent e) {
         int index = colorList.getSelectedIndex();
         thing.setColor(COLORS[index]);
+        bio.state.saveState(false);
       }
     });
     colorList.setEnabled(false);
@@ -417,6 +423,7 @@ public class MeasureToolPanel extends ToolPanel {
         if (thing == null || group == null) return;
         thing.setGroup(group);
         descriptionBox.setText(group.getDescription());
+        bio.state.saveState(false);
       }
     });
     groupList.setEnabled(false);
@@ -432,6 +439,7 @@ public class MeasureToolPanel extends ToolPanel {
           MeasureGroup group = new MeasureGroup(bio, name);
           groupList.addItem(group);
           groupList.setSelectedItem(group);
+          bio.state.saveState(false);
         }
       }
     });
@@ -457,6 +465,7 @@ public class MeasureToolPanel extends ToolPanel {
       public void update(DocumentEvent e) {
         MeasureGroup group = (MeasureGroup) groupList.getSelectedItem();
         group.setDescription(descriptionBox.getText());
+        bio.state.saveState(false);
       }
     });
     descriptionBox.setEnabled(false);

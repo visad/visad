@@ -285,7 +285,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
       catch (VisADException exc) { exc.printStackTrace(); }
       catch (RemoteException exc) { exc.printStackTrace(); }
     }
-    state.saveState(true, false);
+    state.saveState(true);
   }
 
 
@@ -354,6 +354,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
   /** Writes the current program state to the given output stream. */
   void saveState(PrintWriter fout) throws IOException, VisADException {
+    fout.println(prefix);
     fout.println(brightness);
     fout.println(contrast);
     fout.println(red == null ? "null" : red.getName());
@@ -366,6 +367,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
   void restoreState(BufferedReader fin)
     throws IOException, VisADException
   {
+    prefix = fin.readLine().trim();
     int bright = Integer.parseInt(fin.readLine().trim());
     int cont = Integer.parseInt(fin.readLine().trim());
     String r = fin.readLine().trim();
@@ -374,8 +376,8 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     RealType red = r.equals("null") ? null : RealType.getRealType(r);
     RealType green = g.equals("null") ? null : RealType.getRealType(g);
     RealType blue = b.equals("null") ? null : RealType.getRealType(b);
-    toolView.setColors(bright, cont, red, green, blue);
     sm.restoreState(fin);
+    toolView.setColors(bright, cont, red, green, blue);
   }
 
 

@@ -341,7 +341,7 @@ public class SliceManager
     setFile(true);
     bio.horiz.updateSlider(timesteps);
     bio.vert.updateSlider(slices);
-    bio.state.saveState(true, false);
+    bio.state.saveState(true);
   }
 
   /** Exports an animation of the current slice across all timesteps. */
@@ -411,6 +411,7 @@ public class SliceManager
     int id = e.getId();
     if (id == DisplayEvent.MOUSE_RELEASED_RIGHT) {
       if (planeSelect && planeChanged && !continuous) updateSlice();
+      bio.state.saveState(planeSelect && planeChanged);
       planeChanged = false;
     }
   }
@@ -419,7 +420,6 @@ public class SliceManager
   public void planeChanged() {
     planeChanged = true;
     if (continuous) updateSlice();
-    bio.state.saveState(true, false);
   }
 
   /** Ensures slices are set up properly for animation. */
@@ -436,7 +436,7 @@ public class SliceManager
   void setSliceRange(int x, int y) {
     sliceRes_x = x;
     sliceRes_y = y;
-    bio.state.saveState(true, false);
+    bio.state.saveState(true);
   }
 
   /** Gets the color controls for 2-D range type color mappings. */
@@ -481,9 +481,9 @@ public class SliceManager
     int thumbY = Integer.parseInt(fin.readLine().trim());
     int sliceX = Integer.parseInt(fin.readLine().trim());
     int sliceY = Integer.parseInt(fin.readLine().trim());
-    bio.toolView.setSliceRange(sliceX, sliceY);
     setThumbnails(thumbs, thumbX, thumbY);
     setSeries(files);
+    bio.toolView.setSliceRange(sliceX, sliceY);
     ps.restoreState(fin);
   }
 

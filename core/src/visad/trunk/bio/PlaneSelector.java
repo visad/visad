@@ -534,18 +534,25 @@ public class PlaneSelector {
   void saveState(PrintWriter fout) throws IOException, VisADException {
     for (int i=2; i<refs.length; i++) {
       RealTuple tuple = (RealTuple) refs[i].getData();
-      Real[] r = tuple.getRealComponents();
-      for (int j=0; j<3; j++) fout.println(r[j].getValue());
+      Real[] r = tuple == null ?
+        new Real[] {null, null, null} : tuple.getRealComponents();
+      for (int j=0; j<3; j++) {
+        double value = r[j] == null ? Double.NaN : r[j].getValue();
+        fout.println(value);
+      }
     }
   }
 
   /** Restores the current program state from the given input stream. */
   void restoreState(BufferedReader fin) throws IOException, VisADException {
     for (int i=0; i<refs.length-2; i++) {
-      double x = Double.parseDouble(fin.readLine().trim());
-      double y = Double.parseDouble(fin.readLine().trim());
-      double z = Double.parseDouble(fin.readLine().trim());
-      setData(i, x, y, z);
+      try {
+        double x = Double.parseDouble(fin.readLine().trim());
+        double y = Double.parseDouble(fin.readLine().trim());
+        double z = Double.parseDouble(fin.readLine().trim());
+        setData(i, x, y, z);
+      }
+      catch (NumberFormatException exc) { }
     }
   }
 
