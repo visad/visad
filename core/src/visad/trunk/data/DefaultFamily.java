@@ -22,6 +22,8 @@ import visad.data.hdfeos.HdfeosDefault;
 
 import visad.data.netcdf.Plain;
 
+import visad.data.vis5d.Vis5DForm;
+
 /**
   * A container for all the officially supported VisAD datatypes.
   */
@@ -31,12 +33,12 @@ public class DefaultFamily
   /**
     * List of all supported VisAD datatype Forms.
     */
-  private static FormNode[] list = {
-	new FitsForm(),
-	new GIFForm(),
-	new HdfeosDefault(),
-	new Plain()
-  };
+  /*
+   *  note that I hardcoded the number of FormNodes (5)
+   *  increase this if you add a new FormNode
+   */
+  private static FormNode[] list = new FormNode[5];
+  private static boolean listInitialized = false;
 
   /**
     * Base class which tries to perform an operation on an object
@@ -301,6 +303,41 @@ public class DefaultFamily
     }
   }
 
+  private void buildList()
+  {
+    int i = 0;
+
+    try {
+      list[i] = new FitsForm();
+      i++;
+    } catch (Throwable t) {
+    }
+    try {
+      list[i] = new GIFForm();
+      i++;
+    } catch (Throwable t) {
+    }
+    try {
+      list[i] = new HdfeosDefault();
+      i++;
+    } catch (Throwable t) {
+    }
+    try {
+      list[i] = new Plain();
+      i++;
+    } catch (Throwable t) {
+    }
+    try {
+      list[i] = new Vis5DForm();
+      i++;
+    } catch (Throwable t) {
+    }
+
+    while (i < list.length) {
+      list[i++] = null;
+    }
+  }
+
   /**
     * Construct a family of the supported VisAD datatype Forms
     */
@@ -308,7 +345,13 @@ public class DefaultFamily
   {
     super(name);
 
-    for (int i = 0; i < list.length; i++) {
+    synchronized (list) {
+      if (!listInitialized) {
+	buildList();
+      }
+    }
+
+    for (int i = 0; i < list.length && list[i] != null; i++) {
       forms.addElement(list[i]);
     }
   }
