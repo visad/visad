@@ -169,7 +169,7 @@ if (junk != null) System.out.println(junk.prettyString());
 /* WLH 22 April 99
       if (Links[i].checkTicks() || !feasible[i] || go) {
 */
-       boolean check = Links[i].checkTicks();
+      boolean check = Links[i].checkTicks();
       if (check || !feasible[i] || go || add_data) {
 /*
 System.out.println("DataRenderer.prepareAction: check = " + check + " feasible = " +

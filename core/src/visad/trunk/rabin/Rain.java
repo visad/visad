@@ -46,8 +46,8 @@ public class Rain implements ActionListener, ControlListener {
 
   static final int N_COLUMNS = 3;
   static final int N_ROWS = 4;
-  static final JPanel[] row_panels =
-    new JPanel[N_ROWS];
+  static final JPanel[] column_panels =
+    new JPanel[N_COLUMNS];
   static final JPanel[][] cell_panels =
     new JPanel[N_ROWS][N_COLUMNS];
   static final DataReference[][] cell_refs =
@@ -83,8 +83,6 @@ public class Rain implements ActionListener, ControlListener {
   static final double MIN = 0.0;
   static final double MAX = 300.0;
   static final double MAXC4 = 10.0;
-
-  static final int DELAY = 300;
 
   /** remoted DataReferences */
   DataReference ref300 = null;
@@ -343,19 +341,22 @@ public class Rain implements ActionListener, ControlListener {
     big_panel.add(left_panel);
 
     JPanel display_panel = new JPanel();
-    display_panel.setLayout(new BoxLayout(display_panel, BoxLayout.Y_AXIS));
+    display_panel.setLayout(new BoxLayout(display_panel, BoxLayout.X_AXIS));
     display_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
     display_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     big_panel.add(display_panel);
 
+    // create column JPanels
+    for (int j=0; j<N_COLUMNS; j++) {
+      column_panels[j] = new JPanel();
+      column_panels[j].setLayout(new BoxLayout(column_panels[j],
+                                            BoxLayout.Y_AXIS));
+      column_panels[j].setAlignmentY(JPanel.TOP_ALIGNMENT);
+      column_panels[j].setAlignmentX(JPanel.LEFT_ALIGNMENT);
+      display_panel.add(column_panels[j]);
+    }
     // create row JPanels
     for (int i=0; i<N_ROWS; i++) {
-      row_panels[i] = new JPanel();
-      row_panels[i].setLayout(new BoxLayout(row_panels[i],
-                                            BoxLayout.X_AXIS));
-      row_panels[i].setAlignmentY(JPanel.TOP_ALIGNMENT);
-      row_panels[i].setAlignmentX(JPanel.LEFT_ALIGNMENT);
-      display_panel.add(row_panels[i]);
 
       // create cell JPanels
       for (int j=0; j<N_COLUMNS; j++) {
@@ -364,7 +365,7 @@ public class Rain implements ActionListener, ControlListener {
                                                  BoxLayout.Y_AXIS));
         cell_panels[i][j].setAlignmentY(JPanel.TOP_ALIGNMENT);
         cell_panels[i][j].setAlignmentX(JPanel.LEFT_ALIGNMENT);
-        row_panels[i].add(cell_panels[i][j]);
+        column_panels[j].add(cell_panels[i][j]);
         if (i == 0 && j ==0) {
           cell_refs[i][j] = ref_vis5d;
         }
@@ -435,8 +436,6 @@ public class Rain implements ActionListener, ControlListener {
       } // end for (int j=0; j<N_ROWS; j++)
     } // end for (int i=0; i<N_COLUMNS; i++)
 
-    // DisplayImpl.delay(DELAY);
-
     slider300 = new VisADSlider("num300", 0, 600, 300, 1.0,
                                 ref300, RealType.Generic);
     VisADSlider slider1_4 = new VisADSlider("num1_4", 0, 280, 140, 0.01,
@@ -470,7 +469,58 @@ public class Rain implements ActionListener, ControlListener {
     displays[0][0].addReference(cell_refs[0][0]);
     display_done[0][0] = true;
 
-    // DisplayImpl.delay(DELAY);
+    if (server_server != null) {
+      double[] matrix = projection_controls[0][0].getMatrix();
+      if (matrix.length != 6) {
+        matrix = ProjectionControl.matrix3DTo2D(matrix);
+      }
+      Integer1DSet set = new Integer1DSet(6);
+      FlatField projection_field =
+        new FlatField(FunctionType.REAL_1TO1_FUNCTION, set);
+      projection_field.setSamples(new double[][] {matrix});
+      ref_projection.setData(projection_field);
+    }
+
+    if (server_server != null || client_server != null) {
+      CellImpl projection_cell = new CellImpl() {
+        public void doAction() throws VisADException, RemoteException {
+          FlatField field = (FlatField) ref_projection.getData().local();
+          double[] matrix = field.getValues()[0];
+          double[] old = projection_controls[0][0].getMatrix();
+          double[] old_matrix = null;
+          if (old.length == 6) {
+            old_matrix = old;
+          }
+          else {
+            old_matrix = ProjectionControl.matrix3DTo2D(old);
+          }
+          boolean identical = true;
+          for (int j=0; j<matrix.length; j++) {
+            if (Math.abs(matrix[j] - old_matrix[j]) > 0.00001) {
+              identical = false;
+              break;
+            }
+          }
+          if (!identical) {
+            if (old.length == 6) {
+              projection_controls[0][0].setMatrix(matrix);
+            }
+            else {
+              double[] mat = ProjectionControl.matrix2DTo3D(matrix);
+              projection_controls[0][0].setMatrix(mat);
+            }
+          }
+        }
+      };
+      if (client_server != null) {
+        RemoteCellImpl remote_cell = new RemoteCellImpl(projection_cell);
+        remote_cell.addReference(ref_projection);
+      }
+      else {
+        projection_cell.addReference(ref_projection);
+      }
+    }
+
 
     // cell B1
     displays[0][1].addMap(new ScalarMap(range_types[0], Display.Red));
@@ -478,8 +528,6 @@ public class Rain implements ActionListener, ControlListener {
     displays[0][1].addMap(new ScalarMap(range_types[2], Display.Blue));
     displays[0][1].addReference(cell_refs[0][1]);
     display_done[0][1] = true;
-
-    // DisplayImpl.delay(DELAY);
 
     // cell C1
     color_mapC1 = new ScalarMap(rangeC1, Display.RGB);
@@ -554,42 +602,26 @@ public class Rain implements ActionListener, ControlListener {
     }
     display_done[0][2] = true;
 
-    // DisplayImpl.delay(DELAY);
-
     // cell A2
     finishDisplay(client_server, (RealType) range.getComponent(1), 1, 0);
-
-    // DisplayImpl.delay(DELAY);
 
     // cell B2
     finishDisplay(client_server, (RealType) range.getComponent(2), 1, 1);
 
-    // DisplayImpl.delay(DELAY);
-
     // cell C2
     finishDisplay(client_server, (RealType) range.getComponent(3), 1, 2);
-
-    // DisplayImpl.delay(DELAY);
 
     // cell A3
     finishDisplay(client_server, (RealType) range.getComponent(4), 2, 0);
 
-    // DisplayImpl.delay(DELAY);
-
     // cell B3
     finishDisplay(client_server, (RealType) range.getComponent(5), 2, 1);
-
-    // DisplayImpl.delay(DELAY);
 
     // cell C3
     finishDisplay(client_server, rangeC1, 2, 2);
 
-    // DisplayImpl.delay(DELAY);
-
     // cell A4
     finishDisplay(client_server, (RealType) range.getComponent(6), 3, 0);
-
-    // DisplayImpl.delay(DELAY);
 
     // cell B4
     finishDisplay(client_server, (RealType) range.getComponent(7), 3, 1);
@@ -598,8 +630,6 @@ public class Rain implements ActionListener, ControlListener {
     mode.setTextureEnable(false);
     mode.setPointMode(true);
     mode.setPointSize(5.0f);
-
-    // DisplayImpl.delay(DELAY);
 
     // cell C4
     color_mapC4 = new ScalarMap(rangeC4, Display.RGB);
@@ -671,8 +701,6 @@ public class Rain implements ActionListener, ControlListener {
     }
     display_done[3][2] = true;
 
-    // DisplayImpl.delay(DELAY);
-
     // cell for updating formula text fields when formulas change
     CellImpl cell_formulas = new CellImpl() {
       public void doAction() {
@@ -737,8 +765,6 @@ public class Rain implements ActionListener, ControlListener {
       cellMAX.addReference(refMAX);
     }
 
-    // DisplayImpl.delay(DELAY);
-
     CellImpl cell_cursor = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
         RealTuple c = (RealTuple) ref_cursor.getData();
@@ -763,8 +789,6 @@ public class Rain implements ActionListener, ControlListener {
     else {
       cell_cursor.addReference(ref_cursor);
     }
-
-    // DisplayImpl.delay(DELAY);
 
     // make the JFrame visible
     frame.setVisible(true);
@@ -832,12 +856,12 @@ public class Rain implements ActionListener, ControlListener {
         }
       }
       Field field = (Field) ref_colorC1.getData();
-      setSamples(field, table);
+      if (field != null) field.setSamples(table);
     }
     else if (control.equals(color_controlC4)) {
       float[][] table = ((ColorControl) control).getTable();
       Field field = (Field) ref_colorC4.getData();
-      setSamples(field, table);
+      if (field != null) field.setSamples(table);
     }
     else if (!in_proj && control != null &&
              control instanceof ProjectionControl) {
@@ -850,14 +874,16 @@ public class Rain implements ActionListener, ControlListener {
           }
         }
       }
+      Field field = (Field) ref_projection.getData();
+      if (matrix.length == 6) {
+        if (field != null) field.setSamples(new double[][] {matrix});
+      }
+      else {
+        double[] mat = ProjectionControl.matrix3DTo2D(matrix);
+        if (field != null) field.setSamples(new double[][] {mat});
+      }
       in_proj = false;
     }
-  }
-
-  private void setSamples(Field field, float[][] table)
-          throws VisADException, RemoteException {
-    if (field == null) return;
-    field.setSamples(table);
   }
 
 }

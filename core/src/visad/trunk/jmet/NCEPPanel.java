@@ -60,6 +60,7 @@ import visad.jmet.*;
 public class NCEPPanel extends JPanel implements 
         ActionListener, ChangeListener {
     static int instance = 0;
+    private int myInstance;
     private JSlider levelSlider, speedSlider;
     private JTextField intervalText;
     private JLabel levelSliderLabel, intervalUnits;
@@ -72,28 +73,32 @@ public class NCEPPanel extends JPanel implements
     private Tuple[] tup;
     private NetcdfGrids ncg=null;
     private JLabel statLabel;
+    private JTabbedPane tabby;
+    private JButton butColor;
+    private float[][] colorTable;
     private String paramName;
     private JCheckBox showHide;
     private DisplayImpl di;
     private ValueControl control;
+    private ColorControl ccon;
+    private Color nc;
     private ScalarMap map;
     private RealType enable;
     private FieldImpl field;
     private String valueName, enableName, dataName;
-    private ScalarMap valueMap;
+    private ScalarMap valueMap, valueColorMap;
     private int mode, ndx;
     private Vector paramInfo;
     private double[] pressureLevels;
     private double[][] range;
     private double cbeg;
-    private ConstantMap[] colors;
 
        
   public static void main(String args[]) {
 
     JFrame f = new JFrame();
     JLabel sl = new JLabel("The status label");
-    NCEPPanel ss = new NCEPPanel(0, null, sl, "Title");
+    NCEPPanel ss = new NCEPPanel(0, null, sl, null, "Title");
     Container cf = f.getContentPane();
 
     cf.add(ss);
@@ -112,14 +117,25 @@ public class NCEPPanel extends JPanel implements
    
   }
 
-  public NCEPPanel (int mode, DisplayImpl di, JLabel statLabel, String
-  title) {
+  /** set up a panel
+  * 
+  * @param mode is the level mode (0=aloft, 1=surface)
+  * @param di is the associated DisplayImpl
+  * @param statLabel is the status label from the Frame
+  * @param tabby is the JTabbedPane that this may be in (if non-null)
+  * @param title is the, well, title
+  *
+  */
+  public NCEPPanel 
+     (int mode, DisplayImpl di, JLabel statLabel, JTabbedPane tabby, String title) {
 
     super();
     this.di = di;
     this.statLabel = statLabel;
     this.mode = mode;
+    this.tabby = tabby;
 
+    myInstance = instance;
     instance ++;
     valueName = "Value"+instance;
     enableName = "enable"+instance;
@@ -128,37 +144,48 @@ public class NCEPPanel extends JPanel implements
     range[0][0] = -20000.;
     cbeg = 0.f;
     range[0][1] = 20000.;
+    colorTable = new float[3][256];
 
     if (di != null) try {
 
       Values = new RealType(valueName);
-      colors = new ConstantMap[3];
+      nc = Color.white;
 
       if (mode == 0) {
         valueMap = new ScalarMap(Values, Display.IsoContour);
+        valueColorMap = new ScalarMap(Values, Display.RGB);
         di.addMap(valueMap);
+        di.addMap(valueColorMap);
         ci = (ContourControl) valueMap.getControl();
         ci.setContourInterval(30.f, 0.f, 20000.f,   60.f);
         ci.enableLabels(true);
-        colors[0] = new ConstantMap(1., Display.Red);
-        colors[1] = new ConstantMap(.95, Display.Green);
-        colors[2] = new ConstantMap(.37, Display.Blue);
-        if (instance != 1) {
-          colors[0] = new ConstantMap(.25, Display.Red);
-          colors[1] = new ConstantMap(.95, Display.Green);
-          colors[2] = new ConstantMap(1., Display.Blue);
+        for (int i=0; i<256; i++) {
+          colorTable[0][i] = 1.0f;
+          colorTable[1][i] = 1.0f;
+          colorTable[2][i] = 1.0f;
         }
+
+        ccon = (ColorControl) (valueColorMap.getControl());
+        ccon.setTable(colorTable);
+
       } else {
         valueMap = new ScalarMap(Values, Display.RGB);
         di.addMap(valueMap );
-        colors[0] = new ConstantMap(1., Display.Red);
-        colors[1] = new ConstantMap(1., Display.Green);
-        colors[2] = new ConstantMap(1., Display.Blue);
+        for (int i=0; i<256; i++) {
+          colorTable[0][i] = (float)i/255.f;
+          colorTable[1][i] = (float)i/255.f;
+          colorTable[2][i] = (float)i/255.f;
+        }
+
+        ccon = (ColorControl) (valueMap.getControl());
+        ccon.setTable(colorTable);
+
       }
 
       enable = new RealType(enableName);
       map = new ScalarMap(enable, Display.SelectValue);
       di.addMap(map);
+
 
     } catch (Exception ec) {ec.printStackTrace(); }
 
@@ -222,11 +249,23 @@ public class NCEPPanel extends JPanel implements
     }
     add(Box.createRigidArea(new Dimension(10,10) ) );
 
+    JPanel pb = new JPanel();
+    pb.setLayout(new BoxLayout(pb, BoxLayout.X_AXIS) );
+    pb.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+    butColor = new JButton("Color");
+    butColor.addActionListener(this);
+    butColor.setActionCommand("butColor");
+    butColor.setBackground(nc);
+    pb.add(butColor);
+
     showHide = new JCheckBox("Make visible");
     showHide.addActionListener(this);
     showHide.setActionCommand("showbutton");
     showHide.setSelected(true);
-    add(showHide);
+    pb.add(Box.createRigidArea(new Dimension(20,10) ) );
+    pb.add(showHide);
+    add(pb);
 
   }
 
@@ -245,6 +284,10 @@ public class NCEPPanel extends JPanel implements
       levelValue = 0;
       intervalValue = 60.;
       intervalText.setText("Enter value");
+    }
+    if (tabby != null) {
+       tabby.setTitleAt(myInstance, "Data");
+       tabby.setBackgroundAt(myInstance, nc);
     }
   }
 
@@ -295,8 +338,12 @@ public class NCEPPanel extends JPanel implements
             }
 
             ref.setData(field);
-            di.addReference(ref, colors); 
+            di.addReference(ref); 
             statLabel.setText("Rendering display...please wait!");
+            if (tabby != null) {
+              tabby.setTitleAt(myInstance, paramName);
+              tabby.setBackgroundAt(myInstance, nc);
+            }
 
           } catch (Exception ep) {ep.printStackTrace() ;}
         }
@@ -320,7 +367,9 @@ public class NCEPPanel extends JPanel implements
         String v = intervalText.getText();
         intervalValue = Double.valueOf(v).doubleValue();
         if (ci != null & ref != null)
+          di.removeReference(ref);
           ref.setData(null);
+          di.addReference(ref); 
           ci.setContourInterval((float)intervalValue, 
                   (float)range[levelValue][0], (float)range[levelValue][1], (float) cbeg);
           ref.setData(field);
@@ -331,6 +380,32 @@ public class NCEPPanel extends JPanel implements
         getToolkit().beep();
 
       } catch (Exception ivt) {ivt.printStackTrace(); }
+
+    } else if (cmd.equals("butColor")) {
+      JColorChooser cc = new JColorChooser();
+      nc = cc.showDialog(this, "Choose contour color", Color.white);
+      if (nc != null) {
+        butColor.setBackground(nc);
+        if (tabby != null) tabby.setBackgroundAt(myInstance, nc);
+        try {
+          for (int i=0; i<256; i++) {
+            if (mode == 0) {
+              colorTable[0][i] = (float) nc.getRed()/255.f;
+              colorTable[1][i] = (float) nc.getGreen()/255.f;
+              colorTable[2][i] = (float) nc.getBlue()/255.f;
+
+            } else {
+              colorTable[0][i] = ( (float) nc.getRed()/255.f)*(float)i/255.f;
+              colorTable[1][i] = ((float) nc.getGreen()/255.f)*(float)i/255.f;
+              colorTable[2][i] = ((float) nc.getBlue()/255.f)*(float)i/255.f;
+            }
+
+          }
+
+          ccon.setTable(colorTable);
+
+        } catch (Exception ce) {ce.printStackTrace(); }
+      }
 
     }
 

@@ -36,6 +36,7 @@ public class GRIBCoordinateSystem extends CoordinateSystem {
   private boolean isLambert=false;
   private boolean isLatLon=false;
   private double La1, Lo1, LoMax, Di, Dj;
+  private double aspectRatio = 1.0;
 
 
   /** constructor for a Lambert conformal (GRIB type code = 3)
@@ -111,6 +112,8 @@ public class GRIBCoordinateSystem extends CoordinateSystem {
      this.Di = Di;
      this.Dj = Dj;
      LoMax = Lo1 + Di*(Ni - 1);
+     aspectRatio = (Di/Dj);
+
      //System.out.println("la1, lo1, ,LoMax, di, dj ="+La1+" "+Lo1+" "+LoMax+" "+ Di+" "+Dj);
 
   }
@@ -122,6 +125,7 @@ public class GRIBCoordinateSystem extends CoordinateSystem {
     isLambert = true;
     spacing = DxDy*1000.0;
     double earth = 6371230.0;
+    aspectRatio = 1.0;
 
     c = new LambertConformalConic(ref,
       earth, earth,
@@ -249,6 +253,10 @@ public class GRIBCoordinateSystem extends CoordinateSystem {
   */
   public boolean equals(Object cs) {
     return (cs instanceof GRIBCoordinateSystem);
+  }
+
+  public double getAspectRatio() {
+    return aspectRatio;
   }
 
   public static boolean isGridNumberKnown(int gridNumber) {

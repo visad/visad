@@ -79,6 +79,13 @@ public class Contour2D extends Applet implements MouseListener {
                       byte[][] auxValues, byte[][] auxLevels1,
                       byte[][] auxLevels2, byte[][] auxLevels3, boolean[] swap )
                           throws VisADException {
+/*
+System.out.println("interval = " + interval + " lowlimit = " + lowlimit +
+                   " highlimit = " + highlimit + " base = " + base);
+boolean any = false;
+boolean anymissing = false;
+boolean anynotmissing = false;
+*/
     PlotDigits plot = new PlotDigits();
     int ir, ic;
     int nrm, ncm, idash;
@@ -203,7 +210,24 @@ public class Contour2D extends Applet implements MouseListener {
         ipnt[nump++] = numv;
 
         yy = yd*ic+0.0f; // = ic
-
+/*
+ga = ( g[ (ic) * nr + (ir) ] );
+gb = ( g[ (ic) * nr + (ir+1) ] );
+gc = ( g[ (ic+1) * nr + (ir) ] );
+gd = ( g[ (ic+1) * nr + (ir+1) ] );
+if (ga != ga || gb != gb || gc != gc || gd != gd) {
+  if (!anymissing) {
+    anymissing = true;
+    System.out.println("missing");
+  }
+}
+else {
+  if (!anynotmissing) {
+    anynotmissing = true;
+    System.out.println("notmissing");
+  }
+}
+*/
         // get 4 corner values, skip box if any are missing
         ga = ( g[ (ic) * nr + (ir) ] );
         // test for missing
@@ -269,7 +293,13 @@ public class Contour2D extends Applet implements MouseListener {
   
         // gg is current contour line value
         gg = clow;
-
+/*
+if (!any && numc > 0) {
+  System.out.println("numc = " + numc + " tmp1 = " + tmp1 + " clow = " + clow +
+                     " chi = " + chi + " interval = " + interval);
+  any = true;
+}
+*/
         for (il=0; il<numc; il++, gg += interval) {
 
           if (numv+8 >= maxsize || nump+4 >= 2*maxsize) {

@@ -362,6 +362,14 @@ public class NetcdfGrids {
     return names;
   }
 
+  public double getAspect() {
+    if (gridCoord != null) {
+      return ( ( (GRIBCoordinateSystem)gridCoord).getAspectRatio());
+    } else {
+      return (1.0);
+    }
+  }
+
   public int getNumberOfLevels() {
     return(num_levels);
   }

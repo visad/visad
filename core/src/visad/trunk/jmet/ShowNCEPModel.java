@@ -62,12 +62,14 @@ public class ShowNCEPModel
        DisplayListener {
 
   private BaseMapAdapter baseMap;
+  private ColorControl ccmap;
+  private float[][] colorTable;
   private Container cf;
   private JSlider speedSlider;
   private JLabel speedSliderLabel;
   private int speedValue, frameValue;
   private int maxFrames;
-  private JButton start_stop, snapButton, forward, backward;
+  private JButton start_stop, snapButton, forward, backward, mapColor;
   private boolean isLooping;
   private ContourControl ci;
   private ProjectionControl pc;
@@ -83,7 +85,8 @@ public class ShowNCEPModel
   private boolean gotSfcGrids, gotAloftGrids;
   private JLabel statLabel;
   private String cmd;
-  private NCEPPanel ncp, ncpSfc, ncp2;
+  private NCEPPanel[] ncp;
+  private JTabbedPane tabby;
   private FieldImpl mapField;
   private ValueControl mapControl;
   private DataReference mapRef;
@@ -96,7 +99,7 @@ public class ShowNCEPModel
 
   public static void main(String args[]) {
 
-    argument = " ";
+    argument = "-1";
     if (args != null && args.length > 0) {
       argument = args[0].trim();
     }
@@ -120,6 +123,7 @@ public class ShowNCEPModel
     gotSfcGrids = false;
     gotAloftGrids = false;
     directory = ".";
+    ng = null;
 
     JMenuBar mb = new JMenuBar();
     JMenu fileMenu = new JMenu("File");
@@ -134,17 +138,22 @@ public class ShowNCEPModel
     menuQuit.setActionCommand("menuQuit");
     fileMenu.add(menuQuit);
 
+    ButtonGroup menuSelectors = new ButtonGroup();
+
     JMenu mapMenu = new JMenu("Map");
-    JMenuItem menuNA = new JMenuItem("North America");
+    JRadioButtonMenuItem menuNA = new JRadioButtonMenuItem("North America",true);
     menuNA.addActionListener(this);
     menuNA.setActionCommand("menuNA");
     mapMenu.add(menuNA);
+    menuSelectors.add(menuNA);
 
-    JMenuItem menuWorld = new JMenuItem("World");
+    JRadioButtonMenuItem menuWorld = new JRadioButtonMenuItem("World",false);
     menuWorld.addActionListener(this);
     menuWorld.setActionCommand("menuWorld");
     mapMenu.add(menuWorld);
+    menuSelectors.add(menuWorld);
 
+    //MapFile = "OUTLAUST";
     MapFile = "OUTLUSAM";
 
     mb.add(fileMenu);
@@ -160,9 +169,9 @@ public class ShowNCEPModel
 
     // make the cube the size of the window...for 'snapping'
     pcMatrix = pc.getMatrix(); 
-    pcMatrix[0] = .9;
-    pcMatrix[5] = .9;
-    pcMatrix[10] = .9;
+    pcMatrix[0] = .95;
+    pcMatrix[5] = .95;
+    pcMatrix[10] = .95;
 
     x = new RealType("x");
     y = new RealType("y");
@@ -189,13 +198,40 @@ public class ShowNCEPModel
     statLabel.setForeground(Color.black);
 
     // make the ncep Panel(s) here because they do 'addMaps'
-    ncp = new NCEPPanel(0, di, statLabel ,"Data Aloft");
-    ncp2 = new NCEPPanel(0, di, statLabel ,"More Data Aloft");
-    ncpSfc = new NCEPPanel(1, di, statLabel, "Single-level Data ");
+
+    tabby = new JTabbedPane();
+
+    int num=1;
+    try {
+      num =  - (Integer.parseInt(argument));
+      if (num < 1 || num > 9) {
+        System.out.println("invalid number of tabs (1-9) = "+num);
+        System.exit(1);
+      }
+    } catch (Exception nex) {System.exit(1);}
+
+    ncp = new NCEPPanel[num+1];
+
+    ncp[0] = new NCEPPanel(1, di, statLabel, tabby,  "Single-level Data");
+    for (int i=1; i<ncp.length; i++) {
+     ncp[i] = new NCEPPanel(0, di, statLabel, tabby,  "Data Aloft");
+    }
 
     enableMap = new RealType("enableMap");
     mapMap = new ScalarMap(enableMap, Display.SelectValue);
     di.addMap(mapMap);
+    ScalarMap scalarMapColor = new ScalarMap(enableMap, Display.RGB);
+    di.addMap(scalarMapColor);
+
+    ccmap = (ColorControl) (scalarMapColor.getControl() );
+    colorTable = new float[3][256];
+    for (int i=0; i<256; i++) {
+      colorTable[0][i] = .6f;
+      colorTable[1][i] = 0.f;
+      colorTable[2][i] = .6f;
+    }
+    ccmap.setTable(colorTable);
+    Color mapco = new Color(154,0,154);
 
     vdisplay = (JPanel) di.getComponent();
     vdisplay.setPreferredSize(new Dimension(700,700) );
@@ -226,6 +262,11 @@ public class ShowNCEPModel
     start_stop.setActionCommand("start_stop");
     isLooping = false;
     ca.setOn(false);
+
+    mapColor = new JButton("Map Color");
+    mapColor.addActionListener(this);
+    mapColor.setActionCommand("mapColor");
+    mapColor.setBackground(mapco);
 
     showMap = new JCheckBox("Make map visible");
     showMap.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -282,18 +323,22 @@ public class ShowNCEPModel
     p1.add(Box.createRigidArea(new Dimension(10,10) ) );
     p1.add(snapButton);
     p1.add(Box.createRigidArea(new Dimension(10,10) ) );
-    p1.add(showMap);
+    JPanel p4 = new JPanel();
+    p4.setLayout(new BoxLayout(p4, BoxLayout.X_AXIS) );
+    p4.setAlignmentX(Component.CENTER_ALIGNMENT);
+    p4.add(mapColor);
+    p4.add(Box.createRigidArea(new Dimension(10,10) ) );
+    p4.add(showMap);
+
+    p1.add(p4);
     p1.add(p2);
 
-    p1.add(Box.createRigidArea(new Dimension(10,10) ) );
-    p1.add(ncp);
-    p1.add(Box.createRigidArea(new Dimension(10,10) ) );
-    p1.add(ncpSfc);
-
-    if (argument.equals("-2")) {
-      p1.add(Box.createRigidArea(new Dimension(10,10) ) );
-      p1.add(ncp2);
+    for (int i=0; i<ncp.length; i++) {
+      tabby.addTab("Data", ncp[i]);
     }
+
+    p1.add(Box.createRigidArea(new Dimension(10,30) ) );
+    p1.add(tabby);
 
     p1.add(Box.createVerticalGlue() );
     p1.add(Box.createRigidArea(new Dimension(10,10) ) );
@@ -322,9 +367,11 @@ public class ShowNCEPModel
 
     } else if (cmd.equals("menuNA") ) {
       MapFile = "OUTLUSAM";
+      doBaseMap();
 
     } else if (cmd.equals("menuWorld") ) {
       MapFile = "OUTLSUPW";
+      doBaseMap();
 
     } else if (cmd.startsWith("Param:") ) {
     
@@ -361,6 +408,23 @@ public class ShowNCEPModel
       try {
         pc.setMatrix(pcMatrix);
       } catch (Exception sse) {sse.printStackTrace(); System.exit(1); }
+
+    } else if (cmd.equals("mapColor")) {
+
+      JColorChooser cc = new JColorChooser();
+      Color nc = cc.showDialog(this, "Choose contour color", Color.white);
+      if (nc != null) {
+        mapColor.setBackground(nc);
+        try {
+          for (int i=0; i<256; i++) {
+            colorTable[0][i] = (float) nc.getRed()/255.f;
+            colorTable[1][i] = (float) nc.getGreen()/255.f;
+            colorTable[2][i] = (float) nc.getBlue()/255.f;
+          }
+          ccmap.setTable(colorTable);
+
+       }  catch (Exception mce) {mce.printStackTrace(); }
+     }
 
     } else if (cmd.equals("showmap") ) {
       try {
@@ -425,25 +489,47 @@ public class ShowNCEPModel
       ng.setRealTypes(x,y,level,record,pres);
 
       Dimension dim = ng.getDimension();
-      xAxis.setRange(0, dim.width);
-      yAxis.setRange(0, dim.height);
+      xAxis.setRange(0, dim.width-1);
+      yAxis.setRange(0, dim.height-1);
 
-      ncp.setNetcdfGrid(ng);
-      ncpSfc.setNetcdfGrid(ng);
-      ncp2.setNetcdfGrid(ng);
+      // set up aspect ratio for square-ness
+      double aspect = ng.getAspect();
+      aspect = aspect * ( (double)dim.width/(double)dim.height) ;
+      if (aspect >= 1.0) {
+        pcMatrix[0] = .95;
+        pcMatrix[5] = .95/aspect;
+      } else {
+        pcMatrix[0] = .95 * aspect;
+        pcMatrix[5] = .95;
+      }
+
+      pc.setMatrix(pcMatrix);
+
+      for (int i=0; i<ncp.length; i++) {
+        ncp[i].setNetcdfGrid(ng);
+      }
 
       maxFrames = ng.getNumberOfTimes() - 1;
 
-      Vector v = ng.get4dVariables();
-      ncp.setParams(v);
-      ncp2.setParams(v);
       Vector vSfc = ng.get3dVariables();
-      ncpSfc.setParams(vSfc);
+      ncp[0].setParams(vSfc);
+
+      Vector v = ng.get4dVariables();
+      for (int i=1; i<ncp.length; i++) {
+       ncp[i].setParams(v);
+      }
 
       // can do map now, since grid geometry is known...
 
       statLabel.setText("Rendering base map...");
+      doBaseMap();
 
+    } catch (Exception op) {op.printStackTrace(); System.exit(1); }
+
+  }
+  private void doBaseMap() {
+    if (ng == null) return;
+    try {
       baseMap = new BaseMapAdapter(MapFile);
       baseMap.setDomainSet(ng.getDomainSet() );
       Data mapData = baseMap.getData();
@@ -460,15 +546,13 @@ public class ShowNCEPModel
       mapRef = new DataReferenceImpl("mapData");
       mapRef.setData(mapField);
       ConstantMap[] rendMap;
-      rendMap = new ConstantMap[4];
-      rendMap[0] = new ConstantMap(.6, Display.Blue);
-      rendMap[1] = new ConstantMap(.6, Display.Red);
-      rendMap[2] = new ConstantMap(0., Display.Green);
-      rendMap[3] = new ConstantMap(-.99, Display.ZAxis);
+      rendMap = new ConstantMap[1];
+      rendMap[0] = new ConstantMap(-.99, Display.ZAxis);
       di.addReference(mapRef, rendMap);
+      //di.addReference(mapRef);
       mapControl.setValue(0.0);
 
-    } catch (Exception op) {op.printStackTrace(); System.exit(1); }
+    } catch (Exception mapop) {mapop.printStackTrace(); System.exit(1); }
 
   }
 
