@@ -866,7 +866,7 @@ class RubberBandZoomer:
   def __init__(self,display, requireKey):
     """
     display is the display object.  requireKey = 0 (no key),
-    = 1 (CTRL), = 2 (SHIFT), or = 3 (META).
+    = 1 (CTRL), = 2 (SHIFT)
     """
     self.x, self.y, self.z, self.display = getDisplayMaps(display)
     self.xy = RealTupleType(self.x, self.y)
