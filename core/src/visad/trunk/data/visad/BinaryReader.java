@@ -49,14 +49,14 @@ import visad.data.visad.object.*;
 public class BinaryReader
   implements BinaryFile
 {
-  private static final boolean DEBUG_CSYS = false;
-  private static final boolean DEBUG_DATA = false;
-  private static final boolean DEBUG_DATA_DETAIL = false;
-  private static final boolean DEBUG_ERRE = false;
-  private static final boolean DEBUG_MATH = false;
-  private static final boolean DEBUG_STR = false;
-  private static final boolean DEBUG_TIME = false;
-  private static final boolean DEBUG_UNIT = false;
+  private static final boolean DEBUG_RD_CSYS = false;
+  private static final boolean DEBUG_RD_DATA = false;
+  private static final boolean DEBUG_RD_DATA_DETAIL = false;
+  private static final boolean DEBUG_RD_ERRE = false;
+  private static final boolean DEBUG_RD_MATH = false;
+  private static final boolean DEBUG_RD_STR = false;
+  private static final boolean DEBUG_RD_TIME = false;
+  private static final boolean DEBUG_RD_UNIT = false;
 
   private DataInput file;
 
@@ -174,41 +174,41 @@ totStart = System.currentTimeMillis();
 long tmpStart = System.currentTimeMillis();
       switch (directive) {
       case OBJ_COORDSYS:
-if(DEBUG_MATH)System.err.println("getData: OBJ_COORDSYS (" + OBJ_COORDSYS + ")");
+if(DEBUG_RD_MATH)System.err.println("getData: OBJ_COORDSYS (" + OBJ_COORDSYS + ")");
         BinaryCoordinateSystem.read(this);
-if(DEBUG_TIME)csTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)csTime += System.currentTimeMillis() - tmpStart;
         break;
       case OBJ_DATA:
-if(DEBUG_MATH)System.err.println("getData: OBJ_DATA (" + OBJ_DATA + ")");
+if(DEBUG_RD_MATH)System.err.println("getData: OBJ_DATA (" + OBJ_DATA + ")");
         data = readData();
-if(DEBUG_TIME)dTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)dTime += System.currentTimeMillis() - tmpStart;
         break;
       case OBJ_DATA_SERIAL:
-if(DEBUG_MATH)System.err.println("getData: OBJ_DATA_SERIAL (" + OBJ_DATA_SERIAL + ")");
+if(DEBUG_RD_MATH)System.err.println("getData: OBJ_DATA_SERIAL (" + OBJ_DATA_SERIAL + ")");
         data = (DataImpl )BinarySerializedObject.read(file);
-if(DEBUG_TIME)dsTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)dsTime += System.currentTimeMillis() - tmpStart;
         break;
       case OBJ_ERROR:
-if(DEBUG_MATH)System.err.println("getData: OBJ_ERROR (" + OBJ_ERROR + ")");
+if(DEBUG_RD_MATH)System.err.println("getData: OBJ_ERROR (" + OBJ_ERROR + ")");
         BinaryErrorEstimate.read(this);
-if(DEBUG_TIME)eTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)eTime += System.currentTimeMillis() - tmpStart;
         break;
       case OBJ_MATH:
-if(DEBUG_MATH)System.err.println("getData: OBJ_MATH (" + OBJ_MATH + ")");
+if(DEBUG_RD_MATH)System.err.println("getData: OBJ_MATH (" + OBJ_MATH + ")");
         BinaryMathType.read(this);
-if(DEBUG_TIME)mTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)mTime += System.currentTimeMillis() - tmpStart;
         break;
       case OBJ_UNIT:
-if(DEBUG_MATH)System.err.println("getData: OBJ_UNIT (" + OBJ_UNIT + ")");
+if(DEBUG_RD_MATH)System.err.println("getData: OBJ_UNIT (" + OBJ_UNIT + ")");
         BinaryUnit.read(this);
-if(DEBUG_TIME)uTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)uTime += System.currentTimeMillis() - tmpStart;
         break;
       default:
         throw new IOException("Unknown directive " + directive);
       }
     }
 
-if(DEBUG_TIME){
+if(DEBUG_RD_TIME){
   long totTime = System.currentTimeMillis() - totStart;
   if (totTime > 0 && totTime != dTime) {
     System.err.print("gD: tot "+totTime);
@@ -268,170 +268,170 @@ long tmpStart = System.currentTimeMillis();
     DataImpl data;
     switch (dataType) {
     case DATA_DOUBLE_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_DOUBLE_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_DOUBLE_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinarySimpleSet.read(this, dataType);
-if(DEBUG_TIME)dsTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)dsTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_FIELD:
-if(DEBUG_DATA)System.err.println("rdData: DATA_FIELD (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_FIELD (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryFieldImpl.read(this);
-if(DEBUG_TIME)fTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)fTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_FLAT_FIELD:
-if(DEBUG_DATA)System.err.println("rdData: DATA_FLAT_FIELD (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_FLAT_FIELD (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryFlatField.read(this);
-if(DEBUG_TIME)ffTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)ffTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_FLOAT_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_FLOAT_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_FLOAT_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinarySimpleSet.read(this, dataType);
-if(DEBUG_TIME)fsTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)fsTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_GRIDDED_1D_DOUBLE_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_1D_DOUBLE_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_GRIDDED_1D_DOUBLE_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryGriddedDoubleSet.read(this, dataType);
-if(DEBUG_TIME)g1dsTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)g1dsTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_GRIDDED_2D_DOUBLE_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_2D_DOUBLE_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_GRIDDED_2D_DOUBLE_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryGriddedDoubleSet.read(this, dataType);
-if(DEBUG_TIME)g2dsTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)g2dsTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_GRIDDED_3D_DOUBLE_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_3D_DOUBLE_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_GRIDDED_3D_DOUBLE_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryGriddedDoubleSet.read(this, dataType);
-if(DEBUG_TIME)g3dsTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)g3dsTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_GRIDDED_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_GRIDDED_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryGriddedSet.read(this, dataType);
-if(DEBUG_TIME)gsTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)gsTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_GRIDDED_1D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_1D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_GRIDDED_1D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryGriddedSet.read(this, dataType);
-if(DEBUG_TIME)g1sTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)g1sTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_GRIDDED_2D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_2D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_GRIDDED_2D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryGriddedSet.read(this, dataType);
-if(DEBUG_TIME)g2sTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)g2sTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_GRIDDED_3D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_GRIDDED_3D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_GRIDDED_3D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryGriddedSet.read(this, dataType);
-if(DEBUG_TIME)g3sTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)g3sTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_INTEGER_1D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_INTEGER_1D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_INTEGER_1D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryIntegerSet.read(this, dataType);
-if(DEBUG_TIME)i1sTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)i1sTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_INTEGER_2D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_INTEGER_2D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_INTEGER_2D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryIntegerSet.read(this, dataType);
-if(DEBUG_TIME)i2sTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)i2sTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_INTEGER_3D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_INTEGER_3D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_INTEGER_3D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryIntegerSet.read(this, dataType);
-if(DEBUG_TIME)i3sTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)i3sTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_INTEGER_ND_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_INTEGER_ND_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_INTEGER_ND_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryIntegerSet.read(this, dataType);
-if(DEBUG_TIME)iNsTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)iNsTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_IRREGULAR_1D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_IRREGULAR_1D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_IRREGULAR_1D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryIrregularSet.read(this, dataType);
-if(DEBUG_TIME)ir1sTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)ir1sTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_IRREGULAR_2D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_IRREGULAR_2D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_IRREGULAR_2D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryIrregularSet.read(this, dataType);
-if(DEBUG_TIME)ir2sTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)ir2sTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_IRREGULAR_3D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_IRREGULAR_3D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_IRREGULAR_3D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryIrregularSet.read(this, dataType);
-if(DEBUG_TIME)ir3sTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)ir3sTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_IRREGULAR_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_IRREGULAR_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_IRREGULAR_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryIrregularSet.read(this, dataType);
-if(DEBUG_TIME)irsTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)irsTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_LINEAR_1D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_LINEAR_1D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_LINEAR_1D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryLinearSet.read(this, dataType);
-if(DEBUG_TIME)l1sTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)l1sTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_LINEAR_2D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_LINEAR_2D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_LINEAR_2D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryLinearSet.read(this, dataType);
-if(DEBUG_TIME)l2sTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)l2sTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_LINEAR_3D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_LINEAR_3D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_LINEAR_3D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryLinearSet.read(this, dataType);
-if(DEBUG_TIME)l3sTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)l3sTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_LINEAR_ND_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_LINEAR_ND_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_LINEAR_ND_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryLinearSet.read(this, dataType);
-if(DEBUG_TIME)lNsTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)lNsTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_LINEAR_LATLON_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_LINEAR_LATLON_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_LINEAR_LATLON_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryLinearSet.read(this, dataType);
-if(DEBUG_TIME)llsTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)llsTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_LIST1D_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_LIST1D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_LIST1D_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryList1DSet.read(this);
-if(DEBUG_TIME)liTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)liTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_PRODUCT_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_PRODUCT_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_PRODUCT_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryProductSet.read(this);
-if(DEBUG_TIME)psTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)psTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_REAL:
-if(DEBUG_DATA)System.err.println("rdData: DATA_REAL (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_REAL (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryReal.read(this);
-if(DEBUG_TIME)rTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)rTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_REAL_TUPLE:
-if(DEBUG_DATA)System.err.println("rdData: DATA_REAL_TUPLE (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_REAL_TUPLE (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryRealTuple.read(this);
-if(DEBUG_TIME)rtTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)rtTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_SINGLETON_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_SINGLETON_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_SINGLETON_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinarySingletonSet.read(this);
-if(DEBUG_TIME)ssTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)ssTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_TEXT:
-if(DEBUG_DATA)System.err.println("rdData: DATA_TEXT (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_TEXT (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryText.read(this);
-if(DEBUG_TIME)tTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)tTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_TUPLE:
-if(DEBUG_DATA)System.err.println("rdData: DATA_TUPLE (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_TUPLE (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryTuple.read(this);
-if(DEBUG_TIME)tuTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)tuTime += System.currentTimeMillis() - tmpStart;
       break;
     case DATA_UNION_SET:
-if(DEBUG_DATA)System.err.println("rdData: DATA_UNION_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
+if(DEBUG_RD_DATA)System.err.println("rdData: DATA_UNION_SET (" + dataType + ")\nrdData: objLen (" + objLen + ")");
       data = BinaryUnionSet.read(this);
-if(DEBUG_TIME)usTime += System.currentTimeMillis() - tmpStart;
+if(DEBUG_RD_TIME)usTime += System.currentTimeMillis() - tmpStart;
       break;
     default:
       throw new IOException("Unknown Data type " + dataType);
     }
 
-if(DEBUG_TIME){
+if(DEBUG_RD_TIME){
   long totTime = System.currentTimeMillis() - totStart;
   if (totTime > 0) {
     System.err.print("rD: tot "+totTime);
