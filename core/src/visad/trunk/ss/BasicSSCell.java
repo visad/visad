@@ -36,6 +36,7 @@ import java.rmi.*;
 import java.util.*;
 import javax.swing.*;
 import visad.*;
+import visad.bom.ImageRendererJ3D;
 import visad.data.*;
 import visad.data.netcdf.Plain;
 import visad.data.visad.VisADForm;
@@ -1727,7 +1728,17 @@ public class BasicSSCell extends JPanel {
           }
         }
       }
-      VDisplay.addReference(dr);
+      MathType type = dr.getData().getType();
+      try {
+        ImageRendererJ3D.verifyImageRendererUsable(type, maps);
+        VDisplay.addReferences(new ImageRendererJ3D(), dr);
+      }
+      catch (VisADException exc) {
+        if (DEBUG) {
+          System.err.println(Name + ": Warning: cannot use ImageRendererJ3D");
+        }
+        VDisplay.addReference(dr);
+      }
       VDisplay.enableAction();
     }
     HasMappings = true;
