@@ -12,6 +12,7 @@ This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
 version 2 of the License, or (at your option) any later version.
+
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -213,7 +214,16 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     setStandard = new JButton("Set standard");
     setStandard.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        /* CTR: TODO */ System.out.println("set standard");
+        Measurement m = thing.getMeasurement();
+        int index = horiz.getValue() - 1;
+        int slice = vert.getValue() - 1;
+        MeasureList[][] lists = horiz.getMatrix().getMeasureLists();
+        for (int j=0; j<lists.length; j++) {
+          for (int i=0; i<lists[j].length; i++) {
+            if (j == index && slice == i) continue;
+            lists[j][i].addMeasurement((Measurement) m.clone(), false);
+          }
+        }
       }
     });
     setStandard.setEnabled(false);

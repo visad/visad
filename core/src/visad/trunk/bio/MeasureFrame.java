@@ -83,7 +83,10 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
   private Object lock = new Object();
 
   /** Constructs a measurement object to match the given field. */
-  public MeasureFrame() throws VisADException, RemoteException {
+  public MeasureFrame() throws VisADException, RemoteException { this(false); }
+  
+  /** Constructs a measurement object to match the given field. */
+  public MeasureFrame(boolean twoD) throws VisADException, RemoteException {
     super(true);
     setTitle(TITLE);
     addMenuItem("File", "Open...", "fileOpen", 'o');
@@ -99,12 +102,14 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
     setContentPane(pane);
 
     // main display
-    try {
-      display = new DisplayImplJ3D("display", new TwoDDisplayRendererJ3D());
+    display = null;
+    if (!twoD) {
+      try {
+        display = new DisplayImplJ3D("display", new TwoDDisplayRendererJ3D());
+      }
+      catch (Throwable t) { }
     }
-    catch (Throwable t) {
-      display = new DisplayImplJ2D("display");
-    }
+    if (display == null) display = new DisplayImplJ2D("display");
     pane.add(display.getComponent(), BorderLayout.CENTER);
 
     // vertical slider
@@ -282,7 +287,8 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
 
   /** Launches the MeasureFrame GUI. */
   public static void main(String[] args) throws Exception {
-    MeasureFrame mf = new MeasureFrame();
+    boolean twoD = args.length > 0 && args[0].equalsIgnoreCase("-2d");
+    MeasureFrame mf = new MeasureFrame(twoD);
     mf.pack();
     mf.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {

@@ -44,52 +44,94 @@ public class MeasureMatrix {
   /** Current matrix index. */
   private int index;
 
+  /** Current matrix slice. */
+  private int slice;
+
+  /** Whether matrix has been initialized. */
+  private boolean inited = false;
+
   /** Constructs a list of measurements. */
   public MeasureMatrix(int length,
     DisplayImpl display, MeasureToolbar toolbar)
   {
     matrix = new MeasureList[length][];
     this.display = display;
-    pool = new LinePool(display, toolbar, MeasureList.MIN_POOL_SIZE / 2);
+    pool = new LinePool(display, toolbar, LinePool.MINIMUM_SIZE / 2);
   }
 
-  /** Initializes the given index and sets it as the current index. */
-  public void initIndex(int index, FieldImpl field, ScalarMap[] xyzMaps,
-    boolean overwrite) throws VisADException, RemoteException
+  /** Initializes the measure matrix. */
+  public void init(FieldImpl field, ScalarMap[] xyzMaps)
+    throws VisADException, RemoteException
   {
-    if (overwrite || matrix[index] == null) {
-      FunctionType type = (FunctionType) field.getType();
-      RealTupleType domain = type.getDomain();
-      if (domain.getDimension() > 1) {
-        throw new VisADException("Field not an image stack");
-      }
-      Set set = field.getDomainSet();
-      if (!(set instanceof GriddedSet)) {
-        throw new VisADException("Image stack not ordered");
-      }
-      GriddedSet gset = (GriddedSet) set;
-      int[] lengths = gset.getLengths();
-      int numSlices = lengths[0];
-      matrix[index] = new MeasureList[numSlices];
-      for (int i=0; i<numSlices; i++) {
-        Data data = field.getSample(i);
-        if (!(data instanceof FieldImpl)) {
-          throw new VisADException("Data #" + i + " not a field");
-        }
-        FieldImpl slice = (FieldImpl) data;
-        matrix[index][i] = new MeasureList(slice, pool, xyzMaps);
+    if (inited) return;
+    
+    // extract needed information from FieldImpl image stack
+    FunctionType type = (FunctionType) field.getType();
+    RealTupleType domain = type.getDomain();
+    if (domain.getDimension() > 1) {
+      throw new VisADException("Field not an image stack");
+    }
+    Set set = field.getDomainSet();
+    if (!(set instanceof GriddedSet)) {
+      throw new VisADException("Image stack not ordered");
+    }
+    GriddedSet gset = (GriddedSet) set;
+    int[] lengths = gset.getLengths();
+    int numSlices = lengths[0];
+    for (int i=0; i<numSlices; i++) {
+      Data data = field.getSample(i);
+      if (!(data instanceof FieldImpl)) {
+        throw new VisADException("Data #" + i + " not a field");
       }
     }
-    this.index = index;
-    setEntry(index, 0);
+
+    // extract needed information from single FieldImpl image
+    FieldImpl image = (FieldImpl) field.getSample(0);
+    type = (FunctionType) image.getType();
+    domain = type.getDomain();
+    set = image.getDomainSet();
+    float[][] samples = set.getSamples(false);
+    int len = domain.getDimension();
+    Real[] p1r = new Real[len];
+    Real[] p2r = new Real[len];
+    Real[] pxr = new Real[len];
+    for (int i=0; i<len; i++) {
+      RealType rt = (RealType) domain.getComponent(i);
+      float s1 = samples[i][0];
+      float s2 = samples[i][samples[i].length - 1];
+      if (s1 != s1) s1 = 0;
+      if (s2 != s2) s2 = 0;
+      if (xyzMaps != null && xyzMaps.length > i && xyzMaps[i] != null) {
+        xyzMaps[i].setRange(s1, s2);
+      }
+      p1r[i] = new Real(rt, s1);
+      p2r[i] = new Real(rt, s2);
+      pxr[i] = new Real(rt, (s1 + s2) / 2);
+    }
+
+    // initialize all new indices within the specified range
+    pool.expand(LinePool.MINIMUM_SIZE, domain);
+    for (int j=0; j<matrix.length; j++) {
+      matrix[j] = new MeasureList[numSlices];
+      for (int i=0; i<numSlices; i++) {
+        matrix[j][i] = new MeasureList(p1r, p2r, pxr, pool);
+      }
+    }
+    inited = true;
   }
+
+  /** Sets the line pool to match the given matrix index. */
+  public void setIndex(int index) { setEntry(index, slice); }
 
   /** Sets the line pool to match the given matrix slice. */
   public void setSlice(int slice) { setEntry(index, slice); }
 
   /** Sets the line pool to match the given matrix entry. */
   public void setEntry(int index, int slice) {
+    if (!inited) System.err.println("Warning: matrix not inited!");
     MeasureList ml = matrix[index][slice];
+    this.index = index;
+    this.slice = slice;
     pool.set(ml.getMeasurements());
   }
 
@@ -99,6 +141,16 @@ public class MeasureMatrix {
   /** Gets the measurement list for the given slice of the specified index. */
   public MeasureList getMeasureList(int index, int slice) {
     return matrix[index][slice];
+  }
+
+  /** Gets all measurement lists in the matrix. */
+  public MeasureList[][] getMeasureLists() {
+    MeasureList[][] lists = new MeasureList[matrix.length][];
+    for (int j=0; j<matrix.length; j++) {
+      lists[j] = new MeasureList[matrix[j].length];
+      System.arraycopy(matrix[j], 0, lists[j], 0, matrix[j].length);
+    }
+    return lists;
   }
 
 }

@@ -34,6 +34,9 @@ import visad.*;
 /** LinePool maintains a pool of lines and points in the given display. */
 public class LinePool implements DisplayListener {
 
+  /** Minimum number of lines in the line pool. */
+  static final int MINIMUM_SIZE = 10;
+
   /** Maximum pixel distance for picking. */
   private static final int PICKING_THRESHOLD = 10;
 

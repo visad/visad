@@ -104,4 +104,11 @@ public class Measurement {
     return vals;
   }
 
+  /** Gets a copy of this measurement. */
+  public Object clone() {
+    RealTuple[] vals = new RealTuple[values.length];
+    System.arraycopy(values, 0, vals, 0, values.length);
+    return new Measurement(vals, color, group);
+  }
+
 }

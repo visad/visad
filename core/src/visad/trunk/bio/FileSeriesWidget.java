@@ -187,7 +187,8 @@ public class FileSeriesWidget extends StepWidget {
 
     try {
       ref.setData(field);
-      matrix.initIndex(curFile, field, new ScalarMap[] {xMap, yMap}, false);
+      matrix.init(field, new ScalarMap[] {xMap, yMap});
+      matrix.setIndex(curFile);
       if (isw != null && animMap != null) isw.setMap(animMap);
     }
     catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }

@@ -132,12 +132,10 @@ public abstract class MeasureThing {
   {
     dtype = domain;
     ptypes = new RealType[dim];
-    Real[] r = new Real[dim];
-    for (int i=0; i<dim; i++) {
-      ptypes[i] = (RealType) domain.getComponent(i);
-      r[i] = new Real(ptypes[i], Double.NaN);
-    }
+    for (int i=0; i<dim; i++) ptypes[i] = (RealType) domain.getComponent(i);
     if (fillVals) {
+      Real[] r = new Real[dim];
+      for (int i=0; i<dim; i++) r[i] = new Real(ptypes[i], Double.NaN);
       RealTuple tuple = new RealTuple(r);
       RealTuple[] vals = new RealTuple[len];
       for (int i=0; i<len; i++) vals[i] = tuple;

@@ -34,9 +34,6 @@ import visad.*;
 /** MeasureList maintains a list of measurements between points in a field. */
 public class MeasureList {
 
-  /** Minimum number of lines in the line pool. */
-  static final int MIN_POOL_SIZE = 10;
-
   /** Default group. */
   static final LineGroup DEFAULT_GROUP = new LineGroup("None");
 
@@ -53,30 +50,9 @@ public class MeasureList {
   private LinePool pool;
 
   /** Constructs a list of measurements. */
-  public MeasureList(FieldImpl field, LinePool pool, ScalarMap[] xyzMaps)
+  public MeasureList(Real[] p1r, Real[] p2r, Real[] pxr, LinePool pool)
     throws VisADException, RemoteException
   {
-    FunctionType type = (FunctionType) field.getType();
-    RealTupleType domain = type.getDomain();
-    Set set = field.getDomainSet();
-    float[][] samples = set.getSamples(false);
-    final int len = domain.getDimension();
-    Real[] p1r = new Real[len];
-    Real[] p2r = new Real[len];
-    Real[] pxr = new Real[len];
-    for (int i=0; i<len; i++) {
-      RealType rt = (RealType) domain.getComponent(i);
-      float s1 = samples[i][0];
-      float s2 = samples[i][samples[i].length - 1];
-      if (s1 != s1) s1 = 0;
-      if (s2 != s2) s2 = 0;
-      if (xyzMaps != null && xyzMaps.length > i && xyzMaps[i] != null) {
-        xyzMaps[i].setRange(s1, s2);
-      }
-      p1r[i] = new Real(rt, s1);
-      p2r[i] = new Real(rt, s2);
-      pxr[i] = new Real(rt, (s1 + s2) / 2);
-    }
     measureList = new Vector();
     lnVals = new RealTuple[2];
     lnVals[0] = new RealTuple(p1r);
@@ -84,13 +60,10 @@ public class MeasureList {
     ptVals = new RealTuple[1];
     ptVals[0] = new RealTuple(pxr);
     this.pool = pool;
-    pool.expand(MIN_POOL_SIZE, domain);
   }
 
   /** Adds a measurement line to the measurement list. */
-  public void addMeasurement() {
-    addMeasurement(false);
-  }
+  public void addMeasurement() { addMeasurement(false); }
 
   /** Adds a measurement line or point to the measurement list. */
   public void addMeasurement(boolean point) {
@@ -100,8 +73,12 @@ public class MeasureList {
   /** Adds a measurement line or point to the measurement list. */
   public void addMeasurement(boolean point, Color color, LineGroup group) {
     Measurement m = new Measurement(point ? ptVals : lnVals, color, group);
+    addMeasurement(m, true);
+  }
+
+  void addMeasurement(Measurement m, boolean updatePool) {
     measureList.add(m);
-    pool.add(m);
+    if (updatePool) pool.add(m);
   }
 
   /** Removes a measurement line or point from the measurement list. */
