@@ -25,11 +25,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import edu.wisc.ssec.mcidas.*;
 
+import visad.java2d.DisplayImplJ2D;
+import visad.java2d.DefaultRendererJ2D;
 import visad.java3d.DisplayImplJ3D;
 import visad.java3d.DefaultRendererJ3D;
-import visad.java3d.DisplayRendererJ3D;
-import visad.java3d.DirectManipulationRendererJ3D;
-import visad.java3d.TwoDDisplayRendererJ3D;
 import visad.Set;
 
 import visad.util.*;  
@@ -80,34 +79,116 @@ import visad.data.mcidas.BaseMapAdapter;
  */
 public class TestArea {
 
+  static boolean use2D = false;
+  static String imageSource = "AREA0007";
+  static String band = "1";
+  static String mapfile = "OUTLUSAM";
+
+  private static boolean getOptions(String[] args)
+  {
+    boolean defaultFile = true;
+    boolean defaultBand = true;
+    boolean defaultMap = true;
+
+    int keyNum = 0;
+    boolean gotValidOptions = true;
+    for (int i = 0; i < args.length; i++) {
+      if (args[i].charAt(0) == '-') {
+
+	// handle options
+	switch (args[i].charAt(1)) {
+	case '2':
+	  use2D = true;
+	  break;
+	case '3':
+	  use2D = false;
+	  break;
+	case 'f':
+	  i++;
+	  imageSource = args[i];
+	  defaultFile = false;
+	  break;
+	case 'b':
+	  i++;
+	  band = args[i];
+	  defaultBand = false;
+	  break;
+	case 'm':
+	  i++;
+	  mapfile = args[i];
+	  defaultMap = false;
+	  break;
+	default:
+	  System.err.println("Unknown option \"" + args[i] + "\"");
+	  gotValidOptions = true;
+	  break;
+	}
+      } else {
+
+	// handle keywords (AKA positional parameters)
+	switch (keyNum) {
+	case 0:
+	  imageSource = args[i];
+	  defaultFile = false;
+	  break;
+	case 1:
+	  band = args[i];
+	  defaultBand = false;
+	  break;
+	case 2:
+	  mapfile = args[i];
+	  defaultMap = false;
+	  break;
+	default:
+	  System.err.println("Unknown keyword \"" + args[i] + "\"");
+	  gotValidOptions = true;
+	  break;
+	}
+	keyNum++;
+      }
+    }
+
+    if (!gotValidOptions) {
+      System.err.print("Usage: java TestArea ");
+      System.err.print(" <AREAfilename>");
+      System.err.print(" <band#>");
+      System.err.print(" <mapfilename>");
+      System.err.println("");
+
+      System.err.print("  or : java TestArea");
+      System.err.print(" [-2(D)|-3(D)]");
+      System.err.print(" [-f AREAfilename]");
+      System.err.print(" [-b band#]");
+      System.err.print(" [-m mapfilename]");
+      System.err.println("");
+
+      System.err.println("\t(filenames may also be URLs)");
+    }
+
+    if (defaultFile || defaultBand || defaultMap) {
+      boolean needComma = false;
+
+      System.out.print("Using default");
+      if (defaultFile) {
+	System.out.print((needComma ? "," : "") + " file " + imageSource);
+      }
+      if (defaultBand) {
+	System.out.print((needComma ? "," : "") + " band " + band);
+      }
+      if (defaultMap) {
+	System.out.print((needComma ? "," : "") + " map " + mapfile);
+      }
+
+      System.out.println("");
+    }
+
+    return gotValidOptions;
+  }
+
   public static void main(String args[]) {
 
-    boolean use2D = false;
-    String imageSource, band, mapfile;
-
-    if (args.length == 0) {
-      imageSource = "AREA0007";
-      band = "1";
-      mapfile = "OUTLUSAM";
-
-      System.out.println("Usage: java TestArea <AREAfilename> <band#> <mapfilename>");
-      System.out.println("          (filenames may also be URLs)");
-      System.out.println("       -- using default: AREA0007 1 OUTLUSAM");
-
-    } else if (args.length == 1) {
-      imageSource = args[0];
-      band = "1";
-      mapfile = "OUTLUSAM";
-    } else if (args.length == 2) {
-      imageSource = args[0];
-      band = args[1];
-      mapfile = "OUTLUSAM";
-    } else if (args.length == 3) {
-      imageSource = args[0];
-      band = args[1];
-      mapfile = args[2];
-    } else {
-      System.out.println("Usage: java TestArea <AREAnnnn> <band#>");
+    if (!getOptions(args)) {
+      System.exit(1);
       return;
     }
 
@@ -196,8 +277,7 @@ public class TestArea {
       DisplayImpl display;
 
       if (use2D) {
-        display = new DisplayImplJ3D("display1", 
-		new TwoDDisplayRendererJ3D() );
+        display = new DisplayImplJ2D("display1");
       } else {
 	display = new DisplayImplJ3D("display1"); 
       }
@@ -244,7 +324,14 @@ public class TestArea {
         redMap[3] = new ConstantMap(.01, Display.ZAxis);
       }
 
-      display.addReferences( new DefaultRendererJ3D(), maplines_ref, redMap);
+      DataRenderer drend;
+      if (use2D) {
+	drend = new DefaultRendererJ2D();
+      } else {
+	drend = new DefaultRendererJ3D();
+      }
+
+      display.addReferences( drend, maplines_ref, redMap);
 
       JFrame jframe = new JFrame("McIDAS AREA in Java 3D");
       jframe.addWindowListener(
