@@ -77,7 +77,7 @@ public class Contour2D extends Applet implements MouseListener {
                       float vx3[][], float vy3[][],  int maxv3, int[] numv3,
                       float vx4[][], float vy4[][],  int maxv4, int[] numv4,
                       byte[][] auxValues, byte[][] auxLevels1,
-                      byte[][] auxLevels2, boolean[] swap )
+                      byte[][] auxLevels2, byte[][] auxLevels3, boolean[] swap )
                           throws VisADException {
     PlotDigits plot = new PlotDigits();
     int ir, ic;
@@ -100,7 +100,8 @@ public class Contour2D extends Applet implements MouseListener {
     int naux = (auxValues != null) ? auxValues.length : 0;
     if (naux > 0) {
       if (auxLevels1 == null || auxLevels1.length != naux ||
-          auxLevels2 == null || auxLevels2.length != naux) {
+          auxLevels2 == null || auxLevels2.length != naux ||
+          auxLevels3 == null || auxLevels3.length != naux) {
         throw new SetException("Contour2D.contour: "
                               +"auxLevels length doesn't match");
       }
@@ -113,7 +114,7 @@ public class Contour2D extends Applet implements MouseListener {
       auxLevels = new byte[naux][maxsize];
     }
     else {
-      if (auxLevels1 != null || auxLevels2 != null) {
+      if (auxLevels1 != null || auxLevels2 != null || auxLevels3 != null) {
         throw new SetException("Contour2D.contour: "
                               +"auxValues null but auxLevels not null");
       }
@@ -376,11 +377,26 @@ public class Contour2D extends Applet implements MouseListener {
               vy3[0] = new float[maxv3];
               System.arraycopy(tx[0], 0, vx3[0], 0, numv3[0]);
               System.arraycopy(ty[0], 0, vy3[0], 0, numv3[0]);
+              if (naux > 0) {
+                byte[][] ta = auxLevels3;
+                for (int i=0; i<naux; i++) {
+                  byte[] taa = auxLevels3[i];
+                  auxLevels3[i] = new byte[maxv3];
+                  System.arraycopy(taa, 0, auxLevels3[i], 0, numv3[0]);
+                }
+              }
             }
 
             plot.plotdigits( value, xk, yk, xm, ym, maxsize, swap);
             System.arraycopy(plot.Vx, 0, vx3[0], numv3[0], plot.NumVerts);
             System.arraycopy(plot.Vy, 0, vy3[0], numv3[0], plot.NumVerts);
+            if (naux > 0) {
+              for (int i=0; i<naux; i++) {
+                for (int j=numv3[0]; j<numv3[0]+plot.NumVerts; j++) {
+                  auxLevels3[i][j] = auxa[i];
+                }
+              }
+            }
             numv3[0] += plot.NumVerts;
             System.arraycopy(plot.VxB, 0, vx4[0], numv4[0], plot.NumVerts);
             System.arraycopy(plot.VyB, 0, vy4[0], numv4[0], plot.NumVerts);
@@ -912,7 +928,7 @@ public class Contour2D extends Applet implements MouseListener {
                   con.vx2, con.vy2, mxv2, con.num2,
                   con.vx3, con.vy3, mxv3, con.num3,
                   con.vx4, con.vy4, mxv4, con.num4,
-                  null, null, null, swap);
+                  null, null, null, null, swap);
     }
     catch (VisADException VE) {
       System.out.println("Contour2D.init: "+VE);

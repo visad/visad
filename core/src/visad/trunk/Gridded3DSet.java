@@ -1609,9 +1609,11 @@ public class Gridded3DSet extends GriddedSet {
     int color_length = (color_values != null) ? color_values.length : 0;
     byte[][] color_levels1 = null;
     byte[][] color_levels2 = null;
+    byte[][] color_levels3 = null;
     if (color_length > 0) {
       color_levels1 = new byte[color_length][maxv1];
       color_levels2 = new byte[color_length][maxv2];
+      color_levels3 = new byte[color_length][maxv3];
     }
 
     float[][] vx1 = new float[1][maxv1];
@@ -1630,7 +1632,8 @@ public class Gridded3DSet extends GriddedSet {
     Contour2D.contour( g, nr, nc, interval, lowlimit, highlimit, base,
                       vx1, vy1,  maxv1, numv1, vx2, vy2,  maxv2, numv2,
                       vx3, vy3,  maxv3, numv3, vx4, vy4,  maxv4, numv4,
-                      color_values, color_levels1, color_levels2, swap );
+                      color_values, color_levels1, color_levels2,
+                      color_levels3, swap );
 
     float[][] grid1 = new float[2][numv1[0]];
     System.arraycopy(vx1[0], 0, grid1[0], 0, numv1[0]);
@@ -1692,6 +1695,14 @@ public class Gridded3DSet extends GriddedSet {
     vx = null;
     vy = null;
 
+    if (color_length > 0) {
+      byte[][] a = new byte[color_length][numv3[0]];
+      for (int i=0; i<color_length; i++) {
+        System.arraycopy(color_levels3[i], 0, a[i], 0, numv3[0]);
+      }
+      color_levels3 = a;
+    }
+
     VisADLineArray[] arrays = new VisADLineArray[3];
     arrays[0] = new VisADLineArray();
     setGeometryArray(arrays[0], gridToValue(grid1), 3, color_levels1);
@@ -1702,7 +1713,7 @@ public class Gridded3DSet extends GriddedSet {
     grid2 = null;
 
     arrays[2] = new VisADLineArray();
-    setGeometryArray(arrays[2], gridToValue(grid_label), 0, null);
+    setGeometryArray(arrays[2], gridToValue(grid_label), 3, color_levels3);
     grid_label = null;
 
     return arrays;
