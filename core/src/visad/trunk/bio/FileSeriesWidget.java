@@ -46,6 +46,8 @@ public class FileSeriesWidget extends StepWidget {
   private DisplayImpl display;
   private ImageStackWidget isw;
   private ScalarMap animMap;
+  private ScalarMap xMap;
+  private ScalarMap yMap;
   private MeasureMatrix mm;
 
   /** Constructs a new FileSeriesWidget. */
@@ -150,6 +152,8 @@ public class FileSeriesWidget extends StepWidget {
 
       // set up mappings
       animMap = null;
+      xMap = null;
+      yMap = null;
       ScalarMap[] maps = field.getType().guessMaps(false);
       for (int i=0; i<maps.length; i++) {
         ScalarMap smap = maps[i];
@@ -158,9 +162,10 @@ public class FileSeriesWidget extends StepWidget {
         }
         catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }
         catch (RemoteException exc) { if (DEBUG) exc.printStackTrace(); }
-        if (Display.Animation.equals(smap.getDisplayScalar())) {
-          animMap = smap;
-        }
+        DisplayRealType drt = smap.getDisplayScalar();
+        if (Display.Animation.equals(drt)) animMap = smap;
+        else if (Display.XAxis.equals(drt)) xMap = smap;
+        else if (Display.YAxis.equals(drt)) yMap = smap;
       }
       try {
         display.addReference(ref);
@@ -171,7 +176,7 @@ public class FileSeriesWidget extends StepWidget {
 
     try {
       ref.setData(field);
-      mm.initIndex(curFile, field, false);
+      mm.initIndex(curFile, field, new ScalarMap[] {xMap, yMap}, false);
       if (isw != null && animMap != null) isw.setMap(animMap);
     }
     catch (VisADException exc) { if (DEBUG) exc.printStackTrace(); }

@@ -53,6 +53,23 @@ public class LinePool {
     used = 0;
   }
 
+  /** Ensures the line pool is at least the given size. */
+  public void expand(int numLines, RealTupleType domain) {
+    if (numLines <= size) return;
+    int n = numLines - size;
+    MeasureLine[] lns = new MeasureLine[n];
+    try {
+      for (int i=0; i<n; i++) {
+        lns[i] = new MeasureLine();
+        lns[i].setType(domain);
+        lns[i].hide();
+      }
+      addNewLines(lns);
+    }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
+  }
+
   /**
    * Sets the endpoint values for all lines in the
    * line pool to match the given measurements.
@@ -75,21 +92,9 @@ public class LinePool {
   public void addLine(Measurement m) {
     if (used == size) {
       try {
-        final MeasureLine line = new MeasureLine();
-        lines.add(line);
+        MeasureLine line = new MeasureLine();
         line.setMeasurement(m);
-        Thread t = new Thread(new Runnable() {
-          public void run() {
-            try {
-              // add line to display in new thread, for safety
-              line.addToDisplay(display);
-            }
-            catch (VisADException exc) { exc.printStackTrace(); }
-            catch (RemoteException exc) { exc.printStackTrace(); }
-          }
-        });
-        t.start();
-        size++;
+        addNewLines(new MeasureLine[] {line});
       }
       catch (VisADException exc) { exc.printStackTrace(); }
       catch (RemoteException exc) { exc.printStackTrace(); }
@@ -99,6 +104,25 @@ public class LinePool {
       line.setMeasurement(m);
     }
     used++;
+  }
+
+  /** Adds a line to the pool, using a new thread. */
+  protected void addNewLines(MeasureLine[] l)
+    throws VisADException, RemoteException
+  {
+    synchronized (this) {
+      display.disableAction();
+      for (int i=0; i<l.length; i++) {
+        lines.add(l[i]);
+        try {
+          l[i].addToDisplay(display);
+        }
+        catch (VisADException exc) { exc.printStackTrace(); }
+        catch (RemoteException exc) { exc.printStackTrace(); }
+      }
+      display.enableAction();
+    }
+    size += l.length;
   }
 
 }

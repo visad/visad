@@ -38,6 +38,15 @@ import visad.java3d.DisplayImplJ3D;
  */
 public class MeasureLine {
 
+  /** Debugging flag. */
+  private static final boolean DEBUG = false;
+
+  /** First free id number for lines. */
+  private static int firstFreeId = 1;
+  
+  /** Id number for the line. */
+  private int id;
+
   /** Data reference for first endpoint. */
   private DataReferenceImpl ref_p1;
 
@@ -65,9 +74,6 @@ public class MeasureLine {
   /** Current Data value for second point. */
   private RealTuple p2;
 
-  /** Current values of endpoints. */
-  private double[][] values;
-
   /** Synchronization object for DataReferences. */
   private Object dataLock = new Object();
 
@@ -83,7 +89,7 @@ public class MeasureLine {
     cell = new CellImpl() {
       public void doAction() {
         if (dtype != null) {
-          updateValues();
+          double[][] values = updateValues();
           if (values == null) return;
 
           // convert doubles to floats
@@ -105,6 +111,9 @@ public class MeasureLine {
     };
     cell.addReference(ref_p1);
     cell.addReference(ref_p2);
+
+    id = firstFreeId++;
+    if (DEBUG) System.out.println("Line " + id + ": created.");
   }
 
   /** Adds the distance measuring data to the given display. */
@@ -113,7 +122,7 @@ public class MeasureLine {
   {
     boolean j3d = d instanceof DisplayImplJ3D;
     d.getGraphicsModeControl().setPointSize(5.0f);
-    d.getDisplayRenderer().setPickThreshhold(Float.MAX_VALUE / 4);
+    d.getDisplayRenderer().setPickThreshhold(0.5f);
 
     // add first endpoint
     DataRenderer renderer = j3d ?
@@ -142,22 +151,55 @@ public class MeasureLine {
 
   /** Hides the endpoints of this line. */
   public void hide() {
+    String debug = "";
     setMeasurement(null);
+    if (DEBUG) debug = debug + "Line " + id + ": hiding line: ";
     if (p1 != null && p2 != null) {
       int len = ptypes.length;
       double[][] values = new double[len][2];
       for (int i=0; i<len; i++) {
-        values[i][0] = Double.MAX_VALUE / 2;
-        values[i][1] = Double.MAX_VALUE / 2;
+        values[i][0] = (double) Float.MAX_VALUE / 2;
+        values[i][1] = (double) Float.MAX_VALUE / 2;
       }
       setValues(values);
+      if (DEBUG) debug = debug + "values set.";
+    }
+    else if (DEBUG) debug = debug + "cannot hide.";
+    if (DEBUG) System.out.println(debug);
+  }
+
+  /** Initializes the line's MathType. */
+  public void setType(RealTupleType domain)
+    throws VisADException, RemoteException
+  {
+    setType(domain, true);
+    if (DEBUG) System.out.println("Line " + id + ": type initialized.");
+  }
+
+  private void setType(RealTupleType domain, boolean fillVals)
+    throws VisADException, RemoteException
+  {
+    dtype = domain;
+    int dim = domain.getDimension();
+    ptypes = new RealType[dim];
+    Real[] r = new Real[dim];
+    for (int i=0; i<dim; i++) {
+      ptypes[i] = (RealType) domain.getComponent(i);
+      r[i] = new Real(ptypes[i], 0.0);
+    }
+    if (fillVals) {
+      p1 = p2 = new RealTuple(r);
+      setValues(p1, p2, false);
     }
   }
 
   /** Links the given measurement with this line. */
   public void setMeasurement(Measurement m) {
     this.m = m;
-    if (m != null) setValues(m.values[0], m.values[1]);
+    if (m != null) {
+      setValues(m.values[0], m.values[1]);
+      if (DEBUG) System.out.println("Line " + id + ": measurement set.");
+    }
   }
 
   /** Sets the values of the endpoints. */
@@ -187,17 +229,7 @@ public class MeasureLine {
 
   private void setValues(RealTuple v1, RealTuple v2, boolean getTypes) {
     try {
-      if (getTypes) {
-        // initialize MathTypes
-        RealTupleType domain = (RealTupleType) v1.getType();
-        dtype = domain;
-        int dim = domain.getDimension();
-        ptypes = new RealType[dim];
-        for (int i=0; i<dim; i++) {
-          ptypes[i] = (RealType) domain.getComponent(i);
-        }
-      }
-      // set data
+      if (getTypes) setType((RealTupleType) v1.getType(), false);
       synchronized (cellLock) {
         cell.disableAction();
         synchronized (dataLock) {
@@ -212,12 +244,18 @@ public class MeasureLine {
   }
 
   /** Updates various internal fields. */
-  private void updateValues() {
+  private double[][] updateValues() {
+    double[][] values = null;
+    String debug = "";
     synchronized (dataLock) {
       p1 = (RealTuple) ref_p1.getData();
       p2 = (RealTuple) ref_p2.getData();
-      values = null;
-      if (m != null) m.values = new RealTuple[] {p1, p2};
+      if (DEBUG) debug = debug + "Line " + id + ": updating values: ";
+      if (m != null) {
+        m.values = new RealTuple[] {p1, p2};
+        if (DEBUG) debug = debug + "measurement values set, ";
+      }
+      else if (DEBUG) debug = debug + "measurement is null, ";
       if (p1 != null && p2 != null) {
         int len = p1.getDimension();
         values = new double[len][2];
@@ -237,8 +275,12 @@ public class MeasureLine {
           exc.printStackTrace();
           values = null;
         }
+        if (DEBUG) debug = debug + "values extracted from data.";
       }
+      else if (DEBUG) debug = debug + "data is null.";
     }
+    if (DEBUG) System.out.println(debug);
+    return values;
   }
 
   /** Gets the values of the endpoints. */

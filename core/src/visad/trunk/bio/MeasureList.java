@@ -34,6 +34,9 @@ import visad.*;
 /** MeasureList maintains a list of measurements between points in a field. */
 public class MeasureList {
 
+  /** Minimum number of lines in the line pool. */
+  private static final int MIN_POOL_SIZE = 10;
+
   /** Default group. */
   private static LineGroup defaultGroup = new LineGroup("None", Color.white);
 
@@ -50,8 +53,8 @@ public class MeasureList {
   private LinePool pool;
 
   /** Constructs a list of measurements. */
-  public MeasureList(DisplayImpl display, FieldImpl field, LinePool pool)
-    throws VisADException, RemoteException
+  public MeasureList(DisplayImpl display, FieldImpl field, LinePool pool,
+    ScalarMap[] xyzMaps) throws VisADException, RemoteException
   {
     FunctionType type = (FunctionType) field.getType();
     RealTupleType domain = type.getDomain();
@@ -66,6 +69,9 @@ public class MeasureList {
       float s2 = samples[i][samples[i].length - 1];
       if (s1 != s1) s1 = 0;
       if (s2 != s2) s2 = 0;
+      if (xyzMaps != null && xyzMaps.length > i && xyzMaps[i] != null) {
+        xyzMaps[i].setRange(s1, s2);
+      }
       p1r[i] = new Real(rt, s1);
       p2r[i] = new Real(rt, s2);
     }
@@ -75,6 +81,7 @@ public class MeasureList {
     values[0] = new RealTuple(p1r);
     values[1] = new RealTuple(p2r);
     this.pool = pool;
+    pool.expand(MIN_POOL_SIZE, domain);
   }
 
   /** Adds a measurement to the measurement list. */

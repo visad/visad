@@ -52,8 +52,8 @@ public class MeasureMatrix {
   }
 
   /** Initializes the given index and sets it as the current index. */
-  public void initIndex(int index, FieldImpl field, boolean overwrite)
-    throws VisADException, RemoteException
+  public void initIndex(int index, FieldImpl field, ScalarMap[] xyzMaps,
+    boolean overwrite) throws VisADException, RemoteException
   {
     if (overwrite || matrix[index] == null) {
       FunctionType type = (FunctionType) field.getType();
@@ -75,7 +75,7 @@ public class MeasureMatrix {
           throw new VisADException("Data #" + i + " not a field");
         }
         FieldImpl slice = (FieldImpl) data;
-        matrix[index][i] = new MeasureList(display, slice, pool);
+        matrix[index][i] = new MeasureList(display, slice, pool, xyzMaps);
       }
     }
     this.index = index;
