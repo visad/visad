@@ -91,17 +91,17 @@ public class Aeri
     String[] wind_files = new String[n_stations];
     String[] rtvl_files = new String[n_stations];
 
-    wind_files[0] = "./data/19991216_lamont_windprof.cdf";
-    wind_files[1] = "./data/19991216_hillsboro_windprof.cdf";
-    wind_files[2] = "./data/19991216_morris_windprof.cdf";
-    wind_files[3] = "./data/19991216_purcell_windprof.cdf";
-    wind_files[4] = "./data/19991216_vici_windprof.cdf";
+    wind_files[0] = "./data/19991226_lamont_windprof.cdf";
+    wind_files[1] = "./data/19991226_hillsboro_windprof.cdf";
+    wind_files[2] = "./data/19991226_morris_windprof.cdf";
+    wind_files[3] = "./data/19991226_purcell_windprof.cdf";
+    wind_files[4] = "./data/19991226_vici_windprof.cdf";
 
-    rtvl_files[0] = "./data/lamont_991216AG.cdf";
-    rtvl_files[1] = "./data/hillsboro_991216AG.cdf";
-    rtvl_files[2] = "./data/morris_991216AG.cdf";
-    rtvl_files[3] = "./data/purcell_991216AG.cdf";
-    rtvl_files[4] = "./data/vici_991216AG.cdf";
+    rtvl_files[0] = "./data/lamont_991226AG.cdf";
+    rtvl_files[1] = "./data/hillsboro_991226AG.cdf";
+    rtvl_files[2] = "./data/morris_991226AG.cdf";
+    rtvl_files[3] = "./data/purcell_991226AG.cdf";
+    rtvl_files[4] = "./data/vici_991226AG.cdf";
 
     FieldImpl[] winds = makeWinds(wind_files);
     System.out.println(winds[0].getType().prettyString());
@@ -127,7 +127,7 @@ public class Aeri
 
 
     VisADForm vad_form = new VisADForm();
-    vad_form.save("aeri-winds_121699.vad", stations_field, true);
+    vad_form.save("aeri-winds_122699.vad", stations_field, true);
 
     System.out.println(stations_field.getType().prettyString());
   }
