@@ -41,7 +41,8 @@ public class RadarAdapter {
 
   FlatField radar;
 
-  public RadarAdapter(float centlat, float centlon, String radarSource)
+  public RadarAdapter(float centlat, float centlon, String radarSource,
+                      boolean d3d)
          throws IOException, VisADException {
     try {
       rf = new RadarFile(radarSource);
@@ -111,14 +112,32 @@ public class RadarAdapter {
 
     RealTupleType ref = new RealTupleType
                   (RealType.Latitude, RealType.Longitude);
-    Radar2DCoordinateSystem rcs =
-      new Radar2DCoordinateSystem(ref, centlat, centlon, radlow, radres,
-                                  azlow, azres);
+    Radar2DCoordinateSystem rcs2d = null;
+    Radar3DCoordinateSystem rcs3d = null;
+    float elevlow = 0.1f;
+    float elevres = 0.01f;
+    int nelev = 1;
+    if (d3d) {
+      rcs3d = new Radar3DCoordinateSystem(ref, centlat, centlon, radlow, radres,
+                                          azlow, azres, elevlow, elevres);
+    }
+    else {
+      rcs2d = new Radar2DCoordinateSystem(ref, centlat, centlon, radlow, radres,
+                                          azlow, azres);
+    }
 
     RealType azimuth = new RealType("azimuth", CommonUnit.degree, null);
     RealType range = new RealType("range", CommonUnit.meter, null);
-    RealType[] domain_components = {range, azimuth};
-    RealTupleType radaz = new RealTupleType(domain_components, rcs, null);
+    RealType elevation = new RealType("elevation", CommonUnit.degree, null);
+    RealTupleType radaz = null;
+    if (d3d) {
+      RealType[] domain_components = {range, azimuth, elevation};
+      radaz = new RealTupleType(domain_components, rcs3d, null);
+    }
+    else {
+      RealType[] domain_components = {range, azimuth};
+      radaz = new RealTupleType(domain_components, rcs2d, null);
+    }
     RealType reflection = new RealType("reflection");
     FunctionType radar_image = new FunctionType(radaz, reflection);
 	//
@@ -167,9 +186,31 @@ public class RadarAdapter {
       for (int j=0; j<nrad; j++) values[0][offset + j] = values[0][j];
     }
 
-    // Gridded2DSet set = new Gridded2DSet(radaz, samples, nrad, naz);
-    Integer2DSet set = new Integer2DSet(radaz, nrad, bignaz); // WLH - 21 Sept 99
-    radar = new FlatField(radar_image, set);
+    if (d3d) {
+      if (nelev == 1) {
+        float[][] samples = new float[3][nrad * bignaz];
+        int k = 0;
+        for (int j=0; j<bignaz; j++) {
+          for (int i=0; i<nrad; i++) {
+            samples[0][k] = i;
+            samples[1][k] = j;
+            samples[2][k] = 0;
+            k++;
+          }
+        }
+        Gridded3DSet set = new Gridded3DSet(radaz, samples, nrad, bignaz);
+        radar = new FlatField(radar_image, set);
+      }
+      else {
+        Integer3DSet set = new Integer3DSet(radaz, nrad, bignaz, nelev);
+        radar = new FlatField(radar_image, set);
+      }
+    }
+    else {
+      // Gridded2DSet set = new Gridded2DSet(radaz, samples, nrad, naz);
+      Integer2DSet set = new Integer2DSet(radaz, nrad, bignaz); // WLH - 21 Sept 99
+      radar = new FlatField(radar_image, set);
+    }
     radar.setSamples(values);
 
   }
@@ -183,7 +224,7 @@ public class RadarAdapter {
     String radarSource = "radar.dat";
     RadarAdapter ra = null;
     try {
-        ra = new RadarAdapter(-30.0f, 140.0f, radarSource);
+        ra = new RadarAdapter(-30.0f, 140.0f, radarSource, false);
 
     } catch (Exception e) {
       System.err.println("Caught Exception for \"" + radarSource + "\": " +

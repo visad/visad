@@ -1,5 +1,5 @@
 //
-// Radar2DCoordinateSystem.java
+// Radar3DCoordinateSystem.java
 //
 
 /*
@@ -29,27 +29,32 @@ package visad.bom;
 import visad.*;
 
 /**
-   Radar2DCoordinateSystem is the VisAD CoordinateSystem class
-   for radar (range, azimuth) with an Earth (Latitude, Longitude) Reference,
-   and with azimuth in degrees and range in meters.<P>
+   Radar3DCoordinateSystem is the VisAD CoordinateSystem class
+   for radar (range, azimuth, elevation) with an Earth
+   (Latitude, Longitude, Altitude) Reference, and with
+   azimuth and elevation in degrees, and range in meters.<P>
 */
-public class Radar2DCoordinateSystem extends CoordinateSystem {
+public class Radar3DCoordinateSystem extends CoordinateSystem {
+
+  public static final double EARTH_RADIUS =
+    ShadowType.METERS_PER_DEGREE * Data.RADIANS_TO_DEGREES;
 
   private static Unit[] coordinate_system_units =
     {CommonUnit.meter, CommonUnit.degree};
 
   private float centlat, centlon;
-  private float radlow, radres, azlow, azres;
+  private float radlow, radres, azlow, azres, elevlow, elevres;
   private double coscentlat, lonscale, latscale;
 
-  /** construct a CoordinateSystem for (range, azimuth)
-      relative to an Earth (Latitude, Longitude) Reference;
+  /** construct a CoordinateSystem for (range, azimuth, elevation)
+      relative to an Earth (Latitude, Longitude, Altitude) Reference;
       this constructor supplies units =
-      {CommonUnit.meter, CommonUnit.degree}
+      {CommonUnit.meter, CommonUnit.degree, CommonUnit.degree}
       to the super constructor, in order to ensure Unit
       compatibility with its use of trigonometric functions */
-  public Radar2DCoordinateSystem(RealTupleType reference, float clat, float clon,
-                               float radl, float radr, float azl, float azr)
+  public Radar3DCoordinateSystem(RealTupleType reference, float clat, float clon,
+                                 float radl, float radr, float azl, float azr,
+                                 float elevl, float elevr)
          throws VisADException {
     super(reference, coordinate_system_units);
     centlat = clat;
@@ -58,6 +63,8 @@ public class Radar2DCoordinateSystem extends CoordinateSystem {
     radres = radr;
     azlow = azl;
     azres = azr;
+    elevlow = elevl;
+    elevres = elevr;
     coscentlat = Math.cos(Data.DEGREES_TO_RADIANS * centlat);
     lonscale = ShadowType.METERS_PER_DEGREE * coscentlat;
     latscale = ShadowType.METERS_PER_DEGREE;
@@ -65,18 +72,19 @@ public class Radar2DCoordinateSystem extends CoordinateSystem {
   }
 
   public double[][] toReference(double[][] tuples) throws VisADException {
-    if (tuples == null || tuples.length != 2) {
-      throw new CoordinateSystemException("Radar2DCoordinateSystem." +
+    if (tuples == null || tuples.length != 3) {
+      throw new CoordinateSystemException("Radar3DCoordinateSystem." +
              "toReference: tuples wrong dimension");
     }
     int len = tuples[0].length;
 // System.out.println("toReference double len = " + len);
-    double[][] value = new double[2][len];
+    double[][] value = new double[3][len];
     for (int i=0; i<len ;i++) {
       double rad = radlow + radres * tuples[0][i];
       if (rad < 0.0) {
         value[0][i] = Double.NaN;
         value[1][i] = Double.NaN;
+        value[2][i] = Double.NaN;
 // System.out.println(i + " missing  rad = " + rad);
       }
       else {
@@ -84,11 +92,20 @@ public class Radar2DCoordinateSystem extends CoordinateSystem {
         double cosaz = Math.cos(Data.DEGREES_TO_RADIANS * az);
         double sinaz = Math.sin(Data.DEGREES_TO_RADIANS * az);
         // assume azimuth = 0 at north, then clockwise
-        value[0][i] = centlat + cosaz * rad / latscale;
-        value[1][i] = centlon + sinaz * rad / lonscale;
+        double elev = elevlow + elevres * tuples[2][i];
+        double coselev = Math.cos(Data.DEGREES_TO_RADIANS * elev);
+        double sinelev = Math.sin(Data.DEGREES_TO_RADIANS * elev);
+        double rp = Math.sqrt(EARTH_RADIUS * EARTH_RADIUS + rad * rad +
+                              2.0 * sinelev * EARTH_RADIUS * rad);
+        value[2][i] = rp - EARTH_RADIUS; // altitude
+        double angle = Math.asin(coselev * rad / rp); // really sin(elev+90)
+        double radp = EARTH_RADIUS * angle;
+        value[0][i] = centlat + cosaz * radp / latscale;
+        value[1][i] = centlon + sinaz * radp / lonscale;
 /*
-System.out.println(tuples[0][i] + " " + tuples[1][i] + " -> " +
-                   value[0][i] + " " + value[1][i] +
+System.out.println(tuples[0][i] + " " + tuples[1][i] + " " + tuples[2][i] +
+                   " -> " +
+                   value[0][i] + " " + value[1][i] + " " + value[2][i] +
                    " az, rad = " + az + " " + rad);
 */
       }
@@ -97,72 +114,94 @@ System.out.println(tuples[0][i] + " " + tuples[1][i] + " -> " +
   }
 
   public double[][] fromReference(double[][] tuples) throws VisADException {
-    if (tuples == null || tuples.length != 2) {
-      throw new CoordinateSystemException("Radar2DCoordinateSystem." +
+    if (tuples == null || tuples.length != 3) {
+      throw new CoordinateSystemException("Radar3DCoordinateSystem." +
              "fromReference: tuples wrong dimension");
     }
     int len = tuples[0].length;
 // System.out.println("fromReference double len = " + len);
-    double[][] value = new double[2][len];
+    double[][] value = new double[3][len];
     for (int i=0; i<len ;i++) {
       double slat = (tuples[0][i] - centlat) * latscale;
       double slon = (tuples[1][i] - centlon) * lonscale;
-      value[0][i] = (Math.sqrt(slat * slat + slon * slon) - radlow) / radres;
+      double radp = Math.sqrt(slat * slat + slon * slon);
+      double angle = radp / EARTH_RADIUS;
+      double rp = EARTH_RADIUS + tuples[2][i];
+      double rad = Math.sqrt(EARTH_RADIUS * EARTH_RADIUS + rp * rp -
+                             2.0 * rp * EARTH_RADIUS * Math.cos(angle));
+      double elev = Math.acos(Math.sin(angle) * rp / rad);
+      value[0][i] = (rad - radlow) / radres;
       value[1][i] =
         (Data.RADIANS_TO_DEGREES * Math.atan2(slon, slat) - azlow) / azres;
+      value[2][i] = (elev - elevlow) / elevres;
       if (value[1][i] < 0.0) value[1][i] += 360.0;
     }
     return value;
   }
 
   public float[][] toReference(float[][] tuples) throws VisADException {
-    if (tuples == null || tuples.length != 2) {
-      throw new CoordinateSystemException("Radar2DCoordinateSystem." +
+    if (tuples == null || tuples.length != 3) {
+      throw new CoordinateSystemException("Radar3DCoordinateSystem." +
              "toReference: tuples wrong dimension");
     }
     int len = tuples[0].length;
 // System.out.println("toReference float len = " + len);
-    float[][] value = new float[2][len];
+    float[][] value = new float[3][len];
     for (int i=0; i<len ;i++) {
       double rad = radlow + radres * tuples[0][i];
       if (rad < 0.0) {
         value[0][i] = Float.NaN;
         value[1][i] = Float.NaN;
+        value[2][i] = Float.NaN;
       }
       else {
         double az = azlow + azres * tuples[1][i];
         double cosaz = Math.cos(Data.DEGREES_TO_RADIANS * az);
         double sinaz = Math.sin(Data.DEGREES_TO_RADIANS * az);
         // assume azimuth = 0 at north, then clockwise
-        value[0][i] = (float) (centlat + cosaz * rad / latscale);
-        value[1][i] = (float) (centlon + sinaz * rad / lonscale);
+        double elev = elevlow + elevres * tuples[2][i];
+        double coselev = Math.cos(Data.DEGREES_TO_RADIANS * elev);
+        double sinelev = Math.sin(Data.DEGREES_TO_RADIANS * elev);
+        double rp = Math.sqrt(EARTH_RADIUS * EARTH_RADIUS + rad * rad +
+                              2.0 * sinelev * EARTH_RADIUS * rad);
+        value[2][i] = (float) (rp - EARTH_RADIUS); // altitude
+        double angle = Math.asin(coselev * rad / rp); // really sin(elev+90)
+        double radp = EARTH_RADIUS * angle;
+        value[0][i] = (float) (centlat + cosaz * radp / latscale);
+        value[1][i] = (float) (centlon + sinaz * radp / lonscale);
       }
     }
     return value;
   }
 
   public float[][] fromReference(float[][] tuples) throws VisADException {
-    if (tuples == null || tuples.length != 2) {
-      throw new CoordinateSystemException("Radar2DCoordinateSystem." +
+    if (tuples == null || tuples.length != 3) {
+      throw new CoordinateSystemException("Radar3DCoordinateSystem." +
              "fromReference: tuples wrong dimension");
     }
     int len = tuples[0].length;
 // System.out.println("fromReference float len = " + len);
-    float[][] value = new float[2][len];
+    float[][] value = new float[3][len];
     for (int i=0; i<len ;i++) {
       double slat = (tuples[0][i] - centlat) * latscale;
       double slon = (tuples[1][i] - centlon) * lonscale;
-      value[0][i] = (float)
-        ((Math.sqrt(slat * slat + slon * slon) - radlow) / radres);
+      double radp = Math.sqrt(slat * slat + slon * slon);
+      double angle = radp / EARTH_RADIUS;
+      double rp = EARTH_RADIUS + tuples[2][i];
+      double rad = Math.sqrt(EARTH_RADIUS * EARTH_RADIUS + rp * rp -
+                             2.0 * rp * EARTH_RADIUS * Math.cos(angle));
+      double elev = Math.acos(Math.sin(angle) * rp / rad);
+      value[0][i] = (float) ((rad - radlow) / radres);
       value[1][i] = (float)
         ((Data.RADIANS_TO_DEGREES * Math.atan2(slon, slat) - azlow) / azres);
-      if (value[1][i] < 0.0) value[1][i] += 360.0f;
+      value[2][i] = (float) ((elev - elevlow) / elevres);
+      if (value[1][i] < 0.0f) value[1][i] += 360.0f;
     }
     return value;
   }
 
   public boolean equals(Object cs) {
-    return (cs instanceof Radar2DCoordinateSystem);
+    return (cs instanceof Radar3DCoordinateSystem);
   }
 
 }

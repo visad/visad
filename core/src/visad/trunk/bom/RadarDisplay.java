@@ -121,8 +121,7 @@ public class RadarDisplay {
     RadarDisplay rd = null;
     RadarAdapter ra = null;
     try {
-        ra = new RadarAdapter(centlat, centlon, radarSource);
-
+        ra = new RadarAdapter(centlat, centlon, radarSource, false);
     } catch (Exception e) {
       System.err.println("Caught Exception for \"" + radarSource + "\": " +
                            e);
