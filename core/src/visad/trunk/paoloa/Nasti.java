@@ -96,6 +96,7 @@ public class Nasti {
     // open a netCDF file containing a NAST-I file
     Tuple nasti_tuple = (Tuple) plain.open(filename);
 
+/*
     // temporary hack to change MathType of data created from file
     Field[] components = new Field[] {(Field) nasti_tuple.getComponent(2),
                                       (Field) nasti_tuple.getComponent(3)};
@@ -104,6 +105,8 @@ public class Nasti {
     nasti = FieldImpl.combine(components);
     // System.out.println("combined = \n" + combined.getType().prettyString());
     // plain.save(args[1], combined, true);
+*/
+    nasti = (Field) nasti_tuple.getComponent(2);
 
 
     // extract the type of image and use
@@ -168,7 +171,10 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
     }
 
     // get spectrum and types
+/*
     spectrum_index = nasti_range_type.getDimension() - 1;
+*/
+    spectrum_index = 0;
     FunctionType spectrum_type =
       (FunctionType) nasti_range_type.getComponent(spectrum_index);
     wnum1 = (RealType) ((RealTupleType) spectrum_type.getDomain()).getComponent(0);
