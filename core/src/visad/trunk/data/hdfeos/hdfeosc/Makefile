@@ -4,7 +4,7 @@ SLIBDIR = .
 # JAVADIR should be the top-level JDK1.2 directory
 # JAVAINCS should list all the necessary include files under JAVADIR
 #
-JAVADIR = /usr/local/jdk1.2beta4
+JAVADIR = /opt/java
 J_INC =  ${JAVADIR}/include
 JAVAINCS = -I${J_INC} -I${J_INC}/${ARCH}
 
