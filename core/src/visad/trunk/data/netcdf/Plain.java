@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Plain.java,v 1.24 2001-09-10 20:36:05 steve Exp $
+ * $Id: Plain.java,v 1.25 2001-12-19 16:48:10 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -61,6 +61,8 @@ Plain
 
     /**
      * Constructs a netCDF data form that uses the given quantity database.
+     *
+     * @param db                        The quantity database.
      */
     public
     Plain(QuantityDB db)
@@ -135,29 +137,57 @@ Plain
 
 
     /**
-     * Open an existing netCDF file and return a VisAD data object.  This method
-     * uses the method {@link NetcdfAdapter#getData()} to instantiate the
-     * VisAD data object.  The user should look at that method for information
-     * on import strategies and customization.
+     * Returns a VisAD data object corresponding to a netCDF dataset.
      *
-     * @param path	Pathname of the existing netCDF file.
-     * @return		A VisAD object corresponding to the netCDF dataset.
-     * @exception BadFormException
-     *			The netCDF variable cannot be adapted to a VisAD API.
-     * @exception VisADException
-     *			Problem in core VisAD.  Probably some VisAD object
-     *			couldn't be created.
-     * @exception IOException
-     *			Data access I/O failure.
+     * @param spec	        Specification of the existing netCDF dataset.
+     * @return		        A VisAD data object corresponding to the netCDF 
+     *                          dataset.
+     * @throws BadFormException if the netCDF dataset cannot be adapted to a
+     *                          VisAD data object.
+     * @throws VisADException   if a problem occurs in core VisAD.  Probably a
+     *                          VisAD object couldn't be created.
+     * @throws IOException      if an I/O failure occurs.
      * @see NetcdfAdapter#getData()
      */
     public synchronized DataImpl
-    open(String path)
+    open(String spec)
 	throws BadFormException, IOException, VisADException
     {
 	return
 	    new NetcdfAdapter(
-		new NetcdfFile(path, /*readonly=*/true), quantityDB).getData();
+		new NetcdfFile(spec, /*readonly=*/true),
+		quantityDB
+	    ).getData();
+    }
+
+
+    /**
+     * Returns a VisAD data object corresponding to a netCDF dataset
+     * and imported according to a given strategy.  Among the
+     * pre-defined import strategies are {@link Strategy#DEFAULT},
+     * {@link Strategy#MERGED_FILE_FLAT_FIELDS}, and {@link
+     * Strategy#UNMERGED_FILE_FLAT_FIELDS}.
+     *
+     * @param spec	        Specification of the existing netCDF dataset.
+     * @param strategy          The data-import strategy.
+     * @return		        A VisAD data object corresponding to the netCDF 
+     *                          dataset.
+     * @throws BadFormException if the netCDF dataset cannot be adapted to a
+     *                          VisAD data object.
+     * @throws VisADException   if a problem occurs in core VisAD.  Probably a
+     *                          VisAD object couldn't be created.
+     * @throws IOException      if an I/O failure occurs.
+     * @see NetcdfAdapter#getData(Strategy)
+     */
+    public synchronized DataImpl
+    open(String spec, Strategy strategy)
+	throws BadFormException, IOException, VisADException
+    {
+	return
+	    new NetcdfAdapter(
+		new NetcdfFile(spec, /*readonly=*/true),
+		quantityDB
+	    ).getData(strategy);
     }
 
 
