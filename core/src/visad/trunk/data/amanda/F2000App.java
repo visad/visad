@@ -103,16 +103,16 @@ class DisplayMaps
     final double xrange = file.getXMax() - file.getXMin();
     final double yrange = file.getYMax() - file.getYMin();
     final double zrange = file.getZMax() - file.getZMin();
-    final double half_range = -0.5 * Math.max(xrange, Math.max(yrange, zrange));
+    final double halfrange = -0.5 * Math.max(xrange, Math.max(yrange, zrange));
     final double xmid = 0.5 * (file.getXMax() + file.getXMin());
     final double ymid = 0.5 * (file.getYMax() + file.getYMin());
     final double zmid = 0.5 * (file.getZMax() + file.getZMin());
-    final double xmin = xmid - half_range;
-    final double xmax = xmid + half_range;
-    final double ymin = ymid - half_range;
-    final double ymax = ymid + half_range;
-    final double zmin = zmid - half_range;
-    final double zmax = zmid + half_range;
+    final double xmin = xmid - halfrange;
+    final double xmax = xmid + halfrange;
+    final double ymin = ymid - halfrange;
+    final double ymax = ymid + halfrange;
+    final double zmin = zmid - halfrange;
+    final double zmax = zmid + halfrange;
 
     ScalarMap xmap = new ScalarMap(AmandaFile.getXType(), Display.XAxis);
     display.addMap(xmap);
@@ -141,10 +141,10 @@ class DisplayMaps
                                   Display.Shape);
     display.addMap(this.shapemap);
 
-    ScalarMap shape_scalemap = new ScalarMap(AmandaFile.getAmplitudeType(),
+    ScalarMap shapeScalemap = new ScalarMap(AmandaFile.getAmplitudeType(),
                                              Display.ShapeScale);
-    display.addMap(shape_scalemap);
-    shape_scalemap.setRange(-20.0, 50.0);
+    display.addMap(shapeScalemap);
+    shapeScalemap.setRange(-20.0, 50.0);
 
     this.letmap = new ScalarMap(AmandaFile.getLeadEdgeTimeType(),
                                 Display.RGB);
@@ -177,8 +177,8 @@ public class F2000App
 
     Data temp = file.makeData();
 
-    final FieldImpl amanda = (FieldImpl) ((Tuple) temp).getComponent(0);
-    final FieldImpl modules = (FieldImpl) ((Tuple) temp).getComponent(1);
+    final FieldImpl amanda = (FieldImpl )((Tuple )temp).getComponent(0);
+    final FieldImpl modules = (FieldImpl )((Tuple )temp).getComponent(1);
 
     DisplayImpl display = new DisplayImplJ3D("amanda");
 
@@ -189,7 +189,7 @@ public class F2000App
     DisplayRenderer displayRenderer = display.getDisplayRenderer();
     displayRenderer.setBoxOn(false);
 
-    ShapeControl scontrol = (ShapeControl) maps.shapemap.getControl();
+    ShapeControl scontrol = (ShapeControl )maps.shapemap.getControl();
     scontrol.setShapeSet(new Integer1DSet(AmandaFile.getAmplitudeType(), 1));
     scontrol.setShapes(F2000Util.getCubeArray());
 
@@ -197,24 +197,23 @@ public class F2000App
 
     // fixes track display?
     // SelectValue bug?
-    // amanda = ((FieldImpl) amanda).getSample(99);
+    // amanda = ((FieldImpl )amanda).getSample(99);
 
-    final DataReferenceImpl amanda_ref = new DataReferenceImpl("amanda");
-    // amanda_ref.setData(amanda);
-    display.addReference(amanda_ref);
+    final DataReferenceImpl amandaRef = new DataReferenceImpl("amanda");
+    // amandaRef.setData(amanda);
+    display.addReference(amandaRef);
 
-    final DataReferenceImpl modules_ref = new DataReferenceImpl("modules");
-    modules_ref.setData(modules);
-    display.addReference(modules_ref);
+    final DataReferenceImpl modulesRef = new DataReferenceImpl("modules");
+    modulesRef.setData(modules);
+    display.addReference(modulesRef);
 
 System.out.println("amanda MathType\n" + amanda.getType());
-// visad.jmet.DumpType.dumpDataType(amanda, System.out);
 
-    final DataReferenceImpl event_ref = new DataReferenceImpl("event");
+    final DataReferenceImpl eventRef = new DataReferenceImpl("event");
 
     CellImpl cell = new CellImpl() {
       public void doAction() throws VisADException, RemoteException {
-        Real r = (Real )event_ref.getData();
+        Real r = (Real )eventRef.getData();
         if (r != null) {
           int index = (int )r.getValue();
           if (index < 0) {
@@ -222,53 +221,53 @@ System.out.println("amanda MathType\n" + amanda.getType());
           } else if (index > nevents) {
             index = nevents;
           }
-          amanda_ref.setData(amanda.getSample(index));
+          amandaRef.setData(amanda.getSample(index));
         }
       }
     };
-    // link cell to hour_ref to trigger doAction whenever
+    // link cell to hourRef to trigger doAction whenever
     // 'hour' value changes
-    cell.addReference(event_ref);
+    cell.addReference(eventRef);
 
 /*
-    LabeledColorWidget energy_widget =
-      new LabeledColorWidget(energymap);
-    widget_panel.add(energy_widget);
+    LabeledColorWidget energyWidget = new LabeledColorWidget(energymap);
+    widgetPanel.add(energyWidget);
 */
-    LabeledColorWidget let_widget = new LabeledColorWidget(maps.letmap);
+
+    LabeledColorWidget letWidget = new LabeledColorWidget(maps.letmap);
     // align along left side, to match VisADSlider alignment
     //   (if we don't left-align, BoxLayout hoses everything)
-    let_widget.setAlignmentX(Component.LEFT_ALIGNMENT);
+    letWidget.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-    VisADSlider event_slider = new VisADSlider("event", 0, nevents - 1,
-                                               0, 1.0, event_ref,
+    VisADSlider eventSlider = new VisADSlider("event", 0, nevents - 1,
+                                               0, 1.0, eventRef,
                                                AmandaFile.getEventIndexType(),
                                                true);
-    event_slider.hardcodeSizePercent(110); // leave room for label changes
+    eventSlider.hardcodeSizePercent(110); // leave room for label changes
 
-    VisADSlider track_slider = new VisADSlider(maps.trackmap, true, true);
-    track_slider.hardcodeSizePercent(110); // leave room for label changes
+    VisADSlider trackSlider = new VisADSlider(maps.trackmap, true, true);
+    trackSlider.hardcodeSizePercent(110); // leave room for label changes
 
-    JPanel widget_panel = new JPanel();
-    widget_panel.setLayout(new BoxLayout(widget_panel, BoxLayout.Y_AXIS));
-    widget_panel.setMaximumSize(new Dimension(400, 600));
+    JPanel widgetPanel = new JPanel();
+    widgetPanel.setLayout(new BoxLayout(widgetPanel, BoxLayout.Y_AXIS));
+    widgetPanel.setMaximumSize(new Dimension(400, 600));
 
-    widget_panel.add(let_widget);
-    // widget_panel.add(new VisADSlider(eventmap));
-    widget_panel.add(track_slider);
-    widget_panel.add(event_slider);
+    widgetPanel.add(letWidget);
+    // widgetPanel.add(new VisADSlider(eventmap));
+    widgetPanel.add(trackSlider);
+    widgetPanel.add(eventSlider);
 
-    JPanel display_panel = (JPanel) display.getComponent();
+    JPanel displayPanel = (JPanel )display.getComponent();
     Dimension dim = new Dimension(800, 800);
-    display_panel.setPreferredSize(dim);
-    display_panel.setMinimumSize(dim);
+    displayPanel.setPreferredSize(dim);
+    displayPanel.setMinimumSize(dim);
 
     // create JPanel in frame
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
 
-    panel.add(widget_panel);
-    panel.add(display_panel);
+    panel.add(widgetPanel);
+    panel.add(displayPanel);
 
     new DisplayFrame("VisAD AMANDA Viewer", display, panel);
   }
