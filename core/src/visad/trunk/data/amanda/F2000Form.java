@@ -726,14 +726,7 @@ class AmandaFile
   }
 
   public static final RealType getAmplitudeType() { return amplitudeType; }
-
   public static final RealType getEventIndexType() { return eventIndexType; }
-
-  public synchronized FormNode getForms(Data data)
-  {
-    return null;
-  }
-
   public static final RealType getLeadEdgeTimeType() { return letType; }
 
   public final double getXMax() { return xmax; }
