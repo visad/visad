@@ -85,10 +85,9 @@ public class TiffTools {
     return ifdEntries;
   }
 
-  public static Hashtable
-      getIFDHash(RandomAccessFile readIn, int block_id)
-      throws IOException {
-
+  public static Hashtable getIFDHash(RandomAccessFile readIn, int block_id)
+    throws IOException
+  {
     Hashtable ifdEntries = new Hashtable();
     Integer entryTag, entryType, entrycount, entryOffset;
     int frames = 0;
@@ -415,16 +414,17 @@ public class TiffTools {
     return new int[] {width.intValue(), length.intValue(), frames};
   }
 
-  public static boolean isIFDArray(Hashtable h, int id) {
-    Integer k = new Integer(id);
-    Vector v = (Vector) h.get(k);
-    return (((Integer) v.get(1)).intValue() == 1);
-  }
-
   public static int getIFDValue(Hashtable h, int id) {
     Integer k = new Integer(id);
     Vector v = (Vector) h.get(k);
-    return ((Integer) v.get(2)).intValue();
+    if (v == null) return -1;
+    Integer i = (Integer) v.get(2);
+    if (i == null) return -1;
+    return i.intValue();
+  }
+
+  public static boolean isIFDArray(Hashtable h, int id) {
+    return getIFDValue(h, id) == 1;
   }
 
 
