@@ -88,6 +88,10 @@ public interface Field extends Function {
   void setSample(int index, Data range)
          throws VisADException, RemoteException;
 
+  /** set the range value at the index-th sample */
+  void setSample(int index, Data range, boolean copy)
+         throws VisADException, RemoteException;
+
   /** assumes the range type of this is a Tuple and returns
       a Field with the same domain as this, but whose range
       samples consist of the specified Tuple component of the

@@ -130,6 +130,15 @@ public class RemoteFieldImpl extends RemoteFunctionImpl
     ((FieldImpl) AdaptedData).setSample(index, range);
   }
 
+  public void setSample(int index, Data range, boolean copy)
+         throws VisADException, RemoteException {
+    if (AdaptedData == null) {
+      throw new RemoteVisADException("RemoteFieldImpl.setSample: " +
+                                     "AdaptedData is null");
+    }
+    ((FieldImpl) AdaptedData).setSample(index, range, copy);
+  }
+
   public Field extract(int component)
          throws VisADException, RemoteException {
     if (AdaptedData == null) {
