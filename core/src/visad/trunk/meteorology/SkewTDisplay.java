@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SkewTDisplay.java,v 1.6 1998-08-20 16:57:09 steve Exp $
+ * $Id: SkewTDisplay.java,v 1.7 1998-08-24 13:02:54 billh Exp $
  */
 
 package visad.meteorology;
@@ -228,9 +228,12 @@ SkewTDisplay
 	     * Add the temperature fields to the display.
 	     */
 	    display.addReference(soundingRef, 
-		new ConstantMap[] {new ConstantMap(1.0, temperatureColor)});
+		new ConstantMap[] {new ConstantMap(1.0, Display.Red),
+                                   new ConstantMap(0.0, Display.Green),
+                                   new ConstantMap(0.0, Display.Blue)});
 	    display.addReference(temperatureRef);
-	    display.addReference(potentialTemperatureRef);
+	    display.addReference(potentialTemperatureRef,
+                new ConstantMap[] {new ConstantMap(3.0, Display.LineWidth)});
 	    // display.addReference(equivalentPotentialTemperatureRef);
 
 	    displayInitialized = true;
