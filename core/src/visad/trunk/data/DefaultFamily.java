@@ -41,6 +41,7 @@ import visad.data.mcidas.AreaForm;
 import visad.data.mcidas.MapForm;
 import visad.data.biorad.BioRadForm;
 import visad.data.jai.JAIForm;
+import visad.data.qt.QTForm;
 
 /**
   * A container for all the officially supported VisAD datatypes.<br>
@@ -137,6 +138,11 @@ public class DefaultFamily
     }
     try {
       list[i] = new JAIForm();
+      i++;
+    } catch (Throwable t) {
+    }
+    try {
+      list[i] = new QTForm();
       i++;
     } catch (Throwable t) {
     }
