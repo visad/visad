@@ -719,7 +719,6 @@ System.out.println("doTransform.curvedTexture = " + curvedTexture + " " +
       limits[1][0] = (float) Y.getFirst();
       limits[1][1] = (float) Y.getLast();
 
-      float value2 = 0.0f;
       // convert values to default units (used in display)
       limits = Unit.convertTuple(limits, dataUnits, domain_units);
 
@@ -757,6 +756,9 @@ System.out.println("doTransform.curvedTexture = " + curvedTexture + " " +
       tuple_index[2] = 3 - (tuple_index[0] + tuple_index[1]);
       DisplayRealType real = (DisplayRealType)
         Display.DisplaySpatialCartesianTuple.getComponent(tuple_index[2]);
+      int value2_index = display.getDisplayScalarIndex(real);
+      float value2 = default_values[value2_index];
+      // float value2 = 0.0f;  WLH 30 Aug 99
       for (int i=0; i<valueArrayLength; i++) {
         if (inherited_values[i] > 0 &&
             real.equals(display.getDisplayScalar(valueToScalar[i])) ) {
