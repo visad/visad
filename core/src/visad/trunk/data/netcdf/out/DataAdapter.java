@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DataAdapter.java,v 1.1 1998-03-20 20:57:13 visad Exp $
+ * $Id: DataAdapter.java,v 1.2 1998-03-26 21:08:24 visad Exp $
  */
 
 package visad.data.netcdf.out;
@@ -59,10 +59,16 @@ DataAdapter
      */
     public
     DataAdapter(Data data)
-	throws UnimplementedException, BadFormException, VisADException,
-	    RemoteException, IOException
+	throws BadFormException, VisADException, RemoteException, IOException
     {
-	visit(data, new TrivialAccessor(data));
+	try
+	{
+	    visit(data, new TrivialAccessor(data));
+	}
+	catch (UnimplementedException e)
+	{
+	    throw new BadFormException(e.getMessage());
+	}
     }
 
 
