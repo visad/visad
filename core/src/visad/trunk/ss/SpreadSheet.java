@@ -2666,7 +2666,7 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
   protected void refreshFormulaBar() {
     BasicSSCell.invoke(false, new Runnable() {
       public void run() {
-        FormulaBox.removeAllItems();
+        if (FormulaBox.getItemCount() > 0) FormulaBox.removeAllItems();
         String[] varNames = DisplayCells[CurX][CurY].getVariableNames();
         int len = varNames.length;
         for (int i=0; i<len; i++) {
