@@ -118,6 +118,7 @@ public class CollectiveBarbManipulation extends Object
      and must include RealTypes Latitude and Longitude plus
      RealTypes mapped to Flow1Azimuth and Flow1Radial in the
      DisplayImplJ3Ds d1 and d2 (unless they are not null);
+     d1 must have Time mapped to Animation, and d2 may not;
 
      abs indicates absolute or relative value adjustment
      id and od are inner and outer distances in meters
@@ -427,6 +428,8 @@ public class CollectiveBarbManipulation extends Object
     }
   }
 
+  /** called by the application to select which station is selected
+      in display2 */
   public void setStation(int sta)
          throws VisADException, RemoteException {
     if (display2 == null) {
@@ -474,7 +477,9 @@ public class CollectiveBarbManipulation extends Object
     }
   }
 
-  public void endManipulation()
+  /** called by the application to end manipulation;
+      returns the final wind field */
+  public FieldImpl endManipulation()
          throws VisADException, RemoteException {
     ended = true;
     if (display1 != null) {
@@ -496,6 +501,7 @@ public class CollectiveBarbManipulation extends Object
       time_refs = null;
       setStation(station);
     }
+    return wind_field;
   }
 
   private boolean first = true;
@@ -542,6 +548,7 @@ public class CollectiveBarbManipulation extends Object
         if (ntimes[i] != ff.getLength()) {
           throw new CollectiveBarbException("number of times changed");
         }
+        Enumeration e = ff.domainEnumeration();
         for (int j=0; j<ntimes[i]; j++) {
           Tuple tuple = (Tuple) ff.getSample(j);
           Real[] reals = tuple.getRealComponents();
@@ -554,8 +561,19 @@ public class CollectiveBarbManipulation extends Object
             azimuths[i][j] = new_azimuth;
             radials[i][j] = new_radial;
             tuples[i][j] = tuple;
-            if (j == which_times[i]) {
+            if (station_refs != null && j == which_times[i]) {
               station_refs[i].setData(tuples[i][j]);
+            }
+
+            int n = tuple.getDimension();
+            Data[] components = new Data[n + 1];
+            for (int k=0; k<n; k++) {
+              components[k] = tuple.getComponent(k);
+            }
+            components[n] = ((RealTuple) e.nextElement()).getComponent(0);
+            tuples2[i][j] = new Tuple(components);
+            if (time_refs != null && i == station) {
+              time_refs[j].setData(tuples2[i][j]);
             }
           }
         }
@@ -825,10 +843,6 @@ public class CollectiveBarbManipulation extends Object
     FlowControl flow_control2 = (FlowControl) windd_map2.getControl();
     flow_control2.setFlowScale(0.15f); // this controls size of barbs
 
-    display2.addMap(new ScalarMap(red, Display.Red));
-    display2.addMap(new ScalarMap(green, Display.Green));
-    display2.addMap(new ConstantMap(1.0, Display.Blue));
-
     ScalarMap tmap = new ScalarMap(time, Display.XAxis);
     display2.addMap(tmap);
     tmap.setRange(start, start + 3000.0);
@@ -942,7 +956,7 @@ class EndManipCBM implements ActionListener {
     String cmd = e.getActionCommand();
     if (cmd.equals("end")) {
       try {
-        cbm.endManipulation();
+        FieldImpl final_field = cbm.endManipulation();
       }
       catch (VisADException ex) {
       }
