@@ -56,6 +56,7 @@ public class RealTupleType extends TupleType {
   public static final RealTupleType SpatialCartesian2DTuple =
     new RealTupleType(components2c, true);
 
+
   private static RealType[] components3c =
     {RealType.XAxis, RealType.YAxis, RealType.ZAxis};
   /**
@@ -64,6 +65,7 @@ public class RealTupleType extends TupleType {
    */
   public static final RealTupleType SpatialCartesian3DTuple =
     new RealTupleType(components3c, true);
+
 
   private static RealType[] components2e =
     {RealType.Longitude, RealType.Latitude};
@@ -74,6 +76,7 @@ public class RealTupleType extends TupleType {
   public final static RealTupleType SpatialEarth2DTuple =
     new RealTupleType(components2e, true);
 
+
   private static RealType[] componentsll =
     {RealType.Latitude, RealType.Longitude};
   /** 
@@ -83,6 +86,7 @@ public class RealTupleType extends TupleType {
   public final static RealTupleType LatitudeLongitudeTuple =
     new RealTupleType(componentsll, true);
 
+
   private static RealType[] components3e =
     {RealType.Longitude, RealType.Latitude, RealType.Altitude};
   /** 
@@ -91,6 +95,16 @@ public class RealTupleType extends TupleType {
    */
   public final static RealTupleType SpatialEarth3DTuple =
     new RealTupleType(components3e, true);
+
+
+  private static RealType[] componentslla =
+    {RealType.Latitude, RealType.Longitude, RealType.Altitude};
+  /** 
+   * System intrinsic
+   * for (RealType.Latitude, RealType.Longitude, RealType.Altitude) 
+   */
+  public final static RealTupleType LatitudeLongitudeAltitudeTuple =
+    new RealTupleType(componentslla, true);
 
 
   private static RealType[] components1t =
