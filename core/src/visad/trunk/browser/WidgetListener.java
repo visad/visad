@@ -28,10 +28,14 @@ package visad.browser;
 
 import java.util.EventListener;
 
-/** WidgetListener is the EventListener interface for WidgetEvents. */
+/**
+ * WidgetListener is the EventListener interface for WidgetEvents.
+ */
 public interface WidgetListener extends EventListener {
 
-  /** send a WidgetEvent to this WidgetListener */
+  /**
+   * Send a WidgetEvent to this WidgetListener.
+   */
   void widgetChanged(WidgetEvent e);
 
 }

@@ -33,54 +33,84 @@ import java.awt.image.MemoryImageSource;
 import java.io.*;
 import java.net.*;
 
-/** An applet for connecting to a VisAD display available through a
-    SocketSlaveDisplay server. The applet functions completely independently
-    of VisAD, using only JDK 1.1 code, so that it can be imbedded
-    within a web page for use in a web browser. */
+/**
+ * An applet for connecting to a VisAD display available through a
+ * SocketSlaveDisplay server. The applet functions completely independently
+ * of VisAD, using only JDK 1.1 code, so that it can be imbedded
+ * within a web page for use in a web browser.
+ */
 public class VisADApplet extends Applet
   implements ActionListener, MouseListener, MouseMotionListener
 {
 
-  /** the default host name for the SocketSlaveDisplay server */
+  /**
+   * The default host name for the SocketSlaveDisplay server.
+   */
   private static final String DEFAULT_HOST = "localhost";
 
-  /** the default port at which to connect */
+  /**
+   * The default port at which to connect.
+   */
   private static final int DEFAULT_PORT = 4567;
 
-  /** whether the applet client is connected to a server */
+  /**
+   * Whether the applet client is connected to a server.
+   */
   private boolean connected = false;
 
-  /** IP address of the server */
+  /**
+   * IP address of the server.
+   */
   private String address = "";
 
-  /** port of the server */
+  /**
+   * Port of the server.
+   */
   private int port = DEFAULT_PORT;
 
-  /** currently connected socket */
+  /**
+   * Currently connected socket.
+   */
   private Socket socket = null;
 
-  /** output stream of currently connected socket */
+  /**
+   * Output stream of currently connected socket.
+   */
   private DataOutputStream out = null;
 
-  /** latest image from the server's display */
+  /**
+   * Latest image from the server's display.
+   */
   private Image image = null;
 
-  /** text field for typing in IP address of server */
+  /**
+   * Text field for typing in IP address of server.
+   */
   private TextField addressField;
 
-  /** text field for typing in port of server */
+  /**
+   * Text field for typing in port of server.
+   */
   private TextField portField;
 
-  /** button for connecting to the specified IP address and port */
+  /**
+   * Button for connecting to the specified IP address and port.
+   */
   private Button connectButton;
 
-  /** canvas for painting remote display image from the server */
+  /**
+   * Canvas for painting remote display image from the server.
+   */
   private Component canvas;
 
-  /** thread for communicating with server */
+  /**
+   * Thread for communicating with server.
+   */
   private Thread commThread = null;
 
-  /** adds a component to the applet with the specified constraints */
+  /**
+   * Adds a component to the applet with the specified constraints.
+   */
   private void addComponent(Component c, GridBagLayout layout,
     int x, int y, int w, int h, double wx, double wy)
   {
@@ -96,7 +126,9 @@ public class VisADApplet extends Applet
     add(c);
   }
 
-  /** initializes the applet and lays out its GUI */
+  /**
+   * Initializes the applet and lays out its GUI.
+   */
   public void init() {
     // set background to white
     setBackground(Color.white);
@@ -147,12 +179,16 @@ public class VisADApplet extends Applet
     addComponent(canvas, gridbag, 0, 1, 5, 1, 1.0, 1.0);
   }
 
-  /** requests a refresh from the server */
+  /**
+   * Requests a refresh from the server.
+   */
   private void requestRefresh() {
     sendEvent(null);
   }
 
-  /** sends the specified mouse event through the socket to the server */
+  /**
+   * Sends the specified mouse event through the socket to the server.
+   */
   private void sendEvent(MouseEvent e) {
     // if e == null, send a dummy mouseevent with id < 0
     int id;
@@ -199,7 +235,9 @@ public class VisADApplet extends Applet
     }
   }
 
-  /** fired when a button is pressed or enter is pressed in a text box */
+  /**
+   * Fired when a button is pressed or enter is pressed in a text box.
+   */
   public synchronized void actionPerformed(ActionEvent e) {
     // highlight the connect button to indicate that connection is happening
     connectButton.requestFocus();
@@ -327,4 +365,3 @@ public class VisADApplet extends Applet
   }
 
 }
-

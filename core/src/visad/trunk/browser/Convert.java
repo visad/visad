@@ -162,4 +162,24 @@ public class Convert {
     return decoded;
   }
 
+  /**
+   * Extracts a double from a string.
+   */
+  public static double getDouble(String s) {
+    double d = Double.NaN;
+    try {
+      d = Double.parseDouble(s);
+    }
+    catch (NumberFormatException exc) { }
+    return d;
+  }
+
+  /**
+   * Extracts a boolean from a string.
+   */
+  public static boolean getBoolean(String s) {
+    char c = s.trim().charAt(0);
+    return c == 'T' || c == 't';
+  }
+
 }

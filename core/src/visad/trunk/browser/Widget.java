@@ -30,16 +30,34 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.Vector;
 
-/** Abstract superclass for all browser widgets */
+/**
+ * Abstract superclass for all browser widgets.
+ */
 public abstract class Widget extends Panel {
 
-  /** vector of widget listeners */
+  /**
+   * Coded string value for true.
+   */
+  protected static final String TRUE = "T";
+
+  /**
+   * Coded string value for false.
+   */
+  protected static final String FALSE = "F";
+
+  /**
+   * Vector of widget listeners.
+   */
   private Vector listeners = new Vector();
 
-  /** constructs a new Widget */
+  /**
+   * Constructs a new Widget.
+   */
   public Widget(WidgetEvent e) { }
 
-  /** adds a component to the applet with the specified constraints */
+  /**
+   * Adds a component to the applet with the specified constraints.
+   */
   protected void addComponent(Component c, GridBagLayout layout,
     int x, int y, int w, int h, double wx, double wy)
   {
@@ -55,7 +73,9 @@ public abstract class Widget extends Panel {
     add(c);
   }
 
-  /** pops up a frame to test this widget */
+  /**
+   * Pops up a frame to test this widget.
+   */
   protected void testWidget() {
     String title = getClass().getName();
     title = title.substring(title.lastIndexOf('.') + 1);
@@ -70,21 +90,27 @@ public abstract class Widget extends Panel {
     f.show();
   }
 
-  /** adds a widget listener */
+  /**
+   * Adds a widget listener.
+   */
   public void addWidgetListener(WidgetListener l) {
     synchronized (listeners) {
       listeners.addElement(l);
     }
   }
 
-  /** removes a widget listener */
+  /**
+   * Removes a widget listener.
+   */
   public void removeWidgetListener(WidgetListener l) {
     synchronized (listeners) {
       listeners.removeElement(l);
     }
   }
 
-  /** notifies all widget listeners of the given widget event */
+  /**
+   * Notifies all widget listeners of the given widget event.
+   */
   public void notifyListeners(WidgetEvent e) {
     synchronized (listeners) {
       for (int i=0; i<listeners.size(); i++) {
@@ -94,7 +120,9 @@ public abstract class Widget extends Panel {
     }
   }
 
-  /** update widget based on information from the given WidgetEvent */
+  /**
+   * Update widget based on information from the given WidgetEvent.
+   */
   public abstract void updateWidget(WidgetEvent e);
 
 }

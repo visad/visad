@@ -28,9 +28,18 @@ package visad.browser;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.util.StringTokenizer;
 
-/** A widget that allows users to control graphics mode parameters. */
+/**
+ * A widget that allows users to control graphics mode parameters.
+ */
 public class GMCWidget extends Widget implements ActionListener, ItemListener {
+
+  private static final String SCALE_ENABLED = "s";
+  private static final String POINT_MODE = "p";
+  private static final String TEXTURE_MAPPING = "t";
+  private static final String LINE_WIDTH = "lw";
+  private static final String POINT_SIZE = "ps";
 
   Checkbox scale;
   Checkbox point;
@@ -38,20 +47,17 @@ public class GMCWidget extends Widget implements ActionListener, ItemListener {
   TextField lineWidth;
   TextField pointSize;
 
-  float gmcLineWidth;
-  float gmcPointSize;
+  boolean gmcScaleEnabled = false;
+  boolean gmcPointMode = false;
+  boolean gmcTextureMapping = false;
+  float gmcLineWidth = 1.0f;
+  float gmcPointSize = 1.0f;
 
-  /** Constructs a new GMCWidget from the given WidgetEvent information */
+  /**
+   * Constructs a new GMCWidget from the given WidgetEvent information.
+   */
   public GMCWidget(WidgetEvent e) {
     super(e);
-
-    // get widget values from event
-    boolean s = false;
-    boolean p = false;
-    boolean t = false;
-    gmcLineWidth = 1.0f;
-    gmcPointSize = 1.0f;
-    /* CTR: TODO */
 
     // set background to white
     setBackground(Color.white);
@@ -61,11 +67,14 @@ public class GMCWidget extends Widget implements ActionListener, ItemListener {
     setLayout(gridbag);
 
     // construct GUI components
-    scale = new Checkbox("Enable scale", s);
-    point = new Checkbox("Point mode", p);
-    texture = new Checkbox("Texture mapping", t);
+    scale = new Checkbox("Enable scale", gmcScaleEnabled);
+    point = new Checkbox("Point mode", gmcPointMode);
+    texture = new Checkbox("Texture mapping", gmcTextureMapping);
     lineWidth = new TextField("" + gmcLineWidth);
     pointSize = new TextField("" + gmcPointSize);
+
+    // get widget values from event
+    updateWidget(e);
 
     // add listeners
     scale.addItemListener(this);
@@ -84,12 +93,85 @@ public class GMCWidget extends Widget implements ActionListener, ItemListener {
     addComponent(pointSize, gridbag, 3, 1, 1, 1, 1.0, 0.0);
   }
 
-  /** update widget based on information from the given WidgetEvent */
-  public void updateWidget(WidgetEvent e) {
-    /* CTR: TODO */
+  /**
+   * Programmatically sets the scale enabled checkbox.
+   */
+  public void setScaleEnabled(boolean se) {
+    gmcScaleEnabled = se;
+    scale.setState(se);
   }
 
-  /** Handles TextField changes */
+  /**
+   * Programmatically sets the point mode checkbox.
+   */
+  public void setPointMode(boolean pm) {
+    gmcPointMode = pm;
+    point.setState(pm);
+  }
+
+  /**
+   * Programmatically sets the texture mapping checkbox.
+   */
+  public void setTextureMapping(boolean tm) {
+    gmcTextureMapping = tm;
+    texture.setState(tm);
+  }
+
+  /**
+   * Programmatically sets the line width text field.
+   */
+  public void setLineWidth(float lw) {
+    gmcLineWidth = lw;
+    lineWidth.setText("" + lw);
+  }
+
+  /**
+   * Programmatically sets the point size text field.
+   */
+  public void setPointSize(float ps) {
+    gmcPointSize = ps;
+    pointSize.setText("" + ps);
+  }
+
+  /**
+   * Updates widget based on information from the given WidgetEvent.
+   */
+  public void updateWidget(WidgetEvent e) {
+    if (e == null) return;
+    int id = e.getId();
+    if (id == WidgetEvent.CREATED) {
+      String save = e.getValue();
+      StringTokenizer st = new StringTokenizer(save, "\n");
+      setScaleEnabled(Convert.getBoolean(st.nextToken()));
+      setPointMode(Convert.getBoolean(st.nextToken()));
+      setTextureMapping(Convert.getBoolean(st.nextToken()));
+      setLineWidth((float) Convert.getDouble(st.nextToken()));
+      setPointSize((float) Convert.getDouble(st.nextToken()));
+    }
+    else if (id == WidgetEvent.UPDATED) {
+      String field = e.getField();
+      String value = e.getValue();
+      if (field.equals(SCALE_ENABLED)) {
+        setScaleEnabled(Convert.getBoolean(value));
+      }
+      else if (field.equals(POINT_MODE)) {
+        setPointMode(Convert.getBoolean(value));
+      }
+      else if (field.equals(TEXTURE_MAPPING)) {
+        setTextureMapping(Convert.getBoolean(value));
+      }
+      else if (field.equals(LINE_WIDTH)) {
+        setLineWidth((float) Convert.getDouble(value));
+      }
+      else { // field.equals(POINT_SIZE)
+        setPointSize((float) Convert.getDouble(value));
+      }
+    }
+  }
+
+  /**
+   * Handles TextField changes.
+   */
   public void actionPerformed(ActionEvent e) {
     String cmd = e.getActionCommand();
     Object source = e.getSource();
@@ -102,9 +184,10 @@ public class GMCWidget extends Widget implements ActionListener, ItemListener {
         lineWidth.setText("" + gmcLineWidth);
       }
       if (lw == lw) {
-        /* CTR: TODO: send out WidgetEvent to listeners */
         gmcLineWidth = lw;
         scale.requestFocus();
+        notifyListeners(new WidgetEvent(
+          this, WidgetEvent.UPDATED, LINE_WIDTH, "" + lw));
       }
     }
     else if (source == pointSize) {
@@ -116,25 +199,33 @@ public class GMCWidget extends Widget implements ActionListener, ItemListener {
         pointSize.setText("" + gmcPointSize);
       }
       if (ps == ps) {
-        /* CTR: TODO: send out WidgetEvent to listeners */
         gmcPointSize = ps;
         scale.requestFocus();
+        notifyListeners(
+          new WidgetEvent(this, WidgetEvent.UPDATED, POINT_SIZE, "" + ps));
       }
     }
   }
 
-  /** Handles Checkbox changes */
+  /**
+   * Handles Checkbox changes.
+   */
   public void itemStateChanged(ItemEvent e) {
     Object o = e.getItemSelectable();
     boolean on = (e.getStateChange() == ItemEvent.SELECTED);
-    /* CTR: TODO: send out WidgetEvent to listeners */
+    String f;
+    if (o == scale) f = SCALE_ENABLED;
+    else if (o == point) f = POINT_MODE;
+    else f = TEXTURE_MAPPING; // o == texture
+    String v = on ? TRUE : FALSE;
+    notifyListeners(new WidgetEvent(this, WidgetEvent.UPDATED, f, v));
   }
 
-  /** Tests GMCWidget */
+  /**
+   * Tests GMCWidget.
+   */
   public static void main(String[] args) {
-    /* CTR: TODO: fix this WidgetEvent sloppiness */
-    WidgetEvent e = new WidgetEvent(null, 0);
-    new GMCWidget(e).testWidget();
+    new GMCWidget(null).testWidget();
   }
 
 }
