@@ -170,7 +170,7 @@ public class FieldImpl extends FunctionImpl implements Field {
           else if (RangeType instanceof TupleType) {
             int k = 0;
             for (int j=0; j<((TupleType) RangeType).getDimension(); j++) {
-              MathType component_type = ((TupleType) RangeType).getComponent(i);
+              MathType component_type = ((TupleType) RangeType).getComponent(j);
               Data component = ((Tuple) range).getComponent(j);
               if (component_type instanceof RealType) {
                 values[k][i] = ((Real) component).getValue(units[k]);

@@ -1958,6 +1958,8 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
     int nvertex = Delan.Vertices.length;
     if (npolygons < 1 || nvertex < 3) return null;
 
+    // make sure all triangles have the same signature
+    // i.e., winding direction
     int[][] Tri = Delan.Tri;
     int[][] Walk = Delan.Walk;
     int dim = Tri[0].length - 1;
@@ -1966,37 +1968,49 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
     int[] walk_stack = new int[npolygons];
     int sp; // stack pointer
     for (int ii=0; ii<npolygons; ii++) {
+      // find an un-adjusted triangle
       if (tri[ii] == null) {
+        // initialize its signature
         tri[ii] = new int[3];
-        tri[ii][0] = Delan.Tri[ii][0];
-        tri[ii][1] = Delan.Tri[ii][1];
-        tri[ii][2] = Delan.Tri[ii][2];
+        tri[ii][0] = Tri[ii][0];
+        tri[ii][1] = Tri[ii][1];
+        tri[ii][2] = Tri[ii][2];
+        // first stack entry, for recursive search of triangles
+        // via Walk array
         sp = 0;
         walk_stack[sp] = 0;
         poly_stack[sp] = ii;
         while (true) {
+          // find neighbor triangle via Walk
           int i = poly_stack[sp];
           int w = walk_stack[sp];
           int j = Walk[i][w];
           if (j >= 0 && tri[j] == null) {
+            // compare signatures of neighbors
             int v1 = Tri[i][w];
             int v2 = Tri[i][(w + 1) % 3];
             int i1 = -1;
             int i2 = -1;
+            int j1 = -1;
+            int j2 = -1;
             for (int k=0; k<3; k++) {
-              if (Tri[j][i] == v1) i1 = k;
-              if (Tri[j][i] == v2) i2 = k;
+              if (tri[i][k] == v1) i1 = k;
+              if (tri[i][k] == v2) i2 = k;
+              if (Tri[j][k] == v1) j1 = k;
+              if (Tri[j][k] == v2) j2 = k;
             }
             tri[j] = new int[3];
             tri[j][0] = Tri[j][0];
-            if (((i1 + 1) % 3) == i2) {
+            if ( ( (((i1 + 1) % 3) == i2) && (((j1 + 1) % 3) == j2) ) ||
+                 ( (((i2 + 1) % 3) == i1) && (((j2 + 1) % 3) == j1) ) ) {
               tri[j][1] = Tri[j][2];
               tri[j][2] = Tri[j][1];
             }
-            else { // ((i2 + 1) % 3) == i1)
+            else {
               tri[j][1] = Tri[j][1];
               tri[j][2] = Tri[j][2];
             }
+            // add j to stack
             sp++;
             walk_stack[sp] = 0;
             poly_stack[sp] = j;
@@ -2004,7 +2018,7 @@ System.out.println("  normal: " + x + " " + y + " " + z + "\n");
           else { // (j < 0 || tri[j] != null)
             while (true) {
               walk_stack[sp]++;
-              if (walk_stack[sp] < 2) {
+              if (walk_stack[sp] < 3) {
                 break;
               }
               else {

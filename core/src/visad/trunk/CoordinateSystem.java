@@ -275,10 +275,18 @@ public abstract class CoordinateSystem extends Object
                                     in, coord_in, units_in, errors_in, value);
     ErrorEstimate[] sub_errors_out = new ErrorEstimate[1];
     double[][] val = Set.floatToDouble(value);
-    for (int i=0; i<n; i++) {
-      val[i] = Unit.transformUnits(units_out[i], sub_errors_out, units_free[i],
-                                    errors_out[i], val[i]);
-      errors_out[i] = sub_errors_out[0];
+    if (errors_out == null) {
+      for (int i=0; i<n; i++) {
+        val[i] = Unit.transformUnits(units_out[i], sub_errors_out, units_free[i],
+                                     null, val[i]);
+      }
+    }
+    else {
+      for (int i=0; i<n; i++) {
+        val[i] = Unit.transformUnits(units_out[i], sub_errors_out, units_free[i],
+                                     errors_out[i], val[i]);
+        errors_out[i] = sub_errors_out[0];
+      }
     }
     value = Set.doubleToFloat(val);
     return value;

@@ -36,10 +36,11 @@ TAR_FILES = \
 	visad/docs/DESIGN5				\
 	visad/*.java					\
 	visad/java3d/*.java				\
+	visad/util/*.java				\
 	visad/data/*.java				\
 	visad/data/netcdf/*.java			\
-	visad/data/netcdf/plain/*.java			\
-	ucar/netcdf/*.java				\
+	visad/data/hdfeos/*.java			\
+	visad/ucar.jar					\
 	visad/*.txt					\
 	visad/*.html
 
@@ -88,5 +89,5 @@ save:
 	javac $<
 
 compile:
-	javac *.java java3d/*.java
+	javac *.java java3d/*.java util/*.java
 

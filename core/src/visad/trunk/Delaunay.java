@@ -85,39 +85,48 @@ public abstract class Delaunay implements java.io.Serializable {
              a new Delaunay extension is created, so that the algorithm
              takes that new extension into account. */
 
-    int choice;      // 0 = fast, 1 = clarkson, 2 = watson
+    int choice;
+    int FAST = 0;
+    int CLARKSON = 1;
+    int WATSON = 2;
 
     int dim = samples.length;
     if (dim < 2) throw new VisADException("Delaunay.factory: "
                                          +"dimension must be 2 or higher");
 
     // only Clarkson can handle triangulations in high dimensions
-    if (dim > 3) choice = 1;
+    if (dim > 3) {
+      choice = CLARKSON;
+    }
     else {
-      // in 2-D, Fast is preferred unless exact triangulation is needed
-      if (dim == 2 && !exact) choice = 0;
+      int nrs = samples[0].length;
+      for (int i=1; i<dim; i++) {
+        nrs = Math.min(nrs, samples[i].length);
+      }
+      if (dim == 2 && !exact && nrs > 10000) {
+        // use fast in 2-D with a very large set and exact not required
+        choice = FAST;
+      }
+      else if (nrs > 3000) {
+        // use Clarkson for large sets
+        choice = CLARKSON;
+      }
       else {
-        int nrs = samples[0].length;
-        for (int i=1; i<dim; i++) {
-          nrs = Math.min(nrs, samples[i].length);
-        }
-        // Clarkson isn't faster than Watson until around 3000 sites
-        if (nrs > 3000) choice = 1;
-        else choice = 2;
+        choice = WATSON;
       }
     }
 
-    if (choice == 0) {
+    if (choice == FAST) {
       // triangulate with the Fast method
       DelaunayFast delan = new DelaunayFast(samples);
       return (Delaunay) delan;
     }
-    if (choice == 1) {
+    if (choice == CLARKSON) {
       // triangulate with the Clarkson method
       DelaunayClarkson delan = new DelaunayClarkson(samples);
       return (Delaunay) delan;
     }
-    if (choice == 2) {
+    if (choice == WATSON) {
       // triangulate with the Watson method
       DelaunayWatson delan = new DelaunayWatson(samples);
       return (Delaunay) delan;

@@ -194,9 +194,11 @@ public abstract class ShadowType extends Object
             if (ref != null && ref.getMappedDisplayScalar()) nref++;
           }
         }
+/* WLH 5 Feb 98
         else {
           n++;
         }
+*/
       }
       reals = new ShadowRealType[n];
       int j = 0;
@@ -227,10 +229,12 @@ public abstract class ShadowType extends Object
             }
           }
         }
+/* WLH 5 Feb 98
         else {
           reals[j] = null;
           j++;
         }
+*/
       }
     }
     else {
@@ -623,8 +627,8 @@ public abstract class ShadowType extends Object
                                ShadowRealType[] reals) throws VisADException {
     int n = values.length;
     if (n != reals.length) {
-      throw new DisplayException("ShadowFunctionType.mapValues: " +
-                                 "lengths don't match");
+      throw new DisplayException("ShadowType.mapValues: lengths don't match " +
+                                 n + " != " + reals.length);
     }
     for (int i=0; i<n; i++) {
       Enumeration maps = reals[i].getSelectedMapVector().elements();
@@ -642,7 +646,7 @@ public abstract class ShadowType extends Object
                                ShadowRealType[] reals) throws VisADException {
     int n = values.length;
     if (n != reals.length) {
-      throw new DisplayException("ShadowFunctionType.mapValues: " +
+      throw new DisplayException("ShadowType.mapValues: " +
                                  "lengths don't match");
     }
     for (int i=0; i<n; i++) {
@@ -710,7 +714,7 @@ public abstract class ShadowType extends Object
               tuple.getCoordinateSystem().getReference().equals(
                   Display.DisplaySpatialCartesianTuple)))) {
           if (spatial_tuple != null && !spatial_tuple.equals(tuple)) {
-            throw new DisplayException("ShadowFunctionType.assembleSpatial: " +
+            throw new DisplayException("ShadowType.assembleSpatial: " +
                                        "multiple spatial display tuples");
           }
           spatial_tuple = tuple;

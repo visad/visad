@@ -206,9 +206,10 @@ public class ScalarMap extends Object implements java.io.Serializable {
     if (DisplayScalar == Display.Animation && shadow != null) {
       Set set = shadow.animationSampling;
       if (set == null) {
+        return;
         // WLH - should never happen
         // set = shadow.animationRangeSampling;
-        throw new DisplayException("ScalarMap.setRange: animationRangeSampling");
+        // throw new DisplayException("ScalarMap.setRange: animationRangeSampling");
       }
       if (set == null) {
         set = new Linear1DSet(Scalar, dataRange[0], dataRange[1], 100);

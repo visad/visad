@@ -1431,38 +1431,36 @@ public class FlatField extends FieldImpl {
           case INV_SUBTRACT:
           case MAX:
           case MIN:
-            for (j=0; j<TupleDimension; j++) {
-              Unit u;
+            Unit u;
   
-              if (RangeUnits[j] == null || units_out[j] == null) {
-                u = null;
-              }
-              else if (RangeUnits[j] == CommonUnit.promiscuous) {
-                u = units_out[j];
-              }
-              else if (units_out[j] == CommonUnit.promiscuous) {
-                u = RangeUnits[j];
-              }
-              else if (Unit.canConvert(RangeUnits[j], units_out[j])) {
-                u = RangeUnits[j];
-                value = RangeUnits[j].toThis(value, units_out[j]);
-                if (error_mode == NO_ERRORS && errors_out[j] != null) {
-                  // scale data.ErrorEstimate for Unit.toThis
-                  double error = 0.5 * errors_out[j].getErrorValue();
-                  double mean = errors_out[j].getMean();
-                  double a = RangeUnits[j].toThis(mean + error, units_out[j]);
-                  double b = RangeUnits[j].toThis(mean - error, units_out[j]);
-                  double new_error = Math.abs(a - b);
-                  double new_mean = 0.5 * (a + b);
-                  errors_out[j] =
-                    new ErrorEstimate(new_mean, new_error, RangeUnits[j]);
-                }
-              }
-              else {
-                u = null;
-              }
-              units_out[j] = u;
+            if (RangeUnits[j] == null || units_out[j] == null) {
+              u = null;
             }
+            else if (RangeUnits[j] == CommonUnit.promiscuous) {
+              u = units_out[j];
+            }
+            else if (units_out[j] == CommonUnit.promiscuous) {
+              u = RangeUnits[j];
+            }
+            else if (Unit.canConvert(RangeUnits[j], units_out[j])) {
+              u = RangeUnits[j];
+              value = RangeUnits[j].toThis(value, units_out[j]);
+              if (error_mode == NO_ERRORS && errors_out[j] != null) {
+                // scale data.ErrorEstimate for Unit.toThis
+                double error = 0.5 * errors_out[j].getErrorValue();
+                double mean = errors_out[j].getMean();
+                double a = RangeUnits[j].toThis(mean + error, units_out[j]);
+                double b = RangeUnits[j].toThis(mean - error, units_out[j]);
+                double new_error = Math.abs(a - b);
+                double new_mean = 0.5 * (a + b);
+                errors_out[j] =
+                  new ErrorEstimate(new_mean, new_error, RangeUnits[j]);
+              }
+            }
+            else {
+              u = null;
+            }
+            units_out[j] = u;
             switch (op) {
               case ADD:
                 for (int i=0; i<Length; i++) {
@@ -2520,14 +2518,13 @@ for (i=0; i<length; i++) {
         dsize = length * length * length;
         float[][] samples = new float[3][dsize];
 
-/*
         // random Irregular3DSet
         for (int i=0; i<dsize; i++) {
           samples[0][i] = length * random.nextFloat();
           samples[1][i] = length * random.nextFloat();
           samples[2][i] = length * random.nextFloat();
         }
-*/
+/*
         // jittered linear Irregular3DSet
         Linear3DSet square_set = new Linear3DSet(dtype, first, last, length,
                                                  first, last, length,
@@ -2538,6 +2535,7 @@ for (i=0; i<length; i++) {
           samples[1][i] += 0.05 * random.nextFloat();
           samples[2][i] += 0.05 * random.nextFloat();
         }
+*/
 
         domain_set = new Irregular3DSet(dtype, samples);
       }
