@@ -1337,8 +1337,99 @@ public class DataUtility {
   }
 
   /**
+   * Converts an array of strings into a VisAD Tuple.
+   *
+   * @param s The array of strings to be converted to a VisAD Tuple.
+   *
+   * @return VisAD Tuple, or null if Tuple could not be created.
+   */
+  public static Tuple stringsToTuple(String[] s) {
+    return stringsToTuple(s, false);
+  }
+
+  /**
+   * Converts an array of strings into a VisAD Tuple.
+   *
+   * @param s The array of strings to be converted to a VisAD Tuple.
+   * @param printStackTraces <tt>true</tt> if the stack trace for
+   *                         any exception should be printed.
+   *
+   * @return VisAD Tuple, or null if Tuple could not be created.
+   */
+  public static Tuple stringsToTuple(String[] s, boolean printStackTraces) {
+    try {
+      if (s == null) return null;
+      int len = s.length;
+      if (len == 0) return null;
+      Text[] text = new Text[len];
+      for (int i=0; i<len; i++) text[i] = new Text(s[i]);
+      Tuple tuple = new Tuple(text);
+      return tuple;
+    }
+    catch (VisADException exc) {
+      if (printStackTraces) exc.printStackTrace();
+    }
+    catch (RemoteException exc) {
+      if (printStackTraces) exc.printStackTrace();
+    }
+    return null;
+  }
+
+  /**
+   * Converts a VisAD tuple into an array of strings.
+   *
+   * @param t The VisAD Tuple to be converted to an array of strings.
+   *
+   * @return Array of Strings, or null if array could not be created.
+   */
+  public static String[] tupleToStrings(Tuple t) {
+    return tupleToStrings(t, false);
+  }
+
+  /**
+   * Converts a VisAD tuple into an array of strings.
+   *
+   * @param t The VisAD Tuple to be converted to an array of strings.
+   * @param printStackTraces <tt>true</tt> if the stack trace for
+   *                         any exception should be printed.
+   *
+   * @return Array of Strings, or null if array could not be created.
+   */
+  public static String[] tupleToStrings(Tuple t, boolean printStackTraces) {
+    if (t == null) return null;
+    int len = t.getDimension();
+    try {
+      String[] errors = new String[len];
+      for (int i=0; i<len; i++) {
+        Text text = (Text) t.getComponent(i);
+        errors[i] = text.getValue();
+      }
+      return errors;
+    }
+    catch (VisADException exc) {
+      if (printStackTraces) exc.printStackTrace();
+    }
+    catch (RemoteException exc) {
+      if (printStackTraces) exc.printStackTrace();
+    }
+    return null;
+  }
+
+  /**
    * Verify that an object is Serializable by attempting to
-   * serializing it (and 
+   * serialize it.
+   *
+   * @param obj An object which needs to be serialized
+   *
+   * @return <tt>true</tt> if the object is Serializable, false otherwise.
+   */
+  public static boolean isSerializable(Object obj) {
+    return isSerializable(obj, false);
+  }
+
+  /**
+   * Verify that an object is Serializable by attempting to
+   * serialize it.
    *
    * @param obj An object which needs to be serialized
    * @param printStackTraces <tt>true</tt> if the stack trace for
@@ -1406,6 +1497,39 @@ public class DataUtility {
     }
 
     return true;
+  }
+
+  /**
+   * Converts a remote Data object to a local Data object.
+   *
+   * @param data The Data object to be made local.
+   *
+   * @return Local Data object, or null if Data could not be converted.
+   */
+  public static DataImpl makeLocal(Data data) {
+    return makeLocal(data, false);
+  }
+
+  /**
+   * Converts a remote Data object to a local Data object.
+   *
+   * @param data The Data object to be made local.
+   * @param printStackTraces <tt>true</tt> if the stack trace for
+   *                         any exception should be printed.
+   *
+   * @return Local Data object, or null if Data could not be converted.
+   */
+  public static DataImpl makeLocal(Data data, boolean printStackTraces) {
+    try {
+      if (data != null) return data.local();
+    }
+    catch (VisADException exc) {
+      if (printStackTraces) exc.printStackTrace();
+    }
+    catch (RemoteException exc) {
+      if (printStackTraces) exc.printStackTrace();
+    }
+    return null;
   }
 
 }

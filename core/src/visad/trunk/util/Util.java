@@ -1,3 +1,7 @@
+//
+// Util.java
+//
+
 /*
 VisAD system for interactive analysis and visualization of numerical
 data.  Copyright (C) 1996 - 2002 Bill Hibbard, Curtis Rueden, Tom
@@ -25,8 +29,8 @@ package visad.util;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.Window;
-import javax.swing.JFileChooser;
-import javax.swing.JTextField;
+import java.lang.reflect.InvocationTargetException;
+import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import ncsa.hdf.hdf5lib.H5;
 import com.sun.image.codec.jpeg.*;
@@ -34,6 +38,7 @@ import visad.DisplayImpl;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.awt.image.BufferedImage;
+
 /**
  * A hodge-podge of general utility methods.
  */
@@ -268,7 +273,7 @@ public class Util
   }
 
   /**
-   * Checks to see if the version of Java 3D being used is compatible
+   * Check to see if the version of Java 3D being used is compatible
    * with the desired specification version.
    * @param version   version to check.  Needs to conform to the dotted format
    *                  of specification version numbers (e.g., 1.2)
@@ -315,7 +320,6 @@ public class Util
    */
   public static void captureDisplay(DisplayImpl display, String filename) 
   {
-
     final DisplayImpl disp = display;
     final File fn = new File(filename);
 
@@ -339,4 +343,71 @@ public class Util
     Thread t = new Thread(savedisp);
     t.start();
   }
+
+  /**
+   * Tests whether two arrays are component-wise equal.
+   */
+  public static boolean arraysEqual(Object[] o1, Object[] o2) {
+    // test for null
+    if (o1 == null && o2 == null) return true;
+    if (o1 == null || o2 == null) return false;
+
+    // test for differing lengths
+    if (o1.length != o2.length) return false;
+
+    // test each component
+    for (int i=0; i<o1.length; i++) {
+      if (!o1[i].equals(o2[i])) return false;
+    }
+    return true;
+  }
+
+  /**
+   * Executes the given Runnable object with the Swing event handling thread.
+   *
+   * @param wait <tt>true</tt> if method should block until Runnable code
+   *             finishes execution.
+   * @param r Runnable object to execute using the event handling thread.
+   */
+  public static void invoke(boolean wait, Runnable r) {
+    invoke(wait, false, r);
+  }
+
+  /**
+   * Executes the given Runnable object with the Swing event handling thread.
+   *
+   * @param wait <tt>true</tt> if method should block until Runnable code
+   *             finishes execution.
+   * @param printStackTraces <tt>true</tt> if the stack trace for
+   *                         any exception should be printed.
+   * @param r Runnable object to execute using the event handling thread.
+   */
+  public static void invoke(boolean wait,
+    boolean printStackTraces, Runnable r)
+  {
+    if (wait) {
+      // use invokeAndWait
+      if (Thread.currentThread().getName().startsWith("AWT-EventQueue")) {
+        // current thread is the AWT event queue thread; just execute the code
+        r.run();
+      }
+      else {
+        // execute the code with the AWT event thread
+        try {
+          SwingUtilities.invokeAndWait(r);
+        }
+        catch (InterruptedException exc) {
+          if (printStackTraces) exc.printStackTrace();
+        }
+        catch (InvocationTargetException exc) {
+          if (printStackTraces) exc.getTargetException().printStackTrace();
+        }
+      }
+    }
+    else {
+      // use invokeLater
+      SwingUtilities.invokeLater(r);
+    }
+  }
+
 }
