@@ -161,14 +161,6 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
     final JFrame frame = this;
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
-        JOptionPane.showMessageDialog(frame, "Temporarily disabled.",
-          "BioVisAD", JOptionPane.WARNING_MESSAGE);
-      }
-    });
-    /* CTR: TODO: restore lines
-    final JFrame frame = this;
-    SwingUtilities.invokeLater(new Runnable() {
-      public void run() {
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         // get file name from file dialog
         fileBox.setDialogType(JFileChooser.OPEN_DIALOG);
@@ -187,16 +179,16 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
           return;
         }
       
+        // restore measurementss
         try {
           MeasureDataFile mdf = new MeasureDataFile(f);
-          MeasureMatrix mm = mdf.readMatrix();
-          //
+          mdf.readMatrix(matrix);
         }
         catch (IOException exc) { exc.printStackTrace(); }
+        catch (VisADException exc) { exc.printStackTrace(); }
         setCursor(Cursor.getDefaultCursor());
       }
     });
-    */
   }
 
   /** Saves a set of measurements. */
@@ -242,10 +234,7 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
     MeasureFrame mf = new MeasureFrame(twoD);
     mf.pack();
     mf.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {
-        // CTR: maybe ask if user wants to save measurements?
-        System.exit(0);
-      }
+      public void windowClosing(WindowEvent e) { System.exit(0); }
     });
     Util.centerWindow(mf);
     mf.show();

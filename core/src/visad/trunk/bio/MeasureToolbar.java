@@ -70,6 +70,9 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
   /** Flag marking whether to ignore next set standard checkbox toggle. */
   boolean ignoreNextStandard = false;
 
+  /** Flag marking whether to ignore group list changes. */
+  private boolean ignoreGroup = false;
+
 
   // -- GLOBAL FUNCTIONS --
 
@@ -354,9 +357,10 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
 
     // group list
     groupList = new JComboBox();
-    groupList.addItem(MeasureList.DEFAULT_GROUP);
+    groupList.addItem(new LineGroup("NONE"));
     groupList.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
+        if (ignoreGroup) return;
         LineGroup group = (LineGroup) groupList.getSelectedItem();
         thing.setGroup(group);
         descriptionBox.setText(group.getDescription());
@@ -450,6 +454,18 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
       catch (VisADException exc) { exc.printStackTrace(); }
       catch (RemoteException exc) { exc.printStackTrace(); }
     }
+  }
+
+  /** Updates the group list to match the static LineGroup list. */
+  void updateGroupList() {
+    ignoreGroup = true;
+    groupList.removeAllItems();
+    int size = LineGroup.groups.size();
+    for (int i=0; i<size; i++) {
+      LineGroup group = (LineGroup) LineGroup.groups.elementAt(i);
+      groupList.addItem(group);
+    }
+    ignoreGroup = false;
   }
 
   /** Updates the text in the measurement information box. */

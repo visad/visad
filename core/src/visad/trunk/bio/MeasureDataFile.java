@@ -28,7 +28,8 @@ package visad.bio;
 
 import java.awt.Color;
 import java.io.*;
-import java.util.Vector;
+import java.util.*;
+import visad.*;
 
 /** MeasureDataFile maintains a 2-D matrix of measurements. */
 public class MeasureDataFile {
@@ -179,8 +180,8 @@ public class MeasureDataFile {
     fout.close();
   }
 
-  /** Reads the measurement matrix from the data file. */
-  public MeasureMatrix readMatrix() throws IOException {
+  /** Sets the given measurement matrix to match data from the data file. */
+  public void readMatrix(MeasureMatrix mm) throws IOException, VisADException {
     BufferedReader fin = new BufferedReader(new FileReader(file));
     String line = "";
 
@@ -191,12 +192,8 @@ public class MeasureDataFile {
     Vector groups = new Vector();
     while (true) {
       line = fin.readLine();
-      if (line.equals("")) break;
+      if (line == null || line.equals("")) break;
       groups.add(line);
-    }
-    int size = groups.size();
-    for (int i=0; i<size; i++) {
-      // CTR: TODO: add group to group list
     }
 
     // read in measurement line data
@@ -206,31 +203,87 @@ public class MeasureDataFile {
     Vector lines = new Vector();
     while (true) {
       line = fin.readLine();
-      if (line.equals("")) break;
-      lines.add(line);
-    }
-    size = lines.size();
-    for (int i=0; i<size; i++) {
-      // CTR: TODO: add line to matrix
+      if (line == null || line.equals("")) break;
+      lines.add(new MData(line));
     }
 
     // read in measurement point data
-    while (!line.equals("# All measurement points")) line = fin.readLine();
+    while (!line.equals("# All measurement markers")) line = fin.readLine();
     fin.readLine();
     fin.readLine();
     Vector points = new Vector();
     while (true) {
       line = fin.readLine();
-      if (line.equals("")) break;
-      points.add(line);
-    }
-    size = points.size();
-    for (int i=0; i<size; i++) {
-      // CTR: TODO: add point to matrix
+      if (line == null || line.equals("")) break;
+      points.add(new MData(line));
     }
 
     fin.close();
-    return null; // CTR: TEMP
+
+    // clear old group data
+    int size = groups.size();
+    LineGroup.groups.removeAllElements();
+
+    // set up new groups
+    for (int i=0; i<size; i++) {
+      String g = (String) groups.elementAt(i);
+      StringTokenizer st = new StringTokenizer(g, "\t");
+      int id = Integer.parseInt(st.nextToken());
+      String name = st.nextToken();
+      String desc = st.hasMoreTokens() ? st.nextToken() : "";
+      LineGroup group = new LineGroup(name);
+      group.setDescription(desc);
+      group.id = id;
+      if (id >= LineGroup.maxId) LineGroup.maxId = id + 1;
+    }
+
+    // clear old measurements
+    MeasureList[][] lists = mm.getMeasureLists();
+    for (int i=0; i<lists.length; i++) {
+      for (int j=0; j<lists[i].length; j++) {
+        lists[i][j].removeAllMeasurements(false);
+      }
+    }
+
+    // set up lines
+    size = lines.size();
+    for (int i=0; i<size; i++) {
+      MData data = (MData) lines.elementAt(i);
+      MeasureList list = lists[data.index][data.slice];
+      RealType[] types = list.getTypes();
+      RealTuple[] values = new RealTuple[2];
+      Real[][] reals = new Real[2][2];
+      reals[0][0] = new Real(types[0], data.x1);
+      reals[0][1] = new Real(types[1], data.y1);
+      reals[1][0] = new Real(types[0], data.x2);
+      reals[1][1] = new Real(types[1], data.y2);
+      values[0] = new RealTuple(reals[0]);
+      values[1] = new RealTuple(reals[1]);
+      Color color = new Color(data.r, data.g, data.b);
+      LineGroup group = (LineGroup) LineGroup.groups.elementAt(data.groupId);
+      Measurement m = new Measurement(values, color, group);
+      m.setStdId(data.stdId);
+      list.addMeasurement(m, false);
+    }
+
+    // set up points
+    size = points.size();
+    for (int i=0; i<size; i++) {
+      MData data = (MData) points.elementAt(i);
+      MeasureList list = lists[data.index][data.slice];
+      RealType[] types = list.getTypes();
+      RealTuple[] values = new RealTuple[1];
+      Real[] reals = new Real[2];
+      reals[0] = new Real(types[0], data.x1);
+      reals[1] = new Real(types[1], data.y1);
+      values[0] = new RealTuple(reals);
+      LineGroup group = (LineGroup) LineGroup.groups.elementAt(data.groupId);
+      Measurement m = new Measurement(values, Color.white, group);
+      m.setStdId(data.stdId);
+      list.addMeasurement(m, false);
+    }
+
+    mm.refresh();
   }
 
   /** Measurement data structure. */
@@ -242,6 +295,34 @@ public class MeasureDataFile {
     public double x1, y1;
     public double x2, y2;
     public boolean point;
+
+    /** Constructor from line of text. */
+    public MData(String line) {
+      StringTokenizer st = new StringTokenizer(line, "\t");
+      int count = st.countTokens();
+      index = Integer.parseInt(st.nextToken());
+      slice = Integer.parseInt(st.nextToken());
+      stdId = Integer.parseInt(st.nextToken());
+      groupId = Integer.parseInt(st.nextToken());
+      if (count == 6) {
+        // point data
+        x1 = Double.parseDouble(st.nextToken());
+        y1 = Double.parseDouble(st.nextToken());
+        point = true;
+      }
+      else if (count == 12) {
+        // line data
+        r = Integer.parseInt(st.nextToken());
+        g = Integer.parseInt(st.nextToken());
+        b = Integer.parseInt(st.nextToken());
+        dist = Double.parseDouble(st.nextToken());
+        x1 = Double.parseDouble(st.nextToken());
+        y1 = Double.parseDouble(st.nextToken());
+        x2 = Double.parseDouble(st.nextToken());
+        y2 = Double.parseDouble(st.nextToken());
+        point = false;
+      }
+    }
 
     /** Point constructor. */
     public MData(int index, int slice, int stdId, int groupId,

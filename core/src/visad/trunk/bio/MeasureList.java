@@ -34,9 +34,6 @@ import visad.*;
 /** MeasureList maintains a list of measurements between points in a field. */
 public class MeasureList {
 
-  /** Default group. */
-  static final LineGroup DEFAULT_GROUP = new LineGroup("None");
-
   /** List of measurements. */
   private Vector measureList;
 
@@ -46,6 +43,9 @@ public class MeasureList {
   /** Default endpoint values for point. */
   private RealTuple[] ptVals;
 
+  /** RealTypes for measurements. */
+  private RealType[] types;
+
   /** Pool of lines. */
   private LinePool pool;
 
@@ -54,6 +54,8 @@ public class MeasureList {
     throws VisADException, RemoteException
   {
     measureList = new Vector();
+    types = new RealType[p1r.length];
+    for (int i=0; i<p1r.length; i++) types[i] = (RealType) p1r[i].getType();
     lnVals = new RealTuple[2];
     lnVals[0] = new RealTuple(p1r);
     lnVals[1] = new RealTuple(p2r);
@@ -67,7 +69,8 @@ public class MeasureList {
 
   /** Adds a measurement line or point to the measurement list. */
   public void addMeasurement(boolean point) {
-    addMeasurement(point, Color.white, DEFAULT_GROUP);
+    addMeasurement(point, Color.white,
+      (LineGroup) LineGroup.groups.elementAt(0));
   }
 
   /** Adds a measurement line or point to the measurement list. */
@@ -89,6 +92,11 @@ public class MeasureList {
     if (updatePool) pool.set(getMeasurements());
   }
 
+  void removeAllMeasurements(boolean updatePool) {
+    measureList.removeAllElements();
+    if (updatePool) pool.set(getMeasurements());
+  }
+
   /** Gets the list of measurements in array form. */
   public Measurement[] getMeasurements() {
     int len = measureList.size();
@@ -96,5 +104,8 @@ public class MeasureList {
     measureList.copyInto(m);
     return m;
   }
+
+  /** Gets the RealTypes for the measurements. */
+  public RealType[] getTypes() { return types; }
 
 }

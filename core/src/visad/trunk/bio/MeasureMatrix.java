@@ -38,6 +38,9 @@ public class MeasureMatrix {
   /** Associated VisAD display. */
   private DisplayImpl display;
 
+  /** Associated measurement toolbar. */
+  private MeasureToolbar toolbar;
+
   /** Pool of lines. */
   private LinePool pool;
 
@@ -56,6 +59,7 @@ public class MeasureMatrix {
   {
     matrix = new MeasureList[length][];
     this.display = display;
+    this.toolbar = toolbar;
     pool = new LinePool(display, toolbar, LinePool.MINIMUM_SIZE / 2);
   }
 
@@ -118,6 +122,12 @@ public class MeasureMatrix {
       }
     }
     inited = true;
+  }
+
+  /** Refreshes the onscreen measurements to match the current matrix entry. */
+  public void refresh() {
+    setEntry(index, slice);
+    toolbar.updateGroupList();
   }
 
   /** Sets the line pool to match the given matrix index. */
