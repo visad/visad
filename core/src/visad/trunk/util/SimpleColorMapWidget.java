@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: SimpleColorMapWidget.java,v 1.15 1999-03-25 18:02:42 billh Exp $
+@(#) $Id: SimpleColorMapWidget.java,v 1.16 1999-04-20 13:36:51 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -40,12 +40,13 @@ import javax.swing.*;
  * RGB tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.15 $, $Date: 1999-03-25 18:02:42 $
+ * @version $Revision: 1.16 $, $Date: 1999-04-20 13:36:51 $
  * @since Visad Utility Library v0.7.1
  */
 public class LabeledRGBWidget extends Panel implements ActionListener,
                                                        ColorChangeListener,
-                                                       ScalarMapListener {
+                                                       ScalarMapListener,
+                                                       ControlListener {
 
   private final int TABLE_SIZE;
   private final float SCALE;
@@ -190,6 +191,7 @@ public class LabeledRGBWidget extends Panel implements ActionListener,
       orig_table = copy_table(in_table);
     }
     widget.addColorChangeListener(this);
+    colorControl.addControlListener(this);
   }
 
   private Dimension maxSize = null;
@@ -261,6 +263,23 @@ public class LabeledRGBWidget extends Panel implements ActionListener,
       }
       catch (VisADException exc) { }
       catch (RemoteException exc) { }
+    }
+  }
+
+  public void controlChanged(ControlEvent e)
+         throws VisADException, RemoteException {
+    float[][] table = colorControl.getTable();
+
+    ColorMap map_e = widget.getColorMap();
+    boolean identical = true;
+    for (int i=0; i<TABLE_SIZE; i++) {
+      float[] t = map_e.getRGBTuple(SCALE * i);
+      if (table[0][i] != t[0] ||
+          table[1][i] != t[1] ||
+          table[2][i] != t[2]) identical = false;
+    }
+    if (!identical) {
+      ((RGBMap) map_e).setValues(table_reorg(table));
     }
   }
 
