@@ -18,19 +18,19 @@ public abstract class
 NcVar
 {
     /**
-     * The netCDF variable:
+     * The netCDF variable.
      * Effectively "final".
      */
     protected Variable	var;
 
     /**
-     * The name of the variable:
+     * The name of the variable.
      * Effectively "final".
      */
     protected String	name;
 
     /**
-     * The netCDF file:
+     * The netCDF file.
      * Effectively "final".
      */
     protected NcFile	file;
@@ -260,6 +260,16 @@ NcVar
 	    if (name.equals(dims[i].getName()))
 		return true;
 
+	return false;
+    }
+
+
+    /**
+     * Indicate whether or not this variable is longitude.
+     */
+    public boolean
+    isLongitude()
+    {
 	return false;
     }
 
