@@ -32,6 +32,8 @@ import java.util.*;
 import com.sun.java.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.rmi.RemoteException;
+import visad.java3d.DisplayImplJ3D;
 
 /**
    Delaunay represents an abstract class for calculating an
@@ -697,21 +699,29 @@ public abstract class Delaunay implements java.io.Serializable {
   }
 
   /** A graphical demonstration of implemented Delaunay triangulation
-      algorithms, in the 2-D case */
-  public static void main(String[] argv) throws VisADException {
+      algorithms, in 2-D or 3-D */
+  public static void main(String[] argv) throws VisADException,
+                                                RemoteException {
     boolean problem = false;
     int numpass = 0;
+    int dim = 0;
     int points = 0;
     int type = 0;
     int l = 1;
-    if (argv.length < 2) problem = true;
+    if (argv.length < 3) problem = true;
     else {
       try {
-        points = Integer.parseInt(argv[0]);
-        type = Integer.parseInt(argv[1]);
-        if (argv.length > 2) l = Integer.parseInt(argv[2]);
-        if (points < 1 || type < 1 || l < 1 || l > 3) {
+        dim = Integer.parseInt(argv[0]);
+        points = Integer.parseInt(argv[1]);
+        type = Integer.parseInt(argv[2]);
+        if (argv.length > 3) l = Integer.parseInt(argv[3]);
+        if (dim < 2 || dim > 3 || points < 1 || type < 1 || l < 1 || l > 4) {
           problem = true;
+        }
+        if (dim == 3 && type > 2) {
+          System.out.println("Only Clarkson and Watson support " +
+                             "3-D triangulation.\n");
+          System.exit(2);
         }
       }
       catch (NumberFormatException exc) {
@@ -720,7 +730,10 @@ public abstract class Delaunay implements java.io.Serializable {
     }
     if (problem) {
       System.out.println("Usage:\n" +
-                         "   java visad.Delaunay points type [label]\n" +
+                         "   java visad.Delaunay dim points type [label]\n" +
+                         "dim    = The dimension of the triangulation\n" +
+                         "         2 = 2-D\n" +
+                         "         3 = 3-D\n" +
                          "points = The number of points to triangulate.\n" +
                          "type   = The triangulation method to use:\n" +
                          "         1 = Clarkson\n" +
@@ -739,23 +752,29 @@ public abstract class Delaunay implements java.io.Serializable {
       type = 3;
     }
 
-    float[][] samples = new float[2][];
-    int[][] ttri = null;
+    float[][] samples = null;
+    if (dim == 2) samples = new float[2][points];
+    else samples = new float[3][points];
 
-    float[] samp0 = null;
-    float[] samp1 = null;
+    float[] samp0 = samples[0];
+    float[] samp1 = samples[1];
+    float[] samp2 = null;
+    if (dim == 3) samp2 = samples[2];
 
     Delaunay delaun = null;
-    samples[0] = new float[points];
-    samples[1] = new float[points];
-    samp0 = samples[0];
-    samp1 = samples[1];
     for (int i=0; i<points; i++) {
       samp0[i] = (float) (500 * Math.random());
       samp1[i] = (float) (500 * Math.random());
     }
-    System.out.print("Triangulating " + points + " points with ");
-    long start = 0, end = 0;
+    if (dim == 3) {
+      for (int i=0; i<points; i++) {
+        samp2[i] = (float) (500 * Math.random());
+      }
+    }
+    System.out.print("Triangulating " + points + " points " +
+                     "in " + dim + "-D with ");
+    long start = 0;
+    long end = 0;
     if (type == 1) {
       System.out.println("the Clarkson algorithm.");
       start = System.currentTimeMillis();
@@ -776,7 +795,6 @@ public abstract class Delaunay implements java.io.Serializable {
     }
     float time = (end - start) / 1000f;
     System.out.println("Triangulation took " + time + " seconds.");
-    ttri = delaun.Tri;
     if (numpass > 0) {
       System.out.println("Improving samples: " + numpass + " pass" +
                          (numpass > 1 ? "es..." : "..."));
@@ -794,61 +812,182 @@ public abstract class Delaunay implements java.io.Serializable {
 
     // set up final variables
     final int label = l;
-    final int[][] tri = ttri;
+    final int[][] tri = delaun.Tri;
+    final int[][] edges = delaun.Edges;
+    final int numedges = delaun.NumEdges;
 
-    // set up GUI components
+    // set up frame
     JFrame frame = new JFrame();
     frame.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
         System.exit(0);
       }
     });
-    final float[] s0 = samp0;
-    final float[] s1 = samp1;
-    JComponent jc = new JComponent() {
-      public void paint(Graphics gr) {
 
-        // draw triangles
-        for (int i=0; i<tri.length; i++) {
-          int[] t = tri[i];
-          gr.drawLine((int) s0[t[0]],
-                      (int) s1[t[0]],
-                      (int) s0[t[1]],
-                      (int) s1[t[1]]);
-          gr.drawLine((int) s0[t[1]],
-                      (int) s1[t[1]],
-                      (int) s0[t[2]],
-                      (int) s1[t[2]]);
-          gr.drawLine((int) s0[t[2]],
-                      (int) s1[t[2]],
-                      (int) s0[t[0]],
-                      (int) s1[t[0]]);
-        }
+    if (dim == 2) {
+      // set up GUI components in 2-D
+      final float[] s0 = samp0;
+      final float[] s1 = samp1;
+      JComponent jc = new JComponent() {
+        public void paint(Graphics gr) {
 
-        // draw labels if specified
-        if (label == 2) {        // vertex boxes
-          for (int i=0; i<s0.length; i++) {
-            gr.drawRect((int) s0[i]-2, (int) s1[i]-2, 4, 4);
-          }
-        }
-        else if (label == 3) {   // triangle numbers
+          // draw triangles
           for (int i=0; i<tri.length; i++) {
-            int t0 = tri[i][0];
-            int t1 = tri[i][1];
-            int t2 = tri[i][2];
-            int avgX = (int) ((s0[t0] + s0[t1] + s0[t2])/3);
-            int avgY = (int) ((s1[t0] + s1[t1] + s1[t2])/3);
-            gr.drawString(String.valueOf(i), avgX-4, avgY);
+            int[] t = tri[i];
+            gr.drawLine((int) s0[t[0]],
+                        (int) s1[t[0]],
+                        (int) s0[t[1]],
+                        (int) s1[t[1]]);
+            gr.drawLine((int) s0[t[1]],
+                        (int) s1[t[1]],
+                        (int) s0[t[2]],
+                        (int) s1[t[2]]);
+            gr.drawLine((int) s0[t[2]],
+                        (int) s1[t[2]],
+                        (int) s0[t[0]],
+                        (int) s1[t[0]]);
+          }
+
+          // draw labels if specified
+          if (label == 2) {        // vertex boxes
+            for (int i=0; i<s0.length; i++) {
+              gr.drawRect((int) s0[i]-2, (int) s1[i]-2, 4, 4);
+            }
+          }
+          else if (label == 3) {   // triangle numbers
+            for (int i=0; i<tri.length; i++) {
+              int t0 = tri[i][0];
+              int t1 = tri[i][1];
+              int t2 = tri[i][2];
+              int avgX = (int) ((s0[t0] + s0[t1] + s0[t2])/3);
+              int avgY = (int) ((s1[t0] + s1[t1] + s1[t2])/3);
+              gr.drawString(String.valueOf(i), avgX-4, avgY);
+            }
+          }
+          else if (label == 4) {   // vertex numbers
+            for (int i=0; i<s0.length; i++) {
+              gr.drawString("" + i, (int) s0[i], (int) s1[i]);
+            }
           }
         }
-        else if (label == 4) {   // vertex numbers
-          for (int i=0; i<s0.length; i++) {
-            gr.drawString("" + i, (int) s0[i], (int) s1[i]);
+      };
+      frame.getContentPane().add(jc);
+    }
+    else {
+      // set up GUI components in 3-D
+      final float[][] samps = samples;
+      final float[] s0 = samp0;
+      final float[] s1 = samp1;
+      final float[] s2 = samp2;
+
+      // construct a UnionSet of line segments (tetrahedra edges)
+      final RealType x = new RealType("x");
+      final RealType y = new RealType("y");
+      final RealType z = new RealType("z");
+      RealTupleType xyz = new RealTupleType(x, y, z);
+      int[] e0 = {0, 0, 0, 1, 1, 2};
+      int[] e1 = {1, 2, 3, 2, 3, 3};
+      Gridded3DSet[] gsp = new Gridded3DSet[numedges];
+      for (int i=0; i<numedges; i++) gsp[i] = null;
+      for (int i=0; i<edges.length; i++) {
+        int[] trii = tri[i];
+        int[] edgesi = edges[i];
+        for (int j=0; j<6; j++) {
+          if (gsp[edgesi[j]] == null) {
+            float[][] pts = new float[3][2];
+            float[] p0 = pts[0];
+            float[] p1 = pts[1];
+            float[] p2 = pts[2];
+            int tp0 = trii[e0[j]];
+            int tp1 = trii[e1[j]];
+            p0[0] = samp0[tp0];
+            p1[0] = samp1[tp0];
+            p2[0] = samp2[tp0];
+            p0[1] = samp0[tp1];
+            p1[1] = samp1[tp1];
+            p2[1] = samp2[tp1];
+            gsp[edgesi[j]] = new Gridded3DSet(xyz, pts, 2);
           }
         }
       }
-    };
-    frame.getContentPane().add(jc);
+      UnionSet tet = new UnionSet(xyz, gsp);
+      final DataReference tetref = new DataReferenceImpl("tet");
+      tetref.setData(tet);
+
+      // set up Java3D Display
+      DisplayImpl display = new DisplayImplJ3D("image display");
+      display.addMap(new ScalarMap(x, Display.XAxis));
+      display.addMap(new ScalarMap(y, Display.YAxis));
+      display.addMap(new ScalarMap(z, Display.ZAxis));
+      display.addMap(new ConstantMap(1, Display.Red));
+      display.addMap(new ConstantMap(1, Display.Green));
+      display.addMap(new ConstantMap(0, Display.Blue));
+
+      // draw labels if specified
+      if (label == 2) {
+        throw new UnimplementedException("Delaunay.main: vertex boxes");
+      }
+      else if (label == 3) {   // triangle numbers
+        int len = tri.length;
+        TextType text = new TextType("text");
+        RealType t = new RealType("t");
+        RealTupleType rtt = new RealTupleType(new RealType[] {t});
+        Linear1DSet time_set = new Linear1DSet(rtt, 0, len - 1, len);
+        TupleType text_tuple = new TupleType(new MathType[] {x, y, z, text});
+        FunctionType text_function = new FunctionType(t, text_tuple);
+        FieldImpl text_field = new FieldImpl(text_function, time_set);
+        for (int i=0; i<len; i++) {
+          int t0 = tri[i][0];
+          int t1 = tri[i][1];
+          int t2 = tri[i][2];
+          int t3 = tri[i][3];
+          int avgX = (int) ((s0[t0] + s0[t1] + s0[t2] + s0[t3])/4);
+          int avgY = (int) ((s1[t0] + s1[t1] + s1[t2] + s1[t3])/4);
+          int avgZ = (int) ((s2[t0] + s2[t1] + s2[t2] + s2[t3])/4);
+          Data[] td = {new Real(x, avgX),
+                       new Real(y, avgY),
+                       new Real(z, avgZ),
+                       new Text(text, "" + i)};
+          Tuple tt = new Tuple(text_tuple, td);
+          text_field.setSample(i, tt);
+        }
+        display.addMap(new ScalarMap(text, Display.Text));
+        DataReferenceImpl rtf = new DataReferenceImpl("rtf");
+        rtf.setData(text_field);
+        display.addReference(rtf, null);
+      }
+      else if (label == 4) {   // vertex numbers
+        int len = s0.length;
+        TextType text = new TextType("text");
+        RealType t = new RealType("t");
+        RealTupleType rtt = new RealTupleType(new RealType[] {t});
+        Linear1DSet time_set = new Linear1DSet(rtt, 0, len - 1, len);
+        TupleType text_tuple = new TupleType(new MathType[] {x, y, z, text});
+        FunctionType text_function = new FunctionType(t, text_tuple);
+        FieldImpl text_field = new FieldImpl(text_function, time_set);
+        for (int i=0; i<len; i++) {
+          Data[] td = {new Real(x, s0[i]),
+                       new Real(y, s1[i]),
+                       new Real(z, s2[i]),
+                       new Text(text, "" + i)};
+          Tuple tt = new Tuple(text_tuple, td);
+          text_field.setSample(i, tt);
+        }
+        display.addMap(new ScalarMap(text, Display.Text));
+        DataReferenceImpl rtf = new DataReferenceImpl("rtf");
+        rtf.setData(text_field);
+        display.addReference(rtf, null);
+      }
+
+      // finish setting up Java3D Display
+      display.addReference(tetref);
+
+      // set up frame's panel
+      JPanel panel = new JPanel();
+      panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+      panel.add(display.getComponent());
+      frame.getContentPane().add(panel);
+    }
     frame.setSize(new Dimension(510, 530));
     frame.setTitle("Triangulation results");
     frame.setVisible(true);
