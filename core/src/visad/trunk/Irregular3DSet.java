@@ -2208,7 +2208,9 @@ public class Irregular3DSet extends IrregularSet {
       NZ[i] = 0;
    }
 
-   minimum_area = (float) ((1.e-4 > EPS_0) ? 1.e-4 : EPS_0);
+   // WLH 12 Nov 2001
+   // minimum_area = (float) ((1.e-4 > EPS_0) ? 1.e-4 : EPS_0);
+   minimum_area = Float.MIN_VALUE;
 
    /* Calculate maximum number of vertices per polygon */
 /* WLH 25 Oct 97
