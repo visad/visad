@@ -58,8 +58,7 @@ public class VisADSlider extends JPanel {
   private SliderCell cell;
   private int lastCellValue;
   private int lastSliderValue;
-  private int lastCellValueState;
-  private int lastSliderValueState;
+  private boolean lastCellValueState;
 
   private String head;
 
@@ -79,8 +78,7 @@ public class VisADSlider extends JPanel {
 
     lastCellValue = low - 1;
     lastSliderValue = low - 1;
-    lastCellValueState = 0;
-    lastSliderValueState = 0;
+    lastCellValueState = false;
 
     Data real = ref.getData();
     boolean real_value = false;
@@ -128,35 +126,37 @@ public class VisADSlider extends JPanel {
     public void stateChanged(ChangeEvent e) {
       JSlider s1 = (JSlider)e.getSource();
       int ival = s1.getValue();
-      if (ival == lastCellValue) {
-        // don't respond to slider state changes triggered
-        // by SliderCell
-        if (lastCellValueState == 0) {
-          lastCellValueState = 1;
+      synchronized (slider_label) {
+        if (ival == lastCellValue) {
+          // don't respond to slider state changes triggered
+          // by SliderCell
+          if (!lastCellValueState) {
+            lastCellValueState = true;
+          }
         }
-      }
-      else { // ival != lastCellValue
-        if (lastCellValueState == 1) {
-          lastCellValue = low - 1;
-        }
-        lastSliderValue = ival;
-        if (first > 0) {
-          try {
-            double val = scale * ival;
-            ref.setData(new Real(type, val));
-            head = "";
-            slider_label.setText(name + " = " + PlotText.shortString(val));
+        else { // ival != lastCellValue
+          if (lastCellValueState) {
+            lastCellValue = low - 1;
           }
-          catch (VisADException ex) {
-          }
-          catch (RemoteException ex) {
-          }
+          lastSliderValue = ival;
+          if (first > 0) {
+            try {
+              double val = scale * ival;
+              ref.setData(new Real(type, val));
+              head = "";
+              slider_label.setText(name + " = " + PlotText.shortString(val));
+            }
+            catch (VisADException ex) {
+            }
+            catch (RemoteException ex) {
+            }
 // hack for JDK 1.2 with Java3D
 repaint();
 update(getGraphics());
-        }
-        else {
-          first++;
+          }
+          else {
+            first++;
+          }
         }
       }
     }
@@ -166,17 +166,18 @@ update(getGraphics());
   private class SliderCell extends CellImpl {
 
     public void doAction() throws VisADException, RemoteException {
-      double val = ((Real) ref.getData()).getValue();
-      int ival = (int) (val / scale);
-      ival = Math.min(Math.max(ival, low), hi);
-      if (ival == lastSliderValue) {
-        // don't respond to Real value changes triggered
-        // by stateChanged
-      }
-      else {
-        lastCellValue = ival;
-        lastCellValueState = 0;
-        slider.setValue(ival);
+      synchronized (slider_label) {
+        double val = ((Real) ref.getData()).getValue();
+        int ival = (int) (val / scale);
+        ival = Math.min(Math.max(ival, low), hi);
+        if (ival == lastSliderValue) {
+          // don't respond to Real value changes triggered
+          // by stateChanged
+        }
+        else {
+          lastCellValue = ival;
+          lastCellValueState = false;
+          slider.setValue(ival);
 if (first > 0) {
   // hack for JDK 1.2 with Java3D
   repaint();
@@ -185,7 +186,8 @@ if (first > 0) {
 else {
   first++;
 }
-        slider_label.setText(name + " = " + PlotText.shortString(val) + head);
+          slider_label.setText(name + " = " + PlotText.shortString(val) + head);
+        }
       }
     }
   }
