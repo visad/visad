@@ -555,8 +555,21 @@ public abstract class DisplayRenderer
    * @return <CODE>true</CODE> if <CODE>type</CODE> is legal.
    */
   public boolean legalDisplayScalar(DisplayRealType type) {
+    // First check to see if it is a member of the default list
     for (int i=0; i<Display.DisplayRealArray.length; i++) {
       if (Display.DisplayRealArray[i].equals(type)) return true;
+    }
+    // if we get here, it's not one of the defaults.  See if it has
+    // a CS that transforms to a default that we know how to handle
+    if (type.getTuple() != null && 
+        type.getTuple().getCoordinateSystem() != null) 
+    {
+        RealTupleType ref = 
+          type.getTuple().getCoordinateSystem().getReference();
+        if (ref.equals(Display.DisplaySpatialCartesianTuple) ||
+            ref.equals(Display.DisplayRGBTuple) ||
+            ref.equals(Display.DisplayFlow1Tuple) ||
+            ref.equals(Display.DisplayFlow2Tuple)) return true;
     }
     return false;
   }
