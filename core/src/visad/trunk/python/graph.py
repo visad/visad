@@ -28,7 +28,7 @@ def image(data, panel=None, colortable=None, width=400, height=400, title="VisAD
   dr=subs.addData("brightness", data, disp)
   subs.setBoxSize(disp, .80)
   subs.setAspectRatio(disp, float(width)/float(height))
-  subs.showDisplay(disp,width,height,title)
+  subs.showDisplay(disp,width,height,title,None,None,panel)
   return disp
 
 #----------------------------------------------------------------------------
@@ -47,7 +47,7 @@ def scatter(data_1, data_2, panel=None, pointsize=None, width=400, height=400, x
   if pointsize is not None: subs.setPointSize(disp, size)
 
   subs.setAspectRatio(disp, float(width)/float(height))
-  subs.showDisplay(disp,width,height,title)
+  subs.showDisplay(disp,width,height,title,None,None,panel)
   return disp
 
 #----------------------------------------------------------------------------
@@ -98,7 +98,7 @@ def histogram(data, bins=20, width=400, height=400, title="VisAD Histogram", col
   showAxesScales(disp,1)
   subs.setBoxSize(disp,.65)
   subs.setAspectRatio(disp, float(width)/float(height))
-  subs.showDisplay(disp,width,height,title)
+  subs.showDisplay(disp,width,height,title,None,None,panel)
 
   return disp
 
@@ -131,7 +131,7 @@ def lineplot(data, panel=None, color=None, width=400, height=400, title="Line Pl
   setAxesScalesFont(axes, Font("Monospaced", Font.PLAIN, 18))
 
   subs.setAspectRatio(disp, float(width)/float(height))
-  subs.showDisplay(disp,width,height,title)
+  subs.showDisplay(disp,width,height,title,None,None,panel)
   
   return
 
@@ -163,7 +163,7 @@ def contour(data, panel=None, enableLabels=1, interval=None, width=400, height=4
   dr=subs.addData("contours", data, disp)
   subs.setBoxSize(disp, .80)
   subs.setAspectRatio(disp, float(width)/float(height))
-  subs.showDisplay(disp,width,height,title)
+  subs.showDisplay(disp,width,height,title,None,None,panel)
 
   return disp
 

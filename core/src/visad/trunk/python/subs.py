@@ -28,11 +28,13 @@ setAspectRatio(display, ratio)
 setAspects(display, x, y, z)
   define the relative sizes of the axes
 
-maximizeBox(display)
-  a simple method for making the VisAD "box" 95% of the window size
+maximizeBox(display, clip=1)
+  a simple method for making the VisAD "box" 95% of the window size,
+  and defining if box-edge clipping should be done in 3D
 
-setBoxSize(display, percent=.70)
-  a simple method for making the VisAD "box" some % of the window size
+setBoxSize(display, percent=.70, clip=1)
+  a simple method for making the VisAD "box" some % of the window size,
+  and defining if box-edge clipping should be done in 3D
 
 x,y,z,disp = getDisplay(display)
   return the x,y,z scalar maps for the display
@@ -176,11 +178,11 @@ def setAspects(display, x, y, z):
   display.getProjectionControl().setAspectCartesian( (x, y, z))
 
 # a simple method for making the VisAD "box" 95% of the window size
-def maximizeBox(display):
-  setBoxSize(display, .95)
+def maximizeBox(display, clip=1):
+  setBoxSize(display, .95,clip)
 
 # a simple method for making the VisAD "box" some % of the window size
-def setBoxSize(display, percent=.70):
+def setBoxSize(display, percent=.70, clip=1):
   pc=display.getProjectionControl()
   pcMatrix=pc.getMatrix()
   if len(pcMatrix) > 10:
@@ -192,6 +194,19 @@ def setBoxSize(display, percent=.70):
     pcMatrix[3]=-percent/.64
     
   pc.setMatrix(pcMatrix)
+  if clip & ok3d:
+    try:
+       dr = display.getDisplayRenderer();
+       if isinstance(dr, DisplayRendererJ3D):
+         dr.setClip(0, 1,  1.001,  0.0,  0.0, -1.001);
+         dr.setClip(1, 1, -1.001,  0.0,  0.0, -1.001);
+         dr.setClip(2, 1,  0.0,  1.001,  0.0, -1.001);
+         dr.setClip(3, 1,  0.0, -1.001,  0.0, -1.001);
+         dr.setClip(4, 1,  0.0,  0.0,  1.001, -1.001);
+         dr.setClip(5, 1,  0.0,  0.0, -1.001, -1.001);
+    except:
+       pass
+       
 
 def makeCube(display):
   display.getGraphicsModeControl().setProjectionPolicy(0)
@@ -364,8 +379,9 @@ def makeMaps(*a):
 # quick display of a Display object in a separate JFrame
 # you can set the size and title, if you want...
 def showDisplay(display, width=300, height=300, 
-                title="VisAD Display", bottom=None, top=None):
-  myf = myFrame(display, width, height, title, bottom, top)
+                title="VisAD Display", bottom=None, top=None,
+                panel=None):
+  myf = myFrame(display, width, height, title, bottom, top, panel)
 
 class myFrame:
 
@@ -373,12 +389,22 @@ class myFrame:
     self.display.destroy()
     self.frame.dispose()
 
-  def __init__(self, display, width, height, title, bottom, top):
+  def __init__(self, display, width, height, title, bottom, top, panel):
     from javax.swing import JFrame, JPanel
     from java.awt import BorderLayout, Dimension
     self.display = display
-    self.frame = JFrame(title, windowClosing=self.desty)
-    self.pane = self.frame.getContentPane()
+
+    autoShow = 0
+    if panel==None:
+      self.frame = JFrame(title, windowClosing=self.desty)
+      self.pane = self.frame.getContentPane()
+      autoShow = 1
+    elif isinstance(panel, JFrame):
+      self.pane = panel.getContentPane()
+    else:
+      self.pane = panel
+      self.pane.setLayout(BorderLayout())
+
     self.display.getComponent().setPreferredSize(Dimension(width,height))
     self.pane.add(self.display.getComponent(), BorderLayout.CENTER)
     if bottom != None: 
@@ -389,7 +415,8 @@ class myFrame:
       self.pt = JPanel(BorderLayout())
       self.pt.add(top)
       self.pane.add(self.pt, BorderLayout.NORTH)
-    self.frame.pack()
-    self.frame.show()
-#    self.frame.setSize(width, height)
+
+    if autoShow:
+      self.frame.pack()
+      self.frame.show()
 
