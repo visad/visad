@@ -203,4 +203,15 @@ public final class RADRnav extends AREAnav
         // Return in 'File' coordinates
         return imageCoordToAreaCoord(linele);
     }
+
+    public boolean equals(Object o)
+    {
+        if (!(o instanceof RADRnav)) return false;
+        RADRnav that = (RADRnav) o;
+        return (super.equals(o) &&
+               that.xlat == xlat &&
+               that.xlon == xlon &&
+               that.xrow == xrow &&
+               that.xcol == xcol);
+    }
 }
