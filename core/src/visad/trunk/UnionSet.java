@@ -67,7 +67,7 @@ public class UnionSet extends SampledSet {
     this(type, sets, coord_sys, units, errors, true);
   }
 
-  private UnionSet(MathType type, SampledSet[] sets, CoordinateSystem coord_sys,
+  public UnionSet(MathType type, SampledSet[] sets, CoordinateSystem coord_sys,
              Unit[] units, ErrorEstimate[] errors, boolean copy)
              throws VisADException {
     super(type, find_manifold_dim(sets), sets[0].getCoordinateSystem(),
