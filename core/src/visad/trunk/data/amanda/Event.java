@@ -127,6 +127,11 @@ public class Event
     return t;
   }
 
+  public final FieldImpl makeTimeSequence()
+  {
+    return hits.makeTimeSequence();
+  }
+
   public String toString()
   {
     return "Event#" + number + "[Y" + year + "D" + day +

@@ -47,6 +47,7 @@ import visad.DisplayRenderer;
 import visad.FieldImpl;
 import visad.GraphicsModeControl;
 import visad.Integer1DSet;
+import visad.ScalarType;
 import visad.RealType;
 import visad.ScalarMap;
 import visad.ShapeControl;
@@ -54,6 +55,7 @@ import visad.VisADException;
 
 import visad.java3d.DisplayImplJ3D;
 
+import visad.util.AnimationWidget;
 import visad.util.CmdlineConsumer;
 import visad.util.CmdlineParser;
 import visad.util.LabeledColorWidget;
@@ -67,6 +69,7 @@ public class NuView
   implements CmdlineConsumer
 {
   private String fileName;
+  private boolean timeSequence;
 
   private DisplayImpl display;
 
@@ -81,7 +84,7 @@ public class NuView
 
     AmandaFile file = openFile(fileName);
 
-    final FieldImpl amanda = file.makeEventData();
+    final FieldImpl amanda = file.makeEventData(timeSequence);
     final FieldImpl modules = file.makeModuleData();
 
     display = new DisplayImplJ3D("amanda");
@@ -100,24 +103,51 @@ public class NuView
     setRange(zMap, file.getZMin(), file.getZMax(), halfRange);
     display.addMap(zMap);
 
-    ScalarMap trackMap =
-      new ScalarMap(BaseTrack.indexType, Display.SelectValue);
-    display.addMap(trackMap);
+    ScalarMap trackMap;
+    if (timeSequence) {
+      trackMap = null;
+    } else {
+      trackMap = new ScalarMap(BaseTrack.indexType, Display.SelectValue);
+      display.addMap(trackMap);
+    }
 
-    ScalarMap shapeMap = new ScalarMap(Hit.amplitudeType, Display.Shape);
+    ScalarType shapeType;
+    if (timeSequence) {
+      shapeType = Hit.moduleType;
+    } else {
+      shapeType = Hit.amplitudeType;
+    }
+
+    ScalarMap shapeMap = new ScalarMap(shapeType, Display.Shape);
     display.addMap(shapeMap);
 
     ShapeControl sctl = (ShapeControl )shapeMap.getControl();
-    sctl.setShapeSet(new Integer1DSet(Hit.amplitudeType, 1));
+    sctl.setShapeSet(new Integer1DSet(shapeType, 1));
     sctl.setShapes(F2000Util.getCubeArray());
 
-    ScalarMap shapeScaleMap = new ScalarMap(Hit.amplitudeType,
-                                            Display.ShapeScale);
-    display.addMap(shapeScaleMap);
-    shapeScaleMap.setRange(-20.0, 50.0);
+    if (!timeSequence) {
+      ScalarMap shapeScaleMap = new ScalarMap(shapeType, Display.ShapeScale);
+      display.addMap(shapeScaleMap);
+      shapeScaleMap.setRange(-20.0, 50.0);
+    }
 
-    ScalarMap colorMap = new ScalarMap(Hit.leadingEdgeTimeType, Display.RGB);
+    ScalarType colorType;
+    if (timeSequence) {
+      colorType = Hit.amplitudeType;
+    } else {
+      colorType = Hit.leadingEdgeTimeType;
+    }
+
+    ScalarMap colorMap = new ScalarMap(colorType, Display.RGB);
     display.addMap(colorMap);
+
+    ScalarMap animMap;
+    if (timeSequence) {
+      animMap = new ScalarMap(RealType.Time, Display.Animation);
+      display.addMap(animMap);
+    } else {
+      animMap = null;
+    }
 
     DisplayRenderer displayRenderer = display.getDisplayRenderer();
     displayRenderer.setBoxOn(false);
@@ -138,12 +168,28 @@ public class NuView
     EventWidget eventWidget = new EventWidget(file, amanda, amandaRef,
                                               trackMap);
 
+    AnimationWidget animWidget;
+    if (animMap == null) {
+      animWidget = null;
+    } else {
+      try {
+        animWidget = new AnimationWidget(animMap);
+      } catch (Exception ex) {
+        ex.printStackTrace();
+        animWidget = null;
+      }
+    }
+
     JPanel widgetPanel = new JPanel();
     widgetPanel.setLayout(new BoxLayout(widgetPanel, BoxLayout.Y_AXIS));
     widgetPanel.setMaximumSize(new Dimension(400, 600));
 
     widgetPanel.add(colorWidget);
     widgetPanel.add(eventWidget);
+    if (animWidget != null) {
+      widgetPanel.add(animWidget);
+    }
+
     widgetPanel.add(Box.createHorizontalGlue());
 
     JPanel displayPanel = (JPanel )display.getComponent();
@@ -191,6 +237,11 @@ public class NuView
 
   public int checkOption(String mainName, char ch, String arg)
   {
+    if (ch == 'o') {
+      timeSequence = false;
+      return 1;
+    }
+
     return 0;
   }
 
@@ -216,6 +267,7 @@ public class NuView
   public void initializeArgs()
   {
     fileName = null;
+    timeSequence = true;
   }
 
   private static final AmandaFile openFile(String fileName)
@@ -244,7 +296,7 @@ public class NuView
 
   public String optionUsage()
   {
-    return "";
+    return " [-o(ldData)]";
   }
 
   private static final void setRange(ScalarMap map, double min, double max,

@@ -321,6 +321,11 @@ public class AmandaFile
 
   public final FieldImpl makeEventData()
   {
+    return makeEventData(false);
+  }
+
+  public final FieldImpl makeEventData(boolean timeSequence)
+  {
     final int num = events.size();
     Integer1DSet set;
     try {
@@ -333,7 +338,13 @@ public class AmandaFile
     FunctionType funcType;
     FieldImpl fld;
     try {
-      funcType = new FunctionType(Event.indexType, Event.tupleType);
+      MathType dataType;
+      if (timeSequence) {
+        dataType = Hits.timeSequenceType;
+      } else {
+        dataType = Event.tupleType;
+      }
+      funcType = new FunctionType(Event.indexType, dataType);
       fld = new FieldImpl(funcType, set);
     } catch (VisADException ve) {
       ve.printStackTrace();
@@ -343,7 +354,11 @@ public class AmandaFile
     if (num > 0) {
       Data[] samples = new Data[num];
       for (int e = 0; e < num; e++) {
-        samples[e] = ((Event )events.get(e)).makeData();
+        if (timeSequence) {
+          samples[e] = ((Event )events.get(e)).makeTimeSequence();
+        } else {
+          samples[e] = ((Event )events.get(e)).makeData();
+        }
       }
       try {
         fld.setSamples(samples, false);
