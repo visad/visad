@@ -112,7 +112,7 @@ public class LinearLatLonSet extends Linear2DSet {
                              "(note Lat and Lon in Radians)");
     }
     LongitudeWrap =
-        (Hi[1] - Low[1]) + 2.0 * Math.abs(lon.getStep()) >= twoPiLon &&
+        (Hi[lonI] - Low[lonI]) + 2.0 * Math.abs(lon.getStep()) >= twoPiLon &&
         lon.getLength() > 1;
     if (LongitudeWrap) {
       WrapStep = twoPiLon - (Hi[lonI] - Low[lonI]);
@@ -219,7 +219,7 @@ public class LinearLatLonSet extends Linear2DSet {
       indices[i] and weights[i] are null if i-th value is outside grid
       (i.e., if no interpolation is possible).
       this code is the result of substituting 2 for ManifoldDimension in
-      GriddedSet.valueToInterp, and adding logic to handle LngitudeWrap */
+      GriddedSet.valueToInterp, and adding logic to handle LongitudeWrap */
   public void valueToInterp(float[][] value, int[][] indices, float weights[][])
               throws VisADException {
     if (value.length != DomainDimension) {
@@ -246,8 +246,8 @@ public class LinearLatLonSet extends Linear2DSet {
 
     // array of index offsets by grid dimension
     int[] off = new int[2];
-    off[latI] = 1;
-    off[lonI] = off[latI] * Lengths[latI];
+    off[0] = 1;
+    off[1] = off[0] * Lengths[0];
 
     for (i=0; i<length; i++) {
       boolean WrapThis = false;
@@ -282,7 +282,7 @@ public class LinearLatLonSet extends Linear2DSet {
             // interp along Latitude (dim latI) if between two valid grid coords
             length_is *= 2;
           }
-          base = l[latI] + Lengths[latI] * base;
+          base = off[latI] * l[latI] + off[lonI] * base;
         }
       }
 
@@ -295,8 +295,8 @@ public class LinearLatLonSet extends Linear2DSet {
         // create is & cs of proper length, and init first element
         is = new int[length_is];
         cs = new float[length_is];
-        is[latI] = base;
-        cs[latI] = 1.0f;
+        is[0] = base;
+        cs[0] = 1.0f;
         lis = 1;
 
         // unroll loop over dimension = 0, 1
