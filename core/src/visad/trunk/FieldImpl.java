@@ -1384,6 +1384,7 @@ public class FieldImpl extends FunctionImpl implements Field {
       throw new VisADException("extract: range type must be TupleType");
     }
     int n_comps = ((TupleType)rangeType).getDimension();
+    if (component == 0 && n_comps == 1) return this;
 
     if ( (component + 1) > n_comps )
     {
