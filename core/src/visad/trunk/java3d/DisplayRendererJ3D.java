@@ -133,6 +133,11 @@ public abstract class DisplayRendererJ3D
   /** start value for cursor */
   private float point_x, point_y, point_z;
 
+  /** ModelClip stuff, done by reflection */
+  private Method modelClipSetEnable = null;
+  private Method modelClipSetPlane = null;
+  private Object modelClip = null;
+
   public DisplayRendererJ3D () {
     super();
   }
@@ -433,6 +438,33 @@ public abstract class DisplayRendererJ3D
     // Data object Group objects
     setTransform3D(null);
     root.addChild(trans);
+
+    // WLH 23 Oct 2001
+    try {
+      Class modelClipClass = Class.forName("javax.media.j3d.ModelClip");
+      Class[] param = new Class[] {};
+      Constructor modelClipConstructor = modelClipClass.getConstructor(param);
+      param = new Class[] {int.class, boolean.class};
+      modelClipSetEnable = modelClipClass.getMethod("setEnable", param);
+      param = new Class[] {int.class, javax.vecmath.Vector4d.class};
+      modelClipSetPlane = modelClipClass.getMethod("setPlane", param);
+      modelClip = modelClipConstructor.newInstance(new Object[] {});
+      Boolean f = new Boolean(false);
+      for (int i=0; i<6; i++) {
+        modelClipSetEnable.invoke(modelClip, new Object[] {new Integer(i), f});
+      }
+      trans.addChild((Node) modelClip);
+    }
+    catch (ClassNotFoundException e) {
+    }
+    catch (NoSuchMethodException e) {
+    }
+    catch (InstantiationException e) {
+    }
+    catch (IllegalAccessException e) {
+    }
+    catch (InvocationTargetException e) {
+    }
 
     // create background
     background = new Background();
