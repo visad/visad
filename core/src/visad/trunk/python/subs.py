@@ -771,7 +771,10 @@ def makeLine(domainType, points):
   else:
     dt = RealTupleType(domainType)
 
-  return Gridded2DSet(dt, points, len(points[0]))
+  if len(points) == 2:
+    return Gridded2DSet(dt, points, len(points[0]))
+  else:
+    return Gridded3DSet(dt, points, len(points[0]))
 
 
 def makeLineStyleMap(style, width):
