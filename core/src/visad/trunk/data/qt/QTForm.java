@@ -509,7 +509,6 @@ public class QTForm extends Form
       R.exec("d = imageTrack.getSize()");
       Integer w = (Integer) R.exec("d.getWidth()");
       Integer h = (Integer) R.exec("d.getHeight()");
-
       // now use controller to step movie
       R.exec("moviePlayer = new MoviePlayer(m)");
       R.setVar("dim", new Dimension(w.intValue(), h.intValue()));
@@ -522,7 +521,7 @@ public class QTForm extends Form
       if (MAC_OS_X) {
         R.setVar("zero", 0);
         R.setVar("one", 1f);
-  	R.exec("timeInfo = new TimeInfo(zero, zero)");
+        R.exec("timeInfo = new TimeInfo(zero, zero)");
         R.exec("moviePlayer.setTime(zero)");
         numImages = 0;
         int time = 0;
@@ -555,11 +554,35 @@ public class QTForm extends Form
   public static ReflectedUniverse getUniverse() { return R; }
 
   /** Converts the given byte array in PICT format to a VisAD field. */
-  public static FlatField pictToField(byte[] bytes) throws VisADException {
+  public static synchronized FlatField pictToField(byte[] bytes)
+    throws VisADException
+  {
     try {
       return DataUtility.makeField(pictToImage(bytes));
     }
     catch (IOException exc) { return null; }
+  }
+
+  /** Gets width and height for the given PICT bytes. */
+  public static Dimension getPictDimensions(byte[] bytes)
+    throws VisADException
+  {
+    if (noQT) throw new BadFormException(NO_QT_MSG);
+
+    try {
+      R.exec("QTSession.open()");
+      R.setVar("bytes", bytes);
+      R.exec("pict = new Pict(bytes)");
+      R.exec("box = pict.getPictFrame()");
+      int width = ((Integer) R.exec("box.getWidth()")).intValue();
+      int height = ((Integer) R.exec("box.getHeight()")).intValue();
+      return new Dimension(width, height);
+    }
+    catch (Exception e) {
+      R.exec("QTSession.close()");
+      throw new BadFormException("PICT height determination failed: " +
+        e.getMessage());
+    }
   }
 
   /** Converts the given byte array in PICT format to a Java image. */
@@ -576,12 +599,11 @@ public class QTForm extends Form
       R.exec("box = pict.getPictFrame()");
       int width = ((Integer) R.exec("box.getWidth()")).intValue();
       int height = ((Integer) R.exec("box.getHeight()")).intValue();
-
       // note: could get a RawEncodedImage from the Pict, but
       // apparently no way to get a PixMap from the REI
       R.exec("g = new QDGraphics(box)");
+      Object blah = R.getVar("g");
       R.exec("pict.draw(g, box)");
-
       // get data from the QDGraphics
       R.exec("pixMap = g.getPixMap()");
       R.exec("rei = pixMap.getPixelData()");

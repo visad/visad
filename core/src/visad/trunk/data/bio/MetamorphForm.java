@@ -37,9 +37,11 @@ import java.net.URL;
 import java.util.*;
 
 /** MetamorphForm is the VisAD data format adapter for Metamorph .stk files. */
-public class MetamorphForm extends Form implements FormFileInformer,
-  FormProgressInformer, FormBlockReader, MetadataReader
+public class MetamorphForm extends Form
+  implements FormFileInformer, FormBlockReader, MetadataReader
 {
+
+  // -- Fields --
 
   /** Form instantiation counter. */
   private static int count = 0;
@@ -82,6 +84,7 @@ public class MetamorphForm extends Form implements FormFileInformer,
   private Hashtable ifdHash;
   private int dimensions[];
 
+
   // -- Constructor --
 
   /** Constructs a new Metamorph file form. */
@@ -103,32 +106,6 @@ public class MetamorphForm extends Form implements FormFileInformer,
     } catch (Exception e) {
       e.printStackTrace();
     }
-  }
-
-  private void initFile(String id)
-    throws IOException, VisADException, BadFormException {
-    r = new RandomAccessFile(id, "r");
-    currentId = id;
-    ifdHash = TiffTools.getIFDHash(r);
-    // Gets dimensions from TiffTools, but here it's not quite right.
-    dimensions = TiffTools.getTIFFDimensions(r);
-    if (dimensions == null) {
-      throw new BadFormException("Metamorph dimensions not found");
-    }
-    // metamorph stores its data a bit differently, so we need to
-    // get the z dimension seperately:
-    Vector v = (Vector) ifdHash.get(new Integer(METAMORPH_ID));
-    if (v == null) {
-      throw new BadFormException("Metamorph ID not found");
-    }
-    // In the ID tags, the count field indicates how many frames there are,
-    // not the way it is handled in standard TIFF files.
-    dimensions[2] = ((Integer) v.get(1)).intValue();
-    pixelSet = new Linear2DSet(domainTuple, 0,
-      dimensions[0] - 1, dimensions[0], dimensions[1] - 1, 0, dimensions[1]);
-    timeSet = new Integer1DSet(frame,  dimensions[2]);
-    frameField = new FlatField(funcRowColPix, pixelSet);
-    timeField = new FieldImpl(funcTimeRange, timeSet);
   }
 
 
@@ -190,7 +167,8 @@ public class MetamorphForm extends Form implements FormFileInformer,
     return new String[] {"stk"};
   }
 
-  // -- API methods --
+
+  // -- FormNode API methods --
 
   /**
    * Saves a VisAD Data object to Metamorph .stk
@@ -234,16 +212,6 @@ public class MetamorphForm extends Form implements FormFileInformer,
     return timeField;
   }
 
-  private static int batoi(byte[] inp) {
-    // Translates up to the first 4 bytes of a byte array to an integer
-    int len = inp.length>4?4:inp.length;
-    int total = 0;
-    for (int i = 0; i < len; i++) {
-      total = total + ((inp[i]<0?(int)256+inp[i]:(int)inp[i]) << (i * 8));
-    }
-    return total;
-  }
-
   /** Returns the data forms that are compatible with a data object. */
   public FormNode getForms(Data data) {
     return null;
@@ -263,13 +231,7 @@ public class MetamorphForm extends Form implements FormFileInformer,
   }
 
 
-  // -- FormProgressInformer methods --
-
-  /** Returns the percentage complete in the current operation. */
-  public double getPercentComplete() { return 0; } // TODO: Make this work.
-
-
-  // -- FormBlockReader methods --
+  // -- FormBlockReader API methods --
 
   /**
    * Opens the FluoviewTiff file with the file name specified
@@ -384,17 +346,15 @@ public class MetamorphForm extends Form implements FormFileInformer,
   }
 
   /** Closes the current form. */
-  public void close() {
-    try {
-      if (r == null) {
-        return;
-      }
+  public void close() throws BadFormException, IOException, VisADException {
+    if (r != null) {
       r.close();
       r = null;
-    } catch (Exception e) {
-      e.printStackTrace();
     }
   }
+
+
+  // -- MetadataReader API methods --
 
   /** Creates a Hashtable containing metadata info from the file */
   public Hashtable getMetadata(String id)
@@ -421,7 +381,7 @@ public class MetamorphForm extends Form implements FormFileInformer,
 
     int planes = ((Integer) v.get(1)).intValue();
 
-    while(currentcode != 0) {
+    while (currentcode != 0) {
        toread = new byte[2];
        r.read(toread);
        currentcode = TiffTools.batoi(toread);
@@ -793,17 +753,62 @@ public class MetamorphForm extends Form implements FormFileInformer,
 
   }
 
+
+  // -- Utility methods --
+
+  private static int batoi(byte[] inp) {
+    // Translates up to the first 4 bytes of a byte array to an integer
+    int len = inp.length>4?4:inp.length;
+    int total = 0;
+    for (int i = 0; i < len; i++) {
+      total = total + ((inp[i]<0?(int)256+inp[i]:(int)inp[i]) << (i * 8));
+    }
+    return total;
+  }
+
+
+  // -- Helper methods --
+
+  private void initFile(String id)
+    throws IOException, VisADException, BadFormException
+  {
+    r = new RandomAccessFile(id, "r");
+    currentId = id;
+    ifdHash = TiffTools.getIFDHash(r);
+    // Gets dimensions from TiffTools, but here it's not quite right.
+    dimensions = TiffTools.getTIFFDimensions(r);
+    if (dimensions == null) {
+      throw new BadFormException("Metamorph dimensions not found");
+    }
+    // metamorph stores its data a bit differently, so we need to
+    // get the z dimension seperately:
+    Vector v = (Vector) ifdHash.get(new Integer(METAMORPH_ID));
+    if (v == null) {
+      throw new BadFormException("Metamorph ID not found");
+    }
+    // In the ID tags, the count field indicates how many frames there are,
+    // not the way it is handled in standard TIFF files.
+    dimensions[2] = ((Integer) v.get(1)).intValue();
+    pixelSet = new Linear2DSet(domainTuple, 0,
+      dimensions[0] - 1, dimensions[0], dimensions[1] - 1, 0, dimensions[1]);
+    timeSet = new Integer1DSet(frame,  dimensions[2]);
+    frameField = new FlatField(funcRowColPix, pixelSet);
+    timeField = new FieldImpl(funcTimeRange, timeSet);
+  }
+
+
+  // -- Main method --
+
   public static void main(String[] args) throws Exception {
      MetamorphForm m = new MetamorphForm();
      Hashtable blah = m.getMetadata(args[0]);
      String key;
      Object value;
      Enumeration e = blah.keys();
-     while(e.hasMoreElements()) {
+     while (e.hasMoreElements()) {
        key = (String) e.nextElement();
        value = blah.get(key);
      }
-
   }
 
 }

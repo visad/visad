@@ -204,32 +204,32 @@ public class Util
       dialog = new JFileChooser(System.getProperty("user.dir"));
       Vector filters = new Vector();
       boolean jai = canDoJAI();
-  
+
       // Amanda F2000 - amanda/F2000Form
       FileFilter f2000 = new ExtensionFileFilter("r", "Amanda F2000 datasets");
       dialog.addChoosableFileFilter(f2000);
       filters.add(f2000);
-  
+
       // Bio-Rad PIC - biorad/BioRadForm
       FileFilter biorad = new ExtensionFileFilter("pic", "BioRad PIC images");
       dialog.addChoosableFileFilter(biorad);
       filters.add(biorad);
-  
+
       // BMP - ij/ImageJForm, jai/JAIForm
       FileFilter bmp = new ExtensionFileFilter("bmp", "BMP images");
       dialog.addChoosableFileFilter(bmp);
       filters.add(bmp);
-  
+
       // DICOM - ij/ImageJForm
       FileFilter dicom = new ExtensionFileFilter("dicom", "DICOM images");
       dialog.addChoosableFileFilter(dicom);
       filters.add(dicom);
-  
+
       // FITS - fits/FitsForm, ij/ImageJForm
       FileFilter fits = new ExtensionFileFilter("fits", "FITS datasets");
       dialog.addChoosableFileFilter(fits);
       filters.add(fits);
-  
+
       // FlashPix - jai/JAIForm
       if (jai) {
         FileFilter flashpix = new ExtensionFileFilter(
@@ -237,12 +237,12 @@ public class Util
         dialog.addChoosableFileFilter(flashpix);
         filters.add(flashpix);
       }
-  
+
       // GIF - gif/GIFForm, ij/ImageJForm, jai/JAIForm
       FileFilter gif = new ExtensionFileFilter("gif", "GIF images");
       dialog.addChoosableFileFilter(gif);
       filters.add(gif);
-  
+
       // HDF-5 - hdf5/HDF5Form
       if (canDoHDF5()) {
         FileFilter hdf5 = new ExtensionFileFilter(
@@ -250,103 +250,108 @@ public class Util
         dialog.addChoosableFileFilter(hdf5);
         filters.add(hdf5);
       }
-  
+
       // HDF-EOS - hdfeos/HdfeosForm
       FileFilter hdfeos = new ExtensionFileFilter(
         new String[] {"hdf", "hdfeos"}, "HDF-EOS datasets");
       dialog.addChoosableFileFilter(hdfeos);
       filters.add(hdfeos);
-  
+
       // JPEG - gif/GIFForm, ij/ImageJForm, jai/JAIForm
       FileFilter jpeg = new ExtensionFileFilter(
         new String[] {"jpg", "jpeg", "jpe"}, "JPEG images");
       dialog.addChoosableFileFilter(jpeg);
       filters.add(jpeg);
-  
+
       // LUT - ij/ImageJForm
       FileFilter lut = new ExtensionFileFilter("lut", "LUT data");
       dialog.addChoosableFileFilter(lut);
       filters.add(lut);
-  
+
       // McIDAS - mcidas/AreaForm, mcidas/MapForm, mcidas/PointForm
       FileFilter mcidas = new McIDASFileFilter();
       dialog.addChoosableFileFilter(mcidas);
       filters.add(mcidas);
-  
+
+      // Metamorph STK - bio/MetamorphForm
+      FileFilter metamorph = new ExtensionFileFilter("stk", "Metamorph data");
+      dialog.addChoosableFileFilter(metamorph);
+      filters.add(metamorph);
+
       // netCDF - netcdf/Plain
       FileFilter netcdf = new ExtensionFileFilter("nc", "netCDF datasets");
       dialog.addChoosableFileFilter(netcdf);
       filters.add(netcdf);
-  
+
+      // Openlab - bio/OpenlabForm
+      FileFilter openlab = new OpenlabFileFilter();
+      dialog.addChoosableFileFilter(openlab);
+      filters.add(openlab);
+
       // PGM - ij/ImageJForm
       FileFilter pgm = new ExtensionFileFilter("pgm", "PGM images");
       dialog.addChoosableFileFilter(pgm);
       filters.add(pgm);
 
-      // PICT - qt/PictForm
-      FileFilter pict = new ExtensionFileFilter("pict", "PICT images");
-      dialog.addChoosableFileFilter(pict);
-      filters.add(pict);
-  
       // PNG - gif/GIFForm, jai/JAIForm
       FileFilter png = new ExtensionFileFilter("png", "PNG images");
       dialog.addChoosableFileFilter(png);
       filters.add(png);
-  
+
       // PNM - jai/JAIForm
       if (jai) {
         FileFilter pnm = new ExtensionFileFilter("pnm", "PNM images");
         dialog.addChoosableFileFilter(pnm);
         filters.add(pnm);
       }
-  
+
       // QuickTime - qt/QTForm
       if (canDoQuickTime()) {
         FileFilter qt = new ExtensionFileFilter("mov", "QuickTime movies");
         dialog.addChoosableFileFilter(qt);
         filters.add(qt);
       }
-  
+
       // ROI - ij/ImageJForm
       FileFilter roi = new ExtensionFileFilter("roi", "ROI data");
       dialog.addChoosableFileFilter(roi);
       filters.add(roi);
-  
+
       // text - text/TextForm
       FileFilter text = new ExtensionFileFilter(
         new String[] {"csv", "tsv","bsv","txt"}, "ASCII text data");
       dialog.addChoosableFileFilter(text);
       filters.add(text);
-  
+
       // TIFF - tiff/TiffForm, ij/ImageJForm, jai/JAIForm
       FileFilter tiff = new ExtensionFileFilter(
         new String[] {"tiff", "tif"}, "TIFF datasets");
       dialog.addChoosableFileFilter(tiff);
       filters.add(tiff);
-  
+
       // VisAD binary/serialized - visad/VisADForm
       FileFilter visad = new ExtensionFileFilter(
         "vad", "Binary or serialized VisAD data");
       dialog.addChoosableFileFilter(visad);
       filters.add(visad);
-  
+
       // Vis5D - vis5d/Vis5DForm
       FileFilter vis5d = new ExtensionFileFilter("v5d", "Vis5D datasets");
       dialog.addChoosableFileFilter(vis5d);
       filters.add(vis5d);
-  
+
       // ZIP-compressed TIFF - ij/ImageJForm
       FileFilter zip = new ExtensionFileFilter(
         "zip", "ZIP-compressed TIFF data");
       dialog.addChoosableFileFilter(zip);
       filters.add(zip);
-  
+
       // DEM files - DEM family
       FileFilter dem = new ExtensionFileFilter(
         "dem", "DEM data");
       dialog.addChoosableFileFilter(dem);
       filters.add(dem);
-  
+
       // combination filter
       FileFilter[] ff = new FileFilter[filters.size()];
       filters.copyInto(ff);
@@ -468,12 +473,12 @@ public class Util
    * with the desired specification version.
    * @param version   version to check.  Needs to conform to the dotted format
    *                  of specification version numbers (e.g., 1.2)
-   * @return true if the Java 3D version being used is greater than or 
+   * @return true if the Java 3D version being used is greater than or
    *         equal to the desired version number
    */
   public static boolean canDoJava3D(String version) {
     Class testClass = canDoClass("javax.vecmath.Point3d");
-    boolean b = (testClass != null) 
+    boolean b = (testClass != null)
                    ? (canDoClass("javax.media.j3d.SceneGraphObject") != null)
                    : false;
     if (b) {
@@ -488,7 +493,7 @@ public class Util
   }
 
   /**
-   * General classloader tester. 
+   * General classloader tester.
    * @param classname  name of class to test
    * @return  the class or null if class can't be loaded.
    */
@@ -509,7 +514,7 @@ public class Util
    * @param filename the name of the file to write into
    *
    */
-  public static void captureDisplay(DisplayImpl display, String filename) 
+  public static void captureDisplay(DisplayImpl display, String filename)
   {
       captureDisplay(display, filename, false);
   }
@@ -522,15 +527,14 @@ public class Util
    * @param sync ensure the display is "done" if true
    *
    */
-  public static void captureDisplay(DisplayImpl display, 
-                                    String filename, boolean sync) 
+  public static void captureDisplay(DisplayImpl display,
+                                    String filename, boolean sync)
   {
     final DisplayImpl disp = display;
     final File fn = new File(filename);
     final boolean wait = sync;
 
-    Runnable savedisp = new Runnable() { 
-        
+    Runnable savedisp = new Runnable() {
       public void run() {
         BufferedImage image = disp.getImage(wait);
         try {
