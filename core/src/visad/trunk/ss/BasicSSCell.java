@@ -50,7 +50,6 @@ public class BasicSSCell extends JPanel {
   /** used for debugging */
   public static boolean DEBUG = false;
 
-
   /** constant for use with Dim variable */
   public static final int JAVA3D_3D = 1;
 
@@ -62,109 +61,112 @@ public class BasicSSCell extends JPanel {
 
 
   /** default FormulaManager object used by BasicSSCells */
-  static final FormulaManager defaultFM = FormulaUtil.createStandardManager();
+  protected static final FormulaManager defaultFM =
+    FormulaUtil.createStandardManager();
 
   /** list of SSCells on this JVM */
-  static final Vector SSCellVector = new Vector();
+  protected static final Vector SSCellVector = new Vector();
 
   /** counter for the number of cells currently saving data */
-  static int Saving = 0;
+  protected static int Saving = 0;
 
+  /** whether Java3D is enabled for this JVM */
+  protected static boolean CanDo3D = enable3D();
 
   /** name of this BasicSSCell */
-  String Name;
+  protected String Name;
 
   /** formula manager for this BasicSSCell */
-  FormulaManager fm;
+  protected FormulaManager fm;
 
   /** associated VisAD DisplayPanel */
-  JPanel VDPanel;
+  protected JPanel VDPanel;
 
   /** associated VisAD Display */
-  DisplayImpl VDisplay;
+  protected DisplayImpl VDisplay;
 
   /** associated VisAD RemoteDisplay */
-  RemoteDisplay RemoteVDisplay = null;
+  protected RemoteDisplay RemoteVDisplay = null;
 
   /** associated VisAD RemoteServer */
-  RemoteServer RemoteVServer = null;
+  protected RemoteServer RemoteVServer = null;
 
   /** associated VisAD DataReference */
-  DataReferenceImpl DataRef;
+  protected DataReferenceImpl DataRef;
 
   /** associated VisAD RemoteDataReference */
-  RemoteDataReferenceImpl RemoteDataRef;
+  protected RemoteDataReferenceImpl RemoteDataRef;
 
 
   /** URL from where data was imported, if any */
-  URL Filename = null;
+  protected URL Filename = null;
 
   /** whether the cell's file is considered &quot;remote data&quot; */
-  boolean FileIsRemote = false;
+  protected boolean FileIsRemote = false;
 
   /** whether the remote data change detection cell has been set up yet */
-  boolean setupComplete = false;
+  protected boolean setupComplete = false;
 
   /** RMI address from where data was imported, if any */
-  String RMIAddress = null;
+  protected String RMIAddress = null;
 
   /** formula of this BasicSSCell, if any */
-  String Formula = "";
+  protected String Formula = "";
 
   /** whether the DisplayPanel is 2-D or 3-D, Java2D or Java3D */
-  int Dim = -1;
+  protected int Dim = -1;
 
   /** errors currently being displayed in this cell, if any */
-  String[] Errors;
+  protected String[] Errors;
 
   /** string representation of this cell's mappings,
       for use only with remote clones */
-  String Maps;
+  protected String Maps;
 
 
   /** list of servers to which this cell has been added */
-  Vector Servers = new Vector();
+  protected Vector Servers = new Vector();
 
   /** whether this display is remote */
-  boolean IsRemote;
+  protected boolean IsRemote;
 
   /** ID number for this collaborative SpreadSheet */
-  int CollabID = 0;
+  protected int CollabID = 0;
 
 
   /** remote clone's copy of Filename */
-  RemoteDataReference RemoteFilename;
+  protected RemoteDataReference RemoteFilename;
 
   /** remote clone's copy of RMIAddress */
-  RemoteDataReference RemoteRMIAddress;
+  protected RemoteDataReference RemoteRMIAddress;
 
   /** remote clone's copy of Formula */
-  RemoteDataReference RemoteFormula;
+  protected RemoteDataReference RemoteFormula;
 
   /** remote clone's copy of Dim */
-  RemoteDataReference RemoteDim;
+  protected RemoteDataReference RemoteDim;
 
   /** remote clone's copy of Errors */
-  RemoteDataReference RemoteErrors;
+  protected RemoteDataReference RemoteErrors;
 
   /** remote clone's copy of Maps */
-  RemoteDataReference RemoteMaps;
+  protected RemoteDataReference RemoteMaps;
 
   /** data that is local to a remote clone */
-  RemoteDataReference RemoteLoadedData;
+  protected RemoteDataReference RemoteLoadedData;
 
 
   /** this BasicSSCell's DisplayListeners */
-  Vector DListen = new Vector();
+  protected Vector DListen = new Vector();
 
   /** whether the BasicSSCell has a valid display on-screen */
-  boolean HasDisplay = false;
+  protected boolean HasDisplay = false;
 
   /** whether the BasicSSCell has mappings from Data to Display */
-  boolean HasMappings = false;
+  protected boolean HasMappings = false;
 
   /** prevent simultaneous GUI manipulation */
-  private Object Lock = new Object();
+  protected Object Lock = new Object();
 
 
   /** construct a new BasicSSCell with the given name */
@@ -1122,6 +1124,30 @@ public class BasicSSCell extends JPanel {
     return Saving > 0;
   }
 
+  /** return true if Java3D is enabled for this JVM */
+  public static boolean canDo3D() {
+    return CanDo3D;
+  }
+
+  /** attempt to enable Java3D for this JVM, returning true if successful */
+  public static boolean enable3D() {
+    // test for Java3D availability
+    CanDo3D = false;
+    try {
+      DisplayImplJ3D test = new DisplayImplJ3D("test");
+      CanDo3D = true;
+    }
+    catch (NoClassDefFoundError err) { }
+    catch (UnsatisfiedLinkError err) { }
+    catch (Exception exc) { }
+    return CanDo3D;
+  }
+
+  /** disable Java3D for this JVM */
+  public static void disable3D() {
+    CanDo3D = false;
+  }
+
   /** @deprecated use setSaveString(String) instead */
   public void setSSCellString(String save)
     throws VisADException, RemoteException
@@ -1952,7 +1978,7 @@ public class BasicSSCell extends JPanel {
             public void paint(Graphics g) {
               g.setColor(Color.white);
               g.drawString("A serious error occurred while " +
-                           "constructing this display.", 8, 20);
+                "constructing this display.", 8, 20);
             }
           };
         }
@@ -1962,7 +1988,7 @@ public class BasicSSCell extends JPanel {
               g.setColor(Color.white);
               g.drawString("This machine does not support Java3D.", 8, 20);
               g.drawString("Switch the dimension to 2-D (Java2D) to " +
-                           "view this display.", 8, 35);
+                "view this display.", 8, 35);
             }
           };
         }
@@ -2345,7 +2371,11 @@ public class BasicSSCell extends JPanel {
   /** reconstruct this cell's display; called when dimension changes */
   public boolean constructDisplay() {
     boolean success = true;
-    if (IsRemote) {
+    if (!CanDo3D && Dim != JAVA2D_2D) {
+      // dimension requires Java3D, but Java3D is disabled for this JVM
+      success = false;
+    }
+    else if (IsRemote) {
       if (Dim == JAVA2D_2D) {
         try {
           VDisplay = new DisplayImplJ2D(RemoteVDisplay);

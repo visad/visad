@@ -500,6 +500,10 @@ the SpreadSheet RMI server and the same data with the same mappings.  In
 addition, it will be linked so that any changes to the SpreadSheet will be
 propagated to the server and all its clones.
 
+Note that if a SpreadSheet RMI server does not support Java3D, none of its
+clones will be able to either.  Thus, for maximum functionality, it is best
+to make sure that the machine chosen to be the RMI server supports Java3D.
+
 2.5 Undocumented Features
 
 Obviously, if they're undocumented, you won't find them in this README!

@@ -59,25 +59,26 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   static final Border B_URL = new LineBorder(new Color(0f, 0.5f, 0f), 3);
 
   /** this variable is static so that the previous directory is remembered */
-  static FileDialog FileBox = null;
+  protected static FileDialog FileBox = null;
+
 
   /** parent frame */
-  Frame Parent;
+  protected Frame Parent;
 
   /** associated JFrame, for use with VisAD Controls */
-  JFrame WidgetFrame;
+  protected JFrame WidgetFrame;
 
   /** whether this cell is selected */
-  boolean Selected = false;
+  protected boolean Selected = false;
 
   /** whether this cell should auto-switch to 3-D */
-  boolean AutoSwitch = true;
+  protected boolean AutoSwitch = true;
 
   /** whether this cell should auto-detect mappings for data */
-  boolean AutoDetect = true;
+  protected boolean AutoDetect = true;
 
   /** whether this cell should auto-display its widget frame */
-  boolean AutoShowControls = true;
+  protected boolean AutoShowControls = true;
 
 
   /** construct a new FancySSCell with the given name */

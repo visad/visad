@@ -74,165 +74,169 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** horizontal cell label's height */
   static final int LABEL_HEIGHT = 20;
 
-
-  /** whether JVM supports Java3D (detected on SpreadSheet launch) */
-  static boolean CanDo3D = true;
+  /** whether Java3D is enabled on this JVM */
+  protected static boolean CanDo3D;
 
 
   /** file dialog */
-  FileDialog SSFileDialog = null;
+  protected FileDialog SSFileDialog = null;
 
   /** base title */
-  String bTitle;
+  protected String bTitle;
 
   /** number of display columns */
-  int NumVisX;
+  protected int NumVisX;
 
   /** number of display rows */
-  int NumVisY;
+  protected int NumVisY;
 
   /** formula manager */
-  FormulaManager fm;
+  protected FormulaManager fm;
 
 
   /** server for spreadsheet cells, if any */
-  RemoteServerImpl rsi = null;
+  protected RemoteServerImpl rsi = null;
 
   /** whether spreadsheet is a clone of another spreadsheet */
-  boolean IsRemote;
+  protected boolean IsRemote;
 
-  /** information needed for spreadsheet cloning */
-  RemoteDataReference RemoteColRow;
+  /** row and column information needed for spreadsheet cloning */
+  protected RemoteDataReference RemoteColRow;
+
+  /** remote clone's copy of CanDo3D */
+  protected RemoteDataReference RemoteCanDo3D;
 
 
   /** whether spreadsheet's cells automatically switch dimensions
       when needed */
-  boolean AutoSwitch = true;
+  protected boolean AutoSwitch = true;
 
   /** whether spreadsheet's cells automatically detect mappings */
-  boolean AutoDetect = true;
+  protected boolean AutoDetect = true;
 
   /** whether spreadsheet's cells automatically show controls */
-  boolean AutoShowControls = true;
+  protected boolean AutoShowControls = true;
 
 
   /** panel that contains actual VisAD displays */
-  Panel DisplayPanel;
+  protected Panel DisplayPanel;
 
   /** panel containing the scrolling pane */
-  JPanel ScrollPanel;
+  protected JPanel ScrollPanel;
 
   /** scrolling pane, in case sheet gets too small */
-  ScrollPane SCPane;
+  protected ScrollPane SCPane;
 
   /** view port for horizontal cell labels */
-  JViewport HorizLabels;
+  protected JViewport HorizLabels;
 
   /** view port for vertical cell labels */
-  JViewport VertLabels;
+  protected JViewport VertLabels;
 
   /** array of panels for horizontal labels */
-  JPanel[] HorizLabel;
+  protected JPanel[] HorizLabel;
 
   /** array of panels for vertical labels */
-  JPanel[] VertLabel;
+  protected JPanel[] VertLabel;
 
   /** array of horizontal yellow sizing boxes */
-  JComponent[] HorizDrag;
+  protected JComponent[] HorizDrag;
 
   /** array of vertical yellow sizing boxes */
-  JComponent[] VertDrag;
+  protected JComponent[] VertDrag;
 
   /** panel containing horizontal labels and sizing boxes */
-  JPanel HorizPanel;
+  protected JPanel HorizPanel;
 
   /** panel containing vertical labels and sizing boxes */
-  JPanel VertPanel;
+  protected JPanel VertPanel;
 
   /** array of spreadsheet cells */
-  FancySSCell[][] DisplayCells = null;
+  protected FancySSCell[][] DisplayCells = null;
 
   /** formula bar */
-  JTextField FormulaField;
+  protected JTextField FormulaField;
 
 
   /** Edit Paste menu item */
-  MenuItem EditPaste;
+  protected MenuItem EditPaste;
 
   /** File Save as netCDF menu item */
-  MenuItem FileSave1;
+  protected MenuItem FileSave1;
 
   /** File Save as serialized menu item */
-  MenuItem FileSave2;
+  protected MenuItem FileSave2;
 
   /** Cell Edit mappings menu item */
-  MenuItem CellEdit;
+  protected MenuItem CellEdit;
 
   /** Cell Reset orientation menu item */
-  MenuItem CellReset;
+  protected MenuItem CellReset;
 
   /** Cell Show controls menu item */
-  MenuItem CellShow;
+  protected MenuItem CellShow;
 
   /** File Save as netCDF toolbar button */
-  JButton ToolSave;
+  protected JButton ToolSave;
 
   /** Edit Paste toolbar button */
-  JButton ToolPaste;
+  protected JButton ToolPaste;
 
   /** Cell 3-D (Java3D) toolbar button */
-  JButton Tool3D;
+  protected JButton Tool3D;
 
   /** Cell 2-D (Java3D) toolbar button */
-  JButton Tool2D;
+  protected JButton Tool2D;
 
   /** Cell 2-D (Java2D) toolbar button */
-  JButton ToolJ2D;
+  protected JButton ToolJ2D;
 
   /** Cell Edit mappings toolbar button */
-  JButton ToolMap;
+  protected JButton ToolMap;
 
   /** Cell Show controls toolbar button */
-  JButton ToolShow;
+  protected JButton ToolShow;
 
   /** Cell Reset orientation toolbar button */
-  JButton ToolReset;
+  protected JButton ToolReset;
 
   /** formula bar checkbox toolbar button */
-  JButton FormulaOk;
+  protected JButton FormulaOk;
 
   /** Cell 3-D (Java3D) menu item */
-  CheckboxMenuItem CellDim3D3D;
+  protected CheckboxMenuItem CellDim3D3D;
 
   /** Cell 2-D (Java2D) menu item */
-  CheckboxMenuItem CellDim2D2D;
+  protected CheckboxMenuItem CellDim2D2D;
 
   /** Cell 2-D (Java3D) menu item */
-  CheckboxMenuItem CellDim2D3D;
+  protected CheckboxMenuItem CellDim2D3D;
 
   /** Auto-switch dimension menu item */
-  CheckboxMenuItem AutoSwitchBox;
+  protected CheckboxMenuItem AutoSwitchBox;
 
   /** Auto-detect mappings menu item */
-  CheckboxMenuItem AutoDetectBox;
+  protected CheckboxMenuItem AutoDetectBox;
 
   /** Auto-display controls menu item */
-  CheckboxMenuItem AutoShowBox;
+  protected CheckboxMenuItem AutoShowBox;
+
 
   /** column of currently selected cell */
-  int CurX = 0;
+  protected int CurX = 0;
 
   /** row of currently selected cell */
-  int CurY = 0;
+  protected int CurY = 0;
 
   /** contents of clipboard */
-  String Clipboard = null;
+  protected String Clipboard = null;
 
   /** current spreadsheet file */
-  File CurrentFile = null;
+  protected File CurrentFile = null;
 
   /** object for preventing simultaneous GUI manipulation */
-  private Object Lock = new Object();
+  protected Object Lock = new Object();
+
 
   /** gateway into VisAD Visualization SpreadSheet user interface */
   public static void main(String[] argv) {
@@ -259,18 +263,18 @@ public class SpreadSheet extends JFrame implements ActionListener,
       // parse command line flags
       while (ix < len) {
         if (argv[ix].charAt(0) == '-') {
-          if (argv[ix].equals("-no3d")) CanDo3D = false;
+          if (argv[ix].equals("-no3d")) BasicSSCell.disable3D();
           else if (argv[ix].equals("-server")) {
             if (clonename != null) {
               System.out.println("A spreadsheet cannot be both a server " +
-                                 "and a clone!");
+                "and a clone!");
               System.out.println(usage);
               System.exit(3);
             }
             else if (ix < len - 1) servname = argv[++ix];
             else {
               System.out.println("You must specify a server name after " +
-                                 "the '-server' flag!");
+                "the '-server' flag!");
               System.out.println(usage);
               System.exit(4);
             }
@@ -278,14 +282,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
           else if (argv[ix].equals("-client")) {
             if (servname != null) {
               System.out.println("A spreadsheet cannot be both a server " +
-                                 "and a clone!");
+                "and a clone!");
               System.out.println(usage);
               System.exit(3);
             }
             else if (ix < len - 1) clonename = argv[++ix];
             else {
               System.out.println("You must specify a server after " +
-                                 "the '-client' flag!");
+                "the '-client' flag!");
               System.out.println(usage);
               System.exit(5);
             }
@@ -306,7 +310,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
         else {
           // parse number of rows and columns
           boolean success = true;
-          if (ix < len-1) {
+          if (ix < len - 1) {
             try {
               cols = Integer.parseInt(argv[ix]);
               rows = Integer.parseInt(argv[ix + 1]);
@@ -320,7 +324,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
             }
             if (!success) {
               System.out.println("Invalid number of columns and rows: " +
-                                 argv[ix] + " x " + argv[ix + 1]);
+                argv[ix] + " x " + argv[ix + 1]);
               System.out.println(usage);
               System.exit(2);
             }
@@ -335,8 +339,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       }
     }
     SpreadSheet ss = new SpreadSheet(WIDTH_PERCENT, HEIGHT_PERCENT,
-                                     cols, rows, servname, clonename,
-                                     "VisAD SpreadSheet");
+      cols, rows, servname, clonename, "VisAD SpreadSheet");
   }
 
   /** constructor with default formula manager */
@@ -354,6 +357,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     NumVisX = cols;
     NumVisY = rows;
     this.fm = fm;
+    CanDo3D = BasicSSCell.canDo3D();
     MappingDialog.initDialog();
     addKeyListener(this);
     addWindowListener(new WindowAdapter() {
@@ -363,20 +367,75 @@ public class SpreadSheet extends JFrame implements ActionListener,
     });
     setBackground(Color.white);
 
-    if (CanDo3D) {
-      // test for Java3D availability
+    // determine information for spreadsheet cloning
+    RemoteServer rs = null;
+    String[][] cellNames = null;
+    if (clone != null) {
+      // determine information needed for spreadsheet cloning
+      boolean success = true;
+
+      // support ':' as separator in addition to '/'
+      char[] c = clone.toCharArray();
+      for (int i=0; i<c.length; i++) if (c[i] == ':') c[i] = '/';
+      clone = new String(c);
       try {
-        DisplayImplJ3D test = new DisplayImplJ3D("test");
+        rs = (RemoteServer) Naming.lookup("//" + clone);
       }
-      catch (NoClassDefFoundError err) {
-        CanDo3D = false;
+      catch (NotBoundException exc) {
+        displayErrorMessage("Unable to clone the spreadsheet at " + clone +
+          ". The server could not be found.", "Failed to clone spreadsheet");
+        success = false;
       }
-      catch (UnsatisfiedLinkError err) {
-        CanDo3D = false;
+      catch (RemoteException exc) {
+        displayErrorMessage("Unable to clone the spreadsheet at " + clone +
+          ". A remote error occurred: " + exc.getMessage(),
+          "Failed to clone spreadsheet");
+        success = false;
       }
-      catch (Exception exc) {
-        CanDo3D = false;
+      catch (MalformedURLException exc) {
+        displayErrorMessage("Unable to clone the spreadsheet at " + clone +
+          ". The server name is not valid.", "Failed to clone spreadsheet");
+        success = false;
       }
+
+      if (success) {
+        // get info for spreadsheet cloning and construct spreadsheet clone
+        try {
+          // determine whether server supports Java3D
+          RemoteCanDo3D = rs.getDataReference("CanDo3D");
+          Real bit = (Real) RemoteCanDo3D.getData();
+          if (bit.getValue() == 0) {
+            CanDo3D = false;
+            BasicSSCell.disable3D();
+          }
+
+          // extract cell name information
+          RemoteColRow = rs.getDataReference("ColRow");
+          cellNames = getNewCellNames();
+          if (cellNames == null) {
+            displayErrorMessage("Unable to clone the spreadsheet at " + clone +
+              ". Could not obtain the server's cell names.",
+              "Failed to clone spreadsheet");
+            success = false;
+          }
+        }
+        catch (VisADException exc) {
+          displayErrorMessage("Unable to clone the spreadsheet at " + clone +
+            ". An error occurred while downloading the necessary data: " +
+            exc.getMessage(), "Failed to clone spreadsheet");
+          success = false;
+        }
+        catch (RemoteException exc) {
+          displayErrorMessage("Unable to clone the spreadsheet at " + clone +
+            ". Could not download the necessary data: " + exc.getMessage(),
+            "Failed to clone spreadsheet");
+          success = false;
+        }
+      }
+
+      if (success) bTitle = bTitle + " [collaborative mode: " + clone + ']';
+      else rs = null;
+      IsRemote = success;
     }
 
     // set up the content pane
@@ -790,9 +849,16 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
       // set up info for spreadsheet cloning
       try {
+        // set flag for whether server has Java3D enabled
+        DataReferenceImpl lCanDo3D = new DataReferenceImpl("CanDo3D");
+        RemoteCanDo3D = new RemoteDataReferenceImpl(lCanDo3D);
+        RemoteCanDo3D.setData(new Real(CanDo3D ? 1 : 0));
+        rsi.addDataReference((RemoteDataReferenceImpl) RemoteCanDo3D);
+        // set up remote reference for conveying cell layout information
         lColRow = new DataReferenceImpl("ColRow");
         RemoteColRow = new RemoteDataReferenceImpl(lColRow);
         rsi.addDataReference((RemoteDataReferenceImpl) RemoteColRow);
+        
       }
       catch (VisADException exc) {
         displayErrorMessage("Unable to export cells as RMI addresses. " +
@@ -812,80 +878,15 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
 
     // construct spreadsheet cells
-    RemoteServer rs = null;
-    if (clone == null) {
-      // construct cells from scratch
+    if (rs == null) {
       constructSpreadsheetCells(null);
       if (rsi != null) synchColRow();
     }
     else {
-      // construct cells from specified server
-      boolean success = true;
-
-      // support ':' as separator in addition to '/'
-      char[] c = clone.toCharArray();
-      for (int i=0; i<c.length; i++) if (c[i] == ':') c[i] = '/';
-      clone = new String(c);
-      try {
-        rs = (RemoteServer) Naming.lookup("//" + clone);
-      }
-      catch (NotBoundException exc) {
-        displayErrorMessage("Unable to clone the spreadsheet at " + clone +
-          ". The server could not be found.", "Failed to clone spreadsheet");
-        success = false;
-      }
-      catch (RemoteException exc) {
-        displayErrorMessage("Unable to clone the spreadsheet at " + clone +
-          ". A remote error occurred: " + exc.getMessage(),
-          "Failed to clone spreadsheet");
-        success = false;
-      }
-      catch (MalformedURLException exc) {
-        displayErrorMessage("Unable to clone the spreadsheet at " + clone +
-          ". The server name is not valid.", "Failed to clone spreadsheet");
-        success = false;
-      }
-
-      if (success) {
-        // get info for spreadsheet cloning and construct spreadsheet clone
-        try {
-          RemoteColRow = rs.getDataReference("ColRow");
-          
-          // extract cell name information
-          String[][] cellNames = getNewCellNames();
-          if (cellNames == null) {
-            displayErrorMessage("Unable to clone the spreadsheet at " + clone +
-              ". Could not obtain the server's cell names.",
-              "Failed to clone spreadsheet");
-            success = false;
-          }
-          else {
-            NumVisX = cellNames.length;
-            NumVisY = cellNames[0].length;
-            reconstructLabels(cellNames, null, null);
-            constructSpreadsheetCells(cellNames, rs);
-          }
-        }
-        catch (VisADException exc) {
-          displayErrorMessage("Unable to clone the spreadsheet at " + clone +
-            ". An error occurred while downloading the necessary data: " +
-            exc.getMessage(), "Failed to clone spreadsheet");
-          success = false;
-        }
-        catch (RemoteException exc) {
-          displayErrorMessage("Unable to clone the spreadsheet at " + clone +
-            ". Could not download the necessary data: " + exc.getMessage(),
-            "Failed to clone spreadsheet");
-          success = false;
-        }
-      }
-
-      if (success) bTitle = bTitle + " [collaborative mode: " + clone + ']';
-      else {
-        // construct a normal spreadsheet (i.e., not a clone)
-        constructSpreadsheetCells(null);
-      }
-      IsRemote = success;
+      NumVisX = cellNames.length;
+      NumVisY = cellNames[0].length;
+      reconstructLabels(cellNames, null, null);
+      constructSpreadsheetCells(cellNames, rs);
     }
 
     if (rsi != null || IsRemote) {
@@ -1644,6 +1645,16 @@ public class SpreadSheet extends JFrame implements ActionListener,
     refreshMenuCommands();
   }
 
+  private static double[] matrix3D =
+    {0.5, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 1};
+
+  private static double[] matrix2D =
+    {0.65, 0, 0, 0, 0, 0.65, 0, 0, 0, 0, 0.65, 0, 0, 0, 0, 1};
+
+  private static double[] matrixJ2D = 
+    {1, 0, 0, -1, 0, 0};
+
+
   /** resets the display projection to its original value */
   void resetOrientation() {
     DisplayImpl display = DisplayCells[CurX][CurY].getDisplay();
@@ -1654,17 +1665,15 @@ public class SpreadSheet extends JFrame implements ActionListener,
         double[] matrix;
         if (dim == 1) {
           // 3-D (Java3D)
-          matrix = new double[]
-            {0.5, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 0.5, 0, 0, 0, 0, 1};
+          matrix = matrix3D;
         }
         else if (dim == 2) {
           // 2-D (Java2D)
-          matrix = new double[] {1, 0, 0, -1, 0, 0};
+          matrix = matrixJ2D;
         }
         else {
           // 2-D (Java3D)
-          matrix = new double[]
-            {0.65, 0, 0, 0, 0, 0.65, 0, 0, 0, 0, 0.65, 0, 0, 0, 0, 1};
+          matrix = matrix2D;
         }
         try {
           pc.setMatrix(matrix);
