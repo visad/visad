@@ -14,7 +14,7 @@ import java.rmi.Remote;
  * directory service, hopefully to be provided later on.
  *
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:43:07 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:44:21 $
  */
 
 public interface
@@ -47,12 +47,12 @@ NetcdfService
 	 */
 	public NetcdfRemoteProxy
 	lookup(String dataSetName)
-		throws IOException, RemoteException;
+		throws RemoteException;
 
 	/**
 	 * List the names of exported data sets.
 	 */
 	public String []
 	list()
-		throws IOException, RemoteException;
+		throws RemoteException;
 }

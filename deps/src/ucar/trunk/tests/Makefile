@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.1.1.3 2000-08-28 21:43:43 dglo Exp $
+# $Id: Makefile,v 1.1.1.4 2000-08-28 21:44:21 dglo Exp $
 #
 #       Makefile for java ucar/tests
 #		requires ucar.multiarray

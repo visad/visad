@@ -23,7 +23,7 @@ import java.lang.reflect.InvocationTargetException;
  * TODO: There is a lot more to be said.
  *
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:06 $
+ * @version $Revision: 1.1.1.3 $ $Date: 2000-08-28 21:44:20 $
  */
 
 public abstract class
@@ -72,7 +72,7 @@ AbstractNetcdf
 	 * Create an instance populated with instances
 	 * of Variable.
 	 *
-	 * @param sc   the Schema used as a construction template.
+	 * @param sc   the Schema to use. N.B. Not a copy.
 	 *   May be empty, shouldn't be null.
 	 *
 	 * @param init if true, call initHashtable()
@@ -81,7 +81,7 @@ AbstractNetcdf
 	AbstractNetcdf(Schema sc, boolean init)
 	{
 		ctor = VariableCtor();
-		delegate = new Schema(sc);
+		delegate = sc;
 		variables = new Hashtable(delegate.size());
 		if(init)
 		{
@@ -399,6 +399,11 @@ AbstractNetcdf
 		}
 	}
 
+
+	/* package */ Schema
+	getSchema()
+		{ return delegate; }
+	
 	final private Constructor ctor;
         final private Schema delegate;
 	final private Hashtable variables;

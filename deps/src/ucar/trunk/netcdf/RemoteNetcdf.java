@@ -19,7 +19,7 @@ import java.lang.reflect.InvocationTargetException;
  * 
  * @see Netcdf
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:43:08 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:44:21 $
  */
 public class
 RemoteNetcdf
@@ -122,6 +122,16 @@ RemoteNetcdf
 		try {
 			RemoteNetcdf rnc = new RemoteNetcdf("localhost", name);
 			System.out.println(rnc);
+			VariableIterator vi = rnc.iterator();
+			while(vi.hasNext())
+			{
+				Variable v = vi.next();
+				System.out.print(v.getName() + "[0, ...]: ");
+				MultiArray ma = v.copyout(new int[v.getRank()],
+					v.getLengths());
+				System.out.println(ma.get(
+					new int[ma.getRank()]));
+			}
 		}
 		catch (Exception ee)
 		{

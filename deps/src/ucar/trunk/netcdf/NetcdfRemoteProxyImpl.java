@@ -4,7 +4,7 @@
  */
 
 package ucar.netcdf;
-import ucar.multiarray.Accessor;
+import ucar.multiarray.RemoteAccessor;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
@@ -17,7 +17,7 @@ import java.rmi.server.UnicastRemoteObject;
  *
  * @see NetcdfRemoteProxy
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:43:07 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:44:20 $
  */
 
 public class
@@ -31,7 +31,7 @@ NetcdfRemoteProxyImpl
 	 *
 	 */
 	public
-	NetcdfRemoteProxyImpl(Netcdf nc)
+	NetcdfRemoteProxyImpl(AbstractNetcdf nc)
 		throws RemoteException
 	{
 		super();
@@ -42,15 +42,15 @@ NetcdfRemoteProxyImpl
 	getSchema()
 		throws RemoteException
 	{
-		return new Schema(nc);
+		return nc.getSchema();
 	}
 
-	public Accessor
+	public RemoteAccessor
 	getAccessor(String varName)
 		throws RemoteException
 	{
-		return new RemoteAccessor(nc.get(varName));
+		return new RemoteAccessorImpl(nc.get(varName));
 	}
 
-	private final Netcdf nc;
+	private final AbstractNetcdf nc;
 }

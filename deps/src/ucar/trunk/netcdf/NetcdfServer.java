@@ -4,12 +4,11 @@
  */
 
 package ucar.netcdf;
-import ucar.multiarray.Accessor;
 import java.io.File;
 import java.io.IOException;
-import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.AccessException;
+import java.rmi.ServerException;
 import java.rmi.RMISecurityManager;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Hashtable;
@@ -27,7 +26,7 @@ import java.rmi.registry.LocateRegistry;
  * for a more elaborate directory service,
  * hopefully to be provided later on.
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:43:07 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:44:20 $
  */
 
 public class
@@ -62,18 +61,24 @@ NetcdfServer
 	
 	public NetcdfRemoteProxy
 	lookup(String dataSetName)
-		throws IOException, RemoteException
+		throws RemoteException
 	{
 		if( !table.containsKey(dataSetName) )
 			throw new AccessException(dataSetName +
 				" not available");
-		return new NetcdfRemoteProxyImpl(
-			get(dataSetName).getNetcdfFile());
+		try {
+			return new NetcdfRemoteProxyImpl(
+				get(dataSetName).getNetcdfFile());
+		}
+		catch (IOException ioe)
+		{
+			throw new ServerException("lookup", ioe);
+		}
 	}
 
 	public String []
 	list()
-		throws IOException, RemoteException
+		throws RemoteException
 	{
 		String [] ret = new String [table.size()];
 		Enumeration ee = table.keys();
@@ -175,6 +180,7 @@ NetcdfServer
 	main(String args[])
 	{
 		System.setSecurityManager(new RMISecurityManager());
+		// setLog(System.out);
 		
 		Registry regis = (Registry) null;
                 try {
@@ -279,5 +285,3 @@ class Entry
 		return nc;
 	}
 }
-
-

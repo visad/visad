@@ -17,7 +17,7 @@ import ucar.multiarray.SliceMap;
 
 /**
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.3 $ $Date: 2000-08-28 21:43:43 $
+ * @version $Revision: 1.1.1.4 $ $Date: 2000-08-28 21:44:21 $
  */
 
 public class TestNetcdf {
