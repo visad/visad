@@ -86,6 +86,38 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
     wandThread = new Thread(this);
     wandThread.start();
     vpTrans = display_renderer.getViewTrans();
+
+Transform3D trans = new Transform3D();
+vpTrans.getTransform(trans);
+float[] array = new float[16];
+trans.get(array);
+for (int i=0; i<16; i+=4) {
+  System.out.println(array[i] + " " + array[i+1] + " " +
+                     array[i+2] + " " + array[i+3]);
+/*
+# !java
+java TestIDesk 4148 4147
+1.0 0.0 0.0 0.0
+0.0 1.0 0.0 0.0
+0.0 0.0 1.0 2.0
+0.0 0.0 0.0 1.0
+sensor 0 0.0 0.0 0.0 0.0 0.0 0.0
+sensor 1 0.0 0.0 0.0 0.0 0.0 0.0
+sensor 2 0.0 0.0 0.0 0.0 0.0 0.0
+sensor 3 0.0 0.0 0.0 0.0 0.0 0.0
+3 buttons: 0 0 0
+sensor 0 0.0 0.0 0.0 0.0 0.0 0.0
+sensor 1 0.0 0.0 0.0 0.0 0.0 0.0
+sensor 2 0.0 0.0 0.0 0.0 0.0 0.0
+sensor 3 0.0 0.0 0.0 0.0 0.0 0.0
+3 buttons: 0 0 0
+sensor 0 0.0 0.0 0.0 0.0 0.0 0.0
+sensor 1 0.0 0.0 0.0 0.0 0.0 0.0
+sensor 2 0.0 0.0 0.0 0.0 0.0 0.0
+sensor 3 0.0 0.0 0.0 0.0 0.0 0.0
+3 buttons: 0 0 0
+*/
+}
   }
 
   /* override MouseBehaviorJ3D.processStimulus() to do nothing */
@@ -228,7 +260,11 @@ public class WandBehaviorJ3D extends MouseBehaviorJ3D
         HEAD_SCALE * (head_position[2] + travel_position[2] + HEADZ_OFFSET);
       double[] matrix =
         MouseBehaviorJ3D.static_make_matrix(0.0, 0.0, 0.0, 1.0, headx, heady, headz);
-      vpTrans.setTransform(new Transform3D(matrix));
+
+
+// ****
+      // vpTrans.setTransform(new Transform3D(matrix));
+// ****
 
       // QUESTION? + or - travel_position QUESTION?
       float wandx =

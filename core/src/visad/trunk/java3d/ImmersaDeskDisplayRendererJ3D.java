@@ -156,6 +156,7 @@ public class ImmersaDeskDisplayRendererJ3D extends DisplayRendererJ3D {
     ray_geometry.setCapability(GeometryArray.ALLOW_COORDINATE_READ);
     ray_geometry.setCapability(GeometryArray.ALLOW_COORDINATE_WRITE);
     Appearance ray_appearance = new Appearance();
+    ray_color = new ColoringAttributes();
     ray_color.setCapability(ColoringAttributes.ALLOW_COLOR_READ);
     ray_color.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
     ray_color.setColor(1.0f, 1.0f, 1.0f); // white ray
@@ -192,12 +193,14 @@ public class ImmersaDeskDisplayRendererJ3D extends DisplayRendererJ3D {
 
   public void setRayOn(boolean on, float[] ray_verts) {
     rayOn = on;
-    if (on) {
-      ray_geometry.setCoordinates(0, ray_verts);
-      ray_switch.setWhichChild(1); // set ray on
-    }
-    else {
-      ray_switch.setWhichChild(0); // set ray off
+    if (ray_switch != null) {
+      if (on) {
+        ray_geometry.setCoordinates(0, ray_verts);
+        ray_switch.setWhichChild(1); // set ray on
+      }
+      else {
+        ray_switch.setWhichChild(0); // set ray off
+      }
     }
   }
 
