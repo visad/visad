@@ -169,7 +169,9 @@ public class AnimationControlJ3D extends AVControlJ3D
       if (unit != null) {
         s = s + " (" + unit.toString() + ")";
       }
-      getDisplayRenderer().setAnimationString(s);
+      String t = Integer.toString(current) + " of " +
+                 Integer.toString(set.getLength());
+      getDisplayRenderer().setAnimationString(new String[] {s, t});
 
       selectSwitches((double) value, set);
     }

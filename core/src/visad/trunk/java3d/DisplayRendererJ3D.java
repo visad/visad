@@ -435,9 +435,9 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     }
 
     // draw Animation string in upper right corner of screen
-    String animation_string = getAnimationString();
-    if (animation_string != null) {
-      int nchars = animation_string.length();
+    String[] animation_string = getAnimationString();
+    if (animation_string[0] != null) {
+      int nchars = animation_string[0].length();
       if (nchars < 12) nchars = 12;
       double[] starta = {(double) (-position2.x - nchars *
                                         (position2.x - position1.x)),
@@ -445,9 +445,15 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
                          (double) position2.z};
       try {
         VisADLineArray array =
-          PlotText.render_label(animation_string, starta, base, up, false);
+          PlotText.render_label(animation_string[0], starta, base, up, false);
         graphics.draw(((DisplayImplJ3D) getDisplay()).makeGeometry(array));
         starta[1] -= 1.2 * up[1];
+        if (animation_string[1] != null) {
+          array =
+            PlotText.render_label(animation_string[1], starta, base, up, false);
+          graphics.draw(((DisplayImplJ3D) getDisplay()).makeGeometry(array));
+          starta[1] -= 1.2 * up[1];
+        }
       }
       catch (VisADException e) {
       }

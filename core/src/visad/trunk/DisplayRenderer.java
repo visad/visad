@@ -50,7 +50,7 @@ public abstract class DisplayRenderer extends Object {
   /** vector of Strings describing cursor location */
   private Vector cursorStringVector = new Vector();
 
-  String animationString = null;
+  String[] animationString = {null, null};
 
   private int[] axisOrdinals = {-1, -1, -1};
 
@@ -113,12 +113,13 @@ public abstract class DisplayRenderer extends Object {
 
   public abstract boolean legalDataRenderer(DataRenderer renderer);
 
-  public String getAnimationString() {
+  public String[] getAnimationString() {
     return animationString;
   }
 
-  public void setAnimationString(String animation) {
-    animationString = animation;
+  public void setAnimationString(String[] animation) {
+    animationString[0] = animation[0];
+    animationString[1] = animation[1];
   }
 
   public abstract double[] getCursor();

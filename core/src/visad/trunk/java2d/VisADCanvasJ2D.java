@@ -195,9 +195,13 @@ System.out.println("VisADCanvasJ2D.createImages: len = " + len +
     try {
       animate_control = (AnimationControlJ2D)
         display.getControl(AnimationControlJ2D.class);
-      if (animate_control != null) current_image = animate_control.getCurrent();
+      if (animate_control != null) {
+        animate_control.setNoTick(true);
+        current_image = animate_control.getCurrent();
+      }
     }
     catch (Exception e) {
+      if (animate_control != null) animate_control.setNoTick(false);
     }
 /*
 System.out.println("VisADCanvasJ2D.paint: current = " + current_image +
@@ -250,20 +254,22 @@ System.out.println("VisADCanvasJ2D.paint: current_image = " + current_image +
           render(g2, root, 0);
           render(g2, root, 1);
           // draw Animation string in upper right corner of screen
-          String animation_string = displayRenderer.getAnimationString();
-          if (animation_string != null) {
+          String[] animation_string = displayRenderer.getAnimationString();
+          if (animation_string[0] != null) {
 /*
-System.out.println("VisADCanvasJ2D.paint: " + animation_string);
+System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
+                   " " + animation_string[1]);
 */
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                                 RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setFont(new Font("Times New Roman", Font.PLAIN, 12));
             g2.setTransform(new AffineTransform());
-            int nchars = animation_string.length();
+            int nchars = animation_string[0].length();
             if (nchars < 12) nchars = 12;
             float x = w - 9 * nchars;
             float y = 10;
-            g2.drawString(animation_string, x, y);
+            g2.drawString(animation_string[0], x, y);
+            g2.drawString(animation_string[1], x, y+10);
           }
         }
         catch (VisADException e) {
@@ -285,6 +291,7 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string);
         g.drawImage(aux_copy, 0, 0, this);
       }
     } // end if (image != null)
+    if (animate_control != null) animate_control.setNoTick(false);
   }
 
   private void render(Graphics2D g2, VisADSceneGraphObject scene, int pass)

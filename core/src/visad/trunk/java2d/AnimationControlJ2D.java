@@ -44,6 +44,7 @@ public class AnimationControlJ2D extends AVControlJ2D
   private AnimationSetControlJ2D animationSet;
   private ToggleControl animate;
   private RealType real;
+  private boolean no_tick = false;
 
   private VisADCanvasJ2D canvas;
 
@@ -75,7 +76,7 @@ public class AnimationControlJ2D extends AVControlJ2D
     Thread me = Thread.currentThread();
     while (animationThread == me) {
       try {
-        if (animate != null && animate.getOn()) {
+        if (animate != null && animate.getOn() && !no_tick) {
           takeStep();
         }
       }
@@ -96,6 +97,10 @@ public class AnimationControlJ2D extends AVControlJ2D
         // control doesn't normally come here
       }
     }
+  }
+
+  void setNoTick(boolean nt) {
+    no_tick = nt;
   }
 
   public int getCurrent() {
@@ -181,7 +186,9 @@ System.out.println("AnimationControlJ2D.takeStep: renderTrigger " +
       if (unit != null) {
         s = s + " (" + unit.toString() +")";
       }
-      getDisplayRenderer().setAnimationString(s);
+      String t = Integer.toString(current) + " of " +
+                 Integer.toString(set.getLength());
+      getDisplayRenderer().setAnimationString(new String[] {s, t});
 
       selectSwitches((double) value, set);
     }
