@@ -439,6 +439,17 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     if (u != null) loadDataURL(u);
   }
 
+  /** @deprecated */
+  public void saveDataDialog(boolean netcdf) {
+     try {
+       Form f;
+       if (netcdf) f = new visad.data.netcdf.Plain();
+       else f = new visad.data.visad.VisADForm();
+       saveDataDialog(f);
+     }
+     catch (VisADException exc) { }
+  }
+
   /** save to a file selected by the user, in netCDF or serialized format */
   public void saveDataDialog(Form saveForm) {
     if (!hasData()) {

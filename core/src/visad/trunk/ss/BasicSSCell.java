@@ -1639,6 +1639,17 @@ public class BasicSSCell extends JPanel {
     synchRMIAddress();
   }
 
+  /** @deprecated */
+  public void saveData(File f, boolean netcdf) throws BadFormException,
+                                                      IOException,
+                                                      VisADException,
+                                                      RemoteException {
+    Form form;
+    if (netcdf) form = new visad.data.netcdf.Plain();
+    else form = new visad.data.visad.VisADForm();
+    saveData(f, form);
+  }
+
   /** export a data object to a given file name, using the given Data form */
   public void saveData(File f, Form form) throws BadFormException,
                                                  IOException,
