@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: View.java,v 1.7 2002-11-15 18:26:08 tomw Exp $
+ * $Id: View.java,v 1.8 2004-03-05 15:40:22 donm Exp $
  */
 
 package visad.data.netcdf.in;
@@ -43,7 +43,7 @@ import visad.VisADException;
  * A convention-dependent view of a netCDF dataset.
  *
  * @author Steven R. Emmerson
- * @version $Revision: 1.7 $ $Date: 2002-11-15 18:26:08 $
+ * @version $Revision: 1.8 $ $Date: 2004-03-05 15:40:22 $
  */
 public abstract class View
 {
@@ -350,8 +350,13 @@ public abstract class View
                 {
                     String name = dim.getName();
                     type = quantityDB.get(name);
-                    if (type == null)
+                    if (type == null) {
                         type = RealType.getRealType(name);
+                    }
+                    if (type == null) {
+                        throw new TypeException(
+                            "Couldn't create RealType for " + dim.getName());
+                    }
                     dimToRealType.put(dim, type);
                 }
             }
