@@ -403,7 +403,7 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 2:" +
                         checkSpatialOffsetColorAlphaRange(Domain.getDisplayIndices()) &&
                         checkSpatialOffsetColorAlphaRange(Range.getDisplayIndices()) &&
                         checkAny(Range.getDisplayIndices()) &&
-                        display.getGraphicsModeControl().getTextureEnable() &&
+                        // display.getGraphicsModeControl().getTextureEnable() && WLH 22 Aug 2002
                         !display.getGraphicsModeControl().getPointMode();
 
         // WLH 15 March 2000
@@ -671,8 +671,16 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
 
     int curved_size = display.getGraphicsModeControl().getCurvedSize();
 
+float textureEnable =
+  default_values[display.getDisplayScalarIndex(Display.TextureEnable)];
+boolean texture = display.getGraphicsModeControl().getTextureEnable();
+if (textureEnable > -0.5f) {
+  texture = (textureEnable > 0.5f);
+}
+
     boolean curvedTexture = getCurvedTexture() &&
                             !isTextureMap &&
+texture && // WLH 22 Aug 2002
                             curved_size > 0 &&
                             getIsTerminal() && // implied by getCurvedTexture()?
                             shadow_api.allowCurvedTexture() &&

@@ -210,6 +210,8 @@ public interface Display extends Action {
     new DisplayRealType("PointSize", true, 1.0, true);
   DisplayRealType LineStyle =
     new DisplayRealType("LineStyle", true, 1.0, true);
+  DisplayRealType TextureEnable =
+    new DisplayRealType("TextureEnable", true, -1.0, true);
 
   /** array of system intrinsic display scalars */
   DisplayRealType[] DisplayRealArray =
