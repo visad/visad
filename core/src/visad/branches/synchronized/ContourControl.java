@@ -118,39 +118,56 @@ public class ContourControl extends Control {
       throw new DisplayException("ContourControl.setMainContours: " +
                                  "bad array length");
     }
-    mainContours = bvalues[0];
-    labels = bvalues[1];
+    boolean setLevels = false;
+    float[] levs = null;
+    boolean[] dashes = null;
+    float myBase = 0;
+    synchronized(this) {
+      mainContours = bvalues[0];
+      labels = bvalues[1];
 
-    // WLH 13 Sept 2000
-    if (override) {
-      surfaceValue = fvalues[0];
-      contourInterval = fvalues[1];
-      lowLimit = fvalues[2];
-      hiLimit = fvalues[3];
-      base = fvalues[4];
-    }
-    else {
-      if (surfaceValue != surfaceValue) surfaceValue = fvalues[0];
-      if (contourInterval != contourInterval) contourInterval = fvalues[1];
-      if (lowLimit != lowLimit) lowLimit = fvalues[2];
-      if (hiLimit != hiLimit) hiLimit = fvalues[3];
-      if (base != base) base = fvalues[4];
-    }
-
-    // adapt to 'new' descriptors
-    if (arithmeticProgression) {
-      if (contourInterval == contourInterval && base == base &&
-          lowLimit == lowLimit && hiLimit == hiLimit) {
-        boolean[] dashes = {false};
-        float[] levs =
-          Contour2D.intervalToLevels(contourInterval, lowLimit, hiLimit, base, dashes);
-        setLevels(levs, base, dashes[0], false);
+      // WLH 13 Sept 2000
+      if (override) {
+        surfaceValue = fvalues[0];
+        contourInterval = fvalues[1];
+        lowLimit = fvalues[2];
+        hiLimit = fvalues[3];
+        base = fvalues[4];
       }
       else {
-        dash = false;
-        levels = null;
+        if (surfaceValue != surfaceValue) surfaceValue = fvalues[0];
+        if (contourInterval != contourInterval) contourInterval = fvalues[1];
+        if (lowLimit != lowLimit) lowLimit = fvalues[2];
+        if (hiLimit != hiLimit) hiLimit = fvalues[3];
+        if (base != base) base = fvalues[4];
+      }
+      // adapt to 'new' descriptors
+      if (arithmeticProgression) {
+        if (contourInterval == contourInterval && base == base &&
+            lowLimit == lowLimit && hiLimit == hiLimit) {
+          dashes = new boolean[] {false};
+          levs =
+            Contour2D.intervalToLevels(contourInterval, lowLimit, hiLimit, base, dashes);
+          myBase = base;
+          setLevels = true;
+        }
+        else {
+          dash = false;
+          levels = null;
+        }
       }
     }
+
+    /**
+     * The following methods are "alien" because they are outside the control of
+     * this class.  If they were invoked in a synchronized block, then deadlock
+     * could occur if one of the methods waits on a thread that it creates that
+     * calls back into this class and tries to obtain a lock (it's happened
+     * before).  See Item 49 (Avoid Excessive Synchronization) in Joshua Bloch's
+     * "Effective Java" for more information.
+     */
+    if (setLevels)
+      setLevels(levs, myBase, dashes[0], false);
 
     changeControl(!noChange);
   }
@@ -163,9 +180,20 @@ public class ContourControl extends Control {
    */
   public void setSurfaceValue(float value)
          throws VisADException, RemoteException {
-    boolean change = !Util.isApproximatelyEqual(surfaceValue, value);
-    surfaceValue = value;
+    boolean change;
+    synchronized(this) {
+      change = !Util.isApproximatelyEqual(surfaceValue, value);
+      surfaceValue = value;
+    }
     if (change) {
+      /**
+       * The following method is "alien" because it is outside the control of
+       * this class.  If it were invoked in a synchronized block, then deadlock
+       * could occur if the method waits on a thread that it creates that
+       * calls back into this class and tries to obtain a lock (it's happened
+       * before).  See Item 49 (Avoid Excessive Synchronization) in Joshua
+       * Bloch's "Effective Java" for more information.
+       */
       changeControl(true);
     }
   }
@@ -192,23 +220,34 @@ public class ContourControl extends Control {
   public void setContourInterval(float interval, float low,
                                  float hi, float ba)
          throws VisADException, RemoteException {
-    boolean change = (contourInterval != interval) || (base != ba) ||
-                     !Util.isApproximatelyEqual(lowLimit, low) ||
-                     !Util.isApproximatelyEqual(hiLimit, hi);
-    contourInterval = interval;
-    lowLimit = low;
-    hiLimit = hi;
-    base = ba;
-
-    // adapt to 'new' descriptors
+    float[] levs;
+    float myBase;
     boolean[] dashes = {false};
-    float[] levs =
-      Contour2D.intervalToLevels(contourInterval, lowLimit, hiLimit, base, dashes);
-    arithmeticProgression = true;
-    setLevels(levs, base, dashes[0], change);
-  }
+    boolean change;
+    synchronized(this) {
+      change = (contourInterval != interval) || (base != ba) ||
+               !Util.isApproximatelyEqual(lowLimit, low) ||
+               !Util.isApproximatelyEqual(hiLimit, hi);
+      contourInterval = interval;
+      lowLimit = low;
+      hiLimit = hi;
+      myBase = base = ba;
 
-  private boolean in = false;
+      // adapt to 'new' descriptors
+      levs =
+        Contour2D.intervalToLevels(contourInterval, lowLimit, hiLimit, base, dashes);
+      arithmeticProgression = true;
+    }
+    /**
+     * The following method is "alien" because it is outside the control of this
+     * class.  If it were invoked in a synchronized block, then deadlock could
+     * occur if the method waits on a thread that it creates that calls back
+     * into this class and tries to obtain a lock (it's happened before).  See
+     * Item 49 (Avoid Excessive Synchronization) in Joshua Bloch's "Effective
+     * Java" for more information.
+     */
+    setLevels(levs, myBase, dashes[0], change);
+  }
 
   /** 
    * Set low and high iso-line levels 
@@ -222,27 +261,32 @@ public class ContourControl extends Control {
    */
   public void setContourLimits(float low, float hi)
          throws VisADException, RemoteException {
-    if (!in) {
-      in = true;
-      boolean change = !Util.isApproximatelyEqual(lowLimit, low) ||
-                       !Util.isApproximatelyEqual(hiLimit, hi);
+    boolean change;
+    boolean setLevels;
+    float[] levs = null;
+    float myBase = 0;
+    boolean[] dashes = null;
+    synchronized(this) {
+      change = !Util.isApproximatelyEqual(lowLimit, low) ||
+               !Util.isApproximatelyEqual(hiLimit, hi);
       lowLimit = low;
       hiLimit = hi;
-
       // adapt to 'new' descriptors
       if (arithmeticProgression) {
-        boolean[] dashes = {false};
-        float[] levs =
+        setLevels = true;
+        dashes = new boolean[] {false};
+        levs =
           Contour2D.intervalToLevels(contourInterval, lowLimit, hiLimit, base, dashes);
-        setLevels(levs, base, dashes[0], false);
+        myBase = base;
       }
       else {
+        setLevels = false;
         int n = 0;
         for (int i=0; i<levels.length; i++) {
           if (lowLimit < levels[i] && levels[i] < hiLimit) n++;
         }
         if (n != levels.length) {
-          float[] levs = new float[n];
+          levs = new float[n];
           int k = 0;
           for (int i=0; i<levels.length; i++) {
             if (lowLimit < levels[i] && levels[i] < hiLimit) levs[k++] = levels[i];
@@ -253,10 +297,20 @@ public class ContourControl extends Control {
           change = false;
         }
       }
-
-      if (change) changeControl(true);
-      in = false;
     }
+
+    /**
+     * The following methods are "alien" because they are outside the control of
+     * this class.  If they were invoked in a synchronized block, then deadlock
+     * could occur if one of the methods waits on a thread that it creates that
+     * calls back into this class and tries to obtain a lock (it's happened
+     * before).  See Item 49 (Avoid Excessive Synchronization) in Joshua Bloch's
+     * "Effective Java" for more information.
+     */
+    if (setLevels)
+      setLevels(levs, myBase, dashes[0], false);
+
+    if (change) changeControl(true);
   }
 
   /** 
@@ -279,27 +333,39 @@ public class ContourControl extends Control {
                          boolean by_user)
           throws VisADException, RemoteException {
     if (levs == null) return;
-    levels = new float[levs.length];
+    float[] newLevels = new float[levs.length];
     float min = Float.MAX_VALUE;
-    // float max = Float.MIN_VALUE;
     float max = -Float.MAX_VALUE;
     for (int i=0; i<levs.length; i++) {
       if (levs[i] < min) min = levs[i];
       if (levs[i] > max) max = levs[i];
-      levels[i] = levs[i];
+      newLevels[i] = levs[i];
     }
-    dash = da;
-    base = ba;
+    synchronized(this) {
+      levels = newLevels;
+      dash = da;
+      base = ba;
+      if (by_user) {
+        lowLimit = min - Math.abs(.01f * min);  // DRM 25-APR-2001
+        hiLimit  = max + Math.abs(.01f * max);  // DRM 25-APR-2001
+      }
+    }
     if (by_user) {
-      lowLimit = min - Math.abs(.01f * min);  // DRM 25-APR-2001
-      hiLimit  = max + Math.abs(.01f * max);  // DRM 25-APR-2001
+      /**
+       * The following method is "alien" because it is outside the control of
+       * this class.  If it were invoked in a synchronized block, then deadlock
+       * could occur if the method waits on a thread that it creates that
+       * calls back into this class and tries to obtain a lock (it's happened
+       * before).  See Item 49 (Avoid Excessive Synchronization) in Joshua
+       * Bloch's "Effective Java" for more information.
+       */
       changeControl(true);
     }
   }
 
   /** get 'new' descriptors for 2-D contour lines;
       lowhibase must be float[3], dashes must be boolean[1] */
-  public float[] getLevels(float[] lowhibase, boolean[] dashes) {
+  public synchronized float[] getLevels(float[] lowhibase, boolean[] dashes) {
     float[] levs = null;
     if (levels != null) {
       levs = new float[levels.length];
@@ -315,16 +381,38 @@ public class ContourControl extends Control {
   /** set label enable to 'on' */
   public void enableLabels(boolean on)
          throws VisADException, RemoteException {
-    boolean change = (labels != on);
-    labels = on;
+    boolean change;
+    synchronized(this) {
+      change = (labels != on);
+      labels = on;
+    }
+    /**
+     * The following method is "alien" because it is outside the control of this
+     * class.  If it were invoked in a synchronized block, then deadlock could
+     * occur if the method waits on a thread that it creates that calls back
+     * into this class and tries to obtain a lock (it's happened before).  See
+     * Item 49 (Avoid Excessive Synchronization) in Joshua Bloch's "Effective
+     * Java" for more information.
+     */
     if (change) changeControl(true);
   }
 
   /** set contour enable to 'on' */
   public void enableContours(boolean on)
          throws VisADException, RemoteException {
-    boolean change = (mainContours != on);
-    mainContours = on;
+    boolean change;
+    synchronized(this) {
+      change = (mainContours != on);
+      mainContours = on;
+    }
+    /**
+     * The following method is "alien" because it is outside the control of this
+     * class.  If it were invoked in a synchronized block, then deadlock could
+     * occur if the method waits on a thread that it creates that calls back
+     * into this class and tries to obtain a lock (it's happened before).  See
+     * Item 49 (Avoid Excessive Synchronization) in Joshua Bloch's "Effective
+     * Java" for more information.
+     */
     if (change) changeControl(true);
   }
 
@@ -340,27 +428,39 @@ public class ContourControl extends Control {
       throw new DisplayException("ContourControl.getMainContours: " +
                                  "bad array length");
     }
-    bvalues[0] = mainContours;
-    bvalues[1] = labels;
-    fvalues[0] = surfaceValue;
-    fvalues[1] = contourInterval;
-    fvalues[2] = lowLimit;
-    fvalues[3] = hiLimit;
-    fvalues[4] = base;
+    synchronized(this) {
+      bvalues[0] = mainContours;
+      bvalues[1] = labels;
+      fvalues[0] = surfaceValue;
+      fvalues[1] = contourInterval;
+      fvalues[2] = lowLimit;
+      fvalues[3] = hiLimit;
+      fvalues[4] = base;
+    }
   }
 
   public void setContourFill(boolean flag)
          throws VisADException, RemoteException {
-    contourFill = flag;
+    synchronized(this) {
+      contourFill = flag;
+    }
+    /**
+     * The following method is "alien" because it is outside the control of this
+     * class.  If it were invoked in a synchronized block, then deadlock could
+     * occur if the method waits on a thread that it creates that calls back
+     * into this class and tries to obtain a lock (it's happened before).  See
+     * Item 49 (Avoid Excessive Synchronization) in Joshua Bloch's "Effective
+     * Java" for more information.
+     */
     changeControl(true);
   }
 
-  public boolean contourFilled() {
+  public synchronized boolean contourFilled() {
     return contourFill;
   }
 
   /** get a string that can be used to reconstruct this control later */
-  public String getSaveString() {
+  public synchronized String getSaveString() {
     return mainContours + " " + labels + " " + surfaceValue + " " +
       contourInterval + " " + lowLimit + " " + hiLimit + " " + base;
   }
@@ -397,114 +497,126 @@ public class ContourControl extends Control {
 
     boolean changed = false;
 
-    if (mainContours != cc.mainContours) {
-      changed = true;
-      mainContours = cc.mainContours;
-    }
-    if (!Util.isApproximatelyEqual(surfaceValue, cc.surfaceValue)) {
-      changed = true;
-      surfaceValue = cc.surfaceValue;
-    }
-
-    if (!Util.isApproximatelyEqual(contourInterval, cc.contourInterval)) {
-      changed = true;
-      contourInterval = cc.contourInterval;
-    }
-    if (!Util.isApproximatelyEqual(lowLimit, cc.lowLimit)) {
-      changed = true;
-      lowLimit = cc.lowLimit;
-    }
-    if (!Util.isApproximatelyEqual(hiLimit, cc.hiLimit)) {
-      changed = true;
-      hiLimit = cc.hiLimit;
-    }
-    if (!Util.isApproximatelyEqual(base, cc.base)) {
-      changed = true;
-      base = cc.base;
-    }
-
-    if (labels != cc.labels) {
-      changed = true;
-      labels = cc.labels;
-    }
-    if (arithmeticProgression != cc.arithmeticProgression) {
-      changed = true;
-      arithmeticProgression = cc.arithmeticProgression;
-    }
-
-    if (cc.levels == null) {
-      if (levels != null) {
-        changed = true;
-        levels = null;
-      }
-    } else {
-      // make sure array lengths match
-      if (levels == null || levels.length != cc.levels.length) {
-        changed = true;
-        levels = new float[cc.levels.length];
-        for (int i = 0; i < levels.length; i++) {
-          levels[i] = 0;
-        }
-      }
-      // copy remote values
-      for (int i = 0; i < levels.length; i++) {
-        if (!Util.isApproximatelyEqual(levels[i], cc.levels[i])) {
+    synchronized(this) {
+      synchronized(cc) {
+        if (mainContours != cc.mainContours) {
           changed = true;
-          levels[i] = cc.levels[i];
+          mainContours = cc.mainContours;
+        }
+        if (!Util.isApproximatelyEqual(surfaceValue, cc.surfaceValue)) {
+          changed = true;
+          surfaceValue = cc.surfaceValue;
+        }
+
+        if (!Util.isApproximatelyEqual(contourInterval, cc.contourInterval)) {
+          changed = true;
+          contourInterval = cc.contourInterval;
+        }
+        if (!Util.isApproximatelyEqual(lowLimit, cc.lowLimit)) {
+          changed = true;
+          lowLimit = cc.lowLimit;
+        }
+        if (!Util.isApproximatelyEqual(hiLimit, cc.hiLimit)) {
+          changed = true;
+          hiLimit = cc.hiLimit;
+        }
+        if (!Util.isApproximatelyEqual(base, cc.base)) {
+          changed = true;
+          base = cc.base;
+        }
+
+        if (labels != cc.labels) {
+          changed = true;
+          labels = cc.labels;
+        }
+        if (arithmeticProgression != cc.arithmeticProgression) {
+          changed = true;
+          arithmeticProgression = cc.arithmeticProgression;
+        }
+
+        if (cc.levels == null) {
+          if (levels != null) {
+            changed = true;
+            levels = null;
+          }
+        } else {
+          // make sure array lengths match
+          if (levels == null || levels.length != cc.levels.length) {
+            changed = true;
+            levels = new float[cc.levels.length];
+            for (int i = 0; i < levels.length; i++) {
+              levels[i] = 0;
+            }
+          }
+          // copy remote values
+          for (int i = 0; i < levels.length; i++) {
+            if (!Util.isApproximatelyEqual(levels[i], cc.levels[i])) {
+              changed = true;
+              levels[i] = cc.levels[i];
+            }
+          }
+        }
+
+        if (dash != cc.dash) {
+          changed = true;
+          dash = cc.dash;
+        }
+
+        if (horizontalContourSlice != cc.horizontalContourSlice) {
+          changed = true;
+          horizontalContourSlice = cc.horizontalContourSlice;
+        }
+        if (verticalContourSlice != cc.verticalContourSlice) {
+          changed = true;
+          verticalContourSlice = cc.verticalContourSlice;
+        }
+
+        if (!Util.isApproximatelyEqual(horizontalSliceLow,
+                                       cc.horizontalSliceLow))
+        {
+          changed = true;
+          horizontalSliceLow = cc.horizontalSliceLow;
+        }
+        if (!Util.isApproximatelyEqual(horizontalSliceHi, cc.horizontalSliceHi)) {
+          changed = true;
+          horizontalSliceHi = cc.horizontalSliceHi;
+        }
+        if (!Util.isApproximatelyEqual(horizontalSliceStep,
+                                       cc.horizontalSliceStep))
+        {
+          changed = true;
+          horizontalSliceStep = cc.horizontalSliceStep;
+        }
+        if (!Util.isApproximatelyEqual(verticalSliceLow, cc.verticalSliceLow)) {
+          changed = true;
+          verticalSliceLow = cc.verticalSliceLow;
+        }
+        if (!Util.isApproximatelyEqual(verticalSliceHi, cc.verticalSliceHi)) {
+          changed = true;
+          verticalSliceHi = cc.verticalSliceHi;
+        }
+        if (!Util.isApproximatelyEqual(verticalSliceStep, cc.verticalSliceStep)) {
+          changed = true;
+          verticalSliceStep = cc.verticalSliceStep;
+        }
+
+        if (contourFill != cc.contourFill) {
+          changed = true;
+          contourFill = cc.contourFill;
         }
       }
-    }
-
-    if (dash != cc.dash) {
-      changed = true;
-      dash = cc.dash;
-    }
-
-    if (horizontalContourSlice != cc.horizontalContourSlice) {
-      changed = true;
-      horizontalContourSlice = cc.horizontalContourSlice;
-    }
-    if (verticalContourSlice != cc.verticalContourSlice) {
-      changed = true;
-      verticalContourSlice = cc.verticalContourSlice;
-    }
-
-    if (!Util.isApproximatelyEqual(horizontalSliceLow,
-                                   cc.horizontalSliceLow))
-    {
-      changed = true;
-      horizontalSliceLow = cc.horizontalSliceLow;
-    }
-    if (!Util.isApproximatelyEqual(horizontalSliceHi, cc.horizontalSliceHi)) {
-      changed = true;
-      horizontalSliceHi = cc.horizontalSliceHi;
-    }
-    if (!Util.isApproximatelyEqual(horizontalSliceStep,
-                                   cc.horizontalSliceStep))
-    {
-      changed = true;
-      horizontalSliceStep = cc.horizontalSliceStep;
-    }
-    if (!Util.isApproximatelyEqual(verticalSliceLow, cc.verticalSliceLow)) {
-      changed = true;
-      verticalSliceLow = cc.verticalSliceLow;
-    }
-    if (!Util.isApproximatelyEqual(verticalSliceHi, cc.verticalSliceHi)) {
-      changed = true;
-      verticalSliceHi = cc.verticalSliceHi;
-    }
-    if (!Util.isApproximatelyEqual(verticalSliceStep, cc.verticalSliceStep)) {
-      changed = true;
-      verticalSliceStep = cc.verticalSliceStep;
-    }
-
-    if (contourFill != cc.contourFill) {
-      changed = true;
-      contourFill = cc.contourFill;
     }
 
     if (changed) {
       try {
+      /**
+       * The following method is "alien" because it is outside the control of
+       * this class.  If it were invoked in a synchronized block, then deadlock
+       * could occur if the method waits on a thread that it creates that
+       * calls back into this class and tries to obtain a lock (it's happened
+       * before).  See Item 49 (Avoid Excessive Synchronization) in Joshua
+       * Bloch's "Effective Java" for more information.
+       */
         changeControl(true);
       } catch (RemoteException re) {
         throw new VisADException("Could not indicate that control" +
@@ -521,92 +633,96 @@ public class ContourControl extends Control {
 
     ContourControl cc = (ContourControl )o;
 
-    if (mainContours != cc.mainContours) {
-      return false;
-    }
-    if (!Util.isApproximatelyEqual(surfaceValue, cc.surfaceValue)) {
-      return false;
-    }
+    synchronized(this) {
+      synchronized(cc) {
+        if (mainContours != cc.mainContours) {
+          return false;
+        }
+        if (!Util.isApproximatelyEqual(surfaceValue, cc.surfaceValue)) {
+          return false;
+        }
 
-    if (!Util.isApproximatelyEqual(contourInterval, cc.contourInterval)) {
-      return false;
-    }
-    if (!Util.isApproximatelyEqual(lowLimit, cc.lowLimit)) {
-      return false;
-    }
-    if (!Util.isApproximatelyEqual(hiLimit, cc.hiLimit)) {
-      return false;
-    }
-    if (!Util.isApproximatelyEqual(base, cc.base)) {
-      return false;
-    }
+        if (!Util.isApproximatelyEqual(contourInterval, cc.contourInterval)) {
+          return false;
+        }
+        if (!Util.isApproximatelyEqual(lowLimit, cc.lowLimit)) {
+          return false;
+        }
+        if (!Util.isApproximatelyEqual(hiLimit, cc.hiLimit)) {
+          return false;
+        }
+        if (!Util.isApproximatelyEqual(base, cc.base)) {
+          return false;
+        }
 
-    if (labels != cc.labels) {
-      return false;
-    }
-    if (arithmeticProgression != cc.arithmeticProgression) {
-      return false;
-    }
+        if (labels != cc.labels) {
+          return false;
+        }
+        if (arithmeticProgression != cc.arithmeticProgression) {
+          return false;
+        }
 
-    if (levels == null) {
-      if (cc.levels != null) {
-        return false;
-      }
-    } else {
-      // make sure array lengths match
-      if (cc.levels == null || levels.length != cc.levels.length) {
-        return false;
-      }
-      // copy remote values
-      for (int i = 0; i < levels.length; i++) {
-        if (!Util.isApproximatelyEqual(levels[i], cc.levels[i])) {
+        if (levels == null) {
+          if (cc.levels != null) {
+            return false;
+          }
+        } else {
+          // make sure array lengths match
+          if (cc.levels == null || levels.length != cc.levels.length) {
+            return false;
+          }
+          // copy remote values
+          for (int i = 0; i < levels.length; i++) {
+            if (!Util.isApproximatelyEqual(levels[i], cc.levels[i])) {
+              return false;
+            }
+          }
+        }
+
+        if (dash != cc.dash) {
+          return false;
+        }
+
+        if (horizontalContourSlice != cc.horizontalContourSlice) {
+          return false;
+        }
+        if (verticalContourSlice != cc.verticalContourSlice) {
+          return false;
+        }
+
+        if (!Util.isApproximatelyEqual(horizontalSliceLow,
+                                       cc.horizontalSliceLow))
+        {
+          return false;
+        }
+        if (!Util.isApproximatelyEqual(horizontalSliceHi, cc.horizontalSliceHi)) {
+          return false;
+        }
+        if (!Util.isApproximatelyEqual(horizontalSliceStep,
+                                       cc.horizontalSliceStep))
+        {
+          return false;
+        }
+        if (!Util.isApproximatelyEqual(verticalSliceLow, cc.verticalSliceLow)) {
+          return false;
+        }
+        if (!Util.isApproximatelyEqual(verticalSliceHi, cc.verticalSliceHi)) {
+          return false;
+        }
+        if (!Util.isApproximatelyEqual(verticalSliceStep, cc.verticalSliceStep)) {
+          return false;
+        }
+
+        if (contourFill != cc.contourFill) {
           return false;
         }
       }
     }
 
-    if (dash != cc.dash) {
-      return false;
-    }
-
-    if (horizontalContourSlice != cc.horizontalContourSlice) {
-      return false;
-    }
-    if (verticalContourSlice != cc.verticalContourSlice) {
-      return false;
-    }
-
-    if (!Util.isApproximatelyEqual(horizontalSliceLow,
-                                   cc.horizontalSliceLow))
-    {
-      return false;
-    }
-    if (!Util.isApproximatelyEqual(horizontalSliceHi, cc.horizontalSliceHi)) {
-      return false;
-    }
-    if (!Util.isApproximatelyEqual(horizontalSliceStep,
-                                   cc.horizontalSliceStep))
-    {
-      return false;
-    }
-    if (!Util.isApproximatelyEqual(verticalSliceLow, cc.verticalSliceLow)) {
-      return false;
-    }
-    if (!Util.isApproximatelyEqual(verticalSliceHi, cc.verticalSliceHi)) {
-      return false;
-    }
-    if (!Util.isApproximatelyEqual(verticalSliceStep, cc.verticalSliceStep)) {
-      return false;
-    }
-
-    if (contourFill != cc.contourFill) {
-      return false;
-    }
-
     return true;
   }
 
-  public Object clone()
+  public synchronized Object clone()
   {
     ContourControl cc = (ContourControl )super.clone();
     if (levels != null) {
