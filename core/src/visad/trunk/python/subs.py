@@ -14,7 +14,7 @@ try:  #try/except done to remove these lines from documentation only
           VisADLineArray, VisADQuadArray, VisADTriangleArray, \
           VisADGeometryArray, ConstantMap, Integer1DSet, FunctionType, \
           ScalarMap, Display, Integer1DSet, FieldImpl, CellImpl, \
-          DisplayListener, DisplayEvent
+          DisplayListener, DisplayEvent, GraphicsModeControl
           
 
   from types import StringType
@@ -267,11 +267,19 @@ class _vdisp:
     except:
       pass
 
+  def setPointMode(size, on):
+    """
+    Turn on (on=true) point mode for some renderings; otherwise
+    these objects may be shown as lines or texture maps.
+    """
+    self.getGraphicsModControl().setPointSize(size)
+    self.getGraphicsModControl().setPointMode(on)
+
   def showAxesScales(self, on):
     """
     Turn on the axes labels for this display if 'on' is true
     """
-    self.getGraphicsControl().setScaleEnable(on)
+    self.getGraphicsModeControl().setScaleEnable(on)
 
   def enableRubberBandBoxZoomer(self,useKey):
     """
@@ -689,7 +697,6 @@ def makeLineStyleMap(style, width):
   constmap = None
   constyle = None
   if style is not None:
-    from visad import GraphicsModeControl
 
     if style == "dash":
       constyle = ConstantMap(GraphicsModeControl.DASH_STYLE,Display.LineStyle)
