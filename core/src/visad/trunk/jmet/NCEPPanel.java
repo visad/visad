@@ -155,15 +155,6 @@ public class NCEPPanel extends JPanel implements
         valueMap = new ScalarMap(Values, Display.IsoContour);
         valueColorMap = new ScalarMap(Values, Display.RGB);
 
-        // WLH 27 April 99
-        double rmin = range[0][0];
-        double rmax = range[0][1];
-        for (int k=0; k<range.length; k++) {
-          if (range[k][0] < rmin) rmin = range[k][0];
-          if (range[k][1] > rmax) rmax = range[k][1];
-        }
-        valueColorMap.setRange(rmin, rmax);
-
         di.addMap(valueMap);
         di.addMap(valueColorMap);
         ci = (ContourControl) valueMap.getControl();
@@ -331,6 +322,7 @@ public class NCEPPanel extends JPanel implements
             tup = ncg.getGrids(paramName, Values, range);
             statLabel.setText("Done reading data...");
 
+            di.disableAction();
             FunctionType type = 
                     new FunctionType(enable, tup[levelValue].getType());
             Integer1DSet set = new Integer1DSet(enable, 2);
@@ -349,6 +341,7 @@ public class NCEPPanel extends JPanel implements
 
             ref.setData(field);
             di.addReference(ref); 
+            di.enableAction();
             statLabel.setText("Rendering display...please wait!");
             if (tabby != null) {
               tabby.setTitleAt(myInstance, paramName);

@@ -79,7 +79,7 @@ public class ShowNCEPModel
   private DisplayImpl di;
   private NetcdfGrids ng;
   private JPanel vdisplay;
-  private RealType x,y,level,record,pres;
+  private RealType x,y,level,time_type,pres;
   private RealType Values, SfcValues;
   private boolean firstFile;
   private boolean gotSfcGrids, gotAloftGrids;
@@ -176,7 +176,8 @@ public class ShowNCEPModel
     x = new RealType("x");
     y = new RealType("y");
     level = new RealType("level");
-    record = new RealType("record");
+    time_type = RealType.Time;
+    //time_type = new RealType("Valid_time", CommonUnit.secondsSinceTheEpoch, null);
     pres = new RealType("pres");
 
     gmc = di.getGraphicsModeControl();
@@ -190,7 +191,7 @@ public class ShowNCEPModel
     lvl.setRange(1020., 10.);
     di.addMap(lvl);
 
-    ScalarMap ani = new ScalarMap(record, Display.Animation);
+    ScalarMap ani = new ScalarMap(time_type, Display.Animation);
     di.addMap(ani);
     ca = (AnimationControl) ani.getControl();
 
@@ -360,6 +361,11 @@ public class ShowNCEPModel
     //System.out.println("Action command: "+cmd);
 
     if (cmd.equals("menuFile") ) {
+      try {
+	ca.setOn(false);
+	start_stop.setText("Animate");
+	isLooping = false;
+      } catch (Exception mfs) {mfs.printStackTrace(); System.exit(1); }
       getNewFile();
 
     } else if (cmd.equals("menuQuit") ) {
@@ -486,7 +492,7 @@ public class ShowNCEPModel
 
       setTitle("Show NCEP Model Data from "+filename);
 
-      ng.setRealTypes(x,y,level,record,pres);
+      ng.setRealTypes(x,y,level,time_type,pres);
 
       Dimension dim = ng.getDimension();
       xAxis.setRange(0, dim.width-1);

@@ -34,6 +34,8 @@ import ucar.netcdf.*;
 import visad.*;
 import visad.VisADException;
 import visad.Set;
+import visad.data.netcdf.units.Parser;
+import visad.jmet.*;
 
 /** 
  * Reads data from netCDF NCEP model grids one parameter at a time
@@ -46,8 +48,13 @@ public class NetcdfGrids {
   File filename;
   NetcdfFile nc = null;
   double[] pressureLevels;
+  double[] valtime;
+  double[][] times;
+  Set time_set;
+  int[] timeIndex;
+  DateTime[] validDateTime;
   int num_levels, num_records, xval, yval;
-  RealType x,y,level,record,pres;
+  RealType x,y,level,time_type,pres;
   RealTupleType grid_domain;
   Integer2DSet dom_set;
   CoordinateSystem gridCoord;
@@ -149,6 +156,46 @@ public class NetcdfGrids {
       // get the number of records
       num_records = (nc.getDimensions()).get("record").getLength();
 
+      // get the pressure levels values
+
+      Variable t = nc.get("valtime");
+      valtime = new double[num_records];
+      validDateTime = new DateTime[num_records];
+      timeIndex = new int[num_records];
+      times = new double[1][num_records];
+      TreeMap orderTimes = new TreeMap();
+
+      if (t != null) {
+	Unit baseTimeUnit = 
+	    Parser.parse(t.getAttribute("units").getStringValue());
+        int temp[] = t.getLengths();
+        for (int i=0; i<num_records; i++) {
+          index[0] = i;
+          valtime[i] = t.getDouble(index);
+	  orderTimes.put(new Double(valtime[i]), new Integer(i));
+	  validDateTime[i] = new DateTime(new Real(RealType.Time,valtime[i],
+	    baseTimeUnit) );
+        }
+	//java.util.Set timeSet = orderTimes.keySet();
+	Iterator setIt = orderTimes.keySet().iterator();
+
+	for (int i=0; i<num_records; i++) {
+	  Double sv = (Double) setIt.next();
+	  Integer isv = (Integer) orderTimes.get(sv);
+	  timeIndex[i] = isv.intValue();
+	  times[0][i] = validDateTime[timeIndex[i]].getValue();
+	}
+
+      } else {
+	System.out.println("cannot find valtime-s...using linear steps");
+	valtime = null;
+	for (int i=0; i<num_records; i++) {
+	  timeIndex[i] = i;
+	  times[0][i] = (double)i;
+	}
+      }
+
+
       p = nc.get("grid_number");
       int index2[] = new int[p.getRank()];
       for (int i=0; i<index2.length; i++) {index2[i] = 0; }
@@ -171,17 +218,17 @@ public class NetcdfGrids {
   * @param x X-coordinate 
   * @param y Y-coordinate 
   * @param level level dimension 
-  * @param record forecast index
+  * @param time_type forecast valid time
   * @param pres MathType of vertical coordinate in display
   * @param x X-coordinate 
   */
 
   public void setRealTypes(RealType x, RealType y, RealType level,
-    RealType record, RealType pres) {
+    RealType time_type, RealType pres) {
       this.x = x;
       this.y = y;
       this.level = level;
-      this.record = record;
+      this.time_type = time_type;
       this.pres = pres;
 
       // define the VisAD type for (x,y) -> values
@@ -238,6 +285,7 @@ public class NetcdfGrids {
           
         grid_domain = new RealTupleType(domain_components, gridCoord, null);
         dom_set = new Integer2DSet(grid_domain, xval, yval);
+        time_set = new Gridded1DDoubleSet(time_type, times, num_records);
 
       } catch (Exception et) {et.printStackTrace(); }
   }
@@ -453,8 +501,7 @@ public class NetcdfGrids {
       FunctionType grid_type = new FunctionType(grid_domain, values);
 
       // now make a function time record -> (x,y) -> values
-      RealTupleType record_type = new RealTupleType(record);
-      FunctionType withTime_type = new FunctionType(record_type, grid_type);
+      FunctionType withTime_type = new FunctionType(time_type, grid_type);
 
       // make a Tuple to hold the (level, withTime) values for each level
       tup = new Tuple[num_levels];
@@ -470,11 +517,10 @@ public class NetcdfGrids {
           range[p][0] = Double.MAX_VALUE;
           range[p][1] = Double.MIN_VALUE;
 
-          Set time_set = new Integer1DSet(record, dims[recordDim]);
           FieldImpl withTime = new FieldImpl(withTime_type, time_set);
 
           for (int t=0; t<num_records; t++) {
-            index[recordDim] = t;
+	    index[recordDim] = timeIndex[t];
 
             for (int i=0; i<dims[yDim]; i++) {
               index[yDim] = i;
@@ -505,11 +551,10 @@ public class NetcdfGrids {
       } else if (recordDim != -1) {
           range[0][0] = Double.MAX_VALUE;
           range[0][1] = Double.MIN_VALUE;
-          Set time_set = new Integer1DSet(record, dims[recordDim]);
           FieldImpl withTime = new FieldImpl(withTime_type, time_set);
 
           for (int t=0; t<num_records; t++) {
-            index[recordDim] = t;
+	    index[recordDim] = timeIndex[t];
 
             for (int i=0; i<dims[yDim]; i++) {
               index[yDim] = i;
@@ -576,13 +621,13 @@ public class NetcdfGrids {
     RealType x = new RealType("x");
     RealType y = new RealType("y");
     RealType level = new RealType("level");
-    RealType record = new RealType("record");
+    RealType time_type = RealType.Time;
     RealType pres = new RealType("pres");
     RealType Z = new RealType("Z");
     int num_levels = ng.getNumberOfLevels();
     double [][] range = new double[num_levels][2];
 
-    ng.setRealTypes(x,y,level,record,pres);
+    ng.setRealTypes(x,y,level,time_type,pres);
     Tuple d[] = ng.getGrids("Z", Z, range);
     System.out.println("range = "+range[0][0]+" - "+range[0][1]);
 
@@ -677,7 +722,7 @@ public class NetcdfGrids {
           index[levelDim] = p;
 
           for (int t=0; t<num_records; t++) {
-            index[recordDim] = t;
+	    index[recordDim] = timeIndex[t];
 
             for (int i=0; i<dims[yDim]; i++) {
               index[yDim] = i;
@@ -699,7 +744,7 @@ public class NetcdfGrids {
       } else if (recordDim != -1) {
 
           for (int t=0; t<num_records; t++) {
-            index[recordDim] = t;
+	    index[recordDim] = timeIndex[t];
 
             for (int i=0; i<dims[yDim]; i++) {
               index[yDim] = i;
