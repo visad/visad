@@ -16,6 +16,10 @@ public class LinearVectorPointMethod
   public LinearVectorPointMethod(double[][] lonlat_s)
          throws VisADException
   {
+    if ( lonlat_s[0].length != 3 ) {
+      throw new VisADException("number of points must equal 3");
+    }
+
     scale_1 = 1;
     scale_2 = (1+Math.sin(lonlat_s[1][0]))/(1+Math.sin(lonlat_s[1][1]));
     scale_3 = (1+Math.sin(lonlat_s[1][0]))/(1+Math.sin(lonlat_s[1][2]));
@@ -26,11 +30,10 @@ public class LinearVectorPointMethod
     double[][] del_xy = new double[2][lonlat_s[0].length];
     double[] centroid_xy = triangleCentroid(verts_xy);
 
-    double[][] values = new double[2][1];
-    values[0][0] = centroid_xy[0];
-    values[1][0] = centroid_xy[1];
-
-    double[][] centroid_ll = cs.toReference(values);
+    double[][] centroid_ll = cs.toReference(new double[][] 
+                                                { {centroid_xy[0]}, {centroid_xy[1]} });
+    System.out.println("centroid lon: "+centroid_ll[0][0]*Data.RADIANS_TO_DEGREES);
+    System.out.println("centroid lat: "+centroid_ll[1][0]*Data.RADIANS_TO_DEGREES);
 
     double scale_c = (1+Math.sin(lonlat_s[1][0]))/(1+Math.sin(centroid_ll[1][0]));
     double scale_c_squared = scale_c*scale_c;
@@ -101,7 +104,7 @@ public class LinearVectorPointMethod
     }
   }
 
-  public double[][] getKinematics( double[][] uv_wind )
+  public double[] getKinematics( double[][] uv_wind )
          throws VisADException
   {
     double[][] values = new double[1][6];
@@ -125,46 +128,53 @@ public class LinearVectorPointMethod
     catch (InvocationTargetException e) {
     }
 
-    return x.getValues();
+    return (x.getValues())[0];
   }
 
   public static void main(String args[])
          throws VisADException
   {
     double[][] lonlat_s = new double[2][3];
-    lonlat_s[0][0] = -100*Data.DEGREES_TO_RADIANS;
-    lonlat_s[1][0] =   40*Data.DEGREES_TO_RADIANS;
+    lonlat_s[0][0] = -97.4825*Data.DEGREES_TO_RADIANS;
+    lonlat_s[1][0] =   36.6911*Data.DEGREES_TO_RADIANS;
 
-    lonlat_s[0][1] = -104*Data.DEGREES_TO_RADIANS;
-    lonlat_s[1][1] =   45*Data.DEGREES_TO_RADIANS;
+    lonlat_s[0][1] = -99.2175*Data.DEGREES_TO_RADIANS;
+    lonlat_s[1][1] =   36.07195*Data.DEGREES_TO_RADIANS;
 
-    lonlat_s[0][2] =  -96*Data.DEGREES_TO_RADIANS;
-    lonlat_s[1][2] =   45*Data.DEGREES_TO_RADIANS;
+    lonlat_s[0][2] =  -97.51862*Data.DEGREES_TO_RADIANS;
+    lonlat_s[1][2] =   34.9797*Data.DEGREES_TO_RADIANS;
 
     LinearVectorPointMethod lvpm = new LinearVectorPointMethod(lonlat_s);
 
     double[][] uv_wind = new double[2][3];
 
-    uv_wind[0][0] = 20;
-    uv_wind[1][0] = 0;
-    uv_wind[0][1] = 20;
-    uv_wind[1][1] = 0;
-    uv_wind[0][2] = -20;
-    uv_wind[1][2] = 0;
+    uv_wind[0][0] = 0.919;
+    uv_wind[1][0] = 6.536;
+    uv_wind[0][1] = -1.382;
+    uv_wind[1][1] = 2.493;
+    uv_wind[0][2] = 4.588;
+    uv_wind[1][2] = 2.338;
 
-    double[][] div_vort = lvpm.getKinematics(uv_wind);
+    double[] div_vort = lvpm.getKinematics(uv_wind);
 
-    for ( int ii = 0; ii < div_vort[0].length; ii++ ) {
-      System.out.println(div_vort[0][ii]);
+    for ( int ii = 0; ii < div_vort.length; ii++ ) {
+      System.out.println(div_vort[ii]);
     }
   }
 
-  public static double[] triangleCentroid(double[][] verts_xy)
+  private static double[] triangleCentroid(double[][] verts)
   {
     double[] centroid_xy = new double[2];
-    double[] midpoint_12 = new double[2];
-    double[] midpoint_13 = new double[2];
-    double[] midpoint_23 = new double[2];
+    double[][] midpoint_12 = new double[2][1];
+    double[][] midpoint_13 = new double[2][1];
+
+    double[][] verts_xy = new double[2][3];
+    verts_xy[0][0] = verts[0][0];
+    verts_xy[0][1] = verts[0][1];
+    verts_xy[0][2] = verts[0][2];
+    verts_xy[1][0] = verts[1][0];
+    verts_xy[1][1] = verts[1][1];
+    verts_xy[1][2] = verts[1][2];
 
     double slope_12_3;
     double slope_13_2;
@@ -173,17 +183,26 @@ public class LinearVectorPointMethod
     double yintercept_13_2;
     double yintercept_23_1;
 
-    midpoint_12[0] = (verts_xy[0][1] - verts_xy[0][0])/2 + verts_xy[0][0];
-    midpoint_12[1] = (verts_xy[1][1] - verts_xy[1][0])/2 + verts_xy[1][0];
+    boolean rotate = false;
+    double rot_angle;
 
-    midpoint_13[0] = (verts_xy[0][2] - verts_xy[0][0])/2 + verts_xy[0][0];
-    midpoint_13[1] = (verts_xy[1][2] - verts_xy[1][0])/2 + verts_xy[1][0];
+    midpoint_12[0][0] = (verts_xy[0][1] - verts_xy[0][0])/2 + verts_xy[0][0];
+    midpoint_12[1][0] = (verts_xy[1][1] - verts_xy[1][0])/2 + verts_xy[1][0];
 
-    midpoint_23[0] = (verts_xy[0][2] - verts_xy[0][1])/2 + verts_xy[0][1];
-    midpoint_23[1] = (verts_xy[1][2] - verts_xy[1][1])/2 + verts_xy[1][1];
+    midpoint_13[0][0] = (verts_xy[0][2] - verts_xy[0][0])/2 + verts_xy[0][0];
+    midpoint_13[1][0] = (verts_xy[1][2] - verts_xy[1][0])/2 + verts_xy[1][0];
 
-    slope_12_3 = (verts_xy[1][2] - midpoint_12[1])/(verts_xy[0][2] - midpoint_12[0]);
-    slope_13_2 = (verts_xy[1][1] - midpoint_13[1])/(verts_xy[0][1] - midpoint_13[0]);
+    slope_12_3 = (verts_xy[1][2] - midpoint_12[1][0])/(verts_xy[0][2] - midpoint_12[0][0]);
+    slope_13_2 = (verts_xy[1][1] - midpoint_13[1][0])/(verts_xy[0][1] - midpoint_13[0][0]);
+
+    if (Double.isInfinite(slope_12_3) || Double.isInfinite(slope_13_2)) 
+    {
+      System.out.println("infinite slope");
+      rotate_clockwise(verts_xy, 90*Data.DEGREES_TO_RADIANS);
+      rotate_clockwise(midpoint_12, 90*Data.DEGREES_TO_RADIANS);
+      rotate_clockwise(midpoint_13, 90*Data.DEGREES_TO_RADIANS);
+      rotate = true;
+    } 
 
     yintercept_12_3 = verts_xy[1][2] - slope_12_3*verts_xy[0][2];
     yintercept_13_2 = verts_xy[1][1] - slope_13_2*verts_xy[0][1];
@@ -191,6 +210,27 @@ public class LinearVectorPointMethod
     centroid_xy[0] = (yintercept_12_3 - yintercept_13_2)/(slope_13_2 - slope_12_3);
     centroid_xy[1] = slope_12_3*centroid_xy[0] + yintercept_12_3;
 
+    if ( rotate == true ) {
+      //-rotate centroid back
+      double[][] xy = new double[2][1];
+      xy[0][0] = centroid_xy[0];
+      xy[1][0] = centroid_xy[1];
+      rotate_clockwise(xy, -90*Data.DEGREES_TO_RADIANS);
+      centroid_xy[0] = xy[0][0];
+      centroid_xy[1] = xy[1][0];
+    }
     return centroid_xy;
+  }
+
+  private static void rotate_clockwise( double[][] points, double rot_angle )
+  {
+    for ( int ii = 0; ii < points[0].length; ii++ ) {
+      double x = points[0][ii];
+      double y = points[1][ii];
+      double angle = Math.atan2(y,x);
+      double r = Math.sqrt(x*x + y*y);
+      points[0][ii] = r*Math.cos(angle - rot_angle);
+      points[1][ii] = r*Math.sin(angle - rot_angle);
+    }
   }
 }
