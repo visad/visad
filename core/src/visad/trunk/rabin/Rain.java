@@ -35,11 +35,11 @@ public class Rain implements ActionListener, ControlListener {
       this Rain is a server if server_server != null
       this Rain is stand-alone if server_server == null
         and client_server == null */
-  RemoteServerImpl server_server;
+  RemoteServerImpl server_server = null;
 
   /** RemoteServer for client
       this Rain is a client if client_server != null */
-  RemoteServer client_server;
+  RemoteServer client_server = null;
 
   static boolean twod = false;
 
@@ -522,28 +522,32 @@ public class Rain implements ActionListener, ControlListener {
       color_fieldC1.setSamples(table);
       ref_colorC1.setData(color_fieldC1);
     }
-/* WLH 19 April 99
-    CellImpl color_cellC1 = new CellImpl() {
-      public void doAction() throws VisADException, RemoteException {
-        FlatField field = (FlatField) ref_colorC1.getData().local();
-        float[][] table = field.getFloats();
-        float[][] old_table = color_controlC1.getTable();
-        for (int i=0; i<3; i++) {
-          for (int j=0; j<table[0].length; j++) {
-            if (table[i][j] != old_table[i][j]) return;
+
+    if (server_server != null || client_server != null) {
+      CellImpl color_cellC1 = new CellImpl() {
+        public void doAction() throws VisADException, RemoteException {
+          FlatField field = (FlatField) ref_colorC1.getData().local();
+          float[][] table = field.getFloats();
+          float[][] old_table = color_controlC1.getTable();
+          boolean identical = true;
+          for (int i=0; i<3; i++) {
+            for (int j=0; j<table[0].length; j++) {
+              if (table[i][j] != old_table[i][j]) identical = false;
+            }
+          }
+          if (!identical) {
+            color_controlC1.setTable(table);
           }
         }
-        color_controlC1.setTable(table);
+      };
+      if (client_server != null) {
+        RemoteCellImpl remote_cell = new RemoteCellImpl(color_cellC1);
+        remote_cell.addReference(ref_colorC1);
       }
-    };
-    if (client_server != null) {
-      RemoteCellImpl remote_cell = new RemoteCellImpl(color_cellC1);
-      remote_cell.addReference(ref_colorC1);
+      else {
+        color_cellC1.addReference(ref_colorC1);
+      }
     }
-    else {
-      color_cellC1.addReference(ref_colorC1);
-    }
-*/
 
     displays[0][2].addReference(cell_refs[0][2]);
     DataRenderer dr = null;
@@ -777,28 +781,32 @@ public class Rain implements ActionListener, ControlListener {
       color_fieldC4.setSamples(table);
       ref_colorC4.setData(color_fieldC4);
     }
-/* WLH 19 April 99
-    CellImpl color_cellC4 = new CellImpl() {
-      public void doAction() throws VisADException, RemoteException {
-        FlatField field = (FlatField) ref_colorC4.getData().local(); 
-        float[][] table = field.getFloats();
-        float[][] old_table = color_controlC4.getTable();
-        for (int i=0; i<3; i++) {
-          for (int j=0; j<table[0].length; j++) {
-            if (table[i][j] != old_table[i][j]) return;
+
+    if (server_server != null || client_server != null) {
+      CellImpl color_cellC4 = new CellImpl() {
+        public void doAction() throws VisADException, RemoteException {
+          FlatField field = (FlatField) ref_colorC4.getData().local(); 
+          float[][] table = field.getFloats();
+          float[][] old_table = color_controlC4.getTable();
+          boolean identical = true;
+          for (int i=0; i<3; i++) {
+            for (int j=0; j<table[0].length; j++) {
+              if (table[i][j] != old_table[i][j]) identical = false;
+            }
+          }
+          if (!identical) {
+            color_controlC4.setTable(table);
           }
         }
-        color_controlC4.setTable(table);
-      }       
-    };
-    if (client_server != null) {
-      RemoteCellImpl remote_cell = new RemoteCellImpl(color_cellC4);
-      remote_cell.addReference(ref_colorC4);
+      };
+      if (client_server != null) {
+        RemoteCellImpl remote_cell = new RemoteCellImpl(color_cellC4);
+        remote_cell.addReference(ref_colorC4);
+      }
+      else {
+        color_cellC4.addReference(ref_colorC4);
+      }
     }
-    else {
-      color_cellC4.addReference(ref_colorC4);
-    }
-*/
 
     left_panel.add(color_widgetC4);
     left_panel.add(new JLabel("  "));
@@ -976,6 +984,7 @@ public class Rain implements ActionListener, ControlListener {
 
   private void setSamples(Field field, float[][] table)
           throws VisADException, RemoteException {
+    if (field == null) return;
     if (field instanceof FlatField) {
       ((FlatField) field).setSamples(table);
     }

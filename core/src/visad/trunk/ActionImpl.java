@@ -42,7 +42,7 @@ public abstract class ActionImpl extends Object
   /** lock for thread starting */
   public static Object threadLock = new Object();
   /** delay for thread starting */
-  public static final int THREAD_DELAY = 5;
+  public static final int THREAD_DELAY = 50;
 
   String Name;
 
