@@ -5,7 +5,9 @@ JC = javac
 .SUFFIXES: .class .java
 
 .java.class:
-	${JC} ${JFLAGS} $<
+	$(JC) $(JFLAGS) $<
+
+RM = rm -f
 
 all::
 
@@ -15,9 +17,12 @@ TestGIF.class: TestGIF.java GIFAdapter.class
 all:: TestGIF.class
 
 clean::
-	-rm -f TestGIF.class GIFAdapter.class
+	-$(RM) TestGIF.class GIFAdapter.class
 
 all:: GIFForm.class
 
 clean::
-	-rm -f GIFForm.class
+	-$(RM) GIFForm.class
+
+clean::
+	-$(RM) *~

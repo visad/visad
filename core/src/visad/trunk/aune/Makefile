@@ -82,6 +82,7 @@ clean:
 	$(RM) ShallowFluidImp.o ${OBJS}
 	$(RM) libShallowFluid.so
 	$(RM) ShallowFluid*.class
+	$(RM) *~
 
 ############################################################################
 # Packaging rules

@@ -89,6 +89,7 @@ clean:
 	$(RM) GoesCollaboration*.class
 	$(RM) Nasti*.class
 	$(RM) PCS*.class
+	$(RM) *~
 
 ############################################################################
 # Packaging rules

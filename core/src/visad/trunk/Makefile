@@ -501,7 +501,7 @@ VISAD_PACKAGES = \
 		visad.aeri
 
 clean:
-	$(RM) *.class
+	$(RM) *.class *~
 	for i in $(VISAD_PACKAGES); do					\
 	  case $$i in							\
 	  visad)							\
@@ -522,12 +522,12 @@ clean:
 	      if [ -f $$dir/Makefile ]; then				\
 		(cd $$dir && make -k clean);				\
 	      else							\
-		(cd $$dir && $(RM) *.class *.o *.so);			\
+		(cd $$dir && $(RM) *.class *.o *.so *~);			\
 	      fi;							\
 	    fi;								\
 	  fi;								\
 	done
-	-(cd examples && $(RM) *.class)
+	-(cd examples && $(RM) *.class *~)
 
 recompile:
 	@root=`cd .. && pwd`;						\

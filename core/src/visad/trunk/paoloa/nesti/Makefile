@@ -87,6 +87,7 @@ clean:
 	$(RM) NestiImp.o ${OBJS}
 	$(RM) libNesti.so
 	$(RM) Nesti*.class
+	$(RM) *~
 
 ############################################################################
 # Packaging rules

@@ -92,3 +92,4 @@ clean:
 	$(RM) GalaxyImp.o ${OBJS}
 	$(RM) libGalaxy.so
 	$(RM) Galaxy*.class
+	$(RM) *~

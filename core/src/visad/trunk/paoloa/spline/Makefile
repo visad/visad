@@ -88,6 +88,4 @@ Spline2D.class: Spline2D.java
 clean:
 	$(RM) visad_paoloa_spline_Spline.h
 	$(RM) visad_paoloa_spline_Spline2D.h
-	$(RM) *.o
-	$(RM) *.so
-	$(RM) *.class
+	$(RM) *.o *.so *.class *~
