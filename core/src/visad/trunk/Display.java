@@ -33,20 +33,20 @@ import java.rmi.*;
    Display is the VisAD interface for displays.  It is runnable.<P>
 
    The display architecture is based on three goals:<P>
-<UL>
+<OL>
 
-<LI> 1. Display data according to a set of mappings from RealType's
-        (e.g., Latitude, Time, Pressure) to DisplayRealType's (e.g.,
-        XAxis, RGB, Animation).
+<LI>Display data according to a set of mappings from RealType's
+    (e.g., Latitude, Time, Pressure) to DisplayRealType's (e.g.,
+    XAxis, RGB, Animation).<P>
    
-<LI> 2. Allow user extensions, to define new DisplayRealType's,
-        new DisplayRealTuple's (and hence new display
-        CoordinateSsystem's), and new rendering algorithms.
+<LI>Allow user extensions, to define new DisplayRealType's,
+    new DisplayRealTuple's (and hence new display
+    CoordinateSsystem's), and new rendering algorithms.<P>
    
-<LI> 3. Support direct manipulation through 3-D user interface
-        widgets embedded in 3-D data displays.
+<LI>Support direct manipulation through 3-D user interface
+    widgets embedded in 3-D data displays.<P>
 
-</UL>
+</OL>
 */
 public interface Display extends Action {
 
@@ -67,6 +67,17 @@ public interface Display extends Action {
                         CommonUnit.degree, true);
   DisplayRealType Radius =
     new DisplayRealType("Radius", true, 0.01, 2.0, 1.0, true);
+
+  /** Cylindrical radius scalar */
+  DisplayRealType CylRadius =
+    new DisplayRealType("CylRadius", true, 0.01, 2.0, 1.0, true);
+  /** Cylindrical azimuth scalar */
+  DisplayRealType CylAzimuth =
+    new DisplayRealType("CylAzimuth", true, 0.0, 360.0, 0.0,
+                        CommonUnit.degree, true);
+  /** Cylindrical ZAxis scalar */
+  DisplayRealType CylZAxis =
+    new DisplayRealType("CylZAxis", true, -1.0, 1.0, 0.0, true);
 
   /** list display scalar (default domain of DisplayField) */
   DisplayRealType List =
@@ -183,7 +194,7 @@ public interface Display extends Action {
      RGB, RGBA, Hue, Saturation, Value, HSV, Cyan, Magenta, Yellow, CMY, Alpha,
      Animation, SelectValue, SelectRange, IsoContour, Flow1X, Flow1Y, Flow1Z,
      Flow2X, Flow2Y, Flow2Z, XAxisOffset, YAxisOffset, ZAxisOffset, Shape, Text,
-     ShapeScale, LineWidth, PointSize};
+     ShapeScale, LineWidth, PointSize, CylRadius, CylAzimuth, CylZAxis};
 
 
   /** system intrinsic DisplayTupleType objects */
@@ -202,6 +213,23 @@ public interface Display extends Action {
           {Latitude, Longitude, Radius};
   DisplayTupleType DisplaySpatialSphericalTuple =
     new DisplayTupleType(components3s, DisplaySphericalCoordSys, true);
+
+  /** 
+   * defines a CoordinateSystem with Reference DisplaySpatialCartesianTuple 
+   */
+  CoordinateSystem DisplayCylindricalCoordSys =
+    new CylindricalCoordinateSystem(DisplaySpatialCartesianTuple, true);
+  /** 
+   * DisplayRealType array of CylRadius, CylAzimuth, CylZAxis
+   * for Cylindrical Coordinates 
+   */
+  DisplayRealType[] componentscyl =
+          {CylRadius, CylAzimuth, CylZAxis};
+  /** 
+   * System intrinsic DisplayTupleType for Cylindrical Coordinates 
+   */
+  DisplayTupleType DisplaySpatialCylindricalTuple =
+    new DisplayTupleType(componentscyl, DisplayCylindricalCoordSys, true);
 
   /** system intrinsic DisplayTupleType for RGB Color Coordinates */
   DisplayRealType[] componentsrgb =
