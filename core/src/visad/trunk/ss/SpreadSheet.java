@@ -331,11 +331,16 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
   protected JToolBar Toolbar;
 
   /**
+   * Submenus.
+   */
+  protected JMenu FileExport;
+   
+  /**
    * Menu items.
    */
-  protected JMenuItem FileSave1, FileSave2, FileSave3, FileSave4, FileSnap,
-    EditPaste, EditClear, CellDel, CellPrint, CellEdit, CellReset, CellShow,
-    LayAddCol, LayDelCol, LayDelRow;
+  protected JMenuItem FileSave1, FileSave2, FileSave3, FileSave4, FileSave5,
+    FileSnap, EditPaste, EditClear, CellDel, CellPrint, CellEdit, CellReset,
+    CellShow, LayAddCol, LayDelCol, LayDelRow;
 
   /**
    * Checkbox menu items.
@@ -749,14 +754,17 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
 
     // set up file menu
     addMenuItem("File", "Import data...", "loadDataSet", 'i');
-    FileSave1 = addMenuItem("File", "Export data to netCDF...",
-      "exportDataSetNetcdf", 'n', false);
-    FileSave2 = addMenuItem("File", "Export serialized data...",
-      "exportDataSetSerial", 's', false);
-    FileSave3 = addMenuItem("File", "Export data to HDF-5...",
-      "exportDataSetHDF5", 'h', false);
-    FileSave4 = addMenuItem("File", "Export data to TIFF...",
-      "exportDataSetTIFF", 't', false);
+    FileExport = addSubMenu("File", "Export data", 'e', false);
+    FileSave1 = addMenuItem("Export data", "netCDF...",
+      "exportDataSetNetcdf", 'n', true);
+    FileSave3 = addMenuItem("Export data", "HDF-5...",
+      "exportDataSetHDF5", 'h', CanDoHDF5);
+    FileSave4 = addMenuItem("Export data", "TIFF...",
+      "exportDataSetTIFF", 't', true);
+    FileSave2 = addMenuItem("Export data", "Serialized...",
+      "exportDataSetSerial", 's', true);
+    FileSave5 = addMenuItem("Export data", "Binary...",
+      "exportDataSetBinary", 'b', true);
     addMenuSeparator("File");
     FileSnap = addMenuItem("File", "Take JPEG snapshot...",
       "captureImageJPEG", 'j', false);
@@ -1299,6 +1307,13 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
    */
   public void exportDataSetTIFF() {
     exportDataSet(new TiffForm());
+  }
+
+  /**
+   * Exports a data set to VisAD binary data format.
+   */
+  public void exportDataSetBinary() {
+    exportDataSet(new VisADForm(true));
   }
 
   /**
@@ -2640,10 +2655,7 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
     Util.invoke(false, BasicSSCell.DEBUG, new Runnable() {
       public void run() {
         boolean b = DisplayCells[CurX][CurY].hasData();
-        FileSave1.setEnabled(b);
-        FileSave2.setEnabled(b);
-        FileSave3.setEnabled(b && CanDoHDF5);
-        FileSave4.setEnabled(b);
+        FileExport.setEnabled(b);
         FileSnap.setEnabled(b && CanDoJPEG);
         EditClear.setEnabled(b);
         CellPrint.setEnabled(b);
