@@ -213,4 +213,20 @@ if (tickFlag) {
     }
     return super.equals(o);
   }
+
+  public String toString()
+  {
+    String cn = getClass().getName();
+    int pt = cn.lastIndexOf('.');
+    final int ds = cn.lastIndexOf('$');
+    if (ds > pt) {
+      pt = ds;
+    }
+    if (pt == -1) {
+      pt = 0;
+    } else {
+      pt++;
+    }
+    return cn.substring(pt) + "@" + Index;
+  }
 }
