@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: TextAccessor.java,v 1.1 1998-03-20 20:57:25 visad Exp $
+ * $Id: TextAccessor.java,v 1.2 1998-06-17 20:32:43 visad Exp $
  */
 
 package visad.data.netcdf.out;
@@ -25,7 +25,7 @@ TextAccessor
     /**
      * The missing-value character.
      */
-    protected final Character		space = new Character(' ');
+    private final Character		space = new Character(' ');
 
 
     /**

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: TrivialAccessor.java,v 1.1 1998-03-20 20:57:25 visad Exp $
+ * $Id: TrivialAccessor.java,v 1.2 1998-06-17 20:32:43 visad Exp $
  */
 
 package visad.data.netcdf.out;
@@ -24,7 +24,7 @@ TrivialAccessor
     /**
      * The VisAD data object.
      */
-    protected final Data	data;
+    private final Data	data;
 
 
     /**

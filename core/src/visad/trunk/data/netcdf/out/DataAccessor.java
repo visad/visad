@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DataAccessor.java,v 1.1 1998-03-20 20:57:12 visad Exp $
+ * $Id: DataAccessor.java,v 1.2 1998-06-17 20:32:38 visad Exp $
  */
 
 
@@ -20,6 +20,12 @@ import visad.Field;
  */
 abstract class DataAccessor implements VisADAccessor
 {
+    /*
+     * The following fields are not private because I decided that they
+     * were used so much by the subclasses that using implementing
+     * access via get...()/set...() accessors would be too inefficient.
+     */
+
     /** The number of netCDF dimensions in the VisAD data object. */
     protected final int			localRank;
 

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DependentRealVar.java,v 1.1 1998-03-20 20:57:15 visad Exp $
+ * $Id: DependentRealVar.java,v 1.2 1998-06-17 20:32:39 visad Exp $
  */
 
 package visad.data.netcdf.out;
@@ -32,7 +32,7 @@ DependentRealVar
     /**
      * The fill-value object.
      */
-    protected final Number	fillValue;
+    private final Number	fillValue;
 
 
     /**
@@ -185,7 +185,7 @@ DependentRealVar
     get(int[] indexes)
 	throws IOException
     {
-	Double	value = (Double)accessor.get(indexes);
+	Double	value = (Double)getAccessor().get(indexes);
 
 	return value.isNaN()
 		    ? fillValue

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: FieldAccessor.java,v 1.1 1998-03-20 20:57:19 visad Exp $
+ * $Id: FieldAccessor.java,v 1.2 1998-06-17 20:32:41 visad Exp $
  */
 
 package visad.data.netcdf.out;
@@ -25,7 +25,7 @@ FieldAccessor
      * The shape of the netCDF variables of the VisAD Field in netCDF order
      * (i.e. outermost dimension first).
      */
-    protected final int[]	shape;
+    private final int[]	shape;
 
 
     /**

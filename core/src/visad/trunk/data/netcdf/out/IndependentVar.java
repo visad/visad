@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: IndependentVar.java,v 1.2 1998-03-27 18:23:23 visad Exp $
+ * $Id: IndependentVar.java,v 1.3 1998-06-17 20:32:42 visad Exp $
  */
 
 package visad.data.netcdf.out;
@@ -31,13 +31,13 @@ IndependentVar
     /**
      * The dimension index of the "variable" in the domain.
      */
-    protected final int		idim;
+    private final int		idim;
 
 
     /**
      * The sampling domain set.
      */
-    protected final SampledSet	set;
+    private final SampledSet	set;
 
 
     /**

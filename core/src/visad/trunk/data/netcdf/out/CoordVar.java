@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: CoordVar.java,v 1.1 1998-03-20 20:57:12 visad Exp $
+ * $Id: CoordVar.java,v 1.2 1998-06-17 20:32:37 visad Exp $
  */
 
 
@@ -24,10 +24,10 @@ import visad.data.BadFormException;
 class CoordVar extends ExportVar
 {
     /** The linear, sampling domain set. */
-    protected final Gridded1DSet	set;
+    private final Gridded1DSet	set;
 
     /** The unit in which the co-ordinate variable is measured. */
-    protected final Unit	unit;
+    private final Unit		unit;
 
     /**
      * Construct.

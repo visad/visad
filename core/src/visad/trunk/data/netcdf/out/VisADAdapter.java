@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: VisADAdapter.java,v 1.2 1998-03-27 18:23:24 visad Exp $
+ * $Id: VisADAdapter.java,v 1.3 1998-06-17 20:32:45 visad Exp $
  */
 
 package visad.data.netcdf.out;
@@ -227,15 +227,12 @@ VisADAdapter
 
 
     /**
-     * Visit a VisAD Field object.
+     * Define the netCDF dimensions and variables of a VisAD Field object.
      *
      * @param field		The VisAD Field to be visited
      * @param outerAccessor	The means for accessing the individual VisAD
      *				<code>Field</code> objects of the enclosing
      *				VisAD data object.
-     * @postcondition		All netCDF dimensions and variables of
-     *				<code>field</code> will have been defined in
-     *				this class.
      * @exception UnimplementedException
      *					Something that should be implemented
      *					isn't yet.
@@ -290,13 +287,12 @@ VisADAdapter
 
 
     /**
-     * Define the netCDF dimensions of a VisAD LinearSet.
+     * Define the netCDF dimensions of a VisAD LinearSet, including any 
+     * necessary coordinate variables..
      *
-     * @param set	The VisAD GriddedSet to be examined.
-     * @precondition	<code>set instanceof LinearSet</code>.
+     * @param set	The VisAD GriddedSet to be examined, WHERE
+     * 			<code>set instanceof LinearSet</code>.
      * @return		The netCDF dimensions of <code>set</code>.
-     * @postcondition	The netCDF dimensions and any associated coordinate
-     *			variables will have been defined in this class.
      */
     protected Dimension[]
     defineLinearSetDims(GriddedSet set)
@@ -351,8 +347,6 @@ VisADAdapter
      *
      * @param set	The VisAD SampledSet to be examined.
      * @return		The netCDF dimension of <code>set</code>.
-     * @postcondition	The netCDF dimension and any associated variables
-     *			will have been defined in this class.
      * @exception VisADException	Problem in core VisAD.
      * @exception BadFormException	<code>set</code> cannot be represented
      *					in a netCDF dataset.
@@ -373,11 +367,10 @@ VisADAdapter
      * Define the netCDF dimension of a 1-D SampledSet.  This dimension will
      * have an associated, netCDF coordinate variable.
      *
-     * @precondition	<code>set</code> is 1-D.
+     * @param set	The set to have a netCDF dimension defined for it.
+     *			Precondition: <code>set.getDimension() == 1</code>.
      * @return		The netCDF dimension corresponding to the 1-D 
      *			SampledSet.
-     * @postcondition	The netCDF dimension and any associated coordinate
-     *			variable will have been defined in this class.
      * @exception VisADException	Problem in core VisAD.
      * @exception BadFormException	<code>set</code> cannot be represented
      *					in a netCDF dataset.
@@ -414,12 +407,11 @@ VisADAdapter
      *
      * @param set	The VisAD SampledSet to be examined and have 
      *			a corresponding netCDF "index" dimension created
-     *			together with netCDF (independent) variables.
-     * @precondition	The rank of <code>set</code> is greater than 1.
+     *			together with netCDF variables for the independent
+     *			variables.  Precondition: <code>set.getDimension() 
+     *			> 1</code>.
      * @return		The netCDF dimension corresponding to the
      *			SampledSet.
-     * @postcondition	The netCDF dimension and associated independent
-     *			variables will have been defined in this class.
      * @exception VisADException	Problem in core VisAD.
      * @exception BadFormException	<code>set</code> cannot be represented
      *					in a netCDF dataset.

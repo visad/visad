@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DependentVar.java,v 1.1 1998-03-20 20:57:18 visad Exp $
+ * $Id: DependentVar.java,v 1.2 1998-06-17 20:32:41 visad Exp $
  */
 
 package visad.data.netcdf.out;
@@ -35,7 +35,7 @@ DependentVar
     /**
      * The VisADAccessor.
      */
-    protected final VisADAccessor	accessor;
+    private final VisADAccessor	accessor;
 
 
     /**
@@ -74,4 +74,17 @@ DependentVar
     public abstract Object
     get(int[] indexes)
 	throws IOException;
+
+
+    /**
+     * Return the data accessor.
+     *
+     * @return	The data accessor that knows how to get the data from the
+     *		VisAD data object.
+     */
+    protected VisADAccessor
+    getAccessor()
+    {
+	return accessor;
+    }
 }

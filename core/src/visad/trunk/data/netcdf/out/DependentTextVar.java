@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DependentTextVar.java,v 1.1 1998-03-20 20:57:17 visad Exp $
+ * $Id: DependentTextVar.java,v 1.2 1998-06-17 20:32:40 visad Exp $
  */
 
 package visad.data.netcdf.out;
@@ -27,7 +27,7 @@ DependentTextVar
     /**
      * The fill-value object.
      */
-    protected final Character	fillValue;
+    private final Character	fillValue;
 
 
     /**
@@ -91,7 +91,7 @@ DependentTextVar
     {
 	try
 	{
-	    return accessor.get(indexes);
+	    return getAccessor().get(indexes);
 	}
 	catch (StringIndexOutOfBoundsException e)
 	{
