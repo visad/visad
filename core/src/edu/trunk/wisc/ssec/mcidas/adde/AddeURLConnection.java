@@ -246,6 +246,10 @@ public class AddeURLConnection extends URLConnection
       with the port used for compress transfer */
   private final static int COMPRESS = 503;
 
+  /** Flag for "no compress" compression.  Used to be synonymous 
+      with the port used for non-compressed transfer */
+  private final static int NO_COMPRESS = 500;
+
   /** Flag for GZip compression.  Used to be synonymous with the 
       port used for compressed transfers */
   private final static int GZIP = 112;
@@ -299,7 +303,7 @@ public class AddeURLConnection extends URLConnection
   private int portToUse = PORT;   // DRM 03-Mar-2001
 
   /** compression type */
-  private int compressionType = PORT; 
+  private int compressionType = NO_COMPRESS; 
 
   /**
    *
@@ -502,6 +506,11 @@ public class AddeURLConnection extends URLConnection
     // one specified by the user.  
     //
     // The priority is URL port, port=keyword, compression port (default)
+    
+    // get the IP address of the server
+    byte [] ipa = new byte[4];
+    InetAddress ia = InetAddress.getByName(url.getHost());
+    ipa = ia.getAddress();
 
     if (url.getPort() == -1) { // not specified as part of URL
 
@@ -509,6 +518,12 @@ public class AddeURLConnection extends URLConnection
 
       // default to the compression type
       portToUse = compressionType;
+
+      // if localhost, force the compressionType to "off" 
+      if (ipa[0]==127 && ipa[1]==0 && ipa[2]==0 && ipa[3]==1) {
+        compressionType = NO_COMPRESS;
+      }
+
       testStr = getValue(uCmd, "port=", null);
       try {
         portToUse = Integer.parseInt(testStr);
@@ -561,9 +576,6 @@ public class AddeURLConnection extends URLConnection
 
     // send IP address of server
     // we know the server IP address is good cause we used it above
-    byte [] ipa = new byte[4];
-    InetAddress ia = InetAddress.getByName(url.getHost());
-    ipa = ia.getAddress();
     dos.write(ipa, 0, ipa.length);
 
     // send ADDE port number which server uses to determine compression
@@ -638,9 +650,11 @@ public class AddeURLConnection extends URLConnection
             ? new UncompressInputStream(t.getInputStream())
             : t.getInputStream();
     dis = new DataInputStream(is);
+
     if (debug && (compressionType != portToUse) ) {
-        System.out.println("Compression is turned ON using " +
-                            ((compressionType == GZIP)?"GZIP":"compress"));
+        System.out.println("Compression is turned "+
+        ((compressionType == NO_COMPRESS)?"OFF":("ON using " +
+                            ((compressionType == GZIP)?"GZIP":"compress"))));
     }
 
     // get response from server, byte count coming back
