@@ -91,11 +91,18 @@ public class SphericalCoordinateSystem extends CoordinateSystem {
       value[1][i] =
         Data.RADIANS_TO_DEGREES * Math.atan2(tuples[0][i], tuples[1][i]);
 */
+/* WLH 31 July 98
       value[0][i] =
         Data.RADIANS_TO_DEGREES * Math.atan2(tuples[0][i], tuples[1][i]);
       value[1][i] =
         Data.RADIANS_TO_DEGREES * Math.asin(tuples[2][i] / value[2][i]);
       if (value[1][i] < 0.0) value[1][i] += 180.0;
+*/
+      value[0][i] =
+        Data.RADIANS_TO_DEGREES * Math.asin(tuples[2][i] / value[2][i]);
+      value[1][i] =
+        Data.RADIANS_TO_DEGREES * Math.atan2(tuples[1][i], tuples[0][i]);
+      if (value[1][i] < 0.0) value[1][i] += 360.0;
     }
     return value;
   }
@@ -147,11 +154,18 @@ public class SphericalCoordinateSystem extends CoordinateSystem {
       value[1][i] = (float)
         (Data.RADIANS_TO_DEGREES * Math.atan2(tuples[0][i], tuples[1][i]));
 */
+/* WLH 31 July 98
       value[0][i] = (float)
         (Data.RADIANS_TO_DEGREES * Math.atan2(tuples[0][i], tuples[1][i]));
       value[1][i] = (float)
         (Data.RADIANS_TO_DEGREES * Math.asin(tuples[2][i] / value[2][i]));
       if (value[1][i] < 0.0f) value[1][i] += 180.0f;
+*/
+      value[0][i] = (float)
+        (Data.RADIANS_TO_DEGREES * Math.asin(tuples[2][i] / value[2][i]));
+      value[1][i] = (float)
+        (Data.RADIANS_TO_DEGREES * Math.atan2(tuples[1][i], tuples[0][i]));
+      if (value[1][i] < 0.0f) value[1][i] += 360.0f;
     }
     return value;
   }
