@@ -3,14 +3,16 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: TemperatureSoundingProxy.java,v 1.2 1998-11-03 22:27:37 steve Exp $
+ * $Id: TemperatureSoundingProxy.java,v 1.3 1999-01-07 16:13:20 steve Exp $
  */
 
 package visad.meteorology;
 
 import visad.FlatField;
 import visad.FunctionType;
+import visad.Real;
 import visad.RealType;
+import visad.Unit;
 import visad.VisADException;
 
 
@@ -50,5 +52,19 @@ TemperatureSoundingProxy
 	throws VisADException
     {
 	super(rangeType, field, index);
+    }
+
+
+    /**
+     * Gets the sounding temperature at a given pressure.
+     * @param pressure		The pressure at which to get the temperature.
+     * @return			The temperature at <code>pressure</code>.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     */
+    public Real
+    getTemperature(Real pressure)
+	throws VisADException
+    {
+	return null;
     }
 }

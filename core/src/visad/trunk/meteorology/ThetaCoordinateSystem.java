@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ThetaCoordinateSystem.java,v 1.3 1998-10-21 15:27:59 steve Exp $
+ * $Id: ThetaCoordinateSystem.java,v 1.4 1999-01-07 16:13:21 steve Exp $
  */
 
 package visad.meteorology;
@@ -14,8 +14,8 @@ import visad.SI;
 import visad.Unit;
 import visad.UnitException;
 import visad.VisADException;
-import visad.data.netcdf.units.Parser;
 import visad.data.netcdf.units.ParseException;
+import visad.data.netcdf.units.Parser;
 
 
 /**
@@ -35,14 +35,14 @@ ThetaCoordinateSystem
     extends	CoordinateSystem
 {
     /**
-     * The potential temperature utility.
-     */
-    private final Theta			theta;
-
-    /**
      * The associated Skew-T, Log P coordinate system.
      */
     private final SkewTCoordinateSystem	skewTCoordSys;
+
+    /**
+     * The unit of potential temperature.
+     */
+    private final Unit			thetaUnit;
 
 
     /**
@@ -70,14 +70,17 @@ ThetaCoordinateSystem
     ThetaCoordinateSystem(SkewTCoordinateSystem skewTCoordSys)
 	throws VisADException
     {
-	super(skewTCoordSys.getReference(), 
-	    skewTCoordSys.getCoordinateSystemUnits());
+	super(
+	    skewTCoordSys.getReference(), 
+	    new Unit[] {
+		skewTCoordSys.getPressureUnit(),
+		CommonTypes.THETA.getDefaultUnit(),
+		null
+	    }
+	);
 
 	this.skewTCoordSys = skewTCoordSys;
-
-	theta = new Theta(skewTCoordSys.getPressureUnit(),
-			  skewTCoordSys.getTemperatureUnit(),
-			  skewTCoordSys.getTemperatureUnit());
+	thetaUnit = CommonTypes.THETA.getDefaultUnit();
     }
 
 
@@ -147,7 +150,10 @@ ThetaCoordinateSystem
     convert(double[][] coords)
 	throws UnitException, VisADException
     {
-	coords[1] = theta.temperature(coords[0], coords[1]);
+	coords[1] =
+	    Theta.temperature(
+		coords[0], getPressureUnit(), coords[1], getThetaUnit(),
+		skewTCoordSys.getTemperatureUnit());
 
 	return coords;
     }
@@ -174,7 +180,10 @@ ThetaCoordinateSystem
     invert(double[][] coords)
 	throws UnitException, VisADException
     {
-	coords[1] = theta.theta(coords[0], coords[1]);
+	coords[1] =
+	    Theta.theta(
+		coords[0], getPressureUnit(), coords[1],
+		skewTCoordSys.getTemperatureUnit(), getThetaUnit());
 
 	return coords;
     }
@@ -193,14 +202,14 @@ ThetaCoordinateSystem
 
 
     /**
-     * Gets the temperature unit.
+     * Gets the potential temperature unit.
      *
-     * @return	The unit of temperature.
+     * @return	The unit of potential temperature.
      */
     public Unit
-    getTemperatureUnit()
+    getThetaUnit()
     {
-	return skewTCoordSys.getTemperatureUnit();
+	return thetaUnit;
     }
 
 
@@ -231,7 +240,7 @@ ThetaCoordinateSystem
 
 	ThetaCoordinateSystem	that = (ThetaCoordinateSystem)obj;
 
-	return theta.equals(that.theta) &&
+	return thetaUnit.equals(that.thetaUnit) &&
 	       skewTCoordSys.equals(that.skewTCoordSys);
     }
 }

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Util.java,v 1.1 1998-10-28 17:16:51 steve Exp $
+ * $Id: Util.java,v 1.2 1999-01-07 16:13:21 steve Exp $
  */
 
 package visad.meteorology;
@@ -14,8 +14,8 @@ import visad.FunctionType;
 import visad.RealTupleType;
 import visad.RealType;
 import visad.Set;
-import visad.Unit;
 import visad.TypeException;
+import visad.Unit;
 import visad.VisADException;
 
 

@@ -3,14 +3,17 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DewPointSoundingProxy.java,v 1.2 1998-11-03 22:27:34 steve Exp $
+ * $Id: DewPointSoundingProxy.java,v 1.3 1999-01-07 16:13:17 steve Exp $
  */
 
 package visad.meteorology;
 
 import visad.FlatField;
 import visad.FunctionType;
+import visad.Gridded1DSet;
+import visad.Real;
 import visad.RealType;
+import visad.Unit;
 import visad.VisADException;
 
 
@@ -50,5 +53,33 @@ DewPointSoundingProxy
 	throws VisADException
     {
 	super(rangeType, field, index);
+    }
+
+
+    /**
+     * Gets the sounding dew point at a given pressure.
+     * @param pressure		The pressure at which to get the dew point.
+     * @return			The dew point at <code>pressure</code>.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     */
+    public Real
+    getDewPoint(Real pressure)
+	throws VisADException
+    {
+	return null;
+    }
+
+
+    /**
+     * Gets the sounding dew point at given pressures.
+     * @param pressure		The pressures at which to get the dew point.
+     * @return			The dew point at <code>pressure</code>.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     */
+    public Gridded1DSet
+    getDewPoint(Gridded1DSet pressure)
+	throws VisADException
+    {
+	return null;
     }
 }

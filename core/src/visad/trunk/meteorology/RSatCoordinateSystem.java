@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: RSatCoordinateSystem.java,v 1.2 1998-11-16 18:23:48 steve Exp $
+ * $Id: RSatCoordinateSystem.java,v 1.3 1999-01-07 16:13:18 steve Exp $
  */
 
 package visad.meteorology;
@@ -16,8 +16,8 @@ import visad.Unit;
 import visad.UnitException;
 import visad.VisADException;
 import visad.data.netcdf.Quantity;
-import visad.data.netcdf.units.Parser;
 import visad.data.netcdf.units.ParseException;
+import visad.data.netcdf.units.Parser;
 
 
 /**
@@ -35,18 +35,18 @@ RSatCoordinateSystem
     /**
      * The default unit of saturation mixing-ratio.
      */
-    public static Quantity			DEFAULT_RSAT_QUANTITY =
-	CommonTypes.R_SAT;
+    public static Unit			DEFAULT_RSAT_UNIT =
+	CommonUnits.GRAMS_PER_KILOGRAM;
+
+    /**
+     * The unit of saturation mixing ratio.
+     */
+    private final Unit			rSatUnit;
 
     /**
      * The associated Skew-T coordinate system.
      */
     private final SkewTCoordinateSystem	skewTCoordSys;
-
-    /**
-     * The saturation mixing ratio utility.
-     */
-    private final RSat			rSat;
 
 
     /**
@@ -54,7 +54,7 @@ RSatCoordinateSystem
      * ratio unit.
      *
      * @param skewTCoordSys	The Skew-T coordinate system.
-     * @param rSatUnit		The assumed unit for saturation mixing ratio.
+     * @param rSatUnit		The unit for saturation mixing ratios.
      * @throws VisADException	Couldn't create necessary VisAD object.
      */
     public
@@ -65,9 +65,7 @@ RSatCoordinateSystem
 	    adjustUnits(skewTCoordSys, rSatUnit));
 
 	this.skewTCoordSys = skewTCoordSys;
-
-	rSat = new RSat(skewTCoordSys.getPressureUnit(),
-	    skewTCoordSys.getTemperatureUnit(), rSatUnit);
+	this.rSatUnit = rSatUnit;
     }
 
 
@@ -105,7 +103,9 @@ RSatCoordinateSystem
     toReference(double[][] coords)
 	throws VisADException
     {
-	coords[1] = rSat.temperature(coords[0], coords[1]);
+	coords[1] = RSat.temperature(
+	    coords[0], skewTCoordSys.getPressureUnit(),
+	    coords[1], getRSatUnit(), skewTCoordSys.getTemperatureUnit());
 
 	return skewTCoordSys.toReference(coords);
     }
@@ -130,7 +130,9 @@ RSatCoordinateSystem
     {
 	skewTCoordSys.fromReference(coords);
 
-	coords[1] = rSat.rSat(coords[0], coords[1]);
+	coords[1] = RSat.rSat(
+	    coords[0], skewTCoordSys.getPressureUnit(), 
+	    coords[1], skewTCoordSys.getTemperatureUnit(), getRSatUnit());
 
 	return coords;
     }
@@ -144,7 +146,7 @@ RSatCoordinateSystem
     public Unit
     getPressureUnit()
     {
-	return rSat.getPressureUnit();
+	return skewTCoordSys.getPressureUnit();
     }
 
 
@@ -156,7 +158,7 @@ RSatCoordinateSystem
     public Unit
     getRSatUnit()
     {
-	return rSat.getRSatUnit();
+	return rSatUnit;
     }
 
 
@@ -187,7 +189,6 @@ RSatCoordinateSystem
 
 	RSatCoordinateSystem	that = (RSatCoordinateSystem)obj;
 
-	return rSat.equals(that.rSat) &&
-	       skewTCoordSys.equals(that.skewTCoordSys);
+	return skewTCoordSys.equals(that.skewTCoordSys);
     }
 }

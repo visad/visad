@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: WindProfileImpl.java,v 1.2 1998-11-16 18:23:50 steve Exp $
+ * $Id: WindProfileImpl.java,v 1.3 1999-01-07 16:13:21 steve Exp $
  */
 
 package visad.meteorology;
@@ -11,9 +11,12 @@ package visad.meteorology;
 import java.rmi.RemoteException;
 import visad.FlatField;
 import visad.Integer1DSet;
+import visad.Real;
+import visad.RealTuple;
 import visad.RealTupleType;
 import visad.RealType;
 import visad.Set;
+import visad.SI;
 import visad.Unit;
 import visad.VisADException;
 
@@ -89,5 +92,50 @@ WindProfileImpl
     getWindProfile()
     {
 	return this;
+    }
+
+
+    /**
+     * Gets the profile wind speed at a given pressure.
+     * @param pressure		The pressure at which to get the wind speed.
+     * @return			The wind speed at <code>pressure</code>.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     */
+    public Real
+    getSpeed(Real pressure)
+	throws VisADException, RemoteException
+    {
+	RealTuple	velocity = (RealTuple)getValue(pressure);
+	double		u = ((Real)velocity.getComponent(0)).getValue();
+	double		v = ((Real)velocity.getComponent(1)).getValue();
+	double		value = Math.sqrt(u*u + v*v);
+	return new Real(
+	    CommonTypes.SPEED,
+	    value,
+	    ((Real)velocity.getComponent(0)).getUnit());
+    }
+
+
+    /**
+     * Gets the profile wind direction at a pressure.
+     * @param pressure		The pressure at which to get the wind direction.
+     * @return			The wind direction at <code>pressure</code>.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     */
+    public Real
+    getDirection(Real pressure)
+	throws VisADException, RemoteException
+    {
+	RealTuple	velocity = (RealTuple)getValue(pressure);
+	double		u = ((Real)velocity.getComponent(0)).getValue();
+	double		v = ((Real)velocity.getComponent(1)).getValue();
+	/*
+	 * Negating and transposing the U and V components in the following
+	 * converts the direction from mathematical to meteorological.
+	 */
+	double		value = Math.atan2(-u, -v);
+	if (value < 0)
+	    value += 2*Math.PI;
+	return new Real(CommonTypes.DIRECTION, value, SI.radian);
     }
 }

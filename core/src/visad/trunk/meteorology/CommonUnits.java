@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: CommonUnits.java,v 1.2 1998-10-28 17:16:47 steve Exp $
+ * $Id: CommonUnits.java,v 1.3 1999-01-07 16:13:16 steve Exp $
  */
 
 package visad.meteorology;
@@ -22,9 +22,10 @@ public class
 CommonUnits
 {
     public static final Unit	PASCAL;
+    public static final Unit	HECTOPASCAL;
     public static final Unit	MILLIBAR;
     public static final Unit	CELSIUS;
-    public static final Unit	G_PER_KG;
+    public static final Unit	GRAMS_PER_KILOGRAM;
     public static final Unit	METERS_PER_SECOND;
     public static final Unit	HOUR;
     public static final Unit	NAUTICAL_MILE;
@@ -63,9 +64,10 @@ CommonUnits
 	}
 
 	PASCAL = pascal;
+	HECTOPASCAL = millibar;
 	MILLIBAR = millibar;
 	CELSIUS = celsius;
-	G_PER_KG = gPerKg;
+	GRAMS_PER_KILOGRAM = gPerKg;
 	METERS_PER_SECOND = metersPerSecond;
 	HOUR = hour;
 	NAUTICAL_MILE = nauticalMile;

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: MetQuantityDB.java,v 1.2 1998-11-16 18:23:48 steve Exp $
+ * $Id: MetQuantityDB.java,v 1.3 1999-01-07 16:13:18 steve Exp $
  */
 
 package visad.meteorology;
@@ -38,21 +38,20 @@ MetQuantityDB
     {
 	QuantityDBImpl	metQuantityDB = new QuantityDBImpl();
 
+	append(metQuantityDB);
+	append(StandardQuantityDB.instance());
+
 	try
 	{
-	    Quantity	quantity = new Quantity("Pressure", "millibar");
-	    metQuantityDB.add("Pressure", quantity);
-	    metQuantityDB.add("PressureReducedToMSL", quantity);
-	    metQuantityDB.add("Temperature", "degC");
-	    metQuantityDB.add("DewPoint", "degC");
-	    metQuantityDB.add("Theta", "degC");
-	    metQuantityDB.add("ThetaES", "degC");
-	    metQuantityDB.add("Rsat", "grams/kilogram");
-	    metQuantityDB.add("Speed", "kt");
-	    metQuantityDB.add("Direction", "degrees_true");
-	    metQuantityDB.add("U", "kt");
-	    metQuantityDB.add("V", "kt");
-	    metQuantityDB.add("W", "kt");
+	    metQuantityDB.add("PressureReducedToMSL", get("Pressure"));
+	    metQuantityDB.add("DewPoint", "Cel");
+	    metQuantityDB.add("Theta", "K");
+	    metQuantityDB.add("ThetaES", "K");
+	    metQuantityDB.add("Rsat", "g/kg");
+	    metQuantityDB.add("U", "m/s");
+	    metQuantityDB.add("V", "m/s");
+	    metQuantityDB.add("W", "m/s");
+	    metQuantityDB.add("VirtualTemperature", "K");
 
 	}
 	catch (ParseException e)
@@ -63,9 +62,6 @@ MetQuantityDB
 	     */
 	    throw new VisADException(e.getMessage());
 	}
-
-	append(metQuantityDB);
-	append(StandardQuantityDB.instance());
     }
 
 
@@ -95,27 +91,21 @@ MetQuantityDB
 
 	System.out.println(
     "standardQuantityDB.getFirst(\"pressure\").getDefaultUnitString()=\"" +
-	    standardQuantityDB.getFirst(
-		"pressure").getDefaultUnitString() + "\"");
+	    standardQuantityDB.get("pressure").getDefaultUnitString() + "\"");
 	System.out.println(
     "metQuantityDB.getFirst(\"pressure\").getDefaultUnitString()=\"" +
-	    metQuantityDB.getFirst(
-		"pressure").getDefaultUnitString() + "\"");
+	    metQuantityDB.get("pressure").getDefaultUnitString() + "\"");
 	System.out.println(
     "metQuantityDB.getFirst(\"U\").getDefaultUnitString()=\"" +
-	    metQuantityDB.getFirst(
-		"U").getDefaultUnitString() + "\"");
+	    metQuantityDB.get("U").getDefaultUnitString() + "\"");
 	System.out.println(
     "metQuantityDB.getFirst(\"V\").getDefaultUnitString()=\"" +
-	    metQuantityDB.getFirst(
-		"V").getDefaultUnitString() + "\"");
+	    metQuantityDB.get("V").getDefaultUnitString() + "\"");
 	System.out.println(
     "metQuantityDB.getFirst(\"Speed\").getDefaultUnitString()=\"" +
-	    metQuantityDB.getFirst(
-		"Speed").getDefaultUnitString() + "\"");
+	    metQuantityDB.get("Speed").getDefaultUnitString() + "\"");
 	System.out.println(
     "metQuantityDB.getFirst(\"Direction\").getDefaultUnitString()=\"" +
-	    metQuantityDB.getFirst(
-		"Direction").getDefaultUnitString() + "\"");
+	    metQuantityDB.get("Direction").getDefaultUnitString() + "\"");
     }
 }

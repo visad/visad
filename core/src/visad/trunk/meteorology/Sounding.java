@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Sounding.java,v 1.5 1998-11-16 18:23:49 steve Exp $
+ * $Id: Sounding.java,v 1.6 1999-01-07 16:13:19 steve Exp $
  */
 
 package visad.meteorology;
@@ -12,7 +12,10 @@ import java.rmi.RemoteException;
 import visad.CoordinateSystem;
 import visad.FlatField;
 import visad.FunctionType;
+import visad.Gridded1DSet;
+import visad.GriddedSet;
 import visad.MathType;
+import visad.SampledSet;
 import visad.Set;
 import visad.Unit;
 import visad.VisADException;

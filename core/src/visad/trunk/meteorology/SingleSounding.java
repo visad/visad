@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SingleSounding.java,v 1.1 1998-11-03 22:27:34 steve Exp $
+ * $Id: SingleSounding.java,v 1.2 1999-01-07 16:13:18 steve Exp $
  */
 
 package visad.meteorology;
@@ -14,8 +14,8 @@ import visad.FunctionType;
 import visad.MathType;
 import visad.RealTupleType;
 import visad.RealType;
-import visad.Set;
 import visad.ScalarType;
+import visad.Set;
 import visad.TupleType;
 import visad.Unit;
 import visad.VisADException;

@@ -3,14 +3,16 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DewPointSoundingImpl.java,v 1.2 1998-11-16 18:23:47 steve Exp $
+ * $Id: DewPointSoundingImpl.java,v 1.3 1999-01-07 16:13:16 steve Exp $
  */
 
 package visad.meteorology;
 
 import java.rmi.RemoteException;
 import visad.FlatField;
+import visad.Gridded1DSet;
 import visad.Integer1DSet;
+import visad.Real;
 import visad.RealType;
 import visad.Set;
 import visad.Unit;
@@ -88,5 +90,35 @@ DewPointSoundingImpl
     getDewPointSounding()
     {
 	return this;
+    }
+
+
+    /**
+     * Gets the sounding dew point at a given pressure.
+     * @param pressure		The pressure at which to get the dew point.
+     * @return			The dew point at <code>pressure</code>.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws RemoteException	Java RMI failure.
+     */
+    public Real
+    getDewPoint(Real pressure)
+	throws VisADException, RemoteException
+    {
+	return (Real)getValue(pressure);
+    }
+
+
+    /**
+     * Gets the sounding dew point at given pressures.
+     * @param pressure		The pressures at which to get the dew point.
+     * @return			The dew point at <code>pressure</code>.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     * @throws RemoteException	Java RMI failure.
+     */
+    public Gridded1DSet
+    getDewPoint(Gridded1DSet pressure)
+	throws VisADException, RemoteException
+    {
+	return (Gridded1DSet)getValue(pressure);
     }
 }

@@ -3,17 +3,17 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Hodograph2D.java,v 1.4 1998-12-02 12:04:31 billh Exp $
+ * $Id: Hodograph2D.java,v 1.5 1999-01-07 16:13:17 steve Exp $
  */
 
 package visad.meteorology;
 
-import javax.swing.JFrame;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.beans.PropertyChangeSupport;
 import java.io.Serializable;
 import java.rmi.RemoteException;
+import javax.swing.JFrame;
 import visad.ConstantMap;
 import visad.CoordinateSystem;
 import visad.DataReferenceImpl;

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SkewTCoordinateSystem.java,v 1.6 1998-11-16 18:23:48 steve Exp $
+ * $Id: SkewTCoordinateSystem.java,v 1.7 1999-01-07 16:13:19 steve Exp $
  */
 
 package visad.meteorology;
@@ -40,13 +40,13 @@ SkewTCoordinateSystem
     public static final float		DEFAULT_MAX_X =    1.0f;
     public static final float		DEFAULT_MIN_Y =   -1.0f;
     public static final float		DEFAULT_MAX_Y =    1.0f;
+    public static final Unit		DEFAULT_P_UNIT = CommonUnits.MILLIBAR;
     public static final float		DEFAULT_MIN_P =  100.0f;
     public static final float		DEFAULT_MAX_P = 1050.0f;
+    public static final Unit		DEFAULT_T_UNIT = CommonUnits.CELSIUS;
     public static final float		DEFAULT_MIN_T = -122.5f;
     public static final float		DEFAULT_MAX_T =   52.0f;
     public static final float		DEFAULT_TANGENT =  1.2f;
-    public static final Quantity	DEFAULT_PRESSURE_QUANTITY;
-    public static final Quantity	DEFAULT_TEMPERATURE_QUANTITY;
 
     /*
      * Actual parameter values.
@@ -71,13 +71,6 @@ SkewTCoordinateSystem
     private final float		xPerT;
 
 
-    static
-    {
-	DEFAULT_PRESSURE_QUANTITY = CommonTypes.PRESSURE;;
-	DEFAULT_TEMPERATURE_QUANTITY = CommonTypes.TEMPERATURE;
-    }
-
-
     /**
      * Constructs from nothing.  Default display and data parameters
      * are used.
@@ -89,10 +82,8 @@ SkewTCoordinateSystem
 	throws VisADException
     {
 	this(DEFAULT_MIN_X, DEFAULT_MAX_X, DEFAULT_MIN_Y, DEFAULT_MAX_Y,
-	     DEFAULT_PRESSURE_QUANTITY.getDefaultUnit(),
-	     DEFAULT_MIN_P, DEFAULT_MAX_P,
-	     DEFAULT_TEMPERATURE_QUANTITY.getDefaultUnit(),
-	     DEFAULT_MIN_T, DEFAULT_MAX_T, 
+	     DEFAULT_P_UNIT, DEFAULT_MIN_P, DEFAULT_MAX_P,
+	     DEFAULT_T_UNIT, DEFAULT_MIN_T, DEFAULT_MAX_T, 
 	     DEFAULT_TANGENT);
     }
 
@@ -168,10 +159,8 @@ SkewTCoordinateSystem
 	yPerLogP = (float)(deltaY / (Math.log(maxP) - logMinP));
 	xPerT = deltaX / (maxT - minTAtMaxP);
 
-	if (!Unit.canConvert(
-		pressureUnit, DEFAULT_PRESSURE_QUANTITY.getDefaultUnit()) ||
-	    !Unit.canConvert(
-		temperatureUnit, DEFAULT_TEMPERATURE_QUANTITY.getDefaultUnit()))
+	if (!Unit.canConvert(pressureUnit, DEFAULT_P_UNIT) ||
+	    !Unit.canConvert(temperatureUnit, DEFAULT_T_UNIT))
 	{
 	    throw new UnitException("Improper unit argument(s)");
 	}

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SoundingCoordinateSystem.java,v 1.2 1998-11-03 22:27:36 steve Exp $
+ * $Id: SoundingCoordinateSystem.java,v 1.3 1999-01-07 16:13:20 steve Exp $
  */
 
 package visad.meteorology;
@@ -242,7 +242,7 @@ SoundingCoordinateSystem
      * @param domainPts		The original domain points.
      * @param soundingRangeUnit	The unit of the sounding.
      * @param displayUnit	The unit of the display.
-     * @param coords		The output values.
+     * @param values		The output values.
      * @throws VisADException	Couldn't create necessary VisAD object.
      */
     protected static void

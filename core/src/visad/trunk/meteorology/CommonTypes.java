@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: CommonTypes.java,v 1.4 1998-11-16 18:23:47 steve Exp $
+ * $Id: CommonTypes.java,v 1.5 1999-01-07 16:13:16 steve Exp $
  */
 
 package visad.meteorology;
@@ -30,6 +30,8 @@ CommonTypes
     public static final Quantity	U;
     public static final Quantity	V;
     public static final Quantity	W;
+    public static final Quantity	DENSITY;
+    public static final Quantity	VIRTUAL_TEMPERATURE;
     public static final RealTupleType	UV_WIND;
     public static final RealTupleType	UVW_WIND;
     public static final RealTupleType	POLAR_WIND;
@@ -48,6 +50,8 @@ CommonTypes
 	Quantity	u = null;
 	Quantity	v = null;
 	Quantity	w = null;
+	Quantity	density = null;
+	Quantity	virtualTemperature = null;
 	RealTupleType	uvWind = null;
 	RealTupleType	uvwWind = null;
 	RealTupleType	polarWind = null;
@@ -55,17 +59,19 @@ CommonTypes
 	try
 	{
 	    QuantityDB	db = MetQuantityDB.instance();
-	    pressure = db.getFirst("Pressure");;
-	    temp = db.getFirst("Temperature");
-	    dewPoint = db.getFirst("DewPoint");
-	    theta = db.getFirst("Theta");
-	    thetaES = db.getFirst("ThetaES");
-	    rSat = db.getFirst("Rsat");
-	    speed = db.getFirst("Speed");
-	    direction = db.getFirst("Direction");
-	    u = db.getFirst("U");
-	    v = db.getFirst("V");
-	    w = db.getFirst("W");
+	    pressure = db.get("Pressure");;
+	    temp = db.get("Temperature");
+	    dewPoint = db.get("DewPoint");
+	    theta = db.get("Theta");
+	    thetaES = db.get("ThetaES");
+	    rSat = db.get("Rsat");
+	    speed = db.get("Speed");
+	    direction = db.get("Direction");
+	    u = db.get("U");
+	    v = db.get("V");
+	    w = db.get("W");
+	    density = db.get("Density");
+	    virtualTemperature = db.get("VirtualTemperature");
 	    uvWind = new RealTupleType(u, v);
 	    uvwWind = new RealTupleType(u, v, w);
 	    polarWind = new RealTupleType(speed, direction);
@@ -90,6 +96,8 @@ CommonTypes
 	U = u;
 	V = v;
 	W = w;
+	DENSITY = density;
+	VIRTUAL_TEMPERATURE = virtualTemperature;
 	UV_WIND = uvWind;
 	UVW_WIND = uvwWind;
 	POLAR_WIND = polarWind;

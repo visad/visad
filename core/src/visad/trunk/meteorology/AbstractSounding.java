@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: AbstractSounding.java,v 1.3 1998-11-16 18:23:47 steve Exp $
+ * $Id: AbstractSounding.java,v 1.4 1999-01-07 16:13:16 steve Exp $
  */
 
 package visad.meteorology;
@@ -24,7 +24,7 @@ import visad.data.netcdf.Quantity;
 
 /**
  * Provides support for atmospheric soundings.  This class exists to provide
- * a parent class for classes like SoundingImpl and SoundingProxy.
+ * a parent class for classes.
  *
  * @author Steven R. Emmerson
  */

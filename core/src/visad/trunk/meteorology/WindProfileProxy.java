@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: WindProfileProxy.java,v 1.2 1998-11-03 22:27:37 steve Exp $
+ * $Id: WindProfileProxy.java,v 1.3 1999-01-07 16:13:22 steve Exp $
  */
 
 package visad.meteorology;
@@ -57,5 +57,35 @@ WindProfileProxy
 	throws VisADException
     {
 	super(rangeType, field, new int[] {uIndex, vIndex});
+    }
+
+
+    /**
+     * Gets the profile wind speeds at a given pressure.
+     * @param pressure		The pressure at which to get the wind profile
+     *				speed.
+     * @return			The wind speed at <code>pressure</code>
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     */
+    public Real
+    getSpeed(Real pressure)
+	throws VisADException
+    {
+	return null;
+    }
+
+
+    /**
+     * Gets the profile wind direction at a given pressure.
+     * @param pressure		The pressure at which to get the wind profile
+     *				direction.
+     * @return			The wind direction at <code>pressure</code>.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     */
+    public Real
+    getDirection(Real pressure)
+	throws VisADException, RemoteException
+    {
+	return null;
     }
 }

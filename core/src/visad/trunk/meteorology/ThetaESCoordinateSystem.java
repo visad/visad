@@ -3,18 +3,18 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ThetaESCoordinateSystem.java,v 1.3 1998-10-21 15:28:00 steve Exp $
+ * $Id: ThetaESCoordinateSystem.java,v 1.4 1999-01-07 16:13:21 steve Exp $
  */
 
 package visad.meteorology;
 
+import visad.CommonUnit;
 import visad.CoordinateSystem;
 import visad.Display;
 import visad.SI;
 import visad.Unit;
 import visad.UnitException;
 import visad.VisADException;
-import visad.data.netcdf.units.Parser;
 import visad.data.netcdf.units.ParseException;
 
 
@@ -34,15 +34,14 @@ ThetaESCoordinateSystem
     extends	CoordinateSystem
 {
     /**
-     * Reference pressure for empirical computation of saturation water vapor
-     * pressure in units of getPressureUnit().
-     */
-    private final double		eSat0;
-
-    /**
      * The associated potential temperature coordinate system.
      */
     private final ThetaCoordinateSystem	thetaCoordSys;
+
+    /**
+     * The associated Skew-T coordinate system.
+     */
+    private final SkewTCoordinateSystem	skewTCoordSys;
 
 
     /**
@@ -59,16 +58,7 @@ ThetaESCoordinateSystem
 	    thetaCoordSys.getCoordinateSystemUnits());
 
 	this.thetaCoordSys = thetaCoordSys;
-
-	try
-	{
-	    eSat0 = getPressureUnit().toThis(
-		0.61078, Parser.instance().parse("kPa"));
-	}
-	catch (ParseException e)
-	{
-	    throw new VisADException(e.getMessage());	// shouldn't happen
-	}
+	skewTCoordSys = thetaCoordSys.getSkewTCoordSys();
     }
 
 
@@ -85,14 +75,14 @@ ThetaESCoordinateSystem
 
 
     /**
-     * Gets the temperature unit.
+     * Gets the saturation equivalent potential temperature unit.
      *
-     * @return	The unit of temperature.
+     * @return	The unit of saturation equivalent potential temperature.
      */
     public Unit
-    getTemperatureUnit()
+    getThetaESUnit()
     {
-	return thetaCoordSys.getTemperatureUnit();
+	return thetaCoordSys.getThetaUnit();
     }
 
 
@@ -106,8 +96,8 @@ ThetaESCoordinateSystem
      *                  of the <code>i</code>th point.  On
      *                  output, <code>coords[0][i]</code> and
      *                  <code>coords[1][i]</code> are the corresponding
-     *                  pressure and saturation equivalent temperature
-     *			coordinates, respectively.
+     *                  pressure and saturation equivalent potential 
+     *			temperature coordinates, respectively.
      * @return		<code>coords</code>).
      * @exception VisADException	Unsupported operation.
      */
@@ -115,27 +105,22 @@ ThetaESCoordinateSystem
     fromReference(double[][] coords)
 	throws VisADException
     {
-	coords = thetaCoordSys.getSkewTCoordSys().fromReference(coords);
-
+	coords = skewTCoordSys.fromReference(coords);
 	double[]	pressures = coords[0];
-	double[]	temperatures =
-	    SI.kelvin.toThis(coords[1], getTemperatureUnit());
-	double[]	thetas = new Theta(getPressureUnit(),
-	    SI.kelvin, SI.kelvin).theta(pressures, temperatures);
+	double[]	kelvins =
+	    SI.kelvin.toThis(coords[1], skewTCoordSys.getTemperatureUnit());
+	double[]	rSats = RSat.rSat(
+	    pressures, skewTCoordSys.getPressureUnit(),
+	    kelvins, SI.kelvin, CommonUnit.dimensionless);
+	double[]	thetas =
+	    Theta.theta(
+		pressures, skewTCoordSys.getPressureUnit(),
+		kelvins, SI.kelvin, SI.kelvin);
 
-	for (int i = 0; i < pressures.length; ++i)
-	{
-	    double	pressure = pressures[i];
-	    double	temperature = temperatures[i];
-	    double	exponent = (17.2694*(temperature - 273.16)) /
-		(temperature - 35.86);
-	    double	eSat = eSat0 * Math.exp(exponent);
-	    double	rSat = 0.622 * (eSat/(pressure - eSat));
+	for (int i = 0; i < rSats.length; ++i)
+	    kelvins[i] = thetas[i] * (1.0 + 2500 * rSats[i] / kelvins[i]);
 
-	    temperatures[i] = thetas[i] * (1.0 + 2500.0 * rSat / temperature);
-	}
-
-	coords[1] = getTemperatureUnit().toThis(temperatures, SI.kelvin);
+	coords[1] = getThetaESUnit().toThis(kelvins, SI.kelvin);
 
 	return coords;
     }
@@ -179,7 +164,8 @@ ThetaESCoordinateSystem
 	if (!(obj instanceof ThetaESCoordinateSystem))
 	    return false;
 
-	return eSat0 == ((ThetaESCoordinateSystem)obj).eSat0 &&
-	    thetaCoordSys.equals(obj);
+	ThetaESCoordinateSystem	that = (ThetaESCoordinateSystem)obj;
+
+	return thetaCoordSys.equals(that.thetaCoordSys);
     }
 }
