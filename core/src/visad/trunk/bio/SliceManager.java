@@ -634,7 +634,7 @@ public class SliceManager implements ControlListener {
     // animation range
     float min_anim = 0;
     float max_anim = timesteps - 1;
-    // anim_map2.setRange(min_anim, max_anim); WLH
+    // anim_map2.setRange(min_anim, max_anim); // WLH
 
     // color ranges
     r_map2.setRange(0, 255);
@@ -652,7 +652,7 @@ public class SliceManager implements ControlListener {
       z_map3b.setRange(min_z, max_z);
 
       // animation range
-      // anim_map3.setRange(min_anim, max_anim); WLH
+      // anim_map3.setRange(min_anim, max_anim); // WLH
 
       // color ranges
       r_map3.setRange(0, 255);
