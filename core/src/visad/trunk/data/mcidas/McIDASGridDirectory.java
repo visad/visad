@@ -46,6 +46,7 @@ public class McIDASGridDirectory extends visad.jmet.MetGridDirectory {
   double paramScale, levelScale;
   int gridType;
   int [] navBlock;
+  MetUnits mu;
 
 
   public McIDASGridDirectory(byte[] h) {
@@ -77,12 +78,14 @@ public class McIDASGridDirectory extends visad.jmet.MetGridDirectory {
        System.out.println("nav word "+n+" = "+navBlock[n]);
      }
      try {
+       mu = new MetUnits();
        String su = new String(h,32,4);
        String sl =new String(h,44,4);
-       System.out.println("param and level units incoming = "+su+" & "+sl);
-       paramUnit = Parser.parse(su);
-       levelUnit = Parser.parse(sl);
-     } catch (Exception e) {;}
+       //System.out.println("param and level units incoming = "+su+" & "+sl);
+       //System.out.println("param and level units converted = "+mu.makeSymbol(su)+" & "+mu.makeSymbol(sl));
+       paramUnit = Parser.parse(mu.makeSymbol(su));
+       levelUnit = Parser.parse(mu.makeSymbol(sl));
+     } catch (Exception e) {System.out.println(e);}
    }
 
    public int[] getNavBlock() {
