@@ -2207,5 +2207,8 @@ System.out.println("checkClose: distance = " + distance);
 
     Links = newLinks;
   }
+
+  public abstract Object clone();
+
 }
 
