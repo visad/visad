@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: SimpleColorMapWidget.java,v 1.28 1999-11-16 22:25:24 dglo Exp $
+@(#) $Id: SimpleColorMapWidget.java,v 1.29 1999-11-16 22:49:43 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -25,22 +25,33 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.util;
 
-import visad.*;
+import java.awt.Button;
+import java.awt.Dimension;
+import java.awt.Panel;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 import java.rmi.RemoteException;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.applet.*;
-import java.util.Vector;
+import javax.swing.BoxLayout;
 
-import javax.swing.*;
+import visad.BaseColorControl;
+import visad.Control;
+import visad.ControlEvent;
+import visad.ControlListener;
+import visad.DisplayException;
+import visad.ScalarMap;
+import visad.ScalarMapEvent;
+import visad.ScalarMapListener;
+import visad.VisADException;
 
 /**
  * A color widget that allows users to interactively map numeric data to
  * RGB/RGBA color maps.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.28 $, $Date: 1999-11-16 22:25:24 $
+ * @version $Revision: 1.29 $, $Date: 1999-11-16 22:49:43 $
  * @since Visad Utility Library v0.7.1
  */
 public class LabeledColorWidget
@@ -54,7 +65,7 @@ public class LabeledColorWidget
 
   private ArrowSlider slider;
 
-  private ColorWidget widget;
+  private ColorWidget colorWidget;
 
   private SliderLabel label;
 
@@ -195,56 +206,63 @@ public class LabeledColorWidget
   {
     Control ctl = smap.getControl();
     if (!(ctl instanceof BaseColorControl)) {
-      throw new DisplayException("LabeledColorWidget: ScalarMap must " +
+      throw new DisplayException(getClass().getName() + ": ScalarMap must " +
                                  "be Display.RGB or Display.RGBA");
     }
 
+    // save the control
     control = (BaseColorControl )ctl;
     components = control.getNumberOfComponents();
 
-    String name = smap.getScalar().getName();
+    // switch table row/column order
     float[][] table = table_reorg(in_table);
 
+    // get minimum & maximum values
     double[] range = smap.getRange();
     float min = (float )range[0];
     float max = (float )(range[1] + 1.0);
 
     // set up user interface
-    ColorWidget c = new ColorWidget(new BaseRGBMap(table, components > 3));
-    ArrowSlider s = new ArrowSlider(min, max, (min + max) / 2, name);
-    SliderLabel l = new SliderLabel(s);
-    widget = c;
-    slider = s;
-    label = l;
+    colorWidget = new ColorWidget(new BaseRGBMap(table, components > 3));
+    slider = new ArrowSlider(min, max, (min + max) / 2,
+                             smap.getScalar().getName());
+    label = new SliderLabel(slider);
 
+    // add new widgets
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-    add(widget);
+    add(colorWidget);
     add(slider);
     add(label);
     add(buildButtons());
 
-    // enable auto-scaling
-    if (update) {
-      smap.addScalarMapListener(this);
-    } else {
-      smap.setRange(min, max);
-      updateWidget(min, max);
+    // set default slider values if not autoscaling
+    if (!update) {
+      updateSlider(min, max);
     }
 
     // set up color table
-    ColorMap map = widget.getColorMap();
-    TABLE_SIZE = map.getMapResolution();
-    SCALE = 1.0f / (TABLE_SIZE - 1.0f);
     if (table == null) {
       in_table = control.getTable();
       table = table_reorg(in_table);
     } else {
       control.setTable(in_table);
     }
+    BaseRGBMap map = (BaseRGBMap )colorWidget.getColorMap();
+    map.setValues(table_reorg(table));
+
+    // initialize some constants
+    TABLE_SIZE = map.getMapResolution();
+    SCALE = 1.0f / (TABLE_SIZE - 1.0f);
+
+    // save the original table for "reset" button
     orig_table = copy_table(in_table);
-    ((BaseRGBMap) map).setValues(table);
-    widget.addColorChangeListener(this);
+
+    // listen for changes
     control.addControlListener(this);
+    colorWidget.addColorChangeListener(this);
+    if (update) {
+      smap.addScalarMapListener(this);
+    }
   }
 
   /**
@@ -299,8 +317,10 @@ public class LabeledColorWidget
    */
   public Dimension getMaximumSize()
   {
-    if (maxSize != null) return maxSize;
-    else return super.getMaximumSize();
+    if (maxSize != null) {
+      return maxSize;
+    }
+    return super.getMaximumSize();
   }
 
   /**
@@ -319,10 +339,12 @@ public class LabeledColorWidget
    * @param min Minimum value for slider.
    * @param max Maximum value for slider.
    */
-  private void updateWidget(float min, float max)
+  private void updateSlider(float min, float max)
   {
     float val = slider.getValue();
-    if (val != val || val <= min || val >= max) val = (min+max)/2;
+    if (val != val || val <= min || val >= max) {
+      val = (min + max) / 2;
+    }
     slider.setBounds(min, max, val);
   }
 
@@ -331,19 +353,20 @@ public class LabeledColorWidget
    *
    * @param evt Data from the changed <CODE>Button</CODE>.
    */
-  public void actionPerformed(ActionEvent e)
+  public void actionPerformed(ActionEvent evt)
   {
-    if (e.getActionCommand().equals("reset")) {
+    if (evt.getActionCommand().equals("reset")) {
       // reset color table to original values
       try {
         float[][] table = copy_table(orig_table);
         control.setTable(table);
-        ((BaseRGBMap) widget.getColorMap()).setValues(table_reorg(table));
+        BaseRGBMap map = (BaseRGBMap )colorWidget.getColorMap();
+        map.setValues(table_reorg(table));
+      } catch (VisADException ve) {
+      } catch (RemoteException re) {
       }
-      catch (VisADException exc) { }
-      catch (RemoteException exc) { }
     }
-    else if (e.getActionCommand().equals("grey")) {
+    else if (evt.getActionCommand().equals("grey")) {
       // reset color table to grey wedge
       if (orig_table != null && orig_table[0] != null) {
         int len = orig_table[0].length;
@@ -357,10 +380,11 @@ public class LabeledColorWidget
         }
         try {
           control.setTable(table);
-          ((BaseRGBMap) widget.getColorMap()).setValues(table_reorg(table));
+          BaseRGBMap map = (BaseRGBMap )colorWidget.getColorMap();
+          map.setValues(table_reorg(table));
+        } catch (VisADException ve) {
+        } catch (RemoteException re) {
         }
-        catch (VisADException exc) { }
-        catch (RemoteException exc) { }
       }
     }
   }
@@ -372,9 +396,9 @@ public class LabeledColorWidget
    *
    * @param evt Data from the changed <CODE>ColorWidget</CODE>.
    */
-  public void colorChanged(ColorChangeEvent e)
+  public void colorChanged(ColorChangeEvent evt)
   {
-    ColorMap map_e = widget.getColorMap();
+    ColorMap map_e = colorWidget.getColorMap();
     float[][] table_e = new float[components][TABLE_SIZE];
     for (int i=0; i<TABLE_SIZE; i++) {
       float[] t = map_e.getTuple(SCALE * i);
@@ -387,9 +411,9 @@ public class LabeledColorWidget
     }
     try {
       control.setTable(table_e);
+    } catch (VisADException ve) {
+    } catch (RemoteException re) {
     }
-    catch (VisADException f) { }
-    catch (RemoteException f) { }
   }
 
   /**
@@ -400,12 +424,12 @@ public class LabeledColorWidget
    *
    * @param evt Data from the changed <CODE>Control</CODE>.
    */
-  public void controlChanged(ControlEvent e)
+  public void controlChanged(ControlEvent evt)
     throws VisADException, RemoteException
   {
     float[][] table = control.getTable();
 
-    ColorMap map_e = widget.getColorMap();
+    ColorMap map_e = colorWidget.getColorMap();
     boolean identical = true;
     for (int i=0; i<TABLE_SIZE; i++) {
       float[] t = map_e.getTuple(SCALE * i);
@@ -419,7 +443,7 @@ public class LabeledColorWidget
       }
     }
     if (!identical) {
-      ((BaseRGBMap) map_e).setValues(table_reorg(table));
+      ((BaseRGBMap )map_e).setValues(table_reorg(table));
     }
   }
 
@@ -429,11 +453,10 @@ public class LabeledColorWidget
    *
    * @param evt Data from the changed <CODE>ScalarMap</CODE>.
    */
-  public void mapChanged(ScalarMapEvent e)
+  public void mapChanged(ScalarMapEvent evt)
   {
-    ScalarMap s = e.getScalarMap();
-    double[] range = s.getRange();
-    updateWidget((float) range[0], (float) range[1]);
+    double[] range = evt.getScalarMap().getRange();
+    updateSlider((float )range[0], (float )range[1]);
   }
 
   /**
@@ -445,17 +468,20 @@ public class LabeledColorWidget
    */
   private static float[][] copy_table(float[][] table)
   {
-    if (table == null || table[0] == null) return null;
+    if (table == null || table[0] == null) {
+      return null;
+    }
+
     final int dim = table.length;
     int len = table[0].length;
+
     float[][] new_table = new float[dim][len];
     try {
       for (int i=0; i<dim; i++) {
         System.arraycopy(table[i], 0, new_table[i], 0, len);
       }
       return new_table;
-    }
-    catch (ArrayIndexOutOfBoundsException e) {
+    } catch (ArrayIndexOutOfBoundsException obe) {
       return null;
     }
   }
@@ -470,11 +496,15 @@ public class LabeledColorWidget
    */
   private static float[][] table_reorg(float[][] table)
   {
-    if (table == null || table[0] == null) return null;
+    if (table == null || table[0] == null) {
+      return null;
+    }
+
+    final int dim = table.length;
+    int len = table[0].length;
+
+    float[][] out = new float[len][dim];
     try {
-      final int dim = table.length;
-      int len = table[0].length;
-      float[][] out = new float[len][dim];
       for (int i=0; i<len; i++) {
         out[i][0] = table[0][i];
         out[i][1] = table[1][i];
@@ -483,11 +513,11 @@ public class LabeledColorWidget
           out[i][3] = table[3][i];
         }
       }
-      return out;
+    } catch (ArrayIndexOutOfBoundsException obe) {
+      out = null;
     }
-    catch (ArrayIndexOutOfBoundsException e) {
-      return null;
-    }
+
+    return out;
   }
 
   /**
@@ -497,23 +527,23 @@ public class LabeledColorWidget
    */
   public ColorWidget getColorWidget()
   {
-    return widget;
+    return colorWidget;
   }
 
   public static void main(String[] args)
     throws RemoteException, VisADException
   {
-    RealType visRadiance = new RealType("visRadiance", null, null);
-    ScalarMap map = new ScalarMap(visRadiance, Display.RGBA);
+    visad.RealType vis = new visad.RealType("vis", null, null);
+    ScalarMap map = new ScalarMap(vis, visad.Display.RGBA);
 
-    DisplayImpl dpy = new visad.java2d.DisplayImplJ2D("2d");
+    visad.DisplayImpl dpy = new visad.java2d.DisplayImplJ2D("2d");
     dpy.addMap(map);
 
-    JFrame f;
+    javax.swing.JFrame f;
 
-    f = new JFrame("VisAD LabeledColorWidget 0");
-    f.addWindowListener(new WindowAdapter() {
-        public void windowClosing(WindowEvent e) {
+    f = new javax.swing.JFrame("VisAD LabeledColorWidget 0");
+    f.addWindowListener(new java.awt.event.WindowAdapter() {
+        public void windowClosing(java.awt.event.WindowEvent e) {
           System.exit(0);
         }
       });
@@ -521,9 +551,9 @@ public class LabeledColorWidget
     f.pack();
     f.setVisible(true);
 
-    f = new JFrame("VisAD LabeledColorWidget 1");
-    f.addWindowListener(new WindowAdapter() {
-        public void windowClosing(WindowEvent e) {
+    f = new javax.swing.JFrame("VisAD LabeledColorWidget 1");
+    f.addWindowListener(new java.awt.event.WindowAdapter() {
+        public void windowClosing(java.awt.event.WindowEvent e) {
           System.exit(0);
         }
       });
