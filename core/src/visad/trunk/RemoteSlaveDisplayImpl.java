@@ -43,7 +43,8 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
   private RemoteDisplay display;
   private BufferedImage image;
   private JComponent component;
-  private Vector listeners = new Vector();
+  private Vector mListen = new Vector();
+  private Vector dListen = new Vector();
 
   /** Construct a new slaved display linked to the given RemoteDisplay */
   public RemoteSlaveDisplayImpl(RemoteDisplay d) throws VisADException,
@@ -79,12 +80,35 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
 
   /** Add a mouse listener to this slave display */
   public void addMouseListener(MouseListener l) {
-    listeners.add(l);
+    synchronized (mListen) {
+      mListen.add(l);
+    }
   }
 
   /** Remove a mouse listener from this slave display */
   public void removeMouseListener(MouseListener l) {
-    listeners.remove(l);
+    synchronized (mListen) {
+      mListen.remove(l);
+    }
+  }
+
+  /** Add a display listener to this slave display */
+  public void addDisplayListener(DisplayListener l) {
+    synchronized (dListen) {
+      dListen.add(l);
+    }
+  }
+
+  /** Remove a display listener from this slave display */
+  public void removeDisplayListener(DisplayListener l) {
+    synchronized (dListen) {
+      dListen.remove(l);
+    }
+  }
+
+  /** Get this slave display's current image */
+  public BufferedImage getImage() {
+    return image;
   }
 
   /** Update this slave display with the given RLE-encoded image pixels */
@@ -109,6 +133,20 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
 
     // redraw display using new image
     component.repaint();
+
+    // notify listeners of display change
+    DisplayEvent e = new DisplayEvent(display, DisplayEvent.FRAME_DONE);
+    synchronized (dListen) {
+      for (int i=0; i<dListen.size(); i++) {
+        DisplayListener l = (DisplayListener) dListen.elementAt(i);
+        try {
+          l.displayChanged(e);
+        }
+        catch (VisADException exc) {
+          exc.printStackTrace();
+        }
+      }
+    }
   }
 
   public void mouseClicked(MouseEvent e) {
@@ -116,9 +154,9 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
     // sendMouseEvent(e);
     
     // notify listeners
-    synchronized (listeners) {
-      for (int i=0; i<listeners.size(); i++) {
-        MouseListener l = (MouseListener) listeners.elementAt(i);
+    synchronized (mListen) {
+      for (int i=0; i<mListen.size(); i++) {
+        MouseListener l = (MouseListener) mListen.elementAt(i);
         l.mouseClicked(e);
       }
     }
@@ -128,9 +166,9 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
     sendMouseEvent(e);
 
     // notify listeners
-    synchronized (listeners) {
-      for (int i=0; i<listeners.size(); i++) {
-        MouseListener l = (MouseListener) listeners.elementAt(i);
+    synchronized (mListen) {
+      for (int i=0; i<mListen.size(); i++) {
+        MouseListener l = (MouseListener) mListen.elementAt(i);
         l.mouseEntered(e);
       }
     }
@@ -140,9 +178,9 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
     sendMouseEvent(e);
 
     // notify listeners
-    synchronized (listeners) {
-      for (int i=0; i<listeners.size(); i++) {
-        MouseListener l = (MouseListener) listeners.elementAt(i);
+    synchronized (mListen) {
+      for (int i=0; i<mListen.size(); i++) {
+        MouseListener l = (MouseListener) mListen.elementAt(i);
         l.mouseExited(e);
       }
     }
@@ -152,9 +190,9 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
     sendMouseEvent(e);
 
     // notify listeners
-    synchronized (listeners) {
-      for (int i=0; i<listeners.size(); i++) {
-        MouseListener l = (MouseListener) listeners.elementAt(i);
+    synchronized (mListen) {
+      for (int i=0; i<mListen.size(); i++) {
+        MouseListener l = (MouseListener) mListen.elementAt(i);
         l.mousePressed(e);
       }
     }
@@ -164,9 +202,9 @@ public class RemoteSlaveDisplayImpl extends UnicastRemoteObject
     sendMouseEvent(e);
 
     // notify listeners
-    synchronized (listeners) {
-      for (int i=0; i<listeners.size(); i++) {
-        MouseListener l = (MouseListener) listeners.elementAt(i);
+    synchronized (mListen) {
+      for (int i=0; i<mListen.size(); i++) {
+        MouseListener l = (MouseListener) mListen.elementAt(i);
         l.mouseReleased(e);
       }
     }

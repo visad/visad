@@ -2416,10 +2416,8 @@ public class BasicSSCell extends JPanel implements MouseListener {
 
   /** capture image and save to a given file name, in JPEG format */
   public void captureImage(File f) throws VisADException, IOException {
-    if (IsSlave) {
-      throw new VisADException("Cannot captureImage on a slaved cell");
-    }
-    BufferedImage image = VDisplay.getImage();
+    BufferedImage image =
+      IsSlave ? RemoteVSlave.getImage() : VDisplay.getImage();
     try {
       JPEGEncodeParam param = JPEGCodec.getDefaultJPEGEncodeParam(image);
       param.setQuality(1.0f, true);
