@@ -51,8 +51,7 @@ public class GridVariableMapAdapter
 	    VariableAdapterFactory factory)
 	throws VisADException, RemoteException
     {
-	vectorAdapter =
-	    factory.vectorAdapter(array.getPrimitiveVector(), das);
+	vectorAdapter = factory.vectorAdapter(array.getPrimitiveVector(), das);
     }
 
     public static GridVariableMapAdapter gridVariableMapAdapter(
@@ -72,6 +71,8 @@ public class GridVariableMapAdapter
     }
 
     /**
+     * Returns a VisAD data object corresponding to a map vector of a DODS grid.
+     *
      * @return		The VisAD data object corresponding to the adapted
      *			map vector.
      */
