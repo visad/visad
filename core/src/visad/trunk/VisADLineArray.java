@@ -137,27 +137,35 @@ public class VisADLineArray extends VisADGeometryArray {
     if (len < 2) return this;
     float[][] bs = new float[3][len/2];
     float[][] ss = new float[3][len/2];
+    // ALPHA = 0.01f
     float ALPHA1 = 1.0f + ALPHA;
     float ALPHA1m = 1.0f - ALPHA;
     for (int i=0; i<len/2; i++) {
       // BS = point ALPHA * opposite direction
+      // bs = pt_i + 0.01 * (pt_i - pt_ip1), not ref
       bs[0][i] = ALPHA1 * rs[0][2*i] - ALPHA * rs[0][2*i+1];
       bs[1][i] = ALPHA1 * rs[1][2*i] - ALPHA * rs[1][2*i+1];
       bs[2][i] = ALPHA1 * rs[2][2*i] - ALPHA * rs[2][2*i+1];
       // SS = point ALPHA * same direction
+      // ss = pt_ip1 + 0.01 * (pt_ip1 - pt_i), not ref
       ss[0][i] = ALPHA1 * rs[0][2*i+1] - ALPHA * rs[0][2*i];
       ss[1][i] = ALPHA1 * rs[1][2*i+1] - ALPHA * rs[1][2*i];
       ss[2][i] = ALPHA1 * rs[2][2*i+1] - ALPHA * rs[2][2*i];
     }
     float[][] ds = coord_sys.toReference(bs);
+    // ds = pt_i + 0.01 * (pt_i - pt_ip1), ref
     float[][] es = coord_sys.toReference(ss);
+    // es = pt_ip1 + 0.01 * (pt_ip1 - pt_i), ref
     float IALPHA = 1.0f / ALPHA;
     for (int i=0; i<len; i+=2) {
-      // A = original line segment
+      // a = original line segment, ref
+      // a = pt_ip1 - pt_i, ref
       float a0 = cs[0][i+1] - cs[0][i];
       float a1 = cs[1][i+1] - cs[1][i];
       float a2 = cs[2][i+1] - cs[2][i];
-      // B = estimate of vector using ALPHA * opposite direction
+      // b = estimate of vector using ALPHA * opposite direction
+      // b = 100.0 * (pt_i - toRef(pt_i + 0.01 * (pt_i - pt_ip1)) )
+      // if no break, b = pt_ip1 - pt_i, ref
       float b0 = IALPHA * (cs[0][i] - ds[0][i/2]);
       float b1 = IALPHA * (cs[1][i] - ds[1][i/2]);
       float b2 = IALPHA * (cs[2][i] - ds[2][i/2]);
@@ -168,7 +176,9 @@ public class VisADLineArray extends VisADGeometryArray {
         (b2 - a2) * (b2 - a2);
       float abratio = aminusb / aa;
 
-      // C = estimate of vector using ALPHA * opposite direction
+      // c = estimate of vector using ALPHA * opposite direction
+      // c = 100.0 * (pt_ip1 - toRef(pt_ip1 + 0.01 * (pt_ip1 - pt_i)) )
+      // if no break, c = pti - pt_ip1, ref
       float c0 = IALPHA * (cs[0][i+1] - es[0][i/2]);
       float c1 = IALPHA * (cs[1][i+1] - es[1][i/2]);
       float c2 = IALPHA * (cs[2][i+1] - es[2][i/2]);
