@@ -101,6 +101,19 @@ public class Test61
     GraphicsModeControl mode = dpys[0].getGraphicsModeControl();
     mode.setScaleEnable(true);
 
+    // new
+    RealType duh = new RealType("duh");
+    // Integer2DSet set2 = new Integer2DSet(2,2);
+    Linear2DSet set2 = new Linear2DSet(0.0, (double) NX, 2,
+                                       0.0, (double) NY, 2);
+    RealType[] types2d = {xr, yr};
+    RealTupleType domain2 = new RealTupleType(types2d);
+    FunctionType ftype2 = new FunctionType(domain2, duh);
+    float[][] v2 = {{1.0f,2.0f,3.0f,4.0f}};
+    FlatField field2 = new FlatField(ftype2,set2);
+    field2.setSamples(v2);
+    dpys[0].addMap(new ScalarMap(duh, Display.RGB));
+
     ScalarMap map1color = new ScalarMap(wr, Display.RGBA);
     dpys[0].addMap(map1color);
 
@@ -109,6 +122,13 @@ public class Test61
 
     DataReferenceImpl ref_grid3d = new DataReferenceImpl("ref_grid3d");
     ref_grid3d.setData(grid3d);
+    // dpys[0].addReference(ref_grid3d, null);
+
+    DataReferenceImpl ref2 = new DataReferenceImpl("ref2");
+    ref2.setData(field2);
+
+    dpys[0].addReference(ref2, null);
+
     dpys[0].addReference(ref_grid3d, null);
   }
 
