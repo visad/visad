@@ -36,6 +36,7 @@ public class AnimationSetControl extends Control {
 
   private Set set;
   private transient AnimationControl parent;
+  private boolean isManual;
 
   /**
    * construct an AnimationSetControl for the given DisplayImpl
@@ -47,6 +48,7 @@ public class AnimationSetControl extends Control {
     super(d);
     parent = p;
     set = null;
+    isManual = false;
   }
 
   /** 
@@ -133,9 +135,18 @@ public class AnimationSetControl extends Control {
         set == null && s == null) {
         return;
     }
+
+    if (noChange) {
+      // don't auto-scale is a previous non-auto-scale call
+      if (isManual) return;
+    }
+    else {
+      // a non-auto-scale call
+      isManual = true;
+    }
+
     set = s;
     if (parent != null) {
-      // parent.setCurrent(0);
       parent.setCurrent(clipCurrent(parent.getCurrent()));
     }
     changeControl(!noChange);

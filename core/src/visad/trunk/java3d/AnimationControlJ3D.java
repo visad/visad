@@ -279,19 +279,17 @@ public class AnimationControlJ3D extends AVControlJ3D
       current = animationSet.clipCurrent(current);
       init();
     }
-    // WLH 5 May 2000
-    // changeControl(true);
+    getDisplayRenderer().render_trigger();
     changeControl(false);
   }
 
   public void init() throws VisADException {
     if (animationSet != null) { 
-      //if (animationSet.getSet() != null) {
-        double value = animationSet.getValue(current);
-        Set set = animationSet.getSet();
-  
-        animation_string(real, set, value, current);
-        selectSwitches(value, set);
+      double value = animationSet.getValue(current);
+      Set set = animationSet.getSet();
+ 
+      animation_string(real, set, value, current);
+      selectSwitches(value, set);
     }
   }
 

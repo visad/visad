@@ -358,15 +358,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
     throws RemoteException, VisADException
   {
     if (control != null) {
-      // WLH 6 Aug 2001
       control.nullControl();
-/* WLH 6 Aug 2001
-      // stop animation before killing control
-      if (control instanceof AnimationControl) {
-        ((AnimationControl) control).stop();
-      }
-*/
-
       ScalarMapControlEvent evt;
       evt = new ScalarMapControlEvent(this, ScalarMapEvent.CONTROL_REMOVED,
                                       control);
@@ -379,7 +371,6 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
     DisplayScalarIndex = -1;
     scale_flag = back_scale_flag;
 
-    // WLH 15 Aug 2000
     if (axisScale != null) axisScale.setAxisOrdinal(-1);
   }
 

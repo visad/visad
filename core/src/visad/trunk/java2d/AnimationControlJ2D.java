@@ -286,17 +286,8 @@ public class AnimationControlJ2D extends AVControlJ2D
     else current--;
     if (animationSet != null) {
       current = animationSet.clipCurrent(current);
-/* WLH 26 June 98
-      init();
-*/
       canvas.renderTrigger();
-/*
-System.out.println("AnimationControlJ2D.takeStep: renderTrigger " +
-                   "current = " + current);
-*/
     }
-    // WLH 5 May 2000
-    // changeControl(true);
     changeControl(false);
   }
 
