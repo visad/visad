@@ -92,13 +92,15 @@ public class Gridded2DSet extends GriddedSet {
           }
         }
 
+        float[] v00 = new float[2];
+        float[] v10 = new float[2];
+        float[] v01 = new float[2];
+        float[] v11 = new float[2];
+
+
         // Samples consistency test
         for (int j=0; j<LengthY-1; j++) {
           for (int i=0; i<LengthX-1; i++) {
-            float[] v00 = new float[2];
-            float[] v10 = new float[2];
-            float[] v01 = new float[2];
-            float[] v11 = new float[2];
             for (int v=0; v<2; v++) {
               v00[v] = Samples[v][j*LengthX+i];
               v10[v] = Samples[v][j*LengthX+i+1];
