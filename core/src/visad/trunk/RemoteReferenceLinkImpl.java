@@ -81,6 +81,28 @@ public class RemoteReferenceLinkImpl extends UnicastRemoteObject
     return link.getConstantMaps();
   }
 
+  public boolean equals(Object o)
+  {
+    if (!(o instanceof RemoteReferenceLink)) {
+      return false;
+    }
+
+    boolean result;
+    if (o instanceof RemoteReferenceLinkImpl) {
+      RemoteReferenceLinkImpl rrli = (RemoteReferenceLinkImpl )o;
+      result = link.equals(rrli.link);
+    } else {
+      RemoteReferenceLink rrl = (RemoteReferenceLink )o;
+      try {
+        result = getReference().equals(rrl.getReference());
+      } catch (Exception e){
+        result = false;
+      }
+    }
+
+    return result;
+  }
+
   /** return a String representation of the referenced data */
   public String toString()
   {

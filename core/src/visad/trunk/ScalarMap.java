@@ -815,6 +815,16 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     return ValueIndex;
   }
 
+  public boolean equals(Object o)
+  {
+    if (!(o instanceof ScalarMap)) {
+      return false;
+    }
+
+    ScalarMap sm = (ScalarMap )o;
+    return Scalar.equals(sm.Scalar) && DisplayScalar.equals(sm.DisplayScalar);
+  }
+
   public String toString() {
     return toString("");
   }

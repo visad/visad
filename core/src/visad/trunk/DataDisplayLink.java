@@ -255,5 +255,22 @@ public class DataDisplayLink extends ReferenceActionLink {
   {
     return SelectedMapVector;
   }
+
+  public boolean equals(Object o)
+  {
+    if (!(o instanceof DataDisplayLink)) {
+      return false;
+    }
+
+    DataDisplayLink ddl = (DataDisplayLink )o;
+    if (!getDataReference().equals(ddl.getDataReference())) {
+      return false;
+    }
+    if (!getDisplay().equals(ddl.getDisplay())) {
+      return false;
+    }
+
+    return true;
+  }
 }
 

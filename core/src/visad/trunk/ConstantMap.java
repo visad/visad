@@ -76,6 +76,17 @@ public class ConstantMap extends ScalarMap {
     return Constant;
   }
 
+  public boolean equals(Object o)
+  {
+    if (!(o instanceof ConstantMap)) {
+      return false;
+    }
+
+    ConstantMap cm = (ConstantMap )o;
+    return ((Math.abs(Constant - cm.Constant) < 0.0001) &&
+            getDisplayScalar().equals(cm.getDisplayScalar()));
+  }
+
   public String toString(String pre) {
     return pre + "ConstantMap: " + Constant +
            " -> " + getDisplayScalar().toString() + "\n";
