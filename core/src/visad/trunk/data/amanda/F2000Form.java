@@ -26,25 +26,39 @@ MA 02111-1307, USA
 
 package visad.data.amanda;
 
-import visad.*;
-import visad.java3d.*;
-import visad.util.*;
-import visad.data.*;
-import java.io.*;
-import java.rmi.RemoteException;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
 import java.net.URL;
+
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-// JFC packages
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.text.*;
-import javax.swing.border.*;
+import java.rmi.RemoteException;
 
-// AWT packages
-import java.awt.*;
-import java.awt.event.*;
+import visad.Data;
+import visad.DataImpl;
+import visad.FieldImpl;
+import visad.FlatField;
+import visad.FunctionType;
+import visad.Gridded3DSet;
+import visad.Integer1DSet;
+import visad.MathType;
+import visad.RealTuple;
+import visad.RealType;
+import visad.RealTupleType;
+import visad.Tuple;
+import visad.TupleType;
+import visad.VisADException;
+import visad.VisADQuadArray;
+
+import visad.data.BadFormException;
+import visad.data.Form;
+import visad.data.FormNode;
+import visad.data.FormFileInformer;
 
 /**
    F2000Form is the VisAD data format adapter for
@@ -684,157 +698,4 @@ System.out.println("IOException " + e.getMessage());
   public final RealType getZ() { return z; }
   public final double getZMax() { return zmax; }
   public final double getZMin() { return zmin; }
-
-  /** run 'java visad.data.amanda.F2000Form in_file out_file' to
-      convert in_file to out_file in VisAD serialized data format;
-      try 'java visad.data.amanda.F2000Form 100events.r'
- */
-  public static void main(String args[])
-         throws VisADException, RemoteException, IOException {
-    if (args == null || args.length != 1) {
-      System.out.println("to test read an F2000 file, run:");
-      System.out.println("  'java visad.amanda.F2000Form in_file'");
-    }
-    F2000Form form = new F2000Form();
-    Data temp = null;
-    if (args[0].startsWith("http://")) {
-      // with "ftp://" this throws "sun.net.ftp.FtpProtocolException: RETR ..."
-      URL url = new URL(args[0]);
-      temp = form.open(url);
-    }
-    else {
-      temp = form.open(args[0]);
-    }
-
-    // compute x, y and z ranges with unity aspect ratios
-    double xrange = form.getXMax() - form.getXMin();
-    double yrange = form.getYMax() - form.getYMin();
-    double zrange = form.getZMax() - form.getZMin();
-    double half_range = -.5 * Math.max(xrange, Math.max(yrange, zrange));
-    double xmid = 0.5 * (form.getXMax() + form.getXMin());
-    double ymid = 0.5 * (form.getYMax() + form.getYMin());
-    double zmid = 0.5 * (form.getZMax() + form.getZMin());
-    double xmin = xmid - half_range;
-    double xmax = xmid + half_range;
-    double ymin = ymid - half_range;
-    double ymax = ymid + half_range;
-    double zmin = zmid - half_range;
-    double zmax = zmid + half_range;
-
-    final FieldImpl amanda = (FieldImpl) ((Tuple) temp).getComponent(0);
-    final FieldImpl modules = (FieldImpl) ((Tuple) temp).getComponent(1);
-
-    DisplayImpl display = new DisplayImplJ3D("amanda");
-    ScalarMap xmap = new ScalarMap(form.getX(), Display.XAxis);
-    display.addMap(xmap);
-    xmap.setRange(xmin, xmax);
-    ScalarMap ymap = new ScalarMap(form.getY(), Display.YAxis);
-    display.addMap(ymap);
-    ymap.setRange(ymin, ymax);
-    ScalarMap zmap = new ScalarMap(form.getZ(), Display.ZAxis);
-    display.addMap(zmap);
-    zmap.setRange(zmin, zmax);
-    // ScalarMap eventmap = new ScalarMap(form.getEventIndex(), Display.SelectValue);
-    // display.addMap(eventmap);
-    ScalarMap trackmap = new ScalarMap(form.getTrackIndex(), Display.SelectValue);
-    display.addMap(trackmap);
-    // ScalarMap energymap = new ScalarMap(energy, Display.RGB);
-    // display.addMap(energymap);
-    ScalarMap shapemap = new ScalarMap(form.getAmplitude(), Display.Shape);
-    display.addMap(shapemap);
-    ScalarMap shape_scalemap = new ScalarMap(form.getAmplitude(),
-                                             Display.ShapeScale);
-    display.addMap(shape_scalemap);
-    shape_scalemap.setRange(-20.0, 50.0);
-    ScalarMap letmap = new ScalarMap(form.getLet(), Display.RGB);
-    display.addMap(letmap);
-
-    GraphicsModeControl mode = display.getGraphicsModeControl();
-    // mode.setScaleEnable(true);
-    DisplayRenderer displayRenderer = display.getDisplayRenderer();
-    displayRenderer.setBoxOn(false);
-
-    ShapeControl scontrol = (ShapeControl) shapemap.getControl();
-    scontrol.setShapeSet(new Integer1DSet(form.getAmplitude(), 1));
-    scontrol.setShapes(form.getCubeArray());
-
-    // fixes track display?
-    // SelectValue bug?
-    // amanda = ((FieldImpl) amanda).getSample(99);
-
-    final DataReferenceImpl amanda_ref = new DataReferenceImpl("amanda");
-    // amanda_ref.setData(amanda);
-    display.addReference(amanda_ref);
-
-    final DataReferenceImpl modules_ref = new DataReferenceImpl("modules");
-    modules_ref.setData(modules);
-    display.addReference(modules_ref);
-
-System.out.println("amanda MathType\n" + amanda.getType());
-// visad.jmet.DumpType.dumpDataType(amanda, System.out);
-
-    final int nevents = amanda.getLength();
-
-    final DataReference event_ref = new DataReferenceImpl("event");
-    VisADSlider event_slider = new VisADSlider("event", 0, nevents, 0, 1.0,
-                                               event_ref,
-                                               form.getEventIndex());
-    Cell cell = new CellImpl() {
-      public void doAction() throws VisADException, RemoteException {
-        int index = (int) ((Real) event_ref.getData()).getValue();
-        if (index < 0) index = 0;
-        else if (index > nevents) index = nevents;
-        amanda_ref.setData(amanda.getSample(index));
-      }
-    };
-    // link cell to hour_ref to trigger doAction whenever
-    // 'hour' value changes
-    cell.addReference(event_ref);
-
-    JFrame frame = new JFrame("VisAD AMANDA Viewer");
-    frame.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {System.exit(0);}
-    });
-
-    // create JPanel in frame
-    JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-    frame.getContentPane().add(panel);
-
-    JPanel widget_panel = new JPanel();
-    widget_panel.setLayout(new BoxLayout(widget_panel, BoxLayout.Y_AXIS));
-    Dimension d = null;
-/*
-    LabeledColorWidget energy_widget =
-      new LabeledColorWidget(energymap);
-    widget_panel.add(energy_widget);
-    d = new Dimension(400, 250);
-    energy_widget.setMaximumSize(d);
-*/
-    LabeledColorWidget let_widget =
-      new LabeledColorWidget(letmap);
-    widget_panel.add(let_widget);
-    d = new Dimension(400, 250);
-    let_widget.setMaximumSize(d);
-    // widget_panel.add(new VisADSlider(eventmap));
-    widget_panel.add(new VisADSlider(trackmap));
-    widget_panel.add(event_slider);
-    d = new Dimension(400, 600);
-    widget_panel.setMaximumSize(d);
-    panel.add(widget_panel);
-    JPanel display_panel = (JPanel) display.getComponent();
-    d = new Dimension(800, 800);
-    display_panel.setPreferredSize(d);
-    display_panel.setMinimumSize(d);
-    panel.add(display_panel);
-
-    int WIDTH = 1200;
-    int HEIGHT = 800;
-
-    frame.setSize(WIDTH, HEIGHT);
-    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    frame.setLocation(screenSize.width/2 - WIDTH/2,
-                      screenSize.height/2 - HEIGHT/2);
-    frame.setVisible(true);
-  }
 }
