@@ -647,7 +647,6 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
           gamw = (float)Math.pow(10d, (double)gamw);
           float gamts = 0.0001f;
           float emis = 1.0f;
-          System.out.println( gamt+"  "+gamw);
           nasti_retrvl_c( rec, gamt, gamw, gamts, emis, p_out);
 
           for ( int i = 0; i < 40; i++ ) {
@@ -711,7 +710,6 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
         float[][] samples;
         double[][] new_range;
         FunctionType f_type;
-        Field obs_spectrum = null;
         boolean first = true;
         public void doAction() throws VisADException, RemoteException {
         if ( ! first )
@@ -770,43 +768,6 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       };
       // link white_cursor to white_cursor_cell
       white_cursor_cell.addReference(white_cursor_ref);
-
-  /***
-      // CellImpl to change wave number when user moves red_cursor
-      CellImpl red_cursor_cell = new CellImpl() {
-        public void doAction() throws VisADException, RemoteException {
-          int i;
-          if (skip_red) {
-            skip_red = false;
-            return;
-          }
-          Real red_cursor = (Real) red_cursor_ref.getData();
-          if (red_cursor == null) return;
-          float wnum = (float) red_cursor.getValue();
-
-          if (wnum < wnum_low) {
-            wnum = wnum_low;
-          }
-          if (wnum > wnum_hi) {
-            wnum = wnum_hi;
-          }
-          try {
-        //- do_image(wnum);
-            wnum_last = wnum;
-            wnum_last_ref.setData(red_cursor);
-            do_red_bar(wnum);
-        //- wnum_field.setText(PlotText.shortString(Math.abs(wnum)));
-          }
-          catch (VisADException exc) {
-          }
-          catch (RemoteException exc) {
-          }
-        }
-      };
-      // link red_cursor to red_cursor_cell
-      red_cursor_cell.addReference(red_cursor_ref);
-   ***/
-
 
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("Nesti VisAD Application");
@@ -1563,8 +1524,10 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
 
     /** respond to autoscale of atmosphericRadiance */
     public void mapChanged(ScalarMapEvent e) {
+      float wnum_last;
       if (radiance_map2.equals(e.getScalarMap())) {
         try {
+          wnum_last = (float)((Real)wnum_last_ref.getData()).getValue();
           do_red_bar(wnum_last);
         }
         catch (VisADException e2) {
@@ -1708,8 +1671,8 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       }
     }
 
-  //synchronized void setBand( String band )
-    void setBand( String band )
+    synchronized void setBand( String band )
+ //-void setBand( String band )
       throws VisADException, RemoteException
     {
       double CO2_1_lo = 700;
