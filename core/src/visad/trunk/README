@@ -38,6 +38,7 @@ Unpacking VisAD will create the following sub-directories:
 
   visad				// the core VisAD package
   visad/ss			// VisAD Spread Sheet
+  visad/formula			// formula parser
   visad/java3d			// Java3D displays for VisAD
   visad/java2d			// Java2D displays for VisAD
   visad/util			// VisAD UI utilities
@@ -56,6 +57,7 @@ Unpacking VisAD will create the following sub-directories:
   visad/data/hdf5 		// VisAD - HDF-5 file adapter
   visad/data/hdf5/hdf5objects	// VisAD - HDF-5 file adapter
   visad/paoloa			// GoesCollaboration application
+  visad/paoloa/spline		// spline fitting application
   visad/aune			// ShallowFluid application
   visad/benjamin		// Galaxy application
   visad/rabin                   // Rainfall estimation spread sheet
@@ -266,6 +268,7 @@ these packages:
 
   visad				// the core VisAD package
   visad/ss			// VisAD Spread Sheet
+  visad/formula			// formula parser
   visad/java3d			// Java3D displays for VisAD
   visad/java2d			// Java2D displays for VisAD
   visad/util			// VisAD UI utilities
@@ -284,6 +287,7 @@ these packages:
   visad/data/hdf5 		// VisAD - HDF-5 file adapter
   visad/data/hdf5/hdf5objects	// VisAD - HDF-5 file adapter
   visad/paoloa			// GoesCollaboration application
+  visad/paoloa/spline		// spline fitting application
   visad/aune			// ShallowFluid application
   visad/benjamin		// Galaxy application
   visad/rabin                   // Rainfall estimation spread sheet
@@ -305,7 +309,7 @@ these packages:
 
 7. Problems
 
-If you have problems, send en email message to the VisAD mailing
+If you have problems, send an email message to the VisAD mailing
 list at:
 
   visad-list@ssec.wisc.edu

@@ -1495,7 +1495,7 @@ if (initialize) {
     return s;
   }
 
-  private class Syncher extends Object implements DisplayListener {
+  public class Syncher extends Object implements DisplayListener {
 
     private ProjectionControl control;
     int count;
