@@ -207,6 +207,10 @@ SAVE_FILES = \
 	visad/data/qt/*.java				\
 	visad/data/vis5d/*.java				\
 	visad/data/gif/*.java				\
+	visad/data/text/*.java				\
+	visad/data/text/example1.txt				\
+	visad/data/text/example2.csv				\
+	visad/data/text/README.text				\
 	ij/*.java					\
 	ij/gui/*.java					\
 	ij/io/*.java					\
@@ -300,6 +304,7 @@ DOC_PACKAGES = \
 		visad.data.jai \
 		visad.data.qt \
 		visad.data.gif \
+    visad.data.text
 		ij \
 		ij.gui \
 		ij.io \

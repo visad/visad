@@ -156,11 +156,13 @@ public class Util
       new String[] {"svd", "vad", "visad"}, "Serialized VisAD data");
     FileFilter tiff = new ExtensionFileFilter(
       new String[] {"tiff", "tif"}, "TIFF images");
+    FileFilter text = new ExtensionFileFilter(
+      new String[] {"csv", "tsv","bsv","txt"}, "ASCII text data");
     FileFilter vis5d = new ExtensionFileFilter(
       "v5d", "Vis5D datasets");
     FileFilter combo = new ComboFileFilter(new FileFilter[] {
       biorad, bmp, fits, flashpix, gif, hdf5, hdfeos, jpeg, mcidas, netcdf,
-      png, pnm, serial, tiff, vis5d}, "All VisAD file types");
+      png, pnm, serial, tiff, text, vis5d}, "All VisAD file types");
 
     // construct and configure file chooser
     JFileChooser dialog = new JFileChooser(System.getProperty("user.dir"));
@@ -178,6 +180,7 @@ public class Util
     dialog.addChoosableFileFilter(pnm);
     dialog.addChoosableFileFilter(serial);
     dialog.addChoosableFileFilter(tiff);
+    dialog.addChoosableFileFilter(text);
     dialog.addChoosableFileFilter(vis5d);
     dialog.addChoosableFileFilter(combo);
     return dialog;
