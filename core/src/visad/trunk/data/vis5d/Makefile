@@ -6,15 +6,6 @@
 JAVADIR = /opt/java
 JAVAINCS = -I${JAVADIR}/include -I${JAVADIR}/include/solaris
 
-# LIBS lists the directories for ALL the shared libraries needed by the 
-# Fortran code.  If the GoesRetrieval demo doesn't work, it's likely
-# that you need to add one or more directories to this list.
-#
-LIB1 = /opt/SUNWspro/lib
-LIB2 = /opt/SUNWspro/SC3.0.1/lib
-LIB3 = /usr/ucblib
-LIBS = -L${LIB1} -R${LIB1} -L${LIB2} -R${LIB2} -L${LIB3} -R${LIB3}
-
 # these hold the flags needed to tell the C and Fortran compilers
 # to build shared object files
 #
@@ -24,7 +15,7 @@ SHFFLAGS =
 # SHLD is the shared library loader
 # SHLDFLAGS are the flags needed to tell SHLD to build a shared library
 #
-SHLD = ld
+SHLD = cc
 SHLDFLAGS = -G -z defs
 
 # we want to build shared objects by default

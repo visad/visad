@@ -6,16 +6,6 @@
 JAVADIR = /opt/java
 JAVAINCS = -I${JAVADIR}/include -I${JAVADIR}/include/solaris
 
-# LIBS lists the directories for ALL the shared libraries needed by the 
-# Fortran code.  If the GoesRetrieval demo doesn't work, it's likely
-# that you need to add one or more directories to this list.
-#
-LIB1 = /opt/SUNWspro/lib
-LIB2 = /opt/SUNWspro/SC4.0/lib
-#LIB2 = /opt/SUNWspro/SC3.0.1/lib
-LIB3 = /usr/ucblib
-LIBS = -L${LIB1} -R${LIB1} -L${LIB2} -R${LIB2} -L${LIB3} -R${LIB3}
-
 # these hold the flags needed to tell the C and Fortran compilers
 # to build shared object files
 #
@@ -26,8 +16,8 @@ SHFFLAGS = -fast -xtarget=ultra
 # SHLD is the shared library loader
 # SHLDFLAGS are the flags needed to tell SHLD to build a shared library
 #
-SHLD = ld
-SHLDFLAGS = -G -z defs
+SHLD = f77
+SHLDFLAGS = -G -Qoption ld -z,defs
 
 # we want to build shared objects by default
 #
@@ -56,7 +46,7 @@ default: Nesti.class libNesti.so
 libNesti.so: NestiImp.o $(FORTRANS)
 	${SHLD} ${SHLDFLAGS} -o libNesti.so \
 		NestiImp.o $(FORTRANS) \
-		$(LIBS) -lM77 -lF77 -lsunmath -lm -lc
+		-lM77 -lF77 -lsunmath -lm -lc
 
 NestiImp.o: visad_paoloa_nesti_Nesti.h
 
