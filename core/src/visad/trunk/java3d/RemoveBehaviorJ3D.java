@@ -44,24 +44,31 @@ public class RemoveBehaviorJ3D extends Behavior { // J3D
   /** DisplayRenderer for Display */
   DisplayRendererJ3D display_renderer;
 
+/* WLH 3 Aug 98
   boolean waiting = false;
+*/
 
   Vector removeVector = new Vector();
 
   public RemoveBehaviorJ3D(DisplayRendererJ3D r) {
     display_renderer = r;
+/* WLH 3 Aug 98
     waiting = false;
+*/
   }
 
   public synchronized void addRemove(RendererJ3D renderer, int index) {
     removeVector.addElement(new RendererIndexCount(renderer, index, 1));
+/* WLH 3 Aug 98
     if (!waiting) {
       setWakeup();
       waiting = true;
     }
+*/
   }
 
   public void initialize() {
+    setWakeup();
   }
 
   public synchronized void processStimulus(Enumeration criteria) {
@@ -78,12 +85,15 @@ public class RemoveBehaviorJ3D extends Behavior { // J3D
         }
       }
     }
+/* WLH 3 Aug 98
     if (!removeVector.isEmpty()) {
       setWakeup();
     }
     else {
       waiting = false;
     }
+*/
+    setWakeup();
   }
 
   void setWakeup() {
