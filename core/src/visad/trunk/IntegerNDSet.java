@@ -54,6 +54,21 @@ public class IntegerNDSet extends LinearNDSet
           get_lasts(lengths), lengths), coord_sys, units, errors);
   }
 
+  public IntegerNDSet(MathType type, Integer1DSet[] sets) throws VisADException {
+    this(type, sets, null, null, null);
+  }
+
+  /** construct an N-dimensional set with values in the cross product
+      of {0, 1, ..., lengths[i]-1}
+      for i=0, ..., lengths[lengths.length-1];
+      coordinate_system and units must be compatible with defaults for
+      type, or may be null; errors may be null */
+  public IntegerNDSet(MathType type, Integer1DSet[] sets,
+                    CoordinateSystem coord_sys, Unit[] units,
+                    ErrorEstimate[] errors) throws VisADException {
+    super(type, sets, coord_sys, units, errors);
+  }
+
   /**
    * Abreviated factory method for creating the proper integer set
    * (Integer1DSet, Integer2DSet, etc.).
