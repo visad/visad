@@ -442,7 +442,8 @@ def makeMaps(*a):
   "shape","text","shapescale","linewidth","pointsize",
   "cylradius","cylazimuth","cylzaxis",
   "flow1elev","flow1azimuth","flow1radial",
-  "flow2elev","flow2azimuth","flow2radial","linestyle")
+  "flow2elev","flow2azimuth","flow2radial","linestyle",
+  "textureenable")
 
 # note this list is in the same order as Display.DisplayRealArray! 
 
@@ -671,7 +672,7 @@ class Shapes:
 # an array of data with same MathTypes
 # getScalarMap() used to get the ScalarMap to add to the display
 # getSelectField() used to get the Field to add() to display
-# showIt(n) called to show only field 'n'
+# showIt(n) called to show only field 'n' out of the group
 class SelectField:
   def __init__(this, selectMapName, data):
     selectMap = RealType.getRealType(selectMapName)
