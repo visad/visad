@@ -32,12 +32,19 @@ import visad.util.LabeledColorWidget;
 public class Test61
   extends UISkeleton
 {
+  private boolean nice = false;
+
   public Test61() { }
 
   public Test61(String[] args)
     throws RemoteException, VisADException
   {
     super(args);
+  }
+
+  int checkExtraKeyword(int argc, String[] args) {
+    nice = true;
+    return 1;
   }
 
   DisplayImpl[] setupServerDisplays()
@@ -100,6 +107,8 @@ public class Test61
 
     GraphicsModeControl mode = dpys[0].getGraphicsModeControl();
     mode.setScaleEnable(true);
+
+    if (nice) mode.setTransparencyMode(DisplayImplJ3D.NICEST);
 
     // new
     RealType duh = new RealType("duh");

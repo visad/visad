@@ -2911,6 +2911,8 @@ WLH 15 March 2000 */
         ColorModel colorModel = ColorModel.getRGBdefault();
         WritableRaster raster =
           colorModel.createCompatibleWritableRaster(texture_width, texture_height);
+        images[d] = new BufferedImage(colorModel, raster, false, null);
+/* WLH 23 Feb 2000
         if (axis == 1) {
           images[(data_depth-1) - d] = 
             new BufferedImage(colorModel, raster, false, null);
@@ -2918,6 +2920,7 @@ WLH 15 March 2000 */
         else {
           images[d] = new BufferedImage(colorModel, raster, false, null);
         }
+*/
         int[] intData = ((DataBufferInt)raster.getDataBuffer()).getData();
         // int k = d * data_width * data_height;
         int kk = d * kdepth;

@@ -76,6 +76,10 @@ public class DisplayImplJ3D extends DisplayImpl {
     javax.media.j3d.PolygonAttributes.POLYGON_LINE;
   public static final int POLYGON_POINT =
     javax.media.j3d.PolygonAttributes.POLYGON_POINT;
+  public static final int NICEST =
+    javax.media.j3d.TransparencyAttributes.NICEST;
+  public static final int FASTEST =
+    javax.media.j3d.TransparencyAttributes.FASTEST;
 
   /** legal values for api */
   public static final int UNKNOWN = 0;

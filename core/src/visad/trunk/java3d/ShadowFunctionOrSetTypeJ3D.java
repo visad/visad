@@ -222,9 +222,66 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
     return texCoords;
   }
 
+  // WLH 17 March 2000
+  private static float EPS = 0.00f;
+
   public float[] setTexStackCoords(int length, int axis, float ratiow,
                                    float ratioh, float ratiod) {
     float[] texCoords = new float[8 * length];
+    if (axis == 2) {
+      for (int i=0; i<length; i++) {
+        int i8 = i * 8;
+        // corner 0
+        texCoords[i8] = 0.0f + EPS;
+        texCoords[i8 + 1] = 1.0f - EPS;
+        // corner 1
+        texCoords[i8 + 2] = ratiow - EPS;
+        texCoords[i8 + 3] = 1.0f - EPS;
+        // corner 2
+        texCoords[i8 + 4] = ratiow - EPS;
+        texCoords[i8 + 5] = 1.0f - ratioh + EPS;
+        // corner 3
+        texCoords[i8 + 6] = 0.0f + EPS;
+        texCoords[i8 + 7] = 1.0f - ratioh + EPS;
+      }
+    }
+    else if (axis == 1) {
+      // WLH 23 Feb 2000 - flip Z
+      for (int i=0; i<length; i++) {
+        int i8 = i * 8;
+        // corner 0
+        texCoords[i8] = 0.0f + EPS;
+        texCoords[i8 + 1] = 1.0f - EPS;
+        // corner 1
+        texCoords[i8 + 2] = ratiow - EPS;
+        texCoords[i8 + 3] = 1.0f - EPS;
+        // corner 2
+        texCoords[i8 + 4] = ratiow - EPS;
+        texCoords[i8 + 5] = 1.0f - ratiod + EPS;
+        // corner 3
+        texCoords[i8 + 6] = 0.0f + EPS;
+        texCoords[i8 + 7] = 1.0f - ratiod + EPS;
+      }
+    }
+    else if (axis == 0) {
+      // WLH 23 Feb 2000 - flip Y and Z
+      for (int i=0; i<length; i++) {
+        int i8 = i * 8;
+        // corner 0
+        texCoords[i8] = 0.0f + EPS;
+        texCoords[i8 + 1] = 1.0f - EPS;
+        // corner 1
+        texCoords[i8 + 2] = ratioh - EPS;
+        texCoords[i8 + 3] = 1.0f - EPS;
+        // corner 2
+        texCoords[i8 + 4] = ratioh - EPS;
+        texCoords[i8 + 5] = 1.0f - ratiod + EPS;
+        // corner 3
+        texCoords[i8 + 6] = 0.0f + EPS;
+        texCoords[i8 + 7] = 1.0f - ratiod + EPS;
+      }
+    }
+/* WLH 17 March 2000
     if (axis == 2) {
       for (int i=0; i<length; i++) {
         int i8 = i * 8;
@@ -278,6 +335,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
         texCoords[i8 + 7] = 1.0f - ratiod;
       }
     }
+*/
     return texCoords;
   }
 
@@ -523,9 +581,15 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       c_color.setColor(constant_color[0], constant_color[1], constant_color[2]);
     }
     TextureAttributes texture_attributes = new TextureAttributes();
-    texture_attributes.setTextureMode(TextureAttributes.MODULATE);
+
+    // WLH 17 March 2000
+    // texture_attributes.setTextureMode(TextureAttributes.MODULATE);
+    texture_attributes.setTextureMode(TextureAttributes.REPLACE);
+
     texture_attributes.setPerspectiveCorrectionMode(
                           TextureAttributes.NICEST);
+
+    int transparencyMode = mode.getTransparencyMode();
 
     OrderedGroup branchX = new OrderedGroup();
     branchX.setCapability(Group.ALLOW_CHILDREN_READ);
@@ -544,8 +608,17 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       Appearance appearance =
         makeAppearance(mode, c_alpha, null, geometryX[i], true);
       appearance.setTextureAttributes(texture_attributes);
-      texture.setMinFilter(Texture.BASE_LEVEL_LINEAR);
-      texture.setMagFilter(Texture.BASE_LEVEL_LINEAR);
+      // WLH 17 March 2000
+      if (transparencyMode == TransparencyAttributes.FASTEST) {
+        texture.setMinFilter(Texture.BASE_LEVEL_POINT);
+        texture.setMagFilter(Texture.BASE_LEVEL_POINT);
+      }
+      else {
+        texture.setBoundaryModeS(Texture.CLAMP);
+        texture.setBoundaryModeT(Texture.CLAMP);
+        texture.setMinFilter(Texture.BASE_LEVEL_LINEAR);
+        texture.setMagFilter(Texture.BASE_LEVEL_LINEAR);
+      }
       texture.setEnable(true);
       appearance.setTexture(texture);
       appearance.setCapability(Appearance.ALLOW_TEXTURE_READ);
@@ -568,8 +641,17 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       Appearance appearance =
         makeAppearance(mode, c_alpha, null, geometryX[i], true);
       appearance.setTextureAttributes(texture_attributes);
-      texture.setMinFilter(Texture.BASE_LEVEL_LINEAR);
-      texture.setMagFilter(Texture.BASE_LEVEL_LINEAR);
+      // WLH 17 March 2000
+      if (transparencyMode == TransparencyAttributes.FASTEST) {
+        texture.setMinFilter(Texture.BASE_LEVEL_POINT);
+        texture.setMagFilter(Texture.BASE_LEVEL_POINT);
+      }
+      else {
+        texture.setBoundaryModeS(Texture.CLAMP);
+        texture.setBoundaryModeT(Texture.CLAMP);
+        texture.setMinFilter(Texture.BASE_LEVEL_LINEAR);
+        texture.setMagFilter(Texture.BASE_LEVEL_LINEAR);
+      }
       texture.setEnable(true);
       appearance.setTexture(texture);
       appearance.setCapability(Appearance.ALLOW_TEXTURE_READ);
@@ -597,8 +679,17 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       Appearance appearance =
         makeAppearance(mode, c_alpha, null, geometryY[i], true);
       appearance.setTextureAttributes(texture_attributes);
-      texture.setMinFilter(Texture.BASE_LEVEL_LINEAR);
-      texture.setMagFilter(Texture.BASE_LEVEL_LINEAR);
+      // WLH 17 March 2000
+      if (transparencyMode == TransparencyAttributes.FASTEST) {
+        texture.setMinFilter(Texture.BASE_LEVEL_POINT);
+        texture.setMagFilter(Texture.BASE_LEVEL_POINT);
+      }
+      else {
+        texture.setBoundaryModeS(Texture.CLAMP);
+        texture.setBoundaryModeT(Texture.CLAMP);
+        texture.setMinFilter(Texture.BASE_LEVEL_LINEAR);
+        texture.setMagFilter(Texture.BASE_LEVEL_LINEAR);
+      }
       texture.setEnable(true);
       appearance.setTexture(texture);
       appearance.setCapability(Appearance.ALLOW_TEXTURE_READ);
@@ -622,8 +713,17 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       Appearance appearance =
         makeAppearance(mode, c_alpha, null, geometryY[i], true);
       appearance.setTextureAttributes(texture_attributes);
-      texture.setMinFilter(Texture.BASE_LEVEL_LINEAR);
-      texture.setMagFilter(Texture.BASE_LEVEL_LINEAR);
+      // WLH 17 March 2000
+      if (transparencyMode == TransparencyAttributes.FASTEST) {
+        texture.setMinFilter(Texture.BASE_LEVEL_POINT);
+        texture.setMagFilter(Texture.BASE_LEVEL_POINT);
+      }
+      else {
+        texture.setBoundaryModeS(Texture.CLAMP);
+        texture.setBoundaryModeT(Texture.CLAMP);
+        texture.setMinFilter(Texture.BASE_LEVEL_LINEAR);
+        texture.setMagFilter(Texture.BASE_LEVEL_LINEAR);
+      }
       texture.setEnable(true);
       appearance.setTexture(texture);
       appearance.setCapability(Appearance.ALLOW_TEXTURE_READ);
@@ -650,8 +750,17 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       Appearance appearance =
         makeAppearance(mode, c_alpha, null, geometryZ[i], true);
       appearance.setTextureAttributes(texture_attributes);
-      texture.setMinFilter(Texture.BASE_LEVEL_LINEAR);
-      texture.setMagFilter(Texture.BASE_LEVEL_LINEAR);
+      // WLH 17 March 2000
+      if (transparencyMode == TransparencyAttributes.FASTEST) {
+        texture.setMinFilter(Texture.BASE_LEVEL_POINT);
+        texture.setMagFilter(Texture.BASE_LEVEL_POINT);
+      }
+      else {
+        texture.setBoundaryModeS(Texture.CLAMP);
+        texture.setBoundaryModeT(Texture.CLAMP);
+        texture.setMinFilter(Texture.BASE_LEVEL_LINEAR);
+        texture.setMagFilter(Texture.BASE_LEVEL_LINEAR);
+      }
       texture.setEnable(true);
       appearance.setTexture(texture);
       appearance.setCapability(Appearance.ALLOW_TEXTURE_READ);
@@ -674,8 +783,17 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       Appearance appearance =
         makeAppearance(mode, c_alpha, null, geometryZ[i], true);
       appearance.setTextureAttributes(texture_attributes);
-      texture.setMinFilter(Texture.BASE_LEVEL_LINEAR);
-      texture.setMagFilter(Texture.BASE_LEVEL_LINEAR);
+      // WLH 17 March 2000
+      if (transparencyMode == TransparencyAttributes.FASTEST) {
+        texture.setMinFilter(Texture.BASE_LEVEL_POINT);
+        texture.setMagFilter(Texture.BASE_LEVEL_POINT);
+      }
+      else {
+        texture.setBoundaryModeS(Texture.CLAMP);
+        texture.setBoundaryModeT(Texture.CLAMP);
+        texture.setMinFilter(Texture.BASE_LEVEL_LINEAR);
+        texture.setMagFilter(Texture.BASE_LEVEL_LINEAR);
+      }
       texture.setEnable(true);
       appearance.setTexture(texture);
       appearance.setCapability(Appearance.ALLOW_TEXTURE_READ);
