@@ -1626,7 +1626,8 @@ for (int j=0; j<3; j++) {
 
     // these are just estimates
     // int est = 2 * Length; WLH 14 April 2000
-    int est = Length / 8;
+    double dest = Math.sqrt((double) Length);
+    int est = (int) (dest * Math.sqrt(dest));
     if (est < 1000) est = 1000;
     int maxv2 = est;
     int maxv1 = 2 * 2 * maxv2;
