@@ -181,6 +181,7 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
       ScalarMap m = maps[i];
       ScalarType md = m.getScalar();
       DisplayRealType mr = m.getDisplayScalar();
+      boolean ddt = md.equals(time);
       boolean ddx = md.equals(x);
       boolean ddy = md.equals(y);
       boolean ddrx = md.equals(rx);
@@ -188,9 +189,10 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
       boolean ddr = md.equals(r);
       boolean ddg = md.equals(g);
       boolean ddb = md.equals(b);
+      boolean ddrgb = md.equals(rgb);
 
       // animation mapping
-      if (md.equals(time)) {
+      if (ddt) {
         if (btime) throw new VisADException("Multiple Time mappings");
         if (!mr.equals(Display.Animation)) {
           throw new VisADException(
@@ -246,7 +248,7 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
       }
 
       // rgb mapping
-      else if (md.equals(rgb)) {
+      else if (ddrgb) {
         if (br || bg || bb) {
           throw new VisADException("Duplicate color mappings");
         }
@@ -271,8 +273,12 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
         else bb = true;
       }
 
-      // illegal ScalarMap
-      else throw new VisADException("Illegal mapping: " + m);
+      // illegal ScalarMap involving this MathType
+      else if (ddt || ddx || ddy || ddrx || ddry ||
+        ddr || ddg || ddb || ddrgb)
+      {
+        throw new VisADException("Illegal mapping: " + m);
+      }
     }
 
     // return true if all conditions for ImageRendererJ3D are met

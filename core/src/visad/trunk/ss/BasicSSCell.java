@@ -1706,12 +1706,12 @@ public class BasicSSCell extends JPanel
           }
         }
       }
-      boolean ok = false;
-      if (dr.length == 1) {
+      for (int i=0; i<dr.length; i++) {
         // determine if ImageRendererJ3D can be used
-        Data data = dr[0].getData();
+        boolean ok = false;
+        Data data = dr[i].getData();
         if (data == null) {
-          if (DEBUG) warn("data is null; cannot analyze MathType");
+          if (DEBUG) warn("data #" + i + " is null; cannot analyze MathType");
         }
         else {
           MathType type = data.getType();
@@ -1722,13 +1722,14 @@ public class BasicSSCell extends JPanel
             if (DEBUG && DEBUG_LEVEL >= 3) exc.printStackTrace();
           }
         }
-      }
-      if (ok && Dim != JAVA2D_2D) {
-        VDisplay.addReferences(new ImageRendererJ3D(), dr[0], cmaps[0]);
-      }
-      else {
-        if (DEBUG) warn("cannot use ImageRendererJ3D");
-        for (int i=0; i<dr.length; i++) VDisplay.addReference(dr[i], cmaps[i]);
+        // add reference
+        if (ok && Dim != JAVA2D_2D) {
+          VDisplay.addReferences(new ImageRendererJ3D(), dr[i], cmaps[i]);
+        }
+        else {
+          if (DEBUG) warn("data #" + i + " cannot use ImageRendererJ3D");
+          VDisplay.addReference(dr[i], cmaps[i]);
+        }
       }
       VDisplay.enableAction();
     }

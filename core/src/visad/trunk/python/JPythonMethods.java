@@ -165,54 +165,57 @@ public abstract class JPythonMethods {
   {
     if (data == null) throw new VisADException("Data cannot be null");
     if (name == null) name = DEFAULT_NAME;
-    BasicSSCell display = BasicSSCell.getSSCellByName(name);
-    JFrame frame;
-    if (display == null) {
-      display = new FancySSCell(name);
-      display.setPreferredSize(new Dimension(256, 256));
-      frame = new JFrame("VisAD Display Plot (" + name + ")");
-      frames.put(name, frame);
-      JPanel pane = new JPanel();
-      pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
-      frame.setContentPane(pane);
-      pane.add(display);
+    BasicSSCell display;
+    synchronized (frames) {
+      display = BasicSSCell.getSSCellByName(name);
+      JFrame frame;
+      if (display == null) {
+        display = new FancySSCell(name);
+        display.setDimension(BasicSSCell.JAVA3D_3D);
+        display.setPreferredSize(new Dimension(256, 256));
+        frame = new JFrame("VisAD Display Plot (" + name + ")");
+        frames.put(name, frame);
+        JPanel pane = new JPanel();
+        pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
+        frame.setContentPane(pane);
+        pane.add(display);
 
-      // add buttons to cell layout
-      JButton maps = new JButton("Maps");
-      JButton clear = new JButton("Clear");
-      JPanel buttons = new JPanel();
-      buttons.setLayout(new BoxLayout(buttons, BoxLayout.X_AXIS));
-      buttons.add(maps);
-      buttons.add(clear);
-      pane.add(buttons);
-      final FancySSCell fdisp = (FancySSCell) display;
-      maps.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          fdisp.addMapDialog();
-        }
-      });
-      clear.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          try {
-            fdisp.smartClear();
+        // add buttons to cell layout
+        JButton maps = new JButton("Maps");
+        JButton clear = new JButton("Clear");
+        JPanel buttons = new JPanel();
+        buttons.setLayout(new BoxLayout(buttons, BoxLayout.X_AXIS));
+        buttons.add(maps);
+        buttons.add(clear);
+        pane.add(buttons);
+        final FancySSCell fdisp = (FancySSCell) display;
+        maps.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            fdisp.addMapDialog();
           }
-          catch (VisADException exc) { }
-          catch (RemoteException exc) { }
-        }
-      });
-      frame.pack();
+        });
+        clear.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            try {
+              fdisp.smartClear();
+            }
+            catch (VisADException exc) { }
+            catch (RemoteException exc) { }
+          }
+        });
+        frame.pack();
+      }
+      else {
+        frame = (JFrame) frames.get(name);
+      }
+      frame.setVisible(true);
     }
-    else {
-      frame = (JFrame) frames.get(name);
-    }
-    frame.setVisible(true);
 
     ConstantMap[] cmaps = {
       new ConstantMap(red, Display.Red),
       new ConstantMap(green, Display.Green),
       new ConstantMap(blue, Display.Blue)
     };
-
     display.addData(data, cmaps);
   }
 
@@ -223,6 +226,7 @@ public abstract class JPythonMethods {
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
   public static void clearplot() throws VisADException, RemoteException {
+    clearplot(null);
   }
 
   /**
