@@ -68,13 +68,15 @@ public abstract class Control extends Object
          throws VisADException, RemoteException {
     if (tick) incTick();
     if (ListenerVector != null) {
+      Vector clv = null;
       synchronized (ListenerVector) {
-        Enumeration listeners = ListenerVector.elements();
-        while (listeners.hasMoreElements()) {
-          ControlListener listener =
-            (ControlListener) listeners.nextElement();
-          listener.controlChanged(new ControlEvent(this));
-        }
+        clv = (Vector) ListenerVector.clone();
+      }
+      Enumeration listeners = clv.elements();
+      while (listeners.hasMoreElements()) {
+        ControlListener listener =
+          (ControlListener) listeners.nextElement();
+        listener.controlChanged(new ControlEvent(this));
       }
     }
   }

@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: RGBAMap.java,v 1.6 1998-12-02 15:46:24 billh Exp $
+@(#) $Id: RGBAMap.java,v 1.7 1999-04-28 11:14:49 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -35,7 +35,7 @@ import java.awt.*;
  * between the red, green, blue, and alpha curves.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.6 $, $Date: 1998-12-02 15:46:24 $
+ * @version $Revision: 1.7 $, $Date: 1999-04-28 11:14:49 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -52,6 +52,9 @@ public class RGBAMap extends ColorMap
 
 	/** A lock to synchronize against when modifing the modified area */
 	private Object mutex = new Object();
+
+        /** A lock to synchronize against when modifing val or resolution */
+        private Object mutex_val = new Object();
 
 	/** The index of the color red */
 	private static final int RED = 0;
@@ -99,6 +102,8 @@ public class RGBAMap extends ColorMap
 	}
 
 	private void setValues(float[][] vals, boolean notify) {
+          int note = 0;
+          synchronized (mutex_val) {
                 if (vals == null) {
                   this.resolution = 256;
                   val = new float[this.resolution][4];
@@ -114,7 +119,11 @@ public class RGBAMap extends ColorMap
 			  val[i][3] = vals[i][3];
 		  }
 		}
-		if (notify) notifyListeners(0, this.resolution-1);
+            note = this.resolution-1;
+          }
+
+          // if (notify) notifyListeners(0, this.resolution-1);
+          if (notify) notifyListeners(0, note);
         }
 
 	/** Returns the resolution of the map */
@@ -130,6 +139,7 @@ public class RGBAMap extends ColorMap
 	/** Returns a copy of the color map */
 	public float[][] getColorMap() {
 	
+          synchronized (mutex_val) {
 		float[][] ret = new float[resolution][4];
 		
 		for (int i = 0; i < resolution; i++) {
@@ -140,6 +150,7 @@ public class RGBAMap extends ColorMap
 		}
 		
 		return ret;
+          }
 	}
 	
 	/** Returns the tuple at a floating point value val */
@@ -214,19 +225,24 @@ public class RGBAMap extends ColorMap
 	 * range 0 to 1
 	 */
 	public float[] getRGBTuple(float value) {
+          synchronized (mutex_val) {
 		float arrayIndex = value * (resolution - 1);
 		int index = (int) Math.floor(arrayIndex);
 		float partial = arrayIndex - index;
-		if (index >= resolution || index < 0 || (index == (resolution - 1) && partial != 0)) {
+		if (index >= resolution || index < 0 ||
+                    (index == (resolution - 1) && partial != 0)) {
 			float[] f = {0,0,0};
 			return f;
 		}
 		
 		float red, green, blue;
 		if (partial != 0) {
-			red = val[index][RED] * (1 - partial) + val[index+1][RED] * partial;
-			green = val[index][GREEN] * (1 - partial) + val[index+1][GREEN] * partial;
-			blue = val[index][BLUE] * (1 - partial) + val[index+1][BLUE] * partial;
+			red = val[index][RED] * (1 - partial) +
+                              val[index+1][RED] * partial;
+			green = val[index][GREEN] * (1 - partial) +
+                                val[index+1][GREEN] * partial;
+			blue = val[index][BLUE] * (1 - partial) +
+                               val[index+1][BLUE] * partial;
 		}
 		else {
 			red = val[index][RED];
@@ -235,6 +251,7 @@ public class RGBAMap extends ColorMap
 		}
 		float[] f = {red, green, blue};
 		return f;
+          }
 	}
 		
 	/** Present to implement MouseListener, currently ignored */
@@ -288,8 +305,10 @@ public class RGBAMap extends ColorMap
 			y = height - 1;
 
 		float dist = (float) x / (float) width;
-		index = (int) Math.floor(dist * (resolution - 1) + 0.5);
-		val[index][state] = 1 - (float) y / (float) height;
+                synchronized (mutex_val) {
+		  index = (int) Math.floor(dist * (resolution - 1) + 0.5);
+		  val[index][state] = 1 - (float) y / (float) height;
+                }
 
 		oldX = x;
 		oldY = y;
@@ -351,6 +370,9 @@ public class RGBAMap extends ColorMap
 			oldy = getBounds().height - 1;
 			
 		
+            int notelow = -1;
+            int notehi = -1;
+            synchronized (mutex_val) {
 		float dist = (float) x / (float) (getBounds().width - 1);
 		int index = (int) Math.floor(dist * (resolution - 1) + 0.5);
 		
@@ -365,22 +387,31 @@ public class RGBAMap extends ColorMap
 				val[i][state] = oldVal * ((float) (index - i)) / ((float) (index - oldPos))
 						+ target * ((float) (i - oldPos)) / ((float) (index - oldPos));
 			}
-			notifyListeners(oldPos + 1, index);
-			return;
+			// notifyListeners(oldPos + 1, index);
+			// return;
+                        notelow = oldPos + 1;
+                        notehi = index;
 		}
 		if (index < oldPos) {
 			for (int i = oldPos - 1; i >= index; i--) {
 				val[i][state] = oldVal * ((float) (i - index)) / ((float) (oldPos - index))
 						+ target * ((float) (oldPos - i)) / ((float) (oldPos - index));
 			}
-			notifyListeners(index, oldPos - 1);
-			return;
+			// notifyListeners(index, oldPos - 1);
+			// return;
+                        notelow = index;
+                        notehi = oldPos - 1;
 		}
 		if (index == oldPos) {
 			val[index][state] = target;
-			notifyListeners(index, index);
-			return;
+			// notifyListeners(index, index);
+			// return;
+                        notelow = index;
+                        notehi = index;
 		}
+            }
+            if (notelow > -1 && notehi > -1) notifyListeners(notelow, notehi);
+            return;
 	}
 	
 	/** Present to implement MouseMovementListener, currently ignored */
@@ -409,6 +440,8 @@ public class RGBAMap extends ColorMap
 	/** Repaints the modified areas of the Panel */
 	public void update(Graphics g) {
 	
+          synchronized (mutex_val) {
+
 		int left = 0;
 		int right = resolution - 1;
 	
@@ -450,6 +483,12 @@ public class RGBAMap extends ColorMap
 		leftPixel = (left * (bounds.width - 1)) / (resolution - 1);
 		rightPixel = (right * (bounds.width - 1)) / (resolution - 1);
 		
+                int len = val.length - 1;
+                if (left < 0) left = 0;
+                if (left > len) left = len;
+                if (right < 0) right = 0;
+                if (right > len) right = len;
+
 		int prevEnd = leftPixel;
 		
 		int prevRed = (int) Math.floor((1 - val[left][RED]) * (bounds.height - 1));
@@ -484,6 +523,7 @@ public class RGBAMap extends ColorMap
 			prevBlue = blue;
 			prevAlpha = alpha;
 		}
+          }
 	}
 	
 	/** Return the preferred size of this map, taking into account the resolution */ 

@@ -207,9 +207,6 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     rendering.setDepthBufferEnable(true);
     appearance.setRenderingAttributes(rendering);
 
-    if (constant_alpha != null) {
-      appearance.setTransparencyAttributes(constant_alpha);
-    }
     if (constant_color != null) {
       appearance.setColoringAttributes(constant_color);
     }
@@ -225,6 +222,9 @@ public abstract class ShadowTypeJ3D extends ShadowType {
       // no lighting in 2-D mode
       if (!mode.getMode2D()) material.setLightingEnable(true);
       appearance.setMaterial(material);
+      if (constant_alpha != null) {
+        appearance.setTransparencyAttributes(constant_alpha);
+      }
     }
 
     return appearance;

@@ -21,7 +21,8 @@ public class Test31
     RealType vis_radiance = new RealType("vis_radiance", null, null);
     RealType ir_radiance = new RealType("ir_radiance", null, null);
     RealType count = new RealType("count", null, null);
-    RealType[] scatter_list = {vis_radiance, ir_radiance, count, RealType.Latitude, RealType.Longitude, RealType.Radius};
+    RealType[] scatter_list = {vis_radiance, ir_radiance, count, RealType.Latitude,
+                               RealType.Longitude, RealType.Radius};
     RealTupleType scatter = new RealTupleType(scatter_list);
     RealType[] time = {RealType.Time};
     RealTupleType time_type = new RealTupleType(time);
@@ -41,6 +42,9 @@ public class Test31
     display1.addMap(new ScalarMap(ir_radiance, Display.XAxis));
     display1.addMap(new ConstantMap(0.5, Display.Blue));
     display1.addMap(new ConstantMap(0.5, Display.Red));
+
+    // WLH 28 April 99 - test alpha with points
+    display1.addMap(new ScalarMap(vis_radiance, Display.Alpha));
 
     GraphicsModeControl mode = display1.getGraphicsModeControl();
     mode.setPointSize(5.0f);

@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: ColorMap.java,v 1.5 1998-07-30 20:30:03 curtis Exp $
+@(#) $Id: ColorMap.java,v 1.6 1999-04-28 11:14:48 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -33,7 +33,7 @@ import java.util.Vector;
  * class manages all of the listener notification for the ColorMaps.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision 1.7 $, $Date: 1998-07-30 20:30:03 $
+ * @version $Revision 1.7 $, $Date: 1999-04-28 11:14:48 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -81,25 +81,33 @@ public abstract class ColorMap extends Panel {
 	private Vector listeners = new Vector();
 	
 	/** Add a ColorChangeListener to the listeners list */
-	public synchronized void addColorChangeListener(ColorChangeListener c) {
+	public void addColorChangeListener(ColorChangeListener c) {
+          synchronized (listeners) {
 		if (!listeners.contains(c)) {
 			listeners.addElement(c);
 		}
+          }
 	}
 	
 	/** Remove a ColorChangeListener from the listeners list */
-	public synchronized void removeColorChangeListener(ColorChangeListener c) {
+	public void removeColorChangeListener(ColorChangeListener c) {
+          synchronized (listeners) {
 		if (listeners.contains(c)) {
 			listeners.removeElement(c);
 		}
+          }
 	}
 	
 	/** Notify the ColorChangeListerers that the color widget has changed */
-	protected synchronized void notifyListeners(ColorChangeEvent e) {
-		for (int i = 0; i < listeners.size(); i++) {
-			ColorChangeListener c = (ColorChangeListener) listeners.elementAt(i);
-			c.colorChanged(e);
-		}
+	protected void notifyListeners(ColorChangeEvent e) {
+          Vector cl = null;
+          synchronized (listeners) {
+            cl = (Vector) listeners.clone();
+          }
+          for (int i = 0; i < cl.size(); i++) {
+            ColorChangeListener c = (ColorChangeListener) cl.elementAt(i);
+            c.colorChanged(e);
+          }
 	}
 }
 

@@ -10,12 +10,21 @@ import visad.java3d.DisplayImplJ3D;
 public class Test12
 	extends UISkeleton
 {
+  ScalarMap color1map = null;
+  boolean dynamic = false;
+
   public Test12() { }
 
   public Test12(String args[])
 	throws VisADException, RemoteException
   {
     super(args);
+  }
+
+  int checkExtraKeyword(int argc, String args[])
+  {
+    dynamic = true;
+    return 1;
   }
 
   DisplayImpl[] setupData()
@@ -38,7 +47,7 @@ public class Test12
     display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
     display1.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
 
-    ScalarMap color1map = new ScalarMap(ir_radiance, Display.RGB);
+    color1map = new ScalarMap(ir_radiance, Display.RGB);
     display1.addMap(color1map);
 
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
@@ -49,6 +58,35 @@ public class Test12
     dpys[0] = display1;
 
     return dpys;
+  }
+
+  void setupUI(DisplayImpl[] dpys)
+        throws VisADException, RemoteException
+  {
+    super.setupUI(dpys);
+
+    if (dynamic) {
+      ColorControl control = (ColorControl) color1map.getControl();
+      boolean forever = true;
+      int size = 512;
+      while (forever) {
+        try {
+          Thread.sleep(5000);
+        }
+        catch (InterruptedException e) {
+        }
+        System.out.println("\ndelay\n");
+        float[][] table = new float[3][size];
+        float scale = 1.0f / (size - 1.0f);
+        for (int i=0; i<size; i++) {
+          table[0][i] = scale * i;
+          table[1][i] = scale * i;
+          table[2][i] = scale * i;
+        }
+        size *= 2;
+        control.setTable(table);
+      }
+    }
   }
 
   String getFrameTitle() { return "VisAD Color Widget"; }
