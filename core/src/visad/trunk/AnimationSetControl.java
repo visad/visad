@@ -35,7 +35,7 @@ import java.rmi.*;
 public class AnimationSetControl extends Control {
 
   private Set set;
-  private AnimationControl parent;
+  private transient AnimationControl parent;
 
   public AnimationSetControl(DisplayImpl d, AnimationControl p) {
     super(d);
