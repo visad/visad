@@ -555,6 +555,10 @@ public class AnimationControlJ3D extends AVControlJ3D
       changed = true;
       real = ac.real;
     }
+    if (showAnimationString != ac.showAnimationString) {
+      changed = true;
+      showAnimationString = ac.showAnimationString;
+    }
 
     if (changed) {
       try {
@@ -589,6 +593,9 @@ public class AnimationControlJ3D extends AVControlJ3D
       return false;
     }
     if (real != ac.real) {
+      return false;
+    }
+    if (showAnimationString != ac.showAnimationString) {
       return false;
     }
 

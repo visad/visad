@@ -567,6 +567,10 @@ System.out.println("AnimationControlJ2D.takeStep: renderTrigger " +
       changed = true;
       no_tick = ac.no_tick;
     }
+    if (showAnimationString != ac.showAnimationString) {
+      changed = true;
+      showAnimationString = ac.showAnimationString;
+    }
 
     if (changed) {
       try {
@@ -601,6 +605,9 @@ System.out.println("AnimationControlJ2D.takeStep: renderTrigger " +
       return false;
     }
     if (no_tick != ac.no_tick) {
+      return false;
+    }
+    if (showAnimationString != ac.showAnimationString) {
       return false;
     }
 
