@@ -32,16 +32,28 @@ package visad;
 //
 
 /**
-   UnionSet is the union of an array of SampledSets.  They
-   must match in domain dimension, manifold dimension,
-   CoordinateSystem, and Units.<P>
-*/
+ * UnionSet is the union of an array of SampledSets.  They
+ * must match in domain dimension, manifold dimension,
+ * CoordinateSystem, and Units.  No sets in the array can be null,
+ * and there must be at least one SampledSet in the array
+ * (i.e. array.length != 0).<P>
+ */
 public class UnionSet extends SampledSet {
 
   SampledSet[] Sets;
 
-  /** create the union of the sets array, with null errors,
-      CoordinateSystem and Units are defaults from type */
+  /** 
+   * Construct a UnionSet with an array of SampledSets with null errors.
+   * CoordinateSystem and Units are defaults from type.
+   * 
+   * @param  type  MathType for the sets.  Sets the CoordinateSystem and Units.
+   * @param  sets  array of SampledSets.  All sets must match in domain 
+   *               dimension and manifold dimension and no sets in the
+   *               array can be null.  There must be at least one SampledSet
+   *               in the array (i.e. sets.length != 0).
+   *
+   * @exception  VisADException  problem creating the UnionSet
+   */
   public UnionSet(MathType type, SampledSet[] sets) throws VisADException {
     this(type, sets, null, null, null, true);
   }
@@ -71,7 +83,7 @@ public class UnionSet extends SampledSet {
     if (copy) {
       Sets = new SampledSet[sets.length];
       for (int i=0; i<sets.length; i++) {
-      	Sets[i] = (SampledSet) sets[i].clone();
+        Sets[i] = (SampledSet) sets[i].clone();
       }
     }
     else Sets = sets;
@@ -93,11 +105,14 @@ public class UnionSet extends SampledSet {
 
   private static int find_manifold_dim(SampledSet[] sets)
                                         throws VisADException {
-    if (sets == null || sets[0] == null) {
+    if (sets == null || sets.length == 0 || sets[0] == null) {
       throw new SetException("UnionSet: Sets cannot be missing");
     }
     if (sets.length < 2) {
+    /* DRM - 03-Jan-2000
       throw new SetException("UnionSet: must be at least 2 sets");
+    */
+      return sets[0].ManifoldDimension;
     }
     int dim = sets[0].DomainDimension;
     int mdim = sets[0].ManifoldDimension;
@@ -136,13 +151,28 @@ public class UnionSet extends SampledSet {
     return mdim;
   }
 
-  /** construct a UnionSet with an array of SampledSets */
+  /** 
+   * Construct a UnionSet with an array of SampledSets
+   * 
+   * @param  sets  array of SampledSets.  All sets must match in domain 
+   *               dimension and manifold dimension, CoordinateSystem, 
+   *               and Units. and no sets in the array can be null.  
+   *               There must be at least one SampledSet
+   *               in the array (i.e. sets.length != 0).
+   *
+   * @exception  VisADException  problem creating the UnionSet
+   */
   public UnionSet(SampledSet[] sets) throws VisADException {
     this(sets[0].getType(), sets, null, null, null, true);
   }
 
-  /** return a SampledSet that is a UnionSet of ProductSets of
-      GriddedSets and IrregularSets */
+  /** 
+   * Return a SampledSet that is a UnionSet of ProductSets of
+   * GriddedSets and IrregularSets 
+   *
+   * @return  resulting UnionSet of ProductSets
+   * @exception  VisADException  problem creating the UnionSet
+   */
   public SampledSet product() throws VisADException {
     int n = Sets.length;
     SampledSet[] sets = new SampledSet[n];
@@ -184,6 +214,15 @@ public class UnionSet extends SampledSet {
     return new UnionSet(getType(), summands);
   }
 
+  /** 
+   * Create a UnionSet that is the cross product of this UnionSet and
+   * the input SampledSet.
+   * 
+   * @param  set   input SampledSet
+   * @return a SampledSet that is a UnionSet of ProductSets of
+   *           this UnionSet and the input SampledSet
+   * @exception   VisADException  error creating necessary VisAD object
+   */
   public SampledSet product(SampledSet set) throws VisADException {
     int n = Sets.length;
     SampledSet[] sets = new SampledSet[n];
@@ -212,6 +251,16 @@ public class UnionSet extends SampledSet {
     return union;
   }
 
+  /** 
+   * Create a UnionSet that is the inverse cross product of this UnionSet and
+   * the input SampledSet.
+   * 
+   * @param  set   input SampledSet
+   *
+   * @return       a SampledSet that is a UnionSet of inverse ProductSets of
+   *               this UnionSet and the input SampledSet
+   * @exception    VisADException  error creating necessary VisAD object
+   */
   public SampledSet inverseProduct(SampledSet set) throws VisADException {
     int n = Sets.length;
     SampledSet[] sets = new SampledSet[n];
@@ -609,6 +658,11 @@ System.out.println("set_num[" + j + "] = " + set_num[j] +
     throw new UnimplementedException("UnionSet.valueToInterp");
   }
 
+  /**
+   * Returns a clone of this object
+   *
+   * @return clone
+   */
   public Object clone() {
     try {
       return new UnionSet(Type, Sets, DomainCoordinateSystem,
@@ -619,11 +673,26 @@ System.out.println("set_num[" + j + "] = " + set_num[j] +
     }
   }
 
+  /** 
+   * Clone this UnionSet, but give it a new MathType; this is safe, 
+   * since constructor checks consistency of DomainCoordinateSystem 
+   * and SetUnits with type.
+   *
+   * @param   type   new MathType for the UnionSet
+   * @return  UnionSet with the new MathType
+   *
+   * @exception  VisADException  couldn't create the new UnionSet
+   */
   public Object cloneButType(MathType type) throws VisADException {
     return new UnionSet(type, Sets, DomainCoordinateSystem,
                         SetUnits, SetErrors);
   }
 
+  /**
+   * Check to see if two UnionSets are equal.
+   *
+   * @return  true if each of the sets in set is equal to the sets in this.
+   */
   public boolean equals(Object set) {
     if (!(set instanceof UnionSet) || set == null) return false;
     if (this == set) return true;
@@ -637,6 +706,11 @@ System.out.println("set_num[" + j + "] = " + set_num[j] +
     return true;
   }
 
+  /**
+   * Check to see if any of the sets in this UnionSet has missing data.
+   *
+   * @return  true if any of the sets has missing data, otherwise false
+   */
   public boolean isMissing() {
     for (int i=0; i<Sets.length; i++) {
       if (Sets[i].isMissing()) return true;
@@ -662,7 +736,10 @@ System.out.println("set_num[" + j + "] = " + set_num[j] +
     RealType[] vis_arrayP = {vis_xcoord, vis_xcoord};
     RealTupleType vis_tupleP = new RealTupleType(vis_arrayP);
     SampledSet[] sets = {gSet, iSet};
+    /* DRM - 03-Jan-2000
     UnionSet uSet = new UnionSet(vis_tupleP, sets);
+    */
+    UnionSet uSet = new UnionSet(vis_tuple, sets);
 
     // run some tests
     System.out.println("UnionSet created.");
