@@ -80,9 +80,26 @@ public class DumpType {
       dumpDT(ds, prefix+"  ");
       System.out.println(prefix+" Range has "+nr+" components:");
       Set[] dr = ((FlatField)d).getRangeSets() ;
+      float[][] samples = ((FlatField)d).getFloats();
       for (int i=0; i<dr.length; i++) {
         dumpDT(dr[i],prefix+"   "+i+".");
+        int nmiss = 0;
+        if (samples[i] == null) {
+          nmiss = ((FlatField)d).getLength();
+        }
+        else {
+          for (int j=0; j<samples[i].length; j++) {
+            if (samples[i][j] != samples[i][j]) nmiss++;
+          }
+        }
+        System.out.println(prefix+"   "+i+". number missing = "+nmiss);
       }
+
+    } else if (d instanceof FieldImpl) {
+      System.out.println(prefix+" FieldImpl of length = "+
+             ((FieldImpl)d).getLength() );
+      System.out.println(prefix+" first sample = ");
+      dumpDT( ((FieldImpl)d).getSample(0),prefix+"   "+0+".");
 
     } else if (d instanceof Field) {
       System.out.println(prefix+" Field: ");
