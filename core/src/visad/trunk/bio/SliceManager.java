@@ -1036,7 +1036,15 @@ public class SliceManager
     }
 
     // do volume rendering
-    if (volume) updateCollapsedField();
+    if (volume) {
+      updateCollapsedField();
+      try {
+        if (lowres) lowresRef3.setData(collapsedField);
+        else ref3.setData(collapsedField);
+      }
+      catch (VisADException exc) { exc.printStackTrace(); }
+      catch (RemoteException exc) { exc.printStackTrace(); }
+    }
 
     // switch resolution in 2-D display
     if (planeSelect) {
