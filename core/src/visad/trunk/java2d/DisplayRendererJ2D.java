@@ -898,6 +898,9 @@ public abstract class DisplayRendererJ2D
     clearScene(renderer);
   }
 
+  public void setLineWidth(float width) {
+  }
+
   /**
    * Add a <CODE>KeyboardBehavior</CODE> for keyboard control of translation 
    * and zoom.  This adds a <CODE>KeyListener</CODE> to the VisADCanvasJ2D to 

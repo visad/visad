@@ -101,6 +101,11 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     }
     if (Util.isApproximatelyEqual(width, lineWidth)) return;
     lineWidth = width;
+
+    // WLH 2 Dec 2002 in response to qomo2.txt
+    DisplayRendererJ2D dr = (DisplayRendererJ2D) getDisplayRenderer();
+    dr.setLineWidth(width);
+
     changeControl(true);
     getDisplay().reDisplayAll();
   }

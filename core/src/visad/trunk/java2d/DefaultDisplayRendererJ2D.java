@@ -176,6 +176,12 @@ public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
     box_array.coordinates = new_verts;
   }
 
+  // WLH 2 Dec 2002 in response to qomo2.txt
+  public void setLineWidth(float width) {
+    box.lineWidth = width;
+    cursor.lineWidth = width;
+  }
+
   private static final float[] box_verts = {
      // front face
          -1.0f, -1.0f,  0.0f,                       -1.0f,  1.0f,  0.0f,
