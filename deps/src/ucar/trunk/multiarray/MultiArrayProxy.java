@@ -15,7 +15,7 @@ import java.io.IOException;
  * @see MultiArray
  * @see IndexMap
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.3 $ $Date: 2000-08-28 21:43:42 $
+ * @version $Revision: 1.1.1.4 $ $Date: 2000-08-28 21:45:45 $
  */
 public class MultiArrayProxy implements MultiArray {
 
@@ -306,12 +306,12 @@ public class MultiArrayProxy implements MultiArray {
 			throw new IllegalArgumentException("Rank Mismatch");
 
 		final int [] products = new int[rank];
-		final int length = MultiArrayImpl.numberOfElements(shape,
+		final int length = MultiArrayImpl.numberOfElements(shp,
 			products);
 		dst = MultiArrayImpl.fixDest(dst, length, getComponentType());
-		final MultiArrayImpl data = new MultiArrayImpl(shape, products,
+		final MultiArrayImpl data = new MultiArrayImpl(shp, products,
 			dst);
-		AbstractAccessor.copyO(this, origin, data, shape);
+		AbstractAccessor.copyO(this, origin, data, shp);
 		return dst;
 	}
 

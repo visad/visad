@@ -24,7 +24,7 @@ import java.io.IOException;
  * @see ScalarMultiArray
  * @see MultiArrayProxy
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:06 $
+ * @version $Revision: 1.1.1.3 $ $Date: 2000-08-28 21:45:45 $
  */
 public interface
 MultiArray

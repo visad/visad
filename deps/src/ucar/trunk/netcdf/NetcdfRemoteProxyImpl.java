@@ -19,7 +19,7 @@ import java.rmi.server.Unreferenced;
  *
  * @see NetcdfRemoteProxy
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.3 $ $Date: 2000-08-28 21:44:50 $
+ * @version $Revision: 1.1.1.4 $ $Date: 2000-08-28 21:45:46 $
  */
 
 public class
@@ -101,9 +101,6 @@ NetcdfRemoteProxyImpl
 		_release();
 	}
 
-	/**
-	 * @see NetcdfServer#_release
-	 */
 	protected void
 	_release()
 	{
@@ -114,7 +111,16 @@ NetcdfRemoteProxyImpl
 		}
 	}
 
+	/**
+	 * @serial
+	 */
 	private final NetcdfServer svr_;
+	/**
+	 * @serial
+	 */
 	private final String key_;
+	/**
+	 * @serial
+	 */
 	private /* final */ AbstractNetcdf nc_;
 }

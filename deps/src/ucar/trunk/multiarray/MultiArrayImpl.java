@@ -14,7 +14,7 @@ import java.io.Serializable;
  * @see MultiArray
  *
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:06 $
+ * @version $Revision: 1.1.1.3 $ $Date: 2000-08-28 21:45:45 $
  */
 public class
 MultiArrayImpl
@@ -589,6 +589,7 @@ MultiArrayImpl
 	 * The actual storage. An array of componentType.
 	 * This member is exposed so that System.arraycopy(), etc
 	 * can be used directly on the storage.
+	 * @serial
 	 */
 	public final Object storage;
 
@@ -597,8 +598,12 @@ MultiArrayImpl
 	 * offset into the array.
 	 * When incrementing index[ii], one jumps through storage by
 	 * products[ii].
+	 * @serial
 	 */
 	private final int[] products;
+	/**
+	 * @serial
+	 */
 	private final int[] lengths;
 
  /* Begin Test */

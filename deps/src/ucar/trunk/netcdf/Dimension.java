@@ -10,7 +10,7 @@ import java.io.Serializable;
  * A Dimension object is used to contain an array length which is
  * named for use in multiple netcdf variables.
  * <p>
- * This class supports construction, retrieval of the name and retrival 
+ * This class supports construction, retrieval of the name and retrieval 
  * of the length value. The name is constant over the lifetime of the object.
  * Also note that change of the dimension length value is not
  * allowed. In the subclass UnlimitedDimension, the length may be increased.
@@ -22,7 +22,7 @@ import java.io.Serializable;
  * @see UnlimitedDimension
  *
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:07 $
+ * @version $Revision: 1.1.1.3 $ $Date: 2000-08-28 21:45:46 $
  */
 
 public class
@@ -128,8 +128,12 @@ Dimension
 
 	/**
 	 * The length. Immutable in this class.
+	 * @serial
 	 */
 	protected int length;
 
+	/**
+	 * @serial
+	 */
 	private final String name;
 }

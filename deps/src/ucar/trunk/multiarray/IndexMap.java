@@ -10,7 +10,7 @@ package ucar.multiarray;
  * MultiArrayProxy to manipulate indexes and the dimensions
  * of a MultiArray. There are two transformations represented.
  * Each goes from <code>int []</code> to <code>int []</code>.
- * (The <code>int<\code> values should actually be non-negative,
+ * (The <code>int</code> values should actually be non-negative,
  * as array indexes or array sizes.)
  * <p>
  * The transform most often used takes a MultiArrayProxy index
@@ -41,7 +41,7 @@ package ucar.multiarray;
  * proxy getLengths() method.
  *
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:41 $
+ * @version $Revision: 1.1.1.3 $ $Date: 2000-08-28 21:45:44 $
  */
 
 public interface

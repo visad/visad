@@ -15,7 +15,7 @@ import java.io.IOException;
  * Log messages are tagged with a numeric logging level,
  * selected from the ordered list of constants below.
  * Higher levels are more verbose. An implementation would
- * use the level of a message to decide where an whether to
+ * use the level of a message to decide where and whether to
  * write the message.
  * <p>
  * The three lowest logging levels,
@@ -29,7 +29,7 @@ import java.io.IOException;
  * of internal exceptions.
  *
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.1 $ $Date: 2000-08-28 21:44:51 $
+ * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:45:48 $
  */
 public interface
 Logger
@@ -59,7 +59,7 @@ Logger
 	public static final int ERR       = 3;
 	/**
 	 * Log level for warnings.
-	 *
+	 */
 	public static final int WARNING   = 4;
 	/**
 	 * Log level for messages indicating a
@@ -104,32 +104,32 @@ Logger
 
 	/**
 	 * Shorthand for <code>log(Logger.ERR, message)</code>.
-	 * @see ERR
-	 * @see log
+	 * @see #ERR
+	 * @see #log
 	 */
 	public void
 	logError(String message);
 
 	/**
 	 * Shorthand for <code>log(Logger.NOTICE, message)</code>.
-	 * @see NOTICE
-	 * @see log
+	 * @see #NOTICE
+	 * @see #log
 	 */
 	public void
 	logNotice(String message);
 
 	/**
 	 * Shorthand for <code>log(Logger.INFO, message)</code>.
-	 * @see INFO
-	 * @see log
+	 * @see #INFO
+	 * @see #log
 	 */
 	public void
 	logInfo(String message);
 
 	/**
 	 * Shorthand for <code>log(Logger.DEBUG, message)</code>.
-	 * @see DEBUG
-	 * @see log
+	 * @see #DEBUG
+	 * @see #log
 	 */
 	public void
 	logDebug(String message);

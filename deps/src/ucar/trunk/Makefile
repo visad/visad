@@ -1,13 +1,13 @@
-# $Id: Makefile,v 1.1.1.5 2000-08-28 21:44:48 dglo Exp $
+# $Id: Makefile,v 1.1.1.6 2000-08-28 21:45:44 dglo Exp $
 #
 #       Makefile for java package ucar (multiarray and netcdf)
 #
 SHELL = /bin/sh
 ##
 # target directories
-ROOT = /tmp/java
+ROOT = ../..
 CLASSDIR = $(ROOT)/classes
-DOCDIR = $(ROOT)/docs
+DOCDIR = ../docs # relative to ..
 
 JC = javac
 JCFLAGS = -g -d $(CLASSDIR)
@@ -33,7 +33,7 @@ all: multiarray/all netcdf/all tests/all
 test: tests/test
 
 docs:	FORCE
-	$(JDOC) $(JDOCFLAGS) -d $(DOCDIR) ucar.multiarray ucar.netcdf ucar.util
+	(cd ..; $(JDOC) $(JDOCFLAGS) -d $(DOCDIR) ucar.multiarray ucar.netcdf ucar.util)
 
 MANIFEST:	FORCE
 	$(MAKE) MANIFEST.echo >$@
@@ -46,13 +46,13 @@ tests/all \
 	@subdir=`echo $@ | sed 's,/.*,,'`; \
 	target=`echo $@ | sed 's,.*/,,'`; \
 	$(MAKE) CLASSDIR=$(CLASSDIR) SUBDIR=$$subdir TGET=$$target subdir_target
-	
+
 tests/test \
 :
 	@subdir=`echo $@ | sed 's,/.*,,'`; \
 	target=`echo $@ | sed 's,.*/,,'`; \
 	$(MAKE) $(MFLAGS) SUBDIR=$$subdir TGET=$$target subdir_target
-	
+
 
 subdir_target:
 	@echo ""

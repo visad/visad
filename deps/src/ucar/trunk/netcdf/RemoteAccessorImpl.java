@@ -21,7 +21,7 @@ import java.rmi.server.LogStream;
  * adaptee exceptions are wrapped in java.rmi.ServerException.
  * 
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:44:50 $
+ * @version $Revision: 1.1.1.3 $ $Date: 2000-08-28 21:45:47 $
  */
 
 public class
@@ -334,6 +334,12 @@ RemoteAccessorImpl
 		}
 	}
 
+	/**
+	 * @serial
+	 */
 	private final Accessor adaptee_;
+	/**
+	 * @serial
+	 */
 	private final NetcdfRemoteProxyImpl svr_;
 }

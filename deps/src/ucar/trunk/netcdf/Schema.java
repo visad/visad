@@ -24,7 +24,7 @@ import java.io.Serializable;
  * @see java.util.Collection
  *
  * @author $Author: dglo $
- * @version $Revision: 1.1.1.2 $ $Date: 2000-08-28 21:43:08 $
+ * @version $Revision: 1.1.1.3 $ $Date: 2000-08-28 21:45:47 $
  */
 
 public class Schema implements java.io.Serializable {
@@ -352,7 +352,16 @@ public class Schema implements java.io.Serializable {
     putDimension(Dimension dim)
 	{ dimensions.initialPut(dim); }
 
+    /**
+     * @serial
+     */
     private final DimensionDictionary dimensions;
+    /**
+     * @serial
+     */
     private final AttributeDictionary attributes; 
+    /**
+     * @serial
+     */
     private final NamedDictionary variables;
 }

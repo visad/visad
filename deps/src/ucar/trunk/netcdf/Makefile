@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.1.1.5 2000-08-28 21:44:49 dglo Exp $
+# $Id: Makefile,v 1.1.1.6 2000-08-28 21:45:46 dglo Exp $
 #
 #       Makefile for java package ucar.netcdf
 #       requires ucar.multiarray
@@ -6,12 +6,12 @@
 SHELL = /bin/sh
 ##
 # target directories
-ROOT = /tmp/java
+ROOT = ../../..
 CLASSDIR = $(ROOT)/classes
 
 JC = javac
 JCFLAGS = -g
-RMIC = rmic  -keepgenerated
+RMIC = rmic  # -keepgenerated
 
 JSRCS = \
 	AbstractNetcdf.java \

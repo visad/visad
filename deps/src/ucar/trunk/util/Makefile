@@ -1,11 +1,11 @@
-# $Id: Makefile,v 1.1.1.1 2000-08-28 21:44:51 dglo Exp $
+# $Id: Makefile,v 1.1.1.2 2000-08-28 21:45:48 dglo Exp $
 #
 #       Makefile for java package ucar.util
 #
 SHELL = /bin/sh
 ##
 # target directories
-ROOT = /tmp/java
+ROOT = ../../..
 CLASSDIR = $(ROOT)/classes
 
 JC = javac
