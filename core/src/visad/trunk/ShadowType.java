@@ -3459,6 +3459,10 @@ try {
         if (scale != scale) scale = init_scale;
         double scale_ratio = scale/init_scale;
         double label_size  = control.getLabelSize();
+        if (spatialManifoldDimension == 3 ||
+            spatialManifoldDimension == 2) {
+          anyContourCreated = true;
+        }
         if (bvalues[0]) {
           if (range_select[0] != null) {
             int len = range_select[0].length;
@@ -3509,7 +3513,7 @@ try {
                 array = null;
               }
             }
-            anyContourCreated = true;
+            // anyContourCreated = true;
           }
           else if (spatialManifoldDimension == 2) {
             if (spatial_set != null) {
@@ -3617,7 +3621,7 @@ try {
               }
             }
             } // end if (spatial_set != null)
-            anyContourCreated = true;
+            // anyContourCreated = true;
           } // end if (spatialManifoldDimension == 2)
         } // end if (bvalues[0])
       } // end if (real.equals(Display.IsoContour) && not inherited)
