@@ -3815,20 +3815,20 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
       cell = cellConstructor.newInstance(args);
     }
     catch (IllegalAccessException exc) {
-      if (BasicSSCell.DEBUG) exc.printStackTrace();
+      exc.printStackTrace();
     }
     catch (InstantiationException exc) {
-      if (BasicSSCell.DEBUG) exc.printStackTrace();
+      exc.printStackTrace();
     }
     catch (InvocationTargetException exc) {
-      if (BasicSSCell.DEBUG) exc.getTargetException().printStackTrace();
+      exc.getTargetException().printStackTrace();
     }
     if (!(cell instanceof FancySSCell)) {
-      if (BasicSSCell.DEBUG) {
-        System.err.println("Cell constructor failed to " +
-          "produce a FancySSCell object!");
-      }
-      return null;
+      System.err.print("Cell constructor failed to " +
+        "produce a FancySSCell, but instead produced: ");
+      if (cell == null) System.err.println("null");
+      else System.err.println(cell.getClass().getName());
+      System.exit(3);
     }
     return (FancySSCell) cell;
   }
