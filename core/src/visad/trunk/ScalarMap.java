@@ -400,8 +400,18 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     }
   }
 
-  public void addScalarMapListener(ScalarMapListener listener) {
+  public synchronized void addScalarMapListener(ScalarMapListener listener) {
     ListenerVector.addElement(listener);
+    if (dataRange[0] == dataRange[0] &&
+        dataRange[1] == dataRange[1]) {
+      try {
+        listener.mapChanged(new ScalarMapEvent(this));
+      }
+      catch (VisADException e) {
+      }
+      catch (RemoteException e) {
+      }
+    }
   }
  
   public void removeScalarMapListener(ScalarMapListener listener) {
