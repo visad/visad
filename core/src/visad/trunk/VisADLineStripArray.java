@@ -64,6 +64,7 @@ public class VisADLineStripArray extends VisADGeometryArray {
   private final static float LIMIT = 4.0f; // constant for TEST = 0
   private final static float ALPHA = 0.1f; // constant for TEST = 1
 
+/* WLH 8 March 2000
   public VisADGeometryArray adjustSeam(DataRenderer renderer)
          throws VisADException {
     CoordinateSystem coord_sys = renderer.getDisplayCoordinateSystem();
@@ -235,6 +236,7 @@ public class VisADLineStripArray extends VisADGeometryArray {
       return array;
     }
   }
+*/
 
   public VisADGeometryArray adjustLongitude(DataRenderer renderer)
          throws VisADException {
