@@ -2,13 +2,12 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DefaultUnitsDB.java,v 1.1 1997-11-17 19:34:57 steve Exp $
+ * $Id: DefaultUnitsDB.java,v 1.2 1998-01-20 23:28:09 steve Exp $
  */
 
 package visad.data.netcdf.units;
 
 
-import java.util.Enumeration;
 import visad.BaseUnit;
 import visad.DerivedUnit;
 import visad.OffsetUnit;
@@ -43,25 +42,25 @@ DefaultUnitsDB
     /**
      * The unit prefixes in order of lexicographic length:
      */
-    protected final Prefix[]	prefixes =
+    protected final UnitPrefix[]	prefixes =
     {
-	new Prefix("centi",	1e-2),
-	new Prefix("femto",	1e-15),
-	new Prefix("hecto",	1e2),
-	new Prefix("micro",	1e-6),
-	new Prefix("milli",	1e-3),
-	new Prefix("yocto",	1e-24),
-	new Prefix("yotta",	1e24),
-	new Prefix("zepto",	1e-21),
-	new Prefix("zetta",	1e21),
-	new Prefix("atto",	1e-18),
-	new Prefix("deca",	1e1),	// Spelling according to "ISO 2955:
+	new UnitPrefix("centi",	1e-2),
+	new UnitPrefix("femto",	1e-15),
+	new UnitPrefix("hecto",	1e2),
+	new UnitPrefix("micro",	1e-6),
+	new UnitPrefix("milli",	1e-3),
+	new UnitPrefix("yocto",	1e-24),
+	new UnitPrefix("yotta",	1e24),
+	new UnitPrefix("zepto",	1e-21),
+	new UnitPrefix("zetta",	1e21),
+	new UnitPrefix("atto",	1e-18),
+	new UnitPrefix("deca",	1e1),	// Spelling according to "ISO 2955:
 					// Information processing --
 					// Representation of SI and other units
 					// in systems with limited character
 					// sets"
-	new Prefix("deci",	1e-1),
-	new Prefix("deka",	1e1),	// Spelling according to "ASTM
+	new UnitPrefix("deci",	1e-1),
+	new UnitPrefix("deka",	1e1),	// Spelling according to "ASTM
 					// Designation: E 380 - 85: Standard
 					// for METRIC PRACTICE", "ANSI/IEEE Std
 					// 260-1978 (Reaffirmed 1985): IEEE
@@ -70,37 +69,37 @@ DefaultUnitsDB
 					// Publication 811, 1995 Edition:
 					// "Guide for the Use of the
 					// International System of Units (SI)".
-	new Prefix("giga",	1e9),	// 1st syllable pronounced "jig"
+	new UnitPrefix("giga",	1e9),	// 1st syllable pronounced "jig"
 					// according to "ASTM Designation: E
 					// 380 - 85: Standard for METRIC
 					// PRACTICE".
-	new Prefix("kilo",	1e3),
-	new Prefix("mega",	1e6),
-	new Prefix("nano",	1e-9),
-	new Prefix("peta",	1e15),
-	new Prefix("pico",	1e-12),
-	new Prefix("tera",	1e12),
-	new Prefix("exa",	1e18),
-	new Prefix("da",	1e1),
-	new Prefix("E",		1e18),
-	new Prefix("G",		1e9),
-	new Prefix("M",		1e6),
-	new Prefix("P",		1e15),
-	new Prefix("T",		1e12),
-	new Prefix("Y",		1e24),
-	new Prefix("Z",		1e21),
-	new Prefix("a",		1e-18),
-	new Prefix("c",		1e-2),
-	new Prefix("d",		1e-1),
-	new Prefix("f",		1e-15),
-	new Prefix("h",		1e2),
-	new Prefix("k",		1e3),
-	new Prefix("m",		1e-3),
-	new Prefix("n",		1e-9),
-	new Prefix("p",		1e-12),
-	new Prefix("u",		1e-6),
-	new Prefix("y",		1e-24),
-	new Prefix("z",		1e-21),
+	new UnitPrefix("kilo",	1e3),
+	new UnitPrefix("mega",	1e6),
+	new UnitPrefix("nano",	1e-9),
+	new UnitPrefix("peta",	1e15),
+	new UnitPrefix("pico",	1e-12),
+	new UnitPrefix("tera",	1e12),
+	new UnitPrefix("exa",	1e18),
+	new UnitPrefix("da",	1e1),
+	new UnitPrefix("E",	1e18),
+	new UnitPrefix("G",	1e9),
+	new UnitPrefix("M",	1e6),
+	new UnitPrefix("P",	1e15),
+	new UnitPrefix("T",	1e12),
+	new UnitPrefix("Y",	1e24),
+	new UnitPrefix("Z",	1e21),
+	new UnitPrefix("a",	1e-18),
+	new UnitPrefix("c",	1e-2),
+	new UnitPrefix("d",	1e-1),
+	new UnitPrefix("f",	1e-15),
+	new UnitPrefix("h",	1e2),
+	new UnitPrefix("k",	1e3),
+	new UnitPrefix("m",	1e-3),
+	new UnitPrefix("n",	1e-9),
+	new UnitPrefix("p",	1e-12),
+	new UnitPrefix("u",	1e-6),
+	new UnitPrefix("y",	1e-24),
+	new UnitPrefix("z",	1e-21),
     };
 
 
@@ -1032,7 +1031,13 @@ DefaultUnitsDB
 	throws UnitException
     {
 	if (db == null)
-	    db = new DefaultUnitsDB();
+	{
+	    synchronized(DefaultUnitsDB.class)
+	    {
+		if (db == null)
+		    db = new DefaultUnitsDB();
+	    }
+	}
 
 	return db;
     }
@@ -1174,11 +1179,11 @@ DefaultUnitsDB
 	 * Strip leading prefix from the string.
 	 */
 	protected boolean
-	stripPrefix(Prefix[] prefixes)
+	stripPrefix(UnitPrefix[] prefixes)
 	{
 	    for (int icur = 0; icur < prefixes.length; ++icur)
 	    {
-		Prefix	prefix = prefixes[icur];
+		UnitPrefix	prefix = prefixes[icur];
 
 		if (string.startsWith(prefix.name, pos))
 		{
@@ -1197,7 +1202,7 @@ DefaultUnitsDB
 	 * string is less than a prefix.
 	 */
 	protected boolean
-	isLessThan(Prefix prefix)
+	isLessThan(UnitPrefix prefix)
 	{
 	    int	icomp = 1;
 	    int	n = Math.min(prefix.name.length(), string.length()-pos);
@@ -1240,28 +1245,35 @@ DefaultUnitsDB
 
 
     /**
-     * Get an enumeration of the units in the database.  The Object returned
-     * by nextElement() is a NamedUnit.
+     * Inner class for enumerating the units in the database.
+     */
+    public class
+    EnumerationImpl
+	implements Enumeration
+    {
+	java.util.Enumeration	enum = table.enumeration();
+
+	public boolean
+	hasMoreElements()
+	{
+	    return enum.hasMoreElements();
+	}
+
+	public NamedUnit
+	nextElement()
+	{
+	    return (NamedUnit)enum.nextElement();
+	}
+    }
+
+
+    /**
+     * Return an enumeration of the units in the database.
      */
     public Enumeration
-    enumeration()
+    getEnumeration()
     {
-	return new Enumeration()
-	{
-	    protected Enumeration	enum = table.enumeration();
-
-	    public boolean
-	    hasMoreElements()
-	    {
-		return enum.hasMoreElements();
-	    }
-
-	    public Object
-	    nextElement()
-	    {
-		return enum.nextElement();
-	    }
-	};
+	return new EnumerationImpl();
     }
 
 
