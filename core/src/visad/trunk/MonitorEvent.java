@@ -127,10 +127,14 @@ public abstract class MonitorEvent
   }
 
   /**
-   * Returns a <CODE>String</CODE> description of this
-   * <CODE>MonitorEvent</CODE>'s type.
+   * Returns a <CODE>String</CODE> description of the
+   * specified <CODE>MonitorEvent</CODE> type.
+   *
+   * @param type the <CODE>MonitorEvent</CODE> type.
+   *
+   * @return name of the specified type.
    */
-  public String getTypeName()
+  public static String getTypeName(int type)
   {
     switch (type) {
     case MAP_ADDED: return "MAP_ADDED";
@@ -142,6 +146,17 @@ public abstract class MonitorEvent
     case CONTROL_CHANGED: return "CONTROL_CHANGED";
     }
     return "Unknown MonitorEvent Type #" + type;
+  }
+
+  /**
+   * Returns a <CODE>String</CODE> description of this
+   * <CODE>MonitorEvent</CODE>'s type.
+   *
+   * @return name of this event's type.
+   */
+  public String getTypeName()
+  {
+    return getTypeName(type);
   }
 
   /**
