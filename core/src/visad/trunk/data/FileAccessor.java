@@ -17,13 +17,16 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: FileAccessor.java,v 1.2 1998-02-23 14:33:09 steve Exp $
+ * $Id: FileAccessor.java,v 1.3 1998-03-04 14:26:20 rink Exp $
  */
 
 package visad.data;
 
 import visad.Data;
 import visad.FlatField;
+import visad.FunctionType;
+import visad.VisADException;
+import java.rmi.RemoteException;
 
 
 /**
@@ -45,4 +48,9 @@ public abstract class FileAccessor
 				    double[][]	values,
 				    FlatField	template,
 				    int[]	fileLocation);
+
+
+    public abstract FlatField getFlatField() throws VisADException, RemoteException;
+
+    public abstract FunctionType getFunctionType() throws VisADException;
 }
