@@ -1,7 +1,9 @@
 
 # This script is run whenever files are checked-out.
 
-# Make a link to "rules.make" file in the parent directory.
+# Make a link to the "rules.make" file in the parent directory.
 #
-rm -f rules.make
-ln -s ../rules.make .
+if cd units; then
+    rm -f rules.make
+    ln -s ../rules.make .
+fi
