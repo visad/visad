@@ -142,8 +142,7 @@ public class FileFlatField extends FlatField {
 
         // mark time of most recent access
 
-           adaptedFlatFieldTimes[adaptedFlatFieldIndex] =
-           System.currentTimeMillis();
+           adaptedFlatFieldTimes[ii] = System.currentTimeMillis();
 
            return adaptedFlatFields[ii];
       }
