@@ -511,6 +511,154 @@ public abstract class Delaunay implements java.io.Serializable {
       extension to the Delaunay class should call finish_triang at the end
       of its triangulation constructor. */
   public void finish_triang(float[][] samples) throws VisADException {
+    int mdim = Tri[0].length - 1;
+    int mdim1 = mdim + 1;
+    int dim = samples.length;
+    int dim1 = dim+1;
+    int ntris = Tri.length;
+    int nrs = samples[0].length;
+    for (int i=1; i<dim; i++) {
+      nrs = Math.min(nrs, samples[i].length);
+    }
+
+    if (Vertices == null) {
+      // build Vertices component
+      Vertices = new int[nrs][];
+      int[] nverts = new int[nrs];
+      for (int i=0; i<ntris; i++) {
+        for (int j=0; j<mdim1; j++) nverts[Tri[i][j]]++;
+      }
+      for (int i=0; i<nrs; i++) {
+        Vertices[i] = new int[nverts[i]];
+        nverts[i] = 0;
+      }
+      for (int i=0; i<ntris; i++) {
+        for (int j=0; j<mdim1; j++) {
+          Vertices[Tri[i][j]][nverts[Tri[i][j]]++] = i;
+        }
+      }
+    }
+
+    if (Walk == null && mdim <= 3) {
+      // build Walk component
+      Walk = new int[ntris][mdim1];
+      for (int i=0; i<ntris; i++) {
+      WalkDim:
+        for (int j=0; j<mdim1; j++) {
+          int v1 = j;
+          int v2 = (v1+1)%mdim1;
+          Walk[i][j] = -1;
+          for (int k=0; k<Vertices[Tri[i][v1]].length; k++) {
+            int temp = Vertices[Tri[i][v1]][k];
+            if (temp != i) {
+              for (int l=0; l<Vertices[Tri[i][v2]].length; l++) {
+                if (mdim == 2) {
+                  if (temp == Vertices[Tri[i][v2]][l]) {
+                    Walk[i][j] = temp;
+                    continue WalkDim;
+                  }
+                }
+                else {    // mdim == 3
+                  int temp2 = Vertices[Tri[i][v2]][l];
+                  int v3 = (v2+1)%mdim1;
+                  if (temp == temp2) {
+                    for (int m=0; m<Vertices[Tri[i][v3]].length; m++) {
+                      if (temp == Vertices[Tri[i][v3]][m]) {
+                        Walk[i][j] = temp;
+                        continue WalkDim;
+                      }
+                    }
+                  }
+                } // end if (mdim == 3)
+              } // end for (int l=0; l<Vertices[Tri[i][v2]].length; l++)
+            } // end if (temp != i)
+          } // end for (int k=0; k<Vertices[Tri[i][v1]].length; k++)
+        } // end for (int j=0; j<mdim1; j++)
+      } // end for (int i=0; i<Tri.length; i++)
+    } // end if (Walk == null && mdim <= 3)
+
+    if (Edges == null && mdim <= 3) {
+      // build Edges component
+
+      // initialize all edges to "not yet found"
+      int edim = 3*(mdim-1);
+      Edges = new int[ntris][edim];
+      for (int i=0; i<ntris; i++) {
+        for (int j=0; j<edim; j++) Edges[i][j] = -1;
+      }
+
+      // calculate global edge values
+      NumEdges = 0;
+      if (mdim == 2) {
+        for (int i=0; i<ntris; i++) {
+          for (int j=0; j<3; j++) {
+            if (Edges[i][j] < 0) {
+              // this edge doesn't have a "global edge number" yet
+              int othtri = Walk[i][j];
+              if (othtri >= 0) {
+                int cside = -1;
+                for (int k=0; k<3; k++) {
+                  if (Walk[othtri][k] == i) cside = k;
+                }
+                if (cside != -1) {
+                  Edges[othtri][cside] = NumEdges;
+                }
+                else {
+                  throw new SetException("Delaunay.finish_triang: " +
+                                         "error in triangulation!");
+                }
+              }
+              Edges[i][j] = NumEdges++;
+            }
+          }
+        }
+      }
+      else {    // mdim == 3
+        int[] ptlook1 = {0, 0, 0, 1, 1, 2};
+        int[] ptlook2 = {1, 2, 3, 2, 3, 3};
+        for (int i=0; i<ntris; i++) {
+          for (int j=0; j<6; j++) {
+            if (Edges[i][j] < 0) {
+              // this edge doesn't have a "global edge number" yet
+
+              // search through the edge's two end points
+              int endpt1 = Tri[i][ptlook1[j]];
+              int endpt2 = Tri[i][ptlook2[j]];
+
+              // create an intersection of two sets
+              int[] set = new int[Vertices[endpt1].length];
+              int setlen = 0;
+              for (int p1=0; p1<Vertices[endpt1].length; p1++) {
+                int temp = Vertices[endpt1][p1];
+                for (int p2=0; p2<Vertices[endpt2].length; p2++) {
+                  if (temp == Vertices[endpt2][p2]) {
+                    set[setlen++] = temp;
+                    break;
+                  }
+                }
+              }
+
+              // assign global edge number to all members of set 
+              for (int kk=0; kk<setlen; kk++) {
+                int k = set[kk];
+                for (int l=0; l<edim; l++) {
+                  if ((Tri[k][ptlook1[l]] == endpt1
+                    && Tri[k][ptlook2[l]] == endpt2)
+                   || (Tri[k][ptlook1[l]] == endpt2
+                    && Tri[k][ptlook2[l]] == endpt1)) {
+                    Edges[k][l] = NumEdges;
+                  }
+                }
+              }
+              Edges[i][j] = NumEdges++;
+            } // end if (Edges[i][j] < 0)
+          } // end for (int j=0; j<6; j++)
+        } // end for (int i=0; i<ntris; i++)
+      } // end if (mdim == 3)
+    } // end if (Edges == null && mdim <= 3)
+  }
+/*
+  public void finish_triang(float[][] samples) throws VisADException {
     int dim = samples.length;
     int dim1 = dim+1;
     int ntris = Tri.length;
@@ -655,6 +803,7 @@ public abstract class Delaunay implements java.io.Serializable {
       } // end if (dim == 3)
     } // end if (Edges == null && dim <= 3)
   }
+*/
 
   public String toString() {
     return sampleString(null);

@@ -383,6 +383,7 @@ public class DefaultFamily
     while (i < list.length) {
       list[i++] = null;
     }
+    listInitialized = true; // WLH 24 Jan 2000
   }
 
   /**
