@@ -147,6 +147,16 @@ public class ImageStackMeasure {
     display = d;
   }
 
+  /** Sets the values of the endpoints for all slices. */
+  public void setValues(int slice, double[][] values) {
+    stack[slice].setValues(values);
+  }
+
+  /** Gets the number of slices in the stack. */
+  public int getSliceCount() {
+    return stack.length;
+  }
+
   /** Gets the index of the current slice. */
   public int getCurrent() {
     return current;

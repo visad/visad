@@ -30,6 +30,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.rmi.RemoteException;
+import java.util.StringTokenizer;
 import javax.swing.*;
 import visad.*;
 import visad.data.DefaultFamily;
@@ -64,6 +65,9 @@ public class MeasureFrame extends GUIFrame {
   /** Content pane for step widget. */
   private JPanel spane;
 
+  /** Synchronization object. */
+  private Object lock = new Object();
+
   /** Constructs a measurement object to match the given field. */
   public MeasureFrame() throws VisADException, RemoteException {
     super(true);
@@ -92,51 +96,85 @@ public class MeasureFrame extends GUIFrame {
 
   /** Loads a dataset. */
   public void fileOpen() {
-    // get file name from file dialog
-    fileBox.setDialogType(JFileChooser.OPEN_DIALOG);
-    if (fileBox.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) return;
+    final JFrame frame = this;
+    Thread t = new Thread(new Runnable() {
+      public void run() {
+        synchronized (lock) {
+          setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+          // get file name from file dialog
+          fileBox.setDialogType(JFileChooser.OPEN_DIALOG);
+          if (fileBox.showOpenDialog(frame) != JFileChooser.APPROVE_OPTION) {
+            setCursor(Cursor.getDefaultCursor());
+            return;
+          }
 
-    // make sure file exists
-    File f = fileBox.getSelectedFile();
-    if (!f.exists()) {
-      JOptionPane.showMessageDialog(this, f.getName() + " does not exist",
-        "Cannot load file", JOptionPane.ERROR_MESSAGE);
-      return;
-    }
+          // make sure file exists
+          File f = fileBox.getSelectedFile();
+          if (!f.exists()) {
+            JOptionPane.showMessageDialog(frame,
+              f.getName() + " does not exist", "Cannot load file",
+              JOptionPane.ERROR_MESSAGE);
+            setCursor(Cursor.getDefaultCursor());
+            return;
+          }
 
-    try {
-      // load data
-      DefaultFamily loader = new DefaultFamily("loader");
-      Data data = loader.open(f.getPath());
-      // CTR: need to search data for valid field subsection, but until then...
-      FieldImpl field = (FieldImpl) data; // CTR silly hack :-P
+          try {
+            // load data
+            DefaultFamily loader = new DefaultFamily("loader");
+            Data data = loader.open(f.getPath());
+            FieldImpl field = null;
+            if (data instanceof FieldImpl) field = (FieldImpl) data;
+            else if (data instanceof Tuple) {
+              Tuple tuple = (Tuple) data;
+              int len = tuple.getDimension();
+              for (int i=0; i<len; i++) {
+                if (data instanceof FieldImpl) {
+                  field = (FieldImpl) data;
+                  break;
+                }
+              }
+            }
+            if (field == null) {
+              JOptionPane.showMessageDialog(frame,
+                f.getName() + " does not contain an image stack",
+                "Cannot load file", JOptionPane.ERROR_MESSAGE);
+              setCursor(Cursor.getDefaultCursor());
+              return;
+            }
 
-      // clear old display
-      display.removeAllReferences();
-      display.clearMaps();
+            // clear old display
+            display.removeAllReferences();
+            display.clearMaps();
 
-      // set up mappings
-      ScalarMap animMap = null;
-      ScalarMap[] maps = field.getType().guessMaps(true);
-      for (int i=0; i<maps.length; i++) {
-        ScalarMap smap = maps[i];
-        display.addMap(smap);
-        if (Display.Animation.equals(smap.getDisplayScalar())) animMap = smap;
+            // set up mappings
+            ScalarMap animMap = null;
+            ScalarMap[] maps = field.getType().guessMaps(true);
+            for (int i=0; i<maps.length; i++) {
+              ScalarMap smap = maps[i];
+              display.addMap(smap);
+              if (Display.Animation.equals(smap.getDisplayScalar())) {
+                animMap = smap;
+              }
+            }
+            DataReferenceImpl ref = new DataReferenceImpl("ref");
+            ref.setData(field);
+            display.addReference(ref);
+            ism = new ImageStackMeasure(field);
+            ism.setDisplay(display);
+            if (animMap != null) {
+              spane.removeAll();
+              sw = new StepWidget(animMap);
+              spane.add(sw);
+              sf.pack();
+              sf.show();
+            }
+          }
+          catch (Throwable t) { t.printStackTrace(); }
+          setCursor(Cursor.getDefaultCursor());
+        }
       }
-      DataReferenceImpl ref = new DataReferenceImpl("ref");
-      ref.setData(field);
-      display.addReference(ref);
-      ism = new ImageStackMeasure(field);
-      ism.setDisplay(display);
-      if (animMap != null) {
-        spane.removeAll();
-        sw = new StepWidget(animMap);
-        spane.add(sw);
-        sf.pack();
-        sf.show();
-      }
-    }
-    catch (Throwable t) { t.printStackTrace(); }
+    });
+    t.start();
   }
 
   /** Exits the application. */
@@ -146,29 +184,95 @@ public class MeasureFrame extends GUIFrame {
 
   /** Restores a saved set of measurements. */
   public void measureRestore() {
-    // CTR
+    final JFrame frame = this;
+    Thread t = new Thread(new Runnable() {
+      public void run() {
+        synchronized (lock) {
+          setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+          // get file name from file dialog
+          fileBox.setDialogType(JFileChooser.OPEN_DIALOG);
+          if (fileBox.showOpenDialog(frame) != JFileChooser.APPROVE_OPTION) {
+            setCursor(Cursor.getDefaultCursor());
+            return;
+          }
+      
+          // make sure file exists
+          File f = fileBox.getSelectedFile();
+          if (!f.exists()) {
+            JOptionPane.showMessageDialog(frame,
+              f.getName() + " does not exist", "Cannot load file",
+              JOptionPane.ERROR_MESSAGE);
+            setCursor(Cursor.getDefaultCursor());
+            return;
+          }
+      
+          try {
+            // load measurement data
+            BufferedReader fin = new BufferedReader(new FileReader(f));
+            int numSlices = ism.getSliceCount();
+            for (int i=0; i<numSlices; i++) {
+              String line = fin.readLine();
+              if (line == null) {
+                JOptionPane.showMessageDialog(frame,
+                  f.getName() + ": premature end of file", "Cannot load file",
+                  JOptionPane.ERROR_MESSAGE);
+                fin.close();
+                setCursor(Cursor.getDefaultCursor());
+                return;
+              }
+              StringTokenizer st = new StringTokenizer(line);
+              if (st.countTokens() < 4) {
+                JOptionPane.showMessageDialog(frame,
+                  f.getName() + ": invalid data format", "Cannot load file",
+                  JOptionPane.ERROR_MESSAGE);
+                fin.close();
+                setCursor(Cursor.getDefaultCursor());
+                return;
+              }
+              double[][] values = new double[2][2];
+              for (int j=0; j<4; j++) {
+                values[j % 2][j / 2] = Double.parseDouble(st.nextToken());
+              }
+              ism.setValues(i, values);
+            }
+            fin.close();
+          }
+          catch (IOException exc) { exc.printStackTrace(); }
+          setCursor(Cursor.getDefaultCursor());
+        }
+      }
+    });
+    t.start();
   }
 
   /** Saves a set of measurements. */
   public void measureSave() {
-    // get file name from file dialog
-    fileBox.setDialogType(JFileChooser.SAVE_DIALOG);
-    if (fileBox.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
-
-    // CTR: start here. There's a bug in the FieldMeasure stuff where
-    //      it grabs the current ref values instead of the last saved
-    //      values. This causes the saved measurement files to store
-    //      the same values for each entry.
-
-    // save measurements
-    File f = fileBox.getSelectedFile();
-    String save = ism.getDistanceString();
-    try {
-      FileWriter fout = new FileWriter(f);
-      fout.write(save, 0, save.length());
-      fout.close();
-    }
-    catch (IOException exc) { exc.printStackTrace(); }
+    final JFrame frame = this;
+    Thread t = new Thread(new Runnable() {
+      public void run() {
+        synchronized (lock) {
+          setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+          // get file name from file dialog
+          fileBox.setDialogType(JFileChooser.SAVE_DIALOG);
+          if (fileBox.showSaveDialog(frame) != JFileChooser.APPROVE_OPTION) {
+            setCursor(Cursor.getDefaultCursor());
+            return;
+          }
+      
+          // save measurements
+          File f = fileBox.getSelectedFile();
+          String save = ism.getDistanceString();
+          try {
+            FileWriter fout = new FileWriter(f);
+            fout.write(save, 0, save.length());
+            fout.close();
+          }
+          catch (IOException exc) { exc.printStackTrace(); }
+          setCursor(Cursor.getDefaultCursor());
+        }
+      }
+    });
+    t.start();
   }
 
   /** Redisplays the step controls. */

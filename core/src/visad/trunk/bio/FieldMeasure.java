@@ -60,6 +60,9 @@ public class FieldMeasure {
   /** Data reference for connecting line. */
   private DataReferenceImpl ref_line;
 
+  /** Whether this measurement object is active. */
+  private boolean active = false;
+
   /** Constructs a measurement object to match the given field. */
   public FieldMeasure(FieldImpl field) throws VisADException, RemoteException {
     this(field, new DataReferenceImpl("p1"), new DataReferenceImpl("p2"),
@@ -102,7 +105,7 @@ public class FieldMeasure {
       CellImpl cell = new CellImpl() {
         public void doAction() {
           float[][] samps = new float[len][2];
-          double[][] values = getValues();
+          double[][] values = getValues(true);
           if (values == null) return;
           for (int i=0; i<len; i++) {
             samps[i][0] = (float) values[i][0];
@@ -112,12 +115,8 @@ public class FieldMeasure {
             GriddedSet line = new GriddedSet(domain, samps, two);
             ref_line.setData(line);
           }
-          catch (VisADException exc) {
-            exc.printStackTrace();
-          }
-          catch (RemoteException exc) {
-            exc.printStackTrace();
-          }
+          catch (VisADException exc) { exc.printStackTrace(); }
+          catch (RemoteException exc) { exc.printStackTrace(); }
         }
       };
       cell.addReference(ref_p1);
@@ -129,6 +128,7 @@ public class FieldMeasure {
   public void setActive(boolean active)
     throws VisADException, RemoteException
   {
+    this.active = active;
     if (active) {
       ref_p1.setData(p1);
       ref_p2.setData(p2);
@@ -171,6 +171,33 @@ public class FieldMeasure {
     d.removeReference(ref_line);
   }
 
+  /** Sets the values of the endpoints. */
+  public void setValues(double[][] values) {
+    int len = values.length;
+    Real[] p1r = new Real[len];
+    Real[] p2r = new Real[len];
+    try {
+      for (int i=0; i<len; i++) {
+        RealType rt1 = (RealType) p1.getComponent(i).getType();
+        RealType rt2 = (RealType) p2.getComponent(i).getType();
+        p1r[i] = new Real(rt1, values[i][0]);
+        p2r[i] = new Real(rt2, values[i][1]);
+      }
+      RealTuple tup1 = new RealTuple(p1r);
+      RealTuple tup2 = new RealTuple(p2r);
+      if (active) {
+        ref_p1.setData(tup1);
+        ref_p2.setData(tup2);
+      }
+      else {
+        p1 = tup1;
+        p2 = tup2;
+      }
+    }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
+  }
+
   /** Gets the current distance between the endpoints. */
   public double getDistance() {
     double[][] values = getValues();
@@ -184,8 +211,20 @@ public class FieldMeasure {
 
   /** Gets the current values of the endpoints. */
   public double[][] getValues() {
-    RealTuple rt1 = (RealTuple) ref_p1.getData();
-    RealTuple rt2 = (RealTuple) ref_p2.getData();
+    return getValues(active);
+  }
+
+  /** Gets the current values of the endpoints. */
+  private double[][] getValues(boolean active) {
+    RealTuple rt1, rt2;
+    if (active) {
+      rt1 = (RealTuple) ref_p1.getData();
+      rt2 = (RealTuple) ref_p2.getData();
+    }
+    else {
+      rt1 = p1;
+      rt2 = p2;
+    }
     if (rt1 == null || rt2 == null) return null;
     int len = rt1.getDimension();
     double[][] values = new double[len][2];
@@ -197,12 +236,8 @@ public class FieldMeasure {
         values[i][1] = r2.getValue();
       }
     }
-    catch (VisADException exc) {
-      exc.printStackTrace();
-    }
-    catch (RemoteException exc) {
-      exc.printStackTrace();
-    }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
     return values;
   }
 
