@@ -39,6 +39,7 @@ import visad.data.visad.VisADForm;
 import visad.formula.*;
 import visad.java2d.*;
 import visad.java3d.*;
+import visad.util.DataUtility;
 
 /** BasicSSCell represents a single spreadsheet display cell.  BasicSSCells
     can be added to a VisAD user interface to provide some of the capabilities
@@ -898,103 +899,27 @@ public class BasicSSCell extends JPanel {
     return null;
   }
 
-  /** obtain a Vector consisting of all ScalarTypes present in data's MathType;
-      return the number of duplicate ScalarTypes found */
+  /**
+   * Obtains a Vector consisting of all ScalarTypes present in the Data's
+   * MathType.
+   * @param data                The Data from which to extract the ScalarTypes.
+   * @param v                   The Vector in which to store the ScalarTypes.
+   * @throws VisADException     Couldn't parse the Data's MathType.
+   * @throws RemoteException    Couldn't obtain the remote Data's MathType.
+   * @return                    The number of duplicate ScalarTypes found.
+   * @deprecated Use visad.util.DataUtility.getRealTypes() instead.
+   */
   static int getRealTypes(Data data, Vector v) {
-    MathType dataType;
     try {
-      dataType = data.getType();
-    }
-    catch (RemoteException exc) {
-      if (DEBUG) exc.printStackTrace();
-      return -1;
+      return DataUtility.getRealTypes(data, v);
     }
     catch (VisADException exc) {
       if (DEBUG) exc.printStackTrace();
-      return -1;
     }
-    int[] i = new int[1];
-    i[0] = 0;
-
-    if (dataType instanceof FunctionType) {
-      parseFunction((FunctionType) dataType, v, i);
+    catch (RemoteException exc) {
+      if (DEBUG) exc.printStackTrace();
     }
-    else if (dataType instanceof SetType) {
-      parseSet((SetType) dataType, v, i);
-    }
-    else if (dataType instanceof TupleType) {
-      parseTuple((TupleType) dataType, v, i);
-    }
-    else parseScalar((ScalarType) dataType, v, i);
-
-    return i[0];
-  }
-
-  /** used by getRealTypes */
-  private static void parseFunction(FunctionType mathType, Vector v, int[] i) {
-    // extract domain
-    RealTupleType domain = mathType.getDomain();
-    parseTuple((TupleType) domain, v, i);
-
-    // extract range
-    MathType range = mathType.getRange();
-    if (range instanceof FunctionType) {
-      parseFunction((FunctionType) range, v, i);
-    }
-    else if (range instanceof SetType) {
-      parseSet((SetType) range, v, i);
-    }
-    else if (range instanceof TupleType) {
-      parseTuple((TupleType) range, v, i);
-    }
-    else parseScalar((ScalarType) range, v, i);
-
-    return;
-  }
-
-  /** used by getRealTypes */
-  private static void parseSet(SetType mathType, Vector v, int[] i) {
-    // extract domain
-    RealTupleType domain = mathType.getDomain();
-    parseTuple((TupleType) domain, v, i);
-
-    return;
-  }
-
-  /** used by getRealTypes */
-  private static void parseTuple(TupleType mathType, Vector v, int[] i) {
-    // extract components
-    for (int j=0; j<mathType.getDimension(); j++) {
-      MathType cType = null;
-      try {
-        cType = mathType.getComponent(j);
-      }
-      catch (VisADException exc) {
-        if (DEBUG) exc.printStackTrace();
-      }
-
-      if (cType != null) {
-        if (cType instanceof FunctionType) {
-          parseFunction((FunctionType) cType, v, i);
-        }
-        else if (cType instanceof SetType) {
-          parseSet((SetType) cType, v, i);
-        }
-        else if (cType instanceof TupleType) {
-          parseTuple((TupleType) cType, v, i);
-        }
-        else parseScalar((ScalarType) cType, v, i);
-      }
-    }
-    return;
-  }
-
-  /** used by getRealTypes */
-  private static void parseScalar(ScalarType mathType, Vector v, int[] i) {
-    if (mathType instanceof RealType) {
-      if (v.contains(mathType)) i[0]++;
-      v.add(mathType);
-    }
+    return -1;
   }
 
   /** converts the given vector of mappings to an easy-to-read String form */
@@ -1072,7 +997,17 @@ public class BasicSSCell extends JPanel {
         // get Vector of all ScalarTypes in this data object
         Vector types = new Vector();
         Data data = getData();
-        if (data != null) getRealTypes(data, types);
+        if (data != null) {
+          try {
+            DataUtility.getRealTypes(data, types);
+          }
+          catch (VisADException exc) {
+            if (DEBUG) exc.printStackTrace();
+          }
+          catch (RemoteException exc) {
+            if (DEBUG) exc.printStackTrace();
+          }
+        }
         int vLen = types.size();
         int dLen = Display.DisplayRealArray.length;
 
@@ -1168,7 +1103,7 @@ public class BasicSSCell extends JPanel {
     CanDo3D = false;
   }
 
-  /** @deprecated use setSaveString(String) instead */
+  /** @deprecated Use setSaveString(String) instead. */
   public void setSSCellString(String save)
     throws VisADException, RemoteException
   {
@@ -1859,7 +1794,7 @@ public class BasicSSCell extends JPanel {
       if (data != null) {
         // add this Data's RealTypes to FormulaManager variable registry
         Vector v = new Vector();
-        getRealTypes(data, v);
+        DataUtility.getRealTypes(data, v);
         int len = v.size();
         for (int i=0; i<len; i++) {
           RealType rt = (RealType) v.elementAt(i);

@@ -33,6 +33,7 @@ import java.util.TreeSet;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Comparator;
+import java.util.Vector;
 
 // RMI classes
 import java.rmi.RemoteException;
@@ -825,12 +826,118 @@ public class DataUtility {
    *				<code>type</code>.
    * @throws VisADException	Couldn't create necessary VisAD object.
    */
-  public static MathType
-  simplify(MathType type)
+  public static MathType simplify(MathType type)
     throws VisADException
   {
     while (type instanceof TupleType && ((TupleType)type).getDimension() == 1)
 	type = ((TupleType)type).getComponent(0);
     return type;
   }
+
+  /**
+   * Obtains a Vector consisting of all ScalarTypes present in the Data's
+   * MathType.
+   * @param data                The Data from which to extract the ScalarTypes.
+   * @param v                   The Vector in which to store the ScalarTypes.
+   * @throws VisADException     Couldn't parse the Data's MathType.
+   * @throws RemoteException    Couldn't obtain the remote Data's MathType.
+   * @return                    The number of duplicate ScalarTypes found.
+   */
+  public static int getRealTypes(Data data, Vector v)
+    throws VisADException, RemoteException
+  {
+    MathType dataType = data.getType();
+
+    int[] i = new int[1];
+    i[0] = 0;
+
+    if (dataType instanceof FunctionType) {
+      parseFunction((FunctionType) dataType, v, i);
+    }
+    else if (dataType instanceof SetType) {
+      parseSet((SetType) dataType, v, i);
+    }
+    else if (dataType instanceof TupleType) {
+      parseTuple((TupleType) dataType, v, i);
+    }
+    else parseScalar((ScalarType) dataType, v, i);
+
+    return i[0];
+  }
+
+  /** 
+   * getRealTypes() helper method.
+   */
+  private static void parseFunction(FunctionType mathType, Vector v, int[] i)
+    throws VisADException
+  {
+    // extract domain
+    RealTupleType domain = mathType.getDomain();
+    parseTuple((TupleType) domain, v, i);
+
+    // extract range
+    MathType range = mathType.getRange();
+    if (range instanceof FunctionType) {
+      parseFunction((FunctionType) range, v, i);
+    }
+    else if (range instanceof SetType) {
+      parseSet((SetType) range, v, i);
+    }
+    else if (range instanceof TupleType) {
+      parseTuple((TupleType) range, v, i);
+    }
+    else parseScalar((ScalarType) range, v, i);
+
+    return;
+  }
+
+  /** 
+   * getRealTypes() helper method.
+   */
+  private static void parseSet(SetType mathType, Vector v, int[] i)
+    throws VisADException
+  {
+    // extract domain
+    RealTupleType domain = mathType.getDomain();
+    parseTuple((TupleType) domain, v, i);
+
+    return;
+  }
+
+  /** 
+   * getRealTypes() helper method.
+   */
+  private static void parseTuple(TupleType mathType, Vector v, int[] i)
+    throws VisADException
+  {
+    // extract components
+    for (int j=0; j<mathType.getDimension(); j++) {
+      MathType cType = mathType.getComponent(j);
+
+      if (cType != null) {
+        if (cType instanceof FunctionType) {
+          parseFunction((FunctionType) cType, v, i);
+        }
+        else if (cType instanceof SetType) {
+          parseSet((SetType) cType, v, i);
+        }
+        else if (cType instanceof TupleType) {
+          parseTuple((TupleType) cType, v, i);
+        }
+        else parseScalar((ScalarType) cType, v, i);
+      }
+    }
+    return;
+  }
+
+  /** 
+   * getRealTypes() helper method.
+   */
+  private static void parseScalar(ScalarType mathType, Vector v, int[] i) {
+    if (mathType instanceof RealType) {
+      if (v.contains(mathType)) i[0]++;
+      v.add(mathType);
+    }
+  }
+
 }

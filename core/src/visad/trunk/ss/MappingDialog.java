@@ -34,6 +34,7 @@ import java.util.Vector;
 import javax.swing.*;
 import javax.swing.event.*;
 import visad.*;
+import visad.util.DataUtility;
 
 /** MappingDialog is a dialog that lets the user create ScalarMaps */
 public class MappingDialog extends JDialog
@@ -252,7 +253,16 @@ public class MappingDialog extends JDialog
     v[0] = new Vector();
     v[1] = new Vector();
     String[] mt = new String[2];
-    int dupl = BasicSSCell.getRealTypes(data, v[0]);
+    int dupl = -1;
+    try {
+      dupl = DataUtility.getRealTypes(data, v[0]);
+    }
+    catch (VisADException exc) {
+      if (BasicSSCell.DEBUG) exc.printStackTrace();
+    }
+    catch (RemoteException exc) {
+      if (BasicSSCell.DEBUG) exc.printStackTrace();
+    }
     mt[0] = (type == null ? "" : type.prettyString());
     mt[1] = (type == null ? "" : prettyCoordSys(type, v[1]));
 
