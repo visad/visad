@@ -120,6 +120,18 @@ public class GetAreaGUI extends JPanel {
   }
 
   /** 
+  * @param s is the label for the action button
+  * @param multi is true if multiple selection mode is to be used 
+  *  (this does not work yet!!)
+  * @param coa is true if the Dialog should close the window after
+  *  the actionPerformed is done.
+  * @param modal is true if this should be a modal dialog
+  *
+  */
+  public GetAreaGUI(String s, boolean multi, boolean coa, boolean modal) {
+    this((Frame) null, modal, s, multi, coa, true);
+  }
+  /** 
   * @param owner is the top-level Frame that owns this
   * @param modal is true if this should be a modal dialog
   * @param s is the label for the action button
@@ -219,12 +231,12 @@ public class GetAreaGUI extends JPanel {
       dialog.getContentPane().add(this);
       dialog.pack();
     }
- }
+  }
 
- public void show() {
-   if (dialog != null) dialog.show();
- }
-  
+  public void show() {
+    if (dialog != null) dialog.show();
+  }
+
     /** define the name of the ADDE server to select
      * @param s - The ADDE server hostname.
      */
