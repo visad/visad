@@ -262,98 +262,6 @@ public class CollectiveBarbManipulation extends Object
                "and Longitude " + lat_index + " " + lon_index);
     }
 
-
-// new data
-
-    try {
-      nindex = wind_field.getLength();
-      ntimes = new int[nindex];
-      tuples = new Tuple[nindex][];
-      tuples2 = new Tuple[nindex][];
-      which_times = new int[nindex];
-      wind_stations = new FlatField[nindex];
-      time_sets = new Set[nindex];
-      times = new double[nindex][];
-      azimuths = new float[nindex][];
-      radials = new float[nindex][];
-      old_azimuths = new float[nindex][];
-      old_radials = new float[nindex][];
-      for (int i=0; i<nindex; i++) {
-        wind_stations[i] = (FlatField) wind_field.getSample(i);
-        ntimes[i] = wind_stations[i].getLength();
-        time_sets[i] = wind_stations[i].getDomainSet();
-        double[][] dummy = Set.floatToDouble(time_sets[i].getSamples());
-        times[i] = dummy[0];
-        time_set = (i == 0) ? time_sets[i] : time_set.merge1DSets(time_sets[i]);
-        tuples[i] = new Tuple[ntimes[i]];
-        tuples2[i] = new Tuple[ntimes[i]];
-        azimuths[i] = new float[ntimes[i]];
-        radials[i] = new float[ntimes[i]];
-        old_azimuths[i] = new float[ntimes[i]];
-        old_radials[i] = new float[ntimes[i]];
-        Enumeration e = wind_stations[i].domainEnumeration();
-        for (int j=0; j<ntimes[i]; j++) {
-          tuples[i][j] = (Tuple) wind_stations[i].getSample(j);
-          int n = tuples[i][j].getDimension();
-          Data[] components = new Data[n + 1];
-          for (int k=0; k<n; k++) {
-            components[k] = tuples[i][j].getComponent(k);
-          }
-          components[n] = ((RealTuple) e.nextElement()).getComponent(0);
-          tuples2[i][j] = new Tuple(components);
-        }
-      }
-    }
-    catch (ClassCastException e) {
-      throw new CollectiveBarbException("wind_field bad MathType: " +
-                     wind_field_type);
-    }
- 
-    global_ntimes = time_set.getLength();
-    global_times = new double[global_ntimes];
-    global_to_station = new int[nindex][global_ntimes];
-    station_to_global = new int[nindex][];
-    for (int i=0; i<nindex; i++) {
-      station_to_global[i] = new int[ntimes[i]];
-      for (int j=0; j<ntimes[i]; j++) station_to_global[i][j] = -1;
-    }
-    RealTupleType in = ((SetType) time_set.getType()).getDomain();
-    for (int j=0; j<global_ntimes; j++) {
-      int[] indices = {j};
-      double[][] fvalues = time_set.indexToDouble(indices);
-      global_times[j] = fvalues[0][0];
-      for (int i=0; i<nindex; i++) {
-        RealTupleType out = ((SetType) time_sets[i].getType()).getDomain();
-        double[][] values = CoordinateSystem.transformCoordinates(
-                                 out, time_sets[i].getCoordinateSystem(),
-                                 time_sets[i].getSetUnits(),
-                                 null /* errors */,
-                                 in, time_set.getCoordinateSystem(),
-                                 time_set.getSetUnits(),
-                                 null /* errors */, fvalues);
-        if (time_sets[i].getLength() == 1) {
-          indices = new int[] {0};
-        }
-        else {
-          indices = time_sets[i].doubleToIndex(values);
-        }
-        global_to_station[i][j] = indices[0];
-        station_to_global[i][indices[0]] = j;
-      } // end for (int i=0; i<nindex; i++)
-    } // end for (int j=0; j<global_ntimes; j++)
-
-    lats = new float[nindex];
-    lons = new float[nindex];
-    for (int i=0; i<nindex; i++) {
-      float[][] values = wind_stations[i].getFloats(false);
-      lats[i] = values[lat_index][0];
-      lons[i] = values[lon_index][0];
-    }
-
-
-// end new data
-
-
     azimuth_index = -1;
     radial_index = -1;
     int azimuth12 = -1;
@@ -450,24 +358,6 @@ public class CollectiveBarbManipulation extends Object
       }
     }
 
-
-// new data
-
-
-    for (int i=0; i<nindex; i++) {
-      for (int j=0; j<ntimes[i]; j++) {
-        Real[] reals = tuples[i][j].getRealComponents();
-        azimuths[i][j] = (float) reals[azimuth_index].getValue();
-        radials[i][j] = (float) reals[radial_index].getValue();
-        old_azimuths[i][j] = azimuths[i][j];
-        old_radials[i][j] = radials[i][j];
-      }
-    }
- 
-
-// end new data
-
-
     if (inner_time < 0.0 ||
         outer_time < inner_time) {
       throw new CollectiveBarbException("outer_time must be " +
@@ -479,9 +369,7 @@ public class CollectiveBarbManipulation extends Object
                                    "greater than distance_time");
     }
 
-
-// selective new data
-
+    setupData(); // new data
 
     if (display1 != null) {
       control = (AnimationControl) display1.getControl(AnimationControl.class);
@@ -508,26 +396,8 @@ public class CollectiveBarbManipulation extends Object
       }
       ((BarbRenderer) barb_renderer).setKnotsConvert(knots);
       display1.addReferences(barb_renderer, stations_ref, constantMaps());
-      which_time = -1;
-      station_refs = new DataReferenceImpl[nindex];
-      barb_manipulation_renderers = new DataRenderer[nindex];
-      barb_monitors = new BarbMonitor[nindex];
-      for (int i=0; i<nindex; i++) {
-        station_refs[i] = new DataReferenceImpl("station_ref" + i);
-        station_refs[i].setData(tuples[i][0]);
-        which_times[i] = -1;
-        if (barbs) {
-          barb_manipulation_renderers[i] = new CBarbManipulationRendererJ3D(this);
-        }
-        else {
-          barb_manipulation_renderers[i] = new CSwellManipulationRendererJ3D(this);
-        }
-        ((BarbRenderer) barb_manipulation_renderers[i]).setKnotsConvert(knots);
-        display1.addReferences(barb_manipulation_renderers[i], station_refs[i],
-                               constantMaps());
-        barb_monitors[i] = new BarbMonitor(station_refs[i], i);
-        barb_monitors[i].addReference(station_refs[i]);
-      }
+
+      setupStations(); // new data
 
       if (need_monitor) {
         wind_monitor = new WindMonitor();
@@ -540,10 +410,6 @@ public class CollectiveBarbManipulation extends Object
     if (display2 != null) {
       setStation(sta);
     }
-
-
-// end selective new data
-
 
     time_dir = 0;
 
@@ -586,6 +452,141 @@ public class CollectiveBarbManipulation extends Object
     stepper = new Stepper();
     stepper.addReference(stepper_ref);
   }
+
+  // assumes inside synchronized (data_lock) { ... }
+  private void setupData()
+          throws VisADException, RemoteException {
+    try {
+      nindex = wind_field.getLength();
+      ntimes = new int[nindex];
+      tuples = new Tuple[nindex][];
+      tuples2 = new Tuple[nindex][];
+      which_times = new int[nindex];
+      wind_stations = new FlatField[nindex];
+      time_sets = new Set[nindex];
+      times = new double[nindex][];
+      azimuths = new float[nindex][];
+      radials = new float[nindex][];
+      old_azimuths = new float[nindex][];
+      old_radials = new float[nindex][];
+      for (int i=0; i<nindex; i++) {
+        wind_stations[i] = (FlatField) wind_field.getSample(i);
+        ntimes[i] = wind_stations[i].getLength();
+        time_sets[i] = wind_stations[i].getDomainSet();
+        double[][] dummy = Set.floatToDouble(time_sets[i].getSamples());
+        times[i] = dummy[0];
+        time_set = (i == 0) ? time_sets[i] : time_set.merge1DSets(time_sets[i]);
+        tuples[i] = new Tuple[ntimes[i]];
+        tuples2[i] = new Tuple[ntimes[i]];
+        azimuths[i] = new float[ntimes[i]];
+        radials[i] = new float[ntimes[i]];
+        old_azimuths[i] = new float[ntimes[i]];
+        old_radials[i] = new float[ntimes[i]];
+        Enumeration e = wind_stations[i].domainEnumeration();
+        for (int j=0; j<ntimes[i]; j++) {
+          tuples[i][j] = (Tuple) wind_stations[i].getSample(j);
+          int n = tuples[i][j].getDimension();
+          Data[] components = new Data[n + 1];
+          for (int k=0; k<n; k++) {
+            components[k] = tuples[i][j].getComponent(k);
+          }
+          components[n] = ((RealTuple) e.nextElement()).getComponent(0);
+          tuples2[i][j] = new Tuple(components);
+        }
+      }
+    }
+    catch (ClassCastException e) {
+      throw new CollectiveBarbException("wind_field bad MathType: " +
+                     wind_field_type);
+    }
+ 
+    global_ntimes = time_set.getLength();
+    global_times = new double[global_ntimes];
+    global_to_station = new int[nindex][global_ntimes];
+    station_to_global = new int[nindex][];
+    for (int i=0; i<nindex; i++) {
+      station_to_global[i] = new int[ntimes[i]];
+      for (int j=0; j<ntimes[i]; j++) station_to_global[i][j] = -1;
+    }
+    RealTupleType in = ((SetType) time_set.getType()).getDomain();
+    for (int j=0; j<global_ntimes; j++) {
+      int[] indices = {j};
+      double[][] fvalues = time_set.indexToDouble(indices);
+      global_times[j] = fvalues[0][0];
+      for (int i=0; i<nindex; i++) {
+        RealTupleType out = ((SetType) time_sets[i].getType()).getDomain();
+        double[][] values = CoordinateSystem.transformCoordinates(
+                                 out, time_sets[i].getCoordinateSystem(),
+                                 time_sets[i].getSetUnits(),
+                                 null /* errors */,
+                                 in, time_set.getCoordinateSystem(),
+                                 time_set.getSetUnits(),
+                                 null /* errors */, fvalues);
+        if (time_sets[i].getLength() == 1) {
+          indices = new int[] {0};
+        }
+        else {
+          indices = time_sets[i].doubleToIndex(values);
+        }
+        global_to_station[i][j] = indices[0];
+        station_to_global[i][indices[0]] = j;
+      } // end for (int i=0; i<nindex; i++)
+    } // end for (int j=0; j<global_ntimes; j++)
+
+    lats = new float[nindex];
+    lons = new float[nindex];
+    for (int i=0; i<nindex; i++) {
+      float[][] values = wind_stations[i].getFloats(false);
+      lats[i] = values[lat_index][0];
+      lons[i] = values[lon_index][0];
+    }
+
+
+    for (int i=0; i<nindex; i++) {
+      for (int j=0; j<ntimes[i]; j++) {
+        Real[] reals = tuples[i][j].getRealComponents();
+        azimuths[i][j] = (float) reals[azimuth_index].getValue();
+        radials[i][j] = (float) reals[radial_index].getValue();
+        old_azimuths[i][j] = azimuths[i][j];
+        old_radials[i][j] = radials[i][j];
+      }
+    }
+
+  }
+
+  // assumes inside synchronized (data_lock) { ... }
+  private void setupStations()
+          throws VisADException, RemoteException {
+    if (station_refs != null) {
+      for (int i=0; i<nindex; i++) {
+        display1.removeReference(station_refs[i]);
+        barb_monitors[i].removeReference(station_refs[i]);
+        barb_monitors[i].stop();
+      }
+    }
+
+    which_time = -1;
+    station_refs = new DataReferenceImpl[nindex];
+    barb_manipulation_renderers = new DataRenderer[nindex];
+    barb_monitors = new BarbMonitor[nindex];
+    for (int i=0; i<nindex; i++) {
+      station_refs[i] = new DataReferenceImpl("station_ref" + i);
+      station_refs[i].setData(tuples[i][0]);
+      which_times[i] = -1;
+      if (barbs) {
+        barb_manipulation_renderers[i] = new CBarbManipulationRendererJ3D(this);
+      }
+      else {
+        barb_manipulation_renderers[i] = new CSwellManipulationRendererJ3D(this);
+      }
+      ((BarbRenderer) barb_manipulation_renderers[i]).setKnotsConvert(knots);
+      display1.addReferences(barb_manipulation_renderers[i], station_refs[i],
+                             constantMaps());
+      barb_monitors[i] = new BarbMonitor(station_refs[i], i);
+      barb_monitors[i].addReference(station_refs[i]);
+    }
+  }
+
 
   /** construct new wind station at (lat, lon) with initial winds = 0 */
   public void addStation(float lat, float lon)
@@ -1353,8 +1354,7 @@ public class CollectiveBarbManipulation extends Object
     final CollectiveBarbManipulation cbm =
       new CollectiveBarbManipulation(field, display1, display2, cmaps, false,
                                      500000.0f, 1000000.0f, 0.0f, 1000.0f,
-                                     // 0, false, (args.length == 0), true, false,
-                                     0, false, false, true, false,
+                                     0, false, true, true, false,
                                      new double[] {0.0, 0.5, 0.5}, 1,
                                      new double[] {0.5, 0.5, 0.0}, 2);
 
@@ -1366,7 +1366,7 @@ public class CollectiveBarbManipulation extends Object
     final CollectiveBarbManipulation cbm2 = (args.length > 0) ?
       new CollectiveBarbManipulation(field2, display1, display2, cmaps2, false,
                                      500000.0f, 1000000.0f, 0.0f, 1000.0f,
-                                     0, false, true, true, false,
+                                     0, false, false, true, false,
                                      new double[] {0.0, 0.5, 0.5}, 1,
                                      new double[] {0.5, 0.5, 0.0}, 2) :
       null;
