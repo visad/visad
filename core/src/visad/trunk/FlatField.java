@@ -319,7 +319,16 @@ public class FlatField extends FieldImpl {
               RangeUnits[j + k] = sub_range_units[k];
             }
           }
+          MathType component = ((TupleType) RangeType).getComponent(i);
+          if (component instanceof RealType) {
+            j++;
+          }
+          else if (component instanceof RealTupleType) {
+            j += ((RealTupleType) component).getDimension();
+          }
+/* WLH 117 April 99
           j += n;
+*/
         }
       }
       else {

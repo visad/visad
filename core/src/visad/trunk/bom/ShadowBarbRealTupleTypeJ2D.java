@@ -274,6 +274,10 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
     float x1,y1,x2,y2,x3,y3;
     int nbarb50,nbarb10,nbarb5;
 
+    // convert meters per second to knots
+    f0 *= (3600.0 / 1853.248);
+    f1 *= (3600.0 / 1853.248);
+
     float wnd_spd = (float) Math.sqrt(f0 * f0 + f1 * f1);
     int lenv = vx.length;
     int lent = tx.length;

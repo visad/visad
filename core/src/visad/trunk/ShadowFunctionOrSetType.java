@@ -887,8 +887,12 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
    
             // map reference_values to appropriate DisplayRealType-s
             // MEM
+/* WLH 17 April 99
             mapValues(display_values, reference_values,
                       getComponents(componentWithRef[i], false));
+*/
+            mapValues(display_values, reference_values,
+                      getComponents(component_reference, false));
             // FREE
             reference_values = null;
             // FREE (redundant reference to range_values)

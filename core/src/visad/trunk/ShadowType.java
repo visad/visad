@@ -228,11 +228,13 @@ public abstract class ShadowType extends Object
         ShadowType component = ((ShadowTupleType) type).getComponent(i);
         if (component instanceof ShadowRealType ||
             component instanceof ShadowRealTupleType) {
+/* WLH 17 April 99
           ShadowRealType[] r = getComponents(component, false);
           for (int k=0; k<r.length; k++) {
             reals[j] = r[k];
             j++;
           }
+*/
           if (doRef && component instanceof ShadowRealTupleType) {
             ShadowRealTupleType ref = 
               ((ShadowRealTupleType) component).getReference();
@@ -242,6 +244,11 @@ public abstract class ShadowType extends Object
               componentIndex[rj] = i;
               rj++;
             }
+          }
+          ShadowRealType[] r = getComponents(component, false);
+          for (int k=0; k<r.length; k++) {
+            reals[j] = r[k];
+            j++;
           }
         }
       }

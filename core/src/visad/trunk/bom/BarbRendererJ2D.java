@@ -86,14 +86,28 @@ public class BarbRendererJ2D extends DefaultRendererJ2D {
          throws VisADException, RemoteException {
     RealType x = new RealType("x");
     RealType y = new RealType("y");
-    RealType flowx = new RealType("flowx");
-    RealType flowy = new RealType("flowy");
+    RealType flowx = new RealType("flowx",
+                          CommonUnit.meterPerSecond, null);
+    RealType flowy = new RealType("flowy",
+                          CommonUnit.meterPerSecond, null);
     RealType red = new RealType("red");
     RealType green = new RealType("green");
-    RealType blue = new RealType("blue");
-    RealTupleType range = new RealTupleType(new RealType[]
-          {x, y, flowx, flowy, red, green, blue});
     RealType index = new RealType("index");
+/*
+    RealTupleType flowxy = new RealTupleType(flowx, flowy);
+    RealType flow_degree = new RealType("flow_degree",
+                          CommonUnit.degree, null);
+    RealType flow_speed = new RealType("flow_speed",
+                          CommonUnit.meterPerSecond, null);
+    RealTupleType flowds =
+      new RealTupleType(new RealType[] {flow_degree, flow_speed},
+      new WindPolarCoordinateSystem(flowxy), null);
+    TupleType range = new TupleType(new MathType[]
+          {x, y, flowds, red, green});
+    FunctionType flow_field = new FunctionType(index, range);
+*/
+    RealTupleType range = new RealTupleType(new RealType[]
+          {x, y, flowx, flowy, red, green});
     FunctionType flow_field = new FunctionType(index, range);
 
     DisplayImpl display = new DisplayImplJ2D("display1");
@@ -111,9 +125,12 @@ public class BarbRendererJ2D extends DefaultRendererJ2D {
     flowy_map.setRange(-1.0, 1.0);
     FlowControl flow_control = (FlowControl) flowy_map.getControl();
     flow_control.setFlowScale(0.1f);
+    display.addMap(new ScalarMap(red, Display.Red));
+    display.addMap(new ScalarMap(green, Display.Green));
+    display.addMap(new ConstantMap(1.0, Display.Blue));
 
     Integer1DSet set = new Integer1DSet(N * N);
-    double[][] values = new double[7][N * N];
+    double[][] values = new double[6][N * N];
     int m = 0;
     for (int i=0; i<N; i++) {
       for (int j=0; j<N; j++) {
@@ -121,11 +138,17 @@ public class BarbRendererJ2D extends DefaultRendererJ2D {
         double v = 2.0 * j / (N - 1.0) - 1.0;
         values[0][m] = u;
         values[1][m] = v;
-        values[2][m] = 70.0 * u;
-        values[3][m] = 70.0 * v;
-        values[4][m] = 1.0;
-        values[5][m] = 1.0;
-        values[6][m] = 0.0;
+        double fx = 30.0 * u;
+        double fy = 30.0 * v;
+/*
+        values[2][m] = Math.sqrt(fx * fx + fy * fy);
+        values[3][m] =
+          Data.RADIANS_TO_DEGREES * Math.atan2(fx, fy);
+*/
+        values[2][m] = fx;
+        values[3][m] = fy;
+        values[4][m] = u;
+        values[5][m] = v;
         m++;
       }
     }
