@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: VisADAdapter.java,v 1.3 1998-06-17 20:32:45 visad Exp $
+ * $Id: VisADAdapter.java,v 1.4 2000-02-01 21:59:20 steve Exp $
  */
 
 package visad.data.netcdf.out;
@@ -384,9 +384,10 @@ VisADAdapter
 	    ((RealType)domainType.getComponent(0)).getName();
 	Dimension	dim = new Dimension(name, set.getLength());
 	Unit[]		units = set.getSetUnits();
+	if (!(set instanceof Gridded1DSet))
+	    throw new BadFormException("Domain set not Gridded1DSet");
 	CoordVar	var =
 	    new CoordVar(name, dim, units[0], (Gridded1DSet)set);
-
 	try
 	{
 	    add(var, var);
