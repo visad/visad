@@ -173,6 +173,9 @@ public class DataDisplayLink extends ReferenceActionLink {
       else if (Display.LineWidth.equals(dreal)) {
         defaultValues[i] = mode.getLineWidth();
       }
+      else if (Display.LineStyle.equals(dreal)) {
+        defaultValues[i] = mode.getLineStyle();
+      }
 /* WLH 21 Aug 98
       defaultValues[i] = (float) (((DisplayRealType)
         ((DisplayImpl) local_action).getDisplayScalar(i)).getDefaultValue());

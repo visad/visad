@@ -51,6 +51,11 @@ import java.util.*;
 public class VisADCanvasJ2D extends JPanel
        implements Runnable {
 
+  /** line patterns for use with BasicStroke */
+  private float[][] LINE_PATTERN = {
+    null, {8}, {1, 7}, {7, 4, 1, 4}
+  };
+
   private DisplayRendererJ2D displayRenderer;
   private DisplayImplJ2D display;
   private Component component;
@@ -440,7 +445,7 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
             displayRenderer.notifyCapture();
 // System.out.println("image capture end");
 
-            // CTR 21 Sep 99 - send BufferedImage to any attached slaved displays
+            // CTR 21 Sep 99 - send BufferedImage to attached slaved displays
             if (display.hasSlaves()) display.updateSlaves(captureImage);
           }
         }
@@ -630,7 +635,16 @@ so:
             yy = 1.05;
           }
           float size = (float) (0.5 * (Math.sqrt(xx) + Math.sqrt(yy)));
-          g2.setStroke(new BasicStroke(size));
+          float[] style = LINE_PATTERN[appearance.lineStyle];
+          float[] pattern = null;
+          if (style != null) {
+            pattern = new float[style.length];
+            float scale = size / appearance.lineWidth;
+            for (int i=0; i<style.length; i++) pattern[i] = scale * style[i];
+          }
+          g2.setStroke(new BasicStroke(size, BasicStroke.CAP_SQUARE,
+            BasicStroke.JOIN_MITER, 10, pattern, 0));
+
 /*
 System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
                    xx + " " + yy +
@@ -803,6 +817,7 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
         else if (array instanceof VisADTriangleArray) {
           g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                               RenderingHints.VALUE_ANTIALIAS_OFF);
+
           if (colors == null) {
             for (int i=0; i<3*count; i += 9) {
               GeneralPath path = new GeneralPath(GeneralPath.WIND_EVEN_ODD);
@@ -1260,7 +1275,7 @@ System.out.println(" " + newcoords[i] + " " + newcoords[i+1] + " " +
     prefSize = size;
   }
 
-  /* CTR 14 Nov 2000 - support for auto-aspect to canvas size */
+  // CTR 14 Nov 2000 - support for auto-aspect to canvas size
 
   private boolean autoAspect = false;
 

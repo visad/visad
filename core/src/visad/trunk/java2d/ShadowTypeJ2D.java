@@ -189,6 +189,7 @@ public abstract class ShadowTypeJ2D extends ShadowType {
     VisADAppearance appearance = new VisADAppearance();
     appearance.pointSize = mode.getPointSize();
     appearance.lineWidth = mode.getLineWidth();
+    appearance.lineStyle = mode.getLineStyle();
 
     appearance.alpha = constant_alpha; // may be Float.NaN
     if (constant_color != null && constant_color.length == 3) {

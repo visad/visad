@@ -1637,6 +1637,9 @@ System.out.println("doTerminal: isTerminal = " + getIsTerminal() +
       float lineWidth =
         default_values[display.getDisplayScalarIndex(Display.LineWidth)];
       mode.setLineWidth(lineWidth, true);
+      int lineStyle = (int)
+        default_values[display.getDisplayScalarIndex(Display.LineStyle)];
+      mode.setLineStyle(lineStyle, true);
 
       boolean pointMode = mode.getPointMode();
       byte missing_transparent = (byte) (mode.getMissingTransparent() ? 0 : -1);

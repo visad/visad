@@ -201,6 +201,8 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
     LineAttributes line = new LineAttributes();
     line.setLineWidth(mode.getLineWidth());
+    int pattern = GraphicsModeControlJ3D.LINE_PATTERN[mode.getLineStyle()];
+    line.setLinePattern(pattern);
     appearance.setLineAttributes(line);
 
     PointAttributes point = new PointAttributes();

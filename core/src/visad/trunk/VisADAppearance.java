@@ -41,6 +41,7 @@ public class VisADAppearance extends VisADSceneGraphObject {
   public float alpha;
   public float lineWidth = 1.0f;
   public float pointSize = 1.0f;
+  public int lineStyle = GraphicsModeControl.SOLID_STYLE;
 
   // Serializable substitutes for image
   public int image_type = -1;

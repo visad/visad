@@ -202,11 +202,13 @@ public interface Display extends Action {
   DisplayRealType Text =
     new DisplayRealType("Text", true, true);
 
-  /** point size and line width - ConstantMap only */
+  /** point size, line width and line style - ConstantMap only */
   DisplayRealType LineWidth =
     new DisplayRealType("LineWidth", true, 1.0, true);
   DisplayRealType PointSize =
     new DisplayRealType("PointSize", true, 1.0, true);
+  DisplayRealType LineStyle =
+    new DisplayRealType("LineStyle", true, 1.0, true);
 
   /** array of system intrinsic display scalars */
   DisplayRealType[] DisplayRealArray =
@@ -216,7 +218,7 @@ public interface Display extends Action {
      Flow2X, Flow2Y, Flow2Z, XAxisOffset, YAxisOffset, ZAxisOffset, Shape,
      Text, ShapeScale, LineWidth, PointSize, CylRadius, CylAzimuth, CylZAxis,
      Flow1Elevation, Flow1Azimuth, Flow1Radial,
-     Flow2Elevation, Flow2Azimuth, Flow2Radial};
+     Flow2Elevation, Flow2Azimuth, Flow2Radial, LineStyle};
 
   /** system intrinsic DisplayTupleType objects */
   /** system intrinsic DisplayTupleType for 3D Cartesian Spatial Coordinates */

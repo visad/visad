@@ -41,8 +41,13 @@ import visad.util.Util;
 */
 public class GraphicsModeControlJ2D extends GraphicsModeControl {
 
+  static final String[] LINE_STYLE = {
+    "solid", "dash", "dot", "dash-dot"
+  };
+
   private float lineWidth; // for LineAttributes; >= 1.0
   private float pointSize; // for PointAttributes; >= 1.0
+  private int lineStyle; // for LineAttributes
   private boolean pointMode; // true => points in place of lines and surfaces
   private boolean textureEnable; // true => allow use of texture mapping
   private boolean scaleEnable; // true => display X, Y and Z scales
@@ -58,6 +63,7 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     super(d);
     lineWidth = 1.0f;
     pointSize = 1.0f;
+    lineStyle = SOLID_STYLE;
     pointMode = false;
     textureEnable = true;
     scaleEnable = false;
@@ -107,6 +113,31 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     if (size >= 1.0f) {
       pointSize = size;
     }
+  }
+
+  public int getLineStyle() {
+    return lineStyle;
+  }
+
+  public void setLineStyle(int style)
+         throws VisADException, RemoteException {
+    if (style != SOLID_STYLE && style != DASH_STYLE &&
+      style != DOT_STYLE && style != DASH_DOT_STYLE)
+    {
+      style = SOLID_STYLE;
+    }
+    lineStyle = style;
+    changeControl(true);
+    getDisplay().reDisplayAll();
+  }
+
+  public void setLineStyle(int style, boolean dummy) {
+    if (style != SOLID_STYLE && style != DASH_STYLE &&
+      style != DOT_STYLE && style != DASH_DOT_STYLE)
+    {
+      style = SOLID_STYLE;
+    }
+    lineStyle = style;
   }
 
   public boolean getPointMode() {
@@ -215,6 +246,7 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
       new GraphicsModeControlJ2D(getDisplay());
     mode.lineWidth = lineWidth;
     mode.pointSize = pointSize;
+    mode.lineStyle = lineStyle;
     mode.pointMode = pointMode;
     mode.textureEnable = textureEnable;
     mode.scaleEnable = scaleEnable;
@@ -254,6 +286,11 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
       changed = true;
       redisplay = true;
       pointSize = rmtCtl.pointSize;
+    }
+    if (lineStyle != rmtCtl.lineStyle) {
+      changed = true;
+      redisplay = true;
+      lineStyle = rmtCtl.lineStyle;
     }
 
     if (pointMode != rmtCtl.pointMode) {
@@ -324,6 +361,9 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     if (!Util.isApproximatelyEqual(pointSize, gmc.pointSize)) {
       return false;
     }
+    if (lineStyle != gmc.lineStyle) {
+      return false;
+    }
 
     if (pointMode != gmc.pointMode) {
       return false;
@@ -364,6 +404,8 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     buf.append(lineWidth);
     buf.append(",ps ");
     buf.append(pointSize);
+    buf.append(",ls ");
+    buf.append(LINE_STYLE[lineStyle]);
 
     buf.append(pointMode ? "pm" : "!pm");
     buf.append(textureEnable ? "te" : "!te");

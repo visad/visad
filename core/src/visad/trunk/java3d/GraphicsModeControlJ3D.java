@@ -43,10 +43,19 @@ import visad.util.Util;
 */
 public class GraphicsModeControlJ3D extends GraphicsModeControl {
 
+  /** maps GraphicsModeControl line styles to LineAttributes line patterns */
+  static final int[] LINE_PATTERN = {
+    LineAttributes.PATTERN_SOLID, LineAttributes.PATTERN_DASH,
+    LineAttributes.PATTERN_DOT, LineAttributes.PATTERN_DASH_DOT
+  };
+
   /** for LineAttributes; >= 1.0  @serial */
   private float lineWidth;
   /** for PointAttributes; >= 1.0  @serial */
   private float pointSize;
+  /** for LineAttributes; = solid, dash, dot or dash-dot  @serial */
+  private int lineStyle;
+
   /** true => points in place of lines and surfaces, @serial */
   private boolean pointMode;
   /** true => allow use of texture mapping @serial*/
@@ -77,6 +86,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     super(d);
     lineWidth = 1.0f;
     pointSize = 1.0f;
+    lineStyle = SOLID_STYLE;
     pointMode = false;
     textureEnable = true;
     scaleEnable = false;
@@ -185,6 +195,53 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   public void setPointSize(float size, boolean dummy) {
     if (size < 1.0f) size = 1.0f;
     pointSize = size;
+  }
+
+  /**
+   * Get the current line style used for LineAttributes.  The default
+   * is GraphicsModeControl.SOLID_STYLE.
+   *
+   * @return  line style (SOLID_STYLE, DASH_STYLE, DOT_STYLE or DASH_DOT_STYLE)
+   */
+  public int getLineStyle() {
+    return lineStyle;
+  }
+
+  /**
+   * Set the line style used for LineAttributes.  Calls changeControl
+   * and resets the display.
+   *
+   * @param style  style to use (SOLID_STYLE, DASH_STYLE,
+   *               DOT_STYLE or DASH_DOT_STYLE)
+   *
+   * @throws  VisADException   couldn't set the line style on local display
+   * @throws  RemoteException  couldn't set the line style on remote display
+   */
+  public void setLineStyle(int style)
+         throws VisADException, RemoteException {
+    if (style != SOLID_STYLE && style != DASH_STYLE &&
+      style != DOT_STYLE && style != DASH_DOT_STYLE)
+    {
+      style = SOLID_STYLE;
+    }
+    lineStyle = style;
+    changeControl(true);
+    getDisplay().reDisplayAll();
+  }
+
+  /**
+   * Set the line style used for LineAttributes.   Does not update display.
+   *
+   * @param style  style to use (SOLID_STYLE, DASH_STYLE,
+   *               DOT_STYLE or DASH_DOT_STYLE)
+   */
+  public void setLineStyle(int style, boolean dummy) {
+    if (style != SOLID_STYLE && style != DASH_STYLE &&
+      style != DOT_STYLE && style != DASH_DOT_STYLE)
+    {
+      style = SOLID_STYLE;
+    }
+    lineStyle = style;
   }
 
   /**

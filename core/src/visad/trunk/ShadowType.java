@@ -3211,6 +3211,9 @@ System.out.println("range = " + range[0] + " " + range[1] +
     float lineWidth =
       default_values[display.getDisplayScalarIndex(Display.LineWidth)];
     mode.setLineWidth(lineWidth, true);
+    int lineStyle = (int)
+      default_values[display.getDisplayScalarIndex(Display.LineStyle)];
+    mode.setLineStyle(lineStyle, true);
 
     float[][] flow1_values = new float[3][];
     float[][] flow2_values = new float[3][];

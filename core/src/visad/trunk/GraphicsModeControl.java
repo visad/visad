@@ -41,6 +41,12 @@ import visad.browser.Convert;
 public abstract class GraphicsModeControl extends Control
        implements Cloneable {
 
+  /** line styles for Display.LineStyle mapping */
+  public static final int SOLID_STYLE = 0;
+  public static final int DASH_STYLE = 1;
+  public static final int DOT_STYLE = 2;
+  public static final int DASH_DOT_STYLE = 3;
+
   public GraphicsModeControl(DisplayImpl d) {
     super(d);
   }
@@ -64,6 +70,23 @@ public abstract class GraphicsModeControl extends Control
          throws VisADException, RemoteException;
 
   public abstract void setPointSize(float size, boolean dummy);
+
+  public abstract int getLineStyle();
+
+  /**
+   * set the style of line rendering; this is over-ridden by
+   * ConstantMaps to Display.LineStyle.
+   *
+   * The line styles are:
+   * <li>GraphicsModeControl.SOLID_STYLE
+   * <li>GraphicsModeControl.DASH_STYLE
+   * <li>GraphicsModeControl.DOT_STYLE
+   * <li>GraphicsModeControl.DASH_DOT_STYLE
+   */
+  public abstract void setLineStyle(int style)
+         throws VisADException, RemoteException;
+
+  public abstract void setLineStyle(int style, boolean dummy);
 
   public abstract boolean getPointMode();
 
@@ -117,16 +140,17 @@ public abstract class GraphicsModeControl extends Control
   /** get a string that can be used to reconstruct this control later */
   public String getSaveString() {
     return "" +
-      getLineWidth() + ' ' +
-      getPointSize() + ' ' +
-      getPointMode() + ' ' +
-      getTextureEnable() + ' ' +
-      getScaleEnable() + ' ' +
-      getTransparencyMode() + ' ' +
-      getProjectionPolicy() + ' ' +
-      getPolygonMode() + ' ' +
-      getMissingTransparent() + ' ' +
-      getCurvedSize();
+      getLineWidth() + " " +
+      getPointSize() + " " +
+      getPointMode() + " " +
+      getTextureEnable() + " " +
+      getScaleEnable() + " " +
+      getTransparencyMode() + " " +
+      getProjectionPolicy() + " " +
+      getPolygonMode() + " " +
+      getMissingTransparent() + " " +
+      getCurvedSize() + " " +
+      getLineStyle();
   }
 
   /** reconstruct this control using the specified save string */
@@ -150,9 +174,13 @@ public abstract class GraphicsModeControl extends Control
     boolean mt = Convert.getBoolean(st.nextToken());
     int cs = Convert.getInt(st.nextToken());
 
+    int ls = SOLID_STYLE;
+    if (st.hasMoreTokens()) ls = Convert.getInt(st.nextToken());
+
     // reset graphics mode settings
     setLineWidth(lw);
     setPointSize(ps);
+    setLineStyle(ls);
     setPointMode(pm);
     setTextureEnable(te);
     setScaleEnable(se);

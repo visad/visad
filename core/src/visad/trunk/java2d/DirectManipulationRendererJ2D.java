@@ -105,10 +105,13 @@ public class DirectManipulationRendererJ2D extends RendererJ2D {
       default_values[display.getDisplayScalarIndex(Display.PointSize)];
     appearance.lineWidth =
       default_values[display.getDisplayScalarIndex(Display.LineWidth)];
+    appearance.lineStyle = (int)
+      default_values[display.getDisplayScalarIndex(Display.LineStyle)];
 /* WLH 21 Aug 98
     GraphicsModeControl mode = getDisplay().getGraphicsModeControl();
     appearance.pointSize = mode.getPointSize();
     appearance.lineWidth = mode.getLineWidth();
+    appearance.lineStyle = mode.getLineStyle();
 */
     appearance.red = 1.0f;
     appearance.green = 1.0f;

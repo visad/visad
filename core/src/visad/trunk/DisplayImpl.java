@@ -1560,8 +1560,9 @@ if (initialize) {
         throw new BadMappingException("DisplayImpl.addMap: " +
               map.getDisplayScalar() + " illegal for this DisplayRenderer");
       }
-      if ((Display.LineWidth.equals(type) || Display.PointSize.equals(type))
-          && !(map instanceof ConstantMap)) {
+      if ((Display.LineWidth.equals(type) || Display.PointSize.equals(type) ||
+        Display.LineStyle.equals(type)) && !(map instanceof ConstantMap))
+      {
         throw new BadMappingException("DisplayImpl.addMap: " +
               map.getDisplayScalar() + " for ConstantMap only");
       }
