@@ -116,7 +116,10 @@ public class MouseHelper {
             if ((m & InputEvent.SHIFT_MASK) != 0) {
               z1Pressed = true;
             }
+/* WLH 6 July 98
             else if ((m & InputEvent.CTRL_MASK) != 0) {
+*/
+            else if ((m & InputEvent.CTRL_MASK) != 0 || mode2D) {
               t1Pressed = true;
             }
           }
@@ -215,9 +218,6 @@ public class MouseHelper {
               double transy =
                 (start_y - current_y) * 2.0 / (double) d.height;
               t1 = behavior.make_translate(transx, transy);
-/* WLH 29 June 98
-              t1 = behavior.make_matrix(0.0, 0.0, 0.0, 1.0, transx, transy, 0.0);
-*/
             }
             else {
               if (!mode2D) {
@@ -231,11 +231,6 @@ public class MouseHelper {
             }
             if (t1 != null) {
               t1 = behavior.multiply_matrix(t1, tstart);
-/*
-              t1.mul(tstart);
-              double[] matrix = new double[16];
-              t1.get(matrix);
-*/
               try {
                 proj.setMatrix(t1);
               }
@@ -265,11 +260,6 @@ public class MouseHelper {
                 double[] t1 =
                   behavior.make_matrix(anglex, angley, 0.0, 1.0, 0.0, 0.0, 0.0);
                 t1 = behavior.multiply_matrix(t1, tstart);
-/*
-                t1.mul(tstart);
-                double[] matrix = new double[16];
-                t1.get(matrix);
-*/
                 try {
                   proj.setMatrix(t1);
                 }
