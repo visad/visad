@@ -26,7 +26,7 @@ import javax.swing.border.*;
 public class Spline {
 
 
-  boolean java2d = true;
+  boolean java2d = false;
   DataReference lambda_ref;
   DataReference noise_ref;
   DataReference spline_ref;
@@ -262,11 +262,20 @@ public class Spline {
       }
       else {
         for ( int ii = 0; ii < n_samples; ii++ ) {
+          display_value = ((double)domain_values[ii])*scale_offset[0] + scale_offset[1];
+          cmaps[4] = new ConstantMap(  display_value,
+                                       Display.XAxis );
+          display1.addReferences(new DirectManipulationRendererJ3D(),
+                                 range_refs[ii], cmaps );
+        }
+/* WLH 4 Dec 98
+        for ( int ii = 0; ii < n_samples; ii++ ) {
           cmaps[4] = new ConstantMap( new Real(RealType.XAxis,(double) domain_values[ii]),
                                       Display.XAxis );
           display1.addReferences(new DirectManipulationRendererJ3D(),
                                  range_refs[ii], cmaps );
         }
+*/
       }
 
       spline_fieldRef = new DataReferenceImpl("spline_fieldRef");

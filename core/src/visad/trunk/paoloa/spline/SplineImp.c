@@ -1,5 +1,5 @@
 
-/* GalaxyImp.c */
+/* SplineImp.c */
 
 #include <jni.h>
 #include "visad_paoloa_spline_Spline.h"

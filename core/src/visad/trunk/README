@@ -21,10 +21,6 @@ directory is a directory in your CLASSPATH (which we will refer
 to as '/parent_dir' through the rest of this README file).
 Then get:
 
-  ftp://demedici.ssec.wisc.edu/pub/visad-2.0/visad_src.2.0.tar.Z
- 
-or:
- 
   ftp://demedici.ssec.wisc.edu/pub/visad-2.0/visad_src.2.0.jar
  
 If you have previously downloaded the VisAD source you
@@ -34,11 +30,6 @@ out the old source files before you unpack the new source.
 Unpack the jar file by running:
  
   jar xvf visad_src.2.0.jar
- 
-or unpack the compressed tar file by running:
- 
-  uncompress visad_src.2.0.tar.Z
-  tar -xvf visad_src.2.0.tar
  
 Unpacking VisAD will create the following sub-directories:
 
@@ -67,6 +58,7 @@ Unpacking VisAD will create the following sub-directories:
   nom/tam/util			// Java FITS file binding
   nom/tam/test			// Java FITS file binding
   ucar/multiarray		// Java netCDF file binding
+  ucar/util			// Java netCDF file binding
   ucar/netcdf			// Java netCDF file binding
   ucar/tests			// Java netCDF file binding
 
@@ -205,20 +197,6 @@ code is still written in Fortran.
 The applications in visad/paoloa, visad/aune and visad/benjamin
 also include native code in both C and Fortran.
 
-Before you compile the native code in the visad/paoloa
-directory, download the necessary data files from either:
- 
-  ftp://demedici.ssec.wisc.edu/pub/visad-2.0/visad.paoloa.tar.Z
- 
-or:
- 
-  ftp://demedici.ssec.wisc.edu/pub/visad-2.0/visad.paoloa.jar
- 
-which include necessary data files.  Unpack these files in
-/parent_dir (i.e., the directory in your CLASSPATH where
-you unpacked the VisAD source).  They include all necessary
-source code and Makefiles as well as the data files.
-
 Then edit the Makefile in both visad/paoloa, visad/aune and
 visad/benjamin to change the path:
  
@@ -238,6 +216,11 @@ these applications, you must add:
   /parent_dir/visad/aune/libShallowFluid.so
 
 to your LD_LIBRARY_PATH.
+
+Note that the applications in visad/paoloa require data files
+available from:
+
+  ftp://demedici.ssec.wisc.edu/pub/visad-2.0/paoloa.files.tar.Z
 
 
 6. Downloading VisAD Classes in Jar Files
@@ -287,6 +270,7 @@ these packages:
   nom.tam.util			// Java FITS file binding
   nom.tam.test			// Java FITS file binding
   ucar.multiarray		// Java netCDF file binding
+  ucar.util			// Java netCDF file binding
   ucar.netcdf			// Java netCDF file binding
   ucar.tests			// Java netCDF file binding
 

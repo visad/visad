@@ -430,6 +430,7 @@ nom.tam.fits \
 nom.tam.util \
 nom.tam.test \
 ucar.multiarray \
+ucar.util \
 ucar.netcdf \
 ucar.tests \
 visad.data.hdfeos \

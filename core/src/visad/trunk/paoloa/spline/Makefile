@@ -39,8 +39,8 @@ FFLAGS = $(SHFFLAGS)
 # and 'recl=76' in re_read_1.f, which are in bytes on Solaris (but
 # were in words on Irix 5 for VisAD 1.1)
 #
-FORTRANS = gcvspl.o
-SOURCE = gcvspl.f
+FORTRANS = gcvspl.o visad_tpspline.o
+SOURCE = gcvspl.f visad_tpspline.f
 #INCLUDE = 
  
 
@@ -48,15 +48,12 @@ SOURCE = gcvspl.f
 #
 RM = rm -f
 
-default: Spline.class Spline.so
+default: Spline.class Spline2D.class Spline.so Spline2D.so
 
 Spline.so: SplineImp.o $(FORTRANS)
 	${SHLD} ${SHLDFLAGS} -o libSpline.so \
 		SplineImp.o $(FORTRANS) \
 		$(LIBS) -lM77 -lF77 -lsunmath -lm -lc
-
-$(FORTRANS) : $(SOURCE)
-	f77 -c $(FFLAGS) $*.f
 
 SplineImp.o: visad_paoloa_spline_Spline.h
 
@@ -66,8 +63,25 @@ visad_paoloa_spline_Spline.h: Spline.class
 Spline.class: Spline.java
 	javac Spline.java
 
+Spline2D.so: Spline2DImp.o $(FORTRANS)
+	${SHLD} ${SHLDFLAGS} -o libSpline2D.so \
+		Spline2DImp.o $(FORTRANS) \
+		$(LIBS) -lM77 -lF77 -lsunmath -lm -lc
+
+Spline2DImp.o: visad_paoloa_spline_Spline2D.h
+
+visad_paoloa_spline_Spline2D.h: Spline2D.class
+	javah -jni visad.paoloa.spline.Spline2D
+
+Spline2D.class: Spline2D.java
+	javac Spline2D.java
+
+$(FORTRANS) : $(SOURCE)
+	f77 -c $(FFLAGS) $*.f
+
 clean:
 	$(RM) visad_paoloa_spline_Spline.h
+	$(RM) visad_paoloa_spline_Spline2D.h
 	$(RM) *.o
 	$(RM) *.so
 

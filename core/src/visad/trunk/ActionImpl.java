@@ -236,11 +236,14 @@ System.out.println("doAction: Name = " + Name + " checkTicks = " + check +
                                    "ThingReference already exists");
     }
     link.initTicks(ref.getTick());
+
+// WLH 4 Dec 98 - moved this above LinkVector stuff
+    ref.addThingChangedListener(link.getAction(), link.getId());
+
     if (LinkVector == null) LinkVector = new Vector();
     synchronized (LinkVector) {
       LinkVector.addElement(link);
     }
-    ref.addThingChangedListener(link.getAction(), link.getId());
   }
 
   void notifyAction() {
