@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: BaseRGBMap.java,v 1.16 2000-03-13 20:20:10 dglo Exp $
+@(#) $Id: BaseRGBMap.java,v 1.17 2000-03-14 16:19:13 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -50,7 +50,7 @@ import visad.VisADException;
  * mouse button to alternate between the color curves.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.16 $, $Date: 2000-03-13 20:20:10 $
+ * @version $Revision: 1.17 $, $Date: 2000-03-14 16:19:13 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -95,6 +95,9 @@ public class BaseRGBMap
   private static Cursor[] cursor = null;
   /** a slightly brighter blue */
   private static final Color bluish = new Color(80, 80, 255);
+
+  /** the preferred size of this widget */
+  private Dimension preferredSize = null;
 
   /**
    * Construct a BaseRGBMap with the default resolution
@@ -922,8 +925,26 @@ public class BaseRGBMap
    *
    * @return preferred size.
    */
-  public Dimension getPreferredSize() {
-    return new Dimension(resolution, resolution / 2);
+  public Dimension getPreferredSize()
+  {
+    if (preferredSize != null) {
+      return preferredSize;
+    }
+
+    final int height = 170;
+    preferredSize = new Dimension(resolution, height);
+    return preferredSize;
+  }
+
+  /**
+   * Override the widget's calculation for the preferred size
+   * of this map.
+   *
+   * @param pref preferred size.
+   */
+  public void setPreferredSize(Dimension pref)
+  {
+    preferredSize = pref;
   }
 
   /**
