@@ -6,7 +6,6 @@ import java.awt.FlowLayout;
 
 import java.rmi.RemoteException;
 
-import javax.swing.Box;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -14,7 +13,6 @@ import visad.ControlEvent;
 import visad.ControlListener;
 import visad.DataReferenceImpl;
 import visad.FieldImpl;
-import visad.FlatField;
 import visad.PlotText;
 import visad.ScalarMap;
 import visad.ScalarMapControlEvent;
@@ -22,9 +20,6 @@ import visad.ScalarMapEvent;
 import visad.ScalarMapListener;
 import visad.ValueControl;
 import visad.VisADException;
-
-import visad.data.amanda.BaseTrack;
-import visad.data.amanda.Event;
 
 import visad.util.VisADSlider;
 

@@ -22,12 +22,7 @@ MA 02111-1307, USA
 
 package visad.data.amanda;
 
-import java.rmi.RemoteException;
-
 import java.util.ArrayList;
-
-import visad.Data;
-import visad.VisADException;
 
 public abstract class EventList
 {

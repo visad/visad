@@ -13,7 +13,6 @@ import visad.Gridded2DSet;
 import visad.RealType;
 import visad.RealTupleType;
 import visad.ScalarMap;
-import visad.ScalarType;
 import visad.VisADException;
 
 import visad.java2d.DisplayImplJ2D;

@@ -24,7 +24,6 @@ package visad.data.amanda;
 
 import java.rmi.RemoteException;
 
-import visad.Data;
 import visad.FieldImpl;
 import visad.FlatField;
 import visad.FunctionType;

@@ -41,11 +41,8 @@ import visad.FieldImpl;
 import visad.FlatField;
 import visad.FunctionType;
 import visad.Integer1DSet;
-import visad.MathType;
 import visad.RealType;
 import visad.RealTupleType;
-import visad.Tuple;
-import visad.TupleType;
 import visad.VisADException;
 
 import visad.data.BadFormException;

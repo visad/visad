@@ -24,16 +24,10 @@ package visad.data.amanda;
 
 import java.rmi.RemoteException;
 
-import java.util.ArrayList;
-
 import visad.Data;
 import visad.FieldImpl;
-import visad.FlatField;
-import visad.Integer1DSet;
 import visad.MathType;
-import visad.RealTuple;
 import visad.RealType;
-import visad.Tuple;
 import visad.ScalarMap;
 import visad.TupleType;
 import visad.VisADException;

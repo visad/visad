@@ -36,38 +36,26 @@ import java.net.URL;
 
 import java.rmi.RemoteException;
 
-import javax.swing.Box;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 
 import visad.AnimationControl;
-import visad.BaseColorControl;
 import visad.DataReferenceImpl;
 import visad.Display;
 import visad.DisplayImpl;
 import visad.DisplayRenderer;
-import visad.FieldImpl;
-import visad.FunctionType;
-import visad.FlatField;
-import visad.GraphicsModeControl;
 import visad.Integer1DSet;
-import visad.ScalarType;
-import visad.RealTupleType;
 import visad.RealType;
 import visad.ScalarMap;
 import visad.ShapeControl;
 import visad.VisADException;
-
-import visad.java2d.DisplayImplJ2D;
 
 import visad.java3d.DisplayImplJ3D;
 
 import visad.util.AnimationWidget;
 import visad.util.CmdlineConsumer;
 import visad.util.CmdlineParser;
-import visad.util.LabeledColorWidget;
-import visad.util.VisADSlider;
 
 /** run 'java NuView in_file' to display data.<br>
  *  try 'java NuView 100events.r'

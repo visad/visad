@@ -34,7 +34,6 @@ import java.rmi.RemoteException;
 
 import visad.Data;
 import visad.DataImpl;
-import visad.RealType;
 import visad.Tuple;
 import visad.VisADException;
 

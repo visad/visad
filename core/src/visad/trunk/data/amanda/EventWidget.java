@@ -10,7 +10,6 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
-import javax.swing.Box;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -21,9 +20,6 @@ import visad.FieldImpl;
 import visad.Real;
 import visad.ScalarMap;
 import visad.VisADException;
-
-import visad.data.amanda.AmandaFile;
-import visad.data.amanda.Event;
 
 import visad.util.VisADSlider;
 
