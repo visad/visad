@@ -255,6 +255,16 @@ public class PlaneSelector {
         return false;
       }
     }
+    if (!updatePlane()) return false;
+    notifyListeners();
+    return true;
+  }
+
+  /** Updates the plane to match the current endpoints. */
+  protected boolean updatePlane() {
+    int len = refs.length - 2;
+    RealTuple[] tuple = new RealTuple[len];
+    for (int i=0; i<len; i++) tuple[i] = (RealTuple) refs[i + 2].getData();
     lines = null;
     plane = null;
     try {
@@ -264,7 +274,6 @@ public class PlaneSelector {
     }
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }
-    notifyListeners();
     return true;
   }
 

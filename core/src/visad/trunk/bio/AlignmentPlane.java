@@ -107,8 +107,6 @@ public class AlignmentPlane extends PlaneSelector {
 
     // set endpoint values to match those at current index
     for (int i=0; i<3; i++) setData(i, descale(pos[index][i]));
-
-    if (mode == APPLY_MODE) alignDisplay(old_index);
   }
 
   /**
@@ -175,36 +173,13 @@ public class AlignmentPlane extends PlaneSelector {
         }
       }
     }
+    index = -1; // force update
+    setIndex(0);
+    updatePlane();
   }
 
 
   // -- HELPER METHODS --
-
-  /** Aligns the display to match the alignment plane. */
-  protected void alignDisplay(int old_index) {
-    /*
-    // make_matrix(rx, ry, rz, 1.0, tx, ty, tz);
-    double[] old_v = pos[old_index][0];
-    double[] v = pos[index][0];
-    double[] t = new double[3];
-    for (int i=0; i<3; i++) t[i] = old_v[i] - v[i];
-
-    // is this correct?
-    t[0] /= bio.sm.res_x;
-    t[1] /= bio.sm.res_y;
-    t[2] /= bio.sm.getNumberOfSlices();
-
-    // and why doesn't this work?
-    ProjectionControl control = display.getProjectionControl();
-    double[] matrix = control.getMatrix();
-    double[] mult = display.make_matrix(0.0, 0.0, 0.0, 1.0, t[0], t[1], t[2]);
-    try {
-      control.setMatrix(display.multiply_matrix(mult, matrix));
-    }
-    catch (VisADException exc) { exc.printStackTrace(); }
-    catch (RemoteException exc) { exc.printStackTrace(); }
-    */
-  }
 
   /** Refreshes the plane data from its endpoint locations. */
   protected boolean refresh() {
