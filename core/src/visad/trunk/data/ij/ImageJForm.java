@@ -43,7 +43,9 @@ import visad.util.DataUtility;
  * <dd>DICOM, FITS, PGM, JPEG, GIF, LUT, BMP,
  *     TIFF, ZIP-compressed TIFF and ROI.
  */
-public class ImageJForm extends Form implements FormFileInformer {
+public class ImageJForm extends Form
+  implements FormFileInformer, FormBlockReader, FormProgressInformer
+{
 
   private static int num = 0;
 
@@ -54,11 +56,15 @@ public class ImageJForm extends Form implements FormFileInformer {
 
   private Opener opener;
 
+  private double percent = -1;
+
   /** Constructs a new ImageJ file form. */
   public ImageJForm() {
     super("ImageJForm" + num++);
     opener = new Opener();
   }
+
+  // -- FormFileInformer methods --
 
   /** Checks if the given string is a valid filename for this form. */
   public boolean isThisType(String name) {
@@ -77,6 +83,9 @@ public class ImageJForm extends Form implements FormFileInformer {
     System.arraycopy(suffixes, 0, s, 0, suffixes.length);
     return s;
   }
+
+
+  // -- API methods --
 
   /**
    * Saves a VisAD Data object to an ImageJ format.
@@ -112,6 +121,7 @@ public class ImageJForm extends Form implements FormFileInformer {
   public DataImpl open(String id)
     throws BadFormException, IOException, VisADException
   {
+    percent = 0;
     File file = new File(id);
     ImagePlus image = opener.openImage(file.getParent() +
       System.getProperty("file.separator"), file.getName());
@@ -130,6 +140,7 @@ public class ImageJForm extends Form implements FormFileInformer {
     Integer1DSet time_set = new Integer1DSet(size);
     FieldImpl time_field = new FieldImpl(time_function, time_set);
     time_field.setSamples(fields, false);
+    percent = -1;
     return time_field;
   }
 
@@ -170,5 +181,30 @@ public class ImageJForm extends Form implements FormFileInformer {
     System.out.println("MathType =\n" + data.getType().prettyString());
     System.exit(0);
   }
+
+
+  // -- FormBlockReader methods --
+
+  public DataImpl open(String id, int block_number)
+    throws BadFormException, IOException, VisADException
+  {
+    if (block_number != 0) {
+      throw new BadFormException("Invalid image number: " + block_number);
+    }
+    return open(id);
+  }
+
+  public int getBlockCount(String id)
+    throws BadFormException, IOException, VisADException
+  {
+    return 1;
+  }
+
+  public void close() throws BadFormException, IOException, VisADException { }
+
+
+  // -- FormProgressInformer methods --
+
+  public double getPercentComplete() { return percent; }
 
 }
