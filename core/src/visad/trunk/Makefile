@@ -135,6 +135,11 @@ DOCFLAGS = -d $(DOC_DIR) -J-Xmx$(DOC_MEM) -package \
 #SHLDFLAGS = -shared
 #SHFLDFLAGS = -shared
 
+# to build for AIX, uncomment the next few lines (UNTESTED!)
+#JAVAARCH = aix
+#SHLDFLAGS = -bE:shrsub.exp -bM:SRE -bnoentry
+#SHFLDFLAGS = 
+
 ############################################################################
 # You shouldn't need to change anything beyond this point
 ############################################################################

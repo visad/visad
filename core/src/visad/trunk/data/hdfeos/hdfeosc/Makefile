@@ -92,3 +92,6 @@ irix: required_macros
 
 linux: required_macros
 	@make ARCH=linux SYSLIBS="-lm" SHOPT="-fPIC -DPIC" LDOPT="-shared" hdfeosLib
+
+aix: required_macros
+	@make ARCH=aix SYSLIBS="-lm -lc" SHOPT="" LDOPT="-bE:shrsub.exp -bM:SRE -bnoentry" hdfeosLib

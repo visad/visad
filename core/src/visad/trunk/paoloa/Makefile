@@ -256,4 +256,32 @@ linux: required_macros
 		JFLAGS="$(JFLAGS)" \
 		shared_library
 
+aix: required_macros
+	@make \
+		JAVAARCH=aix \
+		SHOPT="" \
+		SHLD="$(CC)" \
+		SHLDFLAGS="-bE:shrsub.exp -bM:SRE -bnoentry" \
+		SHFLD="$(FC)" \
+		SHFLDFLAGS="" \
+		SYSLIBS="-lm -lc" \
+		JAVADIR="$(JAVADIR)" \
+		JC="$(JC)" \
+		JFLAGS="$(JFLAGS)" \
+		shared_library
+
+aix: required_macros
+	@make \
+		JAVAARCH=aix \
+		SHOPT="" \
+		SHLD="$(CC)" \
+		SHLDFLAGS="-bE:shrsub.exp -bM:SRE -bnoentry" \
+		SHFLD="$(FC)" \
+		SHFLDFLAGS="" \
+		SYSLIBS="-lm -lc" \
+		JAVADIR="$(JAVADIR)" \
+		JC="$(JC)" \
+		JFLAGS="$(JFLAGS)" \
+		shared_library
+
 required_macros::

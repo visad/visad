@@ -153,6 +153,7 @@ all::
 	IRIX*) arch=irix;; \
 	SunOS*) arch=solaris_gcc;; \
 	Linux*) arch=linux;; \
+	AIX*) arch=aix;; \
 	*) echo "Unknown system type $$UNAME"; exit 1;; \
 	esac; \
 	make \
@@ -237,6 +238,20 @@ linux: required_macros
 		SHFLD="$(FC)" \
 		SHFLDFLAGS="-shared" \
 		SYSLIBS="-lm" \
+		JAVADIR="$(JAVADIR)" \
+		JC="$(JC)" \
+		JFLAGS="$(JFLAGS)" \
+		shared_library
+
+aix: required_macros
+	@make \
+		JAVAARCH=aix \
+		SHOPT="" \
+		SHLD="$(CC)" \
+		SHLDFLAGS="-bE:shrsub.exp -bM:SRE -bnoentry" \
+		SHFLD="$(FC)" \
+		SHFLDFLAGS="" \
+		SYSLIBS="-lm -lc" \
 		JAVADIR="$(JAVADIR)" \
 		JC="$(JC)" \
 		JFLAGS="$(JFLAGS)" \
