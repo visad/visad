@@ -320,6 +320,12 @@ public class FancySSCell extends BasicSSCell {
                      url.toString() + "\"\n";
         try {
           cell.loadData(url);
+          // WLH 5 Feb 99
+          if (!cell.hasData()) {
+            JOptionPane.showMessageDialog(Parent, "unable to import data",
+                                          "Error importing data",
+                                          JOptionPane.ERROR_MESSAGE);
+          }
         }
         catch (BadFormException exc) {
           msg = msg + "VisAD does not support this file type.";
