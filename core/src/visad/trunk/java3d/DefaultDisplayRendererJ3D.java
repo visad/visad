@@ -44,7 +44,11 @@ import java.util.*;
  */
 public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
 
-  MouseBehaviorJ3D mouse = null; // Behavior for mouse interactions
+  /** color of box and cursor */
+  private ColoringAttributes box_color = null;
+  private ColoringAttributes cursor_color = null;
+
+  private MouseBehaviorJ3D mouse = null; // Behavior for mouse interactions
 
   /**
    * This is the default <CODE>DisplayRenderer</CODE> used by the
@@ -93,14 +97,15 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
     // create MouseBehaviorJ3D for mouse interactions
     mouse = new MouseBehaviorJ3D(this);
     getDisplay().setMouseBehavior(mouse);
-    root = createBasicSceneGraph(v, vpt, c, mouse);
+    box_color = new ColoringAttributes();
+    cursor_color = new ColoringAttributes();
+    root = createBasicSceneGraph(v, vpt, c, mouse, box_color, cursor_color);
     TransformGroup trans = getTrans();
 
     // create the box containing data depictions
     LineArray box_geometry = new LineArray(24, LineArray.COORDINATES);
     box_geometry.setCoordinates(0, box_verts);
     Appearance box_appearance = new Appearance();
-    box_color = new ColoringAttributes();
     box_color.setCapability(ColoringAttributes.ALLOW_COLOR_READ);
     box_color.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
     float[] ctlBox = getRendererControl().getBoxColor();
@@ -111,7 +116,6 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
     box_on.addChild(box);
 
     Appearance cursor_appearance = new Appearance();
-    cursor_color = new ColoringAttributes();
     cursor_color.setCapability(ColoringAttributes.ALLOW_COLOR_READ);
     cursor_color.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
     float[] ctlCursor = getRendererControl().getCursorColor();

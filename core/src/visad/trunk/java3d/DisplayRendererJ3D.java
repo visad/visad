@@ -76,16 +76,16 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
   private OrderedGroup non_direct = null;
 
   /** TransformGroup for ViewPlatform */
-  TransformGroup vpTrans = null;
+  private TransformGroup vpTrans = null;
 
   /** MouseBehaviorJ3D */
-  MouseBehaviorJ3D mouse = null;
-  double back_clip = 0.0;
-  double front_clip = 0.0;
+  private MouseBehaviorJ3D mouse = null;
+  private double back_clip = 0.0;
+  private double front_clip = 0.0;
 
   /** color of box and cursor */
-  ColoringAttributes box_color = null;
-  ColoringAttributes cursor_color = null;
+  private ColoringAttributes box_color = null;
+  private ColoringAttributes cursor_color = null;
 
   /** background attached to root */
   private Background background = null;
@@ -338,6 +338,21 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
   public abstract BranchGroup createSceneGraph(View v, TransformGroup vpt,
                                                VisADCanvasJ3D c);
 
+  /** @deprecated use createBasicSceneGraph(View v, TransformGroup vpt,
+         VisADCanvasJ3D c, MouseBehaviorJ3D m, ColoringAttributes bc,
+         ColoringAttributes cc)
+      instead */
+  public BranchGroup createBasicSceneGraph(View v, TransformGroup vpt,
+         VisADCanvasJ3D c, MouseBehaviorJ3D m) {
+    box_color = new ColoringAttributes();
+    box_color.setCapability(ColoringAttributes.ALLOW_COLOR_READ);
+    box_color.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
+    cursor_color = new ColoringAttributes();
+    cursor_color.setCapability(ColoringAttributes.ALLOW_COLOR_READ);
+    cursor_color.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
+    return createBasicSceneGraph(v, vpt, c, m, box_color, cursor_color);
+  }
+
   /**
    * Create scene graph root, if none exists, with Transform
    * and direct manipulation root.
@@ -348,12 +363,15 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
    * @return Scene graph root.
    */
   public BranchGroup createBasicSceneGraph(View v, TransformGroup vpt,
-         VisADCanvasJ3D c, MouseBehaviorJ3D m) {
+         VisADCanvasJ3D c, MouseBehaviorJ3D m, ColoringAttributes bc,
+         ColoringAttributes cc) {
     if (root != null) return root;
 
     mouse = m;
     view = v;
     vpTrans = vpt;
+    box_color = bc;
+    cursor_color = cc;
     back_clip = view.getBackClipDistance();
     front_clip = view.getFrontClipDistance();
     // System.out.println("back_clip = " + back_clip + " front_clip = " + front_clip);
