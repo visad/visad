@@ -396,11 +396,18 @@ public class BioUtil {
     int len = p1.length;
     double[] q = new double[len];
     for (int i=0; i<len; i++) {
-      int ndx1 = i;
-      int ndx2 = (i + 1) % len;
+      int ndx1 = (i + 1) % len;
+      int ndx2 = (i + 2) % len;
       q[i] = p1[ndx1] * p2[ndx2] - p1[ndx2] * p2[ndx1];
     }
     return q;
+  }
+
+  /** Computes the length of the given vector. */
+  public static double length(double[] p) {
+    double sum = 0;
+    for (int i=0; i<p.length; i++) sum += p[i] * p[i];
+    return Math.sqrt(sum);
   }
 
 

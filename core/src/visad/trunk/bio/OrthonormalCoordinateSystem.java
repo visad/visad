@@ -66,8 +66,8 @@ public class OrthonormalCoordinateSystem extends CoordinateSystem {
 
     // construct orthonormal basis
     u = BioUtil.normalize(v1);
-    v = BioUtil.normalize(BioUtil.cross(u, v2));
-    w = BioUtil.normalize(BioUtil.cross(v2, v));
+    v = BioUtil.normalize(BioUtil.cross(v1, v2));
+    w = BioUtil.normalize(BioUtil.cross(u, v));
   }
 
   /**
@@ -103,9 +103,11 @@ public class OrthonormalCoordinateSystem extends CoordinateSystem {
     double[] origin = {0, 0, 0};
     for (int i=0; i<len; i++) {
       double[] pt = {values[0][i], values[1][i], values[2][i]};
-      double[] q = {BioUtil.project(origin, u, pt)[0],
-        BioUtil.project(origin, v, pt)[1],
-        BioUtil.project(origin, w, pt)[2]};
+      double[] q = {
+        BioUtil.length(BioUtil.project(origin, u, pt)),
+        BioUtil.length(BioUtil.project(origin, v, pt)),
+        BioUtil.length(BioUtil.project(origin, w, pt))
+      };
       for (int j=0; j<3; j++) vals[j][i] = q[j];
     }
     return vals;
