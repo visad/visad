@@ -41,7 +41,15 @@ public class Test44
     super(args);
   }
 
-  DisplayImpl[] setupData()
+  DisplayImpl[] setupServerDisplays()
+    throws RemoteException, VisADException
+  {
+    DisplayImpl[] dpys = new DisplayImpl[1];
+    dpys[0] = new DisplayImplJ2D("display");
+    return dpys;
+  }
+
+  void setupServerData(DisplayImpl[] dpys)
     throws RemoteException, VisADException
   {
     TextType text = new TextType("text");
@@ -67,25 +75,18 @@ public class Test44
       text_field.setSample(i, tt);
     }
 
-    DisplayImpl display1 = new DisplayImplJ2D("display1");
-
-    display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
-    display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
-    display1.addMap(new ScalarMap(RealType.Latitude, Display.Green));
-    display1.addMap(new ConstantMap(0.5, Display.Blue));
-    display1.addMap(new ConstantMap(0.5, Display.Red));
+    dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+    dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+    dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.Green));
+    dpys[0].addMap(new ConstantMap(0.5, Display.Blue));
+    dpys[0].addMap(new ConstantMap(0.5, Display.Red));
     ScalarMap text_map = new ScalarMap(text, Display.Text);
-    display1.addMap(text_map);
+    dpys[0].addMap(text_map);
 
     DataReferenceImpl ref_text_field =
       new DataReferenceImpl("ref_text_field");
     ref_text_field.setData(text_field);
-    display1.addReference(ref_text_field, null);
-
-    DisplayImpl[] dpys = new DisplayImpl[1];
-    dpys[0] = display1;
-
-    return dpys;
+    dpys[0].addReference(ref_text_field, null);
   }
 
   String getFrameTitle() { return "text in Java2D"; }
@@ -120,6 +121,6 @@ public class Test44
   public static void main(String[] args)
     throws RemoteException, VisADException
   {
-    Test44 t = new Test44(args);
+    new Test44(args);
   }
 }

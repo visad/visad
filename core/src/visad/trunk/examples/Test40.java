@@ -38,7 +38,16 @@ public class Test40
     super(args);
   }
 
-  DisplayImpl[] setupData()
+  DisplayImpl[] setupServerDisplays()
+    throws RemoteException, VisADException
+  {
+    DisplayImpl[] dpys = new DisplayImpl[2];
+    dpys[0] = new DisplayImplJ2D("display1");
+    dpys[1] = new DisplayImplJ2D("display2");
+    return dpys;
+  }
+
+  void setupServerData(DisplayImpl[] dpys)
     throws RemoteException, VisADException
   {
     Unit super_degree = CommonUnit.degree.scale(2.5);
@@ -61,12 +70,11 @@ public class Test40
                          new Real(vis_radiance, 1.0)};
     RealTuple direct_tuple = new RealTuple(reals3);
 
-    DisplayImpl display1 = new DisplayImplJ2D("display1");
-    display1.addMap(new ScalarMap(ir_radiance, Display.Radius));
-    display1.addMap(new ScalarMap(count, Display.Longitude));
-    display1.addMap(new ScalarMap(count, Display.Green));
+    dpys[0].addMap(new ScalarMap(ir_radiance, Display.Radius));
+    dpys[0].addMap(new ScalarMap(count, Display.Longitude));
+    dpys[0].addMap(new ScalarMap(count, Display.Green));
 
-    GraphicsModeControl mode = display1.getGraphicsModeControl();
+    GraphicsModeControl mode = dpys[0].getGraphicsModeControl();
     mode.setPointSize(5.0f);
     mode.setPointMode(false);
 
@@ -74,31 +82,24 @@ public class Test40
     ref_direct_tuple = new DataReferenceImpl("ref_direct_tuple");
     ref_direct_tuple.setData(direct_tuple);
     DataReference[] refs2 = new DataReference[] {ref_direct_tuple};
-    display1.addReferences(new DirectManipulationRendererJ2D(), refs2, null);
+    dpys[0].addReferences(new DirectManipulationRendererJ2D(), refs2, null);
 
     DataReferenceImpl ref_histogram1;
     ref_histogram1 = new DataReferenceImpl("ref_histogram1");
     ref_histogram1.setData(histogram1);
     DataReference[] refs3 = new DataReference[] {ref_histogram1};
-    display1.addReferences(new DirectManipulationRendererJ2D(), refs3, null);
+    dpys[0].addReferences(new DirectManipulationRendererJ2D(), refs3, null);
 
-    DisplayImpl display2 = new DisplayImplJ2D("display2");
-    display2.addMap(new ScalarMap(ir_radiance, Display.XAxis));
-    display2.addMap(new ScalarMap(count, Display.YAxis));
-    display2.addMap(new ScalarMap(count, Display.Green));
+    dpys[1].addMap(new ScalarMap(ir_radiance, Display.XAxis));
+    dpys[1].addMap(new ScalarMap(count, Display.YAxis));
+    dpys[1].addMap(new ScalarMap(count, Display.Green));
 
-    GraphicsModeControl mode2 = display2.getGraphicsModeControl();
+    GraphicsModeControl mode2 = dpys[1].getGraphicsModeControl();
     mode2.setPointSize(5.0f);
     mode2.setPointMode(false);
 
-    display2.addReferences(new DirectManipulationRendererJ2D(), refs2, null);
-    display2.addReferences(new DirectManipulationRendererJ2D(), refs3, null);
-
-    DisplayImpl[] dpys = new DisplayImpl[2];
-    dpys[0] = display1;
-    dpys[1] = display2;
-
-    return dpys;
+    dpys[1].addReferences(new DirectManipulationRendererJ2D(), refs2, null);
+    dpys[1].addReferences(new DirectManipulationRendererJ2D(), refs3, null);
   }
 
   String getFrameTitle() { return "Java2D direct manipulation"; }
@@ -108,6 +109,6 @@ public class Test40
   public static void main(String[] args)
     throws RemoteException, VisADException
   {
-    Test40 t = new Test40(args);
+    new Test40(args);
   }
 }

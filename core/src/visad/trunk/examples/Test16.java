@@ -37,7 +37,15 @@ public class Test16
     super(args);
   }
 
-  DisplayImpl[] setupData()
+  DisplayImpl[] setupServerDisplays()
+    throws RemoteException, VisADException
+  {
+    DisplayImpl[] dpys = new DisplayImpl[1];
+    dpys[0] = new DisplayImplJ3D("display", DisplayImplJ3D.APPLETFRAME);
+    return dpys;
+  }
+
+  void setupServerData(DisplayImpl[] dpys)
     throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
@@ -51,25 +59,18 @@ public class Test16
     int size = 47;
     FlatField imaget1 = FlatField.makeField(image_tuple, size, false);
 
-    DisplayImpl display1;
-    display1 = new DisplayImplJ3D("display1", DisplayImplJ3D.APPLETFRAME);
-    display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
-    display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
-    display1.addMap(new ScalarMap(vis_radiance, Display.Green));
-    display1.addMap(new ConstantMap(0.5, Display.Red));
-    display1.addMap(new ConstantMap(0.5, Display.Blue));
+    dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+    dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+    dpys[0].addMap(new ScalarMap(vis_radiance, Display.Green));
+    dpys[0].addMap(new ConstantMap(0.5, Display.Red));
+    dpys[0].addMap(new ConstantMap(0.5, Display.Blue));
 
-    GraphicsModeControl mode = display1.getGraphicsModeControl();
+    GraphicsModeControl mode = dpys[0].getGraphicsModeControl();
     mode.setTextureEnable(true);
 
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
-    display1.addReference(ref_imaget1, null);
-
-    DisplayImpl[] dpys = new DisplayImpl[1];
-    dpys[0] = display1;
-
-    return dpys;
+    dpys[0].addReference(ref_imaget1, null);
   }
 
   public String toString() { return ": opaque texture mapping"; }
@@ -77,6 +78,6 @@ public class Test16
   public static void main(String[] args)
     throws RemoteException, VisADException
   {
-    Test16 t = new Test16(args);
+    new Test16(args);
   }
 }

@@ -58,28 +58,38 @@ public abstract class UISkeleton
   void setupUI(DisplayImpl[] dpys)
     throws RemoteException, VisADException
   {
-    JPanel big_panel = new JPanel();
-
     Component special = getSpecialComponent(dpys);
+    if (special == null && dpys.length == 1) {
+      special = dpys[0].getComponent();
+    }
+
+    Container content;
     if (special != null) {
-      big_panel.setLayout(new BorderLayout());
-      big_panel.add("Center", special);
+      if (special instanceof Container) {
+        content = (Container )special;
+      } else {
+        JPanel wrapper = new JPanel();
+        wrapper.setLayout(new BorderLayout());
+        wrapper.add("Center", special);
+        content = wrapper;
+      }
     } else {
+      JPanel big_panel = new JPanel();
       big_panel.setLayout(new BoxLayout(big_panel, BoxLayout.X_AXIS));
       big_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
       big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
 
       for (int i = 0; i < dpys.length; i++) {
-        Component comp = dpys[i].getComponent();
-        big_panel.add(comp);
+        big_panel.add(dpys[i].getComponent());
       }
+      content = big_panel;
     }
 
     JFrame jframe = new JFrame(getFrameTitle() + getClientServerTitle());
     jframe.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {System.exit(0);}
     });
-    jframe.setContentPane(big_panel);
+    jframe.setContentPane(content);
     jframe.pack();
     jframe.setVisible(true);
   }

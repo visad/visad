@@ -39,7 +39,15 @@ public class Test47
     super(args);
   }
 
-  DisplayImpl[] setupData()
+  DisplayImpl[] setupServerDisplays()
+    throws RemoteException, VisADException
+  {
+    DisplayImpl[] dpys = new DisplayImpl[1];
+    dpys[0] = new DisplayImplJ3D("display");
+    return dpys;
+  }
+
+  void setupServerData(DisplayImpl[] dpys)
     throws RemoteException, VisADException
   {
     RealType ir_radiance = new RealType("ir_radiance", null, null);
@@ -54,25 +62,18 @@ public class Test47
     FlatField histogram1 = new FlatField(ir_histogram, ir_set);
     histogram1.setSamples(values);
 
-    DisplayImpl display1 = new DisplayImplJ3D("display1");
-
-    display1.addMap(new ScalarMap(ir_radiance, Display.XAxis));
-    display1.addMap(new ScalarMap(ir_radiance, Display.ShapeScale));
-    display1.addMap(new ScalarMap(count, Display.Green));
-    display1.addMap(new ConstantMap(1.0, Display.Blue));
-    display1.addMap(new ConstantMap(1.0, Display.Red));
+    dpys[0].addMap(new ScalarMap(ir_radiance, Display.XAxis));
+    dpys[0].addMap(new ScalarMap(ir_radiance, Display.ShapeScale));
+    dpys[0].addMap(new ScalarMap(count, Display.Green));
+    dpys[0].addMap(new ConstantMap(1.0, Display.Blue));
+    dpys[0].addMap(new ConstantMap(1.0, Display.Red));
     ScalarMap shape_map = new ScalarMap(count, Display.Shape);
-    display1.addMap(shape_map);
+    dpys[0].addMap(shape_map);
 
     DataReferenceImpl ref_histogram1;
     ref_histogram1 = new DataReferenceImpl("ref_histogram1");
     ref_histogram1.setData(histogram1);
-    display1.addReference(ref_histogram1, null);
-
-    DisplayImpl[] dpys = new DisplayImpl[1];
-    dpys[0] = display1;
-
-    return dpys;
+    dpys[0].addReference(ref_histogram1, null);
   }
 
   Component getSpecialComponent(DisplayImpl[] dpys)
@@ -176,6 +177,6 @@ public class Test47
   public static void main(String[] args)
     throws RemoteException, VisADException
   {
-    Test47 t = new Test47(args);
+    new Test47(args);
   }
 }

@@ -45,7 +45,15 @@ public class Test27
     super(args);
   }
 
-  DisplayImpl[] setupData()
+  DisplayImpl[] setupServerDisplays()
+    throws RemoteException, VisADException
+  {
+    DisplayImpl[] dpys = new DisplayImpl[1];
+    dpys[0] = new DisplayImplJ3D("display", DisplayImplJ3D.APPLETFRAME);
+    return dpys;
+  }
+
+  void setupServerData(DisplayImpl[] dpys)
     throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Altitude};
@@ -60,19 +68,17 @@ public class Test27
     int size = 32;
     FlatField imaget1 = FlatField.makeField(image_tuple, size, false);
 
-    DisplayImpl display1;
-    display1 = new DisplayImplJ3D("display1", DisplayImplJ3D.APPLETFRAME);
     final ScalarMap map2lat = new ScalarMap(RealType.Latitude, Display.YAxis);
-    display1.addMap(map2lat);
+    dpys[0].addMap(map2lat);
     final ScalarMap map2lon = new ScalarMap(RealType.Altitude, Display.XAxis);
-    display1.addMap(map2lon);
+    dpys[0].addMap(map2lon);
     final ScalarMap map2vis = new ScalarMap(vis_radiance, Display.ZAxis);
-    display1.addMap(map2vis);
-    display1.addMap(new ScalarMap(ir_radiance, Display.Green));
-    display1.addMap(new ConstantMap(0.5, Display.Blue));
-    display1.addMap(new ConstantMap(0.5, Display.Red));
+    dpys[0].addMap(map2vis);
+    dpys[0].addMap(new ScalarMap(ir_radiance, Display.Green));
+    dpys[0].addMap(new ConstantMap(0.5, Display.Blue));
+    dpys[0].addMap(new ConstantMap(0.5, Display.Red));
 
-    GraphicsModeControl mode = display1.getGraphicsModeControl();
+    GraphicsModeControl mode = dpys[0].getGraphicsModeControl();
     mode.setScaleEnable(true);
     mode.setPointSize(5.0f);
     mode.setPointMode(false);
@@ -81,7 +87,7 @@ public class Test27
 
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
-    display1.addReference(ref_imaget1, null);
+    dpys[0].addReference(ref_imaget1, null);
 
     try {
       Thread.sleep(2000);
@@ -108,13 +114,13 @@ public class Test27
     ConstantMap[][] maps = {{new ConstantMap(1.0f, Display.Red),
                              new ConstantMap(1.0f, Display.Green),
                              new ConstantMap(0.0f, Display.Blue)}};
-    display1.addReferences(new DirectManipulationRendererJ3D(),
+    dpys[0].addReferences(new DirectManipulationRendererJ3D(),
                            new DataReference[] {ref_direct_low}, maps);
 
     final DataReferenceImpl ref_direct_hi =
       new DataReferenceImpl("ref_direct_hi");
     ref_direct_hi.setData(direct_hi);
-    display1.addReferences(new DirectManipulationRendererJ3D(),
+    dpys[0].addReferences(new DirectManipulationRendererJ3D(),
                            new DataReference[] {ref_direct_hi}, maps);
 
     no_self = 0;
@@ -165,11 +171,6 @@ public class Test27
     };
     cell.addReference(ref_direct_low);
     cell.addReference(ref_direct_hi);
-
-    DisplayImpl[] dpys = new DisplayImpl[1];
-    dpys[0] = display1;
-
-    return dpys;
   }
 
   public String toString() { return ": interactive scale"; }
@@ -177,6 +178,6 @@ public class Test27
   public static void main(String[] args)
     throws RemoteException, VisADException
   {
-    Test27 t = new Test27(args);
+    new Test27(args);
   }
 }

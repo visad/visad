@@ -54,7 +54,15 @@ public class Test05
     return 1;
   }
 
-  DisplayImpl[] setupData()
+  DisplayImpl[] setupServerDisplays()
+    throws RemoteException, VisADException
+  {
+    DisplayImpl[] dpys = new DisplayImpl[1];
+    dpys[0] = new DisplayImplJ3D("display");
+    return dpys;
+  }
+
+  void setupServerData(DisplayImpl[] dpys)
     throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
@@ -68,17 +76,15 @@ public class Test05
     int size = 64;
     FlatField imaget1 = FlatField.makeField(image_tuple, size, false);
 
-    DisplayImpl display1;
-    display1 = new DisplayImplJ3D("display1");
-    display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
-    display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
-    display1.addMap(new ScalarMap(ir_radiance, Display.Green));
-    display1.addMap(new ScalarMap(ir_radiance, Display.ZAxis));
-    display1.addMap(new ConstantMap(0.5, Display.Blue));
-    display1.addMap(new ConstantMap(0.5, Display.Red));
+    dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+    dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+    dpys[0].addMap(new ScalarMap(ir_radiance, Display.Green));
+    dpys[0].addMap(new ScalarMap(ir_radiance, Display.ZAxis));
+    dpys[0].addMap(new ConstantMap(0.5, Display.Blue));
+    dpys[0].addMap(new ConstantMap(0.5, Display.Red));
     ScalarMap map1contour;
     map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
-    display1.addMap(map1contour);
+    dpys[0].addMap(map1contour);
     if (uneven) {
       ContourControl control = (ContourControl) map1contour.getControl();
       float[] levs = {10.0f, 12.0f, 14.0f, 16.0f, 24.0f, 32.0f, 40.0f};
@@ -88,12 +94,7 @@ public class Test05
 
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
-    display1.addReference(ref_imaget1, null);
-
-    DisplayImpl[] dpys = new DisplayImpl[1];
-    dpys[0] = display1;
-
-    return dpys;
+    dpys[0].addReference(ref_imaget1, null);
   }
 
   private String getFrameTitle0() { return "regular contours in Java3D"; }
@@ -139,6 +140,6 @@ public class Test05
   public static void main(String[] args)
     throws RemoteException, VisADException
   {
-    Test05 t = new Test05(args);
+    new Test05(args);
   }
 }

@@ -51,7 +51,15 @@ public class Test54
     super(args);
   }
 
-  DisplayImpl[] setupData()
+  DisplayImpl[] setupServerDisplays()
+    throws RemoteException, VisADException
+  {
+    DisplayImpl[] dpys = new DisplayImpl[1];
+    dpys[0] = new DisplayImplJ3D("display", DisplayImplJ3D.APPLETFRAME);
+    return dpys;
+  }
+
+  void setupServerData(DisplayImpl[] dpys)
     throws RemoteException, VisADException
   {
     RealType ir_radiance = new RealType("ir_radiance", null, null);
@@ -61,21 +69,19 @@ public class Test54
     int size = 64;
     FlatField histogram1 = FlatField.makeField(ir_histogram, size, false);
 
-    DisplayImpl display1;
-    display1 = new DisplayImplJ3D("display1", DisplayImplJ3D.APPLETFRAME);
-    display1.addMap(new ScalarMap(count, Display.YAxis));
-    display1.addMap(new ScalarMap(ir_radiance, Display.XAxis));
+    dpys[0].addMap(new ScalarMap(count, Display.YAxis));
+    dpys[0].addMap(new ScalarMap(ir_radiance, Display.XAxis));
 
-    display1.addMap(new ConstantMap(0.0, Display.Red));
-    display1.addMap(new ConstantMap(1.0, Display.Green));
-    display1.addMap(new ConstantMap(0.0, Display.Blue));
+    dpys[0].addMap(new ConstantMap(0.0, Display.Red));
+    dpys[0].addMap(new ConstantMap(1.0, Display.Green));
+    dpys[0].addMap(new ConstantMap(0.0, Display.Blue));
 
-    display1.getDisplayRenderer().setBackgroundColor(1.0f, 0.0f, 1.0f);
+    dpys[0].getDisplayRenderer().setBackgroundColor(1.0f, 0.0f, 1.0f);
 
     DataReferenceImpl ref_histogram1;
     ref_histogram1 = new DataReferenceImpl("ref_histogram1");
     ref_histogram1.setData(histogram1);
-    display1.addReference(ref_histogram1, null);
+    dpys[0].addReference(ref_histogram1, null);
 
     boolean forever = true;
     boolean[] box_on = {true, true, true, false};
@@ -87,7 +93,7 @@ public class Test54
                               {1.0f, 0.0f, 0.0f},
                               {0.0f, 1.0f, 0.0f},
                               {0.0f, 0.0f, 1.0f}};
-    DisplayRenderer displayRenderer = display1.getDisplayRenderer();
+    DisplayRenderer displayRenderer = dpys[0].getDisplayRenderer();
     int index = 0;
     while (forever) {
       // delay(5000);
@@ -107,11 +113,6 @@ public class Test54
       index++;
       if (index > 3) index = 0;
     }
-
-    DisplayImpl[] dpys = new DisplayImpl[1];
-    dpys[0] = display1;
-
-    return dpys;
   }
 
   String getFrameTitle() { return "background color in Java3D"; }
@@ -121,6 +122,6 @@ public class Test54
   public static void main(String[] args)
     throws RemoteException, VisADException
   {
-    Test54 t = new Test54(args);
+    new Test54(args);
   }
 }

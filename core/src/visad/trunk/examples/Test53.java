@@ -51,7 +51,15 @@ public class Test53
     super(args);
   }
 
-  DisplayImpl[] setupData()
+  DisplayImpl[] setupServerDisplays()
+    throws RemoteException, VisADException
+  {
+    DisplayImpl[] dpys = new DisplayImpl[1];
+    dpys[0] = new DisplayImplJ2D("display");
+    return dpys;
+  }
+
+  void setupServerData(DisplayImpl[] dpys)
     throws RemoteException, VisADException
   {
     RealType ir_radiance = new RealType("ir_radiance", null, null);
@@ -61,26 +69,19 @@ public class Test53
     int size = 64;
     FlatField histogram1 = FlatField.makeField(ir_histogram, size, false);
 
-    DisplayImpl display1;
-    display1 = new DisplayImplJ2D("display1");
-    display1.addMap(new ScalarMap(count, Display.YAxis));
-    display1.addMap(new ScalarMap(ir_radiance, Display.XAxis));
+    dpys[0].addMap(new ScalarMap(count, Display.YAxis));
+    dpys[0].addMap(new ScalarMap(ir_radiance, Display.XAxis));
 
-    display1.addMap(new ConstantMap(0.0, Display.Red));
-    display1.addMap(new ConstantMap(1.0, Display.Green));
-    display1.addMap(new ConstantMap(0.0, Display.Blue));
+    dpys[0].addMap(new ConstantMap(0.0, Display.Red));
+    dpys[0].addMap(new ConstantMap(1.0, Display.Green));
+    dpys[0].addMap(new ConstantMap(0.0, Display.Blue));
 
-    display1.getDisplayRenderer().setBackgroundColor(1.0f, 0.0f, 1.0f);
+    dpys[0].getDisplayRenderer().setBackgroundColor(1.0f, 0.0f, 1.0f);
 
     DataReferenceImpl ref_histogram1;
     ref_histogram1 = new DataReferenceImpl("ref_histogram1");
     ref_histogram1.setData(histogram1);
-    display1.addReference(ref_histogram1, null);
-
-    DisplayImpl[] dpys = new DisplayImpl[1];
-    dpys[0] = display1;
-
-    return dpys;
+    dpys[0].addReference(ref_histogram1, null);
   }
 
 
@@ -128,6 +129,6 @@ public class Test53
   public static void main(String[] args)
     throws RemoteException, VisADException
   {
-    Test53 t = new Test53(args);
+    new Test53(args);
   }
 }

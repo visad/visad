@@ -37,7 +37,15 @@ public class Test11
     super(args);
   }
 
-  DisplayImpl[] setupData()
+  DisplayImpl[] setupServerDisplays()
+    throws RemoteException, VisADException
+  {
+    DisplayImpl[] dpys = new DisplayImpl[1];
+    dpys[0] = new DisplayImplJ3D("display", DisplayImplJ3D.APPLETFRAME);
+    return dpys;
+  }
+
+  void setupServerData(DisplayImpl[] dpys)
     throws RemoteException, VisADException
   {
     RealType x = new RealType("x", null, null);
@@ -64,22 +72,15 @@ public class Test11
     FlatField imaget1 = new FlatField(image_polar, domain_set);
     FlatField.fillField(imaget1, 1.0, 30.0);
 
-    DisplayImpl display1;
-    display1 = new DisplayImplJ3D("display1", DisplayImplJ3D.APPLETFRAME);
-    display1.addMap(new ScalarMap(x, Display.XAxis));
-    display1.addMap(new ScalarMap(y, Display.YAxis));
-    display1.addMap(new ScalarMap(vis_radiance, Display.Green));
-    display1.addMap(new ConstantMap(0.5, Display.Red));
-    display1.addMap(new ConstantMap(0.0, Display.Blue));
+    dpys[0].addMap(new ScalarMap(x, Display.XAxis));
+    dpys[0].addMap(new ScalarMap(y, Display.YAxis));
+    dpys[0].addMap(new ScalarMap(vis_radiance, Display.Green));
+    dpys[0].addMap(new ConstantMap(0.5, Display.Red));
+    dpys[0].addMap(new ConstantMap(0.0, Display.Blue));
 
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
-    display1.addReference(ref_imaget1, null);
-
-    DisplayImpl[] dpys = new DisplayImpl[1];
-    dpys[0] = display1;
-
-    return dpys;
+    dpys[0].addReference(ref_imaget1, null);
   }
 
   public String toString() { return ": CoordinateSystem and Unit"; }
@@ -87,6 +88,6 @@ public class Test11
   public static void main(String[] args)
     throws RemoteException, VisADException
   {
-    Test11 t = new Test11(args);
+    new Test11(args);
   }
 }

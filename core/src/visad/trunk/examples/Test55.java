@@ -41,7 +41,15 @@ public class Test55
     super(args);
   }
 
-  DisplayImpl[] setupData()
+  DisplayImpl[] setupServerDisplays()
+    throws RemoteException, VisADException
+  {
+    DisplayImpl[] dpys = new DisplayImpl[1];
+    dpys[0] = new DisplayImplJ2D("display");
+    return dpys;
+  }
+
+  void setupServerData(DisplayImpl[] dpys)
     throws RemoteException, VisADException
   {
     RealType ir_radiance = new RealType("ir_radiance", null, null);
@@ -49,7 +57,6 @@ public class Test55
     FunctionType ir_histogram = new FunctionType(ir_radiance, count);
     RealType vis_radiance = new RealType("vis_radiance", null, null);
 
-    DisplayImpl[] dpys;
     try {
 
       int size = 64;
@@ -60,31 +67,29 @@ public class Test55
                        new Real(vis_radiance, 1.0)};
       RealTuple direct_tuple = new RealTuple(reals14);
 
-      DisplayImpl display1;
-      display1 = new DisplayImplJ2D("display1");
-      display1.addMap(new ScalarMap(ir_radiance, Display.XAxis));
-      display1.addMap(new ScalarMap(count, Display.YAxis));
+      dpys[0].addMap(new ScalarMap(ir_radiance, Display.XAxis));
+      dpys[0].addMap(new ScalarMap(count, Display.YAxis));
 
-      GraphicsModeControl mode = display1.getGraphicsModeControl();
+      GraphicsModeControl mode = dpys[0].getGraphicsModeControl();
       mode.setPointSize(5.0f);
       mode.setPointMode(false);
 
       DataReferenceImpl ref_direct = new DataReferenceImpl("ref_direct");
       ref_direct.setData(direct);
       DataReference[] refs141 = {ref_direct};
-      display1.addReferences(new DirectManipulationRendererJ2D(), refs141, null);
+      dpys[0].addReferences(new DirectManipulationRendererJ2D(), refs141, null);
 
       DataReferenceImpl ref_direct_tuple;
       ref_direct_tuple = new DataReferenceImpl("ref_direct_tuple");
       ref_direct_tuple.setData(direct_tuple);
       DataReference[] refs142 = {ref_direct_tuple};
-      display1.addReferences(new DirectManipulationRendererJ2D(), refs142, null);
+      dpys[0].addReferences(new DirectManipulationRendererJ2D(), refs142, null);
 
       DataReferenceImpl ref_histogram1;
       ref_histogram1 = new DataReferenceImpl("ref_histogram1");
       ref_histogram1.setData(histogram1);
       DataReference[] refs143 = {ref_histogram1};
-      display1.addReferences(new DirectManipulationRendererJ2D(), refs143, null);
+      dpys[0].addReferences(new DirectManipulationRendererJ2D(), refs143, null);
 
       // create local DataReferenceImpls
       DataReferenceImpl[] data_refs = new DataReferenceImpl[3];
@@ -103,18 +108,13 @@ public class Test55
       Naming.rebind("//:/RemoteServerTest", obj);
 
       System.out.println("RemoteServer bound in registry");
-
-      dpys = new DisplayImpl[1];
-      dpys[0] = display1;
     }
     catch (Exception e) {
       System.out.println("\n\nDid you run 'rmiregistry &' first?\n\n");
       System.out.println("collaboration server exception: " + e.getMessage());
       e.printStackTrace();
-      dpys = null;
+      System.exit(1);
     }
-
-    return dpys;
   }
 
   public String toString()
@@ -127,6 +127,6 @@ public class Test55
   public static void main(String[] args)
     throws RemoteException, VisADException
   {
-    Test55 t = new Test55(args);
+    new Test55(args);
   }
 }

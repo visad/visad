@@ -37,7 +37,15 @@ public class Test30
     super(args);
   }
 
-  DisplayImpl[] setupData()
+  DisplayImpl[] setupServerDisplays()
+    throws RemoteException, VisADException
+  {
+    DisplayImpl[] dpys = new DisplayImpl[1];
+    dpys[0] = new DisplayImplJ3D("display", DisplayImplJ3D.APPLETFRAME);
+    return dpys;
+  }
+
+  void setupServerData(DisplayImpl[] dpys)
     throws RemoteException, VisADException
   {
     RealType[] time = {RealType.Time};
@@ -74,27 +82,19 @@ public class Test30
       temp = (FlatField) temp.add(val);
     }
 
-    DisplayImpl display1;
-    display1 = new DisplayImplJ3D("display1", DisplayImplJ3D.APPLETFRAME);
+    dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+    dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+    dpys[0].addMap(new ScalarMap(vis_radiance, Display.Red));
+    dpys[0].addMap(new ScalarMap(ir_radiance, Display.Green));
+    dpys[0].addMap(new ConstantMap(0.5, Display.Blue));
+    dpys[0].addMap(new ScalarMap(RealType.Time, Display.ZAxis));
 
-    display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
-    display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
-    display1.addMap(new ScalarMap(vis_radiance, Display.Red));
-    display1.addMap(new ScalarMap(ir_radiance, Display.Green));
-    display1.addMap(new ConstantMap(0.5, Display.Blue));
-    display1.addMap(new ScalarMap(RealType.Time, Display.ZAxis));
-
-    GraphicsModeControl mode = display1.getGraphicsModeControl();
+    GraphicsModeControl mode = dpys[0].getGraphicsModeControl();
     mode.setScaleEnable(true);
 
     DataReference ref_image_sequence = new DataReferenceImpl("ref_big_tuple");
     ref_image_sequence.setData(image_sequence);
-    display1.addReference(ref_image_sequence, null);
-
-    DisplayImpl[] dpys = new DisplayImpl[1];
-    dpys[0] = display1;
-
-    return dpys;
+    dpys[0].addReference(ref_image_sequence, null);
   }
 
   public String toString() { return ": time stack and time axis label"; }
@@ -102,6 +102,6 @@ public class Test30
   public static void main(String[] args)
     throws RemoteException, VisADException
   {
-    Test30 t = new Test30(args);
+    new Test30(args);
   }
 }

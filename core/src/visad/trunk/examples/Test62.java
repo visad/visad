@@ -40,7 +40,15 @@ public class Test62
     super(args);
   }
 
-  DisplayImpl[] setupData()
+  DisplayImpl[] setupServerDisplays()
+    throws RemoteException, VisADException
+  {
+    DisplayImpl[] dpys = new DisplayImpl[1];
+    dpys[0] = new DisplayImplJ3D("display1", DisplayImplJ3D.APPLETFRAME);
+    return dpys;
+  }
+
+  void setupServerData(DisplayImpl[] dpys)
     throws RemoteException, VisADException
   {
     RealType[] types3d = {RealType.Latitude, RealType.Longitude, RealType.Radius};
@@ -55,30 +63,22 @@ public class Test62
     float level = 2.5f;
     FlatField grid3d = FlatField.makeField(grid_tuple, size3d, true);
 
-    DisplayImpl display1;
-    display1 = new DisplayImplJ3D("display1", DisplayImplJ3D.APPLETFRAME);
-
-    display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
-    display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
-    display1.addMap(new ScalarMap(RealType.Radius, Display.ZAxis));
-    display1.addMap(new ScalarMap(ir_radiance, Display.Green));
-    display1.addMap(new ConstantMap(0.5, Display.Blue));
-    display1.addMap(new ConstantMap(0.5, Display.Red));
+    dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+    dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+    dpys[0].addMap(new ScalarMap(RealType.Radius, Display.ZAxis));
+    dpys[0].addMap(new ScalarMap(ir_radiance, Display.Green));
+    dpys[0].addMap(new ConstantMap(0.5, Display.Blue));
+    dpys[0].addMap(new ConstantMap(0.5, Display.Red));
     ScalarMap map1contour;
     map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
-    display1.addMap(map1contour);
+    dpys[0].addMap(map1contour);
 
-    GraphicsModeControl mode = display1.getGraphicsModeControl();
+    GraphicsModeControl mode = dpys[0].getGraphicsModeControl();
     mode.setPolygonMode(DisplayImplJ3D.POLYGON_LINE);
 
     DataReferenceImpl ref_grid3d = new DataReferenceImpl("ref_grid3d");
     ref_grid3d.setData(grid3d);
-    display1.addReference(ref_grid3d, null);
-
-    DisplayImpl[] dpys = new DisplayImpl[1];
-    dpys[0] = display1;
-
-    return dpys;
+    dpys[0].addReference(ref_grid3d, null);
   }
 
   String getFrameTitle() { return "VisAD irregular iso-level controls"; }
@@ -98,6 +98,6 @@ public class Test62
   public static void main(String[] args)
     throws RemoteException, VisADException
   {
-    Test62 t = new Test62(args);
+    new Test62(args);
   }
 }

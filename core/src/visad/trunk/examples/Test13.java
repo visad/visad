@@ -38,7 +38,15 @@ public class Test13
     super(args);
   }
 
-  DisplayImpl[] setupData()
+  DisplayImpl[] setupServerDisplays()
+    throws RemoteException, VisADException
+  {
+    DisplayImpl[] dpys = new DisplayImpl[1];
+    dpys[0] = new DisplayImplJ3D("display", DisplayImplJ3D.APPLETFRAME);
+    return dpys;
+  }
+
+  void setupServerData(DisplayImpl[] dpys)
     throws RemoteException, VisADException
   {
     RealType ir_radiance = new RealType("ir_radiance", null, null);
@@ -54,33 +62,26 @@ public class Test13
     RealTuple direct_tuple = new RealTuple(realsx3);
 
     // these ScalarMap should generate 3 Exceptions
-    DisplayImpl display1;
-    display1 = new DisplayImplJ3D("display1", DisplayImplJ3D.APPLETFRAME);
-    display1.addMap(new ScalarMap(vis_radiance, Display.XAxis));
-    display1.addMap(new ScalarMap(ir_radiance, Display.RGB));
-    display1.addMap(new ScalarMap(count, Display.Animation));
+    dpys[0].addMap(new ScalarMap(vis_radiance, Display.XAxis));
+    dpys[0].addMap(new ScalarMap(ir_radiance, Display.RGB));
+    dpys[0].addMap(new ScalarMap(count, Display.Animation));
 
     DataReferenceImpl ref_direct = new DataReferenceImpl("ref_direct");
     ref_direct.setData(direct);
     DataReference[] refsx1 = {ref_direct};
-    display1.addReferences(new DirectManipulationRendererJ3D(), refsx1, null);
+    dpys[0].addReferences(new DirectManipulationRendererJ3D(), refsx1, null);
 
     DataReferenceImpl ref_direct_tuple;
     ref_direct_tuple = new DataReferenceImpl("ref_direct_tuple");
     ref_direct_tuple.setData(direct_tuple);
     DataReference[] refsx2 = {ref_direct_tuple};
-    display1.addReferences(new DirectManipulationRendererJ3D(), refsx2, null);
+    dpys[0].addReferences(new DirectManipulationRendererJ3D(), refsx2, null);
 
     DataReferenceImpl ref_histogram1;
     ref_histogram1 = new DataReferenceImpl("ref_histogram1");
     ref_histogram1.setData(histogram1);
     DataReference[] refsx3 = {ref_histogram1};
-    display1.addReferences(new DirectManipulationRendererJ3D(), refsx3, null);
-
-    DisplayImpl[] dpys = new DisplayImpl[1];
-    dpys[0] = display1;
-
-    return dpys;
+    dpys[0].addReferences(new DirectManipulationRendererJ3D(), refsx3, null);
   }
 
   public String toString() { return ": Exception display"; }
@@ -88,6 +89,6 @@ public class Test13
   public static void main(String[] args)
     throws RemoteException, VisADException
   {
-    Test13 t = new Test13(args);
+    new Test13(args);
   }
 }

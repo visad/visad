@@ -37,9 +37,20 @@ public class Test43
     super(args);
   }
 
-  DisplayImpl[] setupData()
+  DisplayImpl[] setupServerDisplays()
     throws RemoteException, VisADException
   {
+    DisplayImpl[] dpys = new DisplayImpl[2];
+    dpys[0] = new DisplayImplJ2D("display1");
+    dpys[1] = new DisplayImplJ2D("display2");
+    return dpys;
+  }
+
+  void setupServerData(DisplayImpl[] dpys)
+    throws RemoteException, VisADException
+  {
+    GraphicsModeControl mode;
+
     int domain_flag = 0;
 
     int LengthX = 201;
@@ -106,56 +117,49 @@ public class Test43
 
     RealType f_range = (RealType) ((FunctionType)d_field.getType()).getRange();
 
-    DisplayImpl display1 = new DisplayImplJ2D("display1");
-    display1.addMap( new ScalarMap( (RealType)x_axis, Display.XAxis ));
-    display1.addMap( new ScalarMap( (RealType)y_axis, Display.YAxis ));
-    display1.addMap( new ScalarMap( (RealType)rangeTemp, Display.Green));
-    display1.addMap( new ConstantMap( 0.5, Display.Red));
-    display1.addMap( new ConstantMap( 0.5, Display.Blue));
+    dpys[0].addMap( new ScalarMap( (RealType)x_axis, Display.XAxis ));
+    dpys[0].addMap( new ScalarMap( (RealType)y_axis, Display.YAxis ));
+    dpys[0].addMap( new ScalarMap( (RealType)rangeTemp, Display.Green));
+    dpys[0].addMap( new ConstantMap( 0.5, Display.Red));
+    dpys[0].addMap( new ConstantMap( 0.5, Display.Blue));
     /**
     ScalarMap map1contour;
     map1contour = new ScalarMap( (RealType)rangeTemp, Display.IsoContour );
-    display1.addMap( map1contour );
+    dpys[0].addMap( map1contour );
     ContourControl control1contour;
     control1contour = (ContourControl) map1contour.getControl();
 
     control1contour.enableContours(true);
     control1contour.enableLabels(false);
      **/
-    GraphicsModeControl mode = display1.getGraphicsModeControl();
+
+    mode = dpys[0].getGraphicsModeControl();
     mode.setScaleEnable(true);
 
-    DisplayImpl display2 = new DisplayImplJ2D("display2");
-    display2.addMap( new ScalarMap( (RealType)x_axis, Display.XAxis ));
-    display2.addMap( new ScalarMap( (RealType)y_axis, Display.YAxis ));
-    display2.addMap( new ScalarMap( (RealType)f_range, Display.Green));
-    display2.addMap( new ConstantMap( 0.5, Display.Red));
-    display2.addMap( new ConstantMap( 0.5, Display.Blue));
+    dpys[1].addMap( new ScalarMap( (RealType)x_axis, Display.XAxis ));
+    dpys[1].addMap( new ScalarMap( (RealType)y_axis, Display.YAxis ));
+    dpys[1].addMap( new ScalarMap( (RealType)f_range, Display.Green));
+    dpys[1].addMap( new ConstantMap( 0.5, Display.Red));
+    dpys[1].addMap( new ConstantMap( 0.5, Display.Blue));
      /**
     map1contour = new ScalarMap( (RealType)f_range, Display.IsoContour );
-    display2.addMap( map1contour );
+    dpys[1].addMap( map1contour );
     control1contour = (ContourControl) map1contour.getControl();
 
     control1contour.enableContours(true);
     control1contour.enableLabels(false);
       **/
 
-    mode = display2.getGraphicsModeControl();
+    mode = dpys[1].getGraphicsModeControl();
     mode.setScaleEnable(true);
 
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData( f_field );
-    display1.addReference( ref_imaget1, null);
+    dpys[0].addReference( ref_imaget1, null);
 
     DataReferenceImpl ref_imaget2 = new DataReferenceImpl("ref_imaget2");
     ref_imaget2.setData( d_field );
-    display2.addReference( ref_imaget2, null );
-
-    DisplayImpl[] dpys = new DisplayImpl[2];
-    dpys[0] = display1;
-    dpys[1] = display2;
-
-    return dpys;
+    dpys[1].addReference( ref_imaget2, null );
   }
 
   String getFrameTitle() { return "sinusoidal field    and    (d/dx)field"; }
@@ -168,6 +172,6 @@ public class Test43
   public static void main(String[] args)
     throws RemoteException, VisADException
   {
-    Test43 t = new Test43(args);
+    new Test43(args);
   }
 }

@@ -37,7 +37,15 @@ public class Test49
     super(args);
   }
 
-  DisplayImpl[] setupData()
+  DisplayImpl[] setupServerDisplays()
+    throws RemoteException, VisADException
+  {
+    DisplayImpl[] dpys = new DisplayImpl[1];
+    dpys[0] = new DisplayImplJ3D("display", DisplayImplJ3D.APPLETFRAME);
+    return dpys;
+  }
+
+  void setupServerData(DisplayImpl[] dpys)
     throws RemoteException, VisADException
   {
     RealType ir_radiance = new RealType("ir_radiance", null, null);
@@ -51,31 +59,27 @@ public class Test49
     for (int i=0; i<values[0].length; i+=13) values[0][i] = Float.NaN;
     histogram1.setSamples(values);
 
-    DisplayImpl display1;
-    display1 = new DisplayImplJ3D("display1", DisplayImplJ3D.APPLETFRAME);
-    display1.addMap(new ScalarMap(count, Display.YAxis));
-    display1.addMap(new ScalarMap(ir_radiance, Display.XAxis));
+    dpys[0].addMap(new ScalarMap(count, Display.YAxis));
+    dpys[0].addMap(new ScalarMap(ir_radiance, Display.XAxis));
 
-    display1.addMap(new ConstantMap(0.0, Display.Red));
-    display1.addMap(new ConstantMap(1.0, Display.Green));
-    display1.addMap(new ConstantMap(0.0, Display.Blue));
+    dpys[0].addMap(new ConstantMap(0.0, Display.Red));
+    dpys[0].addMap(new ConstantMap(1.0, Display.Green));
+    dpys[0].addMap(new ConstantMap(0.0, Display.Blue));
 
     DataReferenceImpl ref_histogram1;
     ref_histogram1 = new DataReferenceImpl("ref_histogram1");
     ref_histogram1.setData(histogram1);
-    display1.addReference(ref_histogram1, null);
-
-    DisplayImpl[] dpys = new DisplayImpl[1];
-    dpys[0] = display1;
-
-    return dpys;
+    dpys[0].addReference(ref_histogram1, null);
   }
 
-  public String toString() { return ": 1-D line w/missing and ConstantMap colors"; }
+  public String toString()
+  {
+    return ": 1-D line w/missing and ConstantMap colors";
+  }
 
   public static void main(String[] args)
     throws RemoteException, VisADException
   {
-    Test49 t = new Test49(args);
+    new Test49(args);
   }
 }

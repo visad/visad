@@ -55,7 +55,15 @@ public class Test10
     return 1;
   }
 
-  DisplayImpl[] setupData()
+  DisplayImpl[] setupServerDisplays()
+    throws RemoteException, VisADException
+  {
+    DisplayImpl[] dpys = new DisplayImpl[1];
+    dpys[0] = new DisplayImplJ3D("display", DisplayImplJ3D.APPLETFRAME);
+    return dpys;
+  }
+
+  void setupServerData(DisplayImpl[] dpys)
     throws RemoteException, VisADException
   {
     Unit super_degree = CommonUnit.degree.scale(2.5);
@@ -64,7 +72,7 @@ public class Test10
     if (fileName == null) {
       System.err.println("must specify netCDF file name");
       System.exit(1);
-      return null;
+      return;
     }
     // "pmsl.nc"
 
@@ -76,51 +84,49 @@ public class Test10
       System.err.println("Couldn't open \"" + fileName + "\": " +
                          e.getMessage());
       System.exit(1);
-      return null;
+      return;
     }
     // System.out.println("netcdf_data type = " + netcdf_data.getType());
     // prints: FunctionType (Real): (lon, lat) -> P_msl
 
-    DisplayImpl display1;
-    display1 = new DisplayImplJ3D("display1", DisplayImplJ3D.APPLETFRAME);
     // compute ScalarMaps from type components
     FunctionType ftype = (FunctionType) netcdf_data.getType();
     RealTupleType dtype = ftype.getDomain();
     MathType rntype = ftype.getRange();
     int n = dtype.getDimension();
-    display1.addMap(new ScalarMap((RealType) dtype.getComponent(0),
+    dpys[0].addMap(new ScalarMap((RealType) dtype.getComponent(0),
                                   Display.XAxis));
     if (n > 1) {
-      display1.addMap(new ScalarMap((RealType) dtype.getComponent(1),
+      dpys[0].addMap(new ScalarMap((RealType) dtype.getComponent(1),
                                     Display.YAxis));
     }
     if (n > 2) {
-      display1.addMap(new ScalarMap((RealType) dtype.getComponent(2),
+      dpys[0].addMap(new ScalarMap((RealType) dtype.getComponent(2),
                                     Display.ZAxis));
     }
     if (rntype instanceof RealType) {
-      display1.addMap(new ScalarMap((RealType) rntype, Display.Green));
+      dpys[0].addMap(new ScalarMap((RealType) rntype, Display.Green));
       if (n <= 2) {
-        display1.addMap(new ScalarMap((RealType) rntype, Display.ZAxis));
+        dpys[0].addMap(new ScalarMap((RealType) rntype, Display.ZAxis));
       }
     }
     else if (rntype instanceof RealTupleType) {
       int m = ((RealTupleType) rntype).getDimension();
       RealType rr = (RealType) ((RealTupleType) rntype).getComponent(0);
-      display1.addMap(new ScalarMap(rr, Display.Green));
+      dpys[0].addMap(new ScalarMap(rr, Display.Green));
       if (n <= 2) {
         if (m > 1) {
           rr = (RealType) ((RealTupleType) rntype).getComponent(1);
         }
-        display1.addMap(new ScalarMap(rr, Display.ZAxis));
+        dpys[0].addMap(new ScalarMap(rr, Display.ZAxis));
       }
     }
-    display1.addMap(new ConstantMap(0.5, Display.Red));
-    display1.addMap(new ConstantMap(0.0, Display.Blue));
+    dpys[0].addMap(new ConstantMap(0.5, Display.Red));
+    dpys[0].addMap(new ConstantMap(0.0, Display.Blue));
 
     DataReferenceImpl ref_netcdf = new DataReferenceImpl("ref_netcdf");
     ref_netcdf.setData(netcdf_data);
-    display1.addReference(ref_netcdf, null);
+    dpys[0].addReference(ref_netcdf, null);
 
     System.out.println("now save and re-read data");
     try {
@@ -128,13 +134,9 @@ public class Test10
       netcdf_data = (FlatField) plain.open("save.nc");
     } catch (IOException e) {
       System.err.println("Couldn't open \"save.nc\": " + e.getMessage());
-      return null;
+      System.exit(1);
+      return;
     }
-
-    DisplayImpl[] dpys = new DisplayImpl[1];
-    dpys[0] = display1;
-
-    return dpys;
   }
 
   public String toString() { return " file_name: netCDF adapter"; }
@@ -142,6 +144,6 @@ public class Test10
   public static void main(String[] args)
     throws RemoteException, VisADException
   {
-    Test10 t = new Test10(args);
+    new Test10(args);
   }
 }

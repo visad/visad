@@ -54,43 +54,44 @@ public class Test09
     return 1;
   }
 
-  DisplayImpl[] setupData()
+  DisplayImpl[] setupServerDisplays()
+    throws RemoteException, VisADException
+  {
+    DisplayImpl[] dpys = new DisplayImpl[1];
+    dpys[0] = new DisplayImplJ2D("display");
+    return dpys;
+  }
+
+  void setupServerData(DisplayImpl[] dpys)
     throws RemoteException, VisADException
   {
     if (fileName == null) {
       System.err.println("must specify GIF or JPEG file name");
       System.exit(1);
-      return null;
+      return;
     }
 
     GIFForm gif_form = new GIFForm();
     FlatField imaget1 = (FlatField) gif_form.open(fileName);
 
-    DisplayImpl display1 = new DisplayImplJ2D("display1");
-
     // compute ScalarMaps from type components
     FunctionType ftype = (FunctionType) imaget1.getType();
     RealTupleType dtype = ftype.getDomain();
     RealTupleType rtype9 = (RealTupleType) ftype.getRange();
-    display1.addMap(new ScalarMap((RealType) dtype.getComponent(0),
+    dpys[0].addMap(new ScalarMap((RealType) dtype.getComponent(0),
                                   Display.XAxis));
-    display1.addMap(new ScalarMap((RealType) dtype.getComponent(1),
+    dpys[0].addMap(new ScalarMap((RealType) dtype.getComponent(1),
                                   Display.YAxis));
-    display1.addMap(new ScalarMap((RealType) rtype9.getComponent(0),
+    dpys[0].addMap(new ScalarMap((RealType) rtype9.getComponent(0),
                                    Display.Red));
-    display1.addMap(new ScalarMap((RealType) rtype9.getComponent(1),
+    dpys[0].addMap(new ScalarMap((RealType) rtype9.getComponent(1),
                                    Display.Green));
-    display1.addMap(new ScalarMap((RealType) rtype9.getComponent(2),
+    dpys[0].addMap(new ScalarMap((RealType) rtype9.getComponent(2),
                                    Display.Blue));
 
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
-    display1.addReference(ref_imaget1, null);
-
-    DisplayImpl[] dpys = new DisplayImpl[1];
-    dpys[0] = display1;
-
-    return dpys;
+    dpys[0].addReference(ref_imaget1, null);
   }
 
   String getFrameTitle() { return "GIF / JPEG in Java2D"; }
@@ -103,6 +104,6 @@ public class Test09
   public static void main(String[] args)
     throws RemoteException, VisADException
   {
-    Test09 t = new Test09(args);
+    new Test09(args);
   }
 }

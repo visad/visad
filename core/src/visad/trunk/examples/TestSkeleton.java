@@ -157,24 +157,20 @@ public abstract class TestSkeleton
     return !usage;
   }
 
-  abstract DisplayImpl[] setupData()
-    throws RemoteException, VisADException;
+  boolean isServer() { return (startServer && hostName == null); }
+  boolean isClient() { return (!startServer && hostName != null); }
+  boolean isStandalone() { return (!startServer && hostName == null); }
 
   String getClientServerTitle()
   {
-    if (startServer) {
-      if (hostName == null) {
-        return " server";
-      } else {
-        return " server+client";
-      }
-    } else {
-      if (hostName == null) {
-        return " standalone";
-      } else {
-        return " client";
-      }
+    if (isServer()) {
+      return " server";
+    } else if (isClient()) {
+      return " client";
+    } else if (isStandalone()) {
+      return " standalone";
     }
+    return " unknown";
   }
 
   void getClientDataReferences(RemoteServer client)
@@ -254,6 +250,47 @@ public abstract class TestSkeleton
     return rmtDpy;
   }
 
+  private static DisplayImpl wrapRemoteDisplay(RemoteDisplay rmtDpy)
+    throws RemoteException, VisADException
+  {
+    String className = rmtDpy.getDisplayClassName();
+    Class dpyClass;
+    try {
+      dpyClass = Class.forName(className);
+    } catch (ClassNotFoundException e) {
+      throw new VisADException("Couldn't create " + className);
+    }
+
+    Class[] params = new Class[1];
+    try {
+      params[0] = Class.forName("visad.RemoteDisplay");
+    } catch (ClassNotFoundException e) {
+      throw new VisADException("Yikes! Couldn't find visad.RemoteDisplay!");
+    }
+
+    java.lang.reflect.Constructor cons;
+    try {
+      cons = dpyClass.getConstructor(params);
+    } catch (NoSuchMethodException e) {
+      throw new VisADException(className + " has no RemoteDisplay" +
+                               " constructor");
+    }
+
+    DisplayImpl dpy;
+
+    Object[] cargs = new Object[1];
+    cargs[0] = rmtDpy;
+    try {
+      dpy = (DisplayImpl )cons.newInstance(cargs);
+    } catch (Exception e) {
+      throw new VisADException("Couldn't create local shadow for " +
+                               rmtDpy + ": " + e.getClass().getName() +
+                               ": " + e.getMessage());
+    }
+
+    return dpy;
+  }
+
   DisplayImpl[] setupClientData()
     throws RemoteException, VisADException
   {
@@ -265,37 +302,7 @@ public abstract class TestSkeleton
 
     DisplayImpl[] dpys = new DisplayImpl[rmtDpy.length];
     for (int i = 0; i < dpys.length; i++) {
-      String className = rmtDpy[i].getDisplayClassName();
-      Class dpyClass;
-      try {
-        dpyClass = Class.forName(className);
-      } catch (ClassNotFoundException e) {
-        throw new VisADException("Couldn't create " + className);
-      }
-
-      Class[] params = new Class[1];
-      try {
-        params[0] = Class.forName("visad.RemoteDisplay");
-      } catch (ClassNotFoundException e) {
-        throw new VisADException("Yikes! Couldn't find visad.RemoteDisplay!");
-      }
-
-      java.lang.reflect.Constructor cons;
-      try {
-        cons = dpyClass.getConstructor(params);
-      } catch (NoSuchMethodException e) {
-        throw new VisADException(className + " has no RemoteDisplay" +
-                                 " constructor");
-      }
-
-      Object[] cargs = new Object[1];
-      cargs[0] = rmtDpy[i];
-      try {
-        dpys[i] = (DisplayImpl )cons.newInstance(cargs);
-      } catch (Exception e) {
-        throw new VisADException("Couldn't create local shadow for " +
-                                 rmtDpy[i]);
-      }
+      dpys[i] = wrapRemoteDisplay(rmtDpy[i]);
     }
 
     // fetch any data references from server
@@ -303,6 +310,12 @@ public abstract class TestSkeleton
 
     return dpys;
   }
+
+  abstract DisplayImpl[] setupServerDisplays()
+    throws RemoteException, VisADException;
+
+  abstract void setupServerData(DisplayImpl[] dpys)
+    throws RemoteException, VisADException;
 
   void setServerDataReferences(RemoteServerImpl server)
     throws RemoteException, VisADException
@@ -345,9 +358,6 @@ public abstract class TestSkeleton
       }
     }
 
-    // add any data references to server
-    setServerDataReferences(server);
-
     return server;
   }
 
@@ -360,14 +370,20 @@ public abstract class TestSkeleton
     throws RemoteException, VisADException
   {
     DisplayImpl[] displays;
-    if (hostName != null) {
+    if (isClient()) {
       displays = setupClientData();
     } else {
-      displays = setupData();
-    }
+      displays = setupServerDisplays();
 
-    if (startServer) {
-      setupServer(displays);
+      RemoteServerImpl server;
+      if (startServer) {
+        server = setupServer(displays);
+      } else {
+        server = null;
+      }
+      setServerDataReferences(server);
+
+      setupServerData(displays);
     }
 
     setupUI(displays);

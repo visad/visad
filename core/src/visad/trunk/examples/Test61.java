@@ -40,7 +40,15 @@ public class Test61
     super(args);
   }
 
-  DisplayImpl[] setupData()
+  DisplayImpl[] setupServerDisplays()
+    throws RemoteException, VisADException
+  {
+    DisplayImpl[] dpys = new DisplayImpl[1];
+    dpys[0] = new DisplayImplJ3D("display", DisplayImplJ3D.APPLETFRAME);
+    return dpys;
+  }
+
+  void setupServerData(DisplayImpl[] dpys)
     throws RemoteException, VisADException
   {
     RealType xr = new RealType("xr");
@@ -75,22 +83,16 @@ public class Test61
     }
     grid3d.setSamples(values);
 
-    DisplayImpl display1;
-    display1 = new DisplayImplJ3D("display1", DisplayImplJ3D.APPLETFRAME);
+    dpys[0].addMap(new ScalarMap(xr, Display.XAxis));
+    dpys[0].addMap(new ScalarMap(yr, Display.YAxis));
+    dpys[0].addMap(new ScalarMap(zr, Display.ZAxis));
 
-    display1.addMap(new ScalarMap(xr, Display.XAxis));
-    display1.addMap(new ScalarMap(yr, Display.YAxis));
-    display1.addMap(new ScalarMap(zr, Display.ZAxis));
-    display1.addMap(new ScalarMap(wr, Display.RGBA));
+    ScalarMap map1color = new ScalarMap(wr, Display.RGBA);
+    dpys[0].addMap(map1color);
 
     DataReferenceImpl ref_grid3d = new DataReferenceImpl("ref_grid3d");
     ref_grid3d.setData(grid3d);
-    display1.addReference(ref_grid3d, null);
-
-    DisplayImpl[] dpys = new DisplayImpl[1];
-    dpys[0] = display1;
-
-    return dpys;
+    dpys[0].addReference(ref_grid3d, null);
   }
 
   String getFrameTitle0() { return "VisAD Color Alpha Widget"; }
@@ -99,7 +101,6 @@ public class Test61
     throws RemoteException, VisADException
   {
     ScalarMap map1color = (ScalarMap )dpys[0].getMapVector().lastElement();
-    LabeledColorWidget widget = new LabeledColorWidget(map1color);
 
     ColorAlphaControl control = (ColorAlphaControl) map1color.getControl();
     float[][] table = control.getTable();
@@ -110,7 +111,7 @@ public class Test61
     }
     control.setTable(table);
 
-    return widget;
+    return new LabeledColorWidget(map1color);
   }
 
   public String toString()
@@ -121,6 +122,6 @@ public class Test61
   public static void main(String[] args)
     throws RemoteException, VisADException
   {
-    Test61 t = new Test61(args);
+    new Test61(args);
   }
 }

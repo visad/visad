@@ -37,7 +37,15 @@ public class Test04
     super(args);
   }
 
-  DisplayImpl[] setupData()
+  DisplayImpl[] setupServerDisplays()
+    throws RemoteException, VisADException
+  {
+    DisplayImpl[] dpys = new DisplayImpl[1];
+    dpys[0] = new DisplayImplJ3D("display", DisplayImplJ3D.APPLETFRAME);
+    return dpys;
+  }
+
+  void setupServerData(DisplayImpl[] dpys)
     throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
@@ -51,24 +59,17 @@ public class Test04
     int size = 64;
     FlatField imaget1 = FlatField.makeField(image_tuple, size, false);
 
-    DisplayImpl display1;
-    display1 = new DisplayImplJ3D("display1", DisplayImplJ3D.APPLETFRAME);
-    display1.addMap(new ScalarMap(RealType.Latitude, Display.Latitude));
-    display1.addMap(new ScalarMap(RealType.Longitude, Display.Longitude));
-    display1.addMap(new ScalarMap(vis_radiance, Display.RGB));
-    // display1.addMap(new ScalarMap(vis_radiance, Display.Radius));
+    dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.Latitude));
+    dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.Longitude));
+    dpys[0].addMap(new ScalarMap(vis_radiance, Display.RGB));
+    // dpys[0].addMap(new ScalarMap(vis_radiance, Display.Radius));
 
-    GraphicsModeControl mode = display1.getGraphicsModeControl();
+    GraphicsModeControl mode = dpys[0].getGraphicsModeControl();
     mode.setTextureEnable(false);
 
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
-    display1.addReference(ref_imaget1, null);
-
-    DisplayImpl[] dpys = new DisplayImpl[1];
-    dpys[0] = display1;
-
-    return dpys;
+    dpys[0].addReference(ref_imaget1, null);
   }
 
   public String toString() { return ": spherical coordinates"; }
@@ -76,6 +77,6 @@ public class Test04
   public static void main(String[] args)
     throws RemoteException, VisADException
   {
-    Test04 t = new Test04(args);
+    new Test04(args);
   }
 }

@@ -48,7 +48,15 @@ public class Test52
     super(args);
   }
 
-  DisplayImpl[] setupData()
+  DisplayImpl[] setupServerDisplays()
+    throws RemoteException, VisADException
+  {
+    DisplayImpl[] dpys = new DisplayImpl[1];
+    dpys[0] = new DisplayImplJ2D("display", 300, 300);
+    return dpys;
+  }
+
+  void setupServerData(DisplayImpl[] dpys)
     throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
@@ -62,19 +70,13 @@ public class Test52
     int size = 32;
     FlatField imaget1 = FlatField.makeField(image_tuple, size, false);
 
-    DisplayImpl display1 = new DisplayImplJ2D("display1", 300, 300);
-    display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
-    display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
-    display1.addMap(new ScalarMap(vis_radiance, Display.RGB));
+    dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+    dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+    dpys[0].addMap(new ScalarMap(vis_radiance, Display.RGB));
 
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
-    display1.addReference(ref_imaget1, null);
-
-    DisplayImpl[] dpys = new DisplayImpl[1];
-    dpys[0] = display1;
-
-    return dpys;
+    dpys[0].addReference(ref_imaget1, null);
   }
 
   String getFrameTitle() { return "captured image from Java2D"; }
@@ -117,6 +119,6 @@ public class Test52
   public static void main(String[] args)
     throws RemoteException, VisADException
   {
-    Test52 t = new Test52(args);
+    new Test52(args);
   }
 }

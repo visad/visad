@@ -38,7 +38,16 @@ public class Test42
     super(args);
   }
 
-  DisplayImpl[] setupData()
+  DisplayImpl[] setupServerDisplays()
+    throws RemoteException, VisADException
+  {
+    DisplayImpl[] dpys = new DisplayImpl[2];
+    dpys[0] = new DisplayImplJ3D("display1", new TwoDDisplayRendererJ3D());
+    dpys[1] = new DisplayImplJ3D("display2", new TwoDDisplayRendererJ3D());
+    return dpys;
+  }
+
+  void setupServerData(DisplayImpl[] dpys)
     throws RemoteException, VisADException
   {
     RealType[] types = {RealType.Latitude, RealType.Longitude};
@@ -65,17 +74,14 @@ public class Test42
     FlatField imaget2 = new FlatField(ftype2, imaget1.getDomainSet());
     imaget2.setSamples(vals, false);
 
-    DisplayImpl display1;
-    display1 = new DisplayImplJ3D("display1", new TwoDDisplayRendererJ3D());
-    // display1 = new DisplayImplJ3D("display1");
-    display1.addMap(new ScalarMap(dom0, Display.XAxis));
-    display1.addMap(new ScalarMap(dom1, Display.YAxis));
-    display1.addMap(new ScalarMap(ran, Display.Green));
-    display1.addMap(new ConstantMap(0.3, Display.Blue));
-    display1.addMap(new ConstantMap(0.3, Display.Red));
-    display1.addMap(new ScalarMap(oogle, Display.IsoContour));
+    dpys[0].addMap(new ScalarMap(dom0, Display.XAxis));
+    dpys[0].addMap(new ScalarMap(dom1, Display.YAxis));
+    dpys[0].addMap(new ScalarMap(ran, Display.Green));
+    dpys[0].addMap(new ConstantMap(0.3, Display.Blue));
+    dpys[0].addMap(new ConstantMap(0.3, Display.Red));
+    dpys[0].addMap(new ScalarMap(oogle, Display.IsoContour));
 
-    GraphicsModeControl mode = display1.getGraphicsModeControl();
+    GraphicsModeControl mode = dpys[0].getGraphicsModeControl();
     mode.setTextureEnable(false);
 
     ConstantMap[] omaps1;
@@ -85,35 +91,26 @@ public class Test42
 
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
-    display1.addReference(ref_imaget1, null);
+    dpys[0].addReference(ref_imaget1, null);
 
     DataReferenceImpl ref_imaget2 = new DataReferenceImpl("ref_imaget2");
     ref_imaget2.setData(imaget2);
-    display1.addReference(ref_imaget2, omaps1);
+    dpys[0].addReference(ref_imaget2, omaps1);
 
-    DisplayImpl display2;
-    display2 = new DisplayImplJ3D("display2", new TwoDDisplayRendererJ3D());
-    // display2 = new DisplayImplJ3D("display2");
-    display2.addMap(new ScalarMap(dom0, Display.XAxis));
-    display2.addMap(new ScalarMap(dom1, Display.YAxis));
-    display2.addMap(new ScalarMap(ran, Display.Green));
-    display2.addMap(new ConstantMap(0.3, Display.Blue));
-    display2.addMap(new ConstantMap(0.3, Display.Red));
-    display2.addMap(new ScalarMap(oogle, Display.IsoContour));
+    dpys[1].addMap(new ScalarMap(dom0, Display.XAxis));
+    dpys[1].addMap(new ScalarMap(dom1, Display.YAxis));
+    dpys[1].addMap(new ScalarMap(ran, Display.Green));
+    dpys[1].addMap(new ConstantMap(0.3, Display.Blue));
+    dpys[1].addMap(new ConstantMap(0.3, Display.Red));
+    dpys[1].addMap(new ScalarMap(oogle, Display.IsoContour));
 
     ConstantMap[] omaps2;
     omaps2 = new ConstantMap[] {new ConstantMap(1.0, Display.Blue),
                                 new ConstantMap(1.0, Display.Red),
                                 new ConstantMap(0.0, Display.Green)};
 
-    display2.addReference(ref_imaget1, null);
-    display2.addReference(ref_imaget2, omaps2);
-
-    DisplayImpl[] dpys = new DisplayImpl[2];
-    dpys[0] = display1;
-    dpys[1] = display2;
-
-    return dpys;
+    dpys[1].addReference(ref_imaget1, null);
+    dpys[1].addReference(ref_imaget2, omaps2);
   }
 
   String getFrameTitle() { return "image / contour alignment in Java3D"; }
@@ -123,6 +120,6 @@ public class Test42
   public static void main(String[] args)
     throws RemoteException, VisADException
   {
-    Test42 t = new Test42(args);
+    new Test42(args);
   }
 }
