@@ -7,19 +7,20 @@ The code in this file is Copyright(C) 1999 by Don
 Murray.  It is designed to be used with the VisAD system for 
 interactive analysis and visualization of numerical data.  
  
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
-any later version.
- 
-This program is distributed in the hope that it will be useful,
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Library General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License in file NOTICE for more details.
- 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Library General Public License for more details.
+
+You should have received a copy of the GNU Library General Public
+License along with this library; if not, write to the Free
+Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+MA 02111-1307, USA
 */
 
 package edu.wisc.ssec.mcidas;
@@ -169,4 +170,22 @@ public final class McIDASUtil
         return cal.getTime().getTime()/1000;
     }
 
+    /**
+     * flip the bytes of an integer array
+     *
+     * @param array[] array of integers to be flipped
+     * @param first starting element of the array
+     * @param last last element of array to flip
+     *
+     */
+    public static void flip(int array[], int first, int last) 
+    {
+        int i,k;
+        for (i=first; i<=last; i++) 
+        {
+            k = array[i];
+            array[i] = ( (k >>> 24) & 0xff) | ( (k >>> 8) & 0xff00) |
+                       ( (k & 0xff) << 24 )  | ( (k & 0xff00) << 8);
+        }
+    }
 }
