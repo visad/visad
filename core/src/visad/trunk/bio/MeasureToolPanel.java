@@ -60,12 +60,6 @@ public class MeasureToolPanel extends ToolPanel {
   private static final String DIST_LABEL = "distance = 0000.000 pix";
 
 
-  // -- GLOBAL VARIABLES --
-
-  /** First free id number for standard measurements. */
-  static int maxId = 0;
-
-
   // -- FIELDS --
 
   /** New group dialog box. */
@@ -763,7 +757,7 @@ public class MeasureToolPanel extends ToolPanel {
         id = thing.stdId;
         undoStandard(thing);
       }
-      else id = maxId++; // thing.stdType == MeasureThing.STD_SINGLE
+      else id = bio.mm.maxSID++; // thing.stdType == MeasureThing.STD_SINGLE
       thing.setStandard(MeasureThing.STD_2D, id);
       int numSlices = bio.sm.getNumberOfSlices();
       boolean trans = bio.sm.align.getMode() == AlignmentPlane.APPLY_MODE;
@@ -810,7 +804,7 @@ public class MeasureToolPanel extends ToolPanel {
         id = thing.stdId;
         undoStandard(thing);
       }
-      else id = maxId++; // thing.stdType == MeasureThing.STD_SINGLE
+      else id = bio.mm.maxSID++; // thing.stdType == MeasureThing.STD_SINGLE
       thing.setStandard(MeasureThing.STD_3D, id);
       boolean trans = bio.sm.align.getMode() == AlignmentPlane.APPLY_MODE;
       for (int j=0; j<bio.mm.lists.length; j++) {

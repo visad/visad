@@ -51,8 +51,13 @@ public class MeasureManager {
   /** Label for line denoting unit type. */
   private static final String UNIT_LABEL = "Unit = ";
 
-  /** Label for start of standard measurement tables. */
-  private static final String STANDARD_LABEL = "# Standard measurements";
+  /** Label for start of 2-D standard measurement tables. */
+  private static final String STANDARD_2D_LABEL =
+    "# 2-D standard measurements";
+
+  /** Label for start of 3-D standard measurement tables. */
+  private static final String STANDARD_3D_LABEL =
+    "# 3-D standard measurements";
 
   /** Label for start of master group list. */
   private static final String GROUP_LABEL = "# Groups";
@@ -64,7 +69,7 @@ public class MeasureManager {
   private static final String POINT_LABEL = "# Markers";
 
   /** Label for start of master measurement list. */
-  private static final String ALL_LABEL = "# All measurements";
+  private static final String SINGLE_LABEL = "# Single measurements";
 
 
   // -- MEASUREMENT INFO --
@@ -79,7 +84,10 @@ public class MeasureManager {
   MeasurePool pool3;
 
   /** First free id number for measurement groups. */
-  int maxId = 0;
+  int maxGID = 0;
+
+  /** First free id number for standard measurements. */
+  int maxSID = 0;
 
   /** Measurement group list. */
   Vector groups = new Vector();
@@ -154,13 +162,12 @@ public class MeasureManager {
       m[1] /= bio.sm.res_y;
     }
     else m[0] = m[1] = m[2] = 1;
-    int[] lengths = new int[2];
     Vector v = new Vector();
 
     int numIndices = bio.mm.lists.length;
     int numSlices = bio.sm.getNumberOfSlices();
-    int numStd = MeasureToolPanel.maxId;
-    MData[][][] stdData = new MData[numStd][numIndices][numSlices];
+    boolean hasStd2 = false, hasStd3 = false;
+    MData[][][] stdData = new MData[maxSID][numIndices][numSlices];
 
     // compile measurement data
     int minLen = 2;
@@ -180,14 +187,25 @@ public class MeasureManager {
         int r = line.color.getRed();
         int g = line.color.getGreen();
         int b = line.color.getBlue();
-        MData data = new MData(index, line.stdId,
+        MData data = new MData(index, line.stdId, line.stdType,
           line.group.getId(), m[0], m[1], m[2], vals, r, g, b);
-        if (data.stdId >= 0) {
-          // add to standard measurement list
-          stdData[data.stdId][index][data.slice] = data;
+        if (data.stdType == MeasureThing.STD_SINGLE) {
+          v.add(data);
+          maxLen = 2;
         }
-        v.add(data);
-        maxLen = 2;
+        else {
+          // add to standard measurement list
+          int ndx;
+          if (data.stdType == MeasureThing.STD_2D) {
+            ndx = data.slice;
+            hasStd2 = true;
+          }
+          else {
+            ndx = 0;
+            hasStd3 = true;
+          }
+          stdData[data.stdId][index][ndx] = data;
+        }
       }
       int psize = points.size();
       for (int i=0; i<psize; i++) {
@@ -201,14 +219,25 @@ public class MeasureManager {
         int r = point.color.getRed();
         int g = point.color.getGreen();
         int b = point.color.getBlue();
-        MData data = new MData(index, point.stdId,
+        MData data = new MData(index, point.stdId, point.stdType,
           point.group.getId(), m[0], m[1], m[2], vals, r, g, b);
-        if (data.stdId >= 0) {
-          // add to standard measurement list
-          stdData[data.stdId][index][data.slice] = data;
+        if (data.stdType == MeasureThing.STD_SINGLE) {
+          v.add(data);
+          minLen = 1;
         }
-        v.add(data);
-        minLen = 1;
+        else {
+          // add to standard measurement list
+          int ndx;
+          if (data.stdType == MeasureThing.STD_2D) {
+            ndx = data.slice;
+            hasStd2 = true;
+          }
+          else {
+            ndx = 0;
+            hasStd3 = true;
+          }
+          stdData[data.stdId][index][ndx] = data;
+        }
       }
     }
 
@@ -220,12 +249,12 @@ public class MeasureManager {
     fout.println();
     fout.println();
 
-    // standard measurements
-    if (numStd > 0) {
-      fout.println(STANDARD_LABEL);
-      for (int std=0; std<numStd; std++) {
+    // 2-D standard measurements
+    if (hasStd2) {
+      fout.println(STANDARD_2D_LABEL);
+      for (int std=0; std<maxSID; std++) {
         MData d = stdData[std][0][0];
-        if (d == null) continue;
+        if (d == null || d.stdType != MeasureThing.STD_2D) continue;
         int gid = d.groupId;
         MeasureGroup group = (MeasureGroup) bio.mm.groups.elementAt(gid);
         fout.println();
@@ -266,6 +295,43 @@ public class MeasureManager {
       fout.println();
     }
 
+    // 3-D standard measurements
+    if (hasStd3) {
+      fout.println(STANDARD_3D_LABEL);
+      for (int std=0; std<maxSID; std++) {
+        MData d = stdData[std][0][0];
+        if (d == null || d.stdType != MeasureThing.STD_3D) continue;
+        int gid = d.groupId;
+        MeasureGroup group = (MeasureGroup) bio.mm.groups.elementAt(gid);
+        fout.println();
+        fout.println("[" + std + "] " + group.getName());
+        String tabs = "\t";
+        int len = d.values[0].length;
+        if (len == 2) fout.print("distance\t");
+        for (int i=0; i<2; i++) {
+          for (int j=0; j<len; j++) {
+            fout.print(VARIABLES[i] + (j + 1));
+            if (i < 1 || j < len - 1) fout.print("\t");
+          }
+        }
+        fout.println();
+        for (int index=0; index<numIndices; index++) {
+          // distance
+          if (len == 2) fout.print(stdData[std][index][0].dist + "\t");
+          // values
+          for (int i=0; i<2; i++) {
+            for (int j=0; j<len; j++) {
+              fout.print(stdData[std][index][0].values[i][j]);
+              if (i < 1 || j < len - 1) fout.print("\t");
+            }
+          }
+          fout.println();
+        }
+      }
+      fout.println();
+      fout.println();
+    }
+
     // output group information
     int numGroups = bio.mm.groups.size();
     if (numGroups > 1) {
@@ -282,8 +348,8 @@ public class MeasureManager {
 
     // output all measurement information
     if (maxLen >= minLen) {
-      fout.println(ALL_LABEL);
-      for (int i=lengths[0]; i<=lengths[1]; i++) {
+      fout.println(SINGLE_LABEL);
+      for (int i=minLen; i<=maxLen; i++) {
         int size = v.size();
         boolean doHeader = true;
         for (int j=0; j<size; j++) {
@@ -432,7 +498,7 @@ public class MeasureManager {
         MeasureGroup group = new MeasureGroup(bio, name);
         group.setDescription(desc);
         group.setId(id);
-        if (id >= bio.mm.maxId) bio.mm.maxId = id + 1;
+        if (id >= maxGID) maxGID = id + 1;
       }
     }
 
@@ -462,6 +528,7 @@ public class MeasureManager {
         MeasureGroup group = (MeasureGroup) bio.mm.groups.elementAt(gid);
         MeasurePoint point = new MeasurePoint(x, y, z, color, group);
         point.setStandard(stdType, stdId);
+        if (stdId >= maxSID) maxSID = stdId + 1;
         list.addMarker(point, false);
       }
     }
@@ -487,6 +554,7 @@ public class MeasureManager {
         MeasurePoint ep2 = (MeasurePoint) points.elementAt(ep2_ndx);
         MeasureLine line = new MeasureLine(ep1, ep2, color, group, false);
         line.setStandard(stdType, stdId);
+        if (stdId >= maxSID) maxSID = stdId + 1;
         list.addLine(line, false);
       }
     }
@@ -528,7 +596,7 @@ public class MeasureManager {
   /** Gets a tab-delimited header of the MData string representation. */
   private static String getHeader(int len) {
     StringBuffer sb = new StringBuffer();
-    sb.append("Timestep\tStandard ID\tGroup number\tRed\tGreen\tBlue\t");
+    sb.append("Timestep\tGroup number\tRed\tGreen\tBlue\t");
     if (len == 2) sb.append("Distance\t");
     for (int i=0; i<3; i++) {
       for (int j=0; j<len; j++) {
@@ -542,10 +610,10 @@ public class MeasureManager {
 
   // -- HELPER CLASSES --
 
-  /** Measurement data structure. */
+  /** Measurement data structure for use with export function. */
   public class MData {
     public int index, slice;
-    public int stdId, groupId;
+    public int stdId, stdType, groupId;
     public double[][] values;
     public int r, g, b;
     public double dist;
@@ -572,11 +640,12 @@ public class MeasureManager {
     }
 
     /** Line constructor. */
-    public MData(int index, int stdId, int groupId, double mx,
+    public MData(int index, int stdId, int stdType, int groupId, double mx,
       double my, double sd, double[][] values, int r, int g, int b)
     {
       this.index = index;
       this.stdId = stdId;
+      this.stdType = stdType;
       this.groupId = groupId;
       this.values = values;
       this.r = r;
@@ -614,7 +683,7 @@ public class MeasureManager {
       int len = values[0].length;
       StringBuffer sb = new StringBuffer();
       sb.append(index + "\t");
-      sb.append(stdId + "\t" + groupId + "\t" +
+      sb.append(groupId + "\t" +
         r + "\t" + g + "\t" + b + "\t");
       if (len == 2) sb.append(dist + "\t");
       for (int i=0; i<3; i++) {
