@@ -80,7 +80,15 @@ public class Event
     }
   }
 
+  public final int getDay() { return day; }
+  public final int getNumber() { return number; }
+  public final int getRun() { return run; }
+  public final double getTime() { return time; }
+  public final double getTimeShift() { return timeShift; }
+
   static final RealType getTrackIndexType() { return trackIndexType; }
+
+  public final int getYear() { return year; }
 
   static void initTypes(RealType trackIndex, RealType hitIndex,
                         FunctionType tracksFunc,

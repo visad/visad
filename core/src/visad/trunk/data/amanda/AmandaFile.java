@@ -352,6 +352,12 @@ public class AmandaFile
   }
 
   public static final RealType getAmplitudeType() { return amplitudeType; }
+
+  public final Event getEvent(int index)
+  {
+    return (Event )events.get(index);
+  }
+
   public static final RealType getEventIndexType() { return eventIndexType; }
   public static final RealType getLeadEdgeTimeType() { return letType; }
   public static final RealType getTrackIndexType() { return Event.getTrackIndexType(); }
@@ -371,7 +377,7 @@ public class AmandaFile
   public final Tuple makeData()
     throws VisADException
   {
-    // Field of Tuples of track and hit Fields
+    // Field of event Tuples
     final int nevents = events.size();
     Integer1DSet eventsSet =
       new Integer1DSet(eventIndexType, (nevents == 0 ? 1 : nevents));
@@ -388,8 +394,8 @@ public class AmandaFile
         re.printStackTrace();
       }
     }
-    // return eventsField;
 
+    // Field of modules
     final int nmodules = modules.size();
     Integer1DSet moduleSet = new Integer1DSet(moduleIndexType, nmodules);
     FlatField moduleField =
