@@ -48,6 +48,15 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
     texCoords = null;
   }
 
+  /** default case simply return points */
+  public VisADGeometryArray adjustLongitude(int axis) {
+    VisADPointArray array = new VisADPointArray();
+    array.vertexCount = vertexCount;
+    array.coordinates = coordinates;
+    array.colors = colors;
+    return array;
+  }
+
   public VisADGeometryArray removeMissing() {
     VisADPointArray array = new VisADPointArray();
     float[] coords = new float[coordinates.length];

@@ -518,7 +518,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
       }
     }
 
-    // draw Animation string in upper right corner of screen
+    // draw Animation string in lower right corner of screen
     String[] animation_string = getAnimationString();
     if (animation_string[0] != null) {
       int nchars = animation_string[0].length();
