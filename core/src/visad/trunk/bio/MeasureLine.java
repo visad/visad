@@ -45,7 +45,7 @@ public class MeasureLine {
   private static int firstFreeId = 1;
   
   /** Id number for the line. */
-  private int id;
+  int id;
 
   /** Data reference for first endpoint. */
   private DataReferenceImpl ref_p1;
@@ -122,7 +122,7 @@ public class MeasureLine {
   {
     boolean j3d = d instanceof DisplayImplJ3D;
     d.getGraphicsModeControl().setPointSize(5.0f);
-    d.getDisplayRenderer().setPickThreshhold(0.5f);
+    d.getDisplayRenderer().setPickThreshhold(5.0f);
 
     // add first endpoint
     DataRenderer renderer = j3d ?
@@ -285,5 +285,8 @@ public class MeasureLine {
 
   /** Gets the values of the endpoints. */
   public RealTuple[] getValues() { return new RealTuple[] {p1, p2}; }
+
+  /** Gets the domain type for the line's values. */
+  public RealTupleType getDomain() { return dtype; }
 
 }

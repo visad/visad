@@ -35,7 +35,7 @@ import visad.*;
 public class MeasureList {
 
   /** Minimum number of lines in the line pool. */
-  private static final int MIN_POOL_SIZE = 10;
+  public static final int MIN_POOL_SIZE = 10;
 
   /** Default group. */
   private static LineGroup defaultGroup = new LineGroup("None", Color.white);

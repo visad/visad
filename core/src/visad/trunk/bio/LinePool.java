@@ -39,6 +39,9 @@ public class LinePool {
   /** Associated VisAD display. */
   private DisplayImpl display;
 
+  /** Number of lines in a block. */
+  private int blockSize;
+
   /** Total number of lines. */
   private int size;
 
@@ -46,25 +49,51 @@ public class LinePool {
   private int used;
 
   /** Constructs a pool of lines. */
-  public LinePool(DisplayImpl display) {
+  public LinePool(DisplayImpl display, int blockSize) {
     lines = new Vector();
     this.display = display;
+    this.blockSize = blockSize;
     size = 0;
     used = 0;
+  }
+
+  /** Ensures the line pool is at least the given size. */
+  public void expand(int numLines) {
+    if (size == 0) {
+      System.out.println("LinePool.expand: warning: " +
+        "Cannot expand from zero without domain type");
+      return;
+    }
+    MeasureLine line = (MeasureLine) lines.elementAt(0);
+    RealTupleType domain = line.getDomain();
+    expand(numLines, domain);
   }
 
   /** Ensures the line pool is at least the given size. */
   public void expand(int numLines, RealTupleType domain) {
     if (numLines <= size) return;
     int n = numLines - size;
-    MeasureLine[] lns = new MeasureLine[n];
+    if (n % blockSize > 0) n += blockSize - n % blockSize;
+    MeasureLine[] l = new MeasureLine[n];
     try {
       for (int i=0; i<n; i++) {
-        lns[i] = new MeasureLine();
-        lns[i].setType(domain);
-        lns[i].hide();
+        l[i] = new MeasureLine();
+        l[i].setType(domain);
+        l[i].hide();
+        lines.add(l[i]);
       }
-      addNewLines(lns);
+      synchronized (this) {
+        display.disableAction();
+        for (int i=0; i<l.length; i++) {
+          try {
+            l[i].addToDisplay(display);
+          }
+          catch (VisADException exc) { exc.printStackTrace(); }
+          catch (RemoteException exc) { exc.printStackTrace(); }
+        }
+        display.enableAction();
+      }
+      size += l.length;
     }
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }
@@ -78,51 +107,27 @@ public class LinePool {
     int numLines = m.length;
 
     // set each reference accordingly
-    used = 0;
-    for (int i=0; i<numLines; i++) addLine(m[i]);
+    expand(numLines);
+    for (int i=0; i<numLines; i++) {
+      MeasureLine line = (MeasureLine) lines.elementAt(i);
+      line.setMeasurement(m[i]);
+    }
 
     // hide extra references
     for (int i=numLines; i<size; i++) {
       MeasureLine line = (MeasureLine) lines.elementAt(i);
       line.hide();
     }
+
+    used = numLines;
   }
 
   /** Sets a line in the line pool to match the given measurement. */
   public void addLine(Measurement m) {
-    if (used == size) {
-      try {
-        MeasureLine line = new MeasureLine();
-        line.setMeasurement(m);
-        addNewLines(new MeasureLine[] {line});
-      }
-      catch (VisADException exc) { exc.printStackTrace(); }
-      catch (RemoteException exc) { exc.printStackTrace(); }
-    }
-    else {
-      MeasureLine line = (MeasureLine) lines.elementAt(used);
-      line.setMeasurement(m);
-    }
+    expand(used + 1);
+    MeasureLine line = (MeasureLine) lines.elementAt(used);
+    line.setMeasurement(m);
     used++;
-  }
-
-  /** Adds a line to the pool, using a new thread. */
-  protected void addNewLines(MeasureLine[] l)
-    throws VisADException, RemoteException
-  {
-    synchronized (this) {
-      display.disableAction();
-      for (int i=0; i<l.length; i++) {
-        lines.add(l[i]);
-        try {
-          l[i].addToDisplay(display);
-        }
-        catch (VisADException exc) { exc.printStackTrace(); }
-        catch (RemoteException exc) { exc.printStackTrace(); }
-      }
-      display.enableAction();
-    }
-    size += l.length;
   }
 
 }

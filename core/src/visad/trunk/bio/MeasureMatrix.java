@@ -48,7 +48,7 @@ public class MeasureMatrix {
   public MeasureMatrix(int length, DisplayImpl display) {
     matrix = new MeasureList[length][];
     this.display = display;
-    pool = new LinePool(display);
+    pool = new LinePool(display, MeasureList.MIN_POOL_SIZE / 2);
   }
 
   /** Initializes the given index and sets it as the current index. */
