@@ -177,6 +177,11 @@ SAVE_FILES = \
 	visad/data/*.java				\
 	visad/data/units/*.java				\
 	visad/data/units/*.jj				\
+	visad/data/in/*.java				\
+	visad/data/in/package.html			\
+	visad/data/dods/*.java				\
+	visad/data/dods/package.html			\
+	visad/data/dods/Makefile			\
 	visad/data/netcdf/*.java			\
 	visad/data/netcdf/units/*.java			\
 	visad/data/netcdf/in/*.java			\
@@ -287,6 +292,8 @@ DOC_PACKAGES = \
 		ucar.netcdf \
 		ucar.tests \
 		visad.data \
+		visad.data.in \
+		visad.data.dods \
 		visad.data.units \
 		visad.data.netcdf.units \
 		visad.data.netcdf.in \
