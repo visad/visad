@@ -47,12 +47,12 @@ import java.util.Vector;
 
 // VisAD packages
 import visad.*;
+import visad.data.*;
+import visad.formula.*;
 import visad.java2d.*;
 import visad.java3d.*;
 
 // VisAD classes
-import visad.data.BadFormException;
-import visad.data.DefaultFamily;
 import visad.data.netcdf.Plain;
 import visad.data.visad.VisADForm;
 
@@ -132,6 +132,12 @@ public class BasicSSCell extends JPanel {
     }
     Name = name;
     SSCellVector.addElement(this);
+    try {
+      FormulaCell.fm.setValue(Name, null);
+    }
+    catch (FormulaException exc) {
+      throw new VisADException(exc.toString());
+    }
 
     DataRef = new DataReferenceImpl(Name);
     setDimension(JAVA2D_2D);
@@ -167,6 +173,102 @@ public class BasicSSCell extends JPanel {
       if (name.equalsIgnoreCase(panel.Name)) return panel;
     }
     return null;
+  }
+
+  /** Obtains a Vector of RealTypes consisting of all ScalarTypes
+      present in data's MathType.  Returns the number of duplicate
+      ScalarTypes found. */
+  public static int getRealTypes(Data data, Vector v) {
+    MathType dataType;
+    try {
+      dataType = data.getType();
+    }
+    catch (RemoteException exc) {
+      return -1;
+    }
+    catch (VisADException exc) {
+      return -1;
+    }
+    int[] i = new int[1];
+    i[0] = 0;
+
+    if (dataType instanceof FunctionType) {
+      parseFunction((FunctionType) dataType, v, i);
+    }
+    else if (dataType instanceof SetType) {
+      parseSet((SetType) dataType, v, i);
+    }
+    else if (dataType instanceof TupleType) {
+      parseTuple((TupleType) dataType, v, i);
+    }
+    else parseScalar((ScalarType) dataType, v, i);
+
+    return i[0];
+  }
+
+  /** Used by getRealTypes */
+  private static void parseFunction(FunctionType mathType, Vector v, int[] i) {
+    // extract domain
+    RealTupleType domain = mathType.getDomain();
+    parseTuple((TupleType) domain, v, i);
+
+    // extract range
+    MathType range = mathType.getRange();
+    if (range instanceof FunctionType) {
+      parseFunction((FunctionType) range, v, i);
+    }
+    else if (range instanceof SetType) {
+      parseSet((SetType) range, v, i);
+    }
+    else if (range instanceof TupleType) {
+      parseTuple((TupleType) range, v, i);
+    }
+    else parseScalar((ScalarType) range, v, i);
+
+    return;
+  }
+
+  /** Used by getRealTypes */
+  private static void parseSet(SetType mathType, Vector v, int[] i) {
+    // extract domain
+    RealTupleType domain = mathType.getDomain();
+    parseTuple((TupleType) domain, v, i);
+
+    return;
+  }
+
+  /** Used by getRealTypes */
+  private static void parseTuple(TupleType mathType, Vector v, int[] i) {
+    // extract components
+    for (int j=0; j<mathType.getDimension(); j++) {
+      MathType cType = null;
+      try {
+        cType = mathType.getComponent(j);
+      }
+      catch (VisADException exc) { }
+
+      if (cType != null) {
+        if (cType instanceof FunctionType) {
+          parseFunction((FunctionType) cType, v, i);
+        }
+        else if (cType instanceof SetType) {
+          parseSet((SetType) cType, v, i);
+        }
+        else if (cType instanceof TupleType) {
+          parseTuple((TupleType) cType, v, i);
+        }
+        else parseScalar((ScalarType) cType, v, i);
+      }
+    }
+    return;
+  }
+
+  /** Used by getRealTypes */
+  private static void parseScalar(ScalarType mathType, Vector v, int[] i) {
+    if (mathType instanceof RealType) {
+      if (v.contains(mathType)) i[0]++;
+      v.addElement(mathType);
+    }
   }
 
   /** Changes the BasicSSCell's name */
@@ -273,6 +375,11 @@ public class BasicSSCell extends JPanel {
     HasMappings = true;
   }
 
+  /** Whether other cells are dependent on this one */
+  public boolean othersDepend() {
+    return FormulaCell.fm.canBeRemoved(Name);
+  }
+
   /** Removes the data reference and all mappings from the display */
   public void clearDisplay() throws VisADException, RemoteException {
     if (HasMappings) {
@@ -311,6 +418,28 @@ public class BasicSSCell extends JPanel {
         add(VDPanel);
         validate();
         HasData = true;
+      }
+    }
+
+    // update FormulaManager reference
+    try {
+      FormulaCell.fm.setValue(Name, data);
+    }
+    catch (FormulaException exc) {
+      throw new VisADException(exc.toString());
+    }
+
+    // add this Data's RealTypes to FormulaManager variable registry
+    if (data != null) {
+      Vector v = new Vector();
+      getRealTypes(data, v);
+      int len = v.size();
+      for (int i=0; i<len; i++) {
+        RealType rt = (RealType) v.elementAt(i);
+        try {
+          FormulaCell.fm.setValue(rt.getName(), rt);
+        }
+        catch (FormulaException exc) { }
       }
     }
   }
@@ -368,69 +497,23 @@ public class BasicSSCell extends JPanel {
     }
   }
 
-  /** Boolean matrix used with isDependentOn() method */
-  boolean[] CheckedCell;
-
-  /** Checks whether the cell is dependent on the specified cell */
-  public boolean isDependentOn(String cellName) {
-    // not dependent on null
-    if (cellName == null) return false;
-
-    // always dependent on itself for safety reasons
-    if (cellName.equalsIgnoreCase(Name)) return true;
-
-    // check whether specified cell exists
-    int numCells = 0;
-    BasicSSCell dependCell = null;
-    Enumeration panels = SSCellVector.elements();
-    while (panels.hasMoreElements()) {
-      BasicSSCell panel = (BasicSSCell) panels.nextElement();
-      if (cellName.equalsIgnoreCase(panel.Name)) dependCell = panel;
-      numCells++;
-    }
-    // not dependent on non-existent cell
-    if (dependCell == null) return false;
-
-    // recursively scan formula
-    CheckedCell = new boolean[numCells];
-    for (int i=0; i<numCells; i++) CheckedCell[i] = false;
-    return scanFormula(this, dependCell);
-  }
-
-  /** Recursive method used by isDependentOn() method */
-  boolean scanFormula(BasicSSCell cell, BasicSSCell dependCell) {
-    // mark this cell as checked
-    CheckedCell[SSCellVector.indexOf(cell)] = true;
-
-    // scan formula for other cells that must be checked
-    if (cell.HasFormula) {
-      String[] formula = VCell.PFormula;
-      for (int i=0; i<formula.length; i++) {
-        String token = formula[i];
-        if (Formula.getTokenType(token) == Formula.VARIABLE_TOKEN) {
-          BasicSSCell subCell = getSSCellByName(token);
-          if (subCell == dependCell) return true;
-          if (subCell != null && !CheckedCell[SSCellVector.indexOf(subCell)]
-                              && scanFormula(subCell, dependCell)) return true;
-        }
-      }
-    }
-    return false;
-  }
-
   /** Sets the BasicSSCell's formula */
   public void setFormula(String f) throws VisADException, RemoteException {
     if (f == null || f.equals("")) {
       if (VCell != null) {
-        VCell.setX(false);
-        VCell.removeAllReferences();
+        VCell.dispose();
         VCell = null;
         setData(null);
       }
     }
     else if (VCell == null || !f.equals(VCell.getFormula())) {
       clearCell();
-      VCell = new FormulaCell(this, f, ShowFormulaErrors);
+      try {
+        VCell = new FormulaCell(this, f, ShowFormulaErrors);
+      }
+      catch (FormulaException exc) {
+        throw new VisADException(exc.toString());
+      }
     }
     if (VCell == null) HasFormula = false;
     else HasFormula = true;

@@ -235,13 +235,7 @@ public class FancySSCell extends BasicSSCell {
 
   /** Asks user to confirm clearing the cell if any other cell depends on it */
   public boolean confirmClear() {
-    boolean unsafe = false;
-    Enumeration panels = SSCellVector.elements();
-    while (panels.hasMoreElements()) {
-      BasicSSCell panel = (BasicSSCell) panels.nextElement();
-      if (panel != this && panel.isDependentOn(Name)) unsafe = true;
-    }
-    if (unsafe) {
+    if (othersDepend()) {
       int ans = JOptionPane.showConfirmDialog(null, "Other cells depend on "
                                              +"this cell.  Are you sure you "
                                              +"want to clear it?", "Warning",
@@ -322,27 +316,28 @@ public class FancySSCell extends BasicSSCell {
     final BasicSSCell cell = this;
     Runnable loadFile = new Runnable() {
       public void run() {
-        String msg = "VisAD could not load the dataset \""+url.toString()+"\"\n";
+        String msg = "VisAD could not load the dataset \"" +
+                     url.toString() + "\"\n";
         try {
           cell.loadData(url);
         }
         catch (BadFormException exc) {
-          msg = msg+"VisAD does not support this file type.";
+          msg = msg + "VisAD does not support this file type.";
           JOptionPane.showMessageDialog(Parent, msg, "Error importing data",
                                         JOptionPane.ERROR_MESSAGE);
         }
         catch (RemoteException exc) {
-          msg = msg+"A RemoteException occurred:\n"+exc.toString();
+          msg = msg + "A RemoteException occurred:\n" + exc.toString();
           JOptionPane.showMessageDialog(Parent, msg, "Error importing data",
                                         JOptionPane.ERROR_MESSAGE);
         }
         catch (IOException exc) {
-          msg = msg+"The file's data is corrupt.";
+          msg = msg + "The file does not exist, or its data is corrupt.";
           JOptionPane.showMessageDialog(Parent, msg, "Error importing data",
                                         JOptionPane.ERROR_MESSAGE);
         }
         catch (VisADException exc) {
-          msg = msg+"An error occurred:\n"+exc.toString();
+          msg = msg + "An error occurred:\n" + exc.toString();
           JOptionPane.showMessageDialog(Parent, msg, "Error importing data",
                                         JOptionPane.ERROR_MESSAGE);
         }

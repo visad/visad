@@ -409,7 +409,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
     FormulaField = new JTextField();
 
-    // WLH (from CTR) 2 Dec 98
+    // limit formula bar to one line in height
     Dimension msize = FormulaField.getMaximumSize();
     Dimension psize = FormulaField.getPreferredSize();
     msize.height = psize.height;
@@ -593,6 +593,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
                     String.valueOf(i / NumVisX + 1);
       try {
         DisplayCells[i] = new FancySSCell(name, this);
+        try {
+          // make cell names case-insensitive
+          FormulaCell.fm.assignFormula(name.toLowerCase(), name);
+        }
+        catch (visad.formula.FormulaException exc) { }
         DisplayCells[i].addMouseListener(this);
         DisplayCells[i].setAutoSwitch(CanDo3D);
         DisplayCells[i].setDimension(!CanDo3D, !CanDo3D);

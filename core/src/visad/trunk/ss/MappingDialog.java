@@ -63,8 +63,6 @@ public class MappingDialog extends JDialog implements ActionListener,
   DefaultListModel CurMaps;
   JList CurrentMaps;
   JScrollPane CurrentMapsView;
-  Vector MathVector;
-  int DuplCount = 0;
   String[] Scalars;
   RealType[] MathTypes;
   int[][] ScX;
@@ -141,15 +139,15 @@ public class MappingDialog extends JDialog implements ActionListener,
     contentPane.add(Box.createRigidArea(new Dimension(0, 5)));
 
     // parse MathType
-    MathVector = new Vector();
-    parseMathType(data);
+    Vector mv = new Vector();
+    int dupl = BasicSSCell.getRealTypes(data, mv);
     String mt = null;
     try {
       mt = data.getType().prettyString();
     }
     catch (VisADException exc) { }
     catch (RemoteException exc) { }
-    final String[] mtype = extraPretty(mt);
+    final String[] mtype = extraPretty(mt, mv, dupl);
 
     // alphabetize Scalars list
     sort(0, Scalars.length-1);
@@ -414,7 +412,7 @@ public class MappingDialog extends JDialog implements ActionListener,
 
   /** Parses a prettyString to find out some information,
       then eliminates duplicate RealTypes */
-  String[] extraPretty(String pStr) {
+  String[] extraPretty(String pStr, Vector v, int duplCount) {
     // extract number of lines from prettyString
     int numLines = 1;
     int len = pStr.length();
@@ -426,10 +424,10 @@ public class MappingDialog extends JDialog implements ActionListener,
     String[] retStr = new String[numLines];
     int lineNum = 0;
     int lastLine = 0;
-    String scalar = ((RealType) MathVector.elementAt(0)).getName();
+    String scalar = ((RealType) v.elementAt(0)).getName();
     int scalarNum = 0;
     int scalarLen = scalar.length();
-    int numScalars = MathVector.size();
+    int numScalars = v.size();
     int[] x = new int[numScalars];
     int[] y = new int[numScalars];
     int[] w = new int[numScalars];
@@ -460,7 +458,7 @@ public class MappingDialog extends JDialog implements ActionListener,
         scalarNum++;
         q += scalarLen;
         if (scalarNum < numScalars) {
-          scalar = ((RealType) MathVector.elementAt(scalarNum)).getName();
+          scalar = ((RealType) v.elementAt(scalarNum)).getName();
           scalarLen = scalar.length();
         }
       }
@@ -468,7 +466,7 @@ public class MappingDialog extends JDialog implements ActionListener,
     }
 
     // remove duplicates from all data structures
-    int num = numScalars - DuplCount;
+    int num = numScalars - duplCount;
     Scalars = new String[num];
     MathTypes = new RealType[num];
     ScX = new int[num][];
@@ -482,7 +480,7 @@ public class MappingDialog extends JDialog implements ActionListener,
       // NOTE: This implementation assumes that Vector.indexOf(Object)
       //       returns the FIRST index in the Vector occupied by that
       //       Object (i.e., the closest to 0).
-      int ind = MathVector.indexOf(MathVector.elementAt(i));
+      int ind = v.indexOf(v.elementAt(i));
       if (i == ind) trans[i] = ind - modifier;
       else {
         trans[i] = trans[ind];
@@ -494,7 +492,7 @@ public class MappingDialog extends JDialog implements ActionListener,
     for (int i=0; i<numScalars; i++) {
       int t = trans[i];
       if (numXY[i] > 0) {
-        MathTypes[t] = (RealType) MathVector.elementAt(i);
+        MathTypes[t] = (RealType) v.elementAt(i);
         Scalars[t] = MathTypes[t].getName();
         int u = numXY[i];
         ScX[t] = new int[u];
@@ -510,99 +508,8 @@ public class MappingDialog extends JDialog implements ActionListener,
         ScY[t][jt] = y[i];
       }
     }
-    MathVector = null;
 
     return retStr;
-  }
-
-  /** Returns a Vector of Strings containing the ScalarType names */
-  void parseMathType(Data data) {
-    MathType dataType;
-    try {
-      dataType = data.getType();
-    }
-    catch (RemoteException exc) {
-      return;
-    }
-    catch (VisADException exc) {
-      return;
-    }
-
-    if (dataType instanceof FunctionType) {
-      parseFunction((FunctionType) dataType);
-    }
-    else if (dataType instanceof SetType) {
-      parseSet((SetType) dataType);
-    }
-    else if (dataType instanceof TupleType) {
-      parseTuple((TupleType) dataType);
-    }
-    else parseScalar((ScalarType) dataType);
-  }
-
-  /** Used by parseMathType */
-  void parseFunction(FunctionType mathType) {
-    // extract domain
-    RealTupleType domain = mathType.getDomain();
-    parseTuple((TupleType) domain);
-
-    // extract range
-    MathType range = mathType.getRange();
-    if (range instanceof FunctionType) {
-      parseFunction((FunctionType) range);
-    }
-    else if (range instanceof SetType) {
-      parseSet((SetType) range);
-    }
-    else if (range instanceof TupleType) {
-      parseTuple((TupleType) range);
-    }
-    else parseScalar((ScalarType) range);
-
-    return;
-  }
-
-  /** Used by parseMathType */
-  void parseSet(SetType mathType) {
-    // extract domain
-    RealTupleType domain = mathType.getDomain();
-    parseTuple((TupleType) domain);
-
-    return;
-  }
-
-  /** Used by parseMathType */
-  void parseTuple(TupleType mathType) {
-    // extract components
-    for (int i=0; i<mathType.getDimension(); i++) {
-      MathType cType = null;
-      try {
-        cType = mathType.getComponent(i);
-      }
-      catch (VisADException exc) { }
-
-      if (cType != null) {
-        if (cType instanceof FunctionType) {
-          parseFunction((FunctionType) cType);
-        }
-        else if (cType instanceof SetType) {
-          parseSet((SetType) cType);
-        }
-        else if (cType instanceof TupleType) {
-          parseTuple((TupleType) cType);
-        }
-        else parseScalar((ScalarType) cType);
-      }
-    }
-    return;
-  }
-
-  /** Used by parseMathType */
-  void parseScalar(ScalarType mathType) {
-    if (mathType instanceof RealType) {
-      if (MathVector.contains(mathType)) DuplCount++;
-      MathVector.addElement(mathType);
-    }
   }
 
   /** Recursive quick-sort routine used to alphabetize scalars */
