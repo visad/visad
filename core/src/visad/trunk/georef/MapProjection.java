@@ -37,78 +37,106 @@ import visad.*;
 public abstract class MapProjection extends NavigatedCoordinateSystem
 {
 
-    /**
-     * Constructs from the type of the reference coordinate system and 
-     * units for values in this coordinate system. The reference coordinate
-     * system must contain RealType.Latitude and RealType.Longitude only.
-     *
-     * @param reference  The type of the reference coordinate system. The
-     *                   reference must contain RealType.Latitude and
-     *                   RealType.Longitude.  Values in the reference 
-     *                   coordinate system shall be in units of 
-     *                   reference.getDefaultUnits() unless specified 
-     *                   otherwise.
-     * @param units      The default units for this coordinate system. 
-     *                   Numeric values in this coordinate system shall be 
-     *                   in units of units unless specified otherwise. 
-     *                   May be null or an array of null-s.
-     * @exception VisADException  Couldn't create necessary VisAD object or
-     *                            reference does not contain RealType.Latitude
-     *                            and/or RealType.Longitude or the reference
-     *                            dimension is greater than 2.
-     */
-    public MapProjection(RealTupleType reference, Unit[] units)
-        throws VisADException
-    {
-        super(reference, units);
-        if ( !(reference.equals(RealTupleType.LatitudeLongitudeTuple) ||
-               reference.equals(RealTupleType.SpatialEarth2DTuple)))
-            throw new CoordinateSystemException(
-                "MapProjection: Reference must be LatitudeLongitudeTuple or " +
-                "SpatialEarth2DTuple");
-    }
+  /**
+   * Constructs from the type of the reference coordinate system and 
+   * units for values in this coordinate system. The reference coordinate
+   * system must contain RealType.Latitude and RealType.Longitude only.
+   *
+   * @param reference  The type of the reference coordinate system. The
+   *                   reference must contain RealType.Latitude and
+   *                   RealType.Longitude.  Values in the reference 
+   *                   coordinate system shall be in units of 
+   *                   reference.getDefaultUnits() unless specified 
+   *                   otherwise.
+   * @param units      The default units for this coordinate system. 
+   *                   Numeric values in this coordinate system shall be 
+   *                   in units of units unless specified otherwise. 
+   *                   May be null or an array of null-s.
+   * @exception VisADException  Couldn't create necessary VisAD object or
+   *                            reference does not contain RealType.Latitude
+   *                            and/or RealType.Longitude or the reference
+   *                            dimension is greater than 2.
+   */
+  public MapProjection(RealTupleType reference, Unit[] units)
+      throws VisADException
+  {
+    super(reference, units);
+    if ( !(reference.equals(RealTupleType.LatitudeLongitudeTuple) ||
+           reference.equals(RealTupleType.SpatialEarth2DTuple)))
+      throw new CoordinateSystemException(
+        "MapProjection: Reference must be LatitudeLongitudeTuple or " +
+        "SpatialEarth2DTuple");
+  }
 
-    /**
-     * Get a reasonable bounding box in this coordinate system. MapProjections 
-     * are typically specific to an area of the world; there's no bounding 
-     * box that works for all projections so each subclass must implement
-     * this method. For example, the bounding box for a satellite image 
-     * MapProjection might have an upper left corner of (0,0) and the width 
-     * and height of the Rectangle2D would be the number of elements and 
-     * lines, respectively.
-     *
-     * @return the bounding box of the MapProjection
-     *
-     */
-    public abstract java.awt.geom.Rectangle2D getDefaultMapArea();
+  /**
+   * Get a reasonable bounding box in this coordinate system. MapProjections 
+   * are typically specific to an area of the world; there's no bounding 
+   * box that works for all projections so each subclass must implement
+   * this method. For example, the bounding box for a satellite image 
+   * MapProjection might have an upper left corner of (0,0) and the width 
+   * and height of the Rectangle2D would be the number of elements and 
+   * lines, respectively.
+   *
+   * @return the bounding box of the MapProjection
+   *
+   */
+  public abstract java.awt.geom.Rectangle2D getDefaultMapArea();
 
 
-    /**
-     * Determine if the input to the toReference and output from the
-     * fromReference is (x,y) or (y,x).  Subclasses should override
-     * if (y,x).
-     * @return true if (x,y)
-     */
-    public boolean isXYOrder() { return true;}
+  /**
+   * Determine if the input to the toReference and output from the
+   * fromReference is (x,y) or (y,x).  Subclasses should override
+   * if (y,x).
+   * @return true if (x,y)
+   */
+  public boolean isXYOrder() { return true;}
 
-    /**
-     * Determine if the fromReference and toReference expect the
-     * to get the output and input values to be row/col ordered
-     * or
-     */
-    public boolean isLatLonOrder() { return (getLatitudeIndex() == 0); }
+  /**
+   * Determine if the fromReference and toReference expect the
+   * to get the output and input values to be row/col ordered
+   * or
+   */
+  public boolean isLatLonOrder() { return (getLatitudeIndex() == 0); }
 
-    /**
-     * Print out a string representation of this MapProjection
-     */
-    public String toString() {
-        StringBuffer buf = new StringBuffer();
-        buf.append("MapProjection: \n");
-        buf.append("  Reference = ");
-        buf.append(getReference());
-        buf.append("\n");
-        buf.append("  DefaultMapArea = ");
-        buf.append(getDefaultMapArea());
-        return buf.toString();
-    }
+  /**
+   * Get the center lat/lon point for this MapProjection.
+   * @return the lat/lon point at the center of the projection.
+   */
+  public LatLonPoint getCenterLatLon() 
+      throws VisADException {
+
+    java.awt.geom.Rectangle2D rect = getDefaultMapArea();
+    double[][] xy =
+      (isXYOrder()) 
+        ? new double[][] { {rect.getCenterX()}, {rect.getCenterY()} }
+        : new double[][] { {rect.getCenterY()}, {rect.getCenterX()} };
+    double[][] latlon = toReference(xy);
+    double lat = 
+      (isLatLonOrder())
+        ? CommonUnit.degree.toThis(latlon[0][0], getReferenceUnits()[0])
+        : CommonUnit.degree.toThis(latlon[1][0], getReferenceUnits()[1]);
+    double lon = 
+      (isLatLonOrder())
+        ? CommonUnit.degree.toThis(latlon[1][0], getReferenceUnits()[1])
+        : CommonUnit.degree.toThis(latlon[0][0], getReferenceUnits()[0]);
+     LatLonPoint llp = null;
+     try {
+       llp = new LatLonTuple(lat, lon);
+     } catch (java.rmi.RemoteException re) {} // can't happen
+     return llp;
+  }
+
+  /**
+   * Print out a string representation of this MapProjection
+   */
+  public String toString() {
+    StringBuffer buf = new StringBuffer();
+    buf.append("MapProjection: \n");
+    buf.append("  Reference = ");
+    buf.append(getReference());
+    buf.append("\n");
+    buf.append("  DefaultMapArea = ");
+    buf.append(getDefaultMapArea());
+    return buf.toString();
+  }
 }
