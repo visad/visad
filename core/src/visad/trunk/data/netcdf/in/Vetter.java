@@ -3,13 +3,19 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Vetter.java,v 1.7 2000-04-26 15:45:19 dglo Exp $
+ * $Id: Vetter.java,v 1.8 2001-03-14 17:44:15 steve Exp $
  */
 
 package visad.data.netcdf.in;
 
 import ucar.netcdf.Attribute;
 import ucar.netcdf.Variable;
+import visad.data.in.OffsetUnpacker;
+import visad.data.in.ScaleAndOffsetUnpacker;
+import visad.data.in.ScaleUnpacker;
+import visad.data.in.ValueRanger;
+import visad.data.in.ValueUnpacker;
+import visad.data.in.ValueVetter;
 
 
 /**
@@ -19,6 +25,21 @@ import ucar.netcdf.Variable;
 final class
 Vetter
 {
+    /**
+     * The object that vets the raw data.
+     */
+    private ValueVetter		vetter;
+
+    /**
+     * The object that unpacks the vetted data.
+     */
+    private ValueUnpacker	unpacker;
+
+    /**
+     * The object that ranges the unpacked data.
+     */
+    private ValueRanger		ranger;
+
     /**
      * The type of the netCDF variable.
      */
@@ -37,27 +58,7 @@ Vetter
     /**
      * The fill-value value.
      */
-    private double		fillValue;
-
-    /**
-     * The missing-value value.
-     */
-    private double		missingValue = Double.NaN;
-
-    /**
-     * The minimum, valid value for vetting.
-     */
-    private double		lowerVettingLimit = Double.NEGATIVE_INFINITY;
-
-    /**
-     * The maximum, valid value for vetting.
-     */
-    private double		upperVettingLimit = Double.POSITIVE_INFINITY;
-
-    /**
-     * Whether or not value-vetting should occur.
-     */
-    private boolean		doVet;
+    private double		fill;
 
 
     /**
@@ -66,8 +67,7 @@ Vetter
      */
     protected
     Vetter()
-    {
-    }
+    {}
 
 
     /**
@@ -82,42 +82,40 @@ Vetter
 
 	if (type.equals(byte.class))
 	{
-	    fillValue = Double.NaN;		// i.e. no default fill-value
+	    fill = Double.NaN;		// i.e. no default fill-value
 	    minValid = Byte.MIN_VALUE;
 	    maxValid = Byte.MAX_VALUE;
 	}
 	else if (type.equals(short.class))
 	{
-	    fillValue = -32767;
+	    fill = -32767;
 	    minValid = Short.MIN_VALUE;
 	    maxValid = Short.MAX_VALUE;
 	}
 	else if (type.equals(int.class))
 	{
-	    fillValue = -2147483647;
+	    fill = -2147483647;
 	    minValid = Integer.MIN_VALUE;
 	    maxValid = Integer.MAX_VALUE;
 	}
 	else if (type.equals(float.class))
 	{
-	    fillValue = 9.9692099683868690e+36;
+	    fill = 9.9692099683868690e+36;
 	    minValid = Float.NEGATIVE_INFINITY;
 	    maxValid = Float.POSITIVE_INFINITY;
 	}
 	else if (type.equals(double.class))
 	{
-	    fillValue = 9.9692099683868690e+36;
+	    fill = 9.9692099683868690e+36;
 	    minValid = Double.NEGATIVE_INFINITY;
 	    maxValid = Double.POSITIVE_INFINITY;
 	}
 	else
 	{
-	    fillValue = 0;
+	    fill = 0;
 	    minValid = 0;
 	    maxValid = 0;
 	}
-
-	doVet = doVet();
     }
 
 
@@ -131,54 +129,93 @@ Vetter
 	this(var.getComponentType());	// set paramters to default values
 
 	Attribute	attr;
+	double		missing = Double.NaN;
+	double		lower = Double.NEGATIVE_INFINITY;
+	double		upper = Double.POSITIVE_INFINITY;
 
-	attr = var.getAttribute("_FillValue");
-	if (attr != null)
+	/*
+	 * Set the object that will vet the raw data.
+	 */
 	{
-	    fillValue = attr.getNumericValue().doubleValue();
-	    if (fillValue < 0)
+	    attr = var.getAttribute("_FillValue");
+	    if (attr != null)
 	    {
-		lowerVettingLimit =
+		fill = attr.getNumericValue().doubleValue();
+		if (fill < 0)
+		{
+		    lower =
 			(type.equals(float.class) || type.equals(double.class))
-			    ? fillValue/2
-			    : fillValue + 1;
+			    ? fill/2
+			    : fill + 1;
+		}
+		else if (fill > 0)
+		{
+		    upper =
+			(type.equals(float.class) || type.equals(double.class))
+			    ? fill/2
+			    : fill - 1;
+		}
+	    }
+	    attr = var.getAttribute("missing_value");
+	    if (attr != null)
+		missing = attr.getNumericValue().doubleValue();
+	    vetter = ValueVetter.valueVetter(new double[] {fill, missing});
+	}
+
+	/*
+	 * Set the object that will unpack the vetted data.
+	 */
+	{
+	    attr = var.getAttribute("scale_factor");
+	    double	scale =
+		attr == null ? 1 : attr.getNumericValue().doubleValue();
+	    attr = var.getAttribute("add_offset");
+	    double	offset =
+		attr == null ? 0 : attr.getNumericValue().doubleValue();
+	    if (scale == scale && scale != 1 && offset == offset && offset != 0)
+	    {
+		unpacker = ScaleAndOffsetUnpacker.scaleAndOffsetUnpacker(
+		    scale, offset);
+	    }
+	    else if (scale == scale && scale != 1)
+	    {
+		unpacker = ScaleUnpacker.scaleUnpacker(scale);
+	    }
+	    else if (offset == offset && offset != 0)
+	    {
+		unpacker = OffsetUnpacker.offsetUnpacker(offset);
 	    }
 	    else
-	    if (fillValue > 0)
 	    {
-		upperVettingLimit =
-			(type.equals(float.class) || type.equals(double.class))
-			    ? fillValue/2
-			    : fillValue - 1;
+		unpacker = ValueUnpacker.valueUnpacker();
 	    }
 	}
 
-	attr = var.getAttribute("missing_value");
-	if (attr != null)
-	    missingValue = attr.getNumericValue().doubleValue();
-
-	attr = var.getAttribute("valid_range");
-	if (attr != null)
+	/*
+	 * Set the object that will range the unpacked data.
+	 */
 	{
-	    lowerVettingLimit = attr.getNumericValue(0).doubleValue();
-	    upperVettingLimit = attr.getNumericValue(1).doubleValue();
+	    attr = var.getAttribute("valid_range");
+	    if (attr != null)
+	    {
+		lower = attr.getNumericValue(0).doubleValue();
+		upper = attr.getNumericValue(1).doubleValue();
+	    }
+	    attr = var.getAttribute("valid_min");
+	    if (attr != null)
+		lower = attr.getNumericValue().doubleValue();
+	    attr = var.getAttribute("valid_max");
+	    if (attr != null)
+		upper = attr.getNumericValue().doubleValue();
+	    ranger = ValueRanger.valueRanger(lower, upper);
+	    /*
+	     * Account for NaN semantics in the following:
+	     */
+	    if (minValid < lower)
+		minValid = lower;
+	    if (maxValid > upper)
+		maxValid = upper;
 	}
-
-	attr = var.getAttribute("valid_min");
-	if (attr != null)
-	    lowerVettingLimit = attr.getNumericValue().doubleValue();
-
-	attr = var.getAttribute("valid_max");
-	if (attr != null)
-	    upperVettingLimit = attr.getNumericValue().doubleValue();
-
-	// Account for NaN semantics in the following:
-	if (minValid < lowerVettingLimit)
-	    minValid = lowerVettingLimit;
-	if (maxValid > upperVettingLimit)
-	    maxValid = upperVettingLimit;
-
-	doVet = doVet();
     }
 
 
@@ -207,24 +244,6 @@ Vetter
 
 
     /**
-     * Indicates whether or not value-vetting should occur.
-     *
-     * @return		<code>true</code> if and only if all possible values
-     *			are valid.
-     */
-    protected boolean
-    doVet()
-    {
-	return !Double.isNaN(fillValue) ||
-	       !Double.isNaN(missingValue) ||
-	       !Double.isInfinite(lowerVettingLimit) ||
-	       !(lowerVettingLimit < 0) ||
-	       !Double.isInfinite(upperVettingLimit) ||
-	       !(upperVettingLimit > 0);
-    }
-
-
-    /**
      * Vets the given float values.
      *
      * @param values	The values to be vetted.
@@ -234,20 +253,7 @@ Vetter
     public void
     vet(float[] values)
     {
-	if (doVet)
-	{
-	    for (int i = 0; i < values.length; ++i)
-	    {
-		if (values[i] != values[i] ||  // test for Float.NaN
-		    values[i] == fillValue ||
-		    values[i] == missingValue ||
-		    values[i] < lowerVettingLimit ||
-		    values[i] > upperVettingLimit)
-		{
-		    values[i] = Float.NaN;
-		}
-	    }
-	}
+	ranger.process(unpacker.process(vetter.process(values)));
     }
 
 
@@ -261,19 +267,6 @@ Vetter
     public void
     vet(double[] values)
     {
-	if (doVet)
-	{
-	    for (int i = 0; i < values.length; ++i)
-	    {
-		if (values[i] != values[i] ||  // test for Double.NaN
-		    values[i] == fillValue ||
-		    values[i] == missingValue ||
-		    values[i] < lowerVettingLimit ||
-		    values[i] > upperVettingLimit)
-		{
-		    values[i] = Double.NaN;
-		}
-	    }
-	}
+	ranger.process(unpacker.process(vetter.process(values)));
     }
 }
