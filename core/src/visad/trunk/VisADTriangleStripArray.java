@@ -84,7 +84,7 @@ public class VisADTriangleStripArray extends VisADGeometryArray {
       cs[1][i] = coordinates[j++];
       cs[2][i] = coordinates[j++];
     }
-    float[][] rs = coord_sys.fromReference(cs);
+    float[][] rs = coord_sys.fromReference(Set.copyFloats (cs));
     boolean[] test = new boolean[len];
     int last_i;
 
