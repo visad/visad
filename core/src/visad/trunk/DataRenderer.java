@@ -126,9 +126,22 @@ public abstract class DataRenderer extends Object {
     displayRenderer = r;
   }
 
+  public boolean checkAction(boolean go) {
+    for (int i=0; i<Links.length; i++) {
+      if (Links[i].checkTicks() || !feasible[i]) go = true;
+      // check if this Data includes any changed Controls
+      Enumeration maps = Links[i].getSelectedMapVector().elements();
+      while(maps.hasMoreElements()) {
+        ScalarMap map = (ScalarMap) maps.nextElement();
+        if (map.checkTicks(this, Links[i])) go = true;
+      }
+    }
+    return go;
+  }
+
   /** check if re-transform is needed; if initialize is true then
       compute ranges for RealType-s and Animation sampling */
-  public DataShadow prepareAction(boolean initialize, DataShadow shadow)
+  public DataShadow prepareAction(boolean go, boolean initialize, DataShadow shadow)
          throws VisADException, RemoteException {
     any_changed = false;
     all_feasible = true;
@@ -141,7 +154,7 @@ public abstract class DataRenderer extends Object {
 /* WLH 19 Aug 98
       if (Links[i].checkTicks() || !feasible[i] || initialize) {
 */
-      if (Links[i].checkTicks() || !feasible[i]) {
+      if (Links[i].checkTicks() || !feasible[i] || go) {
 /*
 boolean check = Links[i].checkTicks();
 System.out.println("DataRenderer.prepareAction: check = " + check + " feasible = " +
@@ -178,33 +191,6 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
       } // end if (feasible[i])
     } // end for (int i=0; i<Links.length; i++)
 
-    // if initialize and doAction will run, make sure prepareData 
-    // is invoked on all data
-    /* WLH 19 Aug 98 */
-    if (initialize &&
-        all_feasible && (any_changed || any_transform_control)) {
-      for (int i=0; i<Links.length; i++) {
-        if (!changed[i]) {
-          changed[i] = true;
-          any_changed = true;
-          // create ShadowType for data, classify data for display
-          feasible[i] = Links[i].prepareData();
-          if (!feasible[i]) all_feasible = false;
-          if (initialize && feasible[i]) { 
-            // compute ranges of RealTypes and Animation sampling
-            ShadowType type = Links[i].getShadow().getAdaptedShadowType();
-            if (shadow == null) {
-              shadow =
-                Links[i].getData().computeRanges(type, display.getScalarCount());
-            }
-            else {
-              shadow = Links[i].getData().computeRanges(type, shadow);
-            }
-          }
-        } // end if (!changed[i])
-      } // end for (int i=0; i<Links.length; i++)
-    } // end if (initialize && all_feasible && ...
-
     return shadow;
   }
 
@@ -218,12 +204,7 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
       if (!feasible[i]) return true;
       Enumeration maps = Links[i].getSelectedMapVector().elements();
       while(maps.hasMoreElements()) {
-/* WLH 19 Aug 98
         badScale |= ((ScalarMap) maps.nextElement()).badRange();
-*/
-        boolean bad = ((ScalarMap) maps.nextElement()).badRange();
-        if (bad) feasible[i] = false;
-        badScale |= bad;
       }
     }
     return badScale;
