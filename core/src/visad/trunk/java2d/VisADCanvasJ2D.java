@@ -209,17 +209,17 @@ public class VisADCanvasJ2D extends JPanel
       }
       if (width <= 0) width = 1;
       if (height <= 0) height = 1;
-      images = new BufferedImage[length];
-      valid_images = new boolean[length];
+      BufferedImage[] new_images = new BufferedImage[length];
+      boolean[] new_valid_images = new boolean[length];
       for (int i=0; i<length; i++) {
         if (component != null) {
-          images[i] = (BufferedImage) createImage(width, height);
+          new_images[i] = (BufferedImage) createImage(width, height);
         }
         else {
-          images[i] =
+          new_images[i] =
             new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         }
-        valid_images[i] = false;
+        new_valid_images[i] = false;
       }
       if (component != null) {
         aux_image = createImage(width, height);
@@ -227,6 +227,9 @@ public class VisADCanvasJ2D extends JPanel
       else {
         aux_image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
       }
+
+      valid_images = new_valid_images;
+      images = new_images;
 /*
 System.out.println("VisADCanvasJ2D.createImages: len = " + len +
                    " length = " + length + " width, height = " +
