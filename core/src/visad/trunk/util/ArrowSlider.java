@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: ArrowSlider.java,v 1.3 1998-03-10 14:20:31 dglo Exp $
+@(#) $Id: ArrowSlider.java,v 1.4 1998-05-27 13:08:33 billh Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -32,7 +32,7 @@ import java.awt.event.*;
  * A pointer slider for visad .
  * 
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.3 $, $Date: 1998-03-10 14:20:31 $
+ * @version $Revision: 1.4 $, $Date: 1998-05-27 13:08:33 $
  * @since Visad Utility Library v0.7.1
  */
 
@@ -54,7 +54,7 @@ public class ArrowSlider extends Slider implements MouseListener, MouseMotionLis
 	
 	/** 
 	 * Construct a new arrow slider with the givden lower, upper and initial values
-	 * @throws IllegalArgumentException if lower is not less than initial or initial
+	 * @throws IllegalArgumenentException if lower is not less than initial or initial
 	 * is not less than upper 
 	 */
 	public ArrowSlider(float lower, float upper, float initial) {
@@ -63,7 +63,7 @@ public class ArrowSlider extends Slider implements MouseListener, MouseMotionLis
 	
 	/** 
 	 * Construct a new arrow slider with the givden lower, upper and initial values
-	 * @throws IllegalArgumentException if lower is not less than initial or initial
+	 * @throws IllegalArgumenentException if lower is not less than initial or initial
 	 * is not less than upper 
 	 */
 	public ArrowSlider(float lower, float upper, float initial, String name) {
