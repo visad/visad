@@ -192,9 +192,9 @@ public class AreaAdapter {
 
             samples[b][j + (numEles * i) ] = 
                (areaDirectory.getCalibrationType().equalsIgnoreCase("BRIT") &&
-                int_samples[b][i][j] < 255)
-                   ? (float)int_samples[b][i][j]
-                   : 254.0f;                  // push 255 into 254 for BRIT
+                int_samples[b][i][j] == 255)
+                   ? 254.0f                   // push 255 into 254 for BRIT
+                   : (float)int_samples[b][i][j];
           }
         }
       }
@@ -278,5 +278,4 @@ public class AreaAdapter {
   {
       return new DateTime(areaDirectory.getStartTime());
   }
-
 }
