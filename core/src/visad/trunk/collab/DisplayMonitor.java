@@ -104,4 +104,10 @@ public interface DisplayMonitor
    */
   void notifyListeners(MonitorEvent evt)
     throws RemoteException, RemoteVisADException;
+
+  /**
+   * Set the display synchronization object for this display
+   */
+  void setDisplaySync(DisplaySync sync)
+    throws RemoteException;
 }

@@ -24,6 +24,8 @@ package visad.collab;
 
 import java.rmi.RemoteException;
 
+import visad.RemoteVisADException;
+
 /**
  * <CODE>DisplaySync</CODE> is the interface for objects which synchronize
  * a <CODE>Display</CODE> with one or more <CODE>RemoteDisplay</CODE>s.
@@ -31,4 +33,6 @@ import java.rmi.RemoteException;
 public interface DisplaySync
   extends DisplayMonitorListener
 {
+  MonitorEvent removeEvent(MonitorEvent evt)
+    throws RemoteException, RemoteVisADException;
 }

@@ -24,171 +24,56 @@ package visad.collab;
 
 import java.rmi.RemoteException;
 
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.ListIterator;
-
-import visad.Control;
 
 import visad.util.ObjectCache;
-import visad.util.ThreadPool;
 
-/**
-   * <TT>MonitorListener</TT> is an encapsulation of all the data related to
-   * delivering events to a single <TT>DisplayMonitorListener</TT>.
-   */
 class MonitorListener
-  implements Runnable
+  extends EventListener
 {
   private DisplayMonitorListener listener;
   private int id;
 
-  private boolean dead = false;
-
-  private Object tableLock = new Object();
-  private boolean haveThread = false;
-  private HashMap table = new HashMap();
-  private HashMap diverted = null;
-
   private EventCache cache;
 
-  MonitorListener(DisplayMonitorListener listener, int id)
+  MonitorListener(String name, DisplayMonitorListener listener, int id)
   {
+    super(name + ":MonL");
+
     this.listener = listener;
     this.id = id;
 
-    cache = new EventCache("Cache#" + id);
+    cache = new EventCache(name + ":Cache#" + id);
   }
 
-  public void addEvent(MonitorEvent evt)
-  {
-    synchronized (tableLock) {
-      if (haveThread) {
-        if (diverted == null) {
-          diverted = new HashMap();
-        }
-        addEventToTable(diverted, evt);
-      } else {
-        addEventToTable(table, evt);
-        startDelivery();
-      }
-    }
-  }
+  EventTable getNewEventTable() { return new MonitorEventTable(Name); }
 
   /**
-   * Adds a generic <TT>MonitorEvent</TT> to the specified table.
-   * (This method simply forwards the event to the
-   * <TT>addEventToTable</TT> method for this specific
-   * <TT>MonitorEvent</TT> type.)
-   *
-   * @param tbl The <TT>HashMap</TT> to which the event will be added.
-   * @param evt The event to add.
-   */
-  private void addEventToTable(HashMap tbl, MonitorEvent evt)
-  {
-    if (evt instanceof ControlMonitorEvent) {
-      addEventToTable(tbl, (ControlMonitorEvent )evt);
-    } else if (evt instanceof MapMonitorEvent) {
-      addEventToTable(tbl, (MapMonitorEvent )evt);
-    } else if (evt instanceof ReferenceMonitorEvent) {
-      addEventToTable(tbl, (ReferenceMonitorEvent )evt);
-    } else {
-      System.err.println("Unknown MonitorEvent type " +
-                         evt.getClass().getName());
-    }
-  }
-
-  /**
-   * Adds the event to the specified table.
-   *
-   * @param tbl The <TT>HashMap</TT> to which the event will be added.
-   * @param evt The event to add.
-   */
-  private void addEventToTable(HashMap tbl, ControlMonitorEvent evt)
-  {
-    synchronized (tableLock) {
-      tbl.put(new ControlEventKey(evt.getControl()), evt);
-    }
-  }
-
-  /**
-   * Adds the event to the specified table.
-   *
-   * @param tbl The <TT>HashMap</TT> to which the event will be added.
-   * @param evt The event to add.
-   */
-  private void addEventToTable(HashMap tbl, MapMonitorEvent evt)
-  {
-    Object key = evt.getMap();
-    if (key == null) {
-      if (evt.getType() != MonitorEvent.MAPS_CLEARED) {
-        System.err.println("Got null map for " + evt);
-        return;
-      }
-
-      key = "null";
-    }
-
-    synchronized (tableLock) {
-      tbl.put(key, evt);
-    }
-  }
-
-  /**
-   * Adds the event to the specified table.
-   *
-   * @param tbl The <TT>HashMap</TT> to which the event will be added.
-   * @param evt The event to add.
-   */
-  private void addEventToTable(HashMap tbl, ReferenceMonitorEvent evt)
-  {
-    synchronized (tableLock) {
-      tbl.put(evt.getLink(), evt);
-    }
-  }
-
-  /**
-   * Tries to deliver the queued events to this listener
+   * Attempt to deliver the queued events.
    *
    * @exception RemoteException If a connection could not be made to the
    * 					remote listener.
    */
-  private void deliverEventTable()
+  void deliverEventTable(EventTable tbl)
     throws RemoteException
   {
-    // build the array of events
-    Object[] list = new Object[table.size()];
-    Iterator iter = table.keySet().iterator();
-    for (int i = list.length - 1; i >= 0; i--) {
-      if (iter.hasNext()) {
-        list[i] = iter.next();
-      } else {
-        list[i] = null;
-      }
-    }
-
-    // sort events by order of creation
-    Arrays.sort(list, new EventComparator(table));
+    MonitorEventTable mTable = (MonitorEventTable )tbl;
 
     // deliver events
-    int len = list.length;
-    for (int i = len - 1; i >= 0; i--) {
-      MonitorEvent evt = (MonitorEvent )table.remove(list[i]);
-      MonitorEvent e2;
-      if (len > 1) {
-        e2 = (MonitorEvent )evt.clone();
-      } else {
-        e2 = evt;
-      }
+    Iterator iter = mTable.keyIterator();
+    while (iter.hasNext()) {
+      Object key = iter.next();
+
+      MonitorEvent evt = (MonitorEvent )mTable.remove(key);
+
+      MonitorEvent e2 = (MonitorEvent )evt.clone();
       e2.setOriginator(id);
+
       try {
         listener.stateChanged(e2);
       } catch (RemoteException re) {
         // restore failed event to table
-        table.put(list[i], evt);
+        mTable.restore(key, evt);
         // let caller handle RemoteExceptions
         throw re;
       } catch (Throwable t) {
@@ -231,187 +116,19 @@ class MonitorListener
    */
   DisplayMonitorListener getListener() { return listener; }
 
-  /**
-   * Check to see if the connection is dead.
-   *
-   * @return <TT>true</TT> if the connection is dead.
-   */
-  public boolean isDead() { return dead; }
-
-  /**
-   * Delivers events to the remote listener.
-   */
-  public void run()
-  {
-    int attempts = 0;
-    boolean delivered = false;
-
-    while (!delivered || undivertEvents()) {
-      try {
-        deliverEventTable();
-        delivered = true;
-      } catch (RemoteException re) {
-        if (attempts++ < 10) {
-          // wait a bit, then try again to deliver the events
-          try { Thread.sleep(500); } catch (InterruptedException ie) { }
-        } else {
-          // if we failed to connect for 10 times, give up
-          break;
-        }
-      }
-    }
-
-    // mark this listener as dead
-    if (!delivered) {
-      dead = true;
-    }
-
-    // indicate that the thread has exited
-    haveThread = false;
-  }
-
-  /**
-   * Start event delivery.
-   */
-  private void startDelivery()
-  {
-    synchronized (tableLock) {
-      if (haveThread) {
-        return;
-      }
-
-      // remember that we've started a thread
-      haveThread = true;
-    }
-
-    if (listenerPool == null) {
-      startThreadPool();
-    }
-    listenerPool.queue(this);
-  }
-
-  /**
-   * The event delivery thread pool and its lock.
-   */
-  private transient static ThreadPool listenerPool = null;
-  private static Object listenerPoolLock = new Object();
-
-  /**
-   * Creates the shared thread pool.
-   */
-  private static void startThreadPool()
-  {
-    synchronized (listenerPoolLock) {
-      if (listenerPool == null) {
-        // ...fill the pool; die if pool wasn't created
-        try {
-          listenerPool = new ThreadPool("ListenerThread");
-        } catch (Exception e) {
-          System.err.println(e.getClass().getName() + ": " + e.getMessage());
-          System.exit(1);
-        }
-      }
-    }
-  }
-
-  /**
-   * Destroys all threads after they've drained the job queue.
-   */
-  public static void stopThreadPool()
-  {
-    if (listenerPool != null) {
-      listenerPool.stopThreads();
-      listenerPool = null;
-    }
-  }
-
-  /**
-   * Increases the maximum number of threads allowed for the thread pool.
-   *
-   * @param num The new maximum number of threads.
-   *
-   * @exception Exception If there was a problem with the specified value.
-   */
-  public static void setThreadPoolMaximum(int num)
-    throws Exception
-  {
-    if (listenerPool == null) {
-      startThreadPool();
-    }
-    listenerPool.setThreadMaximum(num);
-  }
-
   private String description = null;
 
   public String toString()
   {
     if (description == null) {
-      StringBuffer buf = new StringBuffer("Listener[");
+      StringBuffer buf = new StringBuffer("MonitorListener[");
+      buf.append(Name);
+      buf.append("=#");
       buf.append(id);
-      buf.append('=');
-
-      String lName = listener.toString();
-      int stubIdx = lName.indexOf("_Stub[");
-      if (stubIdx > 0) {
-        lName = lName.substring(0, stubIdx);
-      }
-      buf.append(lName);
-
-      buf.append(" (");
-      buf.append(listener.getClass().getName());
-      buf.append(")]");
+      buf.append(']');
       description = buf.toString();
     }
     return description;
-  }
-
-  /**
-   * Returns <TT>true</TT> if there were diverted events
-   *  to be delivered
-   */
-  private boolean undivertEvents()
-  {
-    final boolean undivert;
-    synchronized (tableLock) {
-      // if there are events queued, restore them to the main table
-      undivert = (diverted != null);
-      if (undivert) {
-        table = diverted;
-        diverted = null;
-      }
-    }
-
-    return undivert;
-  }
-
-  /**
-   * Used as key for ControlEvents in listener queue
-   */
-  class ControlEventKey
-  {
-    private Class cclass;
-    private int instance;
-
-    ControlEventKey(Control ctl)
-    {
-      cclass = ctl.getClass();
-      instance = ctl.getInstanceNumber();
-    }
-
-    public boolean equals(ControlEventKey key)
-    {
-      return instance == key.instance && cclass.equals(key.cclass);
-    }
-
-    public boolean equals(Object obj)
-    {
-      if (!(obj instanceof ControlEventKey)) {
-        return false;
-      }
-      return equals((ControlEventKey )obj);
-    }
-
-    public String toString() { return cclass.getName() + "#" + instance; }
   }
 
   /**
@@ -487,49 +204,6 @@ class MonitorListener
       }
 
       return cache.isCached(obj);
-    }
-  }
-
-  /**
-   * <TT>EventComparator</TT> is used to sort the event table just
-   * before delivering it to a remote <TT>DisplayMonitorListener</TT>.
-   */
-  class EventComparator
-    implements Comparator
-  {
-    private HashMap table;
-
-    /**
-     * Creates a new comparison class for the given <TT>HashMap</TT>
-     *
-     * @param tbl The <TT>HashMap</TT> to use for comparisons.
-     */
-    EventComparator(HashMap tbl)
-    {
-      table = tbl;
-    }
-
-    /**
-     * Sorts in reverse order of creation.
-     *
-     * @param o1 the first object
-     * @param o2 the second object
-     */
-    public int compare(Object o1, Object o2)
-    {
-      return (((MonitorEvent )(table.get(o2))).getSequenceNumber() -
-              ((MonitorEvent )(table.get(o1))).getSequenceNumber());
-    }
-
-    /**
-     * Returns <TT>true</TT> if the specified object is
-     * an <TT>EventComparator</TT>.
-     *
-     * @param obj The object to examine.
-     */
-    public boolean equals(Object obj)
-    {
-      return (obj instanceof EventComparator);
     }
   }
 }

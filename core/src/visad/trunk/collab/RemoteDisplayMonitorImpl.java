@@ -203,6 +203,15 @@ public class RemoteDisplayMonitorImpl
   }
 
   /**
+   * Set the display synchronization object for this display
+   */
+  public void setDisplaySync(DisplaySync sync)
+    throws RemoteException
+  {
+    throw new RemoteException("Unimplemented");
+  }
+
+  /**
    * Returns a <CODE>String</CODE> representation of this object.
    */
   public String toString()

@@ -55,6 +55,11 @@ public class DisplayMonitorImpl
   private String Name;
 
   /**
+   * The synchronization object for the monitored display
+   */
+  private DisplaySync sync;
+
+  /**
    * The list of objects interested in changes to the monitored
    * <TT>Display</TT>.
    */
@@ -71,7 +76,7 @@ public class DisplayMonitorImpl
    */
   public DisplayMonitorImpl(DisplayImpl dpy)
   {
-    Name = dpy.getName() + " Monitor";
+    Name = dpy.getName() + ":Mon";
 
     dpy.addDisplayListener(this);
     broadcaster = new MonitorBroadcaster(dpy);
@@ -149,6 +154,14 @@ public class DisplayMonitorImpl
     }
 
     if (ctlEvt != null) {
+      try {
+        MonitorEvent rEvt = sync.removeEvent(ctlEvt);
+      } catch (RemoteException re) {
+        re.printStackTrace();
+      } catch (RemoteVisADException rve) {
+        rve.printStackTrace();
+      }
+
       broadcaster.notifyListeners(ctlEvt);
     }
   }
@@ -245,6 +258,7 @@ public class DisplayMonitorImpl
       try {
         rrl = new RemoteReferenceLinkImpl(link);
       } catch (RemoteException re) {
+re.printStackTrace();
         // ignore attempt to link in a remote reference
         rrl = null;
       }
@@ -328,6 +342,14 @@ public class DisplayMonitorImpl
   public void notifyListeners(MonitorEvent evt)
   {
     broadcaster.notifyListeners(evt);
+  }
+
+  /**
+   * Set the display synchronization object for this display
+   */
+  public void setDisplaySync(DisplaySync sync)
+  {
+    this.sync = sync;
   }
 
   /**

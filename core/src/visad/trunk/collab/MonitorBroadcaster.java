@@ -79,7 +79,7 @@ public class MonitorBroadcaster
     throws VisADException
   {
     synchronized (list) {
-      list.add(new MonitorListener(listener, id));
+      list.add(new MonitorListener(myDisplay.getName(), listener, id));
     }
   }
 
@@ -91,17 +91,18 @@ public class MonitorBroadcaster
    */
   public int checkID(int id)
   {
-    ListIterator iter = list.listIterator();
-    while (iter.hasNext()) {
-      MonitorListener li = (MonitorListener )iter.next();
-      if (li.getID() == id) {
-        synchronized (list) {
+    synchronized (list) {
+      ListIterator iter = list.listIterator();
+      while (iter.hasNext()) {
+        MonitorListener li = (MonitorListener )iter.next();
+        if (li.getID() == id) {
           if (nextListenerID == id) {
             nextListenerID++;
           }
           nextListenerID++;
         }
-        return nextListenerID;
+        id = nextListenerID;
+        break;
       }
     }
 
@@ -204,27 +205,29 @@ public class MonitorBroadcaster
   {
     final int evtID = evt.getOriginator();
 
-    ListIterator iter = list.listIterator();
-    while (iter.hasNext()) {
-      MonitorListener li = (MonitorListener )iter.next();
+    synchronized (list) {
+      ListIterator iter = list.listIterator();
+      while (iter.hasNext()) {
+        MonitorListener li = (MonitorListener )iter.next();
 
-      if (li.isDead()) {
-        // delete dead listeners
-        iter.remove();
-        continue;
+        if (li.isDead()) {
+          // delete dead listeners
+          iter.remove();
+          continue;
+        }
+
+        if (li.eventSeen(evt)) {
+          // don't rebroadcast events
+          continue;
+        }
+
+        if (evtID == li.getID()) {
+          // don't return event to its source
+          continue;
+        }
+
+        li.addEvent(evt);
       }
-
-      if (li.eventSeen(evt)) {
-        // don't rebroadcast events
-        continue;
-      }
-
-      if (evtID == li.getID()) {
-        // don't return event to its source
-        continue;
-      }
-
-      li.addEvent(evt);
     }
   }
 
@@ -236,12 +239,14 @@ public class MonitorBroadcaster
   public void removeListener(DisplayMonitorListener l)
   {
     if (l != null) {
-      ListIterator iter = list.listIterator();
-      while (iter.hasNext()) {
-        MonitorListener li = (MonitorListener )iter.next();
-        if (li.getListener().equals(l)) {
-          iter.remove();
-          break;
+      synchronized (list) {
+        ListIterator iter = list.listIterator();
+        while (iter.hasNext()) {
+          MonitorListener li = (MonitorListener )iter.next();
+          if (li.getListener().equals(l)) {
+            iter.remove();
+            break;
+          }
         }
       }
     }
@@ -257,6 +262,20 @@ public class MonitorBroadcaster
    */
   public boolean hasEventQueued(int listenerID, Control ctl)
   {
-    return false;
+    boolean result = false;
+
+    synchronized (list) {
+      ListIterator iter = list.listIterator();
+      while (iter.hasNext()) {
+        MonitorListener li = (MonitorListener )iter.next();
+
+        if (listenerID == li.getID()) {
+          result = li.hasControlEventQueued(ctl);
+          break;
+        }
+      }
+    }
+
+    return result;
   }
 }

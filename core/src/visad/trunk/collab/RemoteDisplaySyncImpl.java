@@ -71,4 +71,14 @@ public class RemoteDisplaySyncImpl
 
     AdaptedSync.stateChanged(evt);
   }
+
+  public MonitorEvent removeEvent(MonitorEvent evt)
+    throws RemoteException, RemoteVisADException
+  {
+    if (AdaptedSync == null) {
+      throw new RemoteVisADException("AdaptedSync is null");
+    }
+
+    return AdaptedSync.removeEvent(evt);
+  }
 }

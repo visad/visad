@@ -24,6 +24,7 @@ package visad.collab;
 
 import java.rmi.RemoteException;
 
+import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Vector;
 
@@ -38,42 +39,20 @@ import visad.RemoteVisADException;
 import visad.ScalarMap;
 import visad.VisADException;
 
-/**
- * <TT>DisplaySyncImpl</TT> is the <TT>Display</TT> synchronization
- * implementation.<P>
- * <TT>DisplaySyncImpl</TT> is not <TT>Serializable</TT>
- * and should not be copied between JVMs.
- */
 public class DisplaySyncImpl
+  extends EventListener
   implements DisplaySync
 {
-  /**
-   * The <TT>Display</TT> being synchronized.
-   */
+  private DisplayMonitor monitor;
   private DisplayImpl myDisplay;
 
-  /**
-   * The name of this synchronization object.
-   */
-  private String Name;
-
-  /**
-   * The <TT>DisplayMonitor</TT> object associated with the
-   * <TT>Display</TT>.
-   */
-  private DisplayMonitor monitor;
-
-  /**
-   * Creates a synchronization coordinator for the specified
-   * <TT>Display</TT>.
-   *
-   * @param dpy The <TT>Display</TT> to be synchronized.
-   */
   public DisplaySyncImpl(DisplayImpl dpy)
+    throws RemoteException
   {
+    super(dpy.getName() + ":Sync");
     myDisplay = dpy;
-    Name = dpy.getName() + " Sync";
     monitor = dpy.getDisplayMonitor();
+    monitor.setDisplaySync(this);
   }
 
   /**
@@ -184,15 +163,42 @@ public class DisplaySyncImpl
   }
 
   /**
-   * Handles remote <TT>Display</TT> changes, causing
-   * the local <TT>Display</TT> to be changed to match.
+   * Attempt to deliver the queued events.
    *
-   * @param evt The event to be processed.
-   *
-   * @exception RemoteException If there was an RMI-related problem.
-   * @exception RemoteVisADException If there was an internal problem.
+   * @exception RemoteException If a connection could not be made to the
+   * 					remote listener.
    */
-  public void stateChanged(MonitorEvent evt)
+  void deliverEventTable(EventTable tbl)
+    throws RemoteException
+  {
+    MonitorEventTable mTable = (MonitorEventTable )tbl;
+
+    // deliver events
+    Iterator iter = mTable.keyIterator();
+    while (iter.hasNext()) {
+      Object key = iter.next();
+
+      MonitorEvent evt = (MonitorEvent )mTable.remove(key);
+      if (evt == null) {
+        System.err.println("Skipping null event for key " + key);
+        continue;
+      }
+
+      try {
+        deliverOneEvent(evt);
+      } catch (RemoteException re) {
+        // restore failed event to table
+        mTable.restore(key, evt);
+        // let caller handle RemoteExceptions
+        throw re;
+      } catch (Throwable t) {
+        // whine loudly about all other Exceptions
+        t.printStackTrace();
+      }
+    }
+  }
+
+  private void deliverOneEvent(MonitorEvent evt)
     throws RemoteException, RemoteVisADException
   {
     Control lclCtl, rmtCtl;
@@ -281,36 +287,34 @@ public class DisplaySyncImpl
                                     rmtCtl.getInstanceNumber());
 
       // skip this if we have change events to deliver for this control
-      if (monitor.hasEventQueued(evt.getOriginator(), lclCtl)) {
-        break;
+      if (!monitor.hasEventQueued(evt.getOriginator(), lclCtl)) {
+
+        if (lclCtl != null) {
+
+          try {
+            lclCtl.syncControl(rmtCtl);
+          } catch (VisADException ve) {
+            throw new RemoteVisADException("Control " + lclCtl +
+                                           " not changed by " + Name + ": " +
+                                           ve.getMessage());
+          }
+
+          // forward to any listeners
+          monitor.notifyListeners(evt);
+        }
       }
 
-      // forward to any listeners
-      monitor.notifyListeners(evt);
-
-      if (lclCtl == null) {
-        // didn't find control ... maybe it doesn't exist yet?
-        break;
-      }
-
-      try {
-        lclCtl.syncControl(rmtCtl);
-      } catch (VisADException ve) {
-        throw new RemoteVisADException("Control " + lclCtl +
-                                       " not changed by " + Name + ": " +
-                                       ve.getMessage());
-      }
       break;
     default:
       throw new RemoteVisADException("Event " + evt + " not handled");
     }
   }
 
-  /**
-   * Returns the name of this <TT>DisplaySync</TT>
-   */
-  public String toString()
+  EventTable getNewEventTable() { return new MonitorEventTable(Name); }
+
+  public void stateChanged(MonitorEvent evt)
+    throws RemoteException, RemoteVisADException
   {
-    return Name;
+    addEvent(evt);
   }
 }
