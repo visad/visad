@@ -37,7 +37,21 @@ quite complex VisAD Python programs.  However, the main purpose of this
 package is to support simple scripts.
 
 
-2. Editing and Running VisAD Python Scripts
+2. Installation
+
+To run VisAD Python scripts, you nee to install:
+
+  VisAD from http://www.ssec.wisc.edu/~billh/visad.html
+
+  JPython from http://www.jpython.org/
+
+  Java 2 and Java3D (see the Prerequisites section of the VisAD web page)
+
+  Jama from http://math.nist.gov/javanumerics/jama/
+    if you want to use the VisAD Python matrix functions
+
+
+3. Editing and Running VisAD Python Scripts
 
 To edit and run VisAD Python scripts, run the command:
 
@@ -50,7 +64,7 @@ If you think you'll be using a lot of memory, run:
 or something similar (the -mx256m means use 256 MB of memory).
 
 
-3. The VisAD Python Language
+4. The VisAD Python Language
 
 VisAD uses the great JPython interpreter, written in Java, as the basis
 for its Python language.  See:
@@ -64,7 +78,7 @@ for more information about it.  And see:
 for a tutorial on the Python language.
 
 
-4. The VisAD Python Library Functions
+5. The VisAD Python Library Functions
 
 This is a list of functions specially designed for accessing VisAD
 from Python scripts.  For a more complete description, see
@@ -75,7 +89,23 @@ visad.python.JPythonMethods in the VisAD JavaDoc, available on-line at:
 Note that any VisAD class or method is accessible from Python scripts,
 so you are not restricted to just these.
 
-The library functions are:
+
+5.1 File loading function
+
+  load(String location) - reads in data from the given location
+                          (filename or URL)
+
+
+5.2 Plotting functions
+
+  clearplot() - clear the onscreen data display
+  
+  plot(data) - plot data
+  
+  plot(data, red, green, blue) - plot data
+  
+
+5.3 Pointwise math library functions
 
   abs(data) - return pointwise absolute value of data
 
@@ -97,61 +127,81 @@ The library functions are:
   
   ceil(data) - return pointwise ceil value of data (smallest integer not less than)
   
-  chol(data) - return matrix Cholesky Decomposition of data
-  
-  clearplot() - clear the onscreen data display
-  
-  cond(data) - return matrix condition of data (ratio of largest to
-               smallest singular value)
-  
   cos(data) - return pointwise cos value of data
   
   cosDegrees(data) - return pointwise cos value of data
   
-  det(data) - return matrix determinant of data
-  
-  eig(data) - return matrix Eigenvalue Decomposition of data
-  
   exp(data) - return pointwise exp value of data
   
+  floor(data) - return pointwise floor value of data (largest integer
+                not greater than)
+  
+  log(data) - return pointwise log value of data
+  
+  max(data1, data2) - return pointwise maximum value of data1 and data2
+  
+  min(data1, data2) - return pointwise minimum value of data1 and data2
+  
+  round(data) - return pointwise round value of data (closest integer)
+  
+  sin(data) - return pointwise sin value of data, assuming radians
+  
+  sinDegrees(data) - return pointwise sin value of data, assuming degrees
+  
+  sqrt(data) - return pointwise square root value of data
+  
+  tan(data) - return pointwise tan value of data, assuming radians
+  
+  tanDegrees(data) - return pointwise tan value of data, assuming degrees
+  
+
+5.4 Fourier transform fucntions
+
   fft(field) - return forward Fourier transform of field
   
+  ifft(field) - return backward Fourier transform of field
+  
+
+5.5 Field creation functions
+
   field(float[] values) - return a VisAD Field
   
   field(float[][] values) - return a VisAD Field
   
-  field(Set set, String name, float[] values) - return a VisAD Field
+  field(set, String name, float[] values) - return a VisAD Field
   
-  field(Set set, String name, float[][] values) - return a VisAD Field
+  field(set, String name, float[][] values) - return a VisAD Field
   
   field(String name, float[] values) - return a VisAD Field
   
   field(String name, float[][] values) - return a VisAD Field
   
-  floor(data) - return pointwise floor value of data (largest integer
-                not greater than)
-  
+
+5.6 Histogram functions
+
   hist(field, int[] ranges) - return histogram of field values
   
   hist(field, int[] ranges, int[] sizes) - return histogram of field values
   
   hist(field, set) - return histogram of field values
   
-  ifft(field) - return backward Fourier transform of field
+
+5.7 Matrix functions
+
+  chol(data) - return matrix Cholesky Decomposition of data
+  
+  cond(data) - return matrix condition of data (ratio of largest to
+               smallest singular value)
+  
+  det(data) - return matrix determinant of data
+  
+  eig(data) - return matrix Eigenvalue Decomposition of data
   
   inverse(data) - return matrix inverse of data
-  
-  load(String location) - reads in data from the given location (filename or URL)
-  
-  log(data) - return pointwise log value of data
   
   lu(data) - return matrix LU Decomposition of data
   
   matrixMultiply(data1, data2) - return matrix multiply of data1 * data2
-  
-  max(data1, data2) - return pointwise maximum value of data1 and data2
-  
-  min(data1, data2) - return pointwise minimum value of data1 and data2
   
   norm1(data) - return matrix one norm of data (maximum column sum)
   
@@ -162,29 +212,13 @@ The library functions are:
   
   normInf(data) - return matrix infinity norm of data (maximum row sum)
   
-  plot(data) - plot data
-  
-  plot(data, red, green, blue) - plot data
-  
   qr(data) - return matrix QR Decomposition of data
   
   rank(data) - return matrix effective numerical rank (from SVD) of data
   
-  round(data) - return pointwise round value of data (closest integer)
-  
-  sin(data) - return pointwise sin value of data, assuming radians
-  
-  sinDegrees(data) - return pointwise sin value of data, assuming degrees
-  
   solve(data1, data2) - return matrix soluton X of data1 * X = data2
   
-  sqrt(data) - return pointwise square root value of data
-  
   svd(data) - return matrix Singular Value Decomposition of data
-  
-  tan(data) - return pointwise tan value of data, assuming radians
-  
-  tanDegrees(data) - return pointwise tan value of data, assuming degrees
   
   trace(data) - return matrix trace of data (sum of the diagonal elements)
   
