@@ -782,29 +782,53 @@ public class DisplayMonitorImpl
   }
 
   /**
-   * Handles ScalarMap changes.<BR><BR>
+   * Handles ScalarMap data changes.<BR><BR>
    * If the <CODE>ScalarMapEvent</CODE> is not ignored, a
    * <CODE>MapMonitorEvent</CODE> will be sent to all listeners.
    *
    * @param e The details of the <CODE>ScalarMap</CODE> change.
    */
-  public void mapChanged(ScalarMapEvent e)
+  public void mapChanged(ScalarMapEvent evt)
   {
     // don't bother if nobody's listening
     if (!hasListeners()) {
       return;
     }
 
-    if (e.getId() == ScalarMapEvent.AUTO_SCALE) {
+    if (evt.getId() == ScalarMapEvent.AUTO_SCALE) {
       // ignore internal autoscale events
       return;
     }
 
-    ScalarMap map = e.getScalarMap();
+    ScalarMap map = evt.getScalarMap();
     try {
       notifyListeners(new MapMonitorEvent(MonitorEvent.MAP_CHANGED,
                                           (ScalarMap )map.clone()));
     } catch (VisADException ve) {
+    }
+  }
+
+  /**
+   * Handles ScalarMap control changes.<BR>
+   * <FONT SIZE="-1">This is just a stub which ignores the event.</FONT>
+   *
+   * @param e The details of the <CODE>ScalarMap</CODE> change.
+   */
+  public void controlChanged(ScalarMapControlEvent evt)
+  {
+    int id = evt.getId();
+    if (id == ScalarMapEvent.CONTROL_REMOVED ||
+        id == ScalarMapEvent.CONTROL_REPLACED)
+    {
+      evt.getControl().removeControlListener(this);
+    }
+
+    if (id == ScalarMapEvent.CONTROL_REPLACED ||
+        id == ScalarMapEvent.CONTROL_ADDED)
+    {
+      Control ctl = evt.getScalarMap().getControl();
+      controlChanged(new ControlEvent(ctl));
+      ctl.addControlListener(this);
     }
   }
 

@@ -48,10 +48,11 @@ import visad.*;
  * of using methods in AnimationControl.  Once constructed, changes made
  * using AnimationControl methods will not be reflected in this widget.
  */
-public class AnimationWidget extends JPanel implements ActionListener,
-                                                       ChangeListener,
-                                                       ControlListener,
-                                                       ScalarMapListener {
+public class AnimationWidget
+  extends JPanel
+  implements ActionListener, ChangeListener, ControlListener,
+             ScalarMapListener
+{
 
   private boolean aDir;
   private boolean aAnim;
@@ -93,16 +94,10 @@ public class AnimationWidget extends JPanel implements ActionListener,
                                  "be to Display.Animation");
     }
 
-    // set control and get startup values.
-    control = (AnimationControl) smap.getControl();
-    aDir = control.getDirection();
-    aAnim = control.getOn();
-    aMs = (st > 0) ? st : (int) control.getStep();
-    control.setStep(aMs);
-/* DRM 1999-05-19  Initialize with values from control.
-    control.setDirection(aDir);
-    control.setOn(aAnim);
-*/
+    // initialize control settings (these will change later)
+    aAnim = false;
+    aDir = true;
+    aMs = 500;
 
     // create JPanels
     JPanel top = new JPanel();
@@ -120,9 +115,9 @@ public class AnimationWidget extends JPanel implements ActionListener,
     // create JComponents
     forward = new JRadioButton("Forward", aDir);
     reverse = new JRadioButton("Reverse", !aDir);
-    onOff = new JButton(aAnim ? "Stop" : "Go");
+    onOff = new JButton("Stop");
     step = new JButton("Step");
-    ms = new JTextField(""+aMs);
+    ms = new JTextField("????????");
 
     // WLH 2 Dec 98
     Dimension msize = ms.getMaximumSize();
@@ -139,7 +134,6 @@ public class AnimationWidget extends JPanel implements ActionListener,
     reverse.setForeground(fore);
     onOff.setForeground(fore);
     step.setForeground(fore);
-    step.setEnabled(!aAnim);
     ms.setForeground(fore);
     TimeSlider.setPaintTicks(true);
 
@@ -151,21 +145,6 @@ public class AnimationWidget extends JPanel implements ActionListener,
     ButtonGroup group = new ButtonGroup();
     group.add(forward);
     group.add(reverse);
-
-    // add listeners
-    control.addControlListener(this);
-    smap.addScalarMapListener(this);
-    forward.addActionListener(this);
-    forward.setActionCommand("forward");
-    reverse.addActionListener(this);
-    reverse.setActionCommand("reverse");
-    onOff.addActionListener(this);
-    onOff.setActionCommand("go");
-    step.addActionListener(this);
-    step.setActionCommand("step");
-    ms.addActionListener(this);
-    ms.setActionCommand("ms");
-    TimeSlider.addChangeListener(this);
 
     // align JComponents
     left.setAlignmentX(JPanel.CENTER_ALIGNMENT);
@@ -189,6 +168,55 @@ public class AnimationWidget extends JPanel implements ActionListener,
     bottom.add(msLabel);
     add(bottom);
     add(TimeSlider);
+
+    // get control startup values.
+    getControlSettings((AnimationControl )smap.getControl());
+    aMs = (st > 0) ? st : (int) control.getStep();
+    control.setStep(aMs);
+
+    // add listeners
+    control.addControlListener(this);
+    smap.addScalarMapListener(this);
+    forward.addActionListener(this);
+    forward.setActionCommand("forward");
+    reverse.addActionListener(this);
+    reverse.setActionCommand("reverse");
+    onOff.addActionListener(this);
+    onOff.setActionCommand("go");
+    step.addActionListener(this);
+    step.setActionCommand("step");
+    ms.addActionListener(this);
+    ms.setActionCommand("ms");
+    TimeSlider.addChangeListener(this);
+  }
+
+  private void getControlSettings(AnimationControl ctl)
+  {
+    control = ctl;
+    aDir = control.getDirection();
+    aAnim = control.getOn();
+    fixAnimButton();
+    fixDirButton();
+  }
+
+  private void fixAnimButton()
+  {
+    if (aAnim) {
+      onOff.setText("Stop");
+      step.setEnabled(false);
+    } else {
+      onOff.setText("Go");
+      step.setEnabled(true);
+    }
+  }
+
+  private void fixDirButton()
+  {
+    if (aDir) {
+      forward.setSelected(true);
+    } else {
+      reverse.setSelected(true);
+    }
   }
 
   /** 
@@ -240,14 +268,7 @@ public class AnimationWidget extends JPanel implements ActionListener,
       try {
         control.setOn(!aAnim);
         aAnim = !aAnim;
-        if (aAnim) {
-          onOff.setText("Stop");
-          step.setEnabled(false);
-        }
-        else {
-          onOff.setText("Go");
-          step.setEnabled(true);
-        }
+        fixAnimButton();
       }
       catch (VisADException exc) { }
       catch (RemoteException exc) { }
@@ -305,6 +326,30 @@ public class AnimationWidget extends JPanel implements ActionListener,
   }
 
   /** 
+   * ScalarMapListener method used to detect new AnimationControl
+   */
+  public void controlChanged(ScalarMapControlEvent evt)
+  {
+    int id = evt.getId();
+    if (id == ScalarMapEvent.CONTROL_REMOVED ||
+        id == ScalarMapEvent.CONTROL_REPLACED)
+    {
+      evt.getControl().removeControlListener(this);
+      if (id == ScalarMapEvent.CONTROL_REMOVED) {
+        control = null;
+      }
+    }
+
+    if (id == ScalarMapEvent.CONTROL_REPLACED ||
+        id == ScalarMapEvent.CONTROL_ADDED)
+    {
+      control = (AnimationControl )(evt.getScalarMap().getControl());
+      getControlSettings((AnimationControl )(evt.getScalarMap().getControl()));
+      control.addControlListener(this);
+    }
+  }
+
+  /** 
    * Work-around for Swing bug where pack() doesn't display slider labels;
    * actually, it still won't, but window will be the right size 
    */
@@ -312,6 +357,4 @@ public class AnimationWidget extends JPanel implements ActionListener,
     Dimension d = super.getPreferredSize();
     return new Dimension(d.width, d.height+18);
   }
-
 }
-

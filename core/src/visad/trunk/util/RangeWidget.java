@@ -116,5 +116,8 @@ public class RangeWidget extends JPanel implements ActionListener,
     updateTextFields(data);
   }
 
+  /** 
+   * Don't care about <CODE>ScalarMap</CODE> control changes.
+   */
+  public void controlChanged(ScalarMapControlEvent evt) { }
 }
-

@@ -75,12 +75,24 @@ public class RemoteDisplayMonitorImpl
    * @exception RemoteVisADException If there was an internal problem.
    */
   public void mapChanged(ScalarMapEvent e)
-    throws RemoteVisADException
   {
-    if (AdaptedMonitor == null) {
-      throw new RemoteVisADException("AdaptedMonitor is null");
+    if (AdaptedMonitor != null) {
+      AdaptedMonitor.mapChanged(e);
     }
-    AdaptedMonitor.mapChanged(e);
+  }
+
+  /**
+   * Forwards the event to the adapted remote <CODE>DisplayMonitor</CODE>.
+   *
+   *  @param e The <CODE>ScalarMapEvent</CODE> to forward.
+   *
+   * @exception RemoteVisADException If there was an internal problem.
+   */
+  public void controlChanged(ScalarMapControlEvent e)
+  {
+    if (AdaptedMonitor != null) {
+      AdaptedMonitor.controlChanged(e);
+    }
   }
 
   /**

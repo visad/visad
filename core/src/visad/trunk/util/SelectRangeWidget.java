@@ -152,6 +152,28 @@ public class SelectRangeWidget extends RangeSlider
     catch (RemoteException exc) { }
   }
 
+  /** 
+   * ScalarMapListener method used to detect new control.
+   */
+  public void controlChanged(ScalarMapControlEvent evt)
+    throws RemoteException, VisADException
+  {
+    int id = evt.getId();
+    if (rangeControl != null && (id == ScalarMapEvent.CONTROL_REMOVED ||
+                                 id == ScalarMapEvent.CONTROL_REPLACED))
+    {
+      rangeControl.removeControlListener(this);
+    }
+
+    if (id == ScalarMapEvent.CONTROL_REPLACED ||
+        id == ScalarMapEvent.CONTROL_ADDED)
+    {
+      rangeControl = (RangeControl )(evt.getScalarMap().getControl());
+      controlChanged(new ControlEvent(rangeControl));
+      rangeControl.addControlListener(this);
+    }
+  }
+
   /** tell parent when the value changes */
   void valuesUpdated() {
     try {

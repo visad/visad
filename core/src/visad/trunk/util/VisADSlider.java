@@ -97,6 +97,9 @@ public class VisADSlider extends JPanel implements ChangeListener,
   /** Flags whether this VisADSlider is linked to a Real or a ScalarMap */
   private boolean smapcontrol;
 
+  /** <CODE>true</CODE> if the widget will auto-scale */
+  private boolean autoScale;
+
   /** JSlider values range between low and hi (with initial value
       st) and are multiplied by scale to create Real values
       of RealType rt referenced by ref */
@@ -160,6 +163,9 @@ public class VisADSlider extends JPanel implements ChangeListener,
     d = slider.getMaximumSize();
     slider.setMaximumSize(new Dimension(SLIDER_WIDTH, d.height));
 
+    // by default, don't auto-scale
+    autoScale = false;
+
     // set up internal components
     if (ref == null) {
       // this VisADSlider should link to a ScalarMap
@@ -199,10 +205,11 @@ public class VisADSlider extends JPanel implements ChangeListener,
         control.setValue(start);
       }
       else {
+        autoScale = true;
         // enable auto-scaling (CASE ONE)
         initLabel();
-        smap.addScalarMapListener(this);
       }
+      smap.addScalarMapListener(this);
     }
     else {
       // this VisADSlider should link to a Real
@@ -311,6 +318,7 @@ public class VisADSlider extends JPanel implements ChangeListener,
 
   /** used for auto-scaling the minimum and maximum */
   public void mapChanged(ScalarMapEvent e) {
+    if (!autoScale) return;
     double[] range = map.getRange();
     sMinimum = (float) range[0];
     sMaximum = (float) range[1];
@@ -320,6 +328,25 @@ public class VisADSlider extends JPanel implements ChangeListener,
     }
     label.setText(sName + " = " + PlotText.shortString(sCurrent));
     label.validate();
+  }
+
+  /** 
+   * ScalarMapListener method used to detect new control.
+   */
+  public void controlChanged(ScalarMapControlEvent evt)
+  {
+    int id = evt.getId();
+    if (id == ScalarMapEvent.CONTROL_REMOVED ||
+        id == ScalarMapEvent.CONTROL_REPLACED)
+    {
+      control = null;
+    }
+
+    if (id == ScalarMapEvent.CONTROL_REPLACED ||
+        id == ScalarMapEvent.CONTROL_ADDED)
+    {
+      control = (ValueControl )(evt.getScalarMap().getControl());
+    }
   }
 
   /** This extension of CellImpl is used to link a Real and a VisADSlider */

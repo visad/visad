@@ -41,10 +41,11 @@ import java.rmi.RemoteException;
 import visad.*;
 
 /** A widget that allows users to control iso-contours.<P> */
-public class ContourWidget extends JPanel implements ActionListener,
-                                                     ChangeListener,
-                                                     ItemListener,
-                                                     ControlListener {
+public class ContourWidget
+  extends JPanel
+  implements ActionListener, ChangeListener, ItemListener, ControlListener,
+             ScalarMapListener
+{
 
   /** This ContourRangeSlider's associated Control. */
   private ContourControl control;
@@ -221,6 +222,7 @@ public class ContourWidget extends JPanel implements ActionListener,
     Contours.addItemListener(this);
     Dashed.addItemListener(this);
     control.addControlListener(this);
+    smap.addScalarMapListener(this);
 
     // set up JComponents' tool tips
     Contours.setToolTipText("Toggle contours");
@@ -463,6 +465,29 @@ public class ContourWidget extends JPanel implements ActionListener,
     return new Dimension(300, super.getPreferredSize().height);
   }
 
+  /** Do-nothing method; <CODE>ContourRangeSlider</CODE> handles map data */
+  public void mapChanged(ScalarMapEvent e) { }
+
+  /** Deal with changes to the <CODE>ScalarMap</CODE>  control */
+  public void controlChanged(ScalarMapControlEvent evt)
+    throws RemoteException, VisADException
+  {
+    int id = evt.getId();
+    if (control != null && (id == ScalarMapEvent.CONTROL_REMOVED ||
+                            id == ScalarMapEvent.CONTROL_REPLACED))
+    {
+      evt.getControl().removeControlListener(this);
+    }
+
+    if (id == ScalarMapEvent.CONTROL_REPLACED ||
+        id == ScalarMapEvent.CONTROL_ADDED)
+    {
+      control = (ContourControl )(evt.getScalarMap().getControl());
+      controlChanged(new ControlEvent(control));
+      control.addControlListener(this);
+    }
+  }
+
   /** Subclass of RangeSlider for selecting min and max values.<P> */
   class ContourRangeSlider extends RangeSlider implements ScalarMapListener {
 
@@ -507,6 +532,9 @@ public class ContourWidget extends JPanel implements ActionListener,
       catch (VisADException exc) { }
       catch (RemoteException exc) { }
     }
+
+    /** Do-nothing method; <CODE>ContourWidget</CODE> handles map control */
+    public void controlChanged(ScalarMapControlEvent evt) { }
 
     /** tell parent when the value changes */
     void valuesUpdated() {

@@ -40,6 +40,7 @@ import visad.ControlListener;
 import visad.DisplayException;
 import visad.ScalarMap;
 import visad.ScalarMapEvent;
+import visad.ScalarMapControlEvent;
 import visad.ScalarMapListener;
 import visad.VisADException;
 
@@ -415,6 +416,28 @@ public class ColorMapWidget
   {
     double[] range = evt.getScalarMap().getRange();
     updateSlider((float) range[0], (float) range[1]);
+  }
+
+  /** 
+   * ScalarMapListener method used to detect new control.
+   */
+  public void controlChanged(ScalarMapControlEvent evt)
+    throws RemoteException, VisADException
+  {
+    int id = evt.getId();
+    if (id == ScalarMapEvent.CONTROL_REMOVED ||
+        id == ScalarMapEvent.CONTROL_REPLACED)
+    {
+      evt.getControl().removeControlListener(this);
+    }
+
+    if (id == ScalarMapEvent.CONTROL_REPLACED ||
+        id == ScalarMapEvent.CONTROL_ADDED)
+    {
+      control = (BaseColorControl )(evt.getScalarMap().getControl());
+      controlChanged(new ControlEvent(control));
+      control.addControlListener(this);
+    }
   }
 
   public static void main(String[] args)
