@@ -134,13 +134,24 @@ public class FormulaTest {
         }
         else {
           // variable assignment operation
+          String v = s.substring(0, index);
+          String e = s.substring(index+1);
+          boolean eflag = false;
           try {
-            String v = s.substring(0, index);
-            String e = s.substring(index+1);
             f.assignFormula(v, e);
           }
           catch (FormulaException exc) {
-            System.out.println("Error in statement's syntax");
+            System.out.println("\"" + v + "\" is an illegal variable name");
+            eflag = true;
+          }
+          if (!eflag) {
+            String[] sl = f.getErrors(v);
+            if (sl != null) {
+              System.out.println("Errors occurred while evaluating formula:");
+              for (int i=0; i<sl.length; i++) {
+                System.out.println("  - " + sl[i]);
+              }
+            }
           }
         }
       }

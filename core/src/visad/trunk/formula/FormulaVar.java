@@ -51,6 +51,9 @@ class FormulaVar {
   /** variables on which this one depends */
   private Vector Idepend = new Vector();
 
+  /** list of errors that have occurred during computation, in String form */
+  private Vector errors = new Vector();
+
   /** constructor */
   FormulaVar(String n, FormulaManager f) throws FormulaException {
     fm = f;
@@ -90,10 +93,7 @@ class FormulaVar {
 
   /** check if this variable depends on another one */
   boolean isDependentOn(FormulaVar v) {
-    for (int i=0; i<Idepend.size(); i++) {
-      if ((FormulaVar) Idepend.elementAt(i) == v) return true;
-    }
-    return false;
+    return Idepend.contains(v);
   }
 
   /** check if any other variables depend on this one */
@@ -106,7 +106,16 @@ class FormulaVar {
 
   /** add a listener for when this variable changes */
   void addListener(FormulaListener f) {
-    if (f != null) listeners.addElement(f);
+    if (f != null && !listeners.contains(f)) {
+      listeners.add(f);
+    }
+  }
+
+  /** remove a listener that was previously added */
+  void removeListener(FormulaListener f) {
+    if (f != null && listeners.contains(f)) {
+      listeners.remove(f);
+    }
   }
 
   /** notify listeners that this variable has changed */
@@ -118,7 +127,7 @@ class FormulaVar {
   }
 
   /** sets the formula for this variable */
-  void setFormula(String f) throws FormulaException {
+  void setFormula(String f) {
     formula = f;
     postfix = null;
     value = null;
@@ -127,7 +136,7 @@ class FormulaVar {
   }
 
   /** sets the value for this variable directly */
-  void setValue(Object v) throws FormulaException {
+  void setValue(Object v) {
     if (value == v) return;
     value = v;
     formula = null;
@@ -146,12 +155,49 @@ class FormulaVar {
     return formula;
   }
 
+  /** gets an array of Strings representing any errors that have occurred
+      during formula evaluation */
+  String[] getErrors() {
+    synchronized (errors) {
+      int len = errors.size();
+      if (len == 0) return null;
+      String[] s = new String[len];
+      for (int i=0; i<len; i++) {
+        s[i] = (String) errors.elementAt(i);
+      }
+      return s;
+    }
+  }
+
+  /** clears the list of errors that have occurred during formula evaluation */
+  void clearErrors() {
+    synchronized (errors) {
+      errors.clear();
+    }
+  }
+
+  /** adds an error to the list of errors that have occurred during
+      formula evaluation */
+  private void evalError(String s) {
+    synchronized (errors) {
+      errors.add(s);
+    }
+  }
+
   /** recomputes this variable and all those that depend on it */
-  void recompute() throws FormulaException {
+  void recompute() {
     // recompute this variable
     if (formula != null) {
-      if (postfix == null) postfix = new Postfix(formula, fm);
-      value = compute(postfix);
+      if (postfix == null) {
+        try {
+          postfix = new Postfix(formula, fm);
+        }
+        catch (FormulaException exc) {
+          evalError("Syntax error in formula: " + exc);
+          value = null;
+        }
+      }
+      if (postfix != null) value = compute(postfix);
     }
 
     // recompute all variables which depend on this one
@@ -165,9 +211,10 @@ class FormulaVar {
   }
 
   /** used by compute method for convenience */
-  private static Object popStack(Stack s) throws FormulaException {
+  private Object popStack(Stack s) {
     if (s.empty()) {
-      throw new FormulaException("formula evaluation error: stack empty!");
+      evalError("Syntax error in formula (a)");
+      return new NullObject();
     }
     else return s.pop();
   }
@@ -234,7 +281,7 @@ class FormulaVar {
   }
 
   /** computes the solution to this variable's postfix formula */
-  private Object compute(Postfix formula) throws FormulaException {
+  private Object compute(Postfix formula) {
     if (formula.tokens == null) return null;
     int len = formula.tokens.length;
     Stack stack = new Stack();
@@ -253,26 +300,27 @@ class FormulaVar {
         o[1] = popStack(stack);
         o[0] = popStack(stack);
         Object ans = null;
-        for (int j=0; j<fm.bMethods.length; j++) {
-          if (ans == null && fm.bOps[j].equals(token)) {
-            try {
-              ans = invokeMethod(fm.bMethods[j], o);
+        if (!(o[0] instanceof NullObject || o[1] instanceof NullObject)) {
+          for (int j=0; j<fm.bMethods.length; j++) {
+            if (ans == null && fm.bOps[j].equals(token)) {
+              try {
+                ans = invokeMethod(fm.bMethods[j], o);
+              }
+              catch (IllegalAccessException exc) {
+                /* CTR: TEMP */ System.out.println(exc);
+              } // no access
+              catch (IllegalArgumentException exc) {
+                /* CTR: TEMP */ System.out.println(exc);
+              } // wrong type of method
+              catch (InvocationTargetException exc) {
+                /* CTR: TEMP */ System.out.println(exc);
+              } // method threw exception
             }
-            catch (IllegalAccessException exc) {
-              /* CTR: TEMP */ System.out.println(exc);
-            } // no access
-            catch (IllegalArgumentException exc) {
-              /* CTR: TEMP */ System.out.println(exc);
-            } // wrong type of method
-            catch (InvocationTargetException exc) {
-              /* CTR: TEMP */ System.out.println(exc);
-            } // method threw exception
           }
         }
         if (ans == null) {
-          throw new FormulaException("formula evaluation error: " +
-                                     "could not evaluate binary " +
-                                     "operator \"" + token + "\"");
+          evalError("Could not evaluate binary operator \"" + token +"\"");
+          stack.push(new NullObject());
         }
         else stack.push(ans);
       }
@@ -281,26 +329,27 @@ class FormulaVar {
         Object[] o = new Object[1];
         o[0] = popStack(stack);
         Object ans = null;
-        for (int j=0; j<fm.uMethods.length; j++) {
-          if (ans == null && fm.uOps[j].equals(token)) {
-            try {
-              ans = invokeMethod(fm.uMethods[j], o);
+        if (!(o[0] instanceof NullObject)) {
+          for (int j=0; j<fm.uMethods.length; j++) {
+            if (ans == null && fm.uOps[j].equals(token)) {
+              try {
+                ans = invokeMethod(fm.uMethods[j], o);
+              }
+              catch (IllegalAccessException exc) {
+                /* CTR: TEMP */ System.out.println(exc);
+              } // no access
+              catch (IllegalArgumentException exc) {
+                /* CTR: TEMP */ System.out.println(exc);
+              } // wrong type of method
+              catch (InvocationTargetException exc) {
+                /* CTR: TEMP */ System.out.println(exc);
+              } // method threw exception
             }
-            catch (IllegalAccessException exc) {
-              /* CTR: TEMP */ System.out.println(exc);
-            } // no access
-            catch (IllegalArgumentException exc) {
-              /* CTR: TEMP */ System.out.println(exc);
-            } // wrong type of method
-            catch (InvocationTargetException exc) {
-              /* CTR: TEMP */ System.out.println(exc);
-            } // method threw exception
           }
         }
         if (ans == null) {
-          throw new FormulaException("formula evaluation error: " +
-                                     "could not evaluate unary " +
-                                     "operator \"" + token + "\"");
+          evalError("Could not evaluate unary operator \"" + token + "\"");
+          stack.push(new NullObject());
         }
         else stack.push(ans);
       }
@@ -316,33 +365,38 @@ class FormulaVar {
           }
           catch (ClassCastException exc) { }
           if (num < 0) {
-            throw new FormulaException("formula evaluation error: non-" +
-                                       "negative number expected on stack");
+            evalError("Syntax error in formula (b)");
+            num = 1;
           }
           Object[] o;
           if (num > 0) o = new Object[num];
           else o = null;
-          for (int j=0; j<num; j++) o[j] = popStack(stack);
-          for (int j=0; j<fm.funcs.length; j++) {
-            if (ans == null && fm.funcs[j].equals(token)) {
-              try {
-                ans = invokeMethod(fm.fMethods[j], o);
+          boolean eflag = false;
+          for (int j=0; j<num; j++) {
+            o[j] = popStack(stack);
+            if (o[j] instanceof NullObject) eflag = true;
+          }
+          if (!eflag) {
+            for (int j=0; j<fm.funcs.length; j++) {
+              if (ans == null && fm.funcs[j].equals(token)) {
+                try {
+                  ans = invokeMethod(fm.fMethods[j], o);
+                }
+                catch (IllegalAccessException exc) {
+                  /* CTR: TEMP */ System.out.println(exc);
+                } // no access
+                catch (IllegalArgumentException exc) {
+                  /* CTR: TEMP */ System.out.println(exc);
+                } // wrong type of method
+                catch (InvocationTargetException exc) {
+                  /* CTR: TEMP */ System.out.println(exc);
+                } // method threw exception
               }
-              catch (IllegalAccessException exc) {
-                /* CTR: TEMP */ System.out.println(exc);
-              } // no access
-              catch (IllegalArgumentException exc) {
-                /* CTR: TEMP */ System.out.println(exc);
-              } // wrong type of method
-              catch (InvocationTargetException exc) {
-                /* CTR: TEMP */ System.out.println(exc);
-              } // method threw exception
             }
           }
           if (ans == null) {
-            throw new FormulaException("formula evaluation error: " +
-                                       "could not evaluate function " +
-                                       "\"" + token + "\"");
+            evalError("Could not evaluate function \"" + token + "\"");
+            stack.push(new NullObject());
           }
           else stack.push(ans);
         }
@@ -354,30 +408,36 @@ class FormulaVar {
           }
           catch (NumberFormatException exc) { }
           if (num <= 0) {
-            throw new FormulaException("formula evaluation error: non-" +
-                                       "negative integer expected on stack");
+            evalError("Syntax error in formula (c)");
+            num = 1;
           }
           Object[] o = new Object[num];
-          for (int j=0; j<num; j++) o[j] = popStack(stack);
-          for (int j=0; j<fm.iMethods.length; j++) {
-            if (ans == null) {
-              try {
-                ans = invokeMethod(fm.iMethods[j], o);
+          boolean eflag = false;
+          for (int j=0; j<num; j++) {
+            o[j] = popStack(stack);
+            if (o[j] instanceof NullObject) eflag = true;
+          }
+          if (!eflag) {
+            for (int j=0; j<fm.iMethods.length; j++) {
+              if (ans == null) {
+                try {
+                  ans = invokeMethod(fm.iMethods[j], o);
+                }
+                catch (IllegalAccessException exc) {
+                  /* CTR: TEMP */ System.out.println(exc);
+                } // no access
+                catch (IllegalArgumentException exc) {
+                  /* CTR: TEMP */ System.out.println(exc);
+                } // wrong type of method
+                catch (InvocationTargetException exc) {
+                  /* CTR: TEMP */ System.out.println(exc);
+                } // method threw exception
               }
-              catch (IllegalAccessException exc) {
-                /* CTR: TEMP */ System.out.println(exc);
-              } // no access
-              catch (IllegalArgumentException exc) {
-                /* CTR: TEMP */ System.out.println(exc);
-              } // wrong type of method
-              catch (InvocationTargetException exc) {
-                /* CTR: TEMP */ System.out.println(exc);
-              } // method threw exception
             }
           }
           if (ans == null) {
-            throw new FormulaException("formula evaluation error: could " +
-                                       "not evaluate implicit function"); 
+            evalError("Could not evaluate implicit function");
+            stack.push(new NullObject());
           }
           else stack.push(ans);
         }
@@ -389,18 +449,23 @@ class FormulaVar {
         }
         catch (NumberFormatException exc) { }
         if (d == null) {
-          FormulaVar v = fm.getVarByName(token);
-          Object o = v.getValue();
-          if (o == null) {
-            throw new FormulaException("formula evaluation error: " +
-                                       "variable \"" + token + "\" " +
-                                       "has no value!");
+          FormulaVar v = null;
+          try {
+            v = fm.getVarByNameOrCreate(token);
           }
-          else {
-            stack.push(o);
+          catch (FormulaException exc) {
+            evalError("\"" + token + "\" is an illegal variable name");
+            stack.push(new NullObject());
+          }
+          if (v != null) {
+            Object o = v.getValue();
+            if (o == null) {
+              evalError("Variable \"" + token + "\" has no value");
+              stack.push(new NullObject());
+            }
+            else stack.push(o);
             if (v.isDependentOn(this)) {
-              throw new FormulaException("formula evaluation error: " +
-                                         "infinite loop detected!");
+              evalError("This formula creates an infinite loop");
             }
             setDependentOn(v);
           }
@@ -412,11 +477,13 @@ class FormulaVar {
     // return the final answer
     Object answer = popStack(stack);
     if (!stack.empty()) {
-      throw new FormulaException("formula evaluation error: " +
-                                 "stack should be empty!");
+      evalError("Syntax error in formula (d)");
     }
-    return answer;
+    return (answer instanceof NullObject) ? null : answer;
   }
+
+  /** An object signifying a null value */
+  private class NullObject { }
 
 }
 

@@ -285,8 +285,7 @@ public class FormulaManager {
   }
 
   /** returns the variable &quot;name&quot;, creating it if necessary */
-  private FormulaVar getVarByNameOrCreate(String name)
-                                          throws FormulaException {
+  FormulaVar getVarByNameOrCreate(String name) throws FormulaException {
     FormulaVar v;
     try {
       v = getVarByName(name);
@@ -303,6 +302,20 @@ public class FormulaManager {
                                          throws FormulaException {
     FormulaVar v = getVarByNameOrCreate(name);
     v.setFormula(formula);
+  }
+
+  /** gets the current list of errors that occurred when evaluating
+      &quot;name&quot; and clears the list */
+  public String[] getErrors(String name) {
+    try {
+      FormulaVar v = getVarByNameOrCreate(name);
+      String[] s = v.getErrors();
+      v.clearErrors();
+      return s;
+    }
+    catch (FormulaException exc) {
+      return null;
+    }
   }
 
   /** checks whether it is safe to remove a variable from the database */
@@ -352,6 +365,12 @@ public class FormulaManager {
                                    throws FormulaException {
     FormulaVar v = getVarByName(name);
     v.addListener(f);
+  }
+
+  public void removeVarChangeListener(String name, FormulaListener f)
+                                      throws FormulaException {
+    FormulaVar v = getVarByName(name);
+    v.removeListener(f);
   }
 
   /** identify whether a given token is a unary operator */
