@@ -416,6 +416,8 @@ public class AREACoordinateSystem
     if (nums[0] < 20 || nums[1] < 20) return null;
     // test if its worth it
     if ((nums[0] * nums[1]) > (len / 4)) return null;
+    // test to see if the product is greater than an int
+    if ((nums[0] * nums[1]) < 0) return null;
 
     double spacing0 = (maxs[0] - mins[0]) / (nums[0] - 1);
     double spacing1 = (maxs[1] - mins[1]) / (nums[1] - 1);
@@ -589,6 +591,8 @@ public class AREACoordinateSystem
     if (nums[0] < 20 || nums[1] < 20) return null;
     // test if its worth it
     if ((nums[0] * nums[1]) > (len / 4)) return null;
+    // test to see if the product is greater than an int
+    if ((nums[0] * nums[1]) < 0) return null;
 
     float spacing0 = (maxs[0] - mins[0]) / (nums[0] - 1);
     float spacing1 = (maxs[1] - mins[1]) / (nums[1] - 1);
