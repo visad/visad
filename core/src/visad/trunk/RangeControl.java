@@ -45,14 +45,7 @@ public class RangeControl extends Control {
   public void initializeRange(float[] range)
     throws VisADException, RemoteException
   {
-    if (!initialized) {
-      RangeLow = range[0];
-      RangeHi = range[1];
-      initialized = (RangeLow == RangeLow && RangeHi == RangeHi);
-      changeControl(true); // WLH - 24 Sept 99
-    } else {
-      setRange(range);
-    }
+    changeRange(range, initialized);
   }
 
   /** set the range of selected values as (range[0], range[1]) */
@@ -61,9 +54,17 @@ public class RangeControl extends Control {
     if (RangeLow != RangeLow || Math.abs(RangeLow - range[0]) > 0.0001 ||
         RangeHi != RangeHi || Math.abs(RangeHi - range[1]) > 0.0001)
     {
-      RangeLow = range[0];
-      RangeHi = range[1];
-      initialized = (RangeLow == RangeLow && RangeHi == RangeHi);
+      changeRange(range, true);
+    }
+  }
+
+  private void changeRange(float[] range, boolean notify)
+    throws VisADException, RemoteException
+  {
+    RangeLow = range[0];
+    RangeHi = range[1];
+    initialized = (RangeLow == RangeLow && RangeHi == RangeHi);
+    if (notify) {
       changeControl(true);
     }
   }
