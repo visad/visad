@@ -90,18 +90,6 @@ public abstract class ShadowFunctionOrSetType extends ShadowType {
     DomainReferenceComponents = getComponents(Domain.getReference(), false);
   }
 
-  public boolean getAnyContour() {
-    return anyContour;
-  }
-
-  public boolean getAnyFlow() {
-    return anyFlow;
-  }
-
-  public boolean getAnyShape() {
-    return anyShape;
-  }
-
   public boolean getFlat() {
     return Flat;
   }
@@ -164,9 +152,9 @@ public abstract class ShadowFunctionOrSetType extends ShadowType {
     int avCount = checkAnimationOrValue(Domain.getDisplayIndices());
     if (Domain.getDimension() != 1) {
       if (avCount > 0) {
-        throw new BadMappingException("ShadowFunctionOrSetType.checkIndices: " +
-                                    "Animation and SelectValue may only occur " +
-                                    "in 1-D Function domain");
+        throw new BadMappingException("Animation and SelectValue may only occur " +
+                                      "in 1-D Function domain: " +
+                                      "ShadowFunctionOrSetType.checkIndices");
       }
       else {
         // eventually ShadowType.testTransform is used to mark Animation,
@@ -174,9 +162,9 @@ public abstract class ShadowFunctionOrSetType extends ShadowType {
         // however, temporary hack in Renderer.isTransformControl requires
         // multiple occurence of Animation and Value to throw an Exception
         if (avCount > 1) {
-          throw new BadMappingException("ShadowFunctionOrSetType.checkIndices: " +
-                                    "only one Animation and SelectValue may " +
-                                    "occur Set domain");
+          throw new BadMappingException("only one Animation and SelectValue may " +
+                                        "occur Set domain: " +
+                                        "ShadowFunctionOrSetType.checkIndices");
         }
       }
     }
@@ -191,24 +179,25 @@ public abstract class ShadowFunctionOrSetType extends ShadowType {
           local_value_indices =
             ((ShadowTupleType) Range).sumValueIndices(local_value_indices);
         }
-        else if (Range instanceof ShadowRealType) {
-          ((ShadowRealType) Range).incrementIndices(local_indices);
+        else if (Range instanceof ShadowScalarType) {
+          ((ShadowScalarType) Range).incrementIndices(local_indices);
           local_display_indices = addIndices(local_display_indices, 
-            ((ShadowRealType) Range).getDisplayIndices());
+            ((ShadowScalarType) Range).getDisplayIndices());
           local_value_indices = addIndices(local_value_indices,
-            ((ShadowRealType) Range).getValueIndices());
+            ((ShadowScalarType) Range).getValueIndices());
         }
 
         // test legality of Animation and SelectValue in Range
         if (checkAnimationOrValue(Range.getDisplayIndices()) > 0) {
-          throw new BadMappingException("ShadowFunctionOrSetTypeJ3D.checkIndices: " +
-                                        "Animation and SelectValue may not " +
-                                        "occur in Function range");
+          throw new BadMappingException("Animation and SelectValue may not " +
+                                        "occur in Function range: " +
+                                        "ShadowFunctionOrSetTypeJ3D.checkIndices");
         }
       } // end if (this instanceof ShadowFunctionType)
       anyContour = checkContour(local_display_indices);
       anyFlow = checkFlow(local_display_indices);
       anyShape = checkShape(local_display_indices);
+      anyText = checkText(local_display_indices);
 
       LevelOfDifficulty =
         testIndices(local_indices, local_display_indices, levelOfDifficulty);

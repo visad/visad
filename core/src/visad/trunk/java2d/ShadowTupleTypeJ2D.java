@@ -200,6 +200,26 @@ public class ShadowTupleTypeJ2D extends ShadowTypeJ2D {
       } // end if (refToComponent != null)
     } // end if (length > 0)
 
+    // get any text String and TextControl inherited from parent
+    String text_value = getParentText();
+    TextControl text_control = getParentTextControl();
+    boolean anyText =
+      ((ShadowTupleType) adaptedShadowType).getAnyText();
+    if (anyText && text_value == null) {
+      for (int i=0; i<tuple.getDimension(); i++) {
+        Data component = tuple.getComponent(i);
+        if (component instanceof Text) {
+          ShadowTextTypeJ2D type = (ShadowTextTypeJ2D) tupleComponents[i];
+          Vector maps = type.getSelectedMapVector();
+          if (!maps.isEmpty()) {
+            text_value = ((Text) component).getValue();
+            ScalarMap map = (ScalarMap) maps.firstElement();
+            text_control = (TextControl) map.getControl();
+          }
+        }
+      }
+    }
+
     float[][] range_select =
       assembleSelect(display_values, 1, valueArrayLength,
                      valueToScalar, display);
@@ -210,9 +230,10 @@ public class ShadowTupleTypeJ2D extends ShadowTypeJ2D {
     }
 
     if (adaptedShadowType.getIsTerminal()) {
-      return terminalTupleOrReal(group, display_values, valueArrayLength,
-                                 valueToScalar, default_values,
-                                 inherited_values, renderer); // J2D
+      return terminalTupleOrScalar(group, display_values, text_value,
+                                   text_control, valueArrayLength,
+                                   valueToScalar, default_values,
+                                   inherited_values, renderer);
     }
     else { // if (!isTerminal)
       boolean post = false;
@@ -223,6 +244,13 @@ public class ShadowTupleTypeJ2D extends ShadowTypeJ2D {
         if (display_values[i] != null) {
           value_array[i] = display_values[i][0];
         }
+      }
+
+      if (text_value != null && text_control != null) {
+        setText(text_value, text_control);
+      }
+      else {
+        setText(null, null);
       }
 
       for (int i=0; i<tuple.getDimension(); i++) {

@@ -51,6 +51,11 @@ public class FunctionType extends MathType {
       RealType nor RealTupleType are ignored */
   private RealType[] realComponents;
 
+  /** array of TextType Range components */
+  private TextType[] textComponents;
+  /** array of component indices of TextType Range components */
+  private int[] textIndices;
+
   public final static FunctionType REAL_1TO1_FUNCTION =
     new FunctionType(RealType.Generic, RealType.Generic, true);
   private static RealType[] real3 =
@@ -77,6 +82,7 @@ public class FunctionType extends MathType {
     Range = range;
     FlatRange = Flat ? makeFlat(range) : null;
     realComponents = getComponents(Range);
+    makeTextComponents();
   }
 
   /** trusted constructor for initializers */
@@ -90,6 +96,47 @@ public class FunctionType extends MathType {
     Range = range;
     FlatRange = Flat ? makeFlatTrusted(range) : null;
     realComponents = getComponents(Range);
+    makeTextComponents();
+  }
+
+  private void makeTextComponents() {
+    int n = 0;
+    textComponents = null;
+    textIndices = null;
+    if (Range instanceof TextType) {
+      textComponents = new TextType[] {(TextType) Range};
+      textIndices = new int[] {0};
+      n = 1;
+    }
+    else if (Range instanceof TupleType) {
+      try {
+        for (int i=0; i<((TupleType) Range).getDimension(); i++) {
+          if (((TupleType) Range).getComponent(i) instanceof TextType) n++;
+        }
+        if (n == 0) return;
+        textComponents = new TextType[n];
+        textIndices = new int[n];
+        int j = 0;
+        for (int i=0; i<((TupleType) Range).getDimension(); i++) {
+          if (((TupleType) Range).getComponent(i) instanceof TextType) {
+            textComponents[j] = (TextType) ((TupleType) Range).getComponent(i);
+            textIndices[j] = i;
+          }
+        }
+      }
+      catch (VisADException e) {
+        textComponents = null;
+        textIndices = null;
+      }
+    }
+  }
+
+  public TextType[] getTextComponents() {
+    return textComponents;
+  }
+
+  public int[] getTextIndices() {
+    return textIndices;
   }
 
   private static RealType[] getComponents(MathType type) {

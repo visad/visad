@@ -44,6 +44,9 @@ public class DisplayRealType extends RealType {
 
   private boolean System;   // true if this is a system intrinsic
 
+  // true if this is actually a text type, false if it is really real
+  private boolean text;     // admitedly a kludge
+
   // this is tricky, since DisplayRealType is Serializable
   // this may also be unnecessary
   private static int Count = 0;   // count of DisplayRealType-s
@@ -80,6 +83,20 @@ public class DisplayRealType extends RealType {
     DefaultValue = def;
     tuple = null;
     tupleIndex = -1;
+    text = false;
+    synchronized (DisplayRealTypeVector) {
+      Count++;
+      Index = Count;
+      DisplayRealTypeVector.addElement(this);
+    }
+  }
+
+  /** trusted constructor for intrinsic text DisplayRealType */
+  DisplayRealType(String name, boolean single,  boolean b) {
+    super("Display" + name, null, b);
+    System = true;
+    Single = single;
+    text = true;
     synchronized (DisplayRealTypeVector) {
       Count++;
       Index = Count;
@@ -101,6 +118,7 @@ public class DisplayRealType extends RealType {
     DefaultValue = def;
     tuple = null;
     tupleIndex = -1;
+    text = false;
     synchronized (DisplayRealTypeVector) {
       Count++;
       Index = Count;
@@ -131,7 +149,7 @@ public class DisplayRealType extends RealType {
     return null;
   }
 
-  int getIndex() {
+  public int getIndex() {
     if (Index <= 0) {
       synchronized (DisplayRealTypeVector) {
         DisplayRealType real =
@@ -180,6 +198,10 @@ public class DisplayRealType extends RealType {
       range_values[1] = HiValue;
     }
     return range;
+  }
+
+  public boolean getText() {
+    return text;
   }
 
 }

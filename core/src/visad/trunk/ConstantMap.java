@@ -43,7 +43,8 @@ public class ConstantMap extends ScalarMap {
     if (display_scalar.equals(Display.Animation) ||
         display_scalar.equals(Display.SelectValue) ||
         display_scalar.equals(Display.SelectRange) ||
-        display_scalar.equals(Display.IsoContour)) {
+        display_scalar.equals(Display.IsoContour) ||
+        display_scalar.equals(Display.Text)) {
       throw new DisplayException("ConstantMap: illegal for " + display_scalar);
     }
     if (isScaled &&

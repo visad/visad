@@ -52,9 +52,9 @@ public abstract class ShadowType extends Object
 
   /** information calculated by constructors */
   /** count of occurences of DisplayRealType-s
-      ShadowRealType: set for mappings to DisplayRealType-s
+      ShadowScalarType: set for mappings to DisplayRealType-s
       ShadowTupleType (incl ShadowRealTupleType): set to
-        sum for ShadowRealType & ShadowRealTupleType components
+        sum for ShadowScalarType & ShadowRealTupleType components
       ShadowRealTupleType: add contribution from Reference */
   int[] DisplayIndices;
   /** ValueIndices is like DisplayIndices, but distinguishes
@@ -83,7 +83,7 @@ public abstract class ShadowType extends Object
   /** possible values for Dtype */
   static final int D0 = 0; // (Unmapped)*
   static final int D1 = 1; // allSpatial + (SpatialOffset, IsoContour, Flow,
-                           //               Color, Alpha, Range, Unmapped)*
+                           // Text, Color, Alpha, Range, Unmapped)*
   static final int D2 = 2; // (SpatialOffset, Spatial, Color, Alpha,
                            //  Range, Unmapped)*
   static final int D3 = 3; // (Color, Alpha, Range, Unmapped)*
@@ -94,10 +94,10 @@ public abstract class ShadowType extends Object
   static final int R1 = 1; // (Color, Alpha, Range, Unmapped)*
   static final int R2 = 2; // (Spatial, SpatialOffset,  Color, Alpha,
                            //  Range, Unmapped)*
-  static final int R3 = 3; // (IsoContour, Flow, Color, Alpha, Range,
+  static final int R3 = 3; // (IsoContour, Flow, Text, Color, Alpha, Range,
                            //  Unmapped)*
   static final int R4 = 4; // (Spatial, SpatialOffset, IsoContour, Flow,
-                           //  Color, Alpha, Range, Unmapped)*
+                           //  Text, Color, Alpha, Range, Unmapped)*
   static final int Rbad = 5;
 
   /** spatial DisplayTupleType at terminal nodes */
@@ -108,6 +108,7 @@ public abstract class ShadowType extends Object
   boolean anyContour;
   boolean anyFlow;
   boolean anyShape;
+  boolean anyText;
 
 
   /** used by getComponents to record RealTupleTypes
@@ -206,11 +207,6 @@ public abstract class ShadowType extends Object
             if (ref != null && ref.getMappedDisplayScalar()) nref++;
           }
         }
-/* WLH 5 Feb 98
-        else {
-          n++;
-        }
-*/
       }
       reals = new ShadowRealType[n];
       int j = 0;
@@ -241,12 +237,6 @@ public abstract class ShadowType extends Object
             }
           }
         }
-/* WLH 5 Feb 98
-        else {
-          reals[j] = null;
-          j++;
-        }
-*/
       }
     }
     else {
@@ -293,8 +283,25 @@ public abstract class ShadowType extends Object
     return local_indices;
   }
 
+  public boolean getAnyContour() {
+    return anyContour;
+  }
+ 
+  public boolean getAnyFlow() {
+    return anyFlow;
+  }
+ 
+  public boolean getAnyShape() {
+    return anyShape;
+  }
+
+  public boolean getAnyText() {
+    return anyText;
+  }
+
   /** test for display_indices in
-      (Spatial, SpatialOffset, Color, Alpha, Animation, Range, Value, Unmapped) */
+      (Spatial, SpatialOffset, Color, Alpha, Animation, Range, Value,
+       Flow, Text, Unmapped) */
   boolean checkNested(int[] display_indices) throws RemoteException {
     for (int i=0; i<display_indices.length; i++) {
       if (display_indices[i] == 0) continue;
@@ -321,7 +328,8 @@ public abstract class ShadowType extends Object
       if (real.equals(Display.Alpha) ||
           real.equals(Display.Animation) ||
           real.equals(Display.SelectValue) ||
-          real.equals(Display.SelectRange)) continue;
+          real.equals(Display.SelectRange) ||
+          real.equals(Display.Text)) continue;
       return false;
     }
     return true;
@@ -329,7 +337,7 @@ public abstract class ShadowType extends Object
 
   /** test for display_indices in
       (Spatial, SpatialOffset, IsoContour, Color, Alpha, Flow,
-       Range, Unmapped) */
+       Text, Range, Unmapped) */
   boolean checkR4(int[] display_indices) throws RemoteException {
     for (int i=0; i<display_indices.length; i++) {
       if (display_indices[i] == 0) continue;
@@ -355,6 +363,7 @@ public abstract class ShadowType extends Object
           real.equals(Display.CMY)) continue;  // more Color
       if (real.equals(Display.Alpha) ||
           real.equals(Display.SelectRange) ||
+          real.equals(Display.Text) ||
           real.equals(Display.IsoContour)) continue;
       return false;
     }
@@ -362,7 +371,7 @@ public abstract class ShadowType extends Object
   }
 
   /** test for display_indices in
-      (IsoContour, Color, Alpha, Flow, Range, Unmapped) */
+      (IsoContour, Color, Alpha, Flow, Text, Range, Unmapped) */
   boolean checkR3(int[] display_indices) throws RemoteException {
     for (int i=0; i<display_indices.length; i++) {
       if (display_indices[i] == 0) continue;
@@ -381,6 +390,7 @@ public abstract class ShadowType extends Object
           real.equals(Display.CMY)) continue;  // more Color
       if (real.equals(Display.Alpha) ||
           real.equals(Display.SelectRange) ||
+          real.equals(Display.Text) ||
           real.equals(Display.IsoContour)) continue;
       return false;
     }
@@ -405,6 +415,7 @@ public abstract class ShadowType extends Object
           real.equals(Display.HSV) ||
           real.equals(Display.CMY)) continue;  // more Color
       if (real.equals(Display.Alpha) ||
+          real.equals(Display.Text) ||
           real.equals(Display.SelectRange)) continue;
       return false;
     }
@@ -437,6 +448,7 @@ public abstract class ShadowType extends Object
           real.equals(Display.HSV) ||
           real.equals(Display.CMY)) continue;  // more Color
       if (real.equals(Display.Alpha) ||
+          real.equals(Display.Text) ||
           real.equals(Display.SelectRange)) continue;
       return false;
     }
@@ -484,6 +496,24 @@ public abstract class ShadowType extends Object
       if (display_indices[i] == 0) continue;
       DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
       if (real.equals(Display.Shape)) return true;
+    }
+    return false;
+  }
+
+  /** test for any Text in display_indices */
+  boolean checkText(int[] display_indices) throws RemoteException {
+    for (int i=0; i<display_indices.length; i++) {
+/*
+System.out.println("checkText: display_indices[" + i + "] = " +
+                   display_indices[i] + " real = " +
+                   ((DisplayRealType) display.getDisplayScalar(i)).getName());
+*/
+      if (display_indices[i] == 0) continue;
+      DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
+/*
+System.out.println("checkText: real = " + real.getName());
+*/
+      if (real.equals(Display.Text)) return true;
     }
     return false;
   }
@@ -545,8 +575,8 @@ public abstract class ShadowType extends Object
 
     // test whether any RealType-s occur more than once
     for (int i=0; i<indices.length; i++) {
-      RealType real = display.getScalar(i);
       if (indices[i] > 1) {
+        ScalarType real = display.getScalar(i);
         throw new BadMappingException("RealType " + real.getName() +
                                       " occurs more than once: " +
                                       "ShadowType.testIndices");
@@ -719,7 +749,9 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       int missing = 0;
       total = display_values[value_index].length;
       for (int j=0; j<display_values[value_index].length; j++) {
-        if (display_values[value_index][j] != display_values[value_index][j]) missing++;
+        if (display_values[value_index][j] != display_values[value_index][j]) {
+          missing++;
+        }
       }
       System.out.println("  total = " + total + " missing = " + missing);
 */
@@ -1436,6 +1468,43 @@ System.out.println(" ");
       // array.vertexFormat |= COLOR_3;
     }
     return array;
+  }
+
+  private static final double FONT = 0.07;
+
+  public static VisADGeometryArray makeText(String[] text_values,
+                TextControl text_control, float[][] spatial_values,
+                float[][] color_values, float[][] range_select)
+         throws VisADException { 
+    if (text_values == null || text_values.length == 0 ||
+        text_control == null) return null;
+    int n = text_values.length;
+    VisADLineArray[] as = new VisADLineArray[n];
+    boolean center = text_control.getCenter();
+    double size = text_control.getSize();
+    double[] start = new double[3];
+    double[] base = new double[] {size * FONT, 0.0, 0.0};
+    double[] up = new double[] {0.0, size * FONT, 0.0};
+    int k = 0;
+    for (int i=0; i<n; i++) {
+      if (range_select[0] == null || range_select[0].length == 1 ||
+          range_select[0][i] == range_select[0][i]) {
+/*
+System.out.println("makeText, i = " + i + " text = " + text_values[i] +
+                   " spatial_values = " + spatial_values[0][i] + " " +
+                   spatial_values[1][i] + " " + spatial_values[2][i]);
+*/
+        start = new double[] {spatial_values[0][i],
+                              spatial_values[1][i],
+                              spatial_values[2][i]};
+        as[k] = PlotText.render_label(text_values[i], start, base, up, center);
+        k++;
+      }
+    }
+    if (k == 0) return null;
+    VisADLineArray[] arrays = new VisADLineArray[k];
+    for (int i=0; i<k; i++) arrays[i] = as[i];
+    return VisADLineArray.merge(arrays);
   }
 
   /** composite and transform color and Alpha DisplayRealType values

@@ -34,7 +34,7 @@ import java.rmi.*;
    The ShadowRealTypeJ2D class shadows the RealType class,
    within a DataDisplayLink.<P>
 */
-public class ShadowRealTypeJ2D extends ShadowTypeJ2D {
+public class ShadowRealTypeJ2D extends ShadowScalarTypeJ2D {
 
   private Vector AccumulationVector = new Vector();
 
@@ -44,26 +44,6 @@ public class ShadowRealTypeJ2D extends ShadowTypeJ2D {
     super(type, link, parent);
     adaptedShadowType =
       new ShadowRealType(type, link, getAdaptedParent(parent));
-  }
-
-  public boolean getMappedDisplayScalar() {
-    return adaptedShadowType.getMappedDisplayScalar();
-  }
-
-  public DisplayTupleType getDisplaySpatialTuple() {
-    return ((ShadowRealType) adaptedShadowType).getDisplaySpatialTuple();
-  }
-
-  public int[] getDisplaySpatialTupleIndex() {
-    return ((ShadowRealType) adaptedShadowType).getDisplaySpatialTupleIndex();
-  }
-
-  public int getIndex() {
-    return ((ShadowRealType) adaptedShadowType).getIndex();
-  }
-
-  public Vector getSelectedMapVector() {
-    return ((ShadowRealType) adaptedShadowType).getSelectedMapVector();
   }
 
   /** clear AccumulationVector */
@@ -83,7 +63,7 @@ public class ShadowRealTypeJ2D extends ShadowTypeJ2D {
 
     if (!(data instanceof Real)) {
       throw new DisplayException("data must be Real: " +
-                                 "ShadowrealTypeJ2D.doTransform");
+                                 "ShadowRealTypeJ2D.doTransform");
     }
  
     // get some precomputed values useful for transform
@@ -120,6 +100,10 @@ public class ShadowRealTypeJ2D extends ShadowTypeJ2D {
     ShadowRealType[] RealComponents = {(ShadowRealType) adaptedShadowType};
     mapValues(display_values, value, RealComponents);
 
+    // get any text String and TextControl inherited from parent
+    String text_value = getParentText();
+    TextControl text_control = getParentTextControl();
+
     float[][] range_select =
       assembleSelect(display_values, 1, valueArrayLength,
                      valueToScalar, display);
@@ -132,9 +116,10 @@ public class ShadowRealTypeJ2D extends ShadowTypeJ2D {
     // add values to value_array according to SelectedMapVector
     if (adaptedShadowType.getIsTerminal()) {
       // cannot be any Reference when RealType is terminal
-      return terminalTupleOrReal(group, display_values, valueArrayLength,
-                                 valueToScalar, default_values,
-                                 inherited_values, renderer);
+      return terminalTupleOrScalar(group, display_values, text_value,
+                                   text_control, valueArrayLength,
+                                   valueToScalar, default_values,
+                                   inherited_values, renderer);
     }
     else {
       // nothing to render at a non-terminal RealType
@@ -149,7 +134,7 @@ public class ShadowRealTypeJ2D extends ShadowTypeJ2D {
       int LevelOfDifficulty = adaptedShadowType.getLevelOfDifficulty();
       if (LevelOfDifficulty == LEGAL) {
 /*
-        Group data_group = null;
+        VisADGroup data_group = null;
         // transform AccumulationVector
         group.addChild(data_group);
 */

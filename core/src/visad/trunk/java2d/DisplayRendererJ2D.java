@@ -485,7 +485,7 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
       // so control must be null
       Control control = display.getControl(AnimationControlJ2D.class);
       if (control != null) return control;
-      else return new AnimationControlJ2D(display, map.getScalar());
+      else return new AnimationControlJ2D(display, (RealType) map.getScalar());
     }
     else if (type.equals(Display.SelectValue)) {
       return new ValueControlJ2D(display);
@@ -512,6 +512,9 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     }
     else if (type.equals(Display.Shape)) {
       return new ShapeControl(display);
+    }
+    else if (type.equals(Display.Text)) {
+      return new TextControl(display);
     }
     else {
       return null;

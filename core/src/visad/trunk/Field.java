@@ -78,6 +78,10 @@ public interface Field extends Function {
   public abstract double[][] getValues()
          throws VisADException, RemoteException;
  
+  /** get String values for Text components */
+  public String[][] getStringValues()
+         throws VisADException, RemoteException;
+
   /** get default range Unit-s for 'Flat' components */
   public abstract Unit[] getDefaultRangeUnits()
          throws VisADException, RemoteException;

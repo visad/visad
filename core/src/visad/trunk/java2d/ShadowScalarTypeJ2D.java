@@ -1,6 +1,6 @@
 
 //
-// ShadowRealType.java
+// ShadowScalarTypeJ2D.java
 //
 
 /*
@@ -23,20 +23,43 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-package visad;
+package visad.java2d;
+ 
+import visad.*;
 
 import java.util.*;
 import java.rmi.*;
 
 /**
-   The ShadowRealType class shadows the RealType class,
+   The ShadowScalarTypeJ2D class shadows the ScalarType class,
    within a DataDisplayLink.<P>
 */
-public class ShadowRealType extends ShadowScalarType {
+public abstract class ShadowScalarTypeJ2D extends ShadowTypeJ2D {
 
-  public ShadowRealType(MathType type, DataDisplayLink link, ShadowType parent)
-      throws VisADException, RemoteException {
+  public ShadowScalarTypeJ2D(MathType type, DataDisplayLink link,
+                           ShadowType parent)
+         throws VisADException, RemoteException {
     super(type, link, parent);
+  }
+
+  public boolean getMappedDisplayScalar() {
+    return adaptedShadowType.getMappedDisplayScalar();
+  }
+
+  public DisplayTupleType getDisplaySpatialTuple() {
+    return ((ShadowScalarType) adaptedShadowType).getDisplaySpatialTuple();
+  }
+
+  public int[] getDisplaySpatialTupleIndex() {
+    return ((ShadowScalarType) adaptedShadowType).getDisplaySpatialTupleIndex();
+  }
+
+  public int getIndex() {
+    return ((ShadowScalarType) adaptedShadowType).getIndex();
+  }
+
+  public Vector getSelectedMapVector() {
+    return ((ShadowScalarType) adaptedShadowType).getSelectedMapVector();
   }
 
 }

@@ -142,11 +142,6 @@ public interface Display extends Action {
   public final static DisplayRealType Flow2Z =
     new DisplayRealType("Flow2Z", true, -1.0, 1.0, 0.0, true);
 
-  /** shape display scalar
-      WLH - this should be a DisplayEnumeratedType */
-  public final static DisplayRealType Shape =
-    new DisplayRealType("Shape", false, 0.0, true);
-
   /** spatial offset display scalars */
   public final static DisplayRealType XAxisOffset =
     new DisplayRealType("XAxisOffset", false, -1.0, 1.0, 0.0, null, true);
@@ -154,6 +149,16 @@ public interface Display extends Action {
     new DisplayRealType("YAxisOffset", false, -1.0, 1.0, 0.0, null, true);
   public final static DisplayRealType ZAxisOffset =
     new DisplayRealType("ZAxisOffset", false, -1.0, 1.0, 0.0, null, true);
+
+  /** shape display scalar
+      WLH - this should be a DisplayEnumeratedType */
+  public final static DisplayRealType Shape =
+    new DisplayRealType("Shape", false, 0.0, true);
+ 
+  /** text display scalar
+      WLH - this should be a DisplayTextType */
+  public final static DisplayRealType Text =
+    new DisplayRealType("Text", true, true);
 
   /** point size and line width - ConstantMap only */
   public final static DisplayRealType LineWidth =
@@ -166,7 +171,7 @@ public interface Display extends Action {
     {XAxis, YAxis, ZAxis, Latitude, Longitude, Radius, List, Red, Green, Blue,
      RGB, RGBA, Hue, Saturation, Value, HSV, Cyan, Magenta, Yellow, CMY, Alpha,
      Animation, SelectValue, SelectRange, IsoContour, Flow1X, Flow1Y, Flow1Z,
-     Flow2X, Flow2Y, Flow2Z, Shape, XAxisOffset, YAxisOffset, ZAxisOffset,
+     Flow2X, Flow2Y, Flow2Z, XAxisOffset, YAxisOffset, ZAxisOffset, Shape, Text,
      LineWidth, PointSize};
 
 

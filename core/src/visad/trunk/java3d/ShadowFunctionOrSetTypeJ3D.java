@@ -142,6 +142,8 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       ((ShadowFunctionOrSetType) adaptedShadowType).getAnyFlow();
     boolean anyShape =
       ((ShadowFunctionOrSetType) adaptedShadowType).getAnyShape();
+    boolean anyText =
+      ((ShadowFunctionOrSetType) adaptedShadowType).getAnyText();
 
     if (anyShape) {
       throw new UnimplementedException("Shape not yet supported: " +
@@ -229,6 +231,18 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       ((ShadowFunctionOrSetType) adaptedShadowType).getDomainComponents();
 
     int alpha_index = display.getDisplayScalarIndex(Display.Alpha);
+
+    // array to hold values for Text mapping (can only be one)
+    String[] text_values = null;
+    // get any text String and TextControl inherited from parent
+    TextControl text_control = getParentTextControl();
+    String inherited_text = getParentText();
+    if (inherited_text != null) {
+      text_values = new String[domain_length];
+      for (int i=0; i<domain_length; i++) {
+        text_values[i] = inherited_text;
+      }
+    }
 
     boolean isTextureMap = adaptedShadowType.getIsTextureMap() &&
                            default_values[alpha_index] > 0.99 &&
@@ -564,6 +578,42 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
         // FREE
         range_values = null;
       } // end if (range_values != null)
+
+      if (anyText && text_values == null) {
+        String[][] string_values = ((Field) data).getStringValues();
+        if (string_values != null) {
+          int[] textIndices = ((FunctionType) getType()).getTextIndices();
+          int n = string_values.length;
+          if (Range instanceof ShadowTextTypeJ3D) {
+            Vector maps = ((ShadowTextTypeJ3D) Range).getSelectedMapVector();
+            if (!maps.isEmpty()) {
+              text_values = string_values[0];
+              ScalarMap map = (ScalarMap) maps.firstElement();
+              text_control = (TextControl) map.getControl();
+/*
+System.out.println("Range is ShadowTextTypeJ3D, text_values[0] = " +
+                   text_values[0] + " n = " + n);
+*/
+            }
+          }
+          else if (Range instanceof ShadowTupleTypeJ3D) {
+            for (int i=0; i<n; i++) {
+              ShadowTextTypeJ3D text = (ShadowTextTypeJ3D)
+                ((ShadowTupleTypeJ3D) Range).getComponent(textIndices[i]);
+              Vector maps = text.getSelectedMapVector();
+              if (!maps.isEmpty()) {
+                text_values = string_values[i];
+                ScalarMap map = (ScalarMap) maps.firstElement();
+                text_control = (TextControl) map.getControl();
+/*
+System.out.println("Range is ShadowTupleTypeJ3D, text_values[0] = " +
+                   text_values[0] + " n = " + n + " i = " + i);
+*/
+              }
+            }
+          } // end if (Range instanceof ShadowTupleTypeJ3D)
+        } // end if (string_values != null)
+      } // end if (anyText)
     } // end if (this instanceof ShadowFunctionTypeJ3D)
 
     //
@@ -761,9 +811,8 @@ System.out.println("replicate alpha = " + v + " " + constant_alpha +
         // SelectRange here
         //
         // TO_DO
-        // Flow rendering
-        // Flow will be tricky - FlowControl must contain trajectory
-        // start points
+        // Flow rendering trajectories, which will be tricky -
+        // FlowControl must contain trajectory start points
         //
 
 /* MISSING TEST
@@ -790,6 +839,21 @@ END MISSING TEST */
                            " pointMode = " + pointMode);
 */
         VisADGeometryArray array;
+        boolean anyTextCreated = false;
+        if (anyText && text_values != null && text_control != null) {
+          array = makeText(text_values, text_control, spatial_values,
+                           color_values, range_select);
+          if (array != null) {
+            if (array.vertexCount > 0) {
+              GeometryArray geometry = display.makeGeometry(array);
+              appearance = makeAppearance(mode, constant_alpha,
+                                        constant_color, geometry);
+              Shape3D shape = new Shape3D(geometry, appearance);
+              group.addChild(shape);
+            }
+            anyTextCreated = true;
+          }
+        }
         boolean anyFlowCreated = false;
         if (anyFlow) {
           // try Flow1
@@ -915,7 +979,7 @@ END MISSING TEST */
             } // end if (real.equals(Display.IsoContour) && not inherited)
           } // end for (int i=0; i<valueArrayLength; i++)
         } // end if (anyContour)
-        if (!anyContourCreated && !anyFlowCreated) {
+        if (!anyContourCreated && !anyFlowCreated && !anyTextCreated) {
           // MEM
           if (isTextureMap) {
             if (color_values == null) {
@@ -1454,7 +1518,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       // !SelectValue.isTransform, !Animation.isTransform
       //
       // may need to split ShadowType.checkAnimationOrValue
-      // Display.Animation has range (0.0, 1.0), is single
+      // Display.Animation has no range, is single
       // Display.Value has no range, is not single
       //
       // see Set.merge1DSets
@@ -1498,6 +1562,12 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       for (int i=0; i<domain_length; i++) {
         if (range_select[0] == null || range_select[0].length == 1 ||
             range_select[0][i] == range_select[0][i]) {
+          if (text_values != null && text_control != null) {
+            setText(text_values[i], text_control);
+          }
+          else {
+            setText(null, null);
+          }
           for (int j=0; j<valueArrayLength; j++) {
             if (display_values[j] != null) {
               if (display_values[j].length == 1) {

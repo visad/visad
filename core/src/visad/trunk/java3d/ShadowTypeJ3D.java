@@ -47,6 +47,10 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   transient private Data data; // from Link.getData()
   private ShadowTypeJ3D Parent;
 
+  // String and TextControl to pass on to children
+  String inheritedText = null;
+  TextControl inheritedTextControl = null;
+
   ShadowType adaptedShadowType;
 
   public ShadowTypeJ3D(MathType type, DataDisplayLink link,
@@ -72,6 +76,31 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   public ShadowRealType[] getComponents(ShadowType type, boolean doRef)
           throws VisADException {
     return adaptedShadowType.getComponents(type, doRef);
+  }
+
+  String getParentText() {
+    if (Parent != null && Parent.inheritedText != null &&
+        Parent.inheritedTextControl != null) {
+      return Parent.inheritedText;
+    }
+    else {
+      return null;
+    }
+  }
+ 
+  TextControl getParentTextControl() {
+    if (Parent != null && Parent.inheritedText != null &&
+        Parent.inheritedTextControl != null) {
+      return Parent.inheritedTextControl;
+    }
+    else {
+      return null;
+    }
+  }
+ 
+  void setText(String text, TextControl control) {
+    inheritedText = text;
+    inheritedTextControl = control;
   }
 
   public Data getData() {
@@ -105,32 +134,6 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   public int[] getValueIndices() {
     return adaptedShadowType.getValueIndices();
   }
-
-/*
-  public int getDirectManifoldDimension() {
-    return adaptedShadowType.getDirectManifoldDimension();
-  }
-
-  public boolean getIsDirectManipulation() {
-    return adaptedShadowType.getIsDirectManipulation();
-  }
-
-  public String getWhyNotDirect() {
-    return adaptedShadowType.getWhyNotDirect();
-  }
-
-  public int getAxisToComponent(int i) {
-    return adaptedShadowType.getAxisToComponent(i);
-  }
-
-  public ScalarMap getDirectMap(int i) {
-    return adaptedShadowType.getDirectMap(i);
-  }
-
-  public int getDomainAxis() {
-    return adaptedShadowType.getDomainAxis();
-  }
-*/
 
   /** checkIndices: check for rendering difficulty, etc */
   public int checkIndices(int[] indices, int[] display_indices,
@@ -266,9 +269,17 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   public static VisADGeometryArray makeFlow(float[][] flow_values,
                 float flowScale, float[][] spatial_values,
                 float[][] color_values, float[][] range_select)
-         throws VisADException { // J3D
+         throws VisADException {
     return ShadowType.makeFlow(flow_values, flowScale, spatial_values,
            color_values, range_select);
+  }
+
+  public static VisADGeometryArray makeText(String[] text_values,
+                TextControl text_control, float[][] spatial_values,
+                float[][] color_values, float[][] range_select)
+         throws VisADException {
+    return ShadowType.makeText(text_values, text_control, spatial_values,
+                               color_values, range_select);
   }
 
   /** composite and transform color and Alpha DisplayRealType values
@@ -292,10 +303,11 @@ public abstract class ShadowTypeJ3D extends ShadowType {
            valueArrayLength, valueToScalar, display);
   }
 
-  boolean terminalTupleOrReal(Group group, float[][] display_values,
-                              int valueArrayLength, int[] valueToScalar,
-                              float[] default_values, int[] inherited_values,
-                              DataRenderer renderer)
+  boolean terminalTupleOrScalar(Group group, float[][] display_values,
+                                String text_value, TextControl text_control,
+                                int valueArrayLength, int[] valueToScalar,
+                                float[] default_values, int[] inherited_values,
+                                DataRenderer renderer)
           throws VisADException, RemoteException {
  
     GraphicsModeControl mode = (GraphicsModeControl)
@@ -306,7 +318,6 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     float lineWidth =
       default_values[display.getDisplayScalarIndex(Display.LineWidth)];
     mode.setLineWidth(lineWidth, true);
-
  
     float[][] flow1_values = new float[3][];
     float[][] flow2_values = new float[3][];
@@ -370,6 +381,22 @@ public abstract class ShadowTypeJ3D extends ShadowType {
       Appearance appearance;
       Shape3D shape;
 
+      boolean anyTextCreated = false;
+      if (text_value != null && text_control != null) {
+        String[] text_values = {text_value};
+        array = makeText(text_values, text_control, spatial_values,
+                         color_values, range_select);
+        if (array != null) {
+          if (array.vertexCount > 0) {
+            geometry = display.makeGeometry(array);
+            appearance = makeAppearance(mode, null, constant_color, geometry);
+            shape = new Shape3D(geometry, appearance);
+            group.addChild(shape);
+          }
+        }
+        anyTextCreated = true;
+      }
+
       boolean anyFlowCreated = false;
       // try Flow1
       array = makeFlow(flow1_values, flowScale[0], spatial_values,
@@ -396,7 +423,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
         anyFlowCreated = true;
       }
 
-      if (!anyFlowCreated) {
+      if (!anyFlowCreated && !anyTextCreated) {
         array = makePointGeometry(spatial_values, null);
         if (array != null && array.vertexCount > 0) {
           geometry = display.makeGeometry(array);

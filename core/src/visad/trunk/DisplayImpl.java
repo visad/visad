@@ -50,7 +50,8 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
   /** a Vector of ConstantMap objects */
   private Vector ConstantMapVector = new Vector();
 
-  /** a Vector of RealType objects occuring in MapVector */
+  /** a Vector of RealType (and TextType) objects occuring
+      in MapVector */
   private Vector RealTypeVector = new Vector();
 
   /** a Vector of DisplayRealType objects occuring in MapVector */
@@ -562,11 +563,11 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     return RealTypeVector.size();
   }
 
-  public RealType getScalar(int index) {
-    return (RealType) RealTypeVector.elementAt(index);
+  public ScalarType getScalar(int index) {
+    return (ScalarType) RealTypeVector.elementAt(index);
   }
 
-  public int getScalarIndex(RealType real) throws RemoteException {
+  public int getScalarIndex(ScalarType real) throws RemoteException {
     return RealTypeVector.indexOf(real);
   }
 
@@ -608,18 +609,19 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       }
       else { // !(map instanceof ConstantMap)
         // add to RealTypeVector and set ScalarIndex
-        RealType real = map.getScalar();
+        ScalarType real = map.getScalar();
         DisplayRealType dreal = map.getDisplayScalar();
         synchronized (MapVector) {
           Enumeration maps = MapVector.elements();
           while(maps.hasMoreElements()) {
             ScalarMap map2 = (ScalarMap) maps.nextElement();
-            if (real == map2.getScalar() && dreal == map2.getDisplayScalar()) {
+            if (real.equals(map2.getScalar()) &&
+                dreal.equals(map2.getDisplayScalar())) {
               throw new BadMappingException("Display.addMap: two ScalarMaps " +
                                      "with the same RealType & DisplayRealType");
             }
-            if (dreal == Display.Animation &&
-                map2.getDisplayScalar() == Display.Animation) {
+            if (dreal.equals(Display.Animation) &&
+                map2.getDisplayScalar().equals(Display.Animation)) {
               throw new BadMappingException("Display.addMap: two RealTypes " +
                                             "are mapped to Animation");
             }
@@ -635,7 +637,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
         }
         map.setScalarIndex(index);
         map.setControl();
-      }
+      } // end !(map instanceof ConstantMap)
       addDisplayScalar(map);
     }
   }

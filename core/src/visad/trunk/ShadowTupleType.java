@@ -69,7 +69,7 @@ public class ShadowTupleType extends ShadowType {
            !(shadow instanceof ShadowRealTupleType)) ) {
         if (mappedComponent) Flat = false;
       }
-      else if (shadow instanceof ShadowRealType ||
+      else if (shadow instanceof ShadowScalarType ||
                shadow instanceof ShadowRealTupleType) {
         // treat ShadowRealTupleType component as
         // a set of ShadowRealType components
@@ -84,15 +84,15 @@ public class ShadowTupleType extends ShadowType {
     return RealComponents;
   }
 
-  // copy and increment indices for each ShadowRealType component and
+  // copy and increment indices for each ShadowScalarType component and
   // each ShadowRealType component of a ShadowRealTupleType component
   int[] sumIndices(int[] indices) {
     int[] local_indices = copyIndices(indices);
     int n = tupleComponents.length;
     for (int j=0; j<n; j++) {
       ShadowType shadow = (ShadowType) tupleComponents[j];
-      if (shadow instanceof ShadowRealType) {
-        ((ShadowRealType) shadow).incrementIndices(local_indices);
+      if (shadow instanceof ShadowScalarType) {
+        ((ShadowScalarType) shadow).incrementIndices(local_indices);
       }
       else if (shadow instanceof ShadowRealTupleType) {
         // treat ShadowRealTupleType component as
@@ -104,13 +104,13 @@ public class ShadowTupleType extends ShadowType {
     return local_indices;
   }
 
-  /** add DisplayIndices (from each ShadowRealType and
+  /** add DisplayIndices (from each ShadowScalarType and
       ShadowRealTupleType component) */
   int[] sumDisplayIndices(int[] display_indices) throws VisADException {
     return addIndices(display_indices, DisplayIndices);
   }
 
-  /** add ValueIndices (from each ShadowRealType and
+  /** add ValueIndices (from each ShadowScalarType and
       ShadowRealTupleType component) */
   int[] sumValueIndices(int[] value_indices) throws VisADException {
     return addIndices(value_indices, ValueIndices);

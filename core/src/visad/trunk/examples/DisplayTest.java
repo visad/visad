@@ -104,6 +104,11 @@ public class DisplayTest extends Object {
     RealTupleType scatter = new RealTupleType(scatter_list);
     FunctionType scatter_function = new FunctionType(time_type, scatter);
 
+    TextType text = new TextType("text");
+    MathType[] mtypes = {RealType.Latitude, RealType.Longitude, text};
+    TupleType text_tuple = new TupleType(mtypes);
+    FunctionType text_function = new FunctionType(RealType.Time, text_tuple);
+
     FunctionType ftype;
     RealTupleType dtype;
     RealType rtype;
@@ -172,14 +177,17 @@ public class DisplayTest extends Object {
         System.out.println("  34: direct manipulation in Java2D");
         System.out.println("  35: direct manipulation linking Java2D and Java3D");
         System.out.println("  36: polar coordinates in Java2D");
-        System.out.println("  37 swap: colored contours from regular grids "
-                            +"and ContourWidget in Java2D");
+        System.out.println("  37 swap: colored contours from regular grids " +
+                           "and ContourWidget in Java2D");
         System.out.println("  38: colored contours from irregular grids in Java2D");
         System.out.println("  39: color array and ColorWidget in Java2D");
         System.out.println("  40: polar direct manipulation in Java2D");
         System.out.println("  41: image / contour alignment in Java2D");
         System.out.println("  42: image / contour alignment in Java3D");
-        System.out.println("  43: Function.derivative test with Linear2DSet in Java2D");
+        System.out.println("  43: Function.derivative test with Linear2DSet " +
+                           "in Java2D");
+        System.out.println("  44: text in Java2D");
+        System.out.println("  45: text in Java3D");
 
         return;
 
@@ -2178,6 +2186,94 @@ public class DisplayTest extends Object {
         big_panel.add(display2.getComponent());
         jframe.setContentPane(big_panel);
         jframe.setSize(800, 400);
+        jframe.setVisible(true);
+
+        break;
+
+      case 44:
+
+        System.out.println(test_case + ": test text in Java2D");
+
+        String[] names = {"aaa", "bbbb", "ccccc", "defghi"};
+        ntimes1 = names.length;
+        time_set =
+          new Linear1DSet(time_type, 0.0, (double) (ntimes1 - 1.0), ntimes1);
+
+        FieldImpl text_field = new FieldImpl(text_function, time_set);
+
+        for (int i=0; i<ntimes1; i++) {
+          Data[] td = {new Real(RealType.Latitude, (double) i),
+                       new Real(RealType.Longitude, (double) (ntimes1 - i)),
+                       new Text(text, names[i])};
+
+          Tuple tt = new Tuple(text_tuple, td);
+          text_field.setSample(i, tt);
+        }
+
+        display1 = new DisplayImplJ2D("display1");
+     
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+        display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+        ScalarMap text_map = new ScalarMap(text, Display.Text);
+        display1.addMap(text_map);
+        TextControl text_control = (TextControl) text_map.getControl();
+        text_control.setSize(0.75);
+        text_control.setCenter(true);
+
+        DataReferenceImpl ref_text_field =
+          new DataReferenceImpl("ref_text_field");
+        ref_text_field.setData(text_field);
+        display1.addReference(ref_text_field, null);
+
+        jframe = new JFrame("text in Java2D");
+        jframe.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+ 
+        jframe.setContentPane((JPanel) display1.getComponent());
+        jframe.setSize(256, 256);
+        jframe.setVisible(true);
+
+        break;
+
+      case 45:
+
+        System.out.println(test_case + ": test text in Java3D");
+
+        names = new String[] {"aaa", "bbbb", "ccccc", "defghi"};
+        ntimes1 = names.length;
+        time_set =
+          new Linear1DSet(time_type, 0.0, (double) (ntimes1 - 1.0), ntimes1);
+
+        text_field = new FieldImpl(text_function, time_set);
+
+        for (int i=0; i<ntimes1; i++) {
+          Data[] td = {new Real(RealType.Latitude, (double) i),
+                       new Real(RealType.Longitude, (double) (ntimes1 - i)),
+                       new Text(text, names[i])};
+
+          Tuple tt = new Tuple(text_tuple, td);
+          text_field.setSample(i, tt);
+        }
+
+        display1 = new DisplayImplJ3D("display1");
+     
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+        display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+        display1.addMap(new ScalarMap(text, Display.Text));
+
+        ref_text_field =
+          new DataReferenceImpl("ref_text_field");
+        ref_text_field.setData(text_field);
+        display1.addReference(ref_text_field, null);
+
+        jframe = new JFrame("text in Java3D");
+        jframe.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+ 
+        jframe.setContentPane((JPanel) display1.getComponent());
+        jframe.setSize(256, 256);
         jframe.setVisible(true);
 
         break;

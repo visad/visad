@@ -127,6 +127,15 @@ public class RemoteFieldImpl extends RemoteFunctionImpl
     return ((FieldImpl) AdaptedData).getValues();
   }
  
+  public String[][] getStringValues()
+         throws VisADException, RemoteException {
+    if (AdaptedData == null) {
+      throw new RemoteVisADException("RemoteFieldImpl.getStringValues: " +
+                                     "AdaptedData is null");
+    }
+    return ((FieldImpl) AdaptedData).getStringValues();
+  }
+
   public Unit[] getDefaultRangeUnits() 
          throws VisADException, RemoteException {
     if (AdaptedData == null) {

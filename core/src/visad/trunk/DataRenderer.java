@@ -824,7 +824,7 @@ System.out.println("checkClose: distance = " + distance);
         d = getDirectMap(k).inverseScaleValues(f);
         // create location string
         float g = (float) d[0];
-        RealType rtype = getDirectMap(k).getScalar();
+        RealType rtype = (RealType) getDirectMap(k).getScalar();
         vect.addElement(rtype.getName() + " = " + g);
         // convert domain value to domain index
         Gridded1DSet set = (Gridded1DSet) ((Field) data).getDomainSet();
@@ -870,7 +870,7 @@ System.out.println("checkClose: distance = " + distance);
             d = getDirectMap(i).inverseScaleValues(f);
             // create location string
             g = (float) d[0];
-            rtype = getDirectMap(i).getScalar();
+            rtype = (RealType) getDirectMap(i).getScalar();
             vect.addElement(rtype.getName() + " = " + g);
             thisD[j] = d[0];
             directComponent[j] = true;

@@ -242,6 +242,12 @@ public abstract class DataImpl extends ThingImpl
     throw new TypeException("DataImpl: unary");
   }
 
+  /* WLH 5 Sept 98 */
+  public Data changeMathType(MathType new_type)
+         throws VisADException, RemoteException {
+    return unary(NOP, new_type, NEAREST_NEIGHBOR, NO_ERRORS);
+  }
+
   /** a list of unary operations using default modes for
       sampling and error estimation */
   public Data abs() throws VisADException, RemoteException {

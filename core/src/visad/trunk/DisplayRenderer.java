@@ -189,7 +189,7 @@ public abstract class DisplayRenderer extends Object {
             }
             double[] dval = map.inverseScaleValues(fval);
             float f = (float) dval[0];
-            RealType real = map.getScalar();
+            RealType real = (RealType) map.getScalar();
             String s = real.getName() + " = " + f;
             Unit unit = real.getDefaultUnit();
             if (unit != null) {

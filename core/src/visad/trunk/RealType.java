@@ -348,6 +348,7 @@ public class RealType extends ScalarType {
       case Data.RINT:
       case Data.ROUND:
       case Data.NEGATE:
+      case Data.NOP:
         newType = this;
         break;
 

@@ -750,6 +750,13 @@ public class FlatField extends FieldImpl {
     return Unit.convertTuple(values, RangeUnits, units_out);
   }
 
+  /** get String values for Text components
+      (there are none for FlatFields) */
+  public String[][] getStringValues()
+         throws VisADException, RemoteException {
+    return null;
+  }
+
   /** get values for 'Flat' components in default range Unit-s */
   /*- TDR June 1998  */
   public double[] getValues( int s_index ) throws VisADException {
@@ -1972,6 +1979,11 @@ public class FlatField extends FieldImpl {
           for (i=0; i<Length; i++) {
             valuesJ[i] = -valuesJ[i];
           }
+          units_out[j] = RangeUnits[j];
+        }
+        break;
+      case NOP:
+        for (j=0; j<TupleDimension; j++) {
           units_out[j] = RangeUnits[j];
         }
         break;

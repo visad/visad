@@ -86,6 +86,7 @@ public interface Data extends Thing {
   final static int TAN = 39;
   final static int TAN_DEGREES = 40;
   final static int NEGATE = 41;
+  final static int NOP = 42;
 
   /** constants for angle Unit conversions */
   final static double RADIANS_TO_DEGREES = 180.0 / Math.PI;
@@ -181,6 +182,10 @@ public interface Data extends Thing {
   /*- TDR June 1998  */
   public abstract Data unary(int op, MathType new_type, int sampling_mode,
                              int error_mode )
+         throws VisADException, RemoteException;
+
+  /* WLH 5 Sept 98 */
+  public abstract Data changeMathType(MathType new_type)
          throws VisADException, RemoteException;
 
   /** a list of unary operations using default modes for

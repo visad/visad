@@ -489,6 +489,7 @@ public class ErrorEstimate extends Object implements java.io.Serializable {
       case Data.RINT: // nearest int, represented as a double
       case Data.ROUND: // round double to long
       case Data.NEGATE:
+      case Data.NOP:
         if (unit != null && a.unit != null && !unit.equals(a.unit)) {
           // apply Unit conversion to a Error and Mean
           error = Math.abs(unit.toThis(a.Mean + 0.5 * a.Error, a.unit) -

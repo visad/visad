@@ -36,7 +36,7 @@ import java.rmi.*;
    The ShadowRealTypeJ3D class shadows the RealType class,
    within a DataDisplayLink.<P>
 */
-public class ShadowRealTypeJ3D extends ShadowTypeJ3D {
+public class ShadowRealTypeJ3D extends ShadowScalarTypeJ3D {
 
   private Vector AccumulationVector = new Vector();
 
@@ -46,26 +46,6 @@ public class ShadowRealTypeJ3D extends ShadowTypeJ3D {
     super(type, link, parent);
     adaptedShadowType =
       new ShadowRealType(type, link, getAdaptedParent(parent));
-  }
-
-  public boolean getMappedDisplayScalar() {
-    return adaptedShadowType.getMappedDisplayScalar();
-  }
-
-  public DisplayTupleType getDisplaySpatialTuple() {
-    return ((ShadowRealType) adaptedShadowType).getDisplaySpatialTuple();
-  }
-
-  public int[] getDisplaySpatialTupleIndex() {
-    return ((ShadowRealType) adaptedShadowType).getDisplaySpatialTupleIndex();
-  }
-
-  public int getIndex() {
-    return ((ShadowRealType) adaptedShadowType).getIndex();
-  }
-
-  public Vector getSelectedMapVector() {
-    return ((ShadowRealType) adaptedShadowType).getSelectedMapVector();
   }
 
   /** clear AccumulationVector */
@@ -91,7 +71,7 @@ public class ShadowRealTypeJ3D extends ShadowTypeJ3D {
 
     if (!(data instanceof Real)) {
       throw new DisplayException("data must be Real: " +
-                                 "ShadowrealTypeJ3D.doTransform");
+                                 "ShadowRealTypeJ3D.doTransform");
     }
  
     // get some precomputed values useful for transform
@@ -128,6 +108,10 @@ public class ShadowRealTypeJ3D extends ShadowTypeJ3D {
     ShadowRealType[] RealComponents = {(ShadowRealType) adaptedShadowType};
     mapValues(display_values, value, RealComponents);
 
+    // get any text String and TextControl inherited from parent
+    String text_value = getParentText();
+    TextControl text_control = getParentTextControl();
+
     float[][] range_select =
       assembleSelect(display_values, 1, valueArrayLength,
                      valueToScalar, display);
@@ -141,9 +125,10 @@ public class ShadowRealTypeJ3D extends ShadowTypeJ3D {
     // add values to value_array according to SelectedMapVector
     if (adaptedShadowType.getIsTerminal()) {
       // cannot be any Reference when RealType is terminal
-      return terminalTupleOrReal(group, display_values, valueArrayLength,
-                                 valueToScalar, default_values,
-                                 inherited_values, renderer); // J3D
+      return terminalTupleOrScalar(group, display_values, text_value,
+                                   text_control, valueArrayLength,
+                                   valueToScalar, default_values,
+                                   inherited_values, renderer);
     }
     else {
       // nothing to render at a non-terminal RealType
@@ -154,7 +139,7 @@ public class ShadowRealTypeJ3D extends ShadowTypeJ3D {
 
   /** render accumulated Vector of value_array-s to
       and add to group; then clear AccumulationVector */
-  void postProcess(Group group) throws VisADException { // J3D
+  void postProcess(Group group) throws VisADException {
     if (adaptedShadowType.getIsTerminal()) {
       int LevelOfDifficulty = adaptedShadowType.getLevelOfDifficulty();
       if (LevelOfDifficulty == LEGAL) {

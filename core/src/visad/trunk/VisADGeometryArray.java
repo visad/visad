@@ -49,7 +49,8 @@ public class VisADGeometryArray extends VisADSceneGraphObject {
 
   static void merge(VisADGeometryArray[] arrays, VisADGeometryArray array)
          throws VisADException {
-    if (arrays == null || arrays.length == 0 || array == null) return;
+    if (arrays == null || arrays.length == 0 ||
+        arrays[0] == null || array == null) return;
     int n = arrays.length;
     int count = 0;
     boolean color_flag = (arrays[0].colors != null);

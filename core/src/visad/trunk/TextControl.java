@@ -1,6 +1,6 @@
 
 //
-// ShadowTextType.java
+// TextControl.java
 //
 
 /*
@@ -25,18 +25,52 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
-import java.util.*;
 import java.rmi.*;
+import java.awt.Font;
 
 /**
-   The ShadowTextType class shadows the TextType class,
-   within a DataDisplayLink.<P>
+   TextControl is the VisAD class for controlling Text display scalars.<P>
 */
-public class ShadowTextType extends ShadowScalarType {
+public class TextControl extends Control {
 
-  public ShadowTextType(MathType t, DataDisplayLink link, ShadowType parent)
-                 throws VisADException, RemoteException {
-    super(t, link, parent);
+  private Font font = null;
+
+  private boolean center = false;
+
+  private double size = 1.0;
+
+  public TextControl(DisplayImpl d) {
+    super(d);
+  }
+
+  public void setFont(Font f)
+         throws VisADException, RemoteException {
+    font = f;
+    changeControl(true);
+  }
+
+  public Font getFont() {
+    return font;
+  }
+
+  public void setCenter(boolean c)
+         throws VisADException, RemoteException {
+    center = c;
+    changeControl(true);
+  }
+
+  public boolean getCenter() {
+    return center;
+  }
+
+  public void setSize(double s)
+         throws VisADException, RemoteException {
+    size = s;
+    changeControl(true);
+  }
+ 
+  public double getSize() {
+    return size;
   }
 
 }

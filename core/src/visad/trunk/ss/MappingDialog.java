@@ -772,7 +772,10 @@ public class MappingDialog extends JDialog implements ActionListener,
         int col = e.getX() / 40;
         int row = e.getY() / 40;
         int ind = MathList.getSelectedIndex();
+/* WLH 5 September 98
         if (ind >= 0) {
+*/
+        if (ind >= 0 && row >= 0 && col >= 0 && row < 5 && col < 7) {
           Maps[ind][col][row] = !Maps[ind][col][row];
           if (Maps[ind][col][row]) {
             CurMaps.addElement(CurMapLabel[ind][col][row]);

@@ -38,7 +38,7 @@ import java.util.*;
 */
 public class ScalarMap extends Object implements java.io.Serializable {
 
-  private RealType Scalar;
+  private ScalarType Scalar;
   private DisplayRealType DisplayScalar;
 
   // index into Display.RealTypeVector
@@ -83,7 +83,7 @@ public class ScalarMap extends Object implements java.io.Serializable {
   /** Vector of ScalarMapListeners */
   private transient Vector ListenerVector = new Vector();
 
-  public ScalarMap(RealType scalar, DisplayRealType display_scalar)
+  public ScalarMap(ScalarType scalar, DisplayRealType display_scalar)
          throws VisADException {
     if (scalar == null && !(this instanceof ConstantMap)) {
       throw new DisplayException("ScalarMap: scalar is null");
@@ -93,6 +93,15 @@ public class ScalarMap extends Object implements java.io.Serializable {
     }
     if (display_scalar.equals(Display.List)) {
       throw new DisplayException("ScalarMap: display_scalar may not be List");
+    }
+    boolean text = display_scalar.getText();
+    if (text && !(scalar instanceof TextType)) {
+      throw new DisplayException("ScalarMap: RealType scalar cannot be " +
+                                 "used with TextType display_scalar");
+    }
+    if (!text && !(scalar instanceof RealType)) {
+      throw new DisplayException("ScalarMap: TextType scalar cannot be " +
+                                 "used with RealType display_scalar");
     }
     control = null;
     Scalar = scalar;
@@ -178,8 +187,8 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
     if (control != null) control.resetTicks();
   }
 
-  /** get the RealType that is the map domain */
-  public RealType getScalar() {
+  /** get the ScalarType that is the map domain */
+  public ScalarType getScalar() {
     return Scalar;
   }
 
@@ -289,7 +298,9 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
       dataRange[1] = shadow.ranges[1][i];
     }
     else if (unit_flag) {
-      Unit data_unit = Scalar.getDefaultUnit();
+      Unit data_unit =
+        (Scalar instanceof RealType) ? ((RealType) Scalar).getDefaultUnit() :
+                                       null;
       Unit display_unit = DisplayScalar.getDefaultUnit();
       if (data_unit == null || display_unit == null) {
         throw new UnitException("ScalarMap.setRangeByUnits: null Unit");

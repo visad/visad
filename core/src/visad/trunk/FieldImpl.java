@@ -142,15 +142,55 @@ public class FieldImpl extends FunctionImpl implements Field {
     return DomainCoordinateSystem;
   }
 
+  /** get String values for Text components */
+  public String[][] getStringValues()
+         throws VisADException, RemoteException {
+    TextType[] textComponents = ((FunctionType) Type).getTextComponents();
+    if (textComponents == null) return null;
+    int[] textIndices = ((FunctionType) Type).getTextIndices();
+    int n = textComponents.length;
+    int len = getLength();
+    String[][] values = new String[n][len];
+    if (isMissing()) {
+      for (int k=0; k<n; k++) {
+        for (int i=0; i<len; i++) values[k][i] = "";
+      }
+      return values;
+    }
+
+    MathType RangeType = ((FunctionType) Type).getRange();
+
+    synchronized (Range) {
+      for (int i=0; i<len; i++) {
+        Data range = Range[i];
+        if (range == null || range.isMissing()) {
+          for (int k=0; k<n; k++) values[k][i] = "";
+        }
+        else {
+          if (RangeType instanceof TextType) {
+            values[0][i] = ((Text) range).getValue();
+          }
+          else if (RangeType instanceof TupleType) {
+            for (int k=0; k<n; k++) {
+              Text t = (Text) ((Tuple) range).getComponent(textIndices[k]);
+              values[k][i] = t.getValue();
+            }
+          }
+        }
+      } // end for (int i=0; i<len; i++)
+    }
+    return values;
+  }
+
   /** get values for 'Flat' components in default range Unit-s */
   public double[][] getValues()
          throws VisADException, RemoteException {
     RealType[] realComponents = ((FunctionType) Type).getRealComponents();
     if (realComponents == null) return null;
     int n = realComponents.length;
-    double[][] values = new double[n][];
     Unit[] units = getDefaultRangeUnits();
     int len = getLength();
+    double[][] values = new double[n][len];
 
     if (isMissing()) {
       for (int k=0; k<n; k++) {

@@ -398,6 +398,10 @@ public class Real extends Scalar {
         value = -Value;
         u = unit;
         break;
+      case NOP:
+        value = Value;
+        u = unit;
+        break;
       default:
         throw new ArithmeticException("Real.unary: illegal operation");
     }
