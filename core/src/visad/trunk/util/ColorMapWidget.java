@@ -254,31 +254,11 @@ public class ColorMapWidget
    */
   private Panel buildButtons()
   {
-    Button apply = new Button("Apply") {
-        public Dimension getMinimumSize() {
-          return new Dimension(0, 18);
-        }
-        public Dimension getPreferredSize() {
-          return new Dimension(0, 18);
-        }
-        public Dimension getMaximumSize() {
-          return new Dimension(Integer.MAX_VALUE, 18);
-        }
-      };
+    Button apply = new Button("Apply");
     apply.setActionCommand("apply");
     apply.addActionListener(this);
 
-    Button undo = new Button("Undo") {
-        public Dimension getMinimumSize() {
-          return new Dimension(0, 18);
-        }
-        public Dimension getPreferredSize() {
-          return new Dimension(0, 18);
-        }
-        public Dimension getMaximumSize() {
-          return new Dimension(Integer.MAX_VALUE, 18);
-        }
-      };
+    Button undo = new Button("Undo");
     undo.setActionCommand("undo");
     undo.addActionListener(this);
 

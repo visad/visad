@@ -208,31 +208,11 @@ public class LabeledColorWidget
    */
   private Panel buildButtons()
   {
-    Button reset = new Button("Reset") {
-        public Dimension getMinimumSize() {
-          return new Dimension(0, 18);
-        }
-        public Dimension getPreferredSize() {
-          return new Dimension(0, 18);
-        }
-        public Dimension getMaximumSize() {
-          return new Dimension(Integer.MAX_VALUE, 18);
-        }
-      };
+    Button reset = new Button("Reset");
     reset.setActionCommand("reset");
     reset.addActionListener(this);
 
-    Button grey = new Button("Grey Scale") {
-        public Dimension getMinimumSize() {
-          return new Dimension(0, 18);
-        }
-        public Dimension getPreferredSize() {
-          return new Dimension(0, 18);
-        }
-        public Dimension getMaximumSize() {
-          return new Dimension(Integer.MAX_VALUE, 18);
-        }
-      };
+    Button grey = new Button("Grey Scale");
     grey.setActionCommand("grey");
     grey.addActionListener(this);
 
