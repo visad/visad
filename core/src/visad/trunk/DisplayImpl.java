@@ -720,6 +720,13 @@ System.out.println("badScale = " + badScale);
         }
         /* WLH 28 Oct 98 */
         if (transform_done) {
+          // WLH 19 March 99
+          AnimationControl control =
+            (AnimationControl) getControl(AnimationControl.class);
+          if (control != null) {
+            control.init();
+          }
+
           notifyListeners(DisplayEvent.TRANSFORM_DONE);
         }
 
@@ -972,7 +979,10 @@ System.out.println("badScale = " + badScale);
       Enumeration controls = ControlVector.elements();
       while(controls.hasMoreElements()) {
         Control control = (Control) controls.nextElement();
+/* WLH 19 March 99
         if (c.equals(control.getClass())) return control;
+*/
+        if (c.isInstance(control)) return control;
       }
     }
     return null;
@@ -1009,6 +1019,16 @@ System.out.println("badScale = " + badScale);
       }
     }
     catch(InterruptedException e) {
+    }
+  }
+
+  /** print a stack dump */
+  public static void printStack(String message) {
+    try {
+      throw new DisplayException("printStack: " + message);
+    }
+    catch (DisplayException e) {
+      e.printStackTrace();
     }
   }
 

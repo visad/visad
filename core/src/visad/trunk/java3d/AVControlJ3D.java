@@ -92,6 +92,7 @@ public abstract class AVControlJ3D extends Control implements AVControl {
       }
       if (0 <= indices[0] && indices[0] < ss.swit.numChildren()) {
         ss.swit.setWhichChild(indices[0]);
+        // DisplayImpl.printStack("child " + indices[0]);
 /*
 System.out.println("selectSwitches: ss.swit.setWhichChild(" +
                    indices[0] + ")");
@@ -100,6 +101,7 @@ System.out.println("ss.swit.numChildren() = " + ss.swit.numChildren());
       }
       else {
         ss.swit.setWhichChild(Switch.CHILD_NONE);
+        // DisplayImpl.printStack("CHILD_NONE");
 /*
 System.out.println("selectSwitches: ss.swit.setWhichChild(Switch.CHILD_NONE)");
 */

@@ -285,7 +285,7 @@ System.out.println("switchTransition: branches[" + i +
       2. if Data has not changed, then use Control.checkTicks loop like in
          prepareAction to determine which Control-s have changed */
   public abstract BranchGroup doTransform()
-         throws VisADException, RemoteException; // J3D
+         throws VisADException, RemoteException;
 
 }
 

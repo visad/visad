@@ -1144,20 +1144,27 @@ END MISSING TEST */
                       spatial_set.makeIsoLines(fvalues[1], fvalues[2], fvalues[3],
                                                fvalues[4], display_values[i],
                                                color_values, swap);
+// System.out.println("makeIsoLines");
                     if (arrays != null && arrays.length > 0 && arrays[0] != null &&
                         arrays[0].vertexCount > 0) {
                       shadow_api.addToGroup(group, arrays[0], mode,
                                             constant_alpha, constant_color);
                       arrays[0] = null;
                       if (bvalues[1] && arrays[2] != null) {
-                        // System.out.println("makeIsoLines with labels");
+/*
+System.out.println("makeIsoLines with labels arrays[2].vertexCount = " +
+                   arrays[2].vertexCount);
+*/
                         // draw labels
                         array = arrays[2];
                         //  FREE
                         arrays = null;
                       }
                       else if ((!bvalues[1]) && arrays[1] != null) {
-                        // System.out.println("makeIsoLines without labels");
+/*
+System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
+                   arrays[1].vertexCount);
+*/
                         // fill in contour lines in place of labels
                         array = arrays[1];
                         //  FREE
