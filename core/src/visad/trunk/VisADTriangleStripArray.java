@@ -77,23 +77,23 @@ public class VisADTriangleStripArray extends VisADGeometryArray {
     }
 
     int len = coordinates.length / 3;
-    float[][] cs = new float[3][len];
+    double[][] cs = new double[3][len];
     int j = 0;
     for (int i=0; i<len; i++) {
       cs[0][i] = coordinates[j++];
       cs[1][i] = coordinates[j++];
       cs[2][i] = coordinates[j++];
     }
-    float[][] rs = coord_sys.fromReference(Set.copyFloats (cs));
+    double[][] rs = coord_sys.fromReference(Set.copyDoubles(cs));
     boolean[] test = new boolean[len];
     int last_i;
 
     // for TEST 0
-    float[] lengths = new float[len];
+    double[] lengths = new double[len];
     for (int i=0; i<len;  i++) lengths[i] = 0.0f;
-    float mean_length = 0.0f;
-    float var_length = 0.0f;
-    float max_length = 0.0f;
+    double mean_length = 0.0;
+    double var_length = 0.0;
+    double max_length = 0.0;
     int num_length = 0;
 
     boolean any_split = false;
@@ -149,16 +149,16 @@ public class VisADTriangleStripArray extends VisADGeometryArray {
         // true for bad segment
         test[i] = (0.01f < abratio) || (0.01f < acratio);
 /*
-        float bb = (b0 * b0 + b1 * b1 + b2 * b2);
-        float ab = (b0 * a0 + b1 * a1 + b2 * a2);
+        double bb = (b0 * b0 + b1 * b1 + b2 * b2);
+        double ab = (b0 * a0 + b1 * a1 + b2 * a2);
         // b = A projected onto B, as a signed fraction of B
-        float b = ab / bb;
+        double b = ab / bb;
         // c = (norm(A projected onto B) / norm(A)) ^ 2
-        float c = (ab * ab) / (aa * bb);
+        double c = (ab * ab) / (aa * bb);
         test[i] = !(0.5f < b && b < 2.0f && 0.5f < c);
 */
         // TEST 0
-        float cd = (cs[0][i+1] - cs[0][i]) * (cs[0][i+1] - cs[0][i]) +
+        double cd = (cs[0][i+1] - cs[0][i]) * (cs[0][i+1] - cs[0][i]) +
                    (cs[1][i+1] - cs[1][i]) * (cs[1][i+1] - cs[1][i]) +
                    (cs[2][i+1] - cs[2][i]) * (cs[2][i+1] - cs[2][i]);
         if (!test[i]) {
@@ -183,9 +183,9 @@ public class VisADTriangleStripArray extends VisADGeometryArray {
     // TEST 0
     if (num_length < 2) return this;
     mean_length = mean_length / num_length;
-    var_length = (float)
+    var_length = //(float)
       Math.sqrt((var_length - mean_length * mean_length) / num_length);
-    float limit_length = mean_length + LIMIT * var_length;
+    double limit_length = mean_length + LIMIT * var_length;
 
     if (max_length >= limit_length) {
       last_i = 0; // start i for each vertex strip
