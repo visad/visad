@@ -146,6 +146,17 @@ public abstract class CoordinateSystem extends Object
     return Set.doubleToFloat(val);
   }
 
+  public static boolean canConvert(RealTupleType out, CoordinateSystem coord_out,
+                                   RealTupleType in, CoordinateSystem coord_in) {
+    if (out == null) return (in == null);
+    if (out.equals(in)) return true;
+    RealTupleType ref_out = out;
+    if (coord_out != null) ref_out = coord_out.getReference();
+    RealTupleType ref_in = in;
+    if (coord_in != null) ref_in = coord_in.getReference();
+    return ref_out.equals(ref_in);
+  }
+
   /** transform coordinates between two RealTupleType-s;
       in, coord_in, units_in and errors_in are the Type, CoordinateSystem, Units
       and ErrorEstimates associated with value;
@@ -297,7 +308,7 @@ public abstract class CoordinateSystem extends Object
       }
       else { // !(ref_out.equals(ref_in)
 // WLH 4 July 2000 - should throw an Exception here -
-//                   but must test consequences
+//                   but breaks too many things, so don't do it
       }
     } // end if (!out.equals(in))
 
