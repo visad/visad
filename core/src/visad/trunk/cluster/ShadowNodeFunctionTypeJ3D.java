@@ -119,6 +119,9 @@ public class ShadowNodeFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       appearance.image_pixels =
         imagesX[i].getRGB(0, 0, appearance.image_width, appearance.image_height,
                           null, 0, appearance.image_width);
+      // according to logic in ShadowFunctionOrSetTypeJ3D.textureStackToGroup()
+      appearance.texture_width = imagesX[i].getWidth();
+      appearance.texture_height = imagesX[i].getHeight();
       branchX.addChild(appearance);
     }
     // client must construct branchXrev from VisADAppearances in branchX
@@ -140,6 +143,9 @@ public class ShadowNodeFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       appearance.image_pixels =
         imagesY[i].getRGB(0, 0, appearance.image_width, appearance.image_height, 
                           null, 0, appearance.image_width);
+      // according to logic in ShadowFunctionOrSetTypeJ3D.textureStackToGroup()
+      appearance.texture_width = imagesY[i].getWidth();
+      appearance.texture_height = imagesY[i].getHeight();
       branchY.addChild(appearance);
     }
     // client must construct branchYrev from VisADAppearances in branchY
@@ -162,6 +168,9 @@ public class ShadowNodeFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       appearance.image_pixels =
         imagesZ[i].getRGB(0, 0, appearance.image_width, appearance.image_height, 
                           null, 0, appearance.image_width);
+      // according to logic in ShadowFunctionOrSetTypeJ3D.textureStackToGroup()
+      appearance.texture_width = imagesZ[i].getWidth();
+      appearance.texture_height = imagesZ[i].getHeight();
       branchZ.addChild(appearance);
     }
     // client must construct branchZrev from VisADAppearances in branchZ

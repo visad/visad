@@ -138,6 +138,7 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
     }
 
     String message = "transform";
+    // responses are VisADGroups
     Serializable[] responses =
       focus_agent.broadcastWithResponses(message, contacts);
 
@@ -166,6 +167,8 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
     return branch;
   }
 
+  /* convert from VisAD scene graph to Java3D scene graph
+     and rebuild images and volumes */
   public Node convertSceneGraph(VisADSceneGraphObject scene)
          throws VisADException {
     if (scene instanceof VisADSwitch) {
