@@ -34,6 +34,9 @@ public class VisADSwitch extends VisADGroup {
 
   private int which = -1;
 
+  // used by visad.cluster.ShadowNodeFunctionTypeJ3D to store
+  // Set for Animation VisADSwitch
+  // null to indicate volume rendering VisADSwitch
   private Set set = null;
 
   public VisADSwitch() {
@@ -60,6 +63,10 @@ public class VisADSwitch extends VisADGroup {
 
   public void setSet(Set s) {
     set = s;
+  }
+
+  public Set GetSet() {
+    return set;
   }
 
 }
