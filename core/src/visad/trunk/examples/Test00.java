@@ -142,7 +142,7 @@ public class Test00
 
   String getFrameTitle() { return "Java3D direct manipulation"; }
 
-  public String toString() { return ": direct manipulation"; }
+  public String toString() { return ": direct manipulation and Mouse options"; }
 
   public static void main(String[] args)
     throws RemoteException, VisADException
