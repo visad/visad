@@ -114,6 +114,7 @@ public class RubberBandBoxRendererJ3D extends DirectManipulationRendererJ3D {
 
   private float[][] first_x;
   private float[][] last_x;
+  private float[][] clast_x;
   private float cum_lon;
 
   /** possible values for whyNotDirect */
@@ -402,6 +403,10 @@ public class RubberBandBoxRendererJ3D extends DirectManipulationRendererJ3D {
 
     try {
       float r = findRayManifoldIntersection(true, origin, direction);
+      if (r != r) {
+        if (group != null) group.detach();
+        return;
+      }
       float[][] xx = {{(float) (origin[0] + r * direction[0])},
                       {(float) (origin[1] + r * direction[1])},
                       {(float) (origin[2] + r * direction[2])}};
@@ -415,14 +420,14 @@ System.out.println("drag_direct x = " + xx[0][0] + " " + xx[1][0] + " " + xx[2][
         cum_lon = 0.0f;
       }
       else if (Display.DisplaySpatialSphericalTuple.equals(tuple)) {
-        float diff = xx[1][0] - last_x[1][0];
+        float diff = xx[1][0] - clast_x[1][0];
         if (diff > 180.0f) diff -= 360.0f;
         else if (diff < -180.0f) diff += 360.0f;
         cum_lon += diff;
         if (cum_lon > 360.0f) cum_lon -= 360.0f;
         else if (cum_lon < -360.0f) cum_lon += 360.0f;
       }
-      last_x = xx;
+      clast_x = xx;
 
       Vector vect = new Vector();
       f[0] = xx[xindex][0];
@@ -446,14 +451,13 @@ System.out.println("direction " + direction[0] + " " + direction[1] + " " + dire
         if (otherindex == 2) other_offset = 0.005f;
       }
 
-      float[][] clast_x = last_x;
+      last_x = new float[][] {{clast_x[0][0]}, {clast_x[1][0]}, {clast_x[2][0]}};
       if (Display.DisplaySpatialSphericalTuple.equals(tuple) && otherindex != 1) {
-        clast_x = new float[][] {{last_x[0][0]}, {last_x[1][0]}, {last_x[2][0]}};
-        if (clast_x[1][0] < first_x[1][0] && cum_lon > 0.0f) {
-          clast_x[1][0] += 360.0;
+        if (last_x[1][0] < first_x[1][0] && cum_lon > 0.0f) {
+          last_x[1][0] += 360.0;
         }
-        else if (clast_x[1][0] > first_x[1][0] && cum_lon < 0.0f) {
-          clast_x[1][0] -= 360.0;
+        else if (last_x[1][0] > first_x[1][0] && cum_lon < 0.0f) {
+          last_x[1][0] -= 360.0;
         }
       }
 
@@ -462,17 +466,17 @@ System.out.println("direction " + direction[0] + " " + direction[1] + " " + dire
       for (int i=0; i<EDGE; i++) {
         float a = ((float) i) / EDGE;
         float b = 1.0f - a;
-        c[xindex][i] = b * first_x[xindex][0] + a * clast_x[xindex][0];
+        c[xindex][i] = b * first_x[xindex][0] + a * last_x[xindex][0];
         c[yindex][i] = first_x[yindex][0];
         c[otherindex][i] = first_x[otherindex][0] + other_offset;
-        c[xindex][EDGE + i] = clast_x[xindex][0];
-        c[yindex][EDGE + i] = b * first_x[yindex][0] + a * clast_x[yindex][0];
+        c[xindex][EDGE + i] = last_x[xindex][0];
+        c[yindex][EDGE + i] = b * first_x[yindex][0] + a * last_x[yindex][0];
         c[otherindex][EDGE + i] = first_x[otherindex][0] + other_offset;
-        c[xindex][2 * EDGE + i] = b * clast_x[xindex][0] + a * first_x[xindex][0];
-        c[yindex][2 * EDGE + i] = clast_x[yindex][0];
+        c[xindex][2 * EDGE + i] = b * last_x[xindex][0] + a * first_x[xindex][0];
+        c[yindex][2 * EDGE + i] = last_x[yindex][0];
         c[otherindex][2 * EDGE + i] = first_x[otherindex][0] + other_offset;
         c[xindex][3 * EDGE + i] = first_x[xindex][0];
-        c[yindex][3 * EDGE + i] = b * clast_x[yindex][0] + a * first_x[yindex][0];
+        c[yindex][3 * EDGE + i] = b * last_x[yindex][0] + a * first_x[yindex][0];
         c[otherindex][3 * EDGE + i] = first_x[otherindex][0] + other_offset;
       }
       c[0][npoints - 1] = c[0][0];
