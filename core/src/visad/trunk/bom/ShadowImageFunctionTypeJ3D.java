@@ -459,6 +459,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
         int[] tuple_index = new int[3];
         int[] spatial_value_indices = {-1, -1, -1};
+        ScalarMap[] spatial_maps = new ScalarMap[3];
 
         DisplayTupleType spatial_tuple = null;
         for (int i=0; i<DC.length; i++) {
@@ -474,6 +475,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           // get spatial index
           tuple_index[i] = real.getTupleIndex();
           spatial_value_indices[tuple_index[i]] = map.getValueIndex();
+          spatial_maps[tuple_index[i]] = map;
           if (maps.hasMoreElements()) {
             throw new DisplayException("texture with multiple spatial: " +
                                        "ShadowImageFunctionTypeJ3D.doTransform");
@@ -481,8 +483,8 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         } // end for (int i=0; i<DC.length; i++)
         // get spatial index not mapped from domain_set
         tuple_index[2] = 3 - (tuple_index[0] + tuple_index[1]);
-        DisplayRealType real = (DisplayRealType)
-          Display.DisplaySpatialCartesianTuple.getComponent(tuple_index[2]);
+        DisplayRealType real =
+          (DisplayRealType) spatial_tuple.getComponent(tuple_index[2]);
         int value2_index = display.getDisplayScalarIndex(real);
         float value2 = default_values[value2_index];
         for (int i=0; i<valueArrayLength; i++) {
@@ -499,6 +501,12 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         spatial_values[tuple_index[2]] = new float[nn];
         for (int i=0; i<nn; i++) spatial_values[tuple_index[2]][i] = value2;
 
+        for (int i=0; i<3; i++) {
+          if (spatial_maps[i] != null) {
+            spatial_values[i] = spatial_maps[i].scaleValues(spatial_values[i]);
+          }
+        }
+
         if (spatial_tuple.equals(Display.DisplaySpatialCartesianTuple)) {
           renderer.setEarthSpatialDisplay(null, spatial_tuple, display,
                    spatial_value_indices, default_values, null);
@@ -514,6 +522,13 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
         coordinates = new float[3 * nn];
         k = 0;
+        for (int i=0; i<nn; i++) {
+          coordinates[k++] = spatial_values[0][i];
+          coordinates[k++] = spatial_values[1][i];
+          coordinates[k++] = spatial_values[2][i];
+        }
+/* OUT
+        k = 0;
         for (int j=0; j<nheight; j++) {
           for (int i=0; i<nwidth; i++) {
             int ij = is[i] + data_width * js[j];
@@ -522,6 +537,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
             coordinates[k++] = spatial_values[2][ij];
           }
         }
+*/
 
         boolean spatial_all_select = true;
         for (int i=0; i<3*nn; i++) {

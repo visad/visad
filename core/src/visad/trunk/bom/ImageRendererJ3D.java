@@ -41,8 +41,8 @@ import java.rmi.*;
 */
 public class ImageRendererJ3D extends DefaultRendererJ3D {
 
-  private MathType image_sequence_type;
-  private MathType image_type;
+  private MathType image_sequence_type, image_type;
+  private MathType image_sequence_type2, image_type2;
   private boolean sequence;
 
   /** this DataRenderer supports fast loading of images and image
@@ -53,6 +53,9 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
       image_type =
         MathType.stringToType("((ImageElement, ImageLine) -> ImageValue)");
       image_sequence_type = new FunctionType(RealType.Time, image_type);
+      image_type2 =
+        MathType.stringToType("((ImageElement, ImageLine) -> (ImageValue))");
+      image_sequence_type2 = new FunctionType(RealType.Time, image_type);
     }
     catch (VisADException e) {
       throw new VisADError(e.getMessage());
@@ -72,10 +75,12 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
   public BranchGroup doTransform() throws VisADException, RemoteException { 
     DataDisplayLink link = getLinks()[0];
     MathType mtype = link.getType();
-    if (image_sequence_type.equalsExceptName(mtype)) { 
+    if (image_sequence_type.equalsExceptName(mtype) || 
+        image_sequence_type2.equalsExceptName(mtype)) { 
       sequence = true;
     }
-    else if (image_type.equalsExceptName(mtype)) {
+    else if (image_type.equalsExceptName(mtype) ||
+             image_type2.equalsExceptName(mtype)) {
       sequence = false;
     }
     else {

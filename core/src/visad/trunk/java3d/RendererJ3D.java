@@ -258,10 +258,10 @@ System.out.println(getLinks()[0].getThingReference().getName());
   public BranchGroup getBranch() {
     synchronized (this) {
       if (branchNonEmpty[currentIndex]) {
-        return null;
+        return (BranchGroup) branches[currentIndex].getChild(0);
       }
       else {
-        return (BranchGroup) branches[currentIndex].getChild(0);
+        return null;
       }
     }
   }
