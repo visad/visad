@@ -120,7 +120,7 @@ public class Test12
 	throws VisADException, RemoteException
   {
     ScalarMap color1map = (ScalarMap )dpys[0].getMapVector().lastElement();
-    return new LabeledColorWidget(color1map, 0.0f, 32.0f);
+    return new LabeledColorWidget(color1map);
   }
 
   public String toString() { return ": 2-D surface and ColorWidget"; }

@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: SimpleColorMapWidget.java,v 1.23 1999-09-20 17:27:57 dglo Exp $
+@(#) $Id: SimpleColorMapWidget.java,v 1.24 1999-09-20 19:17:25 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -40,7 +40,7 @@ import javax.swing.*;
  * RGB/RGBA tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.23 $, $Date: 1999-09-20 17:27:57 $
+ * @version $Revision: 1.24 $, $Date: 1999-09-20 19:17:25 $
  * @since Visad Utility Library v0.7.1
  */
 public class LabeledColorWidget
@@ -77,7 +77,7 @@ public class LabeledColorWidget
   public LabeledColorWidget(ScalarMap smap)
     throws VisADException, RemoteException
   {
-    this(smap, Float.NaN, Float.NaN, null, true);
+    this(smap, null, true);
   }
 
   /** this will be labeled with the name of smap's RealType and
@@ -85,11 +85,13 @@ public class LabeledColorWidget
       the range of RealType values (min, max) is mapped to color
       as defined by an interactive color widget;
       the DisplayRealType of smap must be Display.RGB or Display.RGBA
-      and should already be added to a Display */
+      and should already be added to a Display
+      @deprecated - 'min' and 'max' are ignored
+  */
   public LabeledColorWidget(ScalarMap smap, float min, float max)
     throws VisADException, RemoteException
   {
-    this(smap, min, max, null, true);
+    this(smap, null, true);
   }
 
   /** this will be labeled with the name of smap's RealType and
@@ -108,7 +110,7 @@ public class LabeledColorWidget
   public LabeledColorWidget(ScalarMap smap, float[][] table)
     throws VisADException, RemoteException
   {
-    this(smap, Float.NaN, Float.NaN, table, true);
+    this(smap, table, true);
   }
 
   /** this will be labeled with the name of smap's RealType and
@@ -118,12 +120,14 @@ public class LabeledColorWidget
       the color lookup table, organized as float[TABLE_SIZE][n]
       with values between 0.0f and 1.0f;
       the DisplayRealType of smap must be Display.RGB or Display.RGBA
-      and should already be added to a Display */
+      and should already be added to a Display
+      @deprecated - 'min' and 'max' are ignored
+  */
   public LabeledColorWidget(ScalarMap smap, float min, float max,
                             float[][] table)
     throws VisADException, RemoteException
   {
-    this(smap, min, max, table, true);
+    this(smap, table, true);
   }
 
   /** construct a LabeledColorWidget linked to the color control
@@ -131,8 +135,7 @@ public class LabeledColorWidget
       values (min, max), initial color table in format
       float[TABLE_SIZE][n] with values between 0.0f and 1.0f, and
       specified auto-scaling min and max behavior */
-  public LabeledColorWidget(ScalarMap smap, float min, float max,
-                            float[][] in_table, boolean update)
+  public LabeledColorWidget(ScalarMap smap, float[][] in_table, boolean update)
     throws VisADException, RemoteException
   {
     Control ctl = smap.getControl();
@@ -146,6 +149,10 @@ public class LabeledColorWidget
 
     String name = smap.getScalar().getName();
     float[][] table = table_reorg(in_table);
+
+    double[] range = smap.getRange();
+    float min = (float )range[0];
+    float max = (float )(range[1] + 1.0);
 
     // set up user interface
     ColorWidget c = new ColorWidget(new BaseRGBMap(table, components > 3));

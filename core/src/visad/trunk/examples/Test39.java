@@ -100,7 +100,7 @@ public class Test39
     lil_panel.add("Center", dpys[0].getComponent());
 
     ScalarMap color1map = (ScalarMap )dpys[0].getMapVector().lastElement();
-    LabeledColorWidget lw = new LabeledColorWidget(color1map, 0.0f, 32.0f);
+    LabeledColorWidget lw = new LabeledColorWidget(color1map);
 
     JPanel big_panel = new JPanel();
     big_panel.setLayout(new BoxLayout(big_panel, BoxLayout.Y_AXIS));

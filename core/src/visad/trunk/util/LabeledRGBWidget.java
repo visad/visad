@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: LabeledRGBWidget.java,v 1.20 1999-09-10 18:40:01 dglo Exp $
+@(#) $Id: LabeledRGBWidget.java,v 1.21 1999-09-20 19:17:26 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -42,7 +42,7 @@ import visad.VisADException;
  * RGB tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.20 $, $Date: 1999-09-10 18:40:01 $
+ * @version $Revision: 1.21 $, $Date: 1999-09-20 19:17:26 $
  * @since Visad Utility Library v0.7.1
  * @deprecated - use LabeledColorWidget
  */
@@ -78,7 +78,7 @@ public class LabeledRGBWidget
   public LabeledRGBWidget(ScalarMap smap, float min, float max)
     throws VisADException, RemoteException
   {
-    super(smap, min, max);
+    super(smap);
   }
 
   /** this will be labeled with the name of smap's RealType and
@@ -95,7 +95,7 @@ public class LabeledRGBWidget
                           float[][] table)
     throws VisADException, RemoteException
   {
-    super(smap, min, max, table);
+    super(smap, table);
   }
 
   /** construct a LabeledRGBWidget linked to the ColorControl
@@ -109,6 +109,6 @@ public class LabeledRGBWidget
                           float[][] table, boolean update)
     throws VisADException, RemoteException
   {
-    super(smap, min, max, table, update);
+    super(smap, table, update);
   }
 }

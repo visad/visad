@@ -593,8 +593,7 @@ public class Rain implements ActionListener, ControlListener {
     color_mapH1 = new ScalarMap(rangeH1, Display.RGB);
     DisplayImpl displayH1 = newDisplay("display_hidden_1");
     displayH1.addMap(color_mapH1);
-    color_widgetH1 = new LabeledColorWidget(color_mapH1, (float) MIN,
-                                                       (float) MAX);
+    color_widgetH1 = new LabeledColorWidget(color_mapH1);
     Dimension d = new Dimension(500, 170);
     color_widgetH1.setMaximumSize(d);
     color_mapH1.setRange(MIN, MAX);
@@ -651,8 +650,7 @@ public class Rain implements ActionListener, ControlListener {
     color_mapH2 = new ScalarMap(rangeH2, Display.RGB);
     DisplayImpl displayH2 = newDisplay("display_hidden_2");
     displayH2.addMap(color_mapH2);
-    color_widgetH2 = new LabeledColorWidget(color_mapH2, (float) MIN,
-                                                       (float) MAXH2);
+    color_widgetH2 = new LabeledColorWidget(color_mapH2);
 
     Dimension dH2 = new Dimension(500, 170);
     color_widgetH2.setMaximumSize(dH2);

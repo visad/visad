@@ -88,7 +88,7 @@ public class Test33
       table[2][i] = 0.5f;
     }
 
-    return new LabeledColorWidget(color1map, 0.0f, 32.0f, table);
+    return new LabeledColorWidget(color1map, table);
   }
 
   public String toString() { return ": ColorWidget with non-default table"; }
