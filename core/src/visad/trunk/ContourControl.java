@@ -122,20 +122,64 @@ public class ContourControl extends Control {
     d.addDisplayListener(zoom);
   }
 
+  /**
+   * set parameters for IsoContour depictions, if not already set
+   * @param  bvalues   must be dimensioned boolean[2], where
+   *         bvalues[0]  enable contours
+   *         bvalues[1]  enable labels (if applicable)
+   * @param  fvalues   must be dimensioned float[5], where
+   *         fvalues[0]  level for iso-surface
+   *         fvalues[1]  interval for iso-lines
+   *         fvalues[2]  low limit for iso-lines
+   *         fvalues[3]  high limit for iso-lines
+   *         fvalues[4]  base for iso-lines
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   void setMainContours(boolean[] bvalues, float[] fvalues)
          throws VisADException, RemoteException {
     setMainContours(bvalues, fvalues, false, false);
   }
 
-  /** changeControl(!noChange) to not trigger re-transform,
-      used by ScalarMap.setRange */
+  /**
+   * set parameters for IsoContour depictions, if not already set
+   * @param  bvalues   must be dimensioned boolean[2], where
+   *         bvalues[0]  enable contours
+   *         bvalues[1]  enable labels (if applicable)
+   * @param  fvalues   must be dimensioned float[5], where
+   *         fvalues[0]  level for iso-surface
+   *         fvalues[1]  interval for iso-lines
+   *         fvalues[2]  low limit for iso-lines
+   *         fvalues[3]  high limit for iso-lines
+   *         fvalues[4]  base for iso-lines
+   * @param  noChange  true to not trigger re-transform (false for
+   *                   auto-scale)
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   void setMainContours(boolean[] bvalues, float[] fvalues, boolean noChange)
          throws VisADException, RemoteException {
     setMainContours(bvalues, fvalues, noChange, false);
   }
 
-  /** changeControl(!noChange) to not trigger re-transform,
-      used by ScalarMap.setRange */
+  /**
+   * set parameters for IsoContour depictions
+   * @param  bvalues   must be dimensioned boolean[2], where
+   *         bvalues[0]  enable contours
+   *         bvalues[1]  enable labels (if applicable)
+   * @param  fvalues   must be dimensioned float[5], where
+   *         fvalues[0]  level for iso-surface
+   *         fvalues[1]  interval for iso-lines
+   *         fvalues[2]  low limit for iso-lines
+   *         fvalues[3]  high limit for iso-lines
+   *         fvalues[4]  base for iso-lines
+   * @param  noChange  true to not trigger re-transform (false for
+   *                   auto-scale)
+   * @param  override  true to set float values even if already set
+   *                   (i.e., not NaNs)
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   void setMainContours(boolean[] bvalues, float[] fvalues, boolean noChange,
                        boolean override)
          throws VisADException, RemoteException {
@@ -341,9 +385,10 @@ public class ContourControl extends Control {
     if (change) changeControl(true);
   }
 
-  // WLH 20 May 2003
-  /** return boolean indicating whether levels have
-      been set by other than auto-scale */
+  /**
+   * @return boolean indicating whether levels have
+   *                 been set by other than auto-scale
+   */
   public boolean getPublicSet() {
     return public_set;
   }
@@ -399,8 +444,15 @@ public class ContourControl extends Control {
     }
   }
 
-  /** get 'new' descriptors for 2-D contour lines;
-      lowhibase must be float[3], dashes must be boolean[1] */
+  /** get 'new' descriptors for 2-D contour lines
+   * @param lowhibase   must be dimensioned float[3], where
+   *        lowhibase[0]  used to return low limit
+   *        lowhibase[1]  used to return high limit
+   *        lowhibase[2]  used to return base
+   * @param dashed      must be dimensioned boolean[1], where
+   *        dashed[0]     used to return dash enable
+   * @return float[] array of levels for contour curves
+   */
   public synchronized float[] getLevels(float[] lowhibase, boolean[] dashes) {
     float[] levs = null;
     if (levels != null) {
@@ -414,7 +466,12 @@ public class ContourControl extends Control {
     return levs;
   }
 
-  /** set label enable to 'on' */
+  /**
+   * set label enable
+   * @param on  new value for label enable
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   public void enableLabels(boolean on)
          throws VisADException, RemoteException {
     boolean change;
@@ -433,7 +490,12 @@ public class ContourControl extends Control {
     if (change) changeControl(true);
   }
 
-  /** set contour enable to 'on' */
+  /** 
+   * set contour enable 
+   * @param on  new value for contour enable
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   public void enableContours(boolean on)
          throws VisADException, RemoteException {
     boolean change;
@@ -452,11 +514,19 @@ public class ContourControl extends Control {
     if (change) changeControl(true);
   }
 
-  /** get contour parameters: bvalues[0] = contour enable,
-      bvalues[1] = labels enable, fvalues[0] = surface level,
-      fvalues[1] = interval, fvalues[2] = low, fvalues[3] = hi,
-      fvalues[4] = base; bvalues and fvalues must be passed in
-      as boolean[2] and float[5] */
+  /**
+   * get parameters for IsoContour depictions
+   * @param  bvalues   must be dimensioned boolean[2], where
+   *         bvalues[0]  used to return contour enable
+   *         bvalues[1]  used to return label enable
+   * @param  fvalues   must be dimensioned float[5], where
+   *         fvalues[0]  used to return level for iso-surface
+   *         fvalues[1]  used to return interval for iso-lines
+   *         fvalues[2]  used to return low limit for iso-lines
+   *         fvalues[3]  used to return high limit for iso-lines
+   *         fvalues[4]  used to return base for iso-lines
+   * @throws VisADException  a VisAD error occurred
+   */
   public void getMainContours(boolean[] bvalues, float[] fvalues)
          throws VisADException {
     if (fvalues == null || fvalues.length != 5 ||
@@ -491,24 +561,43 @@ public class ContourControl extends Control {
     changeControl(true);
   }
 
+  /**
+   * @return contourFill enable
+   */
   public synchronized boolean contourFilled() {
     return contourFill;
   }
 
+  /**
+   * @return initial scale for label auto-size
+   */
   public static double getInitScale() {
     return init_scale;
   }
 
+  /**
+   * set enable for label auto-size
+   * @param flag  new value for label auto-size enable
+   */
   public void setAutoScaleLabels(boolean flag) {
     synchronized(this) {
       autoSizeLabels = flag;
     }
   }
 
+  /**
+   * @return label auto-size enable
+   */
   public boolean getAutoSizeLabels() {
     return autoSizeLabels;
   }
 
+  /**
+   * set size for label auto-size
+   * @param factor  new size for label auto-size
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
   public void setLabelSize(double factor)
          throws VisADException, RemoteException {
     synchronized(this) {
@@ -517,17 +606,27 @@ public class ContourControl extends Control {
     changeControl(true);
   }
 
+  /**
+   * @return size for label auto-size
+   */
   public double getLabelSize() {
     return labelSizeFactor;
   }
 
-  /** get a string that can be used to reconstruct this control later */
+  /**
+   * @return String representation of this ContourControl
+   */
   public synchronized String getSaveString() {
     return mainContours + " " + labels + " " + surfaceValue + " " +
       contourInterval + " " + lowLimit + " " + hiLimit + " " + base;
   }
 
-  /** reconstruct this control using the specified save string */
+  /**
+   * reconstruct this ContourControl using the specified save string
+   * @param save - String representation for reconstruction
+   * @throws VisADException if a VisAD error occurs
+   * @throws RemoteException if an RMI error occurs
+   */
   public void setSaveString(String save)
     throws VisADException, RemoteException
   {
@@ -541,13 +640,24 @@ public class ContourControl extends Control {
     setMainContours(b, f, false, true);
   }
 
-  public void addProjectionControlListener(ControlListener cl, ProjectionControl pcntrl)
+  /**
+   * remove previous projListener from pcntrl, and save cl as
+   * new projListener
+   * @param cl  new ControlListener for projListener
+   * @param pcntrl ProjectionControl
+   */
+  public void addProjectionControlListener(ControlListener cl,
+                                           ProjectionControl pcntrl)
   {
     pcntrl.removeControlListener(projListener);
     projListener = cl;
   }
 
-  /** copy the state of a remote control to this control */
+  /**
+   * copy the state of a remote control to this control
+   * @param rmt remote Control whose state is copied
+   * @throws VisADException if a VisAD error occurs
+   */
   public void syncControl(Control rmt)
         throws VisADException
   {
@@ -703,6 +813,11 @@ public class ContourControl extends Control {
     }
   }
 
+  /**
+   * Indicates whether or not this instance equals an Object
+   * @param o  an Object
+   * @return true if and only if this instance is equal to o
+   */
   public boolean equals(Object o)
   {
     if (!super.equals(o)) {
@@ -807,6 +922,9 @@ public class ContourControl extends Control {
     return true;
   }
 
+  /**
+   * @return a copy of this ContourControl
+   */
   public synchronized Object clone()
   {
     ContourControl cc = (ContourControl )super.clone();
@@ -817,6 +935,12 @@ public class ContourControl extends Control {
     return cc;
   }
 
+  /**
+   * if zoom scale has changed sufficiently, re-transform in
+   * order to recompute labels
+   * @throws VisADException if a VisAD error occurs
+   * @throws RemoteException if an RMI error occurs
+   */
   public void reLabel() 
          throws VisADException, RemoteException {   
     zoom.reLabel(ratio);

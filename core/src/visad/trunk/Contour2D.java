@@ -2713,178 +2713,11 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     t_idx[0] = tt;
   }
 
-  // APPLET SECTION
-
-  /*** run 'appletviewer contour.html' to test the Contour2D class.
-  public void init() {
-    this.addMouseListener(this);
-    con = new Contour2D();
-    con.rows = 0;
-    con.cols = 0;
-    con.scale = 0;
-    float intv = 0;
-    int mxv1 = 0;
-    int mxv2 = 0;
-    int mxv3 = 0;
-    int mxv4 = 0;
-    try {
-      String temp = new String("true");
-      con.showgrid = temp.equalsIgnoreCase(getParameter("showgrid"));
-      con.rows = Integer.parseInt(getParameter("rows"));
-      con.cols = Integer.parseInt(getParameter("columns"));
-      con.scale = Integer.parseInt(getParameter("scale"));
-      intv = Double.valueOf(getParameter("interval")).floatValue();
-      mxv1 = Integer.parseInt(getParameter("capacity1"));
-      mxv2 = Integer.parseInt(getParameter("capacity2"));
-      mxv3 = Integer.parseInt(getParameter("capacity3"));
-      mxv4 = Integer.parseInt(getParameter("capacity4"));
-    }
-    catch (Exception e) {
-      System.out.println("Contour2D.paint: applet parameter error: "+e);
-      System.exit(1);
-    }
-    float[] g = new float[con.rows*con.cols];
-    float mr = con.rows/2;
-    float mc = con.cols/2;
-    for (int i=0; i<con.rows; i++) {
-      for (int j=0; j<con.cols; j++) {
-        g[con.rows*j+i] = (float) Math.sqrt((i-mr)*(i-mr) + (j-mc)*(j-mc));
-      }
-    }
-    float low = 0;
-    float high = 100;
-    float base = 1;
-    con.num1 = new int[1];
-    con.num2 = new int[1];
-    con.num3 = new int[1];
-    con.num4 = new int[1];
-    con.vx1 = new float[1][mxv1];
-    con.vy1 = new float[1][mxv1];
-    con.vx2 = new float[1][mxv2];
-    con.vy2 = new float[1][mxv2];
-    con.vx3 = new float[1][mxv3];
-    con.vy3 = new float[1][mxv3];
-    con.vx4 = new float[1][mxv4];
-    con.vy4 = new float[1][mxv4];
-
-    float[][] tri = new float[2][];
-    byte[][] tri_color = new byte[3][];
-    float[][][] grd_normals = new float[3][][];
-    float[][] tri_normals = new float[1][];
-    byte[][] interval_colors = new byte[3][];
-    float[][][][] lbl_vv     = new float[4][][][];
-    byte[][][][] lbl_cc     = new byte[4][][][];
-    float[][][]  lbl_loc    = new float[3][][];
-    double       scale_ratio = 1;
-    double       label_size  = 1;
-    Gridded3DSet gset = null;
-    try {
-      boolean[] swap = {false, false, false};
-      float[] intervals = {.25f, .5f, 1.0f, 2.0f, 2.5f, 5.f, 10.f};
-//    con.contour(g, con.rows, con.cols, intervals, low, high, base, true,
-      con.contour(g, con.rows, con.cols, intv, low, high, base,
-                  con.vx1, con.vy1, mxv1, con.num1,
-                  con.vx2, con.vy2, mxv2, con.num2,
-                  con.vx3, con.vy3, mxv3, con.num3,
-                  con.vx4, con.vy4, mxv4, con.num4,
-                  null, null, null, null, swap, false, tri, tri_color,
-                  grd_normals, tri_normals, interval_colors, 
-                  lbl_vv, lbl_cc, lbl_loc, scale_ratio, label_size, gset);
-    }
-    catch (VisADException VE) {
-      System.out.println("Contour2D.init: "+VE);
-      System.exit(1);
-    }
-  }
-
-  public void mouseClicked(MouseEvent e) {
-    // cycle between hidden contours, labels, and backwards labels
-    con.whichlabels = (con.whichlabels+1)%5;
-    Graphics g = getGraphics();
-    if (g != null) {
-      paint(g);
-      g.dispose();
-    }
-  }
-
-  public void mousePressed(MouseEvent e) {;}
-  public void mouseReleased(MouseEvent e) {;}
-  public void mouseEntered(MouseEvent e) {;}
-  public void mouseExited(MouseEvent e) {;}
-
-  public void paint(Graphics gr) {
-    // draw grid dots if option is set
-    if (con.showgrid) {
-      gr.setColor(Color.blue);
-      for (int i=0; i<con.cols; i++) {
-        for (int j=0; j<con.rows; j++) {
-          gr.drawRect(con.scale*i, con.scale*j, 2, 2);
-        }
-      }
-    }
-    // draw main contour lines
-    gr.setColor(Color.black);
-    for (int i=0; i<con.num1[0]; i+=2) {
-      int v1 = (int) (con.scale*con.vy1[0][i]);
-      int v2 = (int) (con.scale*con.vx1[0][i]);
-      int v3 = (int) (con.scale*con.vy1[0][(i+1)%con.num1[0]]);
-      int v4 = (int) (con.scale*con.vx1[0][(i+1)%con.num1[0]]);
-      gr.drawLine(v1, v2, v3, v4);
-    }
-    for (int ix=-1; ix<1; ix++) {
-      if (ix<0) gr.setColor(Color.white); else gr.setColor(Color.black);
-      switch ((con.whichlabels+ix+5)%5) {
-        case 0: // hidden contours are exposed
-          for (int i=0; i<con.num2[0]; i+=2) {
-            int v1 = (int) (con.scale*con.vy2[0][i]);
-            int v2 = (int) (con.scale*con.vx2[0][i]);
-            int v3 = (int) (con.scale*con.vy2[0][(i+1)%con.num2[0]]);
-            int v4 = (int) (con.scale*con.vx2[0][(i+1)%con.num2[0]]);
-            gr.drawLine(v1, v2, v3, v4);
-          }
-          break;
-        case 1: // numbers cover hidden contours
-          for (int i=0; i<con.num3[0]; i+=2) {
-            int v1 = (int) (con.scale*con.vy3[0][i]);
-            int v2 = (int) (con.scale*con.vx3[0][i]);
-            int v3 = (int) (con.scale*con.vy3[0][(i+1)%con.num3[0]]);
-            int v4 = (int) (con.scale*con.vx3[0][(i+1)%con.num3[0]]);
-            gr.drawLine(v1, v2, v3, v4);
-          }
-          break;
-        case 2: // numbers cover hidden contours, backwards
-          for (int i=0; i<con.num4[0]; i+=2) {
-            int v1 = (int) (con.scale*con.vy4[0][i]);
-            int v2 = (int) (con.scale*con.vx3[0][i]);
-            int v3 = (int) (con.scale*con.vy4[0][(i+1)%con.num4[0]]);
-            int v4 = (int) (con.scale*con.vx3[0][(i+1)%con.num3[0]]);
-            gr.drawLine(v1, v2, v3, v4);
-          }
-          break;
-        case 3: // numbers cover hidden contours, upside-down
-          for (int i=0; i<con.num3[0]; i+=2) {
-            int v1 = (int) (con.scale*con.vy3[0][i]);
-            int v2 = (int) (con.scale*con.vx4[0][i]);
-            int v3 = (int) (con.scale*con.vy3[0][(i+1)%con.num3[0]]);
-            int v4 = (int) (con.scale*con.vx4[0][(i+1)%con.num4[0]]);
-            gr.drawLine(v1, v2, v3, v4);
-          }
-          break;
-        case 4: // numbers cover hidden contours, upside-down & backwards
-          for (int i=0; i<con.num3[0]; i+=2) {
-            int v1 = (int) (con.scale*con.vy4[0][i]);
-            int v2 = (int) (con.scale*con.vx4[0][i]);
-            int v3 = (int) (con.scale*con.vy4[0][(i+1)%con.num4[0]]);
-            int v4 = (int) (con.scale*con.vx4[0][(i+1)%con.num4[0]]);
-            gr.drawLine(v1, v2, v3, v4);
-          }
-      } // end switch
-    }
-  }
-  ****/
-
 } // end class
 
+/**
+   ContourStripSet is used internally by Contour2D
+*/
 class ContourStripSet {
 
   int     mxsize;
@@ -3211,6 +3044,9 @@ class ContourStripSet {
   }
 }
 
+/**
+   ContourStrip is used internally by Contour2D
+*/
 class ContourStrip {
 
   int[] idx_array;

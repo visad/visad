@@ -30,7 +30,8 @@ import java.util.*;
 import java.rmi.*;
 
 /**
-   Control is the VisAD superclass for controls for DisplayRealTypes.<P>
+   Control is the abstract VisAD superclass for controls for
+   DisplayRealTypes.<P>
 */
 public abstract class Control extends Object
        implements Cloneable, java.io.Serializable {
@@ -55,6 +56,10 @@ public abstract class Control extends Object
   /** Vector of ControlListeners */
   private transient Vector ListenerVector = new Vector();
 
+  /**
+   * construct a Control for the given DisplayImpl
+   * @param d - DisplayImpl this Control is associated with
+   */
   public Control(DisplayImpl d) {
     OldTick = Long.MIN_VALUE;
     NewTick = Long.MIN_VALUE + 1;
@@ -64,12 +69,17 @@ public abstract class Control extends Object
     if (display != null) displayRenderer = display.getDisplayRenderer();
   }
 
+  /**
+   * @return DisplayRenderer assciated with this Control
+   */
   public DisplayRenderer getDisplayRenderer() {
     return displayRenderer;
   }
 
-  /** invoked every time values of this Control change;
-      tick is true to notify the Display */
+  /**
+   * invoked every time values of this Control change
+   * @param tick  true to notify the Display for possible re-transform
+   */
   public void changeControl(boolean tick)
          throws VisADException, RemoteException {
     if (tick) incTick();
@@ -87,25 +97,38 @@ public abstract class Control extends Object
     }
   }
 
-  /** add a ControlListener */
+  /**
+   * add a ControlListener
+   * @param listener  ControlListener to add
+   */
   public void addControlListener(ControlListener listener) {
     ListenerVector.addElement(listener);
   }
 
-  /** remove a ControlListener */
+  /**
+   * remove a ControlListener
+   * @param listener  ControlListener to remove
+   */
   public void removeControlListener(ControlListener listener) {
     if (listener != null) {
       ListenerVector.removeElement(listener);
     }
   }
 
-  // WLH 6 Aug 2001
-  /** end this control */
+  /**
+   * end this control (called by ScalarMap.nullDisplay())
+   */
   public void nullControl() {
     ListenerVector.removeAllElements();
   }
 
-  /** invoke incTick every time Control changes */
+  /**
+   * increment long counter NewTick: NewTick > OldTick indicates
+   * that there is event in this Control that the DisplayImpl
+   * must process;
+   * this method is invoked every time Control changes
+   * @return incremented value of NewTick counter
+   */
   public long incTick() {
     NewTick += 1;
     if (NewTick == Long.MAX_VALUE) NewTick = Long.MIN_VALUE + 1;
@@ -114,7 +137,10 @@ public abstract class Control extends Object
     return NewTick;
   }
 
-  /** set tickFlag according to OldTick and NewTick */
+  /**
+   * set tickFlag if NewTick > OldTick, and reset OldTick = NewTick
+   * also invoke subSetTicks() to propagate to any sub-Controls
+   */
   public synchronized void setTicks() {
     if (isSet) return; // WLH 22 Aug 99
     isSet = true;
@@ -124,6 +150,14 @@ public abstract class Control extends Object
     subSetTicks();
   }
 
+  /**
+   * peek at future value of checkTicks()
+   * @param r DataRenderer to check if changes to this Control
+   *          require re-transform
+   * @param link DataDisplayLink involved in decision whether
+   *             changes to this Control require re-transform
+   * @return true if checkTicks() will return true after next setTicks()
+   */
   public synchronized boolean peekTicks(DataRenderer r, DataDisplayLink link) {
 /*
 boolean flag = (OldTick < NewTick || (NewTick < 0 && 0 < OldTick));
@@ -135,7 +169,14 @@ System.out.println(getClass().getName() + "  peek  flag = " + flag +
             r.isTransformControl(this, link)) || subPeekTicks(r, link);
   }
 
-  /** return true if Control changed and requires re-Transform */
+  /**
+   * check if this Control changed and requires re-Transform
+   * @param r DataRenderer to check if changes to this Control 
+   *          require re-transform
+   * @param link DataDisplayLink involved in decision whether
+   *             changes to this Control require re-transform
+   * @return true if Control changed and requires re-Transform
+   */
   public synchronized boolean checkTicks(DataRenderer r, DataDisplayLink link) {
 /*
 boolean flag = (tickFlag && r.isTransformControl(this, link)) || subCheckTicks(r, link);
@@ -148,7 +189,9 @@ if (tickFlag) {
     return (tickFlag && r.isTransformControl(this, link)) || subCheckTicks(r, link);
   }
 
-  /** reset tickFlag */
+  /**
+   * reset tickFlag and propagate to sub-Controls
+   */
   public synchronized void resetTicks() {
 // if (tickFlag) System.out.println(getClass().getName() + "  reset");
     tickFlag = false;
@@ -156,30 +199,56 @@ if (tickFlag) {
     isSet = false;
   }
 
-  /** run setTicks on any sub-Controls;
-      this default for no sub-Controls */
+  /**
+   * run setTicks on any sub-Controls;
+   * this default for no sub-Controls
+   */
   public void subSetTicks() {
   }
 
-  /** run checkTicks on any sub-Controls;
-      this default for no sub-Controls */
+  /**
+   * run checkTicks on any sub-Controls
+   * this default for no sub-Controls
+   * @param r DataRenderer to check if changes to this Control
+   *          require re-transform
+   * @param link DataDisplayLink involved in decision whether
+   *             changes to this Control require re-transform
+   * @return 'logical or' of values from checkTicks on sub-Controls
+   */
   public boolean subCheckTicks(DataRenderer r, DataDisplayLink link) {
     return false;
   }
 
-  /** run peekTicks on any sub-Controls;
-      this default for no sub-Controls */
+  /**
+   * run peekTicks on any sub-Controls
+   * this default for no sub-Controls
+   * @param r DataRenderer to check if changes to this Control
+   *          require re-transform
+   * @param link DataDisplayLink involved in decision whether
+   *             changes to this Control require re-transform
+   * @return 'logical or' of values from peekTicks on sub-Controls
+   */
   public boolean subPeekTicks(DataRenderer r, DataDisplayLink link) {
     return false;
   }
 
-  /** run resetTicks on any sub-Controls;
-      this default for no sub-Controls */
+  /**
+   * run resetTicks on any sub-Controls
+   * this default for no sub-Controls
+   */
   public void subResetTicks() {
   }
 
-  /** used by java3d.AnimationControlJ3D and
-      java2d.AnimationControlJ2D */
+  /**
+   * build String representation of current animation step
+   * and pass it to DisplayRenderer.setAnimationString()
+   * called by java3d.AnimationControlJ3D and java2d.AnimationControlJ2D
+   * @param real - RealType mapped to Display.Animation
+   * @param set - Set from AnimationSetControl
+   * @param value - real value associated with current animation step
+   * @param current - index of current animation step
+   * @throws VisADException a VisAD error occurred
+   */
   public void animation_string(RealType real, Set set, double value,
               int current) throws VisADException {
     if (set != null) {
@@ -214,22 +283,41 @@ if (tickFlag) {
     }
   }
 
+  /**
+   * set index of this Control in display.ControlVector
+   * @param index new value to index to set
+   */
   void setIndex(int index) {
     Index = index;
   }
 
+  /**
+   * @return index of this Control in display.ControlVector
+   */
   int getIndex() {
     return Index;
   }
 
+  /**
+   * set 'instance number' (index + 1 ?) of this Control
+   * in display.ControlVector
+   * @param instance new value to 'instance number' to set
+   */
   void setInstanceNumber(int instance) {
     Instance = instance;
   }
 
+  /**
+   * @return 'instance number' (index + 1 ?) of this Control
+   *         in display.ControlVector
+   */
   public int getInstanceNumber() {
     return Instance;
   }
 
+  /**
+   * @return DisplayImpl associated with this Control
+   */
   public DisplayImpl getDisplay() {
     return display;
   }
@@ -256,6 +344,9 @@ if (tickFlag) {
   public abstract void syncControl(Control rmt)
     throws VisADException;
 
+  /**
+   * @return a copy of this Control
+   */
   public Object clone()
   {
     try {
@@ -265,6 +356,11 @@ if (tickFlag) {
     }
   }
 
+  /**
+   * Indicates whether or not this instance equals an Object
+   * @param o  an Object
+   * @return true if and only if this instance is equal to o
+   */
   public boolean equals(Object o)
   {
     if (o == null || !getClass().isInstance(o)) {
@@ -274,6 +370,9 @@ if (tickFlag) {
     return (Instance == ((Control )o).Instance);
   }
 
+  /**
+   * @return a simple String representation of this Control
+   */
   public String toString()
   {
     String cn = getClass().getName();

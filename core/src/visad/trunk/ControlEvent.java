@@ -35,10 +35,19 @@ public class ControlEvent extends VisADEvent {
 
   private Control control; // source of event
 
+  /**
+   * construct a ControlEvent for Control c and LOCAL_SOURCE
+   * @param c Control associated with this ControlEvent
+   */
   public ControlEvent(Control c) {
     this(c, LOCAL_SOURCE);
   }
 
+  /**
+   * construct a ControlEvent for Control c and remoteId
+   * @param c Control associated with this ControlEvent
+   * @param remoteId ID for this ControlEvent
+   */
   public ControlEvent(Control c, int remoteId) {
     // don't pass control as the source, since source
     // is transient inside Event
@@ -46,8 +55,10 @@ public class ControlEvent extends VisADEvent {
     control = c;
   }
 
-  /** get the Control that sent this ControlEvent (or a copy
-      if the Control was on a different JVM) */
+  /**
+   * @return the Control that sent this ControlEvent (or a copy
+   *         if the Control was on a different JVM)
+   */
   public Control getControl() {
     return control;
   }
