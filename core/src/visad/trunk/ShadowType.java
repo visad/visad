@@ -843,7 +843,10 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       // len = 1 in this case
       spatialDimensions[1] = 0; // spatialManifoldDimension
     }
+/* WLH 21 Aug 98
     else if (!allSpatial) {
+*/
+    else if (!allSpatial || domain_set == null) {
       spatialDimensions[1] = spatialDimension; // spatialManifoldDimension
       if (domain_set != null &&
           (set_for_shape || spatialDimensions[0] < 3)) {
@@ -875,7 +878,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
             break;
         }
         // System.out.println("IrregularSet done");
-      } // end if (set_for_shape || spatialDimensions[0] < 3)
+      } // end if domain_set != null && (set_for_shape || spatialDimensions[0] < 3)
     }
     else { // spatialDimension > 0 && allSpatial
       // spatialManifoldDimension

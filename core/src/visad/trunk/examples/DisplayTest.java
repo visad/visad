@@ -131,7 +131,8 @@ public class DisplayTest extends Object {
         System.out.println("  0: direct manipulation");
         System.out.println("  1: colored iso-surfaces from regular grids "
                                +"and ContourWidget");
-        System.out.println("  2: colored iso-surfaces from irregular grids");
+        System.out.println("  2: colored iso-surfaces from irregular grids "
+                               +"and ContourWidget");
         System.out.println("  3: Animation different time resolutions "
                                 +"and AnimationWidget");
         System.out.println("  4: spherical coordinates");
@@ -171,7 +172,8 @@ public class DisplayTest extends Object {
         System.out.println("  34: direct manipulation in Java2D");
         System.out.println("  35: direct manipulation linking Java2D and Java3D");
         System.out.println("  36: polar coordinates in Java2D");
-        System.out.println("  37 swap: colored contours from regular grids in Java2D");
+        System.out.println("  37 swap: colored contours from regular grids "
+                            +"and ContourWidget in Java2D");
         System.out.println("  38: colored contours from irregular grids in Java2D");
         System.out.println("  39: color array and ColorWidget in Java2D");
         System.out.println("  40: polar direct manipulation in Java2D");
@@ -289,7 +291,7 @@ public class DisplayTest extends Object {
       case 2:
  
         System.out.println(test_case + ": test colored iso-surfaces from " +
-                           "irregular grids");
+                           "irregular grids and ContourWidget");
         size3d = 6;
         level = 2.5f;
         grid3d = FlatField.makeField(grid_tuple, size3d, true);
@@ -304,14 +306,24 @@ public class DisplayTest extends Object {
         display1.addMap(new ConstantMap(0.5, Display.Red));
         map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
         display1.addMap(map1contour);
-        ContourControl control1contour = (ContourControl) map1contour.getControl();
-        control1contour.setSurfaceValue(level);
-        control1contour.enableContours(true);
  
+        cw = new ContourWidget(map1contour);
+        big_panel = new JPanel();
+        big_panel.setLayout(new BorderLayout());
+        big_panel.add("Center", cw);
+
         ref_grid3d = new DataReferenceImpl("ref_grid3d");
         ref_grid3d.setData(grid3d);
         display1.addReference(ref_grid3d, null);
  
+        jframe = new JFrame("VisAD iso-level controls");
+        jframe.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+        jframe.getContentPane().add(big_panel);
+        jframe.pack();
+        jframe.setVisible(true);
+
         break;
 
       case 3:
@@ -450,7 +462,8 @@ public class DisplayTest extends Object {
         display1.addMap(new ConstantMap(0.5, Display.Red));
         map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
         display1.addMap(map1contour);
-        control1contour = (ContourControl) map1contour.getControl();
+        ContourControl control1contour =
+          (ContourControl) map1contour.getControl();
         control1contour.enableContours(true);
  
         ref_imaget1 = new DataReferenceImpl("ref_imaget1");
@@ -1678,7 +1691,7 @@ public class DisplayTest extends Object {
       case 37:
 
         System.out.println(test_case + ": test colored contours from " +
-                           "regular grids in Java2D");
+                           "regular grids and ContourWidget in Java2D");
 
         size = 64;
         if (args.length < 2) {
@@ -1697,12 +1710,6 @@ public class DisplayTest extends Object {
         map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
         display1.addMap(map1contour);
         cw = new ContourWidget(map1contour);
-/*
-        control1contour = (ContourControl) map1contour.getControl();
-        control1contour.enableContours(true);
-        control1contour.enableLabels(true);
-        control1contour.setContourInterval(-3.0f, -10.0f, 50.0f, 15.0f);
-*/
 
         mode = display1.getGraphicsModeControl();
         mode.setScaleEnable(true);
@@ -1716,13 +1723,16 @@ public class DisplayTest extends Object {
         jframe.setSize(256, 256);
         jframe.setVisible(true);
 
-        JFrame jframe2 = new JFrame("regular contours in Java2D");
+        big_panel = new JPanel();
+        big_panel.setLayout(new BorderLayout());
+        big_panel.add("Center", cw);
+
+        JFrame jframe2 = new JFrame("VisAD contour controls");
         jframe2.addWindowListener(new WindowAdapter() {
           public void windowClosing(WindowEvent e) {System.exit(0);}
         });
- 
-        jframe2.getContentPane().add(cw);
-        jframe2.setSize(256, 256);
+        jframe2.getContentPane().add(big_panel);
+        jframe2.pack();
         jframe2.setVisible(true);
 
         ref_imaget1 = new DataReferenceImpl("ref_imaget1");
