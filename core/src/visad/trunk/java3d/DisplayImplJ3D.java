@@ -154,6 +154,8 @@ public class DisplayImplJ3D extends DisplayImpl {
   private GraphicsModeControlJ3D mode = null;
   private int apiValue = UNKNOWN;
 
+  private UniverseBuilderJ3D universe = null;
+
   /** construct a DisplayImpl for Java3D with the
       default DisplayRenderer, in a JFC JPanel */
   public DisplayImplJ3D(String name)
@@ -376,7 +378,7 @@ public class DisplayImplJ3D extends DisplayImpl {
       DisplayRendererJ3D renderer = (DisplayRendererJ3D) getDisplayRenderer();
       VisADCanvasJ3D canvas = (c != null) ? c :
                               new VisADCanvasJ3D(renderer, width, height);
-      UniverseBuilderJ3D universe = new UniverseBuilderJ3D(canvas);
+      universe = new UniverseBuilderJ3D(canvas);
       BranchGroup scene =
         renderer.createSceneGraph(universe.view, universe.vpTrans, canvas);
       universe.addBranchGraph(scene);
@@ -667,6 +669,11 @@ public class DisplayImplJ3D extends DisplayImpl {
       }
     }
     return format;
+  }
+
+  public void destroyUniverse() {
+    if (universe != null) universe.destroy();
+    universe = null;
   }
 
   public void destroy() throws VisADException, RemoteException {
