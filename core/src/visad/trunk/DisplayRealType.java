@@ -193,6 +193,13 @@ public class DisplayRealType extends RealType {
     return tupleIndex;
   }
 
+  /**
+   * Sets the DisplayTupleType to which this DisplayRealType will belong.
+   * @param t			The DisplayTupleType of which this 
+   *				DisplayRealType will be a component.
+   * @param i			The 0-based component-index for this 
+   *				DisplayRealType.
+   */
   public void setTuple(DisplayTupleType t, int i) {
     tuple = t;
     tupleIndex = i;
