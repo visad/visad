@@ -27,6 +27,7 @@ package visad;
 
 import java.util.*;
 import java.rmi.*;
+import visad.util.DataUtility;
 
 /**
    FlatField is the VisAD class for finite samplings of functions whose
@@ -3019,15 +3020,29 @@ public class FlatField extends FieldImpl {
   }
 
   /**
-   * Returns the indefinite curve integral of this FlatField, which is
-   * assumed to be the gradient of a function.  The flat range components of
-   * this FlatField shall be derivatives with respect to the corresponding
-   * dimensions, in order (i.e. the first component shall be the derivative with
-   * respect to the first dimension, etc.).  The domain points of the returned
-   * FlatField will be the same as this FlatField's.  The type of the range of
-   * the returned FlatField shall be a RealType.  The value of the range at the
+   * Returns the indefinite curve integral of this FlatField, which is assumed
+   * to be the gradient of a function.  This method can handle any FlatField
+   * whose range is one of the following:
+   * <pre>
+   *
+   *   Scalar derivative        dy/dx
+   *
+   *   RealTuple of partial
+   *   derivatives              (du/dx, du/dy, ...)
+   *
+   *   Tuple of RealTuple-s
+   *   of partial derivatives
+   *   (one set of partial
+   *   derivatives for each
+   *   component of the
+   *   resulting FlatField)     ((du/dx, du/dy, ...), (dv/dx, dv/dy, ...), ...)
+   *
+   * </pre>
+   * The domain points of the returned FlatField will be the same as this
+   * FlatField's.  The type of the range of the returned FlatField will depend
+   * on the type of the range of this FlatField.  The value of the range at the
    * first domain point of the returned FlatField shall be arbitrarily set to
-   * zero.
+   * (possibly vector) zero.
    * @return			The indefinite curve integral of this FlatField.
    * @throws FieldException	Flat range dimension of this FlatField !=
    *				domain dimension of this FlatField.
@@ -3039,34 +3054,57 @@ public class FlatField extends FieldImpl {
     /*
      * Create the resulting FlatField with missing data.
      */
-    int	rangeDimension = getRangeDimension();
-    int	domainDimension = getDomainDimension();
-    if (rangeDimension != domainDimension)
+    FunctionType	thisFuncType = (FunctionType)getType();
+    MathType		thisRangeType = thisFuncType.getRange();
+    if (thisRangeType instanceof ScalarType)
     {
-      throw new FieldException(getClass().getName() + 
-	".integeral(): Flat range dimension (" + rangeDimension +
-	") != domain dimension (" + domainDimension + ")");
+      thisRangeType = new RealTupleType((RealType)thisRangeType);
     }
-    FunctionType	oldFuncType = (FunctionType)getType();
-    RealTupleType	domainType = oldFuncType.getDomain();
-    MathType		productType = oldFuncType.getFlatRange().
-      binary(domainType, Data.MULTIPLY, new Vector());
-    RealType		newRangeType;
-    if (productType instanceof RealType)
+    if (thisRangeType instanceof RealTupleType)
     {
-      newRangeType = (RealType)productType;
+      thisRangeType = new TupleType(new MathType[] {thisRangeType});
     }
-    else
+    int			newComponentCount =
+      ((TupleType)thisRangeType).getDimension();
+    int			domainDimension = getDomainDimension();
+    Vector		nilVector = new Vector(0);
+    RealTupleType	domainType = thisFuncType.getDomain();
+    RealType[]		newComponentTypes = new RealType[newComponentCount];
+    for (int newComponentIndex = 0; newComponentIndex < newComponentCount;
+      ++newComponentIndex)
     {
-      TupleType	productTupleType = (TupleType)productType;
-      newRangeType = (RealType)productTupleType.getComponent(0);
-      for (int i = 1; i < rangeDimension; ++i)
-	newRangeType = (RealType)newRangeType.binary(
-	    (RealType)productTupleType.getComponent(i), Data.ADD, new Vector());
+      RealTupleType	gradientType =
+	(RealTupleType)((TupleType)thisRangeType).getComponent(
+	  newComponentIndex);
+      int		partialCount = gradientType.getDimension();
+      if (partialCount != domainDimension)
+      {
+	throw new FieldException(
+	  getClass().getName() + ".curveIntegralOfGradient(): " +
+	  "Number of partial derivatives for component " + newComponentIndex +
+	  " (" + partialCount + ')' +
+	  " != domain dimension (" + domainDimension + ')');
+      }
+      if (partialCount > 0)
+      {
+	RealType	newComponentType =
+	  (RealType)gradientType.getComponent(0).
+	    binary(domainType.getComponent(0), Data.MULTIPLY, nilVector);
+	for (int i = 1; i < partialCount; ++i)
+	  newComponentType = (RealType)
+	    newComponentType.binary(
+	      gradientType.getComponent(i).
+		binary(domainType.getComponent(i), Data.MULTIPLY, nilVector),
+	      Data.ADD,
+	      nilVector);
+	newComponentTypes[newComponentIndex] = newComponentType;
+      }
     }
     Set		domainSet = getDomainSet();
-    FlatField	newField =
-      new FlatField(new FunctionType(domainType, newRangeType), domainSet);
+    FlatField	newField = new FlatField(
+      new FunctionType(
+	domainType, DataUtility.simplify(new RealTupleType(newComponentTypes))),
+      domainSet);
 
     /*
      * Set the data.
