@@ -86,11 +86,11 @@ public class ValueControlJ3D extends AVControlJ3D
 
   public boolean equals(Object o)
   {
-    if (o == null || !(o instanceof ValueControl)) {
+    if (o == null || !(o instanceof ValueControlJ3D)) {
       return false;
     }
 
-    ValueControl vc = (ValueControl )o;
+    ValueControlJ3D vc = (ValueControlJ3D )o;
 
     double v = getValue();
     double rv = vc.getValue();
@@ -98,6 +98,6 @@ public class ValueControlJ3D extends AVControlJ3D
       return false;
     }
 
-    return true;
+    return super.equals(o);
   }
 }

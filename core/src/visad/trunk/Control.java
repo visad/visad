@@ -197,5 +197,11 @@ if (tickFlag) {
   public abstract void syncControl(Control rmt)
     throws RemoteException, VisADException;
 
-  public abstract boolean equals(Object o);
+  public boolean equals(Object o)
+  {
+    if (o == null || !(o instanceof Control)) {
+      return false;
+    }
+    return super.equals(o);
+  }
 }

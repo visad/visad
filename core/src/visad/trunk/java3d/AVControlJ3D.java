@@ -128,6 +128,32 @@ DisplayImpl.printStack("selectSwitches: ss.swit.setWhichChild(Switch.CHILD_NONE)
     }
   }
 
+  public boolean equals(Object o)
+  {
+    if (o == null || !(o instanceof AVControlJ3D)) {
+      return false;
+    }
+
+    AVControlJ3D av = (AVControlJ3D )o;
+
+    if (switches == null) {
+      return (av.switches == null);
+    } else if (av.switches == null) {
+      // don't assume anything, since it could be a remote control
+    } else {
+      if (switches.size() != av.switches.size()) {
+        return false;
+      }
+      for (int i = switches.size() - 1; i > 0; i--) {
+        if (!switches.elementAt(i).equals(av.switches.elementAt(i))) {
+          return false;
+        }
+      }
+    }
+
+    return super.equals(o);
+  }
+
   /** SwitchSet is an inner class of AVControlJ3D for
       (Switch, Set, DataRenderer) structures */
   private class SwitchSet extends Object {
