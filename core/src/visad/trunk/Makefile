@@ -103,13 +103,14 @@ RM = rm -f
 # DOC is the program used to generate the documentation
 # DOC_DIR is the top-level directory where generated documentation is stored
 # DOC_MEM is the amount of heap used to build the documentation
+# DOC_EXTRAFLAGS holds any non-standard flags and should be empty by default
 # DOCFLAGS are any flags needed to run the documentation generator
 #
 DOC = javadoc
 DOC_DIR = ../docs
 DOC_MEM = 150m
 DOCFLAGS = -d $(DOC_DIR) -J-Xmx$(DOC_MEM) -package \
-	-doctitle 'VisAD Documentation'
+	-doctitle 'VisAD Documentation' $(DOC_EXTRAFLAGS)
 
 ############################################################################
 # Customizations
