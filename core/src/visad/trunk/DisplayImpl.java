@@ -370,6 +370,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     }
   }
 
+/* WLH 6 Dec 2000
   // suck in any remote data associated with this Display
   protected void syncRemoteData(RemoteDisplay rmtDpy)
     throws VisADException, RemoteException
@@ -384,6 +385,31 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
     // only add remote display as listener *after* we've synced
     displayMonitor.addRemoteListener(rmtDpy);
+    initializeControls();
+  }
+*/
+
+  // suck in any remote data associated with this Display
+  protected void syncRemoteData(RemoteDisplay rmtDpy)
+    throws VisADException, RemoteException
+  {
+    syncRemoteData(rmtDpy, true);
+  }
+
+  // suck in any remote data associated with this Display
+  protected void syncRemoteData(RemoteDisplay rmtDpy, boolean link_to_data)
+    throws VisADException, RemoteException
+  {
+    copyScalarMaps(rmtDpy);
+    copyConstantMaps(rmtDpy);
+    copyGraphicsModeControl(rmtDpy);
+    if (link_to_data) copyRefLinks(rmtDpy);
+
+    notifyAction();
+    waitForTasks();
+
+    // only add remote display as listener *after* we've synced
+    displayMonitor.addRemoteListener(rmtDpy, link_to_data);
     initializeControls();
   }
 
