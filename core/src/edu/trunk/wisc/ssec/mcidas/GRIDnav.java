@@ -185,6 +185,7 @@ public class GRIDnav
         xfac = Math.cos(xtl);
         xblat = EARTH_RADIUS * Math.tan(xtl) / 
                    (xspace * Math.pow(Math.tan(xtl*.5), xfac));
+
         break;
       default:  
         break;
@@ -238,23 +239,6 @@ public class GRIDnav
             xlon = glomx-((xcol-1.0)*gincn);
             break;
 
-          /*
-          case PS_OR_LAMBERT_CONIC:
-            xldif = xh*(xrow-xrowi)/xblat;
-            xedif = (xcoli-xcol)/xblat;
-            xrlon = 0.;
-            if (!(xldif == 0. && xedif == 0.)) xrlon = Math.atan2(xedif,xldif);
-            xlon = xrlon/xfac/xrad+xqlon;
-            if (xlon > 180.) xlon = xlon-360.;
-            radius = Math.sqrt(xldif*xldif+xedif*xedif);
-            if (radius < 1.e-5) {
-               xlat = 90.*xh;
-            } else {
-               xlat = 
-                 xh * (90.-2.*Math.atan(Math.exp(Math.log(radius)/xfac))/xrad);
-            }
-            break;
-          */
           case EQUIDISTANT:
             break;
 
@@ -321,17 +305,6 @@ public class GRIDnav
           xrow = (glamx-xlat)/ginct + 1.0;
           xcol = (glomx1-xlon)/gincn + 1.0;
           break;
-        /*
-        case PS_OR_LAMBERT_CONIC:
-          xrlon = xlon-xqlon;
-          if (xrlon > 180.) xrlon=xrlon-360.;
-          xrlon = xrlon*xfac*xrad;
-          xclat = (90.-xh*xlat)*xrad*.5;
-          xrlat = xblat*Math.pow(Math.tan(xclat),xfac);
-          xrow  = xh*xrlat*Math.cos(xrlon)+xrowi;
-          xcol  = -xrlat*Math.sin(xrlon)+xcoli;
-          break;
-        */
         case EQUIDISTANT:
           xrlon = xlon-glomx;
           xrlat = xlat-glamx;
