@@ -578,5 +578,10 @@ System.out.println("AnimationControlJ2D.takeStep: renderTrigger " +
     return true;
   }
 
+  public String toString() {
+    return "AnimationControlJ2D: current = " + current +
+           " set = " + animationSet.getSet();
+  }
+
 }
 

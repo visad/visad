@@ -124,4 +124,10 @@ public class ValueControlJ2D extends AVControlJ2D
 
     return true;
   }
+
+  public String toString() {
+    return "ValueControlJ2D: Value = " + Value;
+  }
+
 }
+
