@@ -180,7 +180,7 @@ all::
 	case "$$UNAME" in \
 	IRIX*) arch=irix;; \
 	SunOS*) arch=solaris;; \
-	Linux*) archlinux;; \
+	Linux*) arch=linux;; \
 	*) echo "Unknown system type $$UNAME"; exit 1;; \
 	esac; \
 	make \
