@@ -174,8 +174,38 @@ public class AreaDirectory
                 "AQUA GUE",
                 "AQUA RET",
                 "", // 120
+                "", "", "", "", "", "", "", "","", "", // 130
+                "", "", "", "", "", "", "", "","", "", // 140
+                "", "", "", "", "", "", "", "","", "", // 150
+                "", "", "", "", "", "", "", "","", "", // 160
+                "", "", "", "", "", "", "", "","", "", // 170
+                "", "", "", "", "", "", "", "","", 
+                "GOES 13 imager", // 180
+                "GOES 13 sounder",
+                "GOES 14 imager",
+                "GOES 14 sounder",
+                "GOES 15 imager",
+                "GOES 15 sounder",
+                "GOES 16 imager",
+                "GOES 16 sounder",
+                "", // 188
+                "","", // 190
+                "","","","",
+                "DMSP F-16", // 195
+                "","","","", // 199
+                "AIRS L1B", // 200
+                "","","","","","","","","",
+                "AMSR-E L1B", // 210
+                "",
+
                 ""};
                                    
+/*
+180 & 181 - GOES13 (Imager/Sounder)
+182 & 183 - GOES14
+184 & 185 - GOES15
+186 & 187 - GOES16 
+*/
 
   /**
    * Create an AreaDirectory from the raw block of data of
