@@ -1,3 +1,4 @@
+
 //
 // FrontDrawer.java
 //
@@ -112,6 +113,245 @@ public class FrontDrawer extends Object {
 
   // size of filter window for smoothing curve
   private int filter_window = 1;
+
+  public static final int COLD_FRONT = 0;
+  public static final int WARM_FRONT = 1;
+  public static final int OCCLUDED_FRONT = 2;
+  public static final int STATIONARY_FRONT = 3;
+  public static final int CONVERGENCE = 4;
+  public static final int FRONTOGENESIS = 5;
+  public static final int FRONTOLYSIS = 6;
+  public static final int UPPER_COLD_FRONT = 7;
+  public static final int UPPER_WARM_FRONT = 8;
+  public static final int TROUGH = 9;
+  public static final int RIDGE = 10;
+  public static final int MOISTURE = 11;
+  public static final int LOW_LEVEL_JET = 12;
+  public static final int UPPER_LEVEL_JET = 13;
+  public static final int DRY_LINE = 14;
+  public static final int TOTAL_TOTALS = 15;
+  public static final int LIFTED_INDEX = 16;
+  public static final int ISOTHERMS = 17;
+  public static final int THICKNESS_RIDGE = 18;
+  public static final int LOWER_THERMAL_TROUGH = 19;
+  public static final int UPPER_THERMAL_TROUGH = 20;
+
+  private static final float[] segmentarray = {
+    0.2f,
+    0.2f,
+    0.2f,
+    0.2f,
+    0.2f,
+    0.2f,
+    0.2f,
+    0.2f,
+    0.2f,
+    0.2f,
+    0.2f,
+    0.2f,
+    0.2f,
+    0.2f,
+    0.2f,
+    0.2f,
+    0.2f,
+    0.2f,
+    0.2f,
+    0.2f,
+    0.2f
+  };
+
+  private static final float[][][][] rshapesarray = {
+    // COLD_FRONT
+    {{{0.0f, 0.025f, 0.05f, 0.1f, 0.15f, 0.2f,
+       0.2f, 0.15f, 0.1f, 0.05f, 0.025f, 0.0f},
+      {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+       0.01f, 0.01f, 0.01f, 0.01f, 0.04f, 0.01f}}},
+    // WARM_FRONT
+    {{{0.0f, 0.035f, 0.07f, 0.1f, 0.15f, 0.2f,
+       0.2f, 0.15f, 0.1f, 0.07f, 0.0525f, 0.035f, 0.0175f, 0.0f},
+      {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+       0.01f, 0.01f, 0.01f, 0.01f, 0.03f, 0.04f, 0.03f, 0.01f}}},
+    // OCCLUDED_FRONT
+    {{{0.0f, 0.025f, 0.05f, 0.07f, 0.105f, 0.14f, 0.17f, 0.2f,
+       0.2f, 0.17f, 0.14f, 0.1225f, 0.105f, 0.0875f, 0.07f, 0.05f, 0.025f, 0.0f},
+      {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+       0.01f, 0.01f, 0.01f, 0.03f, 0.04f, 0.03f, 0.01f, 0.01f, 0.04f, 0.01f}}},
+  };
+
+  private static final float[][] rredarray = {
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f}
+  };
+
+  private static final float[][] rgreenarray = {
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f}
+  };
+
+  private static final float[][] rbluearray = {
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f},
+    {1.0f}
+  };
+
+  private static final float[][][][] fshapesarray = {
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+  };
+
+  private static final float[][] fredarray = {
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+  };
+
+  private static final float[][] fgreenarray = {
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+  };
+       
+  private static final float[][] fbluearray = {
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+  };
+
+  public FrontDrawer(DataReferenceImpl cr, DisplayImplJ3D d, int fw,
+                     int front_type)
+         throws VisADException, RemoteException {
+    this(cr, d, fw, segmentarray[front_type],
+         fshapesarray[front_type], fredarray[front_type],
+         fgreenarray[front_type], fbluearray[front_type],
+         rshapesarray[front_type], rredarray[front_type],
+         rgreenarray[front_type], rbluearray[front_type]);
+  }
+
 
   /**
      cr should be null or cr.getData() should have MathType:
@@ -401,7 +641,7 @@ public class FrontDrawer extends Object {
         }
         catch (SetException e) {
           fw = 2 * fw;
-          // if (debug) System.out.println("retry filter window = " + fw + " " + e);
+          if (debug) System.out.println("retry filter window = " + fw + " " + e);
           if (tries == 9) {
             System.out.println("cannot smooth curve");
             front = null;
@@ -414,7 +654,6 @@ public class FrontDrawer extends Object {
     }
     catch (VisADException e) {
       if (debug) System.out.println("release fail: " + e.toString());
-// release fail: visad.SetException: Gridded2DSet: samples do not form a valid grid (0,0)
     }
     catch (RemoteException e) {
       if (debug) System.out.println("release fail: " + e.toString());
@@ -433,84 +672,6 @@ public class FrontDrawer extends Object {
     //     ((Latitude, Longitude) -> (front_red, front_green, front_blue)))
     return front;
   }
-
-/*
-  public void curveToFront(float[][] curve, boolean flip)
-         throws VisADException, RemoteException {
-    int len = curve[0].length;
-    float[][] fb = new float[2][len];
-    float[][] ft = new float[2][len];
-    for (int i=0; i<len; i++) {
-      int im = i - 1;
-      int ip = i + 1;
-      if (im < 0) im = 0;
-      if (ip > len - 1) ip = len - 1;
-      float yp = curve[0][ip] - curve[0][im];
-      float xp = curve[1][ip] - curve[1][im];
-// OBSOLETE
-      xp = -xp;
-      float d = (float) Math.sqrt(xp * xp + yp * yp);
-      if (flip) d = -d;
-      xp = xp / d;
-      yp = yp / d;
-      int j = i % profile_length;
-      fb[0][i] = curve[0][i] + xp * front_profile_bot[j];
-      fb[1][i] = curve[1][i] + yp * front_profile_bot[j];
-      ft[0][i] = curve[0][i] + xp * front_profile_top[j];
-      ft[1][i] = curve[1][i] + yp * front_profile_top[j];
-    }
-    float[][] front_bot = new float[2][];
-    float[][] front_top = new float[2][];
-// OBSOLETE
-    front_bot[lat_index] = lat_map.inverseScaleValues(fb[0]);
-    front_bot[lon_index] = lon_map.inverseScaleValues(fb[1]);
-    front_top[lat_index] = lat_map.inverseScaleValues(ft[0]);
-    front_top[lon_index] = lon_map.inverseScaleValues(ft[1]);
-
-    Vector innter_field_vector = new Vector();
-    profile_loop: for (int iprofile=0; true; iprofile++) {
-      for (int istart=0; istart<starts_length; istart++) {
-        int ibase = iprofile * (profile_length - 1) + front_starts[istart];
-        int iend = ibase + front_lengths[istart];
-        if (ibase > len - 1) break profile_loop;
-        if (iend > len - 1) iend = len - 1;
-// OBSOLETE
-        int n = 1 + iend - ibase;
-        float[][] samples = new float[2][2 * n];
-        for (int i=0; i<n; i++) {
-          samples[0][2 * i] = front_bot[0][ibase + i];
-          samples[1][2 * i] = front_bot[1][ibase + i];
-          samples[0][2 * i + 1] = front_top[0][ibase + i];
-          samples[1][2 * i + 1] = front_top[1][ibase + i];
-        }
-        Gridded2DSet set =
-          new Gridded2DSet(curve_type, samples, 2, n);
-        FlatField field = new FlatField(front_inner, set);
-// OBSOLETE
-        float[][] values = new float[3][2 * n];
-        float r = front_profile_red[istart] / 255.0f;
-        float g = front_profile_green[istart] / 255.0f;
-        float b = front_profile_blue[istart] / 255.0f;
-        for (int i=0; i<2*n; i++) {
-          values[0][i] = r;
-          values[1][i] = g;
-          values[2][i] = b;
-        }
-        field.setSamples(values, false);
-        innter_field_vector.addElement(field);
-      }
-// OBSOLETE
-    }
-    int nfields = innter_field_vector.size();
-    Integer1DSet iset = new Integer1DSet(front_index, nfields);
-    front = new FieldImpl(front_type, iset);
-    FlatField[] fields = new FlatField[nfields];
-    for (int i=0; i<nfields; i++) {
-      fields[i] = (FlatField) innter_field_vector.elementAt(i);
-    }
-    front.setSamples(fields, false);
-  }
-*/
 
   public void curveToFront(float[][] curve, boolean flip)
          throws VisADException, RemoteException {
@@ -813,16 +974,24 @@ public class FrontDrawer extends Object {
     // add display to JPanel
     panel.add(display.getComponent());
 
-    // float[] bot_profile = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-    // float[] top_profile = {0.015f, 0.015f, 0.090f, 0.015f, 0.015f};
-    float[][][] rshapes = {{{-0.1f, -0.1f, 0.1f, 0.1f},
-                            {-0.1f, 0.1f, 0.1f, -0.1f}}};
+/*
+    float[][][] rshapes =
+      {{{0.0f, 0.025f, 0.05f, 0.075f, 0.1f, 0.1f, 0.075f, 0.05f, 0.025f, 0.0f},
+        {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.015f, 0.015f, 0.090f, 0.015f, 0.015f}}};
     float[] red = {1.0f};
     float[] green = {1.0f};
     float[] blue = {1.0f};
     FrontDrawer fd =
       new FrontDrawer(curve_ref, display, 8, 0.1f, null, null, null, null,
                       rshapes, red, green, blue);
+*/
+    int front_type = FrontDrawer.COLD_FRONT;
+    try {
+      if (args.length > 0) front_type = Integer.parseInt(args[0]);
+    }
+    catch(NumberFormatException e) {
+    }
+    FrontDrawer fd = new FrontDrawer(curve_ref, display, 8, front_type);
 
 
     JPanel button_panel = new JPanel();

@@ -779,18 +779,14 @@ public class DelaunayCustom extends Delaunay {
         case 0:
           break;
         case 3:
-          t[nt][0] = smap[tris[i][0]];
-          t[nt][1] = smap[tris[i][1]];
-          t[nt][2] = smap[tris[i][2]];
+          t[nt] = new int[]
+            {smap[tris[i][0]], smap[tris[i][1]], smap[tris[i][2]]};
           nt++;
           break;
         case 1:
           int ao = tris[i][firsts[flags]];
           int bo = tris[i][seconds[flags]];
           int co = tris[i][thirds[flags]];
-          // a = smap[ao];
-          // b = smap[bo];
-          // c = smap[co];
           float av = v - (xc * samples[0][ao] + yc * samples[1][ao]);
           float bv = v - (xc * samples[0][bo] + yc * samples[1][bo]);
           float cv = v - (xc * samples[0][co] + yc * samples[1][co]);
@@ -805,7 +801,7 @@ public class DelaunayCustom extends Delaunay {
           int sbi = -1;
           int sci = -1;
           int jmax = -1;
-          for (int j=0; i<6; j++) {
+          for (int j=0; j<6; j++) {
             if (sother[ao][j] < 0) break;
             jmax = j;
             if (sother[ao][j] == bo) {
@@ -837,16 +833,13 @@ public class DelaunayCustom extends Delaunay {
             sci = ns;
             ns++;
           }
-          t[nt] = new int[] {a, sbi, sci};
+          t[nt] = new int[] {smap[ao], sbi, sci};
           nt++;
           break;
         case 2:
           ao = tris[i][firsts[flags]];
           bo = tris[i][seconds[flags]];
           co = tris[i][thirds[flags]];
-          // a = smap[ao];
-          // b = smap[bo];
-          // c = smap[co];
           av = v - (xc * samples[0][ao] + yc * samples[1][ao]);
           bv = v - (xc * samples[0][bo] + yc * samples[1][bo]);
           cv = v - (xc * samples[0][co] + yc * samples[1][co]);
@@ -861,7 +854,7 @@ public class DelaunayCustom extends Delaunay {
           int sai = -1;
           sbi = -1;
           int jamax = -1;
-          for (int j=0; i<6; j++) {
+          for (int j=0; j<6; j++) {
             if (sother[ao][j] < 0) break;
             jamax = j;
             if (sother[ao][j] == co) {
@@ -869,7 +862,7 @@ public class DelaunayCustom extends Delaunay {
             }
           }
           int jbmax = -1;
-          for (int j=0; i<6; j++) {
+          for (int j=0; j<6; j++) {
             if (sother[bo][j] < 0) break;
             jbmax = j;
             if (sother[bo][j] == co) {
@@ -898,9 +891,9 @@ public class DelaunayCustom extends Delaunay {
             sbi = ns;
             ns++;
           }
-          t[nt] = new int[] {a, b, sai};
+          t[nt] = new int[] {smap[ao], smap[bo], sai};
           nt++;
-          t[nt] = new int[] {b, sai, sbi};
+          t[nt] = new int[] {smap[bo], sai, sbi};
           nt++;
           break;
       }
@@ -913,6 +906,51 @@ public class DelaunayCustom extends Delaunay {
     System.arraycopy(t, 0, tt, 0, nt);
     outs[0] = ss;
     outt[0] = tt;
+/*
+if (ss != null) {
+  int nn = samples[0].length;
+  for (int ii=0; ii<nn; ii++) {
+    System.out.println("samples[][" + ii + "] = " + samples[0][ii] +
+                       " " + samples[1][ii]);
+  }
+  if (tris != null) {
+    nn = tris.length;
+    for (int ii=0; ii<nn; ii++) {
+       System.out.println("tris[" + ii + "] = " + tris[ii][0] +
+                          " " + tris[ii][1] + " " + tris[ii][2]);
+    }
+  }
+  System.out.println("nskept = " + nskept + " ns = " + ns + " nt = " + nt);
+  nn = ss[0].length;
+  for (int ii=0; ii<nn; ii++) {
+    System.out.println("ss[][" + ii + "] = " + ss[0][ii] +
+                       " " + ss[1][ii]);
+  }
+  if (tt != null) {
+    nn = tt.length;
+    for (int ii=0; ii<nn; ii++) {
+       System.out.println("tt[" + ii + "] = " + tt[ii][0] +
+                          " " + tt[ii][1] + " " + tt[ii][2]);
+    }
+  }
+  for (int ii=0; ii<smap.length; ii++) {
+    System.out.println("smap[" + ii + "] = " + smap[ii]);
+  }
+  for (int ii=0; ii<sother.length; ii++) {
+    System.out.println("sother[" + ii + "] = " + sother[ii][0] + " " +
+                       sother[ii][1] + " " + sother[ii][2] + " " +
+                       sother[ii][3] + " " + sother[ii][4] + " " +
+                       sother[ii][5]);
+    System.out.println("snew[" + ii + "] = " + snew[ii][0] + " " +
+                       snew[ii][1] + " " + snew[ii][2] + " " +
+                       snew[ii][3] + " " + snew[ii][4] + " " +
+                       snew[ii][5]);
+  }
+}
+else {
+  System.out.println("ss is null");
+}
+*/
   }
 
 }
