@@ -56,7 +56,7 @@ package edu.wisc.ssec.mcidas;
  *  }
  *  ng.setImageStart(dir[5], dir[6]);
  *  ng.setRes(dir[11], dir[12]);
- *  ng.setStart(1,1);
+ *  ng.setStart(0,0);
  *  ng.setMag(1,1);
  *  ......................
  * </code></pre>
