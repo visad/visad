@@ -62,7 +62,7 @@ public class ThingReferenceImpl extends Object implements ThingReference {
     Tick = Long.MIN_VALUE + 1;
   }
 
-  public synchronized Thing getThing() {
+  public Thing getThing() {
     return thing;
   }
 
