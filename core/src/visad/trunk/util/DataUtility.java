@@ -315,7 +315,7 @@ public class DataUtility {
         }
       }
       if (only_2d) {
-        display.stop();
+        display.destroy();
         display = new DisplayImplJ3D("simple data display",
                                      new TwoDDisplayRendererJ3D());
       }
