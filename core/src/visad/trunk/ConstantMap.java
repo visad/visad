@@ -54,6 +54,9 @@ public class ConstantMap extends ScalarMap {
       throw new DisplayException("ConstantMap: illegal for " + display_scalar);
     }
     if (isScaled &&
+        !display_scalar.equals(Display.XAxis) &&
+        !display_scalar.equals(Display.YAxis) &&
+        !display_scalar.equals(Display.ZAxis) &&
         (constant < displayRange[0] || constant > displayRange[1])) {
       throw new DisplayException("ConstantMap: constant is out of range");
     }

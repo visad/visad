@@ -23,7 +23,6 @@ MA 02111-1307, USA
 // import needed classes
 import visad.*;
 import visad.util.DataUtility;
-import visad.java3d.DisplayImplJ3D;
 import visad.data.netcdf.Plain;
 import java.rmi.RemoteException;
 import java.io.IOException;
