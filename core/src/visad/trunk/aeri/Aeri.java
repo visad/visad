@@ -189,11 +189,9 @@ public class Aeri
 
     //- make barber poles for each station
     //
-/*
     DataImpl poles = makePoles();
     DataReference poles_ref = new DataReferenceImpl("poles");
     poles_ref.setData(poles);
-*/
 
     DisplayImpl display = new DisplayImplJ3D("aeri", DisplayImplJ3D.APPLETFRAME);
     GraphicsModeControl mode = display.getGraphicsModeControl();
@@ -202,9 +200,7 @@ public class Aeri
     dr.setBoxOn(false);
 
     xmap = new ScalarMap(longitude, Display.XAxis);
-    xmap.addScalarMapListener(this);
     ymap = new ScalarMap(latitude, Display.YAxis);
-    ymap.addScalarMapListener(this);
     zmap = new ScalarMap(altitude, Display.ZAxis);
 
     display.addMap(xmap);
@@ -229,9 +225,14 @@ public class Aeri
       new ConstantMap(-.99, Display.ZAxis)
     };
 
-    // display.addReference(poles_ref);
+    display.disableAction();
+    display.addReference(poles_ref);
     display.addReference(advect_ref);
     display.addReference(map_ref, map_constMap);
+
+    xmap.addScalarMapListener(this);
+    ymap.addScalarMapListener(this);
+    display.enableAction();
   }
 
   DataImpl makePoles()
@@ -258,8 +259,7 @@ public class Aeri
 
       set_s[kk] = new Gridded3DSet(spatial_domain, locs, 2, null, null, null);
 
-System.out.println("set_s[" + kk + "] = " + set_s[kk]);
-
+// System.out.println("set_s[" + kk + "] = " + set_s[kk]);
     }
 
     return new UnionSet(spatial_domain, set_s);
@@ -288,6 +288,10 @@ System.out.println("set_s[" + kk + "] = " + set_s[kk]);
       firstEvent = true;
       xmap.setRange(lonmax, lonmin);
       ymap.setRange(latmin, latmax);
+/*
+System.out.println("lon = " + lonmin + " " + lonmax +
+                   " lat = " + latmin + " " + latmax);
+*/
     }
   }
 

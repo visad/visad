@@ -182,8 +182,18 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
         if (lons[i] > lon_max) lon_max = lons[i];
       }
     }
+    // WLH 30 Dec 99
+    if ((lon_max - lon_min) < 1.0f) {
+      lon_max += 0.5f;
+      lon_min -= 0.5f;
+    }
     if (lon_min <= lon_max) {
+/* WLH 30 Dec 99
       float delta = 1.0f; // allow a little slop in Longitudes
+*/
+      float delta = (lon_max - lon_min) / 10.0f; // allow a little slop in Longitudes
+      if (delta > 1.0f) delta = 1.0f;
+
       float x = (lon_min + delta) % 180.0f;
       if (x < 0.0f) x += 180.0f;
       float y = (lon_min + delta) - x;

@@ -165,6 +165,8 @@ public class VisADTriangleStripArray extends VisADGeometryArray {
         int i3 = i / 3;
         if ((lons[i3] < low && hi < lons[i3 + 1]) ||
             (lons[i3 + 1] < low && hi < lons[i3])) {
+System.out.println("any_split " + lons[i3] + " " + lons[i3 + 1] + " " +
+                   low + " " + hi + " " + bottom + " " + top);
           this_split = true;
           any_split = true;
           if (lon_axis < 0) {
