@@ -183,7 +183,7 @@ public class ScalarMap extends Object implements java.io.Serializable {
                                  "any Display");
     }
     if (this instanceof ConstantMap) return;
-    control = display.getDisplayRenderer().makeControl(DisplayScalar);
+    control = display.getDisplayRenderer().makeControl(this);
     display.addControl(control);
   }
 
@@ -237,25 +237,37 @@ public class ScalarMap extends Object implements java.io.Serializable {
       dataRange[1] = hi;
     }
     if (isScaled) {
-      if (dataRange[0] == dataRange[1]) {
-        scale = (displayRange[1] - displayRange[0]) / 1.0; 
-        offset = displayRange[0] - scale * (dataRange[0] - 0.5);
-      }
-      else if (dataRange[0] == Double.MAX_VALUE ||
-               dataRange[1] == -Double.MAX_VALUE) {
+      if (dataRange[0] == Double.MAX_VALUE ||
+          dataRange[1] == -Double.MAX_VALUE) {
+        dataRange[0] = Double.NaN;
+        dataRange[1] = Double.NaN;
         scale = Double.NaN;
         offset = Double.NaN;
       }
       else {
+        if (dataRange[0] == dataRange[1]) {
+          dataRange[0] -= 0.5;
+          dataRange[1] += 0.5;
+        }
         scale = (displayRange[1] - displayRange[0]) /
                 (dataRange[1] - dataRange[0]);
         offset = displayRange[0] - scale * dataRange[0];
       }
-      if (Double.isInfinite(scale) || Double.isInfinite(offset)) {
+      if (Double.isInfinite(scale) || Double.isInfinite(offset) ||
+          scale != scale || offset != offset) {
+        dataRange[0] = Double.NaN;
+        dataRange[1] = Double.NaN;
         scale = Double.NaN;
         offset = Double.NaN;
       }
-    } // end if (isScaled)
+    }
+    else { // if (!isScaled)
+      if (dataRange[0] == Double.MAX_VALUE ||
+          dataRange[1] == -Double.MAX_VALUE) {
+        dataRange[0] = Double.NaN;
+        dataRange[1] = Double.NaN;
+      }
+    }
 /*
 System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
                    " to " + dataRange[1] + " scale: " + scale + " " + offset);
@@ -275,10 +287,12 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     }
     else if (DisplayScalar == Display.IsoContour) {
       boolean[] bvalues = new boolean[2];
-      bvalues[0] = true; // mainContours
-      bvalues[1] = true; // labels
       float[] values = new float[5];
-      values[0] = (float) dataRange[0]; // surfaceValue
+      ((ContourControl) control).getMainContours(bvalues, values);
+      if (shadow == null) {
+        // don't set surface value for auto-scale
+        values[0] = (float) dataRange[0]; // surfaceValue
+      }
       values[1] = (float) (dataRange[1] - dataRange[0]) / 10.0f; // contourInterval
       values[2] = (float) dataRange[0]; // lowLimit
       values[3] = (float) dataRange[1]; // hiLimit

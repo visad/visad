@@ -1928,7 +1928,7 @@ public class Gridded3DSet extends GriddedSet {
     // take the garbage out
     pcube = null;
 
-    nvertex_estimate = 2 * npolygons;
+    nvertex_estimate = 4 * npolygons;
     ix = 9 * (nvertex_estimate + 50);
     iy = 7 * npolygons;
 

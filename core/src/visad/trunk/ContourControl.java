@@ -99,30 +99,35 @@ public class ContourControl extends Control {
 
   public void setSurfaceValue(float value)
          throws VisADException, RemoteException {
+    boolean change = (surfaceValue != value);
     surfaceValue = value;
-    changeControl(true);
+    if (change) changeControl(true);
   }
 
   public void setContourInterval(float interval, float low,
                                  float hi, float ba)
          throws VisADException, RemoteException {
+    boolean change = (contourInterval != interval) || (base != ba) ||
+                     (lowLimit != low) || (hiLimit != hi);
     contourInterval = interval;
     lowLimit = low;
     hiLimit = hi;
     base = ba;
-    changeControl(true);
+    if (change) changeControl(true);
   }
 
   public void enableLabels(boolean on)
          throws VisADException, RemoteException {
+    boolean change = (labels != on);
     labels = on;
-    changeControl(true);
+    if (change) changeControl(true);
   }
 
   public void enableContours(boolean on)
          throws VisADException, RemoteException {
+    boolean change = (mainContours != on);
     mainContours = on;
-    changeControl(true);
+    if (change) changeControl(true);
   }
 
   public void getMainContours(boolean[] bvalues, float[] fvalues)

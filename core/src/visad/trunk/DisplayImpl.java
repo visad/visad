@@ -455,7 +455,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
           if (dreal == Display.Animation &&
               map2.getDisplayScalar() == Display.Animation) {
             throw new BadMappingException("Display.addMap: two RealTypes " +
-                                       "are mapped to Animation");
+                                          "are mapped to Animation");
           }
         }
         MapVector.addElement(map);

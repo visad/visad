@@ -1,6 +1,6 @@
 
 //
-// Display3DException.java
+// DisplayInterruptException.java
 //
 
 /*
@@ -26,13 +26,13 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad;
 
 /**
-   Display3DException is an exception for an error with the VisAD
-   interface to Java3D.<P>
+   DisplayInterruptException is an exception for interrupting
+   data transformation.<P>
 */
-public class Display3DException extends DisplayException {
+public class DisplayInterruptException extends DisplayException {
 
-  public Display3DException() { super(); }
-  public Display3DException(String s) { super(s); }
+  public DisplayInterruptException() { super(); }
+  public DisplayInterruptException(String s) { super(s); }
 
 }
 

@@ -50,6 +50,8 @@ public abstract class DisplayRenderer extends Object {
   /** vector of Strings describing cursor location */
   private Vector cursorStringVector = new Vector();
 
+  String animationString = null;
+
   private int[] axisOrdinals = {-1, -1, -1};
 
   public DisplayRenderer () {
@@ -94,9 +96,17 @@ public abstract class DisplayRenderer extends Object {
     return false;
   }
 
-  public abstract Control makeControl(DisplayRealType type);
+  public abstract Control makeControl(ScalarMap map);
 
   public abstract DataRenderer makeDefaultRenderer();
+
+  public String getAnimationString() {
+    return animationString;
+  }
+
+  public void setAnimationString(String animation) {
+    animationString = animation;
+  }
 
   public abstract double[] getCursor();
 

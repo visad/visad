@@ -102,11 +102,11 @@ public class ReferenceActionLink extends Object {
 System.out.println(s + ":  tickFlag = " + tickFlag + "  OldTick = " + OldTick +
                   "  NewTick = " + NewTick);
   }
+*/
 
   synchronized boolean peekTicks() {
     return (OldTick < NewTick || (NewTick < 0 && 0 < OldTick));
   }
-*/
 
   /** check whether this link requests Action to be applied */
   public synchronized boolean checkTicks() {

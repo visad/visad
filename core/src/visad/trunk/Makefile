@@ -43,9 +43,14 @@ TAR_FILES = \
 	visad/data/netcdf/units/*.java			\
 	visad/data/netcdf/units/*.jj			\
 	visad/data/fits/*.java				\
-	visad/data/fits/fits/*.java			\
-	visad/data/fits/util/*.java			\
+	visad/data/fits/nom/tam/fits/*.java		\
+	visad/data/fits/nom/tam/util/*.java		\
+	visad/data/fits/nom/tam/test/*.java		\
 	visad/data/hdfeos/*.java			\
+	visad/data/vis5d/*.java				\
+	visad/data/vis5d/*.c				\
+	visad/data/vis5d/*.h				\
+	visad/data/vis5d/Makefile			\
 	visad/paoloa/GoesCollaboration.java		\
 	visad/ucar.jar					\
 	visad/Gridded1D.txt				\
@@ -75,7 +80,7 @@ jar:
 	ls -l visad-2.0.jar visad.jar
 
 save:
-	/bin/rm backup/*.java backup/java3d/*.java backup/util/*.java backup/data/*.java backup/data/netcdf/*.java backup/data/netcdf/units/*.java backup/data/fits/*.java backup/data/fits/fits/*.java backup/data/fits/util/*.java backup/data/hdfeos/*.java backup/paoloa/*.java
+	/bin/rm -f backup/*.java backup/java3d/*.java backup/util/*.java backup/data/*.java backup/data/netcdf/*.java backup/data/netcdf/units/*.java backup/data/fits/*.java backup/data/fits/nom/tam/fits/*.java backup/data/fits/nom/tam/util/*.java backup/data/fits/nom/tam/test/*.java backup/data/hdfeos/*.java backup/data/vis5d/*.java backup/paoloa/*.java
 	cp *.java backup
 	cp java3d/*.java backup/java3d
 	cp util/*.java backup/util
@@ -84,13 +89,19 @@ save:
 	cp data/netcdf/units/*.java backup/data/netcdf/units
 	cp data/netcdf/units/*.jj backup/data/netcdf/units
 	cp data/fits/*.java backup/data/fits
-	cp data/fits/fits/*.java backup/data/fits/fits
-	cp data/fits/util/*.java backup/data/fits/util
+	cp data/fits/nom/tam/fits/*.java backup/data/fits/nom/tam/fits
+	cp data/fits/nom/tam/test/*.java backup/data/fits/nom/tam/test
+	cp data/fits/nom/tam/util/*.java backup/data/fits/nom/tam/util
 	cp data/hdfeos/*.java backup/data/hdfeos
+	cp data/vis5d/*.java backup/data/vis5d
+	cp data/vis5d/*.c backup/data/vis5d
+	cp data/vis5d/*.h backup/data/vis5d
+	cp data/vis5d/Makefile backup/data/vis5d
 	cp paoloa/*.java backup/paoloa
 	cp paoloa/*.f backup/paoloa
 	cp paoloa/*.c backup/paoloa
 	cp paoloa/*.h backup/paoloa
+	cp paoloa/README.paoloa backup/paoloa
 	cp paoloa/Makefile backup/paoloa
 	cp ucar.jar backup
 	cp Gridded1D.txt backup
@@ -107,7 +118,7 @@ save:
 	cp Makefile backup
 	cp rmic_script backup
 	cp docs/DESIGN5 backup
-	wc backup/*.java backup/java3d/*.java backup/util/*.java backup/data/*.java backup/data/netcdf/*.java backup/data/netcdf/units/*.java backup/data/fits/*.java backup/data/fits/fits/*.java backup/data/fits/util/*.java backup/data/hdfeos/*.java backup/paoloa/*.java
+	wc backup/*.java backup/java3d/*.java backup/util/*.java backup/data/*.java backup/data/netcdf/*.java backup/data/netcdf/units/*.java backup/data/fits/*.java backup/data/fits/nom/tam/fits/*.java backup/data/fits/nom/tam/util/*.java backup/data/fits/nom/tam/test/*.java backup/data/hdfeos/*.java backup/data/vis5d/*.java backup/paoloa/*.java
 
 .SUFFIXES : .java .class
 
