@@ -197,16 +197,17 @@ public class DataDisplayLink extends ReferenceActionLink {
       display_indices = ShadowType.zeroIndices(
                   local_dpy.getDisplayScalarCount());
       value_indices = ShadowType.zeroIndices(local_dpy.getValueArrayLength());
-      Vector controls = local_dpy.getControlVector();
-      isTransform = new boolean[controls.size()];
-      for (int i=0; i<controls.size(); i++) isTransform[i] = false;
+
+      final int numControls = local_dpy.getNumberOfControls();
+      isTransform = new boolean[numControls];
+      for (int i=0; i<numControls; i++) isTransform[i] = false;
       levelOfDifficulty =
         shadow.checkIndices(indices, display_indices, value_indices,
                               isTransform, ShadowType.NOTHING_MAPPED);
       if (levelOfDifficulty == ShadowType.LEGAL) {
         // every Control isTransform for merely LEGAL
         // (i.e., the 'dots') rendering
-        for (int i=0; i<controls.size(); i++) isTransform[i] = true;
+        for (int i=0; i<numControls; i++) isTransform[i] = true;
       }
       renderer.checkDirect();
     }
