@@ -46,7 +46,7 @@ public abstract class ActionImpl extends Object
 
   /** Vector of ReferenceActionLink-s;
       ActionImpl is not Serializable, but mark as transient anyway */
-  transient Vector LinkVector = new Vector();
+  private transient Vector LinkVector = new Vector();
 
   /** counter used to give a unique id to each ReferenceActionLink
       in LinkVector */
@@ -300,6 +300,29 @@ System.out.println("doAction: Name = " + Name + " checkTicks = " + check +
       }
     }
     if (link != null) ref.removeThingChangedListener(link.getAction());
+    synchronized (this) {
+      notify();
+    }
+  }
+
+  /** remove all ThingReferences */
+  public void removeAllReferences()
+         throws VisADException, RemoteException {
+    Vector cloneLink = null;
+    if (LinkVector != null) {
+      synchronized (LinkVector) {
+        cloneLink = (Vector) LinkVector.clone();
+        LinkVector.removeAllElements();
+      }
+    }
+    if (cloneLink != null) {
+      Enumeration links = cloneLink.elements();
+      while (links.hasMoreElements()) {
+        ReferenceActionLink link = (ReferenceActionLink) links.nextElement();
+        ThingReference ref = link.getThingReference();
+        ref.removeThingChangedListener(link.getAction());
+      }
+    }
     synchronized (this) {
       notify();
     }

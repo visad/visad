@@ -44,6 +44,10 @@ public interface Action extends ThingChangedListener {
   public abstract void removeReference(ThingReference ref)
          throws VisADException, RemoteException;
 
+  /** delete all links to ThingReferences */
+  public abstract void removeAllReferences()
+         throws VisADException, RemoteException;
+
   /** return name of this Action */
   public abstract String getName()
          throws VisADException, RemoteException;

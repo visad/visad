@@ -82,6 +82,16 @@ public abstract class RemoteActionImpl extends UnicastRemoteObject
     AdaptedAction.adaptedRemoveReference((RemoteThingReference) ref);
   }
 
+  /** delete all links to ThingReferences */
+  public void removeAllReferences()
+         throws VisADException, RemoteException {
+    if (AdaptedAction == null) {
+      throw new RemoteVisADException("RemoteActionImpl.removeAllReferences: " +
+                                     "AdaptedAction is null");
+    }
+    AdaptedAction.removeAllReferences();
+  }
+
   /** return name of this Action */
   public String getName() throws VisADException {
     if (AdaptedAction == null) {
