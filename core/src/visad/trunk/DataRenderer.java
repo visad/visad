@@ -411,29 +411,75 @@ if (map.badRange()) {
   // true if other_index Units convertable to meter
   boolean other_meters = false;
 
+  // from doTransform
+  RealVectorType[] rvts = {null, null};
+
+  public RealVectorType getRealVectorTypes(int index) {
+    if (index == 0 || index == 1) return rvts[index];
+    else return null;
+  }
+
   public int getEarthDimension() {
     return lat_lon_dimension;
   }
 
   public Unit[] getEarthUnits() {
+    Unit[] units = null;
     if (lat_lon_in) {
-      return data_units_in;
+      units = data_units_in;
     }
     else if (lat_lon_out) {
-      return data_units_out;
+      units = data_units_out;
     }
     else if (lat_lon_spatial) {
-      return new Unit[] {RealType.Latitude.getDefaultUnit(),
-                         RealType.Longitude.getDefaultUnit()};
+      units = new Unit[] {RealType.Latitude.getDefaultUnit(),
+                          RealType.Longitude.getDefaultUnit()};
+    }
+    else {
+      units = null;
+    }
+    if (units == null) {
+      return null;
+    }
+    else if (units.length == 2) {
+      return new Unit[] {units[lat_index], units[lon_index]};
+    }
+    else if (units.length == 3) {
+      return new Unit[] {units[lat_index], units[lon_index], units[other_index]};
     }
     else {
       return null;
     }
   }
 
+  public float getLatLonRange() {
+    double[] rlat = null;
+    double[] rlon = null;
+    if (lat_lon_out || (lat_lon_in && lat_lon_by_coord)) {
+      rlat = sdo_maps[lat_index].getRange();
+      rlon = sdo_maps[lon_index].getRange();
+    }
+    else if (lat_lon_in) {
+      rlat = sdi_maps[lat_index].getRange();
+      rlon = sdi_maps[lon_index].getRange();
+    }
+    else if (lat_lon_spatial) {
+      rlat = lat_map.getRange();
+      rlon = lon_map.getRange();
+    }
+    else {
+      return 1.0f;
+    }
+    double dlat = Math.abs(rlat[1] - rlat[0]);
+    double dlon = Math.abs(rlon[1] - rlon[0]);
+    if (dlat != dlat) dlat = 1.0f;
+    if (dlon != dlon) dlon = 1.0f;
+    return (dlat > dlon) ? (float) dlat : (float) dlon;
+  }
+
   /** convert (lat, lon) or (lat, lon, other) values to
       display (x, y, z) */
-  public float[][] earthToSpatial(float[][] locs)
+  public float[][] earthToSpatial(float[][] locs, float[] vert)
          throws VisADException {
     if (lat_index < 0 || lon_index < 0) return null;
 
@@ -467,6 +513,8 @@ if (map.badRange()) {
     tuple_locs[lon_index] = locs[1];
     if (lat_lon_dimension == 3) tuple_locs[other_index] = locs[2];
 
+    int vert_index = -1; // non-lat/lon index for lat_lon_dimension = 2
+
     if (lat_lon_in) {
       if (lat_lon_by_coord) {
         // transform 'RealTupleType data_in' to 'RealTupleType data_out'
@@ -492,12 +540,18 @@ if (map.badRange()) {
           spatial_locs[sdo_spatial_index[i]] =
             sdo_maps[i].scaleValues(tuple_locs[i]);
         }
+        if (lat_lon_dimension == 2) {
+          vert_index = 3 - (sdo_spatial_index[0] + sdo_spatial_index[1]);
+        }
       }
       else {
         // map data_in to spatial DisplayRealTypes
         for (int i=0; i<lat_lon_dimension; i++) {
           spatial_locs[sdi_spatial_index[i]] =
             sdi_maps[i].scaleValues(tuple_locs[i]);
+        }
+        if (lat_lon_dimension == 2) {
+          vert_index = 3 - (sdi_spatial_index[0] + sdi_spatial_index[1]);
         }
       }
     }
@@ -507,12 +561,16 @@ if (map.badRange()) {
         spatial_locs[sdo_spatial_index[i]] =
           sdo_maps[i].scaleValues(tuple_locs[i]);
       }
+      if (lat_lon_dimension == 2) {
+        vert_index = 3 - (sdo_spatial_index[0] + sdo_spatial_index[1]);
+      }
     }
     else if (lat_lon_spatial) {
       // map lat & lon, not in allSpatial RealTupleType, to
       // spatial DisplayRealTypes
       spatial_locs[lat_spatial_index] = lat_map.scaleValues(tuple_locs[0]);
       spatial_locs[lon_spatial_index] = lon_map.scaleValues(tuple_locs[1]);
+      vert_index = 3 - (lat_spatial_index + lon_spatial_index);
     }
     else {
       // should never happen
@@ -523,9 +581,14 @@ if (map.badRange()) {
     for (int i=0; i<3; i++) {
       if (spatial_locs[i] == null) {
         spatial_locs[i] = new float[size];
-        float def = default_spatial_in[i];
+        float def = default_spatial_in[i]; // may be non-Cartesian
         for (int j=0; j<size; j++) spatial_locs[i][j] = def;
       }
+    }
+
+    // adjust non-lat/lon spatial_locs by vertical flow component
+    if (vert != null && vert_index > -1) {
+      for (int j=0; j<size; j++) spatial_locs[vert_index][j] += vert[j];
     }
 
     if (display_coordinate_system != null) {
@@ -554,8 +617,8 @@ if (map.badRange()) {
     for (int i=0; i<3; i++) {
       if (spatial_locs[i] == null) {
         spatial_locs[i] = new float[size];
-        float def = default_spatial_in[i];
-        for (int j=0; j<size; j++) spatial_locs[i][j] = def;
+        // defaults for Cartesian spatial DisplayRealTypes = 0.0f
+        for (int j=0; j<size; j++) spatial_locs[i][j] = 0.0f;
       }
     }
     if (display_coordinate_system != null) {
@@ -784,6 +847,17 @@ if (map.badRange()) {
     return Display.DisplayFlow1Tuple.equals(ftuple) ? 0 : 1;
   }
 
+
+  // from assembleFlow
+  ScalarMap[][] flow_maps = null;
+  float[] flow_scale = null;
+ 
+  public void setFlowDisplay(ScalarMap[][] maps, float[] fs) {
+    flow_maps = maps;
+    flow_scale = fs;
+  }
+
+
   // if non-null, float[][] new_spatial_values =
   //   display_coordinate_system.toReference(spatial_values);
   CoordinateSystem display_coordinate_system = null;
@@ -802,11 +876,6 @@ if (map.badRange()) {
   int lat_spatial_index = -1;
   int lon_spatial_index = -1;
 
-//
-//
-// ****    ****    need to get default spatial values    ****    ****
-//
-//
 
   // information from assembleSpatial
   public void setEarthSpatialDisplay(CoordinateSystem coord,
@@ -869,18 +938,6 @@ if (map.badRange()) {
       lat_index = -1;
       lon_index = -1;
     }
-  }
-
-  // from doTransform
-  RealVectorType[] rvts = {null, null};
-
-  // from assembleFlow
-  ScalarMap[][] flow_maps = null;
-  float[] flow_scale = null;
-
-  public void setFlowDisplay(ScalarMap[][] maps, float[] fs) {
-    flow_maps = maps;
-    flow_scale = fs;
   }
 
 
