@@ -124,10 +124,24 @@ public class ColorControl extends Control {
         else {
           int j = (int) (scale * values[i]);
           // note actual table length is tableLength + 1
+/* WLH 27 April 99
           if (j < 0 || tableLength < j) {
             colors[0][i] = Float.NaN;
             colors[1][i] = Float.NaN;
             colors[2][i] = Float.NaN;
+          }
+*/
+          // WLH 27 April 99
+          // extend first and last table entries to 'infinity'
+          if (j < 0) {
+            colors[0][i] = table[0][0];
+            colors[1][i] = table[1][0];
+            colors[2][i] = table[2][0];
+          }
+          else if (tableLength < j) {
+            colors[0][i] = table[0][tableLength];
+            colors[1][i] = table[1][tableLength];
+            colors[2][i] = table[2][tableLength];
           }
           else {
             colors[0][i] = table[0][j];
