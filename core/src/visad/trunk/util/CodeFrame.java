@@ -29,6 +29,7 @@ package visad.util;
 import java.awt.event.*;
 import javax.swing.*;
 import visad.VisADException;
+import java.util.Vector;
 
 /** A GUI frame for editing source code in Java runtime. */
 public class CodeFrame extends TextFrame {
@@ -55,18 +56,53 @@ public class CodeFrame extends TextFrame {
     final JTextField textLine = new JTextField();
     Util.adjustTextField(textLine);
     textLine.setToolTipText(
-      "Enter a command and press enter to execute it immediately");
+      "Enter a command and press enter to execute it immediately; up/down arrows recall commands");
     final CodeEditor fTextPane = (CodeEditor) textPane;
+    final Vector stack = new Vector();
+    stack.addElement(new Integer(-1)); // first element is pointer
     textLine.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         try {
-          fTextPane.exec(textLine.getText());
+          String cmd = textLine.getText();
+          fTextPane.exec(cmd);
+          int sp = ((Integer)(stack.elementAt(0))).intValue();
+          if (sp < 0 || sp >= stack.size() ||
+            !cmd.equals( (String)stack.elementAt(sp) ) ) {
+            stack.addElement(textLine.getText());
+            stack.setElementAt(new Integer(stack.size()),0);
+          }
+          textLine.setText("");
         }
         catch (VisADException exc) {
           showError(exc.getMessage());
         }
       }
     });
+
+    textLine.addKeyListener(new KeyListener() {
+      public void keyReleased(KeyEvent e) {;}
+      public void keyTyped(KeyEvent e) {;}
+      public void keyPressed(KeyEvent e) {
+        int spoint = ((Integer)(stack.elementAt(0))).intValue();
+        if (spoint < 0 ) return;
+
+        int kc = e.getKeyCode();
+        if (kc == KeyEvent.VK_UP) {
+          spoint = spoint - 1;
+          if (spoint < 1) spoint = stack.size() - 1;
+          textLine.setText( (String)stack.elementAt(spoint));
+          stack.setElementAt(new Integer(spoint), 0);
+
+        } else if (kc == KeyEvent.VK_DOWN) {
+          spoint = spoint + 1;
+          if (spoint >= stack.size()) spoint = 1;
+          textLine.setText( (String)stack.elementAt(spoint));
+          stack.setElementAt(new Integer(spoint), 0);
+        }
+        
+      }
+    });
+
     immediate.add(new JLabel("Immediate: "));
     immediate.add(textLine);
 
@@ -75,6 +111,8 @@ public class CodeFrame extends TextFrame {
     pane.add(immediate);
     setTitle("VisAD Source Code Editor");
   }
+
+  final
 
   public void commandRun() {
     try {
