@@ -4218,6 +4218,38 @@ if (pr) System.out.println("value = " + new_values[0][0]);
       }
     }
 
+    for (int i=0; i<TupleDimension; i++) {
+      switch (RangeMode[i]) {
+        case DOUBLE:
+          if (!Arrays.equals(DoubleRange[i], fld.DoubleRange[i])) {
+            return false;
+          }
+          break;
+        case FLOAT:
+          if (!Arrays.equals(FloatRange[i], fld.FloatRange[i])) {
+            return false;
+          }
+          break;
+        case BYTE:
+          if (!Arrays.equals(ByteRange[i], fld.ByteRange[i])) {
+            return false;
+          }
+          break;
+        case SHORT:
+          if (!Arrays.equals(ShortRange[i], fld.ShortRange[i])) {
+            return false;
+          }
+          break;
+        case INT:
+          if (!Arrays.equals(IntRange[i], fld.IntRange[i])) {
+            return false;
+          }
+          break;
+        default:
+          return false;
+      }
+    }
+
     return super.equals(obj);
   }
 
