@@ -1813,7 +1813,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
       }
 
       // use DoubleSet rather than RangeSet for intermediate computation results
-      if (isMissing() || data.isMissing()) return cloneMissing();
+      if (isMissing() || data.isMissing()) return new_type.missingData();
 
       // resample data if needed
       data = ((FlatField) data).resample(DomainSet, sampling_mode, error_mode);
