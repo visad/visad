@@ -486,7 +486,7 @@ public class ContourControl extends Control {
       }
     }
 
-    if (!Util.isApproximatelyEqual(dash, cc.dash)) {
+    if (dash != cc.dash) {
       return false;
     }
 
