@@ -2739,7 +2739,7 @@ WLH 15 March 2000 */
               else {
                 te[0] = text_values[0];
               }
-              array = shadow_api.makeText(te, text_control, spatial_values, co, ra);
+              array = shadow_api.makeText(te, text_control, sp, co, ra);
               if (array != null) {
                 shadow_api.addTextToGroup(branch, array, mode,
                                           constant_alpha, constant_color);
