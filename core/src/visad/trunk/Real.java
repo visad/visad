@@ -498,7 +498,22 @@ public class Real
         break;
       case SQRT:
         value = Math.sqrt(thisValue);
-        u = CommonUnit.dimensionless.equals(thisUnit) ? thisUnit : null;
+        // WLH 26 Nov 2001
+        // u = CommonUnit.dimensionless.equals(thisUnit) ? thisUnit : null;
+        if (thisUnit == null) {
+          u = null;
+        }
+        else {
+          try {
+            u = thisUnit.sqrt();
+          }
+          catch (IllegalArgumentException e) {
+            u = null;
+          }
+          catch (UnitException e) {
+            u = null;
+          }
+        }
         break;
       case TAN:
         // do tan in radians, unless unit is degrees

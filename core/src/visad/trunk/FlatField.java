@@ -2669,8 +2669,23 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
           for (i=0; i<Length; i++) {
             valuesJ[i] = Math.sqrt(valuesJ[i]);
           }
-          units_out[j] =
-            CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
+          // WLH 26 Nov 2001
+          // units_out[j] =
+          //   CommonUnit.dimensionless.equals(units_in[j]) ? units_in[j] : null;
+          if (units_in[j] == null) {
+            units_out[j] = null;
+          }
+          else {
+            try {
+              units_out[j] = units_in[j].sqrt();
+            }
+            catch (IllegalArgumentException e) {
+              units_out[j] = null;
+            }
+            catch (UnitException e) {
+              units_out[j] = null;
+            }
+          }
         }
         break;
       case TAN:
