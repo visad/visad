@@ -149,35 +149,55 @@ public class BioColorWidget extends JPanel {
 
     // Autodetect types
 
-    // Case 0: no rtypes
-    //   R -> None
-    //   G -> None
-    //   B -> None
+    if (model == RGB) {
+      // Case 0: no rtypes
+      //   R -> None
+      //   G -> None
+      //   B -> None
     
-    if (rt == null || rt.length == 0) scalars.setSelectedIndex(0); // None
+      if (rt == null || rt.length == 0) scalars.setSelectedIndex(0); // None
 
-    // Case 1: rtypes.length == 1
-    //   R -> rtypes[0]
-    //   G -> rtypes[0]
-    //   B -> rtypes[0]
+      // Case 1: rtypes.length == 1
+      //   R -> rtypes[0]
+      //   G -> rtypes[0]
+      //   B -> rtypes[0]
 
-    else if (rt.length == 1) scalars.setSelectedItem(rt[0]);
+      else if (rt.length == 1) scalars.setSelectedItem(rt[0]);
 
-    // Case 2: rtypes.length == 2
-    //   R -> rtypes[0]
-    //   G -> rtypes[1]
-    //   B -> None
+      // Case 2: rtypes.length == 2
+      //   R -> rtypes[0]
+      //   G -> rtypes[1]
+      //   B -> None
 
-    // Case 3: rtypes.length >= 3
-    //   R -> rtypes[0]
-    //   G -> rtypes[1]
-    //   B -> rtypes[2]
+      // Case 3: rtypes.length >= 3
+      //   R -> rtypes[0]
+      //   G -> rtypes[1]
+      //   B -> rtypes[2]
 
-    else {
-      if (type == 0) scalars.setSelectedItem(rt[0]);
-      else if (type == 1) scalars.setSelectedItem(rt[1]);
-      else if (type == 2 && rt.length >= 3) scalars.setSelectedItem(rt[2]);
-      else scalars.setSelectedIndex(0); // None
+      else {
+        if (type == 0) scalars.setSelectedItem(rt[0]);
+        else if (type == 1) scalars.setSelectedItem(rt[1]);
+        else if (type == 2 && rt.length >= 3) scalars.setSelectedItem(rt[2]);
+        else scalars.setSelectedIndex(0); // None
+      }
+    }
+    else { // model == HSV
+      // Case 0: no rtypes
+      //   H -> None
+      //   S -> None
+      //   V -> None
+
+      if (rt == null || rt.length == 0) scalars.setSelectedIndex(0); // None
+
+      // Case 1: rtypes.length >= 1
+      //   H -> rtypes[0]
+      //   S -> Full
+      //   V -> Full
+
+      else {
+        if (type == 0) scalars.setSelectedItem(rt[0]);
+        else scalars.setSelectedIndex(1); // Full
+      }
     }
   }
 

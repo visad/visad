@@ -489,6 +489,23 @@ public class SliceManager
     }
   }
 
+  /** Sets the color range to match the specified configuration. */
+  void setColorRange(boolean dynamic, double lo, double hi) {
+    if (rtypes == null) return;
+    try {
+      for (int i=0; i<rtypes.length; i++) {
+        if (dynamic) rmaps2[i].resetAutoScale();
+        else rmaps2[i].setRange(lo, hi);
+        if (bio.display3 != null) {
+          if (dynamic) rmaps3[i].resetAutoScale();
+          else rmaps3[i].setRange(lo, hi);
+        }
+      }
+    }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
+  }
+
   /** Sets the color controls to match the current widget color tables. */
   void syncColors() {
     int colorMode = bio.display2.getGraphicsModeControl().getColorMode();
@@ -1230,7 +1247,7 @@ public class SliceManager
     bio.setWaitCursor(false);
   }
 
-void updateAnimationControls() {
+  void updateAnimationControls() {
     // update animation controls
     try {
       if (anim_control2 != null) anim_control2.setCurrent(index);
@@ -1240,5 +1257,6 @@ void updateAnimationControls() {
     }
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }
-}
+  }
+
 }

@@ -40,7 +40,9 @@ import visad.util.*;
  * ColorToolPanel is the tool panel for
  * adjusting viewing parameters.
  */
-public class ColorToolPanel extends ToolPanel implements ItemListener {
+public class ColorToolPanel extends ToolPanel
+  implements DocumentListener, ItemListener
+{
 
   // -- CONSTANTS --
 
@@ -75,6 +77,9 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
 
   /** Text field for low color scale value. */
   private JTextField loVal;
+
+  /** Label for fixed color scale. */
+  private JLabel toLabel;
 
   /** Text field for high color scale value. */
   private JTextField hiVal;
@@ -197,48 +202,60 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     controls.add(Box.createVerticalStrut(5));
     cc++;
 
-    // CTR - TODO - color range options
-
     // dynamic color scaling option
     ButtonGroup colorScaleGroup = new ButtonGroup();
     dynamic = new JRadioButton("Dynamic color scaling");
     dynamic.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         loVal.setEnabled(false);
+        toLabel.setEnabled(false);
         hiVal.setEnabled(false);
+        updateColorRange();
       }
     });
     dynamic.setMnemonic('d');
     dynamic.setToolTipText("Scales color range according to the data");
     colorScaleGroup.add(dynamic);
+    // CTR - TODO - dynamic color scaling support
     dynamic.setEnabled(false);
+    controls.add(pad(dynamic, false, true));
 
     // fixed color scaling option
+    p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
     fixed = new JRadioButton("Fixed color range: ", true);
     fixed.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         loVal.setEnabled(true);
+        toLabel.setEnabled(true);
         hiVal.setEnabled(true);
+        updateColorRange();
       }
     });
     fixed.setMnemonic('f');
     fixed.setToolTipText("Fixes color range between the given values");
     colorScaleGroup.add(fixed);
-    fixed.setEnabled(false);
+    p.add(fixed);
 
     // low color scale value text field
     loVal = new JTextField("0");
     adjustTextField(loVal);
-    loVal.setEnabled(false);
+    loVal.getDocument().addDocumentListener(this);
+    loVal.setToolTipText("Minimum color range value");
+    p.add(loVal);
 
     // color scale label
-    JLabel toLabel = new JLabel(" to ");
-    toLabel.setEnabled(false);
+    toLabel = new JLabel(" to ");
+    toLabel.setForeground(Color.black);
+    p.add(toLabel);
 
     // high color scale value text field
     hiVal = new JTextField("255");
     adjustTextField(hiVal);
-    hiVal.setEnabled(false);
+    hiVal.getDocument().addDocumentListener(this);
+    hiVal.setToolTipText("Maximum color range value");
+    p.add(hiVal);
+    controls.add(pad(p, false, true));
 
     // spacing
     controls.add(Box.createVerticalStrut(5));
@@ -259,6 +276,7 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
         red.setModel(BioColorWidget.RGB);
         green.setModel(BioColorWidget.RGB);
         blue.setModel(BioColorWidget.RGB);
+        guessTypes();
         doColorTable();
       }
     });
@@ -274,6 +292,7 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
         red.setModel(BioColorWidget.HSV);
         green.setModel(BioColorWidget.HSV);
         blue.setModel(BioColorWidget.HSV);
+        guessTypes();
         doColorTable();
       }
     });
@@ -406,15 +425,7 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
 
   /** Initializes this tool panel. */
   public void init() {
-    red.removeItemListener(this);
-    green.removeItemListener(this);
-    blue.removeItemListener(this);
-    red.guessType();
-    green.guessType();
-    blue.guessType();
-    red.addItemListener(this);
-    green.addItemListener(this);
-    blue.addItemListener(this);
+    guessTypes();
     doColorTable();
     bio.sm.syncColors();
   }
@@ -425,6 +436,11 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     brightness.setEnabled(enabled);
     contrastLabel.setEnabled(enabled);
     contrast.setEnabled(enabled);
+    //dynamic.setEnabled(enabled);
+    fixed.setEnabled(enabled);
+    loVal.setEnabled(enabled);
+    toLabel.setEnabled(enabled);
+    hiVal.setEnabled(enabled);
   }
 
   /** Adds a widget to the tool panel. */
@@ -444,8 +460,30 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
 
   // -- INTERNAL API METHODS --
 
+  /** DocumentListener method for handling text field changes. */
+  public void changedUpdate(DocumentEvent e) { updateColorRange(); }
+
+  /** DocumentListener method for handling text field additions. */
+  public void insertUpdate(DocumentEvent e) { updateColorRange(); }
+
+  /** DocumentListener method for handling text field deletions. */
+  public void removeUpdate(DocumentEvent e) { updateColorRange(); }
+
   /** ItemListener method for handling color mapping changes. */
   public void itemStateChanged(ItemEvent e) { doColorTable(); }
+
+  /** Chooses most desirable types for range mappings. */
+  void guessTypes() {
+    red.removeItemListener(this);
+    green.removeItemListener(this);
+    blue.removeItemListener(this);
+    red.guessType();
+    green.guessType();
+    blue.guessType();
+    red.addItemListener(this);
+    green.addItemListener(this);
+    blue.addItemListener(this);
+  }
 
   /** Updates image color table, for brightness and color adjustments. */
   void doColorTable() {
@@ -527,6 +565,19 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     Dimension psize = field.getPreferredSize();
     if (psize.width < 40) psize.width = 40;
     field.setPreferredSize(psize);
+  }
+
+  /** Refreshes the color range mappings. */
+  private void updateColorRange() {
+    boolean dyn = dynamic.isSelected();
+    double lo = Double.NaN;
+    double hi = Double.NaN;
+    try {
+      lo = Double.parseDouble(loVal.getText());
+      hi = Double.parseDouble(hiVal.getText());
+    }
+    catch (NumberFormatException exc) { }
+    bio.sm.setColorRange(dyn, lo, hi);
   }
 
 }
