@@ -138,6 +138,12 @@ class Module
   float getX() { return x; }
   float getY() { return y; }
   float getZ() { return z; }
+
+  public String toString()
+  {
+    return "Module#" + number + "[" + x + "," + y + "," + z +
+      "]Str#" + string + "/" + stringOrder;
+  }
 }
 
 class ModuleList
@@ -158,6 +164,24 @@ class ModuleList
     }
 
     list.add(mod);
+  }
+
+  public void dump(java.io.PrintStream out)
+  {
+    // if there are modules to be sorted, do it now
+    if (list != null && list.size() > 0) {
+      sort();
+    }
+
+    // if there are no modules, we're done dumping
+    if (sortedArray == null) {
+      return;
+    }
+
+    final int nMods = sortedArray.length;
+    for (int i = 0; i < nMods; i++) {
+      out.println(sortedArray[i]);
+    }
   }
 
   public Module find(int number)
@@ -234,6 +258,30 @@ class ModuleList
 
     // out with the old
     list.clear();
+  }
+
+  public String toString()
+  {
+    StringBuffer buf = new StringBuffer("ModuleList[");
+
+    boolean isEmpty = true;
+
+    if (list != null && list.size() > 0) {
+      buf.append("unsorted=");
+      buf.append(list.size());
+      isEmpty = false;
+    }
+
+    if (sortedArray != null) {
+      buf.append("sorted=");
+      buf.append(sortedArray.length);
+      isEmpty = false;
+    }
+
+    if (isEmpty) buf.append("empty");
+
+    buf.append(']');
+    return buf.toString();
   }
 }
 
@@ -319,6 +367,20 @@ abstract class BaseTrack
 
     return field;
   }
+
+  public String toString()
+  {
+    String fullName = getClass().getName();
+    int pt = fullName.lastIndexOf('.');
+    final int ds = fullName.lastIndexOf('$');
+    if (ds > pt) {
+      pt = ds;
+    }
+    String className = fullName.substring(pt == -1 ? 0 : pt + 1);
+
+    return className + "[" + xstart + "," + ystart + "," + zstart +
+      " LA#" + zenith + " LO#" + azimuth + "]";
+  }
 }
 
 class MCTrack
@@ -388,6 +450,12 @@ class Hit
 
     return rt;
   }
+
+  public String toString()
+  {
+    return "Hit[Mod#" + mod.getNumber() + " amp " + amplitude +
+      " let " + leadEdgeTime + " tot " + timeOverThreshold + "]";
+  }
 }
 
 class Event
@@ -418,6 +486,21 @@ class Event
   final void add(Hit hit) { hits.add(hit); }
   final void add(FitTrack track) { tracks.add(track); }
   final void add(MCTrack track) { tracks.add(track); }
+
+  final void dump(java.io.PrintStream out)
+  {
+    out.println(this);
+
+    final int nHits = hits.size();
+    for (int i = 0; i < nHits; i++) {
+      out.println("  " + hits.get(i));
+    }
+
+    final int nTracks = tracks.size();
+    for (int i = 0; i < nTracks; i++) {
+      out.println("  " + tracks.get(i));
+    }
+  }
 
   static final RealType getTrackIndexType() { return trackIndexType; }
 
@@ -487,6 +570,12 @@ class Event
     }
 
     return t;
+  }
+
+  public String toString()
+  {
+    return "Event#" + number + "[Y" + year + "D" + day +
+      " H" + hits.size() + " T" + tracks.size() + "]";
   }
 }
 
@@ -723,6 +812,16 @@ class AmandaFile
                     tracksFunctionType, hitsFunctionType);
 
     typesCreated = true;
+  }
+
+  private final void dump(java.io.PrintStream out)
+  {
+    final int nEvents = events.size();
+    for (int i = 0; i < nEvents; i++) {
+      ((Event )events.get(i)).dump(out);
+    }
+
+    modules.dump(out);
   }
 
   public static final RealType getAmplitudeType() { return amplitudeType; }
