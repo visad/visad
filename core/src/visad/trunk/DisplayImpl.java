@@ -44,7 +44,7 @@ import visad.util.*;
    DisplayImpl is not Serializable and should not be copied
    between JVMs.<P>
 */
-public abstract class DisplayImpl extends ActionImpl implements Display {
+public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
   /** instance variables */
   /** a Vector of ScalarMap objects;
