@@ -22,19 +22,10 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.rmi.ConnectException;
 import java.rmi.RemoteException;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.Hashtable;
 import java.util.ListIterator;
 import java.util.Vector;
-
-import visad.VisADException;
-
-import visad.util.ThreadPool;
 
 /**
  * <TT>DisplaySyncImpl</TT> is the <TT>Display</TT> synchronization
@@ -46,18 +37,20 @@ public class DisplaySyncImpl
   implements DisplaySync
 {
   /**
+   * The <TT>Display</TT> being synchronized.
+   */
+  private DisplayImpl myDisplay;
+
+  /**
    * The name of this synchronization object.
    */
   private String Name;
-  /**
-   * The <TT>Display</TT> being synchronized.
-   */
-  private transient DisplayImpl myDisplay;
+
   /**
    * The <TT>DisplayMonitor</TT> object associated with the
    * <TT>Display</TT>.
    */
-  private transient DisplayMonitor monitor;
+  private DisplayMonitor monitor;
 
   /**
    * Creates a synchronization coordinator for the specified
@@ -67,8 +60,8 @@ public class DisplaySyncImpl
    */
   public DisplaySyncImpl(DisplayImpl dpy)
   {
-    Name = dpy.getName() + " Sync";
     myDisplay = dpy;
+    Name = dpy.getName() + " Sync";
     monitor = dpy.getDisplayMonitor();
   }
 
