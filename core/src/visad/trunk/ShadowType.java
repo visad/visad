@@ -1543,7 +1543,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
         }
       }
     }
-System.out.println("spatial_flow = " + spatial_flow);
+// System.out.println("spatial_flow = " + spatial_flow);
 
     if (spatial_flow) {
 
