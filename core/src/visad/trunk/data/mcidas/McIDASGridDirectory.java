@@ -47,6 +47,7 @@ public class McIDASGridDirectory extends visad.jmet.MetGridDirectory {
   int gridType;
   int [] navBlock;
   MetUnits mu;
+  int [] xcdBlock;
 
 
   public McIDASGridDirectory(byte[] h) {
@@ -76,6 +77,11 @@ public class McIDASGridDirectory extends visad.jmet.MetGridDirectory {
      for (int n=0; n<7; n++) {
        navBlock[n] = McIDASUtil.bytesToInteger(h, (132 + (4*n)) );
        //System.out.println("nav word "+n+" = "+navBlock[n]);
+     }
+     xcdBlock = new int[6];
+     for (int n=0; n<6; n++) {
+       xcdBlock[n] = McIDASUtil.bytesToInteger(h, (184 + (4*n)) );
+       //System.out.println("xcd word "+n+" = "+xcdBlock[n]);
      }
      try {
        mu = new MetUnits();
@@ -145,6 +151,10 @@ public class McIDASGridDirectory extends visad.jmet.MetGridDirectory {
          //System.out.println("lat/lon = "+la1+"  "+lo1+"  incs = "+di+"  "+dj);
          coordSystem = new GRIBCoordinateSystem(ref,0,columns,rows,
               la1, lo1, la2, lo2, di, dj);
+       } else if (gridType == 2 || gridType == 6) {
+         int projNum = xcdBlock[2];
+         //System.out.println("GRIB projection = " + projNum);
+         coordSystem = new GRIBCoordinateSystem(ref,projNum);
        } else {
          coordSystem = new GRIBCoordinateSystem(ref,0);
        }
