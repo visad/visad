@@ -89,7 +89,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** whether Java3D is enabled on this JVM */
   protected static boolean CanDo3D;
 
-  /** whether the HDF5 native library is present on this JVM */
+  /** whether the HDF-5 native library is present on this JVM */
   protected static boolean CanDoHDF5;
 
   /** whether this JVM supports saving JPEG images with JPEGImageEncoder */
@@ -203,80 +203,92 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** the options menu */
   protected Menu OptionsMenu;
 
-  /** Edit Paste menu item */
-  protected MenuItem EditPaste;
-
-  /** File Export netCDF menu item */
+  /** File "Export data to netCDF..." menu item */
   protected MenuItem FileSave1;
 
-  /** File Export serialized menu item */
+  /** File "Export serialized data..." menu item */
   protected MenuItem FileSave2;
 
-  /** File Export HDF5 menu item */
+  /** File "Export data to HDF-5..." menu item */
   protected MenuItem FileSave3;
 
-  /** File Snapshot JPEG menu item */
+  /** File "Take JPEG snapshot..." menu item */
   protected MenuItem FileSnap;
 
-  /** Cell Print cell menu item */
+  /** Edit "Paste" menu item */
+  protected MenuItem EditPaste;
+
+  /** Edit "Clear" menu item */
+  protected MenuItem EditClear;
+
+  /** Cell "3-D (Java3D)" menu item */
+  protected CheckboxMenuItem CellDim3D3D;
+
+  /** Cell "2-D (Java2D)" menu item */
+  protected CheckboxMenuItem CellDim2D2D;
+
+  /** Cell "2-D (Java3D)" menu item */
+  protected CheckboxMenuItem CellDim2D3D;
+
+  /** Cell "Print cell..." menu item */
   protected MenuItem CellPrint;
 
-  /** Cell Edit mappings menu item */
+  /** Cell "Edit mappings..." menu item */
   protected MenuItem CellEdit;
 
-  /** Cell Reset orientation menu item */
+  /** Cell "Reset orientation" menu item */
   protected MenuItem CellReset;
 
-  /** Cell Show controls menu item */
+  /** Cell "Show controls" menu item */
   protected MenuItem CellShow;
+
+  /** Layout "Add column" menu item */
+  protected MenuItem LayAddCol;
+
+  /** Layout "Delete column" menu item */
+  protected MenuItem LayDelCol;
+
+  /** Layout "Delete row" menu item */
+  protected MenuItem LayDelRow;
+
+  /** Options "Auto-switch to 3-D" menu item */
+  protected CheckboxMenuItem AutoSwitchBox;
+
+  /** Options "Auto-detect mappings" menu item */
+  protected CheckboxMenuItem AutoDetectBox;
+
+  /** Options "Auto-display controls" menu item */
+  protected CheckboxMenuItem AutoShowBox;
 
   /** the tool bar */
   protected JToolBar Toolbar;
 
-  /** File Save as netCDF toolbar button */
+  /** File "Export data to netCDF" toolbar button */
   protected JButton ToolSave;
 
-  /** Edit Paste toolbar button */
+  /** Edit "Paste" toolbar button */
   protected JButton ToolPaste;
 
-  /** Cell 3-D (Java3D) toolbar button */
+  /** Cell "3-D (Java3D)" toolbar button */
   protected JButton Tool3D;
 
-  /** Cell 2-D (Java3D) toolbar button */
+  /** Cell "2-D (Java3D)" toolbar button */
   protected JButton Tool2D;
 
-  /** Cell 2-D (Java2D) toolbar button */
+  /** Cell "2-D (Java2D)" toolbar button */
   protected JButton ToolJ2D;
 
-  /** Cell Edit mappings toolbar button */
+  /** Cell "Edit mappings" toolbar button */
   protected JButton ToolMap;
 
-  /** Cell Show controls toolbar button */
+  /** Cell "Show controls" toolbar button */
   protected JButton ToolShow;
 
-  /** Cell Reset orientation toolbar button */
+  /** Cell "Reset orientation" toolbar button */
   protected JButton ToolReset;
 
   /** formula bar checkbox toolbar button */
   protected JButton FormulaOk;
-
-  /** Cell 3-D (Java3D) menu item */
-  protected CheckboxMenuItem CellDim3D3D;
-
-  /** Cell 2-D (Java2D) menu item */
-  protected CheckboxMenuItem CellDim2D2D;
-
-  /** Cell 2-D (Java3D) menu item */
-  protected CheckboxMenuItem CellDim2D3D;
-
-  /** Auto-switch dimension menu item */
-  protected CheckboxMenuItem AutoSwitchBox;
-
-  /** Auto-detect mappings menu item */
-  protected CheckboxMenuItem AutoDetectBox;
-
-  /** Auto-display controls menu item */
-  protected CheckboxMenuItem AutoShowBox;
 
 
   /** column of currently selected cell */
@@ -440,10 +452,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
     });
     setBackground(Color.white);
 
-    // test whether HDF5 native library is present
+    // test whether HDF-5 native library is present
     CanDoHDF5 = false;
     try {
-      H5.J2C(0); // HDF5 call initializes HDF5 native library
+      H5.J2C(0); // HDF-5 call initializes HDF-5 native library
       CanDoHDF5 = true;
     }
     catch (NoClassDefFoundError err) {
@@ -451,7 +463,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
     catch (UnsatisfiedLinkError err) {
       if (BasicSSCell.DEBUG) {
-        System.err.println("Warning: HDF5 library not found");
+        System.err.println("Warning: HDF-5 library not found");
       }
     }
     catch (Exception exc) {
@@ -589,7 +601,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     FileSave2.setEnabled(false);
     FileMenu.add(FileSave2);
 
-    FileSave3 = new MenuItem("Export data to HDF5...");
+    FileSave3 = new MenuItem("Export data to HDF-5...");
     FileSave3.addActionListener(this);
     FileSave3.setActionCommand("fileSaveHDF5");
     FileSave3.setEnabled(false);
@@ -617,11 +629,13 @@ public class SpreadSheet extends JFrame implements ActionListener,
     MenuItem editCut = new MenuItem("Cut");
     editCut.addActionListener(this);
     editCut.setActionCommand("editCut");
+    editCut.setEnabled(!IsRemote);
     EditMenu.add(editCut);
 
     MenuItem editCopy = new MenuItem("Copy");
     editCopy.addActionListener(this);
     editCopy.setActionCommand("editCopy");
+    editCopy.setEnabled(!IsRemote);
     EditMenu.add(editCopy);
 
     EditPaste = new MenuItem("Paste");
@@ -630,10 +644,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
     EditPaste.setEnabled(false);
     EditMenu.add(EditPaste);
 
-    MenuItem editClear = new MenuItem("Clear");
-    editClear.addActionListener(this);
-    editClear.setActionCommand("editClear");
-    EditMenu.add(editClear);
+    EditClear = new MenuItem("Clear");
+    EditClear.addActionListener(this);
+    EditClear.setActionCommand("editClear");
+    EditClear.setEnabled(false);
+    EditMenu.add(EditClear);
 
     // setup menu
     SetupMenu = new Menu("Setup");
@@ -652,11 +667,13 @@ public class SpreadSheet extends JFrame implements ActionListener,
     MenuItem setupSave = new MenuItem("Save spreadsheet file");
     setupSave.addActionListener(this);
     setupSave.setActionCommand("setupSave");
+    setupSave.setEnabled(!IsRemote);
     SetupMenu.add(setupSave);
 
     MenuItem setupSaveas = new MenuItem("Save spreadsheet file as...");
     setupSaveas.addActionListener(this);
     setupSaveas.setActionCommand("setupSaveas");
+    setupSaveas.setEnabled(!IsRemote);
     SetupMenu.add(setupSaveas);
 
     // cell menu
@@ -709,25 +726,27 @@ public class SpreadSheet extends JFrame implements ActionListener,
     LayoutMenu = new Menu("Layout");
     Menubar.add(LayoutMenu);
 
-    MenuItem layAddCol = new MenuItem("Add column");
-    layAddCol.addActionListener(this);
-    layAddCol.setActionCommand("layAddCol");
-    LayoutMenu.add(layAddCol);
+    LayAddCol = new MenuItem("Add column");
+    LayAddCol.addActionListener(this);
+    LayAddCol.setActionCommand("layAddCol");
+    LayoutMenu.add(LayAddCol);
 
     MenuItem layAddRow = new MenuItem("Add row");
     layAddRow.addActionListener(this);
     layAddRow.setActionCommand("layAddRow");
     LayoutMenu.add(layAddRow);
 
-    MenuItem layDelCol = new MenuItem("Delete column");
-    layDelCol.addActionListener(this);
-    layDelCol.setActionCommand("layDelCol");
-    LayoutMenu.add(layDelCol);
+    LayDelCol = new MenuItem("Delete column");
+    LayDelCol.addActionListener(this);
+    LayDelCol.setActionCommand("layDelCol");
+    LayDelCol.setEnabled(NumVisX > 1);
+    LayoutMenu.add(LayDelCol);
 
-    MenuItem layDelRow = new MenuItem("Delete row");
-    layDelRow.addActionListener(this);
-    layDelRow.setActionCommand("layDelRow");
-    LayoutMenu.add(layDelRow);
+    LayDelRow = new MenuItem("Delete row");
+    LayDelRow.addActionListener(this);
+    LayDelRow.setActionCommand("layDelRow");
+    LayDelRow.setEnabled(NumVisY > 1);
+    LayoutMenu.add(LayDelRow);
 
     LayoutMenu.addSeparator();
 
@@ -741,17 +760,20 @@ public class SpreadSheet extends JFrame implements ActionListener,
     Menubar.add(OptionsMenu);
 
     if (!CanDo3D) AutoSwitch = false;
-    AutoSwitchBox = new CheckboxMenuItem("Auto-switch to 3-D", AutoSwitch);
+    AutoSwitchBox =
+      new CheckboxMenuItem("Auto-switch to 3-D", AutoSwitch && !IsRemote);
     AutoSwitchBox.addItemListener(this);
-    AutoSwitchBox.setEnabled(CanDo3D);
+    AutoSwitchBox.setEnabled(CanDo3D && !IsRemote);
     OptionsMenu.add(AutoSwitchBox);
 
-    AutoDetectBox = new CheckboxMenuItem("Auto-detect mappings", AutoDetect);
+    AutoDetectBox =
+      new CheckboxMenuItem("Auto-detect mappings", AutoDetect && !IsRemote);
     AutoDetectBox.addItemListener(this);
+    AutoDetectBox.setEnabled(!IsRemote);
     OptionsMenu.add(AutoDetectBox);
 
-    AutoShowBox = new CheckboxMenuItem("Auto-display controls",
-      AutoShowControls);
+    AutoShowBox =
+      new CheckboxMenuItem("Auto-display controls", AutoShowControls);
     AutoShowBox.addItemListener(this);
     OptionsMenu.add(AutoShowBox);
 
@@ -769,8 +791,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
     Toolbar.addSeparator();
 
     // edit menu toolbar icons
-    addToolbarButton("cut.gif", "Cut", "editCut", true, Toolbar);
-    addToolbarButton("copy.gif", "Copy", "editCopy", true, Toolbar);
+    addToolbarButton("cut.gif", "Cut", "editCut", !IsRemote, Toolbar);
+    addToolbarButton("copy.gif", "Copy", "editCopy", !IsRemote, Toolbar);
     ToolPaste = addToolbarButton("paste.gif", "Paste",
       "editPaste", false, Toolbar);
     Toolbar.addSeparator();
@@ -1127,7 +1149,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     DisplayCells[CurX][CurY].saveDataDialog(new VisADForm());
   }
 
-  /** export a data set to HDF5 format */
+  /** export a data set to HDF-5 format */
   void exportDataSetHDF5() {
     Form hdf5form = null;
     try {
@@ -1137,7 +1159,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
     catch (Exception exc) {
       if (BasicSSCell.DEBUG) exc.printStackTrace();
-      displayErrorMessage("Cannot export data to HDF5 format", exc,
+      displayErrorMessage("Cannot export data to HDF-5 format", exc,
         "VisAD SpreadSheet error");
     }
     if (hdf5form != null) {
@@ -1891,7 +1913,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
   synchronized void addColumn() {
     JLabel l = (JLabel) HorizLabel[NumVisX - 1].getComponent(0);
     int maxVisX = Letters.indexOf(l.getText()) + 1;
-    if (maxVisX < Letters.length()) {
+    int diffX = Letters.length() - maxVisX;
+    if (diffX > 0) {
       // re-layout horizontal spreadsheet labels
       JPanel[] newLabels = new JPanel[NumVisX + 1];
       for (int i=0; i<NumVisX; i++) newLabels[i] = HorizLabel[i];
@@ -1964,6 +1987,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
         NumVisX++;
         reconstructHoriz(newLabels, newDrag, fcells);
+        if (diffX == 1) LayAddCol.setEnabled(false);
+        LayDelCol.setEnabled(true);
       }
     }
   }
@@ -2045,6 +2070,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
       NumVisY++;
       reconstructVert(newLabels, newDrag, fcells);
+      LayDelRow.setEnabled(true);
     }
   }
 
@@ -2065,6 +2091,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
         return false;
       }
     }
+
+    // get column letter to be deleted
+    JLabel label = (JLabel) HorizLabel[CurX].getComponent(0);
+    char letter = label.getText().charAt(0);
+    char last = Letters.charAt(Letters.length() - 1);
 
     // re-layout horizontal spreadsheet labels
     JPanel[] newLabels = new JPanel[NumVisX - 1];
@@ -2104,6 +2135,8 @@ public class SpreadSheet extends JFrame implements ActionListener,
       NumVisX--;
       if (CurX > NumVisX - 1) selectCell(NumVisX - 1, CurY);
       reconstructHoriz(newLabels, newDrag, fcells);
+      if (letter == last) LayAddCol.setEnabled(true);
+      if (NumVisX == 1) LayDelCol.setEnabled(false);
     }
     return true;
   }
@@ -2164,6 +2197,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       NumVisY--;
       if (CurY > NumVisY - 1) selectCell(CurX, NumVisY - 1);
       reconstructVert(newLabels, newDrag, fcells);
+      if (NumVisY == 1) LayDelRow.setEnabled(false);
     }
     return true;
   }
@@ -2323,16 +2357,17 @@ public class SpreadSheet extends JFrame implements ActionListener,
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
         boolean b = DisplayCells[CurX][CurY].hasData();
-        CellPrint.setEnabled(b);
-        CellEdit.setEnabled(b);
-        ToolMap.setEnabled(b);
         FileSave1.setEnabled(b);
         FileSave2.setEnabled(b);
         FileSave3.setEnabled(b && CanDoHDF5);
         FileSnap.setEnabled(b && CanDoJPEG);
+        EditClear.setEnabled(b);
+        CellPrint.setEnabled(b);
+        CellEdit.setEnabled(b);
+        CellReset.setEnabled(b && !IsSlave);
         ToolSave.setEnabled(b);
-        CellReset.setEnabled(b);
-        ToolReset.setEnabled(b);
+        ToolMap.setEnabled(b);
+        ToolReset.setEnabled(b && !IsSlave);
         refreshShowControls();
       }
     });

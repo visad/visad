@@ -28,6 +28,7 @@ package visad.ss;
 
 import com.sun.image.codec.jpeg.*;
 import java.awt.*;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.*;
@@ -48,7 +49,7 @@ import visad.util.DataUtility;
     presented in the VisAD SpreadSheet program.  Other capabilities, like the
     file loader and data mapping dialog boxes, are available only with a
     FancySSCell.<P> */
-public class BasicSSCell extends JPanel {
+public class BasicSSCell extends JPanel implements MouseListener {
 
   /** used for debugging */
   public static boolean DEBUG = false;
@@ -172,6 +173,9 @@ public class BasicSSCell extends JPanel {
   /** this BasicSSCell's DisplayListeners */
   protected Vector DListen = new Vector();
 
+  /** this cell's MouseListeners, used only when this cell is a slave */
+  protected Vector SListen = new Vector();
+
   /** whether the BasicSSCell has a valid display on-screen */
   protected boolean HasDisplay = false;
 
@@ -180,7 +184,6 @@ public class BasicSSCell extends JPanel {
 
   /** prevent simultaneous GUI manipulation */
   protected Object Lock = new Object();
-
 
   /** construct a new BasicSSCell with the given name */
   public BasicSSCell(String name) throws VisADException, RemoteException {
@@ -737,6 +740,101 @@ public class BasicSSCell extends JPanel {
     }
     catch (RemoteException exc) {
       if (DEBUG) exc.printStackTrace();
+    }
+  }
+
+  /** add a mouse listener to this SSCell */
+  public void addMouseListener(MouseListener l) {
+    super.addMouseListener(l);
+    if (IsSlave) {
+      synchronized (SListen) {
+        SListen.add(l);
+      }
+    }
+  }
+
+  /** remove a mouse listener from this SSCell */
+  public void removeMouseListener(MouseListener l) {
+    super.removeMouseListener(l);
+    if (IsSlave) {
+      synchronized (SListen) {
+        SListen.remove(l);
+      }
+    }
+  }
+
+  /** for slave cells, handle mouse pressed events */
+  public void mousePressed(MouseEvent e) {
+    // switch source of event to this cell
+    MouseEvent event = new MouseEvent(this, e.getID(), e.getWhen(),
+      e.getModifiers(), e.getX(), e.getY(), e.getClickCount(),
+      e.isPopupTrigger());
+
+    synchronized (SListen) {
+      for (int i=0; i<SListen.size(); i++) {
+        MouseListener l = (MouseListener) SListen.elementAt(i);
+        l.mousePressed(event);
+      }
+    }
+  }
+
+  /** for slave cells, handle mouse released events */
+  public void mouseReleased(MouseEvent e) {
+    // switch source of event to this cell
+    MouseEvent event = new MouseEvent(this, e.getID(), e.getWhen(),
+      e.getModifiers(), e.getX(), e.getY(), e.getClickCount(),
+      e.isPopupTrigger());
+
+    synchronized (SListen) {
+      for (int i=0; i<SListen.size(); i++) {
+        MouseListener l = (MouseListener) SListen.elementAt(i);
+        l.mouseReleased(event);
+      }
+    }
+  }
+
+  /** for slave cells, handle mouse clicked events */
+  public void mouseClicked(MouseEvent e) {
+    // switch source of event to this cell
+    MouseEvent event = new MouseEvent(this, e.getID(), e.getWhen(),
+      e.getModifiers(), e.getX(), e.getY(), e.getClickCount(),
+      e.isPopupTrigger());
+
+    synchronized (SListen) {
+      for (int i=0; i<SListen.size(); i++) {
+        MouseListener l = (MouseListener) SListen.elementAt(i);
+        l.mouseClicked(event);
+      }
+    }
+  }
+  
+  /** for slave cells, handle mouse entered events */
+  public void mouseEntered(MouseEvent e) {
+    // switch source of event to this cell
+    MouseEvent event = new MouseEvent(this, e.getID(), e.getWhen(),
+      e.getModifiers(), e.getX(), e.getY(), e.getClickCount(),
+      e.isPopupTrigger());
+
+    synchronized (SListen) {
+      for (int i=0; i<SListen.size(); i++) {
+        MouseListener l = (MouseListener) SListen.elementAt(i);
+        l.mouseEntered(event);
+      }
+    }
+  }
+
+  /** for slave cells, handle mouse exited events */
+  public void mouseExited(MouseEvent e) {
+    // switch source of event to this cell
+    MouseEvent event = new MouseEvent(this, e.getID(), e.getWhen(),
+      e.getModifiers(), e.getX(), e.getY(), e.getClickCount(),
+      e.isPopupTrigger());
+
+    synchronized (SListen) {
+      for (int i=0; i<SListen.size(); i++) {
+        MouseListener l = (MouseListener) SListen.elementAt(i);
+        l.mouseExited(event);
+      }
     }
   }
 
@@ -1941,8 +2039,12 @@ public class BasicSSCell extends JPanel {
 
       // update remote slave display
       if (IsSlave) {
-        if (RemoteVSlave != null) RemoteVSlave.unlink();
+        if (RemoteVSlave != null) {
+          RemoteVSlave.removeMouseListener(this);
+          RemoteVSlave.unlink();
+        }
         RemoteVSlave = new RemoteSlaveDisplayImpl(RemoteVDisplay);
+        RemoteVSlave.addMouseListener(this);
       }
 
       // autodetect new dimension
