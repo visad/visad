@@ -1204,7 +1204,6 @@ if(DEBUG_CSYS)System.err.println("wrCSys: OBJ_COORDSYS (" + OBJ_COORDSYS + ")");
 if(DEBUG_CSYS)System.err.println("wrCSys: index (" + index + ")");
       file.writeInt(index);
 
-if(DEBUG_CSYS)System.err.println("wrCSys: serialObj (" + serialObj.length + " bytes)");
       writeSerializedObject(FLD_COORDSYS_SERIAL, cSys);
 
 if(DEBUG_CSYS)System.err.println("wrCSys: FLD_END (" + FLD_END + ")");
