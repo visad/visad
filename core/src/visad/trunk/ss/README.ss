@@ -1,5 +1,5 @@
                     VisAD SpreadSheet User Interface README file
-                                   26 May 2000
+                                   12 June 2000
  
                                 Table of Contents
 
@@ -35,6 +35,7 @@
     2.4.1 Creating a SpreadSheet RMI server
     2.4.2 Sharing individual SpreadSheet cells
     2.4.3 Cloning entire SpreadSheets
+    2.4.4 Creating a SpreadSheet slave
   2.5 Undocumented Features
 3. Known Bugs
 4. Future Plans
@@ -77,12 +78,26 @@ You can optionally specify the number of spreadsheet cells with:
 where (cols) is the number of columns, and (rows) is the number of rows.
 The default is four cells (two columns, two rows).  Note that rows and
 columns can be added or deleted at run time using the commands from the
-Display menu.
+Layout menu.
 
 The SpreadSheet user interface requires a lot of memory (at least 32 MB),
 especially if you want to work with large data sets.  If you receive an
 OutOfMemoryError, you should increase the amount of memory allocated to
-the program (increase the ### in "-mx###m").
+the program (increase the # in "-mx#m").
+
+Other useful command line parameters include:
+  -debug   Runs the SpreadSheet in "debug mode" (all errors will print stack
+           traces to the console, and some additional warnings will also be
+           outputted where appropriate).
+  -no3d    Disables Java3D.  The SpreadSheet will run as though Java3D is not
+           present on the system, allowing only "2-D (Java2D)" displays.
+  -gui     Causes a dialog box to pop up, allowing you to configure the
+           SpreadSheet.  Options include setting up a SpreadSheet server, clone
+           or slave; specifying numbers of rows and columns; and toggling debug
+           mode or Java3D support.  If you are running Windows and wish to
+           create a shortcut to the SpreadSheet, but you still wish to have the
+           full power of the command line arguments, just make a shortcut to:
+              java -mx64m visad.ss.SpreadSheet -gui
 
 1.3 Source Files
 
@@ -140,7 +155,7 @@ multiple FancySSCells.
 
 1.3.5 SSCellChangeEvent
 
-An event signifying a data or dimension change in an SSCell.
+An event signifying a data, display or dimension change in an SSCell.
 
 1.3.6 SSCellChangeListener
 
@@ -230,7 +245,7 @@ Here are the commands from the Setup menu:
 
 New - Clears all spreadsheet cells;  starts from scratch.
 
-Open - Opens a "spreadsheet file."  Spreadsheet files are small, containing
+Open - Opens a "spreadsheet file".  Spreadsheet files are small, containing
 only the instructions needed to recreate a spreadsheet.  They do not contain
 any actual data, but rather the file names, URLs, RMI addresses, formulas,
 dimensionality information, mappings, and control information of the cells.
@@ -522,16 +537,36 @@ Note that if a SpreadSheet RMI server does not support Java3D, none of its
 clones will be able to either.  Thus, for maximum functionality, it is best
 to make sure that the machine chosen to be the RMI server supports Java3D.
 
+2.4.4 Creating a SpreadSheet slave
+
+SpreadSheet clones need not re-render the server's data locally.
+Alternatively, the clone can be a slave, receiving image data from the server
+and sending mouse events back to the server so that users can still interact
+with the displays.  To launch a SpreadSheet clone as a slave, type:
+
+    java -mx64m visad.ss.SpreadSheet -slave rmi.address/name
+
+Note that the command line is the same as a regular clone except that the
+parameter is "-slave" instead of "-client".  Some features that are available
+to a regular clone are disabled for a slave, since only images of the data are
+sent to the slave, not the data itself.
+
+Slaves have a very slow update rate (taking a snapshot of a Java3D display on
+the server is very slow, and each snapshot must then be sent across the
+network). However, slaves are very useful for visualizing 3-D displays on a
+machine that does not have Java3D, and they also conserve large amounts of
+memory, since large datasets are not sent to the slave.
+
 2.5 Undocumented Features
 
 Obviously, if they're undocumented, you won't find them in this README!
 However, creating the javadoc for the visad.ss package should help in
 deciphering it, since the source is liberally commented.  You may also wish to
-create the javadoc for the visad.formula package, since it is heavily used by
-the SpreadSheet.
+create the javadoc for visad.formula, a package that is heavily used by the
+SpreadSheet.
 
-Also, you can obtain help with the SpreadSheet's command line options by using
-the "-help" command line option.
+In addition, you can obtain help with the SpreadSheet's command line options by
+using the "-help" command line option.
 
 3. Known Bugs
 
@@ -552,15 +587,16 @@ The following bugs have been discovered and have not yet been fixed:
    with the Symantec JIT compiler for Windows.  This error is harmless and data
    sets are still imported correctly (i.e., ignore this error message).
 
-   Also, this error no longer appears in JDK 1.3, since the JVM no longer uses
-   the Symantic JIT compiler, but instead uses Sun's Hotspot compiler.
+   This error no longer appears in JDK 1.3, since the JVM no longer uses the
+   Symantec JIT compiler, but instead uses Sun's Hotspot compiler.
 
 4) On certain Windows configurations, the SpreadSheet may occasionally lock up
    on startup.
 
 5) On certain Solaris configurations, key event processing has some glitches.
-   For example, the arrow keys may not work, and after loading a data set,
-   attempting to input text into the formula bar has no effect.
+   For example, the arrow keys may not work at times.  If keys seem to have
+   stopped working, click the "Formula OK" button (green check mark), then try
+   pressing the keys again.
 
 If you find a bug in the SpreadSheet user interface not listed above,
 please send e-mail to curtis@ssec.wisc.edu and hibbard@facstaff.wisc.edu
