@@ -44,7 +44,10 @@ public class ErrorEstimate extends Object implements java.io.Serializable, Compa
   private static final double DERIVATIVE_HI_LIMIT = 1.0 / DERIVATIVE_LOW_LIMIT;
 
   /** construct an error distribution of number values with
-      given mean and error (variance), in Unit unit */
+      given mean and error (variance), in Unit unit
+      <br><br><em>Note that the <code>mean</code> and <code>error</code>
+      parameters are reversed in this method</em>
+  */
   public ErrorEstimate(double error, double mean, long number, Unit u) {
     unit = u;
     if (Double.isNaN(error) || Double.isNaN(mean) || number <= 0) {
@@ -61,16 +64,16 @@ public class ErrorEstimate extends Object implements java.io.Serializable, Compa
 
   /** construct an error distribution of 1 value with
       given mean and error (variance), in Unit unit */
-  public ErrorEstimate(double value, double error, Unit u) {
+  public ErrorEstimate(double mean, double error, Unit u) {
     unit = u;
-    if (Double.isNaN(value)) {
+    if (Double.isNaN(mean)) {
       NumberNotMissing = 0;
       Mean = Double.NaN;
       Error = Double.NaN;
     }
     else {
       NumberNotMissing = 1;
-      Mean = value;
+      Mean = mean;
       Error = error;
     }
   }
@@ -572,14 +575,30 @@ public class ErrorEstimate extends Object implements java.io.Serializable, Compa
     return Double.isNaN(Error);
   }
 
+  /**
+   * Get the mean value for this error distribution
+   */
   public double getMean() {
     return Mean;
   }
 
+  /**
+   * Get the variance of this error distribution
+   */
   public double getErrorValue() {
     return Error;
   }
 
+  /**
+   * Get the number of values in this error distribution
+   */
+  public long getNumberNotMissing() {
+    return NumberNotMissing;
+  }
+
+  /**
+   * Get the Unit for this error distribution.
+   */
   public Unit getUnit() {
     return unit;
   }
