@@ -742,9 +742,14 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
         // don't set if application has called control.setLevels()
         float[] lowhibase = new float[3];
         boolean[] dashes = new boolean[1];
-        float[] levs =
-          ((ContourControl) control).getLevels(lowhibase, dashes);
-        if (levs == null) {
+
+        // WLH 20 May 2003
+        // float[] levs =
+        //   ((ContourControl) control).getLevels(lowhibase, dashes);
+        boolean public_set =
+          ((ContourControl) control).getPublicSet();
+        // if (levs == null) {
+        if (!public_set) {
 
           boolean[] bvalues = new boolean[2];
           float[] values = new float[5];
@@ -759,7 +764,10 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
           values[2] = (float) dataRange[0]; // lowLimit
           values[3] = (float) dataRange[1]; // hiLimit
           values[4] = (float) dataRange[0]; // base
-          ((ContourControl) control).setMainContours(bvalues, values, true);
+          // WLH 20 May 2003
+          // ((ContourControl) control).setMainContours(bvalues, values, true);
+          ((ContourControl) control).setMainContours(bvalues, values,
+                                                     true, true);
 
         }
       }

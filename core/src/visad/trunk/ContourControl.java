@@ -50,6 +50,8 @@ public class ContourControl extends Control {
   private float base;
   private boolean labels;
 
+  private boolean public_set = false; // application called setLevels()
+
   //
   // these are the 'new' descriptors for 2-D contour lines
   // includes lowLimit, hiLimit and base from the 'old' descriptors
@@ -244,6 +246,7 @@ public class ContourControl extends Control {
   public void setContourInterval(float interval, float low,
                                  float hi, float ba)
          throws VisADException, RemoteException {
+    public_set = true;
     float[] levs;
     float myBase;
     boolean[] dashes = {false};
@@ -285,6 +288,7 @@ public class ContourControl extends Control {
    */
   public void setContourLimits(float low, float hi)
          throws VisADException, RemoteException {
+    public_set = true;
     boolean change;
     boolean setLevels;
     float[] levs = null;
@@ -337,6 +341,13 @@ public class ContourControl extends Control {
     if (change) changeControl(true);
   }
 
+  // WLH 20 May 2003
+  /** return boolean indicating whether levels have
+      been set by other than auto-scale */
+  public boolean getPublicSet() {
+    return public_set;
+  }
+
   /** 
    * Set arbitrary levels for 2-D contour lines;
    * levels below base are dashed if dash == true 
@@ -350,6 +361,7 @@ public class ContourControl extends Control {
    */
   public void setLevels(float[] levels, float base, boolean dash)
          throws VisADException, RemoteException {
+    public_set = true;
     setLevels(levels, base, dash, true);
   }
 
