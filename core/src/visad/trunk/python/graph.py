@@ -317,9 +317,11 @@ def contour(data, panel=None, enableLabels=1, interval=None, width=400, height=4
   Quick plot of a contour (isopleth) from <data>.  <panel> is the name
   of a panel to put this into (default= make a new one),
   <enableLabels> controls whether the contour lines will be labelled,
-  <interval[]> is a list containing the contour interval info, <width>
-  and <height> are the dimensions, <title> is the phrase for the title
-  bar.  Returns a reference to the display.
+  <interval[4]> is a list containing the contour interval info
+  (interval, minimum, maximum, base), <width> and <height> are the
+  dimensions, <title> is the phrase for the title bar.  Returns a
+  reference to the display.
+
   """
   if isinstance(data,PyList) or isinstance(data,PyTuple):
     data = field(data)

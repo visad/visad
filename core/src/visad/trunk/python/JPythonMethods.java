@@ -1468,6 +1468,7 @@ public abstract class JPythonMethods {
                                  data_ranges[2][0], data_ranges[2][1], sizes[2]);
     }
     else {
+
       double[] firsts = new double[dim];
       double[] lasts = new double[dim];
       for (int i=0; i<dim; i++) {
@@ -1476,7 +1477,9 @@ public abstract class JPythonMethods {
       }
       set = new LinearNDSet(rtt, firsts, lasts, sizes);
     }
-    return Histogram.makeHistogram(field, set);
+    FlatField result = Histogram.makeHistogram(field, set);
+    
+    return result;
   }
 
   /**
@@ -1898,6 +1901,82 @@ public abstract class JPythonMethods {
     return (visad.data.units.Parser.parse(name));
   }
 
+  /** make an Integer1DSet of given length
+  *
+  * @param length is the desired length of the 1D Integer Set
+  *
+  * @return the Integer1DSet
+  */
+  public static Integer1DSet makeDomain (int length) 
+                       throws VisADException {
+    return new Integer1DSet(length);
+  }
+
+  /** make an Integer1DSet of given length and MathType
+  *
+  * @param type is the MathType of the Set
+  * @param length is the desired length of the 1D Integer Set
+  *
+  * @return the Integer1DSet
+  */
+  public static Integer1DSet makeDomain (MathType type, int length) 
+                       throws VisADException {
+    return new Integer1DSet(type, length);
+  }
+  /** make an Integer1DSet of given length and make a MathType 
+  *
+  * @param name is the MathType name to use to create the MathType
+  * @param length is the desired length of the 1D Integer Set
+  *
+  * @return the Integer1DSet
+  */
+  public static Integer1DSet makeDomain (String name, int length) 
+                       throws VisADException {
+    return new Integer1DSet(RealType.getRealType(name), length);
+  }
+
+  /** make an Integer2DSet of given lengths
+  *
+  * @param lengthX is the desired length of the 2D Integer Set x
+  * @param lengthY is the desired length of the 2D Integer Set y
+  *
+  * @return the Integer2DSet
+  */
+  public static Integer2DSet makeDomain (int lengthX, int lengthY) 
+                       throws VisADException {
+    return new Integer2DSet(lengthX, lengthY);
+  }
+
+  /** make an Integer2DSet of given lengths
+  *
+  * @param type is the MathType of the Set
+  * @param lengthX is the desired length of the 2D Integer Set x
+  * @param lengthY is the desired length of the 2D Integer Set y
+  *
+  * @return the Integer2DSet
+  */
+  public static Integer2DSet makeDomain 
+                      (MathType type, int lengthX, int lengthY) 
+                       throws VisADException {
+    return new Integer2DSet(type, lengthX, lengthY);
+  }
+
+  /** make an Integer2DSet of given lengths
+  *
+  * @param name is the MathType name to use to create the MathType 
+  * (should be in the form:  "(xx,yy)" )
+  * @param lengthX is the desired length of the 2D Integer Set x
+  * @param lengthY is the desired length of the 2D Integer Set y
+  *
+  * @return the Integer2DSet
+  */
+  public static Integer2DSet makeDomain 
+                      (String name, int lengthX, int lengthY) 
+                         throws VisADException, RemoteException {
+    return new Integer2DSet((RealTupleType) makeType(name), lengthX, lengthY);
+  }
+
+
   /** create a Linear1DSet for domain samples
   *
   * @param first is the first value in the linear set
@@ -1906,7 +1985,6 @@ public abstract class JPythonMethods {
   *
   * @return the created visad.Linear1DSet
   *
-  * Note: this is for testing ONLY and may not remain!
   */
   public static Linear1DSet makeDomain 
                        (double first, double last, int length) 
@@ -1923,7 +2001,6 @@ public abstract class JPythonMethods {
   *
   * @return the created visad.Linear1DSet
   *
-  * Note: this is for testing ONLY and may not remain!
   */
   public static Linear1DSet makeDomain
            (MathType type, double first, double last, int length) 
@@ -1940,7 +2017,6 @@ public abstract class JPythonMethods {
   *
   * @return the created visad.Linear1DSet
   *
-  * Note: this is for testing ONLY and may not remain!
   */
   public static Linear1DSet makeDomain
            (String name, double first, double last, int length) 
@@ -1971,7 +2047,6 @@ public abstract class JPythonMethods {
   *
   * @return the created visad.Linear2DSet
   *
-  * Note: this is for testing ONLY and may not remain!
   */
   public static Linear2DSet makeDomain
                     (double first1, double last1, int length1,
@@ -1993,7 +2068,6 @@ public abstract class JPythonMethods {
   *
   * @return the created visad.Linear2DSet
   *
-  * Note: this is for testing ONLY and may not remain!
   */
   public static Linear2DSet makeDomain (MathType type, 
                          double first1, double last1, int length1, 
@@ -2015,7 +2089,6 @@ public abstract class JPythonMethods {
   *
   * @return the created visad.Linear2DSet
   *
-  * Note: this is for testing ONLY and may not remain!
   */
   public static Linear2DSet makeDomain (String name, 
                          double first1, double last1, int length1, 
@@ -2040,7 +2113,6 @@ public abstract class JPythonMethods {
   * @param length3 is the number of values in the set's 3rd dimension
   * @return the created visad.Linear3DSet
   *
-  * Note: this is for testing ONLY and may not remain!
   */
   public static Linear3DSet makeDomain 
                     (double first1, double last1, int length1,
@@ -2066,7 +2138,6 @@ public abstract class JPythonMethods {
   * @param length3 is the number of values in the set's 3rd dimension
   * @return the created visad.Linear3DSet
   *
-  * Note: this is for testing ONLY and may not remain!
   */
   public static Linear3DSet makeDomain (MathType type, 
                          double first1, double last1, int length1, 
@@ -2093,7 +2164,6 @@ public abstract class JPythonMethods {
   * @param length3 is the number of values in the set's 3rd dimension
   * @return the created visad.Linear3DSet
   *
-  * Note: this is for testing ONLY and may not remain!
   */
   public static Linear3DSet makeDomain (String name,
                          double first1, double last1, int length1, 
