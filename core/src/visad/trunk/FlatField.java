@@ -2075,9 +2075,9 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
                 boolean convertThat = !outUnits[j].equals(thatUnits[j]);
 
                 if (convertThis) {
-                    if (thisValuesD[j] != null)
+                    if (thisValuesD != null)
                         thisValuesD[j] = outUnits[j].toThis (thisValuesD[j], thisUnits[j]);
-                    if (thisValuesF[j] != null)
+                    if (thisValuesF != null)
                         thisValuesF[j] = outUnits[j].toThis (thisValuesF[j], thisUnits[j]);
                 }
 
