@@ -239,11 +239,15 @@ public class DisplaySyncImpl
       if (lclMap == null) {
         throw new RemoteVisADException("ScalarMap " + rmtMap + " not found");
       }
+      // CTR 2 June 2000 - do not set map range if already set (avoid loops)
       double[] rng = rmtMap.getRange();
-      try {
-        lclMap.setRange(rng[0], rng[1]);
-      } catch (VisADException ve) {
-        throw new RemoteVisADException("Map not changed: " + ve);
+      double[] lclRng = lclMap.getRange();
+      if (rng[0] != lclRng[0] || rng[1] != lclRng[1]) {
+        try {
+          lclMap.setRange(rng[0], rng[1]);
+        } catch (VisADException ve) {
+          throw new RemoteVisADException("Map not changed: " + ve);
+        }
       }
       break;
     case MonitorEvent.MAPS_CLEARED:
