@@ -144,7 +144,7 @@ public class MonitorEventTable
   public MonitorEvent remove(Object key)
   {
     synchronized (tbl) {
-    return tbl.remove(key);
+      return (MonitorEvent )tbl.remove(key);
     }
   }
 
