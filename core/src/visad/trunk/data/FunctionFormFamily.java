@@ -421,7 +421,7 @@ public class FunctionFormFamily
 
     // if we found a filename, try to open it
     if (file != null) {
-      OpenStringForm o = new OpenStringForm(id);
+      OpenStringForm o = new OpenStringForm(file);
 
       try {
         if (!o.run()) {
