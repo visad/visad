@@ -414,6 +414,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
   /** a Display is runnable;
       doAction is invoked by any event that requires a re-transform */
   public void doAction() throws VisADException, RemoteException {
+    if (mapslock == null) return; // WLH 4 Nov 98
     synchronized (mapslock) {
       if (RendererVector == null || displayRenderer == null) {
         return;
