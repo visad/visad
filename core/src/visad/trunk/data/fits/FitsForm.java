@@ -80,7 +80,7 @@ public class FitsForm
   public void save(String id, Data data, boolean replace)
 	throws  BadFormException, IOException, RemoteException, VisADException
   {
-    throw new UnimplementedException("Can't yet save FITS objects");
+    new FitsAdapter().save(id, data, replace);
   }
 
   public void add(String id, Data data, boolean replace)

@@ -31,6 +31,8 @@ import nom.tam.fits.FitsException;
 import nom.tam.fits.ImageHDU;
 import nom.tam.fits.PrimaryHDU;
 
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 import java.lang.reflect.Array;
@@ -44,14 +46,18 @@ import java.util.Vector;
 import visad.Data;
 import visad.FlatField;
 import visad.FunctionType;
+import visad.FunctionImpl;
 import visad.Integer1DSet;
 import visad.Integer2DSet;
 import visad.IntegerNDSet;
 import visad.MathType;
 import visad.RealTupleType;
 import visad.RealType;
+import visad.ScalarType;
 import visad.Set;
 import visad.SetType;
+import visad.Tuple;
+import visad.TupleType;
 import visad.TypeException;
 import visad.VisADException;
 
@@ -61,32 +67,38 @@ public class FitsAdapter
   Data data[];
   ExceptionStack stack;
 
+  public FitsAdapter()
+	throws VisADException
+  {
+    fits = null;
+    data = null;
+    stack = null;
+  }
+
   public FitsAdapter(String filename)
 	throws VisADException
   {
+    this();
+
     try {
       fits = new Fits(filename);
     } catch (FitsException e) {
       throw new VisADException(e.getClass().getName() + "(" + e.getMessage() +
 			       ")");
     }
-
-    data = null;
-    stack = null;
   }
 
   public FitsAdapter(URL url)
 	throws VisADException
   {
+    this();
+
     try {
       fits = new Fits(url);
     } catch (FitsException e) {
       throw new VisADException(e.getClass().getName() + "(" + e.getMessage() +
 			       ")");
     }
-
-    data = null;
-    stack = null;
   }
 
   private int get1DLength(Object data)
@@ -285,15 +297,22 @@ System.err.println("Punting on " + axes.length + "-D image");
   {
     // punt if this isn't a 1D column
     Object[] top = (Object[] )data;
-    if (top.length != 1) {
-      System.err.println("FitsAdapter.copyColumn: Punting on wide column");
+    if (top.length != 1 && !(top[0] instanceof byte[])) {
+      System.err.println("FitsAdapter.copyColumn: Punting on wide column (" +
+			 top[0].getClass().getName() + ")");
       return offset;
     }
 
     if (top[0] instanceof byte[]) {
-      byte[] bl = (byte[] )top[0];
-      for (int i = 0; i < bl.length; ) {
-	list[offset++] = (double )bl[i++];
+      if (top.length != 1) {
+	System.err.println("Ignoring assumed " + top.length +
+			   "-char String column");
+	return offset;
+      } else {
+	byte[] bl = (byte[] )top[0];
+	for (int i = 0; i < bl.length; ) {
+	  list[offset++] = (double )bl[i++];
+	}
       }
     } else if (top[0] instanceof short[]) {
       short[] sl = (short[] )top[0];
@@ -312,13 +331,11 @@ System.err.println("Punting on " + axes.length + "-D image");
       }
     } else if (top[0] instanceof float[]) {
       float[] fl = (float[] )top[0];
-System.err.println("FitsAdapter.copyColumn: float array is [" + fl.length + "]");
       for (int i = 0; i < fl.length; ) {
 	list[offset++] = (double )fl[i++];
       }
     } else if (top[0] instanceof double[]) {
       double[] dl = (double[] )top[0];
-System.err.println("FitsAdapter.copyColumn: double array is [" + dl.length + "]");
       for (int i = 0; i < dl.length; ) {
 	list[offset++] = dl[i++];
       }
@@ -410,6 +427,8 @@ System.err.println("FitsAdapter.copyColumn: double array is [" + dl.length + "]"
       index = RealType.getRealTypeByName("index");
     }
 
+    boolean hasTextColumn = false;
+
     RealType rowType[] = new RealType[numColumns];
     for (int i = 0; i < numColumns; i++) {
       String name = hdu.getColumnName(i);
@@ -417,7 +436,10 @@ System.err.println("FitsAdapter.copyColumn: double array is [" + dl.length + "]"
 	name = "Column" + i;
       }
 
-// XXX -- need to check datatypes here...
+      String colType = hdu.getColumnFITSType(i);
+      if (colType.startsWith("A") || colType.endsWith("A")) {
+	hasTextColumn = true;
+      }
 
       try {
 	rowType[i] = new RealType(name, null, null);
@@ -481,9 +503,13 @@ System.err.println("FitsAdapter.copyColumn: double array is [" + dl.length + "]"
       }
     }
 
-    data = new Data[vec.size()];
-    for (int i = 0; i < data.length; i++) {
-      data[i] = (Data )vec.elementAt(i);
+    if (vec.size() == 0) {
+      data = null;
+    } else {
+      data = new Data[vec.size()];
+      for (int i = 0; i < data.length; i++) {
+	data[i] = (Data )vec.elementAt(i);
+      }
     }
   }
 
@@ -507,5 +533,36 @@ System.err.println("FitsAdapter.copyColumn: double array is [" + dl.length + "]"
     }
 
     return data;
+  }
+
+  public void save(String name, Data data, boolean replace)
+	throws IOException, RemoteException, VisADException
+  {
+    FitsTourGuide guide;
+
+    // make sure this object can be saved as a FITS file
+    TourInspector count = new TourInspector(replace);
+    guide = new FitsTourGuide(data, count);
+    count = null;
+
+    // build the new FITS file
+    Fits f = new Fits();
+    TourWriter tw = new TourWriter(replace, f);
+    guide = new FitsTourGuide(data, tw);
+    tw = null;
+    guide = null;
+
+    // open the final destination
+    BufferedOutputStream bos;
+    bos = new BufferedOutputStream(new FileOutputStream(name));
+
+    // write the FITS file
+    try {
+      f.write(bos);
+    } catch (FitsException e) {
+      throw new VisADException(e.getClass().getName() + "(" +
+			       e.getMessage() + ")");
+    }
+    bos.close();
   }
 }
