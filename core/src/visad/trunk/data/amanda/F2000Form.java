@@ -35,6 +35,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.StringTokenizer;
 
@@ -122,6 +123,11 @@ class Module
   private float x, y, z;
   private int string, stringOrder;
 
+  Module(int number)
+  {
+    this(number, Float.NaN, Float.NaN, Float.NaN, -1, -1);
+  }
+
   Module(int number, float x, float y, float z, int string, int stringOrder)
   {
     this.number = number;
@@ -156,6 +162,103 @@ class Module
   float getX() { return x; }
   float getY() { return y; }
   float getZ() { return z; }
+}
+
+class ModuleList
+{
+  private ArrayList list;
+  private Module[] sortedArray;
+
+  public ModuleList()
+  {
+    list = null;
+    sortedArray = null;
+  }
+
+  public void add(Module mod)
+  {
+    if (list == null) {
+      list = new ArrayList();
+    }
+
+    list.add(mod);
+  }
+
+  public Module find(int number)
+  {
+    // if there are modules to be sorted, do it now
+    if (list != null && list.size() > 0) {
+      sort();
+    }
+
+    // if one or more sorted modules exist...
+    if (sortedArray != null) {
+
+      // look for the specified module number...
+      int idx = Arrays.binarySearch(sortedArray, new Module(number));
+      if (idx >= 0) {
+
+        // return the desired module
+        return sortedArray[idx];
+      }
+    }
+
+    // couldn't find a module with that number
+    return null;
+  }
+
+  public Module get(int i)
+  {
+    // if there are modules to be sorted, do it now
+    if (list != null && list.size() > 0) {
+      sort();
+    }
+
+    if (i < 0 || sortedArray == null || i >= sortedArray.length) {
+      return null;
+    }
+
+    return sortedArray[i];
+  }
+
+  public final boolean isInitialized()
+  {
+    return (sortedArray != null || (list != null && list.size() > 0));
+  }
+
+  public int size()
+  {
+    int len = 0;
+
+    if (list != null) {
+      len += list.size();
+    }
+
+    if (sortedArray != null) {
+      len += sortedArray.length;
+    }
+
+    return len;
+  }
+
+  private void sort()
+  {
+    // if some modules have been sorted...
+    if (sortedArray != null) {
+
+      // merge in previously sorted list of modules
+      for (int i = 0; i < sortedArray.length; i++) {
+        list.add(sortedArray[i]);
+      }
+    }
+
+    // sort modules
+    sortedArray = (Module[] )list.toArray(new Module[list.size()]);
+    Arrays.sort(sortedArray);
+
+    // out with the old
+    list.clear();
+  }
 }
 
 abstract class BaseTrack
@@ -453,7 +556,7 @@ public class F2000Form
     throw new BadFormException("F2000Form.add");
   }
 
-  private final Tuple buildData(ArrayList events, Module[] om)
+  private final Tuple buildData(ArrayList events, ModuleList modules)
     throws VisADException
   {
     // Field of Tuples of track and hit Fields
@@ -475,19 +578,16 @@ public class F2000Form
     }
     // return eventsField;
 
-    final int nmodules = om.length;
+    final int nmodules = modules.size();
     Integer1DSet moduleSet = new Integer1DSet(moduleIndexType, nmodules);
     FlatField moduleField =
       new FlatField(moduleFunctionType, moduleSet);
     float[][] msamples = new float[3][nmodules];
     for (int i = 0; i < nmodules; i++) {
-      if (om[i] == null) {
-        msamples[0][i] = msamples[1][i] = msamples[2][i] = Float.NaN;
-      } else {
-        msamples[0][i] = om[i].getX();
-        msamples[1][i] = om[i].getY();
-        msamples[2][i] = om[i].getZ();
-      }
+      Module mod = modules.get(i);
+      msamples[0][i] = mod.getX();
+      msamples[1][i] = mod.getY();
+      msamples[2][i] = mod.getZ();
     }
     try {
       moduleField.setSamples(msamples);
@@ -712,8 +812,7 @@ public class F2000Form
 
     BaseCache.clearAll();
 
-    Module[] om = null;
-
+    ModuleList modules = new ModuleList();
     ArrayList events = new ArrayList();
 
     Event currentEvent = null;
@@ -741,28 +840,23 @@ public class F2000Form
       String keyword = tok.nextToken();
 
       if (keyword.equals("array")) {
-        if (om != null) {
+        if (modules.isInitialized()) {
           System.err.println("Warning: Multiple ARRAY lines found," +
                              " some EM data will be lost");
         }
 
         int nmodules = readArrayLine(line, tok);
 
-        om = new Module[nmodules];
-
-        // initialize modules
-        for (int i = 0; i < nmodules; i++) {
-          om[i] = null;
-        }
-
         continue;
       }
 
       if (keyword.equals("om")) {
-        Module module = readOMLine(line, tok, om);
+        Module module = readOMLine(line, tok);
         if (module == null) {
           continue;
         }
+
+        modules.add(module);
 
         final float x = module.getX();
         if (x == x) {
@@ -828,7 +922,7 @@ public class F2000Form
       }
 
       if (keyword.equals("ht")) {
-        Hit hit = readHit(line, tok, om);
+        Hit hit = readHit(line, tok, modules);
         if (hit != null) {
           if (currentEvent == null) {
             System.err.println("Found HIT " + hit +
@@ -855,7 +949,7 @@ public class F2000Form
 
     try { br.close(); } catch (IOException ioe) { }
 
-    return buildData(events, om);
+    return buildData(events, modules);
   }
 
   private int parseChannel(String tokenName, String token)
@@ -1031,7 +1125,7 @@ public class F2000Form
   }
 
   private final Hit readHit(String line, StringTokenizer tok,
-                            Module[] om)
+                            ModuleList modules)
     throws VisADException
   {
     String chanStr = tok.nextToken();
@@ -1042,17 +1136,13 @@ public class F2000Form
       return null;
     }
 
-    // convert module index (1-based) to array index (0-based)
-    number--;
-
-    // if module doesn't exist, ignore this hit
-    if (om[number] == null) {
+    // find this module
+    Module mod = modules.find(number);
+    if (mod == null) {
       System.err.println("Warning: Module not found for HIT line \"" +
                          line + "\"");
       return null;
     }
-
-    Module mod = om[number];
 
     float amplitude, leadEdgeTime, timeOverThreshold;
     try {
@@ -1072,7 +1162,7 @@ public class F2000Form
     return new Hit(mod, amplitude, leadEdgeTime, timeOverThreshold);
   }
 
-  private final Module readOMLine(String line, StringTokenizer tok, Module[] om)
+  private final Module readOMLine(String line, StringTokenizer tok)
     throws BadFormException
   {
     String numStr = tok.nextToken();
@@ -1085,13 +1175,9 @@ public class F2000Form
                                  "\" in \"" + line + "\"");
     }
 
-    if (number <= 0 || number > om.length) {
+    if (number < 0) {
       throw new BadFormException("bad module number \"" + numStr +
                                  "\" in \"" + line + "\"");
-    } else if (om[number - 1] != null) {
-      System.err.println("Warning: Ignoring duplicate module #" + number +
-                         " in \"" + line + "\"");
-      return null;
     }
 
     int stringOrder, string;
@@ -1107,10 +1193,7 @@ public class F2000Form
                                  e.getMessage());
     }
 
-    Module mod = new Module(number, x, y, z, string, stringOrder);
-    om[number - 1] = mod;
-
-    return mod;
+    return new Module(number, x, y, z, string, stringOrder);
   }
 
   private final MCTrack readTrack(String line, StringTokenizer tok)
