@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DataAdapter.java,v 1.2 1998-03-26 21:08:24 visad Exp $
+ * $Id: VisADAdapter.java,v 1.1 1998-03-26 21:25:20 visad Exp $
  */
 
 package visad.data.netcdf.out;
@@ -37,10 +37,10 @@ import visad.data.BadFormException;
 
 
 /**
- * The DataAdapter class adapts a VisAD data object to the AbstractNetcdf API.
+ * The VisADAdapter class adapts a VisAD data object to the AbstractNetcdf API.
  */
 public class
-DataAdapter
+VisADAdapter
     extends	AbstractNetcdf
 {
     /**
@@ -58,7 +58,7 @@ DataAdapter
      * @exception IOException		Data access failure.
      */
     public
-    DataAdapter(Data data)
+    VisADAdapter(Data data)
 	throws BadFormException, VisADException, RemoteException, IOException
     {
 	try

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Plain.java,v 1.9 1998-03-26 21:07:22 visad Exp $
+ * $Id: Plain.java,v 1.10 1998-03-26 21:25:16 visad Exp $
  */
 
 package visad.data.netcdf;
@@ -22,7 +22,7 @@ import visad.VisADException;
 import visad.data.BadFormException;
 import visad.data.FormNode;
 import visad.data.netcdf.in.NetcdfAdapter;
-import visad.data.netcdf.out.DataAdapter;
+import visad.data.netcdf.out.VisADAdapter;
 
 
 /**
@@ -62,7 +62,7 @@ Plain
 	throws BadFormException, IOException, RemoteException, VisADException,
 	    UnimplementedException
     {
-	DataAdapter	adapter = new DataAdapter(data);
+	VisADAdapter	adapter = new VisADAdapter(data);
 	Schema		schema = new Schema(adapter);
 	NetcdfFile	file = new NetcdfFile(path, replace, /*fill=*/false,
 					schema);
@@ -176,7 +176,7 @@ Plain
 
 	try
 	{
-	    DataAdapter	adapter = new DataAdapter(data);
+	    VisADAdapter	adapter = new VisADAdapter(data);
 	    form = this;
 	}
 	catch (BadFormException e)
