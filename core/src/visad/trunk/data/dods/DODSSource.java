@@ -128,28 +128,23 @@ public class DODSSource
 	}
 	catch (MalformedURLException e)
 	{
-	    throw new BadFormException(
-		getClass().getName() + ".open(String): " + e);
+	    throw new BadFormException(e.getMessage());
 	}
 	catch (FileNotFoundException e)
 	{
-	    throw new BadFormException(
-		getClass().getName() + ".open(String): " + e);
+	    throw new BadFormException(e.getMessage());
 	}
 	catch (ParseException e)
 	{
-	    throw new BadFormException(
-		getClass().getName() + ".open(String): " + e);
+	    throw new BadFormException(e.getMessage());
 	}
 	catch (DODSException e)
 	{
-	    throw new BadFormException(
-		getClass().getName() + ".open(String): " + e);
+	    throw new BadFormException(e.getMessage());
 	}
 	catch (IOException e)
 	{
-	    throw new BadFormException(
-		getClass().getName() + ".open(String): " + e);
+	    throw new BadFormException(e.getMessage());
 	}
     }
 
@@ -162,8 +157,7 @@ public class DODSSource
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    public synchronized DataImpl readData()
-	throws VisADException, RemoteException, BadFormException
+    public synchronized DataImpl readData() throws VisADException, RemoteException
     {
 	DataImpl	data;
 	if (attrEnum != null)

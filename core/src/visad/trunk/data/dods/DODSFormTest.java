@@ -62,17 +62,22 @@ public class DODSFormTest
 	    System.out.println("Before DODS total/free/used memory: " + 
 		total1 + '/' + free1 + '/' + used1);
 	    DODSForm	form = DODSForm.dodsForm();
-	    DataImpl	data = form.open(spec);
-	    long	free2 = runtime.freeMemory();
-	    long	total2 = runtime.totalMemory();
-	    long	used2 = total2 - free2;
-	    if (verbose)
-		System.out.println(data.toString());
-	    else
-		visad.jmet.DumpType.dumpDataType(data, System.out);
-	    System.out.println("After DODS total/free/used memory:  " + 
-		total2 + '/' + free2 + '/' + used2);
-	    System.out.println("Used difference = " + (used2 - used1));
+            try {
+	        DataImpl	data = form.open(spec);
+	        long	free2 = runtime.freeMemory();
+	        long	total2 = runtime.totalMemory();
+	        long	used2 = total2 - free2;
+	        if (verbose)
+		    System.out.println(data.toString());
+	        else
+		    visad.jmet.DumpType.dumpDataType(data, System.out);
+	        System.out.println("After DODS total/free/used memory:  " + 
+		    total2 + '/' + free2 + '/' + used2);
+	        System.out.println("Used difference = " + (used2 - used1));
+            } catch (Exception e) {
+                System.err.println("Unable to open \"" + spec + "\": " +
+                    e.getMessage());
+            }
 	}
     }
 }
