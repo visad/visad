@@ -152,8 +152,6 @@ public class Download
       return;
     }
 
-    System.out.println("GET " + url + " => " + target);
-
     byte[] block = new byte[1024];
     while (true) {
       int len;
