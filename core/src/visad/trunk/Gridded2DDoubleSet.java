@@ -583,10 +583,10 @@ public class Gridded2DDoubleSet extends Gridded2DSet
             lowertri = true;
           }
         }
-        if ( (grid[0][i] >= LengthX-0.5) || (grid[1][i] >= LengthY-0.5)
-          || (grid[0][i] <= -0.5) || (grid[1][i] <= -0.5) ) {
-          grid[0][i] = grid[1][i] = Double.NaN;
-        }
+      }
+      if ( (grid[0][i] >= LengthX-0.5) || (grid[1][i] >= LengthY-0.5)
+        || (grid[0][i] <= -0.5) || (grid[1][i] <= -0.5) ) {
+        grid[0][i] = grid[1][i] = Double.NaN;
       }
     }
     return grid;
