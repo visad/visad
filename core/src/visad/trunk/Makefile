@@ -38,11 +38,16 @@ default:
 
 JC = javac
 JFLAGS = -J-mx32m
+RMIC=rmic
+
 JAVADIR = /opt/java
+
 RM = rm -f
+
 DOCS_DIR = ../docs
 DOC = javadoc
 DOCFLAGS = -d $(DOCS_DIR)
+
 FITS = ../nom/tam
 UCAR = ../ucar
 SSEC = ../edu/wisc/ssec
@@ -408,13 +413,13 @@ recompile:
 		      $(JC) $(JFLAGS) $$j || true);			\
 		   fi;							\
 		   case "$$b" in					\
-		   Remote*Impl)					\
+		   *Remote*Impl)					\
 		     set `ls -t $$b.class $${b}_Stub.class 2>/dev/null || true` X; \
 		     if [ $${b}_Stub.class != $$1 ]; then		\
 		       compile=/bin/true;				\
 		     fi;						\
 		     if $$compile; then					\
-		       (echo "rmic visad.$$b" && rmic visad.$$b || true); \
+		       (echo "${RMIC} $$i.$$b" && ${RMIC} $$i.$$b || true); \
 		     fi;						\
 		     ;;							\
 		   esac;						\
@@ -430,35 +435,20 @@ docs:
 	@if [ ! -d $(DOCS_DIR) ]; then mkdir $(DOCS_DIR); fi   
 	$(DOC) $(DOCFLAGS) $(VISAD_PACKAGES)
 
+nexusrmi:
+	make RMIC=nexusrmi CC=gcc compile
 
-JAVAONE_FILES = \
-	DATE						\
-	dot_cshrc					\
-	visad_src-2.0.jar				\
-	data/vis5d/QLQ.v5d				\
-	examples/small.jpg				\
-	examples/bill.gif				\
-	examples/images.nc				\
-	examples/pmsl.nc				\
-	examples/ngc1316o.fits				\
-	paoloa/data_obs_1.dat				\
-	paoloa/data_sou_1.dat				\
-	paoloa/goesrtcf					\
-	aune/*.so					\
-	paoloa/*.so					\
-	benjamin/*.so					\
-	data/vis5d/*.so					\
-	data/hdfeos/hdfeosc/*.so			\
-	visad.jar					\
-	paoloa/*.class					\
-	aune/*.class					\
-	examples/*.class				\
-	www/*
+tonexus:
+	java2nexus `find . -name "*.java"`
+	java2nexus `find ../ucar -name "*.java"`
+	java2nexus `find ../nom -name "*.java"`
+	java2nexus `find ../edu -name "*.java"`
 
+tojava:
+	nexus2java `find . -name "*.java"`
+	nexus2java `find ../ucar -name "*.java"`
+	nexus2java `find ../nom -name "*.java"`
+	nexus2java `find ../edu -name "*.java"`
 
-
-javaone:
-	date > DATE ; \
-	cp ../visad.jar . ; \
-	cp ../../.cshrc dot_cshrc ; \
-	jar cvf ssecj1.jar $(JAVAONE_FILES)
+java_version:
+	java -fullversion
