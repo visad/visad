@@ -256,6 +256,11 @@ public class Main
    */
   private final void makeJVMBinariesExecutable()
   {
+    // if we don't know the path, we can't find the executable
+    if (path == null) {
+      return;
+    }
+
     // find all instances of 'chmod'
     ArrayList chmodList = path.find("chmod");
     if (chmodList == null || chmodList.size() == 0) {
@@ -426,7 +431,7 @@ public class Main
       System.out.println("Supplied java: " + installerJava);
     }
 
-    if (jarList == null) {
+    if (jarList == null || jarList.size() == 0) {
       System.err.println("No " + JAR_NAME + " found in " + classpath);
     } else {
       System.err.println("== jar file list ==");
@@ -436,8 +441,8 @@ public class Main
       }
     }
 
-    if (javaList == null) {
-      System.err.println("No java executable found in " + path);
+    if (javaList == null || javaList.size() == 0) {
+      System.err.println("No java executable found in path " + path);
     } else {
       System.err.println("== java executable list ==");
       for (int i = 0; i < javaList.size(); i++) {
@@ -447,7 +452,7 @@ public class Main
     }
 
     if (cPushStr == null) {
-      System.err.println("No cluster executable found in " + path);
+      System.err.println("No cluster executable found in path " + path);
     } else {
       System.err.println("== cluster executable ==");
       System.out.println(cPushStr);
@@ -547,13 +552,15 @@ public class Main
     }
 
     // get executable path elements
-    try {
-      path = new Path(System.getProperty(PATH_PROPERTY));
-    } catch (IllegalArgumentException iae) {
-      System.err.println(getClass().getName() +
-                         ": Please pass in the executable path via the '" +
-                         PATH_PROPERTY + "' property");
-      return false;
+    String pathStr = System.getProperty(PATH_PROPERTY);
+    if (pathStr == null) {
+      path = null;
+    } else {
+      try {
+        path = new Path(pathStr);
+      } catch (IllegalArgumentException iae) {
+        path = null;
+      }
     }
 
     // build the URL for the jar file
@@ -588,18 +595,22 @@ public class Main
     installerJavaDir = null;
 
     // find all java executables
-    javaList = path.find("java");
-    if (javaList != null) {
-      loseDuplicates(javaList);
-      checkJavaVersions(javaList, 1, 2);
-      installerJava = (JavaFile )extractInstallerFile(distDir, javaList);
+    if (path == null) {
+      javaList = null;
+    } else {
+      javaList = path.find("java");
+      if (javaList != null) {
+        loseDuplicates(javaList);
+        checkJavaVersions(javaList, 1, 2);
+        installerJava = (JavaFile )extractInstallerFile(distDir, javaList);
 
-      if (installerJava != null && installerJava.getName().equals("java")) {
-        File canonJava = new File(getPath(installerJava));
+        if (installerJava != null && installerJava.getName().equals("java")) {
+          File canonJava = new File(getPath(installerJava));
 
-        installerJavaDir = new File(canonJava.getParent());
-        if (installerJavaDir.getName().equals("bin")) {
-          installerJavaDir = new File(installerJavaDir.getParent());
+          installerJavaDir = new File(canonJava.getParent());
+          if (installerJavaDir.getName().equals("bin")) {
+            installerJavaDir = new File(installerJavaDir.getParent());
+          }
         }
       }
     }
@@ -625,11 +636,13 @@ public class Main
     cPushStr = null;
 
     // find all cluster installation executables
-    ArrayList c3List = path.find("cpush");
-    if (c3List != null) {
-      loseDuplicates(c3List);
-      if (c3List != null && c3List.size() > 0) {
-        cPushStr = getPath((File )c3List.get(0));
+    if (path != null) {
+      ArrayList c3List = path.find("cpush");
+      if (c3List != null) {
+        loseDuplicates(c3List);
+        if (c3List != null && c3List.size() > 0) {
+          cPushStr = getPath((File )c3List.get(0));
+        }
       }
     }
 
