@@ -34,6 +34,9 @@ import java.awt.*;
 import java.awt.image.*;
 import java.net.*;
 
+import javax.swing.*;
+import visad.util.*;
+
 /**
    DisplayImpl is the abstract VisAD superclass for display
    implementations.  It is runnable.<P>
@@ -999,6 +1002,7 @@ if (initialize) {
             }
           }
           MapVector.addElement(map);
+          needWidgetRefresh = true;
         }
         synchronized (RealTypeVector) {
           index = RealTypeVector.indexOf(real);
@@ -1061,6 +1065,7 @@ if (initialize) {
           map.nullDisplay();
         }
         MapVector.removeAllElements();
+        needWidgetRefresh = true;
       }
       synchronized (ConstantMapVector) {
         maps = ConstantMapVector.elements();
@@ -1129,6 +1134,121 @@ if (initialize) {
   public Vector getControlVector() {
     return (Vector) ControlVector.clone();
   }
+
+
+  /* CTR 4 October 1999 - begin code for this Display's Control widgets */
+
+  /** whether the Control widget panel needs to be reconstructed */
+  private boolean needWidgetRefresh = true;
+
+  /** this Display's associated panel of Control widgets */
+  private JPanel widgetPanel = null;
+
+  /** get a GUI panel containing this Display's Control widgets,
+      creating the widgets as necessary */
+  public JPanel getWidgetPanel() {
+    if (needWidgetRefresh) {
+      synchronized (MapVector) {
+        // construct widget panel if needed
+        if (widgetPanel == null) {
+          widgetPanel = new JPanel();
+          widgetPanel.setLayout(new BoxLayout(widgetPanel, BoxLayout.Y_AXIS));
+        }
+        else widgetPanel.removeAll();
+
+        if (getLinks().size() > 0) {
+          // GraphicsModeControl widget
+          GMCWidget gmcw = new GMCWidget(getGraphicsModeControl());
+          addToWidgetPanel(gmcw, false);
+        }
+
+        for (int i=0; i<MapVector.size(); i++) {
+          ScalarMap sm = (ScalarMap) MapVector.elementAt(i);
+
+          DisplayRealType drt = sm.getDisplayScalar();
+          try {
+            double[] a = new double[2];
+            double[] b = new double[2];
+            double[] c = new double[2];
+            boolean scale = sm.getScale(a, b, c);
+            if (scale) {
+              // ScalarMap range widget
+              RangeWidget rw = new RangeWidget(sm);
+              addToWidgetPanel(rw, true);
+            }
+          }
+          catch (VisADException exc) { }
+          try {
+            if (drt.equals(Display.RGB) || drt.equals(Display.RGBA)) {
+              // ColorControl widget
+              try {
+                LabeledColorWidget lw = new LabeledColorWidget(sm);
+                addToWidgetPanel(lw, true);
+              }
+              catch (VisADException exc) { }
+              catch (RemoteException exc) { }
+            }
+            else if (drt.equals(Display.SelectValue)) {
+              // ValueControl widget
+              VisADSlider vs = new VisADSlider(sm);
+              vs.setAlignmentX(JPanel.CENTER_ALIGNMENT);
+              addToWidgetPanel(vs, true);
+            }
+            else if (drt.equals(Display.SelectRange)) {
+              // RangeControl widget
+              SelectRangeWidget srw = new SelectRangeWidget(sm);
+              addToWidgetPanel(srw, true);
+            }
+            else if (drt.equals(Display.IsoContour)) {
+              // ContourControl widget
+              ContourWidget cw = new ContourWidget(sm);
+              addToWidgetPanel(cw, true);
+            }
+            else if (drt.equals(Display.Animation)) {
+              // AnimationControl widget
+              AnimationWidget aw = new AnimationWidget(sm);
+              addToWidgetPanel(aw, true);
+            }
+          }
+          catch (VisADException exc) { }
+          catch (RemoteException exc) { }
+        }
+      }
+      needWidgetRefresh = false;
+    }
+    return widgetPanel;
+  }
+
+  /** add a component to the widget panel */
+  private void addToWidgetPanel(Component c, boolean divide) {
+    // add a thin, horizontal divider for separating widget panel components
+    if (divide) widgetPanel.add(new JComponent() {
+      public void paint(Graphics g) {
+        int w = getSize().width;
+        g.setColor(Color.white);
+        g.drawRect(0, 0, w-2, 6);
+        g.drawRect(2, 2, w-4, 2);
+        g.setColor(Color.black);
+        g.drawRect(1, 1, w-3, 3);
+      }
+
+      public Dimension getMinimumSize() {
+        return new Dimension(0, 6);
+      }
+
+      public Dimension getPreferredSize() {
+        return new Dimension(0, 6);
+      }
+
+      public Dimension getMaximumSize() {
+        return new Dimension(Integer.MAX_VALUE, 6);
+      }
+    });
+    widgetPanel.add(c);
+  }
+
+  /* CTR 4 October 1999 - end code for this Display's Control widgets */
+
 
   public int getValueArrayLength() {
     return valueArrayLength;

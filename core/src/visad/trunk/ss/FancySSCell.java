@@ -111,10 +111,6 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
                                   throws VisADException, RemoteException {
     Parent = parent;
     setHighlighted(false);
-    WidgetFrame = new JFrame("Controls (" + name + ")");
-    JPanel pane = new JPanel();
-    pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
-    WidgetFrame.setContentPane(pane);
     addSSCellChangeListener(this);
   }
 
@@ -126,16 +122,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
 
       if (IsRemote) {
         // reconstruct controls for cloned display
-        try {
-          constructWidgetFrame(getMaps());
-          if (AutoShowControls) showWidgetFrame();
-        }
-        catch (VisADException exc) {
-          if (DEBUG) exc.printStackTrace();
-        }
-        catch (RemoteException exc) {
-          if (DEBUG) exc.printStackTrace();
-        }
+        if (AutoShowControls) showWidgetFrame();
       }
       else {
         // attempt to auto-detect mappings for new data
@@ -188,93 +175,42 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   public void setMaps(ScalarMap[] maps) throws VisADException,
                                                RemoteException {
     super.setMaps(maps);
-
-    // set up widget frame
-    constructWidgetFrame(maps);
-    if (AutoShowControls) showWidgetFrame();
-  }
-
-  /** construct the controls widget frame */
-  private void constructWidgetFrame(ScalarMap[] maps) throws VisADException,
-                                                             RemoteException {
-    synchronized (WidgetFrame) {
-      clearWidgetFrame();
-      if (maps == null) return;
-
-      // create GraphicsModeControl widget
-      GMCWidget gmcw = new GMCWidget(VDisplay.getGraphicsModeControl());
-      addToFrame(gmcw, false);
-
-      // create any other necessary widgets
-      for (int i=0; i<maps.length; i++) {
-        DisplayRealType drt = maps[i].getDisplayScalar();
-        try {
-          double[] a = new double[2];
-          double[] b = new double[2];
-          double[] c = new double[2];
-          boolean scale = maps[i].getScale(a, b, c);
-          if (scale) {
-            RangeWidget rw = new RangeWidget(maps[i]);
-            addToFrame(rw, true);
-          }
-        }
-        catch (VisADException exc) {
-          if (DEBUG) exc.printStackTrace();
-        }
-        if (drt.equals(Display.RGB) || drt.equals(Display.RGBA)) {
-          LabeledColorWidget lw = new LabeledColorWidget(maps[i]);
-          addToFrame(lw, true);
-        }
-        else if (drt.equals(Display.SelectValue)) {
-          VisADSlider vs = new VisADSlider(maps[i]);
-          vs.setAlignmentX(JPanel.CENTER_ALIGNMENT);
-          addToFrame(vs, true);
-        }
-        else if (drt.equals(Display.SelectRange)) {
-          SelectRangeWidget srw = new SelectRangeWidget(maps[i]);
-          addToFrame(srw, true);
-        }
-        else if (drt.equals(Display.IsoContour)) {
-          ContourWidget cw = new ContourWidget(maps[i]);
-          addToFrame(cw, true);
-        }
-        else if (drt.equals(Display.Animation)) {
-          AnimationWidget aw = new AnimationWidget(maps[i]);
-          addToFrame(aw, true);
-        }
-      }
-      WidgetFrame.pack();
-    }
-  }
-
-  /** add a component to the widget frame */
-  private void addToFrame(Component c, boolean divide) {
-    JPanel pane = (JPanel) WidgetFrame.getContentPane();
-    if (divide) pane.add(new Divider());
-    pane.add(c);
+    if (WidgetFrame != null && WidgetFrame.isVisible() ||
+        AutoShowControls) showWidgetFrame();
   }
 
   /** show the widgets for altering controls (if there are any) */
-  public void showWidgetFrame() {
-    if (hasControls()) WidgetFrame.setVisible(true);
+  public synchronized void showWidgetFrame() {
+    if (VDisplay == null) return;
+    if (WidgetFrame == null) {
+      WidgetFrame = new JFrame("Controls (" + Name + ")");
+    }
+    synchronized (WidgetFrame) {
+      if (hasControls()) {
+        WidgetFrame.setContentPane(VDisplay.getWidgetPanel());
+        WidgetFrame.pack();
+        WidgetFrame.setVisible(true);
+      }
+    }
   }
 
   /** hide the widgets for altering controls */
   public void hideWidgetFrame() {
-    WidgetFrame.setVisible(false);
+    if (WidgetFrame != null) WidgetFrame.setVisible(false);
   }
 
   /** whether the cell has any associated controls */
   public boolean hasControls() {
-    JPanel pane = (JPanel) WidgetFrame.getContentPane();
-    return (pane.getComponentCount() > 0);
+    if (VDisplay == null) return false;
+    JComponent jc = VDisplay.getWidgetPanel();
+    if (jc == null) return false;
+    return (jc.getComponentCount() > 0);
   }
 
   /** remove all widgets for altering controls and hide widget frame */
   private void clearWidgetFrame() {
     hideWidgetFrame();
-    JPanel pane = (JPanel) WidgetFrame.getContentPane();
-    pane.removeAll();
+    WidgetFrame = null;
   }
 
   /** guess a good set of mappings for this cell's Data and apply them */
@@ -574,32 +510,6 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
       else if (hasData()) setBorder(B_URL);
       else setBorder(B_EMPTY);
     }
-  }
-
-  /** thin, horizontal divider for separating widget frame components */
-  private class Divider extends JComponent {
-
-    public void paint(Graphics g) {
-      int w = getSize().width;
-      g.setColor(Color.white);
-      g.drawRect(0, 0, w-2, 6);
-      g.drawRect(2, 2, w-4, 2);
-      g.setColor(Color.black);
-      g.drawRect(1, 1, w-3, 3);
-    }
-
-    public Dimension getMinimumSize() {
-      return new Dimension(0, 6);
-    }
-
-    public Dimension getPreferredSize() {
-      return new Dimension(0, 6);
-    }
-
-    public Dimension getMaximumSize() {
-      return new Dimension(Integer.MAX_VALUE, 6);
-    }
-
   }
 
 }
