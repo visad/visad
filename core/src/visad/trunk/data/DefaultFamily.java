@@ -40,6 +40,7 @@ import visad.data.vis5d.Vis5DForm;
 import visad.data.vis5d.Vis5DAdaptedForm;
 import visad.data.visad.VisADForm;
 import visad.data.mcidas.AreaForm;
+import visad.data.mcidas.PointForm;
 import visad.data.mcidas.MapForm;
 import visad.data.biorad.BioRadForm;
 import visad.data.jai.JAIForm;
@@ -131,6 +132,11 @@ public class DefaultFamily
     }
     try {
       list[i] = new AreaForm();
+      i++;
+    } catch (Throwable t) {
+    }
+    try {
+      list[i] = new PointForm();
       i++;
     } catch (Throwable t) {
     }
@@ -236,8 +242,7 @@ public class DefaultFamily
     {
       // if 'adde:' handler isn't loaded, try to load it
       if (!addeHandlerLoaded) {
-        addeHandlerLoaded =
-	  edu.wisc.ssec.mcidas.AreaFile.isURLHandlerLoaded();
+        addeHandlerLoaded = edu.wisc.ssec.mcidas.AreaFile.isURLHandlerLoaded();
       }
     }
 
