@@ -1,6 +1,6 @@
  
                    VisAD SpreadSheet User Interface README file
-                                  24 August 1998
+                                  26 August 1998
                                         
                                 Table of Contents
 
@@ -22,6 +22,7 @@
     2.2.2 Edit Menu
     2.2.3 Setup Menu
     2.2.4 Display Menu
+    2.2.5 Window Menu
   2.3 Toolbars
     2.3.1 Main Toolbar
     2.3.2 Formula Toolbar
@@ -103,9 +104,8 @@ be "loud" (i.e., it displays errors in error message dialog boxes rather
 than throwing exceptions).
 
 1.4.3 Formula
-    This class is designed to parse formulas and convert them to postfix
-notation for evaluation.  It is used by FormulaCell, although its methods
-could prove useful to any class needing to work with formulas.
+    This class is designed to convert formulas to postfix notation for
+evaluation on a stack.  It is used by FormulaCell.
 
 1.4.4 FormulaCell
     This class is used internally by BasicSSCell to evaluate formulas.
@@ -197,6 +197,20 @@ desired cell with a mouse button, or press the arrow keys.
          reason the quick-maps do not work, you will have to edit the mappings
          manually with the "Edit Mappings" option in the Display menu.
 
+2.2.5 Window Menu
+    Here are the commands from the Window menu:
+      Show VisAD controls -            Displays the set of controls relevant
+                                       to the current cell (these controls
+                                       are displayed by default, but could
+                                       become hidden at a later time).
+      Show formula evaluation errors - If this option is checked, dialog boxes
+                                       will pop up explaining why any formulas
+                                       entered are illegal or could not be
+                                       evaluated.  If this option is not
+                                       checked, the only notification of an
+                                       error is a large X through the current
+                                       cell.
+
 2.3 Toolbars
 
 2.3.1 Main Toolbar
@@ -262,9 +276,10 @@ Any of the following can be used in formula construction:
 
 Some examples of valid formulas for cell A1 are:
     SQRT(A2 + B2^5 - MIN(B1, -C1))
-    d(A2)/d(ImageElement)
+    d(A2 + B2)/d(ImageElement)
     A2(A3)
     C2.6
+    (B1 * C1)(A3).1
 
 Once you've typed in a formula, press Enter or click the green check box button
 to the left of the formula entry text box to apply the formula.  The red X
