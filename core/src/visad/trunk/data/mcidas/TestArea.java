@@ -23,8 +23,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-import edu.wisc.ssec.mcidas.AreaFile;
-import edu.wisc.ssec.mcidas.AreaFileException;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
@@ -210,10 +208,10 @@ public class TestArea {
 
     try {
 
- /*  This is diagnostic output only...
     System.out.println("aa="+aa);
     System.out.println("imaget.getDomainSet()="+imaget.getDomainSet() );
     System.out.println("imaget.getDomain.getType="+imaget.getDomainSet().getType() );
+ /*  This is diagnostic output only...
     System.out.println("imaget.getDomainSet.getDimension="+
          imaget.getDomainSet().getDimension() );
     System.out.println("imaget.getDomainSet.getCoordinateSystem="+

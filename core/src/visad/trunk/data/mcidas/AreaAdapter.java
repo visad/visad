@@ -65,7 +65,7 @@ public class AreaAdapter {
     try {
       AreaFile af = new AreaFile(imageSource);
       buildFlatField(af);
-    } catch (AreaFileException afe) {throw new
+    } catch (McIDASException afe) {throw new
         VisADException("Problem with McIDAS AREA file: " + afe);
     }
   }
@@ -181,7 +181,7 @@ public class AreaAdapter {
     try {
       int_samples = af.getData();
 
-    } catch (AreaFileException samp) {
+    } catch (McIDASException samp) {
         throw new VisADException("Problem reading AREA file: "+samp);
     }
       
