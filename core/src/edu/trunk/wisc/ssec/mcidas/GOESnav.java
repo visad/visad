@@ -309,6 +309,114 @@ public final class GOESnav extends AREAnav
      *                     latlon[indexLon][] of longitudes.
      *
      */
+    public float[][] toLatLon(float[][] linele) 
+    {
+
+        int ilin;
+        double parlin;
+        double framet;
+        double samtim;
+        double xlin;
+        double xele;
+        double ylin;
+        double yele;
+        double xcor;
+        double ycor;
+        double rot;
+        double coslin;
+        double sinlin;
+        double cosele;
+        double sinele;
+        double eli;
+        double emi;
+        double eni;
+        double temp;
+        double elo;
+        double emo;
+        double eno;
+        double basq;
+        double onemsq;
+        double aq;
+        double bq;
+        double cq;
+        double rad;
+        double s;
+        double x;
+        double y;
+        double z;
+        double ct;
+        double st;
+        double x1;
+        double y1;
+
+        int number = linele[0].length;
+        float[][] latlon = new float[2][number];
+
+        // Convert array to Image coordinates for computations
+        float[][] imglinele = areaCoordToImageCoord(linele);
+
+        for (int point=0; point < number; point++) 
+        {
+            xlin = imglinele[indexLine][point];
+            xele = imglinele[indexEle][point];
+            ilin = Math.round( (float) xlin);
+            parlin = (ilin - 1)/numsen + 1;
+            framet = tmpscl*parlin;
+            samtim = framet + pictim;
+            double xyz[] = satvec(samtim);
+            ylin = (xlin - piclin) * radlin;
+            yele = (xele - picele + gamma + gamdot*samtim)*radele;
+            xcor = b11*xyz[0] + b12*xyz[1] + b13*xyz[2];
+            ycor = b21*xyz[0] + b22*xyz[1] + b23*xyz[2];
+            rot = Math.atan2(ycor, xcor) + Math.PI;
+            yele = yele - rot;
+            coslin = Math.cos(ylin);
+            sinlin = Math.sin(ylin);
+            sinele = Math.sin(yele);
+            cosele = Math.cos(yele);
+            eli = rotm11*coslin - rotm13*sinlin;
+            emi = rotm21*coslin - rotm23*sinlin;
+            eni = rotm31*coslin - rotm33*sinlin;
+            temp = eli;
+            eli = cosele*eli + sinele*emi;
+            emi = -sinele*temp + cosele*emi;
+            elo = b11*eli + b21*emi + b31*eni;
+            emo = b12*eli + b22*emi + b32*eni;
+            eno = b13*eli + b23*emi + b33*eni;
+            basq = bsq/asq;
+            onemsq = 1.0 - basq;
+            aq = basq + onemsq*Math.pow(eno,2);
+            bq = 2.0 * ((elo*xyz[0] + emo*xyz[1])*basq + eno*xyz[2]);
+            cq = (Math.pow(xyz[0],2) + Math.pow(xyz[1],2))*basq +
+                            Math.pow(xyz[2],2) - bsq;
+            rad = Math.pow(bq,2) - 4.0*aq*cq;
+            if (rad < 1.0)
+            {
+                latlon[indexLat][point] = Float.NaN;
+                latlon[indexLon][point] = Float.NaN;
+            }
+            else
+            {
+                s = -(bq + Math.sqrt(rad))/(2.0*aq);
+                x = xyz[0] + elo*s;
+                y = xyz[1] + emo*s;
+                z = xyz[2] + eno*s;
+                ct = Math.cos(emega*samtim+xref);
+                st = Math.sin(emega*samtim+xref);
+                x1 = ct*x + st*y;
+                y1 = -st*x + ct*y;
+                double ll[] = nxyzll(x1, y1, z);
+
+                latlon[indexLat][point] = (float) ll[0];
+                //  put longitude into East Positive (form)
+                latlon[indexLon][point] = (isEastPositive) ? (float)-ll[1] : (float)ll[1];
+            }
+        } // end point for loop
+
+        return latlon;
+
+    }
+
     public double[][] toLatLon(double[][] linele) 
     {
 
@@ -428,6 +536,161 @@ public final class GOESnav extends AREAnav
      *                    is an element.  These are in 'file' coordinates
      *                    (not "image" coordinates);
      */
+    public float[][] toLinEle(float[][] latlon) 
+    {
+
+        double xpar;
+        double ypar;
+        double zpar;
+        double xlin;
+        double xele;
+        double xdum;
+        double x1;
+        double y1;
+        double samtim;
+        double ct;
+        double st;
+        double x;
+        double y;
+        double z;
+        double xht;
+        double parlin;
+        double vcste1;
+        double vcste2;
+        double vcste3;
+        double vcses1;
+        double vcses2;
+        double vcses3;
+        double oldlin;
+        double orbtim;
+        double xsat;
+        double ysat;
+        double zsat;
+        double xnorm;
+        double ynorm;
+        double znorm;
+        double umv;
+        double x3;
+        double xyzsat[] = new double[3];
+
+        int number = latlon[0].length;
+        float[][] linele = new float[2][number];
+
+        for (int point=0; point < number; point++) 
+        {
+
+            xpar = latlon[indexLat][point];
+            // expects positive West Longitude.
+            ypar = isEastPositive 
+                     ? -latlon[indexLon][point]
+                     :  latlon[indexLon][point];
+
+            xlin = Double.NaN;
+            xele = Double.NaN;
+
+            if (Math.abs(xpar) <= 90.)
+            {
+
+                // initialize some variables
+                oldlin = 910.; 
+                orbtim = -99999.; 
+                xsat = ysat = zsat = 0.0;
+                x = y = z = 0.0;
+                xht = znorm = 0.0;
+                double xyz[] = nllxyz(xpar, ypar);
+                x1 = xyz[0];
+                y1 = xyz[1];
+                z = xyz[2];
+                xdum = 0.0;
+                samtim = time1;
+
+                for (int i = 0; i < 2; i++)
+                {
+                    if (Math.abs(samtim - orbtim) >= 0.0005)
+                    {
+                        xyzsat = satvec(samtim);
+                        xsat = xyzsat[0];
+                        ysat = xyzsat[1];
+                        zsat = xyzsat[2];
+                        orbtim = samtim;
+                        xht = Math.sqrt(Math.pow(xyzsat[0],2) +
+                                        Math.pow(xyzsat[1],2) +
+                                        Math.pow(xyzsat[2],2));
+                    }
+                    ct = Math.cos(emega*samtim + xref);
+                    st = Math.sin(emega*samtim + xref);
+                    x = ct*x1 - st*y1;
+                    y = st*x1 + ct*y1;
+                    vcste1 = x - xsat;
+                    vcste2 = y - ysat;
+                    vcste3 = z - zsat;
+                    vcses3 = b31*vcste1 + b32*vcste2 + b33*vcste3;
+                    znorm = Math.sqrt(Math.pow(vcste1,2) +
+                                             Math.pow(vcste2,2) +
+                                             Math.pow(vcste3,2));
+                    x3 = vcses3/znorm;
+                    umv = Math.atan2(x3,Math.sqrt(rfact - Math.pow(x3,2))) - 
+                            roasin;
+                    xlin = piclin - umv/radlin;
+                    parlin = (double) (xlin - 1.0)/numsen;
+                    if (i == 0)
+                    {
+                        samtim = time2;
+                        oldlin = xlin;
+                    }
+                }
+                double scnnum = ( (double) (oldlin + xlin)/2.0 - 1.0)/numsen;
+                double scnfrc = (scnnum - scan1)/(scan2 - scan1);
+                xlin = oldlin + scnfrc*(xlin - oldlin);
+                samtim = time1 + tmpscl*(scnnum - scan1);
+                xyzsat = satvec(samtim);
+                xsat = xyzsat[0];
+                ysat = xyzsat[1];
+                zsat = xyzsat[2];
+                double cosa = x*xsat + y*ysat + z*zsat;
+                double ctst = 0.0001*r*xht + rsq;
+                if (cosa >= ctst) 
+                {
+                    double xsats1 = b11*xsat + b12*ysat + b13*zsat;
+                    double ysats2 = b21*xsat + b22*ysat + b23*zsat;
+                    ct = Math.cos(emega*samtim + xref);
+                    st = Math.sin(emega*samtim + xref);
+                    x = ct*x1 - st*y1;
+                    y = st*x1 + ct*y1;
+                    vcste1 = x - xsat;
+                    vcste2 = y - ysat;
+                    vcste3 = z - zsat;
+                    vcses1 = b11*vcste1 + b12*vcste2 + b13*vcste3;
+                    vcses2 = b21*vcste1 + b22*vcste2 + b23*vcste3;
+                    vcses3 = b31*vcste1 + b32*vcste2 + b33*vcste3;
+                    xnorm = Math.sqrt(Math.pow(znorm,2) - Math.pow(vcses3,2));
+                    ynorm = Math.sqrt(Math.pow(xsats1,2) + Math.pow(ysats2,2));
+                    znorm = Math.sqrt(Math.pow(vcste1,2) + 
+                                      Math.pow(vcste2,2) + 
+                                      Math.pow(vcste3,2));
+                    x3 = vcses3/znorm;
+                    umv = Math.atan2(x3,Math.sqrt(rfact - Math.pow(x3,2))) - 
+                            roasin;
+                    double slin = Math.sin(umv);
+                    double clin = Math.cos(umv);
+                    double u = rotm11*clin + rotm13*slin;
+                    double v = rotm21*clin + rotm23*slin;
+                    xele = picele + Math.asin(
+                          (xsats1*vcses2 - ysats2*vcses1)/(xnorm*ynorm))/radele;
+                    xele = xele + Math.atan2(v,u)/radele;
+                    xele = xele-gamma-gamdot*samtim;
+                }
+            }
+            linele[indexLine][point] = (float)xlin;
+            linele[indexEle][point]  = (float)xele;
+
+        } // end point loop
+
+        // Return in 'File' coordinates
+        return imageCoordToAreaCoord(linele);
+    }
+
+
     public double[][] toLinEle(double[][] latlon) 
     {
 

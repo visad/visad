@@ -227,6 +227,48 @@ public class GMSXnav extends AREAnav
    *
    */
 
+  public float[][] toLinEle (float[][] latlon) 
+  {
+
+    int mode = 1;
+    int count = latlon[0].length;
+    float [] rtnPoint; 
+    float[][] linele = new float[2][count];
+    float line = 0.0f;
+    float elem = 0.0f;
+
+    for (int point = 0; point < count; point++) {
+
+      // initialize value as not navigable
+      linele[indexLine][point] = Float.NaN; 
+      linele[indexEle][point] = Float.NaN; 
+
+      if (Math.abs(latlon[indexLat][point]) > 90.0) {
+        continue;
+      }
+
+      if (Math.abs(latlon[indexLon][point]) > 180.0) {
+        continue;
+      }
+
+      rtnPoint = mgivsr (  
+        mode, 
+        (float) elem, 
+        (float) line, 
+        (float) latlon[indexLon][point], 
+        (float) latlon[indexLat][point]
+      );
+
+      linele[indexLine][point] = rtnPoint[0];
+      linele[indexEle][point] = rtnPoint[1];
+
+    }
+
+    // Return in 'File' coordinates
+    return imageCoordToAreaCoord(linele);
+
+  }
+
   public double[][] toLinEle (double[][] latlon) 
   {
 
@@ -280,6 +322,47 @@ public class GMSXnav extends AREAnav
    * are latitudes and latlon[indexLon][] are longitudes.
    *
    */
+
+  public float[][] toLatLon (float[][] linele) 
+  {
+
+    int mode = -1;
+    int count = linele[0].length;
+    float [] rtnPoint;
+    float[][] latlon = new float[2][count];
+    float lat  = 0.0f;
+    float lon  = 0.0f;
+
+    // transform file to image coordinates
+    float[][] imgLinEle = areaCoordToImageCoord(linele);
+
+    for (int point = 0; point < count; point++) {
+
+      // initialize value as not navigable
+      latlon[indexLat][point] = Float.NaN; 
+      latlon[indexLon][point] = Float.NaN; 
+
+      rtnPoint = mgivsr (  
+        mode, 
+        (float) imgLinEle[indexEle][point], 
+        (float) imgLinEle[indexLine][point], 
+        (float) lon, 
+        (float) lat
+      );
+
+      if (rtnPoint[1] < 0) {
+        rtnPoint[1] += 360.0;
+      }
+
+      latlon[indexLat][point] = rtnPoint[0];
+      latlon[indexLon][point] = rtnPoint[1];
+
+    }
+
+    return (latlon);
+
+  }
+
 
   public double[][] toLatLon (double[][] linele) 
   {

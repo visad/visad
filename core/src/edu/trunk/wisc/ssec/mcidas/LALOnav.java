@@ -175,6 +175,114 @@ public final class LALOnav extends AREAnav
      *
      * this code cobbled from McIDAS laloutil.c
      */
+    public float[][] toLatLon(float[][] linele) {
+
+      int number = linele[0].length;
+      float[][] latlon = new float[2][number];
+
+      // Convert array to Image coordinates for computations
+      float[][] imglinele = areaCoordToImageCoord(linele);
+
+      for (int point=0; point < number; point++) 
+      {
+          double rlin = imglinele[indexLine][point];
+          double rele = imglinele[indexEle][point];
+
+          if (debug) {
+            count ++;
+            if (count < 20) {
+              System.out.println(" ulline, lrlin, ulelem, lrele="+ulline+" "+lrlin+" "+ulelem+" "+lrele);
+              System.out.println(" rlin, rele="+" "+rlin+" "+rele);
+            }
+          }
+
+          if (rlin < ulline || rlin > lrlin ||
+                         rele < ulelem || rele > lrele) {
+            latlon[indexLat][point] = Float.NaN;
+            latlon[indexLon][point] = Float.NaN;
+
+          } else {
+
+
+           int  tl_entry, tr_entry, bl_entry, br_entry;
+           float  tl_lats, tr_lats, bl_lats, br_lats;
+           float  tl_lons, tr_lons, bl_lons, br_lons;
+           float  frac_row, frac_col;
+           float  ax, bx, cx;
+
+           /* offset to the top_left (tl) corner lat/lon */
+           tl_entry = ((((int)rlin-ulline)/latres) * cols) +
+                      ((int)rele-ulelem) / lonres;
+
+
+           /* offsets for top_right, bottom_left and bottom_left lat/lon
+        corners */
+           tr_entry = tl_entry + 1;
+           bl_entry = tl_entry + cols;
+           br_entry = bl_entry + 1;
+
+           /* read the 4 corner latitudes */
+           tl_lats = latData[tl_entry];
+           tr_lats = latData[tr_entry];
+           bl_lats = latData[bl_entry];
+           br_lats = latData[br_entry];
+
+           /* read the 4 corner longitudes */
+           tl_lons = lonData[tl_entry];
+           tr_lons = lonData[tr_entry];
+           bl_lons = lonData[bl_entry];
+           br_lons = lonData[br_entry];
+         
+           /* Check for missing lat/lon */
+
+           if ( (tl_lats == LAT_MISSING && tl_lons == LON_MISSING)  ||
+                (tr_lats == LAT_MISSING && tr_lons == LON_MISSING) ||
+                (bl_lats == LAT_MISSING && bl_lons == LON_MISSING) ||
+                (br_lats == LAT_MISSING && br_lons == LON_MISSING) ) {
+
+                  latlon[indexLat][point] = Float.NaN;
+                  latlon[indexLon][point] = Float.NaN;
+
+           } else {
+
+             /* compute the fractional part of the row and column */
+             frac_row = (float)(((int)rlin-ulline) % latres) / (float)latres;
+             frac_col = (float)(((int)rele-ulelem) % lonres) / (float)lonres;
+
+           if (debug && count < 20) {
+             System.out.println(" tl_entry="+tl_entry);
+             if (linele[indexLine][point] < .1) {
+               System.out.println(" lats: tl, tr, bl, br="+tl_lats+" "+tr_lats+" "+bl_lats+" "+br_lats);
+               System.out.println(" frac_row="+frac_row+" frac_col="+frac_col);
+             }
+           }
+
+             /*  Calc the real lat */
+             ax = tr_lats - tl_lats;
+             bx = bl_lats - tl_lats;
+             cx = (tl_lats + br_lats) - (bl_lats + tr_lats);
+
+             latlon[indexLat][point] = (ax * frac_col) + (bx * frac_row) + 
+                        (cx * frac_row * frac_col) + tl_lats;
+
+             /*  Calc the real lon */
+             ax = tr_lons - tl_lons;
+             bx = bl_lons - tl_lons;
+             cx = (tl_lons + br_lons) - (bl_lons + tr_lons);
+
+             latlon[indexLon][point] = (ax * frac_col) + (bx * frac_row) + 
+                        (cx * frac_row * frac_col) + tl_lons;
+           }
+            
+          }
+
+          if (debug && count < 20) System.out.println(" line/ele = "+linele[indexLine][point]+"/"+linele[indexEle][point]+"  rlin/rele="+rlin+"/"+rele+" Lat/Lon="+latlon[indexLat][point]+"/"+latlon[indexLon][point]);
+
+      } // end point for loop
+
+      return latlon;
+
+    }
     public double[][] toLatLon(double[][] linele) {
 
       int number = linele[0].length;
@@ -301,6 +409,31 @@ public final class LALOnav extends AREAnav
 
   /** transform an array of values in R^DomainDimension to an array
       of non-integer grid coordinates */
+  public float[][] toLinEle(float[][] latlon) {
+    try {
+      float[][] ll = new float[2][latlon[0].length];
+      for (int i=0; i<2; i++) {
+        for (int k=0; k<ll[0].length; k++) {
+          ll[0][k] = latlon[indexLon][k];
+          ll[1][k] = latlon[indexLat][k];
+        }
+      }
+
+      float[][] linele = gs.valueToGrid(ll);
+
+      for (int i=0; i<2; i++) {
+        for (int k=0; k<linele[0].length; k++) {
+          linele[indexLine][k] = ulline + latres*linele[1][k];
+          linele[indexEle][k] = ulelem + lonres*linele[0][k];
+        }
+      }
+
+      return imageCoordToAreaCoord(linele);
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
   public double[][] toLinEle(double[][] latlon) {
     try {
       float[][] ll = new float[2][latlon[0].length];
