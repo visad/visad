@@ -251,16 +251,10 @@ public class TiffForm extends Form implements FormFileInformer {
 
     if (canUseImageJ) {
       // use ImageJ
-      if (info.length > 1) {
-        // hack workaround needed because ImageJ's
-        // Opener.allSameSizeAndType(FileInfo[]) method
-        // alters info[0].nImages as a side-effect
-        info[0].nImages = info.length;
-      }
-      FileOpener fo = new FileOpener(info[0]);
-      ImageStack stack = fo.open(false).getStack();
-      nImages = stack.getSize();
+      ImagePlus image = new Opener().openImage(id);
+      nImages = image.getStackSize();
       fields = new FieldImpl[nImages];
+      ImageStack stack = image.getStack();
       for (int i=0; i<nImages; i++) {
         ImageProcessor ip = stack.getProcessor(i + 1);
         fields[i] = DataUtility.makeField(ip.createImage());
