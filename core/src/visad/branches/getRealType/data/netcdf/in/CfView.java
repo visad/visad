@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: CfView.java,v 1.1.2.1 2001-09-17 18:39:12 steve Exp $
+ * $Id: CfView.java,v 1.1.2.2 2001-10-15 18:47:49 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -61,7 +61,7 @@ import visad.VisADException;
  * {@link System#err} and the JVM is terminated.</p>
  *
  * @author Steven R. Emmerson
- * @version $Revision: 1.1.2.1 $ $Date: 2001-09-17 18:39:12 $
+ * @version $Revision: 1.1.2.2 $ $Date: 2001-10-15 18:47:49 $
  * @see http://www.cgd.ucar.edu/cms/eaton/netcdf/CF-current.htm
  */
 final class CfView
@@ -80,16 +80,15 @@ final class CfView
     /*
      * The following 5 fields are not "final" to accomodate a bug in JDK 1.2.
      */
-    private static String         CF_CONVENTIONS_STRING;
-    private static String         COARDS_CONVENTIONS_STRING;
+    private static String[]       CF_CONVENTIONS_STRINGS;
     private static QuantityDBImpl cfQuantityDB;
     private static Variable[]     nilVarArray;
     private static Comparator     varComparator;
 
     static
     {
-        CF_CONVENTIONS_STRING = "CF-1.0";
-        COARDS_CONVENTIONS_STRING = "COARDS";
+        CF_CONVENTIONS_STRINGS =
+            new String[] {"CF-1.0", "COARDS/CF-1.0", "COARDS"};
         nilVarArray = new Variable[0];
         cfQuantityDB = new QuantityDBImpl((QuantityDB)null);
         varComparator =
@@ -433,19 +432,22 @@ final class CfView
     CfView(Netcdf netcdf, QuantityDB quantDb)
     {
         super(netcdf, quantDb);
-        System.out.println("In CfView.<init>(...)");
         /*
          * Check the "Conventions" global attribute.
          */
-        String conventions = getConventionsString(netcdf);
-        if (conventions == null)
-            throw new IllegalArgumentException(
-                "No \"Conventions\" attribute in netCDF dataset");
-        if (!conventions.equals(CF_CONVENTIONS_STRING) &&
-            !conventions.equals(COARDS_CONVENTIONS_STRING))
         {
-            throw new IllegalArgumentException(
-                "Illegal \"Conventions\" attribute: \"" + conventions + "\"");
+            String conventions = getConventionsString(netcdf);
+            if (conventions == null)
+                throw new IllegalArgumentException(
+                    "No \"Conventions\" attribute in netCDF dataset");
+            int i;
+            for (i = 0; i < CF_CONVENTIONS_STRINGS.length; i++)
+                if (conventions.equals(CF_CONVENTIONS_STRINGS[i]))
+                    break;
+            if (i >= CF_CONVENTIONS_STRINGS.length)
+                throw new IllegalArgumentException(
+                    "Illegal \"Conventions\" attribute: \"" + conventions +
+                    "\"");
         }
         /*
          * Allocate caches.
