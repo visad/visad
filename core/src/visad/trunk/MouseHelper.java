@@ -293,8 +293,8 @@ event_switch:
                   display_renderer.findDirect(direct_ray);
                 if (direct_renderer != null) {
                   display_renderer.setDirectOn(true);
-                  direct_renderer.drag_direct(direct_ray, true,
-                                              mouseModifiers);
+                  direct_renderer.setLastMouseModifiers(mouseModifiers);
+                  direct_renderer.drag_direct(direct_ray, true, mouseModifiers);
                 }
               }
             }
@@ -511,6 +511,7 @@ event_switch:
             if (direct_renderer != null) {
               VisADRay direct_ray = behavior.findRay(current_x, current_y);
               if (direct_ray != null) {
+                direct_renderer.setLastMouseModifiers(mouseModifiers);
                 direct_renderer.drag_direct(direct_ray, false, mouseModifiers);
               }
             }

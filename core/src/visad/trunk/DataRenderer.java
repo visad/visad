@@ -1508,6 +1508,10 @@ System.out.println("checkClose: distance = " + distance);
     return LastMouseModifiers;
   }
 
+  void setLastMouseModifiers(int mouseModifiers) {
+    LastMouseModifiers = mouseModifiers;
+  }
+
   public synchronized void drag_direct(VisADRay ray, boolean first,
                                        int mouseModifiers) {
     // System.out.println("drag_direct " + first + " " + type);
@@ -1519,8 +1523,6 @@ System.out.println("checkClose: distance = " + distance);
     else {
       if (stop) return;
     }
-
-    LastMouseModifiers = mouseModifiers;
 
     float o_x = (float) ray.position[0];
     float o_y = (float) ray.position[1];
