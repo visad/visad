@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SkewTDisplayRenderer.java,v 1.2 1998-08-19 17:19:58 steve Exp $
+ * $Id: SkewTDisplayRenderer.java,v 1.3 1998-08-24 15:10:14 steve Exp $
  */
 
 package visad.meteorology;
@@ -35,6 +35,7 @@ import visad.VisADGroup;
 import visad.VisADLineArray;
 import visad.data.netcdf.Quantity;
 import visad.data.netcdf.QuantityMap;
+import visad.data.netcdf.units.ParseException;
 import visad.java2d.DefaultDisplayRendererJ2D;
 import visad.java2d.VisADCanvasJ2D;
 
@@ -55,6 +56,7 @@ SkewTDisplayRenderer
      * Token	Stands For
      * -----	----------
      * theta	potential temperature
+     * thetaES	saturation equivalent potential temperature
      */
 
     /**
@@ -68,6 +70,11 @@ SkewTDisplayRenderer
     public /*final*/ DisplayRealType		thetaPressure;
 
     /**
+     * The saturation-equivalent potential-temperature pressure-coordinate.
+     */
+    public /*final*/ DisplayRealType		thetaESPressure;
+
+    /**
      * The temperature coordinate.
      */
     public /*final*/ DisplayRealType		temperature;
@@ -75,7 +82,12 @@ SkewTDisplayRenderer
     /**
      * The potential temperature coordinate.
      */
-    public /*final*/ DisplayRealType		potentialTemperature;
+    public /*final*/ DisplayRealType		theta;
+
+    /**
+     * The saturation equivalent potential temperature coordinate.
+     */
+    public /*final*/ DisplayRealType		thetaES;
 
     /**
      * The superfluous Z coordinate.
@@ -88,6 +100,11 @@ SkewTDisplayRenderer
     public /*final*/ DisplayRealType		thetaZAxis;
 
     /**
+     * The superfluous saturation equivalent potential-temperature Z-coordinate.
+     */
+    public /*final*/ DisplayRealType		thetaESZAxis;
+
+    /**
      * The (pressure, temperature) space.
      */
     public /*final*/ SkewTCoordinateSystem	skewTCoordSys;
@@ -96,9 +113,14 @@ SkewTDisplayRenderer
     /**
      * The (pressure, potential temperature) space.
      */
-    public /*final*/ PotentialTemperatureCoordSys
-						potentialTemperatureCoordSys;
+    public /*final*/ ThetaCoordinateSystem	thetaCoordSys;
     public /*final*/ DisplayTupleType		displayThetaTuple;
+
+    /**
+     * The (pressure, saturation equivalent potential temperature) space.
+     */
+    public /*final*/ ThetaESCoordinateSystem	thetaESCoordSys;
+    public /*final*/ DisplayTupleType		displayThetaESTuple;
 
     /**
      * Taken from AWS/TR-79/006: "The Use of the Skew T, Log P Diagram
@@ -113,7 +135,7 @@ SkewTDisplayRenderer
      */
     public
     SkewTDisplayRenderer()
-	throws VisADException
+	throws VisADException, ParseException
     {
 	/*
 	 * Establish (pressure, temperature) space.
@@ -135,22 +157,44 @@ SkewTDisplayRenderer
 	/*
 	 * Establish (pressure, potential temperature) space.
 	 */
-	potentialTemperatureCoordSys = new PotentialTemperatureCoordSys(skewTCoordSys);
+	thetaCoordSys = new ThetaCoordinateSystem(skewTCoordSys);
 	thetaPressure = new DisplayRealType("Theta_Pressure",
 	    false, 
 	    0.0, Double.POSITIVE_INFINITY, 0.0, 
-	    potentialTemperatureCoordSys.getPressureUnit());;
-	potentialTemperature = new DisplayRealType("Potential_Temperature",
+	    thetaCoordSys.getPressureUnit());;
+	theta = new DisplayRealType("Potential_Temperature",
 	    false,
-	    potentialTemperatureCoordSys.getTemperatureUnit().toThis(0., SI.kelvin),
+	    thetaCoordSys.getTemperatureUnit().toThis(0., SI.kelvin),
 	    Double.POSITIVE_INFINITY, 0.0, 
-	    potentialTemperatureCoordSys.getTemperatureUnit());
+	    thetaCoordSys.getTemperatureUnit());
 	thetaZAxis = new DisplayRealType("Theta_ZAxis", false,
 	    -1.0, 1.0, 0.0, null);
 	displayThetaTuple = new DisplayTupleType(
 	    new DisplayRealType[] {
-		thetaPressure, potentialTemperature, thetaZAxis},
-	    potentialTemperatureCoordSys);
+		thetaPressure, theta, thetaZAxis},
+	    thetaCoordSys);
+
+	/*
+	 * Establish (pressure, saturation equivalent potential temperature)
+	 * space.
+	 */
+	thetaESCoordSys = new ThetaESCoordinateSystem(thetaCoordSys);
+	thetaESPressure = new DisplayRealType("ThetaES_Pressure",
+	    false, 
+	    0.0, Double.POSITIVE_INFINITY, 0.0, 
+	    thetaESCoordSys.getPressureUnit());;
+	thetaES = new DisplayRealType(
+	    "Saturation_Equivalent_Potential_Temperature",
+	    false,
+	    thetaESCoordSys.getTemperatureUnit().toThis(0., SI.kelvin),
+	    Double.POSITIVE_INFINITY, 0.0, 
+	    thetaESCoordSys.getTemperatureUnit());
+	thetaESZAxis = new DisplayRealType("ThetaES_ZAxis", false,
+	    -1.0, 1.0, 0.0, null);
+	displayThetaESTuple = new DisplayTupleType(
+	    new DisplayRealType[] {
+		thetaESPressure, thetaES, thetaESZAxis},
+	    thetaESCoordSys);
     }
 
 
@@ -442,7 +486,8 @@ SkewTDisplayRenderer
 	return type.equals(pressure) ||
 	    type.equals(temperature) ||
 	    type.equals(skewTZAxis) ||
-	    type.equals(potentialTemperature) ||
+	    type.equals(theta) ||
+	    type.equals(thetaES) ||
 	    super.legalDisplayScalar(type);
     }
 }
