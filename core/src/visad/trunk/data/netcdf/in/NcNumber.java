@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcNumber.java,v 1.1 1998-03-20 20:56:54 visad Exp $
+ * $Id: NcNumber.java,v 1.2 1998-03-23 18:11:53 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -14,9 +14,12 @@ import ucar.multiarray.MultiArray;
 import ucar.netcdf.DimensionIterator;
 import ucar.netcdf.Netcdf;
 import ucar.netcdf.Variable;
+import visad.DataImpl;
 import visad.OffsetUnit;
+import visad.Real;
 import visad.RealType;
 import visad.SI;
+import visad.Set;
 import visad.Unit;
 import visad.VisADException;
 import visad.data.BadFormException;
@@ -31,29 +34,34 @@ NcNumber
     extends NcVar
 {
     /**
+     * The range set of the netCDF variable.
+     */
+    protected final Set		set;
+
+    /**
      * The value vetter.
      */
-    protected final Vetter		vetter;
+    protected final Vetter	vetter;
 
     /**
      * Whether or not the variable is a co-ordinate variable.
      */
-    protected final boolean		isCoordVar;
+    protected final boolean	isCoordVar;
 
     /**
      * Whether or not the variable is longitude in nature.
      */
-    protected final boolean		isLongitude;
+    protected final boolean	isLongitude;
 
     /**
      * Whether or not the variable is temporal in nature.
      */
-    protected final boolean		isTime;
+    protected final boolean	isTime;
 
     /**
      * A temporal offset unit for comparison purposes.
      */
-    static final Unit			offsetTime =
+    static final Unit		offsetTime =
 	new OffsetUnit(0.0, SI.second);
 
 
@@ -62,20 +70,22 @@ NcNumber
      *
      * @param var	The netCDF variable to be decorated.
      * @param netcdf	The netCDF dataset that contains <code>var</code>.
+     * @param type	The VisAD MathType of <code>var</code>.
      * @exception BadFormException
      *			The netCDF variable cannot be adapted to a VisAD API.
      * @exception VisADException
      *			Problem in core VisAD.  Probably some VisAD object
      *			couldn't be created.
      */
-    NcNumber(Variable var, Netcdf netcdf)
+    NcNumber(Variable var, Netcdf netcdf, RealType type)
 	throws BadFormException, VisADException
     {
-	super(var, netcdf);
+	super(var, netcdf, type);
+
+	set = type.getDefaultSet();
 	isCoordVar = setIsCoordVar();
 	isLongitude = setIsLongitude();
 	isTime = setIsTime();
-	mathType = RealType.getRealTypeByName(getName());
 	vetter = new Vetter(var);
     }
 
@@ -171,6 +181,18 @@ NcNumber
     isTime()
     {
 	return isTime;
+    }
+
+
+    /**
+     * Get the range set of this variable.
+     *
+     * @return	The range set of the variable.
+     */
+    Set
+    getSet()
+    {
+	return set;
     }
 
 
@@ -302,6 +324,39 @@ NcNumber
 	}
 
 	vetter.vet(values);
+
+	return values;
+    }
+
+
+    /**
+     * Return the values of this variable as a packed array of VisAD
+     * DataImpl objects.  It would be really, really stupid to use this
+     * method on a variable of any length.
+     *
+     * @return		The variable's values.
+     * @exception IOException
+     *			Data access I/O failure.
+     */
+    DataImpl[]
+    getData()
+	throws IOException, VisADException
+    {
+	int[]		lengths = var.getLengths();
+	int		npts = product(lengths);
+	IndexIterator	iter = new IndexIterator(lengths);
+	Real[]		values = new Real[npts];
+	double[]	val = new double[1];
+
+	for (int i = 0; i < npts; ++i)
+	{
+	    val[0] = var.getDouble(iter.value());
+	    iter.incr();
+
+	    vetter.vet(val);
+
+	    values[i] = new Real((RealType)mathType, val[0], unit);
+	}
 
 	return values;
     }

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcTuple.java,v 1.1 1998-03-20 20:57:03 visad Exp $
+ * $Id: NcTuple.java,v 1.2 1998-03-23 18:11:56 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -62,23 +62,13 @@ NcTuple
     {
 	int		numComponents = ncDatas.length;
 	MathType[]	mathTypes = new MathType[numComponents];
-	boolean		isRealTupleType = true;
 
 	for (int i = 0; i < numComponents; ++i)
 	{
-	    if (isRealTupleType
-		&& ((!(ncDatas[i] instanceof NcVar))
-		    || ((NcVar)ncDatas[i]).isText()))
-	    {
-		isRealTupleType = false;
-	    }
-
 	    mathTypes[i] = ncDatas[i].getMathType();
 	}
 
-	return isRealTupleType
-		    ? new RealTupleType((RealType[])mathTypes)
-		    : new TupleType(mathTypes);
+	return new TupleType(mathTypes);
     }
 
 

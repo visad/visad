@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcVar.java,v 1.1 1998-03-20 20:57:05 visad Exp $
+ * $Id: NcVar.java,v 1.2 1998-03-23 18:11:57 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -25,6 +25,7 @@ import visad.MathType;
 import visad.OffsetUnit;
 import visad.RealType;
 import visad.SI;
+import visad.ScalarType;
 import visad.Set;
 import visad.Text;
 import visad.TextType;
@@ -41,37 +42,38 @@ import visad.data.netcdf.units.Parser;
  */
 abstract class
 NcVar
-    extends	NcData
 {
     /**
      * The netCDF dataset.
      */
-    protected final Netcdf		netcdf;
+    protected final Netcdf	netcdf;
 
     /**
      * The netCDF Variable.
      */
-    protected final Variable		var;
-
-    /**
-     * The range set of the netCDF variable.
-     */
-    protected /*final*/ Set		set;
+    protected final Variable	var;
 
     /**
      * The units of the netCDF variable.
      */
-    protected final Unit		unit;
+    protected final Unit	unit;
+
+    /**
+     * The VisAD MathType of the variable's values.
+     */
+    protected final ScalarType	mathType;
 
 
     /**
-     * Construct from a netCDF variable and dataset.
+     * Construct from a netCDF variable, dataset, and VisAD MathType.
      *
      * @param var	The netCDF variable to be adapted.
      * @param netcdf	The netCDF dataset that contains <code>var</code>.
      */
-    NcVar(Variable var, Netcdf netcdf)
+    protected
+    NcVar(Variable var, Netcdf netcdf, ScalarType type)
     {
+	mathType = type;
 	this.var = var;
 	this.netcdf = netcdf;
 	unit = getUnit(var);
@@ -79,14 +81,14 @@ NcVar
 
 
     /**
-     * Determine the units of the netCDF variable.
+     * Determine the units of the given, netCDF variable.
      *
      * @param var	The netCDF variable to have it's units returned.
      * @return		The units of the variable or <code>null</code> if there
      *			was no "unit" attribute or an error occurred during 
      *			parsing.
      */
-    private static Unit
+    protected static Unit
     getUnit(Variable var)
     {
 	Unit		unit = null;
@@ -121,7 +123,7 @@ NcVar
      *			couldn't be created.
      */
     static NcVar
-    create(Variable var, Netcdf netcdf)
+    newNcVar(Variable var, Netcdf netcdf)
 	throws VisADException
     {
 	Class	type = var.getComponentType();
@@ -286,6 +288,18 @@ NcVar
 
 
     /**
+     * Return the VisAD MathType of this variable's values.
+     *
+     * @return	The VisAD MathType of the variable's values.
+     */
+    ScalarType
+    getMathType()
+    {
+	return mathType;
+    }
+
+
+    /**
      * Return the VisAD rank of this variable.
      *
      * @return	The VisAD rank of the variable.
@@ -352,18 +366,6 @@ NcVar
     getUnit()
     {
 	return unit;
-    }
-
-
-    /**
-     * Get the range set of this variable.
-     *
-     * @return	The range set of the variable.
-     */
-    Set
-    getSet()
-    {
-	return set;
     }
 
 
@@ -570,18 +572,17 @@ NcVar
     getDoubleValues(int ipt)
 	throws IOException;
 
+
     /**
-     * Return the variable as a VisAD data object.
+     * Return the values of this variable as a packed array of VisAD
+     * DataImpl objects.  It would be really, really stupid to use this
+     * method on a variable of any length.
      *
-     * @return			The VisAD data object corresponding to the
-     *				Variable.
-     * @exception IOException   I/O error.
+     * @return		The variable's values.
      */
-    /*
-    abstract Data
+    abstract DataImpl[]
     getData()
-	throws IOException;
-     */
+	throws IOException, VisADException;
 }
 
 
@@ -598,6 +599,7 @@ NcInteger
      *
      * @param var	The netCDF integer variable to be adapted.
      * @param netcdf	The netCDF dataset that contains <code>var</code>.
+     * @param type	The VisAD RealType of <code>var</code>.
      * @precondition	<code>isRepresentable(var).
      * @exception BadFormException
      *			The netCDF variable cannot be adapted to a VisAD API.
@@ -605,10 +607,10 @@ NcInteger
      *			Problem in core VisAD.  Probably some VisAD object
      *			couldn't be created.
      */
-    NcInteger(Variable var, Netcdf netcdf)
+    NcInteger(Variable var, Netcdf netcdf, RealType type)
 	throws BadFormException, VisADException
     {
-	super(var, netcdf);
+	super(var, netcdf, type);
     }
 
 
@@ -685,25 +687,42 @@ NcByte
     NcByte(Variable var, Netcdf netcdf)
 	throws VisADException
     {
-	super(var, netcdf);
+	super(var, netcdf, getRealType(var));
+    }
 
-	/*
-	 * The following is complicated due to the circular dependency
-	 * between MathType and Set.
-	 */
 
-	RealType	realType = mathType == null
-	    ? new RealType(getName(), unit, (Set)null)
-	    : (RealType)mathType;
+    /**
+     * Return the VisAD RealType of the given, netCDF "byte" variable.
+     *
+     * @param var	The netCDF byte variable.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     */
+    protected static RealType
+    getRealType(Variable var)
+	throws VisADException
+    {
+	RealType	realType = RealType.getRealTypeByName(var.getName());
 
-	set = new Linear1DSet(realType, Byte.MIN_VALUE+1, Byte.MAX_VALUE, 
-		    Byte.MAX_VALUE - Byte.MIN_VALUE);
-
-	if (mathType == null)
+	if (realType == null)
 	{
+	    /*
+	     * The following is complicated due to the circular dependency
+	     * between RealType and Set.
+	     */
+
+	    realType = new RealType(var.getName(), getUnit(var),
+						    (Set)null);
+
+	    Set	set = new Linear1DSet(realType,
+					Byte.MIN_VALUE+1, Byte.MAX_VALUE, 
+					Byte.MAX_VALUE - Byte.MIN_VALUE);
+
 	    realType.setDefaultSet(set);
-	    mathType = realType;
 	}
+
+	return realType;
     }
 
 
@@ -716,16 +735,6 @@ NcByte
     isByte()
     {
 	return true;
-    }
-
-
-    /**
-     * Return the corresponding VisAD data object.
-     */
-    DataImpl
-    getData()
-    {
-	return null;	// TODO
     }
 }
 
@@ -769,25 +778,42 @@ NcShort
     NcShort(Variable var, Netcdf netcdf)
 	throws VisADException
     {
-	super(var, netcdf);
+	super(var, netcdf, getRealType(var));
+    }
 
-	/*
-	 * The following is complicated due to the circular dependency
-	 * between MathType and Set.
-	 */
 
-	RealType	realType = mathType == null
-	    ? new RealType(getName(), unit, (Set)null)
-	    : (RealType)mathType;
+    /**
+     * Return the VisAD RealType of the given, netCDF "short" variable.
+     *
+     * @param var	The netCDF short variable.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     */
+    protected static RealType
+    getRealType(Variable var)
+	throws VisADException
+    {
+	RealType	realType = RealType.getRealTypeByName(var.getName());
 
-	set = new Linear1DSet(realType, Short.MIN_VALUE+1, Short.MAX_VALUE, 
-		    Short.MAX_VALUE - Short.MIN_VALUE);
-
-	if (mathType == null)
+	if (realType == null)
 	{
+	    /*
+	     * The following is complicated due to the circular dependency
+	     * between RealType and Set.
+	     */
+
+	    realType = new RealType(var.getName(), getUnit(var),
+						    (Set)null);
+
+	    Set	set = new Linear1DSet(realType,
+					Short.MIN_VALUE+1, Short.MAX_VALUE, 
+					Short.MAX_VALUE - Short.MIN_VALUE);
+
 	    realType.setDefaultSet(set);
-	    mathType = realType;
 	}
+
+	return realType;
     }
 
 
@@ -800,16 +826,6 @@ NcShort
     isShort()
     {
 	return true;
-    }
-
-
-    /**
-     * Return the corresponding VisAD data object.
-     */
-    DataImpl
-    getData()
-    {
-	return null;	// TODO
     }
 }
 
@@ -843,7 +859,7 @@ NcInt
     /**
      * Construct.
      *
-     * @param var	The 32-bit netCDF variable to be adapted.
+     * @param var	The netCDF "int" variable to be adapted.
      * @param netcdf	The netCDF dataset that contains <code>var</code>.
      * @precondition	<code>isRepresentable(var).
      * @exception VisADException
@@ -853,43 +869,62 @@ NcInt
     NcInt(Variable var, Netcdf netcdf)
 	throws VisADException
     {
-	super(var, netcdf);
+	super(var, netcdf, getRealType(var));
+    }
 
-	/*
-	 * The following is complicated due to the circular dependency
-	 * between MathType and Set.
-	 */
 
-	RealType	realType = mathType == null
-	    ? new RealType(getName(), unit, (Set)null)
-	    : (RealType)mathType;
+    /**
+     * Return the VisAD RealType of the given, netCDF "int" variable.
+     *
+     * @param var	The netCDF "int" variable.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     */
+    protected static RealType
+    getRealType(Variable var)
+	throws VisADException
+    {
+	RealType	realType = RealType.getRealTypeByName(var.getName());
 
-	/*
-	 * The following is complicated due to the fact that the last
-	 * argument to the Linear2DSet() constructor:
-	 *
-	 *     Linear1DSet(MathType type, double start, double stop, int length)
-	 *
-	 * is an "int" -- and the number of Java "int" values cannot
-	 * be represented by a Java "int".
-	 */
+	if (realType == null)
 	{
-	    Vetter	vetter = new Vetter(var);
-	    long	minValid = (long)vetter.minValid();
-	    long	maxValid = (long)vetter.maxValid();
-	    long	length	= maxValid - minValid + 1;
-	    set = length <= Integer.MAX_VALUE
-		    ? (Set)(new Linear1DSet(realType, minValid, maxValid, 
-					    (int)length))
-		    : (Set)(new FloatSet(realType, (CoordinateSystem)null,
-					new Unit[] {unit}));
-	}
+	    /*
+	     * The following is complicated due to the circular dependency
+	     * between RealType and Set.
+	     */
 
-	if (mathType == null)
-	{
+	    realType = new RealType(var.getName(), getUnit(var), (Set)null);
+
+	    /*
+	     * The following is complicated due to the fact that the last
+	     * argument to the Linear2DSet() constructor:
+	     *
+	     *     Linear1DSet(MathType type, double start, double stop, 
+	     *			int length)
+	     *
+	     * is an "int" -- and the number of Java "int" values cannot
+	     * be represented by a Java "int".
+	     */
+	    Set	set;
+	    {
+		Vetter	vetter = new Vetter(var);
+		long	minValid = (long)vetter.minValid();
+		long	maxValid = (long)vetter.maxValid();
+		long	length	= maxValid - minValid + 1;
+
+		set = length <= Integer.MAX_VALUE
+			    ? (Set)(new Linear1DSet(realType, minValid,
+					maxValid, (int)length))
+			    : (Set)(new FloatSet(realType,
+					(CoordinateSystem)null, 
+					new Unit[] {getUnit(var)}));
+	    }
+
 	    realType.setDefaultSet(set);
-	    mathType = realType;
 	}
+
+	return realType;
     }
 
 
@@ -902,16 +937,6 @@ NcInt
     isInt()
     {
 	return true;
-    }
-
-
-    /**
-     * Return the corresponding VisAD data object.
-     */
-    DataImpl
-    getData()
-    {
-	return null;	// TODO
     }
 }
 
@@ -928,17 +953,18 @@ NcReal
      * Construct.
      *
      * @param var	The netCDF variable that's being adapted.
-     * @parm netcdf	The netCDF dataset that contains <code>var</code>.
+     * @param netcdf	The netCDF dataset that contains <code>var</code>.
+     * @param type	The VisAD RealType of <code>var</code>.
      * @exception BadFormException
      *			The netCDF variable cannot be adapted to a VisAD API.
      * @exception VisADException
      *			Problem in core VisAD.  Probably some VisAD object
      *			couldn't be created.
      */
-    NcReal(Variable var, Netcdf netcdf)
+    NcReal(Variable var, Netcdf netcdf, RealType type)
 	throws BadFormException, VisADException
     {
-	super(var, netcdf);
+	super(var, netcdf, type);
     }
 }
 
@@ -978,7 +1004,7 @@ NcFloat
     /**
      * Construct.
      *
-     * @param var	The netCDF variable to be adapted.
+     * @param var	The netCDF float variable to be adapted.
      * @param netcdf	The netCDF dataset that contains <code>var</code>.
      * @precondition	<code>isRepresentable(var).
      * @exception VisADException
@@ -988,25 +1014,42 @@ NcFloat
     NcFloat(Variable var, Netcdf netcdf)
 	throws VisADException
     {
-	super(var, netcdf);
+	super(var, netcdf, getRealType(var));
+    }
 
-	/*
-	 * The following is complicated due to the circular dependency
-	 * between MathType and Set.
-	 */
 
-	RealType	realType = mathType == null
-	    ? new RealType(getName(), unit, (Set)null)
-	    : (RealType)mathType;
+    /**
+     * Return the VisAD RealType of the given, netCDF "float" variable.
+     *
+     * @param var	The netCDF float variable.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     */
+    protected static RealType
+    getRealType(Variable var)
+	throws VisADException
+    {
+	RealType	realType = RealType.getRealTypeByName(var.getName());
 
-	set = new FloatSet(realType, (CoordinateSystem)null,
-		    new Unit[] {unit});
-
-	if (mathType == null)
+	if (realType == null)
 	{
+	    /*
+	     * The following is complicated due to the circular dependency
+	     * between RealType and Set.
+	     */
+
+	    Unit	unit = getUnit(var);
+
+	    realType = new RealType(var.getName(), unit, (Set)null);
+
+	    Set		set = new FloatSet(realType, (CoordinateSystem)null,
+					    new Unit[] {unit});
+
 	    realType.setDefaultSet(set);
-	    mathType = realType;
 	}
+
+	return realType;
     }
 
 
@@ -1017,16 +1060,6 @@ NcFloat
     isFloat()
     {
 	return true;
-    }
-
-
-    /**
-     * Return the corresponding VisAD data object.
-     */
-    DataImpl
-    getData()
-    {
-	return null;	// TODO
     }
 }
 
@@ -1063,7 +1096,7 @@ NcDouble
     /**
      * Construct.
      *
-     * @param var	The netCDF variable to be adapted.
+     * @param var	The netCDF double variable to be adapted.
      * @param netcdf	The netCDF dataset that contains <code>var</code>.
      * @precondition	<code>isRepresentable(var).
      * @exception VisADException
@@ -1073,25 +1106,42 @@ NcDouble
     NcDouble(Variable var, Netcdf netcdf)
 	throws VisADException
     {
-	super(var, netcdf);
+	super(var, netcdf, getRealType(var));
+    }
 
-	/*
-	 * The following is complicated due to the circular dependency
-	 * between MathType and Set.
-	 */
 
-	RealType	realType = mathType == null
-	    ? new RealType(getName(), unit, (Set)null)
-	    : (RealType)mathType;
+    /**
+     * Return the VisAD RealType of the given, netCDF "double" variable.
+     *
+     * @param var	The netCDF double variable.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     */
+    protected static RealType
+    getRealType(Variable var)
+	throws VisADException
+    {
+	RealType	realType = RealType.getRealTypeByName(var.getName());
 
-	set = new DoubleSet(realType, (CoordinateSystem)null,
-		    new Unit[] {unit});
-
-	if (mathType == null)
+	if (realType == null)
 	{
+	    /*
+	     * The following is complicated due to the circular dependency
+	     * between RealType and Set.
+	     */
+
+	    Unit	unit = getUnit(var);
+
+	    realType = new RealType(var.getName(), unit, (Set)null);
+
+	    Set		set = new DoubleSet(realType, (CoordinateSystem)null,
+					    new Unit[] {unit});
+
 	    realType.setDefaultSet(set);
-	    mathType = realType;
 	}
+
+	return realType;
     }
 
 
@@ -1104,15 +1154,5 @@ NcDouble
     isDouble()
     {
 	return true;
-    }
-
-
-    /**
-     * Return the corresponding VisAD data object.
-     */
-    DataImpl
-    getData()
-    {
-	return null;	// TODO
     }
 }

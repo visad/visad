@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcDim.java,v 1.1 1998-03-20 20:56:47 visad Exp $
+ * $Id: NcDim.java,v 1.2 1998-03-23 18:11:52 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -179,7 +179,7 @@ NcCoordDim
 	throws VisADException
     {
 	super(dim);
-	coordVar = NcVar.create(netcdf.get(dim.getName()), netcdf);
+	coordVar = NcVar.newNcVar(netcdf.get(dim.getName()), netcdf);
     }
 
 

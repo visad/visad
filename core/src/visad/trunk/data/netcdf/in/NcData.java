@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcData.java,v 1.1 1998-03-20 20:56:45 visad Exp $
+ * $Id: NcData.java,v 1.2 1998-03-23 18:11:51 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -28,13 +28,6 @@ NcData
     protected MathType	mathType;
 
 
-    /** Protected default constructor. */
-    protected
-    NcData()
-    {
-    }
-
-
     /**
      * Factory method for constructing the proper type of NcData.
      *
@@ -56,7 +49,7 @@ NcData
 
 
     /**
-     * Construct from a VisAD mathtype.
+     * Construct from a given VisAD mathtype.
      */
     NcData(MathType type)
     {

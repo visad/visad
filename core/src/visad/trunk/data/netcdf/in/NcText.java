@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcText.java,v 1.1 1998-03-20 20:57:00 visad Exp $
+ * $Id: NcText.java,v 1.2 1998-03-23 18:11:55 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -64,9 +64,7 @@ NcText
     NcText(Variable var, Netcdf netcdf)
 	throws VisADException
     {
-	super(var, netcdf);
-	mathType = new TextType(var.getName());
-	set = null;
+	super(var, netcdf, new TextType(var.getName()));
 	visadRank = var.getRank() - 1;
     }
 
@@ -169,52 +167,78 @@ NcText
 
 
     /**
-     * Return the string of the variable at the given position.
+     * Return the variable's data as a packed array of Strings.
      *
-     * @param indexes	The netCDF indexes of the string (missing innermost
-     *			index).
+     * @return			The variable's values.
+     * @exception IOException	Data access I/O failure.
      */
-    String
-    getString(int[] indexes)
+    String[]
+    getStrings()
+	throws IOException
     {
-	throw new UnsupportedOperationException("getString()");
-    }
-
-
-    /**
-     * Return the variable as a VisAD data object.
-     *
-     * @return			The VisAD data object corresponding to the
-     *				Variable.
-     * @exception IOException   I/O error.
-     */
-    DataImpl
-    getData()
-	throws IOException, VisADException
-    {
-	DataImpl	data;
+	String[]	strings;
 
 	if (getRank() == 0)
 	{
 	    /* Scalar text variable (i.e. a String). */
 
-	    StringBuffer	string = new StringBuffer(var.getLengths()[0]);
+	    StringBuffer	strbuf = new StringBuffer(var.getLengths()[0]);
 
 	    for (IndexIterator iter = new IndexIterator(var.getLengths());
 		 iter.notDone();
 		 iter.incr())
 	    {
-		string.append(var.getChar(iter.value()));
+		strbuf.append(var.getChar(iter.value()));
 	    }
 
-	    data = new Text((TextType)getMathType(), string.toString());
+	    strings = new String[] {strbuf.toString()};
 	}
 	else
 	{
 	    /* Non-scalar text variable (i.e. an array of Strings). */
-	    data = null;	// TODO
+	    strings = null;	// TODO
 	}
 
-	return data;
+	return strings;
+    }
+
+
+    /**
+     * Return the values of this variable as a packed array of VisAD
+     * DataImpl objects.  It would be really, really stupid to use this
+     * method on a variable of any length.
+     *
+     * @return			The variable's values.
+     * @exception IOException	Data access I/O failure.
+     */
+    DataImpl[]
+    getData()
+	throws IOException, VisADException
+    {
+	Text[]	texts;
+
+	if (getRank() == 0)
+	{
+	    /* Scalar text variable (i.e. a String). */
+
+	    StringBuffer	strbuf = new StringBuffer(var.getLengths()[0]);
+
+	    for (IndexIterator iter = new IndexIterator(var.getLengths());
+		 iter.notDone();
+		 iter.incr())
+	    {
+		strbuf.append(var.getChar(iter.value()));
+	    }
+
+	    texts = new Text[]
+		{new Text((TextType)mathType, strbuf.toString())};
+	}
+	else
+	{
+	    /* Non-scalar text variable (i.e. an array of Strings). */
+	    texts = null;	// TODO
+	}
+
+	return texts;
     }
 }

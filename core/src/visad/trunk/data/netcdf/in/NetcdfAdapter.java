@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.1 1998-03-20 20:57:08 visad Exp $
+ * $Id: NetcdfAdapter.java,v 1.2 1998-03-23 18:11:58 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -92,7 +92,7 @@ NetcdfAdapter
 	VariableIterator	varIter = netcdf.iterator();
 	while (varIter.hasNext())
 	{
-	    NcVar	var = NcVar.create(varIter.next(), netcdf);
+	    NcVar	var = NcVar.newNcVar(varIter.next(), netcdf);
 
 	    // TODO: support scalars and text
 	    if (!var.isText() && !var.isCoordinateVariable() &&
@@ -108,7 +108,6 @@ NetcdfAdapter
 	while (domEnum.hasMoreElements())
 	{
 	    Domain	domain = domEnum.nextElement();
-	    NcDim[]	dims = domain.getDimensions();
 	    NcData	ncData = NcData.newNcData(domain.getVariables());
 
 	    table.put(ncData.getMathType(), ncData);
