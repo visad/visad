@@ -128,6 +128,9 @@ public class CollectiveBarbManipulation extends Object
   private DataReferenceImpl[] circle_ref = null;
   private boolean circle_enable = false;
 
+  private Releaser releaser = null;
+  private DataReferenceImpl releaser_ref = null;
+
   /**
      wf should have MathType:
        (station_index -> (Time -> tuple))
@@ -540,6 +543,10 @@ public class CollectiveBarbManipulation extends Object
       circle_renderer[1].suppressExceptions(true);
     }
 
+    releaser_ref = new DataReferenceImpl("releaser");
+    releaser = new Releaser();
+    releaser.addReference(releaser_ref);
+
   }
 
   // public void addStation(FlatField station)
@@ -756,6 +763,7 @@ public class CollectiveBarbManipulation extends Object
 
   private boolean first = true;
 
+  // for AnimationControl steps
   public void controlChanged(ControlEvent e)
          throws VisADException, RemoteException {
     synchronized (data_lock) {
@@ -1066,20 +1074,33 @@ public class CollectiveBarbManipulation extends Object
   }
 
   public void release() {
+    circle_enable = false;
     try {
-      circle_enable = false;
+      releaser_ref.setData(null);
+    }
+    catch (VisADException e) {
+    }
+    catch (RemoteException e) {
+    }
+/* WLH 14 Feb 2001
+    // move the following to a CellImpl?
+    for (int io=0; io<2; io++) {
+      if (circle_ref[io] != null) {
+        circle_renderer[io].toggle(false);
+        circle_ref[io].setData(null);
+      }
+    }
+*/
+  }
+
+  class Releaser extends CellImpl {
+    public void doAction() throws VisADException, RemoteException {
       for (int io=0; io<2; io++) {
         if (circle_ref[io] != null) {
           circle_renderer[io].toggle(false);
-          circle_ref[io].setData(null);
+          circle_ref[io].setData(null); // ??
         }
       }
-    }
-    catch (VisADException e) {
-      System.out.println("release " + e);
-    }
-    catch (RemoteException e) {
-      System.out.println("release " + e);
     }
   }
 
@@ -1390,7 +1411,7 @@ class EndManipCBM implements ActionListener {
                                 new float[][] {{0.0f}, {0.0f}}, 1)};
         }
         set_ref.setData(new UnionSet(set.getType(), new_sets));
-        cbm.setCollectiveParameters(false, 0.0f, 1000000.0f, 0.0f, 1000.0f);
+        cbm.setCollectiveParameters(false, 500000.0f, 1000000.0f, 0.0f, 1000.0f);
       }
       catch (VisADException ex) {
         ex.printStackTrace();
@@ -1437,7 +1458,7 @@ class CSwellManipulationRendererJ3D extends SwellManipulationRendererJ3D {
   }
 
   /** mouse button released, ending direct manipulation */
-  public synchronized void release_direct() {
+  public void release_direct() {
     cbm.release();
   }
 
