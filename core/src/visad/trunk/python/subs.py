@@ -1,3 +1,67 @@
+"""subs.py is a collection of support methods
+
+makeDisplay(maps)
+  create (and return) a VisAD DisplayImpl and add the ScalarMaps, if any
+  the VisAD box is resized to about 95% of the window.  Use 3D if
+  availble.
+
+makeDisplay3D(maps)
+  create (and return) a VisAD DisplayImplJ3D and add the ScalarMaps, if any
+  the VisAD box is resized to about 95% of the window
+  
+makeDisplay2D(maps)"
+  create (and return) a VisAD DisplayImplJ2D and add the ScalarMaps, if any
+  the VisAD box is resized to about 95% of the window
+
+saveDisplay(display, filename)
+  save the display as a JPEG
+
+addData(name, data, display, constantMaps=None, renderer=None, ref=None)
+  add a Data object to a Display, and return a reference to the Data
+
+setPointerSize(display, size)
+  set the size of points for point-type plots
+
+setAspectRatio(display, ratio)
+  define the aspects of width and height, as a ratio: width/height
+
+setAspects(display, x, y, z)
+  define the relative sizes of the axes
+
+maximizeBox(display)
+  a simple method for making the VisAD "box" 95% of the window size
+
+setBoxSize(display, percent=.70)
+  a simple method for making the VisAD "box" some % of the window size
+
+x,y,z,disp = getDisplay(display)
+  return the x,y,z scalar maps for the display
+
+makeLine(domainType, points)
+  make a 2D or 3D line, return a reference so it can be changed
+
+drawLine(display, points[], color=None, mathtype=None)
+  draw a line directly into the display; also return reference
+  drawLine(display, domainType, points[], color=Color, mathtype=domainType)
+  drawLine(name|display, points[], color=Color)
+  "Color" is java.awt.Color
+
+drawString(display, string, point, color=None, center=0, font='futural')
+  draw a string on the display
+
+addMaps(display, maps[])
+  add an array of ScalarMaps to a Display
+
+makeMaps(RealType, name, RealType, name, ....)
+  define ScalarMap(s) given pairs of (Type, name)
+  where "name" is taken from the list, below.
+
+showDisplay(display, width=300, height=300, title=)
+  quick display of a Display object in a separate JFrame
+  you can set the size and title, if you want...
+
+"""
+
 from visad import ScalarMap, Display, DataReferenceImpl, RealTupleType,\
           Gridded2DSet, DisplayImpl, RealType, RealTuple
 from types import StringType
@@ -126,6 +190,9 @@ def setBoxSize(display, percent=.70):
     pcMatrix[3]=-percent/.64
     
   pc.setMatrix(pcMatrix)
+
+def makeCube(display):
+  display.getGraphicsModeControl().setProjectionPolicy(0)
 
 # return the x,y,z scalar maps for the display
 def getDisplayMaps(display):
