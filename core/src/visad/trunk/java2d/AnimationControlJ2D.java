@@ -156,6 +156,10 @@ public class AnimationControlJ2D extends AVControlJ2D
       init();
 */
       canvas.renderTrigger();
+/*
+System.out.println("AnimationControlJ2D.takeStep: renderTrigger " +
+                   "current = " + current);
+*/
     }
     changeControl(true);
   }

@@ -306,9 +306,9 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     }
 
     if (getWaitFlag()) return true;
-
+/* WLH 2 July 98
     if (getAnimationString() != null) return true;
-
+*/
     return false;
   }
 
@@ -380,7 +380,7 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
       graphics.drawString("please wait . . .", x, y);
       y -= 12;
     }
-
+/* WLH 2 July 98
     // draw Animation string in upper right corner of screen
     String animation_string = getAnimationString();
     if (animation_string != null) {
@@ -391,6 +391,7 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
       graphics.drawString(animation_string, x, y);
       y += 10;
     }
+*/
   }
 
   public DataRenderer findDirect(VisADRay ray) {

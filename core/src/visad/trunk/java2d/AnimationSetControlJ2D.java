@@ -44,8 +44,9 @@ public class AnimationSetControlJ2D extends AnimationSetControl {
     }
   }
 
-  public void setSet(Set s) throws VisADException, RemoteException {
-    super.setSet(s);
+  public void setSet(Set s, boolean noChange)
+         throws VisADException, RemoteException {
+    super.setSet(s, noChange);
     canvas.createImages(s.getLength());
   }
 

@@ -123,6 +123,8 @@ public class VisADCanvasJ2D extends Canvas
       length = (len < 0) ? images.length : len;
       width = getSize().width;
       height = getSize().height;
+      if (width <= 0) width = 1;
+      if (height <= 0) height = 1;
       images = new BufferedImage[length];
       valid_images = new boolean[length];
       for (int i=0; i<length; i++) {
@@ -130,7 +132,11 @@ public class VisADCanvasJ2D extends Canvas
         valid_images[i] = false;
       }
       aux_image = createImage(width, height);
-      // tgeometry = null;
+/*
+System.out.println("VisADCanvasJ2D.createImages: len = " + len +
+                   " length = " + length + " width, height = " +
+                   width + " " + height);
+*/
     }
     renderTrigger();
   }
@@ -138,7 +144,6 @@ public class VisADCanvasJ2D extends Canvas
   public void scratchImages() {
     synchronized (images) {
       for (int i=0; i<length; i++) valid_images[i] = false;
-      // tgeometry = null;
     }
     renderTrigger();
   }
@@ -194,6 +199,10 @@ public class VisADCanvasJ2D extends Canvas
     }
     catch (Exception e) {
     }
+/*
+System.out.println("VisADCanvasJ2D.paint: current = " + current_image +
+                   " (animate_control == null) = " + (animate_control == null));
+*/
     synchronized (images) {
       if (0 <= current_image && current_image < length) {
         image = images[current_image];
@@ -205,8 +214,8 @@ public class VisADCanvasJ2D extends Canvas
     }
 /*
 System.out.println("VisADCanvasJ2D.paint: current_image = " + current_image +
-                   " w, h = " + w + " " + h + " valid = " + valid +
-                   " image != null " + (image != null));
+                   " length = " + length + " w, h = " + w + " " + h +
+                   " valid = " + valid + " image != null " + (image != null));
 */
     if (image != null) {
       if (!valid) {
@@ -229,9 +238,23 @@ System.out.println("VisADCanvasJ2D.paint: current_image = " + current_image +
           g2.setTransform(tgeometry);
         }
         try {
-          // g2.setRenderingHints(Graphics2D.ANTIALIASING, Graphics2D.ANTIALIAS_ON);
           if (animate_control != null) animate_control.init();
           render(g2, root);
+          // draw Animation string in upper right corner of screen
+          String animation_string = displayRenderer.getAnimationString();
+          if (animation_string != null) {
+
+System.out.println("VisADCanvasJ2D.paint: " + animation_string);
+
+            g2.setRenderingHints(Graphics2D.ANTIALIASING, Graphics2D.ANTIALIAS_ON);
+            g2.setFont(new Font("Times New Roman", Font.PLAIN, 12));
+            g2.setTransform(new AffineTransform());
+            int nchars = animation_string.length();
+            if (nchars < 12) nchars = 12;
+            float x = w - 9 * nchars;
+            float y = 10;
+            g2.drawString(animation_string, x, y);
+          }
         }
         catch (VisADException e) {
         }
@@ -293,27 +316,27 @@ System.out.println("VisADCanvasJ2D.paint: current_image = " + current_image +
         int height = image.getHeight();
 /*
 now:
-  x00 = m00 * 0 + m01 * 0 + m02
-  y00 = m10 * 0 + m11 * 0 + m12
+  x0h = m00 * 0 + m01 * 0 + m02
+  y0h = m10 * 0 + m11 * 0 + m12
 
-  xw0 = m00 * (width - 1) + m01 * 0 + m02
-  yw0 = m10 * (width - 1) + m11 * 0 + m12
+  xwh = m00 * (width - 1) + m01 * 0 + m02
+  ywh = m10 * (width - 1) + m11 * 0 + m12
 
-  xwh = m00 * (width - 1) + m01 * (height - 1) + m02
-  ywh = m10 * (width - 1) + m11 * (height - 1) + m12
+  xw0 = m00 * (width - 1) + m01 * (height - 1) + m02
+  yw0 = m10 * (width - 1) + m11 * (height - 1) + m12
 
-  x0h = m00 * 0 + m01 * (height - 1) + m02
-  y0h = m10 * 0 + m11 * (height - 1) + m12
+  x00 = m00 * 0 + m01 * (height - 1) + m02
+  y00 = m10 * 0 + m11 * (height - 1) + m12
 so:
 */
-        float m02 = x00;
-        float m12 = y00;
-        float m00 = (xw0 - x00) / (width - 1);
-        float m10 = (yw0 - y00) / (width - 1);
-        float m01 = (x0h - x00) / (height - 1);
-        float m11 = (y0h - y00) / (height - 1);
-        float xerr = xwh - (m00 * (width - 1) + m01 * (height - 1) + m02);
-        float yerr = ywh - (m10 * (width - 1) + m11 * (height - 1) + m12);
+        float m02 = x0h;
+        float m12 = y0h;
+        float m00 = (xwh - x0h) / (width - 1);
+        float m10 = (ywh - y0h) / (width - 1);
+        float m01 = (x00 - x0h) / (height - 1);
+        float m11 = (y00 - y0h) / (height - 1);
+        float xerr = xw0 - (m00 * (width - 1) + m01 * (height - 1) + m02);
+        float yerr = yw0 - (m10 * (width - 1) + m11 * (height - 1) + m12);
         AffineTransform timage = new AffineTransform(m00, m10, m01, m11, m02, m12);
         g2.transform(timage); // concatenate timage onto tg
         g2.drawImage(image, 0, 0, this);

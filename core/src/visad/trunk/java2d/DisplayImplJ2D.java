@@ -230,6 +230,9 @@ public class DisplayImplJ2D extends DisplayImpl {
     scratch = false;
     super.doAction();
     if (scratch) {
+
+System.out.println("DisplayImplJ2D.doAction: scratch = " + scratch);
+
       VisADCanvasJ2D canvas =
         ((DisplayRendererJ2D) getDisplayRenderer()).getCanvas();
       canvas.scratchImages();
