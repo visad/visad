@@ -360,7 +360,16 @@ visad\$(SSEC)\mcidas\*.class \
 visad\$(SSEC)\mcidas\adde\*.class \
 visad\data\mcidas\*.class \
 visad\data\gif\*.class \
-visad\data\visad\*.class
+visad\data\visad\*.class \
+visad\jmet\*.class \
+visad\paoloa\*.class \
+visad\paoloa\spline\*.class \
+visad\aune\*.class \
+visad\benjamin\*.class \
+visad\rabin\*.class \
+visad\bom\*.class \
+visad\aeri\*.class \
+visad\examples\*.class
 
 classes:
 	cd ..
