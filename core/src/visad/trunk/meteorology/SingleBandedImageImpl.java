@@ -28,6 +28,7 @@ package visad.meteorology;
 
 import visad.*;
 import visad.georef.*;
+import java.rmi.RemoteException;
 
 /**
  * An implementation for representing single-banded planar 
@@ -159,14 +160,58 @@ public class SingleBandedImageImpl
         return getDomainCoordinateSystem() instanceof NavigatedCoordinateSystem;
     }
 
+    /** 
+     * Set the range values of the function including ErrorEstimate-s;
+     * the order of range values must be the same as the order of
+     * domain indices in the DomainSet.  Overridden so we can set
+     * max and min values.
+     *
+     * @param  range    pixel values as doubles
+     * @param  errors   ErrorEstimates for values (may be null);
+     * @param  copy     flag to make a copy of value array or not
+     *
+     * @throws VisADException  couldn't set values
+     * @throws RemoteException couldn't set remote object
+     */
+    public void setSamples(float[][] range, 
+                           ErrorEstimate[] errors, 
+                           boolean copy) 
+        throws VisADException, RemoteException 
+    {
+        super.setSamples(range, errors, copy);
+        setMaxMinValues();
+    }
+
+    /** 
+     * Set the range values of the function including ErrorEstimate-s;
+     * the order of range values must be the same as the order of
+     * domain indices in the DomainSet.  Overridden so we can set
+     * max and min values.
+     *
+     * @param  range    pixel values as doubles
+     * @param  errors   ErrorEstimates for values (may be null);
+     * @param  copy     flag to make a copy of value array or not
+     *
+     * @throws VisADException  couldn't set values
+     * @throws RemoteException couldn't set remote object
+     */
+    public void setSamples(double[][] range, 
+                           ErrorEstimate[] errors, 
+                           boolean copy) 
+        throws VisADException, RemoteException 
+    {
+        super.setSamples(range, errors, copy);
+        setMaxMinValues();
+    }
+
     private void setMaxMinValues()
         throws VisADException
     {
         Unit units = null;
         RealType type = RealType.Generic;
         ErrorEstimate errors = null;
-        float min = Float.MIN_VALUE;
-        float max = Float.MAX_VALUE;
+        double min = Double.MIN_VALUE;
+        double max = Double.MAX_VALUE;
         try
         {
             Set rangeSet = getRangeSets()[0];
@@ -179,6 +224,27 @@ public class SingleBandedImageImpl
             {
                 min = ((SampledSet) rangeSet).getLow()[0];
                 max = ((SampledSet) rangeSet).getHi()[0];
+            }
+            else
+            {
+                double[] values = getValues(0);
+                for (int i = 0; i < values.length; i++)
+                {
+                    // initialize on first non-missing value
+                    if (values[i] != Double.NaN)
+                    {
+                        if (min == Double.MIN_VALUE)  // initialize first time
+                        {
+                           min = values[i];
+                           max = values[i];
+                        }
+                        else 
+                        {
+                            if (values[i] < min)  min = values[i];
+                            if (values[i] > max)  max = values[i];
+                        }
+                    }
+                }
             }
         }
         catch (Exception e) {;}
