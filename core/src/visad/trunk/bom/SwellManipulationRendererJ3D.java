@@ -615,7 +615,9 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
       vz[nv] = z;
       nv++;
 
-      int shi = (int) (10.0f * (swell_height + 0.5f));
+      // DRM 2001-07-04
+      //int shi = (int) (10.0f * (swell_height + 0.5f));
+      int shi = Math.round(10.0f * (swell_height));
       float shf = 0.1f * shi;
       String sh_string = Float.toString(shf);
       int point = sh_string.indexOf('.');
