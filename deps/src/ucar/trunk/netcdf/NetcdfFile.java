@@ -1,4 +1,4 @@
-// $Id: NetcdfFile.java,v 1.2 2001-05-16 20:31:17 steve Exp $
+// $Id: NetcdfFile.java,v 1.3 2001-05-17 15:14:58 steve Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -52,7 +52,7 @@ import java.lang.reflect.InvocationTargetException;
  *
  * @see Netcdf
  * @author $Author: steve $
- * @version $Revision: 1.2 $ $Date: 2001-05-16 20:31:17 $
+ * @version $Revision: 1.3 $ $Date: 2001-05-17 15:14:58 $
  */
 public class NetcdfFile	extends AbstractNetcdf {
 
@@ -1802,8 +1802,8 @@ public class NetcdfFile	extends AbstractNetcdf {
         close();
     }
 
-    private final URL url;
-    private final File file; // Should be final.
+    private URL url;	// not "final" to accomodate JDK 1.2
+    private File file;	// not "final" to accomodate JDK 1.2
     private RandomAccessFile raf; // unidata.netcdf version, not java.io
     private UnlimitedDimension recDim;
     private int recsize;
