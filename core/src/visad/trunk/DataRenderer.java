@@ -1213,6 +1213,7 @@ if (map.badRange()) {
 
     DataDisplayLink[] Links = getLinks();
     if (Links == null || Links.length == 0) {
+      link = null;
       return;
     }
     link = Links[0];

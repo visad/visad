@@ -59,6 +59,7 @@ public class DefaultRendererJ2D extends RendererJ2D {
   public VisADGroup doTransform() throws VisADException, RemoteException { // J2D
     DataDisplayLink[] Links = getLinks();
     if (Links == null || Links.length == 0) {
+      link = null;
       return null;
     }
     link = Links[0];
