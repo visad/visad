@@ -57,14 +57,18 @@ public class DefaultFamilyTest
         Data data = df.open(in);
         System.out.println("Saving dataset " + out);
         try {
-            new Plain().save(out, data, true);
+            df.save(out, data, true);
         }
         catch (Exception e) {
             System.err.println("Couldn't save dataset: " + e);
+            System.exit(1);
         }
     }
     catch (Exception e) {
         System.err.println("Couldn't open dataset: " + e);
+        System.exit(1);
     }
+
+    System.exit(0);
   }
 }
