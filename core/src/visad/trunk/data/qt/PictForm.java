@@ -36,7 +36,9 @@ import visad.data.*;
  * PictForm is the VisAD data form for Apple PICT images.
  * To use it, QuickTime for Java must be installed.
  */
-public class PictForm extends Form implements FormFileInformer {
+public class PictForm extends Form
+  implements FormBlockReader, FormFileInformer
+{
 
   // -- Constants --
 
@@ -53,29 +55,6 @@ public class PictForm extends Form implements FormFileInformer {
   /** Constructs a new PICT form. */
   public PictForm() {
     super("PictForm" + num++);
-  }
-
-
-  // -- FormFileInformer methods --
-
-  /** Checks if the given string is a valid filename for a PICT image. */
-  public boolean isThisType(String name) {
-    for (int i=0; i<SUFFIXES.length; i++) {
-      if (name.toLowerCase().endsWith(SUFFIXES[i])) return true;
-    }
-    return false;
-  }
-
-  /** Checks if the given block is a valid header for a PICT image. */
-  public boolean isThisType(byte[] block) {
-    return false;
-  }
-
-  /** Returns the default file suffixes for the PICT image formats. */
-  public String[] getDefaultSuffixes() {
-    String[] s = new String[SUFFIXES.length];
-    System.arraycopy(SUFFIXES, 0, s, 0, SUFFIXES.length);
-    return s;
   }
 
 
@@ -141,6 +120,60 @@ public class PictForm extends Form implements FormFileInformer {
 
   public FormNode getForms(Data data) {
     return null;
+  }
+
+
+  // -- FormBlockReader API methods --
+
+  /**
+   * Obtains the specified block from the given file.
+   * @param id The file from which to load data blocks.
+   * @param block_number The block number of the block to load.
+   * @throws VisADException If the block number is invalid.
+   */
+  public DataImpl open(String id, int block_number)
+    throws BadFormException, IOException, VisADException
+  {
+    if (block_number != 0) {
+      throw new BadFormException("Invalid image number: " + block_number);
+    }
+    return open(id);
+  }
+
+  /**
+   * Determines the number of blocks in the given file.
+   * @param id The file for which to get a block count.
+   */
+  public int getBlockCount(String id)
+    throws BadFormException, IOException, VisADException
+  {
+    return 1;
+  }
+
+  /** Closes any open files. */
+  public void close() throws BadFormException, IOException, VisADException { }
+
+
+  // -- FormFileInformer methods --
+
+  /** Checks if the given string is a valid filename for a PICT image. */
+  public boolean isThisType(String name) {
+    for (int i=0; i<SUFFIXES.length; i++) {
+      if (name.toLowerCase().endsWith(SUFFIXES[i])) return true;
+    }
+    return false;
+  }
+
+  /** Checks if the given block is a valid header for a PICT image. */
+  public boolean isThisType(byte[] block) {
+    return false;
+  }
+
+  /** Returns the default file suffixes for the PICT image formats. */
+  public String[] getDefaultSuffixes() {
+    String[] s = new String[SUFFIXES.length];
+    System.arraycopy(SUFFIXES, 0, s, 0, SUFFIXES.length);
+    return s;
   }
 
 
