@@ -1,4 +1,4 @@
-//
+// {
 // PlaneSelector.java
 //
 
@@ -52,8 +52,11 @@ public class PlaneSelector {
   /** Computation cell for linking plane with endpoints. */
   protected CellImpl cell;
 
-  /** Data type for the plane. */
-  protected RealType xtype, ytype, ztype;
+  /** Real type mappings for the plane. */
+  protected RealType xtype, ytype, ztype, rtype, gtype, btype;
+
+  /** Math type for domain and range tuples. */
+  protected RealTupleType domain, range;
 
   /** Starting coordinates for plane's endpoints. */
   protected double x1, y1, z1, x2, y2, z2, x3, y3, z3;
@@ -61,8 +64,11 @@ public class PlaneSelector {
   /** Flag for whether selection plane is visible. */
   protected boolean visible;
 
+  /** Color values for plane outline points. */
+  protected double[][] lineValues;
+  
   /** Perimeter lines for the plane. */
-  protected Gridded3DSet lines;
+  protected FlatField lines;
 
   /** Semi-transparent planar slice. */
   protected Gridded3DSet plane;
@@ -114,6 +120,7 @@ public class PlaneSelector {
    * and starting endpoint coordinates.
    */
   public void init(RealType xtype, RealType ytype, RealType ztype,
+    RealType rtype, RealType gtype, RealType btype,
     Color[] lineColors, Color planeColor, double x1, double y1, double z1,
     double x2, double y2, double z2, double x3, double y3, double z3)
     throws VisADException, RemoteException
@@ -121,6 +128,11 @@ public class PlaneSelector {
     this.xtype = xtype;
     this.ytype = ytype;
     this.ztype = ztype;
+    this.rtype = rtype;
+    this.gtype = gtype;
+    this.btype = btype;
+    this.domain = new RealTupleType(xtype, ytype, ztype);
+    this.range = new RealTupleType(rtype, gtype, btype);
     this.x1 = x1;
     this.y1 = y1;
     this.z1 = z1;
@@ -131,13 +143,12 @@ public class PlaneSelector {
     this.y3 = y3;
     this.z3 = z3;
     visible = false;
-    float[] line_r = new float[3];
-    float[] line_g = new float[3];
-    float[] line_b = new float[3];
-    for (int i=0; i<3; i++) {
-      line_r[i] = lineColors[i].getRed() / 255.0f;
-      line_g[i] = lineColors[i].getGreen() / 255.0f;
-      line_b[i] = lineColors[i].getBlue() / 255.0f;
+    lineValues = new double[3][4];
+    int len = lineColors.length;
+    for (int i=0; i<4; i++) {
+      lineValues[0][i] = lineColors[i % len].getRed();
+      lineValues[1][i] = lineColors[i % len].getGreen();
+      lineValues[2][i] = lineColors[i % len].getBlue();
     }
     float plane_r = planeColor.getRed() / 255.0f;
     float plane_g = planeColor.getGreen() / 255.0f;
@@ -148,14 +159,7 @@ public class PlaneSelector {
       if (i == 0) {
         // thick plane outline
         renderers[i] = displayRenderer.makeDefaultRenderer();
-        // CTR - TODO - fix this--add extra line endpts to fix colors,
-        // and switch from ConstantMap to ScalarMap for color of lines
-        maps = new ConstantMap[] {
-          new ConstantMap(line_r[i], Display.Red),
-          new ConstantMap(line_g[i], Display.Green),
-          new ConstantMap(line_b[i], Display.Blue),
-          new ConstantMap(3.0f, Display.LineWidth)
-        };
+        maps = new ConstantMap[] {new ConstantMap(3.0, Display.LineWidth)};
       }
       else if (i == 1) {
         // semi-transparent plane
@@ -164,18 +168,18 @@ public class PlaneSelector {
           new ConstantMap(plane_r, Display.Red),
           new ConstantMap(plane_g, Display.Green),
           new ConstantMap(plane_b, Display.Blue),
-          new ConstantMap(0.75f, Display.Alpha)
+          new ConstantMap(0.75, Display.Alpha)
         };
       }
       else {
         // manipulable plane definition points
         renderers[i] = new DirectManipulationRendererJ3D();
         renderers[i].setPickCrawlToCursor(false);
-        maps = new ConstantMap[] { // yellow
-          new ConstantMap(1.0f, Display.Red),
-          new ConstantMap(1.0f, Display.Green),
-          new ConstantMap(0.0f, Display.Blue),
-          new ConstantMap(6.0f, Display.PointSize)
+        maps = new ConstantMap[] {
+          new ConstantMap(lineValues[0][i - 2] / 255.0, Display.Red),
+          new ConstantMap(lineValues[1][i - 2] / 255.0, Display.Green),
+          new ConstantMap(lineValues[2][i - 2] / 255.0, Display.Blue),
+          new ConstantMap(6.0, Display.PointSize)
         };
       }
       renderers[i].suppressExceptions(true);
@@ -255,7 +259,9 @@ public class PlaneSelector {
   }
 
   /** Computes the appropriate plane from the current endpoints. */
-  protected boolean computePlane(RealTuple[] tuple) throws VisADException {
+  protected boolean computePlane(RealTuple[] tuple)
+    throws VisADException, RemoteException
+  {
     int len = tuple.length;
     float[][] samples = new float[3][len + 1];
     for (int i=0; i<len; i++) {
@@ -271,7 +277,11 @@ public class PlaneSelector {
       samps[i][2] = samples[i][2];
       samps[i][3] = samples[i][1];
     }
-    lines = new Gridded3DSet(type, samples, 4, null, null, null, false);
+    FunctionType lineType = new FunctionType(type, range);
+    Gridded3DSet lineSet =
+      new Gridded3DSet(type, samples, 4, null, null, null, false);
+    lines = new FlatField(lineType, lineSet);
+    lines.setSamples(lineValues);
     plane = new Gridded3DSet(type, samps, 2, 2, null, null, null, false);
     return true;
   }
@@ -279,11 +289,7 @@ public class PlaneSelector {
   /** Moves the given reference point. */
   protected void setData(int i, double x, double y, double z) {
     try {
-      refs[i + 2].setData(new RealTuple(new Real[] {
-        new Real(xtype, x),
-        new Real(ytype, y),
-        new Real(ztype, z)
-      }));
+      refs[i + 2].setData(new RealTuple(domain, new double[] {x, y, z}));
     }
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }

@@ -58,7 +58,8 @@ public class ArbitrarySlice extends PlaneSelector {
     if (lines == null) return null;
 
     // extract hull points from lines data object
-    float[][] samples = lines.getSamples(false);
+    GriddedSet lineSet = (GriddedSet) lines.getDomainSet();
+    float[][] samples = lineSet.getSamples(false);
     float[] x = samples[0];
     float[] y = samples[1];
     float[] z = samples[2];
@@ -99,7 +100,7 @@ public class ArbitrarySlice extends PlaneSelector {
     float[] c4 = BioUtil.corner(c1, c2, c3);
 
     // construct 3-D planar grid
-    SetType type3 = (SetType) lines.getType();
+    SetType type3 = (SetType) lineSet.getType();
     float[][] samp3 = {
       {c1[0], c2[0], c3[0], c4[0]},
       {c1[1], c2[1], c3[1], c4[1]},
@@ -152,7 +153,9 @@ public class ArbitrarySlice extends PlaneSelector {
   // -- HELPER METHODS --
 
   /** Computes the appropriate plane from the current endpoints. */
-  protected boolean computePlane(RealTuple[] tuple) throws VisADException {
+  protected boolean computePlane(RealTuple[] tuple)
+    throws VisADException, RemoteException
+  {
     int len = tuple.length;
     int vcount = 0;
     float[][] samples = null;
@@ -336,8 +339,16 @@ public class ArbitrarySlice extends PlaneSelector {
       samples[0][vcount] = samples[0][0];
       samples[1][vcount] = samples[1][0];
       samples[2][vcount] = samples[2][0];
-      lines = new Gridded3DSet(type, samples,
-        vcount + 1, null, null, null, false);
+      FunctionType lineType =
+        new FunctionType(type, new RealTupleType(rtype, gtype, btype));
+      Gridded3DSet lineSet =
+        new Gridded3DSet(type, samples, vcount + 1, null, null, null, false);
+      lines = new FlatField(lineType, lineSet);
+      double[][] values = new double[3][vcount + 1];
+      for (int i=0; i<=vcount; i++) {
+        for (int j=0; j<3; j++) values[j][i] = lineValues[j][0];
+      }
+      lines.setSamples(values);
     }
 
     if (vcount == 3) {

@@ -420,12 +420,12 @@ public class SliceManager
   /** ControlListener method used for programmatically updating GUI. */
   public void controlChanged(ControlEvent e) {
     Control c = e.getControl();
-    if (c == anim_control2 || c == value_control2) {
+    if (c == anim_control2) {
+      int index = anim_control2.getCurrent();
+      if (this.index != index) bio.horiz.setValue(index + 1);
+    }
+    else if (c == value_control2) {
       // update sliders to match current timestep and slice values
-      if (anim_control2 != null) {
-        int index = anim_control2.getCurrent();
-        if (this.index != index) bio.horiz.setValue(index + 1);
-      }
       int slice = (int) value_control2.getValue();
       if (this.slice != slice) bio.vert.setValue(slice + 1);
     }
@@ -1032,13 +1032,15 @@ public class SliceManager
         arb.addListener(this);
       }
       Color[] arbLines = {Color.cyan, Color.cyan, Color.cyan};
-      arb.init(dtypes[0], dtypes[1], dtypes[2], arbLines, Color.white,
+      arb.init(dtypes[0], dtypes[1], dtypes[2],
+        RED_TYPE, GREEN_TYPE, BLUE_TYPE, arbLines, Color.white,
         min_x, min_y, min_z, max_x, max_y, max_z, min_x, max_y, max_z);
 
       // initialize alignment plane
       if (align == null) align = new AlignmentPlane(bio, bio.display3);
-      Color[] alignLines = {Color.red, Color.magenta, Color.blue};
-      align.init(dtypes[0], dtypes[1], dtypes[2], alignLines, Color.red,
+      Color[] alignLines = {Color.red, Color.yellow, Color.blue};
+      align.init(dtypes[0], dtypes[1], dtypes[2],
+        RED_TYPE, GREEN_TYPE, BLUE_TYPE, alignLines, Color.red,
         min_x, min_y, min_z, max_x, max_y, max_z, min_x, max_y, max_z);
     }
 
