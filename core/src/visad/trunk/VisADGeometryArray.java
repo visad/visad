@@ -68,6 +68,12 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
     return this;
   }
 
+  public VisADGeometryArray adjustLongitudeBulk(DataRenderer renderer)
+         throws VisADException {
+    float[] lons = getLongitudes(renderer, true);
+    return this;
+  }
+
   /** default case: rotate if necessary, then return points */
   public VisADGeometryArray adjustLongitude(DataRenderer renderer)
          throws VisADException {
@@ -97,26 +103,64 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
 
   void rotateLongitudes(float[] lons, float base, int axis,
                         ScalarMap map) {
+    rotateLongitudes(lons, base, axis, map, false);
+  }
+
+  void rotateLongitudes(float[] lons, float base, int axis,
+                        ScalarMap map, boolean bulk) {
+    boolean any = false;
     // so rotate longitudes to base
-    for (int i=0; i<vertexCount; i++) {
-      if (lons[i] == lons[i]) {
-        float x = (lons[i] - base) % 360.0f;
-        x += (x < 0.0f) ? (360.0f + base) : base;
-        if (x != lons[i]) {
-          lons[i] = x;
-          any_longitude_rotate = true;
+    if (bulk) {
+      float mean_lon = 0.0f;
+      int n = 0;
+      for (int i=0; i<vertexCount; i++) {
+        if (lons[i] == lons[i]) {
+          mean_lon += lons[i];
+          n++;
+        }
+      }
+      mean_lon = mean_lon / n;
+      float x = (mean_lon - base) % 360.0f;
+      x += (x < 0.0f) ? (360.0f + base) : base;
+      if (x != mean_lon) {
+        x = x - mean_lon;
+        any = true;
+      }
+      if (any) {
+        for (int i=0; i<vertexCount; i++) {
+          if (lons[i] == lons[i]) {
+            lons[i] += x;
+          }
         }
       }
     }
-    if (any_longitude_rotate) {
+    else { // !bulk
+      for (int i=0; i<vertexCount; i++) {
+        if (lons[i] == lons[i]) {
+          float x = (lons[i] - base) % 360.0f;
+          x += (x < 0.0f) ? (360.0f + base) : base;
+          if (x != lons[i]) {
+            lons[i] = x;
+            any = true;
+          }
+        }
+      }
+    }
+    if (any) {
       float[] coords = map.scaleValues(lons);
       for (int i=0; i<vertexCount; i++) {
         coordinates[3 * i + axis] = coords[i];
       }
+      any_longitude_rotate = true;
     }
   }
 
   float[] getLongitudes(DataRenderer renderer)
+          throws VisADException {
+    return getLongitudes(renderer, false);
+  }
+
+  float[] getLongitudes(DataRenderer renderer, boolean bulk)
           throws VisADException {
     any_longitude_rotate = false;
     longitude_map = null;
@@ -190,13 +234,13 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
               // so rotate longitudes to base at map_min
 // System.out.println("rotateLongitudes to map_min " + map_min);
               any_rotate = true;
-              rotateLongitudes(lons, map_min, axis, map);
+              rotateLongitudes(lons, map_min, axis, map, bulk);
             }
           }
         }
         if (!any_rotate && (lon_min + 360.0f) < lon_max) {
 // System.out.println("rotateLongitudes to lon_min " + lon_min);
-          rotateLongitudes(lons, lon_min, axis, map);
+          rotateLongitudes(lons, lon_min, axis, map, bulk);
         }
 /*
 for (int i=0; i<vertexCount; i++) {

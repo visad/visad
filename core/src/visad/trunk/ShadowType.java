@@ -1341,6 +1341,15 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       System.arraycopy(arrays, 0, total_arrays, k, arrays.length);
       k += arrays.length;
     }
+
+    // WLH 30 May 2002
+    DataRenderer renderer = getLink().getRenderer();
+    for (int i=0; i<total_length; i++) {
+      if (total_arrays[i] != null) { 
+        total_arrays[i] = total_arrays[i].adjustLongitudeBulk(renderer);
+      }
+    }
+
     return total_arrays;
   }
 
@@ -2518,6 +2527,10 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
       array.colors = colors;
       // array.vertexFormat |= COLOR_3;
     }
+
+    // WLH 30 May 2002
+    array = (VisADLineArray) array.adjustLongitudeBulk(renderer);
+
     return new VisADGeometryArray[] {array};
   }
 
@@ -2714,10 +2727,13 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
     VisADGeometryArray[] arrays = new VisADGeometryArray[k];
     System.arraycopy(as, 0, arrays, 0, k);
     VisADGeometryArray array = null;
+
+    // WLH 30 May 2002
+    DataRenderer renderer = getLink().getRenderer();
     for (int i=0; i<k; i++) {
       if (arrays[i] != null) {
-        array = (VisADGeometryArray) arrays[i].clone();
-        break;
+        arrays[i] = arrays[i].adjustLongitudeBulk(renderer);
+        if (array == null) array = (VisADGeometryArray) arrays[i].clone();
       }
     }
     if (array != null) VisADGeometryArray.merge(arrays, array);

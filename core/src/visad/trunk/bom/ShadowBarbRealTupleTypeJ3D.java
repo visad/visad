@@ -312,9 +312,18 @@ public class ShadowBarbRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
         }
         tarray.colors = colors;
       }
+
+      // WLH 30 May 2002
+      array = (VisADLineArray) array.adjustLongitudeBulk(renderer);
+      tarray = (VisADTriangleArray) tarray.adjustLongitudeBulk(renderer);
+
       arrays = new VisADGeometryArray[] {array, tarray};
     }
     else {
+
+      // WLH 30 May 2002
+      array = (VisADLineArray) array.adjustLongitudeBulk(renderer);
+
       arrays = new VisADGeometryArray[] {array};
     }
 
