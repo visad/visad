@@ -23,6 +23,7 @@ MA 02111-1307, USA
 package visad.data.amanda;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Toolkit;
@@ -57,6 +58,7 @@ import visad.java3d.DisplayImplJ3D;
 import visad.util.AnimationWidget;
 import visad.util.CmdlineConsumer;
 import visad.util.CmdlineParser;
+import visad.util.Util;
 
 /** run 'java NuView in_file' to display data.<br>
  *  try 'java NuView 100events.r'
@@ -179,6 +181,7 @@ public class NuView
 
     DisplayRenderer dpyRenderer = dpy.getDisplayRenderer();
     dpyRenderer.setBoxOn(false);
+    dpyRenderer.setBackgroundColor(Color.white);
 
     final DataReferenceImpl eventRef = new DataReferenceImpl("event");
     // data set by eventWidget below
@@ -186,11 +189,11 @@ public class NuView
 
     final DataReferenceImpl trackRef = new DataReferenceImpl("track");
     // data set by eventWidget below
-    dpy.addReference(trackRef);
+    dpy.addReference(trackRef, Util.getColorMaps(Color.darkGray));
 
     final DataReferenceImpl modulesRef = new DataReferenceImpl("modules");
     modulesRef.setData(file.makeModuleData());
-    dpy.addReference(modulesRef);
+    dpy.addReference(modulesRef, Util.getColorMaps(Color.black));
 
 /*
     LabeledColorWidget colorWidget = new LabeledColorWidget(colorMap);
