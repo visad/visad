@@ -74,6 +74,7 @@ public class AxisScale implements java.io.Serializable
   private int axisSide = PRIMARY;
   private int tickOrient = PRIMARY;
   private static final double TICKSIZE = .5;  // major ticks are 1/2 char ht.
+  private NumberFormat labelFormat = null;
 
   /**
    * Construct a new AxisScale for the given ScalarMap
@@ -445,15 +446,15 @@ public class AxisScale implements java.io.Serializable
       else bot--;
     }
     */
-    double[] hilo = computeTickRange(max, min, tickBase, majorTickSpacing);
+    double[] hilo = computeTicks(max, min, tickBase, majorTickSpacing);
     // firstValue is the first Tick mark value
     double firstValue = hilo[0];
     double botval = hilo[0];
-    double topval = hilo[1];
+    double topval = hilo[hilo.length-1];
 
     // draw major tick marks
     VisADLineArray majorTickArray = new VisADLineArray();
-    int nticks = (int) ((hilo[1]-hilo[0])/majorTickSpacing) + 1;
+    int nticks = (int) ((topval-botval)/majorTickSpacing) + 1;
     float[] majorCoordinates = new float[6 * nticks];
     double[] tickup = up;
     if (getTickOrientation() != PRIMARY)
@@ -505,13 +506,13 @@ public class AxisScale implements java.io.Serializable
         else lower--;
       }
       */
-      hilo = computeTickRange(max, min, tickBase, minorTickSpacing);
+      hilo = computeTicks(max, min, tickBase, minorTickSpacing);
       // now lower * minorTickSpacing = value of lowest tick mark, and
       // upper * minorTickSpacing = values of highest tick mark
   
       VisADLineArray minorTickArray = new VisADLineArray();
       // Change DRM 21-Feb-2001
-      nticks = (int) ((hilo[1]-hilo[0])/minorTickSpacing) + 1; 
+      nticks = (int) ((hilo[hilo.length-1]-hilo[0])/minorTickSpacing) + 1; 
       float[] minorCoordinates = new float[6 * nticks];
     
       // draw tick marks
@@ -1087,67 +1088,52 @@ public class AxisScale implements java.io.Serializable
     return tickOrient;
   }
 
-  /** compute the high and low tick mark values */
-  private double[] computeTickRange(double high, double low, 
-                                    double base, double interval)
+  /**  
+   * Set the formatting for all labels
+   * @param format  format string
+   */
+  public void setNumberFormat(NumberFormat format)
   {
-    //System.out.println("high = " + high + " low = " + low +
-    //                  " base = " + base + " int = " + interval);
-    double[] vals = new double[2];
-    double start = (low - base) / interval;
-    double clow =  // DRM 24-May-2001
-      base + interval * ((long) (start + (start >= 0 ? 0.5 : -0.5)) - 1);
-    //System.out.println("first low = " + clow);
-    while (clow<low) {
-      clow += interval;
-      //System.out.println("now clow = " + clow);
-    }
-
-    start = (high - base) / interval;
-    double chi =  // DRM 24-MAY-2001
-      base + interval * ((long) (start + (start >= 0 ? 0.5 : -0.5)) + 1);
-    //System.out.println("first hi = " + chi);
-    while (chi>high) {
-      chi -= interval;
-    }
-
-    vals[0] = clow;
-    vals[1] = chi;
-    return vals;
-
+    labelFormat = format;
   }
+
+  /**
+   * Get the formatting for labels.  May be null (if not set)
+   * @return format used for labeling
+   */
+  public NumberFormat getNumberFormat() { return labelFormat; }
+
 
   /** compute the tick mark values */
   private double[] computeTicks(double high, double low, 
                                 double base, double interval)
   {
-    double[] vals = computeTickRange(high, low, base, interval);
-    double clow = vals[0];
-    double chi = vals[1];
+    double[] vals = null; 
+
+    // compute nlo and nhi, for low and high contour values in the box
+    long nlo = Math.round((Math.ceil((low - base) / Math.abs(interval))));
+    long nhi = Math.round((Math.floor((high - base) / Math.abs(interval))));
 
     // how many contour lines are needed.
-    double tmp1 = (chi-clow) / interval;
-    int numc = (int) (tmp1 + (tmp1 >= 0 ? 0.5 : -0.5)) + 1;
-
+    int numc = (int) (nhi - nlo) + 1;
     if (numc < 1) return vals;
 
-    try {
-      vals = new double[numc];
-    } catch (OutOfMemoryError e) {
-        return null;
+    vals = new double[numc];
+
+    for(int i = 0; i < numc; i++) {
+      vals[i] = base + (nlo + i) * interval;
     }
 
-    vals[0] = clow;
-    for (int i = 1; i < numc; i++) {
-      vals[i] = vals[i-1] + interval;
-    }
     return vals;
   }
 
   /** create the default string for a value */
   private String createLabelString(double value)
   {
-    String label = PlotText.shortString(value);
+    String label = 
+      (labelFormat != null) 
+        ? labelFormat.format(value)
+        : PlotText.shortString(value);
     if (RealType.Time.equals(scalarMap.getScalar())) {
       RealType rtype = (RealType) scalarMap.getScalar();
       label = new Real(rtype, value).toValueString();
