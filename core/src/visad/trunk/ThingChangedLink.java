@@ -25,21 +25,24 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+import java.rmi.RemoteException;
+
 /**
    ThingChangedLink objects are used by ThingReference objects to
    define their connections with Action objects.  That is, a
    ThingReference has a Vector of ThingChangedLinks, one for
    each attached Action.<P>
 
-   And Action has a Vector of RefernceActionLinks, one for
+   Action has a Vector of ReferenceActionLinks, one for
    each attached ThingReference.<P>
 */
 class ThingChangedLink extends Object {
 
-  Action action;  // may be remote or local
-  boolean Ball; // true when Action is waiting for a ThingChangedEvent
-                // false when this is waiting for an acknowledgement
-  ThingChangedEvent event; // non-null only when Ball = false;
+  private Action action;  // may be remote or local
+  private boolean Ball;
+                           // true when Action is ready for a ThingChangedEvent
+                           // false when this is waiting for an acknowledgement
+  private ThingChangedEvent event; // non-null only when !Ball
 
   /** this id is from the corresponding ReferenceActionLink */
   private long id;
@@ -49,9 +52,6 @@ class ThingChangedLink extends Object {
       throw new ReferenceException("ThingChangedLink: Action cannot be null");
     }
     action = a;
-/* WLH 29 Aug 98
-    Ball = false;
-*/
     Ball = true;
     id = jd;
   }
@@ -64,20 +64,40 @@ class ThingChangedLink extends Object {
     return action;
   }
 
-  boolean getBall() {
-    return Ball;
+  /** acknowledge the last event from the ThingReference,
+   *  and possibly return a new event to the Action
+   */
+  public ThingChangedEvent acknowledgeThingChangedEvent()
+  {
+    // if there is an event queued...
+    if (event != null) {
+
+      // pass the queued event back to the Action
+      ThingChangedEvent e = event;
+      event = null;
+      return e;
+    }
+
+    // remember that Action is ready for another event
+    Ball = true;
+    return null;
   }
 
-  void setBall(boolean b) {
-    Ball = b;
-  }
-
-  ThingChangedEvent getThingChangedEvent() {
-    return event;
-  }
-
-  void setThingChangedEvent(ThingChangedEvent e) {
-    event = e;
+  /** either deliver the event to the corresponding Action object
+   *  or, if the Action isn't ready yet, queue the event for
+   *  later delivery
+   */
+  public void queueThingChangedEvent(ThingChangedEvent e)
+        throws RemoteException, VisADException
+  {
+    if (Ball) {
+      // if Action is ready for another event, pass it on
+      Ball = action.thingChanged(e);
+    }
+    else {
+      // Action hasn't acknowledged previous event, queue this one
+      event = e;
+    }
   }
 
 }

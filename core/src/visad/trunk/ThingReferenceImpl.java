@@ -115,19 +115,7 @@ public class ThingReferenceImpl extends Object implements ThingReference {
             (ThingChangedLink) listeners.nextElement();
           ThingChangedEvent e =
             new ThingChangedEvent(listener.getId(), Tick);
-          if (listener.getBall()) {
-            Action a = listener.getAction();
-/* WLH 4 Dec 98
-            a.thingChanged(e);
-            listener.setBall(false);
-*/
-            // WLH 4 Dec 98
-            boolean ball = a.thingChanged(e);
-            listener.setBall(ball);
-          }
-          else {
-            listener.setThingChangedEvent(e);
-          }
+          listener.queueThingChangedEvent(e);
         }
       }
     }
@@ -142,22 +130,14 @@ public class ThingReferenceImpl extends Object implements ThingReference {
     }
     if (ListenerVector == null) return null;
     ThingChangedLink listener = findThingChangedLink(a);
-    ThingChangedEvent e = listener.getThingChangedEvent();
-    listener.setThingChangedEvent(null);
-    if (e == null) {
-      listener.setBall(true);
-    }
-    return e;
+    return listener.acknowledgeThingChangedEvent();
   }
 
   public ThingChangedEvent adaptedAcknowledgeThingChanged(RemoteAction a)
          throws VisADException {
     if (ListenerVector == null) return null;
     ThingChangedLink listener = findThingChangedLink(a);
-    ThingChangedEvent e = listener.getThingChangedEvent();
-    listener.setThingChangedEvent(null);
-    if (e == null) listener.setBall(true);
-    return e;
+    return listener.acknowledgeThingChangedEvent();
   }
 
   /** find ThingChangedLink with action */
