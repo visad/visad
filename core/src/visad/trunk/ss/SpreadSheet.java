@@ -861,7 +861,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
         public void doAction() {
           // extract new cell information
           boolean b = getColRowServer();
-          if (b || !IsRemote) { // keep client from receiving its own updates
+          if (b == IsRemote) { // keep sheet from receiving its own updates
             String[][] cellNames = getNewCellNames();
             if (cellNames == null) return;
             int oldNVX = NumVisX;
@@ -1216,7 +1216,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
   void addColumn() {
     JLabel l = (JLabel) HorizLabel[NumVisX-1].getComponent(0);
     int maxVisX = Letters.indexOf(l.getText()) + 1;
-    if (maxVisX < 26) {
+    if (maxVisX < Letters.length()) {
       // re-layout horizontal spreadsheet labels
       int nvx = HorizLabel.length;
       JPanel[] newLabels = new JPanel[nvx+1];
@@ -1617,7 +1617,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     try {
       t = (Tuple) RemoteColRow.getData();
       bit = (Real) t.getComponent(0);
-      return (((int) bit.getValue()) == 0);
+      return (bit.getValue() == 0);
     }
     catch (NullPointerException exc) { }
     catch (VisADException exc) { }
@@ -1734,21 +1734,25 @@ public class SpreadSheet extends JFrame implements ActionListener,
       for (int j=0; j<NumVisY; j++) {
         for (int i=0; i<NumVisX; i++) {
           try {
-            DisplayCells[i][j] = new FancySSCell(l[i][j], rs, this);
-            DisplayCells[i][j].addSSCellChangeListener(this);
-            DisplayCells[i][j].addMouseListener(this);
-            DisplayCells[i][j].setAutoSwitch(AutoSwitch);
-            DisplayCells[i][j].setAutoDetect(AutoDetect);
-            DisplayCells[i][j].setAutoShowControls(AutoShowControls);
-            if (rs == null) DisplayCells[i][j].setDimension(!CanDo3D, !CanDo3D);
-            DisplayCells[i][j].addDisplayListener(this);
-            DisplayCells[i][j].setPreferredSize(new Dimension(MIN_VIS_WIDTH,
-                                                              MIN_VIS_HEIGHT));
-            if (i == 0 && j == 0) selectCell(i, j);
-            if (rsi != null) {
-              // add new cell to server
-              DisplayCells[i][j].addToRemoteServer(rsi);
+            FancySSCell f = (FancySSCell) BasicSSCell.getSSCellByName(l[i][j]);
+            if (f == null) {
+              f = new FancySSCell(l[i][j], rs, this);
+              f.addSSCellChangeListener(this);
+              f.addMouseListener(this);
+              f.setAutoSwitch(AutoSwitch);
+              f.setAutoDetect(AutoDetect);
+              f.setAutoShowControls(AutoShowControls);
+              if (rs == null) f.setDimension(!CanDo3D, !CanDo3D);
+              f.addDisplayListener(this);
+              f.setPreferredSize(new Dimension(MIN_VIS_WIDTH, MIN_VIS_HEIGHT));
+              if (rsi != null) {
+                // add new cell to server
+                f.addToRemoteServer(rsi);
+              }
             }
+            DisplayCells[i][j] = f;
+
+            if (i == 0 && j == 0) selectCell(i, j);
             DisplayPanel.add(DisplayCells[i][j]);
           }
           catch (VisADException exc) {
@@ -1883,7 +1887,15 @@ public class SpreadSheet extends JFrame implements ActionListener,
       for (int i=0; i<ox; i++) {
         for (int j=0; j<oy; j++) {
           try {
-            DisplayCells[i][j].destroyCell();
+            String s = DisplayCells[i][j].getName();
+            boolean kill = true;
+            // only delete cells that are truly gone
+            for (int ii=0; ii<cellNames.length; ii++) {
+              for (int jj=0; jj<cellNames[ii].length; jj++) {
+                if (s.equals(cellNames[ii][jj])) kill = false;
+              }
+            }
+            if (kill) DisplayCells[i][j].destroyCell();
           }
           catch (VisADException exc) { }
           catch (RemoteException exc) { }

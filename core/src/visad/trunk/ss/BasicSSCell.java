@@ -134,12 +134,18 @@ public class BasicSSCell extends JPanel {
   /** whether the BasicSSCell has mappings from Data to Display */
   boolean HasMappings = false;
 
-  /** prevents simultaneous GUI manipulation */
+  /** prevent simultaneous GUI manipulation */
   private Object Lock = new Object();
 
 
-  /** construct a new BasicSSCell with the given name */
+  /** construct a 2-D BasicSSCell with the given name */
   public BasicSSCell(String name) throws VisADException, RemoteException {
+    this(name, (RemoteServer) null);
+  }
+
+  /** construct a BasicSSCell with the given name and dimension */
+  public BasicSSCell(String name, int dim) throws VisADException,
+                                                  RemoteException {
     this(name, (RemoteServer) null);
   }
 
@@ -255,7 +261,14 @@ public class BasicSSCell extends JPanel {
     CellImpl lFilenameCell = new CellImpl() {
       public void doAction() {
         try {
-          Text nFile = (Text) RemoteFilename.getData();
+          Tuple t = (Tuple) RemoteFilename.getData();
+          Real bit = (Real) t.getComponent(0);
+          boolean b = bit.getValue() == 0;
+          if (b != IsRemote) {
+            // cells should ignore their own updates
+            return;
+          }
+          Text nFile = (Text) t.getComponent(1);
           String s = nFile.getValue();
           URL newFilename = (s.equals("") ? null : new URL(s));
           if (IsRemote) Filename = newFilename;
@@ -283,7 +296,14 @@ public class BasicSSCell extends JPanel {
     CellImpl lRMIAddressCell = new CellImpl() {
       public void doAction() {
         try {
-          Text nRMI = (Text) RemoteRMIAddress.getData();
+          Tuple t = (Tuple) RemoteRMIAddress.getData();
+          Real bit = (Real) t.getComponent(0);
+          boolean b = bit.getValue() == 0;
+          if (b != IsRemote) {
+            // cells should ignore their own updates
+            return;
+          }
+          Text nRMI = (Text) t.getComponent(1);
           String newRMIAddress = nRMI.getValue();
           if (newRMIAddress.equals("")) newRMIAddress = null;
           if (IsRemote) {
@@ -312,7 +332,14 @@ public class BasicSSCell extends JPanel {
     CellImpl lFormulaCell = new CellImpl() {
       public void doAction() {
         try {
-          Text nForm = (Text) RemoteFormula.getData();
+          Tuple t = (Tuple) RemoteFormula.getData();
+          Real bit = (Real) t.getComponent(0);
+          boolean b = bit.getValue() == 0;
+          if (b != IsRemote) {
+            // cells should ignore their own updates
+            return;
+          }
+          Text nForm = (Text) t.getComponent(1);
           String newFormula = nForm.getValue();
           setFormula(newFormula);
         }
@@ -333,7 +360,14 @@ public class BasicSSCell extends JPanel {
     CellImpl lDimCell = new CellImpl() {
       public void doAction() {
         try {
-          Real nDim = (Real) RemoteDim.getData();
+          Tuple t = (Tuple) RemoteDim.getData();
+          Real bit = (Real) t.getComponent(0);
+          boolean b = bit.getValue() == 0;
+          if (b != IsRemote) {
+            // cells should ignore their own updates
+            return;
+          }
+          Real nDim = (Real) t.getComponent(1);
           int newDim = (int) nDim.getValue();
           if (IsRemote) setDimClone();
           else setDimension(newDim);
@@ -355,7 +389,14 @@ public class BasicSSCell extends JPanel {
     CellImpl lErrorsCell = new CellImpl() {
       public void doAction() {
         try {
-          Data d = RemoteErrors.getData();
+          Tuple t = (Tuple) RemoteErrors.getData();
+          Real bit = (Real) t.getComponent(0);
+          boolean b = bit.getValue() == 0;
+          if (b != IsRemote) {
+            // cells should ignore their own updates
+            return;
+          }
+          Data d = t.getComponent(1);
           String[] newErrors;
           if (d instanceof Tuple) {
             Tuple nErr = (Tuple) d;
@@ -390,8 +431,10 @@ public class BasicSSCell extends JPanel {
 
   private void synchFilename() {
     try {
+      Real bit = new Real(IsRemote ? 1 : 0);
       Text nFile = new Text(Filename == null ? "" : Filename.toString());
-      RemoteFilename.setData(nFile);
+      Tuple t = new Tuple(new Data[] {bit, nFile}, false);
+      RemoteFilename.setData(t);
     }
     catch (VisADException exc) { }
     catch (RemoteException exc) { }
@@ -399,8 +442,10 @@ public class BasicSSCell extends JPanel {
 
   private void synchRMIAddress() {
     try {
+      Real bit = new Real(IsRemote ? 1 : 0);
       Text nRMI = new Text(RMIAddress == null ? "" : RMIAddress);
-      RemoteRMIAddress.setData(nRMI);
+      Tuple t = new Tuple(new Data[] {bit, nRMI}, false);
+      RemoteRMIAddress.setData(t);
     }
     catch (VisADException exc) { }
     catch (RemoteException exc) { }
@@ -408,8 +453,10 @@ public class BasicSSCell extends JPanel {
 
   private void synchFormula() {
     try {
+      Real bit = new Real(IsRemote ? 1 : 0);
       Text nForm = new Text(Formula);
-      RemoteFormula.setData(nForm);
+      Tuple t = new Tuple(new Data[] {bit, nForm}, false);
+      RemoteFormula.setData(t);
     }
     catch (VisADException exc) { }
     catch (RemoteException exc) { }
@@ -417,8 +464,10 @@ public class BasicSSCell extends JPanel {
 
   private void synchDim() {
     try {
+      Real bit = new Real(IsRemote ? 1 : 0);
       Real nDim = new Real(Dim);
-      RemoteDim.setData(nDim);
+      Tuple t = new Tuple(new Data[] {bit, nDim}, false);
+      RemoteDim.setData(t);
     }
     catch (VisADException exc) { }
     catch (RemoteException exc) { }
@@ -426,6 +475,7 @@ public class BasicSSCell extends JPanel {
 
   private void synchErrors() {
     try {
+      Real bit = new Real(IsRemote ? 1 : 0);
       Data nErrors;
       if (Errors != null) {
         int len = Errors.length;
@@ -440,7 +490,8 @@ public class BasicSSCell extends JPanel {
       else {
         nErrors = new Text("");
       }
-      RemoteErrors.setData(nErrors);
+      Tuple t = new Tuple(new Data[] {bit, nErrors}, false);
+      RemoteErrors.setData(t);
     }
     catch (VisADException exc) { }
     catch (RemoteException exc) { }
