@@ -654,10 +654,8 @@ if (map.badRange()) {
       for (int j=0; j<size; j++) spatial_locs[vert_index][j] += vert[j];
     }
 */
-    if (spatial_locs[vert_index] != null) {
-      if (vert != null && vert_index > -1) {
-        for (int j=0; j<size; j++) spatial_locs[vert_index][j] += vert[j];
-      }
+    if (vert != null && vert_index > -1 && spatial_locs[vert_index] != null) {
+      for (int j=0; j<size; j++) spatial_locs[vert_index][j] += vert[j];
     }
 
     if (display_coordinate_system != null) {
