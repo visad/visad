@@ -407,7 +407,7 @@ clear:
 	$(RM) data/fits/*.java data/hdf5/*.java data/hdf5/hdf5objects/*.java
 	$(RM) $(FITS)/fits/*.java $(FITS)/util/*.java $(FITS)/test/*.java
 	$(RM) $(UCAR)/multiarray/*.java $(UCAR)/netcdf/*.java
-	$(RM) $(UCAR)/tests/*.java
+	$(RM) $(UCAR)/tests/*.java $(UCAR)/util/*.java
 	$(RM) $(NCSA)/*.java $(NCSA)/exceptions/*.java
 	$(RM) data/hdfeos/*.java data/hdfeos/hdfeosc/*.java
 	$(RM) $(SSEC)/mcidas/*.java $(SSEC)/mcidas/adde/*.java
