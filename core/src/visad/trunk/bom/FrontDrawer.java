@@ -69,6 +69,9 @@ public class FrontDrawer extends Object {
   private ReleaseCell release_cell;
   private DataReferenceImpl release_ref;
 
+  private ZoomCell zoom_cell;
+  private DataReferenceImpl zoom_ref;
+
   private ProjectionControl pcontrol = null;
   private ProjectionControlListener pcl = null;
   private float zoom = 1.0f;
@@ -81,10 +84,15 @@ public class FrontDrawer extends Object {
 
   private static Object type_lock = new Object();
 
+  private int ntimes = 0;
+  private int current_time_step = -1;
+
   private UnionSet init_curve = null; // manifold dimension = 1
   private static SetType curve_type = null; // Set(Latitude, Longitude)
   private int lat_index = 0;
   private int lon_index = 1;
+  private float[][][] curves = null;
+  private boolean[] flips = null;
 
   private FieldImpl fronts = null; //
   // (RealType.Time -> (front_index ->
@@ -702,6 +710,12 @@ public class FrontDrawer extends Object {
         }
       }
     }
+    Set aset = acontrol.getSet();
+    ntimes = aset.getLength();
+    current_time_step = acontrol.getCurrent();
+    curves = new float[ntimes][][];
+    flips = new boolean[ntimes];
+    fronts = new FieldImpl(fronts_type, aset);
 
     // find spatial maps for Latitude and Longitude
     lat_map = null;
@@ -743,6 +757,10 @@ public class FrontDrawer extends Object {
     release_ref = new DataReferenceImpl("release");
     release_cell = new ReleaseCell();
     release_cell.addReference(release_ref);
+
+    zoom_ref = new DataReferenceImpl("zoom");
+    zoom_cell = new ZoomCell();
+    zoom_cell.addReference(zoom_ref);
 
     setScale();
   }
@@ -790,6 +808,10 @@ public class FrontDrawer extends Object {
     }
 
     public void doAction() throws VisADException, RemoteException {
+      if (acontrol.getOn()) return;
+      current_time_step = acontrol.getCurrent();
+      if (current_time_step < 0 || current_time_step >= ntimes) return;
+
       synchronized (data_lock) {
         Data data = null;
         if (curve_ref != null) data = curve_ref.getData();
@@ -865,49 +887,77 @@ public class FrontDrawer extends Object {
         curve[1] = lon_map.scaleValues(curve_samples[lon_index]);
         // inverseScaleValues
         // if (debug) System.out.println("curve length = " + curve[0].length);
-    
-        // resample curve uniformly along length
-        float increment = segment_length / (profile_length * zoom);
-        float[][] old_curve = resample_curve(curve, increment);
-  
-        int fw = filter_window;
-  
-        for (int tries=0; tries<12; tries++) {
-          // lowpass filter curve
-          curve = smooth_curve(old_curve, fw);
-    
-          // resample smoothed curve
-          curve = resample_curve(curve, increment);
-    
-          try {
-            front = curveToFront(curve, flip);
-            break;
-          }
-          catch (VisADException e) {
-            old_curve = curve;
-            if (tries > 4) {
-              int n = old_curve[0].length;
-              if (n > 2) {
-                float[][] no = new float[2][n - 2];
-                System.arraycopy(old_curve[0], 1, no[0], 0, n - 2);
-                System.arraycopy(old_curve[1], 1, no[1], 0, n - 2);
-                old_curve = no;
-              }
-            }
-            if (tries > 8) fw = 2 * fw;
-            // if (debug) System.out.println("retry filter window = " + fw + " " + e);
-            if (tries == 9) {
-              System.out.println("cannot smooth curve");
-              front = null;
-            }
-          }
-        }
-  
-        front_ref.setData(front);
+
+        front = robustCurveToFront(curve, flip);
+        curves[current_time_step] = curve;
+        flips[current_time_step] = flip;
+        fronts.setSample(current_time_step, front);
+
+        front_ref.setData(fronts);
+        // front_ref.setData(front);
+
         if (curve_ref != null) curve_ref.setData(init_curve);
       } // end synchronized (data_lock)
     }
   }
+
+  class ZoomCell extends CellImpl {
+
+    public ZoomCell() {
+    }
+
+    public void doAction() throws VisADException, RemoteException {
+      synchronized (data_lock) {
+        for (int i=0; i<ntimes; i++) {
+          if (curves[i] != null) {
+            fronts.setSample(i, robustCurveToFront(curves[i], flips[i]));
+          }
+        }
+      } // end synchronized (data_lock)
+    }
+  }
+
+  private FieldImpl robustCurveToFront(float[][] curve, boolean flip)
+          throws RemoteException {
+    // resample curve uniformly along length
+    float increment = segment_length / (profile_length * zoom);
+    float[][] old_curve = resample_curve(curve, increment);
+
+    int fw = filter_window;
+
+    for (int tries=0; tries<12; tries++) {
+      // lowpass filter curve
+      curve = smooth_curve(old_curve, fw);
+
+      // resample smoothed curve
+      curve = resample_curve(curve, increment);
+
+      try {
+        front = curveToFront(curve, flip);
+        break;
+      }
+      catch (VisADException e) {
+        old_curve = curve;
+        if (tries > 4) {
+          int n = old_curve[0].length;
+          if (n > 2) {
+            float[][] no = new float[2][n - 2];
+            System.arraycopy(old_curve[0], 1, no[0], 0, n - 2);
+            System.arraycopy(old_curve[1], 1, no[1], 0, n - 2);
+            old_curve = no;
+          }
+        }
+        if (tries > 8) fw = 2 * fw;
+        // if (debug) System.out.println("retry filter window = " + fw + " " + e);
+        if (tries == 9) {
+          System.out.println("cannot smooth curve");
+          front = null;
+        }
+      }
+    }
+    return front;
+  }
+
 
   public Gridded2DSet getCurve() {
     return last_curve_set;
@@ -947,6 +997,7 @@ public class FrontDrawer extends Object {
         display.removeReference(front_ref);
         pcontrol.removeControlListener(pcl);
         release_cell.removeReference(release_ref);
+        zoom_cell.removeReference(zoom_ref);
       }
       front_ref = null;
     }
@@ -1253,7 +1304,8 @@ public class FrontDrawer extends Object {
 
     if (ratio < 0.95f || 1.05f < ratio) {
       last_zoom = zoom;
-      if (release_ref != null) release_ref.setData(null);
+      if (zoom_ref != null) zoom_ref.setData(null);
+      // if (release_ref != null) release_ref.setData(null);
 // System.out.println("setScale call setData " + zoom + " " + last_zoom +
 //                    " " + ratio);
     }
@@ -1281,7 +1333,7 @@ public class FrontDrawer extends Object {
     ScalarMap timemap = new ScalarMap(RealType.Time, Display.Animation);
     display.addMap(timemap);
     AnimationControl acontrol = (AnimationControl) timemap.getControl();
-    acontrol.setSet(new Integer1DSet(RealType.Time, 10));
+    acontrol.setSet(new Integer1DSet(RealType.Time, 4));
 
     initColormaps(display);
 
