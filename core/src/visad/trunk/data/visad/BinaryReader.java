@@ -119,12 +119,6 @@ if(DEBUG_CSYS)System.err.println("cchCS: FLD_COORDSYS_SERIAL (" + FLD_COORDSYS_S
     // read the CoordinateSystem data
     CoordinateSystem cs = (CoordinateSystem )readSerializedObject();
 
-    final byte endByte = file.readByte();
-if(DEBUG_CSYS)System.err.println("cchCS: read " + (endByte == FLD_END ? "FLD_END" : Integer.toString(endByte) + " (wanted FLD_END)"));
-    if (endByte != FLD_END) {
-      throw new IOException("Corrupted file (no CoordinateSystem end-marker)");
-    }
-
     cSysCache.add(index, cs);
   }
 
@@ -1955,6 +1949,12 @@ if(DEBUG_DATA)System.err.println("rdSplSetS: len (" + len + ")");
 
     byte[] bytes = new byte[len];
     file.readFully(bytes);
+
+    // make sure we see the FLD_END marker byte
+    final byte endByte = file.readByte();
+    if (endByte != FLD_END) {
+      throw new IOException("Corrupted file (no serialized object end-marker)");
+    }
 
     java.io.ByteArrayInputStream inBytes;
     inBytes = new java.io.ByteArrayInputStream(bytes);

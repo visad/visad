@@ -1205,9 +1205,6 @@ if(DEBUG_CSYS)System.err.println("wrCSys: index (" + index + ")");
       file.writeInt(index);
 
       writeSerializedObject(FLD_COORDSYS_SERIAL, cSys);
-
-if(DEBUG_CSYS)System.err.println("wrCSys: FLD_END (" + FLD_END + ")");
-      file.writeByte(FLD_END);
     } catch (IOException ioe) {
       throw new VisADException("Couldn't write file: " +
                                ioe.getClass().getName() + ": " +
@@ -2422,6 +2419,7 @@ if(DEBUG_MATH)System.err.println("wrScTy: serialized ScalarType (" + st.getClass
     for (int i = 0; i < bytes.length; i++) {
       file.writeByte(bytes[i]);
     }
+    file.writeByte(FLD_END);
 
 System.err.println("Wrote serialized " + obj.getClass().getName());
 if(obj instanceof FloatSet||obj instanceof LinearNDSet)Thread.dumpStack();
