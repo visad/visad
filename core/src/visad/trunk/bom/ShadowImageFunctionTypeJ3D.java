@@ -891,9 +891,10 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
   private static ScalarMap xaxis;
   private static ScalarMap yaxis;
 
-  // run 'java -mx64m ShadowImageFunctionTypeJ3D' for globe display
-  // run 'java -mx64m ShadowImageFunctionTypeJ3D X remap' for remapped globe display
-  // run 'java -mx64m ShadowImageFunctionTypeJ3D X 2D' for flat display
+  // run 'java -mx64m visad.bom.ShadowImageFunctionTypeJ3D' for globe display
+  // run 'java -mx64m visad.bom.ShadowImageFunctionTypeJ3D X remap'
+  //                     for remapped globe display
+  // run 'java -mx64m visad.bom.ShadowImageFunctionTypeJ3D X 2D' for flat display
   public static void main (String[] args) {
 
     String mapFile = "OUTLSUPW";
