@@ -39,11 +39,12 @@ public class McIDASFileFilter extends FileFilter {
   public boolean accept(File f) {
     if (f.isDirectory()) return true;
     String name = f.getName();
-    return name.startsWith("AREA") || name.endsWith("area");
+    return name.startsWith("AREA") || name.endsWith("area") ||
+      name.startsWith("OUTL");
   }
     
   /** return the filter's description */
   public String getDescription() {
-    return "McIDAS area files (AREA*, *area)";
+    return "McIDAS area and map files (AREA*, *area, OUTL*)";
   }
 }
