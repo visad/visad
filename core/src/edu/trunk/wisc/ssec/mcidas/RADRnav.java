@@ -41,7 +41,7 @@ public final class RADRnav extends AREAnav
     private boolean isEastPositive = true;
 
     final double EARTH_RADIUS=6371.23; // earth equatorial radius (km)
-    final int MISS = McIDASUtil.MISSING_VALUE;
+    final int MISS = McIDASUtil.MCMISSING;
 
     int itype;
     double xrow;

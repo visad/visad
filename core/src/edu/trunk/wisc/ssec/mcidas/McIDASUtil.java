@@ -32,8 +32,8 @@ package edu.wisc.ssec.mcidas;
 public final class McIDASUtil 
 {
 
-    /** McIDAS missing value */
-    public static final int MISSING_VALUE = -2139062144;
+    /** McIDAS missing value for 4-byte integers */
+    public static final int MCMISSING = 0x80808080;
 
     /**
      * Converts a packed integer (SIGN DDD MM SS) latitude/longitude to double.
