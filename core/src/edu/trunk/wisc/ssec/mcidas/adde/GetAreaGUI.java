@@ -448,6 +448,22 @@ public class GetAreaGUI extends JPanel {
     return s;
   }
   
+  /* get the day of the index-th selected item
+  */
+  public String getDay(int index) {
+    Object [] vals = DateTimeList.getSelectedValues();
+    selectedDateTime = (String) vals[index];
+    String day = null;
+    if (selectedDateTime != null) {
+      int i = selectedDateTime.indexOf("/");
+      if (i > 0) {
+        day = selectedDateTime.substring(0,i).trim();
+      }
+    }
+    return day;
+    
+  }
+
   /** return the day of the selected image
   * @return the day in the format:  yyyy-mm-dd
   */
@@ -472,6 +488,21 @@ public class GetAreaGUI extends JPanel {
     setDateTime(d,getTime());
   }
   
+  /** get the time of the index-th selected image
+  */
+  public String getTime(int index) {
+    Object [] vals = DateTimeList.getSelectedValues();
+    selectedDateTime = (String) vals[index];
+    String time = null;
+    if (selectedDateTime != null) {
+      int i = selectedDateTime.indexOf("/");
+      if (i > 0) {
+        time = selectedDateTime.substring(i+1).trim();
+      }
+    }
+    return time;
+  }
+
   /** get the time of the selected image
   *
   * @return the time in the format:  hh:mm:ss
@@ -796,7 +827,11 @@ public class GetAreaGUI extends JPanel {
             DateTimeList.setBorder(new javax.swing.border.BevelBorder(javax.swing.border.BevelBorder.RAISED));
             DateTimeList.setName("");
             DateTimeList.setVisibleRowCount(10);
-            DateTimeList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+            if( multipleImages) {
+              DateTimeList.setSelectionMode(javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+            } else {
+              DateTimeList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+            }
             DateTimeList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
                 public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
                     DateTimeListValueChanged(evt);
@@ -1268,13 +1303,29 @@ public class GetAreaGUI extends JPanel {
     String un = getUnit();
     if (un == null || un.length()<3) un="BRIT";
     
-    cmdout = "adde://"+getServer()+"/imagedata?group="+getGroup()+
-       "&descr="+getDescr()+loc+getLocationString()+
-       "&size="+getNumLinesEles()+"&day="+getDay()+"&time="+getTime()+" "+
-       getTime()+" I "+
-       "&band="+getBand()+"&unit="+un+"&mag="+getMag()+ up +
-       "&version=1";
-    
+    if (multipleImages) {
+      int numimages = DateTimeList.getSelectedIndices().length;
+      StringBuffer cmdbuf = new StringBuffer();
+
+      for (int i=0; i<numimages; i++) {
+
+        cmdbuf.append("adde://"+getServer()+"/imagedata?group="+getGroup()+
+          "&descr="+getDescr()+loc+getLocationString()+
+          "&size="+getNumLinesEles()+"&day="+getDay(i)+"&time="+getTime(i)+" "+
+          getTime(i)+" I "+
+          "&band="+getBand()+"&unit="+un+"&mag="+getMag()+ up + "&version=1");
+        if (i+1 < numimages) cmdbuf.append("|");
+      }
+      cmdout = cmdbuf.toString();
+
+    } else {
+      cmdout = "adde://"+getServer()+"/imagedata?group="+getGroup()+
+         "&descr="+getDescr()+loc+getLocationString()+
+         "&size="+getNumLinesEles()+"&day="+getDay()+"&time="+getTime()+" "+
+         getTime()+" I "+
+         "&band="+getBand()+"&unit="+un+"&mag="+getMag()+ up +
+         "&version=1";
+    }
     System.out.println("cmdout = "+cmdout);
 
     if (al != null) {
