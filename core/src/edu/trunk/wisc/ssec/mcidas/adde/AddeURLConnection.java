@@ -185,7 +185,7 @@ public class AddeURLConnection extends URLConnection
   private int numBytes = 0;
   private int dataType = IMAGE;
   private byte[] binaryData = null;   // byte array to hold extra binary data
-  private boolean debug = false;
+  private boolean debug = true;
 
   /**
    *
@@ -333,7 +333,7 @@ public class AddeURLConnection extends URLConnection
     if (startIdx > 0) {
       endIdx = uCmd.indexOf('&', startIdx);
       if (endIdx == -1)   // last on line
-         endIdx = uCmd.length() - 1;
+         endIdx = uCmd.length();
       userStr = uCmd.substring(startIdx + 5, endIdx);
     } else {
       userStr = "XXXX";
@@ -358,7 +358,7 @@ public class AddeURLConnection extends URLConnection
     if (startIdx > 0) {
       endIdx = uCmd.indexOf('&', startIdx);
       if (endIdx == -1)   // last on line
-         endIdx = uCmd.length() - 1;
+         endIdx = uCmd.length();
       projStr = uCmd.substring(startIdx + 5, endIdx);
     } else {
       projStr = "0";
