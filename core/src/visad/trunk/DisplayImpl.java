@@ -844,12 +844,20 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       // set valueToScalar and valueToMap arrays
       valueToScalar = new int[valueArrayLength];
       valueToMap = new int[valueArrayLength];
+/* WLH 30 May 2000
       maps = tmap.elements();
       while (maps.hasMoreElements()) {
         ScalarMap map = ((ScalarMap) maps.nextElement());
         DisplayRealType dreal = map.getDisplayScalar();
         valueToScalar[map.getValueIndex()] = getDisplayScalarIndex(dreal);
         valueToMap[map.getValueIndex()] = tmap.indexOf(map);
+      }
+*/
+      for (int i=0; i<tmap.size(); i++) {
+        ScalarMap map = (ScalarMap) tmap.elementAt(i);
+        DisplayRealType dreal = map.getDisplayScalar();
+        valueToScalar[map.getValueIndex()] = getDisplayScalarIndex(dreal);
+        valueToMap[map.getValueIndex()] = i;
       }
 
       DataShadow shadow = null;
