@@ -120,6 +120,18 @@ public abstract class ShadowType extends Object
   boolean anyText;
 
 
+  /** streamline flags */
+  boolean streamline1;
+  boolean streamline2;
+  float   streamlineDensity1;
+  float   streamlineDensity2;
+  float   arrowScale1;
+  float   arrowScale2;
+  float   stepFactor1;
+  float   stepFactor2;
+  //---------------------
+
+
   /** used by getComponents to record RealTupleTypes
       with coordinate transforms */
   int[] refToComponent;
@@ -1992,6 +2004,19 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
             maps[k][flow_index] = map;
 */
             anyFlow = true;
+
+            if (k == 0) {
+              streamline1 = control.streamlinesEnabled();
+              streamlineDensity1 = control.getStreamlineDensity();
+              arrowScale1 = control.getArrowScale();
+              stepFactor1 = control.getStepFactor();
+            }
+            if (k == 1) {
+              streamline2 = control.streamlinesEnabled();
+              streamlineDensity2 = control.getStreamlineDensity();
+              arrowScale2 = control.getArrowScale();
+              stepFactor2 = control.getStepFactor();
+            }
           }
         }
       }
@@ -2242,6 +2267,100 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
     return flow_values;
   }
 
+  public VisADGeometryArray[] makeStreamline(int which, float[][] flow_values,
+                float flowScale, float[][] spatial_values, Set spatial_set,
+                int spatialManifoldDimension,
+                byte[][] color_values, boolean[][] range_select)
+         throws VisADException {
+
+    if (flow_values[0] == null) return null;
+    if (spatial_set    == null) return null;
+
+    if (which == 0 && !streamline1) return null;
+    if (which == 1 && !streamline2) return null;
+
+    if (!(spatial_set instanceof Gridded3DSet)) return null;
+
+    if (range_select[0] != null) {
+      if ((range_select[0].length == 1) && (!range_select[0][0])) return null;
+      for (int ii = 0; ii < range_select[0].length; ii++) {
+        if (!range_select[0][ii]) {
+          flow_values[0][ii] = Float.NaN;
+          flow_values[1][ii] = Float.NaN;
+        }
+      }
+    }
+
+    DataRenderer renderer = getLink().getRenderer();
+    flow_values = adjustFlowToEarth(which, flow_values, spatial_values,
+                                    flowScale, renderer);
+
+    /*- start make streamline vertices
+    System.out.println("----start streamlines----------"); */
+
+    float density    = 1;
+    float arrowScale = 1;
+    float stepFactor = 2;
+
+    int[] numl = new int[1];
+    int max_lines = 300;
+    int maxv      = 500;
+    int[] n_verts = new int[max_lines];
+    float[][] vr  = new float[max_lines][maxv];
+    float[][] vc  = new float[max_lines][maxv];
+    int nr;
+    int nc;
+
+    if (which == 0) density    = streamlineDensity1;
+    if (which == 1) density    = streamlineDensity2;
+    if (which == 0) arrowScale = arrowScale1;
+    if (which == 1) arrowScale = arrowScale2;
+    if (which == 0) stepFactor = stepFactor1;
+    if (which == 1) stepFactor = stepFactor2;
+    if ( spatialManifoldDimension == 2 )
+    {
+      nc = ((Gridded3DSet)spatial_set).LengthX;
+      nr = ((Gridded3DSet)spatial_set).LengthY;
+
+      Gridded2DSet gset = new Gridded2DSet(RealTupleType.Generic2D,
+        new float[][] {spatial_values[0], spatial_values[1]}, nc, nr);
+
+      Stream2D.stream(flow_values[0], flow_values[1], nr, nc,
+                      density, stepFactor, arrowScale, vr, vc,
+                      max_lines, maxv, n_verts, numl, gset);
+    }
+    else
+    {
+      throw new
+        VisADException("only manifoldDimension==2 supported for streamlimes");
+    }
+
+    VisADLineArray[] arrays = new VisADLineArray[numl[0]];
+    Integer2DSet grid_set = new Integer2DSet(nc, nr);
+
+    for (int kk = 0; kk < arrays.length; kk++ ) {
+      arrays[kk] = new VisADLineArray();
+      float[][] grid = new float[2][n_verts[kk]];
+      System.arraycopy(vr[kk], 0, grid[1], 0, n_verts[kk]);
+      System.arraycopy(vc[kk], 0, grid[0], 0, n_verts[kk]);
+
+      float[][] spatial_set_vals =
+       ((Gridded3DSet)spatial_set).gridToValue(grid);
+
+      byte[][] intrp_color_values = new byte[3][n_verts[kk]];
+      int[] indices = grid_set.valueToIndex(grid);
+      for ( int cc = 0; cc < n_verts[kk]; cc++ ) {
+        intrp_color_values[0][cc] = color_values[0][indices[cc]];
+        intrp_color_values[1][cc] = color_values[1][indices[cc]];
+        intrp_color_values[2][cc] = color_values[2][indices[cc]];
+      }
+
+      ((Gridded3DSet)spatial_set).setGeometryArray(arrays[kk],
+        spatial_set_vals, 3, intrp_color_values);
+    }
+
+    return arrays;
+  }
 
   private static final float BACK_SCALE = -0.15f;
   private static final float PERP_SCALE = 0.15f;

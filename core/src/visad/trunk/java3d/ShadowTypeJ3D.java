@@ -303,6 +303,16 @@ public abstract class ShadowTypeJ3D extends ShadowType {
            spatial_values, color_values, range_select);
   }
 
+  public VisADGeometryArray[] makeStreamline(int which, float[][] flow_values,
+                float flowScale, float[][] spatial_values, Set spatial_set,
+                int spatialManifoldDimension,
+                byte[][] color_values, boolean[][] range_select)
+         throws VisADException {
+    return adaptedShadowType.makeStreamline(which, flow_values, flowScale,
+           spatial_values, spatial_set, spatialManifoldDimension,
+           color_values, range_select);
+  }
+
   public boolean makeContour(int valueArrayLength, int[] valueToScalar,
                        float[][] display_values, int[] inherited_values,
                        Vector MapVector, int[] valueToMap, int domain_length,

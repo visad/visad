@@ -56,6 +56,13 @@ public abstract class FlowControl extends Control {
   double HorizontalVectorSliceHeight;
   double HorizontalStreamSliceHeight;
 
+  /** Streamline flags
+  -------------------------------*/
+  boolean streamlinesEnabled;
+  float   streamlineDensity;
+  float   arrowScale;
+  float   stepFactor;
+
   // WLH  need Vertical*Slice location parameters
 
   public FlowControl(DisplayImpl d) {
@@ -70,6 +77,11 @@ public abstract class FlowControl extends Control {
 
     HorizontalVectorSliceHeight = 0.0;
     HorizontalStreamSliceHeight = 0.0;
+
+    streamlinesEnabled = false;
+    streamlineDensity  = 1f;
+    arrowScale         = 1f;
+    stepFactor         = 2f;
   }
 
   /** set scale length for flow vectors (default is 0.02f) */
@@ -108,6 +120,47 @@ public abstract class FlowControl extends Control {
    */
   public int getBarbOrientation() {
     return barbOrientation;
+  }
+
+
+  public void enableStreamlines(boolean flag)
+         throws VisADException, RemoteException {
+    streamlinesEnabled = flag;
+    changeControl(true);
+  }
+
+  public void setStreamlineDensity(float density)
+         throws VisADException, RemoteException {
+    streamlineDensity = density;
+    changeControl(true);
+  }
+
+  public void setArrowScale(float arrowScale)
+         throws VisADException, RemoteException {
+    this.arrowScale = arrowScale;
+    changeControl(true);
+  }
+
+  public void setStepFactor(float stepFactor)
+         throws VisADException, RemoteException {
+    this.stepFactor = stepFactor;
+    changeControl(true);
+  }
+
+  public boolean streamlinesEnabled() {
+    return streamlinesEnabled;
+  }
+
+  public float getStreamlineDensity() {
+    return streamlineDensity;
+  }
+
+  public float getArrowScale() {
+    return arrowScale;
+  }
+
+  public float getStepFactor() {
+    return stepFactor;
   }
 
   /** get a string that can be used to reconstruct this control later */
@@ -205,6 +258,26 @@ public abstract class FlowControl extends Control {
       HorizontalStreamSliceHeight = fc.HorizontalStreamSliceHeight;
     }
 
+    if (streamlinesEnabled != fc.streamlinesEnabled) {
+      changed = true;
+      streamlinesEnabled = fc.streamlinesEnabled;
+    }
+
+    if (!Util.isApproximatelyEqual(streamlineDensity, fc.streamlineDensity)) {
+      changed = true;
+      streamlineDensity = fc.streamlineDensity;
+    }
+
+    if (!Util.isApproximatelyEqual(arrowScale, fc.arrowScale)) {
+      changed = true;
+      arrowScale = fc.arrowScale;
+    }
+
+    if (!Util.isApproximatelyEqual(stepFactor, fc.stepFactor)) {
+      changed = true;
+      stepFactor = fc.stepFactor;
+    }
+
     if (changed) {
       try {
         changeControl(true);
@@ -265,6 +338,22 @@ public abstract class FlowControl extends Control {
     }
     if (!Util.isApproximatelyEqual(HorizontalStreamSliceHeight,
                                    fc.HorizontalStreamSliceHeight))
+    {
+      return false;
+    }
+
+    if (streamlinesEnabled != fc.streamlinesEnabled) {
+      return false;
+    }
+    if (!Util.isApproximatelyEqual(streamlineDensity, fc.streamlineDensity))
+    {
+      return false;
+    }
+    if (!Util.isApproximatelyEqual(arrowScale, fc.arrowScale))
+    {
+      return false;
+    }
+    if (!Util.isApproximatelyEqual(stepFactor, fc.stepFactor))
     {
       return false;
     }

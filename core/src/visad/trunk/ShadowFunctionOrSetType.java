@@ -1963,8 +1963,11 @@ if (range_select[0] != null) {
         boolean anyFlowCreated = false;
         if (anyFlow) {
           // try Flow1
-          arrays = shadow_api.makeFlow(0, flow1_values, flowScale[0],
-                            spatial_values, color_values, range_select);
+
+          arrays = shadow_api.makeStreamline(0, flow1_values, flowScale[0],
+                        spatial_values, spatial_set, spatialManifoldDimension,
+                        color_values, range_select);
+
           if (arrays != null) {
             for (int i=0; i<arrays.length; i++) {
               if (arrays[i] != null) {
@@ -1974,17 +1977,45 @@ if (range_select[0] != null) {
               }
             }
           }
+          else {
+            arrays = shadow_api.makeFlow(0, flow1_values, flowScale[0],
+                              spatial_values, color_values, range_select);
+            if (arrays != null) {
+              for (int i=0; i<arrays.length; i++) {
+                if (arrays[i] != null) {
+                  shadow_api.addToGroup(group, arrays[i], mode,
+                                        constant_alpha, constant_color);
+                  arrays[i] = null;
+                }
+              }
+            }
+          }
           anyFlowCreated = true;
 
           // try Flow2
-          arrays = shadow_api.makeFlow(1, flow2_values, flowScale[1],
-                            spatial_values, color_values, range_select);
+
+          arrays = shadow_api.makeStreamline(1, flow2_values, flowScale[1],
+                          spatial_values, spatial_set, spatialManifoldDimension,
+                          color_values, range_select);
           if (arrays != null) {
             for (int i=0; i<arrays.length; i++) {
               if (arrays[i] != null) {
                 shadow_api.addToGroup(group, arrays[i], mode,
                                       constant_alpha, constant_color);
                 arrays[i] = null;
+              }
+            }
+          }
+          else {
+            arrays = shadow_api.makeFlow(1, flow2_values, flowScale[1],
+                              spatial_values, color_values, range_select);
+            if (arrays != null) {
+              for (int i=0; i<arrays.length; i++) {
+                if (arrays[i] != null) {
+                  shadow_api.addToGroup(group, arrays[i], mode,
+                                        constant_alpha, constant_color);
+                  arrays[i] = null;
+                }
               }
             }
           }
