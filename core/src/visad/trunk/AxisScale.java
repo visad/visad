@@ -31,6 +31,7 @@ import java.awt.Color;
 import java.rmi.RemoteException;
 import java.util.*;
 import java.awt.Font;
+import java.text.*;
 
 /**
  * Class which defines the scales displayed along the spatial axes
@@ -1153,4 +1154,5 @@ public class AxisScale implements java.io.Serializable
     }
     return label;
   }
+
 }

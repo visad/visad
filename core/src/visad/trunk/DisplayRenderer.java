@@ -229,13 +229,12 @@ public abstract class DisplayRenderer
   public abstract void clearScales();
 
   /**
-   * Allow scales to be displayed if they are set on.
-   *
+   * Allow scales to be displayed if they are set on.  This should not be
+   * called programmatically, since it does not update collaborative displays.
    * Applications should use
    * {@link GraphicsModeControl#setScaleEnable(boolean)
    *  GraphicsModeControl.setScaleEnable}
    * instead of this method.
-   *
    * @param  on   true to turn them on, false to set them invisible
    */
   public abstract void setScaleOn(boolean on);
@@ -267,6 +266,27 @@ public abstract class DisplayRenderer
       throw new VisADException("DisplayRenderer not yet assigned to a Display");
     }
     rendererControl.setBackgroundColor(r, g, b);
+  }
+
+  /**
+   * Set the foreground color (box, cursor and scales).  All specified 
+   * values should be in the range <CODE>[0.0f - 1.0f]</CODE>.
+   * @param r Red value.
+   * @param g Green value.
+   * @param b Blue value.
+   * @exception RemoteException If there was a problem making this change
+   *                            in a remote collaborative
+   *                            <CODE>DisplayRenderer</CODE>.
+   * @exception VisADException If this renderer as not yet been assigned
+   *                           to a <CODE>Display</CODE>.
+   */
+  public void setForegroundColor(float r, float g, float b)
+    throws RemoteException, VisADException
+  {
+    if (rendererControl == null) {
+      throw new VisADException("DisplayRenderer not yet assigned to a Display");
+    }
+    rendererControl.setForegroundColor(r, g, b);
   }
 
   /**

@@ -29,6 +29,7 @@ package visad;
 import java.rmi.RemoteException;
 
 import visad.util.Util;
+import java.util.Enumeration;
 
 /**
  * <CODE>RendererControl</CODE> is the VisAD class for controlling
@@ -37,11 +38,12 @@ import visad.util.Util;
 public class RendererControl
   extends Control
 {
-  private transient DisplayRenderer renderer = null;
+  //private transient DisplayRenderer renderer = null;  not needed DRM 25-May-01
 
   private float[] backgroundColor = new float[] { 0.0f, 0.0f, 0.0f};
   private float[] boxColor = new float[] { 1.0f, 1.0f, 1.0f};
   private float[] cursorColor = new float[] { 1.0f, 1.0f, 1.0f};
+  private float[] foregroundColor = new float[] { 1.0f, 1.0f, 1.0f};
 
   private boolean boxOn = false;
 
@@ -79,6 +81,58 @@ public class RendererControl
     backgroundColor[1] = g;
     backgroundColor[2] = b;
     changeControl(true);
+  }
+
+  /**
+   * Get the foreground color set using 
+   * {@link #setForegroundColor(float, float, float)}.
+   * <B>NOTE</B>:  The values returned may not be
+   * indicative of the actual color of any of the components of the foreground
+   * (box, cursor, axes) since the color of each of these can be set 
+   * individually.
+   * @return A 3 element array of <CODE>float</CODE> values
+   *         in the range <CODE>[0.0f - 1.0f]</CODE>
+   *         in the order <I>(Red, Green, Blue)</I>.
+   * @see #setForegroundColor(float, float, float)
+   */
+  public float[] getForegroundColor()
+  {
+    return foregroundColor;
+  }
+
+  /**
+   * Convenience method to set the foreground color (box, cursor and axes).   
+   * Overrides any previous calls to setCursorColor, setBoxColor and 
+   * ScalarMap.setScaleColor().
+   * All specified values should be in the range
+   * <CODE>[0.0f - 1.0f]</CODE>.
+   * @param r Red value.
+   * @param g Green value.
+   * @param b Blue value.
+   * @see #getForegroundColor()
+   * @see #setCursorColor(float, float, float)
+   * @see #setBoxColor(float, float, float)
+   * @see ScalarMap#setScaleColor(float[])
+   */
+  public void setForegroundColor(float r, float g, float b)
+    throws RemoteException, VisADException
+  {
+    setCursorColor(r,g,b);
+    setBoxColor(r,g,b);
+    foregroundColor[0] = r;
+    foregroundColor[1] = g;
+    foregroundColor[2] = b;
+    if (getDisplayRenderer() != null) {
+      DisplayImpl dpy = getDisplayRenderer().getDisplay();
+      if (dpy != null) {
+        for (Enumeration e = display.getMapVector().elements(); 
+              e.hasMoreElements();)
+        {
+          ScalarMap map = (ScalarMap) e.nextElement();
+          if (map.getAxisScale() != null) map.setScaleColor(foregroundColor);
+        }
+      }
+    }
   }
 
   /**
@@ -220,6 +274,10 @@ public class RendererControl
       changed = true;
       backgroundColor = rc.backgroundColor;
     }
+    if (!floatArrayEquals(foregroundColor, rc.foregroundColor)) {
+      changed = true;
+      foregroundColor = rc.foregroundColor;
+    }
     if (!floatArrayEquals(boxColor, rc.boxColor)) {
       changed = true;
       boxColor = rc.boxColor;
@@ -261,6 +319,9 @@ public class RendererControl
     if (!floatArrayEquals(backgroundColor, rc.backgroundColor)) {
       return false;
     }
+    if (!floatArrayEquals(foregroundColor, rc.foregroundColor)) {
+      return false;
+    }
     if (!floatArrayEquals(boxColor, rc.boxColor)) {
       return false;
     }
@@ -280,6 +341,9 @@ public class RendererControl
     RendererControl rc = (RendererControl )super.clone();
     if (backgroundColor != null) {
       rc.backgroundColor = (float[] )backgroundColor.clone();
+    }
+    if (foregroundColor != null) {
+      rc.foregroundColor = (float[] )foregroundColor.clone();
     }
     if (boxColor != null) {
       rc.boxColor = (float[] )boxColor.clone();
@@ -301,6 +365,13 @@ public class RendererControl
     buf.append(backgroundColor[1]);
     buf.append('/');
     buf.append(backgroundColor[2]);
+
+    buf.append("fg=");
+    buf.append(foregroundColor[0]);
+    buf.append('/');
+    buf.append(foregroundColor[1]);
+    buf.append('/');
+    buf.append(foregroundColor[2]);
 
     buf.append(",cursor=");
     buf.append(cursorColor[0]);
