@@ -46,6 +46,7 @@ import visad.data.netcdf.Plain;
 import visad.data.visad.VisADForm;
 import visad.formula.*;
 import visad.java3d.*;
+import visad.util.ExtensionFileFilter;
 
 /** SpreadSheet is a user interface for VisAD that supports
     multiple 3-D displays (FancySSCells).<P>*/
@@ -93,7 +94,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
 
   /** file dialog */
-  protected FileDialog SSFileDialog = null;
+  protected JFileChooser SSFileDialog;
 
   /** base title */
   protected String bTitle;
@@ -459,6 +460,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
         System.err.println("Warning: JPEG codec not found");
       }
     }
+
+    // create file chooser dialog
+    SSFileDialog = new JFileChooser();
+    SSFileDialog.addChoosableFileFilter(
+      new ExtensionFileFilter("ss", "SpreadSheet files"));
 
     // determine information for spreadsheet cloning
     RemoteServer rs = null;
@@ -1315,16 +1321,15 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   /** open an existing spreadsheet file */
   void openFile() {
-    if (SSFileDialog == null) SSFileDialog = new FileDialog(this);
-    SSFileDialog.setMode(FileDialog.LOAD);
-    SSFileDialog.setVisible(true);
+    SSFileDialog.setDialogType(JFileChooser.OPEN_DIALOG);
+    if (SSFileDialog.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+      // user has canceled request
+      return;
+    }
 
     // make sure file exists
-    String file = SSFileDialog.getFile();
-    if (file == null) return;
-    String dir = SSFileDialog.getDirectory();
-    if (dir == null) return;
-    File f = new File(dir, file);
+    File f = SSFileDialog.getSelectedFile();
+    String file = f.getName();
     if (!f.exists()) {
       displayErrorMessage("The file " + file + " does not exist", null,
         "VisAD SpreadSheet error");
@@ -1776,16 +1781,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   /** save a spreadsheet file under a new name */
   void saveasFile() {
-    if (SSFileDialog == null) SSFileDialog = new FileDialog(this);
-    SSFileDialog.setMode(FileDialog.SAVE);
-    SSFileDialog.setVisible(true);
+    SSFileDialog.setDialogType(JFileChooser.SAVE_DIALOG);
+    if (SSFileDialog.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
+      // user has canceled request
+      return;
+    }
 
     // get file and make sure it is valid
-    String file = SSFileDialog.getFile();
-    if (file == null) return;
-    String dir = SSFileDialog.getDirectory();
-    if (dir == null) return;
-    File f = new File(dir, file);
+    File f = SSFileDialog.getSelectedFile();
     CurrentFile = f;
     setTitle(bTitle + " - " + f.getPath());
     saveFile();

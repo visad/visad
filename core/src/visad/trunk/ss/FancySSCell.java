@@ -499,7 +499,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
 
     // get file name from file dialog
     FileBox.setDialogType(JFileChooser.SAVE_DIALOG);
-    if (FileBox.showOpenDialog(Parent) != JFileChooser.APPROVE_OPTION) {
+    if (FileBox.showSaveDialog(Parent) != JFileChooser.APPROVE_OPTION) {
       return null;
     }
     return FileBox.getSelectedFile();
