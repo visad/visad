@@ -2,13 +2,13 @@ from visad import RealType, RealTupleType, FunctionType, FieldImpl, ScalarMap, D
 from visad.util import AnimationWidget
 from visad.python.JPythonMethods import *
 from javax.swing import JFrame, JPanel
-from java.awt import BorderLayout, FlowLayout
+from java.awt import BorderLayout, FlowLayout, Font
 import subs
 
 def image(img, panel=None, colortable=None):
   return
 
-def scatter(data_1, data_2, panel=None, size=None, xlabel=None, ylabel=None, title="VisAD Scatter"):
+def scatter(data_1, data_2, panel=None, size=None, aspect=None, xlabel=None, ylabel=None, title="VisAD Scatter"):
 
   rng_1 = data_1.getType().getRange().toString()
   rng_2 = data_2.getType().getRange().toString()
@@ -16,10 +16,12 @@ def scatter(data_1, data_2, panel=None, size=None, xlabel=None, ylabel=None, tit
   maps = subs.makeMaps(getRealType(rng_1),"x", getRealType(rng_2),"y")
   disp = subs.makeDisplay(maps)
   subs.addData("data", data, disp)
-  subs.maximizeBox(disp, .70)
+  subs.setBoxSize(disp, .70)
   showAxesScales(disp,1)
+  setAxesScalesFont(maps, Font("Monospaced", Font.PLAIN, 18))
+  if size is not None: subs.setPointSize(disp, size)
+  if aspect is not None: subs.setAspectRatio(disp, aspect)
   subs.showDisplay(disp,400,500,title)
-
   return
 
 # quick look histogram - only first range component is used.
@@ -67,7 +69,7 @@ def histogram(data, bins=20, title="VisAD Histogram", color=None, panel=None):
   disp = subs.makeDisplay( (xaxis, yaxis) )
   subs.drawLine(disp, (x,y), mathtype=(domt[0],rngt), color=color)
   showAxesScales(disp,1)
-  subs.maximizeBox(disp,.65)
+  subs.setBoxSize(disp,.65)
   subs.showDisplay(disp, title=title )
 
   return
@@ -81,11 +83,15 @@ def lineplot(data, panel=None, colortable=None, title="Line Plot"):
   rngt = rangeType(data)
   xaxis = ScalarMap(domt[0], Display.XAxis)
   yaxis = ScalarMap(rngt, Display.YAxis)
+  axes = (xaxis, yaxis)
 
-  disp = subs.makeDisplay( (xaxis, yaxis) )
-  subs.addData("Lineplot", data, disp)
-  subs.maximizeBox(disp, .70)
+  disp = subs.makeDisplay( axes )
+
+  dr=subs.addData("Lineplot", data, disp)
+  subs.setBoxSize(disp, .70)
   showAxesScales(disp, 1)
+  setAxesScalesFont(axes, Font("Monospaced", Font.PLAIN, 18))
+
   subs.showDisplay(disp, title=title)
   
   return

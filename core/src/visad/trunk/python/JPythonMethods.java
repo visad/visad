@@ -26,6 +26,7 @@ MA 02111-1307, USA
 
 package visad.python;
 
+import java.awt.Font;
 import java.awt.Dimension;
 import java.awt.event.*;
 import java.lang.reflect.InvocationTargetException;
@@ -1175,6 +1176,7 @@ public abstract class JPythonMethods {
    */
   public static FlatField hist(Field field, int[] ranges, int[] sizes)
          throws VisADException, RemoteException {
+
     if (ranges == null || ranges.length == 0) {
       throw new VisADException("bad ranges");
     }
@@ -1809,7 +1811,23 @@ public abstract class JPythonMethods {
              throws VisADException, RemoteException {
     d.getDisplayRenderer().setScaleOn(on);
   }
-  
+
+  /** Set the font to be used for the axes labels and scales
+  *
+  * @param sm the array of ScalarMaps
+  * @param f the java.awt.Font to use
+  */
+  public static void setAxesScalesFont(ScalarMap [] sm, Font f) 
+             throws VisADException, RemoteException {
+
+      for (int i=0; i<sm.length; i++) {
+        AxisScale scale = sm[i].getAxisScale();
+        if (scale != null) {
+          scale.setFont(f);
+        }
+      }
+     
+   } 
   
   /** helper method for the dump(Data|Math)Type() methods
   *   this will list both the MathType and DataType information

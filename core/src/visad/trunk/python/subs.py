@@ -53,13 +53,45 @@ def makeDisplay(maps):
 
 # add a Data object to a Display, and return a reference to the Data
 def addData(name, data, disp, constantMaps=None):
+
   ref = DataReferenceImpl(name)
-  temp = disp.addReference(ref, constantMaps)
-  if data != None: temp = ref.setData(data)
+  
+  if data is not None: 
+    ref.setData(data)
+  else:
+    print "added Data is None"
+
+  disp.addReference(ref, constantMaps)
   return ref
+  
+
+# set the size of points for point-type plots
+def setPointSize(display, size):
+  display.getGraphicsModeControl().setPointSize(size)
+  
+  
+# define the aspects of width and height, as a ratio: width/height
+def setAspectRatio(display, ratio):
+  x = 1.
+  y = 1.
+  if ratio > 1:
+    x = 1.
+    y = 1. / ratio
+  else:
+    y = 1.
+    x = 1. * ratio
+  setAspects(display, x, y, 1.)
+
+# define the relative sizes of the axes
+def setAspects(display, x, y, z):
+  display.getProjectionControl().setAspectCartesian( (x, y, z))
 
 # a simple method for making the VisAD "box" 95% of the window size
-def maximizeBox(display, percent=.95):
+def maximizeBox(display):
+  setBoxSize(display, .95)
+
+# a simple method for making the VisAD "box" some % of the window size
+def setBoxSize(display, percent=.70):
   pc=display.getProjectionControl()
   pcMatrix=pc.getMatrix()
   if len(pcMatrix) > 10:
@@ -98,8 +130,8 @@ def drawLine(display, points, color=None, mathtype=None):
   # drawLine(display, domainType, points[])
   maps = None
   if mathtype is not None:
-    linref = addData("linesegment",
-       Gridded2DSet(RealTupleType(mathtype), points, len(points[0])), display, constmap)
+    lineseg = Gridded2DSet(RealTupleType(mathtype), points, len(points[0]))
+    linref = addData("linesegment", lineseg, display, constmap)
     return linref
 
   # drawLine(name|display, points[])
@@ -134,8 +166,8 @@ def drawLine(display, points, color=None, mathtype=None):
     else:
       dom = RealTupleType(x,y,z)
 
-    linref = addData("linesegment", 
-             Gridded2DSet(dom, points, len(points[0])), disp, constmap)
+    lineseg = Gridded2DSet(dom, points, len(points[0]))
+    linref = addData("linesegment", lineseg, disp, constmap)
     return linref 
 
 # add an array of ScalarMaps to a Display
