@@ -38,11 +38,112 @@ public class RadarDisplay {
      * Set the color map.
      */
     private static void
-    setColorMap(ScalarMap colorMap, double min, double max)
+    setColorMap(ScalarMap colorMap, float min, float max)
 			throws VisADException, RemoteException
     {
+			
+            float[][] table = new float[3][256];
+            for (int i=0; i<256; i++) {
+                    if (i <= 15)
+                    {
+                        table[0][i] = 0.0f;
+                        table[1][i] = 0.0f;
+                        table[2][i] = 0.0f;
+										}
+                    else if (i > 15 && i <= 31)
+                    {
+                        table[0][i] = 0.0f;
+                        table[1][i] = 240.0f/255.0f;
+                        table[2][i] = 240.0f/255.0f;
+                    }
+                    else if (i > 31 && i <= 47)                    
+										{
+                       table[0][i] = 0.0f;
+                        table[1][i] = 144.0f/255.0f;
+                        table[2][i] = 144.0f/255.0f;
+                    }
+                    else if (i > 47 && i <= 63)
+                    {
+                        table[0][i] = 128.0f/255.0f;                        
+												table[1][i] = 224.0f/255.0f;
+                        table[2][i] = 80.0f/255.0f;
+                    }
+                    else if (i > 63 && i <= 79)
+                    {
+                        table[0][i] = 100.0f/255.0f;
+                        table[1][i] = 184.0f/255.0f;
+                        table[2][i] = 64.0f/255.0f;
+                    }
+                    else if (i > 79 && i <= 95)
+                    {
+                        table[0][i] = 72.0f/255.0f;
+                        table[1][i] = 144.0f/255.0f;
+                        table[2][i] = 48.0f/255.0f;
+                    }
+                    else if (i > 95 && i <= 111)
+                    {
+                        table[0][i] = 44.0f/255.0f;
+                        table[1][i] = 104.0f/255.0f;
+                        table[2][i] = 32.0f/255.0f;
+                    }
+                    else if (i > 111 && i <= 127)
+                    {
+                        table[0][i] = 16.0f/255.0f;
+                        table[1][i] = 64.0f/255.0f;
+                        table[2][i] = 16.0f/255.0f;
+                    }
+                    else if (i > 127 && i <= 143)
+                    {
+                        table[0][i] = 240.0f/255.0f;
+                        table[1][i] = 192.0f/255.0f;
+                        table[2][i] = 16.0f/255.0f;
+                    }
+                    else if (i > 143 && i <= 159)
+                    {
+                        table[0][i] = 240.0f/255.0f;
+                        table[1][i] = 128.0f/255.0f;
+                        table[2][i] = 32.0f/255.0f;
+                    }
+                    else if (i > 159 && i <= 175)
+                    {
+                        table[0][i] = 240.0f/255.0f;
+                        table[1][i] = 16.0f/255.0f;
+                        table[2][i] = 32.0f/255.0f;
+                    }
+                    else if (i > 175 && i <= 191)
+                    {
+                        table[0][i] = 144.0f/255.0f;
+                        table[1][i] = 0.0f/255.0f;
+                        table[2][i] = 0.0f/255.0f;
+                    }
+                    else if (i > 191 && i <= 207)
+                    {
+                        table[0][i] = 176.0f/255.0f;
+                        table[1][i] = 32.0f/255.0f;
+                        table[2][i] = 128.0f/255.0f;
+                    }
+                    else if (i > 207 && i <= 223)
+                    {
+                        table[0][i] = 202.0f/255.0f;
+                        table[1][i] = 64.0f/255.0f;
+                        table[2][i] = 160.0f/255.0f;
+                    }
+                    else if (i > 223 && i <= 239)
+                    {
+                        table[0][i] = 255.0f/255.0f;
+                        table[1][i] = 255.0f/255.0f;
+                        table[2][i] = 255.0f/255.0f;
+                    }
+                    else if (i > 239 && i <= 255)
+                    {
+                        table[0][i] = 255.0f/255.0f;
+                        table[1][i] = 128.0f/255.0f;
+                        table[2][i] = 224.0f/255.0f;
+                    }
+                    
+            }
       LabeledColorWidget lw =
-	  	new LabeledColorWidget(colorMap);
+	  	new LabeledColorWidget(colorMap, table); 
 
       Frame frame = new Frame("VisAD Color Widget");
       frame.addWindowListener(new WindowAdapter() {
@@ -79,44 +180,12 @@ public class RadarDisplay {
 
 		} catch (Exception ne) {ne.printStackTrace(); System.exit(1); }
    	}
-/*
-	 private static void doBaseMap(DisplayImplJ3D d, String mapFile) {
-		BaseMapAdapter baseMap;
-		RealType enableMap = new RealType("enableMap");
 
-    try {
-      baseMap = new BaseMapAdapter(mapFile);
-      // baseMap.setDomainSet(ng.getDomainSet() );
-      Data mapData = baseMap.getData();
-
-      // set up so map can be toggled on/off
-
-			FunctionType mapType = new FunctionType(mapData.getType(), reflection);
-
-      Integer1DSet mapSet= new Integer1DSet(enableMap, 2);
-      mapField = new FieldImpl(mapType, mapSet);
-      mapField.setSample(0,mapData);
-      mapControl = (ValueControl) mapMap.getControl();
-      // if (mapRef != null) di.removeReference(mapRef);
-      mapRef = new DataReferenceImpl("mapData");
-      mapRef.setData(mapField);
-      ConstantMap[] rendMap;
-      rendMap = new ConstantMap[1];
-      rendMap[0] = new ConstantMap(-.99, Display.ZAxis);
-      d.addReference(mapRef, rendMap);
-      //di.addReference(mapRef);
-      mapControl.setValue(0.0);
-
-    } catch (Exception mapop) {mapop.printStackTrace(); System.exit(1); }
-
-  }
-
-*/
   public static void main(String[] args) throws VisADException, RemoteException {
 		// Adelaide Airport: location of example radar data file radar.dat
 	  float centlat = -34.9581f;
 	  float centlon = 138.5342f;
-		float radius = 3.0f; // degrees 
+		float radius = 6.0f; // degrees 
     String radarSource = "radar.dat";
     RadarDisplay rd = null;
     RadarAdapter ra = null;
@@ -167,13 +236,13 @@ VisAD Data analysis
     }
     else {
       ScalarMap reflectionmap = new ScalarMap(reflection, Display.ZAxis);
-      reflectionmap.setRange(0, 10);
+      reflectionmap.setRange(0.f, 6.f);
       display.addMap(reflectionmap);
     }
     ScalarMap rgbMap = new ScalarMap(reflection, Display.RGB);
 
 	  display.addMap(rgbMap);
-		setColorMap(rgbMap, 0., 6.);
+		setColorMap(rgbMap, 0.f, 6.f);
 		mapDisplay(display, "OUTLAUST");
 
     GraphicsModeControl mode = display.getGraphicsModeControl();

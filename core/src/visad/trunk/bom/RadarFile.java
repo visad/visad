@@ -16,6 +16,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
+import visad.*;
 
 /** 
  * RadarFile
@@ -26,14 +27,15 @@ import java.util.*;
  * 
  */
 
+
 public class RadarFile {
 
+  public DateTime dtTime;
+  public double  dRadarTime;
   public float rngres = 250.0f;    // Resolution of range rings, in metres
   public float startrng = 4000.0f; // Start Range in metres
   public float azimuthres = 1.0f;  // Resolution of azmuth, in degrees
   public float elev = 0.0f;        // Elevation of radar beam          
-  public String radarTime;  
-  public String timeStamp;  
   // public float center_latitiude = -30.0f;
   // public float center_longitiude = 160.0f;
   private boolean fileok;
@@ -52,7 +54,7 @@ public class RadarFile {
                                 '\u0050','\u0051','\u0052','\u0053','\u0054','\u0055','\u0056',
                                 '\u0060','\u0061','\u0062','\u0063','\u0064','\u0065','\u0066' };
 
-  final static int maxSize = 150; // maximum number of radial values, usually 512
+  final static int maxSize = 250; // maximum number of radial values, usually 512
   public byte[] bdata;
 
   public class PolarByteData {
@@ -64,7 +66,6 @@ public class RadarFile {
       this.bdata = new byte[bdata.length];
       System.arraycopy(bdata, 0, this.bdata, 0, bdata.length);
     }
- 
   }
   public Vector pbvector = new Vector();
   public PolarByteData pbdata;
@@ -81,23 +82,83 @@ public class RadarFile {
     int iradial = 0;
     while (rf != null) {
       readRadial();
-      // System.out.println("az= "+az);
-      // ****** something useful here!! **** //
       pbdata = new PolarByteData((double) az, bdata);
-
       System.arraycopy(bdata, 0, pbdata.bdata, 0, bdata.length);
       if (rf != null) pbvector.addElement(pbdata);
     }
     pbdataArray = new PolarByteData[pbvector.size()];
     pbvector.copyInto(pbdataArray);
-    // }   catch (Exception e) {
-    //    fileok = false;
-     //   throw new RadarFileException("Error opening RadarFile: " + e);
-    // }
 
   }
 
+ /**
+   * Retrieves the time of the radar image as a double.  
+   *
+   * @ returns image time 
+   */
+  public double getTime() 
+	{
+		return dRadarTime;
+	}
+
+
+  public void setTime(String radarTime) 
+  {
+		try {
+		 	dRadarTime = Double.valueOf(radarTime).doubleValue();
+		} catch (NumberFormatException e) {
+			System.out.println("Exception converting Radar Time in module visad.bom.RadarFile.getTime() " + e);
+			dRadarTime = 0.0;
+		}
+	}
+
+
+ /**
+   * Retrieves the time of the radar image as a VisAD DateTime.  
+   *
+   * @ returns image time 
+   */
+  public DateTime getRadarTime() 
+  {
+    return (dtTime);
+  }
+
+  public void setRadarTime(String timeStamp) 
+      throws VisADException 
+  {
+    // TIMESTAMP: 19990915024004
+    int year;
+    int month;
+    int day;
+    int hours;
+    int mins;
+    int secs;
+		Date date;
+		String[] ids = TimeZone.getAvailableIDs(0);
+		TimeZone timeZone = new SimpleTimeZone(0, ids[0]);
+		Calendar cal = new GregorianCalendar(timeZone);
+		
+		year  = Integer.valueOf(timeStamp.substring(0,4)).intValue();
+		month = Integer.valueOf(timeStamp.substring(4,6)).intValue();
+		day   = Integer.valueOf(timeStamp.substring(6,8)).intValue();
+		hours  = Integer.valueOf(timeStamp.substring(8,10)).intValue();
+		mins  = Integer.valueOf(timeStamp.substring(10,12)).intValue();
+		secs  = Integer.valueOf(timeStamp.substring(12,14)).intValue();
+    System.out.println("timeStamp: " + timeStamp);
+    System.out.println("year,month,day,hour,mins,secs: " + year+ " " + month + " " +day+ " " + hours+ " " + mins+ " " + secs); 
+		// Subtract 1 from month since Jan = 0, Feb = 1 etc 
+		cal.clear();
+		cal.set(year,month-1,day,hours,mins,secs);
+    System.out.println("Initialized with date: " + (cal.getTime()).toString());
+
+    dtTime = new DateTime(cal.getTime());
+    System.out.println("Initialized with date: " + dtTime);
+  }
+
+
   public void readHeader(char[] cbuff ) { 
+  	String radarTime;  
+  	String timeStamp;  
 		String thisLine = new String(cbuff);
 		String label;
 		// System.out.println("line = " + thisLine);
@@ -118,8 +179,11 @@ public class RadarFile {
 			System.out.println("radarTime = " + radarTime);
 		} else
 		if (thisLine.startsWith("TIMESTAMP:")) {
-			timeStamp = new String (thisLine.substring(11));
-			System.out.println("timeStamp = " + timeStamp);
+			try {
+      	setRadarTime(thisLine.substring(11)) ;
+			} catch (VisADException e) {
+      	System.out.println("error setting radar time " + e );
+			}
 		} else
 		if (thisLine.startsWith("VERS:")) {
 			System.out.println("line = " + thisLine);

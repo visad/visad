@@ -21,7 +21,7 @@ import visad.*;
 import visad.java3d.*;
 
 /** 
- * RadarDisplay
+ * RadarAdapter
  *
  * @authors - James Kelly : J.Kelly@bom.gov.au
  *          - Bill Hibbard (mainly, while working at BOM August 1999) 
@@ -38,6 +38,7 @@ public class RadarAdapter {
   private PolarData pdata;
   public PolarData[] polar;
   public int numVectors;
+	private static int objCount = 0;
 
   FlatField radar;
 
@@ -50,14 +51,15 @@ public class RadarAdapter {
     } catch (IOException e) {throw new
           VisADException("Problem with Radar file: " + e);
     }
+    System.out.println("Radar Adapter : dtTime = " + rf.dtTime);
     int naz = rf.pbdataArray.length;
     float[] azs = new float[naz];
     int nrad = 0;
     //
     // create an array "azs" containing all the azimuth values
     // example:
-	//    azs[0] = 61 degrees    = radlow +   0
-	//    azs[1] = 183 degrees   = radlow + 122 
+  	//    azs[0] = 61 degrees    = radlow +   0
+		//    azs[1] = 183 degrees   = radlow + 122 
     //    azs[2] = 261 degrees   = radlow + 200
     //    azs[3] = 262 degrees   = radlow + 201
     //    azs[4] = 262 degrees   = radlow + 202
@@ -128,23 +130,50 @@ public class RadarAdapter {
                                           azlow, azres);
     }
 
-    RealType azimuth = new RealType("azimuth", CommonUnit.degree, null);
-    RealType range = new RealType("range", CommonUnit.meter, null);
-    RealType elevation = new RealType("elevation", CommonUnit.degree, null);
+    RealType azimuth;
+    try {
+      azimuth = new RealType("azimuth", CommonUnit.degree, null);
+    } catch (TypeException e) {
+      azimuth =  RealType.getRealTypeByName("azimuth");
+    }
+
+    RealType range;
+    try {
+    	range = new RealType("range", CommonUnit.meter, null);
+    } catch (TypeException e) {
+      range =  RealType.getRealTypeByName("range");
+    }
+
+    RealType elevation;
+    try {
+        // WLH 14 Oct 99
+    	// elevation = new RealType("elevation", CommonUnit.meter, null);
+    	elevation = new RealType("elevation", CommonUnit.degree, null);
+    } catch (TypeException e) {
+      elevation =  RealType.getRealTypeByName("elevation");
+    }
+
     RealTupleType radaz = null;
     if (d3d) {
-      RealType[] domain_components = {range, azimuth, elevation};
+      RealType[] domain_components = { range, azimuth, elevation};
       radaz = new RealTupleType(domain_components, rcs3d, null);
     }
     else {
       RealType[] domain_components = {range, azimuth};
       radaz = new RealTupleType(domain_components, rcs2d, null);
     }
-    RealType reflection = new RealType("reflection");
+
+    RealType reflection;
+    try {
+    	reflection = new RealType("reflection");
+    } catch (TypeException e) {
+      reflection =  RealType.getRealTypeByName("reflection");
+    }
+
     FunctionType radar_image = new FunctionType(radaz, reflection);
-	//
+	  //
     //    newnaz = 203 using example above
-	//
+	  //
     // System.out.println("newnaz = " + newnaz + "  nrad = " + nrad);
 
     // float[][] samples = new float[2][nrad * naz];
