@@ -109,6 +109,8 @@ public class Measurement {
           Real r = rc[2];
           double v = r.getValue();
           int iv = (int) Math.round(v);
+          if (iv < 0) iv = 0;
+          else if (iv >= numSlices) iv = numSlices - 1;
           if (v != iv) {
             // snap measurement to nearest slice
             r = new Real((RealType) r.getType(), iv, r.getUnit(), r.getError());
