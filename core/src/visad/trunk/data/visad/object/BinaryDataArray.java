@@ -51,12 +51,16 @@ if(DEBUG_RD_TIME)System.err.println("rdDataRA: "+len+" elements "+(System.curren
   }
 
   private static final void writeDependentData(BinaryWriter writer,
-                                               Data[] array)
+                                               Data[] array, Object token)
     throws IOException
   {
+    if (token != SAVE_DEPEND_BIG) {
+      token = SAVE_DEPEND;
+    }
+
     if (array != null) {
       for (int i = 0; i < array.length; i++) {
-        BinaryGeneric.write(writer, (DataImpl )array[i], SAVE_DEPEND);
+        BinaryGeneric.write(writer, (DataImpl )array[i], token);
       }
     }
   }
@@ -65,10 +69,10 @@ if(DEBUG_RD_TIME)System.err.println("rdDataRA: "+len+" elements "+(System.curren
                                  Object token)
     throws IOException
   {
-    writeDependentData(writer, array);
+    writeDependentData(writer, array, token);
 
     // if we only want to write dependent data, we're done
-    if (token == SAVE_DEPEND) {
+    if (token == SAVE_DEPEND || token == SAVE_DEPEND_BIG) {
       return;
     }
 

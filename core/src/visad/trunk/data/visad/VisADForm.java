@@ -24,37 +24,6 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-/*
-NOTES for future changes:
-
-1. For creating files as-you-go, rather than from an existing
-   Data object
-
-modified version of BinaryWriter.processFieldImpl() split into
-three methods:
-  a. open - write 'header' up to FLD_DATA_SAMPLES
-  b. call ber sample for process(fld.getSample(i))
-  c. close - write FLD_END
-
-2. To read with FileFlatFields
-
-need FileAccessor for each FlatField - it knows location in file
-use random access file I/O
-
-would be useful to know length of DATA_FLAT_FIELD to skip over
-on initial read through file, creating FileAccessors and
-FileFlatFields
-
-or, have variant of DATA_FLAT_FIELD for all floats or all doubles
-that replaces FLD_DATA_SAMPLES with FLD_FLOAT_SAMPLES or
-FLD_DOUBLE_SAMPLES
-
-Dave worked on adding length field to DATA_FLAT_FIELD, but not done
-because SetType has a default Set (recursive length) - but this is
-header information that has to be read anyways to create intial
-FileFlatField - so better to do FLD_FLOAT_SAMPLES, etc
-*/
-
 package visad.data.visad;
 
 import java.io.BufferedInputStream;
@@ -220,7 +189,18 @@ public class VisADForm extends Form implements FormFileInformer {
     return di;
   }
 
-  private synchronized void saveBinary(String id, Data data, boolean replace)
+  /**
+   * Save a <tt>Data</tt> object in VisAD's binary format.
+   *
+   * @param id file name
+   * @param data <tt>Data</tt> object
+   * @param replace <tt>true</tt> if any existing file should be overwritten
+   * @param bigObject <tt>true</tt> if the <tt>Data</tt> object is larger
+   *                  than the computer's memory, in which case special
+   *                  measures will be taken to converse memory usage.
+   */
+  private synchronized void saveBinary(String id, Data data, boolean replace,
+                                       boolean bigObject)
     throws BadFormException, IOException, RemoteException, VisADException
   {
     File file = new File(id);
@@ -229,10 +209,17 @@ public class VisADForm extends Form implements FormFileInformer {
     }
 
     BinaryWriter writer = new BinaryWriter(file);
-    writer.save((DataImpl )data);
+    writer.save((DataImpl )data, bigObject);
     writer.close();
   }
 
+  /**
+   * Save a <tt>Data</tt> object in serialized Java format.
+   *
+   * @param id file name
+   * @param data <tt>Data</tt> object
+   * @param replace <tt>true</tt> if any existing file should be overwritten
+   */
   private synchronized void saveSerial(String id, Data data, boolean replace)
     throws BadFormException, IOException, RemoteException, VisADException
   {
@@ -255,11 +242,35 @@ public class VisADForm extends Form implements FormFileInformer {
     fileStream.close();
   }
 
-  public synchronized void save(String id, Data data, boolean replace)
+  /**
+   * Save a <tt>Data</tt> object.
+   *
+   * @param id file name
+   * @param data <tt>Data</tt> object
+   * @param replace <tt>true</tt> if any existing file should be overwritten
+   */
+  public void save(String id, Data data, boolean replace)
+    throws BadFormException, IOException, RemoteException, VisADException
+  {
+    save(id, data, replace, false);
+  }
+
+  /**
+   * Save a <tt>Data</tt> object.
+   *
+   * @param id file name
+   * @param data <tt>Data</tt> object
+   * @param replace <tt>true</tt> if any existing file should be overwritten
+   * @param bigObject <tt>true</tt> if the <tt>Data</tt> object is larger
+   *                  than the computer's memory, in which case special
+   *                  measures will be taken to converse memory usage.
+   */
+  public synchronized void save(String id, Data data, boolean replace,
+                                boolean bigObject)
     throws BadFormException, IOException, RemoteException, VisADException
   {
     if (allowBinary) {
-      saveBinary(id, data, replace);
+      saveBinary(id, data, replace, bigObject);
     } else {
       saveSerial(id, data, replace);
     }

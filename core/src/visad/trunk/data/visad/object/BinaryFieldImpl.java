@@ -22,7 +22,8 @@ public class BinaryFieldImpl
   public static final int computeBytes(FieldImpl fld)
   {
     try {
-      return processDependentData(null, null, fld.getDomainSet(), fld);
+      return processDependentData(null, null, fld.getDomainSet(), fld,
+                                  SAVE_DEPEND);
     } catch (IOException ioe) {
       return 0;
     }
@@ -30,12 +31,19 @@ public class BinaryFieldImpl
 
   public static final int processDependentData(BinaryWriter writer,
                                                FunctionType ft, Set set,
-                                               FieldImpl fld)
+                                               FieldImpl fld, Object token)
     throws IOException
   {
     byte dataType;
     if (!fld.getClass().equals(FieldImpl.class)) {
       return 0;
+    }
+
+    Object dependToken;
+    if (token == SAVE_DEPEND_BIG) {
+      dependToken = token;
+    } else {
+      dependToken = SAVE_DEPEND;
     }
 
     int numBytes = 1 + 4;
@@ -48,7 +56,7 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_MATH)System.err.println("wrFldI: type (" + ft + ")")
 
     if (set != null) {
       if (writer != null) {
-        BinaryGeneric.write(writer, set, SAVE_DEPEND);
+        BinaryGeneric.write(writer, set, dependToken);
       }
 
       int setBytes = BinaryGeneric.computeBytes(set);
@@ -61,16 +69,17 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_MATH)System.err.println("wrFldI: type (" + ft + ")")
     if (numSamples > 0) {
       numBytes += 1;
 
+      boolean metadataOnly = (token == SAVE_DEPEND_BIG);
       for (int i = 0; i < numSamples; i++) {
         DataImpl sample;
         try {
-          sample = (DataImpl )fld.getSample(i);
+          sample = (DataImpl )fld.getSample(i, metadataOnly);
         } catch (VisADException ve) {
           continue;
         }
 
         if (writer != null) {
-          BinaryGeneric.write(writer, sample, SAVE_DEPEND);
+          BinaryGeneric.write(writer, sample, dependToken);
         }
 
         numBytes += BinaryGeneric.computeBytes(sample);
@@ -152,20 +161,20 @@ if(DEBUG_RD_DATA)System.err.println("rdFldI: FLD_END (" + FLD_END + ")");
 
   public static final int writeDependentData(BinaryWriter writer,
                                              FunctionType ft, Set set,
-                                             FieldImpl fld)
+                                             FieldImpl fld, Object token)
     throws IOException
   {
-    return processDependentData(writer, ft, set, fld);
+    return processDependentData(writer, ft, set, fld, token);
   }
 
   public static final void write(BinaryWriter writer, FunctionType ft,
                                  Set set, FieldImpl fld, Object token)
     throws IOException
   {
-    final int objLen = writeDependentData(writer, ft, set, fld);
+    final int objLen = writeDependentData(writer, ft, set, fld, token);
 
     // if we only want to write dependent data, we're done
-    if (token == SAVE_DEPEND) {
+    if (token == SAVE_DEPEND || token == SAVE_DEPEND_BIG) {
       return;
     }
 

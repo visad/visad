@@ -83,11 +83,18 @@ if(DEBUG_RD_DATA)System.err.println("rdLinSet: FLD_END (" + FLD_END + ")");
 
   public static final void writeDependentData(BinaryWriter writer,
                                               SetType type, SampledSet[] sets,
-                                              UnionSet set)
+                                              UnionSet set, Object token)
     throws IOException
   {
     if (!set.getClass().equals(UnionSet.class)) {
       return;
+    }
+
+    Object dependToken;
+    if (token == SAVE_DEPEND_BIG) {
+      dependToken = token;
+    } else {
+      dependToken = SAVE_DEPEND;
     }
 
 if(DEBUG_WR_DATA&&!DEBUG_WR_MATH)System.err.println("wrUSet: type (" + type + ")");
@@ -95,7 +102,7 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_MATH)System.err.println("wrUSet: type (" + type + ")
 
     if (sets != null) {
       for (int i = 0; i < sets.length; i++) {
-        BinaryGeneric.write(writer, sets[i], SAVE_DEPEND);
+        BinaryGeneric.write(writer, sets[i], dependToken);
       }
     }
   }
@@ -105,10 +112,10 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_MATH)System.err.println("wrUSet: type (" + type + ")
                                  Object token)
     throws IOException
   {
-    writeDependentData(writer, type, sets, set);
+    writeDependentData(writer, type, sets, set, token);
 
     // if we only want to write dependent data, we're done
-    if (token == SAVE_DEPEND) {
+    if (token == SAVE_DEPEND || token == SAVE_DEPEND_BIG) {
       return;
     }
 

@@ -930,10 +930,43 @@ public class BinaryWriter
     }
   }
 
+  /**
+   * Save a Data object to the file.
+   *
+   * @param data <tt>Data</tt> object to save
+   *
+   * @exception VisADException if the save fails.
+   */
   public void save(DataImpl data)
     throws VisADException
   {
-    process(data, BinaryObject.SAVE_DEPEND);
+    save(data, false);
+  }
+
+  /**
+   * Save a big Data object to the file.
+   * If called with <tt>bigObject</tt> set to <tt>true</tt>,
+   * special measures will be taken to make sure that only
+   * the necessary parts of a <tt>Data</tt> object are
+   * loaded, so that objects too large to fit in memory have
+   * a better chance of being saved.
+   *
+   * @param data <tt>Data</tt> object to save
+   * @param bigObject <tt>true</tt> if this is a really big object
+   *
+   * @exception VisADException if the save fails.
+   */
+  public void save(DataImpl data, boolean bigObject)
+    throws VisADException
+  {
+    Object dependToken;
+    if (bigObject) {
+      dependToken = BinaryObject.SAVE_DEPEND_BIG;
+    } else {
+      dependToken = BinaryObject.SAVE_DEPEND;
+    }
+
+    process(data, dependToken);
     process(data, BinaryObject.SAVE_DATA);
   }
 

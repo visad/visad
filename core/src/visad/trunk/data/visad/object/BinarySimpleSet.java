@@ -94,7 +94,8 @@ if(DEBUG_RD_DATA)System.err.println("rdSimSet: FLD_END (" + FLD_END + ")");
                                               SetType type,
                                               CoordinateSystem cs,
                                               Unit[] units, SimpleSet set,
-                                              Class canonicalClass)
+                                              Class canonicalClass,
+                                              Object token)
     throws IOException
   {
     DataOutputStream file = writer.getOutputStream();
@@ -128,10 +129,10 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_UNIT){
                                  byte dataType, Object token)
     throws IOException
   {
-    writeDependentData(writer, type, cs, units, set, canonicalClass);
+    writeDependentData(writer, type, cs, units, set, canonicalClass, token);
 
     // if we only want to write dependent data, we're done
-    if (token == SAVE_DEPEND) {
+    if (token == SAVE_DEPEND || token == SAVE_DEPEND_BIG) {
       return;
     }
 

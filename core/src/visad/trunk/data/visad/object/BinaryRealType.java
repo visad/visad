@@ -163,7 +163,14 @@ if(DEBUG_WR_MATH)System.err.println("wrRlTy: FLD_END (" + FLD_END + ")");
       file.writeByte(FLD_END);
 
       if (dfltSet != null) {
-        BinaryGeneric.write(writer, dfltSet, SAVE_DEPEND);
+        Object dependToken;
+        if (token == SAVE_DEPEND_BIG) {
+          dependToken = token;
+        } else {
+          dependToken = SAVE_DEPEND;
+        }
+
+        BinaryGeneric.write(writer, dfltSet, dependToken);
         BinaryGeneric.write(writer, dfltSet, SAVE_DATA);
       }
     }

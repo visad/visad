@@ -341,7 +341,7 @@ if(DEBUG_RD_TIME){
                                               CoordinateSystem cs,
                                               CoordinateSystem[] rangeCS,
                                               Set[] rangeSets, Unit[] units,
-                                              FlatField fld)
+                                              FlatField fld, Object token)
     throws IOException
   {
     byte dataType;
@@ -349,6 +349,13 @@ if(DEBUG_RD_TIME){
         !fld.getClass().equals(FileFlatField.class))
     {
       return;
+    }
+
+    Object dependToken;
+    if (token == SAVE_DEPEND_BIG) {
+      dependToken = token;
+    } else {
+      dependToken = SAVE_DEPEND;
     }
 
 if(DEBUG_WR_DATA&&!DEBUG_WR_MATH)System.err.println("wrFlFld: type (" + type + ")");
@@ -380,12 +387,12 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_UNIT){
     }
 
     if (domainSet != null) {
-      BinaryGeneric.write(writer, domainSet, SAVE_DEPEND);
+      BinaryGeneric.write(writer, domainSet, dependToken);
     }
 
     if (rangeSets != null) {
       for (int i = 0; i < rangeSets.length; i++) {
-        BinaryGeneric.write(writer, rangeSets[i], SAVE_DEPEND);
+        BinaryGeneric.write(writer, rangeSets[i], dependToken);
       }
     }
   }
@@ -397,10 +404,10 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_UNIT){
     throws IOException
   {
     writeDependentData(writer, type, domainSet, cs, rangeCS, rangeSets,
-                       units, fld);
+                       units, fld, token);
 
     // if we only want to write dependent data, we're done
-    if (token == SAVE_DEPEND) {
+    if (token == SAVE_DEPEND || token == SAVE_DEPEND_BIG) {
       return;
     }
 

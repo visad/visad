@@ -73,11 +73,19 @@ if(DEBUG_RD_DATA)System.err.println("rdTpl: FLD_END (" + FLD_END + ")");
 
   private static final void writeDependentData(BinaryWriter writer,
                                                TupleType type,
-                                               Data[] components, Tuple t)
+                                               Data[] components, Tuple t,
+                                               Object token)
     throws IOException
   {
     if (!t.getClass().equals(Tuple.class)) {
       return;
+    }
+
+    Object dependToken;
+    if (token == SAVE_DEPEND_BIG) {
+      dependToken = token;
+    } else {
+      dependToken = SAVE_DEPEND;
     }
 
 if(DEBUG_WR_DATA&&!DEBUG_WR_MATH)System.err.println("wrTpl: type (" + type + ")");
@@ -85,7 +93,7 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_MATH)System.err.println("wrTpl: type (" + type + ")"
 
 
     if (components != null) {
-      BinaryDataArray.write(writer, components, SAVE_DEPEND);
+      BinaryDataArray.write(writer, components, dependToken);
     }
   }
 
@@ -93,10 +101,10 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_MATH)System.err.println("wrTpl: type (" + type + ")"
                                  Data[] components, Tuple t, Object token)
     throws IOException
   {
-    writeDependentData(writer, type, components, t);
+    writeDependentData(writer, type, components, t, token);
 
     // if we only want to write dependent data, we're done
-    if (token == SAVE_DEPEND) {
+    if (token == SAVE_DEPEND || token == SAVE_DEPEND_BIG) {
       return;
     }
 

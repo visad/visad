@@ -116,11 +116,19 @@ if(DEBUG_RD_DATA)System.err.println("rdSglSet: FLD_END (" + FLD_END + ")");
                                               CoordinateSystem cs,
                                               Unit[] units,
                                               ErrorEstimate[] errors,
-                                              SingletonSet set)
+                                              SingletonSet set,
+                                              Object token)
     throws IOException
   {
     if (!set.getClass().equals(SingletonSet.class)) {
       return;
+    }
+
+    Object dependToken;
+    if (token == SAVE_DEPEND_BIG) {
+      dependToken = token;
+    } else {
+      dependToken = SAVE_DEPEND;
     }
 
     if (cs != null) {
@@ -148,7 +156,7 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_ERRE){
       BinaryErrorEstimate.writeList(writer, errors, SAVE_DATA);
     }
 
-    BinaryGeneric.write(writer, sample, SAVE_DEPEND);
+    BinaryGeneric.write(writer, sample, dependToken);
   }
 
   public static final void write(BinaryWriter writer, RealTuple sample,
@@ -157,10 +165,10 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_ERRE){
                                  Object token)
     throws IOException
   {
-    writeDependentData(writer, sample, cs, units, errors, set);
+    writeDependentData(writer, sample, cs, units, errors, set, token);
 
     // if we only want to write dependent data, we're done
-    if (token == SAVE_DEPEND) {
+    if (token == SAVE_DEPEND || token == SAVE_DEPEND_BIG) {
       return;
     }
 

@@ -508,8 +508,25 @@ public class FieldImpl extends FunctionImpl implements Field {
     return units;
   }
 
-  /** get the range value at the index-th sample */
+  /**
+   * Get the range value at the index-th sample
+   *
+   * @param index index of requested range sample
+   */
   public Data getSample(int index)
+         throws VisADException, RemoteException {
+    return getSample(index, false);
+  }
+
+  /**
+   * Get the metadata for the range value at the index-th sample
+   *
+   * @param index index of requested range sample
+   * @param metadataOnly <tt>true</tt> if only the metadata is needed,
+   *                     <tt>false</ff> if both metadata and data are
+   *                     desired.
+   */
+  public Data getSample(int index, boolean metadataOnly)
          throws VisADException, RemoteException {
     synchronized (Range) {
       if (isMissing() || index < 0 || index >= Length || Range[index] == null) {

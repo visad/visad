@@ -1449,6 +1449,15 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     }
   }
 
+  /**
+   * a stub routine which simply invokes {@link #getSample(int) getSample}
+   * to override {@link FieldImpl#getSample(int, boolean) FieldImpl.getSample}
+   */
+  public Data getSample(int index, boolean metadataOnly)
+         throws VisADException, RemoteException {
+    return getSample(index);
+  }
+
   /** set the range value at the index-th sample */
   public void setSample(int index, Data range, boolean copy)
          throws VisADException, RemoteException {

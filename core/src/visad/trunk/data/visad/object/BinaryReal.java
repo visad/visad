@@ -84,7 +84,8 @@ if(DEBUG_RD_DATA)System.err.println("rdRl: FLD_END (" + FLD_END + ")");
 
   public static final void writeDependentData(BinaryWriter writer,
                                               RealType type, Unit unit,
-                                              ErrorEstimate error, Real real)
+                                              ErrorEstimate error, Real real,
+                                              Object token)
     throws IOException
   {
 if(DEBUG_WR_DATA&&!DEBUG_WR_MATH)System.err.println("wrRl: MathType (" + type + ")");
@@ -106,10 +107,10 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_ERRE)System.err.println("wrRl: ErrEst (" + error + "
                                  Real real, Object token)
     throws IOException
   {
-    writeDependentData(writer, type, unit, error, real);
+    writeDependentData(writer, type, unit, error, real, token);
 
     // if we only want to write dependent data, we're done
-    if (token == SAVE_DEPEND) {
+    if (token == SAVE_DEPEND || token == SAVE_DEPEND_BIG) {
       return;
     }
 

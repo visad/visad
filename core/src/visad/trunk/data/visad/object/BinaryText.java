@@ -47,7 +47,7 @@ if(DEBUG_RD_DATA)System.err.println("rdTxt: read " + (endByte == FLD_END ? "FLD_
   }
 
   public static final void writeDependentData(BinaryWriter writer,
-                                              TextType type)
+                                              TextType type, Object token)
     throws IOException
   {
 if(DEBUG_WR_DATA&&!DEBUG_WR_MATH)System.err.println("wrTxt: MathType (" + type + ")");
@@ -59,10 +59,10 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_MATH)System.err.println("wrTxt: MathType (" + type +
                                  Object token)
     throws IOException
   {
-    writeDependentData(writer, type);
+    writeDependentData(writer, type, token);
 
     // if we only want to write dependent data, we're done
-    if (token == SAVE_DEPEND) {
+    if (token == SAVE_DEPEND || token == SAVE_DEPEND_BIG) {
       return;
     }
 

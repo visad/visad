@@ -168,11 +168,18 @@ if(DEBUG_RD_TIME)System.err.println("rdRlRA: "+len+" arrays "+(System.currentTim
                                               RealTupleType type,
                                               Real[] components,
                                               CoordinateSystem cs,
-                                              RealTuple rt)
+                                              RealTuple rt, Object token)
     throws IOException
   {
     if (!rt.getClass().equals(RealTuple.class)) {
       return;
+    }
+
+    Object dependToken;
+    if (token == SAVE_DEPEND_BIG) {
+      dependToken = token;
+    } else {
+      dependToken = SAVE_DEPEND;
     }
 
 if(DEBUG_WR_DATA&&!DEBUG_WR_MATH)System.err.println("wrRlTpl: MathType (" + type + ")");
@@ -185,7 +192,7 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_CSYS)System.err.println("wrRlTpl: coordSys (" + cs +
 
     if (components != null) {
       for (int i = 0; i < components.length; i++) {
-        BinaryGeneric.write(writer, components[i], SAVE_DEPEND);
+        BinaryGeneric.write(writer, components[i], dependToken);
       }
     }
   }
@@ -195,10 +202,10 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_CSYS)System.err.println("wrRlTpl: coordSys (" + cs +
                                  RealTuple rt, Object token)
     throws IOException
   {
-    writeDependentData(writer, type, components, cs, rt);
+    writeDependentData(writer, type, components, cs, rt, token);
 
     // if we only want to write dependent data, we're done
-    if (token == SAVE_DEPEND) {
+    if (token == SAVE_DEPEND || token == SAVE_DEPEND_BIG) {
       return;
     }
 

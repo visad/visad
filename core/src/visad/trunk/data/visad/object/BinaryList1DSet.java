@@ -94,7 +94,8 @@ if(DEBUG_RD_DATA)System.err.println("rdL1DSet: FLD_END (" + FLD_END + ")");
   public static final void writeDependentData(BinaryWriter writer,
                                               SetType type,
                                               CoordinateSystem cs,
-                                              Unit[] units, List1DSet set)
+                                              Unit[] units, List1DSet set,
+                                              Object token)
     throws IOException
   {
     if (!set.getClass().equals(List1DSet.class)) {
@@ -125,10 +126,10 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_UNIT){
                                  Unit[] units, List1DSet set, Object token)
     throws IOException
   {
-    writeDependentData(writer, type, cs, units, set);
+    writeDependentData(writer, type, cs, units, set, token);
 
     // if we only want to write dependent data, we're done
-    if (token == SAVE_DEPEND) {
+    if (token == SAVE_DEPEND || token == SAVE_DEPEND_BIG) {
       return;
     }
 

@@ -105,11 +105,19 @@ if(DEBUG_RD_DATA)System.err.println("rdPrSet: FLD_END (" + FLD_END + ")");
                                               CoordinateSystem cs,
                                               Unit[] units,
                                               ErrorEstimate[] errors,
-                                              ProductSet set)
+                                              ProductSet set,
+                                              Object token)
     throws IOException
   {
     if (!set.getClass().equals(ProductSet.class)) {
       return;
+    }
+
+    Object dependToken;
+    if (token == SAVE_DEPEND_BIG) {
+      dependToken = token;
+    } else {
+      dependToken = SAVE_DEPEND;
     }
 
 if(DEBUG_WR_DATA&&!DEBUG_WR_MATH)System.err.println("wrPrSet: type (" + type + ")");
@@ -142,7 +150,7 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_ERRE){
 
     if (sets != null) {
       for (int i = 0; i < sets.length; i++) {
-        BinaryGeneric.write(writer, sets[i], SAVE_DEPEND);
+        BinaryGeneric.write(writer, sets[i], dependToken);
       }
     }
   }
@@ -153,10 +161,10 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_ERRE){
                                  ProductSet set, Object token)
     throws IOException
   {
-    writeDependentData(writer, type, sets, cs, units, errors, set);
+    writeDependentData(writer, type, sets, cs, units, errors, set, token);
 
     // if we only want to write dependent data, we're done
-    if (token == SAVE_DEPEND) {
+    if (token == SAVE_DEPEND || token == SAVE_DEPEND_BIG) {
       return;
     }
 

@@ -156,7 +156,8 @@ if(DEBUG_RD_DATA)System.err.println("rdIrrSet: FLD_END (" + FLD_END + ")");
                                               Unit[] units,
                                               ErrorEstimate[] errors,
                                               IrregularSet set,
-                                              Class canonicalClass)
+                                              Class canonicalClass,
+                                              Object token)
     throws IOException
   {
     if (!set.getClass().equals(canonicalClass)) {
@@ -201,10 +202,10 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_ERRE){
     throws IOException
   {
     writeDependentData(writer, type, cs, units, errors, set,
-                       canonicalClass);
+                       canonicalClass, token);
 
     // if we only want to write dependent data, we're done
-    if (token == SAVE_DEPEND) {
+    if (token == SAVE_DEPEND || token == SAVE_DEPEND_BIG) {
       return;
     }
 
