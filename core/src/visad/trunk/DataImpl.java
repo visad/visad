@@ -112,6 +112,16 @@ public abstract class DataImpl extends ThingImpl
   /** binary operations */
   public Data binary(Data data, int op, int sampling_mode, int error_mode)
               throws VisADException, RemoteException {
+   /* BINARY - TDR May 1998
+    throw new TypeException("DataImpl.binary");
+    */
+    MathType new_type = Type.binary( data.getType(), op );
+    return binary( data, op, new_type, sampling_mode, error_mode );
+  }
+  
+  public Data binary( Data data, int op, MathType new_type, 
+                      int sampling_mode, int error_mode )
+              throws VisADException, RemoteException {
     throw new TypeException("DataImpl.binary");
   }
 

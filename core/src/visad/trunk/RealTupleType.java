@@ -170,6 +170,52 @@ public class RealTupleType extends TupleType {
     }
   }
 
+  public MathType binary( MathType type, int op )
+                  throws VisADException
+  {
+    int n_comps = getDimension();
+    MathType new_type = null;
+    if (type instanceof RealTupleType) 
+    {
+      RealType[] R_types = new RealType[ n_comps ];
+      for ( int ii = 0; ii < n_comps; ii++ ) {
+        R_types[ii] = (RealType) getComponent(ii).binary(
+                                 ((RealTupleType)type).getComponent(ii), op );
+      }
+      new_type = new RealTupleType( R_types, DefaultCoordinateSystem, null );
+    }
+    else if (type instanceof RealType) 
+    { 
+      RealType[] R_types = new RealType[ n_comps ];
+      for ( int ii = 0; ii < n_comps; ii++ ) {
+        R_types[ii] = (RealType) getComponent(ii).binary( type, op );
+      }
+      new_type = new RealTupleType( R_types, DefaultCoordinateSystem, null );
+    }
+    else if (type instanceof TupleType) 
+    {
+      throw new TypeException();
+    }
+    else if (type instanceof FunctionType ) 
+    {
+      new_type = type.binary( this, DataImpl.invertOp(op) );
+    }
+    return new_type;
+  }
+
+  public MathType unary( int op )
+                  throws VisADException
+  {
+    int n_comps = getDimension();
+    RealType[] R_types = new RealType[ n_comps ];
+
+    for ( int ii = 0; ii < n_comps; ii++ ) {
+      R_types[ii] = (RealType) getComponent(ii).unary(op);
+    }
+
+    return new RealTupleType( R_types, DefaultCoordinateSystem, null );
+  }
+
   private static RealType[] makeArray(RealType a) {
     RealType[] types = {a};
     return types;

@@ -130,14 +130,30 @@ public class RealTuple extends Tuple {
     return TupleCoordinateSystem;
   }
 
+  /*- TDR  May 1998
   public Data binary(Data data, int op, int sampling_mode, int error_mode)
               throws VisADException, RemoteException {
+   */
+  public Data binary(Data data, int op, MathType new_type,
+                     int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    /* BINARY - TDR May 28, 1998  */
+    MathType m_type;
+    if ( new_type == null ) {
+      throw new TypeException("binary: new_type may not be null" );
+    }
+    /* BINARY - end  */
     if (data instanceof RealTuple) {
       if (!Type.equalsExceptName(data.getType())) {
         throw new TypeException("RealTuple.binary: types don't match");
       }
+      /*- TDR May  1998 */
+      if ( !Type.equalsExceptName(new_type) ) {
+        throw new TypeException("RealTuple.binary: new_type doesn't match return type");
+      }
+      /*- end  */
       if (isMissing() || data.isMissing()) {
-        return new RealTuple((RealTupleType) Type);
+        return new RealTuple((RealTupleType) new_type);
       }
       double[][] vals = new double[tupleComponents.length][1];
       for (int j=0; j<tupleComponents.length; j++) {
@@ -155,12 +171,21 @@ public class RealTuple extends Tuple {
       for (int j=0; j<tupleComponents.length; j++) {
         Real real = new Real((RealType) ((RealTupleType) Type).getComponent(j),
                              vals[j][0], TupleUnits[j], errors_out[j]);
+        /*- TDR May 1998 */
+        m_type = ((RealTupleType)new_type).getComponent(j);
+        /*- end */
         reals[j] =
+        /*- TDR May 1998
           (Real) tupleComponents[j].binary(real, op, sampling_mode, error_mode);
+         */
+          (Real) tupleComponents[j].binary(real, op, m_type, sampling_mode, error_mode);
       }
-      return new RealTuple((RealTupleType) Type, reals, TupleCoordinateSystem);
+      /* BINARY - TDR May 28, 1998
+      return new RealTuple((RealTupleType)Type, reals, TupleCoordinateSystem);
+      */
+      return new RealTuple((RealTupleType) new_type, reals, null );
     }
-    else if (data instanceof Tuple) { 
+    else if (data instanceof Tuple) {
       throw new TypeException("RealTuple.binary: types don't match");
     }
     else if (data instanceof Real) {
@@ -169,16 +194,28 @@ public class RealTuple extends Tuple {
       }
       Real[] reals = new Real[tupleComponents.length];
       for (int j=0; j<tupleComponents.length; j++) {
+        m_type = ((RealTupleType)new_type).getComponent(j);
+
+        /*- TDR May 1998
         reals[j] = (Real) tupleComponents[j].binary(data, op, sampling_mode,
                                                     error_mode);
+        */
+        reals[j] = (Real) tupleComponents[j].binary(data, op, m_type,
+                                             sampling_mode, error_mode);
+
       }
+      /*- TDR May 1998
       return new RealTuple((RealTupleType) Type, reals, TupleCoordinateSystem);
-    }
-    else if (data instanceof Text) {
-      throw new TypeException("RealTuple.binary: types don't match");
+      */
+      return new RealTuple((RealTupleType) new_type, reals, null );
     }
     else if (data instanceof Field) {
-      return data.binary(this, invertOp(op), sampling_mode, error_mode);
+      /*- TDR June 3, 1998 */
+      if ( !(data.getType()).equalsExceptName(new_type) ) {
+        throw new TypeException();
+      }
+        return data.binary(this, invertOp(op), new_type, sampling_mode, error_mode);
+      /*- end  */
     }
     else {
       throw new TypeException("RealTuple.binary");

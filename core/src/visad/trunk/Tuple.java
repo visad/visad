@@ -140,32 +140,59 @@ public class Tuple extends DataImpl {
     return (tupleComponents == null);
   }
 
+/*-  TDR May 1998
   public Data binary(Data data, int op, int sampling_mode, int error_mode)
               throws VisADException, RemoteException {
+ */
+  public Data binary(Data data, int op, MathType new_type,
+                    int sampling_mode, int error_mode )
+             throws VisADException, RemoteException {
+    /* BINARY - TDR May 28, 1998 */
+    if ( new_type == null ) {
+      throw new TypeException("binary: new_type may not be null" );
+    }
+    MathType m_type;
+    /* BINARY - end */
     if (data instanceof RealTuple) {
       throw new TypeException("Tuple.binary: types don't match");
     }
-    else if (data instanceof Tuple) { 
+    else if (data instanceof Tuple) {
       if (!Type.equalsExceptName(data.getType())) {
         throw new TypeException("Tuple.binary: types don't match");
       }
+      /* BINARY - TDR May 28, 1998 */
+      if ( !Type.equalsExceptName(new_type) ) {
+        throw new TypeException();
+      }
+      /* BINARY - end */
       if (isMissing() || data.isMissing()) {
-        return new Tuple((TupleType) Type);
+        return new Tuple((TupleType) new_type);
       }
       Data[] datums = new Data[tupleComponents.length];
       for (int j=0; j<tupleComponents.length; j++) {
-        datums[j] = tupleComponents[j].binary(((Tuple) data).getComponent(j),
-                                              op, sampling_mode, error_mode);
+        /* BINARY - TDR June 2, 1998 */
+        m_type = ((TupleType)new_type).getComponent(j);
+        /* end  */
+        datums[j] = tupleComponents[j].binary(((Tuple) data).getComponent(j), op,
+                                              m_type, sampling_mode, error_mode);
       }
       return new Tuple(datums);
     }
     else if (data instanceof Real) {
+      /* BINARY - TDR May 28, 1998 */
+      if ( !Type.equalsExceptName(new_type) ) {
+        throw new TypeException();
+      }
+      /* BINARY - end */
       if (isMissing() || data.isMissing()) {
-        return new Tuple((TupleType) Type);
+        return new Tuple((TupleType) new_type);
       }
       Data[] datums = new Data[tupleComponents.length];
       for (int j=0; j<tupleComponents.length; j++) {
-        datums[j] = tupleComponents[j].binary(data, op, sampling_mode, error_mode);
+        /* BINARY - TDR June 2, 1998 */
+        m_type = ((TupleType)new_type).getComponent(j);
+        /* end  */
+        datums[j] = tupleComponents[j].binary(data, op, m_type, sampling_mode, error_mode);
       }
       return new Tuple(datums);
     }
@@ -173,7 +200,15 @@ public class Tuple extends DataImpl {
       throw new TypeException("Tuple.binary: types don't match");
     }
     else if (data instanceof Field) {
+     /* BINARY - TDR May 28, 1998
       return data.binary(this, invertOp(op), sampling_mode, error_mode);
+      */
+      /* BINARY - TDR June 3, 1998 */
+      if ( !(data.getType()).equalsExceptName(new_type) ) {
+        throw new TypeException();
+      }
+      return data.binary(this, invertOp(op), new_type, sampling_mode, error_mode);
+      /* BINARY - end  */
     }
     else {
       throw new TypeException("Tuple.binary");

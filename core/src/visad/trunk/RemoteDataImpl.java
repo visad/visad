@@ -85,6 +85,17 @@ public abstract class RemoteDataImpl extends RemoteThingImpl
     }
     return AdaptedData.binary(data, op, sampling_mode, error_mode);
   }
+
+  /*- TDR June 1998  */
+  public Data binary(Data data, int op, MathType new_type, 
+                     int sampling_mode, int error_mode )
+              throws VisADException, RemoteException {
+    if (AdaptedData == null ) {
+      throw new RemoteVisADException("RemoteDataImpl.binary " +
+                                     "AdaptedData is null");
+    }
+    return AdaptedData.binary(data, op, new_type, sampling_mode, error_mode);
+  }
  
   /** a list of binary operations using default modes for
       sampling and error estimation */

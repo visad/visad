@@ -138,6 +138,219 @@ public class RealType extends ScalarType {
     return (type instanceof RealType);
   }
 
+  /*- TDR May 1998  */
+  public boolean equalsExceptNameButUnits(MathType type) {
+    if (!(type instanceof RealType)) {
+      return false;
+    }
+    else if (!Unit.canConvert( this.getDefaultUnit(), ((RealType)type).getDefaultUnit()) ) {
+      return false;
+    }
+    else {
+      return true;
+    }
+  }
+
+  /*- TDR June 1998  */
+  public MathType cloneDerivative( RealType d_partial )
+         throws VisADException
+  {
+    String new_name = "d_"+this.getName()+"_/_"+
+                      "d_"+d_partial.getName();
+
+    Unit R_unit = this.DefaultUnit;
+    Unit D_unit = d_partial.getDefaultUnit();
+    Unit u = null;
+    if ( R_unit != null && D_unit != null )
+    {
+      u = R_unit.divide( D_unit );
+    }
+
+    return new RealType( new_name, u, null );
+  }
+  /*- TDR July 1998  */
+  public MathType binary( MathType type, int op )
+         throws VisADException
+  {
+    Unit newUnit = null;
+    MathType newType = null;
+    String newName = null;
+    if ( type instanceof RealType )
+    {
+      Unit unit = ((RealType)type).getDefaultUnit();
+      Unit thisUnit = DefaultUnit;
+
+      switch (op)
+      {
+        case Data.ADD:
+        case Data.SUBTRACT:
+        case Data.INV_SUBTRACT:
+        case Data.MAX:
+        case Data.MIN:
+          if ( unit == null || thisUnit == null ) {
+            newUnit = null;
+            newName = "Generic_nullUnit";
+            try {
+              newType = new RealType( newName, newUnit, null );
+            }
+            catch ( TypeException e ) {
+              newType = RealType.getRealTypeByName( newName );
+            }
+          }
+          else if ( thisUnit.equals( CommonUnit.promiscuous ) ) {
+            newType = type;
+          }
+          else if ( unit.equals( CommonUnit.promiscuous ) ) {
+            newType = this;
+          }
+          else {
+            if ( thisUnit.equals( unit ) ) {
+              newType = this;
+            }
+            else if ( Unit.canConvert( thisUnit, unit ) ) {
+              newType = this;
+            }
+            else {
+              throw new UnitException();
+            }
+          }
+          break;
+
+        case Data.MULTIPLY:
+        case Data.DIVIDE:
+        case Data.INV_DIVIDE:
+          if ( unit == null || thisUnit == null ) {
+            newUnit = null;
+            newName = "Generic_nullUnit";
+          }
+          else {
+            switch (op) {
+              case Data.MULTIPLY:
+                newUnit = thisUnit.multiply( unit );
+              case Data.DIVIDE:
+                newUnit = thisUnit.divide( unit );
+              case Data.INV_DIVIDE:
+                newUnit = unit.divide( thisUnit );
+            }
+            newName = "Generic_"+newUnit.toString();
+          }
+
+          try {
+            newType = new RealType( newName, newUnit, null );
+          }
+          catch ( TypeException e ) {
+            newType = RealType.getRealTypeByName( newName );
+          }
+          break;
+
+        case Data.POW:
+        case Data.INV_POW:
+          newUnit = null;
+          newName = "Generic_nullUnit";
+
+          try {
+            newType = new RealType( newName, newUnit, null );
+          }
+          catch ( TypeException e ) {
+            newType = RealType.getRealTypeByName( newName );
+          }
+          break;
+        case Data.ATAN2:
+          newUnit = CommonUnit.radian;
+        case Data.INV_ATAN2:
+          newUnit = CommonUnit.radian;
+        case Data.ATAN2_DEGREES:
+          newUnit = CommonUnit.degree;
+        case Data.INV_ATAN2_DEGREES: 
+          newUnit = CommonUnit.degree;
+        case Data.REMAINDER:
+          newUnit = thisUnit;
+        case Data.INV_REMAINDER:
+          newUnit = unit;
+
+          if ( newUnit != null ) {
+            newName = "Generic_"+newUnit.toString();
+          }
+          else {
+            newName = "Generic_nullUnit";
+          }
+
+          try {
+            newType = new RealType( newName, newUnit, null );
+          }
+          catch ( TypeException e ) {
+            newType = RealType.getRealTypeByName( newName );
+          }
+          break;
+        default:
+          throw new ArithmeticException("RealType.binary: illegal operation");
+      }
+    }
+    else if ( type instanceof TextType ) {
+      throw new TypeException("RealType.binary: types don't match");
+    }
+    else if ( type instanceof TupleType ) {
+      return type.binary( this, DataImpl.invertOp(op) );
+    }
+    else if ( type instanceof FunctionType ) {
+      return type.binary( this, DataImpl.invertOp(op) );
+    }
+
+    return newType;
+  }
+  /*- TDR July 1998 */
+  public MathType unary( int op )
+         throws VisADException
+  {
+    MathType newType;
+    Unit newUnit;
+    String newName;
+    switch (op)
+    {
+      case Data.ABS:
+      case Data.CEIL:
+      case Data.FLOOR:
+      case Data.RINT:
+      case Data.ROUND:
+      case Data.NEGATE:
+        newType = this;
+        break;
+      case Data.ACOS:
+      case Data.ASIN:
+      case Data.ATAN:
+        newUnit = CommonUnit.radian;
+      case Data.ACOS_DEGREES:
+      case Data.ASIN_DEGREES:
+      case Data.ATAN_DEGREES:
+        newUnit = CommonUnit.degree;
+        newName = "Generic_"+newUnit.toString();
+        newType = new RealType( newName, newUnit, null );
+        break;
+      case Data.COS:
+      case Data.COS_DEGREES:
+      case Data.SIN:
+      case Data.SIN_DEGREES:
+      case Data.TAN:
+      case Data.TAN_DEGREES:
+      case Data.SQRT:
+      case Data.EXP:
+      case Data.LOG:
+        newUnit = CommonUnit.dimensionless.equals( DefaultUnit ) ? DefaultUnit : null;
+        if ( newUnit == null ) {
+          newName = "Generic_nullUnit";
+        }
+        else {
+          newName = "Generic_"+newUnit.toString();
+        }
+        newType = new RealType( newName, newUnit, null );
+        break;
+      default:
+        throw new ArithmeticException("RealType.binary: illegal operation");
+    }
+
+    return newType;
+  }
+
   public Data missingData() throws VisADException {
     return new Real(this);
   }

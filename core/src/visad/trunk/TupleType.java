@@ -169,6 +169,65 @@ public class TupleType extends MathType {
     }
   }
 
+  /*- TDR June 1998    */
+  public boolean equalsExceptNameButUnits(MathType type) {
+    if (!(type instanceof TupleType)) return false;
+    try {
+      int n = tupleComponents.length;
+      if (n != ((TupleType) type).getDimension()) return false;
+      boolean flag = true;
+      for (int i=0; i<n; i++) {
+        flag = flag && tupleComponents[i].equalsExceptNameButUnits(
+                              ((TupleType) type).getComponent(i) );
+      }
+      return flag;
+    }
+    catch (VisADException e) {
+      return false;
+    }
+  }
+
+  /*- TDR June 1998  */
+  public MathType cloneDerivative( RealType d_partial )
+         throws VisADException
+  {
+    int n_comps = tupleComponents.length;
+    MathType[] new_types = new MathType[ n_comps ];
+
+    for ( int ii = 0; ii < n_comps; ii++ ) {
+      new_types[ii] = (this.getComponent(ii)).cloneDerivative( d_partial );
+    }
+
+    return new TupleType( new_types );
+  }
+
+  /*- TDR July 1998  */
+  public MathType binary( MathType type, int op )
+         throws VisADException
+  {
+    int n_comps = tupleComponents.length;
+    MathType[] new_types = new MathType[ n_comps ];
+    for ( int ii = 0; ii < n_comps; ii++ ) {
+      new_types[ii] = (this.getComponent(ii)).binary( type, op );
+    }
+
+    return new TupleType( new_types );
+  }
+
+  /*- TDR July 1998  */
+  public MathType unary( int op )
+         throws VisADException
+  {
+    int n_comps = tupleComponents.length;
+    MathType[] new_types = new MathType[ n_comps ];
+    for ( int ii = 0; ii < n_comps; ii++ ) {
+      new_types[ii] = (this.getComponent(ii)).unary( op );
+    }
+
+    return new TupleType( new_types );
+  }
+
+
   public boolean getFlat() {
     return Flat;
   }

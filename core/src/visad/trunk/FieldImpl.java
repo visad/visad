@@ -412,10 +412,23 @@ public class FieldImpl extends FunctionImpl implements Field {
 
   /** return new Field with value 'this op data';
       test for various relations between types of this and data */
+  /*- TDR  May 1998 
   public Data binary(Data data, int op, int sampling_mode, int error_mode)
               throws VisADException, RemoteException {
+   */
+  public Data binary(Data data, int op, MathType new_type,
+                     int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
     boolean field_flag; // true if this and data have same type
+    if ( new_type == null ) {
+      throw new TypeException("binary: new_type may not be null" );
+    }
     if (Type.equalsExceptName(data.getType())) {
+      /*-  TDR  May 1998  */
+      if ( !Type.equalsExceptName( new_type )) {
+        throw new TypeException("binary: new_type doesn't match return type");
+      }
+      /*- end  */
       // type of this and data match, so normal Field operation
       field_flag = true;
       if (((Field) data).isFlatField()) {
@@ -429,20 +442,36 @@ public class FieldImpl extends FunctionImpl implements Field {
              ((FunctionType) Type).getRange().equalsExceptName(data.getType())) {
       // data is real or matches range type of this
       field_flag = false;
+      /*-  TDR May 1998  */
+      if ( !Type.equalsExceptName( new_type )) {
+        throw new TypeException("binary: new_type doesn't match return type");
+      }
+      /*-  end  */
     }
     else if (data instanceof Field &&
              ((FunctionType) data.getType()).getRange().equalsExceptName(Type)) {
+
+      /*- TDR  May 1998 */
+      if ( !((FunctionType) data.getType()).getRange().equalsExceptName(new_type)) {
+        throw new TypeException("binary: new_type doesn't match return type");
+      }
+      /*- end */
       // this matches range type of data
       // note invertOp to reverse order of operands
+      /*- TDR  May 1998
       return data.binary(this, invertOp(op), sampling_mode, error_mode);
+       */
+      return data.binary(this, invertOp(op), new_type, sampling_mode, error_mode);
     }
     else {
       throw new TypeException("FieldImpl.binary: types don't match");
     }
     // create (initially missing) Field for return
-    Field new_field = new FieldImpl((FunctionType) Type, DomainSet);
+    Field new_field = new FieldImpl((FunctionType) new_type, DomainSet);
     if (isMissing() || data.isMissing()) return new_field;
     Data[] range = new Data[Length];
+    /*- TDR  May 1998  */
+    MathType m_type = ((FunctionType)new_type).getRange();
     if (field_flag) {
       // resample data if needed
       data = ((Field) data).resample(DomainSet, sampling_mode, error_mode);
@@ -450,8 +479,13 @@ public class FieldImpl extends FunctionImpl implements Field {
       for (int i=0; i<Length; i++) {
         synchronized (Range) {
           range[i] = (Range[i] == null) ? null :
+                    /*-  TDR May 1998
                      Range[i].binary(((Field) data).getSample(i), op,
                                      sampling_mode, error_mode);
+                     */
+                     Range[i].binary(((Field) data).getSample(i), op, m_type,
+                                     sampling_mode, error_mode);
+
         }
       }
     }
@@ -459,13 +493,17 @@ public class FieldImpl extends FunctionImpl implements Field {
       for (int i=0; i<Length; i++) {
         synchronized (Range) {
           range[i] = (Range[i] == null) ? null :
+                     /*- TDR  May 1998
                      Range[i].binary(data, op, sampling_mode, error_mode);
+                      */
+                     Range[i].binary(data, op, m_type, sampling_mode, error_mode);
         }
       }
     }
     new_field.setSamples(range, false);
     return new_field;
   }
+
 
   /** return new Field with value 'op this' */
   public Data unary(int op, int sampling_mode, int error_mode)

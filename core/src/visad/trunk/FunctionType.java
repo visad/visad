@@ -173,6 +173,37 @@ public class FunctionType extends MathType {
             Range.equalsExceptName(((FunctionType) type).getRange()));
   }
 
+  /*- TDR May 1998    */
+  public boolean equalsExceptNameButUnits(MathType type) throws VisADException {
+    if (!(type instanceof FunctionType)) return false;
+    return (Domain.equalsExceptNameButUnits(((FunctionType) type).getDomain()) &&
+            Range.equalsExceptNameButUnits(((FunctionType) type).getRange()));
+  }
+
+  /*- TDR June 1998   */
+  public MathType cloneDerivative( RealType d_partial )
+         throws VisADException
+  {
+    return (MathType) new FunctionType( Domain, Range.cloneDerivative(d_partial));
+  }
+
+  /*- TDR July 1998  */
+  public MathType binary( MathType type, int op )
+         throws VisADException
+  {
+    MathType m_type = (type instanceof FunctionType) ? 
+                      ((FunctionType)type).getRange() : type;
+    return (MathType) new FunctionType( Domain, Range.binary( m_type, op ));
+  }
+
+  /*- TDR July 1998  */
+  public MathType unary( int op )
+         throws VisADException
+  {
+    return (MathType) new FunctionType( Domain, Range.unary( op ));
+  }
+
+
   public String toString() {
     String t = Real ? " (Real): " : Flat ? " (Flat): " : ": ";
     return "FunctionType" + t + Domain.toString() +

@@ -105,6 +105,11 @@ public interface Data extends Thing {
   public abstract Data binary(Data data, int op, int sampling_mode,
          int error_mode) throws VisADException, RemoteException;
 
+  /*- BINARY - TDR June 1998  */
+  public abstract Data binary(Data data, int op, MathType new_type, 
+                              int sampling_mode, int error_mode )
+         throws VisADException, RemoteException;
+
   /** a list of binary operations using default modes for
       sampling and error estimation */
   public abstract Data add(Data data)

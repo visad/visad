@@ -58,6 +58,33 @@ public class SetType extends MathType {
     return Domain.equalsExceptName(((SetType) type).getDomain());
   }
 
+  /*- TDR May 1998  */
+  public boolean equalsExceptNameButUnits( MathType type ) {
+    if (!(type instanceof SetType)) return false;
+    return Domain.equalsExceptNameButUnits(((SetType) type).getDomain());
+  }
+
+  /*- TDR June 1998  */
+  public MathType cloneDerivative( RealType d_partial )
+         throws VisADException
+  {
+    throw new UnimplementedException("SetType: cloneDerivative");
+  }
+
+  /*- TDR July 1998  */
+  public MathType binary( MathType type, int op )
+         throws VisADException
+  {
+    throw new UnimplementedException("binary");
+  }
+
+  /*- TDR July 1998  */
+  public MathType unary( int op )
+         throws VisADException
+  {
+    throw new UnimplementedException("binary");
+  }
+
   public String toString() {
     return "SetType: " + Domain.toString();
   }

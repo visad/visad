@@ -995,24 +995,49 @@ public class FlatField extends FieldImpl {
       test for various relations between types of this and data;
       note return type may not be FlatField,
       in case data is a Field and this matches its range */
+  /*- TDR May 1998
   public Data binary(Data data, int op, int sampling_mode, int error_mode)
               throws VisADException, RemoteException {
+   */
+  public Data binary(Data data, int op, MathType new_type,
+                     int sampling_mode, int error_mode)
+              throws VisADException, RemoteException {
+    if ( new_type == null ) {
+      throw new TypeException("binary: new_type may not be null");
+    }
     if (data instanceof Field) {
-      if (((FunctionType) data.getType()).getRange().equalsExceptName(Type)) {
+      /*- TDR June  1998 */
+      FunctionType data_type = (FunctionType) data.getType();
+      if ((data_type.getRange()).equalsExceptName(Type)) {
+        if ( !data_type.equalsExceptName(new_type)) {
+          throw new TypeException("binary: new_type doesn't match return type" );
+        }
+      /*- end   */
         // this matches range type of data;
         // note invertOp to reverse order of operands
+        /*- TDR June  1998
         return data.binary(this, invertOp(op), sampling_mode, error_mode);
+        */
+        return data.binary(this, invertOp(op), new_type, sampling_mode, error_mode);
       }
       else if (!Type.equalsExceptName(data.getType())) {
         throw new TypeException("FlatField.binary: types don't match");
       }
+      /*- TDR June 1998 */
+      if ( !Type.equalsExceptName(new_type) ) {
+        throw new TypeException();
+      }
+      /*- end */
       if (((Field) data).isFlatField()) {
         // force (data instanceof FlatField) to be true
         data = data.local();
       }
       else {
         // this and data have same type, but this is Flat and data is not
+        /*- TDR June  1998
         return convertToField().binary(data, op, sampling_mode, error_mode);
+        */
+        return convertToField().binary(data, op, new_type, sampling_mode, error_mode);
       }
 
       // use DoubleSet rather than RangeSet for intermediate computation results
@@ -1020,7 +1045,7 @@ public class FlatField extends FieldImpl {
 
       // resample data if needed
       data = ((FlatField) data).resample(DomainSet, sampling_mode, error_mode);
-  
+
       // get values from two FlatField's
       double[][] values = unpackValues();
       double[][] value2 = ((FlatField) data).unpackValues();
@@ -1049,8 +1074,7 @@ public class FlatField extends FieldImpl {
                    RangeCoordinateSystem, units_out, errors_out,
                    ((FunctionType) data.getType()).getFlatRange(),
                    cs[0], units_in, errors_in, value2);
-      }
-      else if (RangeCoordinateSystems != null) {
+      }      else if (RangeCoordinateSystems != null) {
         TupleType rtype =
           (TupleType) ((FunctionType) Type).getRange();
         TupleType dtype =
@@ -1086,14 +1110,14 @@ public class FlatField extends FieldImpl {
             }
             j += m;
           }
-          else {  
+          else {
             errors_out[j] = errors_in[j];
             units_out[j] = units_in[j];
             j++;
           }
         }
       }
-  
+
 /*
  roles from Real.binary:
    RangeUnits[j]     --  unit
@@ -1333,7 +1357,10 @@ public class FlatField extends FieldImpl {
       }
 
       // create a FlatField for return
+      /*- TDR June  1998
       FlatField new_field = cloneDouble(units_out, errors_out);
+      */
+      FlatField new_field = cloneDouble( new_type, units_out, errors_out);
 
       new_field.packValues(values, false);
       // new_field.DoubleRange = values;
@@ -1343,10 +1370,14 @@ public class FlatField extends FieldImpl {
     else if (data instanceof Real || data instanceof RealTuple ||
              (data instanceof Tuple && ((TupleType) data.getType()).getFlat())) {
       MathType RangeType = ((FunctionType) Type).getRange();
-      if (!(data instanceof Real) &&
-          !RangeType.equalsExceptName(data.getType())) {
+      if (!RangeType.equalsExceptName(data.getType())) {
         throw new TypeException("FlatField.binary: types don't match");
       }
+      /*- TDR June 1998 */
+      if ( !Type.equalsExceptName(new_type)) {
+        throw new TypeException("binary: new_type doesn't match return type");
+      }
+      /*- end */
 
       // use DoubleSet rather than RangeSet for intermediate computation results
       if (isMissing() || data.isMissing()) return cloneDouble();
@@ -1434,7 +1465,7 @@ public class FlatField extends FieldImpl {
           case MAX:
           case MIN:
             Unit u;
-  
+
             if (RangeUnits[j] == null || units_out[j] == null) {
               u = null;
             }
@@ -1592,7 +1623,10 @@ public class FlatField extends FieldImpl {
       }
 
       // create a FlatField for return
+      /*- TDR June  1998
       FlatField new_field = cloneDouble(units_out, errors_out);
+      */
+      FlatField new_field = cloneDouble( new_type, units_out, errors_out);
 
       new_field.packValues(values, false);
       // new_field.DoubleRange = values;
@@ -1603,6 +1637,7 @@ public class FlatField extends FieldImpl {
       throw new TypeException("Field.binary");
     }
   }
+
 
   /** return new FlatField with value 'op this' */
   public Data unary(int op, int sampling_mode, int error_mode)
@@ -2321,6 +2356,8 @@ for (i=0; i<length; i++) {
       component of RangeSet, and substitute units and errors */
   private FlatField cloneDouble(Unit[] units, ErrorEstimate[] errors)
           throws VisADException {
+    return cloneDouble( null, units, errors );
+    /*- TDR June 1998
     // create (initially missing) FlatField for return
     // use DoubleSet rather than RangeSet for intermediate computation results
     Set[] sets = new Set[TupleDimension];
@@ -2336,6 +2373,33 @@ for (i=0; i<length; i++) {
     field.packValues(values, false);
     // field.DoubleRange = values;
     field.setRangeErrors(errors); 
+    field.clearMissing();
+    return field;
+    */
+  }
+
+  /*- TDR June 1998  */
+  private FlatField cloneDouble( MathType f_type, Unit[] units,
+                                 ErrorEstimate[] errors )
+          throws VisADException
+  {
+    MathType N_type = ((f_type == null) ? Type : f_type );
+
+    // create (initially missing) FlatField for return
+    // use DoubleSet rather than RangeSet for intermediate computation results
+    Set[] sets = new Set[TupleDimension];
+    for (int i=0; i<TupleDimension; i++) {
+      SetType set_type =
+        new SetType(((FunctionType) N_type).getFlatRange().getComponent(i));
+      sets[i] = new DoubleSet(set_type);
+    }
+    FlatField field =
+      new FlatField((FunctionType) N_type, DomainSet, RangeCoordinateSystem,
+                    RangeCoordinateSystems, sets, units);
+    double[][] values = unpackValues();
+    field.packValues(values, false);
+    // field.DoubleRange = values;
+    field.setRangeErrors(errors);
     field.clearMissing();
     return field;
   }

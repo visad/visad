@@ -117,9 +117,27 @@ public class Real extends Scalar {
     return (Double.isNaN(Value));
   }
 
+/*- TDR  May 1998
   public Data binary(Data data, int op, int sampling_mode, int error_mode)
               throws VisADException, RemoteException {
+ */
+
+  public Data binary(Data data, int op, MathType new_type,
+                     int sampling_mode, int error_mode )
+              throws VisADException, RemoteException {
+    /*- TDR May 1998 */
+    if ( new_type == null ) {
+      throw new TypeException("binary: new_type may not be null");
+    }
+    /*- end */
     if (data instanceof Real) {
+
+  /*- TDR May 28 1998 */
+      if ( !(new_type instanceof RealType) ) {
+        throw new TypeException("binary: new_type doesn't match return type");
+      }
+  /*- end */
+
       Unit u;
       Unit data_unit = ((Real) data).getUnit();
       double value = ((Real) data).getValue();
@@ -236,10 +254,10 @@ public class Real extends Scalar {
           throw new ArithmeticException("Real.binary: illegal operation");
       }
       if (error_mode == NO_ERRORS || Error == null || dError == null) {
-        return new Real(((RealType) Type), value, u, null);
+        return new Real(((RealType) new_type), value, u, null);
       }
       else {
-        return new Real(((RealType) Type), value, u,
+        return new Real(((RealType) new_type), value, u,
                    new ErrorEstimate(value, u, op, Error, dError, error_mode));
       }
     }
@@ -247,10 +265,26 @@ public class Real extends Scalar {
       throw new TypeException("Real.binary: types don't match");
     }
     else if (data instanceof Tuple) {
+      /* BINARY - TDR May 28, 1998
       return data.binary(this, invertOp(op), sampling_mode, error_mode);
+      */
+      /* BINARY - TDR June 5, 1998 */
+      if ( !(data.getType()).equalsExceptName(new_type) ) {
+        throw new TypeException();
+      }
+      return data.binary(this, invertOp(op), new_type, sampling_mode, error_mode);
+      /* BINARY - end  */
     }
     else if (data instanceof Field) {
+      /* BINARY - TDR May 28, 1998
       return data.binary(this, invertOp(op), sampling_mode, error_mode);
+      */
+      /* BINARY - TDR June 5, 1998 */
+      if ( !(data.getType()).equalsExceptName(new_type) ) {
+        throw new TypeException();
+      }
+      return data.binary(this, invertOp(op), new_type, sampling_mode, error_mode);
+      /* BINARY - end  */
     }
     else {
       throw new TypeException("Real.binary");

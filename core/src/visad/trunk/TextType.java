@@ -51,6 +51,34 @@ public class TextType extends ScalarType {
     return (type instanceof TextType);
   }
 
+  /*- TDR May 1998  */
+  public boolean equalsExceptNameButUnits( MathType type )
+         throws VisADException
+  {
+    throw new UnimplementedException("TextType: equalsExceptNameButUnits");
+  }
+
+  /*- TDR June 1998  */
+  public MathType cloneDerivative( RealType d_partial )
+         throws VisADException
+  {
+    throw new UnimplementedException("TexType: cloneDerivative");
+  }
+
+  /*- TDR July 1998  */
+  public MathType binary( MathType type, int op )
+         throws VisADException
+  {
+    throw new UnimplementedException("TextType: binary");
+  }
+
+  /*- TDR July 1998  */
+  public MathType unary( int op )
+         throws VisADException
+  {
+    throw new UnimplementedException("TextType: unary");
+  }
+  
   public String toString() {
     return getName() + "(Text)";
   }
