@@ -76,6 +76,16 @@ public final class OffsetUnpacker
     }
 
     /**
+     * Returns Double.NaN.
+     *
+     * @return			Double.NaN.
+     */
+    public double getIncrement()
+    {
+	return Double.NaN;
+    }
+
+    /**
      * Process a value.
      *
      * @param			The value to be processed.

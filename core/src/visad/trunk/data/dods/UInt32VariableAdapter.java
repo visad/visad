@@ -47,22 +47,7 @@ public class UInt32VariableAdapter
     {
 	realType = realType(var, table);
 	valuator = Valuator.valuator(table, Attribute.UINT32);
-	long		min = Math.round(valuator.getMin());
-	long		max = Math.round(valuator.getMax());
-	SimpleSet	repSet;
-	if (min == 0 && max <= Integer.MAX_VALUE)
-	{
-	    repSet = new Integer1DSet(realType, (int)max);
-	}
-	else
-	{
-	    long	count = (max-min) + 1;
-	    repSet =
-		count > Integer.MAX_VALUE
-		    ? (SimpleSet)new DoubleSet(realType)
-		    : new Linear1DSet(realType, min, max, (int)count);
-	}
-	repSets = new SimpleSet[] {repSet};
+	repSets = new SimpleSet[] {valuator.getRepresentationalSet(realType)};
     }
 
     /**

@@ -42,6 +42,10 @@ public abstract class ValueUnpacker
     private static final ValueUnpacker	trivialUnpacker =
 	new ValueUnpacker()
 	{
+	    public double getIncrement()
+	    {
+		return Double.NaN;
+	    }
 	    public float process(float value)
 	    {
 		return value;
@@ -111,6 +115,16 @@ public abstract class ValueUnpacker
 	}
 	return unpacker;
     }
+
+    /**
+     * Returns the minimum, potential increment between numeric values.
+     * Typically, this is the absolute magnitude of the "scale_factor"
+     * attribute.  If the increment is unset, then returns Double.NaN;
+     *
+     * @return			The increment between numeric values or 
+     *				Double.NaN.
+     */
+    public abstract double getIncrement();
 
     /**
      * Unpacks a value.

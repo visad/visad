@@ -76,6 +76,16 @@ public final class ScaleUnpacker
     }
 
     /**
+     * Returns the absolute value of the scale value.
+     *
+     * @return			The absolute value of the scale value.
+     */
+    public double getIncrement()
+    {
+	return Math.abs(doubleScale);
+    }
+
+    /**
      * Process a value.
      *
      * @param			The value to be processed.

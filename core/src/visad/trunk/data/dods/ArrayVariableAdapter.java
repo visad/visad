@@ -181,6 +181,10 @@ public class ArrayVariableAdapter
 	FieldImpl	field;
 	if (vectorAdapter.isFlat())
 	{
+	    /*
+	     * TODO: Either modify FileFlatField or subclass it to support
+	     * a domainFactor(...) method that uses FileFlatField-s.
+	     */
 	    field =
 		new FileFlatField(
 		    new VectorAccessor(funcType, vectorAdapter, domain, vector),

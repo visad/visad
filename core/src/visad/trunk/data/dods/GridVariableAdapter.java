@@ -42,7 +42,7 @@ public class GridVariableAdapter
     private final ArrayVariableAdapter		arrayAdapter;
     private final FunctionType			funcType;
     private final boolean			isFlat;
-    private final GridVariableMapAdapter[]	domainAdapters;
+    private final GridVariableMapAdapter[]	domainAdapters;	// VisAD order
 
     private GridVariableAdapter(
 	    GridVariableMapAdapter[] domainAdapters,
@@ -159,6 +159,9 @@ public class GridVariableAdapter
 	    else
 	    {
 		SampledSet[]	domainSets = new SampledSet[rank];
+		/*
+		 * NOTE: "domainAdapters" is in VisAD order (innermost first).
+		 */
 		for (int i = 0; i < rank; ++i)
 		    domainSets[i] = (SampledSet)
 			domainAdapters[i].data(
@@ -168,6 +171,10 @@ public class GridVariableAdapter
 	    DArray	array = (DArray)grid.getVar(0);
 	    if (isFlat)
 	    {
+		/*
+		 * TODO: Either modify FileFlatField or subclass it to support
+		 * a domainFactor(...) method that uses FileFlatField-s.
+		 */
 		field =
 		    new FileFlatField(
 			new GridAccessor(domain, array), getCacheStrategy());
@@ -246,35 +253,51 @@ public class GridVariableAdapter
 	}
 
 	/**
-	 * Does nothing.
+	 * Throws a VisADError.
 	 *
 	 * @param values		Some values.
 	 * @param template		A template FlatField.
 	 * @param fileLocation		An array of positional parameters.
+	 * @throws VisADError		This method does nothing and should not
+	 *				have been invoked.  Always thrown.
 	 */
 	public void writeFlatField(
 	    double[][] values, FlatField template, int[] fileLocation)
-	{}
+	{
+	    throw new VisADError(
+		getClass().getName() + ".writeFlatField(...): " +
+		"Unimplemented method");
+	}
 
 	/**
-	 * Does nothing.
+	 * Throws a VisADError.
 	 *
 	 * @param template		A template FlatField.
 	 * @param fileLocation		An array of positional parameters.
 	 * @return			<code>null</code>.
+	 * @throws VisADError		This method does nothing and should not
+	 *				have been invoked.  Always thrown.
 	 */
 	public double[][] readFlatField(FlatField template, int[] fileLocation)
 	{
-	    return null;
+	    throw new VisADError(
+		getClass().getName() + ".readFlatField(...): " +
+		"Unimplemented method");
 	}
 
 	/**
-	 * Does nothing.
+	 * Throws a VisADError.
 	 *
 	 * @param fileLocation		An array of positional parameters.
 	 * @param range			The range of a FlatField.
+	 * @throws VisADError		This method does nothing and should not
+	 *				have been invoked.  Always thrown.
 	 */
 	public void writeFile(int[] fileLocation, Data range)
-	{}
+	{
+	    throw new VisADError(
+		getClass().getName() + ".writeFile(...): " +
+		"Unimplemented method");
+	}
     }
 }

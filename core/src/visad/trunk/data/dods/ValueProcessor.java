@@ -67,6 +67,11 @@ public abstract class ValueProcessor
 	    else if (data instanceof Gridded1DSet)
 		value =
 		    ((Gridded1DSet)data).indexToValue(new int[] {index})[0][0];
+	    else
+		System.err.println(
+		    "ValueProcessor.decode(String,AttributeTable,int): " +
+		    "Attribute \"" + name + "\" has non-numeric type: " +
+		    attr.getTypeString());
 	}
 	return value;
     }

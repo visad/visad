@@ -126,6 +126,11 @@ public abstract class Adapter
 		else
 		{
 		    String	unitSpec = attr.getValueAt(0);
+		    /*
+		     * Remove extraneous quotes.
+		     */
+		    if (unitSpec.startsWith("\"") && unitSpec.endsWith("\""))
+			unitSpec = unitSpec.substring(1, unitSpec.length()-1);
 		    try
 		    {
 			unit = Parser.instance().parse(unitSpec);

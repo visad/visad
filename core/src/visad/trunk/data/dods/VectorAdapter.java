@@ -61,8 +61,8 @@ public abstract class VectorAdapter
 	throws BadFormException, VisADException, RemoteException
     {
 	repSets =
-	    factory.variableAdapter(
-		vector.getTemplate(), table).getRepresentationalSets();
+	    factory.variableAdapter(vector.getTemplate(), table)
+	    .getRepresentationalSets();
     }
 
     /**

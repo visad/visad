@@ -26,88 +26,39 @@ import dods.dap.*;
 import java.rmi.RemoteException;
 import visad.data.BadFormException;
 import visad.data.in.ValueProcessor;
-import visad.VisADException;
+import visad.*;
 
 /**
  * Provides support for processing numeric values in a DODS dataset.  Processing
- * includes unpacking and checking for validity.
+ * includes checking for non-equality with "missing" or "fill" values, 
+ * unpacking into more capacious data types, and checking that the values lie
+ * within a valid range.
  *
  * <P>Instances are immutable.</P>
  *
  * @author Steven R. Emmerson
  */
-public class Valuator
+public abstract class Valuator
     extends	ValueProcessor
 {
-    private final ValueVetter	vetter;
-    private final ValueUnpacker	unpacker;
-    private final double	lower;
-    private final double	upper;
+    protected final ValueVetter		vetter;
+    protected final ValueUnpacker	unpacker;
+    protected final ValueRanger		ranger;
 
     /**
-     * Constructs from the attributes of a DODS variable and its type.
+     * Constructs from the attributes of a DODS variable.
      *
      * @param table		The attribute table for a DODS variable.
-     * @param type		The type of packed variable: {@link
-     *				Attribute#BYTE}, {@link Attribute#INT16}, etc.
      * @throws BadFormException	The attribute table is corrupt.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
-    protected Valuator(AttributeTable table, int type)
+    protected Valuator(AttributeTable table)
 	throws BadFormException, VisADException, RemoteException
     {
 	vetter = ValueVetter.valueVetter(table);
 	unpacker = ValueUnpacker.valueUnpacker(table);
-	double	lower;
-	double	upper;
-	switch (type)
-	{
-	    case Attribute.BYTE:
-		lower = -128;
-		upper = 255;
-		break;
-	    case Attribute.FLOAT32:
-		lower = Float.NEGATIVE_INFINITY;
-		upper = Float.POSITIVE_INFINITY;
-		break;
-	    case Attribute.FLOAT64:
-		lower = Double.NEGATIVE_INFINITY;
-		upper = Double.POSITIVE_INFINITY;
-		break;
-	    case Attribute.INT16:
-		lower = Short.MIN_VALUE;
-		upper = Short.MAX_VALUE;
-		break;
-	    case Attribute.INT32:
-		lower = Integer.MIN_VALUE;
-		upper = Integer.MAX_VALUE;
-		break;
-	    case Attribute.UINT16:
-		lower = 0;
-		upper = 2*Short.MAX_VALUE+1;
-		break;
-	    case Attribute.UINT32:
-		lower = 0;
-		upper = 4294967295L;
-		break;
-	    default:
-		throw new BadFormException(
-		    getClass().getName() + ".<init>(AttributeTable,int): " +
-		    "Unknown variable type: " + type);
-	}
-	double	limitA = process(Math.max(lower, vetter.getMin()));
-	double	limitB = process(Math.min(upper, vetter.getMax()));
-	if (limitA < limitB)
-	{
-	    this.lower = limitA;
-	    this.upper = limitB;
-	}
-	else
-	{
-	    this.lower = limitB;
-	    this.upper = limitA;
-	}
+	ranger = ValueRanger.valueRanger(table);
     }
 
     /**
@@ -124,28 +75,53 @@ public class Valuator
     public static Valuator valuator(AttributeTable table, int type)
 	throws BadFormException, VisADException, RemoteException
     {
-	return new Valuator(table, type);
+	Valuator	valuator;
+	switch (type)
+	{
+	    case Attribute.BYTE:
+		valuator = 
+		    ValueRanger.valueRanger(table).getMin() >= 0
+			? UByteValuator.valuator(table)
+			: ByteValuator.valuator(table);
+		break;
+	    case Attribute.FLOAT32:
+		valuator = Float32Valuator.valuator(table);
+		break;
+	    case Attribute.FLOAT64:
+		valuator = Float64Valuator.valuator(table);
+		break;
+	    case Attribute.INT16:
+		valuator = Int16Valuator.valuator(table);
+		break;
+	    case Attribute.INT32:
+		valuator = Int32Valuator.valuator(table);
+		break;
+	    case Attribute.UINT16:
+		valuator = UInt16Valuator.valuator(table);
+		break;
+	    case Attribute.UINT32:
+		valuator = UInt32Valuator.valuator(table);
+		break;
+	    default:
+		throw new BadFormException(
+		    "Valuator.valuator(AttributeTable,int): " +
+		    "Unknown variable type: " + type);
+	}
+	return valuator;
     }
 
     /**
-     * Returns the minimum, valid, unpacked value.
+     * Returns the set used to represent unpacked, numeric values associated
+     * with this instance in the range of a VisAD {@link FlatField}.
      *
-     * @return			The minimum, valid value.
+     * @return realType		The VisAD real-type for the set.
+     * @return			The set used to represent numeric values
+     *				associated with this instance.  May be
+     *				<code>null</code>.
+     * @throws VisADException	VisAD failure.
      */
-    public double getMin()
-    {
-	return lower;
-    }
-
-    /**
-     * Returns the maximum, valid, unpacked value.
-     *
-     * @return			The maximum, valid value.
-     */
-    public double getMax()
-    {
-	return upper;
-    }
+    public abstract SimpleSet getRepresentationalSet(RealType realType)
+	throws VisADException;
 
     /**
      * Processes a value.
@@ -154,7 +130,7 @@ public class Valuator
      */
     public float process(float value)
     {
-	return unpacker.process(vetter.process(value));
+	return ranger.process(unpacker.process(vetter.process(value)));
     }
 
     /**
@@ -164,7 +140,7 @@ public class Valuator
      */
     public float[] process(float[] values)
     {
-	return unpacker.process(vetter.process(values));
+	return ranger.process(unpacker.process(vetter.process(values)));
     }
 
     /**
@@ -174,7 +150,7 @@ public class Valuator
      */
     public double process(double value)
     {
-	return unpacker.process(vetter.process(value));
+	return ranger.process(unpacker.process(vetter.process(value)));
     }
 
     /**
@@ -184,6 +160,6 @@ public class Valuator
      */
     public double[] process(double[] values)
     {
-	return unpacker.process(vetter.process(values));
+	return ranger.process(unpacker.process(vetter.process(values)));
     }
 }

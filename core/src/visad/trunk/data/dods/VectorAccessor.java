@@ -98,34 +98,50 @@ public class VectorAccessor
     }
 
     /**
-     * Does nothing.
+     * Throws a VisADError.
      *
      * @param values		Some values.
      * @param template		A template FlatField.
-     * @param fileLocation		An array of positional parameters.
+     * @param fileLocation	An array of positional parameters.
+     * @throws VisADError	This method does nothing and should not
+     *				have been invoked.  Always thrown.
      */
     public void writeFlatField(
 	double[][] values, FlatField template, int[] fileLocation)
-    {}
-
-    /**
-     * Does nothing.
-     *
-     * @param template		A template FlatField.
-     * @param fileLocation		An array of positional parameters.
-     * @return			<code>null</code>.
-     */
-    public double[][] readFlatField(FlatField template, int[] fileLocation)
     {
-	return null;
+	throw new VisADError(
+	    getClass().getName() + ".writeFlatField(...): " +
+	    "Unimplemented method");
     }
 
     /**
-     * Does nothing.
+     * Throws a VisADError.
      *
-     * @param fileLocation		An array of positional parameters.
-     * @param range			The range of a FlatField.
+     * @param template		A template FlatField.
+     * @param fileLocation	An array of positional parameters.
+     * @return			<code>null</code>.
+     * @throws VisADError	This method does nothing and should not
+     *				have been invoked.  Always thrown.
+     */
+    public double[][] readFlatField(FlatField template, int[] fileLocation)
+    {
+	throw new VisADError(
+	    getClass().getName() + ".readFlatField(...): " +
+	    "Unimplemented method");
+    }
+
+    /**
+     * Throws a VisADError.
+     *
+     * @param fileLocation	An array of positional parameters.
+     * @param range		The range of a FlatField.
+     * @throws VisADError	This method does nothing and should not
+     *				have been invoked.  Always thrown.
      */
     public void writeFile(int[] fileLocation, Data range)
-    {}
+    {
+	throw new VisADError(
+	    getClass().getName() + ".writeFile(...): " +
+	    "Unimplemented method");
+    }
 }

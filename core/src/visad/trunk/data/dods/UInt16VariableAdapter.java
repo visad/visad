@@ -47,13 +47,7 @@ public class UInt16VariableAdapter
     {
 	realType = realType(var, table);
 	valuator = Valuator.valuator(table, Attribute.UINT16);
-	int	min = (int)Math.round(valuator.getMin());
-	int	max = (int)Math.round(valuator.getMax());
-	repSets =
-	    new SimpleSet[] {
-		min == 0
-		    ? (SimpleSet)new Integer1DSet(realType, max)
-		    : new Linear1DSet(realType, min, max, (max-min)+1)};
+	repSets = new SimpleSet[] {valuator.getRepresentationalSet(realType)};
     }
 
     /**

@@ -22,7 +22,7 @@ MA 02111-1307, USA
 
 package visad.data.dods;
 
-import java.net.URL;
+import java.net.*;
 import java.rmi.RemoteException;
 import visad.*;
 import visad.data.*;
@@ -36,11 +36,18 @@ import visad.data.in.*;
  * @author Steven R. Emmerson
  */
 public class DODSForm
-    extends Form
+    extends	Form
+    implements	FormFileInformer
 {
-    private static DODSForm	instance;
-    private final DODSSource	source;
-    private final Consolidator	consolidator;
+    /**
+     * The suffix in the path-component of a URL specification that identifies
+     * a dataset specification as being a DODS dataset specification.
+     */
+    public final static String		SUFFIX = ".dods";
+
+    private static DODSForm		instance;
+    private final DODSSource		source;
+    private final Consolidator		consolidator;
 
     static
     {
@@ -66,7 +73,8 @@ public class DODSForm
     {
 	super("DODS");
 	consolidator = new Consolidator();
-	source = new DODSSource(new TimeFactorer(consolidator));
+	// source = new DODSSource(new TimeFactorer(consolidator));
+	source = new DODSSource(consolidator);
     }
 
     /**
@@ -80,11 +88,12 @@ public class DODSForm
     }
 
     /**
-     * Does nothing but throw {@link UnimplementedException}.
+     * Throws an exception.
      *
      * @param id		An identifier.
      * @param data		A VisAD data object.
      * @param replace		Whether or not to replace an existing object.
+     * @throws UnimplementedException	Always.
      */
     public void
     save(String id, Data data, boolean replace)
@@ -96,11 +105,12 @@ public class DODSForm
     }
 
     /**
-     * Does nothing but throw {@link UnimplementedException}.
+     * Throws an exception.
      *
      * @param id		An identifier.
      * @param data		A VisAD data object.
      * @param replace		Whether or not to replace an existing object.
+     * @throws BadFormException	Always.
      */
     public void add(String id, Data data, boolean replace)
 	throws BadFormException
@@ -113,8 +123,8 @@ public class DODSForm
     /**
      * Opens an existing data object.
      *
-     * @param id		The string identifier for a DODS dataset (i.e. a
-     *				URL).
+     * @param id		The URL for a DODS dataset.  The path component
+     *				should have a {@link #SUFFIX} suffix.
      * @return			The VisAD data object corresponding to the 
      *				specified DODS dataset.
      * @throws BadFormException	The DODS dataset is corrupt.
@@ -133,7 +143,8 @@ public class DODSForm
     /**
      * Opens an existing data object.
      *
-     * @param url		The URL for a DODS dataset.
+     * @param url		The URL for a DODS dataset.  The path component
+     *				should have a {@link #SUFFIX} suffix.
      * @return			The VisAD data object corresponding to the 
      *				DODS dataset.
      * @throws BadFormException	The DODS dataset is corrupt.
@@ -155,5 +166,45 @@ public class DODSForm
     public FormNode getForms(Data data)
     {
 	return null;	// can't save data to a DODS server
+    }
+
+    /*
+     * FormFileInformer method implementations:
+     */
+
+    /**
+     * Indicates if a pathname dataset specification refers to a DODS dataset.
+     *
+     * @param spec		A pathname dataset specification.
+     * @return			<code>true</code> if and only if the pathname 
+     *				dataset specification refers to a DODS dataset.
+     */
+    public boolean isThisType(String pathname)
+    {
+	return pathname.endsWith(SUFFIX);
+    }
+
+    /**
+     * Does nothing.  Because the initial block of data in a DODS dataset can't
+     * be obtained from a DODS server, this routine does nothing and always
+     * returns false.
+     *
+     * @param block		A block of data.
+     * @return			<code>false</code> always.
+     */
+    public boolean isThisType(byte[] block)
+    {
+	return false;
+    }
+
+    /**
+     * Returns the path-component suffixes that identifies a dataset 
+     * specification as being a DODS dataset specification.
+     *
+     * @return			The array of relevant suffixes.
+     */
+    public String[] getDefaultSuffixes()
+    {
+	return new String[] {SUFFIX};
     }
 }

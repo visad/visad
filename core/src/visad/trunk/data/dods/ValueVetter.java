@@ -29,7 +29,8 @@ import visad.data.in.*;
 import visad.*;
 
 /**
- * Provides support for verifying data values.
+ * Provides support for verifying data values (i.e. seeing that they aren't
+ * equal to a "missing" or "fill" value).
  *
  * <P>Instances are immutable.</P>
  *
@@ -38,8 +39,6 @@ import visad.*;
 public class ValueVetter
     extends	ValueProcessor
 {
-    private double			lower = Double.NEGATIVE_INFINITY;
-    private double			upper = Double.POSITIVE_INFINITY;
     private double			fill = Double.NaN;
     private double			missing = Double.NaN;
     private static final ValueVetter	trivialVetter =
@@ -72,18 +71,11 @@ public class ValueVetter
     /**
      * Constructs from valid-range limits, a fill-value, and a missing value.
      *
-     * @param lower		The lower limit of the valid range.  May be
-     *				NaN.
-     * @param upper		The upper limit of the valid range.  May be
-     *				NaN.
      * @param fill		The fill-value.  May be NaN.
      * @param missing		The missing-value value.  May be NaN.
      */
-    protected ValueVetter(
-	double lower, double upper, double fill, double missing)
+    protected ValueVetter(double fill, double missing)
     {
-	this.lower = lower == lower ? lower : Double.NEGATIVE_INFINITY;
-	this.upper = upper == upper ? upper : Double.POSITIVE_INFINITY;
 	this.fill = fill;
 	this.missing = missing;
     }
@@ -111,45 +103,12 @@ public class ValueVetter
 	{
 	    double	fill = decode("_FillValue", table, 0);
 	    double	missing = decode("missing_value", table, 0);
-	    double	lower;
-	    double	upper;
-	    if (table.getAttribute("valid_range") == null)
-	    {
-		lower = decode("valid_min", table, 0);
-		upper = decode("valid_max", table, 0);
-	    }
-	    else
-	    {
-		lower = decode("valid_range", table, 0);
-		upper = decode("valid_range", table, 1);
-	    }
 	    vetter =
-		lower == lower || upper == upper || 
 		fill == fill || missing == missing
-		    ? new ValueVetter(lower, upper, fill, missing)
+		    ? new ValueVetter(fill, missing)
 		    : trivialVetter;
 	}
 	return vetter;
-    }
-
-    /**
-     * Returns the minimum, valid value.
-     *
-     * @return			The minimum, valid value.
-     */
-    public double getMin()
-    {
-	return lower;
-    }
-
-    /**
-     * Returns the maximum, valid value.
-     *
-     * @return			The maximum, valid value.
-     */
-    public double getMax()
-    {
-	return upper;;
     }
 
     /**
@@ -164,7 +123,7 @@ public class ValueVetter
 	 * comparisons.
 	 */
 	return
-	    value < lower || value > upper || value == missing || value == fill
+	    value == missing || value == fill
 		? Float.NaN
 		: value;
     }
@@ -181,7 +140,7 @@ public class ValueVetter
 	 * comparisons.
 	 */
 	return
-	    value < lower || value > upper || value == missing || value == fill
+	    value == missing || value == fill
 		? Double.NaN
 		: value;
     }
@@ -202,7 +161,6 @@ public class ValueVetter
 	{
 	    double	value = values[i];
 	    values[i] =
-		value < lower || value > upper ||
 		value == missing || value == fill
 		    ? Float.NaN
 		    : (float)value;
@@ -226,7 +184,6 @@ public class ValueVetter
 	{
 	    double	value = values[i];
 	    values[i] =
-		value < lower || value > upper ||
 		value == missing || value == fill
 		    ? Double.NaN
 		    : value;

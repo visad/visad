@@ -124,6 +124,10 @@ public class ListVariableAdapter
 	FieldImpl	field;
 	if (funcType.getFlat())
 	{
+	    /*
+	     * TODO: Either modify FileFlatField or subclass it to support
+	     * a domainFactor(...) method that uses FileFlatField-s.
+	     */
 	    field =
 		new FileFlatField(
 		    new VectorAccessor(funcType, vectorAdapter, domain, vector),

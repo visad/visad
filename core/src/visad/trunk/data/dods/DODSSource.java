@@ -23,6 +23,7 @@ MA 02111-1307, USA
 package visad.data.dods;
 
 import dods.dap.*;
+import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.Enumeration;
 import visad.data.BadFormException;
@@ -69,8 +70,8 @@ public class DODSSource
     /**
      * Opens an existing DODS dataset.
      *
-     * @param spec		The string specification of the DODS dataset (
-     *				i.e. a URL specification).
+     * @param spec		The URL string specification of the DODS dataset
+     *				The path component should have a ".dods" suffix.
      * @return			<code>true</code> if and only if the specified
      *				DODS dataset was successfully converted into
      *				a VisAD data object.
@@ -81,6 +82,22 @@ public class DODSSource
 	System.gc();
 	try
 	{
+	    URL		url = new URL(spec);
+	    String	path = url.getPath();
+	    String	suffix = ".dods";
+	    /*
+	     * Because the DConnect class won't construct an instance
+	     * from a DODS dataset specification whose path component has a
+	     * ".dods" suffix, such a suffix is removed.
+	     */
+	    if (path.endsWith(suffix))
+	    {
+		path	= path.substring(0, path.length()-suffix.length());
+		spec =
+		    new URL(
+			url.getProtocol(), url.getHost(), url.getPort(), path)
+		    .toString();
+	    }
 	    DConnect	dConnect = new DConnect(spec);
 	    DAS		das = dConnect.getDAS();
 	    handleGlobalAttributes(das);
