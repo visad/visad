@@ -28,14 +28,26 @@ package edu.wisc.ssec.mcidas;
 
 /**
  * AreaFileException class is to handle exceptions when dealing
- * with McIDAS 'area' files
+ * with McIDAS 'area' files.
+ * @deprecated  use McIDASException instead
  *
  * @author Tom Whittaker SSEC
  */
 
-public class AreaFileException extends Exception {
+public class AreaFileException extends McIDASException {
 
+  /**
+   * Constructs an AreaFileException with no specified detail message.
+   * @deprecated  use McIDASException instead
+   */
   public AreaFileException() {super(); }
+
+  /**
+   * Constructs an AreaFileException with the specified detail message.
+   * @deprecated  use McIDASException instead
+   *
+   * @param  s  the detail message.
+   */
   public AreaFileException(String s) {super(s); }
 
 }
