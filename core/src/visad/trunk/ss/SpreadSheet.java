@@ -800,13 +800,13 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
     FormulaEditor = FormulaBox.getEditor();
     FormulaEditor.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        String newItem = (String) FormulaEditor.getItem();
+        String newItem = ((String) FormulaEditor.getItem()).trim();
         try {
           int id = 0;
           int type = BasicSSCell.UNKNOWN_SOURCE;
           boolean notify = true;
 
-          int index1 = newItem.indexOf("d");
+          int index1 = newItem.indexOf("d", 2);
           int index2 = newItem.indexOf(":");
           if (index1 > 0 && index2 > 0 && index1 < index2) {
             String cellName = newItem.substring(0, index1);
