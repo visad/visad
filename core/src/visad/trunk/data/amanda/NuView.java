@@ -70,7 +70,6 @@ public class NuView
   implements CmdlineConsumer
 {
   private String fileName;
-  private boolean timeSequence;
 
   private DisplayImpl display;
 
@@ -101,14 +100,6 @@ public class NuView
     setRange(zMap, file.getZMin(), file.getZMax(), halfRange);
     display.addMap(zMap);
 
-    ScalarMap trackMap;
-    if (timeSequence) {
-      trackMap = null;
-    } else {
-      trackMap = new ScalarMap(BaseTrack.indexType, Display.SelectValue);
-      display.addMap(trackMap);
-    }
-
     ScalarMap shapeMap = new ScalarMap(Hit.amplitudeType, Display.Shape);
     display.addMap(shapeMap);
 
@@ -116,12 +107,10 @@ public class NuView
     sctl.setShapeSet(new Integer1DSet(Hit.amplitudeType, 1));
     sctl.setShapes(F2000Util.getCubeArray());
 
-    if (!timeSequence) {
-      ScalarMap shapeScaleMap =
-        new ScalarMap(Hit.amplitudeType, Display.ShapeScale);
-      display.addMap(shapeScaleMap);
-      shapeScaleMap.setRange(-20.0, 50.0);
-    }
+    ScalarMap shapeScaleMap =
+      new ScalarMap(Hit.amplitudeType, Display.ShapeScale);
+    display.addMap(shapeScaleMap);
+    shapeScaleMap.setRange(-20.0, 50.0);
 
     ScalarMap colorMap = new ScalarMap(Hit.leadingEdgeTimeType, Display.RGB);
     display.addMap(colorMap);
@@ -141,18 +130,13 @@ public class NuView
     }
     colorCtl.setTable(table);
 
-    ScalarMap animMap;
-    if (timeSequence) {
-      animMap = new ScalarMap(RealType.Time, Display.Animation);
-      display.addMap(animMap);
-    } else {
-      animMap = null;
-    }
+    ScalarMap animMap = new ScalarMap(RealType.Time, Display.Animation);
+    display.addMap(animMap);
 
     DisplayRenderer displayRenderer = display.getDisplayRenderer();
     displayRenderer.setBoxOn(false);
 
-    final FieldImpl eventsFld = file.makeEventData(timeSequence);
+    final FieldImpl eventsFld = file.makeEventData();
     final FieldImpl modulesFld = file.makeModuleData();
 
     final DataReferenceImpl eventRef = new DataReferenceImpl("event");
@@ -168,19 +152,14 @@ public class NuView
     //   (if we don't left-align, BoxLayout hoses everything)
     colorWidget.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-    EventWidget eventWidget = new EventWidget(file, eventsFld, eventRef,
-                                              trackMap);
+    EventWidget eventWidget = new EventWidget(file, eventsFld, eventRef);
 
     AnimationWidget animWidget;
-    if (animMap == null) {
+    try {
+      animWidget = new AnimationWidget(animMap);
+    } catch (Exception ex) {
+      ex.printStackTrace();
       animWidget = null;
-    } else {
-      try {
-        animWidget = new AnimationWidget(animMap);
-      } catch (Exception ex) {
-        ex.printStackTrace();
-        animWidget = null;
-      }
     }
 
     JPanel widgetPanel = new JPanel();
@@ -240,11 +219,6 @@ public class NuView
 
   public int checkOption(String mainName, char ch, String arg)
   {
-    if (ch == 'o') {
-      timeSequence = false;
-      return 1;
-    }
-
     return 0;
   }
 
@@ -270,7 +244,6 @@ public class NuView
   public void initializeArgs()
   {
     fileName = null;
-    timeSequence = true;
   }
 
   private static final AmandaFile openFile(String fileName)

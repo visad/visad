@@ -94,39 +94,6 @@ public class Event
 
   public final int getYear() { return year; }
 
-  final Tuple makeData()
-  {
-    // construct Tuple of all tracks and hits
-    Data tData, hData;
-    try {
-      tData = tracks.makeData();
-      hData = hits.makeData();
-    } catch (RemoteException re) {
-      re.printStackTrace();
-      tData = hData = null;
-    } catch (VisADException ve) {
-      ve.printStackTrace();
-      tData = hData = null;
-    }
-
-    Tuple t;
-    if (tData == null && hData == null) {
-      t = null;
-    } else {
-      try {
-        t = new Tuple(new Data[] {tData, hData});
-      } catch (RemoteException re) {
-        re.printStackTrace();
-        t = null;
-      } catch (VisADException ve) {
-        ve.printStackTrace();
-        t = null;
-      }
-    }
-
-    return t;
-  }
-
   public final FieldImpl makeTimeSequence()
   {
     return hits.makeTimeSequence();

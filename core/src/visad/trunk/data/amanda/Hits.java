@@ -70,29 +70,6 @@ public class Hits
 
   public final Hit get(int i) { return (Hit )super.internalGet(i); }
 
-  public final Data makeData()
-    throws RemoteException, VisADException
-  {
-    final int num = size();
-
-    Integer1DSet set = new Integer1DSet(Hit.indexType,
-                                        (num == 0 ? 1 : num));
-    FlatField fld = new FlatField(functionType, set);
-    if (num > 0) {
-      RealTuple[] tuples = new RealTuple[num];
-      for (int i = 0; i < num; i++) {
-        tuples[i] = get(i).makeData();
-      }
-      try {
-        fld.setSamples(tuples, true);
-      } catch (RemoteException re) {
-        re.printStackTrace();
-      }
-    }
-
-    return fld;
-  }
-
   final FieldImpl makeTimeSequence()
   {
     final int numHits = size();

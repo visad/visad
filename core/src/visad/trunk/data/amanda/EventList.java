@@ -54,9 +54,6 @@ public abstract class EventList
     return list.get(i);
   }
 
-  public abstract Data makeData()
-    throws RemoteException, VisADException;
-
   final int size() { return list.size(); }
 
   public final String toString() { return Integer.toString(list.size()); }
