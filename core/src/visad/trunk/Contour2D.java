@@ -519,12 +519,12 @@ else {
 if (!any && numc > 0) {
   System.out.println("numc = " + numc + " clow = " + myvals[low] +
                      " chi = " + myvals[hi]);
-  any = true;
-}
+any = true;
 */
+
         o_flags[ir][ic]  = new byte[2*numc]; //- case flags
         n_lines[ir][ic]  = 0;  //- number of contour line segments
-        ctrLow[ir][ic]   = (short)low;
+        ctrLow[ir][ic]   = (short)hi;
 
         for (il=0; il<numc; il++) {
 
@@ -576,6 +576,7 @@ if (!any && numc > 0) {
           if (ii > 7) ii = 15 - ii;
           if (ii <= 0) continue;
 
+          if ((low+il) < ctrLow[ir][ic]) ctrLow[ir][ic] = (short)(low+il);
 
           // DO LABEL HERE
           if (( mark[ (ic) * nr + (ir) ] )==0) {
@@ -972,14 +973,16 @@ if (!any && numc > 0) {
                   vy[numv] = yy+yd*(gg-ga)/gca;
                 vx[numv] = xx;
                 numv++;
-                o_flags[ir][ic][n_lines[ir][ic]] = (byte)1;
+                o_flags[ir][ic][n_lines[ir][ic]] = (byte)1 + (byte)32;
+                //o_flags[ir][ic][n_lines[ir][ic]] = (byte)1;
                 n_lines[ir][ic]++;
                 if (( (gdb) < 0 ? -(gdb) : (gdb) ) < 0.0000001)
                   vy[numv] = yy;
                 else
                   vy[numv] = yy+yd*(gg-gb)/gdb;
                 vx[numv] = xx+xd;
-                o_flags[ir][ic][n_lines[ir][ic]] = (byte)7;
+                o_flags[ir][ic][n_lines[ir][ic]] = (byte)7 + (byte)32;
+                //o_flags[ir][ic][n_lines[ir][ic]] = (byte)7;
                 n_lines[ir][ic]++;
                 numv++;
               }
@@ -990,7 +993,8 @@ if (!any && numc > 0) {
                   vy[numv] = yy+yd*(gg-gb)/gdb;
                 vx[numv] = xx+xd;
                 numv++;
-                o_flags[ir][ic][n_lines[ir][ic]] = (byte)2;
+                o_flags[ir][ic][n_lines[ir][ic]] = (byte)2 + (byte)32;
+                //o_flags[ir][ic][n_lines[ir][ic]] = (byte)2;
                 n_lines[ir][ic]++;
                 if (( (gca) < 0 ? -(gca) : (gca) ) < 0.0000001)
                   vy[numv] = yy;
@@ -998,7 +1002,8 @@ if (!any && numc > 0) {
                   vy[numv] = yy+yd*(gg-ga)/gca;
                 vx[numv] = xx;
                 numv++;
-                o_flags[ir][ic][n_lines[ir][ic]] = (byte)4;
+                o_flags[ir][ic][n_lines[ir][ic]] = (byte)4 + (byte)32;
+                //o_flags[ir][ic][n_lines[ir][ic]] = (byte)4;
                 n_lines[ir][ic]++;
               }
               if (( (gdc) < 0 ? -(gdc) : (gdc) ) < 0.0000001)
@@ -1007,6 +1012,7 @@ if (!any && numc > 0) {
                 vx[numv] = xx+xd*(gg-gc)/gdc;
               vy[numv] = yy+yd;
               numv++;
+              //-System.out.println("case: 6, ir: "+ir+", ic: "+ic);
               break;
 
             case 7:
@@ -1269,13 +1275,19 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
           int o_idx           = 0;
           byte o_flag         = o_flags[o_idx];
           int ydir            = 1;
+          boolean special     = false;
+          int[] closed        = {0};
+          boolean up;
+          boolean right;
+          float dist_sqrd     = 0;
 
-          int v_idx = start + dir*il*2;
+          int v_idx           = start + dir*il*2;
 
           //-- color level at corners
+          //------------------------------
           byte[][] crnr_color = new byte[4][color_length];
-          boolean[] crnr_out = new boolean[] {true, true, true, true};
-          boolean all_out = true;
+          boolean[] crnr_out  = new boolean[] {true, true, true, true};
+          boolean all_out     = true;
           for (int tt = 0; tt < corners.length; tt++) {
             int cc = 0;
             int kk = 0;
@@ -1292,36 +1304,37 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
             }
           }
 
-          int tt = t_idx[0];
+          int tt = t_idx[0]; //- initialize triangle vertex counter
 
-          if (numc > 1) {
-            //-- determine start contour
-            float x_avg_min = Float.MAX_VALUE;
-            x_min_idx = 0;
-            for ( int kk = 0; kk < numc; kk++ ) {
-              v_idx = (numv - numc*2) + kk*2;
-              float x_avg = (vx[v_idx] + vx[v_idx+1])/2;
-              if ( x_avg < x_avg_min ) {
-                x_avg_min = x_avg;
-                x_min_idx = kk;
-              }
-            }
-            dir     = -1;
-            start   =  numv-1;
-            o_start =  numc-1;
-            if ( x_min_idx == 0 ) {
-              dir = 1;
-              start = numv - numc*2;
-              o_start = 0;
-            }
-            v_idx  = start   + dir*il*2;
-            o_idx  = o_start + dir*il;
-            o_flag = o_flags[o_idx];
 
-            ydir = 1;
-            if ((vy[v_idx] - vy[start+dir*(numc-1)*2]) < 0) ydir = -1;
+          dir     = 1;
+          start   = numv - numc*2;
+          o_start = 0;
+          v_idx   = start + dir*il*2;
+          up      = false;
+          right   = false;
+          float[] x_avg = new float[2];
+          float[] y_avg = new float[2];
+
+          if (numc > 1)
+          { //-- first/next ctr line midpoints
+            int idx  = v_idx;
+            x_avg[0] = (vx[idx] + vx[idx+1])/2;
+            y_avg[0] = (vy[idx] + vy[idx+1])/2;
+            idx      = v_idx + 2;
+            x_avg[1] = (vx[idx] + vx[idx+1])/2;
+            y_avg[1] = (vy[idx] + vy[idx+1])/2;
+            if ((x_avg[1] - x_avg[0]) > 0) up    = true;
+            if ((y_avg[1] - y_avg[0]) > 0) right = true;
           }
-          else if ( numc == 0 )
+          else if ( numc == 1 ) 
+          { //- default values for logic below
+            x_avg[0] = 0f;
+            y_avg[0] = 0f;
+            x_avg[1] = 1f;
+            y_avg[1] = 1f;
+          }
+          else if ( numc == 0 ) //- empty grid box (no contour lines)
           {
             if (all_out) return;
             n_tri = 2;
@@ -1386,51 +1399,115 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
 
             cnt_tri[0]++;
             return;
+          }//-- end no contour lines
+
+
+          //--TDR debug, skip case 6 (saddle point)
+          for (int iii=0; iii<o_flags.length; iii++) {
+            if (o_flags[iii] > 32) {
+              /**
+              fillCaseSix(xx, yy, xd, yd, v_idx, o_flags,
+                          vx, vy, nc, nr, crnr_color, crnr_out,
+                          tri, t_idx, tri_color,
+                          grd_normals, n_idx, tri_normals, closed);
+               **/
+              return;
+            }
           }
 
           //-- start making triangles for color fill
-         
-          if (o_flag == 1 || o_flag == 4)
-          {
-            fillToNearCorner(xx, yy, xd, yd, v_idx, o_flag, cnt_tri, dir,
-                             vx, vy, nc, nr, crnr_color, crnr_out,
-                             tri, t_idx, tri_color,
-                             grd_normals, n_idx, tri_normals);
-          }
-          else if (o_flag == 2 || o_flag == 7)
-          {
-            fillToOppCorner(xx, yy, xd, yd, v_idx, o_flag, cnt_tri, dir,
-                            vx, vy, nc, nr, crnr_color, crnr_out,
-                            tri, t_idx, tri_color,
-                            grd_normals, n_idx, tri_normals);
+          //---------------------------------------------
+
+          if (o_flag == 1 || o_flag == 4 || o_flag == 2 || o_flag == 7) {
+            boolean opp = false;
+            float dy = 0;
+            float dx = 0;
+            float dist_0 = 0;
+            float dist_1 = 0;
+
+            /*  compare midpoints distances for first/next 
+                contour lines
+            -------------------------------------------------*/
+            if (o_flag == 1)  {
+              dy = (y_avg[1] - (yy));
+              dx = (x_avg[1] - (xx));
+              dist_1 = dy*dy + dx*dx;
+              dy = (y_avg[0] - (yy));
+              dx = (x_avg[0] - (xx));
+              dist_0 = dy*dy + dx*dx;
+            }
+            if (o_flag == 2) {
+              dy = (y_avg[1] - (yy));
+              dx = (x_avg[1] - (xx + xd));
+              dist_1 = dy*dy + dx*dx;
+              dy = (y_avg[0] - (yy));
+              dx = (x_avg[0] - (xx + xd));
+              dist_0 = dy*dy + dx*dx;
+            }
+            if (o_flag == 4) {
+              dy = (y_avg[1] - (yy + yd));
+              dx = (x_avg[1] - (xx));
+              dist_1 = dy*dy + dx*dx;
+              dy = (y_avg[0] - (yy + yd));
+              dx = (x_avg[0] - (xx));
+              dist_0 = dy*dy + dx*dx;
+            }
+            if (o_flag == 7) {
+              dy = (y_avg[1] - (yy + yd));
+              dx = (x_avg[1] - (xx + xd));
+              dist_1 = dy*dy + dx*dx;
+              dy = (y_avg[0] - (yy + yd));
+              dx = (x_avg[0] - (xx + xd));
+              dist_0 = dy*dy + dx*dx;
+            }
+            if (dist_1 < dist_0) opp = true;
+            if (opp) {
+              fillToOppCorner(xx, yy, xd, yd, v_idx, o_flag, cnt_tri, dir,
+                              vx, vy, nc, nr, crnr_color, crnr_out,
+                              tri, t_idx, tri_color,
+                              grd_normals, n_idx, tri_normals, closed);
+            }
+            else {
+              fillToNearCorner(xx, yy, xd, yd, v_idx, o_flag, cnt_tri, dir,
+                               vx, vy, nc, nr, crnr_color, crnr_out,
+                               tri, t_idx, tri_color,
+                               grd_normals, n_idx, tri_normals, closed);
+            }
           }
           else if (o_flags[o_idx] == 3)
           {
-            fillToSide(xx, yy, xd, yd, v_idx, o_flag, ydir, cnt_tri, dir,
+            int flag = 1;
+            if (right) flag = -1;
+            fillToSide(xx, yy, xd, yd, v_idx, o_flag, flag, cnt_tri, dir,
                        vx, vy, nc, nr, crnr_color, crnr_out,
                        tri, t_idx, tri_color,
-                       grd_normals, n_idx, tri_normals);
+                       grd_normals, n_idx, tri_normals, closed);
           }
           else if (o_flags[o_idx] == 5)
           {
-            fillToSide(xx, yy, xd, yd, v_idx, o_flag, 1, cnt_tri, dir,
+            int flag = 1;
+            if (!up) flag = -1;
+            fillToSide(xx, yy, xd, yd, v_idx, o_flag, flag, cnt_tri, dir,
                        vx, vy, nc, nr, crnr_color, crnr_out,
                        tri, t_idx, tri_color,
-                       grd_normals, n_idx, tri_normals);
+                       grd_normals, n_idx, tri_normals, closed);
           }
 
           byte last_o  = o_flags[o_idx];
           int cc_start = (dir > 0) ? (ctrLow-1) : (ctrLow+(numc-1));
           
+
+          //- move to next contour line
+          //--------------------------------
           il++;
-          for ( il = 1; il < numc; il++ )  //- move to next contour line
+          for ( il = 1; il < numc; il++ )
           {
             v_idx = start + dir*il*2;
             o_idx = o_start + dir*il;
             int v_idx_last = v_idx - 2*dir;
             int cc = cc_start + dir*il;
 
-            if (o_flags[o_idx] != last_o)
+            if (o_flags[o_idx] != last_o) //- contour line case change
             {
               byte[] side_s      = new byte[2];
               byte[] last_side_s = new byte[2];
@@ -1489,10 +1566,10 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                 vv[1][0]    = vx[v_idx];
                 vv[1][1]    = vy[v_idx];
               }
-              vv1_last[0] = vx[v_idx_last];
-              vv1_last[1] = vy[v_idx_last];
-              vv2_last[0] = vx[v_idx_last+dir];
-              vv2_last[1] = vy[v_idx_last+dir];
+              vv1_last[0]   = vx[v_idx_last];
+              vv1_last[1]   = vy[v_idx_last];
+              vv2_last[0]   = vx[v_idx_last+dir];
+              vv2_last[1]   = vy[v_idx_last+dir];
 
               vv_last[0][0] = vx[v_idx_last];
               vv_last[0][1] = vy[v_idx_last];
@@ -1568,6 +1645,8 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
 
 
               for (int kk = 0; kk < 2; kk++) { //- close off corners
+                float[] vvx = new float[2];
+                float[] vvy = new float[2];
                 byte side   = 0;
                 byte last_s = 0;
                 if (vv[kk][1] == yy)              side   = 0;
@@ -1588,7 +1667,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                       new float[] {vv[kk][0], vv_last[kk][0]},
                       new float[] {vv[kk][1], vv_last[kk][1]}, nc, nr,
                       crnr_color, crnr_out, tri, t_idx, tri_color,
-                      grd_normals, n_idx, tri_normals);
+                      grd_normals, n_idx, tri_normals, closed);
                   }
                   if ((side == 0 && last_s == 1) ||
                       (side == 1 && last_s == 0))
@@ -1597,7 +1676,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                       new float[] {vv[kk][0], vv_last[kk][0]},
                       new float[] {vv[kk][1], vv_last[kk][1]}, nc, nr,
                       crnr_color, crnr_out, tri, t_idx, tri_color,
-                      grd_normals, n_idx, tri_normals);
+                      grd_normals, n_idx, tri_normals, closed);
                   }
                   if ((side == 2 && last_s == 3) ||
                       (side == 3 && last_s == 2))
@@ -1606,7 +1685,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                       new float[] {vv[kk][0], vv_last[kk][0]},
                       new float[] {vv[kk][1], vv_last[kk][1]}, nc, nr,
                       crnr_color, crnr_out, tri, t_idx, tri_color,
-                      grd_normals, n_idx, tri_normals);
+                      grd_normals, n_idx, tri_normals, closed);
                   }
                   if ((side == 2 && last_s == 1) ||
                       (side == 1 && last_s == 2))
@@ -1615,7 +1694,53 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                       new float[] {vv[kk][0], vv_last[kk][0]},
                       new float[] {vv[kk][1], vv_last[kk][1]}, nc, nr,
                       crnr_color, crnr_out, tri, t_idx, tri_color,
-                      grd_normals, n_idx, tri_normals);
+                      grd_normals, n_idx, tri_normals, closed);
+                  }
+                  if ((side == 2 && last_s == 0) ||
+                      (side == 0 && last_s == 2))
+                  {  //- case 5
+                    if (side == 0) {
+                      vvx[0] = vv[kk][0];
+                      vvy[0] = vv[kk][1];
+                      vvx[1] = vv_last[kk][0];
+                      vvy[1] = vv_last[kk][1];
+                    }
+                    else {
+                      vvx[0] = vv_last[kk][0];
+                      vvy[0] = vv_last[kk][1];
+                      vvx[1] = vv[kk][0];
+                      vvy[1] = vv[kk][1];
+                    }
+                    int flag = -1;
+                    if (((closed[0] & 4)==0)&&((closed[0] & 1)==0)) flag = 1;
+
+                    fillToSide(xx, yy, xd, yd, 0, (byte)5, flag, cnt_tri, 1,
+                       vvx, vvy, nc, nr,
+                       crnr_color, crnr_out, tri, t_idx, tri_color,
+                       grd_normals, n_idx, tri_normals, closed);
+                  }
+                  if ((side == 1 && last_s == 3) ||
+                      (side == 3 && last_s == 1))
+                  {  //- case 3
+                    if (side == 3) {
+                      vvx[0] = vv[kk][0];
+                      vvy[0] = vv[kk][1];
+                      vvx[1] = vv_last[kk][0];
+                      vvy[1] = vv_last[kk][1];
+                    }
+                    else {
+                      vvx[0] = vv_last[kk][0];
+                      vvy[0] = vv_last[kk][1];
+                      vvx[1] = vv[kk][0];
+                      vvy[1] = vv[kk][1];
+                    }
+                    int flag = 1;
+                    if (((closed[0] & 4)==0)&&((closed[0] & 7)==0)) flag = -1;
+
+                    fillToSide(xx, yy, xd, yd, 0, (byte)3, flag, cnt_tri, 1,
+                       vvx, vvy, nc, nr,
+                       crnr_color, crnr_out, tri, t_idx, tri_color,
+                       grd_normals, n_idx, tri_normals, closed);
                   }
                 }
               }
@@ -1686,33 +1811,51 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
               cnt_tri[0]++;
             }
             last_o = o_flags[o_idx];
-          }//- contour loop
+          }//---- contour loop
+  
+          /*- last or first/last contour line
+          ------------------------------------*/
+          int flag_set = 0;
+          if ((last_o == 1)||(last_o == 2)||(last_o == 4)||(last_o == 7)) 
+          {
+            if(last_o == 1) flag_set = (closed[0] & 1);
+            if(last_o == 2) flag_set = (closed[0] & 2);
+            if(last_o == 4) flag_set = (closed[0] & 4);
+            if(last_o == 7) flag_set = (closed[0] & 8);
+          
+            if (flag_set > 0) {
+              fillToOppCorner(xx, yy, xd, yd, v_idx, last_o, cnt_tri, dir,
+                              vx, vy, nc, nr, crnr_color, crnr_out,
+                              tri, t_idx, tri_color,
+                              grd_normals, n_idx, tri_normals, closed);
+            }
+            else {
+              fillToNearCorner(xx, yy, xd, yd, v_idx, last_o, cnt_tri, dir,
+                               vx, vy, nc, nr, crnr_color, crnr_out,
+                               tri, t_idx, tri_color,
+                               grd_normals, n_idx, tri_normals, closed);
+            }
+          }
+          else if (last_o == 3) 
+          {
+            int flag = -1;
+            if (closed[0]==3) flag = 1;
+            fillToSide(xx, yy, xd, yd, v_idx, last_o, flag, cnt_tri, dir,
+                       vx, vy, nc, nr, crnr_color, crnr_out,
+                       tri, t_idx, tri_color,
+                       grd_normals, n_idx, tri_normals, closed);
+          }
+          else if (last_o == 5) 
+          {
+            int flag = 1;
+            if (closed[0]==5) flag = -1;
+            fillToSide(xx, yy, xd, yd, v_idx, last_o, flag, cnt_tri, dir,
+                       vx, vy, nc, nr, crnr_color, crnr_out,
+                       tri, t_idx, tri_color,
+                       grd_normals, n_idx, tri_normals, closed);
+          }
 
-          if (last_o == 1 || last_o == 4) {
-            fillToOppCorner(xx, yy, xd, yd, v_idx, last_o, cnt_tri, dir,
-                            vx, vy, nc, nr, crnr_color, crnr_out,
-                            tri, t_idx, tri_color,
-                            grd_normals, n_idx, tri_normals);
-          }
-          else if (last_o == 2 || last_o == 7) {
-            fillToNearCorner(xx, yy, xd, yd, v_idx, last_o, cnt_tri, dir,
-                             vx, vy, nc, nr, crnr_color, crnr_out,
-                             tri, t_idx, tri_color,
-                             grd_normals, n_idx, tri_normals);
-          }
-          else if (last_o == 3) {
-            fillToSide(xx, yy, xd, yd, v_idx, last_o, -ydir, cnt_tri, dir,
-                       vx, vy, nc, nr, crnr_color, crnr_out,
-                       tri, t_idx, tri_color,
-                       grd_normals, n_idx, tri_normals);
-          }
-          else if (last_o == 5) {
-            fillToSide(xx, yy, xd, yd, v_idx, last_o, -1, cnt_tri, dir,
-                       vx, vy, nc, nr, crnr_color, crnr_out,
-                       tri, t_idx, tri_color,
-                       grd_normals, n_idx, tri_normals);
-          }
-        }
+        }//--- end fillGridBox
 
   private static void interpNormals(float vx, float vy, float xx, float yy,
                                     int nc, int nr, float xd, float yd,
@@ -1778,6 +1921,63 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     tri_normals[n_idx[0]++] = nn[2];
   }
 
+  private static void fillCaseSix(float xx, float yy, float xd, float yd,
+          int v_idx, byte[] o_flags,
+          float[] vx, float[] vy, int nc, int nr,
+          byte[][] crnr_color, boolean[] crnr_out,
+          float[][] tri, int[] t_idx,
+          byte[][] tri_color,
+          float[][][] grd_normals, int[] n_idx,
+          float[] tri_normals, int[] closed)
+  {
+    int n1 = 0;
+    int n2 = 0;
+    int n4 = 0;
+    int n7 = 0;
+    for (int kk = 0; kk < o_flags.length; kk++) {
+      if ((o_flags[kk] - 32)==1) n1++;
+      if ((o_flags[kk] - 32)==2) n2++;
+      if ((o_flags[kk] - 32)==4) n4++;
+      if ((o_flags[kk] - 32)==7) n7++;
+    }
+    float[][] vv1 = new float[2][n1];
+    float[][] vv2 = new float[2][n2];
+    float[][] vv4 = new float[2][n4];
+    float[][] vv7 = new float[2][n7];
+
+    n1 = 0;
+    n2 = 0;
+    n4 = 0;
+    n7 = 0;
+    int ii = v_idx;
+    for (int kk = 0; kk < o_flags.length; kk++) {
+      if ((o_flags[kk] - 32)==1) {
+        vv1[0][n1]   = vx[ii];  
+        vv1[1][n1++] = vy[ii];
+      }
+      if ((o_flags[kk] - 32)==2) {
+        vv2[0][n2]   = vx[ii];
+        vv2[1][n2++] = vy[ii];
+      }
+      if ((o_flags[kk] - 32)==4) {
+        vv4[0][n4]   = vx[ii];
+        vv4[1][n4++] = vy[ii];
+      }
+      if ((o_flags[kk] - 32)==7) {
+        vv7[0][n7]   = vx[ii];
+        vv7[1][n7++] = vy[ii];
+      }
+      ii += 2;
+    }
+
+
+
+
+
+
+
+  }
+
   private static void fillToNearCorner(float xx, float yy, float xd, float yd,
           int v_idx, byte o_flag, int[] cnt, int dir,
           float[] vx, float[] vy, int nc, int nr,
@@ -1785,7 +1985,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
           float[][] tri, int[] t_idx,
           byte[][] tri_color,
           float[][][] grd_normals, int[] n_idx,
-          float[] tri_normals)
+          float[] tri_normals, int[] closed)
   {
     float cx  = 0;
     float cy  = 0;
@@ -1798,6 +1998,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     switch(o_flag) {
       case 1:
         cc = 0;
+        closed[0] = closed[0] | 1;
         if (crnr_out[cc]) return;
         cx = xx;
         cy = yy;
@@ -1807,6 +2008,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
         break;
       case 4:
         cc = 2;
+        closed[0] = closed[0] | 4;
         if (crnr_out[cc]) return;
         cx = xx;
         cy = yy + yd;
@@ -1816,6 +2018,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
         break;
       case 2:
         cc = 1;
+        closed[0] = closed[0] | 2;
         if (crnr_out[cc]) return;
         cx = xx + xd;
         cy = yy;
@@ -1825,6 +2028,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
         break;
       case 7:
         cc = 3;
+        closed[0] = closed[0] | 8;
         if (crnr_out[cc]) return;
         cx = xx + xd;
         cy = yy + yd;
@@ -1871,7 +2075,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
          float[] vx, float[] vy, int nc, int nr,
          byte[][] crnr_color, boolean[] crnr_out,
          float[][] tri, int[] t_idx, byte[][] tri_color,
-         float[][][] grd_normals, int[] n_idx, float[] tri_normals)
+         float[][][] grd_normals, int[] n_idx, float[] tri_normals, int[] closed)
   {
     float cx1 = 0;
     float cx2 = 0;
@@ -1885,6 +2089,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
 
     switch (o_flag) {
       case 1:
+        closed[0] = closed[0] | 14;
         if (crnr_out[1] || crnr_out[2] || crnr_out[3]) return;
         cx1 = xx + xd;
         cy1 = yy;
@@ -1901,6 +2106,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
         grd[2][1] = 1;
         break;
       case 2:
+        closed[0] = closed[0] | 13;
         if (crnr_out[0] || crnr_out[2] || crnr_out[3]) return;
         cx1 = xx;
         cy1 = yy;
@@ -1917,6 +2123,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
         grd[2][1] = 1;
         break;
       case 4:
+        closed[0] = closed[0] | 11;
         if (crnr_out[0] || crnr_out[1] || crnr_out[3]) return;
         cx1 = xx;
         cy1 = yy;
@@ -1933,6 +2140,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
         grd[2][1] = 1;
         break;
       case 7:
+        closed[0] = closed[0] | 7;
         if (crnr_out[0] || crnr_out[1] || crnr_out[2]) return;
         cx1 = xx + xd;
         cy1 = yy;
@@ -2067,7 +2275,8 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
          float[] vx, float[] vy, int nc, int nr, 
          byte[][] crnr_color, boolean[] crnr_out,
          float[][] tri, int[] t_idx, byte[][] tri_color,
-         float[][][] grd_normals, int[] n_idx, float[] tri_normals)
+         float[][][] grd_normals, int[] n_idx, float[] tri_normals,
+         int[] closed)
   {
     int cnt_tri = cnt[0];
     int tt = t_idx[0];
@@ -2084,6 +2293,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
       case 3:
         switch (flag) {
           case  1:
+            closed[0] = closed[0] | 12;
             if(crnr_out[2] || crnr_out[3]) return;
             cx1 = xx;
             cy1 = yy + yd;
@@ -2096,6 +2306,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
             grd[1][1] = 1;
             break;
           case -1:
+            closed[0] = closed[0] | 3;
             if(crnr_out[0] || crnr_out[1]) return;
             cx1 = xx;
             cy1 = yy;
@@ -2113,6 +2324,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
       case 5:
         switch (flag) {
           case 1:
+            closed[0] = closed[0] | 5;
             if(crnr_out[0] || crnr_out[2]) return;
             cx1 = xx;
             cy1 = yy;
@@ -2125,6 +2337,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
             grd[1][1] = 1;
             break;
           case -1:
+            closed[0] = closed[0] | 10;
             if(crnr_out[1] || crnr_out[3]) return;
             cx1 = xx + xd;
             cy1 = yy;
