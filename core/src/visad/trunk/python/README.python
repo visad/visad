@@ -77,6 +77,7 @@ for more information about it.  And see:
 
 for a tutorial on the Python language.
 
+
 4.1 Using VisAD data in Python scripts
 
 Python programs can manipulate all kinds of data.  The key for
@@ -106,52 +107,78 @@ you can compute the total of pixel values in area1 by:
   for i = range(area.length):
 	sum = sum + area[i]
 
+
 4.2 VisAD data objects
 
 Not all VisAD data objects are images.  In fact, one of the key
 ideas in VisAD is that its data objects can be virtually any
-numerical data.  They can be simple real numbers such as a
-latitude, they can be vectors of real numbers such as a location
-(latitude, longitude, altitude) in the earth's atmosphere, and
-they can be a fields of values, such as temperatures over the
-earth's atmosphere.  These notions of vectors (called tuples in
-VisAD) and fields can be combined in arbitray comninations to
-build very complex data objects.  Thus the state of a point in
-the atmosphere may be a tuple:
-
-  (temp, dewpoint, pressure, u, v, w)
-
-the state of the whole atmosphere may be a field:
-
-  ((latitude, longitude, altitude) ->
-         (temp, dewpoint, pressure, u, v, w))
-
-and a time history of the atmosphere may be a field:
-
-  (time -> ((latitude, longitude, altitude) ->
-                  (temp, dewpoint, pressure, u, v, w)))
-
-Any time you have a VisAD data object in a script, you can
-find out what type of data it is with:
+numerical data.  Every VisAD data object has a "MathType" that
+describes its organization.  You can find out its MathType by:
 
   print data.getType()
 
-This will print an expression called the data's MathType.
-It defines names for the numerical values in the data, as
-well as how those data are organized including any
-functional dependencies between them.
+A second key idea in VisAD is that metadata are integrated into
+data operations.  As for example the McIDAS areas were implicitly
+georeferenced when we computed their difference.  VisAD metadata
+include MathTypes, units, coordinate systems, sampling geometry
+and topology, missing data indicators and error estimates.
 
-In addition to their MathTypes, VisAD data objects include
-Units (e.g., latitudes may have Units of radians or degrees),
-sampling geometries and topologies (e.g., images are usually
-sampled on 2-D gridded topologies), CoordinateSystems (e.g., 
-images often have navigation transforms that relate their
-image coordinates (line, element) with their earth
-coordinates (latitude, longitude)), missing data indicators,
-and ErrorEstimates.
+Here are a few example of VisAD data objects and their MathTypes.
+A pixel radiance might have MathType:
 
-You can learn more about VisAD data objects in the Tutorials
-and Developer's Guide available on the VisAD web page.
+  band1
+
+In VisAD the radiance object is called a Real.  It includes a
+real value, the name "band1", possibly a unit such as w/m^2, and
+possibly an estimate of the variance of error of the real value.
+
+An earth location may have MathType:
+
+  (latitude, longitude)
+
+In VisAD this is called a Tuple.  Tuple components can be any VisAD
+data objects.  If they are all reals, then the tuple is called a
+RealTuple.  Note that latitude and longitude may have degrees or
+readians as units.
+
+The coordinates of a pixel in an image may be a RealTuple with
+MathType:
+
+  (line, element)
+
+If the image has earth navigation, then this RealTuple may have
+a CoordinateSystem that defines an invertable mapping:
+
+  (line, element) <--> (latitude, longitude)
+
+An image defines a function from image coordinates to radiances,
+sampled at a finite number of pixels.  In VisAD this is called a
+Field, and may have a MathType:
+
+  ((line, element) -> band1)
+
+You get a Field with this sort of MathType when you load a McIDAS
+area file by a statement like:
+
+  area1 = load("AREA0001")
+
+Note that Fields can be mappings from any RealTuple to any MatType
+at all.  For example, a time sequence of images may have MathType:
+
+  (time -> ((line, element) -> band1))
+
+Here time may have units of seconds since 0Z, 1 Jan 1970, and the
+field defines images at a finite number of time samples.
+
+The power of VisAD data objects come because you can combine Real,
+Text, Tuple and Field objects in any complex way you like.  You can
+learn more about VisAD data objects in the Tutorials and Developer's
+Guide available on the VisAD web page.
+
+
+4.3 More about accessing VisAD data from Python scripts
+
+
 
 
 5. The VisAD Python Library Functions
