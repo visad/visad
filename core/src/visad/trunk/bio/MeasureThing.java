@@ -26,6 +26,7 @@ MA 02111-1307, USA
 
 package visad.bio;
 
+import java.awt.Color;
 import java.rmi.RemoteException;
 import visad.*;
 import visad.java2d.*;
@@ -123,6 +124,9 @@ public abstract class MeasureThing {
   public abstract void setDisplay(DisplayImpl d)
     throws VisADException, RemoteException;
 
+  /** Sets the color. */
+  public abstract void setColor(Color color);
+
   /** Sets the group. */
   public void setGroup(LineGroup group) {
     if (m != null) m.setGroup(group);
@@ -189,6 +193,7 @@ public abstract class MeasureThing {
         for (int j=0; j<len; j++) vals[dim - 1][j] = slice;
       }
       setValues(vals);
+      setColor(m.getColor());
       setVisible(true);
     }
   }

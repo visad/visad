@@ -26,6 +26,7 @@ MA 02111-1307, USA
 
 package visad.bio;
 
+import java.awt.Color;
 import java.rmi.RemoteException;
 import java.util.Vector;
 import visad.*;
@@ -71,6 +72,9 @@ public class MeasurePoint extends MeasureThing {
     renderers = new DataRenderer[1];
     renderers[0] = addDirectManipRef(d, refs[0]);
   }
+
+  /** Sets the color (unimplemented). */
+  public void setColor(Color color) { return; }
 
   /** Gets the id number of the point. */
   public int getId() { return id; }

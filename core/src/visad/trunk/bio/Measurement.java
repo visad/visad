@@ -89,15 +89,7 @@ public class Measurement {
     if (equal) return;
 
     this.values = values;
-    synchronized (things) {
-      final MeasureThing[] t = new MeasureThing[things.size()];
-      things.copyInto(t);
-      SwingUtilities.invokeLater(new Runnable() {
-        public void run() {
-          for (int i=0; i<t.length; i++) t[i].refresh();
-        }
-      });
-    }
+    refreshThings();
   }
 
   /** Links the given MeasureThings to the measurement. */
@@ -121,11 +113,28 @@ public class Measurement {
     }
   }
 
+  /** Refreshes all MeasureThings to match the measurement. */
+  protected void refreshThings() {
+    synchronized (things) {
+      final MeasureThing[] t = new MeasureThing[things.size()];
+      things.copyInto(t);
+      SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          for (int i=0; i<t.length; i++) t[i].refresh();
+        }
+      });
+    }
+  }
+
   /** Sets the measurement group. */
   public void setGroup(LineGroup group) { this.group = group; }
 
   /** Sets the measurement line color. */
-  public void setColor(Color color) { this.color = color; }
+  public void setColor(Color color) {
+    if (this.color.equals(color)) return;
+    this.color = color;
+    refreshThings();
+  }
 
   /** Sets the measurement standard ID. */
   public void setStdId(int id) { stdId = id; }

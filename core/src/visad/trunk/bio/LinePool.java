@@ -35,7 +35,7 @@ import visad.*;
 public class LinePool implements DisplayListener {
 
   /** Minimum number of lines in the line pool. */
-  static final int MINIMUM_SIZE = 10;
+  static final int MINIMUM_SIZE = 16;
 
   /** Maximum pixel distance for picking. */
   private static final int PICKING_THRESHOLD = 10;
