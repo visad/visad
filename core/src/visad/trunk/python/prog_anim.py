@@ -6,7 +6,7 @@ import math
 
 type = makeType("(x, y, z)");
 
-loc = [0, 0, 0]
+loc = [0, 2, 0]
 up = [0, 1, 0]
 face = [0, 0, 1]
 right = [1, 0, 0]
@@ -15,18 +15,25 @@ armr = 0
 legl = 0
 legr = 0
 
+def normalize(a):
+  norm = math.sqrt(a[0]*a[0]+a[1]*a[1]+a[2]*a[2])
+  a[0] = a[0] / norm
+  a[1] = a[1] / norm
+  a[2] = a[2] / norm
+
+def cross(a, b):
+  return [a[1]*b[2]-a[2]*b[1],
+          a[2]*b[0]-a[0]*b[2],
+          a[0]*b[1]-a[1]*b[0]]
+
+def scaled_add(a, b, s):
+  return [a[0]+s*b[0], a[1]+s*b[1], a[2]+s*b[2]]
+
 def makeBody():
-  upn = math.sqrt(up[0]*up[0]+up[1]*up[1]+up[2]*up[2])
-  up[0] = up[0] / upn
-  up[1] = up[1] / upn
-  up[2] = up[2] / upn
-  facen = math.sqrt(face[0]*face[0]+face[1]*face[1]+face[2]*face[2])
-  face[0] = face[0] / facen
-  face[1] = face[1] / facen
-  face[2] = face[2] / facen
-  right[0] = up[1]*face[2]-up[2]*face[1]
-  right[1] = up[2]*face[0]-up[0]*face[2]
-  right[2] = up[0]*face[1]-up[1]*face[0]
+  c = cross(up, face)
+  right[0] = c[0]
+  right[1] = c[1]
+  right[2] = c[2]
   sets = []
 
   # make torso and head
@@ -56,15 +63,6 @@ def makeBody():
   set = UnionSet(type, sets)
   return set
 
-loc = [0, 0, 0]
-up = [0, 1, 0]
-face = [0, 0, 1]
-right = [1, 0, 0]
-arml = 0
-armr = 0
-legl = 0
-legr = 0
-
 set = makeBody()
 ref = DataReferenceImpl("set")
 ref.setData(set)
@@ -77,14 +75,35 @@ display = makeDisplay3D(maps)
 display.addReference(ref)
 showDisplay(display)
 
+rot = [0.2, -0.6, 0.7]
+normalize(rot)
+rot2 = [-0.5, 0.3, 0.4]
+normalize(rot2)
+funny = [1, 0, 0]
+
 while 1:
-  tup = []
-  tface = []
-  for i in range(3):
-    tup.append(up[i]+0.1*face[i]-0.1*right[i])
-    tface.append(face[i]-0.1*up[i]+0.1*right[i])
-  up = tup
-  face = tface
+  r = cross(rot2, rot)
+  normalize(r)
+  rot2 = scaled_add(rot2, r, 0.043)
+  normalize(rot2)
+  r2 = cross(up, rot2)
+  normalize(r2)
+  up = scaled_add(up, r2, 0.1)
+  normalize(up)
+  f = cross(funny, rot)
+  normalize(f)
+  funny = scaled_add(funny, f, 0.08)
+  normalize(funny)
+  face = cross(up, funny)
+  normalize(face)
+  l = cross(loc, face)
+  normalize(l)
+  loc = scaled_add(loc, l, 0.9)
+  normalize(loc)
+  loc[0] = 4*loc[0]
+  loc[1] = 4*loc[1]
+  loc[2] = 4*loc[2]
   set = makeBody()
   ref.setData(set)
   Delay(100)
+
