@@ -1,4 +1,4 @@
-// $Id: RandomAccessFile.java,v 1.4 2001-09-10 20:46:55 steve Exp $
+// $Id: RandomAccessFile.java,v 1.5 2002-05-29 18:31:36 steve Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -53,7 +53,7 @@ import java.util.Date;
  *
  * @author Alex McManus
  * @author Russ Rew
- * @version $Id: RandomAccessFile.java,v 1.4 2001-09-10 20:46:55 steve Exp $
+ * @version $Id: RandomAccessFile.java,v 1.5 2002-05-29 18:31:36 steve Exp $
  * @see DataInput
  * @see DataOutput
  * @see java.io.RandomAccessFile */
@@ -220,7 +220,7 @@ implements DataInput, DataOutput {
                          combination (logical OR) of CREATE, WRITE, and READ.
     * @param bufferSize  the size of the temporary buffer, in bytes.
     * @exception FileNotFoundException
-    *                               if the access is readonly and the file 
+    *                               if the access is readonly and the file
     *                               doesn't exist.
     * @exception IOException        if an I/O error occurrs.
     * @exception SecurityException  if a security manager exists, its checkRead
@@ -370,11 +370,12 @@ implements DataInput, DataOutput {
     *
     * @exception IOException  if an I/O error occurrs.
     */
-   public void flush( )
-   throws IOException {
-      file.seek( bufferStart );
-      file.write( buffer, 0, dataSize );
-      bufferModified = false;
+   public void flush( ) throws IOException {
+     if (bufferModified) {
+       file.seek( bufferStart );
+       file.write( buffer, 0, dataSize );
+       bufferModified = false;
+     }
    }
 
    //

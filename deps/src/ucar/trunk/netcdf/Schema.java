@@ -1,4 +1,4 @@
-// $Id: Schema.java,v 1.4 2001-08-28 19:12:50 steve Exp $
+// $Id: Schema.java,v 1.5 2002-05-29 18:31:37 steve Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -39,7 +39,7 @@ import java.io.Serializable;
  * @see java.util.Collection
  *
  * @author $Author: steve $
- * @version $Revision: 1.4 $ $Date: 2001-08-28 19:12:50 $
+ * @version $Revision: 1.5 $ $Date: 2002-05-29 18:31:37 $
  */
 
 public class Schema implements java.io.Serializable {

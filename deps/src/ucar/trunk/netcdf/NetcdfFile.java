@@ -1,4 +1,4 @@
-// $Id: NetcdfFile.java,v 1.5 2001-09-10 20:46:55 steve Exp $
+// $Id: NetcdfFile.java,v 1.6 2002-05-29 18:31:34 steve Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -53,7 +53,7 @@ import java.lang.reflect.InvocationTargetException;
  *
  * @see Netcdf
  * @author $Author: steve $
- * @version $Revision: 1.5 $ $Date: 2001-09-10 20:46:55 $
+ * @version $Revision: 1.6 $ $Date: 2002-05-29 18:31:34 $
  */
 public class NetcdfFile	extends AbstractNetcdf {
 
@@ -123,9 +123,7 @@ public class NetcdfFile	extends AbstractNetcdf {
      *			else open for read and write.
      */
     public
-    NetcdfFile(File file, boolean readonly)
-                throws IOException
-    {
+    NetcdfFile(File file, boolean readonly) throws IOException {
         super();
         this.file = file;
         raf = new RandomAccessFile(file, readonly ? "r" : "rw");
@@ -151,9 +149,11 @@ public class NetcdfFile	extends AbstractNetcdf {
     }
 
     /**
-     * <p>Open a netCDF dataset corresponding to a URL for reading only.
-     * Currently supported protocols include "file" and "http".  The query
-     * component of the URL is ignored.</p>
+     * Open existing, read-only netcdf file through a URL. This may use either the
+     * file: or http: protocol. If it uses the file protocol, it will be opened as a
+     * read-only file using url.getFile(). If it uses the http protocol, it will be
+     * read over http using HTTPRandomAccessFile. The query
+     * component of the URL is ignored
      *
      * <p>Modified from ncBrowse (Donald Denbo).</p>
      *
@@ -171,7 +171,7 @@ public class NetcdfFile	extends AbstractNetcdf {
     if (url.getProtocol().equalsIgnoreCase("file"))
     {
 	/*
-	 * URL.getPath() isn't used to accomodate JDK 1.2.
+	 * URL.getPath() isn't used in order to accomodate JDK 1.2.
 	 */
         this.url = null;
         file = new File(path);
@@ -197,12 +197,22 @@ public class NetcdfFile	extends AbstractNetcdf {
      * Close this netcdf file.
      * The inquiry interface calls will continue to be available,
      * but I/O accesses will fail after this call.
-     * @see java.io.RandomAccessFile#close
+     * @see RandomAccessFile#close
      */
     public void
     close() throws IOException
     {
         raf.close();
+    }
+
+    /**
+     * Flush anything written to disk.
+     * @see RandomAccessFile#flush
+     */
+    public void
+    flush() throws IOException
+    {
+        raf.flush();
     }
 
     /**
@@ -1837,6 +1847,12 @@ public class NetcdfFile	extends AbstractNetcdf {
 
 /* Change History:
    $Log: not supported by cvs2svn $
+   Revision 1.11  2002/05/24 00:06:06  caron
+   add flush()
+
+   Revision 1.10  2001/09/14 21:29:28  caron
+   minor doc improvements
+
    Revision 1.9  2001/09/10 20:37:12  steve
    Improved constructor NetcdfFile(URL):
        Replaced URL.getPath() with URL.getFile() to accomodate JDK 1.2.

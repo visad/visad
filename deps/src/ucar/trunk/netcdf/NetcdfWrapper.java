@@ -1,4 +1,4 @@
-// $Id: NetcdfWrapper.java,v 1.1 2001-08-28 19:17:26 steve Exp $
+// $Id: NetcdfWrapper.java,v 1.2 2002-05-29 18:31:35 steve Exp $
 /*
  * Copyright 2001 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -27,7 +27,7 @@ package ucar.netcdf;
  * {@link Netcdf} object.  This class is designed to be extended.
  *
  * @author Steven R. Emmerson
- * @version $Revision: 1.1 $ $Date: 2001-08-28 19:17:26 $
+ * @version $Revision: 1.2 $ $Date: 2002-05-29 18:31:35 $
  */
 public abstract class NetcdfWrapper
     implements Netcdf

@@ -1,4 +1,4 @@
-// $Id: UnlimitedDimension.java,v 1.3 2001-08-28 19:12:50 steve Exp $
+// $Id: UnlimitedDimension.java,v 1.4 2002-05-29 18:31:37 steve Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -36,7 +36,7 @@ package ucar.netcdf;
  * @see Dimension
  *
  * @author $Author: steve $
- * @version $Revision: 1.3 $ $Date: 2001-08-28 19:12:50 $
+ * @version $Revision: 1.4 $ $Date: 2002-05-29 18:31:37 $
  */
 
 public class

@@ -1,4 +1,4 @@
-// $Id: NetcdfServer.java,v 1.3 2001-08-28 19:12:48 steve Exp $
+// $Id: NetcdfServer.java,v 1.4 2002-05-29 18:31:35 steve Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -46,7 +46,7 @@ import java.rmi.registry.LocateRegistry;
  * for a more elaborate directory service,
  * hopefully to be provided later on.
  * @author $Author: steve $
- * @version $Revision: 1.3 $ $Date: 2001-08-28 19:12:48 $
+ * @version $Revision: 1.4 $ $Date: 2002-05-29 18:31:35 $
  */
 
 public class
