@@ -2035,7 +2035,8 @@ makeGeometry 350, 171
   all makeGeometry time in calls to Java3D constructors, setCoordinates, etc
 */
 
-// if (link != null) System.out.println("start makeContour " + (System.currentTimeMillis() - link.start_time));
+if (link != null)
+  System.out.println("start makeContour " + (System.currentTimeMillis() - link.start_time));
           anyContourCreated =
             shadow_api.makeContour(valueArrayLength, valueToScalar,
                        display_values, inherited_values, MapVector, valueToMap,
@@ -2590,7 +2591,7 @@ WLH 15 March 2000 */
           for (int i=0; i<valueArrayLength; i++) {
             ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
             float[] values = display_values[i];
-            if (values != null && real.equals(map.getScalar())) {
+            if (values != null && real.isTypeOf(map.getScalar())) {
               int displayScalarIndex = valueToScalar[i];
               DisplayRealType dreal =
                 display.getDisplayScalar(displayScalarIndex);
@@ -2601,7 +2602,7 @@ WLH 15 March 2000 */
                 control = map.getControl();
                 break;
               }
-            } // end if (values != null && && real.equals(map.getScalar()))
+            } // end if (values != null && && real.isTypeOf(map.getScalar()))
           } // end for (int i=0; i<valueArrayLength; i++)
         } // end if (DomainComponents.length == 1)
 
@@ -2825,7 +2826,7 @@ WLH 15 March 2000 */
         for (int i=0; i<valueArrayLength; i++) {
           ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
           float[] values = display_values[i];
-          if (values != null && real.equals(map.getScalar())) {
+          if (values != null && real.isTypeOf(map.getScalar())) {
             int displayScalarIndex = valueToScalar[i];
             DisplayRealType dreal =
               display.getDisplayScalar(displayScalarIndex);
@@ -2836,7 +2837,7 @@ WLH 15 March 2000 */
               control = map.getControl();
               break;
             }
-          } // end if (values != null && real.equals(map.getScalar()))
+          } // end if (values != null && real.isTypeOf(map.getScalar()))
         } // end for (int i=0; i<valueArrayLength; i++)
       } // end if (DomainComponents.length == 1)
 

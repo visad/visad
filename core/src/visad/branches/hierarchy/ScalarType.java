@@ -45,6 +45,12 @@ public abstract class ScalarType extends MathType implements Comparable {
   String Name;
 
   /**
+   * The immediate supertype.  May be <code>null</code>.
+   * @serial
+   */
+  private final ScalarType supertype;
+
+  /**
    * Hashtable of scalar names used to make sure scalar names are unique
    * (within local VM).  Because the values in the hashtable are actually {@link
    * WeakMapValue}s, the existance of a {@link ScalarType} in the hashtable will
@@ -63,13 +69,29 @@ public abstract class ScalarType extends MathType implements Comparable {
   /**
    * Constructs an instance with a specified name.
    *
-   * @param name           The name for this instance.
-   * @throws TypeException if the name is invalid.
+   * @param name The name of this <CODE>ScalarType</CODE>
+   *
+   * @throws TypeException        if the name is invalid for a {@link 
+   *                              ScalarType}.
    * @see #validateName(String)
    */
-  public ScalarType(String name) throws VisADException {
+  public ScalarType(String name) throws TypeException {
+      this(name, null);
+  }
+
+  /*
+   * Constructs from a name and an immediate supertype.
+   *
+   * @param name                  The name for the instance.
+   * @param supertype             The supertype instance or <code>null</code>.
+   * @throws TypeException        if the name is invalid for a {@link 
+   *                              ScalarType}.
+   * @see #validateName(String)
+   */
+  protected ScalarType(String name, ScalarType supertype) throws TypeException {
     super();
     Name = name;
+    this.supertype = supertype;
     synchronized(getClass()) {
 	checkQueue();
 	validateName(name, "name");
@@ -87,10 +109,68 @@ public abstract class ScalarType extends MathType implements Comparable {
   ScalarType(String name, boolean b) {
     super(b);
     Name = name;
+    supertype = null;
     synchronized(getClass()) {
 	checkQueue();
 	ScalarHash.put(name, new WeakMapValue(Name, this, queue));
     }
+  }
+
+  /**
+   * Returns the supertype {@link ScalarType} or <code>null</code> if this 
+   * instance has no supertype.
+   *
+   * @return                    The supertype instance or <code>null</code>.
+   */
+  public final ScalarType getSupertype() {
+    return supertype;
+  }
+
+  /**
+   * Returns the archtype {@link ScalarType} (the ultimate supertype) or
+   * <code>null</code> if this instance has no archtype.  The supertype of an
+   * archtype is <code>null</code>.
+   *
+   * @return                    The archtype instance or <code>null</code>.
+   */
+  public final ScalarType getArchtype() {
+    ScalarType type;
+    for (type = this; type.supertype != null; type = type.supertype) {}
+    return type;
+  }
+
+  /**
+   * Returns the nearest {@link ScalarType} common to the supertype chains of
+   * this instance and another instance or <code>null</code> if there is no
+   * common supertype.
+   *
+   * @param that                  The other instance or <code>null</code>.
+   * @return                      The nearest, common supertype or <code>null
+   *                              <code>.
+   */
+  public final ScalarType getCommonType(ScalarType that) {
+    ScalarType type;
+    for (type = that; type != null && !isTypeOf(type); type = type.supertype) {}
+    return type;
+  }
+
+  /**
+   * Indicates if this instance is a type of another instance.  This is true if
+   * this instance is the other instance or if the other instance is a supertype
+   * of this instance (i.e. if the other instance is this instance's supertype,
+   * or its supertype's supertype, etc.).
+   *
+   * @param that                  The other instance or <code>null</code>.
+   * @return			  true if and only if this instance is a type of
+   *                              the other instance.
+   */
+  public final boolean isTypeOf(ScalarType that) {
+    if (that == null)
+      return false;
+    for (ScalarType type = this; type != null; type = type.supertype)
+      if (type == that)
+        return true;
+    return false;
   }
 
   /**
@@ -294,7 +374,8 @@ public abstract class ScalarType extends MathType implements Comparable {
 	  st = this;
 	}
 	else if (!equals(st)) {
-	  throw new InvalidObjectException(toString());
+	  throw new InvalidObjectException(
+              "st=" + st + ", this=" + toString());
 	}
     }
     return st;

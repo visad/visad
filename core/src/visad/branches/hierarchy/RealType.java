@@ -46,7 +46,9 @@ public class RealType extends ScalarType {
    * The attribute mask of this RealType.
    * @serial
    */
-  private final int     attrMask;
+  private int               attrMask;
+
+  private static final long serialVersionUID = 0; // TODO
 
   /**
    * The interval attribute.  This attribute should be used during construction
@@ -154,11 +156,48 @@ public class RealType extends ScalarType {
     this(name, u, null, 0);
   }
 
+  /*
+   * Constructs from a name, a default Unit, a default sampling set, and
+   * an immediate supertype.  If the default unit or default sampling set
+   * are <code>null</code>, then the supertype's values are used if it is
+   * non-<code>null</code>; otherwise, they are set to <code>null</code>.
+   * The attribute mask is set to the supertype's value if it is
+   * non-<code>null</code> and 0 otherwise.
+   *
+   * @param name                  The name for the instance.
+   * @param unit                  The default unit for the instance or
+   *                              <code>null</code>.  If non-<code>null</code>
+   *                              and the instance refers to an interval,
+   *                              then the default unit will actually be
+   *                              <code>u.getAbsoluteUnit()</code>.  Must agree
+   *                              with the default unit of the supertype if that
+   *                              exists.
+   * @param set                   The default sampling set for the instance or
+   *                              <code>null</code>.  Used when this type is a
+   *                              FunctionType domain.
+   * @param supertype             The supertype instance or <code>null</code>.
+   * @throws TypeException        if the name is invalid for a {@link 
+   *                              ScalarType}.
+   * @throws UnitException        if the set is non-<code>null</code> and the
+   *                              default unit isn't compatible with the
+   *                              set's default unit or if the supertype is
+   *                              non-<code>null</code> and the default unit
+   *                              isn't compatible with the supertype's default
+   *                              unit.
+   * @see ScalarType(String)
+   */
+  private RealType(String name, Unit unit, Set set, RealType supertype) throws
+    VisADException {
+
+    this(
+      name, unit, set, supertype == null ? 0 : supertype.attrMask, supertype);
+  }
+
   /**
-   * Constructs from a name (two RealTypes are equal if their names are equal)
-   * a default Unit, a default Set, and whether or not the RealType refers to
-   * an interval (e.g. length difference, delta temperature).  This is the most
-   * general, public constructor.
+   * Constructs from a name, a default Unit, a default Set, and whether or
+   * not the RealType refers to an interval (e.g. length difference, delta
+   * temperature).  This is the most general, public constructor.
+   *
    * @param name                The name for the RealType.
    * @param u                   The default unit for the RealType.  May be
    *                            <code>null</code>.  If non-<code>null</code>
@@ -174,14 +213,77 @@ public class RealType extends ScalarType {
   public RealType(String name, Unit u, Set set, int attrMask)
     throws VisADException
   {
-    super(name);
-    if (set != null && set.getDimension() != 1) {
-      throw new SetException("RealType: default set dimension != 1");
+    this(name, u, set, attrMask, null);
+  }
+
+  /*
+   * Constructs from a name, a default Unit, a default sampling set, an
+   * attribute mask, and an immediate supertype.  If the default unit or default
+   * sampling set are <code>null</code>, then the supertype's values are used if
+   * it is non-<code>null</code>; otherwise, they are set to <code>null</code>.
+   * The attribute mask must agree with the supertype's value if the supertype
+   * is non-<code>null</code>.
+   *
+   * @param name                  The name for the instance.
+   * @param unit                  The default unit for the instance or
+   *                              <code>null</code>.  If non-<code>null</code>
+   *                              and the instance refers to an interval,
+   *                              then the default unit will actually be
+   *                              <code>u.getAbsoluteUnit()</code>.  Must agree
+   *                              with the default unit of the supertype if that
+   *                              exists.
+   * @param set                   The default sampling set for the instance or
+   *                              <code>null</code>.  Used when this type is a
+   *                              FunctionType domain.
+   * @param attrMask              The attribute mask. 0 or INTERVAL.
+   * @param supertype             The supertype instance or <code>null</code>.
+   * @throws SetException         if the default sampling set is non-<code>
+   *                              null</code> and its dimension != 1.
+   * @throws TypeException        if the name is invalid for a {@link 
+   *                              ScalarType} or the supertype is non-<code>
+   *                              null</code> and the attribute mask doesn't
+   *                              match the supertype's.
+   * @throws UnitException        if the set is non-<code>null</code> and the
+   *                              default unit isn't compatible with the
+   *                              set's default unit or if the supertype is
+   *                              non-<code>null</code> and the default unit
+   *                              isn't compatible with the supertype's default
+   *                              unit.
+   */
+  private RealType(
+      String name, Unit unit, Set set, int attrMask, RealType supertype) throws
+    SetException, TypeException, UnitException {
+
+    super(name, supertype);
+
+    if (supertype != null) {
+      if (unit == null) {
+	unit = supertype.DefaultUnit;
+      }
+      else {
+	if (!Unit.canConvert(unit, supertype.DefaultUnit))
+	  throw new UnitException(
+	    "name=\"" + name + "\", unit=" + unit + ", supertype.DefaultUnit=" +
+	    supertype.DefaultUnit);
+      }
+
+      if (set == null)
+	set = supertype.DefaultSet;
+
+      if (attrMask != supertype.attrMask)
+	throw new TypeException("attrMask=" + attrMask + 
+	  ", supertype.attrMask=" + supertype.attrMask);
     }
+
+    if (set != null && set.getDimension() != 1)
+      throw new SetException("RealType: default set dimension != 1");
+
     DefaultUnit =
-      u != null && isSet(attrMask, INTERVAL) ? u.getAbsoluteUnit() : u;
+      unit != null && isSet(attrMask, INTERVAL) ? unit.getAbsoluteUnit() : unit;
     DefaultSet = set;
     DefaultSetEverAccessed = false;
+    this.attrMask = attrMask;
+
     if (DefaultUnit != null && DefaultSet != null) {
       Unit[] us = {DefaultUnit};
       if (!Unit.canConvertArray(us, DefaultSet.getSetUnits())) {
@@ -189,7 +291,6 @@ public class RealType extends ScalarType {
                                 "with Set default Unit");
       }
     }
-    this.attrMask = attrMask;
   }
 
   /** trusted constructor for initializers */
@@ -237,7 +338,13 @@ public class RealType extends ScalarType {
     return DefaultUnit;
   }
 
-  /** get default Set*/
+  /**
+   * Returns the default sampling set.  Once this method is invoked,
+   * the method {@link #setDefaultSet(Set)} will always throw an exception.
+   *
+   * @return                    The default sampling set.
+   * @see #setDefaultSet(Set)
+   */
   public synchronized Set getDefaultSet() {
     DefaultSetEverAccessed = true;
     return DefaultSet;
@@ -270,35 +377,48 @@ public class RealType extends ScalarType {
   }
 
   /** 
-   * Check the equality of type with this RealType;
-   * two RealType-s are equal if they have the same name, 
-   * convertible DefaultUnit-s, same DefaultSet and attrMask;
-   * a RealType copied from a remote Java virtual machine may have
-   * the same name but different values for other fields
-   * @param  type  object in question
-   * @return true if type is a RealType and the conditions above are met
+   * Indicates if this instance is equal to an object.  Two instances are equal
+   * if they have the same name, default sampling set, and attribute mask, and
+   * if their default units are compatible.
+   *
+   * @param  obj  the other object.
+   * @return true if and only if this instance equals the other object.
    */
-  public boolean equals(Object type) {
-    if (!(type instanceof RealType)) return false;
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;  // short circuit
+
+    if (!(obj instanceof RealType))
+      return false;
+
+    RealType that = (RealType)obj;
 
     // WLH 26 Aug 2001
-    // return Name.equals(((RealType) type).Name);
-    if (!Name.equals(((RealType) type).Name)) return false;
+    // return Name.equals(that.Name);
+    if (!Name.equals(that.Name))
+      return false;
+
     if (DefaultUnit == null) {
-      if (((RealType) type).DefaultUnit != null) return false;
+      if (that.DefaultUnit != null)
+	return false;
     }
     else {
       // DRM 30 Nov 2001  - make less strict
-      //if (!DefaultUnit.equals(((RealType) type).DefaultUnit)) return false;
-      if (!Unit.canConvert(DefaultUnit, ((RealType) type).DefaultUnit)) return false;
+      //if (!DefaultUnit.equals(that.DefaultUnit)) return false;
+      if (!Unit.canConvert(DefaultUnit, that.DefaultUnit))
+	return false;
     }
+
     if (DefaultSet == null) {
-      if (((RealType) type).DefaultSet != null) return false;
+      if (that.DefaultSet != null)
+	return false;
     }
     else {
-      if (!DefaultSet.equals(((RealType) type).DefaultSet)) return false;
+      if (!DefaultSet.equals(that.DefaultSet))
+	return false;
     }
-    return attrMask == ((RealType) type).attrMask;
+
+    return attrMask == that.attrMask;
   }
 
   /** any two RealType-s are equal except Name */
@@ -758,11 +878,11 @@ public class RealType extends ScalarType {
 
   /**
    * Returns a RealType corresponding to a name.  If a RealType with the given
-   * name doesn't exist, then it's created (with default unit, representational
-   * set, and attribute mask) and returned; otherwise, the previously existing
+   * name doesn't exist, then it's created (with default unit, sampling set,
+   * and attribute mask) and returned; otherwise, the previously existing
    * RealType is returned if it is compatible with the input arguments (the
-   * unit, representational set, and attribute mask are ignored in the
-   * comparison); otherwise <code>null</code> is returned.
+   * unit, sampling set, and attribute mask are ignored in the comparison);
+   * otherwise <code>null</code> is returned.
    *
    * @param name                    The name for the RealType.
    * @return                        A RealType corresponding to the input
@@ -778,33 +898,30 @@ public class RealType extends ScalarType {
      * given name was previously-created -- without the performance-hit of 
      * catching an exception.
      */
-    RealType rt = getRealTypeByName(name);
-    if (rt == null)
-    {
-      /*
-       * An instance with the given name didn't exist but might have just been
-       * created by another thread -- so we have to invoke the constructor
-       * inside a try-block.
-       */
-      try
+    RealType rt;
+    synchronized(ScalarType.class) {
+      rt = getRealTypeByName(name);
+      if (rt == null)
       {
-        rt = new RealType(name);
+	try
+	{
+	  rt = new RealType(name);
+	}
+	catch (VisADException e)
+	{}
       }
-      catch (VisADException e)
-      {}
     }
     return rt;
   }
 
   /**
-   * Returns a RealType corresponding to a name and unit.  If a RealType
-   * with the given name doesn't exist, then it's created (with default
-   * representational set and attribute mask) and returned; otherwise, the
-   * previously existing RealType is returned if it is compatible with the input
-   * arguments (the representational set and attribute mask are ignored in the
-   * comparison); otherwise <code>null</code> is returned.  Note that the unit
-   * of the returned RealType will be convertible with the unit argument but
-   * might not equal it.
+   * Returns a RealType corresponding to a name and unit.  If a RealType with
+   * the given name doesn't exist, then it's created (with default sampling
+   * set and attribute mask) and returned; otherwise, the previously existing
+   * RealType is returned if it is compatible with the input arguments (the
+   * sampling set and attribute mask are ignored in the comparison); otherwise
+   * <code>null</code> is returned.  Note that the unit of the returned RealType
+   * will be compatible with the unit argument but might not equal it.
    *
    * @param name                    The name for the RealType.
    * @param unit                    The unit for the RealType.
@@ -821,29 +938,27 @@ public class RealType extends ScalarType {
      * given name was previously-created -- without the performance-hit of 
      * catching an exception.
      */
-    RealType rt = getRealTypeByName(name);
-    if (rt != null)
-    {
-      /*
-       * Ensure that the previously-created instance conforms to the input
-       * arguments.
-       */
-      if (!Unit.canConvert(u, rt.DefaultUnit))
-        rt = null;
-    }
-    else
-    {
-      /*
-       * An instance with the given name didn't exist but might have just been
-       * created by another thread -- so we have to invoke the constructor
-       * inside a try-block.
-       */
-      try
+    RealType rt;
+    synchronized(ScalarType.class) {
+      rt = getRealTypeByName(name);
+      if (rt != null)
       {
-        rt = new RealType(name, u);
+	/*
+	 * Ensure that the previously-created instance conforms to the input
+	 * arguments.
+	 */
+	if (!Unit.canConvert(u, rt.DefaultUnit))
+	  rt = null;
       }
-      catch (VisADException e)
-      {}
+      else
+      {
+	try
+	{
+	  rt = new RealType(name, u);
+	}
+	catch (VisADException e)
+	{}
+      }
     }
     return rt;
   }
@@ -851,12 +966,11 @@ public class RealType extends ScalarType {
   /**
    * Returns a RealType corresponding to a name and attribute mask.  If a
    * RealType with the given name doesn't exist, then it's created (with
-   * default unit and representational set) and returned; otherwise, the
-   * previously existing RealType is returned if it is compatible with the
-   * input arguments (the unit and representational set are ignored in the
-   * comparison); otherwise <code>null</code> is returned.  Note that the unit
-   * of the returned RealType will be convertible with the unit argument but
-   * might not equal it.
+   * default unit and sampling set) and returned; otherwise, the previously
+   * existing RealType is returned if it is compatible with the input arguments
+   * (the unit and sampling set are ignored in the comparison); otherwise
+   * <code>null</code> is returned.  Note that the unit of the returned RealType
+   * will be compatible with the unit argument but might not equal it.
    *
    * @param name                    The name for the RealType.
    * @param attrMask                The attribute mask for the RealType.
@@ -873,45 +987,43 @@ public class RealType extends ScalarType {
      * given name was previously-created -- without the performance-hit of 
      * catching an exception.
      */
-    RealType rt = getRealTypeByName(name);
-    if (rt != null)
-    {
-      /*
-       * Ensure that the previously-created instance conforms to the input
-       * arguments.
-       */
-      if (attrMask != rt.attrMask)
-        rt = null;
-    }
-    else
-    {
-      /*
-       * An instance with the given name didn't exist but might have just been
-       * created by another thread -- so we have to invoke the constructor
-       * inside a try-block.
-       */
-      try
+    RealType rt;
+    synchronized(ScalarType.class) {
+      rt = getRealTypeByName(name);
+      if (rt != null)
       {
-        rt = new RealType(name, attrMask);
+	/*
+	 * Ensure that the previously-created instance conforms to the input
+	 * arguments.
+	 */
+	if (attrMask != rt.attrMask)
+	  rt = null;
       }
-      catch (VisADException e)
-      {}
+      else
+      {
+	try
+	{
+	  rt = new RealType(name, attrMask);
+	}
+	catch (VisADException e)
+	{}
+      }
     }
     return rt;
   }
 
   /**
-   * Returns a RealType corresponding to a name, unit, and representational set.
-   * If a RealType with the given name doesn't exist, then it's created (with a
+   * Returns a RealType corresponding to a name, unit, and sampling set.  If
+   * a RealType with the given name doesn't exist, then it's created (with a
    * default attribute mask) and returned; otherwise, the previously existing
    * RealType is returned if it is compatible with the input arguments (the
    * attribute mask is ignored in the comparison); otherwise <code>null</code>
    * is returned.  Note that the unit of the returned RealType will be
-   * convertible with the unit argument but might not equal it.
+   * compatible with the unit argument but might not equal it.
    *
    * @param name                    The name for the RealType.
    * @param unit                    The unit for the RealType.
-   * @param set                     The representational set for the RealType.
+   * @param set                     The sampling set for the RealType.
    * @return                        A RealType corresponding to the input
    *                                arguments or <code>null</code>.
    * @throws NullPointerException   if the name is <code>null</code>.
@@ -925,32 +1037,35 @@ public class RealType extends ScalarType {
      * given name was previously-created -- without the performance-hit of 
      * catching an exception.
      */
-    RealType rt = getRealTypeByName(name);
-    if (rt != null)
-    {
-      /*
-       * Ensure that the previously-created instance conforms to the input
-       * arguments.
-       */
-      if (!Unit.canConvert(u, rt.DefaultUnit) ||
-          (set == null ? rt.DefaultSet != null : !set.equals(rt.DefaultSet)))
+    RealType rt;
+    synchronized(ScalarType.class) {
+      rt = getRealTypeByName(name);
+      if (rt != null)
       {
-        rt = null;
+	/*
+	 * Ensure that the previously-created instance conforms to the input
+	 * arguments.
+	 */
+	if (!Unit.canConvert(u, rt.DefaultUnit) ||
+	    (set == null ? rt.DefaultSet != null : !set.equals(rt.DefaultSet)))
+	{
+	  rt = null;
+	}
       }
-    }
-    else
-    {
-      /*
-       * An instance with the given name didn't exist but might have just been
-       * created by another thread -- so we have to invoke the constructor
-       * inside a try-block.
-       */
-      try
+      else
       {
-        rt = new RealType(name, u, set);
+	/*
+	 * An instance with the given name didn't exist but might have just been
+	 * created by another thread -- so we have to invoke the constructor
+	 * inside a try-block.
+	 */
+	try
+	{
+	  rt = new RealType(name, u, set);
+	}
+	catch (VisADException e)
+	{}
       }
-      catch (VisADException e)
-      {}
     }
     return rt;
   }
@@ -958,11 +1073,11 @@ public class RealType extends ScalarType {
   /**
    * Returns a RealType corresponding to a name, unit, and attribute mask.  If
    * a RealType with the given name doesn't exist, then it's created (with a
-   * default representational set) and returned; otherwise, the previously
-   * existing RealType is returned if it is compatible with the input arguments
-   * (the representational set is ignored in the comparison); otherwise
-   * <code>null</code> is returned.  Note that the unit of the returned RealType
-   * will be convertible with the unit argument but might not equal it.
+   * default sampling set) and returned; otherwise, the previously existing
+   * RealType is returned if it is compatible with the input arguments (the
+   * sampling set is ignored in the comparison); otherwise <code>null</code> is
+   * returned.  Note that the unit of the returned RealType will be compatible
+   * with the unit argument but might not equal it.
    *
    * @param name                    The name for the RealType.
    * @param unit                    The unit for the RealType.
@@ -980,44 +1095,47 @@ public class RealType extends ScalarType {
      * given name was previously-created -- without the performance-hit of 
      * catching an exception.
      */
-    RealType rt = getRealTypeByName(name);
-    if (rt != null)
-    {
-      /*
-       * Ensure that the previously-created instance conforms to the input
-       * arguments.
-       */
-      if (!Unit.canConvert(u, rt.DefaultUnit) || rt.attrMask != attrMask)
-        rt = null;
-    }
-    else
-    {
-      /*
-       * An instance with the given name didn't exist but might have just been
-       * created by another thread -- so we have to invoke the constructor
-       * inside a try-block.
-       */
-      try
+    RealType rt;
+    synchronized(ScalarType.class) {
+      rt = getRealTypeByName(name);
+      if (rt != null)
       {
-        rt = new RealType(name, u, null, attrMask);
+	/*
+	 * Ensure that the previously-created instance conforms to the input
+	 * arguments.
+	 */
+	if (!Unit.canConvert(u, rt.DefaultUnit) || rt.attrMask != attrMask)
+	  rt = null;
       }
-      catch (VisADException e)
-      {}
+      else
+      {
+	/*
+	 * An instance with the given name didn't exist but might have just been
+	 * created by another thread -- so we have to invoke the constructor
+	 * inside a try-block.
+	 */
+	try
+	{
+	  rt = new RealType(name, u, null, attrMask);
+	}
+	catch (VisADException e)
+	{}
+      }
     }
     return rt;
   }
 
   /**
-   * Returns a RealType corresponding to a name, unit, representational set,
-   * and attribute mask.  If a RealType with the given name doesn't exist, then
+   * Returns a RealType corresponding to a name, unit, sampling set, and
+   * attribute mask.  If a RealType with the given name doesn't exist, then
    * it's created and returned; otherwise, the previously existing RealType
    * is returned if it is compatible with the input arguments; otherwise
    * <code>null</code> is returned.  Note that the unit of the returned RealType
-   * will be convertible with the unit argument but might not equal it.
+   * will be compatible with the unit argument but might not equal it.
    *
    * @param name                    The name for the RealType.
    * @param unit                    The unit for the RealType.
-   * @param set                     The representational set for the RealType.
+   * @param set                     The sampling set for the RealType.
    * @param attrMask                The attribute mask for the RealType.
    * @return                        A RealType corresponding to the input
    *                                arguments or <code>null</code>.
@@ -1033,33 +1151,102 @@ public class RealType extends ScalarType {
      * given name was previously-created -- without the performance-hit of 
      * catching an exception.
      */
-    RealType rt = getRealTypeByName(name);
-    if (rt != null)
-    {
-      /*
-       * Ensure that the previously-created instance conforms to the input
-       * arguments.
-       */
-      if (!Unit.canConvert(u, rt.DefaultUnit) ||
-          (set == null ? rt.DefaultSet != null : !set.equals(rt.DefaultSet)) ||
-          rt.attrMask != attrMask)
+    RealType rt;
+    synchronized(ScalarType.class) {
+      rt = getRealTypeByName(name);
+      if (rt != null)
       {
-        rt = null;
+	/*
+	 * Ensure that the previously-created instance conforms to the input
+	 * arguments.
+	 */
+	if (!Unit.canConvert(u, rt.DefaultUnit) ||
+	    (set == null 
+	      ? rt.DefaultSet != null : !set.equals(rt.DefaultSet)) ||
+	    rt.attrMask != attrMask)
+	{
+	  rt = null;
+	}
+      }
+      else
+      {
+	/*
+	 * An instance with the given name didn't exist but might have just been
+	 * created by another thread -- so we have to invoke the constructor
+	 * inside a try-block.
+	 */
+	try
+	{
+	  rt = new RealType(name, u, set, attrMask);
+	}
+	catch (VisADException e)
+	{}
       }
     }
-    else
-    {
-      /*
-       * An instance with the given name didn't exist but might have just been
-       * created by another thread -- so we have to invoke the constructor
-       * inside a try-block.
-       */
-      try
-      {
-        rt = new RealType(name, u, set, attrMask);
+    return rt;
+  }
+
+  /*
+   * Returns an instance corresponding to a name, a default Unit, a default
+   * sampling set, and a supertype instance.  If an equivalent instance was
+   * previously created, then it is returned.  An equivalent instance has the
+   * same name, default sampling set, and supertype instance, and a compatible
+   * default unit.  If a previously-create equivalent instance doesn't exist,
+   * then a new instance is created and returned.  In this case, if the default
+   * unit and default sampling set are <code>null</code> and the supertype
+   * argument is non-<code>null</code>, then the supertype's values are used and
+   * the attribute mask is set to the supertype's value; otherwise, the default
+   * unit, default sampling set and attribute mask are set to <code>null</code>,
+   * <code>null</code>, and 0, respectively.
+   *
+   * @param name                  The name for the instance.
+   * @param unit                  The default unit for the instance or
+   *                              <code>null</code>.  If non-<code>null</code>
+   *                              and the instance refers to an interval,
+   *                              then the default unit will actually be
+   *                              <code>u.getAbsoluteUnit()</code>.  Must
+   *                              agree with the default unit of the supertype
+   *                              instance if available.
+   * @param set                   The default sampling set for the instance or
+   *                              <code>null</code>.  Used when this instance is
+   *                              the domain of a {@link FunctionType}.
+   * @param supertype             The supertype instance.
+   * @return                      A corresponding instance.
+   * @throws IllegalArgumentException
+   *                              if the name is invalid for a {@link
+   *                              ScalarType} or if the set is
+   *                              non-<code>null</code> and the default unit
+   *                              isn't compatible with the set's default unit
+   *                              or if the supertype is non-<code>null</code>
+   *                              and the default unit isn't compatible with
+   *                              the supertype's default unit.
+   * @see ScalarType(String)
+   */
+  public static RealType getRealType(
+      String name, Unit unit, Set set, RealType supertype) {
+
+    RealType rt;
+    synchronized(ScalarType.class) {
+      rt = getRealTypeByName(name);
+
+      if (rt == null) {
+	try {
+	  rt = new RealType(name, unit, set, supertype);
+	}
+	catch (VisADException e) {
+	  throw new IllegalArgumentException(e.getMessage());
+	}
       }
-      catch (VisADException e)
-      {}
+      else if (!(Unit.canConvert(rt.DefaultUnit, unit) &&
+  	        (set == null
+	          ? rt.DefaultSet == null : set.equals(rt.DefaultSet)) &&
+	        (supertype != null && supertype.equals(rt.getSupertype())))) {
+
+	throw new IllegalArgumentException(
+          "name=\"" + name + "\", rt.DefaultUnit=" + rt.DefaultUnit +
+          ", set=" + set + ", rt.DefaultSet=" + rt.DefaultSet + 
+          ", rt.supertype=" + rt.getSupertype() + ", supertype=" + supertype);
+      }
     }
     return rt;
   }

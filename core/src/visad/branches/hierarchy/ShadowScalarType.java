@@ -80,7 +80,7 @@ public class ShadowScalarType extends ShadowType {
 System.out.println("map: " + map.getScalar().getName() + " -> " +
                    map.getDisplayScalar().getName());
 */
-      if (map.getScalar().equals(Type)) {
+      if (((ScalarType)Type).isTypeOf(map.getScalar())) {
 /*
 System.out.println("Type = " + ((ScalarType) Type).getName() +
                    " DisplayIndex = " + map.getDisplayScalarIndex());
@@ -124,7 +124,7 @@ System.out.println("Type = " + ((ScalarType) Type).getName() +
             map.getDisplayScalar().getTupleIndex();
           DisplaySpatialTupleIndexIndex++;
         } // end if (tuple != null)
-      } // end if (map.Scalar.equals(Type)) {
+      } // end if (Type.isTypeOf(map.Scalar.equals)) {
     } // end while(maps.hasMoreElements()) {
     MultipleSpatialDisplayScalar = (spatial_count > 1);
     MultipleDisplayScalar = (SelectedMapVector.size() > 1);
