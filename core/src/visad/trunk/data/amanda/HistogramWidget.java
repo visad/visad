@@ -62,7 +62,7 @@ public class HistogramWidget
     dpy.addReference(ref);
 
     JPanel dpyPanel = (JPanel )dpy.getComponent();
-    Dimension dim = new Dimension(400, 400);
+    Dimension dim = new Dimension(250, 250);
     dpyPanel.setPreferredSize(dim);
     dpyPanel.setMinimumSize(dim);
 
