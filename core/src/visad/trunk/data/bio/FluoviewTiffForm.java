@@ -45,11 +45,11 @@ public class FluoviewTiffForm extends Form
   implements FormFileInformer, FormProgressInformer, FormBlockReader
 {
 
-/** Form instantiation counter. */
+  /** Form instantiation counter. */
   private static int num = 0;
 
 
-/** Private variables */
+  // Private variables
 
   // The quantities to be displayed in x- and y-axes
   private RealType frame, row, column, pixel;
@@ -72,12 +72,13 @@ public class FluoviewTiffForm extends Form
   private DisplayImpl display;
   private ScalarMap timeAnimMap, timeZMap, lenXMap, ampYMap, ampRGBMap;
   private RandomAccessFile readin;
+  private String current_id;
   private double percent;
 
 
   // -- Constructor --
 
-/** Constructs a new FluoviewTiffForm file form. */
+  /** Constructs a new FluoviewTiffForm file form. */
   public FluoviewTiffForm() {
     super("FluoviewTiffForm" + num++);
   }
@@ -91,7 +92,7 @@ public class FluoviewTiffForm extends Form
     if (!(name.toLowerCase().endsWith(".tif")
        || name.toLowerCase().endsWith(".tiff"))) { return false; }
     long len = new File(name).length();
-    int num = len <16384 ? (int) len : 16384;
+    int num = len < 16384 ? (int) len : 16384;
     byte[] buf = new byte[num];
     try {
       FileInputStream fin = new FileInputStream(name);
@@ -162,7 +163,10 @@ public class FluoviewTiffForm extends Form
   public DataImpl open(String id)
     throws BadFormException, IOException, VisADException
   {
-    if(readin == null) { readin = new RandomAccessFile(id, "r"); }
+    if (!id.equals(current_id)) {
+      readin = new RandomAccessFile(id, "r");
+      current_id = id;
+    }
     percent = 0;
     frame = RealType.getRealType("frame");
     row = RealType.getRealType("row");
@@ -176,9 +180,9 @@ public class FluoviewTiffForm extends Form
     pixelSet = new Integer2DSet(domain_tuple, dimensions[0], dimensions[1]);
     timeSet = new Integer1DSet(frame,  dimensions[2]);
     // Create a FlatField
-    frame_ff = new FlatField( func_rc_p, pixelSet);
+    frame_ff = new FlatField(func_rc_p, pixelSet);
     // ...and a FieldImpl
-    timeField = new FieldImpl( func_t_range, timeSet);
+    timeField = new FieldImpl(func_t_range, timeSet);
 
     // Populates the FieldImpl with data.
     for (int framecount = 0; framecount < dimensions[2]; framecount++) {
@@ -221,19 +225,22 @@ public class FluoviewTiffForm extends Form
   public DataImpl open(String id, int block_number)
     throws BadFormException, IOException, VisADException
   {
-    if(readin == null) { readin = new RandomAccessFile(id, "r"); }
+    if (!id.equals(current_id)) {
+      readin = new RandomAccessFile(id, "r");
+      current_id = id;
+    }
     frame = RealType.getRealType("frame");
     row = RealType.getRealType("row");
     column = RealType.getRealType("column");
     domain_tuple = new RealTupleType(row, column);
-    pixel = RealType.getRealType("pixel");
+    pixel = RealType.getRealType("intensity");
     func_rc_p = new FunctionType(domain_tuple, pixel);
     func_t_range = new FunctionType(frame, func_rc_p);
 
     int[] dimensions = getFTIFFDimensions();
     pixelSet = new Integer2DSet(domain_tuple, dimensions[0], dimensions[1]);
     timeSet = new Integer1DSet(frame,  dimensions[2]);
-    frame_ff = new FlatField( func_rc_p, pixelSet);
+    frame_ff = new FlatField(func_rc_p, pixelSet);
 
     float[][] flat_samples = new float[1][];
     flat_samples[0] = getFrame(block_number);
@@ -245,7 +252,10 @@ public class FluoviewTiffForm extends Form
   public int getBlockCount(String id)
     throws BadFormException, IOException, VisADException
   {
-    if(readin == null) { readin = new RandomAccessFile(id, "r"); }
+    if (!id.equals(current_id)) {
+      readin = new RandomAccessFile(id, "r");
+      current_id = id;
+    }
     int[] dimensions = getFTIFFDimensions();
     return dimensions[2];
   }
@@ -322,12 +332,10 @@ public class FluoviewTiffForm extends Form
    * @throws IOException  if a file input or output exception occured
    */
   private int[] getFTIFFDimensions() throws IOException {
-
-    /* For this one, we're going to read the entire IFD, get the x and y
-     * coordinates out of it, and then just pass through the other IFDs to get
-     * z. It is conceivable that the various images are of different sizes,
-     * but for now I'm going to assume that they are not.
-     */
+    // For this one, we're going to read the entire IFD, get the x and y
+    // coordinates out of it, and then just pass through the other IFDs to get
+    // z. It is conceivable that the various images are of different sizes,
+    // but for now I'm going to assume that they are not.
     byte[] bytearray;
     int nextoffset;
     int numentries;
