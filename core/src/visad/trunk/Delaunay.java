@@ -187,13 +187,13 @@ public abstract class Delaunay implements java.io.Serializable {
                       }
                     }
                   }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                } // end if (dim == 3)
+              } // end for (int l=0; l<Vertices[Tri[i][v2]].length; l++)
+            } // end if (temp != i)
+          } // end for (int k=0; k<Vertices[Tri[i][v1]].length; k++)
+        } // end for (int j=0; j<dim1; j++)
+      } // end for (int i=0; i<Tri.length; i++)
+    } // end if (Walk == null && dim <= 3)
 
     if (Edges == null && dim <= 3) {
       // build Edges component
@@ -243,7 +243,7 @@ public abstract class Delaunay implements java.io.Serializable {
               for (int p1=0; p1<Vertices[endpt1].length; p1++) {
                 int temp = Vertices[endpt1][p1];
                 for (int p2=0; p2<Vertices[endpt2].length; p2++) {
-                  if (temp == Vertices[endpt1][p2]) {
+                  if (temp == Vertices[endpt2][p2]) {
                     set[setlen++] = temp;
                     break;
                   }
@@ -262,12 +262,77 @@ public abstract class Delaunay implements java.io.Serializable {
                 }
               }
               Edges[i][j] = NumEdges++;
-            }
-          }
-        }
-      }
-    }
+            } // end if (Edges[i][j] < 0)
+          } // end for (int j=0; j<6; j++)
+        } // end for (int i=0; i<ntris; i++)
+      } // end if (dim == 3)
+    } // end if (Edges == null && dim <= 3)
   }
+
+  public String toString() {
+    return sampleString(null);
+  }
+
+  public String sampleString(float[][] samples) {
+    StringBuffer s = new StringBuffer("");
+    if (samples != null) {
+      s.append("\nsamples " + samples[0].length + "\n");
+      for (int i=0; i<samples[0].length; i++) {
+        s.append("  " + i + " -> " + samples[0][i] + " " +
+                 samples[1][i] + " " + samples[2][i] + "\n");
+      }
+      s.append("\n");
+    }
+
+    s.append("\nTri (triangles -> vertices) " + Tri.length + "\n");
+    for (int i=0; i<Tri.length; i++) {
+      s.append("  " + i + " -> ");
+      for (int j=0; j<Tri[i].length; j++) {
+        s.append(" " + Tri[i][j]);
+      }
+      s.append("\n");
+    }
+
+    s.append("\nVertices (vertices -> triangles) " + Vertices.length + "\n");
+    for (int i=0; i<Vertices.length; i++) {
+      s.append("  " + i + " -> ");
+      for (int j=0; j<Vertices[i].length; j++) {
+        s.append(" " + Vertices[i][j]);
+      }
+      s.append("\n");
+    }
+
+    s.append("\nWalk (triangles -> triangles) " + Walk.length + "\n");
+    for (int i=0; i<Walk.length; i++) {
+      s.append("  " + i + " -> ");
+      for (int j=0; j<Walk[i].length; j++) {
+        s.append(" " + Walk[i][j]);
+      }
+      s.append("\n");
+    }
+
+    s.append("\nEdges (triangles -> global edges) " + Edges.length + "\n");
+    for (int i=0; i<Edges.length; i++) {
+      s.append("  " + i + " -> ");
+      for (int j=0; j<Edges[i].length; j++) {
+        s.append(" " + Edges[i][j]);
+      }
+      s.append("\n");
+    }
+    return s.toString();
+  }
+
+/*
+  public int[][] Tri;        // triangles/tetrahedra --> vertices
+                             //   Tri = new int[ntris][dim + 1]
+  public int[][] Vertices;   // vertices --> triangles/tetrahedra
+                             //   Vertices = new int[nrs][nverts[i]]
+  public int[][] Walk;       // triangles/tetrahedra --> triangles/tetrahedra
+                             //   Walk = new int[ntris][dim + 1]
+  public int[][] Edges;      // tri/tetra edges --> global edge number
+                             //   Edges = new int[ntris][3 * (dim - 1)];
+  public int NumEdges;       // number of unique global edge numbers
+*/
 
 }
 

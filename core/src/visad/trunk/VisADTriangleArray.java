@@ -1,8 +1,8 @@
-
+ 
 //
-// RemoteField.java
+// VisADTriangleArray.java
 //
-
+ 
 /*
 VisAD system for interactive analysis and visualization of numerical
 data.  Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden and Tom
@@ -22,15 +22,14 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
-
+ 
 package visad;
-
-import java.rmi.*;
-
+ 
 /**
-   RemoteField is the interface for Remote VisAD Field-s.<P>
+   VisADTriangleArray stands in for j3d.TrianlgeArray
+   and is Serializable.<P>
 */
-public interface RemoteField extends Remote, Field {
+public class VisADTriangleArray extends VisADGeometryArray {
 
 }
 

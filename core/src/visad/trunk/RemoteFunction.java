@@ -25,10 +25,12 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+import java.rmi.*;
+
 /**
    RemoteFunction is the interface for Remote VisAD Function-s.<P>
 */
-public interface RemoteFunction extends Function {
+public interface RemoteFunction extends Remote, Function {
 
 }
 

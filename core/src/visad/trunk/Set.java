@@ -320,16 +320,16 @@ public abstract class Set extends DataImpl {
     throw new SetException("Set.makePointGeometry: not valid for this Set");
   }
 
-  public VisADGeometryArray makeIsoSurface(float isolevel,
-         float[] fieldValues, float[][] color_values)
-         throws VisADException {
-    throw new SetException("Set.makeIsoSurface: not valid for this Set");
-  }
-
   public VisADGeometryArray[] makeIsoLines(float interval, float low,
                       float hi, float base, float[] fieldValues,
                       float[][] color_values) throws VisADException {
     throw new SetException("Set.makeIsoLines: not valid for this Set");
+  }
+
+  public VisADGeometryArray makeIsoSurface(float isolevel,
+         float[] fieldValues, float[][] color_values)
+         throws VisADException {
+    throw new SetException("Set.makeIsoSurface: not valid for this Set");
   }
 
   public static double[][] floatToDouble(float[][] value) {

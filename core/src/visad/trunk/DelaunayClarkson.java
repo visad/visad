@@ -1009,6 +1009,11 @@ public class DelaunayClarkson extends Delaunay {
     for (int j=0; j<dim; j++) {
       System.arraycopy(samples[j], 0, site_blocks[j], 0, nrs);
     }
+/* WLH 29 Jan 98 - scale samples values as discussed in Delaunay.factory
+    for (int j=0; j<dim; j++) {
+      for (int kk=0; kk<nrs; kk++) site_blocks[j][kk] = 100.0f * samples[j][kk];
+    }
+*/
 
     exact_bits = (int) (DBL_MANT_DIG*Math.log(FLT_RADIX)/ln2);
     b_err_min = DBL_EPSILON*MAXDIM*(1<<MAXDIM)*MAXDIM*3.01;

@@ -1913,13 +1913,18 @@ public class Gridded3DSet extends GriddedSet {
     int[]  ptAUX  = new int[ xdim_x_ydim_x_zdim ];
     int[]  pcube  = new int[ num_cubes+1 ];
 
+System.out.println("pre-flags: isolevel = " + isolevel + " xdim, ydim, zdim = " +
+                   xdim + " " + ydim + " " + zdim);
+
     npolygons = flags( isolevel, ptFLAG, ptAUX, pcube,
                        ptGRID, xdim, ydim, zdim );
 
+    if (debug) System.out.println("npolygons= "+npolygons);
+
+    if (npolygons == 0) return null;
+
     // take the garbage out
     pcube = null;
-
-    if (debug) System.out.println("npolygons= "+npolygons);
 
     nvertex_estimate = 2 * npolygons;
     ix = 9 * (nvertex_estimate + 50);
@@ -1940,6 +1945,8 @@ public class Gridded3DSet extends GriddedSet {
     nvertex = isosurf( isolevel, ptFLAG, nvertex_estimate, npolygons,
                        ptGRID, xdim, ydim, zdim, VX, VY, VZ,
                        color_values, color_temps, Pol_f_Vert, Vert_f_Pol );
+
+    if (nvertex == 0) return null;
 
     // take the garbage out
     ptFLAG = null;

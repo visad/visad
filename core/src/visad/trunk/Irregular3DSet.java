@@ -418,15 +418,20 @@ public class Irregular3DSet extends IrregularSet {
     }
   }
 
+  public VisADGeometryArray[] makeIsoLines(float interval,
+                  float lowlimit, float highlimit, float base,
+                  float[] fieldValues, float[][] color_values)
+         throws VisADException {
+    if (ManifoldDimension != 2) {
+      throw new SetException("Irregular3DSet.makeIsoLines: " +
+                             "ManifoldDimension must be 2");
+    }
+    throw new UnimplementedException("Irregular3DSet.makeIsoLines not done");
+  }
+
   public VisADGeometryArray makeIsoSurface(float isolevel,
          float[] fieldValues, float[][] color_values)
          throws VisADException {
-/* WLH 1 Nov 97
-  public void main_isosurf(float isolevel, float[] fieldValues,
-                           float[][] auxValues, float[][] fieldVertices,
-                           float[][] auxLevels, int[][] Tri_Stripe)
-         throws VisADException {
-*/
 
     if (ManifoldDimension != 3) {
       throw new SetException("Irregular3DSet.main_isosurf: " +
@@ -434,14 +439,25 @@ public class Irregular3DSet extends IrregularSet {
     }
 
     float[][] fieldVertices = new float[3][];
-    float[][] color_levels = new float[color_values.length][];
-    int[][][] polyToVert = new int[0][][];
-    int[][][] vertToPoly = new int[0][][];
+    float[][] color_levels = null;
+    if (color_values != null) {
+      color_levels = new float[color_values.length][];
+    }
+    int[][][] polyToVert = new int[1][][];
+    int[][][] vertToPoly = new int[1][][];
     makeIsosurface(isolevel, fieldValues, color_values, fieldVertices,
                    color_levels, polyToVert, vertToPoly);
 
     int nvertex = vertToPoly[0].length;
     int npolygons = polyToVert[0].length;
+    float[] NX = new float[nvertex];
+    float[] NY = new float[nvertex];
+    float[] NZ = new float[nvertex];
+
+
+
+/*
+    // with make_normals
     float[] NxA = new float[npolygons];
     float[] NxB = new float[npolygons];
     float[] NyA = new float[npolygons];
@@ -451,9 +467,6 @@ public class Irregular3DSet extends IrregularSet {
     float[] Pnx = new float[npolygons];
     float[] Pny = new float[npolygons];
     float[] Pnz = new float[npolygons];
-    float[] NX = new float[nvertex];
-    float[] NY = new float[nvertex];
-    float[] NZ = new float[nvertex];
 
     make_normals(fieldVertices[0], fieldVertices[1], fieldVertices[2],
                  NX, NY, NZ, nvertex, npolygons, Pnx, Pny, Pnz,
@@ -461,7 +474,114 @@ public class Irregular3DSet extends IrregularSet {
 
     // take the garbage out
     NxA = NxB = NyA = NyB = NzA = NzB = Pnx = Pny = Pnz = null;
+*/
 
+
+
+    // without make_normals
+    for (int i=0; i<nvertex; i++) {
+      float a = fieldVertices[0][i];
+      float b = fieldVertices[1][i];
+      float c = fieldVertices[2][i];
+      float d = (float) Math.sqrt(a * a + b * b + c * c);
+      NX[i] = a / d;
+      NY[i] = b / d;
+      NZ[i] = c / d;
+    }
+
+
+
+
+    // without poly_triangle_stripe
+    int ntris = npolygons;
+    for (int i=0; i<npolygons; i++) {
+      if (polyToVert[0][i].length > 3) ntris++;
+    }
+    VisADTriangleArray array = new VisADTriangleArray();
+    array.vertexCount = 3 * ntris;
+    float[][] coordinates = new float[3][3 * ntris];
+    float[] normals = new float[9 * ntris];
+    float[][] colors = null;
+    if (color_levels != null) {
+      colors = new float[color_levels.length][3 * ntris];
+    }
+    int j = 0;
+    int jn = 0;
+    for (int i=0; i<npolygons; i++) {
+      int a = polyToVert[0][i][0];
+      int b = polyToVert[0][i][1];
+      int c = polyToVert[0][i][2];
+      for (int k=0; k<3; k++) {
+        coordinates[k][j] = fieldVertices[k][a];
+        coordinates[k][j + 1] = fieldVertices[k][b];
+        coordinates[k][j + 2] = fieldVertices[k][c];
+      }
+      normals[jn] = NX[a];
+      normals[jn + 1] = NY[a];
+      normals[jn + 2] = NZ[a];
+      normals[jn + 3] = NX[b];
+      normals[jn + 4] = NY[b];
+      normals[jn + 5] = NZ[b];
+      normals[jn + 6] = NX[c];
+      normals[jn + 7] = NY[c];
+      normals[jn + 8] = NZ[c];
+      if (color_levels != null) {
+        for (int k=0; k<3; k++) {
+          colors[k][j] = color_levels[k][a];
+          colors[k][j + 1] = color_levels[k][b];
+          colors[k][j + 2] = color_levels[k][c];
+        }
+        if (color_levels.length > 3) {
+          colors[4][j] = color_levels[4][a];
+          colors[4][j + 1] = color_levels[4][b];
+          colors[4][j + 2] = color_levels[4][c];
+        }
+      }
+      j += 3;
+      jn += 9;
+      if (polyToVert[0][i].length > 3) {
+        int d = polyToVert[0][i][3];
+        for (int k=0; k<3; k++) {
+          coordinates[k][j] = fieldVertices[k][a];
+          coordinates[k][j + 1] = fieldVertices[k][c];
+          coordinates[k][j + 2] = fieldVertices[k][d];
+        }
+        normals[jn] = NX[a];
+        normals[jn + 1] = NY[a];
+        normals[jn + 2] = NZ[a];
+        normals[jn + 3] = NX[c];
+        normals[jn + 4] = NY[c];
+        normals[jn + 5] = NZ[c];
+        normals[jn + 6] = NX[d];
+        normals[jn + 7] = NY[d];
+        normals[jn + 8] = NZ[d];
+        if (color_levels != null) {
+          for (int k=0; k<3; k++) {
+            colors[k][j] = color_levels[k][a];
+            colors[k][j + 1] = color_levels[k][c];
+            colors[k][j + 2] = color_levels[k][d];
+          }
+          if (color_levels.length > 3) {
+            colors[4][j] = color_levels[4][a];
+            colors[4][j + 1] = color_levels[4][c];
+            colors[4][j + 2] = color_levels[4][d];
+          }
+        }
+        j += 3;
+        jn += 9;
+      }
+    }
+    vertToPoly = null;
+    polyToVert = null;
+    setGeometryArray(array, coordinates, 4, colors);
+    array.normals = normals;
+    normals = null;
+ 
+
+
+
+/*
+    // with poly_triangle_stripe
     float[] normals = new float[3 * nvertex];
     int j = 0;
     for (int i=0; i<nvertex; i++) {
@@ -473,7 +593,7 @@ public class Irregular3DSet extends IrregularSet {
     NX = NY = NZ = null;
 
     int[] stripe = new int[6 * npolygons];
-
+ 
     int size_stripe =
       poly_triangle_stripe(stripe, nvertex, npolygons,
                            vertToPoly[0], polyToVert[0]);
@@ -501,6 +621,9 @@ public class Irregular3DSet extends IrregularSet {
  
     // array.vertexFormat |= NORMALS;
     array.normals = normals;
+*/
+
+
 
     return array;
   }
@@ -520,6 +643,7 @@ public class Irregular3DSet extends IrregularSet {
                               float[][] auxValues, float[][] fieldVertices,
                               float[][] auxLevels, int[][][] polyToVert,
                               int[][][] vertToPoly) throws VisADException {
+    boolean DEBUG = true;
     if (ManifoldDimension != 3) {
       throw new SetException("Irregular3DSet.makeIsosurface: " +
                              "ManifoldDimension must be 3");
@@ -535,7 +659,9 @@ public class Irregular3DSet extends IrregularSet {
     if (fieldVertices.length != 3 || polyToVert.length != 1
                                   || vertToPoly.length != 1) {
       throw new SetException("Irregular3DSet.makeIsosurface: return value"
-                            +" arrays not correctly initialized");
+                             + " arrays not correctly initialized " +
+                             fieldVertices.length + " " + polyToVert.length +
+                             " " + vertToPoly.length);
     }
     int naux = (auxValues != null) ? auxValues.length : 0;
     if (naux > 0) {
@@ -557,16 +683,25 @@ public class Irregular3DSet extends IrregularSet {
       }
     }
 
+
+    if (DEBUG) {
+      System.out.println("isolevel = " + isolevel + "\n");
+      System.out.println("fieldValues " + fieldValues.length);
+      for (int i=0; i<fieldValues.length; i++) {
+        System.out.println("  " + i + " -> " + fieldValues[i]);
+      }
+      System.out.println(Delan.sampleString(Samples));
+    }
+
+
     int trilength = Delan.Tri.length;
 
     // temporary storage of polyToVert structure
     int[][] polys = new int[trilength][4];
 
-    // temporary storage of fieldVertices structure
-    float[][] tempslice = new float[3][4*trilength];
-
-    // temporary storage of auxLevels structure
-    float[][] tempaux = (naux > 0) ? new float[naux][4*trilength] : null;
+    // pointers from global edge number to nvertex
+    int[] globalToVertex = new int[Delan.NumEdges];
+    for (int i=0; i<Delan.NumEdges; i++) globalToVertex[i] = -1;
 
     // global edges temporary storage array
     float[][] edgeInterp = new float[DomainDimension][Delan.NumEdges];
@@ -618,6 +753,8 @@ public class Irregular3DSet extends IrregularSet {
             for (int j=0; j<naux; j++) {
               auxInterp[j][e0] = (float) a*auxValues[j][v0] + (1-a)*auxValues[j][v1];
             }
+            globalToVertex[e0] = nvertex;
+            nvertex++;
           }
 /* WLH 25 Oct 97
           if (Double.isNaN(edgeInterp[0][e1])) {
@@ -632,6 +769,8 @@ public class Irregular3DSet extends IrregularSet {
             for (int j=0; j<naux; j++) {
               auxInterp[j][e1] = (float) a*auxValues[j][v0] + (1-a)*auxValues[j][v2];
             }
+            globalToVertex[e1] = nvertex;
+            nvertex++;
           }
 /* WLH 25 Oct 97
           if (Double.isNaN(edgeInterp[0][e2])) {
@@ -646,28 +785,17 @@ public class Irregular3DSet extends IrregularSet {
             for (int j=0; j<naux; j++) {
               auxInterp[j][e2] = (float) a*auxValues[j][v0] + (1-a)*auxValues[j][v3];
             }
-          }
-
-          // fill in tempslice array
-          for (int j=0; j<3; j++) {
-            tempslice[j][nvertex] = edgeInterp[j][e0];
-            tempslice[j][nvertex+1] = edgeInterp[j][e1];
-            tempslice[j][nvertex+2] = edgeInterp[j][e2];
-          }
-          for (int j=0; j<naux; j++) {
-            tempaux[j][nvertex] = auxInterp[j][e0];
-            tempaux[j][nvertex+1] = auxInterp[j][e1];
-            tempaux[j][nvertex+2] = auxInterp[j][e2];
+            globalToVertex[e2] = nvertex;
+            nvertex++;
           }
 
           // fill in the polys and vertToPoly arrays
-          polys[npolygons][0] = nvertex;
-          polys[npolygons][1] = nvertex+1;
-          polys[npolygons][2] = nvertex+2;
+          polys[npolygons][0] = e0;
+          polys[npolygons][1] = e1;
+          polys[npolygons][2] = e2;
           polys[npolygons][3] = -1;
 
           // on to the next tetrahedron
-          nvertex += 3;
           npolygons++;
           break;
 
@@ -692,6 +820,8 @@ public class Irregular3DSet extends IrregularSet {
             for (int j=0; j<naux; j++) {
               auxInterp[j][e0] = (float) a*auxValues[j][v0] + (1-a)*auxValues[j][v1];
             }
+            globalToVertex[e0] = nvertex;
+            nvertex++;
           }
 /* WLH 25 Oct 97
           if (Double.isNaN(edgeInterp[0][e3])) {
@@ -706,6 +836,8 @@ public class Irregular3DSet extends IrregularSet {
             for (int j=0; j<naux; j++) {
               auxInterp[j][e3] = (float) a*auxValues[j][v1] + (1-a)*auxValues[j][v2];
             }
+            globalToVertex[e3] = nvertex;
+            nvertex++;
           }
 /* WLH 25 Oct 97
           if (Double.isNaN(edgeInterp[0][e4])) {
@@ -720,28 +852,17 @@ public class Irregular3DSet extends IrregularSet {
             for (int j=0; j<naux; j++) {
               auxInterp[j][e4] = (float) a*auxValues[j][v1] + (1-a)*auxValues[j][v3];
             }
-          }
-
-          // fill in tempslice array
-          for (int j=0; j<3; j++) {
-            tempslice[j][nvertex] = edgeInterp[j][e0];
-            tempslice[j][nvertex+1] = edgeInterp[j][e3];
-            tempslice[j][nvertex+2] = edgeInterp[j][e4];
-          }
-          for (int j=0; j<naux; j++) {
-            tempaux[j][nvertex] = auxInterp[j][e0];
-            tempaux[j][nvertex+1] = auxInterp[j][e3];
-            tempaux[j][nvertex+2] = auxInterp[j][e4];
+            globalToVertex[e4] = nvertex;
+            nvertex++;
           }
 
           // fill in the polys array
-          polys[npolygons][0] = nvertex;
-          polys[npolygons][1] = nvertex+1;
-          polys[npolygons][2] = nvertex+2;
+          polys[npolygons][0] = e0;
+          polys[npolygons][1] = e3;
+          polys[npolygons][2] = e4;
           polys[npolygons][3] = -1;
 
           // on to the next tetrahedron
-          nvertex += 3;
           npolygons++;
           break;
 
@@ -767,6 +888,8 @@ public class Irregular3DSet extends IrregularSet {
             for (int j=0; j<naux; j++) {
               auxInterp[j][e1] = (float) a*auxValues[j][v0] + (1-a)*auxValues[j][v2];
             }
+            globalToVertex[e1] = nvertex;
+            nvertex++;
           }
 /* WLH 25 Oct 97
           if (Double.isNaN(edgeInterp[0][e2])) {
@@ -781,20 +904,8 @@ public class Irregular3DSet extends IrregularSet {
             for (int j=0; j<naux; j++) {
               auxInterp[j][e2] = (float) a*auxValues[j][v0] + (1-a)*auxValues[j][v3];
             }
-          }
-/* WLH 25 Oct 97
-          if (Double.isNaN(edgeInterp[0][e3])) {
-*/
-          // test for missing
-          if (edgeInterp[0][e3] != edgeInterp[0][e3]) {
-            float a = (isolevel - f2)/(f1 - f2);
-            if (a < 0) a = -a;
-            edgeInterp[0][e3] = (float) a*Samples[0][v1] + (1-a)*Samples[0][v2];
-            edgeInterp[1][e3] = (float) a*Samples[1][v1] + (1-a)*Samples[1][v2];
-            edgeInterp[2][e3] = (float) a*Samples[2][v1] + (1-a)*Samples[2][v2];
-            for (int j=0; j<naux; j++) {
-              auxInterp[j][e3] = (float) a*auxValues[j][v1] + (1-a)*auxValues[j][v2];
-            }
+            globalToVertex[e2] = nvertex;
+            nvertex++;
           }
 /* WLH 25 Oct 97
           if (Double.isNaN(edgeInterp[0][e4])) {
@@ -809,30 +920,34 @@ public class Irregular3DSet extends IrregularSet {
             for (int j=0; j<naux; j++) {
               auxInterp[j][e4] = (float) a*auxValues[j][v1] + (1-a)*auxValues[j][v3];
             }
+            globalToVertex[e4] = nvertex;
+            nvertex++;
+          }
+/* WLH 25 Oct 97
+          if (Double.isNaN(edgeInterp[0][e3])) {
+*/
+          // test for missing
+          if (edgeInterp[0][e3] != edgeInterp[0][e3]) {
+            float a = (isolevel - f2)/(f1 - f2);
+            if (a < 0) a = -a;
+            edgeInterp[0][e3] = (float) a*Samples[0][v1] + (1-a)*Samples[0][v2];
+            edgeInterp[1][e3] = (float) a*Samples[1][v1] + (1-a)*Samples[1][v2];
+            edgeInterp[2][e3] = (float) a*Samples[2][v1] + (1-a)*Samples[2][v2];
+            for (int j=0; j<naux; j++) {
+              auxInterp[j][e3] = (float) a*auxValues[j][v1] + (1-a)*auxValues[j][v2];
+            }
+            globalToVertex[e3] = nvertex;
+            nvertex++;
           }
 
-          // fill in tempslice array
-          for (int j=0; j<3; j++) {
-            tempslice[j][nvertex] = edgeInterp[j][e1];
-            tempslice[j][nvertex+1] = edgeInterp[j][e2];
-            tempslice[j][nvertex+2] = edgeInterp[j][e3];
-            tempslice[j][nvertex+3] = edgeInterp[j][e4];
-          }
-          for (int j=0; j<naux; j++) {
-            tempaux[j][nvertex] = auxInterp[j][e1];
-            tempaux[j][nvertex+1] = auxInterp[j][e2];
-            tempaux[j][nvertex+2] = auxInterp[j][e3];
-            tempaux[j][nvertex+3] = auxInterp[j][e4];
-          }
 
           // fill in the polys array
-          polys[npolygons][0] = nvertex;
-          polys[npolygons][1] = nvertex+1;
-          polys[npolygons][2] = nvertex+2;
-          polys[npolygons][3] = nvertex+3;
+          polys[npolygons][0] = e1;
+          polys[npolygons][1] = e2;
+          polys[npolygons][2] = e4;
+          polys[npolygons][3] = e3;
 
           // on to the next tetrahedron
-          nvertex += 4;
           npolygons++;
           break;
 
@@ -857,6 +972,8 @@ public class Irregular3DSet extends IrregularSet {
             for (int j=0; j<naux; j++) {
               auxInterp[j][e1] = (float) a*auxValues[j][v0] + (1-a)*auxValues[j][v2];
             }
+            globalToVertex[e1] = nvertex;
+            nvertex++;
           }
 /* WLH 25 Oct 97
           if (Double.isNaN(edgeInterp[0][e3])) {
@@ -871,6 +988,8 @@ public class Irregular3DSet extends IrregularSet {
             for (int j=0; j<naux; j++) {
               auxInterp[j][e3] = (float) a*auxValues[j][v1] + (1-a)*auxValues[j][v2];
             }
+            globalToVertex[e3] = nvertex;
+            nvertex++;
           }
 /* WLH 25 Oct 97
           if (Double.isNaN(edgeInterp[0][e5])) {
@@ -885,27 +1004,17 @@ public class Irregular3DSet extends IrregularSet {
             for (int j=0; j<naux; j++) {
               auxInterp[j][e5] = (float) a*auxValues[j][v2] + (1-a)*auxValues[j][v3];
             }
-          }
-
-          // fill in tempslice array
-          for (int j=0; j<3; j++) {
-            tempslice[j][nvertex] = edgeInterp[j][e1];
-            tempslice[j][nvertex+1] = edgeInterp[j][e3];
-            tempslice[j][nvertex+2] = edgeInterp[j][e5];
-          }
-          for (int j=0; j<naux; j++) {
-            tempaux[j][nvertex] = auxInterp[j][e1];
-            tempaux[j][nvertex+1] = auxInterp[j][e3];
-            tempaux[j][nvertex+2] = auxInterp[j][e5];
+            globalToVertex[e5] = nvertex;
+            nvertex++;
           }
 
           // fill in the polys array
-          polys[npolygons][0] = nvertex;
-          polys[npolygons][1] = nvertex+1;
-          polys[npolygons][2] = nvertex+2;
+          polys[npolygons][0] = e1;
+          polys[npolygons][1] = e3;
+          polys[npolygons][2] = e5;
+          polys[npolygons][3] = -1;
 
           // on to the next tetrahedron
-          nvertex += 3;
           npolygons++;
           break;
 
@@ -931,6 +1040,8 @@ public class Irregular3DSet extends IrregularSet {
             for (int j=0; j<naux; j++) {
               auxInterp[j][e0] = (float) a*auxValues[j][v0] + (1-a)*auxValues[j][v1];
             }
+            globalToVertex[e0] = nvertex;
+            nvertex++;
           }
 /* WLH 25 Oct 97
           if (Double.isNaN(edgeInterp[0][e2])) {
@@ -945,20 +1056,8 @@ public class Irregular3DSet extends IrregularSet {
             for (int j=0; j<naux; j++) {
               auxInterp[j][e2] = (float) a*auxValues[j][v0] + (1-a)*auxValues[j][v3];
             }
-          }
-/* WLH 25 Oct 97
-          if (Double.isNaN(edgeInterp[0][e3])) {
-*/
-          // test for missing
-          if (edgeInterp[0][e3] != edgeInterp[0][e3]) {
-            float a = (isolevel - f2)/(f1 - f2);
-            if (a < 0) a = -a;
-            edgeInterp[0][e3] = (float) a*Samples[0][v1] + (1-a)*Samples[0][v2];
-            edgeInterp[1][e3] = (float) a*Samples[1][v1] + (1-a)*Samples[1][v2];
-            edgeInterp[2][e3] = (float) a*Samples[2][v1] + (1-a)*Samples[2][v2];
-            for (int j=0; j<naux; j++) {
-              auxInterp[j][e3] = (float) a*auxValues[j][v1] + (1-a)*auxValues[j][v2];
-            }
+            globalToVertex[e2] = nvertex;
+            nvertex++;
           }
 /* WLH 25 Oct 97
           if (Double.isNaN(edgeInterp[0][e5])) {
@@ -973,30 +1072,34 @@ public class Irregular3DSet extends IrregularSet {
             for (int j=0; j<naux; j++) {
               auxInterp[j][e5] = (float) a*auxValues[j][v2] + (1-a)*auxValues[j][v3];
             }
+            globalToVertex[e5] = nvertex;
+            nvertex++;
+          }
+/* WLH 25 Oct 97
+          if (Double.isNaN(edgeInterp[0][e3])) {
+*/
+          // test for missing
+          if (edgeInterp[0][e3] != edgeInterp[0][e3]) {
+            float a = (isolevel - f2)/(f1 - f2);
+            if (a < 0) a = -a;
+            edgeInterp[0][e3] = (float) a*Samples[0][v1] + (1-a)*Samples[0][v2];
+            edgeInterp[1][e3] = (float) a*Samples[1][v1] + (1-a)*Samples[1][v2];
+            edgeInterp[2][e3] = (float) a*Samples[2][v1] + (1-a)*Samples[2][v2];
+            for (int j=0; j<naux; j++) {
+              auxInterp[j][e3] = (float) a*auxValues[j][v1] + (1-a)*auxValues[j][v2];
+            }
+            globalToVertex[e3] = nvertex;
+            nvertex++;
           }
 
-          // fill in tempslice array
-          for (int j=0; j<3; j++) {
-            tempslice[j][nvertex] = edgeInterp[j][e0];
-            tempslice[j][nvertex+1] = edgeInterp[j][e2];
-            tempslice[j][nvertex+2] = edgeInterp[j][e3];
-            tempslice[j][nvertex+3] = edgeInterp[j][e5];
-          }
-          for (int j=0; j<naux; j++) {
-            tempaux[j][nvertex] = auxInterp[j][e0];
-            tempaux[j][nvertex+1] = auxInterp[j][e2];
-            tempaux[j][nvertex+2] = auxInterp[j][e3];
-            tempaux[j][nvertex+3] = auxInterp[j][e5];
-          }
 
           // fill in the polys array
-          polys[npolygons][0] = nvertex;
-          polys[npolygons][1] = nvertex+1;
-          polys[npolygons][2] = nvertex+2;
-          polys[npolygons][3] = nvertex+3;
+          polys[npolygons][0] = e0;
+          polys[npolygons][1] = e2;
+          polys[npolygons][2] = e5;
+          polys[npolygons][3] = e3;
 
           // on to the next tetrahedron
-          nvertex += 4;
           npolygons++;
           break;
 
@@ -1022,6 +1125,8 @@ public class Irregular3DSet extends IrregularSet {
             for (int j=0; j<naux; j++) {
               auxInterp[j][e0] = (float) a*auxValues[j][v0] + (1-a)*auxValues[j][v1];
             }
+            globalToVertex[e0] = nvertex;
+            nvertex++;
           }
 /* WLH 25 Oct 97
           if (Double.isNaN(edgeInterp[0][e1])) {
@@ -1036,20 +1141,8 @@ public class Irregular3DSet extends IrregularSet {
             for (int j=0; j<naux; j++) {
               auxInterp[j][e1] = (float) a*auxValues[j][v0] + (1-a)*auxValues[j][v2];
             }
-          }
-/* WLH 25 Oct 97
-          if (Double.isNaN(edgeInterp[0][e4])) {
-*/
-          // test for missing
-          if (edgeInterp[0][e4] != edgeInterp[0][e4]) {
-            float a = (isolevel - f3)/(f1 - f3);
-            if (a < 0) a = -a;
-            edgeInterp[0][e4] = (float) a*Samples[0][v1] + (1-a)*Samples[0][v3];
-            edgeInterp[1][e4] = (float) a*Samples[1][v1] + (1-a)*Samples[1][v3];
-            edgeInterp[2][e4] = (float) a*Samples[2][v1] + (1-a)*Samples[2][v3];
-            for (int j=0; j<naux; j++) {
-              auxInterp[j][e4] = (float) a*auxValues[j][v1] + (1-a)*auxValues[j][v3];
-            }
+            globalToVertex[e1] = nvertex;
+            nvertex++;
           }
 /* WLH 25 Oct 97
           if (Double.isNaN(edgeInterp[0][e5])) {
@@ -1064,30 +1157,34 @@ public class Irregular3DSet extends IrregularSet {
             for (int j=0; j<naux; j++) {
               auxInterp[j][e5] = (float) a*auxValues[j][v2] + (1-a)*auxValues[j][v3];
             }
+            globalToVertex[e5] = nvertex;
+            nvertex++;
+          }
+/* WLH 25 Oct 97
+          if (Double.isNaN(edgeInterp[0][e4])) {
+*/
+          // test for missing
+          if (edgeInterp[0][e4] != edgeInterp[0][e4]) {
+            float a = (isolevel - f3)/(f1 - f3);
+            if (a < 0) a = -a;
+            edgeInterp[0][e4] = (float) a*Samples[0][v1] + (1-a)*Samples[0][v3];
+            edgeInterp[1][e4] = (float) a*Samples[1][v1] + (1-a)*Samples[1][v3];
+            edgeInterp[2][e4] = (float) a*Samples[2][v1] + (1-a)*Samples[2][v3];
+            for (int j=0; j<naux; j++) {
+              auxInterp[j][e4] = (float) a*auxValues[j][v1] + (1-a)*auxValues[j][v3];
+            }
+            globalToVertex[e4] = nvertex;
+            nvertex++;
           }
 
-          // fill in tempslice array
-          for (int j=0; j<3; j++) {
-            tempslice[j][nvertex] = edgeInterp[j][e0];
-            tempslice[j][nvertex+1] = edgeInterp[j][e1];
-            tempslice[j][nvertex+2] = edgeInterp[j][e4];
-            tempslice[j][nvertex+3] = edgeInterp[j][e5];
-          }
-          for (int j=0; j<naux; j++) {
-            tempaux[j][nvertex] = auxInterp[j][e0];
-            tempaux[j][nvertex+1] = auxInterp[j][e1];
-            tempaux[j][nvertex+2] = auxInterp[j][e4];
-            tempaux[j][nvertex+3] = auxInterp[j][e5];
-          }
 
           // fill in the polys array
-          polys[npolygons][0] = nvertex;
-          polys[npolygons][1] = nvertex+1;
-          polys[npolygons][2] = nvertex+2;
-          polys[npolygons][3] = nvertex+3;
+          polys[npolygons][0] = e0;
+          polys[npolygons][1] = e1;
+          polys[npolygons][2] = e5;
+          polys[npolygons][3] = e4;
 
           // on to the next tetrahedron
-          nvertex += 4;
           npolygons++;
           break;
 
@@ -1113,6 +1210,8 @@ public class Irregular3DSet extends IrregularSet {
             for (int j=0; j<naux; j++) {
               auxInterp[j][e2] = (float) a*auxValues[j][v0] + (1-a)*auxValues[j][v3];
             }
+            globalToVertex[e2] = nvertex;
+            nvertex++;
           }
 /* WLH 25 Oct 97
           if (Double.isNaN(edgeInterp[0][e4])) {
@@ -1127,6 +1226,8 @@ public class Irregular3DSet extends IrregularSet {
             for (int j=0; j<naux; j++) {
               auxInterp[j][e4] = (float) a*auxValues[j][v1] + (1-a)*auxValues[j][v3];
             }
+            globalToVertex[e4] = nvertex;
+            nvertex++;
           }
 /* WLH 25 Oct 97
           if (Double.isNaN(edgeInterp[0][e5])) {
@@ -1141,41 +1242,66 @@ public class Irregular3DSet extends IrregularSet {
             for (int j=0; j<naux; j++) {
               auxInterp[j][e5] = (float) a*auxValues[j][v2] + (1-a)*auxValues[j][v3];
             }
-          }
-
-          // fill in tempslice array
-          for (int j=0; j<3; j++) {
-            tempslice[j][nvertex] = edgeInterp[j][e2];
-            tempslice[j][nvertex+1] = edgeInterp[j][e4];
-            tempslice[j][nvertex+2] = edgeInterp[j][e5];
-          }
-          for (int j=0; j<naux; j++) {
-            tempaux[j][nvertex] = auxInterp[j][e2];
-            tempaux[j][nvertex+1] = auxInterp[j][e4];
-            tempaux[j][nvertex+2] = auxInterp[j][e5];
+            globalToVertex[e5] = nvertex;
+            nvertex++;
           }
 
           // fill in the polys array
-          polys[npolygons][0] = nvertex;
-          polys[npolygons][1] = nvertex+1;
-          polys[npolygons][2] = nvertex+2;
+          polys[npolygons][0] = e2;
+          polys[npolygons][1] = e4;
+          polys[npolygons][2] = e5;
+          polys[npolygons][3] = -1;
 
           // on to the next tetrahedron
-          nvertex += 3;
           npolygons++;
           break;
       }
     }
 
+
+
+    if (DEBUG) {
+      System.out.println("\npolys (polys -> global edges) " + npolygons + "\n");
+      for (int i=0; i<npolygons; i++) {
+        String s = "  " + i + " -> ";
+        for (int j=0; j<4; j++) {
+          s = s + " " + polys[i][j];
+        }
+        System.out.println(s + "\n");
+      }
+    }
+
+
+
+    // transform polys array into polyToVert array
+    polyToVert[0] = new int[npolygons][];
+    for (int i=0; i<npolygons; i++) {
+      int n = polys[i][3] < 0 ? 3 : 4;
+      polyToVert[0][i] = new int[n];
+      for (int j=0; j<n; j++) polyToVert[0][i][j] = globalToVertex[polys[i][j]];
+    }
+
+
+    if (DEBUG) {
+      System.out.println("\npolyToVert (polys -> vertices) " + npolygons + "\n");
+      for (int i=0; i<npolygons; i++) {
+        String s = "  " + i + " -> ";
+        for (int j=0; j<polyToVert[0][i].length; j++) {
+          s = s + " " + polyToVert[0][i][j];
+        }
+        System.out.println(s + "\n");
+      }
+    }
+ 
+
     // build nverts helper array
     int[] nverts = new int[nvertex];
     for (int i=0; i<nvertex; i++) nverts[i] = 0;
-    for (int i=0; i<trilength; i++) {
-      nverts[polys[i][0]]++;
-      nverts[polys[i][1]]++;
-      nverts[polys[i][2]]++;
-      int temp = polys[i][3];
-      if (temp != -1) nverts[temp]++;
+    for (int i=0; i<npolygons; i++) {
+      nverts[polyToVert[0][i][0]]++;
+      nverts[polyToVert[0][i][1]]++;
+      nverts[polyToVert[0][i][2]]++;
+      if (polyToVert[0][i].length > 3) nverts[polyToVert[0][i][3]]++;
     }
 
     // initialize vertToPoly array
@@ -1186,42 +1312,64 @@ public class Irregular3DSet extends IrregularSet {
 
     // fill in vertToPoly array
     for (int i=0; i<nvertex; i++) nverts[i] = 0;
-    for (int i=0; i<trilength; i++) {
-      int a = polys[i][0];
-      int b = polys[i][1];
-      int c = polys[i][2];
-      int d = polys[i][3];
+    for (int i=0; i<npolygons; i++) {
+      int a = polyToVert[0][i][0];
+      int b = polyToVert[0][i][1];
+      int c = polyToVert[0][i][2];
       vertToPoly[0][a][nverts[a]++] = i;
       vertToPoly[0][b][nverts[b]++] = i;
       vertToPoly[0][c][nverts[c]++] = i;
-      if (d != -1) vertToPoly[0][d][nverts[d]++] = i;
+      if (polyToVert[0][i].length > 3) {
+        int d = polyToVert[0][i][3];
+        if (d != -1) vertToPoly[0][d][nverts[d]++] = i;
+      }
     }
 
-    // copy tempslice array into fieldVertices array
+
+
+    if (DEBUG) {
+      System.out.println("\nvertToPoly (vertices -> polys) " + nvertex + "\n");
+      for (int i=0; i<nvertex; i++) {
+        String s = "  " + i + " -> ";
+        for (int j=0; j<vertToPoly[0][i].length; j++) {
+          s = s + " " + vertToPoly[0][i][j];
+        }
+        System.out.println(s + "\n");
+      }
+    }
+
+
+
+    // set up fieldVertices and auxLevels
     fieldVertices[0] = new float[nvertex];
     fieldVertices[1] = new float[nvertex];
     fieldVertices[2] = new float[nvertex];
-    System.arraycopy(tempslice[0], 0, fieldVertices[0], 0, nvertex);
-    System.arraycopy(tempslice[1], 0, fieldVertices[1], 0, nvertex);
-    System.arraycopy(tempslice[2], 0, fieldVertices[2], 0, nvertex);
-
-    // copy tempaux array into auxLevels array
-    for (int i=0; i<naux; i++) {
-      auxLevels[i] = new float[nvertex];
-      System.arraycopy(tempaux[i], 0, auxLevels[i], 0, nvertex);
+    for (int j=0; j<naux; j++) {
+      auxLevels[j] = new float[nvertex];
+    }
+    for (int i=0; i<Delan.NumEdges; i++) {
+      if (globalToVertex[i] >= 0) {
+        fieldVertices[0][globalToVertex[i]] = edgeInterp[0][i];
+        fieldVertices[1][globalToVertex[i]] = edgeInterp[1][i];
+        fieldVertices[2][globalToVertex[i]] = edgeInterp[2][i];
+        for (int j=0; j<naux; j++) {
+          auxLevels[j][globalToVertex[i]] = auxInterp[j][i];
+        }
+      }
     }
 
-    // copy polys array into polyToVert array
-/* WLH 25 Oct 97
-    polyToVert[0] = new int[npolygons][4];
-    System.arraycopy(polys, 0, polyToVert[0], 0, npolygons);
-*/
-    polyToVert[0] = new int[npolygons][];
-    for (int i=0; i<npolygons; i++) {
-      int n = polys[i][3] < 0 ? 3 : 4;
-      polyToVert[0][i] = new int[n];
-      for (int j=0; j<n; j++) polyToVert[0][i][j] = polys[i][j];
+
+    if (DEBUG) {
+      System.out.println("\nfieldVertices " + nvertex + "\n");
+      for (int i=0; i<nvertex; i++) {
+        String s = "  " + i + " -> ";
+        for (int j=0; j<3; j++) {
+          s = s + " " + fieldVertices[j][i];
+        }
+        System.out.println(s + "\n");
+      }
     }
+
   }
 
 /*
@@ -1264,16 +1412,17 @@ public class Irregular3DSet extends IrregularSet {
    minimum_area = (float) ((1.e-4 > EPS_0) ? 1.e-4:EPS_0);
 
    /* Calculate maximum number of vertices per polygon */
-   k = 6;
 /* WLH 25 Oct 97
+   k = 6;
    n = 7*npolygons;
 */
+   k = 0;
    while ( true ) {
 /* WLH 25 Oct 97
        for (i=k+7; i<n; i+=7)
            if (Vert_f_Pol[i] > Vert_f_Pol[k]) break;
 */
-       for (i=1; i<npolygons; i++)
+       for (i=k+1; i<npolygons; i++)
            if (polyToVert[i].length > polyToVert[k].length) break;
 
 /* WLH 25 Oct 97
@@ -1505,7 +1654,8 @@ public class Irregular3DSet extends IrregularSet {
                   j=polyToVert[cpol][ivB];
                   int jlim = vertToPoly[j].length;
                   m = 0;
-                  while (0<k && k<ilim && 0<m && m<jlim) {
+                  // while (0<k && k<ilim && 0<m && m<jlim) {
+                  while (0<i && k<ilim && 0<j && m<jlim) {
                      if (vertToPoly[i][k] == vertToPoly[j][m] &&
                          vet_pol[vertToPoly[i][k]] ) {
                         npol=vertToPoly[i][k];
@@ -1659,7 +1809,8 @@ public class Irregular3DSet extends IrregularSet {
                  k = 0;
                  int jlim = vertToPoly[vB].length;
                  m = 0;
-                 while (0<k && k<ilim && 0<m && m<jlim) {
+                 // while (0<k && k<ilim && 0<m && m<jlim) {
+                 while (0<vA && k<ilim && 0<vB && m<jlim) {
                     if (vertToPoly[vA][k] == vertToPoly[vB][m] &&
                         vet_pol[vertToPoly[vA][k]] ) {
                       cpol=vertToPoly[vA][k];
@@ -1703,7 +1854,8 @@ public class Irregular3DSet extends IrregularSet {
                  k = 0;
                  int jlim = vertToPoly[vB].length;
                  m = 0;
-                 while (0<k && k<ilim && 0<m && m<jlim) {
+                 // while (0<k && k<ilim && 0<m && m<jlim) {
+                 while (0<vA && k<ilim && 0<vB && m<jlim) {
                     if (vertToPoly[vA][k] == vertToPoly[vB][m] &&
                         vet_pol[vertToPoly[vA][k]] ) {
                       cpol=vertToPoly[vA][k];

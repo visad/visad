@@ -25,10 +25,12 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+import java.rmi.*;
+
 /**
    RemoteCell is the interface for Remote Cell-s.<P>
 */
-public interface RemoteCell extends Cell {
+public interface RemoteCell extends Remote, Cell {
 
 }
 

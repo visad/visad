@@ -97,30 +97,6 @@ public abstract class Control extends Object
     tickFlag = false;
   }
 
-  /** create a 'new' control for map in display;
-      called by ScalarMap.setControl;
-      never gets called for ToggleControl, AnimationSetControl */
-/*
-  public Control copy(ScalarMap m)
-         throws VisADException, RemoteException {
-    DisplayImpl d = m.getDisplay();
-    if (m.getDisplayScalar().isSingle()) {
-      // map m's DisplayScalar is 'single' per Display
-      Control control = d.getControl(getClass());
-      if (control == null) {
-        control = cloneButContents(d);
-        d.addControl(control);
-      }
-      return control;
-    }
-    else {
-      Control control = cloneButContents(d);
-      d.addControl(control);
-      return control;
-    }
-  }
-*/
-
   void setIndex(int index) {
     Index = index;
   }

@@ -43,7 +43,7 @@ import java.rmi.*;
    DataReference objects may be local (DataReferenceImpl) or
    remote (RemoteDataReferenceImpl).<P>
 */
-public interface DataReference extends Remote {
+public interface DataReference {
 
   /** invokes d.addReference((DataReference r) */
   public abstract void setData(Data d) throws VisADException, RemoteException;

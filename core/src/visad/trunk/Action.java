@@ -33,7 +33,7 @@ import java.rmi.*;
    notified when DataReference objects change.  For example, this may
    be used for a Data display or for a spreadsheet cell.<P>
 */
-public interface Action extends Remote {
+public interface Action {
 
   /** create link to a DataReference;
       invokes ref.addDataChangedListener(Action a) */

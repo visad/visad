@@ -25,10 +25,12 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+import java.rmi.*;
+
 /**
    RemoteDisplay is the interface for Remote Display-s.<P>
 */
-public interface RemoteDisplay extends Display {
+public interface RemoteDisplay extends Remote, Display {
 
 }
 

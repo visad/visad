@@ -2483,46 +2483,96 @@ for (i=0; i<length; i++) {
   }
 
   /** construct a FlatField of given type; used for testing */
-  public static FlatField makeField(FunctionType type, int length)
+  public static FlatField makeField(FunctionType type, int length, boolean irregular)
          throws VisADException, RemoteException {
     double first = 0.0;
     double last = length - 1.0;
     double step = 1.0;
+    double half = 0.5 * last;
     RealTupleType dtype = type.getDomain();
     RealTupleType rtype = type.getFlatRange();
     int domain_dim = dtype.getDimension();
     int range_dim = rtype.getDimension();
-    Set domain_set = null;
+    SampledSet domain_set = null;
     int dsize = 0;
-    if (domain_dim == 1) {
-      domain_set = new Linear1DSet(dtype, first, last, length);
-      dsize = length;
-    }
-    else if (domain_dim == 2) {
-      domain_set = new Linear2DSet(dtype, first, last, length,
-                                          first, last, length);
-      dsize = length * length;
-    }
-    else if (domain_dim == 3) {
-      domain_set = new Linear3DSet(dtype, first, last, length,
-                                          first, last, length,
-                                          first, last, length);
-      dsize = length * length * length;
+    Random random = new Random();
+    if (irregular) {
+      if (domain_dim == 1) {
+        dsize = length;
+        float[][] samples = new float[1][dsize];
+        for (int i=0; i<dsize; i++) {
+          samples[0][i] = length * random.nextFloat();
+        }
+        domain_set = new Irregular1DSet(dtype, samples);
+      }
+      else if (domain_dim == 2) {
+        dsize = length * length;
+        float[][] samples = new float[2][dsize];
+        for (int i=0; i<dsize; i++) {
+          samples[0][i] = length * random.nextFloat();
+          samples[1][i] = length * random.nextFloat();
+        }
+        domain_set = new Irregular2DSet(dtype, samples);
+      }
+      else if (domain_dim == 3) {
+        dsize = length * length * length;
+        float[][] samples = new float[3][dsize];
+        // random Irregular3DSet
+/*
+        for (int i=0; i<dsize; i++) {
+          samples[0][i] = length * random.nextFloat();
+          samples[1][i] = length * random.nextFloat();
+          samples[2][i] = length * random.nextFloat();
+        }
+*/
+        // jittered linear Irregular3DSet
+        Linear3DSet square_set = new Linear3DSet(dtype, first, last, length,
+                                                 first, last, length,
+                                                 first, last, length);
+        samples = square_set.getSamples();
+        for (int i=0; i<dsize; i++) {
+          samples[0][i] += 0.05 * random.nextFloat();
+          samples[1][i] += 0.05 * random.nextFloat();
+          samples[2][i] += 0.05 * random.nextFloat();
+        }
+        domain_set = new Irregular3DSet(dtype, samples);
+      }
+      else {
+        throw new FieldException("FlatField.makeField: bad domain dimension");
+      }
     }
     else {
-      throw new FieldException("FlatField.makeField: bad domain dimension");
+      if (domain_dim == 1) {
+        domain_set = new Linear1DSet(dtype, first, last, length);
+        dsize = length;
+      }
+      else if (domain_dim == 2) {
+        domain_set = new Linear2DSet(dtype, first, last, length,
+                                            first, last, length);
+        dsize = length * length;
+      }
+      else if (domain_dim == 3) {
+        domain_set = new Linear3DSet(dtype, first, last, length,
+                                            first, last, length,
+                                            first, last, length);
+        dsize = length * length * length;
+      }
+      else {
+        throw new FieldException("FlatField.makeField: bad domain dimension");
+      }
     }
     FlatField image = new FlatField(type, domain_set);
     double[][] data = new double[range_dim][dsize];
-    Random random = new Random();
+    float[][] samples = domain_set.getSamples();
     for (int k=0; k<range_dim; k++) {
       if (domain_dim == 1) {
-        for (int i=0; i<length; i++) {
+        for (int i=0; i<dsize; i++) {
+          float x = samples[0][i];
           if (k == 0) {
-            data[0][i] = (float) Math.abs(step * (i - 0.5 * length));
+            data[k][i] = (float) Math.abs(step * (x - half));
           }
           else if (k == 1) {
-            data[k][i] = first + step * i;
+            data[k][i] = x;
           }
           else {
             data[k][i] = random.nextDouble();
@@ -2530,48 +2580,47 @@ for (i=0; i<length; i++) {
         }
       }
       else if (domain_dim == 2) {
-        for (int i=0; i<length; i++) {
-          for (int j=0; j<length; j++) {
-            if (k == 0) {
-              data[k][i + length * j] = (float) (step * Math.sqrt(
-                (i - 0.5 * length) * (i - 0.5 * length) +
-                (j - 0.5 * length) * (j - 0.5 * length)));
-            }
-            else if (k == 1) {
-              data[k][i + length * j] = first + step * i;
-            }
-            else if (k == 2) {
-              data[k][i + length * j] = first + step * j;
-            }
-            else {
-              data[k][i + length * j] = random.nextDouble();
-            }
+        for (int i=0; i<dsize; i++) {
+          float x = samples[0][i];
+          float y = samples[1][i];
+          if (k == 0) {
+            data[k][i] = (float) (step * Math.sqrt(
+              (x - half) * (x - half) +
+              (y - half) * (y - half)));
+          }
+          else if (k == 1) {
+            data[k][i] = x;
+          }
+          else if (k == 2) {
+            data[k][i] = y;
+          }
+          else {
+            data[k][i] = random.nextDouble();
           }
         }
       }
       else if (domain_dim == 3) {
-        for (int i=0; i<length; i++) {
-          for (int j=0; j<length; j++) {
-            for (int m=0; m<length; m++) {
-              if (k == 0) {
-                data[k][i + length * (j + length * m)] = (float) (step * Math.sqrt(
-                  (i - 0.5 * length) * (i - 0.5 * length) +
-                  (j - 0.5 * length) * (j - 0.5 * length) +
-                  (m - 0.5 * length) * (m - 0.5 * length)));
-              }
-              else if (k == 1) {
-                data[k][i + length * (j + length * m)] = first + step * i;
-              }
-              else if (k == 2) {
-                data[k][i + length * (j + length * m)] = first + step * j;
-              }
-              else if (k == 3) {
-                data[k][i + length * (j + length * m)] = first + step * m;
-              }
-              else {
-                data[k][i + length * j] = random.nextDouble();
-              }
-            }
+        for (int i=0; i<dsize; i++) {
+          float x = samples[0][i];
+          float y = samples[1][i];
+          float z = samples[2][i];
+          if (k == 0) {
+            data[k][i] = (float) (step * Math.sqrt(
+              (x - half) * (x - half) +
+              (y - half) * (y - half) +
+              (z - half) * (z - half)));
+          }
+          else if (k == 1) {
+            data[k][i] = x;
+          }
+          else if (k == 2) {
+            data[k][i] = y;
+          }
+          else if (k == 3) {
+            data[k][i] = z;
+          }
+          else {
+            data[k][i] = random.nextDouble();
           }
         }
       }

@@ -53,6 +53,7 @@ public class ContourControl extends Control {
   public ContourControl(DisplayImpl d) {
     super(d);
     mainContours = true;
+    labels = true;
     surfaceValue = 0.0f;
     contourInterval = 0.0f;
     lowLimit = 0.0f;
@@ -77,7 +78,7 @@ public class ContourControl extends Control {
 
   /** noChange = true to not trigger changeControl, used by
       ScalarMap.setRange */
-  void setMainContours(boolean[] bvalues, float[] fvalues, boolean noChange)
+  public void setMainContours(boolean[] bvalues, float[] fvalues, boolean noChange)
        throws VisADException {
     if (fvalues == null || fvalues.length != 5 ||
         bvalues == null || bvalues.length != 2) {
@@ -94,6 +95,11 @@ public class ContourControl extends Control {
     if (!noChange) changeControl();
   }
 
+  public void setSurfaceValue(float value) {
+    surfaceValue = value;
+    changeControl();
+  }
+
   public void getMainContours(boolean[] bvalues, float[] fvalues)
          throws VisADException {
     if (fvalues == null || fvalues.length != 5 ||
@@ -108,28 +114,6 @@ public class ContourControl extends Control {
     fvalues[2] = lowLimit;
     fvalues[3] = hiLimit;
     fvalues[4] = base;
-  }
-
-  public Control cloneButContents(DisplayImpl d) {
-    ContourControl control = new ContourControl(d);
-    control.mainContours = true;
-    control.surfaceValue = 0.0f;
-    control.contourInterval = 0.0f;
-    control.lowLimit = 0.0f;
-    control.hiLimit = 0.0f;
-    control.base = 0.0f;
-
-    control.horizontalContourSlice = false;
-    control.verticalContourSlice = false;
-
-    control.horizontalSliceLow = 0.0f;
-    control.horizontalSliceHi = 0.0f;
-    control.horizontalSliceStep = 1.0f;
-    control.verticalSliceLow = 0.0f;
-    control.verticalSliceHi = 0.0f;
-    control.verticalSliceStep = 1.0f;
-
-    return control;
   }
 
 }

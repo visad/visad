@@ -80,7 +80,7 @@ save:
 	cp Makefile backup
 	cp rmic_script backup
 	cp docs/DESIGN5 backup
-	wc backup/*.java backup/data/*.java backup/data/netcdf/*.java backup/data/netcdf/plain/*.java backup/paoloa/*.java
+	wc backup/*.java backup/java3d/*.java backup/data/*.java backup/data/netcdf/*.java backup/data/netcdf/plain/*.java backup/paoloa/*.java
 
 .SUFFIXES : .java .class
 

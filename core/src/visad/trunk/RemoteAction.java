@@ -25,10 +25,12 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+import java.rmi.*;
+
 /**
    RemoteAction is the interface for Remote Action-s.<P>
 */
-public interface RemoteAction extends Action {
+public interface RemoteAction extends Remote, Action {
 
 }
 

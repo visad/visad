@@ -32,7 +32,7 @@ import java.rmi.*;
    Data is the top-level interface of the VisAD data hierarchy.
    See the DataImpl class for more information.<P>
 */
-public interface Data extends Remote {
+public interface Data {
 
   /** NEAREST_NEIGHBOR resampling mode */
   public static final int NEAREST_NEIGHBOR = 100;

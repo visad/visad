@@ -25,10 +25,12 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+import java.rmi.*;
+
 /**
    RemoteDataReference is the interface for Remote DataReference-s.<P>
 */
-public interface RemoteDataReference extends DataReference {
+public interface RemoteDataReference extends Remote, DataReference {
 
 }
 

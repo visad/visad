@@ -86,6 +86,8 @@ public class ScalarMap extends Object implements java.io.Serializable {
     DisplayScalarIndex = -1;
     isScaled = DisplayScalar.getRange(displayRange);
     isManual = false;
+    dataRange[0] = Double.NaN;
+    dataRange[1] = Double.NaN;
   }
 
   /** get the RealType that is the map domain */
@@ -146,6 +148,11 @@ public class ScalarMap extends Object implements java.io.Serializable {
     display[0] = displayRange[0];
     display[1] = displayRange[1];
     return isScaled;
+  }
+
+  public double[] getRange() {
+    double[] range = {dataRange[0], dataRange[1]};
+    return range;
   }
 
   /** set range used for linear map from Scalar to DisplayScalar values; 
