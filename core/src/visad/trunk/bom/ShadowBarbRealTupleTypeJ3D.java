@@ -65,7 +65,7 @@ public class ShadowBarbRealTupleTypeJ3D extends ShadowRealTupleTypeJ3D {
   }
 
 
-  private static final int NUM = 256;
+  private static final int NUM = 1024;
 
   public static VisADGeometryArray[] staticMakeFlow(DisplayImpl display,
                int which, float[][] flow_values, float flowScale,

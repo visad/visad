@@ -193,12 +193,33 @@ public class TrackManipulationRendererJ3D extends BarbManipulationRendererJ3D {
 
     float xdir = x5 - x;
     float ydir = y5 - y; 
+
+    float dist = (float) Math.sqrt(xdir * xdir + ydir * ydir);
+    float step = getStep(xdir, ydir); 
+    int nsteps = (int) (dist / step);
+    if (nsteps < 1) nsteps = 1;
+    int lim = (vx.length - nv) / (2 * NE);
+    if (nsteps < 1) nsteps = 1;
+    if (nsteps > lim) nsteps = lim;
+    float xstep = xdir / nsteps;
+    float ystep = ydir / nsteps;
+
+    boolean[] outside = new boolean[NE + 1];
+    for (int i=0; i<NE+1; i++) {
+      float xs = x_ellipse[i] + xstep;
+      float ys = y_ellipse[i] + ystep;
+      float radius = getStep(xs, ys);
+      float len = (float) Math.sqrt(xs * xs + ys * ys);
+      outside[i] = (len > radius);
+    }
+
     float[] xe = new float[2 * NE];
     float[] ye = new float[2 * NE];
     int ne = 0;
     for (int i=0; i<NE; i++) {
-      if ((x_ellipse[i] * xdir + y_ellipse[i] * ydir) >= 0.0f &&
-          (x_ellipse[i+1] * xdir + y_ellipse[i+1] * ydir) >= 0.0f) {
+      if (outside[i] && outside[i + 1]) {
+      // if ((x_ellipse[i] * xdir + y_ellipse[i] * ydir) >= 0.0f &&
+      //     (x_ellipse[i+1] * xdir + y_ellipse[i+1] * ydir) >= 0.0f) {
         xe[ne] = x_ellipse[i];
         ye[ne] = y_ellipse[i];
         ne++;
@@ -207,16 +228,6 @@ public class TrackManipulationRendererJ3D extends BarbManipulationRendererJ3D {
         ne++;
       }
     }
-
-    float dist = (float) Math.sqrt(xdir * xdir + ydir * ydir);
-    float step = getStep(xdir, ydir); 
-    int nsteps = (int) (dist / step);
-    if (nsteps < 1) nsteps = 1;
-    int lim = (vx.length - nv) / ne;
-    if (nsteps < 1) nsteps = 1;
-    if (nsteps > lim) nsteps = lim;
-    float xstep = xdir / nsteps;
-    float ystep = ydir / nsteps;
 
     float xcenter = x;
     float ycenter = y;
