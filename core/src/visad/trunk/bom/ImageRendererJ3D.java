@@ -121,22 +121,22 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
     }
 
     // ((ImageLine, ImageElement) -> ImageValue)
-    if (function.equalsExceptName(image_type)) {
-      domain = function.getDomain();
-      range = new RealTupleType((RealType) function.getRange());
-    }
-
     // ((ImageLine, ImageElement) -> (ImageValue))
     // ((ImageLine, ImageElement) -> (Red, Green, Blue))
-    else if (function.equalsExceptName(image_type2) ||
-      function.equalsExceptName(image_type3))
-    {
+    if (function.equalsExceptName(image_type) ||
+        function.equalsExceptName(image_type2) ||
+        function.equalsExceptName(image_type3)) {
       domain = function.getDomain();
-      range = (RealTupleType) function.getRange();
+      MathType rt = function.getRange();
+      if (rt instanceof RealType) {
+        range = new RealTupleType((RealType) rt);
+      }
+      else {
+        range = (RealTupleType) rt;
+      }
     }
-
-    // illegal MathType
     else {
+      // illegal MathType
       throw new VisADException("Illegal MathType");
     }
 
