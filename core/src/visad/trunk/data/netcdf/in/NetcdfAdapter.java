@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.3 1998-03-25 15:22:45 visad Exp $
+ * $Id: NetcdfAdapter.java,v 1.4 1998-03-25 15:55:43 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -94,7 +94,7 @@ NetcdfAdapter
 	{
 	    NcVar	var = NcVar.newNcVar(varIter.next(), netcdf);
 
-	    // TODO: support scalars and text
+	    // TODO: support text
 	    if (!var.isText() && !var.isCoordinateVariable())
 	    {
 		domTable.put(var);

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcDim.java,v 1.2 1998-03-23 18:11:52 visad Exp $
+ * $Id: NcDim.java,v 1.3 1998-03-25 15:55:42 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -72,7 +72,6 @@ NcDim
     {
 	RealType	mathType = RealType.getRealTypeByName(getName());
 
-	// TODO: support "units" attribute
 	if (mathType == null)
 	    mathType = new RealType(getName(), null, null);
 	
@@ -193,6 +192,22 @@ NcCoordDim
     isTime()
     {
 	return super.isTime() || coordVar.isTime();
+    }
+
+
+    /**
+     * Return the VisAD MathType for this dimension.
+     *
+     * @return		The VisAD MathType for the dimension.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     */
+    RealType
+    getMathType()
+	throws VisADException
+    {
+	return (RealType)coordVar.getMathType();
     }
 
 
