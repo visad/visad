@@ -309,6 +309,13 @@ public class FormulaVar extends ActionImpl {
     tref.setThing(t);
   }
 
+  /** set the ThingReference for this variable */
+  void setReference(ThingReference tr) {
+    synchronized (Lock) {
+      tref = tr;
+    }
+  }
+
   /** get the Thing for this variable */
   Thing getThing() {
     try {

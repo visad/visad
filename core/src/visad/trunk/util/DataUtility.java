@@ -948,12 +948,13 @@ public class DataUtility {
    */
   public static ScalarMap[] guessMaps(MathType[] types, boolean allow3d) {
     int len = types.length;
-    int numMaps = 0;
+    ScalarMap[] maps = null;
     for (int i=0; i<len; i++) {
-      ScalarMap[] maps = types[i].guessMaps(allow3d);
-      if (maps != null) return maps;
+      MathType t = types[i];
+      if (t != null) maps = t.guessMaps(allow3d);
+      if (maps != null) break;
     }
-    return null;
+    return maps;
   }
 
   /**

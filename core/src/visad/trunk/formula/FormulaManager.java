@@ -80,11 +80,10 @@ public class FormulaManager {
 
   /** construct a new FormulaManager object */
   public FormulaManager(String[] binOps, int[] binPrec, String[] binMethods,
-                        String[] unaryOps, int[] unaryPrec,
-                        String[] unaryMethods, String[] functions,
-                        String[] funcMethods, int implicitPrec,
-                        String[] implicitMethods, String preParseMethod)
-                        throws FormulaException {
+    String[] unaryOps, int[] unaryPrec, String[] unaryMethods,
+    String[] functions, String[] funcMethods, int implicitPrec,
+    String[] implicitMethods, String preParseMethod) throws FormulaException
+  {
     bOps = binOps;
     bPrec = binPrec;
     bMethods = FormulaUtil.stringsToMethods(binMethods);
@@ -215,16 +214,14 @@ public class FormulaManager {
 
   /** assign a formula to a variable */
   public void assignFormula(String name, String formula)
-    throws FormulaException, VisADException
+    throws VisADException
   {
     FormulaVar v = getVarByNameOrCreate(name);
     v.setFormula(formula);
   }
 
   /** blocks until this variable's formula is finished computing */
-  public void waitForFormula(String name)
-    throws FormulaException, VisADException
-  {
+  public void waitForFormula(String name) throws VisADException {
     FormulaVar v = getVarByName(name);
     v.waitForFormula();
   }
@@ -232,7 +229,7 @@ public class FormulaManager {
   /** set a variable to auto-update its formula based on a Text object
       referenced by a ThingReference (useful for remote formula updates) */
   public void setTextRef(String name, ThingReference textRef)
-    throws FormulaException, VisADException, RemoteException
+    throws VisADException, RemoteException
   {
     FormulaVar v = getVarByNameOrCreate(name);
     v.setTextRef(textRef);
@@ -265,6 +262,17 @@ public class FormulaManager {
     return true;
   }
 
+  /** check whether a given variable is currently in the database */
+  public boolean exists(String name) {
+    boolean exists = false;
+    try {
+      FormulaVar v = getVarByName(name);
+      exists = true;
+    }
+    catch (FormulaException exc) { }
+    return exists;
+  }
+
   /** remove a variable from the database */
   public void remove(String name) throws FormulaException {
     if (canBeRemoved(name)) Vars.remove(getVarByName(name));
@@ -275,11 +283,19 @@ public class FormulaManager {
   }
 
   /** set a variable's value directly */
-  public void setThing(String name, Thing t) throws FormulaException,
-                                                    VisADException,
-                                                    RemoteException {
+  public void setThing(String name, Thing t)
+    throws VisADException, RemoteException
+  {
     FormulaVar v = getVarByNameOrCreate(name);
     v.setThing(t);
+  }
+
+  /** set a variable's ThingReference */
+  public void setReference(String name, ThingReference tr)
+    throws VisADException
+  {
+    FormulaVar v = getVarByNameOrCreate(name);
+    v.setReference(tr);
   }
 
   /** get a variable's current value */
@@ -313,8 +329,7 @@ public class FormulaManager {
   }
 
   /** return the variable &quot;name&quot;, creating it if necessary */
-  FormulaVar getVarByNameOrCreate(String name) throws FormulaException,
-                                                      VisADException {
+  FormulaVar getVarByNameOrCreate(String name) throws VisADException {
     FormulaVar v;
     try {
       v = getVarByName(name);
