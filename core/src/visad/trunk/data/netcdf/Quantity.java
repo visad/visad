@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Quantity.java,v 1.1 1998-06-22 18:32:01 visad Exp $
+ * $Id: Quantity.java,v 1.2 1998-08-12 18:38:42 visad Exp $
  */
 
 package visad.data.netcdf;
@@ -17,7 +17,6 @@ import visad.RealType;
 import visad.SimpleSet;
 import visad.Unit;
 import visad.VisADException;
-import visad.data.netcdf.units.NoSuchUnitException;
 import visad.data.netcdf.units.ParseException;
 import visad.data.netcdf.units.Parser;
 
@@ -49,10 +48,11 @@ public class Quantity
    * @param unitSpec		The preferred display unit for the quantity
    *				(e.g. "feet").
    * @param set			The default sample set of the quantity.
-   * @exception VisADException	Can't create.
+   * @exception VisADException	Can't create necessary VisAD object.
+   * @exception ParseException	Couldn't decode unit specification.
    */
   public Quantity(String name, String unitSpec, SimpleSet set)
-    throws VisADException, ParseException, NoSuchUnitException
+    throws VisADException, ParseException
   {
     // TODO: eliminate use of trusted constructor (e.g. by merging
     // Quantity and RealType).
@@ -70,10 +70,11 @@ public class Quantity
    * @param name		The name of the quantity (e.g. "length").
    * @param unitSpec		The preferred display unit for the quantity
    *				(e.g. "feet").
-   * @exception VisADException	Can't create.
+   * @exception VisADException	Can't create necessary VisAD object.
+   * @exception ParseException	Couldn't decode unit specification.
    */
   public Quantity(String name, String unitSpec)
-    throws VisADException, ParseException, NoSuchUnitException
+    throws VisADException, ParseException
   {
     // TODO: eliminate use of trusted constructor (e.g. by merging
     // Quantity and RealType).
