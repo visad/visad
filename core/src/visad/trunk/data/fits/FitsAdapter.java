@@ -124,13 +124,14 @@ public class FitsAdapter
     if (data instanceof byte[]) {
       byte[] bl = (byte[] )data;
       for (int i = 0; i < bl.length; i++) {
-	int val = (bl[i] >= 0 ? bl[i] : 256 - bl[i]);
+	int val = (bl[i] >= 0 ? bl[i] : ((Byte.MAX_VALUE + 1) * 2) - bl[i]);
 	list[offset++] = (double )val;
       }
     } else if (data instanceof short[]) {
       short[] sl = (short[] )data;
       for (int i = 0; i < sl.length; i++) {
-	list[offset++] = (double )sl[i];
+	int val = (sl[i] >= 0 ? sl[i] : ((Short.MAX_VALUE + 1) * 2) - sl[i]);
+	list[offset++] = (double )val;
       }
     } else if (data instanceof int[]) {
       int[] il = (int[] )data;
