@@ -95,7 +95,7 @@ public class Aeri
   {
 
     String vadfile = null;
-    String baseDate = "19991226";
+    String baseDate = "19991224";
     for (int i=0; i<args.length; i++) {
       if (args[i] == null) {
       }
