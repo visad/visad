@@ -130,14 +130,20 @@ public class AlignmentPlane extends PlaneSelector {
    * to its location at the given destination index.
    */
   public double[] transform(double[] pt, int ndx1, int ndx2) {
-    double[][] d = {{pt[0]}, {pt[1]}, {pt[2]}};
     try {
       if (coord[ndx1] == null) doCoordSys(ndx1);
       if (coord[ndx2] == null) doCoordSys(ndx2);
-      double[][] q = coord[ndx2].fromReference(coord[ndx1].toReference(d));
-      return new double[] {q[0][0], q[1][0], q[2][0]};
+      pt = scale(pt);
+      double[][] d = new double[pt.length][1];
+      for (int i=0; i<pt.length; i++) d[i][0] = pt[i] - pos[ndx1][0][i];
+      double[][] ref = coord[ndx1].toReference(d);
+      double[][] q = coord[ndx2].fromReference(ref);
+      double[] np = new double[pt.length];
+      for (int i=0; i<pt.length; i++) np[i] = q[i][0] + pos[ndx2][0][i];
+      np = descale(np);
+      return np;
     }
-    catch (VisADException exc) { }
+    catch (VisADException exc) { exc.printStackTrace(); }
     return null;
   }
 
@@ -314,11 +320,19 @@ public class AlignmentPlane extends PlaneSelector {
     }
   }
 
-  /** Convert point from scaled to non-scaled. */
+  /** Converts a point from non-scaled to scaled. */
+  protected double[] scale(double[] vals) {
+    double[] m = getScale();
+    double[] v = new double[vals.length];
+    for (int i=0; i<vals.length; i++) v[i] = vals[i] * m[i];
+    return v;
+  }
+
+  /** Converts point from scaled to non-scaled. */
   protected double[] descale(double[] vals) {
     double[] m = getScale();
-    double[] v = new double[3];
-    for (int i=0; i<3; i++) v[i] = vals[i] / m[i];
+    double[] v = new double[vals.length];
+    for (int i=0; i<vals.length; i++) v[i] = vals[i] / m[i];
     return v;
   }
 

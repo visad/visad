@@ -64,6 +64,7 @@ public class OutputConsole extends OutputStream {
     pane.setLayout(new BorderLayout());
     frame.setContentPane(pane);
     area = new JTextArea();
+    area.setEditable(false);
     area.setFont(MONO);
     area.setLineWrap(true);
     JScrollPane scroll = new JScrollPane(area);

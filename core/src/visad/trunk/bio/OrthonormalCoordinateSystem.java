@@ -104,9 +104,9 @@ public class OrthonormalCoordinateSystem extends CoordinateSystem {
     for (int i=0; i<len; i++) {
       double[] pt = {values[0][i], values[1][i], values[2][i]};
       double[] q = {
-        BioUtil.length(BioUtil.project(origin, u, pt)),
-        BioUtil.length(BioUtil.project(origin, v, pt)),
-        BioUtil.length(BioUtil.project(origin, w, pt))
+        BioUtil.project(origin, u, pt)[0] / u[0],
+        BioUtil.project(origin, v, pt)[0] / v[0],
+        BioUtil.project(origin, w, pt)[0] / w[0]
       };
       for (int j=0; j<3; j++) vals[j][i] = q[j];
     }

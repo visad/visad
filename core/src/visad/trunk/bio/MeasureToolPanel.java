@@ -765,8 +765,8 @@ public class MeasureToolPanel extends ToolPanel {
             MeasureLine line;
             if (trans) {
               MeasureLine l = (MeasureLine) thing;
-              double[] v1 = {l.ep1.x, l.ep1.y, l.ep1.z};
-              double[] v2 = {l.ep2.x, l.ep2.y, l.ep2.z};
+              double[] v1 = {l.ep1.x, l.ep1.y, i};
+              double[] v2 = {l.ep2.x, l.ep2.y, i};
               v1 = bio.sm.align.transform(v1, index, j);
               v2 = bio.sm.align.transform(v2, index, j);
               line = new MeasureLine(l, v1, v2);
