@@ -20,6 +20,7 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 
@@ -64,8 +65,7 @@ class DisplayFrame
 {
   private Display display;
 
-  DisplayFrame(String title, Display display, JPanel panel,
-               int width, int height)
+  DisplayFrame(String title, Display display, JPanel panel)
     throws VisADException, RemoteException
   {
     this.display = display;
@@ -73,14 +73,14 @@ class DisplayFrame
     JFrame frame = new JFrame(title);
 
     frame.addWindowListener(this);
-
     frame.getContentPane().add(panel);
+    frame.pack();
 
-    frame.setSize(width, height);
+    Dimension fSize = frame.getSize();
 
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-    frame.setLocation((screenSize.width - width)/2,
-                      (screenSize.height - height)/2);
+    frame.setLocation((screenSize.width - fSize.width)/2,
+                      (screenSize.height - fSize.height)/2);
 
     frame.setVisible(true);
   }
@@ -234,15 +234,20 @@ System.out.println("amanda MathType\n" + amanda.getType());
     LabeledColorWidget energy_widget =
       new LabeledColorWidget(energymap);
     widget_panel.add(energy_widget);
-    energy_widget.setMaximumSize(new Dimension(400, 250));
 */
-    LabeledColorWidget let_widget =
-      new LabeledColorWidget(maps.letmap);
-    let_widget.setMaximumSize(new Dimension(400, 250));
+    LabeledColorWidget let_widget = new LabeledColorWidget(maps.letmap);
+    // align along left side, to match VisADSlider alignment
+    //   (if we don't left-align, BoxLayout hoses everything)
+    let_widget.setAlignmentX(Component.LEFT_ALIGNMENT);
 
     VisADSlider event_slider = new VisADSlider("event", 0, nevents - 1,
                                                0, 1.0, event_ref,
-                                               AmandaFile.getEventIndexType());
+                                               AmandaFile.getEventIndexType(),
+                                               true);
+    event_slider.hardcodeSize(10); // leave some room for label changes
+
+    VisADSlider track_slider = new VisADSlider(maps.trackmap, true, true);
+    track_slider.hardcodeSize(10); // leave some room for label changes
 
     JPanel widget_panel = new JPanel();
     widget_panel.setLayout(new BoxLayout(widget_panel, BoxLayout.Y_AXIS));
@@ -250,7 +255,7 @@ System.out.println("amanda MathType\n" + amanda.getType());
 
     widget_panel.add(let_widget);
     // widget_panel.add(new VisADSlider(eventmap));
-    widget_panel.add(new VisADSlider(maps.trackmap, true));
+    widget_panel.add(track_slider);
     widget_panel.add(event_slider);
 
     JPanel display_panel = (JPanel) display.getComponent();
@@ -265,6 +270,6 @@ System.out.println("amanda MathType\n" + amanda.getType());
     panel.add(widget_panel);
     panel.add(display_panel);
 
-    new DisplayFrame("VisAD AMANDA Viewer", display, panel, 1200, 800);
+    new DisplayFrame("VisAD AMANDA Viewer", display, panel);
   }
 }
