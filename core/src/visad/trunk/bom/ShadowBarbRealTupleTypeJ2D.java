@@ -321,9 +321,11 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
     mbarb[0] = x;
     mbarb[1] = y;
 
+/* WLH 17 Aug 2000 - at request of Ken Stephenson
     // convert meters per second to knots
     f0 *= (3600.0 / 1853.248);
     f1 *= (3600.0 / 1853.248);
+*/
 
     float wnd_spd = (float) Math.sqrt(f0 * f0 + f1 * f1);
     int lenv = vx.length;
