@@ -154,8 +154,9 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
                   Class c = supportedControls[j];
                   Vector v = display.getControls(c);
 
-                  // CTR: ugly, ugly hack
+                  // special cases
                   if (c.equals(GraphicsModeControl.class)) {
+                    // CTR: ugly, ugly hack
                     v.removeElementAt(1);
                   }
 

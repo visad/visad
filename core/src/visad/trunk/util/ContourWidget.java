@@ -242,7 +242,6 @@ public class ContourWidget
     String u = "Specify the iso-level value (3-D only)";
     SurfaceLabel.setToolTipText(u);
     Surface.setToolTipText(u);
-    ContourRange.setToolTipText("Specify the iso-contouring range (2-D only)");
 
     // lay out JComponents
     top.add(Contours);
