@@ -298,7 +298,12 @@ DOC_PACKAGES = \
 		ucar.netcdf \
 		ucar.tests \
 		dods.dap \
+		dods.dap.Server \
+		dods.dap.functions \
+		dods.dap.parser \
+		dods.dap.test \
 		dods.util \
+		dods.util.gui \
 		visad.data \
 		visad.data.in \
 		visad.data.dods \
