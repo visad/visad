@@ -134,6 +134,159 @@ class Module
   float getZ() { return z; }
 }
 
+abstract class BaseTrack
+{
+  private static RealTupleType xyzType;
+  private static FunctionType funcType;
+
+  private static final float LENGTH_SCALE = 1000.0f;
+
+  private float xstart;
+  private float ystart;
+  private float zstart;
+  private float zenith;
+  private float azimuth;
+  private float length;
+  private float energy;
+  private float time;
+  private float maxLength;
+
+  BaseTrack(float xstart, float ystart, float zstart, float zenith,
+            float azimuth, float length, float energy, float time)
+  {
+    this.xstart = xstart;
+    this.ystart = ystart;
+    this.zstart = zstart;
+    this.zenith = zenith;
+    this.azimuth = azimuth;
+    this.length = length;
+    this.energy = energy;
+    this.time = time;
+  }
+
+  static void initTypes(RealTupleType xyz, FunctionType trackFunctionType)
+  {
+    xyzType = xyz;
+    funcType = trackFunctionType;
+  }
+
+  abstract FlatField makeData()
+    throws VisADException;
+
+  final FlatField makeData(float maxLength)
+    throws VisADException
+  {
+    float fldLength = length;
+    if (fldLength > maxLength) {
+      fldLength = maxLength;
+    } else if (fldLength != fldLength) {
+      fldLength = -1.0f;
+    }
+
+    float fldEnergy = energy;
+    if (fldEnergy != fldEnergy) {
+      fldEnergy = 1.0f;
+    }
+
+    float zs = (float) Math.sin(zenith * Data.DEGREES_TO_RADIANS);
+    float zc = (float) Math.cos(zenith * Data.DEGREES_TO_RADIANS);
+    float as = (float) Math.sin(azimuth * Data.DEGREES_TO_RADIANS);
+    float ac = (float) Math.cos(azimuth * Data.DEGREES_TO_RADIANS);
+    float zinc = fldLength * zc;
+    float xinc = fldLength * zs * ac;
+    float yinc = fldLength * zs * as;
+
+    float[][] locs = {{xstart - LENGTH_SCALE * xinc,
+                       xstart + LENGTH_SCALE * xinc},
+                      {ystart - LENGTH_SCALE * yinc,
+                       ystart + LENGTH_SCALE * yinc},
+                      {zstart - LENGTH_SCALE * zinc,
+                       zstart + LENGTH_SCALE * zinc}};
+    // construct Field for fit
+    Gridded3DSet set = new Gridded3DSet(xyzType, locs, 2);
+    FlatField field = new FlatField(funcType, set);
+    float[][] values = {{time, time}, {fldEnergy, fldEnergy}};
+
+    try {
+      field.setSamples(values, false);
+    } catch (RemoteException re) {
+      re.printStackTrace();
+      return null;
+    }
+
+    return field;
+  }
+}
+
+class MCTrack
+  extends BaseTrack
+{
+  MCTrack(float xstart, float ystart, float zstart, float zenith,
+          float azimuth, float length, float energy, float time)
+  {
+    super(xstart, ystart, zstart, zenith, azimuth, length, energy, time);
+  }
+
+  final FlatField makeData()
+    throws VisADException
+  {
+    return makeData(1000.0f);
+  }
+}
+
+class FitTrack
+  extends BaseTrack
+{
+  FitTrack(float xstart, float ystart, float zstart, float zenith,
+           float azimuth, float length, float energy, float time)
+  {
+    super(xstart, ystart, zstart, zenith, azimuth, length, energy, time);
+  }
+
+  final FlatField makeData()
+    throws VisADException
+  {
+    return makeData(10000.0f);
+  }
+}
+
+class Hit
+{
+  private static RealTupleType tupleType;
+
+  private Module mod;
+  private float amplitude, leadEdgeTime, timeOverThreshold;
+
+  Hit(Module mod, float amplitude, float leadEdgeTime,
+      float timeOverThreshold)
+  {
+    this.mod = mod;
+    this.amplitude = amplitude;
+    this.leadEdgeTime = leadEdgeTime;
+    this.timeOverThreshold = timeOverThreshold;
+  }
+
+  static void initTypes(RealTupleType hitType) { tupleType = hitType; }
+
+  final RealTuple makeData()
+    throws VisADException
+  {
+    double[] values = {mod.getX(), mod.getY(), mod.getZ(),
+                       amplitude, leadEdgeTime, timeOverThreshold};
+
+    // construct Tuple for hit
+    RealTuple rt;
+    try {
+      rt = new RealTuple(tupleType, values);
+    } catch (RemoteException re) {
+      re.printStackTrace();
+      rt = null;
+    }
+
+    return rt;
+  }
+}
+
 /**
    F2000Form is the VisAD data format adapter for
    F2000 files for Amanda events.<P>
@@ -142,7 +295,6 @@ public class F2000Form
   extends Form
   implements FormFileInformer
 {
-  private static final float LENGTH_SCALE = 1000.0f;
   private static final float CUBE = 0.05f;
 
   private static int num = 0;
@@ -156,9 +308,6 @@ public class F2000Form
   private static RealType eventIndexType;
   private static RealType moduleIndexType;
 
-  private static RealTupleType xyzType, hitType;
-
-  private static FunctionType trackFunctionType;
   private static FunctionType tracksFunctionType;
   private static FunctionType hitsFunctionType;
   private static FunctionType eventsFunctionType;
@@ -258,12 +407,12 @@ public class F2000Form
     eventIndexType = RealType.getRealType("event_index");
     moduleIndexType = RealType.getRealType("module_index");
 
-    xyzType = new RealTupleType(xType, yType, zType);
+    RealTupleType xyzType = new RealTupleType(xType, yType, zType);
     RealTupleType trackRange = new RealTupleType(timeType, energyType);
-    trackFunctionType = new FunctionType(xyzType, trackRange);
+    FunctionType trackFunctionType = new FunctionType(xyzType, trackRange);
     RealType[] hitReals =
       {xType, yType, zType, amplitudeType, letType, totType};
-    hitType = new RealTupleType(hitReals);
+    RealTupleType hitType = new RealTupleType(hitReals);
     tracksFunctionType =
       new FunctionType(trackIndexType, trackFunctionType);
     hitsFunctionType = 
@@ -276,6 +425,9 @@ public class F2000Form
 
     moduleFunctionType =
       new FunctionType(moduleIndexType, xyzType);
+
+    BaseTrack.initTypes(xyzType, trackFunctionType);
+    Hit.initTypes(hitType);
 
     typesCreated = true;
   }
@@ -444,52 +596,6 @@ public class F2000Form
     return false;
   }
 
-  private final FlatField makeField(float xstart, float ystart, float zstart,
-                                    float zenith, float azimuth, float length,
-                                    float energy, float time, float maxLength)
-    throws VisADException
-  {
-    float fldLength = length;
-    if (fldLength > maxLength) {
-      fldLength = maxLength;
-    } else if (fldLength != fldLength) {
-      fldLength = -1.0f;
-    }
-
-    float fldEnergy = energy;
-    if (fldEnergy != fldEnergy) {
-      fldEnergy = 1.0f;
-    }
-
-    float zs = (float) Math.sin(zenith * Data.DEGREES_TO_RADIANS);
-    float zc = (float) Math.cos(zenith * Data.DEGREES_TO_RADIANS);
-    float as = (float) Math.sin(azimuth * Data.DEGREES_TO_RADIANS);
-    float ac = (float) Math.cos(azimuth * Data.DEGREES_TO_RADIANS);
-    float zinc = fldLength * zc;
-    float xinc = fldLength * zs * ac;
-    float yinc = fldLength * zs * as;
-
-    float[][] locs = {{xstart - LENGTH_SCALE * xinc,
-                       xstart + LENGTH_SCALE * xinc},
-                      {ystart - LENGTH_SCALE * yinc,
-                       ystart + LENGTH_SCALE * yinc},
-                      {zstart - LENGTH_SCALE * zinc,
-                       zstart + LENGTH_SCALE * zinc}};
-    // construct Field for fit
-    Gridded3DSet set = new Gridded3DSet(xyzType, locs, 2);
-    FlatField field = new FlatField(trackFunctionType, set);
-    float[][] values = {{time, time}, {fldEnergy, fldEnergy}};
-
-    try {
-      field.setSamples(values, false);
-    } catch (RemoteException re) {
-      re.printStackTrace();
-      return null;
-    }
-
-    return field;
-  }
-
   private String nextLine(BufferedReader rdr)
     throws IOException
   {
@@ -631,27 +737,27 @@ public class F2000Form
 
       // read TR and HT records
       if (keyword.equals("tr")) {
-        FlatField track = readTrack(line, tok);
+        MCTrack track = readTrack(line, tok);
         if (track != null) {
-          emTracks.add(track);
+          emTracks.add(track.makeData());
         }
 
         continue;
       }
 
       if (keyword.equals("fit")) {
-        FlatField fit = readFit(line, tok);
+        FitTrack fit = readFit(line, tok);
         if (fit != null) {
-          emTracks.add(fit);
+          emTracks.add(fit.makeData());
         }
 
         continue;
       }
 
       if (keyword.equals("ht")) {
-        RealTuple hit = readHit(line, tok, om);
+        Hit hit = readHit(line, tok, om);
         if (hit != null) {
-          emHits.add(hit);
+          emHits.add(hit.makeData());
         }
 
         continue;
@@ -816,7 +922,7 @@ public class F2000Form
     return nmodules;
   }
 
-  private final FlatField readFit(String line, StringTokenizer tok)
+  private final FitTrack readFit(String line, StringTokenizer tok)
     throws VisADException
   {
     // FIT id type xstart ystart zstart zenith azimuth time length energy
@@ -840,12 +946,12 @@ public class F2000Form
                                  e.getMessage());
     }
 
-    return makeField(xstart, ystart, zstart, zenith, azimuth, length,
-                     energy, time, 10000.f);
+    return new FitTrack(xstart, ystart, zstart, zenith, azimuth, length,
+                        energy, time);
   }
 
-  private final RealTuple readHit(String line, StringTokenizer tok,
-                                  Module[] om)
+  private final Hit readHit(String line, StringTokenizer tok,
+                            Module[] om)
     throws VisADException
   {
     String chanStr = tok.nextToken();
@@ -883,19 +989,7 @@ public class F2000Form
                                  e.getMessage());
     }
 
-    double[] values = {mod.getX(), mod.getY(), mod.getZ(),
-                       amplitude, leadEdgeTime, timeOverThreshold};
-
-    // construct Tuple for hit
-    RealTuple rt;
-    try {
-      rt = new RealTuple(hitType, values);
-    } catch (RemoteException re) {
-      re.printStackTrace();
-      rt = null;
-    }
-
-    return rt;
+    return new Hit(mod, amplitude, leadEdgeTime, timeOverThreshold);
   }
 
   private final Module readOMLine(String line, StringTokenizer tok, Module[] om)
@@ -938,7 +1032,7 @@ public class F2000Form
     return om[number];
   }
 
-  private final FlatField readTrack(String line, StringTokenizer tok)
+  private final MCTrack readTrack(String line, StringTokenizer tok)
     throws VisADException
   {
     // TR nr parent type xstart ystart zstart zenith azimuth length energy time
@@ -962,8 +1056,8 @@ public class F2000Form
                                  e.getMessage());
     }
 
-    return makeField(xstart, ystart, zstart, zenith, azimuth, length,
-                     energy, time, 1000.f);
+    return new MCTrack(xstart, ystart, zstart, zenith, azimuth, length,
+                       energy, time);
   }
 
   public synchronized void save(String id, Data data, boolean replace)
