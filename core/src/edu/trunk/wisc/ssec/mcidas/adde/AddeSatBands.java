@@ -48,6 +48,7 @@ public class AddeSatBands {
     // now look for Source
     int gotSrc = -1;
     for (int i=gotit; i<c.length; i++) {
+      if (c[i].startsWith("EndSat")) break;
       if ( ! c[i].startsWith("Cal ")) continue;
       String srcVal = c[i].substring(4).trim();
       if (srcVal.equals(src)) {
@@ -66,7 +67,24 @@ public class AddeSatBands {
       if (c[i].startsWith("B") ) continue;
       String b = c[i].substring(0,2);
       int bi = Integer.parseInt(b.trim());
-      String d = c[i].substring(3).trim();
+      String d = null;
+      int ids = c[i].indexOf("DESC=");  // look for new file format
+
+      if (ids > 0) {  // new format
+        int idsb = c[i].indexOf("'",ids+5);
+        if (idsb < 2) {  // no quoted field
+          d = c[i].substring(ids+5);
+
+        } else {
+          int idse = c[i].indexOf("'", idsb+1);
+          d = c[i].substring(idsb+1,idse);
+        }
+        
+        
+      } else {  // old format
+        d = c[i].substring(3).trim();
+      }
+
       if (bi >= v.size()) v.setSize(bi+1);
       v.setElementAt(d, bi);
     }
@@ -83,6 +101,7 @@ public class AddeSatBands {
   public static void main(String[] a) {
     try {
       DataInputStream das = new DataInputStream(new FileInputStream("/src/edu/wisc/ssec/mcidas/adde/satband.txt"));
+      //DataInputStream das = new DataInputStream(new FileInputStream("/src/edu/wisc/ssec/mcidas/adde/SATBAND-new.txt"));
 
       Vector v = new Vector();
       while(true) {
@@ -96,7 +115,9 @@ public class AddeSatBands {
       System.out.println("size of input file = "+num);
 
       String sat = "12";
-      String src = "MSAT";
+      //String src = "MSAT";  // this is an error
+      String src = "GMS";
+
       if (a != null && a.length > 1) {
         sat = a[0];
         src = a[1];
@@ -107,11 +128,15 @@ public class AddeSatBands {
       AddeSatBands asb = new AddeSatBands(sv);
       String[] f = asb.getBandDescr(Integer.parseInt(sat), src);
       System.out.println("return from addesatbands");
+      if (f == null) {
+        System.out.println("####  No matches found...!");
+      } else {
 
-      int numb = f.length;
-      System.out.println("length of return = "+numb);
-      for (int i=0; i<numb; i++) {
-        System.out.println("band = value -> "+i+" = "+f[i]);
+        int numb = f.length;
+        System.out.println("length of return = "+numb);
+        for (int i=0; i<numb; i++) {
+          System.out.println("band = value -> "+i+" = "+f[i]);
+        }
       }
 
     } catch (Exception e) {System.out.println(e);}
