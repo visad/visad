@@ -302,6 +302,7 @@ public class TupleType extends MathType {
     return Flat;
   }
 
+/* WLH 5 Jan 2000
   public String toString() {
     String t = "(" + tupleComponents[0].toString();
     for (int i=1; i<tupleComponents.length; i++) {
@@ -309,6 +310,7 @@ public class TupleType extends MathType {
     }
     return t + ")";
   }
+*/
 
   public String prettyString(int indent) {
     int n = tupleComponents.length;

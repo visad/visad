@@ -727,12 +727,15 @@ public class RealType extends ScalarType {
     return link.getRenderer().makeShadowRealType(this, link, parent);
   }
 
+/* WLH 5 Jan 2000
   public String toString() {
     return getName();
   }
+*/
 
   public String prettyString(int indent) {
-    return toString();
+    // return toString();  WLH 5 Jan 2000
+    return getName();
   }
 
   public static void main( String[] args ) 

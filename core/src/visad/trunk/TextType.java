@@ -93,12 +93,15 @@ public class TextType extends ScalarType {
     throw new UnimplementedException("TextType: unary");
   }
   
+/* WLH 5 Jan 2000
   public String toString() {
     return getName() + "(Text)";
   }
+*/
 
   public String prettyString(int indent) {
-    return toString();
+    // return toString();  WLH 5 Jan 2000
+    return getName() + "(Text)";
   }
 
   public Data missingData() throws VisADException {

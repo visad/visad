@@ -389,9 +389,11 @@ public class RealTupleType extends TupleType {
       }
     }
     catch (VisADException e) {
-      return toString();
+      // return toString();  WLH 5 Jan 2000
+      return super.prettyString(0);
     }
-    return toString();
+    // return toString();  WLH 5 Jan 2000
+    return super.prettyString(0);
   }
 
   public Data missingData() {

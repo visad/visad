@@ -88,12 +88,15 @@ public class SetType extends MathType {
     throw new UnimplementedException("binary");
   }
 
+/* WLH 5 Jan 2000
   public String toString() {
     return "Set" + Domain.toString();
   }
+*/
 
   public String prettyString(int indent) {
-    return toString();
+    // return toString();  WLH 5 Jan 2000
+    return "Set" + Domain.toString();
   }
 
   public Data missingData() throws VisADException {

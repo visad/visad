@@ -278,12 +278,13 @@ public class FunctionType extends MathType {
     return (MathType) new FunctionType( Domain, Range.unary( op, names ));
   }
 
-
+/* WLH 5 Jan 2000
   public String toString() {
     String t = Real ? " (Real): " : Flat ? " (Flat): " : ": ";
     return "FunctionType" + t + Domain.toString() +
              " -> " + Range.toString();
   }
+*/
 
   public String prettyString(int indent) {
     String ds = "(" + Domain.prettyString(indent) + " -> ";
