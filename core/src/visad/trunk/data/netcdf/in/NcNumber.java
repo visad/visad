@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcNumber.java,v 1.5 1998-07-07 14:30:45 visad Exp $
+ * $Id: NcNumber.java,v 1.6 1998-08-12 18:52:42 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -25,7 +25,7 @@ import visad.Unit;
 import visad.TypeException;
 import visad.VisADException;
 import visad.data.BadFormException;
-import visad.data.netcdf.in.NetcdfQuantityDB;
+import visad.data.netcdf.QuantityMap;
 
 
 /**
@@ -90,12 +90,10 @@ NcNumber
     {
 	super(var, netcdf, type);
 
-	NetcdfQuantityDB	quantityDB = NetcdfQuantityDB.instance();
-
 	set = getRangeSet(type);
 	isCoordVar = isCoordVar(var);
-	isLatitude = type.equals(quantityDB.get("latitude", SI.radian));
-	isLongitude = type.equals(quantityDB.get("longitude", SI.radian));
+	isLatitude = type.equals(QuantityMap.get("latitude", SI.radian));
+	isLongitude = type.equals(QuantityMap.get("longitude", SI.radian));
 	isTime = isTime(type.getDefaultUnit());
 	vetter = new Vetter(var);
     }
@@ -113,7 +111,7 @@ NcNumber
     getRealType(Variable var)
 	throws VisADException
     {
-	RealType	realType = NetcdfQuantityDB.instance().get(var);
+	RealType	realType = NetcdfQuantityDB.get(var);
 
 	if (realType == null)
 	{
