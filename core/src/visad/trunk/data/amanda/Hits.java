@@ -92,7 +92,7 @@ public class Hits
     float startTime = Float.MAX_VALUE;
     float endTime = Float.MIN_VALUE;
 
-    float totLen = 0.0F;
+    float minLen = Float.MAX_VALUE;
 
     // gather info needed to compute number of timesteps
     for (int i = 0; i < numHits; i++) {
@@ -104,7 +104,9 @@ public class Hits
       }
 
       final float len = hit.getTimeOverThreshold();
-      totLen += len;
+      if (len < minLen) {
+        minLen = len;
+      }
 
       final float et = st + len;
       if (endTime < et) {
@@ -113,9 +115,8 @@ public class Hits
     }
 
     final float dist = endTime - startTime;
-    final float avgLen = totLen / (float )numHits;
 
-    int steps = (int )(dist / avgLen);
+    int steps = (int )(dist / minLen);
     if (steps < MIN_TIMESTEPS) {
       steps = MIN_TIMESTEPS;
     } else if (steps > MAX_TIMESTEPS) {
