@@ -27,12 +27,12 @@ package visad;
 /**
  * Provides support for empirically-defined CordinateSystem-s.  This is useful
  * for data-dependent coordinate transformations that must be determined
- * empirically rather than analytically (e.g. pressure <-> height).
+ * empirically rather than analytically (e.g. pressure <-> height).<p>
  *
  * Coordinates in this system are termed "world" coordinates and coordinates in
- * the reference coordinate system are termed "reference" coordinates.
+ * the reference coordinate system are termed "reference" coordinates.<p>
  *
- * Instances of this class are immutable.
+ * Instances of this class are immutable.<p>
  *
  * @author Steven R. Emmerson
  */
@@ -95,7 +95,7 @@ EmpiricalCoordinateSystem
    * @throws SetException	The field's domain set isn't a GriddedSet.
    * @throws VisADException	Couldn't create necessary VisAD object.
    */
-  public EmpiricalCoordinateSystem
+  public static EmpiricalCoordinateSystem
   create(FlatField field)
     throws VisADException
   {
