@@ -282,6 +282,11 @@ public class Util
       FileFilter pgm = new ExtensionFileFilter("pgm", "PGM images");
       dialog.addChoosableFileFilter(pgm);
       filters.add(pgm);
+
+      // PICT - qt/PictForm
+      FileFilter pict = new ExtensionFileFilter("pict", "PICT images");
+      dialog.addChoosableFileFilter(pict);
+      filters.add(pict);
   
       // PNG - gif/GIFForm, jai/JAIForm
       FileFilter png = new ExtensionFileFilter("png", "PNG images");

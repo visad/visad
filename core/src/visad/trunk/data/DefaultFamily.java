@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.rmi.RemoteException;
 
 import visad.Data;
-import visad.DataImpl;
 import visad.VisADException;
 
 import visad.data.bio.BioRadForm;
@@ -42,6 +41,7 @@ import visad.data.mcidas.AreaForm;
 import visad.data.mcidas.MapForm;
 import visad.data.mcidas.PointForm;
 import visad.data.netcdf.Plain;
+import visad.data.qt.PictForm;
 import visad.data.qt.QTForm;
 import visad.data.text.TextForm;
 import visad.data.tiff.TiffForm;
@@ -174,6 +174,11 @@ public class DefaultFamily
     }
     try {
       list[i] = new QTForm();
+      i++;
+    } catch (Throwable t) {
+    }
+    try {
+      list[i] = new PictForm();
       i++;
     } catch (Throwable t) {
     }
