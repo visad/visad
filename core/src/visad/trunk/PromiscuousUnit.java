@@ -111,7 +111,7 @@ public class PromiscuousUnit extends Unit {
 
   protected Unit divideInto(Unit that)
        throws UnitException {
-    return that.divide(CommonUnit.dimensionless);
+    return that;
   }
 
 
