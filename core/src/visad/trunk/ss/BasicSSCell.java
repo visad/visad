@@ -285,7 +285,6 @@ public class BasicSSCell extends JPanel {
           {
             if (!setupComplete && !IsSlave) setupRemoteDataChangeCell();
             if (!hasDisplay()) {
-              constructDisplay();
               initVDPanel();
               setVDPanel(true);
             }
