@@ -43,6 +43,8 @@ public abstract class BaseColorControl extends Control {
 
   private final static int DEFAULT_TABLE_LENGTH = 256;
 
+  private Object lock = new Object();
+
   public BaseColorControl(DisplayImpl d) {
     super(d);
     tableLength = DEFAULT_TABLE_LENGTH;
@@ -64,26 +66,27 @@ public abstract class BaseColorControl extends Control {
   /** define the color lookup by a Function, whose MathType must
       have a 1-D domain and a 4-D RealTupleType range; the domain
       and range Reals must vary over the range (0.0, 1.0) */
-  public synchronized void setFunction(Function func)
+  public void setFunction(Function func)
          throws VisADException, RemoteException {
     if (func == null ||
         !func.getType().equalsExceptName(FunctionType.REAL_1TO4_FUNCTION)) {
       throw new DisplayException("BaseColorControl.setFunction: " +
                                  "function must be 1D-to-4D");
     }
-    function = func;
-    functionDomainType = ((FunctionType) function.getType()).getDomain();
-    functionCoordinateSystem = function.getDomainCoordinateSystem();
-    functionUnits = function.getDomainUnits();
-    table = null;
+    synchronized (lock) {
+      function = func;
+      functionDomainType = ((FunctionType) function.getType()).getDomain();
+      functionCoordinateSystem = function.getDomainCoordinateSystem();
+      functionUnits = function.getDomainUnits();
+      table = null;
+    }
     changeControl(true);
   }
 
   /** define the color lookup by an array of floats which must
       have the form float[4][table_length]; values should be in
       the range (0.0, 1.0) */
-  public synchronized void setTable(float[][] t)
-         throws VisADException, RemoteException {
+  public void setTable(float[][] t) throws VisADException, RemoteException {
     if (t == null || t.length != 4 ||
         t[0] == null || t[1] == null || t[2] == null || t[3] == null ||
         t[0].length != t[1].length || t[0].length != t[2].length ||
@@ -91,14 +94,16 @@ public abstract class BaseColorControl extends Control {
       throw new DisplayException("BaseColorControl.setTable: " +
                                  "table must be float[4][Length]");
     }
-    tableLength = t[0].length;
-    table = new float[4][tableLength + 1];
-    for (int j=0; j<4; j++) {
-      System.arraycopy(t[j], 0, table[j], 0, tableLength);
-      // guard for table overflow on scaling in lookupValues
-      table[j][tableLength] = t[j][tableLength - 1];
+    synchronized (lock) {
+      tableLength = t[0].length;
+      table = new float[4][tableLength + 1];
+      for (int j=0; j<4; j++) {
+        System.arraycopy(t[j], 0, table[j], 0, tableLength);
+        // guard for table overflow on scaling in lookupValues
+        table[j][tableLength] = t[j][tableLength - 1];
+      }
+      function = null;
     }
-    function = null;
     changeControl(true);
   }
 
@@ -111,61 +116,63 @@ public abstract class BaseColorControl extends Control {
     return t;
   }
 
-  public synchronized float[][] lookupValues(float[] values)
+  public float[][] lookupValues(float[] values)
          throws VisADException, RemoteException {
     int len = values.length;
     float[][] colors = null;
-    if (table != null) {
-      colors = new float[4][len];
-      float scale = (float) tableLength;
-      for (int i=0; i<len; i++) {
-        if (values[i] != values[i]) {
-          colors[0][i] = Float.NaN;
-          colors[1][i] = Float.NaN;
-          colors[2][i] = Float.NaN;
-          colors[3][i] = Float.NaN;
-        }
-        else {
-          int j = (int) (scale * values[i]);
-          // note actual table length is tableLength + 1
-  /* WLH 27 April 99
-          if (j < 0 || tableLength < j) {
+    synchronized (lock) {
+      if (table != null) {
+        colors = new float[4][len];
+        float scale = (float) tableLength;
+        for (int i=0; i<len; i++) {
+          if (values[i] != values[i]) {
             colors[0][i] = Float.NaN;
             colors[1][i] = Float.NaN;
             colors[2][i] = Float.NaN;
             colors[3][i] = Float.NaN;
           }
-  */
-          // WLH 27 April 99
-          // extend first and last table entries to 'infinity'
-          if (j < 0) {
-            colors[0][i] = table[0][0];
-            colors[1][i] = table[1][0];
-            colors[2][i] = table[2][0];
-            colors[3][i] = table[3][0];
-          }
-          else if (tableLength < j) {
-            colors[0][i] = table[0][tableLength];
-            colors[1][i] = table[1][tableLength];
-            colors[2][i] = table[2][tableLength];
-            colors[3][i] = table[3][tableLength];
-          }
           else {
-            colors[0][i] = table[0][j];
-            colors[1][i] = table[1][j];
-            colors[2][i] = table[2][j];
-            colors[3][i] = table[3][j];
+            int j = (int) (scale * values[i]);
+            // note actual table length is tableLength + 1
+  /* WLH 27 April 99
+            if (j < 0 || tableLength < j) {
+              colors[0][i] = Float.NaN;
+              colors[1][i] = Float.NaN;
+              colors[2][i] = Float.NaN;
+              colors[3][i] = Float.NaN;
+            }
+  */
+            // WLH 27 April 99
+            // extend first and last table entries to 'infinity'
+            if (j < 0) {
+              colors[0][i] = table[0][0];
+              colors[1][i] = table[1][0];
+              colors[2][i] = table[2][0];
+              colors[3][i] = table[3][0];
+            }
+            else if (tableLength < j) {
+              colors[0][i] = table[0][tableLength];
+              colors[1][i] = table[1][tableLength];
+              colors[2][i] = table[2][tableLength];
+              colors[3][i] = table[3][tableLength];
+            }
+            else {
+              colors[0][i] = table[0][j];
+              colors[1][i] = table[1][j];
+              colors[2][i] = table[2][j];
+              colors[3][i] = table[3][j];
+            }
           }
         }
       }
-    }
-    else if (function != null) {
-      List1DSet set = new List1DSet(values, functionDomainType,
-                                    functionCoordinateSystem,
-                                    functionUnits);
-      Field field =
-        function.resample(set, Data.NEAREST_NEIGHBOR, Data.NO_ERRORS);
-      colors = Set.doubleToFloat(field.getValues());
+      else if (function != null) {
+        List1DSet set = new List1DSet(values, functionDomainType,
+                                      functionCoordinateSystem,
+                                      functionUnits);
+        Field field =
+          function.resample(set, Data.NEAREST_NEIGHBOR, Data.NO_ERRORS);
+        colors = Set.doubleToFloat(field.getValues());
+      }
     }
     return colors;
   }
