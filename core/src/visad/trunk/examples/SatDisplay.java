@@ -64,7 +64,7 @@ public class SatDisplay {
             colMap[0] = new ConstantMap(0., Display.Blue);
             colMap[1] = new ConstantMap(1., Display.Red);
             colMap[2] = new ConstantMap(0., Display.Green);
-            colMap[3] = new ConstantMap(1.01, Display.Radius);
+            colMap[3] = new ConstantMap(1.001, Display.Radius);
 
             AreaAdapter aa = new AreaAdapter(
                             "ftp://www.ssec.wisc.edu/pub/visad-2.0/AREA2001");

@@ -1115,6 +1115,12 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     float[][] offset_values = new float[3][];
     boolean[] offset_copy = {false, false, false};
 
+    // spatial map getRange() results for flow adjustment
+    double[] ranges = new double[] {Double.NaN, Double.NaN, Double.NaN};
+    // some helpers for this computing ranges
+    int[] valueToMap = display.getValueToMap();
+    Vector MapVector = display.getMapVector();
+
     for (int i=0; i<valueArrayLength; i++) {
       if (display_values[i] != null) {
         int displayScalarIndex = valueToScalar[i];
@@ -1141,6 +1147,9 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
             tuple_indices[spatialDimension] = tuple_index;
             spatialDimension++; // # non-inherited spatial dimensions
           }
+          double[] map_range =
+            ((ScalarMap) MapVector.elementAt(valueToMap[i])).getRange();
+          ranges[tuple_index] = map_range[1] - map_range[0];
         }
       } // end if (display_values[i] != null)
     } // end for (int i=0; i<valueArrayLength; i++)
@@ -1295,10 +1304,79 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       } // end if (spatial_tuple == Display.DisplaySpatialCartesianTuple)
     }
 
+    // adjust Flow values for coordinate transform
+    // first equalize lengths of flow*_values and spatial_values
+    int[] flen = {0, 0};
+    float[][][] ff_values = {flow1_values, flow2_values};
+    for (int k=0; k<2; k++) {
+      for (int i=0; i<3; i++) {
+        if (ff_values[k][i] != null) {
+          flen[k] = Math.max(flen[k], ff_values[k][i].length);
+        }
+      }
+    }
+    len = Math.max(len, Math.max(flen[0], flen[1]));
+    fillOut(spatial_values, len);
+    if (flen[0] > 0) fillOut(flow1_values, len);
+    if (flen[1] > 0) fillOut(flow2_values, len);
+
+    // adjust flow for spatial setRange scaling
+    double max_range = -1.0;
+    for (int i=0; i<3; i++) {
+      if (ranges[i] == ranges[i]) {
+        double ar = Math.abs(ranges[i]);
+        if (ar > max_range) max_range = ar;
+      }
+    }
+    for (int i=0; i<3; i++) {
+      if (ranges[i] == ranges[i]) {
+        ranges[i] = ranges[i] / max_range;
+      }
+      else {
+        ranges[i] = 1.0;
+      }
+    }
+    for (int k=0; k<2; k++) {
+      if (ff_values[k][0] != null ||
+          ff_values[k][1] != null ||
+          ff_values[k][2] != null) {
+        for (int j=0; j<len; j++) {
+          float old_speed = 0.0f;
+          float new_speed = 0.0f;
+          for (int i=0; i<3; i++) {
+            if (ff_values[k][i] != null) {
+              old_speed += ff_values[k][i][j] * ff_values[k][i][j];
+              ff_values[k][i][j] *= ranges[i];
+              new_speed += ff_values[k][i][j] * ff_values[k][i][j];
+            }
+          }
+          // but don't change vector magnitude ????
+          float ratio = (float) Math.sqrt(old_speed / new_speed);
+          for (int i=0; i<3; i++) {
+            if (ff_values[k][i] != null) {
+              ff_values[k][i][j] *= ratio;
+            }
+          }
+        }
+      }
+    }
+/*
+    for (int k=0; k<2; k++) {
+      for (int i=0; i<3; i++) {
+        if (ff_values[k][i] != null) {
+          for (int j=0; j<ff_values[k][i].length; j++) {
+            ff_values[k][i][j] *= ranges[i];
+          }
+        }
+      }
+    }
+*/
+
     if (!spatial_tuple.equals(Display.DisplaySpatialCartesianTuple)) {
       // transform tuple_values to DisplaySpatialCartesianTuple
       CoordinateSystem coord = spatial_tuple.getCoordinateSystem();
 
+/* WLH 6 May 99
       // adjust Flow values for coordinate transform
       // first equalize lengths of flow*_values and spatial_values
       int[] flen = {0, 0};
@@ -1314,11 +1392,12 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       fillOut(spatial_values, len);
       if (flen[0] > 0) fillOut(flow1_values, len);
       if (flen[1] > 0) fillOut(flow2_values, len);
+*/
 
 //
-// need to account for spatial setRange scaling in flow
-//
-// also do transform for EarthVectorType
+// need to do transform for EarthVectorType
+//   adjust for longitude shortening with latitude
+//     transform vector_ends by linear tangent to earth transform?
 //
 
       // compute and transform 'end points' of flow vectors
@@ -1496,21 +1575,6 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     } // end for (int i=0; i<3; i++)
 
     if (set_needed) {
-/* WLH 4 May 99
-      float[][] samples = null;
-      if (range_select[0] == null) {
-        samples = spatial_values;
-      }
-      else {
-        samples = new float[3][len];
-        for (int i=0; i<3; i++) {
-          for (int j=0; j<len; j++) {
-            samples[i][j] = (spatial_values[i][j] == spatial_values[i][j]) ?
-                            spatial_values[i][j] : 0.0f;
-          }
-        }
-      }
-*/
       try {
         if (spatialDimension == 0) {
           double[] values = new double[3];
