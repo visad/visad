@@ -78,6 +78,7 @@ public class Vis5DCoordinateSystem extends MapProjection
   double  CylinderScale;
   double  Nr;
   double  Nc;
+  double[] projargs;
 
   private static Unit[] coordinate_system_units =
     {null, null};
@@ -93,6 +94,7 @@ public class Vis5DCoordinateSystem extends MapProjection
     this.Projection = Projection;
     this.Nr = Nr;
     this.Nc = Nc;
+    this.projargs = projargs;
     switch ( Projection )
     {
       case PROJ_GENERIC:
@@ -232,8 +234,35 @@ public class Vis5DCoordinateSystem extends MapProjection
    */
   public Rectangle2D getDefaultMapArea() 
   { 
-      return new Rectangle2D.Double(0.0, 0.0, Nc-1, Nr-1);
+      return new Rectangle2D.Double(0, 0, Nc-1, Nr-1);
   }
+
+  /**
+   * Get the Projection type
+   */
+  public int getProjection() { return Projection; }
+
+  /**
+   * Get the number of Rows
+   */
+  public double getRows() { return Nr; }
+
+  /**
+   * Get the number of Columns
+   */
+  public double getColumns() { return Nc; }
+
+  /**
+   * Get the projection args
+   */
+  public double[] getProjectionParams() { return projargs; }
+
+  /**
+   * Override from super class since toRef and fromRef use rowcol (yx) order
+   * instead of colrow (xy) order.
+   * @return false
+   */
+  public boolean isXYOrder() { return false; }
 
   public double[][] toReference(double[][] rowcol)
          throws VisADException
@@ -486,7 +515,14 @@ public class Vis5DCoordinateSystem extends MapProjection
 
   public boolean equals(Object cs) 
   {
-    return (cs instanceof Vis5DCoordinateSystem);
+    if ( !(cs instanceof Vis5DCoordinateSystem)) return false;
+    Vis5DCoordinateSystem that = (Vis5DCoordinateSystem) cs;
+    return (this.Projection == that.Projection &&
+            Double.doubleToLongBits(this.Nr) == 
+                Double.doubleToLongBits(that.Nr) &&
+            Double.doubleToLongBits(this.Nc) == 
+                Double.doubleToLongBits(that.Nc) &&
+            java.util.Arrays.equals(this.projargs, that.projargs));
   }
 
   public static void main(String args[]) throws VisADException
