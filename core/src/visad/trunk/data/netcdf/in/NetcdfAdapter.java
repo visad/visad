@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.19 2000-06-08 19:13:45 steve Exp $
+ * $Id: NetcdfAdapter.java,v 1.20 2000-06-26 18:38:59 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -29,7 +29,7 @@ NetcdfAdapter
     /**
      * The name of the import-strategy property.
      */
-    public static String	IMPORT_STRATEGY_PROPERTY =
+    public static final String	IMPORT_STRATEGY_PROPERTY =
 	"visad.data.netcdf.in.Strategy";
 
     /**
