@@ -309,21 +309,41 @@ public abstract class MathType extends Object implements java.io.Serializable {
             if (domain.getDimension() != 3) break;
             MathType range = ft.getRange();
             RealType x, y, z;
-            try {
-              x = (RealType) domain.getComponent(0);
-              y = (RealType) domain.getComponent(1);
-              z = (RealType) domain.getComponent(2);
+            CoordinateSystem cs = domain.getCoordinateSystem();
+            if (cs != null) {
+              RealTupleType ref = cs.getReference();
+              try {
+                x = (RealType) ref.getComponent(0);
+                y = (RealType) ref.getComponent(1);
+                z = (RealType) ref.getComponent(2);
+              }
+              catch (VisADException exc) {
+                break;
+              }
             }
-            catch (VisADException exc) {
-              break;
+            else {
+              try {
+                x = (RealType) domain.getComponent(0);
+                y = (RealType) domain.getComponent(1);
+                z = (RealType) domain.getComponent(2);
+              }
+              catch (VisADException exc) {
+                break;
+              }
             }
             RealType a;
             if (range instanceof RealType) {
               a = (RealType) range;
               try {
                 ScalarMap[] smaps = new ScalarMap[timeFunc < 0 ? 4 : 5];
-                smaps[0] = new ScalarMap(x, Display.XAxis);
-                smaps[1] = new ScalarMap(y, Display.YAxis);
+                if (RealType.Latitude.equals(x)) {
+                  smaps[0] = new ScalarMap(x, Display.YAxis);
+                  smaps[1] = new ScalarMap(y, Display.XAxis);
+                }
+                else {
+                  smaps[0] = new ScalarMap(x, Display.XAxis);
+                  smaps[1] = new ScalarMap(y, Display.YAxis);
+                }
                 smaps[2] = new ScalarMap(z, Display.ZAxis);
                 smaps[3] = new ScalarMap(a, Display.IsoContour);
                 if (timeFunc >= 0) {
@@ -350,8 +370,14 @@ public abstract class MathType extends Object implements java.io.Serializable {
                   a = (RealType) mt;
                   try {
                     ScalarMap[] smaps = new ScalarMap[timeFunc < 0 ? 4 : 5];
-                    smaps[0] = new ScalarMap(x, Display.XAxis);
-                    smaps[1] = new ScalarMap(y, Display.YAxis);
+                    if (RealType.Latitude.equals(x)) {
+                      smaps[0] = new ScalarMap(x, Display.YAxis);
+                      smaps[1] = new ScalarMap(y, Display.XAxis);
+                    }
+                    else {
+                      smaps[0] = new ScalarMap(x, Display.XAxis);
+                      smaps[1] = new ScalarMap(y, Display.YAxis);
+                    }
                     smaps[2] = new ScalarMap(z, Display.ZAxis);
                     smaps[3] = new ScalarMap(a, Display.IsoContour);
                     if (timeFunc >= 0) {
@@ -378,11 +404,23 @@ public abstract class MathType extends Object implements java.io.Serializable {
             // x -> X, y -> Y, z -> Z, a -> IsoContour
             domain = ft.getDomain();
             if (domain.getDimension() != 1) break;
-            try {
-              z = (RealType) domain.getComponent(0);
+            cs = domain.getCoordinateSystem();
+            if (cs != null) {
+              RealTupleType ref = cs.getReference();
+              try {
+                z = (RealType) ref.getComponent(0);
+              }
+              catch (VisADException exc) {
+                break;
+              }
             }
-            catch (VisADException exc) {
-              break;
+            else {
+              try {
+                z = (RealType) domain.getComponent(0);
+              }
+              catch (VisADException exc) {
+                break;
+              }
             }
             range = ft.getRange();
             FunctionType rf = null;
@@ -412,12 +450,25 @@ public abstract class MathType extends Object implements java.io.Serializable {
             }
             if (rf == null) break;
             RealTupleType rfd = rf.getDomain();
-            try {
-              x = (RealType) rfd.getComponent(0);
-              y = (RealType) rfd.getComponent(1);
+            cs = rfd.getCoordinateSystem();
+            if (cs != null) {
+              RealTupleType ref = cs.getReference();
+              try {
+                x = (RealType) ref.getComponent(0);
+                y = (RealType) ref.getComponent(1);
+              }
+              catch (VisADException exc) {
+                break;
+              }
             }
-            catch (VisADException exc) {
-              break;
+            else {
+              try {
+                x = (RealType) rfd.getComponent(0);
+                y = (RealType) rfd.getComponent(1);
+              }
+              catch (VisADException exc) {
+                break;
+              }
             }
             range = rf.getRange();
             a = null;
@@ -443,8 +494,14 @@ public abstract class MathType extends Object implements java.io.Serializable {
             if (a == null) break;
             try {
               ScalarMap[] smaps = new ScalarMap[timeFunc < 0 ? 4 : 5];
-              smaps[0] = new ScalarMap(x, Display.XAxis);
-              smaps[1] = new ScalarMap(y, Display.YAxis);
+              if (RealType.Latitude.equals(x)) {
+                smaps[0] = new ScalarMap(x, Display.YAxis);
+                smaps[1] = new ScalarMap(y, Display.XAxis);
+              }
+              else {
+                smaps[0] = new ScalarMap(x, Display.XAxis);
+                smaps[1] = new ScalarMap(y, Display.YAxis);
+              }
               smaps[2] = new ScalarMap(z, Display.ZAxis);
               smaps[3] = new ScalarMap(a, Display.IsoContour);
               if (timeFunc >= 0) {
@@ -466,12 +523,25 @@ public abstract class MathType extends Object implements java.io.Serializable {
             //
             domain = ft.getDomain();
             if (domain.getDimension() != 2) break;
-            try {
-              x = (RealType) domain.getComponent(0);
-              y = (RealType) domain.getComponent(1);
+            cs = domain.getCoordinateSystem();
+            if (cs != null) {
+              RealTupleType ref = cs.getReference();
+              try {
+                x = (RealType) ref.getComponent(0);
+                y = (RealType) ref.getComponent(1);
+              }
+              catch (VisADException exc) {
+                break;
+              }
             }
-            catch (VisADException exc) {
-              break;
+            else {
+              try {
+                x = (RealType) domain.getComponent(0);
+                y = (RealType) domain.getComponent(1);
+              }
+              catch (VisADException exc) {
+                break;
+              }
             }
             range = ft.getRange();
             rf = null;
@@ -501,11 +571,23 @@ public abstract class MathType extends Object implements java.io.Serializable {
             }
             if (rf == null) break;
             rfd = rf.getDomain();
-            try {
-              z = (RealType) rfd.getComponent(0);
+            cs = rfd.getCoordinateSystem();
+            if (cs != null) {
+              RealTupleType ref = cs.getReference();
+              try {
+                z = (RealType) ref.getComponent(0);
+              }
+              catch (VisADException exc) {
+                break;
+              }
             }
-            catch (VisADException exc) {
-              break;
+            else {
+              try {
+                z = (RealType) rfd.getComponent(0);
+              }
+              catch (VisADException exc) {
+                break;
+              }
             }
             range = rf.getRange();
             a = null;
@@ -531,8 +613,14 @@ public abstract class MathType extends Object implements java.io.Serializable {
             if (a == null) break;
             try {
               ScalarMap[] smaps = new ScalarMap[timeFunc < 0 ? 4 : 5];
-              smaps[0] = new ScalarMap(x, Display.XAxis);
-              smaps[1] = new ScalarMap(y, Display.YAxis);
+              if (RealType.Latitude.equals(x)) {
+                smaps[0] = new ScalarMap(x, Display.YAxis);
+                smaps[1] = new ScalarMap(y, Display.XAxis);
+              }
+              else {
+                smaps[0] = new ScalarMap(x, Display.XAxis);
+                smaps[1] = new ScalarMap(y, Display.YAxis);
+              }
               smaps[2] = new ScalarMap(z, Display.ZAxis);
               smaps[3] = new ScalarMap(a, Display.IsoContour);
               if (timeFunc >= 0) {
@@ -557,11 +645,23 @@ public abstract class MathType extends Object implements java.io.Serializable {
             // x -> X, y -> Y, z -> Z, a -> RGB
             domain = ft.getDomain();
             if (domain.getDimension() != 1) break;
-            try {
-              x = (RealType) domain.getComponent(0);
+            cs = domain.getCoordinateSystem();
+            if (cs != null) {
+              RealTupleType ref = cs.getReference();
+              try {
+                x = (RealType) ref.getComponent(0);
+              }
+              catch (VisADException exc) {
+                break;
+              }
             }
-            catch (VisADException exc) {
-              break;
+            else {
+              try {
+                x = (RealType) domain.getComponent(0);
+              }
+              catch (VisADException exc) {
+                break;
+              }
             }
             // find nested "y"
             range = ft.getRange();
@@ -592,11 +692,23 @@ public abstract class MathType extends Object implements java.io.Serializable {
             }
             if (rf == null) break;
             rfd = rf.getDomain();
-            try {
-              y = (RealType) rfd.getComponent(0);
+            cs = rfd.getCoordinateSystem();
+            if (cs != null) {
+              RealTupleType ref = cs.getReference();
+              try {
+                y = (RealType) ref.getComponent(0);
+              }
+              catch (VisADException exc) {
+                break;
+              }
             }
-            catch (VisADException exc) {
-              break;
+            else {
+              try {
+                y = (RealType) rfd.getComponent(0);
+              }
+              catch (VisADException exc) {
+                break;
+              }
             }
             // find nested "z"
             range = rf.getRange();
@@ -627,11 +739,23 @@ public abstract class MathType extends Object implements java.io.Serializable {
             }
             if (rf == null) break;
             rfd = rf.getDomain();
-            try {
-              z = (RealType) rfd.getComponent(0);
+            cs = rfd.getCoordinateSystem();
+            if (cs != null) {
+              RealTupleType ref = cs.getReference();
+              try {
+                z = (RealType) ref.getComponent(0);
+              }
+              catch (VisADException exc) {
+                break;
+              }
             }
-            catch (VisADException exc) {
-              break;
+            else {
+              try {
+                z = (RealType) rfd.getComponent(0);
+              }
+              catch (VisADException exc) {
+                break;
+              }
             }
             // find nested "a"
             range = rf.getRange();
@@ -658,8 +782,14 @@ public abstract class MathType extends Object implements java.io.Serializable {
             if (a == null) break;
             try {
               ScalarMap[] smaps = new ScalarMap[timeFunc < 0 ? 4 : 5];
-              smaps[0] = new ScalarMap(x, Display.XAxis);
-              smaps[1] = new ScalarMap(y, Display.YAxis);
+              if (RealType.Latitude.equals(x)) {
+                smaps[0] = new ScalarMap(x, Display.YAxis);
+                smaps[1] = new ScalarMap(y, Display.XAxis);
+              }
+              else {
+                smaps[0] = new ScalarMap(x, Display.XAxis);
+                smaps[1] = new ScalarMap(y, Display.YAxis);
+              }
               smaps[2] = new ScalarMap(z, Display.ZAxis);
               smaps[3] = new ScalarMap(a, Display.IsoContour);
               if (timeFunc >= 0) {
@@ -681,12 +811,25 @@ public abstract class MathType extends Object implements java.io.Serializable {
             if (!ft.getFlat()) break;
             domain = ft.getDomain();
             if (domain.getDimension() != 2) break;
-            try {
-              x = (RealType) domain.getComponent(0);
-              y = (RealType) domain.getComponent(1);
+            cs = domain.getCoordinateSystem();
+            if (cs != null) {
+              RealTupleType ref = cs.getReference();
+              try {
+                x = (RealType) ref.getComponent(0);
+                y = (RealType) ref.getComponent(1);
+              }
+              catch (VisADException exc) {
+                break;
+              }
             }
-            catch (VisADException exc) {
-              break;
+            else {
+              try {
+                x = (RealType) domain.getComponent(0);
+                y = (RealType) domain.getComponent(1);
+              }
+              catch (VisADException exc) {
+                break;
+              }
             }
             range = ft.getRange();
             RealType[] rgb = new RealType[3];
@@ -713,8 +856,14 @@ public abstract class MathType extends Object implements java.io.Serializable {
             if (rgbc < 3) {
               try {
                 ScalarMap[] smaps = new ScalarMap[timeFunc < 0 ? 3 : 4];
-                smaps[0] = new ScalarMap(x, Display.XAxis);
-                smaps[1] = new ScalarMap(y, Display.YAxis);
+                if (RealType.Latitude.equals(x)) {
+                  smaps[0] = new ScalarMap(x, Display.YAxis);
+                  smaps[1] = new ScalarMap(y, Display.XAxis);
+                }
+                else {
+                  smaps[0] = new ScalarMap(x, Display.XAxis);
+                  smaps[1] = new ScalarMap(y, Display.YAxis);
+                }
                 smaps[2] = new ScalarMap(rgb[0], Display.RGB);
                 if (timeFunc >= 0) {
                   Object o = ds[timeFunc].funcs.elementAt(0);
@@ -729,8 +878,14 @@ public abstract class MathType extends Object implements java.io.Serializable {
             else {
               try {
                 ScalarMap[] smaps = new ScalarMap[timeFunc < 0 ? 5 : 6];
-                smaps[0] = new ScalarMap(x, Display.XAxis);
-                smaps[1] = new ScalarMap(y, Display.YAxis);
+                if (RealType.Latitude.equals(x)) {
+                  smaps[0] = new ScalarMap(x, Display.YAxis);
+                  smaps[1] = new ScalarMap(y, Display.XAxis);
+                }
+                else {
+                  smaps[0] = new ScalarMap(x, Display.XAxis);
+                  smaps[1] = new ScalarMap(y, Display.YAxis);
+                }
                 smaps[2] = new ScalarMap(rgb[0], Display.Red);
                 smaps[3] = new ScalarMap(rgb[1], Display.Green);
                 smaps[4] = new ScalarMap(rgb[2], Display.Blue);
@@ -753,11 +908,23 @@ public abstract class MathType extends Object implements java.io.Serializable {
             // 2-D: x -> X, y -> Y, a -> RGB
             domain = ft.getDomain();
             if (domain.getDimension() != 1) break;
-            try {
-              x = (RealType) domain.getComponent(0);
+            cs = domain.getCoordinateSystem();
+            if (cs != null) {
+              RealTupleType ref = cs.getReference();
+              try {
+                x = (RealType) ref.getComponent(0);
+              }
+              catch (VisADException exc) {
+                break;
+              }
             }
-            catch (VisADException exc) {
-              break;
+            else {
+              try {
+                x = (RealType) domain.getComponent(0);
+              }
+              catch (VisADException exc) {
+                break;
+              }
             }
             range = ft.getRange();
             if (!(range instanceof FunctionType)) break;
@@ -765,11 +932,23 @@ public abstract class MathType extends Object implements java.io.Serializable {
             if (!ft.getFlat()) break;
             domain = ft.getDomain();
             if (domain.getDimension() != 1) break;
-            try {
-              y = (RealType) domain.getComponent(0);
+            cs = domain.getCoordinateSystem();
+            if (cs != null) {
+              RealTupleType ref = cs.getReference();
+              try {
+                y = (RealType) ref.getComponent(0);
+              }
+              catch (VisADException exc) {
+                break;
+              }
             }
-            catch (VisADException exc) {
-              break;
+            else {
+              try {
+                y = (RealType) domain.getComponent(0);
+              }
+              catch (VisADException exc) {
+                break;
+              }
             }
             range = ft.getRange();
             a = null;
@@ -795,8 +974,14 @@ public abstract class MathType extends Object implements java.io.Serializable {
             if (a == null) break;
             try {
               ScalarMap[] smaps = new ScalarMap[timeFunc < 0 ? 3 : 4];
-              smaps[0] = new ScalarMap(x, Display.XAxis);
-              smaps[1] = new ScalarMap(y, Display.YAxis);
+              if (RealType.Latitude.equals(x)) {
+                smaps[0] = new ScalarMap(x, Display.YAxis);
+                smaps[1] = new ScalarMap(y, Display.XAxis);
+              }
+              else {
+                smaps[0] = new ScalarMap(x, Display.XAxis);
+                smaps[1] = new ScalarMap(y, Display.YAxis);
+              }
               smaps[2] = new ScalarMap(a, threeD ? Display.ZAxis
                                                  : Display.RGB);
               if (timeFunc >= 0) {
@@ -816,11 +1001,23 @@ public abstract class MathType extends Object implements java.io.Serializable {
             if (!ft.getFlat()) break;
             domain = ft.getDomain();
             if (domain.getDimension() != 1) break;
-            try {
-              x = (RealType) domain.getComponent(0);
+            cs = domain.getCoordinateSystem();
+            if (cs != null) {
+              RealTupleType ref = cs.getReference();
+              try {
+                x = (RealType) ref.getComponent(0);
+              }
+              catch (VisADException exc) {
+                break;
+              }
             }
-            catch (VisADException exc) {
-              break;
+            else {
+              try {
+                x = (RealType) domain.getComponent(0);
+              }
+              catch (VisADException exc) {
+                break;
+              }
             }
             range = ft.getRange();
             a = null;
@@ -846,8 +1043,14 @@ public abstract class MathType extends Object implements java.io.Serializable {
             if (a == null) break;
             try {
               ScalarMap[] smaps = new ScalarMap[timeFunc < 0 ? 2 : 3];
-              smaps[0] = new ScalarMap(x, Display.XAxis);
-              smaps[1] = new ScalarMap(a, Display.YAxis);
+              if (RealType.Latitude.equals(x)) {
+                smaps[0] = new ScalarMap(x, Display.YAxis);
+                smaps[1] = new ScalarMap(a, Display.XAxis);
+              }
+              else {
+                smaps[0] = new ScalarMap(x, Display.XAxis);
+                smaps[1] = new ScalarMap(a, Display.YAxis);
+              }
               if (timeFunc >= 0) {
                 Object o = ds[timeFunc].funcs.elementAt(0);
                 RealTupleType rtt = ((FunctionType) o).getDomain();
