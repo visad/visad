@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcText.java,v 1.3 1998-04-02 20:49:46 visad Exp $
+ * $Id: NcText.java,v 1.4 1998-06-17 20:30:35 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -31,9 +31,9 @@ NcText
     extends NcVar
 {
     /**
-     * The VisAD rank (one less than the number of netCDF dimensions.
+     * The VisAD rank (one less than the number of netCDF dimensions).
      */
-    protected final int	visadRank;
+    private final int	visadRank;
 
 
     /**
@@ -79,6 +79,19 @@ NcText
     {
 	return true;
     }
+
+
+    /**
+     * Indicate if this variable is latitude.
+     *
+     * @return	<code>false</code> always.
+     */
+    boolean
+    isLatitude()
+    {
+	return false;
+    }
+
 
     /**
      * Indicate if this variable is longitude.
@@ -182,6 +195,7 @@ NcText
 	{
 	    /* Scalar text variable (i.e. a String). */
 
+	    Variable		var = getVar();
 	    StringBuffer	strbuf = new StringBuffer(var.getLengths()[0]);
 
 	    for (IndexIterator iter = new IndexIterator(var.getLengths());
@@ -221,6 +235,7 @@ NcText
 	{
 	    /* Scalar text variable (i.e. a String). */
 
+	    Variable		var = getVar();
 	    StringBuffer	strbuf = new StringBuffer(var.getLengths()[0]);
 
 	    for (IndexIterator iter = new IndexIterator(var.getLengths());
@@ -231,7 +246,7 @@ NcText
 	    }
 
 	    texts = new Text[]
-		{new Text((TextType)mathType, strbuf.toString())};
+		{new Text((TextType)getMathType(), strbuf.toString())};
 	}
 	else
 	{

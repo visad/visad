@@ -3,20 +3,23 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcFunction.java,v 1.2 1998-04-13 17:05:05 visad Exp $
+ * $Id: NcFunction.java,v 1.3 1998-06-17 20:30:27 visad Exp $
  */
 
 package visad.data.netcdf.in;
 
 import java.io.IOException;
+import visad.CoordinateSystem;
 import visad.FunctionType;
 import visad.GriddedSet;
 import visad.IntegerNDSet;
+import visad.LinearLatLonSet;
 import visad.LinearNDSet;
 import visad.LinearSet;
 import visad.MathType;
 import visad.RealTupleType;
 import visad.RealType;
+import visad.SI;
 import visad.Set;
 import visad.TupleType;
 import visad.UnimplementedException;
@@ -35,17 +38,17 @@ NcFunction
     /**
      * The netCDF dimensions of the function domain IN VisAD ORDER.
      */
-    protected final NcDim[]	domainDims;
+    private final NcDim[]	domainDims;
 
     /**
      * The associated netCDF variables.
      */
-    protected final NcVar[]	vars;
+    private final NcVar[]	vars;
 
     /**
      * Whether or not at least one of the netCDF variables is textual.
      */
-    protected final boolean	hasTextualComponent;
+    private final boolean	hasTextualComponent;
 
 
     /**
@@ -79,8 +82,8 @@ NcFunction
     /**
      * Protected constructor for derived classes.
      *
-     * @param type	MathType of the VisAD function.
-     * @param dims	The netCDF dimensions comprising the domain of the
+     * @param type	The FunctionType of the VisAD function.
+     * @param dims	The netCDF dimensions constituting the domain of the
      *			function in netCDF order.
      */
     protected
@@ -155,15 +158,32 @@ NcFunction
 	}
 	else
 	{
-	    RealType[]	types = new RealType[rank];
-
-	    for (int idim = 0; idim < rank; ++idim)
-		types[idim] = dims[idim].getMathType();
-
-	    type = new RealTupleType(types);
+	    // TODO: support coordinate sytem?
+	    type = new RealTupleType(getRealTypes(dims));
 	}
 
 	return type;
+    }
+
+
+    /**
+     * Return the types of the given, netCDF dimensions.
+     *
+     * @param dims	The netCDF dimensions.
+     * @return		An array of the VisAD MathTypes of the dimensions.
+     * @exception VisADException
+     *			Couldn't create a necessary MathType.
+     */
+    protected static RealType[]
+    getRealTypes(NcDim[] dims)
+	throws VisADException
+    {
+	RealType[]	types = new RealType[dims.length];
+
+	for (int idim = 0; idim < dims.length; ++idim)
+	    types[idim] = dims[idim].getMathType();
+
+	return types;
     }
 
 
@@ -239,6 +259,7 @@ NcFunction
      * Return the domain-set of the given, netCDF dimensions.
      *
      * @param dims	The netCDF dimensions of the domain in VisAD order.
+     * @param domain	The VisAD MathType of the domain.
      * @return		The sampling domain-set of the function.
      * @exception VisADException
      *			Problem in core VisAD.  Probably some VisAD object
@@ -315,6 +336,7 @@ NcFunction
      * Return the IntegerSet of the given, netCDF dimensions and domain.
      *
      * @param dims	The netCDF dimensions of the domain in VisAD order.
+     * @param domain	The MathType of the domain.
      * @return		The IntegerSet of the domain of the function.
      * @precondition	The sampling domain-set of the function is (logically)
      *			an IntegerSet.
@@ -349,9 +371,10 @@ NcFunction
      */
     protected static LinearSet
     getLinearSet(NcDim[] dims, ArithProg[] aps, NcVar[] coordVars, 
-	    MathType domain)
+	    MathType domainType)
 	throws VisADException
     {
+	LinearSet	set;
 	int		rank = dims.length;
 	double[]	firsts = new double[rank];
 	double[]	lasts = new double[rank];
@@ -380,9 +403,41 @@ NcFunction
 	}
 
 	// TODO: add CoordinateSystem argument
-	return LinearNDSet.create(domain,
-				    firsts, lasts, lengths,
-				    null, null, null);
+	if (!(rank == 2 &&
+	      ((dims[0].isLatitude() && dims[1].isLongitude()) ||
+	       (dims[1].isLatitude() && dims[0].isLongitude()))))
+	{
+	    set = LinearNDSet.create(domainType,
+				      firsts, lasts, lengths,
+				      null, null, null);
+	}
+	else
+	{
+	    double	first0;
+	    double	last0;
+	    double	first1;
+	    double	last1;
+
+	    if (dims[0].isLongitude())
+	    {
+		first0 = -firsts[0];	// KLUDGE, HACK, WORKAROUND
+		last0 = -lasts[0];	// KLUDGE, HACK, WORKAROUND
+		first1 = firsts[1];
+		last1 = lasts[1];
+	    }
+	    else
+	    {
+		first0 = firsts[0];
+		last0 = lasts[0];
+		first1 = -firsts[1];	// KLUDGE, HACK, WORKAROUND
+		last1 = -lasts[1];	// KLUDGE, HACK, WORKAROUND
+	    }
+	    set = new LinearLatLonSet(domainType,
+					first0, last0, lengths[0],
+					first1, last1, lengths[1]);
+	}
+
+	return set;
     }
 
 
@@ -472,5 +527,43 @@ NcFunction
 	    units[i] = vars[i].getUnit();
 
 	return units;
+    }
+
+
+    /**
+     * Return the netCDF dimensions of the function domain in VisAD order.
+     */
+    protected NcDim[]
+    getDomainDims()
+    {
+	NcDim[]	newDomainDims = new NcDim[domainDims.length];
+
+	System.arraycopy(domainDims, 0, newDomainDims, 0, domainDims.length);
+
+	return newDomainDims;
+    }
+
+
+    /**
+     * Return the netCDF variables associated with the function.
+     */
+    protected NcVar[]
+    getVars()
+    {
+	NcVar[]	newVars = new NcVar[vars.length];
+
+	System.arraycopy(vars, 0, newVars, 0, vars.length);
+
+	return newVars;
+    }
+
+
+    /**
+     * Indicate whether or not the function's range has a textual component.
+     */
+    protected boolean
+    hasTextualComponent()
+    {
+	return hasTextualComponent;
     }
 }

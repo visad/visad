@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ArithProg.java,v 1.1 1998-03-20 20:56:36 visad Exp $
+ * $Id: ArithProg.java,v 1.2 1998-06-17 20:30:21 visad Exp $
  */
 
 
@@ -17,25 +17,25 @@ package visad.data.netcdf.in;
  */
 class ArithProg {
     /** Number of values accumulated. */
-    protected int		n = 0;
+    private int			n = 0;
 
     /** First value. */
-    protected double		first = Double.NaN;
+    private double		first = Double.NaN;
 
     /** Current last value. */
-    protected double		last = Double.NaN;
+    private double		last = Double.NaN;
 
     /** Current increment. */
-    protected double 		increment = Double.NaN;
+    private double 		increment = Double.NaN;
 
     /**
      * Whether the sequence is consistent with an arithmetic progression 
      * or not.
      */
-    protected boolean		consistent = true;
+    private boolean		consistent = true;
 
     /** The difference threshold. */
-    protected final double	epsilon;
+    private final double	epsilon;
 
     /**
      * Construct with a default nearness threshold.  The default value
@@ -173,6 +173,14 @@ class ArithProg {
     }
 
     /**
+     * Set the first value.
+     */
+    protected void setFirst(double value)
+    {
+	first = value;
+    }
+
+    /**
      * Get the last value.
      *
      * @return	The most recently accumulated value.
@@ -190,5 +198,45 @@ class ArithProg {
      */
     double getIncrement() {
 	return increment;
+    }
+
+    /**
+     * Set the increment.
+     */
+    protected void setIncrement(double value)
+    {
+	increment = value;
+    }
+
+    /**
+     * Return the epsilon value.
+     */
+    public double getEpsilon()
+    {
+	return epsilon;
+    }
+
+    /**
+     * Set whether or not the sequence is consistent.
+     */
+    protected void setConsistent(boolean value)
+    {
+	consistent = value;
+    }
+
+    /**
+     * Set the most recently seen value.
+     */
+    protected void setLast(double value)
+    {
+	last = value;
+    }
+
+    /**
+     * Increment the number of values seen.
+     */
+    protected void incrementNumber()
+    {
+	n++;
     }
 }

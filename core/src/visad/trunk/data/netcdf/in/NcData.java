@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcData.java,v 1.3 1998-04-02 20:49:43 visad Exp $
+ * $Id: NcData.java,v 1.4 1998-06-17 20:30:25 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -25,7 +25,7 @@ NcData
     /**
      * The VisAD MathType of the data object.
      */
-    protected MathType	mathType;
+    private MathType	mathType;
 
 
     /**

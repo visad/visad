@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DomainTable.java,v 1.5 1998-04-08 15:58:54 visad Exp $
+ * $Id: DomainTable.java,v 1.6 1998-06-17 20:30:23 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -31,26 +31,32 @@ DomainTable
     /**
      * The domain/variables Map.
      */
-    protected final Map		map;
+    private final Map	map = new TreeMap();
 
 
     /**
      * Construct.
      */
-    DomainTable(int initialNumEntries)
+    protected DomainTable(int initialNumEntries)
     {
-	map = new TreeMap();
     }
 
 
     /**
-     * Add a variable entry.  Variables with the same domain accumulate.
+     * Add a variable entry.  Variables with the same domain accumulate
+     * except for scalar variables, which are considered to have unique
+     * domains.  This prevents scalars from being aggregated into a
+     * VisAD Tuple.  Thus, for example, we get the VisAD MathType
+     * (scalar1, scalar2, field) rather than ((scalar1, scalar2),
+     * field).
      *
      * @param var			A netCDF variable that's to be imported.
+     * @precondition			This method not previously called with
+     *					<code>var</code>.
      * @exception BadFormException	netCDF couldn't handle VisAD object.
      * @exception VisADException	Couldn't create necessary VisAD object.
      */
-    void
+    protected void
     put(NcVar var)
 	throws BadFormException, VisADException
     {
@@ -58,6 +64,7 @@ DomainTable
 	    // ": map.size()=" + map.size());
 
 	NcDim[]	dims = var.getDimensions();
+	/* map.size() is used to ensure uniqueness of scalar domains. */
 	Key	key = new Key(dims, map.size());
 	Entry	entry = (Entry)map.get(key);
 
@@ -83,7 +90,7 @@ DomainTable
      *
      * @return	An enumeration of the domains in the map.
      */
-    Enumeration
+    protected Enumeration
     getEnumeration()
     {
 	return new Enumeration();
@@ -128,7 +135,7 @@ DomainTable
     /**
      * Inner class for a key to the map.
      */
-    static class
+    protected class
     Key
 	implements	Comparable
     {
@@ -209,7 +216,7 @@ DomainTable
     /**
      * Inner class for an entry in the map.
      */
-    class
+    protected class
     Entry
     {
 	/**

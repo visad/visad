@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcNumber.java,v 1.2 1998-03-23 18:11:53 visad Exp $
+ * $Id: NcNumber.java,v 1.3 1998-06-17 20:30:31 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -20,9 +20,11 @@ import visad.Real;
 import visad.RealType;
 import visad.SI;
 import visad.Set;
+import visad.SimpleSet;
 import visad.Unit;
 import visad.VisADException;
 import visad.data.BadFormException;
+import visad.data.netcdf.in.QuantityDB;
 
 
 /**
@@ -34,35 +36,40 @@ NcNumber
     extends NcVar
 {
     /**
-     * The range set of the netCDF variable.
+     * The range set of the netCDF variable.  In general, this set will
+     * differ from the default set of the variable's MathType.
      */
-    protected final Set		set;
+    private final Set		set;
 
     /**
      * The value vetter.
      */
-    protected final Vetter	vetter;
+    private final Vetter	vetter;
 
     /**
      * Whether or not the variable is a co-ordinate variable.
      */
-    protected final boolean	isCoordVar;
+    private final boolean	isCoordVar;
+
+    /**
+     * Whether or not the variable is latitude in nature.
+     */
+    private final boolean	isLatitude;
 
     /**
      * Whether or not the variable is longitude in nature.
      */
-    protected final boolean	isLongitude;
+    private final boolean	isLongitude;
 
     /**
      * Whether or not the variable is temporal in nature.
      */
-    protected final boolean	isTime;
+    private final boolean	isTime;
 
     /**
      * A temporal offset unit for comparison purposes.
      */
-    static final Unit		offsetTime =
-	new OffsetUnit(0.0, SI.second);
+    static final Unit		offsetTime = new OffsetUnit(0.0, SI.second);
 
 
     /**
@@ -82,12 +89,56 @@ NcNumber
     {
 	super(var, netcdf, type);
 
-	set = type.getDefaultSet();
-	isCoordVar = setIsCoordVar();
-	isLongitude = setIsLongitude();
-	isTime = setIsTime();
+	QuantityDB	quantityDB = QuantityDB.instance();
+
+	set = getRangeSet(type);
+	isCoordVar = isCoordVar(var);
+	isLatitude = type.equals(quantityDB.get("latitude", SI.radian));
+	isLongitude = type.equals(quantityDB.get("longitude", SI.radian));
+	isTime = isTime(type.getDefaultUnit());
 	vetter = new Vetter(var);
     }
+
+
+    /**
+     * Return the VisAD RealType of the given, netCDF variable.
+     *
+     * @param var	The netCDF variable.
+     * @exception VisADException
+     *			Problem in core VisAD.  Probably some VisAD object
+     *			couldn't be created.
+     */
+    protected static RealType
+    getRealType(Variable var)
+	throws VisADException
+    {
+	RealType	realType = QuantityDB.instance().get(var);
+
+	if (realType == null)
+	{
+	    realType = RealType.getRealTypeByName(var.getName());
+
+	    if (realType == null)
+	    {
+		realType = new RealType(var.getName(), getUnit(var), 
+					/*Set=*/null);	// default set
+	    }
+	}
+
+	return realType;
+    }
+
+
+    /**
+     * Return the range set of the variable.
+     *
+     * @param type	The VisAD RealType of the variable.
+     * @return		The sampling set of the values of this variable.
+     * @exception VisADException	Couldn't create set.
+     */
+    protected abstract SimpleSet
+    getRangeSet(RealType type)
+	throws VisADException;
 
 
     /**
@@ -96,8 +147,8 @@ NcNumber
      * @return	<code>true</code> if and only if the variable is a netCDF
      *		coordinate variable.
      */
-    private boolean
-    setIsCoordVar()
+    private static boolean
+    isCoordVar(Variable var)
     {
 	if (var.getRank() == 1)
 	{
@@ -119,8 +170,8 @@ NcNumber
      * @return	<code>true</code> if and only if the netCDF variable represents
      *		longitude.
      */
-    private boolean
-    setIsLongitude()
+    private static boolean
+    isLongitude(Variable var)
     {
 	String	varName = var.getName();
 
@@ -137,8 +188,8 @@ NcNumber
      * @return	<code>true</code> if and only if the netCDF variable represents
      *		time.
      */
-    private boolean
-    setIsTime()
+    private static boolean
+    isTime(Unit unit)
     {
 	return Unit.canConvert(unit, SI.second) ||
 	       Unit.canConvert(unit, offsetTime);
@@ -159,19 +210,6 @@ NcNumber
 
 
     /**
-     * Indicate whether or not this variable is longitude.
-     *
-     * @return	<code>true</code> if and only if the netCDF variable represents
-     *		longitude.
-     */
-    boolean
-    isLongitude()
-    {
-	return isLongitude;
-    }
-
-
-    /**
      * Indicate whether or not the variable is temporal in nature.
      *
      * @return	<code>true</code> if and only if the netCDF variable represents
@@ -181,6 +219,32 @@ NcNumber
     isTime()
     {
 	return isTime;
+    }
+
+
+    /**
+     * Indicate whether or not the variable is temporal in nature.
+     *
+     * @return	<code>true</code> if and only if the netCDF variable represents
+     *		latitude.
+     */
+    boolean
+    isLatitude()
+    {
+	return isLatitude;
+    }
+
+
+    /**
+     * Indicate whether or not the variable is temporal in nature.
+     *
+     * @return	<code>true</code> if and only if the netCDF variable represents
+     *		longitude.
+     */
+    boolean
+    isLongitude()
+    {
+	return isLongitude;
     }
 
 
@@ -204,7 +268,7 @@ NcNumber
     int
     getRank()
     {
-	return var.getRank();
+	return getVar().getRank();
     }
 
 
@@ -218,8 +282,9 @@ NcNumber
     getFloatValues()
 	throws IOException
     {
-	int[]	lengths = var.getLengths();
-	int	npts = 1;
+	Variable	var = getVar();
+	int[]		lengths = var.getLengths();
+	int		npts = 1;
 
 	for (int i = 0; i < lengths.length; ++i)
 	    npts *= lengths[i];
@@ -267,7 +332,7 @@ NcNumber
     getDoubleValues()
 	throws IOException
     {
-	return getDoubleValues(var);
+	return getDoubleValues(getVar());
     }
 
 
@@ -285,6 +350,7 @@ NcNumber
     getDoubleValues(int ipt)
 	throws IOException
     {
+	Variable	var = getVar();
 	int	rank = var.getRank();
 	int[]	origin = new int[rank];
 	int[]	lengths = var.getLengths();
@@ -342,6 +408,9 @@ NcNumber
     getData()
 	throws IOException, VisADException
     {
+	Variable	var = getVar();
+	Unit		unit = getUnit();
+	RealType	type = (RealType)getMathType();
 	int[]		lengths = var.getLengths();
 	int		npts = product(lengths);
 	IndexIterator	iter = new IndexIterator(lengths);
@@ -355,9 +424,29 @@ NcNumber
 
 	    vetter.vet(val);
 
-	    values[i] = new Real((RealType)mathType, val[0], unit);
+	    values[i] = new Real(type, val[0], unit);
 	}
 
 	return values;
+    }
+
+
+    /**
+     * Return the value vetter for this variable.
+     */
+    protected Vetter
+    getVetter()
+    {
+	return vetter;
+    }
+
+
+    /**
+     * Indicate whether or not this variable is a co-ordinate variable.
+     */
+    protected boolean
+    isCoordVar()
+    {
+	return isCoordVar;
     }
 }

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcDim.java,v 1.5 1998-04-03 20:35:18 visad Exp $
+ * $Id: NcDim.java,v 1.6 1998-06-17 20:30:26 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -80,7 +80,8 @@ NcDim
 	{
 	    mathType = new RealType(getName());
 
-	    // TODO: add coordinate system
+	    // QUESTION: add co-ordinate system?  I don't think so for a netCDF
+	    // dimension that doesn't have a co-ordinate variable.
 	    Set	set = new FloatSet(mathType);
 
 	    mathType.setDefaultSet(set);
@@ -139,6 +140,32 @@ NcDim
 
 
     /**
+     * Indicate whether or not this dimension corresponds to latitude.
+     *
+     * @return	<code>true</code> if and only if the dimension corresponds to
+     *		latitude.
+     */
+    boolean
+    isLatitude()
+    {
+	return false;
+    }
+
+
+    /**
+     * Indicate whether or not this dimension corresponds to longitude.
+     *
+     * @return	<code>true</code> if and only if the dimension corresponds to
+     *		longitude.
+     */
+    boolean
+    isLongitude()
+    {
+	return false;
+    }
+
+
+    /**
      * Return the hash code of this dimension.
      *
      * @return	The hash code of the dimension.
@@ -166,11 +193,40 @@ NcDim
     /**
      * Return the co-ordinate variable associated with this dimension.
      *
-     * @return	The netCDF coordinate variable associated with the dimension
+     * @return	The netCDF co-ordinate variable associated with the dimension
      *		or <code>null</code> if there isn't one.
      */
     NcVar
     getCoordVar()
+    {
+	return null;
+    }
+
+
+    /**
+     * Return the long name associated with this dimension.
+     *
+     * @return	The value of the "long_name" attribute of the associated
+     *		coordinate variable or <code>null</code> if no such value
+     *		exists.  Always returns <code>null</code>.
+     */
+    public String
+    getLongName()
+    {
+	return null;
+    }
+
+
+    /**
+     * Return the unit associated with this dimension.
+     *
+     * @return	The Unit representation of the value of the "units"
+     *		attribute of the associated coordinate variable or
+     *		<code>null</code> if no such representation exists.
+     *		Always returns <code>null</code>.
+     */
+    public Unit
+    getUnit()
     {
 	return null;
     }
@@ -179,14 +235,14 @@ NcDim
 
 /**
  * The NcCoordDim class decorates a netCDF dimension that has a netCDF
- * coordinate variable.
+ * co-ordinate variable.
  */
 class
 NcCoordDim
     extends	NcDim
 {
     /**
-     * The associated coordinate variable.
+     * The associated co-ordinate variable.
      */
     protected final NcVar	coordVar;
 
@@ -195,7 +251,7 @@ NcCoordDim
      * Construct from a netCDF dimension and dataset.  Protected to ensure
      * use of the NcDim factory method.
      *
-     * @param dim	The netCDF dimension that has a coordinate variable.
+     * @param dim	The netCDF dimension that has a co-ordinate variable.
      * @param netcdf	The netCDF dataset that contains <code>dim</code>.
      * @exception VisADException
      *			Problem in core VisAD.  Probably some VisAD object
@@ -224,7 +280,34 @@ NcCoordDim
 
 
     /**
-     * Return the VisAD MathType for this dimension.
+     * Indicate whether or not this dimension corresponds to latitude
+     *
+     * @return	<code>true</code> if and only if the dimension corresponds
+     *		to latitude.
+     */
+    boolean
+    isLatitude()
+    {
+	return coordVar.isLatitude();
+    }
+
+
+    /**
+     * Indicate whether or not this dimension corresponds to latitude
+     *
+     * @return	<code>true</code> if and only if the dimension corresponds
+     *		to time.
+     */
+    boolean
+    isLongitude()
+    {
+	return coordVar.isLongitude();
+    }
+
+
+    /**
+     * Return the VisAD MathType for this dimension.  It will be the
+     * MathType of the associated co-ordinate variable.
      *
      * @return		The VisAD MathType for the dimension.
      * @exception VisADException
@@ -242,11 +325,39 @@ NcCoordDim
     /**
      * Return the co-ordinate variable associated with this dimension.
      *
-     * @return	The coordinate variable associated with the dimension.
+     * @return	The co-ordinate variable associated with the dimension.
      */
     NcVar
     getCoordVar()
     {
 	return coordVar;
+    }
+
+
+    /**
+     * Return the long nmae associated with this dimension.
+     *
+     * @return	The value of the "long_name" attribute of the associated
+     *		coordinate variable or <code>null</code> if no such value
+     *		exists.  Always returns <code>null</code>.
+     */
+    public String
+    getLongName()
+    {
+	return getCoordVar().getLongName();
+    }
+
+
+    /**
+     * Return the unit associated with this dimension.
+     *
+     * @return	The Unit representation of the value of the "units"
+     *		attribute of the associated coordinate variable or
+     *		<code>null</code> if no such representation exists.
+     */
+    public Unit
+    getUnit()
+    {
+	return getCoordVar().getUnit();
     }
 }

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: LonArithProg.java,v 1.1 1998-03-20 20:56:41 visad Exp $
+ * $Id: LonArithProg.java,v 1.2 1998-06-17 20:30:24 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -21,7 +21,7 @@ LonArithProg
     /**
      * The sum of the individual deltas.
      */
-    protected double	sumDelta = 0;
+    private double	sumDelta = 0;
 
 
     /**
@@ -71,40 +71,44 @@ LonArithProg
     boolean
     accumulate(double value)
     {
-	if (consistent)
+	if (isConsistent())
 	{
+	    long	n = getNumber();
+
 	    if (n == 0)
-		first = value;
+		setFirst(value);
 	    else
 	    if (n == 1)
 	    {
-		increment = getDelta(value, last);
+		double	increment = getDelta(value, getLast());
+
+		setIncrement(increment);
 		sumDelta = increment;
 	    }
 	    else
 	    {
-		double	delta = getDelta(value, last);
-		double	eps = increment == 0
+		double	delta = getDelta(value, getLast());
+		double	eps = getIncrement() == 0
 					? delta
-					: 1.0 - delta / increment;
+					: 1.0 - delta / getIncrement();
 
-		if (Math.abs(eps) <= epsilon)
+		if (Math.abs(eps) <= getEpsilon())
 		{
 		    sumDelta += delta;
-		    increment = sumDelta / n;
+		    setIncrement(sumDelta / n);
 		}
 		else
 		{
-		    consistent = false;
-		    increment = Double.NaN;
+		    setConsistent(false);
+		    setIncrement(Double.NaN);
 		}
 	    }
 	}
 
-	last = value;
-	n++;
+	setLast(value);
+	incrementNumber();
 
-	return consistent;
+	return isConsistent();
     }
 
 
@@ -141,7 +145,7 @@ LonArithProg
     double
     getLast()
     {
-	return first + sumDelta;
+	return getFirst() + sumDelta;
     }
 
 

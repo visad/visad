@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcVar.java,v 1.2 1998-03-23 18:11:57 visad Exp $
+ * $Id: NcVar.java,v 1.3 1998-06-17 20:30:38 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -27,6 +27,7 @@ import visad.RealType;
 import visad.SI;
 import visad.ScalarType;
 import visad.Set;
+import visad.SimpleSet;
 import visad.Text;
 import visad.TextType;
 import visad.Unit;
@@ -46,22 +47,22 @@ NcVar
     /**
      * The netCDF dataset.
      */
-    protected final Netcdf	netcdf;
+    private final Netcdf	netcdf;
 
     /**
      * The netCDF Variable.
      */
-    protected final Variable	var;
+    private final Variable	var;
 
     /**
      * The units of the netCDF variable.
      */
-    protected final Unit	unit;
+    private final Unit	unit;
 
     /**
      * The VisAD MathType of the variable's values.
      */
-    protected final ScalarType	mathType;
+    private final ScalarType	mathType;
 
 
     /**
@@ -498,6 +499,51 @@ NcVar
 
 
     /**
+     * Return the long name of the variable.
+     *
+     * @return	The long name of the variable or <code>null</code> if the
+     *		variable doesn't have a long name.
+     */
+    static String
+    getLongName(Variable var)
+    {
+	Attribute	attr = var.getAttribute("long_name");
+
+	return (attr == null || !attr.isString())
+		    ? null
+		    : attr.getStringValue();
+    }
+
+
+    /**
+     * Return the long name of the variable.
+     *
+     * @return	The long name of the variable or <code>null</code> if the
+     *		variable doesn't have a long name.
+     */
+    String
+    getLongName()
+    {
+	return getLongName(var);
+    }
+
+
+    /**
+     * Return the longest name of the variable.
+     *
+     * @return		The value of the "long_name" attribute; otherwise,
+     *			the name of the variable.
+     */
+    String
+    getLongestName()
+    {
+	String	name = getLongName();
+
+	return name != null ? name : getName();
+    }
+
+
+    /**
      * Convert this variable to a string.
      *
      * @return	The variable represented as a string.
@@ -517,6 +563,16 @@ NcVar
      */
     abstract boolean
     isCoordinateVariable();
+
+
+    /**
+     * Indicate whether or not the variable is longitude.
+     *
+     * @return	<code>true</code> if and only if the variable represents
+     *		latitude.
+     */
+    abstract boolean
+    isLatitude();
 
 
     /**
@@ -583,6 +639,25 @@ NcVar
     abstract DataImpl[]
     getData()
 	throws IOException, VisADException;
+
+
+    /**
+     * Return the netCDF dataset.
+     */
+    protected Netcdf
+    getNetcdf()
+    {
+	return netcdf;
+    }
+
+    /**
+     * Return the netCDF Variable.
+     */
+    protected Variable
+    getVar()
+    {
+	return var;
+    }
 }
 
 
@@ -690,39 +765,21 @@ NcByte
 	super(var, netcdf, getRealType(var));
     }
 
-
+    
     /**
-     * Return the VisAD RealType of the given, netCDF "byte" variable.
+     * Return the range set of this variable.
      *
-     * @param var	The netCDF byte variable.
-     * @exception VisADException
-     *			Problem in core VisAD.  Probably some VisAD object
-     *			couldn't be created.
+     * @param type	The VisAD RealType of the variable.
+     * @return		The sampling set of the values of this variable.
+     * @exception VisADException	Couldn't create set.
      */
-    protected static RealType
-    getRealType(Variable var)
+    protected SimpleSet
+    getRangeSet(RealType type)
 	throws VisADException
     {
-	RealType	realType = RealType.getRealTypeByName(var.getName());
-
-	if (realType == null)
-	{
-	    /*
-	     * The following is complicated due to the circular dependency
-	     * between RealType and Set.
-	     */
-
-	    realType = new RealType(var.getName(), getUnit(var),
-						    (Set)null);
-
-	    Set	set = new Linear1DSet(realType,
-					Byte.MIN_VALUE+1, Byte.MAX_VALUE, 
-					Byte.MAX_VALUE - Byte.MIN_VALUE);
-
-	    realType.setDefaultSet(set);
-	}
-
-	return realType;
+	return (SimpleSet)new Linear1DSet(type,
+				Byte.MIN_VALUE+1, Byte.MAX_VALUE, 
+				Byte.MAX_VALUE - Byte.MIN_VALUE);
     }
 
 
@@ -781,39 +838,21 @@ NcShort
 	super(var, netcdf, getRealType(var));
     }
 
-
+    
     /**
-     * Return the VisAD RealType of the given, netCDF "short" variable.
+     * Return the range set of this variable.
      *
-     * @param var	The netCDF short variable.
-     * @exception VisADException
-     *			Problem in core VisAD.  Probably some VisAD object
-     *			couldn't be created.
+     * @param type	The VisAD RealType of the variable.
+     * @return		The sampling set of the values of this variable.
+     * @exception VisADException	Couldn't create set.
      */
-    protected static RealType
-    getRealType(Variable var)
+    protected SimpleSet
+    getRangeSet(RealType type)
 	throws VisADException
     {
-	RealType	realType = RealType.getRealTypeByName(var.getName());
-
-	if (realType == null)
-	{
-	    /*
-	     * The following is complicated due to the circular dependency
-	     * between RealType and Set.
-	     */
-
-	    realType = new RealType(var.getName(), getUnit(var),
-						    (Set)null);
-
-	    Set	set = new Linear1DSet(realType,
-					Short.MIN_VALUE+1, Short.MAX_VALUE, 
-					Short.MAX_VALUE - Short.MIN_VALUE);
-
-	    realType.setDefaultSet(set);
-	}
-
-	return realType;
+	return (SimpleSet)new Linear1DSet(type,
+				Short.MIN_VALUE+1, Short.MAX_VALUE, 
+				Short.MAX_VALUE - Short.MIN_VALUE);
     }
 
 
@@ -872,59 +911,39 @@ NcInt
 	super(var, netcdf, getRealType(var));
     }
 
-
+    
     /**
-     * Return the VisAD RealType of the given, netCDF "int" variable.
+     * Return the range set of this variable.
      *
-     * @param var	The netCDF "int" variable.
-     * @exception VisADException
-     *			Problem in core VisAD.  Probably some VisAD object
-     *			couldn't be created.
+     * @param type	The VisAD RealType of the variable.
+     * @return		The sampling set of the values of this variable.
+     * @exception VisADException	Couldn't create set.
      */
-    protected static RealType
-    getRealType(Variable var)
+    protected SimpleSet
+    getRangeSet(RealType type)
 	throws VisADException
     {
-	RealType	realType = RealType.getRealTypeByName(var.getName());
+	/*
+	 * The following is complicated due to the fact that the last
+	 * argument to the Linear2DSet() constructor:
+	 *
+	 *     Linear1DSet(MathType type, double start, double stop, 
+	 *			int length)
+	 *
+	 * is an "int" -- and the number of Java "int" values cannot
+	 * be represented by a Java "int".
+	 */
+	Vetter	vetter = new Vetter(getVar());
+	long	minValid = (long)vetter.minValid();
+	long	maxValid = (long)vetter.maxValid();
+	long	length	= maxValid - minValid + 1;
 
-	if (realType == null)
-	{
-	    /*
-	     * The following is complicated due to the circular dependency
-	     * between RealType and Set.
-	     */
-
-	    realType = new RealType(var.getName(), getUnit(var), (Set)null);
-
-	    /*
-	     * The following is complicated due to the fact that the last
-	     * argument to the Linear2DSet() constructor:
-	     *
-	     *     Linear1DSet(MathType type, double start, double stop, 
-	     *			int length)
-	     *
-	     * is an "int" -- and the number of Java "int" values cannot
-	     * be represented by a Java "int".
-	     */
-	    Set	set;
-	    {
-		Vetter	vetter = new Vetter(var);
-		long	minValid = (long)vetter.minValid();
-		long	maxValid = (long)vetter.maxValid();
-		long	length	= maxValid - minValid + 1;
-
-		set = length <= Integer.MAX_VALUE
-			    ? (Set)(new Linear1DSet(realType, minValid,
-					maxValid, (int)length))
-			    : (Set)(new FloatSet(realType,
-					(CoordinateSystem)null, 
-					new Unit[] {getUnit(var)}));
-	    }
-
-	    realType.setDefaultSet(set);
-	}
-
-	return realType;
+	return length <= Integer.MAX_VALUE
+		    ? (SimpleSet)(new Linear1DSet(type, minValid,
+				    maxValid, (int)length))
+		    : (SimpleSet)(new FloatSet(type,
+				    /*CoordinateSystem=*/null, 
+				    new Unit[] {getUnit()}));
     }
 
 
@@ -1017,39 +1036,20 @@ NcFloat
 	super(var, netcdf, getRealType(var));
     }
 
-
+    
     /**
-     * Return the VisAD RealType of the given, netCDF "float" variable.
+     * Return the range set of this variable.
      *
-     * @param var	The netCDF float variable.
-     * @exception VisADException
-     *			Problem in core VisAD.  Probably some VisAD object
-     *			couldn't be created.
+     * @param type	The VisAD RealType of the variable.
+     * @return		The sampling set of the values of this variable.
+     * @exception VisADException	Couldn't create set.
      */
-    protected static RealType
-    getRealType(Variable var)
+    protected SimpleSet
+    getRangeSet(RealType type)
 	throws VisADException
     {
-	RealType	realType = RealType.getRealTypeByName(var.getName());
-
-	if (realType == null)
-	{
-	    /*
-	     * The following is complicated due to the circular dependency
-	     * between RealType and Set.
-	     */
-
-	    Unit	unit = getUnit(var);
-
-	    realType = new RealType(var.getName(), unit, (Set)null);
-
-	    Set		set = new FloatSet(realType, (CoordinateSystem)null,
-					    new Unit[] {unit});
-
-	    realType.setDefaultSet(set);
-	}
-
-	return realType;
+	return (SimpleSet)new FloatSet(type, /*CoordinateSystem=*/null,
+			    new Unit[] {getUnit()});
     }
 
 
@@ -1109,39 +1109,20 @@ NcDouble
 	super(var, netcdf, getRealType(var));
     }
 
-
+    
     /**
-     * Return the VisAD RealType of the given, netCDF "double" variable.
+     * Return the range set of this variable.
      *
-     * @param var	The netCDF double variable.
-     * @exception VisADException
-     *			Problem in core VisAD.  Probably some VisAD object
-     *			couldn't be created.
+     * @param type	The VisAD RealType of the variable.
+     * @return		The sampling set of the values of this variable.
+     * @exception VisADException	Couldn't create set.
      */
-    protected static RealType
-    getRealType(Variable var)
+    protected SimpleSet
+    getRangeSet(RealType type)
 	throws VisADException
     {
-	RealType	realType = RealType.getRealTypeByName(var.getName());
-
-	if (realType == null)
-	{
-	    /*
-	     * The following is complicated due to the circular dependency
-	     * between RealType and Set.
-	     */
-
-	    Unit	unit = getUnit(var);
-
-	    realType = new RealType(var.getName(), unit, (Set)null);
-
-	    Set		set = new DoubleSet(realType, (CoordinateSystem)null,
-					    new Unit[] {unit});
-
-	    realType.setDefaultSet(set);
-	}
-
-	return realType;
+	return (SimpleSet)new DoubleSet(type, /*CoordinateSystem=*/null,
+			    new Unit[] {getUnit()});
     }
 
 

@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfAdapter.java,v 1.8 1998-04-03 20:35:20 visad Exp $
+ * $Id: NetcdfAdapter.java,v 1.9 1998-06-17 20:30:40 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -19,6 +19,7 @@ import ucar.netcdf.NetcdfFile;
 import ucar.netcdf.VariableIterator;
 import visad.DataImpl;
 import visad.FieldImpl;
+import visad.FunctionType;
 import visad.MathType;
 import visad.VisADException;
 import visad.data.BadFormException;
@@ -34,17 +35,17 @@ NetcdfAdapter
     /**
      * The netCDF dataset.
      */
-    protected final Netcdf	netcdf;
+    private final Netcdf	netcdf;
 
     /**
      * The netCDF data objects in the netCDF datset.
      */
-    protected final Map		map;
+    private final Map		map;
 
     /**
      * The outermost, netCDF data object.
      */
-    protected final NcData	ncData;
+    private final NcData	ncData;
 
 
     /**
@@ -320,11 +321,44 @@ NetcdfAdapter
 	    NetcdfFile		file = new NetcdfFile(pathnames[i], 
 				    /*readonly=*/true);
 	    NetcdfAdapter	adapter = new NetcdfAdapter(file);
-	    DataImpl		data = adapter.getProxy();
+	    // DataImpl		data = adapter.getProxy();
+	    DataImpl		data = adapter.getData();
 
-	    System.out.println("data.getType().toString():\n" +
-		data.getType());
-	    //System.out.println("data.toString():\n" + data);
+	    // System.out.println("data.getType().toString():\n" +
+		// data.getType());
+	    System.out.println("Domain set:\n" + 
+		((FieldImpl)data).getDomainSet());
+	    System.out.println("Data:\n" + data);
 	}
+    }
+
+
+    /**
+     * Return the netCDF dataset.
+     */
+    protected Netcdf
+    getNetcdf()
+    {
+	return netcdf;
+    }
+
+
+    /**
+     * Return the netCDF data objects in the netCDF datset.
+     */
+    protected Map
+    getMap()
+    {
+	return map;
+    }
+
+
+    /**
+     * Return the outermost, netCDF data object.
+     */
+    protected NcData
+    getNcData()
+    {
+	return ncData;
     }
 }

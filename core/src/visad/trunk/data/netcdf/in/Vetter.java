@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Vetter.java,v 1.1 1998-03-20 20:57:10 visad Exp $
+ * $Id: Vetter.java,v 1.2 1998-06-17 20:30:41 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -23,42 +23,42 @@ Vetter
     /**
      * The type of the netCDF variable.
      */
-    protected Class		type;
+    private Class		type;
 
     /**
      * The minimum, valid, external, netCDF value (won't be NaN).
      */
-    protected double		minValid;
+    private double		minValid;
 
     /**
      * The maximum, valid, external, netCDF value (won't be NaN).
      */
-    protected double		maxValid;
+    private double		maxValid;
 
     /**
      * The fill-value value.
      */
-    protected double		fillValue;
+    private double		fillValue;
 
     /**
      * The missing-value value.
      */
-    protected double		missingValue = Double.NaN;
+    private double		missingValue = Double.NaN;
 
     /**
      * The minimum, valid value for vetting.
      */
-    protected double		lowerVettingLimit = Double.NEGATIVE_INFINITY;
+    private double		lowerVettingLimit = Double.NEGATIVE_INFINITY;
 
     /**
      * The maximum, valid value for vetting.
      */
-    protected double		upperVettingLimit = Double.POSITIVE_INFINITY;
+    private double		upperVettingLimit = Double.POSITIVE_INFINITY;
 
     /**
      * Whether or not the vetting is trivial (i.e. all values are valid).
      */
-    protected boolean		isTrivial;
+    private boolean		isTrivial;
 
 
     /**

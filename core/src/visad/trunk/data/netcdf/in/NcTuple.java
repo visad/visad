@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcTuple.java,v 1.4 1998-04-02 20:49:48 visad Exp $
+ * $Id: NcTuple.java,v 1.5 1998-06-17 20:30:36 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -28,7 +28,7 @@ NcTuple
     /**
      * The netCDF data objects.
      */
-    protected final NcData[]	ncDatas;
+    private final NcData[]	ncDatas;
 
 
     /**
@@ -97,7 +97,7 @@ NcTuple
 	for (int i = 0; i < ncDatas.length; ++i)
 	    datas[i] = ncDatas[i].getData();
 
-	return new Tuple((TupleType)mathType, datas, /*copy=*/false);
+	return new Tuple((TupleType)getMathType(), datas, /*copy=*/false);
     }
 
 
@@ -122,6 +122,20 @@ NcTuple
 	for (int i = 0; i < ncDatas.length; ++i)
 	    datas[i] = ncDatas[i].getProxy();
 
-	return new Tuple((TupleType)mathType, datas, /*copy=*/false);
+	return new Tuple((TupleType)getMathType(), datas, /*copy=*/false);
+    }
+
+
+    /**
+     * Return the netCDF data objects.
+     */
+    protected NcData[]
+    getNcDatas()
+    {
+	NcData[]	newDatas = new NcData[ncDatas.length];
+
+	System.arraycopy(ncDatas, 0, newDatas, 0, ncDatas.length);
+
+	return newDatas;
     }
 }

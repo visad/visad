@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Domain.java,v 1.4 1998-03-31 20:35:37 visad Exp $
+ * $Id: Domain.java,v 1.5 1998-06-17 20:30:22 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -24,17 +24,17 @@ Domain
     /**
      * The rank of the domain:
      */
-    protected final int		rank;
+    private final int		rank;
 
     /**
      * The VisAD MathType of the manifold domain:
      */
-    protected final MathType	mathType;
+    private final MathType	mathType;
 
     /**
      * The netCDF dimensions of the domain:
      */
-    protected final NcDim[]	dims;
+    private final NcDim[]	dims;
 
 
     /**
@@ -142,8 +142,8 @@ Domain
      * Indicate whether or not the domain is the same as another.
      *
      * @param that	The other Domain.
-     * @return		<code>true</code> if and only if the Domain and 
-     *			another are semantically identical.
+     * @return		<code>true</code> if and only if this Domain is
+     *			semantically identical to <code>that</code>.
      */
     public boolean
     equals(Domain that)

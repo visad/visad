@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcScalar.java,v 1.4 1998-04-02 20:49:46 visad Exp $
+ * $Id: NcScalar.java,v 1.5 1998-06-17 20:30:34 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -202,7 +202,7 @@ NcScalarVars
     {
 	Tuple	tuple;
 
-	if (mathType instanceof RealTupleType)
+	if (getMathType() instanceof RealTupleType)
 	{
 	    Real[]	values = new Real[vars.length];
 

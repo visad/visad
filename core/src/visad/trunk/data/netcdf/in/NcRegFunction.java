@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcRegFunction.java,v 1.4 1998-04-13 16:55:52 visad Exp $
+ * $Id: NcRegFunction.java,v 1.5 1998-06-17 20:30:32 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -65,17 +65,18 @@ NcRegFunction
     {
 	FieldImpl	field;
 
-	if (hasTextualComponent)
+	if (hasTextualComponent())
 	{
 	    // TODO: support text in Fields
 	    field = null;
 	}
 	else
 	{
-	    FlatField	flatField =
-		new FlatField((FunctionType)mathType, 
-		    getDomainSet(domainDims,
-			((FunctionType)mathType).getDomain()),
+	    FunctionType	type = (FunctionType)getMathType();
+	    NcVar[]		vars = getVars();
+	    FlatField		flatField =
+		new FlatField(type, 
+		    getDomainSet(getDomainDims(), type.getDomain()),
 		    (CoordinateSystem)null, getRangeSets(vars),
 		    getRangeUnits(vars));
 
@@ -120,6 +121,7 @@ NcRegFunction
     getRangeDoubles()
 	throws VisADException, IOException
     {
+	NcVar[]		vars = getVars();
 	int		nvars = vars.length;
 	double[][]	values = new double[nvars][];
 

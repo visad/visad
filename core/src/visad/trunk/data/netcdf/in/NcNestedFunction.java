@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcNestedFunction.java,v 1.4 1998-04-13 17:17:03 visad Exp $
+ * $Id: NcNestedFunction.java,v 1.5 1998-06-17 20:30:28 visad Exp $
  */
 
 package visad.data.netcdf.in;
@@ -74,7 +74,7 @@ NcNestedFunction
 	super(getFunctionType(vars), new NcDim[] {vars[0].getDimensions()[0]},
 	    vars);
 
-	innerType = (FunctionType)((FunctionType)mathType).getRange();
+	innerType = (FunctionType)((FunctionType)getMathType()).getRange();
 	innerDomainSet = getDomainSet(
 	    reverse(getInnerDims(vars[0].getDimensions())),
 	    innerType.getDomain());
@@ -140,9 +140,10 @@ NcNestedFunction
     getData()
 	throws IOException, VisADException
     {
-	FieldImpl	field
-	    = new FieldImpl((FunctionType)mathType, 
-		getDomainSet(domainDims, ((FunctionType)mathType).getDomain()));
+	FunctionType	type = (FunctionType)getMathType();
+	FieldImpl	field =
+	    new FieldImpl(type, getDomainSet(getDomainDims(),
+		type.getDomain()));
 
 	field.setSamples(getRangeData(), /*copy=*/false);
 
@@ -164,9 +165,10 @@ NcNestedFunction
     getProxy()
 	throws IOException, VisADException
     {
-	FieldImpl	field
-	    = new FieldImpl((FunctionType)mathType, 
-		getDomainSet(domainDims, ((FunctionType)mathType).getDomain()));
+	FunctionType	type = (FunctionType)getMathType();
+	FieldImpl	field =
+	    new FieldImpl(type, getDomainSet(getDomainDims(),
+		type.getDomain()));
 
 	field.setSamples(getRangeProxies(), /*copy=*/false);
 
@@ -188,7 +190,7 @@ NcNestedFunction
     getRangeData()
 	throws VisADException, IOException
     {
-	int		npts = domainDims[0].getLength();
+	int		npts = getDomainDims()[0].getLength();
 	FlatField[]	values = new FlatField[npts];
 
 	for (int ipt = 0; ipt < npts; ++ipt)
@@ -213,7 +215,7 @@ NcNestedFunction
     getRangeProxies()
 	throws VisADException, IOException
     {
-	int		npts = domainDims[0].getLength();
+	int		npts = getDomainDims()[0].getLength();
 	FlatField[]	values = new FlatField[npts];
 
 	for (int ipt = 0; ipt < npts; ++ipt)
@@ -240,7 +242,7 @@ NcNestedFunction
     {
 	FlatField	field;
 
-	if (hasTextualComponent)
+	if (hasTextualComponent())
 	{
 	    // TODO: support text in Fields
 	    field = null;
@@ -282,7 +284,7 @@ NcNestedFunction
     {
 	FlatField	field;
 
-	if (hasTextualComponent)
+	if (hasTextualComponent())
 	{
 	    // TODO: support text in Fields
 	    field = null;
@@ -308,6 +310,7 @@ NcNestedFunction
     getRangeDoubles(int ipt)
 	throws IOException
     {
+	NcVar[]		vars = getVars();
 	int		nvars = vars.length;
 	double[][]	values = new double[nvars][];
 
