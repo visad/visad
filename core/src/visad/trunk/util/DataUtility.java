@@ -5,7 +5,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
 Rink and Dave Glowacki.
 
 This program is free software; you can redistribute it and/or modify
@@ -24,6 +24,11 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
 package visad.util;
+
+// General Java
+import java.util.TreeSet;
+import java.util.Enumeration;
+import java.util.Iterator;
 
 // RMI classes
 import java.rmi.RemoteException;
@@ -201,5 +206,298 @@ public class DataUtility extends Object {
     jframe.setVisible(true);
   }
 
-}
+  /**
+   * Ensures that a MathType is a RealTupleType.  Converts if necessary.
+   * @param type		The math type to be "converted" to a 
+   *				RealTupleType.  It shall be either a RealType,
+   *				a RealTupleType, or a SetType.
+   * @return                    The RealTupleType version of <code>type</code>.
+   *                            If <code>type</code> is a RealTupleType, then
+   *                            it is returned; otherwise, if <code>type</code>
+   *                            is a RealType, then a RealTupleType
+   *                            containing <code>type</code> as the
+   *                            only component is returned; otherwise,
+   *                            if <code>type</code> is a SetType, then
+   *                            <code>((SetType)type).getDomain()</code> is
+   *                            returned.
+   * @throws TypeException	<code>type</code> is the wrong type: it can't
+   *				be converted into a RealTupleType.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   */
+  public static RealTupleType
+  ensureRealTupleType(MathType type)
+    throws TypeException, VisADException
+  {
+    RealTupleType	result;
+    if (type instanceof RealTupleType)
+      result = (RealTupleType)type;
+    else if (type instanceof RealType)
+      result = new RealTupleType((RealType)type);
+    else if (type instanceof SetType)
+      result = ((SetType)type).getDomain();
+    else
+      throw new TypeException(
+	DataUtility.class.getName() +
+	".ensureRealTupleType(MathType): Can't convert MathType \"" +
+	type + "\" into a RealTupleType");
+    return result;
+  }
 
+  /**
+   * Ensures that a MathType is a TupleType.  Converts if necessary.
+   * @param type		The math type to be "converted" to a 
+   *				TupleType.
+   * @return                    The TupleType version of <code>type</code>.
+   *                            If <code>type</code> is a TupleType,
+   *                            then it is returned; otherwise, if
+   *                            <code>type</code> is a SetType, then
+   *                            <code>((SetType)type).getDomain()</code> is
+   *                            returned; otherwise, a TupleType containing
+   *                            <code>type</code> as the only component is
+   *                            returned (if <code>MathType</code> is a
+   *				RealType, then the returned TupleType is a 
+   *				RealTupleType);
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   */
+  public static TupleType
+  ensureTupleType(MathType type)
+    throws VisADException
+  {
+    return
+      type instanceof TupleType
+	? (TupleType)type
+	: type instanceof SetType
+	  ? ((SetType)type).getDomain()		// actually a RealTupleType
+	  : type instanceof RealType
+	    ? new RealTupleType((RealType)type)
+	    : new TupleType(new MathType[] {type});
+  }
+
+  /**
+   * Ensures that a Data is a Tuple.  Creates a Tuple if necessary.
+   * @param datum		The math type to be "converted" to a Tuple.
+   * @return                    The Tuple version of <code>datum</code>.  If
+   *                            <code>datum</code> is a Tuple, then it is
+   *                            returned; otherwise, if <code>datum</code> is
+   *                            a Real, then a RealTuple containing <code>
+   *                            datum</code> as the only component is returned;
+   *                            otherwise, a Tuple containing <code>datum</code>
+   *                            as the only component is returned.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   * @throws RemoteException	Java RMI failure.
+   */
+  public static Tuple
+  ensureTuple(Data datum)
+    throws VisADException, RemoteException
+  {
+    return
+      datum instanceof Tuple
+	? (Tuple)datum
+	: datum instanceof Real
+	    ? new RealTuple(new Real[] {(Real)datum})
+	    : new Tuple(new Data[] {datum});
+  }
+
+  /**
+   * Gets the MathType of the domain of a Function.
+   * @param function		A function.
+   * @return			The MathType of the domain of the function.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   * @throws RemoteException	Java RMI failure.
+   */
+  public static RealTupleType
+  getDomainType(Function function)
+    throws VisADException, RemoteException
+  {
+    return ((FunctionType)function.getType()).getDomain();
+  }
+
+  /**
+   * Gets the MathType of the range of a Function.
+   * @param function		A function.
+   * @return			The MathType of the range of the function.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   * @throws RemoteException	Java RMI failure.
+   */
+  public static MathType
+  getRangeType(Function function)
+    throws VisADException, RemoteException
+  {
+    return ((FunctionType)function.getType()).getRange();
+  }
+
+  /**
+   * Gets the number of components in the range of a Function.  NB: This differs
+   * from visad.FlatField.getRangeDimension() in that it returns the number of
+   * components in the actual range rather than the number of components in the
+   * flat range.
+   * @param function		A function.
+   * @return			The number of components in the range of the
+   *				function.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   * @throws RemoteException	Java RMI failure.
+   */
+  public static int
+  getRangeDimension(Function function)
+    throws VisADException, RemoteException
+  {
+    return ensureTupleType(getRangeType(function)).getDimension();
+  }
+
+  /**
+   * Gets the index of a component in the range of a Field.  If the range
+   * contains multiple instances of the component, then it is unspecified
+   * which component index is returned.
+   * @param componentType	The MathType of the component.
+   * @return                    The index of the component in the range of the
+   *                            field or -1 if the component is not in the range
+   *                            of the field (NB: this is not the flat-range
+   *                            index).
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   * @throws RemoteException	Java RMI failure.
+   */
+  public static int
+  getComponentIndex(Field field, MathType componentType)
+    throws VisADException, RemoteException
+  {
+    TupleType	rangeTupleType = ensureTupleType(getRangeType(field));
+    for (int i = rangeTupleType.getDimension(); --i >= 0; )
+      if (rangeTupleType.getComponent(i).equals(componentType))
+	return i;
+    return -1;
+  }
+
+  /**
+   * Ensures that the range of a FieldImpl is a given type.
+   * @param field		The input field.
+   * @param rangeType		The desired type of range for the resulting
+   *				field.
+   * @param alwaysNew           Whether or not to always create a new field.
+   *                            If <code>false</code> and the input field
+   *                            is exactly what is desired, then the input
+   *                            field will simply be returned; otherwise, an
+   *                            extraction will always be performed.
+   * @return			A field with the desired range.
+   * @throws TypeException	A field with the given range cannot be created
+   *				from the input field.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   * @throws RemoteException	Java RMI failure.
+   */
+  public static FieldImpl
+  ensureRange(FieldImpl field, MathType rangeType, boolean alwaysNew)
+    throws TypeException, VisADException, RemoteException
+  {
+    FieldImpl	result;
+    if (rangeType.equals(getRangeType(field)))
+    {
+      result = alwaysNew ? (FieldImpl)field.clone() : field;
+    }
+    else
+    {
+      result = null;
+      TupleType	rangeTuple = ensureTupleType(rangeType);
+      int	componentCount = rangeTuple.getDimension();
+      for (int i = 0; i < componentCount; i++)
+      {
+	int	componentIndex =
+	  getComponentIndex(field, rangeTuple.getComponent(i));
+	if (componentIndex < 0)
+	  throw new TypeException("The range of field \"" + field + 
+	    "\" doesn't contain component \"" + rangeType + '"');
+	result =
+	  result == null
+	    ? (FieldImpl)field.extract(componentIndex)
+	    : (FieldImpl)FieldImpl.combine(
+		new Field[] {result, field.extract(componentIndex)});
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Consolidates fields.
+   * @param fields		The fields to consolidate.  Each field shall
+   *				have the same FunctionType.
+   * @return                    The input Fields consolidated into one Field.
+   *                            The FunctionType shall be the same as that of
+   *                            the input Field-s.  When more than one input
+   *                            Field has valid range data for the same domain
+   *                            point, it is unspecified which range datum is
+   *                            used for the output Field.
+   * @throws FieldException	The Field array has zero length.
+   * @throws TypeException	Input Field-s not all same type.
+   * @throws VisADException	Couldn't create necessary VisAD object.
+   * @throws RemoteException	Java RMI failure.
+   */
+  public static Field
+  consolidate(Field[] fields)
+    throws VisADException, RemoteException
+  {
+    /*
+     * Determine the consolidated domain.
+     */
+    if (fields.length == 0)
+      throw new FieldException(
+	DataUtility.class.getName() + "(Field[]): Zero fields to consolidate");
+    FunctionType	funcType = (FunctionType)fields[0].getType();
+    TreeSet		consolidatedDomainTuples = new TreeSet();
+    for (int i = fields.length; --i >= 0; )
+    {
+	Field	field = fields[i];
+	if (!field.getType().equals(funcType))
+	  throw new TypeException(DataUtility.class.getName() +
+	    "(Field[]): Field type mismatch");
+	if (!field.isMissing())
+	{
+	  RealTupleType	domainType = getDomainType(field);
+	  for (Enumeration enum = field.domainEnumeration();
+	      enum.hasMoreElements(); )
+	  {
+	      consolidatedDomainTuples.add((RealTuple)enum.nextElement());
+	  }
+	}
+    }
+    /*
+     * Create the consolidated field (with no range data).
+     */
+    Field	field = fields[0];
+    float[][]	domainFloats =
+      new float[field.getDomainDimension()][consolidatedDomainTuples.size()];
+    Unit[]	domainUnits = field.getDomainUnits();
+    int		sampleIndex = 0;
+    for (Iterator iter = consolidatedDomainTuples.iterator(); iter.hasNext(); )
+    {
+      RealTuple	domainTuple = (RealTuple)iter.next();
+      for (int i = domainFloats.length; --i >= 0; )
+	domainFloats[i][sampleIndex] =
+	  (float)((Real)domainTuple.getComponent(i)).getValue(domainUnits[i]);
+      ++sampleIndex;
+    }
+    int[]	lengths = new int[domainFloats.length];
+    for (int i = lengths.length; --i >= 0; )
+      lengths[i] = domainFloats[i].length;
+    GriddedSet	consolidatedDomain = 
+      GriddedSet.create(getDomainType(field), domainFloats, lengths);
+    Field	consolidatedField = 
+      field instanceof FlatField
+	? new FlatField(funcType, consolidatedDomain)
+	: new FieldImpl(funcType, consolidatedDomain);
+    /*
+     * Set the range of the consolidated field.
+     */
+    for (Iterator iter = consolidatedDomainTuples.iterator(); iter.hasNext(); )
+    {
+      RealTuple	domainTuple = (RealTuple)iter.next();
+      for (int i  = fields.length; --i >= 0; )
+      {
+	Data	datum = fields[i].evaluate(domainTuple);
+	if (!datum.isMissing())
+	{
+	  consolidatedField.setSample(domainTuple, datum);
+	  break;
+	}
+      }
+    }
+    return consolidatedField;
+  }
+}
