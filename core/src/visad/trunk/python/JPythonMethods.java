@@ -1443,8 +1443,11 @@ public abstract class JPythonMethods {
    */
   public static int rangeDimension (Data data) 
                   throws VisADException, RemoteException {
-    return (int) ((RealTupleType)
-        ((FunctionType)data.getType()).getRange()).getDimension();
+    int nr = 1;
+    if ( data instanceof FlatField) {
+      nr = ((FlatField) data).getRangeDimension();
+    }
+    return nr;
   }
 
   /** get the domain Type for the field
@@ -1502,9 +1505,11 @@ public abstract class JPythonMethods {
    */
   public static String rangeType (Data data,int comp) 
                    throws VisADException, RemoteException {
-    return (String) ((TupleType)
-        ((FunctionType)data.getType()).getRange()).
-                            getComponent(comp).toString();
+    MathType rt = rangeType(data);
+    int rd = rangeDimension(data);
+    String dt = rt.toString();
+    if (rd > 1) dt = ((TupleType)rt).getComponent(comp).toString();
+    return dt;
   }
 
 
