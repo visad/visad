@@ -125,7 +125,7 @@ public class ImmersaDeskDisplayRendererJ3D extends DisplayRendererJ3D {
     box_geometry.setCapability(GeometryArray.ALLOW_COUNT_READ);
     box_geometry.setCapability(GeometryArray.ALLOW_FORMAT_READ);
     box_geometry.setCapability(GeometryArray.ALLOW_NORMAL_READ);
-    box_geometry.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+    // box_geometry.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
     box_geometry.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
 
     box_geometry.setCoordinates(0, box_verts);
@@ -167,7 +167,7 @@ public class ImmersaDeskDisplayRendererJ3D extends DisplayRendererJ3D {
     cursor_geometry.setCapability(GeometryArray.ALLOW_COUNT_READ);
     cursor_geometry.setCapability(GeometryArray.ALLOW_FORMAT_READ);
     cursor_geometry.setCapability(GeometryArray.ALLOW_NORMAL_READ);
-    cursor_geometry.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+    // cursor_geometry.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
     cursor_geometry.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
     
     cursor_geometry.setCoordinates(0, cursor_verts);
@@ -195,7 +195,7 @@ public class ImmersaDeskDisplayRendererJ3D extends DisplayRendererJ3D {
     ray_geometry.setCapability(GeometryArray.ALLOW_COUNT_READ);
     ray_geometry.setCapability(GeometryArray.ALLOW_FORMAT_READ);
     ray_geometry.setCapability(GeometryArray.ALLOW_NORMAL_READ);
-    ray_geometry.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+    // ray_geometry.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
     ray_geometry.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
     ray_geometry.setCoordinates(0, init_ray_verts);
     ray_geometry.setCapability(GeometryArray.ALLOW_COORDINATE_READ);
