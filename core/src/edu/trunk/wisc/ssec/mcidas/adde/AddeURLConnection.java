@@ -36,6 +36,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLDecoder;
 import java.util.StringTokenizer;
 import java.util.zip.GZIPInputStream;
 import HTTPClient.UncompressInputStream;
@@ -2091,7 +2092,7 @@ public class AddeURLConnection extends URLConnection
 
     private URL normalizeURL(URL url) {
 
-      String x = url.toString();
+      String x = URLDecoder.decode(url.toString());
       // common case no replacement
       boolean ok = true;
       for (int i=0; i<replaceString.length; i++) {
