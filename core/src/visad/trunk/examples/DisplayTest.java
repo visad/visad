@@ -266,12 +266,8 @@ public class DisplayTest extends Object {
         display1.addMap(new ConstantMap(0.5, Display.Red));
         ScalarMap map1contour = new ScalarMap(vis_radiance, Display.IsoContour);
         display1.addMap(map1contour);
-        /*
-        ContourControl control1contour = (ContourControl) map1contour.getControl();
-        control1contour.setSurfaceValue(level);
-        control1contour.enableContours(true);
-        */
-        ContourWidget cw = new ContourWidget(map1contour, level);
+
+        ContourWidget cw = new ContourWidget(map1contour);
         big_panel = new JPanel();
         big_panel.setLayout(new BorderLayout());
         big_panel.add("Center", cw);
