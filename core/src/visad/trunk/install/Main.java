@@ -24,6 +24,7 @@ public class Main
   private ArrayList jarList, javaList;
   private File installerJar;
   private JavaFile installerJava;
+  private File installerJavaDir;
 
   private boolean useSuppliedJava, downloadLatestJar;
   private File jvmToUse, javaInstallDir, jarInstallDir;
@@ -154,7 +155,8 @@ public class Main
 
   private final void dumpInitialState()
   {
-    if (installerJava != null) {
+    if (installerJavaDir != null) {
+      System.out.println("Supplied java directory: " + installerJavaDir);
       System.out.println("Supplied java: " + installerJava);
     }
 
@@ -293,6 +295,7 @@ public class Main
 
     // no installer-supplied java found yet
     installerJava = null;
+    installerJavaDir = null;
 
     // find all java executables
     javaList = path.find("java");
@@ -300,6 +303,15 @@ public class Main
       loseDuplicates(javaList);
       checkJavaVersions(javaList, 1, 2);
       installerJava = (JavaFile )extractInstallerFile(javaList);
+
+      if (installerJava != null && installerJava.getName().equals("java")) {
+        File canonJava = new File(getPath(installerJava));
+
+        installerJavaDir = new File(canonJava.getParent());
+        if (installerJavaDir.getName().equals("bin")) {
+          installerJavaDir = new File(installerJavaDir.getParent());
+        }
+      }
     }
 
     if (jarURL == null && installerJar == null) {
@@ -318,15 +330,18 @@ public class Main
   {
     // install JVM
     if (useSuppliedJava) {
-      System.err.println("Not installing " + installerJava + " in " +
-                         javaInstallDir);
+      if (javaInstallDir.exists()) {
+        javaInstallDir = new File(javaInstallDir, installerJavaDir.getName());
+      }
+
+      Util.copyDirectory(installerJavaDir, javaInstallDir);
     }
 
     // install jar
     if (downloadLatestJar) {
       new Download(jarURL, jarInstallDir);
     } else {
-      Util.copyFile(null, installerJar, jarInstallDir, ".old");
+      Util.copyFile(installerJar, jarInstallDir, ".old");
     }
   }
 
@@ -368,7 +383,7 @@ public class Main
     while (step < STEP_FINISHED) {
       switch (step) {
       case STEP_USE_SUPPLIED:
-        if (installerJava == null) {
+        if (installerJavaDir == null) {
           useSuppliedJava = false;
         } else {
           String usMsg = "Would you like to install the supplied " +
