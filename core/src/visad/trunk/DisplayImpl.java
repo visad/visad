@@ -1012,6 +1012,12 @@ System.out.println("badScale = " + badScale);
     return (Vector )RendererVector.clone();
   }
 
+  public int getAPI()
+	throws VisADException
+  {
+    throw new VisADException("No API specified");
+  }
+
   public String toString() {
     return toString("");
   }

@@ -159,11 +159,13 @@ import java.awt.*;
 public class DisplayImplJ2D extends DisplayImpl {
 
   /** legal values for api */
+  public static final int UNKNOWN = 0;
   public static final int JPANEL = 1;
   public static final int OFFSCREEN = 2;
 
   private ProjectionControlJ2D projection = null;
   private GraphicsModeControlJ2D mode = null;
+  private int apiValue = UNKNOWN;
 
   /** flag to scratch images in VisADCanvasJ2D */
   private boolean scratch;
@@ -177,7 +179,7 @@ public class DisplayImplJ2D extends DisplayImpl {
          throws VisADException, RemoteException {
     super(rmtDpy, renderer);
 
-    initialize(JPANEL, 300, 300);
+    initialize(rmtDpy.getDisplayAPI(), 300, 300);
 
     syncRemoteData(rmtDpy);
   }
@@ -247,15 +249,17 @@ public class DisplayImplJ2D extends DisplayImpl {
     if (api == JPANEL) {
       Component component = new DisplayPanelJ2D(this);
       setComponent(component);
+      apiValue = JPANEL;
     }
     else if (api == OFFSCREEN) {
       Component component = null;
       DisplayRendererJ2D renderer = (DisplayRendererJ2D )getDisplayRenderer();
       VisADCanvasJ2D canvas = new VisADCanvasJ2D(renderer, width, height);
       VisADGroup scene = renderer.createSceneGraph(canvas);
+      apiValue = OFFSCREEN;
     }
     else {
-      throw new DisplayException("DisplayImplJ2D: bad graphicsApi");
+      throw new DisplayException("DisplayImplJ2D: bad graphics API");
     }
 
     // a GraphicsModeControl always exists
@@ -277,6 +281,12 @@ public class DisplayImplJ2D extends DisplayImpl {
 
   public GraphicsModeControl getGraphicsModeControl() {
     return mode;
+  }
+
+  public int getAPI()
+	throws VisADException
+  {
+    return apiValue;
   }
 
   public void setScratch() {

@@ -51,6 +51,7 @@ public class DisplayImplJ3D extends DisplayImpl {
   public static final float BACK2D = -2.0f;
 
   /** legal values for api */
+  public static final int UNKNOWN = 0;
   public static final int JPANEL = 1;
   public static final int APPLETFRAME = 2;
   /** this is used for APPLETFRAME */
@@ -58,6 +59,7 @@ public class DisplayImplJ3D extends DisplayImpl {
 
   private ProjectionControlJ3D projection = null;
   private GraphicsModeControlJ3D mode = null;
+  private int apiValue = UNKNOWN;
 
   /** construct a DisplayImpl for Java3D with the
       default DisplayRenderer, in a JFC JPanel */
@@ -92,12 +94,12 @@ public class DisplayImplJ3D extends DisplayImpl {
 
   public DisplayImplJ3D(RemoteDisplay rmtDpy)
          throws VisADException, RemoteException {
-    this(rmtDpy, null, JPANEL);
+    this(rmtDpy, null, rmtDpy.getDisplayAPI());
   }
 
   public DisplayImplJ3D(RemoteDisplay rmtDpy, DisplayRendererJ3D renderer)
          throws VisADException, RemoteException {
-    this(rmtDpy, renderer, JPANEL);
+    this(rmtDpy, renderer, rmtDpy.getDisplayAPI());
   }
 
   public DisplayImplJ3D(RemoteDisplay rmtDpy, DisplayRendererJ3D renderer,
@@ -123,13 +125,15 @@ public class DisplayImplJ3D extends DisplayImpl {
       // Component component = new AppletFrame(applet, 256, 256);
       setComponent(component);
       // component.setTitle(name);
+      apiValue = api;
     }
     else if (api == JPANEL) {
       Component component = new DisplayPanelJ3D(this);
       setComponent(component);
+      apiValue = api;
     }
     else {
-      throw new DisplayException("DisplayImplJ3D: bad graphicsApi");
+      throw new DisplayException("DisplayImplJ3D: bad graphics API " + api);
     }
 
     // a GraphicsModeControl always exists
@@ -151,6 +155,12 @@ public class DisplayImplJ3D extends DisplayImpl {
 
   public DisplayAppletJ3D getApplet() {
     return applet;
+  }
+
+  public int getAPI()
+	throws VisADException
+  {
+    return apiValue;
   }
 
   public GeometryArray makeGeometry(VisADGeometryArray vga)

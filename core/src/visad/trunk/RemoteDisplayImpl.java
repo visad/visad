@@ -176,6 +176,10 @@ public class RemoteDisplayImpl extends RemoteActionImpl
     return AdaptedAction.getClass().getName();
   }
 
+  public int getDisplayAPI() throws RemoteException, VisADException {
+    return ((DisplayImpl) AdaptedAction).getAPI();
+  }
+
   public String getDisplayRendererClassName() throws RemoteException {
     DisplayRenderer dr = ((DisplayImpl )AdaptedAction).getDisplayRenderer();
     return dr.getClass().getName();
