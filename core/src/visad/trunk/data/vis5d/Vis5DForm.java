@@ -133,6 +133,7 @@ public class Vis5DForm extends Form implements FormFileInformer {
                             vert_sys,
                             vertargs,
                             times);
+
     if (sizes[0] < 1) {
       throw new BadFormException("Vis5DForm.open: bad file");
     }
@@ -395,11 +396,25 @@ public class Vis5DForm extends Form implements FormFileInformer {
       //- invert rows
       float[] tmp_data = new float[grid_size];
       int[] lens = ((GriddedSet)space_set).getLengths();
-      int cnt = 0;
-      for ( int mm = 0; mm < lens[1]; mm++) {
-        int start = (mm+1)*lens[0] - 1;
-        for ( int nn = 0; nn < lens[0]; nn++) {
-          tmp_data[cnt++] = data[j][start--];
+
+      if ( lens.length == 2 ) {
+        int cnt = 0;
+        for ( int mm = 0; mm < lens[1]; mm++ ) {
+          int start = (mm+1)*lens[0] - 1;
+          for ( int nn = 0; nn < lens[0]; nn++ ) {
+            tmp_data[cnt++] = data[j][start--];
+          }
+        }
+      }
+      else if ( lens.length == 3 ) {
+        int cnt = 0;
+        for ( int ll = 0; ll < lens[2]; ll++ ) {
+          for ( int mm = 0; mm < lens[1]; mm++ ) {
+            int start = ((mm+1)*lens[0] - 1) + lens[0]*lens[1]*ll;
+            for ( int nn = 0; nn < lens[0]; nn++ ) {
+              tmp_data[cnt++] = data[j][start--];
+            }
+          }
         }
       }
       System.arraycopy(tmp_data, 0, data[j], 0, grid_size);
