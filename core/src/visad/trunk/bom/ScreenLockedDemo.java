@@ -63,9 +63,9 @@ import visad.java3d.RendererJ3D;
 public final class ScreenLockedDemo
 {
 
-	private final DisplayImplJ3D display;
-	private final ScalarMap xMap;
-	private final ScalarMap yMap;
+	private DisplayImplJ3D display;
+	private ScalarMap xMap;
+	private ScalarMap yMap;
 
 
 	/**
@@ -119,7 +119,7 @@ public final class ScreenLockedDemo
 
 		frame.getContentPane().add(panel);
 		frame.setSize(640, 480);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		// frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
 
 	} // ScreenLockedDemo.ScreenLockedDemo()
