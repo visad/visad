@@ -362,6 +362,11 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
   public void notifyListeners(int id, int x, int y)
          throws VisADException, RemoteException {
+    notifyListeners(new DisplayEvent(this, id, x, y));
+  }
+
+  public void notifyListeners(DisplayEvent evt)
+         throws VisADException, RemoteException {
     if (ListenerVector != null) {
       synchronized (ListenerVector) {
         Enumeration listeners = ListenerVector.elements();
@@ -372,10 +377,9 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
             if (rd == null) {
               rd = new RemoteDisplayImpl(this);
             }
-            listener.displayChanged(new DisplayEvent(rd, id, x, y));
-          }
-          else {
-            listener.displayChanged(new DisplayEvent(this, id, x, y));
+            listener.displayChanged(evt.cloneButDisplay(rd));
+          } else {
+            listener.displayChanged(evt.cloneButDisplay(this));
           }
         }
       }
