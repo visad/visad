@@ -1408,7 +1408,7 @@ public class FieldImpl extends FunctionImpl implements Field {
         values[0][ii] = new_unit[0].toThis( value, unit );
       }
 
-      ((FlatField)new_field).setSamples( values );
+      ((FlatField)new_field).setSamples( values, false );
     }
     else if ( new_range instanceof RealTupleType )
     {
@@ -1442,7 +1442,7 @@ public class FieldImpl extends FunctionImpl implements Field {
         }
       }
 
-      ((FlatField)new_field).setSamples( values );
+      ((FlatField)new_field).setSamples( values, false );
     }
     else if (( new_range instanceof TupleType) && ( ((TupleType)new_range).getFlat()) )
     {
@@ -1497,7 +1497,7 @@ public class FieldImpl extends FunctionImpl implements Field {
           }
         }
       }
-      ((FlatField)new_field).setSamples( values );
+      ((FlatField)new_field).setSamples( values, false );
     }
     else
     {
@@ -1507,7 +1507,7 @@ public class FieldImpl extends FunctionImpl implements Field {
       {
         rangeData = getSample(ii);
         new_rangeData = ((TupleIface)rangeData).getComponent( component );
-        new_field.setSample( ii, new_rangeData );
+        new_field.setSample( ii, new_rangeData, false );
       }
     }
 

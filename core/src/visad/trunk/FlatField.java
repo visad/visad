@@ -3750,7 +3750,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
       values = unpackOneRangeComp( flat_indeces[ii] );
       System.arraycopy( values, 0, new_values[ii], 0, n_samples );
     }
-    new_field.setSamples( new_values );
+    new_field.setSamples( new_values, false );
 
     return new_field;
   }
