@@ -79,7 +79,8 @@ public class ProjectionControlJ3D extends ProjectionControl {
   public ProjectionControlJ3D(DisplayImpl d) throws VisADException {
     super(d);
     // WLH 8 April 99
-    Matrix = new Transform3D();
+    // Matrix = new Transform3D();
+    Matrix = init();
     matrix = new double[MATRIX3D_LENGTH];
     Matrix.get(matrix);
     saveProjection();   // DRM 6 Nov 2000

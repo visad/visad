@@ -31,6 +31,9 @@ import java.awt.Font;
 import java.rmi.RemoteException;
 import javax.swing.JFrame;
 
+// Java3D
+import javax.media.j3d.*;
+
 // VisAD
 import visad.ConstantMap;
 import visad.DataDisplayLink;
@@ -60,6 +63,7 @@ import visad.java3d.DisplayRendererJ3D;
 import visad.java3d.MouseBehaviorJ3D;
 import visad.java3d.ProjectionControlJ3D;
 import visad.java3d.ShadowFunctionTypeJ3D;
+import visad.java3d.ShadowSetTypeJ3D;
 import visad.java3d.ShadowTupleTypeJ3D;
 
 
@@ -83,29 +87,47 @@ public class ScreenLockedRendererJ3D extends DefaultRendererJ3D
     super();
   }
 
+  public void addSwitch(DisplayRendererJ3D displayRenderer,
+                         BranchGroup branch) {
+    displayRenderer.addLockedSceneGraphComponent(branch);
+  }
+
 
   /**
    * This is used for function types of the form:
    * ((latitude, longitude)->(text))
    */
+/*
   public ShadowType makeShadowFunctionType(FunctionType type, 
     DataDisplayLink link, ShadowType parent) 
     throws RemoteException, VisADException
   {
     return new ShadowScreenLockedFunctionTypeJ3D(type, link, parent);
   }
-
+*/
 
   /**
    * This is used for tuples of the form:
    * (latitude, longitude, text)
    */
+/*
   public ShadowType makeShadowTupleType(TupleType type, DataDisplayLink link,
     ShadowType parent) 
     throws RemoteException, VisADException 
   { 
     return new ShadowScreenLockedTupleTypeJ3D(type, link, parent);
   }
+*/
+  
+  
+/*
+  public ShadowType makeShadowSetType(SetType type, DataDisplayLink link,
+    ShadowType parent)
+    throws RemoteException, VisADException 
+  {
+    return new ShadowScreenLockedSetTypeJ3D(type, link, parent);
+  }
+*/
 
   /**
    * Used for testing.
@@ -144,17 +166,6 @@ public class ScreenLockedRendererJ3D extends DefaultRendererJ3D
     domainSamples[0][3] = 0f;
     domainSamples[1][3] = 10f;
 
-    // Create the field that will dislay the labels.
-    final Set domainSet1 = new Gridded2DSet(domainType, domainSamples, 4);
-    FieldImpl field = new FieldImpl(functionType, domainSet1);
-    field.setSample(0, new Text(textType, "Screen Locked 1"));
-    field.setSample(1, new Text(textType, "Screen Locked 2"));
-    field.setSample(2, new Text(textType, "Screen Locked 3"));
-    field.setSample(3, new Text(textType, "Screen Locked 4"));
-    final DataReferenceImpl lockedDataRef = new DataReferenceImpl(
-      "locked_data_ref");
-    lockedDataRef.setData(field);
-    
     // Created the filled sqaure.
     final Gridded2DSet domainSet2 = new Gridded2DSet(domainType, 
       domainSamples, 4);
@@ -174,17 +185,36 @@ public class ScreenLockedRendererJ3D extends DefaultRendererJ3D
     // Center the square in the display.
     latMap.setRange(0, 10);
     lonMap.setRange(0, 10);
+    textMap.setRange(0, 10);
 
     // Center the labels on the corners of the square.
     final TextControl textControl = (TextControl) textMap.getControl();
     textControl.setCenter(true);
+    Text text = new Text(textType, "Screen Locked 1");
+    final DataReferenceImpl lockedDataRef1 = new DataReferenceImpl(
+      "locked_data_ref");
+    lockedDataRef1.setData(text);
+    display.addReferences(new ScreenLockedRendererJ3D(), lockedDataRef1,
+    	new ConstantMap[]{
+		new ConstantMap(-1.0, Display.XAxis),
+		new ConstantMap(1.0, Display.YAxis),
+		new ConstantMap(-0.2, Display.ZAxis)});
 
-    display.addReferences(new ScreenLockedRendererJ3D(), lockedDataRef);
+    text = new Text(textType, "Screen Locked 2");
+    DataReferenceImpl lockedDataRef2 = new DataReferenceImpl(
+      "locked_data_ref");
+    lockedDataRef2.setData(text);
+    display.addReferences(new ScreenLockedRendererJ3D(), lockedDataRef2,
+    	new ConstantMap[]{
+		new ConstantMap(1.0, Display.XAxis),
+		new ConstantMap(-1.0, Display.YAxis),
+		new ConstantMap(-0.2, Display.ZAxis)});
 
     // Color the square red.
     display.addReference(unlockedDataRef, new ConstantMap [] { 
       new ConstantMap(0.0, Display.Green),
-      new ConstantMap(0.0, Display.Blue)});
+      new ConstantMap(0.0, Display.Blue),
+      new ConstantMap(-1.0, Display.ZAxis)});
 
     // Display the frame.
     final JFrame frame = new JFrame("ScreenLockedRendererJ3D");
@@ -194,3 +224,4 @@ public class ScreenLockedRendererJ3D extends DefaultRendererJ3D
   }
 
 } // class ScreenLockedRendererJ3D
+

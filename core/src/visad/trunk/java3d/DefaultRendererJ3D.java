@@ -113,7 +113,8 @@ public class DefaultRendererJ3D extends RendererJ3D {
     return branch;
   }
 
-  void addSwitch(DisplayRendererJ3D displayRenderer, BranchGroup branch) {
+  public void addSwitch(DisplayRendererJ3D displayRenderer,
+                        BranchGroup branch) {
     displayRenderer.addSceneGraphComponent(branch);
   }
 

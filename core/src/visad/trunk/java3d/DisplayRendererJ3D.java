@@ -65,6 +65,10 @@ public abstract class DisplayRendererJ3D
 
   private Object not_destroyed = new Object();
 
+  // for screen locked
+  private OrderedGroup screen_locked = null;
+  private TransformGroup locked_trans = null;
+
   /** View associated with this VirtualUniverse */
   private View view;
   /** VisADCanvasJ3D associated with this VirtualUniverse */
@@ -160,6 +164,9 @@ public abstract class DisplayRendererJ3D
 
     axis_vector.removeAllElements();
     directs.removeAllElements();
+
+    screen_locked = null;
+    locked_trans = null;
 
     trans = null;
     vpTrans = null;
@@ -739,9 +746,12 @@ public abstract class DisplayRendererJ3D
 
   public void addSceneGraphComponent(Group group) {
     if (not_destroyed == null) return;
-    // WLH 10 March 2000
-    // trans.addChild(group);
     non_direct.addChild(group);
+  }
+
+  public void addLockedSceneGraphComponent(Group group) {
+    if (not_destroyed == null || screen_locked == null) return;
+    screen_locked.addChild(group);
   }
 
   public void addDirectManipulationSceneGraphComponent(Group group,
@@ -1311,6 +1321,22 @@ public abstract class DisplayRendererJ3D
     }
     if (t != null) {
       trans.setTransform(t);
+      if (locked_trans == null && root != null) {
+        locked_trans = new TransformGroup();
+        locked_trans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+        locked_trans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+        locked_trans.setCapability(Group.ALLOW_CHILDREN_READ);
+        locked_trans.setCapability(Group.ALLOW_CHILDREN_WRITE);
+        locked_trans.setCapability(Group.ALLOW_CHILDREN_EXTEND);
+        locked_trans.setTransform(t);
+        screen_locked = new OrderedGroup();
+        screen_locked.setCapability(Group.ALLOW_CHILDREN_READ);
+        screen_locked.setCapability(Group.ALLOW_CHILDREN_WRITE);
+        screen_locked.setCapability(Group.ALLOW_CHILDREN_EXTEND);
+        screen_locked.setCapability(Node.ENABLE_PICK_REPORTING);
+        locked_trans.addChild(screen_locked);
+        root.addChild(locked_trans);
+      }
     }
   }
 
