@@ -221,7 +221,11 @@ boolean anynotmissing = false;
     int maxsize = maxv1+maxv2;
     float[] vx = new float[maxsize];
     float[] vy = new float[maxsize];
-    int[] ipnt = new int[2*maxsize];
+
+    // WLH 21 April 2000
+    // int[] ipnt = new int[2*maxsize];
+    int[] ipnt = new int[nr*nc+4];
+
     int nump, ip;
     int numv;
 
@@ -344,12 +348,16 @@ boolean anynotmissing = false;
         float gv, gn, gx;
         float tmp1, tmp2;
 
-        if (numv+8 >= maxsize || nump+4 >= 2*maxsize) {
+        // WLH 21 April 2000
+        // if (numv+8 >= maxsize || nump+4 >= 2*maxsize) {
+        if (numv+8 >= maxsize) {
           // allocate more space
           maxsize = 2 * maxsize;
-          int[] tt = ipnt; 
+/* WLH 21 April 2000
+          int[] tt = ipnt;
           ipnt = new int[2 * maxsize];
           System.arraycopy(tt, 0, ipnt, 0, nump);
+*/
           float[] tx = vx;
           float[] ty = vy;
           vx = new float[maxsize];
@@ -493,12 +501,16 @@ if (!any && numc > 0) {
 
           gg = myvals[low+il];
 
-          if (numv+8 >= maxsize || nump+4 >= 2*maxsize) {
+          // WLH 21 April 2000
+          // if (numv+8 >= maxsize || nump+4 >= 2*maxsize) {
+          if (numv+8 >= maxsize) {
             // allocate more space
             maxsize = 2 * maxsize;
+/* WLH 21 April 2000
             int[] tt = ipnt;
             ipnt = new int[2 * maxsize];
             System.arraycopy(tt, 0, ipnt, 0, nump);
+*/
             float[] tx = vx;
             float[] ty = vy;
             vx = new float[maxsize];
@@ -1016,8 +1028,8 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
  
     // copy vertices from vx, vy arrays to either v1 or v2 arrays
     ip = 0;
-    for (ir=0;ir<nrm && ip<2*maxsize;ir++) {
-      for (ic=0;ic<ncm && ip<2*maxsize;ic++) {
+    for (ir=0;ir<nrm && ip<ipnt.length-1;ir++) {
+      for (ic=0;ic<ncm && ip<ipnt.length-1;ic++) {
         int start, len;
         start = ipnt[ip];
         len = ipnt[ip+1] - start;
