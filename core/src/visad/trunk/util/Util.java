@@ -359,6 +359,16 @@ public class Util
   }
 
   /**
+   * Limit the given combo box to one line in height.
+   */
+  public static void adjustComboBox(JComboBox combo) {
+    Dimension msize = combo.getMaximumSize();
+    Dimension psize = combo.getPreferredSize();
+    msize.height = psize.height;
+    combo.setMaximumSize(msize);
+  }
+
+  /**
    * Center the given window on the screen.
    */
   public static void centerWindow(Window window) {
