@@ -84,6 +84,14 @@ public class BarbRendererJ3D extends DefaultRendererJ3D
     return new ShadowBarbTupleTypeJ3D(type, link, parent);
   }
 
+  public void setKnotsConvert(boolean enable) {
+    bmr.setKnotsConvert(enable);
+  } 
+  
+  public boolean getKnotsConvert() {
+    return bmr.getKnotsConvert();
+  } 
+
   public float[] makeVector(boolean south, float x, float y, float z,
                           float scale, float pt_size, float f0, float f1,
                           float[] vx, float[] vy, float[] vz, int[] numv,
@@ -194,7 +202,9 @@ public class BarbRendererJ3D extends DefaultRendererJ3D
     field.setSamples(values);
     DataReferenceImpl ref = new DataReferenceImpl("ref");
     ref.setData(field);
-    display.addReferences(new BarbRendererJ3D(), ref);
+    BarbRendererJ3D renderer = new BarbRendererJ3D();
+    renderer.setKnotsConvert(true);
+    display.addReferences(renderer, ref);
 
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("test BarbRendererJ3D");

@@ -202,7 +202,8 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
         int oldnt = numt[0];
         float mbarb[] =
           makeBarb(south[j], spatial_values[0][j], spatial_values[1][j],
-                   scale, pt_size, f0, f1, vx, vy, numv, tx, ty, numt);
+                   scale, pt_size, f0, f1, vx, vy, numv, tx, ty, numt,
+                   renderer);
         if (direct) {
           ((BarbManipulationRendererJ2D) renderer).
             setVectorSpatialValues(mbarb, which);
@@ -310,7 +311,8 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
   static float[] makeBarb(boolean south, float x, float y, float scale,
                           float pt_size, float f0, float f1,
                           float[] vx, float[] vy, int[] numv,
-                          float[] tx, float[] ty, int[] numt) {
+                          float[] tx, float[] ty, int[] numt,
+                          DataRenderer renderer) {
 
     float wsp25,slant,barb,d,c195,s195;
     float x0,y0;
@@ -321,9 +323,12 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
     mbarb[0] = x;
     mbarb[1] = y;
 
-    // convert meters per second to knots
-    f0 *= (3600.0 / 1853.248);
-    f1 *= (3600.0 / 1853.248);
+    if (!(renderer instanceof BarbRenderer) ||
+        ((BarbRenderer) renderer).getKnotsConvert()) {
+      // convert meters per second to knots
+      f0 *= (3600.0 / 1853.248);
+      f1 *= (3600.0 / 1853.248);
+    }
 
     float wnd_spd = (float) Math.sqrt(f0 * f0 + f1 * f1);
     int lenv = vx.length;

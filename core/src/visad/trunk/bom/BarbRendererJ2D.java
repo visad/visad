@@ -41,7 +41,8 @@ import java.rmi.*;
    wind barbs under Java2D - otherwise it behaves just
    like DefaultRendererJ2D
 */
-public class BarbRendererJ2D extends DefaultRendererJ2D {
+public class BarbRendererJ2D extends DefaultRendererJ2D
+       implements BarbRenderer {
 
   /** this DataRenderer supports direct manipulation for RealTuple
       representations of wind barbs; four of the RealTuple's Real
@@ -78,6 +79,24 @@ public class BarbRendererJ2D extends DefaultRendererJ2D {
          TupleType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
     return new ShadowBarbTupleTypeJ2D(type, link, parent);
+  }
+
+  /** dummy for BarbRenderer */
+  public float[] makeVector(boolean south, float x, float y, float z,
+                     float scale, float pt_size, float f0, float f1,
+                     float[] vx, float[] vy, float[] vz, int[] numv,
+                     float[] tx, float[] ty, float[] tz, int[] numt) {
+    return null;
+  }
+
+  private boolean knotsConvert = true;
+
+  public void setKnotsConvert(boolean enable) {
+    knotsConvert = enable;
+  }
+
+  public boolean getKnotsConvert() {
+    return knotsConvert;
   }
 
   static final int N = 5;
@@ -182,7 +201,9 @@ public class BarbRendererJ2D extends DefaultRendererJ2D {
     field.setSamples(values);
     DataReferenceImpl ref = new DataReferenceImpl("ref");
     ref.setData(field);
-    display.addReferences(new BarbRendererJ2D(), ref);
+    BarbRendererJ2D renderer = new BarbRendererJ2D();
+    renderer.setKnotsConvert(true);
+    display.addReferences(renderer, ref);
 
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("test BarbRendererJ2D");

@@ -40,7 +40,8 @@ import java.rmi.*;
    BarbManipulationRendererJ2D is the VisAD class for direct
    manipulation rendering of wind barbs under Java2D
 */
-public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
+public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D
+       implements BarbRenderer {
 
   /** this DataRenderer supports direct manipulation for Tuple
       representations of wind barbs; two of the Tuple's Real components
@@ -77,6 +78,24 @@ public class BarbManipulationRendererJ2D extends DirectManipulationRendererJ2D {
          TupleType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
     return new ShadowBarbTupleTypeJ2D(type, link, parent);
+  }
+
+  /** dummy for BarbRenderer */
+  public float[] makeVector(boolean south, float x, float y, float z,
+                     float scale, float pt_size, float f0, float f1,
+                     float[] vx, float[] vy, float[] vz, int[] numv,
+                     float[] tx, float[] ty, float[] tz, int[] numt) {
+    return null;
+  }
+
+  private boolean knotsConvert = true;
+
+  public void setKnotsConvert(boolean enable) {
+    knotsConvert = enable;
+  }
+
+  public boolean getKnotsConvert() {
+    return knotsConvert;
   }
 
   /** information calculated by checkDirect */
@@ -684,7 +703,9 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
         // so user can change barb by dragging it
         // drag with right mouse button and shift to change direction
         // drag with right mouse button and no shift to change speed
-        display.addReferences(new BarbManipulationRendererJ2D(), refs[k]);
+        BarbManipulationRendererJ2D renderer = new BarbManipulationRendererJ2D();
+        renderer.setKnotsConvert(true);
+        display.addReferences(renderer, refs[k]);
 
         // link wind record to a CellImpl that will listen for changes
         // and print them

@@ -770,7 +770,9 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
         // so user can change barb by dragging it
         // drag with right mouse button and shift to change direction
         // drag with right mouse button and no shift to change speed
-        display.addReferences(new SwellManipulationRendererJ3D(), refs[k]);
+        SwellManipulationRendererJ3D renderer =
+          new SwellManipulationRendererJ3D();
+        display.addReferences(renderer, refs[k]);
 
         // link swell record to a CellImpl that will listen for changes
         // and print them

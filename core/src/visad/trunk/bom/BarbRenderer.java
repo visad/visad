@@ -46,5 +46,10 @@ public interface BarbRenderer {
                      float scale, float pt_size, float f0, float f1,
                      float[] vx, float[] vy, float[] vz, int[] numv,
                      float[] tx, float[] ty, float[] tz, int[] numt);
+
+  void setKnotsConvert(boolean enable);
+
+  boolean getKnotsConvert();
+
 }
 

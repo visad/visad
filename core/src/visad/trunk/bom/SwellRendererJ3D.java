@@ -84,6 +84,14 @@ public class SwellRendererJ3D extends DefaultRendererJ3D
     return new ShadowBarbTupleTypeJ3D(type, link, parent);
   }
 
+  public void setKnotsConvert(boolean enable) {
+    smr.setKnotsConvert(enable);
+  }
+
+  public boolean getKnotsConvert() {
+    return smr.getKnotsConvert();
+  }
+
   public float[] makeVector(boolean south, float x, float y, float z,
                           float scale, float pt_size, float f0, float f1,
                           float[] vx, float[] vy, float[] vz, int[] numv,
@@ -194,7 +202,8 @@ public class SwellRendererJ3D extends DefaultRendererJ3D
     field.setSamples(values);
     DataReferenceImpl ref = new DataReferenceImpl("ref");
     ref.setData(field);
-    display.addReferences(new SwellRendererJ3D(), ref);
+    SwellRendererJ3D renderer = new SwellRendererJ3D();
+    display.addReferences(renderer, ref);
 
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("test SwellRendererJ3D");

@@ -80,6 +80,16 @@ public class BarbManipulationRendererJ3D extends DirectManipulationRendererJ3D
     return new ShadowBarbTupleTypeJ3D(type, link, parent);
   }
 
+  private boolean knotsConvert = true;
+
+  public void setKnotsConvert(boolean enable) {
+    knotsConvert = enable;
+  }
+
+  public boolean getKnotsConvert() {
+    return knotsConvert;
+  }
+
   /** information calculated by checkDirect */
   /** explanation for invalid use of DirectManipulationRenderer */
   private String whyNotDirect = null;
@@ -580,9 +590,11 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
     mbarb[0] = x;
     mbarb[1] = y;
 
-    // convert meters per second to knots
-    f0 *= (3600.0 / 1853.248);
-    f1 *= (3600.0 / 1853.248);
+    if (getKnotsConvert()) {
+      // convert meters per second to knots
+      f0 *= (3600.0 / 1853.248);
+      f1 *= (3600.0 / 1853.248);
+    }
 
     float wnd_spd = (float) Math.sqrt(f0 * f0 + f1 * f1);
     int lenv = vx.length;
@@ -992,7 +1004,9 @@ System.out.println("barb50 " + x1 + " " + y1 + "" + x2 + " " + y2 +
         // so user can change barb by dragging it
         // drag with right mouse button and shift to change direction
         // drag with right mouse button and no shift to change speed
-        display.addReferences(new BarbManipulationRendererJ3D(), refs[k]);
+        BarbManipulationRendererJ3D renderer = new BarbManipulationRendererJ3D();
+        renderer.setKnotsConvert(true);
+        display.addReferences(renderer, refs[k]);
 
         // link wind record to a CellImpl that will listen for changes
         // and print them
