@@ -2755,11 +2755,11 @@ public class FieldImpl extends FunctionImpl implements Field {
     double[] means = new double[dim];
 
     Data[]Range = getRange ();
-    if (sampling_mode == WEIGHTED_AVERAGE && DomainSet instanceof GriddedSet) {
+    if (sampling_mode == WEIGHTED_AVERAGE && DomainSet instanceof SimpleSet) {
       // resample by interpolation
       int[][] indices = new int[length][];
       float[][] coefs = new float[length][];
-      ((GriddedSet) DomainSet).valueToInterp(vals, indices, coefs);
+      ((SimpleSet) DomainSet).valueToInterp(vals, indices, coefs);
       for (int i=0; i<length; i++) {
         int len;
         len = (indices[i] == null) ? 0 : indices[i].length;
