@@ -47,6 +47,10 @@ import visad.java3d.*;
     FancySSCell.<P> */
 public class BasicSSCell extends JPanel {
 
+  /** used for debugging */
+  private static final boolean DEBUG = false;
+
+
   /** constant for use with Dim variable */
   public static final int JAVA3D_3D = 1;
 
@@ -210,9 +214,11 @@ public class BasicSSCell extends JPanel {
             value = (Data) fm.getThing(Name);
           }
           catch (ClassCastException exc) {
+            if (DEBUG) exc.printStackTrace();
             setError("Final value is not of the correct type.");
           }
           catch (FormulaException exc) {
+            if (DEBUG) exc.printStackTrace();
             setError("The formula could not be evaluated.");
           }
 
@@ -222,9 +228,11 @@ public class BasicSSCell extends JPanel {
               clearDisplay();
             }
             catch (VisADException exc) {
+              if (DEBUG) exc.printStackTrace();
               setError("Unable to clear old data.");
             }
             catch (RemoteException exc) {
+              if (DEBUG) exc.printStackTrace();
               setError("Unable to clear old data.");
             }
           }
@@ -286,10 +294,18 @@ public class BasicSSCell extends JPanel {
             if (!s.equals(s2)) loadData(newFilename);
           }
         }
-        catch (VisADException exc) { }
-        catch (RemoteException exc) { }
-        catch (MalformedURLException exc) { }
-        catch (IOException exc) { }
+        catch (VisADException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
+        catch (RemoteException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
+        catch (MalformedURLException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
+        catch (IOException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
       }
     };
     try {
@@ -324,8 +340,12 @@ public class BasicSSCell extends JPanel {
             if (!s.equals(s2)) loadRMI(newRMIAddress);
           }
         }
-        catch (VisADException exc) { }
-        catch (RemoteException exc) { }
+        catch (VisADException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
+        catch (RemoteException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
       }
     };
     try {
@@ -352,8 +372,12 @@ public class BasicSSCell extends JPanel {
           String newFormula = nForm.getValue();
           setFormula(newFormula);
         }
-        catch (VisADException exc) { }
-        catch (RemoteException exc) { }
+        catch (VisADException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
+        catch (RemoteException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
       }
     };
     try {
@@ -381,8 +405,12 @@ public class BasicSSCell extends JPanel {
           if (IsRemote) setDimClone();
           else setDimension(newDim);
         }
-        catch (VisADException exc) { }
-        catch (RemoteException exc) { }
+        catch (VisADException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
+        catch (RemoteException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
       }
     };
     try {
@@ -418,8 +446,12 @@ public class BasicSSCell extends JPanel {
           else newErrors = null;
           setErrors(newErrors);
         }
-        catch (VisADException exc) { }
-        catch (RemoteException exc) { }
+        catch (VisADException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
+        catch (RemoteException exc) {
+          if (DEBUG) exc.printStackTrace();
+        }
       }
     };
     try {
@@ -445,8 +477,12 @@ public class BasicSSCell extends JPanel {
       Tuple t = new Tuple(new Data[] {bit, nFile}, false);
       RemoteFilename.setData(t);
     }
-    catch (VisADException exc) { }
-    catch (RemoteException exc) { }
+    catch (VisADException exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
+    catch (RemoteException exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
   }
 
   private void synchRMIAddress() {
@@ -456,8 +492,12 @@ public class BasicSSCell extends JPanel {
       Tuple t = new Tuple(new Data[] {bit, nRMI}, false);
       RemoteRMIAddress.setData(t);
     }
-    catch (VisADException exc) { }
-    catch (RemoteException exc) { }
+    catch (VisADException exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
+    catch (RemoteException exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
   }
 
   private void synchFormula() {
@@ -467,8 +507,12 @@ public class BasicSSCell extends JPanel {
       Tuple t = new Tuple(new Data[] {bit, nForm}, false);
       RemoteFormula.setData(t);
     }
-    catch (VisADException exc) { }
-    catch (RemoteException exc) { }
+    catch (VisADException exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
+    catch (RemoteException exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
   }
 
   private void synchDim() {
@@ -478,8 +522,12 @@ public class BasicSSCell extends JPanel {
       Tuple t = new Tuple(new Data[] {bit, nDim}, false);
       RemoteDim.setData(t);
     }
-    catch (VisADException exc) { }
-    catch (RemoteException exc) { }
+    catch (VisADException exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
+    catch (RemoteException exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
   }
 
   private void synchErrors() {
@@ -502,8 +550,12 @@ public class BasicSSCell extends JPanel {
       Tuple t = new Tuple(new Data[] {bit, nErrors}, false);
       RemoteErrors.setData(t);
     }
-    catch (VisADException exc) { }
-    catch (RemoteException exc) { }
+    catch (VisADException exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
+    catch (RemoteException exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
   }
 
   /** get this SSCell's name */
@@ -687,9 +739,11 @@ public class BasicSSCell extends JPanel {
       dataType = data.getType();
     }
     catch (RemoteException exc) {
+      if (DEBUG) exc.printStackTrace();
       return -1;
     }
     catch (VisADException exc) {
+      if (DEBUG) exc.printStackTrace();
       return -1;
     }
     int[] i = new int[1];
@@ -748,7 +802,9 @@ public class BasicSSCell extends JPanel {
       try {
         cType = mathType.getComponent(j);
       }
-      catch (VisADException exc) { }
+      catch (VisADException exc) {
+        if (DEBUG) exc.printStackTrace();
+      }
 
       if (cType != null) {
         if (cType instanceof FunctionType) {
@@ -826,7 +882,9 @@ public class BasicSSCell extends JPanel {
     try {
       dim = Integer.parseInt(b);
     }
-    catch (NumberFormatException exc) { }
+    catch (NumberFormatException exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
     if (dim != JAVA3D_3D && dim != JAVA2D_2D && dim != JAVA3D_2D) {
       throw new VisADException("Invalid info string!");
     }
@@ -1007,6 +1065,7 @@ public class BasicSSCell extends JPanel {
         return !fm.canBeRemoved(Name);
       }
       catch (FormulaException exc) {
+        if (DEBUG) exc.printStackTrace();
         return false;
       }
     }
@@ -1151,7 +1210,9 @@ public class BasicSSCell extends JPanel {
           try {
             setMaps(maps);
           }
-          catch (VisADException exc) { }
+          catch (VisADException exc) {
+            if (DEBUG) exc.printStackTrace();
+          }
         }
 
         // reinitialize display
@@ -1347,15 +1408,19 @@ public class BasicSSCell extends JPanel {
       else data = loader.open(u);
     }
     catch (BadFormException exc) {
+      if (DEBUG) exc.printStackTrace();
       setError("The file could not be converted to VisAD data.");
     }
     catch (RemoteException exc) {
+      if (DEBUG) exc.printStackTrace();
       setError("A remote error occurred: " + exc.getMessage());
     }
     catch (IOException exc) {
+      if (DEBUG) exc.printStackTrace();
       setError("The file does not exist, or its data is corrupt.");
     }
     catch (VisADException exc) {
+      if (DEBUG) exc.printStackTrace();
       setError("An error occurred: " + exc.getMessage());
     }
     finally {
@@ -1410,12 +1475,15 @@ public class BasicSSCell extends JPanel {
               cell.setData(rref.getData().local());
             }
             catch (NullPointerException exc) {
+              if (DEBUG) exc.printStackTrace();
               setError("Remote data is null");
             }
             catch (VisADException exc) {
+              if (DEBUG) exc.printStackTrace();
               setError("Could not update remote data");
             }
             catch (RemoteException exc) {
+              if (DEBUG) exc.printStackTrace();
               setError("Unable to import updated remote data");
             }
           }
@@ -1424,21 +1492,27 @@ public class BasicSSCell extends JPanel {
         rcell.addReference(ref);
       }
       catch (ClassCastException exc) {
+        if (DEBUG) exc.printStackTrace();
         setError("The name of the RMI server is not valid.");
       }
       catch (MalformedURLException exc) {
+        if (DEBUG) exc.printStackTrace();
         setError("The name of the RMI server is not valid.");
       }
       catch (NotBoundException exc) {
+        if (DEBUG) exc.printStackTrace();
         setError("The remote data specified does not exist.");
       }
       catch (AccessException exc) {
+        if (DEBUG) exc.printStackTrace();
         setError("Could not gain access to the remote data.");
       }
       catch (RemoteException exc) {
+        if (DEBUG) exc.printStackTrace();
         setError("Could not connect to the RMI server.");
       }
       catch (VisADException exc) {
+        if (DEBUG) exc.printStackTrace();
         setError("An error occurred: " + exc.getMessage());
       }
       finally {
@@ -1486,8 +1560,12 @@ public class BasicSSCell extends JPanel {
       try {
         v = RemoteVDisplay.getReferenceLinks();
       }
-      catch (VisADException exc) { }
-      catch (RemoteException exc) { }
+      catch (VisADException exc) {
+        if (DEBUG) exc.printStackTrace();
+      }
+      catch (RemoteException exc) {
+        if (DEBUG) exc.printStackTrace();
+      }
       if (v == null || v.isEmpty()) return null;
       RemoteReferenceLink rrli = (RemoteReferenceLink) v.elementAt(0);
       if (rrli == null) return null;
@@ -1496,8 +1574,12 @@ public class BasicSSCell extends JPanel {
         if (dr == null) return null;
         return dr.getData();
       }
-      catch (VisADException exc) { }
-      catch (RemoteException exc) { }
+      catch (VisADException exc) {
+        if (DEBUG) exc.printStackTrace();
+      }
+      catch (RemoteException exc) {
+        if (DEBUG) exc.printStackTrace();
+      }
       return null;
     }
     else return DataRef.getData();
@@ -1520,8 +1602,12 @@ public class BasicSSCell extends JPanel {
       try {
         v = RemoteVDisplay.getMapVector();
       }
-      catch (VisADException exc) { }
-      catch (RemoteException exc) { }
+      catch (VisADException exc) {
+        if (DEBUG) exc.printStackTrace();
+      }
+      catch (RemoteException exc) {
+        if (DEBUG) exc.printStackTrace();
+      }
       return v != null && !v.isEmpty();
     }
     else return HasMappings;
@@ -1542,9 +1628,11 @@ public class BasicSSCell extends JPanel {
           VDisplay = new DisplayImplJ2D(RemoteVDisplay);
         }
         catch (VisADException exc) {
+          if (DEBUG) exc.printStackTrace();
           success = false;
         }
         catch (RemoteException exc) {
+          if (DEBUG) exc.printStackTrace();
           success = false;
         }
       }
@@ -1559,12 +1647,15 @@ public class BasicSSCell extends JPanel {
           }
         }
         catch (NoClassDefFoundError err) {
+          if (DEBUG) err.printStackTrace();
           success = false;
         }
         catch (UnsatisfiedLinkError err) {
+          if (DEBUG) err.printStackTrace();
           success = false;
         }
         catch (Exception exc) {
+          if (DEBUG) exc.printStackTrace();
           success = false;
         }
       }
@@ -1579,9 +1670,11 @@ public class BasicSSCell extends JPanel {
         }
       }
       catch (VisADException exc) {
+        if (DEBUG) exc.printStackTrace();
         success = false;
       }
       catch (RemoteException exc) {
+        if (DEBUG) exc.printStackTrace();
         success = false;
       }
     }
