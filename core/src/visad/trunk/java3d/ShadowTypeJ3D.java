@@ -208,6 +208,17 @@ public abstract class ShadowTypeJ3D extends ShadowType {
                       ColoringAttributes constant_color,
                       GeometryArray geometry, boolean no_material) {
     Appearance appearance = new Appearance();
+    appearance.setCapability(Appearance.ALLOW_COLORING_ATTRIBUTES_READ);
+    appearance.setCapability(Appearance.ALLOW_LINE_ATTRIBUTES_READ);
+    appearance.setCapability(Appearance.ALLOW_MATERIAL_READ);
+    appearance.setCapability(Appearance.ALLOW_POINT_ATTRIBUTES_READ);
+    appearance.setCapability(Appearance.ALLOW_POLYGON_ATTRIBUTES_READ);
+    appearance.setCapability(Appearance.ALLOW_RENDERING_ATTRIBUTES_READ);
+    appearance.setCapability(Appearance.ALLOW_TEXGEN_READ);
+    appearance.setCapability(Appearance.ALLOW_TEXTURE_ATTRIBUTES_READ);
+    appearance.setCapability(Appearance.ALLOW_TEXTURE_READ);
+    appearance.setCapability(Appearance.ALLOW_TEXTURE_UNIT_STATE_READ);
+    appearance.setCapability(Appearance.ALLOW_TRANSPARENCY_ATTRIBUTES_READ);
 
     LineAttributes line = new LineAttributes();
     line.setLineWidth(mode.getLineWidth());
@@ -252,6 +263,8 @@ public abstract class ShadowTypeJ3D extends ShadowType {
         // no lighting in 2-D mode
         if (!mode.getMode2D()) material.setLightingEnable(true);
         appearance.setMaterial(material);
+        //TEST
+        appearance.setCapability(Appearance.ALLOW_MATERIAL_READ);
       }
       if (constant_alpha != null) {
         appearance.setTransparencyAttributes(constant_alpha);
@@ -490,6 +503,12 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     if (group.numChildren() > 0) return;
     GeometryArray geometry =
       new PointArray(1, GeometryArray.COORDINATES | GeometryArray.COLOR_3);
+    geometry.setCapability(GeometryArray.ALLOW_COLOR_READ);
+    geometry.setCapability(GeometryArray.ALLOW_COORDINATE_READ);
+    geometry.setCapability(GeometryArray.ALLOW_COUNT_READ);
+    geometry.setCapability(GeometryArray.ALLOW_FORMAT_READ);
+    geometry.setCapability(GeometryArray.ALLOW_NORMAL_READ);
+    geometry.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
     float[] coordinates = new float[3];
     coordinates[0] = 1000000.0f;
     coordinates[1] = 1000000.0f;
@@ -504,6 +523,8 @@ public abstract class ShadowTypeJ3D extends ShadowType {
       staticMakeAppearance(display.getGraphicsModeControl(), null, null,
                            geometry, false);
     Shape3D shape = new Shape3D(geometry, appearance);
+    shape.setCapability(Shape3D.ALLOW_GEOMETRY_READ);
+    shape.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
     group.addChild(shape);
   }
 
@@ -573,6 +594,8 @@ public abstract class ShadowTypeJ3D extends ShadowType {
       Appearance appearance =
         makeAppearance(mode, c_alpha, c_color, geometry, false);
       Shape3D shape = new Shape3D(geometry, appearance);
+      shape.setCapability(Shape3D.ALLOW_GEOMETRY_READ);
+      shape.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
       ((Group) group).addChild(shape);
       return true;
     }
@@ -647,6 +670,8 @@ public abstract class ShadowTypeJ3D extends ShadowType {
       Appearance appearance =
         makeAppearance(mode, c_alpha, c_color, geometry, false);
       Shape3D shape = new Shape3D(geometry, appearance);
+      shape.setCapability(Shape3D.ALLOW_GEOMETRY_READ);
+      shape.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
       ((Group) group).addChild(shape);
 
       if (array instanceof VisADTriangleArray) {
@@ -659,6 +684,8 @@ public abstract class ShadowTypeJ3D extends ShadowType {
         PolygonAttributes pa = appearance2.getPolygonAttributes();
         pa.setPolygonMode(PolygonAttributes.POLYGON_LINE);
         Shape3D shape2 = new Shape3D(geometry2, appearance2);
+        shape2.setCapability(Shape3D.ALLOW_GEOMETRY_READ);
+        shape2.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
         ((Group) group).addChild(shape2);
       }
 

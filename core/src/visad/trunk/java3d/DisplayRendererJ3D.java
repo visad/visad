@@ -549,11 +549,13 @@ public abstract class DisplayRendererJ3D
     cursor_switch = new Switch();
     cursor_switch.setCapability(Switch.ALLOW_SWITCH_READ);
     cursor_switch.setCapability(Switch.ALLOW_SWITCH_WRITE);
+    cursor_switch.setCapability(Group.ALLOW_CHILDREN_READ);
     cursor_trans.addChild(cursor_switch);
     cursor_on = new BranchGroup();
     cursor_on.setCapability(Group.ALLOW_CHILDREN_READ);
     cursor_on.setCapability(Group.ALLOW_CHILDREN_WRITE);
     cursor_off = new BranchGroup();
+    cursor_off.setCapability(Group.ALLOW_CHILDREN_READ);
     cursor_switch.addChild(cursor_off);
     cursor_switch.addChild(cursor_on);
     cursor_switch.setWhichChild(0); // initially off
@@ -562,11 +564,13 @@ public abstract class DisplayRendererJ3D
     box_switch = new Switch();
     box_switch.setCapability(Switch.ALLOW_SWITCH_READ);
     box_switch.setCapability(Switch.ALLOW_SWITCH_WRITE);
+    box_switch.setCapability(Group.ALLOW_CHILDREN_READ);
     trans.addChild(box_switch);
     box_on = new BranchGroup();
     box_on.setCapability(Group.ALLOW_CHILDREN_READ);
     box_on.setCapability(Group.ALLOW_CHILDREN_WRITE);
     box_off = new BranchGroup();
+    box_off.setCapability(Group.ALLOW_CHILDREN_READ);
     box_switch.addChild(box_off);
     box_switch.addChild(box_on);
     box_switch.setWhichChild(1); // initially on
@@ -578,12 +582,14 @@ public abstract class DisplayRendererJ3D
     scale_switch = new Switch();
     scale_switch.setCapability(Switch.ALLOW_SWITCH_READ);
     scale_switch.setCapability(Switch.ALLOW_SWITCH_WRITE);
+    scale_switch.setCapability(Group.ALLOW_CHILDREN_READ);
     trans.addChild(scale_switch);
     scale_on = new BranchGroup();
     scale_on.setCapability(Group.ALLOW_CHILDREN_READ);
     scale_on.setCapability(Group.ALLOW_CHILDREN_WRITE);
     scale_on.setCapability(Group.ALLOW_CHILDREN_EXTEND);
     scale_off = new BranchGroup();
+    scale_off.setCapability(Group.ALLOW_CHILDREN_READ);
     scale_switch.addChild(scale_off);
     scale_switch.addChild(scale_on);
     scale_switch.setWhichChild(0); // initially off
@@ -1217,6 +1223,8 @@ public abstract class DisplayRendererJ3D
     Appearance appearance =
       ShadowTypeJ3D.staticMakeAppearance(mode, null, color, geometry, false);
     Shape3D shape = new Shape3D(geometry, appearance);
+    shape.setCapability(Shape3D.ALLOW_GEOMETRY_READ);
+    shape.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
     BranchGroup group = new BranchGroup();
     group.setCapability(BranchGroup.ALLOW_DETACH);
     group.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
@@ -1227,7 +1235,9 @@ public abstract class DisplayRendererJ3D
         ShadowTypeJ3D.staticMakeAppearance(mode, null, null,
                                            labelGeometry, true);
       Shape3D labelShape = new Shape3D(labelGeometry, labelAppearance);
-
+      labelShape.setCapability(Shape3D.ALLOW_GEOMETRY_READ);
+      labelShape.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
+      
       group.addChild(labelShape);
 
 
@@ -1244,6 +1254,8 @@ public abstract class DisplayRendererJ3D
         PolygonAttributes pa = labelAppearance2.getPolygonAttributes();
         pa.setPolygonMode(PolygonAttributes.POLYGON_LINE);
         Shape3D labelShape2 = new Shape3D(labelGeometry2, labelAppearance2);
+        labelShape2.setCapability(Shape3D.ALLOW_GEOMETRY_READ);
+        labelShape2.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
         group.addChild(labelShape2);
       }
 
@@ -1460,6 +1472,7 @@ public abstract class DisplayRendererJ3D
   {
     if (not_destroyed == null) return;
     BranchGroup bg = new BranchGroup();
+    bg.setCapability(Group.ALLOW_CHILDREN_READ);
     bg.addChild(behavior);
     trans.addChild(bg);
   }

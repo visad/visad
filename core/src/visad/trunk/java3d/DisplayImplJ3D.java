@@ -457,6 +457,13 @@ public class DisplayImplJ3D extends DisplayImpl {
       IndexedTriangleStripArray array =
         new IndexedTriangleStripArray(vga.vertexCount, makeFormat(vga),
                                       vgb.indexCount, vgb.stripVertexCounts);
+     array.setCapability(GeometryArray.ALLOW_COLOR_READ);
+     array.setCapability(GeometryArray.ALLOW_COORDINATE_READ);
+     array.setCapability(GeometryArray.ALLOW_COUNT_READ);
+     array.setCapability(GeometryArray.ALLOW_FORMAT_READ);
+     array.setCapability(GeometryArray.ALLOW_NORMAL_READ);
+     array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+     array.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
       basicGeometry(vga, array, mode2d);
       if (vga.coordinates != null) {
         array.setCoordinateIndices(0, vgb.indices);
@@ -579,12 +586,26 @@ public class DisplayImplJ3D extends DisplayImpl {
       TriangleStripArray array =
         new TriangleStripArray(vga.vertexCount, makeFormat(vga),
                                vgb.stripVertexCounts);
+      array.setCapability(GeometryArray.ALLOW_COLOR_READ);
+      array.setCapability(GeometryArray.ALLOW_COORDINATE_READ);
+      array.setCapability(GeometryArray.ALLOW_COUNT_READ);
+      array.setCapability(GeometryArray.ALLOW_FORMAT_READ);
+      array.setCapability(GeometryArray.ALLOW_NORMAL_READ);
+      array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+      array.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
       basicGeometry(vga, array, mode2d);
       return array;
     }
     else if (vga instanceof VisADLineArray) {
       if (vga.vertexCount == 0) return null;
       LineArray array = new LineArray(vga.vertexCount, makeFormat(vga));
+      array.setCapability(GeometryArray.ALLOW_COLOR_READ);
+      array.setCapability(GeometryArray.ALLOW_COORDINATE_READ);
+      array.setCapability(GeometryArray.ALLOW_COUNT_READ);
+      array.setCapability(GeometryArray.ALLOW_FORMAT_READ);
+      array.setCapability(GeometryArray.ALLOW_NORMAL_READ);
+      array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+      array.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
       basicGeometry(vga, array, false);
       return array;
     }
@@ -594,24 +615,52 @@ public class DisplayImplJ3D extends DisplayImpl {
       LineStripArray array =
         new LineStripArray(vga.vertexCount, makeFormat(vga),
                            vgb.stripVertexCounts);
+      array.setCapability(GeometryArray.ALLOW_COLOR_READ);
+      array.setCapability(GeometryArray.ALLOW_COORDINATE_READ);
+      array.setCapability(GeometryArray.ALLOW_COUNT_READ);
+      array.setCapability(GeometryArray.ALLOW_FORMAT_READ);
+      array.setCapability(GeometryArray.ALLOW_NORMAL_READ);
+      array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+      array.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
       basicGeometry(vga, array, false);
       return array;
     }
     else if (vga instanceof VisADPointArray) {
       if (vga.vertexCount == 0) return null;
       PointArray array = new PointArray(vga.vertexCount, makeFormat(vga));
+      array.setCapability(GeometryArray.ALLOW_COLOR_READ);
+      array.setCapability(GeometryArray.ALLOW_COORDINATE_READ);
+      array.setCapability(GeometryArray.ALLOW_COUNT_READ);
+      array.setCapability(GeometryArray.ALLOW_FORMAT_READ);
+      array.setCapability(GeometryArray.ALLOW_NORMAL_READ);
+      array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+      array.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
       basicGeometry(vga, array, false);
       return array;
     }
     else if (vga instanceof VisADTriangleArray) {
       if (vga.vertexCount == 0) return null;
       TriangleArray array = new TriangleArray(vga.vertexCount, makeFormat(vga));
+      array.setCapability(GeometryArray.ALLOW_COLOR_READ);
+      array.setCapability(GeometryArray.ALLOW_COORDINATE_READ);
+      array.setCapability(GeometryArray.ALLOW_COUNT_READ);
+      array.setCapability(GeometryArray.ALLOW_FORMAT_READ);
+      array.setCapability(GeometryArray.ALLOW_NORMAL_READ);
+      array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+      array.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
       basicGeometry(vga, array, mode2d);
       return array;
     }
     else if (vga instanceof VisADQuadArray) {
       if (vga.vertexCount == 0) return null;
       QuadArray array = new QuadArray(vga.vertexCount, makeFormat(vga));
+      array.setCapability(GeometryArray.ALLOW_COLOR_READ);
+      array.setCapability(GeometryArray.ALLOW_COORDINATE_READ);
+      array.setCapability(GeometryArray.ALLOW_COUNT_READ);
+      array.setCapability(GeometryArray.ALLOW_FORMAT_READ);
+      array.setCapability(GeometryArray.ALLOW_NORMAL_READ);
+      array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+      array.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
       basicGeometry(vga, array, mode2d);
       return array;
     }

@@ -421,6 +421,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     // end of from TextureLoader
     //
     Shape3D shape = new Shape3D(geometry, appearance);
+    shape.setCapability(Shape3D.ALLOW_GEOMETRY_READ);
     shape.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
     appearance.setTexture(texture);
     appearance.setCapability(Appearance.ALLOW_TEXTURE_READ);
@@ -537,6 +538,19 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     appearance.setTexture(texture);
     appearance.setCapability(Appearance.ALLOW_TEXTURE_READ);
 
+    shapeX.setCapability(Shape3D.ALLOW_GEOMETRY_READ);
+    shapeX.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
+    shapeY.setCapability(Shape3D.ALLOW_GEOMETRY_READ);
+    shapeY.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
+    shapeZ.setCapability(Shape3D.ALLOW_GEOMETRY_READ);
+    shapeZ.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
+    shapeXrev.setCapability(Shape3D.ALLOW_GEOMETRY_READ);
+    shapeXrev.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
+    shapeYrev.setCapability(Shape3D.ALLOW_GEOMETRY_READ);
+    shapeYrev.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
+    shapeZrev.setCapability(Shape3D.ALLOW_GEOMETRY_READ);
+    shapeZrev.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
+    
     Switch swit = (Switch) makeSwitch();
     swit.addChild(shapeX);
     swit.addChild(shapeY);
@@ -659,6 +673,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       appearance.setTexture(texture);
       appearance.setCapability(Appearance.ALLOW_TEXTURE_READ);
       shapeX[i] = new Shape3D(geometryX[i], appearance);
+      shapeX[i].setCapability(Shape3D.ALLOW_GEOMETRY_READ);
       shapeX[i].setCapability(Shape3D.ALLOW_APPEARANCE_READ);
       branchX.addChild(shapeX[i]);
     }
@@ -693,6 +708,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       appearance.setTexture(texture);
       appearance.setCapability(Appearance.ALLOW_TEXTURE_READ);
       shapeX[i] = new Shape3D(geometryX[i], appearance);
+      shapeX[i].setCapability(Shape3D.ALLOW_GEOMETRY_READ);
       shapeX[i].setCapability(Shape3D.ALLOW_APPEARANCE_READ);
       branchXrev.addChild(shapeX[i]);
     }
@@ -732,6 +748,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       appearance.setTexture(texture);
       appearance.setCapability(Appearance.ALLOW_TEXTURE_READ);
       shapeY[i] = new Shape3D(geometryY[i], appearance);
+      shapeY[i].setCapability(Shape3D.ALLOW_GEOMETRY_READ);
       shapeY[i].setCapability(Shape3D.ALLOW_APPEARANCE_READ);
       branchY.addChild(shapeY[i]);
     }
@@ -767,6 +784,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       appearance.setTexture(texture);
       appearance.setCapability(Appearance.ALLOW_TEXTURE_READ);
       shapeY[i] = new Shape3D(geometryY[i], appearance);
+      shapeY[i].setCapability(Shape3D.ALLOW_GEOMETRY_READ);
       shapeY[i].setCapability(Shape3D.ALLOW_APPEARANCE_READ);
       branchYrev.addChild(shapeY[i]);
     }
@@ -805,6 +823,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       appearance.setTexture(texture);
       appearance.setCapability(Appearance.ALLOW_TEXTURE_READ);
       shapeZ[i] = new Shape3D(geometryZ[i], appearance);
+      shapeZ[i].setCapability(Shape3D.ALLOW_GEOMETRY_READ);
       shapeZ[i].setCapability(Shape3D.ALLOW_APPEARANCE_READ);
       branchZ.addChild(shapeZ[i]);
     }
@@ -839,6 +858,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       appearance.setTexture(texture);
       appearance.setCapability(Appearance.ALLOW_TEXTURE_READ);
       shapeZ[i] = new Shape3D(geometryZ[i], appearance);
+      shapeZ[i].setCapability(Shape3D.ALLOW_GEOMETRY_READ);
       shapeZ[i].setCapability(Shape3D.ALLOW_APPEARANCE_READ);
       branchZrev.addChild(shapeZ[i]);
     }

@@ -142,9 +142,27 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
 
     // WLH 24 Nov 2000
     box_geometry.setCapability(GeometryArray.ALLOW_COORDINATE_WRITE);
+    box_geometry.setCapability(GeometryArray.ALLOW_COLOR_READ);
+    box_geometry.setCapability(GeometryArray.ALLOW_COORDINATE_READ);
+    box_geometry.setCapability(GeometryArray.ALLOW_COUNT_READ);
+    box_geometry.setCapability(GeometryArray.ALLOW_FORMAT_READ);
+    box_geometry.setCapability(GeometryArray.ALLOW_NORMAL_READ);
+    box_geometry.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+    box_geometry.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
 
     box_geometry.setCoordinates(0, box_verts);
     Appearance box_appearance = new Appearance();
+    box_appearance.setCapability(Appearance.ALLOW_COLORING_ATTRIBUTES_READ);
+    box_appearance.setCapability(Appearance.ALLOW_LINE_ATTRIBUTES_READ);
+    box_appearance.setCapability(Appearance.ALLOW_MATERIAL_READ);
+    box_appearance.setCapability(Appearance.ALLOW_POINT_ATTRIBUTES_READ);
+    box_appearance.setCapability(Appearance.ALLOW_POLYGON_ATTRIBUTES_READ);
+    box_appearance.setCapability(Appearance.ALLOW_RENDERING_ATTRIBUTES_READ);
+    box_appearance.setCapability(Appearance.ALLOW_TEXGEN_READ);
+    box_appearance.setCapability(Appearance.ALLOW_TEXTURE_ATTRIBUTES_READ);
+    box_appearance.setCapability(Appearance.ALLOW_TEXTURE_READ);
+    box_appearance.setCapability(Appearance.ALLOW_TEXTURE_UNIT_STATE_READ);
+    box_appearance.setCapability(Appearance.ALLOW_TRANSPARENCY_ATTRIBUTES_READ);
 
     // WLH 2 Dec 2002 in response to qomo2.txt
     box_line = new LineAttributes();
@@ -158,6 +176,7 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
     box_appearance.setColoringAttributes(box_color);
     Shape3D box = new Shape3D(box_geometry, box_appearance);
     box.setCapability(Shape3D.ALLOW_GEOMETRY_READ); // WLH 24 Nov 2000
+    box.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
     BranchGroup box_on = getBoxOnBranch();
     box_on.addChild(box);
 
@@ -166,6 +185,19 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
     // WLH 2 Dec 2002 in response to qomo2.txt
     cursor_line = new LineAttributes();
     cursor_line.setCapability(LineAttributes.ALLOW_WIDTH_WRITE);
+    cursor_appearance.setCapability(Appearance.ALLOW_COLORING_ATTRIBUTES_READ);
+    cursor_appearance.setCapability(Appearance.ALLOW_LINE_ATTRIBUTES_READ);
+    cursor_appearance.setCapability(Appearance.ALLOW_MATERIAL_READ);
+    cursor_appearance.setCapability(Appearance.ALLOW_POINT_ATTRIBUTES_READ);
+    cursor_appearance.setCapability(Appearance.ALLOW_POLYGON_ATTRIBUTES_READ);
+    cursor_appearance.setCapability(Appearance.ALLOW_RENDERING_ATTRIBUTES_READ);
+    cursor_appearance.setCapability(Appearance.ALLOW_TEXGEN_READ);
+    cursor_appearance.setCapability(Appearance.ALLOW_TEXTURE_ATTRIBUTES_READ);
+    cursor_appearance.setCapability(Appearance.ALLOW_TEXTURE_READ);
+    cursor_appearance.setCapability(Appearance.ALLOW_TEXTURE_UNIT_STATE_READ);
+    cursor_appearance.setCapability(Appearance.ALLOW_TRANSPARENCY_ATTRIBUTES_READ);
+    cursor_color.setCapability(ColoringAttributes.ALLOW_COLOR_READ);
+    cursor_color.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
     cursor_appearance.setLineAttributes(cursor_line);
 
     cursor_color.setCapability(ColoringAttributes.ALLOW_COLOR_READ);
@@ -177,7 +209,16 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
     BranchGroup cursor_on = getCursorOnBranch();
     LineArray cursor_geometry = new LineArray(6, LineArray.COORDINATES);
     cursor_geometry.setCoordinates(0, cursor_verts);
+    cursor_geometry.setCapability(GeometryArray.ALLOW_COLOR_READ);
+    cursor_geometry.setCapability(GeometryArray.ALLOW_COORDINATE_READ);
+    cursor_geometry.setCapability(GeometryArray.ALLOW_COUNT_READ);
+    cursor_geometry.setCapability(GeometryArray.ALLOW_FORMAT_READ);
+    cursor_geometry.setCapability(GeometryArray.ALLOW_NORMAL_READ);
+    cursor_geometry.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+    cursor_geometry.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
     Shape3D cursor = new Shape3D(cursor_geometry, cursor_appearance);
+    cursor.setCapability(Shape3D.ALLOW_GEOMETRY_READ);
+    cursor.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
     cursor_on.addChild(cursor);
 
     // insert MouseBehaviorJ3D into scene graph
@@ -189,6 +230,10 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
     // create ambient light, directly under root (not transformed)
     Color3f color = new Color3f(0.6f, 0.6f, 0.6f);
     AmbientLight light = new AmbientLight(color);
+    light.setCapability(Light.ALLOW_COLOR_READ);
+    light.setCapability(Light.ALLOW_INFLUENCING_BOUNDS_READ);
+    light.setCapability(Light.ALLOW_SCOPE_READ);
+    light.setCapability(Light.ALLOW_STATE_READ);
     light.setInfluencingBounds(bounds);
     root.addChild(light);
 
@@ -198,9 +243,19 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
     Vector3f direction2 = new Vector3f(0.0f, 0.0f, -1.0f);
     DirectionalLight light1 =
       new DirectionalLight(true, dcolor, direction1);
+    light1.setCapability(DirectionalLight.ALLOW_DIRECTION_READ);
+    light1.setCapability(Light.ALLOW_COLOR_READ);
+    light1.setCapability(Light.ALLOW_INFLUENCING_BOUNDS_READ);
+    light1.setCapability(Light.ALLOW_SCOPE_READ);
+    light1.setCapability(Light.ALLOW_STATE_READ);
     light1.setInfluencingBounds(bounds);
     DirectionalLight light2 =
       new DirectionalLight(true, dcolor, direction2);
+    light2.setCapability(DirectionalLight.ALLOW_DIRECTION_READ);
+    light2.setCapability(Light.ALLOW_COLOR_READ);
+    light2.setCapability(Light.ALLOW_INFLUENCING_BOUNDS_READ);
+    light2.setCapability(Light.ALLOW_SCOPE_READ);
+    light2.setCapability(Light.ALLOW_STATE_READ);
     light2.setInfluencingBounds(bounds);
     root.addChild(light1);
     root.addChild(light2);

@@ -78,6 +78,7 @@ public class UniverseBuilderJ3D extends Object {
       // Create a branch group node for the view platform
       vpRoot = new BranchGroup();
       vpRoot.setCapability(BranchGroup.ALLOW_DETACH);
+      vpRoot.setCapability(Group.ALLOW_CHILDREN_READ);
 
       // Create a ViewPlatform object, and its associated
       // TransformGroup object, and attach it to the root of the
@@ -86,6 +87,7 @@ public class UniverseBuilderJ3D extends Object {
       t.set(new Vector3f(0.0f, 0.0f, 2.0f));
       vp = new ViewPlatform();
       vpTrans = new TransformGroup(t);
+      vpTrans.setCapability(Group.ALLOW_CHILDREN_READ);
       vpTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
       vpTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 

@@ -134,6 +134,14 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
 
     // create the box containing data depictions
     LineArray box_geometry = new LineArray(8, LineArray.COORDINATES);
+    box_geometry.setCapability(GeometryArray.ALLOW_COLOR_READ);
+    box_geometry.setCapability(GeometryArray.ALLOW_COORDINATE_READ);
+    box_geometry.setCapability(GeometryArray.ALLOW_COUNT_READ);
+    box_geometry.setCapability(GeometryArray.ALLOW_FORMAT_READ);
+    box_geometry.setCapability(GeometryArray.ALLOW_NORMAL_READ);
+    box_geometry.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+    box_geometry.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
+    
 
     // WLH 24 Nov 2000
     box_geometry.setCapability(GeometryArray.ALLOW_COORDINATE_WRITE);
@@ -153,6 +161,7 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
     box_appearance.setColoringAttributes(box_color);
     Shape3D box = new Shape3D(box_geometry, box_appearance);
     box.setCapability(Shape3D.ALLOW_GEOMETRY_READ); // WLH 24 Nov 2000
+    box.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
     BranchGroup box_on = getBoxOnBranch();
     box_on.addChild(box);
 
@@ -171,8 +180,18 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
 
     BranchGroup cursor_on = getCursorOnBranch();
     LineArray cursor_geometry = new LineArray(4, LineArray.COORDINATES);
+    cursor_geometry.setCapability(GeometryArray.ALLOW_COLOR_READ);
+    cursor_geometry.setCapability(GeometryArray.ALLOW_COORDINATE_READ);
+    cursor_geometry.setCapability(GeometryArray.ALLOW_COUNT_READ);
+    cursor_geometry.setCapability(GeometryArray.ALLOW_FORMAT_READ);
+    cursor_geometry.setCapability(GeometryArray.ALLOW_NORMAL_READ);
+    cursor_geometry.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+    cursor_geometry.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
+    
     cursor_geometry.setCoordinates(0, cursor_verts);
     Shape3D cursor = new Shape3D(cursor_geometry, cursor_appearance);
+    cursor.setCapability(Shape3D.ALLOW_GEOMETRY_READ);
+    cursor.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
     cursor_on.addChild(cursor);
 
     // insert MouseBehaviorJ3D into scene graph

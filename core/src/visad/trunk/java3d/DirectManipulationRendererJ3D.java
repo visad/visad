@@ -112,6 +112,8 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
       ShadowTypeJ3D.staticMakeAppearance(mode, null, null, geometry, false);
 
     Shape3D shape = new Shape3D(geometry, appearance);
+    shape.setCapability(Shape3D.ALLOW_GEOMETRY_READ);
+    shape.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
     BranchGroup group = new BranchGroup();
     group.setCapability(Group.ALLOW_CHILDREN_READ);
     group.addChild(shape);
