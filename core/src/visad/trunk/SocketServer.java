@@ -41,10 +41,10 @@ import visad.util.Util;
     examples/Test68.java together with the
     <a href="http://www.ssec.wisc.edu/~curtis/visad-applet.html">
     stand-alone VisADApplet</a> usable from within a web browser. */
-public class SocketServer implements DisplayListener {
+public class SocketServer implements RemoteSlaveDisplay {
 
   /** debugging flag */
-  private static final boolean DEBUG = true;
+  private static final boolean DEBUG = false;
 
   /** the default port for server/client communication */
   private static final int DEFAULT_PORT = 4567;
@@ -55,14 +55,11 @@ public class SocketServer implements DisplayListener {
   /** the server's associated VisAD display */
   private DisplayImpl display;
 
-  /** flag that signals when the display's image should be recaptured */
-  private DataReferenceImpl dirtyFlag;
-
   /** flag that prevents getImage() calls from signaling a FRAME_DONE event */
   private boolean flag;
 
   /** array of image data extracted from the VisAD display */
-  private byte[] pixels;
+  private byte[] pix;
 
   /** height of image */
   private int h;
@@ -90,6 +87,9 @@ public class SocketServer implements DisplayListener {
 
   /** whether the server is still alive */
   private boolean alive = true;
+
+  /** whether the display update was triggered by a getImage() call */
+  private boolean trigger = false;
 
   /** contains the code for monitoring incoming clients */
   private Runnable connect = new Runnable() {
@@ -152,11 +152,14 @@ public class SocketServer implements DisplayListener {
                 }
                 else {
                   // client has requested a refresh
-                  DataOutputStream out =
-                    (DataOutputStream) clientOutputs.elementAt(i);
-                  updateClient(out);
+                  updateClient(i);
                 }
               }
+            }
+            catch (SocketException exc) {
+              // there is a problem with this socket, so kill it
+              killSocket(i);
+              break;
             }
             catch (IOException exc) {
               if (DEBUG) exc.printStackTrace();
@@ -167,12 +170,12 @@ public class SocketServer implements DisplayListener {
     }
   };
 
-  /** construct an SocketServer for the given VisAD display */
+  /** construct a SocketServer for the given VisAD display */
   public SocketServer(DisplayImpl d) throws IOException {
     this(d, DEFAULT_PORT);
   }
 
-  /** construct an SocketServer for the given VisAD display,
+  /** construct a SocketServer for the given VisAD display,
       and communicate with clients using the given port */
   public SocketServer(DisplayImpl d, int port) throws IOException {
     display = d;
@@ -189,64 +192,8 @@ public class SocketServer implements DisplayListener {
     commThread = new Thread(comm);
     commThread.start();
 
-    // create a "dirty flag" for monitoring when clients need to be updated
-    try {
-      dirtyFlag = new DataReferenceImpl("dirtyFlag");
-      dirtyFlag.setData(new Real(0.0));
-    }
-    catch (VisADException exc) {
-      if (DEBUG) exc.printStackTrace();
-    }
-    catch (RemoteException exc) {
-      if (DEBUG) exc.printStackTrace();
-    }
-
-    // listen for changes to the display
-    display.addDisplayListener(this);
-
-    // construct a cell that sends the latest image to the clients
-    final DisplayListener l = this;
-    CellImpl cell = new CellImpl() {
-      public synchronized void doAction()
-        throws VisADException, RemoteException
-      {
-        // get the latest image
-        display.removeDisplayListener(l);
-        BufferedImage image = display.getImage();
-
-        // get width and height
-        w = image.getWidth();
-        h = image.getHeight();
-
-        // grab pixels from the image
-        int[] pix = new int[w * h];
-        image.getRGB(0, 0, w, h, pix, 0, w);
-
-        // convert pixels to byte array
-        pixels = Util.intToBytes(pix);
-
-        synchronized (clientSockets) {
-          // update all clients with latest image
-          for (int i=0; i<clientSockets.size(); i++) {
-            DataOutputStream out =
-              (DataOutputStream) clientOutputs.elementAt(i);
-            updateClient(out);
-          }
-        }
-        display.addDisplayListener(l);
-      }
-    };
-
-    // link the above triggered Cell to the dirty flag
-    try {
-      cell.addReference(dirtyFlag);
-    }
-    catch (VisADException exc) {
-      if (DEBUG) exc.printStackTrace();
-    }
-    catch (RemoteException exc) {
-      if (DEBUG) exc.printStackTrace();
-    }
+    // register socket server as a "slaved display"
+    display.addSlave(this);
   }
 
   /** get the socket port used by this SocketServer */
@@ -255,28 +202,71 @@ public class SocketServer implements DisplayListener {
   }
 
   /** send the latest image from the display to the given output stream */
-  private void updateClient(DataOutputStream out) {
-    try {
-      // send image width and height to the output stream
-      out.writeInt(w);
-      out.writeInt(h);
+  private void updateClient(int i) {
+    DataOutputStream out = (DataOutputStream) clientOutputs.elementAt(i);
+    if (pix != null) {
+      try {
+        // send image width, height and type to the output stream
+        out.writeInt(w);
+        out.writeInt(h);
 
-      // send pixel data to the output stream
-      out.write(pixels);
+        // send pixel data to the output stream
+        out.write(pix);
+      }
+      catch (SocketException exc) {
+        // there is a problem with this socket, so kill it
+        killSocket(i);
+      }
+      catch (IOException exc) {
+        if (DEBUG) exc.printStackTrace();
+      }
     }
-    catch (IOException exc) {
-      if (DEBUG) exc.printStackTrace();
+    else if (DEBUG) System.err.println("Null pixels!");
+  }
+
+  /** display automatically calls sendImage when its content changes */
+  public void sendImage(int[] pixels, int width, int height, int type)
+    throws RemoteException
+  {
+    // convert pixels to byte array
+    pix = Util.intToBytes(pixels);
+    w = width;
+    h = height;
+
+    // update all clients with the new image
+    synchronized (clientSockets) {
+      for (int i=0; i<clientSockets.size(); i++) updateClient(i);
     }
   }
 
-  /** called when the server's associated VisAD display changes */
-  public void displayChanged(DisplayEvent e)
-    throws VisADException, RemoteException
-  {
-    if (e.getId() == DisplayEvent.FRAME_DONE) {
-      // signal that image needs to be recaptured
-      dirtyFlag.setData(new Real(0.0));
+  /** shuts down the given socket, and removes it from the socket vector */
+  private void killSocket(int i) {
+    DataInputStream in = (DataInputStream) clientInputs.elementAt(i);
+    DataOutputStream out = (DataOutputStream) clientOutputs.elementAt(i);
+    Socket socket = (Socket) clientSockets.elementAt(i);
+
+    // shut down socket input stream
+    try {
+      in.close();
     }
+    catch (IOException exc) { }
+
+    // shut down socket output stream
+    try {
+      out.close();
+    }
+    catch (IOException exc) { }
+
+    // shut down socket itself
+    try {
+      socket.close();
+    }
+    catch (IOException exc) { }
+
+    // remove socket from socket vectors
+    clientSockets.remove(i);
+    clientInputs.remove(i);
+    clientOutputs.remove(i);
   }
 
   /** destroys this server and kills all associated threads */
@@ -284,23 +274,12 @@ public class SocketServer implements DisplayListener {
     // set flag to cause server's threads to stop running
     alive = false;
 
-    // close down all sockets
+    // shut down all client sockets
     synchronized (clientSockets) {
-      for (int i=0; i<clientSockets.size(); i++) {
-        DataInputStream in = (DataInputStream) clientInputs.elementAt(i);
-        DataOutputStream out = (DataOutputStream) clientOutputs.elementAt(i);
-        Socket socket = (Socket) clientSockets.elementAt(i);
-        try {
-          in.close();
-          out.close();
-          socket.close();
-          clientSockets.remove(i);
-        }
-        catch (IOException exc) {
-          if (DEBUG) exc.printStackTrace();
-        }
-      }
+      while (clientSockets.size() > 0) killSocket(0);
     }
+
+    // shut down server socket
     try {
       serverSocket.close();
     }

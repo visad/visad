@@ -31,9 +31,6 @@ import visad.java3d.DisplayImplJ3D;
 public class Test68
   extends TestSkeleton
 {
-  private static final String url =
-    "http://www.ssec.wisc.edu/~curtis/visad-applet.html";
-
   private int port = 0;
 
   public Test68() { }
@@ -109,10 +106,14 @@ public class Test68
       exc.printStackTrace();
     }
     if (serv != null) {
-      System.out.println("SocketServer created.");
-      System.out.println("To connect a client from within a web browser,");
-      System.out.println("visit the VisADApplet web site at:");
-      System.out.println(url);
+      System.out.println("SocketServer created.\n" +
+        "To connect a client from within a web browser,\n" +
+        "use the VisADApplet applet found in visad/examples.\n" +
+        "Note that an applet cannot communicate with a server\n" +
+        "via the network unless both applet and server\n" +
+        "originate from the same machine.  In the future,\n" +
+        "VisAD's SocketServer will support communication\n" +
+        "through a proxy server.");
     }
   }
 

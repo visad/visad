@@ -50,6 +50,9 @@ public class VisADApplet extends Applet
   /** canvas for painting remote display image from the server */
   private Component canvas;
 
+  /** thread for communicating with server */
+  private Thread commThread = null;
+
   /** adds a component to the applet with the specified constraints */
   private void addComponent(Component c, GridBagLayout layout,
     int x, int y, int w, int h, double wx, double wy)
@@ -87,6 +90,9 @@ public class VisADApplet extends Applet
 
   /** initializes the applet and lays out its GUI */
   public void init() {
+    // set background to white
+    setBackground(Color.white);
+
     // lay out components with GridBagLayout
     GridBagLayout gridbag = new GridBagLayout();
     setLayout(gridbag);
@@ -176,12 +182,17 @@ public class VisADApplet extends Applet
         out.writeInt(clicks);
         out.writeBoolean(popup);
       }
+      catch (SocketException exc) {
+        // problem communicating with server; it has probably disconnected
+        connected = false;
+        repaint();
+      }
       catch (IOException exc) { }
     }
   }
 
   /** fired when a button is pressed or enter is pressed in a text box */
-  public void actionPerformed(ActionEvent e) {
+  public synchronized void actionPerformed(ActionEvent e) {
     // highlight the connect button to indicate that connection is happening
     connectButton.requestFocus();
 
@@ -206,19 +217,30 @@ public class VisADApplet extends Applet
     catch (IOException exc) { }
     if (sock == null) return;
 
-    // kill the old socket and connect the new one
-    if (socket != null) {
+    if (connected) {
+      // kill the old socket
       try {
         socket.close();
       }
       catch (IOException exc) { }
+
+      // wait for old communication thread to die
+      connected = false;
+      while (commThread.isAlive()) {
+        try {
+          Thread.sleep(100);
+        }
+        catch (InterruptedException exc) { }
+      }
     }
+
+    // finish setting up new socket
     socket = sock;
     connected = true;
 
     // set a new thread to manage communication with the server
     final Applet applet = this;
-    Thread t = new Thread(new Runnable() {
+    commThread = new Thread(new Runnable() {
       public void run() {
         try {
           InputStream socketIn = socket.getInputStream();
@@ -233,8 +255,9 @@ public class VisADApplet extends Applet
           while (connected) {
             // read the latest display image
             int w = in.readInt();
-            if (w == 0) continue; // CTR
+            if (w == 0) continue;
             int h = in.readInt();
+            int t = in.readInt();
             int len = 4 * w * h;
             byte[] pixels = new byte[len];
             int p = 0;
@@ -250,10 +273,15 @@ public class VisADApplet extends Applet
             g.dispose();
           }
         }
+        catch (SocketException exc) {
+          // problem communicating with server; it has probably disconnected
+          connected = false;
+          applet.repaint();
+        }
         catch (IOException exc) { }
       }
     });
-    t.start();
+    commThread.start();
   }
 
   public void mouseClicked(MouseEvent e) {
