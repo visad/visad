@@ -27,6 +27,7 @@ package visad;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 
 import java.util.*;
 
@@ -94,6 +95,8 @@ public abstract class DisplayRenderer extends Object {
     }
     clearScales();
   }
+
+  public abstract BufferedImage getImage();
 
   public abstract void setScale(int axis, int axis_ordinal,
                   VisADLineArray array, float[] scale_color)

@@ -154,7 +154,10 @@ public class Irregular2DSet extends IrregularSet {
                                   null, null, null, false);
       }
       else {
+/* WLH 15 Dec 98
         if (Delan.Tri == null || Delan.Tri.length == 0) return null;
+*/
+        if (Delan == null || Delan.Tri == null || Delan.Tri.length == 0) return null;
         return new Irregular3DSet(type, samples, null, null, null,
                                   Delan, false);
       }
@@ -165,7 +168,10 @@ public class Irregular2DSet extends IrregularSet {
                                   null, null, null, false);
       }
       else {
+/* WLH 15 Dec 98
         if (Delan.Tri == null || Delan.Tri.length == 0) return null;
+*/
+        if (Delan == null || Delan.Tri == null || Delan.Tri.length == 0) return null;
         return new Irregular2DSet(type, samples, null, null, null,
                                   Delan, false);
       }

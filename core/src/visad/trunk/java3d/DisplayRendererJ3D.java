@@ -29,6 +29,7 @@ import visad.*;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 
 import javax.media.j3d.*;
 import javax.vecmath.*;
@@ -108,6 +109,37 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
 
   public VisADCanvasJ3D getCanvas() {
     return canvas;
+  }
+
+  public BufferedImage getImage() {
+    BufferedImage image = null;
+    while (image == null) {
+      try {
+        synchronized (this) {
+          canvas.captureFlag = true;
+          ProjectionControl proj = getDisplay().getProjectionControl();
+          try {
+            proj.setMatrix(proj.getMatrix());
+          }
+          catch (RemoteException e) { }
+          catch (VisADException e) { }
+          wait();
+        }
+      }
+      catch(InterruptedException e) {
+        // note notify generates a normal return from wait rather
+        // than an Exception - control doesn't normally come here
+      }
+      image = canvas.captureImage;
+      canvas.captureImage = null;
+    }
+    return image;
+  }
+
+  void notifyCapture() {
+    synchronized (this) {
+      notify();
+    }
   }
 
   public BranchGroup getRoot() {

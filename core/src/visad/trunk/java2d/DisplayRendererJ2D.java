@@ -110,6 +110,32 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     return canvas;
   }
 
+  public BufferedImage getImage() {
+    BufferedImage image = null;
+    while (image == null) {
+      try {
+        synchronized (this) {
+          canvas.captureFlag = true;
+          canvas.renderTrigger();
+          wait();
+        }
+      }
+      catch(InterruptedException e) {
+        // note notify generates a normal return from wait rather
+        // than an Exception - control doesn't normally come here
+      }
+      image = canvas.captureImage;
+      canvas.captureImage = null;
+    }
+    return image;
+  }
+
+  void notifyCapture() {
+    synchronized (this) {
+      notify();
+    }
+  }
+
   public VisADGroup getCursorOnBranch() {
     return cursor_on;
   }

@@ -60,6 +60,9 @@ public class VisADCanvasJ2D extends Canvas
   private AffineTransform tgeometry; // transform for current display
   private Image aux_image;
 
+  boolean captureFlag = false;
+  BufferedImage captureImage = null;
+
   MouseHelper helper;
 
   // wake up flag for renderTrigger
@@ -278,6 +281,14 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
       } // end if (!valid)
       if (tsave == null || !displayRenderer.anyCursorStringVector()) {
         g.drawImage(image, 0, 0, this);
+        if (captureFlag) {
+          captureFlag = false;
+          captureImage = (BufferedImage) createImage(width, height);
+          Graphics gc = captureImage.getGraphics();
+          gc.drawImage(image, 0, 0, this);
+          gc.dispose();
+          displayRenderer.notifyCapture();
+        }
       }
       else {
         Image aux_copy = null;
@@ -289,6 +300,14 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string[0] +
         displayRenderer.drawCursorStringVector(ga, tsave, w, h);
         ga.dispose();
         g.drawImage(aux_copy, 0, 0, this);
+        if (captureFlag) {
+          captureFlag = false;
+          captureImage = (BufferedImage) createImage(width, height);
+          Graphics gc = captureImage.getGraphics();
+          gc.drawImage(aux_copy, 0, 0, this);
+          gc.dispose();
+          displayRenderer.notifyCapture();
+        }
       }
     } // end if (image != null)
     if (animate_control != null) animate_control.setNoTick(false);

@@ -30,6 +30,7 @@ import visad.*;
 import javax.media.j3d.*;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
  
 /**
    VisADCanvasJ3D is the VisAD extension of Canvas3D
@@ -38,17 +39,48 @@ import java.awt.*;
 public class VisADCanvasJ3D extends Canvas3D { // J3D
 
   private DisplayRendererJ3D displayRenderer;
+  private DisplayImplJ3D display;
   private Component component;
   Dimension prefSize = new Dimension(0, 0);
+
+  boolean captureFlag = false;
+  BufferedImage captureImage = null;
 
   VisADCanvasJ3D(DisplayRendererJ3D renderer, Component c) {
     super(null);
     displayRenderer = renderer;
+    display = (DisplayImplJ3D) renderer.getDisplay();
     component = c;
   }
 
   public void renderField(int i) {
     displayRenderer.drawCursorStringVector(this);
+  }
+
+  public void postSwap() {
+    if (captureFlag) {
+      captureFlag = false;
+
+      int width = getSize().width;
+      int height = getSize().height;
+      GraphicsContext3D  ctx = getGraphicsContext3D();
+      Raster ras = new Raster();
+      ras.setType(Raster.RASTER_COLOR);
+      ras.setSize(width, height);
+      ras.setOffset(0, 0);
+      BufferedImage image =
+        new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+      ImageComponent2D image2d =
+        new ImageComponent2D(ImageComponent2D.FORMAT_RGB, image);
+      ras.setImage(image2d);
+  
+      ctx.readRaster(ras);
+  
+      // Now strip out the image info
+      ImageComponent2D img_src = ras.getImage();
+      captureImage = img_src.getImage();
+      displayRenderer.notifyCapture();
+    }
   }
 
   public Dimension getPreferredSize() {

@@ -118,6 +118,10 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       Remote DisplayListeners */
   private RemoteDisplayImpl rd = null;
 
+  public BufferedImage getImage() {
+    return displayRenderer.getImage();
+  }
+
   public void notifyListeners(int id)
          throws VisADException, RemoteException {
     if (ListenerVector != null) {

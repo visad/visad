@@ -23,6 +23,8 @@ import javax.swing.border.*;
 
 public class Spline2D {
 
+  boolean toggle = true;
+  Real nothing = new Real(-1000.0);
 
   DataReference lambda_ref;
   DataReference noise_ref;
@@ -229,6 +231,11 @@ public class Spline2D {
       GCV_button.setActionCommand("GCV");
       panel_d.add(GCV_button);
 
+      JButton toggle_button = new JButton("toggle");
+      toggle_button.addActionListener(this);
+      toggle_button.setActionCommand("toggle");
+      panel_d.add(toggle_button);
+
       panel_b.add(panel_d);
 
       panel_b.setBorder(etchedBorder5);
@@ -368,6 +375,20 @@ public class Spline2D {
                      return_values, dimen);
           f_range[0] = return_values;
           gcv_field.setSamples( f_range );
+        }
+        catch (VisADException exc) { }
+        catch (RemoteException exc) { }
+      }
+      if (cmd.equals("toggle")) {
+        try {
+          if (toggle) {
+            toggle = false;
+            true_fieldRef.setData( nothing );
+          }
+          else {
+            toggle = true;
+            true_fieldRef.setData( true_field );
+          }
         }
         catch (VisADException exc) { }
         catch (RemoteException exc) { }
