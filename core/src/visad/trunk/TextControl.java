@@ -60,13 +60,13 @@ public class TextControl extends Control {
   private ProjectionControlListener pcl = null;
 
   /**
-   * Class to represent the different types of justification
+   * A class to represent the different types of justification.
    * Use a class so the user can't just pass in an arbitrary integer
    *
-   * abcd 5 February 2001
+   * @author abcd 5 February 2001
    */
   public static class Justification {
-    String name;
+    private String name;
 
     /** Predefined value for left justification */
     public static final Justification LEFT = new Justification("Left");
@@ -77,6 +77,12 @@ public class TextControl extends Control {
     /** Predefined value for right justification */
     public static final Justification RIGHT = new Justification("Right");
 
+    /** Predefined value for top justification */
+    public static final Justification TOP = new Justification("Top");
+
+    /** Predefined value for bottom justification */
+    public static final Justification BOTTOM = new Justification("Bottom");
+
     /**
      * Constructor - simply store the name
      */
@@ -86,6 +92,7 @@ public class TextControl extends Control {
     }
   }
   private Justification justification = Justification.LEFT;
+  private Justification verticalJustification = Justification.BOTTOM;
 
   public TextControl(DisplayImpl d) {
     super(d);
@@ -189,12 +196,12 @@ public class TextControl extends Control {
   }
 
   /**
-   * Set the justifcation flag
+   * Set the justification flag
+   *
    * Possible values are TextControl.Justification.LEFT,
    * TextControl.Justification.CENTER and TextControl.Justification.RIGHT
-   *
-   * abcd 5 February 2001
    */
+  // abcd 5 February 2001
   public void setJustification(Justification newJustification)
          throws VisADException, RemoteException
   {
@@ -207,12 +214,39 @@ public class TextControl extends Control {
 
   /**
    * Return the justification value
-   *
-   * abcd 5 February 2001
    */
+  // abcd 5 February 2001
   public Justification getJustification()
   {
     return justification;
+  }
+
+  /**
+   * Set the vertical justification flag
+   *
+   * Possible values are TextControl.Justification.TOP,
+   * TextControl.Justification.CENTER and TextControl.Justification.BOTTOM
+   *
+   * @author abcd 19 March 2003
+   */
+  public void setVerticalJustification(Justification newJustification)
+         throws VisADException, RemoteException
+  {
+    // Store the new value
+    verticalJustification = newJustification;
+
+    // Tell the control it's changed
+    changeControl(true);
+  }
+
+  /**
+   * Return the vertical justification value
+   *
+   * @author abcd 19 March 2003
+   */
+  public Justification getVerticalJustification()
+  {
+    return verticalJustification;
   }
 
   /** set the size of characters; the default is 1.0 */
@@ -351,6 +385,11 @@ public class TextControl extends Control {
       changed = true;
       justification = tc.justification;
     }
+    // abcd 19 February 2003
+    if (verticalJustification != tc.verticalJustification) {
+      changed = true;
+      verticalJustification = tc.verticalJustification;
+    }
 
     if (!Util.isApproximatelyEqual(size, tc.size)) {
       changed = true;
@@ -406,6 +445,10 @@ public class TextControl extends Control {
     // abcd 5 February 2001
     //if (center != tc.center) {
     if (justification != tc.justification) {
+      return false;
+    }
+    // abcd 19 March 2003
+    if (verticalJustification != tc.verticalJustification) {
       return false;
     }
 

@@ -230,7 +230,8 @@ public class PlotText extends Object {
          double[] base, double[] up, boolean center) {
     return render_label(str, start, base, up,
                         (center ? TextControl.Justification.CENTER :
-                                  TextControl.Justification.LEFT));
+                                  TextControl.Justification.LEFT),
+                        TextControl.Justification.BOTTOM);
   }
 
   // abcd 5 February 2001
@@ -255,6 +256,36 @@ public class PlotText extends Object {
    */
   public static VisADLineArray render_label(String str, double[] start,
          double[] base, double[] up, TextControl.Justification justification) {
+    return render_label(str, start, base, up, justification,
+                        TextControl.Justification.BOTTOM);
+  }
+
+
+  /**
+   * Convert a string of characters (ASCII collating sequence) into a
+   *  series of vectors for drawing.
+   *
+   * @param str  String to use
+   * @param  start point (x,y,z)
+   * @param  base  (x,y,z) of baseline vector
+   * @param  up  (x,y,z) of "up" direction vector
+   * @param  justification is one of:<ul>
+   * <li> TextControl.Justification.LEFT - Left justified text (ie: normal text)
+   * <li> TextControl.Justification.CENTER - Centered text
+   * <li> TextControl.Justification.RIGHT - Right justified text
+   * </ul>
+   * @param  verticalJustification is one of:<ul>
+   * <li> TextControl.Justification.TOP - Top justified text
+   * <li> TextControl.Justification.CENTER - Centered text
+   * <li> TextControl.Justification.BOTTOM - Bottom justified text (normal)
+   * </ul>
+   *
+   * @return VisADLineArray of all the vectors needed to draw the
+   * characters in this string
+   */
+  public static VisADLineArray render_label(String str, double[] start,
+         double[] base, double[] up, TextControl.Justification justification,
+         TextControl.Justification verticalJustification) {
     double[] temp;
     double cx, cy, cz;
     double startx = 0.0;
@@ -278,6 +309,7 @@ public class PlotText extends Object {
     //  cy -= sw * base[1] / 2.0;
     //  cz -= sw * base[2] / 2.0;
     //}
+    // LEFT is normal
     if (justification == TextControl.Justification.CENTER) {
       sw = WIDTH * (float) len;
       cx -= sw * base[0] / 2.0;
@@ -288,6 +320,19 @@ public class PlotText extends Object {
       cx -= sw * base[0];
       cy -= sw * base[1];
       cz -= sw * base[2];
+    }
+
+    // BOTTOM is normal
+    if (verticalJustification == TextControl.Justification.TOP) {
+      final double height = WIDTH;
+      cx -= height * up[0];
+      cy -= height * up[1];
+      cz -= height * up[2];
+    } else if (verticalJustification == TextControl.Justification.CENTER) {
+      final double height = WIDTH;
+      cx -= height * up[0] / 2.0;
+      cy -= height * up[1] / 2.0;
+      cz -= height * up[2] / 2.0;
     }
 
     int plot_index = 0;
@@ -381,7 +426,8 @@ public class PlotText extends Object {
            double[] start, double[] base, double[] up, boolean center) {
     return render_font(str, font, start, base, up,
                        (center ? TextControl.Justification.CENTER :
-                                 TextControl.Justification.LEFT));
+                                 TextControl.Justification.LEFT),
+                       TextControl.Justification.BOTTOM);
   }
 
   /**
@@ -405,6 +451,34 @@ public class PlotText extends Object {
   public static VisADLineArray render_font(String str, HersheyFont font,
             double[] start, double[] base, double[] up,
             TextControl.Justification justification) {
+    return render_font(str, font, start, base, up, justification,
+                       TextControl.Justification.BOTTOM);
+  }
+
+
+// abcd, 3 March 2003
+  /**
+   * Convert a string of characters (ASCII collating sequence) into a
+   *  series of lines for drawing.
+   *
+   * @param str  String to use
+   * @param  font  non-null HersheyFont name
+   * ?param  start
+   * ?param  base
+   * ?param  up
+   * @param  justification is one of:<ul>
+   * <li> TextControl.Justification.LEFT - Left justified text (ie: normal text)
+   * <li> TextControl.Justification.CENTER - Centered text
+   * <li> TextControl.Justification.RIGHT - Right justified text
+   * </ul>
+   *
+   * @return VisADLineArray of all the lines needed to draw the
+   * characters in this string
+   */
+  public static VisADLineArray render_font(String str, HersheyFont font,
+            double[] start, double[] base, double[] up,
+            TextControl.Justification justification,
+            TextControl.Justification verticalJustification) {
 
     int maxChars = font.getCharactersInSet();
 
@@ -520,6 +594,11 @@ public class PlotText extends Object {
     float cyoff = Float.NaN;
     float czoff = Float.NaN;
 
+    cxoff = (float)start[0];
+    cyoff = (float)start[1];
+    czoff = (float)start[2];
+
+    // LEFT is normal
     if (justification == TextControl.Justification.CENTER) {
       cxoff = (float)((cx - start[0])/2.);
       cyoff = (float)((cy - start[1])/2.);
@@ -530,6 +609,19 @@ public class PlotText extends Object {
       cyoff = (float)(cy - start[1]);
       czoff = (float)(cz - start[2]);
 
+    }
+
+    // BOTTOM is normal
+    if (verticalJustification == TextControl.Justification.TOP) {
+      final double height = WIDTH;
+      cxoff += height * up[0];
+      cyoff += height * up[1];
+      czoff += height * up[2];
+    } else if (verticalJustification == TextControl.Justification.CENTER) {
+      final double height = WIDTH;
+      cxoff += height * up[0] / 2.0;
+      cyoff += height * up[1] / 2.0;
+      czoff += height * up[2] / 2.0;
     }
 
     if (cxoff == cxoff) {
@@ -550,6 +642,7 @@ public class PlotText extends Object {
     return array;
   }
 
+// abcd 5 February 2001
   /**
    * Convert a string of characters (ASCII collating sequence) into a
    *  series of triangles for drawing.
@@ -568,10 +661,11 @@ public class PlotText extends Object {
             double[] start, double[] base, double[] up, boolean center) {
     return render_font(str, font, start, base, up,
                        (center ? TextControl.Justification.CENTER :
-                                 TextControl.Justification.LEFT));
+                                 TextControl.Justification.LEFT),
+                       TextControl.Justification.BOTTOM);
   }
 
-// abcd 5 February 2001
+// abcd 19 March 2003
   /**
    * Convert a string of characters (ASCII collating sequence) into a
    *  series of triangles for drawing.
@@ -593,6 +687,37 @@ public class PlotText extends Object {
   public static VisADTriangleArray render_font(String str, Font font,
             double[] start, double[] base, double[] up,
             TextControl.Justification justification) {
+    return render_font(str, font, start, base, up, justification,
+                       TextControl.Justification.BOTTOM);
+  }
+
+  /**
+   * Convert a string of characters (ASCII collating sequence) into a
+   *  series of triangles for drawing.
+   *
+   * @param str  String to use
+   * @param  font  non-null font
+   * ?param  start
+   * ?param  base
+   * ?param  up
+   * @param  justification is one of:<ul>
+   * <li> TextControl.Justification.LEFT - Left justified text (ie: normal text)
+   * <li> TextControl.Justification.CENTER - Centered text
+   * <li> TextControl.Justification.RIGHT - Right justified text
+   * </ul>
+   * @param  verticalJustification is one of:<ul>
+   * <li> TextControl.Justification.TOP - Top justified text
+   * <li> TextControl.Justification.CENTER - Centered text
+   * <li> TextControl.Justification.BOTTOM - Bottom justified text (normal)
+   * </ul>
+   *
+   * @return VisADTriangleArray of all the triangles needed to draw the
+   * characters in this string
+   */
+  public static VisADTriangleArray render_font(String str, Font font,
+            double[] start, double[] base, double[] up,
+            TextControl.Justification justification,
+            TextControl.Justification verticalJustification) {
     VisADTriangleArray array = null;
 
 // System.out.println("x, y, z = " + x + " " + y + " " + z);
@@ -739,6 +864,20 @@ public class PlotText extends Object {
       x_offset = -1.0f * x_offset;
     }
 
+    /*
+     * abcd 20 March 2003
+     * Figure out how far to 'up' our text should start
+     */
+    float y_offset = 0.8f;
+    if (verticalJustification == TextControl.Justification.BOTTOM) {
+      y_offset = 0.0f;
+    } else if (verticalJustification == TextControl.Justification.CENTER) {
+      y_offset = -0.5f * y_offset;
+    } else { // verticalJustification == TextControl.Justification.RIGHT) {
+      y_offset = -1.0f * y_offset;
+    }
+
+
     int n = big_vector.size();
     VisADTriangleArray[] arrays = new VisADTriangleArray[n];
     for (int i=0; i<n; i++) {
@@ -760,13 +899,13 @@ public class PlotText extends Object {
           int j3 = j9 + 3 * tj;
           coordinates[j3 + 0] = (float)
             (start[0] + base[0] * (samples[0][tris[j][tj]] + x_offset) +
-                        up[0] * samples[1][tris[j][tj]]);
+                        up[0] * (samples[1][tris[j][tj]] + y_offset));
           coordinates[j3 + 1] = (float)
             (start[1] + base[1] * (samples[0][tris[j][tj]] + x_offset) +
-                        up[1] * samples[1][tris[j][tj]]);
+                        up[1] * (samples[1][tris[j][tj]] + y_offset));
           coordinates[j3 + 2] = (float)
             (start[2] + base[2] * (samples[0][tris[j][tj]] + x_offset) +
-                        up[2] * samples[1][tris[j][tj]]);
+                        up[2] * (samples[1][tris[j][tj]] + y_offset));
         }
       }
       float[] normals = new float[9 * m];

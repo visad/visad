@@ -2602,6 +2602,9 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
     // abcd 5 February 2001
     //boolean center = text_control.getCenter();
     TextControl.Justification justification = text_control.getJustification();
+    // abcd 19 March 2003
+    TextControl.Justification verticalJustification =
+      text_control.getVerticalJustification();
     double size = text_control.getSize();
     Font font = text_control.getFont();
     HersheyFont hfont = text_control.getHersheyFont();
@@ -2648,15 +2651,17 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
 
           if (font != null) {
             as[k] = PlotText.render_font(text_values[i], font,
-                                         start, base, up, justification);
+                                         start, base, up,
+                                         justification, verticalJustification);
           }
           else if (hfont != null) {
             as[k] = PlotText.render_font(text_values[i], hfont,
-                                         start, base, up, justification);
+                                         start, base, up,
+                                         justification, verticalJustification);
 
           } else {
             as[k] = PlotText.render_label(text_values[i], start, base, up,
-                                          justification);
+                                          justification, verticalJustification);
           }
           int len = (as[k] == null) ? 0 : as[k].coordinates.length;
           if (len > 0) {
@@ -2698,16 +2703,18 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
                                 spatial_values[2][i]};
           if (font != null) {
             as[k] = PlotText.render_font(text_values[i], font,
-                                         start, base, up, justification);
+                                         start, base, up,
+                                         justification, verticalJustification);
 
           }
           else if (hfont != null) {
             as[k] = PlotText.render_font(text_values[i], hfont,
-                                         start, base, up, justification);
+                                         start, base, up,
+                                         justification, verticalJustification);
 
           } else {
             as[k] = PlotText.render_label(text_values[i], start, base, up,
-                                          justification);
+                                          justification, verticalJustification);
           }
         }
 
@@ -3558,43 +3565,12 @@ try {
               if (array_s != null) {
               if (!fill) {
                 for (int j=0; j<2; j++) {
-                  if (array_s[j][0] != null) { //- lines, fill-lines
+                  if (array_s[j][0] != null) {
                     try {
-                      array_s[j][0] = array_s[j][0].adjustLongitude(renderer);
-                      array_s[j][0] = array_s[j][0].adjustSeam(renderer);
+                      array_s[j][0] = ((VisADLineArray)array_s[j][0]).adjustLongitude(renderer);
+                      array_s[j][0] = ((VisADLineArray)array_s[j][0]).adjustSeam(renderer);
                     }
                     catch (Exception e) {
-                      e.printStackTrace();
-                    }
-                  }
-                }
-                if (array_s[2] != null) {
-                  for (int k=0; k<(array_s[2].length)/2; k++) { //-labels, label anchor points
-                    try {
-                      array_s[2][k*2] = array_s[2][k*2].adjustLongitude(renderer);
-                      array_s[2][k*2] = array_s[2][k*2].adjustSeam(renderer);
-                      array_s[2][k*2+1] = array_s[2][k*2+1].adjustLongitude(renderer);
-                      array_s[2][k*2+1] = array_s[2][k*2+1].adjustSeam(renderer);
-                    }
-                    catch (Exception e) {
-                      e.printStackTrace();
-                    }
-                  }
-                }
-                if (array_s[3] != null) {
-                  for (int k=0; k<(array_s[3].length)/4; k++) { //- left/right expanding segments
-                    try {
-                      array_s[3][k*4] = array_s[3][k*4].adjustLongitude(renderer);
-                      array_s[3][k*4] = array_s[3][k*4].adjustSeam(renderer);
-                      array_s[3][k*4+1] = array_s[3][k*4+1].adjustLongitude(renderer);
-                      array_s[3][k*4+1] = array_s[3][k*4+1].adjustSeam(renderer);
-                      array_s[3][k*4+2] = array_s[3][k*4+2].adjustLongitude(renderer);
-                      array_s[3][k*4+2] = array_s[3][k*4+2].adjustSeam(renderer);
-                      array_s[3][k*4+3] = array_s[3][k*4+3].adjustLongitude(renderer);
-                      array_s[3][k*4+3] = array_s[3][k*4+3].adjustSeam(renderer);
-                    }
-                    catch (Exception e) {
-                      e.printStackTrace();
                     }
                   }
                 }
