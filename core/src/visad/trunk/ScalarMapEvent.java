@@ -87,5 +87,47 @@ public class ScalarMapEvent extends Event {
     return id;
   }
 
-}
+  /**
+   * Get the ID type of this event as a String
+   *
+   * @return The event type string.
+   */
+  public String getIdString()
+  {
+    switch (id) {
+    case AUTO_SCALE: return "AUTO_SCALE";
+    case MANUAL: return "MANUAL";
+    }
 
+    return "UNKNOWN_ID=" + id;
+  }
+
+  /**
+   * Get a one-line description of the <CODE>ScalarMap</CODE> which
+   * originated this event.
+   *
+   * @return the one-line map description.
+   */
+  String getMapString()
+  {
+    StringBuffer buf = new StringBuffer();
+    if (map instanceof ConstantMap) {
+      buf.append(((ConstantMap )map).getConstant());
+    } else {
+      buf.append(map.getScalar());
+    }
+    buf.append("->");
+    buf.append(map.getDisplayScalar());
+    return buf.toString();
+  }
+
+  public String toString()
+  {
+    StringBuffer buf = new StringBuffer("ScalarMapEvent[");
+    buf.append(getIdString());
+    buf.append(", ");
+    buf.append(getMapString());
+    buf.append(']');
+    return buf.toString();
+  }
+}
