@@ -113,7 +113,6 @@ public class Real extends Scalar {
    * @param value		The value of the Real in units of
    *				<code>type.getDefaultUnit()</code>.  May be 
    *				<code>Double.NaN</code>.
-   * @throws VisADException	Couldn't create necessary VisAD object.
    */
   public Real(RealType type, double value) {
     this(type, value, type.getDefaultUnit(), null, true);
@@ -124,7 +123,6 @@ public class Real extends Scalar {
    * Real will be the default unit of the RealType, and the error estimate
    * will be <code>null</code>.
    * @param type		The type of the Real.
-   * @throws VisADException	Couldn't create necessary VisAD object.
    */
   public Real(RealType type) {
     this(type, Double.NaN, type.getDefaultUnit(), null, true);
@@ -140,7 +138,6 @@ public class Real extends Scalar {
    * @param error		Value for constructing an error estimate for the
    *				Real in units of
    *				<code>RealType.Generic.getDefaultUnit()</code>.
-   * @throws VisADException	Couldn't create necessary VisAD object.
    */
   public Real(double value, double error) {
     this(RealType.Generic, value, RealType.Generic.getDefaultUnit(),
@@ -155,7 +152,6 @@ public class Real extends Scalar {
    * will be 0.0.
    * @param value		The value of the Real.  May be 
    *				<code>Double.NaN</code>.
-   * @throws VisADException	Couldn't create necessary VisAD object.
    */
   public Real(double value) {
     this(RealType.Generic, value, RealType.Generic.getDefaultUnit(),
