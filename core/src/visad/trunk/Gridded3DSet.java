@@ -1373,8 +1373,11 @@ public class Gridded3DSet extends GriddedSet {
     float[] g = fieldValues;
 
     // these are just estimates
+/* WLH 14 Aug 98
     int est = 4 * Length;
     if (est < 10000) est = 10000;
+*/
+    int est = Length;
     int maxv2 = est;
     int maxv1 = 2 * 2 * maxv2;
     // maxv3 and maxv4 should be equal
@@ -1388,14 +1391,14 @@ public class Gridded3DSet extends GriddedSet {
       color_levels1 = new float[color_length][maxv1];
       color_levels2 = new float[color_length][maxv2];
     }
-    float[] vx1 = new float[maxv1];
-    float[] vy1 = new float[maxv1];
-    float[] vx2 = new float[maxv2];
-    float[] vy2 = new float[maxv2];
-    float[] vx3 = new float[maxv3];
-    float[] vy3 = new float[maxv3];
-    float[] vx4 = new float[maxv4];
-    float[] vy4 = new float[maxv4];
+    float[][] vx1 = new float[1][maxv1];
+    float[][] vy1 = new float[1][maxv1];
+    float[][] vx2 = new float[1][maxv2];
+    float[][] vy2 = new float[1][maxv2];
+    float[][] vx3 = new float[1][maxv3];
+    float[][] vy3 = new float[1][maxv3];
+    float[][] vx4 = new float[1][maxv4];
+    float[][] vy4 = new float[1][maxv4];
     int[] numv1 = new int[1];
     int[] numv2 = new int[1];
     int[] numv3 = new int[1];
@@ -1407,9 +1410,9 @@ public class Gridded3DSet extends GriddedSet {
                       color_values, color_levels1, color_levels2, swap );
 
     float[][] grid1 = new float[2][numv1[0]];
-    System.arraycopy(vx1, 0, grid1[0], 0, numv1[0]);
+    System.arraycopy(vx1[0], 0, grid1[0], 0, numv1[0]);
     vx1 = null;
-    System.arraycopy(vy1, 0, grid1[1], 0, numv1[0]);
+    System.arraycopy(vy1[0], 0, grid1[1], 0, numv1[0]);
     vy1 = null;
     if (color_length > 0) {
       float[][] a = new float[color_length][numv1[0]];
@@ -1420,9 +1423,9 @@ public class Gridded3DSet extends GriddedSet {
     }
 
     float[][] grid2 = new float[2][numv2[0]];
-    System.arraycopy(vx2, 0, grid2[0], 0, numv2[0]);
+    System.arraycopy(vx2[0], 0, grid2[0], 0, numv2[0]);
     vx2 = null;
-    System.arraycopy(vy2, 0, grid2[1], 0, numv2[0]);
+    System.arraycopy(vy2[0], 0, grid2[1], 0, numv2[0]);
     vy2 = null;
     if (color_length > 0) {
       float[][] a = new float[color_length][numv2[0]];
@@ -1440,18 +1443,18 @@ public class Gridded3DSet extends GriddedSet {
     float[] vx = null;
     float[] vy = null;
     if (backwards) {
-      vy = vy4;
+      vy = vy4[0];
     }
     else {
-      vy = vy3;
+      vy = vy3[0];
     }
     vy3 = null;
     vy4 = null;
     if (upsidedown) {
-      vx = vx4;
+      vx = vx4[0];
     }
     else {
-      vx = vx3;
+      vx = vx3[0];
     }
     vx3 = null;
     vx4 = null;

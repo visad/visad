@@ -437,8 +437,10 @@ public class Irregular3DSet extends IrregularSet {
     if (npolygons < 1 || nvertex < 3) return null;
 
     // estimate number of vertices
-    int maxv = 2 * 2 * 4 * Length;
+    int maxv = 2 * 2 * Length;
+/* WLH 14 Aug 98
     if (maxv < 10000) maxv = 10000;
+*/
 
     int color_length = (color_values != null) ? color_values.length : 0;
     float[][] color_levels = null;
@@ -511,7 +513,29 @@ public class Irregular3DSet extends IrregularSet {
       // gg is current contour line value
       float gg = clow;
 
+      for (int il=0; il<numc; il++, gg += interval) {
+/* WLH 14 Aug 98
       for (int il=0; il<numc && numv+8<maxv; il++, gg += interval) {
+*/
+        if (numv+8 >= maxv) {
+          // allocate more space
+          maxv = 2 * maxv;
+          float[][] t = color_levels;
+          color_levels = new float[color_length][maxv];
+          for (int i=0; i<color_length; i++) {
+            System.arraycopy(t[i], 0, color_levels[i], 0, numv);
+          }
+          float[] tx = vx;
+          float[] ty = vy;
+          float[] tz = vz;
+          vx = new float[maxv];
+          vy = new float[maxv];
+          vz = new float[maxv];
+          System.arraycopy(tx, 0, vx, 0, numv);
+          System.arraycopy(ty, 0, vy, 0, numv);
+          System.arraycopy(tz, 0, vz, 0, numv);
+        }
+
         float gba, gca, gcb;
         float ratioba, ratioca, ratiocb;
         int ii;

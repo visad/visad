@@ -40,7 +40,7 @@ public class Contour2D extends Applet implements MouseListener {
   protected boolean showgrid;
   protected int rows, cols, scale;
   protected int[] num1, num2, num3, num4;
-  protected float[] vx1, vy1, vx2, vy2, vx3, vy3, vx4, vy4;
+  protected float[][] vx1, vy1, vx2, vy2, vx3, vy3, vx4, vy4;
 
   /*
    * Compute contour lines for a 2-D array.  If the interval is negative,
@@ -72,10 +72,10 @@ public class Contour2D extends Applet implements MouseListener {
    */
   public static void contour( float g[], int nr, int nc, float interval,
                       float lowlimit, float highlimit, float base,
-                      float vx1[], float vy1[],  int maxv1, int[] numv1,
-                      float vx2[], float vy2[],  int maxv2, int[] numv2,
-                      float vx3[], float vy3[],  int maxv3, int[] numv3,
-                      float vx4[], float vy4[],  int maxv4, int[] numv4,
+                      float vx1[][], float vy1[][],  int maxv1, int[] numv1,
+                      float vx2[][], float vy2[][],  int maxv2, int[] numv2,
+                      float vx3[][], float vy3[][],  int maxv3, int[] numv3,
+                      float vx4[][], float vy4[][],  int maxv4, int[] numv4,
                       float[][] auxValues, float[][] auxLevels1,
                       float[][] auxLevels2, boolean swap )
                           throws VisADException {
@@ -123,9 +123,11 @@ public class Contour2D extends Applet implements MouseListener {
     numv3[0] = 0;
     numv4[0] = 0;
 
+/* WLH 14 Aug 98
     // deduct 100 vertices from maxv3/maxv4 now to save a later computation
     maxv3 -= 100;
     maxv4 -= 100;
+*/
 
     // check for bad contour interval
     if (interval==0.0) {
@@ -192,9 +194,14 @@ public class Contour2D extends Applet implements MouseListener {
     numv = nump = 0;
 
     // compute contours
+/* WLH 14 Aug 98
     for (ir=0; ir<nrm && numv<maxsize-8 && nump<2*maxsize; ir++) {
       xx = xd*ir+0.0f; // = ir
       for (ic=0; ic<ncm && numv<maxsize-8 && nump<2*maxsize; ic++) {
+*/
+    for (ir=0; ir<nrm; ir++) {
+      xx = xd*ir+0.0f; // = ir
+      for (ic=0; ic<ncm; ic++) {
         float ga, gb, gc, gd;
         float gv, gn, gx;
         float tmp1, tmp2;
@@ -270,7 +277,32 @@ public class Contour2D extends Applet implements MouseListener {
         // gg is current contour line value
         gg = clow;
 
+/* WLH 14 Aug 98
         for (il=0; il<numc && numv+8<maxsize; il++, gg += interval) {
+*/
+        for (il=0; il<numc; il++, gg += interval) {
+
+          if (numv+8 >= maxsize || nump+4 >= 2*maxsize) {
+            // allocate more space
+            maxsize = 2 * maxsize;
+            int[] t = ipnt;
+            ipnt = new int[2 * maxsize];
+            System.arraycopy(t, 0, ipnt, 0, nump);
+            float[] tx = vx;
+            float[] ty = vy;
+            vx = new float[maxsize];
+            vy = new float[maxsize];
+            System.arraycopy(tx, 0, vx, 0, numv);
+            System.arraycopy(ty, 0, vy, 0, numv);
+            if (naux > 0) {
+              float[][] ta = auxLevels;
+              auxLevels = new float[naux][maxsize];
+              for (int i=0; i<naux; i++) {
+                System.arraycopy(ta[i], 0, auxLevels[i], 0, numv);
+              }
+            }
+          }
+
           float gba, gca, gdb, gdc;
           int ii;
 
@@ -335,22 +367,35 @@ public class Contour2D extends Applet implements MouseListener {
             ym = yd*(mc+1.0f)+0.0f;
             value = gg;
 
-            if (numv3[0] < maxv3 || numv4[0] < maxv4) {
-              // if there's room in either array, plot the labels
-              plot.plotdigits( value, xk, yk, xm, ym, maxsize, swap);
+            if (numv4[0]+100 >= maxv4) {
+              // allocate more space
+              maxv4 = 2 * (numv4[0]+100);
+              float[][] tx = new float[][] {vx4[0]};
+              float[][] ty = new float[][] {vy4[0]};
+              vx4[0] = new float[maxv4];
+              vy4[0] = new float[maxv4];
+              System.arraycopy(tx[0], 0, vx4[0], 0, numv4[0]);
+              System.arraycopy(ty[0], 0, vy4[0], 0, numv4[0]);
             }
-            if (numv3[0] < maxv3) {
-              // if there's room in the array, store the label
-              System.arraycopy(plot.Vx, 0, vx3, numv3[0], plot.NumVerts);
-              System.arraycopy(plot.Vy, 0, vy3, numv3[0], plot.NumVerts);
-              numv3[0] += plot.NumVerts;
+
+            if (numv3[0]+100 >= maxv3) {
+              // allocate more space
+              maxv3 = 2 * (numv3[0]+100);
+              float[][] tx = new float[][] {vx3[0]};
+              float[][] ty = new float[][] {vy3[0]};
+              vx3[0] = new float[maxv3];
+              vy3[0] = new float[maxv3];
+              System.arraycopy(tx[0], 0, vx3[0], 0, numv3[0]);
+              System.arraycopy(ty[0], 0, vy3[0], 0, numv3[0]);
             }
-            if (numv4[0] < maxv4) {
-              // if there's room in the array, store the label
-              System.arraycopy(plot.VxB, 0, vx4, numv4[0], plot.NumVerts);
-              System.arraycopy(plot.VyB, 0, vy4, numv4[0], plot.NumVerts);
-              numv4[0] += plot.NumVerts;
-            }
+
+            plot.plotdigits( value, xk, yk, xm, ym, maxsize, swap);
+            System.arraycopy(plot.Vx, 0, vx3[0], numv3[0], plot.NumVerts);
+            System.arraycopy(plot.Vy, 0, vy3[0], numv3[0], plot.NumVerts);
+            numv3[0] += plot.NumVerts;
+            System.arraycopy(plot.VxB, 0, vx4[0], numv4[0], plot.NumVerts);
+            System.arraycopy(plot.VyB, 0, vy4[0], numv4[0], plot.NumVerts);
+            numv4[0] += plot.NumVerts;
           }
 
           switch (ii) {
@@ -605,55 +650,89 @@ public class Contour2D extends Applet implements MouseListener {
 
         }  // for il       -- NOTE:  gg incremented in for statement
       }  // for ic
-     }  // for ir
-  
-     ipnt[nump] = numv;
-  
-     // copy vertices from vx, vy arrays to either v1 or v2 arrays
-     ip = 0;
-     for (ir=0;ir<nrm && ip<2*maxsize;ir++) {
-       for (ic=0;ic<ncm && ip<2*maxsize;ic++) {
-         int start, len;
-         start = ipnt[ip];
-         len = ipnt[ip+1] - start;
-         if (len>0) {
-           if (( mark[ (ic) * nr + (ir) ] )==2) {
-             if (numv2[0]+len<maxv2) {
-               for (il=0;il<len;il++) {
-                 vx2[numv2[0]+il] = vx[start+il];
-                 vy2[numv2[0]+il] = vy[start+il];
-               }
-               if (naux > 0) {
-                 for (int i=0; i<naux; i++) {
-                   for (il=0;il<len;il++) {
-                     auxLevels2[i][numv2[0]+il] = auxLevels[i][start+il];
-                   }
-                 }
-               }
-               numv2[0] += len;
-             }
-           }
-           else {
-             if (numv1[0]+len<maxv1) {
-               for (il=0; il<len; il++) {
-                 vx1[numv1[0]+il] = vx[start+il];
-                 vy1[numv1[0]+il] = vy[start+il];
-               }
-               if (naux > 0) {
-                 for (int i=0; i<naux; i++) {
-                   for (il=0;il<len;il++) {
-                     auxLevels1[i][numv1[0]+il] = auxLevels[i][start+il];
-                   }
-                 }
-               }
-               numv1[0] += len;
-             }
-           }
+    }  // for ir
+ 
+    ipnt[nump] = numv;
+ 
+    // copy vertices from vx, vy arrays to either v1 or v2 arrays
+    ip = 0;
+    for (ir=0;ir<nrm && ip<2*maxsize;ir++) {
+      for (ic=0;ic<ncm && ip<2*maxsize;ic++) {
+        int start, len;
+        start = ipnt[ip];
+        len = ipnt[ip+1] - start;
+        if (len>0) {
+          if (( mark[ (ic) * nr + (ir) ] )==2) {
 
-         }
-         ip++;
-       }
-     }
+            if (numv2[0]+len >= maxv2) {
+              // allocate more space
+              maxv2 = 2 * (numv2[0]+len);
+              float[][] tx = new float[][] {vx2[0]};
+              float[][] ty = new float[][] {vy2[0]};
+              vx2[0] = new float[maxv2];
+              vy2[0] = new float[maxv2];
+              System.arraycopy(tx[0], 0, vx2[0], 0, numv2[0]);
+              System.arraycopy(ty[0], 0, vy2[0], 0, numv2[0]);
+              if (naux > 0) {
+                for (int i=0; i<naux; i++) {
+                  float[] ta = auxLevels2[i];
+                  auxLevels2[i] = new float[maxv2];
+                  System.arraycopy(ta, 0, auxLevels2[i], 0, numv2[0]);
+                }
+              }
+            }
+
+            for (il=0;il<len;il++) {
+              vx2[0][numv2[0]+il] = vx[start+il];
+              vy2[0][numv2[0]+il] = vy[start+il];
+            }
+            if (naux > 0) {
+              for (int i=0; i<naux; i++) {
+                for (il=0;il<len;il++) {
+                  auxLevels2[i][numv2[0]+il] = auxLevels[i][start+il];
+                }
+              }
+            }
+            numv2[0] += len;
+          }
+          else {
+
+            if (numv1[0]+len >= maxv1) {
+              // allocate more space
+              maxv1 = 2 * (numv1[0]+len);
+              float[][] tx = new float[][] {vx1[0]};
+              float[][] ty = new float[][] {vy1[0]};
+              vx1[0] = new float[maxv1];
+              vy1[0] = new float[maxv1];
+              System.arraycopy(tx[0], 0, vx1[0], 0, numv1[0]);
+              System.arraycopy(ty[0], 0, vy1[0], 0, numv1[0]);
+              if (naux > 0) {
+                for (int i=0; i<naux; i++) { 
+                  float[] ta = auxLevels1[i];
+                  auxLevels1[i] = new float[maxv1];
+                  System.arraycopy(ta, 0, auxLevels1[i], 0, numv1[0]);
+                }
+              }
+            }
+
+            for (il=0; il<len; il++) {
+              vx1[0][numv1[0]+il] = vx[start+il];
+              vy1[0][numv1[0]+il] = vy[start+il];
+            }
+            if (naux > 0) {
+              for (int i=0; i<naux; i++) {
+                for (il=0;il<len;il++) {
+                  auxLevels1[i][numv1[0]+il] = auxLevels[i][start+il];
+                }
+              }
+            }
+            numv1[0] += len;
+          }
+
+        }
+        ip++;
+      }
+    }
   }
 
   // APPLET SECTION
@@ -701,14 +780,14 @@ public class Contour2D extends Applet implements MouseListener {
     con.num2 = new int[1];
     con.num3 = new int[1];
     con.num4 = new int[1];
-    con.vx1 = new float[mxv1];
-    con.vy1 = new float[mxv1];
-    con.vx2 = new float[mxv2];
-    con.vy2 = new float[mxv2];
-    con.vx3 = new float[mxv3];
-    con.vy3 = new float[mxv3];
-    con.vx4 = new float[mxv4];
-    con.vy4 = new float[mxv4];
+    con.vx1 = new float[1][mxv1];
+    con.vy1 = new float[1][mxv1];
+    con.vx2 = new float[1][mxv2];
+    con.vy2 = new float[1][mxv2];
+    con.vx3 = new float[1][mxv3];
+    con.vy3 = new float[1][mxv3];
+    con.vx4 = new float[1][mxv4];
+    con.vy4 = new float[1][mxv4];
     try {
       con.contour(g, con.rows, con.cols, intv, low, high, base,
                   con.vx1, con.vy1, mxv1, con.num1,
@@ -747,10 +826,10 @@ public class Contour2D extends Applet implements MouseListener {
     // draw main contour lines
     gr.setColor(Color.black);
     for (int i=0; i<con.num1[0]; i+=2) {
-      int v1 = (int) (con.scale*con.vy1[i]);
-      int v2 = (int) (con.scale*con.vx1[i]);
-      int v3 = (int) (con.scale*con.vy1[(i+1)%con.num1[0]]);
-      int v4 = (int) (con.scale*con.vx1[(i+1)%con.num1[0]]);
+      int v1 = (int) (con.scale*con.vy1[0][i]);
+      int v2 = (int) (con.scale*con.vx1[0][i]);
+      int v3 = (int) (con.scale*con.vy1[0][(i+1)%con.num1[0]]);
+      int v4 = (int) (con.scale*con.vx1[0][(i+1)%con.num1[0]]);
       gr.drawLine(v1, v2, v3, v4);
     }
     for (int ix=-1; ix<1; ix++) {
@@ -758,46 +837,46 @@ public class Contour2D extends Applet implements MouseListener {
       switch ((con.whichlabels+ix+5)%5) {
         case 0: // hidden contours are exposed
           for (int i=0; i<con.num2[0]; i+=2) {
-            int v1 = (int) (con.scale*con.vy2[i]);
-            int v2 = (int) (con.scale*con.vx2[i]);
-            int v3 = (int) (con.scale*con.vy2[(i+1)%con.num2[0]]);
-            int v4 = (int) (con.scale*con.vx2[(i+1)%con.num2[0]]);
+            int v1 = (int) (con.scale*con.vy2[0][i]);
+            int v2 = (int) (con.scale*con.vx2[0][i]);
+            int v3 = (int) (con.scale*con.vy2[0][(i+1)%con.num2[0]]);
+            int v4 = (int) (con.scale*con.vx2[0][(i+1)%con.num2[0]]);
             gr.drawLine(v1, v2, v3, v4);
           }
           break;
         case 1: // numbers cover hidden contours
           for (int i=0; i<con.num3[0]; i+=2) {
-            int v1 = (int) (con.scale*con.vy3[i]);
-            int v2 = (int) (con.scale*con.vx3[i]);
-            int v3 = (int) (con.scale*con.vy3[(i+1)%con.num3[0]]);
-            int v4 = (int) (con.scale*con.vx3[(i+1)%con.num3[0]]);
+            int v1 = (int) (con.scale*con.vy3[0][i]);
+            int v2 = (int) (con.scale*con.vx3[0][i]);
+            int v3 = (int) (con.scale*con.vy3[0][(i+1)%con.num3[0]]);
+            int v4 = (int) (con.scale*con.vx3[0][(i+1)%con.num3[0]]);
             gr.drawLine(v1, v2, v3, v4);
           }
           break;
         case 2: // numbers cover hidden contours, backwards
           for (int i=0; i<con.num4[0]; i+=2) {
-            int v1 = (int) (con.scale*con.vy4[i]);
-            int v2 = (int) (con.scale*con.vx3[i]);
-            int v3 = (int) (con.scale*con.vy4[(i+1)%con.num4[0]]);
-            int v4 = (int) (con.scale*con.vx3[(i+1)%con.num3[0]]);
+            int v1 = (int) (con.scale*con.vy4[0][i]);
+            int v2 = (int) (con.scale*con.vx3[0][i]);
+            int v3 = (int) (con.scale*con.vy4[0][(i+1)%con.num4[0]]);
+            int v4 = (int) (con.scale*con.vx3[0][(i+1)%con.num3[0]]);
             gr.drawLine(v1, v2, v3, v4);
           }
           break;
         case 3: // numbers cover hidden contours, upside-down
           for (int i=0; i<con.num3[0]; i+=2) {
-            int v1 = (int) (con.scale*con.vy3[i]);
-            int v2 = (int) (con.scale*con.vx4[i]);
-            int v3 = (int) (con.scale*con.vy3[(i+1)%con.num3[0]]);
-            int v4 = (int) (con.scale*con.vx4[(i+1)%con.num4[0]]);
+            int v1 = (int) (con.scale*con.vy3[0][i]);
+            int v2 = (int) (con.scale*con.vx4[0][i]);
+            int v3 = (int) (con.scale*con.vy3[0][(i+1)%con.num3[0]]);
+            int v4 = (int) (con.scale*con.vx4[0][(i+1)%con.num4[0]]);
             gr.drawLine(v1, v2, v3, v4);
           }
           break;
         case 4: // numbers cover hidden contours, upside-down & backwards
           for (int i=0; i<con.num3[0]; i+=2) {
-            int v1 = (int) (con.scale*con.vy4[i]);
-            int v2 = (int) (con.scale*con.vx4[i]);
-            int v3 = (int) (con.scale*con.vy4[(i+1)%con.num4[0]]);
-            int v4 = (int) (con.scale*con.vx4[(i+1)%con.num4[0]]);
+            int v1 = (int) (con.scale*con.vy4[0][i]);
+            int v2 = (int) (con.scale*con.vx4[0][i]);
+            int v3 = (int) (con.scale*con.vy4[0][(i+1)%con.num4[0]]);
+            int v4 = (int) (con.scale*con.vx4[0][(i+1)%con.num4[0]]);
             gr.drawLine(v1, v2, v3, v4);
           }
       } // end switch
