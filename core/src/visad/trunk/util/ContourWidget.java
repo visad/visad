@@ -42,7 +42,8 @@ import visad.*;
 /** A widget that allows users to control iso-contours.<P> */
 public class ContourWidget extends JPanel implements ActionListener,
                                                      ChangeListener,
-                                                     ItemListener {
+                                                     ItemListener,
+                                                     ControlListener {
 
   /** This ContourRangeWidget's associated Control. */
   private ContourControl control;
@@ -62,6 +63,7 @@ public class ContourWidget extends JPanel implements ActionListener,
   private JCheckBox Labels;
   private JCheckBox Contours;
   private JCheckBox Dashed;
+  private ContourRangeWidget ContourRange;
 
   /** construct a ContourWidget linked to the Control in the map
       (which must be to Display.IsoContour), with default interval,
@@ -147,9 +149,13 @@ public class ContourWidget extends JPanel implements ActionListener,
 
     SurfaceLabel = new JLabel(name + " = ---");
     Surface = new JSlider();
-    ContourRangeWidget crw = new ContourRangeWidget(smap, cLo, cHi,
-                                                    this, update);
-    if (!update) updateWidget();
+    ContourRange = new ContourRangeWidget(smap, cLo, cHi, this, update);
+    if (!update) {
+      control.setSurfaceValue(cSurface);
+      control.setContourInterval(cInterval, cLo, cHi, cBase);
+      updateWidgetSurface();
+      updateWidgetRange();
+    }
 
     // set label foregrounds
     intLabel.setForeground(Color.black);
@@ -173,6 +179,7 @@ public class ContourWidget extends JPanel implements ActionListener,
     Labels.addItemListener(this);
     Contours.addItemListener(this);
     Dashed.addItemListener(this);
+    control.addControlListener(this);
 
     // set up JComponents' tool tips
     Contours.setToolTipText("Toggle contours");
@@ -187,7 +194,7 @@ public class ContourWidget extends JPanel implements ActionListener,
     String u = "Specify the iso-level value (3-D only)";
     SurfaceLabel.setToolTipText(u);
     Surface.setToolTipText(u);
-    crw.setToolTipText("Specify the iso-contouring range (2-D only)");
+    ContourRange.setToolTipText("Specify the iso-contouring range (2-D only)");
 
     // lay out JComponents
     top.add(Contours);
@@ -204,7 +211,7 @@ public class ContourWidget extends JPanel implements ActionListener,
     add(mid);
     add(low);
     add(Surface);
-    add(crw);
+    add(ContourRange);
   }
 
   private double sliderScale;
@@ -217,9 +224,11 @@ public class ContourWidget extends JPanel implements ActionListener,
 
   void setMinMax(float min, float max) throws VisADException,
                                               RemoteException {
-    cLo = min;
-    cHi = max;
-    updateWidget();
+    if (Math.abs(cLo - min) > 0.0001 || Math.abs(cHi - max) > 0.0001) {
+      cLo = min;
+      cHi = max;
+      control.setContourLimits(cLo, cHi);
+    }
   }
 
   void detectValues(double[] range) throws VisADException, RemoteException {
@@ -228,15 +237,18 @@ public class ContourWidget extends JPanel implements ActionListener,
     control.getMainContours(bval, fval);
     cSurface = fval[0];
     cInterval = fval[1];
+    cBase = fval[4];
     cLo = fval[2];
     cHi = fval[3];
-    cBase = fval[4];
     if (cSurface != cSurface) cSurface = (float) range[0];
+    updateWidgetSurface();
+    updateWidgetRange();
   }
 
-  synchronized void updateWidget() throws VisADException, RemoteException {
+  synchronized private void updateWidgetSurface()
+          throws VisADException, RemoteException
+  {
     if (cSurface == cSurface) {
-      control.setSurfaceValue(cSurface);
       Surface.setEnabled(true);
       Surface.setValue((int) (sliderScale*cSurface));
       SurfaceLabel.setText(name + " = " + PlotText.shortString(cSurface));
@@ -245,8 +257,12 @@ public class ContourWidget extends JPanel implements ActionListener,
       Surface.setEnabled(false);
       SurfaceLabel.setText(name + " = ---");
     }
-    if (cInterval == cInterval && cLo == cLo && cHi == cHi && cBase == cBase) {
-      control.setContourInterval(cInterval, cLo, cHi, cBase);
+  }
+
+  synchronized private void updateWidgetRange()
+          throws VisADException, RemoteException
+  {
+    if (cInterval == cInterval && cBase == cBase) {
       Interval.setEnabled(true);
       Interval.setText(PlotText.shortString(Math.abs(cInterval)));
       Base.setEnabled(true);
@@ -349,6 +365,59 @@ public class ContourWidget extends JPanel implements ActionListener,
     }
   }
 
+  /** ControlListener method for ContourControl. */
+  public void controlChanged(ControlEvent e)
+        throws VisADException, RemoteException {
+    boolean[] bvals = new boolean[2];
+    float[] fvals = new float[5];
+    control.getMainContours(bvals, fvals);
+
+    if (Contours.isSelected() != bvals[0]) {
+      Contours.setSelected(bvals[0]);
+    }
+    if (Labels.isSelected() != bvals[1]) {
+      Labels.setSelected(bvals[1]);
+    }
+
+    float interval = fvals[1];
+    boolean dashedState = false;
+    if (interval < 0.0f) {
+      dashedState = true;
+    }
+
+    if (Dashed.isSelected() != dashedState) {
+      Dashed.setSelected(dashedState);
+    }
+
+    float cInt;
+    if (dashedState != (cInterval < 0.0f)) {
+      cInt = -cInterval;
+    } else {
+      cInt = cInterval;
+    }
+    if (Math.abs(interval - cInt) > 0.0001) {
+      if (interval < 0.0f) interval = -interval;
+      Interval.setText(PlotText.shortString(interval));
+      cInterval = fvals[1];
+    }
+    if (Math.abs(fvals[4] - cBase) > 0.0001) {
+      Base.setText(PlotText.shortString(fvals[4]));
+      cBase = fvals[4];
+    }
+
+    if (Math.abs(fvals[0] - cSurface) > 0.0001) {
+      cSurface = fvals[0];
+      updateWidgetSurface();
+    }
+    if (Math.abs(fvals[2] - cLo) > 0.0001 ||
+        Math.abs(fvals[3] - cHi) > 0.0001) {
+      cLo = fvals[2];
+      cHi = fvals[3];
+      updateWidgetRange();
+      ContourRange.setLimits(cLo, cHi);
+    }
+  }
+
   /** Make ContourWidget appear decent-sized */
   public Dimension getPreferredSize() {
     return new Dimension(300, super.getPreferredSize().height);
@@ -383,16 +452,36 @@ public class ContourWidget extends JPanel implements ActionListener,
       catch (VisADException exc) { }
       catch (RemoteException exc) { }
     }
-  
+
+    /** convert range percentage to actual iso-contour value */
+    private float percentToLimit(float pct)
+    {
+      return (pct * (maxVal - minVal) / 100.0f) + minVal;
+    }
+
+    /** convert iso-contour value to range percentage */
+    private float limitToPercent(float lim)
+    {
+      return ((lim - minVal) * 100.0f) / (maxVal - minVal);
+    }
+
     /** Recomputes percent variables, updates control, then paints. */
     void percPaint() {
       super.percPaint();
       try {
-        pappy.setMinMax(minPercent * (maxVal - minVal) / 100 + minVal,
-                        maxPercent * (maxVal - minVal) / 100 + minVal);
+        pappy.setMinMax(percentToLimit(minPercent), percentToLimit(maxPercent));
       }
       catch (VisADException exc) { }
       catch (RemoteException exc) { }
+    }
+
+    /** set range limits and repaint */
+    void setLimits(float lo, float hi)
+    {
+      minPercent = limitToPercent(lo);
+      maxPercent = limitToPercent(hi);
+      updateGripsFromPercents();
+      percPaint();
     }
 
   }
