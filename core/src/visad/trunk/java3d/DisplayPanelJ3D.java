@@ -1,6 +1,6 @@
 
 //
-// VisADCanvas3D.java
+// DisplayPanelJ3D.java
 //
 
 /*
@@ -27,27 +27,40 @@ package visad.java3d;
  
 import visad.*;
  
+// GUI handling
+import java.awt.swing.*;
+import java.awt.swing.border.*;
+// import com.sun.java.swing.*;
+// import com.sun.java.swing.border.*;
+
+import java.awt.BorderLayout;
+import java.awt.event.*;
+
 import javax.media.j3d.*;
 
+import java.util.*;
 import java.awt.*;
+import java.awt.image.*;
+import java.net.*;
+
+public class DisplayPanelJ3D extends JPanel {
+
+  private DisplayImplJ3D display;
+  private DisplayRendererJ3D renderer;
+
+  public DisplayPanelJ3D(DisplayImplJ3D d) {
+    display = d;
+    renderer = (DisplayRendererJ3D) display.getDisplayRenderer();
+    setLayout(new BorderLayout());
+    Canvas3D canvas = new VisADCanvasJ3D(renderer, this);
+    add("Center", canvas);
  
-/**
-   VisADCanvas3D is the VisAD extension of Canvas3D
-*/
+    UniverseBuilderJ3D universe = new UniverseBuilderJ3D(canvas);
+    BranchGroup scene = renderer.createSceneGraph(universe.view, canvas); // J3D
+    universe.addBranchGraph(scene);
+    setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+    setAlignmentX(LEFT_ALIGNMENT);
 
-public class VisADCanvas3D extends Canvas3D { // J3D
-
-  private DisplayRendererJ3D displayRenderer;
-  private Component component;
-
-  VisADCanvas3D(DisplayRendererJ3D renderer, Component c) {
-    super(null);
-    displayRenderer = renderer;
-    component = c;
-  }
-
-  public void renderField(int i) {
-    displayRenderer.drawCursorStringVector(this);
   }
 
 }

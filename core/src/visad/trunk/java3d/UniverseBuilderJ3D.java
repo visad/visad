@@ -1,6 +1,6 @@
 
 //
-// UniverseBuilder.java
+// UniverseBuilderJ3D.java
 //
 
 /*
@@ -18,7 +18,7 @@ import java.awt.event.*;
 import javax.media.j3d.*;
 import javax.vecmath.*;
 
-public class UniverseBuilder extends Object {
+public class UniverseBuilderJ3D extends Object {
 
     // User-specified canvas
     Canvas3D canvas; // J3D
@@ -29,7 +29,7 @@ public class UniverseBuilder extends Object {
     TransformGroup          vpTrans; // J3D
     View                    view; // J3D
 
-    public UniverseBuilder(Canvas3D c) { // J3D
+    public UniverseBuilderJ3D(Canvas3D c) { // J3D
         this.canvas = c;
 
         // Establish a virtual universe, with a single hi-res Locale

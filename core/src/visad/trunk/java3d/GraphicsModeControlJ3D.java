@@ -65,6 +65,7 @@ public class GraphicsModeControlJ3D extends Control
     transparencyMode = TransparencyAttributes.FASTEST;
     // transparencyMode = TransparencyAttributes.BLENDED;
     // transparencyMode = TransparencyAttributes.SCREEN_DOOR;
+    projectionPolicy = View.PERSPECTIVE_PROJECTION;
   }
  
   public boolean getMode2D() {

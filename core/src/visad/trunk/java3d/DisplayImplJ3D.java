@@ -51,7 +51,7 @@ public class DisplayImplJ3D extends DisplayImpl {
   public static final int JPANEL = 1;
   public static final int APPLETFRAME = 2;
   /** this is used for APPLETFRAME */
-  private DisplayApplet applet = null;
+  private DisplayAppletJ3D applet = null;
 
   private ProjectionControlJ3D projection = null;
   private GraphicsModeControlJ3D mode = null;
@@ -87,14 +87,14 @@ public class DisplayImplJ3D extends DisplayImpl {
     addControl(projection);
 
     if (api == APPLETFRAME) {
-      applet = new DisplayApplet(this);
+      applet = new DisplayAppletJ3D(this);
       Component component = new MainFrame(applet, 256, 256);
       // Component component = new AppletFrame(applet, 256, 256);
       setComponent(component);
       // component.setTitle(name);
     }
     else if (api == JPANEL) {
-      Component component = new DisplayPanel(this);
+      Component component = new DisplayPanelJ3D(this);
       setComponent(component);
     }
     else {
@@ -110,7 +110,7 @@ public class DisplayImplJ3D extends DisplayImpl {
     return mode;
   }
 
-  public DisplayApplet getApplet() {
+  public DisplayAppletJ3D getApplet() {
     return applet;
   }
 

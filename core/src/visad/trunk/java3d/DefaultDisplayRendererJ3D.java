@@ -43,7 +43,7 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
 
   /** color of box  */
   ColoringAttributes box_color = null; // J3D
-  MouseBehavior mouse = null; // Behavior for mouse interactions
+  MouseBehaviorJ3D mouse = null; // Behavior for mouse interactions
 
   public DefaultDisplayRendererJ3D () {
     super();
@@ -51,7 +51,7 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
 
   /** create scene graph root, if none exists, with Transform
       and direct manipulation root;
-      create 3-D box, lights and MouseBehavior for
+      create 3-D box, lights and MouseBehaviorJ3D for
       embedded user interface */
   public BranchGroup createSceneGraph(View v, Canvas3D c) { // J3D
     BranchGroup root = createBasicSceneGraph(v, c); // J3D
@@ -80,8 +80,8 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
     // create the Behavior for mouse interactions
     ProjectionControl proj = getDisplay().getProjectionControl();
 
-    // create MouseBehavior
-    mouse = new MouseBehavior(this);
+    // create MouseBehaviorJ3D
+    mouse = new MouseBehaviorJ3D(this);
     BoundingSphere bounds =
       new BoundingSphere(new Point3d(0.0,0.0,0.0), 100.0); // J3D
     mouse.setSchedulingBounds(bounds); // J3D

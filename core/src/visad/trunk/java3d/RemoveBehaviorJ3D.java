@@ -1,6 +1,6 @@
 
 //
-// RemoveBehavior.java
+// RemoveBehaviorJ3D.java
 //
 
 /*
@@ -35,11 +35,11 @@ import java.awt.*;
 import java.util.*;
 
 /**
-   RemoveBehavior is the VisAD class for Java3D behaviors that
+   RemoveBehaviorJ3D is the VisAD class for Java3D behaviors that
    remove BranchGroups after waiting for at least 1 frame.<P>
 */
 
-public class RemoveBehavior extends Behavior { // J3D
+public class RemoveBehaviorJ3D extends Behavior { // J3D
 
   /** DisplayRenderer for Display */
   DisplayRendererJ3D display_renderer;
@@ -48,7 +48,7 @@ public class RemoveBehavior extends Behavior { // J3D
 
   Vector removeVector = new Vector();
 
-  public RemoveBehavior(DisplayRendererJ3D r) {
+  public RemoveBehaviorJ3D(DisplayRendererJ3D r) {
     display_renderer = r;
     waiting = false;
   }

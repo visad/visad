@@ -67,7 +67,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
       Data depictions */
   private BranchGroup direct = null;
   /** Behavior for delayed removal of BranchGroups */
-  RemoveBehavior remove = null;
+  RemoveBehaviorJ3D remove = null;
 
   /** TransformGroup between trans and cursor */
   private TransformGroup cursor_trans = null;
@@ -176,7 +176,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     ProjectionControl proj = getDisplay().getProjectionControl();
     Transform3D tstart = new Transform3D(proj.getMatrix());
     Transform3D t1 =
-      MouseBehavior.make_matrix(0.0, 0.0, 0.0, scale, 0.0, 0.0, 0.0);
+      MouseBehaviorJ3D.make_matrix(0.0, 0.0, 0.0, scale, 0.0, 0.0, 0.0);
     t1.mul(tstart);
     double[] matrix = new double[16];
     t1.get(matrix);
@@ -198,7 +198,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     trans.addChild(direct);
 
     // create removeBehavior
-    remove = new RemoveBehavior(this);
+    remove = new RemoveBehaviorJ3D(this);
     BoundingSphere bounds =
       new BoundingSphere(new Point3d(0.0,0.0,0.0), 100.0);
     remove.setSchedulingBounds(bounds);

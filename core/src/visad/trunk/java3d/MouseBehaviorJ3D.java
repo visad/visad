@@ -1,6 +1,6 @@
 
 //
-// MouseBehavior.java
+// MouseBehaviorJ3D.java
 //
 
 /*
@@ -37,7 +37,7 @@ import java.awt.*;
 import java.util.*;
 
 /**
-   MouseBehavior is the VisAD class for mouse behaviors for Java3D
+   MouseBehaviorJ3D is the VisAD class for mouse behaviors for Java3D
 */
 
 /*
@@ -47,9 +47,9 @@ import java.util.*;
    ((InputEvent) events[i]).getModifiers() correctly
    returns 16 on MOUSE_RELEASED with left button.
 */
-public class MouseBehavior extends Behavior { // J3D
+public class MouseBehaviorJ3D extends Behavior { // J3D
 
-  /** wakeup condition for MouseBehavior */
+  /** wakeup condition for MouseBehaviorJ3D */
   private WakeupOr wakeup;
   /** DisplayRenderer for Display */
   DisplayRendererJ3D display_renderer;
@@ -78,9 +78,9 @@ public class MouseBehavior extends Behavior { // J3D
   /** close direct_renderer when mousePressed3 */
   DirectManipulationRendererJ3D direct_renderer = null;
 
-  public MouseBehavior(DisplayRendererJ3D r) {
+  public MouseBehaviorJ3D(DisplayRendererJ3D r) {
 /*
-    System.out.println("MouseBehavior constructed ");
+    System.out.println("MouseBehaviorJ3D constructed ");
 */
     display_renderer = r;
     display = display_renderer.getDisplay();
@@ -115,13 +115,13 @@ public class MouseBehavior extends Behavior { // J3D
     while (criteria.hasMoreElements()) {
       WakeupCriterion wakeup = (WakeupCriterion) criteria.nextElement();
       if (!(wakeup instanceof WakeupOnAWTEvent)) {
-        System.out.println("MouseBehavior.processStimulus: non-" +
+        System.out.println("MouseBehaviorJ3D.processStimulus: non-" +
                             "WakeupOnAWTEvent");
       }
       AWTEvent[] events = ((WakeupOnAWTEvent) wakeup).getAWTEvent();
       for (int i=0; i<events.length; i++) {
         if (!(events[i] instanceof MouseEvent)) {
-          System.out.println("MouseBehavior.processStimulus: non-" +
+          System.out.println("MouseBehaviorJ3D.processStimulus: non-" +
                              "MouseEvent");
         }
         switch (events[i].getID()) {
@@ -314,7 +314,7 @@ public class MouseBehavior extends Behavior { // J3D
             }
             break;
           default:
-            System.out.println("MouseBehavior.processStimulus: event type" +
+            System.out.println("MouseBehaviorJ3D.processStimulus: event type" +
                                "not recognized " + events[i].getID());
             break;
         }
@@ -336,6 +336,12 @@ public class MouseBehavior extends Behavior { // J3D
     t.transform(position);
     t.transform(eye_position);
 
+    if (display.getGraphicsModeControl().getProjectionPolicy() ==
+        View.PARALLEL_PROJECTION) {
+      eye_position = new Point3d(position.x, position.y,
+                                 position.z + 1.0f);
+    }
+
     TransformGroup trans = display_renderer.getTrans();
     Transform3D tt = new Transform3D();
     trans.getTransform(tt);
@@ -348,7 +354,7 @@ public class MouseBehavior extends Behavior { // J3D
                                    position.y - eye_position.y,
                                    position.z - eye_position.z);
     vector.normalize();
-    PickRay ray = new PickRay(eye_position, vector);
+    PickRay ray = new PickRay(position, vector);
     return ray;
   }
 
@@ -469,7 +475,7 @@ public class MouseBehavior extends Behavior { // J3D
 */
 
 /*
-   see ViewPlatform.TransformGroup in UniverseBuilder constructor
+   see ViewPlatform.TransformGroup in UniverseBuilderJ3D constructor
  
    View.setProjectionPolicy
      default is View.PERSPECTIVE_PROJECTION (vs PARALLEL_PROJECTION)
@@ -488,7 +494,7 @@ public class MouseBehavior extends Behavior { // J3D
      left eye that transforms points in Eye Coordinates (EC) to Clipping 
      Coordinates (CC)."
  
-   NOTE have View in UniverseBuilder
+   NOTE have View in UniverseBuilderJ3D
 
    Canvas3D.getImagePlateToVworld(Transform3D t)
    Canvas3D.getPixelLocationInImagePlate(int x, int y, Point3d position)

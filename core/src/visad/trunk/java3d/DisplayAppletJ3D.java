@@ -1,6 +1,6 @@
 
 //
-// DisplayPanel.java
+// DisplayAppletJ3D.java
 //
 
 /*
@@ -26,41 +26,29 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad.java3d;
  
 import visad.*;
- 
-// GUI handling
-import java.awt.swing.*;
-import java.awt.swing.border.*;
-// import com.sun.java.swing.*;
-// import com.sun.java.swing.border.*;
 
-import java.awt.BorderLayout;
+import java.applet.Applet;
+import java.awt.*;
 import java.awt.event.*;
+import java.awt.BorderLayout;
 
 import javax.media.j3d.*;
 
-import java.util.*;
-import java.awt.*;
-import java.awt.image.*;
-import java.net.*;
-
-public class DisplayPanel extends JPanel {
+public class DisplayAppletJ3D extends Applet {
 
   private DisplayImplJ3D display;
   private DisplayRendererJ3D renderer;
 
-  public DisplayPanel(DisplayImplJ3D d) {
+  public DisplayAppletJ3D(DisplayImplJ3D d) {
     display = d;
     renderer = (DisplayRendererJ3D) display.getDisplayRenderer();
     setLayout(new BorderLayout());
-    Canvas3D canvas = new VisADCanvas3D(renderer, this); // J3D
+    Canvas3D canvas = new VisADCanvasJ3D(renderer, this);
     add("Center", canvas);
  
-    UniverseBuilder universe = new UniverseBuilder(canvas); // J3D
-    BranchGroup scene = renderer.createSceneGraph(universe.view, canvas); // J3D
-    universe.addBranchGraph(scene);
-    setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-    setAlignmentX(LEFT_ALIGNMENT);
-
+    UniverseBuilderJ3D universe = new UniverseBuilderJ3D(canvas);
+    BranchGroup scene = renderer.createSceneGraph(universe.view, canvas);
+    universe.addBranchGraph(scene); // J3D
   }
 
 }

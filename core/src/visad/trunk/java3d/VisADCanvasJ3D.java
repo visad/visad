@@ -1,6 +1,6 @@
 
 //
-// DisplayApplet.java
+// VisADCanvasJ3D.java
 //
 
 /*
@@ -26,29 +26,28 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad.java3d;
  
 import visad.*;
-
-import java.applet.Applet;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.BorderLayout;
-
+ 
 import javax.media.j3d.*;
 
-public class DisplayApplet extends Applet {
-
-  private DisplayImplJ3D display;
-  private DisplayRendererJ3D renderer;
-
-  public DisplayApplet(DisplayImplJ3D d) {
-    display = d;
-    renderer = (DisplayRendererJ3D) display.getDisplayRenderer();
-    setLayout(new BorderLayout());
-    Canvas3D canvas = new VisADCanvas3D(renderer, this); // J3D
-    add("Center", canvas);
+import java.awt.*;
  
-    UniverseBuilder universe = new UniverseBuilder(canvas); // J3D
-    BranchGroup scene = renderer.createSceneGraph(universe.view, canvas); // J3D
-    universe.addBranchGraph(scene); // J3D
+/**
+   VisADCanvasJ3D is the VisAD extension of Canvas3D
+*/
+
+public class VisADCanvasJ3D extends Canvas3D { // J3D
+
+  private DisplayRendererJ3D displayRenderer;
+  private Component component;
+
+  VisADCanvasJ3D(DisplayRendererJ3D renderer, Component c) {
+    super(null);
+    displayRenderer = renderer;
+    component = c;
+  }
+
+  public void renderField(int i) {
+    displayRenderer.drawCursorStringVector(this);
   }
 
 }

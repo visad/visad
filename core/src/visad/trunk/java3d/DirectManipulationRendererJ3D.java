@@ -89,8 +89,10 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
     "not simple tuple";
   private final static String multipleMapping =
     "RealType with multiple mappings";
+  private final static String multipleSpatialMapping =
+    "RealType with multiple spatial mappings";
   private final static String nonCartesian =
-    "mapping to non-Cartesian spatial display tuple";
+    "no spatial or non-Cartesian spatial mapping";
   private final static String viaReference =
     "spatial mapping through Reference";
   private final static String domainDimension =
@@ -139,8 +141,14 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
         whyNotDirect = notSimpleTuple;
         return;
       }
+/* WLH 29 May 98
       else if (shadow.getMultipleDisplayScalar()) {
         whyNotDirect = multipleMapping;
+        return;
+      }
+*/
+      else if (shadow.getMultipleSpatialDisplayScalar()) {
+        whyNotDirect = multipleSpatialMapping;
         return;
       }
       else if (domain.getDimension() != 1) {
@@ -221,8 +229,14 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
         whyNotDirect = notSimpleTuple;
         return;
       }
+/* WLH 29 May 98
       else if (shadow.getMultipleDisplayScalar()) {
         whyNotDirect = multipleMapping;
+        return;
+      }
+*/
+      else if (shadow.getMultipleSpatialDisplayScalar()) {
+        whyNotDirect = multipleSpatialMapping;
         return;
       }
       else if (!Display.DisplaySpatialCartesianTuple.equals(
@@ -253,8 +267,14 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
         whyNotDirect = notSimpleTuple;
         return;
       }
+/* WLH 29 May 98
       else if (shadow.getMultipleDisplayScalar()) {
         whyNotDirect = multipleMapping;
+        return;
+      }
+*/
+      else if (shadow.getMultipleSpatialDisplayScalar()) {
+        whyNotDirect = multipleSpatialMapping;
         return;
       }
       else if(!Display.DisplaySpatialCartesianTuple.equals(
