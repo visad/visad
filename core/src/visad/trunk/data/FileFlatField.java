@@ -467,6 +467,12 @@ public class FileFlatField extends FlatField {
     }
   }
 
+  /** unpack an array of doubles from field sample values according to the
+      RangeSet-s; returns a copy */
+  public double[][] unpackValues() throws VisADException {
+    return getadaptedFlatField().unpackValues();
+  }
+
   public Field extract( int component )
          throws VisADException, RemoteException
   {
