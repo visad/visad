@@ -237,6 +237,8 @@ public class MeasureToolPanel extends ToolPanel {
     controls.add(Box.createVerticalStrut(5));
 
     // export measurements button
+    p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
     export = new JButton("Export measurements");
     final Component panel = this;
     export.addActionListener(new ActionListener() {
@@ -254,12 +256,29 @@ public class MeasureToolPanel extends ToolPanel {
     export.setToolTipText(
       "Exports measurements to Excel-friendly text format");
     export.setEnabled(false);
-    controls.add(pad(export));
+    p.add(export);
+    p.add(Box.createHorizontalStrut(5));
 
     // export measurements file chooser
     exportBox = new JFileChooser();
     exportBox.addChoosableFileFilter(new ExtensionFileFilter(
       "txt", "VisBio measurements"));
+
+    // snap now button
+    snapNow = new JButton("Snap now");
+    snapNow.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        for (int j=0; j<bio.mm.lists.length; j++) {
+          bio.mm.lists[j].snapMeasurements();
+        }
+      }
+    });
+    snapNow.setMnemonic('w');
+    snapNow.setToolTipText("Systematically snaps measurements " +
+      "to the closest slices.");
+    snapNow.setEnabled(false);
+    p.add(snapNow);
+    controls.add(pad(p));
 
     // snap to slices checkbox
     snap = new JCheckBox("Snap endpoints to nearest slice", true);
@@ -274,21 +293,6 @@ public class MeasureToolPanel extends ToolPanel {
       "from lying between slices.");
     snap.setEnabled(false);
     controls.add(pad(snap));
-
-    // snap now button
-    snapNow = new JButton("Snap all endpoints now");
-    snapNow.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        for (int j=0; j<bio.mm.lists.length; j++) {
-          bio.mm.lists[j].snapMeasurements();
-        }
-      }
-    });
-    snapNow.setMnemonic('w');
-    snapNow.setToolTipText("Systematically snaps measurements " +
-      "to the closest slices.");
-    snapNow.setEnabled(false);
-    controls.add(pad(snapNow));
 
     // divider between global functions and measurement-specific functions
     controls.add(Box.createVerticalStrut(10));
@@ -460,12 +464,9 @@ public class MeasureToolPanel extends ToolPanel {
     colorList.setToolTipText(colorToolTip);
     colorList.setEnabled(false);
     p.add(colorList);
-    controls.add(p);
-    controls.add(Box.createVerticalStrut(5));
+    p.add(Box.createHorizontalStrut(5));
 
     // group label
-    p = new JPanel();
-    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
     groupLabel = new JLabel("Group: ");
     groupLabel.setForeground(Color.black);
     groupLabel.setDisplayedMnemonic('g');

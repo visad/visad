@@ -32,7 +32,7 @@ import javax.swing.*;
 public class ColorRenderer implements ListCellRenderer {
 
   /** Preferred size of the renderer's components. */
-  private Dimension size = new Dimension(200, 15);
+  private Dimension size = new Dimension(10, 15);
 
   /** Constructs a color JComboBox renderer. */
   public ColorRenderer() { }
