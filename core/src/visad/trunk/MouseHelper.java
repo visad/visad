@@ -693,7 +693,7 @@ public class MouseHelper
           throw new DisplayException("bad map array");
         }
         for (int k=0; k<2; k++) {
-          if (map[i][j][k] < 0 || map[i][j][k] > MouseHelper.DIRECT) {
+          if (map[i][j][k] >= NFUNCTIONS) {
             throw new DisplayException("bad map array value" + map[i][j][k]);
           }
         }
