@@ -370,6 +370,7 @@ public class ContourWidget extends Widget implements ActionListener, ItemListene
      */
     public void valuesUpdated() {
       widget.setLimits(minValue, maxValue);
+      widget.notifyListeners(new WidgetEvent(widget));
     }
 
   }

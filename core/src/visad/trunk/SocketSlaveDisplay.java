@@ -50,7 +50,7 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
 
   /** list of control classes that support socket-based collaboration */
   private static final Class[] supportedControls = {
-    ContourControl.class, GraphicsModeControl.class
+    GraphicsModeControl.class, ContourControl.class
   };
 
   /** the port at which the server communicates with clients */
@@ -83,6 +83,9 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
   /** vector of client sockets' output streams */
   private Vector clientOutputs = new Vector();
 
+  /** vector of client socket ids */
+  private Vector clientIds = new Vector();
+
   /** thread monitoring incoming clients */
   private Thread connectThread = null;
 
@@ -91,6 +94,12 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
 
   /** whether the server is still alive */
   private boolean alive = true;
+
+  /** next available client ID number */
+  private int clientID = 0;
+
+  /** this socket slave display */
+  private final SocketSlaveDisplay socketSlave = this;
 
   /** contains the code for monitoring incoming clients */
   private Runnable connect = new Runnable() {
@@ -112,6 +121,10 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
               DataOutputStream out =
                 new DataOutputStream(socket.getOutputStream());
               clientOutputs.add(out);
+
+              // assign client an ID number
+              out.writeInt(++clientID);
+              clientIds.add(new Integer(clientID));
             }
           }
         }
@@ -127,22 +140,29 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
     public void run() {
       while (alive) {
         boolean silence = true;
-        Object[] sockets, inputs, outputs;
+        Object[] sockets, inputs, outputs, cids;
         synchronized (clientSockets) {
           sockets = clientSockets.toArray();
           inputs = clientInputs.toArray();
           outputs = clientOutputs.toArray();
+          cids = clientIds.toArray();
         }
         for (int i=0; i<sockets.length; i++) {
           Socket socket = (Socket) sockets[i];
           DataInputStream in = (DataInputStream) inputs[i];
           DataOutputStream out = (DataOutputStream) outputs[i];
+          int cid = ((Integer) cids[i]).intValue();
 
           // check for client requests in the form of MouseEvent data
           try {
             if (in.available() > 0) {
               silence = false;
               // receive the client data
+              int sid = in.readInt();
+              if (DEBUG && sid != cid) {
+                System.err.println("Warning: client #" + cid + " believes " +
+                  "its ID number is " + sid);
+              }
               int eventType = in.readInt();
 
               if (eventType == VisADApplet.REFRESH) {
@@ -154,12 +174,7 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
                   Class c = supportedControls[j];
                   Vector v = display.getControls(c);
 
-                  // special cases
-                  if (c.equals(GraphicsModeControl.class)) {
-                    // CTR: ugly, ugly hack
-                    v.removeElementAt(1);
-                  }
-
+                  // send control state message to each client
                   for (int k=0; k<v.size(); k++) {
                     Control control = (Control) v.elementAt(k);
                     String message = c.getName() + "\n" +
@@ -182,7 +197,7 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
                 }
               }
               else if (eventType == VisADApplet.MOUSE_EVENT) {
-                int id = in.readInt();
+                int mid = in.readInt();
                 long when = in.readLong();
                 int mods = in.readInt();
                 int x = in.readInt();
@@ -193,10 +208,10 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
                 // construct resulting MouseEvent and process it
                 Component c = display.getComponent();
                 MouseEvent me =
-                  new MouseEvent(c, id, when, mods, x, y, clicks, popup);
+                  new MouseEvent(c, mid, when, mods, x, y, clicks, popup);
                 MouseBehavior mb = display.getMouseBehavior();
                 MouseHelper mh = mb.getMouseHelper();
-                mh.processEvent(me, VisADEvent.UNKNOWN_REMOTE_SOURCE);
+                mh.processEvent(me, cid);
               }
               else if (eventType == VisADApplet.MESSAGE) {
                 int len = in.readInt();
@@ -217,25 +232,45 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
                 if (cls != null) {
                   Control control = display.getControl(cls, index);
                   if (control != null) {
-                    try {
-                      control.setSaveString(save);
-                    }
-                    catch (VisADException exc) {
-                      if (DEBUG) exc.printStackTrace();
-                    }
-                    catch (RemoteException exc) {
-                      if (DEBUG) exc.printStackTrace();
+                    // verify that control state has actually changed
+                    if (!save.equals(control.getSaveString())) {
+                      try {
+                        synchronized (socketSlave) {
+                          // temporarily disable control change notification
+                          display.removeSlave(socketSlave);
+                          control.setSaveString(save);
+                          display.addSlave(socketSlave);
+                        }
+                        // notify clients of change
+                        for (int k=0; k<sockets.length; k++) {
+                          // skip event source client
+                          int kid = ((Integer) cids[k]).intValue();
+                          if (kid != cid) {
+                            Socket ksocket = (Socket) sockets[k];
+                            DataInputStream kin = (DataInputStream) inputs[k];
+                            DataOutputStream kout =
+                              (DataOutputStream) outputs[k];
+                            updateClient(message, ksocket, kin, kout);
+                          }
+                        }
+                      }
+                      catch (VisADException exc) {
+                        if (DEBUG) exc.printStackTrace();
+                      }
+                      catch (RemoteException exc) {
+                        if (DEBUG) exc.printStackTrace();
+                      }
                     }
                   }
                   else {
-                    if (DEBUG) System.err.println("Warning: " +
-                      "ignoring change to unknown control from client");
+                    if (DEBUG) System.err.println("Warning: ignoring " +
+                      "change to unknown control from client #" + cid);
                   }
                 }
               }
-              else { // Unknown
+              else { // Unknown event type
                 if (DEBUG) System.err.println("Warning: " +
-                  "ignoring unknown event type from client");
+                  "ignoring unknown event type from client #" + cid);
               }
             }
           }
@@ -402,9 +437,11 @@ public class SocketSlaveDisplay implements RemoteSlaveDisplay {
 
     // remove socket from socket vectors
     synchronized (clientSockets) {
-      clientSockets.remove(socket);
-      clientInputs.remove(in);
-      clientOutputs.remove(out);
+      int index = clientSockets.indexOf(socket);
+      clientSockets.removeElementAt(index);
+      clientInputs.removeElementAt(index);
+      clientOutputs.removeElementAt(index);
+      clientIds.removeElementAt(index);
     }
   }
 

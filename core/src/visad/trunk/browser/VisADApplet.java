@@ -100,6 +100,11 @@ public class VisADApplet extends Applet
   private DataOutputStream out = null;
 
   /**
+   * ID number.
+   */
+  private int id;
+
+  /**
    * Latest image from the server's display.
    */
   private Image image = null;
@@ -290,6 +295,7 @@ public class VisADApplet extends Applet
   private void requestRefresh() {
     if (out != null) {
       try {
+        out.writeInt(id);
         out.writeInt(REFRESH);
       }
       catch (SocketException exc) {
@@ -307,7 +313,7 @@ public class VisADApplet extends Applet
    * Sends the specified mouse event through the socket to the server.
    */
   private void sendEvent(MouseEvent e) {
-    int id = e.getID();
+    int mid = e.getID();
     long when = e.getWhen();
     int mods = e.getModifiers();
     int x = e.getX();
@@ -316,8 +322,9 @@ public class VisADApplet extends Applet
     boolean popup = e.isPopupTrigger();
     if (out != null) {
       try {
-        out.writeInt(MOUSE_EVENT);
         out.writeInt(id);
+        out.writeInt(MOUSE_EVENT);
+        out.writeInt(mid);
         out.writeLong(when);
         out.writeInt(mods);
         out.writeInt(x);
@@ -342,6 +349,7 @@ public class VisADApplet extends Applet
   private void sendMessage(String message) {
     if (out != null) {
       try {
+        out.writeInt(id);
         out.writeInt(MESSAGE);
         out.writeInt(message.length());
         out.writeChars(message);
@@ -409,18 +417,36 @@ public class VisADApplet extends Applet
 
     // finish setting up new socket
     socket = sock;
-    connected = true;
+    DataInputStream sin = null;
+    try {
+      sin = new DataInputStream(socket.getInputStream());
+      out = new DataOutputStream(socket.getOutputStream());
+
+      // get client ID number from server
+      id = 0;
+      while (true) {
+        id = sin.readInt();
+        if (id == 0) {
+          try {
+            Thread.sleep(100);
+          }
+          catch (InterruptedException exc) { }
+        }
+        else break;
+      }
+      connected = true;
+    }
+    catch (IOException exc) {
+      // problem communicating with server; it has probably disconnected
+      disconnect();
+    }
 
     // set a new thread to manage communication with the server
+    final DataInputStream in = sin;
     final VisADApplet applet = this;
     commThread = new Thread(new Runnable() {
       public void run() {
         try {
-          InputStream socketIn = socket.getInputStream();
-          OutputStream socketOut = socket.getOutputStream();
-          DataInputStream in = new DataInputStream(socketIn);
-          out = new DataOutputStream(socketOut);
-
           // request a refresh so that the server sends the image
           requestRefresh();
 
@@ -612,9 +638,10 @@ public class VisADApplet extends Applet
     // parse class name
     int dotIndex = widgetClass.lastIndexOf(".");
     int wdgtIndex = widgetClass.lastIndexOf("Widget");
-    String controlName = widgetClass.substring(dotIndex + 1, wdgtIndex);
+    String widgetName = widgetClass.substring(dotIndex + 1, wdgtIndex);
 
     // handle special cases
+    String controlName = widgetName;
     if (controlName.equals("GMC")) controlName = "GraphicsMode";
 
     // construct control class name
@@ -626,7 +653,7 @@ public class VisADApplet extends Applet
     int index = -1;
     Widget w;
     do {
-      w = (Widget) hashtable.get(controlName + i);
+      w = (Widget) hashtable.get(widgetName + i);
       if (w == widget) {
         index = i;
         break;
