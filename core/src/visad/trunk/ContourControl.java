@@ -90,12 +90,20 @@ public class ContourControl extends Control {
 
   void setMainContours(boolean[] bvalues, float[] fvalues)
          throws VisADException, RemoteException {
-    setMainContours(bvalues, fvalues, false);
+    setMainContours(bvalues, fvalues, false, false);
   }
 
   /** changeControl(!noChange) to not trigger re-transform,
       used by ScalarMap.setRange */
   void setMainContours(boolean[] bvalues, float[] fvalues, boolean noChange)
+         throws VisADException, RemoteException {
+    setMainContours(bvalues, fvalues, noChange, false);
+  }
+
+  /** changeControl(!noChange) to not trigger re-transform,
+      used by ScalarMap.setRange */
+  void setMainContours(boolean[] bvalues, float[] fvalues, boolean noChange,
+                       boolean override)
          throws VisADException, RemoteException {
     if (fvalues == null || fvalues.length != 5 ||
         bvalues == null || bvalues.length != 2) {
@@ -105,20 +113,21 @@ public class ContourControl extends Control {
     mainContours = bvalues[0];
     labels = bvalues[1];
 
-    /* CTR: 23 June 2000 */
-    if (surfaceValue != surfaceValue) surfaceValue = fvalues[0];
-    if (contourInterval != contourInterval) contourInterval = fvalues[1];
-    if (lowLimit != lowLimit) lowLimit = fvalues[2];
-    if (hiLimit != hiLimit) hiLimit = fvalues[3];
-    if (base != base) base = fvalues[4];
-    /* */
-/* WLH 13 Sept 2000
-    surfaceValue = fvalues[0];
-    contourInterval = fvalues[1];
-    lowLimit = fvalues[2];
-    hiLimit = fvalues[3];
-    base = fvalues[4];
-*/
+    // WLH 13 Sept 2000
+    if (override) {
+      surfaceValue = fvalues[0];
+      contourInterval = fvalues[1];
+      lowLimit = fvalues[2];
+      hiLimit = fvalues[3];
+      base = fvalues[4];
+    }
+    else {
+      if (surfaceValue != surfaceValue) surfaceValue = fvalues[0];
+      if (contourInterval != contourInterval) contourInterval = fvalues[1];
+      if (lowLimit != lowLimit) lowLimit = fvalues[2];
+      if (hiLimit != hiLimit) hiLimit = fvalues[3];
+      if (base != base) base = fvalues[4];
+    }
 
     // adapt to 'new' descriptors
     if (arithmeticProgression) {
@@ -331,7 +340,7 @@ public class ContourControl extends Control {
     float[] f = new float[5];
     for (int i=0; i<2; i++) b[i] = Convert.getBoolean(st.nextToken());
     for (int i=0; i<5; i++) f[i] = Convert.getFloat(st.nextToken());
-    setMainContours(b, f, false);
+    setMainContours(b, f, false, true);
   }
 
   /** copy the state of a remote control to this control */
