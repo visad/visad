@@ -82,6 +82,9 @@ public interface Display extends Action {
   public final static DisplayRealType RGB =
     new DisplayRealType("RGB", false, 0.0, 1.0, 0.0, true);
 
+  public final static DisplayRealType RGBA =
+    new DisplayRealType("RGBA", false, 0.0, 1.0, 0.0, true);
+
   public final static DisplayRealType Hue =
     new DisplayRealType("Hue", false, 0.0, 360.0, 0.0,
                        CommonUnit.degree, true);
@@ -155,7 +158,7 @@ public interface Display extends Action {
   /** array of system intrinsic display scalars */
   final static DisplayRealType[] DisplayRealArray =
     {XAxis, YAxis, ZAxis, Latitude, Longitude, Radius, List, Red, Green, Blue,
-     RGB, Hue, Saturation, Value, HSV, Cyan, Magenta, Yellow, CMY, Alpha,
+     RGB, RGBA, Hue, Saturation, Value, HSV, Cyan, Magenta, Yellow, CMY, Alpha,
      Animation, SelectValue, SelectRange, IsoContour, Flow1X, Flow1Y, Flow1Z,
      Flow2X, Flow2Y, Flow2Z, Shape, XAxisOffset, YAxisOffset, ZAxisOffset};
 

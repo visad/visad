@@ -113,7 +113,15 @@ public abstract class Set extends DataImpl {
         throw new UnitException("Set: units dimension does not match");
       }
       SetUnits = new Unit[DomainDimension];
-      for (int i=0; i<DomainDimension; i++) SetUnits[i] = units[i];
+      Unit[] dunits = DomainType.getDefaultUnits();
+      for (int i=0; i<DomainDimension; i++) {
+        if (units[i] == null && dunits[i] != null) {
+          SetUnits[i] = dunits[i];
+        }
+        else {
+          SetUnits[i] = units[i];
+        }
+      }
     }
     if(!Unit.canConvertArray(SetUnits, DomainType.getDefaultUnits())) {
       throw new UnitException("Set: Units must be convertable with " +

@@ -280,7 +280,8 @@ public abstract class SampledSet extends SimpleSet {
           colors[j++] = color_values[0][i];
           colors[j++] = color_values[1][i];
           colors[j++] = color_values[2][i];
-          colors[j++] = (1.0f - color_values[3][i]);
+          colors[j++] = color_values[3][i];
+          // colors[j++] = (1.0f - color_values[3][i]);
         }
       }
       else if (color_length == 3) {

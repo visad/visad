@@ -62,8 +62,8 @@ public class RemoteServerImpl extends UnicastRemoteObject
          throws RemoteException {
     if (refs == null || refs.length == 0) return null;
     // is this copy necessary?
-    RemoteDataReferenceImpl[] rs =
-      new RemoteDataReferenceImpl[refs.length];
+    RemoteDataReference[] rs =
+      new RemoteDataReference[refs.length];
     for (int i=0; i<refs.length; i++) rs[i] = refs[i];
     return rs;
   }

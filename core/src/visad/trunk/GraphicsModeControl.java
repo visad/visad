@@ -25,6 +25,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+import java.rmi.*;
+
 /**
    GraphicsModeControl is the VisAD interface class for controlling various
    mode settings for rendering.<P>
@@ -34,29 +36,42 @@ package visad;
 */
 public interface GraphicsModeControl {
 
-  public boolean getMode2D();
+  public abstract boolean getMode2D();
 
-  public float getLineWidth();
+  public abstract float getLineWidth();
 
-  public void setLineWidth(float width) throws VisADException;
+  public abstract void setLineWidth(float width)
+         throws VisADException, RemoteException;
 
-  public float getPointSize();
+  public abstract float getPointSize();
 
-  public void setPointSize(float size) throws VisADException;
+  public abstract void setPointSize(float size)
+         throws VisADException, RemoteException;
 
-  public boolean getPointMode();
+  public abstract boolean getPointMode();
 
-  public void setPointMode(boolean mode);
+  public abstract void setPointMode(boolean mode)
+         throws VisADException, RemoteException;
 
-  public boolean getTextureEnable();
+  public abstract boolean getTextureEnable();
 
-  public void setTextureEnable(boolean enable);
+  public abstract void setTextureEnable(boolean enable)
+         throws VisADException, RemoteException;
 
-  public int getTransparencyMode();
+  public abstract boolean getScaleEnable();
 
-  public void setTransparencyMode(int mode) throws VisADException;
+  public abstract void setScaleEnable(boolean enable)
+         throws VisADException, RemoteException;
 
-  public void setProjectionPolicy(int policy) throws VisADException;
+  public abstract int getTransparencyMode();
+
+  public abstract void setTransparencyMode(int mode)
+         throws VisADException, RemoteException;
+
+  public abstract void setProjectionPolicy(int policy)
+         throws VisADException, RemoteException;
+
+  public abstract int getProjectionPolicy();
 
 }
 

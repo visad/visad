@@ -112,8 +112,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
 
   public void addReference(DataReference ref)
          throws VisADException, RemoteException {
-    throw new DisplayException("DisplayImpl.addReference: ConstantMap[]" +
-                               " argument required");
+    addReference(ref, null);
   }
 
   /** create link to DataReference with DefaultRenderer;
@@ -153,6 +152,11 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     RendererVector.addElement(renderer);
     initialize = true;
     notifyAction();
+  }
+
+  public void addReferences(DataRenderer renderer, DataReference[] refs)
+         throws VisADException, RemoteException {
+    addReferences(renderer, refs, null);
   }
 
   /** create link to set of DataReference objects with non-DefaultRenderer;
@@ -282,11 +286,14 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
   /** a Display is runnable;
       doAction is invoked by any event that requires a re-transform */
   public void doAction() throws VisADException, RemoteException {
+    if (RendererVector == null) {
+      return;
+    }
     // set tickFlag-s in changed Control-s
     Enumeration maps = MapVector.elements();
     while (maps.hasMoreElements()) {
-      Control control = ((ScalarMap) maps.nextElement()).getControl();
-      if (control != null) control.setTicks();
+      ScalarMap map = (ScalarMap) maps.nextElement();
+      map.setTicks();
     }
 
     // set ScalarMap.valueIndex-s and valueArrayLength
@@ -357,8 +364,8 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     // clear tickFlag-s in Control-s
     maps = MapVector.elements();
     while(maps.hasMoreElements()) {
-      Control control = ((ScalarMap) maps.nextElement()).getControl();
-      if (control != null) control.resetTicks();
+      ScalarMap map = (ScalarMap) maps.nextElement();
+      map.resetTicks();
     }
   }
 
@@ -524,6 +531,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
         DisplayRealTypeVector.addElement(DisplayRealArray[i]);
       }
     }
+    displayRenderer.clearAxisOrdinals();
   }
 
   public Vector getMapVector() {

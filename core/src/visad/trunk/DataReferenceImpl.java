@@ -110,21 +110,22 @@ public class DataReferenceImpl extends Object implements DataReference {
          throws VisADException, RemoteException {
     Tick += 1;
     if (Tick == Long.MAX_VALUE) Tick = Long.MIN_VALUE + 1;
-    if (ListenerVector == null) return Tick;
-    synchronized (ListenerVector) {
-      Enumeration listeners = ListenerVector.elements();
-      while (listeners.hasMoreElements()) {
-        DataChangedLink listener =
-          (DataChangedLink) listeners.nextElement();
-        DataChangedEvent e =
-          new DataChangedEvent(listener.getId(), Tick);
-        if (listener.getBall()) {
-          Action a = listener.getAction();
-          a.dataChanged(e);
-          listener.setBall(false);
-        }
-        else {
-          listener.setDataChangedEvent(e);
+    if (ListenerVector != null) {
+      synchronized (ListenerVector) {
+        Enumeration listeners = ListenerVector.elements();
+        while (listeners.hasMoreElements()) {
+          DataChangedLink listener =
+            (DataChangedLink) listeners.nextElement();
+          DataChangedEvent e =
+            new DataChangedEvent(listener.getId(), Tick);
+          if (listener.getBall()) {
+            Action a = listener.getAction();
+            a.dataChanged(e);
+            listener.setBall(false);
+          }
+          else {
+            listener.setDataChangedEvent(e);
+          }
         }
       }
     }

@@ -37,29 +37,37 @@ public interface AnimationControl extends AVControl {
  
   public void run();
 
-  public void setCurrent(int c) throws VisADException;
+  public void setCurrent(int c)
+         throws VisADException, RemoteException;
  
-  public void setDirection(boolean dir);
+  public void setDirection(boolean dir)
+         throws VisADException, RemoteException;
 
-  public void setStep(int st) throws VisADException;
+  public void setStep(int st)
+         throws VisADException, RemoteException;
 
-  public void takeStep() throws VisADException;
+  public void takeStep()
+         throws VisADException, RemoteException;
 
   public void init() throws VisADException;
 
   public Set getSet();
 
-  public void setSet(Set s) throws VisADException;
+  public void setSet(Set s)
+         throws VisADException, RemoteException;
  
-  /** noChange = true to not trigger changeControl, used by
-      ScalarMap.setRange */
-  public void setSet(Set s, boolean noChange) throws VisADException;
+  /** changeControl(!noChange) to not trigger re-transform,
+      used by ScalarMap.setRange */
+  public void setSet(Set s, boolean noChange)
+         throws VisADException, RemoteException;
 
   public boolean getOn();
 
-  public void setOn(boolean o);
+  public void setOn(boolean o)
+         throws VisADException, RemoteException;
 
-  public void toggle();
+  public void toggle()
+         throws VisADException, RemoteException;
 
   public boolean subTicks(DataRenderer r, DataDisplayLink link);
 

@@ -52,6 +52,8 @@ public class HSVCoordinateSystem extends CoordinateSystem {
     }
     int len = tuples[0].length;
     double[][] value = new double[3][len];
+    int j = 0;
+    double f = 0.0, p = 0.0, q = 0.0, t = 0.0;
     for (int i=0; i<len ;i++) {
       double h = tuples[0][i] % 360.0; // belt
       if (h < 0.0) h += 360.0;         // suspenders
@@ -63,11 +65,12 @@ public class HSVCoordinateSystem extends CoordinateSystem {
         value[2][i] = v;
       }
       else { // if (s != 0.0)
-        int j = (int) Math.floor(h / 60.0);
-        double f = h - j;
-        double p = v * (1.0 - s);
-        double q = v * (1.0 - s * f);
-        double t = v * (1.0 - s * (1.0 - f));
+        h = Math.floor(h / 60.0f);
+        j = (int) h;
+        f = h - j;
+        p = v * (1.0 - s);
+        q = v * (1.0 - s * f);
+        t = v * (1.0 - s * (1.0 - f));
         switch (j) {
           case 0:
             value[0][i] = v;
@@ -150,6 +153,8 @@ public class HSVCoordinateSystem extends CoordinateSystem {
     }
     int len = tuples[0].length;
     float[][] value = new float[3][len];
+    int j = 0;
+    float f = 0.0f, p = 0.0f, q = 0.0f, t = 0.0f;
     for (int i=0; i<len ;i++) {
       float h = tuples[0][i] % 360.0f; // belt
       if (h < 0.0f) h += 360.0f;       // suspenders
@@ -161,11 +166,12 @@ public class HSVCoordinateSystem extends CoordinateSystem {
         value[2][i] = v;
       }
       else { // if (s != 0.0f)
-        int j = (int) Math.floor(h / 60.0f);
-        float f = h - j;
-        float p = v * (1.0f - s);
-        float q = v * (1.0f - s * f);
-        float t = v * (1.0f - s * (1.0f - f));
+        h = (float) Math.floor(h / 60.0f);
+        j = (int) h;
+        f = h - j;
+        p = v * (1.0f - s);
+        q = v * (1.0f - s * f);
+        t = v * (1.0f - s * (1.0f - f));
         switch (j) {
           case 0:
             value[0][i] = v;

@@ -56,6 +56,10 @@ public class FunctionType extends MathType {
     {RealType.Generic, RealType.Generic, RealType.Generic};
   public final static FunctionType REAL_1TO3_FUNCTION =
     new FunctionType(RealType.Generic, new RealTupleType(real3, true), true);
+  private static RealType[] real4 =
+    {RealType.Generic, RealType.Generic, RealType.Generic, RealType.Generic};
+  public final static FunctionType REAL_1TO4_FUNCTION =
+    new FunctionType(RealType.Generic, new RealTupleType(real4, true), true);
 
   public FunctionType(MathType domain, MathType range) throws VisADException {
     super();

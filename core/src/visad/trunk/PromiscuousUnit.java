@@ -192,5 +192,9 @@ public class PromiscuousUnit extends Unit {
     return values;
   }
 
+  public boolean equals(Unit unit) {
+    return (unit instanceof PromiscuousUnit);
+  }
+
 }
 

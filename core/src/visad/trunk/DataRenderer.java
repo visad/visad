@@ -160,19 +160,19 @@ public abstract class DataRenderer extends Object {
             shadow = Links[i].getData().computeRanges(type, shadow);
           }
         }
-      }
+      } // end if (Links[i].checkTicks() || !feasible[i] || initialize)
  
       if (feasible[i]) {
         // check if this Data includes any changed Controls
         Enumeration maps = Links[i].getSelectedMapVector().elements();
         while(maps.hasMoreElements()) {
-          Control control = ((ScalarMap) maps.nextElement()).getControl();
-          if (control != null && control.checkTicks(this, Links[i])) {
+          ScalarMap map = (ScalarMap) maps.nextElement();
+          if (map.checkTicks(this, Links[i])) {
             any_transform_control = true;
           }
         }
-      }
-    }
+      } // end if (feasible[i])
+    } // end for (int i=0; i<Links.length; i++)
     return shadow;
   }
 

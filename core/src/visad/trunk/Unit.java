@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Unit.java,v 1.5 1998-01-28 10:44:52 billh Exp $
+ * $Id: Unit.java,v 1.6 1998-02-20 16:53:41 billh Exp $
  */
 
 package visad;
@@ -96,7 +96,10 @@ public abstract class Unit
     int n = unita.length;
     if (n != unitb.length) return false;
     for (int i=0; i<n; i++) {
-      if (!canConvert(unita[i], unitb[i])) return false;
+      if (!canConvert(unita[i], unitb[i])) {
+// System.out.println("i = " + i + " " + unita[i] + " != " + unitb[i]);
+        return false;
+      }
     }
     return true;
   }
@@ -111,13 +114,7 @@ public abstract class Unit
     return ret_units;
   }
  
-  public boolean equals(Unit unit) {
-    //
-    // TO_DO
-    // this must change, to account for Unit-s from other JVMs
-    //
-    return this == unit;
-  }
+  public abstract boolean equals(Unit unit);
  
   /** transform Units; unit_in and error_in are the Unit and ErrorEstimate
       associated with value; unit_out is the target Unit;

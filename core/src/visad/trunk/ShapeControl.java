@@ -25,6 +25,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+import java.rmi.*;
+
 /**
    ShapeControl is the VisAD class for controlling Shape display scalars.<P>
 */
@@ -38,19 +40,22 @@ public class ShapeControl extends Control {
   }
 
   public void setShapeSet(SimpleSet set)
-         throws VisADException {
+         throws VisADException, RemoteException {
     if (set.getDimension() != 1) {
       throw new DisplayException("ShapeControl.setShapeSet: domain " +
                                  "dimension must be 1");
     }
     shapeSet = set;
     shapes = new VisADGeometryArray[shapeSet.getLength()];
+    changeControl(true);
   }
 
-  public void setShape(int index, VisADGeometryArray shape) {
+  public void setShape(int index, VisADGeometryArray shape)
+         throws VisADException, RemoteException {
     if (0 <= index && index < shapes.length) {
       shapes[index] = shape;
     }
+    changeControl(true);
   }
  
   public VisADGeometryArray[] getShapes(float[] values)

@@ -50,6 +50,8 @@ public abstract class DisplayRenderer extends Object {
   /** vector of Strings describing cursor location */
   private Vector cursorStringVector = new Vector();
 
+  private int[] axisOrdinals = {-1, -1, -1};
+
   public DisplayRenderer () {
   }
 
@@ -64,6 +66,24 @@ public abstract class DisplayRenderer extends Object {
   public DisplayImpl getDisplay() {
     return display;
   }
+
+  int getAxisOrdinal(int axis) {
+    synchronized (axisOrdinals) {
+      axisOrdinals[axis]++;
+      return axisOrdinals[axis];
+    }
+  }
+
+  void clearAxisOrdinals() {
+    synchronized (axisOrdinals) {
+      axisOrdinals[0] = -1;
+      axisOrdinals[1] = -1;
+      axisOrdinals[2] = -1;
+    }
+  }
+
+  public abstract void setScale(int axis, int axis_ordinal,
+                       VisADLineArray array) throws VisADException;
 
   public boolean getMode2D() {
     return false;

@@ -309,6 +309,7 @@ public abstract class ShadowType extends Object
       if (Display.DisplayFlow1Tuple.equals(tuple)) continue;  // Flow1
       if (Display.DisplayFlow2Tuple.equals(tuple)) continue;  // Flow2
       if (real.equals(Display.RGB) ||
+          real.equals(Display.RGBA) ||
           real.equals(Display.HSV) ||
           real.equals(Display.CMY)) continue;  // more Color
       if (real.equals(Display.Alpha) ||
@@ -343,6 +344,7 @@ public abstract class ShadowType extends Object
       if (Display.DisplayFlow1Tuple.equals(tuple)) continue;  // Flow1
       if (Display.DisplayFlow2Tuple.equals(tuple)) continue;  // Flow2
       if (real.equals(Display.RGB) ||
+          real.equals(Display.RGBA) ||
           real.equals(Display.HSV) ||
           real.equals(Display.CMY)) continue;  // more Color
       if (real.equals(Display.Alpha) ||
@@ -368,6 +370,7 @@ public abstract class ShadowType extends Object
       if (Display.DisplayFlow1Tuple.equals(tuple)) continue;  // Flow1
       if (Display.DisplayFlow2Tuple.equals(tuple)) continue;  // Flow2
       if (real.equals(Display.RGB) ||
+          real.equals(Display.RGBA) ||
           real.equals(Display.HSV) ||
           real.equals(Display.CMY)) continue;  // more Color
       if (real.equals(Display.Alpha) ||
@@ -392,6 +395,7 @@ public abstract class ShadowType extends Object
       if (Display.DisplayFlow1Tuple.equals(tuple)) continue;  // Flow1
       if (Display.DisplayFlow2Tuple.equals(tuple)) continue;  // Flow2
       if (real.equals(Display.RGB) ||
+          real.equals(Display.RGBA) ||
           real.equals(Display.HSV) ||
           real.equals(Display.CMY)) continue;  // more Color
       if (real.equals(Display.Alpha) ||
@@ -423,6 +427,7 @@ public abstract class ShadowType extends Object
       if (Display.DisplayFlow1Tuple.equals(tuple)) continue;  // Flow1
       if (Display.DisplayFlow2Tuple.equals(tuple)) continue;  // Flow2
       if (real.equals(Display.RGB) ||
+          real.equals(Display.RGBA) ||
           real.equals(Display.HSV) ||
           real.equals(Display.CMY)) continue;  // more Color
       if (real.equals(Display.Alpha) ||
@@ -489,6 +494,7 @@ public abstract class ShadowType extends Object
             tuple.getCoordinateSystem().getReference().equals(
             Display.DisplayRGBTuple)))) continue;  // Color
       if (real.equals(Display.RGB) ||
+          real.equals(Display.RGBA) ||
           real.equals(Display.HSV) ||
           real.equals(Display.CMY)) continue;  // more Color
       return false;
@@ -508,6 +514,7 @@ public abstract class ShadowType extends Object
             tuple.getCoordinateSystem().getReference().equals(
             Display.DisplayRGBTuple)))) continue;  // Color
       if (real.equals(Display.RGB) ||
+          real.equals(Display.RGBA) ||
           real.equals(Display.HSV) ||
           real.equals(Display.CMY)) continue;  // more Color
       if (real.equals(Display.Alpha)) continue;
@@ -1453,6 +1460,27 @@ System.out.println(map.getScalar() + " -> " + map.getDisplayScalar() + " : " +
             colorComposite(rgba_values, rgba_value_counts, color_values);
           }
         } // end if (real.equals(Display.RGB) || HSV || CMY)
+        if (real.equals(Display.RGBA)) {
+          ColorAlphaControl control = (ColorAlphaControl)
+            ((ScalarMap) MapVector.elementAt(valueToMap[i])).getControl();
+          float[][] color_values = control.lookupValues(values);
+          if (len == 1) {
+            for (int index = 0; index<4; index++) {
+              rgba_singles[index] += color_values[index][0];
+              rgba_single_counts[index]++;
+            }
+          }
+          else { // (len != 1)
+            colorComposite(rgba_values, rgba_value_counts, color_values);
+
+            for (int index = 0; index<4; index++) {
+              singleComposite(index, rgba_values, rgba_value_counts,
+                              color_values[index]);
+              // FREE
+              color_values[index] = null;
+            }
+          }
+        } // end if (real.equals(Display.RGBA))
         if (real.equals(Display.Alpha)) {
           if (len == 1) {
             rgba_singles[3] += values[0];

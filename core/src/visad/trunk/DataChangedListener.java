@@ -25,7 +25,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
-import java.util.*;
+import java.util.EventListener;
 import java.rmi.*;
 
 /**

@@ -42,8 +42,7 @@ public class RemoteDisplayImpl extends RemoteActionImpl
 
   public void addReference(DataReference ref)
          throws VisADException, RemoteException {
-    throw new DisplayException("RemoteDisplayImpl.addReference: " +
-                               "ConstantMap[] argument required");
+    addReference(ref, null);
   }
 
   /** create link to DataReference;
@@ -61,6 +60,11 @@ public class RemoteDisplayImpl extends RemoteActionImpl
     ((DisplayImpl) AdaptedAction).adaptedAddReference(
                      (RemoteDataReference) ref, (RemoteDisplay) this,
                      constant_maps);
+  }
+
+  public void addReferences(DataRenderer renderer, DataReference[] refs)
+         throws VisADException, RemoteException {
+    addReferences(renderer, refs, null);
   }
 
   /** create links to DataReference;

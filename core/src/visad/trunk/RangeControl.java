@@ -25,6 +25,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+import java.rmi.*;
+
 /**
    RangeControl is the VisAD class for controlling SelectRange display scalars.<P>
 */
@@ -39,10 +41,11 @@ public class RangeControl extends Control {
     RangeHi = 0.0f;
   }
  
-  public void setRange(float[] range) {
+  public void setRange(float[] range)
+         throws VisADException, RemoteException {
     RangeLow = range[0];
     RangeHi = range[1];
-    changeControl();
+    changeControl(true);
   }
 
   public float[] getRange() {

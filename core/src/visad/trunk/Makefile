@@ -1,8 +1,8 @@
 # makefile for VisAD version 2.0
 
 # VisAD system for interactive analysis and visualization of numerical
-# data.  Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden and Tom
-# Rink.
+# data.  Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden, Tom
+# Rink and Dave Glowacki.
 #  
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 default:
 	@echo "Type one of the following:"
 	@echo "	make tar		to make visad-2.0.tar.Z"
+	@echo "	make jar		to make visad-2.0.jar"
 	@echo "	make save		save files to the backup sub-directory"
 
 # Make the VisAD source tar file
@@ -31,23 +32,31 @@ TAR_FILES = \
 	visad/DEDICATION				\
 	visad/NOTICE					\
 	visad/LICENSE					\
+	visad/DATE					\
 	visad/Makefile					\
 	visad/rmic_script				\
-	visad/docs/DESIGN5				\
 	visad/*.java					\
 	visad/java3d/*.java				\
 	visad/util/*.java				\
 	visad/data/*.java				\
 	visad/data/netcdf/*.java			\
+	visad/data/netcdf/units/*.java			\
+	visad/data/netcdf/units/*.jj			\
 	visad/data/fits/*.java				\
 	visad/data/fits/fits/*.java			\
 	visad/data/fits/util/*.java			\
 	visad/data/hdfeos/*.java			\
+	visad/paoloa/GoesCollaboration.java		\
 	visad/ucar.jar					\
-	visad/*.txt					\
-	visad/*.html
+	visad/Gridded1D.txt				\
+	visad/Gridded2D.txt				\
+	visad/Gridded3D.txt				\
+	visad/contour.html				\
+	visad/delaunay.html				\
+	visad/plotdigits.html
 
 tar:
+	date > DATE ; \
 	cd .. ; \
 	tar -cvf visad-2.0.tar $(TAR_FILES) ; \
 	compress visad-2.0.tar ; \
@@ -57,6 +66,7 @@ tar:
 	ls -l visad-2.0.tar.Z visad.taz
 
 jar:
+	date > DATE ; \
 	cd .. ; \
 	jar cvf visad-2.0.jar $(TAR_FILES) ; \
 	mv visad-2.0.jar visad ; \
@@ -92,6 +102,9 @@ save:
 	javac $<
 
 compile:
-	javac -J-mx32m *.java java3d/*.java util/*.java ; \
-	rmic_script
+	javac -J-mx32m *.java ; \
+	rmic_script ; \
+	javac java3d/*.java ; \
+	javac util/*.java ; \
+	javac paoloa/GoesCollaboration.java
 

@@ -34,7 +34,7 @@ import java.rmi.*;
 public abstract class Control extends Object
        implements Cloneable, java.io.Serializable {
 
-  /** incremented by incTicks */
+  /** incremented by incTick */
   private long NewTick;
   /** value of NewTick at last setTicks call */
   private long OldTick;
@@ -46,6 +46,9 @@ public abstract class Control extends Object
   transient DisplayRenderer displayRenderer;
   /** index of this in display.ControlVector */
   private int Index;
+
+  /** Vector of ControlListeners */
+  transient Vector ListenerVector = new Vector();
 
   public Control(DisplayImpl d) {
     OldTick = Long.MIN_VALUE;
@@ -60,11 +63,30 @@ public abstract class Control extends Object
   }
 
   /** invoked every time values of this Control change;
-      this is the default and should be over-ridden by
-      any subclass that needs to change the scene graph,
-      such as ProjectionControl, AnimtionControl, etc */
-  public void changeControl() {
-    incTick();
+      tick is true to notify the Display */
+  public void changeControl(boolean tick)
+         throws VisADException, RemoteException {
+    if (tick) incTick();
+    if (ListenerVector != null) {
+      synchronized (ListenerVector) {
+        Enumeration listeners = ListenerVector.elements();
+        while (listeners.hasMoreElements()) {
+          ControlListener listener =
+            (ControlListener) listeners.nextElement();
+          listener.controlChanged(new ControlEvent(this));
+        }
+      }
+    }
+  }
+
+  public void addControlListener(ControlListener listener) {
+    ListenerVector.addElement(listener);
+  }
+
+  public void removeControlListener(ControlListener listener) {
+    if (listener != null) {
+      ListenerVector.removeElement(listener);
+    }
   }
 
   /** invoke incTick every time Control changes */

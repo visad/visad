@@ -1915,8 +1915,8 @@ public class Gridded3DSet extends GriddedSet {
     int[]  ptAUX  = new int[ xdim_x_ydim_x_zdim ];
     int[]  pcube  = new int[ num_cubes+1 ];
 
-System.out.println("pre-flags: isolevel = " + isolevel + " xdim, ydim, zdim = " +
-                   xdim + " " + ydim + " " + zdim);
+    // System.out.println("pre-flags: isolevel = " + isolevel +
+    //                    " xdim, ydim, zdim = " + xdim + " " + ydim + " " + zdim);
 
     npolygons = flags( isolevel, ptFLAG, ptAUX, pcube,
                        ptGRID, xdim, ydim, zdim );

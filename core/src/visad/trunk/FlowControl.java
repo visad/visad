@@ -25,6 +25,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+import java.rmi.*;
+
 /**
    FlowControl is the VisAD abstract super-class for controlling
    Flow display scalars.<P>
@@ -57,9 +59,10 @@ public abstract class FlowControl extends Control {
     HorizontalStreamSliceHeight = 0.0;
   }
  
-  public void setFlowScale(float scale) {
+  public void setFlowScale(float scale)
+         throws VisADException, RemoteException {
     flowScale = scale;
-    changeControl();
+    changeControl(true);
   }
 
   public float getFlowScale() {

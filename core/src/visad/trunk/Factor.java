@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Factor.java,v 1.1 1997-10-23 20:13:35 dglo Exp $
+ * $Id: Factor.java,v 1.2 1998-02-20 16:53:33 billh Exp $
  */
 
 package visad;
@@ -35,6 +35,7 @@ final class Factor
      */
     final BaseUnit	baseUnit;
 
+
     /**
      * Construct a factor from a base unit and a power.
      *
@@ -56,4 +57,11 @@ final class Factor
     {
 	return "(" + baseUnit.toString() + ")^" + power;
     }
+
+  public boolean equals(Factor factor) {
+    return baseUnit.equals(factor.baseUnit) &&
+           (power == factor.power);
+  }
+
 }
+

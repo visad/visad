@@ -25,6 +25,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+import java.rmi.*;
+
 /**
    ContourControl is the VisAD class for controlling IsoContour display scalars.<P>
 */
@@ -72,14 +74,14 @@ public class ContourControl extends Control {
   }
  
   void setMainContours(boolean[] bvalues, float[] fvalues)
-         throws VisADException {
+         throws VisADException, RemoteException {
     setMainContours(bvalues, fvalues, false);
   }
 
-  /** noChange = true to not trigger changeControl, used by
-      ScalarMap.setRange */
+  /** changeControl(!noChange) to not trigger re-transform,
+      used by ScalarMap.setRange */
   void setMainContours(boolean[] bvalues, float[] fvalues, boolean noChange)
-       throws VisADException {
+         throws VisADException, RemoteException {
     if (fvalues == null || fvalues.length != 5 ||
         bvalues == null || bvalues.length != 2) {
       throw new DisplayException("ContourControl.getMainContours: " +
@@ -92,31 +94,35 @@ public class ContourControl extends Control {
     if (lowLimit != lowLimit) lowLimit = fvalues[2];
     if (hiLimit != hiLimit) hiLimit = fvalues[3];
     if (base != base) base = fvalues[4];
-    if (!noChange) changeControl();
+    changeControl(!noChange);
   }
 
-  public void setSurfaceValue(float value) {
+  public void setSurfaceValue(float value)
+         throws VisADException, RemoteException {
     surfaceValue = value;
-    changeControl();
+    changeControl(true);
   }
 
   public void setContourInterval(float interval, float low,
-                                 float hi, float ba) {
+                                 float hi, float ba)
+         throws VisADException, RemoteException {
     contourInterval = interval;
     lowLimit = low;
     hiLimit = hi;
     base = ba;
-    changeControl();
+    changeControl(true);
   }
 
-  public void enableLabels(boolean on) {
+  public void enableLabels(boolean on)
+         throws VisADException, RemoteException {
     labels = on;
-    changeControl();
+    changeControl(true);
   }
 
-  public void enableContours(boolean on) {
+  public void enableContours(boolean on)
+         throws VisADException, RemoteException {
     mainContours = on;
-    changeControl();
+    changeControl(true);
   }
 
   public void getMainContours(boolean[] bvalues, float[] fvalues)

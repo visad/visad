@@ -1,6 +1,6 @@
 
 //
-// ToggleControl.java
+// ControlListener.java
 //
 
 /*
@@ -25,36 +25,17 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+import java.util.EventListener;
 import java.rmi.*;
 
 /**
-   ToggleControl is the VisAD class for toggling other Control-s
-   on and off.<P>
+   ControlListener is the EventListener interface for
+   ControlEvents.<P>
 */
-public class ToggleControl extends Control {
+public interface ControlListener extends EventListener {
 
-  private boolean on;
-  private Control parent;
-
-  public ToggleControl(DisplayImpl d, Control p) {
-    super(d);
-    parent = p;
-    on = true;
-  }
+  public abstract void controlChanged(ControlEvent e)
+         throws VisADException, RemoteException;
  
-  public Control getParent() {
-    return parent;
-  }
-
-  public boolean getOn() {
-    return on;
-  }
-
-  public void setOn(boolean o)
-         throws VisADException, RemoteException {
-    on = o;
-    changeControl(true);
-  }
-
 }
 

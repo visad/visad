@@ -67,6 +67,18 @@ public class ScalarMap extends Object implements java.io.Serializable {
   /** scale and offset */
   private double scale, offset;
 
+  /** incremented by incTick */
+  private long NewTick;
+  /** value of NewTick at last setTicks call */
+  private long OldTick;
+  /** set by setTicks if OldTick < NewTick; cleared by resetTicks */
+  private boolean tickFlag;
+
+  /** location of axis scale if DisplayScalar is XAxis, YAxis or ZAxis */
+  private int axis = -1;
+  private int axis_ordinal = -1;
+  private boolean scale_flag = false;
+
   public ScalarMap(RealType scalar, DisplayRealType display_scalar)
          throws VisADException {
     if (scalar == null && !(this instanceof ConstantMap)) {
@@ -88,6 +100,40 @@ public class ScalarMap extends Object implements java.io.Serializable {
     isManual = false;
     dataRange[0] = Double.NaN;
     dataRange[1] = Double.NaN;
+    OldTick = Long.MIN_VALUE;
+    NewTick = Long.MIN_VALUE + 1;
+    tickFlag = false;
+  }
+
+  /** invoke incTick on every application call to setRange */
+  public long incTick() {
+    if (display != null) display.controlChanged();
+    NewTick += 1;
+    if (NewTick == Long.MAX_VALUE) NewTick = Long.MIN_VALUE + 1;
+    return NewTick;
+  }
+ 
+  /** set tickFlag according to OldTick and NewTick */
+  public synchronized void setTicks() {
+    tickFlag = (OldTick < NewTick || (NewTick < 0 && 0 < OldTick));
+    OldTick = NewTick;
+    if (control != null) control.setTicks();
+  }
+ 
+  /** return true if application called setRange */
+  public synchronized boolean checkTicks(DataRenderer r, DataDisplayLink link) {
+    if (control == null) {
+      return tickFlag;
+    }
+    else {
+      return tickFlag || control.checkTicks(r, link);
+    }
+  }
+
+  /** reset tickFlag */
+  synchronized void resetTicks() {
+    tickFlag = false;
+    if (control != null) control.resetTicks();
   }
 
   /** get the RealType that is the map domain */
@@ -122,6 +168,7 @@ public class ScalarMap extends Object implements java.io.Serializable {
                                  " to two Displays");
     }
     display = d;
+    if (scale_flag) makeScale();
   }
 
   /** get Control for DisplayScalar */
@@ -157,23 +204,29 @@ public class ScalarMap extends Object implements java.io.Serializable {
 
   /** set range used for linear map from Scalar to DisplayScalar values; 
       this is the call for applications */
-  public void setRange(double low, double hi) throws VisADException {
+  public void setRange(double low, double hi)
+         throws VisADException, RemoteException {
     isManual = true;
     setRange(null, low, hi);
-    // if it didn't work, don't lock out auto-scaling
-    if (scale != scale || offset != offset) isManual = false;
+    if (scale == scale && offset == offset) {
+      incTick(); // did work, so wake up Display
+    }
+    else {
+      isManual = false; // didn't work, so don't lock out auto-scaling
+    }
   }
 
   /** set range used for linear map from Scalar to DisplayScalar values;
       this is the call for automatic scaling */
-  void setRange(DataShadow shadow) throws VisADException {
+  void setRange(DataShadow shadow)
+         throws VisADException, RemoteException {
     if (!isManual) setRange(shadow, 0.0, 0.0);
   }
 
   /** set range used for linear map from Scalar to
       DisplayScalar values */
   private synchronized void setRange(DataShadow shadow, double low, double hi)
-          throws VisADException {
+          throws VisADException, RemoteException {
     int i = ScalarIndex;
     if (shadow != null) {
       dataRange[0] = shadow.ranges[0][i];
@@ -202,7 +255,7 @@ public class ScalarMap extends Object implements java.io.Serializable {
         scale = Double.NaN;
         offset = Double.NaN;
       }
-    }
+    } // end if (isScaled)
 /*
 System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
                    " to " + dataRange[1] + " scale: " + scale + " " + offset);
@@ -232,6 +285,33 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
       values[4] = (float) dataRange[0]; // base
       ((ContourControl) control).setMainContours(bvalues, values, true);
     }
+    else if (DisplayScalar == Display.XAxis ||
+             DisplayScalar == Display.YAxis ||
+             DisplayScalar == Display.ZAxis) {
+      if (display != null) {
+        makeScale();
+      }
+      else {
+        scale_flag = true;
+      }
+    }
+  }
+
+  private void makeScale()
+          throws VisADException, RemoteException {
+    DisplayRenderer displayRenderer = display.getDisplayRenderer();
+    axis = (DisplayScalar == Display.XAxis) ? 0 :
+           (DisplayScalar == Display.YAxis) ? 1 : 2;
+    axis_ordinal = displayRenderer.getAxisOrdinal(axis);
+ 
+    VisADLineArray array = null;
+    boolean twoD = displayRenderer.getMode2D();
+//
+// now create scale along axis at axis_ordinal position in array
+// twoD may help define orientation
+//
+    displayRenderer.setScale(axis, axis_ordinal, array);
+    scale_flag = false;
   }
 
   boolean badRange() {
@@ -291,8 +371,8 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
 
   /** ensure that non-Manual components of flow_tuple have equal
       dataRanges symmetric about 0.0 */
-  static void equalizeFlow(Vector mapVector,
-         DisplayTupleType flow_tuple) throws VisADException {
+  static void equalizeFlow(Vector mapVector, DisplayTupleType flow_tuple)
+         throws VisADException, RemoteException {
     double[] range = new double[2];
     double low = Double.MAX_VALUE;
     double hi = -Double.MAX_VALUE;

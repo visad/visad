@@ -114,6 +114,10 @@ public class DataDisplayLink extends ReferenceActionLink {
     int levelOfDifficulty;
 
     data = ref.getData();
+    if (data == null) {
+      renderer.addException("Data is null");
+      return false;
+    }
     MathType type = data.getType();
 
     SelectedMapVector.removeAllElements();
@@ -169,6 +173,11 @@ public class DataDisplayLink extends ReferenceActionLink {
       return false;
     }
     catch (UnimplementedException e) {
+      data = null;
+      renderer.addException(e.getMessage());
+      return false;
+    }
+    catch (RemoteException e) {
       data = null;
       renderer.addException(e.getMessage());
       return false;

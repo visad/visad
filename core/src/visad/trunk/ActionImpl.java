@@ -93,11 +93,6 @@ public abstract class ActionImpl extends Object
       while (links.hasMoreElements()) {
         ReferenceActionLink link = (ReferenceActionLink) links.nextElement();
         link.setTicks();
-/*
-if (Name != null && Name.equals("shalstep_cell")) {
-  link.printTicks("setTicks");
-}
-*/
       }
     }
   }
@@ -109,11 +104,6 @@ if (Name != null && Name.equals("shalstep_cell")) {
       while (links.hasMoreElements()) {
         ReferenceActionLink link = (ReferenceActionLink) links.nextElement();
         doIt |= link.checkTicks();
-/*
-if (Name != null && Name.equals("shalstep_cell")) {
-  link.printTicks("checkTicks");
-}
-*/
       }
     }
     return doIt;
@@ -125,19 +115,33 @@ if (Name != null && Name.equals("shalstep_cell")) {
       while (links.hasMoreElements()) {
         ReferenceActionLink link = (ReferenceActionLink) links.nextElement();
         link.resetTicks();
-/*
-if (Name != null && Name.equals("shalstep_cell")) {
-  link.printTicks("resetTicks");
-}
-*/
       }
     }
   }
 
 
   public void run() {
-    boolean dontSleep;
+    boolean dontSleep = false;
+/*
+   put this back once Swing-Java3D bugs are fixed
+    try {
+      DisplayImpl.delay(500);
+    }
+    catch (VisADException e) {
+    }
+*/
     while (alive) {
+      if (!dontSleep) {
+        try {
+          synchronized (this) {
+            wait(5000);
+          }
+        }
+        catch(InterruptedException e) {
+          // note notify generates a normal return from wait rather
+          // than an Exception - control doesn't normally come here
+        }
+      } // end if (!dontSleep)
       try {
         dontSleep = false;
         setTicks();
@@ -172,6 +176,7 @@ if (Name != null && Name.equals("shalstep_cell")) {
         v.printStackTrace();
         throw new VisADError("Action.run: " + v.toString());
       }
+/*
       if (!dontSleep) {
         try {
           synchronized (this) {
@@ -182,8 +187,9 @@ if (Name != null && Name.equals("shalstep_cell")) {
           // note notify generates a normal return from wait rather
           // than an Exception - control doesn't normally come here
         }
-      }
-    }
+      } // end if (!dontSleep)
+*/
+    } // end while (alive)
   }
 
   public abstract void doAction() throws VisADException, RemoteException;

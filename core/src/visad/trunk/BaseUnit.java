@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: BaseUnit.java,v 1.2 1997-11-06 18:19:23 billh Exp $
+ * $Id: BaseUnit.java,v 1.3 1998-02-20 16:53:28 billh Exp $
  */
 
 package visad;
@@ -485,6 +485,12 @@ public final class BaseUnit
 	derivedUnit = new DerivedUnit(this);
     }
 
+  /** added by WLH 11 Feb 98 */
+  public boolean equals(Unit unit) {
+    return (unit instanceof BaseUnit) &&
+           unitName.equals(((BaseUnit) unit).unitName) &&
+           quantityName.equals(((BaseUnit) unit).quantityName);
+  }
 
     /**
      * Multiply a base unit by another base unit.
@@ -562,10 +568,12 @@ public final class BaseUnit
    added by Bill Hibbard for VisAD
    so that BaseUnits from different JVM's can be equal
 */
+/*
   public boolean equals(Unit unit) {
     if (!(unit instanceof BaseUnit)) return false;
     return quantityName.equals(((BaseUnit) unit).quantityName) &&
            unitName.equals(((BaseUnit) unit).unitName);
   }
+*/
 
 }

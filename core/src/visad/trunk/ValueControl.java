@@ -25,17 +25,20 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+import java.rmi.*;
+
 /**
    ValueControl is the VisAD interface for controlling SelectValue
    display scalars.<P>
 */
 public interface ValueControl extends AVControl {
 
-  public void setValue(double value) throws VisADException;
+  public abstract void setValue(double value)
+         throws VisADException, RemoteException;
 
-  public void init() throws VisADException;
+  public abstract void init() throws VisADException;
 
-  public double getValue();
+  public abstract double getValue();
 
 }
 

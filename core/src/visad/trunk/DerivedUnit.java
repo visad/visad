@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DerivedUnit.java,v 1.2 1997-11-06 18:19:27 billh Exp $
+ * $Id: DerivedUnit.java,v 1.3 1998-02-20 16:53:32 billh Exp $
  */
 
 package visad;
@@ -657,4 +657,28 @@ public final class DerivedUnit
         return that.toThis(values, this);
     }
 
+  /** added by WLH 11 Feb 98 */
+  public boolean equals(Unit unit) {
+    if (!(unit instanceof DerivedUnit)) return false;
+    int n = factors.length;
+    if (n != ((DerivedUnit) unit).factors.length) return false;
+    boolean[] mark = new boolean[n];
+    for (int j=0; j<n; j++) mark[j] = false;
+    for (int i=0; i<n; i++) {
+      for (int j=0; j<n; j++) {
+        if (!mark[j]) {
+          if (factors[i].equals(((DerivedUnit) unit).factors[j])) {
+            mark[j] = true;
+            break;
+          }
+        }
+      }
+    }
+    for (int j=0; j<n; j++) {
+      if (!mark[j]) return false;
+    }
+    return true;
+  }
+
 }
+

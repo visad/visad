@@ -25,15 +25,18 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad;
 
+import java.rmi.*;
+
 /**
    ProjectionControl is the VisAD interface for controlling the Projection
    from 3-D to 2-D.<P>
 */
 public interface ProjectionControl {
 
-  public double[] getMatrix();
+  public abstract double[] getMatrix();
 
-  public void setMatrix(double[] m);
+  public abstract void setMatrix(double[] m)
+         throws VisADException, RemoteException;
 
 }
 

@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: OffsetUnit.java,v 1.2 1997-11-06 18:19:37 billh Exp $
+ * $Id: OffsetUnit.java,v 1.3 1998-02-20 16:53:36 billh Exp $
  */
 
 package visad;
@@ -562,4 +562,12 @@ public final class OffsetUnit
 	    System.out.println(e.getMessage());
 	}
     }
+
+  public boolean equals(Unit unit) {
+    return (unit instanceof OffsetUnit) &&
+           scaledUnit.equals(((OffsetUnit) unit).scaledUnit) &&
+           (offset == ((OffsetUnit) unit).offset);
+  }
+
 }
+

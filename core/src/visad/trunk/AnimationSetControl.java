@@ -68,18 +68,20 @@ public class AnimationSetControl extends Control {
     }
   }
 
-  public void setSet(Set s) throws VisADException {
+  public void setSet(Set s)
+         throws VisADException, RemoteException {
     setSet(s, false);
   }
 
   /** noChange = true to not trigger changeControl, used by
       ScalarMap.setRange */
-  public void setSet(Set s, boolean noChange) throws VisADException {
+  public void setSet(Set s, boolean noChange)
+         throws VisADException, RemoteException {
     set = s;
     if (parent != null) {
       parent.setCurrent(0);
     }
-    if (!noChange) changeControl();
+    changeControl(!noChange);
   }
 
 }
