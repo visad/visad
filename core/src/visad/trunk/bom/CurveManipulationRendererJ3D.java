@@ -372,13 +372,20 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
         int j = getAxisToComponent(i);
         if (j >= 0) {
           f[0] = x[i];
-          d = getDirectMap(i).inverseScaleValues(f);
+
+          // WLH 13 Feb 2001
+          ScalarMap dm = getDirectMap(i);
+          if (dm == null) return;
+          d = dm.inverseScaleValues(f);
+          // d = getDirectMap(i).inverseScaleValues(f);
+
           value[j] = d[0];
           RealType rtype = domain_reals[j];
 
           // WLH 31 Aug 2000
           Real rr = new Real(rtype, d[0]);
-          Unit overrideUnit = getDirectMap(i).getOverrideUnit();
+          Unit overrideUnit = dm.getOverrideUnit(); // WLH 13 Feb 2001
+          // Unit overrideUnit = getDirectMap(i).getOverrideUnit();
           Unit rtunit = rtype.getDefaultUnit();
           // units not part of Time string
           if (overrideUnit != null && !overrideUnit.equals(rtunit) &&
