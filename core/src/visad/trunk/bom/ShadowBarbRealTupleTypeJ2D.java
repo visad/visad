@@ -53,19 +53,30 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
     DataRenderer renderer = getLink().getRenderer();
     boolean direct = renderer.getIsDirectManipulation();
 
-    return ShadowBarbRealTupleTypeJ2D.staticMakeFlow(flow_values,
+    return ShadowBarbRealTupleTypeJ2D.staticMakeFlow(getDisplay(), flow_values,
                flowScale, spatial_values, color_values, range_select);
   }
 
 
   private static final int NUM = 256;
 
-  public static VisADGeometryArray[] staticMakeFlow(float[][] flow_values,
-                float flowScale, float[][] spatial_values,
-                byte[][] color_values, boolean[][] range_select)
+  public static VisADGeometryArray[] staticMakeFlow(DisplayImpl display,
+         float[][] flow_values, float flowScale, float[][] spatial_values,
+         byte[][] color_values, boolean[][] range_select)
          throws VisADException {
     if (flow_values[0] == null) return null;
  
+    boolean south = true; // that's where the BOM is
+    Enumeration maps = display.getMapVector().elements();
+    while (maps.hasMoreElements()) {
+      ScalarMap map = (ScalarMap) maps.nextElement();
+      if (map.getScalar().equals(RealType.Latitude)) {
+        double[] range = map.getRange();
+System.out.println("range[0] = " + range[0] + " range[1] = " + range[1]);
+        if ((range[0] + range[1]) > 0.0) south = false;
+      }
+    }
+
     int len = spatial_values[0].length;
     int flen = flow_values[0].length;
     int rlen = 0; // number of non-missing values
@@ -162,7 +173,7 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
         }
         int oldnv = numv[0];
         int oldnt = numt[0];
-        makeBarb(spatial_values[0][j], spatial_values[1][j],
+        makeBarb(south, spatial_values[0][j], spatial_values[1][j],
                  scale, pt_size, f0, f1, vx, vy, numv, tx, ty, numt);
         int nv = numv[0];
         int nt = numt[0];
@@ -264,8 +275,8 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
   /** adapted from Justin Baker's WindBarb, which is adapted from
       Mark Govett's barbs.pro IDL routine
   */
-  static void makeBarb(float x, float y, float scale, float pt_size,
-                       float f0, float f1,
+  static void makeBarb(boolean south, float x, float y, float scale,
+                       float pt_size, float f0, float f1,
                        float[] vx, float[] vy, int[] numv,
                        float[] tx, float[] ty, int[] numt) {
 
@@ -323,8 +334,14 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
         x1 = (x + x0 * d);
         y1 = (y + y0 * d);
  
-        x2 = (x + x0 * (d + slant) - y0 * barb);
-        y2 = (y + y0 * (d + slant) + x0 * barb);
+        if (south) {
+          x2 = (x + x0 * (d + slant) - y0 * barb);
+          y2 = (y + y0 * (d + slant) + x0 * barb);
+        }
+        else {
+          x2 = (x + x0 * (d + slant) + y0 * barb);
+          y2 = (y + y0 * (d + slant) - x0 * barb);
+        }
 
         vx[nv] = x1;
         vy[nv] = y1;
@@ -359,8 +376,14 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
         d = d + 0.125f * scale;
         x1=(x + x0 * d);
         y1=(y + y0 * d);
-        x2 = (x + x0 * (d + slant) - y0 * barb);
-        y2 = (y + y0 * (d + slant) + x0 * barb);
+        if (south) {
+          x2 = (x + x0 * (d + slant) - y0 * barb);
+          y2 = (y + y0 * (d + slant) + x0 * barb);
+        }
+        else {
+          x2 = (x + x0 * (d + slant) + y0 * barb);
+          y2 = (y + y0 * (d + slant) - x0 * barb);
+        }
  
         vx[nv] = x1;
         vy[nv] = y1;
@@ -406,8 +429,14 @@ public class ShadowBarbRealTupleTypeJ2D extends ShadowRealTupleTypeJ2D {
         d = d + 0.3f * scale;
         x3 = (x+x0*d);
         y3 = (y+y0*d);
-        x2 = (x3+barb*(x0*s195+y0*c195));
-        y2 = (y3-barb*(x0*c195-y0*s195));
+        if (south) {
+          x2 = (x3+barb*(x0*s195+y0*c195));
+          y2 = (y3-barb*(x0*c195-y0*s195));
+        }
+        else {
+          x2 = (x3-barb*(x0*s195+y0*c195));
+          y2 = (y3+barb*(x0*c195-y0*s195));
+        }
         float[] xp = {x1,x2,x3};
         float[] yp = {y1,y2,y3};
 

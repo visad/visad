@@ -81,12 +81,22 @@ public class BarbRendererJ2D extends DefaultRendererJ2D {
 
   static final int N = 5;
 
-  /** run 'java visad.bom.BarbRendererJ2D' to test with Cartesian winds
-      run 'java visad.bom.BarbRendererJ2D x' to test with polar winds */
+  /** run 'java visad.bom.BarbRendererJ2D middle_latitude'
+          to test with Cartesian winds
+      run 'java visad.bom.BarbRendererJ2D middle_latitude x'
+          to test with polar winds
+      adjust middle_latitude for south or north barbs */
   public static void main(String args[])
          throws VisADException, RemoteException {
-    RealType x = new RealType("x");
-    RealType y = new RealType("y");
+    double mid_lat = -10.0;
+    if (args.length > 0) {
+      try {
+        mid_lat = Double.valueOf(args[0]).doubleValue();
+      }
+      catch(NumberFormatException e) { }
+    }
+    RealType x = RealType.Longitude;
+    RealType y = RealType.Latitude;
     RealType flowx = new RealType("flowx",
                           CommonUnit.meterPerSecond, null);
     RealType flowy = new RealType("flowy",
@@ -96,7 +106,7 @@ public class BarbRendererJ2D extends DefaultRendererJ2D {
     RealType index = new RealType("index");
     RealTupleType flowxy = new RealTupleType(flowx, flowy);
     TupleType range = null;
-    if (args.length > 0) {
+    if (args.length > 1) {
 System.out.println("polar");
       RealType flow_degree = new RealType("flow_degree",
                             CommonUnit.degree, null);
@@ -105,21 +115,21 @@ System.out.println("polar");
       RealTupleType flowds =
         new RealTupleType(new RealType[] {flow_degree, flow_speed},
         new WindPolarCoordinateSystem(flowxy), null);
-      range = new TupleType(new MathType[] {x, y, flowds, red, green});
+      range = new TupleType(new MathType[] {RealType.Longitude,
+        RealType.Latitude, flowds, red, green});
     }
     else {
 System.out.println("Cartesian");
-      range = new RealTupleType(new RealType[] {x, y, flowx, flowy, red, green});
+      range = new RealTupleType(new RealType[] {RealType.Longitude,
+        RealType.Latitude, flowx, flowy, red, green});
     }
     FunctionType flow_field = new FunctionType(index, range);
 
     DisplayImpl display = new DisplayImplJ2D("display1");
-    ScalarMap xmap = new ScalarMap(x, Display.XAxis);
+    ScalarMap xmap = new ScalarMap(RealType.Longitude, Display.XAxis);
     display.addMap(xmap);
-    xmap.setRange(-1.0, 1.0);
-    ScalarMap ymap = new ScalarMap(y, Display.YAxis);
+    ScalarMap ymap = new ScalarMap(RealType.Latitude, Display.YAxis);
     display.addMap(ymap);
-    ymap.setRange(-1.0, 1.0);
     ScalarMap flowx_map = new ScalarMap(flowx, Display.Flow1X);
     display.addMap(flowx_map);
     flowx_map.setRange(-1.0, 1.0);
@@ -140,10 +150,10 @@ System.out.println("Cartesian");
         double u = 2.0 * i / (N - 1.0) - 1.0;
         double v = 2.0 * j / (N - 1.0) - 1.0;
         values[0][m] = u;
-        values[1][m] = v;
+        values[1][m] = v + mid_lat;
         double fx = 30.0 * u;
         double fy = 30.0 * v;
-        if (args.length > 0) {
+        if (args.length > 1) {
           values[2][m] =
             Data.RADIANS_TO_DEGREES * Math.atan2(fx, fy);
           values[3][m] = Math.sqrt(fx * fx + fy * fy);
