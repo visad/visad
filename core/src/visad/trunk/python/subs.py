@@ -279,7 +279,7 @@ def drawLine(display, points, color=None, mathtype=None):
   # drawLine(display, domainType, points[])
   maps = None
   if mathtype is not None:
-    if len(points == 2):
+    if len(points) == 2:
       lineseg = Gridded2DSet(RealTupleType(mathtype), points, len(points[0]))
     else:
       lineseg = Gridded3DSet(RealTupleType(mathtype), points, len(points[0]))
