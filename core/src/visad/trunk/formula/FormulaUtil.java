@@ -39,7 +39,7 @@ public class FormulaUtil {
   public static FormulaManager createStandardManager() {
     String[] binOps = {".", "^", "*", "/", "%", "+", "-"};
     int[] binPrec =   {200, 400, 600, 600, 600, 800, 800};
-    String[] binMethods = {"visad.formula.FormulaUtil.dot(visad.Tuple," +
+    String[] binMethods = {"visad.formula.FormulaUtil.dot(visad.TupleIface," +
                                                          "visad.Real)",
                            "visad.Data.pow(visad.Data)",
                            "visad.Data.multiply(visad.Data)",
