@@ -9,10 +9,12 @@ all::
 # this should point to the directory holding the TrackD header file
 #
 # TRACKD_INC = /path/to/trackd/incs
+# e.g. TRACKD_INC = .
 
 # this should point to the TrackD library
 #
 # TRACKD_LIB = -lc
+# e.g. TRACKD_LIB = -ltrackdAPI -lstdc++
 
 # base name for shared library
 #
