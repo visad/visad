@@ -113,6 +113,11 @@ public class Test00
         double vc = dr1.getDirectAxisValue(count);
         System.out.println("ir_radiance = " + vir + " count = " + vc +
                            " vis_radiance = " + vvis);
+
+        java.util.Vector csv = dr1.getCursorStringVectorUnconditional();
+        for (int i=0; i<csv.size(); i++) {
+          System.out.println((String) csv.elementAt(i));
+        }
       }
     };
     cell.addReference(ref_direct);

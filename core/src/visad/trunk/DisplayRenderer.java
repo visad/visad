@@ -385,6 +385,11 @@ public abstract class DisplayRenderer
     }
   }
 
+  // WLH 31 May 2000
+  public Vector getCursorStringVectorUnconditional() {
+    return (Vector) cursorStringVector.clone();
+  }
+
   public double getDirectAxisValue(RealType type) {
     synchronized (cursorStringVector) {
       if (cursorStringVector != null) {
