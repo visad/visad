@@ -193,13 +193,18 @@ public class LabeledColorWidget
 
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
     add(wrappedWidget);
-    add(buildButtons());
+
+    Panel buttons = buildButtons();
+    if (buttons != null) {
+      add(buttons);
+    }
   }
 
   /**
    * Build "Reset" and "Grey Scale" button panel.
    *
-   * @return Panel containing the buttons.
+   * @return Panel containing the buttons or <CODE>null</CODE> if
+   *         the wrapped widget's button panel was used.
    */
   private Panel buildButtons()
   {
@@ -231,11 +236,18 @@ public class LabeledColorWidget
     grey.setActionCommand("grey");
     grey.addActionListener(this);
 
-    Panel panel = new Panel();
+    boolean newPanel = false;
+    Panel panel = wrappedWidget.getButtonPanel();
+    if (panel == null) {
+      panel = new Panel();
+      panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+      newPanel = true;
+    }
+
     panel.add(reset, 0);
     panel.add(grey, 1);
 
-    return panel;
+    return (newPanel ? panel : null);
   }
 
   /**
@@ -310,6 +322,17 @@ public class LabeledColorWidget
           }
         });
       f.getContentPane().add(new LabeledColorWidget(map, null, false));
+      f.pack();
+      f.setVisible(true);
+
+      f = new javax.swing.JFrame("!Immediate");
+      f.addWindowListener(new java.awt.event.WindowAdapter() {
+          public void windowClosing(java.awt.event.WindowEvent we) {
+            System.exit(0);
+          }
+        });
+      ColorMapWidget cmw = new ColorMapWidget(map, null, false, false);
+      f.getContentPane().add(new LabeledColorWidget(cmw));
       f.pack();
       f.setVisible(true);
 
