@@ -2165,7 +2165,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
       /*- end */
 
       // use DoubleSet rather than RangeSet for intermediate computation results
-      if (isMissing() || data.isMissing()) return cloneDouble();
+      if (isMissing() || data.isMissing()) return new_type.missingData();
 
       double[][] values = unpackValues();
       // get data values and possibly apply coordinate transform
