@@ -365,7 +365,6 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
       // image or a sequence of single-band images
       MathType mtype = link.getType();
       if (!isImageType(mtype)) {
-        reUseFrames = false;
         throw new BadMappingException("must be image or image sequence");
       }
       link.start_time = System.currentTimeMillis();
@@ -385,7 +384,6 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
       }
     }
     link.clearData();
-    reUseFrames = false;
     return branch;
   }
 
