@@ -47,7 +47,9 @@ public class ExtensionFileFilter extends FileFilter {
   public ExtensionFileFilter(String[] extensions, String description) {
     exts = new String[extensions.length];
     System.arraycopy(extensions, 0, exts, 0, extensions.length);
-    desc = description;
+    desc = description + " (*." + exts[0];
+    for (int i=1; i<exts.length; i++) desc = desc + ", *." + exts[i];
+    desc = desc + ")";
   }
 
   /** accept files with the proper extentions */

@@ -280,7 +280,6 @@ public class Util
 
     // construct and configure file chooser
     JFileChooser dialog = new JFileChooser();
-    dialog.addChoosableFileFilter(combo);
     dialog.addChoosableFileFilter(fits);
     dialog.addChoosableFileFilter(gif);
     dialog.addChoosableFileFilter(hdf5);
@@ -291,6 +290,7 @@ public class Util
     dialog.addChoosableFileFilter(png);
     dialog.addChoosableFileFilter(serial);
     dialog.addChoosableFileFilter(vis5d);
+    dialog.addChoosableFileFilter(combo);
     return dialog;
   }
 

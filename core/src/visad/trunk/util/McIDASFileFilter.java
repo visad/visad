@@ -44,6 +44,6 @@ public class McIDASFileFilter extends FileFilter {
     
   /** return the filter's description */
   public String getDescription() {
-    return "McIDAS area files";
+    return "McIDAS area files (AREA*, *area)";
   }
 }

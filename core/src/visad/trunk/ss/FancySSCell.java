@@ -59,7 +59,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   static final Border B_URL = new LineBorder(new Color(0f, 0.5f, 0f), 3);
 
   /** this variable is static so that the previous directory is remembered */
-  protected static FileDialog FileBox = null;
+  protected static JFileChooser FileBox = Util.getVisADFileChooser();
 
 
   /** parent frame */
@@ -453,18 +453,13 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   /** load a file selected by the user */
   public void loadDataDialog() {
     // get file name from file dialog
-    if (FileBox == null) FileBox = new FileDialog(Parent);
-    FileBox.setMode(FileDialog.LOAD);
-    FileBox.setVisible(true);
+    FileBox.setDialogType(JFileChooser.OPEN_DIALOG);
+    if (FileBox.showOpenDialog(Parent) != JFileChooser.APPROVE_OPTION) return;
 
     // make sure file exists
-    String file = FileBox.getFile();
-    if (file == null) return;
-    String directory = FileBox.getDirectory();
-    if (directory == null) return;
-    File f = new File(directory, file);
+    File f = FileBox.getSelectedFile();
     if (!f.exists()) {
-      JOptionPane.showMessageDialog(Parent, file + " does not exist",
+      JOptionPane.showMessageDialog(Parent, f.getName() + " does not exist",
         "Cannot load file", JOptionPane.ERROR_MESSAGE);
       return;
     }
@@ -503,17 +498,11 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     }
 
     // get file name from file dialog
-    if (FileBox == null) FileBox = new FileDialog(Parent);
-    FileBox.setMode(FileDialog.SAVE);
-    FileBox.setVisible(true);
-
-    // make sure file is valid
-    String file = FileBox.getFile();
-    if (file == null) return null;
-    String directory = FileBox.getDirectory();
-    if (directory == null) return null;
-    File f = new File(directory, file);
-    return f;
+    FileBox.setDialogType(JFileChooser.SAVE_DIALOG);
+    if (FileBox.showOpenDialog(Parent) != JFileChooser.APPROVE_OPTION) {
+      return null;
+    }
+    return FileBox.getSelectedFile();
   }
 
   /** save to a file selected by the user, using the given data form */
