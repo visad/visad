@@ -28,9 +28,7 @@ package visad.ss;
 // utility classes
 import java.util.StringTokenizer;
 
-/** The Formula class is used to analyze mathematical formulas,
-    including converting them to postfix notation for easy
-    evaluation using a stack.<P> */
+/** The Formula class is used to convert formulas to postfix notation.<P> */
 public class Formula {
 
   public static final int OPERATOR_TOKEN = 1;
@@ -38,87 +36,27 @@ public class Formula {
   public static final int UNARY_TOKEN = 3;
   public static final int VARIABLE_TOKEN = 4;
 
-  /** An array of one-character operators.
-      You can add to the list with the addOperators method. */
-  String[] Operators       = {"^","*","/","%","+","-",",","(","$","#"};
+  // Binary operators that can be used in the infix formula
+  private static String[] Operators
+                 = {"@",".","^","&","*","/","%","+","-",",","(","{","$","#"};
+  // Operator precedences of binary operators
+  private static int[] OperatorPrecedence
+                 = {10, 20, 40, 50, 60, 60, 60, 80, 80, 96, 97, 97, 98, 99};
+  // Binary functions that can be used in the infix formula
+  private static String[] BinaryFunctions
+                 = {"max", "min", "atan2", "atan2Degrees"};
+  // Unary functions that can be used in the infix formula
+  private static String[] UnaryFunctions
+                 = {"abs", "acos", "acosDegrees", "asin", "asinDegrees",
+                    "atan", "atanDegrees", "ceil", "cos", "cosDegrees",
+                    "exp", "floor", "log", "rint", "round", "sin", "d",
+                    "sinDegrees", "sqrt", "tan", "tanDegrees", "negate"};
 
-  /** An array of operator precedences, matching the Operators array. */
-  int[] OperatorPrecedence = {20, 40, 40, 40, 60, 60, 96, 97, 98, 99};
-
-  /** These binary functions have precedence level 0, as a convention.
-      You can add to the list with the addFunctions method. */
-  String[] BinaryFunctions = {"max", "min", "atan2", "atan2Degrees"};
-
-  /** These unary functions have precendence level 1, as a convention.
-      You can add to the list with the addFunctions method. */
-  String[] UnaryFunctions = {"abs", "acos", "acosDegrees", "asin",
-                             "asinDegrees", "atan", "atanDegrees", "ceil",
-                             "cos", "cosDegrees", "exp", "floor", "log",
-                             "rint", "round", "sin", "sinDegrees", "sqrt",
-                             "tan", "tanDegrees", "negate"};
-
-  /** After constructing a Formula object, you can change the values of
-      the Operators, OperatorPrecedence, BinaryFunctions, and UnaryFunctions
-      variables (or use the defaults).  Then call the postfix method to
-      convert an infix expression to a postfix one. */
-  public Formula() { }
-
-  /** Adds operators to the default operator list.
-      The default operators and their precedences are:
-      <dd>^ = 20 (power)
-      <dd>* = 40 (multiply)
-      <dd>/ = 40 (divide)
-      <dd>% = 40 (remainder)
-      <dd>+ = 60 (addition)
-      <dd>- = 60 (subtraction)
-      <dd>, = 96 (reserved)
-      <dd>( = 97 (reserved)
-      <dd>$ = 98 (reserved)
-      <dd># = 99 (reserved)
-      <dd>) = N/A (reserved)
-      <br>The newPrec array specifies the precedences of the new operators
-      in the corresponding newOps array.  Make sure all new operators have
-      precedence between 2 and 95, and that all operators are one character
-      in length. */
-  public void addOperators(String[] newOps, int[] newPrec) {
-    int newOpLen = Math.min(newOps.length, newPrec.length);
-
-    String[] oldOps = Operators;
-    int[] oldPrec = OperatorPrecedence;
-    int oldOpLen = oldOps.length;
-    Operators = new String[oldOpLen + newOpLen];
-    OperatorPrecedence = new int[oldOpLen + newOpLen];
-    System.arraycopy(oldOps, 0, Operators, 0, oldOpLen);
-    System.arraycopy(oldPrec, 0, OperatorPrecedence, 0, oldOpLen);
-    System.arraycopy(newOps, 0, Operators, oldOpLen, newOpLen);
-    System.arraycopy(newPrec, 0, OperatorPrecedence, oldOpLen, newOpLen);
-  }
-
-  /** Adds functions to the default function list.  Specify new binary
-      functions in newBinaryFuncs, and new unary functions in newUnaryFuncs
-      (set an array to null if it's not needed). */
-  public void addFunctions(String[] newBinaryFuncs, String[] newUnaryFuncs) {
-    if (newBinaryFuncs != null) {
-      String[] oldFuncs = BinaryFunctions;
-      int oldLen = oldFuncs.length;
-      int newLen = newBinaryFuncs.length;
-      BinaryFunctions = new String[oldLen + newLen];
-      System.arraycopy(oldFuncs, 0, BinaryFunctions, 0, oldLen);
-      System.arraycopy(newBinaryFuncs, 0, BinaryFunctions, oldLen, newLen);
-    }
-    if (newUnaryFuncs != null) {
-      String[] oldFuncs = UnaryFunctions;
-      int oldLen = oldFuncs.length;
-      int newLen = newUnaryFuncs.length;
-      UnaryFunctions = new String[oldLen + newLen];
-      System.arraycopy(oldFuncs, 0, UnaryFunctions, 0, oldLen);
-      System.arraycopy(newUnaryFuncs, 0, UnaryFunctions, oldLen, newLen);
-    }
-  }
-
-  /** Indicates whether a token is an operator, a binary
-      function, or a unary function, or a variable. */
-  public int getTokenType(String token) {
+  /** indicates whether a token is an operator, a binary
+      function, or a unary function, or a variable */
+  public static int getTokenType(String token) {
+    if (token.equals("d")) return OPERATOR_TOKEN;
+    if (token.equals("&")) return UNARY_TOKEN;
     for (int i=0; i<Operators.length; i++) {
       if (token.equalsIgnoreCase(Operators[i])) return OPERATOR_TOKEN;
     }
@@ -131,9 +69,9 @@ public class Formula {
     return VARIABLE_TOKEN;
   }
 
-  /** Converts an infix string to an array of tokens (Strings)
-      in postfix notation. */
-  public String[] toPostfix(String str) {
+  /** converts an infix string to an array of tokens (Strings) in
+      postfix notation */
+  public static String[] toPostfix(String str) {
     String infix;
 
     // convert string to char array
@@ -160,8 +98,8 @@ public class Formula {
 
     // tokenize string
     String ops = "";
-    for (int i=0; i<Operators.length; i++) ops = ops+Operators[i];
-    ops = ops+")";
+    for (int i=0; i<Operators.length; i++) ops = ops + Operators[i];
+    ops = ops + ")";
     StringTokenizer tokenizer = new StringTokenizer(infix, ops, true);
     int numTokens = tokenizer.countTokens();
 
@@ -174,23 +112,77 @@ public class Formula {
     int funcPt = 0;
     int pfixlen = 0;
 
+    // detect "implicit operator" functions (e.g., x(y)) and unary minus
+    boolean implicit = false;
+
+    // flag for unary functions
+    boolean unary = false;
+
     // convert to postfix
     while (tokenizer.hasMoreTokens()) {
       String token = tokenizer.nextToken();
 
-      if (token.equals("(")) {
+      // solve derivatives recursively; their syntax is unique
+      if (token.equals("d")) {
+        String d = "";
+        int dparen = 0;
+        String t;
+        do {
+          t = tokenizer.nextToken();
+          if (t.equals("(")) dparen++;
+          if (t.equals(")")) dparen--;
+          d = d + t;
+        } while (dparen > 0);
+        String[] s = toPostfix(d);
+        if (s == null) return null;
+        t = tokenizer.nextToken();
+        if (!t.equals("/")) return null;
+        t = tokenizer.nextToken();
+        if (!t.equals("d")) return null;
+        t = tokenizer.nextToken();
+        if (!t.equals("(")) return null;
+        String type = tokenizer.nextToken();
+        t = tokenizer.nextToken();
+        if (!t.equals(")")) return null;
+        for (int i=0; i<s.length; i++) {
+          pfix[pfixlen++] = s[i];
+        }
+        pfix[pfixlen++] = "~" + type;
+        pfix[pfixlen++] = "d";
+      }
+      else if (token.equals("(")) {
         // push left paren onto operator stack
-        opStack[opPt++] = token;
+        opStack[opPt++] = implicit ? "{" : token;
+        if (unary) opStack[opPt++] = ",";
+        implicit = false;
+        unary = false;
       }
       else if (token.equals(")")) {
         // pop all operators off stack until left paren reached
         String op = opStack[--opPt];
-        while (!op.equals("(")) {
+        while (!op.equals("(") && !op.equals("{")) {
           pfix[pfixlen++] = op.equals(",") ? funcStack[--funcPt] : op;
           op = opStack[--opPt];
         }
+        if (op.equals("{")) {
+          // pop operators with greater precedence off stack onto pfix
+          op = opStack[opPt-1];
+          int prec = getPrecLevel("@");
+          while (getPrecLevel(op) <= prec) {
+            opPt--;
+            pfix[pfixlen++] = op;
+            op = opStack[opPt-1];
+          }
+          //opStack[opPt++] = "@";
+          pfix[pfixlen++] = "@";
+        }
+        implicit = true;
+        unary = false;
       }
       else {
+        // detect unary minus
+        if (!implicit && token.equals("-")) token = "&";
+
         // get token's operator precedence
         int prec = getPrecLevel(token);
 
@@ -203,15 +195,28 @@ public class Formula {
             op = opStack[opPt-1];
           }
           // push token onto operator stack
-          opStack[opPt++] = token;
+          if (prec > 1) {
+            opStack[opPt++] = token;
+            unary = false;
+          }
+          else {
+            // push unary function onto function stack, not operator stack
+            funcStack[funcPt++] = token;
+            unary = true;
+          }
+          implicit = false;
         }
         else if (prec == 0) { // token is a binary function
           // push token onto function stack
           funcStack[funcPt++] = token;
+          implicit = false;
+          unary = false;
         }
         else { // token is a variable or a constant
           // append token to pfix
           pfix[pfixlen++] = token;
+          implicit = true;
+          unary = false;
         }
       }
     }
@@ -222,10 +227,10 @@ public class Formula {
     return postfix;
   }
 
-  /** returns a token's level of precedence, or -1 if there is an error. */
-  int getPrecLevel(String str) {
+  /** returns a token's level of precedence, or -1 if there is an error */
+  private static int getPrecLevel(String str) {
     for (int i=0; i<Operators.length; i++) {
-      if (Operators[i].equalsIgnoreCase(str)) return OperatorPrecedence[i];
+      if (Operators[i].equals(str)) return OperatorPrecedence[i];
     }
     for (int i=0; i<UnaryFunctions.length; i++) {
       if (UnaryFunctions[i].equalsIgnoreCase(str)) return 1;
@@ -235,5 +240,25 @@ public class Formula {
     }
     return -1;
   }
+
+  /** for testing the toPostfix() method */
+  public static void main(String[] argv) {
+    if (argv.length < 1) {
+      System.out.println("Usage: java visad.ss.Formula <expr>\n"
+                        +"where <expr> is an infix formula expression.\n");
+      System.exit(0);
+    }
+    System.out.println("Infix:    " + argv[0]);
+    String[] output = Formula.toPostfix(argv[0]);
+    System.out.print("Postfix:  ");
+    if (output == null) System.out.println("<UNABLE TO CONVERT>");
+    else {
+      for (int i=0; i<output.length; i++) {
+        System.out.print(output[i]+" ");
+      }
+      System.out.println();
+    }
+  }
+
 }
 

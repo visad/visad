@@ -59,65 +59,68 @@ import visad.data.netcdf.Plain;
     FancySSCell.<P> */
 public class BasicSSCell extends JPanel {
 
-  /** A list of SSCells on this machine. */
+  /** A list of SSCells on this machine */
   static Vector SSCellVector = new Vector();
 
-  /** VisAD object for loading data files. */
+  /** VisAD object for loading data files */
   static DefaultFamily Loader = new DefaultFamily("Loader");
 
-  /** VisAD object for saving data files. */
+  /** VisAD object for saving data files */
   static Plain Saver = new Plain();
 
-  /** Name of this BasicSSCell. */
+  /** Name of this BasicSSCell */
   String Name;
 
-  /** Filename from where data was imported, if any. */
+  /** Filename from where data was imported, if any */
   String Filename = null;
 
-  /** BasicSSCell's associated VisAD Display. */
+  /** BasicSSCell's associated VisAD Display */
   DisplayImpl VDisplay;
 
-  /** BasicSSCell's associated VisAD Cell, if any, for evaluating formula. */
+  /** BasicSSCell's associated VisAD Cell, if any, for evaluating formula */
   FormulaCell VCell = null;
 
-  /** BasicSSCell's associated VisAD DataReference. */
+  /** BasicSSCell's associated VisAD DataReference */
   DataReferenceImpl DataRef;
 
-  /** BasicSSCell's associated VisAD DisplayPanel. */
+  /** BasicSSCell's associated VisAD DisplayPanel */
   JPanel VDPanel;
 
-  /** Constant for use with Dimension2D variable. */
+  /** Constant for use with Dimension2D variable */
   static final int JAVA3D_3D = 1;
 
-  /** Constant for use with Dimension2D variable. */
+  /** Constant for use with Dimension2D variable */
   static final int JAVA2D_2D = 2;
 
-  /** Constant for use with Dimension2D variable. */
+  /** Constant for use with Dimension2D variable */
   static final int JAVA3D_2D = 3;
 
-  /** Specifies whether the DisplayPanel is 2-D or 3-D, Java2D or Java3D. */
+  /** Specifies whether the DisplayPanel is 2-D or 3-D, Java2D or Java3D */
   int Dimension2D = -1;
 
-  /** Specifies this SSCell's DisplayListener. */
+  /** Specifies this SSCell's DisplayListener */
   DisplayListener DListen = null;
 
-  /** A counter for the number of cells currently saving data. */
+  /** A counter for the number of cells currently saving data */
   static int Saving = 0;
 
-  /** Specifies whether the BasicSSCell contains any data. */
+  /** Specifies whether the BasicSSCell contains any data */
   boolean HasData = false;
 
-  /** Specifies whether the BasicSSCell is busy loading data.  The
-      BasicSSCell's Data cannot be changed when the BasicSSCell is busy. */
+  /** Specifies whether the BasicSSCell is busy loading data; the
+      BasicSSCell's Data cannot be changed when the BasicSSCell is busy */
   boolean IsBusy = false;
 
-  /** Specifies whether the BasicSSCell has an associated formula. */
+  /** Specifies whether the BasicSSCell has an associated formula */
   boolean HasFormula = false;
 
-  /** Specifies whether the BasicSSCell has mappings from Data to Display. */
+  /** Specifies whether the BasicSSCell has mappings from Data to Display */
   boolean HasMappings = false;
 
-  /** Constructs a new BasicSSCell with the given name. */
+  /** Specifies whether formula errors are reported in a dialog box */
+  boolean ShowFormulaErrors = false;
+
+  /** Constructs a new BasicSSCell with the given name */
   public BasicSSCell(String name) throws VisADException, RemoteException {
     if (name == null) {
       throw new TypeException("BasicSSCell: name cannot be null");
@@ -141,14 +144,14 @@ public class BasicSSCell extends JPanel {
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
   }
 
-  /** Constructs a BasicSSCell with the given name and data string. */
+  /** Constructs a BasicSSCell with the given name and data string */
   public BasicSSCell(String name, String info) throws VisADException,
                                                       RemoteException {
     this(name);
     if (info != null) setSSCellString(info);
   }
 
-  /** Returns the BasicSSCell object with the specified display. */
+  /** Returns the BasicSSCell object with the specified display */
   public static BasicSSCell getSSCellByDisplay(Display d) {
     Enumeration panels = SSCellVector.elements();
     while (panels.hasMoreElements()) {
@@ -158,7 +161,7 @@ public class BasicSSCell extends JPanel {
     return null;
   }
 
-  /** Returns the BasicSSCell object with the specified name. */
+  /** Returns the BasicSSCell object with the specified name */
   public static BasicSSCell getSSCellByName(String name) {
     Enumeration panels = SSCellVector.elements();
     while (panels.hasMoreElements()) {
@@ -168,7 +171,7 @@ public class BasicSSCell extends JPanel {
     return null;
   }
 
-  /** Changes the BasicSSCell's name. */
+  /** Changes the BasicSSCell's name */
   public void setCellName(String name) throws VisADException {
     if (name == null) {
       throw new TypeException("BasicSSCell: name cannot be null");
@@ -183,7 +186,7 @@ public class BasicSSCell extends JPanel {
     Name = name;
   }
 
-  /** Reconstructs this SSCell using the specified info string. */
+  /** Reconstructs this SSCell using the specified info string */
   public void setSSCellString(String info) throws VisADException,
                                                   RemoteException {
     // extract filename from info string
@@ -239,7 +242,7 @@ public class BasicSSCell extends JPanel {
     setFormula(formula);
   }
 
-  /** Returns the data string necessary to reconstruct this cell. */
+  /** Returns the data string necessary to reconstruct this cell */
   public String getSSCellString() {
     String s = "filename = " + Filename + "\n";
     s = s + "formula = " + getFormula() + "\n";
@@ -247,13 +250,13 @@ public class BasicSSCell extends JPanel {
     return s;
   }
 
-  /** Sets up the DisplayListener for this cell. */
+  /** Sets up the DisplayListener for this cell */
   public void setDisplayListener(DisplayListener d) {
     DListen = d;
     if (d != null) VDisplay.addDisplayListener(d);
   }
 
-  /** Maps Reals to the display according to the specified ScalarMaps. */
+  /** Maps Reals to the display according to the specified ScalarMaps */
   public void setMaps(ScalarMap[] maps) throws VisADException,
                                                RemoteException {
     if (maps == null) return;
@@ -265,7 +268,7 @@ public class BasicSSCell extends JPanel {
     HasMappings = true;
   }
 
-  /** Removes the data reference and all mappings from the display. */
+  /** Removes the data reference and all mappings from the display */
   public void clearDisplay() throws VisADException, RemoteException {
     if (HasMappings) {
       VDisplay.removeReference(DataRef);
@@ -274,20 +277,20 @@ public class BasicSSCell extends JPanel {
     }
   }
 
-  /** Clears this cell's display and data. */
+  /** Clears this cell's display and data */
   public void clearData() throws VisADException, RemoteException {
     clearDisplay();
     setData(null);
     Filename = null;
   }
 
-  /** Clears this cell's formula, display and data. */
+  /** Clears this cell's formula, display and data */
   public void clearCell() throws VisADException, RemoteException {
     setFormula(null);
     clearData();
   }
 
-  /** Links the Data object to the BasicSSCell using the DataReferenceImpl. */
+  /** Links the Data object to the BasicSSCell using the DataReferenceImpl */
   public void setData(Data data) throws VisADException, RemoteException {
     if (DataRef.getData() == data) return;
     clearDisplay();
@@ -308,7 +311,7 @@ public class BasicSSCell extends JPanel {
     }
   }
 
-  /** Sets the BasicSSCell to 2-D or 3-D display with Java2D or Java3D. */
+  /** Sets the BasicSSCell to 2-D or 3-D display with Java2D or Java3D */
   public void setDimension(boolean twoD, boolean java2d)
                               throws VisADException, RemoteException {
     int dim;
@@ -358,10 +361,10 @@ public class BasicSSCell extends JPanel {
     }
   }
 
-  /** Boolean matrix used with isDependentOn() method. */
+  /** Boolean matrix used with isDependentOn() method */
   boolean[] CheckedCell;
 
-  /** Checks whether the cell is dependent on the specified cell. */
+  /** Checks whether the cell is dependent on the specified cell */
   public boolean isDependentOn(String cellName) {
     // not dependent on null
     if (cellName == null) return false;
@@ -387,7 +390,7 @@ public class BasicSSCell extends JPanel {
     return scanFormula(this, dependCell);
   }
 
-  /** Recursive method used by isDependentOn() method. */
+  /** Recursive method used by isDependentOn() method */
   boolean scanFormula(BasicSSCell cell, BasicSSCell dependCell) {
     // mark this cell as checked
     CheckedCell[SSCellVector.indexOf(cell)] = true;
@@ -397,7 +400,7 @@ public class BasicSSCell extends JPanel {
       String[] formula = VCell.PFormula;
       for (int i=0; i<formula.length; i++) {
         String token = formula[i];
-        if (VCell.f.getTokenType(token) == Formula.VARIABLE_TOKEN) {
+        if (Formula.getTokenType(token) == Formula.VARIABLE_TOKEN) {
           BasicSSCell subCell = getSSCellByName(token);
           if (subCell == dependCell) return true;
           if (subCell != null && !CheckedCell[SSCellVector.indexOf(subCell)]
@@ -408,7 +411,7 @@ public class BasicSSCell extends JPanel {
     return false;
   }
 
-  /** Sets the BasicSSCell's formula. */
+  /** Sets the BasicSSCell's formula */
   public void setFormula(String f) throws VisADException, RemoteException {
     if (f == null || f.equals("")) {
       if (VCell != null) {
@@ -420,34 +423,34 @@ public class BasicSSCell extends JPanel {
     }
     else if (VCell == null || !f.equals(VCell.getFormula())) {
       clearCell();
-      VCell = new FormulaCell(this, f);
+      VCell = new FormulaCell(this, f, ShowFormulaErrors);
     }
     if (VCell == null) HasFormula = false;
     else HasFormula = true;
   }
 
-  /** Returns the BasicSSCell's formula in infix notation. */
+  /** Returns the BasicSSCell's formula in infix notation */
   public String getFormula() {
     if (VCell == null) return "";
     else return VCell.getFormula();
   }
 
-  /** Returns whether the BasicSSCell is in 2-D display mode. */
+  /** Returns whether the BasicSSCell is in 2-D display mode */
   public int getDimension() {
     return Dimension2D;
   }
 
-  /** Returns the associated DataReferenceImpl object. */
+  /** Returns the associated DataReferenceImpl object */
   public DataReferenceImpl getDataRef() {
     return DataRef;
   }
 
-  /** Returns the file name from which the associated Data came, if any. */
+  /** Returns the file name from which the associated Data came, if any */
   public String getFilename() {
     return Filename;
   }
 
-  /** Imports a data object from a given file name. */
+  /** Imports a data object from a given file name */
   public void loadData(File f) throws BadFormException, IOException,
                                       VisADException, RemoteException {
     if (f == null || !f.exists()) return;
@@ -480,7 +483,7 @@ public class BasicSSCell extends JPanel {
     IsBusy = false;
   }
 
-  /** Exports a data object to a given file name, in netCDF format. */
+  /** Exports a data object to a given file name, in netCDF format */
   public void saveData(File f) throws BadFormException, IOException,
                                       VisADException, RemoteException {
     if (f == null || !HasData) return;
@@ -503,6 +506,12 @@ public class BasicSSCell extends JPanel {
 
   public boolean hasMappings() {
     return HasMappings;
+  }
+
+  /** Specifies whether formula errors should be reported in a dialog box */
+  public void setShowFormulaErrors(boolean sfe) {
+    ShowFormulaErrors = sfe;
+    if (VCell != null) VCell.ShowErrors = ShowFormulaErrors;
   }
 
 }

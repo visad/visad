@@ -29,7 +29,7 @@ import visad.data.BadFormException;
 
 /** FancySSCell is an extension of BasicSSCell with extra options, such
     as a file loader dialog and a dialog to set up ScalarMaps.  It
-    provides an example of GUI extensions to BasicSSCell. */
+    provides an example of GUI extensions to BasicSSCell.<P> */
 public class FancySSCell extends BasicSSCell {
 
   // Custom mapping type
@@ -46,16 +46,16 @@ public class FancySSCell extends BasicSSCell {
   /** selected border */
   static final Border HIGH = new LineBorder(Color.yellow, 3);
 
-  /** This cell's parent frame. */
+  /** This cell's parent frame */
   Frame Parent;
 
-  /** This cell's associated JFrame, for use with VisAD Controls. */
+  /** This cell's associated JFrame, for use with VisAD Controls */
   JFrame WidgetFrame = null;
 
   /** default mapping type */
   int MappingType = SURFACE3D;
 
-  /** Specifies whether this cell is selected. */
+  /** Specifies whether this cell is selected */
   boolean Selected = false;
 
   /** file dialog box */
@@ -78,7 +78,7 @@ public class FancySSCell extends BasicSSCell {
     this(name, null, null);
   }
 
-  /** Sets the ScalarMaps for this cell and creates needed control widgets. */
+  /** Sets the ScalarMaps for this cell and creates needed control widgets */
   public void setMaps(ScalarMap[] maps) throws VisADException,
                                                RemoteException {
     super.setMaps(maps);
@@ -140,7 +140,7 @@ public class FancySSCell extends BasicSSCell {
 
   private boolean first = true;
 
-  /** Used by setMaps() method. */
+  /** Used by setMaps() method */
   private void initWidgetFrame() {
     WidgetFrame = new JFrame("VisAD controls");
     Container pane = WidgetFrame.getContentPane();
@@ -148,24 +148,24 @@ public class FancySSCell extends BasicSSCell {
     first = true;
   }
 
-  /** Used by setMaps() method. */
+  /** Used by setMaps() method */
   private void addToFrame(Component c) {
     if (!first) WidgetFrame.getContentPane().add(new Divider());
     WidgetFrame.getContentPane().add(c);
     first = false;
   }
 
-  /** Shows the widgets for altering controls. */
+  /** Shows the widgets for altering controls */
   void showWidgetFrame() {
     if (WidgetFrame != null) WidgetFrame.setVisible(true);
   }
 
-  /** Hides the widgets for altering controls. */
+  /** Hides the widgets for altering controls */
   void hideWidgetFrame() {
     if (WidgetFrame != null) WidgetFrame.setVisible(false);
   }
 
-  /** Sets the Data for this cell, and applies the default ScalarMaps. */
+  /** Sets the Data for this cell, and applies the default ScalarMaps */
   public void setData(Data data) throws VisADException, RemoteException {
     super.setData(data);
     hideWidgetFrame();
@@ -173,19 +173,19 @@ public class FancySSCell extends BasicSSCell {
     setMappingScheme(MappingType);
   }
 
-  /** Sets the dimension for this cell, and applies the default ScalarMaps. */
+  /** Sets the dimension for this cell, and applies the default ScalarMaps */
   public void setDimension(boolean twoD, boolean java2d)
                               throws VisADException, RemoteException {
     super.setDimension(twoD, java2d);
     //if (MappingType != CUSTOM) setMappingScheme(MappingType);
   }
 
-  /** Gets this cell's mapping scheme. */
+  /** Gets this cell's mapping scheme */
   public int getMappingScheme() {
     return MappingType;
   }
 
-  /** Sets the mapping scheme for this cell. */
+  /** Sets the mapping scheme for this cell */
   public void setMappingScheme(int mappingScheme) {
     MappingType = mappingScheme;
 
@@ -287,7 +287,7 @@ public class FancySSCell extends BasicSSCell {
     catch (RemoteException exc) { }
   }
 
-  /** Used by setData's default ScalarMap logic, to find a valid function. */
+  /** Used by setData's default ScalarMap logic, to find a valid function */
   FunctionType findFunction(MathType mathType) {
     if (mathType instanceof ScalarType) return null;
     if (mathType instanceof SetType) return null;
@@ -346,7 +346,7 @@ public class FancySSCell extends BasicSSCell {
     return null;
   }
 
-  /** Specifies whether the FancySSCell has a blue border or a gray border. */
+  /** Specifies whether the FancySSCell has a blue border or a gray border */
   public void setSelected(boolean value) {
     if (Selected == value) return;
     Selected = value;
@@ -361,8 +361,7 @@ public class FancySSCell extends BasicSSCell {
     paint(getGraphics());
   }
 
-  /** Asks user to confirm clearing the cell if any other cell
-      depends on it. */
+  /** Asks user to confirm clearing the cell if any other cell depends on it */
   public boolean confirmClear() {
     boolean unsafe = false;
     Enumeration panels = SSCellVector.elements();
@@ -391,7 +390,7 @@ public class FancySSCell extends BasicSSCell {
   }
 
   /** Lets the user create ScalarMaps from the current SSPanel's Data
-      to its Display. */
+      to its Display */
   public void addMapDialog() {
     // check whether this cell has data
     if (!HasData) {
@@ -442,7 +441,7 @@ public class FancySSCell extends BasicSSCell {
     catch (RemoteException exc) { }
   }
 
-  /** Imports a data object from a given file name, in a separate thread. */
+  /** Imports a data object from a given file name, in a separate thread */
   public void loadDataFile(File f) {
     final File fn = f;
     final BasicSSCell cell = this;
@@ -478,7 +477,7 @@ public class FancySSCell extends BasicSSCell {
     t.start();
   }
 
-  /** Loads a file selected by the user. */
+  /** Loads a file selected by the user */
   public void loadDataDialog() {
     // get file name from file dialog
     if (FileBox == null) FileBox = new FileDialog(Parent);
@@ -501,7 +500,7 @@ public class FancySSCell extends BasicSSCell {
     loadDataFile(f);
   }
 
-  /** Saves to a file selected by the user, in netCDF format. */
+  /** Saves to a file selected by the user, in netCDF format */
   public void saveDataDialog() {
     if (!HasData) {
       JOptionPane.showMessageDialog(Parent, "This cell is empty.",

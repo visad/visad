@@ -25,6 +25,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.ss;
 
+// JFC classes
+import com.sun.java.swing.JComponent;
+import com.sun.java.swing.JOptionPane;
+
 // AWT packages
 import java.awt.*;
 
@@ -35,44 +39,51 @@ import java.rmi.RemoteException;
 import visad.*;
 
 /** FormulaCell is a VisAD computational cell that is used by BasicSSCell
-    to evaluate formulas. */
+    to evaluate formulas.<P> */
 class FormulaCell extends CellImpl {
 
   // formula for this FormulaCell
   String IFormula = "";
   String[] PFormula = null;
-  Formula f = new Formula();
   boolean BigX = false;
   boolean Illegal = false;
 
   // container of this FormulaCell
   BasicSSCell SSCell;
+  boolean ShowErrors;
 
-  FormulaCell(BasicSSCell creator, String formula) throws VisADException,
-                                                   RemoteException {
+  private static final RealType CONSTANT = createConstant();
+
+  private static RealType createConstant() {
+    RealType r;
+    try {
+      r = new RealType("VISAD_CONSTANT");
+    }
+    catch (VisADException exc) {
+      r = RealType.getRealTypeByName("VISAD_CONSTANT");
+    }
+    return r;
+  }
+
+  FormulaCell(BasicSSCell creator, String formula, boolean verbose)
+              throws VisADException, RemoteException {
     super();
     SSCell = creator;
     IFormula = formula;
-
-    // check parentheses
-    int lParen = 0;
-    int rParen = 0;
-    for (int i=0; i<IFormula.length(); i++) {
-      char c = IFormula.charAt(i);
-      if (c == '(') lParen++;
-      if (c == ')') rParen++;
-    }
-    if (lParen != rParen) {
-      Illegal = true;
-      setX(true);
-      return;
-    }
+    ShowErrors = verbose;
 
     // convert expression to postfix
-    PFormula = f.toPostfix(formula);
+    PFormula = Formula.toPostfix(formula);
     if (PFormula == null) {
       Illegal = true;
       setX(true);
+      if (ShowErrors) {
+        JOptionPane.showMessageDialog(SSCell,
+          "This formula's syntax is incorrect.  Make sure that " +
+          "parentheses are balanced, and that function and derivative " +
+          "syntax is correct.", "Error evaluating formula",
+          JOptionPane.ERROR_MESSAGE);
+      }
       return;
     }
 
@@ -80,11 +91,17 @@ class FormulaCell extends CellImpl {
     // dependent on this cell (loop detection)
     for (int i=0; i<PFormula.length; i++) {
       String token = PFormula[i];
-      if (f.getTokenType(token) == Formula.VARIABLE_TOKEN) {
+      if (Formula.getTokenType(token) == Formula.VARIABLE_TOKEN) {
         BasicSSCell panel = BasicSSCell.getSSCellByName(token);
         if (panel != null && panel.isDependentOn(SSCell.Name)) {
           Illegal = true;
           setX(true);
+          if (ShowErrors) {
+            JOptionPane.showMessageDialog(SSCell,
+              "This formula depends on itself, creating an infinite loop, " +
+              "and thus cannot be evaluated.", "Error evaluating formula",
+              JOptionPane.ERROR_MESSAGE);
+          }
           return;
         }
       }
@@ -93,14 +110,14 @@ class FormulaCell extends CellImpl {
     // add a reference for every variable
     for (int i=0; i<PFormula.length; i++) {
       String token = PFormula[i];
-      if (f.getTokenType(token) == Formula.VARIABLE_TOKEN) {
+      if (Formula.getTokenType(token) == Formula.VARIABLE_TOKEN) {
         Double d = null;
         try {
           d = Double.valueOf(token);
         }
         catch (NumberFormatException exc) { }
 
-        if (d == null) {
+        if (d == null && token.charAt(0) != '~') {
           // token is the name of a BasicSSCell
           BasicSSCell panel = BasicSSCell.getSSCellByName(token);
           if (panel != null) {
@@ -110,12 +127,22 @@ class FormulaCell extends CellImpl {
             }
             catch (TypeException exc) { }
           }
-          else Illegal = true;
+          else {
+            Illegal = true;
+            setX(true);
+            if (ShowErrors) {
+              JOptionPane.showMessageDialog(SSCell,
+                "The cell \"" + token + "\" does not exist.",
+                "Error evaluating formula", JOptionPane.ERROR_MESSAGE);
+            }
+          }
         }
       }
     }
+  }
 
-    if (Illegal) setX(true);
+  public void setShowErrors(boolean se) {
+    ShowErrors = se;
   }
 
   public String getFormula() {
@@ -131,9 +158,12 @@ class FormulaCell extends CellImpl {
       try {
         for (int i=0; i<PFormula.length; i++) {
           String token = PFormula[i];
-          int type = f.getTokenType(token);
+          int type = Formula.getTokenType(token);
     
           if (type == Formula.OPERATOR_TOKEN || type == Formula.BINARY_TOKEN) {
+            if (sp < 2) throw new VisADException(
+              "Error evaluating binary operation \"" + token + "\".  " +
+              "There are not enough Data objects on the stack.");
             Data val2 = stack[--sp];
             Data val1 = stack[--sp];
             value = null;
@@ -142,6 +172,28 @@ class FormulaCell extends CellImpl {
             else if (token.equals("*")) value = val1.multiply(val2);
             else if (token.equals("/")) value = val1.divide(val2);
             else if (token.equals("^")) value = val1.pow(val2);
+            else if (token.equals(".")) {
+              int v = (int) (((Real) val2).getValue());
+              value = ((Tuple) val1).getComponent(v);
+            }
+            else if (token.equals("@")) {
+              // evaluate syntax:  val1(val2)
+              if (val2 instanceof Real) {
+                RealType rt = (RealType) val2.getType();
+                if (rt.equals(FormulaCell.CONSTANT)) {
+                  int v = (int) (((Real) val2).getValue());
+                  value = ((Field) val1).getSample(v);
+                }
+                else {
+                  value = ((Function) val1).evaluate((Real) val2);
+                }
+              }
+              else value = ((Function) val1).evaluate((RealTuple) val2);
+            }
+            else if (token.equalsIgnoreCase("d")) {
+              value = ((Function) val1).derivative((RealType) val2.getType(),
+                                                   Data.NO_ERRORS);
+            }
             else if (token.equalsIgnoreCase("max")) value = val1.max(val2);
             else if (token.equalsIgnoreCase("min")) value = val1.min(val2);
             else if (token.equalsIgnoreCase("atan2")) value = val1.atan2(val2);
@@ -150,15 +202,20 @@ class FormulaCell extends CellImpl {
             }
             else if (token.equals("%")) value = val1.remainder(val2);
             if (value == null) {
-              System.out.println("BINARY OPERATION FAILED ON TOKEN: "+token); /* CTR: TEMP */
-              throw new VisADException(token);
+              throw new VisADException(
+                "Could not perform \"" + token + "\" binary operation.");
             }
             stack[sp++] = value;
           }
           else if (type == Formula.UNARY_TOKEN) {
+            if (sp < 1) throw new VisADException(
+              "Error evaluating unary operation \"" +
+              (token.equals("&") ? "-" : token) + "\".  " +
+              "There are not enough Data objects on the stack.");
             Data val = stack[--sp];
             value = null;
-            if (token.equalsIgnoreCase("abs")) value = val.abs();
+            if (token.equals("&")) value = val.negate();
+            else if (token.equalsIgnoreCase("abs")) value = val.abs();
             else if (token.equalsIgnoreCase("acos")) value = val.acos();
             else if (token.equalsIgnoreCase("acosDegrees")) {
               value = val.acosDegrees();
@@ -192,8 +249,8 @@ class FormulaCell extends CellImpl {
             }
             else if (token.equalsIgnoreCase("negate")) value = val.negate();
             if (value == null) {
-              System.out.println("UNARY OPERATION FAILED ON TOKEN: "+token); /* CTR: TEMP */
-              throw new VisADException(token);
+              throw new VisADException(
+                "Could not perform \"" + token + "\" unary operation.");
             }
             stack[sp++] = value;
           }
@@ -207,26 +264,54 @@ class FormulaCell extends CellImpl {
             }
             if (d != null) {
               // token is a constant
-              value = new Real(d.doubleValue());
+              value = new Real(FormulaCell.CONSTANT, d.doubleValue());
+            }
+            else if (token.charAt(0) == '~') {
+              // token is the name of a RealType
+              String t = token.substring(1, token.length());
+              RealType r = RealType.getRealTypeByName(t);
+              if (r == null) throw new VisADException(
+                "\"" + t + "\" is not a valid RealType.");
+              value = new Real(r);
             }
             else {
-              // token is the name of an BasicSSCell
+              // token is the name of a BasicSSCell
               BasicSSCell panel = BasicSSCell.getSSCellByName(token);
-              if (panel == null) throw new VisADException(token);
+              if (panel == null) throw new VisADException(
+                "\"" + token + "\" is not a valid cell name.");
               DataReferenceImpl dataRef = panel.getDataRef();
-              if (dataRef == null) throw new VisADException(token);
+              if (dataRef == null) throw new VisADException(
+                "Cell " + token + " has no data.");
               value = dataRef.getData();
-              if (value == null) throw new VisADException(token);
+              if (value == null) throw new VisADException(
+                "Cell " + token + " has no data.");
             }
             stack[sp++] = value;
           }
         }
       }
+      catch (ClassCastException exc) {
+        value = null;
+        if (ShowErrors) {
+          JOptionPane.showMessageDialog(SSCell,
+            "One or more data objects are not of the correct type for " +
+            "an operation specified in the formula.",
+            "Formula evaluation error", JOptionPane.ERROR_MESSAGE);
+        }
+      }
       catch (VisADException exc) {
         value = null;
+        if (ShowErrors) {
+          JOptionPane.showMessageDialog(SSCell, exc.toString(),
+            "Formula evaluation error", JOptionPane.ERROR_MESSAGE);
+        }
       }
       catch (RemoteException exc) {
         value = null;
+        if (ShowErrors) {
+          JOptionPane.showMessageDialog(SSCell, exc.toString(),
+            "Formula evaluation error", JOptionPane.ERROR_MESSAGE);
+        }
       }
     }
 
@@ -234,30 +319,47 @@ class FormulaCell extends CellImpl {
       try {
         SSCell.clearData();
       }
-      catch (VisADException exc) { }
-      catch (RemoteException exc) { }
+      catch (VisADException exc) {
+        if (ShowErrors) {
+          JOptionPane.showMessageDialog(SSCell, "Unable to clear old data.",
+            "Formula evaluation error", JOptionPane.ERROR_MESSAGE);
+        }
+      }
+      catch (RemoteException exc) {
+        if (ShowErrors) {
+          JOptionPane.showMessageDialog(SSCell, "Unable to clear old data.",
+            "Formula evaluation error", JOptionPane.ERROR_MESSAGE);
+        }
+      }
       setX(true);
     }
     else {
-      // get final value from stack
-      value = stack[--sp];
-
-      // if stack is not empty, something went wrong
-      if (sp != 0) {
+      if (sp != 1) {  // something went wrong
         value = null;
         setX(true);
       }
+      else value = stack[--sp];  // get final value from stack
 
       try {
         // update SSCell's Data
         SSCell.setData(value);
       }
-      catch (VisADException exc) { }
-      catch (RemoteException exc) { }
+      catch (VisADException exc) {
+        if (ShowErrors) {
+          JOptionPane.showMessageDialog(SSCell, "Unable to display new data.",
+            "Formula evaluation error", JOptionPane.ERROR_MESSAGE);
+        }
+      }
+      catch (RemoteException exc) {
+        if (ShowErrors) {
+          JOptionPane.showMessageDialog(SSCell, "Unable to display new data.",
+            "Formula evaluation error", JOptionPane.ERROR_MESSAGE);
+        }
+      }
     }
   }
 
-  final Canvas BigXCanvas = new Canvas() {
+  final JComponent BigXCanvas = new JComponent() {
     public void paint(Graphics g) {
       Dimension s = getSize();
       g.setColor(Color.white);
@@ -272,6 +374,7 @@ class FormulaCell extends CellImpl {
     if (BigX) SSCell.add(BigXCanvas);
     else SSCell.remove(BigXCanvas);
     SSCell.validate();
+    SSCell.paint(SSCell.getGraphics());
   }
 
 }

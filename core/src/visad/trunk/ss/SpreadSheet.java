@@ -90,6 +90,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
   JButton FormulaOk;
   CheckboxMenuItem CellDim3D3D, CellDim2D2D, CellDim2D3D;
   CheckboxMenuItem DispImage, DispSphere, DispSurface3D;
+  CheckboxMenuItem WinFormula;
   int CurDisplay = 0;
 
   String Clipboard = null;
@@ -112,7 +113,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
                                      cols, rows, "VisAD SpreadSheet");
   }
 
-  /** This is the constructor for the SpreadSheet class. */
+  /** This is the constructor for the SpreadSheet class */
   public SpreadSheet(int sWidth, int sHeight,
                      int cols, int rows, String sTitle) {
     NumVisX = cols;
@@ -252,6 +253,10 @@ public class SpreadSheet extends JFrame implements ActionListener,
     winWidget.addActionListener(this);
     winWidget.setActionCommand("winWidget");
     window.add(winWidget);
+
+    WinFormula = new CheckboxMenuItem("Show formula error messages");
+    WinFormula.addItemListener(this);
+    window.add(WinFormula);
 
     // set up toolbar
     JToolBar toolbar = new JToolBar();
@@ -514,7 +519,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     setVisible(true);
   }
 
-  /** Handles menubar/toolbar events. */
+  /** Handles menubar/toolbar events */
   public void actionPerformed(ActionEvent e) {
     String cmd = e.getActionCommand();
 
@@ -556,8 +561,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
   }
 
-  /** Creates a new spreadsheet file, prompting user to save
-      old file if necessary. */
+  /** Creates a new spreadsheet file */
   void newFile() {
     // clear all cells
     for (int i=0; i<DisplayCells.length; i++) {
@@ -571,8 +575,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     setTitle("VisAD SpreadSheet");
   }
 
-  /** Opens an existing spreadsheet file, prompting user to save
-      old file if necessary. */
+  /** Opens an existing spreadsheet file */
   void openFile() {
     if (SSFileDialog == null) SSFileDialog = new FileDialog(this);
     SSFileDialog.setMode(FileDialog.LOAD);
@@ -631,7 +634,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     setTitle("VisAD SpreadSheet - "+f.getPath());
   }
 
-  /** Saves a spreadsheet file under its current name. */
+  /** Saves a spreadsheet file under its current name */
   void saveFile() {
     if (CurrentFile == null) saveasFile();
     else {
@@ -653,7 +656,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
   }
 
-  /** Saves a spreadsheet file under a new name. */
+  /** Saves a spreadsheet file under a new name */
   void saveasFile() {
     if (SSFileDialog == null) SSFileDialog = new FileDialog(this);
     SSFileDialog.setMode(FileDialog.SAVE);
@@ -670,7 +673,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     saveFile();
   }
 
-  /** Does any necessary clean-up, then quits the program. */
+  /** Does any necessary clean-up, then quits the program */
   void quitProgram() {
     // wait for files to finish saving
     Thread t = new Thread() {
@@ -711,7 +714,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     t.start();
   }
 
-  /** Moves a cell from the screen to the clipboard. */
+  /** Moves a cell from the screen to the clipboard */
   void cutCell() {
     if (DisplayCells[CurDisplay].confirmClear()) {
       copyCell();
@@ -719,14 +722,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
   }
 
-  /** Copies a cell from the screen to the clipboard. */
+  /** Copies a cell from the screen to the clipboard */
   void copyCell() {
     Clipboard = DisplayCells[CurDisplay].getSSCellString();
     EditPaste.setEnabled(true);
     ToolPaste.setEnabled(true);
   }
 
-  /** Copies a cell from the clipboard to the screen. */
+  /** Copies a cell from the clipboard to the screen */
   void pasteCell() {
     if (Clipboard != null) {
       try {
@@ -741,7 +744,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
   }
 
-  /** Clears the mappings and formula of the current cell. */
+  /** Clears the mappings and formula of the current cell */
   void clearCell(boolean checkSafe) {
     try {
       if (checkSafe) DisplayCells[CurDisplay].smartClear();
@@ -756,22 +759,22 @@ public class SpreadSheet extends JFrame implements ActionListener,
     refreshFormulaBar();
   }
 
-  /** Allows the user to specify mappings from Data to Display. */
+  /** Allows the user to specify mappings from Data to Display */
   void createMappings() {
     DisplayCells[CurDisplay].addMapDialog();
   }
 
-  /** Allows the user to import a data set. */
+  /** Allows the user to import a data set */
   void loadDataSet() {
     DisplayCells[CurDisplay].loadDataDialog();
   }
 
-  /** Allows the user to export a data set to netCDF format. */
+  /** Allows the user to export a data set to netCDF format */
   void exportDataSet() {
     DisplayCells[CurDisplay].saveDataDialog();
   }
 
-  /** Makes sure the formula bar is displaying up-to-date info. */
+  /** Makes sure the formula bar is displaying up-to-date info */
   void refreshFormulaBar() {
     if (DisplayCells[CurDisplay].hasFormula()) {
       FormulaField.setText(DisplayCells[CurDisplay].getFormula());
@@ -783,7 +786,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
   }
 
-  /** Update formula based on formula entered in formula bar. */
+  /** Update formula based on formula entered in formula bar */
   void updateFormula() {
     String newFormula = FormulaField.getText();
     File f = new File(newFormula);
@@ -819,7 +822,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
   }
 
-  /** Update dimension checkbox menu items in Cell menu. */
+  /** Update dimension checkbox menu items in Cell menu */
   void refreshDisplayMenuItems() {
     // update dimension check marks
     int dim = DisplayCells[CurDisplay].getDimension();
@@ -840,26 +843,32 @@ public class SpreadSheet extends JFrame implements ActionListener,
     else DispSurface3D.setState(false);
   }
 
-  /** Handles checkbox menu item changes (dimension checkboxes). */
+  /** Handles checkbox menu item changes (dimension checkboxes) */
   public void itemStateChanged(ItemEvent e) {
-    String i = (String) e.getItem();
+    String item = (String) e.getItem();
+    if (item.equals("Show formula error messages")) {
+      for (int i=0; i<DisplayCells.length; i++) {
+        DisplayCells[i].setShowFormulaErrors(e.getStateChange()
+                                          == ItemEvent.SELECTED);
+      }
+    }
     try {
-      if (i.equals("3-D (Java3D)")) {
+      if (item.equals("3-D (Java3D)")) {
         DisplayCells[CurDisplay].setDimension(false, false);
       }
-      else if (i.equals("2-D (Java2D)")) {
+      else if (item.equals("2-D (Java2D)")) {
         DisplayCells[CurDisplay].setDimension(true, true);
       }
-      else if (i.equals("2-D (Java3D)")) {
+      else if (item.equals("2-D (Java3D)")) {
         DisplayCells[CurDisplay].setDimension(true, false);
       }
-      else if (i.equals("Image")) {
+      else if (item.equals("Image")) {
         DisplayCells[CurDisplay].setMappingScheme(FancySSCell.IMAGE);
       }
-      else if (i.equals("Spherical image")) {
+      else if (item.equals("Spherical image")) {
         DisplayCells[CurDisplay].setMappingScheme(FancySSCell.LATLONIMAGE);
       }
-      else if (i.equals("3-D surface")) {
+      else if (item.equals("3-D surface")) {
         DisplayCells[CurDisplay].setMappingScheme(FancySSCell.SURFACE3D);
       }
       refreshDisplayMenuItems();
@@ -871,7 +880,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     catch (RemoteException exc) { }
   }
 
-  /** Handles scrollbar changes. */
+  /** Handles scrollbar changes */
   public void adjustmentValueChanged(AdjustmentEvent e) {
     Adjustable a = e.getAdjustable();
     int value = a.getValue();
@@ -884,7 +893,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     }
   }
 
-  /** Handles display changes. */
+  /** Handles display changes */
   public void displayChanged(DisplayEvent e) {
     FancySSCell fcell = (FancySSCell)
                         BasicSSCell.getSSCellByDisplay(e.getDisplay());
@@ -895,7 +904,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     selectCell(c);
   }
 
-  /** Selects the specified cell, updating screen info. */
+  /** Selects the specified cell, updating screen info */
   void selectCell(int cell) {
     if (cell < 0 || cell >= NumVisDisplays || cell == CurDisplay) return;
 
@@ -909,7 +918,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
     refreshDisplayMenuItems();
   }
 
-  /** Handles key presses. */
+  /** Handles key presses */
   public void keyPressed(KeyEvent e) {
     int key = e.getKeyCode();
 
@@ -932,7 +941,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   public void keyTyped(KeyEvent e) { }
 
-  /** Handles mouse presses. */
+  /** Handles mouse presses */
   public void mousePressed(MouseEvent e) {
     Component c = e.getComponent();
     int cnum = -1;

@@ -1,6 +1,6 @@
  
                    VisAD SpreadSheet User Interface README file
-                                  11 August 1998
+                                  24 August 1998
                                         
                                 Table of Contents
 
@@ -160,15 +160,16 @@ desired cell with a mouse button, or press the arrow keys.
     Here are the commands from the Display menu:
       Edit Mappings - Brings up a dialog box which lets you change how the Data
                       object is mapped to the Display.  Click a RealType object
-                      on the left, then click a display icon from the display
-                      panel in the center of the dialog.  The "Current Mappings"
-                      box on the lower right will change to reflect which
-                      mappings you've currently set up.  When you've set up all
-                      the mappings to your liking, click the Done button and the
-                      spreadsheet will try to display the data object.  To close
-                      the dialog box without applying any of the changes you
-                      made to the mappings, click the Cancel button.  You can
-                      also highlight items from the "Current Mappings" box, then
+                      on the left (or from the MathType display at the top),
+                      then click a display icon from the display panel in the
+                      center of the dialog.  The "Current Mappings" box on the
+                      lower right will change to reflect which mappings you've
+                      currently set up.  When you've set up all the mappings to
+                      your liking, click the Done button and the spreadsheet
+                      will try to display the data object.  To close the dialog
+                      box without applying any of the changes you made to the
+                      mappings, click the Cancel button.  You can also
+                      highlight items from the "Current Mappings" box, then
                       click "Clear selected" to remove those mappings from the
                       list, or click "Clear all" to clear all mappings from the
                       list and start from scratch.
@@ -179,9 +180,9 @@ desired cell with a mouse button, or press the arrow keys.
                       this mode, nothing can be mapped to ZAxis, Latitude, or
                       Alpha.  For computers without 3-D acceleration, this mode
                       will provide much better performance, but the display
-                      quality will not be as good as 2-D (Java3D).  This setting
-                      is the default, so that non-Java3D-enabled computers can
-                      still use the spreadsheet.
+                      quality will not be as good as 2-D (Java3D).  This
+                      setting is the default, so that non-Java3D-enabled
+                      computers can still use the spreadsheet.
       2-D (Java3D) -  Sets the current cell's display dimension to 2-D.  This
                       requires Java3D.  In this mode, nothing can be mapped to
                       ZAxis or Latitude (but things can be mapped to Alpha).
@@ -221,24 +222,49 @@ column is 'A', the second is 'B', and so on), and each row is a number (the
 first row is '1', the second is '2', and so on).  So, the cell on the top-left
 is A1, the cell on A1's right is B1, and the cell directly below A1 is A2, etc.
 
-Formulas can use any of the basic operators:
-    + add,   - subtract,   * multiply,   / divide,   % remainder,   ^ power
+Any of the following can be used in formula construction:
 
-Formulas can use any of the following binary functions:
-    MAX, MIN, ATAN2, ATAN2DEGREES
+1) Formulas can use any of the basic operators:
+       + add,  - subtract,  * multiply,  / divide,  % remainder,  ^ power
 
-Formulas can use any of the following unary functions:
-    ABS, ACOS, ACOSDEGREES, ASIN, ASINDEGREES, ATAN, ATANDEGREES, CEIL, COS,
-    COSDEGREES, EXP, FLOOR, LOG, RINT, ROUND, SIN, SINDEGREES, SQRT, TAN,
-    TANDEGREES, NEGATE
+2) Formulas can use any of the following binary functions:
+       MAX, MIN, ATAN2, ATAN2DEGREES
 
-Formulas are not case sensitive.
+3) Formulas can use any of the following unary functions:
+       ABS, ACOS, ACOSDEGREES, ASIN, ASINDEGREES, ATAN, ATANDEGREES, CEIL,
+       COS, COSDEGREES, EXP, FLOOR, LOG, RINT, ROUND, SIN, SINDEGREES, SQRT,
+       TAN, TANDEGREES, NEGATE
 
-Note that unary minus syntax (e.g., "B2 * -A1") is not supported.  Instead,
-the unary function "NEGATE" must be used (e.g., "B2 * NEGATE(A1)").
+4) Unary minus syntax (e.g., B2 * -A1) is supported.
 
-An example of a valid formula for cell A1 is:
-    SQRT(A2 + B2^5 - MIN(B1, C1))
+5) Derivatives are supported with the syntax:
+       d(DATA)/d(TYPE)
+   where DATA is a Function, and TYPE is the name of a RealType present in
+   the Function's domain.  This syntax calls Function's derivative() method
+   with an error_type of Data.NO_ERRORS.
+
+6) Function evaluation is supported with the syntax:
+       DATA1(DATA2)
+   where DATA1 is a Function and DATA2 is a Real or a RealTuple.
+   This syntax calls Function's evaluate() method.
+
+7) You can obtain an individual sample from a Field with the syntax:
+       DATA(N)
+   where DATA is the Field, and N is a literal integer.
+   This syntax calls Field's getSample() method.
+
+8) You can obtain one component of a Tuple with the syntax:
+       DATA.N
+   where DATA is a Tuple and N is a literal integer.
+   This syntax calls Tuple's getComponent() method.
+
+9) Formulas are not case sensitive.
+
+Some examples of valid formulas for cell A1 are:
+    SQRT(A2 + B2^5 - MIN(B1, -C1))
+    d(A2)/d(ImageElement)
+    A2(A3)
+    C2.6
 
 Once you've typed in a formula, press Enter or click the green check box button
 to the left of the formula entry text box to apply the formula.  The red X
@@ -275,18 +301,17 @@ with a detailed description of how to recreate the problem.
 
 4. Future Plans
     Here's what's coming in the future:
-      1) Spreadsheet column and row addition and deletion
+      1) Spreadsheet column and row addition and deletion, and resizable
+         columns and rows
       2) Multiple data per cell
       3) Direct manipulation support
       4) Distributed Cells, Data, etc. (such as data import from http address)
       5) Remote spreadsheet cloning with collaboration
-      6) Formula enhancements, including derivatives, extraction of pieces of
-         a Data object (such as a single function from a multi-function file),
-         composition of multiple Data objects (such as creating an animation
-         from multiple spreadsheet cells), and dynamic linkage of Java code
-         into formulas
+      6) Formula enhancements, including composition of multiple Data objects
+         (such as creating an animation from multiple spreadsheet cells), and
+         dynamic linkage of Java code into formulas
       7) Quick-map enhancements, including more built-in quick-maps (such as
-         contour and animation), and user-defined quick-maps.
+         contour and animation), and user-defined quick-maps
       8) Misc. user interface enhancements
       9) And of course, bug fixes
 
