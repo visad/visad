@@ -143,7 +143,7 @@ class DisplayMaps
     final double yRange = file.getYMax() - file.getYMin();
     final double zRange = file.getZMax() - file.getZMin();
 
-    return Math.max(xRange, Math.max(yRange, zRange));
+    return -0.5 * Math.max(xRange, Math.max(yRange, zRange));
   }
 
   private static final void setRange(ScalarMap map, double min, double max,
