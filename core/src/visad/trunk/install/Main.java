@@ -12,6 +12,7 @@ import javax.swing.JWindow;
 
 import visad.util.CmdlineGenericConsumer;
 import visad.util.CmdlineParser;
+import visad.install.Path;
 
 public class Main
   extends CmdlineGenericConsumer
@@ -398,7 +399,8 @@ public class Main
 
       // if they want a cluster install, push the JVM out to the nodes
       if (clusterInstaller != null) {
-        clusterInstaller.push(javaInstallDir.toString());
+        clusterInstaller.push(javaInstallDir.toString(),
+                              javaInstallDir.getParent().toString());
       }
     }
 
@@ -411,7 +413,8 @@ public class Main
 
     // if they want a cluster install, push the jar file out to the nodes
     if (clusterInstaller != null) {
-      clusterInstaller.push(getPath(new File(jarInstallDir, JAR_NAME)));
+      clusterInstaller.push(getPath(new File(jarInstallDir, JAR_NAME)),
+                            getPath(jarInstallDir));
     }
   }
 
