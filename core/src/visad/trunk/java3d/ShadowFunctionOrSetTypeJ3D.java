@@ -167,20 +167,26 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
     // System.out.println("texture geometry");
     // create basic Appearance
     TransparencyAttributes c_alpha = null;
-    if (constant_alpha == 0.0f) {
+
+    if (constant_alpha == 1.0f) {
       // constant opaque alpha = NONE
-      c_alpha = new TransparencyAttributes(TransparencyAttributes.NONE, 0.0f);
+      c_alpha = null;
     }
     else if (constant_alpha == constant_alpha) {
-      c_alpha = new TransparencyAttributes(mode.getTransparencyMode(),
+      // c_alpha = new TransparencyAttributes(mode.getTransparencyMode(),
+      c_alpha = new TransparencyAttributes(TransparencyAttributes.BLENDED,
                                            constant_alpha);
+    }
+    else {
+      c_alpha = new TransparencyAttributes();
+      c_alpha.setTransparencyMode(TransparencyAttributes.BLENDED);
     }
     ColoringAttributes c_color = null;
     if (constant_color != null && constant_color.length == 3) {
       c_color = new ColoringAttributes();
       c_color.setColor(constant_color[0], constant_color[1], constant_color[2]);
     }
-    Appearance appearance = makeAppearance(mode, null, null, geometry);
+    Appearance appearance = makeAppearance(mode, c_alpha, null, geometry);
     // create TextureAttributes
     TextureAttributes texture_attributes = new TextureAttributes();
     // texture_attributes.setTextureMode(TextureAttributes.REPLACE);

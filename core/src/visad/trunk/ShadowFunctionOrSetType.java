@@ -133,6 +133,9 @@ package visad;
 import java.util.*;
 import java.rmi.*;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.WritableRaster;
+import java.awt.image.DataBufferInt;
 
 /**
    The ShadowFunctionOrSetType class is an abstract parent for
@@ -388,7 +391,8 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 2:" +
                        !Domain.getSpatialReference() &&
                        Display.DisplaySpatialCartesianTuple.equals(
                                Domain.getDisplaySpatialTuple() ) &&
-                       checkColorRange(Range.getDisplayIndices()) &&
+                       // checkColorRange(Range.getDisplayIndices()) &&
+                       checkColorAlphaRange(Range.getDisplayIndices()) &&
                        checkAny(Range.getDisplayIndices()) &&
                        display.getGraphicsModeControl().getTextureEnable() &&
                        !display.getGraphicsModeControl().getPointMode();
@@ -396,8 +400,8 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 2:" +
         curvedTexture = getLevelOfDifficulty() == ShadowType.SIMPLE_FIELD &&
                         Domain.getDimension() == 2 &&
                         Domain.getAllSpatial() &&
-                        checkSpatialColorRange(Domain.getDisplayIndices()) &&
-                        checkSpatialColorRange(Range.getDisplayIndices()) &&
+                        checkSpatialColorAlphaRange(Domain.getDisplayIndices()) &&
+                        checkSpatialColorAlphaRange(Range.getDisplayIndices()) &&
                         checkAny(Range.getDisplayIndices()) &&
                         display.getGraphicsModeControl().getTextureEnable() &&
                         !display.getGraphicsModeControl().getPointMode();
@@ -411,20 +415,21 @@ System.out.println("checkIndices.isTextureMap = " + isTextureMap + " " +
                    !Domain.getSpatialReference() + " " +
                    Display.DisplaySpatialCartesianTuple.equals(
                                Domain.getDisplaySpatialTuple() ) + " " +
-                   checkColorRange(Range.getDisplayIndices()) + " " +
+                   // checkColorRange(Range.getDisplayIndices()) + " " +
+                   checkColorAlphaRange(Range.getDisplayIndices()) + " " +
                    checkAny(Range.getDisplayIndices()) + " " +
                    display.getGraphicsModeControl().getTextureEnable() + " " +
                    !display.getGraphicsModeControl().getPointMode() );
 
 System.out.println("checkIndices.curvedTexture = " + curvedTexture + " " +
-                        (getLevelOfDifficulty() == ShadowType.SIMPLE_FIELD) + " " +
-                        (Domain.getDimension() == 2) + " " +
-                        Domain.getAllSpatial() + " " +
-                        checkSpatialColorRange(Domain.getDisplayIndices()) + " " +
-                        checkSpatialColorRange(Range.getDisplayIndices()) + " " +
-                        checkAny(Range.getDisplayIndices()) + " " +
-                        display.getGraphicsModeControl().getTextureEnable() + " " +
-                        !display.getGraphicsModeControl().getPointMode() );
+                    (getLevelOfDifficulty() == ShadowType.SIMPLE_FIELD) + " " +
+                    (Domain.getDimension() == 2) + " " +
+                    Domain.getAllSpatial() + " " +
+                    checkSpatialColorAlphaRange(Domain.getDisplayIndices()) + " " +
+                    checkSpatialColorAlphaRange(Range.getDisplayIndices()) + " " +
+                    checkAny(Range.getDisplayIndices()) + " " +
+                    display.getGraphicsModeControl().getTextureEnable() + " " +
+                    !display.getGraphicsModeControl().getPointMode() );
 */
       }
     }
@@ -610,7 +615,7 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
     }
 
     boolean isTextureMap = getIsTextureMap() &&
-                           default_values[alpha_index] > 0.99 &&
+                           // default_values[alpha_index] > 0.99 &&
                            renderer.isLegalTextureMap() &&
                            (domain_set instanceof Linear2DSet ||
                             (domain_set instanceof LinearNDSet &&
@@ -631,7 +636,7 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
 /*
 System.out.println("doTransform.isTextureMap = " + isTextureMap + " " +
                    getIsTextureMap() + " " +
-                   (default_values[alpha_index] > 0.99) + " " +
+                   // (default_values[alpha_index] > 0.99) + " " +
                    renderer.isLegalTextureMap() + " " +
                    (domain_set instanceof Linear2DSet) + " " +
                    (domain_set instanceof LinearNDSet) + " " +
@@ -1312,8 +1317,8 @@ if (color_values != null) {
         if (color_values[3][0] > 0.999999f) {
 */
         if (color_values[3][0] == -1) {  // = 255 unsigned
-          // constant_alpha = 0.0f; WLH 30 April 99
-          constant_alpha = 1.0f;
+          constant_alpha = 0.0f;
+          // constant_alpha = 1.0f; WLH 26 May 99
           // remove alpha from color_values
           byte[][] c = new byte[3][];
           c[0] = color_values[0];
@@ -1658,78 +1663,6 @@ System.out.println("makeIsoLines without labels arrays[1].vertexCount = " +
             BufferedImage image =
               createImage(data_width, data_height, texture_width,
                           texture_height, color_values);
-/*
-            BufferedImage image = null;
-            int[] rgbArray = new int[texture_width * texture_height];
-            if (color_values.length > 3) {
-              int k = 0;
-              int r, g, b, a;
-              image = new BufferedImage(texture_width, texture_height,
-                                        BufferedImage.TYPE_INT_ARGB);
-              for (int j=0; j<data_height; j++) {
-                for (int i=0; i<data_width; i++) {
-                  r = (color_values[0][k] < 0) ? color_values[0][k] + 256 :
-                                                 color_values[0][k];
-                  g = (color_values[1][k] < 0) ? color_values[1][k] + 256 :
-                                                 color_values[1][k];
-                  b = (color_values[2][k] < 0) ? color_values[2][k] + 256 :
-                                                 color_values[2][k];
-                  a = (color_values[3][k] < 0) ? color_values[3][k] + 256 :
-                                                 color_values[3][k];
-                  image.setRGB(i, j, ((a << 24) | (r << 16) | (g << 8) | b));
-                  k++;
-                }
-                for (int i=data_width; i<texture_width; i++) {
-                  image.setRGB(i, j, 0);
-                }
-              }
-              for (int j=data_height; j<texture_height; j++) {
-                for (int i=0; i<texture_width; i++) {
-                  image.setRGB(i, j, 0);
-                }
-              }
-              // transparency does not work yet
-            }
-            else { // (color_values.length == 3)
-              int k = 0;
-              int r, g, b, a;
-              image = new BufferedImage(texture_width, texture_height,
-                                        BufferedImage.TYPE_INT_ARGB);
-              for (int j=0; j<data_height; j++) {
-                for (int i=0; i<data_width; i++) {
-                  r = (color_values[0][k] < 0) ? color_values[0][k] + 256 :
-                                                 color_values[0][k];
-                  g = (color_values[1][k] < 0) ? color_values[1][k] + 256 :
-                                                 color_values[1][k];
-                  b = (color_values[2][k] < 0) ? color_values[2][k] + 256 :
-                                                 color_values[2][k];
-                  a = 255;
-                  image.setRGB(i, j, ((a << 24) | (r << 16) | (g << 8) | b));
-                  k++;
-                }
-                for (int i=data_width; i<texture_width; i++) {
-                  image.setRGB(i, j, 0);
-                }
-              }
-              for (int j=data_height; j<texture_height; j++) {
-                for (int i=0; i<texture_width; i++) {
-                  image.setRGB(i, j, 0);
-                }
-              }
-//
-// this doesn't work - why not?
-//            image.setRGB(0, 0, texture_width, texture_height,
-//                         rgbArray, 0, texture_width);
-//
-// this doesn't work either - why not?
-//            for (int j=0; j<texture_height; j++) {
-//              image.setRGB(0, j, texture_width, 1,
-//                           rgbArray, j*texture_width, texture_width);
-//            }
-//
-            } // end if (color_values.length == 3)
-*/
-
             shadow_api.textureToGroup(group, qarray, image, mode,
                                       constant_alpha, constant_color,
                                       texture_width, texture_height);
@@ -2270,8 +2203,41 @@ if (size < 0.2) {
                        int texture_width, int texture_height,
                        byte[][] color_values) {
     BufferedImage image = null;
-    int[] rgbArray = new int[texture_width * texture_height];
+    int[] rgbArray = null;
     if (color_values.length > 3) {
+      ColorModel colorModel = ColorModel.getRGBdefault();
+      WritableRaster raster =
+        colorModel.createCompatibleWritableRaster(texture_width, texture_height);
+      image = new BufferedImage(colorModel, raster, false, null);
+      int[] intData = ((DataBufferInt)raster.getDataBuffer()).getData();
+      int k = 0;
+      int m = 0;
+      int r, g, b, a;
+      for (int j=0; j<data_height; j++) {
+        for (int i=0; i<data_width; i++) {
+          r = (color_values[0][k] < 0) ? color_values[0][k] + 256 :
+                                         color_values[0][k];
+          g = (color_values[1][k] < 0) ? color_values[1][k] + 256 :
+                                         color_values[1][k];
+          b = (color_values[2][k] < 0) ? color_values[2][k] + 256 :
+                                         color_values[2][k];
+          a = (color_values[3][k] < 0) ? color_values[3][k] + 256 :
+                                         color_values[3][k];
+          intData[m++] = ((a << 24) | (r << 16) | (g << 8) | b);
+          k++;
+        }
+        for (int i=data_width; i<texture_width; i++) {
+          intData[m++] = 0;
+        }
+      }
+      for (int j=data_height; j<texture_height; j++) {
+        for (int i=0; i<texture_width; i++) {
+          intData[m++] = 0;
+        }
+      }
+
+/* WLH 26 May 99
+      rgbArray = new int[texture_width * texture_height];
       int k = 0;
       int r, g, b, a;
       image = new BufferedImage(texture_width, texture_height,
@@ -2299,8 +2265,41 @@ if (size < 0.2) {
         }
       }
       // transparency does not work yet
+*/
     }
     else { // (color_values.length == 3)
+      ColorModel colorModel = ColorModel.getRGBdefault();
+      WritableRaster raster =
+        colorModel.createCompatibleWritableRaster(texture_width, texture_height);
+      image = new BufferedImage(colorModel, raster, false, null);
+      int[] intData = ((DataBufferInt)raster.getDataBuffer()).getData();
+      int k = 0;
+      int m = 0;
+      int r, g, b, a;
+      for (int j=0; j<data_height; j++) {
+        for (int i=0; i<data_width; i++) {
+          r = (color_values[0][k] < 0) ? color_values[0][k] + 256 :
+                                         color_values[0][k];
+          g = (color_values[1][k] < 0) ? color_values[1][k] + 256 :
+                                         color_values[1][k];
+          b = (color_values[2][k] < 0) ? color_values[2][k] + 256 :
+                                         color_values[2][k];
+          a = 255;
+          intData[m++] = ((a << 24) | (r << 16) | (g << 8) | b);
+          k++;
+        }
+        for (int i=data_width; i<texture_width; i++) {
+          intData[m++] = 0;
+        }
+      }
+      for (int j=data_height; j<texture_height; j++) {
+        for (int i=0; i<texture_width; i++) {
+          intData[m++] = 0;
+        }
+      }
+
+/* WLH 26 May 99
+      rgbArray = new int[texture_width * texture_height];
       int k = 0;
       int r, g, b, a;
       image = new BufferedImage(texture_width, texture_height,
@@ -2326,17 +2325,7 @@ if (size < 0.2) {
           image.setRGB(i, j, 0);
         }
       }
-//
-// this doesn't work - why not?
-//    image.setRGB(0, 0, texture_width, texture_height,
-//                 rgbArray, 0, texture_width);
-//
-// this doesn't work either - why not?
-//    for (int j=0; j<texture_height; j++) {
-//      image.setRGB(0, j, texture_width, 1,
-//                   rgbArray, j*texture_width, texture_width);
-//    }
-//
+*/
     } // end if (color_values.length == 3)
     return image;
   }

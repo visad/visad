@@ -50,7 +50,7 @@ public class Test16
     return dpys;
   }
 
-  public String toString() { return ": texture mapping"; }
+  public String toString() { return ": opaque texture mapping"; }
 
   public static void main(String args[])
 	throws VisADException, RemoteException

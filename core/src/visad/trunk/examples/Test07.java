@@ -34,9 +34,7 @@ public class Test07
     display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
     display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
     display1.addMap(new ScalarMap(vis_radiance, Display.Green));
-    display1.addMap(new ScalarMap(ir_radiance, Display.ZAxis));
     display1.addMap(new ScalarMap(ir_radiance, Display.Alpha));
-    // display1.addMap(new ConstantMap(0.5, Display.Alpha));
     display1.addMap(new ConstantMap(0.5, Display.Blue));
     display1.addMap(new ConstantMap(0.5, Display.Red));
 

@@ -471,6 +471,28 @@ public abstract class ShadowType extends Object
     return true;
   }
 
+  /** test for display_indices in (Color, Alpha, Range, Unmapped) */
+  boolean checkColorAlphaRange(int[] display_indices) throws RemoteException {
+    for (int i=0; i<display_indices.length; i++) {
+      if (display_indices[i] == 0) continue;
+      DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
+      DisplayTupleType tuple = real.getTuple();
+      if (tuple != null &&
+          (tuple.equals(Display.DisplayRGBTuple) ||
+           (tuple.getCoordinateSystem() != null &&
+            tuple.getCoordinateSystem().getReference().equals(
+            Display.DisplayRGBTuple)))) continue;  // Color
+      if (real.equals(Display.RGB) ||
+          real.equals(Display.RGBA) ||
+          real.equals(Display.Alpha) ||
+          real.equals(Display.HSV) ||
+          real.equals(Display.CMY)) continue;  // more Color
+      if (real.equals(Display.SelectRange)) continue;
+      return false;
+    }
+    return true;
+  }
+
   /** test for display_indices in (Spatial, SpatialOffset, Color, Alpha,
       Range, Flow, Shape, ShapeScale, Text, Unmapped) */
   boolean checkR2D2(int[] display_indices) throws RemoteException {
@@ -526,6 +548,36 @@ public abstract class ShadowType extends Object
             tuple.getCoordinateSystem().getReference().equals(
             Display.DisplayRGBTuple)))) continue;  // Color
       if (real.equals(Display.RGB) ||
+          real.equals(Display.HSV) ||
+          real.equals(Display.CMY)) continue;  // more Color
+      if (real.equals(Display.SelectRange)) continue;
+      return false;
+    }
+    return true;
+  }
+
+  /** test for display_indices in (Spatial, SpatialOffset, Color,
+      Alpha, Range, Unmapped) */
+  boolean checkSpatialColorAlphaRange(int[] display_indices) throws RemoteException {
+    for (int i=0; i<display_indices.length; i++) {
+      if (display_indices[i] == 0) continue;
+      DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
+      DisplayTupleType tuple = real.getTuple();
+      if (tuple != null &&
+          (tuple.equals(Display.DisplaySpatialCartesianTuple) ||
+           (tuple.getCoordinateSystem() != null &&
+            tuple.getCoordinateSystem().getReference().equals(
+            Display.DisplaySpatialCartesianTuple)))) continue;  // Spatial
+      // SpatialOffset
+      if (Display.DisplaySpatialOffsetTuple.equals(tuple)) continue;
+      if (tuple != null &&
+          (tuple.equals(Display.DisplayRGBTuple) ||
+           (tuple.getCoordinateSystem() != null &&
+            tuple.getCoordinateSystem().getReference().equals(
+            Display.DisplayRGBTuple)))) continue;  // Color
+      if (real.equals(Display.RGB) ||
+          real.equals(Display.RGBA) ||
+          real.equals(Display.Alpha) ||
           real.equals(Display.HSV) ||
           real.equals(Display.CMY)) continue;  // more Color
       if (real.equals(Display.SelectRange)) continue;
