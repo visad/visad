@@ -480,7 +480,8 @@ public class CollectiveBarbManipulation extends Object
     }
   }
 
-  /** set values that govern collective barb adjustment;
+  /** set values that govern collective barb adjustment
+     and disable any DataReference to a spatial curve;
      abs indicates absolute or relative value adjustment
      id and od are inner and outer distances in meters
      it and ot are inner and outer times in seconds
@@ -505,6 +506,26 @@ public class CollectiveBarbManipulation extends Object
     outer_time = ot;
   }
 
+  /** set values that govern collective barb adjustment
+      but don't change spatial parameters or curve_ref;
+     abs indicates absolute or relative value adjustment
+     it and ot are inner and outer times in seconds
+     influence is 1.0 inside inner, 0.0 outside outer and
+     linear between distance and time influences multiply */
+  public void setCollectiveTimeParameters(boolean abs, float it, float ot)
+         throws VisADException, RemoteException {
+    absolute = abs;
+    if (it < 0.0 || ot < it) {
+      throw new CollectiveBarbException("outer_time must be " +
+                                   "greater than inner_time");
+    }
+    inner_time = it;
+    outer_time = ot;
+  }
+
+  /** set a DataReference to a curve (typically from a
+      CurveManipulationRendererJ3D) to replace distance
+      parameters; also set time parameters */
   public void setCollectiveCurve(boolean abs, DataReference r,
                                  float it, float ot)
          throws VisADException, RemoteException {
