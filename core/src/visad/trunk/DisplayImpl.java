@@ -390,7 +390,8 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     if (!cluster) copyRefLinks(rmtDpy); // WLH 7 Dec 2000
 
     notifyAction();
-    waitForTasks();
+
+    if (!cluster) waitForTasks(); // WLH 11 April 2001
 
     // only add remote display as listener *after* we've synced
     displayMonitor.addRemoteListener(rmtDpy);
