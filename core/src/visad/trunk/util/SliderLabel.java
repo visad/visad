@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: SliderLabel.java,v 1.7 1998-12-02 15:46:25 billh Exp $
+@(#) $Id: SliderLabel.java,v 1.8 1999-05-21 16:50:28 curtis Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -33,7 +33,7 @@ import java.awt.event.*;
  * and optionally, the bounds.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.7 $, $Date: 1998-12-02 15:46:25 $
+ * @version $Revision: 1.8 $, $Date: 1999-05-21 16:50:28 $
  * @since Visad Utility Library v0.7.1
  */
 
@@ -117,6 +117,8 @@ public class SliderLabel extends Panel implements SliderChangeListener {
 		if (rangeVisible) {
 			if (rangeChanged) {
 				g.setColor(background);
+                                if (drawmin == null) drawmin = "null";
+                                if (drawmax == null) drawmax = "null";
 				g.drawString(drawmin, 3, getBounds().height - 1 - fm.getDescent());
 				g.drawString(drawmax, getBounds().width - 4 - fm.stringWidth(drawmax), 
 								getBounds().height - 1 - fm.getDescent());
@@ -135,6 +137,7 @@ public class SliderLabel extends Panel implements SliderChangeListener {
 		}
 		
 		g.setColor(background);
+                if (drawval == null) drawval = "null";
 		g.drawString(drawval, getBounds().width / 2 - fm.stringWidth(drawval) / 2 + 3,
 							getBounds().height - 1 - fm.getDescent());
 		
