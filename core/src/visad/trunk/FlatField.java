@@ -2004,14 +2004,99 @@ public class FlatField extends FieldImpl {
   /** combine an array of FlatFields;
       they must have the same Domain type;
       this takes the place of 'insert' in the C-based VisAD */
+  /**
   public Field combine(FlatField[] fields) throws VisADException {
     throw new UnimplementedException("FlatField.combine");
   }
+   **/
 
   /** extract field from this[].component;
       this is OK, when we get around to it */
-  public Field extract(int component) throws VisADException {
-    throw new UnimplementedException("FlatField.insert");
+  public Field extract(int component) 
+         throws VisADException, RemoteException
+  {
+    Set domainSet = getDomainSet();
+    int n_samples = domainSet.getLength();
+    MathType rangeType = ((FunctionType)Type).getRange();
+    MathType domainType = ((FunctionType)Type).getDomain();
+    int n_comps = ((TupleType)rangeType).getDimension();
+    CoordinateSystem coord_sys;
+    MathType m_type;
+    int ii, jj, compSize;
+    
+    int[] flat_indeces;
+
+    if (!( rangeType instanceof TupleType) ) 
+    {
+      throw new VisADException("extract: range type must be TupleType");
+    }
+    else if ( ( component + 1 ) > n_comps ) 
+    {
+      throw new VisADException("extract: component selection too large");
+    }
+
+    MathType new_range = ((TupleType)rangeType).getComponent( component );
+    FunctionType new_type = new FunctionType( domainType, new_range);
+
+    int cnt = 0;
+    int t_cnt = 0;
+    for ( ii = 0; ii < component; ii++ )
+    {
+      m_type = ((TupleType)rangeType).getComponent(ii);
+      if ( m_type instanceof RealType ) 
+      {
+        cnt++;
+      }
+      else 
+      {
+        cnt += ((RealTupleType)m_type).getDimension();
+        t_cnt++;
+      }
+    }
+
+    if ( new_range instanceof RealType ) 
+    {
+      compSize = 1;
+      flat_indeces = new int[compSize];
+      flat_indeces[0] = cnt; 
+      coord_sys = null;
+    }
+    else 
+    {
+      compSize = ((RealTupleType)new_range).getDimension();
+      flat_indeces = new int[ compSize ];
+      for ( jj = 0; jj < compSize; jj++ ) 
+      {
+        flat_indeces[jj] = cnt++;
+      }
+      coord_sys = RangeCoordinateSystems[t_cnt];
+    }
+
+    ErrorEstimate[] errors_out = new ErrorEstimate[ compSize ];
+    Unit[] units_out = new Unit[ compSize ];
+    Set[] rangeSet_out = new Set[ compSize ];
+
+    for ( ii = 0; ii < compSize; ii++ ) 
+    {
+      units_out[ii] = RangeUnits[ flat_indeces[ii] ];
+      errors_out[ii] = RangeErrors[ flat_indeces[ii] ];
+      rangeSet_out[ii] = RangeSet[ flat_indeces[ii] ];
+    } 
+
+    FlatField new_field = new FlatField( new_type, domainSet, coord_sys, null, 
+                                         rangeSet_out, units_out );
+    new_field.setRangeErrors( errors_out );
+
+    double[][] values = unpackValues();
+    double[][] new_values = new double[ compSize ][ n_samples ];
+
+    for ( ii = 0; ii < compSize; ii++ )
+    {
+      System.arraycopy( values[ flat_indeces[ii] ], 0, new_values[ii], 0, n_samples );
+    }
+    new_field.setSamples( new_values );
+    
+    return new_field;
   }
 
   public Data derivative( RealTuple location, RealType[] d_partial_s,
@@ -2019,11 +2104,11 @@ public class FlatField extends FieldImpl {
          throws VisADException, RemoteException
   {
     int ii, jj, kk, dd, rr, tt, pp, ss;
-    Set domainSet = this.getDomainSet();
+    Set domainSet = getDomainSet();
     int domainDim = domainSet.getDimension();
     int manifoldDimension = domainSet.getManifoldDimension();
     int n_samples = domainSet.getLength();
-    CoordinateSystem d_coordsys = this.getDomainCoordinateSystem();
+    CoordinateSystem d_coordsys = getDomainCoordinateSystem();
     RealTupleType d_reference = (d_coordsys == null) ? null : d_coordsys.getReference();
     MathType m_type = null;
     MathType[] m_types = null;
@@ -2125,7 +2210,7 @@ public class FlatField extends FieldImpl {
     }
 
     Unit[] D_units = null;
-    Unit[][] R_units = this.getRangeUnits();
+    Unit[][] R_units = getRangeUnits();
     String[][] derivNames = null;
     Unit[][] derivUnits = new Unit[ n_partials ][ TupleDimension ];
     MathType[] new_range = new MathType[ n_partials ];
@@ -2141,7 +2226,19 @@ public class FlatField extends FieldImpl {
   //- Create derivative Units array   -*
     for ( ii = 0; ii < n_partials; ii++ ) {
       for ( jj = 0; jj < TupleDimension; jj++ ) {
-        derivUnits[ii][jj] = R_units[0][jj].divide( D_units[ u_index[ii] ] );
+        if (( R_units == null)||( D_units == null )) 
+        {
+          derivUnits[ii][jj] = null;
+        }
+        else if (( R_units[jj][0] == null )||( D_units[u_index[ii]] == null ))
+        {
+          derivUnits[ii][jj] = null;
+        }
+        else 
+        {
+          derivUnits[ii][jj] = R_units[jj][0].divide( D_units[ u_index[ii] ] );
+        }
+     
       }
     }
 
@@ -2235,7 +2332,7 @@ public class FlatField extends FieldImpl {
   //- Handle LinearSet case separately for efficiency   -*
     if(( domainSet instanceof LinearSet )&&( thisDomainFlag ))
     {
-      rangeValues = this.getValues();
+      rangeValues = getValues();
 
       //- each partial derivative   -*
       for ( kk = 0; kk < n_partials; kk++ )
@@ -2299,7 +2396,7 @@ public class FlatField extends FieldImpl {
       //- compute derivative at this Set's sample locations  --*
       if ( thisDomainFlag )
       {
-        rangeValues = this.getValues();
+        rangeValues = getValues();
         neighbors = new int[n_samples][];
         weights = new float[n_samples][];
         domainSet.getNeighbors( neighbors, weights );
@@ -2515,13 +2612,13 @@ public class FlatField extends FieldImpl {
   {
     MathType[] derivType_s = null;
     RealType[] d_partial_s = null;
-    return this.derivative( null, d_partial_s, derivType_s, error_mode );
+    return derivative( null, d_partial_s, derivType_s, error_mode );
   }
 
   public Data derivative( MathType[] derivType_s, int error_mode )
          throws VisADException, RemoteException
   {
-    return this.derivative( null, null, derivType_s, error_mode );
+    return derivative( null, null, derivType_s, error_mode );
   }
 
   public Function derivative( RealType d_partial, int error_mode )
@@ -2531,7 +2628,7 @@ public class FlatField extends FieldImpl {
     RealType[] d_partial_s = new RealType[1];
     d_partial_s[0] = d_partial;
 
-    return (Function) this.derivative( null, d_partial_s, derivType_s, error_mode );
+    return (Function) derivative( null, d_partial_s, derivType_s, error_mode );
   }
 
   public Function derivative( RealType d_partial, MathType derivType, int error_mode )
@@ -2542,7 +2639,7 @@ public class FlatField extends FieldImpl {
     derivType_s[0] = derivType;
     d_partial_s[0] = d_partial;
 
-    return (Function) this.derivative( null, d_partial_s, derivType_s, error_mode );
+    return (Function) derivative( null, d_partial_s, derivType_s, error_mode );
   }
 
   /** resample range values of this to domain samples in set,

@@ -542,11 +542,316 @@ public class FieldImpl extends FunctionImpl implements Field {
          throws VisADException, RemoteException {
     throw new UnimplementedException("FlatField.combine");
   }
+  /*
+  public static Field combine( Field[] fields )
+                throws VisADException, RemoteException
+  {
+    int ii, jj, kk, n_fields;
+    int domainDim = 0;                 //- domain dimension of field_0.
+    Set domainSet_0;                   //- domain set of field_0.
+    MathType domainType_0;             //- domain type of field_0.
+    int n_samples_0;                   //- number of samples in field_0.
+    Field new_field;                   //- return field.
+    boolean allFlat = true;            //- all fields in array are FlatFields.
+    Field field_0 = fields[0];         //- first field in array, "this".
+    FunctionType new_type;             //- type of result.
+    n_fields = fields.length;       
+    MathType[] fieldRange_s = new MathType[ n_fields ];
+    MathType[][] rangeComp_s = new MathType[ n_fields ][];
+    MathType new_range, range;
+    FlatField f_field;
+    double[][] values, new_values;
+    int n_comps;
+    int n_dims;
+    int length;
+    int cnt = 0;
+    int sampling_mode = 0;
+    int error_mode = 0;                //- eventually move these to arg list
+    
+    n_fields = fields.length;
+    n_comps = 0;
+
+    for ( ii = 0; ii < n_fields; ii++ )
+    {
+      if ( ii == 0 ) 
+      {
+        domainDim = field_0.getDomainDimension();
+      } 
+      else if ( domainDim != fields[ii].getDomainDimension() ) 
+      {
+        throw new VisADException( "FieldImpl.combine: domain dimensions of input"+
+                                  "fields must match" );
+      }
+
+      fieldRange_s[ii] = ((FunctionType)fields[ii].getType()).getRange();
+      range = fieldRange_s[ii];
+
+      if (( range instanceof RealType )||( range instanceof FunctionType ))
+      {
+        rangeComp_s[ii] = new MathType[ 1 ];
+        rangeComp_s[ii][0] = range;
+        n_comps++;
+      }
+      else
+      {
+        n_dims = ((TupleType)range).getDimension();
+        rangeComp_s[ii] = new MathType[ n_dims ];
+        for ( jj = 0; jj < n_dims; jj++ ) {
+          rangeComp_s[ii][jj] = ((TupleType)range).getComponent(jj);
+        }
+        n_comps += n_dims;
+      }
+
+      if ( !(fields[ii].isFlatField()) )
+      {
+        allFlat = false;
+      }
+    }
+
+    domainSet_0 = field_0.getDomainSet();
+    domainType_0 = domainSet_0.getType();
+    n_samples_0 = domainSet_0.getLength();
+
+    if ( allFlat ) 
+    {
+      CoordinateSystem[] rangeCoordSys_s;
+      CoordinateSystem[] new_rangeCoordSys_s = new CoordinateSystem[ n_comps ];
+
+      MathType[] m_types = new MathType[ n_comps ];
+      cnt = 0;
+      for ( ii = 0; ii < n_fields; ii++ ) {
+        for ( jj = 0; jj < rangeComp_s[ii].length; jj++ ) {
+          m_types[cnt++] = rangeComp_s[ii][jj];
+        }
+      }
+      new_range = new TupleType( m_types );
+
+      int tupleDim = ((TupleType)new_range).getNumberOfRealComponents(); 
+      Set[] rangeSets = new Set[ tupleDim ];
+      Set[] new_rangeSets = new Set[ tupleDim ];
+      new_type = new FunctionType( domainType_0, new_range );
+      new_values = new double[ tupleDim ][n_samples_0];
+
+      for ( ii = 0; ii < n_fields; ii++ )
+      {
+        f_field = (FlatField) fields[ii].local();
+
+        if ( ii > 0 ) //- don't resample field to itself even though this would
+        {             //- probably be no-op anyway.
+          f_field = (FlatField) f_field.resample( domainSet_0, sampling_mode, error_mode );
+        }
+
+        rangeSets = f_field.getRangeSets();
+        length = rangeSets.length;
+      
+        System.arraycopy( rangeSets, 0, new_rangeSets, cnt, length );
+        cnt+= rangeSets.length;
+
+        try {
+          rangeCoordSys_s = f_field.getRangeCoordinateSystem();
+          length = rangeCoordSys_s.length;
+          System.arraycopy( rangeCoordSys_s, 0, new_rangeCoordSys_s, 0, length );
+        }
+        catch ( TypeException e ) {
+   
+
+        }
+
+        values = f_field.getValues();
+
+        for ( jj = 0; jj < values.length; jj++ ) 
+        {
+          System.arraycopy( values[jj], 0, new_values[cnt++], 0, n_samples_0 );
+        }
+      }
+
+      new_field = new FlatField( new_type, domainSet_0, new_rangeCoordSys_s, 
+                                 new_rangeSets, null );
+      ((FlatField)new_field).setSamples( new_values );
+    }
+    else //- not yet implemented
+    {
+      new_type = null;
+
+      throw new UnimplementedException("combine: non-flat combine not finished");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      //-new_field = new FieldImpl( new_type, domainSet_0 );
+
+    }
+
+
+
+    return new_field;
+  }
+  */
 
   /** extract field from this[].component */
   public Field extract(int component)
-         throws VisADException, RemoteException {
-    throw new UnimplementedException("FieldImpl.insert");
+         throws VisADException, RemoteException
+  {
+    Set domainSet = getDomainSet();
+    int n_samples = domainSet.getLength();
+    MathType rangeType = ((FunctionType)Type).getRange();
+    MathType domainType = ((FunctionType)Type).getDomain();
+    Data rangeData;
+    Data new_rangeData;
+    Unit[] new_unit;
+    Unit unit;
+    double[][] values, t_values;
+    double value;
+    int n_comps = ((TupleType)rangeType).getDimension();
+    CoordinateSystem coord_sys, coord_in, coord_out;
+    MathType m_type;
+    RealTupleType rt_type;
+    RealType r_type;
+    Real real;
+    RealTuple r_tuple;
+    FieldImpl new_field;
+    int ii, jj, kk, t_dim, dim, n_coordsys;
+
+    if (!( rangeType instanceof TupleType) )
+    {
+      throw new VisADException("extract: range type must be TupleType");
+    }
+    else if ( (component + 1) > n_comps )
+    {
+      throw new VisADException("extract: component selection too large");
+    }
+
+    MathType new_range = ((TupleType)rangeType).getComponent( component );
+    FunctionType new_type = new FunctionType( domainType, new_range);
+   
+    if ( new_range instanceof RealType )
+    {
+      new_unit = new Unit[1];
+      new_unit[0] = ((RealType)new_range).getDefaultUnit();
+      new_field = new FlatField( new_type, domainSet, null, null, null, new_unit );
+      values = new double[1][n_samples];
+
+      for ( ii = 0; ii < n_samples; ii++ )
+      {
+        real = (Real) getSample(ii);
+        value = real.getValue();
+        unit = real.getUnit();
+      
+        values[0][ii] = new_unit[0].toThis( value, unit );
+      }
+
+      ((FlatField)new_field).setSamples( values );
+    }
+    else if ( new_range instanceof RealTupleType )
+    {
+      coord_out = ((RealTupleType)new_range).getCoordinateSystem();
+      dim = ((RealTupleType)new_range).getDimension();
+      Unit[] unit_out = new Unit[dim];
+      Unit[] unit_in = new Unit[dim];
+      unit_out = ((RealTupleType)new_range).getDefaultUnits();
+      new_field = new FlatField( new_type, domainSet, coord_out, null, unit_out );
+      values = new double[ dim ][ n_samples ];
+      t_values = new double[ dim ][ 1];
+
+      for ( ii = 0; ii < n_samples; ii++ )
+      {
+        r_tuple = (RealTuple) ((Tuple) getSample(ii)).getComponent( component );
+        coord_in = r_tuple.getCoordinateSystem();
+        unit_in = r_tuple.getTupleUnits();
+        for ( jj = 0; jj < dim; jj++ )
+        {
+          t_values[jj][0] = ((Real)r_tuple.getComponent(jj)).getValue();
+        }
+
+        t_values = CoordinateSystem.transformCoordinates( 
+                        (RealTupleType)new_range, coord_out, unit_out, null,
+                        (RealTupleType)new_range, coord_in, unit_in, null, t_values );
+
+        for ( jj = 0; jj < dim; jj++ )
+        {
+          values[jj][ii] = t_values[jj][0];
+        }
+      }
+
+      ((FlatField)new_field).setSamples( values );
+    }
+    else if (( new_range instanceof TupleType) && ( ((TupleType)new_range).getFlat()) )
+    {
+      new_field = new FlatField( new_type, domainSet );
+      dim = ((TupleType)new_range).getDimension();
+      
+      t_dim = 0;
+      n_coordsys = 0;
+      for ( ii = 0; ii < dim; ii++ )
+      {
+        m_type = ((TupleType)new_range).getComponent(ii);
+        if ( m_type instanceof RealType )
+        {
+          t_dim++;
+        }
+        else if ( m_type instanceof RealTupleType )
+        {
+          rt_type = (RealTupleType)m_type;
+          t_dim += (rt_type).getDimension();
+          if ( rt_type.getCoordinateSystem() != null )
+          {
+            n_coordsys++;
+          }
+        }
+      }
+
+      values = new double[ t_dim ][ n_samples ];
+
+   
+      t_dim = 0;
+      for ( ii = 0; ii < n_samples; ii++ )
+      {
+        rangeData = getSample(ii);
+        m_type = rangeData.getType();
+
+        for ( jj = 0; jj < dim; jj++ )
+        {
+          if ( m_type instanceof RealType )
+          {
+            values[t_dim][ii] = ((Real)((Tuple)rangeData).getComponent(jj)).getValue();
+            t_dim++;
+          }
+          else 
+          {
+            r_tuple = (RealTuple) ((Tuple)rangeData).getComponent(jj);
+            for ( kk = 0; kk < ((RealTupleType)m_type).getDimension(); kk++ )
+            {
+              values[t_dim][ii] = ((Real)r_tuple.getComponent(kk)).getValue();
+              t_dim++;
+            }
+          }
+        }
+      }
+      ((FlatField)new_field).setSamples( values );
+    }
+    else 
+    {
+      new_field = new FieldImpl( new_type, domainSet );
+
+      for ( ii = 0; ii < n_samples; ii++ )
+      {
+        rangeData = getSample(ii);
+        new_rangeData = ((Tuple)rangeData).getComponent( component );
+        new_field.setSample( ii, new_rangeData );
+      }
+    }
+
+    return new_field;
   }
 
   public Data derivative( RealTuple location, RealType[] d_partial_s,
