@@ -7,7 +7,7 @@ from java.lang import Boolean
 from javax.swing import Box, BoxLayout, JPanel
 
 from visad import *
-from visad.data.amanda import AmandaFile, EventWidget, F2000Util, TrackWidget
+from visad.data.amanda import AmandaFile, BaseTrack, EventWidget, F2000Util, Hit, TrackWidget
 from visad.java3d import DisplayImplJ3D
 from visad.util import LabeledColorWidget
 
@@ -49,31 +49,29 @@ class DisplayMaps:
     zmin = zmid - halfrange
     zmax = zmid + halfrange
 
-    xmap = ScalarMap(file.getXType(), Display.XAxis)
+    xmap = ScalarMap(RealType.XAxis, Display.XAxis)
     display.addMap(xmap)
     xmap.setRange(xmin, xmax)
 
-    ymap = ScalarMap(file.getYType(), Display.YAxis)
+    ymap = ScalarMap(RealType.YAxis, Display.YAxis)
     display.addMap(ymap)
     ymap.setRange(ymin, ymax)
 
-    zmap = ScalarMap(file.getZType(), Display.ZAxis)
+    zmap = ScalarMap(RealType.ZAxis, Display.ZAxis)
     display.addMap(zmap)
     zmap.setRange(zmin, zmax)
 
-    self.trackmap = ScalarMap(AmandaFile.getTrackIndexType(),
-                              Display.SelectValue)
+    self.trackmap = ScalarMap(BaseTrack.indexType, Display.SelectValue)
     display.addMap(self.trackmap)
 
-    self.shapemap = ScalarMap(AmandaFile.getAmplitudeType(), Display.Shape)
+    self.shapemap = ScalarMap(Hit.amplitudeType, Display.Shape)
     display.addMap(self.shapemap)
 
-    shapeScalemap = ScalarMap(AmandaFile.getAmplitudeType(),
-                               Display.ShapeScale)
+    shapeScalemap = ScalarMap(Hit.amplitudeType, Display.ShapeScale)
     display.addMap(shapeScalemap)
     shapeScalemap.setRange(-20.0, 50.0)
 
-    self.letmap = ScalarMap(AmandaFile.getLeadEdgeTimeType(), Display.RGB)
+    self.letmap = ScalarMap(Hit.leadingEdgeTimeType, Display.RGB)
     display.addMap(self.letmap)
 
 ############################################################################
@@ -83,10 +81,9 @@ if len(sys.argv) != 2:
   sys.exit(1)
 
 file = AmandaFile(sys.argv[1])
-temp = file.makeData()
 
-amanda = temp.getComponent(0)
-modules = temp.getComponent(1)
+amanda = file.makeEventData()
+modules = file.makeModuleData()
 
 display = DisplayImplJ3D("amanda")
 
@@ -96,7 +93,7 @@ displayRenderer = display.getDisplayRenderer()
 displayRenderer.setBoxOn(0)
 
 scontrol = maps.shapemap.getControl()
-scontrol.setShapeSet(Integer1DSet(AmandaFile.getAmplitudeType(), 1))
+scontrol.setShapeSet(Integer1DSet(Hit.amplitudeType, 1))
 scontrol.setShapes(F2000Util.getCubeArray())
 
 nevents = amanda.getLength()

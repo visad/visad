@@ -31,18 +31,40 @@ import visad.FieldImpl;
 import visad.FlatField;
 import visad.FunctionType;
 import visad.Integer1DSet;
+import visad.MathType;
 import visad.RealTuple;
 import visad.RealType;
 import visad.Tuple;
+import visad.TupleType;
 import visad.VisADException;
 
 public class Event
 {
-  private static RealType hitIndexType;
+  public static final RealType indexType =
+    RealType.getRealType("Event_Index");
+
+  public static FunctionType eventsFunctionType;
+
+  private static FunctionType tracksFunctionType;
   private static FunctionType hitsFunctionType;
 
-  private static RealType trackIndexType;
-  private static FunctionType tracksFunctionType;
+  static {
+    try {
+      tracksFunctionType =
+        new FunctionType(BaseTrack.indexType, BaseTrack.functionType);
+      hitsFunctionType =
+        new FunctionType(Hit.indexType, Hit.tupleType);
+      eventsFunctionType =
+        new FunctionType(indexType,
+                         new TupleType(new MathType[] {
+                           Event.tracksFunctionType, Event.hitsFunctionType
+                         }));
+    } catch (VisADException ve) {
+      ve.printStackTrace();
+      tracksFunctionType = null;
+      hitsFunctionType = null;
+    }
+  }
 
   private int number, run, year, day;
   private double time, timeShift;
@@ -95,19 +117,7 @@ public class Event
     return null;
   }
 
-  static final RealType getTrackIndexType() { return trackIndexType; }
-
   public final int getYear() { return year; }
-
-  static void initTypes(RealType trackIndex, RealType hitIndex,
-                        FunctionType tracksFunc,
-                        FunctionType hitsFunc)
-  {
-    trackIndexType = trackIndex;
-    tracksFunctionType = tracksFunc;
-    hitIndexType = hitIndex;
-    hitsFunctionType = hitsFunc;
-  }
 
   final Tuple makeData()
     throws VisADException
@@ -123,7 +133,8 @@ public class Event
 
     // construct parent Field for all tracks
     Integer1DSet tracksSet =
-      new Integer1DSet(trackIndexType, (ntracks == 0 ? 1 : ntracks));
+      new Integer1DSet(BaseTrack.indexType,
+                       (ntracks == 0 ? 1 : ntracks));
     FieldImpl tracksField =
       new FieldImpl(tracksFunctionType, tracksSet);
     if (ntracks > 0) {
@@ -140,7 +151,7 @@ public class Event
 
     // construct parent Field for all hits
     Integer1DSet hitsSet =
-      new Integer1DSet(hitIndexType, (nhits == 0 ? 1 : nhits));
+      new Integer1DSet(Hit.indexType, (nhits == 0 ? 1 : nhits));
     FlatField hitsField =
       new FlatField(hitsFunctionType, hitsSet);
     if (nhits > 0) {

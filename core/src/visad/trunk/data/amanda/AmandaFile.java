@@ -82,14 +82,20 @@ class IntCache
 
 public class AmandaFile
 {
-  private static boolean typesCreated = false;
-  private static RealType xType, yType, zType;
-  private static RealType amplitudeType;
-  private static RealType letType;
-  private static RealType eventIndexType;
-  private static RealType moduleIndexType;
-  private static FunctionType eventsFunctionType;
-  private static FunctionType moduleFunctionType;
+  public static final RealType moduleIndexType =
+    RealType.getRealType("Module_Index");
+
+  public static RealTupleType xyzType;
+
+  static {
+    try {
+      xyzType =
+        new RealTupleType(RealType.XAxis, RealType.YAxis, RealType.ZAxis);
+    } catch (VisADException ve) {
+      ve.printStackTrace();
+      xyzType = null;
+    }
+  }
 
   private double xmin = Double.MAX_VALUE;
   private double xmax = Double.MIN_VALUE;
@@ -142,8 +148,6 @@ public class AmandaFile
     {
       throw new BadFormException("Bad first line \"" + firstLine + "\"");
     }
-
-    createTypes();
 
     Event currentEvent = null;
     boolean inSlowEvent = false;
@@ -291,56 +295,6 @@ public class AmandaFile
     lastCache.clear();
   }
 
-  private void createTypes()
-    throws VisADException
-  {
-    if (typesCreated) {
-      return;
-    }
-
-    // right handed coordinate system
-    xType = RealType.XAxis; // positive eastward (along 0 longitude?)
-    yType = RealType.YAxis; // positive along -90 longitude (?)
-    zType = RealType.ZAxis; // positive up
-    // zenith = 0.0f toward -z (this is the "latitude")
-    // azimuth = 0.0f toward +x (this is the "longitude")
-    RealType timeType = RealType.Time;
-    RealType trackIndexType = RealType.getRealType("track_index");
-    RealType energyType = RealType.getRealType("energy"); // track energy
-    RealType hitIndexType = RealType.getRealType("hit_index");
-    amplitudeType = RealType.getRealType("amplitude"); // hit amplitude
-    RealType totType = RealType.getRealType("tot"); // hit time-over-threshold
-    letType = RealType.getRealType("let"); // hit leading-edge-time
-    eventIndexType = RealType.getRealType("event_index");
-    moduleIndexType = RealType.getRealType("module_index");
-
-    RealTupleType xyzType = new RealTupleType(xType, yType, zType);
-    RealTupleType trackRange = new RealTupleType(timeType, energyType);
-    FunctionType trackFunctionType = new FunctionType(xyzType, trackRange);
-    RealType[] hitReals =
-      {xType, yType, zType, amplitudeType, letType, totType};
-    RealTupleType hitType = new RealTupleType(hitReals);
-    FunctionType tracksFunctionType =
-      new FunctionType(trackIndexType, trackFunctionType);
-    FunctionType hitsFunctionType = 
-      new FunctionType(hitIndexType, hitType);
-
-    TupleType eventsFunctionRange = new TupleType(new MathType[]
-      {tracksFunctionType, hitsFunctionType});
-    eventsFunctionType =
-      new FunctionType(eventIndexType, eventsFunctionRange);
-
-    moduleFunctionType =
-      new FunctionType(moduleIndexType, xyzType);
-
-    BaseTrack.initTypes(xyzType, trackFunctionType);
-    Hit.initTypes(hitType);
-    Event.initTypes(trackIndexType, hitIndexType,
-                    tracksFunctionType, hitsFunctionType);
-
-    typesCreated = true;
-  }
-
   private final void dump(java.io.PrintStream out)
   {
     final int nEvents = events.size();
@@ -351,51 +305,28 @@ public class AmandaFile
     modules.dump(out);
   }
 
-  public static final RealType getAmplitudeType() { return amplitudeType; }
-
   public final Event getEvent(int index)
   {
     return (Event )events.get(index);
   }
 
-  public static final RealType getEventIndexType() { return eventIndexType; }
-  public static final RealType getLeadEdgeTimeType() { return letType; }
-  public static final RealType getTrackIndexType() { return Event.getTrackIndexType(); }
-
   public final double getXMax() { return xmax; }
   public final double getXMin() { return xmin; }
-  public static final RealType getXType() { return xType; }
 
   public final double getYMax() { return ymax; }
   public final double getYMin() { return ymin; }
-  public static final RealType getYType() { return yType; }
 
   public final double getZMax() { return zmax; }
   public final double getZMin() { return zmin; }
-  public static final RealType getZType() { return zType; }
-
-  public final Tuple makeData()
-    throws VisADException
-  {
-    Tuple t;
-    try {
-      t = new Tuple(new Data[] {makeEventData(), makeModuleData()});
-    } catch (RemoteException re) {
-      re.printStackTrace();
-      t = null;
-    }
-
-    return t;
-  }
 
   public final FieldImpl makeEventData()
     throws RemoteException, VisADException
   {
     final int nevents = events.size();
     Integer1DSet eventsSet =
-      new Integer1DSet(eventIndexType, (nevents == 0 ? 1 : nevents));
+      new Integer1DSet(Event.indexType, (nevents == 0 ? 1 : nevents));
     FieldImpl eventsField =
-      new FieldImpl(eventsFunctionType, eventsSet);
+      new FieldImpl(Event.eventsFunctionType, eventsSet);
     if (nevents > 0) {
       Tuple[] eventTuples = new Tuple[nevents];
       for (int e = 0; e < nevents; e++) {
@@ -414,6 +345,9 @@ public class AmandaFile
   public final FlatField makeModuleData()
     throws RemoteException, VisADException
   {
+    FunctionType moduleFunctionType =
+      new FunctionType(moduleIndexType, xyzType);
+
     // Field of modules
     final int nmodules = modules.size();
     Integer1DSet moduleSet = new Integer1DSet(moduleIndexType, nmodules);

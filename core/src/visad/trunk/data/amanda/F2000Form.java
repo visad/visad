@@ -65,33 +65,23 @@ public class F2000Form
     throw new BadFormException("F2000Form.add");
   }
 
-  public final RealType getAmplitude() { return AmandaFile.getAmplitudeType(); }
-
   public String[] getDefaultSuffixes()
   {
     String[] suff = { "r" };
     return suff;
   }
 
-  public static final RealType getEventIndex() { return AmandaFile.getEventIndexType(); }
-
   public synchronized FormNode getForms(Data data)
   {
     return null;
   }
 
-  public static final RealType getLet() { return AmandaFile.getLeadEdgeTimeType(); }
-  public static final RealType getTrackIndex() { return AmandaFile.getTrackIndexType(); }
-
-  public static final RealType getX() { return AmandaFile.getXType(); }
   public final double getXMax() { return file.getXMax(); }
   public final double getXMin() { return file.getXMin(); }
 
-  public static final RealType getY() { return AmandaFile.getYType(); }
   public final double getYMax() { return file.getYMax(); }
   public final double getYMin() { return file.getYMin(); }
 
-  public static final RealType getZ() { return AmandaFile.getZType(); }
   public final double getZMax() { return file.getZMax(); }
   public final double getZMin() { return file.getZMin(); }
 

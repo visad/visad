@@ -72,9 +72,7 @@ public class EventWidget
     final int nEvents = amanda.getLength();
 
     VisADSlider slider = new VisADSlider("event", 0, nEvents - 1, 0, 1.0,
-                                         eventRef,
-                                         AmandaFile.getEventIndexType(),
-                                         true);
+                                         eventRef, Event.indexType, true);
     slider.hardcodeSizePercent(110); // leave room for label changes
 
     // call setIndex() whenever slider changes

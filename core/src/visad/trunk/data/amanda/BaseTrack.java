@@ -29,12 +29,29 @@ import visad.FlatField;
 import visad.FunctionType;
 import visad.Gridded3DSet;
 import visad.RealTupleType;
+import visad.RealType;
 import visad.VisADException;
 
 public abstract class BaseTrack
 {
-  private static RealTupleType xyzType;
-  private static FunctionType funcType;
+  public static final RealType indexType =
+    RealType.getRealType("Track_Index");
+
+  private static final RealType energyType =
+    RealType.getRealType("Track_Energy");
+
+  public static FunctionType functionType;
+
+  static {
+    try {
+      functionType =
+        new FunctionType(AmandaFile.xyzType,
+                         new RealTupleType(RealType.Time, energyType));
+    } catch (VisADException ve) {
+      ve.printStackTrace();
+      functionType = null;
+    }
+  }
 
   private static final float LENGTH_SCALE = 1000.0f;
 
@@ -63,12 +80,6 @@ public abstract class BaseTrack
 
   public final float getEnergy() { return energy; }
   public final float getLength() { return length; }
-
-  static void initTypes(RealTupleType xyz, FunctionType trackFunctionType)
-  {
-    xyzType = xyz;
-    funcType = trackFunctionType;
-  }
 
   abstract FlatField makeData()
     throws VisADException;
@@ -102,9 +113,10 @@ public abstract class BaseTrack
                        ystart + LENGTH_SCALE * yinc},
                       {zstart - LENGTH_SCALE * zinc,
                        zstart + LENGTH_SCALE * zinc}};
+
     // construct Field for fit
-    Gridded3DSet set = new Gridded3DSet(xyzType, locs, 2);
-    FlatField field = new FlatField(funcType, set);
+    Gridded3DSet set = new Gridded3DSet(AmandaFile.xyzType, locs, 2);
+    FlatField field = new FlatField(functionType, set);
     float[][] values = {{time, time}, {fldEnergy, fldEnergy}};
 
     try {

@@ -26,11 +26,34 @@ import java.rmi.RemoteException;
 
 import visad.RealTuple;
 import visad.RealTupleType;
+import visad.RealType;
 import visad.VisADException;
 
 public class Hit
 {
-  private static RealTupleType tupleType;
+  public static final RealType amplitudeType =
+    RealType.getRealType("Hit_Amplitude");
+  public static final RealType indexType =
+    RealType.getRealType("Hit_Index");
+  public static final RealType leadingEdgeTimeType =
+    RealType.getRealType("Hit_Leading_Edge_Time");
+
+  private static final RealType timeOverThresholdType =
+    RealType.getRealType("Hit_Time_Over_Threshold");
+
+  public static RealTupleType tupleType;
+
+  static {
+    try {
+      tupleType = new RealTupleType(new RealType[] {
+        RealType.XAxis, RealType.YAxis, RealType.ZAxis,
+        amplitudeType, leadingEdgeTimeType, timeOverThresholdType
+      });
+    } catch (VisADException ve) {
+      ve.printStackTrace();
+      tupleType = null;
+    }
+  }
 
   private Module mod;
   private float amplitude, leadEdgeTime, timeOverThreshold;
@@ -43,8 +66,6 @@ public class Hit
     this.leadEdgeTime = leadEdgeTime;
     this.timeOverThreshold = timeOverThreshold;
   }
-
-  static void initTypes(RealTupleType hitType) { tupleType = hitType; }
 
   final RealTuple makeData()
     throws VisADException

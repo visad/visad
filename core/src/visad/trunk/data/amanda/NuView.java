@@ -50,6 +50,7 @@ import visad.FieldImpl;
 import visad.GraphicsModeControl;
 import visad.Integer1DSet;
 import visad.Real;
+import visad.RealType;
 import visad.ScalarMap;
 import visad.ShapeControl;
 import visad.Tuple;
@@ -115,15 +116,15 @@ class DisplayMaps
     final double zmin = zmid - halfrange;
     final double zmax = zmid + halfrange;
 
-    ScalarMap xmap = new ScalarMap(AmandaFile.getXType(), Display.XAxis);
+    ScalarMap xmap = new ScalarMap(RealType.XAxis, Display.XAxis);
     display.addMap(xmap);
     xmap.setRange(xmin, xmax);
 
-    ScalarMap ymap = new ScalarMap(AmandaFile.getYType(), Display.YAxis);
+    ScalarMap ymap = new ScalarMap(RealType.YAxis, Display.YAxis);
     display.addMap(ymap);
     ymap.setRange(ymin, ymax);
 
-    ScalarMap zmap = new ScalarMap(AmandaFile.getZType(), Display.ZAxis);
+    ScalarMap zmap = new ScalarMap(RealType.ZAxis, Display.ZAxis);
     display.addMap(zmap);
     zmap.setRange(zmin, zmax);
 
@@ -131,24 +132,21 @@ class DisplayMaps
     //                                    Display.SelectValue);
     // display.addMap(eventmap);
 
-    this.trackmap = new ScalarMap(AmandaFile.getTrackIndexType(),
-                                  Display.SelectValue);
+    this.trackmap = new ScalarMap(BaseTrack.indexType, Display.SelectValue);
     display.addMap(this.trackmap);
 
     // ScalarMap energymap = new ScalarMap(energy, Display.RGB);
     // display.addMap(energymap);
 
-    this.shapemap = new ScalarMap(AmandaFile.getAmplitudeType(),
-                                  Display.Shape);
+    this.shapemap = new ScalarMap(Hit.amplitudeType, Display.Shape);
     display.addMap(this.shapemap);
 
-    ScalarMap shapeScalemap = new ScalarMap(AmandaFile.getAmplitudeType(),
-                                             Display.ShapeScale);
+    ScalarMap shapeScalemap = new ScalarMap(Hit.amplitudeType,
+                                            Display.ShapeScale);
     display.addMap(shapeScalemap);
     shapeScalemap.setRange(-20.0, 50.0);
 
-    this.letmap = new ScalarMap(AmandaFile.getLeadEdgeTimeType(),
-                                Display.RGB);
+    this.letmap = new ScalarMap(Hit.leadingEdgeTimeType, Display.RGB);
     display.addMap(this.letmap);
   }
 }
@@ -189,7 +187,7 @@ public class NuView
     displayRenderer.setBoxOn(false);
 
     ShapeControl scontrol = (ShapeControl )maps.shapemap.getControl();
-    scontrol.setShapeSet(new Integer1DSet(AmandaFile.getAmplitudeType(), 1));
+    scontrol.setShapeSet(new Integer1DSet(Hit.amplitudeType, 1));
     scontrol.setShapes(F2000Util.getCubeArray());
 
     final int nevents = amanda.getLength();
