@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: ColorMapWidget.java,v 1.21 1999-09-10 18:55:41 dglo Exp $
+@(#) $Id: ColorMapWidget.java,v 1.22 1999-09-20 17:02:21 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -40,7 +40,7 @@ import javax.swing.*;
  * RGB/RGBA tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.21 $
+ * @version $Revision: 1.22 $, $Date: 1999-09-20 17:02:21 $
  * @since Visad Utility Library v0.7.1
  */
 public class LabeledColorWidget
@@ -184,13 +184,13 @@ public class LabeledColorWidget
     TABLE_SIZE = map.getMapResolution();
     SCALE = 1.0f / (TABLE_SIZE - 1.0f);
     if (table == null) {
-      table = control.getTable();
-      orig_table = copy_table(table);
+      in_table = control.getTable();
+      table = table_reorg(in_table);
     } else {
       control.setTable(in_table);
-      orig_table = copy_table(in_table);
     }
-    ((BaseRGBMap) map).setValues(table_reorg(table));
+    orig_table = copy_table(in_table);
+    ((BaseRGBMap) map).setValues(table);
     widget.addColorChangeListener(this);
     control.addControlListener(this);
   }
