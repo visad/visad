@@ -37,6 +37,9 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
 import visad.*;
+import visad.data.Form;
+import visad.data.netcdf.Plain;
+import visad.data.visad.VisADForm;
 import visad.formula.*;
 import visad.java3d.*;
 
@@ -76,6 +79,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
 
   /** whether Java3D is enabled on this JVM */
   protected static boolean CanDo3D;
+
+  /** whether the HDF5 native library is present on this JVM */
+  protected static boolean CanDoHDF5;
 
 
   /** file dialog */
@@ -161,15 +167,14 @@ public class SpreadSheet extends JFrame implements ActionListener,
   /** Edit Paste menu item */
   protected MenuItem EditPaste;
 
-  /** File Save as netCDF menu item */
+  /** File Export netCDF menu item */
   protected MenuItem FileSave1;
 
-  /** File Save as serialized menu item */
+  /** File Export serialized menu item */
   protected MenuItem FileSave2;
 
-  // added to support HDF5 adapter (visad.data.hdf5.HDF5Form)
-  /** File Save as serialized menu item */
-  MenuItem FileSave3;
+  /** File Export HDF5 menu item */
+  protected MenuItem FileSave3;
 
   /** Cell Edit mappings menu item */
   protected MenuItem CellEdit;
@@ -371,6 +376,16 @@ public class SpreadSheet extends JFrame implements ActionListener,
     });
     setBackground(Color.white);
 
+    // test whether HDF5 native library is present
+    CanDoHDF5 = false;
+    try {
+      ncsa.hdf.hdf5lib.H5.J2C(0); // HDF5 call initializes HDF5 native library
+      CanDoHDF5 = true;
+    }
+    catch (NoClassDefFoundError err) { }
+    catch (UnsatisfiedLinkError err) { }
+    catch (Exception exc) { }
+
     // determine information for spreadsheet cloning
     RemoteServer rs = null;
     String[][] cellNames = null;
@@ -473,15 +488,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
     FileSave2.setEnabled(false);
     file.add(FileSave2);
 
-    // added to support HDF5 adapter (visad.data.hdf5.HDF5Form)
     FileSave3 = new MenuItem("Export data to HDF5...");
     FileSave3.addActionListener(this);
     FileSave3.setActionCommand("fileSaveHDF5");
     FileSave3.setEnabled(false);
-        try { // do not add file save menuitem for HDF5 if HDF5Form is not found
-      ClassLoader.getSystemClassLoader().loadClass("visad.data.hdf5.HDF5Form");
-      file.add(FileSave3);
-    } catch (ClassNotFoundException e) {}
+    file.add(FileSave3);
 
     file.addSeparator();
 
@@ -974,34 +985,37 @@ public class SpreadSheet extends JFrame implements ActionListener,
     DisplayCells[CurX][CurY].loadDataDialog();
   }
 
-  // added to support HDF5 adapter (visad.data.hdf5.HDF5Form)
+  /** export a data set to HDF5 format */
   void exportDataSetHDF5() {
-    Object hdf5form = null;
+    Form hdf5form = null;
     try {
       ClassLoader cl = ClassLoader.getSystemClassLoader();
       Class hdf5form_class = cl.loadClass("visad.data.hdf5.HDF5Form");
-      hdf5form = hdf5form_class.newInstance();
-    } catch (Exception e) {}
-
+      hdf5form = (Form) hdf5form_class.newInstance();
+    }
+    catch (Exception exc) {
+      displayErrorMessage("Cannot export data to HDF5 format: " +
+        exc.getMessage(), "VisAD SpreadSheet error");
+    }
     if (hdf5form != null) {
-      DisplayCells[CurX][CurY].saveDataDialog((visad.data.Form)hdf5form);
+      DisplayCells[CurX][CurY].saveDataDialog(hdf5form);
     }
   }
 
   /** export a data set to netCDF format */
   void exportDataSetNetcdf() {
     try {
-      DisplayCells[CurX][CurY].saveDataDialog(new visad.data.netcdf.Plain());
+      DisplayCells[CurX][CurY].saveDataDialog(new Plain());
     }
     catch (VisADException exc) {
-      displayErrorMessage("Cannot save the data. Unable to create " +
-        "a netCDF saver: " + exc.getMessage(), "VisAD SpreadSheet error");
+      displayErrorMessage("Cannot export data to netCDF format: " +
+        exc.getMessage(), "VisAD SpreadSheet error");
     }
   }
 
   /** export a data set to serialized data format */
   void exportDataSetSerial() {
-    DisplayCells[CurX][CurY].saveDataDialog(new visad.data.visad.VisADForm());
+    DisplayCells[CurX][CurY].saveDataDialog(new VisADForm());
   }
 
   /** do any necessary clean-up, then quit the program */
@@ -2137,8 +2151,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
         ToolMap.setEnabled(b);
         FileSave1.setEnabled(b);
         FileSave2.setEnabled(b);
-        // added to support HDF5 adapter (visad.data.hdf5.HDF5Form)
-        FileSave3.setEnabled(b);
+        FileSave3.setEnabled(b && CanDoHDF5);
         ToolSave.setEnabled(b);
         CellReset.setEnabled(b);
         ToolReset.setEnabled(b);
@@ -2633,7 +2646,6 @@ public class SpreadSheet extends JFrame implements ActionListener,
     if (cmd.equals("fileOpen")) loadDataSet();
     else if (cmd.equals("fileSaveNetcdf")) exportDataSetNetcdf();
     else if (cmd.equals("fileSaveSerial")) exportDataSetSerial();
-    // added to support HDF5 adapter (visad.data.hdf5.HDF5Form)
     else if (cmd.equals("fileSaveHDF5")) exportDataSetHDF5();
     else if (cmd.equals("fileExit")) {
       DisplayCells[CurX][CurY].hideWidgetFrame();
