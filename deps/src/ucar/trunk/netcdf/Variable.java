@@ -1,4 +1,4 @@
-// $Id: Variable.java,v 1.4 2002-05-29 18:31:37 steve Exp $
+// $Id: Variable.java,v 1.5 2003-02-03 20:08:32 donm Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -40,8 +40,8 @@ import java.io.IOException;
  *
  * @see ProtoVariable
  * @see MultiArray
- * @author $Author: steve $
- * @version $Revision: 1.4 $ $Date: 2002-05-29 18:31:37 $
+ * @author $Author: donm $
+ * @version $Revision: 1.5 $ $Date: 2003-02-03 20:08:32 $
  */
 
 public class
@@ -272,7 +272,10 @@ Variable
 		if(shape.length != getRank())
 			throw new IllegalArgumentException("rank mismatch");
 		// TODO vet shape elements
-		return io.copyout(origin, shape);
+//		ucar.unidata.util.LogUtil.call1 ("Variable.copyout", " io=" + io.getClass().getName());
+		MultiArray ma = io.copyout(origin, shape);
+		//		ucar.unidata.util.LogUtil.call2 ("Variable.copyout");
+		return ma;
 	}
 
 	public void
@@ -294,6 +297,17 @@ Variable
 			throws IOException
 	{
 		return io.toArray();
+	}
+
+	public Object
+	    getStorage ()
+	{
+	    try {
+		return toArray ();
+	    } catch (IOException ioe) {
+		System.err.println ("Error:" + ioe);
+	    }
+	    return null;
 	}
 
 	public Object

@@ -1,4 +1,4 @@
-// $Id: NetcdfFile.java,v 1.7 2002-07-15 21:37:00 steve Exp $
+// $Id: NetcdfFile.java,v 1.8 2003-02-03 20:08:32 donm Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -52,8 +52,8 @@ import java.lang.reflect.InvocationTargetException;
  * ones.
  *
  * @see Netcdf
- * @author $Author: steve $
- * @version $Revision: 1.7 $ $Date: 2002-07-15 21:37:00 $
+ * @author $Author: donm $
+ * @version $Revision: 1.8 $ $Date: 2003-02-03 20:08:32 $
  */
 public class NetcdfFile	extends AbstractNetcdf {
 
@@ -1393,14 +1393,18 @@ public class NetcdfFile	extends AbstractNetcdf {
         }
 
         void
-        readArray(long offset, Object into, int begin, int nelems)
-                        throws IOException {
-                float [] values = (float []) into;
-                raf.seek(offset);
-                final int end = begin + nelems;
-                for(int ii = begin; ii < end; ii++) {
-                        values[ii] = raf.readFloat();
-                }
+	    readArray(long offset, Object into, int begin, int nelems)
+	    throws IOException {
+	    //	    if (begin+nelems>100)
+		//		ucar.unidata.util.LogUtil.call1 ("V1.readArray", " size= " + (begin+nelems));
+	    float [] values = (float []) into;
+	    raf.seek(offset);
+	    final int end = begin + nelems;
+	    for(int ii = begin; ii < end; ii++) {
+		values[ii] = raf.readFloat();
+	    }
+	    //	    if (begin+nelems>100)
+	    //		ucar.unidata.util.LogUtil.call2 ("V1.readArray");
         }
 
         public float
@@ -1849,6 +1853,9 @@ public class NetcdfFile	extends AbstractNetcdf {
 
 /* Change History:
    $Log: not supported by cvs2svn $
+   Revision 1.13  2003/01/21 21:24:05  jeffmc
+   Add a getStorage method that returns the raw multiarray object
+
    Revision 1.12  2002/07/15 21:39:17  steve
    Changed use of _FillValue attribute.  If zero-length, then use byte-value 0.
 
