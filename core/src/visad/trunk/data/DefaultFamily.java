@@ -23,6 +23,7 @@ MA 02111-1307, USA
 package visad.data;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -137,27 +138,29 @@ public class DefaultFamily
       // get the first block of data from the file
       byte[] block = new byte[2048];
       InputStream is = getStream();
-      is.read(block);
-      is.close();
+      if (is != null) {
+        is.read(block);
+        is.close();
 
-      // see if we can guess the file type based on first block of data
-      for (Enumeration enum = forms.elements(); enum.hasMoreElements(); ) {
-	FormNode node = (FormNode)enum.nextElement();
+        // see if we can guess the file type based on first block of data
+        for (Enumeration enum = forms.elements(); enum.hasMoreElements(); ) {
+          FormNode node = (FormNode)enum.nextElement();
 
-	if (node instanceof FormFileInformer) {
-          // WLH 19 Feb 2000 - switch order ot try and check
-          // needed for HDF5
-	  try {
-	    if (((FormFileInformer )node).isThisType(block)) {
-	      if (function(node)) {
-		return true;
-	      }
-	    }
-	  } catch (Exception e) {
-	  } catch (Error e) {
-            // WLH 19 Feb 2000 - needed for HDF5
-	  }
-	}
+          if (node instanceof FormFileInformer) {
+            // WLH 19 Feb 2000 - switch order ot try and check
+            // needed for HDF5
+            try {
+              if (((FormFileInformer )node).isThisType(block)) {
+                if (function(node)) {
+                  return true;
+                }
+              }
+            } catch (Exception e) {
+            } catch (Error e) {
+              // WLH 19 Feb 2000 - needed for HDF5
+            }
+          }
+        }
       }
 
       // use the brute-force method of checking all the forms
@@ -229,6 +232,19 @@ public class DefaultFamily
       }
 
       return true;
+    }
+
+    InputStream getStream()
+	throws IOException
+    {
+      FileInputStream stream;
+      try {
+        stream = new FileInputStream(name);
+      } catch (FileNotFoundException fnfe) {
+        stream = null;
+      }
+
+      return stream;
     }
   }
 
