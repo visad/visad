@@ -46,18 +46,22 @@ public class MeasureList {
   /** Default endpoint values for point. */
   private RealTuple[] ptVals;
 
+  /** Slice of measurements on this list. */
+  private int slice;
+
   /** RealTypes for measurements. */
   private RealType[] types;
 
-  /** Pool of lines. */
-  private LinePool pool;
+  /** Pool of measurements. */
+  private MeasurePool pool;
 
-  /** Pool of lines for 3-D display. */
-  private LinePool pool3d;
+  /** Pool of measurements for 3-D display. */
+  private MeasurePool pool3d;
 
   /** Constructs a list of measurements. */
   public MeasureList(MeasureMatrix mm, Real[] p1r, Real[] p2r, Real[] pxr,
-    LinePool pool, LinePool pool3d) throws VisADException, RemoteException
+    int slice, MeasurePool pool, MeasurePool pool3d)
+    throws VisADException, RemoteException
   {
     this.mm = mm;
     measureList = new Vector();
@@ -68,6 +72,7 @@ public class MeasureList {
     lnVals[1] = new RealTuple(p2r);
     ptVals = new RealTuple[1];
     ptVals[0] = new RealTuple(pxr);
+    this.slice = slice;
     this.pool = pool;
     this.pool3d = pool3d;
   }
@@ -75,18 +80,21 @@ public class MeasureList {
   /** Adds a measurement line to the measurement list. */
   public void addMeasurement() { addMeasurement(false); }
 
-  /** Adds a measurement line or point to the measurement list. */
+  /** Adds a measurement (line or point) to the measurement list. */
   public void addMeasurement(boolean point) {
     addMeasurement(point, Color.white,
-      (LineGroup) LineGroup.groups.elementAt(0));
+      (MeasureGroup) MeasureGroup.groups.elementAt(0));
   }
 
-  /** Adds a measurement line or point to the measurement list. */
-  public void addMeasurement(boolean point, Color color, LineGroup group) {
-    Measurement m = new Measurement(mm, point ? ptVals : lnVals, color, group);
+  /** Adds a measurement (line or point) to the measurement list. */
+  public void addMeasurement(boolean point, Color color, MeasureGroup group) {
+    RealTuple[] vals = point ? ptVals : lnVals;
+    Measurement m =
+      new Measurement(point ? ptVals : lnVals, color, group);
     addMeasurement(m, true);
   }
 
+  /** Adds a measurement to the measurement list. */
   void addMeasurement(Measurement m, boolean updatePool) {
     if (measureList.contains(m)) return;
     measureList.add(m);
@@ -96,7 +104,7 @@ public class MeasureList {
     }
   }
 
-  /** Removes a measurement line or point from the measurement list. */
+  /** Removes a measurement from the measurement list. */
   public void removeMeasurement(Measurement m) { removeMeasurement(m, true); }
 
   void removeMeasurement(Measurement m, boolean updatePool) {

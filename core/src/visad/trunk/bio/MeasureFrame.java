@@ -77,11 +77,11 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
   /** Prefix of current data series. */
   private String prefix;
 
-  /** Constructs a new instance of the measurement tool. */
+  /** Constructs a new instance of the measurement tool (2-D only). */
   public MeasureFrame() throws VisADException, RemoteException { this(false); }
   
   /** Constructs a new instance of the measurement tool. */
-  public MeasureFrame(boolean twoD) throws VisADException, RemoteException {
+  public MeasureFrame(boolean threeD) throws VisADException, RemoteException {
     super(true);
     setTitle(TITLE);
     addMenuItem("File", "Open...", "fileOpen", 'o');
@@ -101,13 +101,11 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
 
     // main display
     display2 = null;
-    if (!twoD) {
-      try {
-        display2 = new DisplayImplJ3D("display2",
-          new TwoDDisplayRendererJ3D());
-      }
-      catch (Throwable t) { twoD = true; }
+    try {
+      display2 = new DisplayImplJ3D("display2",
+        new TwoDDisplayRendererJ3D());
     }
+    catch (Throwable t) { threeD = false; }
     if (display2 == null) display2 = new DisplayImplJ2D("display2");
     pane.add(display2.getComponent(), BorderLayout.CENTER);
 
@@ -129,7 +127,7 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
     pane.add(toolbar, BorderLayout.EAST);
 
     // 3-D display frame
-    if (!twoD) {
+    if (threeD) {
       JFrame frame = new JFrame("BioVisAD - Image stack");
       JPanel fpane = new JPanel();
       fpane.setLayout(new BorderLayout());
@@ -269,8 +267,8 @@ public class MeasureFrame extends GUIFrame implements ChangeListener {
 
   /** Launches the MeasureFrame GUI. */
   public static void main(String[] args) throws Exception {
-    boolean twoD = args.length > 0 && args[0].equalsIgnoreCase("-2d");
-    MeasureFrame mf = new MeasureFrame(twoD);
+    boolean threeD = args.length > 0 && args[0].equalsIgnoreCase("-3d");
+    MeasureFrame mf = new MeasureFrame(threeD);
     mf.pack();
     mf.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) { System.exit(0); }

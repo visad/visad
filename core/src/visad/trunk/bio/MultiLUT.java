@@ -210,7 +210,8 @@ set = Linear2DSet: Length = 393216
     line_ref = new DataReferenceImpl("line");
     Gridded2DSet dummy_set = new Gridded2DSet(domain, null, 1);
     line_ref.setData(dummy_set);
-    display1.addReferences(new RubberBandLineRendererJ3D(element, line), line_ref);
+    display1.addReferences(
+      new RubberBandLineRendererJ3D(element, line), line_ref);
 
     final RealType channel = RealType.getRealType("channel");
     final RealType point = RealType.getRealType("point");
@@ -245,7 +246,7 @@ set = Linear2DSet: Length = 393216
         float[][] samples = cell_set.getSamples();
         if (samples == null) return;
         // System.out.println("box (" + samples[0][0] + ", " + samples[1][0] +
-        //                    ") to (" + samples[0][1] + ", " + samples[1][1] + ")");
+        //   ") to (" + samples[0][1] + ", " + samples[1][1] + ")");
         float x1 = samples[0][0];
         float y1 = samples[1][0];
         float x2 = samples[0][1];
@@ -265,7 +266,8 @@ set = Linear2DSet: Length = 393216
         FlatField line_field = (FlatField)
         //   big_data.resample(line, Data.WEIGHTED_AVERAGE, Data.NO_ERRORS);
           big_data.resample(line, Data.NEAREST_NEIGHBOR, Data.NO_ERRORS);
-        float[][] line_samples = line_field.getFloats(false); // [NFILES][nsamp]
+        float[][] line_samples =
+          line_field.getFloats(false); // [NFILES][nsamp]
         Linear1DSet point_set = new Linear1DSet(point, 0.0, 1.0, nsamp);
         Integer1DSet channel_set = new Integer1DSet(channel, NFILES);
         FieldImpl spectra = new FieldImpl(spectra_type, point_set);

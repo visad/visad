@@ -32,123 +32,65 @@ import java.util.Vector;
 import javax.swing.SwingUtilities;
 import visad.*;
 
-/** Measurement represents the values of a measurement line or point. */
+/**
+ * Measurement represents the values of a measurement line or point.
+ * One Measurement object can be shared by multiple MeasureThings
+ * (multiple Displays), and all displays will be updated when any one
+ * changes, or when the Measurement is changed directly.
+ */
 public class Measurement {
 
-  /** Associated matrix of measurements. */
-  private MeasureMatrix mm;
-
   /** Endpoint values of the measurement. */
-  private RealTuple[] values;
+  protected RealTuple[] values;
 
   /** Linked MeasureThing objects. */
-  private Vector things;
+  protected Vector things;
 
   /** Color of the measurement line. */
-  private Color color;
+  protected Color color;
 
   /** Group of the measurement. */
-  private LineGroup group;
+  protected MeasureGroup group;
 
   /** ID for "standard" measurement. */
-  protected int stdId;
+  int stdId = -1;
+
 
   /** Constructs a measurement. */
   public Measurement(RealTuple[] values) {
-    this(null, values, Color.white, null);
+    this(values, Color.white, null);
   }
 
-  /**
-   * Constructs a measurement with an associated
-   * measurement matrix, color and line group.
-   */
-  public Measurement(MeasureMatrix mm, RealTuple[] values, Color color,
-    LineGroup group)
-  {
-    this.mm = mm;
+  /** Constructs a measurement with associated color and measurement group. */
+  public Measurement(RealTuple[] values, Color color, MeasureGroup group) {
     this.values = values;
     this.things = new Vector();
     this.color = color;
     this.group = group;
-    this.stdId = -1;
   }
 
   /** Sets the measurement endpoint values. */
   public void setValues(RealTuple[] values) {
     if (values.length != this.values.length) {
-      System.err.println("Warning: measurement lengths don't match!");
+      System.err.println("Warning: measurement lengths don't match");
       return;
     }
-    double[][] vals1 = doubleValues(values);
-    double[][] vals2 = doubleValues(this.values);
-    int dim = vals2.length;
+
+    // extract endpoint values from RealTuples
+    double[][] new_vals = doubleValues(values);
+    double[][] old_vals = doubleValues(this.values);
     int len = values.length;
-    int mdim = vals1.length;
-
-    // verify new values are distinct from old ones
-    boolean equal = true;
-    for (int i=0; i<mdim && equal; i++) {
-      for (int j=0; j<len; j++) {
-        if (vals1[i][j] != vals2[i][j]) {
-          equal = false;
-          break;
-        }
-      }
+    int dim = new_vals.length;
+    if (dim != old_vals.length) {
+      System.err.println("Warning: measurement dimensions don't match");
+      return;
     }
-    if (equal) return;
-
-    // preserve slice values on 2-D shift
-    if (mdim < dim) {
-      // fill in missing slice values
-      for (int i=0; i<len; i++) {
-        try {
-          Real[] nw = values[i].getRealComponents();
-          Real[] old = this.values[i].getRealComponents();
-          Real[] merged = new Real[dim];
-          System.arraycopy(nw, 0, merged, 0, nw.length);
-          System.arraycopy(old, nw.length, merged, nw.length, dim - nw.length);
-          values[i] = new RealTuple(merged);
-        }
-        catch (VisADException exc) { exc.printStackTrace(); }
-        catch (RemoteException exc) { exc.printStackTrace(); }
-      }
-    }
-
-    // manage direct manipulation in 3-D window
-    if (mm != null && mdim == 3) {
-      // remove measurement from all slices
-      int numSlices = mm.getNumberOfSlices();
-      for (int i=0; i<numSlices; i++) {
-        mm.getMeasureList(i).removeMeasurement(this, false);
-      }
-
-      // re-add measurement to appropriate slices
-      for (int i=0; i<len; i++) {
-        try {
-          Real[] rc = values[i].getRealComponents();
-          Real r = rc[2];
-          double v = r.getValue();
-          int iv = (int) Math.round(v);
-          if (iv < 0) iv = 0;
-          else if (iv >= numSlices) iv = numSlices - 1;
-          if (v != iv) {
-            // snap measurement to nearest slice
-            r = new Real((RealType) r.getType(), iv, r.getUnit(), r.getError());
-            values[i] = new RealTuple(new Real[] {rc[0], rc[1], r});
-          }
-          // add measurement to appropriate slice
-          mm.getMeasureList(iv).addMeasurement(this, false);
-        }
-        catch (VisADException exc) { exc.printStackTrace(); }
-        catch (RemoteException exc) { exc.printStackTrace(); }
-      }
-    }
-
     this.values = values;
+
     refreshThings();
   }
 
-  /** Links the given MeasureThings to the measurement. */
+  /** Links the given MeasureThing to the measurement. */
   void addThing(MeasureThing thing) {
     synchronized (things) {
       things.add(thing);
@@ -183,7 +125,7 @@ public class Measurement {
   }
 
   /** Sets the measurement group. */
-  public void setGroup(LineGroup group) { this.group = group; }
+  public void setGroup(MeasureGroup group) { this.group = group; }
 
   /** Sets the measurement line color. */
   public void setColor(Color color) {
@@ -192,22 +134,24 @@ public class Measurement {
     refreshThings();
   }
 
-  /** Sets the measurement standard ID. */
-  public void setStdId(int id) { stdId = id; }
-
   /** Gets the measurement endpoint values. */
   public RealTuple[] getValues() { return values; }
 
   /** Gets the measurement group. */
-  public LineGroup getGroup() { return group; }
+  public MeasureGroup getGroup() { return group; }
 
   /** Gets the measurement line color. */
   public Color getColor() { return color; }
 
-  /** Gets the measurement standard ID. */
-  public int getStdId() { return stdId; }
+  /** Gets number of endpoints in this measurement. */
+  public int getLength() { return values.length; }
 
-  /** Gets whether this measurement is a point (rather than a line). */
+  /** Gets dimensionality of each endpoint in this measurement. */
+  public int getDimension() {
+    return values == null ? -1 : values[0].getDimension();
+  }
+
+  /** Gets whether this measurement is a point (only one endpoint). */
   public boolean isPoint() { return values.length == 1; }
 
   /** Gets the current distance between the endpoints. */
@@ -249,8 +193,8 @@ public class Measurement {
   public Object clone() {
     RealTuple[] vals = new RealTuple[values.length];
     System.arraycopy(values, 0, vals, 0, values.length);
-    Measurement m = new Measurement(mm, vals, color, group);
-    m.setStdId(stdId);
+    Measurement m = new Measurement(vals, color, group);
+    m.stdId = stdId;
     return m;
   }
 

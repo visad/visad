@@ -53,9 +53,6 @@ public abstract class MeasureThing {
   /** Associated measurement. */
   protected Measurement m;
 
-  /** Associated slice number. */
-  protected int slice;
-
   /** Cell that ties endpoint values to measurement values. */
   protected CellImpl cell;
 
@@ -90,7 +87,9 @@ public abstract class MeasureThing {
       public void doAction() {
         if (m != null) {
           synchronized (dataLock) {
-            for (int i=0; i<len; i++) values[i] = (RealTuple) refs[i].getData();
+            for (int i=0; i<len; i++) {
+              values[i] = (RealTuple) refs[i].getData();
+            }
           }
           RealTuple[] vals = new RealTuple[values.length];
           System.arraycopy(values, 0, vals, 0, values.length);
@@ -128,7 +127,7 @@ public abstract class MeasureThing {
   public abstract void setColor(Color color);
 
   /** Sets the group. */
-  public void setGroup(LineGroup group) {
+  public void setGroup(MeasureGroup group) {
     if (m != null) m.setGroup(group);
   }
 
@@ -168,14 +167,10 @@ public abstract class MeasureThing {
   }
 
   /** Links the given measurement. */
-  public void setMeasurement(Measurement m) { setMeasurement(m, -1); }
-
-  /** Links the given measurement. */
-  public void setMeasurement(Measurement m, int slice) {
+  public void setMeasurement(Measurement m) {
     if (this.m != m && this.m != null) this.m.removeThing(this);
     if (m != null) m.addThing(this);
     this.m = m;
-    this.slice = slice;
     refresh();
   }
 

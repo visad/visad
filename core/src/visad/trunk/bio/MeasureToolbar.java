@@ -318,7 +318,7 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
         int slice = vert.getValue() - 1;
         if (std) {
           // set standard
-          m.setStdId(maxId++);
+          m.stdId = maxId++;
           MeasureList[][] lists = horiz.getMatrix().getMeasureLists();
           for (int j=0; j<lists.length; j++) {
             for (int i=0; i<lists[j].length; i++) {
@@ -337,15 +337,15 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
             setStandard.setSelected(true);
             return;
           }
-          int stdId = m.getStdId();
-          m.setStdId(-1);
+          int stdId = m.stdId;
+          m.stdId = -1;
           MeasureList[][] lists = horiz.getMatrix().getMeasureLists();
           for (int j=0; j<lists.length; j++) {
             for (int i=0; i<lists[j].length; i++) {
               if (j == index && i == slice) continue;
               Measurement[] mlist = lists[j][i].getMeasurements();
               for (int k=0; k<mlist.length; k++) {
-                if (mlist[k].getStdId() == stdId) {
+                if (mlist[k].stdId == stdId) {
                   lists[j][i].removeMeasurement(mlist[k], false);
                   break;
                 }
@@ -408,11 +408,11 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
 
     // group list
     groupList = new JComboBox();
-    groupList.addItem(new LineGroup("NONE"));
+    groupList.addItem(new MeasureGroup("NONE"));
     groupList.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
         if (ignoreGroup) return;
-        LineGroup group = (LineGroup) groupList.getSelectedItem();
+        MeasureGroup group = (MeasureGroup) groupList.getSelectedItem();
         thing.setGroup(group);
         descriptionBox.setText(group.getDescription());
       }
@@ -427,7 +427,7 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
         int rval = groupBox.showDialog(null);
         if (rval == GroupDialog.APPROVE_OPTION) {
           String name = groupBox.getGroupName();
-          LineGroup group = new LineGroup(name);
+          MeasureGroup group = new MeasureGroup(name);
           groupList.addItem(group);
           groupList.setSelectedItem(group);
         }
@@ -453,7 +453,7 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
       public void insertUpdate(DocumentEvent e) { update(e); }
       public void removeUpdate(DocumentEvent e) { update(e); }
       public void update(DocumentEvent e) {
-        LineGroup group = (LineGroup) groupList.getSelectedItem();
+        MeasureGroup group = (MeasureGroup) groupList.getSelectedItem();
         group.setDescription(descriptionBox.getText());
       }
     });
@@ -489,7 +489,7 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     if (enabled) {
       Measurement m = thing.getMeasurement();
       ignoreNextStandard = true;
-      setStandard.setSelected(m.getStdId() >= 0);
+      setStandard.setSelected(m.stdId >= 0);
       colorList.setSelectedItem(m.getColor());
       groupList.setSelectedItem(m.getGroup());
     }
@@ -529,13 +529,13 @@ public class MeasureToolbar extends JPanel implements SwingConstants {
     return d;
   }
 
-  /** Updates the group list to match the static LineGroup list. */
+  /** Updates the group list to match the static MeasureGroup list. */
   void updateGroupList() {
     ignoreGroup = true;
     groupList.removeAllItems();
-    int size = LineGroup.groups.size();
+    int size = MeasureGroup.groups.size();
     for (int i=0; i<size; i++) {
-      LineGroup group = (LineGroup) LineGroup.groups.elementAt(i);
+      MeasureGroup group = (MeasureGroup) MeasureGroup.groups.elementAt(i);
       groupList.addItem(group);
     }
     ignoreGroup = false;

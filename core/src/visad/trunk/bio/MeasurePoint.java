@@ -40,11 +40,11 @@ public class MeasurePoint extends MeasureThing {
   /** Id number for the point. */
   private int id;
 
-  /** Associated line pool. */
-  private LinePool pool;
+  /** Associated measurement pool. */
+  private MeasurePool pool;
 
   /** Constructs a measurement point. */
-  public MeasurePoint(int dim, LinePool pool)
+  public MeasurePoint(int dim, MeasurePool pool)
     throws VisADException, RemoteException
   {
     super(1, dim);
@@ -71,6 +71,7 @@ public class MeasurePoint extends MeasureThing {
     // add endpoint
     renderers = new DataRenderer[1];
     renderers[0] = addDirectManipRef(d, refs[0]);
+    renderers[0].suppressExceptions(true);
   }
 
   /** Sets the color (unimplemented). */

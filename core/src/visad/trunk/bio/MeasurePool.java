@@ -1,5 +1,5 @@
 //
-// LinePool.java
+// MeasurePool.java
 //
 
 /*
@@ -31,10 +31,13 @@ import java.rmi.RemoteException;
 import java.util.Vector;
 import visad.*;
 
-/** LinePool maintains a pool of lines and points in the given display. */
-public class LinePool implements DisplayListener {
+/**
+ * MeasurePool maintains a pool of measurements
+ * (lines and points) in the given display.
+ */
+public class MeasurePool implements DisplayListener {
 
-  /** Minimum number of lines in the line pool. */
+  /** Minimum number of lines in the measurement pool. */
   static final int MINIMUM_SIZE = 16;
 
   /** Maximum pixel distance for picking. */
@@ -49,11 +52,8 @@ public class LinePool implements DisplayListener {
   /** Associated selection box. */
   private SelectionBox box;
 
-  /** Dimensionality of line pool's display. */
+  /** Dimensionality of measurement pool's display. */
   private int dim;
-
-  /** Current slice of lines in pool. */
-  private int slice;
 
   /** Number of lines/points in a block. */
   private int blockSize;
@@ -80,30 +80,29 @@ public class LinePool implements DisplayListener {
   int maxPtId = 0;
 
 
-  /** Constructs a pool of lines. */
-  public LinePool(DisplayImpl display, MeasureToolbar toolbar,
-    int dim, int slice, int blockSize)
+  /** Constructs a pool of measurements. */
+  public MeasurePool(DisplayImpl display, MeasureToolbar toolbar,
+    int dim, int blockSize)
   {
     lines = new Vector();
     points = new Vector();
     this.display = display;
     this.toolbar = toolbar;
     this.dim = dim;
-    this.slice = slice;
-    this.blockSize = blockSize;
+    this.blockSize = blockSize < 1 ? 1 : blockSize;
     size = 0;
     lnUsed = 0;
     ptUsed = 0;
     display.addDisplayListener(this);
   }
 
-  /** Ensures the line pool is at least the given size. */
+  /** Ensures the measurement pool is at least the given size. */
   public void expand(int size) { expand(size, true); }
 
-  /** Ensures the line pool is at least the given size. */
+  /** Ensures the measurement pool is at least the given size. */
   public void expand(int size, boolean handleDisplay) {
     if (this.size == 0) {
-      System.err.println("LinePool.expand: warning: " +
+      System.err.println("MeasurePool.expand: warning: " +
         "Cannot expand from zero without domain type");
       return;
     }
@@ -112,12 +111,12 @@ public class LinePool implements DisplayListener {
     expand(size, domain, handleDisplay);
   }
 
-  /** Ensures the line pool is at least the given size. */
+  /** Ensures the measurement pool is at least the given size. */
   public void expand(int size, RealTupleType domain) {
     expand(size, domain, true);
   }
 
-  /** Ensures the line pool is at least the given size. */
+  /** Ensures the measurement pool is at least the given size. */
   public void expand(int size, RealTupleType domain, boolean handleDisplay) {
     if (size <= this.size) return;
     int n = size - this.size;
@@ -161,7 +160,7 @@ public class LinePool implements DisplayListener {
 
   /**
    * Sets the endpoint values for all lines in the
-   * line pool to match the given measurements.
+   * measurement pool to match the given measurements.
    */
   public void set(Measurement[] m) {
     int size = m.length;
@@ -178,12 +177,12 @@ public class LinePool implements DisplayListener {
       if (m[i].isPoint()) {
         // measurement is a point
         MeasurePoint point = (MeasurePoint) points.elementAt(ptUsed++);
-        point.setMeasurement(m[i], slice);
+        point.setMeasurement(m[i]);
       }
       else {
         // measurement is a line
         MeasureLine line = (MeasureLine) lines.elementAt(lnUsed++);
-        line.setMeasurement(m[i], slice);
+        line.setMeasurement(m[i]);
       }
     }
 
@@ -200,20 +199,20 @@ public class LinePool implements DisplayListener {
     }
   }
 
-  /** Sets a line in the line pool to match the given measurement. */
+  /** Sets a line in the measurement pool to match the given measurement. */
   public void add(Measurement m) {
     if (m.isPoint()) {
       // measurement is a point
       expand(ptUsed + 1);
       MeasurePoint point = (MeasurePoint) points.elementAt(ptUsed);
-      point.setMeasurement(m, slice);
+      point.setMeasurement(m);
       ptUsed++;
     }
     else {
       // measurement is a line
       expand(lnUsed + 1);
       MeasureLine line = (MeasureLine) lines.elementAt(lnUsed);
-      line.setMeasurement(m, slice);
+      line.setMeasurement(m);
       lnUsed++;
     }
   }

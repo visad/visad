@@ -47,11 +47,11 @@ public class MeasureMatrix {
   /** Associated measurement toolbar. */
   private MeasureToolbar toolbar;
 
-  /** Pool of lines. */
-  private LinePool pool;
+  /** Pool of measurements. */
+  private MeasurePool pool;
 
-  /** Pools of lines for 3-D display. */
-  private LinePool[] pool3d;
+  /** Pools of measurements for 3-D display. */
+  private MeasurePool[] pool3d;
 
   /** Current matrix index. */
   private int index = -1;
@@ -107,24 +107,24 @@ public class MeasureMatrix {
       }
     }
 
+    // CTR: 3-D stuff probably completely broken; fix it
+
     // construct MathType with 3-D domain for display lines on image stack
     FieldImpl image = (FieldImpl) field.getSample(0);
     type = (FunctionType) image.getType();
     RealTupleType domain = type.getDomain();
     int len = domain.getDimension();
-    RealType[] types = new RealType[len + 1];
+    RealType[] types = new RealType[len];
     for (int i=0; i<len; i++) types[i] = (RealType) domain.getComponent(i);
-    types[len] = time;
-    RealTupleType domain3d = new RealTupleType(types);
-    types[len] = ZAXIS_TYPE;
+    RealTupleType domain3d = new RealTupleType(types); // CTR: TODO
     RealTupleType domain2d = new RealTupleType(types);
 
     // extract minimum and maximum values for image
     set = image.getDomainSet();
     float[][] samples = set.getSamples(false);
-    Real[] p1r = new Real[len + 1];
-    Real[] p2r = new Real[len + 1];
-    Real[] pxr = new Real[len + 1];
+    Real[] p1r = new Real[len];
+    Real[] p2r = new Real[len];
+    Real[] pxr = new Real[len];
     for (int i=0; i<len; i++) {
       RealType rt = (RealType) domain.getComponent(i);
       float s1 = samples[i][0];
@@ -148,16 +148,16 @@ public class MeasureMatrix {
       }
     }
 
-    // initialize line pools
-    pool = new LinePool(display2, toolbar, 2, -1, LinePool.MINIMUM_SIZE / 2);
-    pool.expand(LinePool.MINIMUM_SIZE, domain);
-    pool3d = new LinePool[numSlices];
+    // initialize measurement pools
+    pool = new MeasurePool(display2, toolbar, 2, MeasurePool.MINIMUM_SIZE / 2);
+    pool.expand(MeasurePool.MINIMUM_SIZE, domain);
+    pool3d = new MeasurePool[numSlices];
     if (display3 != null) {
       display3.disableAction();
       for (int i=0; i<numSlices; i++) {
         pool3d[i] =
-          new LinePool(display3, null, 3, i, LinePool.MINIMUM_SIZE / 2);
-        pool3d[i].expand(LinePool.MINIMUM_SIZE, domain3d, false);
+          new MeasurePool(display3, null, 3, MeasurePool.MINIMUM_SIZE / 2);
+        pool3d[i].expand(MeasurePool.MINIMUM_SIZE, domain3d, false);
       }
       display3.enableAction();
     }
@@ -166,8 +166,8 @@ public class MeasureMatrix {
     for (int j=0; j<matrix.length; j++) {
       matrix[j] = new MeasureList[numSlices];
       for (int i=0; i<numSlices; i++) {
-        p1r[len] = p2r[len] = pxr[len] = new Real(ZAXIS_TYPE, i);
-        matrix[j][i] = new MeasureList(this, p1r, p2r, pxr, pool, pool3d[i]);
+        matrix[j][i] =
+          new MeasureList(this, p1r, p2r, pxr, slice, pool, pool3d[i]);
       }
     }
 
@@ -181,13 +181,13 @@ public class MeasureMatrix {
     toolbar.updateGroupList();
   }
 
-  /** Sets the line pool to match the given matrix index. */
+  /** Sets the measurement pool to match the given matrix index. */
   public void setIndex(int index) { setEntry(index, slice); }
 
-  /** Sets the line pool to match the given matrix slice. */
+  /** Sets the measurement pool to match the given matrix slice. */
   public void setSlice(int slice) { setEntry(index, slice); }
 
-  /** Sets the line pool to match the given matrix entry. */
+  /** Sets the measurement pool to match the given matrix entry. */
   public void setEntry(int index, int slice) {
     if (!inited) System.err.println("Warning: matrix not inited!");
     if (display3 != null) {

@@ -1,5 +1,5 @@
 //
-// LineGroup.java
+// MeasureGroup.java
 //
 
 /*
@@ -28,8 +28,8 @@ package visad.bio;
 
 import java.util.Vector;
 
-/** LineGroup represents a possible grouping for measurement lines. */
-public class LineGroup {
+/** MeasureGroup represents a possible grouping for measurements. */
+public class MeasureGroup {
 
   /** First free id number for groups. */
   static int maxId = 0;
@@ -46,8 +46,8 @@ public class LineGroup {
   /** Id number for the group. */
   int id;
 
-  /** Constructs a pool of lines. */
-  public LineGroup(String name) {
+  /** Constructs a measurement group. */
+  public MeasureGroup(String name) {
     this.name = name;
     description = "";
     id = maxId++;

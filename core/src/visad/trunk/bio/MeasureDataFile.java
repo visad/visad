@@ -73,7 +73,7 @@ public class MeasureDataFile {
           double x1 = vals[0][0];
           double y1 = vals[1][0];
           int groupId = m.getGroup().getId();
-          int stdId = m.getStdId();
+          int stdId = m.stdId;
           boolean point = m.isPoint();
 
           MData data;
@@ -117,7 +117,7 @@ public class MeasureDataFile {
       if (d == null) continue;
       boolean ln = !d.point;
       int gid = d.groupId;
-      LineGroup group = (LineGroup) LineGroup.groups.elementAt(gid);
+      MeasureGroup group = (MeasureGroup) MeasureGroup.groups.elementAt(gid);
       fout.println();
       fout.println("[" + std + "] " + group.name);
       String tabs = "";
@@ -162,9 +162,9 @@ public class MeasureDataFile {
     fout.println("# Groups");
     fout.println();
     fout.println("No\tName\tDescription");
-    int numGroups = LineGroup.groups.size();
+    int numGroups = MeasureGroup.groups.size();
     for (int g=0; g<numGroups; g++) {
-      LineGroup group = (LineGroup) LineGroup.groups.elementAt(g);
+      MeasureGroup group = (MeasureGroup) MeasureGroup.groups.elementAt(g);
       fout.println(g + "\t" + group.name + "\t" + group.description);
     }
     fout.println();
@@ -244,7 +244,7 @@ public class MeasureDataFile {
 
     // clear old group data
     int size = groups.size();
-    LineGroup.groups.removeAllElements();
+    MeasureGroup.groups.removeAllElements();
 
     // set up new groups
     for (int i=0; i<size; i++) {
@@ -253,10 +253,10 @@ public class MeasureDataFile {
       int id = Integer.parseInt(st.nextToken());
       String name = st.nextToken();
       String desc = st.hasMoreTokens() ? st.nextToken() : "";
-      LineGroup group = new LineGroup(name);
+      MeasureGroup group = new MeasureGroup(name);
       group.setDescription(desc);
       group.id = id;
-      if (id >= LineGroup.maxId) LineGroup.maxId = id + 1;
+      if (id >= MeasureGroup.maxId) MeasureGroup.maxId = id + 1;
     }
 
     // clear old measurements
@@ -282,9 +282,10 @@ public class MeasureDataFile {
       values[0] = new RealTuple(reals[0]);
       values[1] = new RealTuple(reals[1]);
       Color color = new Color(data.r, data.g, data.b);
-      LineGroup group = (LineGroup) LineGroup.groups.elementAt(data.groupId);
-      Measurement m = new Measurement(mm, values, color, group);
-      m.setStdId(data.stdId);
+      MeasureGroup group =
+        (MeasureGroup) MeasureGroup.groups.elementAt(data.groupId);
+      Measurement m = new Measurement(values, color, group);
+      m.stdId = data.stdId;
       list.addMeasurement(m, false);
     }
 
@@ -299,9 +300,10 @@ public class MeasureDataFile {
       reals[0] = new Real(types[0], data.x1);
       reals[1] = new Real(types[1], data.y1);
       values[0] = new RealTuple(reals);
-      LineGroup group = (LineGroup) LineGroup.groups.elementAt(data.groupId);
-      Measurement m = new Measurement(mm, values, Color.white, group);
-      m.setStdId(data.stdId);
+      MeasureGroup group =
+        (MeasureGroup) MeasureGroup.groups.elementAt(data.groupId);
+      Measurement m = new Measurement(values, Color.white, group);
+      m.stdId = data.stdId;
       list.addMeasurement(m, false);
     }
 
