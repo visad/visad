@@ -129,7 +129,7 @@ public class FlatField extends FieldImpl {
    * @throws VisADException	Couldn't create necessary VisAD object.
    */
   public FlatField(FunctionType type) throws VisADException {
-    this(type, null, null, null, null, null);
+    this(type, type.getDomain().getDefaultSet(), null, null, null, null);
   }
 
   /**
