@@ -33,6 +33,7 @@ import java.io.*;
 import java.awt.*;
 import java.awt.image.*;
 import java.net.*;
+import java.awt.print.*;
 
 import javax.swing.*;
 import visad.util.*;
@@ -110,6 +111,9 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   // objects which monitor and synchronize with remote displays
   private DisplayMonitor displayMonitor = null;
   private DisplaySync displaySync = null;
+
+  // Support for printing
+  private Printable printer;
 
   /** constructor with non-default DisplayRenderer */
   public DisplayImpl(String name, DisplayRenderer renderer)
@@ -1534,5 +1538,47 @@ if (initialize) {
     }
   }
 
-}
+  /**
+   * Return the Printable object to be used by a PrinterJob.  This can
+   * be used as follows:
+   * <pre>
+   *    PrinterJob printJob = PrinterJob.getPrinterJob();
+   *    PageFormat pf = printJob.defaultPage();
+   *    printJob.setPrintable(display.getPrintable(), pf);
+   *    if (printJob.printDialog()) {
+   *        try {
+   *            printJob.print();
+   *        }
+   *        catch (Exception pe) {
+   *            pe.printStackTrace();
+   *        }
+   *    }
+   * </pre>
+   *
+   * @return printable object
+   */
+  public Printable getPrintable()
+  {
+    if (printer == null) 
+      printer = 
+        new Printable() {
+          public int print(Graphics g, PageFormat pf, int pi)
+             throws PrinterException
+          {
+            if (pi >= 1)
+            {
+               return Printable.NO_SUCH_PAGE;
+            }
+            BufferedImage image = DisplayImpl.this.getImage();
+            g.drawImage(
+                image, 
+                (int) pf.getImageableX(), 
+                (int) pf.getImageableY(), 
+                DisplayImpl.this.component);
+            return Printable.PAGE_EXISTS;
+          }
+        };
+    return printer;
+  }
 
+}
