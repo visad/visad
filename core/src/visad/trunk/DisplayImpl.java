@@ -977,7 +977,7 @@ System.out.println("badScale = " + badScale);
   }
 
   public void addControl(Control control) {
-    if (control != null) {
+    if (control != null && !ControlVector.contains(control)) {
       ControlVector.addElement(control);
       control.setIndex(ControlVector.indexOf(control));
     }
