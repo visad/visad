@@ -1,6 +1,6 @@
 
 //
-// SSMethod.java
+// VRealType.java
 //
 
 /*
@@ -23,24 +23,23 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
-package visad.ss;
+package visad.formula;
 
-import java.lang.reflect.Method;
-import visad.ThingImpl;
+import visad.*;
 
-/** Thing wrapper for java.lang.reflect.Method.<P> */
-public class SSMethod extends ThingImpl {
+/** Thing wrapper for visad.RealType.<P> */
+public class VRealType extends ThingImpl {
 
-  private Method method;
+  private RealType realType;
 
   /** constructor */
-  public SSMethod(Method rt) {
-    method = rt;
+  public VRealType(RealType rt) {
+    realType = rt;
   }
 
-  /** return the wrapper's Method */
-  public Method getMethod() {
-    return method;
+  /** return the wrapper's RealType */
+  public RealType getRealType() {
+    return realType;
   }
 
 }

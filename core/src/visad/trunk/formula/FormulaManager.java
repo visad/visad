@@ -35,15 +35,17 @@ import visad.*;
    such as a derivative notation like: d(x)/d(y).  If you wish your application
    to support unique syntaxes, simply have the application implement a formula
    "pre-processor" that converts the "strange" syntaxes to "standard" syntax.
-   For example, the VisAD Spread Sheet supports derivative notation of the form
-   d(x)/d(y) by converting it to the form derive(x, y) before passing the
-   formula to the manager.
+   For example, the FormulaUtil.preParse() method supports derivative notation
+   of the form d(x)/d(y) by converting it to the form derive(x, y).  The
+   application can call the preParse() method before passing the formula to the
+   manager.
 */
 
 /** The FormulaManager class is the gateway into the visad.formula package,
     a general-purpose formula parser and evaluator.  Variables update
     automatically when the variables upon which they depend change.
-    For an example of usage, see the visad.ss package.<P> */
+    For an example of usage, see the FormulaUtil.createStandardManager()
+    method.<P> */
 public class FormulaManager {
 
   /** binary operators */
