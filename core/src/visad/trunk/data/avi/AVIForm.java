@@ -26,7 +26,6 @@ MA 02111-1307, USA
 
 package visad.data.avi;
 
-import java.awt.image.IndexColorModel;
 import java.io.*;
 import java.net.URL;
 import java.rmi.RemoteException;
@@ -73,9 +72,6 @@ public class AVIForm extends Form
   // -- Save fields --
 
   private RandomAccessFile raFile;
-  private int xPad;
-  private byte[] bufferWrite;
-  private byte[] lutWrite;
 
 
   // -- Constructor --
@@ -140,7 +136,7 @@ public class AVIForm extends Form
 
     int bytesPerPixel;
     File file;
-    int xDim, yDim, zDim, tDim;
+    int xDim, yDim, zDim, tDim, xPad;
     int microSecPerFrame;
     int[] dcLength;
 
@@ -194,7 +190,6 @@ public class AVIForm extends Form
       bytesPerPixel = ttype.getDimension();
     }
     else bytesPerPixel = 1;
-    System.out.println("bytesPerPixel=" + bytesPerPixel);
 
     file = new File(id);
     raFile = new RandomAccessFile(file, "rw");
@@ -415,7 +410,7 @@ public class AVIForm extends Form
     // Write the LUTa.getExtents()[1] color table entries here. They are
     // written: blue byte, green byte, red byte, 0 byte
     if (bytesPerPixel == 1) {
-      lutWrite = new byte[4 * 256];
+      byte[] lutWrite = new byte[4 * 256];
       for (int i=0; i<256; i++) {
         lutWrite[4*i] = (byte) i; // blue
         lutWrite[4*i+1] = (byte) i; // green
@@ -486,10 +481,9 @@ public class AVIForm extends Form
     // Write the data. Each 3-byte triplet in the bitmap array represents the
     // relative intensities of blue, green, and red, respectively, for a pixel.
     // The color bytes are in reverse order from the Windows convention.
-    bufferWrite = new byte[bytesPerPixel * xDim * yDim];
+    byte[] buf = new byte[bytesPerPixel * xDim * yDim];
 
     int width = xDim - xPad;
-    int height = yDim;
     for (z=0; z<zDim; z++) {
       percent = (double) z / zDim;
       raFile.write(dataSignature);
@@ -498,16 +492,17 @@ public class AVIForm extends Form
 
       double[][] values = fields[z].getValues(false);
       int index = 0;
-      for (int y=height-1; y>=0; y--) {
+      for (int y=yDim-1; y>=0; y--) {
         for (int x=0; x<width; x++) {
           int ndx = width * y + x;
           for (int q=bytesPerPixel-1; q>=0; q--) {
-            bufferWrite[index++] = (byte) values[q][ndx];
+            buf[index++] = (byte) values[q][ndx];
           }
         }
-        for (int i=0; i<bytesPerPixel*xPad; i++) bufferWrite[index++] = 0;
+        int pad = (bytesPerPixel * xPad) % 4;
+        for (int i=0; i<pad; i++) buf[index++] = 0;
       }
-      raFile.write(bufferWrite);
+      raFile.write(buf);
     }
 
     // Write the idx1 CHUNK
@@ -622,7 +617,7 @@ public class AVIForm extends Form
     throws BadFormException, IOException, VisADException
   {
     if (true) {
-      throw new UnimplementedException("AVIForm.open(id, block_number)");
+      throw new UnimplementedException("AVIForm.open(String, int)");
     }
 
     if (!id.equals(current_id)) initFile(id);
@@ -642,7 +637,7 @@ public class AVIForm extends Form
   }
 
   public void close() throws BadFormException, IOException, VisADException {
-    throw new UnimplementedException("AVIForm.close()");
+    throw new UnimplementedException("AVIForm.close");
   }
 
 
@@ -656,7 +651,7 @@ public class AVIForm extends Form
   private void initFile(String id)
     throws BadFormException, IOException, VisADException
   {
-    if (true) throw new UnimplementedException("AVIForm.initFile(id)");
+    if (true) throw new UnimplementedException("AVIForm.initFile(String)");
 
     // close any currently open files
     close();
