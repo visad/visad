@@ -310,6 +310,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
  
     if (range_select[0] != null && range_select[0][0] != range_select[0][0]) {
       // data not selected
+      ensureNotEmpty(group);
       return false;
     }
 
@@ -324,6 +325,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
     if (range_select[0] != null && range_select[0][0] != range_select[0][0]) {
       // data not selected
+      ensureNotEmpty(group);
       return false;
     }
  
@@ -333,6 +335,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
  
     if (range_select[0] != null && range_select[0][0] != range_select[0][0]) {
       // data not selected
+      ensureNotEmpty(group);
       return false;
     }
  
@@ -346,6 +349,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
           color_values[2][0] != color_values[2][0]) {
         // System.out.println("single missing alpha");
         // a single missing color value, so render nothing
+        ensureNotEmpty(group);
         return false;
       }
       // put single color in appearance
@@ -392,6 +396,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
           }
         }
       }
+      ensureNotEmpty(group);
       return false;
     }
     else { // if (!(LevelOfDifficulty == SIMPLE_TUPLE))
@@ -408,6 +413,32 @@ public abstract class ShadowTypeJ3D extends ShadowType {
       throw new UnimplementedException("ShadowTypeJ3D.terminalTupleOrReal: " +
                                        "terminal LEGAL");
     }
+  }
+
+  /** this is a work-around for the NullPointerException at
+      javax.media.j3d.Shape3DRetained.setLive(Shape3DRetained.java:448) */
+  public void ensureNotEmpty(Group group) {
+    if (group.numChildren() > 0) return;
+    group.addChild(new Shape3D());
+/* this is not necessary
+    VisADPointArray array = new VisADPointArray();
+    array.vertexCount = 1;
+    float[] coordinates = new float[3];
+    coordinates[0] = 1000000.0f;
+    coordinates[1] = 1000000.0f;
+    coordinates[2] = 1000000.0f;
+    array.coordinates = coordinates;
+    float[] colors = new float[3];
+    colors[0] = 0.0f;
+    colors[1] = 0.0f;
+    colors[2] = 0.0f;
+    array.colors = colors;
+    GeometryArray geometry = display.makeGeometry(array);
+    Appearance appearance =
+      makeAppearance(display.getGraphicsModeControl(), null, null, geometry);
+    Shape3D shape = new Shape3D(geometry, appearance);
+    group.addChild(shape);
+*/
   }
 
   public String toString() {

@@ -95,6 +95,9 @@ public abstract class RendererJ3D extends DataRenderer {
       // sw.setChild(branches[i], i);
     }
     currentIndex = 0;
+/*
+System.out.println("setLinks: sw.setWhichChild(" + currentIndex + ")");
+*/
     sw.setWhichChild(currentIndex);
     actualIndex = 0;
   }
@@ -178,8 +181,20 @@ System.out.println("RendererJ3D.doAction: any_changed = " + any_changed +
         synchronized (this) {
           if (!branchNonEmpty[currentIndex]) {
             synchronized (branches[currentIndex]) {
+/*
+System.out.println("doAction1: branches[" + currentIndex + "].addChild( )");
+int n = branch.numChildren();
+Node[] children = new Node[n];
+for (int i=0; i<n; i++) {
+  children[i] = branch.getChild(i);
+}
+System.out.println("branch.numChildren = " + n);
+*/
               branches[currentIndex].addChild(branch);
             }
+/*
+System.out.println("doAction: sw.setWhichChild(" + currentIndex + ")");
+*/
             sw.setWhichChild(currentIndex);
             actualIndex = currentIndex;
             branchNonEmpty[currentIndex] = true;
@@ -196,6 +211,9 @@ System.out.println("RendererJ3D.doAction: any_changed = " + any_changed +
               }
             }
             synchronized (branches[nextIndex]) {
+/*
+System.out.println("doAction2: branches[" + nextIndex + "].addChild( )");
+*/
               branches[nextIndex].addChild(branch);
             }
             doRemove = true;
@@ -230,6 +248,9 @@ System.out.println("RendererJ3D.doAction: any_changed = " + any_changed +
       if (actualIndex != i) {
         return true;
       }
+/*
+System.out.println("switchTransition: sw.setWhichChild(" + index + ")");
+*/
       sw.setWhichChild(index);
       actualIndex = index;
       switchFlags[index] = false;
@@ -239,6 +260,10 @@ System.out.println("RendererJ3D.doAction: any_changed = " + any_changed +
       synchronized (branches[i]) {
         for (int m=0; m<branches[i].numChildren(); m++) {
           branches[i].removeChild(m);
+/*
+System.out.println("switchTransition: branches[" + i +
+                   "].removeChild(" + m + ")");
+*/
         }
       }
       branchNonEmpty[i] = false;

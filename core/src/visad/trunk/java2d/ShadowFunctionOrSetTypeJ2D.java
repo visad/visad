@@ -1080,7 +1080,7 @@ END MISSING TEST */
               range_select[0][i] == range_select[0][i]) {
             VisADGroup branch = new VisADGroup();
             VisADPointArray array = new VisADPointArray();
-            array.vertexFormat = 1;
+            array.vertexCount = 1;
             coordinates = new float[3];
             if (spatial_values[0].length > 1) {
               coordinates[0] = spatial_values[0][i];

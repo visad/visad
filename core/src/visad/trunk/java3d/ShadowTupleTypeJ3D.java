@@ -90,9 +90,15 @@ public class ShadowTupleTypeJ3D extends ShadowTypeJ3D {
                              float[] default_values, DataRenderer renderer)
          throws VisADException, RemoteException {
 
-    if (data.isMissing()) return false;
+    if (data.isMissing()) {
+      ensureNotEmpty(group);
+      return false;
+    }
     int LevelOfDifficulty = adaptedShadowType.getLevelOfDifficulty();
-    if (LevelOfDifficulty == NOTHING_MAPPED) return false;
+    if (LevelOfDifficulty == NOTHING_MAPPED) {
+      ensureNotEmpty(group);
+      return false;
+    }
 
     if (!(data instanceof Tuple)) {
       throw new DisplayException("ShadowTupleTypeJ3D.doTransform: " +
@@ -208,6 +214,7 @@ public class ShadowTupleTypeJ3D extends ShadowTypeJ3D {
 
     if (range_select[0] != null && range_select[0][0] != range_select[0][0]) {
       // data not selected
+      ensureNotEmpty(group);
       return false;
     }
 
@@ -236,6 +243,7 @@ public class ShadowTupleTypeJ3D extends ShadowTypeJ3D {
                                              default_values, renderer);
         }
       }
+      ensureNotEmpty(group);
       return post;
     }
   }

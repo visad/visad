@@ -97,9 +97,15 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
                              float[] default_values, DataRenderer renderer)
          throws VisADException, RemoteException { // J3D
 
-    if (data.isMissing()) return false;
+    if (data.isMissing()) {
+      ensureNotEmpty(group);
+      return false;
+    }
     int LevelOfDifficulty = adaptedShadowType.getLevelOfDifficulty();
-    if (LevelOfDifficulty == NOTHING_MAPPED) return false;
+    if (LevelOfDifficulty == NOTHING_MAPPED) {
+      ensureNotEmpty(group);
+      return false;
+    }
 
     // if transform has taken more than 500 milliseconds and there is
     // a flag requesting re-transform, throw a DisplayInterruptException
@@ -183,7 +189,10 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
           if (bvalues[0]) any_enabled = true;
         }
       }
-      if (!any_enabled) return false;
+      if (!any_enabled) {
+        ensureNotEmpty(group);
+        return false;
+      }
     }
 
     Set domain_set = null;
@@ -571,6 +580,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
     if (range_select[0] != null && range_select[0].length == 1 &&
         range_select[0][0] != range_select[0][0]) {
       // single missing value in range_select[0], so render nothing
+      ensureNotEmpty(group);
       return false;
     }
 
@@ -597,6 +607,7 @@ System.out.println("doTerminal: isTerminal = " + adaptedShadowType.getIsTerminal
       if (range_select[0] != null && range_select[0].length == 1 &&
           range_select[0][0] != range_select[0][0]) {
         // single missing value in range_select[0], so render nothing
+        ensureNotEmpty(group);
         return false;
       }
 
@@ -624,6 +635,7 @@ System.out.println("doTerminal: isTerminal = " + adaptedShadowType.getIsTerminal
       if (range_select[0] != null && range_select[0].length == 1 &&
           range_select[0][0] != range_select[0][0]) {
         // single missing value in range_select[0], so render nothing
+        ensureNotEmpty(group);
         return false;
       }
 
@@ -643,6 +655,7 @@ System.out.println("doTerminal: isTerminal = " + adaptedShadowType.getIsTerminal
       if (range_select[0] != null && range_select[0].length == 1 &&
           range_select[0][0] != range_select[0][0]) {
         // single missing value in range_select[0], so render nothing
+        ensureNotEmpty(group);
         return false;
       }
 
@@ -661,6 +674,7 @@ System.out.println("doTerminal: isTerminal = " + adaptedShadowType.getIsTerminal
         if (color_values[3][0] != color_values[3][0]) {
           // a single missing alpha value, so render nothing
           // System.out.println("single missing alpha");
+          ensureNotEmpty(group);
           return false;
         }
         // System.out.println("single alpha " + color_values[3][0]);
@@ -712,6 +726,7 @@ System.out.println("replicate alpha = " + v + " " + constant_alpha +
             color_values[2][0] != color_values[2][0]) {
           // System.out.println("single missing color");
           // a single missing color value, so render nothing
+          ensureNotEmpty(group);
           return false;
         }
         // constant color, so put it in appearance
@@ -724,6 +739,7 @@ System.out.println("replicate alpha = " + v + " " + constant_alpha +
       if (range_select[0] != null && range_select[0].length == 1 &&
           range_select[0][0] != range_select[0][0]) {
         // single missing value in range_select[0], so render nothing
+        ensureNotEmpty(group);
         return false;
       }
 
@@ -1219,11 +1235,15 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
             // System.out.println("isTextureMap done");
 
+            ensureNotEmpty(group);
             return false;
           }
           else if (range_select[0] != null) {
             int len = range_select[0].length;
-            if (len == 1 || spatial_values[0].length == 1) return false;
+            if (len == 1 || spatial_values[0].length == 1) {
+              ensureNotEmpty(group);
+              return false;
+            }
             for (int j=0; j<len; j++) {
               // range_select[0][j] is either 0.0f or Float.NaN -
               // adding Float.NaN will move the point off the screen
@@ -1287,6 +1307,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           }
         } // end if (!anyContourCreated && !anyFlowCreated)
 
+        ensureNotEmpty(group);
         return false;
       }
       else if (LevelOfDifficulty == SIMPLE_ANIMATE_FIELD) {
@@ -1327,7 +1348,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             BranchGroup branch = new BranchGroup(); // J3D
             branch.setCapability(BranchGroup.ALLOW_DETACH);
             VisADPointArray array = new VisADPointArray();
-            array.vertexFormat = 1;
+            array.vertexCount = 1;
             coordinates = new float[3];
             if (spatial_values[0].length > 1) {
               coordinates[0] = spatial_values[0][i];
@@ -1377,6 +1398,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         control.init();
         group.addChild(swit);
 
+        ensureNotEmpty(group);
         return false;
       }
       else { // must be LevelOfDifficulty == LEGAL
@@ -1497,6 +1519,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         control.init();
       }
 
+      ensureNotEmpty(group);
       return post;
 /*
       throw new UnimplementedException("ShadowFunctionOrSetType.doTransform: " +

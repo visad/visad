@@ -79,9 +79,15 @@ public class ShadowRealTypeJ3D extends ShadowTypeJ3D {
                       float[] default_values, DataRenderer renderer)
          throws VisADException, RemoteException {
 
-    if (data.isMissing()) return false;
+    if (data.isMissing()) {
+      ensureNotEmpty(group);
+      return false;
+    }
     int LevelOfDifficulty = adaptedShadowType.getLevelOfDifficulty();
-    if (LevelOfDifficulty == NOTHING_MAPPED) return false;
+    if (LevelOfDifficulty == NOTHING_MAPPED) {
+      ensureNotEmpty(group);
+      return false;
+    }
 
     if (!(data instanceof Real)) {
       throw new DisplayException("ShadowrealType.doTransform: " +
@@ -128,6 +134,7 @@ public class ShadowRealTypeJ3D extends ShadowTypeJ3D {
  
     if (range_select[0] != null && range_select[0][0] != range_select[0][0]) {
       // data not selected
+      ensureNotEmpty(group);
       return false;
     }
 
@@ -141,6 +148,7 @@ public class ShadowRealTypeJ3D extends ShadowTypeJ3D {
     else {
       // nothing to render at a non-terminal RealType
     }
+    ensureNotEmpty(group);
     return false;
   }
 
