@@ -190,6 +190,7 @@ public class FormulaVar extends ActionImpl {
       }
     }
     reallyDoIt = true;
+    doAction();
   }
 
   /** set the formula for this variable */
