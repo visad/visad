@@ -70,26 +70,54 @@ public class RemoteServerTestImpl extends UnicastRemoteObject
       FunctionType image_tuple = new FunctionType(earth_location, radiance);
       FunctionType ir_histogram = new FunctionType(ir_radiance, count);
   
+      RealType[] time = {RealType.Time};
+      RealTupleType time_type = new RealTupleType(time);
+      FunctionType time_images = new FunctionType(time_type, image_tuple);
+
       System.out.println(image_tuple);
       System.out.println(ir_histogram);
   
-      int size = 64;
+      // create local DataImpls
+      int size = 4;
       FlatField histogram = FlatField.makeField(ir_histogram, size, false);
-      FlatField imaget = FlatField.makeField(image_tuple, size, false);
       Real real = new Real(ir_radiance, 1.0);
+      FlatField imaget = FlatField.makeField(image_tuple, size, false);
 
-      // create rem_data_ref
-      data_refs = new DataReferenceImpl[3];
-      rem_data_refs = new RemoteDataReferenceImpl[3];
+      // create RemoteData
+      Real[] reals = {new Real(vis_radiance, (float) size / 4.0f),
+                      new Real(ir_radiance, (float) size / 8.0f)};
+      RealTuple val = new RealTuple(reals);
+      FlatField temp = (FlatField) imaget.add(val);
+      RemoteFieldImpl rem_temp = new RemoteFieldImpl(temp);
+      Set time_set = new Linear1DSet(time_type, 0.0, 1.0, 2);
+      FieldImpl image_sequence = new FieldImpl(time_images, time_set);
+      RemoteFieldImpl rem_image_sequence = new RemoteFieldImpl(image_sequence);
+
+
+      // create local DataReferenceImpls
+      data_refs = new DataReferenceImpl[5];
       data_refs[0] = new DataReferenceImpl("DataReference_0");
       data_refs[1] = new DataReferenceImpl("DataReference_1");
       data_refs[2] = new DataReferenceImpl("DataReference_2");
+      data_refs[3] = new DataReferenceImpl("DataReference_3");
+      data_refs[4] = new DataReferenceImpl("DataReference_4");
+
+      // link local DataReferenceImpls to local DataImpls
+      data_refs[0].setData(histogram);
+      data_refs[1].setData(real);
+      data_refs[2].setData(imaget);
+
+      // create RemoteDataReferences
+      rem_data_refs = new RemoteDataReferenceImpl[5];
       rem_data_refs[0] = new RemoteDataReferenceImpl(data_refs[0]);
       rem_data_refs[1] = new RemoteDataReferenceImpl(data_refs[1]);
       rem_data_refs[2] = new RemoteDataReferenceImpl(data_refs[2]);
-      data_refs[0].setData(histogram);
-      data_refs[1].setData(imaget);
-      data_refs[2].setData(real);
+      rem_data_refs[3] = new RemoteDataReferenceImpl(data_refs[3]);
+      rem_data_refs[4] = new RemoteDataReferenceImpl(data_refs[4]);
+
+      // link RemoteDataReferences to RemoteData
+      rem_data_refs[3].setData(rem_temp);
+      rem_data_refs[4].setData(rem_image_sequence);
 
       RemoteServerTestImpl obj = new RemoteServerTestImpl(rem_data_refs);
       Naming.rebind("//demedici.ssec.wisc.edu/RemoteServerTest", obj);

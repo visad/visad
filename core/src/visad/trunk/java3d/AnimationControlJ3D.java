@@ -51,10 +51,6 @@ public class AnimationControlJ3D extends AVControlJ3D
 
   public AnimationControlJ3D(DisplayImplJ3D d) {
     super(d);
-    if (d != null) {
-      animationThread = new Thread(this);
-      animationThread.start();
-    }
     current = 0;
     direction = true;
     step = 100;
@@ -62,6 +58,10 @@ public class AnimationControlJ3D extends AVControlJ3D
     d.addControl(animationSet);
     animate = new ToggleControl(d, this);
     d.addControl(animate);
+    if (d != null) {
+      animationThread = new Thread(this);
+      animationThread.start();
+    }
   }
 
   AnimationControlJ3D() {
@@ -76,7 +76,7 @@ public class AnimationControlJ3D extends AVControlJ3D
   public void run() {
     while (alive) {
       try {
-        if (animate.getOn()) {
+        if (animate != null && animate.getOn()) {
           takeStep();
         }
       }
@@ -175,12 +175,14 @@ public class AnimationControlJ3D extends AVControlJ3D
   }
 
   public boolean subTicks(DataRenderer r, DataDisplayLink link) {
+    boolean flag = false;
     if (animationSet != null) {
-      return animationSet.checkTicks(r, link) || animate.checkTicks(r, link);
+      flag |= animationSet.checkTicks(r, link);
     }
-    else {
-      return false;
+    if (animate != null) {
+      flag |= animate.checkTicks(r, link);
     }
+    return flag;
   }
 
 }

@@ -381,6 +381,7 @@ public class DisplayImplJ3D extends DisplayImpl {
         System.out.println("  9: GIF reader and ColorWidget");
         System.out.println("  10: netCDF adapter");
         System.out.println("  11: CoordinateSystem and Unit");
+        System.out.println("  12: 2-D surface and ColorWidget");
  
         return;
 
@@ -651,20 +652,10 @@ public class DisplayImplJ3D extends DisplayImpl {
  
       case 9:
  
-        System.out.println(test_case + ": test GIF reader and ColorWidget");
+        System.out.println(test_case + ": test GIF reader");
         display1 = new DisplayImplJ3D("display1", APPLETFRAME);
 
-/* WLH 7 Feb 98
-        size = 256;
-        imaget1 = FlatField.makeField(image_tuple, size, false);
-
-        // code to load a GIF image into imaget1
-        double[][] data = imaget1.getValues();
-        DisplayApplet applet = ((DisplayImplJ3D) display1).getApplet();
-        data[1] = applet.getValues("file:/home/billh/java/visad/billh.gif", size);
-        imaget1.setSamples(data);
-*/
-        imaget1 = display1.getImage("file:/home/billh/java/visad/billh.gif");
+        imaget1 = display1.getImage("file:/home/billh/java/visad/bill.gif");
 
         // compute ScalarMaps from type components
         FunctionType ftype = (FunctionType) imaget1.getType();
@@ -674,54 +665,8 @@ public class DisplayImplJ3D extends DisplayImpl {
                                       Display.XAxis));
         display1.addMap(new ScalarMap((RealType) dtype.getComponent(1),
                                       Display.YAxis));
-        ScalarMap color1map = new ScalarMap(rtype, Display.RGB);
-        display1.addMap(color1map);
-        final ColorControl color1control = (ColorControl) color1map.getControl();
+        display1.addMap(new ScalarMap(rtype, Display.RGB));
 
-        final int table_size = 64;
-        final float[][] table = new float[3][table_size];
-        final float scale = 1.0f / (table_size - 1.0f);
-
-        Frame frame = new Frame("VisAD Color Widget");
-        frame.addWindowListener(new WindowAdapter() {
-          public void windowClosing(WindowEvent e) {System.exit(0);}
-        });
- 
-        final ColorWidget w = new ColorWidget();
-        ColorMap map = w.getColorMap();
-        for (int i=0; i<table_size; i++) {
-          float[] t = map.getRGBTuple(scale * i);
-          table[0][i] = t[0];
-          table[1][i] = t[1];
-          table[2][i] = t[2];
-        }
-        color1control.setTable(table);
-
- 
-        frame.add(w);
-        frame.setSize(w.getPreferredSize());
-        frame.setVisible(true);
-
-        w.addColorChangeListener(new ColorChangeListener() {
-          public void colorChanged(ColorChangeEvent e) {
-            ColorMap map_e = w.getColorMap();
-            float[][] table_e = new float[3][table_size];
-            for (int i=0; i<table_size; i++) {
-              float[] t = map_e.getRGBTuple(scale * i);
-              table_e[0][i] = t[0];
-              table_e[1][i] = t[1];
-              table_e[2][i] = t[2];
-            }
-            try {
-              color1control.setTable(table_e);
-            }
-            catch (VisADException f) {
-            }
-            catch (RemoteException f) {
-            }
-          }
-        });
- 
         ref_imaget1 = new DataReferenceImpl("ref_imaget1");
         ref_imaget1.setData(imaget1);
         display1.addReference(ref_imaget1, null);
@@ -797,7 +742,7 @@ public class DisplayImplJ3D extends DisplayImpl {
         FunctionType image_polar = new FunctionType(polar, radiance);
         Unit[] units = {super_degree, null};
         Linear2DSet domain_set =
-          new Linear2DSet(image_polar, 0.0, 60.0, 61, 0.0, 60.0, 61,
+          new Linear2DSet(polar, 0.0, 60.0, 61, 0.0, 60.0, 61,
                           polar_coord_sys, units, null);
         imaget1 = new FlatField(image_polar, domain_set);
         FlatField.fillField(imaget1, 1.0, 30.0);
@@ -809,6 +754,71 @@ public class DisplayImplJ3D extends DisplayImpl {
         display1.addMap(new ConstantMap(0.5, Display.Red));
         display1.addMap(new ConstantMap(0.0, Display.Blue));
 
+        ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+        ref_imaget1.setData(imaget1);
+        display1.addReference(ref_imaget1, null);
+ 
+        break;
+
+      case 12:
+ 
+        System.out.println(test_case + ": test 2-D surface and ColorWidget");
+
+        size = 32;
+        imaget1 = FlatField.makeField(image_tuple, size, false);
+ 
+        display1 = new DisplayImplJ3D("display1", APPLETFRAME);
+        display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+        display1.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+        display1.addMap(new ScalarMap(vis_radiance, Display.ZAxis));
+ 
+        ScalarMap color1map = new ScalarMap(ir_radiance, Display.RGB);
+        display1.addMap(color1map);
+        final ColorControl color1control = (ColorControl) color1map.getControl();
+
+        final int table_size = 64;
+        final float[][] table = new float[3][table_size];
+        final float scale = 1.0f / (table_size - 1.0f);
+
+        Frame frame = new Frame("VisAD Color Widget");
+        frame.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+ 
+        final ColorWidget w = new ColorWidget();
+        ColorMap map = w.getColorMap();
+        for (int i=0; i<table_size; i++) {
+          float[] t = map.getRGBTuple(scale * i);
+          table[0][i] = t[0];
+          table[1][i] = t[1];
+          table[2][i] = t[2];
+        }
+        color1control.setTable(table);
+
+        frame.add(w);
+        frame.setSize(w.getPreferredSize());
+        frame.setVisible(true);
+
+        w.addColorChangeListener(new ColorChangeListener() {
+          public void colorChanged(ColorChangeEvent e) {
+            ColorMap map_e = w.getColorMap();
+            float[][] table_e = new float[3][table_size];
+            for (int i=0; i<table_size; i++) {
+              float[] t = map_e.getRGBTuple(scale * i);
+              table_e[0][i] = t[0];
+              table_e[1][i] = t[1];
+              table_e[2][i] = t[2];
+            }
+            try {
+              color1control.setTable(table_e);
+            }
+            catch (VisADException f) {
+            }
+            catch (RemoteException f) {
+            }
+          }
+        });
+ 
         ref_imaget1 = new DataReferenceImpl("ref_imaget1");
         ref_imaget1.setData(imaget1);
         display1.addReference(ref_imaget1, null);

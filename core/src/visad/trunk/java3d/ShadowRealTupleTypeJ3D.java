@@ -50,7 +50,7 @@ public class ShadowRealTupleTypeJ3D extends ShadowTupleTypeJ3D {
     }
     adaptedShadowType =
       new ShadowRealTupleType(t, link, getAdaptedParent(parent),
-                              components);
+                              components, this);
   }
 
   public ShadowRealTupleType getReference() {

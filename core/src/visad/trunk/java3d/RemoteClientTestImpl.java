@@ -61,20 +61,34 @@ public class RemoteClientTestImpl extends UnicastRemoteObject
 
       System.out.println("RemoteClientTestImpl.main: begin remote activity");
 
-      RemoteServerTest remote_obj =
-        (RemoteServerTest) Naming.lookup("//demedici.ssec.wisc.edu/RemoteServerTest");
+      RemoteServerTest remote_obj = (RemoteServerTest)
+        Naming.lookup("//demedici.ssec.wisc.edu/RemoteServerTest");
  
       RemoteDataReference histogram_ref = remote_obj.getDataReference(0);
-      RemoteDataReference image_ref = remote_obj.getDataReference(1);
-      RemoteDataReference real_ref = remote_obj.getDataReference(2);
+      RemoteDataReference real_ref = remote_obj.getDataReference(1);
+      RemoteDataReference image_ref = remote_obj.getDataReference(2);
+      RemoteDataReference temp_ref = remote_obj.getDataReference(3);
+      RemoteDataReference image_sequence_ref = remote_obj.getDataReference(4);
  
       Data real = real_ref.getData();
-      Data image = image_ref.getData();
       Data histogram = histogram_ref.getData();
+      Data image = image_ref.getData();
+      Data temp = temp_ref.getData();
+      Field image_sequence = (Field) image_sequence_ref.getData();
 
       System.out.println("real type = " + real.getType());
-      System.out.println("image type = " + image.getType());
       System.out.println("histogram type = " + histogram.getType());
+      System.out.println("image type = " + image.getType());
+      System.out.println("temp type = " + temp.getType());
+      System.out.println("image_sequence type = " + image_sequence.getType());
+
+      Data[] data = new Data[2];
+      data[0] = image;
+      data[1] = temp;
+      image_sequence.setSamples(data, false);
+
+      FieldImpl local_image_sequence = (FieldImpl) image_sequence.local();
+      System.out.println(local_image_sequence);
 
 /*
       DisplayImpl display =
