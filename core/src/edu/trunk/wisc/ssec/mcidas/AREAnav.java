@@ -24,6 +24,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package edu.wisc.ssec.mcidas;
 
+import visad.Set;
+
 /**
  * The AREAnav is the superclass for AREA file navigation modules.
  * When used with AreaFile class, set up like this:
@@ -138,7 +140,7 @@ public abstract class AREAnav
     public final int indexLon=1;
 
     private boolean isLineFlipped = false;
-    private double lineOffset = 0.0;
+    private float lineOffset = 0.0f;
 
     // the following are ancillary info set by the set/get
     // public methods Res, Mag, and Start
@@ -177,6 +179,45 @@ public abstract class AREAnav
      *                    (not "image" coordinates);
      */
     public abstract double[][] toLinEle(double[][] latlon);
+
+    /** converts from satellite coordinates to latitude/longitude.
+     * This implementation converts the input array to doubles
+     * and calls the double signature of {@link toLatLon(double[][])}.
+     * Subclasses should implement a real float version for better
+     * performance.
+     *
+     * @param  linele[][]  array of line/element pairs.  Where 
+     *                     linele[indexLine][] is a 'line' and 
+     *                     linele[indexEle][] is an element. These are in 
+     *                     'file' coordinates (not "image" coordinates.)
+     *
+     * @return latlon[][]  array of lat/long pairs. Output array is 
+     *                     latlon[indexLat][] of latitudes and 
+     *                     latlon[indexLon][] of longitudes.
+     *
+     */
+    public float[][] toLatLon(float[][] linele) {
+       return Set.doubleToFloat(toLatLon(Set.floatToDouble(linele)));
+    }
+
+    /**
+     * toLinEle converts lat/long to satellite line/element
+     * This implementation converts the input array to doubles
+     * and calls the double signature of {@link toLineEle(double[][])}.
+     * Subclasses should implement a real float version for better
+     * performance.
+     *
+     * @param  latlon[][] array of lat/long pairs. Where latlon[indexLat][]
+     *                    are latitudes and latlon[indexLon][] are longitudes.
+     *
+     * @return linele[][] array of line/element pairs.  Where
+     *                    linele[indexLine][] is a line and linele[indexEle][]
+     *                    is an element.  These are in 'file' coordinates
+     *                    (not "image" coordinates);
+     */
+    public float[][] toLinEle(float[][] latlon) {
+       return Set.doubleToFloat(toLinEle(Set.floatToDouble(latlon)));
+    }
 
     /** 
      * Define the resolution of the image.
@@ -294,7 +335,7 @@ public abstract class AREAnav
     public void setFlipLineCoordinates(int line) 
     {
         isLineFlipped = true;
-        lineOffset = (double) line;
+        lineOffset = (float) line;
     }
 
     /**
@@ -314,7 +355,7 @@ public abstract class AREAnav
      */
     public double getLineOffset()
     {
-        return lineOffset;
+        return (double) lineOffset;
     }
 
     /**
@@ -352,6 +393,56 @@ public abstract class AREAnav
     public double[][] imageCoordToAreaCoord(double[][] linele)
     {
         double newvals[][] = new double[2][linele[0].length];
+        for (int i = 0; i < linele[0].length; i++)
+        {
+           newvals[indexLine][i] = startLine + 
+               ( magLine * (linele[indexLine][i] -
+                 startImageLine)) / resLine;
+           // account for flipped coordinates
+           if (isLineFlipped) newvals[indexLine][i] = 
+                        lineOffset - newvals[indexLine][i];
+           newvals[indexEle][i] = startElement + 
+                ( magElement * (linele[indexEle][i] -
+                  startImageElement)) / resElement;
+        }
+        return newvals;
+    }
+
+    /**
+     * Converts line/element array values from AREA (file) to Image 
+     * coordinates.  Creates new array instead of mucking with input.
+     *
+     * @param   linele  input line/element array in AREA coordinates
+     * @return  array in Image coordinates
+     */
+    public float[][] areaCoordToImageCoord(float[][] linele)
+    {
+        float newvals[][] = new float[2][linele[0].length];
+        float line;
+        for (int i = 0; i < linele[0].length; i++)
+        {
+           // account for flipped coordinates
+           line = isLineFlipped ? lineOffset - linele[indexLine][i]
+                                         : linele[indexLine][i];
+           newvals[indexLine][i] = 
+               startImageLine + (resLine * (line - startLine)) / magLine;
+               newvals[indexEle][i] = 
+               startImageElement + (resElement * (linele[indexEle][i] -
+               startElement))/magElement;
+        }
+        return newvals;
+    }
+
+    /**
+     * Converts line/element array values from Image to AREA (File) 
+     * coordinates.  Creates new array instead of mucking with input.
+     *
+     * @param   linele  input line/element array Image coordinates
+     * @return  array in AREA coordinates
+     */
+    public float[][] imageCoordToAreaCoord(float[][] linele)
+    {
+        float newvals[][] = new float[2][linele[0].length];
         for (int i = 0; i < linele[0].length; i++)
         {
            newvals[indexLine][i] = startLine + 

@@ -815,6 +815,155 @@ public class GVARnav extends AREAnav
 
   }
 
+  /** converts from satellite coordinates to latitude/longitude
+   *
+   * @param  linele[][]  array of line/element pairs.  Where 
+   *                     linele[indexLine][] is a 'line' and 
+   *                     linele[indexEle][] is an element. These are in 
+   *                     'file' coordinates (not "image" coordinates.)
+   *
+   * @return latlon[][]  array of lat/lon pairs. Output array is 
+   *                     latlon[indexLat][] of latitudes and 
+   *                     latlon[indexLon][] of longitudes.
+   *
+   */
+  public float[][] toLatLon(float[][] linele) { 
+
+    double rl, rp;
+    double ylat, ylon;
+    int number = linele[0].length;
+
+    navTransformOK = true;
+
+    // alpha = elevation angle (rad)
+    // zeta = scan angle (rad)
+    double q1, q2, d, h, alpha, zeta, alpha0, zeta0, ff, doff;
+    double[] g1 = new double[3];
+    double[] g = new double[3];
+    double[] u = new double[3];
+    double sa, ca, da, dz, d1, cz;
+    float[][] latlon = new float[2][number];
+
+    //  transform line/pixel to geographic coordinates:
+    float imglinele[][] = areaCoordToImageCoord(linele); 
+
+    for (int point=0; point<number; point++) {
+
+      //  set input line/pixel numbers
+      rl = imglinele[indexLine][point];
+      rp = imglinele[indexEle][point];
+
+      //  if doing sounder nav, have to trick routines into thinking image is
+      //  at res 1, because nav routines take sounder res into account
+      if (instr == 2) {
+        rl = (rl+9.)/10.;
+        rp = (rp+9.)/10.;
+      }
+       
+       //  compute elevation and scan angles (e,s) related to input
+       //  line and pixel numbers
+
+      if (instr == 1) {
+        alpha0 = elvmax[0] - (rl - 4.5) * elvln[0];
+      } else {
+        alpha0 = elvmax[1] - (rl - 2.5) * elvln[1];
+      }
+
+      zeta0 = (rp - 1.0) * scnpx[instr-1] - scnmax[instr - 1];
+
+      // compute sign of misalignment corrections and origin offset
+      ff = (double) iflip;
+      if (instr == 2) ff = -ff;
+      doff = scnmax[instr - 1] - ewnom[instr - 1];;
+
+
+      // add new second order origin offset correction
+      alpha = alpha0- alpha0 * zeta0 * doff;
+      zeta = zeta0+ 0.5f * alpha0 * alpha0 * doff;
+
+      //  transform elevation and scan angles to geographic coordinates
+      //  (this is the old 'lpoint' routine...
+
+     // computes trigonometric funktions of the scan and elevation
+     // angles corrected for the roll and pitch misalignments
+      ca = Math.cos(alpha);
+      sa = Math.sin(alpha);
+      cz = Math.cos(zeta);
+      da = alpha-pma*sa*(ff/cz+Math.tan(zeta))-rma*(1.0d-ca/cz);
+      dz = zeta + ff * rma * sa;
+
+     // corrected scan angle
+      cz = Math.cos(dz);
+
+     // computes pointing vector in instrument coordinates
+      g[0] = Math.sin(dz);
+      g[1] = -cz * Math.sin(da);
+      g[2] = cz * Math.cos(da);
+
+     // transforms the pointing vector to earth fixed coordinates
+      g1[0] = bt[0][0] * g[0] + bt[0][1] * g[1] + bt[0][2] * g[2];
+      g1[1] = bt[1][0] * g[0] + bt[1][1] * g[1] + bt[1][2] * g[2];
+      g1[2] = bt[2][0] * g[0] + bt[2][1] * g[1] + bt[2][2] * g[2];
+
+     // computes coefficients and solves a quadratic equation to
+     // find the intersect of the pointing vector with the earth
+     // surface
+      q1 = g1[0]*g1[0] + g1[1]*g1[1] + aebe2c * g1[2]*g1[2];
+      q2 = xs[0] * g1[0] + xs[1] * g1[1] + aebe2c * xs[2] * g1[2];
+      d  = q2 * q2 - q1 * q3;
+      if (Math.abs(d) < 1.d-9) {
+         d=0.;
+      }
+
+     // if the discriminant of the equation, d, is negative, the
+     // instrument points off the earth
+
+      if (d >= 0.0) {
+        d = Math.sqrt(d);
+
+       // slant distance from the satellite to the earth point
+        h = -(q2 + d) / q1;
+
+       // cartesian coordinates of the earth point
+        u[0] = xs[0] + h * g1[0];
+        u[1] = xs[1] + h * g1[1];
+        u[2] = xs[2] + h * g1[2];
+
+       // sinus of geocentric latitude
+        d1 = u[2] / Math.sqrt(u[0]*u[0] + u[1]*u[1] + u[2]*u[2]);
+
+       // geographic (geodetic) coordinates of the point
+        rlat = Math.atan(aebe2c * d1 / Math.sqrt(1. - d1 * d1));
+        rlon = Math.atan2(u[1],u[0]);
+      } else {
+        latlon[indexLat][point] = Float.NaN;
+        latlon[indexLon][point] = Float.NaN;
+        navTransformOK = false;
+        continue;
+      }
+
+      rlat = rlat * DEG;
+      rlon = rlon * DEG;
+
+       //  put longitude into mcidas form
+      if (!isEastPositive) rlon = -rlon;
+
+       //  see if we have to convert to x y z coordinates
+      if (itype == 2) {
+        ylat = (double) rlat;
+        ylon = (double) rlon;
+        // llcart(ylat,ylon,xlat,xlon,z);
+      } else {
+        latlon[indexLat][point] = (float) rlat;
+        latlon[indexLon][point] = (float) rlon;
+      }
+
+    } // end point for loop
+
+    return latlon;
+
+  }
+
 
   /**
    * toLinEle converts lat/long to satellite line/element
@@ -935,6 +1084,138 @@ public class GVARnav extends AREAnav
    // convert internal 8 byte values to 4 bytes
       linele[indexLine][point] = tmplin;
       linele[indexEle][point] = tmpele;
+
+   // if doing sounder nav, change lin & ele returned to res 10 values
+      if (instr == 2) {
+        linele[indexLine][point] = linele[indexLine][point]*10.f-9.f;
+        linele[indexEle][point] = linele[indexEle][point]*10.f-9.f;
+      }
+
+    } // end for loop on points
+
+    // Return in 'File' coordinates
+    return imageCoordToAreaCoord(linele);
+  }
+
+  /**
+   * toLinEle converts lat/long to satellite line/element
+   *
+   * @param  latlon[][]  array of lat/long pairs. Where latlon[indexLat][]
+   *                     are latitudes and latlon[indexLon][] are longitudes.
+   *
+   * @return linele[][]  array of line/element pairs.  Where
+   *                     linele[indexLine][] is a line and linele[indexEle][] 
+   *                     is an element.  These are in 'file' coordinates
+   *                     (not "image" coordinates);
+   */
+  public float[][] toLinEle(float[][] latlon) {
+
+    double x, y;
+    double tmplin, tmpele;
+    double sing, slat, w1, w2, ff, doff, alpha1;
+    double [] f = new double[3];
+    double [] ft = new double[3];
+    double [] u = new double[3];
+    int number = latlon[0].length;
+    float[][] linele = new float[2][number];
+
+    navTransformOK = true;
+
+    ff = (double) iflip;
+    if (instr == 2) ff = -ff;
+    doff = scnmax[instr-1] - ewnom[instr - 1];
+
+    for (int point=0; point<number; point++) {
+
+     // if in cartesian coords, transform to lat/lon
+      if (itype == 2){
+        x = latlon[indexLat][point];
+        y = latlon[indexLon][point];
+        // cartll(x,y,z,zlat,zlon);
+      }
+
+      if (Math.abs(latlon[indexLat][point]) > 90.) {
+        linele[indexLine][point] = Float.NaN;
+        linele[indexEle][point] = Float.NaN;
+        navTransformOK = false;
+        continue;
+      }
+
+      rlat = (double)latlon[indexLat][point]*RAD;
+      rlon = (double)latlon[indexLon][point]*RAD;
+      if (!isEastPositive) rlon = -rlon;
+
+     // transform lat/lon to elevation and scan angles
+     // (used to be the gpoint routine...)
+
+     // computes sinus of geographic (geodetic) latitude
+      sing = Math.sin(rlat);
+      w1   = aebe4c * sing * sing;
+
+     // sinus of the geocentric latitude
+      slat = ((0.375 * w1 - 0.5) * w1 + 1.) * sing / aebe2c;
+
+     // computes local earth radius at specified point
+      w2 = slat * slat;
+      w1 = aebe3c * w2;
+      w1 = (0.375 * w1 - 0.5) * w1 + 1.;
+
+     // computes cartesian coordinates of the point
+      u[2] = slat * w1;
+      w2   = w1 * Math.sqrt(1. - w2);
+      u[0] = w2 * Math.cos(rlon);
+      u[1] = w2 * Math.sin(rlon);
+
+     // pointing vector from satellite to the earth point
+      f[0] = u[0] - xs[0];
+      f[1] = u[1] - xs[1];
+      f[2] = u[2] - xs[2];
+      w2 = u[0] * f[0] + u[1] * f[1] + u[2] * f[2] * aebe2c;
+
+     // verifies visibility of the point
+     if (w2 <= 0.0) {
+       // converts pointing vector to instrument coordinates
+        ft[0] = bt[0][0] * f[0] + bt[1][0] * f[1] + bt[2][0] * f[2];
+        ft[1] = bt[0][1] * f[0] + bt[1][1] * f[1] + bt[2][1] * f[2];
+        ft[2] = bt[0][2] * f[0] + bt[1][2] * f[1] + bt[2][2] * f[2];
+
+       // converts pointing vector to scan and elevation angles and
+       // corrects for the roll and pitch misalignments
+        gam  = Math.atan(ft[0] / Math.sqrt(ft[1]*ft[1] + ft[2]*ft[2] ) );
+        alf  = -Math.atan( ft[1] / ft[2] );
+        w1   = Math.sin(alf);
+        w2   = Math.cos(gam);
+        alpha1  = alf + rma * (1. - Math.cos(alf) / w2) + pma * w1 * 
+                         (doff / w2 + Math.tan(gam));
+        gam  = gam - ff * rma * w1;
+        alf = alpha1 + alpha1 * gam * doff;
+        gam = gam - 0.5f * alpha1 * alpha1 * doff;
+
+      } else {
+        // not visible...
+        linele[indexLine][point] = Float.NaN;
+        linele[indexEle][point] = Float.NaN;
+        navTransformOK = false;
+        continue;
+      }
+
+   // convert elevation and scan angles to line/pixel coordinates
+
+   // compute fractional line number
+
+      tmplin = (elvmax[instr-1] - alf) / elvln[instr-1];
+      if (instr == 1) {
+        tmplin = tmplin + 4.5;
+      } else {
+        tmplin = tmplin + 2.5;
+      }
+
+   // compute fractional pixel number
+      tmpele = (scnmax[instr-1] + gam) / scnpx[instr-1] + 1.;
+
+   // convert internal 8 byte values to 4 bytes
+      linele[indexLine][point] = (float) tmplin;
+      linele[indexEle][point] = (float) tmpele;
 
    // if doing sounder nav, change lin & ele returned to res 10 values
       if (instr == 2) {
