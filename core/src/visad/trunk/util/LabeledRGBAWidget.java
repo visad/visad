@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: LabeledRGBAWidget.java,v 1.11 1998-12-31 23:22:44 billh Exp $
+@(#) $Id: LabeledRGBAWidget.java,v 1.12 1999-04-23 15:25:28 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -40,12 +40,13 @@ import javax.swing.*;
  * RGBA tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.11 $, $Date: 1998-12-31 23:22:44 $
+ * @version $Revision: 1.12 $, $Date: 1999-04-23 15:25:28 $
  * @since Visad Utility Library v0.7.1
  */
 public class LabeledRGBAWidget extends Panel implements ActionListener,
                                                         ColorChangeListener,
-                                                        ScalarMapListener {
+                                                        ScalarMapListener,
+                                                        ControlListener {
 
   private final int TABLE_SIZE;
   private final float SCALE;
@@ -188,6 +189,7 @@ public class LabeledRGBAWidget extends Panel implements ActionListener,
       orig_table = copy_table(in_table);
     }
     widget.addColorChangeListener(this);
+    colorAlphaControl.addControlListener(this);
   }
 
   private Dimension maxSize = null;
@@ -261,6 +263,29 @@ public class LabeledRGBAWidget extends Panel implements ActionListener,
       }
       catch (VisADException exc) { }
       catch (RemoteException exc) { }
+    }
+  }
+
+  public void controlChanged(ControlEvent e)
+        throws VisADException, RemoteException {
+    float[][] table = colorAlphaControl.getTable();
+    ColorMap map = widget.getColorMap();
+
+    boolean identical = true;
+    for (int i=0; i<TABLE_SIZE; i++) {
+      float[] t = map.getTuple(SCALE * i);
+      if (Math.abs(table[0][i] - t[0]) > 0.0001 ||
+          Math.abs(table[1][i] - t[1]) > 0.0001 ||
+          Math.abs(table[2][i] - t[2]) > 0.0001 ||
+          Math.abs(table[3][i] - t[3]) > 0.0001)
+      {
+        identical = false;
+        break;
+      }
+    }
+
+    if (!identical) {
+      ((RGBAMap) map).setValues(table_reorg(table));
     }
   }
 

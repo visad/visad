@@ -40,7 +40,9 @@ import java.rmi.RemoteException;
 import visad.*;
 
 /** A widget that allows users to control graphics mode parameters.<P> */
-public class GMCWidget extends JPanel implements ActionListener, ItemListener {
+public class GMCWidget extends JPanel implements ActionListener,
+                                                 ItemListener,
+                                                 ControlListener {
 
   /** This GMCWidget's associated control */
   GraphicsModeControl control;
@@ -118,6 +120,7 @@ public class GMCWidget extends JPanel implements ActionListener, ItemListener {
     lineWidth.setActionCommand("line");
     pointSize.addActionListener(this);
     pointSize.setActionCommand("point");
+    control.addControlListener(this);
 
     // lay out JComponents
     top.add(scale);
@@ -195,5 +198,34 @@ public class GMCWidget extends JPanel implements ActionListener, ItemListener {
     }
   }
 
+  /** Handles GraphicsModeControl changes */
+  public void controlChanged(ControlEvent e) {
+    if (control == null) {
+      return;
+    }
+
+    if (control.getScaleEnable() != scale.isSelected()) {
+      scale.setSelected(control.getScaleEnable());
+    }
+    if (control.getPointMode() != point.isSelected()) {
+      point.setSelected(control.getPointMode());
+    }
+    if (control.getTextureEnable() != texture.isSelected()) {
+      texture.setSelected(control.getTextureEnable());
+    }
+
+    float val;
+
+    val = control.getLineWidth();
+    if (Math.abs(val - gmcLineWidth) > 0.0001) {
+      lineWidth.setText(PlotText.shortString(val));
+      gmcLineWidth = val;
+    }
+    val = control.getPointSize();
+    if (Math.abs(val - gmcPointSize) > 0.0001) {
+      pointSize.setText(PlotText.shortString(val));
+      gmcPointSize = val;
+    }
+  }
 }
 
