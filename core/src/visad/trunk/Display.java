@@ -221,7 +221,7 @@ public interface Display extends Action {
      Flow2X, Flow2Y, Flow2Z, XAxisOffset, YAxisOffset, ZAxisOffset, Shape,
      Text, ShapeScale, LineWidth, PointSize, CylRadius, CylAzimuth, CylZAxis,
      Flow1Elevation, Flow1Azimuth, Flow1Radial,
-     Flow2Elevation, Flow2Azimuth, Flow2Radial, LineStyle};
+     Flow2Elevation, Flow2Azimuth, Flow2Radial, LineStyle, TextureEnable};
 
   /** system intrinsic DisplayTupleType objects */
   /** system intrinsic DisplayTupleType for 3D Cartesian Spatial Coordinates */
