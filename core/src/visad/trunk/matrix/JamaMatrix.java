@@ -282,6 +282,8 @@ public class JamaMatrix extends FlatField {
     // if field is already a JamaMatrix the task is trivial
     if (field instanceof JamaMatrix) return (JamaMatrix) field;
 
+    FunctionType ftype = (FunctionType) field.getType();
+
     // get domain set (must be 2-D ordered samples)
     Set set = field.getDomainSet();
     Gridded2DSet grid = null;
@@ -299,9 +301,15 @@ public class JamaMatrix extends FlatField {
     else if (set instanceof Gridded1DSet) {
       int[] lengths = ((Gridded1DSet) set).getLengths();
       float[][] samples = set.getSamples(false);
-      grid = new Gridded2DSet(set.getType(), samples, lengths[0],
-                              lengths[1], set.getCoordinateSystem(),
-                              set.getSetUnits(), set.getSetErrors());
+      float[] dummies = new float[lengths[0]];
+      for (int i=0; i<lengths[0]; i++) dummies[i] = 0.0f;
+      samples = new float[][] {samples[0], dummies};
+      RealType rt1 =
+        (RealType) ((SetType) set.getType()).getDomain().getComponent(0);
+      RealType rt0 = RealType.getRealType("dummy");
+      RealTupleType rtt = new RealTupleType(rt1, rt0);
+      grid = new Gridded2DSet(rtt, samples, lengths[0], 1, null, null, null);
+      ftype = new FunctionType(rtt, ftype.getRange());
     }
     else {
       return null;
@@ -329,7 +337,6 @@ public class JamaMatrix extends FlatField {
       }
     }
 
-    FunctionType ftype = (FunctionType) field.getType();
     CoordinateSystem rc = null;
     try {
       CoordinateSystem[] r = field.getRangeCoordinateSystem();
@@ -1149,6 +1156,7 @@ public class JamaMatrix extends FlatField {
       throw new VisADException("you need to install Jama from " +
                                "http://math.nist.gov/javanumerics/jama/");
     }
+
     Object m = solve.invoke(matrix, new Object[] {B.getMatrix()});
     return new JamaMatrix(m);
   }

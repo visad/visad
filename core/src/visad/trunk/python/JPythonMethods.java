@@ -386,6 +386,9 @@ public abstract class JPythonMethods {
       in each dimension */
   public static FlatField hist(Field field, int[] ranges)
          throws VisADException, RemoteException {
+    if (ranges == null || ranges.length == 0) {
+      throw new VisADException("bad ranges");
+    }
     int dim = ranges.length;
     int[] sizes = new int[dim];
     for (int i=0; i<dim; i++) sizes[i] = 64;
@@ -397,6 +400,15 @@ public abstract class JPythonMethods {
       bins defined by sizes */
   public static FlatField hist(Field field, int[] ranges, int[] sizes)
          throws VisADException, RemoteException {
+    if (ranges == null || ranges.length == 0) {
+      throw new VisADException("bad ranges");
+    }
+    if (sizes == null || sizes.length != ranges.length) {
+      throw new VisADException("bad sizes");
+    }
+    if (field == null) {
+      throw new VisADException("bad field");
+    }
     FunctionType ftype = (FunctionType) field.getType();
     RealType[] frealComponents = ftype.getRealComponents();
     int n = frealComponents.length;
@@ -436,6 +448,146 @@ public abstract class JPythonMethods {
       set = new LinearNDSet(rtt, firsts, lasts, sizes);
     }
     return Histogram.makeHistogram(field, set);
+  }
+
+  /** construct a FlatField with given values array */
+  public static FlatField field(float[] values)
+         throws VisADException, RemoteException {
+    return field("value", values);
+  }
+
+  /** construct a FlatField with given range RealType name
+      and values array */
+  public static FlatField field(String name, float[] values)
+         throws VisADException, RemoteException {
+    if (values == null || values.length == 0) {
+      throw new VisADException("bad values");
+    }
+    RealType domain = RealType.getRealType("domain");
+    return field(new Integer1DSet(domain, values.length), name, values);
+  }
+
+  /** construct a FlatField with given domain set, range RealType
+      name and values array */
+  public static FlatField field(Set set, String name, float[] values)
+         throws VisADException, RemoteException {
+    if (values == null) {
+      throw new VisADException("bad values");
+    }
+    if (set == null || set.getLength() < values.length) {
+      throw new VisADException("bad set " + set);
+    }
+    if (name == null) {
+      throw new VisADException("bad name");
+    }
+    MathType domain = ((SetType) set.getType()).getDomain();
+    if (((RealTupleType) domain).getDimension() == 1) {
+      domain = ((RealTupleType) domain).getComponent(0);
+    }
+    RealType range = RealType.getRealType(name);
+    FunctionType ftype = new FunctionType(domain, range);
+    FlatField field = new FlatField(ftype, set);
+    int len = set.getLength();
+    boolean copy = true;
+    if (values.length < len) {
+      float[] new_values = new float[len];
+      System.arraycopy(values, 0, new_values, 0, len);
+      for (int i=values.length; i<len; i++) new_values[i] = Float.NaN;
+      values = new_values;
+      copy = false;
+    }
+    float[][] field_values = {values};
+    field.setSamples(field_values, copy);
+    return field;
+  }
+
+  /** construct a FlatField with given 2-D values array */
+  public static FlatField field(float[][] values)
+         throws VisADException, RemoteException {
+    return field("value", values);
+  }
+
+  /** construct a FlatField with given range RealType name
+      and 2-D values array */
+  public static FlatField field(String name, float[][] values)
+         throws VisADException, RemoteException {
+    int[] temps = getValuesLengths(values);
+    int values_len = temps[0];
+    int min = temps[1];
+    int max = temps[2];
+    RealType line = RealType.getRealType("ImageLine");
+    RealType element = RealType.getRealType("ImageElement");
+    RealTupleType domain = new RealTupleType(element, line);
+    return field(new Integer2DSet(domain, max, values_len), name, values);
+  }
+
+  /** construct a FlatField with given domain set, range RealType
+      name and 2-D values array */
+  public static FlatField field(Set set, String name, float[][] values)
+         throws VisADException, RemoteException {
+    int[] temps = getValuesLengths(values);
+    int values_len = temps[0];
+    int min = temps[1];
+    int max = temps[2];
+
+    if (set == null || !(set instanceof GriddedSet) ||
+        set.getManifoldDimension() != 2) {
+      throw new VisADException("bad set " + set);
+    }
+    int len0 = ((GriddedSet) set).getLength(0);
+    int len1 = ((GriddedSet) set).getLength(1);
+    if (len0 < max || len1 < values_len) {
+      throw new VisADException("bad set length " + len0 + " " + len1);
+    }
+    if (name == null) {
+      throw new VisADException("bad name");
+    }
+
+    MathType domain = ((SetType) set.getType()).getDomain();
+    if (((RealTupleType) domain).getDimension() == 1) {
+      domain = ((RealTupleType) domain).getComponent(0);
+    }
+    RealType range = RealType.getRealType(name);
+    FunctionType ftype = new FunctionType(domain, range);
+    FlatField field = new FlatField(ftype, set);
+    int len = len0 * len1; // == set.getLength()
+
+    float[] new_values = new float[len];
+    for (int j=0; j<values_len; j++) {
+      int m = j * len0;
+      int n = values[j].length;
+      if (n > 0) System.arraycopy(values[j], 0, new_values, m, n);
+      for (int i=(m+n); i<(m+len0); i++) new_values[i] = Float.NaN;
+    }
+    for (int j=values_len; j<len1; j++) {
+      int m = j * len0;
+      for (int i=m; i<(m+len0); i++) new_values[i] = Float.NaN;
+    }
+    float[][] field_values = {new_values};
+    field.setSamples(field_values, false);
+    return field;
+  }
+
+  private static int[] getValuesLengths(float[][] values)
+          throws VisADException {
+    if (values == null) {
+      throw new VisADException("bad values");
+    }
+    int values_len = values.length;
+    int min = Integer.MAX_VALUE;
+    int max = 0;
+    for (int j=0; j<values_len; j++) {
+      if (values[j] == null) {
+        throw new VisADException("bad values");
+      }
+      int n = values[j].length;
+      if (n > max) max = n;
+      if (n < min) min = n;
+    }
+    if (max < min) {
+      min = 0;
+    }
+    return new int[] {values_len, min, max};
   }
 
   /** NOT DONE */
