@@ -83,52 +83,52 @@ public class TCData {
       rtTime = RealType.Time;
   
       // Fix
-      rtFixID = new RealType("FixID", null, null);
+      rtFixID = RealType.getRealType("FixID", null, null);
       rtLat = RealType.Latitude;
       rtLon = RealType.Longitude;
-      rtError = new RealType("Error", null, null);
-      rtFixStyle = new RealType("FixStyle", null, null);
+      rtError = RealType.getRealType("Error", null, null);
+      rtFixStyle = RealType.getRealType("FixStyle", null, null);
       RealTupleType fixTuple = new RealTupleType(new RealType[]
        {rtFixID, rtLat, rtLon, rtError, rtFixStyle});
       fixFunction = new FunctionType(rtTime, fixTuple);
   
       // Intensity
-      rtIntensityID = new RealType("IntensityID", null, null);
-      rtWindMean = new RealType("WindMean", null, null);
-      rtWindGust = new RealType("WindGust", null, null);
-      rtCentralPressure = new RealType("CentralPressure", null, null);
-      rtCategory = new RealType("Category", null, null);
+      rtIntensityID = RealType.getRealType("IntensityID", null, null);
+      rtWindMean = RealType.getRealType("WindMean", null, null);
+      rtWindGust = RealType.getRealType("WindGust", null, null);
+      rtCentralPressure = RealType.getRealType("CentralPressure", null, null);
+      rtCategory = RealType.getRealType("Category", null, null);
       RealTupleType intensityTuple = new RealTupleType(new RealType[]
         {rtIntensityID, rtWindMean, rtWindGust, rtCentralPressure, rtCategory});
       intensityFunction = new FunctionType(rtTime, intensityTuple);
   
       // Size
-      rtSizeID = new RealType("SizeID", null, null);
-      rtGaleRadius = new RealType("GaleRadius", null, null);
-      rtStormRadius = new RealType("StormRadius", null, null);
-      rtHurricaneRadius = new RealType("HurricaneRadius", null, null);
-      rtRadiusOfMaximumWinds = new RealType("RadiusOfMaximumWinds", null, null);
-      rtSizeStyle = new RealType("SizeStyle", null, null);
+      rtSizeID = RealType.getRealType("SizeID", null, null);
+      rtGaleRadius = RealType.getRealType("GaleRadius", null, null);
+      rtStormRadius = RealType.getRealType("StormRadius", null, null);
+      rtHurricaneRadius = RealType.getRealType("HurricaneRadius", null, null);
+      rtRadiusOfMaximumWinds = RealType.getRealType("RadiusOfMaximumWinds", null, null);
+      rtSizeStyle = RealType.getRealType("SizeStyle", null, null);
       RealTupleType sizeTuple = new RealTupleType(new RealType[]
         {rtSizeID, rtGaleRadius, rtStormRadius, rtHurricaneRadius,
          rtRadiusOfMaximumWinds, rtSizeStyle});
       sizeFunction = new FunctionType(rtTime, sizeTuple);
   
       // Steering
-      rtSteeringID = new RealType("SteeringID", null, null);
-      rtSteeringDirection = new RealType("SteeringDirection", null, null);
-      rtSteeringStyle = new RealType("SteeringStyle", null, null);
+      rtSteeringID = RealType.getRealType("SteeringID", null, null);
+      rtSteeringDirection = RealType.getRealType("SteeringDirection", null, null);
+      rtSteeringStyle = RealType.getRealType("SteeringStyle", null, null);
       RealTupleType steeringTuple = new RealTupleType(new RealType[]
         {rtSteeringID, rtSteeringDirection, rtSteeringStyle});
       steeringFunction = new FunctionType(rtTime, steeringTuple);
   
       // Track
-      rtTrackID = new RealType("TrackID", null, null);
-      ttTrackType = new TextType("TrackType");
-      ttTrackName = new TextType("TrackName");
-      rtBaseDateTime = new RealType("BaseDateTime", null, null);
-      rtCreateDateTime = new RealType("CreateDateTime", null, null);
-      ttDisplayType = new TextType("DisplayType");
+      rtTrackID = RealType.getRealType("TrackID", null, null);
+      ttTrackType = TextType.getTextType("TrackType");
+      ttTrackName = TextType.getTextType("TrackName");
+      rtBaseDateTime = RealType.getRealType("BaseDateTime", null, null);
+      rtCreateDateTime = RealType.getRealType("CreateDateTime", null, null);
+      ttDisplayType = TextType.getTextType("DisplayType");
       ttTrack = new TupleType(new MathType[]
         {ttTrackType, ttTrackName, rtBaseDateTime, rtCreateDateTime,
          ttDisplayType, fixFunction, intensityFunction, sizeFunction,
@@ -136,16 +136,16 @@ public class TCData {
       ftId2Track = new FunctionType(rtTrackID, ttTrack);
   
       // Disturbance
-      rtDisturbanceID = new RealType("DisturbanceID", null, null);
-      ttCountry = new TextType("Country");
-      ttState = new TextType("State");
-      ttHistoricalName = new TextType("HistoricalName");
-      rtYear = new RealType("Year", null, null);
-      rtNumber = new RealType("Number", null, null);
-      rtOpenDate = new RealType("OpenDate", null, null);
-      rtCloseDate = new RealType("CloseDate", null, null);
-      rtArchiveMode = new RealType("ArchiveMode", null, null);
-      rtRealtimeMode = new RealType("RealtimeMode", null, null);
+      rtDisturbanceID = RealType.getRealType("DisturbanceID", null, null);
+      ttCountry = TextType.getTextType("Country");
+      ttState = TextType.getTextType("State");
+      ttHistoricalName = TextType.getTextType("HistoricalName");
+      rtYear = RealType.getRealType("Year", null, null);
+      rtNumber = RealType.getRealType("Number", null, null);
+      rtOpenDate = RealType.getRealType("OpenDate", null, null);
+      rtCloseDate = RealType.getRealType("CloseDate", null, null);
+      rtArchiveMode = RealType.getRealType("ArchiveMode", null, null);
+      rtRealtimeMode = RealType.getRealType("RealtimeMode", null, null);
       TupleType ttDisturbance = new TupleType(new MathType[]
         {ttCountry, ttState, rtYear, rtNumber, ttHistoricalName,
          rtOpenDate, rtCloseDate, rtArchiveMode, rtRealtimeMode, ftId2Track});
@@ -471,12 +471,49 @@ public class TCData {
              FlatField fixes, FlatField intensities, FlatField sizes,
              FlatField steerings)
          throws VisADException, RemoteException {
+
+    //jk : allow for null sizes
+    if (sizes == null) sizes = TCData.makeMissingSizes();
+    if (steerings == null) steerings = TCData.makeMissingSteerings();
+    // should also have same test for fixes & intensities & steerings
+    // + methods makeMissingFixes and makeMissingIntensities ?
+
     return new Tuple(new DataImpl[]
       {new Text(ttTrackType, track_type), new Text(ttTrackName, track_name),
        new Real(rtBaseDateTime, base_date_time),
        new Real(rtCreateDateTime, create_date_time),
        new Text(ttDisplayType, display_type),
        fixes, intensities, sizes, steerings});
+  }
+
+  
+  /**
+   * jk:
+   * create a flatfield of Disturbance (Tropical Cyclone) Sizes
+   * with values set to "missing"
+   * This allows for the case when the database has no entries yet,
+   * but means we can still create some TCData
+   *
+   */
+
+  public static FlatField makeMissingSizes() 
+         throws VisADException, RemoteException {
+
+    //
+    // make a SIZE and store in the FlatField ffSizes
+    //
+    double[] daTimes = {Double.NaN};
+    int[] iaSizeIds = {-1};
+    float[] faGale_radii = {Float.NaN};
+    float[] faStorm_radii = {Float.NaN};
+    float[] faHurricane_radii = {Float.NaN};
+    float[] faRadii_of_maximum_winds = {Float.NaN};
+    int[] iaSizeStyles = {-1};
+
+    FlatField ffSizes = TCData.makeSizes( daTimes, iaSizeIds, faGale_radii,
+                                     faStorm_radii, faHurricane_radii, faRadii_of_maximum_winds,
+                                     iaSizeStyles);
+    return ffSizes;
   }
 
   public static FlatField makeFixes(double[] times, int[] ids, float[] lats,
@@ -557,6 +594,7 @@ public class TCData {
     return field;
   }
 
+  /** any ids < 0 or size_styles < 0 are treated as missing */
   public static FlatField makeSizes(double[] times, int[] ids, 
               float[] gale_radii, float[] storm_radii, float[] hurricane_radii,
               float[] radii_of_maximum_winds, int[] size_styles)
@@ -583,12 +621,13 @@ public class TCData {
     float[] pradii_of_maximum_winds = new float[length];
     float[] psize_styles = new float[length];
     for (int i=0; i<length; i++) {
-      pids[i] = ids[permute[i]];
+      pids[i] = (ids[permute[i]] < 0) ? Float.NaN : ids[permute[i]];
       pgale_radii[i] = gale_radii[permute[i]];
       pstorm_radii[i] = storm_radii[permute[i]];
       phurricane_radii[i] = hurricane_radii[permute[i]];
       pradii_of_maximum_winds[i] = radii_of_maximum_winds[permute[i]];
-      psize_styles[i] = size_styles[permute[i]];
+      psize_styles[i] =
+        (size_styles[permute[i]] < 0) ? Float.NaN : size_styles[permute[i]];
     }
     float[][] values = {pids, pgale_radii, pstorm_radii, phurricane_radii,
                         pradii_of_maximum_winds, psize_styles};
@@ -596,6 +635,22 @@ public class TCData {
     return field;
   }
 
+  public static FlatField makeMissingSteerings() 
+         throws VisADException, RemoteException {
+
+    double[] daTimes = {Double.NaN};
+    int[] iaSteeringIds = {-1};
+    float[] faSteering_directions = {Float.NaN};
+    int[] iaSteeringStyles = {-1};
+
+    FlatField ffSteerings = TCData.makeSteerings( daTimes, iaSteeringIds, faSteering_directions,
+                                     iaSteeringStyles);
+
+    return ffSteerings;
+  }
+
+
+  /** any ids < 0 or steering_styles < 0 are treated as missing */
   public static FlatField makeSteerings(double[] times, int[] ids,
               float[] steering_directions, int[] steering_styles)
          throws VisADException, RemoteException {
@@ -616,9 +671,10 @@ public class TCData {
     float[] psteering_directions = new float[length];
     float[] psteering_styles = new float[length];
     for (int i=0; i<length; i++) {
-      pids[i] = ids[permute[i]];
+      pids[i] = (ids[permute[i]] < 0) ? Float.NaN : ids[permute[i]];
       psteering_directions[i] = steering_directions[permute[i]];
-      psteering_styles[i] = steering_styles[permute[i]];
+      psteering_styles[i] =
+        (steering_styles[permute[i]] < 0) ? Float.NaN : steering_styles[permute[i]];
     }
     float[][] values = {pids, psteering_directions, psteering_styles};
     field.setSamples(values, false);
