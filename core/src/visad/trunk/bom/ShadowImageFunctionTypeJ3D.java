@@ -220,18 +220,6 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           byte[] bytes0 = bytes[0];
           for (int i=0; i<domain_length; i++) {
             color_ints[i] = fast_table[((int) bytes0[i]) - MISSING1];
-/* remove this code after fast table loop above is debugged
-            int index = ((int) bytes0[i]) - MISSING1 - 1;
-            if (index < 0) {
-              color_ints[i] = 0; // missing
-            }
-            else {
-              int j = (int) (add + mult * index);
-              // clip to table
-              color_ints[i] =
-                (j < 0) ? itable[0] : ((j > tblEnd) ? itable[tblEnd] : itable[j]);
-            }
-*/
           }
           bytes = null; // take out the garbage
         }
@@ -987,6 +975,15 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
 
       DataReferenceImpl ref_image = new DataReferenceImpl("ref_image");
+
+/* start modify imaget to be packed bytes */
+      Set[] range_sets = {new Integer1DSet(255)};
+      FlatField new_field =
+        new FlatField(ftype, imaget.getDomainSet(), null, null, range_sets, null);
+      float[][] values = imaget.getFloats(false);
+      new_field.setSamples(values);
+      imaget = new_field;
+/* end modify imaget */
 
       ref_image.setData(imaget);
 

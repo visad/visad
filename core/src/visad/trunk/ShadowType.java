@@ -651,7 +651,9 @@ System.out.println("checkText: display_indices[" + i + "] = " +
 /*
 System.out.println("checkText: real = " + real.getName());
 */
-      if (real.equals(Display.Text)) return true;
+      if (real.equals(Display.Text)) {
+        return true;
+      }
     }
     return false;
   }
