@@ -746,9 +746,40 @@ System.out.println("checkClose: distance = " + distance);
     // add display to JPanel
     panel.add(display.getComponent());
 
+    JButton del = new JButton("delete last");
+    del.addActionListener(new CurveDelete(ref));
+    del.setActionCommand("del");
+    panel.add(del);
+
     // set size of JFrame and make it visible
     frame.setSize(500, 500);
     frame.setVisible(true);
+  }
+}
+
+class CurveDelete implements ActionListener {
+
+  DataReferenceImpl ref;
+
+  CurveDelete(DataReferenceImpl r) {
+    ref = r;
+  }
+
+  public void actionPerformed(ActionEvent e) {
+    String cmd = e.getActionCommand();
+    if (cmd.equals("del")) {
+      try {
+        UnionSet set = (UnionSet) ref.getData();
+        SampledSet[] sets = set.getSets();
+        SampledSet[] new_sets = new SampledSet[sets.length - 1];
+        System.arraycopy(sets, 0, new_sets, 0, sets.length - 1);
+        ref.setData(new UnionSet(set.getType(), new_sets));
+      }
+      catch (VisADException ex) {
+      }
+      catch (RemoteException ex) {
+      }
+    }
   }
 }
 
