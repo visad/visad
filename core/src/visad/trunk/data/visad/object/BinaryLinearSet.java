@@ -23,6 +23,7 @@ import visad.VisADException;
 import visad.data.visad.BinaryObjectCache;
 import visad.data.visad.BinaryReader;
 import visad.data.visad.BinaryWriter;
+import visad.data.visad.Saveable;
 
 public class BinaryLinearSet
   implements BinaryObject
@@ -274,7 +275,9 @@ if(DEBUG_RD_DATA)System.err.println("rdLinSet: FLD_END (" + FLD_END + ")");
                                               Object token)
     throws IOException
   {
-    if (!set.getClass().equals(canonicalClass)) {
+    if (!set.getClass().equals(canonicalClass) &&
+        !(set instanceof LinearSet && set instanceof Saveable))
+    {
       return;
     }
 
@@ -337,7 +340,9 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_ERRE){
       return;
     }
 
-    if (!set.getClass().equals(canonicalClass)) {
+    if (!set.getClass().equals(canonicalClass) &&
+        !(set instanceof LinearSet && set instanceof Saveable))
+    {
 if(DEBUG_WR_DATA)System.err.println("wrLinSet: punt "+set.getClass().getName());
       BinaryUnknown.write(writer, set, token);
       return;

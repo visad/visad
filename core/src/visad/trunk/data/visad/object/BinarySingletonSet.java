@@ -18,6 +18,7 @@ import visad.VisADException;
 import visad.data.visad.BinaryObjectCache;
 import visad.data.visad.BinaryReader;
 import visad.data.visad.BinaryWriter;
+import visad.data.visad.Saveable;
 
 public class BinarySingletonSet
   implements BinaryObject
@@ -120,7 +121,9 @@ if(DEBUG_RD_DATA)System.err.println("rdSglSet: FLD_END (" + FLD_END + ")");
                                               Object token)
     throws IOException
   {
-    if (!set.getClass().equals(SingletonSet.class)) {
+    if (!set.getClass().equals(SingletonSet.class) &&
+        !(set instanceof SingletonSet && set instanceof Saveable))
+    {
       return;
     }
 
@@ -172,7 +175,9 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_ERRE){
       return;
     }
 
-    if (!set.getClass().equals(SingletonSet.class)) {
+    if (!set.getClass().equals(SingletonSet.class) &&
+        !(set instanceof SingletonSet && set instanceof Saveable))
+    {
 if(DEBUG_WR_DATA)System.err.println("wrSglSet: punt "+set.getClass().getName());
       BinaryUnknown.write(writer, set, token);
       return;

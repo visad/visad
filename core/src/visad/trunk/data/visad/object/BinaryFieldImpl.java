@@ -15,6 +15,7 @@ import visad.VisADException;
 import visad.data.visad.BinaryObjectCache;
 import visad.data.visad.BinaryReader;
 import visad.data.visad.BinaryWriter;
+import visad.data.visad.Saveable;
 
 public class BinaryFieldImpl
   implements BinaryObject
@@ -34,8 +35,9 @@ public class BinaryFieldImpl
                                                FieldImpl fld, Object token)
     throws IOException
   {
-    byte dataType;
-    if (!fld.getClass().equals(FieldImpl.class)) {
+    if (!fld.getClass().equals(FieldImpl.class) &&
+        !(fld instanceof FieldImpl && fld instanceof Saveable))
+    {
       return 0;
     }
 
@@ -178,10 +180,9 @@ if(DEBUG_RD_DATA)System.err.println("rdFldI: FLD_END (" + FLD_END + ")");
       return;
     }
 
-    byte dataType;
-    if (fld.getClass().equals(FieldImpl.class)) {
-      dataType = DATA_FIELD;
-    } else {
+    if (!fld.getClass().equals(FieldImpl.class) &&
+        !(fld instanceof FieldImpl && fld instanceof Saveable))
+    {
 if(DEBUG_WR_DATA)System.err.println("wrFldI: punt "+fld.getClass().getName());
       BinaryUnknown.write(writer, fld, token);
       return;
@@ -198,8 +199,8 @@ if(DEBUG_WR_DATA)System.err.println("wrFldI: OBJ_DATA (" + OBJ_DATA + ")");
     file.writeByte(OBJ_DATA);
 if(DEBUG_WR_DATA)System.err.println("wrFldI: objLen (" + objLen + ")");
     file.writeInt(objLen);
-if(DEBUG_WR_DATA)System.err.println("wrFldI: DATA_FIELD (" + dataType + ")");
-    file.writeByte(dataType);
+if(DEBUG_WR_DATA)System.err.println("wrFldI: DATA_FIELD (" + DATA_FIELD + ")");
+    file.writeByte(DATA_FIELD);
 
 if(DEBUG_WR_DATA)System.err.println("wrFldI: type index (" + typeIndex + ")");
     file.writeInt(typeIndex);

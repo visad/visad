@@ -16,6 +16,7 @@ import visad.VisADException;
 import visad.data.visad.BinaryObjectCache;
 import visad.data.visad.BinaryReader;
 import visad.data.visad.BinaryWriter;
+import visad.data.visad.Saveable;
 
 public class BinarySimpleSet
   implements BinaryObject
@@ -100,7 +101,9 @@ if(DEBUG_RD_DATA)System.err.println("rdSimSet: FLD_END (" + FLD_END + ")");
   {
     DataOutputStream file = writer.getOutputStream();
 
-    if (!set.getClass().equals(canonicalClass)) {
+    if (!set.getClass().equals(canonicalClass) &&
+        !(set instanceof SimpleSet && set instanceof Saveable))
+    {
       return;
     }
 
@@ -136,7 +139,9 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_UNIT){
       return;
     }
 
-    if (!set.getClass().equals(canonicalClass)) {
+    if (!set.getClass().equals(canonicalClass) &&
+        !(set instanceof SimpleSet && set instanceof Saveable))
+    {
 if(DEBUG_WR_DATA)System.err.println("wrSimSet: punt "+set.getClass().getName());
       BinaryUnknown.write(writer, set, token);
       return;

@@ -18,6 +18,7 @@ import visad.VisADException;
 import visad.data.visad.BinaryObjectCache;
 import visad.data.visad.BinaryReader;
 import visad.data.visad.BinaryWriter;
+import visad.data.visad.Saveable;
 
 public class BinaryRealTupleType
   implements BinaryObject
@@ -116,7 +117,9 @@ if(DEBUG_RD_MATH)System.err.println("rdRlTuTy: FLD_END (" + FLD_END + ")");
         throw new IOException("Couldn't cache RealTupleType " + rtt);
       }
 
-      if (!rtt.getClass().equals(RealTupleType.class)) {
+      if (!rtt.getClass().equals(RealTupleType.class) &&
+          !(rtt instanceof RealTupleType && rtt instanceof Saveable))
+      {
 if(DEBUG_WR_MATH)System.err.println("wrRlTuTy: serialized RealTupleType (" + rtt.getClass().getName() + ")");
         BinarySerializedObject.write(writer, OBJ_MATH_SERIAL, rtt, token);
         return index;

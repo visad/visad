@@ -10,6 +10,7 @@ import visad.VisADException;
 import visad.data.visad.BinaryObjectCache;
 import visad.data.visad.BinaryReader;
 import visad.data.visad.BinaryWriter;
+import visad.data.visad.Saveable;
 
 public class BinaryTextType
   implements BinaryObject
@@ -58,7 +59,9 @@ if(DEBUG_RD_MATH)System.err.println("rdTxTy: read " + (endByte == FLD_END ? "FLD
         throw new IOException("Couldn't cache TextType " + tt);
       }
 
-      if (!tt.getClass().equals(TextType.class)) {
+      if (!tt.getClass().equals(TextType.class) &&
+          !(tt instanceof TextType && tt instanceof Saveable))
+      {
 if(DEBUG_WR_MATH)System.err.println("wrTxTy: serialized TextType (" + tt.getClass().getName() + ")");
         BinarySerializedObject.write(writer, OBJ_MATH_SERIAL, tt, token);
         return index;

@@ -17,6 +17,7 @@ import visad.data.netcdf.Quantity;
 import visad.data.visad.BinaryObjectCache;
 import visad.data.visad.BinaryReader;
 import visad.data.visad.BinaryWriter;
+import visad.data.visad.Saveable;
 
 public class BinaryRealType
   implements BinaryObject
@@ -111,7 +112,9 @@ if(DEBUG_RD_MATH)System.err.println("rdRlTy: FLD_END (" + FLD_END + ")");
         throw new IOException("Couldn't cache RealType " + rt);
       }
 
-      if (!rt.getClass().equals(RealType.class)) {
+      if (!rt.getClass().equals(RealType.class) &&
+          !(rt instanceof RealType && rt instanceof Saveable))
+      {
 if(DEBUG_WR_MATH)System.err.println("wrRlTy: serialized RealType (" + rt.getClass().getName() + ")");
         BinarySerializedObject.write(writer, OBJ_MATH_SERIAL, rt, token);
         return index;

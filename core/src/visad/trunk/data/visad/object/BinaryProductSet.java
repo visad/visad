@@ -16,6 +16,7 @@ import visad.VisADException;
 import visad.data.visad.BinaryObjectCache;
 import visad.data.visad.BinaryReader;
 import visad.data.visad.BinaryWriter;
+import visad.data.visad.Saveable;
 
 public class BinaryProductSet
   implements BinaryObject
@@ -109,7 +110,9 @@ if(DEBUG_RD_DATA)System.err.println("rdPrSet: FLD_END (" + FLD_END + ")");
                                               Object token)
     throws IOException
   {
-    if (!set.getClass().equals(ProductSet.class)) {
+    if (!set.getClass().equals(ProductSet.class) &&
+        !(set instanceof ProductSet && set instanceof Saveable))
+    {
       return;
     }
 
@@ -168,7 +171,9 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_ERRE){
       return;
     }
 
-    if (!set.getClass().equals(ProductSet.class)) {
+    if (!set.getClass().equals(ProductSet.class) &&
+        !(set instanceof ProductSet && set instanceof Saveable))
+    {
 if(DEBUG_WR_DATA)System.err.println("wrPrSet: punt "+set.getClass().getName());
       BinaryUnknown.write(writer, set, token);
       return;

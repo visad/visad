@@ -15,6 +15,7 @@ import visad.data.netcdf.Quantity;
 import visad.data.visad.BinaryObjectCache;
 import visad.data.visad.BinaryReader;
 import visad.data.visad.BinaryWriter;
+import visad.data.visad.Saveable;
 
 public class BinaryQuantity
   implements BinaryObject
@@ -107,7 +108,9 @@ if(DEBUG_RD_MATH)System.err.println("rdQuant: FLD_END (" + FLD_END + ")");
         throw new IOException("Couldn't cache Quantity " + qt);
       }
 
-      if (!qt.getClass().equals(Quantity.class)) {
+      if (!qt.getClass().equals(Quantity.class) &&
+          !(qt instanceof Quantity && qt instanceof Saveable))
+      {
 if(DEBUG_WR_MATH)System.err.println("wrQuant: serialized Quantity (" + qt.getClass().getName() + ")");
         BinarySerializedObject.write(writer, OBJ_MATH_SERIAL, qt, token);
         return index;

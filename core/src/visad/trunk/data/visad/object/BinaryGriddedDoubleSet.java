@@ -8,6 +8,7 @@ import java.io.IOException;
 import visad.CoordinateSystem;
 import visad.ErrorEstimate;
 import visad.GriddedSet;
+import visad.GriddedDoubleSet;
 import visad.Gridded1DDoubleSet;
 import visad.Gridded2DDoubleSet;
 import visad.Gridded3DDoubleSet;
@@ -18,6 +19,7 @@ import visad.VisADException;
 import visad.data.visad.BinaryObjectCache;
 import visad.data.visad.BinaryReader;
 import visad.data.visad.BinaryWriter;
+import visad.data.visad.Saveable;
 
 public class BinaryGriddedDoubleSet
   implements BinaryObject
@@ -164,7 +166,9 @@ if(DEBUG_RD_DATA)System.err.println("rdGrDblSet: FLD_END (" + FLD_END + ")");
                                               Object token)
     throws IOException
   {
-    if (!set.getClass().equals(canonicalClass)) {
+    if (!set.getClass().equals(canonicalClass) &&
+        !(set instanceof GriddedDoubleSet && set instanceof Saveable))
+    {
       return;
     }
 
@@ -213,7 +217,9 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_ERRE){
       return;
     }
 
-    if (!set.getClass().equals(canonicalClass)) {
+    if (!set.getClass().equals(canonicalClass) &&
+        !(set instanceof GriddedDoubleSet && set instanceof Saveable))
+    {
 if(DEBUG_WR_DATA)System.err.println("wrGrDblSet: punt "+set.getClass().getName());
       BinaryUnknown.write(writer, set, token);
       return;

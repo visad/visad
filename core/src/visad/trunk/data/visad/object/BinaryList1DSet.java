@@ -15,6 +15,7 @@ import visad.VisADException;
 import visad.data.visad.BinaryObjectCache;
 import visad.data.visad.BinaryReader;
 import visad.data.visad.BinaryWriter;
+import visad.data.visad.Saveable;
 
 public class BinaryList1DSet
   implements BinaryObject
@@ -98,7 +99,9 @@ if(DEBUG_RD_DATA)System.err.println("rdL1DSet: FLD_END (" + FLD_END + ")");
                                               Object token)
     throws IOException
   {
-    if (!set.getClass().equals(List1DSet.class)) {
+    if (!set.getClass().equals(List1DSet.class) &&
+        !(set instanceof List1DSet && set instanceof Saveable))
+    {
       return;
     }
 
@@ -133,7 +136,9 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_UNIT){
       return;
     }
 
-    if (!set.getClass().equals(List1DSet.class)) {
+    if (!set.getClass().equals(List1DSet.class) &&
+        !(set instanceof List1DSet && set instanceof Saveable))
+    {
 if(DEBUG_WR_DATA)System.err.println("wrL1DSet: punt "+set.getClass().getName());
       BinaryUnknown.write(writer, set, token);
       return;

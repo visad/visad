@@ -23,6 +23,7 @@ import visad.data.FileFlatField;
 import visad.data.visad.BinaryObjectCache;
 import visad.data.visad.BinaryReader;
 import visad.data.visad.BinaryWriter;
+import visad.data.visad.Saveable;
 
 class BinaryAccessor
   extends FileAccessor
@@ -344,9 +345,9 @@ if(DEBUG_RD_TIME){
                                               FlatField fld, Object token)
     throws IOException
   {
-    byte dataType;
     if (!fld.getClass().equals(FlatField.class) &&
-        !fld.getClass().equals(FileFlatField.class))
+        !fld.getClass().equals(FileFlatField.class) &&
+        !(fld instanceof FlatField && fld instanceof Saveable))
     {
       return;
     }
@@ -411,13 +412,10 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_UNIT){
       return;
     }
 
-    byte dataType;
-    if (fld.getClass().equals(FlatField.class)) {
-      dataType = DATA_FLAT_FIELD;
-    } else if (fld.getClass().equals(FileFlatField.class)) {
-      // treat FileFlatFields like FlatFields
-      dataType = DATA_FLAT_FIELD;
-    } else {
+    if (!fld.getClass().equals(FlatField.class) &&
+        !fld.getClass().equals(FileFlatField.class) &&
+        !(fld instanceof FlatField && fld instanceof Saveable))
+    {
 if(DEBUG_WR_DATA)System.err.println("wrFlFld: punt "+fld.getClass().getName());
       BinaryUnknown.write(writer, fld, token);
       return;

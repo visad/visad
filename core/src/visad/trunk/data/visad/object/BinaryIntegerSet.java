@@ -8,6 +8,7 @@ import java.io.IOException;
 import visad.CoordinateSystem;
 import visad.ErrorEstimate;
 import visad.GriddedSet;
+import visad.IntegerSet;
 import visad.Integer1DSet;
 import visad.Integer2DSet;
 import visad.Integer3DSet;
@@ -22,6 +23,7 @@ import visad.VisADException;
 import visad.data.visad.BinaryObjectCache;
 import visad.data.visad.BinaryReader;
 import visad.data.visad.BinaryWriter;
+import visad.data.visad.Saveable;
 
 public class BinaryIntegerSet
   implements BinaryObject
@@ -262,7 +264,9 @@ if(DEBUG_RD_DATA)System.err.println("rdIntSet: FLD_END (" + FLD_END + ")");
                                               Object token)
     throws IOException
   {
-    if (!set.getClass().equals(canonicalClass)) {
+    if (!set.getClass().equals(canonicalClass) &&
+        !(set instanceof IntegerSet && set instanceof Saveable))
+    {
       return;
     }
 
@@ -324,7 +328,9 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_ERRE){
       return;
     }
 
-    if (!set.getClass().equals(canonicalClass)) {
+    if (!set.getClass().equals(canonicalClass) &&
+        !(set instanceof IntegerSet && set instanceof Saveable))
+    {
 if(DEBUG_WR_DATA)System.err.println("wrIntSet: punt "+set.getClass().getName());
       BinaryUnknown.write(writer, set, token);
       return;

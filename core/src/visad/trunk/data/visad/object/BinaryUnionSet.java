@@ -13,6 +13,7 @@ import visad.VisADException;
 import visad.data.visad.BinaryObjectCache;
 import visad.data.visad.BinaryReader;
 import visad.data.visad.BinaryWriter;
+import visad.data.visad.Saveable;
 
 public class BinaryUnionSet
   implements BinaryObject
@@ -86,7 +87,9 @@ if(DEBUG_RD_DATA)System.err.println("rdLinSet: FLD_END (" + FLD_END + ")");
                                               UnionSet set, Object token)
     throws IOException
   {
-    if (!set.getClass().equals(UnionSet.class)) {
+    if (!set.getClass().equals(UnionSet.class) &&
+        !(set instanceof UnionSet && set instanceof Saveable))
+    {
       return;
     }
 
@@ -119,7 +122,9 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_MATH)System.err.println("wrUSet: type (" + type + ")
       return;
     }
 
-    if (!set.getClass().equals(UnionSet.class)) {
+    if (!set.getClass().equals(UnionSet.class) &&
+        !(set instanceof UnionSet && set instanceof Saveable))
+    {
 if(DEBUG_WR_DATA)System.err.println("wrUSet: punt "+set.getClass().getName());
       BinaryUnknown.write(writer, set, token);
       return;

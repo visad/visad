@@ -16,6 +16,7 @@ import visad.VisADException;
 import visad.data.visad.BinaryObjectCache;
 import visad.data.visad.BinaryReader;
 import visad.data.visad.BinaryWriter;
+import visad.data.visad.Saveable;
 
 public class BinaryRealTuple
   implements BinaryObject
@@ -171,7 +172,9 @@ if(DEBUG_RD_TIME)System.err.println("rdRlRA: "+len+" arrays "+(System.currentTim
                                               RealTuple rt, Object token)
     throws IOException
   {
-    if (!rt.getClass().equals(RealTuple.class)) {
+    if (!rt.getClass().equals(RealTuple.class) &&
+        !(rt instanceof RealTuple && rt instanceof Saveable))
+    {
       return;
     }
 
@@ -209,7 +212,9 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_CSYS)System.err.println("wrRlTpl: coordSys (" + cs +
       return;
     }
 
-    if (!rt.getClass().equals(RealTuple.class)) {
+    if (!rt.getClass().equals(RealTuple.class) &&
+        !(rt instanceof RealTuple && rt instanceof Saveable))
+    {
 if(DEBUG_WR_DATA)System.err.println("wrRlTpl: punt "+rt.getClass().getName());
       BinaryUnknown.write(writer, rt, token);
       return;

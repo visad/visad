@@ -13,6 +13,7 @@ import visad.VisADException;
 import visad.data.visad.BinaryObjectCache;
 import visad.data.visad.BinaryReader;
 import visad.data.visad.BinaryWriter;
+import visad.data.visad.Saveable;
 
 public class BinarySetType
   implements BinaryObject
@@ -56,7 +57,9 @@ if(DEBUG_RD_MATH)System.err.println("rdSetTy: read " + (endByte == FLD_END ? "FL
         throw new IOException("Couldn't cache SetType " + st);
       }
 
-      if (!st.getClass().equals(SetType.class)) {
+      if (!st.getClass().equals(SetType.class) &&
+          !(st instanceof SetType && st instanceof Saveable))
+      {
 if(DEBUG_WR_MATH)System.err.println("wrSetTy: serialized SetType (" + st.getClass().getName() + ")");
         BinarySerializedObject.write(writer, OBJ_MATH_SERIAL, st, token);
         return index;

@@ -14,6 +14,7 @@ import visad.VisADException;
 import visad.data.visad.BinaryObjectCache;
 import visad.data.visad.BinaryReader;
 import visad.data.visad.BinaryWriter;
+import visad.data.visad.Saveable;
 
 public class BinaryTuple
   implements BinaryObject
@@ -77,7 +78,9 @@ if(DEBUG_RD_DATA)System.err.println("rdTpl: FLD_END (" + FLD_END + ")");
                                                Object token)
     throws IOException
   {
-    if (!t.getClass().equals(Tuple.class)) {
+    if (!t.getClass().equals(Tuple.class) &&
+        !(t instanceof Tuple && t instanceof Saveable))
+    {
       return;
     }
 
@@ -108,7 +111,9 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_MATH)System.err.println("wrTpl: type (" + type + ")"
       return;
     }
 
-    if (!t.getClass().equals(Tuple.class)) {
+    if (!t.getClass().equals(Tuple.class) &&
+        !(t instanceof Tuple && t instanceof Saveable))
+    {
 if(DEBUG_WR_DATA)System.err.println("wrTup: punt "+t.getClass().getName());
       BinaryUnknown.write(writer, t, token);
       return;
