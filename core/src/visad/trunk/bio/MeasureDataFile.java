@@ -148,6 +148,7 @@ public class MeasureDataFile {
     fout.println();
     fout.println();
     fout.println("# Groups");
+    fout.println();
     fout.println("No\tName\tDescription");
     int numGroups = LineGroup.groups.size();
     for (int g=0; g<numGroups; g++) {
@@ -180,10 +181,56 @@ public class MeasureDataFile {
 
   /** Reads the measurement matrix from the data file. */
   public MeasureMatrix readMatrix() throws IOException {
-    // CTR: TODO: readMatrix
-    // BufferedReader fin = new BufferedReader(new FileReader(file));
-    // fin.close();
-    return null;
+    BufferedReader fin = new BufferedReader(new FileReader(file));
+    String line = "";
+
+    // read in group data
+    while (!line.equals("# Groups")) line = fin.readLine();
+    fin.readLine();
+    fin.readLine();
+    Vector groups = new Vector();
+    while (true) {
+      line = fin.readLine();
+      if (line.equals("")) break;
+      groups.add(line);
+    }
+    int size = groups.size();
+    for (int i=0; i<size; i++) {
+      // CTR: TODO: add group to group list
+    }
+
+    // read in measurement line data
+    while (!line.equals("# All measurement lines")) line = fin.readLine();
+    fin.readLine();
+    fin.readLine();
+    Vector lines = new Vector();
+    while (true) {
+      line = fin.readLine();
+      if (line.equals("")) break;
+      lines.add(line);
+    }
+    size = lines.size();
+    for (int i=0; i<size; i++) {
+      // CTR: TODO: add line to matrix
+    }
+
+    // read in measurement point data
+    while (!line.equals("# All measurement points")) line = fin.readLine();
+    fin.readLine();
+    fin.readLine();
+    Vector points = new Vector();
+    while (true) {
+      line = fin.readLine();
+      if (line.equals("")) break;
+      points.add(line);
+    }
+    size = points.size();
+    for (int i=0; i<size; i++) {
+      // CTR: TODO: add point to matrix
+    }
+
+    fin.close();
+    return null; // CTR: TEMP
   }
 
   /** Measurement data structure. */
