@@ -44,7 +44,9 @@ import java.util.*;
  * <CODE>ClientDisplayRendererJ3D</CODE> is the DisplayRenderer
  * for cluster clients.<P>
  */
-public class ClientDisplayRendererJ3D extends TransformOnlyDisplayRendererJ3D {
+public class ClientDisplayRendererJ3D extends DefaultDisplayRendererJ3D {
+
+  private boolean cluster = true;
 
   /**
    * This is the <CODE>DisplayRenderer</CODE> used for cluster clients.
@@ -61,9 +63,16 @@ public class ClientDisplayRendererJ3D extends TransformOnlyDisplayRendererJ3D {
     return (renderer instanceof ClientRendererJ3D);
   }
 
+  void setCluster(boolean cl) {
+    cluster = cl;
+  }
+
   public void autoscale(Vector temp, Vector tmap, boolean go,
                         boolean initialize) 
          throws VisADException, RemoteException {
+
+    if (!cluster) super.autoscale(temp, tmap, go, initialize);
+
     DataShadow shadow = null;
     Enumeration renderers = temp.elements();
     while (renderers.hasMoreElements()) {

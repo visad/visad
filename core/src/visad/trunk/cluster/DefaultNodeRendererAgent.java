@@ -32,8 +32,9 @@ import java.rmi.*;
 import java.io.Serializable;
 
 /**
-   DefaultNodeRendererAgent is the abstract super-class for agents sent from
-   client to nodes.<P>
+   DefaultNodeRendererAgent is the class for agents sent from
+   client to nodes to return VisADSceneGraphObjects from
+   NodeRendererJ3Ds.<P>
 */
 public class DefaultNodeRendererAgent extends NodeAgent {
 

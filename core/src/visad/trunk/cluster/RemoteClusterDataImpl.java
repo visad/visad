@@ -211,6 +211,10 @@ public abstract class RemoteClusterDataImpl extends RemoteDataImpl
     me = this;
   }
 
+  RemoteClusterData[] getTable() {
+    return jvmTable;
+  }
+
   /** return RemoteClusterData for JVM where data resides;
       may be RemoteClusterData for client for non-partitioned data;
       may be null for partitioned data outside partitoning */

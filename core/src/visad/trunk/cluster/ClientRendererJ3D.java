@@ -44,19 +44,91 @@ import java.io.Serializable;
 */
 public class ClientRendererJ3D extends DefaultRendererJ3D {
 
+  DisplayImpl display = null;
+  RemoteDisplay rdisplay = null;
+  ConstantMap[] cmaps = null;
+
+  DataDisplayLink link = null;
+  Data data = null;
+  ClientDisplayRendererJ3D cdr = null;
+  boolean cluster = true;
+
+  RemoteClientRendererAgentImpl[] agents = null;
+
   public ClientRendererJ3D () {
+  }
+
+  public DataShadow prepareAction(boolean go, boolean initialize,
+                                  DataShadow shadow)
+         throws VisADException, RemoteException {
+
+    Data old_data = data;
+    DataDisplayLink[] Links = getLinks();
+    if (Links != null && Links.length > 0) {
+      link = Links[0];
+
+      if (rdisplay == null) {
+        display = getDisplay();
+        rdisplay = new RemoteDisplayImpl(display);
+        Vector cvector = link.getConstantMaps();
+        if (cvector != null && cvector.size() > 0) {
+          int clength = cvector.size();
+          cmaps = new ConstantMap[clength];
+          for (int i=0; i<clength; i++) {
+            cmaps[i] = (ConstantMap) cvector.elementAt(i);
+          }
+        }
+      }
+
+      try {
+        data = link.getData();
+      } catch (RemoteException re) {
+        if (visad.collab.CollabUtil.isDisconnectException(re)) {
+          getDisplay().connectionFailed(this, link);
+          removeLink(link);
+          return null;
+        }
+        throw re;
+      }
+  
+      if (data == null) {
+        addException(
+          new DisplayException("Data is null: ClientRendererJ3D.doTransform"));
+      }
+  
+      cluster = (data instanceof RemoteClientDataImpl);
+      cdr = (ClientDisplayRendererJ3D) getDisplay().getDisplayRenderer();
+      cdr.setCluster(cluster);
+
+      if (cluster && data != old_data) {
+        // send agents to nodes
+        RemoteClusterData[] jvmTable = ((RemoteClientDataImpl) data).getTable();
+        int nnodes = jvmTable.length - 1;
+        agents = new RemoteClientRendererAgentImpl[nnodes];
+        for (int i=0; i<nnodes; i++) {
+          agents[i] = new RemoteClientRendererAgentImpl(this);
+          DefaultNodeRendererAgent node_agent =
+            new DefaultNodeRendererAgent(agents[i], rdisplay, cmaps);
+          ((RemoteNodeData) jvmTable[i]).sendAgent(node_agent);
+        }
+      }
+    }
+    return super.prepareAction(go, initialize, shadow);
   }
 
   /** create a scene graph for Data in links[0] */
   public BranchGroup doTransform() throws VisADException, RemoteException {
-    VisADGroup branch = new VisADGroup();
-
-    DataDisplayLink[] Links = getLinks();
-    if (Links == null || Links.length == 0) {
-      return null;
+    if (link == null || data == null) {
+      addException(
+        new DisplayException("Data is null: ClientRendererJ3D.doTransform"));
     }
-    DataDisplayLink link = Links[0];
 
+    if (!cluster) {
+      // not cluster data, so just do the usual
+      return super.doTransform();
+    }
+
+/*
     ShadowTypeJ3D type = (ShadowTypeJ3D) link.getShadow();
 
     // initialize valueArray to missing
@@ -66,9 +138,15 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
       valueArray[i] = Float.NaN;
     }
 
-    Data data;
+    link.start_time = System.currentTimeMillis();
+    link.time_flag = false;
+    type.preProcess();
+
+    boolean post_process;
     try {
-      data = link.getData();
+      // transform data into a depiction under branch
+      post_process = type.doTransform(branch, data, valueArray,
+                                      link.getDefaultValues(), this);
     } catch (RemoteException re) {
       if (visad.collab.CollabUtil.isDisconnectException(re)) {
         getDisplay().connectionFailed(this, link);
@@ -78,36 +156,10 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
       throw re;
     }
 
-    if (data == null) {
-      branch = null;
-      addException(
-        new DisplayException("Data is null: ClientRendererJ3D.doTransform"));
-    }
-    else {
-      link.start_time = System.currentTimeMillis();
-      link.time_flag = false;
-      type.preProcess();
+    if (post_process) type.postProcess(branch);
 
-      boolean post_process;
-      try {
-        // transform data into a depiction under branch
-        post_process = type.doTransform(branch, data, valueArray,
-                                        link.getDefaultValues(), this);
-      } catch (RemoteException re) {
-        if (visad.collab.CollabUtil.isDisconnectException(re)) {
-          getDisplay().connectionFailed(this, link);
-          removeLink(link);
-          return null;
-        }
-        throw re;
-      }
-
-      if (post_process) type.postProcess(branch);
-    }
     link.clearData();
-
-    // send VisADGroup scene graph in branch back to client
-    // if (agent != null) agent.sendToClient(branch);
+*/
 
     // RendererJ3D.doAction is expecting a BranchGroup
     // so fake it
