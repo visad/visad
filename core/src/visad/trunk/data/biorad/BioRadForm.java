@@ -252,7 +252,7 @@ public class BioRadForm extends Form implements FormFileInformer {
     catch (VisADException exc) {
       if (DEBUG) exc.printStackTrace();
     }
-  };
+  }
 
   /** Saves a VisAD Data object to BioRad .PIC format at the given location. */
   public void save(String id, Data data, boolean replace)
