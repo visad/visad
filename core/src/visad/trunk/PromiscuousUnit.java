@@ -40,6 +40,26 @@ public class PromiscuousUnit extends Unit {
   }
 
   /**
+   * <p>Indicates if this instance is dimensionless.  A unit is dimensionless
+   * if it is a measure of a dimensionless quantity like angle or 
+   * concentration.  Examples of dimensionless units include radian, degree,
+   * steradian, and "g/kg".</p>
+   *
+   * <p>This implementation always returns <code>false</code> because the
+   * typical use of this method is to determine whether or not a
+   * function of dimensionless values (e.g. sin(), log()) may be
+   * applied to values in this unit and such functions shouldn't be applied
+   * to values in this unit.  Instead, the client should ensure that the
+   * values are in a true, dimensionless unit.</p>
+   *
+   * @return                               True if an only if this unit is
+   *                                       dimensionless.
+   */
+  public boolean isDimensionless() {
+    return false;
+  }
+
+  /**
    * Clones this unit, changing the identifier.  This method always throws
    * an exception because promiscuous units may not be cloned.
    * @param identifier		The name or abbreviation for the cloned unit.
