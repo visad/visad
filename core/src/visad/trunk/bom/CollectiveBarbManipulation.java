@@ -85,6 +85,7 @@ public class CollectiveBarbManipulation extends Object
   private float outer_distance;
   private double inner_time;
   private double outer_time;
+  private DataReference curve_ref = null;
 
   private int azimuth_index;
   private int radial_index;
@@ -149,6 +150,8 @@ public class CollectiveBarbManipulation extends Object
     outer_distance = od;
     inner_time = it;
     outer_time = ot;
+    curve_ref = null;
+
     station = sta;
 
     if (display1 == null && display2 == null) {
@@ -448,6 +451,20 @@ public class CollectiveBarbManipulation extends Object
     }
     inner_distance = id;
     outer_distance = od;
+    curve_ref = null;
+    inner_time = it;
+    outer_time = ot;
+  }
+
+  public void setCollectiveCurve(boolean abs, DataReference r,
+                                 float it, float ot)
+         throws VisADException, RemoteException {
+    absolute = abs;
+    if (it < 0.0 || ot < it) {
+      throw new CollectiveBarbException("outer_time must be " +
+                                   "greater than inner_time");
+    }
+    curve_ref = r;
     inner_time = it;
     outer_time = ot;
   }
@@ -696,15 +713,45 @@ public class CollectiveBarbManipulation extends Object
     float lon = lons[sta_index];
     double time = times[sta_index][time_index];
     for (int i=0; i<nindex; i++) {
-      double lat_diff = Math.abs(lat - lats[i]);
-      double mid_lat = 0.5 * (lat + lats[i]);
-      double coslat = Math.cos(Data.DEGREES_TO_RADIANS * mid_lat);
-      double lon_diff = Math.abs(lon - lons[i]) * coslat;
-      double dist = ShadowType.METERS_PER_DEGREE *
-        Math.sqrt(lon_diff * lon_diff + lat_diff * lat_diff);
-      if (dist > outer_distance) continue;
-      double dist_mult = (dist <= inner_distance) ? 1.0 :
-        (outer_distance - dist) / (outer_distance - inner_distance);
+      double dist_mult = 0.0;
+      if (curve_ref != null) {
+        try {
+          Data data = curve_ref.getData();
+          Gridded2DSet set = null;
+          if (data instanceof Gridded2DSet) {
+            set = (Gridded2DSet) data;
+          }
+          else if (data instanceof UnionSet) {
+            UnionSet us = (UnionSet) curve_ref.getData();
+            SampledSet[] sets = us.getSets();
+            if (sets.length > 0 &&
+                sets[sets.length - 1] instanceof Gridded2DSet) {
+              set = (Gridded2DSet) sets[sets.length - 1];
+            }
+          }
+          if (set != null) {
+            float[][] samples = set.getSamples();
+            if (DelaunayCustom.inside(samples, lat, lon) &&
+                DelaunayCustom.inside(samples, lats[i], lons[i])) {
+              dist_mult = 1.0;
+            }
+          }
+        }
+        catch (VisADException ex) {
+          dist_mult = 0.0;
+        }
+      }
+      else {
+        double lat_diff = Math.abs(lat - lats[i]);
+        double mid_lat = 0.5 * (lat + lats[i]);
+        double coslat = Math.cos(Data.DEGREES_TO_RADIANS * mid_lat);
+        double lon_diff = Math.abs(lon - lons[i]) * coslat;
+        double dist = ShadowType.METERS_PER_DEGREE *
+          Math.sqrt(lon_diff * lon_diff + lat_diff * lat_diff);
+        if (dist > outer_distance) continue;
+        dist_mult = (dist <= inner_distance) ? 1.0 :
+          (outer_distance - dist) / (outer_distance - inner_distance);
+      }
       for (int j=0; j<ntimes[i]; j++) {
         int ix = station_to_global[i][j];
         double time_diff = Math.abs(time - times[i][j]);
@@ -712,6 +759,7 @@ public class CollectiveBarbManipulation extends Object
         double time_mult = (time_diff <= inner_time) ? 1.0 :
           (outer_time - time_diff) / (outer_time - inner_time);
         double mult = dist_mult * time_mult;
+        if (i == sta_index && j == time_index) mult = 1.0;
         double azimuth_diff = 0.0;
         double radial_diff = 0.0;
 
@@ -790,6 +838,7 @@ public class CollectiveBarbManipulation extends Object
     // construct RealTypes for wind record components
     RealType lat = RealType.Latitude;
     RealType lon = RealType.Longitude;
+    RealTupleType earth = new RealTupleType(lat, lon);
     RealType windx = new RealType("windx",
                           CommonUnit.meterPerSecond, null);     
     RealType windy = new RealType("windy",
@@ -907,6 +956,19 @@ public class CollectiveBarbManipulation extends Object
                                      0.0f, 1000000.0f, 0.0f, 1000.0f,
                                      0, false);
 
+    // construct invisible starter set
+    Gridded2DSet set1 =
+      new Gridded2DSet(earth, new float[][] {{0.0f, 0.0f}, {0.0f, 0.0f}}, 2);
+    Gridded2DSet[] sets = {set1};
+    UnionSet set = new UnionSet(earth, sets);
+
+    DataReferenceImpl set_ref = new DataReferenceImpl("set_ref");
+    set_ref.setData(set);
+    int mask = InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK;
+    display1.addReferences(new CurveManipulationRendererJ3D(mask, mask), set_ref);
+
+    cbm.setCollectiveCurve(false, set_ref, 0.0f, 1000.0f);
+
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("test CollectiveBarbManipulation");
     frame.addWindowListener(new WindowAdapter() {
@@ -953,10 +1015,22 @@ public class CollectiveBarbManipulation extends Object
     };
     cell.addReference(station_select_ref);
 
+    JPanel button_panel = new JPanel();
+    button_panel.setLayout(new BoxLayout(button_panel, BoxLayout.X_AXIS));
+    button_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+    button_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+
+    EndManipCBM emc = new EndManipCBM(cbm, set_ref);
     JButton end = new JButton("end manip");
-    end.addActionListener(new EndManipCBM(cbm));
+    end.addActionListener(emc);
     end.setActionCommand("end");
-    widget_panel.add(end);
+    button_panel.add(end);
+    JButton del = new JButton("delete curve");
+    del.addActionListener(emc);
+    del.setActionCommand("del");
+    button_panel.add(del);
+
+    widget_panel.add(button_panel);
     widget_panel.setMaximumSize(new Dimension(400, 800));
 
     panel.add(display_panel);
@@ -971,9 +1045,11 @@ public class CollectiveBarbManipulation extends Object
 
 class EndManipCBM implements ActionListener {
   CollectiveBarbManipulation cbm;
+  DataReferenceImpl set_ref;
 
-  EndManipCBM(CollectiveBarbManipulation c) {
+  EndManipCBM(CollectiveBarbManipulation c, DataReferenceImpl r) {
     cbm = c;
+    set_ref = r;
   }
 
   public void actionPerformed(ActionEvent e) {
@@ -981,6 +1057,19 @@ class EndManipCBM implements ActionListener {
     if (cmd.equals("end")) {
       try {
         FieldImpl final_field = cbm.endManipulation();
+      }
+      catch (VisADException ex) {
+      }
+      catch (RemoteException ex) {
+      }
+    }
+    else if (cmd.equals("del")) {
+      try {
+        UnionSet set = (UnionSet) set_ref.getData();
+        SampledSet[] sets = set.getSets();
+        SampledSet[] new_sets = new SampledSet[sets.length - 1];
+        System.arraycopy(sets, 0, new_sets, 0, sets.length - 1);
+        set_ref.setData(new UnionSet(set.getType(), new_sets));
       }
       catch (VisADException ex) {
       }

@@ -711,7 +711,6 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
 
     // construct invisible starter set
     Gridded2DSet set1 =
-      // new Gridded2DSet(xy, null, 1);
       new Gridded2DSet(xy, new float[][] {{0.0f, 0.0f}, {0.0f, 0.0f}}, 2);
     Gridded2DSet[] sets = {set1};
     UnionSet set = new UnionSet(xy, sets);
