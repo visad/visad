@@ -109,15 +109,14 @@ public class RangeSlider extends JComponent implements MouseListener,
   
   /** construct a RangeSlider with range of values (min, max) */
   public RangeSlider(String n, float min, float max) {
+    name = n;
+    resetValues(min, max);
     addMouseListener(this);
     addMouseMotionListener(this);
-    minLimit = min;
-    maxLimit = max;
-    name = n;
   }
 
-  /** sets the slider's bounds to the specified values */
-  public void setBounds(float min, float max) {
+  void resetValues(float min, float max)
+  {
     minLimit = min;
     maxLimit = max;
     minGrip = GRIP_WIDTH;
@@ -131,7 +130,11 @@ public class RangeSlider extends JComponent implements MouseListener,
     int w = getSize().width;
     minValue = gripToValue(minGrip, w);
     maxValue = gripToValue(maxGrip, w);
+  }
 
+  /** sets the slider's bounds to the specified values */
+  public void setBounds(float min, float max) {
+    resetValues(min, max);
     valuesUpdated();
     repaint();
   }
