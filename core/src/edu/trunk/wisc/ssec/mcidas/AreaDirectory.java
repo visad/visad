@@ -24,26 +24,14 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package edu.wisc.ssec.mcidas;
 
-import edu.wisc.ssec.mcidas.adde.AddeURLConnection;
-import java.applet.Applet;
-import java.io.BufferedInputStream;
-import java.io.DataInputStream;
-import java.io.EOFException;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.text.FieldPosition;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
-import java.util.Vector;
-
 
 /** 
- * AreaDirectory interface for McIDAS 'area' file format image data.
+ * AreaDirectory interface for the metadata of McIDAS 'area' file format 
+ * image data.
  *
  * @author Don Murray
  * 
@@ -51,335 +39,139 @@ import java.util.Vector;
 public class AreaDirectory 
 {
 
-    // load protocol for ADDE URLs
-    // See java.net.URL for explanation of URL handling
-    static 
-    {
-        try 
-        {
-            String handlers = System.getProperty("java.protocol.handler.pkgs");
-            String newProperty = null;
-            if (handlers == null)
-                newProperty = "edu.wisc.ssec.mcidas";
-            else if (handlers.indexOf("edu.wisc.ssec.mcidas") < 0)
-                newProperty = "edu.wisc.ssec.mcidas | " + handlers;
-            if (newProperty != null)  // was set above
-                System.setProperty("java.protocol.handler.pkgs", newProperty);
-        }
-        catch (Exception e)
-        {
-            System.out.println(
-                "Unable to set System Property: java.protocol.handler.pkgs"); 
-        }
-    }
-
     private boolean flipwords = false;
-    private DataInputStream inputStream;  // input stream
-    private int status=0;                 // read status
-    private URLConnection urlc;           // URL connection
-    private boolean isADDE = false;       // true if ADDE request
-    private int[] dir;                    // single directory
-    private Date[] nominalTimes;          // array of dates
-    private int[] bands;                  // array of bands
-    private int[] lines;                  // array of lines
-    private int[] elements;               // array of elements
-    private Vector dirs;                  // vector of directories
-    private int numDirs = 0;              // number of directories
+    private int[] dir = new int[AreaFile.AD_DIRSIZE];   // single directory
+    private Date nominalTime;          // time of the image
+    private int lines;                 // number of lines in the image
+    private int elements;              // number of elements in the image
+    private int[] bands;               // array of the band numbers
+    private int numbands;              // number of bands
     
     /**
-     * creates an AreaDirectory object that allows reading
-     * of McIDAS 'area' file format image data.  allows reading
-     * either from a disk file, or a server via ADDE.  
+     * Create an AreaDirectory from the raw block of data of
+     * an AreaFile.  Byte-flipping will be handled.
      *
-     * @param imageSource the file name or ADDE URL to read from
+     * @param  dirblock   the integer block
      *
-     * @exception AreaFileException if file cannot be opened
-     *
+     * @exception  AreaFileException   not a valid directory
      */
-    public AreaDirectory(String imageSource) 
-        throws AreaFileException 
+    public AreaDirectory(int[] dirblock)
+        throws AreaFileException
     {
-   
-        // try as a disk file first
-        try 
+        if (dirblock.length != AreaFile.AD_DIRSIZE)
+            throw new AreaFileException("Directory is not the right size");
+        dir = dirblock;
+        // see if the directory needs to be byte-flipped
+        if (dir[AreaFile.AD_VERSION] > 255 || flipwords) 
         {
-            inputStream = 
-                new DataInputStream (
-                    new BufferedInputStream(
-                        new FileInputStream(imageSource), 2048));
-        } 
-        catch (IOException eIO) 
-        {
-            // if opening as a file failed, try as a URL
-            URL url;
-            try 
-            {
-                url = new URL(imageSource);
-                urlc = url.openConnection();
-                InputStream is = urlc.getInputStream();
-                inputStream = new DataInputStream(is);
-            }
-            catch (Exception e) 
-            {
-                throw new AreaFileException("Error opening AreaFile: " + e);
-            }
-            if (url.getProtocol().equalsIgnoreCase("adde")) isADDE = true;
+            flipwords = true;
+            McIDASUtil.flip(dir,0,19);
+            // word 20 may contain characters -- if small int, flip it
+            if ( (dir[20] & 0xffff) == 0) McIDASUtil.flip(dir,20,20);
+            McIDASUtil.flip(dir,21,23);
+            // words 24-31 contain memo field
+            McIDASUtil.flip(dir,32,50);
+            // words 51-2 contain cal info
+            McIDASUtil.flip(dir,53,55);
+            // word 56 contains original source type (ascii)
+            McIDASUtil.flip(dir,57,63);
         }
-        readDirectory();
-    }
- 
-    /**
-     * creates an AreaDirectory object that allows reading
-     * of the directory of McIDAS 'area' file format image data from an applet
-     *
-     * @param filename the disk filename (incl path) to read from
-     * @param parent the parent applet 
-     *
-     * @exception AreaFileException if file cannot be opened
-     *
-     */
-    public AreaDirectory(String filename, Applet parent) 
-        throws AreaFileException 
-    {
-        URL url;
-        try 
-        {
-            url = new URL(parent.getDocumentBase(), filename);
-        } 
-        catch (MalformedURLException e) 
-        {
-            throw new AreaFileException(e.toString());
-        }
-
-        try 
-        { 
-            inputStream = new DataInputStream(url.openStream());
-        }
-        catch (IOException e) 
-        {
-            throw new AreaFileException("Error opening AreaFile:"+e);
-        }
-        readDirectory();
-    }
-
-    /**
-     * creates an AreaDirectory object that allows reading
-     * of the directory of McIDAS 'area' files from a URL
-     *
-     * @param URL - the URL to go after
-     *
-     * @exception AreaFileException if file cannot be opened
-     *
-     */
-    public AreaDirectory(URL url) 
-        throws AreaFileException 
-    {
-        try 
-        { 
-            inputStream = new DataInputStream(url.openStream());
-        } 
-        catch (IOException e) 
-        {
-            throw new AreaFileException("Error opening URL for AreaFile:"+e);
-        }
-        readDirectory();
-    }
-    
-    /** 
-     * Read the directory information for an area file or area directory
-     * record.
-     *
-     * @exception   AreaFileException    if there is a problem reading 
-     *                                   any portion of the metadata.
-     *
-     */
-    private void readDirectory() 
-        throws AreaFileException 
-    {
-        dirs = new Vector();
-        int numBytes = 
-            (isADDE) 
-                ? ((AddeURLConnection) urlc).getInitialRecordSize() 
-                : AreaFile.AD_DIRSIZE;
-        while (numBytes > 0)
-        {
-            try
-            {
-                dir = new int[AreaFile.AD_DIRSIZE];
-    
-                // skip first int which is dataset area number if ADDE request
-                if (isADDE) 
-                {
-                    int areaNumber = inputStream.readInt();
-                    //System.out.println("Area number = " + areaNumber);
-                    if (areaNumber == 0) break;
-                }
-        
-                for (int i=0; i < AreaFile.AD_DIRSIZE; i++) 
-                {
-                    dir[i] = inputStream.readInt();
-                }
-                if (isADDE) dir[0] = 0;
-        
-                // see if the directory needs to be byte-flipped
-                if (dir[AreaFile.AD_VERSION] > 255 || flipwords) 
-                {
-                    flipwords = true;
-                    McIDASUtil.flip(dir,0,19);
-                    // word 20 may contain characters -- if small int, flip it
-                    if ( (dir[20] & 0xffff) == 0) McIDASUtil.flip(dir,20,20);
-                    McIDASUtil.flip(dir,21,23);
-                    // words 24-31 contain memo field
-                    McIDASUtil.flip(dir,32,50);
-                    // words 51-2 contain cal info
-                    McIDASUtil.flip(dir,53,55);
-                    // word 56 contains original source type (ascii)
-                    McIDASUtil.flip(dir,57,63);
-                }
-    
     /*   Debug
-                for (int i = 0; i < AreaFile.AD_DIRSIZE; i++)
-                {
-                    System.out.println("dir[" + i +"] = " + dir[i]);
-                }
+        for (int i = 0; i < AreaFile.AD_DIRSIZE; i++)
+        {
+            System.out.println("dir[" + i +"] = " + dir[i]);
+        }
     */
-        
-                dirs.add(dir);
-
-    
-                if (!isADDE) 
-                {
-                    numBytes = 0;
-                }
-                else
-                {
-                    // last word in trailer is the number of bytes for the
-                    // next record so we need to read that
-                    int skipBytesCount = numBytes - AreaFile.AD_DIRSIZE*4 - 4;
-                    /*
-                    int numCards = dir[AreaFile.AD_DIRSIZE -1];
-                    System.out.println("Number of comment cards = " + numCards);
-                    for (int i = 0; i < numCards; i++)
-                    {
-                        byte[] card = new byte[80];
-                        for (int j = 0; j < 80; j++)
-                        {
-                            card[j] = inputStream.readByte();
-                        }
-                        System.out.println("card["+i+"] = " + new String(card));
-                    }
-                    */
-                    inputStream.skipBytes(skipBytesCount);
-                    numBytes = inputStream.readInt();
-                 // System.out.println("Bytes in next record = " + numBytes);
-                }
-            }
-            catch (IOException e) 
+        // Pull out some of the important information
+        nominalTime = 
+            new Date(1000* McIDASUtil.mcDayTimeToSecs(
+                    dir[AreaFile.AD_IMGDATE], 
+                        dir[AreaFile.AD_IMGTIME]));
+        lines = dir[AreaFile.AD_NUMLINES];
+        elements = dir[AreaFile.AD_NUMELEMS];
+        numbands = dir[AreaFile.AD_NUMBANDS];
+        bands = new int[numbands];
+        int j = 0;
+        for (int i = 0; i < 32; i++)
+        {
+            int bandmask = 1 << i;
+            if ( (bandmask & dir[AreaFile.AD_BANDMAP]) == bandmask)
             {
-                status = -1;
-                throw new AreaFileException(
-                    "Error reading Area directory:" + e);
+                bands[j] = i+1 ;
+                j++;
             }
-            status = 1;
-            numDirs++;
-        } 
-        // now set up some other arrays
-        nominalTimes = new Date[numDirs];
-        bands = new int[numDirs];
-        lines = new int[numDirs];
-        elements = new int[numDirs];
-        for (int i = 0; i < numDirs; i++)
-        {
-            int[] curDir = (int[]) dirs.get(i);
-            nominalTimes[i] = 
-                new Date(1000*
-                    McIDASUtil.mcDayTimeToSecs(
-                        curDir[AreaFile.AD_IMGDATE], 
-                            curDir[AreaFile.AD_IMGTIME]));
-            bands[i] = curDir[AreaFile.AD_BANDMAP];
-            lines[i] = curDir[AreaFile.AD_NUMLINES];
-            elements[i] = curDir[AreaFile.AD_NUMELEMS];
+            if (j > numbands) break;
         }
 
+    }
+
+    /**
+     * Create an AreaDirectory from another AreaDirectory object.
+     *
+     * @param  directory   the source AreaDirectory
+     *
+     * @exception  AreaFileException   not a valid directory
+     */
+    public AreaDirectory(AreaDirectory directory)
+        throws AreaFileException
+    {
+        this(directory.getDirectoryBlock());
     }
     
-    /** 
-     * returns the directory blocks for the requested images.  
-     * @see <A HREF="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
-     *      McIDAS Programmer's Manual</A> for information on the parameters
-     *      for each value.
+    /**
+     * Return a specific value from the directory
      *
-     * @return a Vector of integer arrays containing the area directory
+     * @param  pointer   part of the directory you want returned.  
+     *                   Use AreaFile static fields as pointers.
      *
-     * @exception AreaFileException if there was a problem
-     *            reading the directory
-     *
+     * @exception  AreaFileException  invalid pointer
      */
-    public Vector getDirs() 
-        throws AreaFileException 
+    public int getValue(int pointer)
+        throws AreaFileException
     {
-        if (status <= 0 || numDirs <= 0) 
-        {
-            throw new AreaFileException(
-                "Error reading directory information");
-        }
-        return dirs;
+        if (pointer < 0 || pointer > AreaFile.AD_DIRSIZE)
+            throw new AreaFileException("Invalid pointer " + pointer);
+        return dir[pointer];
     }
 
     /**
-     * returns the nominal times of the images
+     * Get the raw directory block
      *
-     * @return a array of Dates
-     *
-     * @exception AreaFileException if there was a problem
-     *            reading the directory
+     * @return integer array of the raw directory values
      */
-    public Date[] getNominalTimes()
-        throws AreaFileException 
+    public int[] getDirectoryBlock()
     {
-        if (status <=0 || numDirs <= 0)
-        {
-            throw new AreaFileException(
-                "Error reading directory information");
-        }
-        return nominalTimes;
+        return dir;
     }
 
     /**
-     * returns the number of lines of the images
+     * returns the nominal time of the image
      *
-     * @return a array of line numbers
+     * @return the nominal time as a Date
      *
-     * @exception AreaFileException if there was a problem
-     *            reading the directory
      */
-    public int[] getLines()
-        throws AreaFileException 
+    public Date getNominalTime()
     {
-        if (status <=0 || numDirs <= 0)
-        {
-            throw new AreaFileException(
-                "Error reading directory information");
-        }
+        return nominalTime;
+    }
+
+    /**
+     * returns the number of lines in the image
+     *
+     * @return line number
+     */
+    public int getLines()
+    {
         return lines;
     }
 
     /**
-     * returns the number of elements in each of the images
+     * returns the number of elements in the image
      *
-     * @return a array of element numbers
-     *
-     * @exception AreaFileException if there was a problem
-     *            reading the directory
+     * @return number of elements
      */
-    public int[] getElements()
-        throws AreaFileException 
+    public int getElements()
     {
-        if (status <=0 || numDirs <= 0)
-        {
-            throw new AreaFileException(
-                "Error reading directory information");
-        }
         return elements;
     }
 
@@ -392,13 +184,7 @@ public class AreaDirectory
      *            reading the directory
      */
     public int[] getBands()
-        throws AreaFileException 
     {
-        if (status <=0 || numDirs <= 0)
-        {
-            throw new AreaFileException(
-                "Error reading directory information");
-        }
         return bands;
     }
 
@@ -407,29 +193,19 @@ public class AreaDirectory
      */
     public String toString()
     {
-        if (status <=0 || numDirs <= 0)
-        {
-            return new String("No directory information available");
-        }
         StringBuffer buf = new StringBuffer();
-        buf.append("Position   Date    Time     Lines   Elements");
-        buf.append("\n--------   -----   ------   -----   --------");
         SimpleDateFormat sdf = new SimpleDateFormat();
         sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
         sdf.applyPattern("yyyy-MMM-dd  HH:mm:ss");
-        for (int i = 0; i < numDirs; i++)
-        {
-            buf.append("\n");
-            buf.append("    ");
-            buf.append(Integer.toString(i));
-            buf.append("    ");
-            buf.append(sdf.format(nominalTimes[i], 
-                new StringBuffer(), new FieldPosition(0)).toString());
-            buf.append("  ");
-            buf.append(Integer.toString(lines[i]));
-            buf.append("    ");
-            buf.append(Integer.toString(elements[i]));
-        }
+        buf.append("    ");
+        buf.append(sdf.format(nominalTime, 
+            new StringBuffer(), new FieldPosition(0)).toString());
+        buf.append("  ");
+        buf.append(Integer.toString(lines));
+        buf.append("    ");
+        buf.append(Integer.toString(elements));
+        buf.append("       ");
+        for (int i = 0; i < bands.length; i++) buf.append(bands[i]);
         return buf.toString();
     }
 }
