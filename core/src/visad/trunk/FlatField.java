@@ -291,7 +291,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
                    CoordinateSystem[] range_coord_syses,
                    Set[] range_sets, Unit[] units)
           throws VisADException {
-    super(type, domain_set);
+    super(type, domain_set, false);
     if (!type.getFlat()) {
       throw new FieldException("FlatField: FunctionType must be Flat");
     }

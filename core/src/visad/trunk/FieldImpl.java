@@ -53,7 +53,14 @@ public class FieldImpl extends FunctionImpl implements Field {
   int Length;
 
   /** the array of function values */
-  private Data[] Range;  // won't be null though elements might be
+    //jeffm: Change the name of Range to MyRange 
+    //so methods that use Range can simply call:
+    //Data[]Range = getRange ();
+  private Data[] MyRange;  // won't be null though elements might be
+
+
+    //This is used to synchronize access to the Range (which might be null)
+  private Object RangeLock = new Object ();
 
   private boolean MissingFlag;
 
@@ -64,19 +71,20 @@ public class FieldImpl extends FunctionImpl implements Field {
     this(type, null);
   }
 
+
   /**
    * Constructs from the type of function and a set of domain points.
    *
-   * @param type		The type of function.
-   * @param set 		The set of domain points.  Defines the units
-   *				and any coordinate system transformation
-   *				for the domain of the funciton.  May be
-   *				<code>null</code>, in which case the default
-   *				domain set ({@link FunctionType#getDomain()}) is
-   *				used.  May <em>not</em> be {@link FloatSet} or
-   *				{@link DoubleSet}.  If non-<code>null</code>, 
-   *				then must be compatible with the domain of the
-   *				FunctionType.
+   * @param type                The type of function.
+   * @param set                 The set of domain points.  Defines the units
+   *                            and any coordinate system transformation
+   *                            for the domain of the funciton.  May be
+   *                            <code>null</code>, in which case the default
+   *                            domain set ({@link FunctionType#getDomain()}) is
+   *                            used.  May <em>not</em> be {@link FloatSet} or
+   *                            {@link DoubleSet}.  If non-<code>null</code>, 
+   *                            then must be compatible with the domain of the
+   *                            FunctionType.
    * @throws CoordinateSystemException
    *                            if the {@link CoordinateSystem} of the
    *                            domain set is <code>null</code> but the
@@ -85,9 +93,42 @@ public class FieldImpl extends FunctionImpl implements Field {
    *                            CoordinateSystem}s are non-<code>null</code>
    *                            and do not have the same reference {@link
    *                            RealTupleType}.
-   * @throws VisADException	if a VisAD failure occurs.
+   * @throws VisADException     if a VisAD failure occurs.
    */
   public FieldImpl(FunctionType type, Set set) throws VisADException {
+      //Turn around and call the other ctor - the true says to go ahead 
+      //and create the  Range array
+      this (type, set, true);
+  }
+
+  /**
+   * Trusted constructor for subclasses that don't need to have the
+   * Range array instantiated (i.e., FlatField).
+   *
+   * @param type                The type of function.
+   * @param set                 The set of domain points.  Defines the units
+   *                            and any coordinate system transformation
+   *                            for the domain of the funciton.  May be
+   *                            <code>null</code>, in which case the default
+   *                            domain set ({@link FunctionType#getDomain()}) is
+   *                            used.  May <em>not</em> be {@link FloatSet} or
+   *                            {@link DoubleSet}.  If non-<code>null</code>, 
+   *                            then must be compatible with the domain of the
+   *                            FunctionType.
+   * @param createRangeArray    If true then the Range array is allocated.
+   * @throws CoordinateSystemException
+   *                            if the {@link CoordinateSystem} of the
+   *                            domain set is <code>null</code> but the
+   *                            {@link CoordinateSystem} of the domain of
+   *                            the FunctionType} is not; or if both {@link
+   *                            CoordinateSystem}s are non-<code>null</code>
+   *                            and do not have the same reference {@link
+   *                            RealTupleType}.
+   * @throws VisADException     if a VisAD failure occurs.
+   */
+  protected FieldImpl(FunctionType type, Set set, boolean createRangeArray) 
+    throws VisADException {
+
     super(type);
     RealTupleType DomainType = type.getDomain();
 
@@ -95,6 +136,7 @@ public class FieldImpl extends FunctionImpl implements Field {
     if (set == null) {
       throw new SetException("FieldImpl: set cannot be null");
     }
+
     if (set instanceof DoubleSet || set instanceof FloatSet) {
       throw new SetException("FieldImpl: set may not be DoubleSet " +
                              "or FloatSet");
@@ -114,16 +156,30 @@ public class FieldImpl extends FunctionImpl implements Field {
     DomainCoordinateSystem = DomainSet.getCoordinateSystem();
     CoordinateSystem domTypeCs = DomainType.getCoordinateSystem();
     if (domTypeCs == null 
-	  ? (DomainCoordinateSystem != null)
-	  : (DomainCoordinateSystem != null && !domTypeCs.getReference().equals(
-	      DomainCoordinateSystem.getReference()))) {
+          ? (DomainCoordinateSystem != null)
+          : (DomainCoordinateSystem != null && !domTypeCs.getReference().equals(
+              DomainCoordinateSystem.getReference()))) {
       throw new CoordinateSystemException(domTypeCs, DomainCoordinateSystem);
     }
     DomainUnits = DomainSet.getSetUnits();
     Length = DomainSet.getLength();
-    Range = new Data[Length];
+    if (createRangeArray) {
+        MyRange = new Data[Length];
+    }
     MissingFlag = true;
   }
+
+    /**
+       This  creates (if it has not been created already)  and returns the MyRange  data member
+     **/
+    private Data[] getRange () {
+        synchronized (RangeLock) {
+            if (MyRange == null) {
+                MyRange = new Data[Length];
+            }
+        }
+        return  MyRange;
+    }
 
   /** set the range samples of the function; the order of range samples
       must be the same as the order of domain indices in the DomainSet;
@@ -132,15 +188,19 @@ public class FieldImpl extends FunctionImpl implements Field {
   public void setSamples(Data[] range, boolean copy)
          throws VisADException, RemoteException {
     if (range == null) {
-      Range = new Data[Length];
-      MissingFlag = true;
-      return;
+        MyRange = null;
+        MissingFlag = true;
+        return;
     }
+
     if (range.length != Length) {
       throw new FieldException("FieldImpl.setSamples: bad array length");
     }
 
-    synchronized (Range) {
+    Data[]Range = getRange ();
+
+
+    synchronized (RangeLock) {
       MissingFlag = false;
       MathType t = ((FunctionType) Type).getRange();
       for (int i=0; i<Length; i++) {
@@ -191,7 +251,7 @@ public class FieldImpl extends FunctionImpl implements Field {
    * Returns the units of the values in the domain set.  The units may differ
    * from the default units of the underlying MathType of the domain, but will
    * be convertible with them.
-   * @return			The units of the values in the domain set.
+   * @return                    The units of the values in the domain set.
    */
   public Unit[] getDomainUnits() {
     return DomainUnits;
@@ -220,9 +280,9 @@ public class FieldImpl extends FunctionImpl implements Field {
 
     MathType RangeType = ((FunctionType) Type).getRange();
 
-    synchronized (Range) {
+    synchronized (RangeLock) {
       for (int i=0; i<len; i++) {
-        Data range = Range[i];
+        Data range = (MyRange==null?null:MyRange[i]);
         if (range == null || range.isMissing()) {
           for (int k=0; k<n; k++) values[k][i] = "";
         }
@@ -285,9 +345,9 @@ public class FieldImpl extends FunctionImpl implements Field {
 
     MathType RangeType = ((FunctionType) Type).getRange();
 
-    synchronized (Range) {
+    synchronized (RangeLock) {
       for (int i=0; i<len; i++) {
-        Data range = Range[i];
+        Data range = (MyRange == null? null: MyRange[i]);
         if (range == null || range.isMissing()) {
           for (int k=0; k<n; k++) values[k][i] = Double.NaN;
         }
@@ -345,7 +405,8 @@ public class FieldImpl extends FunctionImpl implements Field {
 
     MathType RangeType = ((FunctionType) Type).getRange();
 
-    synchronized (Range) {
+    synchronized (RangeLock) {
+      Data[]Range = getRange ();
       if (RangeType instanceof RealType) {
         for (int i=0; i<len; i++) {
           Range[i] = new Real((RealType) RangeType, range[0][i], units[0]);
@@ -422,7 +483,7 @@ public class FieldImpl extends FunctionImpl implements Field {
     MathType RangeType = ((FunctionType) Type).getRange();
 
     for (int i=0; i<Length; i++) {
-      Data range = Range[i];
+      Data range = (MyRange==null?null:MyRange[i]);
       if (range == null || range.isMissing()) {
         for (int k=0; k<n; k++) units[k][i] = default_units[k];
       }
@@ -474,7 +535,7 @@ public class FieldImpl extends FunctionImpl implements Field {
       ((RealTupleType) RangeType).getCoordinateSystem();
 
     for (int i=0; i<Length; i++) {
-      Data range = Range[i];
+      Data range = (MyRange==null?null:MyRange[i]);
       if (range == null || range.isMissing()) {
         cs[i] = default_cs;
       }
@@ -510,7 +571,7 @@ public class FieldImpl extends FunctionImpl implements Field {
       ((RealTupleType) component_type).getCoordinateSystem();
 
     for (int i=0; i<Length; i++) {
-      Data range = Range[i];
+      Data range = (MyRange==null?null:MyRange[i]);
       if (range == null || range.isMissing()) {
         cs[i] = default_cs;
       }
@@ -565,11 +626,11 @@ public class FieldImpl extends FunctionImpl implements Field {
    */
   public Data getSample(int index, boolean metadataOnly)
          throws VisADException, RemoteException {
-    synchronized (Range) {
-      if (isMissing() || index < 0 || index >= Length || Range[index] == null) {
+    synchronized (RangeLock) {
+      if (MyRange == null || isMissing() || index < 0 || index >= Length || MyRange[index] == null) {
         return ((FunctionType) Type).getRange().missingData();
       }
-      else return Range[index];
+      else return MyRange[index];
     }
   }
 
@@ -617,9 +678,10 @@ public class FieldImpl extends FunctionImpl implements Field {
       throw new TypeException("FieldImpl.setSample: bad range type");
     }
     if (index >= 0 && index < Length) {
-      synchronized (Range) {
+      Data[]Range = getRange ();
+      synchronized (RangeLock) {
         MissingFlag = false;
-        if ( copy ) {
+        if (copy) {
           Range[index] = (Data) range.dataClone();
         }
         else {
@@ -635,7 +697,7 @@ public class FieldImpl extends FunctionImpl implements Field {
 
   /** test whether Field value is missing */
   public boolean isMissing() {
-    synchronized (Range) {
+    synchronized (RangeLock) {
       return MissingFlag;
     }
   }
@@ -702,18 +764,20 @@ public class FieldImpl extends FunctionImpl implements Field {
     Data[] range = new Data[Length];
     /*- TDR  May 1998  */
     MathType m_type = ((FunctionType)new_type).getRange();
+
+
     if (field_flag) {
       // resample data if needed
       data = ((Field) data).resample(DomainSet, sampling_mode, error_mode);
       // apply operation to each range object
       for (int i=0; i<Length; i++) {
-        synchronized (Range) {
-          range[i] = (Range[i] == null) ? null :
+        synchronized (RangeLock) {
+          range[i] = ((MyRange==null||MyRange[i] == null)) ? null :
                     /*-  TDR May 1998
                      Range[i].binary(((Field) data).getSample(i), op,
                                      sampling_mode, error_mode);
                      */
-                     Range[i].binary(((Field) data).getSample(i), op, m_type,
+                     MyRange[i].binary(((Field) data).getSample(i), op, m_type,
                                      sampling_mode, error_mode);
 
         }
@@ -721,12 +785,12 @@ public class FieldImpl extends FunctionImpl implements Field {
     }
     else { // !field_flag
       for (int i=0; i<Length; i++) {
-        synchronized (Range) {
-          range[i] = (Range[i] == null) ? null :
+        synchronized (RangeLock) {
+          range[i] = ((MyRange==null||MyRange[i] == null)) ? null :
                      /*- TDR  May 1998
-                     Range[i].binary(data, op, sampling_mode, error_mode);
+                     MyRange[i].binary(data, op, sampling_mode, error_mode);
                       */
-                     Range[i].binary(data, op, m_type, sampling_mode, error_mode);
+                     MyRange[i].binary(data, op, m_type, sampling_mode, error_mode);
         }
       }
     }
@@ -754,15 +818,18 @@ public class FieldImpl extends FunctionImpl implements Field {
 /* WLH 17 Jan 2000
     Field new_field = new FieldImpl((FunctionType) Type, DomainSet);
 */
-    Field new_field = new FieldImpl((FunctionType) new_type, DomainSet);
 
+
+    Field new_field = new FieldImpl((FunctionType) new_type, DomainSet);
     if (isMissing()) return new_field;
     Data[] range = new Data[Length];
+
+
     // apply operation to each range object
     for (int i=0; i<Length; i++) {
-      synchronized (Range) {
-        range[i] = (Range[i] == null) ? null :
-                   Range[i].unary(op, m_type, sampling_mode, error_mode);
+      synchronized (RangeLock) {
+        range[i] = ((MyRange==null||MyRange[i] == null)) ? null :
+                   MyRange[i].unary(op, m_type, sampling_mode, error_mode);
       }
     }
     new_field.setSamples(range, false);
@@ -1440,13 +1507,13 @@ public class FieldImpl extends FunctionImpl implements Field {
    * domains of the inner fields will be the remainder of the original domain
    * after the outer domain is factored out.
    *
-   * @param factor		The type of the domain for the outer field.
-   * @return			The field-of-fields realization of this
-   *				instance.
-   * @throws DomainException	The domain of this instance cannot be factored
-   *				as requested.
-   * @throws VisADException	VisAD failure.
-   * @throws RemoteException	Java RMI failure.
+   * @param factor              The type of the domain for the outer field.
+   * @return                    The field-of-fields realization of this
+   *                            instance.
+   * @throws DomainException    The domain of this instance cannot be factored
+   *                            as requested.
+   * @throws VisADException     VisAD failure.
+   * @throws RemoteException    Java RMI failure.
    */
   public Field domainFactor( RealType factor )
          throws DomainException, VisADException, RemoteException
@@ -1567,9 +1634,9 @@ public class FieldImpl extends FunctionImpl implements Field {
           dim_lengths[sub_set_idx[ii]] = sub_set_lengths[ii];
         }
         dim_lengths[fac_set_idx] = fac_set_len;
-	new_type =
-	  new FunctionType(
-	    ((SetType)new_domain.getType()).getDomain(), rangeType );
+        new_type =
+          new FunctionType(
+            ((SetType)new_domain.getType()).getDomain(), rangeType );
       }
       else if (!(factor_set instanceof LinearNDSet ))
       {
@@ -1604,10 +1671,10 @@ public class FieldImpl extends FunctionImpl implements Field {
                          (n_sub_sets - fac_set_idx));
         System.arraycopy(sub_set_idx, fac_set_idx, sub_domain, cnt,
                          (n_sub_sets - fac_set_idx));
-	new_type =
-	  new FunctionType(
-	    ((SetType)new_set.getType()).getDomain(), rangeType );
-	new_domain = new_set;
+        new_type =
+          new FunctionType(
+            ((SetType)new_set.getType()).getDomain(), rangeType );
+        new_domain = new_set;
       }
     }
     else if ( DomainSet instanceof UnionSet )
@@ -1987,7 +2054,9 @@ public class FieldImpl extends FunctionImpl implements Field {
         }
       }
 
-      new_set = new GriddedSet(new_domain_type, new_samples, new_lengths );
+      // DRM 02-Feb-2003
+      //new_set = new GriddedSet(new_domain_type, new_samples, new_lengths );
+      new_set = GriddedSet.create(new_domain_type, new_samples, new_lengths );
     }
     Field new_field;
     if ( new_function_type.getFlat() )
@@ -2515,6 +2584,7 @@ public class FieldImpl extends FunctionImpl implements Field {
     float[][] error_values;
     double[] means = new double[dim];
 
+    Data[]Range = getRange ();
     if (sampling_mode == WEIGHTED_AVERAGE && DomainSet instanceof SimpleSet) {
       // resample by interpolation
       int[][] indices = new int[length][];
@@ -2528,7 +2598,7 @@ public class FieldImpl extends FunctionImpl implements Field {
           // WLH
           for (int k=0; k<len; k++) {
             Data RangeIK;
-            synchronized (Range) {
+            synchronized (RangeLock) {
               RangeIK = Range[indices[i][k]];
             }
             if (RangeIK != null) {
@@ -2570,7 +2640,7 @@ public class FieldImpl extends FunctionImpl implements Field {
             if (len > 0) {
               for (int k=0; k<len; k++) {
                 Data RangeIK;
-                synchronized (Range) {
+                synchronized (RangeLock) {
                   RangeIK = Range[error_indices[2*j][k]];
                 }
                 if (RangeIK != null) {
@@ -2588,7 +2658,7 @@ public class FieldImpl extends FunctionImpl implements Field {
             if (len > 0) {
               for (int k=0; k<len; k++) {
                 Data RangeIK;
-                synchronized (Range) {
+                synchronized (RangeLock) {
                   RangeIK = Range[error_indices[2*j+1][k]];
                 }
                 if (RangeIK != null) {
@@ -2633,7 +2703,7 @@ public class FieldImpl extends FunctionImpl implements Field {
       // simple resampling
       int[] indices = DomainSet.valueToIndex(vals);
       for (int i=0; i<length; i++) {
-        synchronized (Range) {
+        synchronized (RangeLock) {
           range[wedge[i]] = (indices[i] >= 0 && Range[indices[i]] != null) ?
                             Range[indices[i]] :
                             ((FunctionType) Type).getRange().missingData();
@@ -2645,7 +2715,7 @@ public class FieldImpl extends FunctionImpl implements Field {
                            ErrorEstimate.init_error_values(errors_out, means) );
           int[] error_indices = DomainSet.valueToIndex(error_values);
           for (int j=0; j<dim; j++) {
-            synchronized (Range) {
+            synchronized (RangeLock) {
               if (error_indices[2*j] < 0 || Range[error_indices[2*j]] == null ||
                   error_indices[2*j+1] < 0 || Range[error_indices[2*j+1]] == null) {
                 sampling_partials[j] = null;
@@ -2750,13 +2820,18 @@ public class FieldImpl extends FunctionImpl implements Field {
     // DomainSet.computeRanges handles Reference
     shadow = DomainSet.computeRanges(domain_type, shadow, ranges, true);
     ShadowType rtype = ((ShadowFunctionType) type).getRange();
-    for (int i=0; i<Range.length; i++) {
-      synchronized (Range) {
-        if (Range[i] != null) shadow = Range[i].computeRanges(rtype, shadow);
-      }
+
+
+    if (MyRange != null) {
+        for (int i=0; i<MyRange.length; i++) {
+            synchronized (RangeLock) {
+                if (MyRange[i] != null) shadow = MyRange[i].computeRanges(rtype, shadow);
+            }
+        }
     }
     return shadow;
   }
+
 
   /** return a Field that clones this, except its ErrorEstimate-s
       are adjusted for sampling errors in error */
@@ -2767,13 +2842,21 @@ public class FieldImpl extends FunctionImpl implements Field {
     if (isMissing()) return field;
     Field new_error =
       ((Field) error).resample(DomainSet, NEAREST_NEIGHBOR, NO_ERRORS);
+
+
+
+    //Only do this if we have a MyRange
     Data[] range = new Data[Length];
     for (int i=0; i<Length; i++) {
-      synchronized (Range) {
-        range[i] = Range[i].adjustSamplingError(new_error.getSample(i), error_mode);
-      }
+        synchronized (RangeLock) {
+            if (MyRange != null && MyRange[i] != null) {
+                range[i] = MyRange[i].adjustSamplingError(new_error.getSample(i), error_mode);
+            } else {
+                range[i]=null;
+            }
+        }
     }
-    field.setSamples(Range, true);
+    field.setSamples(range, true);
     return field;
   }
 
@@ -2852,23 +2935,24 @@ public class FieldImpl extends FunctionImpl implements Field {
   public Object clone() throws CloneNotSupportedException {
     FieldImpl clone = (FieldImpl)super.clone();
 
-    synchronized(Range) {
-      clone.Range = new Data[Range.length];
-
-      for (int i = 0; i < Range.length; i++) {
-        if (Range[i] != null) {
-          try {
-            /*
-             * Data.dataClone() is invoked because Data.clone() doesn't and
-             * can't exist.
-             */
-	    clone.Range[i] = (Data)Range[i].dataClone();
-          }
-          catch (RemoteException ex) {
-            throw new RuntimeException(ex.toString());
-          }
+    synchronized(RangeLock) {
+        if (MyRange != null) {
+            clone.MyRange = new Data[MyRange.length];
+            for (int i = 0; i < MyRange.length; i++) {
+                if (MyRange[i] != null) {
+                    try {
+                        /*
+                         * Data.dataClone() is invoked because 
+                         * Data.clone() doesn't and can't exist.
+                         */
+                        clone.MyRange[i] = (Data)MyRange[i].dataClone();
+                    }
+                    catch (RemoteException ex) {
+                        throw new RuntimeException(ex.toString());
+                    }
+                }
+            }
         }
-      }
     }
 
     return clone;
@@ -2888,9 +2972,12 @@ public class FieldImpl extends FunctionImpl implements Field {
       s.append("  missing\n");
       return s.toString();
     }
-    for (int i=0; i<Length; i++) {
-      s.append(pre + "  Range value " + i + ":\n" + ((Range[i] == null) ?
-               (pre + "missing\n") : Range[i].longString(pre + "    ")));
+
+    if (MyRange !=null) {
+      for (int i=0; i<Length; i++) {
+        s.append(pre + "  Range value " + i + ":\n" + ((MyRange[i] == null) ?
+                 (pre + "missing\n") : MyRange[i].longString(pre + "    ")));
+      }
     }
     return s.toString();
   }
@@ -3008,16 +3095,16 @@ class FieldEnumerator implements Enumeration {
         for (int j=0; j<dimension; j++) {
           reals[j] = new Real(types[j], (double) vals[j][0], units[j]);
         }
-	/*
-	 * The actual CoordinateSystem of the domain set is used only if the
-	 * domain's RealTupleType has a non-null CoordinateSystem; otherwise,
-	 * an exception would be thrown as of version 1.34.
-	 */
+        /*
+         * The actual CoordinateSystem of the domain set is used only if the
+         * domain's RealTupleType has a non-null CoordinateSystem; otherwise,
+         * an exception would be thrown as of version 1.34.
+         */
         return new RealTuple(type, reals, coordinateSystem);
       }
       else {
-	throw new NoSuchElementException(
-	  "FieldImplEnumerator.nextElement: no more elements");
+        throw new NoSuchElementException(
+          "FieldImplEnumerator.nextElement: no more elements");
       }
     }
     catch (VisADException e) {
