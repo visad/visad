@@ -125,6 +125,7 @@ public class Rain implements ControlListener {
     RealTupleType range = (RealTupleType) grid_type.getRange();
     RealType rangeC1 = (RealType) range.getComponent(0);
     RealType rangeC4 = (RealType) range.getComponent(8);
+    // System.out.println("rangeC1 = " + rangeC1 + " rangeC4 = " + rangeC4);
     int dim = range.getDimension();
     RealType[] range_types = new RealType[dim];
     for (int i=0; i<dim; i++) {
@@ -332,13 +333,14 @@ public class Rain implements ControlListener {
         FlatField field = baseCell(cell_refs[0][1], 1);
         if (field != null) {
           cell_refs[1][0].setData(field);
-          finishDisplay(field, 1, 0);
+          // finishDisplay(field, 1, 0);
         }
       }
     };
     cells[1][0].addReference(cell_refs[0][1]);
     cells[1][0].addReference(ref300);
     cells[1][0].addReference(ref1_4);
+    finishDisplay((RealType) range.getComponent(1), 1, 0);
 
     DisplayImpl.delay(DELAY);
 
@@ -348,13 +350,14 @@ public class Rain implements ControlListener {
         FlatField field = baseCell(cell_refs[0][1], 2);
         if (field != null) {
           cell_refs[1][1].setData(field);
-          finishDisplay(field, 1, 1);
+          // finishDisplay(field, 1, 1);
         }
       }
     };
     cells[1][1].addReference(cell_refs[0][1]);
     cells[1][1].addReference(ref300);
     cells[1][1].addReference(ref1_4);
+    finishDisplay((RealType) range.getComponent(2), 1, 1);
 
     DisplayImpl.delay(DELAY);
 
@@ -364,13 +367,14 @@ public class Rain implements ControlListener {
         FlatField field = baseCell(cell_refs[0][1], 3);
         if (field != null) {
           cell_refs[1][2].setData(field);
-          finishDisplay(field, 1, 2);
+          // finishDisplay(field, 1, 2);
         }
       }
     };
     cells[1][2].addReference(cell_refs[0][1]);
     cells[1][2].addReference(ref300);
     cells[1][2].addReference(ref1_4);
+    finishDisplay((RealType) range.getComponent(3), 1, 2);
 
     DisplayImpl.delay(DELAY);
 
@@ -380,13 +384,14 @@ public class Rain implements ControlListener {
         FlatField field = baseCell(cell_refs[0][1], 4);
         if (field != null) {
           cell_refs[2][0].setData(field);
-          finishDisplay(field, 2, 0);
+          // finishDisplay(field, 2, 0);
         }
       }
     };
     cells[2][0].addReference(cell_refs[0][1]);
     cells[2][0].addReference(ref300);
     cells[2][0].addReference(ref1_4);
+    finishDisplay((RealType) range.getComponent(4), 2, 0);
 
     DisplayImpl.delay(DELAY);
 
@@ -396,13 +401,14 @@ public class Rain implements ControlListener {
         FlatField field = baseCell(cell_refs[0][1], 5);
         if (field != null) {
           cell_refs[2][1].setData(field);
-          finishDisplay(field, 2, 1);
+          // finishDisplay(field, 2, 1);
         }
       }
     };
     cells[2][1].addReference(cell_refs[0][1]);
     cells[2][1].addReference(ref300);
     cells[2][1].addReference(ref1_4);
+    finishDisplay((RealType) range.getComponent(5), 2, 1);
 
     DisplayImpl.delay(DELAY);
 
@@ -427,7 +433,7 @@ public class Rain implements ControlListener {
           field = (FlatField) field.divide(fifty_three);
 
           cell_refs[2][2].setData(field);
-          finishDisplay(field, 2, 2);
+          // finishDisplay(field, 2, 2);
         }
       }
     };
@@ -437,6 +443,7 @@ public class Rain implements ControlListener {
     cells[2][2].addReference(cell_refs[1][2]);
     cells[2][2].addReference(cell_refs[2][0]);
     cells[2][2].addReference(cell_refs[2][1]);
+    finishDisplay(rangeC1, 2, 2);
 
     DisplayImpl.delay(DELAY);
 
@@ -447,11 +454,12 @@ public class Rain implements ControlListener {
         if (field != null) {
           field = (FlatField) field.extract(6);
           cell_refs[3][0].setData(field);
-          finishDisplay(field, 3, 0);
+          // finishDisplay(field, 3, 0);
         }
       }
     };
     cells[3][0].addReference(cell_refs[0][1]);
+    finishDisplay((RealType) range.getComponent(6), 3, 0);
 
     DisplayImpl.delay(DELAY);
 
@@ -462,11 +470,12 @@ public class Rain implements ControlListener {
         if (field != null) {
           field = (FlatField) field.extract(7);
           cell_refs[3][1].setData(field);
-          finishDisplay(field, 3, 1);
+          // finishDisplay(field, 3, 1);
         }
       }
     };
     cells[3][1].addReference(cell_refs[0][1]);
+    finishDisplay((RealType) range.getComponent(7), 3, 1);
 
     GraphicsModeControl mode = displays[3][1].getGraphicsModeControl();
     mode.setTextureEnable(false);
@@ -558,11 +567,13 @@ public class Rain implements ControlListener {
     return field;
   }
 
+/*
   public static void finishDisplay(FlatField field, int i, int j)
          throws VisADException, RemoteException {
     FunctionType type = (FunctionType) field.getType();
     if (!display_done[i][j] && type != null) {
       RealType rt = (RealType) type.getRange();
+      // System.out.println("i, j = " + i + " " + j + " rt = " + rt);
       color_maps[i][j] = new ScalarMap(rt, Display.RGB);
       displays[i][j].addMap(color_maps[i][j]);
       color_maps[i][j].setRange(MIN, MAX);
@@ -575,6 +586,21 @@ public class Rain implements ControlListener {
       displays[i][j].addReferences(new DirectManipulationRendererJ3D(), ref_cursor);
       display_done[i][j] = true;
     }
+  }
+*/
+  public static void finishDisplay(RealType rt, int i, int j)
+         throws VisADException, RemoteException {
+    color_maps[i][j] = new ScalarMap(rt, Display.RGB);
+    displays[i][j].addMap(color_maps[i][j]);
+    color_maps[i][j].setRange(MIN, MAX);
+    color_controls[i][j] = (ColorControl) color_maps[i][j].getControl();
+    if (color_control != null) { 
+      float[][] table = color_control.getTable();
+      if (table != null) color_controls[i][j].setTable(table);
+    }
+    displays[i][j].addReference(cell_refs[i][j]);
+    displays[i][j].addReferences(new DirectManipulationRendererJ3D(), ref_cursor);
+    display_done[i][j] = true;
   }
 
   public void controlChanged(ControlEvent e)
