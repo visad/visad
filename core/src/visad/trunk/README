@@ -21,11 +21,11 @@ directory is a directory in your CLASS_PATH (which we will refer
 to as '/parent_dir' through the rest of this README file).
 Then get:
 
-  ftp://iris.ssec.wisc.edu/pub/visad-2.0/visad_src.2.0.tar.Z
+  ftp://demedici.ssec.wisc.edu/pub/visad-2.0/visad_src.2.0.tar.Z
  
 or:
  
-  ftp://iris.ssec.wisc.edu/pub/visad-2.0/visad_src.2.0.jar
+  ftp://demedici.ssec.wisc.edu/pub/visad-2.0/visad_src.2.0.jar
  
 If you have previously downloaded the VisAD source you
 should run 'make clear' in your visad directory to clear
@@ -57,6 +57,7 @@ Unpacking VisAD will create the following sub-directories:
   visad/data/hdfeos/hdfeosc	// native interface to HDF-EOS
   visad/data/vis5d		// VisAD - Vis5D file adapter
   visad/data/gif		// VisAD - GIF file adapter
+  visad/data/visad		// VisAD serialized object file adapter
   visad/paoloa			// GoesCollaboration application
   visad/aune			// ShallowFluid application
   visad/benjamin		// Galaxy application
@@ -122,6 +123,20 @@ formats.  We believe that the need for these will disappear
 as the organizations supporting these file formats develop
 Java interfaces.
 
+You can build the necessary libraries from source or on
+Sparc Solaris you can simply download:
+
+  ftp://demedici.ssec.wisc.edu/pub/visad-2.0/libhdfeos.so
+
+into your visad/data/hdfeos/hdfeosc directory, and download
+
+  ftp://demedici.ssec.wisc.edu/pub/visad-2.0/libvis5d.so
+
+into your visad/data/vis5d directory.
+
+The rest of this section describes how to make these
+library files from source.
+
 The HDF-EOS and Vis5D file adapters include native interfaces
 (JNI) to file interfaces written in C.  On systems that
 support Unix make, change to the visad/data/vis5d and run
@@ -171,11 +186,11 @@ also include native code in both C and Fortran.
 Before you compile the native code in the visad/paoloa
 directory, download the necessary data files from either:
  
-  ftp://iris.ssec.wisc.edu/pub/visad-2.0/visad.paoloa.tar.Z
+  ftp://demedici.ssec.wisc.edu/pub/visad-2.0/visad.paoloa.tar.Z
  
 or:
  
-  ftp://iris.ssec.wisc.edu/pub/visad-2.0/visad.paoloa.jar
+  ftp://demedici.ssec.wisc.edu/pub/visad-2.0/visad.paoloa.jar
  
 which include necessary data files.  Unpack these files in
 /parent_dir (i.e., the directory in your CLASS_PATH where
@@ -209,11 +224,11 @@ If you want to write applications for VisAD but don't want
 to compile VisAD from source, you can dowload jar files that
 include the VisAD classes.  These files are:
 
-  ftp://iris.ssec.wisc.edu/pub/visad-2.0/visad.jar
+  ftp://demedici.ssec.wisc.edu/pub/visad-2.0/visad.jar
 
 or 
 
-  ftp://iris.ssec.wisc.edu/pub/visad-2.0/visad.tar
+  ftp://demedici.ssec.wisc.edu/pub/visad-2.0/visad.tar
 
 If you get the tar file you will need to unpack it by running:
 
