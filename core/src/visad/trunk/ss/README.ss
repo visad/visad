@@ -1,7 +1,6 @@
+                   VisAD Spread Sheet User Interface README file
+                                24 September 1998
  
-                   VisAD SpreadSheet User Interface README file
-                                15 September 1998
-                                        
                                 Table of Contents
 
 1. The visad.ss Package
@@ -22,7 +21,7 @@
     2.2.2 Edit Menu
     2.2.3 Setup Menu
     2.2.4 Display Menu
-    2.2.5 Window Menu
+    2.2.5 Options Menu
   2.3 Toolbars
     2.3.1 Main Toolbar
     2.3.2 Formula Toolbar
@@ -43,14 +42,18 @@ It is intended to be poweful and flexible, and it can be used to visualize
 many types of data, without any programming.  It supports many features of a
 traditional spreadsheet, such as formulas.  The package also provides a class
 structure such that developers can easily create their own user interfaces
-using spreadsheet cells from the visad.ss package.
+using Spread Sheet cells from the visad.ss package.
+    For up-to-date information about the VisAD Spread Sheet, see the VisAD
+Spread Sheet web page at http://www.ssec.wisc.edu/~curtis/ss.html
+    For up-to-date information about VisAD in general, see the VisAD web page
+at http://www.ssec.wisc.edu/~billh/visad.html
 
 1.2 Compiling and Running
     To compile the package, type the following from the visad/ss directory:
 
         javac -J-mx32m *.java
 
-    To run the spreadsheet user interface, type:
+    To run the Spread Sheet user interface, type:
 
         java -mx64m visad.ss.SpreadSheet
 
@@ -61,7 +64,7 @@ using spreadsheet cells from the visad.ss package.
     where (cols) is the number of columns, and (rows) is the number of rows.
     The default is four cells (two columns, two rows).
 
-    The spreadsheet user interface requires a lot of memory (at least 32 MB),
+    The Spread Sheet user interface requires a lot of memory (at least 32 MB),
     especially if you want to work with large data sets.  If you receive an
     OutOfMemoryError, you should increase the amount of memory allocated to
     the program (increase the ### in "-mx###m").
@@ -86,6 +89,8 @@ using spreadsheet cells from the visad.ss package.
       - ok.gif
       - open.gif
       - paste.gif
+      - save.gif
+      - show.gif
 
 1.3.1 BasicSSCell
     This class can be instantiated and added to a JFC user interface.  It
@@ -101,18 +106,18 @@ be "loud" (i.e., it displays errors in error message dialog boxes rather
 than throwing exceptions).
 
 1.3.3 Formula
-    This class is designed to convert formulas to postfix notation for
-evaluation on a stack.  It is used by FormulaCell.
+    This class converts formulas to postfix notation for evaluation on a
+stack.  It is used by FormulaCell.
 
 1.3.4 FormulaCell
     This class is used internally by BasicSSCell to evaluate formulas.
 
 1.3.5 MappingDialog
     This class is a dialog box allowing the user to specify ScalarMaps for
-    the current data set.
+the current data set.
 
 1.3.6 SpreadSheet
-    This is the main spreadsheet user interface class.  It manages
+    This is the main Spread Sheet user interface class.  It manages
     multiple FancySSCells.
 
 1.3.7 SSLayout
@@ -132,93 +137,136 @@ by dragging the yellow block between cell labels.
 
 2.2.1 File Menu
     Here are the commands from the File menu:
-      Import data -  Brings up a dialog box that allows the user to select a
-                     file for the spreadsheet to import to the current cell.
-                     Currently, VisAD supports the following file types:
-                         GIF, JPEG, netCDF, HDF-EOS, FITS, and Vis5D.
-                     Note that you must have the HDF-EOS and Vis5D file
-                     adapter native C code compiled in order to import data
-                     sets of those types.
-      Exit -         Quits the VisAD SpreadSheet User Interface.
+
+Import data
+    Brings up a dialog box that allows the user to select a file for the
+Spread Sheet to import to the current cell.  Currently, VisAD supports the
+following file types:
+       GIF, JPEG, netCDF, HDF-EOS, FITS, Vis5D, and serialized data.
+-------------------------------------------------------------------------------
+Note: You must have the HDF-EOS and Vis5D file adapter native C code compiled
+      in order to import data sets of those types.  See the Spread Sheet web
+      page for information on how to compile this native code.
+-------------------------------------------------------------------------------
+
+Export data to netCDF
+    Exports the current cell to a file in netCDF format.  A dialog box will
+appear to let you select the name and location of the netCDF file.  If the file
+exists, it will be overwritten.
+
+Export serialized data
+    Exports the current cell to a file in serialized data format (the "VisAD"
+form).  A dialog box will appear to let you select the name and location of the
+serialized data file.  If the file exists, it will be overwritten.
+-------------------------------------------------------------------------------
+WARNING: Exporting a cell as serialized data is a handy and portable way to
+         store data, but each time the VisAD Data class hierarchy changes, old
+         serialized data files become obsolete and will no longer load
+         properly.  For long term storage of your data, use the "Export data to
+         netCDF" command.
+-------------------------------------------------------------------------------
+
+Exit
+    Quits the VisAD SpreadSheet User Interface.
 
 2.2.2 Edit Menu
     Here are the commands from the Edit menu:
-      Cut -   Moves the current cell to the clipboard.
-      Copy -  Copies the current cell to the clipboard.
-      Paste - Copies the cell in the clipboard to the current cell.
-      Clear - Clears the current cell.
+
+Cut
+    Moves the current cell to the clipboard.
+Copy
+    Copies the current cell to the clipboard.
+Paste
+    Copies the cell in the clipboard to the current cell.
+Clear
+    Clears the current cell.
 
 2.2.3 Setup Menu
     Here are the commands from the Setup menu:
-      New -     Clears all spreadsheet cells;  starts from scratch.
-      Open -    Opens a "spreadsheet file."  Spreadsheet files are small,
-                containing only the instructions needed to recreate a
-                spreadsheet.  They do not contain any actual data, but rather
-                the file names and formulas of the cells.
-      Save -    Saves a "spreadsheet file" under the current name.  
-      Save as - Saves a "spreadsheet file" under a new name.
+
+New
+    Clears all spreadsheet cells;  starts from scratch.
+
+Open
+    Opens a "spreadsheet file."  Spreadsheet files are small, containing only
+the instructions needed to recreate a spreadsheet.  They do not contain any
+actual data, but rather the file names and formulas of the cells.
+
+Save
+    Saves a "spreadsheet file" under the current name.  
+
+Save as
+    Saves a "spreadsheet file" under a new name.
 
 2.2.4 Display Menu
     Here are the commands from the Display menu:
-      Edit Mappings - Brings up a dialog box which lets you change how the Data
-                      object is mapped to the Display.  Click a RealType object
-                      on the left (or from the MathType display at the top),
-                      then click a display icon from the display panel in the
-                      center of the dialog.  The "Current Mappings" box on the
-                      lower right will change to reflect which mappings you've
-                      currently set up.  When you've set up all the mappings to
-                      your liking, click the Done button and the spreadsheet
-                      will try to display the data object.  To close the dialog
-                      box without applying any of the changes you made to the
-                      mappings, click the Cancel button.  You can also
-                      highlight items from the "Current Mappings" box, then
-                      click "Clear selected" to remove those mappings from the
-                      list, or click "Clear all" to clear all mappings from the
-                      list and start from scratch.
-      3-D (Java3D) -  Sets the current cell's display dimension to 3-D.  This
-                      setting requires Java3D.
-      2-D (Java2D) -  Sets the current cell's display dimension to 2-D.  This
-                      uses Java2D, which comes with JDK 1.2beta3.  However, in
-                      this mode, nothing can be mapped to ZAxis, Latitude, or
-                      Alpha.  For computers without 3-D acceleration, this mode
-                      will provide much better performance, but the display
-                      quality will not be as good as 2-D (Java3D).  This
-                      setting is the default, so that non-Java3D-enabled
-                      computers can still use the spreadsheet.
-      2-D (Java3D) -  Sets the current cell's display dimension to 2-D.  This
-                      requires Java3D.  In this mode, nothing can be mapped to
-                      ZAxis or Latitude (but things can be mapped to Alpha).
-                      On computers with 3-D acceleration, this mode will
-                      probably provide better performance than 2-D (Java2D).
-                      It also has better display quality than 2-D (Java2D).
 
-      ** The rest of the commands from the Display menu are "quick-maps."
-         They scan the current cell's data object for a valid flat function
-         and map it in a preset fashion.  These built-in "mapping schemes"
-         provide common visualization ScalarMap combinations.  If for some
-         reason the quick-maps do not work, you will have to edit the mappings
-         manually with the "Edit Mappings" option in the Display menu.
+Edit Mappings
+    Brings up a dialog box which lets you change how the Data object is mapped
+to the Display.  Click a RealType object on the left (or from the MathType
+display at the top), then click a display icon from the display panel in the
+center of the dialog.  The "Current Mappings" box on the lower right will
+change to reflect which mappings you've currently set up.  When you've set up
+all the mappings to your liking, click the Done button and the Spread Sheet
+will try to display the data object.  To close the dialog box without applying
+any of the changes you made to the mappings, click the Cancel button.  You can
+also highlight items from the "Current Mappings" box, then click "Clear
+selected" to remove those mappings from the list, or click "Clear all" to clear
+all mappings from the list and start from scratch.
 
-2.2.5 Window Menu
-    Here are the commands from the Window menu:
-      Show VisAD controls -            Displays the set of controls relevant
-                                       to the current cell (these controls
-                                       are displayed by default, but could
-                                       become hidden at a later time).
-      Show formula evaluation errors - If this option is checked, dialog boxes
-                                       will pop up explaining why any formulas
-                                       entered are illegal or could not be
-                                       evaluated.  If this option is not
-                                       checked, the only notification of an
-                                       error is a large X through the current
-                                       cell.
+3-D (Java3D)
+    Sets the current cell's display dimension to 3-D.  This setting requires
+Java3D.  If you do not have Java3D installed, this option will be grayed out.
+
+2-D (Java2D)
+    Sets the current cell's display dimension to 2-D.  This uses Java2D, which
+comes with the JDK.  However, in this mode, nothing can be mapped to ZAxis,
+Latitude, or Alpha.  For computers without 3-D acceleration, this mode will
+provide much better performance, but the display quality will not be as good as
+2-D (Java3D).  If you do not have Java3D installed, this is the only available
+mode.
+
+2-D (Java3D)
+    Sets the current cell's display dimension to 2-D.  This requires Java3D.
+In this mode, nothing can be mapped to ZAxis or Latitude (but things can be
+mapped to Alpha).  On computers with 3-D acceleration, this mode will probably
+provide better performance than 2-D (Java2D).  It also has better display
+quality than 2-D (Java2D).  If you do not have Java3D installed, this option
+will be grayed out.
+
+2.2.5 Options Menu
+    Here are the commands from the Options menu:
+
+Auto-switch to 3-D
+    If this option is checked, cells will automatically switch to 3-D display
+mode when mappings are used that require 3-D display mode.  In addition, it
+will switch to mode 2-D (Java3D) from mode 2-D (Java2D) if anything is mapped
+to Alpha or RGBA.  If you do not have Java3D installed, this option is grayed
+out.  Otherwise, this option is checked by default.
+
+Auto-detect mappings
+    If this option is checked, the Spread Sheet will attempt to detect a good
+set of mappings for a newly loaded data set and automatically apply them.  This
+option is checked by default.
+
+Show formula evaluation errors
+    If this option is checked, dialog boxes will pop up explaining why any
+formulas entered are illegal or could not be evaluated.  If this option is not
+checked, the only notification of an error is a large X through the current
+cell.
+
+Show VisAD controls
+    Displays the set of controls relevant to the current cell (these controls
+are displayed by default, but could become hidden at a later time).  This
+option is not a checkbox, but rather just redisplays the VisAD Controls for the
+current cell if they have been closed by the user.
 
 2.3 Toolbars
 
 2.3.1 Main Toolbar
     The main toolbar provides shortcuts to the following menu items:
         File Import, Edit Cut, Edit Copy, Edit Paste,
-        Display Edit Mappings, and Window Show VisAD Controls.
+        Display Edit Mappings, and Options Show VisAD Controls.
 The main toolbar has tool tips so each button can be easily identified.
 
 2.3.2 Formula Toolbar
@@ -226,7 +274,7 @@ The main toolbar has tool tips so each button can be easily identified.
 2.3.2.1 Description
     The formula toolbar is used for entering file names and formulas for the
 current cell.  If you enter the name of a file in the formula text box, the
-spreadsheet will attempt to import the data from that file.  If you enter a
+Spread Sheet will attempt to import the data from that file.  If you enter a
 formula, it will attempt to parse and evaluate that formula.  If a formula
 entered is invalid for some reason, the answer cannot be computed, or the file
 entered does not exist, the cell will have a large X through it instead of the
@@ -307,19 +355,22 @@ to the File menu's Import Data menu item.
       1) Clicking a cell with an illegal file name or formula (one with a
          large X through it) will not highlight that cell.  The arrow keys
          must be used to select it.
-      2) The spreadsheet will not import certain data sets correctly, due to
+      2) The Spread Sheet will not import certain data sets correctly, due to
          incomplete implementations in VisAD file adapter forms.
       3) Error messages are displayed when the user clicks on a button that
          doesn't make sense (such as trying to set up mappings for an empty
          cell).  These buttons should just be grayed out.
-      4) There is no way to change the number of spreadsheet rows and columns
-         while the spreadsheet is running;  you must quit the spreadsheet and
-         specify a new setting on the command line.
+      4) There is no way to change the number of rows and columns while the
+         Spread Sheet is running;  you must quit the Spread Sheet and specify
+         a new setting on the command line.
       5) When resizing cells, if a cell is made to be as small as it can be
          in one or more dimensions, some extra space or a scroll bar will
-         appear in the bottom or right-hand corners of the spreadsheet window.
+         appear in the bottom or right-hand corners of the Spread Sheet window.
+      6) The tooltips for the formula checkbox and formula X-box buttons, as
+         well as the tooltip for the formula text field itself, pop up behind
+         the column labels, making them impossible to read.
 
-    If you find a bug in the spreadsheet user interface not listed above,
+    If you find a bug in the Spread Sheet user interface not listed above,
 please send e-mail to curtis@ssec.wisc.edu describing the problem, preferably
 with a detailed description of how to recreate the problem.
 
@@ -329,14 +380,12 @@ with a detailed description of how to recreate the problem.
       2) Multiple data per cell
       3) Direct manipulation support
       4) Distributed Cells, Data, etc. (such as data import from http address)
-      5) Remote spreadsheet cloning with collaboration
+      5) Remote Spread Sheet cloning with collaboration
       6) Formula enhancements, including composition of multiple Data objects
          (such as creating an animation from multiple spreadsheet cells), and
          dynamic linkage of Java code into formulas
-      7) Quick-map enhancements, including more built-in quick-maps (such as
-         contour and animation), and user-defined quick-maps
-      8) Misc. user interface enhancements
-      9) And of course, bug fixes
+      7) Misc. user interface enhancements
+      8) And of course, bug fixes
 
     If you have any suggestions for features that you would find useful,
 please send e-mail to curtis@ssec.wisc.edu describing the feature.
