@@ -182,7 +182,7 @@ def addeimage(mapname='outlsupu'):
 
 #----------------------------------------------------------------------------
 # basic scatter plot between two fields.
-def scatter(data_1, data_2, panel=None, pointsize=None, width=400, height=400, xlabel=None, ylabel=None, title="VisAD Scatter"):
+def scatter(data_1, data_2, panel=None, pointsize=None, width=400, height=400, xlabel=None, ylabel=None, title="VisAD Scatter", bottom=None, top=None):
   """
   Quick plot of a scatter diagram between <data_1> and <data_2>.
   <panel> is the name of a panel to put this into (default= make a new
@@ -210,7 +210,8 @@ def scatter(data_1, data_2, panel=None, pointsize=None, width=400, height=400, x
   if pointsize is not None: subs.setPointSize(disp, pointsize)
 
   subs.setAspectRatio(disp, float(width)/float(height))
-  subs.showDisplay(disp,width,height,title,None,None,panel)
+  subs.showDisplay(disp,width,height,title,bottom,top,panel)
+  setAxesScalesLabel(maps, [xlabel, ylabel])
   return disp
 
 #----------------------------------------------------------------------------
