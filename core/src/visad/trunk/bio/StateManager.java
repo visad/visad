@@ -31,15 +31,15 @@ import javax.swing.JOptionPane;
 import visad.VisADException;
 
 /**
- * StateManager contains information needed to recreate a BioVisAD
+ * StateManager contains information needed to recreate a VisBio
  * program state, in the case of a program crash or other error.
  */
 public class StateManager {
 
   // -- FIELDS --
 
-  /** BioVisAD frame. */
-  private BioVisAD bio;
+  /** VisBio frame. */
+  private VisBio bio;
 
   /** Temp file for storing temporary state information. */
   private File state;
@@ -65,13 +65,13 @@ public class StateManager {
 
   // -- CONSTRUCTORS --
 
-  /** Constructs a BioVisAD state management object. */
-  public StateManager(BioVisAD biovis) {
+  /** Constructs a VisBio state management object. */
+  public StateManager(VisBio biovis) {
     this(biovis, "biovisad.tmp", "lines.tmp", "linesold.tmp");
   }
 
-  /** Constructs a BioVisAD state management object. */
-  public StateManager(BioVisAD biovis,
+  /** Constructs a VisBio state management object. */
+  public StateManager(VisBio biovis,
     String state, String lines, String oldLines)
   {
     bio = biovis;
@@ -152,8 +152,8 @@ public class StateManager {
   public void checkState() {
     if (!state.exists() && !lines.exists()) return;
     int ans = JOptionPane.showConfirmDialog(bio,
-      "It appears that BioVisAD crashed last time. " +
-      "Attempt to restore the previous state?", "BioVisAD",
+      "It appears that VisBio crashed last time. " +
+      "Attempt to restore the previous state?", "VisBio",
       JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
     if (ans != JOptionPane.YES_OPTION) return;
     restoreState();

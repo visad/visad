@@ -29,7 +29,7 @@ package visad.bio;
 import java.util.Vector;
 import visad.*;
 
-/** BioUtil provides a collection of general utilities used by BioVisAD. */
+/** BioUtil provides a collection of general utilities used by VisBio. */
 public class BioUtil {
 
   /** Converts the given pixel coordinates to domain coordinates. */

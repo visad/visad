@@ -61,8 +61,8 @@ public class MeasurePool implements DisplayListener {
 
   // -- GENERAL FIELDS --
 
-  /** BioVisAD frame. */
-  private BioVisAD bio;
+  /** VisBio frame. */
+  private VisBio bio;
 
   /** Id of this measurement pool. */
   private int pid;
@@ -140,7 +140,7 @@ public class MeasurePool implements DisplayListener {
   // -- CONSTRUCTOR --
 
   /** Constructs a pool of measurements. */
-  public MeasurePool(BioVisAD biovis, DisplayImpl display, int dimension) {
+  public MeasurePool(VisBio biovis, DisplayImpl display, int dimension) {
     bio = biovis;
     pid = numPools++;
     this.display = display;

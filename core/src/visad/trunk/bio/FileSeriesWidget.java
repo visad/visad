@@ -35,7 +35,7 @@ public class FileSeriesWidget extends BioStepWidget {
   // -- CONSTRUCTOR --
 
   /** Constructs a new FileSeriesWidget. */
-  public FileSeriesWidget(BioVisAD biovis) { super(biovis, true); }
+  public FileSeriesWidget(VisBio biovis) { super(biovis, true); }
 
 
   // -- API METHODS --

@@ -33,7 +33,7 @@ import javax.swing.*;
 import visad.VisADException;
 import visad.util.Util;
 
-/** MeasureManager is the class encapsulating BioVisAD's measurement logic. */
+/** MeasureManager is the class encapsulating VisBio's measurement logic. */
 public class MeasureManager {
 
   // -- MEASUREMENT INFO --
@@ -59,8 +59,8 @@ public class MeasureManager {
 
   // -- OTHER FIELDS --
 
-  /** BioVisAD frame. */
-  private BioVisAD bio;
+  /** VisBio frame. */
+  private VisBio bio;
 
   /** File chooser for loading and saving data. */
   private JFileChooser fileBox = Util.getVisADFileChooser();
@@ -69,7 +69,7 @@ public class MeasureManager {
   // -- CONSTRUCTORS --
 
   /** Constructs a measurement manager. */
-  public MeasureManager(BioVisAD biovis)
+  public MeasureManager(VisBio biovis)
     throws VisADException, RemoteException
   {
     bio = biovis;
@@ -114,7 +114,7 @@ public class MeasureManager {
     }
     if (!changed || !hasMeasure) return;
     int ans = JOptionPane.showConfirmDialog(bio,
-      "Save measurements?", "BioVisAD",
+      "Save measurements?", "VisBio",
       JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
     if (ans != JOptionPane.YES_OPTION) return;
     saveMeasurements();

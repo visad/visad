@@ -60,8 +60,8 @@ public class ExportDialog extends JPanel
 
   // -- FIELDS --
 
-  /** BioVisAD frame. */
-  private BioVisAD bio;
+  /** VisBio frame. */
+  private VisBio bio;
 
   /** Currently visible dialog. */
   private JDialog dialog;
@@ -83,7 +83,7 @@ public class ExportDialog extends JPanel
   // -- CONSTRUCTOR --
 
   /** Creates a file series chooser dialog. */
-  public ExportDialog(BioVisAD biovis) {
+  public ExportDialog(VisBio biovis) {
     bio = biovis;
 
     // main components
@@ -300,7 +300,7 @@ public class ExportDialog extends JPanel
       "s " + min_index + " through " + max_index) + " to file" +
       (series.length == 1 ? " " + series[0] : "s " + series[0] +
       " through " + series[series.length - 1]) + "?";
-    int ans = JOptionPane.showConfirmDialog(bio, s, "BioVisAD",
+    int ans = JOptionPane.showConfirmDialog(bio, s, "VisBio",
       JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
     if (ans != JOptionPane.YES_OPTION) return;
 

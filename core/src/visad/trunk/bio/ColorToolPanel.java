@@ -110,7 +110,7 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
   // -- CONSTRUCTOR --
 
   /** Constructs a tool panel for adjusting viewing parameters. */
-  public ColorToolPanel(BioVisAD biovis) {
+  public ColorToolPanel(VisBio biovis) {
     super(biovis);
 
     // brightness label
@@ -122,8 +122,8 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     p.add(brightnessLabel);
 
     // brightness slider
-    brightness = new JSlider(0, BioVisAD.COLOR_DETAIL,
-      BioVisAD.NORMAL_BRIGHTNESS);
+    brightness = new JSlider(0, VisBio.COLOR_DETAIL,
+      VisBio.NORMAL_BRIGHTNESS);
     brightness.addChangeListener(new ChangeListener() {
       public void stateChanged(ChangeEvent e) { doColorTable(); }
     });
@@ -131,9 +131,9 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     p.add(brightness);
 
     // current brightness value
-    brightnessValue = new JLabel("" + BioVisAD.NORMAL_BRIGHTNESS);
+    brightnessValue = new JLabel("" + VisBio.NORMAL_BRIGHTNESS);
     Dimension labelSize =
-      new JLabel("." + BioVisAD.COLOR_DETAIL).getPreferredSize();
+      new JLabel("." + VisBio.COLOR_DETAIL).getPreferredSize();
     brightnessValue.setPreferredSize(labelSize);
     brightnessValue.setAlignmentY(JLabel.TOP_ALIGNMENT);
     p.add(brightnessValue);
@@ -150,19 +150,19 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     p.add(contrastLabel);
 
     // contrast slider
-    contrast = new JSlider(0, BioVisAD.COLOR_DETAIL,
-      BioVisAD.NORMAL_CONTRAST);
+    contrast = new JSlider(0, VisBio.COLOR_DETAIL,
+      VisBio.NORMAL_CONTRAST);
     contrast.addChangeListener(new ChangeListener() {
       public void stateChanged(ChangeEvent e) { doColorTable(); }
     });
     contrast.setAlignmentY(JSlider.TOP_ALIGNMENT);
-    contrast.setMajorTickSpacing(BioVisAD.COLOR_DETAIL / 4);
-    contrast.setMinorTickSpacing(BioVisAD.COLOR_DETAIL / 16);
+    contrast.setMajorTickSpacing(VisBio.COLOR_DETAIL / 4);
+    contrast.setMinorTickSpacing(VisBio.COLOR_DETAIL / 16);
     contrast.setPaintTicks(true);
     p.add(contrast);
 
     // current contrast value
-    contrastValue = new JLabel("" + BioVisAD.NORMAL_CONTRAST);
+    contrastValue = new JLabel("" + VisBio.NORMAL_CONTRAST);
     contrastValue.setPreferredSize(labelSize);
     contrastValue.setAlignmentY(JLabel.TOP_ALIGNMENT);
     p.add(contrastValue);
@@ -257,13 +257,13 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
     p.add(alphaLabel);
 
     // alpha slider
-    alpha = new JSlider(0, BioVisAD.COLOR_DETAIL, BioVisAD.COLOR_DETAIL / 2);
+    alpha = new JSlider(0, VisBio.COLOR_DETAIL, VisBio.COLOR_DETAIL / 2);
     alpha.addChangeListener(new ChangeListener() {
       public void stateChanged(ChangeEvent e) { doAlpha(false); }
     });
     alpha.setAlignmentY(JSlider.TOP_ALIGNMENT);
-    alpha.setMajorTickSpacing(BioVisAD.COLOR_DETAIL / 4);
-    alpha.setMinorTickSpacing(BioVisAD.COLOR_DETAIL / 16);
+    alpha.setMajorTickSpacing(VisBio.COLOR_DETAIL / 4);
+    alpha.setMinorTickSpacing(VisBio.COLOR_DETAIL / 16);
     alpha.setPaintTicks(true);
     alpha.setEnabled(false);
     p.add(alpha);
@@ -372,14 +372,14 @@ public class ColorToolPanel extends ToolPanel implements ItemListener {
   void doAlpha(boolean solid) {
     // [0, 0.5] -> [N, 1]
     // [0.5, 1] -> [1, 1/N]
-    double value = (double) alpha.getValue() / BioVisAD.COLOR_DETAIL;
+    double value = (double) alpha.getValue() / VisBio.COLOR_DETAIL;
     boolean invert = value > 0.5;
     if (invert) value = 1 - value;
     double pow = (MAX_POWER - 1) * 2 * (0.5 - value) + 1;
     if (invert) pow = 1 / pow;
-    float[] alphaTable = new float[BioVisAD.COLOR_DETAIL];
-    for (int i=0; i<BioVisAD.COLOR_DETAIL; i++) {
-      double inc = (double) i / (BioVisAD.COLOR_DETAIL - 1);
+    float[] alphaTable = new float[VisBio.COLOR_DETAIL];
+    for (int i=0; i<VisBio.COLOR_DETAIL; i++) {
+      double inc = (double) i / (VisBio.COLOR_DETAIL - 1);
       alphaTable[i] = (float) Math.pow(inc, pow);
     }
     LabeledColorWidget[] widgets = bio.sm.getColorWidgets();

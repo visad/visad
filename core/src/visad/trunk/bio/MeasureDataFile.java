@@ -42,7 +42,7 @@ public class MeasureDataFile {
   private static final String[] VARIABLES = { "x", "y", "slice" };
 
   /** Data file label for beginning of file. */
-  private static final String BEGIN_LABEL = "# BioVisAD measurement data file";
+  private static final String BEGIN_LABEL = "# VisBio measurement data file";
 
   /** Data file label for line denoting unit type. */
   private static final String UNIT_LABEL = "Unit = ";
@@ -59,8 +59,8 @@ public class MeasureDataFile {
 
   // -- FIELDS --
 
-  /** BioVisAD frame. */
-  private BioVisAD bio;
+  /** VisBio frame. */
+  private VisBio bio;
 
   /** File containing the measurement data. */
   private File file;
@@ -69,7 +69,7 @@ public class MeasureDataFile {
   // -- CONSTRUCTOR --
 
   /** Constructs a measurement data file. */
-  public MeasureDataFile(BioVisAD biovis, File file) {
+  public MeasureDataFile(VisBio biovis, File file) {
     bio = biovis;
     this.file = file;
   }
@@ -302,8 +302,8 @@ public class MeasureDataFile {
       int id = Integer.parseInt(st.nextToken());
       String name = st.nextToken();
       String desc = st.hasMoreTokens() ? st.nextToken() : "";
-      if (id == BioVisAD.noneGroup.getId()) {
-        bio.mm.groups.add(BioVisAD.noneGroup);
+      if (id == VisBio.noneGroup.getId()) {
+        bio.mm.groups.add(VisBio.noneGroup);
       }
       else {
         MeasureGroup group = new MeasureGroup(bio, name);

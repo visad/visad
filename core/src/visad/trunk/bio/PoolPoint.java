@@ -36,8 +36,8 @@ public class PoolPoint {
 
   // -- FIELDS --
 
-  /** BioVisAD frame. */
-  private BioVisAD bio;
+  /** VisBio frame. */
+  private VisBio bio;
 
   /** Associated data reference. */
   DataReferenceImpl ref;
@@ -58,7 +58,7 @@ public class PoolPoint {
   // -- CONSTRUCTOR --
 
   /** Constructs a point for use in the measurement pool. */
-  public PoolPoint(BioVisAD biovis, DisplayImpl display,
+  public PoolPoint(VisBio biovis, DisplayImpl display,
     String name, int dimension)
   {
     bio = biovis;

@@ -35,7 +35,7 @@ public class ImageStackWidget extends BioStepWidget {
   // -- CONSTRUCTOR --
 
   /** Constructs a new ImageStackWidget. */
-  public ImageStackWidget(BioVisAD biovis) { super(biovis, false); }
+  public ImageStackWidget(VisBio biovis) { super(biovis, false); }
 
 
   // -- API METHODS --

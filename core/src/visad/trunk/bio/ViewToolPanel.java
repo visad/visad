@@ -116,7 +116,7 @@ public class ViewToolPanel extends ToolPanel {
   // -- CONSTRUCTOR --
 
   /** Constructs a tool panel for adjusting viewing parameters. */
-  public ViewToolPanel(BioVisAD biovis) {
+  public ViewToolPanel(VisBio biovis) {
     super(biovis);
 
     // 2-D checkbox
@@ -294,7 +294,7 @@ public class ViewToolPanel extends ToolPanel {
     p.add(doVolume);
 
     // current volume value
-    int detail = BioVisAD.RESOLUTION_DETAIL;
+    int detail = VisBio.RESOLUTION_DETAIL;
     int normal = detail / 2;
     volumeValue = new JLabel("");
     Dimension d = doVolume.getPreferredSize();
@@ -378,11 +378,11 @@ public class ViewToolPanel extends ToolPanel {
     if (slices > maxVolRes) maxVolRes = slices;
     int volVal = maxVolRes < 64 ? maxVolRes : 64;
     double volPercent = (double) volVal / maxVolRes;
-    volumeRes.setValue((int) (volPercent * BioVisAD.RESOLUTION_DETAIL));
+    volumeRes.setValue((int) (volPercent * VisBio.RESOLUTION_DETAIL));
     int max = bio.sm.res_x < bio.sm.res_y ? bio.sm.res_x : bio.sm.res_y;
     int sliceVal = max < 64 ? max : 64;
     double slicePercent = (double) sliceVal / max;
-    sliceRes.setValue((int) (slicePercent * BioVisAD.RESOLUTION_DETAIL));
+    sliceRes.setValue((int) (slicePercent * VisBio.RESOLUTION_DETAIL));
   }
 
   /** Enables or disables this tool panel. */
@@ -415,7 +415,7 @@ public class ViewToolPanel extends ToolPanel {
   /** Recomputes volume resolution based on slider value. */
   private void doVolumeRes(boolean go) {
     int value = volumeRes.getValue();
-    double percent = (double) value / BioVisAD.RESOLUTION_DETAIL;
+    double percent = (double) value / VisBio.RESOLUTION_DETAIL;
     int res = (int) (percent * maxVolRes);
     if (res < 2) res = 2;
     volumeValue.setText(res + " x " + res + " x " + res);
@@ -425,7 +425,7 @@ public class ViewToolPanel extends ToolPanel {
   /** Recomputes slice resolution based on slider value. */
   private void doSliceRes(boolean go) {
     int value = sliceRes.getValue();
-    double percent = (double) value / BioVisAD.RESOLUTION_DETAIL;
+    double percent = (double) value / VisBio.RESOLUTION_DETAIL;
     int x = (int) (percent * bio.sm.res_x);
     int y = (int) (percent * bio.sm.res_y);
     if (x < 2) x = 2;

@@ -51,13 +51,13 @@ public class BioAnimWidget extends JPanel implements ControlListener {
   // -- CONSTRUCTOR --
 
   /** Constructs a new animation widget. */
-  public BioAnimWidget(BioVisAD biovis) {
+  public BioAnimWidget(VisBio biovis) {
     go = new JButton("Animate");
     go.setPreferredSize(go.getPreferredSize());
     fps = new JLabel("FPS:");
     fps.setForeground(Color.black);
     spin = new BioSpinWidget(1, 999, 10);
-    final BioVisAD bio = biovis;
+    final VisBio bio = biovis;
     go.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         if (control != null) {

@@ -54,7 +54,7 @@ public class MeasurePoint extends MeasureThing {
 
   /** Constructs an endpoint with the given coordinates. */
   public MeasurePoint(double x, double y, double z) {
-    this(x, y, z, Color.white, BioVisAD.noneGroup);
+    this(x, y, z, Color.white, VisBio.noneGroup);
   }
 
   /**

@@ -1,5 +1,5 @@
 //
-// BioVisAD.java
+// VisBio.java
 //
 
 /*
@@ -46,18 +46,18 @@ import visad.java3d.*;
 import visad.util.*;
 
 /**
- * BioVisAD is a multi-purpose biological analysis tool.
+ * VisBio is a multi-purpose biological analysis tool.
  *
  * It provides multi-dimensional visualization of an image or stack
  * of images across time, arbitrary slicing of the data, and
  * measurement tools for computing distances between data points.
  */
-public class BioVisAD extends GUIFrame implements ChangeListener {
+public class VisBio extends GUIFrame implements ChangeListener {
 
   // -- CONSTANTS --
 
   /** Application title. */
-  private static final String TITLE = "BioVisAD";
+  private static final String TITLE = "VisBio";
 
   /** Flag for enabling or disabling Java3D, for debugging. */
   private static final boolean ALLOW_3D = true;
@@ -178,8 +178,8 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
   // -- CONSTRUCTOR --
 
-  /** Constructs a new instance of BioVisAD. */
-  public BioVisAD() throws VisADException, RemoteException {
+  /** Constructs a new instance of VisBio. */
+  public VisBio() throws VisADException, RemoteException {
     super(true);
     setTitle(TITLE);
     importer = new ImportDialog();
@@ -490,7 +490,7 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
   /** Saves a snapshot of the displays to a file specified by the user. */
   public void fileSnap() {
-    final BioVisAD bio = this;
+    final VisBio bio = this;
     Thread t = new Thread(new Runnable() {
       public void run() {
         JFileChooser fileBox = new JFileChooser();
@@ -723,9 +723,9 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
   // -- MAIN --
 
-  /** Launches the BioVisAD GUI. */
+  /** Launches the VisBio GUI. */
   public static void main(String[] args) throws Exception {
-    final BioVisAD bio = new BioVisAD();
+    final VisBio bio = new VisBio();
     bio.pack();
     bio.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) { bio.fileExit(); }

@@ -152,7 +152,7 @@ public class MeasureToolPanel extends ToolPanel {
   // -- CONSTRUCTOR --
 
   /** Constructs a tool panel for performing measurement operations. */
-  public MeasureToolPanel(BioVisAD biovis) {
+  public MeasureToolPanel(VisBio biovis) {
     super(biovis);
 
     // measurements label
@@ -241,7 +241,7 @@ public class MeasureToolPanel extends ToolPanel {
     clearAll.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         int ans = JOptionPane.showConfirmDialog(tool,
-          "Really clear all measurements?", "BioVisAD",
+          "Really clear all measurements?", "VisBio",
           JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (ans != JOptionPane.YES_OPTION) return;
         bio.mm.clear();

@@ -58,7 +58,7 @@ public class BioColorWidget extends JPanel {
 
   // -- OTHER FIELDS --
 
-  private BioVisAD bio;
+  private VisBio bio;
   private int model;
   private int type;
 
@@ -66,7 +66,7 @@ public class BioColorWidget extends JPanel {
   // -- CONSTRUCTOR --
 
   /** Constructs a new animation widget. */
-  public BioColorWidget(BioVisAD biovis, int colorType) {
+  public BioColorWidget(VisBio biovis, int colorType) {
     bio = biovis;
     model = RGB;
     type = colorType;

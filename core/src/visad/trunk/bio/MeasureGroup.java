@@ -44,7 +44,7 @@ public class MeasureGroup {
   // -- CONSTRUCTOR --
 
   /** Constructs a measurement group. */
-  public MeasureGroup(BioVisAD biovis, String name) {
+  public MeasureGroup(VisBio biovis, String name) {
     this.name = name;
     description = "";
     id = biovis.mm.maxId++;

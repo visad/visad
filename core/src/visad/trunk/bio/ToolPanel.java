@@ -35,8 +35,8 @@ public abstract class ToolPanel extends JScrollPane {
 
   // -- FIELDS --
 
-  /** BioVisAD frame. */
-  protected BioVisAD bio;
+  /** VisBio frame. */
+  protected VisBio bio;
 
   /** Panel for placing controls. */
   protected JPanel controls;
@@ -45,7 +45,7 @@ public abstract class ToolPanel extends JScrollPane {
   // -- CONSTRUCTOR --
 
   /** Constructs a tool panel. */
-  public ToolPanel(BioVisAD biovis) {
+  public ToolPanel(VisBio biovis) {
     super(new JPanel(), VERTICAL_SCROLLBAR_AS_NEEDED,
       HORIZONTAL_SCROLLBAR_NEVER);
     JPanel pane = (JPanel) getViewport().getView();

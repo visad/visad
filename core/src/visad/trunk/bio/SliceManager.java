@@ -33,7 +33,7 @@ import visad.*;
 import visad.data.*;
 import visad.util.*;
 
-/** SliceManager is the class encapsulating BioVisAD's slice logic. */
+/** SliceManager is the class encapsulating VisBio's slice logic. */
 public class SliceManager
   implements ControlListener, DisplayListener, PlaneListener
 {
@@ -219,8 +219,8 @@ public class SliceManager
 
   // -- OTHER FIELDS --
 
-  /** BioVisAD frame. */
-  private BioVisAD bio;
+  /** VisBio frame. */
+  private VisBio bio;
 
   /** List of files containing current data series. */
   private File[] files;
@@ -250,7 +250,7 @@ public class SliceManager
   // -- CONSTRUCTORS --
 
   /** Constructs a slice manager. */
-  public SliceManager(BioVisAD biovis) throws VisADException, RemoteException {
+  public SliceManager(VisBio biovis) throws VisADException, RemoteException {
     bio = biovis;
     lowres = false;
     doThumbs = true;
@@ -505,20 +505,20 @@ public class SliceManager
       float[][] table = widgets[i].getTable();
       try {
         BaseColorControl cc2 = (BaseColorControl) rmaps2[i].getControl();
-        float[][] t2 = BioVisAD.adjustColorTable(table, null, false);
-        if (!BioVisAD.tablesEqual(t2, cc2.getTable())) cc2.setTable(t2);
+        float[][] t2 = VisBio.adjustColorTable(table, null, false);
+        if (!VisBio.tablesEqual(t2, cc2.getTable())) cc2.setTable(t2);
         if (bio.display3 != null) {
           BaseColorControl cc3 = (BaseColorControl) rmaps3[i].getControl();
           float[][] t3 = cc3.getTable();
-          t3 = BioVisAD.adjustColorTable(table, t3[3], true);
-          if (!BioVisAD.tablesEqual(t3, cc3.getTable())) cc3.setTable(t3);
+          t3 = VisBio.adjustColorTable(table, t3[3], true);
+          if (!VisBio.tablesEqual(t3, cc3.getTable())) cc3.setTable(t3);
         }
         if (hasThumbs && bio.previous != null && bio.next != null) {
-          if (t2 == null) t2 = BioVisAD.adjustColorTable(table, null, false);
+          if (t2 == null) t2 = VisBio.adjustColorTable(table, null, false);
           for (int j=0; j<rmapsP.length; j++) {
             BaseColorControl ccP = (BaseColorControl)
               rmapsP[j][i].getControl();
-            if (!BioVisAD.tablesEqual(t2, ccP.getTable())) ccP.setTable(t2);
+            if (!VisBio.tablesEqual(t2, ccP.getTable())) ccP.setTable(t2);
           }
         }
       }

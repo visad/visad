@@ -69,7 +69,7 @@ public class AlignToolPanel extends ToolPanel {
   // -- CONSTRUCTOR --
 
   /** Constructs a tool panel for performing measurement operations. */
-  public AlignToolPanel(BioVisAD biovis) {
+  public AlignToolPanel(VisBio biovis) {
     super(biovis);
 
     // microns vs pixels checkbox

@@ -36,8 +36,8 @@ public class MeasureList {
 
   // -- FIELDS --
 
-  /** BioVisAD frame. */
-  private BioVisAD bio;
+  /** VisBio frame. */
+  private VisBio bio;
 
   /** List of measurement points. */
   private Vector points;
@@ -52,7 +52,7 @@ public class MeasureList {
   // -- CONSTRUCTOR --
 
   /** Constructs a list of measurements. */
-  public MeasureList(BioVisAD biovis) throws VisADException, RemoteException {
+  public MeasureList(VisBio biovis) throws VisADException, RemoteException {
     bio = biovis;
     points = new Vector();
     lines = new Vector();
@@ -87,7 +87,7 @@ public class MeasureList {
     MeasurePoint ep1 = new MeasurePoint(x1, y1, slice);
     MeasurePoint ep2 = new MeasurePoint(x2, y2, slice);
     MeasureLine line = new MeasureLine(ep1, ep2,
-      Color.white, BioVisAD.noneGroup, false);
+      Color.white, VisBio.noneGroup, false);
     addLine(line, true);
   }
 
@@ -108,7 +108,7 @@ public class MeasureList {
 
     // create one new endpoint
     MeasurePoint point = new MeasurePoint(x, y, slice,
-      Color.white, BioVisAD.noneGroup);
+      Color.white, VisBio.noneGroup);
     addMarker(point, true);
   }
 

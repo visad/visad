@@ -30,20 +30,20 @@ import visad.util.StepWidget;
 
 /**
  * BioStepWidget is a slider GUI component with
- * directional step arrows at either end, used by BioVisAD.
+ * directional step arrows at either end, used by VisBio.
  */
 public class BioStepWidget extends StepWidget {
 
   // -- FIELDS --
 
-  /** BioVisAD frame. */
-  protected BioVisAD bio;
+  /** VisBio frame. */
+  protected VisBio bio;
 
 
   // -- CONSTRUCTOR --
 
   /** Constructs a BioStepWidget. */
-  public BioStepWidget(BioVisAD biovis, boolean horizontal) {
+  public BioStepWidget(VisBio biovis, boolean horizontal) {
     super(horizontal);
     bio = biovis;
   }
