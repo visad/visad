@@ -32,7 +32,8 @@ import visad.java3d.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import java.util.*;
+import java.util.Vector;
+import java.util.Enumeration;
 import java.rmi.*;
 
 import javax.media.j3d.*;
@@ -113,6 +114,7 @@ public class RubberBandBoxRendererJ3D extends DirectManipulationRendererJ3D {
 
   private float[][] first_x;
   private float[][] last_x;
+  private float cum_lon;
 
   /** possible values for whyNotDirect */
   private final static String xandyNotMatch =
@@ -253,10 +255,11 @@ public class RubberBandBoxRendererJ3D extends DirectManipulationRendererJ3D {
   // generally support manifold dimension = 2 when !mode2d
   //
   private float ray_pos; // save last ray_pos as first guess for next
-  private static final int GUESSES = 200;
+  private static final int HALF_GUESSES = 200;
+  private static final int GUESSES = 2 * HALF_GUESSES + 1;
   private static final float RAY_POS_INC = 0.1f;
-  private static final int TRYS = 20;
-  private static final double EPS = 0.00001f;
+  private static final int TRYS = 50;
+  private static final double EPS = 0.001f;
 
   private float findRayManifoldIntersection(boolean first,
                              double[] origin, double[] direction)
@@ -273,7 +276,7 @@ public class RubberBandBoxRendererJ3D extends DirectManipulationRendererJ3D {
         ray_pos = Float.NaN;
         float[][] guesses = new float[3][GUESSES];
         for (int i=0; i<GUESSES; i++) {
-          float rp = i * RAY_POS_INC;
+          float rp = (i - HALF_GUESSES) * RAY_POS_INC;
           guesses[0][i] = (float) (origin[0] + rp * direction[0]);
           guesses[1][i] = (float) (origin[1] + rp * direction[1]);
           guesses[2][i] = (float) (origin[2] + rp * direction[2]);
@@ -287,7 +290,7 @@ public class RubberBandBoxRendererJ3D extends DirectManipulationRendererJ3D {
           if (i > 0 && ((g < 0.0f && lastg >= 0.0f) || (g >= 0.0f && lastg < 0.0f))) {
             float r = (float)
               (i - (Math.abs(g) / (Math.abs(lastg) + Math.abs(g))));
-            ray_pos = r * RAY_POS_INC;
+            ray_pos = (r - HALF_GUESSES) * RAY_POS_INC;
             break;
           }
           lastg = g;
@@ -296,16 +299,22 @@ public class RubberBandBoxRendererJ3D extends DirectManipulationRendererJ3D {
           double d = Math.abs(othervalue - guesses[otherindex][i]);
           if (d < distance) {
             distance = d;
-            ray_pos = i * RAY_POS_INC;
+            ray_pos = (i - HALF_GUESSES) * RAY_POS_INC;
           }
         } // end for (int i=0; i<GUESSES; i++)
       }
       if (ray_pos == ray_pos) {
         // use Newton's method to refine first guess
+        double error_limit = 10.0 * EPS;
+        if (Display.DisplaySpatialSphericalTuple.equals(tuple)) {
+          if (otherindex == 0) error_limit = 2.0;
+          else if (otherindex == 1) error_limit = 20.0; // there must be a bug
+        }
         double r = ray_pos;
         double error = 1.0f;
         double[][] guesses = new double[3][3];
-        for (int itry=0; (itry<TRYS && error>EPS && r == r); itry++) {
+        int itry;
+        for (itry=0; (itry<TRYS && r == r); itry++) {
           double rp = r + EPS;
           double rm = r - EPS;
           guesses[0][0] = origin[0] + rp * direction[0];
@@ -318,43 +327,55 @@ public class RubberBandBoxRendererJ3D extends DirectManipulationRendererJ3D {
           guesses[1][2] = origin[1] + rm * direction[1];
           guesses[2][2] = origin[2] + rm * direction[2];
           guesses = tuplecs.fromReference(guesses);
-          double gp = othervalue - guesses[otherindex][0];
           double g = othervalue - guesses[otherindex][1];
+          error = Math.abs(g);
+          if (error <= EPS) break;
+          double gp = othervalue - guesses[otherindex][0];
           double gm = othervalue - guesses[otherindex][2];
           double dg = (gp - gm) / (EPS + EPS);
           r = r - g / dg;
-          error = Math.abs(g); // actually previous error
         }
         ray_pos = (float) r;
-        if (error > EPS) {
+        if (error > error_limit) {
+          // System.out.println("error = " + error);
           ray_pos = Float.NaN;
-System.out.println("error = " + error);
         }
       }
     } // end (tuple != null)
-    if (ray_pos < 0.0f) ray_pos = Float.NaN;
     return ray_pos;
   }
 
   /** mouse button released, ending direct manipulation */
   public synchronized void release_direct() {
-    // actually set box RealTuple in ref here
+    // set data in ref
     if (group != null) group.detach();
     group = null;
     try {
-      RealTuple newData = null;
-
-      ref.setData(newData);
+      float[][] samples = new float[2][2];
+      f[0] = first_x[xindex][0];
+      d = xmap.inverseScaleValues(f);
+      samples[0][0] = (float) d[0];
+      f[0] = first_x[yindex][0];
+      d = ymap.inverseScaleValues(f);
+      samples[1][0] = (float) d[0];
+      f[0] = last_x[xindex][0];
+      d = xmap.inverseScaleValues(f);
+      samples[0][1] = (float) d[0];
+      f[0] = last_x[yindex][0];
+      d = ymap.inverseScaleValues(f);
+      samples[1][1] = (float) d[0];
+      Gridded2DSet set = new Gridded2DSet(xy, samples, 2);
+      ref.setData(set);
       link.clearData();
     } // end try
     catch (VisADException e) {
       // do nothing
-      System.out.println("drag_direct " + e);
+      System.out.println("release_direct " + e);
       e.printStackTrace();
     }
     catch (RemoteException e) {
       // do nothing
-      System.out.println("drag_direct " + e);
+      System.out.println("release_direct " + e);
       e.printStackTrace();
     }
   }
@@ -367,7 +388,6 @@ System.out.println("error = " + error);
 
   public synchronized void drag_direct(VisADRay ray, boolean first,
                                        int mouseModifiers) {
-    // System.out.println("drag_direct " + first + " " + type);
     if (ref == null) return;
 
     if (first) {
@@ -386,8 +406,22 @@ System.out.println("error = " + error);
                       {(float) (origin[1] + r * direction[1])},
                       {(float) (origin[2] + r * direction[2])}};
       if (tuple != null) xx = tuplecs.fromReference(xx);
-  
-      if (first) first_x = xx;
+/*
+System.out.println("drag_direct x = " + xx[0][0] + " " + xx[1][0] + " " + xx[2][0] +
+                   " " + first);
+*/
+      if (first) {
+        first_x = xx;
+        cum_lon = 0.0f;
+      }
+      else if (Display.DisplaySpatialSphericalTuple.equals(tuple)) {
+        float diff = xx[1][0] - last_x[1][0];
+        if (diff > 180.0f) diff -= 360.0f;
+        else if (diff < -180.0f) diff += 360.0f;
+        cum_lon += diff;
+        if (cum_lon > 360.0f) cum_lon -= 360.0f;
+        else if (cum_lon < -360.0f) cum_lon += 360.0f;
+      }
       last_x = xx;
 
       Vector vect = new Vector();
@@ -400,24 +434,46 @@ System.out.println("error = " + error);
       valueString = new Real(y, d[0]).toValueString();
       vect.addElement(y.getName() + " = " + valueString);
       getDisplayRenderer().setCursorStringVector(vect);
+/*
+System.out.println("origin " + origin[0] + " " + origin[1] + " " + origin[2]);
+System.out.println("direction " + direction[0] + " " + direction[1] + " " + direction[2]);
+*/
+      float other_offset = 0.0f;
+      if (tuple == null) {
+        other_offset = (direction[otherindex] < 0.0) ? 0.005f : -0.005f;
+      }
+      else if (Display.DisplaySpatialSphericalTuple.equals(tuple)) {
+        if (otherindex == 2) other_offset = 0.005f;
+      }
+
+      float[][] clast_x = last_x;
+      if (Display.DisplaySpatialSphericalTuple.equals(tuple) && otherindex != 1) {
+        clast_x = new float[][] {{last_x[0][0]}, {last_x[1][0]}, {last_x[2][0]}};
+        if (clast_x[1][0] < first_x[1][0] && cum_lon > 0.0f) {
+          clast_x[1][0] += 360.0;
+        }
+        else if (clast_x[1][0] > first_x[1][0] && cum_lon < 0.0f) {
+          clast_x[1][0] -= 360.0;
+        }
+      }
 
       int npoints = 4 * EDGE + 1;
       float[][] c = new float[3][npoints];
       for (int i=0; i<EDGE; i++) {
         float a = ((float) i) / EDGE;
         float b = 1.0f - a;
-        c[xindex][i] = b * first_x[xindex][0] + a * last_x[xindex][0];
+        c[xindex][i] = b * first_x[xindex][0] + a * clast_x[xindex][0];
         c[yindex][i] = first_x[yindex][0];
-        c[otherindex][i] = first_x[otherindex][0];
-        c[xindex][EDGE + i] = last_x[xindex][0];
-        c[yindex][EDGE + i] = b * first_x[yindex][0] + a * last_x[yindex][0];
-        c[otherindex][EDGE + i] = first_x[otherindex][0];
-        c[xindex][2 * EDGE + i] = b * last_x[xindex][0] + a * first_x[xindex][0];
-        c[yindex][2 * EDGE + i] = last_x[yindex][0];
-        c[otherindex][2 * EDGE + i] = first_x[otherindex][0];
+        c[otherindex][i] = first_x[otherindex][0] + other_offset;
+        c[xindex][EDGE + i] = clast_x[xindex][0];
+        c[yindex][EDGE + i] = b * first_x[yindex][0] + a * clast_x[yindex][0];
+        c[otherindex][EDGE + i] = first_x[otherindex][0] + other_offset;
+        c[xindex][2 * EDGE + i] = b * clast_x[xindex][0] + a * first_x[xindex][0];
+        c[yindex][2 * EDGE + i] = clast_x[yindex][0];
+        c[otherindex][2 * EDGE + i] = first_x[otherindex][0] + other_offset;
         c[xindex][3 * EDGE + i] = first_x[xindex][0];
-        c[yindex][3 * EDGE + i] = b * last_x[yindex][0] + a * first_x[yindex][0];
-        c[otherindex][3 * EDGE + i] = first_x[otherindex][0];
+        c[yindex][3 * EDGE + i] = b * clast_x[yindex][0] + a * first_x[yindex][0];
+        c[otherindex][3 * EDGE + i] = first_x[otherindex][0] + other_offset;
       }
       c[0][npoints - 1] = c[0][0];
       c[1][npoints - 1] = c[1][0];
@@ -432,6 +488,8 @@ System.out.println("error = " + error);
       }
       VisADLineStripArray array = new VisADLineStripArray();
       array.vertexCount = npoints;
+      array.stripVertexCounts = new int[1];
+      array.stripVertexCounts[0] = npoints;
       array.coordinates = coordinates;
       byte[] colors = new byte[3 * npoints];
       for (int i=0; i<npoints; i++) {
@@ -474,15 +532,10 @@ System.out.println("error = " + error);
       System.out.println("drag_direct " + e);
       e.printStackTrace();
     }
-/*
-    catch (RemoteException e) {
-      // do nothing
-      System.out.println("drag_direct " + e);
-      e.printStackTrace();
-    }
-*/
   }
 
+
+  private static final int N = 64;
 
   /** test RubberBandBoxRendererJ3D */
   public static void main(String args[])
@@ -492,18 +545,71 @@ System.out.println("error = " + error);
     RealType y = new RealType("y");
     RealTupleType xy = new RealTupleType(x, y);
 
+    RealType c = new RealType("c");
+    FunctionType ft = new FunctionType(xy, c);
+
     // construct Java3D display and mappings
     DisplayImpl display = new DisplayImplJ3D("display1");
-    ScalarMap xmap = new ScalarMap(x, Display.XAxis);
-    display.addMap(xmap);
-    xmap.setRange(-1.0, 1.0);
-    ScalarMap ymap = new ScalarMap(y, Display.YAxis);
-    display.addMap(ymap);
-    ymap.setRange(-1.0, 1.0);
+    if (args.length == 0 || args[0].equals("z")) {
+      display.addMap(new ScalarMap(x, Display.XAxis));
+      display.addMap(new ScalarMap(y, Display.YAxis));
+    }
+    else if (args[0].equals("x")) {
+      display.addMap(new ScalarMap(x, Display.YAxis));
+      display.addMap(new ScalarMap(y, Display.ZAxis));
+    }
+    else if (args[0].equals("y")) {
+      display.addMap(new ScalarMap(x, Display.XAxis));
+      display.addMap(new ScalarMap(y, Display.ZAxis));
+    }
+    else if (args[0].equals("radius")) {
+      display.addMap(new ScalarMap(x, Display.Longitude));
+      display.addMap(new ScalarMap(y, Display.Latitude));
+    }
+    else if (args[0].equals("lat")) {
+      display.addMap(new ScalarMap(x, Display.Longitude));
+      display.addMap(new ScalarMap(y, Display.Radius));
+    }
+    else if (args[0].equals("lon")) {
+      display.addMap(new ScalarMap(x, Display.Latitude));
+      display.addMap(new ScalarMap(y, Display.Radius));
+    }
+    else {
+      display.addMap(new ScalarMap(x, Display.Longitude));
+      display.addMap(new ScalarMap(y, Display.Latitude));
+    }
+    display.addMap(new ScalarMap(c, Display.RGB));
 
-    DataReferenceImpl ref = new DataReferenceImpl("set");
-    ref.setData(new RealTuple(xy));
+    Integer2DSet fset = new Integer2DSet(xy, N, N);
+    FlatField field = new FlatField(ft, fset);
+    float[][] values = new float[1][N * N];
+    int k = 0;
+    for (int i=0; i<N; i++) {
+      for (int j=0; j<N; j++) {
+        values[0][k++] = (i - N / 2) * (j - N / 2);
+      }
+    }
+    field.setSamples(values);
+    DataReferenceImpl field_ref = new DataReferenceImpl("field");
+    field_ref.setData(field);
+    display.addReference(field_ref);
+
+    Gridded2DSet dummy_set = new Gridded2DSet(xy, null, 1);
+    final DataReferenceImpl ref = new DataReferenceImpl("set");
+    ref.setData(dummy_set);
     display.addReferences(new RubberBandBoxRendererJ3D(x, y), ref);
+
+    CellImpl cell = new CellImpl() {
+      public void doAction() throws VisADException, RemoteException {
+        Set set = (Set) ref.getData();
+        float[][] samples = set.getSamples();
+        if (samples != null) {
+          System.out.println("box (" + samples[0][0] + ", " + samples[1][0] +
+                             ") to (" + samples[0][1] + ", " + samples[1][1] + ")");
+        }
+      }
+    };
+    cell.addReference(ref);
 
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("test RubberBandBoxRendererJ3D");

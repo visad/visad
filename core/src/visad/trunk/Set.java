@@ -486,6 +486,7 @@ public abstract class Set extends DataImpl {
   }
 
   public static float[][] copyFloats(float[][] samples) {
+    if (samples == null) return null;
     int dim = samples.length;
     float[][] s_copy = new float[dim][];
     for (int j=0; j<dim; j++) {
