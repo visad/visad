@@ -41,10 +41,14 @@ default:
 
 JC = javac
 JFLAGS = -J-mx32m
+RMIC = rmic
+
 DEL = del
+
 DOCS_DIR = ..\docs
 DOC = javadoc
 DOCFLAGS = -d $(DOCS_DIR)
+
 FITS = ..\nom\tam
 UCAR = ..\ucar
 SSEC = ..\edu\wisc\ssec
@@ -368,7 +372,7 @@ clear:
 	if exist benjamin\*.java $(DEL) benjamin\*.java
 	if exist examples\*.java $(DEL) examples\*.java
 
-RMIC = \
+RMIC_FILES = \
 visad.RemoteCellImpl \
 visad.RemoteActionImpl \
 visad.RemoteDisplayImpl \
@@ -386,7 +390,7 @@ debug:
 
 recompile:
 	$(JC) $(JFLAGS) *.java
-	rmic $(RMIC)
+	$(RMIC) $(RMIC_FILES)
 	$(JC) $(JFLAGS) java3d\*.java
 	$(JC) $(JFLAGS) java2d\*.java
 	$(JC) $(JFLAGS) util\*.java
