@@ -1778,16 +1778,57 @@ public class FieldImpl extends FunctionImpl implements Field {
     return factor_field;
   }
 
-  /** combine domains of two outermost nested Fields into a single
-      domain and Field */
+  /** 
+   * Combine domains of two outermost nested Fields into a single
+   * domain and Field.  If the domains each have <code>
+   * CoordinateSystem</code>-s the new domain will have
+   * a <code>CartesianProductCoordinateSystem</code> of 
+   * Set-s CoordinateSystems
+   * @param cs  CoordinateSystem to use for the new domain set
+   * @throws VisADException  unable to collapse domains
+   * @throws RemoteException  unable to collapse domains of remote data
+   */
   public Field domainMultiply()
          throws VisADException, RemoteException
   {
-    return domainMultiply(1);
+    return domainMultiply(1, null);
   }
 
-  /** combine domains to collapse_depth, if possible */
+  /** 
+   * Combine domains of two outermost nested Fields into a single
+   * domain and Field.  The supplied <code>resultCS</code> would be used
+   * for the new domain
+   * @param resultCS  CoordinateSystem to use for the new domain set
+   * @throws VisADException  unable to collapse domains
+   * @throws RemoteException  unable to collapse domains of remote data
+   */
+  public Field domainMultiply(CoordinateSystem resultCS)
+         throws VisADException, RemoteException
+  {
+    return domainMultiply(1, resultCS);
+  }
+
+  /** 
+   * Combine domains of <code>collapse_depth</code> if possible.
+   * @param collapse_depth  depth to collapse to
+   * @throws VisADException  unable to collapse domains
+   * @throws RemoteException  unable to collapse domains of remote data
+   */
   public Field domainMultiply(int collapse_depth)
+         throws VisADException, RemoteException
+  {
+     return domainMultiply(collapse_depth, null);
+  }
+
+  /** 
+   * Combine domains of <code>collapse_depth</code> if possible.
+   * Use <code>resultCS</code> as the CoordinateSystem for the new domain.
+   * @param collapse_depth  depth to collapse to
+   * @param resultCS  CoordinateSystem to use for the new domain set
+   * @throws VisADException  unable to collapse domains
+   * @throws RemoteException  unable to collapse domains of remote data
+   */
+  public Field domainMultiply(int collapse_depth, CoordinateSystem resultCS)
          throws VisADException, RemoteException
   {
     class Helper
@@ -2000,28 +2041,25 @@ public class FieldImpl extends FunctionImpl implements Field {
     RealType[] r_types = new RealType[new_domainDim];
 
     cnt = 0;
-    boolean any_coord_sys = false;
+    boolean any_are_null = false;
     CoordinateSystem[] coord_sys = new CoordinateSystem[n_sets];
 
     for ( int kk = 0; kk < n_sets; kk++ ) {
       RealTupleType domain = set_types[kk].getDomain();
       //- TDR: May, 2003
       CoordinateSystem cs = domain.getCoordinateSystem();
-      if (cs != null) {
-        any_coord_sys = true;
-        coord_sys[kk] = cs;
+      if (cs == null) {
+        any_are_null = true;
       }
-      else {
-        coord_sys[kk] = new IdentityCoordinateSystem(domain);
-      }
+      coord_sys[kk] = cs;
 
       for ( int j = 0; j < domain.getDimension(); j++ ) {
         r_types[cnt++] = (RealType) domain.getComponent(j);
       }
     }
     //- TDR: May, 2003
-    CoordinateSystem new_cs = null;
-    if (any_coord_sys) {
+    CoordinateSystem new_cs = resultCS;
+    if (!any_are_null && new_cs == null) {
       new_cs = coord_sys[0];
       for ( int kk = 0; kk < (coord_sys.length - 1); kk++ ) {
         new_cs = new CartesianProductCoordinateSystem(new_cs, coord_sys[kk+1]);
