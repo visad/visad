@@ -84,6 +84,50 @@ public class PolarStereographic extends CoordinateSystem
     this(reference, r_major, r_minor, lon_center, lat_center, 0, 0);
   }
 
+  /*-  GRIB/AWIPS friendly static methods
+   ---------------------------------------------*/
+
+  public static PolarStereographic 
+         makePolarStereographic( RealTupleType reference,  //- Earth Reference
+                                 double La1,               //- Latitude of first grid point
+                                 double Lo1,               //- Longitude of first grid point
+                                 double Lov                //- The orientation of grid
+                                                     )
+         throws VisADException
+  {
+    return makePolarStereographic(reference, 6367470, 6367470, La1, Lo1, Lov, 60);
+  }
+                                         
+  public static PolarStereographic
+         makePolarStereographic( RealTupleType reference,  //- Earth Reference
+                                 double r_major,           //- Earth major axis
+                                 double r_minor,           //- Earth minor axis
+                                 double La1,               //- Latitude of first grid point
+                                 double Lo1,               //- Longitude of first grid point
+                                 double Lov,               //- The orientation of grid
+                                 double lat_center         //- Latitude of true scale
+                                                          )
+         throws VisADException
+  {
+    PolarStereographic ps =
+      new PolarStereographic( reference, r_major, r_minor,
+                              Lov*Data.DEGREES_TO_RADIANS,
+                              lat_center*Data.DEGREES_TO_RADIANS, 0, 0);
+   
+                                               
+    double[][] values = ps.fromReference(new double[][] { {Lo1*Data.DEGREES_TO_RADIANS},
+                                                          {La1*Data.DEGREES_TO_RADIANS} });
+    
+    double false_easting = values[0][0];
+    double false_northing = values[1][0];
+
+    return 
+      new PolarStereographic(reference,
+                             r_major, r_minor,
+                             Lov, lat_center,
+                             -false_easting, -false_northing);
+  }
+
   public PolarStereographic( RealTupleType reference,   //- Earth Reference
                              double r_major,            //- Earth major axis
                              double r_minor,            //- Earth minor axis
@@ -230,7 +274,7 @@ public class PolarStereographic extends CoordinateSystem
       }
 
       t_tuples[0][ii] = fac * rh * Math.sin(con1) + false_easting;
-      t_tuples[1][ii] = -fac * rh * Math.cos(con1) + false_northing;;
+      t_tuples[1][ii] = -fac * rh * Math.cos(con1) + false_northing;
     }
     return t_tuples;
   }
@@ -248,8 +292,8 @@ public class PolarStereographic extends CoordinateSystem
     double false_easting = 0;
     double false_northing = 0;
 
-    double[][] values_in = { {-2.3292989, -1.6580627, -1.6580627, -1.6580627},
-                             { 0.2127555, 0.4363323, 0.6981317, 0.8726646} };
+    double[][] values_in = { {-2.3292989, -1.6580627, -1.6580627, -1.6580627, center_lon},
+                             { 0.2127555, 0.4363323, 0.6981317, 0.8726646, 90*Data.DEGREES_TO_RADIANS} };
 
     RealType[] reals = {RealType.Longitude, RealType.Latitude};
     RealTupleType reference = new RealTupleType(reals);
