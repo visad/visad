@@ -2,72 +2,53 @@
 
 package visad.data.in;
 
-import java.util.HashMap;
-import visad.VisADException;
+import java.rmi.RemoteException;
+import java.util.*;
+import visad.*;
 
 /**
- * Consolidates virtual data objects together.
+ * Consolidates VisAD data objects together.
  */
 public class Consolidator
-    extends VirtualDataFilter
+    extends DataFilter
 {
-    private final HashMap	mergeMap = new HashMap();
-    private final boolean	mergeData;
+    private boolean	allReals;
+    private DataImpl	data;
 
     /**
      * @supplierCardinality 1 
      */
-    private MutableVirtualTuple	consolidatedData;
+    private List	components;
 
-    public Consolidator(VirtualDataSink downstream)
+    public Consolidator()
 	throws VisADException
     {
-	this(downstream, true);
-    }
-
-    public Consolidator(VirtualDataSink downstream, boolean mergeData)
-	throws VisADException
-    {
-        super(downstream);
-	this.mergeData = mergeData;
-	consolidatedData = new MutableVirtualTuple();
+        this(null);
     }
 
     /**
-     * Handles an incoming virtual data object.  Consolidates the
-     * incoming virtual data object with any previously-existing virtual
-     * data object -- replacing the previously-existing object.
-     * @param data	Incoming virtual data object.
+     * @param downstream	The downstream data sink.  May be 
+     *				<code>null</code>.
      */
-    public synchronized void receive(VirtualData incomingData)
+    public Consolidator(DataSink downstream)
 	throws VisADException
     {
-	if (!mergeData)
-	{
-	    consolidatedData.add(incomingData);
-	}
-	else
-	{
-	    Object	mergeKey = incomingData.getMergeKey();
-	    if (mergeKey == null)
-	    {
-		consolidatedData.add(incomingData);
-	    }
-	    else
-	    {
-		VirtualData	targetData =
-		    (VirtualData)mergeMap.get(mergeKey);
-		if (targetData == null)
-		{
-		    consolidatedData.add(incomingData);
-		    mergeMap.put(mergeKey, incomingData);
-		}
-		else
-		{
-		    targetData.add(incomingData);
-		}
-	    }
-	}
+        super(downstream);
+	clear();
+    }
+
+    /**
+     * Handles an incoming data object.  Consolidates the
+     * incoming data object with any previously-existing 
+     * data object -- replacing the previously-existing object.
+     * @param data	Incoming data object.
+     */
+    public synchronized void receive(DataImpl incomingData)
+	throws VisADException
+    {
+	components.add(incomingData);
+	allReals &= incomingData instanceof Real;
+	data = null;
     }
 
     /**
@@ -75,10 +56,52 @@ public class Consolidator
      * and then clears the consolidated data.
      */
     public synchronized void flush()
-	throws VisADException
+	throws VisADException, RemoteException
     {
-	send(consolidatedData);
-        consolidatedData = new MutableVirtualTuple();
-        mergeMap.clear();
+	if (getDownstream() != null)
+	    send(getData());
+	clear();
+    }
+
+    /**
+     * Clears the data consolidated so far.
+     */
+    public synchronized void clear()
+    {
+        components = new ArrayList();
+	allReals = true;
+	data = null;
+    }
+
+    /**
+     * Returns the same object until a {@link #receive(DataImpl)} is invoked.
+     * May return <code>null</code>.
+     */
+    public synchronized final DataImpl getData()
+	throws VisADException, RemoteException
+    {
+	if (data == null)
+	{
+	    int		count = components.size();
+	    if (count == 0)
+	    {
+		data = null;
+	    }
+	    else if (count == 1)
+	    {
+		data = (DataImpl)components.get(0);
+	    }
+	    else
+	    {
+		data =
+		    allReals
+			? (DataImpl)
+			    new RealTuple(
+				(Real[])components.toArray(new Real[0]))
+			: new Tuple(
+			    (DataImpl[])components.toArray(new DataImpl[0]));
+	    }
+	}
+	return data;
     }
 }

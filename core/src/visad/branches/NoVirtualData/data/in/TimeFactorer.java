@@ -2,20 +2,22 @@
 
 package visad.data.in;
 
+import java.rmi.RemoteException;
 import visad.*;
 
 public class TimeFactorer
-    extends VirtualDataFilter 
+    extends DataFilter
 {
-    public TimeFactorer(VirtualDataSink downstream)
+    public TimeFactorer(DataSink downstream)
     {
 	super(downstream);
     }
 
-    public void receive(VirtualField field)
-	throws VisADException
+    public void receive(Field field)
+	throws VisADException, RemoteException
     {
-	RealTupleType	domainType = field.getFunctionType().getDomain();
+	RealTupleType	domainType =
+	    ((FunctionType)field.getType()).getDomain();
 	int		dimensionCount = domainType.getDimension();
 	if (dimensionCount > 1)
 	{
@@ -24,36 +26,11 @@ public class TimeFactorer
 	    if ((RealType.Time.equalsExceptNameButUnits(outerDimensionType) ||
 		  RealType.TimeInterval.equalsExceptNameButUnits(
 		    outerDimensionType)) &&
-		 field.isFactorable())
+		 field.getDomainSet() instanceof ProductSet)
 	    {
-		field = field.factor();
+		field = field.domainFactor(outerDimensionType);
 	    }
 	}
 	send(field);
     }
-
-    /*
-    public void receive(Field field)
-    {
-	RealTupleType	domainType = field.getFunctionType().getDomain();
-	int		dimensionCount = domainType.getDimension();
-	if (dimensionCount > 1)
-	{
-	    RealType	outerDimensionType = (RealType)
-		domainType.getComponent(dimensionCount - 1);
-	    if (RealType.Time.equalsExceptNameButUnits(outerDimensionType) ||
-		  RealType.TimeInterval.equalsExceptNameButUnits(
-		    outerDimensionType))
-	    {
-		try
-		{
-		    field = field.domainFactor(outerDimensionType);
-		}
-		catch (VisADException e)
-		{}	// the field can't be factored
-	    }
-	}
-	send(field);
-    }
-     */
 }
