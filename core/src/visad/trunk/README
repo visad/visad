@@ -81,7 +81,11 @@ On systems that support Unix make, you can simply run:
 to compile the Java source code in all the directories unpacked
 from the source distribution.
 
-On systems that do not support Unix make, you must invoke the
+If you have NMAKE on WinNT you may run:
+
+  nmake -f Makefile.WinNT compile
+
+If you cannot use Unix make or WinNT NMAKE, you must invoke the
 Java compiler on the Java source files in all the directories
 unpacked from the source distribution.  Note that the Java
 source code in the visad/examples directory has no package, so

@@ -43,6 +43,7 @@ TAR_FILES = \
 	visad/LICENSE					\
 	visad/DATE					\
 	visad/Makefile					\
+	visad/Makefile.WinNT				\
 	visad/rmic_script				\
 	visad/*.java					\
 	visad/examples/*.java				\
@@ -218,6 +219,7 @@ SAVE_FILES = \
 	visad/LICENSE					\
 	visad/DATE					\
 	visad/Makefile					\
+	visad/Makefile.WinNT				\
 	visad/rmic_script				\
 	visad/*.java					\
 	visad/examples/*.java				\

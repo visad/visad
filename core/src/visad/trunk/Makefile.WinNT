@@ -1,0 +1,313 @@
+# Makefile.WinNT for VisAD version 2.0
+# For use with WinNT (e.g., Microsoft's NMAKE, available at:
+#      ftp://ftp.microsoft.com/Softlib/MSLFILES/nmake15.exe)
+# To compile VisAD using this Makefile, type:
+#      nmake -f Makefile.WinNT compile
+
+# VisAD system for interactive analysis and visualization of numerical
+# data.  Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden, Tom
+# Rink and Dave Glowacki.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 1, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License in file NOTICE for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+
+default:
+	@echo Type one of the following:
+	@echo nmake -f Makefile.WinNT compile (compile .java files)
+	@echo nmake -f Makefile.WinNT jar (make visad_src-2.0.jar)
+	@echo nmake -f Makefile.WinNT save (save files to a backup directory)
+	@echo nmake -f Makefile.WinNT classes (make jar files containing classes)
+	@echo nmake -f Makefile.WinNT clear (clear source files)
+
+.SUFFIXES : .java .class
+
+.java.class:
+	javac $<
+
+DEL = del
+FITS = ..\nom\tam
+
+TAR_FILES = \
+visad\README \
+visad\DEDICATION \
+visad\NOTICE \
+visad\LICENSE \
+visad\DATE \
+visad\Makefile \
+visad\Makefile.WinNT \
+visad\rmic_script \
+visad\*.java \
+visad\examples\*.java \
+visad\java3d\*.java \
+visad\util\*.java \
+visad\data\*.java \
+visad\data\netcdf\*.java \
+visad\data\netcdf\units\*.java \
+visad\data\netcdf\units\*.jj \
+visad\data\netcdf\in\*.java \
+visad\data\netcdf\out\*.java \
+visad\data\fits\*.java \
+visad\$(FITS)\fits\*.java \
+visad\$(FITS)\util\*.java \
+visad\$(FITS)\test\*.java \
+visad\data\hdfeos\*.java \
+visad\data\hdfeos\hdfeosc\*.java \
+visad\data\hdfeos\hdfeosc\*.c \
+visad\data\hdfeos\hdfeosc\*.h \
+visad\data\hdfeos\hdfeosc\Makefile \
+visad\data\vis5d\*.java \
+visad\data\vis5d\*.c \
+visad\data\vis5d\*.h \
+visad\data\vis5d\Makefile \
+visad\data\gif\*.java \
+visad\data\gif\sseclogo.gif \
+visad\paoloa\README.paoloa \
+visad\paoloa\Makefile \
+visad\paoloa\*.java \
+visad\paoloa\*.f \
+visad\paoloa\*.c \
+visad\paoloa\*.h \
+visad\aune\README.aune \
+visad\aune\Makefile \
+visad\aune\shsize.fcm \
+visad\aune\*.java \
+visad\aune\*.f \
+visad\aune\*.c \
+visad\aune\*.h \
+ucar.jar \
+visad\Gridded1D.txt \
+visad\Gridded2D.txt \
+visad\Gridded3D.txt \
+visad\contour.html \
+visad\delaunay.html \
+visad\plotdigits.html
+
+jar:
+	date /t > DATE
+	time /t >> DATE
+	cd ..
+	jar cvf visad_src-2.0.jar $(TAR_FILES)
+	move visad_src-2.0.jar visad
+	cd visad
+	copy visad_src-2.0.jar visadsrc.jar
+	dir /-w visad_src-2.0.jar visadsrc.jar
+
+BACKUP = backup
+
+SAVE_FILES = \
+visad\README \
+visad\DEDICATION \
+visad\NOTICE \
+visad\LICENSE \
+visad\DATE \
+visad\Makefile \
+visad\Makefile.WinNT \
+visad\rmic_script \
+visad\*.java \
+visad\examples\*.java \
+visad\java3d\*.java \
+visad\util\*.java \
+visad\data\*.java \
+visad\data\netcdf\*.java \
+visad\data\netcdf\units\*.java \
+visad\data\netcdf\units\*.jj \
+visad\data\netcdf\in\*.java \
+visad\data\netcdf\out\*.java \
+visad\data\fits\*.java \
+visad\$(FITS)\fits\*.java \
+visad\$(FITS)\util\*.java \
+visad\$(FITS)\test\*.java \
+visad\data\hdfeos\*.java \
+visad\data\hdfeos\hdfeosc\*.java \
+visad\data\hdfeos\hdfeosc\*.c \
+visad\data\hdfeos\hdfeosc\*.h \
+visad\data\hdfeos\hdfeosc\Makefile \
+visad\data\vis5d\*.java \
+visad\data\vis5d\*.c \
+visad\data\vis5d\*.h \
+visad\data\vis5d\Makefile \
+visad\data\gif\*.java \
+visad\paoloa\README.paoloa \
+visad\paoloa\Makefile \
+visad\paoloa\*.java \
+visad\paoloa\*.f \
+visad\paoloa\*.c \
+visad\paoloa\*.h \
+visad\aune\README.aune \
+visad\aune\Makefile \
+visad\aune\shsize.fcm \
+visad\aune\*.java \
+visad\aune\*.f \
+visad\aune\*.c \
+visad\aune\*.h \
+ucar.jar \
+visad\Gridded1D.txt \
+visad\Gridded2D.txt \
+visad\Gridded3D.txt \
+visad\contour.html \
+visad\delaunay.html \
+visad\plotdigits.html
+
+save:
+	cd ..
+	if not exist $(BACKUP) mkdir $(BACKUP)
+	if exist $(BACKUP)\visad\*.java                            \
+		$(DEL) $(BACKUP)\visad\*.java
+	if exist $(BACKUP)\visad\examples\*.java                   \
+		$(DEL) $(BACKUP)\visad\examples\*.java
+	if exist $(BACKUP)\visad\java3d\*.java                     \
+		$(DEL) $(BACKUP)\visad\java3d\*.java
+	if exist $(BACKUP)\visad\util\*.java                       \
+		$(DEL) $(BACKUP)\visad\util\*.java
+	if exist $(BACKUP)\visad\data\*.java                       \
+		$(DEL) $(BACKUP)\visad\data\*.java
+	if exist $(BACKUP)\visad\data\netcdf\*.java                \
+		$(DEL) $(BACKUP)\visad\data\netcdf\*.java
+	if exist $(BACKUP)\visad\data\netcdf\units\*.java          \
+		$(DEL) $(BACKUP)\visad\data\netcdf\units\*.java
+	if exist $(BACKUP)\visad\data\netcdf\in\*.java             \
+		$(DEL) $(BACKUP)\visad\data\netcdf\in\*.java
+	if exist $(BACKUP)\visad\data\netcdf\out\*.java            \
+		$(DEL) $(BACKUP)\visad\data\netcdf\out\*.java
+	if exist $(BACKUP)\visad\data\fits\*.java                  \
+		$(DEL) $(BACKUP)\visad\data\fits\*.java
+	if exist $(BACKUP)\visad\$(FITS)\fits\*.java               \
+		$(DEL) $(BACKUP)\visad\$(FITS)\fits\*.java
+	if exist $(BACKUP)\visad\$(FITS)\util\*.java               \
+		$(DEL) $(BACKUP)\visad\$(FITS)\util\*.java
+	if exist $(BACKUP)\visad\$(FITS)\test\*.java               \
+		$(DEL) $(BACKUP)\visad\$(FITS)\test\*.java
+	if exist $(BACKUP)\visad\data\hdfeos\*.java                \
+		$(DEL) $(BACKUP)\visad\data\hdfeos\*.java
+	if exist $(BACKUP)\visad\data\hdfeos\hdfeosc\*.java        \
+		$(DEL) $(BACKUP)\visad\data\hdfeos\hdfeosc\*.java
+	if exist $(BACKUP)\visad\data\vis5d\*.java                 \
+		$(DEL) $(BACKUP)\visad\data\vis5d\*.java
+	if exist $(BACKUP)\visad\data\gif\*.java                   \
+		$(DEL) $(BACKUP)\visad\data\gif\*.java
+	if exist $(BACKUP)\visad\paoloa\*.java                     \
+		$(DEL) $(BACKUP)\visad\paoloa\*.java
+	if exist $(BACKUP)\visad\aune\*.java                       \
+		$(DEL) $(BACKUP)\visad\aune\*.java
+	jar cvf $(BACKUP)\save.jar $(SAVE_FILES)
+	cd $(BACKUP)
+	jar xvf save.jar
+	$(DEL) save.jar
+
+CLASS_FILES = \
+DATE \
+visad\*.class \
+visad\java3d\*.class \
+visad\util\*.class \
+visad\data\*.class \
+visad\data\netcdf\*.class \
+visad\data\netcdf\units\*.class \
+visad\data\netcdf\in\*.class \
+visad\data\netcdf\out\*.class \
+ucar\multiarray\*.class \
+ucar\netcdf\*.class \
+visad\data\fits\*.class \
+visad\$(FITS)\fits\*.class \
+visad\$(FITS)\util\*.class \
+visad\$(FITS)\test\*.class \
+visad\data\hdfeos\*.class \
+visad\data\hdfeos\hdfeosc\*.class \
+visad\data\vis5d\*.class \
+visad\data\gif\*.class
+
+classes:
+	cd ..
+	date /t > DATE
+	time /t >> DATE
+	jar xvf ucar.jar
+	jar cvf visad.jar $(CLASS_FILES)
+	dir /-w visad.jar
+
+clear:
+	if exist *.java $(DEL) *.java
+	if exist java3d\*.java $(DEL) java3d\*.java
+	if exist util\*.java $(DEL) util\*.java
+	if exist data\*.java $(DEL) data\*.java
+	if exist data\netcdf\*.java $(DEL) data\netcdf\*.java
+	if exist data\netcdf\units\*.java $(DEL) data\netcdf\units\*.java
+	if exist data\netcdf\in\*.java $(DEL) data\netcdf\in\*.java
+	if exist data\netcdf\out\*.java $(DEL) data\netcdf\out\*.java
+	if exist data\fits\*.java $(DEL) data\fits\*.java
+	if exist $(FITS)\fits\*.java $(DEL) $(FITS)\fits\*.java
+	if exist $(FITS)\util\*.java $(DEL) $(FITS)\util\*.java
+	if exist $(FITS)\test\*.java $(DEL) $(FITS)\test\*.java
+	if exist data\hdfeos\*.java $(DEL) data\hdfeos\*.java
+	if exist data\hdfeos\hdfeosc\*.java $(DEL) data\hdfeos\hdfeosc\*.java
+	if exist data\vis5d\*.java $(DEL) data\vis5d\*.java
+	if exist data\gif\*.java $(DEL) data\gif\*.java
+	if exist paoloa\*.java $(DEL) paoloa\*.java
+	if exist aune\*.java $(DEL) aune\*.java
+	if exist examples\*.java $(DEL) examples\*.java
+
+RMIC = \
+visad.RemoteCellImpl \
+visad.RemoteActionImpl \
+visad.RemoteDisplayImpl \
+visad.RemoteThingReferenceImpl \
+visad.RemoteDataReferenceImpl \
+visad.RemoteThingImpl \
+visad.RemoteDataImpl \
+visad.RemoteFunctionImpl \
+visad.RemoteFieldImpl \
+visad.RemoteServerImpl
+
+compile: clean
+	javac -J-mx32m *.java
+	rmic $(RMIC)
+	javac java3d\*.java
+	javac util\*.java
+	javac data\*.java
+	-(cd .. && jar xvf ucar.jar)
+	javac data\netcdf\units\*.java
+	javac data\netcdf\in\*.java
+	javac data\netcdf\out\*.java
+	javac data\netcdf\*.java
+	-javac $(FITS)\util\*.java
+	-javac $(FITS)\fits\*.java
+	-javac $(FITS)\test\*.java
+	javac data\fits\*.java
+	javac data\vis5d\*.java
+	javac data\gif\*.java
+	javac data\hdfeos\hdfeosc\*.java
+	javac data\hdfeos\*.java
+	-javac paoloa\*.java
+	-javac aune\*.java
+	-(cd examples && javac *.java)
+
+clean:
+	if exist *.class $(DEL) *.class
+	if exist java3d\*.class $(DEL) java3d\*.class
+	if exist util\*.class $(DEL) util\*.class
+	if exist data\*.class $(DEL) data\*.class
+	if exist data\netcdf\*.class $(DEL) data\netcdf\*.class
+	if exist data\netcdf\units\*.class $(DEL) data\netcdf\units\*.class
+	if exist data\netcdf\in\*.class $(DEL) data\netcdf\in\*.class
+	if exist data\netcdf\out\*.class $(DEL) data\netcdf\out\*.class
+	if exist data\fits\*.class $(DEL) data\fits\*.class
+	if exist $(FITS)\fits\*.class $(DEL) $(FITS)\fits\*.class
+	if exist $(FITS)\util\*.class $(DEL) $(FITS)\util\*.class
+	if exist $(FITS)\test\*.class $(DEL) $(FITS)\test\*.class
+	if exist data\hdfeos\*.class $(DEL) data\hdfeos\*.class
+	if exist data\hdfeos\hdfeosc\*.class $(DEL) data\hdfeos\hdfeosc\*.class
+	if exist data\vis5d\*.class $(DEL) data\vis5d\*.class
+	if exist data\gif\*.class $(DEL) data\gif\*.class
+	if exist paoloa\*.class $(DEL) paoloa\*.class
+	if exist aune\*.class $(DEL) aune\*.class
+	if exist examples\*.class $(DEL) examples\*.class
