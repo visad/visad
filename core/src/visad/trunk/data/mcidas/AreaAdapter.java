@@ -40,6 +40,7 @@ import visad.Set;
 import visad.TypeException;
 import visad.Unit;
 import visad.VisADException;
+import visad.meteorology.*;
 
 /** this is an adapter for McIDAS AREA images */
 
@@ -217,8 +218,8 @@ public class AreaAdapter {
   public int[] getDimensions() {
     int[] dim = new int[3];
     dim[0] = areaDirectory.getNumberOfBands();
-    dim[1] = areaDirectory.getLines();
-    dim[2] = areaDirectory.getElements();
+    dim[1] = areaDirectory.getElements();
+    dim[2] = areaDirectory.getLines();
     return dim;
   }
 
