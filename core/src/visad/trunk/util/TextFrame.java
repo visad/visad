@@ -121,12 +121,13 @@ public class TextFrame extends GUIFrame implements UndoableEditListener {
     refreshSaveMenuItem(dirty);
   }
 
-  /** makes sure it's okay to discard changes to the document */
-  protected boolean verifyLoseChanges() {
+  /** prompts user to save the document before it is discarded */
+  protected boolean askSaveChanges(boolean allowCancel) {
     int ans = JOptionPane.showConfirmDialog(this,
-      "Discard changes to the file?", getTitle(),
-      JOptionPane.YES_NO_OPTION);
-    return (ans == JOptionPane.YES_OPTION);
+      "Save changes to the file?", getTitle(), allowCancel ?
+      JOptionPane.YES_NO_CANCEL_OPTION : JOptionPane.YES_NO_OPTION);
+    if (ans == JOptionPane.YES_OPTION) fileSave();
+    return (ans != JOptionPane.CANCEL_OPTION);
   }
 
   /** displays an error message in an error box */
@@ -148,13 +149,14 @@ public class TextFrame extends GUIFrame implements UndoableEditListener {
   }
 
   public void fileNew() {
-    if (!verifyLoseChanges()) return;
+    if (textPane.hasChanged() && !askSaveChanges(true)) return;
     textPane.newFile();
     refreshMenuItems(false);
     refreshTitleBar();
   }
 
   public void fileOpen() {
+    if (textPane.hasChanged() && !askSaveChanges(true)) return;
     textPane.openDialog();
     refreshMenuItems(false);
     refreshTitleBar();
@@ -178,7 +180,7 @@ public class TextFrame extends GUIFrame implements UndoableEditListener {
   }
 
   public void fileExit() {
-    if (textPane.hasChanged() && !verifyLoseChanges()) return;
+    if (textPane.hasChanged()) askSaveChanges(false);
     System.exit(0);
   }
 
