@@ -26,11 +26,12 @@ MA 02111-1307, USA
 
 package visad.python;
 
+import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
 import javax.swing.JCheckBoxMenuItem;
 import visad.VisADException;
-import visad.util.CodeFrame;
+import visad.util.*;
 
 /** A GUI frame for editing JPython code in Java runtime. */
 public class JPythonFrame extends CodeFrame {
@@ -65,6 +66,7 @@ public class JPythonFrame extends CodeFrame {
     ((JPythonEditor) textPane).setRunSeparateProcess(false);
 
     // setup menu bar
+    getMenuItem("Command", "Compile").setEnabled(false);
     addMenuSeparator("Command");
     separateProcess = new JCheckBoxMenuItem(
       "Launch JPython in a separate process", false);
@@ -101,7 +103,11 @@ public class JPythonFrame extends CodeFrame {
       });
 
       // display frame onscreen
-      frame.setBounds(100, 100, 500, 800);
+      Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+      int w = screenSize.width > 520 ? 500 : screenSize.width - 20;
+      int h = screenSize.height > 820 ? 800 : screenSize.width - 20;
+      frame.setSize(w, h);
+      Util.centerWindow(frame);
       frame.setVisible(true);
     }
     catch (VisADException exc) {
