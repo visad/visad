@@ -36,9 +36,12 @@ import visad.java3d.DirectManipulationRendererJ3D;
  * AlignmentPlane maintains an arbitrary plane
  * specifying a spatial alignment in 3-D.
  */
-public class AlignmentPlane extends PlaneSelector implements DisplayListener {
+public class AlignmentPlane extends PlaneSelector {
 
   // -- FIELDS --
+
+  /** VisBio frame. */
+  protected VisBio bio;
 
   /** Flags for whether each endpoint is locked at each timestep. */
   protected boolean[][] locked;
@@ -59,12 +62,12 @@ public class AlignmentPlane extends PlaneSelector implements DisplayListener {
   // -- CONSTRUCTOR --
 
   /** Constructs a plane selector. */
-  public AlignmentPlane(DisplayImpl display) {
+  public AlignmentPlane(VisBio biovis, DisplayImpl display) {
     super(display);
+    bio = biovis;
     maxIndex = 10;
     locked = new boolean[maxIndex][3];
     pos = new double[maxIndex][3][3];
-    display.addDisplayListener(this);
   }
 
 
@@ -87,69 +90,6 @@ public class AlignmentPlane extends PlaneSelector implements DisplayListener {
     // set endpoint values to match those at current index
     for (int i=0; i<3; i++) {
       setData(i, pos[index][i][0], pos[index][i][1], pos[index][i][2]);
-    }
-  }
-
-
-  // -- INTERNAL API METHODS --
-
-  private int mx, my;
-  private boolean m_ctrl;
-
-  /** Listens for mouse events in the display. */
-  public void displayChanged(DisplayEvent e) {
-    int id = e.getId();
-    InputEvent event = e.getInputEvent();
-
-    // ignore non-mouse display events
-    if (event == null || !(event instanceof MouseEvent)) return;
-
-    int x = e.getX();
-    int y = e.getY();
-    int mods = e.getModifiers();
-    boolean left = (mods & InputEvent.BUTTON1_MASK) != 0;
-    boolean ctrl = (mods & InputEvent.CTRL_MASK) != 0;
-
-    // ignore non-left button events
-    if (!left) return;
-
-    if (id == DisplayEvent.MOUSE_PRESSED) {
-      mx = x;
-      my = y;
-      m_ctrl = ctrl;
-    }
-    else if (id == DisplayEvent.MOUSE_RELEASED && x == mx && y == my) {
-      // compute picked point
-      DisplayImpl d = (DisplayImpl) e.getDisplay();
-      MouseBehavior mb = d.getDisplayRenderer().getMouseBehavior();
-      VisADRay ray = mb.findRay(x, y);
-      double[] a = ray.position;
-      int len = a.length;
-      double[] b = new double[len];
-      for (int i=0; i<len; i++) b[i] = a[i] + ray.vector[i];
-      double ndx = -1;
-      double mindist = Double.POSITIVE_INFINITY;
-      //System.out.println("Mouse=(" + a[0] + ", " + a[1] + ", " + a[2] + ") - (" + b[0] + ", " + b[1] + ", " + b[2] + ")"); /* TEMP */
-      for (int j=0; j<3; j++) {
-        double[] v = pos[index][j];
-        double dist = BioUtil.getDistance(a, b, v, false);
-        //System.out.println("Checking #" + j + ": (" + v[0] + ", " + v[1] + ", " + v[2] + ") - dist=" + dist); /* TEMP */
-        if (dist < mindist) {
-          ndx = j;
-          mindist = dist;
-        }
-      }
-
-      // compute maximum distance threshold
-      double[] e1 = BioUtil.pixelToDomain(display, 0, 0);
-      double[] e2 = BioUtil.pixelToDomain(display,
-        VisBio.PICKING_THRESHOLD, 0);
-      double threshold = e2[0] - e1[0];
-
-      if (mindist <= threshold) {
-        // lock or unlock picked point
-        //System.out.println("Picked: " + ndx); /* TEMP */
-      }
     }
   }
 

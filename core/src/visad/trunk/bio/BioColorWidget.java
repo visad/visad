@@ -96,7 +96,7 @@ public class BioColorWidget extends JPanel {
     Object o = scalars.getSelectedItem();
     if (o instanceof RealType) return (RealType) o;
     String s = (String) o;
-    return s.equals("1.0") ? SOLID : null;
+    return s.equals("Full") ? SOLID : null;
   }
 
   /** Gets the widget's color model (RGB or HSV). */
@@ -135,7 +135,7 @@ public class BioColorWidget extends JPanel {
   public void guessType() {
     scalars.removeAllItems();
     scalars.addItem("None");
-    scalars.addItem("1.0");
+    scalars.addItem("Full");
     RealType[] rt = bio.sm.rtypes;
     for (int i=0; i<rt.length; i++) scalars.addItem(rt[i]);
 

@@ -133,10 +133,10 @@ public class MeasureManager {
     // make sure file exists
     File f = fileBox.getSelectedFile();
     if (!f.exists()) {
+      bio.setWaitCursor(false);
       JOptionPane.showMessageDialog(bio,
         f.getName() + " does not exist", "Cannot load file",
         JOptionPane.ERROR_MESSAGE);
-      bio.setWaitCursor(false);
       return;
     }
 

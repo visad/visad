@@ -114,7 +114,7 @@ public class PlaneSelector {
    * and starting endpoint coordinates.
    */
   public void init(RealType xtype, RealType ytype, RealType ztype,
-    Color lineColor, Color planeColor, double x1, double y1, double z1,
+    Color[] lineColors, Color planeColor, double x1, double y1, double z1,
     double x2, double y2, double z2, double x3, double y3, double z3)
     throws VisADException, RemoteException
   {
@@ -131,9 +131,14 @@ public class PlaneSelector {
     this.y3 = y3;
     this.z3 = z3;
     visible = false;
-    float line_r = lineColor.getRed() / 255.0f;
-    float line_g = lineColor.getGreen() / 255.0f;
-    float line_b = lineColor.getBlue() / 255.0f;
+    float[] line_r = new float[3];
+    float[] line_g = new float[3];
+    float[] line_b = new float[3];
+    for (int i=0; i<3; i++) {
+      line_r[i] = lineColors[i].getRed() / 255.0f;
+      line_g[i] = lineColors[i].getGreen() / 255.0f;
+      line_b[i] = lineColors[i].getBlue() / 255.0f;
+    }
     float plane_r = planeColor.getRed() / 255.0f;
     float plane_g = planeColor.getGreen() / 255.0f;
     float plane_b = planeColor.getBlue() / 255.0f;
@@ -143,10 +148,12 @@ public class PlaneSelector {
       if (i == 0) {
         // thick plane outline
         renderers[i] = displayRenderer.makeDefaultRenderer();
+        // CTR - TODO - fix this--add extra line endpts to fix colors,
+        // and switch from ConstantMap to ScalarMap for color of lines
         maps = new ConstantMap[] {
-          new ConstantMap(line_r, Display.Red),
-          new ConstantMap(line_g, Display.Green),
-          new ConstantMap(line_b, Display.Blue),
+          new ConstantMap(line_r[i], Display.Red),
+          new ConstantMap(line_g[i], Display.Green),
+          new ConstantMap(line_b[i], Display.Blue),
           new ConstantMap(3.0f, Display.LineWidth)
         };
       }

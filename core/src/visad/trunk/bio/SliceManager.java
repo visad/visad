@@ -309,8 +309,7 @@ public class SliceManager
     if (doRefresh) refresh(false, true);
     else {
       if (volume) doVolumeMode();
-      updateList();
-      updateAnimationControls();
+      updateStuff();
     }
     align.setIndex(index);
   }
@@ -732,6 +731,7 @@ public class SliceManager
             ref_next.setData(lowresField);
           }
 
+          bio.brightness = -1; // force color update
           configureDisplays();
 
           // initialize tool panels
@@ -806,6 +806,8 @@ public class SliceManager
     rmaps2 = new ScalarMap[rtypes.length];
     for (int i=0; i<rtypes.length; i++) {
       rmaps2[i] = new ScalarMap(rtypes[i], Display.RGB);
+      // CTR - TODO - color range options configuration
+      rmaps2[i].setRange(0, 255);
       bio.display2.addMap(rmaps2[i]);
     }
 
@@ -910,6 +912,8 @@ public class SliceManager
       rmaps3 = new ScalarMap[rtypes.length];
       for (int i=0; i<rtypes.length; i++) {
         rmaps3[i] = new ScalarMap(rtypes[i], Display.RGBA);
+        // CTR - TODO - color range options configuration
+        rmaps3[i].setRange(0, 255);
         bio.display3.addMap(rmaps3[i]);
         widgets[i] = new LabeledColorWidget(
           new ColorMapWidget(rmaps3[i], false));
@@ -1027,12 +1031,14 @@ public class SliceManager
         arb = new ArbitrarySlice(bio.display3);
         arb.addListener(this);
       }
-      arb.init(dtypes[0], dtypes[1], dtypes[2], Color.cyan, Color.white,
+      Color[] arbLines = {Color.cyan, Color.cyan, Color.cyan};
+      arb.init(dtypes[0], dtypes[1], dtypes[2], arbLines, Color.white,
         min_x, min_y, min_z, max_x, max_y, max_z, min_x, max_y, max_z);
 
       // initialize alignment plane
-      if (align == null) align = new AlignmentPlane(bio.display3);
-      align.init(dtypes[0], dtypes[1], dtypes[2], Color.red, Color.red,
+      if (align == null) align = new AlignmentPlane(bio, bio.display3);
+      Color[] alignLines = {Color.red, Color.magenta, Color.blue};
+      align.init(dtypes[0], dtypes[1], dtypes[2], alignLines, Color.red,
         min_x, min_y, min_z, max_x, max_y, max_z, min_x, max_y, max_z);
     }
 
@@ -1059,8 +1065,7 @@ public class SliceManager
       // do volume rendering
       if (volume) updateVolumeField();
 
-      updateList();
-      updateAnimationControls();
+      updateStuff();
     }
 
     // switch slice values
@@ -1120,8 +1125,14 @@ public class SliceManager
     catch (RemoteException exc) { exc.printStackTrace(); }
   }
 
-  /** Updates the animation controls. */
-  void updateAnimationControls() {
+  /** Updates various important display features. */
+  void updateStuff() {
+    // update measurement lists
+    MeasureList list = bio.mm.lists[index];
+    bio.mm.pool2.set(list);
+    if (bio.mm.pool3 != null) bio.mm.pool3.set(list);
+
+    // update animation controls
     try {
       if (anim_control2 != null) anim_control2.setCurrent(index);
       if (anim_control3 != null) anim_control3.setCurrent(index);
@@ -1217,11 +1228,15 @@ public class SliceManager
     bio.setWaitCursor(false);
   }
 
-  /** Updates measurement pools with new measurement list. */
-  private void updateList() {
-    MeasureList list = bio.mm.lists[index];
-    bio.mm.pool2.set(list);
-    if (bio.mm.pool3 != null) bio.mm.pool3.set(list);
-  }
-
+void updateAnimationControls() {
+    // update animation controls
+    try {
+      if (anim_control2 != null) anim_control2.setCurrent(index);
+      if (anim_control3 != null) anim_control3.setCurrent(index);
+      if (anim_control_prev != null) anim_control_prev.setCurrent(index - 1);
+      if (anim_control_next != null) anim_control_next.setCurrent(index + 1);
+    }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
+}
 }

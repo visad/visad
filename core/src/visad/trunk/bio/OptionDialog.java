@@ -26,9 +26,11 @@ MA 02111-1307, USA
 
 package visad.bio;
 
+import java.awt.Dimension;
 import java.awt.event.*;
 import java.io.*;
 import javax.swing.*;
+import visad.browser.Divider;
 import visad.util.Util;
 
 /** OptionDialog is a dialog of configuring VisBio options. */
@@ -58,6 +60,8 @@ public class OptionDialog extends JPanel implements ActionListener {
   // -- GUI COMPONENTS --
 
   private JCheckBox enableQT;
+  private JRadioButton dynamic, fixed;
+  private JTextField loVal, hiVal;
   private JButton ok, cancel;
 
 
@@ -72,6 +76,24 @@ public class OptionDialog extends JPanel implements ActionListener {
     enableQT.setMnemonic('q');
     enableQT.setActionCommand("enableQT");
     enableQT.addActionListener(this);
+    dynamic = new JRadioButton("Dynamic color scaling");
+    dynamic.setMnemonic('d');
+    dynamic.setActionCommand("dynamic");
+    dynamic.addActionListener(this);
+    dynamic.setEnabled(false); // CTR - TODO - color range options
+    fixed = new JRadioButton("Fixed color range: ", true);
+    fixed.setMnemonic('f');
+    fixed.setActionCommand("fixed");
+    fixed.addActionListener(this);
+    fixed.setEnabled(false); // CTR - TODO - color range options
+    loVal = new JTextField("0");
+    adjustTextField(loVal);
+    loVal.setEnabled(false); // CTR - TODO - color range options
+    JLabel toLabel = new JLabel(" to ");
+    toLabel.setEnabled(false);
+    hiVal = new JTextField("255");
+    adjustTextField(hiVal);
+    hiVal.setEnabled(false); // CTR - TODO - color range options
     ok = new JButton("Ok");
     ok.setMnemonic('o');
     ok.setActionCommand("ok");
@@ -81,9 +103,23 @@ public class OptionDialog extends JPanel implements ActionListener {
     cancel.setActionCommand("cancel");
     cancel.addActionListener(this);
 
+    // group radio buttons
+    ButtonGroup group = new ButtonGroup();
+    group.add(dynamic);
+    group.add(fixed);
+
     // lay out options
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-    add(ToolPanel.pad(enableQT));
+    add(ToolPanel.pad(enableQT, false, true));
+    add(new Divider());
+    add(ToolPanel.pad(dynamic, false, true));
+    JPanel p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    p.add(fixed);
+    p.add(loVal);
+    p.add(toLabel);
+    p.add(hiVal);
+    add(ToolPanel.pad(p, false, true));
 
     // lay out buttons
     JPanel bottom = new JPanel();
@@ -142,20 +178,24 @@ public class OptionDialog extends JPanel implements ActionListener {
       pathname.getName().equals("QTJava.zip");
   }
 
+  /** Location of QTJava.zip file, used in searchQT(). */
+  private File qtjava;
+
   /** Searches for QTJava.zip to enable QuickTime support. */
-  void searchQT() {
+  synchronized void searchQT() {
     String[] options = {"Let VisBio search", "Locate it myself", "Cancel"};
     int ans = JOptionPane.showOptionDialog(this,
       "To enable QuickTime support, VisBio needs to locate QuickTime on " +
       "your system by finding a file called QTJava.zip.", "VisBio", -1,
       JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 
-    File qtjava = null;
+    qtjava = null;
     String ignore = new File("QTJava.zip").getAbsolutePath();
-    QTFileFilter filter = new QTFileFilter(ignore);
+    final QTFileFilter filter = new QTFileFilter(ignore);
     if (ans == 0) { // Let VisBio search
       String os = System.getProperty("os.name");
-      if (os.startsWith("Windows")) { // Check Windows system folders first
+      if (os.startsWith("Windows")) {
+        // Check Windows system folders first
         File[] system = {
           new File("C:\\WINNT\\system32"),
           new File("C:\\WINDOWS\\system32"),
@@ -165,13 +205,24 @@ public class OptionDialog extends JPanel implements ActionListener {
           qtjava = searchQT(system[i], filter);
           if (qtjava != null) break;
         }
-        if (qtjava == null) {
-          File[] roots = File.listRoots();
-          for (int i=0; i<roots.length; i++) {
-            qtjava = searchQT(roots[i], filter);
-            if (qtjava != null) break;
+      }
+      if (qtjava == null) {
+        final ProgressDialog searching =
+          new ProgressDialog(dialog, "Searching");
+        Thread t = new Thread(new Runnable() {
+          public void run() {
+            File[] roots = File.listRoots();
+            for (int i=0; i<roots.length; i++) {
+              searching.setText("Searching " + roots[i].getAbsolutePath());
+              qtjava = searchQT(roots[i], filter);
+              if (qtjava != null) break;
+              searching.setPercent(100 * (i + 1) / roots.length);
+            }
+            searching.kill();
           }
-        }
+        });
+        t.start();
+        searching.show();
       }
     }
     else if (ans == 1) { // Locate it myself
@@ -280,6 +331,14 @@ public class OptionDialog extends JPanel implements ActionListener {
       if (f != null) return f;
     }
     return null;
+  }
+
+  /** Adjusts dimensional layout preferences of a text field. */
+  private void adjustTextField(JTextField field) {
+    Util.adjustTextField(field);
+    Dimension psize = field.getPreferredSize();
+    if (psize.width < 40) psize.width = 40;
+    field.setPreferredSize(psize);
   }
 
 }

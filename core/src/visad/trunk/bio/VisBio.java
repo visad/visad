@@ -534,10 +534,10 @@ public class VisBio extends GUIFrame implements ChangeListener {
           boolean jpeg = ext.equals("jpg") || ext.equals("jpeg");
           boolean raw = ext.equals("raw");
           if (!tiff && !jpeg && !raw) {
+            setWaitCursor(false);
             JOptionPane.showMessageDialog(bio, "Invalid filename (" +
               file + "): " + "extension must be TIFF, JPEG or RAW.",
               "Cannot export snapshot", JOptionPane.ERROR_MESSAGE);
-            setWaitCursor(false);
             return;
           }
 
@@ -546,9 +546,9 @@ public class VisBio extends GUIFrame implements ChangeListener {
           boolean has3 = display3 != null &&
             display3.getComponent().isVisible();
           if (!has2 && !has3) {
+            setWaitCursor(false);
             JOptionPane.showMessageDialog(bio, "No displays are visible.",
               "Cannot export snapshot", JOptionPane.ERROR_MESSAGE);
-            setWaitCursor(false);
             return;
           }
 
