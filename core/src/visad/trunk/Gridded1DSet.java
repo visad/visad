@@ -136,7 +136,7 @@ public class Gridded1DSet extends GriddedSet {
    * 1-D indices.  This Gridded1DSet must have at least two points in the
    * set.
    * @param value	An array of coordinates.  <code>value[i][j]
-   *			<code> contains the <code>i</code>th component of the
+   *			</code> contains the <code>i</code>th component of the
    *			<code>j</code>th point.
    * @return		Indices of nearest points.  RETURN_VALUE<code>[i]</code>
    *			will contain the index of the point in the set closest
