@@ -441,11 +441,13 @@ public class UnionSet extends SampledSet {
     }
     int n = Sets.length;
     int dim = DomainDimension;
+/* WLH 15 Sept 2003 - not needed
     if (color_values != null && dim != color_values.length) {
       throw new SetException("UnionSet.make1DGeometry:" +
                              " color_values dimension should be " + dim +
                              ", not " + color_values.length);
     }
+*/
     VisADLineStripArray[] arrays =
       new VisADLineStripArray[n];
     int base = 0;
