@@ -33,6 +33,7 @@ import visad.Set;
 
 import visad.*;
 import visad.util.*;  
+import visad.ColorControl;
 import visad.DataReferenceImpl;
 import visad.DataReference;
 import visad.DataRenderer;
