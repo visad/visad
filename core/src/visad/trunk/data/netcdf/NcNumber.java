@@ -161,6 +161,19 @@ NcNumber
 
 
     /**
+     * Indicate whether or not this variable is longitude.
+     */
+    public boolean
+    isLongitude()
+    {
+	return name.equals("Lon") ||
+	       name.equals("lon") ||
+	       name.equals("Longitude") ||
+	       name.equals("longitude");
+    }
+
+
+    /**
      * Return the rank of the I/O vector.
      */
     protected int
@@ -168,7 +181,7 @@ NcNumber
     {
 	int	rank = var.getRank();
 
-	return rank < 2
+	return rank < 1
 		? 1
 		: rank-1;
     }
