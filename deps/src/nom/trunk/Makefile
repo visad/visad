@@ -1,6 +1,9 @@
 CLASSDIR=${HOME}/classes
 
 JC = javac
+JAVADOC = javadoc
+
+DOCDIR=html
 
 .SUFFIXES: .class .java
 
@@ -178,7 +181,10 @@ clean::
 	-rm -f ${FITS_CLASSES}
 
 docs:
-	javadoc -d html util fits
+	@if [ ! -d $(DOCDIR) ]; then mkdir $(DOCDIR); fi
+	THISDIR=`pwd`;							\
+	cd .. && $(JAVADOC) -d $$THISDIR/$(DOCDIR)			\
+			nom/tam/fits nom/tam/functor nom/tam/test nom/tam/util
 
 tam/test/FitsTester.class: tam/test/FitsTester.java \
 			tam/fits/Fits.class

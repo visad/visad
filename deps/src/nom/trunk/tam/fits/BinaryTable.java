@@ -1,13 +1,14 @@
 package nom.tam.fits;
 
-/*
- * Copyright: Thomas McGlynn 1997-1998.
+/* Copyright: Thomas McGlynn 1997-1998.
  * This code may be used for any purpose, non-commercial
  * or commercial so long as this copyright notice is retained
  * in the source code or included in or referred to in any
  * derived software.
+ *
+ * Many thanks to David Glowacki (U. Wisconsin) for substantial
+ * improvements, enhancements and bug fixes.
  */
-
 
 import java.io.*;
 import nom.tam.util.*;
@@ -271,7 +272,7 @@ public class BinaryTable extends Data {
        * @param col  The index of the column to be replaced.
        * @param data The new data array.  This should be a one-d
        *             primitive array.
-       * @exception FitsException Thrown if the type of length of
+       * @exception FitsExcetion Thrown if the type of length of
        *                         the replacement data differs from the
        *                         original.
        */

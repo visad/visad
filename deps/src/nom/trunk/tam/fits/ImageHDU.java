@@ -1,13 +1,12 @@
 package nom.tam.fits;
-
-/*
- * Copyright: Thomas McGlynn 1997-1998.
+/* Copyright: Thomas McGlynn 1997-1998.
  * This code may be used for any purpose, non-commercial
  * or commercial so long as this copyright notice is retained
  * in the source code or included in or referred to in any
  * derived software.
+ * Many thanks to David Glowacki (U. Wisconsin) for substantial
+ * improvements, enhancements and bug fixes.
  */
-
 
 import nom.tam.util.ArrayFuncs;
 import nom.tam.util.BufferedDataInputStream;
@@ -33,7 +32,7 @@ public class ImageHDU
     * @param primary the RandomGroupsHDU containing the image data.
     * @exception FitsException if there was a problem with the data.
     */
-  public ImageHDU(RandomGroupsHDU primary)
+  public ImageHDU(PrimaryHDU primary)
 	throws FitsException
   {
     // this is currently a hack; should clone RandomGroupsHDU header and data
@@ -42,7 +41,7 @@ public class ImageHDU
 
     if (myHeader != null) {
       if (!myHeader.primaryToImage()) {
-	throw new FitsException("Couldn't create ImageHDU from RandomGroupsHDU");
+	throw new FitsException("Couldn't create ImageHDU from PrimaryHDU");
       }
     }
 

@@ -6,6 +6,9 @@ package nom.tam.fits;
  * or commercial so long as this copyright notice is retained
  * in the source code or included in or referred to in any
  * derived software.
+ *
+ * Many thanks to David Glowacki (U. Wisconsin) for substantial
+ * improvements, enhancements and bug fixes.
  */
 
 

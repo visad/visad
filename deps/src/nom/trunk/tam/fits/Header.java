@@ -1,13 +1,13 @@
 package nom.tam.fits;
 
-/*
- * Copyright: Thomas McGlynn 1997-1998.
+/* Copyright: Thomas McGlynn 1997-1998.
  * This code may be used for any purpose, non-commercial
  * or commercial so long as this copyright notice is retained
  * in the source code or included in or referred to in any
  * derived software.
+ * Many thanks to David Glowacki (U. Wisconsin) for substantial
+ * improvements, enhancements and bug fixes.
  */
-
 
 import java.io.*;
 import java.util.*;
@@ -388,7 +388,8 @@ public class Header extends Object {
 
 
     /** Calculate the unpadded size of the data segment from
-      * the header information.
+      * the header information.  Note that this algorithm is
+      * not correct for Random Groups format data.
       * @return the unpadded data segment size.
       */
     public int trueDataSize() {
@@ -416,6 +417,7 @@ public class Header extends Object {
     /** Return the size of the data including any needed padding.
       * @return the data segment size including any needed padding.
       */
+
     public int paddedDataSize() {
 	  return ((trueDataSize() + 2879)/2880)*2880;
     }
@@ -680,6 +682,7 @@ public class Header extends Object {
       * @return <CODE>null</CODE> if there was a problem with the header;
       *		otherwise return the header read from the input stream.
       */
+
     public void read(BufferedDataInputStream dis)
 	throws TruncatedFileException, IOException
     {
@@ -746,7 +749,7 @@ public class Header extends Object {
       * @return <CODE>null</CODE> if the keyword could not be found;
       *		return the HeaderCard object otherwise.
       */
-    private HeaderCard findCard(String key) {
+    protected HeaderCard findCard(String key) {
 
       HeaderCard card = cards.findKey(key);
       if (card == null) {

@@ -1,7 +1,6 @@
 package nom.tam.util;
 
-/*
- * Copyright: Thomas McGlynn 1997-1998.
+/* Copyright: Thomas McGlynn 1997-1998.
  * This code may be used for any purpose, non-commercial
  * or commercial so long as this copyright notice is retained
  * in the source code or included in or referred to in any
@@ -12,6 +11,7 @@ package nom.tam.util;
 /** This interface defines the properties that
   * a generic table should have.
   */
+
 public interface DataTable {
 
     public abstract void   setRow(int row, Object newRow)

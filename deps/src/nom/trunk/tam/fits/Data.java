@@ -1,13 +1,13 @@
 package nom.tam.fits;
 
-/*
- * Copyright: Thomas McGlynn 1997-1998.
+/* Copyright: Thomas McGlynn 1997-1998.
  * This code may be used for any purpose, non-commercial
  * or commercial so long as this copyright notice is retained
  * in the source code or included in or referred to in any
  * derived software.
+ * Many thanks to David Glowacki (U. Wisconsin) for substantial
+ * improvements, enhancements and bug fixes.
  */
-
 
 import java.io.*;
 import nom.tam.util.*;
@@ -15,6 +15,7 @@ import nom.tam.util.*;
 /** This class provides methods to access the data segment of an
   * HDU.
   */
+
 public abstract class Data {
 
     /** This is the object which contains the actual data for the HDU.
@@ -99,7 +100,7 @@ public abstract class Data {
     /** Get the amount of padding needed to fill in or skip to the beginning
       * of the next FITS block.
       */
-    protected int getPadding() {
+    public int getPadding() {
 
         int len = getTrueSize() % 2880;
 

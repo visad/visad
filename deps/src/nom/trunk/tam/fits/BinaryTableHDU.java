@@ -1,12 +1,15 @@
 package nom.tam.fits;
 
-/*
- * Copyright: Thomas McGlynn 1997-1998.
- * This code may be used for any purpose, non-commercial
- * or commercial so long as this copyright notice is retained
- * in the source code or included in or referred to in any
- * derived software.
- */
+ /*
+  * Copyright: Thomas McGlynn 1997-1998.
+  * This code may be used for any purpose, non-commercial
+  * or commercial so long as this copyright notice is retained
+  * in the source code or included in or referred to in any
+  * derived software.
+  *
+  * Many thanks to David Glowacki (U. Wisconsin) for substantial
+  * improvements, enhancements and bug fixes.
+  */
 
 
 import nom.tam.util.ArrayFuncs;
@@ -20,6 +23,7 @@ public class BinaryTableHDU
     * @param header the template specifying the binary table.
     * @exception FitsException if there was a problem with the header.
     */
+
   public BinaryTableHDU(Header header)
 	throws FitsException
   {
@@ -133,7 +137,7 @@ public class BinaryTableHDU
              String card = myHeader.getCard(lastMark+j);
 
              if (card == null) {
-                 System.out.println("mark to"+(lastMark+j));
+                 System.out.println("mark to "+(lastMark+j));
                  myHeader.unsetMark();
                  break;
              } else if ( !(card.substring(0,8).equals("COMMENT ") ||

@@ -1,13 +1,13 @@
 package nom.tam.util;
 
-/*
- * Copyright: Thomas McGlynn 1997-1998.
+/* Copyright: Thomas McGlynn 1997-1998.
  * This code may be used for any purpose, non-commercial
  * or commercial so long as this copyright notice is retained
  * in the source code or included in or referred to in any
  * derived software.
  */
 
+// What do we use in here?
 
 import java.io.OutputStream;
 import java.io.BufferedOutputStream;
@@ -32,8 +32,8 @@ import java.io.IOException;
   * invocations.
   */
 
-public class BufferedDataOutputStream 
-               extends BufferedOutputStream 
+public class BufferedDataOutputStream
+               extends BufferedOutputStream
                implements DataOutput {
 
 /** Use the BufferedOutputStream constructor
@@ -48,7 +48,7 @@ public BufferedDataOutputStream(OutputStream o) {
   */
 public BufferedDataOutputStream(OutputStream o, int bufLength) {
     super(o, bufLength);
-}    
+}
 
 
 /** Write a boolean value
@@ -79,7 +79,6 @@ public void writeInt(int i) throws IOException {
     b[1] = (byte) (i >>> 16);
     b[2] = (byte) (i >>>  8);
     b[3] = (byte)  i;
-
     write(b, 0, 4);
 }
 
@@ -87,7 +86,7 @@ public void writeInt(int i) throws IOException {
   */
 public void writeShort(int s) throws IOException {
     byte[] b = new byte[2];
-   
+
     b[0] = (byte) (s >>> 8);
     b[1] = (byte)  s;
 
@@ -117,7 +116,7 @@ public void writeLong(long l) throws IOException {
     b[5] = (byte) (l >>> 16);
     b[6] = (byte) (l >>>  8);
     b[7] = (byte)  l;
-  
+
     write(b, 0, 8);
 }
 
@@ -152,7 +151,7 @@ public void writeDouble(double d) throws IOException {
     b[5] = (byte) (l >>> 16);
     b[6] = (byte) (l >>>  8);
     b[7] = (byte)  l;
-  
+
     write(b, 0, 8);
 }
 
@@ -256,7 +255,7 @@ public void writePrimitiveArray(Object o) throws IOException {
              throw new IOException("Invalid object passed to BufferedDataOutputStream.writeArray: "+className);
         }
     }
- 
+
 }
 
 /** Write an array of booleans.
@@ -303,7 +302,7 @@ protected void writeCharArray(char[] c) throws IOException {
   */
 protected void writeIntArray(int[] i) throws IOException {
     byte[] b = new byte[4*i.length];
-    
+
     for (int ii=0; ii<i.length; ii += 1) {
         int t = i[ii];
         b[4*ii]   = (byte)(t >>> 24);
@@ -331,7 +330,7 @@ protected void writeLongArray(long[] l) throws IOException {
          b[8*i+6] = (byte)(t >>>  8);
          b[8*i+7] = (byte) t;
     }
-    write(b, 0, b.length); 
+    write(b, 0, b.length);
 }
 
 /** Write an array of floats.
@@ -339,7 +338,7 @@ protected void writeLongArray(long[] l) throws IOException {
 protected void writeFloatArray(float[] f) throws IOException {
 
     byte[] b = new byte[4*f.length];
-    
+
     for (int i=0; i<f.length; i += 1) {
         int t = Float.floatToIntBits(f[i]);
         b[4*i]   = (byte)(t >>> 24);
@@ -367,19 +366,28 @@ protected void writeDoubleArray(double[] d) throws IOException {
          b[8*i+6] = (byte)(t >>>  8);
          b[8*i+7] = (byte) t;
     }
-    write(b, 0, b.length); 
+    write(b, 0, b.length);
 }
 
 /** Write an array of Strings -- equivalent to calling writeBytes for each string.
   */
 protected void writeStringArray(String[] s) throws IOException {
-   
+
     // Don't worry about buffering this specially since the
     // strings may be of differing lengths.
 
     for (int i=0; i<s.length; i += 1) {
         writeBytes(s[i]);
     }
+}
+
+
+/** Test this class */
+
+public static void main(String[] args) throws Exception {
+
+    // Call the test routines in BufferedDataInputStream.main.
+    BufferedDataInputStream.main(args);
 }
 
 }

@@ -1,19 +1,18 @@
 package nom.tam.fits;
 
-/*
- * Copyright: Thomas McGlynn 1997-1998.
- * This code may be used for any purpose, non-commercial
- * or commercial so long as this copyright notice is retained
- * in the source code or included in or referred to in any
- * derived software.
- *
- * Many thanks to David Glowacki (U. Wisconsin) for substantial
- * improvements, enhancements and bug fixes.
- */
-
-
 import java.io.IOException;
 import nom.tam.util.BufferedDataInputStream;
+
+ /*
+  * Copyright: Thomas McGlynn 1997-1998.
+  * This code may be used for any purpose, non-commercial
+  * or commercial so long as this copyright notice is retained
+  * in the source code or included in or referred to in any
+  * derived software.
+  *
+  * Many thanks to David Glowacki (U. Wisconsin) for substantial
+  * improvements, enhancements and bug fixes.
+  */
 
 /** FITS ASCII table header/data unit
   * ASCII tables are not currently suppoted.
@@ -79,9 +78,8 @@ public class AsciiTableHDU
       throw new FitsException("ASCII tables are currently not supported");
     }
 
-  /** Print out some information about this HDU.
-    */
     public void info() {
       System.out.println("ASCII Table: unimplemented");
     }
 }
+

@@ -1,12 +1,15 @@
 package nom.tam.test;
 
-/*
- * Copyright: Thomas McGlynn 1997-1998.
- * This code may be used for any purpose, non-commercial
- * or commercial so long as this copyright notice is retained
- * in the source code or included in or referred to in any
- * derived software.
- */
+ /*
+  * Copyright: Thomas McGlynn 1997-1998.
+  * This code may be used for any purpose, non-commercial
+  * or commercial so long as this copyright notice is retained
+  * in the source code or included in or referred to in any
+  * derived software.
+  * Many thanks to David Glowacki (U. Wisconsin) for substantial
+  * improvements, enhancements and bug fixes.
+  */
+
 
 
 import nom.tam.fits.*;
@@ -28,8 +31,74 @@ public class FitsTester {
       testWriteByRow();
       testBuildByColumn();
       testVarCols();
+      testRandomGroups();
     }
 
+    static void testRandomGroups() {
+
+      start("Write and read a random groups data set");
+      try {
+
+         short[] pararr = new short[5];
+         short[][] dataArr = new short[50][50];
+
+         Object[][] test = new Object[10][2];
+         // Only fill in the first row so we
+         // can write the data group by group.
+
+         test[0][0] = pararr;
+         test[0][1] = dataArr;
+
+         RandomGroupsHDU hdu = new RandomGroupsHDU(test);
+
+         BufferedDataOutputStream os =
+            new BufferedDataOutputStream(
+               new FileOutputStream("test6.fits")
+            );
+
+         int padding = hdu.getData().getPadding();
+
+         hdu.getHeader().write(os);
+
+         for (int i=0; i<10; i += 1) {
+             pararr[2] = (short) i;
+             pararr[3] = (short) (i*i);
+             dataArr[i][i] = (short)(i*i*i);
+             os.writePrimitiveArray(pararr);
+             os.writePrimitiveArray(dataArr);
+         }
+         byte[] pad = new byte[padding];
+         os.write(pad);
+         os.flush();
+         os.close();
+         os = null;
+
+     } catch (Exception e) {
+         System.out.println("Error writing random groups data");
+         e.printStackTrace(System.out);
+         return;
+     }
+
+     // Read the data back in.
+     try {
+
+         Fits rg = new Fits("Test6.fits");
+         BasicHDU[] HDUs = rg.read();
+         HDUs[0].info();
+         Object[][] data = (Object[][]) HDUs[0].getData().getData();
+         for (int i=0; i<10; i += 1) {
+
+             short[] par = (short[]) data[i][0];
+             System.out.println("    Group:"+(i+1)+" params2,3= "+par[2]+" "+par[3]);
+             short[][] arr = (short[][])data[i][1];
+             System.out.println("           Data[i][i] = "+arr[i][i]);
+         }
+     } catch (Exception e) {
+         System.out.println("Error reading random groups data");
+         e.printStackTrace(System.out);
+     }
+     end("Test Random Groups");
+    }
     static void testVarCols() {
 
       start("Build and read variable length columns");
@@ -37,7 +106,7 @@ public class FitsTester {
         Fits myFits = new Fits();
 
         myFits.addHDU(new PrimaryHDU());
-        myFits.addHDU(HDU.createHDU(genTable()));
+        myFits.addHDU(HDU.create(genTable()));
 
         BasicHDU[] myHDUs = myFits.read();
 
@@ -303,13 +372,13 @@ public class FitsTester {
         // Now create three extensions.
 
         int[] dims1 = {20,20,20};
-        myFits.addHDU(HDU.createHDU(ArrayFuncs.generateArray(Float.TYPE, dims1)));
+        myFits.addHDU(HDU.create(ArrayFuncs.generateArray(Float.TYPE, dims1)));
 
 
         int[] dims2 = {2,2,2,8,16};
-        myFits.addHDU(HDU.createHDU(ArrayFuncs.generateArray(Integer.TYPE, dims2)));
+        myFits.addHDU(HDU.create(ArrayFuncs.generateArray(Integer.TYPE, dims2)));
 
-        myFits.addHDU(HDU.createHDU(genTable()));
+        myFits.addHDU(HDU.create(genTable()));
 
         java.io.FileOutputStream fo = new java.io.FileOutputStream("test1.fits");
         BufferedDataOutputStream o = new BufferedDataOutputStream(fo);
@@ -449,4 +518,6 @@ static Object[][] genTable() {
         System.out.println("");
         System.out.println("");
     }
+
+
 }

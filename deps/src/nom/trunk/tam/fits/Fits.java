@@ -55,20 +55,12 @@ class BadHDU
 /** This class provides access to routines to allow users
   * to read and write FITS files.
   * <p>
-  * @version 0.4  February 13, 1998
+  * @version 0.6  March 22, 1998
   *
   * This version of the Java FITS library incorporates many changes
   * made by Dave Glowacki who greatly enhanced the handling of
   * header records and created the hierarchical organization of
   * FITS HDU types.
-  * <p>
-  * Other changes include corrections to major bugs in the
-  * BufferedDataInputStream utility class and a few minor fixes.
-  * Testing is still minimal and performance on large tables with
-  * small elements is still
-  * very poor.  The ColumnarIO classes have been developed to
-  * address this but are not yet used by these classes.
-  *
   * <p>
   * <b> Description of the Package </b>
   * <p>
@@ -94,9 +86,7 @@ class BadHDU
   *       <li>BasicHDU
   *           <ul>
   *           <li> PrimaryHDU
-  *                <ul>
-  *                <li> RandomGroupsHDU (unimplemented)
-  *                </ul>
+  *           <li> RandomGroupsHDU
   *           <li> ExtensionHDU
   *                <ul>
   *                <li> ImageHDU
@@ -118,9 +108,6 @@ class BadHDU
   *      the basic methods for reading and writing FITS data.
   *      Users will likely only be interested in the getData
   *      method which returns that actual FITS data.
-  * <li> The ImageData class provides a very slight extension
-  *      to the Data class but will eventually help deal
-  *      with random groups format data.
   * <li> The BinaryTable class provides a large number of
   *      methods to access and modify information in Binary
   *      tables.  Modifications to columns are best done
@@ -168,7 +155,10 @@ public class Fits {
          // Version 0.4: Alpha-release 2/98
          //              BinaryTable classes revised to use
          //              ColumnTable classes.
-         return "0.4";
+         // Version 0.5: Random Groups Data 3/98
+         // Version 0.6: Handling of bad/skipped FITS, FitsDate (D. Glowacki) 3/98
+
+         return "0.6";
     }
 
     /** Create an empty Fits object which is not

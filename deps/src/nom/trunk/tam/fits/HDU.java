@@ -1,11 +1,12 @@
 package nom.tam.fits;
 
-/*
- * Copyright: Thomas McGlynn 1997-1998.
+/* Copyright: Thomas McGlynn 1997-1998.
  * This code may be used for any purpose, non-commercial
  * or commercial so long as this copyright notice is retained
  * in the source code or included in or referred to in any
  * derived software.
+ * Many thanks to David Glowacki (U. Wisconsin) for substantial
+ * improvements, enhancements and bug fixes.
  */
 
 
@@ -25,7 +26,7 @@ public class HDU
     * @return the appropriate HDU object
     * @exception FitsException if the HDU could not be created.
     */
-  public static BasicHDU createHDU(Object x)
+  public static BasicHDU create(Object x)
 	throws FitsException
   {
     String className = x.getClass().getName();
@@ -41,12 +42,24 @@ public class HDU
 			    className);
   }
 
+  public static RandomGroupsHDU createRandomGroups(Object[][] x)
+                                throws FitsException
+  {
+      return new RandomGroupsHDU(x);
+  }
+
+  public static AsciiTableHDU createAsciiTable(Object[][] x)
+                                throws FitsException
+  {
+      throw new FitsException("ASCII tables not yet supported");
+  }
+
   /** Create an HDU from the supplied Header object.
     * @param header the Header for the HDU to be created.
     * @return the appropriate HDU object
     * @exception FitsException if the HDU could not be created.
     */
-  public static BasicHDU createHDU(Header header)
+  public static BasicHDU create(Header header)
     throws FitsException
   {
     BasicHDU hdu;
@@ -71,7 +84,7 @@ public class HDU
     }
 
     if (A3DTableHDU.isHeader(header)) {
-       return new A3DTableHDU(header);
+      return new A3DTableHDU(header);
     }
 
     throw new BadHeaderException("Unknown FITS header: Card 1=" +
@@ -97,7 +110,7 @@ public class HDU
     BasicHDU hdu;
 
     try {
-      hdu = createHDU(hdr);
+      hdu = create(hdr);
     } catch (BadHeaderException e) {
       try {
         BasicHDU.skipData(stream, hdr);

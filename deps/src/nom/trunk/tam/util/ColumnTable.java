@@ -1,14 +1,12 @@
 package nom.tam.util;
 
-/*
- * Copyright: Thomas McGlynn 1997-1998.
- * This code may be used for any purpose, non-commercial
- * or commercial so long as this copyright notice is retained
- * in the source code or included in or referred to in any
- * derived software.
- */
-
-
+ /*
+  * Copyright: Thomas McGlynn 1997-1998.
+  * This code may be used for any purpose, non-commercial
+  * or commercial so long as this copyright notice is retained
+  * in the source code or included in or referred to in any
+  * derived software.
+  */
 import  java.io.*;
 import  java.lang.reflect.Array;
 
@@ -27,7 +25,7 @@ import  java.lang.reflect.Array;
   * BufferedDataXputStream classes.
   *
   * The table is represented entirely as a set of one-dimensional primitive
-  * arrays.  For a given column, a row consists of some number of 
+  * arrays.  For a given column, a row consists of some number of
   * contiguous elements of the array.  Each column is required to have
   * the same number of rows.
   */
@@ -80,7 +78,7 @@ public class ColumnTable implements DataTable {
 
     /** Actually perform the initialization.
       */
-    protected void setup(Object[] arrays, int[] sizes) throws TableException { 
+    protected void setup(Object[] arrays, int[] sizes) throws TableException {
 
         checkArrayConsistency(arrays, sizes);
         getNumberOfRows();
@@ -89,7 +87,7 @@ public class ColumnTable implements DataTable {
     }
 
     /** Get the number of rows in the table.
-      */ 
+      */
     public int getNrow() {
         return nrow;
     }
@@ -100,7 +98,7 @@ public class ColumnTable implements DataTable {
         return arrays.length;
     }
 
-    
+
     /** Get a particular column.
       * @param col The column desired.
       * @return an object containing the column data desired.
@@ -145,7 +143,7 @@ public class ColumnTable implements DataTable {
       *                           is not of the same type as
       *                           the data it replaces.
       */
-    public void setElement(int row, int col, Object x) 
+    public void setElement(int row, int col, Object x)
                            throws TableException {
 
         String classname = x.getClass().getName();
@@ -192,7 +190,7 @@ public class ColumnTable implements DataTable {
             setElement(row, col, ((Object[]) x)[col]);
         }
     }
-    
+
     /** Check that the columns and sizes are consistent.
       * Inconsistencies include:
       * <ul>
@@ -204,17 +202,17 @@ public class ColumnTable implements DataTable {
       * @param arrays The arrays defining the columns.
       * @param sizes  The number of elements in each row for the column.
       */
-    protected void checkArrayConsistency(Object[] arrays, int[] sizes) 
+    protected void checkArrayConsistency(Object[] arrays, int[] sizes)
                                          throws TableException {
 
         // This routine throws an error if it detects an inconsistency
         // between the arrays being read in.
-   
+
         // First check that the lengths of the two arrays are the same.
         if (arrays.length != sizes.length) {
           throw new TableException ("readArraysAsColumns: Incompatible arrays and sizes.");
         }
-    
+
         // Now check that we'll fill up all of the arrays exactly.
         int ratio = 0;
         int rowSize = 0;
@@ -231,7 +229,7 @@ public class ColumnTable implements DataTable {
                 break;
             }
         }
-           
+
 
         for (int i=0; i<arrays.length; i += 1) {
 
@@ -255,10 +253,10 @@ public class ColumnTable implements DataTable {
             // The row size must evenly divide the size of the array.
             if (thisSize % sizes[i] != 0) {
                 throw new TableException("Row size does not divide array: index="+i);
-            }    
+            }
 
-            // Finally the ratio of sizes must be the same for all rows. 
-            if (sizes[i] > 0) { 
+            // Finally the ratio of sizes must be the same for all rows.
+            if (sizes[i] > 0) {
                 int thisRatio = thisSize/sizes[i];
 
                 if (ratio != 0 && (thisRatio != ratio)) {
@@ -270,9 +268,9 @@ public class ColumnTable implements DataTable {
 
             rowSize += sizes[i]*ArrayFuncs.getBaseLength(arrays[i]);
             types[i] = classname.charAt(1);
-            bases[i] = ArrayFuncs.getBaseClass(arrays[i]);        
+            bases[i] = ArrayFuncs.getBaseClass(arrays[i]);
         }
-    
+
         this.nrow = ratio;
         this.rowSize = rowSize;
         this.arrays = arrays;
@@ -290,7 +288,7 @@ public class ColumnTable implements DataTable {
         // If a row is larger than bufSize, then read one row at a time.
         if (rowSize == 0) {
             this.chunk = 0;
-        
+
         } else if (rowSize > bufSize) {
             this.chunk = 1;
 
@@ -427,7 +425,7 @@ public class ColumnTable implements DataTable {
 
             int need = drow * rowSize;
             int got = 0;
-            
+
             while (need > 0) {
                 int len = is.read(buffer, got, need);
                 if (len <= 0) {
@@ -452,7 +450,7 @@ public class ColumnTable implements DataTable {
 
               // Loop over the columns within the row.
               for (int col=0; col < arrays.length; col += 1) {
-                
+
                 int arrOffset = sizes[col]*row;
                 int size = sizes[col];
                 int i,i1,i2,tmp;
@@ -466,7 +464,7 @@ public class ColumnTable implements DataTable {
                     for (i=arrOffset; i<arrOffset+size; i += 1) {
                       ia[i] =   buffer[bufOffset]         << 24 |
                                (buffer[bufOffset+1]&0xFF) << 16 |
-                               (buffer[bufOffset+2]&0xFF) <<  8 | 
+                               (buffer[bufOffset+2]&0xFF) <<  8 |
                                (buffer[bufOffset+3]&0xFF);
                       bufOffset += 4;
                     }
@@ -477,7 +475,7 @@ public class ColumnTable implements DataTable {
                     ishort += 1;
 
                     for(i=arrOffset; i<arrOffset+size; i += 1) {
-                      s[i] = (short) (buffer[bufOffset] << 8 | 
+                      s[i] = (short) (buffer[bufOffset] << 8 |
                                      (buffer[bufOffset+1]&0xFF) );
                       bufOffset += 2;
                     }
@@ -500,7 +498,7 @@ public class ColumnTable implements DataTable {
                     for (i=arrOffset; i<arrOffset+size; i += 1) {
                       tmp = buffer[bufOffset]         << 24 |
                                (buffer[bufOffset+1]&0xFF) << 16 |
-                               (buffer[bufOffset+2]&0xFF) <<  8 | 
+                               (buffer[bufOffset+2]&0xFF) <<  8 |
                                (buffer[bufOffset+3]&0xFF);
                       f[i] = Float.intBitsToFloat(tmp);
                       bufOffset += 4;
@@ -513,18 +511,18 @@ public class ColumnTable implements DataTable {
 
                     for (i=arrOffset; i<arrOffset+size; i += 1) {
                       i1  = buffer[bufOffset]         << 24 |
-                               (buffer[bufOffset+1]&0xff) << 16 | 
+                               (buffer[bufOffset+1]&0xff) << 16 |
                                (buffer[bufOffset+2]&0xff) <<  8 |
                                (buffer[bufOffset+3]&0xff);
 
                       bufOffset += 4;
                       i2  = buffer[bufOffset]         << 24 |
-                               (buffer[bufOffset+1]&0xff) << 16 | 
+                               (buffer[bufOffset+1]&0xff) << 16 |
                                (buffer[bufOffset+2]&0xff) <<  8 |
                                (buffer[bufOffset+3]&0xff);
                       bufOffset += 4;
 
-                      d[i] = Double.longBitsToDouble( 
+                      d[i] = Double.longBitsToDouble(
                               ((long) i1)                   << 32 |
                               ((long) i2&0x00000000ffffffffL)    );
                     }
@@ -549,13 +547,13 @@ public class ColumnTable implements DataTable {
 
                     for (i=arrOffset; i<arrOffset+size; i += 1) {
                       i1  = buffer[bufOffset]         << 24 |
-                               (buffer[bufOffset+1]&0xff) << 16 | 
+                               (buffer[bufOffset+1]&0xff) << 16 |
                                (buffer[bufOffset+2]&0xff) <<  8 |
                                (buffer[bufOffset+3]&0xff);
 
                       bufOffset += 4;
                       i2  = buffer[bufOffset]         << 24 |
-                               (buffer[bufOffset+1]&0xff) << 16 | 
+                               (buffer[bufOffset+1]&0xff) << 16 |
                                (buffer[bufOffset+2]&0xff) <<  8 |
                                (buffer[bufOffset+3]&0xff);
                       bufOffset += 4;
@@ -569,7 +567,7 @@ public class ColumnTable implements DataTable {
 
                     boolean[] bool = booleanPointers[iboolean];
                     iboolean += 1;
- 
+
                     for (i=arrOffset; i < arrOffset+size; i += 1) {
                       if (buffer[bufOffset] == 1) {
                          bool[i] = true;
@@ -587,7 +585,7 @@ public class ColumnTable implements DataTable {
         }
 
         // All done if we get here...
-        return rowSize*nrow;            
+        return rowSize*nrow;
     }
 
     /** Write a table.
@@ -627,7 +625,7 @@ public class ColumnTable implements DataTable {
 
               // Loop over the columns within the row.
               for (int col=0; col < arrays.length; col += 1) {
-                
+
                 int arrOffset = sizes[col]*row;
                 int size = sizes[col];
                 int i,i1,i2,tmp;
@@ -643,7 +641,7 @@ public class ColumnTable implements DataTable {
                       buffer[bufOffset]  = (byte) (ia[i]>>>24);
                       buffer[bufOffset+1]= (byte) (ia[i]>>>16);
                       buffer[bufOffset+2]= (byte) (ia[i]>>> 8);
-                      buffer[bufOffset+3]= (byte) (ia[i]); 
+                      buffer[bufOffset+3]= (byte) (ia[i]);
                       bufOffset += 4;
                     }
                     break;
@@ -696,14 +694,14 @@ public class ColumnTable implements DataTable {
                       buffer[bufOffset+1] = (byte) (i1 >>> 16);
                       buffer[bufOffset+2] = (byte) (i1 >>>  8);
                       buffer[bufOffset+3] = (byte) (i1);
-  
+
                       bufOffset += 4;
 
                       buffer[bufOffset]   = (byte) (i2 >>> 24);
                       buffer[bufOffset+1] = (byte) (i2 >>> 16);
                       buffer[bufOffset+2] = (byte) (i2 >>>  8);
                       buffer[bufOffset+3] = (byte) (i2);
-  
+
                       bufOffset += 4;
                     }
 
@@ -714,10 +712,10 @@ public class ColumnTable implements DataTable {
                     ichar += 1;
 
                     for (i=arrOffset; i<arrOffset+size; i += 1) {
-       
+
                       buffer[bufOffset]  = (byte) (c[i] >>> 8);
                       buffer[bufOffset+1]= (byte) (c[i]);
- 
+
                       bufOffset += 2;
                     }
                     break;
@@ -735,14 +733,14 @@ public class ColumnTable implements DataTable {
                       buffer[bufOffset+1] = (byte) (i1 >>> 16);
                       buffer[bufOffset+2] = (byte) (i1 >>>  8);
                       buffer[bufOffset+3] = (byte) (i1);
-  
+
                       bufOffset += 4;
 
                       buffer[bufOffset]   = (byte) (i2 >>> 24);
                       buffer[bufOffset+1] = (byte) (i2 >>> 16);
                       buffer[bufOffset+2] = (byte) (i2 >>>  8);
                       buffer[bufOffset+3] = (byte) (i2);
-  
+
                       bufOffset += 4;
                     }
 
@@ -751,7 +749,7 @@ public class ColumnTable implements DataTable {
 
                     boolean[] bool = booleanPointers[iboolean];
                     iboolean += 1;
- 
+
                     for (i=arrOffset; i < arrOffset+size; i += 1) {
                       if (bool[i]) {
                          buffer[bufOffset] = 1;
@@ -772,7 +770,7 @@ public class ColumnTable implements DataTable {
         }
 
         // All done if we get here...
-        return rowSize*nrow;            
+        return rowSize*nrow;
     }
 
     /** Get the base classes of the columns.
@@ -791,3 +789,5 @@ public class ColumnTable implements DataTable {
 
 
 }
+
+

@@ -1,14 +1,15 @@
+
 // Member of the utility package.
 
 package nom.tam.util;
 
-/*
- * Copyright: Thomas McGlynn 1997-1998.
+/* Copyright: Thomas McGlynn 1997-1998.
  * This code may be used for any purpose, non-commercial
  * or commercial so long as this copyright notice is retained
  * in the source code or included in or referred to in any
  * derived software.
  */
+
 
 
 import java.lang.reflect.*;
@@ -37,7 +38,7 @@ public class ArrayFuncs {
 
         int size = 0;
         String classname = o.getClass().getName();
-        if (classname.substring(0, 2).equals("[[") || 
+        if (classname.substring(0, 2).equals("[[") ||
             classname.equals("[Ljava.lang.String;") ||
             classname.equals("[Ljava.lang.Object;")) {
 
@@ -91,7 +92,7 @@ public class ArrayFuncs {
   * @param o The object to be copied.
   */
     public static Object deepClone(Object o) {
-  
+
         if (o == null) {
             return null;
         }
@@ -100,11 +101,15 @@ public class ArrayFuncs {
 
         // Is this an array?
         if (classname.charAt(0) != '[') {
-            return genericClone(o);            
+            return genericClone(o);
         }
 
         // Check if this is a 1D primitive array.
         if (classname.charAt(1) != '[' && classname.charAt(1) != 'L') {
+          try {
+            // Some compilers (SuperCede, e.g.) still
+            // think you have to catch this...
+            if (false) throw new CloneNotSupportedException();
             switch( classname.charAt(1) ){
                  case 'B': return ((byte[])o).clone();
                  case 'Z': return ((boolean[])o).clone();
@@ -116,7 +121,9 @@ public class ArrayFuncs {
                  case 'D': return ((double[])o).clone();
                  default: System.err.println("Unknown primtive array class:"+classname);
                           return null;
-           }
+
+            }
+          } catch (CloneNotSupportedException e) {}
         }
 
         // Get the base type.
@@ -136,7 +143,7 @@ public class ArrayFuncs {
               }
         }
 
-        // Allocate the array but make all but the first dimension 0.        
+        // Allocate the array but make all but the first dimension 0.
         int[] dims = new int[ndim];
         dims[0] = Array.getLength(o);
         for (int i=1; i<ndim; i += 1) {
@@ -145,15 +152,12 @@ public class ArrayFuncs {
 
 
         Object copy = Array.newInstance(baseClass, dims);
-        if (copy == null) {
-             return null;
-        }
 
         // Now fill in the next level down by recursion.
         for (int i=0; i<dims[0]; i += 1) {
              Array.set(copy, i, deepClone(Array.get(o, i)));
-        }               
-         
+        }
+
         return copy;
     }
 
@@ -165,7 +169,7 @@ public class ArrayFuncs {
      * the clone method.  This can't be done directly since
      * as far as the compiler is concerned the clone method for
      * Object is protected and someone could implement Cloneable but
-     * leave the clone method protected.  The cloning can fail in a 
+     * leave the clone method protected.  The cloning can fail in a
      * variety of ways which are trapped so that it returns null instead.
      * This method will generally create a shallow clone.  If you
      * wish a deep copy of an array the method deepClone should be used.
@@ -173,7 +177,7 @@ public class ArrayFuncs {
      * @param o The object to be cloned.
      */
     public static Object genericClone(Object o) {
-	
+
         if (! (o instanceof Cloneable) ) {
             return null;
         }
@@ -187,6 +191,43 @@ public class ArrayFuncs {
             return null;
         }
     }
+
+    /** Copy one array into another.
+      * This function copies the contents of one array
+      * into a previously allocated array.
+      * The arrays must agree in type and size.
+      * @param original The array to be copied.
+      * @param copy     The array to be copied into.  This
+      *                 array must already be fully allocated.
+      */
+     public static void copyArray(Object original, Object copy) {
+         String oname = original.getClass().getName();
+         String cname = copy.getClass().getName();
+
+         if (! oname.equals(cname)) {
+             return;
+         }
+
+         if (oname.charAt(0) != '[') {
+             return;
+         }
+
+         if (oname.charAt(1) == '[') {
+             Object[] x = (Object[]) original;
+             Object[] y = (Object[]) copy;
+             if (x.length != y.length) {
+                 return;
+             }
+             for (int i=0; i<x.length; i += 1) {
+                 copyArray(x,y);
+             }
+         }
+         int len = Array.getLength(original);
+
+         System.arraycopy(original, 0, copy, 0, len);
+     }
+
+
 
 
     /** Find the dimensions of an object.
@@ -206,9 +247,9 @@ public class ArrayFuncs {
         if (o == null) {
             return null;
         }
-  
+
         String classname = o.getClass().getName();
-        
+
         int ndim=0;
 
         while (classname.charAt(ndim) == '[') {
@@ -275,10 +316,10 @@ public class ArrayFuncs {
             default:  return null;
          }
     }
-        
+
     /** This routine returns the size of the base element of an array.
       * @param o The array object whose base length is desired.
-      * @return the size of the object in bytes, 0 if null, or 
+      * @return the size of the object in bytes, 0 if null, or
       * -1 if not a primitive array.
       */
     public static int getBaseLength(Object o) {
@@ -312,7 +353,7 @@ public class ArrayFuncs {
             default: return -1;
          }
     }
-        
+
 
     /** Create an array and populate it with a test pattern.
       *
@@ -337,7 +378,7 @@ public class ArrayFuncs {
       * @param o      The array in which the test pattern is to be set.
       * @param start  The value for the first element.
       */
-    public static byte testPattern(Object o, byte start) { 
+    public static byte testPattern(Object o, byte start) {
 
         int[] dims = getDimensions(o);
         if (dims.length > 1) {
@@ -369,7 +410,7 @@ public class ArrayFuncs {
 
           StringBuffer desc = new StringBuffer();
 
-          // Note that all instances Class describing a given class are 
+          // Note that all instances Class describing a given class are
           // the same so we can use == here.
 
           if (base == Float.TYPE) {
@@ -414,9 +455,9 @@ public class ArrayFuncs {
          // If we have a two-d array, or if the array is a one-d array
          // of Objects, then recurse over the next dimension.  We handle
          // Object specially because each element could itself be an array.
-         if (className.substring(0,2).equals("[[") || 
+         if (className.substring(0,2).equals("[[") ||
              className.equals("[Ljava.lang.Object;") ) {
-             System.out.print("[");
+             System.out.println("[");
              for (int i=0; i< ((Object[])o).length; i += 1) {
                  examinePrimitiveArray(((Object[])o)[i]);
              }
@@ -446,7 +487,7 @@ public class ArrayFuncs {
          }
 
          Object flat = Array.newInstance(getBaseClass(input), size);
-    
+
          if (size == 0) {
              return flat;
          }
@@ -496,7 +537,7 @@ public class ArrayFuncs {
         if (classname.charAt(0) != '['  || classname.charAt(1) == '[') {
             throw new RuntimeException("Attempt to curl non-1D array");
         }
-        
+
         int size = Array.getLength(input);
 
         int test = 1;
@@ -507,7 +548,7 @@ public class ArrayFuncs {
         if (test != size) {
             throw new RuntimeException("Curled array does not fit desired dimensions");
         }
-        
+
         Class base = getBaseClass(input);
 
         Object newArray = Array.newInstance(base, dimens);
@@ -527,7 +568,7 @@ public class ArrayFuncs {
       * @return       The number of elements curled.
       */
 
-    protected static int doCurl(Object input, Object output, 
+    protected static int doCurl(Object input, Object output,
                                 int[] dimens, int offset) {
 
         if (dimens.length == 1) {
@@ -541,9 +582,469 @@ public class ArrayFuncs {
             xdimens[i-1] = dimens[i];
         }
 
-        for (int i=0; i<dimens[0]; i += 1) {            
+        for (int i=0; i<dimens[0]; i += 1) {
             total += doCurl(input, ((Object[]) output)[i], xdimens, offset+total);
         }
         return total;
-    }                    
+    }
+
+    /** Convert an array to a specified type.  This method supports conversions
+      * only among the primitive numeric types.
+      * @param array   A possibly multidimensional array to be converted.
+      * @param newType The desired output type.  This should be one of the
+      *                class descriptors for primitive numeric data, e.g., double.type.
+      */
+
+    public static Object convertArray(Object array, Class newType) {
+
+        String classname = array.getClass().getName();
+        if (classname.charAt(0) != '[') {
+            return null;
+        }
+        int dims = 1;
+        while (classname.charAt(dims) == '[') {
+            dims += 1;
+        }
+
+        Object converted;
+        if (dims > 1) {
+
+            Object[] xarray = (Object[]) array;
+            int[] dimens = new int[dims];
+            dimens[0] = xarray.length;  // Leave other dimensions at 0.
+
+
+            converted = Array.newInstance(newType, dimens);
+
+            for (int i=0; i<xarray.length; i += 1) {
+		Object temp  = convertArray(xarray[i], newType);
+                ((Object[])converted)[i] = temp;
+            }
+
+        } else {
+
+            // We have to handle 49 cases below.  Only
+            // the logical primitive type is ignored.
+
+            byte[] xbarr;
+            short[] xsarr;
+            char[] xcarr;
+            int[] xiarr;
+            long[] xlarr;
+            float[] xfarr;
+            double[] xdarr;
+            converted = null;
+
+            Class base = getBaseClass(array);
+
+            if (base == byte.class) {
+                byte[] barr = (byte[]) array;
+
+                if (newType == byte.class) {
+                    xbarr = new byte[barr.length];
+                    converted = xbarr;
+                    for (int i=0; i<barr.length; i += 1) xbarr[i] = barr[i];
+
+                } else if (newType == short.class) {
+                    xsarr = new short[barr.length];
+                    converted = xsarr;
+                    for (int i=0; i<barr.length; i += 1) xsarr[i] = barr[i];
+
+                } else if (newType == char.class) {
+                    xcarr = new char[barr.length];
+                    converted = xcarr;
+                    for (int i=0; i<barr.length; i += 1) xcarr[i] = (char) barr[i];
+
+                } else if (newType == int.class) {
+                    xiarr = new int[barr.length];
+                    converted = xiarr;
+                    for (int i=0; i<barr.length; i += 1) xiarr[i] = barr[i];
+
+                } else if (newType == long.class) {
+                    xlarr = new long[barr.length];
+                    converted = xlarr;
+                    for (int i=0; i<barr.length; i += 1) xlarr[i] = barr[i];
+
+                } else if (newType == float.class) {
+                    xfarr = new float[barr.length];
+                    converted = xfarr;
+                    for (int i=0; i<barr.length; i += 1) xfarr[i] = barr[i];
+
+                } else if (newType == double.class) {
+                    xdarr = new double[barr.length];
+                    converted = xdarr;
+                    for (int i=0; i<barr.length; i += 1) xdarr[i] = barr[i];
+                }
+
+            } else if (base == short.class) {
+                short[] sarr = (short[]) array;
+
+                if (newType == byte.class) {
+                    xbarr = new byte[sarr.length];
+                    converted = xbarr;
+                    for (int i=0; i<sarr.length; i += 1) xbarr[i] = (byte) sarr[i];
+
+                } else if (newType == short.class) {
+                    xsarr = new short[sarr.length];
+                    converted = xsarr;
+                    for (int i=0; i<sarr.length; i += 1) xsarr[i] = sarr[i];
+
+                } else if (newType == char.class) {
+                    xcarr = new char[sarr.length];
+                    converted = xcarr;
+                    for (int i=0; i<sarr.length; i += 1) xcarr[i] = (char) sarr[i];
+
+                } else if (newType == int.class) {
+                    xiarr = new int[sarr.length];
+                    converted = xiarr;
+                    for (int i=0; i<sarr.length; i += 1) xiarr[i] = sarr[i];
+
+                } else if (newType == long.class) {
+                    xlarr = new long[sarr.length];
+                    converted = xlarr;
+                    for (int i=0; i<sarr.length; i += 1) xlarr[i] = sarr[i];
+
+                } else if (newType == float.class) {
+                    xfarr = new float[sarr.length];
+                    converted = xfarr;
+                    for (int i=0; i<sarr.length; i += 1) xfarr[i] = sarr[i];
+
+                } else if (newType == double.class) {
+                    xdarr = new double[sarr.length];
+                    converted = xdarr;
+                    for (int i=0; i<sarr.length; i += 1) xdarr[i] = sarr[i];
+                }
+
+            } else if (base == char.class) {
+                char[] carr = (char[]) array;
+
+                if (newType == byte.class) {
+                    xbarr = new byte[carr.length];
+                    converted = xbarr;
+                    for (int i=0; i<carr.length; i += 1) xbarr[i] = (byte) carr[i];
+
+                } else if (newType == short.class) {
+                    xsarr = new short[carr.length];
+                    converted = xsarr;
+                    for (int i=0; i<carr.length; i += 1) xsarr[i] = (short) carr[i];
+
+                } else if (newType == char.class) {
+                    xcarr = new char[carr.length];
+                    converted = xcarr;
+                    for (int i=0; i<carr.length; i += 1) xcarr[i] = carr[i];
+
+                } else if (newType == int.class) {
+                    xiarr = new int[carr.length];
+                    converted = xiarr;
+                    for (int i=0; i<carr.length; i += 1) xiarr[i] = carr[i];
+
+                } else if (newType == long.class) {
+                    xlarr = new long[carr.length];
+                    converted = xlarr;
+                    for (int i=0; i<carr.length; i += 1) xlarr[i] = carr[i];
+
+                } else if (newType == float.class) {
+                    xfarr = new float[carr.length];
+                    converted = xfarr;
+                    for (int i=0; i<carr.length; i += 1) xfarr[i] = carr[i];
+
+                } else if (newType == double.class) {
+                    xdarr = new double[carr.length];
+                    converted = xdarr;
+                    for (int i=0; i<carr.length; i += 1) xdarr[i] = carr[i];
+                }
+
+            } else if (base == int.class) {
+                int[] iarr = (int[]) array;
+
+                if (newType == byte.class) {
+                    xbarr = new byte[iarr.length];
+                    converted = xbarr;
+                    for (int i=0; i<iarr.length; i += 1) xbarr[i] = (byte) iarr[i];
+
+                } else if (newType == short.class) {
+                    xsarr = new short[iarr.length];
+                    converted = xsarr;
+                    for (int i=0; i<iarr.length; i += 1) xsarr[i] = (short) iarr[i];
+
+                } else if (newType == char.class) {
+                    xcarr = new char[iarr.length];
+                    converted = xcarr;
+                    for (int i=0; i<iarr.length; i += 1) xcarr[i] = (char) iarr[i];
+
+                } else if (newType == int.class) {
+                    xiarr = new int[iarr.length];
+                    converted = xiarr;
+                    for (int i=0; i<iarr.length; i += 1) xiarr[i] = iarr[i];
+
+                } else if (newType == long.class) {
+                    xlarr = new long[iarr.length];
+                    converted = xlarr;
+                    for (int i=0; i<iarr.length; i += 1) xlarr[i] = iarr[i];
+
+                } else if (newType == float.class) {
+                    xfarr = new float[iarr.length];
+                    converted = xfarr;
+                    for (int i=0; i<iarr.length; i += 1) xfarr[i] = iarr[i];
+
+                } else if (newType == double.class) {
+                    xdarr = new double[iarr.length];
+                    converted = xdarr;
+                    for (int i=0; i<iarr.length; i += 1) xdarr[i] = iarr[i];
+                }
+
+
+            } else if (base == long.class) {
+                long[] larr = (long[]) array;
+
+                if (newType == byte.class) {
+                    xbarr = new byte[larr.length];
+                    converted = xbarr;
+                    for (int i=0; i<larr.length; i += 1) xbarr[i] = (byte) larr[i];
+
+                } else if (newType == short.class) {
+                    xsarr = new short[larr.length];
+                    converted = xsarr;
+                    for (int i=0; i<larr.length; i += 1) xsarr[i] = (short) larr[i];
+
+                } else if (newType == char.class) {
+                    xcarr = new char[larr.length];
+                    converted = xcarr;
+                    for (int i=0; i<larr.length; i += 1) xcarr[i] = (char) larr[i];
+
+                } else if (newType == int.class) {
+                    xiarr = new int[larr.length];
+                    converted = xiarr;
+                    for (int i=0; i<larr.length; i += 1) xiarr[i] = (int) larr[i];
+
+                } else if (newType == long.class) {
+                    xlarr = new long[larr.length];
+                    converted = xlarr;
+                    for (int i=0; i<larr.length; i += 1) xlarr[i] = larr[i];
+
+                } else if (newType == float.class) {
+                    xfarr = new float[larr.length];
+                    converted = xfarr;
+                    for (int i=0; i<larr.length; i += 1) xfarr[i] = (float) larr[i];
+
+                } else if (newType == double.class) {
+                    xdarr = new double[larr.length];
+                    converted = xdarr;
+                    for (int i=0; i<larr.length; i += 1) xdarr[i] = (double) larr[i];
+                }
+
+            } else if (base == float.class) {
+                float[] farr = (float[]) array;
+
+                if (newType == byte.class) {
+                    xbarr = new byte[farr.length];
+                    converted = xbarr;
+                    for (int i=0; i<farr.length; i += 1) xbarr[i] = (byte) farr[i];
+
+                } else if (newType == short.class) {
+                    xsarr = new short[farr.length];
+                    converted = xsarr;
+                    for (int i=0; i<farr.length; i += 1) xsarr[i] = (short) farr[i];
+
+                } else if (newType == char.class) {
+                    xcarr = new char[farr.length];
+                    converted = xcarr;
+                    for (int i=0; i<farr.length; i += 1) xcarr[i] = (char) farr[i];
+
+                } else if (newType == int.class) {
+                    xiarr = new int[farr.length];
+                    converted = xiarr;
+                    for (int i=0; i<farr.length; i += 1) xiarr[i] = (int) farr[i];
+
+                } else if (newType == long.class) {
+                    xlarr = new long[farr.length];
+                    converted = xlarr;
+                    for (int i=0; i<farr.length; i += 1) xlarr[i] = (long) farr[i];
+
+                } else if (newType == float.class) {
+                    xfarr = new float[farr.length];
+                    converted = xfarr;
+                    for (int i=0; i<farr.length; i += 1) xfarr[i] = farr[i];
+
+                } else if (newType == double.class) {
+                    xdarr = new double[farr.length];
+                    converted = xdarr;
+                    for (int i=0; i<farr.length; i += 1) xdarr[i] = farr[i];
+                }
+
+
+            } else if (base == double.class) {
+                double[] darr = (double[]) array;
+
+                if (newType == byte.class) {
+                    xbarr = new byte[darr.length];
+                    converted = xbarr;
+                    for (int i=0; i<darr.length; i += 1) xbarr[i] = (byte) darr[i];
+
+                } else if (newType == short.class) {
+                    xsarr = new short[darr.length];
+                    converted = xsarr;
+                    for (int i=0; i<darr.length; i += 1) xsarr[i] = (short) darr[i];
+
+                } else if (newType == char.class) {
+                    xcarr = new char[darr.length];
+                    converted = xcarr;
+                    for (int i=0; i<darr.length; i += 1) xcarr[i] = (char) darr[i];
+
+                } else if (newType == int.class) {
+                    xiarr = new int[darr.length];
+                    converted = xiarr;
+                    for (int i=0; i<darr.length; i += 1) xiarr[i] = (int) darr[i];
+
+                } else if (newType == long.class) {
+                    xlarr = new long[darr.length];
+                    converted = xlarr;
+                    for (int i=0; i<darr.length; i += 1) xlarr[i] = (long) darr[i];
+
+                } else if (newType == float.class) {
+                    xfarr = new float[darr.length];
+                    converted = xfarr;
+                    for (int i=0; i<darr.length; i += 1) xfarr[i] = (float) darr[i];
+
+                } else if (newType == double.class) {
+                    xdarr = new double[darr.length];
+                    converted = xdarr;
+                    for (int i=0; i<darr.length; i += 1) xdarr[i] = darr[i];
+                }
+            }
+        }
+        return converted;
+
+    }
+
+
+    /** Test and demonstrate the ArrayFuncs methods.
+      * @param args Unused.
+      */
+    public static void main(String[] args) {
+
+        int[][][]   test1 = new int[10][9][8];
+        boolean[][] test2 = new boolean[4][];
+        test2[0] = new boolean[5];
+        test2[1] = new boolean[4];
+        test2[2] = new boolean[3];
+        test2[3] = new boolean[2];
+
+        double[][] test3 = new double[10][20];
+        StringBuffer[][] test4 = new StringBuffer[3][2];
+
+        System.out.println("getBaseClass: test1: Base type of integer array is:"+ getBaseClass(test1));
+        System.out.println("getBaseLength: test1: "+getBaseLength(test1));
+        System.out.println("arrayDescription: test1: "+arrayDescription(test1));
+        System.out.println("computeSize: test1:   "+computeSize(test1));
+        System.out.println("getBaseClass: test2: Base type of boolean array is:"+ getBaseClass(test2));
+        System.out.println("getBaseLength: test2: "+getBaseLength(test2));
+        System.out.println("arrayDescription: test2: "+arrayDescription(test2));
+        System.out.println("computeSize: test2:   "+computeSize(test2));
+        System.out.println("getBaseClass: test3: Base type of double array is: "+ getBaseClass(test3));
+        System.out.println("getBaseLength: test3: "+getBaseLength(test3));
+        System.out.println("arrayDescription: test1: "+arrayDescription(test3));
+        System.out.println("computeSize: test3:   "+computeSize(test3));
+        System.out.println("getBaseClass: test4: Base type of StringBuffer array is: "+getBaseClass(test4));
+        System.out.println("getBaseLength: test4: "+getBaseLength(test4));
+        System.out.println("arrayDescription: test1: "+arrayDescription(test4));
+        System.out.println("computeSize: test4:   "+computeSize(test4));
+
+        System.out.println("");
+
+        System.out.println("arrayDescription: test1: Print a simple description of an array:"+arrayDescription(test1));
+        System.out.println("arrayDescription: test2: doesn't handle non-rectangular arrays:"+arrayDescription(test2));
+        System.out.println("");
+
+        System.out.println("examinePrimitiveArray: test1");
+        examinePrimitiveArray(test1);
+        System.out.println("");
+        System.out.println("examinePrimitiveArray: test2");
+        examinePrimitiveArray(test2);
+        System.out.println("");
+        System.out.println("    NOTE: this should show that test2 is not a rectangular array");
+        System.out.println("");
+
+        System.out.println("Using aggregates:");
+        Object[] agg = new Object[4];
+        agg[0] = test1;
+	agg[1] = test2;
+	agg[2] = test3;
+        agg[3] = test4;
+
+        System.out.println("getBaseClass: agg: Base class of aggregate is:"+getBaseClass(agg));
+        System.out.println("Size of aggregate is:" + computeSize(agg));
+        System.out.println("This ignores the array of StringBuffers");
+
+        testPattern(test1,(byte)0);
+        System.out.println("testPattern:");
+        for (int i=0; i < test1.length; i += 1) {
+            for (int j=0; j <test1[0].length; j += 1) {
+                for(int k=0; k<test1[0][0].length; k += 1) {
+                    System.out.print(" "+test1[i][j][k]);
+                }
+                System.out.println("");
+             }
+             System.out.println(""); // Double space....
+        }
+
+
+        int[][][] test5 = (int[][][]) deepClone(test1);
+        System.out.println("deepClone: copied array");
+        for (int i=0; i < test5.length; i += 1) {
+            for (int j=0; j <test5[0].length; j += 1) {
+                for(int k=0; k<test5[0][0].length; k += 1) {
+                    System.out.print(" "+test5[i][j][k]);
+                }
+                System.out.println("");
+             }
+             System.out.println(""); // Double space....
+        }
+
+
+        test5[2][2][2] = 99;
+        System.out.println("Demonstrating that this is a deep clone:"
+           +test5[2][2][2]+" "+test1[2][2][2]);
+
+
+
+        System.out.println("Flatten an array:");
+        int[] test6 = (int[]) flatten(test1);
+        System.out.println("    arrayDescription: test6:"+arrayDescription(test6));
+        for (int i=0; i<test6.length; i += 1) {
+             System.out.print(" "+test6[i]);
+             if (i > 0 && i%10 == 0) System.out.println("");
+        }
+        System.out.println("");
+
+        System.out.println("Curl an array, we'll reformat test1's data");
+        int[] newdims = {8,9,10};
+
+        int[][][] test7 = (int[][][]) curl(test6, newdims);
+
+        for (int i=0; i < test5.length; i += 1) {
+            for (int j=0; j <test5[0].length; j += 1) {
+                for(int k=0; k<test5[0][0].length; k += 1) {
+                    System.out.print(" "+test5[i][j][k]);
+                }
+                System.out.println("");
+             }
+             System.out.println(""); // Double space....
+        }
+
+        System.out.println("");
+        System.out.println("Test array conversions");
+
+        byte[][][] xtest1 = (byte[][][]) convertArray(test1, byte.class);
+        System.out.println("  xtest1 is of type:"+arrayDescription(xtest1));
+        System.out.println("   test1[3][3][3]="+test1[3][3][3]+"  xtest1="+xtest1[3][3][3]);
+
+        System.out.println("Converting float[700][700] to byte at:"+new java.util.Date() );
+        float[][] big=new float[700][700];
+        byte[][]  img = (byte[][]) convertArray(big, byte.class);
+        System.out.println("  img="+arrayDescription(img)+" at "+ new java.util.Date()) ;
+
+        System.out.println("End of tests");
+    }
+
 }

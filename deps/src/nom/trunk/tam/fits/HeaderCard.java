@@ -1,14 +1,15 @@
 package nom.tam.fits;
 
-/*
- * Copyright: Thomas McGlynn 1997-1998.
- * This code may be used for any purpose, non-commercial
- * or commercial so long as this copyright notice is retained
- * in the source code or included in or referred to in any
- * derived software.
- */
-
-/* This class was contributed by David Glowacki */
+ /*
+  * Copyright: Thomas McGlynn 1997-1998.
+  * This code may be used for any purpose, non-commercial
+  * or commercial so long as this copyright notice is retained
+  * in the source code or included in or referred to in any
+  * derived software.
+  * Many thanks to David Glowacki (U. Wisconsin) for substantial
+  * improvements, enhancements and bug fixes -- including
+  * this class.
+  */
 
 
 /** This class describes methods to access and manipulate the individual
@@ -86,6 +87,7 @@ public class HeaderCard
     value = null;
     comment = null;
     isString = false;
+
 
     // We are going to assume that the value has no blanks in
     // it unless it is enclosed in quotes.  Also, we assume that

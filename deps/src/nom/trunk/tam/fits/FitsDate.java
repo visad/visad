@@ -6,6 +6,8 @@ package nom.tam.fits;
  * or commercial so long as this copyright notice is retained
  * in the source code or included in or referred to in any
  * derived software.
+ *
+ * This class was contributed by D. Glowacki.
  */
 
 

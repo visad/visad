@@ -1,11 +1,12 @@
 package nom.tam.fits;
 
-/*
- * Copyright: Thomas McGlynn 1997-1998.
+/* Copyright: Thomas McGlynn 1997-1998.
  * This code may be used for any purpose, non-commercial
  * or commercial so long as this copyright notice is retained
  * in the source code or included in or referred to in any
  * derived software.
+ * Many thanks to David Glowacki (U. Wisconsin) for substantial
+ * improvements, enhancements and bug fixes.
  */
 
 
@@ -57,6 +58,19 @@ public class PrimaryHDU
     super(new Header());
 
     myData = new ImageData();
+    myHeader.pointToData(myData);
+  }
+
+  /** Build a primary HDU using the supplied data.
+    * @param obj the data used to build the primary HDU.
+    * @exception FitsException if there was a problem with the data.
+    */
+  public PrimaryHDU(Object obj)
+	throws FitsException
+  {
+    super(new Header());
+
+    myData = new ImageData(obj);
     myHeader.pointToData(myData);
   }
 
