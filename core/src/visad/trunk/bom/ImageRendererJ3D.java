@@ -56,6 +56,8 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
   private MathType image_sequence_type2, image_type2;
   private boolean sequence;
 
+  private boolean reUseFrames = false;
+
   /** this DataRenderer supports fast loading of images and image
       sequences for DisplayImplJ3D */
   public ImageRendererJ3D () {
@@ -81,6 +83,16 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
 
   public boolean getSequence() {
     return sequence;
+  }
+
+  public void setReUseFrames() {
+    reUseFrames = true;
+  }
+
+  public boolean getAndClearReUseFrames() {
+    boolean r = reUseFrames;
+    reUseFrames = false;
+    return r;
   }
 
   public BranchGroup doTransform() throws VisADException, RemoteException { 
@@ -213,7 +225,9 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
     animation_control.setStep(step);
 
     // link the Display to image_ref
-    display.addReferences(new ImageRendererJ3D(), image_ref);
+    ImageRendererJ3D renderer = new ImageRendererJ3D();
+    display.addReferences(renderer, image_ref);
+    // display.addReference(image_ref);
 
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("ImageRendererJ3D test");
@@ -235,27 +249,13 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
     frame.setSize(500, 500);
     frame.setVisible(true);
 
+    // wait 10 seconds
     new Delay(10000);
-    // now substitute a new image sequence for the old one
 
-/*
-    // open a netCDF file containing another image sequence and
-    // adapt it to a Field Data object
-    Field image_sequence2 = null;
-    try {
-      image_sequence2 = (Field) plain.open("images256x256.nc");
-    }
-    catch (IOException exc) {
-      String s = "To run this example, the images.nc file must be "
-        +"present in\nthe current directory."
-        +"You can obtain this file from:\n"
-        +"  ftp://www.ssec.wisc.edu/pub/visad-2.0/images256x256.nc.Z";
-      System.out.println(s);
-      System.exit(0);
-    }
-    image_ref.setData(image_sequence2);
-*/
+    // tell renderer to resue frames in its scene graph
+    renderer.setReUseFrames();
 
+    // substitute a new image sequence for the old one
     for (int i=0; i<len; i++) times[0][i] = raw_times[0][i + 1];
     set = new Gridded1DDoubleSet(raw_set.getType(), times, len);
     image_sequence = new FieldImpl(image_sequence_type, set);

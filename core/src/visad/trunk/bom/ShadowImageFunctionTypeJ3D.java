@@ -67,6 +67,10 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                              float[] default_values, DataRenderer renderer)
          throws VisADException, RemoteException {
  
+    DataDisplayLink link = renderer.getLink();
+
+// System.out.println("start doTransform " + (System.currentTimeMillis() - link.start_time));
+
     // return if data is missing or no ScalarMaps
     if (data.isMissing()) return false;
     if (getLevelOfDifficulty() == NOTHING_MAPPED) return false;
@@ -133,6 +137,9 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     ShadowRealType[] DomainComponents = adaptedShadowType.getDomainComponents();
 
     if (adaptedShadowType.getIsTerminal()) {
+
+// System.out.println("start colors " + (System.currentTimeMillis() - link.start_time));
+
       // check that range is single RealType mapped to RGB only
       ShadowRealType[] RangeComponents = adaptedShadowType.getRangeComponents();
       Vector mvector = RangeComponents[0].getSelectedMapVector();     
@@ -254,6 +261,8 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         color_values = null;
       }
 
+// System.out.println("end colors " + (System.currentTimeMillis() - link.start_time));
+
       // check domain and determine whether it is square or curved texture
       if (!Domain.getAllSpatial() || Domain.getMultipleDisplayScalar()) {
         throw new BadMappingException("domain must be only spatial");
@@ -290,6 +299,9 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       byte[] colorsY = null;
   
       if (isTextureMap) {
+
+// System.out.println("start texture map " + (System.currentTimeMillis() - link.start_time));
+
         Linear1DSet X = null;
         Linear1DSet Y = null;
         if (domain_set instanceof Linear2DSet) {
@@ -425,13 +437,22 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         qarray.colors = colors;
         qarray.normals = normals;
 
+// System.out.println("start createImage " + (System.currentTimeMillis() - link.start_time));
+
         BufferedImage image = createImage(data_width, data_height, texture_width,
                                           texture_height, color_ints);
 
+// System.out.println("start textureToGroup " + (System.currentTimeMillis() - link.start_time));
+
         textureToGroup(group, qarray, image, mode, 1.0f, null,
                        texture_width, texture_height);
+
+// System.out.println("end texture map " + (System.currentTimeMillis() - link.start_time));
+
       } // end if (isTextureMap)
       else if (curvedTexture) {
+
+// System.out.println("start curved texture " + (System.currentTimeMillis() - link.start_time));
 
         int[] lengths = ((GriddedSet) domain_set).getLengths();
         data_width = lengths[0];
@@ -647,11 +668,18 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
         tarray = (VisADTriangleStripArray) tarray.adjustLongitude(renderer);
 
+// System.out.println("start createImage " + (System.currentTimeMillis() - link.start_time));
+
         BufferedImage image = createImage(data_width, data_height, texture_width,
                                           texture_height, color_ints);
 
+// System.out.println("start textureToGroup " + (System.currentTimeMillis() - link.start_time));
+
         textureToGroup(group, tarray, image, mode, 1.0f, null,
                        texture_width, texture_height);
+
+// System.out.println("end curved texture " + (System.currentTimeMillis() - link.start_time));
+
       } // end if (curvedTexture)
       else { // !isTextureMap && !curvedTexture
         throw new BadMappingException("must be texture map or curved texture map");
@@ -677,11 +705,12 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       double[] old_times = null;
       boolean[] old_mark = null;
       int old_len = 0;
+      boolean reuse = ((ImageRendererJ3D) renderer).getAndClearReUseFrames();
       if (((BranchGroup) group).numChildren() > 0) {
         Node g = ((BranchGroup) group).getChild(0);
         if (g instanceof Switch) {
           old_swit = (Switch) g;
-
+  
           old_len = old_swit.numChildren();
           if (old_len > 0) {
             old_nodes = new BranchGroup[old_len];
@@ -696,7 +725,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
             old_mark = new boolean[old_len];
             for (int i=0; i<old_len; i++) {
               old_mark[i] = false;
-              if (old_nodes[i] instanceof VisADBranchGroup) {
+              if (old_nodes[i] instanceof VisADBranchGroup && reuse) {
                 old_times[i] = ((VisADBranchGroup) old_nodes[i]).getTime();
               }
               else {
@@ -919,6 +948,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
       display.disableAction();
       display.addReferences(new ImageRendererJ3D(), ref_image);
+      // display.addReference(ref_image);
       display.addReference(maplines_ref, colMap);
       display.enableAction();
     } catch (Exception ne) {ne.printStackTrace(); System.exit(1); }

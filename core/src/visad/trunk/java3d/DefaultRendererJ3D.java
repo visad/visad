@@ -55,13 +55,14 @@ public class DefaultRendererJ3D extends RendererJ3D {
                                  "exactly one DataDisplayLink");
     }
     super.setLinks(links, d);
+    link = links[0];
   }
 
   /** create a BranchGroup scene graph for Data in links[0] */
   public BranchGroup doTransform() throws VisADException, RemoteException {
     BranchGroup branch = new BranchGroup();
     branch.setCapability(BranchGroup.ALLOW_DETACH);
-    link = getLinks()[0];
+    // link = getLinks()[0];
     ShadowTypeJ3D type = (ShadowTypeJ3D) link.getShadow();
 
     // initialize valueArray to missing
