@@ -506,8 +506,52 @@ public abstract class JPythonMethods {
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
-  public static Data abs_data (Data data) throws VisADException, RemoteException {
+  public static Data abs_data(Data data) 
+           throws VisADException, RemoteException {
     return data.abs();
+  }
+
+  /**
+   * return pointwise absolute value of data
+   *
+   * @param   data            VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
+  public static Data abs(Data data) 
+           throws VisADException, RemoteException {
+    return data.abs();
+  }
+  
+  /**
+   * return absolute value of value
+   *
+   * @param   value     value
+   *
+   */
+  public static double abs(double value) {
+    return abs(value);
+  }
+
+  /**
+   * return absolute value of value
+   *
+   * @param   value     value
+   *
+   */
+  public static int abs(int value) {
+    return abs(value);
+  }
+
+  /**
+   * return absolute value of value
+   *
+   * @param   value     value
+   *
+   */
+  public static long abs(long value) {
+    return abs(value);
   }
 
   /**
@@ -683,6 +727,33 @@ public abstract class JPythonMethods {
   }
 
   /**
+   * return round value of data (closest integer)
+   *
+   * @param   value value 
+   *
+   */
+  public static double round(double value, int digits) {
+    boolean neg = value < 0;
+    double multiple = Math.pow(10., digits);
+    if (neg)
+        value = -value;
+    double tmp = Math.floor(value*multiple+0.5);
+    if (neg)
+        tmp = -tmp;
+    return (tmp/multiple);
+  }
+
+  /**
+   * return round value of data (closest integer)
+   *
+   * @param   value value 
+   *
+   */
+  public static double round(double value) {
+    return round(value,0);
+  }
+
+  /**
    * return pointwise sin value of data, assuming input values are in radians
    * unless they have units convertable with radians, in which case those
    * units are converted to radians
@@ -751,36 +822,6 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise maximum value of data1 and data2
-   * name changed 1/11/02 to avoid conflicts with Jython built-in
-   *
-   * @param   data1           VisAD data object
-   * @param   data2           VisAD data object
-   *
-   * @throws  VisADException  invalid data
-   * @throws  RemoteException unable to access remote data
-   */
-  public static Data max_data(Data data1, Data data2)
-         throws VisADException, RemoteException {
-    return data1.max(data2);
-  }
-
-  /**
-   * return pointwise minimum value of data1 and data2 
-   * name changed 1/11/02 to avoid conflicts with Jython built-in
-   *
-   * @param   data1           VisAD data object
-   * @param   data2           VisAD data object
-   *
-   * @throws  VisADException  invalid data
-   * @throws  RemoteException unable to access remote data
-   */
-  public static Data min_data(Data data1, Data data2)
-         throws VisADException, RemoteException {
-    return data1.min(data2);
-  }
-
-  /**
    * return pointwise arc tangent value of data1 / data2 over 
    * full (-pi, pi) range, returned in radians.
    * 
@@ -808,36 +849,6 @@ public abstract class JPythonMethods {
   public static Data atan2Degrees(Data data1, Data data2)
          throws VisADException, RemoteException {
     return data1.atan2Degrees(data2);
-  }
-
-  /**
-   * return pointwise aximum value of data1 and data2 
-   * name changed 1/11/02 to avoid conflicts with Jython built-in
-   *
-   * @param   data1           VisAD data object
-   * @param   data2           double value
-   *
-   * @throws  VisADException  invalid data
-   * @throws  RemoteException unable to access remote data
-   */
-  public static Data max_data(Data data1, double data2) 
-         throws VisADException, RemoteException {
-    return data1.max(new Real(data2));
-  }
-
-  /**
-   * return pointwise minimum value of data1 and data2 
-   * name changed 1/11/02 to avoid conflicts with Jython built-in
-   *
-   * @param   data1           VisAD data object
-   * @param   data2           double value
-   *
-   * @throws  VisADException  invalid data
-   * @throws  RemoteException unable to access remote data
-   */
-  public static Data min_data(Data data1, double data2) 
-         throws VisADException, RemoteException {
-    return data1.min(new Real(data2));
   }
 
   /**
@@ -870,6 +881,37 @@ public abstract class JPythonMethods {
     return data1.atan2Degrees(new Real(data2));
   }
 
+
+  /**
+   * return pointwise maximum value of data1 and data2
+   * name changed 1/11/02 to avoid conflicts with Jython built-in
+   *
+   * @param   data1           VisAD data object
+   * @param   data2           VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
+  public static Data max_data(Data data1, Data data2)
+         throws VisADException, RemoteException {
+    return data1.max(data2);
+  }
+
+  /**
+   * return pointwise aximum value of data1 and data2 
+   * name changed 1/11/02 to avoid conflicts with Jython built-in
+   *
+   * @param   data1           VisAD data object
+   * @param   data2           double value
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
+  public static Data max_data(Data data1, double data2) 
+         throws VisADException, RemoteException {
+    return data1.max(new Real(data2));
+  }
+
   /**
    * return pointwise maximum value of data1 and data2
    * name changed 1/11/02 to avoid conflicts with Jython built-in
@@ -883,6 +925,36 @@ public abstract class JPythonMethods {
   public static Data max_data(double data1, Data data2) 
          throws VisADException, RemoteException {
     return new Real(data1).max(data2);
+  }
+
+  /**
+   * return pointwise minimum value of data1 and data2 
+   * name changed 1/11/02 to avoid conflicts with Jython built-in
+   *
+   * @param   data1           VisAD data object
+   * @param   data2           VisAD data object
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
+  public static Data min_data(Data data1, Data data2)
+         throws VisADException, RemoteException {
+    return data1.min(data2);
+  }
+
+  /**
+   * return pointwise minimum value of data1 and data2 
+   * name changed 1/11/02 to avoid conflicts with Jython built-in
+   *
+   * @param   data1           VisAD data object
+   * @param   data2           double value
+   *
+   * @throws  VisADException  invalid data
+   * @throws  RemoteException unable to access remote data
+   */
+  public static Data min_data(Data data1, double data2) 
+         throws VisADException, RemoteException {
+    return data1.min(new Real(data2));
   }
 
   /**
@@ -1666,6 +1738,15 @@ public abstract class JPythonMethods {
      return (rangeDimension(data));
   }
 
+  /**
+   * get the number of range components of the Data object
+   * 
+   * @param   Data            VisAD Data object
+   * @return the number of range components
+   *
+   * @throws  VisADException  unable to construct field
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
   public static int rangeDimension (Data data) 
                   throws VisADException, RemoteException {
     int nr = 1;
@@ -1681,12 +1762,24 @@ public abstract class JPythonMethods {
   * @param data is the field to get the domain Type for
   *
   * @return the domain
+  *
+  * @throws  VisADException  unable to construct field
+  * @throws  RemoteException part of data and display APIs, shouldn't occur
   */
   public static RealTupleType getDomainType(Data data)
                   throws VisADException, RemoteException {
      return (domainType(data));
   }
 
+  /** get the domain Type for the field
+  *
+  * @param data is the field to get the domain Type for
+  *
+  * @return the domain
+  *
+  * @throws  VisADException  unable to construct field
+  * @throws  RemoteException part of data and display APIs, shouldn't occur
+  */
   public static RealTupleType domainType(Data data) 
                   throws VisADException, RemoteException {
     return (RealTupleType) ((FunctionType)data.getType()).getDomain();
@@ -1699,6 +1792,9 @@ public abstract class JPythonMethods {
   * @param type is the FunctionType
   *
   * @return the domain type
+  *
+  * @throws  VisADException  unable to construct field
+  * @throws  RemoteException part of data and display APIs, shouldn't occur
   */
   public static RealTupleType getDomainType(FunctionType type)
                   throws VisADException, RemoteException {
@@ -1710,12 +1806,24 @@ public abstract class JPythonMethods {
   * @param data is the field to get the range Type for
   *
   * @return the range
+  *
+  * @throws  VisADException  unable to construct field
+  * @throws  RemoteException part of data and display APIs, shouldn't occur
   */
   public static MathType getRangeType(Data data)
                   throws VisADException, RemoteException {
      return (rangeType(data));
   }
 
+  /** get the range Type for the field
+  *
+  * @param data is the field to get the range Type for
+  *
+  * @return the range
+  *
+  * @throws  VisADException  unable to construct field
+  * @throws  RemoteException part of data and display APIs, shouldn't occur
+  */
   public static MathType rangeType(Data data) 
                   throws VisADException, RemoteException {
     return (MathType) ((FunctionType)data.getType()).getRange();
@@ -1727,6 +1835,9 @@ public abstract class JPythonMethods {
   * @param type is the FunctionType
   *
   * @return the range Type
+  *
+  * @throws  VisADException  unable to construct field
+  * @throws  RemoteException part of data and display APIs, shouldn't occur
   */
   public static MathType getRangeType(FunctionType type)
                   throws VisADException, RemoteException {
@@ -2000,17 +2111,38 @@ public abstract class JPythonMethods {
   * @param data is the VisAD data object
   *
   * @return the sampling Set
+  *
+  * @throws  VisADException  unable to construct field
+  * @throws  RemoteException part of data and display APIs, shouldn't occur
   */
   public static Set getDomainSet(Data data) 
              throws VisADException, RemoteException {
     return (Set) ((Field)data).getDomainSet();
   }
 
+  /** return the sampling set for the domain of the Data object
+  *
+  * @param data is the VisAD data object
+  *
+  * @return the sampling Set
+  *
+  * @throws  VisADException  unable to construct field
+  * @throws  RemoteException part of data and display APIs, shouldn't occur
+  */
   public static Set getDomain(Data data) 
              throws VisADException, RemoteException {
     return (Set) ((Field)data).getDomainSet();
   }
 
+  /** return the lengths of the components of the sampling set 
+  *
+  * @param data is the VisAD data object
+  *
+  * @return an int[] of the lengths
+  *
+  * @throws  VisADException  unable to construct field
+  * @throws  RemoteException part of data and display APIs, shouldn't occur
+  */
   public static int[] getDomainSizes(Data data)
              throws VisADException, RemoteException {
     return ((GriddedSet) ((Field)data).getDomainSet()).getLengths();

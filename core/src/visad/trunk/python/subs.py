@@ -1358,3 +1358,20 @@ class HandlePickEvent(DisplayListener):
         self.display.disableAction()
         self.handler(self.xx, self.yy)  # to get a new image
         self.display.enableAction()
+
+from visad import ControlListener
+class LinkBoxControl(ControlListener):
+  def __init__(self, mydisplay, otherdisplay):
+    self.me = mydisplay
+    self.other = otherdisplay
+    self.control = self.me.getProjectionControl()
+    self.control.addControlListener(self)
+    self.mat = self.control.getMatrix()
+  
+  def controlChanged(self,e):
+    self.otherpc = self.other.getProjectionControl()
+    if not self.control.equals(self.otherpc):
+      self.mat = self.control.getMatrix()
+      self.otherpc.setMatrix(self.mat)
+
+
