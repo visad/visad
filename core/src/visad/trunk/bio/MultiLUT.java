@@ -29,6 +29,7 @@ package visad.bio;
 import visad.*;
 import visad.data.*;
 import visad.util.*;
+import visad.bom.*;
 import visad.java3d.*;
 
 import java.awt.*;
@@ -54,6 +55,12 @@ public class MultiLUT extends Object implements ActionListener {
 
   private int npixels = 0;
 
+  private DisplayImplJ3D display1 = null;
+
+  ScalarMap vmap = null;
+  ScalarMap hmap = null;
+
+  private DataReferenceImpl line_ref = null;
   /**
       run with 'java -mx256m MultiLUT'
       in directory with SPB1.PIC, SPB2.PIC, ..., SPB17.PIC
@@ -102,39 +109,51 @@ public class MultiLUT extends Object implements ActionListener {
 
     RealTupleType range = new RealTupleType(value_types);
     FunctionType big_func = new FunctionType(domain, range);
-    FlatField big_data = new FlatField(big_func, set);
+    final FlatField big_data = new FlatField(big_func, set);
     big_data.setSamples(values, false);
 
     // RealType value = RealType.getRealType("value");
     RealType hue = RealType.getRealType("hue");
     RealTupleType new_range = new RealTupleType(value, hue);
-    FunctionType new_func = new FunctionType(domain, range);
+    FunctionType new_func = new FunctionType(domain, new_range);
     data = new FlatField(new_func, set);
     data_values = new float[2][npixels];
     DataReferenceImpl ref1 = new DataReferenceImpl("ref1");
     ref1.setData(data);
 
+    final DataReferenceImpl xref = new DataReferenceImpl("xref");
+
     // System.out.println("data type: " + new_func);
 
-    DisplayImplJ3D display1 =
+    display1 =
       new DisplayImplJ3D("display1", new TwoDDisplayRendererJ3D());
     ScalarMap xmap = new ScalarMap(element, Display.XAxis);
     display1.addMap(xmap);
     ScalarMap ymap = new ScalarMap(line, Display.YAxis);
     display1.addMap(ymap);
-    ScalarMap vmap = new ScalarMap(value, Display.Value);
+    vmap = new ScalarMap(value, Display.Value);
     display1.addMap(vmap);
-    ScalarMap hmap = new ScalarMap(hue, Display.Hue);
+    hmap = new ScalarMap(hue, Display.Hue);
     display1.addMap(hmap);
     display1.addMap(new ConstantMap(1.0, Display.Saturation));
+
     display1.addReference(ref1);
 
-    RealType channel = RealType.getRealType("channel");
-    RealType point = RealType.getRealType("point");
+    DefaultRendererJ3D renderer = new DefaultRendererJ3D();
+    display1.addReferences(renderer, xref);
+    renderer.suppressExceptions(true);
+
+    line_ref = new DataReferenceImpl("line");
+    Gridded2DSet dummy_set = new Gridded2DSet(domain, null, 1);
+    line_ref.setData(dummy_set);
+    display1.addReferences(new RubberBandLineRendererJ3D(element, line), line_ref);
+
+    final RealType channel = RealType.getRealType("channel");
+    final RealType point = RealType.getRealType("point");
     RealType intensity = RealType.getRealType("intensity");
-    FunctionType spectrum = new FunctionType(channel, intensity);
-    FunctionType spectra = new FunctionType(point, spectrum);
-    DataReferenceImpl ref2 = new DataReferenceImpl("ref2");
+    final FunctionType spectrum_type = new FunctionType(channel, intensity);
+    final FunctionType spectra_type = new FunctionType(point, spectrum_type);
+    final DataReferenceImpl ref2 = new DataReferenceImpl("ref2");
 
     DisplayImplJ3D display2 =
       new DisplayImplJ3D("display2");
@@ -146,11 +165,55 @@ public class MultiLUT extends Object implements ActionListener {
     display2.addMap(zmap2);
     display2.addReference(ref2);
 
+    final RealTupleType fdomain = domain;
+    CellImpl cell = new CellImpl() {
+      public void doAction() throws VisADException, RemoteException {
+        Set set = (Set) line_ref.getData();
+        if (set == null) return;
+        float[][] samples = set.getSamples();
+        if (samples == null) return;
+        System.out.println("box (" + samples[0][0] + ", " + samples[1][0] +
+                           ") to (" + samples[0][1] + ", " + samples[1][1] + ")");
+        float x1 = samples[0][0];
+        float y1 = samples[1][0];
+        float x2 = samples[0][1];
+        float y2 = samples[1][1];
+
+        double dist = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+        int nsamp = (int) dist;
+        float[][] ss = new float[2][nsamp];
+        for (int i=0; i<nsamp; i++) {
+          float a = ((float) i) / (nsamp - 1.0f);
+          ss[0][i] = x1 + a * (x2 - x1);
+          ss[1][i] = y1 + a * (y2 - y1);
+        }
+        Gridded2DSet line = new Gridded2DSet(fdomain, ss, nsamp);
+        xref.setData(line);
+        FlatField line_field = (FlatField)
+          big_data.resample(line, Data.WEIGHTED_AVERAGE, Data.NO_ERRORS);
+        float[][] line_samples = line_field.getFloats(false); // [NFILES][nsamp]
+        Linear1DSet point_set = new Linear1DSet(point, 0.0, 1.0, nsamp);
+        Integer1DSet channel_set = new Integer1DSet(channel, NFILES);
+        FieldImpl spectra = new FieldImpl(spectra_type, point_set);
+        for (int i=0; i<nsamp; i++) {
+          FlatField spectrum = new FlatField(spectrum_type, channel_set);
+          float[][] temp = new float[1][NFILES];
+          for (int j=0; j<NFILES; j++) {
+            temp[0][j] = line_samples[j][i];
+          }
+          spectrum.setSamples(temp, false);
+          spectra.setSample(i, spectrum);
+        }
+        ref2.setData(spectra);
+      }
+    };
+    cell.addReference(line_ref);
+
     DataReferenceImpl go_ref = new DataReferenceImpl("go");
     VisADSlider[] value_sliders = new VisADSlider[NFILES];
     VisADSlider[] hue_sliders = new VisADSlider[NFILES];
-    DataReferenceImpl[] value_refs = new DataReferenceImpl[NFILES];
-    DataReferenceImpl[] hue_refs = new DataReferenceImpl[NFILES];
+    value_refs = new DataReferenceImpl[NFILES];
+    hue_refs = new DataReferenceImpl[NFILES];
 
 
     JFrame frame = new JFrame("VisAD MultiLUT");
@@ -161,18 +224,16 @@ public class MultiLUT extends Object implements ActionListener {
     int WIDTH = 1200;
     int HEIGHT = 1000;
 
-    frame.setSize(WIDTH, HEIGHT);
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     frame.setLocation(screenSize.width/2 - WIDTH/2,
                       screenSize.height/2 - HEIGHT/2);
-    frame.setVisible(true);
 
     // create JPanel in frame
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
     panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
     panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
-    frame.getContentPane().add(panel);
+    frame.setContentPane(panel);
 
     JPanel left = new JPanel();
     left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
@@ -195,13 +256,15 @@ public class MultiLUT extends Object implements ActionListener {
 
     for (int i=0; i<NFILES; i++) {
       value_refs[i] = new DataReferenceImpl("value" + i);
+      value_refs[i].setData(new Real(1.0));
       value_sliders[i] = new VisADSlider("value" + i, -100, 100, 100, 0.01,
                                          value_refs[i], RealType.Generic);
       left.add(value_sliders[i]);
       hue_refs[i] = new DataReferenceImpl("hue" + i);
+      hue_refs[i].setData(new Real(1.0));
       hue_sliders[i] = new VisADSlider("hue" + i, -100, 100, 100, 0.01,
                                        hue_refs[i], RealType.Generic);
-      center.add(value_sliders[i]);
+      center.add(hue_sliders[i]);
     }
 
     right.add(display1.getComponent());
@@ -213,6 +276,10 @@ public class MultiLUT extends Object implements ActionListener {
     compute.setActionCommand("compute");
     right.add(compute);
 
+    frame.setSize(WIDTH, HEIGHT);
+    frame.setVisible(true);
+
+    doit();
 
   }
 
@@ -220,29 +287,47 @@ public class MultiLUT extends Object implements ActionListener {
   public void actionPerformed(ActionEvent e) {
     String cmd = e.getActionCommand();
     if (cmd.equals("compute")) {
-      try {
-        float[] value_weights = new float[NFILES];
-        float[] hue_weights = new float[NFILES];
+      doit();
+    }
+  }
+
+  public void doit() {
+    try {
+      float[] value_weights = new float[NFILES];
+      float[] hue_weights = new float[NFILES];
+      for (int i=0; i<NFILES; i++) {
+        Real r = (Real) value_refs[i].getData();
+        value_weights[i] = (float) r.getValue();
+        r = (Real) hue_refs[i].getData();
+        hue_weights[i] = (float) r.getValue();
+      }
+      float vmin = Float.MAX_VALUE;
+      float vmax = Float.MIN_VALUE;
+      float hmin = Float.MAX_VALUE;
+      float hmax = Float.MIN_VALUE;
+      for (int j=0; j<npixels; j++) {
+        float v = 0, h = 0;
         for (int i=0; i<NFILES; i++) {
-          value_weights[i] = (float) ((Real) value_refs[i].getData()).getValue();
-          hue_weights[i] = (float) ((Real) hue_refs[i].getData()).getValue();
+          v += value_weights[i] * values[i][j];
+          h += hue_weights[i] * values[i][j];
         }
-        for (int j=0; j<npixels; j++) {
-          float v = 0, h = 0;
-          for (int i=0; i<NFILES; i++) {
-            v += value_weights[i] * values[i][j];
-            h += hue_weights[i] * values[i][j];
-          }
-          data_values[0][j] = v;
-          data_values[1][j] = h;
-        }
-        data.setSamples(data_values, false);
+        data_values[0][j] = v;
+        data_values[1][j] = h;
+        if (v < vmin) vmin = v;
+        if (v > vmax) vmax = v;
+        if (h < hmin) hmin = h;
+        if (h > hmax) hmax = h;
       }
-      catch (VisADException ex) {
-        System.out.println( ex.getMessage() );
-      }
-      catch (RemoteException ex) {
-      }
+      display1.disableAction();
+      vmap.setRange(vmin, vmax);
+      hmap.setRange(hmin, hmax);
+      data.setSamples(data_values, false);
+      display1.enableAction();
+    }
+    catch (VisADException ex) {
+      System.out.println( ex.getMessage() );
+    }
+    catch (RemoteException ex) {
     }
   }
 
