@@ -277,18 +277,6 @@ clear:
 	$(RM) paoloa/*.java aune/*.java benjamin/*.java examples/*.java
 
 
-RMIC = \
-	visad.RemoteCellImpl \
-	visad.RemoteActionImpl \
-	visad.RemoteDisplayImpl \
-	visad.RemoteThingReferenceImpl \
-	visad.RemoteDataReferenceImpl \
-	visad.RemoteThingImpl \
-	visad.RemoteDataImpl \
-	visad.RemoteFunctionImpl \
-	visad.RemoteFieldImpl \
-	visad.RemoteServerImpl
-
 debug:
 	make compile \
 	"JFLAGS = -J-mx32m -g"
@@ -352,12 +340,10 @@ clean:
 	-(cd examples && $(RM) *.class)
 
 recompile:
-	$(JC) $(JFLAGS) *.java
-	rmic $(RMIC)
-	for i in $(VISAD_PACKAGES); do					\
+	@for i in $(VISAD_PACKAGES) visad.examples; do			\
 	  case $$i in							\
 	  visad)							\
-	    dir=							\
+	    dir=.							\
 	    ;;								\
 	  visad.*)							\
 	    dir=`echo $$i | sed -e 's;\.;/;g' -e 's;^visad/;;'`;	\
@@ -371,15 +357,42 @@ recompile:
 	      echo "$$dir does not exist";				\
 	    else							\
 	      echo "*** Building in $$dir";				\
-	      if [ -f $$dir/Makefile ]; then				\
-		(cd $$dir && make JAVADIR=${JAVADIR}) || true;				\
+	      if [ -f $$dir/Makefile -a "$$dir" != "." ]; then		\
+		(cd $$dir && make JAVADIR=${JAVADIR}) || true;		\
 	      else							\
-		(cd $$dir && $(JC) $(JFLAGS) *.java) || true;		\
+		(cd $$dir &&						\
+		 for j in *.java; do					\
+		   b=`basename $$j .java`;				\
+		   c=$$b.class;						\
+		   compile=/bin/false;					\
+		   if [ ! -f $$c ]; then				\
+		     compile=/bin/true;					\
+		   else							\
+		     set `ls -td $$j $$c` X;				\
+		     if [ $$c != $$1 ]; then				\
+		       compile=/bin/true;				\
+		     fi;						\
+		   fi;							\
+		   if $$compile; then					\
+		     (echo "$(JC) $(JFLAGS) $$j" &&			\
+		      $(JC) $(JFLAGS) $$j || true);			\
+		   fi;							\
+		   case "$$b" in					\
+		   Remote*Impl)					\
+		     set `ls -t $$b.class $${b}_Stub.class 2>/dev/null || true` X; \
+		     if [ $${b}_Stub.class != $$1 ]; then		\
+		       compile=/bin/true;				\
+		     fi;						\
+		     if $$compile; then					\
+		       (echo "rmic visad.$$b" && rmic visad.$$b || true); \
+		     fi;						\
+		     ;;							\
+		   esac;						\
+		 done);							\
 	      fi;							\
 	    fi;								\
 	  fi;								\
 	done
-	-(cd examples && $(JC) $(JFLAGS) *.java)
 
 compile: clean recompile
 
