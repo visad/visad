@@ -1195,6 +1195,18 @@ if(DEBUG_DATA)System.err.println("wrUSet: punt "+set.getClass().getName());
   private int[] writeCoordinateSystems(CoordinateSystem[] cSys)
     throws VisADException
   {
+    // make sure there's something to write
+    boolean empty = true;
+    for (int i = 0; i < cSys.length; i++) {
+      if (cSys[i] != null) {
+        empty = false;
+        break;
+      }
+    }
+    if (empty) {
+      return null;
+    }
+
     int[] indices = new int[cSys.length];
 
     for (int i = 0; i < cSys.length; i++) {
@@ -1347,6 +1359,18 @@ if(DEBUG_MATH)System.err.println("wrDpyTuTy: serialized DisplayTupleType");
   private int[] writeErrorEstimates(ErrorEstimate[] errors)
     throws VisADException
   {
+    // make sure there's something to write
+    boolean empty = true;
+    for (int i = 0; i < errors.length; i++) {
+      if (errors[i] != null) {
+        empty = false;
+        break;
+      }
+    }
+    if (empty) {
+      return null;
+    }
+
     int[] indices = new int[errors.length];
 
     for (int i = 0; i < errors.length; i++) {
@@ -2625,6 +2649,18 @@ if(DEBUG_MATH)System.err.println("wrTuTy: FLD_END (" + FLD_END + ")");
   private int[] writeUnits(Unit[] units)
     throws VisADException
   {
+    // make sure there's something to write
+    boolean empty = true;
+    for (int i = 0; i < units.length; i++) {
+      if (units[i] != null) {
+        empty = false;
+        break;
+      }
+    }
+    if (empty) {
+      return null;
+    }
+
     int[] indices = new int[units.length];
 
     for (int i = 0; i < units.length; i++) {
