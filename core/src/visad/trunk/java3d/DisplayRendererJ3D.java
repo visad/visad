@@ -55,8 +55,8 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
 
   /** View associated with this VirtualUniverse */
   private View view;
-  /** Canvas3D associated with this VirtualUniverse */
-  private Canvas3D canvas;
+  /** VisADCanvasJ3D associated with this VirtualUniverse */
+  private VisADCanvasJ3D canvas;
 
   /** root BranchGroup of scene graph under Locale */
   private BranchGroup root = null;
@@ -106,7 +106,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     return view;
   }
 
-  public Canvas3D getCanvas() {
+  public VisADCanvasJ3D getCanvas() {
     return canvas;
   }
 
@@ -149,11 +149,13 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
       and direct manipulation root;
       create special graphics (e.g., 3-D box, SkewT background),
       any lights, any user interface embedded in scene */
-  public abstract BranchGroup createSceneGraph(View v, Canvas3D c);
+  public abstract BranchGroup createSceneGraph(View v,
+                  VisADCanvasJ3D c);
 
   /** create scene graph root, if none exists, with Transform
       and direct manipulation root */
-  public BranchGroup createBasicSceneGraph(View v, Canvas3D c) {
+  public BranchGroup createBasicSceneGraph(View v,
+         VisADCanvasJ3D c, MouseBehaviorJ3D mouse) {
     if (root != null) return root;
     view = v;
     // WLH 14 April 98
@@ -176,7 +178,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
     ProjectionControl proj = getDisplay().getProjectionControl();
     Transform3D tstart = new Transform3D(proj.getMatrix());
     Transform3D t1 = new Transform3D(
-      MouseHelper.make_matrix(0.0, 0.0, 0.0, scale, 0.0, 0.0, 0.0) );
+      mouse.make_matrix(0.0, 0.0, 0.0, scale, 0.0, 0.0, 0.0) );
     t1.mul(tstart);
     double[] matrix = new double[16];
     t1.get(matrix);
@@ -351,7 +353,7 @@ public abstract class DisplayRendererJ3D extends DisplayRenderer {
 
   /** whenever cursorOn or directOn is true, display
       Strings in cursorStringVector */
-  public void drawCursorStringVector(Canvas3D canvas) {
+  public void drawCursorStringVector(VisADCanvasJ3D canvas) {
     GraphicsContext3D graphics = canvas.getGraphicsContext3D();
     Appearance appearance = new Appearance();
     ColoringAttributes color = new ColoringAttributes();

@@ -45,8 +45,6 @@ public class AnimationControlJ3D extends AVControlJ3D
   private ToggleControl animate;
   private RealType real;
 
-  private boolean alive = true;
-
   /** AnimationControlJ3D is Serializable, mark as transient */
   private transient Thread animationThread;
 
@@ -72,11 +70,11 @@ public class AnimationControlJ3D extends AVControlJ3D
 
   public void stop() {
     animationThread = null;
-    alive = false;
   }
  
   public void run() {
-    while (alive) {
+    Thread me = Thread.currentThread();
+    while (animationThread == me) {
       try {
         if (animate != null && animate.getOn()) {
           takeStep();

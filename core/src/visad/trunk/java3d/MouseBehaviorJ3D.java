@@ -55,44 +55,13 @@ public class MouseBehaviorJ3D extends Behavior
   /** DisplayRenderer for Display */
   DisplayRendererJ3D display_renderer;
   DisplayImpl display;
-  /** ProjectionControl for Display */
-  private ProjectionControl proj;
-
-  /** mouse in window */
-  private boolean mouseEntered;
-  /** left, middle or right mouse button pressed in window */
-  private boolean mousePressed1, mousePressed2, mousePressed3;
-  /** combinations of Mouse Buttons and keys pressed;
-      z -- SHIFT, t -- CONTROL */
-  private boolean z1Pressed, t1Pressed, z2Pressed, t2Pressed;
-
-  /** flag for 2-D mode */
-  private boolean mode2D;
-
-  /** close direct_renderer when mousePressed3 */
-  DirectManipulationRendererJ3D direct_renderer = null;
 
   MouseHelper helper = null;
 
   public MouseBehaviorJ3D(DisplayRendererJ3D r) {
-/*
-    System.out.println("MouseBehaviorJ3D constructed ");
-*/
     helper = new MouseHelper(r, this);
     display_renderer = r;
     display = display_renderer.getDisplay();
-    proj = display.getProjectionControl();
-    mode2D = display_renderer.getMode2D();
-
-    // initialize flags
-    mouseEntered = false;
-    mousePressed1 = false;
-    mousePressed2 = false;
-    mousePressed3 = false;
-    z1Pressed = false;
-    t1Pressed = false;
-    z2Pressed = false;
-    t2Pressed = false;
 
     WakeupCriterion[] conditions = new WakeupCriterion[5]; // J3D
     conditions[0] = new WakeupOnAWTEvent(MouseEvent.MOUSE_DRAGGED);
@@ -101,6 +70,10 @@ public class MouseBehaviorJ3D extends Behavior
     conditions[3] = new WakeupOnAWTEvent(MouseEvent.MOUSE_PRESSED);
     conditions[4] = new WakeupOnAWTEvent(MouseEvent.MOUSE_RELEASED);
     wakeup = new WakeupOr(conditions);
+  }
+
+  public MouseHelper getMouseHelper() {
+    return helper;
   }
 
   public void initialize() {
@@ -115,7 +88,9 @@ public class MouseBehaviorJ3D extends Behavior
                             "WakeupOnAWTEvent");
       }
       AWTEvent[] events = ((WakeupOnAWTEvent) wakeup).getAWTEvent();
-      helper.processEvents(events);
+      for (int i=0; i<events.length; i++) {
+        helper.processEvent(events[i]);
+      }
     }
     setWakeup();
   }
@@ -215,6 +190,82 @@ public class MouseBehaviorJ3D extends Behavior
     double[] c = new double[16];
     ta.get(c);
     return c;
+  }
+
+  /*** make_matrix ******************************************************
+     Make a transformation matrix to perform the given rotation, scale and
+     translation.  This function uses the fast matrix post-concatenation
+     techniques from Graphics Gems.
+  **********************************************************************/
+  public double[] make_matrix(double rotx, double roty, double rotz,
+         double scale, double transx, double transy, double transz) {
+    double sx, sy, sz, cx, cy, cz, t;
+    int i, j, k;
+    double deg2rad = 1.0 / 57.2957;
+    double[] matrix = new double[16];
+    double[][] mat = new double[4][4];
+  
+    /* Get sin and cosine values */
+    sx = Math.sin(rotx * deg2rad);
+    cx = Math.cos(rotx * deg2rad);
+    sy = Math.sin(roty * deg2rad);
+    cy = Math.cos(roty * deg2rad);
+    sz = Math.sin(rotz * deg2rad);
+    cz = Math.cos(rotz * deg2rad);
+  
+    /* Start with identity matrix */
+    mat[0][0] = 1.0;  mat[0][1] = 0.0;  mat[0][2] = 0.0;  mat[0][3] = 0.0;
+    mat[1][0] = 0.0;  mat[1][1] = 1.0;  mat[1][2] = 0.0;  mat[1][3] = 0.0;
+    mat[2][0] = 0.0;  mat[2][1] = 0.0;  mat[2][2] = 1.0;  mat[2][3] = 0.0;
+    mat[3][0] = 0.0;  mat[3][1] = 0.0;  mat[3][2] = 0.0;  mat[3][3] = 1.0;
+  
+    /* Z Rotation */
+    for (i=0;i<4;i++) {
+      t = mat[i][0];
+      mat[i][0] = t*cz - mat[i][1]*sz;
+      mat[i][1] = t*sz + mat[i][1]*cz;
+    }
+ 
+    /* X rotation */
+    for (i=0;i<4;i++) {
+      t = mat[i][1];
+      mat[i][1] = t*cx - mat[i][2]*sx;
+      mat[i][2] = t*sx + mat[i][2]*cx;
+    }
+ 
+    /* Y Rotation */
+    for (i=0;i<4;i++) {
+      t = mat[i][0];
+      mat[i][0] = mat[i][2]*sy + t*cy;
+      mat[i][2] = mat[i][2]*cy - t*sy;
+    }
+ 
+    /* Scale */
+    for (i=0;i<3;i++) {
+      mat[i][0] *= scale;
+      mat[i][1] *= scale;
+      mat[i][2] *= scale;
+    }
+ 
+    /* Translation */
+/* should be mat[0][3], mat[1][3], mat[2][3]
+   WLH 22 Dec 97 */
+    mat[0][3] = transx;
+    mat[1][3] = transy;
+    mat[2][3] = transz;
+/*
+    mat[3][0] = transx;
+    mat[3][1] = transy;
+    mat[3][2] = transz;
+*/
+    k = 0;
+    for (i=0; i<4; i++) {
+      for (j=0; j<4; j++) {
+        matrix[k] = mat[i][j];
+        k++;
+      }
+    }
+    return matrix;
   }
 
 /*

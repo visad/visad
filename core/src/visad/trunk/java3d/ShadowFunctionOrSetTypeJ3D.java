@@ -97,6 +97,8 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
          throws VisADException, RemoteException { // J3D
 
     if (data.isMissing()) return false;
+    int LevelOfDifficulty = adaptedShadowType.getLevelOfDifficulty();
+    if (LevelOfDifficulty == NOTHING_MAPPED) return false;
 
     // if transform has taken more than 500 milliseconds and there is
     // a flag requesting re-transform, throw a DisplayInterruptException
@@ -705,7 +707,9 @@ System.out.println("replicate alpha = " + v + " " + constant_alpha +
         return false;
       }
 
+/* WLH 19 June 98
       int LevelOfDifficulty = adaptedShadowType.getLevelOfDifficulty();
+*/
 
       if (LevelOfDifficulty == SIMPLE_FIELD) {
         // only manage Spatial, Contour, Flow, Color, Alpha and

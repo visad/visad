@@ -146,7 +146,7 @@ public abstract class RendererJ3D extends DataRenderer {
     boolean any_changed = get_any_changed();
     boolean any_transform_control = get_any_transform_control();
     if (all_feasible && (any_changed || any_transform_control)) {
-     // exceptionVector.removeAllElements();
+      // exceptionVector.removeAllElements();
       clearAVControls();
       try {
         // doTransform creates a BranchGroup from a Data object

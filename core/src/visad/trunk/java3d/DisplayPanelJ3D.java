@@ -46,7 +46,7 @@ public class DisplayPanelJ3D extends JPanel {
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
     setAlignmentY(TOP_ALIGNMENT);
     setAlignmentX(LEFT_ALIGNMENT);
-    Canvas3D canvas = new VisADCanvasJ3D(renderer, this);
+    VisADCanvasJ3D canvas = new VisADCanvasJ3D(renderer, this);
     add(canvas);
  
     UniverseBuilderJ3D universe = new UniverseBuilderJ3D(canvas);

@@ -91,6 +91,8 @@ public class ShadowTupleTypeJ3D extends ShadowTypeJ3D {
          throws VisADException, RemoteException {
 
     if (data.isMissing()) return false;
+    int LevelOfDifficulty = adaptedShadowType.getLevelOfDifficulty();
+    if (LevelOfDifficulty == NOTHING_MAPPED) return false;
 
     if (!(data instanceof Tuple)) {
       throw new DisplayException("ShadowTupleTypeJ3D.doTransform: " +

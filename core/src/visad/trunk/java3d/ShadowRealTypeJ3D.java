@@ -80,6 +80,8 @@ public class ShadowRealTypeJ3D extends ShadowTypeJ3D {
          throws VisADException, RemoteException {
 
     if (data.isMissing()) return false;
+    int LevelOfDifficulty = adaptedShadowType.getLevelOfDifficulty();
+    if (LevelOfDifficulty == NOTHING_MAPPED) return false;
 
     if (!(data instanceof Real)) {
       throw new DisplayException("ShadowrealType.doTransform: " +

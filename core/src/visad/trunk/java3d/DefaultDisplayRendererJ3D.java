@@ -53,13 +53,17 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
       and direct manipulation root;
       create 3-D box, lights and MouseBehaviorJ3D for
       embedded user interface */
-  public BranchGroup createSceneGraph(View v, Canvas3D c) { // J3D
-    BranchGroup root = createBasicSceneGraph(v, c); // J3D
-    if (mouse != null) return root;
-    TransformGroup trans = getTrans(); // J3D
+  public BranchGroup createSceneGraph(View v, VisADCanvasJ3D c) {
+    BranchGroup root = getRoot();
+    if (root != null) return root;
+
+    // create MouseBehaviorJ3D for mouse interactions
+    mouse = new MouseBehaviorJ3D(this);
+    root = createBasicSceneGraph(v, c, mouse);
+    TransformGroup trans = getTrans();
 
     // create the box containing data depictions
-    LineArray box_geometry = new LineArray(24, LineArray.COORDINATES); // J3D
+    LineArray box_geometry = new LineArray(24, LineArray.COORDINATES);
     box_geometry.setCoordinates(0, box_verts);
     Appearance box_appearance = new Appearance();
     box_color = new ColoringAttributes();
@@ -77,11 +81,7 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
     Shape3D cursor = new Shape3D(cursor_geometry, box_appearance); // J3D
     cursor_on.addChild(cursor);
  
-    // create the Behavior for mouse interactions
-    ProjectionControl proj = getDisplay().getProjectionControl();
-
-    // create MouseBehaviorJ3D
-    mouse = new MouseBehaviorJ3D(this);
+    // insert MouseBehaviorJ3D into scene graph
     BoundingSphere bounds =
       new BoundingSphere(new Point3d(0.0,0.0,0.0), 100.0); // J3D
     mouse.setSchedulingBounds(bounds); // J3D
