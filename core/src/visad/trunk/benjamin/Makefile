@@ -40,8 +40,8 @@ FFLAGS = $(SHFFLAGS)
 # and 'recl=76' in re_read_1.f, which are in bytes on Solaris (but
 # were in words on Irix 5 for VisAD 1.1)
 #
-FORTRANS = mw.o species_rd.o errmsg.o tcdensity.o dmdsm.o util.o
-SOURCE = mw.f species_rd.f errmsg.f tcdensity.f dmdsm.f util.f
+FORTRANS = mw.o species_rd.o errmsg.o tcdensity.o dmdsm.o util.o profile.o galtosol.o
+SOURCE = mw.f species_rd.f errmsg.f tcdensity.f dmdsm.f util.f profile.f galtosol.f
 INCLUDE = dimen.h const.h atomic.h galstruct.h
  
 

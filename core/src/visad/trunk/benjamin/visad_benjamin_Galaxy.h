@@ -27,6 +27,14 @@ extern "C" {
 #define visad_benjamin_Galaxy_Fa 6D
 /*
  * Class:     visad_benjamin_Galaxy
+ * Method:    galtosol
+ * Signature: (FFF[F)V
+ */
+JNIEXPORT void JNICALL Java_visad_benjamin_Galaxy_galtosol
+  (JNIEnv *, jobject, jfloat, jfloat, jfloat, jfloatArray);
+
+/*
+ * Class:     visad_benjamin_Galaxy
  * Method:    getcon_c
  * Signature: ([I)V
  */
@@ -40,6 +48,14 @@ JNIEXPORT void JNICALL Java_visad_benjamin_Galaxy_getcon_1c
  */
 JNIEXPORT void JNICALL Java_visad_benjamin_Galaxy_ismgsc_1c
   (JNIEnv *, jobject, jfloatArray, jintArray, jfloatArray, jfloatArray, jfloatArray, jfloatArray);
+
+/*
+ * Class:     visad_benjamin_Galaxy
+ * Method:    profile_c
+ * Signature: (IIFFF[F[F)V
+ */
+JNIEXPORT void JNICALL Java_visad_benjamin_Galaxy_profile_1c
+  (JNIEnv *, jobject, jint, jint, jfloat, jfloat, jfloat, jfloatArray, jfloatArray);
 
 #ifdef __cplusplus
 }

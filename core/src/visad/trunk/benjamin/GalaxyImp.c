@@ -43,3 +43,34 @@ JNIEXPORT void JNICALL Java_visad_benjamin_Galaxy_ismgsc_1c
     (*env)->ReleaseFloatArrayElements(env, lats_j, lats, 0);
   }
 
+/*
+ * Class:     visad_benjamin_Galaxy
+ * Method:    profile_c
+ * Signature: (IIFFF[F[F)V
+ */
+JNIEXPORT void JNICALL Java_visad_benjamin_Galaxy_profile_1c
+  (JNIEnv *env, jobject obj, jint type_j, jint npts_j, jfloat x_j,
+   jfloat y_j, jfloat z_j, jfloatArray xprof_j, jfloatArray yprof_j )
+{
+   jfloat *xprof = (*env)->GetFloatArrayElements(env, xprof_j, 0);
+   jfloat *yprof = (*env)->GetFloatArrayElements(env, yprof_j, 0);
+
+   profile_( &type_j, &npts_j, &x_j, &y_j, &z_j, xprof, yprof );
+
+   (*env)->ReleaseFloatArrayElements(env, xprof_j, xprof, 0);
+   (*env)->ReleaseFloatArrayElements(env, yprof_j, yprof, 0);
+}
+
+/* 
+ * Class:      visad_benjamin_Galaxy
+ * Method:     galtosol
+ * Signature: (FFF[F)V
+ */
+JNIEXPORT void JNICALL Java_visad_benjamin_Galaxy_galtosol
+  (JNIEnv *env, jobject obj, jfloat x_j, jfloat y_j, jfloat z_j,
+   jfloatArray lbd_j ) {
+
+   jfloat *lbd = (*env)->GetFloatArrayElements(env, lbd_j, 0);
+   galtosol_( &x_j, &y_j, &z_j, lbd );
+   (*env)->ReleaseFloatArrayElements(env, lbd_j, lbd, 0);
+}

@@ -1,4 +1,4 @@
-C
+
 C WLH - to do list
 C
 C
@@ -402,7 +402,8 @@ C but res=1.25 is very slow
          do iy=1,NypxMAX
             gL(ix,iy)=-500
             gB(ix,iy)=-500
-            dHsky(ix,iy)=0
+c RAB 1Oct98 12:30pm
+            dHsky(ix,iy)=-1000
          end do
       end do
 

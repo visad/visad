@@ -80,9 +80,9 @@ C        if(first) then			! Reconstruct spiral arm axes
           Aa=tcpars(3,4)
           Fa=tcpars(3,5)
 C WLH
-C          print *, n1h1, h1, A1, F1
-C          print *, n2, h2, A2, F2
-C          print *, na, ha, wa, Aa, Fa
+c          print *, n1h1, h1, A1, F1
+c          print *, n2, h2, A2, F2
+c          print *, na, ha, wa, Aa, Fa
 c         open(11,file='gal.dat',status='old')
 c         read(11,1020) n1h1,h1,A1,F1,n2,h2,A2,F2,na,ha,wa,Aa,Fa
 c1020     format(6x,f8.0)
