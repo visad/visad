@@ -86,7 +86,11 @@ public class MapProjectionDisplay extends DisplayImplJ3D
                 new MapProjectionAdapter( (MapProjection) aa.getCoordinateSystem());
         } else {  // use another known MapProjection class
             coordinateSystem = 
+                // Lambert grid
                 new MapProjectionAdapter(new GRIBCoordinateSystem(211));
+                //LatLon Grid
+                //new MapProjectionAdapter(
+                //    new GRIBCoordinateSystem(0, 73, 73, -90, -30, 90, 240, 5, 2.5));
         }
 
         // create new DisplayTupleType
