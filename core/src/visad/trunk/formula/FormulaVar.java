@@ -101,6 +101,22 @@ class FormulaVar {
     return Tdepend.isEmpty();
   }
 
+  /** vector of all FormulaListeners interested in this variable */
+  private Vector listeners = new Vector();
+
+  /** add a listener for when this variable changes */
+  void addListener(FormulaListener f) {
+    if (f != null) listeners.addElement(f);
+  }
+
+  /** notify listeners that this variable has changed */
+  private void notifyListeners() {
+    for (int i=0; i<listeners.size(); i++) {
+      FormulaListener f = (FormulaListener) listeners.elementAt(i);
+      f.variableChanged();
+    }
+  }
+
   /** sets the formula for this variable */
   void setFormula(String f) throws FormulaException {
     formula = f;
@@ -111,11 +127,13 @@ class FormulaVar {
   }
 
   /** sets the value for this variable directly */
-  void setValue(Object v) {
+  void setValue(Object v) throws FormulaException {
+    if (value == v) return;
     value = v;
     formula = null;
     postfix = null;
     clearDependencies();
+    recompute();
   }
 
   /** gets the value for this variable */
@@ -128,18 +146,22 @@ class FormulaVar {
     return formula;
   }
 
-  /** tells this variable to recompute itself */
+  /** recomputes this variable and all those that depend on it */
   void recompute() throws FormulaException {
     // recompute this variable
-    if (formula == null) return;
-    if (postfix == null) postfix = new Postfix(formula, fm);
-    value = compute(postfix);
+    if (formula != null) {
+      if (postfix == null) postfix = new Postfix(formula, fm);
+      value = compute(postfix);
+    }
 
     // recompute all variables which depend on this one
     for (int i=0; i<Tdepend.size(); i++) {
       FormulaVar v = (FormulaVar) Tdepend.elementAt(i);
       v.recompute();
     }
+
+    // notify listeners
+    notifyListeners();
   }
 
   /** used by compute method for convenience */

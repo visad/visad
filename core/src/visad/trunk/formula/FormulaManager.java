@@ -305,6 +305,17 @@ public class FormulaManager {
     v.setFormula(formula);
   }
 
+  /** checks whether it is safe to remove a variable from the database */
+  public boolean canBeRemoved(String name) {
+    FormulaVar v = null;
+    try {
+      getVarByName(name);
+    }
+    catch (FormulaException exc) { }
+    if (v == null) return false;
+    else return v.isSafeToDelete();
+  }
+
   /** remove a variable from the database */
   public void remove(String name) throws FormulaException {
     FormulaVar v = getVarByName(name);
@@ -334,6 +345,13 @@ public class FormulaManager {
   public String getFormula(String name) throws FormulaException {
     FormulaVar v = getVarByName(name);
     return v.getFormula();
+  }
+
+  /** add a listener for when a variable changes */
+  public void addVarChangeListener(String name, FormulaListener f)
+                                   throws FormulaException {
+    FormulaVar v = getVarByName(name);
+    v.addListener(f);
   }
 
   /** identify whether a given token is a unary operator */
