@@ -230,10 +230,10 @@ public class TiffForm extends Form implements FormFileInformer {
   {
     // determine whether ImageJ can handle the file
     TiffDecoder tdec = new TiffDecoder("", id);
-    FileInfo info = null;
+    FileInfo[] info = null;
     boolean canUseImageJ = true;
     try {
-      info = tdec.getTiffInfo()[0];
+      info = tdec.getTiffInfo();
     }
     catch (IOException exc) {
       String msg = exc.getMessage();
@@ -251,7 +251,13 @@ public class TiffForm extends Form implements FormFileInformer {
 
     if (canUseImageJ) {
       // use ImageJ
-      FileOpener fo = new FileOpener(info);
+      if (info.length > 1) {
+        // hack workaround needed because ImageJ's
+        // Opener.allSameSizeAndType(FileInfo[]) method
+        // alters info[0].nImages as a side-effect
+        info[0].nImages = info.length;
+      }
+      FileOpener fo = new FileOpener(info[0]);
       ImageStack stack = fo.open(false).getStack();
       nImages = stack.getSize();
       fields = new FieldImpl[nImages];
