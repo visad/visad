@@ -761,6 +761,11 @@ System.out.println("checkClose: distance = " + distance);
     fill.setActionCommand("fill");
     button_panel.add(fill);
     panel.add(button_panel);
+    JButton lines = new JButton("lines");
+    lines.addActionListener(cd);
+    lines.setActionCommand("lines");
+    button_panel.add(lines);
+    panel.add(button_panel);
 
     // set size of JFrame and make it visible
     frame.setSize(500, 500);
@@ -772,6 +777,7 @@ class CurveDelete implements ActionListener {
 
   DataReferenceImpl ref;
   DisplayImpl display;
+  boolean lines = false;
 
   CurveDelete(DataReferenceImpl r, DisplayImpl d) {
     ref = r;
@@ -824,6 +830,24 @@ class CurveDelete implements ActionListener {
         }
         else {
           System.out.println("no successful fills");
+        }
+      }
+      catch (VisADException ex) {
+        System.out.println(ex.getMessage());
+      }
+      catch (RemoteException ex) {
+        System.out.println(ex.getMessage());
+      }
+    }
+    else if (cmd.equals("lines")) {
+      try {
+        lines = !lines;
+        GraphicsModeControl mode = display.getGraphicsModeControl();
+        if (lines) {
+          mode.setPolygonMode(DisplayImplJ3D.POLYGON_LINE);
+        }
+        else {
+          mode.setPolygonMode(DisplayImplJ3D.POLYGON_FILL);
         }
       }
       catch (VisADException ex) {
