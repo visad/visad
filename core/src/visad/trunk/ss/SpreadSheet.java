@@ -79,6 +79,11 @@ public class SpreadSheet extends JFrame implements ActionListener,
   // whether this JVM supports Java3D (detected on SpreadSheet launch)
   boolean CanDo3D = true;
 
+  // options
+  boolean AutoSwitch = true;
+  boolean AutoDetect = true;
+  boolean AutoShowControls = true;
+
   // display-related arrays and variables
   Panel DisplayPanel;
   JPanel ScrollPanel;
@@ -338,19 +343,20 @@ public class SpreadSheet extends JFrame implements ActionListener,
     Menu options = new Menu("Options");
     menubar.add(options);
 
+    if (!CanDo3D) AutoSwitch = false;
     CheckboxMenuItem optSwitch = new CheckboxMenuItem(
-                     "Auto-switch to 3-D", CanDo3D);
+                     "Auto-switch to 3-D", AutoSwitch);
     optSwitch.addItemListener(this);
     optSwitch.setEnabled(CanDo3D);
     options.add(optSwitch);
 
     CheckboxMenuItem optAuto = new CheckboxMenuItem(
-                     "Auto-detect mappings", true);
+                     "Auto-detect mappings", AutoDetect);
     optAuto.addItemListener(this);
     options.add(optAuto);
 
     CheckboxMenuItem optASC = new CheckboxMenuItem(
-                     "Auto-display controls", true);
+                     "Auto-display controls", AutoShowControls);
     optASC.addItemListener(this);
     options.add(optASC);
     options.addSeparator();
@@ -491,8 +497,13 @@ public class SpreadSheet extends JFrame implements ActionListener,
     msize.height = psize.height;
     FormulaField.setMaximumSize(msize);
 
+    /* CTR: 23 June 1999:
+       When a tool tip is being displayed, there is a bug where GUI
+       components cannot be repainted; this tool tip has been removed
+       to decrease the frequency of this bug's occurrence.
     FormulaField.setToolTipText("Enter a file name, URL, RMI address, " +
                                 "or formula");
+    */
     FormulaField.addActionListener(this);
     FormulaField.setActionCommand("formulaChange");
     formulaPanel.add(FormulaField);
@@ -801,6 +812,12 @@ public class SpreadSheet extends JFrame implements ActionListener,
       return;
     }
 
+    // temporarily disable auto-detect and auto-show
+    boolean autoD = AutoDetect;
+    boolean autoSC = AutoShowControls;
+    setAutoDetect(false);
+    setAutoShowControls(false);
+
     // clear all cells
     newFile(false);
 
@@ -890,7 +907,7 @@ public class SpreadSheet extends JFrame implements ActionListener,
       }
     }
     DisplayPanel.removeAll();
-    constructSpreadsheetCells(cellNames, null); // CTR: TEMP???
+    constructSpreadsheetCells(cellNames, null);
 
     // refresh display
     HorizPanel.doLayout();
@@ -899,6 +916,21 @@ public class SpreadSheet extends JFrame implements ActionListener,
     for (int j=0; j<NumVisY; j++) VertLabel[j].doLayout();
     DisplayPanel.doLayout();
     SCPane.doLayout();
+
+    // set each cell's string
+    for (int i=0; i<NumVisX; i++) {
+      for (int j=0; j<NumVisY; j++) {
+        try {
+          DisplayCells[i][j].setSSCellString(fileStrings[i][j]);
+        }
+        catch (VisADException exc) { }
+        catch (RemoteException exc) { }
+      }
+    }
+
+    // re-enable auto-detect and auto-show if necessary
+    setAutoDetect(autoD);
+    setAutoShowControls(autoSC);
 
     CurrentFile = f;
     setTitle(bTitle + " - " + f.getPath());
@@ -1288,7 +1320,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
           fcells[NumVisX][j] = new FancySSCell(name, this);
           fcells[NumVisX][j].addSSCellChangeListener(this);
           fcells[NumVisX][j].addMouseListener(this);
-          fcells[NumVisX][j].setAutoSwitch(CanDo3D);
+          fcells[NumVisX][j].setAutoSwitch(AutoSwitch);
+          fcells[NumVisX][j].setAutoDetect(AutoDetect);
+          fcells[NumVisX][j].setAutoShowControls(AutoShowControls);
           fcells[NumVisX][j].setDimension(!CanDo3D, !CanDo3D);
           fcells[NumVisX][j].setDisplayListener(this);
           fcells[NumVisX][j].setPreferredSize(new Dimension(MIN_VIS_WIDTH,
@@ -1357,7 +1391,9 @@ public class SpreadSheet extends JFrame implements ActionListener,
         fcells[i][NumVisY] = new FancySSCell(name, this);
         fcells[i][NumVisY].addSSCellChangeListener(this);
         fcells[i][NumVisY].addMouseListener(this);
-        fcells[i][NumVisY].setAutoSwitch(CanDo3D);
+        fcells[i][NumVisY].setAutoSwitch(AutoSwitch);
+        fcells[i][NumVisY].setAutoDetect(AutoDetect);
+        fcells[i][NumVisY].setAutoShowControls(AutoShowControls);
         fcells[i][NumVisY].setDimension(!CanDo3D, !CanDo3D);
         fcells[i][NumVisY].setDisplayListener(this);
         fcells[i][NumVisY].setPreferredSize(new Dimension(MIN_VIS_WIDTH,
@@ -1549,6 +1585,30 @@ public class SpreadSheet extends JFrame implements ActionListener,
     else CellDim2D3D.setState(false);
   }
 
+  /** Toggles auto-dimension switching */
+  void setAutoSwitch(boolean b) {
+    for (int j=0; j<NumVisY; j++) {
+      for (int i=0; i<NumVisX; i++) DisplayCells[i][j].setAutoSwitch(b);
+    }
+    AutoSwitch = b;
+  }
+
+  /** Toggles mapping auto-detection */
+  void setAutoDetect(boolean b) {
+    for (int j=0; j<NumVisY; j++) {
+      for (int i=0; i<NumVisX; i++) DisplayCells[i][j].setAutoDetect(b);
+    }
+    AutoDetect = b;
+  }
+
+  /** Toggles auto-display of controls */
+  void setAutoShowControls(boolean b) {
+    for (int j=0; j<NumVisY; j++) {
+      for (int i=0; i<NumVisX; i++) DisplayCells[i][j].setAutoShowControls(b);
+    }
+    AutoShowControls = b;
+  }
+
   /** Handles checkbox menu item changes (dimension checkboxes) */
   public void itemStateChanged(ItemEvent e) {
     String item = (String) e.getItem();
@@ -1564,23 +1624,15 @@ public class SpreadSheet extends JFrame implements ActionListener,
       }
       else if (item.equals("Auto-switch to 3-D")) {
         boolean b = e.getStateChange() == ItemEvent.SELECTED;
-        for (int j=0; j<NumVisY; j++) {
-          for (int i=0; i<NumVisX; i++) DisplayCells[i][j].setAutoSwitch(b);
-        }
+        setAutoSwitch(b);
       }
       else if (item.equals("Auto-detect mappings")) {
         boolean b = e.getStateChange() == ItemEvent.SELECTED;
-        for (int j=0; j<NumVisY; j++) {
-          for (int i=0; i<NumVisX; i++) DisplayCells[i][j].setAutoDetect(b);
-        }
+        setAutoDetect(b);
       }
       else if (item.equals("Auto-display controls")) {
         boolean b = e.getStateChange() == ItemEvent.SELECTED;
-        for (int j=0; j<NumVisY; j++) {
-          for (int i=0; i<NumVisX; i++) {
-            DisplayCells[i][j].setAutoShowControls(b);
-          }
-        }
+        setAutoShowControls(b);
       }
       refreshDisplayMenuItems();
     }

@@ -115,12 +115,6 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     addSSCellChangeListener(this);
   }
 
-  /** change the FancySSCell's name */
-  public void setCellName(String name) throws VisADException {
-    super.setCellName(name);
-    WidgetFrame.setTitle("Controls (" + name + ")");
-  }
-
   /** Re-auto-detect mappings when this cell's data changes */
   public void ssCellChanged(SSCellChangeEvent e) {
     if (e.getChangeType() == SSCellChangeEvent.DATA_CHANGE) {

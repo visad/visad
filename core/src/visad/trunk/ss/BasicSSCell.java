@@ -106,6 +106,7 @@ public class BasicSSCell extends JPanel {
   /** whether the BasicSSCell has mappings from Data to Display */
   boolean HasMappings = false;
 
+  /** prevents simultaneous GUI manipulation */
   private Object Lock = new Object();
 
   /** construct a new BasicSSCell with the given name */
@@ -115,7 +116,7 @@ public class BasicSSCell extends JPanel {
 
   /** construct a new BasicSSCell with the given name, that gets its
       information from the given RemoteServer. The associated SSCell on the
-      server end must have already called its addToRemoteServer method */
+      server end must have already invoked its addToRemoteServer method */
   public BasicSSCell(String name, RemoteServer rs) throws VisADException,
                                                           RemoteException {
     if (name == null) {
@@ -173,10 +174,7 @@ public class BasicSSCell extends JPanel {
     RemoteDataRef = new RemoteDataReferenceImpl(DataRef);
     fm.createVar(Name, DataRef);
     ucell.addReference(DataRef);
-    /* CTR: TEMP:
     setDimension(JAVA2D_2D);
-    */
-    setDimension(JAVA3D_3D);
     VDPanel = (JPanel) VDisplay.getComponent();
     setPreferredSize(new Dimension(0, 0));
     setBackground(Color.black);
@@ -202,9 +200,7 @@ public class BasicSSCell extends JPanel {
   void setVDPanel(boolean value) {
     synchronized (Lock) {
       removeAll();
-      if (value) {
-        add(VDPanel);
-      }
+      if (value) add(VDPanel);
       validate();
       repaint();
     }
@@ -243,8 +239,9 @@ public class BasicSSCell extends JPanel {
   }
 
   /** add this SSCell to the given RemoteServer. SSCell servers must call this
-      method for their cells before clients can clone the cells with the
-      BasicSSCell(String name, RemoteServer rs) constructor */
+      method for each cell before clients can clone the cells with the
+      BasicSSCell(String name, RemoteServer rs) constructor, and before
+      the cells can be exported as RMI addresses */
   public void addToRemoteServer(RemoteServerImpl rs) throws RemoteException {
     if (IsRemote) {
       throw new RemoteException("This cell is a clone of another cell!");
@@ -407,21 +404,6 @@ public class BasicSSCell extends JPanel {
   /** return true if any BasicSSCell is currently saving data */
   public static boolean isSaving() {
     return Saving > 0;
-  }
-
-  /** change the BasicSSCell's name */
-  public void setCellName(String name) throws VisADException {
-    if (name == null) {
-      throw new VisADException("BasicSSCell: name cannot be null");
-    }
-    Enumeration panels = SSCellVector.elements();
-    while (panels.hasMoreElements()) {
-      BasicSSCell panel = (BasicSSCell) panels.nextElement();
-      if (name.equalsIgnoreCase(panel.Name) && panel != this) {
-        throw new VisADException("BasicSSCell: name already used");
-      }
-    }
-    Name = name;
   }
 
   /** reconstruct this BasicSSCell using the specified info string */
@@ -606,6 +588,13 @@ public class BasicSSCell extends JPanel {
                                                RemoteException {
     if (maps == null) return;
     clearMaps();
+    /* CTR: TEMP */ if (Name.equals("A1")) (new VisADException("setMaps")).printStackTrace();
+    /* CTR: START HERE: this exception is still being thrown.. I think it should be, but not
+    from the autoDetect routine... because the autoDetect should be being disabled!  Try
+    printing the status of AutoDetect whenever setAutoDetect is called to see if it's not
+    lining up right (stupid thread crap)..... the goal is to fix the openFile routine in
+    the SpreadSheet so that it works again, and loads the correct mappings... what the hell
+    happened to it?  It used to work, but I must have messed it up somehow. */
     VisADException vexc = null;
     RemoteException rexc = null;
     VDisplay.disableAction();
@@ -622,9 +611,9 @@ public class BasicSSCell extends JPanel {
     }
     VDisplay.addReference(DataRef);
     VDisplay.enableAction();
+    HasMappings = true;
     if (vexc != null) throw vexc;
     if (rexc != null) throw rexc;
-    HasMappings = true;
   }
 
   /** whether other cells are dependent on this one */
@@ -639,7 +628,7 @@ public class BasicSSCell extends JPanel {
 
   /** clear this cell's mappings */
   public void clearMaps() throws VisADException, RemoteException {
-    if (HasMappings) {
+    if (hasMappings()) {
       VDisplay.removeReference(DataRef);
       VDisplay.clearMaps();
       HasMappings = false;
@@ -939,16 +928,28 @@ public class BasicSSCell extends JPanel {
     }
   }
 
+  /** whether the cell has data */
   public boolean hasData() {
     return DataRef.getData() != null;
   }
 
+  /** whether the cell has a formula */
   public boolean hasFormula() {
-    return !"".equals(Formula);
+    return !Formula.equals("");
   }
 
+  /** whether the cell has any mappings */
   public boolean hasMappings() {
-    return HasMappings;
+    if (IsRemote) {
+      Vector v = null;
+      try {
+        v = RemoteVDisplay.getMapVector();
+      }
+      catch (VisADException exc) { }
+      catch (RemoteException exc) { }
+      return v != null && !v.isEmpty();
+    }
+    else return HasMappings;
   }
 
   /** add a variable */
