@@ -65,7 +65,8 @@ public class MeasurePoint extends MeasureThing {
     d.getDisplayRenderer().setPickThreshhold(5.0f);
 
     // add endpoint
-    addDirectManipRef(d, refs[0]);
+    renderers = new DataRenderer[1];
+    renderers[0] = addDirectManipRef(d, refs[0]);
   }
 
   /** Gets the id number of the point. */

@@ -123,15 +123,18 @@ public class MeasureLine extends MeasureThing {
     if (d == null) return;
 
     // configure display appropriately
+    DisplayRenderer dr = d.getDisplayRenderer();
     d.getGraphicsModeControl().setPointSize(5.0f);
-    d.getDisplayRenderer().setPickThreshhold(5.0f);
+    dr.setPickThreshhold(5.0f);
 
     // add endpoints
-    addDirectManipRef(d, refs[0]);
-    addDirectManipRef(d, refs[1]);
+    renderers = new DataRenderer[3];
+    renderers[0] = addDirectManipRef(d, refs[0]);
+    renderers[1] = addDirectManipRef(d, refs[1]);
 
     // add connecting line
-    d.addReference(ref_line);
+    renderers[2] = dr.makeDefaultRenderer();
+    d.addReferences(renderers[2], new DataReference[] {ref_line}, null);
   }
 
   /** Sets the line's color. */

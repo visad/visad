@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2000 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2001 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -40,8 +40,14 @@ public abstract class MeasureThing {
   /** Associated display. */
   protected DisplayImpl display;
 
+  /** Associated data renderers. */
+  protected DataRenderer[] renderers;
+
   /** Associated data references. */
   protected DataReferenceImpl[] refs;
+
+  /** Flag marking visibility. */
+  protected boolean visible;
 
   /** Associated measurement. */
   protected Measurement m;
@@ -74,6 +80,7 @@ public abstract class MeasureThing {
     this.len = length;
     this.dim = dimension;
     refs = new DataReferenceImpl[len];
+    visible = true;
     values = new RealTuple[len];
     cell = new CellImpl() {
       public void doAction() {
@@ -99,13 +106,14 @@ public abstract class MeasureThing {
    * Adds the given data reference to the specified display
    * using a direct manipulation renderer.
    */
-  public static void addDirectManipRef(DisplayImpl d, DataReferenceImpl ref)
-    throws VisADException, RemoteException
+  public static DataRenderer addDirectManipRef(DisplayImpl d,
+    DataReferenceImpl ref) throws VisADException, RemoteException
   {
     DataRenderer renderer = d instanceof DisplayImplJ3D ?
       (DataRenderer) new DirectManipulationRendererJ3D() :
       (DataRenderer) new DirectManipulationRendererJ2D();
     d.addReferences(renderer, new DataReference[] {ref}, null);
+    return renderer;
   }
 
   /** Adds the distance measuring data to the given display. */
@@ -115,6 +123,15 @@ public abstract class MeasureThing {
   /** Sets the group. */
   public void setGroup(LineGroup group) {
     if (m != null) m.setGroup(group);
+  }
+
+  /** Shows or hides the endpoints. */
+  protected void setVisible(boolean visible) {
+    if (this.visible == visible) return;
+    this.visible = visible;
+    if (renderers != null) {
+      for (int i=0; i<renderers.length; i++) renderers[i].toggle(visible);
+    }
   }
 
   /** Hides the endpoints. */
@@ -146,15 +163,10 @@ public abstract class MeasureThing {
   /** Links the given measurement. */
   public void setMeasurement(Measurement m) {
     this.m = null;
-    if (m == null) {
-      double[][] vals = new double[dim][len];
-      for (int i=0; i<dim; i++) {
-        for (int j=0; j<len; j++) vals[i][j] = Double.NaN;
-      }
-      setValues(vals);
-    }
+    if (m == null) setVisible(false);
     else {
       setValues(m.getValues());
+      setVisible(true);
       this.m = m;
     }
   }
