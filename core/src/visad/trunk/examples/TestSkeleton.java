@@ -23,6 +23,7 @@ MA 02111-1307, USA
 import java.rmi.RemoteException;
 
 
+import visad.DataReference;
 import visad.DisplayImpl;
 import visad.LocalDisplay;
 import visad.RemoteDisplayImpl;
@@ -262,6 +263,12 @@ public abstract class TestSkeleton
     return " unknown";
   }
 
+  DataReference[] getClientDataReferences()
+    throws RemoteException, VisADException
+  {
+    return null;
+  }
+
   void finishClientSetup(RemoteServer client)
     throws RemoteException, VisADException
   {
@@ -280,6 +287,9 @@ public abstract class TestSkeleton
   LocalDisplay[] setupClientData()
     throws RemoteException, VisADException
   {
+    // build local data references
+    DataReference[] refs = getClientDataReferences();
+
     RemoteServer client;
     try {
       client = ClientServer.connectToServer(hostName, getClass().getName(),
@@ -290,7 +300,7 @@ public abstract class TestSkeleton
       client = null;
     }
 
-    LocalDisplay[] dpys = ClientServer.getClientDisplays(client);
+    LocalDisplay[] dpys = ClientServer.getClientDisplays(client, refs);
     if (dpys == null) {
       throw new VisADException("No remote displays found!");
     }
