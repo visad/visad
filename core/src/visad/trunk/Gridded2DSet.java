@@ -85,6 +85,25 @@ public class Gridded2DSet extends GriddedSet {
                 - (v01[1]-v11[1])*(v00[0]-v01[0]) > 0 != Pos)
              || ( (v00[0]-v01[0])*(v10[1]-v00[1])
                 - (v00[1]-v01[1])*(v10[0]-v00[0]) > 0 != Pos)  ) {
+/*
+System.out.println("Samples[0][1] = " + Samples[0][1] +
+                   " Samples[0][0] = " + Samples[0][0] +
+                   " Samples[1][LengthX+1] = " + Samples[1][LengthX+1] +
+                   " Samples[1][1] = " + Samples[1][1]);
+System.out.println("Samples[1][1] = " + Samples[1][1] +
+                   " Samples[1][0] = " + Samples[1][0] +
+                   " Samples[0][LengthX+1] = " + Samples[0][LengthX+1] +
+                   " Samples[0][1] = " + Samples[0][1]);
+System.out.println("Pos = " + Pos);
+System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
+                              - (v10[1]-v00[1])*(v11[0]-v10[0]) ) +
+                  " 2nd = " + ( (v11[0]-v10[0])*(v01[1]-v11[1])
+                              - (v11[1]-v10[1])*(v01[0]-v11[0]) ) +
+                  " 3rd = " + ( (v01[0]-v11[0])*(v00[1]-v01[1])
+                              - (v01[1]-v11[1])*(v00[0]-v01[0]) ) +
+                  " 4th = " + ( (v00[0]-v01[0])*(v10[1]-v00[1])
+                              - (v00[1]-v01[1])*(v10[0]-v00[0]) ) );
+*/
             throw new SetException(
              "Gridded2DSet: samples do not form a valid grid ("+i+","+j+")");
           }

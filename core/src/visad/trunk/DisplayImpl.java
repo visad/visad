@@ -150,6 +150,10 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     component = c;
   }
 
+  public void reAutoScale() {
+    initialize = true;
+  }
+
   public void addReference(ThingReference ref)
          throws VisADException, RemoteException {
     if (!(ref instanceof DataReference)) {
