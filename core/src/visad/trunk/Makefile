@@ -292,7 +292,6 @@ SAVE_FILES = \
 	visad/Gridded1D.txt				\
 	visad/Gridded2D.txt				\
 	visad/Gridded3D.txt				\
-	visad/contour.html				\
 	visad/plotdigits.html
 
 TAR_FILES = \

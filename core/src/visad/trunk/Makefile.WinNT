@@ -117,7 +117,6 @@ visad\VisAD.Manifest \
 visad\Gridded1D.txt \
 visad\Gridded2D.txt \
 visad\Gridded3D.txt \
-visad\contour.html \
 visad\plotdigits.html \
 visad\*.java
 
@@ -387,7 +386,6 @@ visad\install\README.html \
 visad\Gridded1D.txt \
 visad\Gridded2D.txt \
 visad\Gridded3D.txt \
-visad\contour.html \
 visad\plotdigits.html
 
 save:
