@@ -48,16 +48,34 @@ public class MouseBehaviorJ2D implements MouseBehavior {
 
   private MouseHelper helper = null;
 
+  /**
+   * Construct a MouseBehavior for the DisplayRenderer specified
+   * @param  r  DisplayRenderer to use
+   */
   public MouseBehaviorJ2D(DisplayRendererJ2D r) {
     helper = new MouseHelper(r, this);
     display_renderer = r;
     display = display_renderer.getDisplay();
   }
 
+  /**
+   * Get the helper class used by this MouseBehavior.  
+   * The <CODE>MouseHelper</CODE> defines the actions taken based
+   * on <CODE>MouseEvent</CODE>s.
+   * @return  <CODE>MouseHelper</CODE> being used.
+   */
   public MouseHelper getMouseHelper() {
     return helper;
   }
 
+  /**
+   * Return the VisAD ray corresponding to the component coordinates.
+   * @param  screen_x  x coordinate of the component
+   * @param  screen_y  y coordinate of the component
+   * @return  corresponding VisADRay
+   * @see visad.VisADRay
+   * @see visad.LocalDisplay#getComponent()
+   */
   public VisADRay findRay(int screen_x, int screen_y) {
     // System.out.println("findRay " + screen_x + " " + screen_y);
     VisADCanvasJ2D canvas = display_renderer.getCanvas();
@@ -85,6 +103,13 @@ public class MouseBehaviorJ2D implements MouseBehavior {
     return ray;
   }
 
+  /**
+   * Return the VisAD ray corresponding to the VisAD cursor coordinates.
+   * @param  cursor  array (x,y) of cursor location
+   * @return  corresponding VisADRay
+   * @see visad.VisADRay
+   * @see visad.DisplayRenderer#getCursor()
+   */
   public VisADRay cursorRay(double[] cursor) {
     VisADRay ray = new VisADRay();
     ray.position[0] = cursor[0];
@@ -96,14 +121,37 @@ public class MouseBehaviorJ2D implements MouseBehavior {
     return ray;
   }
 
+  /**
+   * Create a translation matrix.
+   * @param  transx   x translation amount
+   * @param  transy   y translation amount
+   * @param  transz   z translation amount
+   * @return  new translation matrix.  This can be used to translate
+   *          the current matrix
+   * @see #multiply_matrix(double[] a, double[] b)
+   */
   public double[] make_translate(double transx, double transy, double transz) {
     return make_matrix(0.0, 0.0, 0.0, 1.0, transx, -transy, transz);
   }
 
+  /**
+   * Create a translation matrix.  
+   * @param  transx   x translation amount
+   * @param  transy   y translation amount
+   * @return  new translation matrix.  This can be used to translate
+   *          the current matrix
+   * @see #multiply_matrix(double[] a, double[] b)
+   */
   public double[] make_translate(double transx, double transy) {
     return make_translate(transx, transy, 0.0);
   }
 
+  /**
+   * Multiply the two matrices together.
+   * @param  a  first matrix
+   * @param  b  second matrix
+   * @return  new resulting matrix
+   */
   public double[] multiply_matrix(double[] a, double[] b) {
     AffineTransform ta = new AffineTransform(a);
     AffineTransform tb = new AffineTransform(b);
@@ -113,11 +161,19 @@ public class MouseBehaviorJ2D implements MouseBehavior {
     return c;
   }
 
-  /*** make_matrix ******************************************************
-     Make a transformation matrix to perform the given rotation, scale and
-     translation.  This function uses the fast matrix post-concatenation
-     techniques from Graphics Gems.
-  **********************************************************************/
+  /**
+   * Make a transformation matrix to perform the given rotation, scale and
+   * translation.  This function uses the fast matrix post-concatenation
+   * techniques from Graphics Gems.  
+   * @param rotx  x rotation
+   * @param roty  y rotation
+   * @param rotz  z rotation
+   * @param scale  scaling factor
+   * @param transx  x translation
+   * @param transy  y translation
+   * @param transz  z translation
+   * @return  new matrix
+   */
   public double[] make_matrix(double rotx, double roty, double rotz,
          double scale, double transx, double transy, double transz) {
     double sx, sy, sz, cx, cy, cz, t;
@@ -184,6 +240,13 @@ public class MouseBehaviorJ2D implements MouseBehavior {
 
   static final double EPS = 0.000001;
 
+  /**
+   * Get the rotation, scale and translation parameters for the specified
+   * matrix.  Results are not valid for non-uniform aspect (scale).
+   * @param  rot  array to hold x,y,z rotation values
+   * @param  scale  array to hold scale value
+   * @param  trans  array to hold x,y,z translation values
+   */
   public void instance_unmake_matrix(double[] rot, double[] scale,
                                      double[] trans, double[] matrix) {
     double  sx, sy, sz, cx, cy, cz;
