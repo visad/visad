@@ -73,7 +73,7 @@ frame.setSize(800,500)
 frame.setVisible(1)
 
 from visad.util import ClientServer
-# add everything to the server
+# add displays and data to the server
 server = ClientServer.startServer("Jython")
 server.addDisplay(d1)
 server.addDisplay(d2)
