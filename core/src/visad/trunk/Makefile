@@ -253,6 +253,7 @@ SAVE_FILES = \
 	ncsa/hdf/hdf5lib/exceptions/*.java		\
 	visad/jmet/*.java				\
 	visad/bio/*.java				\
+	visad/bio/*.html				\
 	visad/bio/*.gif					\
 	visad/paoloa/README.paoloa			\
 	visad/paoloa/Makefile				\
@@ -388,12 +389,14 @@ ALL_PACKAGES = \
 CLASS_FILES=	\
 	DATE \
 	`echo $(ALL_PACKAGES)' ' | sed -e 's/\./\//g' -e 's/ /\/\*\.class /g'` \
+	visad/bio/*.html \
 	visad/bio/*.gif \
 	visad/ss/*.gif \
 	visad/util/*.jhf
 
 JAVA_FILES=	\
 	`echo $(ALL_PACKAGES)' ' | sed -e 's/\./\//g' -e 's/ /\/\*\.java /g'` \
+	visad/bio/*.html \
 	visad/bio/*.gif \
 	visad/ss/*.gif \
 	visad/util/*.jhf
