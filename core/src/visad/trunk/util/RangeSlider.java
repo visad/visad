@@ -104,6 +104,16 @@ public class RangeSlider extends JComponent implements MouseListener,
     percPaint();
   }
 
+  /** redraw slider if widget width changes */
+  public void reshape(int x, int y, int w, int h) {
+    int lastW = getSize().width;
+    super.reshape(x, y, w, h);
+    if (lastW != w) {
+      updateGripsFromPercents();
+      drawLabels(getGraphics(), lastW);
+    }
+  }
+
   /** MouseListener method for moving slider */
   public void mousePressed(MouseEvent e) {
     int w = getSize().width;
@@ -249,24 +259,39 @@ public class RangeSlider extends JComponent implements MouseListener,
       g.setColor(Color.pink);
       g.fillRect(minGrip+1, 11, maxGrip-minGrip-1, 3);
     }
-    if (textChanged) drawLabels(g);
+    if (textChanged) drawLabels(g, w);
     lSlideMoved = false;
     rSlideMoved = false;
     textChanged = false;
     g.dispose();
   }
 
-  private int lastW = 0;
+  /** use current 'minPercent' and 'maxPercent' values to compute
+   *  'minGrip' and 'maxGrip' values
+   */
+  void updateGripsFromPercents()
+  {
+    final float gripWidth = 9.0f;
+    final float realWidth = (float) (getSize().width - (gripWidth * 2));
+
+    int minNew = (int) ((0.01f * minPercent * realWidth + 0.5f) + gripWidth);
+    if (minGrip != minNew) {
+      lSlideMoved = true;
+      textChanged = true;
+      minGrip = minNew;
+    }
+
+    int maxNew = (int) ((0.01f * maxPercent * realWidth + 0.5f) + gripWidth);
+    if (maxGrip != maxNew) {
+      rSlideMoved = true;
+      textChanged = true;
+      maxGrip = maxNew;
+    }
+  }
 
   /** draws the slider from scratch */
   public void paint(Graphics g) {
     int w = getSize().width;
-
-    // compute minGrip and maxGrip
-    if (lastW != w) {
-      minGrip = (int) (0.01*minPercent*(w-18)+9);
-      maxGrip = (int) (0.01*maxPercent*(w-18)+9);
-    }
 
     // draw background
     g.setColor(Color.black);
@@ -283,7 +308,7 @@ public class RangeSlider extends JComponent implements MouseListener,
     g.drawLine(w-1, 23, w-3, 23);
 
     // draw labels
-    drawLabels(g);
+    drawLabels(g, w);
 
     // draw grippers
     g.setColor(Color.yellow);
@@ -297,7 +322,6 @@ public class RangeSlider extends JComponent implements MouseListener,
     // draw pink rectangle between grippers
     g.setColor(Color.pink);
     g.fillRect(minGrip+1, 11, maxGrip-minGrip-1, 3);
-    lastW = w;
   }
 
   private float lastMin = 0.0f;
@@ -305,7 +329,7 @@ public class RangeSlider extends JComponent implements MouseListener,
   private String lastCurStr = "";
 
   /** updates the labels at the bottom of the widget */
-  private void drawLabels(Graphics g) {
+  private void drawLabels(Graphics g, int lastW) {
     int w = getSize().width;
     FontMetrics fm = g.getFontMetrics();
     if (lastMin != minVal || lastW != w) {
