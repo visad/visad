@@ -12,6 +12,8 @@ public class Test03
 {
   AnimationWidget aw;
 
+  boolean hasClientServerMode() { return false; }
+
   public Test03() { }
 
   public Test03(String args[])

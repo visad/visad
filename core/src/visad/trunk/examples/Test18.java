@@ -7,6 +7,8 @@ import visad.java3d.DisplayImplJ3D;
 public class Test18
 	extends TestSkeleton
 {
+  boolean hasClientServerMode() { return false; }
+
   public Test18() { }
 
   public Test18(String args[])

@@ -7,6 +7,8 @@ import visad.java3d.DisplayImplJ3D;
 public class Test47
 	extends UISkeleton
 {
+  boolean hasClientServerMode() { return false; }
+
   public Test47() { }
 
   public Test47(String args[])

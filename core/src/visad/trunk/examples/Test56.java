@@ -13,6 +13,8 @@ public class Test56
 {
   private String domain = null;
 
+  boolean hasClientServerMode() { return false; }
+
   public Test56() { }
 
   public Test56(String args[])

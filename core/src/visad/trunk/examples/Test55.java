@@ -9,6 +9,8 @@ import visad.java2d.DisplayImplJ2D;
 public class Test55
 	extends UISkeleton
 {
+  boolean hasClientServerMode() { return false; }
+
   public Test55() { }
 
   public Test55(String args[])

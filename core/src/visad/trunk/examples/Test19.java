@@ -12,6 +12,8 @@ public class Test19
 {
   VisADSlider slider;
 
+  boolean hasClientServerMode() { return false; }
+
   public Test19() { }
 
   public Test19(String args[])

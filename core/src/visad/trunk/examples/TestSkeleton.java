@@ -45,6 +45,8 @@ public abstract class TestSkeleton
 
   String extraKeywordUsage() { return ""; }
 
+  boolean hasClientServerMode() { return true; }
+
   public boolean processArgs(String args[])
   {
     boolean usage = false;
@@ -69,6 +71,10 @@ public abstract class TestSkeleton
 	      if (argc >= args.length) {
 		System.err.println("Missing hostname for '-c'");
 		usage = true;
+	      } else if (!hasClientServerMode()) {
+		System.err.println("Client/server mode not supported" +
+				   " for this test");
+		usage = true;
 	      } else {
 		hostName = args[argc];
 	      }
@@ -82,7 +88,13 @@ public abstract class TestSkeleton
 	      System.err.println("Cannot specify both '-c' and '-s'!");
 	      usage = true;
 	    } else {
-	      startServer = true;
+	      if (!hasClientServerMode()) {
+		System.err.println("Client/server mode not supported" +
+				   " for this test");
+		usage = true;
+	      } else {
+		startServer = true;
+	      }
 	    }
 	    break;
 	  default:
@@ -111,9 +123,11 @@ public abstract class TestSkeleton
 
     if (usage) {
       System.err.println("Usage: " + getClass().getName() +
-			 " [-c(lient) hostname]" +
+			 (hasClientServerMode() ?
+			  " [-c(lient) hostname]" : "") +
 			 " [-d(ump display)]" +
-			 " [-s(erver)]" +
+			 (hasClientServerMode() ?
+			  " [-s(erver)]" : "") +
 			 extraOptionUsage() + extraKeywordUsage());
     }
 

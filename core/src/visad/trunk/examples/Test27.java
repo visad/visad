@@ -13,6 +13,8 @@ public class Test27
   static int no_self = 0;
   RealType vis_radiance;
 
+  boolean hasClientServerMode() { return false; }
+
   public Test27() { }
 
   public Test27(String args[])

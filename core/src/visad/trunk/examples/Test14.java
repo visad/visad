@@ -9,6 +9,8 @@ import visad.java3d.DisplayImplJ3D;
 public class Test14
 	extends TestSkeleton
 {
+  boolean hasClientServerMode() { return false; }
+
   public Test14() { }
 
   public Test14(String args[])
