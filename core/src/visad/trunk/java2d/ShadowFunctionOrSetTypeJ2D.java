@@ -398,12 +398,22 @@ for (int i=0; i < 4; i++) {
     else { // !isTextureMap
       // get values from Function Domain
       // NOTE - may defer this until needed, if needed
+
       domain_values = domain_set.getSamples(false);
 
       // convert values to default units (used in display)
       domain_values = Unit.convertTuple(domain_values, dataUnits, domain_units);
       // System.out.println("got domain_values: domain_length = " + domain_length);
 
+/*
+float[][] old_domain_values = domain_set.getSamples(false);
+domain_values = Unit.convertTuple(old_domain_values, dataUnits, domain_units);
+System.out.println("dataUnits[0] = " + dataUnits[0] + " domain_units[0] = " +
+  domain_units[0]);
+int m = domain_values[0].length;
+for (int j=0; j<m; j++) System.out.println("old_domain_values[0]["+j+"] = " +
+  old_domain_values[0][j] + " domain_values[0]["+j+"] = " + domain_values[0][j]);
+*/
       // map domain_values to appropriate DisplayRealType-s
       // MEM
       mapValues(display_values, domain_values, DomainComponents);
@@ -463,7 +473,11 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
       // components, in defaultUnits for RealType-s
       // MEM
       double[][] range_values = ((Field) data).getValues();
-  
+/*
+int mm = range_values[0].length;
+for (int j=0; j<mm; j++) System.out.println("range_values[0]["+j+"] = " +
+  range_values[0][j]);
+*/
       // System.out.println("got range_values");
   
       if (range_values != null) {

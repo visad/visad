@@ -295,6 +295,11 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
       }
       dataRange[0] = data_unit.toThis(displayRange[0], display_unit);
       dataRange[1] = data_unit.toThis(displayRange[1], display_unit);
+/*
+System.out.println("data_unit = " + data_unit + " display_unit = " + display_unit);
+System.out.println("dataRange = " + dataRange[0] + " " + dataRange[1] +
+" displayRange = " + displayRange[0] + " " + displayRange[1]);
+*/
     }
     else {
       dataRange[0] = low;

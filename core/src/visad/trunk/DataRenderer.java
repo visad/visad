@@ -253,9 +253,9 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
   }
 
 
-  /* **************************** */
-  /**  direct manipulation stuff  */
-  /* **************************** */
+  /* *************************** */
+  /*  direct manipulation stuff  */
+  /* *************************** */
 
 
   private float[][] spatialValues = null;
@@ -298,6 +298,9 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
   /** dimension of direct manipulation
       (including any Function domain) */
   private int directManifoldDimension = 0;
+  /** spatial DisplayTupleType other than
+      DisplaySpatialCartesianTuple */
+  DisplayTupleType tuple;
  
   /** possible values for whyNotDirect */
   private final static String notRealFunction =
@@ -310,8 +313,8 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
     "RealType with multiple mappings";
   private final static String multipleSpatialMapping =
     "RealType with multiple spatial mappings";
-  private final static String nonCartesian =
-    "no spatial or non-Cartesian spatial mapping";
+  private final static String nonSpatial =
+    "no spatial mapping";
   private final static String viaReference =
     "spatial mapping through Reference";
   private final static String domainDimension =
@@ -324,6 +327,12 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
     "range must be mapped to spatial";
   private final static String domainSet =
     "domain Set must be Gridded1DSet";
+  private final static String tooFewSpatial =
+    "Function without spatial domain";
+  private final static String functionTooFew =
+    "Function directManifoldDimension < 2";
+  private final static String badCoordSysManifoldDim =
+    "bad directManifoldDimension with spatial CoordinateSystem";
 
   public synchronized void realCheckDirect()
          throws VisADException, RemoteException {
@@ -333,12 +342,14 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
     ref = link.getDataReference();
     shadow = link.getShadow().getAdaptedShadowType();
     type = link.getType();
+    tuple = null;
 
     if (type instanceof FunctionType) {
       ShadowRealTupleType domain =
         ((ShadowFunctionType) shadow).getDomain();
       ShadowType range =
         ((ShadowFunctionType) shadow).getRange();
+      tuple = domain.getDisplaySpatialTuple();
       // there is some redundancy among these conditions
       if (!((FunctionType) type).getReal()) {
         whyNotDirect = notRealFunction;
@@ -356,8 +367,14 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
         whyNotDirect = domainDimension;
         return;
       }
+      else if(!(Display.DisplaySpatialCartesianTuple.equals(tuple) ||
+                (tuple != null &&
+                 tuple.getCoordinateSystem().getReference().equals(
+                 Display.DisplaySpatialCartesianTuple)) )) {
+/* WLH 3 Aug 98
       else if(!(Display.DisplaySpatialCartesianTuple.equals(
                            domain.getDisplaySpatialTuple() ) ) ) {
+*/
         whyNotDirect = domainNotSpatial;
         return;
       }
@@ -365,18 +382,21 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
         whyNotDirect = viaReference;
         return;
       }
-      DisplayTupleType tuple = null;
+      DisplayTupleType rtuple = null;
       if (range instanceof ShadowRealTupleType) {
-        tuple = ((ShadowRealTupleType) range).getDisplaySpatialTuple();
+        rtuple = ((ShadowRealTupleType) range).getDisplaySpatialTuple();
       }
       else if (range instanceof ShadowRealType) {
-        tuple = ((ShadowRealType) range).getDisplaySpatialTuple();
+        rtuple = ((ShadowRealType) range).getDisplaySpatialTuple();
       }
       else {
         whyNotDirect = rangeType;
         return;
       }
-      if (!Display.DisplaySpatialCartesianTuple.equals(tuple)) {
+      if (!tuple.equals(rtuple)) {
+/* WLH 3 Aug 98
+      if (!Display.DisplaySpatialCartesianTuple.equals(rtuple)) {
+*/
         whyNotDirect = rangeNotSpatial;
         return;
       }
@@ -390,8 +410,13 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
         whyNotDirect = domainSet;
         return;
       }
+/* WLH 3 Aug 98
       setIsDirectManipulation(true);
-   
+*/
+      if (Display.DisplaySpatialCartesianTuple.equals(tuple)) {
+        tuple = null;
+      }
+
       domainAxis = -1;
       for (int i=0; i<3; i++) {
         axisToComponent[i] = -1;
@@ -413,6 +438,23 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
       }
    
       if (domainAxis == -1) {
+        whyNotDirect = tooFewSpatial;
+        return;
+      }
+      if (directManifoldDimension < 2) {
+        whyNotDirect = functionTooFew;
+        return;
+      }
+      boolean twod = displayRenderer.getMode2D();
+      if (tuple != null &&
+          (!twod && directManifoldDimension != 3 ||
+           twod && directManifoldDimension != 2) ) {
+        whyNotDirect = badCoordSysManifoldDim;
+        return;
+      }
+      setIsDirectManipulation(true);
+/* WLH 3 Aug 98
+      if (domainAxis == -1) {
         throw new DisplayException("DataRenderer.realCheckDirect:" +
                                    "too few spatial domain");
       }
@@ -420,12 +462,14 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
         throw new DisplayException("DataRenderer.realCheckDirect:" +
                                    "directManifoldDimension < 2");
       }
+*/
     }
     else if (type instanceof RealTupleType) {
       //
       // TO_DO
       // allow for any Flat ShadowTupleType
       //
+      tuple = ((ShadowRealTupleType) shadow).getDisplaySpatialTuple();
       if (shadow.getLevelOfDifficulty() != ShadowType.SIMPLE_TUPLE) {
         whyNotDirect = notSimpleTuple;
         return;
@@ -434,17 +478,28 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
         whyNotDirect = multipleSpatialMapping;
         return;
       }
+      else if(!(Display.DisplaySpatialCartesianTuple.equals(tuple) ||
+                (tuple != null &&
+                 tuple.getCoordinateSystem().getReference().equals(
+                 Display.DisplaySpatialCartesianTuple)) )) {
+/* WLH 3 Aug 98
       else if (!Display.DisplaySpatialCartesianTuple.equals(
                    ((ShadowRealTupleType) shadow).getDisplaySpatialTuple())) {
-        whyNotDirect = nonCartesian;
+*/
+        whyNotDirect = nonSpatial;
         return;
       }
       else if (((ShadowRealTupleType) shadow).getSpatialReference()) {
         whyNotDirect = viaReference;
         return;
       }
+/* WLH 3 Aug 98
       setIsDirectManipulation(true);
-   
+*/
+      if (Display.DisplaySpatialCartesianTuple.equals(tuple)) {
+        tuple = null;
+      }
+
       domainAxis = -1;
       for (int i=0; i<3; i++) {
         axisToComponent[i] = -1;
@@ -456,8 +511,17 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
         directManifoldDimension += setDirectMap((ShadowRealType)
                   ((ShadowRealTupleType) shadow).getComponent(i), i, false);
       }
+      boolean twod = displayRenderer.getMode2D();
+      if (tuple != null &&
+          (!twod && directManifoldDimension != 3 ||
+           twod && directManifoldDimension != 2) ) {
+        whyNotDirect = badCoordSysManifoldDim;
+        return;
+      }
+      setIsDirectManipulation(true);
     }
     else if (type instanceof RealType) {
+      tuple = ((ShadowRealType) shadow).getDisplaySpatialTuple();
       if (shadow.getLevelOfDifficulty() != ShadowType.SIMPLE_TUPLE) {
         whyNotDirect = notSimpleTuple;
         return;
@@ -466,30 +530,56 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
         whyNotDirect = multipleSpatialMapping;
         return;
       }
+      else if(!(Display.DisplaySpatialCartesianTuple.equals(tuple) ||
+                (tuple != null &&
+                 tuple.getCoordinateSystem().getReference().equals(
+                 Display.DisplaySpatialCartesianTuple)) )) {
+/* WLH 3 Aug 98
       else if(!Display.DisplaySpatialCartesianTuple.equals(
                    ((ShadowRealType) shadow).getDisplaySpatialTuple())) {
-        whyNotDirect = nonCartesian;
+*/
+        whyNotDirect = nonSpatial;
         return;
       }
+/* WLH 3 Aug 98
       setIsDirectManipulation(true);
-   
+*/
+      if (Display.DisplaySpatialCartesianTuple.equals(tuple)) {
+        tuple = null;
+      }
+
       domainAxis = -1;
       for (int i=0; i<3; i++) {
         axisToComponent[i] = -1;
         directMap[i] = null;
       }
       directManifoldDimension = setDirectMap((ShadowRealType) shadow, 0, false);
+      boolean twod = displayRenderer.getMode2D();
+      if (tuple != null &&
+          (!twod && directManifoldDimension != 3 ||
+           twod && directManifoldDimension != 2) ) {
+        whyNotDirect = badCoordSysManifoldDim;
+        return;
+      }
+      setIsDirectManipulation(true);
     } // end else if (type instanceof RealType)
   }
 
-  /** set domainAxis and axisToComponent (domain = false) or
-      directMap (domain = true) from real; called by checkDirect */
+  /** set directMap and axisToComponent (domain = false) or
+      domainAxis (domain = true) from real; called by checkDirect */
   synchronized int setDirectMap(ShadowRealType real, int component, boolean domain) {
     Enumeration maps = real.getSelectedMapVector().elements();
     while(maps.hasMoreElements()) {
       ScalarMap map = (ScalarMap) maps.nextElement();
       DisplayRealType dreal = map.getDisplayScalar();
+      DisplayTupleType tuple = dreal.getTuple();
+      if (Display.DisplaySpatialCartesianTuple.equals(tuple) ||
+          (tuple != null &&
+           tuple.getCoordinateSystem().getReference().equals(
+           Display.DisplaySpatialCartesianTuple)) ) {
+/* WLH 3 Aug 98
       if (Display.DisplaySpatialCartesianTuple.equals(dreal.getTuple())) {
+*/
         int index = dreal.getTupleIndex();
         if (domain) {
           domainAxis = index;
@@ -526,6 +616,7 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
 
   /** set spatialValues from ShadowType.doTransform */
   public synchronized void setSpatialValues(float[][] spatial_values) {
+    // these are X, Y, Z values
     spatialValues = spatial_values;
   }
 
@@ -540,6 +631,10 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
     float d_x = (float) direction[0];
     float d_y = (float) direction[1];
     float d_z = (float) direction[2];
+/*
+System.out.println("origin = " + o_x + " " + o_y + " " + o_z);
+System.out.println("direction = " + d_x + " " + d_y + " " + d_z);
+*/
     for (int i=0; i<spatialValues[0].length; i++) {
       float x = spatialValues[0][i] - o_x;
       float y = spatialValues[1][i] - o_y;
@@ -553,7 +648,14 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
         distance = d;
         closeIndex = i;
       }
+/*
+System.out.println("spatialValues["+i+"] = " + spatialValues[0][i] + " " +
+spatialValues[1][i] + " " + spatialValues[2][i] + " d = " + d);
+*/
     }
+/*
+System.out.println("checkClose: distance = " + distance);
+*/
     return distance;
   }
 
@@ -573,15 +675,22 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
       point_z = spatialValues[2][closeIndex];
       int lineAxis = -1;
       if (getDirectManifoldDimension() == 3) {
+        // coord sys ok
         line_x = d_x;
         line_y = d_y;
         line_z = d_z;
       }
       else {
         if (getDirectManifoldDimension() == 2) {
-          for (int i=0; i<3; i++) {
-            if (getAxisToComponent(i) < 0 && getDomainAxis() != i) {
-              lineAxis = i;
+          if (displayRenderer.getMode2D()) {
+            // coord sys ok
+            lineAxis = 2;
+          }
+          else {
+            for (int i=0; i<3; i++) {
+              if (getAxisToComponent(i) < 0 && getDomainAxis() != i) {
+                lineAxis = i;
+              }
             }
           }
         }
@@ -633,10 +742,19 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
     // might estimate errors from pixel resolution on screen
     //
     try {
+      float[] xx = {x[0], x[1], x[2]};
+      if (tuple != null) {
+        float[][] cursor = {{x[0]}, {x[1]}, {x[2]}};
+        float[][] new_cursor =
+          tuple.getCoordinateSystem().fromReference(cursor);
+        x[0] = new_cursor[0][0];
+        x[1] = new_cursor[1][0];
+        x[2] = new_cursor[2][0];
+      }
       Data newData = null;
       Data data = link.getData();
       if (type instanceof RealType) {
-        addPoint(x);
+        addPoint(xx);
         for (int i=0; i<3; i++) {
           if (getAxisToComponent(i) >= 0) {
             f[0] = x[i];
@@ -655,7 +773,7 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
         ref.setData(newData);
       }
       else if (type instanceof RealTupleType) {
-        addPoint(x);
+        addPoint(xx);
         int n = ((RealTuple) data).getDimension();
         Real[] reals = new Real[n];
         Vector vect = new Vector();
@@ -702,17 +820,17 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
         }
 
         if (lastIndex < 0) {
-          addPoint(x);
+          addPoint(xx);
         }
         else {
-          lastX[3] = x[0];
-          lastX[4] = x[1];
-          lastX[5] = x[2];
+          lastX[3] = xx[0];
+          lastX[4] = xx[1];
+          lastX[5] = xx[2];
           addPoint(lastX);
         }
-        lastX[0] = x[0];
-        lastX[1] = x[1];
-        lastX[2] = x[2];
+        lastX[0] = xx[0];
+        lastX[1] = xx[1];
+        lastX[2] = xx[2];
 
         int n;
         MathType range = ((FunctionType) type).getRange();

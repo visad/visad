@@ -703,6 +703,11 @@ System.out.println(map.getScalar() + " -> " + map.getDisplayScalar() + " : " +
         // MEM
         display_values[value_index] = map.scaleValues(values[i]);
 /*
+int m = values[i].length;
+for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i][j] +
+" display_values["+value_index+"]["+j+"] = " + display_values[value_index][j]);
+*/
+/*
       int total = 0;
       int missing = 0;
       total = display_values[value_index].length;
@@ -735,6 +740,11 @@ System.out.println(map.getScalar() + " -> " + map.getDisplayScalar() + " : " +
 */
         // MEM
         display_values[value_index] = map.scaleValues(values[i]);
+/*
+int m = values[i].length;
+for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i][j] +
+" display_values["+value_index+"]["+j+"] = " + display_values[value_index][j]);
+*/
 /*
       int total = 0;
       int missing = 0;
@@ -957,7 +967,8 @@ for (int p=0; p<spatial_values[0].length; p++) {
 }
 */
       // transform spatial_values
-      spatial_values = coord.toReference(spatial_values);
+      float[][] new_spatial_values = coord.toReference(spatial_values);
+      for (int i=0; i<3; i++) spatial_values[i] = new_spatial_values[i];
 /*
 System.out.println("\nafter tranform spatial_values[" + spatial_values.length +
                    "][" + spatial_values[0].length + "]");
@@ -979,6 +990,7 @@ System.out.println(" ");
           }
         }
       }
+      missing_checked = new boolean[] {false, false, false};
     } // end if (!spatial_tuple.equals(Display.DisplaySpatialCartesianTuple))
 
     // assemble SpatialOffsets

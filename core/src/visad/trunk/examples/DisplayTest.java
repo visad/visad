@@ -168,6 +168,7 @@ public class DisplayTest extends Object {
         System.out.println("  37: colored contours from regular grids in Java2D");
         System.out.println("  38: colored contours from irregular grids in Java2D");
         System.out.println("  39: color array and ColorWidget in Java2D");
+        System.out.println("  40: polar direct manipulation in Java2D");
 
         return;
 
@@ -1761,6 +1762,63 @@ public class DisplayTest extends Object {
         ref_imaget1.setData(imaget1);
         display1.addReference(ref_imaget1, null);
  
+        break;
+
+      case 40:
+
+        System.out.println(test_case + ": test polar direct manipulation in Java2D");
+        size = 64;
+        histogram1 = FlatField.makeField(ir_histogram, size, false);
+        reals3 = new Real[] {new Real(count, 1.0), new Real(ir_radiance, 2.0),
+                             new Real(vis_radiance, 1.0)};
+        direct_tuple = new RealTuple(reals3);
+    
+        display1 = new DisplayImplJ2D("display1");
+        display1.addMap(new ScalarMap(ir_radiance, Display.Radius));
+        display1.addMap(new ScalarMap(count, Display.Longitude));
+        display1.addMap(new ScalarMap(count, Display.Green));
+    
+        mode = display1.getGraphicsModeControl();
+        mode.setPointSize(5.0f);
+        mode.setPointMode(false);
+
+        ref_direct_tuple = new DataReferenceImpl("ref_direct_tuple");
+        ref_direct_tuple.setData(direct_tuple);
+        refs2 = new DataReference[] {ref_direct_tuple};
+        display1.addReferences(new DirectManipulationRendererJ2D(), refs2, null);
+     
+        ref_histogram1 = new DataReferenceImpl("ref_histogram1");
+        ref_histogram1.setData(histogram1);
+        refs3 = new DataReference[] {ref_histogram1};
+        display1.addReferences(new DirectManipulationRendererJ2D(), refs3, null);
+
+        display2 = new DisplayImplJ2D("display2");
+        display2.addMap(new ScalarMap(ir_radiance, Display.XAxis));
+        display2.addMap(new ScalarMap(count, Display.YAxis));
+        display2.addMap(new ScalarMap(count, Display.Green));
+     
+        mode2 = display2.getGraphicsModeControl();
+        mode2.setPointSize(5.0f);
+        mode2.setPointMode(false);
+     
+        display2.addReferences(new DirectManipulationRendererJ2D(), refs2, null);
+        display2.addReferences(new DirectManipulationRendererJ2D(), refs3, null);
+
+        jframe = new JFrame("Java2D direct manipulation");
+        jframe.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+ 
+        big_panel = new JPanel();
+        big_panel.setLayout(new BoxLayout(big_panel, BoxLayout.X_AXIS));
+        big_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+        big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+        big_panel.add(display1.getComponent());
+        big_panel.add(display2.getComponent());
+        jframe.getContentPane().add(big_panel);
+        jframe.setSize(512, 256);
+        jframe.setVisible(true);
+
         break;
 
     } // end switch(test_case)
