@@ -48,7 +48,7 @@ import java.io.FilterInputStream;
  * @version	0.3-3  06/05/2001
  * @author	Ronald Tschalär
  */
-class UncompressInputStream extends FilterInputStream
+public class UncompressInputStream extends FilterInputStream
 {
     /**
      * @param is the input stream to decompress
@@ -64,7 +64,7 @@ class UncompressInputStream extends FilterInputStream
     byte[] one = new byte[1];
     public synchronized int read() throws IOException
     {
-	int b = in.read(one, 0, 1);
+	int b = read(one, 0, 1);
 	if (b == 1)
 	    return (one[0] & 0xff);
 	else
@@ -154,6 +154,21 @@ class UncompressInputStream extends FilterInputStream
 
 	    while (l_bit_pos < bit_in)
 	    {
+		// handle 1-byte reads correctly
+		if (len == 0) {
+		    n_bits     = l_n_bits;
+		    maxcode    = l_maxcode;
+		    maxmaxcode = l_maxmaxcode;
+		    bitmask    = l_bitmask;
+		    oldcode    = l_oldcode;
+		    finchar    = l_finchar;
+		    stackp     = l_stackp;
+		    free_ent   = l_free_ent;
+		    bit_pos    = l_bit_pos;
+
+		    return off-start;
+		}		    
+
 		// check for code-width expansion
 
 		if (l_free_ent > l_maxcode)
