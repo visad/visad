@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: ColorMap.java,v 1.1 1998-02-05 21:46:53 billh Exp $
+@(#) ColorMap.java,v 1.7 1998/02/11 22:13:25 nick Exp
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -33,7 +33,7 @@ import java.util.Vector;
  * class manages all of the listener notification for the ColorMaps.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.1 $, $Date: 1998-02-05 21:46:53 $
+ * @version 1.7, 1998/02/11 22:13:25
  * @since Visad Utility Library, 0.5
  */
 
@@ -63,6 +63,19 @@ public abstract class ColorMap extends Panel {
 	 * triplet of floating point numbers in the range 0 to 1)
 	 */
 	public abstract float[] getRGBTuple(float value);
+	
+	/** Maps a floating point value (in the range 0 to 1) into a tuple
+	 * with dimension of the map */
+	public abstract float[] getTuple(float value);
+	
+	/** Returns the current map resolution */
+	public abstract int getMapResolution();
+	
+	/** Returns the dimension of the map */
+	public abstract int getMapDimension();
+	
+	/** Returns a copy of the ColorMap */
+	public abstract float[][] getColorMap();
 	
 	/** The vector containing the ColorChangeListeners */
 	private Vector listeners = new Vector();

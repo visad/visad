@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: ColorPreview.java,v 1.1 1998-02-05 21:46:53 billh Exp $
+@(#) ColorPreview.java,v 1.9 1998/02/13 17:46:04 nick Exp
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -31,7 +31,7 @@ import java.awt.*;
  * A small preview bar generated for a color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.1 $, $Date: 1998-02-05 21:46:53 $
+ * @version 1.9, 1998/02/13 17:46:04
  * @since Visad Utility Library, 0.5
  */
 
@@ -72,9 +72,9 @@ public class ColorPreview extends Panel implements ColorChangeListener {
 	}
 
 	/** The location to begin an update */	
-	private float updateLeft = 0;
+	private float updateLeft;
 	/** The location to end an update */
-	private float updateRight = 1;
+	private float updateRight;
 
 	/** Updates the nessecary areas of the panel after ColorChangeEvents and paint()
 	 * @see ColorChangeEvent
@@ -85,8 +85,10 @@ public class ColorPreview extends Panel implements ColorChangeListener {
 		int rightIndex;
 	
 		synchronized(this) {
-			leftIndex = (int) Math.floor(updateLeft * (float) getBounds().width);
-			rightIndex = (int) Math.floor(updateRight * (float) getBounds().width);
+			leftIndex = (int) Math.floor(updateLeft * getBounds().width);
+			rightIndex = (int) Math.floor(updateRight * getBounds().width);
+			updateLeft = 1;
+			updateRight = 0;
 		}
 		
 		if (leftIndex > rightIndex) {
@@ -120,8 +122,12 @@ public class ColorPreview extends Panel implements ColorChangeListener {
 	 */
 	public void colorChanged(ColorChangeEvent e) {
 		synchronized(this) {
-			updateLeft = e.getStart();
-			updateRight = e.getEnd();
+			if (e.getStart() < updateLeft) {
+				updateLeft = e.getStart();
+			}
+			if (e.getEnd() > updateRight) {
+				updateRight = e.getEnd();
+			}
 		}
 		repaint();	
 	}

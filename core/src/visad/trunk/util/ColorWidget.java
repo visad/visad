@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: ColorWidget.java,v 1.1 1998-02-05 21:46:54 billh Exp $
+@(#) ColorWidget.java,v 1.18 1998/02/13 17:46:04 nick Exp
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -30,12 +30,15 @@ import java.awt.event.*;
 import java.applet.*;
 import java.util.Vector;
 
+// import com.sun.java.swing.*;
+import java.awt.swing.*;
+
 /** 
  * A color widget that allows users to interactively map numeric data to
  * RGB tuples based on the Vis5D color widget
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.1 $, $Date: 1998-02-05 21:46:54 $
+ * @version 1.18, 1998/02/13 17:46:04
  * @since Visad Utility Library, 0.5
  */
 
@@ -49,6 +52,8 @@ public class ColorWidget extends Applet implements ColorChangeListener {
 	
 	/** The ColorPreview associated with this color widget */
 	private ColorPreview colorPreview;
+	
+	/** The Event Queue for mouse events */
 	
 	/** Construct a color widget with a ColorPreview and the default ColorMap */
 	public ColorWidget() {
@@ -80,7 +85,8 @@ public class ColorWidget extends Applet implements ColorChangeListener {
 		if (preview) {
 			colorPreview = new ColorPreview(this);
 		}
-		setLayout(new WidgetLayout(this));
+		//setLayout(new WidgetLayout(this));
+		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setColorMap(map);
 	}	
 	
@@ -133,7 +139,7 @@ public class ColorWidget extends Applet implements ColorChangeListener {
 	}
 	
 	/** Set the ColorWidget to listen to a specific ColorMap */
-	private void setColorMap(ColorMap map) {
+	public void setColorMap(ColorMap map) {
 		if (this.map != null) {
 			this.map.removeColorChangeListener(this);
 		}
@@ -152,7 +158,7 @@ public class ColorWidget extends Applet implements ColorChangeListener {
 		}
 		
 	}
-	
+		
 	/** Make the preview bar at the bottom of the widget visible */
 	public void showPreview() {
 	
@@ -171,7 +177,7 @@ public class ColorWidget extends Applet implements ColorChangeListener {
 	}
 	
 	/** Returns the ColorMap that the color wdget is curently pointing to */
-	ColorMap getColorMap() {
+	public ColorMap getColorMap() {
 		return map;
 	}
 	

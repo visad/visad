@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: ColorChangeEvent.java,v 1.1 1998-02-05 21:46:52 billh Exp $
+@(#) ColorChangeEvent.java,v 1.5 1998/01/12 22:08:58 nick Exp
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -32,7 +32,7 @@ import java.io.Serializable;
  * An event to be dispatched when the color widget has been changed
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.1 $, $Date: 1998-02-05 21:46:52 $
+ * @version 1.5, 1998/01/12 22:08:58
  * @since Visad Utility Library, 0.5
  */
 

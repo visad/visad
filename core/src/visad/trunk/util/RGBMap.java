@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: RGBMap.java,v 1.1 1998-02-05 21:46:54 billh Exp $
+@(#) RGBMap.java,v 1.17 1998/02/13 17:46:05 nick Exp
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -35,7 +35,7 @@ import java.awt.*;
  * between the red, green and blue curves.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.1 $, $Date: 1998-02-05 21:46:54 $
+ * @version 1.17, 1998/02/13 17:46:05
  * @since Visad Utility Library, 0.5
  */
 
@@ -49,6 +49,9 @@ public class RGBMap extends ColorMap
 	private int valLeft;
 	/** The right modified value */
 	private int valRight;
+
+	/** A lock to synchronize against when modifing the modified area */
+	private Object mutex = new Object();
 
 	/** The index of the color red */
 	private static final int RED = 0;
@@ -80,25 +83,69 @@ public class RGBMap extends ColorMap
 		//this.addColorChangeListener(this);
 	}
 	
+	/** Returns the resolution of the map */
+	public int getMapResolution() {
+		return resolution;
+	}
+	
+	/** Returns the dimension of the map */
+	public int getMapDimension() {
+		return 3;
+	}
+	
+	/** Returns a copy of the color map */
+	public float[][] getColorMap() {
+	
+		float[][] ret = new float[resolution][3];
+		
+		for (int i = 0; i < resolution; i++) {
+			ret[i][0] = val[i][0];
+			ret[i][1] = val[i][1];
+			ret[i][2] = val[i][2];
+		}
+		
+		return ret;
+	}
+	
+	/** Returns the tuple at a floating point value val */
+	public float[] getTuple(float val) {
+		return getRGBTuple(val);
+	}
+	
+	protected void sendUpdate(int left, int right) {
+	
+
+		synchronized (mutex) {
+			if (left < valLeft)
+				valLeft = left;
+			if (right > valRight)
+				valRight = right;
+		}
+		
+// won't update on repaint, so hit it with a big hammer
+// paint(getGraphics());
+update(getGraphics());
+		repaint();
+// System.out.println("Please repaint the color widget");
+	}	
+	
+	
 	/** Used internally to post areas to update to the objects listening
 	 * to the map 
 	 */
 	protected void notifyListeners(int left, int right) {
 		
-		valLeft = left;
-		valRight = right;
-		repaint();
-
-
-		// fix this to reflect a more acurate region of affectation		
+		// !!!fix this to reflect a more acurate region of affectation		
 		if (left != 0) {
 			left--;
 		}
-		if (right != val.length - 1) {
+		if (right != resolution - 1) {
 			right++;
 		}
-		float start = (float) left / (float) val.length;
-		float end = (float) (right + 1) / (float) val.length;
+		
+		float start = (float) left / (float) (resolution - 1);
+		float end = (float) right + 1 / (float) (resolution - 1);
+		sendUpdate(left, right);
 		super.notifyListeners(new ColorChangeEvent(this, start, end));
 
 	}
@@ -109,10 +156,10 @@ public class RGBMap extends ColorMap
 	 * range 0 to 1
 	 */
 	public float[] getRGBTuple(float value) {
-		float arrayIndex = value * (val.length - 1);
+		float arrayIndex = value * (resolution - 1);
 		int index = (int) Math.floor(arrayIndex);
 		float partial = arrayIndex - index;
-		if (index >= val.length || index < 0 || (index == (val.length - 1) && partial != 0)) {
+		if (index >= resolution || index < 0 || (index == (resolution - 1) && partial != 0)) {
 			float[] f = {0,0,0};
 			return f;
 		}
@@ -131,12 +178,7 @@ public class RGBMap extends ColorMap
 		float[] f = {red, green, blue};
 		return f;
 	}
-	
-	/** The last index that was modified */
-	private int oldPos;
-	/** The value of the last index modified */
-	private float oldVal;
-	
+		
 	/** Present to implement MouseListener, currently ignored */
 	public void mouseClicked(MouseEvent e) {
 		//System.out.println(e.paramString());
@@ -152,6 +194,14 @@ public class RGBMap extends ColorMap
 		//System.out.println(e.paramString());
 	}
 	
+	/** The last mouse event's x value */
+	private int oldX;
+	/** The last mouse event's y value */
+	private int oldY;
+	
+	/** A synchronization primitive for the mouse movements */
+	private Object mouseMutex = new Object();
+	
 	/** Updates the internal array and sends notification to the
 	 * ColorChangeListeners that are listening to this map
 	 */
@@ -161,28 +211,45 @@ public class RGBMap extends ColorMap
 			return;
 		}
 		
-		if (e.getX() < 0) return;
-		if (e.getX() >= getBounds().width) return;
-		if (e.getY() < 0) return;
-		if (e.getY() >= getBounds().height) return;
-		
-		float dist = (float) e.getX() / (float) getBounds().width;
-		int index = (int) Math.floor(dist * (val.length - 1) + 0.5);
-		val[index][state] = 1 - (float) e.getY() / (float) getBounds().height;
-		
-		oldVal = val[index][state];
-		oldPos = index;
+		int index = 0;
+		int width = getBounds().width;
+		int height = getBounds().height;
+		int x = e.getX();
+		int y = e.getY();
+
+		if (x < 0)
+			x = 0;
+
+		if (x >= width)
+			x = width - 1;
+
+		if (y < 0)
+			y = 0;
+
+		if (y >= height)
+			y = height - 1;
+
+		float dist = (float) x / (float) width;
+		index = (int) Math.floor(dist * (resolution - 1) + 0.5);
+		val[index][state] = 1 - (float) y / (float) height;
+
+		oldX = x;
+		oldY = y;
 		
 		notifyListeners(index, index);
+
+		
 	}
 	
 	/** Listens for releases of the right mouse button, and changes the active color */
 	public void mouseReleased(MouseEvent e) {
 		//System.out.println(e.paramString());
-		if ((e.getModifiers() & e.BUTTON3_MASK) == 0) {
-			return;
+		if ((e.getModifiers() & e.BUTTON2_MASK) != 0 ||
+		    (e.getModifiers() & e.BUTTON3_MASK) != 0) {
+			state = (state + 1) % 3;
+			// return;
 		}
-		state = (state + 1) % 3;
+		// state = (state + 1) % 3;
 	}
 
 	/** Updates the internal array and sends notification to the
@@ -193,29 +260,49 @@ public class RGBMap extends ColorMap
 		if ((e.getModifiers() & e.BUTTON1_MASK) == 0 && e.getModifiers() != 0) {
 			return;
 		}
-
-		int eX = e.getX();
-		int eY = e.getY();
-
-		if (eX < 0) {
-			eX = 0;
-		}
 		
-		if (eX >= getBounds().width) {
-			eX = getBounds().width - 1;
-		}
+		drag(e.getX(), e.getY(), oldX, oldY);
+			
+		oldX = e.getX();
+		oldY = e.getY();
+	}
+	
+	/** Internal mouse dragging function */
+	private void drag(int x, int y, int oldx, int oldy) {
+	
+		if (x < 0)
+			x = 0;
 		
-		if (eY < 0) {
-			eY = 0;
-		}
+		if (x >= getBounds().width)
+			x = getBounds().width - 1;
 		
-		if (eY >= getBounds().height) {
-			eY = getBounds().height - 1;
-		}
+		if (y < 0)
+			y = 0;
 		
-		float dist = (float) eX / (float) (getBounds().width - 1);
-		int index = (int) Math.floor(dist * (val.length - 1) + 0.5);
-		float target = 1 - (float) eY / (float) (getBounds().height - 1);
+		if (y >= getBounds().height)
+			y = getBounds().height - 1;
+			
+		if (oldx < 0)
+			oldx = 0;
+		
+		if (oldx >= getBounds().width)
+			oldx = getBounds().width - 1;
+		
+		if (oldy < 0)
+			oldy = 0;
+		
+		if (oldy >= getBounds().height)
+			oldy = getBounds().height - 1;
+			
+		
+		float dist = (float) x / (float) (getBounds().width - 1);
+		int index = (int) Math.floor(dist * (resolution - 1) + 0.5);
+		
+		float oldDist = (float) oldx / (float) (getBounds().width - 1);
+		int oldPos = (int) Math.floor(oldDist * (resolution - 1) + 0.5);
+		
+		float oldVal = val[oldPos][state];
+		float target = 1 - (float) y / (float) (getBounds().height - 1);
 		
 		if (index > oldPos) {
 			for (int i = oldPos + 1; i <= index; i++) {
@@ -223,8 +310,6 @@ public class RGBMap extends ColorMap
 						+ target * ((float) (i - oldPos)) / ((float) (index - oldPos));
 			}
 			notifyListeners(oldPos + 1, index);
-			oldPos = index;
-			oldVal = target;
 			return;
 		}
 		if (index < oldPos) {
@@ -233,15 +318,12 @@ public class RGBMap extends ColorMap
 						+ target * ((float) (oldPos - i)) / ((float) (oldPos - index));
 			}
 			notifyListeners(index, oldPos - 1);
-			oldPos = index;
-			oldVal = target;
 			return;
 		}
 		if (index == oldPos) {
 			val[index][state] = target;
 			notifyListeners(index, index);
-			oldPos = index;
-			oldVal = target;
+			return;
 		}
 	}
 	
@@ -252,8 +334,13 @@ public class RGBMap extends ColorMap
 
 	/** Repaints the entire Panel */
 	public void paint(Graphics g) {
-		valLeft = 0;
-		valRight = resolution - 1;
+	
+		synchronized (mutex) {
+		
+			valLeft = 0;
+			valRight = resolution - 1;
+		}
+		
 		update(g);
 	}
 	
@@ -266,8 +353,20 @@ public class RGBMap extends ColorMap
 	/** Repaints the modified areas of the Panel */
 	public void update(Graphics g) {
 	
-		int left = valLeft;
-		int right = valRight;
+// System.out.println("update");
+
+		int left = 0;
+		int right = resolution - 1;
+	
+		synchronized (mutex) {
+			if (valLeft > valRight) return;
+		
+			left = valLeft;
+			right = valRight;
+			
+			valLeft = resolution - 1;
+			valRight = 0;
+		}
 		
 		Rectangle bounds = getBounds();
 		
