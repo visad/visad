@@ -116,6 +116,16 @@ public class CollectiveBarbManipulation extends Object
     outer_distance = od;
     inner_time = it;
     outer_time = ot;
+    if (inner_time < 0.0 ||
+        outer_time < inner_time + 0.001) {
+      throw new CollectiveBarbException("outer_time must be " +
+                                   "greater than inner_time");
+    }
+    if (inner_distance < 0.0 ||
+        outer_distance < inner_distance + 0.001) {
+      throw new CollectiveBarbException("outer_distance must be " +
+                                   "greater than distance_time");
+    }
 
     control = (AnimationControl) display.getControl(AnimationControl.class);
     if (control == null) {
@@ -169,6 +179,8 @@ public class CollectiveBarbManipulation extends Object
           Real[] reals = tuples[i][j].getRealComponents();
           azimuths[i][j] = (float) reals[azimuth_index].getValue();
           radials[i][j] = (float) reals[radial_index].getValue();
+          old_azimuths[i][j] = azimuths[i][j];
+          old_radials[i][j] = radials[i][j];
         }
       }
     }
@@ -329,11 +341,27 @@ public class CollectiveBarbManipulation extends Object
       sta_index = index;
     }
   
+    private final static float DEGREE_EPS = 0.1f;
+    private final static float MPS_EPS = 0.1f;
+
     public void doAction() throws VisADException, RemoteException {
       int time_index = which_times[sta_index];
       if (time_index < 0) return;
 
+      Tuple wind = (Tuple) ref.getData();
+      Real[] reals = wind.getRealComponents();
+      float new_azimuth = (float) reals[azimuth_index].getValue();
+      float new_radial = (float) reals[radial_index].getValue();
+
+      // filter out barb changes due to other doAction calls
+      if (visad.util.Util.isApproximatelyEqual(new_azimuth,
+                 azimuths[sta_index][time_index], DEGREE_EPS) ||
+          visad.util.Util.isApproximatelyEqual(new_radial,
+                 radials[sta_index][time_index], MPS_EPS)) return;
+
       if (last_sta != sta_index || last_time != time_index) {
+        last_sta = sta_index;
+        last_time = time_index;
         for (int i=0; i<nindex; i++) {
           for (int j=0; j<ntimes[i]; j++) {
             old_tuples[i][j] = tuples[i][j];
@@ -343,7 +371,36 @@ public class CollectiveBarbManipulation extends Object
         }
       }
 
-      Tuple wind = (Tuple) ref.getData();
+      float diff_azimuth = new_azimuth - old_azimuths[sta_index][time_index];
+      float diff_radial = new_radial - old_radials[sta_index][time_index];
+
+      float lat = lats[sta_index];
+      float lon = lats[sta_index];
+      int global_time_index = station_to_global[sta_index][time_index];
+      double time = times[global_time_index];
+      for (int i=0; i<nindex; i++) {
+        double lat_diff = Math.abs(lat - lats[i]);
+        double mid_lat = 0.5 * (lat + lats[i]);
+        double coslat = Math.cos(Data.DEGREES_TO_RADIANS * mid_lat);
+        double lon_diff = Math.abs(lon - lons[i]) * coslat;
+        double dist = ShadowType.METERS_PER_DEGREE *
+          Math.sqrt(lon_diff * lon_diff + lat_diff * lat_diff);
+        if (dist > outer_distance) continue;
+        double dist_mult = (dist < inner_distance) ? 1.0 :
+          (outer_distance - dist) / (outer_distance - inner_distance);
+        for (int j=0; j<ntimes[i]; j++) {
+          int ix = station_to_global[i][j];
+          double time_diff = Math.abs(time - times[ix]);
+          if (time_diff > outer_time) continue;
+          double time_mult = (time_diff < inner_time) ? 1.0 :
+            (outer_time - time_diff) / (outer_time - inner_time);
+          double mult = dist_mult * time_mult;
+
+
+        } // end for (int j=0; j<ntimes[i]; j++)
+      } // end for (int i=0; i<nindex; i++)
+
+
       wind_stations[sta_index].setSample(time_index, wind);
       tuples[sta_index][time_index] = wind;
     }
