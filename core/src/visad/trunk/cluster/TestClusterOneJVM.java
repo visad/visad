@@ -1,6 +1,6 @@
 
 //
-// TestCluster.java
+// TestClusterOneJVM.java
 //
 
 /*
@@ -179,7 +179,6 @@ package visad.cluster;
 
 import visad.*;
 import visad.java3d.*;
-import visad.java2d.*;
 import visad.data.gif.GIFForm;
 
 import java.rmi.*;
@@ -189,11 +188,11 @@ import java.awt.image.BufferedImage;
 import javax.swing.*;
 
 /**
-   TestCluster is the class for testing the visad.cluster package.<P>
+   TestClusterOneJVM is the class for testing the visad.cluster package.<P>
 */
-public class TestCluster extends Object {
+public class TestClusterOneJVM extends Object {
 
-  public TestCluster() {
+  public TestClusterOneJVM() {
   }
 
   public static void main(String[] args)
@@ -202,35 +201,15 @@ public class TestCluster extends Object {
     int node_divide = 2;
     int number_of_nodes = node_divide * node_divide;
 
-    if (args == null || args.length < 2) {
-      System.out.println("usage: 'java visad.cluster.TestCluster n file.gif'");
-      System.out.println("  where n = 0 for client, 1 - " + number_of_nodes +
-                         " for nodes");
+    if (args == null || args.length < 1) {
+      System.out.println("usage: 'java visad.cluster.TestClusterOneJVM file.gif'");
       return;
     }
-    int id = -1;
-    try {
-      id = Integer.parseInt(args[0]);
-    }
-    catch (NumberFormatException e) {
-      System.out.println("usage: 'java visad.cluster.TestCluster n file.gif'");
-      System.out.println("  where n = 0 for client, 1 - " + number_of_nodes +
-                         " for nodes");
-      return;
-    }
-    if (id < 0 || id > number_of_nodes) {
-      System.out.println("usage: 'java visad.cluster.TestCluster n file.gif'");
-      System.out.println("  where n = 0 for client, 1 - " + number_of_nodes +
-                         " for nodes");
-      return;
-    }
-
-    boolean client = (id == 0);
 
     GIFForm gif_form = new GIFForm();
-    FlatField image = (FlatField) gif_form.open(args[1]);
+    FlatField image = (FlatField) gif_form.open(args[0]);
     if (image == null) {
-      System.out.println("cannot open " + args[1]);
+      System.out.println("cannot open " + args[0]);
       return;
     }
 /*
@@ -254,85 +233,60 @@ MathType.stringToType("((ImageElement, ImageLine) -> ImageRadiance)");
                       domain_set.getCoordinateSystem(),
                       domain_set.getSetUnits(), null);
 
-    RemoteNodePartitionedFieldImpl[] node_images =
-      new RemoteNodePartitionedFieldImpl[number_of_nodes];
-  
-    if (!client) {
-      Linear2DSet[] subsets = new Linear2DSet[number_of_nodes];
-  
-      if (number_of_nodes == 1) {
-        subsets[0] = domain_set;
-        node_images[0] = new RemoteNodePartitionedFieldImpl(image);
-      }
-      else {
-        int[] indices = new int[len];
-        for (int i=0; i<len; i++) indices[i] = i;
-        float[][] values = domain_set.indexToValue(indices);
-        int[] ps_indices = ps.valueToIndex(values);
-        float[][] firsts = new float[2][number_of_nodes];
-        float[][] lasts = new float[2][number_of_nodes];
-        int[][] lows = new int[2][number_of_nodes];
-        int[][] his = new int[2][number_of_nodes];
-        for (int j=0; j<2; j++) {
-          for (int i=0; i<number_of_nodes; i++) {
-            firsts[j][i] = Float.MAX_VALUE;
-            lasts[j][i] = -Float.MAX_VALUE;
-            lows[j][i] = len + 1;
-            his[j][i] = -1;
-          }
-        }
-        for (int i=0; i<len; i++) {
-          int k = ps_indices[i];
-          if (k < 0) continue;
-          int[] index = {indices[i] % x_len, indices[i] / x_len};
-          for (int j=0; j<2; j++) {
-            if (values[j][i] < firsts[j][k]) firsts[j][k] = values[j][i];
-            if (values[j][i] > lasts[j][k]) lasts[j][k] = values[j][i];
-            if (index[j] < lows[j][k]) lows[j][k] = index[j];
-            if (index[j] > his[j][k]) his[j][k] = index[j];
-          }
-        }
-        for (int k=0; k<number_of_nodes; k++) {
-          if (his[0][k] < 0 || his[1][k] < 0) {
-            throw new ClusterException("Set partition error");
-          }
-          subsets[k] =
-            new Linear2DSet(domain_type,
-                        firsts[0][k], lasts[0][k], (his[0][k] - lows[0][k] + 1),
-                        firsts[1][k], lasts[1][k], (his[1][k] - lows[1][k] + 1),
-                        domain_set.getCoordinateSystem(),
-                        domain_set.getSetUnits(), null);
-          FieldImpl subimage = (FieldImpl) image.resample(subsets[k]);
-          node_images[k] = new RemoteNodePartitionedFieldImpl(subimage);
-        }
-      }
-      int kk = id - 1;
-      String url = "///TestCluster" + kk;
-      try {
-        Naming.rebind(url, node_images[kk]);
-      }
-      catch (Exception e) {
-        System.out.println("lookup " + kk + " " + e);
-        return;
-      }
-      // just so app doesn't exit
-      DisplayImpl display = new DisplayImplJ2D("dummy");
-      return;
-    } // end if (!client)
-
-    for (int k=0; k<number_of_nodes; k++) {
-      String url = "///TestCluster" + k;
-      try {
-        node_images[k] = (RemoteNodePartitionedFieldImpl) Naming.lookup(url);
-      }
-      catch (Exception e) {
-        System.out.println("lookup " + k + " " + e);
-        return;
-      }
-    }
-    
     RemoteClientPartitionedFieldImpl client_image =
       new RemoteClientPartitionedFieldImpl(image_type, domain_set);
+
+    Linear2DSet[] subsets = new Linear2DSet[number_of_nodes];
+
+    RemoteNodePartitionedFieldImpl[] node_images =
+      new RemoteNodePartitionedFieldImpl[number_of_nodes];
+
+    if (number_of_nodes == 1) {
+      subsets[0] = domain_set;
+      node_images[0] = new RemoteNodePartitionedFieldImpl(image);
+    }
+    else {
+      int[] indices = new int[len];
+      for (int i=0; i<len; i++) indices[i] = i;
+      float[][] values = domain_set.indexToValue(indices);
+      int[] ps_indices = ps.valueToIndex(values);
+      float[][] firsts = new float[2][number_of_nodes];
+      float[][] lasts = new float[2][number_of_nodes];
+      int[][] lows = new int[2][number_of_nodes];
+      int[][] his = new int[2][number_of_nodes];
+      for (int j=0; j<2; j++) {
+        for (int i=0; i<number_of_nodes; i++) {
+          firsts[j][i] = Float.MAX_VALUE;
+          lasts[j][i] = -Float.MAX_VALUE;
+          lows[j][i] = len + 1;
+          his[j][i] = -1;
+        }
+      }
+      for (int i=0; i<len; i++) {
+        int k = ps_indices[i];
+        if (k < 0) continue;
+        int[] index = {indices[i] % x_len, indices[i] / x_len};
+        for (int j=0; j<2; j++) {
+          if (values[j][i] < firsts[j][k]) firsts[j][k] = values[j][i];
+          if (values[j][i] > lasts[j][k]) lasts[j][k] = values[j][i];
+          if (index[j] < lows[j][k]) lows[j][k] = index[j];
+          if (index[j] > his[j][k]) his[j][k] = index[j];
+        }
+      }
+      for (int k=0; k<number_of_nodes; k++) {
+        if (his[0][k] < 0 || his[1][k] < 0) {
+          throw new ClusterException("Set partition error");
+        }
+        subsets[k] =
+          new Linear2DSet(domain_type,
+                      firsts[0][k], lasts[0][k], (his[0][k] - lows[0][k] + 1),
+                      firsts[1][k], lasts[1][k], (his[1][k] - lows[1][k] + 1),
+                      domain_set.getCoordinateSystem(),
+                      domain_set.getSetUnits(), null);
+        FieldImpl subimage = (FieldImpl) image.resample(subsets[k]);
+        node_images[k] = new RemoteNodePartitionedFieldImpl(subimage);
+      }
+    }
 
     RemoteClusterData[] table =
       new RemoteClusterData[number_of_nodes + 1];
