@@ -1027,7 +1027,9 @@ public class Rain implements ActionListener, ControlListener {
       for (int i=0; i<N_ROWS; i++) {
         for (int j=0; j<N_COLUMNS; j++) {
           if (control != projection_controls[i][j]) {
-            projection_controls[i][j].setMatrix(matrix);
+            if (projection_controls[i][j] != null) {
+              projection_controls[i][j].setMatrix(matrix);
+            }
           }
         }
       }
