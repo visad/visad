@@ -18,6 +18,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.rmi.RemoteException;
 import visad.*;
+import visad.util.*;
 import visad.java3d.*;
 
 /** 
@@ -42,8 +43,17 @@ public class RadarAdapter {
 
   FlatField radar;
 
+  /**
+   * @deprecated
+   */
   public RadarAdapter(float centlat, float centlon, String radarSource,
                       boolean d3d)
+         throws IOException, VisADException {
+    this(centlat, centlon, 0.0f, radarSource, d3d);
+  }
+
+  public RadarAdapter(float centlat, float centlon, float centalt,
+                      String radarSource, boolean d3d)
          throws IOException, VisADException {
     try {
       rf = new RadarFile(radarSource);
@@ -119,15 +129,15 @@ public class RadarAdapter {
     float elevres = 0.1f; // degrees
     int nelev = 1;
     if (d3d) {
-      ref = new RealTupleType
-              (RealType.Latitude, RealType.Longitude, RealType.Altitude);
-      rcs3d = new Radar3DCoordinateSystem(ref, centlat, centlon, radlow, radres,
-                                          azlow, azres, elevlow, elevres);
+      //ref = new RealTupleType
+      //        (RealType.Latitude, RealType.Longitude, RealType.Altitude);
+      rcs3d = new Radar3DCoordinateSystem(centlat, centlon, centalt,
+                   radlow, radres, azlow, azres, elevlow, elevres);
     }
     else {
-      ref = new RealTupleType (RealType.Latitude, RealType.Longitude);
-      rcs2d = new Radar2DCoordinateSystem(ref, centlat, centlon, radlow, radres,
-                                          azlow, azres);
+      //ref = new RealTupleType (RealType.Latitude, RealType.Longitude);
+      rcs2d = new Radar2DCoordinateSystem(centlat, centlon,
+                             radlow, radres, azlow, azres);
     }
 
     RealType azimuth;
@@ -255,7 +265,7 @@ public class RadarAdapter {
     String radarSource = "radar.dat";
     RadarAdapter ra = null;
     try {
-        ra = new RadarAdapter(-30.0f, 140.0f, radarSource, false);
+        ra = new RadarAdapter(-34.9f, 138.5f, 4.0f, radarSource, false);
 
     } catch (Exception e) {
       System.err.println("Caught Exception for \"" + radarSource + "\": " +
@@ -272,18 +282,21 @@ public class RadarAdapter {
 
     DisplayImplJ3D display = new DisplayImplJ3D("radar");
     ScalarMap lonmap = new ScalarMap(RealType.Longitude, Display.XAxis);
-    lonmap.setRange(157.0, 163.0);
+    //lonmap.setRange(130.0, 150.0);
     display.addMap(lonmap);
     ScalarMap latmap = new ScalarMap(RealType.Latitude, Display.YAxis);
     display.addMap(latmap);
-    latmap.setRange(-33.0, -27.0);
-    // ScalarMap reflectionmap = new ScalarMap(reflection, Display.ZAxis);
-    // display.addMap(reflectionmap);
-    // reflectionmap.setRange(0, 6);
+    display.addMap(new ScalarMap(RealType.Altitude, Display.ZAxis));
+    //latmap.setRange(-45.0, -25.0);
+    //ScalarMap reflectionmap = new ScalarMap(reflection, Display.ZAxis);
+    //display.addMap(reflectionmap);
+    //reflectionmap.setRange(0, 6);
     // display.addMap(new ScalarMap(reflection, Display.RGB));
     ScalarMap rgbMap = new ScalarMap(reflection, Display.RGB);
+    //ScalarMap rgbMap = new ScalarMap(reflection, Display.RGBA);
 	  // rgbMap.setRange(0.,6.);
 	display.addMap(rgbMap);
+
 				
 
     GraphicsModeControl mode = display.getGraphicsModeControl();
@@ -308,7 +321,16 @@ public class RadarAdapter {
     frame.setLocation(screenSize.width/2 - WIDTH/2,
                       screenSize.height/2 - HEIGHT/2);
     frame.setVisible(true);
-
+    /*
+    LabeledColorWidget lw = new LabeledColorWidget(rgbMap);
+    JFrame widgetFrame = new JFrame("VisAD Color Widget");
+    widgetFrame.addWindowListener(new WindowAdapter() {
+        public void windowClosing(WindowEvent e) {System.exit(0);}
+    });
+    widgetFrame.getContentPane().add(lw);
+    widgetFrame.setSize(lw.getPreferredSize());
+    widgetFrame.setVisible(true);
+    */
   }
 }
 
