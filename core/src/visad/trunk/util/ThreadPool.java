@@ -66,7 +66,7 @@ public class ThreadPool
   private int nextID = 0;
 
   private class ThreadMinnow
-      extends Thread
+    extends Thread
   {
     private ThreadPool parent = null;
 
@@ -120,7 +120,7 @@ public class ThreadPool
    *  and the default minimum and maximum numbers of threads
    */
   public ThreadPool()
-        throws Exception
+    throws Exception
   {
     this(DEFAULT_PREFIX, DEFAULT_MIN_THREADS, DEFAULT_MAX_THREADS);
   }
@@ -129,7 +129,7 @@ public class ThreadPool
    *  the default minimum and maximum numbers of threads
    */
   public ThreadPool(String prefix)
-        throws Exception
+    throws Exception
   {
     this(prefix, DEFAULT_MIN_THREADS, DEFAULT_MAX_THREADS);
   }
@@ -139,7 +139,7 @@ public class ThreadPool
    *  of threads
    */
   public ThreadPool(int max)
-        throws Exception
+    throws Exception
   {
     this(DEFAULT_MIN_THREADS, max);
   }
@@ -148,7 +148,7 @@ public class ThreadPool
    *  numbers of threads, and the default thread name prefix
    */
   public ThreadPool(int min, int max)
-        throws Exception
+    throws Exception
   {
     this(DEFAULT_PREFIX, min, max);
   }
@@ -157,7 +157,7 @@ public class ThreadPool
    *  minimum and maximum numbers of threads
    */
   public ThreadPool(String prefix, int min, int max)
-        throws Exception
+    throws Exception
   {
     minThreads = min;
     maxThreads = max;
@@ -268,7 +268,7 @@ public class ThreadPool
 
   /** increase the maximum number of pooled threads */
   public void setThreadMaximum(int num)
-        throws Exception
+    throws Exception
   {
     if (num < maxThreads) {
       throw new Exception("Cannot decrease maximum number of threads");
@@ -318,24 +318,24 @@ public class ThreadPool
  * 'SimpleTask.java':
  *
  * import java.util.Random;
- * 
+ *
  * import visad.util.ThreadPool;
- * 
+ *
  * public class SimpleTask implements Runnable {
  *   private static Random rand = new Random();
- * 
+ *
  *   private int count = 0;
- * 
+ *
  *   public SimpleTask() { }
- * 
+ *
  *   public void run()
  *   {
  *     count++;
  *     try { Thread.sleep((rand.nextInt() % 10), 0); } catch (Throwable t) { }
  *   }
- * 
+ *
  *   public int getCount() { return count; }
- * 
+ *
  *   public static void main(String[] args)
  *   {
  *     ThreadPool pool;
@@ -346,24 +346,24 @@ public class ThreadPool
  *       System.exit(1);
  *       return;
  *     }
- * 
+ *
  *     // give threads a chance to start up
  *     try { Thread.sleep(100, 0); } catch (Throwable t) { }
- * 
+ *
  *     SimpleTask[] task = new SimpleTask[4];
  *     for (int i = 0; i < task.length; i++) {
  *       task[i] = new SimpleTask();
  *     }
- * 
+ *
  *     for (int i = 0; i < 10; i++) {
  *       for (int j = 0; j < task.length; j++) {
  *         pool.queue(task[j]);
  *       }
  *       try { Thread.sleep(10, 0); } catch (Throwable t) { }
  *     }
- * 
+ *
  *     pool.stopThreads();
- * 
+ *
  *     boolean success = true;
  *     for (int i = 0; i < task.length; i++) {
  *       int c = task[i].getCount();
@@ -372,9 +372,9 @@ public class ThreadPool
  *         success = false;
  *       }
  *     }
- * 
+ *
  *     if (success) System.out.println("Success!");
  *   }
  * }
- * 
+ *
  */

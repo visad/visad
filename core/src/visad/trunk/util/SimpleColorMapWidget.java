@@ -80,7 +80,7 @@ public class SimpleColorMapWidget
     }
 
     if (table != null && (table[0] == null || table[0].length < 3 ||
-                                 table[0].length > 4))
+                          table[0].length > 4))
     {
       throw new VisADException("Bad initial table");
     }

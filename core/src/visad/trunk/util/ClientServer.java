@@ -108,7 +108,7 @@ public class ClientServer
         System.err.println(" giving up!");
       }
       throw new VisADException("Cannot connect to " + hostName +
-                                        ":" + serviceName);
+                               ":" + serviceName);
     } else if (loops > 0) {
       if (verbose) {
         System.err.println(" connected");
@@ -183,14 +183,12 @@ public class ClientServer
 
       try {
         rmtDpy = client.getDisplay(index);
-if (rmtDpy == null) System.err.println("Null dpy " + index + " (#" + loops + ")");
       } catch (java.rmi.ConnectException ce) {
-ce.printStackTrace();
+        ce.printStackTrace();
       }
 
       // if we didn't get the display, print a message and wait a bit
       if (rmtDpy == null) {
-try { RemoteDisplay[] rd = client.getDisplays(); System.err.println("Server has " + rd.length + " dpys (" + rd[0] + ")");} catch (Exception e) { e.printStackTrace(); }
         if (loops == 0) {
           System.err.print("Client waiting for server display #" + index +
                            " ");
