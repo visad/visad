@@ -302,6 +302,11 @@ public class TupleType extends MathType {
   }
 
 
+  /**
+   * Is this a "flat" tuple?
+   *
+   * @return true if all components are RealType or RealTupleType.
+   */
   public boolean getFlat() {
     return Flat;
   }
