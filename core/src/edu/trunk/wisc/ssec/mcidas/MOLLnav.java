@@ -126,7 +126,7 @@ public final class MOLLnav extends AREAnav
         if(iwest < 0) kwest=1;
         if(icord < 0) kcord=-1;
 
-        for (i = 0; i < 101; i++)
+        for (i = 0; i < tlat.length; i++)
         {
             x = i/100.;
             if (x >= 1.)
@@ -338,8 +338,9 @@ public final class MOLLnav extends AREAnav
                      ? - latlon[indexLon][point]
                      :  latlon[indexLon][point];
 
-            // WLH 8 Macrh 2000
-            if (xlat != xlat || xlon != xlon) {
+            // WLH 8 March 2000
+            if (Double.isNaN(xlat) || Double.isNaN(xlon) ||
+                (Math.abs(xlat) > 90.) ) {   // DRM 10 June 2003
               xele = Double.NaN;
               xlin = Double.NaN;
             }
