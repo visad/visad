@@ -473,8 +473,8 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
          throws VisADException, RemoteException {
 
     DisplayImpl display =
-      new DisplayImplJ3D("display", new ClientDisplayRendererJ3D(),
-                         DisplayImplJ3D.TRANSFORM_ONLY);
+      new DisplayImplJ3D("display", new ClientDisplayRendererJ3D());
+                         // DisplayImplJ3D.TRANSFORM_ONLY);
 
     // create JFrame (i.e., a window) for display and slider
     JFrame frame = new JFrame("test ClientRendererJ3D");
@@ -490,7 +490,7 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
     frame.getContentPane().add(panel);
 
     // add display to JPanel
-    // panel.add(display.getComponent());
+    panel.add(display.getComponent());
 
     // set size of JFrame and make it visible
     frame.setSize(500, 500);

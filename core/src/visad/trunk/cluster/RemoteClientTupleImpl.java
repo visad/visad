@@ -40,6 +40,7 @@ public class RemoteClientTupleImpl extends RemoteClientDataImpl
 
   private Tuple adaptedTuple = null;
   private DataReferenceImpl adaptedTupleRef = null;
+  private boolean allReal = false;
 
   /**
      must call setupClusterData after constructor to finish the
@@ -55,14 +56,23 @@ public class RemoteClientTupleImpl extends RemoteClientDataImpl
     if (n == 0) {
       throw new ClusterException("datums.length must be > 0");
     }
+    allReal = true;
     for (int i=0; i<n; i++) {
       if (!(datums[i] instanceof DataImpl ||
             datums[i] instanceof RemoteClientDataImpl)) {
         throw new ClusterException("datums must be DataImpl " +
                                    "or RemoteClientDataImpl");
       }
+      if (!(datums[i] instanceof Real)) allReal = false;
     }
-    adaptedTuple = new Tuple(datums, false); // no copy
+    if (allReal) {
+      Real[] reals = new Real[n];
+      for (int i=0; i<n; i++) reals[i] = (Real) datums[i];
+      adaptedTuple = new RealTuple(reals);
+    }
+    else {
+      adaptedTuple = new Tuple(datums, false); // no copy
+    }
     // set this as parent for RemoteClientDataImpls
     boolean any_local = false;
     for (int i=0; i<n; i++) {

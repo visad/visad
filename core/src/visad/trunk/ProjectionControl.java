@@ -91,6 +91,7 @@ public abstract class ProjectionControl extends Control {
    */
   public void setMatrix(double[] m)
          throws VisADException, RemoteException {
+    if (m == null) return;
     if (m.length != matrix.length) {
       throw new DisplayException("setMatrix: input length must be " +
                                  matrix.length);

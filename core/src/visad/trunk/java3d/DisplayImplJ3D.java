@@ -289,7 +289,7 @@ public class DisplayImplJ3D extends DisplayImpl {
       throw new DisplayException("DisplayImplJ3D: bad graphics API " + api);
     }
     // initialize projection
-    projection.setAspect(new double[] {1.0, 1.0, 1.0});
+    if (api != TRANSFORM_ONLY) projection.setAspect(new double[] {1.0, 1.0, 1.0});
 
     // a GraphicsModeControl always exists
     mode = new GraphicsModeControlJ3D(this);
