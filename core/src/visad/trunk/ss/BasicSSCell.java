@@ -897,6 +897,11 @@ public class BasicSSCell extends JPanel {
     list.removeAllElements();
   }
 
+  // CTR
+  int getFirstFreeID() { return 0; }
+  FormulaManager getFormulaManager() { return null; }
+  void notifySSCellListeners(int type, String name) { }
+
   /** notify SSCellListeners that change occurred */
   private void notifyListeners(int changeType) {
     SSCellChangeEvent e = new SSCellChangeEvent(this, changeType);
@@ -1730,7 +1735,7 @@ public class BasicSSCell extends JPanel {
       }
       MathType type = dr.getData().getType();
       try {
-        ImageRendererJ3D.verifyImageRendererUsable(type, maps);
+        ImageRendererJ3D.isRendererUsable(type, maps);
         VDisplay.addReferences(new ImageRendererJ3D(), dr);
       }
       catch (VisADException exc) {
