@@ -56,7 +56,9 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
     texCoords = null;
   }
 
-  /** default case: do nothing */
+  /** eliminate any vectors or trianlges crossing seams of
+      map projections, defined by display-side CoordinateSystems
+      this default implementation does nothing */
   public VisADGeometryArray adjustSeam(DataRenderer renderer)
          throws VisADException {
     CoordinateSystem coord_sys = renderer.getDisplayCoordinateSystem();
@@ -68,13 +70,19 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
     return this;
   }
 
+  /** like adjustLongitude, but rather than splitting vectors or
+      triangles, keep the VisADGeometryArray intact but possibly
+      move it in longitude (try to keep its centroid on the "main"
+      side of the seam) */
   public VisADGeometryArray adjustLongitudeBulk(DataRenderer renderer)
          throws VisADException {
-    float[] lons = getLongitudes(renderer, true);
+    float[] lons = getLongitudes(renderer, true); // bulk = true
     return this;
   }
 
-  /** default case: rotate if necessary, then return points */
+  /** split any vectors or trianlges crossing crossing longitude
+      seams when Longitude is mapped to a Cartesian display axis;
+      default implementation: rotate if necessary, then return points */
   public VisADGeometryArray adjustLongitude(DataRenderer renderer)
          throws VisADException {
     float[] lons = getLongitudes(renderer);
