@@ -1204,6 +1204,548 @@ public class FieldImpl extends FunctionImpl implements Field {
 
     return new_field;
   }
+  public Field domainFactor( RealType factor )
+         throws VisADException, RemoteException
+  {
+    int factorIndex;
+    Set factor_domain = null;
+    int length;
+    int[] lengths = null;
+    int[] new_lengths = null;
+    int[] dim_lengths = null;
+    int[] dim_product = null;
+    int[] sub_domain = null;
+    Set new_domain = null;
+    RealTupleType new_domain_type = null;
+    FieldImpl new_field = null;
+    FieldImpl factor_field = null;
+    FunctionType new_type = null;
+    double[][] new_range_values = null;
+    double[][] old_range_values = null;
+    Data range;
+    Data[] new_range_data = null;
+   
+    int ii, jj, kk, cnt;
+    int mm, nn, index;
+
+    RealTupleType domainType = ((FunctionType)Type).getDomain();
+    MathType rangeType = ((FunctionType)Type).getRange();
+    int domainDim = domainType.getDimension();
+    RealType[] r_types = new RealType[domainDim - 1];
+
+    if ((factorIndex = domainType.getIndex((MathType)factor)) < 0 ) {
+      throw new VisADException(
+        "domainFactor: factor not element of domain");
+    }
+    cnt = 0;
+    for ( ii = 0; ii < domainDim; ii++ ) {
+      if ( ii != factorIndex ) {
+        r_types[cnt++] = (RealType) domainType.getComponent(ii);
+      }
+    }
+    new_domain_type = new RealTupleType(r_types);
+ 
+    if ( DomainSet instanceof LinearSet )
+    {
+      factor_domain = ((LinearSet)DomainSet).getLinear1DComponent( factorIndex );
+      dim_lengths = ((GriddedSet)DomainSet).getLengths();
+
+      Linear1DSet[] L1D_sets = new Linear1DSet[domainDim - 1];
+      new_lengths = new int[ domainDim - 1 ];
+      sub_domain = new int[domainDim - 1];
+      cnt = 0;
+      for ( ii = 0; ii < domainDim; ii++ ) {
+        if ( ii != factorIndex ) {
+          L1D_sets[cnt] = ((LinearSet)DomainSet).getLinear1DComponent(ii);
+          new_lengths[cnt] = L1D_sets[cnt].LengthX;
+          sub_domain[cnt] = ii;
+          cnt++;
+        }
+      }
+      new_domain = new LinearNDSet( new_domain_type, L1D_sets );
+      new_type = new FunctionType( new_domain_type, rangeType );
+    }
+    else if ( DomainSet instanceof GriddedSet )
+    {
+      //- check for R^N aligned set?  If aligned then should
+      //- be created as a ProductSet for efficiency
+      throw new VisADException(
+        "domainFactor: DomainSet is GriddedSet, if aligned use ProductSet" );
+    }
+    else if ( DomainSet instanceof ProductSet )
+    {
+      ProductSet prod_set = (ProductSet)((ProductSet)DomainSet).product();
+      SampledSet[] sets = prod_set.Sets;
+      int n_sets = sets.length;
+      SampledSet[] sub_sets = new SampledSet[n_sets - 1];
+      SampledSet factor_set = null;
+      SampledSet fin_factor_set = null;
+      int sub_factor_index = -1;
+      int fac_set_idx = -1;
+      int fac_set_len = -1;
+      int[] sub_set_idx = new int[n_sets - 1];
+      int[] sub_set_lengths = new int[n_sets - 1];
+      cnt = 0;
+      for ( kk = 0; kk < n_sets; kk++ ) { 
+        SetType s_type = (SetType) sets[kk].getType();
+        if ((sub_factor_index = s_type.getDomain().getIndex((MathType)factor)) > 0 ) {
+          factor_set = sets[kk];
+          fac_set_idx = kk;
+          fac_set_len = factor_set.getLength();
+        }
+        else {
+          sub_sets[cnt] = sets[kk];
+          sub_set_idx[cnt] = kk;
+          sub_set_lengths[cnt] = sets[kk].getLength();
+          cnt++;
+        }
+      }
+
+      int factor_set_dim = factor_set.getDimension();
+      int n_sub_sets = sub_sets.length;
+  
+      if ( factor_set_dim == 1 ) 
+      {
+        fin_factor_set = factor_set;
+        new_lengths = new int[n_sub_sets];
+        sub_domain = new int[n_sub_sets];
+        dim_lengths = new int[n_sets];
+        if ( n_sub_sets > 1 ) {
+          new_domain = (Set) new ProductSet(sub_sets);
+        }
+        else {
+          new_domain = (Set) sub_sets[0];
+        }
+        factor_domain = factor_set;
+        System.arraycopy(sub_set_lengths, 0, new_lengths, 0, n_sub_sets); 
+        System.arraycopy(sub_set_idx, 0, sub_domain, 0, n_sub_sets); 
+        for ( ii = 0; ii < n_sub_sets; ii++ ) {
+          dim_lengths[sub_set_idx[ii]] = sub_set_lengths[ii]; 
+        }
+        dim_lengths[fac_set_idx] = fac_set_len;
+      }
+      else if (!(factor_set instanceof LinearNDSet )) 
+      { 
+        throw new VisADException(
+          "cannot factor into "+factor_set.getClass());
+      }
+      else 
+      {
+        MathType n_type = null;
+        new_lengths = new int[n_sub_sets + 1];
+        sub_domain = new int[n_sub_sets + 1];
+        dim_lengths = new int[n_sets + 1];
+        Linear1DSet[] L1D_sets = new Linear1DSet[factor_set_dim - 1];
+        cnt = 0;
+        for ( ii = 0; ii < factor_set_dim; ii++ ) {
+          if ( ii != sub_factor_index ) {
+            L1D_sets[cnt] = ((LinearSet)DomainSet).getLinear1DComponent(ii);
+            cnt++;
+          }
+          else {
+            fin_factor_set = ((LinearSet)DomainSet).getLinear1DComponent(ii);
+          }
+        }
+        Set new_set = new LinearNDSet(n_type, L1D_sets);
+        cnt = 0;
+        System.arraycopy(sub_set_lengths, 0, new_lengths, 0, fac_set_idx);
+        System.arraycopy(sub_set_idx, 0, sub_domain, 0, fac_set_idx);
+        cnt += fac_set_idx;
+        new_lengths[fac_set_idx] = new_set.getLength();
+        cnt += 1;
+        System.arraycopy(sub_set_lengths, fac_set_idx, new_lengths, cnt, 
+                         (n_sub_sets - fac_set_idx));
+        System.arraycopy(sub_set_idx, fac_set_idx, sub_domain, cnt, 
+                         (n_sub_sets - fac_set_idx));
+      }
+    }
+    else if ( DomainSet instanceof UnionSet )
+    {
+      throw new UnimplementedException(
+        "domainFactor: DomainSet is UnionSet" );
+    }
+    else if ( DomainSet instanceof IrregularSet )
+    {
+      throw new VisADException(
+        "domainFactor: DomainSet is IrregularSet, can't factor" );
+    }
+
+    length = factor_domain.getLength();
+    new_range_data = new Data[ length ];
+
+    dim_product = new int[domainDim];
+    for ( kk = 0; kk < domainDim; kk++ ) {
+      dim_product[kk] = 1;
+      for ( mm = 0; mm < kk; mm++ ) {
+        dim_product[kk] *= dim_lengths[mm];
+      }
+    }
+
+    int s_dims = new_lengths.length;
+    int[] indexes = new int[ s_dims ];
+    int product = 1;
+    for ( ii = 0; ii < s_dims; ii++ ) {
+      product *= new_lengths[ii];
+    }
+    int[] work = new int[product];
+
+    for ( int k = 0; k < product; k++ )
+    {
+      int k2 = k;
+      for ( int j = (s_dims-1); j >= 0; j-- ) {
+        int temp = 1;
+        for ( int m = 0; m < j; m++  ) {
+          temp *= new_lengths[m];
+        }
+        indexes[j] = k2/temp;
+        k2 -= temp*indexes[j];
+      }
+      for ( int t = 0; t < indexes.length; t++ ) {
+        work[k] += dim_product[sub_domain[t]]*indexes[t];
+      }
+    } 
+
+    if ( isFlatField() )
+    {
+      old_range_values = getValues();
+      int tup_dim = old_range_values.length;
+      new_range_values = new double[tup_dim][work.length];
+
+      for ( ii = 0; ii < length; ii++ )
+      {
+        new_field = new FlatField( new_type, new_domain );
+        for ( jj = 0; jj < work.length; jj++ ) {
+          index = 0;
+          index = ii*dim_product[factorIndex];
+          index += work[jj];
+          for ( kk = 0; kk < tup_dim; kk++ ) {
+            new_range_values[kk][jj] = old_range_values[kk][ index ];
+          }
+        }
+        ((FlatField)new_field).setSamples( new_range_values );
+        new_range_data[ii] = new_field;
+      }
+    }
+    else
+    {
+      for ( ii = 0; ii < length; ii++ )
+      {
+        new_field = new FieldImpl( new_type, new_domain );
+        for ( jj = 0; jj < work.length; jj++ ) {
+          index = 0;
+          index = ii*dim_product[factorIndex];
+          index += work[jj];
+          new_range_data[jj] = this.getSample(index);
+        }
+        new_field.setSamples( new_range_data, false );
+        new_range_data[ii] = new_field;
+      }
+    }
+    factor_field = new FieldImpl( new FunctionType( factor, new_type),
+                                  factor_domain );
+    factor_field.setSamples( new_range_data, false );
+    return factor_field;
+  }
+
+  public Field domainMultiply()
+         throws VisADException, RemoteException
+  {
+    class Helper
+    {
+      int cnt = 0;
+      int n_samples;
+      int depth;
+      int depth_max;
+      boolean flat;
+      MathType range_type;
+      MathType new_range_type;
+      SampledSet[] last_set;
+      SampledSet[] fac_sets;
+      Object[] collapse_array;
+
+      public Helper(Data data)
+             throws VisADException, RemoteException
+      {
+        MathType m_type = data.getType();
+
+        depth = 0;
+        flat = false;
+        depth_max = checkType( m_type );
+        if ( depth_max == 0 )
+        {
+          throw new FieldException("MathType "+m_type.prettyString());
+        }
+        last_set = new SampledSet[depth_max + 1];
+        depth = 0;
+        if ( !(setsEqual((Field)data)) )
+        {
+          throw new FieldException("sets not equal");
+        }
+
+        int length = 1;
+        for ( int kk = 0; kk < depth_max; kk++ ) {
+          length *= last_set[kk].getLength();
+        }
+        collapse_array = new Object[length];
+
+        depth = 0;
+        collapse( data );
+      }
+
+      public SampledSet[] getSets() {
+        int length = last_set.length;
+        fac_sets = new SampledSet[length];
+        for ( int ii = 0; ii < length; ii++ ) {
+          fac_sets[(length-1) - ii] = last_set[ii];
+        } 
+        return fac_sets;
+      }
+ 
+      public Object[] getRangeArray() {
+        return collapse_array;
+      }
+
+      public MathType getRangeType() {
+        return new_range_type;
+      }
+
+      public int checkType(MathType m_type)  //-- analyze Data hierarchy
+             throws VisADException, RemoteException
+      {
+        if ( m_type instanceof FunctionType )
+        {
+          if (((FunctionType)m_type).getFlat())
+          {
+            flat = true;
+            new_range_type = ((FunctionType)m_type).getRange();
+            return depth;
+          }
+          else
+          {
+            range_type = ((FunctionType)m_type).getRange();
+            depth++;
+            return checkType(range_type);
+          }
+        }
+        else
+        {
+          new_range_type = m_type;
+          return depth;
+        }
+      }
+
+      public void collapse( Data data )  
+             throws VisADException, RemoteException
+      {
+        if ( depth == depth_max ) 
+        {
+          if ( flat ) 
+          { 
+            double[][] values = ((FieldImpl)data).getValues();
+            collapse_array[cnt++] = values;
+          }
+          else
+          {
+            collapse_array[cnt++] = data;
+          }
+        }
+        else 
+        {
+          depth++;
+          n_samples = (((Field)data).getDomainSet()).getLength();
+          for ( int ii = 0; ii < n_samples; ii++ ) {
+            collapse(((FieldImpl)data).getSample(ii));
+          }
+        }
+      }
+
+      public boolean setsEqual( Field field )
+             throws VisADException, RemoteException
+      {
+        Set domainSet = field.getDomainSet();
+        int n_samples = domainSet.getLength();
+
+        if ( depth == 0 ) {
+          last_set[depth] = (SampledSet)domainSet;
+        }
+
+        depth++;
+
+        if (last_set[depth] == null ) {
+          last_set[depth] = (SampledSet)((Field)(field.getSample(0))).getDomainSet();
+        }
+
+        for ( int ii = 0; ii < n_samples; ii++ )
+        {
+          Field range_data = (Field) field.getSample(ii);
+          Set range_set = range_data.getDomainSet();
+
+          if ( !(last_set[depth].equals(range_set)) )
+          {
+            return false;
+          }
+          if ( !(depth == (depth_max)) ) 
+          {
+            if ( !(setsEqual(range_data)) ) 
+            {
+              return false;
+            }
+            depth--;
+          }
+        }
+
+        return true;
+      }
+    } //- end helper class
+
+    int cnt;
+    SampledSet new_set = null;
+
+    int n_irregular = 0;
+    int n_linear = 0;
+    int new_domainDim = 0;
+    int new_manifoldDim = 0;
+
+    Helper helper = new Helper(this);
+    SampledSet[] fac_sets = helper.getSets();
+    int n_sets = fac_sets.length;
+    Object[] new_range = helper.getRangeArray();
+    MathType new_range_type = helper.getRangeType();
+
+    SetType[] set_types = new SetType[n_sets];
+    int new_length = 1;
+    for ( int kk = 0; kk < n_sets; kk++ ) 
+    {
+      new_length *= fac_sets[kk].getLength();
+      new_domainDim += fac_sets[kk].getDimension();
+      new_manifoldDim += fac_sets[kk].getManifoldDimension();
+      set_types[kk] = (SetType) fac_sets[kk].getType();
+
+      if ( fac_sets[kk] instanceof IrregularSet ) {
+        n_irregular++;
+      }
+      else if ( fac_sets[kk] instanceof LinearSet ) {
+        n_linear++;
+      }
+    }
+    RealType[] r_types = new RealType[new_domainDim];
+    cnt = 0;
+    for ( int kk = 0; kk < n_sets; kk++ ) {
+      RealTupleType domain = set_types[kk].getDomain();
+      for ( int j = 0; j < domain.getDimension(); j++ ) {
+        r_types[cnt++] = (RealType) domain.getComponent(j);
+      }
+    }
+    RealTupleType new_domain_type = new RealTupleType( r_types );
+    FunctionType new_function_type = new FunctionType( new_domain_type,
+                                                       new_range_type );
+
+    if ( n_irregular > 0 ) //- if any irregular sets --> ProductSet
+    {
+      new_set = new ProductSet(fac_sets);
+    }
+    else if ( n_linear == n_sets )  //- all Linear sets
+    {
+       //- make new LinearNDSet --
+    }
+    else  //- some Linear, some Gridded --> GriddedNDSet
+    {
+      Set set;
+      int sub_manifoldDim;
+      int domainDim;
+      int[] lengths;
+      float[][] samples;
+      float[][] new_samples = new float[new_domainDim][new_length];
+      float[][] sub_samples = new float[new_domainDim][];
+      
+      int[][] manifoldLengths = new int[new_domainDim][];
+      int[][] manifoldIndexes = new int[new_domainDim][];
+      int[] new_lengths = new int[new_manifoldDim];
+      cnt = 0;
+      int cnt_m = 0;
+      int manifoldDimension = 0;
+      for ( int kk = 0; kk < n_sets; kk++ )
+      {
+        set = fac_sets[kk];
+        samples = ((SampledSet)set).getSamples();
+        domainDim = set.getDimension();
+        sub_manifoldDim = set.getManifoldDimension();
+        lengths = ((GriddedSet)set).getLengths();
+        for ( int ii = 0; ii < domainDim; ii++ ) {
+          sub_samples[cnt] = samples[ii];
+          manifoldLengths[cnt] = lengths;
+          manifoldIndexes[cnt] = new int[sub_manifoldDim];
+          for ( int jj = 0; jj < sub_manifoldDim; jj++ ) {
+            manifoldIndexes[cnt][jj] = jj + manifoldDimension;
+          }
+          cnt++;
+        }
+        for ( int ii = 0; ii < sub_manifoldDim; ii++ ) {
+          new_lengths[cnt_m++] = lengths[ii];
+        }
+        manifoldDimension += sub_manifoldDim;
+      }
+
+      int[] indexes = new int[new_manifoldDim];
+      for ( int k = 0; k < new_length; k++ ) 
+      {
+        int k2 = k;
+        for ( int j = (new_manifoldDim - 1); j >= 0; j-- ) {
+          int temp = 1;
+          for ( int m = 0; m < j; m++  ) {
+            temp *= new_lengths[m];
+          }
+          indexes[j] = k2/temp;
+          k2 -= temp*indexes[j];
+        }
+
+        for ( int ii = 0; ii < new_domainDim; ii++ ) 
+        {
+          int sub_index = 0;
+          for ( int mm = (manifoldIndexes[ii].length - 1); mm >= 0; mm-- ) {
+            int product = 1;
+            for ( int nn = 0; nn < mm; nn++ ) {
+              product *= manifoldLengths[ii][nn];
+            }
+            product *= indexes[manifoldIndexes[ii][mm]];
+            sub_index += product;
+          }
+          new_samples[ii][k] = sub_samples[ii][sub_index];
+        }
+      } 
+    
+      new_set = new GriddedSet(new_domain_type, new_samples, new_lengths ); 
+    }
+    Field new_field;
+    if ( new_function_type.getFlat() ) 
+    {
+      new_field = new FlatField( new_function_type, new_set );
+      int tup_dim = 
+        (new_function_type.getFlatRange()).getDimension();
+      double[][] new_values = 
+        new double[tup_dim][new_length];
+
+      cnt = 0;
+      double[][] sub_range;
+      for ( int ii = 0; ii < new_range.length; ii++ ) {
+        sub_range = ((double[][]) new_range[ii]);
+        int len = sub_range[0].length;
+        for ( int jj = 0; jj < tup_dim; jj++ ) {
+          System.arraycopy(sub_range[jj], 0, new_values[jj], cnt, len);
+        }
+        cnt += len;
+      }
+    }
+    else
+    {
+      new_field = new FieldImpl( new_function_type, new_set );
+      for ( int ii = 0; ii < new_length; ii++ ){
+        new_field.setSample(ii,((Data)new_range[ii]));
+      }
+    }
+
+    return new_field;
+  }
 
   public Data derivative( RealTuple location, RealType[] d_partial_s,
                           MathType[] derivType_s, int error_mode )
@@ -2053,6 +2595,80 @@ class FieldEnumerator implements Enumeration {
       return null;
     }
   }
-
 }
 
+/**
+  class NDhelper
+  {
+    int n_dims;
+    int d = 0;
+    int cnt = 0;
+    int[] lengths;
+    int[] dim_product;
+    int[] sub_domain;
+    int[] indexes;
+    int[][] all;
+    int[] work;
+    int product;
+
+    NDhelper( int[] lengths, int[] dim_product, int[] sub_domain )
+    {
+      this.lengths = lengths;
+      this.n_dims = lengths.length;
+      this.indexes = new int[ n_dims ];
+      this.dim_product = dim_product;
+      this.sub_domain = sub_domain;
+      product = 1;
+      for ( int i = 0; i < n_dims; i++ ) {
+        product *= lengths[i];
+      }
+      work = new int[product];
+
+      permute();
+    }
+    void permute()
+    {
+      if ( d == indexes.length )
+      {
+        work[cnt] = 0;
+        for ( int k = 0; k < indexes.length; k++ ) {
+          work[cnt] += dim_product[sub_domain[k]]*indexes[(n_dims-1) - k];
+        }
+        cnt++;
+      }
+      else
+      {
+        for ( int i = 0; i < lengths[(n_dims-1) - d]; i++ )
+        {
+          indexes[d] = i;
+          d++;
+          permute();
+          d--;
+        }
+      }
+    }
+    public int[] getPermutations()
+    {
+      return work;
+    }
+
+    void permute()
+    {
+      for ( int k = 0; k < product; k++ ) 
+      {
+        int k2 = k;
+        for ( int j = (n_dims-1); j == 0; j-- ) {
+          int temp = 1;
+          for ( int m = 0; m < j; m++  ) {
+            temp *= lengths[m];
+          }
+          indexes[j] = k2/temp;
+          k2 -= temp*indexes[j];
+        }
+        for ( int t = 0; t < indexes.length; t++ ) {
+          work[k] += dim_product[sub_domain[t]]*indexes[(n_dims-1) - t];
+        }
+      }    
+    }
+  }
+ **/
