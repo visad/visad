@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NetcdfQuantityDB.java,v 1.6 1998-11-16 18:23:42 steve Exp $
+ * $Id: NetcdfQuantityDB.java,v 1.7 1999-01-07 17:01:30 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -36,24 +36,23 @@ NetcdfQuantityDB
 	
     /**
      * Return the VisAD quantity corresponding to the best combination of
-     * long name, name, and unit.
+     * long name and name.
      *
      * @param longName	The long name of the quantity.  May be 
      *			<code>null</code>.
      * @param name	The name of the quantity.
-     * @param unit	The unit of the quantity.  May be <code>null</code>.
      * @return		The corresponding, unique, VisAD quantity or 
      *			<code>null</code> if no such quantity exists.
      */
     public Quantity
-    getBest(String longName, String name, Unit unit)
+    getBest(String longName, String name)
     {
 	Quantity	quantity = longName == null
 					? null
-					: getBest(longName, unit);
+					: get(longName);
 
 	return quantity != null
 		? quantity
-		: getBest(name, unit);
+		: get(name);
     }
 }

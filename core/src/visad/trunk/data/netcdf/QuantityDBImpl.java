@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: QuantityDBImpl.java,v 1.1 1998-11-16 18:23:40 steve Exp $
+ * $Id: QuantityDBImpl.java,v 1.2 1999-01-07 17:01:29 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -37,7 +37,7 @@ QuantityDBImpl
     extends	QuantityDB
 {
     /**
-     * The (Name, Unit) -> Quantity map (major key: name).
+     * The (Name) -> Quantity map.
      */
     private final TreeMap		nameMap = new TreeMap();
 
@@ -80,8 +80,8 @@ QuantityDBImpl
     {
 	Unit	unit = quantity.getDefaultUnit();
 
-	nameMap.put(new NameKey(name, unit), quantity);
-	unitMap.put(new UnitKey(name, unit), quantity);
+	nameMap.put(new NameKey(name), quantity);
+	unitMap.put(new UnitKey(unit, name), quantity);
     }
 
 
@@ -113,19 +113,16 @@ QuantityDBImpl
 
 
     /**
-     * Return all quantities in the database whose name matches a 
+     * Return the quantity in the database whose name matches a 
      * given name.
      *
      * @param name	The name of the quantity.
-     * @return		The quantities in the loal database with name
-     *			<code>name</code> and whose unit is convertible with
-     *			<code>unit</code>.
+     * @return		The quantity in the loal database with name
+     *			<code>name</code>.
      */
-    public synchronized Quantity[] get(String name)
+    public synchronized Quantity get(String name)
     {
-	return (Quantity[])nameMap.subMap(
-	    new NameKey(name, minUnit), new NameKey(name, maxUnit))
-		.values().toArray(new Quantity[0]);
+	return (Quantity)nameMap.get(new NameKey(name));
     }
 
 
@@ -140,42 +137,69 @@ QuantityDBImpl
     public synchronized Quantity[] get(Unit unit)
     {
 	return (Quantity[])unitMap.subMap
-	    (new UnitKey(minName, unit), new UnitKey(maxName, unit))
+	    (new UnitKey(unit, minName), new UnitKey(unit, maxName))
 		.values().toArray(new Quantity[0]);
     }
 
 
     /**
-     * Return the quantity in the database whose name matches a given name and
-     * whose default unit is convertible with a given unit.
+     * Provides support for keys to the name map.
      *
-     * @param name	The name of the quantity.
-     * @param unit	The unit of the quantity.
-     * @return		The quantity in the database with name <code>name</code>
-     *			and whose unit is convertible with <code>unit</code>,
-     *			or <code>null</code> if no such quantity exists.
+     * Immutable.
      */
-    public synchronized Quantity get(String name, Unit unit)
+    protected static class
+    NameKey
+	implements	Serializable, Comparable
     {
-	Quantity	quantity =
-	    (Quantity)nameMap.get(new NameKey(name, unit));
+	/**
+	 * The Collator for the name.
+	 */
+	private static final Collator	collator;
 
-	return quantity;
+	/**
+	 * The comparison value for the name of the quantity.
+	 */
+	private final CollationKey	nameCookie;
+
+
+	static
+	{
+	    collator = Collator.getInstance();
+	    collator.setStrength(Collator.PRIMARY);
+	}
+
+
+	/**
+	 * Constructs from the name of a quantity.
+	 *
+	 * @param name	The name of the quantity.
+	 */
+	protected NameKey(String name)
+	{
+	    nameCookie = collator.getCollationKey(name);
+	}
+
+
+	/**
+	 * Compare this key to another.
+	 */
+	public int compareTo(Object obj)
+	  throws ClassCastException
+	{
+	    return nameCookie.compareTo(((NameKey)obj).nameCookie);
+	}
     }
 
 
     /**
-     * The following class is the abstract superclass of the map keys.
+     * Provides support for keys to the unit map.
+     *
+     * Immutable.
      */
-    private static abstract class
-    Key
-	implements	Serializable, Comparable
+    protected static final class
+    UnitKey
+	extends	NameKey
     {
-	/**
-	 * The comparison value for the name of the quantity.
-	 */
-	protected final CollationKey	name;
-
 	/**
 	 * The default unit of the quantity.
 	 */
@@ -183,37 +207,37 @@ QuantityDBImpl
 
 
 	/**
-	 * Construct from the name of a quantity and its unit.
+	 * Constructs from the unit of a quantity and its name.
 	 *
-	 * @param name	The name of the quantity.
 	 * @param unit	The default unit of the quantity.
+	 * @param name	The name of the quantity.
 	 */
-	protected Key(CollationKey name, Unit unit)
+	protected UnitKey(Unit unit, String name)
 	{
-	    this.name = name;
+	    super(name);
 	    this.unit = unit;
 	}
 
 
 	/**
-	 * Compare this key to another (name first).  Overridden in UnitKey.
+	 * Compare this key to another (unit first).
 	 */
 	public int compareTo(Object obj)
 	  throws ClassCastException
 	{
-	    Key	that = (Key)obj;
-	    int	i = this.name.compareTo(that.name);
+	    UnitKey	that = (UnitKey)obj;
+	    int		i = compare(this.unit, that.unit);
 
 	    return i != 0
-		       ? i
-		       : compare(this.unit, that.unit);
+		      ? i
+		      : super.compareTo(that);
 	}
 
 
 	/**
 	 * Compare one Unit to another.
 	 */
-	protected int compare(Unit a, Unit b)
+	private int compare(Unit a, Unit b)
 	  throws ClassCastException
 	{
 	    int	comparison;
@@ -250,84 +274,6 @@ QuantityDBImpl
 		}
 	    }
 	    return comparison;
-	}
-    }
-
-
-    /**
-     * The following class implements the key to the name map.
-     *
-     * Immutable.
-     */
-    protected static final class
-    NameKey
-	extends	Key
-    {
-	/**
-	 * The Collator for the name component of this key.
-	 */
-	private static final Collator	collator;
-	
-	
-	static
-	{
-	    collator = Collator.getInstance();
-	    collator.setStrength(Collator.PRIMARY);
-	}
-
-
-	/**
-	 * Construct from the name of a quantity and its unit.
-	 *
-	 * @param name	The name of the quantity.
-	 * @param unit	The default unit of the quantity.
-	 */
-	protected NameKey(String name, Unit unit)
-	{
-	    super(collator.getCollationKey(name), unit);
-	}
-    }
-
-
-    /**
-     * The following class implements the key to the unit map.
-     *
-     * Immutable.
-     */
-    protected static final class
-    UnitKey
-	extends	Key
-    {
-	/**
-	 * The Collator for the name component of this key.
-	 */
-	private static final Collator	collator = Collator.getInstance();
-
-
-	/**
-	 * Construct from the name of a quantity and its unit.
-	 *
-	 * @param name	The name of the quantity.
-	 * @param unit	The default unit of the quantity.
-	 */
-	protected UnitKey(String name, Unit unit)
-	{
-	    super(collator.getCollationKey(name), unit);
-	}
-
-
-	/**
-	 * Compare this key to another (unit first).
-	 */
-	public int compareTo(Object obj)
-	  throws ClassCastException
-	{
-	    Key	that = (Key)obj;
-	    int	i = compare(this.unit, that.unit);
-
-	    return i != 0
-		      ? i
-		      : this.name.compareTo(that.name);
 	}
     }
 }

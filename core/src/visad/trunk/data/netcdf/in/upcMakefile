@@ -44,18 +44,7 @@ test:	$(TESTS)
 	$(MAKE) -s $*.run 2>&1 | diff -cw $*.save -
 
 
-NcFlatRange.class:	NcRange.java
-
-NcNestedRange.class:	NcRange.java
-
-NcRange.class:		NcFlatRange.java
-
-NcFlatField.class:	NcFlatRange.java
-
-NcNestedData.class:	NcData.java
-NcNestedData.class:	NcNestedField.java
-
-NcScalar.class:		NcData.java
-
 $(TESTS):	NetcdfAdapter.class
 $(DEBUGS):	NetcdfAdapter.class
+
+include depend

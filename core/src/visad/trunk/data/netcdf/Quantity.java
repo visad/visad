@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Quantity.java,v 1.3 1998-11-16 18:23:40 steve Exp $
+ * $Id: Quantity.java,v 1.4 1999-01-07 17:01:28 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -14,6 +14,7 @@ package visad.data.netcdf;
 import java.io.Serializable;
 import visad.FloatSet;
 import visad.RealType;
+import visad.Set;
 import visad.SimpleSet;
 import visad.Unit;
 import visad.VisADException;
@@ -54,11 +55,7 @@ public class Quantity
   public Quantity(String name, String unitSpec, SimpleSet set)
     throws VisADException, ParseException
   {
-    // TODO: eliminate use of trusted constructor (e.g. by merging
-    // Quantity and RealType).
-    super(name, Parser.parse(unitSpec), true);
-
-    setDefaultSet(set);
+    super(name, Parser.parse(unitSpec), set);
 
     this.unitSpec = unitSpec;
   }
@@ -76,12 +73,13 @@ public class Quantity
   public Quantity(String name, String unitSpec)
     throws VisADException, ParseException
   {
-    // TODO: eliminate use of trusted constructor (e.g. by merging
-    // Quantity and RealType).
-    super(name, Parser.parse(unitSpec), true);
+    super(name, Parser.parse(unitSpec), (Set)null);
 
-    setDefaultSet(new FloatSet(this, /*CoordinateSystem=*/null,
-	  new Unit[] {Parser.parse(unitSpec)}));
+    setDefaultSet(
+	new FloatSet(
+	    this,
+	    /*CoordinateSystem=*/null,
+	    new Unit[] {Parser.parse(unitSpec)}));
 
     this.unitSpec = unitSpec;
   }
@@ -112,12 +110,13 @@ public class Quantity
 
 
   /**
-   * Return the preferred display unit of this quantity as a string.
+   * Return the default unit of this quantity as a string.
    *
-   * @return		The preferred display unit of this quantity or
+   * @return		The default unit of this quantity or
    *			<code>null</code> if no such unit.
    */
-  public String getDefaultUnitString() {
+  public String getDefaultUnitString()
+  {
     return unitSpec;
   }
 }

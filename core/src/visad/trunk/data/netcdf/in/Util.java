@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Util.java,v 1.4 1998-11-20 20:17:04 steve Exp $
+ * $Id: Util.java,v 1.5 1999-01-07 17:01:30 steve Exp $
  */
 
 package visad.data.netcdf.in;
@@ -119,9 +119,9 @@ Util
     {
 	this.netcdf = netcdf;
 	this.quantityDB = new NetcdfQuantityDB(quantityDB);
-	time = quantityDB.get("time", SI.second);
-	longitude = quantityDB.get("longitude", SI.radian);
-	latitude = quantityDB.get("latitude", SI.radian);
+	time = quantityDB.get("time");
+	longitude = quantityDB.get("longitude");
+	latitude = quantityDB.get("latitude");
     }
 
 
@@ -216,42 +216,38 @@ Util
 	    String	longName = getLongName(var);
 	    Unit	varUnit = justGetUnit(var);
 
-	    type = quantityDB.getBest(longName, name, varUnit);
+	    type = quantityDB.getBest(longName, name);
 
 	    if (type == null)
 	    {
 		type = RealType.getRealTypeByName(name);
 
 		if (type == null)
-		{
 		    type = new RealType(name, varUnit, /*Set=*/null);
-		}
-		else
-		{
-		    /*
-                     * Ensure that the unit of this variable is
-                     * convertible with the default unit of the RealType
-                     * to prevent a subsequent VisADException.
-		     */
-		    Unit	defaultUnit = type.getDefaultUnit();
+	    }
 
-		    if (varUnit == null)
-		    {
-			varUnit = defaultUnit;
-			setUnit(var, varUnit);
-		    }
-		    else if (!Unit.canConvert(varUnit, defaultUnit))
-		    {
-			String	newName = name + "_" + nameCount++;
+	    /*
+	     * Ensure that the unit of this variable is
+	     * convertible with the default unit of the RealType
+	     * to prevent a subsequent VisADException.
+	     */
+	    Unit	defaultUnit = type.getDefaultUnit();
 
-			System.err.println("Unit of variable \"" + name +
-			    "\" (" + varUnit + ") not convertible with that" +
-			    " quantity's default unit (" + defaultUnit + ")" +
-			    ".  Creating new quantity \"" + newName + "\".");
-			type = new RealType(newName, varUnit, /*Set=*/null);
-			setUnit(var, varUnit);
-		    }
-		}
+	    if (varUnit == null)
+	    {
+		varUnit = defaultUnit;
+		setUnit(var, varUnit);
+	    }
+	    else if (!Unit.canConvert(varUnit, defaultUnit))
+	    {
+		String	newName = name + "_" + nameCount++;
+
+		System.err.println("Unit of variable \"" + name +
+		    "\" (" + varUnit + ") not convertible with that" +
+		    " quantity's default unit (" + defaultUnit + ")" +
+		    ".  Creating new quantity \"" + newName + "\".");
+		type = new RealType(newName, varUnit, /*Set=*/null);
+		setUnit(var, varUnit);
 	    }
 
 	    realTypeMap.put(var, type);
@@ -530,7 +526,7 @@ Util
 	{
 	    String	name = dim.getName();
 
-	    type = quantityDB.getFirst(name);	// should use getIfUnique()?
+	    type = quantityDB.get(name);
 
 	    if (type == null)
 	    {

@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: StandardQuantityDB.java,v 1.6 1998-12-28 17:44:32 steve Exp $
+ * $Id: StandardQuantityDB.java,v 1.7 1999-01-07 17:01:29 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -73,13 +73,13 @@ StandardQuantityDB
        * From the VisAD RealType class:
        */
       add(RealType.Generic);
-      add(RealType.Latitude);
-      add(RealType.Longitude);
       add(RealType.Radius);
-      add(RealType.Time);
       add(RealType.XAxis);
       add(RealType.YAxis);
       add(RealType.ZAxis);
+      add(RealType.Latitude);
+      add(RealType.Longitude);
+      add(RealType.Time);
 
       /*
        * From the SI class:
@@ -89,7 +89,7 @@ StandardQuantityDB
       super.add(SI.kelvin.quantityName(), "K");
       super.add(SI.kilogram.quantityName(), "kg");
       super.add(SI.meter.quantityName(), "m");
-      super.add(SI.second.quantityName(), "s");
+      // super.add(SI.second.quantityName(), "s");	RealType.Time already
       super.add(SI.mole.quantityName(), "mol");
       super.add(SI.radian.quantityName(), "rad");
 
@@ -107,9 +107,7 @@ StandardQuantityDB
        */
       super.add("Volume", "m3");
       super.add("VolumeFraction", "m3/m3");
-      quantity = new Quantity("Flow", "m3/s");
-      super.add("VolumeFlow", quantity);
-      super.add("Flow", quantity);
+      super.add("VolumeFlow", "m3/s");
       super.add("Acceleration", "m/s2");
       super.add("Area", "m2");
       super.add("Frequency", "hz");
@@ -122,17 +120,25 @@ StandardQuantityDB
       /*
        * Mass:
        */
-      super.add("MassPerArea", "kg/m2");
+      quantity = new Quantity("SurfaceMassDensity", "kg/m2");
+      super.add("SurfaceMassDensity", quantity);
+      super.add("AreicMass", quantity);
+      super.add("MassPerArea", quantity);
+      quantity = new Quantity("LinearMassDensity", "kg/m2");
+      super.add("LinearMassDensity", quantity);
+      super.add("LineicMass", quantity);
       super.add("MassPerLength", "kg/m");
       super.add("MassFraction", "kg/kg");
-      quantity = new Quantity("Flow", "kg/s");
+      quantity = new Quantity("MassFlow", "kg/s");
       super.add("MassFlux", quantity);
       super.add("MassFlow", quantity);
-      super.add("Flow", quantity);
       quantity = new Quantity("Density", "kg/m3");
       super.add("MassDensity", quantity);
       super.add("Density", quantity);
-      super.add("SpecificVolume", "m3/kg");
+      super.add("VolumicMass", quantity);
+      quantity = new Quantity("SpecificVolume", "m3/kg");
+      super.add("SpecificVolume", quantity);
+      super.add("MassicVolume", quantity);
 
       /*
        * Force:
@@ -140,9 +146,15 @@ StandardQuantityDB
       super.add("Force", "N");
       super.add("MomentOfForce", "N.m");
       super.add("SurfaceTension", "N/m");
-      super.add("ForcePerLength", "N/m");
+      quantity = new Quantity("LinearForceDensity", "N/m");
+      super.add("LinearForceDensity", quantity);
+      super.add("LineicForce", quantity);
+      super.add("ForcePerLength", quantity);
       super.add("Torque", "N.m");
-      super.add("TorquePerlength", "N");
+      quantity = new Quantity("LinearTorqueDensity", "N");
+      super.add("LinearTorqueDensity", quantity);
+      super.add("LineicTorque", quantity);
+      super.add("TorquePerlength", quantity);
       super.add("Pressure", "Pa");
       super.add("Stress", "Pa");
 
@@ -159,11 +171,18 @@ StandardQuantityDB
       super.add("Work", "J");
       super.add("QuantityOfHeat", "J");
       super.add("Power", "W");
-      super.add("EnergyPerareaTime", "J/(m2.s)");
-      super.add("AvailableEnergy", "J/kg");
+      quantity = new Quantity("SurfacePowerDensity", "J/(m2.s)");
+      super.add("SurfacePowerDensity", quantity);
+      super.add("AreicPower", quantity);
+      super.add("EnergyPerAreaTime", quantity);
+      super.add("SpecificAvailableEnergy", "J/kg");
       super.add("SpecificEnergy", "J/kg");
-      super.add("AvailableEnergy", "J/m3");
-      super.add("EnergyDensity", "J/m3");
+      quantity = new Quantity("AvailableEnergyDensity", "J/m3");
+      super.add("AvailableEnergyDensity", quantity);
+      super.add("VolumicAvailableEnergy", quantity);
+      quantity = new Quantity("EnergyDensity", "J/m3");
+      super.add("EnergyDensity", quantity);
+      super.add("VolumicEnergy", quantity);
 
       /*
        * Heat and temperature:
@@ -174,9 +193,16 @@ StandardQuantityDB
       super.add("ThermalResistance", "K/W");
       super.add("ThermalResistivity", "(m.K)/W");
       super.add("CoefficientOfHeatTransfer", "W/(m2.K)");
-      super.add("DensityOfHeat", "J/m2");
-      super.add("DensityOfHeatFlowRate", "W/m2");
-      super.add("HeatFluxDensity", "W/m2");
+      quantity = new Quantity("SurfaceHeatDensity", "J/m2");
+      super.add("SurfaceHeatDensity", quantity);
+      super.add("AreicHeat", quantity);
+      super.add("DensityOfHeat", quantity);
+      quantity = new Quantity("SurfaceHeatFlowDensity", "W/m2");
+      super.add("SurfaceHeatFlowDensity", quantity);
+      super.add("SurfaceHeatFluxDensity", quantity);
+      super.add("AreicHeatFlow", quantity);
+      super.add("AreicHeatFlux", quantity);
+      super.add("DensityOfHeatFlowRate", quantity);
       super.add("HeatCapacity", "J/K");
       super.add("Entropy", "J/K");
       super.add("HeatFlowRate", "W");
@@ -188,18 +214,28 @@ StandardQuantityDB
        * Electricity and magnetism:
        */
       super.add("Capacitance", "F");
-      super.add("Permittivity", "F/m");
-      super.add("Permeability", "H/m");
+      quantity = new Quantity("Permittivity", "F/m");
+      super.add("Permittivity", quantity);
+      super.add("MagneticPermittivity", quantity);
+      super.add("MagneticPermeability", "H/m");
       super.add("ElectricCharge", "C");
-      super.add("ElectricChargeDensity", "C/m3");
-      super.add("ElectricFluxDensity", "C/m2");
+      quantity = new Quantity("ElectricChargeDensity", "C/m3");
+      super.add("ElectricChargeDensity", quantity);
+      super.add("VolumicElectricCharge", quantity);
+      quantity = new Quantity("ElectricFluxDensity", "C/m2");
+      super.add("ElectricFluxDensity", quantity);
+      super.add("SurfaceElectricChargeDensity", quantity);
+      super.add("AreicElectricCharge", quantity);
       super.add("ElectricResistance", "Ohm");
       super.add("ElectricConductance", "S");
       quantity = new Quantity("EMF", "V");
       super.add("ElectricPotentialDifference", quantity);
       super.add("ElectromotiveForce", quantity);
       super.add("EMF", quantity);
-      super.add("CurrentDensity", "A/m2");
+      quantity = new Quantity("CurrentDensity", "A/m2");
+      super.add("CurrentDensity", quantity);
+      super.add("SurfaceCurrentDensity", quantity);
+      super.add("AreicCurrent", quantity);
       super.add("Inductance", "H");
       super.add("MagneticFlux", "Wb");
       super.add("MagneticFluxDensity", "T");
@@ -211,6 +247,7 @@ StandardQuantityDB
        */
       super.add("Illuminance", "lx");
       super.add("Irradiance", "W/m2");
+      super.add("RadiantEmittance", "W/m2");
       super.add("Radiance", "W/(m2.sr)");
       super.add("Luminance", "cd/m2");
       super.add("LuminousFlux", "lm");
@@ -232,10 +269,13 @@ StandardQuantityDB
       /*
        * Flow permeability:
        */
-      name = "Permeability";
-      super.add(name, "m2");
-      super.add(name, "kg/(Pa.s.m2)");
-      super.add(name, "kg/(Pa.s.m)");
+      super.add("EquivalentPermeability", "m2");
+      quantity = new Quantity("SurfaceFlowPermeabilityDensity", "kg/(Pa.s.m2)");
+      super.add("SurfaceFlowPermeabilityDensity", quantity);
+      super.add("AreicFlowPermeability", quantity);
+      quantity = new Quantity("LinearFlowPermeabilityDensity", "kg/(Pa.s.m)");
+      super.add("LinearFlowPermeabilityDensity", quantity);
+      super.add("LineicFlowPermeability", quantity);
 
       /*
        * Radioactivity & radiation:
@@ -249,18 +289,21 @@ StandardQuantityDB
       /*
        * Fuel consumption:
        */
-      name = "FuelConsumption";
-      super.add(name, "m3/J");
-      super.add(name, "m/m3");
-      super.add(name, "kg/J");
+      super.add("VolumePerWorkFuelConsumption", "m3/J");
+      quantity = new Quantity("DistancePerVolumeFuelConsumption", "m/m3");
+      super.add("DistancePerVolumeFuelConsumption", quantity);
+      super.add("DistanceDensityFuelConsumption", quantity);
+      super.add("VolumicDistanceFuelConsumption", quantity);
+      super.add("MassPerWorkFuelConsumption", "kg/J");
 
       /*
        * Geophysical sciences:
        */
-      quantity = get("Latitude", "deg");	// from RealType.Latitude
+      super.add("Direction", "deg");
+      quantity = get("Latitude");		// from RealType.Latitude
       super.add("GeodeticLatitude", quantity);
       super.add("lat", quantity);
-      quantity = get("Longitude", "deg");
+      quantity = get("Longitude");
       super.add("GeodeticLongitude", quantity);	// from RealType.Longitude
       super.add("Longitude", quantity);
       super.add("lon", quantity);
@@ -315,6 +358,6 @@ StandardQuantityDB
   {
     StandardQuantityDB	db = StandardQuantityDB.instance();
 
-    System.out.println("LaTiTuDe=<" + db.get("LaTiTuDe", SI.radian) + ">");
+    System.out.println("LaTiTuDe=<" + db.get("LaTiTuDe") + ">");
   }
 }
