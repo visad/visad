@@ -575,7 +575,9 @@ so:
 
         AffineTransform timage = new AffineTransform(m00, m10, m01, m11, m02, m12);
         g2.transform(timage); // concatenate timage onto tg
-        g2.drawImage(image, 0, 0, this);
+        try {
+          g2.drawImage(image, 0, 0, this);
+        } catch (java.awt.image.ImagingOpException e) { }
         g2.setTransform(tg); // restore tg
       }
       else { // image == null
