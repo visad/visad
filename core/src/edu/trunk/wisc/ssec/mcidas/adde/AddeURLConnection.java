@@ -689,7 +689,7 @@ public class AddeURLConnection extends URLConnection
         String numeleString = Integer.toString(DEFAULT_ELEMS);
         String magString = "x";
         String traceString = "trace=0";
-        String spaceString = "spac=1";
+        String spaceString = "spac=x";
         String unitString = "unit=brit";
         String auxString = "aux=yes";
         String calString = "cal=x";
