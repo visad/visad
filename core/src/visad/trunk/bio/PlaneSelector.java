@@ -57,7 +57,7 @@ public class PlaneSelector {
   protected float lox, loy, loz, hix, hiy, hiz;
 
   /** Set representing the plane's 2-D slice through the bounding box. */
-  protected Gridded3DSet plane;
+  protected Gridded3DSet lines;
 
   /** List of PlaneListeners to notify when plane changes. */
   protected Vector listeners = new Vector();
@@ -223,8 +223,8 @@ public class PlaneSelector {
         // analyze x, y, z for valid box edge intersections
         // there could be as few as 3 or as many as 6
         try {
-          Gridded3DSet lines = null;
-          plane = null;
+          lines = null;
+          Gridded3DSet plane = null;
           if (vcount > 0) {
             // extract valid box edge intersection points
             float[] ux = new float[vcount];
@@ -417,85 +417,92 @@ public class PlaneSelector {
   public Field extractSlice(FieldImpl field, int resx, int resy)
     throws VisADException, RemoteException
   {
-    if (plane == null) return null;
-    int rx = resx - 1;
-    int ry = resy - 1;
-    int[] lengths = plane.getLengths();
-    int lx = lengths[0] - 1;
-    int ly = lengths[1] - 1;
-    int len = resx * resy;
-    float[][] grid = new float[2][len];
-    for (int y=0; y<resy; y++) {
-      for (int x=0; x<resx; x++) {
-        int index = y * resx + x;
-        grid[0][index] = (float) lx * x / rx;
-        grid[1][index] = (float) ly * y / ry;
+    if (lines == null) return null;
+
+    // extract hull points from lines data object
+    float[][] samples = lines.getSamples();
+    int numpts = samples[0].length - 1;
+    float[] x = samples[0];
+    float[] y = samples[1];
+    float[] z = samples[2];
+
+    // find longest line segment
+    double longest = 0;
+    int index = -1;
+    for (int i=0; i<numpts; i++) {
+      float dx = x[i] - x[i + 1];
+      float dy = y[i] - y[i + 1];
+      float dz = z[i] - z[i + 1];
+      double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      if (len > longest) {
+        longest = len;
+        index = i;
       }
     }
+    int p1 = index;
+    int p2 = index + 1;
 
-    // extract 3-D slice
-    SetType type3 = (SetType) plane.getType();
-    Gridded3DSet set3 = new Gridded3DSet(type3,
-      plane.gridToValue(grid), resx, resy);
+    // compute first two corners
+    float[] c1 = new float[3];
+    float[] c2 = new float[3];
+    int[] p = {p1, p2};
+    project(x, y, z, x[p1], y[p1], z[p1], x[p2], y[p2], z[p2], c1, c2, p);
+    p1 = -1;
+    p2 = p[0];
+
+    // compute third corner
+    float[] c3 = new float[3];
+    p = new int[] {p1, p2};
+    project(x, y, z, c1[0], c1[1], c1[2], x[p2], y[p2], z[p2], c1, c3, p);
+
+    // compute fourth corner
+    float[] c4 = new float[3];
+    for (int i=0; i<3; i++) c4[i] = c3[i] + c2[i] - c1[i];
+
+    // construct 3-D planar grid
+    SetType type3 = (SetType) lines.getType();
+    float[][] samp3 = {
+      {c1[0], c2[0], c3[0], c4[0]},
+      {c1[1], c2[1], c3[1], c4[1]},
+      {c1[2], c2[2], c3[2], c4[2]}
+    };
+    Gridded3DSet box3 =
+      new Gridded3DSet(type3, samp3, 2, 2, null, null, null, false);
+    int rx = resx - 1;
+    int ry = resy - 1;
+    int len = resx * resy;
+    float[][] grid = new float[2][len];
+    for (int j=0; j<resy; j++) {
+      for (int i=0; i<resx; i++) {
+        index = j * resx + i;
+        grid[0][index] = (float) i / rx;
+        grid[1][index] = (float) j / ry;
+      }
+    }
+    Gridded3DSet set3 = new Gridded3DSet(type3, box3.gridToValue(grid),
+      resx, resy, null, null, null, false);
+
+    // extract 3-D slice data
     FieldImpl slice3 = (FieldImpl)
       field.resample(set3, Data.WEIGHTED_AVERAGE, Data.NO_ERRORS);
 
-    /*
-    // CTR - TEMP
-    visad.data.visad.VisADForm saver = new visad.data.visad.VisADForm(true);
-    try { saver.save("ftemp1.vad", slice3, false); }
-    catch (Exception exc) { exc.printStackTrace(); }
-    */
-
-    // compute normal to plane
-    double[] vals1 = ((RealTuple) refs[2].getData()).getValues();
-    double[] vals2 = ((RealTuple) refs[3].getData()).getValues();
-    double[] vals3 = ((RealTuple) refs[4].getData()).getValues();
-    double ux = vals2[0] - vals1[0];
-    double uy = vals2[1] - vals1[1];
-    double uz = vals2[2] - vals1[2];
-    double vx = vals3[0] - vals1[0];
-    double vy = vals3[1] - vals1[1];
-    double vz = vals3[2] - vals1[2];
-    double nx = ux * vy - uy * vx;
-    double ny = uy * vz - uz * vy;
-    double nz = uz * vx - ux * vz;
-
-    // compute normal to plane defined by normal vector and (0, 0, -1)
-    double rotx = 0;
-    double roty = -ny;
-    double rotz = nx;
-    double rotlen = Math.sqrt(rotx * rotx + roty * roty + rotz * rotz);
-    rotx /= rotlen;
-    roty /= rotlen;
-    rotz /= rotlen;
-
-    // compute angle of rotation
-    double a = nx * nx + ny * ny + nz * nz;
-    double c = nx * nx + ny * ny + (nz + 1) * (nz + 1);
-    double theta = Math.acos((a - c + 1) / (2 * Math.sqrt(a)));
-
-    // rotate plane about (rotx, roty, rotz) at angle theta
-    float[][] samp3 = set3.getSamples();
-    rotate(samp3, theta, rotx, roty, rotz);
-
-    /*
-    // CTR - TEMP
-    try {
-      FlatField ff = new FlatField((FunctionType) slice3.getType(), new Gridded3DSet(type3, samp3, resx, resy));
-      ff.setSamples(slice3.getValues());
-      saver.save("ftemp2.vad", ff, false);
-    }
-    catch (Exception exc) { exc.printStackTrace(); }
-    */
-
-    // convert slice to 2-D
-    float[][] samp2 = {samp3[0], samp3[1]};
+    // construct 2-D planar grid
     RealType[] rt = type3.getDomain().getRealComponents();
-    FunctionType ftype3 = (FunctionType) slice3.getType();
     RealTupleType type2 = new RealTupleType(new RealType[] {rt[0], rt[1]});
+    float[][] samp2 = new float[2][resx * resy];
+    for (int j=0; j<resy; j++) {
+      for (int i=0; i<resx; i++) {
+        index = resx * j + i;
+        samp2[0][index] = i;
+        samp2[1][index] = j;
+      }
+    }
+    Gridded2DSet set2 =
+      new Gridded2DSet(type2, samp2, resx, resy, null, null, null, false);
+
+    // convert slice data to 2-D
+    FunctionType ftype3 = (FunctionType) slice3.getType();
     FunctionType ftype2 = new FunctionType(type2, ftype3.getRange());
-    Gridded2DSet set2 = new Gridded2DSet(type2, samp2, resx, resy);
     FlatField slice2 = new FlatField(ftype2, set2);
     slice2.setSamples(slice3.getValues(), false);
 
@@ -533,35 +540,64 @@ public class PlaneSelector {
     }
   }
 
-  /** Rotates the samples around vector (nx, ny, nz) by angle theta. */
-  protected void rotate(float[][] samples, double theta,
-    double nx, double ny, double nz)
+  /**
+   * Projects all the points in (x, y, z) onto the line defined by (p1, p2).
+   * The points that bound the line segment are returned in (min, max).
+   * The corresponding point indices that generated the projections are
+   * returned in p[0] and p[1].
+   */
+  protected static void project(float[] x, float[] y, float[] z,
+    float p1x, float p1y, float p1z, float p2x, float p2y, float p2z,
+    float[] min, float[] max, int[] p)
   {
-    double s = Math.cos(theta / 2);
-    double sin = Math.sin(theta / 2);
-    double vx = sin * nx;
-    double vy = sin * ny;
-    double vz = sin * nz;
-    double v_v = vx * vx + vy * vy + vz * vz;
-    vx /= v_v;
-    vy /= v_v;
-    vz /= v_v;
-    int len = samples[0].length;
-    for (int i=0; i<len; i++) {
-      double px = samples[0][i];
-      double py = samples[1][i];
-      double pz = samples[2][i];
-      // q1 * q2 = (s1*s2 - v1.v2, s1*v2 + s2*v1 + (v1 x v2))
-      // q = (s, vx, vy, vz)
-      // p = (0, px, py, pz)
-      // q' = (s, -vx, -vy, -vz)
-      double q_p = -(vx * px + vy * py + vz * pz);
-      double q_px = s * px + vx * py - vy * px;
-      double q_py = s * py + vy * pz - vz * py;
-      double q_pz = s * pz + vz * px - vx * pz;
-      samples[0][i] = (float) (-q_p * vx + s * q_px - q_px * vy + q_py * vx);
-      samples[1][i] = (float) (-q_p * vy + s * q_py - q_py * vz + q_pz * vy);
-      samples[2][i] = (float) (-q_p * vz + s * q_pz - q_pz * vx + q_px * vz);
+    int numpts = x.length - 1;
+    float x21 = p2x - p1x;
+    float y21 = p2y - p1y;
+    float z21 = p2z - p1z;
+    float maxdist = x21 * x21 + y21 * y21 + z21 * z21;
+    min[0] = p1x;
+    min[1] = p1y;
+    min[2] = p1z;
+    max[0] = p2x;
+    max[1] = p2y;
+    max[2] = p2z;
+
+    // project all hull points onto line
+    for (int p3=0; p3<numpts; p3++) {
+      float x31 = x[p3] - p1x;
+      float y31 = y[p3] - p1y;
+      float z31 = z[p3] - p1z;
+      float u = (x31 * x21 + y31 * y21 + z31 * z21) /
+        (x21 * x21 + y21 * y21 + z21 * z21);
+      float px = p1x + u * x21;
+      float py = p1y + u * y21;
+      float pz = p1z + u * z21;
+
+      float pminx = px - min[0];
+      float pminy = py - min[1];
+      float pminz = pz - min[2];
+      float pdistmin = pminx * pminx + pminy * pminy + pminz * pminz;
+      float pmaxx = px - max[0];
+      float pmaxy = py - max[1];
+      float pmaxz = pz - max[2];
+      float pdistmax = pmaxx * pmaxx + pmaxy * pmaxy + pmaxz * pmaxz;
+
+      if (pdistmin > maxdist || pdistmax > maxdist) {
+        if (pdistmin > pdistmax) {
+          maxdist = pdistmin;
+          max[0] = px;
+          max[1] = py;
+          max[2] = pz;
+          p[1] = p3;
+        }
+        else {
+          maxdist = pdistmax;
+          min[0] = px;
+          min[1] = py;
+          min[2] = pz;
+          p[0] = p3;
+        }
+      }
     }
   }
 
