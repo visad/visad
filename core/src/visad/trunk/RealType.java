@@ -59,6 +59,11 @@ public class RealType extends ScalarType {
    */
   public static final int       INTERVAL = 1;
 
+  /**
+   * Monotonically-increasing counter for creating new, unique names.
+   */
+  private static int            count;
+
   /** Cartesian spatial coordinate - X axis */
   public final static RealType XAxis = new RealType("XAxis", null, true);
   /** Cartesian spatial coordinate - Y axis */
@@ -371,9 +376,10 @@ public class RealType extends ScalarType {
 
     Unit newUnit = null;
     MathType newType = null;
-    String newName = null;
+    String newName;
     if (type instanceof RealType) {
       RealType that = (RealType)type;
+      newName = "RealType_" + Integer.toString(++count);
       Unit unit = ((RealType)type).getDefaultUnit();
       Unit thisUnit = DefaultUnit;
       int newAttrMask = 0;
@@ -384,9 +390,12 @@ public class RealType extends ScalarType {
        */
       switch (op)
       {
-        case Data.ADD:
         case Data.SUBTRACT:
         case Data.INV_SUBTRACT:
+          if (isInterval() != that.isInterval())
+              newAttrMask |= INTERVAL;
+          break;
+        case Data.ADD:
         case Data.MAX:
         case Data.MIN:
           if (isInterval() && that.isInterval())
@@ -425,20 +434,16 @@ public class RealType extends ScalarType {
         case Data.MAX:
         case Data.MIN:
           if ( thisUnit == null ) {
-            newName = newName(getName(), newAttrMask);
             newUnit = null;
           }
           else if ( unit == null ) {
-            newName = newName(((RealType)type).getName(), newAttrMask);
             newUnit = null;
           }
           else if ( thisUnit.equals( CommonUnit.promiscuous ) ) {
-            newName = newName(((RealType)type).getName(), newAttrMask);
             newUnit = ((RealType)type).getDefaultUnit().getAbsoluteUnit();
           }
           else if ( unit.equals( CommonUnit.promiscuous ) ||
                     Unit.canConvert( thisUnit, unit ) ) {
-            newName = newName(getName(), newAttrMask);
             newUnit = getDefaultUnit().getAbsoluteUnit();
           }
           else {
@@ -456,7 +461,6 @@ public class RealType extends ScalarType {
               break;
             }
             if ( unit == null ) {
-              newName = getUniqueGenericName( names, "nullUnit" );
               newUnit = null;
             }
           }
@@ -472,7 +476,6 @@ public class RealType extends ScalarType {
                 newUnit = unit.divide( thisUnit );
                 break; // WLH 26 Jan 99
             }
-            newName = getUniqueGenericName( names, newUnit.toString());
           }
 
           newType = getRealType(newName, newUnit, newAttrMask);
@@ -486,12 +489,10 @@ public class RealType extends ScalarType {
           {
             if ( Unit.canConvert(CommonUnit.dimensionless, thisUnit) ) {
               newUnit = CommonUnit.dimensionless;
-              newName = getUniqueGenericName( names, newUnit.toString() );
             }
             else
             {
               newUnit = null;
-              newName = getUniqueGenericName( names, "nullUnit" );
             }
             newType = getRealType(newName, newUnit, newAttrMask);
           }
@@ -503,7 +504,6 @@ public class RealType extends ScalarType {
             break;
           }
           newUnit = null;
-          newName = getUniqueGenericName( names, "nullUnit" );
           newType = getRealType(newName, newUnit, newAttrMask);
           break;
 
@@ -511,7 +511,6 @@ public class RealType extends ScalarType {
           newUnit = CommonUnit.radian;
         case Data.INV_ATAN2:
           newUnit = CommonUnit.radian;
-          newName = getUniqueGenericName( names, newUnit.toString() );
           newType = getRealType(newName, newUnit, newAttrMask);
           break;
 
@@ -519,7 +518,6 @@ public class RealType extends ScalarType {
           newUnit = CommonUnit.degree;
         case Data.INV_ATAN2_DEGREES:
           newUnit = CommonUnit.degree;
-          newName = getUniqueGenericName( names, "deg" );
           newType = getRealType(newName, newUnit, newAttrMask);
           break;
 
