@@ -34,7 +34,7 @@ import java.rmi.*;
 
 /**
    The ShadowBarbTupleTypeJ3D class shadows the TupleType class for
-   BarbRendererJ3D, within a DataDisplayLink, under Java2D.<P>
+   BarbRendererJ3D, within a DataDisplayLink, under Java3D.<P>
 */
 public class ShadowBarbTupleTypeJ3D extends ShadowTupleTypeJ3D {
 

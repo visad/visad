@@ -51,7 +51,7 @@ import java.awt.image.DataBufferInt;
 
 /**
    The ShadowImageFunctionTypeJ3D class shadows the FunctionType class for
-   BarbRendererJ3D, within a DataDisplayLink, under Java2D.<P>
+   ImageRendererJ3D, within a DataDisplayLink, under Java3D.<P>
 */
 public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
@@ -63,6 +63,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     super(t, link, parent);
   }
 
+  // transform data into a depiction under group
   public boolean doTransform(Group group, Data data, float[] value_array,
                              float[] default_values, DataRenderer renderer)
          throws VisADException, RemoteException {
@@ -200,7 +201,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           float mult = (float) (table_scale * scale * step);
           float add = (float) (table_scale * (offset + scale * first));
 
-          // build even faster table
+          // build table for fast color lookup
           int[] fast_table = new int[256];
           for (int j=0; j<256; j++) {
             int index = j - 1;
@@ -219,7 +220,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           byte[] bytes0 = bytes[0];
           for (int i=0; i<domain_length; i++) {
             color_ints[i] = fast_table[((int) bytes0[i]) - MISSING1];
-/*
+/* remove this code after fast table loop above is debugged
             int index = ((int) bytes0[i]) - MISSING1 - 1;
             if (index < 0) {
               color_ints[i] = 0; // missing

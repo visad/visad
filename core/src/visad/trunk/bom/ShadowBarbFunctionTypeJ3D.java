@@ -34,7 +34,7 @@ import java.rmi.*;
 
 /**
    The ShadowBarbFunctionTypeJ3D class shadows the FunctionType class for
-   BarbRendererJ3D, within a DataDisplayLink, under Java2D.<P>
+   BarbRendererJ3D, within a DataDisplayLink, under Java3D.<P>
 */
 public class ShadowBarbFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 

@@ -38,7 +38,7 @@ import java.rmi.*;
 
 /**
    BarbManipulationRendererJ3D is the VisAD class for direct
-   manipulation rendering of wind barbs under Java2D
+   manipulation rendering of wind barbs under Java3D
 */
 public class BarbManipulationRendererJ3D extends DirectManipulationRendererJ3D {
 
@@ -494,7 +494,7 @@ System.out.println("x = " + x[0] + " " + x[1] + " " + x[2]);
     // to Longitude (positive east) and Latitude (positive north)
     EarthVectorType windxy = new EarthVectorType(windx, windy);
 
-    // construct Java2D display and mappings that govern
+    // construct Java3D display and mappings that govern
     // how wind records are displayed
     DisplayImpl display = new DisplayImplJ3D("display1", new TwoDDisplayRendererJ3D());
     ScalarMap lonmap = new ScalarMap(lon, Display.XAxis);

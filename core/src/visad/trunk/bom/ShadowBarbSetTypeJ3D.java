@@ -34,7 +34,7 @@ import java.rmi.*;
 
 /**
    The ShadowBarbSetTypeJ3D class shadows the SetType class for
-   BarbRendererJ3D, within a DataDisplayLink, under Java2D.<P>
+   BarbRendererJ3D, within a DataDisplayLink, under Java3D.<P>
 */
 public class ShadowBarbSetTypeJ3D extends ShadowSetTypeJ3D {
 

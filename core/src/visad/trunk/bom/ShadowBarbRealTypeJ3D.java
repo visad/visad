@@ -34,7 +34,7 @@ import java.rmi.*;
 
 /**
    The ShadowBarbRealTypeJ3D class shadows the RealType class for
-   BarbRendererJ3D, within a DataDisplayLink, under Java2D.<P>
+   BarbRendererJ3D, within a DataDisplayLink, under Java3D.<P>
 */
 public class ShadowBarbRealTypeJ3D extends ShadowRealTypeJ3D {
 

@@ -53,9 +53,15 @@ import javax.swing.*;
 */
 public class ImageRendererJ3D extends DefaultRendererJ3D {
 
+  // MathTypes that data must equalsExceptNames()
   private MathType image_sequence_type, image_type;
   private MathType image_sequence_type2, image_type2;
 
+  // flag to indicate:
+  // 1. That the images in a new time sequence are identical to
+  //    any images at the same time in a previous sequence.
+  // 2. That the image sequence defines the entire animation
+  //    sampling.<P>
   private boolean reUseFrames = false;
 
   /** this DataRenderer supports fast loading of images and image
@@ -75,6 +81,8 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
     }
   }
 
+  // factory for ShadowFunctionType that defines unique behavior
+  // for ImageRendererJ3D
   public ShadowType makeShadowFunctionType(
          FunctionType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
@@ -130,6 +138,7 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
       }
       link.start_time = System.currentTimeMillis();
       link.time_flag = false;
+      // transform data into a depiction under branch
       type.doTransform(branch, data, valueArray,
                        link.getDefaultValues(), this);
     }
@@ -198,8 +207,6 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
 
     // create a Display using Java3D
     DisplayImpl display = new DisplayImplJ3D("image display");
-    // create a Display using Java2D
-    // DisplayImpl display = new DisplayImplJ2D("image display");
 
     // extract the type of image and use
     // it to determine how images are displayed

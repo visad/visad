@@ -38,7 +38,7 @@ import java.rmi.*;
 
 /**
    BarbRendererJ3D is the VisAD class for rendering of
-   wind barbs under Java2D - otherwise it behaves just
+   wind barbs under Java3D - otherwise it behaves just
    like DefaultRendererJ3D
 */
 public class BarbRendererJ3D extends DefaultRendererJ3D {
