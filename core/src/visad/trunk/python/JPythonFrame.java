@@ -48,10 +48,20 @@ public class JPythonFrame extends CodeFrame {
     super(editor);
   }
 
+  /** sets whether editor should warn user before auto-saving */
+  public void setWarnBeforeSave(boolean warn) {
+    ((JPythonEditor) textPane).setWarnBeforeSave(warn);
+  }
+
   /** tests the JPythonFrame class */
   public static void main(String[] args) {
+    boolean warn = true;
+    if (args.length > 0) {
+      if ("-nowarn".equalsIgnoreCase(args[0])) warn = false;
+    }
     try {
       final JPythonFrame frame = new JPythonFrame();
+      frame.setWarnBeforeSave(warn);
 
       // close program if frame is closed
       frame.addWindowListener(new WindowAdapter() {
