@@ -1,5 +1,5 @@
 from visad import ScalarMap, Display, DataReferenceImpl, RealTupleType,\
-          Gridded2DSet, DisplayImpl, RealType
+          Gridded2DSet, DisplayImpl, RealType, RealTuple
 from types import StringType
 from visad.ss import BasicSSCell
 from visad.java2d import DisplayImplJ2D
@@ -11,10 +11,18 @@ try:
 except:
   ok3d = 0
 
+py_text_type = RealType.getRealType("py_text_type")
+py_shape_type = RealType.getRealType("py_shape_type")
+
 # create (and return) a VisAD DisplayImplJ3D and add the ScalarMaps, if any
 # the VisAD box is resized to about 95% of the window
 def makeDisplay3D(maps):
   disp = DisplayImplJ3D("Jython3D")
+  py_text_map = ScalarMap(py_text_type, Display.Text)
+  disp.addMap(py_text_map)
+  py_shape_map = ScalarMap(py_shape_type, Display.Shape)
+  disp.addMap(py_shape_map)
+
   if maps != None:  addMaps(disp, maps)
   return disp
 
@@ -22,6 +30,11 @@ def makeDisplay3D(maps):
 # the VisAD box is resized to about 95% of the window
 def makeDisplay2D(maps):
   disp = DisplayImplJ2D("Jython2D")
+  py_text_map = ScalarMap(py_text_type, Display.Text)
+  disp.addMap(py_text_map)
+  py_shape_map = ScalarMap(py_shape_type, Display.Shape)
+  disp.addMap(py_shape_map)
+
   print "Using 2D"
   if maps != None:  addMaps(disp, maps)
   return disp
@@ -43,6 +56,10 @@ def makeDisplay(maps):
       tdr = TwoDDisplayRendererJ3D() 
       disp = DisplayImplJ3D("Jython3D",tdr)
       addMaps(disp, maps)
+      py_text_map = ScalarMap(py_text_type, Display.Text)
+      disp.addMap(py_text_map)
+      py_shape_map = ScalarMap(py_shape_type, Display.Shape)
+      disp.addMap(py_shape_map)
     else:
       disp =  makeDisplay2D(maps)
   
@@ -106,6 +123,40 @@ def setBoxSize(display, percent=.70):
     
   pc.setMatrix(pcMatrix)
 
+# return the x,y,z scalar maps for the display
+def getDisplayMaps(display):
+
+  if type(display) == StringType:
+    d = BasicSSCell.getSSCellByName(display)
+    disp = d.getDisplay()
+    maps = d.getMaps()
+
+  elif isinstance(display, DisplayImpl):
+    maps = display.getMapVector()
+    disp = display
+
+  else:
+    maps = None
+    disp = None
+
+  x = y = z = None
+  if maps == None:
+    x = RealType.getRealTypeByName("x")
+    y = RealType.getRealTypeByName("y")
+    z = RealType.getRealTypeByName("z")
+  # if no maps, make them...
+  else:
+    for m in maps:
+      if m.getDisplayScalar().toString() == "DisplayXAxis":
+        x = m.getScalar()
+      if m.getDisplayScalar().toString() == "DisplayYAxis":
+        y = m.getScalar()
+      if m.getDisplayScalar().toString() == "DisplayZAxis":
+        z = m.getScalar()
+  
+  return [x,y,z,disp]
+
+
 # make a 2D or 3D line, return a reference so it can be changed
 def makeLine(domainType, points):
   return Gridded2DSet(RealTupleType(domainType), points, len(points[0]))
@@ -121,9 +172,14 @@ def drawLine(display, points, color=None, mathtype=None):
   if color is not None:
     from visad import ConstantMap
     from java.awt import Color
-    red = float(color.getRed())/255.
-    green = float(color.getGreen())/255.
-    blue = float(color.getBlue())/255.
+    if isinstance(color,Color):
+      awtColor = color
+    else:
+      exec 'awtColor=Color.'+color
+
+    red = float(awtColor.getRed())/255.
+    green = float(awtColor.getGreen())/255.
+    blue = float(awtColor.getBlue())/255.
 
     constmap = ( ConstantMap(red,Display.Red), ConstantMap(green,Display.Green),
            ConstantMap(blue,Display.Blue) )
@@ -138,30 +194,7 @@ def drawLine(display, points, color=None, mathtype=None):
 
   # drawLine(name|display, points[])
   else:
-    if type(display) == StringType:
-      d = BasicSSCell.getSSCellByName(display)
-      disp = d.getDisplay()
-      maps = d.getMaps()
-    elif isinstance(a, DisplayImpl):
-      maps = display.getMapVector()
-      disp = display
-    else:
-      maps = None
-      disp = None
-
-    if maps == None:
-      x = RealType.getRealTypeByName("x")
-      y = RealType.getRealTypeByName("y")
-      z = RealType.getRealTypeByName("z")
-    # if no maps, make them...
-    else:
-      for m in maps:
-        if m.getDisplayScalar().toString() == "DisplayXAxis":
-          x = m.getScalar()
-        if m.getDisplayScalar().toString() == "DisplayYAxis":
-          y = m.getScalar()
-        if m.getDisplayScalar().toString() == "DisplayZAxis":
-          z = m.getScalar()
+    x , y , z , disp = getDisplayMaps(display)
 
     if len(points) == 2:
       dom = RealTupleType(x,y)
@@ -172,8 +205,58 @@ def drawLine(display, points, color=None, mathtype=None):
     linref = addData("linesegment", lineseg, disp, constmap)
     return linref 
 
+# draw a string on the display
+def drawString(display, string, point, color=None, center=0, font="futural",
+                 start=[0.,0.,0.], base=[.1,0.,0.], up=[0.,.1,0.] ):
+
+  from visad import PlotText, Integer1DSet, ConstantMap
+  from visad.util import HersheyFont
+
+  x , y , z , disp = getDisplayMaps(display)
+  textshape = PlotText.render_font(string, HersheyFont(font), 
+                                          start, base, up, center)
+
+  coord_type = RealTupleType(x, y, py_shape_type)
+  coord = list(point)
+  coord.append(0)
+  coord_tuple = RealTuple(coord_type, coord)
+
+
+  maps = display.getMapVector()
+  py_shape_map = None
+  for sm in maps:
+    if (sm.getScalar() == py_shape_type): 
+       py_shape_map = sm
+
+  shape_control = py_shape_map.getControl()
+  shape_control.setShapeSet(Integer1DSet(1))
+  shape_control.setShapes([textshape,])
+
+  # see if color should be handled
+  from visad import ConstantMap
+  from java.awt import Color
+  if color is not None:
+    if isinstance(color,Color):
+      awtColor = color
+    else:
+      exec 'awtColor=Color.'+color
+    red = float(awtColor.getRed())/255.
+    green = float(awtColor.getGreen())/255.
+    blue = float(awtColor.getBlue())/255.
+  else:
+    red=1.0
+    green=1.0
+    blue=1.0
+
+  constmap = ( ConstantMap(red,Display.Red), ConstantMap(green,Display.Green),
+           ConstantMap(blue,Display.Blue) )
+
+  ref = addData("textshape", coord_tuple, disp, constmap)
+  return ref
+  
 # add an array of ScalarMaps to a Display
 def addMaps(display, maps):
+
   for map in maps:
     display.addMap(map)
 
@@ -192,10 +275,10 @@ def makeMaps(*a):
 # note this list is in the same order as Display.DisplayRealArray! 
 
   maps=[]
-  for i in range(0,len(a),2):
+  for i in xrange(0,len(a),2):
     got = -1 
 
-    for k in range(len(dis)):
+    for k in xrange(len(dis)):
       if dis[k] == a[i+1] : got=k
 
     if got != -1:
