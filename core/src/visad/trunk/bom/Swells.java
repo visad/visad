@@ -75,7 +75,7 @@ public class Swells extends Exception {
       System.arraycopy(arrow_zero[1], 0, arrow[1], 0, 4);
       // rotate arrow by dirs[0][i] degrees
       for (int j=0; j<arrow[0].length; j++) {
-        arrow[0][j] += dirs[0][i];
+        arrow[0][j] += (dirs[0][i] + 180.0f); // WLH 12 April 2000 - 180 out
       }
       // convert arrow from polar to cartesian
       arrow = wcs.toReference(arrow);
@@ -156,7 +156,7 @@ public class Swells extends Exception {
         // double sy = 30.0 * v;
         double sx = 10.0 * u;
         double sy = 10.0 * v;
-        values[2][m] = Data.RADIANS_TO_DEGREES * Math.atan2(-sx, -sy);
+        values[2][m] = Data.RADIANS_TO_DEGREES * Math.atan2(sx, sy);
         values[3][m] = 1.0 + Math.sqrt(sx * sx + sy * sy);
         values[4][m] = u;
         values[5][m] = v;
