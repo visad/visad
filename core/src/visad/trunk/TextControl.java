@@ -42,6 +42,10 @@ public class TextControl extends Control {
 
   private double size = 1.0;
 
+  // WLH 31 May 2000
+  // draw on sphere surface
+  private boolean sphere = false;
+
   public TextControl(DisplayImpl d) {
     super(d);
   }
@@ -82,6 +86,18 @@ public class TextControl extends Control {
   /** return the size */
   public double getSize() {
     return size;
+  }
+
+  // WLH 31 May 2000
+  public void setSphere(boolean s)
+         throws VisADException, RemoteException {
+    sphere = s;
+    changeControl(true);
+  }
+
+  // WLH 31 May 2000
+  public boolean getSphere() {
+    return sphere;
   }
 
   private boolean fontEquals(Font newFont)
@@ -132,6 +148,12 @@ public class TextControl extends Control {
       size = tc.size;
     }
 
+    // WLH 31 May 2000
+    if (sphere != tc.sphere) {
+      changed = true;
+      sphere = tc.sphere;
+    }
+
     if (changed) {
       try {
         changeControl(true);
@@ -155,6 +177,11 @@ public class TextControl extends Control {
     }
 
     if (center != tc.center) {
+      return false;
+    }
+
+    // WLH 31 May 2000
+    if (sphere != tc.sphere) {
       return false;
     }
 

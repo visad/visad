@@ -29,12 +29,19 @@ import visad.java3d.DisplayImplJ3D;
 public class Test45
   extends UISkeleton
 {
+  private boolean sphere = false;
+
   public Test45() { }
 
   public Test45(String[] args)
     throws RemoteException, VisADException
   {
     super(args);
+  }
+
+  int checkExtraKeyword(String testName, int argc, String[] args) {
+    sphere = true;
+    return 1;
   }
 
   DisplayImpl[] setupServerDisplays()
@@ -55,7 +62,7 @@ public class Test45
     TupleType text_tuple = new TupleType(mtypes);
     FunctionType text_function = new FunctionType(RealType.Time, text_tuple);
 
-    String[] names = new String[] {"aaa", "bbbb", "ccccc", "defghi"};
+    String[] names = new String[] {"abc", "defg", "hijkl", "mnopqr"};
     int ntimes1 = names.length;
     Set time_set =
       new Linear1DSet(time_type, 0.0, (double) (ntimes1 - 1.0), ntimes1);
@@ -63,20 +70,29 @@ public class Test45
     FieldImpl text_field = new FieldImpl(text_function, time_set);
 
     for (int i=0; i<ntimes1; i++) {
-      Data[] td = {new Real(RealType.Latitude, (double) i),
-                   new Real(RealType.Longitude, (double) (ntimes1 - i)),
+      Data[] td = {new Real(RealType.Latitude, 40.0 * i - 60.0),
+                   new Real(RealType.Longitude, 80.0 * (ntimes1 - i) - 120.0),
                    new Text(text, names[i])};
 
       Tuple tt = new Tuple(text_tuple, td);
       text_field.setSample(i, tt);
     }
 
-    dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
-    dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+    ScalarMap tmap = new ScalarMap(text, Display.Text);
+    dpys[0].addMap(tmap);
+    TextControl tcontrol = (TextControl) tmap.getControl();
+    tcontrol.setSphere(sphere);
+    if (sphere) {
+      dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.Latitude));
+      dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.Longitude));
+    }
+    else {
+      dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
+      dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+    }
     dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.Green));
     dpys[0].addMap(new ConstantMap(0.5, Display.Blue));
     dpys[0].addMap(new ConstantMap(0.5, Display.Red));
-    dpys[0].addMap(new ScalarMap(text, Display.Text));
 
     DataReferenceImpl ref_text_field =
       new DataReferenceImpl("ref_text_field");

@@ -2285,6 +2285,15 @@ System.out.println("flow_values = " + flow_values[0][0] + " " +
     VisADLineArray[] as = new VisADLineArray[n];
     boolean center = text_control.getCenter();
     double size = text_control.getSize();
+
+    // WLH 31 May 2000
+    boolean sphere = text_control.getSphere();
+    float[][] spatial_sphere = null;
+    if (sphere) {
+      spatial_sphere =
+        Display.DisplaySphericalCoordSys.fromReference(spatial_values);
+    }
+
     double[] start = new double[3];
     double[] base = new double[] {size * FONT, 0.0, 0.0};
     double[] up = new double[] {0.0, size * FONT, 0.0};
@@ -2297,10 +2306,43 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
                    " spatial_values = " + spatial_values[0][i] + " " +
                    spatial_values[1][i] + " " + spatial_values[2][i]);
 */
-        start = new double[] {spatial_values[0][i],
-                              spatial_values[1][i],
-                              spatial_values[2][i]};
-        as[k] = PlotText.render_label(text_values[i], start, base, up, center);
+        if (sphere) {
+          double size_in_radians = (size * FONT) / spatial_sphere[2][i];
+          double size_in_degrees = size_in_radians * Data.RADIANS_TO_DEGREES;
+          double lon_size_in_degrees =
+            size_in_degrees / Math.cos(Data.DEGREES_TO_RADIANS * spatial_sphere[0][i]);
+          start = new double[] {spatial_sphere[0][i],
+                                spatial_sphere[1][i],
+                                spatial_sphere[2][i]};
+          base = new double[] {0.0, lon_size_in_degrees, 0.0};
+          up = new double[] {size_in_degrees, 0.0, 0.0};
+          as[k] = PlotText.render_label(text_values[i], start, base, up, center);
+          int len = (as[k] == null) ? 0 : as[k].coordinates.length;
+          if (len > 0) {
+            float[] coordinates = as[k].coordinates;
+            float[][] cs = new float[3][len / 3];
+            int m = 0;
+            for (int j=0; j<len/3; j++) {
+              cs[0][j] = coordinates[m++];
+              cs[1][j] = coordinates[m++];
+              cs[2][j] = coordinates[m++];
+            }
+            cs = Display.DisplaySphericalCoordSys.toReference(cs);
+            m = 0;
+            for (int j=0; j<len/3; j++) {
+              coordinates[m++] = cs[0][j];
+              coordinates[m++] = cs[1][j];
+              coordinates[m++] = cs[2][j];
+            }
+            as[k].coordinates = coordinates; // not necessary
+          }
+        }
+        else {
+          start = new double[] {spatial_values[0][i],
+                                spatial_values[1][i],
+                                spatial_values[2][i]};
+          as[k] = PlotText.render_label(text_values[i], start, base, up, center);
+        }
         int len = (as[k] == null) ? 0 : as[k].coordinates.length;
         if (len > 0 && color_values != null) {
           if (color_values[0].length > 1) {
