@@ -437,7 +437,7 @@ DateTime
      */
     public int compareTo(Object oo)
     {
-        return super.compareTo( (DateTime) oo );
+        return super.compareTo(oo);
     }
 
     /**
