@@ -305,7 +305,7 @@ public class BasicSSCell extends JPanel implements MouseListener {
           // get new data
           Data value = null;
           try {
-            value = (Data) fm.getThing(Name);
+            value = (Data) fm.getThing(BasicSSCell.this.Name);
           }
           catch (ClassCastException exc) {
             if (DEBUG) exc.printStackTrace();
@@ -336,7 +336,7 @@ public class BasicSSCell extends JPanel implements MouseListener {
           }
 
           // display new errors, if any
-          String[] es = fm.getErrors(Name);
+          String[] es = fm.getErrors(BasicSSCell.this.Name);
           if (es != null) setErrors(es);
 
           // broadcast data change event
