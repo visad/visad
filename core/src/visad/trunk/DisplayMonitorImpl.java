@@ -668,28 +668,6 @@ public class DisplayMonitorImpl
   }
 
   /**
-   * Synchronizes the monitored <Display>'s controls with those of all the
-   * remote listeners.<BR><BR>
-   * (Overwrites the current state of all controls for the
-   * <CODE>Display</CODE> being monitored, so should be used with caution.)
-   */
-  public void syncControls()
-  {
-    ListIterator iter = myDisplay.getControlVector().listIterator();
-    while (iter.hasNext()) {
-      try {
-        Control ctl = (Control )iter.next();
-        ControlMonitorEvent evt;
-        evt = new ControlMonitorEvent(MonitorEvent.CONTROL_INIT_REQUESTED,
-                                      (Control )ctl.clone());
-        notifyListeners(evt);
-      } catch (VisADException ve) {
-        ve.printStackTrace();
-      }
-    }
-  }
-
-  /**
    * Handles <CODE>Control</CODE> changes.<BR><BR>
    * If the <CODE>ControlEvent</CODE> is not ignored, a
    * <CODE>ControlMonitorEvent</CODE> will be sent to all listeners.

@@ -334,7 +334,24 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
     // only add remote display as listener *after* we've synced
     displayMonitor.addRemoteListener(rmtDpy);
-    displayMonitor.syncControls();
+    initializeControls();
+  }
+
+  // get current state of all controls from remote display(s)
+  private void initializeControls()
+  {
+    ListIterator iter = ControlVector.listIterator();
+    while (iter.hasNext()) {
+      try {
+        Control ctl = (Control )iter.next();
+        ControlMonitorEvent evt;
+        evt = new ControlMonitorEvent(MonitorEvent.CONTROL_INIT_REQUESTED,
+                                      (Control )ctl.clone());
+        displayMonitor.notifyListeners(evt);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
   }
 
   /** RemoteDisplayImpl to this for use with

@@ -107,17 +107,4 @@ public interface DisplayMonitor
    */
   void notifyListeners(MonitorEvent evt)
     throws RemoteException, RemoteVisADException;
-
-  /**
-   * Synchronizes the monitored <CODE>Display</CODE>'s controls with those
-   * of all the remote listeners.<BR><BR>
-   * (Overwrites the current state of all controls for the
-   * <CODE>Display</CODE> being monitored, so should be used with caution.)
-   *
-   * @exception RemoteVisADException If there was a problem synchronizing
-   * 					with the remote <CODE>Display</CODE>.
-   * @exception RemoteException If there was an RMI-related problem.
-   */
-  void syncControls()
-    throws RemoteException, RemoteVisADException;
 }

@@ -182,18 +182,6 @@ public class RemoteDisplayMonitorImpl
   /**
    * Unusable stub.  Unimplemented.
    *
-   * @exception RemoteException If there was an RMI-related problem.
-   * @exception RemoteVisADException <B>ALWAYS</B> thrown.
-   */
-  public void syncControls()
-    throws RemoteException, RemoteVisADException
-  {
-    throw new RemoteVisADException("Unimplemented");
-  }
-
-  /**
-   * Unusable stub.  Unimplemented.
-   *
    * @param evt Ignored.
    *
    * @exception RemoteException <B>ALWAYS</B> thrown.
