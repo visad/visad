@@ -1168,11 +1168,14 @@ for (int i=0; i < 4; i++) {
         mapValues(display_values, domain_doubles, DomainComponents);
       }
       else {
-        domain_values = domain_set.getSamples(false);
+        // do shallow clone and don't copy in convert DRM 2003-02-24
+        domain_values = (float[][]) domain_set.getSamples(false).clone();
 
         // convert values to default units (used in display)
         // MEM & FREE
-        domain_values = Unit.convertTuple(domain_values, dataUnits, domain_units);
+        //domain_values = Unit.convertTuple(domain_values, dataUnits, domain_units);
+        domain_values = 
+           Unit.convertTuple(domain_values, dataUnits, domain_units, false);
         // System.out.println("got domain_values: domain_length = " + domain_length);
 
         // map domain_values to appropriate DisplayRealType-s
