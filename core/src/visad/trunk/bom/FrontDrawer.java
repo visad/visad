@@ -800,7 +800,7 @@ public class FrontDrawer extends Object {
   
         int fw = filter_window;
   
-        for (int tries=0; tries<10; tries++) {
+        for (int tries=0; tries<12; tries++) {
           // lowpass filter curve
           curve = smooth_curve(old_curve, fw);
     
@@ -812,14 +812,17 @@ public class FrontDrawer extends Object {
             break;
           }
           catch (VisADException e) {
-            int n = old_curve[0].length;
-            if (n > 2) {
-              float[][] no = new float[2][n - 2];
-              System.arraycopy(old_curve[0], 1, no[0], 0, n - 2);
-              System.arraycopy(old_curve[1], 1, no[1], 0, n - 2);
-              old_curve = no;
+            old_curve = curve;
+            if (tries > 4) {
+              int n = old_curve[0].length;
+              if (n > 2) {
+                float[][] no = new float[2][n - 2];
+                System.arraycopy(old_curve[0], 1, no[0], 0, n - 2);
+                System.arraycopy(old_curve[1], 1, no[1], 0, n - 2);
+                old_curve = no;
+              }
             }
-            if (tries < 2) fw = 2 * fw;
+            if (tries > 8) fw = 2 * fw;
             // if (debug) System.out.println("retry filter window = " + fw + " " + e);
             if (tries == 9) {
               System.out.println("cannot smooth curve");
