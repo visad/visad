@@ -104,8 +104,8 @@ public class JPythonFrame extends CodeFrame {
 
       // display frame onscreen
       Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-      int w = screenSize.width > 520 ? 500 : screenSize.width - 20;
-      int h = screenSize.height > 820 ? 800 : screenSize.width - 20;
+      int w = screenSize.width > 550 ? 500 : screenSize.width - 50;
+      int h = screenSize.height > 850 ? 800 : screenSize.height - 50;
       frame.setSize(w, h);
       Util.centerWindow(frame);
       frame.setVisible(true);
