@@ -315,9 +315,8 @@ public class MetamorphForm extends Form implements FormBlockReader,
       frameField.setSamples(flatSamples);
     }
     else { // grayscale
-      long toSkip = dimensions[0] * dimensions[1];
-      toSkip *= (bitsPerPixel[0] + bitsPerPixel[1] + bitsPerPixel[2]);
-      toSkip *= blockNumber;
+      long toSkip = dimensions[0] * dimensions[1] *
+        bitsPerPixel[0] * blockNumber;
       bb.skipBits(toSkip);
       float[][] flatSamples = new float[1][dimensions[0] * dimensions[1]];
       if (bitsPerPixel[0] == 8) { // 8 bit
