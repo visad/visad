@@ -56,25 +56,25 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   /** border for cell with file or URL */
   static final Border B_URL = new LineBorder(new Color(0f, 0.5f, 0f), 3);
 
-  /** This variable is static so that the previous directory is remembered */
+  /** this variable is static so that the previous directory is remembered */
   static FileDialog FileBox = null;
 
-  /** This cell's parent frame */
+  /** parent frame */
   Frame Parent;
 
-  /** This cell's associated JFrame, for use with VisAD Controls */
+  /** associated JFrame, for use with VisAD Controls */
   JFrame WidgetFrame;
 
-  /** Specify whether this cell is selected */
+  /** whether this cell is selected */
   boolean Selected = false;
 
-  /** Specify whether this cell should auto-switch to 3-D */
+  /** whether this cell should auto-switch to 3-D */
   boolean AutoSwitch = true;
 
-  /** Specify whether this cell should auto-detect mappings for data */
+  /** whether this cell should auto-detect mappings for data */
   boolean AutoDetect = true;
 
-  /** Specify whether this cell should auto-display its widget frame */
+  /** whether this cell should auto-display its widget frame */
   boolean AutoShowControls = true;
 
   /** constructor for non-null RemoteServer */
@@ -115,7 +115,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     addSSCellChangeListener(this);
   }
 
-  /** Re-auto-detect mappings when this cell's data changes */
+  /** re-auto-detect mappings when this cell's data changes */
   public void ssCellChanged(SSCellChangeEvent e) {
     if (e.getChangeType() == SSCellChangeEvent.DATA_CHANGE) {
       if (!IsRemote) {
@@ -138,7 +138,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     }
   }
 
-  /** Switch to 3-D mode if necessary and available, then call setMaps() */
+  /** switch to 3-D mode if necessary and available, then call setMaps() */
   public void setMapsAuto(ScalarMap[] maps) throws VisADException,
                                                    RemoteException {
     if (AutoSwitch && maps != null) {
@@ -158,7 +158,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     setMaps(maps);
   }
 
-  /** Set the ScalarMaps for this cell and creates needed control widgets */
+  /** set the ScalarMaps for this cell and creates needed control widgets */
   public void setMaps(ScalarMap[] maps) throws VisADException,
                                                RemoteException {
     super.setMaps(maps);
@@ -212,32 +212,32 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     }
   }
 
-  /** Used by setMaps() method */
+  /** used by setMaps() method */
   private void addToFrame(Component c, boolean divide) {
     JPanel pane = (JPanel) WidgetFrame.getContentPane();
     if (divide) pane.add(new Divider());
     pane.add(c);
   }
 
-  /** Show the widgets for altering controls (if there are any) */
+  /** show the widgets for altering controls (if there are any) */
   public void showWidgetFrame() {
     JPanel pane = (JPanel) WidgetFrame.getContentPane();
     if (pane.getComponentCount() > 0) WidgetFrame.setVisible(true);
   }
 
-  /** Hide the widgets for altering controls */
+  /** hide the widgets for altering controls */
   public void hideWidgetFrame() {
     WidgetFrame.setVisible(false);
   }
 
-  /** Remove all widgets for altering controls and hide widget frame */
+  /** remove all widgets for altering controls and hide widget frame */
   private void clearWidgetFrame() {
     hideWidgetFrame();
     JPanel pane = (JPanel) WidgetFrame.getContentPane();
     pane.removeAll();
   }
 
-  /** Guess a good set of mappings for this cell's Data and apply them */
+  /** guess a good set of mappings for this cell's Data and apply them */
   void autoDetectMappings() throws VisADException, RemoteException {
     if (AutoDetect) {
       Data data = null;
@@ -255,12 +255,12 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     }
   }
 
-  /** Set this cell's formula */
+  /** set this cell's formula */
   public void setFormula(String f) throws VisADException, RemoteException {
     super.setFormula(f);
   }
 
-  /** Specify whether the FancySSCell has a highlighted border */
+  /** specify whether the FancySSCell has a highlighted border */
   public void setSelected(boolean value) {
     if (Selected == value) return;
     Selected = value;
@@ -271,37 +271,37 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     repaint();
   }
 
-  /** Specify whether this FancySSCell should auto-switch to 3-D */
+  /** specify whether this FancySSCell should auto-switch to 3-D */
   public void setAutoSwitch(boolean value) {
     AutoSwitch = value;
   }
 
-  /** Return whether this FancySSCell auto-switches to 3-D */
+  /** return whether this FancySSCell auto-switches to 3-D */
   public boolean getAutoSwitch() {
     return AutoSwitch;
   }
 
-  /** Specify whether this FancySSCell should auto-detect its mappings */
+  /** specify whether this FancySSCell should auto-detect its mappings */
   public void setAutoDetect(boolean value) {
     AutoDetect = value;
   }
 
-  /** Return whether this FancySSCell auto-detects its mappings */
+  /** return whether this FancySSCell auto-detects its mappings */
   public boolean getAutoDetect() {
     return AutoDetect;
   }
 
-  /** Specify whether this FancySSCell should auto-display its widget frame */
+  /** specify whether this FancySSCell should auto-display its widget frame */
   public void setAutoShowControls(boolean value) {
     AutoShowControls = value;
   }
 
-  /** Return whether this FancySSCell auto-displays its widget frame */
+  /** return whether this FancySSCell auto-displays its widget frame */
   public boolean getAutoShowControls() {
     return AutoShowControls;
   }
 
-  /** Ask user to confirm clearing the cell if any other cell depends on it */
+  /** ask user to confirm clearing the cell if any other cell depends on it */
   public boolean confirmClear() {
     if (othersDepend()) {
       int ans = JOptionPane.showConfirmDialog(null, "Other cells depend on " +
@@ -312,7 +312,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     return true;
   }
 
-  /** Clear the cell if no other cell depends on it; otherwise, ask the
+  /** clear the cell if no other cell depends on it; otherwise, ask the
       user &quot;Are you sure?&quot; return true if the cell was cleared */
   public boolean smartClear() throws VisADException, RemoteException {
     if (confirmClear()) {
@@ -323,7 +323,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     else return false;
   }
 
-  /** Permanently destroy this cell, asking user for confirmation first
+  /** permanently destroy this cell, asking user for confirmation first
       if other cells depend on it; return true if the cell was destroyed */
   public boolean smartDestroy() throws VisADException, RemoteException {
     if (confirmClear()) {
@@ -334,7 +334,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     else return false;
   }
 
-  /** Let the user create ScalarMaps from the current SSPanel's Data
+  /** let the user create ScalarMaps from the current SSPanel's Data
       to its Display */
   public void addMapDialog() {
     // check whether this cell has data
@@ -395,7 +395,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     }
   }
 
-  /** Import a data object from a given URL, in a separate thread */
+  /** import a data object from a given URL, in a separate thread */
   public void loadDataURL(URL u) {
     final URL url = u;
     final BasicSSCell cell = this;
@@ -422,7 +422,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     t.start();
   }
 
-  /** Imports a data object from a server using RMI, in a separate thread */
+  /** import a data object from a server using RMI, in a separate thread */
   public void loadDataRMI(String s) {
     final String sname = s;
     Runnable loadRMI = new Runnable() {
@@ -444,7 +444,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     t.start();
   }
 
-  /** Load a file selected by the user */
+  /** load a file selected by the user */
   public void loadDataDialog() {
     // get file name from file dialog
     if (FileBox == null) FileBox = new FileDialog(Parent);
@@ -473,7 +473,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     if (u != null) loadDataURL(u);
   }
 
-  /** Save to a file selected by the user, in netCDF or serialized format */
+  /** save to a file selected by the user, in netCDF or serialized format */
   public void saveDataDialog(boolean netcdf) {
     if (!hasData()) {
       JOptionPane.showMessageDialog(Parent, "This cell is empty.",
@@ -542,7 +542,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     }
   }
 
-  /** A thin, horizontal divider for separating widget frame components */
+  /** thin, horizontal divider for separating widget frame components */
   private class Divider extends JComponent {
 
     public void paint(Graphics g) {
