@@ -97,6 +97,9 @@ public class PoolPoint {
     display.addReferences(renderer, ref);
   }
 
+  /** Toggles the renderer visible or invisible. */
+  public void toggle(boolean on) { renderer.toggle(on); }
+
   /** Refreshes the point's coordinates to match the linked endpoint. */
   public void refresh() {
     if (point == null) {

@@ -528,7 +528,7 @@ public class MeasurePool implements DisplayListener {
   private int mx_left, my_left;
   private boolean m_shift_left;
 
-  /** Listens for left mouse clicks in the display. */
+  /** Listens for mouse clicks in the display. */
   public void displayChanged(DisplayEvent e) {
     int id = e.getId();
     InputEvent event = e.getInputEvent();
@@ -660,6 +660,11 @@ public class MeasurePool implements DisplayListener {
     line.ep1.selected--;
     line.ep2.selected--;
     selLines.remove(line);
+    if (!hasSelection()) setEndpointsEnabled(true);
+    else {
+      if (line.ep1.selected == 0) setEndpointEnabled(line.ep1, false);
+      if (line.ep2.selected == 0) setEndpointEnabled(line.ep2, false);
+    }
   }
 
   /** Deselects the given point. */
@@ -667,6 +672,8 @@ public class MeasurePool implements DisplayListener {
     if (!selPoints.contains(point)) return;
     point.selected--;
     selPoints.remove(point);
+    if (!hasSelection()) setEndpointsEnabled(true);
+    else if (point.selected == 0) setEndpointEnabled(point, false);
   }
 
 
@@ -886,17 +893,22 @@ public class MeasurePool implements DisplayListener {
   /** Selects the given line. */
   private void select(MeasureLine line) {
     if (selLines.contains(line)) return;
+    if (!hasSelection()) setEndpointsEnabled(false);
     line.selected = true;
     line.ep1.selected++;
     line.ep2.selected++;
     selLines.add(line);
+    setEndpointEnabled(line.ep1, true);
+    setEndpointEnabled(line.ep2, true);
   }
 
   /** Selects the given marker. */
   private void select(MeasurePoint point) {
     if (selPoints.contains(point)) return;
+    if (!hasSelection()) setEndpointsEnabled(false);
     point.selected++;
     selPoints.add(point);
+    setEndpointEnabled(point, true);
   }
 
   /** Deselects all measurements. */
@@ -915,6 +927,21 @@ public class MeasurePool implements DisplayListener {
       point.selected--;
     }
     selPoints.removeAllElements();
+    setEndpointsEnabled(true);
+  }
+
+  /** Toggles direct manipulation endpoints. */
+  private void setEndpointsEnabled(boolean enabled) {
+    int size = used.size();
+    for (int i=0; i<size; i++) {
+      PoolPoint pt = (PoolPoint) used.elementAt(i);
+      pt.toggle(enabled);
+    }
+  }
+
+  /** Toggles a direct manipulation endpoint. */
+  private void setEndpointEnabled(MeasurePoint point, boolean enabled) {
+    for (int i=0; i<point.pt.length; i++) point.pt[i].toggle(enabled);
   }
 
 }
