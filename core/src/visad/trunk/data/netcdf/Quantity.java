@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Quantity.java,v 1.6 2000-03-03 18:09:23 steve Exp $
+ * $Id: Quantity.java,v 1.7 2000-11-15 16:17:41 dglo Exp $
  */
 
 package visad.data.netcdf;
@@ -118,5 +118,38 @@ public class Quantity
   public String getDefaultUnitString()
   {
     return unitSpec;
+  }
+
+  /** create a new Quantity, or return it if it already exists */
+  public static Quantity getQuantity(String name, String unitSpec,
+                                     SimpleSet set)
+    throws ParseException
+  {
+    try {
+      return new Quantity(name, unitSpec, set);
+    }
+    catch (TypeException e) {
+      return getQuantityByName(name);
+    }
+    catch (VisADException e) {
+      return null;
+    }
+  }
+
+  /** create a new Quantity, or return it if it already exists */
+  public static Quantity getQuantity(String name, String unitSpec)
+    throws ParseException
+  {
+    return getQuantity(name, unitSpec, null);
+  }
+
+  /** return any Quantity constructed in this JVM with name,
+      or null */
+  public static Quantity getQuantityByName(String name) {
+    RealType quant = RealType.getRealTypeByName(name);
+    if (!(quant instanceof Quantity)) {
+      return null;
+    }
+    return (Quantity) quant;
   }
 }
