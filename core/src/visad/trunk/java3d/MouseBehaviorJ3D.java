@@ -224,6 +224,32 @@ public class MouseBehaviorJ3D extends Behavior
   }
 
   /**
+   * Return the screen coordinates corresponding to the VisAD coordinates.
+   * @param  position  array of VisAD coordinates
+   * @return  corresponding (x, y) screen coordinates
+   */
+  public int[] getScreenCoords(double[] position) {
+    // get transforms
+    Canvas3D canvas = display_renderer.getCanvas();
+    Transform3D t = new Transform3D();
+    canvas.getImagePlateToVworld(t);
+    TransformGroup trans = display_renderer.getTrans();
+    Transform3D tt = new Transform3D();
+    trans.getTransform(tt);
+
+    // compute image plate location
+    Point3d pos = new Point3d(position);
+    tt.transform(pos);
+    t.invert();
+    t.transform(pos);
+
+    // get screen coordinates
+    Point2d coords = new Point2d();
+    canvas.getPixelLocationFromImagePlate(pos, coords);
+    return new int[] {(int) coords.x, (int) coords.y};
+  }
+
+  /**
    * Wakeup when necessary
    */
   void setWakeup() {

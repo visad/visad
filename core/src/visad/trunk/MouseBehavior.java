@@ -61,6 +61,13 @@ public interface MouseBehavior {
   VisADRay findRay(int screen_x, int screen_y);
 
   /**
+   * Return the screen coordinates corresponding to the VisAD coordinates.
+   * @param  position  array of VisAD coordinates
+   * @return  corresponding (x, y) screen coordinates
+   */
+  int[] getScreenCoords(double[] position);
+
+  /**
    * Multiply the two matrices together.
    * @param  a  first matrix
    * @param  b  second matrix

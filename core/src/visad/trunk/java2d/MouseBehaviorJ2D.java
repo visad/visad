@@ -122,6 +122,25 @@ public class MouseBehaviorJ2D implements MouseBehavior {
   }
 
   /**
+   * Return the screen coordinates corresponding to the VisAD coordinates.
+   * @param  position  array of VisAD coordinates
+   * @return  corresponding (x, y) screen coordinates
+   */
+  public int[] getScreenCoords(double[] position) {
+    VisADCanvasJ2D canvas = display_renderer.getCanvas();
+    AffineTransform trans = canvas.getTransform();
+
+    if (trans == null) return null;
+
+    double[] newcoords = new double[2];
+    trans.transform(position, 0, newcoords, 0, 1);
+
+    int[] coords = new int[2];
+    for (int i=0; i<2; i++) coords[i] = (int) newcoords[i];
+    return coords;
+  }
+
+  /**
    * Create a translation matrix.
    * @param  transx   x translation amount
    * @param  transy   y translation amount
