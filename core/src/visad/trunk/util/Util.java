@@ -147,7 +147,7 @@ public class Util
       new String[] {"jpg", "jpeg", "jpe"}, "JPEG images");
     FileFilter mcidas = new McIDASFileFilter();
     FileFilter netcdf = new ExtensionFileFilter(
-      new String[] {"nc", "ncf", "netcdf"}, "netCDF datasets");
+      new String[] {"nc", "ncf", "netcdf", "cdf"}, "netCDF datasets");
     FileFilter png = new ExtensionFileFilter(
       "png", "PNG images");
     FileFilter pnm = new ExtensionFileFilter(
