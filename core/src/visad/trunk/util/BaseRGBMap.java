@@ -1,6 +1,6 @@
 /*
 
-@(#) $Id: BaseRGBMap.java,v 1.2 1999-09-10 18:32:18 dglo Exp $
+@(#) $Id: BaseRGBMap.java,v 1.3 1999-10-13 21:43:56 dglo Exp $
 
 VisAD Utility Library: Widgets for use in building applications with
 the VisAD interactive analysis and visualization library
@@ -35,7 +35,7 @@ import java.awt.*;
  * mouse button to alternate between the color curves.
  *
  * @author Nick Rasmussen nick@cae.wisc.edu
- * @version $Revision: 1.2 $, $Date: 1999-09-10 18:32:18 $
+ * @version $Revision: 1.3 $, $Date: 1999-10-13 21:43:56 $
  * @since Visad Utility Library, 0.5
  */
 
@@ -73,6 +73,8 @@ public class BaseRGBMap
   /** 'true' if this map has an alpha component */
   private boolean hasAlpha;
 
+  private static Cursor[] cursor = null;
+
   /** Construct a BaseRGBMap with the default resolution of 256
    * @param hasAlpha set to <TT>true</TT> is this map has
    *                 an alpha component
@@ -91,6 +93,8 @@ public class BaseRGBMap
     this.resolution = resolution;
     this.hasAlpha = hasAlpha;
 
+    buildCursors();
+
     val = new float[resolution][hasAlpha ? 4 : 3];
     initColormap();
 
@@ -101,10 +105,75 @@ public class BaseRGBMap
   public BaseRGBMap(float[][] vals, boolean hasAlpha) {
     this.hasAlpha = hasAlpha;
 
+    buildCursors();
+
     setValues(vals, false);
 
     addMouseListener(this);
     addMouseMotionListener(this);
+  }
+
+  static Cursor buildRGBACursor(int rgba)
+  {
+    if (rgba < 0 || rgba > 3) rgba = 0;
+
+    final int lines = 15;
+    final int elements = 15;
+
+    int[] pixel = new int[lines*elements];
+
+    for (int i = 0; i < pixel.length; i++) {
+      pixel[i] = 0;
+    }
+
+    final int color;
+    switch (rgba) {
+    case RED: color = (255<<16) + (255<<24); break;
+    case GREEN: color = (255<<8) + (255<<24); break;
+    case BLUE: color = 255 + (255<<24); break;
+    default:
+    case ALPHA: color = 127 + (127<<8) + (127<<16) + (255<<24); break;
+    }
+
+    final int midLine = (lines / 2) * elements;
+    for (int i = midLine + elements - 1; i >= midLine; i--) {
+      pixel[i] = color;
+    }
+
+    final int midElement = (elements / 2);
+    for (int i = 0; i < lines; i++) {
+      pixel[i*elements + midElement] = color;
+    }
+    java.awt.image.ImageProducer ip;
+    ip = new java.awt.image.MemoryImageSource(elements, lines, pixel,
+                                              0, elements);
+
+    java.awt.Image img = Toolkit.getDefaultToolkit().createImage(ip);
+
+    Point pt = new Point(img.getWidth(null) / 2, img.getHeight(null) / 2);
+    String name;
+    switch (rgba) {
+    case RED: name = "crossRed"; break;
+    case GREEN: name = "crossGreen"; break;
+    case BLUE: name = "crossBlue"; break;
+    default:
+    case ALPHA: name = "crossAlpha"; break;
+    }
+
+    return Toolkit.getDefaultToolkit().createCustomCursor(img, pt, name);
+  }
+
+  private void buildCursors()
+  {
+    if (cursor != null) return;
+
+    cursor = new Cursor[4];
+    cursor[RED] = buildRGBACursor(RED);
+    cursor[GREEN] = buildRGBACursor(GREEN);
+    cursor[BLUE] = buildRGBACursor(BLUE);
+    cursor[ALPHA] = buildRGBACursor(ALPHA);
+
+    setCursor(cursor[state]);
   }
 
   /** Sets the values of the internal array after the map
@@ -346,6 +415,7 @@ public class BaseRGBMap
       return;
     }
     state = (state + 1) % (hasAlpha ? 4 : 3);
+    setCursor(cursor[state]);
   }
 
   /** Updates the internal array and sends notification to the
