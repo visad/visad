@@ -12,8 +12,6 @@ import visad.FunctionType;
 import visad.Set;
 import visad.VisADException;
 
-import visad.data.FileField;
-
 import visad.data.visad.BinaryObjectCache;
 import visad.data.visad.BinaryReader;
 import visad.data.visad.BinaryWriter;
@@ -122,9 +120,7 @@ if(DEBUG_RD_DATA)System.err.println("rdFldI: FLD_END (" + FLD_END + ")");
     throws IOException
   {
     byte dataType;
-    if (!fld.getClass().equals(FieldImpl.class) &&
-        !fld.getClass().equals(FileField.class))
-    {
+    if (!fld.getClass().equals(FieldImpl.class)) {
       return;
     }
 
@@ -154,9 +150,6 @@ if(DEBUG_WR_DATA&&!DEBUG_WR_MATH)System.err.println("wrFldI: type (" + ft + ")")
 
     byte dataType;
     if (fld.getClass().equals(FieldImpl.class)) {
-      dataType = DATA_FIELD;
-    } else if (fld.getClass().equals(FileField.class)) {
-      // treat FileFields like FieldImpls
       dataType = DATA_FIELD;
     } else {
 if(DEBUG_WR_DATA)System.err.println("wrFldI: punt "+fld.getClass().getName());

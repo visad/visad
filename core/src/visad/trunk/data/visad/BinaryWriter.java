@@ -37,10 +37,6 @@ import visad.*;
 
 import visad.data.BaseDataProcessor;
 import visad.data.DataWriter;
-import visad.data.FileField;
-import visad.data.FileFlatField;
-
-import visad.data.netcdf.Quantity;
 
 import visad.data.visad.object.*;
 
