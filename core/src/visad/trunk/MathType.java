@@ -577,7 +577,7 @@ public abstract class MathType extends Object implements java.io.Serializable {
                 catch (VisADException exc) {
                   break;
                 }
-                if (ttci instanceof RealType) {
+                if (ttci instanceof RealType && rgbc < 3) {
                   rgb[rgbc++] = (RealType) ttci;
                 }
               }
