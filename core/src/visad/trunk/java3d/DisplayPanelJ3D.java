@@ -29,9 +29,7 @@ import visad.*;
  
 // GUI handling
 import java.awt.*;
-import java.awt.swing.*;
-// import com.sun.java.swing.*;
-// import com.sun.java.swing.border.*;
+import com.sun.java.swing.*;
 
 import javax.media.j3d.*;
 

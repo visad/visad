@@ -226,7 +226,8 @@ System.out.println("VisADCanvasJ2D.paint: current_image = " + current_image +
         AffineTransform trans = displayRenderer.getTrans();
         Graphics2D g2 = image.createGraphics();
         g2.setBackground(getBackground());
-        g2.setRenderingHints(Graphics2D.RENDERING, Graphics2D.RENDER_SPEED);
+        g2.setRenderingHint(RenderingHints.KEY_RENDERING,
+                            RenderingHints.VALUE_RENDER_SPEED);
         g2.clearRect(0, 0, width, height);
 
         // render into image;
@@ -253,7 +254,8 @@ System.out.println("VisADCanvasJ2D.paint: current_image = " + current_image +
 /*
 System.out.println("VisADCanvasJ2D.paint: " + animation_string);
 */
-            g2.setRenderingHints(Graphics2D.ANTIALIASING, Graphics2D.ANTIALIAS_ON);
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                                RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setFont(new Font("Times New Roman", Font.PLAIN, 12));
             g2.setTransform(new AffineTransform());
             int nchars = animation_string.length();
@@ -306,7 +308,8 @@ System.out.println("VisADCanvasJ2D.paint: " + animation_string);
       BufferedImage image = (BufferedImage) appearance.image;
       AffineTransform tg = g2.getTransform();
       if (image != null) {
-        g2.setRenderingHints(Graphics2D.ANTIALIASING, Graphics2D.ANTIALIAS_OFF);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+                            RenderingHints.VALUE_ANTIALIAS_OFF);
         if (!(array instanceof VisADQuadArray)) {
           throw new VisADError("VisADCanvasJ2D.render: array must be quad");
         }
@@ -398,7 +401,8 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
                    (array instanceof VisADPointArray ? " point" : " line"));
 */
           if (array instanceof VisADPointArray) {
-            g2.setRenderingHints(Graphics2D.ANTIALIASING, Graphics2D.ANTIALIAS_OFF);
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    
+                                RenderingHints.VALUE_ANTIALIAS_OFF);
             if (colors == null) {
               for (int i=0; i<3*count; i += 3) {
                 if (coordinates[i] == coordinates[i] &&
@@ -423,7 +427,8 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
             }
           }
           else if (array instanceof VisADLineArray) {
-            g2.setRenderingHints(Graphics2D.ANTIALIASING, Graphics2D.ANTIALIAS_ON);
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    
+                                RenderingHints.VALUE_ANTIALIAS_ON);
             if (colors == null) {
               for (int i=0; i<3*count; i += 6) {
                 g2.draw(new Line2D.Float(coordinates[i], coordinates[i+1],
@@ -444,7 +449,8 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
             }
           }
           else { // (array instanceof VisADLineStripArray)
-            g2.setRenderingHints(Graphics2D.ANTIALIASING, Graphics2D.ANTIALIAS_ON);
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    
+                                RenderingHints.VALUE_ANTIALIAS_ON);
             float lastx = coordinates[0];
             float lasty = coordinates[1];
             float lastr = 0.0f, lastg = 0.0f, lastb = 0.0f;
@@ -481,10 +487,11 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
           }
         }
         else if (array instanceof VisADTriangleArray) {
-          g2.setRenderingHints(Graphics2D.ANTIALIASING, Graphics2D.ANTIALIAS_OFF);
+          g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    
+                              RenderingHints.VALUE_ANTIALIAS_OFF);
           if (colors == null) { 
             for (int i=0; i<3*count; i += 9) { 
-              GeneralPath path = new GeneralPath(GeneralPath.EVEN_ODD);
+              GeneralPath path = new GeneralPath(GeneralPath.WIND_EVEN_ODD);
               path.moveTo(coordinates[i], coordinates[i+1]);
               path.lineTo(coordinates[i+3], coordinates[i+4]);
               path.lineTo(coordinates[i+6], coordinates[i+7]);
@@ -501,7 +508,7 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
                 0.33f * (colors[j+1] + colors[j+jinc+1] + colors[j+2*jinc+1]),
                 0.33f * (colors[j+2] + colors[j+jinc+2] + colors[j+2*jinc+2])));
               j += 3 * jinc;
-              GeneralPath path = new GeneralPath(GeneralPath.EVEN_ODD);
+              GeneralPath path = new GeneralPath(GeneralPath.WIND_EVEN_ODD);
               path.moveTo(coordinates[i], coordinates[i+1]);
               path.lineTo(coordinates[i+3], coordinates[i+4]);
               path.lineTo(coordinates[i+6], coordinates[i+7]);
@@ -511,10 +518,11 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
           }
         }
         else if (array instanceof VisADQuadArray) {
-          g2.setRenderingHints(Graphics2D.ANTIALIASING, Graphics2D.ANTIALIAS_OFF);
+          g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    
+                              RenderingHints.VALUE_ANTIALIAS_OFF);
           if (colors == null) {
             for (int i=0; i<3*count; i += 12) {
-              GeneralPath path = new GeneralPath(GeneralPath.EVEN_ODD);
+              GeneralPath path = new GeneralPath(GeneralPath.WIND_EVEN_ODD);
               path.moveTo(coordinates[i], coordinates[i+1]);
               path.lineTo(coordinates[i+3], coordinates[i+4]);
               path.lineTo(coordinates[i+6], coordinates[i+7]);
@@ -535,7 +543,7 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
                 0.25f * (colors[j+2] + colors[j+jinc+2] +
                          colors[j+2*jinc+2] + colors[j+3*jinc+2])));
               j += 4 * jinc;
-              GeneralPath path = new GeneralPath(GeneralPath.EVEN_ODD);
+              GeneralPath path = new GeneralPath(GeneralPath.WIND_EVEN_ODD);
               path.moveTo(coordinates[i], coordinates[i+1]);
               path.lineTo(coordinates[i+3], coordinates[i+4]);
               path.lineTo(coordinates[i+6], coordinates[i+7]);
@@ -546,7 +554,8 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
           }
         }
         else if (array instanceof VisADIndexedTriangleStripArray) {
-          g2.setRenderingHints(Graphics2D.ANTIALIASING, Graphics2D.ANTIALIAS_OFF);
+          g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,    
+                              RenderingHints.VALUE_ANTIALIAS_OFF);
           int[] indices = ((VisADIndexedTriangleStripArray) array).indices;
           int indexCount = ((VisADIndexedTriangleStripArray) array).indexCount;
           int[] stripVertexCounts =
@@ -559,7 +568,7 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
             if (colors == null) {
               for (int i=base+2; i<base+count; i++) {
                 int index2 = indices[i];
-                GeneralPath path = new GeneralPath(GeneralPath.EVEN_ODD);
+                GeneralPath path = new GeneralPath(GeneralPath.WIND_EVEN_ODD);
                 path.moveTo(coordinates[3*index0], coordinates[3*index0+1]);
                 path.lineTo(coordinates[3*index1], coordinates[3*index1+1]);
                 path.lineTo(coordinates[3*index2], coordinates[3*index2+1]);
@@ -580,7 +589,7 @@ System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
                            colors[jinc*index2+1]),
                   0.33f * (colors[jinc*index0+2] + colors[jinc*index1+2] +
                            colors[jinc*index2+2])));
-                GeneralPath path = new GeneralPath(GeneralPath.EVEN_ODD);
+                GeneralPath path = new GeneralPath(GeneralPath.WIND_EVEN_ODD);
                 path.moveTo(coordinates[3*index0], coordinates[3*index0+1]);
                 path.lineTo(coordinates[3*index1], coordinates[3*index1+1]);
                 path.lineTo(coordinates[3*index2], coordinates[3*index2+1]);

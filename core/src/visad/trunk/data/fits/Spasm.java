@@ -1,12 +1,12 @@
-import java.awt.swing.BoxLayout;
-import java.awt.swing.JFrame;
-import java.awt.swing.JLabel;
-import java.awt.swing.JPanel;
+import com.sun.java.swing.BoxLayout;
+import com.sun.java.swing.JFrame;
+import com.sun.java.swing.JLabel;
+import com.sun.java.swing.JPanel;
 
-import java.awt.swing.border.Border;
-import java.awt.swing.border.CompoundBorder;
-import java.awt.swing.border.EmptyBorder;
-import java.awt.swing.border.EtchedBorder;
+import com.sun.java.swing.border.Border;
+import com.sun.java.swing.border.CompoundBorder;
+import com.sun.java.swing.border.EmptyBorder;
+import com.sun.java.swing.border.EtchedBorder;
 
 import java.awt.Cursor;
 import java.awt.Dimension;
