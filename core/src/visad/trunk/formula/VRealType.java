@@ -26,16 +26,35 @@ MA 02111-1307, USA
 
 package visad.formula;
 
+import java.util.Vector;
 import visad.*;
 
 /** Thing wrapper for visad.RealType.<P> */
 public class VRealType extends ThingImpl {
 
+  private static Vector realTypes = new Vector();
+
   private RealType realType;
+
+  /** gets the VRealType corresponding to the specified RealType,
+      creating it if necessary */
+  public static VRealType get(RealType rt) {
+    synchronized (realTypes) {
+      int len = realTypes.size();
+      for (int i=0; i<len; i++) {
+        VRealType vrt = (VRealType) realTypes.elementAt(i);
+        if (vrt.getRealType() == rt) return vrt;
+      }
+      return new VRealType(rt);
+    }
+  }
 
   /** constructor */
   public VRealType(RealType rt) {
     realType = rt;
+    synchronized (realTypes) {
+      realTypes.add(this);
+    }
   }
 
   /** return the wrapper's RealType */

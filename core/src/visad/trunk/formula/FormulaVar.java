@@ -130,30 +130,28 @@ public class FormulaVar extends ActionImpl {
 
   /** clear this variable's dependency list */
   private void clearDependencies() {
-    synchronized (Lock) {
-      int len = depend.size();
-      for (int i=0; i<len; i++) {
-        FormulaVar v = (FormulaVar) depend.elementAt(i);
-        v.required.remove(this);
-      }
-      depend.removeAllElements();
-      try {
-        removeAllReferences();
-      }
-      catch (VisADException exc) {
-        if (DEBUG) exc.printStackTrace();
-      }
-      catch (RemoteException exc) {
-        if (DEBUG) exc.printStackTrace();
-      }
+    int len = depend.size();
+    for (int i=0; i<len; i++) {
+      FormulaVar v = (FormulaVar) depend.elementAt(i);
+      v.required.remove(this);
+    }
+    depend.removeAllElements();
+    try {
+      removeAllReferences();
+    }
+    catch (VisADException exc) {
+      if (DEBUG) exc.printStackTrace();
+    }
+    catch (RemoteException exc) {
+      if (DEBUG) exc.printStackTrace();
     }
   }
 
   /** rebuild this variable's dependency list, then recompute this variable */
   private void rebuildDependencies() throws FormulaException {
     disableAction();
-    clearDependencies();
     synchronized (Lock) {
+      clearDependencies();
       if (formula != null) {
         if (postfix == null) {
           try {
@@ -316,15 +314,18 @@ public class FormulaVar extends ActionImpl {
 
   /** set the Thing for this variable directly */
   void setThing(Thing t) throws VisADException, RemoteException {
-    if (tref.getThing() == t) return;
-    formula = null;
-    postfix = null;
-    clearDependencies();
-    tref.setThing(t);
+    synchronized (Lock) {
+      if (tref.getThing() == t) return;
+      formula = null;
+      postfix = null;
+      clearDependencies();
+      tref.setThing(t);
+    }
   }
 
   /** set the ThingReference for this variable */
   void setReference(ThingReference tr) {
+    if (tref == tr) return;
     synchronized (Lock) {
       int len = required.size();
       for (int i=0; i<len; i++) {
@@ -416,7 +417,7 @@ public class FormulaVar extends ActionImpl {
         evalError("Could not store final value in variable (remote)");
       }
       computing = false;
-      Lock.notify();
+      Lock.notifyAll();
     }
   }
 
