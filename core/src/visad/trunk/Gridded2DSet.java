@@ -85,12 +85,13 @@ public class Gridded2DSet extends GriddedSet {
            "Gridded2DSet: samples value #" + i + " may not be missing");
         }
       }
-      if (test) {
-        // Samples consistency test
-        Pos = ( (Samples[0][1]-Samples[0][0])
+
+      Pos = ( (Samples[0][1]-Samples[0][0])
                *(Samples[1][LengthX+1]-Samples[1][1])
               - (Samples[1][1]-Samples[1][0])
                *(Samples[0][LengthX+1]-Samples[0][1]) > 0);
+      if (test) {
+        // Samples consistency test
         for (int j=0; j<LengthY-1; j++) {
           for (int i=0; i<LengthX-1; i++) {
             float[] v00 = new float[2];
