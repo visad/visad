@@ -1,4 +1,6 @@
-# makefile for VisAD version 2.0
+# Makefile for VisAD version 2.0
+# For use with Unix-based systems
+# To compile VisAD in a Windows-based system, use the Makefile.WinNT file.
 
 # VisAD system for interactive analysis and visualization of numerical
 # data.  Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden, Tom

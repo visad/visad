@@ -25,8 +25,9 @@
 
 default:
 	@echo Type one of the following:
-	@echo nmake -f Makefile.WinNT compile (compile .java files)
-	@echo nmake -f Makefile.WinNT debug (compile .java files for debugging)
+        @echo nmake -f Makefile.WinNT recompile (recompile modified source files)
+	@echo nmake -f Makefile.WinNT compile (compile source files from scratch)
+	@echo nmake -f Makefile.WinNT debug (compile source files for debugging)
 	@echo nmake -f Makefile.WinNT jar (make visad_src-2.0.jar)
 	@echo nmake -f Makefile.WinNT save (save files to a backup directory)
 	@echo nmake -f Makefile.WinNT classes (make jar files containing classes)
@@ -36,12 +37,12 @@ default:
 
 .SUFFIXES : .java .class
 
-.java.class:
-	javac $<
-
 JC = javac
 JFLAGS = -J-mx32m
 RMIC = rmic
+
+.java.class:
+	$(JC) $(JFLAGS) $<
 
 DEL = del
 
@@ -242,73 +243,73 @@ visad\plotdigits.html
 save:
 	cd ..
 	if not exist $(BACKUP) mkdir $(BACKUP)
-	if exist $(BACKUP)\visad\*.java                            \
+	if exist $(BACKUP)\visad\*.java \
 		$(DEL) $(BACKUP)\visad\*.java
-	if exist $(BACKUP)\visad\examples\*.java                   \
+	if exist $(BACKUP)\visad\examples\*.java \
 		$(DEL) $(BACKUP)\visad\examples\*.java
-	if exist $(BACKUP)\visad\java3d\*.java                     \
+	if exist $(BACKUP)\visad\java3d\*.java \
 		$(DEL) $(BACKUP)\visad\java3d\*.java
-	if exist $(BACKUP)\visad\java2d\*.java                     \
+	if exist $(BACKUP)\visad\java2d\*.java \
 		$(DEL) $(BACKUP)\visad\java2d\*.java
-	if exist $(BACKUP)\visad\util\*.java                       \
+	if exist $(BACKUP)\visad\util\*.java \
 		$(DEL) $(BACKUP)\visad\util\*.java
-	if exist $(BACKUP)\visad\formula\*.java                    \
+	if exist $(BACKUP)\visad\formula\*.java \
 		$(DEL) $(BACKUP)\visad\formula\*.java
-	if exist $(BACKUP)\visad\ss\*.java                         \
+	if exist $(BACKUP)\visad\ss\*.java \
 		$(DEL) $(BACKUP)\visad\ss\*.java
-	if exist $(BACKUP)\visad\ss\*.gif                          \
+	if exist $(BACKUP)\visad\ss\*.gif \
 		$(DEL) $(BACKUP)\visad\ss\*.gif
-	if exist $(BACKUP)\visad\data\*.java                       \
+	if exist $(BACKUP)\visad\data\*.java \
 		$(DEL) $(BACKUP)\visad\data\*.java
-	if exist $(BACKUP)\visad\data\netcdf\*.java                \
+	if exist $(BACKUP)\visad\data\netcdf\*.java \
 		$(DEL) $(BACKUP)\visad\data\netcdf\*.java
-	if exist $(BACKUP)\visad\data\netcdf\units\*.java          \
+	if exist $(BACKUP)\visad\data\netcdf\units\*.java \
 		$(DEL) $(BACKUP)\visad\data\netcdf\units\*.java
-	if exist $(BACKUP)\visad\data\netcdf\in\*.java             \
+	if exist $(BACKUP)\visad\data\netcdf\in\*.java \
 		$(DEL) $(BACKUP)\visad\data\netcdf\in\*.java
-	if exist $(BACKUP)\visad\data\netcdf\out\*.java            \
+	if exist $(BACKUP)\visad\data\netcdf\out\*.java \
 		$(DEL) $(BACKUP)\visad\data\netcdf\out\*.java
-	if exist $(BACKUP)\visad\data\fits\*.java                  \
+	if exist $(BACKUP)\visad\data\fits\*.java \
 		$(DEL) $(BACKUP)\visad\data\fits\*.java
-	if exist $(BACKUP)\visad\$(FITS)\fits\*.java               \
+	if exist $(BACKUP)\visad\$(FITS)\fits\*.java \
 		$(DEL) $(BACKUP)\visad\$(FITS)\fits\*.java
-	if exist $(BACKUP)\visad\$(FITS)\util\*.java               \
+	if exist $(BACKUP)\visad\$(FITS)\util\*.java \
 		$(DEL) $(BACKUP)\visad\$(FITS)\util\*.java
-	if exist $(BACKUP)\visad\$(FITS)\test\*.java               \
+	if exist $(BACKUP)\visad\$(FITS)\test\*.java \
 		$(DEL) $(BACKUP)\visad\$(FITS)\test\*.java
-	if exist $(BACKUP)\visad\$(UCAR)\multiarray\*.java         \
+	if exist $(BACKUP)\visad\$(UCAR)\multiarray\*.java \
 		$(DEL) $(BACKUP)\visad\$(UCAR)\multiarray\*.java
-	if exist $(BACKUP)\visad\$(UCAR)\netcdf\*.java             \
+	if exist $(BACKUP)\visad\$(UCAR)\netcdf\*.java \
 		$(DEL) $(BACKUP)\visad\$(UCAR)\netcdf\*.java
-	if exist $(BACKUP)\visad\$(UCAR)\tests\*.java              \
+	if exist $(BACKUP)\visad\$(UCAR)\tests\*.java \
 		$(DEL) $(BACKUP)\visad\$(UCAR)\tests\*.java
-	if exist $(BACKUP)\visad\data\hdfeos\*.java                \
+	if exist $(BACKUP)\visad\data\hdfeos\*.java \
 		$(DEL) $(BACKUP)\visad\data\hdfeos\*.java
-	if exist $(BACKUP)\visad\data\hdfeos\hdfeosc\*.java        \
+	if exist $(BACKUP)\visad\data\hdfeos\hdfeosc\*.java \
 		$(DEL) $(BACKUP)\visad\data\hdfeos\hdfeosc\*.java
-	if exist $(BACKUP)\visad\data\vis5d\*.java                 \
+	if exist $(BACKUP)\visad\data\vis5d\*.java \
 		$(DEL) $(BACKUP)\visad\data\vis5d\*.java
-	if exist $(BACKUP)\visad\$(SSEC)\mcidas\*.java             \
+	if exist $(BACKUP)\visad\$(SSEC)\mcidas\*.java \
 		$(DEL) $(BACKUP)\visad\$(SSEC)\mcidas\*.java
-	if exist $(BACKUP)\visad\data\mcidas\*.java                \
+	if exist $(BACKUP)\visad\data\mcidas\*.java \
 		$(DEL) $(BACKUP)\visad\data\mcidas\*.java
-	if exist $(BACKUP)\visad\data\gif\*.java                   \
+	if exist $(BACKUP)\visad\data\gif\*.java \
 		$(DEL) $(BACKUP)\visad\data\gif\*.java
-	if exist $(BACKUP)\visad\data\visad\*.java                 \
+	if exist $(BACKUP)\visad\data\visad\*.java \
 		$(DEL) $(BACKUP)\visad\data\visad\*.java
-	if exist $(BACKUP)\visad\jmet\*.java                       \
+	if exist $(BACKUP)\visad\jmet\*.java \
 		$(DEL) $(BACKUP)\visad\jmet\*.java
-	if exist $(BACKUP)\visad\paoloa\*.java                     \
+	if exist $(BACKUP)\visad\paoloa\*.java \
 		$(DEL) $(BACKUP)\visad\paoloa\*.java
-	if exist $(BACKUP)\visad\paoloa\spline\*.java              \
+	if exist $(BACKUP)\visad\paoloa\spline\*.java \
 		$(DEL) $(BACKUP)\visad\paoloa\spline\*.java
-	if exist $(BACKUP)\visad\aune\*.java                       \
+	if exist $(BACKUP)\visad\aune\*.java \
 		$(DEL) $(BACKUP)\visad\aune\*.java
-	if exist $(BACKUP)\visad\benjamin\*.java                   \
+	if exist $(BACKUP)\visad\benjamin\*.java \
 		$(DEL) $(BACKUP)\visad\benjamin\*.java
-	if exist $(BACKUP)\visad\rabin\*.java                      \
+	if exist $(BACKUP)\visad\rabin\*.java \
 		$(DEL) $(BACKUP)\visad\rabin\*.java
-	if exist $(BACKUP)\visad\bom\*.java                        \
+	if exist $(BACKUP)\visad\bom\*.java \
 		$(DEL) $(BACKUP)\visad\bom\*.java
 	jar cvf $(BACKUP)\save.jar $(SAVE_FILES)
 	cd $(BACKUP)
@@ -387,58 +388,6 @@ clear:
 	if exist bom\*.java $(DEL) bom\*.java
 	if exist examples\*.java $(DEL) examples\*.java
 
-RMIC_FILES = \
-visad.RemoteCellImpl \
-visad.RemoteActionImpl \
-visad.RemoteDisplayImpl \
-visad.RemoteThingReferenceImpl \
-visad.RemoteDataReferenceImpl \
-visad.RemoteThingImpl \
-visad.RemoteDataImpl \
-visad.RemoteFunctionImpl \
-visad.RemoteFieldImpl \
-visad.RemoteServerImpl
-
-debug:
-	nmake -f Makefile.WinNT compile \
-	"JFLAGS = -J-mx32m -g"
-
-recompile:
-	$(JC) $(JFLAGS) *.java
-	$(RMIC) $(RMIC_FILES)
-	$(JC) $(JFLAGS) java3d\*.java
-	$(JC) $(JFLAGS) java2d\*.java
-	$(JC) $(JFLAGS) util\*.java
-	$(JC) $(JFLAGS) data\*.java
-	-$(JC) $(JFLAGS) $(UCAR)\multiarray\*.java
-	-$(JC) $(JFLAGS) $(UCAR)\netcdf\*.java
-	-$(JC) $(JFLAGS) $(UCAR)\tests\*.java
-	$(JC) $(JFLAGS) data\netcdf\units\*.java
-	$(JC) $(JFLAGS) data\netcdf\in\*.java
-	$(JC) $(JFLAGS) data\netcdf\out\*.java
-	$(JC) $(JFLAGS) data\netcdf\*.java
-	-$(JC) $(JFLAGS) $(FITS)\util\*.java
-	-$(JC) $(JFLAGS) $(FITS)\fits\*.java
-	-$(JC) $(JFLAGS) $(FITS)\test\*.java
-	$(JC) $(JFLAGS) data\fits\*.java
-	$(JC) $(JFLAGS) data\vis5d\*.java
-	$(JC) $(JFLAGS) $(SSEC)\mcidas\*.java
-	$(JC) $(JFLAGS) data\mcidas\*.java
-	$(JC) $(JFLAGS) data\gif\*.java
-	$(JC) $(JFLAGS) data\visad\*.java
-	$(JC) $(JFLAGS) data\hdfeos\hdfeosc\*.java
-	$(JC) $(JFLAGS) data\hdfeos\*.java
-	$(JC) $(JFLAGS) formula\*.java
-	$(JC) $(JFLAGS) ss\*.java
-	$(JC) $(JFLAGS) jmet\*.java
-	-$(JC) $(JFLAGS) paoloa\*.java
-	-$(JC) $(JFLAGS) paoloa\spline\*.java
-	-$(JC) $(JFLAGS) aune\*.java
-	-$(JC) $(JFLAGS) benjamin\*.java
-	-$(JC) $(JFLAGS) rabin\*.java
-	-$(JC) $(JFLAGS) bom\*.java
-	-(cd examples && $(JC) $(JFLAGS) *.java)
-
 clean:
 	if exist *.class $(DEL) *.class
 	if exist java3d\*.class $(DEL) java3d\*.class
@@ -474,7 +423,59 @@ clean:
 	if exist bom\*.class $(DEL) bom\*.class
 	if exist examples\*.class $(DEL) examples\*.class
 
+RMIC_FILES = \
+visad.RemoteCellImpl \
+visad.RemoteActionImpl \
+visad.RemoteDisplayImpl \
+visad.RemoteThingReferenceImpl \
+visad.RemoteDataReferenceImpl \
+visad.RemoteThingImpl \
+visad.RemoteDataImpl \
+visad.RemoteFunctionImpl \
+visad.RemoteFieldImpl \
+visad.RemoteServerImpl
+
+recompile: \
+*.class \
+java3d\*.class \
+java2d\*.class \
+data\*.class \
+$(UCAR)\multiarray\*.class \
+$(UCAR)\netcdf\*.class \
+$(UCAR)\tests\*.class \
+data\netcdf\units\*.class \
+data\netcdf\in\*.class \
+data\netcdf\out\*.class \
+data\netcdf\*.class \
+$(FITS)\util\*.class \
+$(FITS)\fits\*.class \
+$(FITS)\test\*.class \
+data\fits\*.class \
+data\vis5d\*.class \
+$(SSEC)\mcidas\*.class \
+data\mcidas\*.class \
+data\gif\*.class \
+data\visad\*.class \
+data\hdfeos\hdfeosc\*.class \
+data\hdfeos\*.class \
+formula\*.class \
+util\*.class \
+ss\*.class \
+jmet\*.class \
+paoloa\*.class \
+paoloa\spline\*.class \
+aune\*.class \
+benjamin\*.class \
+rabin\*.class \
+bom\*.class
+	-(cd examples && $(JC) $(JFLAGS) *.java)
+	$(RMIC) $(RMIC_FILES)
+
 compile: clean recompile
+
+debug:
+	@nmake /nologo -f Makefile.WinNT compile \
+	"JFLAGS = -J-mx32m -g"
 
 VISAD_PACKAGES = \
 visad \
