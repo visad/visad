@@ -517,7 +517,7 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
     // a flag requesting re-transform, throw a DisplayInterruptException
     DataDisplayLink link = renderer.getLink();
 
-// System.out.println("\nstart doTransform " + (System.currentTimeMillis() - link.start_time));
+// if (link != null) System.out.println("\nstart doTransform " + (System.currentTimeMillis() - link.start_time));
 
     if (link != null) {
       boolean time_flag = false;
@@ -738,7 +738,7 @@ System.out.println("doTransform.curvedTexture = " + curvedTexture + " " +
 
     int[] volume_tuple_index = null;
 
-// System.out.println("test isTextureMap " + (System.currentTimeMillis() - link.start_time));
+// if (link != null) System.out.println("test isTextureMap " + (System.currentTimeMillis() - link.start_time));
 
     if (isTextureMap) {
       Linear1DSet X = null;
@@ -1136,7 +1136,7 @@ for (int i=0; i < 4; i++) {
     // WLH 16 July 2000 - add '&& !isLinearContour3D'
     if (!isTextureMap && (!isTexture3D || range3D) && !isLinearContour3D) {
 
-// System.out.println("start domain " + (System.currentTimeMillis() - link.start_time));
+// if (link != null) System.out.println("start domain " + (System.currentTimeMillis() - link.start_time));
 
       // get values from Function Domain
       // NOTE - may defer this until needed, if needed
@@ -1170,7 +1170,7 @@ for (int i=0; i < 4; i++) {
       }
 */
 
-// System.out.println("end domain " + (System.currentTimeMillis() - link.start_time));
+// if (link != null) System.out.println("end domain " + (System.currentTimeMillis() - link.start_time));
 
       if (domain_reference != null && domain_reference.getMappedDisplayScalar()) {
         // apply coordinate transform to domain values
@@ -1189,7 +1189,7 @@ for (int i=0; i < 4; i++) {
           // WLH 23 June 99
           if (curvedTexture && domainOnlySpatial) {
 
-// System.out.println("start compute spline " + (System.currentTimeMillis() - link.start_time));
+ //if (link != null) System.out.println("start compute spline " + (System.currentTimeMillis() - link.start_time));
 
             int[] lengths = ((GriddedSet) domain_set).getLengths();
             data_width = lengths[0];
@@ -1245,7 +1245,7 @@ System.out.println("data_width = " + data_width + " data_height = " + data_heigh
                 k++;
               }
             }
-// System.out.println("end compute spline " + (System.currentTimeMillis() - link.start_time));
+// if (link != null) System.out.println("end compute spline " + (System.currentTimeMillis() - link.start_time));
           }
           else { // if !(curvedTexture && domainOnlySpatial)
             reference_values =
@@ -1271,7 +1271,7 @@ System.out.println("data_width = " + data_width + " data_height = " + data_heigh
         // see FlatField.resample and FieldImpl.resample
         //
 
-// System.out.println("start map reference " + (System.currentTimeMillis() - link.start_time));
+// if (link != null) System.out.println("start map reference " + (System.currentTimeMillis() - link.start_time));
 
         // map reference_values to appropriate DisplayRealType-s
         ShadowRealType[] DomainReferenceComponents = getDomainReferenceComponents();
@@ -1283,7 +1283,7 @@ System.out.println("data_width = " + data_width + " data_height = " + data_heigh
           mapValues(display_values, reference_values, DomainReferenceComponents);
         }
 
-// System.out.println("end map reference " + (System.currentTimeMillis() - link.start_time));
+// if (link != null) System.out.println("end map reference " + (System.currentTimeMillis() - link.start_time));
 
 /*
 for (int i=0; i<DomainReferenceComponents.length; i++) {
@@ -1326,7 +1326,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
 
     if (this instanceof ShadowFunctionType) {
 
-// System.out.println("start range " + (System.currentTimeMillis() - link.start_time));
+// if (link != null) System.out.println("start range " + (System.currentTimeMillis() - link.start_time));
 
       // get range_values for RealType and RealTupleType
       // components, in defaultUnits for RealType-s
@@ -1434,7 +1434,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
           } // end for (int i=0; i<refToComponent.length; i++)
         } // end (refToComponent != null)
 
-// System.out.println("end range " + (System.currentTimeMillis() - link.start_time));
+// if (link != null) System.out.println("end range " + (System.currentTimeMillis() - link.start_time));
 
         // setEarthSpatialData calls when no CoordinateSystem
         // WLH 13 March 2000
@@ -1576,7 +1576,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
       } // end if (anyText && text_values == null)
     } // end if (this instanceof ShadowFunctionType)
 
-// System.out.println("start assembleSelect " + (System.currentTimeMillis() - link.start_time));
+// if (link != null) System.out.println("start assembleSelect " + (System.currentTimeMillis() - link.start_time));
 
     //
     // NOTE -
@@ -1604,7 +1604,7 @@ if (range_select[0] != null) {
       return false;
     }
 
-// System.out.println("end assembleSelect " + (System.currentTimeMillis() - link.start_time));
+// if (link != null) System.out.println("end assembleSelect " + (System.currentTimeMillis() - link.start_time));
 
     // System.out.println("assembleSelect");
  /*
@@ -1628,7 +1628,7 @@ System.out.println("doTerminal: isTerminal = " + getIsTerminal() +
       boolean pointMode = mode.getPointMode();
       byte missing_transparent = (byte) (mode.getMissingTransparent() ? 0 : -1);
 
-// System.out.println("start assembleColor " + (System.currentTimeMillis() - link.start_time));
+// if (link != null) System.out.println("start assembleColor " + (System.currentTimeMillis() - link.start_time));
 
       // MEM_WLH - this moved
       boolean[] single_missing = {false, false, false, false};
@@ -1662,7 +1662,7 @@ if (color_values != null) {
         return false;
       }
 
-// System.out.println("end assembleColor " + (System.currentTimeMillis() - link.start_time));
+// if (link != null) System.out.println("end assembleColor " + (System.currentTimeMillis() - link.start_time));
 
       float[][] flow1_values = new float[3][];
       float[][] flow2_values = new float[3][];
@@ -1699,7 +1699,7 @@ if (range_select[0] != null) {
       // flags for swapping rows and columns in contour labels
       boolean[] swap = {false, false, false};
 
-// System.out.println("start assembleSpatial " + (System.currentTimeMillis() - link.start_time));
+// if (link != null) System.out.println("start assembleSpatial " + (System.currentTimeMillis() - link.start_time));
 
       // WLH 29 April 99
       boolean[][] spatial_range_select = new boolean[1][];
@@ -1767,7 +1767,7 @@ System.out.println("  isTextureMap = " + isTextureMap);
         return false;
       }
 
-// System.out.println("end assembleSpatial " + (System.currentTimeMillis() - link.start_time));
+// if (link != null) System.out.println("end assembleSpatial " + (System.currentTimeMillis() - link.start_time));
 
       int spatialDomainDimension = spatialDimensions[0];
       int spatialManifoldDimension = spatialDimensions[1];
@@ -1783,7 +1783,7 @@ System.out.println("  isTextureMap = " + isTextureMap);
                          "  " + color_values.length);
 */
 
-// System.out.println("start missing color " + (System.currentTimeMillis() - link.start_time));
+// if (link != null) System.out.println("start missing color " + (System.currentTimeMillis() - link.start_time));
 
       float constant_alpha = Float.NaN;
       float[] constant_color = null;
@@ -1882,7 +1882,7 @@ System.out.println("replicate alpha = " + v + " " + constant_alpha +
         }
       } // end if (color_length == 1)
 
-// System.out.println("end missing color " + (System.currentTimeMillis() - link.start_time));
+// if (link != null) System.out.println("end missing color " + (System.currentTimeMillis() - link.start_time));
 
       if (range_select[0] != null && range_select[0].length == 1 &&
           !range_select[0][0]) {
@@ -2007,14 +2007,14 @@ makeGeometry 350, 171
   all makeGeometry time in calls to Java3D constructors, setCoordinates, etc
 */
 
-// System.out.println("start makeContour " + (System.currentTimeMillis() - link.start_time));
+// if (link != null) System.out.println("start makeContour " + (System.currentTimeMillis() - link.start_time));
           anyContourCreated =
             shadow_api.makeContour(valueArrayLength, valueToScalar,
                        display_values, inherited_values, MapVector, valueToMap,
                        domain_length, range_select, spatialManifoldDimension,
                        spatial_set, color_values, indexed, group, mode,
                        swap, constant_alpha, constant_color, shadow_api);
-// System.out.println("end makeContour " + (System.currentTimeMillis() - link.start_time));
+// if (link != null) System.out.println("end makeContour " + (System.currentTimeMillis() - link.start_time));
         } // end if (anyContour)
 
         if (!anyContourCreated && !anyFlowCreated &&
@@ -2115,7 +2115,7 @@ makeGeometry 350, 171
             return false;
           } // end if (isTextureMap)
           else if (curvedTexture) {
-// System.out.println("start texture " + (System.currentTimeMillis() - link.start_time));
+// if (link != null) System.out.println("start texture " + (System.currentTimeMillis() - link.start_time));
             if (color_values == null) { // never true?
               // must be color_values array for texture mapping
               color_values = new byte[3][domain_length];
@@ -2283,7 +2283,7 @@ if (size < 0.2) {
                                       constant_alpha, constant_color,
                                       texture_width, texture_height);
             // System.out.println("curvedTexture done");
-// System.out.println("end texture " + (System.currentTimeMillis() - link.start_time));
+// if (link != null) System.out.println("end texture " + (System.currentTimeMillis() - link.start_time));
             return false;
           } // end if (curvedTexture)
           else if (isTexture3D) {
@@ -2547,7 +2547,7 @@ WLH 15 March 2000 */
           renderer.setSpatialValues(spatial_values);
         }
 
-// System.out.println("end doTransform " + (System.currentTimeMillis() - link.start_time));
+// if (link != null) System.out.println("end doTransform " + (System.currentTimeMillis() - link.start_time));
 
         return false;
       } // end if (LevelOfDifficulty == SIMPLE_FIELD)
