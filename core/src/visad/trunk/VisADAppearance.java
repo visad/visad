@@ -36,7 +36,7 @@ public class VisADAppearance extends VisADSceneGraphObject {
   public VisADGeometryArray array = null;
   public Image image = null;
   public boolean color_flag = false;
-  public float red, blue, green;
+  public float red, green, blue;
   public boolean alpha_flag = false;
   public float alpha;
 
