@@ -113,7 +113,9 @@ public class FieldImpl extends FunctionImpl implements Field {
       MissingFlag = false;
       MathType t = ((FunctionType) Type).getRange();
       for (int i=0; i<Length; i++) {
-        if (range != null && !t.equalsExceptName(range[i].getType())) {
+        // WLH 9 Dec 99
+        // if (range != null && !t.equalsExceptName(range[i].getType())) {
+        if (range != null && !t.equals(range[i].getType())) {
           throw new TypeException("FieldImpl.setSamples: types don't match");
         }
         if (range[i] != null) {
@@ -509,7 +511,9 @@ public class FieldImpl extends FunctionImpl implements Field {
     if (DomainSet == null) {
       throw new FieldException("FieldImpl.setSample: DomainSet undefined");
     }
-    if (!((FunctionType) Type).getDomain().equalsExceptName(domain.getType())) {
+    // WLH 9 Dec 99
+    // if (!((FunctionType) Type).getDomain().equalsExceptName(domain.getType())) {
+    if (!((FunctionType) Type).getDomain().equals(domain.getType())) {
       throw new TypeException("FieldImpl.setSample: bad domain type");
     }
 
@@ -534,7 +538,9 @@ public class FieldImpl extends FunctionImpl implements Field {
     if (DomainSet == null) {
       throw new FieldException("FieldImpl.setSample: DomainSet undefined");
     }
-    if (!((FunctionType) Type).getRange().equalsExceptName(range.getType())) {
+    // WLH 9 Dec 99
+    // if (!((FunctionType) Type).getRange().equalsExceptName(range.getType())) {
+    if (!((FunctionType) Type).getRange().equals(range.getType())) {
       throw new TypeException("FieldImpl.setSample: bad range type");
     }
     if (index >= 0 && index < Length) {
@@ -553,28 +559,6 @@ public class FieldImpl extends FunctionImpl implements Field {
     }
     notifyReferences();
   }
-
-/* WLH 9 March 98
-  public void setSample(int index, Data range)
-         throws VisADException, RemoteException {
-    if (DomainSet == null) {
-      throw new FieldException("FieldImpl.setSample: DomainSet undefined");
-    }
-    if (!((FunctionType) Type).getRange().equalsExceptName(range.getType())) {
-      throw new TypeException("FieldImpl.setSample: bad range type");
-    }
-    if (index >= 0 && index < Length) {
-      synchronized (Range) {
-        MissingFlag = false;
-        Range[index] = (Data) range.dataClone();
-        if (Range[index] instanceof DataImpl) {
-          ((DataImpl) Range[index]).setParent(this);
-        }
-      }
-    }
-    notifyReferences();
-  }
-*/
 
   /** test whether Field value is missing */
   public boolean isMissing() {

@@ -1267,7 +1267,9 @@ public class FlatField extends FieldImpl {
     if (DomainSet == null) {
       throw new FieldException("Field.setSample: DomainSet undefined");
     }
-    if (!((FunctionType) Type).getRange().equalsExceptName(range.getType())) {
+    // WLH 9 Dec 99
+    // if (!((FunctionType) Type).getRange().equalsExceptName(range.getType())) {
+    if (!((FunctionType) Type).getRange().equals(range.getType())) {
       throw new TypeException("Field.setSample: bad range type");
     }
     if (index < 0 || index >= Length) return;
