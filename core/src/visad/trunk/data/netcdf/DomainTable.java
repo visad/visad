@@ -54,7 +54,7 @@ DomainTable
 	// System.out.println(this.getClass().getName() + 
 	    // ": table.size()=" + table.size());
 
-	Key		key = new Key(var.getDimensions());
+	Key	key = new Key(var.getDimensions());
 	Entry	entry = (Entry)table.get(key);
 
 	if (entry == null)
