@@ -328,10 +328,8 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
   }
 
   public void reDisplayAll() {
-/*
-    printStack("reDisplayAll");
-*/
     redisplay_all = true;
+// printStack("reDisplayAll");
     notifyAction();
   }
 
@@ -367,7 +365,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       RendererVector.addElement(renderer);
     }
     initialize = true;
-// System.out.println("addReference");
+// printStack("addReference");
     notifyAction();
   }
 
@@ -388,7 +386,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       RendererVector.addElement(renderer);
     }
     initialize = true;
-// System.out.println("adaptedAddReference");
+// printStack("adaptedAddReference");
     notifyAction();
   }
 
@@ -477,7 +475,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       RendererVector.addElement(renderer);
     }
     initialize = true;
-// System.out.println("addReferences");
+// printStack("addReferences");
     notifyAction();
   }
 
@@ -532,7 +530,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       RendererVector.addElement(renderer);
     }
     initialize = true;
-// System.out.println("adaptedAddReferences");
+// printStack("adaptedAddReferences");
     notifyAction();
   }
 
@@ -570,8 +568,6 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
 /* WLH 22 April 99
     initialize = true;
 */
-
-// System.out.println("adaptedDisplayRemoveReference");
   }
 
   /** remove all DataReference links */
@@ -589,7 +585,7 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
         }
       }
       initialize = true;
-// System.out.println("removeAllReferences");
+// printStack("removeAllReferences");
     }
   }
 
