@@ -294,6 +294,14 @@ public class RealTupleType extends TupleType {
   }
 
   public String prettyString(int indent) {
+    try {
+      if (getDimension() == 1) {
+        return ((RealType) getComponent(0)).toString();
+      }
+    }
+    catch (VisADException e) {
+      return toString();
+    }
     return toString();
   }
 
