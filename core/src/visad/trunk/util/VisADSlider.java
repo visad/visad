@@ -51,6 +51,15 @@ public class VisADSlider extends JPanel implements ChangeListener,
   /** The default number of ticks the slider should have */
   private static final int D_TICKS = 1000;
 
+  /** Default width of the slider in pixels */
+  private static final int SLIDER_WIDTH = 150;
+
+  /** Default width of the label in pixels */
+  private static final int LABEL_WIDTH = 200;
+
+  /** Work-around for JFC JLabel craziness */
+  private String head = "         ";
+
   /** The JSlider that forms part of the VisADSlider's UI */
   private JSlider slider;
 
@@ -134,37 +143,18 @@ public class VisADSlider extends JPanel implements ChangeListener,
   private VisADSlider(DataReference ref, ScalarMap smap, float min, float max,
                       float start, int sliderTicks, RealType rt, String n)
                       throws VisADException, RemoteException {
-    // set up UI components
+    // set up some UI components
     setAlignmentX(LEFT_ALIGNMENT);   // VisADSliders default to LEFT_ALIGNMENT
     setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
     sTicks = sliderTicks;
-    slider = new JSlider(0, sTicks, sTicks / 2) {
-      public Dimension getPreferredSize() {
-        Dimension d = super.getPreferredSize();
-        return new Dimension(150, d.height);
-      }
-      public Dimension getMaximumSize() {
-        Dimension d = super.getMaximumSize();
-        return new Dimension(150, d.height);
-      }
-      public Dimension getMinimumSize() {
-        Dimension d = super.getMinimumSize();
-        return new Dimension(150, d.height);
-      }
-    };
-    label = new JLabel() {
-      public Dimension getPreferredSize() {
-        Dimension d = super.getPreferredSize();
-        return new Dimension(200, d.height);
-      }
-      public Dimension getMinimumSize() {
-        Dimension d = super.getMinimumSize();
-        return new Dimension(200, d.height);
-      }
-    };
-    label.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-    add(slider);
-    add(label);
+    Dimension d;
+    slider = new JSlider(0, sTicks, sTicks / 2);
+    d = slider.getMinimumSize();
+    slider.setMinimumSize(new Dimension(SLIDER_WIDTH, d.height));
+    d = slider.getPreferredSize();
+    slider.setPreferredSize(new Dimension(SLIDER_WIDTH, d.height));
+    d = slider.getMaximumSize();
+    slider.setMaximumSize(new Dimension(SLIDER_WIDTH, d.height));
 
     // set up internal components
     if (ref == null) {
@@ -195,12 +185,14 @@ public class VisADSlider extends JPanel implements ChangeListener,
         sMinimum = min;
         sMaximum = max;
         sCurrent = start;
+        initLabel();
         if (start < min || start > max) start = (min + max) / 2;
         smap.setRange(min, max);
         control.setValue(start);
       }
       else {
         // enable auto-scaling (CASE ONE)
+        initLabel();
         smap.addScalarMapListener(this);
       }
     }
@@ -252,6 +244,7 @@ public class VisADSlider extends JPanel implements ChangeListener,
         sMaximum = max;
         if (sCurrent < min || sCurrent > max) sCurrent = (min + max) / 2;
       }
+      initLabel();
 
       // watch for changes in Real, and update slider when necessary
       SliderCell cell = new SliderCell();
@@ -262,8 +255,25 @@ public class VisADSlider extends JPanel implements ChangeListener,
       else cell.addReference(ref);
     }
 
+    // add UI components
+    add(slider);
+    add(label);
+
     // add listeners
     slider.addChangeListener(this);
+  }
+
+  /** sets up the JLabel */
+  private void initLabel() {
+    Dimension d;
+    label = new JLabel(sName + " = " + PlotText.shortString(sCurrent) + head);
+    d = label.getMinimumSize();
+    label.setMinimumSize(new Dimension(LABEL_WIDTH, d.height));
+    d = label.getPreferredSize();
+    label.setPreferredSize(new Dimension(LABEL_WIDTH, d.height));
+    d = label.getMaximumSize();
+    label.setMaximumSize(new Dimension(LABEL_WIDTH, d.height));
+    label.setAlignmentX(JLabel.CENTER_ALIGNMENT);
   }
 
   /** called when slider is adjusted */
@@ -279,8 +289,9 @@ public class VisADSlider extends JPanel implements ChangeListener,
         System.out.println(exc.toString());
       }
       catch (RemoteException exc) { }
+      head = "";
       label.setText(sName + " = " + PlotText.shortString(sCurrent));
-      validate();
+      label.validate();
     }
   }
 
@@ -294,7 +305,7 @@ public class VisADSlider extends JPanel implements ChangeListener,
       sCurrent = (sMinimum + sMaximum) / 2;
     }
     label.setText(sName + " = " + PlotText.shortString(sCurrent));
-    validate();
+    label.validate();
   }
 
   /** This extension of CellImpl is used to link a Real and a VisADSlider */
@@ -309,7 +320,7 @@ public class VisADSlider extends JPanel implements ChangeListener,
                           * (ival / (double) sTicks) + sMinimum);
         if (slider.getValue() != ival) {
           slider.setValue(ival);
-          label.setText(sName + " = " + PlotText.shortString(sCurrent));
+          label.setText(sName + " = " + PlotText.shortString(sCurrent) + head);
         }
       }
     }
