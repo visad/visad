@@ -26,26 +26,20 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 package visad.data.mcidas;
 
 import edu.wisc.ssec.mcidas.*;
-
 import java.io.IOException;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-
 import java.rmi.RemoteException;
-
+import visad.CoordinateSystem;
+import visad.DateTime;
 import visad.FlatField;
 import visad.FunctionType;
+import visad.Integer1DSet;
 import visad.Linear2DSet;
-import visad.Integer2DSet;
 import visad.RealTupleType;
 import visad.RealType;
+import visad.Set;
 import visad.TypeException;
-import visad.VisADException;
 import visad.Unit;
-import visad.CoordinateSystem;
-import visad.CommonUnit;
-import visad.DateTime;
+import visad.VisADException;
 
 /** this is an adapter for McIDAS AREA images */
 
@@ -53,8 +47,7 @@ public class AreaAdapter {
 
   private FlatField field = null;
   private AREACoordinateSystem cs;
-  private int numLines, numEles, numBands;
-  private int nomDay, nomTime, startDay, startTime;
+  private AreaDirectory areaDirectory;
 
   /** Create a VisAD FlatField from a local McIDAS AREA file or a URL.
     * @param imageSource name of local file or a URL to locate file.
@@ -77,25 +70,19 @@ public class AreaAdapter {
     */
   private void buildFlatField(AreaFile af) throws VisADException {
 
-    int[] dir=null;
     int[] nav=null;
 
     try {
-      dir = af.getDir();
+      areaDirectory = af.getAreaDirectory();
       nav = af.getNav();
     } catch (Exception rmd) {
-        throw new VisADException("Problem getting Area file directory"); 
+        throw new VisADException(
+            "Problem getting Area file directory or navigation"); 
     }
 
     // extract the size of each dimension from the directory
-    numLines = dir[8];
-    numEles = dir[9];
-
-    // extract the date and time
-    nomDay = dir[3];
-    nomTime = dir[4];
-    startDay = dir[45];
-    startDay = dir[46];
+    int numLines = areaDirectory.getLines();
+    int numEles = areaDirectory.getElements();
 
     // make the VisAD RealTypes for the dimension variables
     RealType line;
@@ -113,58 +100,50 @@ public class AreaAdapter {
     }
 
     // extract the number of bands (sensors) and make the VisAD type
-    numBands = dir[13];
+    int bandNums[] = areaDirectory.getBands();
+    int numBands = bandNums.length;
     RealType[] bands = new RealType[numBands];
 
     // first cut: the bands are named "Band##" where ## is the
     // band number from the AREA file bandmap
-    int bmap = dir[18];
-    int bcount = 0;
-    for (int i=1; i<33; i++) {
-      if ( (bmap & 1) != 0) {
-        bcount = bcount + 1;
-        if (bcount > numBands) {
-          throw new VisADException("Invalid Area file bandmap");
-        }
-        RealType band=null;
+    for (int i = 0; i < numBands; i++)
+    {
+        RealType band = null;
         try {
-          band = new RealType("Band"+i);
+          band = new RealType("Band"+bandNums[i]);
         } catch (TypeException e) {
-          band= RealType.getRealTypeByName("Band"+i);
+          band= RealType.getRealTypeByName("Band"+bandNums[i]);
         }
-        bands[bcount-1] = band;
-      }
-      bmap = bmap >>> 1;
+        bands[i] = band;
     }
 
     // the range of the FunctionType is the band(s)
     RealTupleType radiance = new RealTupleType(bands);
 
-    // the domain is (element,line) since elements (X) vary
-    // fastest
-
+    // the domain is (element,line) since elements (X) vary fastest
     RealType[] domain_components = {element,line};
 
     // Create the appropriate CoordinateSystem and attach it to
-    // the domain of the FlatField
-
-    RealTupleType ref = new RealTupleType
-                  (RealType.Latitude, RealType.Longitude);
-
+    // the domain of the FlatField.  AREACoordinateSystem transforms
+    // from (ele,lin) -> (lat,lon)
     try
     {
-        cs = new AREACoordinateSystem(ref, dir, nav);
+        cs = new AREACoordinateSystem(
+                RealTupleType.LatitudeLongitudeTuple, 
+                areaDirectory.getDirectoryBlock(), 
+                nav);
     }
     catch (VisADException e)
     {
       System.out.println(e);
+      System.out.println("Using null CoordinateSystem");
       cs = null;
     }
 
     RealTupleType image_domain = 
                 new RealTupleType(domain_components, cs, null);
 
-    // Image numbering is usually the first line is at the "top"
+    //  Image numbering is usually the first line is at the "top"
     //  whereas in VisAD, it is at the bottom.  So define the
     //  domain set of the FlatField to map the Y axis accordingly
 
@@ -173,10 +152,27 @@ public class AreaAdapter {
                                 (float) (numLines - 1),0.0, numLines );
     FunctionType image_type =
                         new FunctionType(image_domain, radiance);
-    field = new FlatField(image_type,domain_set);
+
+    // If calibrationType is brightnes (BRIT), then we can store
+    // the values as shorts.  To do this, we crunch the values down
+    // from 0-255 to 0-254 so we can have 255 left over for missing
+    // values.
+
+    if (areaDirectory.getCalibrationType().equalsIgnoreCase("BRIT"))
+    {
+        Set[] rangeSets = new Set[numBands];
+        for (int i = 0; i < numBands; i++)
+            rangeSets[i] = new Integer1DSet(bands[i], 255);
+        field = new FlatField(image_type,
+                              domain_set, 
+                              (CoordinateSystem[]) null, 
+                              rangeSets, 
+                              (Unit[]) null);
+    }
+    else
+        field = new FlatField(image_type,domain_set);   // use default sets
 
     // get the data
-
     int[][][] int_samples;
     try {
       int_samples = af.getData();
@@ -194,7 +190,11 @@ public class AreaAdapter {
         for (int i=0; i<numLines; i++) {
           for (int j=0; j<numEles; j++) {
 
-            samples[b][j + (numEles * i) ] = (float)int_samples[b][i][j];
+            samples[b][j + (numEles * i) ] = 
+               (areaDirectory.getCalibrationType().equalsIgnoreCase("BRIT") &&
+                int_samples[b][i][j] < 255)
+                   ? (float)int_samples[b][i][j]
+                   : 254.0f;                  // push 255 into 254 for BRIT
           }
         }
       }
@@ -211,15 +211,14 @@ public class AreaAdapter {
   /**
     * get the dimensions of the image
     *
-    * @return dim[0]=number bands, dim[1] = number elements, 
-    *   dim[2] = number lines
+    * @return dim[0]=number of bands, dim[1] = number of elements, 
+    *   dim[2] = number of lines
    */
-
   public int[] getDimensions() {
     int[] dim = new int[3];
-    dim[0] = numBands;
-    dim[1] = numEles;
-    dim[2] = numLines;
+    dim[0] = areaDirectory.getNumberOfBands();
+    dim[1] = areaDirectory.getLines();
+    dim[2] = areaDirectory.getElements();
     return dim;
   }
 
@@ -228,11 +227,23 @@ public class AreaAdapter {
     *
     * @return the CoordinateSystem object
    */
-
   public CoordinateSystem getCoordinateSystem() {
     return cs;
   }
 
+  /**
+   * Return a FlatField representing the image.  The field will look
+   * like the following:<P>
+   * <UL>
+   * <LI>Domain - Linear2DSet of (ImageLine, ImageElement) with 
+   *              AREACoordinateSystem to Lat/Lon (may be null).
+   * <LI>Range - One or more bands.  If calibration type is BRIT,
+   *             Integer1DSets are used as the range sets with length 255.
+   *             (brightness 255 is same as 254).
+   * </UL>
+   *
+   * @return image as a FlatField
+   */
   public FlatField getData() {
     return field;
   }
@@ -250,7 +261,7 @@ public class AreaAdapter {
   public DateTime getNominalTime() 
       throws VisADException 
   {
-      return makeDateTime(nomDay, nomTime);
+      return new DateTime(areaDirectory.getNominalTime());
   }
 
   /**
@@ -265,24 +276,7 @@ public class AreaAdapter {
   public DateTime getImageStartTime() 
       throws VisADException 
   {
-      return makeDateTime(startDay, startTime);
-  }
-
-  private DateTime makeDateTime(int date, int time)
-      throws VisADException
-  {
-    int year;
-    int day;
-    double secs;
-
-    year = date/1000;
-    if (year < 1900) year = 1900 + year;
-    day = date%1000;
-    secs =  (time/10000)*3600 + 
-            ((time%10000)/100)*60 +
-            time%100;
-
-    return new DateTime(year, day, secs);
+      return new DateTime(areaDirectory.getStartTime());
   }
 
 }
