@@ -436,8 +436,8 @@ public class RealType extends ScalarType {
 	  }
 	  else
 	  {
-	    if ( thisUnit.equals(CommonUnit.dimensionless) ) {
-	      newUnit = thisUnit;
+	    if ( Unit.canConvert(CommonUnit.dimensionless, thisUnit) ) {
+	      newUnit = CommonUnit.dimensionless;
 	      newName = getUniqueGenericName( names, newUnit.toString() );
 	    }
 	    else
@@ -661,7 +661,8 @@ public class RealType extends ScalarType {
           break;
         }
         else {
-          newUnit = CommonUnit.dimensionless.equals( DefaultUnit ) ? DefaultUnit : null;
+	  newUnit = Unit.canConvert(CommonUnit.dimensionless, DefaultUnit)
+	    ? CommonUnit.dimensionless : null;
           String ext = (newUnit == null) ? "nullUnit" : newUnit.toString();
           newName = getUniqueGenericName( names, ext );
           try {

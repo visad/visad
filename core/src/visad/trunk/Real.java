@@ -215,8 +215,18 @@ public class Real extends Scalar {
 
       Unit u;	// output unit
       Unit data_unit = ((Real) data).getUnit();
-      Unit thisUnit = unit == null ? null : unit.getAbsoluteUnit();
-      Unit thatUnit = data_unit == null ? null : data_unit.getAbsoluteUnit();
+      Unit thisUnit =
+	unit == null
+	  ? null
+	  : Unit.canConvert(CommonUnit.dimensionless, unit)
+	    ? CommonUnit.dimensionless
+	    : unit.getAbsoluteUnit();
+      Unit thatUnit =
+	data_unit == null
+	  ? null
+	  : Unit.canConvert(CommonUnit.dimensionless, data_unit)
+	    ? CommonUnit.dimensionless
+	    : data_unit.getAbsoluteUnit();
       double thatValue = ((Real) data).getValue(thatUnit);
       double thisValue = getValue(thisUnit);
       double opValue;
@@ -374,115 +384,132 @@ public class Real extends Scalar {
   }
 
   /** unary function on a Real; override some trig functions based
-      on Unit; transcental functions destroy Unit */
+      on Unit; transcental functions destroy dimensionfull Unit */
   public Data unary(int op, MathType new_type, int sampling_mode, int error_mode)
               throws VisADException {
-    double value;
-    Unit u;
+    Unit thisUnit;	// input unit
+    double thisValue;	// input value
+    if (unit == null) {
+      thisUnit = null;
+      thisValue = Value;
+    }
+    else {
+      /*
+       * Condition input numeric value and unit.  If the input unit is
+       * dimensionless, then the input numeric value is converted to be in units
+       * of the dimensionless unit 1; otherwise, the input numeric value is
+       * converted to be in units of the absolute unit of the input unit.
+       */
+      thisUnit = Unit.canConvert(CommonUnit.dimensionless, unit)
+	? CommonUnit.dimensionless : unit.getAbsoluteUnit();
+      thisValue = thisUnit.toThis(Value, unit);
+    }
+    double value;	// output value
+    Unit u;		// output unit
     /*- TDR  June 1998  */
     if ( new_type == null ) {
       throw new TypeException("unary: new_type may not be null");
     }
     switch (op) {
       case ABS:
-        value = Math.abs(Value);
-        u = unit;
+        value = Math.abs(thisValue);
+        u = thisUnit;
         break;
       case ACOS:
-        value = Math.acos(Value);
+        value = Math.acos(thisValue);
         u = CommonUnit.radian;
         break;
       case ACOS_DEGREES:
-        value = Data.RADIANS_TO_DEGREES * Math.acos(Value);
+        value = Data.RADIANS_TO_DEGREES * Math.acos(thisValue);
         u = CommonUnit.degree;
         break;
       case ASIN:
-        value = Math.asin(Value);
+        value = Math.asin(thisValue);
         u = CommonUnit.radian;
         break;
       case ASIN_DEGREES:
-        value = Data.RADIANS_TO_DEGREES * Math.asin(Value);
+        value = Data.RADIANS_TO_DEGREES * Math.asin(thisValue);
         u = CommonUnit.degree;
         break;
       case ATAN:
-        value = Math.atan(Value);
+        value = Math.atan(thisValue);
         u = CommonUnit.radian;
         break;
       case ATAN_DEGREES:
-        value = Data.RADIANS_TO_DEGREES * Math.atan(Value);
+        value = Data.RADIANS_TO_DEGREES * Math.atan(thisValue);
         u = CommonUnit.degree;
         break;
       case CEIL:
-        value = Math.ceil(Value);
-        u = unit;
+        value = Math.ceil(thisValue);
+        u = thisUnit;
         break;
       case COS:
         // do cos in radians, unless unit is degrees
-        value = unit.equals(CommonUnit.degree) ?
-                Math.cos(Data.DEGREES_TO_RADIANS * Value) : Math.cos(Value);
-        u = CommonUnit.dimensionless.equals(unit) ? unit : null;
+        value = thisUnit.equals(CommonUnit.degree) ?
+                Math.cos(Data.DEGREES_TO_RADIANS * thisValue) : Math.cos(thisValue);
+        u = CommonUnit.dimensionless.equals(thisUnit) ? thisUnit : null;
         break;
       case COS_DEGREES:
         // do cos in degrees, unless unit is radians
-        value = unit.equals(CommonUnit.radian) ?
-                Math.cos(Value) : Math.cos(Data.DEGREES_TO_RADIANS * Value);
-        u = CommonUnit.dimensionless.equals(unit) ? unit : null;
+        value = thisUnit.equals(CommonUnit.radian) ?
+                Math.cos(thisValue) : Math.cos(Data.DEGREES_TO_RADIANS * thisValue);
+        u = CommonUnit.dimensionless.equals(thisUnit) ? thisUnit : null;
         break;
       case EXP:
-        value = Math.exp(Value);
-        u = CommonUnit.dimensionless.equals(unit) ? unit : null;
+	value = Math.exp(thisValue);
+	u = CommonUnit.dimensionless.equals(thisUnit) ? thisUnit : null;
         break;
       case FLOOR:
-        value = Math.floor(Value);
-        u = unit;
+        value = Math.floor(thisValue);
+        u = thisUnit;
         break;
       case LOG:
-        value = Math.log(Value);
-        u = CommonUnit.dimensionless.equals(unit) ? unit : null;
+	value = Math.log(thisValue);
+	u = CommonUnit.dimensionless.equals(thisUnit) ? thisUnit : null;
         break;
       case RINT:
-        value = Math.rint(Value);
-        u = unit;
+        value = Math.rint(thisValue);
+        u = thisUnit;
         break;
       case ROUND:
-        value = Math.round(Value);
-        u = unit;
+        value = Math.round(thisValue);
+        u = thisUnit;
         break;
       case SIN:
         // do sin in radians, unless unit is degrees
-        value = unit.equals(CommonUnit.degree) ?
-                Math.sin(Data.DEGREES_TO_RADIANS * Value) : Math.sin(Value);
-        u = CommonUnit.dimensionless.equals(unit) ? unit : null;
+        value = thisUnit.equals(CommonUnit.degree) ?
+                Math.sin(Data.DEGREES_TO_RADIANS * thisValue) : Math.sin(thisValue);
+        u = CommonUnit.dimensionless.equals(thisUnit) ? thisUnit : null;
         break;
       case SIN_DEGREES:
         // do sin in degrees, unless unit is radians
-        value = unit.equals(CommonUnit.radian) ?
-                Math.sin(Value) : Math.sin(Data.DEGREES_TO_RADIANS * Value);
-        u = CommonUnit.dimensionless.equals(unit) ? unit : null;
+        value = thisUnit.equals(CommonUnit.radian) ?
+                Math.sin(thisValue) : Math.sin(Data.DEGREES_TO_RADIANS * thisValue);
+        u = CommonUnit.dimensionless.equals(thisUnit) ? thisUnit : null;
         break;
       case SQRT:
-        value = Math.sqrt(Value);
-        u = CommonUnit.dimensionless.equals(unit) ? unit : null;
+        value = Math.sqrt(thisValue);
+        u = CommonUnit.dimensionless.equals(thisUnit) ? thisUnit : null;
         break;
       case TAN:
         // do tan in radians, unless unit is degrees
-        value = unit.equals(CommonUnit.degree) ?
-                Math.tan(Data.DEGREES_TO_RADIANS * Value) : Math.tan(Value);
-        u = CommonUnit.dimensionless.equals(unit) ? unit : null;
+        value = thisUnit.equals(CommonUnit.degree) ?
+                Math.tan(Data.DEGREES_TO_RADIANS * thisValue) : Math.tan(thisValue);
+        u = CommonUnit.dimensionless.equals(thisUnit) ? thisUnit : null;
         break;
       case TAN_DEGREES:
         // do tan in degrees, unless unit is radians
-        value = unit.equals(CommonUnit.radian) ?
-                Math.tan(Value) : Math.tan(Data.DEGREES_TO_RADIANS * Value);
-        u = CommonUnit.dimensionless.equals(unit) ? unit : null;
+        value = thisUnit.equals(CommonUnit.radian) ?
+                Math.tan(thisValue) : Math.tan(Data.DEGREES_TO_RADIANS * thisValue);
+        u = CommonUnit.dimensionless.equals(thisUnit) ? thisUnit : null;
         break;
       case NEGATE:
-	u = unit.getAbsoluteUnit();
-        value = -u.toThis(Value, unit);
+        value = -thisValue;
+	u = thisUnit;
         break;
       case NOP:
-        value = Value;
-        u = unit;
+        value = thisValue;
+        u = thisUnit;
         break;
       default:
         throw new ArithmeticException("Real.unary: illegal operation");
