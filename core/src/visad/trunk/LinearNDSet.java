@@ -155,6 +155,34 @@ public class LinearNDSet extends GriddedSet
     return get_linear1d_array(type, firsts, lasts, lengths);
   }
 
+  /** convert an array of 1-D indices to an array of values in R^DomainDimension */
+  public float[][] indexToValue(int[] index) throws VisADException {
+    int dim = getDimension();
+    int length = index.length;
+    int[][] indexN = new int[dim][length];
+    float[][] values = new float[dim][length];
+    int[] lengthN = new int[dim];
+    for (int j=0; j<dim; j++) lengthN[j] = L[j].getLength();
+    for (int i=0; i<length; i++) {
+      int k = index[i];
+      if (0 <= k && k < Length) {
+        for (int j=0; j<dim-1; j++) {
+          indexN[j][i] = k % lengthN[j];
+          k = k / lengthN[j];
+        }
+        indexN[dim-1][i] = k;
+      }
+      else {
+        for (int j=0; j<dim; j++) indexN[j][i] = -1;
+      }
+    }
+    for (int j=0; j<dim; j++) {
+      float[][] vals = L[j].indexToValue(indexN[j]);
+      values[j] = vals[0];
+    }
+    return values;
+  }
+
   /** transform an array of non-integer grid coordinates to an array
       of values in R^DomainDimension */
   public float[][] gridToValue(float[][] grid) throws VisADException {
