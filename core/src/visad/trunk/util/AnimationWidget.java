@@ -39,7 +39,14 @@ import java.rmi.RemoteException;
 /* VisAD packages */
 import visad.*;
 
-/** A widget that allows users to control animation */
+/** 
+ * A widget that allows users to control aspects of animation (stop/start,
+ * step, animation speed and direction).  It is initialized with the state 
+ * of the AnimationControl for the ScalarMap used in the constructor. Once this 
+ * widget is constructed, it should be used to control animation instead 
+ * of using methods in AnimationControl.  Once constructed, changes made
+ * using AnimationControl methods will not be reflected in this widget.
+ */
 public class AnimationWidget extends JPanel implements ActionListener,
                                                        ChangeListener,
                                                        ControlListener,
@@ -58,15 +65,25 @@ public class AnimationWidget extends JPanel implements ActionListener,
 
   private AnimationControl control;
 
-  /** construct an AnimationWidget linked to the Control in smap
-      (which must be to Display.Animation) with auto-detecting ms/frame */
+  /** 
+   * construct an AnimationWidget linked to the Control in smap
+   * (which must be to Display.Animation) with auto-detecting ms/frame 
+   *
+   * @param	smap	Display.Animation ScalarMap
+   */
   public AnimationWidget(ScalarMap smap) throws VisADException,
                                                 RemoteException {
     this(smap, -1);
   }
 
-  /** construct an AnimationWidget linked to the Control in smap
-      (which must be to Display.Animation) with specified ms/frame */
+  /** 
+   * construct an AnimationWidget linked to the Control in smap
+   * (which must be to Display.Animation) with specified ms/frame 
+   *
+   * @param     smap    Display.Animation ScalarMap
+   * @param     st      animation speed (ms/frame).  If value is negative, 
+   *                    the default speed set in the Control is used.
+   */
   public AnimationWidget(ScalarMap smap, int st) throws VisADException,
                                                         RemoteException {
     // verify scalar map
@@ -75,14 +92,16 @@ public class AnimationWidget extends JPanel implements ActionListener,
                                  "be to Display.Animation");
     }
 
-    // set control
+    // set control and get startup values.
     control = (AnimationControl) smap.getControl();
-    aDir = true;
-    aAnim = true;
+    aDir = control.getDirection();
+    aAnim = control.getOn();
     aMs = (st > 0) ? st : (int) control.getStep();
+    control.setStep(aMs);
+/* DRM 1999-05-19  Initialize with values from control.
     control.setDirection(aDir);
     control.setOn(aAnim);
-    control.setStep(aMs);
+*/
 
     // create JPanels
     JPanel top = new JPanel();
@@ -98,9 +117,9 @@ public class AnimationWidget extends JPanel implements ActionListener,
     right.setLayout(new BoxLayout(right, BoxLayout.Y_AXIS));
 
     // create JComponents
-    forward = new JRadioButton("Forward", true);
-    reverse = new JRadioButton("Reverse");
-    onOff = new JButton("Stop");
+    forward = new JRadioButton("Forward", aDir);
+    reverse = new JRadioButton("Reverse", !aDir);
+    onOff = new JButton(aAnim ? "Stop" : "Go");
     step = new JButton("Step");
     ms = new JTextField(""+aMs);
 
@@ -111,19 +130,21 @@ public class AnimationWidget extends JPanel implements ActionListener,
     ms.setMaximumSize(msize);
 
     JLabel msLabel = new JLabel("ms/frame");
-    TimeSlider = new JSlider(0, 1, 0);
+    TimeSlider = new JSlider(1, 1, 1);   /* DRM 1999-05-19 */
 
     // set up JComponents
     Color fore = msLabel.getForeground();
     forward.setForeground(fore);
     reverse.setForeground(fore);
     onOff.setForeground(fore);
-    // make sure onOff button stays the same size to avoid ...'s
-    onOff.setMaximumSize(onOff.getMaximumSize());
     step.setForeground(fore);
-    step.setEnabled(false);
+    step.setEnabled(!aAnim);
     ms.setForeground(fore);
     TimeSlider.setPaintTicks(true);
+
+    // make sure onOff button stays the same size to avoid ...'s
+    // use step maximum size since "Step" has same size as "Stop"
+    onOff.setMaximumSize(step.getMaximumSize());
 
     // group JRadioButtons
     ButtonGroup group = new ButtonGroup();
@@ -169,7 +190,9 @@ public class AnimationWidget extends JPanel implements ActionListener,
     add(TimeSlider);
   }
 
-  /** ActionListener method used with JTextField and JButtons */
+  /** 
+   * ActionListener method used with JTextField and JButtons 
+   */
   public void actionPerformed(ActionEvent e) {
     String cmd = e.getActionCommand();
     if (cmd.equals("forward")) {
@@ -238,28 +261,35 @@ public class AnimationWidget extends JPanel implements ActionListener,
     }
   }
 
-  /** ChangeListener method used with JSlider */
+  /** 
+   * ChangeListener method used with JSlider.
+   */
   public void stateChanged(ChangeEvent e) {
     if (!TimeSlider.getValueIsAdjusting()) {
       try {
-        control.setCurrent(TimeSlider.getValue());
+        control.setCurrent(TimeSlider.getValue()-1);  /* DRM 1999-05-19 */
       }
       catch (VisADException exc) { }
       catch (RemoteException exc) { }
     }
   }
 
-  /** ControlListener method used for programmatically moving JSlider */
+  /** 
+   * ControlListener method used for programmatically moving JSlider 
+   */
   public void controlChanged(ControlEvent e) {
-    TimeSlider.setValue(control.getCurrent());
+    TimeSlider.setValue(control.getCurrent()+1);  /* DRM 1999-05-19 */
   }
 
-  /** ScalarMapListener method used to recompute JSlider bounds */
+  /** 
+   * ScalarMapListener method used to recompute JSlider bounds 
+   */
   public void mapChanged(ScalarMapEvent e) {
     if (control.getSet() != null) {
       try {
-        int max = control.getSet().getLength()-1;
+        int max = control.getSet().getLength();  /* DRM 1999-05-19 */
         TimeSlider.setMaximum(max);
+        TimeSlider.setMinimum(1);
         
         int maj;
         if (max < 20) maj = max/4;
@@ -273,8 +303,10 @@ public class AnimationWidget extends JPanel implements ActionListener,
     }
   }
 
-  /** Work-around for Swing bug where pack() doesn't display slider labels;
-      actually, it still won't, but window will be the right size */
+  /** 
+   * Work-around for Swing bug where pack() doesn't display slider labels;
+   * actually, it still won't, but window will be the right size 
+   */
   public Dimension getPreferredSize() {
     Dimension d = super.getPreferredSize();
     return new Dimension(d.width, d.height+18);

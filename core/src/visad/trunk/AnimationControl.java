@@ -49,9 +49,18 @@ public interface AnimationControl extends AVControl {
   /** get the current ordinal step number */
   public int getCurrent();
 
-  /** true for forward, false for backward */
+  /** Set the animation direction.
+   *
+   *  @param    dir     true for forward, false for backward
+   */
   public void setDirection(boolean dir)
          throws VisADException, RemoteException;
+
+  /** Get the animation direction.
+   *
+   *  @return	true for forward, false for backward 
+   */
+  public boolean getDirection();
 
   public long getStep();
 
