@@ -6,11 +6,15 @@ public interface CmdlineConsumer
    * Method used to initialize any instance variables which may be
    * changed by a cmdline option.<br>
    * <br>
-   * This is needed because arguments are processed inside the
-   * constructor.  This means that the first line in the constructor
-   * of classes which extend this class will be <tt>super(args)</tt>,
-   * which gets run <em>before</em> any instance variables for that
-   * class are initialized.
+   * This is needed when arguments are processed inside the
+   * constructor.  If the first line in the constructor in a class
+   * which extends this class is <tt>super(args)</tt>,
+   * {@link visad.util.CmdlineParser CmdlineParser} will be run
+   * <em>before</em> any instance variables for the extending
+   * class are initialized.<br>
+   * <br>
+   * To ensure all instance variables are properly initialized,
+   * place the initialization code in the initializeArgs() method.
    */
   void initializeArgs();
 

@@ -4,7 +4,24 @@ import java.util.ArrayList;
 
 /**
  * Parse command-line arguments passed to the initial main() method
- * of an application.
+ * of an application.<br>
+ * <br>
+ * To use this, a class would implement <tt>CmdlineConsumer</tt>,
+ * then add the following code snippet to the constructor
+ * (assuming the constructor is supplied a list of arguments
+ *  named <tt>'args'</tt>):<br>
+ * <pre>
+ * <code>
+ *    CmdlineParser cmdline = new CmdlineParser(this);
+ *    if (!cmdline.processArgs(args)) {
+ * </code>
+ * <i>
+ *      complain about errors, exit, etc.
+ * </i>
+ * <code>
+ *    }
+ * </code>
+ *
  */
 public class CmdlineParser
 {
