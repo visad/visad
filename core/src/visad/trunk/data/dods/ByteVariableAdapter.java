@@ -71,7 +71,20 @@ public class ByteVariableAdapter
 	return copy ? (SimpleSet[])repSets.clone() : repSets;
     }
 
-    public DataImpl data(DByte var)
+    /**
+     * Returns a VisAD data object corresponding to a DODS {@link DByte}.
+     * The DByte must be compatible with the the DByte used to construct
+     * this instance.  In particular, the name of the DByte used to construct
+     * this instance will be used in naming the returned VisAD {@link Real}.
+     *
+     * @param var		The DODS variable.  The variable must be
+     *				compatible with the the variable used to 
+     *				construct this instance.
+     * @param copy		If true, then data values are copied.
+     * @return			A corresponding VisAD data object.  The class of
+     *				the object will be {@link Real}.
+     */
+    public DataImpl data(DByte var, boolean copy)
     {
 	return new Real(realType, valuator.process(var.getValue()));
     }

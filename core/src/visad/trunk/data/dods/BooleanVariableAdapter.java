@@ -96,10 +96,11 @@ public class BooleanVariableAdapter
      * @param var		The DODS variable.  The variable must be
      *				compatible with the the variable used to 
      *				construct this instance.
+     * @param copy		If true, then data values are copied.
      * @return			A corresponding VisAD data object.  The class of
      *				the object will be {@link Real}.
      */
-    public DataImpl data(DBoolean var)
+    public DataImpl data(DBoolean var, boolean copy)
     {
 	return new Real(realType, var.getValue() ? 1 : 0);
     }

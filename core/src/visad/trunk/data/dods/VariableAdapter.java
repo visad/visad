@@ -102,7 +102,7 @@ public abstract class VariableAdapter
 	    data = data((DGrid)baseType, copy);
 	else
 	    throw new BadFormException(
-		getClass().getName() + ".data(BaseType): " +
+		getClass().getName() + ".data(BaseType,boolean): " +
 		"Unknown DODS type: " + baseType.getTypeName());
 	return data;
     }
@@ -126,7 +126,7 @@ public abstract class VariableAdapter
 	throws VisADException
     {
 	throw new VisADException(
-	    getClass().getName() + ".data(DString): " +
+	    getClass().getName() + ".data(DString,boolean): " +
 	    "Can't make VisAD data object");
     }
 
@@ -149,7 +149,7 @@ public abstract class VariableAdapter
 	throws VisADException, RemoteException
     {
 	throw new VisADException(
-	    getClass().getName() + ".data(DBoolean): " +
+	    getClass().getName() + ".data(DBoolean,boolean): " +
 	    "Can't make VisAD data object");
     }
 
@@ -172,7 +172,7 @@ public abstract class VariableAdapter
 	throws VisADException, RemoteException
     {
 	throw new VisADException(
-	    getClass().getName() + ".data(DByte): " +
+	    getClass().getName() + ".data(DByte,boolean): " +
 	    "Can't make VisAD data object");
     }
 
@@ -195,7 +195,7 @@ public abstract class VariableAdapter
 	throws VisADException, RemoteException
     {
 	throw new VisADException(
-	    getClass().getName() + ".data(DUInt16): " +
+	    getClass().getName() + ".data(DUInt16,boolean): " +
 	    "Can't make VisAD data object");
     }
 
@@ -218,7 +218,7 @@ public abstract class VariableAdapter
 	throws VisADException, RemoteException
     {
 	throw new VisADException(
-	    getClass().getName() + ".data(DInt16): " +
+	    getClass().getName() + ".data(DInt16,boolean): " +
 	    "Can't make VisAD data object");
     }
 
@@ -241,7 +241,7 @@ public abstract class VariableAdapter
 	throws VisADException, RemoteException
     {
 	throw new VisADException(
-	    getClass().getName() + ".data(DUInt32): " +
+	    getClass().getName() + ".data(DUInt32,boolean): " +
 	    "Can't make VisAD data object");
     }
 
@@ -264,7 +264,7 @@ public abstract class VariableAdapter
 	throws VisADException, RemoteException
     {
 	throw new VisADException(
-	    getClass().getName() + ".data(DInt32): " +
+	    getClass().getName() + ".data(DInt32,boolean): " +
 	    "Can't make VisAD data object");
     }
 
@@ -287,7 +287,7 @@ public abstract class VariableAdapter
 	throws VisADException, RemoteException
     {
 	throw new VisADException(
-	    getClass().getName() + ".data(DFloat32): " +
+	    getClass().getName() + ".data(DFloat32,boolean): " +
 	    "Can't make VisAD data object");
     }
 
@@ -310,7 +310,7 @@ public abstract class VariableAdapter
 	throws VisADException, RemoteException
     {
 	throw new VisADException(
-	    getClass().getName() + ".data(DFloat64): " +
+	    getClass().getName() + ".data(DFloat64,boolean): " +
 	    "Can't make VisAD data object");
     }
 
@@ -333,7 +333,7 @@ public abstract class VariableAdapter
 	throws VisADException, RemoteException
     {
 	throw new VisADException(
-	    getClass().getName() + ".data(DStructure): " +
+	    getClass().getName() + ".data(DStructure,boolean): " +
 	    "Can't make VisAD data object from DODS DStructure");
     }
 
@@ -356,7 +356,7 @@ public abstract class VariableAdapter
 	throws VisADException, RemoteException
     {
 	throw new VisADException(
-	    getClass().getName() + ".data(DList): " +
+	    getClass().getName() + ".data(DList,boolean): " +
 	    "Can't make VisAD data object from DODS DList");
     }
 
@@ -402,7 +402,7 @@ public abstract class VariableAdapter
 	throws VisADException, RemoteException
     {
 	throw new VisADException(
-	    getClass().getName() + ".data(DGrid): " +
+	    getClass().getName() + ".data(DGrid,boolean): " +
 	    "Can't make VisAD data object from DODS DGrid");
     }
 
@@ -425,7 +425,7 @@ public abstract class VariableAdapter
 	throws VisADException, RemoteException
     {
 	throw new VisADException(
-	    getClass().getName() + ".data(DSequence): " +
+	    getClass().getName() + ".data(DSequence,boolean): " +
 	    "Can't make VisAD data object from DODS DSequence");
     }
 

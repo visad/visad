@@ -101,10 +101,11 @@ public class Int16VariableAdapter
      *				VisAD data object returned.  The variable
      *				must be compatible with the variable used to
      *				construct this instance.
+     * @param copy		If true, then data values are copied.
      * @return			The VisAD data object of this instance.  The
      *				class of the object will be {@link Real}.
      */
-    public DataImpl data(DInt16 var)
+    public DataImpl data(DInt16 var, boolean copy)
     {
 	return new Real(realType, valuator.process(var.getValue()));
     }
