@@ -177,7 +177,9 @@ System.out.println("RendererJ3D.doAction: any_changed = " + any_changed +
         boolean doRemove = false;
         synchronized (this) {
           if (!branchNonEmpty[currentIndex]) {
-            branches[currentIndex].addChild(branch);
+            synchronized (branches[currentIndex]) {
+              branches[currentIndex].addChild(branch);
+            }
             sw.setWhichChild(currentIndex);
             actualIndex = currentIndex;
             branchNonEmpty[currentIndex] = true;
@@ -193,12 +195,14 @@ System.out.println("RendererJ3D.doAction: any_changed = " + any_changed +
                 // than an Exception - control doesn't normally come here
               }
             }
-            branches[nextIndex].addChild(branch);
+            synchronized (branches[nextIndex]) {
+              branches[nextIndex].addChild(branch);
+            }
             doRemove = true;
             switchFlags[nextIndex] = true;
             branchNonEmpty[nextIndex] = true;
             currentIndex = nextIndex;
-          } // end if (branches[currentIndex].numChildren() != 0)
+          } // end if (branchNonEmpty[currentIndex])
         } // end synchronized (this)
         if (doRemove) {
           ((DisplayRendererJ3D) getDisplayRenderer()).
@@ -226,14 +230,16 @@ System.out.println("RendererJ3D.doAction: any_changed = " + any_changed +
       if (actualIndex != i) {
         return true;
       }
-      sw.setWhichChild(index); // J3D
+      sw.setWhichChild(index);
       actualIndex = index;
       switchFlags[index] = false;
       return true;
     }
     else {
-      for (int m=0; m<branches[i].numChildren(); m++) { // J3D
-        branches[i].removeChild(m); // J3D
+      synchronized (branches[i]) {
+        for (int m=0; m<branches[i].numChildren(); m++) {
+          branches[i].removeChild(m);
+        }
       }
       branchNonEmpty[i] = false;
       notify();
@@ -242,7 +248,7 @@ System.out.println("RendererJ3D.doAction: any_changed = " + any_changed +
   }
 
   public void clearScene() {
-    swParent.detach(); // J3D
+    swParent.detach();
     ((DisplayRendererJ3D) getDisplayRenderer()).clearScene(this);
   }
 
