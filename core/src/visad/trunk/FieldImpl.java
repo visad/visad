@@ -2455,11 +2455,16 @@ public class FieldImpl extends FunctionImpl implements Field {
     // only useful to help estmate range errors due to resampling
     ErrorEstimate[] errors_out = new ErrorEstimate[dim];
     float[][] oldvals = vals;
-    vals = CoordinateSystem.transformCoordinates(
+    try {  // this is only to throw a more meaningful message
+      vals = CoordinateSystem.transformCoordinates(
                       ((FunctionType) Type).getDomain(), DomainCoordinateSystem,
                       DomainUnits, errors_out,
                       ((SetType) set.getType()).getDomain(), coord_sys,
                       units, errors, vals);
+    } catch (UnitException ue) {
+        throw new VisADException("Sampling set is not compatible with domain");
+    }
+
     boolean coord_transform = !(vals == oldvals);
 
     // check whether we need to do sampling error calculations
