@@ -1,22 +1,22 @@
-// $Id: ConcreteIndexMap.java,v 1.2 2000-08-30 18:56:18 dglo Exp $
+// $Id: ConcreteIndexMap.java,v 1.3 2002-05-29 20:32:38 steve Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
  * support@unidata.ucar.edu.
- * 
+ *
  * This library is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation; either version 2.1 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public License
  * along with this library; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 package ucar.multiarray;
 import java.lang.reflect.Array; // used by ZZMap
@@ -43,9 +43,9 @@ import java.lang.reflect.Array; // used by ZZMap
  *  members contained by this in the constructors, we provide
  *  init() and link() members functions. One or the other of
  *  these should be called by every subclass constructor.
- * 
- * @author $Author: dglo $
- * @version $Revision: 1.2 $ $Date: 2000-08-30 18:56:18 $
+ *
+ * @author $Author: steve $
+ * @version $Revision: 1.3 $ $Date: 2002-05-29 20:32:38 $
  */
 public class
 ConcreteIndexMap
@@ -69,7 +69,7 @@ ConcreteIndexMap
  * the setPrev() method. The implementation of get(int) and size()
  * provided here is simply the identity composed with whatever.
  * Subclasses will override this functionality.
- * 
+ *
  */
 protected class
 ZZMap
@@ -140,7 +140,7 @@ ZZMap
 
 	/**
 	 * Returns the number of key-value mappings in this Map.
-	 * If you think of this as a 1-d  array of int, then 
+	 * If you think of this as a 1-d  array of int, then
 	 * ia.size() is like ia.length.
 	 * @return int size
 	 */
@@ -216,7 +216,7 @@ ZZMap
 	protected
 	ConcreteIndexMap() {}
 
-	
+
 	/**
 	 * Called by subclass constructors to initialize.
 	 * Used for standalone or "leaf" instances.
@@ -370,7 +370,7 @@ ZZMap
 		ConcreteIndexMap im = new ConcreteIndexMap();
 
 		System.out.println("Unbound:");
-		ZZMap zm = im. new ZZMap();	
+		ZZMap zm = im. new ZZMap();
 		System.out.println("\t" + zm);
 		ZZMap next = im. new ZZMap(zm);
 		System.out.println("\t" + next);
@@ -436,7 +436,7 @@ Rebound
 	ucar.multiarray.ConcreteIndexMap$ZZMap@8ce7bc [4] {1, 2, 4, 8}
 	ucar.multiarray.ConcreteIndexMap$ZZMap@8ce7ec [4] {1, 2, 4, 8}
 End ZZMap Test
-Testing init() and link() 
+Testing init() and link()
 Unbound:        ucar.multiarray.ConcreteIndexMap@8ce890
 	ucar.multiarray.ConcreteIndexMap$ZZMap@8ce88f [0] {}
 	ucar.multiarray.ConcreteIndexMap$ZZMap@8ce88e [0] {}

@@ -1,4 +1,4 @@
-// $Id: MultiArrayImpl.java,v 1.1.1.4 2000-08-28 21:54:43 dglo Exp $
+// $Id: MultiArrayImpl.java,v 1.2 2002-05-29 20:32:39 steve Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -28,8 +28,8 @@ import java.io.Serializable;
  *
  * @see MultiArray
  *
- * @author $Author: dglo $
- * @version $Revision: 1.1.1.4 $ $Date: 2000-08-28 21:54:43 $
+ * @author $Author: steve $
+ * @version $Revision: 1.2 $ $Date: 2002-05-29 20:32:39 $
  */
 public class
 MultiArrayImpl
