@@ -45,7 +45,7 @@ public class HdfeosDefault extends Hdfeos {
 
     DataImpl data = null;
 
-    System.out.println("HdfeosDefault.open "+file_path);
+    // System.out.println("HdfeosDefault.open "+file_path);
     HdfeosFile file = new HdfeosFile( file_path );
 
     data = getDataObject( file );
