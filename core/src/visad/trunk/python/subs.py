@@ -960,7 +960,7 @@ class HandlePickEvent(DisplayListener):
     two parameters: x,y that will get the values of
     the domain values for the x- and y-axis, respectively.
     """
-    self.x, self.y, self.z, self.display=subs.getDisplayMaps(display)
+    self.x, self.y, self.z, self.display=getDisplayMaps(display)
     self.dr = self.display.getDisplayRenderer()
     self.display.addDisplayListener(self)
     self.handler = handler
