@@ -201,5 +201,12 @@ public interface AnimationControl extends AVControl {
    */
   void toggle()
          throws VisADException, RemoteException;
+ 
+  /**
+   * Enables/Disables the animation string.
+   *
+   * @param   enable  if true, the animation string is shown.
+   */
+  void enableAnimationString(boolean enable);
 
 }
