@@ -302,10 +302,9 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   /** Ask user to confirm clearing the cell if any other cell depends on it */
   public boolean confirmClear() {
     if (othersDepend()) {
-      int ans = JOptionPane.showConfirmDialog(null, "Other cells depend on "
-                                             +"this cell.  Are you sure you "
-                                             +"want to clear it?", "Warning",
-                                              JOptionPane.YES_NO_OPTION);
+      int ans = JOptionPane.showConfirmDialog(null, "Other cells depend on " +
+        "this cell. Are you sure you want to clear it?", "Warning",
+        JOptionPane.YES_NO_OPTION);
       if (ans != JOptionPane.YES_OPTION) return false;
     }
     return true;
@@ -339,9 +338,8 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   public void addMapDialog() {
     // check whether this cell has data
     if (!hasData()) {
-      JOptionPane.showMessageDialog(Parent,
-          "This cell has no data",
-          "FancySSCell error", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(Parent, "This cell has no data",
+        "FancySSCell error", JOptionPane.ERROR_MESSAGE);
       return;
     }
 
@@ -381,10 +379,14 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     }
     catch (VisADException exc) {
       JOptionPane.showMessageDialog(Parent,
-          "This combination of mappings is not valid:\n" + exc.toString(),
-          "FancySSCell error", JOptionPane.ERROR_MESSAGE);
+        "This combination of mappings is not valid: " + exc.getMessage(),
+        "Cannot assign mappings", JOptionPane.ERROR_MESSAGE);
     }
-    catch (RemoteException exc) { }
+    catch (RemoteException exc) {
+      JOptionPane.showMessageDialog(Parent,
+        "This combination of mappings is not valid: " + exc.getMessage(),
+        "Cannot assign mappings", JOptionPane.ERROR_MESSAGE);
+    }
   }
 
   /** Import a data object from a given URL, in a separate thread */
@@ -394,15 +396,13 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     Runnable loadFile = new Runnable() {
       public void run() {
         String msg = "Could not load the dataset \"" +
-                     url.toString() + "\"\n";
+                     url.toString() + "\". ";
         boolean success = true;
         try {
           cell.loadData(url);
           if (!cell.hasData()) {
-            System.out.println("Cell \"has no data.\"  Ugh.");
             JOptionPane.showMessageDialog(Parent, "Unable to import data",
-                                          "Error importing data",
-                                          JOptionPane.ERROR_MESSAGE);
+              "Error importing data", JOptionPane.ERROR_MESSAGE);
           }
         }
         catch (BadFormException exc) {
@@ -410,7 +410,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
           success = false;
         }
         catch (RemoteException exc) {
-          msg = msg + "A RemoteException occurred:\n" + exc.toString();
+          msg = msg + "A remote error occurred: " + exc.getMessage();
           success = false;
         }
         catch (IOException exc) {
@@ -418,16 +418,16 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
           success = false;
         }
         catch (VisADException exc) {
-          msg = msg + "An error occurred:\n" + exc.toString();
+          msg = msg + "An error occurred: " + exc.toString();
           success = false;
         }
         if (!success) {
           JOptionPane.showMessageDialog(Parent, msg, "Error importing data",
-                                        JOptionPane.ERROR_MESSAGE);
+            JOptionPane.ERROR_MESSAGE);
         }
       }
     };
-    new Delay();
+    //new Delay();
     Thread t = new Thread(loadFile);
     t.start();
   }
@@ -437,7 +437,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     final String sname = s;
     Runnable loadRMI = new Runnable() {
       public void run() {
-        String msg = "Could not import data from the specified RMI address.\n";
+        String msg = "Could not import data from the specified RMI address. ";
         boolean success = true;
         try {
           loadRMI(sname);
@@ -447,6 +447,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
           success = false;
         }
         catch (NotBoundException exc) {
+          msg = msg + "An error occurred: " + exc.getMessage();
           success = false;
         }
         catch (AccessException exc) {
@@ -454,7 +455,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
           success = false;
         }
         catch (RemoteException exc) {
-          msg = msg + "A remote error occurred.";
+          msg = msg + "A remote error occurred: " + exc.getMessage();
           success = false;
         }
         catch (VisADException exc) {
@@ -462,11 +463,11 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
         }
         if (!success) {
           JOptionPane.showMessageDialog(Parent, msg, "Error importing data",
-                                        JOptionPane.ERROR_MESSAGE);
+            JOptionPane.ERROR_MESSAGE);
         }
       }
     };
-    new Delay();
+    //new Delay();
     Thread t = new Thread(loadRMI);
     t.start();
   }
@@ -485,8 +486,8 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
     if (directory == null) return;
     File f = new File(directory, file);
     if (!f.exists()) {
-      JOptionPane.showMessageDialog(Parent, file+" does not exist",
-                  "Cannot load file", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(Parent, file + " does not exist",
+        "Cannot load file", JOptionPane.ERROR_MESSAGE);
       return;
     }
 
@@ -504,7 +505,7 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
   public void saveDataDialog(boolean netcdf) {
     if (!hasData()) {
       JOptionPane.showMessageDialog(Parent, "This cell is empty.",
-                  "Nothing to save", JOptionPane.ERROR_MESSAGE);
+        "Nothing to save", JOptionPane.ERROR_MESSAGE);
       return;
     }
 
@@ -528,33 +529,33 @@ public class FancySSCell extends BasicSSCell implements SSCellListener {
       public void run() {
         String msg = "Could not save the dataset \"" + fn.getName() +
                      "\" as a " + (nc ? "netCDF file"
-                                      : "serialized data file") + ".\n";
+                                      : "serialized data file") + ". ";
         try {
           cell.saveData(fn, nc);
         }
         catch (BadFormException exc) {
-          msg = msg + "A BadFormException occurred:\n" + exc.toString();
+          msg = msg + "An error occurred: " + exc.getMessage();
           JOptionPane.showMessageDialog(Parent, msg, "Error saving data",
-                                        JOptionPane.ERROR_MESSAGE);
+            JOptionPane.ERROR_MESSAGE);
         }
         catch (RemoteException exc) {
-          msg = msg + "A RemoteException occurred:\n" + exc.toString();
+          msg = msg + "A remote error occurred: " + exc.getMessage();
           JOptionPane.showMessageDialog(Parent, msg, "Error saving data",
-                                        JOptionPane.ERROR_MESSAGE);
+            JOptionPane.ERROR_MESSAGE);
         }
         catch (IOException exc) {
-          msg = msg + "An IOException occurred:\n" + exc.toString();
+          msg = msg + "An I/O error occurred: " + exc.getMessage();
           JOptionPane.showMessageDialog(Parent, msg, "Error saving data",
-                                        JOptionPane.ERROR_MESSAGE);
+            JOptionPane.ERROR_MESSAGE);
         }
         catch (VisADException exc) {
-          msg = msg + "An error occurred:\n" + exc.toString();
+          msg = msg + "An error occurred: " + exc.getMessage();
           JOptionPane.showMessageDialog(Parent, msg, "Error saving data",
-                                        JOptionPane.ERROR_MESSAGE);
+            JOptionPane.ERROR_MESSAGE);
         }
       }
     };
-    new Delay();
+    //new Delay();
     Thread t = new Thread(saveFile);
     t.start();
   }
