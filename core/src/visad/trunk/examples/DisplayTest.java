@@ -152,7 +152,7 @@ public class DisplayTest extends Object {
         System.out.println("  18: Animation different time extents");
         System.out.println("  19: SelectValue");
         System.out.println("  20: 2-D surface and ColorAlphaWidget");
-        System.out.println("  21: SelectRange and SelectRangeWidget");
+        System.out.println("  21: SelectRange");
         System.out.println("  22: Hue & Saturation");
         System.out.println("  23: Cyan & Magenta");
         System.out.println("  24: HSV");
@@ -174,6 +174,7 @@ public class DisplayTest extends Object {
         System.out.println("  40: polar direct manipulation in Java2D");
         System.out.println("  41: image / contour alignment in Java2D");
         System.out.println("  42: image / contour alignment in Java3D");
+        System.out.println("  43: Function.derivative test with Linear2DSet in Java2D");
 
         return;
 
@@ -1007,14 +1008,34 @@ public class DisplayTest extends Object {
 
       case 21:
 
-        System.out.println(test_case + ": test select range and SelectRangeWidget");
+        System.out.println(test_case + ": test select range");
         size = 64;
         imaget1 = FlatField.makeField(image_tuple, size, false);
  
+        final DataReference value_low_ref = new DataReferenceImpl("value_low");
+        final DataReference value_hi_ref = new DataReferenceImpl("value_hi");
+
+        VisADSlider slider_low =
+          new VisADSlider("value low", 0, 64, 0, 1.0, value_low_ref,
+                          RealType.Generic);
+        VisADSlider slider_hi =
+          new VisADSlider("value hi", 0, 64, 64, 1.0, value_hi_ref,
+                          RealType.Generic);
+
         jframe = new JFrame("VisAD select slider");
         jframe.addWindowListener(new WindowAdapter() {
           public void windowClosing(WindowEvent e) {System.exit(0);}
         });
+
+        big_panel = new JPanel();
+        big_panel.setLayout(new BoxLayout(big_panel, BoxLayout.Y_AXIS));
+        big_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+        big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+        big_panel.add(slider_low);
+        big_panel.add(slider_hi);
+        jframe.getContentPane().add(big_panel);
+        jframe.setSize(300, 120);
+        jframe.setVisible(true);
 
         display1 = new DisplayImplJ3D("display1", DisplayImplJ3D.APPLETFRAME);
         display1.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
@@ -1031,18 +1052,24 @@ public class DisplayTest extends Object {
         mode.setPointSize(2.0f);
         mode.setPointMode(false);
 
-        SelectRangeWidget srw = new SelectRangeWidget(range1map, 0.0f, 64.0f);
+        final RangeControl range1control =
+          (RangeControl) range1map.getControl();
+        range1control.setRange(new float[] {0.0f, 100.0f});
 
-        big_panel = new JPanel();
-        big_panel.setLayout(new BoxLayout(big_panel, BoxLayout.Y_AXIS));
-        big_panel.add(srw);
-        jframe.getContentPane().add(big_panel);
-        jframe.pack();
-        jframe.setVisible(true);
- 
         ref_imaget1 = new DataReferenceImpl("ref_imaget1");
         ref_imaget1.setData(imaget1);
         display1.addReference(ref_imaget1, null);
+
+
+        cell = new CellImpl() {
+          public void doAction() throws VisADException, RemoteException {
+            range1control.setRange(new float[]
+             {(float) ((Real) value_low_ref.getData()).getValue(),
+              (float) ((Real) value_hi_ref.getData()).getValue()});
+          }
+        };
+        cell.addReference(value_low_ref);
+        cell.addReference(value_hi_ref);
 
         break;
 
@@ -1969,6 +1996,144 @@ public class DisplayTest extends Object {
           public void windowClosing(WindowEvent e) {System.exit(0);}
         });
  
+        big_panel = new JPanel();
+        big_panel.setLayout(new BoxLayout(big_panel, BoxLayout.X_AXIS));
+        big_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
+        big_panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
+        big_panel.add(display1.getComponent());
+        big_panel.add(display2.getComponent());
+        jframe.getContentPane().add(big_panel);
+        jframe.setSize(800, 400);
+        jframe.setVisible(true);
+
+        break;
+
+      case 43:
+
+        System.out.println(test_case + ": test derivative method");
+
+        int domain_flag = 0;
+
+        int LengthX = 201;
+        int LengthY = 201;
+        int n_samples = LengthX*LengthY;
+        int ii, jj;
+        int index;
+        FlatField d_field;
+        Set  domainSet = null;
+        RealType x_axis = new RealType( "x_axis", SI.meter, null );
+        RealType y_axis = new RealType( "y_axis", SI.meter, null );
+        MathType Domain = (MathType) new RealTupleType( x_axis, y_axis );
+
+        MathType rangeTemp = (MathType) new RealType( "Temperature", SI.kelvin, null );
+
+        FunctionType domain_temp = new FunctionType( Domain, rangeTemp );
+
+        if ( domain_flag == 0 ) 
+        {
+           domainSet = (Set) new Linear2DSet( Domain, 0.d, 1000.d, LengthX,
+                                              0.d, 1000.d, LengthY );
+        }
+        else if ( domain_flag == 1 )
+        {
+          float[][] d_samples = new float[2][n_samples];
+
+          index = 0;
+          for ( ii = 0; ii < LengthY; ii++ ) {
+            for ( jj = 0; jj < LengthX; jj++ ) {
+              d_samples[0][index] = jj*5f;
+              d_samples[1][index] = ii*5f;
+              index++;
+            }
+          }
+          domainSet = (Set) new Gridded2DSet( Domain, d_samples, LengthX, LengthY,
+                                              null, null, null );
+        }
+        else if ( domain_flag == 3)
+        {
+
+
+
+
+
+
+
+        }
+
+        FlatField f_field = new FlatField( domain_temp, domainSet );
+
+        double[][] samples = new double[1][n_samples];
+
+        index = 0;
+        double wave_number = 2;
+        double PI = Math.PI;
+        for ( ii = 0; ii < LengthY; ii++ )
+        {
+          for ( jj = 0; jj < LengthX; jj++ )
+          {
+            samples[0][index] =  (50)*Math.sin( ((wave_number*2d*PI)/1000)*5*jj )*
+                                      Math.sin( ((wave_number*2d*PI)/1000)*5*ii );
+            index++;
+          }
+        }
+        f_field.setSamples( samples );
+
+        System.out.println("Starting derivative computation...");
+          d_field = (FlatField) f_field.derivative( x_axis, Data.NO_ERRORS );
+        System.out.println("...derivative done");
+
+        RealType f_range = (RealType) ((FunctionType)d_field.getType()).getRange();
+
+        display1 = new DisplayImplJ2D("display1");
+        display1.addMap( new ScalarMap( (RealType)x_axis, Display.XAxis ));
+        display1.addMap( new ScalarMap( (RealType)y_axis, Display.YAxis ));
+        display1.addMap( new ScalarMap( (RealType)rangeTemp, Display.Green));
+        display1.addMap( new ConstantMap( 0.5, Display.Red));
+        display1.addMap( new ConstantMap( 0.5, Display.Blue));
+    /**
+        map1contour = new ScalarMap( (RealType)rangeTemp, Display.IsoContour );
+        display1.addMap( map1contour );
+        control1contour = (ContourControl) map1contour.getControl();
+
+        control1contour.enableContours(true);
+        control1contour.enableLabels(false);
+     **/
+        mode = display1.getGraphicsModeControl();
+        mode.setScaleEnable(true);
+
+
+        display2 = new DisplayImplJ2D("display2");
+        display2.addMap( new ScalarMap( (RealType)x_axis, Display.XAxis ));
+        display2.addMap( new ScalarMap( (RealType)y_axis, Display.YAxis ));
+        display2.addMap( new ScalarMap( (RealType)f_range, Display.Green));
+        display2.addMap( new ConstantMap( 0.5, Display.Red));
+        display2.addMap( new ConstantMap( 0.5, Display.Blue));
+     /**
+        map1contour = new ScalarMap( (RealType)f_range, Display.IsoContour );
+        display2.addMap( map1contour );
+        control1contour = (ContourControl) map1contour.getControl();
+
+        control1contour.enableContours(true);
+        control1contour.enableLabels(false);
+      **/
+
+        mode = display2.getGraphicsModeControl();
+        mode.setScaleEnable(true);
+
+
+        jframe = new JFrame("   sinusoidal field    and    (d/dx)field");
+        jframe.addWindowListener( new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {System.exit(0);}
+        });
+
+        ref_imaget1 = new DataReferenceImpl("ref_imaget1");
+        ref_imaget1.setData( f_field );
+        display1.addReference( ref_imaget1, null);
+
+        ref_imaget2 = new DataReferenceImpl("ref_imaget2");
+        ref_imaget2.setData( d_field );
+        display2.addReference( ref_imaget2, null );
+
         big_panel = new JPanel();
         big_panel.setLayout(new BoxLayout(big_panel, BoxLayout.X_AXIS));
         big_panel.setAlignmentY(JPanel.TOP_ALIGNMENT);
