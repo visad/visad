@@ -32,7 +32,10 @@ import java.rmi.*;
    RealTuple is the VisAD data class for vectors in R^n for n>0.
    RealTuple objects are immutable.<P>
 */
-public class RealTuple extends Tuple {
+public class RealTuple
+  extends	Tuple
+  implements	RealTupleIface
+{
 
   private CoordinateSystem TupleCoordinateSystem;
 
