@@ -137,6 +137,18 @@ public class IrregularSet extends SampledSet {
     throw new UnimplementedException("IrregularSet.valueToInterp");
   }
 
+  /**
+   * Returns the indexes of neighboring samples for all samples.
+   *
+   * @param neighbors		The indexes of the neighboring points.	On
+   *				input, <code>neighbors.length</code>
+   *				must be greater than or equal to
+   *				<code>getLength()</code>.  On output,
+   *				<code>neighbors[i][j]</code> will be the index
+   *				of the <code>j</code>th neighboring sample of
+   *				sample <code>i</code>.
+   * @throws VisADException	VisAD failure.
+   */
   public void getNeighbors( int[][] neighbors )
          throws VisADException
   {
