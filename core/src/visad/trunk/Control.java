@@ -96,9 +96,9 @@ public abstract class Control extends Object
 
   /** invoke incTick every time Control changes */
   public long incTick() {
-    if (display != null) display.controlChanged();
     NewTick += 1;
     if (NewTick == Long.MAX_VALUE) NewTick = Long.MIN_VALUE + 1;
+    if (display != null) display.controlChanged();
     return NewTick;
   }
  
