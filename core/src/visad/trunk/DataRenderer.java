@@ -59,6 +59,8 @@ public abstract class DataRenderer extends Object {
       Strings generated during the last invocation of doAction */
   private Vector exceptionVector = new Vector();
 
+  private boolean suppress_exceptions = false;
+
   public DataRenderer() {
     Links = null;
     display = null;
@@ -68,6 +70,10 @@ public abstract class DataRenderer extends Object {
     exceptionVector.removeAllElements();
   }
 
+  public void suppressExceptions(boolean suppress) {
+    suppress_exceptions = suppress;
+  }
+    
   /** add message from BadMappingException or
       UnimplementedException to exceptionVector */
   public void addException(Exception error) {
@@ -82,7 +88,7 @@ public abstract class DataRenderer extends Object {
       by DisplayRenderer; gets a clone of exceptionVector to avoid
       concurrent access by Display thread */
   public Vector getExceptionVector() {
-    return (Vector) exceptionVector.clone();
+    return (suppress_exceptions ? new Vector() : (Vector) exceptionVector.clone());
   }
 
   public boolean get_all_feasible() {

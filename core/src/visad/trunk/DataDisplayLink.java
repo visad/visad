@@ -139,7 +139,8 @@ public class DataDisplayLink extends ReferenceActionLink {
     if (data == null) {
       renderer.clearExceptions();
       renderer.addException(
-        new DisplayException("Data is null: DataDisplayLink.prepareData"));
+        // new DisplayException("Data is null: DataDisplayLink.prepareData"));
+        new DisplayException("Data is null"));
       return false;
     }
     MathType type = data.getType();

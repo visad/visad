@@ -61,12 +61,14 @@ public class FrontDrawer extends Object {
 
   private DataReferenceImpl front_ref;
   private DataReferenceImpl curve_ref;
-  private CurveManipulationRendererJ3D curve_manipulation_renderer;
+  private FrontManipulationRendererJ3D front_manipulation_renderer;
   private CurveMonitor curve_monitor;
 
   private ProjectionControl pcontrol = null;
 
   private DisplayImplJ3D display;
+  private ScalarMap lat_map = null;
+  private ScalarMap lon_map = null;
 
   private Gridded2DSet curve = null; // manifold dimension = 1
   private Gridded2DSet front = null; // manifold dimension = 2
@@ -109,23 +111,47 @@ public class FrontDrawer extends Object {
     ProjectionControlListener pcl = new ProjectionControlListener();
     pcontrol.addControlListener(pcl);
 
-    int lat_index = -1;
-    int lon_index = -1;
+    // find spatial maps for Latitude and Longitude
+    lat_map = null;
+    lon_map = null;
     Vector scalar_map_vector = display.getMapVector();
     Enumeration enum = scalar_map_vector.elements();
     while (enum.hasMoreElements()) {
       ScalarMap map = (ScalarMap) enum.nextElement();
-      if (RealType.Latitude.equals(map.getScalar())) {
-        lat_index = 1;
-      }
-      else if (RealType.Longitude.equals(map.getScalar())) {
-        lon_index = 1;
+      DisplayRealType real = map.getDisplayScalar();
+      DisplayTupleType tuple = real.getTuple();
+      if (tuple != null &&
+          (tuple.equals(Display.DisplaySpatialCartesianTuple) ||
+           (tuple.getCoordinateSystem() != null &&
+            tuple.getCoordinateSystem().getReference().equals(
+            Display.DisplaySpatialCartesianTuple)))) { // Spatial
+        if (RealType.Latitude.equals(map.getScalar())) {
+          lat_map = map;
+        }
+        else if (RealType.Longitude.equals(map.getScalar())) {
+          lon_map = map;
+        }
       }
     }
-    if (lat_index < 0 || lon_index < 0) {
+    if (lat_map == null || lon_map == null) {
       throw new DisplayException("Latitude and Longitude must be mapped");
     }
 
+    int mmm = 0;
+    int mmv = 0;
+    front_manipulation_renderer =
+      new FrontManipulationRendererJ3D(mmm, mmv, this);
+    display.addReferences(front_manipulation_renderer, curve_ref);
+
+// "Data is null: DataDisplayLink.prepareData"
+
+  }
+
+  // FrontManipulationRendererJ3D button release
+  public void release() {
+    double[] lat_range = lat_map.getRange();
+    double[] lon_range = lon_map.getRange();
+    
   }
 
   private boolean pfirst = true;
@@ -172,7 +198,7 @@ public class FrontDrawer extends Object {
         Gridded2DSet curve = (Gridded2DSet) ref.getData();
 
         int mouseModifiers =
-          curve_manipulation_renderer.getLastMouseModifiers();
+          front_manipulation_renderer.getLastMouseModifiers();
         int mctrl = mouseModifiers & InputEvent.CTRL_MASK;
 
       } // end synchronized (data_lock)
@@ -277,6 +303,21 @@ class FrontActionListener implements ActionListener {
       }
 */
     }
+  }
+}
+
+class FrontManipulationRendererJ3D extends CurveManipulationRendererJ3D {
+
+  FrontDrawer fd;
+
+  FrontManipulationRendererJ3D(FrontDrawer f, int mmm, int mmv) {
+    super(mmm, mmv, true); // true for only one
+    fd = f;
+  }
+
+  /** mouse button released, ending direct manipulation */
+  public synchronized void release_direct() {
+    fd.release();
   }
 }
 
