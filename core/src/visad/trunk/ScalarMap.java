@@ -81,6 +81,7 @@ public class ScalarMap extends Object implements java.io.Serializable {
   private boolean scale_flag = false;
   private boolean back_scale_flag = false;
   private float[] scale_color = {1.0f, 1.0f, 1.0f};
+  private boolean scale_on = true;
 
   /** Vector of ScalarMapListeners */
   private transient Vector ListenerVector = new Vector();
@@ -650,8 +651,12 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
     arrays[3] = PlotText.render_label(topstr, starttop, base, up, true);
 
     VisADLineArray array = VisADLineArray.merge(arrays);
-    displayRenderer.setScale(axis, axis_ordinal, array, scale_color);
+    if (scale_on) displayRenderer.setScale(axis, axis_ordinal, array, scale_color);
     scale_flag = false;
+  }
+
+  public void setScaleEnable(boolean on) {
+    scale_on = on;
   }
 
   /** set color of axis scales; color must be float[3] with red,

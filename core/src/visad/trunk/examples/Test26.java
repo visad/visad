@@ -64,6 +64,7 @@ public class Test26
     ScalarMap map1lat = new ScalarMap(RealType.Latitude, Display.YAxis);
     dpys[0].addMap(map1lat);
     ScalarMap map1lon = new ScalarMap(RealType.Longitude, Display.XAxis);
+    map1lon.setScaleEnable(false);
     dpys[0].addMap(map1lon);
     ScalarMap map1vis = new ScalarMap(vis_radiance, Display.ZAxis);
     dpys[0].addMap(map1vis);
