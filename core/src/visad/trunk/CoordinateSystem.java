@@ -58,7 +58,7 @@ public abstract class CoordinateSystem extends Object
    *                            Numeric values in this coordinate system shall
    *                            be in units of <code>units</code> unless
    *                            specified otherwise.  May be <code>null</code>
-   *                            or an array of <code>null</code>-s.
+   *                            or an array of <code>null</code>s.
    * @throws VisADException     Couldn't create necessary VisAD object.
    */
   public CoordinateSystem(RealTupleType reference, Unit[] units)
@@ -94,8 +94,8 @@ public abstract class CoordinateSystem extends Object
    *                            Numeric values in this coordinate system shall
    *                            be in units of <code>units</code> unless
    *                            specified otherwise.  May be <code>null</code>
-   *                            or an array of <code>null</code>-s.
-   * @param b - dummy argument for trusted constructor signature
+   *                            or an array of <code>null</code>s.
+   * @param b dummy argument for trusted constructor signature
    */
   CoordinateSystem(RealTupleType reference, Unit[] units, boolean b) {
     Reference = reference;
@@ -123,20 +123,20 @@ public abstract class CoordinateSystem extends Object
   }
 
   /**
-   * Return the Unit-s for this CoordinateSystem's reference 
+   * Return the Units for this CoordinateSystem's reference 
    * RealTupleType.  These are the units of the return values from 
    * {@link #toReference}.
-   * @return  copy of the Unit-s array used at construction.
+   * @return  copy of the Units array used at construction.
    */
   public Unit[] getReferenceUnits() {
     return Reference.getDefaultUnits();
   }
 
   /**
-   * Return the Unit-s for this CoordinateSystem.  The Unit-s
+   * Return the Units for this CoordinateSystem.  The Units
    * are what's expected for the input data for the 
    * {@link #toReference} method.
-   * @return  copy of the Unit-s array used at construction.
+   * @return  copy of the Units array used at construction.
    */
   public Unit[] getCoordinateSystemUnits() {
     return Unit.copyUnitsArray(CoordinateSystemUnits);
@@ -151,7 +151,7 @@ public abstract class CoordinateSystem extends Object
    *  @param  value  array of values assumed to be in coordinateSystem
    *                 units. Input array is not guaranteed to be immutable
    *                 and could be used for return.
-   *  @return array of double values in reference coordinates and Unit-s.  
+   *  @return array of double values in reference coordinates and Units.  
    *  @throws VisADException  if problem with conversion.
    */
   public abstract double[][] toReference(double[][] value) throws VisADException;
@@ -163,9 +163,9 @@ public abstract class CoordinateSystem extends Object
    *  organization is double[tuple_dimension][number_of_tuples];
    *  can modify and return argument array.
    *  @param  value  array of values assumed to be in reference
-   *                 Unit-s. Input array is not guaranteed to be immutable
+   *                 Units. Input array is not guaranteed to be immutable
    *                 and could be used for return.
-   *  @return array of double values in CoordinateSystem Unit-s.  
+   *  @return array of double values in CoordinateSystem Units.  
    *  @throws VisADException  if problem with conversion.
    */
   public abstract double[][] fromReference(double[][] value) throws VisADException;
@@ -183,7 +183,7 @@ public abstract class CoordinateSystem extends Object
    *  @param  value  array of values assumed to be in coordinateSystem
    *                 units. Input array is not guaranteed to be immutable
    *                 and could be used for return.
-   *  @return array of float values in reference coordinates and Unit-s.  
+   *  @return array of float values in reference coordinates and Units.  
    *  @throws VisADException  if problem with conversion.
    */
   public float[][] toReference(float[][] value) throws VisADException {
@@ -203,9 +203,9 @@ public abstract class CoordinateSystem extends Object
    *  double array back as a float array.  For efficiency, subclasses 
    *  should override this implementation.
    *  @param  value  array of values assumed to be in reference
-   *                 Unit-s. Input array is not guaranteed to be immutable
+   *                 Units. Input array is not guaranteed to be immutable
    *                 and could be used for return.
-   *  @return array of float values in this CoordinateSystem Unit-s.  
+   *  @return array of float values in this CoordinateSystem Units.  
    *  @throws VisADException  if problem with conversion.
    */
   public float[][] fromReference(float[][] value) throws VisADException {
@@ -416,7 +416,7 @@ public abstract class CoordinateSystem extends Object
         if (out.getCoordinateSystem() == null ||
             !out.getCoordinateSystem().getReference().equals(ref_out)) {
           throw new CoordinateSystemException(
-            "CoordinateSystem.transformCoordinates: out Reference-s don't match");
+            "CoordinateSystem.transformCoordinates: out References don't match");
         }
       }
 
@@ -427,7 +427,7 @@ public abstract class CoordinateSystem extends Object
         if (in.getCoordinateSystem() == null ||
             !in.getCoordinateSystem().getReference().equals(ref_in)) {
           throw new CoordinateSystemException(
-            "CoordinateSystem.transformCoordinates: in Reference-s don't match");
+            "CoordinateSystem.transformCoordinates: in References don't match");
         }
       }
 
@@ -459,11 +459,11 @@ public abstract class CoordinateSystem extends Object
       }
     } // end if (!out.equals(in))
 
-    // set return Unit-s
+    // set return Units
     if (units_out != null) {
       for (int i=0; i<n; i++) units_out[i] = units[i];
     }
-    // set return ErrorEstimate-s
+    // set return ErrorEstimates
     if (any_errors && any_transform) {
       for (int i=0; i<n; i++) {
         double error = Math.abs( error_values[i][2 * i + 1] -
@@ -650,7 +650,7 @@ public abstract class CoordinateSystem extends Object
         if (out.getCoordinateSystem() == null ||
             !out.getCoordinateSystem().getReference().equals(ref_out)) {
           throw new CoordinateSystemException(
-            "CoordinateSystem.transformCoordinates: out Reference-s don't match");
+            "CoordinateSystem.transformCoordinates: out References don't match");
         }
       }
 
@@ -661,7 +661,7 @@ public abstract class CoordinateSystem extends Object
         if (in.getCoordinateSystem() == null ||
             !in.getCoordinateSystem().getReference().equals(ref_in)) {
           throw new CoordinateSystemException(
-            "CoordinateSystem.transformCoordinates: in Reference-s don't match");
+            "CoordinateSystem.transformCoordinates: in References don't match");
         }
       }
 
@@ -693,11 +693,11 @@ public abstract class CoordinateSystem extends Object
       }
     } // end if (!out.equals(in))
 
-    // set return Unit-s
+    // set return Units
     if (units_out != null) {
       for (int i=0; i<n; i++) units_out[i] = units[i];
     }
-    // set return ErrorEstimate-s
+    // set return ErrorEstimates
     if (any_errors && any_transform) {
       for (int i=0; i<n; i++) {
         double error = Math.abs( error_values[i][2 * i + 1] -
@@ -709,16 +709,16 @@ public abstract class CoordinateSystem extends Object
   }
 
   /** 
-   *  Convert values in Unit-s specified to Reference coordinates.
+   *  Convert values in Units specified to Reference coordinates.
    *  If units are non-null, they are both the Unit[] of input value,
    *  and a holder for Unit[] of output.  
-   *  @param  value  array of values assumed to be in the Unit-s
+   *  @param  value  array of values assumed to be in the Units
    *                 specified or CoordinateSystem units if null.
-   *  @param  units  Unit-s of input values.  If non-null, input values
-   *                 are converted to CoordinateSystem Unit-s (if they
+   *  @param  units  Units of input values.  If non-null, input values
+   *                 are converted to CoordinateSystem Units (if they
    *                 are non-null) before calling 
    *                 {@link #toReference(double[][])}.
-   *  @return array of double values in reference coordinates and Unit-s.  
+   *  @return array of double values in reference coordinates and Units.  
    *  @throws VisADException  if problem with conversion.
    */
   public double[][] toReference(double[][] value, Unit[] units)
@@ -742,16 +742,16 @@ public abstract class CoordinateSystem extends Object
   }
 
   /** 
-   *  Convert values in Unit-s specified to Reference coordinates.
+   *  Convert values in Units specified to Reference coordinates.
    *  If units are non-null, they are both the Unit[] of input value,
    *  and a holder for Unit[] of output.  
-   *  @param  value  array of values assumed to be in the Unit-s
+   *  @param  value  array of values assumed to be in the Units
    *                 specified or CoordinateSystem units if null.
-   *  @param  units  Unit-s of input values.  If non-null, input values
-   *                 are converted to CoordinateSystem Unit-s (if they
+   *  @param  units  Units of input values.  If non-null, input values
+   *                 are converted to CoordinateSystem Units (if they
    *                 are non-null) before calling 
    *                 {@link #toReference(float[][])}.
-   *  @return array of float values in reference coordinates and Unit-s.  
+   *  @return array of float values in reference coordinates and Units.  
    *  @throws VisADException  if problem with conversion.
    */
   public float[][] toReference(float[][] value, Unit[] units)
@@ -775,16 +775,16 @@ public abstract class CoordinateSystem extends Object
   }
 
   /** 
-   *  Convert values in Unit-s specified to this CoordinateSystem's
-   *  Unit-s. If units are non-null, they are both the Unit[] of input value,
+   *  Convert values in Units specified to this CoordinateSystem's
+   *  Units. If units are non-null, they are both the Unit[] of input value,
    *  and a holder for Unit[] of output.  
-   *  @param  value  array of values assumed to be in the Unit-s
+   *  @param  value  array of values assumed to be in the Units
    *                 specified or Reference units if null.
-   *  @param  units  Unit-s of input values.  If non-null, input values
-   *                 are converted to Reference Unit-s (if they
+   *  @param  units  Units of input values.  If non-null, input values
+   *                 are converted to Reference Units (if they
    *                 are non-null) before calling 
    *                 {@link #fromReference(double[][])}.
-   *  @return array of double values in CoordinateSystem Unit-s.  
+   *  @return array of double values in CoordinateSystem Units.  
    *  @throws VisADException  if problem with conversion.
    */
   public double[][] fromReference(double[][] value, Unit[] units)
@@ -808,16 +808,16 @@ public abstract class CoordinateSystem extends Object
   }
 
   /** 
-   *  Convert values in Unit-s specified to this CoordinateSystem's
-   *  Unit-s. If units are non-null, they are both the Unit[] of input value,
+   *  Convert values in Units specified to this CoordinateSystem's
+   *  Units. If units are non-null, they are both the Unit[] of input value,
    *  and a holder for Unit[] of output.  
-   *  @param  value  array of values assumed to be in the Unit-s
+   *  @param  value  array of values assumed to be in the Units
    *                 specified or Reference units if null.
-   *  @param  units  Unit-s of input values.  If non-null, input values
-   *                 are converted to Reference Unit-s (if they
+   *  @param  units  Units of input values.  If non-null, input values
+   *                 are converted to Reference Units (if they
    *                 are non-null) before calling 
    *                 {@link #fromReference(float[][])}.
-   *  @return array of float values in CoordinateSystem Unit-s.  
+   *  @return array of float values in CoordinateSystem Units.  
    *  @throws VisADException  if problem with conversion.
    */
   public float[][] fromReference(float[][] value, Unit[] units)
@@ -843,7 +843,7 @@ public abstract class CoordinateSystem extends Object
   /**
    * Indicates whether or not this instance is equal to an object
    * (note must test for cs == null).
-   * @param cs - the object in question.
+   * @param cs the object in question.
    * @return <code>true</code> if and only if this instance equals cs.
    */
   public abstract boolean equals(Object cs);

@@ -31,40 +31,56 @@ import java.rmi.*;
 
 /**
    DataDisplayLink objects define connections between DataReference
-   objects and Display objects.<P>
+   objects and Display objects. It extends ReferenceActionLink which
+   is the more general link between ThingReference (extended by
+   DataReference) and Action (extended by Display).<P>
 */
 public class DataDisplayLink extends ReferenceActionLink {
 
   /** ShadowType created for data */
   private ShadowType shadow;
 
-  /** used by prepareData */
+  /** cached copy of linked Data, used by prepareData() */
   private Data data;
 
-  /** ConstantMap-s specific to this Data */
+  /** ConstantMaps specific to this Data */
   private Vector ConstantMapVector = new Vector();
 
   /** DataRenderer associated with this Data
       (may be multiple Data per DataRenderer) */
   private DataRenderer renderer;
 
-  /** Vector of ScalarMap-s applying to this Data */
+  /** Vector of ScalarMaps applying to this Data */
   private Vector SelectedMapVector = new Vector();
 
-  /** default values for DisplayIndices, determined by:
+  /** default values for DisplayRealTypes, determined by:
       1. this.ConstantMapVector
       2. Display.ConstantMapVector
       3. DisplayRealType.DefaultValue */
   private float[] defaultValues;
 
   /** flag per Control to indicate need for transform when
-      Control changes */
+      Control changes, index by Control.getIndex() */
   boolean[] isTransform;
 
-  /** transform time-out hack */
-  public long start_time; // System.currentTimeMillis() when doTransform started
+  /** value of System.currentTimeMillis() when doTransform() started */
+  public long start_time;
+
+  /** flag indicating current doTransform() has taken more than 500 ms */
   public boolean time_flag;
 
+  /**
+   * construct a DataDisplayLink linking a DataReference to a Display
+   * @param ref the DataReference to link
+   * @param local_d if d is DisplayImpl, then d; if d is RemoteDisplay, then
+   *                its adapted DisplayImpl
+   * @param d the Display
+   * @param constant_maps array of ConstantMaps specific to this Data
+   * @param rend DataRenderer that creates Data depictions
+   * @param jd - unique ID among ReferenceActionLinks attached to Action
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public DataDisplayLink(DataReference ref, DisplayImpl local_d, Display d,
                   ConstantMap[] constant_maps, DataRenderer rend, long jd)
                   throws VisADException, RemoteException {
@@ -78,7 +94,7 @@ public class DataDisplayLink extends ReferenceActionLink {
         while(maps.hasMoreElements()) {
           ScalarMap map = (ScalarMap) maps.nextElement();
           if (map.getDisplayScalar().equals(constant_maps[i].getDisplayScalar())) {
-            throw new DisplayException("DataDisplayLink: two ConstantMap-s have" +
+            throw new DisplayException("DataDisplayLink: two ConstantMaps have" +
                                        " the same DisplayScalar");
           }
         }
@@ -99,18 +115,31 @@ public class DataDisplayLink extends ReferenceActionLink {
     }
   }
 
+  /**
+   * @return the local DisplayImpl for the linked Display
+   */
   public DisplayImpl getDisplay() {
     return (DisplayImpl) local_action;
   }
 
+  /**
+   * @return the DataRenderer that creates Data depictions
+   */
   public DataRenderer getRenderer() {
     return renderer;
   }
 
+  /**
+   * @return a clone of Vector of ScalarMaps applying to this Data
+   */
   public Vector getSelectedMapVector() {
     return (Vector) SelectedMapVector.clone();
   }
 
+  /**
+   * add a ScalarMap applying to this Data
+   * @param map ScalarMap to add
+   */
   public void addSelectedMapVector(ScalarMap map) {
     if (renderer == null) return;
     // 'synchronized' unnecessary
@@ -122,6 +151,12 @@ public class DataDisplayLink extends ReferenceActionLink {
     }
   }
 
+  /**
+   * clear Vectors of ScalarMaps applying to this Data and
+   * of ConstantMaps; also clear other instance variables
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public void clearMaps()
     throws RemoteException, VisADException
   {
@@ -142,8 +177,12 @@ public class DataDisplayLink extends ReferenceActionLink {
     }
   }
 
-  /** Prepare to render data (include feasibility check);
-      return false if infeasible */
+  /**
+   * Prepare to render data (include feasibility check);
+   * @return false if infeasible
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public boolean prepareData()
          throws VisADException, RemoteException {
     if (renderer == null) return false;
@@ -164,7 +203,7 @@ public class DataDisplayLink extends ReferenceActionLink {
 
     SelectedMapVector.removeAllElements();
 
-    // calculate default values for DisplayRealType-s
+    // calculate default values for DisplayRealTypes
     // lowest priority: DisplayRealType.DefaultValue
     int n = ((DisplayImpl) local_action).getDisplayScalarCount();
     defaultValues = new float[n];
@@ -254,14 +293,22 @@ public class DataDisplayLink extends ReferenceActionLink {
     return true;
   }
 
+  /**
+   * @return ShadowType generated from MathType of linked Data
+   */
   public ShadowType getShadow() {
     return shadow;
   }
 
+  /**
+   * @return linked Data (note Data is cached until
+   *         clearData() is called)
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public Data getData()
          throws VisADException, RemoteException {
     if (renderer == null) return null;
-/* WLH 14 Feb 98 */
     Data data_copy = data;
     if (data_copy == null) {
       data_copy = ((DataReference) ref).getData();
@@ -270,36 +317,59 @@ public class DataDisplayLink extends ReferenceActionLink {
     return data_copy;
   }
 
-/* WLH 14 Feb 98 */
+  /**
+   * clear cached copy of linked Data
+   */
   public void clearData() {
     data = null;
   }
 
-/* WLH 14 Feb 98 */
+  /**
+   * @return MathType of linked Data
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
   public MathType getType()
          throws VisADException, RemoteException {
     Data d = getData();
     return (d == null) ? null : d.getType();
   }
 
+  /**
+   * @return default values for DisplayRealTypes
+   */
   public float[] getDefaultValues() {
     return defaultValues;
   }
 
+  /**
+   * @return linked DataReference
+   */
   public DataReference getDataReference() {
     return (DataReference) getThingReference();
   }
 
+  /**
+   * @return Vector of ConstantMaps specific to this Data
+   */
   public Vector getConstantMaps()
   {
     return ConstantMapVector;
   }
 
+  /**
+   * @return Vector of ScalarMaps that apply to this Data
+   */
   public Vector getScalarMaps()
   {
     return SelectedMapVector;
   }
 
+  /**
+   * Indicates whether or not this instance is equal to an object
+   * @param o the object in question.
+   * @return <code>true</code> if and only if this instance equals o.
+   */
   public boolean equals(Object o)
   {
     if (!(o instanceof DataDisplayLink)) {

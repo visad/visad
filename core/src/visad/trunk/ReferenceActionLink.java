@@ -38,7 +38,7 @@ public class ReferenceActionLink {
   ActionImpl local_action;
   Action action;  // may be remote or local
 
-  /** this id is unique among ReferenceActionLink attached to action */
+  /** this id is unique among ReferenceActionLink attached to Action */
   private long id;
 
   /** name of the associated thing */
