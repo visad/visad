@@ -574,13 +574,16 @@ public class SpreadSheet extends JFrame implements ActionListener,
           RemoteColRow = rs.getDataReference("ColRow");
           cellNames = getNewCellNames();
         }
-        catch (NotBoundException exc) {
+        catch (UnmarshalException exc) {
+          // fatal RMI error, probably a version difference; display error box
           if (BasicSSCell.DEBUG) exc.printStackTrace();
-        }
-        catch (RemoteException exc) {
-          if (BasicSSCell.DEBUG) exc.printStackTrace();
+          displayErrorMessage("Unable to clone the spreadsheet at " + clone +
+            ". The server is using an incompatible version of Java", null,
+            "Failed to clone spreadsheet");
+          success = false;
         }
         catch (MalformedURLException exc) {
+          // server name is invalid; display error box
           if (BasicSSCell.DEBUG) exc.printStackTrace();
           displayErrorMessage("Unable to clone the spreadsheet at " + clone +
             ". The server name is not valid", null,
@@ -588,11 +591,20 @@ public class SpreadSheet extends JFrame implements ActionListener,
           success = false;
         }
         catch (VisADException exc) {
+          // fatal error of some other type; display error box
           if (BasicSSCell.DEBUG) exc.printStackTrace();
           displayErrorMessage("Unable to clone the spreadsheet at " + clone +
             ". An error occurred while downloading the necessary data", exc,
             "Failed to clone spreadsheet");
           success = false;
+        }
+        catch (NotBoundException exc) {
+          // server is not ready yet; try again
+          if (BasicSSCell.DEBUG) exc.printStackTrace();
+        }
+        catch (RemoteException exc) {
+          // server is not ready yet; try again
+          if (BasicSSCell.DEBUG) exc.printStackTrace();
         }
       }
 
