@@ -195,7 +195,9 @@ public abstract class VisADGeometryArray extends VisADSceneGraphObject
         lon_range[1] = lon_min + 360.0f;
       }
       axis[0] = longitude_axis;
-      coords = longitude_map.scaleValues(lon_range);
+      float[] xcoords = longitude_map.scaleValues(lon_range);
+      coords[0] = xcoords[0];
+      coords[1] = xcoords[1];
     }
     return lon_range;
   }

@@ -25,7 +25,8 @@ public class SatDisplay {
     private ScalarMap xaxis;
     private ScalarMap yaxis;
 
-    public SatDisplay(String mapfile, boolean display3D, boolean remap) {
+    public SatDisplay(String mapfile, String areafile,
+                      boolean display3D, boolean remap) {
 
         try {
 
@@ -66,8 +67,7 @@ public class SatDisplay {
             colMap[2] = new ConstantMap(0., Display.Green);
             colMap[3] = new ConstantMap(1.001, Display.Radius);
 
-            AreaAdapter aa = new AreaAdapter(
-                            "ftp://www.ssec.wisc.edu/pub/visad-2.0/AREA2001");
+            AreaAdapter aa = new AreaAdapter(areafile);
 
             FlatField imaget = aa.getData();
 
@@ -107,6 +107,7 @@ public class SatDisplay {
     public static void main (String[] args) {
 
         String mapFile = "ftp://www.ssec.wisc.edu/pub/visad-2.0/OUTLSUPW";
+        String areaFile = "ftp://www.ssec.wisc.edu/pub/visad-2.0/AREA2001";
         boolean threeD = true;
         boolean remap = false;
 
@@ -118,14 +119,15 @@ public class SatDisplay {
         });
 
         if (args.length > 0 && !args[0].equals("X")) {
-           mapFile = args[0];
+           areaFile = args[0];
+           // mapFile = args[0];
         }
         if (args.length == 2) {
            threeD = (args[1].indexOf("2") >= 0) ? false : true;
            remap = (args[1].indexOf("2") >= 0) ? false : true;
         }
 
-        SatDisplay map = new SatDisplay(mapFile, threeD, remap);
+        SatDisplay map = new SatDisplay(mapFile, areaFile, threeD, remap);
         frame.getContentPane().add(map.display.getComponent());
         frame.setSize(500, 500);
         frame.setVisible(true);

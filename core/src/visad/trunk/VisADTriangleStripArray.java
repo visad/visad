@@ -728,6 +728,7 @@ public class VisADTriangleStripArray extends VisADGeometryArray {
         System.arraycopy(lasttex, 0, earlytex, 0, 3);
         System.arraycopy(tex, 0, lasttex, 0, 3);
       }
+      return;
     }
     else if (accum == 3) {
       // put early point on new strip

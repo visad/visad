@@ -2153,6 +2153,8 @@ if (size < 0.2) {
               tarray = (VisADTriangleStripArray) tarray.removeMissing();
             }
 
+            tarray = (VisADTriangleStripArray) tarray.adjustLongitude(renderer);
+
             BufferedImage image =
               createImage(data_width, data_height, texture_width,
                           texture_height, color_values);
@@ -2322,6 +2324,9 @@ if (size < 0.2) {
             }
             array = spatial_set.make1DGeometry(color_values);
             if (!spatial_all_select) array = array.removeMissing();
+
+            array = array.adjustLongitude(renderer);
+
             // System.out.println("make1DGeometry");
           }
           else if (spatialManifoldDimension == 2) {
@@ -2337,6 +2342,9 @@ if (size < 0.2) {
             }
             array = spatial_set.make2DGeometry(color_values, indexed);
             if (!spatial_all_select) array = array.removeMissing();
+
+            array = array.adjustLongitude(renderer);
+
             // System.out.println("make2DGeometry  vertexCount = " +
             //                    array.vertexCount);
           }
