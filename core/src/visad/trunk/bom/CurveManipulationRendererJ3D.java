@@ -801,9 +801,15 @@ class CurveDelete implements ActionListener {
       }
     }
     else if (cmd.equals("fill")) {
+      UnionSet set = null;
       try {
-        UnionSet set = (UnionSet) ref.getData();
+        set = (UnionSet) ref.getData();
         System.out.println("area = " + DelaunayCustom.computeArea(set));
+      }
+      catch (VisADException ex) {
+        System.out.println(ex.getMessage());
+      }
+      try {
         // Irregular2DSet new_set = DelaunayCustom.fill(set);
         Irregular2DSet new_set = DelaunayCustom.fillCheck(set, false);
         if (new_set != null) {

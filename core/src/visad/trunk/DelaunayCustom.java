@@ -335,12 +335,17 @@ public class DelaunayCustom extends Delaunay {
       region; return a decomposition of that region into triangles whose
       vertices are all boundary points from samples, as an Irregular2DSet */
   public static Irregular2DSet fill(Gridded2DSet set) throws VisADException {
+    return fillCheck(set, true);
+  }
+
+  public static Irregular2DSet fillCheck(Gridded2DSet set, boolean check)
+         throws VisADException {
     if (set == null) return null;
     if (set.getManifoldDimension() != 1) {
       throw new SetException("Gridded2DSet musy have manifold dimension = 1");
     }
     float[][] samples = set.getSamples();
-    int[][] tris = fill(samples);
+    int[][] tris = fillCheck(samples, check);
     if (tris == null || tris[0].length == 0) return null;
     DelaunayCustom delaunay = new DelaunayCustom(samples, tris);
     if (delaunay == null) return null;
@@ -403,7 +408,7 @@ public class DelaunayCustom extends Delaunay {
       float b0 = samples[0][k] - samples[0][j];
       float b1 = samples[1][k] - samples[1][j];
       boolean in = (((a0 * b1 - b0 * a1) > 0.0) == pos);
-if (bug && !in) System.out.println("bug " + i + " tri orient in = " + in);
+// if (bug && !in) System.out.println("bug " + i + " tri orient in = " + in);
       if (in && i != next[k]) {
         float ik1 = samples[1][i] - samples[1][k];
         float ik0 = samples[0][i] - samples[0][k];
@@ -431,7 +436,7 @@ if (bug && !in) System.out.println("bug " + i + " tri orient in = " + in);
             ((ji + ip0 * ji1 - ip1 * ji0) > 0.0) != pos) {
           in = false;
         }
-if (bug && !in) System.out.println("bug " + i + " adjacent in = " + in);
+// if (bug && !in) System.out.println("bug " + i + " adjacent in = " + in);
         if (in) {
           int p = next[k];
           int q = next[p];
@@ -456,18 +461,16 @@ if (bug && !in) System.out.println("bug " + i + " adjacent in = " + in);
               break;
             }
           } // end while (q != i)
-if (bug && !in) System.out.println("bug " + i + " intersect in = " + in);
+// if (bug && !in) System.out.println("bug " + i + " intersect in = " + in);
         } // end if (in)
       } // end if (in && i != next[k])
       if (in) {
-// System.out.println("tri " + i + " " + j + " " + k);
         tris[t++] = new int[] {i, j, k}; // add triangle to tris
         next[i] = k; // and remove j from boundary
         prev[k] = i;
         bad = 0;
       }
       else {
-// System.out.println("bump " + i);
         i = j; // try next point along boundary
         if (bad++ > (n - t)) {
           if (bug) {
@@ -559,8 +562,6 @@ if (bug && !in) System.out.println("bug " + i + " intersect in = " + in);
     System.arraycopy(new_ss, 0, ss, 0, k);
     nn = k;
 
-    float[][] s = ss[0];
-
     // compute which paths are inside other paths
     // this assumes that paths do not intersect
     boolean[][] in = new boolean[nn][nn];
@@ -579,10 +580,12 @@ if (bug && !in) System.out.println("bug " + i + " intersect in = " + in);
     for (int ii=0; ii<nn; ii++) {
       boolean any_outer = false;
       for (int jj=ii; jj<nn; jj++) {
-        // don't allow short path as outer path
         boolean in_any = false;
         for (int kk=ii; kk<nn; kk++) {
-          if (in[kk][jj]) { in_any = true; break; }
+          if (in[kk][jj]) {
+            in_any = true;
+            break;
+          }
         }
         if (!in_any) {
           any_outer = true;
@@ -601,17 +604,17 @@ if (bug && !in) System.out.println("bug " + i + " intersect in = " + in);
           }
           break;
         }
-        if (!any_outer) {
-          // this should never happen and indicates paths must
-          // intersect, but don't throw an Exception
-          // just muddle through
-        }
+      } // end for (int jj=ii; jj<nn; jj++)
+      if (!any_outer) {
+        // this should never happen and indicates paths must
+        // intersect, but don't throw an Exception
+        // just muddle through
       }
-    }
+    } // end for (int ii=0; ii<nn; ii++)
 
     // compute orientations of paths
     boolean[] orient = new boolean[nn];
-    for (int ii=1; ii<nn; ii++) {
+    for (int ii=0; ii<nn; ii++) {
       float area = 0.0f;
       float[][] t = ss[ii];
       int m = t[0].length;
@@ -622,6 +625,8 @@ if (bug && !in) System.out.println("bug " + i + " intersect in = " + in);
       orient[ii] = (area > 0.0);
     }
 
+    // now merge paths
+    float[][] s = ss[0];
     for (int ii=1; ii<nn; ii++) {
       float[][] t = ss[ii];
       if (t[0].length < 3) continue;
@@ -647,10 +652,7 @@ if (bug && !in) System.out.println("bug " + i + " intersect in = " + in);
 
       // decide if need to flip order of traversing path in t
       boolean inn = in[00][ii];
-      // inn = inside(s, t[0][near_j], t[1][near_j]);
       boolean flip = ((orient[0] == orient[ii]) == inn);
-// System.out.println("orient[0] = " + orient[0] + " orient[" + ii + "] = " +
-//                    orient[ii] + " inn = " + inn + " flip = " + flip);
 
       // link paths in s and t at nearest points
       int new_n = n + m + 2;
