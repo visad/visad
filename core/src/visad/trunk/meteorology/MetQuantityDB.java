@@ -3,109 +3,138 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: MetQuantityDB.java,v 1.3 1999-01-07 16:13:18 steve Exp $
+ * $Id: MetQuantityDB.java,v 1.4 1999-01-20 18:06:57 steve Exp $
  */
 
 package visad.meteorology;
 
+import visad.TypeException;
 import visad.VisADException;
 import visad.data.netcdf.Quantity;
 import visad.data.netcdf.QuantityDB;
-import visad.data.netcdf.QuantityDBImpl;
-import visad.data.netcdf.QuantityDBList;
-import visad.data.netcdf.StandardQuantityDB;
+import visad.data.netcdf.QuantityDBManager;
 import visad.data.netcdf.units.ParseException;
 
 
 /**
  * Provides support for mapping meteorological quantities to VisAD Quantities.
  */
-public class
+public final class
 MetQuantityDB
-    extends	QuantityDBList
 {
     /**
-     * The singleton instance.
+     * Whether or not this class has been initialized.
      */
-    private static MetQuantityDB	db;
+    private static boolean	initialized = false;
+
+    /**
+     * Quantity definitions.
+     */
+    static final String[]	definitions =
+	new String[]
+	{
+	    "DewPoint", "Cel",
+	    "PotentialTemperature", "K",
+	    "SaturationEquivalentPotentialTemperature", "K",
+	    "SaturationMixingRatio", "g/kg",
+	    "U", "m/s",
+	    "V", "m/s",
+	    "W", "m/s",
+	    "VirtualTemperature", "K",
+	};
+
+    /**
+     * Quantity aliases.
+     */
+    static final String[]	aliases =
+	new String[]
+	{
+	    "PressureReducedToMSL", "Pressure",
+	    "SurfacePressure", "Pressure",
+	    "Theta", "PotentialTemperature",
+	    "ThetaES", "SaturationEquivalentPotentialTemperature",
+	    "Rsat", "SaturationMixingRatio",
+	};
 
 
     /**
-     * Constructs from nothing.  Private to ensure use of instance() method.
+     * Constructs from nothing.  Private to prevent instantiation.
      */
-    private MetQuantityDB()
-	throws VisADException
+    private
+    MetQuantityDB()
     {
-	QuantityDBImpl	metQuantityDB = new QuantityDBImpl();
+    }
 
-	append(metQuantityDB);
-	append(StandardQuantityDB.instance());
 
-	try
+    /**
+     * Initializes the quantity database for meteorology.  Idempotent.
+     * @throws ParseException	Couldn't decode unit specification.
+     * @throws TypeException	Incompatible Quantity already exists.
+     * @throws VisADException	Couldn't create necessary VisAD object.
+     */
+    public static void
+    initialize()
+	throws ParseException, TypeException, VisADException
+    {
+	if (!initialized)
 	{
-	    metQuantityDB.add("PressureReducedToMSL", get("Pressure"));
-	    metQuantityDB.add("DewPoint", "Cel");
-	    metQuantityDB.add("Theta", "K");
-	    metQuantityDB.add("ThetaES", "K");
-	    metQuantityDB.add("Rsat", "g/kg");
-	    metQuantityDB.add("U", "m/s");
-	    metQuantityDB.add("V", "m/s");
-	    metQuantityDB.add("W", "m/s");
-	    metQuantityDB.add("VirtualTemperature", "K");
-
-	}
-	catch (ParseException e)
-	{
-	    /*
-	     * This shouldn't happen because the above strings should be
-	     * correct.
-	     */
-	    throw new VisADException(e.getMessage());
+	    QuantityDBManager.setInstance(
+		QuantityDBManager.instance().add(definitions, aliases));
+	    initialized = true;
 	}
     }
 
 
     /**
-     * Returns the singleton instance of this class.
-     */
-    public static MetQuantityDB
-    instance()
-	throws VisADException
-    {
-	if (db == null)
-	    db = new MetQuantityDB();
-
-	return db;
-    }
-
-
-    /**
-     * Tests this class.
+     * Tests this class.  If the only argument is "list", then this method
+     * will print the list of meteorology quantities.
      */
     public static void
     main(String[] args)
 	throws	Exception
     {
-	MetQuantityDB	metQuantityDB = MetQuantityDB.instance();
-	QuantityDB	standardQuantityDB = StandardQuantityDB.instance();
+	MetQuantityDB.initialize();
 
-	System.out.println(
-    "standardQuantityDB.getFirst(\"pressure\").getDefaultUnitString()=\"" +
-	    standardQuantityDB.get("pressure").getDefaultUnitString() + "\"");
-	System.out.println(
-    "metQuantityDB.getFirst(\"pressure\").getDefaultUnitString()=\"" +
-	    metQuantityDB.get("pressure").getDefaultUnitString() + "\"");
-	System.out.println(
-    "metQuantityDB.getFirst(\"U\").getDefaultUnitString()=\"" +
-	    metQuantityDB.get("U").getDefaultUnitString() + "\"");
-	System.out.println(
-    "metQuantityDB.getFirst(\"V\").getDefaultUnitString()=\"" +
-	    metQuantityDB.get("V").getDefaultUnitString() + "\"");
-	System.out.println(
-    "metQuantityDB.getFirst(\"Speed\").getDefaultUnitString()=\"" +
-	    metQuantityDB.get("Speed").getDefaultUnitString() + "\"");
-	System.out.println(
-    "metQuantityDB.getFirst(\"Direction\").getDefaultUnitString()=\"" +
-	    metQuantityDB.get("Direction").getDefaultUnitString() + "\"");
+	if (args.length == 1 && args[0].equals("list"))
+	{
+	    for (int i = 0; i < definitions.length; i += 2)
+	    {
+		System.out.println(
+		    definitions[i] + " (" + definitions[i] + ") in " +
+		    definitions[i+1]);
+	    }
+	    QuantityDB	db = QuantityDBManager.instance();
+	    for (int i = 0; i < aliases.length; i += 2)
+	    {
+		Quantity	quantity = db.get(aliases[i+1]);
+		System.out.println(
+		    aliases[i] + " (" +  quantity.getName() + 
+		    ") in " + quantity.getDefaultUnitString());
+	    }
+	}
+	else
+	{
+
+	    QuantityDB	db = QuantityDBManager.instance();
+
+	    System.out.println(
+		"db.get(\"pressure\").getDefaultUnitString()=\"" +
+		db.get("pressure").getDefaultUnitString() + "\"");
+	    System.out.println(
+		"db.get(\"pressure\").getDefaultUnitString()=\"" +
+		db.get("pressure").getDefaultUnitString() + "\"");
+	    System.out.println(
+		"db.get(\"U\").getDefaultUnitString()=\"" +
+		db.get("U").getDefaultUnitString() + "\"");
+	    System.out.println(
+		"db.get(\"V\").getDefaultUnitString()=\"" +
+		db.get("V").getDefaultUnitString() + "\"");
+	    System.out.println(
+		"db.get(\"Speed\").getDefaultUnitString()=\"" +
+		db.get("Speed").getDefaultUnitString() + "\"");
+	    System.out.println(
+		"db.get(\"Direction\").getDefaultUnitString()=\"" +
+		db.get("Direction").getDefaultUnitString() + "\"");
+	}
     }
 }

@@ -20,12 +20,15 @@ import visad.Data;
 import visad.Display;
 import visad.DisplayRealType;
 import visad.DisplayTupleType;
+import visad.PlotText;
 import visad.Real;
 import visad.RealTuple;
 import visad.SI;
 import visad.Unit;
 import visad.UnitException;
 import visad.VisADException;
+import visad.VisADGeometryArray;
+import visad.VisADLineArray;
 import visad.java3d.DefaultDisplayRendererJ3D;
 import visad.java3d.VisADCanvasJ3D;
 
@@ -171,14 +174,60 @@ HodographDisplayRenderer3D
 	originAxisGeometry.setCoordinates(
 	    0, new float[] {0f, 0f, -1f, 0f, 0f, 1f});
 	Appearance		originAxisAppearance = new Appearance();
-	ColoringAttributes	originAxisColor = new ColoringAttributes();
-	originAxisColor.setCapability(ColoringAttributes.ALLOW_COLOR_READ);
-	originAxisColor.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
-	originAxisColor.setColor(0f, 0.5f, 1f);
-	originAxisAppearance.setColoringAttributes(originAxisColor);
+	// ColoringAttributes	originAxisColor = new ColoringAttributes();
+	// originAxisColor.setCapability(ColoringAttributes.ALLOW_COLOR_READ);
+	// originAxisColor.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
+	// originAxisColor.setColor(0f, 0.5f, 1f);
+	// originAxisAppearance.setColoringAttributes(originAxisColor);
 	Shape3D			originAxis = 
 	    new Shape3D(originAxisGeometry, originAxisAppearance);
 	trans.addChild(originAxis);
+
+	/*
+	 * Add direction indicator.
+	 */
+        double[]	base = {0.1, 0.0, 0.0};		// text advance vector
+        double[]	up = {0.0, 0.1, 0.0};		// character up vector
+        boolean		center = true;			// center text?
+	VisADGeometryArray	north = PlotText.render_label(
+	  "N", new double[] {0d, 1.05d, 0d}, base, up, center);
+	VisADGeometryArray	south = PlotText.render_label(
+	  "S", new double[] {0d, -1.15d, 0d}, base, up, center);
+	VisADGeometryArray	east = PlotText.render_label(
+	  "E", new double[] {1.1d, 0d, 0d}, base, up, center);
+	VisADGeometryArray	west = PlotText.render_label(
+	  "W", new double[] {-1.1d, 0d, 0d}, base, up, center);
+	LineArray	compassGeometry = new LineArray(
+	  (north.coordinates.length + south.coordinates.length +
+	      east.coordinates.length + west.coordinates.length)/3,
+	  LineArray.COORDINATES);
+	int		index = 0;
+	compassGeometry.setCoordinates(index, north.coordinates);
+	index += north.coordinates.length/3;
+	compassGeometry.setCoordinates(index, south.coordinates);
+	index += south.coordinates.length/3;
+	compassGeometry.setCoordinates(index, east.coordinates);
+	index += east.coordinates.length/3;
+	compassGeometry.setCoordinates(index, west.coordinates);
+	Appearance		compassAppearance = new Appearance();
+	// ColoringAttributes	compassColor = new ColoringAttributes();
+	// compassColor.setCapability(ColoringAttributes.ALLOW_COLOR_READ);
+	// compassColor.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
+	// compassColor.setColor(0f, 0.5f, 1f);
+	// compassAppearance.setColoringAttributes(compassColor);
+	Shape3D		compass = 
+	    new Shape3D(compassGeometry, compassAppearance);
+	trans.addChild(compass);
+
+	/*
+        shapes = new VisADGeometryArray[] {compass};
+        ScalarMap	shapeMap =
+	    new ScalarMap(Display.GENERIC, Display.Shape);
+        display1.addMap(shapeMap);
+        ShapeControl	shapeControl = (ShapeControl)shapeMap.getControl();
+        shapeControl.setShapeSet(count_set);
+        shapeControl.setShapes(shapes);
+	*/
 
 	return root;
     }

@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: CommonTypes.java,v 1.5 1999-01-07 16:13:16 steve Exp $
+ * $Id: CommonTypes.java,v 1.6 1999-01-20 18:06:57 steve Exp $
  */
 
 package visad.meteorology;
@@ -11,6 +11,7 @@ import visad.CommonUnit;
 import visad.RealTupleType;
 import visad.data.netcdf.Quantity;
 import visad.data.netcdf.QuantityDB;
+import visad.data.netcdf.QuantityDBManager;
 
 
 /**
@@ -58,7 +59,8 @@ CommonTypes
 
 	try
 	{
-	    QuantityDB	db = MetQuantityDB.instance();
+	    MetQuantityDB.initialize();
+	    QuantityDB	db = QuantityDBManager.instance();
 	    pressure = db.get("Pressure");;
 	    temp = db.get("Temperature");
 	    dewPoint = db.get("DewPoint");

@@ -3,15 +3,17 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SkewTDisplay.java,v 1.18 1999-01-20 18:06:58 steve Exp $
+ * $Id: SkewTBean.java,v 1.1 1999-01-20 18:06:57 steve Exp $
  */
 
 package visad.meteorology;
 
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.beans.PropertyChangeListener;
+import java.awt.geom.Rectangle2D;
+import java.beans.PropertyChangeSupport;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import javax.swing.JFrame;
@@ -23,14 +25,19 @@ import visad.DataReferenceImpl;
 import visad.Display;
 import visad.FlatField;
 import visad.FunctionType;
+import visad.GraphicsModeControl;
+import visad.Integer1DSet;
 import visad.Linear2DSet;
-import visad.Real;
 import visad.RealTupleType;
 import visad.RealType;
+import visad.SI;
 import visad.ScalarMap;
-import visad.Unit;
+import visad.ScaledUnit;
+import visad.Set;
 import visad.VisADException;
 import visad.data.netcdf.Plain;
+import visad.data.netcdf.units.ParseException;
+import visad.data.netcdf.units.Parser;
 import visad.java2d.DirectManipulationRendererJ2D;
 import visad.java2d.DisplayImplJ2D;
 
@@ -41,9 +48,21 @@ import visad.java2d.DisplayImplJ2D;
  * @author Steven R. Emmerson
  */
 public class
-SkewTDisplay
+SkewTBean
     implements	Serializable
 {
+    /**
+     * Whether or not the temperature sounding has been modified.
+     */
+    private boolean				temperatureSoundingIsDirty =
+	false;
+
+    /**
+     * Whether or not the dew-point sounding has bee modified.
+     */
+    private boolean				dewPointSoundingIsDirty =
+	false;
+
     /**
      * The original Sounding.
      */
@@ -78,6 +97,11 @@ SkewTDisplay
      * The dewPoint-sounding data-reference.
      */
     private final DataReference			dewPointSoundingRef;
+
+    /**
+     * Supports property changes.
+     */
+    private final PropertyChangeSupport		changes;
 
     /**
      * The Skew T, log p coordinate system.
@@ -120,21 +144,6 @@ SkewTDisplay
     private ConstantMap[]			dewPointSoundingConstantMaps;
 
     /**
-     * Pressure constant maps.
-     */
-    private ConstantMap[]			pressureConstantMaps;
-
-    /**
-     * Temperature constant maps.
-     */
-    private ConstantMap[]			temperatureConstantMaps;
-
-    /**
-     * Potential temperature constant maps.
-     */
-    private ConstantMap[]			thetaConstantMaps;
-
-    /**
      * Saturation equivalent potential temperature constant maps.
      */
     private ConstantMap[]			thetaESConstantMaps;
@@ -158,6 +167,14 @@ SkewTDisplay
      */
     private RealType				bgTemperatureType;
     private RealTupleType			domainType;
+	/**@shapeType DependencyLink*/
+	/*#  SkewTDisplay$1 lnkUnnamed1*/
+	/**@shapeType DependencyLink*/
+	/*#  CommonUnits lnkUnnamed2*/
+	/**@shapeType DependencyLink*/
+	/*#  CommonTypes lnkUnnamed3*/
+	/**@shapeType DependencyLink*/
+	/*#  SoundingException lnkUnnamed4*/
 
 
     static
@@ -174,7 +191,7 @@ SkewTDisplay
 	{
 	    String	reason = e.getMessage();
 
-	    System.err.println("Couldn't initialize SkewTDisplay class" +
+	    System.err.println("Couldn't initialize SkewTBean class" +
 		(reason == null ? "" : ": " + reason));
 	    e.printStackTrace();
 	}
@@ -191,7 +208,7 @@ SkewTDisplay
      * @throws RemoteException	Remote access failure.
      */
     public
-    SkewTDisplay()
+    SkewTBean()
 	throws	VisADException, RemoteException
     {
 	displayRenderer = new SkewTDisplayRenderer();
@@ -199,6 +216,8 @@ SkewTDisplay
 	temperatureSoundingRef =
 	    new DataReferenceImpl("temperatureSoundingRef");
 	dewPointSoundingRef = new DataReferenceImpl("dewPointSoundingRef");
+
+	changes = new PropertyChangeSupport(this);
 
 	display = new DisplayImplJ2D("Skew T, Log P Diagram", displayRenderer);
 
@@ -229,9 +248,9 @@ SkewTDisplay
 	/*
 	 * Add the various data references to the display.
 	 */
-	display.addReference(bgPressureRef, pressureConstantMaps);
-	display.addReference(bgTemperatureRef, temperatureConstantMaps);
-	display.addReference(thetaRef, thetaConstantMaps);
+	display.addReference(bgPressureRef);
+	display.addReference(bgTemperatureRef);
+	display.addReference(thetaRef);
 	display.addReference(thetaESRef, thetaESConstantMaps);
 	// display.addReference(rSatRef, rSatConstantMaps);
 	display.addReferences(new DirectManipulationRendererJ2D(),
@@ -260,7 +279,7 @@ SkewTDisplay
 	 */
 
 	RealType	bgPressureType = new RealType(
-	    "bgPressureType", getPressureUnit(), null);
+	    "bgPressureType", CommonTypes.PRESSURE.getDefaultUnit(), null);
 
 	FunctionType	funcType = new FunctionType(domainType, bgPressureType);
 	Linear2DSet	domainSet = new Linear2DSet(-1., 1., 2, -1., 1., 100);
@@ -333,58 +352,44 @@ SkewTDisplay
     defineTemperatureBackground()
 	throws RemoteException, VisADException
     {
-	RealType	bgTemperatureType;
-	ScalarMap	contourMap;
-	ContourControl	control;
+	RealType	bgTemperatureType = new RealType(
+	    "bgTemperature", CommonTypes.TEMPERATURE.getDefaultUnit(), null);
 
 	/*
 	 * Create the regular temperature background.
 	 */
-	bgTemperatureType = new RealType(
-	    "bgTemperature", getTemperatureUnit(), null);
 	bgTemperatureRef = createTemperatureField("temperature",
 	    bgTemperatureType,
 	    skewTCoordSys.minX, skewTCoordSys.maxX, 2,
 	    skewTCoordSys.minY, skewTCoordSys.maxY, 2,
 	    skewTCoordSys);
-	contourMap = new ScalarMap(bgTemperatureType, Display.IsoContour);
-	display.addMap(contourMap);
-	control = (ContourControl)contourMap.getControl();
-	control.setContourInterval(deltaTemperature, Float.NEGATIVE_INFINITY,
-	    Float.POSITIVE_INFINITY, 0f);
-	control.enableLabels(false);
 
 	/*
 	 * Create the potential temperature background.
 	 */
-	bgTemperatureType = new RealType(
-	    "bgTheta", getThetaUnit(), null);
 	thetaRef = createTemperatureField("theta",
 	    bgTemperatureType,
 	    skewTCoordSys.minX, skewTCoordSys.maxX, 10,
 	    skewTCoordSys.minY, skewTCoordSys.maxY, 10,
 	    thetaCoordSys);
-	contourMap = new ScalarMap(bgTemperatureType, Display.IsoContour);
-	display.addMap(contourMap);
-	control = (ContourControl)contourMap.getControl();
-	control.setContourInterval(deltaTemperature, Float.NEGATIVE_INFINITY,
-	    Float.POSITIVE_INFINITY, 0f);
-	control.enableLabels(false);
 
 	/*
-	 * Create the saturation equivalent potential temperature background.
+	 * Create the saturation potential temperature background.
 	 */
-	bgTemperatureType = new RealType(
-	    "bgThetaES", getThetaESUnit(), null);
 	thetaESRef = createTemperatureField("thetaES",
 	    bgTemperatureType,
 	    skewTCoordSys.minX, skewTCoordSys.maxX, 20,
 	    skewTCoordSys.minY, skewTCoordSys.maxY, 20,
 	    thetaESCoordSys);
-	contourMap = new ScalarMap(bgTemperatureType, Display.IsoContour);
+
+	/*
+	 * Define contouring of the background temperatures.
+	 */
+	ScalarMap	contourMap =
+	    new ScalarMap(bgTemperatureType, Display.IsoContour);
 	display.addMap(contourMap);
-	control = (ContourControl)contourMap.getControl();
-	control.setContourInterval(deltaTemperature, Float.NEGATIVE_INFINITY,
+	ContourControl	control = (ContourControl)contourMap.getControl();
+	control.setContourInterval(deltaTemperature, -273.15f,
 	    Float.POSITIVE_INFINITY, 0f);
 	control.enableLabels(false);
     }
@@ -458,24 +463,6 @@ SkewTDisplay
 	    new ConstantMap(1., Display.Blue),
 	    new ConstantMap(0., Display.Green),
 	    new ConstantMap(3.0, Display.LineWidth)
-	};
-
-	pressureConstantMaps = new ConstantMap[] {
-	    new ConstantMap(0.8, Display.Red),
-	    new ConstantMap(0.8, Display.Blue),
-	    new ConstantMap(0.8, Display.Green)
-	};
-
-	temperatureConstantMaps = new ConstantMap[] {
-	    new ConstantMap(0.8, Display.Red),
-	    new ConstantMap(0.8, Display.Blue),
-	    new ConstantMap(0.8, Display.Green)
-	};
-
-	thetaConstantMaps = new ConstantMap[] {
-	    new ConstantMap(0.8, Display.Red),
-	    new ConstantMap(0.8, Display.Blue),
-	    new ConstantMap(0.8, Display.Green)
 	};
 
 	thetaESConstantMaps = new ConstantMap[] {
@@ -682,184 +669,6 @@ SkewTDisplay
 
 
     /**
-     * Gets the unit of pressure.
-     * @return			The unit of pressure in the display.
-     */
-    public static Unit
-    getPressureUnit()
-    {
-	return CommonTypes.PRESSURE.getDefaultUnit();
-    }
-
-
-    /**
-     * Gets the unit of temperature.
-     * @return			The unit of temperature in the display.
-     */
-    public static Unit
-    getTemperatureUnit()
-    {
-	return CommonTypes.TEMPERATURE.getDefaultUnit();
-    }
-
-
-    /**
-     * Gets the unit of potential temperature.
-     * @return			The unit of potential temperature in the
-     *				display.
-     */
-    public static Unit
-    getThetaUnit()
-    {
-	return CommonTypes.THETA.getDefaultUnit();
-    }
-
-
-    /**
-     * Gets the unit of saturation equivalent potential temperature.
-     * @return			The unit of saturation equivalent potential
-     *				temperature in the display.
-     */
-    public static Unit
-    getThetaESUnit()
-    {
-	return CommonTypes.THETA_ES.getDefaultUnit();
-    }
-
-
-    /**
-     * Gets the unit of saturation mixing ratio.
-     * @return			The unit of saturation mixing ratio in the
-     *				display.
-     */
-    public static Unit
-    getRSatUnit()
-    {
-	return CommonTypes.R_SAT.getDefaultUnit();
-    }
-
-
-    /**
-     * Gets the pressure at the cursor position.
-     * @return			The pressure at the cursor position or
-     *				<code>null</code> if not available.
-     */
-    public Real
-    getCursorPressure()
-    {
-	return displayRenderer.getCursorPressure();
-    }
-
-
-    /**
-     * Gets the temperature at the cursor position.
-     * @return			The temperature at the cursor position or
-     *				<code>null</code> if not available.
-     */
-    public Real
-    getCursorTemperature()
-    {
-	return displayRenderer.getCursorTemperature();
-    }
-
-
-    /**
-     * Gets the potential temperature at the cursor position.
-     * @return			The potential temperature at the cursor
-     *				position or <code>null</code> if not available.
-     */
-    public Real
-    getCursorTheta()
-    {
-	return displayRenderer.getCursorTheta();
-    }
-
-
-    /**
-     * Gets the saturation equivalent potential temperature at the cursor
-     * position.
-     * @return			The saturation equivalent potential temperature
-     *				at the cursor position or <code>null</code>
-     *				if not available.
-     */
-    public Real
-    getCursorThetaES()
-    {
-	return displayRenderer.getCursorThetaES();
-    }
-
-
-    /**
-     * Gets the saturation mixing ratio at the cursor position.
-     * @return			The saturation mixing ratio at the cursor
-     *				position or <code>null</code> if not available.
-     */
-    public Real
-    getCursorRSat()
-    {
-	return displayRenderer.getCursorRSat();
-    }
-
-
-    /**
-     * Gets the sounding temperature at a given pressure.
-     * @param pressure		The pressure at which to get the temperature.
-     * @return			The sounding temperatures at <code>pressure
-     *				or <code>null</code> if not available.
-     */
-    public Real
-    getSoundingTemperature(Real pressure)
-    {
-	Real	value;
-	try
-	{
-	    value = ((TemperatureSounding)temperatureSoundingRef.getData()).
-		getTemperature(pressure);
-	}
-	catch (Exception e)
-	{
-	    value = null;
-	}
-	return value;
-    }
-
-
-    /**
-     * Gets the sounding dew point at a given pressure.
-     * @param pressure		The pressure at which to get the sounding
-     *				dew point.
-     * @return			The sounding dew point at <code>pressure
-     *				or <code>null</code> if not available.
-     */
-    public Real
-    getSoundingDewPoint(Real pressure)
-    {
-	Real	value;
-	try
-	{
-	    value = ((DewPointSounding)dewPointSoundingRef.getData()).
-		getDewPoint(pressure);
-	}
-	catch (Exception e)
-	{
-	    value = null;
-	}
-	return value;
-    }
-
-
-    /**
-     * Adds a listener for changes to the cursor pressure.
-     * @param listener		The change listener.
-     */
-    public void
-    addCursorPressureChangeListener(PropertyChangeListener listener)
-    {
-	displayRenderer.addCursorPressureChangeListener(listener);
-    }
-
-
-    /**
      * Tests this class by creating a Skew T, Log P Diagram and displaying
      * a sounding on it.
      */
@@ -867,17 +676,18 @@ SkewTDisplay
     main(String[] args)
 	throws Exception
     {
-	Plain		plain = new Plain();
-	JFrame		jframe = new JFrame("Skew-T Chart");
-	jframe.addWindowListener(new WindowAdapter() {
+	JFrame		frame = new JFrame("Skew-T Chart");
+	frame.addWindowListener(new WindowAdapter() {
 	    public void windowClosing(WindowEvent e) {System.exit(0);}
 	});
 
-	SkewTDisplay	display = new SkewTDisplay();
-	jframe.getContentPane().add(display.getComponent());
+	SkewTBean	skewTBean = new SkewTBean();
+	frame.getContentPane().add(skewTBean.getComponent());
 
-	jframe.pack();
-	jframe.setVisible(true);
+	Plain		plain = new Plain();
+
+	frame.pack();
+	frame.setVisible(true);
 
 	/*
 	 * Simulate arbitrary setting of the sounding property by 
@@ -898,7 +708,7 @@ SkewTDisplay
 
 	    field = (FlatField)plain.open("sounding.nc");
 	    sounding = new SoundingImpl(field, 0, 1, 3, 2);
-	    display.setSounding(sounding);
+	    skewTBean.setSounding(sounding);
 	    // java.lang.Thread.sleep(5000);
 	}
     }

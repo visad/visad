@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: SoundingBean.java,v 1.1 1999-01-07 16:13:20 steve Exp $
+ * $Id: SoundingBean.java,v 1.2 1999-01-20 18:06:58 steve Exp $
  */
 
 package visad.meteorology;
@@ -130,7 +130,7 @@ SoundingBean
     private Readout	profileDirectionReadout = new Readout(
 	"Wind Direction", directionNamedUnit, deciFormat);
     private Readout	reynoldsNumberReadout = new Readout(
-	"Reynolds Number", dimensionlessNamedUnit, centiFormat);
+	"Richardson Number", dimensionlessNamedUnit, centiFormat);
 
 
     /**
@@ -662,7 +662,8 @@ SoundingBean
     {
 	String		path = args.length > 0 ? args[0] : "sounding.nc";
 	SoundingBean	soundingBean = new SoundingBean();
-	Plain		plain = new Plain(MetQuantityDB.instance());
+	MetQuantityDB.initialize();
+	Plain		plain = new Plain();
 
 	FlatField	field = (FlatField)plain.open(path);
 	SoundingImpl	sounding = new SoundingImpl(field, 0, 1, 3, 2);
