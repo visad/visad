@@ -24,6 +24,23 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
+/*      USER
+
+if (proxy) {
+  user <--> client <--> nodes
+}
+else {
+  client <--> nodes
+}
+
+no Java3D on nodes or proxy client (?? but import javax.media.j3d.*; ??)
+no data on user
+
+NodeRendererJ3D.java should override RendererJ3D.doAction()
+and avoid instantiating any Java3D classes
+
+*/
+
 package visad.cluster;
 
 import visad.*;
@@ -105,7 +122,7 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
 
       // get the data
       try {
-        data = link.getData();
+        data = link.getData(); // USER
       } catch (RemoteException re) {
         if (visad.collab.CollabUtil.isDisconnectException(re)) {
           getDisplay().connectionFailed(this, link);
@@ -128,7 +145,7 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
       }
 */
 
-      if (cluster && data != old_data) {
+      if (cluster && data != old_data) { // USER
         // send agents to nodes if data changed
         RemoteClientDataImpl rcdi = (RemoteClientDataImpl) data;
         focus_agent = new RemoteClientAgentImpl(null, -1, time_out);
@@ -157,7 +174,7 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
       message.addElement(map.getControl());
     }
     Serializable[] responses =
-      focus_agent.broadcastWithResponses(message, contacts);
+      focus_agent.broadcastWithResponses(message, contacts); // USER
 // System.out.println("ClientRendererJ3D.prepareAction messages received");
 
 
@@ -174,7 +191,7 @@ public class ClientRendererJ3D extends DefaultRendererJ3D {
 
     if (!cluster) {
       // not cluster data, so just do the usual
-      return super.doTransform();
+      return super.doTransform(); // USER (do this on user but not on client)
     }
 
     int n = contacts.length;

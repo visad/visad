@@ -30,8 +30,7 @@ import visad.*;
 import visad.collab.*;
 import visad.java3d.*;
 import visad.java2d.*;
-
-import javax.media.j3d.*;
+import visad.util.Delay;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -115,21 +114,88 @@ public class NodeRendererJ3D extends DefaultRendererJ3D {
     return super.prepareAction(go, false, shadow);
   }
 
-  /** create a VisADGroup scene graph for Data in links[0] */
-  public BranchGroup doTransform() throws VisADException, RemoteException {
+  /** re-transform if needed;
+      return false if not done */
+  public boolean doAction() throws VisADException, RemoteException {
+    boolean all_feasible = get_all_feasible();
+    boolean any_changed = get_any_changed();
+    boolean any_transform_control = get_any_transform_control();
+    if (all_feasible && (any_changed || any_transform_control)) {
+/*
+System.out.println("RendererJ3D.doAction: any_changed = " + any_changed +
+                   " any_transform_control = " + any_transform_control);
+System.out.println(getLinks()[0].getThingReference().getName());
+*/
 
-    // RendererJ3D.doAction is expecting a BranchGroup
-    // so fake it
-    BranchGroup fake_branch = new BranchGroup();
-    fake_branch.setCapability(BranchGroup.ALLOW_DETACH);
-    fake_branch.setCapability(Group.ALLOW_CHILDREN_READ);
-    fake_branch.setCapability(Group.ALLOW_CHILDREN_WRITE);
-    fake_branch.setCapability(Group.ALLOW_CHILDREN_EXTEND);
+      boolean branch = false;
+
+      // exceptionVector.removeAllElements();
+      clearAVControls();
+      try {
+        // doTransform creates a BranchGroup from a Data object
+        branch = fakeTransform();
+      }
+      catch (OutOfMemoryError e) {
+        // System.out.println("OutOfMemoryError, try again ...");
+        branch = false;
+        new Delay(250);
+        Runtime.getRuntime().gc();
+        Runtime.getRuntime().runFinalization();
+        try {
+          branch = fakeTransform();
+        }
+        catch (BadMappingException ee) {
+          addException(ee);
+        }
+        catch (UnimplementedException ee) {
+          addException(ee);
+          branch = false;
+        }
+        catch (RemoteException ee) {
+          addException(ee);
+          branch = false;
+        }
+        catch (DisplayInterruptException ee) {
+          branch = false;
+        }
+      }
+      catch (BadMappingException e) {
+        addException(e);
+        branch = false;
+      }
+      catch (UnimplementedException e) {
+        addException(e);
+        branch = false;
+      }
+      catch (RemoteException e) {
+        addException(e);
+        branch = false;
+      }
+      catch (DisplayInterruptException e) {
+        branch = false;
+      }
+
+      if (!branch) {
+        all_feasible = false;
+        set_all_feasible(all_feasible);
+      }
+    }
+    else { // !(all_feasible && (any_changed || any_transform_control))
+      DataDisplayLink[] links = getLinks();
+      for (int i=0; i<links.length; i++) {
+        links[i].clearData();
+      }
+    }
+    return (all_feasible && (any_changed || any_transform_control));
+  }
+
+  /** create a VisADGroup scene graph for Data in links[0] */
+  public boolean fakeTransform() throws VisADException, RemoteException {
 
 // System.out.println("NodeRendererJ3D.doTransform enabled = " + enable_transform);
 
     // don't do work unless requested by the client
-    if (!enable_transform) return fake_branch;
+    if (!enable_transform) return true;
     enable_transform = false;
 
 /*
@@ -148,7 +214,7 @@ while (maps.hasMoreElements()) {
 
     DataDisplayLink[] Links = getLinks();
     if (Links == null || Links.length == 0) {
-      return null;
+      return false;
     }
     DataDisplayLink link = Links[0];
 
@@ -168,7 +234,7 @@ while (maps.hasMoreElements()) {
       if (visad.collab.CollabUtil.isDisconnectException(re)) {
         getDisplay().connectionFailed(this, link);
         removeLink(link);
-        return null;
+        return false;
       }
       throw re;
     }
@@ -192,7 +258,7 @@ while (maps.hasMoreElements()) {
         if (visad.collab.CollabUtil.isDisconnectException(re)) {
           getDisplay().connectionFailed(this, link);
           removeLink(link);
-          return null;
+          return false;
         }
         throw re;
       }
@@ -207,9 +273,7 @@ while (maps.hasMoreElements()) {
 System.out.println("scene graph sent to client");
     }
 
-    // RendererJ3D.doAction is expecting a BranchGroup
-    // so fake it
-    return fake_branch;
+    return true;
   }
 
   public static void main(String args[])
