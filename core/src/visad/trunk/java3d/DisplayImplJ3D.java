@@ -85,7 +85,9 @@ import com.sun.j3d.utils.applet.MainFrame;
 public class DisplayImplJ3D extends DisplayImpl {
 
   /** distance behind for surfaces in 2-D mode */
-  public static final float BACK2D = -2.0f;
+  // WLH 25 March 2003 (at BOM)
+  // public static final float BACK2D = -2.0f;
+  public static final float BACK2D = -0.01f;
 
   /**
    * Use a parallel projection view
