@@ -230,17 +230,18 @@ public class SliceManager implements ControlListener {
     {
       return;
     }
-    boolean refreshed = false;
+    boolean doRefresh = true;
     if (autoSwitch && !lowres) {
       setMode(true);
-      refreshed = true;
+      doRefresh = false;
     }
     this.index = index;
     if (autoSwitch && index == mode_index && lowres) {
       setMode(false);
-      refreshed = true;
+      doRefresh = false;
     }
-    if (!refreshed) refresh(false, true);
+    if (doRefresh) refresh(false, true);
+    else updateAnimationControls();
   }
 
   /** Sets the currently displayed image slice. */
@@ -676,14 +677,7 @@ public class SliceManager implements ControlListener {
       Measurement[] m = bio.mm.lists[index].getMeasurements();
       bio.mm.pool2.set(m);
       if (bio.mm.pool3 != null) bio.mm.pool3.set(m);
-
-      // update animation controls
-      try {
-        anim_control2.setCurrent(index);
-        if (anim_control3 != null) anim_control3.setCurrent(index);
-      }
-      catch (VisADException exc) { exc.printStackTrace(); }
-      catch (RemoteException exc) { exc.printStackTrace(); }
+      updateAnimationControls();
     }
 
     // switch slice values
@@ -713,6 +707,17 @@ public class SliceManager implements ControlListener {
         if (bio.display3 != null) lowresRenderer3.toggle(false);
       }
     }
+  }
+
+  /** Updates the animation controls. */
+  private void updateAnimationControls() {
+    // update animation controls
+    try {
+      anim_control2.setCurrent(index);
+      if (anim_control3 != null) anim_control3.setCurrent(index);
+    }
+    catch (VisADException exc) { exc.printStackTrace(); }
+    catch (RemoteException exc) { exc.printStackTrace(); }
   }
 
 }

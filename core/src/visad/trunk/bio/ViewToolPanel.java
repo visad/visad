@@ -156,6 +156,7 @@ public class ViewToolPanel extends ToolPanel {
         bio.sm.setAutoSwitch(autoSwitch.isSelected());
       }
     });
+    autoSwitch.setEnabled(false);
     controls.add(pad(autoSwitch));
 
     // divider between resolution functions and animation functions
@@ -239,8 +240,9 @@ public class ViewToolPanel extends ToolPanel {
 
   /** Enables or disables this tool panel. */
   public void setEnabled(boolean enabled) {
-    loRes.setEnabled(enabled);
-    hiRes.setEnabled(enabled);
+    loRes.setEnabled(enabled && bio.sm.hasThumbnails());
+    hiRes.setEnabled(enabled && bio.sm.hasThumbnails());
+    autoSwitch.setEnabled(enabled && bio.sm.hasThumbnails());
     anim.setEnabled(enabled && bio.sm.hasThumbnails());
     grayscale.setEnabled(enabled);
     brightnessLabel.setEnabled(enabled);

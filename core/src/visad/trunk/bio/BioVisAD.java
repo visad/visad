@@ -189,13 +189,13 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
 
   /** Toggles the visibility of the 2-D display. */
   public void set2D(boolean twoD) {
-    setComponent(twoD, display2.getComponent());
+    display2.getComponent().setVisible(twoD);
   }
 
   /** Toggles the visibility of the 3-D display. */
   public void set3D(boolean threeD) {
     if (display3 == null) return;
-    setComponent(threeD, display3.getComponent());
+    display3.getComponent().setVisible(threeD);
   }
 
   /**
@@ -228,23 +228,6 @@ public class BioVisAD extends GUIFrame implements ChangeListener {
     }
     catch (VisADException exc) { exc.printStackTrace(); }
     catch (RemoteException exc) { exc.printStackTrace(); }
-  }
-
-
-  // -- HELPER METHODS --
-
-  /** Toggles the given component on or off in the left side panel. */
-  private void setComponent(boolean on, Component c) {
-    if (on) {
-      if (displayPane.isAncestorOf(c)) return;
-      displayPane.add(c);
-    }
-    else {
-      if (!displayPane.isAncestorOf(c)) return;
-      displayPane.remove(c);
-    }
-    displayPane.validate();
-    displayPane.repaint();
   }
 
 
