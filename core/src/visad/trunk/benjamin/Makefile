@@ -140,7 +140,7 @@ all::
 		$$arch
 
 .c.o:
-	$(CC) $(SHOPT) -c $*.c $(JAVAINCS) $(PKGINCS)
+	$(CC) $(SHOPT) -Xa -c $*.c $(JAVAINCS) $(PKGINCS)
 
 shared_library:: lib$(SLIB).so
 
