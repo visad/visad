@@ -116,12 +116,15 @@ class IntCache
 }
 
 class Module
+  implements Comparable
 {
+  private int number;
   private float x, y, z;
   private int string, stringOrder;
 
-  Module(float x, float y, float z, int string, int stringOrder)
+  Module(int number, float x, float y, float z, int string, int stringOrder)
   {
+    this.number = number;
     this.x = x;
     this.y = y;
     this.z = z;
@@ -129,6 +132,27 @@ class Module
     this.stringOrder = stringOrder;
   }
 
+  public int compareTo(Object obj)
+  {
+    if (obj == null) {
+      return 1;
+    }
+
+    if (!(obj instanceof Module)) {
+      return getClass().toString().compareTo(obj.getClass().toString());
+    }
+
+    return compareTo((Module )obj);
+  }
+
+  public int compareTo(Module mod)
+  {
+    return (number - mod.number);
+  }
+
+  public boolean equals(Object o) { return (compareTo(o) == 0); }
+
+  int getNumber() { return number; }
   float getX() { return x; }
   float getY() { return y; }
   float getZ() { return z; }
@@ -1055,16 +1079,16 @@ public class F2000Form
 
     int number;
     try {
-      number = parseInt("omNum", numStr) - 1;
+      number = parseInt("omNum", numStr);
     } catch(NumberFormatException e) {
       throw new BadFormException("unparseable module number \"" + numStr +
                                  "\" in \"" + line + "\"");
     }
 
-    if (number < 0 || number >= om.length) {
+    if (number <= 0 || number > om.length) {
       throw new BadFormException("bad module number \"" + numStr +
                                  "\" in \"" + line + "\"");
-    } else if (om[number] != null) {
+    } else if (om[number - 1] != null) {
       System.err.println("Warning: Ignoring duplicate module #" + number +
                          " in \"" + line + "\"");
       return null;
@@ -1083,9 +1107,10 @@ public class F2000Form
                                  e.getMessage());
     }
 
-    om[number] = new Module(x, y, z, string, stringOrder);
+    Module mod = new Module(number, x, y, z, string, stringOrder);
+    om[number - 1] = mod;
 
-    return om[number];
+    return mod;
   }
 
   private final MCTrack readTrack(String line, StringTokenizer tok)
