@@ -100,7 +100,8 @@ public class Irregular1DSet extends IrregularSet {
   public float[][] indexToValue(int[] index) throws VisADException {
     int[] newIndex = new int[index.length];
     for (int i=0; i<index.length; i++) {
-      newIndex[i] = (index[i] == -1) ? -1 : oldToNew[index[i]];
+      newIndex[i] = 
+          (0 <= index[i] && index[i] < Length) ? oldToNew[index[i]] : -1;
     }
     float[][] value = SortedSet.indexToValue(newIndex);
     return value;
