@@ -78,20 +78,6 @@ public class ChooserList
     }
   }
 
-  public void valueChanged(ListSelectionEvent evt)
-  {
-    if (!evt.getValueIsAdjusting()) {
-      JList source = (JList )evt.getSource();
-      File sel = (File )source.getSelectedValue();
-
-      updateSelectedFile(sel);
-
-      // refresh
-      invalidate();
-      repaint();
-    }
-  }
-
   private void updateSelectedFile(File file)
   {
     // make sure filter doesn't exclude this file
@@ -113,5 +99,19 @@ public class ChooserList
 
     // set the new choice
     setSelectedFile(file);
+  }
+
+  public void valueChanged(ListSelectionEvent evt)
+  {
+    if (!evt.getValueIsAdjusting()) {
+      JList source = (JList )evt.getSource();
+      File sel = (File )source.getSelectedValue();
+
+      updateSelectedFile(sel);
+
+      // refresh
+      invalidate();
+      repaint();
+    }
   }
 }
