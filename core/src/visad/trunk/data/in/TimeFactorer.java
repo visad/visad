@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: TimeFactorer.java,v 1.5 2001-03-08 21:25:51 steve Exp $
+$Id: TimeFactorer.java,v 1.6 2001-03-09 16:40:53 steve Exp $
 */
 
 package visad.data.in;
@@ -79,13 +79,23 @@ public class TimeFactorer
 	    {
 		RealType	outerDimensionType = (RealType)
 		    domainType.getComponent(dimensionCount - 1);
-		if ((RealType.Time.equalsExceptNameButUnits(
+		if (RealType.Time.equalsExceptNameButUnits(
 			outerDimensionType) ||
 		      RealType.TimeInterval.equalsExceptNameButUnits(
-			outerDimensionType)) &&
-		     field.getDomainSet() instanceof ProductSet)
+			outerDimensionType))
 		{
-		    field = (FieldImpl)field.domainFactor(outerDimensionType);
+		    Set		domain = field.getDomainSet();
+		    if (domain instanceof ProductSet ||
+			domain instanceof LinearSet)
+		    {
+			try
+			{
+			    field = (FieldImpl)
+				field.domainFactor(outerDimensionType);
+			}
+			catch (DomainException e)
+			{}	// the domain of the field isn't factorable
+		    }
 		}
 	    }
 	    data = field;
