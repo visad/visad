@@ -55,6 +55,9 @@ public class QTForm extends Form
   private static final String noQTmsg = "You need to install " +
     "QuickTime for Java from http://www.apple.com/quicktime/";
 
+  private static final boolean MAC_OS_X =
+    System.getProperty("os.name").equals("Mac OS X");
+
 
   // -- Static fields --
 
@@ -89,14 +92,20 @@ public class QTForm extends Form
       r.exec("import quicktime.QTSession");
       r.exec("QTSession.open()");
       needClose = true;
-      r.exec("import quicktime.app.display.QTCanvas");
-      r.exec("import quicktime.app.image.ImageDataSequence");
-      r.exec("import quicktime.app.image.ImageUtil");
-      r.exec("import quicktime.app.image.JImagePainter");
-      r.exec("import quicktime.app.image.QTImageDrawer");
-      r.exec("import quicktime.app.image.QTImageProducer");
-      r.exec("import quicktime.app.image.Redrawable");
-      r.exec("import quicktime.app.players.MoviePlayer");
+      if (MAC_OS_X) {
+        r.exec("import quicktime.app.view.QTImageProducer");
+        r.exec("import quicktime.app.view.MoviePlayer");
+        r.exec("import quicktime.std.movies.TimeInfo");
+      }
+      else {
+        r.exec("import quicktime.app.display.QTCanvas");
+        r.exec("import quicktime.app.image.ImageUtil");
+        r.exec("import quicktime.app.image.JImagePainter");
+        r.exec("import quicktime.app.image.QTImageDrawer");
+        r.exec("import quicktime.app.image.QTImageProducer");
+        r.exec("import quicktime.app.image.Redrawable");
+        r.exec("import quicktime.app.players.MoviePlayer");
+      }
       r.exec("import quicktime.io.OpenMovieFile");
       r.exec("import quicktime.io.QTFile");
       r.exec("import quicktime.qd.QDDimension");
@@ -115,6 +124,7 @@ public class QTForm extends Form
       r.exec("import quicktime.util.RawEncodedImage");
     }
     catch (Throwable t) {
+      t.printStackTrace();
       noQT = true;
     }
     finally {
@@ -202,7 +212,12 @@ public class QTForm extends Form
   public void save(String id, Data data, boolean replace)
     throws BadFormException, IOException, RemoteException, VisADException
   {
-    if (noQT) throw new BadFormException(noQTmsg);
+    if (MAC_OS_X) {
+      throw new BadFormException("QuickTime movie " +
+        "saving on Mac OS X is not supported.");
+    }
+    else if (noQT) throw new BadFormException(noQTmsg);
+
     try {
       // extract image frames from data
       FlatField[] fields = DataUtility.getImageFields(data);
@@ -488,8 +503,6 @@ public class QTForm extends Form
       r.exec("d = imageTrack.getSize()");
       Integer w = (Integer) r.exec("d.getWidth()");
       Integer h = (Integer) r.exec("d.getHeight()");
-      r.exec("seq = ImageUtil.createSequence(imageTrack)");
-      numImages = ((Integer) r.exec("seq.size()")).intValue();
 
       // now use controller to step movie
       r.exec("moviePlayer = new MoviePlayer(m)");
@@ -499,6 +512,26 @@ public class QTForm extends Form
       img = Toolkit.getDefaultToolkit().createImage(qtip);
       needsRedrawing = ((Boolean) r.exec("qtip.isRedrawing()")).booleanValue();
       int maxTime = ((Integer) r.exec("m.getDuration()")).intValue();
+
+      if (MAC_OS_X) {
+        r.setVar("zero", 0);
+        r.setVar("one", 1f);
+  	r.exec("timeInfo = new TimeInfo(zero, zero)");
+        r.exec("moviePlayer.setTime(zero)");
+        numImages = 0;
+        int time = 0;
+        do {
+            numImages++;
+            r.exec("timeInfo = imageTrack.getNextInterestingTime(" +
+              "StdQTConstants.nextTimeMediaSample, timeInfo.time, one)");
+            time = ((Integer) r.getVar("timeInfo.time")).intValue();
+        }
+        while (time >= 0);
+      }
+      else {
+        r.exec("seq = ImageUtil.createSequence(imageTrack)");
+        numImages = ((Integer) r.exec("seq.size()")).intValue();
+      }
       timeStep = maxTime / numImages;
     }
     catch (Exception e) {
