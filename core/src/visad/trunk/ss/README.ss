@@ -373,6 +373,7 @@ to the File menu's Import Data menu item.
       6) When a cell auto-dimension-switches, the Display menu's dimension
          indicator check-boxes don't update until you select a different cell,
          then reselect the original cell.
+      7) Non-integer constants in formulas do not work correctly.
 
     If you find a bug in the Spread Sheet user interface not listed above,
 please send e-mail to curtis@ssec.wisc.edu describing the problem, preferably
