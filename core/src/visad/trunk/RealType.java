@@ -264,10 +264,15 @@ public class RealType extends ScalarType {
     }
   }
 
-  /** two RealType-s are equal if they have the same name, DefaultUnit,
-      DefaultSet and attrMask;
-      a RealType copied from a remote Java virtual machine may have
-      the same name but different values for other fields */
+  /** 
+   * Check the equality of type with this RealType;
+   * two RealType-s are equal if they have the same name, 
+   * convertible DefaultUnit-s, same DefaultSet and attrMask;
+   * a RealType copied from a remote Java virtual machine may have
+   * the same name but different values for other fields
+   * @param  type  object in question
+   * @return true if type is a RealType and the conditions above are met
+   */
   public boolean equals(Object type) {
     if (!(type instanceof RealType)) return false;
 
@@ -278,7 +283,9 @@ public class RealType extends ScalarType {
       if (((RealType) type).DefaultUnit != null) return false;
     }
     else {
-      if (!DefaultUnit.equals(((RealType) type).DefaultUnit)) return false;
+      // DRM 30 Nov 2001  - make less strict
+      //if (!DefaultUnit.equals(((RealType) type).DefaultUnit)) return false;
+      if (!Unit.canConvert(DefaultUnit, ((RealType) type).DefaultUnit)) return false;
     }
     if (DefaultSet == null) {
       if (((RealType) type).DefaultSet != null) return false;
@@ -304,6 +311,13 @@ public class RealType extends ScalarType {
   }
 
   /*- TDR May 1998  */
+  /**
+   * Check to see if type has convertible units with this RealType.
+   * @param  type  MathType to check
+   * @return true if type is a RealType or a RealTupleType of dimension
+   *              1 AND the units are convertible with this RealType's
+   *              default Unit.
+   */
   public boolean equalsExceptNameButUnits(MathType type) {
     try {
       if (type instanceof RealTupleType &&
