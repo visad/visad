@@ -63,7 +63,7 @@ FITS = ..\nom\tam
 UCAR = ..\ucar
 SSEC = ..\edu\wisc\ssec
 
-JAR_FILES = \
+JAR_FILES1 = \
 visad\README \
 visad\DEDICATION \
 visad\NOTICE \
@@ -117,7 +117,9 @@ visad\data\mcidas\README.mcidas \
 visad\data\gif\*.java \
 visad\data\gif\sseclogo.gif \
 visad\data\visad\*.java \
-visad\jmet\*.java \
+visad\jmet\*.java
+
+JAR_FILES2 = \
 visad\paoloa\README.paoloa \
 visad\paoloa\Makefile \
 visad\paoloa\*.java \
@@ -157,7 +159,8 @@ jar:
 	date /t > DATE
 	time /t >> DATE
 	cd ..
-	jar cvf visad_src-2.0.jar $(JAR_FILES)
+	jar cvf visad_src-2.0.jar $(JAR_FILES1)
+        jar uvf visad_src-2.0.jar $(JAR_FILES2)
 	move visad_src-2.0.jar visad
 	cd visad
 	copy visad_src-2.0.jar visadsrc.jar
