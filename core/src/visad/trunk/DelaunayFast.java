@@ -59,7 +59,10 @@ public class DelaunayFast extends Delaunay {
     }
   }
 
-  // <<< Constructor >>>
+  /** Number of radians to rotate points before triangulating */
+  public static final double ROTATE = Math.PI/18;   // (10 degrees)
+
+  /** The constructor computes the triangulation */
   public DelaunayFast(float[][] samples) throws VisADException {
     if (samples.length < 2 || samples.length > 3) {
       throw new VisADException("DelaunayFast: dimension must be 2 or 3");
@@ -78,6 +81,16 @@ public class DelaunayFast extends Delaunay {
     System.arraycopy(samples[1], 0, samp[1], 0, numpts);
     float[] samp0 = samp[0];
     float[] samp1 = samp[1];
+
+    // rotate samples by ROTATE radians to avoid colinear axis-parallel points
+    double cosrot = Math.cos(ROTATE);
+    double sinrot = Math.sin(ROTATE);
+    for (int i=0; i<numpts; i++) {
+      double x = samp0[i];
+      double y = samp1[i];
+      samp0[i] = (float) (x*cosrot - y*sinrot);
+      samp1[i] = (float) (y*cosrot + x*sinrot);
+    }
 
     // misc. variables
     int ntris = 0;

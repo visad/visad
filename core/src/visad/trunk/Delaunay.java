@@ -196,7 +196,7 @@ public abstract class Delaunay implements java.io.Serializable {
     if (copy) {
       samp = new float[dim][nrs];
       for (int i=0; i<dim; i++) {
-        System.arraycopy(samples, 0, samp, 0, nrs);
+        System.arraycopy(samples[i], 0, samp[i], 0, nrs);
       }
     }
     else {
@@ -834,18 +834,12 @@ public abstract class Delaunay implements java.io.Serializable {
           // draw triangles
           for (int i=0; i<tri.length; i++) {
             int[] t = tri[i];
-            gr.drawLine((int) s0[t[0]],
-                        (int) s1[t[0]],
-                        (int) s0[t[1]],
-                        (int) s1[t[1]]);
-            gr.drawLine((int) s0[t[1]],
-                        (int) s1[t[1]],
-                        (int) s0[t[2]],
-                        (int) s1[t[2]]);
-            gr.drawLine((int) s0[t[2]],
-                        (int) s1[t[2]],
-                        (int) s0[t[0]],
-                        (int) s1[t[0]]);
+            gr.drawLine((int) s0[t[0]], (int) s1[t[0]],
+                        (int) s0[t[1]], (int) s1[t[1]]);
+            gr.drawLine((int) s0[t[1]], (int) s1[t[1]],
+                        (int) s0[t[2]], (int) s1[t[2]]);
+            gr.drawLine((int) s0[t[2]], (int) s1[t[2]],
+                        (int) s0[t[0]], (int) s1[t[0]]);
           }
 
           // draw labels if specified
