@@ -683,7 +683,11 @@ public class FieldImpl extends FunctionImpl implements Field {
     }
     MathType m_type = ((FunctionType)new_type).getRange();
     // create (initially missing) Field for return
+/* WLH 17 Jan 2000
     Field new_field = new FieldImpl((FunctionType) Type, DomainSet);
+*/
+    Field new_field = new FieldImpl((FunctionType) new_type, DomainSet);
+
     if (isMissing()) return new_field;
     Data[] range = new Data[Length];
     // apply operation to each range object
