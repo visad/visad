@@ -127,7 +127,7 @@ public class VisADCanvasJ2D extends Canvas
         images[i] = (BufferedImage) createImage(width, height);
         valid_images[i] = false;
       }
-      tgeometry = null;
+      // tgeometry = null;
     }
     renderTrigger();
   }
@@ -135,7 +135,7 @@ public class VisADCanvasJ2D extends Canvas
   public void scratchImages() {
     synchronized (images) {
       for (int i=0; i<length; i++) valid_images[i] = false;
-      tgeometry = null;
+      // tgeometry = null;
     }
     renderTrigger();
   }
@@ -174,13 +174,11 @@ public class VisADCanvasJ2D extends Canvas
         paint(g);
         g.dispose();
       }
-      else {
-System.out.println("VisADCanvasJ2D.run: null Graphics");
-      }
     }
   }
 
   public void paint(Graphics g) {
+    AffineTransform tsave = null;
     BufferedImage image = null;
     boolean valid = false;
     int w = 0, h = 0;
@@ -201,9 +199,11 @@ System.out.println("VisADCanvasJ2D.run: null Graphics");
         h = height;
       }
     }
+/*
 System.out.println("VisADCanvasJ2D.paint: current_image = " + current_image +
                    " w, h = " + w + " " + h + " valid = " + valid +
                    " image != null " + (image != null));
+*/
     if (image != null) {
       if (!valid) {
         VisADGroup root = displayRenderer.getRoot();
@@ -222,6 +222,7 @@ System.out.println("VisADCanvasJ2D.paint: current_image = " + current_image +
           s1.setToScale(0.25 * w, 0.25 * h);
           tgeometry.concatenate(s1);
           tgeometry.concatenate(trans);
+          tsave = new AffineTransform(tgeometry);
         }
         g2.setTransform(tgeometry);
         try {
@@ -240,15 +241,11 @@ System.out.println("VisADCanvasJ2D.paint: current_image = " + current_image +
       else { // valid
         synchronized (images) {
           tgeometry = image.createGraphics().getTransform();
+          tsave = new AffineTransform(tgeometry);
         }
       }
       g.drawImage(image, 0, 0, this);
-      if (tgeometry != null) {
-        displayRenderer.drawCursorStringVector(g, tgeometry, w, h);
-      }
-      else {
-System.out.println("tgeometry is null");
-      }
+      displayRenderer.drawCursorStringVector(g, tsave, w, h);
     } // end if (image != null)
   }
 
@@ -351,6 +348,11 @@ so:
           double yy = (newpts[4] - newpts[0]) * (newpts[4] - newpts[0]) +
                       (newpts[5] - newpts[1]) * (newpts[5] - newpts[1]);
           float size = (float) (0.5 * (Math.sqrt(xx) + Math.sqrt(yy)));
+/*
+System.out.println("dsize = " + dsize + " size = " + size + " xx, yy = " +
+                   xx + " " + yy +
+                   (array instanceof VisADPointArray ? " point" : " line"));
+*/
           if (array instanceof VisADPointArray) {
             if (colors == null) {
               for (int i=0; i<3*count; i += 3) {
@@ -377,6 +379,9 @@ so:
           }
           else if (array instanceof VisADLineArray) {
             if (Math.abs(dsize - 1.0) < 0.2) {
+System.out.println("narrow line dsize = " + dsize);
+              drawAppearance(g2, appearance, tg);
+/*
               if (colors == null) {
                 for (int i=0; i<3*count; i += 6) {
                   g2.draw(new Line2D.Float(coordinates[i], coordinates[i+1],
@@ -395,8 +400,10 @@ so:
                                            coordinates[i+3], coordinates[i+4]));
                 }
               }
+*/
             }
             else { // !(Math.abs(dsize - 1.0) < 0.2)
+System.out.println("wide line dsize = " + dsize);
               if (colors == null) {
                 for (int i=0; i<3*count; i += 6) {
                   float epsx = coordinates[i+4] - coordinates[i+1];
@@ -634,6 +641,70 @@ so:
           throw new VisADError("VisADCanvasJ2D.render: bad array class");
         }
       }
+    }
+  }
+
+  /** this assumes only VisADPointArray or VisADLineArray */
+  public static void drawAppearance(Graphics graphics, VisADAppearance appearance,
+                                    AffineTransform t) {
+    VisADGeometryArray array = appearance.array;
+    if (array == null) return;
+    float[] colors = array.colors;
+    if (colors == null) {
+      graphics.setColor(new Color(appearance.red, appearance.green,
+                                  appearance.blue));
+    }
+    int count = array.vertexCount;
+    float[] coordinates = array.coordinates;
+    float[] oldcoords = new float[2*count];
+    int j = 0;
+    for (int i=0; i<3*count; i += 3) {
+      oldcoords[j++] = coordinates[i];
+      oldcoords[j++] = coordinates[i+1];
+    }
+    float[] newcoords = new float[2 * count];
+    t.transform(oldcoords, 0, newcoords, 0, count);
+    if (array instanceof VisADPointArray) {
+      if (colors == null) {
+        for (int i=0; i<2*count; i += 2) {
+          graphics.drawLine((int) newcoords[i], (int) newcoords[i+1],
+                            (int) newcoords[i], (int) newcoords[i+1]);
+        }
+      }
+      else { // colors != null
+        int jinc = (colors.length == coordinates.length) ? 3 : 4;
+        j = 0;
+        for (int i=0; i<2*count; i += 2) {
+          graphics.setColor(new Color(colors[j], colors[j+1], colors[j+2]));
+          j += jinc;
+          graphics.drawLine((int) newcoords[i], (int) newcoords[i+1],
+                            (int) newcoords[i], (int) newcoords[i+1]);
+        } 
+      }
+    }
+    else if (array instanceof VisADLineArray) {
+      if (colors == null) {
+        for (int i=0; i<2*count; i += 4) {
+          graphics.drawLine((int) newcoords[i], (int) newcoords[i+1],
+                            (int) newcoords[i+2], (int) newcoords[i+3]);
+        }
+      }
+      else { // colors != null
+        int jinc = (colors.length == coordinates.length) ? 3 : 4;
+        j = 0;
+        for (int i=0; i<2*count; i += 4) {
+          graphics.setColor(new Color(0.5f * (colors[j] + colors[j+jinc]),
+                                      0.5f * (colors[j+1] + colors[j+jinc+1]),
+                                      0.5f * (colors[j+2] + colors[j+jinc+2])));
+          j += jinc;
+          graphics.drawLine((int) newcoords[i], (int) newcoords[i+1],
+                            (int) newcoords[i+2], (int) newcoords[i+3]);
+        }
+      }
+    }
+    else {
+      throw new VisADError("DisplayRendererJ2D.drawAppearance: " +
+                           "bad VisADGeometryArray type");
     }
   }
 

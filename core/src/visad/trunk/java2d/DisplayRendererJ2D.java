@@ -157,12 +157,15 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
 
     // initialize scale
     // XXX - for Java2D, scale is controlled in VisADCanvasJ2D
-    // double scale = 0.5;
-    double scale = 1.0;
     ProjectionControl proj = getDisplay().getProjectionControl();
     AffineTransform tstart = new AffineTransform(proj.getMatrix());
+    // flip y
+    AffineTransform t1 = new AffineTransform(1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
+/* WLH 29 June 98
+    double scale = 0.5;
     AffineTransform t1 = new AffineTransform(
       mouse.make_matrix(0.0, 0.0, 0.0, scale, 0.0, 0.0, 0.0) );
+*/
     t1.concatenate(tstart);
     double[] matrix = new double[6];
     t1.getMatrix(matrix);
@@ -271,14 +274,17 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     }
   }
 
-  /** this assumes constant color, and only VisADPointArray or
-      VisADLineArray */
-  private void drawAppearance(Graphics graphics, VisADAppearance appearance,
-                              AffineTransform t) {
+  /** this assumes only VisADPointArray or VisADLineArray */
+/*
+  public static void drawAppearance(Graphics graphics, VisADAppearance appearance,
+                                    AffineTransform t) {
     VisADGeometryArray array = appearance.array;
     if (array == null) return;
-    graphics.setColor(new Color(appearance.red, appearance.green,
-                                appearance.blue));
+    float[] colors = array.colors;
+    if (colors == null) {
+      graphics.setColor(new Color(appearance.red, appearance.green,
+                                  appearance.blue));
+    }
     int count = array.vertexCount;
     float[] coordinates = array.coordinates;
     float[] oldcoords = new float[2*count];
@@ -290,15 +296,41 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
     float[] newcoords = new float[2 * count];
     t.transform(oldcoords, 0, newcoords, 0, count);
     if (array instanceof VisADPointArray) {
-      for (int i=0; i<2*count; i += 2) {
-        graphics.drawLine((int) newcoords[i], (int) newcoords[i+1],
-                          (int) newcoords[i], (int) newcoords[i+1]);
+      if (colors == null) {
+        for (int i=0; i<2*count; i += 2) {
+          graphics.drawLine((int) newcoords[i], (int) newcoords[i+1],
+                            (int) newcoords[i], (int) newcoords[i+1]);
+        }
+      }
+      else { // colors != null
+        int jinc = (colors.length == coordinates.length) ? 3 : 4;
+        int j = 0;
+        for (int i=0; i<2*count; i += 2) {
+          graphics.setColor(new Color(colors[j], colors[j+1], colors[j+2]));
+          j += jinc;
+          graphics.drawLine((int) newcoords[i], (int) newcoords[i+1],
+                            (int) newcoords[i], (int) newcoords[i+1]);
+        }
       }
     }
     else if (array instanceof VisADLineArray) {
-      for (int i=0; i<2*count; i += 4) {
-        graphics.drawLine((int) newcoords[i], (int) newcoords[i+1],
-                          (int) newcoords[i+2], (int) newcoords[i+3]);
+      if (colors == null) {
+        for (int i=0; i<2*count; i += 4) {
+          graphics.drawLine((int) newcoords[i], (int) newcoords[i+1],
+                            (int) newcoords[i+2], (int) newcoords[i+3]);
+        }
+      }
+      else { // colors != null
+        int jinc = (colors.length == coordinates.length) ? 3 : 4;
+        int j = 0;
+        for (int i=0; i<2*count; i += 4) {
+          graphics.setColor(new Color(0.5f * (colors[j] + colors[j+jinc]),
+                                      0.5f * (colors[j+1] + colors[j+jinc+1]),
+                                      0.5f * (colors[j+2] + colors[j+jinc+2])));
+          j += jinc;
+          graphics.drawLine((int) newcoords[i], (int) newcoords[i+1],
+                            (int) newcoords[i+2], (int) newcoords[i+3]);
+        }
       }
     }
     else {
@@ -306,6 +338,7 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
                            "bad VisADGeometryArray type");
     }
   }
+*/
 
   /** whenever cursorOn or directOn is true, display
       Strings in cursorStringVector */
@@ -318,7 +351,9 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
       VisADAppearance appearance = null;
       VisADLineArray array = null;
       appearance = (VisADAppearance) cursor_on.getChild(0);
-      if (appearance != null) drawAppearance(graphics, appearance, t);
+      if (appearance != null) {
+        VisADCanvasJ2D.drawAppearance(graphics, appearance, t);
+      }
       t = new AffineTransform(tgeometry);
     }
 
@@ -334,7 +369,7 @@ public abstract class DisplayRendererJ2D extends DisplayRenderer {
         while (childs.hasMoreElements()) {
           VisADAppearance child =
             (VisADAppearance) childs.nextElement();
-          drawAppearance(graphics, child, t);
+          VisADCanvasJ2D.drawAppearance(graphics, child, t);
         }
       }
     }

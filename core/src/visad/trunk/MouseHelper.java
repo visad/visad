@@ -214,7 +214,10 @@ public class MouseHelper {
                 (start_x - current_x) * -2.0 / (double) d.width;
               double transy =
                 (start_y - current_y) * 2.0 / (double) d.height;
+              t1 = behavior.make_translate(transx, transy);
+/* WLH 29 June 98
               t1 = behavior.make_matrix(0.0, 0.0, 0.0, 1.0, transx, transy, 0.0);
+*/
             }
             else {
               if (!mode2D) {

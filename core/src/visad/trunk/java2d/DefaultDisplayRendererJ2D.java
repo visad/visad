@@ -74,7 +74,7 @@ public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
     root = createBasicSceneGraph(c, mouse);
 
     // create the box containing data depictions
-    VisADLineArray box_geometry = new VisADLineArray();
+    VisADLineArray box_array = new VisADLineArray();
     float[] coordinates = new float[8 * 3];
     int j = 0;
     for (int i=0; i<8; i++) {
@@ -82,32 +82,34 @@ public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
       coordinates[8 + i] = box_verts[j++];
       coordinates[16 + i] = box_verts[j++];
     }
-    box_geometry.coordinates = coordinates;
+    box_array.coordinates = coordinates;
+    box_array.vertexCount = 8;
 
     box = new VisADAppearance();
     box.red = 1.0f;
     box.green = 1.0f;
     box.blue = 1.0f;
-    box.array = box_geometry;
+    box.array = box_array;
     // add box to root
     root.addChild(box);
  
     // create cursor
-    VisADLineArray cursor_geometry = new VisADLineArray();
-    coordinates = new float[8 * 3];
+    VisADLineArray cursor_array = new VisADLineArray();
+    coordinates = new float[4 * 3];
     j = 0;
     for (int i=0; i<4; i++) {
       coordinates[i] = cursor_verts[j++];
       coordinates[4 + i] = cursor_verts[j++];
       coordinates[8 + i] = cursor_verts[j++];
     }
-    cursor_geometry.coordinates = coordinates;
+    cursor_array.coordinates = coordinates;
+    cursor_array.vertexCount = 4;
 
     cursor = new VisADAppearance();
     cursor.red = 1.0f;
     cursor.green = 1.0f;
     cursor.blue = 1.0f;
-    cursor.array = cursor_geometry;
+    cursor.array = cursor_array;
     // add cursor to cursor_on branch
     VisADGroup cursor_on = getCursorOnBranch();
     cursor_on.addChild(cursor);
