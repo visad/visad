@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: NcFunction.java,v 1.8 1998-03-12 22:03:07 steve Exp $
+ * $Id: NcFunction.java,v 1.9 1998-03-17 15:54:24 steve Exp $
  */
 
 package visad.data.netcdf;
@@ -71,6 +71,7 @@ NcFunction
      * @param vars	The netCDF variables that are defined over the same
      *			domain and that constitude the range of the function.
      * @precondition	All variables have the same (ordered) set of dimensions.
+     * @precondition	The variables aren't scalars.
      * @exception UnimplementedException	Not yet!
      * @exception VisADException		Couldn't create necessary 
      *						VisAD object.
@@ -134,7 +135,9 @@ NcFunction
 	MathType	type;
 
 	if (rank == 1)
+	{
 	    type = dims[0].getMathType();
+	}
 	else
 	{
 	    RealType[]	types = new RealType[rank];
@@ -225,14 +228,15 @@ NcFunction
 
 	if (hasTextualComponent)
 	{
-	    // TODO
+	    // TODO: support text in Fields
 	    field = null;
 	}
 	else
 	{
 	    FlatField	flatField =
 		new FlatField((FunctionType)mathType, getDomainSet(),
-		    (CoordinateSystem)null, getRangeSets(), getRangeUnits());
+		    (CoordinateSystem)null, getRangeSets(),
+		    getRangeUnits());
 
 	    flatField.setSamples(getRangeDoubles(), /*copy=*/false);
 
