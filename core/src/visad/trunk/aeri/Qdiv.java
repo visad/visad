@@ -31,11 +31,12 @@ import visad.*;
 import visad.util.*;
 import visad.DisplayImpl;
 import visad.java3d.DisplayImplJ3D;
+import visad.java3d.TwoDDisplayRendererJ3D;
 import visad.data.netcdf.*;
 import visad.bom.WindPolarCoordinateSystem;
 import visad.data.mcidas.BaseMapAdapter;
 import visad.data.mcidas.AreaForm;
-import visad.data.visad.VisADForm;
+import visad.data.visad.VisADSerialForm;
 import visad.data.hdfeos.PolarStereographic;
 import visad.data.mcidas.AreaAdapter;
 import visad.meteorology.ImageSequenceManager;
@@ -84,8 +85,10 @@ public class Qdiv
   RealType div_qV;
   RealType q_divV;
   RealType qAdvct;
+  RealType shape;
 
   RealTupleType wind_aeri;
+  RealTupleType div_qV_comps;
   FunctionType alt_to_wind_aeri;
   FunctionType time_to_alt_to_wind_aeri;
   FunctionType alt_to_divqV;
@@ -93,9 +96,9 @@ public class Qdiv
 
   FieldImpl advect_field;
   FieldImpl stations_field;
-  FieldImpl qfluxDiv;
+  FieldImpl divqV_field;
   ImageSequence image_seq;
-  FlatField test_image;
+  Set timeDomain;
 
   int n_stations = 3;
 
@@ -105,6 +108,7 @@ public class Qdiv
   double[] station_id;
   double[] stat_xoffset = new double[n_stations];
   double[] stat_yoffset = new double[n_stations];
+  double[][] centroid_ll;
 
   BaseMapAdapter baseMap;
   DataReference map_ref;
@@ -112,16 +116,20 @@ public class Qdiv
   ScalarMap xmap;
   ScalarMap ymap;
   ScalarMap zmap;
+  ScalarMap img_map;
   boolean xmapEvent = false;
   boolean ymapEvent = false;
+  boolean imgEvent = false;
   boolean firstEvent = false;
+  boolean first_img_Event = false;
 
   float latmin, latmax;
   float lonmin, lonmax;
   float del_lat, del_lon;
   double[] x_range, y_range;
 
-  int height_limit = 3000; // meters
+  int height_limit = 4000;     //- meters
+  int time_intrvl  =  900;     //- seconds
   boolean rh = false;
   boolean tm = false;
   boolean pt = false;
@@ -132,6 +140,13 @@ public class Qdiv
 
   double[] scale_offset_x = new double[2];
   double[] scale_offset_y = new double[2];
+
+  AnimationControl ani_cntrl;
+
+  int   alt_factor = 8;
+  int   n_hres_alt_samples;
+  float alt_min;
+  float alt_max;
 
   public static void main(String args[])
          throws VisADException, RemoteException, IOException
@@ -187,7 +202,18 @@ public class Qdiv
     wvmr.alias("MR");
     temp.alias("T");
 
-    init_images(null);
+    try {
+      String fs = System.getProperty("file.separator");
+      image_seq = Qdiv.init_images("."+fs+"data"+fs+"image"+fs+baseDate);
+      band1 = (RealType)
+         ((RealTupleType)
+          ((FunctionType)
+           ((FunctionType)image_seq.getType()).getRange()).getRange()).getComponent(0);
+    }
+    catch ( Exception e ) {
+      System.out.println("no AREA image data");
+      image_seq = null;
+    }
 
     JFrame frame = new JFrame("VisAD AERI/QDIV Viewer");
     frame.addWindowListener(new WindowAdapter() {
@@ -201,16 +227,29 @@ public class Qdiv
     // panel.setAlignmentX(JPanel.LEFT_ALIGNMENT);
     frame.getContentPane().add(panel);
 
-    DisplayImpl display = makeDisplay(panel);
+    JPanel panel2 = new JPanel();
+    panel2.setLayout(new BoxLayout(panel2, BoxLayout.X_AXIS));
 
-    int WIDTH = 1000;
-    int HEIGHT = 600;
+    DisplayImpl display = makeDisplay(panel, panel2);
+
+    int WIDTH = 1200;
+    int HEIGHT = 800;
 
     frame.setSize(WIDTH, HEIGHT);
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     frame.setLocation(screenSize.width/2 - WIDTH/2,
                       screenSize.height/2 - HEIGHT/2);
     frame.setVisible(true);
+
+    //-makeDisplay2(panel2);
+
+    JFrame frame2 = new JFrame("image color");
+    frame2.setSize(400, 200);
+    frame2.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {System.exit(0);}
+    });
+    frame2.getContentPane().add(panel2);
+ //-frame2.setVisible(true);
   }
 
   void init_from_cdf(String baseDate)
@@ -234,77 +273,73 @@ public class Qdiv
     div_qV = new RealType("div_qV", null, null);
     q_divV = new RealType("q_divV", null, null);
     qAdvct = new RealType("qAdvct", null, null);
+    shape = new RealType("shape", null, null);
 
     String[] wind_files = new String[n_stations];
     String[] rtvl_files = new String[n_stations];
 
     String truncatedDate = baseDate;
-    /**
-    wind_files[0] = "./data/" + baseDate + "_415wind_lamont.cdf";
-    wind_files[1] = "./data/" + baseDate + "_415wind_vici.cdf";
-    wind_files[2] = "./data/" + baseDate + "_415wind_purcell.cdf";
-    **/
+
     wind_files[0] = "./data/" + baseDate + "_lamont_windprof.cdf";
     wind_files[1] = "./data/" + baseDate + "_vici_windprof.cdf";
     wind_files[2] = "./data/" + baseDate + "_purcell_windprof.cdf";
-    /**
-    wind_files[3] = "./data/" + baseDate + "_hillsboro_windprof.cdf";
-    wind_files[4] = "./data/" + baseDate + "_morris_windprof.cdf";
-    **/
 
     rtvl_files[0] = "./data/lamont_" + truncatedDate + "AG.cdf";
     rtvl_files[1] = "./data/vici_" + truncatedDate + "AG.cdf";
     rtvl_files[2] = "./data/purcell_" + truncatedDate + "AG.cdf";
-    /**
-    rtvl_files[3] = "./data/hillsboro_" + truncatedDate + "AG.cdf";
-    rtvl_files[4] = "./data/morris_" + truncatedDate + "AG.cdf";
-    **/
+
+    File file = new File("./data/lamont_" + truncatedDate + "AP.cdf");
+
+    if (file.exists()) {
+      rtvl_files[0] = "./data/lamont_" + truncatedDate + "AP.cdf";
+    }
+    else {
+      rtvl_files[0] = "./data/lamont_" + truncatedDate + "AG.cdf";
+    }
+
+    file = new File("./data/vici_" + truncatedDate + "AP.cdf");
+    if (file.exists()) {
+      rtvl_files[1] = "./data/vici_" + truncatedDate + "AP.cdf";
+    }
+    else {
+      rtvl_files[1] = "./data/vici_" + truncatedDate + "AG.cdf";
+    }
+
+        file = new File("./data/purcell_" + truncatedDate + "AP.cdf");
+    if (file.exists()) {
+      rtvl_files[2] = "./data/purcell_" + truncatedDate + "AP.cdf";
+    }
+    else {
+      rtvl_files[2] = "./data/purcell_" + truncatedDate + "AG.cdf";
+    }
 
     FieldImpl[] winds = makeWinds(wind_files);
+       System.out.println(winds[0].getType().prettyString());
 
     FieldImpl[] rtvls = makeAeri(rtvl_files);
-
-       System.out.println(winds[0].getType().prettyString());
        System.out.println(rtvls[0].getType().prettyString());
 
-    RealType[] r_types = {u_wind, v_wind, temp, dwpt, wvmr, wvmr_u, wvmr_v, div_qV, qAdvct};
+    RealType[] r_types = {u_wind, v_wind, temp, dwpt, wvmr, wvmr_u, wvmr_v, thetaE};
     wind_aeri = new RealTupleType(r_types);
     alt_to_wind_aeri = new FunctionType(altitude, wind_aeri);
     time_to_alt_to_wind_aeri = new FunctionType(RealType.Time, alt_to_wind_aeri);
+    div_qV_comps = new RealTupleType(new RealType[] {div_qV, thetaE, shape});
+    alt_to_divqV = new FunctionType(altitude, div_qV_comps);
+    time_to_alt_to_divqV = new FunctionType(RealType.Time, alt_to_divqV);
+    
     spatial_domain = new RealTupleType(longitude, latitude, altitude);
 
-    RealType[] qv_types = {div_qV, q_divV};
-    alt_to_divqV = new FunctionType(altitude, new RealTupleType(qv_types));
-    time_to_alt_to_divqV = new FunctionType(RealType.Time, alt_to_divqV);
-
-    stations_field =
-        new FieldImpl(new FunctionType( stn_idx, time_to_alt_to_wind_aeri),
-                                        new Integer1DSet( stn_idx, n_stations,
-                                                          null, null, null));
-       System.out.println("----------------");
-
-    for ( int kk = 0; kk < n_stations; kk++ )
-    {
-      FieldImpl field = make_wind_aeri(winds[kk], rtvls[kk]);
-      stations_field.setSample(kk, field);
-    }
+    stations_field = make_wind_aeri(winds, rtvls);
     System.out.println(stations_field.getType().prettyString());
 
-    qfluxDiv = makeDivqV(stations_field);
-    System.out.println("makeDivqV: Done");
-    
-
-  /**-
-    VisADForm vad_form = new VisADForm();
-    vad_form.save("aeri_winds_" + baseDate + "." +
-                  height_limit + ".vad", stations_field, true);
-   **/
+    divqV_field = makeDivqV(stations_field);
+    System.out.println("makeDivqV:  Done");
   }
 
   void init_from_vad( String vad_file )
        throws VisADException, RemoteException, IOException
   {
-    VisADForm vad_form = new VisADForm();
+    VisADSerialForm vad_form = new VisADSerialForm();
     stations_field = (FieldImpl) vad_form.open( vad_file );
 
     MathType file_type = stations_field.getType();
@@ -328,13 +363,15 @@ public class Qdiv
     thetaE = (RealType) rtt.getComponent(5);
   }
 
-  void init_images(String image_directory)
-       throws VisADException, RemoteException, IOException
+  public static ImageSequence init_images(String image_directory)
+         throws VisADException, RemoteException, IOException
   {
     String fs = System.getProperty("file.separator");
 
     if ( image_directory == null ) {
-      image_directory = "."+fs+"data"+fs+"image";
+   //-image_directory = "."+fs+"data"+fs+"image"+fs+"vis";
+      image_directory = "."+fs+"data"+fs+"image"+fs+"ir_display";
+   //-image_directory = "."+fs+"data"+fs+"image"+fs+"ir";
     }
 
     File file = new File(image_directory);
@@ -348,18 +385,14 @@ public class Qdiv
       DateTime img_start = area.getImageStartTime();
       nav_images[ii] = new NavigatedImage(image, img_start, "AREA");
     }
-    test_image = nav_images[0];
 
     ImageSequenceManager img_manager = 
       new ImageSequenceManager(nav_images);
 
-    band1 = (RealType) 
-     ((RealTupleType)((FunctionType)nav_images[0].getType()).getRange()).getComponent(0);
-
-    image_seq = img_manager.getImageSequence();
+    return img_manager.getImageSequence();
   }
 
-  DisplayImpl makeDisplay(JPanel panel)
+  DisplayImpl makeDisplay(JPanel panel, JPanel panel2)
        throws VisADException, RemoteException, IOException
   {
     del_lon = 8.0f;
@@ -407,10 +440,25 @@ public class Qdiv
     display.addMap(ymap);
     display.addMap(zmap);
 
-    ScalarMap flowx = new ScalarMap(u_wind, Display.Flow1X);
-    ScalarMap flowy = new ScalarMap(v_wind, Display.Flow1Y);
- //-ScalarMap flowx = new ScalarMap(wvmr_u, Display.Flow1X);
- //-ScalarMap flowy = new ScalarMap(wvmr_v, Display.Flow1Y);
+    float rad = 0.0600f;
+  //float len = 0.01165f;
+  //float len = 0.01045f;
+    float len = 0.0078375f;
+    ScalarMap shape_map = new ScalarMap(shape, Display.Shape);
+    display.addMap(shape_map);
+ //-VisADTriangleStripArray cyl = visad.aeri.Cylinder.makeCylinder(16, rad, len);
+    VisADTriangleStripArray cyl = makeCylinder(14, rad, len);
+    System.out.println("makeCylinder done");
+    VisADGeometryArray[] shapes;
+    shapes = new VisADGeometryArray[] {cyl};
+    ShapeControl shape_control = (ShapeControl) shape_map.getControl();
+    shape_control.setShapeSet(new Integer1DSet(1));
+    shape_control.setShapes(shapes);
+
+ //-ScalarMap flowx = new ScalarMap(u_wind, Display.Flow1X);
+ //-ScalarMap flowy = new ScalarMap(v_wind, Display.Flow1Y);
+    ScalarMap flowx = new ScalarMap(wvmr_u, Display.Flow1X);
+    ScalarMap flowy = new ScalarMap(wvmr_v, Display.Flow1Y);
     display.addMap(flowx);
     display.addMap(flowy);
     FlowControl flow_cntrl = (FlowControl) flowx.getControl();
@@ -418,10 +466,6 @@ public class Qdiv
     flow_cntrl = (FlowControl) flowy.getControl();
     flow_cntrl.setFlowScale(0.5f);
 
-    ScalarMap img_map = new ScalarMap(band1, Display.RGB);
-    display.addMap(img_map);
-    ColorControl cc = (ColorControl) img_map.getControl();
-    cc.initGreyWedge();
 
     // note RH bonces around because temperature does
     ScalarMap cmap = null;
@@ -440,18 +484,30 @@ public class Qdiv
     else {
       cmap = new ScalarMap(wvmr, Display.RGB);
     }
-    cmap = new ScalarMap(div_qV, Display.RGB);
     display.addMap(cmap);
+
+    ScalarMap cmap2 = new ScalarMap(thetaE, Display.RGB);
+ //-ScalarMap cmap2 = new ScalarMap(div_qV, Display.RGB);
+    display.addMap(cmap2);
 
     ColorMapWidget cmw = new ColorMapWidget(cmap, null, true, false);
     LabeledColorWidget cwidget = new LabeledColorWidget(cmw);
     ScalarMap tmap = new ScalarMap(RealType.Time, Display.Animation);
     display.addMap(tmap);
-    AnimationControl control = (AnimationControl) tmap.getControl();
-    control.setStep(50);
+    ani_cntrl = (AnimationControl) tmap.getControl();
+    ani_cntrl.setStep(200);
     AnimationWidget awidget = new AnimationWidget(tmap);
 
     zmap.setRange(0.0, hgt_max);
+
+    img_map = new ScalarMap(band1, Display.RGB);
+    img_map.addScalarMapListener(this);
+    display.addMap(img_map);
+ //-ColorMapWidget cw = new ColorMapWidget(img_map, null, true, false);
+ //-LabeledColorWidget img_widget = new LabeledColorWidget(cw);
+    ColorControl cc = (ColorControl) img_map.getControl();
+    cc.initGreyWedge();
+ //-panel2.add(img_widget);
 
     ConstantMap[] map_constMap =
       new ConstantMap[]
@@ -462,10 +518,6 @@ public class Qdiv
       new ConstantMap(-.98, Display.ZAxis)
     };
 
-    ConstantMap[] img_constMap = 
-      new ConstantMap[] {new ConstantMap(-.99, Display.ZAxis)};
-
- //-display.disableAction();
     display.addReference(poles_ref);
     display.addReference(map_ref, map_constMap);
  
@@ -476,17 +528,32 @@ public class Qdiv
       double display_y = station_lat[kk]*scale_offset_y[0] + scale_offset_y[1];
       c_maps[1] = new ConstantMap( display_y, Display.YAxis);
       DataReference station_ref = new DataReferenceImpl("station: "+kk);
-   //-station_ref.setData(stations_field.getSample(kk));
-      station_ref.setData(qfluxDiv.getSample(kk));
+      station_ref.setData(stations_field.getSample(kk));
       display.addReference(station_ref, c_maps);
     }
 
-    DataReference img_ref = new DataReferenceImpl("image");
-    img_ref.setData(image_seq.getImage(0));
- //-img_ref.setData(test_image);
-    display.addReference(img_ref, img_constMap);
+    double display_x = (centroid_ll[0][0]*Data.RADIANS_TO_DEGREES)*
+                        scale_offset_x[0] + scale_offset_x[1];
+    double display_y = (centroid_ll[1][0]*Data.RADIANS_TO_DEGREES)*
+                        scale_offset_y[0] + scale_offset_y[1];
+    ConstantMap[] c_maps2 = new ConstantMap[] 
+    {
+      new ConstantMap( display_x, Display.XAxis),
+      new ConstantMap( display_y, Display.YAxis)
+  //- new ConstantMap( 20.0, Display.LineWidth)
+    };
+    DataReference centroid_ref = new DataReferenceImpl("centroid");
+    centroid_ref.setData(divqV_field);
+    display.addReference(centroid_ref, c_maps2);
 
- //-display.enableAction();
+    ConstantMap[] img_constMap =
+      new ConstantMap[] {new ConstantMap(-.99, Display.ZAxis)};
+
+    if ( image_seq != null ) {
+      DataReference img_ref = new DataReferenceImpl("image");
+      img_ref.setData(image_seq);
+      display.addReference(img_ref, img_constMap);
+    }
 
     JPanel dpanel = new JPanel();
     dpanel.setLayout(new BoxLayout(dpanel, BoxLayout.Y_AXIS));
@@ -494,16 +561,66 @@ public class Qdiv
 
     JPanel wpanel = new JPanel();
     wpanel.setLayout(new BoxLayout(wpanel, BoxLayout.Y_AXIS));
-    cwidget.setMaximumSize(new Dimension(400, 200));
-    awidget.setMaximumSize(new Dimension(400, 400));
+ //-cwidget.setMaximumSize(new Dimension(400, 200));
+ //-awidget.setMaximumSize(new Dimension(400, 400));
+    cwidget.setMaximumSize(new Dimension(400, 100));
+    awidget.setMaximumSize(new Dimension(400, 200));
     wpanel.add(cwidget);
     wpanel.add(awidget);
-    Dimension d = new Dimension(400, 600);
+    JPanel hpanel = new JPanel();
+    hpanel.setLayout(new BoxLayout(hpanel, BoxLayout.X_AXIS));
+    makeDisplay2(hpanel);
+    wpanel.add(hpanel);
+    Dimension d = new Dimension(400, 800);
     wpanel.setMaximumSize(d);
-    panel.add(wpanel);
     panel.add(dpanel);
+    panel.add(wpanel);
 
     return display;
+  }
+
+  void makeDisplay2( JPanel panel )
+       throws VisADException, RemoteException, IOException
+  {
+    DisplayImpl display = new DisplayImplJ3D("components", 
+                                              new TwoDDisplayRendererJ3D());
+
+    DisplayRenderer dr = display.getDisplayRenderer();
+    dr.setBoxOn(false);
+
+    final ScalarMap xmap = new ScalarMap(RealType.Time, Display.XAxis);
+    final ScalarMap ymap = new ScalarMap(altitude, Display.YAxis);
+    final ScalarMap cmap = new ScalarMap(div_qV, Display.RGB);
+    display.addMap(xmap);
+    display.addMap(ymap);
+    display.addMap(cmap);
+
+    class Listener implements ControlListener 
+    {
+      double[][] value;
+      public void controlChanged(ControlEvent ce) {
+        int step = ani_cntrl.getCurrent();
+        try {
+          value = timeDomain.indexToDouble(new int[] {step});
+          xmap.setRange((value[0][0] - 14400), value[0][0]);
+        }
+        catch (VisADException e) {
+        }
+        catch (RemoteException e) {
+        }
+      }
+    }
+    ani_cntrl.addControlListener(new Listener());
+
+    DataReference time_height_ref =
+      new DataReferenceImpl("time_height_ref");
+
+    time_height_ref.setData(divqV_field.domainMultiply());
+    display.addReference(time_height_ref);
+    GraphicsModeControl mode = display.getGraphicsModeControl(); 
+    mode.setScaleEnable(true);
+
+    panel.add(display.getComponent());
   }
 
   public static double[] getArrayMinMax(double[] array)
@@ -576,6 +693,9 @@ public class Qdiv
     else if ( ymap.equals(e.getScalarMap()) ) {
       ymapEvent = true;
     }
+    else if ( img_map.equals(e.getScalarMap()) ) {
+      imgEvent = true;
+    }
     if (( xmapEvent && ymapEvent ) && !(firstEvent) ) {
       double[] minmax = getArrayMinMax(station_lat);
       latmin = (float)minmax[0];
@@ -597,6 +717,12 @@ public class Qdiv
       ymap.getScale(so, data, display);
       scale_offset_y[0] = so[0];
       scale_offset_y[1] = so[1];
+    }
+    if ( imgEvent && !first_img_Event ) {
+      double[] i_range = img_map.getRange();
+      System.out.println(i_range[0]+" "+i_range[1]);
+      first_img_Event = true;
+      img_map.setRange(i_range[1], i_range[0]);
     }
   }
 
@@ -662,8 +788,10 @@ public class Qdiv
 
     RealType domain_type = (RealType)
       ((TupleType)f_type0.getRange()).getComponent(0);
-    time = domain_type;
+ //-time = domain_type;
+    time = RealType.Time;
     FunctionType new_type = new FunctionType(RealType.Time, alt_to_uv);
+ //-FunctionType new_type = new FunctionType(time, alt_to_uv);
 
     FieldImpl[] winds = new FieldImpl[n_stations];
 
@@ -702,10 +830,12 @@ time_offset looks like seconds since 0Z
 */
 
       int length = time_field[ii].getLength();
+      double[][] times = new double[1][length];
       time_offset = new double[1][length];
       FlatField[] range_data = new FlatField[length];
 
       double[][] samples = null; // WLH
+      int n_not_all_miss = 0;
       for ( int jj = 0; jj < length; jj++ )
       {
         Tuple range = (Tuple) time_field[ii].getSample(jj);
@@ -728,8 +858,9 @@ time_offset looks like seconds since 0Z
 /* WLH - fill in missing winds - this also extrapolates to missing
 start or end altitudes - but it does nothing if all winds are missing */
         int n_not_miss = 0;
-        int[] not_miss = new int[values[0].length];
-        for ( int mm = 0; mm < values[0].length; mm++ )
+        int n_levels = values[0].length;
+        int[] not_miss = new int[n_levels];
+        for ( int mm = 0; mm < n_levels; mm++ )
         {
           if ( values[wd_idx][mm] <= -9999 ) {
             new_values[0][mm] = Float.NaN;
@@ -744,6 +875,7 @@ start or end altitudes - but it does nothing if all winds are missing */
           else {
             new_values[1][mm] = values[ws_idx][mm];
           }
+       //-System.out.println("("+mm+", "+jj+") "+new_values[0][mm]+",  "+new_values[1][mm]);
 
           if (new_values[0][mm] == new_values[0][mm] &&
               new_values[1][mm] == new_values[1][mm]) {
@@ -751,7 +883,8 @@ start or end altitudes - but it does nothing if all winds are missing */
             n_not_miss++;
           }
         }
-        if (0 < n_not_miss && n_not_miss < values[0].length) {
+     //-if ( (n_levels - 3) < n_not_miss && n_not_miss < n_levels) {
+        if ( (n_levels - 7) < n_not_miss && n_not_miss <= n_levels) {
           int nn = n_not_miss;
           if (not_miss[0] > 0) nn += not_miss[0];
           int endlen = values[0].length - (not_miss[n_not_miss-1]+1);
@@ -790,32 +923,31 @@ start or end altitudes - but it does nothing if all winds are missing */
           new_ff = (FlatField) newer_ff.resample(d_set,
                                                  Data.WEIGHTED_AVERAGE,
                                                  Data.NO_ERRORS );
+
+          range_data[n_not_all_miss] = new_ff;
+          times[0][n_not_all_miss] = base_time[0] + time_offset[0][jj];
+          n_not_all_miss++;
         }
         else {
-          new_ff.setSamples(cs.toReference(new_values));
+       //-new_ff.setSamples(cs.toReference(new_values));
         }
 /* end WLH - fill in missing winds */
 
-        range_data[jj] = new_ff;
+     //-range_data[jj] = new_ff;
       }
 
-
-      Gridded1DSet domain_set = new Gridded1DSet(domain_type,
-                                    Set.doubleToFloat(time_offset), length);
-
-/* resample() doesn't work for doubles
-      double[][] times = new double[1][length];
-      for (int i=0; i<length; i++) {
-        times[0][i] = base_time[0] + time_offset[0][i];
-      }
-      Gridded1DDoubleSet domain_set =
-        new Gridded1DDoubleSet(domain_type, times, length);
-*/
+/* resample() doesn't work for doubles ? */
+      double[][] new_times = new double[1][n_not_all_miss];
+      Data[] new_range_data = new Data[n_not_all_miss];
+      System.arraycopy(times[0], 0, new_times[0], 0, n_not_all_miss);
+      System.arraycopy(range_data, 0, new_range_data, 0, n_not_all_miss);
+      System.out.println("n_not_all_miss: "+n_not_all_miss);
+      Gridded1DSet domain_set =
+        new Gridded1DSet(RealType.Time, Set.doubleToFloat(new_times), n_not_all_miss);
 
       winds[ii] = new FieldImpl(new_type, domain_set);
-      winds[ii].setSamples(range_data, false);
+      winds[ii].setSamples(new_range_data, false);
     }
-    plain = null;
     return winds;
   }
 
@@ -845,13 +977,17 @@ start or end altitudes - but it does nothing if all winds are missing */
       ((TupleType)f_type0.getRange()).getComponent(1);
 
     RealTupleType rtt = (RealTupleType) f_type1.getRange();
-    temp = (RealType) rtt.getComponent(1);
-    dwpt = (RealType) rtt.getComponent(2);
-    wvmr = (RealType) rtt.getComponent(3);
+    RealType pres = new RealType("press", null, null);
+    temp = new RealType("temp", null, null);
+    dwpt = new RealType("dwpt", null, null);
+    wvmr = new RealType("wvmr", null, null);
+    RealType[] r_types = {pres, temp, dwpt, wvmr};
+    f_type1 = new FunctionType(f_type1.getDomain(), new RealTupleType(r_types));
 
 
     RealType domain_type = (RealType)
       ((TupleType)f_type0.getRange()).getComponent(0);
+
     FunctionType new_type = new FunctionType(RealType.Time, f_type1);
 
     FieldImpl[] rtvls = new FieldImpl[n_stations];
@@ -864,22 +1000,12 @@ start or end altitudes - but it does nothing if all winds are missing */
       time_field[ii] = (FieldImpl) ((Tuple)file_data[ii]).getComponent(1);
       base_date[ii] = (double)
         ((Real)((Tuple)file_data[ii]).getComponent(2)).getValue();
-/*
-System.out.println("aeri " + ii + " date: " + base_date[ii] +
-                   " time: " + base_time[ii]);
-aeri 0 date: 991226.0 time: 9.46166724E8
-aeri 1 date: 991226.0 time: 9.46167982E8
-aeri 2 date: 991226.0 time: 9.4616806E8
-aeri 3 date: 991226.0 time: 9.46168061E8
-aeri 4 date: 991226.0 time: 9.4616807E8
-
-looks like 991226 and seconds since 1-1-70
-time_offset looks like seconds since 0Z
-*/
 
       int length = time_field[ii].getLength();
       time_offset = new double[1][length];
       Data[] range_data = new Data[length];
+      double[][] times = new double[1][length];
+      int not_all_missing = 0;
 
       for ( int jj = 0; jj < length; jj++ )
       {
@@ -889,8 +1015,10 @@ time_offset looks like seconds since 0Z
         FlatField p_field = (FlatField) range.getComponent(1);
         double[][] values = p_field.getValues();
         double[][] new_values = new double[4][values[0].length];
+        int num_missing = 0;
+        int n_levels = values[0].length;
 
-        for ( int mm = 0; mm < values[0].length; mm++ )
+        for ( int mm = 0; mm < n_levels; mm++ )
         {
           if ( values[0][mm] == -9999 ) {
             new_values[0][mm] = Float.NaN;
@@ -915,153 +1043,190 @@ time_offset looks like seconds since 0Z
 
           if ( values[3][mm] == -9999 ) {
             new_values[3][mm] = Float.NaN;
+            num_missing++;  //- if one range component missing, probably all missing
           }
           else {
             new_values[3][mm] = values[3][mm];
           }
         }
-        p_field.setSamples(new_values);
-        if (!f_type1.equals(p_field.getType())) {
-          p_field = (FlatField) p_field.changeMathType(f_type1);
+
+     //-if ( n_levels != num_missing )
+        if ( num_missing < 3 )
+        {
+          FlatField new_ff = new FlatField(f_type1, p_field.getDomainSet());
+          new_ff.setSamples(new_values);
+          range_data[not_all_missing] = new_ff;
+          times[0][not_all_missing] = base_time[0] + time_offset[0][jj];
+          not_all_missing++;
         }
-        range_data[jj] = p_field;
       }
 
-      Gridded1DSet domain_set = new Gridded1DSet(domain_type,
-                                    Set.doubleToFloat(time_offset), length);
-/* resample() doesn't work for doubles
-      double[][] times = new double[1][length];
-      for (int i=0; i<length; i++) {
-        times[0][i] = base_time[0] + time_offset[0][i];
-      }
-      Gridded1DDoubleSet domain_set =
-        new Gridded1DDoubleSet(domain_type, times, length);
-*/
+      System.out.println("not_all_missing: "+not_all_missing);
+
+      double[][] new_times = new double[1][not_all_missing];
+      Data[] new_range_data = new Data[not_all_missing];
+      System.arraycopy(times[0], 0, new_times[0], 0, not_all_missing);
+      System.arraycopy(range_data, 0, new_range_data, 0, not_all_missing);
+
+      Gridded1DSet domain_set =
+        new Gridded1DSet(RealType.Time, Set.doubleToFloat(new_times), not_all_missing);
 
       rtvls[ii] = new FieldImpl(new_type, domain_set);
-      rtvls[ii].setSamples(range_data, false);
+      rtvls[ii].setSamples(new_range_data, false);
     }
     return rtvls;
   }
 
-  FieldImpl make_wind_aeri( FieldImpl winds, FieldImpl rtvls )
+  FieldImpl make_wind_aeri( FieldImpl[] winds, FieldImpl[] rtvls )
             throws VisADException, RemoteException, IOException
   {
     float wind_time;
     float[][] value_s = new float[1][1];
     int[] index_s = new int[1];
-    int rtvl_idx;
  //-FlatField alt_to_wind;
     FieldImpl alt_to_wind;
-    FieldImpl wind_to_rtvl_time;
+    FieldImpl wind_to_timeDomain;
+    FieldImpl rtvl_to_timeDomain;
  //-FlatField alt_to_rtvl;
     FieldImpl alt_to_rtvl;
     FlatField advect;
     FieldImpl advect_field;
-    FlatField rtvl_on_wind;
+    FieldImpl rtvl_on_wind;
     FieldImpl wind_on_wind;
     int n_samples;
-    double age;
-    double age_max = 3600;
-    double rtvl_intvl;
-    double rtvl_time;
-    double rtvl_time_0;
-    double rtvl_intvl_min = 476;
     double[][] dir_spd;
     double[][] uv_wind;
     int idx = 0;
     float alt;
     Set rtvls_domain;
-    float[] rtvl_times;
-    double[][] new_values;
+    double[][] new_values = null;
 
-    //- time(rtvl) -> (alt) -> (U,V,T,TD,WV)
-    //
-    rtvls_domain = rtvls.getDomainSet();
-    FieldImpl time_wind_aeri = new FieldImpl(time_to_alt_to_wind_aeri, rtvls_domain);
-    
+    FieldImpl stations_field =
+        new FieldImpl(new FunctionType( stn_idx, time_to_alt_to_wind_aeri),
+                                        new Integer1DSet( stn_idx, n_stations,
+                                                          null, null, null));
 
-    //- resample winds domain (time) to rtvls
-    //
+    double[] lows = new double[n_stations*2];
+    double[] his = new double[n_stations*2];
 
-    wind_to_rtvl_time = (FieldImpl)
-      winds.resample( rtvls_domain,
-                      Data.WEIGHTED_AVERAGE,
-                      Data.NO_ERRORS );
-
-
-    //- resample rtvls domain (altitude) to winds at each rtvl time
-    //
-    int dim = 
-      ((RealTupleType)
-       ((FunctionType)time_to_alt_to_wind_aeri.getRange()).getRange()).getDimension(); 
-    new_values = new double[dim][];
-    int len = rtvls.getLength();
-    for ( int tt = 0; tt < len; tt++ ) 
+    for ( int kk = 0; kk < n_stations; kk++ ) 
     {
-      alt_to_rtvl = (FieldImpl) rtvls.getSample(tt);
-      alt_to_wind = (FieldImpl) wind_to_rtvl_time.getSample(tt);
-      Set ds = alt_to_wind.getDomainSet();
-// WLH height limit
-      float[][] samples = ds.getSamples();
-      float[] ns = new float[samples[0].length];
-      int nn = 0;
-      for (int i=0; i<samples[0].length; i++) {
-        if (samples[0][i] < height_limit) {
-          ns[nn] = samples[0][i];
-          nn++;
-        }
-      }
-      float[][] new_samples = new float[1][nn];
-      System.arraycopy(ns, 0, new_samples[0], 0, nn);
-      ds = new Gridded1DSet(ds.getType(), new_samples, nn);
-      wind_on_wind = (FieldImpl)
-        alt_to_wind.resample( ds,
-                              Data.WEIGHTED_AVERAGE,
-                              Data.NO_ERRORS );
-// end WLH height limit
-      rtvl_on_wind = (FlatField)
-        alt_to_rtvl.resample( ds,
-                              Data.WEIGHTED_AVERAGE,
-                              Data.NO_ERRORS );
-
-      double[][] uv_values = wind_on_wind.getValues();
-      double[][] rtvl_values = rtvl_on_wind.getValues();
-
-      double[][] uv_wvmr = new double[2][nn];
-      double[] dum1 = new double[nn];
-      double[] dum2 = new double[nn];
-      for (int ii = 0; ii < nn; ii++) {
-        uv_wvmr[0][ii] = uv_values[0][ii]*rtvl_values[3][ii];
-        uv_wvmr[1][ii] = uv_values[1][ii]*rtvl_values[3][ii];
-        dum1[ii] = Double.NaN;
-        dum2[ii] = Double.NaN;
-      }
-
-      new_values[0] = uv_values[0];
-      new_values[1] = uv_values[1];
-      new_values[2] = rtvl_values[1];
-      new_values[3] = rtvl_values[2];
-      new_values[4] = rtvl_values[3];
-      new_values[5] = uv_wvmr[0];
-      new_values[6] = uv_wvmr[1];
-      new_values[7] = dum1;
-      new_values[8] = dum2;
-
-      FlatField ff = new FlatField(alt_to_wind_aeri, ds);
-      ff.setSamples(new_values);
-
-      time_wind_aeri.setSample(tt, ff);
+      Set d_set = winds[kk].getDomainSet();
+      lows[kk] = (double) (((SampledSet)d_set).getLow())[0];
+      his[kk] = (double) (((SampledSet)d_set).getHi())[0];
+      d_set = rtvls[kk].getDomainSet();
+      lows[n_stations+kk] = (double) (((SampledSet)d_set).getLow())[0];
+      his[n_stations+kk] = (double) (((SampledSet)d_set).getHi())[0];
     }
 
-    return time_wind_aeri;
+    double[] minmax = getArrayMinMax(lows);
+    double hi_low = minmax[1];
+    minmax = getArrayMinMax(his);
+    double low_hi = minmax[0];
+    System.out.println("hi_low: "+hi_low);
+    System.out.println("low_hi: "+low_hi);
+  
+    timeDomain = new Linear1DSet(time,
+                                 hi_low, low_hi,
+                                 (int) (low_hi - hi_low)/time_intrvl );
+
+    for ( int kk = 0; kk < n_stations; kk++ )
+    {
+      //- time(rtvl) -> (alt) -> (U,V,T,TD,WV)
+      //
+      FieldImpl time_wind_aeri = new FieldImpl(time_to_alt_to_wind_aeri, timeDomain);
+
+      //- resample winds to timeDomain
+      //
+
+      wind_to_timeDomain = (FieldImpl)
+         winds[kk].resample(timeDomain,
+                            Data.WEIGHTED_AVERAGE,
+                            Data.NO_ERRORS );
+
+      //- resample rtvls to timeDomain
+
+      rtvl_to_timeDomain = (FieldImpl)
+         rtvls[kk].resample(timeDomain,
+                            Data.WEIGHTED_AVERAGE,
+                            Data.NO_ERRORS );
+
+   /**
+      rtvl_to_timeDomain = linearInterp(rtvls[kk], timeDomain);
+    **/
+
+      //- resample rtvls domain (altitude) to winds at each rtvl time
+      //
+      int dim =
+        ((RealTupleType)
+          ((FunctionType)time_to_alt_to_wind_aeri.getRange()).getRange()).getDimension(); 
+      int n_times = timeDomain.getLength();
+      Set ds = null;
+      int nn = 0;
+      for ( int tt = 0; tt < n_times; tt++ )
+      {
+        alt_to_rtvl = (FieldImpl) rtvl_to_timeDomain.getSample(tt);
+        alt_to_wind = (FieldImpl) wind_to_timeDomain.getSample(tt);
+
+
+        if ( tt == 0 ) {  //- these won't change over time
+
+        ds = alt_to_wind.getDomainSet();
+
+/**--- WLH height limit  ---*/
+        float[][] samples = ds.getSamples();
+        float[] ns = new float[samples[0].length];
+        for (int i=0; i<samples[0].length; i++) {
+          if ((samples[0][i] - station_alt[kk]) < height_limit) {
+            ns[nn] = samples[0][i] - (float)station_alt[kk];
+            nn++;
+          }
+        }
+        float[][] new_samples = new float[1][nn];
+        System.arraycopy(ns, 0, new_samples[0], 0, nn);
+        ds = new Gridded1DSet(ds.getType(), new_samples, nn);
+        new_values = new double[dim][nn];
+
+        }
+
+
+        rtvl_on_wind = (FieldImpl)
+          alt_to_rtvl.resample( ds,
+                                Data.WEIGHTED_AVERAGE,
+                                Data.NO_ERRORS );
+
+        double[][] uv_values = alt_to_wind.getValues();
+        double[][] rtvl_values = rtvl_on_wind.getValues();
+
+        for (int ii = 0; ii < nn; ii++) {
+          new_values[0][ii] = uv_values[0][ii];
+          new_values[1][ii] = uv_values[1][ii];
+          new_values[2][ii] = rtvl_values[1][ii];
+          new_values[3][ii] = rtvl_values[2][ii];
+          new_values[4][ii] = rtvl_values[3][ii];
+          new_values[5][ii] = uv_values[0][ii]*rtvl_values[3][ii];
+          new_values[6][ii] = uv_values[1][ii]*rtvl_values[3][ii];
+          new_values[7][ii] = Aeri.equivPotentialTemperatureStar(
+                Aeri.potentialTemperature(rtvl_values[1][ii], rtvl_values[0][ii]),
+                rtvl_values[3][ii],
+                rtvl_values[1][ii] );
+        }
+
+        FlatField ff = new FlatField(alt_to_wind_aeri, ds);
+        ff.setSamples(new_values);
+
+        time_wind_aeri.setSample(tt, ff);
+      }
+      stations_field.setSample(kk, time_wind_aeri, false);
+    }
+
+    return stations_field;
   }
 
   FieldImpl makeDivqV( FieldImpl stations )
             throws VisADException, RemoteException
   {
     double[][] uv_comps = new double[2][3];
-    Set time_domain;
 
     double[][] lonlat = new double[2][3];
     lonlat[0][0] = station_lon[0]*Data.DEGREES_TO_RADIANS;
@@ -1074,152 +1239,130 @@ time_offset looks like seconds since 0Z
     LinearVectorPointMethod lvpm =
       new LinearVectorPointMethod(lonlat);
 
-    FieldImpl[] stations_array = new FieldImpl[3];
-    for (int kk = 0; kk < 3; kk++) {
-      stations_array[kk] = (FieldImpl) stations.getSample(kk);
-    }
+    centroid_ll = lvpm.getCentroid();
 
-    FieldImpl new_stations = new FieldImpl((FunctionType)stations.getType(),
-                                            stations.getDomainSet());
+    FieldImpl station0 = (FieldImpl) stations.getSample(0);
+    FieldImpl station1 = (FieldImpl) stations.getSample(1);
+    FieldImpl station2 = (FieldImpl) stations.getSample(2);
 
-    Set time_domain0 = stations_array[0].getDomainSet();
-    float[] low0 = ((SampledSet)time_domain0).getLow();
-    float[] hi0 = ((SampledSet)time_domain0).getHi();
-    int length0 = time_domain0.getLength();
-    System.out.println("low0: "+low0[0]+"  hi0: "+hi0[0]+" len0: "+length0);
+    FlatField ff = (FlatField) station0.getSample(0);
+    Set alt_set = ff.getDomainSet();
+    int alt_len = alt_set.getLength();
+    alt_min = (((SampledSet)alt_set).getLow())[0];
+    alt_max = (((SampledSet)alt_set).getHi())[0];
+    n_hres_alt_samples = alt_len*alt_factor;
+    Set hres_alt_set = 
+      new Linear1DSet( alt_set.getType(),
+                       (double)alt_min, (double)alt_max, n_hres_alt_samples);
 
-    Set time_domain1 = stations_array[1].getDomainSet();
-    float[] low1 = ((SampledSet)time_domain1).getLow();
-    float[] hi1 = ((SampledSet)time_domain1).getHi();
-    int length1 = time_domain1.getLength();
-    System.out.println("low1: "+low1[0]+"  hi1: "+hi1[0]+" len1: "+length1);
+    FieldImpl new_field = new FieldImpl(time_to_alt_to_divqV, station0.getDomainSet());
 
-    Set time_domain2 = stations_array[2].getDomainSet();
-    float[] low2 = ((SampledSet)time_domain2).getLow();
-    float[] hi2 = ((SampledSet)time_domain2).getHi();
-    int length2 = time_domain2.getLength();
-    System.out.println("low2: "+low2[0]+"  hi2: "+hi2[0]+" len2: "+length2);
-
-    float lowest_hi = Math.min(Math.min(hi0[0], hi1[0]), hi2[0]);
-    System.out.println("lowest_hi: "+lowest_hi);
-
-    //-- find time domain with highest_lo
-    int stn_idx = 2;
-    int[] other = new int[2]; 
-    other[0] = 0;
-    other[1] = 1;
-
-    if ((low0[0] > low2[0]) || (low1[0] > low2[0])) {
-      if ( low0[0] >= low1[0] ) {
-        stn_idx = 0;
-        other[0] = 1;
-        other[1] = 2;
-      }
-      else {
-        stn_idx = 1;
-        other[0] = 0;
-        other[1] = 2;
-      }
-    }
-    System.out.println("highest_lo index: "+stn_idx);
-
-    Set d_set = stations_array[stn_idx].getDomainSet();
-    float[][] times = d_set.getSamples();
-    int cnt = 0;
-    for ( int tt = 0; tt < times[0].length; tt++ ) {
-      if ( times[0][tt] <= lowest_hi ) cnt++;
-    }
-    System.out.println("cnt: "+cnt);
-    float[][] new_times = new float[1][cnt];
-    System.arraycopy(times[0], 0, new_times[0], 0, cnt);
-    MathType m_type = d_set.getType();
-    RealType time = (RealType) (((SetType)m_type).getDomain()).getComponent(0);
-    time_domain = new Gridded1DSet(m_type, new_times, new_times[0].length);
-
-    FunctionType f_type = (FunctionType) stations_array[0].getType();
-    FieldImpl station0 = new FieldImpl(f_type, time_domain);
-    new_stations.setSample(0, station0, false);
-
-    FieldImpl station1 = new FieldImpl(f_type, time_domain);
-    new_stations.setSample(1, station1, false);
-
-    FieldImpl station2 = new FieldImpl(f_type, time_domain);
-    new_stations.setSample(2, station2, false);
-
-    for ( int tt = 0; tt < time_domain.getLength(); tt++ )
+    for (int tt = 0; tt < station0.getLength(); tt++)
     {
-      Real real = new Real(time, times[0][tt]);
-      System.out.println(times[0][tt]);
-
-      FlatField field0 = (FlatField) stations_array[stn_idx].getSample(tt);
-      System.out.println(field0.getDomainSet().getLength());
-
-   //-FieldImpl field1 = (FieldImpl) stations_array[other[0]].evaluate(real);
-      FieldImpl field1 = (FieldImpl) stations_array[other[0]].getSample(tt);
-      System.out.println(field1.getDomainSet().getLength());
-
-   //-FieldImpl field2 = (FieldImpl) stations_array[other[1]].evaluate(real);
-      FieldImpl field2 = (FieldImpl) stations_array[other[1]].getSample(tt);
-      System.out.println(field2.getDomainSet().getLength());
+      FlatField field0 = (FlatField) station0.getSample(tt);
+      FlatField field1 = (FlatField) station1.getSample(tt);
+      FlatField field2 = (FlatField) station2.getSample(tt);
 
       double[][] values0 = field0.getValues(false);
       double[][] values1 = field1.getValues(false);
       double[][] values2 = field2.getValues(false);
-      int len0 = values0[5].length;
-      int len1 = values1[5].length;
-      int len2 = values2[5].length;
 
-      for ( int kk = 0; kk < Math.min(Math.min(len0,len1),len2); kk++ )
+      FlatField new_ff = new FlatField(alt_to_divqV, alt_set);
+      double[][] new_values = new double[3][alt_len];
+
+      for (int kk = 0; kk < alt_len; kk++ )
       {
         boolean any_missing = false;
 
         uv_comps[0][0] = values0[0][kk];
         uv_comps[1][0] = values0[1][kk];
+      //uv_comps[0][0] = values0[5][kk];
+      //uv_comps[1][0] = values0[6][kk];
 
         uv_comps[0][1] = values1[0][kk];
         uv_comps[1][1] = values1[1][kk];
+      //uv_comps[0][1] = values1[5][kk];
+      //uv_comps[1][1] = values1[6][kk];
 
         uv_comps[0][2] = values2[0][kk];
         uv_comps[1][2] = values2[1][kk];
+      //uv_comps[0][2] = values2[5][kk];
+      //uv_comps[1][2] = values2[6][kk];
 
         if (Double.isNaN(uv_comps[0][0]) || Double.isNaN(uv_comps[1][0])) {
-          System.out.println(uv_comps[0][0]+"  "+uv_comps[1][0]);
           any_missing = true;
         }
         else if (Double.isNaN(uv_comps[0][1]) || Double.isNaN(uv_comps[1][1])) {
-          System.out.println(uv_comps[0][1]+"  "+uv_comps[1][1]);
           any_missing = true;
         }
         else if (Double.isNaN(uv_comps[0][2]) || Double.isNaN(uv_comps[1][2])) {
-          System.out.println(uv_comps[0][2]+"  "+uv_comps[1][2]);
           any_missing = true;
         }
 
         if ( ! any_missing ) {
           double[] kinematics = lvpm.getKinematics(uv_comps);
-          values0[7][kk] = kinematics[4];
-          values1[7][kk] = kinematics[4];
-          values2[7][kk] = kinematics[4];
-       //-System.out.println("kk: "+kk+"  "+kinematics[4]);
+          new_values[0][kk] = kinematics[4];
+          new_values[1][kk] = (values0[7][kk] + values1[7][kk] + values2[7][kk])/3;
         }
         else {
-        /*
-          System.out.println("tt: "+tt);
-          System.out.println("len0: "+len0);
-          System.out.println("len1: "+len1);
-          System.out.println("len2: "+len2);
-         */
+          new_values[0][kk] = Double.NaN;
+          new_values[1][kk] = Double.NaN;
         }
       }
-
-      field0.setSamples(values0);
-      field1.setSamples(values1);
-      field2.setSamples(values2);
-
-      station0.setSample(tt, field0, false);
-      station1.setSample(tt, field1, false);
-      station2.setSample(tt, field2, false);
+      new_ff.setSamples(new_values);
+      new_field.setSample(tt, 
+                          new_ff.resample(hres_alt_set, Data.WEIGHTED_AVERAGE, Data.NO_ERRORS), 
+                          false);
     }
-    return new_stations;
+    return new_field;
+  }
+
+  public static VisADTriangleStripArray makeCylinder( int n_faces, float rad, float len)
+  {
+    float[][] xy_points = new float[2][n_faces];
+
+    double del_theta = (2*Math.PI)/n_faces;
+    double theta = del_theta/2;
+    int[] index = new int[n_faces+1];
+
+    for ( int kk = 0; kk < n_faces; kk++ ) {
+      xy_points[0][kk] = (float) Math.cos(theta);
+      xy_points[1][kk] = (float) Math.sin(theta);
+      theta += del_theta;
+      index[kk] = kk;
+    }
+    index[n_faces] = 0;
+
+    VisADTriangleStripArray cyl = new VisADTriangleStripArray();
+    cyl.vertexCount = 2*(n_faces+1);
+    cyl.coordinates = new float[cyl.vertexCount*3];
+    cyl.normals = new float[cyl.vertexCount*3];
+    cyl.stripVertexCounts = new int[1];
+    cyl.stripVertexCounts[0] = cyl.vertexCount;
+
+    for ( int kk = 0; kk < n_faces+1; kk++ ) {
+      int ii = kk*6;
+      cyl.coordinates[ii] = rad*xy_points[0][index[kk]];
+      cyl.coordinates[ii+1] = rad*xy_points[1][index[kk]];
+      cyl.coordinates[ii+2] = len;
+      ii += 3;
+
+      cyl.coordinates[ii] = rad*xy_points[0][index[kk]];
+      cyl.coordinates[ii+1] = rad*xy_points[1][index[kk]];
+      cyl.coordinates[ii+2] = -len;
+    }
+
+    for ( int kk = 0; kk < n_faces+1; kk++ ) {
+      int ii = kk*6;
+      cyl.normals[ii] = xy_points[0][index[kk]];
+      cyl.normals[ii+1] = xy_points[1][index[kk]];
+      cyl.normals[ii+2] = 0;
+      ii += 3;
+
+      cyl.normals[ii] = xy_points[0][index[kk]];
+      cyl.normals[ii+1] = xy_points[1][index[kk]];
+      cyl.normals[ii+2] = 0;
+    }
+    return cyl;
   }
 }
