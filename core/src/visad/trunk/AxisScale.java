@@ -47,6 +47,10 @@ public class AxisScale implements java.io.Serializable
   public final static int Y_AXIS = 1;
   /** Z_AXIS identifier */
   public final static int Z_AXIS = 2;
+  /** identifier for primary label side of axis*/
+  public final static int PRIMARY = 0;
+  /** identifier for secondary label side of axis*/
+  public final static int SECONDARY = 1;
 
   private VisADLineArray scaleArray;
   private VisADTriangleArray labelArray;
@@ -55,7 +59,7 @@ public class AxisScale implements java.io.Serializable
   private double[] dataRange = new double[2];
   private int myAxis = -1;
   private int axisOrdinal = -1;
-  private String myLabel;
+  private String myTitle;
   private Hashtable labelTable;
   protected double majorTickSpacing = 0.0;
   protected double minorTickSpacing = 0.0;
@@ -63,8 +67,12 @@ public class AxisScale implements java.io.Serializable
   protected boolean autoComputeTicks = true;
   protected boolean baseLineVisible = true;
   protected boolean snapToBox = false;
+  protected boolean userLabels = false;
   private Font labelFont = null;
   private int labelSize = 12;
+  private int axisSide = PRIMARY;
+  private int tickOrient = PRIMARY;
+  private static final double TICKSIZE = .5;  // major ticks are 1/2 char ht.
 
   /**
    * Construct a new AxisScale for the given ScalarMap
@@ -84,7 +92,7 @@ public class AxisScale implements java.io.Serializable
                    "must be XAxis, YAxis or ZAxis");
     myAxis = (displayScalar.equals(Display.XAxis)) ? X_AXIS :
        (displayScalar.equals(Display.YAxis)) ? Y_AXIS : Z_AXIS;
-    myLabel = scalarMap.getScalarName();
+    myTitle = scalarMap.getScalarName();
     labelTable = new Hashtable();
     boolean ok = makeScale();
   }
@@ -110,17 +118,40 @@ public class AxisScale implements java.io.Serializable
   }
 
   /** 
+   * @deprecated  
    * Set the label to be used for this axis.  The default is the
    * ScalarName of the ScalarMap.
    * @param  label  label to be used
+   * @see #setTitle(String)
    */
   public void setLabel(String label)
   {
-    String oldLabel = myLabel;
-    myLabel = label;
-    if (!myLabel.equals(oldLabel) ) {
+    setTitle(label);
+  }
+
+  /**
+   * @deprecated  
+   * Get the label of the AxisScale.
+   * @return label
+   * @see #getTitle()
+   */
+  public String getLabel()
+  {
+    return getTitle();
+  }
+
+  /** 
+   * Set the title to be used for this axis.  The default is the
+   * ScalarName of the ScalarMap.
+   * @param  title  title to be used
+   */
+  public void setTitle(String title)
+  {
+    String oldTitle = myTitle;
+    myTitle = title;
+    if (!myTitle.equals(oldTitle) ) {
       try {
-        scalarMap.setScalarName(myLabel);
+        scalarMap.setScalarName(myTitle);
         scalarMap.makeScale();  // update the display
       }
       catch (VisADException ve) {;}
@@ -128,12 +159,12 @@ public class AxisScale implements java.io.Serializable
   }
 
   /**
-   * Get the label of the AxisScale.
-   * @return label
+   * Get the title of the AxisScale.
+   * @return title
    */
-  public String getLabel()
+  public String getTitle()
   {
-    return myLabel;
+    return myTitle;
   }
 
   /**
@@ -208,64 +239,139 @@ public class AxisScale implements java.io.Serializable
     double SCALE =  labelSize/200.;
     double OFFSET = 1.05;
 
+    // Add 16-APR-2001 DRM
+    int position = 0;
+    int myPosition = 0;
+    // Snap to the box edge instead of being offset
+    if (snapToBox) {
+      OFFSET = 1.0;
+    } 
+    else
+    {
+      for (Enumeration e = display.getMapVector().elements(); 
+            e.hasMoreElements();)
+      {
+        ScalarMap map = (ScalarMap) e.nextElement();
+        if (map.getDisplayScalar().equals(scalarMap.getDisplayScalar()))
+        {
+          if (getSide() == map.getAxisScale().getSide()) // same side
+          {
+            if (map.equals(scalarMap)) 
+            {
+              myPosition = position;// this is me
+              break;
+            }
+            position++;
+          }
+        }
+      }
+    }
+    /*
+    System.out.println(scalarMap + "is at position " + (myPosition+1) + 
+                       " out of " + (position + 1));
+    */
+    // End Add 16-APR-2001 DRM
+
+    // position of baseline for this scale
+    double line = 4.0 * myPosition * SCALE;  // DRM 17-APR-2001
+  
+    /*  Remove 16-APR-2001 
+    double ONE = 1.0;
+    if (dataRange[0] > dataRange[1]) ONE = -1.0; // inverted range
     int position = axisOrdinal;
     if (snapToBox) {
       OFFSET = 1.0;
       position = 0;
     }
     double line = 2.0 * position * SCALE;
+    */
   
     double ONE = 1.0;
     if (dataRange[0] > dataRange[1]) ONE = -1.0; // inverted range
+
+    // set up the defaults for each of the axes.  startp and startn are the
+    // endpoints of the axis line.  base and up determine which way the
+    // tick marks are drawn along that line.  For 2-D, base and up are changed
+    // later on so that the labels are right side up. DRM 16-APR-2001
     if (myAxis == X_AXIS) {
-      base = new double[] {SCALE, 0.0, 0.0};
-      up = new double[] {0.0, SCALE, SCALE};
-/* WLH 24 Nov 2000
-      startp = new double[] {ONE, YMIN * (OFFSET + line), ZMIN * (OFFSET + line)};
-      startn = new double[] {-ONE, YMIN * (OFFSET + line), ZMIN * (OFFSET + line)};
-*/
-      startp = new double[] {-ONE * XMIN,
-                             YMIN - ((OFFSET - 1.0) + line),
-                             ZMIN - ((OFFSET - 1.0) + line)};
-      startn = new double[] {ONE * XMIN,
-                             YMIN - ((OFFSET - 1.0) + line),
-                             ZMIN - ((OFFSET - 1.0) + line)};
+      if (getSide() == PRIMARY)
+      {
+        base = new double[] {SCALE, 0.0, 0.0};
+        up = new double[] {0.0, SCALE, SCALE};
+        startp = new double[] {-ONE * XMIN,
+                               YMIN - ((OFFSET - 1.0) + line),
+                               ZMIN - ((OFFSET - 1.0) + line)};
+        startn = new double[] {ONE * XMIN,
+                               YMIN - ((OFFSET - 1.0) + line),
+                               ZMIN - ((OFFSET - 1.0) + line)};
+      }
+      else
+      {
+        base = new double[] {-SCALE, 0.0, 0.0};
+        up = new double[] {0.0, -SCALE, SCALE};
+        startp = new double[] {-ONE * XMIN,
+                               -YMIN + ((OFFSET - 1.0) + line),
+                               ZMIN - ((OFFSET - 1.0) + line)};
+        startn = new double[] {ONE * XMIN,
+                               -YMIN + ((OFFSET - 1.0) + line),
+                               ZMIN - ((OFFSET - 1.0) + line)};
+      }
     }
     else if (myAxis == Y_AXIS) {
-      base = new double[] {0.0, -SCALE, 0.0};
-      up = new double[] {SCALE, 0.0, SCALE};
-/* WLH 24 Nov 2000
-      startp = new double[] {XMIN * (OFFSET + line), ONE, ZMIN * (OFFSET + line)};
-      startn = new double[] {XMIN * (OFFSET + line), -ONE, ZMIN * (OFFSET + line)};
-*/
-      startp = new double[] {XMIN - ((OFFSET - 1.0) + line),
-                             -ONE * YMIN,
-                             ZMIN - ((OFFSET - 1.0) + line)};
-      startn = new double[] {XMIN - ((OFFSET - 1.0) + line),
-                             ONE * YMIN,
-                             ZMIN - ((OFFSET - 1.0) + line)};
+      if (getSide() == PRIMARY) {
+        base = new double[] {0.0, -SCALE, 0.0};
+        up = new double[] {SCALE, 0.0, SCALE};
+        startp = new double[] {XMIN - ((OFFSET - 1.0) + line),
+                               -ONE * YMIN,
+                               ZMIN - ((OFFSET - 1.0) + line)};
+        startn = new double[] {XMIN - ((OFFSET - 1.0) + line),
+                               ONE * YMIN,
+                               ZMIN - ((OFFSET - 1.0) + line)};
+      } 
+      else {
+        base = new double[] {0.0, SCALE, 0.0};
+        up = new double[] {-SCALE, 0.0, SCALE};
+        startp = new double[] {-XMIN + ((OFFSET - 1.0) + line),
+                               -ONE * YMIN,
+                               ZMIN - ((OFFSET - 1.0) + line)};
+        startn = new double[] {-XMIN + ((OFFSET - 1.0) + line),
+                               ONE * YMIN,
+                               ZMIN - ((OFFSET - 1.0) + line)};
+      }
+
     }
     else if (myAxis == Z_AXIS) {
-      base = new double[] {0.0, 0.0, -SCALE};
-      up = new double[] {SCALE, SCALE, 0.0};
-/* WLH 24 Nov 2000
-      startp = new double[] {XMIN * (OFFSET + line), YMIN * (OFFSET + line), ONE};
-      startn = new double[] {XMIN * (OFFSET + line), YMIN * (OFFSET + line), -ONE};
-*/
-      startp = new double[] {XMIN - ((OFFSET - 1.0) + line),
-                             YMIN - ((OFFSET - 1.0) + line),
-                             -ONE * ZMIN};
-      startn = new double[] {XMIN - ((OFFSET - 1.0) + line),
-                             YMIN - ((OFFSET - 1.0) + line),
-                             ONE * ZMIN};
+      if (getSide() == PRIMARY) 
+      {
+        base = new double[] {0.0, 0.0, -SCALE};
+        up = new double[] {SCALE, SCALE, 0.0};
+        startp = new double[] {XMIN - ((OFFSET - 1.0) + line),
+                               YMIN - ((OFFSET - 1.0) + line),
+                               -ONE * ZMIN};
+        startn = new double[] {XMIN - ((OFFSET - 1.0) + line),
+                               YMIN - ((OFFSET - 1.0) + line),
+                               ONE * ZMIN};
+      }
+      else 
+      {
+        base = new double[] {0.0, 0.0, SCALE};
+        up = new double[] {-SCALE, SCALE, 0.0};
+        startp = new double[] {-XMIN + ((OFFSET - 1.0) + line),
+                               YMIN - ((OFFSET - 1.0) + line),
+                               -ONE * ZMIN};
+        startn = new double[] {-XMIN + ((OFFSET - 1.0) + line),
+                               YMIN - ((OFFSET - 1.0) + line),
+                               ONE * ZMIN};
+      }
     }
+
     if (twoD) {
+      if (myAxis == Z_AXIS) return false;  // can't have Z in 2D
       // zero out z coordinates
       base[2] = 0.0;
       up[2] = 0.0;
       startn[2] = 0.0;
       startp[2] = 0.0;
-      if (myAxis == 2) return false;
     }
   
     // VisADLineArray coordinates have three entries for (x, y, z) of each point
@@ -332,6 +438,20 @@ public class AxisScale implements java.io.Serializable
     VisADLineArray majorTickArray = new VisADLineArray();
     int nticks = (int) ((hilo[1]-hilo[0])/majorTickSpacing) + 1;
     float[] majorCoordinates = new float[6 * nticks];
+    double[] tickup = up;
+    if (getTickOrientation() != PRIMARY)
+    {
+      if (myAxis == X_AXIS) {
+        tickup = new double[] {up[0], -up[1], -up[2]};
+      }
+      else if (myAxis == Y_AXIS) {
+        tickup = new double[] {-up[0], up[1], -up[2]};
+      }
+      else if (myAxis == Z_AXIS) {
+        tickup = new double[] {-up[0], -up[1], up[2]};
+      }
+    }
+    // initialize some stuff
     // initialize some stuff
     int k = 0;
     for (int j = 0; j< nticks; j++) //Change DRM 21-Feb-2001
@@ -344,7 +464,7 @@ public class AxisScale implements java.io.Serializable
           majorCoordinates[k + i] = 
             (float) ((1.0 - a) * startn[i] + a * startp[i]);
           majorCoordinates[k + 3 + i] = 
-            (float) (majorCoordinates[k + i] - 0.5 * up[i]);
+            (float) (majorCoordinates[k + i] - TICKSIZE * tickup[i]);
         }
       } 
       k += 6;
@@ -390,8 +510,9 @@ public class AxisScale implements java.io.Serializable
             // guard against error that cannot happen, but was seen?
             minorCoordinates[k + i] = 
               (float) ((1.0 - a) * startn[i] + a * startp[i]);
+            // minor ticks are half the size of the major ticks
             minorCoordinates[k + 3 + i] = 
-              (float) (minorCoordinates[k + i] - 0.25 * up[i]);
+              (float) (minorCoordinates[k + i] - TICKSIZE/2 * tickup[i]);
           }
         }
         k += 6;
@@ -401,69 +522,119 @@ public class AxisScale implements java.io.Serializable
       lineArrayVector.add(minorTickArray);
     }
   
-    // labels
-    double[] startbot = new double[3];
-    double[] starttop = new double[3];
+    // Title and labels 
+    // by default, all labels rendered centered
+     TextControl.Justification justification = 
+       TextControl.Justification.CENTER;
+
+    // PlotText is controlled by the initial starting point, base (controls
+    // direction) and up (which way is up).  We handle 2D and 3D differently.
+    // In 2-D, titles are drawn along the positive direction of the axis.
+    // Labels are drawn in the Y-positive direction.
+ 
+
+    // Title First
     double[] startlabel = new double[3];
-    // compute positions along axis of low and high tick marks
-    double abot = (botval - min) / (max - min);
-    double atop = (topval - min) / (max - min);
-    for (int i=0; i<3; i++) {
-      startbot[i] = (1.0 - abot) * startn[i] + abot * startp[i] - 1.5 * up[i];
-      starttop[i] = (1.0 - atop) * startn[i] + atop * startp[i] - 1.5 * up[i];
-      startlabel[i] = 0.5 * (startn[i] + startp[i]) - 1.5 * up[i];
+    double dist = 2.0 + TICKSIZE;   // dist from the line in the up direction;
+    if (twoD) {
+      if (myAxis == X_AXIS) {
+         base = new double[] {SCALE, 0.0, 0.0};
+         up = new double[] {0.0, SCALE, 0.0};
+         dist = (getSide() == PRIMARY) 
+           ? 2.5 + TICKSIZE 
+           : -(1.5 + TICKSIZE - .05);
+      }
+      else if (myAxis == Y_AXIS) {
+         base = new double[] {0.0, SCALE, 0.0};
+         up = new double[] {-SCALE, 0.0, 0.0};
+         dist = (getSide() == PRIMARY) 
+           ? -(1.5 + TICKSIZE) 
+           : (2.5 + TICKSIZE - .05) ;
+      }
     }
-    // all labels rendered with 'true' for centered
-  
-    // draw RealType name
-    /* Change DRM 24-Jan-2001
-    arrays[1] = PlotText.render_label(myLabel, startlabel,
-                    base, up, true);
+    for (int i=0; i<3; i++) {
+      startlabel[i] = 0.5 * (startn[i] + startp[i]) - dist * up[i];
+    }
+    /*
+    System.out.println("For title, point is (" +
+      startlabel[0] + "," + startlabel[1] + "," + startlabel[2] + ")");
     */
+  
     if (labelFont == null)
     {
       VisADLineArray plotArray = 
-        PlotText.render_label(myLabel, startlabel, base, up, true);
+        PlotText.render_label(myTitle, startlabel, base, up, justification);
       lineArrayVector.add(plotArray);
     }
     else
     {
       VisADTriangleArray nameArray = 
-        PlotText.render_font(myLabel, labelFont, startlabel, base, up, true);
+        PlotText.render_font(myTitle, labelFont, 
+                             startlabel, base, up, justification);
       labelArrayVector.add(nameArray);
     }
   
-    labelTable.clear();
-    String botstr = PlotText.shortString(botval);
-    String topstr = PlotText.shortString(topval);
-    if (RealType.Time.equals(scalarMap.getScalar())) {
-      RealType rtype = (RealType) scalarMap.getScalar();
-      botstr = new Real(rtype, botval).toValueString();
-      topstr = new Real(rtype, topval).toValueString();
+    // Draw the labels.  If user hasn't defined their own, make defaults.
+    if (!userLabels) {
+      createStandardLabels(topval, botval, botval, (topval - botval), false);
     }
-    /* change DRM 24-Jan-2001
-    // draw number at bottom tick mark
-    arrays[2] = PlotText.render_label(botstr, startbot, base, up, true);
-    // draw number at top tick mark
-    arrays[3] = PlotText.render_label(topstr, starttop, base, up, true);
-    */
-    labelTable.put(startbot, botstr);
-    labelTable.put(starttop, topstr);
+        
+    dist = 1.0 + TICKSIZE;   // dist from the line in the up direction;
+    double[] updir = (twoD != true) ? up : new double[] {0.0, SCALE, 0.0};
+    if (twoD) {
+      base = new double[] {SCALE, 0.0, 0.0};
+      if (myAxis == X_AXIS) {
+         dist = (getSide() == PRIMARY) 
+           ? (1.0 + TICKSIZE + .15) 
+           : -(TICKSIZE + .15);
+      }
+      else if (myAxis == Y_AXIS) {
+         dist = (getSide() == PRIMARY) 
+           ? -(TICKSIZE + .15) 
+           : (TICKSIZE + .15);
+         justification = 
+           (getSide() == PRIMARY) 
+               ? TextControl.Justification.RIGHT
+               : TextControl.Justification.LEFT;
+      }
+    }
+
     for (Enumeration e = labelTable.keys(); e.hasMoreElements();)
     {
-      double[] val = (double[]) e.nextElement();
+      Double Value;
+      try {
+        Value = (Double) e.nextElement();
+      } catch (ClassCastException cce) {
+        throw new VisADException("Invalid keys in label hashtable");
+      }
+      double test = Value.doubleValue();
+      if (test > max || test < min) continue; // don't draw labels beyond range
+
+      double val = (test - min) / (max - min);
+      // center label on tick if Y axis and 2D
+      if ((myAxis == Y_AXIS) && (twoD == true)) val -= .2 * SCALE; // HACK!!!!!
+
+      double[] point = new double[3];
+      for (int j=0; j < 3; j++) {
+        point[j] = (1.0 - val) * startn[j] + val * startp[j] - dist * up[j];
+      }
+      /*
+      System.out.println("For label = " + Value.doubleValue() + "(" + val + "), point is (" +
+        point[0] + "," + point[1] + "," + point[2] + ")");
+      */
       if (labelFont == null)
       {
         VisADLineArray label = 
-            PlotText.render_label(
-              (String) labelTable.get(val), val, base, up, true);
+          PlotText.render_label(
+            (String) labelTable.get(Value), point, base, updir, justification);
         lineArrayVector.add(label);
       }
       else
       {
         VisADTriangleArray label = 
-            PlotText.render_font(
-              (String) labelTable.get(val), labelFont, val, base, up, true);
+          PlotText.render_font(
+              (String) labelTable.get(Value), labelFont, point, base, 
+              updir, justification);
         labelArrayVector.add(label);
       }
     }
@@ -553,7 +724,7 @@ public class AxisScale implements java.io.Serializable
     newScale.myColor = myColor;
     newScale.axisOrdinal = axisOrdinal;
     newScale.myAxis = myAxis;
-    newScale.myLabel = myLabel;
+    newScale.myTitle = myTitle;
     newScale.labelTable = (Hashtable) labelTable.clone();
     newScale.majorTickSpacing = majorTickSpacing;
     newScale.minorTickSpacing = minorTickSpacing;
@@ -562,6 +733,9 @@ public class AxisScale implements java.io.Serializable
     newScale.snapToBox = snapToBox;
     newScale.labelFont = labelFont;
     newScale.labelSize = labelSize;
+    newScale.axisSide = axisSide;
+    newScale.tickOrient = tickOrient;
+    newScale.userLabels = userLabels;
     return newScale;
   }
 
@@ -654,14 +828,36 @@ public class AxisScale implements java.io.Serializable
   /**
    * Creates a hashtable that will draw text labels starting at the
    * starting point specified using the increment field.
-   * If you call createStandardLabels(10.0, 2.0), then it will
+   * If you call createStandardLabels(0, 100, 2.0, 10.0), then it will
    * make labels for the values 2, 12, 22, 32, etc.
+   * 
    * @see #setLabelTable
-  public Hashtable createStandardLabels(double increment, double start)
-  {
-      return labelTable;
-  }
    */
+  public void createStandardLabels(
+    double max, double min, double base, double increment)
+  {
+    createStandardLabels(max, min, base, increment, true);
+  }
+
+  /**
+   * private copy to allow program to create table, but not remake scale
+   */
+  private void createStandardLabels(
+    double max, double min, double base, double increment, boolean byuser)
+  {
+    labelTable.clear();
+    double[] values = computeTicks(max, min, base, increment);
+    for (int i = 0; i < values.length; i++) {
+      labelTable.put(new Double(values[i]), createLabelString(values[i]));
+    }
+    if (byuser) {
+      try {
+        userLabels = true;
+        scalarMap.makeScale();  // update the display
+      }
+      catch (VisADException ve) {;}
+    }
+  }
 
   /**
    * Used to specify what label will be drawn at any given value.
@@ -675,11 +871,20 @@ public class AxisScale implements java.io.Serializable
   public void setLabelTable( Hashtable labels ) 
     throws VisADException
   {
-      Map oldTable = labelTable;
-      labelTable = labels;
-      if (labels != oldTable) {
-          scalarMap.makeScale();  // update the display
-      }
+    Map oldTable = labelTable;
+    labelTable = labels;
+    if (labels != oldTable) {
+      userLabels = true;
+      scalarMap.makeScale();  // update the display
+    }
+  }
+
+  /**
+   * Get the Hashtable used for labels
+   */
+  public Hashtable getLabelTable()
+  {
+    return labelTable;
   }
 
   /**
@@ -815,6 +1020,58 @@ public class AxisScale implements java.io.Serializable
     }
   }
 
+  /**
+   * Set side for axis (PRIMARY, SECONDARY)
+   * @param side side for axis to appear on
+   */
+  public void setSide(int side)
+  {
+    double oldSide = axisSide;
+    axisSide = (side == SECONDARY) ? SECONDARY : PRIMARY;  // sanity check
+    if (axisSide != oldSide) {
+      try {
+        scalarMap.makeScale();  // update the display
+      }
+      catch (VisADException ve) {;}
+    }
+  }
+
+  /**
+   * Get the alignment for the axis
+   * @return  axis alignment (PRIMARY or SECONDARY)
+   */
+  public int getSide()
+  {
+    return axisSide;
+  }
+
+  /**
+   * Set orientation of tick marks along the axis line.
+   * @param orient (PRIMARY or SECONDARY)
+   */
+  public void setTickOrientation(int orient)
+  {
+    double oldOrient = tickOrient;
+    tickOrient = 
+      (orient == SECONDARY) ? SECONDARY : PRIMARY;  // sanity check
+    if (tickOrient != oldOrient) {
+      try {
+        scalarMap.makeScale();  // update the display
+      }
+      catch (VisADException ve) {;}
+    }
+  }
+
+  /**
+   * Get the orientation for the ticks along the axis
+   * @return  tick orientation (PRIMARY or SECONDARY)
+   */
+  public int getTickOrientation()
+  {
+    return tickOrient;
+  }
+
+  /** compute the high and low tick mark values */
   private double[] computeTickRange(double high, double low, 
                                     double base, double interval)
   {
@@ -839,5 +1096,64 @@ public class AxisScale implements java.io.Serializable
     vals[1] = chi;
     return vals;
 
+  }
+
+  /** compute the tick mark values */
+  private double[] computeTicks(double high, double low, 
+                                double base, double interval)
+  {
+    double[] vals = computeTickRange(high, low, base, interval);
+    double clow = vals[0];
+    double chi = vals[1];
+    /*
+    double start = (low - base) / interval;
+    double clow = 
+      //base + interval * ((int) (start + (start >= 0 ? 0.5 : -0.5)) - 1);
+      base + interval * ((int) Math.round(start)); // DRM 29-Mar-2001
+    while (clow<low) {
+      clow += interval;
+    }
+
+    start = (high - base) / interval;
+    double chi = 
+      //base + interval * ((int) (start + (start >= 0 ? 0.5 : -0.5)) + 1);
+      base + interval * ((int) Math.round(start)); // DRM 29-Mar-2001
+    while (chi>high) {
+      chi -= interval;
+    }
+    */
+
+    // how many contour lines are needed.
+    double tmp1 = (chi-clow) / interval;
+    int numc = (int) (tmp1 + (tmp1 >= 0 ? 0.5 : -0.5)) + 1;
+
+    if (numc < 1) return vals;
+
+    try {
+      vals = new double[numc];
+    } catch (OutOfMemoryError e) {
+        return null;
+    }
+
+    vals[0] = clow;
+    for (int i = 1; i < numc; i++) {
+      vals[i] = vals[i-1] + interval;
+    }
+    return vals;
+  }
+
+  /** create the default string for a value */
+  private String createLabelString(double value)
+  {
+    String label = PlotText.shortString(value);
+    //try {
+      if (RealType.Time.equals(scalarMap.getScalar())) {
+        RealType rtype = (RealType) scalarMap.getScalar();
+        label = new Real(rtype, value).toValueString();
+      }
+    //} 
+    //catch (VisADException ve) {;}
+    //catch (RemoteException re) {;}
+    return label;
   }
 }
