@@ -53,12 +53,35 @@ public class ProjectionControlJ3D extends ProjectionControl {
   transient Vector switches = new Vector();
   int which_child = 2; // initial view along Z axis (?)
 
+  // DRM 6 Nov 2000
+  private double[] savedProjectionMatrix;   
+  /** View of the Postive X face of the display cube */
+  public static final int X_PLUS = 0;
+  /** View of the negative X face of the display cube */
+  public static final int X_MINUS = 1;
+  /** View of the Postive Y face of the display cube */
+  public static final int Y_PLUS = 2;
+  /** View of the negative Y face of the display cube */
+  public static final int Y_MINUS = 3;
+  /** View of the Postive Z face of the display cube */
+  public static final int Z_PLUS = 4;
+  /** View of the negative Z face of the display cube */
+  public static final int Z_MINUS = 5;
+
+  /**
+   * Construct a new ProjectionControl for the display.  The initial
+   * projection is saved so it can be reset with resetProjection().
+   * @see #resetProjection().
+   * @param  d  display whose projection will be controlled by this
+   * @throws VisADException
+   */
   public ProjectionControlJ3D(DisplayImpl d) throws VisADException {
     super(d);
     // WLH 8 April 99
     Matrix = new Transform3D();
     matrix = new double[MATRIX3D_LENGTH];
     Matrix.get(matrix);
+    saveProjection();   // DRM 6 Nov 2000
 /* WLH 8 April 99
     Matrix = init();
     matrix = new double[MATRIX3D_LENGTH];
@@ -67,6 +90,12 @@ public class ProjectionControlJ3D extends ProjectionControl {
 */
   }
 
+  /**
+   * Set the projection matrix.
+   * @param m new projection matrix
+   * @throws VisADException  VisAD error
+   * @throws RemoteException  remote error
+   */
   public void setMatrix(double[] m)
          throws VisADException, RemoteException {
     super.setMatrix(m);
@@ -78,6 +107,14 @@ public class ProjectionControlJ3D extends ProjectionControl {
     changeControl(false);
   }
 
+  /**
+   * Set the aspect for the axes.  Default upon initialization is 
+   * 1.0, 1.0, 1.0.  Invokes saveProjection to set this as the new default.
+   * @see #saveProjection()
+   * @param aspect  ratios (dimension 3) for the X, Y, and Z axes
+   * @throws VisADException  aspect is null or wrong dimension or other error
+   * @throws RemoteException  remote error
+   */
   public void setAspect(double[] aspect)
          throws VisADException, RemoteException {
     if (aspect == null || aspect.length != 3) {
@@ -91,6 +128,7 @@ public class ProjectionControlJ3D extends ProjectionControl {
     double[] m = new double[MATRIX3D_LENGTH];
     mat.get(m);
     setMatrix(getDisplay().multiply_matrix(mult, m));
+    saveProjection();   // DRM 6 Nov 2000
   }
 
   private Transform3D init() {
@@ -159,6 +197,76 @@ System.out.println("which_child = " + which_child + "  " + dx +
     }
   }
 
+  /**
+   * Saves the current display 3-D to 2-D projection.  The projection may 
+   * later be restored by the method <code>resetProjection()</code>.
+   * @see #resetProjection()
+   */
+  public void saveProjection()
+  {
+    savedProjectionMatrix = getMatrix();
+  }
+
+  /**
+   * Restores to projection matrix at time of last <code>saveProjection()</code>
+   * call -- if one was made -- or to initial projection otherwise.
+   * @see #saveProjection()
+   * @throws VisADException   VisAD failure.
+   * @throws RemoteException  Java RMI failure.
+   */
+  public void resetProjection()
+    throws VisADException, RemoteException
+  {
+      setMatrix(savedProjectionMatrix);
+  }
+
+  /**
+   * Set the projection so the requested view is displayed.
+   * @param  view  one of the static view fields (X_PLUS, X_MINUS, etc).  This
+   *               will set the view so the selected face is orthogonal to
+   *               the display.
+   * @throws VisADException   VisAD failure.
+   * @throws RemoteException  Java RMI failure.
+   */
+  public void setOrthoView(int view)
+    throws VisADException, RemoteException 
+  {
+    double[] viewMatrix;
+    if (getDisplayRenderer().getMode2D()) return;
+    switch (view)
+    {
+      case Z_PLUS: // Top
+        viewMatrix = 
+          getDisplay().make_matrix(0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0);
+        break;
+      case Z_MINUS: // Bottom
+        viewMatrix = 
+          getDisplay().make_matrix(0.0, 180.0, 0.0, 1.0, 0.0, 0.0, 0.0);
+        break;
+      case Y_PLUS: // North
+        viewMatrix = 
+          getDisplay().make_matrix(-90.0, 180.0, 0.0, 1.0, 0.0, 0.0, 0.0);
+        break;
+      case Y_MINUS: // South
+        viewMatrix = 
+          getDisplay().make_matrix(90.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0);
+        break;
+      case X_PLUS: // East
+        viewMatrix = 
+          getDisplay().make_matrix(0.0, 90.0, 90.0, 1.0, 0.0, 0.0, 0.0);
+        break;
+      case X_MINUS: // West
+        viewMatrix = 
+          getDisplay().make_matrix(0.0, -90.0, -90.0, 1.0, 0.0, 0.0, 0.0);
+        break;
+      default:   // no change
+        viewMatrix = 
+          getDisplay().make_matrix(0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0);
+        break;
+   }
+   setMatrix(getDisplay().multiply_matrix(viewMatrix, savedProjectionMatrix));
+ }
+
   /** SwitchProjection is an inner class of ProjectionControlJ3D for
       (Switch, DataRenderer) structures */
   private class SwitchProjection extends Object {
@@ -170,6 +278,4 @@ System.out.println("which_child = " + which_child + "  " + dx +
       renderer = re;
     }
   }
-
 }
-
