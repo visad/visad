@@ -47,42 +47,75 @@ public class RealTupleType extends TupleType {
   private Set DefaultSet;
   private boolean DefaultSetEverAccessed;
 
-  /** system intrnsic RealTupleType-s;
-      useful as Reference-s for CoordinateSystem-s */
   private static RealType[] components2c =
     {RealType.XAxis, RealType.YAxis};
+  /**
+   * System intrinsic 
+   * RealTupleType for (RealType.XAxis, RealType.YAxis) 
+   */
   public static final RealTupleType SpatialCartesian2DTuple =
     new RealTupleType(components2c, true);
+
   private static RealType[] components3c =
     {RealType.XAxis, RealType.YAxis, RealType.ZAxis};
+  /**
+   * System intrinsic 
+   * for (RealType.XAxis, RealType.YAxis, RealType.ZAxis) 
+   */
   public static final RealTupleType SpatialCartesian3DTuple =
     new RealTupleType(components3c, true);
 
-
   private static RealType[] components2e =
     {RealType.Longitude, RealType.Latitude};
+  /** 
+   * System intrinsic
+   * for (RealType.Longitude, RealType.Latitude) 
+   */
   public final static RealTupleType SpatialEarth2DTuple =
     new RealTupleType(components2e, true);
 
+  private static RealType[] componentsll =
+    {RealType.Latitude, RealType.Longitude};
+  /** 
+   * System intrinsic
+   * for (RealType.Latitude, RealType.Longitude) 
+   */
+  public final static RealTupleType LatitudeLongitudeTuple =
+    new RealTupleType(componentsll, true);
+
   private static RealType[] components3e =
     {RealType.Longitude, RealType.Latitude, RealType.Altitude};
+  /** 
+   * System intrinsic
+   * for (RealType.Longitude, RealType.Latitude, RealType.Altitude)
+   */
   public final static RealTupleType SpatialEarth3DTuple =
     new RealTupleType(components3e, true);
 
 
   private static RealType[] components1t =
     {RealType.Time};
+  /** 
+   * System intrinsic for (RealType.Time) 
+   */
   public static final RealTupleType Time1DTuple =
     new RealTupleType(components1t, true);
 
 
   private static RealType[] components2g =
     {RealType.Generic, RealType.Generic};
+  /** 
+   * System intrinsic for (RealType.Generic, RealType.Generic) 
+   */
   public final static RealTupleType Generic2D =
     new RealTupleType(components2g, true);
 
   private static RealType[] components3g = 
     {RealType.Generic, RealType.Generic, RealType.Generic};
+  /** 
+   * System intrinsic 
+   * for (RealType.Generic, RealType.Generic, RealType.Generic)
+   */
   public final static RealTupleType Generic3D =
     new RealTupleType(components3g, true);
 
