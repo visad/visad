@@ -316,7 +316,12 @@ public class RealTuple
        * "this" to reduce the memory-footprint but Bill believes that doing so
        * would be counter-intuitive and might harm applications.
        */
-    return super.clone();
+    try {
+      return super.clone();
+    }
+    catch (CloneNotSupportedException ex) {
+      throw new RuntimeException("Assertion failure");
+    }
   }
 
   /**
