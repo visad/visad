@@ -138,8 +138,7 @@ public abstract class Delaunay implements java.io.Serializable {
         return (Delaunay) delan;
       }
     }
-    catch (Exception e) {
-    }
+    catch (Exception e) { }
 
     return null;
   }
@@ -148,7 +147,7 @@ public abstract class Delaunay implements java.io.Serializable {
       the mult factor; copy specifies whether scale should modify
       the actual samples or a copy of them. */
   public static float[][] scale(float[][] samples, float mult,
-                                boolean copy) throws VisADException {
+                                boolean copy) {
     int dim = samples.length;
     int nrs = samples[0].length;
     for (int i=1; i<dim; i++) {
@@ -182,7 +181,7 @@ public abstract class Delaunay implements java.io.Serializable {
       co-linear points; copy specifies whether perturb should modify
       the actual samples or a copy of them. */
   public static float[][] perturb(float[][] samples, float epsilon,
-                                  boolean copy) throws VisADException {
+                                  boolean copy) {
     int dim = samples.length;
     int nrs = samples[0].length;
     for (int i=1; i<dim; i++) {
@@ -213,8 +212,9 @@ public abstract class Delaunay implements java.io.Serializable {
 
   /** test checks a triangulation in various ways to make sure it
       is constructed correctly; test returns false if there are
-      any problems with the triangulation. */
-  public boolean test(float[][] samples) throws VisADException {
+      any problems with the triangulation.  This method is expensive,
+      provided mainly for debugging purposes. */
+  public boolean test(float[][] samples) {
 
     int dim = samples.length;
     int dim1 = dim+1;
@@ -296,6 +296,200 @@ public abstract class Delaunay implements java.io.Serializable {
 
     // all tests passed
     return true;
+  }
+
+  /** improve uses edge-flipping to bring the current triangulation
+      closer to the true Delaunay triangulation.  pass is the number
+      of passes the algorithm should take over all edges (however,
+      the algorithm terminates if no edges are flipped for an
+      entire pass). */
+  public void improve(float[][] samples, int pass) throws VisADException {
+    int dim = samples.length;
+    int dim1 = dim+1;
+    if (Tri[0].length != dim1) {
+      throw new SetException("Delaunay.improve: samples dimension " +
+                             "does not match");
+    }
+    // only 2-D triangulations supported for now
+    if (dim > 2) {
+      throw new UnimplementedException("Delaunay.improve: dimension " +
+                                       "must be 2!");
+    }
+    int ntris = Tri.length;
+    int nrs = samples[0].length;
+    for (int i=1; i<dim; i++) {
+      nrs = Math.min(nrs, samples[i].length);
+    }
+    float[] samp0 = samples[0];
+    float[] samp1 = samples[1];
+
+    // go through entire triangulation pass times
+    boolean eflipped = false;
+    for (int p=0; p<pass; p++) {
+      eflipped = false;
+
+      // edge keeps track of which edges have been checked
+      boolean[] edge = new boolean[NumEdges];
+      for (int i=0; i<NumEdges; i++) edge[i] = true;
+
+      // check every edge of every triangle
+      for (int t=0; t<ntris; t++) {
+        int[] trit = Tri[t];
+        int[] walkt = Walk[t];
+        int[] edgest = Edges[t];
+        for (int e=0; e<2; e++) {
+          int curedge = edgest[e];
+          // only check the edge if it hasn't been checked yet
+          if (edge[curedge]) {
+            int t2 = walkt[e];
+
+            // only check edge if it is not part of the outer hull
+            if (t2 >= 0) {
+              int[] trit2 = Tri[t2];
+              int[] walkt2 = Walk[t2];
+              int[] edgest2 = Edges[t2];
+
+              // check if the diagonal needs to be flipped
+              int f = (walkt2[0] == t) ? 0 :
+                      (walkt2[1] == t) ? 1 : 2;
+              int A = (e + 2) % 3;
+              int B = (A + 1) % 3;
+              int C = (B + 1) % 3;
+              int D = (f + 2) % 3;
+              float ax = samp0[trit[A]];
+              float ay = samp1[trit[A]];
+              float bx = samp0[trit[B]];
+              float by = samp1[trit[B]];
+              float cx = samp0[trit[C]];
+              float cy = samp1[trit[C]];
+              float dx = samp0[trit2[D]];
+              float dy = samp1[trit2[D]];
+              float abx = ax - bx;
+              float aby = ay - by;
+              float acx = ax - cx;
+              float acy = ay - cy;
+              float dbx = dx - bx;
+              float dby = dy - by;
+              float dcx = dx - cx;
+              float dcy = dy - cy;
+              float Q = abx*acx + aby*acy;
+              float R = dbx*abx + dby*aby;
+              float S = acx*dcx + acy*dcy;
+              float T = dbx*dcx + dby*dcy;
+              boolean QD = abx*acy - aby*acx >= 0;
+              boolean RD = dbx*aby - dby*abx >= 0;
+              boolean SD = acx*dcy - acy*dcx >= 0;
+              boolean TD = dcx*dby - dcy*dbx >= 0;
+              boolean sig = (QD ? 1 : 0) + (RD ? 1 : 0)
+                          + (SD ? 1 : 0) + (TD ? 1 : 0) < 2;
+              boolean d;
+              if (QD == sig) d = true;
+              else if (RD == sig) d = false;
+              else if (SD == sig) d = false;
+              else if (TD == sig) d = true;
+              else if (Q < 0 && T < 0 || R > 0 && S > 0) d = true;
+              else if (R < 0 && S < 0 || Q > 0 && T > 0) d = false;
+              else if ((Q < 0 ? Q : T) < (R < 0 ? R : S)) d = true;
+              else d = false;
+              if (d) {
+                // diagonal needs to be swapped
+                eflipped = true;
+                int n1 = trit[A];
+                int n2 = trit[B];
+                int n3 = trit[C];
+                int n4 = trit2[D];
+                int w1 = walkt[A];
+                int w2 = walkt[C];
+                int e1 = edgest[A];
+                int e2 = edgest[C];
+                int w3, w4, e3, e4;
+                if (trit2[(D+1)%3] == trit[C]) {
+                  w3 = walkt2[D];
+                  w4 = walkt2[(D+2)%3];
+                  e3 = edgest2[D];
+                  e4 = edgest2[(D+2)%3];
+                }
+                else {
+                  w3 = walkt2[(D+2)%3];
+                  w4 = walkt2[D];
+                  e3 = edgest2[(D+2)%3];
+                  e4 = edgest2[D];
+                }
+
+                // update Tri array
+                trit[0] = n1;
+                trit[1] = n2;
+                trit[2] = n4;
+                trit2[0] = n1;
+                trit2[1] = n4;
+                trit2[2] = n3;
+
+                // update Walk array
+                walkt[0] = w1;
+                walkt[1] = w4;
+                walkt[2] = t2;
+                walkt2[0] = t;
+                walkt2[1] = w3;
+                walkt2[2] = w2;
+                if (w2 >= 0) {
+                  int val = (Walk[w2][0] == t) ? 0
+                          : (Walk[w2][1] == t) ? 1 : 2;
+                  Walk[w2][val] = t2;
+                }
+                if (w4 >= 0) {
+                  int val = (Walk[w4][0] == t2) ? 0
+                          : (Walk[w4][1] == t2) ? 1 : 2;
+                  Walk[w4][val] = t;
+                }
+
+                // update Edges array
+                edgest[0] = e1;
+                edgest[1] = e4;
+                // Edges[t][2] and Edges[t2][0] stay the same
+                edgest2[1] = e3;
+                edgest2[2] = e2;
+
+                // update Vertices array
+                int[] vertn1 = Vertices[n1];
+                int[] vertn2 = Vertices[n2];
+                int[] vertn3 = Vertices[n3];
+                int[] vertn4 = Vertices[n4];
+                int ln1 = vertn1.length;
+                int ln2 = vertn2.length;
+                int ln3 = vertn3.length;
+                int ln4 = vertn4.length;
+                int[] tn1 = new int[ln1 + 1];  // Vertices[n1] adds t2
+                int[] tn2 = new int[ln2 - 1];  // Vertices[n2] loses t2
+                int[] tn3 = new int[ln3 - 1];  // Vertices[n3] loses t
+                int[] tn4 = new int[ln4 + 1];  // Vertices[n4] adds t
+                System.arraycopy(vertn1, 0, tn1, 0, ln1);
+                tn1[ln1] = t2;
+                int c = 0;
+                for (int i=0; i<ln2; i++) {
+                  if (vertn2[i] != t2) tn2[c++] = vertn2[i];
+                }
+                c = 0;
+                for (int i=0; i<ln3; i++) {
+                  if (vertn3[i] != t) tn3[c++] = vertn3[i];
+                }
+                System.arraycopy(vertn4, 0, tn4, 0, ln4);
+                tn4[ln4] = t;
+                Vertices[n1] = tn1;
+                Vertices[n2] = tn2;
+                Vertices[n3] = tn3;
+                Vertices[n4] = tn4;
+              }
+            }
+
+            // the edge has now been checked
+            edge[curedge] = false;
+          }
+        }
+      }
+
+      // if no edges have been flipped this pass, then stop
+      if (!eflipped) break;
+    }
   }
 
   /** finish_triang calculates a triangulation's helper arrays, Walk and Edges,
@@ -501,22 +695,11 @@ public abstract class Delaunay implements java.io.Serializable {
     return s.toString();
   }
 
-/*
-  public int[][] Tri;        // triangles/tetrahedra --> vertices
-                             //   Tri = new int[ntris][dim + 1]
-  public int[][] Vertices;   // vertices --> triangles/tetrahedra
-                             //   Vertices = new int[nrs][nverts[i]]
-  public int[][] Walk;       // triangles/tetrahedra --> triangles/tetrahedra
-                             //   Walk = new int[ntris][dim + 1]
-  public int[][] Edges;      // tri/tetra edges --> global edge number
-                             //   Edges = new int[ntris][3 * (dim - 1)];
-  public int NumEdges;       // number of unique global edge numbers
-*/
-
   /** A graphical demonstration of implemented Delaunay triangulation
       algorithms, in the 2-D case */
   public static void main(String[] argv) throws VisADException {
     boolean problem = false;
+    int numpass = 0;
     int points = 0;
     int type = 0;
     int l = 1;
@@ -526,7 +709,7 @@ public abstract class Delaunay implements java.io.Serializable {
         points = Integer.parseInt(argv[0]);
         type = Integer.parseInt(argv[1]);
         if (argv.length > 2) l = Integer.parseInt(argv[2]);
-        if (points < 1 || type < 1 || type > 3 || l < 1 || l > 3) {
+        if (points < 1 || type < 1 || l < 1 || l > 3) {
           problem = true;
         }
       }
@@ -540,8 +723,9 @@ public abstract class Delaunay implements java.io.Serializable {
                          "points = The number of points to triangulate.\n" +
                          "type   = The triangulation method to use:\n" +
                          "         1 = Clarkson\n" +
-                         "         2 = Fast\n" +
-                         "         3 = Watson\n" +
+                         "         2 = Watson\n" +
+                         "         3 = Fast\n" +
+                         "     X + 3 = Fast with X improvement passes\n" +
                          "label  = How to label the diagram:\n" +
                          "         1 = No labels (default)\n" +
                          "         2 = Vertex boxes\n" +
@@ -549,46 +733,63 @@ public abstract class Delaunay implements java.io.Serializable {
                          "         4 = Vertex numbers\n");
       System.exit(1);
     }
+    if (type > 3) {
+      numpass = type - 3;
+      type = 3;
+    }
 
-    float[][] samples;
+    float[][] samples = new float[2][];
     int[][] ttri = null;
 
-    samples = new float[2][points];
-    final float[] samp0 = samples[0];
-    final float[] samp1 = samples[1];
+    float[] samp0 = null;
+    float[] samp1 = null;
 
+    Delaunay delaun = null;
+    samples[0] = new float[points];
+    samples[1] = new float[points];
+    samp0 = samples[0];
+    samp1 = samples[1];
     for (int i=0; i<points; i++) {
       samp0[i] = (float) (500 * Math.random());
       samp1[i] = (float) (500 * Math.random());
     }
     System.out.print("Triangulating " + points + " points with ");
+    long start = 0, end = 0;
     if (type == 1) {
       System.out.println("the Clarkson algorithm.");
-      long start = System.currentTimeMillis();
-      DelaunayClarkson delaun = new DelaunayClarkson(samples);
-      long end = System.currentTimeMillis();
-      float time = (end - start) / 1000f;
-      System.out.println("Operation took " + time + " seconds.");
-      ttri = delaun.Tri;
+      start = System.currentTimeMillis();
+      delaun = (Delaunay) new DelaunayClarkson(samples);
+      end = System.currentTimeMillis();
     }
     else if (type == 2) {
-      System.out.println("the Fast algorithm.");
-      long start = System.currentTimeMillis();
-      DelaunayFast delaun = new DelaunayFast(samples);
-      long end = System.currentTimeMillis();
-      float time = (end - start) / 1000f;
-      System.out.println("Operation took " + time + " seconds.");
-      ttri = delaun.Tri;
+      System.out.println("the Watson algorithm.");
+      start = System.currentTimeMillis();
+      delaun = (Delaunay) new DelaunayWatson(samples);
+      end = System.currentTimeMillis();
     }
     else if (type == 3) {
-      System.out.println("the Watson algorithm.");
-      long start = System.currentTimeMillis();
-      DelaunayWatson delaun = new DelaunayWatson(samples);
-      long end = System.currentTimeMillis();
-      float time = (end - start) / 1000f;
-      System.out.println("Operation took " + time + " seconds.");
-      ttri = delaun.Tri;
+      System.out.println("the Fast algorithm.");
+      start = System.currentTimeMillis();
+      delaun = (Delaunay) new DelaunayFast(samples);
+      end = System.currentTimeMillis();
     }
+    float time = (end - start) / 1000f;
+    System.out.println("Triangulation took " + time + " seconds.");
+    ttri = delaun.Tri;
+    if (numpass > 0) {
+      System.out.println("Improving samples: " + numpass + " pass" +
+                         (numpass > 1 ? "es..." : "..."));
+      start = System.currentTimeMillis();
+      delaun.improve(samples, numpass);
+      end = System.currentTimeMillis();
+      time = (end - start) / 1000f;
+      System.out.println("Improvement took " + time + " seconds.");
+    }
+    /* Note: the following code tests the triangulation for errors
+    System.out.print("Testing triangulation integrity...");
+    if (delaun.test(samples)) System.out.println("OK");
+    else System.out.println("FAILED!");
+    */
 
     // set up final variables
     final int label = l;
@@ -601,11 +802,32 @@ public abstract class Delaunay implements java.io.Serializable {
         System.exit(0);
       }
     });
+    final float[] s0 = samp0;
+    final float[] s1 = samp1;
     JComponent jc = new JComponent() {
       public void paint(Graphics gr) {
+
+        // draw triangles
+        for (int i=0; i<tri.length; i++) {
+          int[] t = tri[i];
+          gr.drawLine((int) s0[t[0]],
+                      (int) s1[t[0]],
+                      (int) s0[t[1]],
+                      (int) s1[t[1]]);
+          gr.drawLine((int) s0[t[1]],
+                      (int) s1[t[1]],
+                      (int) s0[t[2]],
+                      (int) s1[t[2]]);
+          gr.drawLine((int) s0[t[2]],
+                      (int) s1[t[2]],
+                      (int) s0[t[0]],
+                      (int) s1[t[0]]);
+        }
+
+        // draw labels if specified
         if (label == 2) {        // vertex boxes
-          for (int i=0; i<samp0.length; i++) {
-            gr.drawRect((int) samp0[i]-2, (int) samp1[i]-2, 4, 4);
+          for (int i=0; i<s0.length; i++) {
+            gr.drawRect((int) s0[i]-2, (int) s1[i]-2, 4, 4);
           }
         }
         else if (label == 3) {   // triangle numbers
@@ -613,37 +835,21 @@ public abstract class Delaunay implements java.io.Serializable {
             int t0 = tri[i][0];
             int t1 = tri[i][1];
             int t2 = tri[i][2];
-            int avgX = (int) ((samp0[t0] + samp0[t1] + samp0[t2])/3);
-            int avgY = (int) ((samp1[t0] + samp1[t1] + samp1[t2])/3);
+            int avgX = (int) ((s0[t0] + s0[t1] + s0[t2])/3);
+            int avgY = (int) ((s1[t0] + s1[t1] + s1[t2])/3);
             gr.drawString(String.valueOf(i), avgX-4, avgY);
           }
         }
         else if (label == 4) {   // vertex numbers
-          for (int i=0; i<samp0.length; i++) {
-            gr.drawString(String.valueOf(i), (int) samp0[i],
-                                             (int) samp1[i]);
+          for (int i=0; i<s0.length; i++) {
+            gr.drawString("" + i, (int) s0[i], (int) s1[i]);
           }
-        }
-    
-        for (int i=0; i<tri.length; i++) {
-          int[] t = tri[i];
-          gr.drawLine((int) samp0[t[0]],
-                      (int) samp1[t[0]],
-                      (int) samp0[t[1]],
-                      (int) samp1[t[1]]);
-          gr.drawLine((int) samp0[t[1]],
-                      (int) samp1[t[1]],
-                      (int) samp0[t[2]],
-                      (int) samp1[t[2]]);
-          gr.drawLine((int) samp0[t[2]],
-                      (int) samp1[t[2]],
-                      (int) samp0[t[0]],
-                      (int) samp1[t[0]]);
         }
       }
     };
     frame.getContentPane().add(jc);
     frame.setSize(new Dimension(510, 530));
+    frame.setTitle("Triangulation results");
     frame.setVisible(true);
   }
 

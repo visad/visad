@@ -238,8 +238,8 @@ public class DelaunayFast extends Delaunay {
           if (samp[coord][hull2[i]] < samp[coord][hull2[low2]]) low2 = i;
         }
 
-        // hull sweep must be performed twice to ensure correctness
-        for (int t=0; t<2; t++) {
+        // hull sweep must be performed thrice to ensure correctness
+        for (int t=0; t<3; t++) {
           // optimize upp1
           int bob = (upp1+1)%hull1.length;
           float ax = samp0[hull2[upp2]];
@@ -439,7 +439,6 @@ public class DelaunayFast extends Delaunay {
             tris[tp][0][t] = hull2[base2];
             tris[tp][1][t] = hull1[base1];
             tris[tp][2][t] = hull2[oneUp2];
-            /* TEMP */ //System.out.println("case 2: add tri: (" + hull2[base2] + ", " + hull1[base1] + ", " + hull2[oneUp2] + ")");
             ntris++;
             nverts[hull1[base1]]++;
             nverts[hull2[base2]]++;
@@ -454,7 +453,6 @@ public class DelaunayFast extends Delaunay {
             tris[tp][0][t] = hull2[base2];
             tris[tp][1][t] = hull1[base1];
             tris[tp][2][t] = hull1[oneUp1];
-            /* TEMP */ //System.out.println("case 3: add tri: (" + hull2[base2] + ", " + hull1[base1] + ", " + hull1[oneUp1] + ")");
             ntris++;
             nverts[hull1[base1]]++;
             nverts[hull2[base2]]++;
@@ -465,37 +463,48 @@ public class DelaunayFast extends Delaunay {
 
           // neither side has reached the top yet
           else {
-            boolean b1o2diag;
-            float Ax = samp0[hull1[oneUp1]] - samp0[hull1[base1]];
-            float Ay = samp1[hull1[oneUp1]] - samp1[hull1[base1]];
-            float Bx = samp0[hull2[base2]] - samp0[hull1[base1]];
-            float By = samp1[hull2[base2]] - samp1[hull1[base1]];
-            float Cx = samp0[hull2[base2]] - samp0[hull2[oneUp2]];
-            float Cy = samp1[hull2[base2]] - samp1[hull2[oneUp2]];
-            float Dx = samp0[hull1[oneUp1]] - samp0[hull2[oneUp2]];
-            float Dy = samp1[hull1[oneUp1]] - samp1[hull2[oneUp2]];
-
-            /* Check for greater than 180 degree angles.
-               -------------------------------------------
-               Note: base angles are checked first because
-               ----  oneUp angles could be false alarms
-                     (on an inside-out quadrilateral,
-                      angles less than zero return
-                      "positive" on a dot-product test).
-               ------------------------------------------- */
-            if (Ax*By - Ay*Bx > 0) b1o2diag = true;
-            else if (Bx*Cy - By*Cx > 0) b1o2diag = false;
-            else if (Cx*Dy - Cy*Dx > 0) b1o2diag = true;
-            else if (Dx*Ay - Dy*Ax > 0) b1o2diag = false;
-
-            // use slopes to find larger angle sum
-            else b1o2diag = (Ax/Ay + By/Bx + Dy/Dx + Cx/Cy < 0);
-
-            if (b1o2diag) {
+            boolean d;
+            int hb1 = hull1[base1];
+            int ho1 = hull1[oneUp1];
+            int hb2 = hull2[base2];
+            int ho2 = hull2[oneUp2];
+            float ax = samp0[ho2];
+            float ay = samp1[ho2];
+            float bx = samp0[hb2];
+            float by = samp1[hb2];
+            float cx = samp0[ho1];
+            float cy = samp1[ho1];
+            float dx = samp0[hb1];
+            float dy = samp1[hb1];
+            float abx = ax - bx;
+            float aby = ay - by;
+            float acx = ax - cx;
+            float acy = ay - cy;
+            float dbx = dx - bx;
+            float dby = dy - by;
+            float dcx = dx - cx;
+            float dcy = dy - cy;
+            float Q = abx*acx + aby*acy;
+            float R = dbx*abx + dby*aby;
+            float S = acx*dcx + acy*dcy;
+            float T = dbx*dcx + dby*dcy;
+            boolean QD = abx*acy - aby*acx >= 0;
+            boolean RD = dbx*aby - dby*abx >= 0;
+            boolean SD = acx*dcy - acy*dcx >= 0;
+            boolean TD = dcx*dby - dcy*dbx >= 0;
+            boolean sig = (QD ? 1 : 0) + (RD ? 1 : 0) + (SD ? 1 : 0) + (TD ? 1 : 0) < 2;
+            if (QD == sig) d = true;
+            else if (RD == sig) d = false;
+            else if (SD == sig) d = false;
+            else if (TD == sig) d = true;
+            else if (Q < 0 && T < 0 || R > 0 && S > 0) d = true;
+            else if (R < 0 && S < 0 || Q > 0 && T > 0) d = false;
+            else if ((Q < 0 ? Q : T) < (R < 0 ? R : S)) d = true;
+            else d = false;
+            if (d) {
               tris[tp][0][t] = hull2[base2];
               tris[tp][1][t] = hull1[base1];
               tris[tp][2][t] = hull2[oneUp2];
-              /* TEMP */ //System.out.println("case 4: add tri: (" + hull2[base2] + ", " + hull1[base1] + ", " + hull2[oneUp2] + ")");
               ntris++;
               nverts[hull1[base1]]++;
               nverts[hull2[base2]]++;
@@ -510,7 +519,6 @@ public class DelaunayFast extends Delaunay {
               tris[tp][0][t] = hull2[base2];
               tris[tp][1][t] = hull1[base1];
               tris[tp][2][t] = hull1[oneUp1];
-              /* TEMP */ //System.out.println("case 5: add tri: (" + hull2[base2] + ", " + hull1[base1] + ", " + hull1[oneUp1] + ")");
               ntris++;
               nverts[hull1[base1]]++;
               nverts[hull2[base2]]++;
@@ -546,7 +554,6 @@ public class DelaunayFast extends Delaunay {
       nverts[i] = 0;
     }
     int a, b, c;
-    /* TEMP */ //System.out.println("Main algorithm finished: " + ntris + " triangles created");
     for (int i=0; i<ntris; i++) {
       a = Tri[i][0];
       b = Tri[i][1];
