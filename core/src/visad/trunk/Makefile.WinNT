@@ -542,7 +542,8 @@ visad.RemoteThingReferenceImpl
 
 RMIC_COLLAB_FILES = \
 visad.collab.RemoteDisplayMonitorImpl \
-visad.collab.RemoteDisplaySyncImpl
+visad.collab.RemoteDisplaySyncImpl \
+visad.collab.RemoteEventProviderImpl
 
 recompile: \
 *.class \
