@@ -32,13 +32,13 @@ import java.awt.geom.Rectangle2D;
 public class GRIBCoordinateSystem extends visad.georef.MapProjection {
 
   private static Unit[] coordinate_system_units = {null, null};
-  private static CoordinateSystem c;
-  private static double spacing;
+  private CoordinateSystem c;
+  private double spacing;
   private boolean isLambert=false;
   private boolean isLatLon=false;
   private double La1, Lo1, LoMax, Di, Dj;
   private double aspectRatio = 1.0;
-  private Rectangle2D range;
+  private double[] range;
 
   /**
    * Constructor for a Lambert conformal (GRIB type code = 3) with
@@ -174,25 +174,43 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
                    throws VisADException {
 
     super(ref, coordinate_system_units);
+    range = new double[4];
+
     if (gridNumber == 211) {
 
       doLambert(ref, 12.190, -133.459, 81.2705, 25.0, 25.0, -95.0);
-      range = new Rectangle2D.Double(0.0, 0.0, 93., 65.);
+      //range = new Rectangle2D.Double(0.0, 0.0, 93., 65.);
+      range[0] = 0.0;
+      range[1] = 0.0;
+      range[2] = 93.0;
+      range[3] = 65.0;
 
     } else if (gridNumber == 212) {
 
       doLambert(ref, 12.190, -133.459, 40.63525, 25.0, 25.0, -95.0);
-      range = new Rectangle2D.Double(0.0, 0.0, 185., 129.);
+      //range = new Rectangle2D.Double(0.0, 0.0, 185., 129.);
+      range[0] = 0.0;
+      range[1] = 0.0;
+      range[2] = 185.0;
+      range[3] = 129.0;
 
     } else if (gridNumber == 215) {
 
       doLambert(ref, 12.190, -133.459, 20.317625, 25.0, 25.0, -95.0);
-      range = new Rectangle2D.Double(0.0, 0.0, 369., 257.);
+      //range = new Rectangle2D.Double(0.0, 0.0, 369., 257.);
+      range[0] = 0.0;
+      range[1] = 0.0;
+      range[2] = 369.0;
+      range[3] = 257.0;
 
     } else if (gridNumber == 236) {
 
       doLambert(ref, 16.281, 233.862, 40.635, 25.0, 25.0, 265.0);
-      range = new Rectangle2D.Double(0.0, 0.0, 151., 113.);
+      //range = new Rectangle2D.Double(0.0, 0.0, 151., 113.);
+      range[0] = 0.0;
+      range[1] = 0.0;
+      range[2] = 151.0;
+      range[3] = 113.0;
 
     } else {
         System.out.println("GRIB Grid type unknown = "+gridNumber);
@@ -213,8 +231,12 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
      this.Dj = Dj;
      LoMax = Lo1 + Di*(Ni - 1);
      aspectRatio = (Di/Dj);
-     range =
-         new Rectangle2D.Double(0.0, 0.0, (double) (Ni), (double) (Nj));
+     //range = new Rectangle2D.Double(0.0, 0.0, (double) (Ni), (double) (Nj));
+     range = new double[4];
+     range[0] = 0.0;
+     range[1] = 0.0;
+     range[2] = (double)Ni;
+     range[3] = (double)Nj;
 
      //System.out.println("la1, lo1, ,LoMax, di, dj ="+La1+" "+Lo1+" "+LoMax+" "+ Di+" "+Dj);
 
@@ -360,7 +382,9 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
   /**
    *  return the bounding box for this projection
    */
-  public Rectangle2D getDefaultMapArea() { return range; }
+  public Rectangle2D getDefaultMapArea() { 
+    return new Rectangle2D.Double(range[0], range[1], range[2], range[3]); 
+  }
 
   public double getAspectRatio() {
     return aspectRatio;
@@ -382,6 +406,8 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
          (RealType.Latitude, RealType.Longitude);
 
     GRIBCoordinateSystem nc = new GRIBCoordinateSystem(211);
+    System.out.println("isSerializable? "+
+                visad.util.DataUtility.isSerializable(nc,true));
 
     double[][] latlon = new double[2][1];
     double[][] xy = new double[2][1];
