@@ -43,13 +43,13 @@ import java.io.IOException;
 /**
  FFT is the VisAD class for Fourier Transforms, using
  the Fast Fourier Transform when the domain length is
- a power of two
+ a power of two.<p>
 */
 
 public class FFT {
 
   /** invoke in SpreadSheet by:
-      link(visad.matrix.FFT.forwardFT(A1))
+      link(visad.math.FFT.forwardFT(A1))
   */
   public static FlatField forwardFT(Data[] datums) {
     FlatField result = null;
@@ -69,7 +69,7 @@ public class FFT {
   }
 
   /** invoke in SpreadSheet by:
-      link(visad.matrix.FFT.forwardFT(A1))
+      link(visad.math.FFT.forwardFT(A1))
   */
   public static FlatField backwardFT(Data[] datums) {
     FlatField result = null;
