@@ -1269,6 +1269,14 @@ if (initialize) {
       return null;
     }
 
+    GraphicsModeControl gmc = getGraphicsModeControl();
+    if (ctlClass.isInstance(gmc)) {
+      if (v == null) {
+        return gmc;
+      }
+      v.addElement(gmc);
+    }
+
     synchronized (ControlVector) {
       Enumeration enum = ControlVector.elements();
       while(enum.hasMoreElements()) {
@@ -1282,6 +1290,7 @@ if (initialize) {
         }
       }
     }
+
     return null;
   }
 
