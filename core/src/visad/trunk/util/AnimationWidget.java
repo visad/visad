@@ -97,7 +97,7 @@ public class AnimationWidget
     // initialize control settings (these will change later)
     aAnim = false;
     aDir = true;
-    aMs = 500;
+    aMs = st;
 
     // create JPanels
     JPanel top = new JPanel();
@@ -171,8 +171,11 @@ public class AnimationWidget
 
     // get control startup values.
     getControlSettings((AnimationControl )smap.getControl());
-    aMs = (st > 0) ? st : (int) control.getStep();
-    control.setStep(aMs);
+    if (st > 0) {
+      aMs = st;
+      control.setStep(aMs);
+    }
+    fixControlUI();
 
     // add listeners
     control.addControlListener(this);
@@ -195,11 +198,10 @@ public class AnimationWidget
     control = ctl;
     aDir = control.getDirection();
     aAnim = control.getOn();
-    fixAnimButton();
-    fixDirButton();
+    aMs = (int )control.getStep();
   }
 
-  private void fixAnimButton()
+  private void fixAnimUI()
   {
     if (aAnim) {
       onOff.setText("Stop");
@@ -210,13 +212,30 @@ public class AnimationWidget
     }
   }
 
-  private void fixDirButton()
+  private void fixDirUI()
   {
     if (aDir) {
       forward.setSelected(true);
     } else {
       reverse.setSelected(true);
     }
+  }
+
+  private void fixSpeedUI()
+  {
+    ms.setText(Integer.toString(aMs));
+  }
+
+  private void fixControlUI()
+  {
+    // update Stop/Go buttons
+    fixAnimUI();
+
+    // update direction radiobuttons
+    fixDirUI();
+
+    // update speed text
+    fixSpeedUI();
   }
 
   /** 
@@ -246,7 +265,6 @@ public class AnimationWidget
         fr = Integer.parseInt(ms.getText());
       }
       catch (NumberFormatException exc) {
-        ms.setText(""+aMs);
       }
       if (fr > 0) {
         try {
@@ -256,19 +274,17 @@ public class AnimationWidget
           else reverse.requestFocus();
         }
         catch (VisADException exc) {
-          ms.setText(""+aMs);
         }
         catch (RemoteException exc) {
-          ms.setText(""+aMs);
         }
       }
-      else ms.setText(""+aMs);
+      fixSpeedUI();
     }
     if (cmd.equals("go")) {
       try {
         control.setOn(!aAnim);
         aAnim = !aAnim;
-        fixAnimButton();
+        fixAnimUI();
       }
       catch (VisADException exc) { }
       catch (RemoteException exc) { }
@@ -345,6 +361,7 @@ public class AnimationWidget
     {
       control = (AnimationControl )(evt.getScalarMap().getControl());
       getControlSettings((AnimationControl )(evt.getScalarMap().getControl()));
+      fixControlUI();
       control.addControlListener(this);
     }
   }
