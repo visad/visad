@@ -144,6 +144,10 @@ public abstract class DisplayRendererJ2D
     canvas.setClip(xlow, xhi, ylow, yhi);
   }
 
+  public void unsetClip() {
+    canvas.unsetClip();
+  }
+
   /**
    * Internal method used to initialize newly created
    * <CODE>RendererControl</CODE> with current renderer settings

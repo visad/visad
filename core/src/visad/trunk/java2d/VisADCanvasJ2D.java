@@ -173,6 +173,10 @@ public class VisADCanvasJ2D extends JPanel
     }
   }
 
+  void unsetClip() {
+    clip_rectangle = null;
+  }
+
   /**
    * Add a <CODE>MouseBehavior</CODE> for mouse control of translation 
    * and zoom.  This adds <CODE>MouseListener</CODE>s to the VisADCanvasJ2D to 
