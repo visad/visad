@@ -303,16 +303,8 @@ public class Tuple extends DataImpl implements TupleIface {
   }
 
   /** for JPython */
-  public Data __getitem__(int index) {
-    try {
-      return getComponent(index);
-    }
-    catch (VisADException e) {
-      return null;
-    }
-    catch (RemoteException e) {
-      return null;
-    }
+  public Data __getitem__(int index) throws VisADException, RemoteException {
+    return getComponent(index);
   }
   /** end of for JPython */
 

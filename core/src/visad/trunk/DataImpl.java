@@ -645,111 +645,55 @@ public abstract class DataImpl extends ThingImpl
 
 
   /** for JPython */
-  public Data __add__(Data data) {
-    try {
-      return add(data);
-    }
-    catch (VisADException e) {
-      return null;
-    }
-    catch (RemoteException e) {
-      return null;
-    }
+  public Data __add__(Data data) throws VisADException, RemoteException {
+    return add(data);
   }
 
-  public Data __sub__(Data data) {
-    try {
-      return subtract(data);
-    }
-    catch (VisADException e) {
-      return null;
-    }
-    catch (RemoteException e) {
-      return null;
-    }
+  public Data __sub__(Data data) throws VisADException, RemoteException {
+    return subtract(data);
   }
 
-  public Data __mul__(Data data) {
-    try {
-      return multiply(data);
-    }
-    catch (VisADException e) {
-      return null;
-    }
-    catch (RemoteException e) {
-      return null;
-    }
+  public Data __mul__(Data data) throws VisADException, RemoteException {
+    return multiply(data);
   }
 
-  public Data __div__(Data data) {
-    try {
-      return divide(data);
-    }
-    catch (VisADException e) {
-      return null;
-    }
-    catch (RemoteException e) {
-      return null;
-    }
+  public Data __div__(Data data) throws VisADException, RemoteException {
+    return divide(data);
   }
 
-  public Data __pow__(Data data) {
-    try {
-      return pow(data);
-    }
-    catch (VisADException e) {
-      return null;
-    }
-    catch (RemoteException e) {
-      return null;
-    }
+  public Data __pow__(Data data) throws VisADException, RemoteException {
+    return pow(data);
   }
 
-  public Data __mod__(Data data) {
-    try {
-      return remainder(data);
-    }
-    catch (VisADException e) {
-      return null;
-    }
-    catch (RemoteException e) {
-      return null;
-    }
+  public Data __mod__(Data data) throws VisADException, RemoteException {
+    return remainder(data);
   }
 
-  public Data __neg__() {
-    try {
-      return negate();
-    }
-    catch (VisADException e) {
-      return null;
-    }
-    catch (RemoteException e) {
-      return null;
-    }
+  public Data __neg__() throws VisADException, RemoteException {
+    return negate();
   }
 
-  public Data __add__(double data) {
+  public Data __add__(double data) throws VisADException, RemoteException {
     return __add__(new Real(data));
   }
 
-  public Data __sub__(double data) {
+  public Data __sub__(double data) throws VisADException, RemoteException {
     return __sub__(new Real(data));
   }
 
-  public Data __mul__(double data) {
+  public Data __mul__(double data) throws VisADException, RemoteException {
     return __mul__(new Real(data));
   }
 
-  public Data __div__(double data) {
+  public Data __div__(double data) throws VisADException, RemoteException {
     return __div__(new Real(data));
   }
 
-  public Data __pow__(double data) {
+  public Data __pow__(double data) throws VisADException, RemoteException {
     return __pow__(new Real(data));
   }
 
-  public Data __mod__(double data) {
+  public Data __mod__(double data) throws VisADException, RemoteException {
     return __mod__(new Real(data));
   }
   /** end of for JPython */

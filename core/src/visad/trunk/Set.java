@@ -601,27 +601,16 @@ public abstract class Set extends DataImpl implements SetIface {
   }
 
   /** for JPython */
-  // public Data __getitem__(int index) {
-  public Data __getitem__(int index) {
-    try {
-      int[] indices = {index};
-      float[][] values = indexToValue(indices);
-      RealType[] types = ((SetType) getType()).getDomain().getRealComponents();
-      Real[] reals = new Real[DomainDimension];
-      for (int i=0; i<DomainDimension; i++) {
-        reals[i] = new Real(types[i], values[i][0]);
-      }
-      if (DomainDimension == 1) return reals[0];
-      else return new RealTuple(reals);
+  public Data __getitem__(int index) throws VisADException, RemoteException {
+    int[] indices = {index};
+    float[][] values = indexToValue(indices);
+    RealType[] types = ((SetType) getType()).getDomain().getRealComponents();
+    Real[] reals = new Real[DomainDimension];
+    for (int i=0; i<DomainDimension; i++) {
+      reals[i] = new Real(types[i], values[i][0]);
     }
-    catch (VisADException e) {
-      System.out.println(e.getMessage());
-      return null;
-    }
-    catch (RemoteException e) {
-      System.out.println(e.getMessage());
-      return null;
-    }
+    if (DomainDimension == 1) return reals[0];
+    else return new RealTuple(reals);
   }
   /** end of for JPython */
 

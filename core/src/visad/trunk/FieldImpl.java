@@ -2620,64 +2620,40 @@ public class FieldImpl extends FunctionImpl implements Field {
   }
 
   /** for JPython */
-  public Data __getitem__(int index) {
-    try {
-      return getSample(index);
-    }
-    catch (VisADException e) {
-      System.out.println(e.getMessage());
-      return null;
-    }
-    catch (RemoteException e) {
-      System.out.println(e.getMessage());
-      return null;
-    }
+  public Data __getitem__(int index) throws VisADException, RemoteException {
+    return getSample(index);
   }
 
-  public void __setitem__(int index, Data data) {
-    try {
-      setSample(index, data);
-    }
-    catch (VisADException e) {
-      System.out.println(e.getMessage());
-    }
-    catch (RemoteException e) {
-      System.out.println(e.getMessage());
-    }
+  public void __setitem__(int index, Data data)
+         throws VisADException, RemoteException {
+    setSample(index, data);
   }
 
-  public void __setitem__(int index, double data) {
+  public void __setitem__(int index, double data)
+         throws VisADException, RemoteException {
     RealType real = null;
     boolean tuple = false;
-    try {
-      MathType range = ((FunctionType) getType()).getRange();
-      if (range instanceof RealType) {
-        real = (RealType) range;
+    MathType range = ((FunctionType) getType()).getRange();
+    if (range instanceof RealType) {
+      real = (RealType) range;
+    }
+    else if (range instanceof RealTupleType) {
+      if (((RealTupleType) range).getDimension() == 1) {
+        real = (RealType) ((RealTupleType) range).getComponent(0);
+        tuple = true;
       }
-      else if (range instanceof RealTupleType) {
-        if (((RealTupleType) range).getDimension() == 1) {
-          real = (RealType) ((RealTupleType) range).getComponent(0);
-          tuple = true;
-        }
-      }
-      if (real != null) {
-        Real r = new Real(real, data);
-        if (tuple) {
-          __setitem__(index, new RealTuple(new Real[] {r}));
-        }
-        else {
-          __setitem__(index, r);
-        }
+    }
+    if (real != null) {
+      Real r = new Real(real, data);
+      if (tuple) {
+        __setitem__(index, new RealTuple(new Real[] {r}));
       }
       else {
-        System.out.println("FieldImpl.__setitem__ bad type");
+        __setitem__(index, r);
       }
     }
-    catch (VisADException e) {
-      System.out.println(e.getMessage());
-    }
-    catch (RemoteException e) {
-      System.out.println(e.getMessage());
+    else {
+      System.out.println("FieldImpl.__setitem__ bad type");
     }
   }
   /** end of for JPython */
