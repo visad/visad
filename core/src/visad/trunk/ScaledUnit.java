@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: ScaledUnit.java,v 1.5 1999-05-24 21:07:43 steve Exp $
+ * $Id: ScaledUnit.java,v 1.6 1999-08-26 20:43:16 steve Exp $
  */
 
 package visad;
@@ -218,15 +218,22 @@ public final class ScaledUnit
     }
 
     /**
-     * Multiply a scaled unit by a base unit.
+     * Multiply a scaled unit by another unit.
      *
-     * @param that	The base unit with which to multiply this unit.
+     * @param that	The unit with which to multiply this unit.
      * @return		The product of the two units.
      * @promise		Neither unit has been modified.
+     * @throws UnitException	Meaningless operation.
      */
-    Unit multiply(BaseUnit that)
+    public Unit multiply(Unit that)
+	throws UnitException
     {
-	return new ScaledUnit(amount, (DerivedUnit)derivedUnit.multiply(that));
+	return
+	    that instanceof DerivedUnit
+		? multiply((DerivedUnit)that)
+		: that instanceof ScaledUnit
+		    ? multiply((ScaledUnit)that)
+		    : that.multiply(this);
     }
 
     /**
@@ -236,7 +243,7 @@ public final class ScaledUnit
      * @return		The product of the two units.
      * @promise		Neither unit has been modified.
      */
-    Unit multiply(DerivedUnit that)
+    public Unit multiply(DerivedUnit that)
     {
 	return new ScaledUnit(amount, (DerivedUnit)derivedUnit.multiply(that));
     }
@@ -248,22 +255,29 @@ public final class ScaledUnit
      * @return		The product of the two units.
      * @promise		Neither unit has been modified.
      */
-    Unit multiply(ScaledUnit that)
+    public Unit multiply(ScaledUnit that)
     {
 	return new ScaledUnit(amount*that.amount,
 		  (DerivedUnit)derivedUnit.multiply(that.derivedUnit));
     }
 
     /**
-     * Divide a scaled unit by a base unit.
+     * Divide a scaled unit by another unit.
      *
-     * @param that      The base unit to divide into this unit.
+     * @param that      The unit to divide into this unit.
      * @return          The quotient of the two units.
      * @promise		Neither unit has been modified.
+     * @throws UnitException	Meaningless operation.
      */
-    Unit divide(BaseUnit that)
+    public Unit divide(Unit that)
+	throws UnitException
     {
-	return new ScaledUnit(amount, (DerivedUnit)derivedUnit.divide(that));
+	return
+	    that instanceof DerivedUnit
+		? divide((DerivedUnit)that)
+		: that instanceof ScaledUnit
+		    ? divide((ScaledUnit)that)
+		    : that.divideInto(this);
     }
 
     /**
@@ -273,7 +287,7 @@ public final class ScaledUnit
      * @return          The quotient of the two units.
      * @promise		Neither unit has been modified.
      */
-    Unit divide(DerivedUnit that)
+    public Unit divide(DerivedUnit that)
     {
 	return new ScaledUnit(amount, (DerivedUnit)derivedUnit.divide(that));
     }
@@ -285,21 +299,39 @@ public final class ScaledUnit
      * @return          The quotient of the two units.
      * @promise		Neither unit has been modified.
      */
-    Unit divide(ScaledUnit that)
+    public Unit divide(ScaledUnit that)
     {
 	return new ScaledUnit(amount/that.amount, 
 		      (DerivedUnit)derivedUnit.divide(that.derivedUnit));
     }
 
     /**
+     * Divide a scaled unit into another unit.
+     *
+     * @param that      The unit to be divided by this unit.
+     * @return          The quotient of the two units.
+     * @promise		Neither unit has been modified.
+     * @throws UnitException	Meaningless operation.
+     */
+    protected Unit divideInto(Unit that)
+	throws UnitException
+    {
+	return
+	    that instanceof DerivedUnit
+		? divideInto((DerivedUnit)that)
+		: that instanceof ScaledUnit
+		    ? ((ScaledUnit)that).divide(this)
+		    : that.divide(this);
+    }
+
+    /**
      * Divide a scaled unit into a derived unit.
-     * This is a "helper" method for the DerivedUnit class.
      *
      * @param that      The derived unit to divide into this unit.
      * @return          The quotient of the two units.
      * @promise		Neither unit has been modified.
      */
-    Unit divideInto(DerivedUnit that)
+    protected Unit divideInto(DerivedUnit that)
     {
 	return
 	  new ScaledUnit(1.0/amount, (DerivedUnit)that.divide(derivedUnit));

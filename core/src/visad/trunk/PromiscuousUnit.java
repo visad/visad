@@ -73,44 +73,24 @@ public class PromiscuousUnit extends Unit {
     return this;
   }
  
-  Unit multiply(BaseUnit that)
+  public Unit multiply(Unit that)
        throws UnitException {
     return that;
   }
 
-  Unit multiply(DerivedUnit that)
-       throws UnitException {
-    return that;
-  }
-
-  Unit multiply(ScaledUnit that)
-       throws UnitException {
-    return that;
-  }
-
-  Unit multiply(PromiscuousUnit that)
-       throws UnitException {
-    return that;
-  }
-
-  Unit divide(BaseUnit that)
+  public Unit divide(Unit that)
        throws UnitException {
     return CommonUnit.dimensionless.divide(that);
   }
 
-  Unit divide(DerivedUnit that)
-       throws UnitException {
-    return CommonUnit.dimensionless.divide(that);
-  }
-
-  Unit divide(ScaledUnit that)
-       throws UnitException {
-    return CommonUnit.dimensionless.divide(that);
-  }
-
-  Unit divide(PromiscuousUnit that)
+  public Unit divide(PromiscuousUnit that)
        throws UnitException {
     return that;
+  }
+
+  protected Unit divideInto(Unit that)
+       throws UnitException {
+    return that.divide(CommonUnit.dimensionless);
   }
 
 

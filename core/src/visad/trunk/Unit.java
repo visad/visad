@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Unit.java,v 1.11 1999-05-27 01:49:38 billh Exp $
+ * $Id: Unit.java,v 1.12 1999-08-26 20:43:16 steve Exp $
  */
 
 package visad;
@@ -300,73 +300,33 @@ public abstract class Unit
     /**
      * Multiply this unit by another unit.
      *
-     * @param that	The given unit to multiply this unit by.  
-     * @return		The resulting unit.
-     * @require		This unit is not an offset unit.
-     * @promise		Neither unit has been modified.
-     * @exception	UnitException	It's meaningless to multiply these
-     *					units together.
+     * @param that		The given unit to multiply this unit by.  
+     * @return			The resulting unit.
+     * @throws UnitException	It's meaningless to divide these units.
      */
-    public Unit multiply(Unit that)
-	throws UnitException
-    {
-/*
-   added by Bill Hibbard for VisAD
-*/
-        if (this instanceof PromiscuousUnit) {
-          return that;
-        }
-        else if (that instanceof PromiscuousUnit) {
-          return this;
-        }
-/*
-   end of added by Bill Hibbard for VisAD
-*/
-	if (that instanceof BaseUnit)
-	    return multiply((BaseUnit)that);
-	if (that instanceof DerivedUnit)
-	    return multiply((DerivedUnit)that);
-	if (that instanceof ScaledUnit)
-	    return multiply((ScaledUnit)that);
-	if (that instanceof OffsetUnit)
-	    return multiply((OffsetUnit)that);
-	throw new UnitException("Unknown unit subclass");
-    }
+    public abstract Unit multiply(Unit that)
+	throws UnitException;
 
     /**
      * Divide this unit by another unit.
      *
-     * @param that      The unit to divide into this unit.
-     * @return          The quotient of the two units.
-     * @require		This unit is not an offset unit.
-     * @promise		Neither unit has been modified.
-     * @exception	UnitException	It's meaningless to divide these units.
+     * @param that		The unit to divide into this unit.
+     * @return			The quotient of the two units.
+     * @promise			Neither unit has been modified.
+     * @throws UnitException	It's meaningless to divide these units.
      */
-    public Unit divide(Unit that)
-	throws UnitException
-    {
-/*
-   added by Bill Hibbard for VisAD
-*/
-        if (this instanceof PromiscuousUnit) {
-          return that;
-        }
-        else if (that instanceof PromiscuousUnit) {
-          return this;
-        }
-/*
-   end of added by Bill Hibbard for VisAD
-*/
-	if (that instanceof BaseUnit)
-	    return divide((BaseUnit)that);
-	if (that instanceof DerivedUnit)
-	    return divide((DerivedUnit)that);
-	if (that instanceof ScaledUnit)
-	    return divide((ScaledUnit)that);
-	if (that instanceof OffsetUnit)
-	    return divide((OffsetUnit)that);
-	throw new UnitException("Unknown unit subclass");
-    }
+    public abstract Unit divide(Unit that)
+	throws UnitException;
+
+    /**
+     * Divide this unit into another unit.
+     *
+     * @param that		The unit to be divided by this unit.
+     * @return			The quotient of the two units.
+     * @throws UnitException	It's meaningless to divide these units.
+     */
+    protected abstract Unit divideInto(Unit that)
+	throws UnitException;
 
     /**
      * Convert a value to this unit from another unit.
@@ -571,30 +531,6 @@ public abstract class Unit
     getAbsoluteUnit()
     {
       return this;
-    }
-
-    abstract Unit multiply(BaseUnit that)
-	throws UnitException;
-    abstract Unit multiply(DerivedUnit that)
-	throws UnitException;
-    abstract Unit multiply(ScaledUnit that)
-	throws UnitException;
-    Unit multiply(OffsetUnit that)
-	throws UnitException
-    {
-	throw new UnitException("Attempt to multiply by an offset unit");
-    }
-
-    abstract Unit divide(BaseUnit that)
-	throws UnitException;
-    abstract Unit divide(DerivedUnit that)
-	throws UnitException;
-    abstract Unit divide(ScaledUnit that)
-	throws UnitException;
-    Unit divide(OffsetUnit that)
-	throws UnitException
-    {
-	throw new UnitException("Attempt to divide by an offset unit");
     }
 
     abstract double[] toThis(double[] values, BaseUnit that)

@@ -61,5 +61,21 @@ public class CommonUnit extends Object {
     catch (UnitException e) {}		// can't happen
   }
 
+    /**
+     * Test this class.
+     *
+     * @param args		Arguments (ignored).
+     * @exception UnitException	A problem occurred.
+     */
+    public static void main(String[] args)
+	throws UnitException
+    {
+	System.out.println(
+	  "new ScaledUnit(1.0).equals(dimensionless)=" +
+	  new ScaledUnit(1.0).equals(dimensionless));
+	System.out.println(
+	  "dimensionless.equals(new ScaledUnit(1.0))=" +
+	  dimensionless.equals(new ScaledUnit(1.0)));
+    }
 }
 

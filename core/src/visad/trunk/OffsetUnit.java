@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: OffsetUnit.java,v 1.4 1999-05-24 21:07:39 steve Exp $
+ * $Id: OffsetUnit.java,v 1.5 1999-08-26 20:43:15 steve Exp $
  */
 
 package visad;
@@ -189,27 +189,21 @@ public final class OffsetUnit
     /**
      * Raise an offset unit to a power.
      *
-     * @param power	The power to raise this unit by.
-     * @exception	UnitException	Always thrown because it's meaningless
-     *					to raise an offset unit to a power.
+     * @param power		The power to raise this unit by.
      */
     public Unit pow(int power)
-	throws UnitException
     {
-	throw new UnitException("Attempt to raise offset unit to a power");
+	return scaledUnit.pow(power);
     }
 
     /**
      * Raise an offset unit to a power.
      *
-     * @param power	The power to raise this unit by.
-     * @exception	UnitException	Always thrown because it's meaningless
-     *					to raise an offset unit to a power.
+     * @param power		The power to raise this unit by.
      */
     public Unit pow(double power)
-	throws UnitException
     {
-	throw new UnitException("Attempt to raise offset unit to a power");
+	return scaledUnit.pow(power);
     }
 
     /**
@@ -228,107 +222,41 @@ public final class OffsetUnit
     }
 
     /**
-     * Multiply an offset unit by a base unit.
+     * Multiply an offset unit by another unit.
      *
-     * @param that	The base unit with which to multiply this unit.
-     * @exception UnitExcepting	Always thrown because it's meaningless to
-     *				multiply an offset unit.
+     * @param that		The unit with which to multiply this unit.
+     * @exception UnitExcepting	Can't multiply units.
      */
-    Unit multiply(BaseUnit that)
+    public Unit multiply(Unit that)
 	throws UnitException
     {
-	throw new UnitException("Attempt to multiply offset unit");
+	return that.multiply(scaledUnit);
     }
 
     /**
-     * Multiply an offset unit by a derived unit.
+     * Divide an offset unit by another unit.
      *
-     * @param that	The derived unit with which to multiply this unit.
-     * @exception UnitExcepting	Always thrown because it's meaningless to
-     *				multiply an offset unit.
+     * @param that		The unit to divide into this unit.
+     * @exception UnitException	Can't divide units.
      */
-    Unit multiply(DerivedUnit that)
+    public Unit divide(Unit that)
 	throws UnitException
     {
-	throw new UnitException("Attempt to multiply offset unit");
+	return that.divideInto(scaledUnit);
     }
 
     /**
-     * Multiply an offset unit by a scaled unit.
+     * Divide an offset unit into another unit.
      *
-     * @param that	The scaled unit with which to multiply this unit.
-     * @exception UnitExcepting	Always thrown because it's meaningless to
-     *				multiply an offset unit.
+     * @param that      The unit to be divide by this unit.
+     * @return          The quotient of the two units.
+     * @promise		Neither unit has been modified.
+     * @throws UnitException	Meaningless operation.
      */
-    Unit multiply(ScaledUnit that)
+    protected Unit divideInto(Unit that)
 	throws UnitException
     {
-	throw new UnitException("Attempt to multiply offset unit");
-    }
-
-    /**
-     * Multiply an offset unit by an offset unit.
-     *
-     * @param that	The offset unit with which to multiply this unit.
-     * @exception UnitExcepting	Always thrown because it's meaningless to
-     *				multiply an offset unit.
-     */
-    Unit multiply(OffsetUnit that)
-	throws UnitException
-    {
-	throw new UnitException("Attempt to multiply offset unit");
-    }
-
-    /**
-     * Divide an offset unit by a base unit.
-     *
-     * @param that	The base unit to divide into this unit.
-     * @exception UnitExcepting	Always thrown because it's meaningless to
-     *				divide an offset unit.
-     */
-    Unit divide(BaseUnit that)
-	throws UnitException
-    {
-	throw new UnitException("Attempt to divide offset unit");
-    }
-
-    /**
-     * Divide an offset unit by a derived unit.
-     *
-     * @param that	The derived unit to divide into this unit.
-     * @exception UnitExcepting	Always thrown because it's meaningless to
-     *				divide an offset unit.
-     */
-    Unit divide(DerivedUnit that)
-	throws UnitException
-    {
-	throw new UnitException("Attempt to divide offset unit");
-    }
-
-    /**
-     * Divide an offset unit by a scaled unit.
-     *
-     * @param that	The scaled unit to divide into this unit.
-     * @exception UnitExcepting	Always thrown because it's meaningless to
-     *				divide an offset unit.
-     */
-    Unit divide(ScaledUnit that)
-	throws UnitException
-    {
-	throw new UnitException("Attempt to divide offset unit");
-    }
-
-    /**
-     * Divide an offset unit by an offset unit.
-     *
-     * @param that	The offset unit to divide into this unit.
-     * @exception UnitExcepting	Always thrown because it's meaningless to
-     *				divide an offset unit.
-     */
-    Unit divide(OffsetUnit that)
-	throws UnitException
-    {
-	throw new UnitException("Attempt to divide offset unit");
+	return that.divide(scaledUnit);
     }
 
     /**
@@ -627,59 +555,11 @@ public final class OffsetUnit
 	System.out.println("degF.toThat({32,212},degC)=" +
 	    values[0] + "," + values[1]);
 
-	System.out.println("Checking exceptions:");
-	try
-	{
-	    degF.pow(2);
-	    System.err.println("ERROR: degF.pow(2)");
-	    System.exit(1);
-	}
-	catch (UnitException e)
-	{
-	    System.out.println(e.getMessage());
-	}
-
-	try
-	{
-	    degF.multiply(degC);
-	    System.err.println("ERROR: degF.multiply(degC)");
-	    System.exit(1);
-	}
-	catch (UnitException e)
-	{
-	    System.out.println(e.getMessage());
-	}
-	try
-	{
-	    degC.multiply(degF);
-	    System.err.println("ERROR: degC.multiply(degF)");
-	    System.exit(1);
-	}
-	catch (UnitException e)
-	{
-	    System.out.println(e.getMessage());
-	}
-
-	try
-	{
-	    degF.divide(degC);
-	    System.err.println("ERROR: degF.divide(degC)");
-	    System.exit(1);
-	}
-	catch (UnitException e)
-	{
-	    System.out.println(e.getMessage());
-	}
-	try
-	{
-	    degC.divide(degF);
-	    System.err.println("ERROR: degC.divide(degF)");
-	    System.exit(1);
-	}
-	catch (UnitException e)
-	{
-	    System.out.println(e.getMessage());
-	}
+	System.out.println("degF.pow(2)=" + degF.pow(2));
+	System.out.println("degF.multiply(degC)=" + degF.multiply(degC));
+	System.out.println("degC.multiply(degF)=" + degC.multiply(degF));
+	System.out.println("degF.divide(degC)=" + degF.divide(degC));
+	System.out.println("degC.divide(degF)=" + degC.divide(degF));
     }
 
   public boolean equals(Unit unit) {

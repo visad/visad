@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: BaseUnit.java,v 1.6 1999-05-24 21:07:31 steve Exp $
+ * $Id: BaseUnit.java,v 1.7 1999-08-26 20:43:14 steve Exp $
  */
 
 package visad;
@@ -577,51 +577,49 @@ public final class BaseUnit
   }
 
     /**
-     * Multiply a base unit by another base unit.
+     * Multiply a base unit by another unit.
      *
-     * @param that	The base unit with which to multiply this unit.
+     * @param that	The unit with which to multiply this unit.
      * @return		The product of the two units.
      * @promise		Neither unit has been modified.
+     * @throws UnitException	Meaningless operation.
      */
-    Unit multiply(BaseUnit that)
+    public Unit multiply(Unit that)
+	throws UnitException
     {
-	return derivedUnit.multiply(that.derivedUnit);
+	return
+	    that instanceof DerivedUnit
+	      ? multiply((DerivedUnit)that)
+	      : that.multiply(derivedUnit);
     }
 
     /**
      * Multiply a base unit by a derived unit.
      *
      * @param that	The derived unit with which to multiply this unit.
-     * @return          The product of the two units.
+     * @return		The product of the two units.
      * @promise		Neither unit has been modified.
      */
-    Unit multiply(DerivedUnit that)
+    public Unit multiply(DerivedUnit that)
     {
 	return derivedUnit.multiply(that);
     }
 
     /**
-     * Multiply a base unit by a scaled unit.
+     * Divide a base unit by another unit.
      *
-     * @param that      The scaled unit with which to multiply this unit.
-     * @return          The product of the two units.
-     * @promise		Neither unit has been modified.
-     */
-    Unit multiply(ScaledUnit that)
-    {
-	return derivedUnit.multiply(that);
-    }
-
-    /**
-     * Divide a base unit by a base unit.
-     *
-     * @param that      The base unit to divide into this unit.
+     * @param that      The unit to divide into this unit.
      * @return          The quotient of the two units.
      * @promise		Neither unit has been modified.
+     * @throws UnitException	Meaningless operation.
      */
-    Unit divide(BaseUnit that)
+    public Unit divide(Unit that)
+	throws UnitException
     {
-	return derivedUnit.divide(that.derivedUnit);
+	return
+	    that instanceof DerivedUnit
+		? divide((DerivedUnit)that)
+		: that.divideInto(derivedUnit);
     }
 
     /**
@@ -631,21 +629,23 @@ public final class BaseUnit
      * @return          The quotient of the two units.
      * @promise		Neither unit has been modified.
      */
-    Unit divide(DerivedUnit that)
+    public Unit divide(DerivedUnit that)
     {
 	return derivedUnit.divide(that);
     }
 
     /**
-     * Divide a base unit by a scaled unit.
+     * Divide a base unit into another unit.
      *
-     * @param that      The scaled unit to divide into this unit.
+     * @param that      The unit to divided this unit.
      * @return          The quotient of the two units.
      * @promise		Neither unit has been modified.
+     * @throws UnitException	Meaningless operation.
      */
-    Unit divide(ScaledUnit that)
+    protected Unit divideInto(Unit that)
+	throws UnitException
     {
-	return derivedUnit.divide(that);
+	return that.divide(derivedUnit);
     }
 
 /*

@@ -7,7 +7,7 @@
  * Copyright 1997, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DerivedUnit.java,v 1.8 1999-05-24 21:07:33 steve Exp $
+ * $Id: DerivedUnit.java,v 1.9 1999-08-26 20:43:15 steve Exp $
  */
 
 package visad;
@@ -470,15 +470,20 @@ public final class DerivedUnit
     private static SubPow	subPow = new SubPow();
 
     /**
-     * Multiply a derived unit by a base unit.
+     * Multiply a derived unit by another unit.
      *
-     * @param that	The base unit with which to multiply this unit.
+     * @param that	The unit with which to multiply this unit.
      * @return		The product of the two units.
      * @promise		Neither unit has been modified.
+     * @throws UnitException	Meaningless operation.
      */
-    Unit multiply(BaseUnit that)
+    public Unit multiply(Unit that)
+	throws UnitException
     {
-	return multiply(new DerivedUnit(that));
+	return
+	  that instanceof DerivedUnit
+	    ? multiply((DerivedUnit)that)
+	    : that.multiply(this);
     }
 
     /**
@@ -488,33 +493,26 @@ public final class DerivedUnit
      * @return		The product of the two units.
      * @promise		Neither unit has been modified.
      */
-    Unit multiply(DerivedUnit that)
+    public Unit multiply(DerivedUnit that)
     {
 	return addPow.multOp(this, that);
     }
 
     /**
-     * Multiply a derived unit by a scaled unit.
+     * Divide a derived unit by another unit.
      *
-     * @param that	The scaled unit with which to multiply this unit.
-     * @return		The product of the two units.
-     * @promise		Neither unit has been modified.
-     */
-    Unit multiply(ScaledUnit that)
-    {
-	return that.multiply(this);
-    }
-
-    /**
-     * Divide a derived unit by a base unit.
-     *
-     * @param that      The base unit to divide into this unit.
+     * @param that      The unit to divide into this unit.
      * @return          The quotient of the two units.
      * @promise		Neither unit has been modified.
+     * @throws UnitException	Meaningless operation.
      */
-    Unit divide(BaseUnit that)
+    public Unit divide(Unit that)
+	throws UnitException
     {
-	return divide(new DerivedUnit(that));
+	return
+	    that instanceof DerivedUnit
+		? divide((DerivedUnit)that)
+		: that.divideInto(this);
     }
 
     /**
@@ -530,15 +528,17 @@ public final class DerivedUnit
     }
 
     /**
-     * Divide a derived unit by a scaled unit.
+     * Divide a derived unit into another unit.
      *
-     * @param that      The scaled unit to divide into this unit.
+     * @param that      The unit to be divided by this unit.
      * @return          The quotient of the two units.
      * @promise		Neither unit has been modified.
+     * @throws UnitException	Meaningless operation.
      */
-    Unit divide(ScaledUnit that)
+    protected Unit divideInto(Unit that)
+	throws UnitException
     {
-	return that.divideInto(this);
+	return that.divide(this);
     }
 
     /**
