@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DefaultUnitsDB.java,v 1.5 1998-03-10 22:24:18 steve Exp $
+ * $Id: DefaultUnitsDB.java,v 1.6 1998-05-29 20:59:12 visad Exp $
  */
 
 package visad.data.netcdf.units;
@@ -120,7 +120,7 @@ DefaultUnitsDB
 	 * size should be kept in sync with the actual number of 
 	 * entries (e.g. vi: .,$w !grep 'put(' | wc -l)
 	 */
-	table = new UnitTable(500);
+	table = new UnitTable(501);
 
 
 	/*
@@ -218,7 +218,6 @@ DefaultUnitsDB
 	put(new SingleUnit("degree_f",	get("degree_Fahrenheit")));
 	put(new SingleUnit("deg_F",	get("degree_Fahrenheit")));
 	put(new SingleUnit("deg_f",	get("degree_Fahrenheit")));
-	put(new SingleUnit("F",		get("degree_Fahrenheit")));
 	put(new PluralUnit("Fahrenheit",get("degree_Fahrenheit")));
 	put(new PluralUnit("fahrenheit",get("degree_Fahrenheit")));
 
@@ -452,7 +451,7 @@ DefaultUnitsDB
 	 * UNITS OF PLANE ANGLE
 	 */
 	//put(new PluralUnit("rad", get("radian")));
-	    // "rad" means "gray"
+	    // "rad" means "centigray"
 		
 	put(new PluralUnit("circle",		
 	    get("radian").scale(2*Math.PI)));
@@ -523,6 +522,7 @@ DefaultUnitsDB
 	put(new PluralUnit("pascal",	
 	    get("newton").divide(get("meter").pow(2))));
 	put(new PluralUnit("joule",	get("newton").multiply(get("meter"))));
+	put(new SingleUnit("Hz",	get("hertz")));
 	put(new SingleUnit("hz",	get("hertz")));
 	put(new SingleUnit("sr",	get("steradian")));
 	put(new SingleUnit("force",	get("standard_free_fall")));
@@ -557,7 +557,7 @@ DefaultUnitsDB
 	put(new PluralUnit("volt",	get("watt").divide(get("ampere"))));
 	put(new SingleUnit("mercury_32F",	get("mercury_0C")));
 	put(new SingleUnit("water_39F",	get("water_4C")));	
-	    // actually 39.2 F
+	    // actually 39.2 degF
 	put(new SingleUnit("mercury",	get("conventional_mercury")));
 	put(new SingleUnit("water",	get("conventional_water")));
 
@@ -565,6 +565,7 @@ DefaultUnitsDB
 	put(new PluralUnit("ohm",	get("volt").divide(get("ampere"))));
 	put(new SingleUnit("siemens",	get("ampere").divide(get("volt"))));
 	put(new PluralUnit("weber",	get("volt").multiply(get("second"))));
+	put(new SingleUnit("F",		get("farad")));
 	put(new SingleUnit("Hg",	get("mercury")));
 	put(new SingleUnit("hg",	get("mercury")));
 	put(new SingleUnit("H2O",	get("water")));
@@ -608,6 +609,8 @@ DefaultUnitsDB
 	put(new PluralUnit("abhenry",	get("nanohenry")));	// exact
 	put(new PluralUnit("abmho",	get("gigasiemens")));	// exact
 	put(new PluralUnit("abohm",	get("nanoohm")));	// exact
+	put(new PluralUnit("megohm",	get("megaohm")));	// exact
+	put(new PluralUnit("kilohm",	get("kiloohm")));	// exact
 	put(new PluralUnit("abvolt",	get("volt").scale(1e-8)));
 								// exact
 	put(new SingleUnit("C",		get("coulomb")));
