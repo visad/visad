@@ -603,7 +603,7 @@ public class DataUtility {
   }
 
   /**
-   * Ensures that the range of a FieldImpl is a given type.  Extracts from
+   * Ensures that the range of a Field is a given type.  Extracts from
    * the input field only if necessary.
    * @param field		The input field.
    * @param newRangeType	The desired type of range for the resulting
