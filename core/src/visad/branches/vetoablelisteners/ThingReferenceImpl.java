@@ -26,8 +26,10 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.util.*;
+import java.beans.VetoableChangeListener;
 import java.rmi.*;
+import java.util.*;
+import java.util.Set;
 
 /**
    ThingReferenceImpl is a local implementation of ThingReference.<P>
@@ -36,6 +38,16 @@ import java.rmi.*;
    between JVMs.<P>
 */
 public class ThingReferenceImpl extends Object implements ThingReference {
+
+  /**
+   * The set of vetoable listeners.
+   */
+  private final Set	vetoableListeners;
+
+  /**
+   * The source JavaBean for SetThingEvent-s.
+   */
+  private final Object	sourceBean;
 
   /** name of scalar type */
   String Name;
@@ -56,29 +68,142 @@ public class ThingReferenceImpl extends Object implements ThingReference {
   transient Vector ListenerVector = new Vector();
 
   public ThingReferenceImpl(String name) throws VisADException {
+    this(name, (Object)null);
+  }
+
+  /**
+   * Constructs from a name and a JavaBean source.
+   *
+   * @param name		The name for the VetoableThingReferenceImpl.
+   * @param sourceBean		The JavaBean that will be the source of
+   *				SetThingEvent-s.  May be <code>null</code>.
+   * @throws VisADException	Couldn't perform necessary VisAD operation.
+   */
+  public ThingReferenceImpl(String name, Object sourceBean)
+    throws VisADException
+  {
     if (name == null) {
       throw new VisADException("ThingReference: name cannot be null");
     }
     Name = name;
     Tick = Long.MIN_VALUE + 1;
+    this.sourceBean = sourceBean;
+    vetoableListeners = new HashSet(sourceBean == null ? 0 : 1);
+  }
+
+  /**
+   * Adds a vetoable listener for setThing() method invocations in the guise
+   * of a regular VetoableChangeListener.  This method is provided as a
+   * convenience.
+   *
+   * @param listener		The vetoable listener to be added.  If it is a
+   *				VetoableThingReferenceListener, then it is 
+   *				added; otherwise nothing happens.
+   */
+  public void
+  addVetoableSetThingListener(VetoableChangeListener listener)
+  {
+    if (listener instanceof VetoableThingReferenceListener)
+      addVetoableSetThingListener((VetoableThingReferenceListener)listener);
+  }
+
+  /**
+   * Removes a vetoable listener for setThing() method invocations in the
+   * guise of a regular VetoableChangeListener.  This method is provided as a
+   * convenience.
+   *
+   * @param listener		The vetoable listener to be removed.  If it is a
+   *				VetoableThingReferenceListener, then it is 
+   *				removed; otherwise nothing happens.
+   */
+  public void
+  removeVetoableSetThingListener(VetoableChangeListener listener)
+  {
+    if (listener instanceof VetoableThingReferenceListener)
+      removeVetoableSetThingListener((VetoableThingReferenceListener)listener);
+  }
+
+  /**
+   * Adds a vetoable listener for setThing() method invocations.
+   *
+   * @param listener		The vetoable listener to be added.
+   */
+  public synchronized void
+  addVetoableSetThingListener(VetoableThingReferenceListener listener)
+  {
+      vetoableListeners.add((Object)listener);
+  }
+
+  /**
+   * Removes a vetoable listener for setThing() method invocations.
+   *
+   * @param listener		The vetoable listener to be removed.
+   */
+  public synchronized void
+  removeVetoableSetThingListener(VetoableThingReferenceListener listener)
+  {
+      vetoableListeners.remove((Object)listener);
   }
 
   public Thing getThing() {
     return thing;
   }
 
-  /** set this ThingReferenceImpl to refer to t;
-      must be local ThingImpl */
+  /**
+   * Sets the Thing referenced by this object if there are no objections.
+   * This method validates the new Thing by notifying the set of registered
+   * VetoableThingReferenceListener-s of the proposed change.  If any of them
+   * objects, then the change is aborted and the Thing referenced by this object
+   * is not changed.
+   *
+   * @param thing		The new Thing to be vetted by the registered
+   *				VetoableThingReferenceListener-s and to become
+   *				the Thing referenced by this object if there
+   *				are no objections.  Must be a (local) ThingImpl.
+   * @throws ReferenceException	<code>thing</code> is <code>null</code>.
+   * @throws RemoteVisADException
+   *				<code>thing</code> is a RemoteThing.
+   * @throws SetThingVetoException
+   *				A VetoableThingReferenceListener objected to the
+   *				new Thing.  This object still references the
+   *				old Thing.
+   */
   public synchronized void setThing(Thing t)
-         throws VisADException, RemoteException {
+         throws SetThingVetoException, VisADException, RemoteException {
 /* WLH 9 July 98
     if (t == null) {
       throw new ReferenceException("ThingReferenceImpl: thing cannot be null");
     }
 */
     if (t instanceof RemoteThing) {
-      throw new RemoteVisADException("ThingReferenceImpl.setThing: cannot use " +
-                                     "RemoteThing");
+      throw new RemoteVisADException(
+	"ThingReferenceImpl.setThing: cannot use " + "RemoteThing");
+    }
+    if (vetoableListeners.size() > 0)
+    {
+      SetThingEvent	event;
+      try
+      {
+	event = new SetThingEvent(sourceBean, thing);
+	for (Iterator iter = vetoableListeners.iterator(); iter.hasNext(); )
+	  ((VetoableThingReferenceListener)iter.next()).vetoableSetThing(event);
+      }
+      catch (SetThingVetoException originalException)
+      {
+	/*
+	 * Revert to original; notify vetoable listeners of reversion.
+	 */
+	try
+	{
+	  event = new SetThingEvent(sourceBean, getThing());
+	  for (Iterator iter = vetoableListeners.iterator(); iter.hasNext(); )
+	    ((VetoableThingReferenceListener)iter.next())
+	      .vetoableSetThing(event);
+	}
+	catch (SetThingVetoException e)
+	{}	// ignore any and all reversion objections
+	throw originalException;	// inform the caller
+      }
     }
     if (thing != null) thing.removeReference(ref);
     ref = this;

@@ -26,6 +26,7 @@ MA 02111-1307, USA
 
 package visad;
 
+import java.beans.VetoableChangeListener;
 import java.rmi.*;
 
 /**
@@ -40,10 +41,53 @@ import java.rmi.*;
    ThingReference is a source of ThingChangedEvent-s, and thus defines
    addThingChangedListener and removeThingChangedListener.<P>
 
+   The setThing(Thing) method is a source of SetThingEvent-s for
+   which VetoableSetThingListener-s may register via the methods
+   addVetoableSetThingListener and removeVetoableSetThingListener.<P>
+
    ThingReference objects may be local (ThingReferenceImpl) or
    remote (RemoteThingReferenceImpl).<P>
 */
 public interface ThingReference {
+  /**
+   * Adds a vetoable listener for setThing() method invocations.
+   *
+   * @param listener		The VetoableChangeListener to add.
+   * @throws VisADException	Couldn't perform necessary VisAD operation.
+   * @throws RemoteException	Java RMI failure.
+   */
+  void addVetoableSetThingListener(VetoableThingReferenceListener listener);
+
+  /**
+   * Removes a vetoable listener for setThing() method invocations.
+   *
+   * @param listener		The VetoableChangeListener to remove.
+   * @throws VisADException	Couldn't perform necessary VisAD operation.
+   * @throws RemoteException	Java RMI failure.
+   */
+  void removeVetoableSetThingListener(VetoableThingReferenceListener listener);
+
+  /**
+   * Adds a vetoable listener for setThing() method invocations in the guise
+   * of a regular VetoableChangeListener.  This method is provided as a
+   * convenience.
+   *
+   * @param listener		The vetoable listener to be added.  If it is a
+   *				VetoableThingReferenceListener, then it is 
+   *				added; otherwise nothing happens.
+   */
+  void addVetoableSetThingListener(VetoableChangeListener listener);
+
+  /**
+   * Removes a vetoable listener for setThing() method invocations in the
+   * guise of a regular VetoableChangeListener.  This method is provided as a
+   * convenience.
+   *
+   * @param listener		The vetoable listener to be removed.  If it is a
+   *				VetoableThingReferenceListener, then it is 
+   *				removed; otherwise nothing happens.
+   */
+  void removeVetoableSetThingListener(VetoableChangeListener listener);
 
   /** invokes t.addReference((ThingReference r) */
   void setThing(Thing t) throws VisADException, RemoteException;
