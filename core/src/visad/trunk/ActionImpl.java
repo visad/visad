@@ -44,6 +44,9 @@ public abstract class ActionImpl extends Object
   /** delay for thread starting */
   public static final int THREAD_DELAY = 50;
 
+  private boolean enabled = true;
+  private Object lockEnabled = new Object();
+
   String Name;
 
   /** ActionImpl is not Serializable, but mark as transient anyway */
@@ -126,28 +129,27 @@ public abstract class ActionImpl extends Object
     }
   }
 
+  /** enable and notify this */
+  public void enableAction() {
+    enabled = true;
+    notifyAction();
+  }
+
+  /** disable this and if necessary wait for end of doAction */
+  public void disableAction() {
+    enabled = false;
+    synchronized (lockEnabled) {
+      enabled = false; // probably not necessary, just don't trust a nop
+    }
+  }
 
   public void run() {
-/* WLH 29 Aug 98
-    boolean dontSleep = false;
-*/
     dontSleep = true;
-/* WLH 28 Feb 98
-   put this back once Swing-Java3D bugs are fixed
-    try {
-      DisplayImpl.delay(500);
-    }
-    catch (VisADException e) {
-    }
-*/
     Thread me = Thread.currentThread();
     while (actionThread == me) {
       try {
         synchronized (this) {
           if (!dontSleep) {
-/* WLH 28 Aug 98
-            wait(2000);
-*/
             wait();
           }
           dontSleep = false;
@@ -158,63 +160,47 @@ public abstract class ActionImpl extends Object
         // note notify generates a normal return from wait rather
         // than an Exception - control doesn't normally come here
       }
-      try {
-/* WLH 29 Aug 98
-        dontSleep = false;
-*/
-        setTicks();
-        if (checkTicks() || this instanceof DisplayImpl) {
-/*
-System.out.println("doAction: Name = " + Name +
-                   " checkTicks = " + checkTicks() +
-                   " display = " + (this instanceof DisplayImpl));
-*/
-          doAction();
-        }
-        synchronized (LinkVector) {
-          Enumeration links = LinkVector.elements();
-/* WLH 29 Aug 98
-          dontSleep = false;
-*/
-          while (links.hasMoreElements()) {
-            ReferenceActionLink link =
-              (ReferenceActionLink) links.nextElement();
-            if (link.getBall()) {
-              link.setBall(false);
-              ThingReference ref = link.getThingReference();
-              ThingChangedEvent e =
-                ref.acknowledgeThingChanged(link.getAction());
-              if (e != null) {
-                thingChanged(e);
-                dontSleep = true;
+      doRun();
+    } // end while (actionThread == me)
+  }
+
+  void doRun() {
+    synchronized (lockEnabled) {
+      if (enabled) {
+        try {
+          setTicks();
+          if (checkTicks()) {
+            doAction();
+          }
+          synchronized (LinkVector) {
+            Enumeration links = LinkVector.elements();
+            while (links.hasMoreElements()) {
+              ReferenceActionLink link =
+                (ReferenceActionLink) links.nextElement();
+              if (link.getBall()) {
+                link.setBall(false);
+                ThingReference ref = link.getThingReference();
+                ThingChangedEvent e =
+                  ref.acknowledgeThingChanged(link.getAction());
+                if (e != null) {
+                  thingChanged(e);
+                  dontSleep = true;
+                }
               }
             }
           }
+          resetTicks();
         }
-        resetTicks();
-      }
-      catch(VisADException v) {
-        v.printStackTrace();
-        throw new VisADError("Action.run: " + v.toString());
-      }
-      catch(RemoteException v) {
-        v.printStackTrace();
-        throw new VisADError("Action.run: " + v.toString());
-      }
-/* WLH 20 Feb 98
-      if (!dontSleep) {
-        try {
-          synchronized (this) {
-            wait(5000);
-          }
+        catch(VisADException v) {
+          v.printStackTrace();
+          throw new VisADError("Action.run: " + v.toString());
         }
-        catch(InterruptedException e) {
-          // note notify generates a normal return from wait rather
-          // than an Exception - control doesn't normally come here
+        catch(RemoteException v) {
+          v.printStackTrace();
+          throw new VisADError("Action.run: " + v.toString());
         }
-      } // end if (!dontSleep)
-*/
-    } // end while (actionThread == me)
+      } // end if (enabled) {
+    } // end synchronized (lockEnabled)
   }
 
   public abstract void doAction() throws VisADException, RemoteException;
@@ -229,10 +215,7 @@ System.out.println("doAction: Name = " + Name +
     if (link != null) {
       link.incTick(e.getTick());
       link.setBall(true);
-      synchronized (this) {
-        dontSleep = true;
-        notify();
-      }
+      notifyAction();
       return false; // WLH 4 Dec 98
     }
     else {
@@ -311,10 +294,7 @@ System.out.println("doAction: Name = " + Name +
       }
     }
     if (link != null) ref.removeThingChangedListener(link.getAction());
-    synchronized (this) {
-      dontSleep = true;
-      notify();
-    }
+    notifyAction();
   }
 
   /** method for use by RemoteActionImpl that adapts this ActionImpl */
@@ -332,10 +312,7 @@ System.out.println("doAction: Name = " + Name +
       }
     }
     if (link != null) ref.removeThingChangedListener(link.getAction());
-    synchronized (this) {
-      dontSleep = true;
-      notify();
-    }
+    notifyAction();
   }
 
   /** remove all ThingReferences */
@@ -356,10 +333,7 @@ System.out.println("doAction: Name = " + Name +
         ref.removeThingChangedListener(link.getAction());
       }
     }
-    synchronized (this) {
-      dontSleep = true;
-      notify();
-    }
+    notifyAction();
   }
 
   /** used by DisplayImpl.removeReference and
@@ -379,10 +353,7 @@ System.out.println("doAction: Name = " + Name +
         ref.removeThingChangedListener(links[i].getAction());
       }
     }
-    synchronized (this) {
-      dontSleep = true;
-      notify();
-    }
+    notifyAction();
   }
 
   ReferenceActionLink findLink(long id) throws VisADException {

@@ -144,7 +144,6 @@ System.out.println("setLinks: sw.setWhichChild(" + currentIndex + ")");
   /** re-transform if needed;
       return false if not done */
   public boolean doAction() throws VisADException, RemoteException {
-    if (!getEnabled()) return true;
     BranchGroup branch; // J3D
     boolean all_feasible = get_all_feasible();
     boolean any_changed = get_any_changed();

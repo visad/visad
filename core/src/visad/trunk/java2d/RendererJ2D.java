@@ -106,7 +106,6 @@ public abstract class RendererJ2D extends DataRenderer {
   /** re-transform if needed;
       return false if not done */
   public boolean doAction() throws VisADException, RemoteException {
-    if (!getEnabled()) return true;
     VisADGroup branch;
     boolean all_feasible = get_all_feasible();
     boolean any_changed = get_any_changed();

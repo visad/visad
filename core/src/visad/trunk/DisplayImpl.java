@@ -589,24 +589,6 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
     }
   }
 
-  public void enableReference(DataReference ref)
-         throws VisADException, RemoteException {
-    DataDisplayLink link = (DataDisplayLink) findReference(ref);
-    // don't throw an Exception if link is null
-    if (link == null) return;
-    DataRenderer renderer = link.getRenderer();
-    renderer.setEnabled(true);
-  }
-
-  public void disableReference(DataReference ref)
-         throws VisADException, RemoteException {
-    DataDisplayLink link = (DataDisplayLink) findReference(ref);
-    // don't throw an Exception if link is null
-    if (link == null) return;
-    DataRenderer renderer = link.getRenderer();
-    renderer.setEnabled(false);
-  }
-
   /** return a Vector containing all DataReferences */
   /** used by Control-s to notify this DisplayImpl that
       they have changed */
@@ -617,6 +599,12 @@ public abstract class DisplayImpl extends ActionImpl implements Display {
       notify();
     }
 */
+  }
+
+  /** DisplayImpl always runs doAction to find out if there is
+      work to do */
+  public boolean checkTicks() {
+    return true;
   }
 
   /** a Display is runnable;

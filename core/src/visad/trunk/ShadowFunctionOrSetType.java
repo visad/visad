@@ -949,7 +949,15 @@ System.out.println("Range is ShadowTupleType, text_values[0] = " +
     boolean[][] range_select =
       assembleSelect(display_values, domain_length, valueArrayLength,
                      valueToScalar, display);
-
+/*
+if (range_select[0] != null) {
+  int numforced = 0;
+  for (int k=0; k<range_select[0].length; k++) {
+    if (!range_select[0][k]) numforced++;
+  }
+  System.out.println("assembleSelect: numforced = " + numforced);
+}
+*/
     if (range_select[0] != null && range_select[0].length == 1 &&
         !range_select[0][0]) {
       // single missing value in range_select[0], so render nothing
@@ -986,7 +994,16 @@ System.out.println("doTerminal: isTerminal = " + getIsTerminal() +
         assembleColor(display_values, valueArrayLength, valueToScalar,
                       display, default_values, range_select,
                       single_missing);
- /*
+/*
+if (range_select[0] != null) {
+  int numforced = 0;
+  for (int k=0; k<range_select[0].length; k++) {
+    if (!range_select[0][k]) numforced++;
+  }
+  System.out.println("assembleColor: numforced = " + numforced);
+}
+*/
+/*
 if (color_values != null) {
   System.out.println("color_values.length = " + color_values.length +
                      " color_values[0].length = " + color_values[0].length);
@@ -994,6 +1011,12 @@ if (color_values != null) {
                      " " + color_values[2][0]);
 }
 */
+
+      if (range_select[0] != null && range_select[0].length == 1 &&
+          !range_select[0][0]) {
+        // single missing value in range_select[0], so render nothing
+        return false;
+      }
 
 
       float[][] flow1_values = new float[3][];
@@ -1003,7 +1026,15 @@ if (color_values != null) {
       assembleFlow(flow1_values, flow2_values, flowScale,
                    display_values, valueArrayLength, valueToScalar,
                    display, default_values, range_select);
- 
+/*
+if (range_select[0] != null) {
+  int numforced = 0;
+  for (int k=0; k<range_select[0].length; k++) {
+    if (!range_select[0][k]) numforced++;
+  }
+  System.out.println("assembleFlow: numforced = " + numforced);
+}
+*/
       if (range_select[0] != null && range_select[0].length == 1 &&
           !range_select[0][0]) {
         // single missing value in range_select[0], so render nothing
@@ -1029,6 +1060,15 @@ if (color_values != null) {
                         inherited_values, domain_set, Domain.getAllSpatial(),
                         anyContour, spatialDimensions, range_select,
                         flow1_values, flow2_values, flowScale, swap);
+/*
+if (range_select[0] != null) {
+  int numforced = 0;
+  for (int k=0; k<range_select[0].length; k++) {
+    if (!range_select[0][k]) numforced++;
+  }
+  System.out.println("assembleSpatial: numforced = " + numforced);
+}
+*/
 /*
 System.out.println("assembleSpatial  (spatial_set == null) = " +
   (spatial_set == null));
@@ -1067,13 +1107,13 @@ if (color_values != null) {
   System.out.println(color_values[0][0] + " " + color_values[1][0] +
                      " " + color_values[2][0]);
 }
-*/
 
       if (range_select[0] != null && range_select[0].length == 1 &&
           !range_select[0][0]) {
         // single missing value in range_select[0], so render nothing
         return false;
       }
+*/
 
       int color_length = Math.min(domain_length, color_values[0].length);
       int alpha_length = color_values[3].length;
@@ -1223,6 +1263,15 @@ END MISSING TEST */
           assembleShape(display_values, valueArrayLength, valueToMap, MapVector,
                         valueToScalar, display, default_values, inherited_values,
                         spatial_values, color_values, range_select, -1);
+/*
+if (range_select[0] != null) {
+  int numforced = 0;
+  for (int k=0; k<range_select[0].length; k++) {
+    if (!range_select[0][k]) numforced++;
+  }
+  System.out.println("assembleShape: numforced = " + numforced);
+}
+*/
         if (arrays != null) {
           for (int i=0; i<arrays.length; i++) {
             array = arrays[i];

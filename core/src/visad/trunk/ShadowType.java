@@ -1895,7 +1895,25 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
             real.equals(Display.CMY)) {
           ColorControl control = (ColorControl)
             ((ScalarMap) MapVector.elementAt(valueToMap[i])).getControl();
+/*
+ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
+System.out.println("map = " + map);
+int nummissing = 0;
+for (int k=0; k<values.length; k++) {
+  if (values[k] != values[k]) nummissing++;
+}
+System.out.println("values: nummissing = " + nummissing);
+*/
+
           float[][] color_values = control.lookupValues(values);
+
+/*
+nummissing = 0;
+for (int k=0; k<color_values[0].length; k++) {
+  if (color_values[0][k] != color_values[0][k]) nummissing++;
+}
+System.out.println("color_values: nummissing = " + nummissing);
+*/
           if (real.equals(Display.HSV)) {
             // transform color_values to DisplayRGBTuple
             color_values =

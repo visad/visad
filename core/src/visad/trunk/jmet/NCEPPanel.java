@@ -154,6 +154,16 @@ public class NCEPPanel extends JPanel implements
       if (mode == 0) {
         valueMap = new ScalarMap(Values, Display.IsoContour);
         valueColorMap = new ScalarMap(Values, Display.RGB);
+
+        // WLH 27 April 99
+        double rmin = range[0][0];
+        double rmax = range[0][1];
+        for (int k=0; k<range.length; k++) {
+          if (range[k][0] < rmin) rmin = range[k][0];
+          if (range[k][1] > rmax) rmax = range[k][1];
+        }
+        valueColorMap.setRange(rmin, rmax);
+
         di.addMap(valueMap);
         di.addMap(valueColorMap);
         ci = (ContourControl) valueMap.getControl();
@@ -367,18 +377,8 @@ public class NCEPPanel extends JPanel implements
         String v = intervalText.getText();
         intervalValue = Double.valueOf(v).doubleValue();
         if (ci != null & ref != null)
-/* WLH 26 Aoril 99
-          di.removeReference(ref);
-          ref.setData(null);
-*/
-/* WLH 26 Aoril 99
-          di.addReference(ref); 
-*/
-          ci.setContourInterval((float)intervalValue, 
-                  (float)range[levelValue][0], (float)range[levelValue][1], (float) cbeg);
-/* WLH 26 Aoril 99
-          ref.setData(field);
-*/
+          ci.setContourInterval((float)intervalValue, (float)range[levelValue][0],
+                                (float)range[levelValue][1], (float) cbeg);
           statLabel.setText("Rendering display...please wait!");
 
       } catch (NumberFormatException nivt) {
@@ -427,24 +427,16 @@ public class NCEPPanel extends JPanel implements
       if (val != levelValue & !levelSlider.getValueIsAdjusting() ) {
         levelValue = val;
         if (ref != null) try {
-          di.disableReference(ref);
-/* WLH 26 April 99
-          ref.setData(null);
-*/
+
+          // WLH 27 April 99
+          di.disableAction();
 
           valueMap.setRange(range[levelValue][0], range[levelValue][1]);
-
           setContInterval(range[levelValue]);
           field.setSample(0, tup[levelValue]);
-/* WLH 26 April 99
-          ref.setData(field);
-*/
 
-// WLH 26 April 99
-          System.out.println("take a nap");
-          Thread.sleep(3000);
-
-          di.enableReference(ref);
+          // WLH 27 April 99
+          di.enableAction();
 
           statLabel.setText("Rendering display...please wait!");
         } catch (Exception sl) {sl.printStackTrace();}

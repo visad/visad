@@ -39,8 +39,6 @@ import java.rmi.*;
 */
 public abstract class DataRenderer extends Object {
 
-  private boolean enabled = true;
-
   private DisplayImpl display;
   /** used to insert output into scene graph */
   private DisplayRenderer displayRenderer;
@@ -63,22 +61,6 @@ public abstract class DataRenderer extends Object {
   public DataRenderer() {
     Links = null;
     display = null;
-  }
-
-  public void setEnabled(boolean en) {
-    enabled = en;
-    if (enabled && Links != null && Links.length > 0) {
-      try {
-        DataReference ref = Links[0].getDataReference();
-        if (ref != null) ref.incTick();
-      }
-      catch (VisADException e) {}
-      catch (RemoteException e) {}
-    }
-  }
-
-  public boolean getEnabled() {
-    return enabled;
   }
 
   public void clearExceptions() {
@@ -152,7 +134,6 @@ public abstract class DataRenderer extends Object {
   }
 
   public boolean checkAction(boolean go) {
-    if (!enabled) return go;
     for (int i=0; i<Links.length; i++) {
       if (Links[i].checkTicks() || !feasible[i]) go = true;
       // check if this Data includes any changed Controls
@@ -170,7 +151,6 @@ public abstract class DataRenderer extends Object {
   public DataShadow prepareAction(boolean go, boolean initialize,
                                   DataShadow shadow)
          throws VisADException, RemoteException {
-    if (!enabled) return shadow;
     any_changed = false;
     all_feasible = true;
     any_transform_control = false;
@@ -250,7 +230,6 @@ System.out.println("DataRenderer.prepareAction: check = " + check + " feasible =
   public abstract boolean doAction() throws VisADException, RemoteException;
 
   public boolean getBadScale() {
-    if (!enabled) return false;
     boolean badScale = false;
     for (int i=0; i<Links.length; i++) {
       if (!feasible[i]) {
