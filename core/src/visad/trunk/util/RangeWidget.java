@@ -36,9 +36,7 @@ import visad.*;
 public class RangeWidget extends JPanel implements ActionListener,
                                                    ScalarMapListener {
 
-  private JTextField so_min, so_max;
   private JTextField data_min, data_max;
-  private JTextField display_min, display_max;
 
   private ScalarMap map;
 
@@ -59,71 +57,47 @@ public class RangeWidget extends JPanel implements ActionListener,
     }
 
     // create JTextFields
-    so_min = new JTextField();
-    so_max = new JTextField();
     data_min = new JTextField();
     data_max = new JTextField();
-    display_min = new JTextField();
-    display_max = new JTextField();
-    updateTextFields(so, data, display);
+    updateTextFields(data);
 
     // limit JTextField heights
-    Dimension msize = so_min.getMaximumSize();
-    Dimension psize = so_min.getPreferredSize();
+    Dimension msize = data_min.getMaximumSize();
+    Dimension psize = data_min.getPreferredSize();
     msize.height = psize.height;
-    so_min.setMaximumSize(msize);
-    so_max.setMaximumSize(msize);
     data_min.setMaximumSize(msize);
     data_max.setMaximumSize(msize);
-    display_min.setMaximumSize(msize);
-    display_max.setMaximumSize(msize);
 
-    // lay out GUI in grid format
-    setLayout(new GridLayout(4, 3));
-    add(Box.createRigidArea(new Dimension(1, 1)));
-    add(new JLabel("  min:  "));
-    add(new JLabel("  max:  "));
-    add(new JLabel("so:"));
-    add(so_min);
-    add(so_max);
-    add(new JLabel("data:"));
-    add(data_min);
-    add(data_max);
-    add(new JLabel("display:  "));
-    add(display_min);
-    add(display_max);
+    // create JPanel
+    JPanel p = new JPanel();
+    p.setLayout(new BoxLayout(p, BoxLayout.X_AXIS));
+    p.add(new JLabel("min: "));
+    p.add(data_min);
+    p.add(new JLabel(" max: "));
+    p.add(data_max);
+
+    // lay out GUI
+    setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+    add(new JLabel(map.toString().trim()));
+    add(p);
 
     // add listeners
     map.addScalarMapListener(this);
-    so_min.addActionListener(this);
-    so_max.addActionListener(this);
     data_min.addActionListener(this);
     data_max.addActionListener(this);
-    display_min.addActionListener(this);
-    display_max.addActionListener(this);
   }
 
-  private void updateTextFields(double[] so, double[] data, double[] display) {
-    so_min.setText(PlotText.shortString(so[0]));
-    so_max.setText(PlotText.shortString(so[1]));
+  private void updateTextFields(double[] data) {
     data_min.setText(PlotText.shortString(data[0]));
     data_max.setText(PlotText.shortString(data[1]));
-    display_min.setText(PlotText.shortString(display[0]));
-    display_max.setText(PlotText.shortString(display[1]));
   }
 
   /** handle JTextField changes */
   public void actionPerformed(ActionEvent e) {
     String cmd = e.getActionCommand();
-    double[] so = new double[2];
     double[] data = new double[2];
-    double[] display = new double[2];
-    so[0] = Double.parseDouble(so_min.getText());
-    so[1] = Double.parseDouble(so_max.getText());
     data[0] = Double.parseDouble(data_min.getText());
     data[1] = Double.parseDouble(data_max.getText());
-    display[0] = Double.parseDouble(display_min.getText());
-    display[1] = Double.parseDouble(display_max.getText());
     try {
       map.setRange(data[0], data[1]);
     }
@@ -137,7 +111,7 @@ public class RangeWidget extends JPanel implements ActionListener,
     double[] data = new double[2];
     double[] display = new double[2];
     map.getScale(so, data, display);
-    updateTextFields(so, data, display);
+    updateTextFields(data);
   }
 
 }
