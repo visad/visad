@@ -212,9 +212,8 @@ appear during normal SpreadSheet operation:
   - Cyan - data that was set directly
 
 To change which cell is highlighted, click inside the desired cell with a mouse
-button, or press the arrow keys.  You can also resize the spreadsheet cells, to
-allow some cells to be larger than others, by dragging the yellow blocks
-between cell labels.
+button.  You can also resize the spreadsheet cells, to allow some cells to be
+larger than others, by dragging the yellow blocks between cell labels.
 
 2.2 Menu Commands
 
@@ -627,16 +626,7 @@ using the "-help" command line option.
 
 The following bugs have been discovered:
 
-1) Key event processing has some glitches.  For example, the arrow keys may not
-   work at times, and sometimes typing in the formula bar has no effect.  The
-   problem seems to be worse on Solaris, but still occurs on NT.  It is somehow
-   related to Java3D, so try running the SpreadSheet with the "-no3d" parameter
-   to avoid the problem.  Another useful way around the problem is to compute
-   all your data first in 2-D (Java2D) mode, then switch cells to 3-D (Java3D)
-   mode as desired, and finally set up mappings.  Lastly, typing text into the
-   formula bar works more reliably if you click the "Add" button first.
-
-2) On certain machine configurations, the SpreadSheet may sometimes lock up
+1) On certain machine configurations, the SpreadSheet may sometimes lock up
    on startup (or when a toolbar button first becomes grayed out) due to a
    MediaTracker bug (#4332685). Try running the SpreadSheet with a different
    number of rows and columns on startup. If you still have trouble, you can
@@ -644,6 +634,10 @@ The following bugs have been discovered:
    This workaround will keep the SpreadSheet from locking up on startup, but
    you will not have the convenience of the toolbar. Of course, all
    functionality is still accessible from the menus.
+
+2) Due to a workaround to improve the functionality of the formula bar, the
+   backspace key sometimes causes two characters to be deleted from the formula
+   instead of one.
 
 3) When importing certain netCDF data sets, a series of errors beginning with
    "Couldn't decode attribute" may be displayed.  These are warnings the netCDF

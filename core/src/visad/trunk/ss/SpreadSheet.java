@@ -301,6 +301,16 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
    */
   protected ComboBoxEditor FormulaEditor;
 
+  /**
+   * Formula text field.
+   */
+  protected JTextField FormulaText;
+
+  /**
+   * Formula action listener.
+   */
+  protected ActionListener FormulaListener;
+
 
   /**
    * Tool bar.
@@ -860,7 +870,7 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
     FormulaBox.setLightWeightPopupEnabled(false);
     FormulaBox.setEditable(true);
     FormulaEditor = FormulaBox.getEditor();
-    FormulaEditor.addActionListener(new ActionListener() {
+    FormulaListener = new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         String newItem = ((String) FormulaEditor.getItem()).trim();
         try {
@@ -910,7 +920,7 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
           String itemString = varName + ": " + newItem;
           FormulaBox.addItem(itemString);
           FormulaBox.setSelectedItem(itemString);
-          if (!BugFix) FormulaAdd.requestFocus();
+          FormulaText.getCaret().setVisible(true); // BIG HAMMER HACK
         }
         catch (VisADException exc) {
           if (BasicSSCell.DEBUG) exc.printStackTrace();
@@ -919,13 +929,15 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
           if (BasicSSCell.DEBUG) exc.printStackTrace();
         }
       }
-    });
+    };
+    FormulaEditor.addActionListener(FormulaListener);
+    FormulaText = (JTextField) FormulaEditor.getEditorComponent();
 
     // set up horizontal spreadsheet cell labels
     JPanel horizShell = new JPanel();
     horizShell.setBackground(Color.white);
     horizShell.setLayout(new BoxLayout(horizShell, BoxLayout.X_AXIS));
-    horizShell.add(Box.createRigidArea(new Dimension(LABEL_WIDTH+6, 0)));
+    horizShell.add(Box.createRigidArea(new Dimension(LABEL_WIDTH + 6, 0)));
     pane.add(horizShell);
 
     HorizPanel = new JPanel() {
@@ -1038,11 +1050,14 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
     DisplayPanel.setBackground(Color.darkGray);
     SCPane.add(DisplayPanel);
 
-    // CTR: ugly hack to improve reliability of key presses
+    // BIG HAMMER HACK
     addKeyListener(this);
     SCPane.addKeyListener(this);
     ScrollPanel.addKeyListener(this);
     DisplayPanel.addKeyListener(this);
+    FormulaBox.addFocusListener(new FocusAdapter() {
+      public void focusGained(FocusEvent e) { SCPane.requestFocus(); }
+    });
 
     DataReferenceImpl lColRow = null;
     if (server != null) {
@@ -1198,7 +1213,7 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
 
     // wait for frame to lay itself out, then tile cells
     snooze(500);
-    if (!BugFix) FormulaAdd.requestFocus();
+    FormulaText.getCaret().setVisible(true); // BIG HAMMER HACK
     tileCells();
   }
 
@@ -3167,42 +3182,114 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
   }
 
   /**
-   * Handles key presses.
+   * BIG HAMMER HACK.
+   */
+  private boolean commandKey;
+
+  /**
+   * BIG HAMMER HACK.
+   */
+  private boolean shiftHeld;
+
+  /**
+   * BIG HAMMER HACK.
    */
   public void keyPressed(KeyEvent e) {
-    int key = e.getKeyCode();
-
-    int ci = CurX;
-    int cj = CurY;
-    boolean changed = false;
-    if (key == KeyEvent.VK_RIGHT && ci < NumVisX - 1) {
-      ci++;
-      changed = true;
+    commandKey = true;
+    int keyCode = e.getKeyCode();
+    if (keyCode == KeyEvent.VK_ENTER) {
+      // enter pressed; notify action listener
+      FormulaListener.actionPerformed(new ActionEvent(FormulaEditor, 0, ""));
     }
-    if (key == KeyEvent.VK_LEFT && ci > 0) {
-      ci--;
-      changed = true;
+    else if (keyCode == KeyEvent.VK_BACK_SPACE) {
+      // backspace pressed; delete text
+      String text = FormulaText.getText();
+      int start = FormulaText.getSelectionStart();
+      int end = FormulaText.getSelectionEnd();
+      if (start != end || start != 0) {
+        int pos = start == end ? start - 1 : start;
+        String pre = text.substring(0, pos);
+        String post = text.substring(end);
+        FormulaText.setText(pre + post);
+        FormulaText.getCaret().setDot(pos);
+      }
     }
-    if (key == KeyEvent.VK_UP && cj > 0) {
-      cj--;
-      changed = true;
+    else if (keyCode == KeyEvent.VK_SHIFT) {
+      // shift pressed
+      shiftHeld = true;
     }
-    if (key == KeyEvent.VK_DOWN && cj < NumVisY - 1) {
-      cj++;
-      changed = true;
+    else if (keyCode == KeyEvent.VK_LEFT) {
+      int pos = FormulaText.getCaretPosition();
+      if (shiftHeld) {
+        // shift + left arrow pressed; alter selection left
+        if (pos > 0) FormulaText.getCaret().moveDot(pos - 1);
+      }
+      else {
+        // left arrow pressed; move caret left
+        if (pos > 0) FormulaText.getCaret().setDot(pos - 1);
+      }
     }
-    if (changed) selectCell(ci, cj);
+    else if (keyCode == KeyEvent.VK_RIGHT) {
+      int pos = FormulaText.getCaretPosition();
+      if (shiftHeld) {
+        // shift + right arrow pressed; alter selection right
+        if (pos < FormulaText.getText().length()) {
+          FormulaText.getCaret().moveDot(pos + 1);
+        }
+      }
+      else {
+        // right arrow pressed; move caret right
+        if (pos < FormulaText.getText().length()) {
+          FormulaText.getCaret().setDot(pos + 1);
+        }
+      }
+    }
+    else if (keyCode == KeyEvent.VK_HOME) {
+      if (shiftHeld) {
+        // shift + home pressed; select to beginning of text
+        FormulaText.getCaret().moveDot(0);
+      }
+      else {
+        // home pressed; move to beginning of text
+        FormulaText.getCaret().setDot(0);
+      }
+    }
+    else if (keyCode == KeyEvent.VK_END) {
+      if (shiftHeld) {
+        // shift + end pressed; select to end of text
+        FormulaText.getCaret().moveDot(FormulaText.getText().length());
+      }
+      else {
+        // end pressed; move to end of text
+        FormulaText.getCaret().setDot(FormulaText.getText().length());
+      }
+    }
+    else commandKey = false;
   }
 
   /**
-   * Unused KeyListener method.
+   * BIG HAMMER HACK.
    */
-  public void keyReleased(KeyEvent e) { }
+  public void keyReleased(KeyEvent e) {
+    int keyCode = e.getKeyCode();
+    if (keyCode == KeyEvent.VK_SHIFT) shiftHeld = false;
+  }
 
   /**
-   * Unused KeyListener method.
+   * BIG HAMMER HACK.
    */
-  public void keyTyped(KeyEvent e) { }
+  public void keyTyped(KeyEvent e) {
+    char key = e.getKeyChar();
+    if (!commandKey && !e.isActionKey() && key >= 32) {
+      int start = FormulaText.getSelectionStart();
+      int end = FormulaText.getSelectionEnd();
+      String text = FormulaText.getText();
+      FormulaText.setText(text.substring(0, start) +
+        key + text.substring(end));
+      FormulaText.getCaret().setDot(start + 1);
+    }
+    e.consume();
+  }
 
   /**
    * Old x value used with cell resizing logic.
@@ -3356,7 +3443,7 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
     // update spreadsheet info
     CurX = x;
     CurY = y;
-    if (!BugFix) FormulaAdd.requestFocus();
+    FormulaText.getCaret().setVisible(true); // BIG HAMMER HACK
     refreshFormulaBar();
     refreshMenuCommands();
     refreshDisplayMenuItems();
