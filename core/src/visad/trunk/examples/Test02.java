@@ -89,6 +89,17 @@ public class Test02
     float level = 2.5f;
     FlatField grid3d = FlatField.makeField(grid_tuple, size3d, true);
 
+    if ((size3d % 2) != 0) {
+      double last = size3d - 1.0;
+      Linear3DSet set =
+        new Linear3DSet(earth_location3d, 0.0, last, size3d,
+                                          0.0, last, size3d,
+                                          0.0, last, size3d);
+      grid3d = (FlatField)
+        grid3d.resample(set, Data.WEIGHTED_AVERAGE, Data.NO_ERRORS);
+        // grid3d.resample(set, Data.NEAREST_NEIGHBOR, Data.NO_ERRORS);
+    }
+
     dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
     dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
     dpys[0].addMap(new ScalarMap(RealType.Radius, Display.ZAxis));

@@ -233,12 +233,18 @@ public class Irregular3DSet extends IrregularSet {
     for ( int kk = 0; kk < fail_tri.length; kk++ ) { 
       fail_tri[kk] = false;
     }
+    int [] fail_list = null;
+    int fail_length = 0;
 
     int[] tri = new int[length];
     int curtri = 0;
+
+// System.out.println("length = " + length + " Delan.Tri.length = " +
+//                    Delan.Tri.length);
+
     for (int i=0; i<length; i++) {
 
-      boolean circle = false; // mark true if a failed tri is revisited
+// System.out.println("i = " + i);
 
       // Return -1 if iteration loop fails
       tri[i] = -1;
@@ -344,143 +350,67 @@ public class Irregular3DSet extends IrregularSet {
 
         // figure out which triangle to go to next
 
-        if (!test1) {
+        if (!test1 || !test2 || !test3 || !test4) {
+          // record failed tri
           fail_tri[curtri] = true;
-
-          int t = Delan.Walk[curtri][0];
-          if ( t != -1) {
-            if ( fail_tri[t] == true ) {
-              circle = true;
-              for ( int jj = 0; jj < fail_tri.length; jj++ ) {
-                if ( fail_tri[jj] == false ) {
-                  curtri = jj;
-                  break;
-                }
-              }
-            }
-            else {
-              curtri = t;
-            }
+          // add to list of failed tris for efficient reset
+          if (fail_list == null) {
+            fail_list = new int[4];
+            fail_length = 0;
           }
-          else if ( !circle ) {
+          else if (fail_length >= fail_list.length) {
+            int[] new_fail_list = new int[2 * fail_list.length];
+            System.arraycopy(fail_list, 0, new_fail_list, 0, fail_list.length);
+            fail_list = new_fail_list;
+          }
+          fail_list[fail_length] = curtri;
+          fail_length++;
+
+          int t = -1;
+          boolean fail = true;
+          if (!test1 && fail) {
+            t = Delan.Walk[curtri][0];
+            if (t != -1) fail = fail_tri[t];
+          }
+          if (!test2 && fail) {
+            t = Delan.Walk[curtri][1];
+            if (t != -1) fail = fail_tri[t];
+          }
+          if (!test3 && fail) {
+            t = Delan.Walk[curtri][2];
+            if (t != -1) fail = fail_tri[t];
+          }
+          if (!test4 && fail) {
+            t = Delan.Walk[curtri][3];
+            if (t != -1) fail = fail_tri[t];
+          }
+
+          if (!fail || t == -1) {
             curtri = t;
           }
-          else {
-            for ( int jj = 0; jj < fail_tri.length; jj++ ) {
-              if ( fail_tri[jj] == false ) {
-                curtri = jj;
-                break;
-              }
-            }
-          }
-        }
-        else if (!test2) {
-          fail_tri[curtri] = true;
 
-          int t = Delan.Walk[curtri][1];
-          if ( t != -1 ) {
-            if ( fail_tri[t] == true ) {
-              circle = true;
-              for ( int jj = 0; jj < fail_tri.length; jj++ ) {
-                if ( fail_tri[jj] == false ) {
-                  curtri = jj;
-                  break;
-                }
-              }
-            }
-            else {
-              curtri = t;
-            }
-          }
-          else if ( !circle ) {
-            curtri = t;
-          }
-          else {
-            for ( int jj = 0; jj < fail_tri.length; jj++ ) {
-              if ( fail_tri[jj] == false ) {
-                curtri = jj;
-                break;
-              }
-            }
-          }
-        }
-        else if (!test3) {
-          fail_tri[curtri] = true;
-
-          int t = Delan.Walk[curtri][2];
-          if ( t != -1 ) {
-            if ( fail_tri[t] == true ) {
-              circle = true;
-              for ( int jj = 0; jj < fail_tri.length; jj++ ) {
-                if ( fail_tri[jj] == false ) {
-                  curtri = jj;
-                  break;
-                }
-              }
-            }
-            else {
-              curtri = t;
-            }
-          } 
-          else if ( !circle ) {
-            curtri = t;
-          }
-          else {
-            for ( int jj = 0; jj < fail_tri.length; jj++ ) {
-              if ( fail_tri[jj] == false ) {
-                curtri = jj;
-                break;
-              }
-            }
-
-          }
-        }
-        else if (!test4) {
-          fail_tri[curtri] = true;
-
-          int t = Delan.Walk[curtri][3];
-          if ( t != -1 ) {
-            if ( fail_tri[t] == true ) {
-              circle = true;
-              for ( int jj = 0; jj < fail_tri.length; jj++ ) {
-                if ( fail_tri[jj] == false ) {
-                  curtri = jj;
-                  break;
-                }
-              }
-            }
-            else {
-              curtri = t;
-            }
-          }
-          else if ( !circle ) {
-            curtri = t;
-          }
-          else {
-            for ( int jj = 0; jj < fail_tri.length; jj++ ) {
-              if ( fail_tri[jj] == false ) {
-                curtri = jj;
-                break;
-              }
-            }
-          }
         }
         else {
           foundit = true;
         }
 
-
         // Return -1 if outside of the convex hull
         if (curtri < 0) foundit = true;
-        if (foundit) tri[i] = curtri;
-      }
-      if ( circle ) {  //- reinitialize only if circularity condition found
-        for ( int kk = 0; kk < fail_tri.length; kk++ ) {
-          fail_tri[kk] = false;
+        if (foundit) {
+          tri[i] = curtri;
         }
+      } // end for (itnum=0; (itnum<Delan.Tri.length) && !foundit; itnum++)
+
+      // reset all fail_tri to false
+      if (fail_list != null) {
+        for (int ii=0; ii<fail_length; ii++) {
+          fail_tri[fail_list[ii]] = false;
+        }
+        fail_list = null;
       }
-   //-System.out.println("itnum: "+itnum);
-    }
+
+    } // end for (int i=0; i<length; i++)
+
     return tri;
   }
 
