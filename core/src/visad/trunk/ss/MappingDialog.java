@@ -33,6 +33,9 @@ import com.sun.java.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 
+// Net class
+import java.net.URL;
+
 // RMI classes
 import java.rmi.RemoteException;
 
@@ -119,7 +122,10 @@ public class MappingDialog extends JDialog implements ActionListener,
   /** Pre-loads the display.gif file, so it's ready when
       mapping dialog is requested */
   static void initDialog() {
-    if (DRT == null) DRT = Toolkit.getDefaultToolkit().getImage("display.gif");
+    if (DRT == null) {
+      URL url = MappingDialog.class.getResource("display.gif");
+      DRT = Toolkit.getDefaultToolkit().getImage(url);
+    }
     Inited = true;
   }
 
@@ -290,7 +296,8 @@ public class MappingDialog extends JDialog implements ActionListener,
       public void paint(Graphics g) {
         if (DRT == null) {
           if (!Inited) {
-            DRT = Toolkit.getDefaultToolkit().getImage("display.gif");
+            URL url = MappingDialog.class.getResource("display.gif");
+            DRT = Toolkit.getDefaultToolkit().getImage(url);
           }
           MediaTracker mtracker = new MediaTracker(this);
           mtracker.addImage(DRT, 0);
