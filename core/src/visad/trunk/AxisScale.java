@@ -289,11 +289,6 @@ public class AxisScale implements java.io.Serializable
     double range = Math.abs(dataRange[1] - dataRange[0]);
     double min = Math.min(dataRange[0], dataRange[1]);
     double max = Math.max(dataRange[0], dataRange[1]);
-    /*
-    System.out.println(myAxis + ": range = " + range);
-    System.out.println(myAxis + ": min = " + min);
-    System.out.println(myAxis + ": max = " + max);
-    */
 
     // compute tick mark values
     double tens = 1.0;
@@ -317,12 +312,7 @@ public class AxisScale implements java.io.Serializable
       majorTickSpacing = tens;
     }
     // now tens = interval between major tick marks (majorTickSpacing)
-    //System.out.println(myAxis + " majorTickSpacing = " + majorTickSpacing);
   
-    /* Change DRM 24-Jan-2001
-    long bot = (int) Math.ceil(min / tens);
-    long top = (int) Math.floor(max / tens);
-    */
     /* remove DRM 21-Feb-2001
     long bot = (long) Math.ceil(min / majorTickSpacing);
     long top = (long) Math.floor(max / majorTickSpacing);
@@ -393,7 +383,6 @@ public class AxisScale implements java.io.Serializable
       //for (long j=lower; j<=upper; j++) {  // Change DRM 21-Feb-2001
       for (int j = 0; j < nticks; j++) 
       {
-        //double val = j * minorTickSpacing;  // DRM 24-Jan-2001
         double val = hilo[0] + (j * minorTickSpacing);
         double a = (val - min) / (max - min);
         for (int i=0; i<3; i++) {
@@ -572,6 +561,7 @@ public class AxisScale implements java.io.Serializable
     newScale.baseLineVisible = baseLineVisible;
     newScale.snapToBox = snapToBox;
     newScale.labelFont = labelFont;
+    newScale.labelSize = labelSize;
     return newScale;
   }
 
@@ -831,14 +821,16 @@ public class AxisScale implements java.io.Serializable
     double[] vals = new double[2];
     double start = (low - base) / interval;
     double clow = 
-      base + interval * ((int) (start + (start >= 0 ? 0.5 : -0.5)) - 1);
+      //base + interval * ((int) (start + (start >= 0 ? 0.5 : -0.5)) - 1);
+      base + interval * ((int) Math.round(start)); // DRM 29-Mar-2001
     while (clow<low) {
       clow += interval;
     }
 
     start = (high - base) / interval;
     double chi = 
-      base + interval * ((int) (start + (start >= 0 ? 0.5 : -0.5)) + 1);
+      //base + interval * ((int) (start + (start >= 0 ? 0.5 : -0.5)) + 1);
+      base + interval * ((int) Math.round(start)); // DRM 29-Mar-2001
     while (chi>high) {
       chi -= interval;
     }
