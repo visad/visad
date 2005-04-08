@@ -2,7 +2,7 @@
  * Copyright 1999, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DefaultUnitsDB.java,v 1.4 2004-01-21 22:08:00 steve Exp $
+ * $Id: DefaultUnitsDB.java,v 1.5 2005-04-08 18:25:57 tomw Exp $
  */
 
 package visad.data.units;
@@ -350,6 +350,11 @@ DefaultUnitsDB
 	pn("barleycorn",	get("inch").scale(1./3));
 
 	pn("arpentlin",		get("foot").scale(191.835));
+
+  // The following is for Ozone measurements:
+  pn("Dobson", get("m").scale(.00001));  // exact
+  pn("DU", "Dobson");
+
 
 	/*
 	 * UNITS OF TIME
