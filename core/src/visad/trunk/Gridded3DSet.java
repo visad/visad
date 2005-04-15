@@ -767,9 +767,9 @@ public class Gridded3DSet extends GriddedSet {
       }
       // test for missing
       if ( (i != 0) && grid[0][i-1] != grid[0][i-1] ) {
-        gx = (LengthX-1)/2;
-        gy = (LengthY-1)/2;
-        gz = (LengthZ-1)/2;
+        //gx = (LengthX-1)/2;
+        //gy = (LengthY-1)/2;
+        //gz = (LengthZ-1)/2;
       }
       int tetnum = 5;  // Tetrahedron number in which to start search
       // if the iteration loop fails, the result should be NaN
@@ -785,10 +785,9 @@ public class Gridded3DSet extends GriddedSet {
       float sx = Samples[0][gii];
       float sy = Samples[1][gii];
       float sz = Samples[2][gii];
-      if ( Math.sqrt((v_x-sx)*(v_x-sx)+(v_y-sy)*(v_y-sy)+(v_z-sz)*(v_z-sz)) >
-           0.5*Math.sqrt((Samples[0][0]-Samples[0][ii])*(Samples[0][0]-Samples[0][ii])+
-                         (Samples[1][0]-Samples[1][ii])*(Samples[1][0]-Samples[1][ii])+
-                         (Samples[2][0]-Samples[2][ii])*(Samples[2][0]-Samples[2][ii])) )
+      if ( (Math.sqrt((v_x-sx)*(v_x-sx)) > 0.4*Math.sqrt((Samples[0][0]-Samples[0][ii])*(Samples[0][0]-Samples[0][ii]))) ||
+           (Math.sqrt((v_y-sy)*(v_y-sy)) > 0.4*Math.sqrt((Samples[1][0]-Samples[1][ii])*(Samples[1][0]-Samples[1][ii]))) ||
+           (Math.sqrt((v_z-sz)*(v_z-sz)) > 0.4*Math.sqrt((Samples[2][0]-Samples[2][ii])*(Samples[2][0]-Samples[2][ii]))) )
       {
         float[] ginit = getStartPoint(value[0][i], value[1][i], value[2][i]);
         gx = (int)ginit[0];
@@ -892,9 +891,10 @@ public class Gridded3DSet extends GriddedSet {
                    *(value[1][i]-E[1])
                 + ( (E[0]-F[0])*(H[1]-E[1]) - (E[1]-F[1])*(H[0]-E[0]) )
                    *(value[2][i]-E[2]);
-          test1 = (visad.util.Util.isApproximatelyEqual(tval1,0.0)) || ((tval1 > 0) == (!evencube)^Pos);
-          test2 = (visad.util.Util.isApproximatelyEqual(tval2,0.0)) || ((tval2 > 0) == (!evencube)^Pos);
-          test3 = (visad.util.Util.isApproximatelyEqual(tval3,0.0)) || ((tval3 > 0) == (!evencube)^Pos);
+          test1 = (visad.util.Util.isApproximatelyEqual(tval1,0.0,1E-04)) || ((tval1 > 0) == (!evencube)^Pos);
+          test2 = (visad.util.Util.isApproximatelyEqual(tval2,0.0,1E-04)) || ((tval2 > 0) == (!evencube)^Pos);
+          test3 = (visad.util.Util.isApproximatelyEqual(tval3,0.0,1E-04)) || ((tval3 > 0) == (!evencube)^Pos);
+
 
           // if a test failed go to a new box
           int updown = (evencube) ? -1 : 1;
@@ -1088,9 +1088,9 @@ public class Gridded3DSet extends GriddedSet {
                    *(value[1][i]-B[1])
                 + ( (B[0]-F[0])*(A[1]-B[1]) - (B[1]-F[1])*(A[0]-B[0]) )
                    *(value[2][i]-B[2]);
-          test1 = (visad.util.Util.isApproximatelyEqual(tval1,0.0)) || ((tval1 > 0) == (!evencube)^Pos);
-          test2 = (visad.util.Util.isApproximatelyEqual(tval2,0.0)) || ((tval2 > 0) == (!evencube)^Pos);
-          test3 = (visad.util.Util.isApproximatelyEqual(tval3,0.0)) || ((tval3 > 0) == (!evencube)^Pos);
+          test1 = (visad.util.Util.isApproximatelyEqual(tval1,0.0,1E-04)) || ((tval1 > 0) == (!evencube)^Pos);
+          test2 = (visad.util.Util.isApproximatelyEqual(tval2,0.0,1E-04)) || ((tval2 > 0) == (!evencube)^Pos);
+          test3 = (visad.util.Util.isApproximatelyEqual(tval3,0.0,1E-04)) || ((tval3 > 0) == (!evencube)^Pos);
 
 
           // if a test failed go to a new box
@@ -1287,9 +1287,9 @@ public class Gridded3DSet extends GriddedSet {
                    *(value[1][i]-D[1])
                 + ( (D[0]-H[0])*(C[1]-D[1]) - (D[1]-H[1])*(C[0]-D[0]) )
                    *(value[2][i]-D[2]);
-          test1 = (visad.util.Util.isApproximatelyEqual(tval1,0.0)) || ((tval1 > 0) == (!evencube)^Pos);
-          test2 = (visad.util.Util.isApproximatelyEqual(tval2,0.0)) || ((tval2 > 0) == (!evencube)^Pos);
-          test3 = (visad.util.Util.isApproximatelyEqual(tval3,0.0)) || ((tval3 > 0) == (!evencube)^Pos);
+          test1 = (visad.util.Util.isApproximatelyEqual(tval1,0.0,1E-04)) || ((tval1 > 0) == (!evencube)^Pos);
+          test2 = (visad.util.Util.isApproximatelyEqual(tval2,0.0,1E-04)) || ((tval2 > 0) == (!evencube)^Pos);
+          test3 = (visad.util.Util.isApproximatelyEqual(tval3,0.0,1E-04)) || ((tval3 > 0) == (!evencube)^Pos);
 
 
           // if a test failed go to a new box
@@ -1486,9 +1486,9 @@ public class Gridded3DSet extends GriddedSet {
                    *(value[1][i]-G[1])
                 + ( (G[0]-H[0])*(F[1]-G[1]) - (G[1]-H[1])*(F[0]-G[0]) )
                    *(value[2][i]-G[2]);
-          test1 = (visad.util.Util.isApproximatelyEqual(tval1,0.0)) || ((tval1 > 0) == (!evencube)^Pos);
-          test2 = (visad.util.Util.isApproximatelyEqual(tval2,0.0)) || ((tval2 > 0) == (!evencube)^Pos);
-          test3 = (visad.util.Util.isApproximatelyEqual(tval3,0.0)) || ((tval3 > 0) == (!evencube)^Pos);
+          test1 = (visad.util.Util.isApproximatelyEqual(tval1,0.0,1E-04)) || ((tval1 > 0) == (!evencube)^Pos);
+          test2 = (visad.util.Util.isApproximatelyEqual(tval2,0.0,1E-04)) || ((tval2 > 0) == (!evencube)^Pos);
+          test3 = (visad.util.Util.isApproximatelyEqual(tval3,0.0,1E-04)) || ((tval3 > 0) == (!evencube)^Pos);
 
 
           // if a test failed go to a new box
@@ -1691,10 +1691,11 @@ public class Gridded3DSet extends GriddedSet {
                    *(value[1][i]-F[1])
                 + ( (F[0]-C[0])*(H[1]-F[1]) - (F[1]-C[1])*(H[0]-F[0]) )
                    *(value[2][i]-F[2]);
-          test1 = (visad.util.Util.isApproximatelyEqual(tval1,0.0)) || ((tval1 > 0) == (!evencube)^Pos);
-          test2 = (visad.util.Util.isApproximatelyEqual(tval2,0.0)) || ((tval2 > 0) == (!evencube)^Pos);
-          test3 = (visad.util.Util.isApproximatelyEqual(tval3,0.0)) || ((tval3 > 0) == (!evencube)^Pos);
-          test4 = (visad.util.Util.isApproximatelyEqual(tval4,0.0)) || ((tval4 > 0) == (!evencube)^Pos);
+          test1 = (visad.util.Util.isApproximatelyEqual(tval1,0.0,1E-04)) || ((tval1 > 0) == (!evencube)^Pos);
+          test2 = (visad.util.Util.isApproximatelyEqual(tval2,0.0,1E-04)) || ((tval2 > 0) == (!evencube)^Pos);
+          test3 = (visad.util.Util.isApproximatelyEqual(tval3,0.0,1E-04)) || ((tval3 > 0) == (!evencube)^Pos);
+          test4 = (visad.util.Util.isApproximatelyEqual(tval4,0.0,1E-04)) || ((tval4 > 0) == (!evencube)^Pos);
+
 
           // if a test failed go to a new tetrahedron
           if (!test1 && test2 && test3 && test4) tetnum = 1;
