@@ -598,18 +598,23 @@ public class TiffTools {
         if (numBytes == 1) {
           // special case handles 8-bit data more quickly
           byte b = bytes[index++];
-          samples[i][startIndex + j] = b < 0 ? 256 + b : b;
+          int ndx = startIndex + j;
+          samples[i][ndx] = b < 0 ? 256 + b : b;
+          if (photoInterp == WHITE_IS_ZERO) { // invert color value
+            samples[i][ndx] = 256 - samples[i][ndx];
+          }
         }
         else {
           byte[] b = new byte[numBytes];
           System.arraycopy(bytes, index, b, 0, numBytes);
           index += numBytes;
-          samples[i][startIndex + j] = bytesToLong(b, littleEndian);
-        }
-        if (photoInterp == WHITE_IS_ZERO) {
-          // invert color values
-          float maxValue = (float) Math.pow(8, numBytes);
-          samples[i][startIndex + j] = maxValue - samples[i][startIndex + j];
+          int ndx = startIndex + j;
+          samples[i][ndx] = bytesToLong(b, littleEndian);
+          if (photoInterp == WHITE_IS_ZERO) { // invert color value
+            long maxValue = 1;
+            for (int q=0; q<numBytes; q++) maxValue *= 8;
+            samples[i][ndx] = maxValue - samples[i][ndx];
+          }
         }
       }
     }
