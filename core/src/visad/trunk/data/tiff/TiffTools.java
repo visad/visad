@@ -606,6 +606,11 @@ public class TiffTools {
           index += numBytes;
           samples[i][startIndex + j] = bytesToLong(b, littleEndian);
         }
+        if (photoInterp == WHITE_IS_ZERO) {
+          // invert color values
+          float maxValue = (float) Math.pow(8, numBytes);
+          samples[i][startIndex + j] = maxValue - samples[i][startIndex + j];
+        }
       }
     }
   }
