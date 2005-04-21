@@ -233,7 +233,7 @@ public class PointDataAdapter {
         Data sample = (noText == true)
                                ? new RealTuple(
                                    (RealTupleType)rangeType, (Real[]) scalars, null)
-                               : new Tuple(rangeType, scalars, false);
+                               : new Tuple(rangeType, scalars, false, false);
         field.setSample(i, sample, false);  // don't make copy
       }
       catch (VisADException e) {e.printStackTrace();} 

@@ -40,7 +40,10 @@ public class Tuple extends DataImpl implements TupleIface {
 
   Data[] tupleComponents;  // might be null (see Tuple(TupleType))
 
-  /** construct a Tuple object with missing value */
+  /** 
+   * Construct a Tuple object with missing value 
+   * @param  type  the TupleType
+   */
   public Tuple(TupleType type) {
     super(type);
     if (type instanceof RealTupleType &&
@@ -49,17 +52,38 @@ public class Tuple extends DataImpl implements TupleIface {
     }
   }
 
-  /** construct a Tuple object from a type and an array of Data objects */
+  /** 
+   * Construct a Tuple object from a type and an array of Data objects 
+   * @param  type  the TupleType
+   * @param  datums  the Data components
+   */
   public Tuple(TupleType type, Data[] datums)
          throws VisADException, RemoteException {
     this(type, datums, true);
   }
 
-  /** construct a Tuple object from a type and an array of Data objects */
+  /** 
+   * Construct a Tuple object from a type and an array of Data objects 
+   * @param  type  the TupleType
+   * @param  datums  the Data components
+   * @param  copy  if true, copy the data objects
+   */
   public Tuple(TupleType type, Data[] datums, boolean copy)
          throws VisADException, RemoteException {
+    this(type, datums, copy, true);
+  }
+
+  /** 
+   * Construct a Tuple object from a type and an array of Data objects 
+   * @param  type  the TupleType
+   * @param  datums  the Data components
+   * @param  copy  if true, copy the data objects
+   * @param  checkType  if true, make sure the type matches the datum types.
+   */
+  public Tuple(TupleType type, Data[] datums, boolean copy, boolean checkType)
+         throws VisADException, RemoteException {
     super(type);
-    if (!checkTupleType(type, datums)) {
+    if (checkType && !checkTupleType(type, datums)) {
       throw new TypeException("Tuple: type does not match data");
     }
     if (type instanceof RealTupleType &&
@@ -81,28 +105,41 @@ public class Tuple extends DataImpl implements TupleIface {
     }
   }
 
-  /** construct a Tuple object from an array of Data objects;
-      this constructs its MathType from the MathTypes of the
-      data array; only copy data if copy == true */
+  /** 
+   * Construct a Tuple object from an array of Data objects;
+   * this constructs its MathType from the MathTypes of the
+   * data array
+   *
+   * @param  datums  the Data components
+   * @param  copy  if true, copy the data objects
+   */
   public Tuple(Data[] datums, boolean copy)
          throws VisADException, RemoteException {
-    this(buildTupleType(datums), datums, copy);
+    this(buildTupleType(datums), datums, copy, false);
   }
 
-  /** construct a Tuple object from an array of Data objects;
-      this constructs its MathType from the MathTypes of the
-      data array; components are copies of data */
+  /** 
+   * Construct a Tuple object from an array of Data objects;
+   * this constructs its MathType from the MathTypes of the
+   * data array
+   *
+   * @param  datums  the Data components
+   */
   public Tuple(Data[] datums)
          throws VisADException, RemoteException {
-    this(buildTupleType(datums), datums, true);
+    this(buildTupleType(datums), datums, true, false);
   }
 
+  /**
+   * Create a Tuple from an array of Data objects.  
+   * @return a Tuple.
+   */
   public static Tuple makeTuple(Data[] datums)
          throws VisADException, RemoteException {
     return new Tuple(datums);
   }
 
-  /** check a TupleType for an array of Data */
+  /** Check a TupleType for an array of Data */
   static boolean checkTupleType(TupleType type, Data[] datums)
          throws VisADException, RemoteException {
     if (datums == null || type == null) return false;
@@ -114,7 +151,10 @@ public class Tuple extends DataImpl implements TupleIface {
     return true;
   }
 
-  /** make a TupleType for an array of Data */
+  /** 
+   * Make a TupleType for an array of Data 
+   * @param datums  array of Data objects
+   */
   public static TupleType buildTupleType(Data[] datums)
          throws VisADException, RemoteException {
     if (datums == null) {
@@ -140,6 +180,10 @@ public class Tuple extends DataImpl implements TupleIface {
     }
   }
 
+  /**
+   * Get all the Real components from this Tuple.
+   * @return  an array of Real-s
+   */
   public Real[] getRealComponents()
          throws VisADException, RemoteException {
     if (tupleComponents == null) return null;
@@ -163,7 +207,8 @@ public class Tuple extends DataImpl implements TupleIface {
     return realComponents;
   }
 
-  /** Returns the components that constitute this instance.  If this instance
+  /** 
+   * Returns the components that constitute this instance.  If this instance
    * has no components, then <code>null</code> is returned.  A returned array
    * may be modified without affecting the behavior of this instance.
    *
@@ -176,7 +221,10 @@ public class Tuple extends DataImpl implements TupleIface {
       : (Data[])tupleComponents.clone();
   }
 
-  /** return number of components */
+  /** 
+   * Return number of components in this Tuple.
+   * @return the number of components.
+   */
   public int getDimension() {
     if (tupleComponents != null) {
       return tupleComponents.length;
@@ -214,6 +262,10 @@ public class Tuple extends DataImpl implements TupleIface {
     }
   }
 
+  /**
+   * Check if there is no Data in this Tuple.
+   * @return true if there is no data.
+   */
   public boolean isMissing() {
     return (tupleComponents == null);
   }
@@ -389,10 +441,10 @@ public class Tuple extends DataImpl implements TupleIface {
       clone.tupleComponents = new Data[tupleComponents.length];
 
       for (int i = 0; i < tupleComponents.length; i++) {
-	Data comp = tupleComponents[i];
+        Data comp = tupleComponents[i];
 
-	if (comp == null) {
-	  clone.tupleComponents[i] = null;
+        if (comp == null) {
+          clone.tupleComponents[i] = null;
         }
         else {
           try {
@@ -400,7 +452,7 @@ public class Tuple extends DataImpl implements TupleIface {
              * Data.dataClone() is invoked because Data.clone() doesn't and
              * can't exist.
              */
-	    clone.tupleComponents[i] = (Data)tupleComponents[i].dataClone();
+            clone.tupleComponents[i] = (Data)tupleComponents[i].dataClone();
           }
           catch (RemoteException ex) {
             throw new RuntimeException(ex.toString());
@@ -426,34 +478,34 @@ public class Tuple extends DataImpl implements TupleIface {
   /**
    * Indicates if this Tuple is identical to an object.
    *
-   * @param obj		The object.
-   * @return		<code>true</code> if and only if the object is
-   *			a Tuple and both Tuple-s have identical component
-   *			sequences.
+   * @param obj         The object.
+   * @return            <code>true</code> if and only if the object is
+   *                    a Tuple and both Tuple-s have identical component
+   *                    sequences.
    */
   public boolean equals(Object obj) {
-    boolean	equals;
+    boolean     equals;
     if (!(obj instanceof Tuple)) {
       equals = false;
     }
     else {
-      Tuple	that = (Tuple)obj;
+      Tuple     that = (Tuple)obj;
       if (this == that) {
-	equals = true;
+        equals = true;
       }
       else if (tupleComponents == null || that.tupleComponents == null) {
-	equals = tupleComponents == that.tupleComponents;
+        equals = tupleComponents == that.tupleComponents;
       }
       else if (tupleComponents.length != that.tupleComponents.length) {
-	equals = false;
+        equals = false;
       }
       else {
-	equals = true;
-	for (int i = 0; i < tupleComponents.length; ++i)
-	  if (!(tupleComponents[i].equals(that.tupleComponents[i]))) {
-	    equals = false;
-	    break;
-	  }
+        equals = true;
+        for (int i = 0; i < tupleComponents.length; ++i)
+          if (!(tupleComponents[i].equals(that.tupleComponents[i]))) {
+            equals = false;
+            break;
+          }
       }
     }
     return equals;
@@ -461,13 +513,13 @@ public class Tuple extends DataImpl implements TupleIface {
 
   /**
    * Returns the hash code of this object.
-   * @return		The hash code of this object.
+   * @return            The hash code of this object.
    */
   public int hashCode() {
-    int	hashCode = 0;
+    int hashCode = 0;
     if (tupleComponents != null)
       for (int i = 0; i < tupleComponents.length; ++i)
-	hashCode ^= tupleComponents[i].hashCode();
+        hashCode ^= tupleComponents[i].hashCode();
     return hashCode;
   }
 
