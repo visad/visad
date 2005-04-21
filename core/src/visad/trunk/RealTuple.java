@@ -39,13 +39,18 @@ public class RealTuple
 
   private CoordinateSystem TupleCoordinateSystem;
 
+  private boolean checkRealUnits;
+
   /*
    * Simply copies of Unit-s from Real tupleComponents.
    * Will be null if RealTuple(RealTupleType) constructor is used.
    */
-  private Unit[] TupleUnits;
+  private Unit[] TupleUnits = null;
 
-  /** construct a RealTuple object with the missing value */
+  /** 
+   * construct a RealTuple object with the missing value 
+   * @param type  RealTupleType of this RealTuple
+   */
   public RealTuple(RealTupleType type) {
     super(type);
     TupleCoordinateSystem = type.getCoordinateSystem();
@@ -56,27 +61,62 @@ public class RealTuple
     }
   }
 
-  /** construct a RealTuple according to an array of Real objects;
-      coordinate_system may be null; otherwise
-      coordinate_system.getReference() must equal
-      type.getCoordinateSystem.getReference() */
+  /** 
+   * construct a RealTuple according to an array of Real objects;
+   * coordinate_system may be null; otherwise coordinate_system.getReference() 
+   * must equal type.getCoordinateSystem.getReference() 
+   *
+   * @param type  RealTupleType of this RealTuple
+   * @param reals array of reals
+   * @param coord_sys  CoordinateSystem for this RealTuple
+   */
   public RealTuple(RealTupleType type, Real[] reals, CoordinateSystem coord_sys)
          throws VisADException, RemoteException {
+      this(type, reals, coord_sys, null, true);
+  }
+
+  /** 
+   * Construct a RealTuple according to an array of Real objects;
+   * coordinate_system may be null; otherwise coordinate_system.getReference() 
+   * must equal type.getCoordinateSystem.getReference() 
+   *
+   * @param type  RealTupleType of this RealTuple
+   * @param reals array of reals
+   * @param coord_sys  CoordinateSystem for this RealTuple
+   * @param units array of Units corresponding to the array of Reals.
+   * @param checkUnits  true to make sure the units of the Reals are convertible
+   *                    with the RealType units.  <b>NB: setting this to false
+   *                    can cause problems if the units are not convertible.
+   *                    Only do this if you know what you are doing.</b>
+   */
+  public RealTuple(RealTupleType type, Real[] reals, CoordinateSystem coord_sys,
+                   Unit[] units, boolean checkUnits)
+         throws VisADException, RemoteException {
     super(type, reals, false);  // copy == false because Reals are immutable
+    TupleUnits = units;
+    checkRealUnits = checkUnits;
     init_coord_sys(coord_sys);
   }
 
-  /** construct a RealTuple according to an array of Real objects */
+  /** 
+   * construct a RealTuple according to an array of Real objects 
+   * @param reals array of reals
+   */
   public RealTuple(Real[] reals)
          throws VisADException, RemoteException {
-    super(reals, false);  // copy == false because Reals are immutable
-    init_coord_sys(null);
+    this((RealTupleType)buildTupleType(reals), reals, null, 
+          buildTupleUnits(reals), false);
   }
 
-  /** construct a RealTuple according to a RealTupleType and a double array */
+  /** 
+   * Construct a RealTuple according to a RealTupleType and a double array 
+   * @param type  RealTupleType of this RealTuple
+   * @param values values for each component.  Units are the default units
+   *               of the RealTupleType components.
+   */
   public RealTuple(RealTupleType type, double[] values)
          throws VisADException, RemoteException {
-    this(type, buildRealArray(type, values), null);
+    this(type, buildRealArray(type, values), null, type.getDefaultUnits(), false);
   }
 
   /** initialize TupleCoordinateSystem and TupleUnits */
@@ -104,14 +144,22 @@ public class RealTuple
                               "convertable with Type default Units");
     }
 
-    int n = tupleComponents.length;
-    TupleUnits = new Unit[n];
-    for (int i=0; i<n; i++) TupleUnits[i] = ((Real) tupleComponents[i]).getUnit();
-    if(!Unit.canConvertArray(TupleUnits,
-                             ((RealTupleType) Type).getDefaultUnits())) {
-      throw new UnitException("Tuple: Units must be convertable with " +
-                              "Type default Units");
+    if (TupleUnits == null) {
+      int n = tupleComponents.length;
+      TupleUnits = new Unit[n];
+      for (int i=0; i<n; i++) {
+           TupleUnits[i] = ((Real) tupleComponents[i]).getUnit();
+      }
     }
+
+    if (checkRealUnits) {
+        if(!Unit.canConvertArray(TupleUnits,
+                                 ((RealTupleType) Type).getDefaultUnits())) {
+          throw new UnitException("Tuple: Units must be convertable with " +
+                                  "Type default Units");
+        }
+    }
+
     if(TupleCoordinateSystem != null &&
        !Unit.canConvertArray(TupleCoordinateSystem.getCoordinateSystemUnits(),
                              TupleUnits)) {
@@ -127,6 +175,14 @@ public class RealTuple
       reals[i] = new Real((RealType) type.getComponent(i), values[i]);
     }
     return reals;
+  }
+
+  private static Unit[] buildTupleUnits(Real[] reals) throws VisADException {
+    if (reals == null || reals.length == 0) return (Unit[]) null;
+    int n = reals.length;
+    Unit[] units = new Unit[reals.length];
+    for (int i=0; i<n; i++) units[i] = reals[i].getUnit();
+    return units;
   }
 
   /**
