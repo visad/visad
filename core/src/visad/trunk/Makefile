@@ -52,7 +52,7 @@ default:
 # JH is the Java header file generator (javah)
 #
 JC = javac
-JFLAGS = -J-mx64m
+JFLAGS = -J-mx64m -target 1.2
 JH = javah
 
 # RMIC is the Remote Method Invokation compiler
@@ -109,10 +109,10 @@ RM = rm -f
 #
 DOC = javadoc
 DOC_DIR = ../docs
-DOC_MEM = 150m
+DOC_MEM = 512m
 DOC_LINKS = -link http://java.sun.com/j2se/1.4/docs/api
 DOCFLAGS = $(DOC_LINKS) -d $(DOC_DIR) -J-Xmx$(DOC_MEM) -package \
-	-doctitle 'VisAD Documentation' $(DOC_EXTRAFLAGS)
+	-doctitle 'VisAD Documentation' -windowtitle 'VisAD' $(DOC_EXTRAFLAGS) 
 
 ############################################################################
 # Customizations
