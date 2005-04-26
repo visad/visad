@@ -49,6 +49,9 @@ public class OpenlabForm extends Form
   /** Form instantiation counter. */
   private static int formCount = 0;
 
+  /** Helper form for reading PICT data with QTJava library. */
+  private static QTForm qtForm = new QTForm();
+
   /** Domain of 2-D image. */
   private static RealTupleType domainTuple;
 
@@ -273,7 +276,7 @@ public class OpenlabForm extends Form
     }
     byte[] pixelData = new byte[blockSize];
     int pixPos = 0;
-    Dimension dim = QTForm.getPictDimensions(toRead);
+    Dimension dim = qtForm.getPictDimensions(toRead);
 
     int length = toRead.length;
     int num, size, blockEnd;
@@ -296,7 +299,7 @@ public class OpenlabForm extends Form
 
     // First, checks the existence of a deep gray block. If it doesn't exist,
     // assume it is PICT data, and attempt to read it. This is unpleasantly
-    // dangerous, because QuickTime has this unpleasant habit of crashing
+    // dangerous, because QuickTime has this unfortunate habit of crashing
     // when it doesn't work.
 
     // check whether or not there is deep gray data
@@ -316,7 +319,7 @@ public class OpenlabForm extends Form
           // to be a pict... *crosses fingers*
           try { // This never actually does an exception, to my knowledge,
                 // but we can always hope.
-            return QTForm.pictToField(toRead);
+            return qtForm.pictToField(toRead);
           }
           catch (Exception e) {
             throw new BadFormException("No iPic comment block found");
