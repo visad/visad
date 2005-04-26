@@ -49,6 +49,9 @@ public class PictForm extends Form
 
   private static int num = 0;
 
+  /** Helper form for reading PICT data with QTJava library. */
+  private static QTForm qtForm = new QTForm();
+
 
   // -- Constructor --
 
@@ -104,7 +107,7 @@ public class PictForm extends Form
       left -= r;
     }
     fin.close();
-    return QTForm.pictToField(bytes);
+    return qtForm.pictToField(bytes);
   }
 
   /**
