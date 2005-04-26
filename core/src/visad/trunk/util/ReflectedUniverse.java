@@ -53,7 +53,7 @@ public class ReflectedUniverse {
 
   /** Constructs a new reflected universe. */
   public ReflectedUniverse() {
-    this(null);
+    this((ClassLoader) null);
   }
 
   /**
@@ -62,9 +62,13 @@ public class ReflectedUniverse {
    * (in addition to the CLASSPATH).
    */
   public ReflectedUniverse(URL[] urls) {
+    this(urls == null ? null : new URLClassLoader(urls));
+  }
+
+  /** Constructs a new reflected universe that uses the given class loader. */
+  public ReflectedUniverse(ClassLoader loader) {
     variables = new Hashtable();
-    loader = urls == null ?
-      getClass().getClassLoader() : new URLClassLoader(urls);
+    this.loader = loader == null ? getClass().getClassLoader() : loader;
     debug = false;
   }
 
