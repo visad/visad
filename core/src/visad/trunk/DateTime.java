@@ -97,10 +97,18 @@ DateTime
     public DateTime(double seconds)
             throws VisADException
     {
-        this(new Real(RealType.Time,
-                      seconds,
-                      CommonUnit.secondsSinceTheEpoch));
+        this(seconds, CommonUnit.secondsSinceTheEpoch);
     }
+
+    /**
+     * Construct a DateTime object from a number of value and a Unit
+     * @param  timeValue  value of time in timeUnits
+     * @param  timeUnits  units of value
+     */
+     public DateTime(double timeValue, Unit timeUnits) 
+            throws VisADException {
+         this(new Real(RealType.Time, timeValue, timeUnits));
+     }
 
     /**
      * Construct a DateTime object and initialize it with a Java date.
