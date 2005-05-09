@@ -83,8 +83,12 @@ public class VisADCanvasJ3D extends Canvas3D {
 
     //- determine textureWidthMax ---------------------------------------
     //- first check user-defined cmd-line specs:
-    String prop = System.getProperty("textureWidthMax");
-    textureWidthMax = (prop == null) ? 0 : Integer.parseInt(prop);
+    String prop = null;
+    try {
+      prop = System.getProperty("textureWidthMax");
+    } 
+    catch (Exception exp) {prop = null;}
+    textureWidthMax = (prop == null) ? 0 : Integer.parseInt(prop); 
 
     // no user defined values, so query Java3D, or set to defaults
     if ((textureHeightMax == 0) && (textureWidthMax == 0)) {
