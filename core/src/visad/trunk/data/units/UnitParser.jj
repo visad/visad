@@ -561,7 +561,7 @@ double timestampTerm() :
                     {
                         zoneMinute = 0;
 
-                        zoneHour = Integer.parseInt(t.image);
+                        zoneHour = (int)Float.parseFloat(t.image);
 
                         if (zoneHour <= -100 || zoneHour >= 100)
                         {
