@@ -2,7 +2,7 @@
  * Copyright 1999, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DefaultUnitsDB.java,v 1.5 2005-04-08 18:25:57 tomw Exp $
+ * $Id: DefaultUnitsDB.java,v 1.6 2005-05-11 19:23:02 steve Exp $
  */
 
 package visad.data.units;
@@ -546,6 +546,8 @@ DefaultUnitsDB
 	px("har",		"hectare");			// exact
 	pn("acre",		get("rod").pow(2).scale(160));	// exact
 
+	ps("b",                 get("barn"));
+
 	/*
 	 * ELECTRICITY AND MAGNETISM
 	 */
@@ -869,7 +871,6 @@ DefaultUnitsDB
 	ps("bps",		get("Hz"));
 	ps("cps",		get("cycle").divide(get("s")));
 
-	ps("b",			"bit");
 	pn("baud",		"Bd");
 
 	/*
