@@ -12,6 +12,8 @@ import visad.UnitException;
 
 public class UnitParserTokenManager implements UnitParserConstants
 {
+  public  java.io.PrintStream debugStream = System.out;
+  public  void setDebugStream(java.io.PrintStream ds) { debugStream = ds; }
 private final int jjStopStringLiteralDfa_0(int pos, long active0)
 {
    switch (pos)
@@ -538,22 +540,22 @@ null, null, null, null, null, null, null, null, null, null, "\56", "\52", "\50",
 public static final String[] lexStateNames = {
    "DEFAULT", 
 };
-private ASCII_CharStream input_stream;
+protected SimpleCharStream input_stream;
 private final int[] jjrounds = new int[67];
 private final int[] jjstateSet = new int[134];
 protected char curChar;
-public UnitParserTokenManager(ASCII_CharStream stream)
+public UnitParserTokenManager(SimpleCharStream stream)
 {
-   if (ASCII_CharStream.staticFlag)
+   if (SimpleCharStream.staticFlag)
       throw new Error("ERROR: Cannot use a static CharStream class with a non-static lexical analyzer.");
    input_stream = stream;
 }
-public UnitParserTokenManager(ASCII_CharStream stream, int lexState)
+public UnitParserTokenManager(SimpleCharStream stream, int lexState)
 {
    this(stream);
    SwitchTo(lexState);
 }
-public void ReInit(ASCII_CharStream stream)
+public void ReInit(SimpleCharStream stream)
 {
    jjmatchedPos = jjnewStateCnt = 0;
    curLexState = defaultLexState;
@@ -567,7 +569,7 @@ private final void ReInitRounds()
    for (i = 67; i-- > 0;)
       jjrounds[i] = 0x80000000;
 }
-public void ReInit(ASCII_CharStream stream, int lexState)
+public void ReInit(SimpleCharStream stream, int lexState)
 {
    ReInit(stream);
    SwitchTo(lexState);
@@ -580,7 +582,7 @@ public void SwitchTo(int lexState)
       curLexState = lexState;
 }
 
-private final Token jjFillToken()
+protected Token jjFillToken()
 {
    Token t = Token.newToken(jjmatchedKind);
    t.kind = jjmatchedKind;
@@ -600,7 +602,7 @@ int jjround;
 int jjmatchedPos;
 int jjmatchedKind;
 
-public final Token getNextToken() 
+public Token getNextToken() 
 {
   int kind;
   Token specialToken = null;
