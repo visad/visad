@@ -795,7 +795,7 @@ public class Real
 
   /** clone this, but with a new value */
   public Real cloneButValue(double value) throws VisADException {
-    return new Real((RealType) Type, value, unit, Error);
+    return new Real((RealType) Type, value, unit, Error, true);
   }
 
   /** clone this, but with a new Unit */
