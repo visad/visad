@@ -288,6 +288,9 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
     } else if (gridNumber == 212) {
       doLambert(ref, 185, 129, 12.190, -133.459, 40.63525, 25.0, 25.0, -95.0);
 
+    } else if (gridNumber == 213) {
+      doPolarStereo(ref, 129, 85, 7.838, -141.028, 95.250, -105.0);
+
     } else if (gridNumber == 215) {
       doLambert(ref, 369, 257, 12.190, -133.459, 20.317625, 25.0, 25.0, -95.0);
 
