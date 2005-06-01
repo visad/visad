@@ -667,7 +667,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
             int[] color_intsW  = new int[lenx*leny];
             int cnt = 0;
             for (k=0; k<leny; k++) {
-              start = x_start_stop[j][0] + + i_total*lens[0] +  k*lens[0];
+              start = x_start_stop[j][0] + i_total*lens[0] + k*lens[0];
               System.arraycopy(color_ints, start, color_intsW, cnt, lenx);
               cnt += lenx;
             }
