@@ -507,6 +507,7 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
               throws VisADException
   {
     int ii, ix, iy, iz, ii_R, ii_L, ii_U, ii_D, ii_F, ii_B;
+    int a, b, c, d;
     int LengthX;
     int LengthY;
     int LengthZ;
@@ -661,28 +662,31 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
          //- edges:
          for ( iy = 1; iy < (LengthY - 1); iy++ )
          {
-           ii = iy*LengthX;
+           a = iy*LengthX;
+           b = a + LengthX-1;
+
+           ii = a;
            neighbors[ii] = new int[4];
            neighbors[ii][0] = ii + LengthX;
            neighbors[ii][1] = ii - LengthX;
            neighbors[ii][2] = ii + 1;
            neighbors[ii][3] = ii + LengthXY;
 
-           ii = iy*LengthX + LengthX - 1;
+           ii = a + LengthX-1;
            neighbors[ii] = new int[4];
            neighbors[ii][0] = ii + LengthX;
            neighbors[ii][1] = ii - LengthX;
            neighbors[ii][2] = ii - 1;
            neighbors[ii][3] = ii + LengthXY;
 
-           ii = (LengthZ - 1)*LengthXY + iy*LengthY;
+           ii = a + (LengthZ-1)*LengthXY;
            neighbors[ii] = new int[4];
            neighbors[ii][0] = ii + LengthX;
            neighbors[ii][1] = ii - LengthX;
            neighbors[ii][2] = ii - 1;
            neighbors[ii][3] = ii - LengthXY;
 
-           ii = (LengthZ - 1)*LengthXY + iy*LengthX + LengthX - 1;
+           ii = b + (LengthZ-1)*LengthXY;
            neighbors[ii] = new int[4];
            neighbors[ii][0] = ii + LengthX;
            neighbors[ii][1] = ii - LengthX;
@@ -705,15 +709,14 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
            neighbors[ii][2] = ii - LengthX;
            neighbors[ii][3] = ii + LengthXY;
 
-           ii = (LengthZ - 1)*LengthXY + ix;
+           ii = (LengthZ-1)*LengthXY + ix;
            neighbors[ii] = new int[4];
            neighbors[ii][0] = ii - 1;
            neighbors[ii][1] = ii + 1;
            neighbors[ii][2] = ii + LengthX;
            neighbors[ii][3] = ii - LengthXY;
 
-
-           ii = (LengthZ - 1)*LengthXY + (LengthY-1)*LengthX + ix;
+           ii = (LengthZ-1)*LengthXY + (LengthY-1)*LengthX + ix;
            neighbors[ii] = new int[4];
            neighbors[ii][0] = ii - 1;
            neighbors[ii][1] = ii + 1;
@@ -723,28 +726,31 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
 
          for ( iz = 1; iz < (LengthZ - 1); iz++ )
          {
-           ii = iz*LengthXY;
+           a = iz*LengthXY;
+           b = a + (LengthX-1);
+
+           ii = a;
            neighbors[ii] = new int[4];
            neighbors[ii][0] = ii + 1;
            neighbors[ii][1] = ii + LengthX;
            neighbors[ii][2] = ii + LengthXY;
            neighbors[ii][3] = ii - LengthXY;
 
-           ii = iz*LengthXY + ( LengthX - 1 );
+           ii = a + (LengthX-1);
            neighbors[ii] = new int[4];
            neighbors[ii][0] = ii - 1;
            neighbors[ii][1] = ii + LengthX;
            neighbors[ii][2] = ii + LengthXY;
            neighbors[ii][3] = ii + LengthXY;
 
-           ii = iz*LengthXY + LengthX*(LengthY - 1);
+           ii = a + LengthX*(LengthY-1);
            neighbors[ii] = new int[4];
            neighbors[ii][0] = ii + 1;
            neighbors[ii][1] = ii - LengthX;
            neighbors[ii][2] = ii + LengthXY;
            neighbors[ii][3] = ii - LengthXY;
 
-           ii = iz*LengthXY + (LengthXY - 1);
+           ii = a + (LengthXY-1);
            neighbors[ii] = new int[4];
            neighbors[ii][0] = ii - 1;
            neighbors[ii][1] = ii - LengthX;
