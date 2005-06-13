@@ -304,7 +304,7 @@ public class ArcAsciiGridAdapter {
           if (tok.countTokens() == 2) {
             String key = tok.nextToken().trim().toUpperCase();
             if (isKnownKey(key)) {
-              String s = tok.nextToken().trim();
+              String s = tok.nextToken().trim().toUpperCase();
               try {
                 headerTable.put(key, new Float(parseValue(s)));
                 numHeaderLines++;
