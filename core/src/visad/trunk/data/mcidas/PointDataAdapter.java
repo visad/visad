@@ -31,6 +31,7 @@ import edu.wisc.ssec.mcidas.adde.*;
 import visad.*;
 import visad.data.units.*;
 import visad.jmet.MetUnits;
+import java.util.Vector;
 
 /**
  * A class for adapting the results of an ADDE point data request into a 
@@ -128,6 +129,7 @@ public class PointDataAdapter {
     if (debug) System.out.println("Number of parameters = " + numParams);
     ScalarType[] types = new ScalarType[numParams];
     defaultUnits = new Unit[numParams];
+    Vector usedUnits = new Vector();
     boolean noText = true;
     for (int i = 0; i < numParams; i++)
     {
@@ -141,6 +143,7 @@ public class PointDataAdapter {
           System.out.println(params[i] + " has units of CHAR");
         }
         types[i] = TextType.getTextType(params[i]);
+        defaultUnits[i] = null;
       } 
       else
       {
@@ -196,6 +199,7 @@ public class PointDataAdapter {
     if (debug) System.out.println("filling in data" );
     long millis = System.currentTimeMillis();
     // now, fill in the data
+    Scalar[]   firstTuple   = null;   // use this for saving memory/time
     for (int i = 0; i < numObs; i++)
     {
       Scalar[] scalars = (noText == true) ? new Real[numParams]
@@ -218,26 +222,41 @@ public class PointDataAdapter {
                   ? Double.NaN
                   : data[i][j]/Math.pow(10.0, 
                       (double) scalingFactors[j] );
-            try
-            {
-              scalars[j] =
-                new Real(
-                    (RealType) types[j], value, defaultUnits[j]);
-            } catch (VisADException excp) {  // units problem
-               scalars[j] = new Real((RealType) types[j], value);
+            if (firstTuple == null) { //
+              try
+              {
+                scalars[j] =
+                  new Real(
+                      (RealType) types[j], value, defaultUnits[j]);
+              } catch (VisADException excp) {  // units problem
+                scalars[j] = new Real((RealType) types[j], value);
+  
+              }
+            } else {
+                scalars[j] = ((Real) firstTuple[j]).cloneButValue(value);
             }
+            usedUnits.add(((Real) scalars[j]).getUnit());
         }
+      }
+      Unit[] actualUnits = null;
+      if (noText) {
+        actualUnits = new Unit[usedUnits.size()];
+        for (int k = 0; k < usedUnits.size(); k++) actualUnits[k] = (Unit) usedUnits.get(k);
       }
       try
       {
         Data sample = (noText == true)
                                ? new RealTuple(
-                                   (RealTupleType)rangeType, (Real[]) scalars, null)
+                                   (RealTupleType)rangeType, (Real[]) scalars, null, actualUnits, false)
                                : new Tuple(rangeType, scalars, false, false);
         field.setSample(i, sample, false);  // don't make copy
       }
       catch (VisADException e) {e.printStackTrace();} 
       catch (java.rmi.RemoteException e) {;}
+      if (firstTuple == null) 
+      {
+        firstTuple = scalars;
+      }
     }
     if (debug) {
       System.out.println("data fill took " + 
