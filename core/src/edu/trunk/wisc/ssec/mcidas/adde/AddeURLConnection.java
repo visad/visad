@@ -418,31 +418,31 @@ public class AddeURLConnection extends URLConnection
     switch (reqType)
     {
         case AGET:
-            sb.append(decodeAGETString(uCmd));
+            sb = decodeAGETString(uCmd);
             break;
         case ADIR:
-            sb.append(decodeADIRString(uCmd));
+            sb = decodeADIRString(uCmd);
             break;
         case LWPR:
-            sb.append(decodeLWPRString(uCmd));
+            sb = decodeLWPRString(uCmd);
             break;
         case GDIR:
-            sb.append(decodeGDIRString(uCmd));
+            sb = decodeGDIRString(uCmd);
             break;
         case GGET:
-            sb.append(decodeGDIRString(uCmd));
+            sb = decodeGDIRString(uCmd);
             break;
         case MDKS:
-            sb.append(decodeMDKSString(uCmd));
+            sb = decodeMDKSString(uCmd);
             break;
         case TXTG:
-            sb.append(decodeTXTGString(uCmd));
+            sb = decodeTXTGString(uCmd);
             break;
         case WTXG:
-            sb.append(decodeWTXGString(uCmd));
+            sb = decodeWTXGString(uCmd);
             break;
         case OBTG:
-            sb.append(decodeOBTGString(uCmd));
+            sb = decodeOBTGString(uCmd);
             break;
     }
 
