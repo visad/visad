@@ -167,8 +167,9 @@ public class VisADCanvasJ3D extends Canvas3D {
            "and un-comment the body of this constructor\n");
 
 // AND uncomment the rest of this constructor
-/*
+    /*
     super(defaultConfig, true);
+    setDoubleBufferEnable(false);
     displayRenderer = renderer;
     display = (DisplayImplJ3D) renderer.getDisplay();
     component = null;
@@ -188,7 +189,7 @@ public class VisADCanvasJ3D extends Canvas3D {
     double height_in_meters = screen_height * METER_RATIO;
     screen.setPhysicalScreenWidth(width_in_meters);
     screen.setPhysicalScreenHeight(height_in_meters);
-*/
+    */
   }
 
   void setDisplay() {

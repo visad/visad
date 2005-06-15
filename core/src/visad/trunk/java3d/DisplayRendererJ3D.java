@@ -231,6 +231,7 @@ public abstract class DisplayRendererJ3D
       try {
         ProjectionControl proj = getDisplay().getProjectionControl();
         synchronized (this) {
+          canvas.setDoubleBufferEnable(false);
           canvas.captureFlag = true;
           if (canvas.getOffscreen()) {
             try {
@@ -264,10 +265,12 @@ public abstract class DisplayRendererJ3D
       catch(InterruptedException e) {
         // note notify generates a normal return from wait rather
         // than an Exception - control doesn't normally come here
+        canvas.setDoubleBufferEnable(true); //- just in case
       }
       image = canvas.captureImage;
 // if (image == null) System.out.println("image is null");
       canvas.captureImage = null;
+      canvas.setDoubleBufferEnable(true);
     }
     return image;
   }
