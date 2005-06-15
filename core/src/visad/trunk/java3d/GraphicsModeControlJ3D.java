@@ -70,7 +70,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   private int transparencyMode;
   /** View.PARALLEL_PROJECTION or View.PERSPECTIVE_PROJECTION @serial */
   private int projectionPolicy;
-  private boolean anti_alias_flag;
+  private boolean anti_alias_flag = false;
   /** PolygonAttributes.POLYGON_FILL, PolygonAttributes.POLYGON_LINE
       or PolygonAttributes.POLYGON_POINT @serial */
   private int polygonMode;
@@ -466,8 +466,8 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
    *
    * @return  true or false
    */
-  public int getSceneAntialiasingEnable() {
-    return projectionPolicy;
+  public boolean getSceneAntialiasingEnable() {
+    return anti_alias_flag;
   }
 
   /**
