@@ -79,6 +79,8 @@ public class VisADCanvasJ3D extends Canvas3D {
     GraphicsConfiguration c = gct3d.getBestConfiguration(d.getConfigurations());
 */
     GraphicsConfigTemplate3D template = new GraphicsConfigTemplate3D();
+    /** should be uncommented for offscreen rendereing **/
+    //template.setDoubleBuffer(GraphicsConfigTemplate3D.UNNECESSARY);
     GraphicsConfiguration c = d.getBestConfiguration(template);
 
     //- determine textureWidthMax ---------------------------------------
@@ -166,10 +168,11 @@ public class VisADCanvasJ3D extends Canvas3D {
            "  throw statement for this Exception,\n" +
            "and un-comment the body of this constructor\n");
 
-// AND uncomment the rest of this constructor
+// AND uncomment the rest of this constructor,
+// AND uncomment: template.setDoubleBuffer(GraphicsConfigTemplate3D.UNNECESSARY);
+// in the static method, makeConfig(), in this class.
     /*
     super(defaultConfig, true);
-    setDoubleBufferEnable(false);
     displayRenderer = renderer;
     display = (DisplayImplJ3D) renderer.getDisplay();
     component = null;
