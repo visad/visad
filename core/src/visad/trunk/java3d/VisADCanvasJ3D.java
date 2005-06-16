@@ -68,9 +68,9 @@ public class VisADCanvasJ3D extends Canvas3D {
 
   private boolean offscreen = false;
 
-  private static GraphicsConfiguration defaultConfig = makeConfig();
+  private static GraphicsConfiguration defaultConfig = null;
 
-  private static GraphicsConfiguration makeConfig() {
+  private static GraphicsConfiguration makeConfig(boolean offscreen) {
     GraphicsEnvironment e = GraphicsEnvironment.getLocalGraphicsEnvironment();
     GraphicsDevice d = e.getDefaultScreenDevice();
     // GraphicsConfiguration c = d.getDefaultConfiguration();
@@ -79,8 +79,9 @@ public class VisADCanvasJ3D extends Canvas3D {
     GraphicsConfiguration c = gct3d.getBestConfiguration(d.getConfigurations());
 */
     GraphicsConfigTemplate3D template = new GraphicsConfigTemplate3D();
-    /** should be uncommented for offscreen rendereing **/
-    //template.setDoubleBuffer(GraphicsConfigTemplate3D.UNNECESSARY);
+    if (offscreen) {
+      template.setDoubleBuffer(GraphicsConfigTemplate3D.UNNECESSARY);
+    }
     GraphicsConfiguration c = d.getBestConfiguration(template);
 
     //- determine textureWidthMax ---------------------------------------
@@ -136,8 +137,7 @@ public class VisADCanvasJ3D extends Canvas3D {
 
   public VisADCanvasJ3D(DisplayRendererJ3D renderer,
                  GraphicsConfiguration config) {
-    super(config == null ? defaultConfig : config);
-    // super(config == null ? null : config);
+    super(config == null ? defaultConfig = (defaultConfig == null ? makeConfig(false) : defaultConfig) : config);
     displayRenderer = renderer;
     display = (DisplayImplJ3D) renderer.getDisplay();
     component = null;
@@ -158,21 +158,19 @@ public class VisADCanvasJ3D extends Canvas3D {
   public VisADCanvasJ3D(DisplayRendererJ3D renderer, int w, int h)
       throws VisADException {
 
-// to enable off screen rendering (if you have Java3D version 1.2.1
-// of higher installed), comment out the following six lines (the
+// to disable off screen rendering (if you have lower than Java3D
+// version 1.2.1 installed), uncomment out the following six lines (the
 // super and throw statements)
+    /**
     super(defaultConfig);
     throw new VisADException("\n\nFor off screen rendering in Java3D\n" +
            "please edit visad/java3d/VisADCanvasJ3D.java as follows:\n" +
            "remove or comment-out \"super(defaultConfig);\" and the\n" +
            "  throw statement for this Exception,\n" +
            "and un-comment the body of this constructor\n");
-
-// AND uncomment the rest of this constructor,
-// AND uncomment: template.setDoubleBuffer(GraphicsConfigTemplate3D.UNNECESSARY);
-// in the static method, makeConfig(), in this class.
-    /*
-    super(defaultConfig, true);
+    **/
+// AND comment out the rest of this constructor,
+    super(defaultConfig = (defaultConfig == null ? makeConfig(false) : defaultConfig));
     displayRenderer = renderer;
     display = (DisplayImplJ3D) renderer.getDisplay();
     component = null;
@@ -192,7 +190,6 @@ public class VisADCanvasJ3D extends Canvas3D {
     double height_in_meters = screen_height * METER_RATIO;
     screen.setPhysicalScreenWidth(width_in_meters);
     screen.setPhysicalScreenHeight(height_in_meters);
-    */
   }
 
   void setDisplay() {
