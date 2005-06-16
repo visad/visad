@@ -170,7 +170,7 @@ public class VisADCanvasJ3D extends Canvas3D {
            "and un-comment the body of this constructor\n");
     **/
 // AND comment out the rest of this constructor,
-    super(defaultConfig = (defaultConfig == null ? makeConfig(false) : defaultConfig));
+    super(defaultConfig = (defaultConfig == null ? makeConfig(true) : defaultConfig), true);
     displayRenderer = renderer;
     display = (DisplayImplJ3D) renderer.getDisplay();
     component = null;
