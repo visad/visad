@@ -36,20 +36,60 @@ import java.util.*;
 */
 public abstract class Delaunay implements java.io.Serializable {
 
-  /** triangles/tetrahedra --> vertices<p>
-      Tri = new int[ntris][dim + 1] */
+  /**
+   * triangles/tetrahedra --> vertices.<p>
+   * Tri = new int[ntris][dim + 1]
+   *
+   * <p>This is the key output, a list of triangles (in two dimensions,
+   * tetrahedra in three dimensions, etc). ntris is the number of triangles.
+   *
+   * <p>In 2-D, Tri[i] is an array of 3 integers, which are three indices into
+   * the samples[0] and samples[1] arrays to get the x and y values of the
+   * three vertices of the triangle.
+   *
+   * <p>In 3-D, Tri[i] is an array of 4 integers, which are four indices into
+   * the samples[0], samples[1] and samples[2] arrays to get the x, y and z
+   * values of the four vertices of the tetrahedron.
+   *
+   * <p>This pattern continues for higher dimensionalities.
+   */
   public int[][] Tri;
 
-  /** vertices --> triangles/tetrahedra<p>
-      Vertices = new int[nrs][nverts[i]] */
+  /**
+   * vertices --> triangles/tetrahedra.<p>
+   * Vertices = new int[nrs][nverts[i]]
+   *
+   * <p>nrs is the number of samples (the length of the samples[0] and
+   * samples[1] arrays. For sample i, Vertices[i] is a (variable length) list
+   * of indices into the Tri array above, giving the indices of the triangles
+   * that include vertex i.
+   *
+   * <p>nverts is an array as the second index of the Vertices array since
+   * different vertices may be part of different numbers of triangles.
+   *
+   * <p>You can use Tri and Vertices together to traverse the triangulation.
+   * If you don't need to traverse, then you can probably ignore all arrays
+   * except Tri.
+   */
   public int[][] Vertices;
 
-  /** triangles/tetrahedra --> triangles/tetrahedra<p>
-      Walk = new int[ntris][dim + 1] */
+  /**
+   * triangles/tetrahedra --> triangles/tetrahedra.<p>
+   * Walk = new int[ntris][dim + 1]
+   *
+   * <p>Also useful for traversing the triangulation, in this case giving the
+   * indices of triangles that share edges with the current triangle.
+   */
   public int[][] Walk;
 
-  /** tri/tetra edges --> global edge number<p>
-      Edges = new int[ntris][3 * (dim - 1)]; */
+  /**
+   * tri/tetra edges --> global edge number.<p>
+   * Edges = new int[ntris][3 * (dim - 1)];
+   *
+   * <p>'global edge number' is the number of an edge that is unique among the
+   * whole triangulation. This number is not an index into any array, but will
+   * match for a shared edge between two triangles.
+   */
   public int[][] Edges;
 
   /** number of unique global edge numbers */
