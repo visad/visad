@@ -62,8 +62,8 @@ public class VisADCanvasJ3D extends Canvas3D {
   private static int textureWidthMax = 0;
   private static int textureHeightMax = 0;
 
-  private static int textureWidthMaxDefault  = 1024;
-  private static int textureHeightMaxDefault = 1024;
+  private final static int textureWidthMaxDefault  = 1024;
+  private final static int textureHeightMaxDefault = 1024;
 
   private boolean offscreen = false;
 
@@ -96,6 +96,8 @@ public class VisADCanvasJ3D extends Canvas3D {
    * @param c  GraphicsConfiguration
    */
   private void setTextureProperties(GraphicsConfiguration c) {
+    //- see if we've already set this
+    if (!((textureHeightMax == 0) && (textureWidthMax == 0))) return;
     //- determine textureWidthMax ---------------------------------------
     //- first check user-defined cmd-line specs:
     String prop = null;
@@ -103,7 +105,7 @@ public class VisADCanvasJ3D extends Canvas3D {
       prop = System.getProperty("textureWidthMax");
     } 
     catch (Exception exp) {prop = null;}
-    textureWidthMax = (prop == null) ? 0 : Integer.parseInt(prop); 
+    textureWidthMax = (prop == null) ? textureWidthMax : Integer.parseInt(prop); 
 
     // no user defined values, so query Java3D, or set to defaults
     if ((textureHeightMax == 0) && (textureWidthMax == 0)) {
