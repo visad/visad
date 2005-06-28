@@ -45,7 +45,6 @@ import java.awt.event.WindowEvent;
 /**
    VisADCanvasJ3D is the VisAD extension of Canvas3D
 */
-
 public class VisADCanvasJ3D extends Canvas3D {
 
   private DisplayRendererJ3D displayRenderer;
@@ -70,6 +69,12 @@ public class VisADCanvasJ3D extends Canvas3D {
 
   private static GraphicsConfiguration defaultConfig = null;
 
+  /**
+   * Make the graphics configuration
+   * @param offscreen  true if this is offscreen rendering (sets double
+   *                   buffering to UNNECESSARY)
+   * @return the graphics configuration
+   */
   private static GraphicsConfiguration makeConfig(boolean offscreen) {
     GraphicsEnvironment e = GraphicsEnvironment.getLocalGraphicsEnvironment();
     GraphicsDevice d = e.getDefaultScreenDevice();
@@ -83,7 +88,14 @@ public class VisADCanvasJ3D extends Canvas3D {
       template.setDoubleBuffer(GraphicsConfigTemplate3D.UNNECESSARY);
     }
     GraphicsConfiguration c = d.getBestConfiguration(template);
+    return c;
+  }
 
+  /**
+   * Set up the texture properties from the GraphicsConfiguration
+   * @param c  GraphicsConfiguration
+   */
+  private void setTextureProperties(GraphicsConfiguration c) {
     //- determine textureWidthMax ---------------------------------------
     //- first check user-defined cmd-line specs:
     String prop = null;
@@ -124,25 +136,43 @@ public class VisADCanvasJ3D extends Canvas3D {
       }
     }
 
-    return c;
   }
 
+  /**
+   * Get the default configuration.
+   * @return the default configuration
+   */
   public static GraphicsConfiguration getDefaultConfig() {
     return defaultConfig;
   }
 
+  /**
+   * Create the canvase for the renderer.
+   * @param renderer  the renderer for this canvas
+   */
   public VisADCanvasJ3D(DisplayRendererJ3D renderer) {
       this(renderer, null);
   }
 
+  /**
+   * Create the canvase for the renderer with the specified configuration.
+   * @param renderer  the renderer for this canvas
+   * @param config  GraphicsConfiguration (may be null - in which case
+   *                a default configuration is used)
+   */
   public VisADCanvasJ3D(DisplayRendererJ3D renderer,
                  GraphicsConfiguration config) {
     super(config == null ? defaultConfig = (defaultConfig == null ? makeConfig(false) : defaultConfig) : config);
+    setTextureProperties(getGraphicsConfiguration());
     displayRenderer = renderer;
     display = (DisplayImplJ3D) renderer.getDisplay();
     component = null;
   }
 
+  /**
+   * Set the component for this canvas.
+   * @param c Component to use
+   */
   void setComponent(Component c) {
     component = c;
   }
@@ -151,9 +181,9 @@ public class VisADCanvasJ3D extends Canvas3D {
 
   /**
    * Constructor for offscreen rendering.
-   * @param renderer
-   * @param w
-   * @param h
+   * @param renderer   renderer to use
+   * @param w          width of canvas
+   * @param h          height of canvas
    */
   public VisADCanvasJ3D(DisplayRendererJ3D renderer, int w, int h)
       throws VisADException {
@@ -171,6 +201,7 @@ public class VisADCanvasJ3D extends Canvas3D {
     **/
 // AND comment out the rest of this constructor,
     super(defaultConfig = (defaultConfig == null ? makeConfig(true) : defaultConfig), true);
+    setTextureProperties(getGraphicsConfiguration());
     displayRenderer = renderer;
     display = (DisplayImplJ3D) renderer.getDisplay();
     component = null;
@@ -192,20 +223,34 @@ public class VisADCanvasJ3D extends Canvas3D {
     screen.setPhysicalScreenHeight(height_in_meters);
   }
 
+  /**
+   * Set the display associated with this canvas (from renderer)
+   */
   void setDisplay() {
     if (display == null) {
       display = (DisplayImplJ3D) displayRenderer.getDisplay();
     }
   }
 
+  /**
+   * See if this is an offscreen rendering.
+   * @return true if offscreen.
+   */
   public boolean getOffscreen() {
     return offscreen;
   }
 
+  /**
+   * Render the readout for the field at index.
+   * @param i index.
+   */
   public void renderField(int i) {
     displayRenderer.drawCursorStringVector(this);
   }
 
+  /**
+   * Override base class method for grabbing image.
+   */
   public void postSwap() {
     // make sure stop() wasn't called before callback completed
     if (display == null) return;
@@ -262,22 +307,41 @@ public class VisADCanvasJ3D extends Canvas3D {
     }
   }
 
+  /**
+   * Get the preferred size of this canvas
+   * @return the preferred size
+   */
   public Dimension getPreferredSize() {
     return prefSize;
   }
 
+  /**
+   * Set the preferred size of this canvas
+   * @param size the preferred size
+   */
   public void setPreferredSize(Dimension size) {
     prefSize = size;
   }
 
+  /**
+   * Get the maximum texture width supported by this display
+   * @return the maximum texture width
+   */
   public static int getTextureWidthMax() {
     return textureWidthMax;
   }
 
+  /**
+   * Get the maximum texture height supported by this display
+   * @return the maximum texture height
+   */
   public static int getTextureHeightMax() {
     return textureHeightMax;
   }
 
+  /**
+   * Method to test this class
+   */
   public static void main(String[] args)
          throws RemoteException, VisADException {
     DisplayImplJ3D display = new DisplayImplJ3D("offscreen", 300, 300);
@@ -330,6 +394,9 @@ public class VisADCanvasJ3D extends Canvas3D {
 
   }
 
+  /**
+   * Stop the applet
+   */
   public void stop() {
     stopRenderer();
     display = null;
