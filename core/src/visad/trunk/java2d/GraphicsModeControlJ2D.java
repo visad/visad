@@ -235,7 +235,7 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     if (mode != AVERAGE_COLOR_MODE && mode != SUM_COLOR_MODE) {
       mode = AVERAGE_COLOR_MODE;
     }
-    if (colorMode == colorMode) return;
+    if (mode == colorMode) return;
     colorMode = mode;
     changeControl(true);
     getDisplay().reDisplayAll();
