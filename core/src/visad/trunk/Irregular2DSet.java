@@ -27,7 +27,7 @@ MA 02111-1307, USA
 package visad;
 
 /**
- * <P>{@link IrregularSet} for a finite number of samples of R².</P>
+ * <P>{@link IrregularSet} for a finite number of samples of R.</P>
  *
  * <P>NOTE: There is no {@link Irregular2DSet} with a manifold dimension equal
  * to one.  Use {@link Gridded2DSet} with a manifold dimension equal to one
