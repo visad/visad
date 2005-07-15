@@ -128,8 +128,11 @@ public class LegacyTiffForm extends Form
       r.exec("import ij.io.FileSaver");
       r.exec("import ij.io.Opener");
       r.exec("import ij.io.TiffDecoder");
+      r.exec("import ij.process.ByteProcessor");
       r.exec("import ij.process.ColorProcessor");
+      r.exec("import ij.process.FloatProcessor");
       r.exec("import ij.process.ImageProcessor");
+      r.exec("import ij.process.ShortProcessor");
     }
     catch (VisADException exc) { noImageJ = true; }
 
@@ -200,7 +203,7 @@ public class LegacyTiffForm extends Form
         }
         r.setVar("si", "" + i);
 
-        // ugly, ugly, UGLY!
+        // ugly, Ugly, UGLY HACK
         //
         // There are two methods:
         //  - ImageStack.addSlice(String, Object)
@@ -379,27 +382,70 @@ public class LegacyTiffForm extends Form
     int[] wh = set.getLengths();
     int w = wh[0];
     int h = wh[1];
-    double[][] samples = field.getValues();
-    int[] pixels = new int[samples[0].length];
+    float[][] samples = field.getFloats(false);
+    r.setVar("w", w);
+    r.setVar("h", h);
     if (samples.length == 3) {
-      for (int i=0; i<samples[0].length; i++) {
+      // 24-bit color is the best we can do
+      int[] pixels = new int[samples[0].length];
+      for (int i=0; i<pixels.length; i++) {
         int red = (int) samples[0][i] & 0x000000ff;
         int green = (int) samples[1][i] & 0x000000ff;
         int blue = (int) samples[2][i] & 0x000000ff;
         pixels[i] = red << 16 | green << 8 | blue;
       }
+      r.setVar("pixels", pixels);
+      r.exec("proc = new ColorProcessor(w, h, pixels)");
     }
     else if (samples.length == 1) {
+      // check for 8-bit, 16-bit or 32-bit grayscale
+      float lo = Float.POSITIVE_INFINITY, hi = Float.NEGATIVE_INFINITY;
       for (int i=0; i<samples[0].length; i++) {
-        int val = (int) samples[0][i] & 0x000000ff;
-        pixels[i] = val << 16 | val << 8 | val;
+        float value = samples[0][i];
+        if (value != (int) value) {
+          // force 32-bit floats
+          hi = Float.POSITIVE_INFINITY;
+          break;
+        }
+        if (value < lo) {
+          lo = value;
+          if (lo < 0) break; // need 32-bit floats
+        }
+        if (value > hi) {
+          hi = value;
+          if (hi >= 65536) break; // need 32-bit floats
+        }
+      }
+      if (lo >= 0 && hi < 256) {
+        // 8-bit grayscale
+        byte[] pixels = new byte[samples[0].length];
+        for (int i=0; i<pixels.length; i++) {
+          int val = (int) samples[0][i] & 0x000000ff;
+          pixels[i] = (byte) val;
+        }
+        r.setVar("pixels", pixels);
+        r.setVar("cm", null);
+        r.exec("proc = new ByteProcessor(w, h, pixels, cm)");
+      }
+      else if (lo >= 0 && hi < 65536) {
+        // 16-bit grayscale
+        short[] pixels = new short[samples[0].length];
+        for (int i=0; i<pixels.length; i++) {
+          int val = (int) samples[0][i];
+          pixels[i] = (short) val;
+        }
+        r.setVar("pixels", pixels);
+        r.setVar("cm", null);
+        r.exec("proc = new ShortProcessor(w, h, pixels, cm)");
+      }
+      else {
+        // 32-bit floating point grayscale
+        r.setVar("pixels", samples[0]);
+        r.setVar("cm", null);
+        r.exec("proc = new FloatProcessor(w, h, pixels, cm)");
       }
     }
-    r.setVar("w", w);
-    r.setVar("h", h);
-    r.setVar("pixels", pixels);
-    r.exec("cp = new ColorProcessor(w, h, pixels)");
-    return r.getVar("cp");
+    return r.getVar("proc");
   }
 
   private void initFile(String id)
