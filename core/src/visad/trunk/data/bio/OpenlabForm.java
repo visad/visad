@@ -467,13 +467,15 @@ public class OpenlabForm extends Form
     int nextOffset = batoi(toRead);
     int nextOffsetTemp;
 
+    boolean first = true;
     while(nextOffset != 0) {
       r.seek(nextOffset + 4);
       r.read(toRead);
       nextOffsetTemp = batoi(toRead); // get next tag, but still need this one
       r.read(toRead);
       if ((new String(toRead)).equals("PICT")) {
-        v.add(new Integer(nextOffset)); // add THIS tag offset
+        if (first) first = false; // ignore first (solid white) image plane
+        else v.add(new Integer(nextOffset)); // add THIS tag offset
       }
       if (nextOffset == nextOffsetTemp) break;
       nextOffset = nextOffsetTemp;
