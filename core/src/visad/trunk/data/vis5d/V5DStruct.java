@@ -525,7 +525,7 @@ public class V5DStruct {
       // compute maximum level, and make sure all levels are equal
       int maxNl = v.Nl[0];
       for (i=0; i<v.NumVars; i++) {
-        // if (v.Nl[i] > maxNl) maxNl = v.Nl[i];
+        if (v.Nl[i] > maxNl) maxNl = v.Nl[i];
   /*----if (v.Nl[i] != maxNl) sizes[0] = -1; */
       }
  
