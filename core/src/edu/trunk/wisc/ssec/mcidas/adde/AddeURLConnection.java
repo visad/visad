@@ -409,8 +409,8 @@ public class AddeURLConnection extends URLConnection
     if (debug) System.out.println("Service = " + new String(svc));
 
     // prep for real thing - get cmd from file part of URL
-    int test = request.indexOf("?");
-    String uCmd = (test >=0) ? request.substring(test+1) : request;
+    int test = requestOriginal.indexOf("?");
+    String uCmd = (test >=0) ? requestOriginal.substring(test+1) : requestOriginal;
     if (debug) System.out.println("uCmd="+uCmd);
 
     // build the command string
@@ -447,11 +447,13 @@ public class AddeURLConnection extends URLConnection
     }
 
     // indefinitely use ADDE version 1 unless it's a GGET request
-    sb.append(" version=");
+    sb.append(" VERSION=");
     sb.append((reqType == GGET || reqType == WTXG) ? "A" : "1");
 
     // now convert to array of bytes for output since chars are two byte
-    String cmd = sb.toString().toUpperCase();
+    //String cmd = sb.toString().toUpperCase();
+    boolean b = Boolean.getBoolean("adde.auto-upcase");
+    String cmd = (b) ? sb.toString().toUpperCase() : sb.toString();
     if (debug) System.out.println(cmd);
     byte [] ob = cmd.getBytes();
 
@@ -805,47 +807,49 @@ public class AddeURLConnection extends URLConnection
         String eleString = null;
         String tempString = null;
         String testString = null;
+        String lctestString = null;
         // Mandatory strings
         String groupString = null;
-        String descrString = "all";
+        String descrString = "ALL";
         String posString = "0";
         String numlinString = Integer.toString(DEFAULT_LINES);
         String numeleString = Integer.toString(DEFAULT_ELEMS);
-        String magString = "x";
-        String traceString = "trace=0";
-        String spaceString = "spac=x";
-        String unitString = "unit=brit";
-        String auxString = "aux=yes";
-        String calString = "cal=x";
-        String docString = "doc=no";
-        String timeString = "time=x x i";
-        String lineleType = "a";
-        String placement = "c";
+        String magString = "X";
+        String traceString = "TRACE=0";
+        String spaceString = "SPAC=X";
+        String unitString = "UNIT=BRIT";
+        String auxString = "AUX=YES";
+        String calString = "CAL=X";
+        String docString = "DOC=NO";
+        String timeString = "TIME=X X I";
+        String lineleType = "A";
+        String placement = "C";
 
         StringTokenizer cmdTokens = new StringTokenizer(uCmd, "&");
         while (cmdTokens.hasMoreTokens())
         {
             testString = cmdTokens.nextToken();
+            lctestString = testString.toLowerCase();
             // group, descr and pos are mandatory
-            if (testString.startsWith("grou"))
+            if (lctestString.startsWith("grou"))
             {
                 groupString = 
                     testString.substring(testString.indexOf("=") + 1);
             }
             else
-            if (testString.startsWith("des"))
+            if (lctestString.startsWith("des"))
             {
                 descrString = 
                     testString.substring(testString.indexOf("=") + 1);
             }
             else
-            if (testString.startsWith("pos"))
+            if (lctestString.startsWith("pos"))
             {
                 posString = 
                     testString.substring(testString.indexOf("=") + 1);
             }
             else
-            if (testString.startsWith("lat"))        // lat or latlon
+            if (lctestString.startsWith("lat"))        // lat or latlon
             {
                 latString = 
                     testString.substring(testString.indexOf("=") + 1).trim();
@@ -861,21 +865,21 @@ public class AddeURLConnection extends URLConnection
                             latString = tempString;
                         else
                         {
-			    lonString = negateLongitude(tempString);
+                            lonString = negateLongitude(tempString);
                             lonFlag = true;
                         }
                     }
                 }
             }
             else
-            if (testString.startsWith("lon"))
+            if (lctestString.startsWith("lon"))
             {
                 lonFlag = true;
                 lonString = 
                     testString.substring(testString.indexOf("=") + 1);
             }
             else
-            if (testString.startsWith("lin"))     // line keyword or linele
+            if (lctestString.startsWith("lin"))     // line keyword or linele
             {
                 tempString = 
                     testString.substring(testString.indexOf("=") + 1);
@@ -909,20 +913,20 @@ public class AddeURLConnection extends URLConnection
                 }
             }
             else
-            if (testString.startsWith("ele"))    // elements keyword
+            if (lctestString.startsWith("ele"))    // elements keyword
             {
                 numeleString = 
                     testString.substring(testString.indexOf("=") + 1);
             }
             else
-            if (testString.startsWith("pla"))    // placement keyword
+            if (lctestString.startsWith("pla"))    // placement keyword
             {
                 if (testString.substring(
                     testString.indexOf("=") + 1).toLowerCase().startsWith("u"))
                         placement = "u";
             }
             else
-            if (testString.startsWith("mag"))
+            if (lctestString.startsWith("mag"))
             {
                 tempString = 
                     testString.substring(testString.indexOf("=") + 1);
@@ -935,9 +939,9 @@ public class AddeURLConnection extends URLConnection
                         buf.append(" ");
                         tempString = tok.nextToken();
                         if (i == 0)
-                           buf.append("lmag=" + tempString);
+                           buf.append("LMAG=" + tempString);
                         else
-                           buf.append("emag=" + tempString);
+                           buf.append("EMAG=" + tempString);
                     }
                 }
                 else
@@ -945,7 +949,7 @@ public class AddeURLConnection extends URLConnection
             }
             // now get the rest of the keywords (but filter out non-needed)
             else
-            if (testString.startsWith("size"))       // size keyword
+            if (lctestString.startsWith("size"))       // size keyword
             {
                 tempString = 
                     testString.substring(testString.indexOf("=") + 1);
@@ -968,66 +972,66 @@ public class AddeURLConnection extends URLConnection
                 }
             }
             else
-            if (testString.startsWith("tra"))       // trace keyword
+            if (lctestString.startsWith("tra"))       // trace keyword
             {
                 traceString = testString;
             }
             else
-            if (testString.startsWith("spa"))       // aux keyword
+            if (lctestString.startsWith("spa"))       // aux keyword
             {
                 spaceString = testString;
             }
             else
-            if (testString.startsWith("aux"))       // aux keyword
+            if (lctestString.startsWith("aux"))       // aux keyword
             {
                 auxString = testString;
             }
             else
-            if (testString.startsWith("uni"))      // unit keyword
+            if (lctestString.startsWith("uni"))      // unit keyword
             {
                 unitString = testString;
             }
             else
-            if (testString.startsWith("cal"))      // cal keyword
+            if (lctestString.startsWith("cal"))      // cal keyword
             {
                 calString = testString;
             }
             else
-            if (testString.startsWith("doc"))      // doc keyword
+            if (lctestString.startsWith("doc"))      // doc keyword
             {
                 docString = testString;
             }
             else
-            if (testString.startsWith("tim"))      // time keyword
+            if (lctestString.startsWith("tim"))      // time keyword
             {
                 timeString = testString;
             }
             else
-            if (testString.startsWith("ban"))      // band keyword
+            if (lctestString.startsWith("ban"))      // band keyword
             {
                 buf.append(" ");
                 buf.append(testString);
             }
             else
-            if (testString.startsWith("day"))       // day keyword
+            if (lctestString.startsWith("day"))       // day keyword
             {
                 buf.append(" ");
                 buf.append(testString);
             }
             else
-            if (testString.startsWith("id"))        // id keyword
+            if (lctestString.startsWith("id"))        // id keyword
             {
                 buf.append(" ");
                 buf.append(testString);
             }
             else
-            if (testString.startsWith("lmag"))      // lmag keyword
+            if (lctestString.startsWith("lmag"))      // lmag keyword
             {
                 buf.append(" ");
                 buf.append(testString);
             }
             else
-            if (testString.startsWith("emag"))      // emag keyword
+            if (lctestString.startsWith("emag"))      // emag keyword
             {
                 buf.append(" ");
                 buf.append(testString);
@@ -1051,32 +1055,23 @@ public class AddeURLConnection extends URLConnection
         // now create command string
         StringBuffer posParams = 
             new StringBuffer(
-                groupString + " " + descrString + " " + posString + " ");
+                groupString + " " + descrString + " " + posString.toUpperCase() + " ");
 
         // Set up location information
         if (latFlag && lonFlag)
-            posParams.append("ec " + latString + " " + lonString + " ");
+            posParams.append("EC " + latString + " " + lonString + " ");
         else if (linFlag && eleFlag)
             posParams.append(lineleType + placement +"  " + 
                              linString + " " + eleString + " ");
         else
-            posParams.append("x x x ");
+            posParams.append("X X X ");
 
         // add on the mag, lin and ele pos params
         posParams.append(magString + " " + numlinString + 
                          " " + numeleString + " ");
 
-        // stuff it in at the beginning
-        try
-        {
-            buf.insert(0, posParams);
-        }
-        catch (StringIndexOutOfBoundsException e)
-        {
-            System.out.println(e.toString());
-            buf = new StringBuffer("");
-        }
-        return buf;
+        return new StringBuffer(posParams + buf.toString().toUpperCase());
+
     }
 
     /**
@@ -1117,12 +1112,12 @@ public class AddeURLConnection extends URLConnection
      */
     private StringBuffer decodeGDIRString(String uCmd) {
       StringBuffer buf = new StringBuffer();
-      String testString, tempString;
+      String testString, tempString, lctestString;
       String groupString = null;
-      String descrString = "all";
+      String descrString = "ALL";
       String sizeString = " 999999 ";
-      String traceString = "trace=0";
-      String numString = "num=1";
+      String traceString = "TRACE=0";
+      String numString = "NUM=1";
       String subsetString = null;
       String latString = null;
       String lonString = null;
@@ -1134,33 +1129,34 @@ public class AddeURLConnection extends URLConnection
       StringTokenizer cmdTokens = new StringTokenizer(uCmd, "&");
       while (cmdTokens.hasMoreTokens()) {
         testString = cmdTokens.nextToken();
+        lctestString = testString.toLowerCase();
 
         // group, descr and pos are mandatory
-        if (testString.startsWith("grou")) {
+        if (lctestString.startsWith("grou")) {
             groupString = 
                 testString.substring(testString.indexOf("=") + 1);
 
-        } else if (testString.startsWith("des")) {
+        } else if (lctestString.startsWith("des")) {
             descrString = 
                 testString.substring(testString.indexOf("=") + 1);
 
         // now get the rest of the keywords (but filter out non-needed)
-        } else if (testString.startsWith("num")) {
+        } else if (lctestString.startsWith("num")) {
             numString = testString;
 
-        } else if (testString.startsWith("tra")) {      // trace keyword
+        } else if (lctestString.startsWith("tra")) {      // trace keyword
           traceString = testString;
 
-        } else if (testString.startsWith("pos")) {
+        } else if (lctestString.startsWith("pos")) {
           buf.append(" ");
           buf.append(testString);
 
-        } else if (testString.startsWith("par")) {
+        } else if (lctestString.startsWith("par")) {
           buf.append(" ");
           buf.append("parm=");
           buf.append(testString.substring(testString.indexOf("=") + 1));
 
-        } else if (testString.startsWith("fho")) {
+        } else if (lctestString.startsWith("fho")) {
           buf.append(" ");
           buf.append("vt=");
           String iHMS = 
@@ -1168,75 +1164,75 @@ public class AddeURLConnection extends URLConnection
           buf.append(iHMS);
           if (iHMS.length() < 5) buf.append("0000");
 
-        } else if (testString.startsWith("day")) {
+        } else if (lctestString.startsWith("day")) {
           buf.append(" ");
           buf.append(testString);
 
-        } else if (testString.startsWith("time")) {
+        } else if (lctestString.startsWith("time")) {
           buf.append(" ");
           buf.append(testString);
 
-        } else if (testString.startsWith("lev")) {
+        } else if (lctestString.startsWith("lev")) {
           buf.append(" ");
           buf.append(testString);
 
-        } else if (testString.startsWith("fday")) {
+        } else if (lctestString.startsWith("fday")) {
           buf.append(" ");
           buf.append(testString);
 
-        } else if (testString.startsWith("ftime")) {
+        } else if (lctestString.startsWith("ftime")) {
           buf.append(" ");
           buf.append(testString);
 
-        } else if (testString.startsWith("vt")) {    // deprecated
+        } else if (lctestString.startsWith("vt")) {    // deprecated
           buf.append(" ");
           buf.append(testString);
 
-        } else if (testString.startsWith("lat")) {
+        } else if (lctestString.startsWith("lat")) {
           latString = 
               ensureTwoValues(
                   testString.substring(testString.indexOf("=") + 1));
 
-        } else if (testString.startsWith("lon")) {
+        } else if (lctestString.startsWith("lon")) {
           lonString = 
             adjustLongitudes(
               ensureTwoValues(
                   testString.substring(testString.indexOf("=") + 1)));
       
 
-        } else if (testString.startsWith("row")) {
+        } else if (lctestString.startsWith("row")) {
           rowString = 
               ensureTwoValues(
                   testString.substring(testString.indexOf("=") + 1));
 
-        } else if (testString.startsWith("col")) {
+        } else if (lctestString.startsWith("col")) {
           colString = 
               ensureTwoValues(
                   testString.substring(testString.indexOf("=") + 1));
 
-        } else if (testString.startsWith("skip")) {
+        } else if (lctestString.startsWith("skip")) {
           skip = 
               ensureTwoValues(
                   testString.substring(testString.indexOf("=") + 1));
         
         // added with great pains for James DRM 2001-07-05 ;-)
-        } else if (testString.startsWith("src")) {
+        } else if (lctestString.startsWith("src")) {
           buf.append(" ");
           buf.append(testString);
 
-        } else if (testString.startsWith("gpro")) {
+        } else if (lctestString.startsWith("gpro")) {
           buf.append(" ");
           buf.append(testString);
 
-        } else if (testString.startsWith("trang")) {
+        } else if (lctestString.startsWith("trang")) {
           buf.append(" ");
           buf.append(testString);
 
-        } else if (testString.startsWith("frang")) {
+        } else if (lctestString.startsWith("frang")) {
           buf.append(" ");
           buf.append(testString);
 
-        } else if (testString.startsWith("drang")) {
+        } else if (lctestString.startsWith("drang")) {
           buf.append(" ");
           buf.append(testString);
 
@@ -1293,17 +1289,11 @@ public class AddeURLConnection extends URLConnection
       if (subsetString != null) buf.append(subsetString);
 
       // create command string
-      String posParams = //new String (
-         groupString + " " + descrString + " " + sizeString + " " ;//);
+      String posParams = 
+         groupString + " " + descrString + " " + sizeString + " ";
 
-      try {
-        buf.insert(0,posParams);
-      } catch (StringIndexOutOfBoundsException e) {
-        System.out.println(e);
-        buf = new StringBuffer("");
-      }
+      return new StringBuffer(posParams + buf.toString().toUpperCase());
 
-      return buf;
 
     }
 
@@ -1345,36 +1335,38 @@ public class AddeURLConnection extends URLConnection
     {
         StringBuffer buf = new StringBuffer();
         String testString;
+        String lctestString;
         String tempString;
         // Mandatory strings
         String groupString = null;
-        String descrString = "all";
+        String descrString = "ALL";
         String posString = "0";
-        String traceString = "trace=0";
-        String bandString = "band=all x";
-        String auxString = "aux=yes";
+        String traceString = "TRACE=0";
+        String bandString = "BAND=ALL X";
+        String auxString = "AUX=YES";
 
         StringTokenizer cmdTokens = new StringTokenizer(uCmd, "&");
         while (cmdTokens.hasMoreTokens())
         {
             testString = cmdTokens.nextToken();
+            lctestString = testString.toLowerCase();
             // group, descr and pos are mandatory
-            if (testString.startsWith("grou"))
+            if (lctestString.startsWith("grou"))
             {
                 groupString = 
                     testString.substring(testString.indexOf("=") + 1);
             }
             else
-            if (testString.startsWith("des"))
+            if (lctestString.startsWith("des"))
             {
                 descrString = 
                     testString.substring(testString.indexOf("=") + 1);
             }
             else
-            if (testString.startsWith("pos"))
+            if (lctestString.startsWith("pos"))
             {
                 tempString = 
-                    testString.substring(testString.indexOf("=") + 1);
+                    testString.substring(testString.indexOf("=") + 1).toLowerCase();
                 if (tempString.equals("")) {  // null string
                   posString = "0";
                 } else {
@@ -1406,34 +1398,34 @@ public class AddeURLConnection extends URLConnection
             }
             // now get the rest of the keywords (but filter out non-needed)
             else
-            if (testString.startsWith("tra"))       // trace keyword
+            if (lctestString.startsWith("tra"))       // trace keyword
             {
                 traceString = testString;
             }
             else
-            if (testString.startsWith("aux"))       // aux keyword
+            if (lctestString.startsWith("aux"))       // aux keyword
             {
                 auxString = testString;
             }
             else
-            if (testString.startsWith("ban"))      // band keyword
+            if (lctestString.startsWith("ban"))      // band keyword
             {
                 bandString = testString;
             }
             else
-            if (testString.startsWith("tim"))       // time keyword
+            if (lctestString.startsWith("tim"))       // time keyword
             {
                 buf.append(" ");
                 buf.append(testString);
             }
             else
-            if (testString.startsWith("day"))       // time keyword
+            if (lctestString.startsWith("day"))       // time keyword
             {
                 buf.append(" ");
                 buf.append(testString);
             }
             else
-            if (testString.startsWith("id"))        // id keyword
+            if (lctestString.startsWith("id"))        // id keyword
             {
                 buf.append(" ");
                 buf.append(testString);
@@ -1446,20 +1438,12 @@ public class AddeURLConnection extends URLConnection
         buf.append(" ");
         buf.append(auxString);
 
-        // now create command string
+        // now create case sensitive command string
         String posParams = 
-            //new String(
-                groupString + " " + descrString + " " + posString + " ";//);
-        try
-        {
-            buf.insert(0, posParams);
-        }
-        catch (StringIndexOutOfBoundsException e)
-        {
-            System.out.println(e.toString());
-            buf = new StringBuffer("");
-        }
-        return buf;
+                groupString + " " + descrString + " " + posString + " ";
+
+
+        return new StringBuffer(posParams + buf.toString().toUpperCase());
     }
 
 
@@ -1486,6 +1470,7 @@ public class AddeURLConnection extends URLConnection
     {
         StringBuffer buf = new StringBuffer();
         String testString;
+        String lctestString;
         String groupString = null;
         String filenameString = null;
         String descrString = null;
@@ -1494,19 +1479,20 @@ public class AddeURLConnection extends URLConnection
         while (cmdTokens.hasMoreTokens())
         {
             testString = cmdTokens.nextToken();
-            if (testString.startsWith("desc"))
+            lctestString = testString.toLowerCase();
+            if (lctestString.startsWith("desc"))
             {
                 descrString =
                     testString.substring(testString.indexOf("=") + 1);
             }
 
-            if (testString.startsWith("file"))
+            if (lctestString.startsWith("file"))
             {
                 filenameString = "FILE="+
                     testString.substring(testString.indexOf("=") + 1);
             }
 
-            if (testString.startsWith("grou"))
+            if (lctestString.startsWith("grou"))
             {
                 groupString = 
                     testString.substring(testString.indexOf("=") + 1);
@@ -1556,6 +1542,7 @@ public class AddeURLConnection extends URLConnection
     {
         StringBuffer buf = new StringBuffer();
         String testString;
+        String lctestString;
         String tempString;
         String numString = "NUM=1";
         String dTimeString = "DTIME=96.0000";
@@ -1567,72 +1554,73 @@ public class AddeURLConnection extends URLConnection
         while (cmdTokens.hasMoreTokens())
         {
             testString = cmdTokens.nextToken();
+            lctestString = testString.toLowerCase();
             // group, descr and pos are mandatory
-            if (testString.startsWith("grou"))
+            if (lctestString.startsWith("grou"))
             {
                 groupString = 
                     testString.substring(testString.indexOf("=") + 1);
             }
             else
-            if (testString.startsWith("apro"))       // apro keyword
+            if (lctestString.startsWith("apro"))       // apro keyword
             {
                 buf.append(" ");
                 buf.append(testString);
             }
             else
-            if (testString.startsWith("astn"))       // astn keyword
+            if (lctestString.startsWith("astn"))       // astn keyword
             {
                 buf.append(" ");
                 buf.append(testString);
             }
             else
-            if (testString.startsWith("day"))       // day keyword
+            if (lctestString.startsWith("day"))       // day keyword
             {
                 buf.append(" ");
                 buf.append(testString);
             }
             else
-            if (testString.startsWith("mat"))        // match keyword
+            if (lctestString.startsWith("mat"))        // match keyword
             {
                 buf.append(" ");
                 buf.append(testString);
             }
             else
-            if (testString.startsWith("prod"))       // prod keyword
+            if (lctestString.startsWith("prod"))       // prod keyword
             {
                 buf.append(" ");
                 buf.append(testString);
             }
             else
-            if (testString.startsWith("sour"))       // source keyword
+            if (lctestString.startsWith("sour"))       // source keyword
             {
                 buf.append(" ");
                 buf.append(testString);
             }
             else
-            if (testString.startsWith("wmo"))       // wmo keyword
+            if (lctestString.startsWith("wmo"))       // wmo keyword
             {
                 buf.append(" ");
                 buf.append(testString);
             }
             else
-            if (testString.startsWith("wstn"))       // wstn keyword
+            if (lctestString.startsWith("wstn"))       // wstn keyword
             {
                 buf.append(" ");
                 buf.append(testString);
             }
             else
-            if (testString.startsWith("tra"))       // trace keyword
+            if (lctestString.startsWith("tra"))       // trace keyword
             {
                 traceString = testString;
             }
             else
-            if (testString.startsWith("num"))       // num keyword
+            if (lctestString.startsWith("num"))       // num keyword
             {
                 numString = testString;
             }
             else
-            if (testString.startsWith("dtim"))       // dtime keyword
+            if (lctestString.startsWith("dtim"))       // dtime keyword
             {
                 dTimeString = testString;
             }
@@ -1644,20 +1632,11 @@ public class AddeURLConnection extends URLConnection
         buf.append(numString);
         buf.append(" ");
         buf.append(traceString);
-        // now create command string
-        String posParams = 
-            //new String(groupString + " ");
-                         groupString + " ";
-        try
-        {
-            buf.insert(0, posParams);
-        }
-        catch (StringIndexOutOfBoundsException e)
-        {
-            System.out.println(e.toString());
-            buf = new StringBuffer("");
-        }
-        return buf;
+
+        // now create case sensitive command string
+        String posParams = groupString + " ";
+
+        return new StringBuffer(posParams + buf.toString().toUpperCase());
     }
 
     /**
@@ -1694,6 +1673,7 @@ public class AddeURLConnection extends URLConnection
     {
         StringBuffer buf = new StringBuffer();
         String testString;
+        String lctestString;
         String tempString;
         String numString = "NUM=1";
         String traceString = "TRACE=0";
@@ -1706,67 +1686,68 @@ public class AddeURLConnection extends URLConnection
         while (cmdTokens.hasMoreTokens())
         {
             testString = cmdTokens.nextToken();
+            lctestString = testString.toLowerCase();
             // group, descr and pos are mandatory
-            if (testString.startsWith("grou"))
+            if (lctestString.startsWith("grou"))
             {
                 groupString = 
                     testString.substring(testString.indexOf("=") + 1);
             }
             else
-            if (testString.startsWith("desc"))
+            if (lctestString.startsWith("desc"))
             {
                 descrString = 
                     testString.substring(testString.indexOf("=") + 1);
             }
             else
-            if (testString.startsWith("id"))       // id keyword
+            if (lctestString.startsWith("id"))       // id keyword
             {
                 buf.append(" ");
                 buf.append(testString);
             }
             else
-            if (testString.startsWith("co"))       // co keyword
+            if (lctestString.startsWith("co"))       // co keyword
             {
                 buf.append(" ");
                 buf.append(testString);
             }
             else
-            if (testString.startsWith("reg"))       // reg keyword
+            if (lctestString.startsWith("reg"))       // reg keyword
             {
                 buf.append(" ");
                 buf.append(testString);
             }
             else
-            if (testString.startsWith("nhou"))       // nhour keyword
+            if (lctestString.startsWith("nhou"))       // nhour keyword
             {
                 buf.append(" ");
                 buf.append(testString);
             }
             else
-            if (testString.startsWith("new"))       // newest keyword
+            if (lctestString.startsWith("new"))       // newest keyword
             {
                 buf.append(" ");
                 buf.append(testString);
             }
             else
-            if (testString.startsWith("old"))       // oldest keyword
+            if (lctestString.startsWith("old"))       // oldest keyword
             {
                 buf.append(" ");
                 buf.append(testString);
             }
             else
-            if (testString.startsWith("type"))       // type keyword
+            if (lctestString.startsWith("type"))       // type keyword
             {
                 buf.append(" ");
                 buf.append(testString);
             }
             else
-            if (testString.startsWith("tra"))       // trace keyword
+            if (lctestString.startsWith("tra"))       // trace keyword
             {
                 traceString = testString;
             }
             else
-            if (testString.startsWith("num"))       // num keyword
+            if (lctestString.startsWith("num"))       // num keyword
             {
                 numString = testString;
             }
@@ -1776,20 +1757,11 @@ public class AddeURLConnection extends URLConnection
         buf.append(numString);
         buf.append(" ");
         buf.append(traceString);
-        // now create command string
-        String posParams = 
-            //new String(groupString + " " + descrString + " " + idreqString);
-                       groupString + " " + descrString + " " + idreqString;
-        try
-        {
-            buf.insert(0, posParams);
-        }
-        catch (StringIndexOutOfBoundsException e)
-        {
-            System.out.println(e.toString());
-            buf = new StringBuffer("");
-        }
-        return buf;
+
+        // now create case sensitive command string
+        String posParams = groupString + " " + descrString + " " + idreqString;
+
+        return new StringBuffer(posParams + buf.toString().toUpperCase());
     }
 
     /**
@@ -1816,36 +1788,38 @@ public class AddeURLConnection extends URLConnection
     {
         StringBuffer buf = new StringBuffer();
         String testString;
+        String lctestString;
         String tempString;
         String groupString = null;
-        String typeString = "ala.";
+        String typeString = "ALA.";
 
         StringTokenizer cmdTokens = new StringTokenizer(uCmd, "&");
         while (cmdTokens.hasMoreTokens())
         {
             testString = cmdTokens.nextToken();
+            lctestString = testString.toLowerCase();
             // group, descr and pos are mandatory
-            if (testString.startsWith("grou"))
+            if (lctestString.startsWith("grou"))
             {
                 groupString = 
                     testString.substring(testString.indexOf("=") + 1);
             }
-            if (testString.startsWith("type"))
+            if (lctestString.startsWith("type"))
             {
                 tempString = 
-                    testString.substring(testString.indexOf("=") + 1);
+                    testString.substring(testString.indexOf("=") + 1).toLowerCase();
                 if (tempString.startsWith("i")) 
-                    typeString = "ala.";
+                    typeString = "ALA.";
                 if (tempString.startsWith("g")) 
-                    typeString = "alg.";
+                    typeString = "ALG.";
                 else if (tempString.startsWith("p"))
-                    typeString = "alm.";
+                    typeString = "ALM.";
                 else if (tempString.startsWith("t")) 
-                    typeString = "alt.";
+                    typeString = "ALT.";
                 else if (tempString.startsWith("n")) 
-                    typeString = "aln.";
+                    typeString = "ALN.";
                 else if (tempString.startsWith("s")) 
-                    typeString = "aln.";
+                    typeString = "ALN.";
             }
 
         }
@@ -1893,16 +1867,16 @@ public class AddeURLConnection extends URLConnection
      */
     private StringBuffer decodeMDKSString(String uCmd)
     {
-        StringBuffer buf = new StringBuffer();
         String testString = null;
+        String lctestString = null;
         // Mandatory strings
         String groupString = null;
         String descrString = null;
-        String maxString = "max=1";
+        String maxString = "MAX=1";
         String numString = "";
         // Options strings
-        String posString = "pos=0";
-        String traceString = "trace=0";
+        String posString = "POS=0";
+        String traceString = "TRACE=0";
         String selectString = "";
         String parmString = "";
         String justTheParametersString = "";
@@ -1920,20 +1894,21 @@ public class AddeURLConnection extends URLConnection
         while (cmdTokens.hasMoreTokens())
         {
             testString = cmdTokens.nextToken();
+            lctestString = testString.toLowerCase();
             // group and descr
-            if (testString.startsWith("grou"))
+            if (lctestString.startsWith("grou"))
             {
                 groupString = 
                     testString.substring(testString.indexOf("=") + 1);
             }
             else
-            if (testString.startsWith("des"))
+            if (lctestString.startsWith("des"))
             {
                 descrString = 
                     testString.substring(testString.indexOf("=") + 1);
                 int pos = descrString.indexOf(".");
                 if (pos >=0) {
-                    posString = "pos=" + descrString.substring(pos+1);
+                    posString = "POS=" + descrString.substring(pos+1);
                     descrString = descrString.substring(0,pos);
                     posInDescriptor = true;
                 }
@@ -1943,12 +1918,12 @@ public class AddeURLConnection extends URLConnection
             // but the adde server looks for parm=
             // this bit of code forces this change so that Java Clients behave
             // the same as McIDAS Clients
-            if (testString.startsWith("par")) 
+            if (lctestString.startsWith("par")) 
             {
                 justTheParametersString = 
                     testString.substring(testString.indexOf("=") + 1) ;
                 parmString = 
-                   "parm=" + justTheParametersString;
+                   "PARM=" + justTheParametersString;
                 if (debug)  System.out.println("paramString = " + parmString);
                 sBinaryData =   
                     new String(decodePARAMString(justTheParametersString));
@@ -1956,38 +1931,38 @@ public class AddeURLConnection extends URLConnection
                 binaryData = sBinaryData.getBytes();
             }
             else
-            if (testString.startsWith("select"))
+            if (lctestString.startsWith("select"))
             {
                 justTheSelectString = 
                     testString.substring(testString.indexOf("=") + 1) ;
                 selectString = 
-                   "select=" + new String(
+                   "SELECT=" + new String(
                        decodeSELECTString(justTheSelectString));
                 if (debug) 
                     System.out.println("Server selectString = " + selectString);
             }
             else
             // similarly, McIDAS Clients use num= but the server wants max=
-            if (testString.startsWith("num"))
+            if (lctestString.startsWith("num"))
             {
                 maxString = 
-                   "max=" + testString.substring(testString.indexOf("=") + 1) ;
+                   "MAX=" + testString.substring(testString.indexOf("=") + 1) ;
             }
             else
             // allow for clever people who really know that the server uses
             // max =  :-)
-            if (testString.startsWith("max"))
+            if (lctestString.startsWith("max"))
             {
                 maxString = testString;
             }
             // now get the rest of the keywords (but filter out non-needed)
             else
-            if (testString.startsWith("tra"))       // trace keyword
+            if (lctestString.startsWith("tra"))       // trace keyword
             {
                 traceString = testString;
             }
             else
-            if (testString.startsWith("pos") && !posInDescriptor)       
+            if (lctestString.startsWith("pos") && !posInDescriptor)       
             {
                 posString = testString;
             }
@@ -1995,44 +1970,29 @@ public class AddeURLConnection extends URLConnection
         // fudge the max string in case ALL is specified.  Some servers
         // don't handle all
         if (maxString.trim().equalsIgnoreCase("max=all")) {
-            maxString="max=99999";
+            maxString="MAX=99999";
         }
 
-        // now create command string
-        /*
-        StringBuffer posParams = 
-            new StringBuffer(
-                 groupString + " " + descrString + " " + parmString + " " + selectString + " " + posString + " " + traceString + " " + maxString);
-        */
+        // now create case sensitive command string
+
         StringBuffer posParams = new StringBuffer();
         posParams.append(groupString);
         posParams.append(" ");
         posParams.append(descrString);
         posParams.append(" ");
-        posParams.append(parmString);
+        posParams.append(parmString.toUpperCase());
         posParams.append(" ");
-        posParams.append(selectString);
+        posParams.append(selectString.toUpperCase());
         posParams.append(" ");
-        posParams.append(posString);
+        posParams.append(posString.toUpperCase());
         posParams.append(" ");
-        posParams.append(traceString);
+        posParams.append(traceString.toUpperCase());
         posParams.append(" ");
-        posParams.append(maxString);
+        posParams.append(maxString.toUpperCase());
 
         if (debug) System.out.println("String passed to server = " + posParams);
+        return posParams;
 
-        // stuff it in at the beginning
-        try
-        {
-            buf.insert(0, posParams.toString());
-            if (debug) System.out.println("buf = " + buf);
-        }
-        catch (StringIndexOutOfBoundsException e)
-        {
-            System.out.println(e.toString());
-            buf = new StringBuffer("");
-        }
-        return buf;
     }
 
     /**
