@@ -162,7 +162,7 @@ public class AddeServerInfo extends Object {
 
       }
       
-      Vector table = rtf.getText();
+      table = rtf.getText();
 
       status = "Failed to locate required information on server "+s+".";
       

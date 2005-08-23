@@ -292,19 +292,19 @@ public class AddeGridReader {
             double scale = mg.getParamScale();
             //System.out.println("param scale = "+scale+" gridType="+mg.getGridType());
 
-            double[] data = new double[rows*cols];
+            double[] ddata = new double[rows*cols];
             int n = 0;
             // store such that 0,0 is in lower left corner...
             for (int nc=0; nc<cols; nc++) {
               for (int nr=0; nr<rows; nr++) {
                 int temp = dis.readInt();
-                data[(rows-nr-1)*cols + nc] =        // check for missing value
+                ddata[(rows-nr-1)*cols + nc] =        // check for missing value
                   (temp == McIDASUtil.MCMISSING)
                     ? Double.NaN
                     : ( (double) temp) / scale ;
               }
             }
-            gridData.add(data);
+            gridData.add(ddata);
 
             check = dis.readInt();
             //System.out.println("check after grid = "+check+"  point value = "+data[100]);
