@@ -202,7 +202,14 @@ import HTTPClient.UncompressInputStream;
  *   group 
  *   descr (except datasetinfo)
  *
- * an example URL for images might look like:
+ * These are case sensitive.  If you prefer to have them automatically upcased,
+ * you can supply a system property on the command line for your application:
+ *
+ *     <code>-Dadde.auto-upcase=true</code>
+ *
+ * or add the "auto-upcase=true" keyword to the URL
+ *
+ * An example URL for images might look like:
  *
  *   adde://viper/imagedata?group=gvar&amp;band=1&amp;user=tjj&amp;proj=6999&amp;version=1
  *   
@@ -452,8 +459,11 @@ public class AddeURLConnection extends URLConnection
 
     // now convert to array of bytes for output since chars are two byte
     //String cmd = sb.toString().toUpperCase();
-    boolean b = Boolean.getBoolean("adde.auto-upcase");
-    String cmd = (b) ? sb.toString().toUpperCase() : sb.toString();
+    boolean a = Boolean.getBoolean("adde.auto-upcase");
+    boolean b = 
+      new Boolean(
+        getValue(requestOriginal, "auto-upcase=", "false")).booleanValue();
+    String cmd = (a || b) ? sb.toString().toUpperCase() : sb.toString();
     if (debug) System.out.println(cmd);
     byte [] ob = cmd.getBytes();
 
