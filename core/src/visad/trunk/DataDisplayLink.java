@@ -86,7 +86,7 @@ public class DataDisplayLink extends ReferenceActionLink {
                   throws VisADException, RemoteException {
     super(ref, local_d, d, jd);
     renderer = rend;
-    setConstantMaps(constant_maps);
+    setConstantMaps(constant_maps, true);
   }
 
   /**
@@ -102,15 +102,22 @@ public class DataDisplayLink extends ReferenceActionLink {
    */
   public void setConstantMaps(ConstantMap[] constant_maps)
                   throws VisADException, RemoteException {
+    setConstantMaps(constant_maps, false);
+  }
+
+  private void setConstantMaps(ConstantMap[] constant_maps, boolean init)
+                  throws VisADException, RemoteException {
     Enumeration maps;
 
     synchronized (ConstantMapVector) {
-      maps = ConstantMapVector.elements();
-      while(maps.hasMoreElements()) {
-        ConstantMap map = (ConstantMap) maps.nextElement();
-        map.nullDisplay();
+      if (!init) {
+        maps = ConstantMapVector.elements();
+        while(maps.hasMoreElements()) {
+          ConstantMap map = (ConstantMap) maps.nextElement();
+          map.nullDisplay();
+        }
+        ConstantMapVector.removeAllElements();
       }
-      ConstantMapVector.removeAllElements();
 
       DisplayImpl local_d = (DisplayImpl) getLocalAction();
       Display d = (Display) getAction();
@@ -140,6 +147,11 @@ public class DataDisplayLink extends ReferenceActionLink {
           ConstantMapVector.addElement(constant_maps[i]);
           local_d.addDisplayScalar(constant_maps[i]);
         }
+      }
+      if (!init) {
+        getThingReference().incTick();
+        // DataReference ref = (DataReference) getThingReference();
+        // ref.setData(ref.getData());
       }
     }
   }
