@@ -86,31 +86,60 @@ public class DataDisplayLink extends ReferenceActionLink {
                   throws VisADException, RemoteException {
     super(ref, local_d, d, jd);
     renderer = rend;
+    setConstantMaps(constant_maps);
+  }
 
-    if (constant_maps != null) {
-      for (int i=0; i<constant_maps.length; i++) {
-        // WLH 13 July 98
-        Enumeration maps = ((Vector) ConstantMapVector.clone()).elements();
-        while(maps.hasMoreElements()) {
-          ScalarMap map = (ScalarMap) maps.nextElement();
-          if (map.getDisplayScalar().equals(constant_maps[i].getDisplayScalar())) {
-            throw new DisplayException("DataDisplayLink: two ConstantMaps have" +
-                                       " the same DisplayScalar");
+  /**
+   * Change ConstantMaps[] array specific to this DataDisplayLink
+   * Note this call should occur between
+   * display.disableAction()
+   * and
+   * display.enableAction()
+   *
+   * @param constant_maps array of ConstantMaps specific to this Data
+   * @throws VisADException a VisAD error occurred
+   * @throws RemoteException an RMI error occurred
+   */
+  public void setConstantMaps(ConstantMap[] constant_maps)
+                  throws VisADException, RemoteException {
+    Enumeration maps;
+
+    synchronized (ConstantMapVector) {
+      maps = ConstantMapVector.elements();
+      while(maps.hasMoreElements()) {
+        ConstantMap map = (ConstantMap) maps.nextElement();
+        map.nullDisplay();
+      }
+      ConstantMapVector.removeAllElements();
+
+      DisplayImpl local_d = (DisplayImpl) getLocalAction();
+      Display d = (Display) getAction();
+  
+      if (constant_maps != null) {
+        for (int i=0; i<constant_maps.length; i++) {
+          // WLH 13 July 98
+          maps = ((Vector) ConstantMapVector.clone()).elements();
+          while(maps.hasMoreElements()) {
+            ScalarMap map = (ScalarMap) maps.nextElement();
+            if (map.getDisplayScalar().equals(constant_maps[i].getDisplayScalar())) {
+              throw new DisplayException("DataDisplayLink: two ConstantMaps have" +
+                                         " the same DisplayScalar");
+            }
           }
+  
+          // WLH 10 Aug 2001
+          if (constant_maps[i].getDisplay() != null &&
+              !ConstantMap.getAllowMultipleUseKludge()) {
+            throw new DisplayException(constant_maps[i] + " already has a display\n" +
+                        "If this Exception breaks an existing app add a call to:\n" +
+                        "ConstantMap.setAllowMultipleUseKludge(true) at the " +
+                        "start of your app \n  OR you can stop reusing ConstantMaps");
+          }
+  
+          constant_maps[i].setDisplay(local_d);
+          ConstantMapVector.addElement(constant_maps[i]);
+          local_d.addDisplayScalar(constant_maps[i]);
         }
-
-        // WLH 10 Aug 2001
-        if (constant_maps[i].getDisplay() != null &&
-            !ConstantMap.getAllowMultipleUseKludge()) {
-          throw new DisplayException(constant_maps[i] + " already has a display\n" +
-                      "If this Exception breaks an existing app add a call to:\n" +
-                      "ConstantMap.setAllowMultipleUseKludge(true) at the " +
-                      "start of your app \n  OR you can stop reusing ConstantMaps");
-        }
-
-        constant_maps[i].setDisplay(local_d);
-        ConstantMapVector.addElement(constant_maps[i]);
-        local_d.addDisplayScalar(constant_maps[i]);
       }
     }
   }
