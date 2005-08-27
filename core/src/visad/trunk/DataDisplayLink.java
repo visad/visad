@@ -96,6 +96,12 @@ public class DataDisplayLink extends ReferenceActionLink {
    * and
    * display.enableAction()
    *
+   * there are two ways for an application to get a DataDisplayLink:
+   * given a DisplayImpl and a DataReference:
+   *  DataDisplayLink link = (DataDisplayLink) display.findReference(ref);
+   * given a DataRenderer (assuming it has only one DataReference):
+   *  DataDisplayLink link = renderer.getLinks()[0];
+   *
    * @param constant_maps array of ConstantMaps specific to this Data
    * @throws VisADException a VisAD error occurred
    * @throws RemoteException an RMI error occurred
@@ -124,7 +130,6 @@ public class DataDisplayLink extends ReferenceActionLink {
   
       if (constant_maps != null) {
         for (int i=0; i<constant_maps.length; i++) {
-          // WLH 13 July 98
           maps = ((Vector) ConstantMapVector.clone()).elements();
           while(maps.hasMoreElements()) {
             ScalarMap map = (ScalarMap) maps.nextElement();
@@ -134,7 +139,6 @@ public class DataDisplayLink extends ReferenceActionLink {
             }
           }
   
-          // WLH 10 Aug 2001
           if (constant_maps[i].getDisplay() != null &&
               !ConstantMap.getAllowMultipleUseKludge()) {
             throw new DisplayException(constant_maps[i] + " already has a display\n" +
@@ -150,8 +154,6 @@ public class DataDisplayLink extends ReferenceActionLink {
       }
       if (!init) {
         getThingReference().incTick();
-        // DataReference ref = (DataReference) getThingReference();
-        // ref.setData(ref.getData());
       }
     }
   }
