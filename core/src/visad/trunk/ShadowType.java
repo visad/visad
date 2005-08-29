@@ -3139,11 +3139,13 @@ System.out.println("color_values: nummissing = " + nummissing);
       else { // (tuple_values[index] != null)
         // DRM: 2003-09-19 allow for setting by ConstantMap
         //int cm = display.getGraphicsModeControl().getColorMode();
-        int colorMode = (int)
+        int cm = (int)
           default_values[display.getDisplayScalarIndex(Display.ColorMode)];
+        /* DRM: 2005-09-25 default_values now has default from GMC
         int cm =  
              (colorMode >= 0)
                  ? colorMode : display.getGraphicsModeControl().getColorMode();
+        */
         float inv_count = cm == GraphicsModeControl.SUM_COLOR_MODE ? 1.0f :
           1.0f / (tuple_value_counts[index] + tuple_single_counts[index]);
         for (int j=0; j<tuple_values[index].length; j++) {

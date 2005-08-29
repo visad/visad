@@ -382,6 +382,10 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 2:" +
 */
 
       if (this instanceof ShadowFunctionType) {
+        float[] default_values = getLink().getDefaultValues();
+        boolean textureEnabled = 
+          default_values[display.getDisplayScalarIndex(Display.TextureEnable)] > 0.5f;
+
         // test for texture mapping
         // WLH 30 April 99
         isTextureMap = !getMultipleDisplayScalar() &&
@@ -394,7 +398,7 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 2:" +
                                Domain.getDisplaySpatialTuple() ) &&
                        checkColorAlphaRange(Range.getDisplayIndices()) &&
                        checkAny(Range.getDisplayIndices()) &&
-                       display.getGraphicsModeControl().getTextureEnable() &&
+                       textureEnabled &&
                        !display.getGraphicsModeControl().getPointMode();
 
         curvedTexture = getLevelOfDifficulty() == ShadowType.SIMPLE_FIELD &&
@@ -418,7 +422,7 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 2:" +
                                Domain.getDisplaySpatialTuple() ) &&
                        checkColorAlphaRange(Range.getDisplayIndices()) &&
                        checkAny(Range.getDisplayIndices()) &&
-                       display.getGraphicsModeControl().getTextureEnable() &&
+                       textureEnabled &&
                        !display.getGraphicsModeControl().getPointMode();
 
         // note GgraphicsModeControl.setTextureEnable(false) disables this
@@ -446,7 +450,7 @@ System.out.println("checkIndices.isTexture3D = " + isTexture3D + " " +
                         Domain.getDisplaySpatialTuple() ) + " " +
                    checkColorAlphaRange(Range.getDisplayIndices()) + " " +
                    checkAny(Range.getDisplayIndices()) + " " +
-                   display.getGraphicsModeControl().getTextureEnable() + " " +
+                   textureEnabled &&
                    !display.getGraphicsModeControl().getPointMode() );
 */
 
@@ -462,7 +466,7 @@ System.out.println("checkIndices.isTextureMap = " + isTextureMap + " " +
                                Domain.getDisplaySpatialTuple() ) + " " +
                    checkColorAlphaRange(Range.getDisplayIndices()) + " " +
                    checkAny(Range.getDisplayIndices()) + " " +
-                   display.getGraphicsModeControl().getTextureEnable() + " " +
+                   textureEnabled &&
                    !display.getGraphicsModeControl().getPointMode() );
 
 System.out.println("checkIndices.curvedTexture = " + curvedTexture + " " +
@@ -472,7 +476,7 @@ System.out.println("checkIndices.curvedTexture = " + curvedTexture + " " +
                     checkSpatialOffsetColorAlphaRange(Domain.getDisplayIndices()) + " " +
                     checkSpatialOffsetColorAlphaRange(Range.getDisplayIndices()) + " " +
                     checkAny(Range.getDisplayIndices()) + " " +
-                    display.getGraphicsModeControl().getTextureEnable() + " " +
+                    textureEnabled &&
                     !display.getGraphicsModeControl().getPointMode() );
 */
       }
@@ -669,19 +673,24 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
 
     // DRM 2003-08-21
     //int curved_size = display.getGraphicsModeControl().getCurvedSize();
-    int cMapCurveSize = (int)
+    int curved_size = (int)
       default_values[display.getDisplayScalarIndex(Display.CurvedSize)];
+    /* DRM 2005-08-29 - default value now correct in link.prepareData()
     int curved_size =  
          (cMapCurveSize > 0)
              ? cMapCurveSize
              : display.getGraphicsModeControl().getCurvedSize();
+    */
 
     float textureEnable =
       default_values[display.getDisplayScalarIndex(Display.TextureEnable)];
+    boolean texture = textureEnable > 0.5f;
+    /* DRM 2005-08-29 - default value now correct in link.prepareData()
     boolean texture = display.getGraphicsModeControl().getTextureEnable();
     if (textureEnable > -0.5f) {
       texture = (textureEnable > 0.5f);
     }
+    */
 
     boolean curvedTexture = getCurvedTexture() &&
                             !isTextureMap &&
@@ -1690,10 +1699,13 @@ System.out.println("doTerminal: isTerminal = " + getIsTerminal() +
 
       float missingTransparent =
           default_values[display.getDisplayScalarIndex(Display.MissingTransparent)];
+      boolean isMissingTransparent = missingTransparent > 0.5f;
+      /* DRM: 2005-08-29 - default value now correct
       boolean isMissingTransparent = mode.getMissingTransparent();
       if (missingTransparent > -0.5f) {
         isMissingTransparent = (missingTransparent > 0.5f);
       }
+      */
 
 // if (link != null) System.out.println("start assembleColor " + (System.currentTimeMillis() - link.start_time));
 
