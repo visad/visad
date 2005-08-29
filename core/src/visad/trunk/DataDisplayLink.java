@@ -274,6 +274,18 @@ public class DataDisplayLink extends ReferenceActionLink {
       else if (Display.PolygonOffsetFactor.equals(dreal)) {
         defaultValues[i] = mode.getPolygonOffsetFactor();
       }
+      else if (Display.ColorMode.equals(dreal)) {
+        defaultValues[i] = mode.getColorMode();
+      }
+      else if (Display.CurvedSize.equals(dreal)) {
+        defaultValues[i] = mode.getCurvedSize();
+      }
+      else if (Display.MissingTransparent.equals(dreal)) {
+        defaultValues[i] = (mode.getMissingTransparent()) ? 1 : -1;
+      }
+      else if (Display.TextureEnable.equals(dreal)) {
+        defaultValues[i] = (mode.getTextureEnable()) ? 1 : -1;
+      }
 /* WLH 21 Aug 98
       defaultValues[i] = (float) (((DisplayRealType)
         ((DisplayImpl) local_action).getDisplayScalar(i)).getDefaultValue());
