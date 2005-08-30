@@ -884,6 +884,10 @@ public class TextAdapter {
     for (int i=0; i<numDom; i++) {
 
       if (gotDomainRanges[i]) {
+        // if domain was given with a count, use it for 'raster'-type
+        if (numDom == 2 && numRng == 1 && numElements == 1) 
+                                   numVal = (int) domainRanges[2][i]; 
+
         lset[i] = new Linear1DSet(domType.getComponent(i), domainRanges[0][i], 
                             domainRanges[1][i], numVal);
 
