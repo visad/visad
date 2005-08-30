@@ -279,6 +279,12 @@ There is one exception to this:  in the case of 2-D arrays, the first
 domain component is assumed to apply to the number of range values 
 on each line of text, _not_ the number of "samples" or lines of text.
 
+If you have only one value per input line of text, and you have a 2-D
+array, you may optionally add a third specification:
+    name(first:last:number)
+
+where 'number' is the number of values for this domain component.  See
+examples, below.
 
 Finally, if you need to combine the range with other information about
 the parameter, it would look like:
@@ -354,3 +360,13 @@ Time[fmt=yyyy-MM-dd'T'HH:mm:ss'Z'],Latitude,Longitude,Pressure
 2003-05-02T07:00:00Z,-10.0,150.0,998.0
 2003-05-02T10:00:00Z,-10.5,150.5,997.0
 2003-05-02T13:00:00Z,-11.0,151.0,996.0
+
+Example #9 - Text file of a 2-D grid, with one value per line <==
+(Longitude,Latitude)->Altitude
+Longitude(-107.495:-103.605:109),Latitude(38.5572:41.487:109), Altitude[unit=m]
+     3060.
+     3043.
+     2949.
+     2865.
+     .... 
+     ....
