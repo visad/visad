@@ -79,12 +79,26 @@ public class Gridded2DSet extends GriddedSet {
     LengthY = Lengths[1];
 
     if (Samples != null && Lengths[0] > 1 && Lengths[1] > 1) {
+/* CICERO
       Pos = ( (Samples[0][1]-Samples[0][0])
                *(Samples[1][LengthX+1]-Samples[1][1])
               - (Samples[1][1]-Samples[1][0])
                *(Samples[0][LengthX+1]-Samples[0][1]) > 0);
+*/
+// CICERO
+      float xpos = (Samples[0][1]-Samples[0][0])
+                    *(Samples[1][LengthX+1]-Samples[1][1])
+                   - (Samples[1][1]-Samples[1][0])
+                    *(Samples[0][LengthX+1]-Samples[0][1]);
+      Pos = (xpos > 0);
 
       if (test) {
+        // CICERO
+        if (xpos == 0) {
+          throw new SetException(
+           "Gridded2DSet: samples do not form a valid grid");
+        }
+
         for (int i=0; i<Length; i++) {
           if (Samples[0][i] != Samples[0][i]) {
             throw new SetException(
@@ -107,6 +121,7 @@ public class Gridded2DSet extends GriddedSet {
               v01[v] = Samples[v][(j+1)*LengthX+i];
               v11[v] = Samples[v][(j+1)*LengthX+i+1];
             }
+/* CICERO
             if (  ( (v10[0]-v00[0])*(v11[1]-v10[1])
                   - (v10[1]-v00[1])*(v11[0]-v10[0]) > 0 != Pos)
                || ( (v11[0]-v10[0])*(v01[1]-v11[1])
@@ -115,6 +130,20 @@ public class Gridded2DSet extends GriddedSet {
                   - (v01[1]-v11[1])*(v00[0]-v01[0]) > 0 != Pos)
                || ( (v00[0]-v01[0])*(v10[1]-v00[1])
                   - (v00[1]-v01[1])*(v10[0]-v00[0]) > 0 != Pos)  ) {
+*/
+// CICERO
+            float w1 = ( (v10[0]-v00[0])*(v11[1]-v10[1])
+                       - (v10[1]-v00[1])*(v11[0]-v10[0]) );
+            float w2 = ( (v11[0]-v10[0])*(v01[1]-v11[1])
+                       - (v11[1]-v10[1])*(v01[0]-v11[0]) );
+            float w3 = ( (v01[0]-v11[0])*(v00[1]-v01[1])
+                       - (v01[1]-v11[1])*(v00[0]-v01[0]) );
+            float w4 = ( (v00[0]-v01[0])*(v10[1]-v00[1])
+                       - (v00[1]-v01[1])*(v10[0]-v00[0]) );
+            if ((w1 > 0 != Pos) || w1 == 0 ||
+                (w2 > 0 != Pos) || w2 == 0 ||
+                (w3 > 0 != Pos) || w3 == 0 ||
+                (w4 > 0 != Pos) || w4 == 0) {
 /*
 System.out.println("Samples[0][1] = " + Samples[0][1] +
                    " Samples[0][0] = " + Samples[0][0] +
