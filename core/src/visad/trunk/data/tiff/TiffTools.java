@@ -27,17 +27,19 @@ MA 02111-1307, USA
 package visad.data.tiff;
 
 import java.lang.reflect.Field;
-import java.util.*;
 import java.io.*;
+import java.util.*;
 import visad.*;
 import visad.data.BadFormException;
 
 /**
  * A utility class for manipulating TIFF files.
+ *
  * @author Curtis Rueden ctrueden at wisc.edu
  * @author Eric Kjellman egkjellman at wisc.edu
+ * @author Melissa Linkert linkert at cs.wisc.edu
  */
-public class TiffTools {
+public abstract class TiffTools {
 
   // -- Constants --
 
@@ -145,6 +147,11 @@ public class TiffTools {
   protected static final int CLEAR_CODE = 256;
   protected static final int EOI_CODE = 257;
 
+  // TIFF header constants
+  public static final int MAGIC_NUMBER = 42;
+  public static final int LITTLE = 0x49;
+  public static final int BIG = 0x4d;
+
 
   // -- TiffTools API methods --
 
@@ -153,17 +160,16 @@ public class TiffTools {
    * the first few bytes of a TIFF file.
    */
   public static boolean isValidHeader(byte[] block) {
-    if (block.length < 4) return false;
+    if (block.length < 4) { return false; }
 
-    // byte order should be II or MM
-    if ((block[0] != 0x49 || block[1] != 0x49) &&
-      (block[0] != 0x4d || block[1] != 0x4d))
-    {
-      return false;
-    }
+    // byte order must be II or MM
+    boolean little = block[0] == LITTLE && block[1] == LITTLE; // II
+    boolean big = block[0] == BIG && block[1] == BIG; // MM
+    if (!little && !big) return false;
 
     // check magic number (42)
-    return block[2] == 0x00 && block[3] == 0x2a;
+    short magic = bytesToShort(new byte[] {block[2], block[3]}, little);
+    return magic == MAGIC_NUMBER;
   }
 
 
@@ -179,12 +185,13 @@ public class TiffTools {
     // determine byte order (II = little-endian, MM = big-endian)
     byte[] order = new byte[2];
     in.read(order);
-    boolean littleEndian = (order[0] == 0x49 && order[1] == 0x49);
-    if (!littleEndian && (order[0] != 0x4d || order[1] != 0x4d)) return null;
+    boolean littleEndian = order[0] == LITTLE && order[1] == LITTLE; // II
+    boolean bigEndian = order[0] == BIG && order[1] == BIG; // MM
+    if (!littleEndian && !bigEndian) return null;
 
     // check magic number (42)
     int magic = read2UnsignedBytes(in, littleEndian);
-    if (magic != 42) return null;
+    if (magic != MAGIC_NUMBER) return null;
 
     // get offset to first IFD
     long offset = read4UnsignedBytes(in, littleEndian);
@@ -364,6 +371,145 @@ public class TiffTools {
     return "" + tag;
   }
 
+  /**
+   * Gets the given directory entry value from the specified IFD,
+   * performing some error checking.
+   */
+  public static Object getIFDValue(Hashtable ifd,
+    int tag, boolean checkNull, Class checkClass) throws BadFormException
+  {
+    Object value = ifd.get(new Integer(tag));
+    if (checkNull && value == null) {
+       throw new BadFormException(
+        getIFDTagName(tag) + " directory entry not found");
+    }
+    if (checkClass != null && value != null &&
+      !checkClass.isInstance(value))
+    {
+      throw new BadFormException(getIFDTagName(tag) +
+        " directory entry is the wrong type (got " +
+        value.getClass().getName() + ", expected " + checkClass.getName());
+    }
+    return value;
+  }
+
+  /**
+   * Gets the given directory entry value in long format from the
+   * specified IFD, performing some error checking.
+   */
+  public static long getIFDLongValue(Hashtable ifd, int tag,
+    boolean checkNull, long defaultValue) throws BadFormException
+  {
+    long value = defaultValue;
+    Number number = (Number) getIFDValue(ifd, tag, checkNull, Number.class);
+    if (number != null) value = number.longValue();
+    return value;
+  }
+
+  /**
+   * Gets the given directory entry value in int format from the
+   * specified IFD, performing some error checking.
+   */
+  public static int getIFDIntValue(Hashtable ifd, int tag,
+    boolean checkNull, int defaultValue) throws BadFormException
+  {
+    int value = defaultValue;
+    Number number = (Number) getIFDValue(ifd, tag, checkNull, Number.class);
+    if (number != null) value = number.intValue();
+    return value;
+  }
+
+  /**
+   * Gets the given directory entry value in rational format from the
+   * specified IFD, performing some error checking.
+   */
+  public static TiffRational getIFDRationalValue(Hashtable ifd, int tag,
+    boolean checkNull) throws BadFormException
+  {
+    return (TiffRational) getIFDValue(ifd, tag, checkNull, TiffRational.class);
+  }
+
+  /**
+   * Gets the given directory entry values in long format
+   * from the specified IFD, performing some error checking.
+   */
+  public static long[] getIFDLongArray(Hashtable ifd,
+    int tag, boolean checkNull) throws BadFormException
+  {
+    Object value = getIFDValue(ifd, tag, checkNull, null);
+    long[] results = null;
+    if (value instanceof long[]) results = (long[]) value;
+    else if (value instanceof Number) {
+      results = new long[] {((Number) value).longValue()};
+    }
+    else if (value instanceof Number[]) {
+      Number[] numbers = (Number[]) value;
+      results = new long[numbers.length];
+      for (int i=0; i<results.length; i++) results[i] = numbers[i].longValue();
+    }
+    else if (value != null) {
+      throw new BadFormException(getIFDTagName(tag) +
+        " directory entry is the wrong type (got " +
+        value.getClass().getName() + ", expected Number, long[] or Number[])");
+    }
+    return results;
+  }
+
+  /**
+   * Gets the given directory entry values in int format
+   * from the specified IFD, performing some error checking.
+   */
+  public static int[] getIFDIntArray(Hashtable ifd,
+    int tag, boolean checkNull) throws BadFormException
+  {
+    Object value = getIFDValue(ifd, tag, checkNull, null);
+    int[] results = null;
+    if (value instanceof int[]) results = (int[]) value;
+    else if (value instanceof Number) {
+      results = new int[] {((Number) value).intValue()};
+    }
+    else if (value instanceof Number[]) {
+      Number[] numbers = (Number[]) value;
+      results = new int[numbers.length];
+      for (int i=0; i<results.length; i++) results[i] = numbers[i].intValue();
+    }
+    else if (value != null) {
+      throw new BadFormException(getIFDTagName(tag) +
+        " directory entry is the wrong type (got " +
+        value.getClass().getName() + ", expected Number, int[] or Number[])");
+    }
+    return results;
+  }
+
+  /**
+   * Gets the given directory entry values in short format
+   * from the specified IFD, performing some error checking.
+   */
+  public static short[] getIFDShortArray(Hashtable ifd,
+    int tag, boolean checkNull) throws BadFormException
+  {
+    Object value = getIFDValue(ifd, tag, checkNull, null);
+    short[] results = null;
+    if (value instanceof short[]) results = (short[]) value;
+    else if (value instanceof Number) {
+      results = new short[] {((Number) value).shortValue()};
+    }
+    else if (value instanceof Number[]) {
+      Number[] numbers = (Number[]) value;
+      results = new short[numbers.length];
+      for (int i=0; i<results.length; i++) {
+        results[i] = numbers[i].shortValue();
+      }
+    }
+    else if (value != null) {
+      throw new BadFormException(getIFDTagName(tag) +
+        " directory entry is the wrong type (got " +
+        value.getClass().getName() +
+        ", expected Number, short[] or Number[])");
+    }
+    return results;
+  }
+
 
   // -- Image reading methods --
 
@@ -386,8 +532,42 @@ public class TiffTools {
     int compression = getIFDIntValue(ifd, COMPRESSION, false, UNCOMPRESSED);
     int photoInterp = getIFDIntValue(ifd, PHOTOMETRIC_INTERPRETATION, true, 0);
     long[] stripOffsets = getIFDLongArray(ifd, STRIP_OFFSETS, true);
-    long rowsPerStrip = getIFDLongValue(ifd, ROWS_PER_STRIP, true, 0);
     long[] stripByteCounts = getIFDLongArray(ifd, STRIP_BYTE_COUNTS, true);
+    long[] rowsPerStripArray = getIFDLongArray(ifd, ROWS_PER_STRIP, false);
+
+    boolean fakeRPS = rowsPerStripArray == null;
+    if (fakeRPS) {
+      // create a false rowsPerStripArray if one is not present
+      // it's sort of a cheap hack, but here's how it's done:
+      // RowsPerStrip = stripByteCounts / (imageLength * bitsPerSample)
+      // since stripByteCounts and bitsPerSample are arrays, we have to
+      // iterate through each item
+      rowsPerStripArray = new long[stripByteCounts.length];
+
+      for (int i=0; i<stripByteCounts.length; i++) {
+        // case 1: we're still within bitsPerSample array bounds
+        if (i < bitsPerSample.length) {
+          // remember that the universe collapses when we divide by 0
+          if (bitsPerSample[i] != 0) {
+            rowsPerStripArray[i] = (long) stripByteCounts[i] /
+              (imageLength * (bitsPerSample[i] / 8));
+          }
+          else if (bitsPerSample[i] == 0 && i > 0) {
+            rowsPerStripArray[i] = (long) stripByteCounts[i] /
+              (imageLength * (bitsPerSample[i - 1] / 8));
+          }
+          else {
+            throw new BadFormException("BitsPerSample is 0");
+          }
+        }
+        // case 2: we're outside bitsPerSample array bounds
+        else if (i >= bitsPerSample.length) {
+          rowsPerStripArray[i] = (long) stripByteCounts[i] /
+            (imageLength * (bitsPerSample[bitsPerSample.length - 1] / 8));
+        }
+      }
+    }
+
     TiffRational xResolution = getIFDRationalValue(ifd, X_RESOLUTION, false);
     TiffRational yResolution = getIFDRationalValue(ifd, Y_RESOLUTION, false);
     int planarConfig = getIFDIntValue(ifd, PLANAR_CONFIGURATION, false, 1);
@@ -395,6 +575,7 @@ public class TiffTools {
     if (xResolution == null || yResolution == null) resolutionUnit = 0;
     int[] colorMap = getIFDIntArray(ifd, COLOR_MAP, false);
     int predictor = getIFDIntValue(ifd, PREDICTOR, false, 1);
+
     if (DEBUG) {
       StringBuffer sb = new StringBuffer();
       sb.append("IFD directory entry values:");
@@ -423,7 +604,11 @@ public class TiffTools {
         sb.append(stripOffsets[i]);
       }
       sb.append("\n\tRowsPerStrip=");
-      sb.append(rowsPerStrip);
+      sb.append(rowsPerStripArray[0]);
+      for (int i=1; i<rowsPerStripArray.length; i++) {
+        sb.append(",");
+        sb.append(rowsPerStripArray[i]);
+      }
       sb.append("\n\tStripByteCounts=");
       sb.append(stripByteCounts[0]);
       for (int i=1; i<stripByteCounts.length; i++) {
@@ -452,20 +637,89 @@ public class TiffTools {
       debug(sb.toString());
     }
 
-    // do some error checking
-    for (int i=0; i<bitsPerSample.length; i++) {
-      if (bitsPerSample[i] < 1) {
-        throw new BadFormException("Illegal BitsPerSample (" +
-          bitsPerSample[i] + ")");
+    if (fakeRPS) {
+      // for LSM files: some arrays can have 0 values where we don't want them
+      // this block goes through stripByteCounts, rowsPerStrip, and
+      // bitsPerSample and removes the 0 entries so the lengths are correct
+
+      // check stripByteCounts
+      boolean needSBC = false;
+      for (int i=0; i<stripByteCounts.length; i++) {
+        if (stripByteCounts[i] == 0) needSBC = true;
       }
-      else if (bitsPerSample[i] > 8 && bitsPerSample[i] % 8 != 0) {
-        throw new BadFormException("Sorry, unsupported BitsPerSample (" +
-          bitsPerSample[i] + ")");
+      if (needSBC) {
+        long[] temp = new long[stripByteCounts.length - 1];
+        int p = 0;
+        for (int i=0; i < stripByteCounts.length; i++) {
+          if (stripByteCounts[i] != 0) temp[p++] = stripByteCounts[i];
+        }
+        stripByteCounts = new long[temp.length];
+        for (int i=0; i<stripByteCounts.length; i++) {
+          stripByteCounts[i] = temp[i];
+        }
+      }
+
+      // check rowsPerStrip
+      boolean needRPS = false;
+      for (int i=0; i<rowsPerStripArray.length; i++ ) {
+        if (rowsPerStripArray[i] == 0) needRPS = true;
+      }
+      if (needRPS) {
+        long[] temp = new long[rowsPerStripArray.length - 1];
+        int p = 0;
+        for (int i=0; i<rowsPerStripArray.length; i++) {
+          if (rowsPerStripArray[i] != 0) temp[p++] = rowsPerStripArray[i];
+        }
+        rowsPerStripArray = new long[temp.length];
+        for (int i=0; i<rowsPerStripArray.length; i++) {
+          rowsPerStripArray[i] = temp[i];
+        }
+      }
+
+      // check bitsPerSample
+      boolean needBPS = false;
+      for (int i=0; i<bitsPerSample.length; i++) {
+        if (bitsPerSample[i] == 0) needBPS = true;
+      }
+      if (needBPS) {
+        int[] temp = new int[bitsPerSample.length - 1];
+        int p = 0;
+        for (int i=0; i<bitsPerSample.length; i++) {
+          if (bitsPerSample[i] != 0) temp[p++] = bitsPerSample[i];
+        }
+        bitsPerSample = new int[temp.length];
+        for (int i=0; i<bitsPerSample.length; i++) {
+          bitsPerSample[i] = temp[i];
+        }
       }
     }
-    if (bitsPerSample.length != samplesPerPixel) {
+
+    // do some error checking
+
+    int bpsLength = bitsPerSample.length;
+    if (fakeRPS) {
+      for (int i=0; i<bitsPerSample.length; i++) {
+        if (bitsPerSample[i] < 1) {
+          bpsLength--;
+        }
+      }
+    }
+    else {
+      for (int i=0; i<bitsPerSample.length; i++) {
+        if (bitsPerSample[i] < 1) {
+          throw new BadFormException("Illegal BitsPerSample (" +
+            bitsPerSample[i] + ")");
+        }
+        else if (bitsPerSample[i] > 8 && bitsPerSample[i] % 8 != 0) {
+          throw new BadFormException("Sorry, unsupported BitsPerSample (" +
+            bitsPerSample[i] + ")");
+        }
+      }
+    }
+
+    if (bpsLength != samplesPerPixel) {
       throw new BadFormException("BitsPerSample length (" +
-        bitsPerSample.length + ") does not match SamplesPerPixel (" +
+        bpsLength + ") does not match SamplesPerPixel (" +
         samplesPerPixel + ")");
     }
     if (photoInterp == RGB_PALETTE) {
@@ -494,18 +748,42 @@ public class TiffTools {
       throw new BadFormException("Unknown PhotometricInterpretation (" +
         photoInterp + ")");
     }
+
+    long rowsPerStrip = rowsPerStripArray[0];
+    for (int i=1; i<rowsPerStripArray.length; i++) {
+      if (rowsPerStrip != rowsPerStripArray[i]) {
+        throw new BadFormException(
+          "Sorry, non-uniform RowsPerStrip is not supported");
+      }
+    }
+
     long numStrips = (imageLength + rowsPerStrip - 1) / rowsPerStrip;
     if (planarConfig == 2) numStrips *= samplesPerPixel;
-    if (stripOffsets.length != numStrips) {
-      throw new BadFormException("StripOffsets length (" +
+
+    if (fakeRPS) {
+      // special cases for fake RowsPerStrip
+      if ((stripOffsets.length != (numStrips + 1)) &&
+        stripOffsets.length != numStrips)
+      {
+        throw new BadFormException("StripOffsets length (" +
         stripOffsets.length + ") does not match expected " +
         "number of strips (" + numStrips + ")");
+      }
     }
+    else {
+      if (stripOffsets.length != numStrips) {
+        throw new BadFormException("StripOffsets length (" +
+          stripOffsets.length + ") does not match expected " +
+          "number of strips (" + numStrips + ")");
+      }
+    }
+
     if (stripByteCounts.length != numStrips) {
       throw new BadFormException("StripByteCounts length (" +
         stripByteCounts.length + ") does not match expected " +
         "number of strips (" + numStrips + ")");
     }
+
     if (imageWidth > Integer.MAX_VALUE || imageLength > Integer.MAX_VALUE ||
       imageWidth * imageLength > Integer.MAX_VALUE)
     {
@@ -514,14 +792,16 @@ public class TiffTools {
         imageWidth + " x " + imageLength + ")");
     }
     int numSamples = (int) (imageWidth * imageLength);
-    if (planarConfig == 2) {
-      throw new BadFormException(
-        "Sorry, \"Planar\" PlanarConfiguration is not supported");
-    }
-    else if (planarConfig != 1) {
+
+    if (planarConfig != 1 && planarConfig != 2) {
       throw new BadFormException(
         "Unknown PlanarConfiguration (" + planarConfig + ")");
     }
+
+    // check if the image has a fake RowsPerStrip
+    // if it does, and the samplesPerPixel is equal to 2,
+    // we will need to increase samplesPerPixel by 1
+    if (fakeRPS && samplesPerPixel == 2) samplesPerPixel++;
 
     // read in image strips
     if (DEBUG) {
@@ -539,7 +819,7 @@ public class TiffTools {
           Integer.MAX_VALUE + " is not supported");
       }
       byte[] bytes = new byte[(int) stripByteCounts[strip]];
-      in.readFully(bytes);
+      in.read(bytes);
       bytes = uncompress(bytes, compression);
       difference(bytes, bitsPerSample, imageWidth, planarConfig, predictor);
       unpackBytes(samples, (int) (imageWidth * row), bytes,
@@ -682,6 +962,7 @@ public class TiffTools {
   public static byte[] lzwUncompress(byte[] input) {
     if (input == null || input.length == 0) return input;
     if (DEBUG) debug("decompressing " + input.length + " bytes of LZW data");
+
     byte[][] symbolTable = new byte[4096][1];
     int bitsToRead = 9;
     int nextSymbol = 258;
@@ -859,117 +1140,46 @@ public class TiffTools {
     return total;
   }
 
-
-  // -- Methods for IFD parsing --
-
   /**
-   * Gets the given directory entry value from the specified IFD,
-   * performing some error checking.
+   * Translates up to the first 2 bytes of a byte array to a short.
+   * If there are fewer than 2 bytes in the array, the MSBs are all
+   * assumed to be zero (regardless of endianness).
    */
-  public static Object getIFDValue(Hashtable ifd,
-    int tag, boolean checkNull, Class checkClass) throws BadFormException
-  {
-    Object value = ifd.get(new Integer(tag));
-    if (checkNull && value == null) {
-      throw new BadFormException(
-        getIFDTagName(tag) + " directory entry not found");
+  public static short bytesToShort(short[] bytes, boolean little) {
+    int len = bytes.length > 2 ? 2 : bytes.length;
+    short total = 0;
+    for (int i=0; i<len; i++) {
+      total |= ((int) bytes[i]) << ((little ? i : len - i - 1) * 8);
     }
-    if (checkClass != null && value != null &&
-      !checkClass.isInstance(value))
-    {
-      throw new BadFormException(getIFDTagName(tag) +
-        " directory entry is the wrong type (got " +
-        value.getClass().getName() + ", expected " + checkClass.getName());
-    }
-    return value;
+    return total;
   }
 
   /**
-   * Gets the given directory entry value in long format from the
-   * specified IFD, performing some error checking.
+   * Translates up to the first 4 bytes of a byte array to an int.
+   * If there are fewer than 4 bytes in the array, the MSBs are all
+   * assumed to be zero (regardless of endianness).
    */
-  public static long getIFDLongValue(Hashtable ifd, int tag,
-    boolean checkNull, long defaultValue) throws BadFormException
-  {
-    long value = defaultValue;
-    Number number = (Number) getIFDValue(ifd, tag, checkNull, Number.class);
-    if (number != null) value = number.longValue();
-    return value;
+  public static int bytesToInt(short[] bytes, boolean little) {
+    int len = bytes.length > 4 ? 4 : bytes.length;
+    int total = 0;
+    for (int i=0; i<len; i++) {
+      total |= ((int) bytes[i]) << ((little ? i : len - i - 1) * 8);
+    }
+    return total;
   }
 
   /**
-   * Gets the given directory entry value in int format from the
-   * specified IFD, performing some error checking.
+   * Translates up to the first 8 bytes of a byte array to a long.
+   * If there are fewer than 8 bytes in the array, the MSBs are all
+   * assumed to be zero (regardless of endianness).
    */
-  public static int getIFDIntValue(Hashtable ifd, int tag,
-    boolean checkNull, int defaultValue) throws BadFormException
-  {
-    int value = defaultValue;
-    Number number = (Number) getIFDValue(ifd, tag, checkNull, Number.class);
-    if (number != null) value = number.intValue();
-    return value;
-  }
-
-  /**
-   * Gets the given directory entry value in rational format from the
-   * specified IFD, performing some error checking.
-   */
-  public static TiffRational getIFDRationalValue(Hashtable ifd, int tag,
-    boolean checkNull) throws BadFormException
-  {
-    return (TiffRational) getIFDValue(ifd, tag, checkNull, TiffRational.class);
-  }
-
-  /**
-   * Gets the given directory entry values in long format
-   * from the specified IFD, performing some error checking.
-   */
-  public static long[] getIFDLongArray(Hashtable ifd,
-    int tag, boolean checkNull) throws BadFormException
-  {
-    Object value = getIFDValue(ifd, tag, checkNull, null);
-    long[] results = null;
-    if (value instanceof long[]) results = (long[]) value;
-    else if (value instanceof Number) {
-      results = new long[] {((Number) value).longValue()};
+  public static long bytesToLong(short[] bytes, boolean little) {
+    int len = bytes.length > 8 ? 8 : bytes.length;
+    long total = 0;
+    for (int i=0; i<len; i++) {
+      total |= ((long) bytes[i]) << ((little ? i : len - i - 1) * 8);
     }
-    else if (value instanceof Number[]) {
-      Number[] numbers = (Number[]) value;
-      results = new long[numbers.length];
-      for (int i=0; i<results.length; i++) results[i] = numbers[i].longValue();
-    }
-    else if (value != null) {
-      throw new BadFormException(getIFDTagName(tag) +
-        " directory entry is the wrong type (got " +
-        value.getClass().getName() + ", expected Number, long[] or Number[])");
-    }
-    return results;
-  }
-
-  /**
-   * Gets the given directory entry values in int format
-   * from the specified IFD, performing some error checking.
-   */
-  public static int[] getIFDIntArray(Hashtable ifd,
-    int tag, boolean checkNull) throws BadFormException
-  {
-    Object value = getIFDValue(ifd, tag, checkNull, null);
-    int[] results = null;
-    if (value instanceof int[]) results = (int[]) value;
-    else if (value instanceof Number) {
-      results = new int[] {((Number) value).intValue()};
-    }
-    else if (value instanceof Number[]) {
-      Number[] numbers = (Number[]) value;
-      results = new int[numbers.length];
-      for (int i=0; i<results.length; i++) results[i] = numbers[i].intValue();
-    }
-    else if (value != null) {
-      throw new BadFormException(getIFDTagName(tag) +
-        " directory entry is the wrong type (got " +
-        value.getClass().getName() + ", expected Number, int[] or Number[])");
-    }
-    return results;
+    return total;
   }
 
 
