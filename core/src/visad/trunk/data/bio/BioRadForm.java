@@ -39,7 +39,8 @@ import visad.data.*;
 
 /**
  * BioRadForm is the VisAD data format adapter for Bio-Rad PIC files.
- * @author Curtis Rueden ctrueden@wisc.edu
+ * @author Curtis Rueden ctrueden at wisc.edu
+ * @author Melissa Linkert linkert at cs.wisc.edu
  */
 public class BioRadForm extends Form implements FormBlockReader,
   FormFileInformer, FormProgressInformer, MetadataReader
@@ -1061,6 +1062,15 @@ public class BioRadForm extends Form implements FormBlockReader,
       System.out.println("[done]");
 
       System.out.println("MathType =\n" + data.getType());
+//      OMEXMLWriter writer = new OMEXMLWriter();
+//      writer.setFile(args[0]);
+//      writer.setMetadata(meta);
+//      Hashtable map = new Hashtable();
+//      writer.setMapping(map);
+//      writer.writeFile("BioRad PIC");
+
+//      OMETIFFWriter omeWriter = new OMETIFFWriter();
+//      omeWriter.writeOMETIFF(args[0], args[0] + ".tiff");
     }
     else if (args.length == 2) {
       // Convert file to Bio-Rad PIC format

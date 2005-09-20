@@ -30,7 +30,7 @@ import java.io.*;
 
 /**
  * A class for reading arbitrary numbers of bits from an input stream.
- * @author Eric Kjellman egkjellman@wisc.edu
+ * @author Eric Kjellman egkjellman at wisc.edu
  */
 public class LegacyBitBuffer {
 

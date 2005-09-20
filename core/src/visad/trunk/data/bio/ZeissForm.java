@@ -26,484 +26,615 @@ MA 02111-1307, USA
 
 package visad.data.bio;
 
-import visad.*;
-import visad.data.*;
-import visad.data.tiff.*;
 import java.io.*;
-import java.net.URL;
+import java.util.Hashtable;
 import java.rmi.RemoteException;
-import java.util.*;
+import visad.VisADException;
+import visad.data.tiff.BaseTiffForm;
+import visad.data.tiff.TiffTools;
+import visad.data.*;
 
 /**
- * ZeissForm is the VisAD data adapter used by Zeiss files.
- * @author Eric Kjellman egkjellman@wisc.edu
+ * ZeissForm is the VisAD data format adapter for Zeiss LSM files.
+ *
+ * @author Eric Kjellman egkjellman at wisc.edu
+ * @author Melissa Linkert linkert at cs.wisc.edu
+ * @author Curtis Rueden ctrueden at wisc.edu
  */
-public class ZeissForm extends Form implements FormBlockReader,
-  FormFileInformer, FormProgressInformer, MetadataReader
-{
+public class ZeissForm extends BaseTiffForm {
+
+  // -- Constants --
+
+  /** Tag identifying a Zeiss LSM file. */
+  private static final int ZEISS_ID = 34412;
+
 
   // -- Static fields --
 
   /** Form instantiation counter. */
   private static int formCount = 0;
 
-  /** Domain of 2-D image. */
-  private static RealTupleType domainTuple;
-
-  /** MathType of a 2-D image with a 1-D range. */
-  private static FunctionType funcRowColPix;
-
-  /** MathType of a 2-D image with a 3-D range. */
-  private static FunctionType funcRowColRGB;
-
-  static {
-    try {
-      RealType column = RealType.getRealType("ImageElement");
-      RealType row = RealType.getRealType("ImageLine");
-      domainTuple = new RealTupleType(column, row);
-
-      // for grayscale images
-      RealType pixel = RealType.getRealType("intensity");
-      funcRowColPix = new FunctionType(domainTuple, pixel);
-
-      // for color images
-      RealType red = RealType.getRealType("Red");
-      RealType green = RealType.getRealType("Green");
-      RealType blue = RealType.getRealType("Blue");
-      RealType[] rgb = new RealType[] {red, green, blue};
-      RealTupleType rgbPixelData = new RealTupleType(rgb);
-      funcRowColRGB = new FunctionType(domainTuple, rgbPixelData);
-    }
-    catch (VisADException exc) {
-      exc.printStackTrace();
-    }
-  }
-
-
-  // -- Fields --
-
-  /** Filename of current Zeiss LSM. */
-  private String currentId;
-
-  /** Input stream for current Zeiss LSM. */
-  private RandomAccessFile r;
-
-  /** XYZ dimensions of current Zeiss LSM. */
-  private int[] dimensions;
-
-  /** Domain set of current Zeiss LSM. */
-  private Linear2DSet pixelSet;
-
-  /** Offset for each block of current Zeiss LSM. */
-  private int[] offsets;
-
-  private int maxChannels;
-  private int[] actualImages;
-
-  /** Percent complete with current operation. */
-  private double percent;
-
 
   // -- Constructor --
 
-  /** Constructs a new Zeiss LSM file form. */
+  /** Constructs a new ZeissForm file form. */
   public ZeissForm() {
     super("ZeissForm" + formCount++);
   }
 
 
-  // -- FormNode API methods --
+  // -- Internal BaseTiffForm API methods --
 
-  /** Saves a VisAD Data object to Zeiss LSM format at the given location. */
-  public void save(String id, Data data, boolean replace)
-    throws BadFormException, IOException, RemoteException, VisADException
-  {
-    throw new UnimplementedException("ZeissForm.save");
-  }
+  /** Populates the metadata hashtable. */
+  protected void initMetadata() {
+    Hashtable ifd = ifds[0];
 
-  /**
-   * Adds data to an existing Zeiss LSM file.
-   *
-   * @exception BadFormException Always thrown (this method not implemented).
-   */
-  public void add(String id, Data data, boolean replace)
-    throws BadFormException
-  {
-    throw new BadFormException("ZeissForm.add");
-  }
+    long data = 0;
+    int idata = 0;
+    double ddata = 0;
+    short sdata = 0;
 
-  /**
-   * Opens an existing Zeiss LSM file from the given location.
-   *
-   * @return VisAD Data object containing Zeiss LSM data.
-   */
-  public DataImpl open(String id)
-    throws BadFormException, IOException, VisADException
-  {
-    percent = 0;
-    int nImages = getBlockCount(id);
-    FieldImpl[] fields = new FieldImpl[nImages];
-    for (int i=0; i<nImages; i++) {
-      fields[i] = (FieldImpl) open(id, i);
-      percent = (double) (i + 1) / nImages;
-    }
-
-    DataImpl data;
-    if (nImages == 1) data = fields[0];
-    else {
-      // combine data stack into index function
-      RealType index = RealType.getRealType("index");
-      FunctionType indexFunction =
-        new FunctionType(index, fields[0].getType());
-      Integer1DSet indexSet = new Integer1DSet(nImages);
-      FieldImpl indexField = new FieldImpl(indexFunction, indexSet);
-      indexField.setSamples(fields, false);
-      data = indexField;
-    }
-    close();
-    percent = -1;
-    return data;
-  }
-
-  /**
-   * Opens an existing Zeiss LSM file from the given URL.
-   *
-   * @return VisAD Data object containing Zeiss LSM data.
-   * @exception UnimplementedException Always thrown (method not implemented).
-   */
-  public DataImpl open(URL url)
-    throws BadFormException, VisADException, IOException
-  {
-    throw new BadFormException("ZeissForm.open(URL)");
-  }
-
-  /** Returns the data forms that are compatible with a data object. */
-  public FormNode getForms(Data data) {
-    return null;
-  }
-
-
-  // -- FormBlockReader methods --
-
-  /**
-   * Opens the Zeiss LSM file with the file name specified
-   * by id, retrieving only the frame number given.
-   * @return a DataImpl containing the specified frame
-   */
-  public DataImpl open(String id, int blockNumber)
-    throws BadFormException, IOException, VisADException
-  {
-    if (id != currentId) initFile(id);
-
-    Hashtable ifdEntries = LegacyTiffTools.getIFDHash(r,
-      actualImages[blockNumber]);
-    Vector entryData;
-    byte[] byteArray;
-    int stripOffsets, stripOffsetCount, stripBytes;
-    float[] toreturn;
-
-    // This is the directory entry for strip offsets
-    entryData = (Vector) ifdEntries.get(new Integer(273));
-    stripOffsetCount = ((Integer) entryData.get(1)).intValue();
-    stripOffsets = ((Integer) entryData.get(2)).intValue();
-    // This is the directory entry for strip bytes
-    entryData = (Vector) ifdEntries.get(new Integer(279));
-    stripBytes = ((Integer) entryData.get(2)).intValue();
-    int[][] stripInfo = new int[stripOffsetCount][2];
-    int current;
-    int total = 0;
-
-    // If there is only one strip offset in the IFD, it will contain the data
-    // itself.
-    if (stripOffsetCount == 1) {
-      stripInfo[0][0] = stripOffsets;
-      stripInfo[0][1] = stripBytes;
-      total = stripBytes;
-    }
-    else {
-      // Otherwise, it will contain a pointer, and we need to read the data out
-      r.seek(stripOffsets);
-      byteArray = new byte[4];
-      for(int i = 0; i < stripOffsetCount; i++) {
-        r.read(byteArray);
-        stripInfo[i][0] = batoi(byteArray);
-      }
-      r.seek(stripBytes);
-      for(int i = 0; i < stripOffsetCount; i++) {
-        r.read(byteArray);
-        current = batoi(byteArray);
-        stripInfo[i][1] = current;
-        total += current;
-      }
-    }
-    // Then, create the array to return, and read the data in from the file.
-    byte[] imageData = new byte[total];
-    current = 0;
-    //System.out.println(" Image Number: " + blockNumber);
-    for(int i = 0; i < stripOffsetCount; i++) {
-      r.seek(stripInfo[i][0]);
-      //System.out.println("   Reading from: " + r.getFilePointer());
-      byteArray = new byte[stripInfo[i][1]];
-      r.read(byteArray);
-      // System.out.println("   Read " + byteArray.length + " bytes");
-      if (LegacyTiffTools.getIFDValue(ifdEntries, 259) == 5) {
-        byteArray = LegacyTiffTools.lzwUncompress(byteArray);
-      }
-      System.arraycopy(byteArray, 0, imageData, current, byteArray.length);
-      current += byteArray.length;
-      // read reads in as bytes (signed), we need them as unsigned floats.
-    }
-
-    entryData = (Vector) ifdEntries.get(new Integer(262));
-    int photoint = ((Integer) entryData.get(2)).intValue();
-    current = 0;
-    //System.out.println(" photoint: " + photoint);
-    FlatField frameField = null;
-    if (photoint == 2) {
-      int[] bitsPerSample = LegacyTiffTools.getIFDArray(r,
-        (Vector) ifdEntries.get(new Integer(258)));
-      LegacyBitBuffer bb = new LegacyBitBuffer(
-        new ByteArrayInputStream(imageData));
-
-      float[][] flatSamples =
-        new float[bitsPerSample.length][dimensions[0] * dimensions[1]];
-      if (LegacyTiffTools.getIFDValue(ifdEntries, 317) == 2) {
-        // use differencing
-        int currentVal, currentByte = 0;
-        for (int c = 0; c < bitsPerSample.length; c++) {
-          for (int y = 0; y < dimensions[1]; y++) {
-            currentVal = 0;
-            for (int x = 0; x < dimensions[0]; x++) {
-              if (bitsPerSample[c] > 0) {
-                currentVal += imageData[currentByte];
-                currentVal = currentVal % 256;
-                if (currentVal < 0) {
-                  currentVal += 256;
-                }
-                flatSamples[c][x + y*dimensions[0]] = currentVal;
-                currentByte++;
-              }
-              else {
-                flatSamples[c][x + y*dimensions[0]] = 0;
-              }
-            }
-          }
-        }
-      }
-      else {
-        for (int c = 0; c < bitsPerSample.length; c++) {
-          for (int y = 0; y < dimensions[1]; y++) {
-            for (int x = 0; x < dimensions[0]; x++) {
-              flatSamples[c][x + y*dimensions[0]] =
-                bb.getBits(bitsPerSample[c]);
-            }
-          }
-        }
-      }
-      frameField = new FlatField(funcRowColRGB, pixelSet);
-      frameField.setSamples(flatSamples);
-    }
-    else if (photoint == 1) {
-      int bitsPerSample = LegacyTiffTools.getIFDValue(ifdEntries, 258);
-      LegacyBitBuffer bb = new LegacyBitBuffer(
-        new ByteArrayInputStream(imageData));
-      // could be broken, assumes 8 bit depth.
-      float[][] flatSamples = new float[1][dimensions[0] * dimensions[1]];
-      if (LegacyTiffTools.getIFDValue(ifdEntries, 317) == 2) {
-        // use differencing
-        int currentVal, currentByte = 0;
-        for (int y = 0; y < dimensions[1]; y++) {
-          currentVal = 0;
-          for (int x = 0; x < dimensions[0]; x++) {
-            currentVal += imageData[currentByte];
-            currentVal = currentVal % 256;
-            if (currentVal < 0) {
-              currentVal += 256;
-            }
-            flatSamples[0][x + y*dimensions[0]] = currentVal;
-            currentByte++;
-          }
-        }
-      }
-      else {
-        for (int y = 0; y < dimensions[1]; y++) {
-          for (int x = 0; x < dimensions[0]; x++) {
-            flatSamples[0][x + y*dimensions[0]] = bb.getBits(bitsPerSample);
-          }
-        }
-      }
-      if (maxChannels == 1) {
-        frameField = new FlatField(funcRowColPix, pixelSet);
-        frameField.setSamples(flatSamples, false);
-      }
-      else {
-        float[][] flatSamp = new float[3][];
-        flatSamp[0] = flatSamp[1] = flatSamp[2] = flatSamples[0];
-        frameField = new FlatField(funcRowColRGB, pixelSet);
-        frameField.setSamples(flatSamp, false);
-      }
-    }
-    else {
-      throw new BadFormException("Invalid Photometric Interpretation");
-    }
-
-    return frameField;
-  }
-
-  /** Returns the number of frames in the specified Zeiss file. */
-  public int getBlockCount(String id)
-    throws BadFormException, IOException, VisADException
-  {
-    if (id != currentId) initFile(id);
-    return dimensions[2];
-  }
-
-  /** Closes the current form. */
-  public void close() {
     try {
-      if (r == null) {
-        return;
+      // -- Parse standard metadata --
+
+      // determine byte order
+      boolean little = TiffTools.isLittleEndian(ifd);
+
+      in.seek(0);
+      put("NewSubfileType", ifd, TiffTools.NEW_SUBFILE_TYPE);
+      put("ImageWidth", ifd, TiffTools.IMAGE_WIDTH);
+      put("ImageLength", ifd, TiffTools.IMAGE_LENGTH);
+      put("BitsPerSample", ifd, TiffTools.BITS_PER_SAMPLE);
+
+      int comp = TiffTools.getIFDIntValue(ifd,
+        TiffTools.COMPRESSION, false, TiffTools.UNCOMPRESSED);
+      String compression;
+      switch (comp) {
+        case 1: compression = "None"; break;
+        case 2:
+          compression = "CCITT Group 3 1-Dimensional Modified Huffman";
+          break;
+        case 3: compression = "CCITT T.4 bilevel encoding"; break;
+        case 4: compression = "CCITT T.6 bilevel encoding"; break;
+        case 5: compression = "LZW"; break;
+        case 6: compression = "JPEG"; break;
+        case 32773: compression = "PackBits"; break;
+        default: compression = "None";
       }
-      r.close();
-      r = null;
+      put("Compression", compression);
+
+      int photo = TiffTools.getIFDIntValue(ifd,
+        TiffTools.PHOTOMETRIC_INTERPRETATION, true, -1);
+
+      String photoInterp;
+      switch (photo) {
+        case 0: photoInterp = "WhiteIsZero"; break;
+        case 1: photoInterp = "BlackIsZero"; break;
+        case 2: photoInterp = "RGB"; break;
+        case 3: photoInterp = "Palette"; break;
+        case 4: photoInterp = "Transparency Mask"; break;
+        default: photoInterp = "unknown"; break;
+      }
+      put("PhotometricInterpretation", photoInterp);
+
+      putInt("StripOffsets", ifd, TiffTools.STRIP_OFFSETS);
+      putInt("SamplesPerPixel", ifd, TiffTools.SAMPLES_PER_PIXEL);
+      putInt("StripByteCounts", ifd, TiffTools.STRIP_BYTE_COUNTS);
+      putInt("ColorMap", ifd, TiffTools.COLOR_MAP);
+
+      int planar = TiffTools.getIFDIntValue(ifd,
+        TiffTools.PLANAR_CONFIGURATION);
+      String planarConfig;
+      switch (planar) {
+        case 1: planarConfig = "Chunky"; break;
+        case 2: planarConfig = "Planar"; break;
+        default: planarConfig = "Chunky";
+      }
+      put("PlanarConfiguration", planarConfig);
+
+      int predict = TiffTools.getIFDIntValue(ifd, TiffTools.PREDICTOR);
+      String predictor;
+      switch (predict) {
+        case 1: predictor = "No prediction scheme"; break;
+        case 2: predictor = "Horizontal differencing"; break;
+        default: predictor = "No prediction scheme";
+      }
+      put("Predictor", predictor);
+
+      // get Zeiss LSM-specific data
+
+      // grab the TIF_CZ_LSMINFO structure, 512 bytes long
+      short[] cz = TiffTools.getIFDShortArray(ifd, ZEISS_ID, true);
+      int p = 0; // pointer to next byte in the structure
+
+      put("MagicNumber", TiffTools.bytesToLong(cz, p, 4, little));
+      p += 4;
+      put("StructureSize", TiffTools.bytesToInt(cz, p, little));
+      p += 4;
+      put("DimensionX", TiffTools.bytesToInt(cz, p, little));
+      p += 4;
+      put("DimensionY", TiffTools.bytesToInt(cz, p, little));
+      p += 4;
+      put("DimensionZ", TiffTools.bytesToInt(cz, p, little));
+      p += 4;
+      int dimensionChannels = TiffTools.bytesToInt(cz, p, little);
+      put("DimensionChannels", dimensionChannels);
+      p += 4;
+      put("DimensionTime", TiffTools.bytesToInt(cz, p, little));
+      p += 4;
+
+      idata = TiffTools.bytesToInt(cz, p, little);
+      String type;
+      switch (idata) {
+        case 1: type = "8 bit unsigned integer"; break;
+        case 2: type = "12 bit unsigned integer"; break;
+        case 5: type = "32 bit float"; break;
+        case 0: type = "varying data types"; break;
+        default: type = "8 bit unsigned integer"; break;
+      }
+      put("DataType", type);
+      p += 4;
+
+      put("ThumbnailX", TiffTools.bytesToInt(cz, p, little));
+      p += 4;
+      put("ThumbnailY", TiffTools.bytesToInt(cz, p, little));
+      p += 4;
+      put("VoxelSizeX", Double.longBitsToDouble(
+        TiffTools.bytesToLong(cz, p, little)));
+      p += 8;
+      put("VoxelSizeY", Double.longBitsToDouble(
+        TiffTools.bytesToLong(cz, p, little)));
+      p += 8;
+      put("VoxelSizeZ", Double.longBitsToDouble(
+        TiffTools.bytesToLong(cz, p, little)));
+      p += 8 + 24; // skip over the next 24 bytes
+
+      idata = TiffTools.bytesToInt(cz, p, 2, little);
+      switch (idata) {
+        case 0: type = "x-y-z scan"; break;
+        case 1: type = "z scan (x-z plane)"; break;
+        case 2: type = "line scan"; break;
+        case 3: type = "time series x-y"; break;
+        case 4: type = "time series x-z"; break;
+        case 5: type = "time series 'Mean of ROIs'"; break;
+        case 6: type = "time series x-y-z"; break;
+        case 7: type = "spline scan"; break;
+        case 8: type = "spline scan x-z"; break;
+        case 9: type = "time series spline plane x-z"; break;
+        case 10: type = "point mode"; break;
+        default: type = "x-y-z scan";
+      }
+      put("ScanType", type);
+      p += 2;
+
+      idata = TiffTools.bytesToInt(cz, p, 2, little);
+      switch (idata) {
+        case 0: type = "no spectral scan"; break;
+        case 1: type = "acquired with spectral scan"; break;
+        default: type = "no spectral scan";
+      }
+      put("SpectralScan", type);
+      p += 2;
+
+      data = TiffTools.bytesToLong(cz, p, 4, little);
+      switch ((int) data) {
+        case 0: type = "original scan data"; break;
+        case 1: type = "calculated data"; break;
+        case 2: type = "animation"; break;
+        default: type = "original scan data";
+      }
+      put("DataType2", type);
+      p += 4;
+
+      // the following 4 are file offsets
+      data = TiffTools.bytesToLong(cz, p, 4, little);
+      parseOverlays(data, "OffsetVectorOverlay", little);
+      p += 4;
+      data = TiffTools.bytesToLong(cz, p, 4, little);
+      parseSubBlocks(data, "OffsetInputLut", little);
+      p += 4;
+      data = TiffTools.bytesToLong(cz, p, 4, little);
+      parseSubBlocks(data, "OffsetOutputLut", little);
+      p += 4;
+      data = TiffTools.bytesToLong(cz, p, 4, little);
+      // seek to this offset and read in the structure there
+      // first we have to make sure that the structure actually exists
+      if (data != 0) {
+        long fp = in.getFilePointer();
+        in.seek(data);
+        int blockSize = TiffTools.read4SignedBytes(in, little);
+        int numColors = TiffTools.read4SignedBytes(in, little);
+        int numNames = TiffTools.read4SignedBytes(in, little);
+        idata = TiffTools.read4SignedBytes(in, little);
+        long offset = data + idata; // will seek to this later
+        idata = TiffTools.read4SignedBytes(in, little);
+        long offsetNames = data + idata; // will seek to this
+
+        // read in the intensity value for each color
+        in.seek(offset);
+        for (int i=0; i<numColors; i++) {
+          data = TiffTools.read4UnsignedBytes(in, little);
+          put("Intensity" + i, data);
+        }
+
+        // read in the channel names
+        in.seek(offsetNames);
+        for (int i=0; i<numNames; i++) {
+          // we want to read until we find a null char
+          String name = "";
+          char[] current = new char[1];
+          current[0] = in.readChar();
+          while (current[0] != 0) {
+            name.concat(new String(current));
+            current[0] = in.readChar();
+          }
+          put("ChannelName" + i, name);
+        }
+        in.seek(fp);
+      }
+      p += 4;
+
+      put("TimeInterval", Double.longBitsToDouble(
+        TiffTools.bytesToLong(cz, p, little)));
+      p += 8;
+
+      // the following 8 are file offsets
+
+      data = TiffTools.bytesToLong(cz, p, 4, little);
+      if (data != 0) {
+        long fp = in.getFilePointer();
+        in.seek(data);
+        for (int i=0; i<dimensionChannels; i++) {
+          data = TiffTools.read4UnsignedBytes(in, little);
+          put("OffsetChannelDataTypes" + i, data);
+        }
+        in.seek(fp);
+      }
+      p += 4;
+
+      put("OffsetScanInformation", TiffTools.bytesToLong(cz, p, 4, little));
+      p += 4;
+
+      put("OffsetKsData", TiffTools.bytesToLong(cz, p, 4, little));
+      p += 4;
+
+      data = TiffTools.bytesToLong(cz, p, 4, little);
+      if (data != 0) {
+        long fp = in.getFilePointer();
+        in.seek(data);
+        in.skipBytes(4);
+        int numStamps = TiffTools.read4SignedBytes(in, little);
+        for (int i=0; i<numStamps; i++) {
+          ddata = TiffTools.readDouble(in, little);
+          put("TimeStamp" + i, ddata);
+        }
+        in.seek(fp);
+      }
+      p += 4;
+
+      data = TiffTools.bytesToLong(cz, p, 4, little);
+      if (data != 0) {
+        long fp = in.getFilePointer();
+        in.seek(data);
+        long numBytes = TiffTools.read4UnsignedBytes(in, little);
+        int numEvents = TiffTools.read4SignedBytes(in, little);
+        for (int i=0; i<numEvents; i++) {
+          in.skipBytes(4);
+          ddata = TiffTools.readDouble(in, little);
+          put("Time" + i, ddata);
+
+          data = TiffTools.read4UnsignedBytes(in, little);
+          put("EventType" + i, data);
+
+          byte[] descr = new byte[(int) (numBytes - 16)];
+          in.read(descr);
+          put("Description" + i, new String(descr));
+        }
+        in.seek(fp);
+      }
+      p += 4;
+
+      data = TiffTools.bytesToLong(cz, p, 4, little);
+      parseOverlays(data, "OffsetRoi", little);
+      p += 4;
+      data = TiffTools.bytesToLong(cz, p, 4, little);
+      parseOverlays(data, "OffsetBleachRoi", little);
+      p += 4;
+      put("OffsetNextRecording", TiffTools.bytesToLong(cz, p, 4, little));
+      p += 4;
+
+      put("DisplayAspectX", Double.longBitsToDouble(
+        TiffTools.bytesToLong(cz, p, little)));
+      p += 8;
+      put("DisplayAspectY", Double.longBitsToDouble(
+        TiffTools.bytesToLong(cz, p, little)));
+      p += 8;
+      put("DisplayAspectZ", Double.longBitsToDouble(
+        TiffTools.bytesToLong(cz, p, little)));
+      p += 8;
+      put("DisplayAspectTime", Double.longBitsToDouble(
+        TiffTools.bytesToLong(cz, p, little)));
+      p += 8;
+
+      // the following 4 are file offsets
+      data = TiffTools.bytesToLong(cz, p, 4, little);
+      parseOverlays(data, "OffsetMeanOfRoisOverlay", little);
+      p += 4;
+      data = TiffTools.bytesToLong(cz, p, 4, little);
+      parseOverlays(data, "OffsetTopoIsolineOverlay", little);
+      p += 4;
+      data = TiffTools.bytesToLong(cz, p, 4, little);
+      parseOverlays(data, "OffsetTopoProfileOverlay", little);
+      p += 4;
+      data = TiffTools.bytesToLong(cz, p, 4, little);
+      parseOverlays(data, "OffsetLinescanOverlay", little);
+      p += 4;
+
+      put("ToolbarFlags", TiffTools.bytesToLong(cz, p, 4, little));
+
+      // the following 2 are file offsets
+      put("OffsetChannelWavelength", TiffTools.bytesToLong(cz, p, 4, little));
+      p += 4;
+      put("OffsetChannelFactors", TiffTools.bytesToLong(cz, p, 4, little));
+      p += 4;
+
+      put("ObjectiveSphereCorrection", Double.longBitsToDouble(
+        TiffTools.bytesToLong(cz, p, little)));
+      p += 8;
+
+      // the following is a file offset
+      put("OffsetUnmixParameters", TiffTools.bytesToLong(cz, p, 4, little));
+      p += 4;
+
+
+      // -- Parse OME-XML metadata --
+
+      short[] omeData = TiffTools.getIFDShortArray(ifd, ZEISS_ID, true);
+      int magicNum = TiffTools.bytesToInt(omeData, 0, little);
+
+      ome = OMETools.createRoot();
+
+      int photoInterp2 = TiffTools.getIFDIntValue(ifd,
+        TiffTools.PHOTOMETRIC_INTERPRETATION, true, 0);
+      String photo2;
+      switch (photoInterp2) {
+        case 0: photo2 = "monochrome"; break;
+        case 1: photo2 = "monochrome"; break;
+        case 2: photo2 = "RGB"; break;
+        case 3: photo2 = "monochrome"; break;
+        case 4: photo2 = "RGB"; break;
+        default: photo2 = "monochrome";
+      }
+      OMETools.setAttribute(ome,
+        "ChannelInfo", "PhotometricInterpretation", photo2);
+
+      int imageWidth = TiffTools.bytesToInt(omeData, 8, little);
+      OMETools.setAttribute(ome, "Pixels", "SizeX", "" + imageWidth);
+
+      int imageLength = TiffTools.bytesToInt(omeData, 12, little);
+      OMETools.setAttribute(ome, "Pixels", "SizeY", "" + imageLength);
+
+      int zSize = TiffTools.bytesToInt(omeData, 16, little);
+      OMETools.setAttribute(ome, "Pixels", "SizeZ", "" + zSize);
+
+      int cSize = TiffTools.bytesToInt(omeData, 20, little);
+      OMETools.setAttribute(ome, "Pixels", "SizeC", "" + cSize);
+
+      int tSize = TiffTools.bytesToInt(omeData, 24, little);
+      OMETools.setAttribute(ome, "Pixels", "SizeT", "" + tSize);
+
+      int pixel = TiffTools.bytesToInt(omeData, 28, little);
+      String pixelType;
+      switch (pixel) {
+        case 1: pixelType = "Uint8"; break;
+        case 2: pixelType = "Uint16"; break;
+        case 5: pixelType = "float"; break;
+        default: pixelType = "Uint8";
+      }
+      OMETools.setAttribute(ome, "Image", "PixelType", pixelType);
+
+      short scanType = TiffTools.bytesToShort(omeData, 88, little);
+      String dimOrder;
+      switch ((int) scanType) {
+        case 0: dimOrder = "XYZCT"; break;
+        case 1: dimOrder = "XYZCT"; break;
+        case 3: dimOrder = "XYTCZ"; break;
+        case 4: dimOrder = "XYZTC"; break;
+        case 5: dimOrder = "XYTCZ"; break;
+        case 6: dimOrder = "XYZTC"; break;
+        case 7: dimOrder = "XYCTZ"; break;
+        case 8: dimOrder = "XYCZT"; break;
+        case 9: dimOrder = "XYTCZ"; break;
+        default: dimOrder = "XYZCT";
+      }
+      OMETools.setAttribute(ome, "Pixels", "DimensionOrder", dimOrder);
     }
-    catch (Exception e) {
-      e.printStackTrace();
-    }
+    catch (BadFormException e) { e.printStackTrace(); }
+    catch (IOException e) { e.printStackTrace(); }
   }
 
 
   // -- FormFileInformer methods --
 
-  /** Checks if the given string is a valid filename for a Zeiss File */
+  /** Checks if the given string is a valid filename for a Zeiss LSM file. */
   public boolean isThisType(String name) {
-    return (name.toLowerCase().endsWith(".lsm"));
+    return name.toLowerCase().endsWith(".lsm");
   }
 
-  /** Checks if the given block is a valid header for a Zeiss file. */
+  /** Checks if the given block is a valid header for a Zeiss LSM file. */
   public boolean isThisType(byte[] block) {
-    if (block.length < 3) { return false; }
-    if (block[0] != 73) { return false; } // denotes little-endian
-    if (block[1] != 73) { return false; }
-    if (block[2] != 42) { return false; } // denotes tiff
-    if (block.length < 8) { return true; } // we have no way of verifying
-    int ifdlocation = batoi(new byte[] {
-      block[4], block[5], block[6], block[7]
-    });
+    if (block.length < 3) return false;
+    if (block[0] != TiffTools.LITTLE) return false; // denotes little-endian
+    if (block[1] != TiffTools.LITTLE) return false;
+    if (block[2] != TiffTools.MAGIC_NUMBER) return false; // denotes TIFF
+    if (block.length < 8) return true; // we have no way of verifying
+    int ifdlocation = TiffTools.bytesToInt(block, 4, true);
     if (ifdlocation + 1 > block.length) {
-      // no way of verifying this is a Zeiss file; it is at least a tiff
+      // no way of verifying this is a Zeiss file; it is at least a TIFF
       return true;
     }
     else {
-      int ifdnumber = batoi(new byte[] {
-        block[ifdlocation], block[ifdlocation + 1]
-      });
-      for (int i = 0; i < ifdnumber; i++) {
-        if (ifdlocation + 3 + (i * 12) > block.length) {
-          return true;
-        }
+      int ifdnumber = TiffTools.bytesToInt(block, ifdlocation, 2, true);
+      for (int i=0; i<ifdnumber; i++) {
+        if (ifdlocation + 3 + (i * 12) > block.length) return true;
         else {
-          int ifdtag = batoi(new byte[] {
-            block[ifdlocation + 2 + (i * 12)],
-            block[ifdlocation + 3 + (i * 12)]
-          });
-          if (ifdtag == 33412) { // 33412 appears to be the Zeiss tag.
-            return true; // absolutely a valid file
-          }
+          int ifdtag = TiffTools.bytesToInt(block,
+            ifdlocation + 2 + (i * 12), 2, true);
+          if (ifdtag == ZEISS_ID) return true; // absolutely a valid file
         }
       }
-      return false; // we went through the IFD, the ID wasn't found.
+      return false; // we went through the IFD; the ID wasn't found.
     }
   }
 
-  /** Returns the default file suffixes for the Zeiss file format. */
+  /** Returns the default file suffixes for the Zeiss LSM file format. */
   public String[] getDefaultSuffixes() {
     return new String[] {"lsm"};
   }
 
 
-  // -- FormProgressInformer methods --
-
-  /**
-   * Gets the percentage complete of the form's current operation.
-   * @return the percentage complete (0.0 - 100.0), or Double.NaN
-   *         if no operation is currently taking place
-   */
-  public double getPercentComplete() { return percent; }
-
-
-  // -- MetadataReader API methods --
-
-
-  /** Creates a hashtable containing metadata info from the file. */
-  public Hashtable getMetadata(String id)
-    throws BadFormException, IOException, VisADException
-  {
-    if (id != currentId) initFile(id);
-    // TODO
-    return new Hashtable();
-  }
-
-  /** Returns a single Metadata value from the file. */
-  public Object getMetadataValue(String id, String field)
-    throws BadFormException, IOException, VisADException
-  {
-    Hashtable h = getMetadata(id);
-    try {
-      return h.get(field);
-    }
-    catch (NullPointerException e) {
-      return null;
-    }
-  }
-
-
   // -- Helper methods --
 
-  private void initFile(String id)
-    throws IOException, VisADException, BadFormException
+  /** Parses overlay-related fields. */
+  protected void parseOverlays(long data, String suffix, boolean little)
+    throws IOException
   {
-    r = new RandomAccessFile(id, "r");
-    currentId = id;
-    dimensions = LegacyTiffTools.getTIFFDimensions(r);
-    // System.out.println(dimensions[0] + " x " +
-    //   dimensions[1] + " x " + dimensions[2]);
-    pixelSet = new Linear2DSet(domainTuple, 0, dimensions[0] - 1,
-      dimensions[0], dimensions[1] - 1, 0, dimensions[1]);
+    if (data == 0) return;
+    long fp = in.getFilePointer();
+    in.seek(data);
 
-    Hashtable temp = new Hashtable();
-    maxChannels = 0;
-    int[] tempArray;
-    int comp;
-    actualImages = new int[dimensions[2]];
-    int imageNum = 0;
-    for (int i = 0; i < dimensions[2]; i++) {
-      temp = LegacyTiffTools.getIFDHash(r, i);
-      if (LegacyTiffTools.getIFDValue(temp, 254) == 0) {
-        actualImages[imageNum] = i;
-        imageNum++;
-      }
-      tempArray =
-          LegacyTiffTools.getIFDArray(r, (Vector) temp.get(new Integer(258)));
-      comp = LegacyTiffTools.getIFDValue(temp, 259);
-      if (comp != 1) {
-        // System.out.println(" Compression used: " + comp);
-      }
-      if (tempArray.length > maxChannels) {
-        maxChannels = tempArray.length;
-      }
+    int nde = TiffTools.read4SignedBytes(in, little);
+    put("NumberDrawingElements-" + suffix, nde);
+    int size = TiffTools.read4SignedBytes(in, little);
+    int idata = TiffTools.read4SignedBytes(in, little);
+    put("LineWidth-" + suffix, idata);
+    idata = TiffTools.read4SignedBytes(in, little);
+    put("Measure-" + suffix, idata);
+    in.skipBytes(8);
+    put("ColorRed-" + suffix, TiffTools.readSignedByte(in));
+    put("ColorGreen-" + suffix, TiffTools.readSignedByte(in));
+    put("ColorBlue-" + suffix, TiffTools.readSignedByte(in));
+    in.skipBytes(1);
+
+    put("Valid-" + suffix, TiffTools.read4SignedBytes(in, little));
+    put("KnotWidth-" + suffix, TiffTools.read4SignedBytes(in, little));
+    put("CatchArea-" + suffix, TiffTools.read4SignedBytes(in, little));
+
+    // some fields describing the font
+    put("FontHeight-" + suffix, TiffTools.read4SignedBytes(in, little));
+    put("FontWidth-" + suffix, TiffTools.read4SignedBytes(in, little));
+    put("FontEscapement-" + suffix, TiffTools.read4SignedBytes(in, little));
+    put("FontOrientation-" + suffix, TiffTools.read4SignedBytes(in, little));
+    put("FontWeight-" + suffix, TiffTools.read4SignedBytes(in, little));
+    put("FontItalic-" + suffix, TiffTools.read4SignedBytes(in, little));
+    put("FontUnderline-" + suffix, TiffTools.read4SignedBytes(in, little));
+    put("FontStrikeOut-" + suffix, TiffTools.read4SignedBytes(in, little));
+    put("FontCharSet-" + suffix, TiffTools.read4SignedBytes(in, little));
+    put("FontOutPrecision-" + suffix, TiffTools.read4SignedBytes(in, little));
+    put("FontClipPrecision-" + suffix, TiffTools.read4SignedBytes(in, little));
+    put("FontQuality-" + suffix, TiffTools.read4SignedBytes(in, little));
+    put("FontPitchAndFamily-" + suffix,
+      TiffTools.read4SignedBytes(in, little));
+    byte[] temp = new byte[64];
+    in.read(temp);
+    put("FontFaceName-" + suffix, new String(temp));
+
+    // some flags for measuring values of different drawing element types
+    put("ClosedPolyline-" + suffix, TiffTools.readUnsignedByte(in));
+    put("OpenPolyline-" + suffix, TiffTools.readUnsignedByte(in));
+    put("ClosedBezierCurve-" + suffix, TiffTools.readUnsignedByte(in));
+    put("OpenBezierCurve-" + suffix, TiffTools.readUnsignedByte(in));
+    put("ArrowWithClosedTip-" + suffix, TiffTools.readUnsignedByte(in));
+    put("ArrowWithOpenTip-" + suffix, TiffTools.readUnsignedByte(in));
+    put("Ellipse-" + suffix, TiffTools.readUnsignedByte(in));
+    put("Circle-" + suffix, TiffTools.readUnsignedByte(in));
+    put("Rectangle-" + suffix, TiffTools.readUnsignedByte(in));
+    put("Line-" + suffix, TiffTools.readUnsignedByte(in));
+    int drawingEl = (size - 194) / nde;
+    for (int i=0; i<nde; i++) {
+      byte[] draw = new byte[drawingEl];
+      in.read(draw);
+      put("DrawingElement" + i + "-" + suffix, new String(draw));
     }
-    dimensions[2] = imageNum;
+    in.seek(fp);
   }
 
-  /** Translates up to the first 4 bytes of a byte array to an integer. */
-  private static int batoi(byte[] inp) {
-    int len = inp.length>4?4:inp.length;
-    int total = 0;
-    for (int i = 0; i < len; i++) {
-      total = total + ((inp[i]<0?(int)256+inp[i]:(int)inp[i]) << (i * 8));
+  /** Parses subblock-related fields. */
+  protected void parseSubBlocks(long data, String suffix, boolean little)
+    throws IOException
+  {
+    if (data == 0) return;
+    long fp = in.getFilePointer();
+    in.seek(data);
+
+    long size = TiffTools.read4UnsignedBytes(in, little);
+    long numSubBlocks = TiffTools.read4UnsignedBytes(in, little);
+    put("NumSubBlocks-" + suffix, numSubBlocks);
+    long numChannels = TiffTools.read4UnsignedBytes(in, little);
+    put("NumChannels-" + suffix, numChannels);
+    data = TiffTools.read4UnsignedBytes(in, little);
+    put("LutType-" + suffix, data);
+    data = TiffTools.read4UnsignedBytes(in, little);
+    put("Advanced-" + suffix, data);
+    data = TiffTools.read4UnsignedBytes(in, little);
+    put("CurrentChannel-" + suffix, data);
+    in.skipBytes(36);
+
+    for (int i=0; i<numSubBlocks; i++) {
+      data = TiffTools.read4UnsignedBytes(in, little);
+      put("Type" + i + "-" + suffix, data);
+
+      put("Size" + i + "-" + suffix,
+        TiffTools.read4UnsignedBytes(in, little));
+
+      switch ((int) data) {
+        case 1:
+          for (int j=0; j<numChannels; j++) {
+            put("GammaChannel" + j + "-" + i + "-" + suffix,
+              TiffTools.readDouble(in, little));
+          }
+          break;
+        case 2:
+          for (int j=0; j<numChannels; j++) {
+            put("BrightnessChannel" + j + "-" + i + "-" + suffix,
+              TiffTools.readDouble(in, little));
+          }
+          break;
+
+        case 3:
+          for (int j=0; j<numChannels; j++) {
+            put("ContrastChannel" + j + "-" + i + "-" + suffix,
+              TiffTools.readDouble(in, little));
+          }
+          break;
+
+        case 4:
+          for (int j=0; j<numChannels; j++) {
+            put("RampStartXChannel" + j + "-" + i + "-" + suffix,
+              TiffTools.readDouble(in, little));
+            put("RampStartYChannel" + j + "-" + i + "-" + suffix,
+              TiffTools.readDouble(in, little));
+            put("RampEndXChannel" + j + "-" + i + "-" + suffix,
+              TiffTools.readDouble(in, little));
+            put("RampEndYChannel" + j + "-" + i + "-" + suffix,
+              TiffTools.readDouble(in, little));
+            j += 4;
+          }
+          break;
+
+        case 5:
+          // the specs are unclear as to how
+          // this subblock should be read, so I'm
+          // skipping it for the present
+          break;
+
+        case 6:
+          // also skipping this block for
+          // the moment
+          break;
+      }
     }
-    return total;
+    in.seek(fp);
   }
 
 
@@ -514,39 +645,9 @@ public class ZeissForm extends Form implements FormBlockReader,
    * to test read a Zeiss LSM data file.
    */
   public static void main(String[] args)
-    throws VisADException, IOException
+    throws VisADException, RemoteException, IOException
   {
-    if (args == null || args.length < 1) {
-      System.out.println("To test read a Zeiss LSM file, run:");
-      System.out.println("  java visad.data.bio.ZeissForm in_file");
-      System.exit(2);
-    }
-
-    // Test read Zeiss LSM file
-    ZeissForm form = new ZeissForm();
-    System.out.print("Reading " + args[0] + " metadata ");
-    Hashtable meta = form.getMetadata(args[0]);
-    System.out.println("[done]");
-    System.out.println();
-
-    Enumeration e = meta.keys();
-    Vector v = new Vector();
-    while (e.hasMoreElements()) v.add(e.nextElement());
-    String[] keys = new String[v.size()];
-    v.copyInto(keys);
-    Arrays.sort(keys);
-
-    for (int i=0; i<keys.length; i++) {
-      System.out.println(keys[i] + ": " + meta.get(keys[i]));
-    }
-    System.out.println();
-
-    System.out.print("Reading " + args[0] + " pixel data ");
-    Data data = form.open(args[0]);
-    System.out.println("[done]");
-
-    System.out.println("MathType =\n" + data.getType());
-    System.exit(0);
+    new ZeissForm().testRead("Zeiss LSM", args);
   }
 
 }

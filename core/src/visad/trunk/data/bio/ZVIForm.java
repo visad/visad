@@ -28,17 +28,18 @@ package visad.data.bio;
 
 import java.io.*;
 import java.net.URL;
-import java.util.Vector;
+import java.util.*;
 
 import visad.*;
 import visad.data.*;
 
 /**
  * ZVIForm is the VisAD data adapter for reading Zeiss ZVI files.
- * @author Curtis Rueden ctrueden@wisc.edu
+ * @author Curtis Rueden ctrueden at wisc.edu
+ * @author Melissa Linkert linkert at cs.wisc.edu
  */
-public class ZVIForm extends Form
-  implements FormBlockReader, FormFileInformer, FormProgressInformer
+public class ZVIForm extends Form implements
+  FormBlockReader, FormFileInformer, FormProgressInformer, MetadataReader
 {
 
   // -- Constants --
@@ -151,6 +152,8 @@ public class ZVIForm extends Form
       indexField.setSamples(fields, false);
       data = indexField;
     }
+
+    readMetadata(id);
     close();
     percent = -1;
     return data;
@@ -249,9 +252,131 @@ public class ZVIForm extends Form
   public double getPercentComplete() { return percent; }
 
 
+  // -- MetadataReader methods --
+
+  /**
+   * Takes a string containing the filename and read relevant metadata
+   * into a hashtable
+   *
+   * @param String the filename
+   * @return Hashtable containing metadata from the image header
+   */
+  public Hashtable getMetadata(String id) throws
+    IOException, VisADException, BadFormException
+  {
+    // this one is handled differently than other getMetadata methods
+    // in the visad.data.bio package
+
+    // Since the ZVI specs are pretty much worthless, metadata support is
+    // primitive at best.
+
+    RandomAccessFile infile = new RandomAccessFile(id, "r");
+    Hashtable metadata = new Hashtable();
+
+    byte[] r = new byte[4];
+    byte[] dataType = new byte[4];
+    byte[] tagData; // not sure yet how big to make this
+
+    String type = "";
+    boolean ok = true;
+    long pos = 0;
+    Vector blocklist = new Vector();
+
+    // find each of the "magic blocks", after which we can read header info
+    while (true) {
+      long magic1 = findBlock(infile, ZVI_MAGIC_BLOCK_1, pos);
+      if (magic1 < 0) break;
+      pos = magic1 + ZVI_MAGIC_BLOCK_1.length;
+
+      infile.skipBytes(19);
+      pos += 19;
+
+      infile.read(new byte[ZVI_MAGIC_BLOCK_2.length]);
+      pos += ZVI_MAGIC_BLOCK_2.length;
+      infile.read(new byte[131]);
+      pos += 131;
+
+      long magic3 = findBlock(infile, ZVI_MAGIC_BLOCK_3, pos);
+      if (magic3 < 0) {
+        throw new BadFormException("Error parsing image header. " + WHINING);
+      }
+      pos = magic3 + ZVI_MAGIC_BLOCK_3.length;
+
+      int width = readInt(infile);
+      int height = readInt(infile);
+      int alwaysOne = readInt(infile); //depth--not used
+      int pixelType = readInt(infile);
+      int bytesPerPixel = readInt(infile);
+      int bitDepth = readInt(infile); // doesn't always equal bytesPerPixel * 8
+      pos += 24;
+
+      switch (pixelType) {
+        case 1: type = "8 bit rgb tuple, 24 bpp"; break;
+        case 2: type = "8 bit rgb quad, 32 bpp"; break;
+        case 3: type = "8 bit grayscale"; break;
+        case 4: type = "16 bit signed int, 8 bpp"; break;
+        case 5: type = "32 bit int, 32 bpp"; break;
+        case 6: type = "32 bit float, 32 bpp"; break;
+        case 7: type = "64 bit float, 64 bpp"; break;
+        case 8: type = "16 bit unsigned short triple, 48 bpp"; break;
+        case 9: type = "32 bit int triple, 96 bpp"; break;
+        default: type = "undefined pixel type"; System.out.println(pixelType);
+      }
+
+      metadata.put("Width", new Integer(width));
+      metadata.put("Height", new Integer(height));
+      metadata.put("PixelType", type);
+      metadata.put("BPP", new Integer(bytesPerPixel));
+      blocklist.add(new Long(pos));
+      pos += width * height * bytesPerPixel;
+    }
+
+    // trying to find the tags stream
+
+    return metadata;
+  }
+
+  public Object getMetadataValue(String id1, String id2) throws
+    IOException, VisADException, BadFormException
+  {
+    Hashtable h = new Hashtable();
+    h = getMetadata(id1);
+    try {
+      return h.get(id2);
+    }
+    catch (NullPointerException e) {
+      return null;
+    }
+  }
+
+  public void readMetadata(String id) throws
+    VisADException, IOException
+  {
+    System.out.println("Reading the metadata: ");
+    Hashtable metadata = getMetadata(id);
+    String[] names = {"Width", "Height", "PixelType", "BPP"};
+
+    for (int j=0; j < names.length; j++) {
+      System.out.println(names[j] + " ");
+      System.out.println(metadata.get((Object) names[j]));
+    }
+
+//    OMEXMLWriter writer = new OMEXMLWriter();
+//    writer.setFile(id);
+//    writer.setMetadata(metadata);
+//    writer.writeFile("ZVI");
+
+//    OMETIFFWriter omeWriter = new OMETIFFWriter();
+//    omeWriter.writeOMETIFF(id, id + ".tiff");
+  }
+
+
   // -- Utility methods --
 
-  /** Translates up to the first 4 bytes of a byte array to an integer. */
+  /**
+   * Translates up to the first 4 bytes of a
+   * little-endian byte array to an integer.
+   */
   private static int batoi(byte[] b) {
     int len = b.length > 4 ? 4 : b.length;
     int total = 0;
@@ -610,6 +735,7 @@ public class ZVIForm extends Form
     ZVIForm form = new ZVIForm();
     System.out.print("Reading " + args[0] + " ");
     Data data = form.open(args[0]);
+
     System.out.println("[done]");
     System.out.println("MathType =\n" + data.getType());
     System.exit(0);
