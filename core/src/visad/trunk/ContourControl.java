@@ -943,6 +943,7 @@ public class ContourControl extends Control {
    */
   public void reLabel() 
          throws VisADException, RemoteException {   
+    if (zoom == null) return;
     zoom.reLabel(ratio);
   }
 
@@ -998,4 +999,19 @@ public class ContourControl extends Control {
       }
     }
   }
+
+
+  /**
+   * End this control (called by ScalarMap.nullDisplay()). Override
+   * to remove zoom control listener.
+   */
+  public void nullControl() {
+    if (projListener != null) {
+      pcntrl.removeControlListener(projListener);
+    }
+    getDisplay().removeDisplayListener(zoom);
+    zoom = null;
+    super.nullControl();
+  }
+
 }
