@@ -254,6 +254,7 @@ public class ContourControl extends Control {
     synchronized(this) {
       change = !Util.isApproximatelyEqual(surfaceValue, value);
       surfaceValue = value;
+      levels = new float[] {value};
     }
     if (change) {
       /**
