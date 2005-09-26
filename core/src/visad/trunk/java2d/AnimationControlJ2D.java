@@ -50,6 +50,7 @@ public class AnimationControlJ2D extends AVControlJ2D
   private ToggleControl animate;
   private RealType real;
   private boolean no_tick = false;
+  private boolean allowNullSet = false;
 
   private transient VisADCanvasJ2D canvas;
 
@@ -473,6 +474,8 @@ public class AnimationControlJ2D extends AVControlJ2D
       sb.append(' ');
       sb.append((int) steps[i]);
     }
+    sb.append(' ');
+    sb.append(allowNullSet);
     return sb.toString();
   }
 
@@ -503,12 +506,14 @@ public class AnimationControlJ2D extends AVControlJ2D
         throw new VisADException("Step #" + (i + 1) + "is not positive");
       }
     }
+    boolean aNS = st.hasMoreTokens() ? Convert.getBoolean(st.nextToken()) : getAllowNullSet();
 
     // set values
     setOn(on);
     setDirection(dir);
     setSteps(steps);
     setCurrent(cur);
+    setAllowNullSet(aNS);
   }
 
   /** copy the state of a remote control to this control */
@@ -556,6 +561,11 @@ public class AnimationControlJ2D extends AVControlJ2D
       no_tick = ac.no_tick;
     }
 
+    if (allowNullSet != ac.allowNullSet) {
+      changed = true;
+      allowNullSet = ac.allowNullSet;
+    }
+
     if (changed) {
       try {
         // WLH 5 May 2000
@@ -591,6 +601,9 @@ public class AnimationControlJ2D extends AVControlJ2D
     if (no_tick != ac.no_tick) {
       return false;
     }
+    if (allowNullSet != ac.allowNullSet) {
+      return false;
+    }
 
     return true;
   }
@@ -600,5 +613,20 @@ public class AnimationControlJ2D extends AVControlJ2D
            " set = " + animationSet.getSet();
   }
 
+  /**
+   * Set the flag to allow null Animation Sets.
+   * @param allow   true to allow null animation sets
+   */
+  public void setAllowNullSet(boolean allow) {
+    allowNullSet = allow;
+  }
+
+  /**
+   * Get the flag allowing null Animation Set
+   * @return true if allowed
+   */
+  public boolean getAllowNullSet() {
+    return allowNullSet;
+  }
 }
 

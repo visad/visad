@@ -61,6 +61,7 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
   private int curvedSize = 10;
   private float polygonOffset = Float.NaN;
   private float polygonOffsetFactor = 0;
+  private boolean adjustProjectionSeam = true;
 
   public GraphicsModeControlJ2D(DisplayImpl d) {
     super(d);
@@ -543,6 +544,28 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     curvedSize = curved_size;
   }
 
+  /**
+   * Set whether VisADGeometryArray.adjustLongitude/Seam should be used.
+   *
+   * @param  adjust   true to use adjust methods
+   */
+  public void setAdjustProjectionSeam(boolean adjust)
+         throws VisADException, RemoteException {
+    if (adjust == adjustProjectionSeam) return;
+    adjustProjectionSeam = adjust;
+    changeControl(true);
+    getDisplay().reDisplayAll();
+  }
+
+  /**
+   * See if VisADGeometryArray.adjustLongitude/Seam should be used
+   *
+   * @return    true if adjust methods should be used
+   */
+  public boolean getAdjustProjectionSeam() {
+    return adjustProjectionSeam;
+  }
+
   public Object clone() {
     GraphicsModeControlJ2D mode =
       new GraphicsModeControlJ2D(getDisplay());
@@ -559,6 +582,7 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     mode.curvedSize = curvedSize;
     mode.polygonOffset = polygonOffset;
     mode.polygonOffsetFactor = polygonOffsetFactor;
+    mode.adjustProjectionSeam = adjustProjectionSeam;
     return mode;
   }
 
@@ -636,6 +660,12 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
       curvedSize = rmtCtl.curvedSize;
     }
 
+    if (adjustProjectionSeam != rmtCtl.adjustProjectionSeam) {
+      changed = true;
+      redisplay = true;
+      adjustProjectionSeam = rmtCtl.adjustProjectionSeam;
+    }
+
     if (changed) {
       try {
         changeControl(true);
@@ -697,6 +727,11 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
       return false;
     }
 
+    if (adjustProjectionSeam != gmc.adjustProjectionSeam) {
+      return false;
+    }
+
+
     return true;
   }
 
@@ -728,6 +763,7 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     buf.append(polygonOffset);
     buf.append(",pof ");
     buf.append(polygonOffsetFactor);
+    buf.append(adjustProjectionSeam ? "as" : "!as");
 
     buf.append(']');
     return buf.toString();
