@@ -250,11 +250,23 @@ public class ContourControl extends Control {
    */
   public void setSurfaceValue(float value)
          throws VisADException, RemoteException {
+    setSurfaceValue(value, false);
+  }
+
+  /** 
+   * Set level for iso-surfaces 
+   * @param value   value of the iso-surface to display
+   * @param setLevels  true if this should be used for contour levels
+   * @throws VisADException     VisAD error
+   * @throws RemoteException    Java RMI failure.
+   */
+  public void setSurfaceValue(float value, boolean setLevels)
+         throws VisADException, RemoteException {
     boolean change;
     synchronized(this) {
       change = !Util.isApproximatelyEqual(surfaceValue, value);
       surfaceValue = value;
-      levels = new float[] {value};
+      if (setLevels) levels = new float[] {value};
     }
     if (change) {
       /**
