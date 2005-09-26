@@ -376,6 +376,26 @@ public abstract class GraphicsModeControl extends Control
   public abstract boolean getMissingTransparent();
 
   /**
+   * Set whether or not to call methods to adjust the projection seam
+   * (VisADGeometryArray.adjustLongitude/adjustSeam);
+   *
+   * @param  adjust   true if seams should be adjusted
+   *
+   * @throws  VisADException   Unable to change adjust seam property
+   * @throws  RemoteException  can't change adjust seam property on remote display
+   */
+  public abstract void setAdjustProjectionSeam(boolean adjust)
+         throws VisADException, RemoteException;
+
+  /**
+   * See whether or not to call methods to adjust the projection seam
+   * (VisADGeometryArray.adjustLongitude/adjustSeam);
+   *
+   * @return  true if adjust seam methods should be called
+   */
+  public abstract boolean getAdjustProjectionSeam();
+
+  /**
    * Set the undersampling factor of surface shape for curved texture maps
    *
    * @param  curved_size  undersampling factor (default 10)
@@ -411,7 +431,8 @@ public abstract class GraphicsModeControl extends Control
       getLineStyle() + " " + 
       getColorMode() + " " + 
       getPolygonOffset() + " " +
-      getPolygonOffsetFactor();
+      getPolygonOffsetFactor() + " " +
+      getAdjustProjectionSeam();
   }
 
   /** 
@@ -443,6 +464,9 @@ public abstract class GraphicsModeControl extends Control
     float po = st.hasMoreTokens() ? Convert.getFloat(st.nextToken()) : Float.NaN;
     float pof = st.hasMoreTokens() ? Convert.getFloat(st.nextToken()) : 0;
 
+    boolean as = st.hasMoreTokens() ? Convert.getBoolean(st.nextToken()) : getAdjustProjectionSeam();
+
+
     // reset graphics mode settings
     setLineWidth(lw);
     setPointSize(ps);
@@ -458,6 +482,7 @@ public abstract class GraphicsModeControl extends Control
     setColorMode(cm);
     setPolygonOffset(po);
     setPolygonOffsetFactor(pof);
+    setAdjustProjectionSeam(as);
   }
 
   /** 

@@ -202,4 +202,15 @@ public interface AnimationControl extends AVControl {
   void toggle()
          throws VisADException, RemoteException;
 
+  /**
+   * Set the flag to allow null Animation Sets.
+   * @param allow   true to allow null animation sets
+   */
+  void setAllowNullSet(boolean allow);
+
+  /**
+   * Get the flag allowing null Animation Set
+   * @return true if allowed
+   */
+  boolean getAllowNullSet();
 }

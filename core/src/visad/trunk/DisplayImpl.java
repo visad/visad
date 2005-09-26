@@ -980,7 +980,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       AnimationControl control =
         (AnimationControl) getControl(AnimationControl.class);
       if (control != null) {
-        init |= (control.getSet() == null);
+        init |= (control.getSet() == null && !control.getAllowNullSet());
       }
     }
     return init;
@@ -1893,7 +1893,8 @@ System.out.println("initialize = " + initialize + " go = " + go +
            Display.CurvedSize.equals(type) ||
            Display.ColorMode.equals(type) ||
            Display.PolygonOffset.equals(type) ||
-           Display.PolygonOffsetFactor.equals(type)) &&
+           Display.PolygonOffsetFactor.equals(type)) ||
+           Display.AdjustProjectionSeam.equals(type) &&
           !(map instanceof ConstantMap))
       {
         throw new BadMappingException("DisplayImpl.addMap: " +

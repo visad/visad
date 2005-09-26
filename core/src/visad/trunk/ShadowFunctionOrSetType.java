@@ -380,6 +380,7 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 2:" +
                    " LevelOfDifficulty = " + LevelOfDifficulty +
                    " Dtype = " + Dtype + " Rtype = " + Rtype);
 */
+      adjustProjectionSeam = checkAdjustProjectionSeam();
 
       if (this instanceof ShadowFunctionType) {
         float[] default_values = getLink().getDefaultValues();
@@ -2698,8 +2699,10 @@ WLH 15 March 2000 */
             array = spatial_set.make1DGeometry(color_values);
             if (array != null) {
               if (!spatial_all_select) array = array.removeMissing();
-              array = array.adjustLongitude(renderer);
-              array = array.adjustSeam(renderer);
+              if (getAdjustProjectionSeam()) {
+                array = array.adjustLongitude(renderer);
+                array = array.adjustSeam(renderer);
+              }
             }
             // System.out.println("make1DGeometry");
           }
@@ -2733,8 +2736,10 @@ WLH 15 March 2000 */
             array = spatial_set.make2DGeometry(color_values, indexed);
             if (array != null) {
               if (!spatial_all_select) array = array.removeMissing();
-              array = array.adjustLongitude(renderer);
-              array = array.adjustSeam(renderer);
+              if (getAdjustProjectionSeam()) {
+                array = array.adjustLongitude(renderer);
+                array = array.adjustSeam(renderer);
+              }
             }
             // System.out.println("make2DGeometry  vertexCount = " +
             //                    array.vertexCount);
@@ -3806,8 +3811,10 @@ if (size < 0.2) {
         tarray = (VisADTriangleStripArray) tarray.removeMissing();
       }
 
-      tarray = (VisADTriangleStripArray) tarray.adjustLongitude(renderer);
-      tarray = (VisADTriangleStripArray) tarray.adjustSeam(renderer);
+      if (getAdjustProjectionSeam()) {
+        tarray = (VisADTriangleStripArray) tarray.adjustLongitude(renderer);
+        tarray = (VisADTriangleStripArray) tarray.adjustSeam(renderer);
+      }
 
       BufferedImage image =
          createImage(data_width, data_height, texture_width,

@@ -315,6 +315,10 @@ public interface Display extends Action {
   DisplayRealType PolygonOffsetFactor =
     new DisplayRealType("PolygonOffsetFactor", true, Double.NaN, true);
 
+  /** Adjust along projection seams - ConstantMap only */
+  DisplayRealType AdjustProjectionSeam =
+    new DisplayRealType("AdjustProjectionSeam", true, -1.0, true);
+
   /** array of system intrinsic DisplayRealTypes */
   DisplayRealType[] DisplayRealArray =
     {XAxis, YAxis, ZAxis, Latitude, Longitude, Radius, List, Red, Green, Blue,
@@ -326,7 +330,7 @@ public interface Display extends Action {
      Flow2Elevation, Flow2Azimuth, Flow2Radial, 
      LineStyle, TextureEnable, MissingTransparent, 
      PolygonMode, CurvedSize, ColorMode, 
-     PolygonOffset, PolygonOffsetFactor };
+     PolygonOffset, PolygonOffsetFactor, AdjustProjectionSeam};
 
   // system intrinsic DisplayTupleType objects
 

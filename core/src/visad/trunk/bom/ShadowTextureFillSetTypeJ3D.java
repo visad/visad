@@ -295,8 +295,10 @@ public class ShadowTextureFillSetTypeJ3D extends ShadowSetTypeJ3D {
     }
 
     // do surgery along any longitude split (e.g., date line) in texture
-    array = (VisADTriangleStripArray) array.adjustLongitude(renderer);
-    array = (VisADTriangleStripArray) array.adjustSeam(renderer);
+    if (adaptedShadowType.getAdjustProjectionSeam()) {
+      array = (VisADTriangleStripArray) array.adjustLongitude(renderer);
+      array = (VisADTriangleStripArray) array.adjustSeam(renderer);
+    }
 
 // System.out.println("start createImage " + (System.currentTimeMillis() - link.start_time));
 

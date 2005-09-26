@@ -286,6 +286,9 @@ public class DataDisplayLink extends ReferenceActionLink {
       else if (Display.TextureEnable.equals(dreal)) {
         defaultValues[i] = (mode.getTextureEnable()) ? 1 : -1;
       }
+      else if (Display.AdjustProjectionSeam.equals(dreal)) {
+        defaultValues[i] = (mode.getAdjustProjectionSeam()) ? 1 : -1;
+      }
 /* WLH 21 Aug 98
       defaultValues[i] = (float) (((DisplayRealType)
         ((DisplayImpl) local_action).getDisplayScalar(i)).getDefaultValue());

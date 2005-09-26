@@ -172,6 +172,7 @@ System.out.println("Type = " + ((ScalarType) Type).getName() +
     anyFlow = checkFlow(local_display_indices);
     anyShape = checkShape(local_display_indices);
     anyText = checkText(local_display_indices);
+    adjustProjectionSeam = getAdjustProjectionSeam();
 
     LevelOfDifficulty =
       testIndices(local_indices, local_display_indices, levelOfDifficulty);

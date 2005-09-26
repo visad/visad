@@ -854,8 +854,10 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         }
 
         // do surgery along any longitude split (e.g., date line) in texture
-        tarray = (VisADTriangleStripArray) tarray.adjustLongitude(renderer);
-        tarray = (VisADTriangleStripArray) tarray.adjustSeam(renderer);
+        if (adaptedShadowType.getAdjustProjectionSeam()) {
+          tarray = (VisADTriangleStripArray) tarray.adjustLongitude(renderer);
+          tarray = (VisADTriangleStripArray) tarray.adjustSeam(renderer);
+        }
 
 // System.out.println("start createImage " + (System.currentTimeMillis() - link.start_time));
 

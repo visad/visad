@@ -82,6 +82,7 @@ public abstract class ShadowType extends Object
   boolean curvedTexture;
   boolean isTexture3D;
   boolean isLinearContour3D;
+  boolean adjustProjectionSeam;
 
   /** Dtype and Rtype used only with ShadowSetType and
       Flat ShadowFunctionType */
@@ -157,6 +158,7 @@ public abstract class ShadowType extends Object
     curvedTexture = false;
     isTexture3D = false;
     isLinearContour3D = false;
+    adjustProjectionSeam = true;
     LevelOfDifficulty = NOTHING_MAPPED;
     MultipleSpatialDisplayScalar = false;
     MultipleDisplayScalar = false;
@@ -202,6 +204,10 @@ public abstract class ShadowType extends Object
 
   public int[] getComponentIndex() {
     return componentIndex;
+  }
+
+  public boolean getAdjustProjectionSeam() {
+    return adjustProjectionSeam;
   }
 
   public ShadowRealType[] getComponents(ShadowType type, boolean doRef)
@@ -814,6 +820,11 @@ System.out.println("checkText: real = " + real.getName());
     return false;
   }
 
+  boolean checkAdjustProjectionSeam() throws RemoteException {
+    float[] default_values = getLink().getDefaultValues();
+    return default_values[display.getDisplayScalarIndex(Display.AdjustProjectionSeam)] > 0.5f;
+  }
+
   /** test for display_indices in (Color, Unmapped) */
   boolean checkColor(int[] display_indices) throws RemoteException {
     for (int i=0; i<display_indices.length; i++) {
@@ -952,6 +963,8 @@ System.out.println("testIndices: LevelOfDifficulty = " + LevelOfDifficulty +
   public int checkIndices(int[] indices, int[] display_indices,
              int[] value_indices, boolean[] isTransform, int levelOfDifficulty)
       throws VisADException, RemoteException {
+
+    adjustProjectionSeam = checkAdjustProjectionSeam();
     LevelOfDifficulty = testIndices(indices, display_indices, levelOfDifficulty);
     return LevelOfDifficulty;
   }
@@ -1312,9 +1325,11 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
 
     // WLH 30 May 2002
     DataRenderer renderer = getLink().getRenderer();
-    for (int i=0; i<total_length; i++) {
-      if (total_arrays[i] != null) {
-        total_arrays[i] = total_arrays[i].adjustLongitudeBulk(renderer);
+    if (getAdjustProjectionSeam()) {
+      for (int i=0; i<total_length; i++) {
+        if (total_arrays[i] != null) {
+          total_arrays[i] = total_arrays[i].adjustLongitudeBulk(renderer);
+        }
       }
     }
 
@@ -2605,7 +2620,9 @@ System.out.println("vector earth_locs = " + earth_locs[0][0] + " " +
     }
 
     // WLH 30 May 2002
-    array = (VisADLineArray) array.adjustLongitudeBulk(renderer);
+    if (getAdjustProjectionSeam()) {
+      array = (VisADLineArray) array.adjustLongitudeBulk(renderer);
+    }
 
     return new VisADGeometryArray[] {array};
   }
@@ -2826,7 +2843,9 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
     DataRenderer renderer = getLink().getRenderer();
     for (int i=0; i<k; i++) {
       if (arrays[i] != null) {
-        arrays[i] = arrays[i].adjustLongitudeBulk(renderer);
+        if (getAdjustProjectionSeam()) {
+          arrays[i] = arrays[i].adjustLongitudeBulk(renderer);
+        }
         if (array == null) array = (VisADGeometryArray) arrays[i].clone();
       }
     }
@@ -3615,7 +3634,7 @@ try {
                 }
 
                 // WLH 4 May 2001
-                if (array != null) {
+                if (array != null && getAdjustProjectionSeam()) {
                   try {
                     array = array.adjustLongitude(renderer);
                     array = array.adjustSeam(renderer);
@@ -3668,7 +3687,7 @@ try {
                                          color_values, swap, dashes[0],
                                          fill, smap, scale_ratio, label_size, f_array);
               if (array_s != null) {
-              if (!fill) {
+              if (!fill && getAdjustProjectionSeam()) {
                 for (int j=0; j<2; j++) {
                   if (array_s[j][0] != null) { //- lines, fill-lines
                     try {

@@ -140,6 +140,7 @@ public class ShadowTupleType extends ShadowType {
     anyFlow = checkFlow(local_display_indices);
     anyShape = checkShape(local_display_indices);
     anyText = checkText(local_display_indices);
+    adjustProjectionSeam = checkAdjustProjectionSeam();
 
     markTransform(isTransform);
 
