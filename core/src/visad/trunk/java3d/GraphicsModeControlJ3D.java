@@ -84,6 +84,9 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   /** for undersampling of curved texture maps @serial */
   private int curvedSize = 10;
 
+  /** true to adjust projection seam */
+  private boolean adjustProjectionSeam;
+
   /**
    * Construct a GraphicsModeControlJ3D associated with the input display
    *
@@ -106,6 +109,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     polygonMode = PolygonAttributes.POLYGON_FILL;
     polygonOffset = Float.NaN;
     polygonOffsetFactor = 0f;
+    adjustProjectionSeam = true;
 
     projectionPolicy = View.PERSPECTIVE_PROJECTION;
     DisplayRendererJ3D displayRenderer =
@@ -644,6 +648,28 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     curvedSize = curved_size;
   }
 
+  /**
+   * See whether VisADGeometryArray.adjustLongitude/Seam should be called.
+   *
+   * @return  true if adjust methods should be called
+   */
+  public boolean getAdjustProjectionSeam() {
+    return adjustProjectionSeam;
+  }
+
+  /**
+   * Set whether VisADGeometryArray.adjustLongitude/adjustSeam should be called.
+   *
+   * @param  adjust  true if adjust methods should be called
+   */
+  public void setAdjustProjectionSeam(boolean adjust) 
+         throws VisADException, RemoteException {
+    if (adjustProjectionSeam == adjust) return;
+    adjustProjectionSeam = adjust;
+    changeControl(true);
+    getDisplay().reDisplayAll();
+  }
+
   /** clone this GraphicsModeControlJ3D */
   public Object clone() {
     GraphicsModeControlJ3D mode =
@@ -662,6 +688,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     mode.curvedSize = curvedSize;
     mode.lineStyle = lineStyle;
     mode.anti_alias_flag = anti_alias_flag;
+    mode.adjustProjectionSeam = adjustProjectionSeam;
     return mode;
   }
 
@@ -723,6 +750,13 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
       redisplay = true;
       transparencyMode = rmtCtl.transparencyMode;
     }
+
+    if (adjustProjectionSeam != rmtCtl.adjustProjectionSeam) {
+      changed = true;
+      redisplay = true;
+      adjustProjectionSeam = rmtCtl.adjustProjectionSeam;
+    }
+
     if (projectionPolicy != rmtCtl.projectionPolicy) {
       changed = true;
       redisplay = true;
@@ -861,6 +895,10 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
       return false;
     }
 
+    if (adjustProjectionSeam != gmc.adjustProjectionSeam) {
+      return false;
+    }
+
     return true;
   }
 
@@ -897,7 +935,7 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     buf.append(polygonOffset);
     buf.append(",pof ");
     buf.append(polygonOffsetFactor);
-
+    buf.append(adjustProjectionSeam ? "as" : "!as");
 
     buf.append(']');
     return buf.toString();

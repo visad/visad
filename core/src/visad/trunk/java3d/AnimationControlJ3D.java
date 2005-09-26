@@ -48,6 +48,7 @@ public class AnimationControlJ3D extends AVControlJ3D
   private transient AnimationSetControl animationSet;
   private ToggleControl animate;
   private RealType real;
+  private boolean allowNullSet = false;
 
   /** AnimationControlJ3D is Serializable, mark as transient */
   private transient Thread animationThread;
@@ -468,6 +469,8 @@ public class AnimationControlJ3D extends AVControlJ3D
       sb.append(' ');
       sb.append((int) steps[i]);
     }
+    sb.append(' ');
+    sb.append(allowNullSet);
     return sb.toString();
   }
 
@@ -498,12 +501,14 @@ public class AnimationControlJ3D extends AVControlJ3D
         throw new VisADException("Step #" + (i + 1) + "is not positive");
       }
     }
+    boolean aNS = st.hasMoreTokens() ? Convert.getBoolean(st.nextToken()) : getAllowNullSet();
 
     // set values
     setOn(on);
     setDirection(dir);
     setSteps(steps);
     setCurrent(cur);
+    setAllowNullSet(aNS);
   }
 
   /** copy the state of a remote control to this control */
@@ -551,6 +556,11 @@ public class AnimationControlJ3D extends AVControlJ3D
       real = ac.real;
     }
 
+    if (allowNullSet != ac.allowNullSet) {
+      changed = true;
+      allowNullSet = ac.allowNullSet;
+    }
+
     if (changed) {
       try {
         // WLH 5 May 2000
@@ -587,6 +597,26 @@ public class AnimationControlJ3D extends AVControlJ3D
       return false;
     }
 
+    if (allowNullSet != ac.allowNullSet) {
+      return false;
+    }
+
     return true;
+  }
+
+  /**
+   * Set the flag to allow null Animation Sets.
+   * @param allow   true to allow null animation sets
+   */
+  public void setAllowNullSet(boolean allow) {
+    allowNullSet = allow;
+  }
+
+  /**
+   * Get the flag allowing null Animation Set
+   * @return true if allowed
+   */
+  public boolean getAllowNullSet() {
+    return allowNullSet;
   }
 }
