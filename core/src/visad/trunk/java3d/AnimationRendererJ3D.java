@@ -208,8 +208,8 @@ public class AnimationRendererJ3D extends DefaultRendererJ3D {
 
     RealType[] types = {RealType.Latitude, RealType.Longitude, RealType.Altitude};
     RealTupleType earth_location = new RealTupleType(types);
-    RealType radiance = new RealType("radiance", null, null);
-    RealType index    = new RealType("index", null, null);
+    RealType radiance = RealType.getRealType("radiance", null, null);
+    RealType index    = RealType.getRealType("index", null, null);
     FunctionType image_type = new FunctionType(earth_location, radiance);
 
     Integer3DSet image_domain_set =
