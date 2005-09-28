@@ -203,14 +203,18 @@ public interface AnimationControl extends AVControl {
          throws VisADException, RemoteException;
 
   /**
-   * Set the flag to allow null Animation Sets.
-   * @param allow   true to allow null animation sets
+   * Set the flag to automatically compute the animation set if it is
+   * null
+   * @param compute   false to allow application to control set computation
+   *                  if set is null.
    */
-  void setAllowNullSet(boolean allow);
+  void setComputeSet(boolean compute);
 
   /**
-   * Get the flag allowing null Animation Set
-   * @return true if allowed
+   * Get the flag to automatically compute the animation set if it is
+   * null
+   * 
+   * @return true if should compute
    */
-  boolean getAllowNullSet();
+  boolean getComputeSet();
 }

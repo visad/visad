@@ -980,7 +980,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       AnimationControl control =
         (AnimationControl) getControl(AnimationControl.class);
       if (control != null) {
-        init |= (control.getSet() == null && !control.getAllowNullSet());
+        init |= (control.getSet() == null && control.getComputeSet());
       }
     }
     return init;

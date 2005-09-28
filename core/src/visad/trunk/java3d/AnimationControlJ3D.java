@@ -48,7 +48,7 @@ public class AnimationControlJ3D extends AVControlJ3D
   private transient AnimationSetControl animationSet;
   private ToggleControl animate;
   private RealType real;
-  private boolean allowNullSet = false;
+  private boolean computeSet = true;
 
   /** AnimationControlJ3D is Serializable, mark as transient */
   private transient Thread animationThread;
@@ -470,7 +470,7 @@ public class AnimationControlJ3D extends AVControlJ3D
       sb.append((int) steps[i]);
     }
     sb.append(' ');
-    sb.append(allowNullSet);
+    sb.append(computeSet);
     return sb.toString();
   }
 
@@ -501,14 +501,14 @@ public class AnimationControlJ3D extends AVControlJ3D
         throw new VisADException("Step #" + (i + 1) + "is not positive");
       }
     }
-    boolean aNS = st.hasMoreTokens() ? Convert.getBoolean(st.nextToken()) : getAllowNullSet();
+    boolean cs = st.hasMoreTokens() ? Convert.getBoolean(st.nextToken()) : getComputeSet();
 
     // set values
     setOn(on);
     setDirection(dir);
     setSteps(steps);
     setCurrent(cur);
-    setAllowNullSet(aNS);
+    setComputeSet(cs);
   }
 
   /** copy the state of a remote control to this control */
@@ -556,9 +556,9 @@ public class AnimationControlJ3D extends AVControlJ3D
       real = ac.real;
     }
 
-    if (allowNullSet != ac.allowNullSet) {
+    if (computeSet != ac.computeSet) {
       changed = true;
-      allowNullSet = ac.allowNullSet;
+      computeSet = ac.computeSet;
     }
 
     if (changed) {
@@ -597,7 +597,7 @@ public class AnimationControlJ3D extends AVControlJ3D
       return false;
     }
 
-    if (allowNullSet != ac.allowNullSet) {
+    if (computeSet != ac.computeSet) {
       return false;
     }
 
@@ -605,18 +605,23 @@ public class AnimationControlJ3D extends AVControlJ3D
   }
 
   /**
-   * Set the flag to allow null Animation Sets.
-   * @param allow   true to allow null animation sets
+   * Set the flag to automatically compute the animation set if it is
+   * null
+   * @param compute   false to allow application to control set computation
+   *                  if set is null.
    */
-  public void setAllowNullSet(boolean allow) {
-    allowNullSet = allow;
+  public void setComputeSet(boolean compute) {
+      computeSet = compute;
   }
 
   /**
-   * Get the flag allowing null Animation Set
-   * @return true if allowed
+   * Get the flag to automatically compute the animation set if it is
+   * null
+   * 
+   * @return true if should compute set automatically when null
    */
-  public boolean getAllowNullSet() {
-    return allowNullSet;
+  public boolean getComputeSet() {
+    return computeSet;
   }
+
 }
