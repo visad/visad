@@ -141,10 +141,25 @@ public class Gridded2DDoubleSet extends Gridded2DSet
         }
       }
       // Samples consistency test
+/* CICERO
       Pos = ( (Samples[0][1]-Samples[0][0])
              *(Samples[1][LengthX+1]-Samples[1][1])
             - (Samples[1][1]-Samples[1][0])
              *(Samples[0][LengthX+1]-Samples[0][1]) > 0);
+*/
+// CICERO
+      double xpos = (Samples[0][1]-Samples[0][0])
+                    *(Samples[1][LengthX+1]-Samples[1][1])
+                   - (Samples[1][1]-Samples[1][0])
+                    *(Samples[0][LengthX+1]-Samples[0][1]);
+      Pos = (xpos > 0);
+
+      // CICERO
+      if (xpos == 0) {
+        throw new SetException(
+         "Gridded2DSet: samples do not form a valid grid");
+      }
+
       double[] v00 = new double[2];
       double[] v10 = new double[2];
       double[] v01 = new double[2];
@@ -158,14 +173,29 @@ public class Gridded2DDoubleSet extends Gridded2DSet
             v01[v] = Samples[v][(j+1)*LengthX+i];
             v11[v] = Samples[v][(j+1)*LengthX+i+1];
           }
-          if (  ( (v10[0]-v00[0])*(v11[1]-v10[1])
-                - (v10[1]-v00[1])*(v11[0]-v10[0]) > 0 != Pos)
-             || ( (v11[0]-v10[0])*(v01[1]-v11[1])
-                - (v11[1]-v10[1])*(v01[0]-v11[0]) > 0 != Pos)
-             || ( (v01[0]-v11[0])*(v00[1]-v01[1])
-                - (v01[1]-v11[1])*(v00[0]-v01[0]) > 0 != Pos)
-             || ( (v00[0]-v01[0])*(v10[1]-v00[1])
-                - (v00[1]-v01[1])*(v10[0]-v00[0]) > 0 != Pos)  ) {
+/* CICERO
+            if (  ( (v10[0]-v00[0])*(v11[1]-v10[1])
+                  - (v10[1]-v00[1])*(v11[0]-v10[0]) > 0 != Pos)
+               || ( (v11[0]-v10[0])*(v01[1]-v11[1])
+                  - (v11[1]-v10[1])*(v01[0]-v11[0]) > 0 != Pos)
+               || ( (v01[0]-v11[0])*(v00[1]-v01[1])
+                  - (v01[1]-v11[1])*(v00[0]-v01[0]) > 0 != Pos)
+               || ( (v00[0]-v01[0])*(v10[1]-v00[1])
+                  - (v00[1]-v01[1])*(v10[0]-v00[0]) > 0 != Pos)  ) {
+*/
+// CICERO
+            double w1 = ( (v10[0]-v00[0])*(v11[1]-v10[1])
+                        - (v10[1]-v00[1])*(v11[0]-v10[0]) );
+            double w2 = ( (v11[0]-v10[0])*(v01[1]-v11[1])
+                        - (v11[1]-v10[1])*(v01[0]-v11[0]) );
+            double w3 = ( (v01[0]-v11[0])*(v00[1]-v01[1])
+                        - (v01[1]-v11[1])*(v00[0]-v01[0]) );
+            double w4 = ( (v00[0]-v01[0])*(v10[1]-v00[1])
+                        - (v00[1]-v01[1])*(v10[0]-v00[0]) );
+            if ((w1 > 0 != Pos) || w1 == 0 ||
+                (w2 > 0 != Pos) || w2 == 0 ||
+                (w3 > 0 != Pos) || w3 == 0 ||
+                (w4 > 0 != Pos) || w4 == 0) {
             throw new SetException(
              "Gridded2DDoubleSet: samples do not form a valid grid ("+i+","+j+")");
           }
