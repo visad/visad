@@ -99,10 +99,10 @@ public class FluoviewTiffForm extends BaseTiffForm {
       p += 2;
       put("Status", TiffTools.bytesToString(mmHead, p, 1));
       p++;
-      put("ImageType", TiffTools.bytesToString(mmHead, p, 1));
-      p++;
-      put("ImageName", TiffTools.bytesToString(mmHead, p, 256));
-      p += 256 + 4; // there are 4 bytes that we don't need
+
+      // change from the specs: using 257 bytes instead of 256
+      put("ImageName", TiffTools.bytesToString(mmHead, p, 257));
+      p += 257 + 4; // there are 4 bytes that we don't need
 
       put("NumberOfColors", TiffTools.bytesToLong(mmHead, p, 4, little));
       p += 4 + 8; // again, 8 bytes we don't need
@@ -177,7 +177,6 @@ public class FluoviewTiffForm extends BaseTiffForm {
 
       // -- Parse OME-XML metadata --
 
-      /*
       Object off;
       String data;
       long newNum = 0;
@@ -198,6 +197,7 @@ public class FluoviewTiffForm extends BaseTiffForm {
         OMETools.setAttribute(ome, "Image", "ImageName", new String(name));
         byte[] temp2 = new byte[279];
         in.read(temp2);
+        char[] dimName;
         for (int j=0; j<10; j++) {
           dimName = new char[16];
           for (int i=0; i<16; i++) {
@@ -226,7 +226,6 @@ public class FluoviewTiffForm extends BaseTiffForm {
           TiffTools.readDouble(in, little); // skip next double
         }
       }
-      */
     }
     catch (IOException e) { e.printStackTrace(); }
     catch (BadFormException e) { e.printStackTrace(); }

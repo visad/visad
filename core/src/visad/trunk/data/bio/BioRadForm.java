@@ -210,6 +210,9 @@ public class BioRadForm extends Form implements FormBlockReader,
   /** Percent complete with current operation. */
   private double percent;
 
+  /** OME root node for OME-XML metadata */
+  private Object ome;
+
 
   // -- Constructor --
 
@@ -1005,6 +1008,20 @@ public class BioRadForm extends Form implements FormBlockReader,
     if (horizStep == 0) horizStep = 1;
     if (vertStep == 0) vertStep = 1;
 
+    // create and populate OME-XML DOM tree
+
+    ome = OMETools.createRoot();
+    OMETools.setAttribute(ome, "Image", "Name", name);
+    OMETools.setAttribute(ome, "Image", "SizeX", new Integer(nx).toString());
+    OMETools.setAttribute(ome, "Image", "SizeY", new Integer(ny).toString());
+
+    int type = getUnsignedShort(header[14], header[15]);
+    String format;
+    if(type == 1) { format = "Uint8"; }
+    else { format = "Uint16"; }
+
+    OMETools.setAttribute(ome, "Image", "PixelType", format);
+
     // set up image data types
     RealType x = RealType.getRealType("ImageElement", horizUnit);
     RealType y = RealType.getRealType("ImageLine", vertUnit);
@@ -1062,15 +1079,6 @@ public class BioRadForm extends Form implements FormBlockReader,
       System.out.println("[done]");
 
       System.out.println("MathType =\n" + data.getType());
-//      OMEXMLWriter writer = new OMEXMLWriter();
-//      writer.setFile(args[0]);
-//      writer.setMetadata(meta);
-//      Hashtable map = new Hashtable();
-//      writer.setMapping(map);
-//      writer.writeFile("BioRad PIC");
-
-//      OMETIFFWriter omeWriter = new OMETIFFWriter();
-//      omeWriter.writeOMETIFF(args[0], args[0] + ".tiff");
     }
     else if (args.length == 2) {
       // Convert file to Bio-Rad PIC format
