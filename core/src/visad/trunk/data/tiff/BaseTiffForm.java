@@ -166,244 +166,248 @@ public abstract class BaseTiffForm extends Form implements FormBlockReader,
     initMetadata();
   }
 
-  /** Populates the metadata hashtable. */
+  /** Populates the metadata hashtable and OME root node. */
   protected void initMetadata() {
+    initStandardMetadata();
+    initOMEMetadata();
+  }
+
+  /** Parses standard metadata. */
+  protected void initStandardMetadata() {
     Hashtable ifd = ifds[0];
-    final String unknown = "unknown";
+    put("ImageWidth", ifd, TiffTools.IMAGE_WIDTH);
+    put("ImageLength", ifd, TiffTools.IMAGE_LENGTH);
 
-    try {
-      // -- Parse standard metadata --
+    put("BitsPerSample", ifd, TiffTools.BITS_PER_SAMPLE);
 
-      put("ImageWidth", ifd, TiffTools.IMAGE_WIDTH);
-      put("ImageLength", ifd, TiffTools.IMAGE_LENGTH);
+    int comp = TiffTools.getIFDIntValue(ifd, TiffTools.COMPRESSION);
+    String compression = null;
+    switch (comp) {
+      case TiffTools.UNCOMPRESSED:
+        compression = "None"; break;
+      case TiffTools.CCITT_1D:
+        compression = "CCITT Group 3 1-Dimensional Modified Huffman"; break;
+      case TiffTools.GROUP_3_FAX:
+        compression = "CCITT T.4 bilevel encoding"; break;
+      case TiffTools.GROUP_4_FAX:
+        compression = "CCITT T.6 bilevel encoding"; break;
+      case TiffTools.LZW:
+        compression = "LZW"; break;
+      case TiffTools.JPEG:
+        compression = "JPEG"; break;
+      case TiffTools.PACK_BITS:
+        compression = "PackBits"; break;
+    }
+    put("Compression", compression);
 
-      put("BitsPerSample", ifd, TiffTools.BITS_PER_SAMPLE);
+    int photo = TiffTools.getIFDIntValue(ifd,
+      TiffTools.PHOTOMETRIC_INTERPRETATION);
+    String photoInterp = null;
+    switch (photo) {
+      case TiffTools.WHITE_IS_ZERO:
+        photoInterp = "WhiteIsZero"; break;
+      case TiffTools.BLACK_IS_ZERO:
+        photoInterp = "BlackIsZero"; break;
+      case TiffTools.RGB:
+        photoInterp = "RGB"; break;
+      case TiffTools.RGB_PALETTE:
+        photoInterp = "Palette"; break;
+      case TiffTools.TRANSPARENCY_MASK:
+        photoInterp = "Transparency Mask"; break;
+      case TiffTools.CMYK:
+        photoInterp = "CMYK"; break;
+      case TiffTools.Y_CB_CR:
+        photoInterp = "YCbCr"; break;
+      case TiffTools.CIE_LAB:
+        photoInterp = "CIELAB"; break;
+    }
+    put("PhotometricInterpretation", photoInterp);
 
-      int comp = TiffTools.getIFDIntValue(ifd, TiffTools.COMPRESSION);
-      String compression = null;
-      switch (comp) {
-        case TiffTools.UNCOMPRESSED:
-          compression = "None"; break;
-        case TiffTools.CCITT_1D:
-          compression = "CCITT Group 3 1-Dimensional Modified Huffman"; break;
-        case TiffTools.GROUP_3_FAX:
-          compression = "CCITT T.4 bilevel encoding"; break;
-        case TiffTools.GROUP_4_FAX:
-          compression = "CCITT T.6 bilevel encoding"; break;
-        case TiffTools.LZW:
-          compression = "LZW"; break;
-        case TiffTools.JPEG:
-          compression = "JPEG"; break;
-        case TiffTools.PACK_BITS:
-          compression = "PackBits"; break;
-      }
-      put("Compression", compression);
-
-      int photo = TiffTools.getIFDIntValue(ifd,
-        TiffTools.PHOTOMETRIC_INTERPRETATION);
-      String photoInterp = null;
-      switch (photo) {
-        case TiffTools.WHITE_IS_ZERO:
-          photoInterp = "WhiteIsZero"; break;
-        case TiffTools.BLACK_IS_ZERO:
-          photoInterp = "BlackIsZero"; break;
-        case TiffTools.RGB:
-          photoInterp = "RGB"; break;
-        case TiffTools.RGB_PALETTE:
-          photoInterp = "Palette"; break;
-        case TiffTools.TRANSPARENCY_MASK:
-          photoInterp = "Transparency Mask"; break;
-        case TiffTools.CMYK:
-          photoInterp = "CMYK"; break;
-        case TiffTools.Y_CB_CR:
-          photoInterp = "YCbCr"; break;
-        case TiffTools.CIE_LAB:
-          photoInterp = "CIELAB"; break;
-      }
-      put("PhotometricInterpretation", photoInterp);
-
-      putInt("CellWidth", ifd, TiffTools.CELL_WIDTH);
-      putInt("CellLength", ifd, TiffTools.CELL_LENGTH);
+    putInt("CellWidth", ifd, TiffTools.CELL_WIDTH);
+    putInt("CellLength", ifd, TiffTools.CELL_LENGTH);
 //      putInt("StripOffsets", ifd, TiffTools.STRIP_OFFSETS);
 
-      int or = TiffTools.getIFDIntValue(ifd, TiffTools.ORIENTATION);
-      String orientation = null;
-      // there is no case 0
-      switch (or) {
-        case 1: orientation = "1st row -> top; 1st column -> left"; break;
-        case 2: orientation = "1st row -> top; 1st column -> right"; break;
-        case 3: orientation = "1st row -> bottom; 1st column -> right"; break;
-        case 4: orientation = "1st row -> bottom; 1st column -> left"; break;
-        case 5: orientation = "1st row -> left; 1st column -> top"; break;
-        case 6: orientation = "1st row -> right; 1st column -> top"; break;
-        case 7: orientation = "1st row -> right; 1st column -> bottom"; break;
-        case 8: orientation = "1st row -> left; 1st column -> bottom"; break;
-      }
-      put("Orientation", orientation);
+    int or = TiffTools.getIFDIntValue(ifd, TiffTools.ORIENTATION);
+    String orientation = null;
+    // there is no case 0
+    switch (or) {
+      case 1: orientation = "1st row -> top; 1st column -> left"; break;
+      case 2: orientation = "1st row -> top; 1st column -> right"; break;
+      case 3: orientation = "1st row -> bottom; 1st column -> right"; break;
+      case 4: orientation = "1st row -> bottom; 1st column -> left"; break;
+      case 5: orientation = "1st row -> left; 1st column -> top"; break;
+      case 6: orientation = "1st row -> right; 1st column -> top"; break;
+      case 7: orientation = "1st row -> right; 1st column -> bottom"; break;
+      case 8: orientation = "1st row -> left; 1st column -> bottom"; break;
+    }
+    put("Orientation", orientation);
 
-      putInt("SamplesPerPixel", ifd, TiffTools.SAMPLES_PER_PIXEL);
+    putInt("SamplesPerPixel", ifd, TiffTools.SAMPLES_PER_PIXEL);
 //      putInt("RowsPerStrip", ifd, TiffTools.ROWS_PER_STRIP);
 //      putInt("StripByteCounts", ifd, TiffTools.STRIP_BYTE_COUNTS);
-      put("Software", ifd, TiffTools.SOFTWARE);
-      put("DateTime", ifd, TiffTools.DATE_TIME);
-      put("Artist", ifd, TiffTools.ARTIST);
+    put("Software", ifd, TiffTools.SOFTWARE);
+    put("DateTime", ifd, TiffTools.DATE_TIME);
+    put("Artist", ifd, TiffTools.ARTIST);
 
-      put("HostComputer", ifd, TiffTools.HOST_COMPUTER);
-      put("Copyright", ifd, TiffTools.COPYRIGHT);
+    put("HostComputer", ifd, TiffTools.HOST_COMPUTER);
+    put("Copyright", ifd, TiffTools.COPYRIGHT);
 
-      put("NewSubfileType", ifd, TiffTools.NEW_SUBFILE_TYPE);
+    put("NewSubfileType", ifd, TiffTools.NEW_SUBFILE_TYPE);
 
-      int thresh = TiffTools.getIFDIntValue(ifd, TiffTools.THRESHHOLDING);
-      String threshholding = null;
-      switch (thresh) {
-        case 1: threshholding = "No dithering or halftoning"; break;
-        case 2: threshholding = "Ordered dithering or halftoning"; break;
-        case 3: threshholding = "Randomized error diffusion"; break;
-      }
-      put("Threshholding", threshholding);
+    int thresh = TiffTools.getIFDIntValue(ifd, TiffTools.THRESHHOLDING);
+    String threshholding = null;
+    switch (thresh) {
+      case 1: threshholding = "No dithering or halftoning"; break;
+      case 2: threshholding = "Ordered dithering or halftoning"; break;
+      case 3: threshholding = "Randomized error diffusion"; break;
+    }
+    put("Threshholding", threshholding);
 
-      int fill = TiffTools.getIFDIntValue(ifd, TiffTools.FILL_ORDER);
-      String fillOrder = null;
-      switch (fill) {
-        case 1:
-          fillOrder = "Pixels with lower column values are stored " +
-            "in the higher order bits of a byte";
-          break;
-        case 2:
-          fillOrder = "Pixels with lower column values are stored " +
-            "in the lower order bits of a byte";
-          break;
-      }
-      put("FillOrder", fillOrder);
+    int fill = TiffTools.getIFDIntValue(ifd, TiffTools.FILL_ORDER);
+    String fillOrder = null;
+    switch (fill) {
+      case 1:
+        fillOrder = "Pixels with lower column values are stored " +
+          "in the higher order bits of a byte";
+        break;
+      case 2:
+        fillOrder = "Pixels with lower column values are stored " +
+          "in the lower order bits of a byte";
+        break;
+    }
+    put("FillOrder", fillOrder);
 
 //      put("DocumentName", ifd, TiffTools.DOCUMENT_NAME);
 //      put("ImageDescription", ifd, TiffTools.IMAGE_DESCRIPTION);
-      putInt("Make", ifd, TiffTools.MAKE);
-      putInt("Model", ifd, TiffTools.MODEL);
-      putInt("MinSampleValue", ifd, TiffTools.MIN_SAMPLE_VALUE);
-      putInt("MaxSampleValue", ifd, TiffTools.MAX_SAMPLE_VALUE);
-      putInt("XResolution", ifd, TiffTools.X_RESOLUTION);
-      putInt("YResolution", ifd, TiffTools.Y_RESOLUTION);
+    putInt("Make", ifd, TiffTools.MAKE);
+    putInt("Model", ifd, TiffTools.MODEL);
+    putInt("MinSampleValue", ifd, TiffTools.MIN_SAMPLE_VALUE);
+    putInt("MaxSampleValue", ifd, TiffTools.MAX_SAMPLE_VALUE);
+    putInt("XResolution", ifd, TiffTools.X_RESOLUTION);
+    putInt("YResolution", ifd, TiffTools.Y_RESOLUTION);
 
-      int planar = TiffTools.getIFDIntValue(ifd,
-        TiffTools.PLANAR_CONFIGURATION);
-      String planarConfig = null;
-      switch (planar) {
-        case 1: planarConfig = "Chunky"; break;
-        case 2: planarConfig = "Planar"; break;
-      }
-      put("PlanarConfiguration", planarConfig);
+    int planar = TiffTools.getIFDIntValue(ifd,
+      TiffTools.PLANAR_CONFIGURATION);
+    String planarConfig = null;
+    switch (planar) {
+      case 1: planarConfig = "Chunky"; break;
+      case 2: planarConfig = "Planar"; break;
+    }
+    put("PlanarConfiguration", planarConfig);
 
 //      putInt("PageName", ifd, TiffTools.PAGE_NAME);
-      putInt("XPosition", ifd, TiffTools.X_POSITION);
-      putInt("YPosition", ifd, TiffTools.Y_POSITION);
-      putInt("FreeOffsets", ifd, TiffTools.FREE_OFFSETS);
-      putInt("FreeByteCounts", ifd, TiffTools.FREE_BYTE_COUNTS);
-      putInt("GrayResponseUnit", ifd, TiffTools.GRAY_RESPONSE_UNIT);
-      putInt("GrayResponseCurve", ifd, TiffTools.GRAY_RESPONSE_CURVE);
-      putInt("T4Options", ifd, TiffTools.T4_OPTIONS);
-      putInt("T6Options", ifd, TiffTools.T6_OPTIONS);
+    putInt("XPosition", ifd, TiffTools.X_POSITION);
+    putInt("YPosition", ifd, TiffTools.Y_POSITION);
+    putInt("FreeOffsets", ifd, TiffTools.FREE_OFFSETS);
+    putInt("FreeByteCounts", ifd, TiffTools.FREE_BYTE_COUNTS);
+    putInt("GrayResponseUnit", ifd, TiffTools.GRAY_RESPONSE_UNIT);
+    putInt("GrayResponseCurve", ifd, TiffTools.GRAY_RESPONSE_CURVE);
+    putInt("T4Options", ifd, TiffTools.T4_OPTIONS);
+    putInt("T6Options", ifd, TiffTools.T6_OPTIONS);
 
-      int res = TiffTools.getIFDIntValue(ifd, TiffTools.RESOLUTION_UNIT);
-      String resUnit = null;
-      switch (res) {
-        case 1: resUnit = "None"; break;
-        case 2: resUnit = "Inch"; break;
-        case 3: resUnit = "Centimeter"; break;
-      }
-      put("ResolutionUnit", resUnit);
+    int res = TiffTools.getIFDIntValue(ifd, TiffTools.RESOLUTION_UNIT);
+    String resUnit = null;
+    switch (res) {
+      case 1: resUnit = "None"; break;
+      case 2: resUnit = "Inch"; break;
+      case 3: resUnit = "Centimeter"; break;
+    }
+    put("ResolutionUnit", resUnit);
 
-      putInt("PageNumber", ifd, TiffTools.PAGE_NUMBER);
-      putInt("TransferFunction", ifd, TiffTools.TRANSFER_FUNCTION);
+    putInt("PageNumber", ifd, TiffTools.PAGE_NUMBER);
+    putInt("TransferFunction", ifd, TiffTools.TRANSFER_FUNCTION);
 
-      int predict = TiffTools.getIFDIntValue(ifd, TiffTools.PREDICTOR);
-      String predictor = null;
-      switch (predict) {
-        case 1: predictor = "No prediction scheme"; break;
-        case 2: predictor = "Horizontal differencing"; break;
-      }
-      put("Predictor", predictor);
+    int predict = TiffTools.getIFDIntValue(ifd, TiffTools.PREDICTOR);
+    String predictor = null;
+    switch (predict) {
+      case 1: predictor = "No prediction scheme"; break;
+      case 2: predictor = "Horizontal differencing"; break;
+    }
+    put("Predictor", predictor);
 
-      putInt("WhitePoint", ifd, TiffTools.WHITE_POINT);
-      putInt("PrimaryChromacities", ifd, TiffTools.PRIMARY_CHROMATICITIES);
+    putInt("WhitePoint", ifd, TiffTools.WHITE_POINT);
+    putInt("PrimaryChromacities", ifd, TiffTools.PRIMARY_CHROMATICITIES);
 //      putInt("ColorMap", ifd, TiffTools.COLOR_MAP);
-      putInt("HalftoneHints", ifd, TiffTools.HALFTONE_HINTS);
-      putInt("TileWidth", ifd, TiffTools.TILE_WIDTH);
-      putInt("TileLength", ifd, TiffTools.TILE_LENGTH);
-      putInt("TileOffsets", ifd, TiffTools.TILE_OFFSETS);
-      putInt("TileByteCounts", ifd, TiffTools.TILE_BYTE_COUNTS);
+    putInt("HalftoneHints", ifd, TiffTools.HALFTONE_HINTS);
+    putInt("TileWidth", ifd, TiffTools.TILE_WIDTH);
+    putInt("TileLength", ifd, TiffTools.TILE_LENGTH);
+    putInt("TileOffsets", ifd, TiffTools.TILE_OFFSETS);
+    putInt("TileByteCounts", ifd, TiffTools.TILE_BYTE_COUNTS);
 
-      int ink = TiffTools.getIFDIntValue(ifd, TiffTools.INK_SET);
-      String inkSet = null;
-      switch (ink) {
-        case 1: inkSet = "CMYK"; break;
-        case 2: inkSet = "Other"; break;
-      }
-      put("InkSet", inkSet);
+    int ink = TiffTools.getIFDIntValue(ifd, TiffTools.INK_SET);
+    String inkSet = null;
+    switch (ink) {
+      case 1: inkSet = "CMYK"; break;
+      case 2: inkSet = "Other"; break;
+    }
+    put("InkSet", inkSet);
 
-      putInt("InkNames", ifd, TiffTools.INK_NAMES);
-      putInt("NumberOfInks", ifd, TiffTools.NUMBER_OF_INKS);
-      putInt("DotRange", ifd, TiffTools.DOT_RANGE);
-      put("TargetPrinter", ifd, TiffTools.TARGET_PRINTER);
-      putInt("ExtraSamples", ifd, TiffTools.EXTRA_SAMPLES);
+    putInt("InkNames", ifd, TiffTools.INK_NAMES);
+    putInt("NumberOfInks", ifd, TiffTools.NUMBER_OF_INKS);
+    putInt("DotRange", ifd, TiffTools.DOT_RANGE);
+    put("TargetPrinter", ifd, TiffTools.TARGET_PRINTER);
+    putInt("ExtraSamples", ifd, TiffTools.EXTRA_SAMPLES);
 
-      int format = TiffTools.getIFDIntValue(ifd, TiffTools.SAMPLE_FORMAT);
-      String sampleFormat = null;
-      switch (format) {
-        case 1: sampleFormat = "unsigned integer"; break;
-        case 2: sampleFormat = "two's complement signed integer"; break;
-        case 3: sampleFormat = "IEEE floating point"; break;
-        case 4: sampleFormat = "undefined"; break;
-      }
-      put("SampleFormat", sampleFormat);
+    int format = TiffTools.getIFDIntValue(ifd, TiffTools.SAMPLE_FORMAT);
+    String sampleFormat = null;
+    switch (format) {
+      case 1: sampleFormat = "unsigned integer"; break;
+      case 2: sampleFormat = "two's complement signed integer"; break;
+      case 3: sampleFormat = "IEEE floating point"; break;
+      case 4: sampleFormat = "undefined"; break;
+    }
+    put("SampleFormat", sampleFormat);
 
-      putInt("SMinSampleValue", ifd, TiffTools.S_MIN_SAMPLE_VALUE);
-      putInt("SMaxSampleValue", ifd, TiffTools.S_MAX_SAMPLE_VALUE);
-      putInt("TransferRange", ifd, TiffTools.TRANSFER_RANGE);
+    putInt("SMinSampleValue", ifd, TiffTools.S_MIN_SAMPLE_VALUE);
+    putInt("SMaxSampleValue", ifd, TiffTools.S_MAX_SAMPLE_VALUE);
+    putInt("TransferRange", ifd, TiffTools.TRANSFER_RANGE);
 
-      int jpeg = TiffTools.getIFDIntValue(ifd, TiffTools.JPEG_PROC);
-      String jpegProc = null;
-      switch (jpeg) {
-        case 1: jpegProc = "baseline sequential process"; break;
-        case 14: jpegProc = "lossless process with Huffman coding"; break;
-      }
-      put("JPEGProc", jpegProc);
+    int jpeg = TiffTools.getIFDIntValue(ifd, TiffTools.JPEG_PROC);
+    String jpegProc = null;
+    switch (jpeg) {
+      case 1: jpegProc = "baseline sequential process"; break;
+      case 14: jpegProc = "lossless process with Huffman coding"; break;
+    }
+    put("JPEGProc", jpegProc);
 
-      putInt("JPEGInterchangeFormat", ifd, TiffTools.JPEG_INTERCHANGE_FORMAT);
-      putInt("JPEGRestartInterval", ifd, TiffTools.JPEG_RESTART_INTERVAL);
+    putInt("JPEGInterchangeFormat", ifd, TiffTools.JPEG_INTERCHANGE_FORMAT);
+    putInt("JPEGRestartInterval", ifd, TiffTools.JPEG_RESTART_INTERVAL);
 
-      putInt("JPEGLosslessPredictors",
-        ifd, TiffTools.JPEG_LOSSLESS_PREDICTORS);
-      putInt("JPEGPointTransforms", ifd, TiffTools.JPEG_POINT_TRANSFORMS);
-      putInt("JPEGQTables", ifd, TiffTools.JPEG_Q_TABLES);
-      putInt("JPEGDCTables", ifd, TiffTools.JPEG_DC_TABLES);
-      putInt("JPEGACTables", ifd, TiffTools.JPEG_AC_TABLES);
-      putInt("YCbCrCoefficients", ifd, TiffTools.Y_CB_CR_COEFFICIENTS);
+    putInt("JPEGLosslessPredictors",
+      ifd, TiffTools.JPEG_LOSSLESS_PREDICTORS);
+    putInt("JPEGPointTransforms", ifd, TiffTools.JPEG_POINT_TRANSFORMS);
+    putInt("JPEGQTables", ifd, TiffTools.JPEG_Q_TABLES);
+    putInt("JPEGDCTables", ifd, TiffTools.JPEG_DC_TABLES);
+    putInt("JPEGACTables", ifd, TiffTools.JPEG_AC_TABLES);
+    putInt("YCbCrCoefficients", ifd, TiffTools.Y_CB_CR_COEFFICIENTS);
 
-      int ycbcr = TiffTools.getIFDIntValue(ifd,
-        TiffTools.Y_CB_CR_SUB_SAMPLING);
-      String subSampling = null;
-      switch (ycbcr) {
-        case 1:
-          subSampling = "chroma image dimensions = luma image dimensions";
-          break;
-        case 2:
-          subSampling = "chroma image dimensions are " +
-            "half the luma image dimensions";
-          break;
-        case 4:
-          subSampling = "chroma image dimensions are " +
-            "1/4 the luma image dimensions";
-          break;
-      }
-      put("YCbCrSubSampling", subSampling);
+    int ycbcr = TiffTools.getIFDIntValue(ifd,
+      TiffTools.Y_CB_CR_SUB_SAMPLING);
+    String subSampling = null;
+    switch (ycbcr) {
+      case 1:
+        subSampling = "chroma image dimensions = luma image dimensions";
+        break;
+      case 2:
+        subSampling = "chroma image dimensions are " +
+          "half the luma image dimensions";
+        break;
+      case 4:
+        subSampling = "chroma image dimensions are " +
+          "1/4 the luma image dimensions";
+        break;
+    }
+    put("YCbCrSubSampling", subSampling);
 
-      putInt("YCbCrPositioning", ifd, TiffTools.Y_CB_CR_POSITIONING);
-      putInt("ReferenceBlackWhite", ifd, TiffTools.REFERENCE_BLACK_WHITE);
+    putInt("YCbCrPositioning", ifd, TiffTools.Y_CB_CR_POSITIONING);
+    putInt("ReferenceBlackWhite", ifd, TiffTools.REFERENCE_BLACK_WHITE);
+  }
 
-
-      // -- Parse OME-XML metadata --
-
+  /** Parses OME-XML metadata. */
+  protected void initOMEMetadata() {
+    final String unknown = "unknown";
+    Hashtable ifd = ifds[0];
+    try {
       ome = OMETools.createRoot();
       if (ome == null) return; // OME-XML functionality is not available
 
