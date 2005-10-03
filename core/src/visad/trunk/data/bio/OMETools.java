@@ -72,7 +72,6 @@ public abstract class OMETools {
       r.exec("import loci.ome.xml.OMENode");
       r.exec("import loci.ome.xml.OMEXMLNode");
       r.exec("import loci.ome.xml.DOMUtil");
-      r.setVar("HEADER", HEADER);
       r.setVar("FALSE", false);
     }
     catch (VisADException exc) { r = null; }
@@ -89,9 +88,15 @@ public abstract class OMETools {
 
   /** Constructs a new OME-XML root node. */
   public static Object createRoot() {
-    if (R == null) return null;
+    return createRoot(HEADER);
+  }
+
+  /** Constructs a new OME-XML root node with the given XML block. */
+  public static Object createRoot(String xml) {
+    if (R == null || xml == null) return null;
     try {
-      return R.exec("new OMENode(HEADER)");
+      R.setVar("xml", xml);
+      return R.exec("new OMENode(xml)");
     }
     catch (VisADException exc) { }
     return null;
