@@ -299,8 +299,15 @@ public class IPLabForm extends Form implements FormBlockReader,
 
   /** Checks if the given block is a valid header for an IPLab file. */
   public boolean isThisType(byte[] block) {
-    // no way to determine whether or not this is valid
-    // so we assume it is
+    if (block.length < 12) return false; // block length too short
+    String s = new String(block, 0, 4);
+    boolean big = s.equals("iiii");
+    boolean little = s.equals("mmmm");
+    if (!big && !little) return false;
+    int size = TiffTools.bytesToInt(block, 4, 4, little);
+    if (size != 4) return false; // first block size should be 4
+    int version = TiffTools.bytesToInt(block, 8, 4, little);
+    if (version < 0x100e) return false; // invalid version
     return true;
   }
 
