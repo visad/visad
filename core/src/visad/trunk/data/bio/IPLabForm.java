@@ -275,13 +275,7 @@ public class IPLabForm extends Form implements FormBlockReader,
     long zDepth = TiffTools.read4UnsignedBytes(in, littleEndian);
     long tDepth = TiffTools.read4UnsignedBytes(in, littleEndian);
 
-    int numImages = 0;
-    for(int i=0; i<tDepth; i++) {
-      for(int j=0; j<zDepth; j++) {
-        numImages++;
-      }
-    }
-
+    int numImages = (int) (zDepth * tDepth);
     return numImages;
   }
 
@@ -615,7 +609,10 @@ public class IPLabForm extends Form implements FormBlockReader,
           OMETools.setAttribute(ome, "Image", "Description", notes);
         }
       }
-      in.read(fourBytes);
+      int r = in.read(fourBytes);
+      if (r < 0) { // eof
+        throw new BadFormException("Unexpected end of file");
+      }
       tag = new String(fourBytes);
     }
   }
