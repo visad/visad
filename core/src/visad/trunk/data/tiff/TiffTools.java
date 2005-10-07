@@ -566,7 +566,21 @@ public abstract class TiffTools {
       // RowsPerStrip = stripByteCounts / (imageLength * bitsPerSample)
       // since stripByteCounts and bitsPerSample are arrays, we have to
       // iterate through each item
-      rowsPerStripArray = new long[stripByteCounts.length];
+
+      // for now, each array should only have one entry
+      // this is because we don't have support for planar formats, like
+      // Zeiss LSM
+
+      rowsPerStripArray = new long[1];
+      long temp = stripByteCounts[0];
+      stripByteCounts = new long[1];
+      stripByteCounts[0] = temp;
+      temp = bitsPerSample[0];
+      bitsPerSample = new int[1];
+      bitsPerSample[0] = (int) temp;
+      temp = stripOffsets[0];
+      stripOffsets = new long[1];
+      stripOffsets[0] = temp;
 
       for (int i=0; i<stripByteCounts.length; i++) {
         // case 1: we're still within bitsPerSample array bounds
@@ -574,11 +588,11 @@ public abstract class TiffTools {
           // remember that the universe collapses when we divide by 0
           if (bitsPerSample[i] != 0) {
             rowsPerStripArray[i] = (long) stripByteCounts[i] /
-              (imageLength * (bitsPerSample[i] / 8));
+              (imageWidth * (bitsPerSample[i] / 8));
           }
           else if (bitsPerSample[i] == 0 && i > 0) {
             rowsPerStripArray[i] = (long) stripByteCounts[i] /
-              (imageLength * (bitsPerSample[i - 1] / 8));
+              (imageWidth * (bitsPerSample[i - 1] / 8));
           }
           else {
             throw new BadFormException("BitsPerSample is 0");
@@ -590,6 +604,8 @@ public abstract class TiffTools {
             (imageLength * (bitsPerSample[bitsPerSample.length - 1] / 8));
         }
       }
+
+      samplesPerPixel = 1;
     }
 
     TiffRational xResolution = getIFDRationalValue(ifd, X_RESOLUTION, false);
@@ -661,89 +677,20 @@ public abstract class TiffTools {
       debug(sb.toString());
     }
 
-    if (fakeRPS) {
-      // for LSM files: some arrays can have 0 values where we don't want them
-      // this block goes through stripByteCounts, rowsPerStrip, and
-      // bitsPerSample and removes the 0 entries so the lengths are correct
-
-      // check stripByteCounts
-      boolean needSBC = false;
-      for (int i=0; i<stripByteCounts.length; i++) {
-        if (stripByteCounts[i] == 0) needSBC = true;
+    for (int i=0; i<bitsPerSample.length; i++) {
+      if (bitsPerSample[i] < 1) {
+        throw new BadFormException("Illegal BitsPerSample (" +
+          bitsPerSample[i] + ")");
       }
-      if (needSBC) {
-        long[] temp = new long[stripByteCounts.length - 1];
-        int p = 0;
-        for (int i=0; i < stripByteCounts.length; i++) {
-          if (stripByteCounts[i] != 0) temp[p++] = stripByteCounts[i];
-        }
-        stripByteCounts = new long[temp.length];
-        for (int i=0; i<stripByteCounts.length; i++) {
-          stripByteCounts[i] = temp[i];
-        }
-      }
-
-      // check rowsPerStrip
-      boolean needRPS = false;
-      for (int i=0; i<rowsPerStripArray.length; i++ ) {
-        if (rowsPerStripArray[i] == 0) needRPS = true;
-      }
-      if (needRPS) {
-        long[] temp = new long[rowsPerStripArray.length - 1];
-        int p = 0;
-        for (int i=0; i<rowsPerStripArray.length; i++) {
-          if (rowsPerStripArray[i] != 0) temp[p++] = rowsPerStripArray[i];
-        }
-        rowsPerStripArray = new long[temp.length];
-        for (int i=0; i<rowsPerStripArray.length; i++) {
-          rowsPerStripArray[i] = temp[i];
-        }
-      }
-
-      // check bitsPerSample
-      boolean needBPS = false;
-      for (int i=0; i<bitsPerSample.length; i++) {
-        if (bitsPerSample[i] == 0) needBPS = true;
-      }
-      if (needBPS) {
-        int[] temp = new int[bitsPerSample.length - 1];
-        int p = 0;
-        for (int i=0; i<bitsPerSample.length; i++) {
-          if (bitsPerSample[i] != 0) temp[p++] = bitsPerSample[i];
-        }
-        bitsPerSample = new int[temp.length];
-        for (int i=0; i<bitsPerSample.length; i++) {
-          bitsPerSample[i] = temp[i];
-        }
+      else if (bitsPerSample[i] > 8 && bitsPerSample[i] % 8 != 0) {
+        throw new BadFormException("Sorry, unsupported BitsPerSample (" +
+          bitsPerSample[i] + ")");
       }
     }
 
-    // do some error checking
-
-    int bpsLength = bitsPerSample.length;
-    if (fakeRPS) {
-      for (int i=0; i<bitsPerSample.length; i++) {
-        if (bitsPerSample[i] < 1) {
-          bpsLength--;
-        }
-      }
-    }
-    else {
-      for (int i=0; i<bitsPerSample.length; i++) {
-        if (bitsPerSample[i] < 1) {
-          throw new BadFormException("Illegal BitsPerSample (" +
-            bitsPerSample[i] + ")");
-        }
-        else if (bitsPerSample[i] > 8 && bitsPerSample[i] % 8 != 0) {
-          throw new BadFormException("Sorry, unsupported BitsPerSample (" +
-            bitsPerSample[i] + ")");
-        }
-      }
-    }
-
-    if (bpsLength != samplesPerPixel) {
+    if (bitsPerSample.length != samplesPerPixel) {
       throw new BadFormException("BitsPerSample length (" +
-        bpsLength + ") does not match SamplesPerPixel (" +
+        bitsPerSample.length + ") does not match SamplesPerPixel (" +
         samplesPerPixel + ")");
     }
     if (photoInterp == RGB_PALETTE) {
@@ -784,23 +731,11 @@ public abstract class TiffTools {
     long numStrips = (imageLength + rowsPerStrip - 1) / rowsPerStrip;
     if (planarConfig == 2) numStrips *= samplesPerPixel;
 
-    if (fakeRPS) {
-      // special cases for fake RowsPerStrip
-      if ((stripOffsets.length != (numStrips + 1)) &&
-        stripOffsets.length != numStrips)
-      {
-        throw new BadFormException("StripOffsets length (" +
-        stripOffsets.length + ") does not match expected " +
-        "number of strips (" + numStrips + ")");
-      }
-    }
-    else {
-      if (stripOffsets.length != numStrips) {
+    if (stripOffsets.length != numStrips) {
         throw new BadFormException("StripOffsets length (" +
           stripOffsets.length + ") does not match expected " +
           "number of strips (" + numStrips + ")");
       }
-    }
 
     if (stripByteCounts.length != numStrips) {
       throw new BadFormException("StripByteCounts length (" +
@@ -821,11 +756,6 @@ public abstract class TiffTools {
       throw new BadFormException(
         "Unknown PlanarConfiguration (" + planarConfig + ")");
     }
-
-    // check if the image has a fake RowsPerStrip
-    // if it does, and the samplesPerPixel is equal to 2,
-    // we will need to increase samplesPerPixel by 1
-    if (fakeRPS && samplesPerPixel == 2) samplesPerPixel++;
 
     // read in image strips
     if (DEBUG) {
