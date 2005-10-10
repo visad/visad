@@ -65,8 +65,87 @@ public class MetamorphForm extends BaseTiffForm {
     super("MetamorphForm" + formCount++);
   }
 
-
   // -- Internal BaseTiffForm API methods --
+
+  protected void initFile(String id)
+    throws BadFormException, IOException, VisADException
+  {
+    super.initFile(id);
+
+    long[] uic2 = TiffTools.getIFDLongArray(ifds[0], UIC2TAG, true);
+    numImages = uic2.length;
+
+    // copy ifds into a new array of Hashtables that will accomodate the
+    // additional image planes
+
+    Hashtable[] tempIFDs = new Hashtable[ifds.length + numImages];
+    System.arraycopy(ifds, 0, tempIFDs, 0, ifds.length);
+    int pointer = ifds.length;
+
+    long[] oldOffsets = TiffTools.getIFDLongArray(ifds[0],
+        TiffTools.STRIP_OFFSETS, true);
+
+    long[] stripByteCounts = TiffTools.getIFDLongArray(ifds[0],
+        TiffTools.STRIP_BYTE_COUNTS, true);
+
+    int stripsPerImage = oldOffsets.length;
+
+    // for each image plane, construct an IFD hashtable
+
+    Hashtable temp;
+    for(int i=1; i<numImages; i++) {
+      temp = new Hashtable();
+
+      // copy most of the data from 1st IFD
+
+      temp.put(new Integer(TiffTools.LITTLE_ENDIAN), ifds[0].get(
+            new Integer(TiffTools.LITTLE_ENDIAN)));
+      temp.put(new Integer(TiffTools.IMAGE_WIDTH), ifds[0].get(
+            new Integer(TiffTools.IMAGE_WIDTH)));
+      temp.put(new Integer(TiffTools.IMAGE_LENGTH),
+        ifds[0].get(new Integer(TiffTools.IMAGE_LENGTH)));
+      temp.put(new Integer(TiffTools.BITS_PER_SAMPLE), ifds[0].get(
+          new Integer(TiffTools.BITS_PER_SAMPLE)));
+      temp.put(new Integer(TiffTools.COMPRESSION), ifds[0].get(
+          new Integer(TiffTools.COMPRESSION)));
+      temp.put(new Integer(TiffTools.PHOTOMETRIC_INTERPRETATION),
+        ifds[0].get(new Integer(
+            TiffTools.PHOTOMETRIC_INTERPRETATION)));
+      temp.put(new Integer(TiffTools.STRIP_BYTE_COUNTS), ifds[0].get(
+          new Integer(TiffTools.STRIP_BYTE_COUNTS)));
+      temp.put(new Integer(TiffTools.ROWS_PER_STRIP), ifds[0].get(
+          new Integer(TiffTools.ROWS_PER_STRIP)));
+      temp.put(new Integer(TiffTools.X_RESOLUTION), ifds[0].get(
+          new Integer(TiffTools.X_RESOLUTION)));
+      temp.put(new Integer(TiffTools.Y_RESOLUTION), ifds[0].get(
+          new Integer(TiffTools.Y_RESOLUTION)));
+      temp.put(new Integer(TiffTools.RESOLUTION_UNIT), ifds[0].get(
+          new Integer(TiffTools.RESOLUTION_UNIT)));
+      temp.put(new Integer(TiffTools.PREDICTOR), ifds[0].get(
+            new Integer(TiffTools.PREDICTOR)));
+
+      // now we need a StripOffsets entry
+
+      long planeOffset = i*(oldOffsets[stripsPerImage - 1] +
+          stripByteCounts[stripsPerImage - 1] -
+            oldOffsets[0]);
+
+      long[] newOffsets = new long[oldOffsets.length];
+
+      newOffsets[0] = planeOffset + oldOffsets[0];
+
+      for(int j=1; j<newOffsets.length; j++) {
+        newOffsets[j] = newOffsets[j-1] + stripByteCounts[0];
+      }
+
+      temp.put(new Integer(TiffTools.STRIP_OFFSETS), newOffsets);
+
+      tempIFDs[pointer] = temp;
+      pointer++;
+    }
+
+    ifds = tempIFDs;
+  }
 
   /** Populates the metadata hashtable. */
   protected void initMetadata() {
