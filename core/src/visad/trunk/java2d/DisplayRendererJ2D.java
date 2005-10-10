@@ -575,7 +575,7 @@ public abstract class DisplayRendererJ2D
       if (!renderer.getExceptionVector().isEmpty()) return true;
     }
 
-    if (getWaitFlag()) return true;
+    if (getWaitFlag() && getWaitMessageVisible()) return true;
     return false;
   }
 
@@ -659,7 +659,7 @@ public abstract class DisplayRendererJ2D
     }
 
     // draw wait flag in lower left corner of screen
-    if (getWaitFlag()) {
+    if (getWaitFlag() && getWaitMessageVisible()) {
       graphics.drawString("please wait . . .", x, y);
       y -= 12;
     }

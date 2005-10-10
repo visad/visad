@@ -488,8 +488,8 @@ public abstract class DisplayRendererJ3D
     cursor_color = cc;
     back_clip = view.getBackClipDistance();
     front_clip = view.getFrontClipDistance();
-    // System.out.println("back_clip = " + back_clip +
-    //                    " front_clip = " + front_clip);
+    System.out.println("back_clip = " + back_clip +
+                       " front_clip = " + front_clip);
     // back_clip = 10.0 front_clip = 0.1
 
     // WLH 14 April 98
@@ -983,7 +983,7 @@ public abstract class DisplayRendererJ3D
     }
 
     // draw wait flag in lower left corner of screen
-    if (getWaitFlag()) {
+    if (getWaitFlag() && getWaitMessageVisible()) {
       try {
         VisADLineArray array =
           PlotText.render_label("please wait . . .", startl, base, up, false);

@@ -78,6 +78,9 @@ public abstract class DisplayRenderer
   /** Set to true to make animation Strings visible on the display */
   private boolean aniStringVisible = true;
 
+  /** Set to true to make please wait Strings visible on the display */
+  private boolean waitMessageVisible = true;
+
   /**
    * Construct a new <CODE>DisplayRenderer</CODE>.
    */
@@ -536,6 +539,24 @@ public abstract class DisplayRenderer
    */
   public boolean getAnimationStringVisible() {
     return aniStringVisible;
+  }
+
+  /**
+   * Set whether the "please wait" info should be visible in the display
+   * or not.
+   * @param  visible  true to show the please wait info
+   */
+  public void setWaitMessageVisible(boolean visible) {
+    waitMessageVisible = visible;
+  }
+
+  /**
+   * Return whether the please wait info should be visible in the display
+   * or not.
+   * @return   true if the "please wait" info should be shown
+   */
+  public boolean getWaitMessageVisible() {
+    return waitMessageVisible;
   }
 
   /**
