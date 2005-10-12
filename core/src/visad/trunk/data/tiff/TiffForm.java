@@ -102,7 +102,7 @@ public class TiffForm extends BaseTiffForm {
     }
     catch (BadFormException exc) {
       if (exc.getMessage().startsWith("Sorry")) {
-        /*TEMP*/System.out.println("CRAP, NEED LEGACY");
+        if (TiffTools.DEBUG) exc.printStackTrace();
         needLegacy = true;
         return open(id, block_number);
       }
@@ -120,7 +120,7 @@ public class TiffForm extends BaseTiffForm {
     }
     catch (BadFormException exc) {
       if (exc.getMessage().startsWith("Sorry")) {
-        /*TEMP*/System.out.println("CRAP, NEED LEGACY");
+        if (TiffTools.DEBUG) exc.printStackTrace();
         needLegacy = true;
         return getBlockCount(id);
       }
