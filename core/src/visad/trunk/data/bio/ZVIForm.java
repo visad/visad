@@ -320,7 +320,9 @@ public class ZVIForm extends Form implements
         case 7: type = "64 bit float, 64 bpp"; break;
         case 8: type = "16 bit unsigned short triple, 48 bpp"; break;
         case 9: type = "32 bit int triple, 96 bpp"; break;
-        default: type = "undefined pixel type"; System.out.println(pixelType);
+        default:
+          type = "undefined pixel type";
+          if (DEBUG) System.out.println(pixelType);
       }
 
       metadata.put("Width", new Integer(width));
@@ -352,22 +354,16 @@ public class ZVIForm extends Form implements
   public void readMetadata(String id) throws
     VisADException, IOException
   {
-    System.out.println("Reading the metadata: ");
+    if (DEBUG) System.out.println("Reading the metadata: ");
     Hashtable metadata = getMetadata(id);
     String[] names = {"Width", "Height", "PixelType", "BPP"};
 
-    for (int j=0; j < names.length; j++) {
-      System.out.println(names[j] + " ");
-      System.out.println(metadata.get((Object) names[j]));
+    if (DEBUG) {
+      for (int j=0; j<names.length; j++) {
+        System.out.println(names[j] + " ");
+        System.out.println(metadata.get((Object) names[j]));
+      }
     }
-
-//    OMEXMLWriter writer = new OMEXMLWriter();
-//    writer.setFile(id);
-//    writer.setMetadata(metadata);
-//    writer.writeFile("ZVI");
-
-//    OMETIFFWriter omeWriter = new OMETIFFWriter();
-//    omeWriter.writeOMETIFF(id, id + ".tiff");
   }
 
 
