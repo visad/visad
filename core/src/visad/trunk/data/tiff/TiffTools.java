@@ -223,6 +223,7 @@ public abstract class TiffTools {
         int tag = read2UnsignedBytes(in, littleEndian);
         int type = read2UnsignedBytes(in, littleEndian);
         int count = (int) read4UnsignedBytes(in, littleEndian);
+        if (count < 0) return null; // invalid data
         Object value = null;
         long pos = in.getFilePointer() + 4;
         if (type == 1) { // BYTE

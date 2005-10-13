@@ -161,6 +161,7 @@ public abstract class BaseTiffForm extends Form implements FormBlockReader,
     currentId = id;
     in = new RandomAccessFile(id, "r");
     ifds = TiffTools.getIFDs(in);
+    if (ifds == null) throw new BadFormException("No IFDs found");
     numImages = ifds.length;
     metadata = new Hashtable();
     initMetadata();
@@ -566,7 +567,7 @@ public abstract class BaseTiffForm extends Form implements FormBlockReader,
   public DataImpl open(URL url)
     throws BadFormException, IOException, VisADException
   {
-    throw new UnimplementedException("FluoviewTiffForm.open(URL)");
+    throw new UnimplementedException("BaseTiffForm.open(URL)");
   }
 
   /** Returns the data forms that are compatible with a data object. */
