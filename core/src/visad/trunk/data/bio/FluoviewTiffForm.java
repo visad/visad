@@ -275,7 +275,7 @@ public class FluoviewTiffForm extends BaseTiffForm {
   public static void main(String[] args)
     throws VisADException, RemoteException, IOException
   {
-    new FluoviewTiffForm().testRead("Fluoview TIFF", args);
+    testRead(new FluoviewTiffForm(), "Fluoview TIFF", args);
   }
 
 }

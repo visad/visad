@@ -26,21 +26,14 @@ MA 02111-1307, USA
 
 package visad.data.bio;
 
-import java.awt.BorderLayout;
 import java.io.*;
 import java.rmi.RemoteException;
 import java.net.*;
-import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.Vector;
-import javax.swing.*;
-
 import visad.*;
 import visad.data.*;
+import visad.data.tiff.BaseTiffForm;
 import visad.data.tiff.TiffTools;
-import visad.java2d.DisplayImplJ2D;
-import visad.util.*;
 
 /**
  * IPLabForm is the VisAD data adapter for IPLab (.IPL) files.
@@ -59,19 +52,22 @@ public class IPLabForm extends Form implements FormBlockReader,
   // -- Fields --
 
   /** Current filename. */
-  private String currentId;
+  protected String currentId;
 
   /** Current file. */
-  private RandomAccessFile in;
+  protected RandomAccessFile in;
 
   /** Hashtable containing metadata. */
-  private Hashtable metadata;
+  protected Hashtable metadata;
 
   /** Percent complete with current operation. */
-  private double percent;
+  protected double percent;
 
-  private boolean littleEndian;
-  private Object ome;
+  /** Flag indicating whether current file is little endian. */
+  protected boolean littleEndian;
+
+  /** OME root node for OME-XML metadata. */
+  protected Object ome;
 
 
   // -- Constructor --
@@ -634,93 +630,7 @@ public class IPLabForm extends Form implements FormBlockReader,
   public static void main(String[] args)
     throws VisADException, IOException, RemoteException
   {
-    IPLabForm form = new IPLabForm();
-
-    if (args == null || args.length < 1) {
-      System.out.println("To test read an IPLab file, run:");
-      System.out.println("java visad.data.bio.IPLabForm file");
-      return;
-    }
-    String id = args[0];
-
-    // check type
-    System.out.println("Checking IPLab format ");
-    System.out.println(form.isThisType(id) ? "[yes]" : "[no]");
-
-    // read metadata
-    System.out.println("Reading " + id + " metadata ");
-    Hashtable meta = form.getMetadata(id);
-    System.out.println("[done]");
-    System.out.println();
-    Enumeration e = meta.keys();
-    Vector v = new Vector();
-    while (e.hasMoreElements()) v.add(e.nextElement());
-    String[] keys = new String[v.size()];
-    v.copyInto(keys);
-    Arrays.sort(keys);
-    for (int i=0; i<keys.length; i++) {
-      System.out.print(keys[i] + ": ");
-      System.out.print(form.getMetadataValue(
-            id, keys[i]) + "\n");
-    }
-    System.out.println();
-
-    // read pixels
-    System.out.print("Reading " + id + " pixel data ");
-    Data data = form.open(args[0]);
-    System.out.println("[done]");
-
-    System.out.println("MathType =\n" + data.getType());
-
-    // output OME-XML
-    Object root = null;
-    try {
-      root = form.getOMENode(id);
-    }
-    catch(BadFormException exc) { }
-    if (root == null) {
-      System.out.println(
-        "OME-XML functionality not available " +
-        "(package loci.ome.xml not installed)");
-      System.out.println();
-    }
-    else {
-      System.out.println(OMETools.dumpXML(root));
-      System.out.println();
-    }
-
-    // extract types
-    FunctionType ftype = (FunctionType) data.getType();
-    RealTupleType domain = ftype.getDomain();
-    RealType[] xy = domain.getRealComponents();
-    RealTupleType range = (RealTupleType) ftype.getRange();
-    RealType value = range.getRealComponents()[0];
-
-    // configure display
-    DisplayImpl display = new DisplayImplJ2D("display");
-    display.addMap(new ScalarMap(xy[0], Display.XAxis));
-    display.addMap(new ScalarMap(xy[1], Display.YAxis));
-    ScalarMap colorMap = new ScalarMap(value, Display.RGB);
-    display.addMap(colorMap);
-    DataReferenceImpl ref = new DataReferenceImpl("ref");
-    ref.setData(data);
-    display.addReference(ref);
-    display.getGraphicsModeControl().setScaleEnable(true);
-    LabeledColorWidget lcw = new LabeledColorWidget(colorMap);
-    RangeWidget rw = new RangeWidget(colorMap);
-
-    // pop up frame
-    JFrame frame = new JFrame("IPLab Test");
-    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    JPanel p = new JPanel();
-    frame.setContentPane(p);
-    p.setLayout(new BorderLayout());
-    p.add(display.getComponent());
-    p.add(BorderLayout.EAST, lcw);
-    p.add(BorderLayout.SOUTH, rw);
-    frame.pack();
-    frame.setLocation(300, 300);
-    frame.show();
+    BaseTiffForm.testRead(new IPLabForm(), "IPLab", args);
   }
 
 }

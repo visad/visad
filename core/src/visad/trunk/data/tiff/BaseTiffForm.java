@@ -26,14 +26,21 @@ MA 02111-1307, USA
 
 package visad.data.tiff;
 
+import java.awt.BorderLayout;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.*;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.*;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 import visad.*;
 import visad.data.*;
 import visad.data.bio.OMEReader;
 import visad.data.bio.OMETools;
+import visad.java2d.DisplayImplJ2D;
+import visad.util.*;
 
 /**
  * BaseTiffForm is the superclass for VisAD data forms compatible with
@@ -76,6 +83,150 @@ public abstract class BaseTiffForm extends Form implements FormBlockReader,
     super(name);
   }
 
+  // -- Static BaseTiffForm API methods --
+
+  /**
+   * A utility method for test reading a file from the command line,
+   * and displaying the results in a VisAD display.
+   */
+  public static void testRead(Form form, String format, String[] args)
+    throws VisADException, IOException
+  {
+    String className = form.getClass().getName();
+    if (args == null || args.length < 1) {
+      System.out.println("To test read a file in " + format + " format, run:");
+      System.out.println("  java " + className + " in_file");
+      return;
+    }
+    String id = args[0];
+
+    if (form instanceof FormFileInformer) {
+      FormFileInformer infoForm = (FormFileInformer) form;
+
+      // check type
+      System.out.print("Checking " + format + " format ");
+      System.out.println(infoForm.isThisType(id) ? "[yes]" : "[no]");
+    }
+
+    if (form instanceof MetadataReader) {
+      MetadataReader metaForm = (MetadataReader) form;
+
+      // read metadata
+      System.out.print("Reading " + id + " metadata ");
+      Hashtable meta = metaForm.getMetadata(id);
+      System.out.println("[done]");
+
+      // output metadata
+      Enumeration e = meta.keys();
+      Vector v = new Vector();
+      while (e.hasMoreElements()) v.add(e.nextElement());
+      String[] keys = new String[v.size()];
+      v.copyInto(keys);
+      Arrays.sort(keys);
+      for (int i=0; i<keys.length; i++) {
+        System.out.print(keys[i] + ": ");
+        System.out.print(metaForm.getMetadataValue(id, keys[i]) + "\n");
+      }
+      System.out.println();
+    }
+
+    if (form instanceof OMEReader) {
+      OMEReader omeForm = (OMEReader) form;
+
+      // output OME-XML
+      Object root = null;
+      try {
+        root = omeForm.getOMENode(id);
+      }
+      catch (BadFormException exc) { }
+      if (root == null) {
+        System.out.println("OME-XML functionality not available " +
+          "(package loci.ome.xml not installed)");
+        System.out.println();
+      }
+      else {
+        System.out.println(OMETools.dumpXML(root));
+        System.out.println();
+      }
+    }
+
+    // read pixels
+    System.out.print("Reading " + id + " pixel data ");
+    Data data = form.open(args[0]);
+    System.out.println("[done]");
+    System.out.println("MathType =\n" + data.getType());
+
+    // extract types
+    FunctionType ftype = (FunctionType) data.getType();
+    RealTupleType domain = ftype.getDomain();
+    RealType[] xy = domain.getRealComponents();
+    RealType time = null;
+    if (xy.length == 1) {
+      // assume multiple images over time
+      time = xy[0];
+      ftype = (FunctionType) ftype.getRange();
+      domain = ftype.getDomain();
+      xy = domain.getRealComponents();
+    }
+    MathType range = ftype.getRange();
+    RealType[] values = range instanceof RealType ?
+      new RealType[] {(RealType) range} :
+      ((RealTupleType) range).getRealComponents();
+
+    // configure display
+    DisplayImpl display = new DisplayImplJ2D("display");
+    ScalarMap timeMap = null;
+    if (time != null) {
+      timeMap = new ScalarMap(time, Display.Animation);
+      display.addMap(timeMap);
+    }
+    display.addMap(new ScalarMap(xy[0], Display.XAxis));
+    display.addMap(new ScalarMap(xy[1], Display.YAxis));
+    ScalarMap colorMap = null;
+    if (values.length == 2 || values.length == 3) {
+      // do separate mappings to Red, Green and Blue
+      display.addMap(new ScalarMap(values[0], Display.Red));
+      display.addMap(new ScalarMap(values[1], Display.Green));
+      if (values.length == 3) {
+        display.addMap(new ScalarMap(values[2], Display.Blue));
+      }
+    }
+    else {
+      // use the first component only
+      colorMap = new ScalarMap(values[0], Display.RGB);
+      display.addMap(colorMap);
+    }
+    DataReferenceImpl ref = new DataReferenceImpl("ref");
+    ref.setData(data);
+    display.addReference(ref);
+    display.getGraphicsModeControl().setScaleEnable(true);
+
+    // pop up frame
+    JFrame frame = new JFrame(format + " Results");
+    frame.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {
+        System.exit(0);
+      }
+    });
+    JPanel p = new JPanel();
+    frame.setContentPane(p);
+    p.setLayout(new BorderLayout());
+    p.add(display.getComponent());
+    if (timeMap != null) {
+      AnimationWidget aw = new AnimationWidget(timeMap);
+      p.add(BorderLayout.SOUTH, aw);
+    }
+    if (colorMap != null) {
+      RangeWidget rw = new RangeWidget(colorMap);
+      LabeledColorWidget lcw = new LabeledColorWidget(colorMap);
+      p.add(BorderLayout.NORTH, rw);
+      p.add(BorderLayout.EAST, lcw);
+    }
+    frame.pack();
+    frame.setLocation(300, 300);
+    frame.show();
+  }
+
 
   // -- BaseTiffForm API methods --
 
@@ -90,64 +241,6 @@ public abstract class BaseTiffForm extends Form implements FormBlockReader,
       TiffTools.getIFDIntValue(ifds[0], TiffTools.IMAGE_LENGTH, false, -1),
       numImages
     };
-  }
-
-  /** A utility method for test reading a file from the command line. */
-  public void testRead(String format, String[] args)
-    throws VisADException, IOException
-  {
-    String className = this.getClass().getName();
-    if (args == null || args.length < 1) {
-      System.out.println("To test read a file in " + format + " format, run:");
-      System.out.println("  java " + className + " in_file");
-      return;
-    }
-    String id = args[0];
-
-    // check type
-    System.out.print("Checking " + format + " format ");
-    System.out.println(isThisType(id) ? "[yes]" : "[no]");
-
-    // read metadata
-    System.out.print("Reading " + id + " metadata ");
-    Hashtable meta = getMetadata(id);
-    System.out.println("[done]");
-
-    // output metadata
-    Enumeration e = meta.keys();
-    Vector v = new Vector();
-    while (e.hasMoreElements()) v.add(e.nextElement());
-    String[] keys = new String[v.size()];
-    v.copyInto(keys);
-    Arrays.sort(keys);
-    for (int i=0; i<keys.length; i++) {
-      System.out.print(keys[i] + ": ");
-      System.out.print(getMetadataValue(id, keys[i]) + "\n");
-    }
-    System.out.println();
-
-    // output OME-XML
-    Object root = null;
-    try {
-      root = getOMENode(id);
-    }
-    catch (BadFormException exc) { }
-    if (root == null) {
-      System.out.println("OME-XML functionality not available " +
-        "(package loci.ome.xml not installed)");
-      System.out.println();
-    }
-    else {
-      System.out.println(OMETools.dumpXML(ome));
-      System.out.println();
-    }
-
-    // read pixels
-    System.out.print("Reading " + id + " pixel data ");
-    Data data = open(args[0]);
-    System.out.println("[done]");
-
-    System.out.println("MathType =\n" + data.getType());
   }
 
 

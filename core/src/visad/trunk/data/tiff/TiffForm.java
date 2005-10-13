@@ -163,7 +163,7 @@ public class TiffForm extends BaseTiffForm {
 
     if (args.length == 1) {
       // Test read TIFF file
-      new TiffForm().testRead("TIFF", args);
+      testRead(new TiffForm(), "TIFF", args);
     }
     else if (args.length == 2) {
       // Convert file to TIFF format

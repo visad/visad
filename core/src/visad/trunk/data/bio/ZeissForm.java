@@ -647,7 +647,7 @@ public class ZeissForm extends BaseTiffForm {
   public static void main(String[] args)
     throws VisADException, RemoteException, IOException
   {
-    new ZeissForm().testRead("Zeiss LSM", args);
+    testRead(new ZeissForm(), "Zeiss LSM", args);
   }
 
 }

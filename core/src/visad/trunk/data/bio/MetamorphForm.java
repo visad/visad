@@ -531,7 +531,7 @@ public class MetamorphForm extends BaseTiffForm {
   public static void main(String[] args)
     throws VisADException, RemoteException, IOException
   {
-    new MetamorphForm().testRead("Metamorph STK", args);
+    testRead(new MetamorphForm(), "Metamorph STK", args);
   }
 
 }

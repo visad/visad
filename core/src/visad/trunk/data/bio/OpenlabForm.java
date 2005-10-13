@@ -680,36 +680,7 @@ public class OpenlabForm extends Form implements FormBlockReader,
   public static void main(String[] args)
     throws VisADException, IOException
   {
-    if (args == null || args.length < 1) {
-      System.out.println("To test read an Openlab LIFF file, run:");
-      System.out.println("  java visad.data.bio.OpenlabForm in_file");
-      System.exit(2);
-    }
-
-    // Test read Openlab LIFF file
-    OpenlabForm form = new OpenlabForm();
-    System.out.print("Reading " + args[0] + " ");
-    Data data = form.open(args[0]);
-
-    System.out.println("[done]");
-    System.out.println("MathType =\n" + data.getType());
-
-    System.out.println("Reading metadata for " + args[0]);
-    Hashtable metadata = form.getMetadata(args[0]);
-
-    String[] tagNames = {
-      "Byte Order", "Version", "Count", "Format", "NumBytes", "isOpenlab2",
-      "LayerID", "LayerType", "BitDepth", "Opacity", "ImageType", "Timestamp",
-      "LayerName", "Timestamp-MS", "Notes", "Platform", "Units", "ID",
-      "XOrigin", "YOrigin", "XScale", "YScale", "Other"
-    };
-
-    for (int j=0; j < tagNames.length; j++) {
-      System.out.println(tagNames[j] + " ");
-      System.out.println(metadata.get((Object) tagNames[j]));
-    }
-
-    System.exit(0);
+    BaseTiffForm.testRead(new OpenlabForm(), "Openlab LIFF", args);
   }
 
 }

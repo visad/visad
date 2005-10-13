@@ -29,9 +29,9 @@ package visad.data.bio;
 import java.io.*;
 import java.net.URL;
 import java.util.*;
-
 import visad.*;
 import visad.data.*;
+import visad.data.tiff.BaseTiffForm;
 
 /**
  * ZVIForm is the VisAD data adapter for reading Zeiss ZVI files.
@@ -725,20 +725,7 @@ public class ZVIForm extends Form implements
   public static void main(String[] args)
     throws VisADException, IOException
   {
-    if (args == null || args.length < 1) {
-      System.out.println("To test read a Zeiss ZVI file, run:");
-      System.out.println("  java visad.data.bio.ZVIForm in_file");
-      System.exit(2);
-    }
-
-    // Test read Zeiss ZVI file
-    ZVIForm form = new ZVIForm();
-    System.out.print("Reading " + args[0] + " ");
-    Data data = form.open(args[0]);
-
-    System.out.println("[done]");
-    System.out.println("MathType =\n" + data.getType());
-    System.exit(0);
+    BaseTiffForm.testRead(new ZVIForm(), "Zeiss ZVI", args);
   }
 
 }
