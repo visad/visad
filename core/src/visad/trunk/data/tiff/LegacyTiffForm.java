@@ -203,7 +203,7 @@ public class LegacyTiffForm extends Form
         }
         r.setVar("si", "" + i);
 
-        // ugly, Ugly, UGLY HACK
+        // UGLY HACK
         //
         // There are two methods:
         //  - ImageStack.addSlice(String, Object)
@@ -374,8 +374,8 @@ public class LegacyTiffForm extends Form
   // -- Helper methods --
 
   /**
-   * Converts a FlatField of the form <tt>((x, y) -&gt; (r, g, b))</tt>
-   * to an ImageJ ImageProcessor object.
+   * Converts a FlatField of the form <tt>((x, y) -&gt; value)</tt> or
+   * <tt>((x, y) -&gt; (r, g, b))</tt> to an ImageJ ImageProcessor object.
    */
   private Object extractImage(FlatField field) throws VisADException {
     GriddedSet set = (GriddedSet) field.getDomainSet();
@@ -385,7 +385,12 @@ public class LegacyTiffForm extends Form
     float[][] samples = field.getFloats(false);
     r.setVar("w", w);
     r.setVar("h", h);
-    if (samples.length == 3) {
+
+    // HACK - detect "fake" 3-color images
+    boolean fake3 = samples.length == 3 &&
+      samples[0] == samples[1] && samples[0] == samples[2];
+
+    if (samples.length == 3 && !fake3) {
       // 24-bit color is the best we can do
       int[] pixels = new int[samples[0].length];
       for (int i=0; i<pixels.length; i++) {
@@ -397,7 +402,7 @@ public class LegacyTiffForm extends Form
       r.setVar("pixels", pixels);
       r.exec("proc = new ColorProcessor(w, h, pixels)");
     }
-    else if (samples.length == 1) {
+    else if (samples.length == 1 || fake3) {
       // check for 8-bit, 16-bit or 32-bit grayscale
       float lo = Float.POSITIVE_INFINITY, hi = Float.NEGATIVE_INFINITY;
       for (int i=0; i<samples[0].length; i++) {
