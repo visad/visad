@@ -89,7 +89,7 @@ public abstract class BaseTiffForm extends Form implements FormBlockReader,
    * A utility method for test reading a file from the command line,
    * and displaying the results in a VisAD display.
    */
-  public static void testRead(Form form, String format, String[] args)
+  public static void testRead(FormNode form, String format, String[] args)
     throws VisADException, IOException
   {
     String className = form.getClass().getName();

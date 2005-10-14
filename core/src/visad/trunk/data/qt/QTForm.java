@@ -50,10 +50,10 @@ public class QTForm extends Form
 
   // -- Constants --
 
-  private static final String[] SUFFIXES = { "mov" };
-
-  private static final String NO_QT_MSG = "You need to install " +
+  public static final String NO_QT_MSG = "You need to install " +
     "QuickTime for Java from http://www.apple.com/quicktime/";
+
+  private static final String[] SUFFIXES = { "mov" };
 
   private static final boolean MAC_OS_X =
     System.getProperty("os.name").equals("Mac OS X");
@@ -184,7 +184,6 @@ public class QTForm extends Form
 
   /** Checks if the given string is a valid filename for a QuickTime movie. */
   public boolean isThisType(String name) {
-    if (noQT) return false;
     for (int i=0; i<SUFFIXES.length; i++) {
       if (name.toLowerCase().endsWith(SUFFIXES[i])) return true;
     }

@@ -40,6 +40,7 @@ import visad.data.tiff.*;
 /**
  * OpenlabForm is the VisAD data adapter used for Openlab LIFF files.
  * @author Eric Kjellman egkjellman at wisc.edu
+ * @author Curtis Rueden ctrueden at wisc.edu
  */
 public class OpenlabForm extends Form implements FormBlockReader,
   FormFileInformer, FormProgressInformer, MetadataReader
@@ -50,7 +51,7 @@ public class OpenlabForm extends Form implements FormBlockReader,
   /** Form instantiation counter. */
   private static int formCount = 0;
 
-  /** Helper form for reading PICT data with QTJava library. */
+  /** Helper form foin.reading PICT data with QTJava library. */
   private static QTForm qtForm = new QTForm();
 
   /** Domain of 2-D image. */
@@ -92,10 +93,13 @@ public class OpenlabForm extends Form implements FormBlockReader,
   private String currentId;
 
   /** Input stream for current Openlab LIFF. */
-  private RandomAccessFile r;
+  private RandomAccessFile in;
 
   /** Number of blocks for current Openlab LIFF. */
   private int numBlocks;
+
+  /** Hashtable containing metadata for the current Openlab LIFF. */
+  private Hashtable metadata;
 
   /** Offset for each block of current Openlab LIFF. */
   private int[] offsets;
@@ -143,14 +147,10 @@ public class OpenlabForm extends Form implements FormBlockReader,
 
   /** Checks if the given block is a valid header for a Openlab file. */
   public boolean isThisType(byte[] block) {
-    if (block[0] == 0 && block[1] == 0 &&
+    return block[0] == 0 && block[1] == 0 &&
       block[2] == -1 && block[3] == -1 &&
       block[4] == 105 && block[5] == 109 &&
-      block[6] == 112 && block[7] == 114)
-    {
-      return true;
-    }
-    return false;
+      block[6] == 112 && block[7] == 114;
   }
 
   /** Returns the default file suffixes for the Openlab file format. */
@@ -250,28 +250,28 @@ public class OpenlabForm extends Form implements FormBlockReader,
   public synchronized DataImpl open(String id, int blockNumber)
     throws BadFormException, IOException, VisADException
   {
-    if (id != currentId) initFile(id);
+    if (!id.equals(currentId)) initFile(id);
 
     // First, initialize:
-    r.seek(offsets[blockNumber] + 12);
+    in.seek(offsets[blockNumber] + 12);
     byte[] toRead = new byte[4];
-    r.read(toRead);
+    in.read(toRead);
     int blockSize = batoi(toRead);
 
     toRead = new byte[1];
-    r.read(toRead);
+    in.read(toRead);
     // right now I'm gonna skip all the header info
     // check to see whether or not this is v2 data
     if (toRead[0] == 1) {
-      r.skipBytes(128);
+      in.skipBytes(128);
     }
-    r.skipBytes(169);
+    in.skipBytes(169);
     // read in the block of data
     toRead = new byte[blockSize];
     int read = 0;
     int left = blockSize;
     while (left > 0) {
-      int i = r.read(toRead, read, left);
+      int i = in.read(toRead, read, left);
       read += i;
       left -= i;
     }
@@ -285,8 +285,8 @@ public class OpenlabForm extends Form implements FormBlockReader,
     int expectedBlock = 0;
     int pos = 0;
     int imagePos = 0;
-    int imagesize = dim.width * dim.height;
-    float[][] flatSamples = new float[1][imagesize];
+    int imageSize = dim.width * dim.height;
+    float[][] flatSamples = new float[1][imageSize];
     byte[] temp;
 
     // set up VisAD objects
@@ -351,7 +351,7 @@ public class OpenlabForm extends Form implements FormBlockReader,
       }
       else {
         if (batoi(temp) != totalBlocks) {
-          throw new BadFormException("Unexpected totalBlocks number read");
+          throw new BadFormException("Unexpected totalBlocks numbein.read");
         }
       }
 
@@ -384,7 +384,7 @@ public class OpenlabForm extends Form implements FormBlockReader,
       }
       flatSamples[0][imagePos] = pixelValue;
       imagePos++;
-      if (imagePos == imagesize) { // done, return it.
+      if (imagePos == imageSize) { // done, return it.
         if (isColor) {
           float[][] flatSamp = new float[3][];
           flatSamp[0] = flatSamp[1] = flatSamp[2] = flatSamples[0];
@@ -406,15 +406,15 @@ public class OpenlabForm extends Form implements FormBlockReader,
   public int getBlockCount(String id)
     throws BadFormException, IOException, VisADException
   {
-    if (id != currentId) initFile(id);
+    if (!id.equals(currentId)) initFile(id);
     return numBlocks;
   }
 
   /** Closes any currently open files. */
   public void close() throws BadFormException, IOException, VisADException {
-    if (r != null) {
-      r.close();
-      r = null;
+    if (in != null) {
+      in.close();
+      in = null;
     }
   }
 
@@ -439,12 +439,8 @@ public class OpenlabForm extends Form implements FormBlockReader,
   public Object getMetadataValue(String id, String field)
     throws BadFormException, IOException, VisADException
   {
-    // Note: the following implementation works but is terribly inefficient.
-    // Eventually this class must be revamped to populate a Hashtable
-    // instance field containing the metadata during initFile, then simply
-    // call get on that here (first initializing if necessary -- see
-    // visad.data.tiff.BaseTiffForm for an example).
-    return getMetadata(id).get(field);
+    if (!id.equals(currentId)) initFile(id);
+    return metadata.get(field);
   }
 
   /**
@@ -456,146 +452,7 @@ public class OpenlabForm extends Form implements FormBlockReader,
   public Hashtable getMetadata(String id)
     throws BadFormException, IOException, VisADException
   {
-    // Note: this should eventually be modeled after
-    // visad.data.tiff.BaseTiffForm, with the metadata being populated in
-    // the initFile method. The following implementation works for now:
-    Hashtable metadata = new Hashtable();
-    RandomAccessFile reader = new RandomAccessFile(id, "r");
-
-    //start by reading the file header
-    byte[] toRead = new byte[4];
-    reader.read(toRead);
-    long order = batoi(toRead);  //byte ordering
-    boolean little = toRead[2] != 0xff || toRead[3] != 0xff;
-    metadata.put("Byte Order", new Boolean(little));
-
-    reader.skipBytes(4);
-    reader.read(toRead);
-    long version = TiffTools.bytesToLong(toRead, little);
-    metadata.put("Version", new Long(version));
-
-    byte[] er = new byte[2];
-    reader.read(er);
-    short count = TiffTools.bytesToShort(er, little);
-    metadata.put("Count", new Short(count));
-
-    reader.skipBytes(2);
-
-    reader.read(toRead);
-    long offset = TiffTools.bytesToLong(toRead, little);
-
-    //skip to first tag
-    reader.seek(offset);
-
-    //read in each tag and its data
-
-    for (int i=0; i<count; i++) {
-      reader.read(er);
-      short tag = TiffTools.bytesToShort(er, little);
-      reader.skipBytes(2);
-
-      reader.read(toRead);
-      offset = TiffTools.bytesToLong(toRead, little);
-
-      reader.read(toRead);
-      long format = TiffTools.bytesToLong(toRead, little);
-      metadata.put("Format", new Long(format));
-
-      reader.read(toRead);
-      long numBytes = TiffTools.bytesToLong(toRead, little);
-      metadata.put("NumBytes", new Long(numBytes));
-
-      if (tag == 67 || tag == 68) {
-        byte[] in = new byte[1];
-        reader.read(in);
-        boolean isOpenlab2;
-        if (in[0] == '0') isOpenlab2 = false;
-        else isOpenlab2 = true;
-        metadata.put("isOpenlab2", new Boolean(isOpenlab2));
-
-        reader.skipBytes(2);
-        reader.read(er);
-        short layerId = TiffTools.bytesToShort(er, little);
-        metadata.put("LayerID", new Short(layerId));
-
-        reader.read(er);
-        short layerType = TiffTools.bytesToShort(er, little);
-        metadata.put("LayerType", new Short(layerType));
-
-        reader.read(er);
-        short bitDepth = TiffTools.bytesToShort(er, little);
-        metadata.put("BitDepth", new Short(bitDepth));
-
-        reader.read(er);
-        short opacity = TiffTools.bytesToShort(er, little);
-        metadata.put("Opacity", new Short(opacity));
-
-        //not sure how many bytes to skip here
-        reader.skipBytes(10);
-
-        reader.read(toRead);
-        long type = TiffTools.bytesToLong(toRead, little);
-        metadata.put("ImageType", new Long(type));
-
-        //not sure how many bytes to skip
-        reader.skipBytes(10);
-
-        reader.read(toRead);
-        long timestamp = TiffTools.bytesToLong(toRead, little);
-        metadata.put("Timestamp", new Long(timestamp));
-
-        reader.skipBytes(2);
-
-        if (isOpenlab2 == true) {
-          byte[] layerName = new byte[127];
-          reader.read(layerName);
-          metadata.put("LayerName", new String(layerName));
-
-          reader.read(toRead);
-          long timestampMS = TiffTools.bytesToLong(toRead, little);
-          metadata.put("Timestamp-MS", new Long(timestampMS));
-
-          reader.skipBytes(1);
-          byte[] notes = new byte[118];
-          reader.read(notes);
-          metadata.put("Notes", new String(notes));
-        }
-        else reader.skipBytes(123);
-
-
-      }
-      else if (tag == 69) {
-        reader.read(toRead);
-        long platform = TiffTools.bytesToLong(toRead, little);
-        metadata.put("Platform", new Long(platform));
-
-        reader.read(er);
-        short units = TiffTools.bytesToShort(er, little);
-        metadata.put("Units", new Short(units));
-
-        reader.read(er);
-        short imageId = TiffTools.bytesToShort(er, little);
-        metadata.put("ID", new Short(imageId));
-        reader.skipBytes(1);
-
-        byte[] toRead2 = new byte[8];
-        double xOrigin = TiffTools.readDouble(reader, little);
-        metadata.put("XOrigin", new Double(xOrigin));
-        double yOrigin = TiffTools.readDouble(reader, little);
-        metadata.put("YOrigin", new Double(yOrigin));
-        double xScale = TiffTools.readDouble(reader, little);
-        metadata.put("XScale", new Double(xScale));
-        double yScale = TiffTools.readDouble(reader, little);
-        metadata.put("YScale", new Double(yScale));
-        reader.skipBytes(1);
-
-        byte[] other = new byte[31];
-        reader.read(other);
-        metadata.put("Other", new String(other));
-      }
-
-      reader.seek(offset);
-    }
+    if (!id.equals(currentId)) initFile(id);
     return metadata;
   }
 
@@ -618,7 +475,7 @@ public class OpenlabForm extends Form implements FormBlockReader,
   private void initFile(String id)
     throws IOException, VisADException, BadFormException
   {
-    r = new RandomAccessFile(id, "r");
+    in = new RandomAccessFile(id, "r");
     currentId = id;
 
     // initialize an array containing tag offsets, so we can
@@ -632,24 +489,36 @@ public class OpenlabForm extends Form implements FormBlockReader,
     Vector v = new Vector(); // a temp vector containing offsets.
 
     // Get first offset.
-    r.seek(16);
-    r.read(toRead);
+    in.seek(16);
+    in.read(toRead);
     int nextOffset = batoi(toRead);
     int nextOffsetTemp;
 
     boolean first = true;
     while(nextOffset != 0) {
-      r.seek(nextOffset + 4);
-      r.read(toRead);
+      in.seek(nextOffset + 4);
+      in.read(toRead);
       nextOffsetTemp = batoi(toRead); // get next tag, but still need this one
-      r.read(toRead);
+      in.read(toRead);
       if ((new String(toRead)).equals("PICT")) {
-        if (first) first = false; // ignore first (solid white) image plane
-        else v.add(new Integer(nextOffset)); // add THIS tag offset
+        boolean ok = true;
+        if (first) {
+          // ignore first image if it is called "Original Image" (pure white)
+          first = false;
+          in.skipBytes(47);
+          byte[] layerNameBytes = new byte[127];
+          in.read(layerNameBytes);
+          String layerName = new String(layerNameBytes);
+          if (layerName.startsWith("Original Image")) ok = false;
+        }
+        if (ok) v.add(new Integer(nextOffset)); // add THIS tag offset
       }
       if (nextOffset == nextOffsetTemp) break;
       nextOffset = nextOffsetTemp;
     }
+
+    in.seek(((Integer) v.firstElement()).intValue());
+
     // create and populate the array of offsets from the vector.
     numBlocks = v.size();
     offsets = new int[numBlocks];
@@ -662,11 +531,154 @@ public class OpenlabForm extends Form implements FormBlockReader,
     toRead = new byte[2];
     imageType = new int[numBlocks];
     for (int i = 0; i < numBlocks; i++) {
-      r.seek(offsets[i]);
-      r.skipBytes(40);
-      r.read(toRead);
+      in.seek(offsets[i]);
+      in.skipBytes(40);
+      in.read(toRead);
       imageType[i] = batoi(toRead);
       if (imageType[i] < 9) isColor = true;
+    }
+
+    initMetadata();
+  }
+
+  /** Populates the metadata hashtable. */
+  private void initMetadata() throws IOException {
+    metadata = new Hashtable();
+
+    //start by reading the file header
+    in.seek(0);
+    byte[] toRead = new byte[4];
+    in.read(toRead);
+    long order = batoi(toRead);  //byte ordering
+    boolean little = toRead[2] != 0xff || toRead[3] != 0xff;
+    metadata.put("Byte Order", new Boolean(little));
+
+    in.skipBytes(4);
+    in.read(toRead);
+    long version = TiffTools.bytesToLong(toRead, little);
+    metadata.put("Version", new Long(version));
+
+    byte[] er = new byte[2];
+    in.read(er);
+    short count = TiffTools.bytesToShort(er, little);
+    metadata.put("Count", new Short(count));
+
+    in.skipBytes(2);
+
+    in.read(toRead);
+    long offset = TiffTools.bytesToLong(toRead, little);
+
+    //skip to first tag
+    in.seek(offset);
+
+    //read in each tag and its data
+
+    for (int i=0; i<count; i++) {
+      in.read(er);
+      short tag = TiffTools.bytesToShort(er, little);
+      in.skipBytes(2);
+
+      in.read(toRead);
+      offset = TiffTools.bytesToLong(toRead, little);
+
+      in.read(toRead);
+      long format = TiffTools.bytesToLong(toRead, little);
+      metadata.put("Format", new Long(format));
+
+      in.read(toRead);
+      long numBytes = TiffTools.bytesToLong(toRead, little);
+      metadata.put("NumBytes", new Long(numBytes));
+
+      if (tag == 67 || tag == 68) {
+        byte[] b = new byte[1];
+        in.read(b);
+        boolean isOpenlab2;
+        if (b[0] == '0') isOpenlab2 = false;
+        else isOpenlab2 = true;
+        metadata.put("isOpenlab2", new Boolean(isOpenlab2));
+
+        in.skipBytes(2);
+        in.read(er);
+        short layerId = TiffTools.bytesToShort(er, little);
+        metadata.put("LayerID", new Short(layerId));
+
+        in.read(er);
+        short layerType = TiffTools.bytesToShort(er, little);
+        metadata.put("LayerType", new Short(layerType));
+
+        in.read(er);
+        short bitDepth = TiffTools.bytesToShort(er, little);
+        metadata.put("BitDepth", new Short(bitDepth));
+
+        in.read(er);
+        short opacity = TiffTools.bytesToShort(er, little);
+        metadata.put("Opacity", new Short(opacity));
+
+        //not sure how many bytes to skip here
+        in.skipBytes(10);
+
+        in.read(toRead);
+        long type = TiffTools.bytesToLong(toRead, little);
+        metadata.put("ImageType", new Long(type));
+
+        //not sure how many bytes to skip
+        in.skipBytes(10);
+
+        in.read(toRead);
+        long timestamp = TiffTools.bytesToLong(toRead, little);
+        metadata.put("Timestamp", new Long(timestamp));
+
+        in.skipBytes(2);
+
+        if (isOpenlab2 == true) {
+          byte[] layerName = new byte[127];
+          in.read(layerName);
+          metadata.put("LayerName", new String(layerName));
+
+          in.read(toRead);
+          long timestampMS = TiffTools.bytesToLong(toRead, little);
+          metadata.put("Timestamp-MS", new Long(timestampMS));
+
+          in.skipBytes(1);
+          byte[] notes = new byte[118];
+          in.read(notes);
+          metadata.put("Notes", new String(notes));
+        }
+        else in.skipBytes(123);
+
+
+      }
+      else if (tag == 69) {
+        in.read(toRead);
+        long platform = TiffTools.bytesToLong(toRead, little);
+        metadata.put("Platform", new Long(platform));
+
+        in.read(er);
+        short units = TiffTools.bytesToShort(er, little);
+        metadata.put("Units", new Short(units));
+
+        in.read(er);
+        short imageId = TiffTools.bytesToShort(er, little);
+        metadata.put("ID", new Short(imageId));
+        in.skipBytes(1);
+
+        byte[] toRead2 = new byte[8];
+        double xOrigin = TiffTools.readDouble(in, little);
+        metadata.put("XOrigin", new Double(xOrigin));
+        double yOrigin = TiffTools.readDouble(in, little);
+        metadata.put("YOrigin", new Double(yOrigin));
+        double xScale = TiffTools.readDouble(in, little);
+        metadata.put("XScale", new Double(xScale));
+        double yScale = TiffTools.readDouble(in, little);
+        metadata.put("YScale", new Double(yScale));
+        in.skipBytes(1);
+
+        byte[] other = new byte[31];
+        in.read(other);
+        metadata.put("Other", new String(other));
+      }
+
+      in.seek(offset);
     }
   }
 
