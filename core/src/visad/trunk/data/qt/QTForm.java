@@ -79,7 +79,7 @@ public class QTForm extends Form
       paths = new URL[] {
         // Windows
         new URL("file:/WinNT/System32/QTJava.zip"),
-        new URL("file:/Program Files/Quick Time/QTSystem/QTJava.zip"),
+        new URL("file:/Program Files/QuickTime/QTSystem/QTJava.zip"),
         new URL("file:/Windows/System32/QTJava.zip"),
         new URL("file:/Windows/System/QTJava.zip"),
         // Mac OS X
