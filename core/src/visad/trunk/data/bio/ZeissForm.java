@@ -65,6 +65,51 @@ public class ZeissForm extends BaseTiffForm {
 
   // -- Internal BaseTiffForm API methods --
 
+  /** Initialize the file */
+  protected void initFile(String id)
+    throws BadFormException, VisADException, IOException
+  {
+    super.initFile(id);
+
+    // go through the IFD hashtable array and
+    // remove anything with NEw_SUBFILE_TYPE = 1
+    // NEW_SUBFILE_TYPE = 1 indicates that the IFD
+    // contains a thumbnail image
+
+    int numThumbs = 0;
+    for (int i=0; i<ifds.length; i++) {
+      long subFileType = TiffTools.getIFDLongValue(ifds[i],
+        TiffTools.NEW_SUBFILE_TYPE, true, 0);
+      if (subFileType == 1) {
+        ifds[i] = null;
+        numThumbs++;
+      }
+    }
+
+    // now copy ifds to a temp array so that we can get rid of
+    // any null entries
+
+    int ifdPointer = 0;
+    Hashtable[] tempIFDs = new Hashtable[ifds.length - numThumbs];
+    for (int i=0; i<tempIFDs.length; i++) {
+      if (ifds[ifdPointer] != null) {
+        tempIFDs[i] = ifds[ifdPointer];
+        ifdPointer++;
+      }
+      else {
+        while ((ifds[ifdPointer] == null) && ifdPointer < ifds.length) {
+          ifdPointer++;
+        }
+        tempIFDs[i] = ifds[ifdPointer];
+        ifdPointer++;
+      }
+    }
+
+    // reset numImages and ifds
+    numImages = tempIFDs.length;
+    ifds = tempIFDs;
+  }
+
   /** Populates the metadata hashtable. */
   protected void initMetadata() {
     Hashtable ifd = ifds[0];
