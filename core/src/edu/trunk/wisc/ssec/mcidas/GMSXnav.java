@@ -1114,7 +1114,7 @@ public class GMSXnav extends AREAnav
       return(asita);
     }
 
-    asita = Math.acos(as1 / Math.sqrt(as2));
+    asita = Math.acos(Math.min(Math.max(as1,.0000001),1.0) / Math.sqrt(as2));
     return(asita);
 
   }
