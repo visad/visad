@@ -93,14 +93,14 @@ public class QTForm extends Form
     return paths == null ? null : new URLClassLoader(paths);
   }
 
+  /** Flag indicating QuickTime for Java has expired. */
+  private static boolean expiredQT;
+
 
   // -- Fields --
 
   /** Flag indicating QuickTime for Java is not installed. */
-  private boolean noQT = false;
-
-  /** Flag indicating QuickTime for Java has expired. */
-  private boolean expiredQT = false;
+  private boolean noQT;
 
   /** Reflection tool for QuickTime for Java calls. */
   private ReflectedUniverse r;
