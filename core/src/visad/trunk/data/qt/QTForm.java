@@ -53,6 +53,9 @@ public class QTForm extends Form
   public static final String NO_QT_MSG = "You need to install " +
     "QuickTime for Java from http://www.apple.com/quicktime/";
 
+  public static final String EXPIRED_QT_MSG = "Your version of " +
+    "QuickTime for Java has expired";
+
   private static final String[] SUFFIXES = { "mov" };
 
   private static final boolean MAC_OS_X =
@@ -95,6 +98,9 @@ public class QTForm extends Form
 
   /** Flag indicating QuickTime for Java is not installed. */
   private boolean noQT = false;
+
+  /** Flag indicating QuickTime for Java has expired. */
+  private boolean expiredQT = false;
 
   /** Reflection tool for QuickTime for Java calls. */
   private ReflectedUniverse r;
@@ -166,6 +172,10 @@ public class QTForm extends Form
       r.exec("import quicktime.util.QTHandle");
       r.exec("import quicktime.util.RawEncodedImage");
     }
+    catch (SecurityException exc) {
+      if (exc.getMessage().indexOf("expired") >= 0) expiredQT = true;
+      else noQT = true;
+    }
     catch (Throwable t) {
       noQT = true;
     }
@@ -206,7 +216,10 @@ public class QTForm extends Form
   // -- QTForm API methods --
 
   /** Whether QuickTime is available to this JVM. */
-  public boolean canDoQT() { return !noQT; }
+  public boolean canDoQT() { return !expiredQT && !noQT; }
+
+  /** Whether QuickTime for Java has expired. */
+  public boolean isQTExpired() { return expiredQT; }
 
   /** Sets the frame rate of output movies in frames per second. */
   public void setFrameRate(int fps) { frameRate = 600 / fps; }
@@ -231,6 +244,7 @@ public class QTForm extends Form
   public Dimension getPictDimensions(byte[] bytes)
     throws VisADException
   {
+    if (expiredQT) throw new BadFormException(EXPIRED_QT_MSG);
     if (noQT) throw new BadFormException(NO_QT_MSG);
 
     try {
@@ -252,6 +266,7 @@ public class QTForm extends Form
 
   /** Converts the given byte array in PICT format to a Java image. */
   public Image pictToImage(byte[] bytes) throws VisADException {
+    if (expiredQT) throw new BadFormException(EXPIRED_QT_MSG);
     if (noQT) throw new BadFormException(NO_QT_MSG);
 
     try {
@@ -312,7 +327,8 @@ public class QTForm extends Form
       throw new BadFormException("QuickTime movie " +
         "saving on Mac OS X is not supported.");
     }
-    else if (noQT) throw new BadFormException(NO_QT_MSG);
+    if (expiredQT) throw new BadFormException(EXPIRED_QT_MSG);
+    if (noQT) throw new BadFormException(NO_QT_MSG);
 
     try {
       // extract image frames from data
@@ -460,6 +476,7 @@ public class QTForm extends Form
   public DataImpl open(String id)
     throws BadFormException, IOException, VisADException
   {
+    if (expiredQT) throw new BadFormException(EXPIRED_QT_MSG);
     if (noQT) throw new BadFormException(NO_QT_MSG);
 
     percent = 0;
@@ -513,6 +530,7 @@ public class QTForm extends Form
       throw new BadFormException("Invalid image number: " + block_number);
     }
 
+    if (expiredQT) throw new BadFormException(EXPIRED_QT_MSG);
     if (noQT) throw new BadFormException(NO_QT_MSG);
 
     // paint frame into image
@@ -568,6 +586,7 @@ public class QTForm extends Form
   private void initFile(String id)
     throws BadFormException, IOException, VisADException
   {
+    if (expiredQT) throw new BadFormException(EXPIRED_QT_MSG);
     if (noQT) throw new BadFormException(NO_QT_MSG);
 
     // close any currently open files
