@@ -172,9 +172,13 @@ public class QTForm extends Form
       r.exec("import quicktime.util.QTHandle");
       r.exec("import quicktime.util.RawEncodedImage");
     }
-    catch (SecurityException exc) {
-      if (exc.getMessage().indexOf("expired") >= 0) expiredQT = true;
-      else noQT = true;
+    catch (ExceptionInInitializerError err) {
+      noQT = true;
+      Throwable t = err.getException();
+      if (t instanceof SecurityException) {
+        SecurityException exc = (SecurityException) t;
+        if (exc.getMessage().indexOf("expired") >= 0) expiredQT = true;
+      }
     }
     catch (Throwable t) {
       noQT = true;
@@ -216,7 +220,7 @@ public class QTForm extends Form
   // -- QTForm API methods --
 
   /** Whether QuickTime is available to this JVM. */
-  public boolean canDoQT() { return !expiredQT && !noQT; }
+  public boolean canDoQT() { return !noQT; }
 
   /** Whether QuickTime for Java has expired. */
   public boolean isQTExpired() { return expiredQT; }
