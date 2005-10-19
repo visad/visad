@@ -266,7 +266,7 @@ public class MetamorphForm extends BaseTiffForm {
             thetime = decodeTime(TiffTools.read4SignedBytes(in, little));
             put("DateTime", thedate + " " + thetime);
             OMETools.setAttribute(ome,
-              "Image", "Created", thedate + " " + thetime);
+              "Image", "CreationDate", thedate + " " + thetime);
             break;
           case 17:
             thedate = decodeDate(TiffTools.read4SignedBytes(in, little));
