@@ -26,15 +26,17 @@ MA 02111-1307, USA
 
 package visad.data.bio;
 
+import java.lang.reflect.Method;
 import visad.util.ReflectedUniverse;
 import visad.VisADException;
 
 /**
- * A utility class for constructing and manipulating OME-XML DOMs.
- * It uses the loci.ome.xml package via reflection.
+ * A utility class for constructing and manipulating OME-XML DOMs. It uses
+ * reflection to access the org.w3c.dom and loci.ome.xml packages so that the
+ * class compiles with Java 1.2, or if the loci.ome.xml package is unavailable.
  *
- * @author Melissa Linkert linkert at cs.wisc.edu
  * @author Curtis Rueden ctrueden at wisc.edu
+ * @author Melissa Linkert linkert at cs.wisc.edu
  */
 public abstract class OMETools {
 
@@ -128,7 +130,7 @@ public abstract class OMETools {
 
       return true;
     }
-    catch (VisADException exc) { }
+    catch (VisADException exc) { exc.printStackTrace(); }
     return false;
   }
 
@@ -155,7 +157,26 @@ public abstract class OMETools {
     R.setVar("root", root);
     R.setVar("name", name);
     R.exec("rel = root.getDOMElement()");
-    R.exec("doc = rel.getOwnerDocument()");
+
+    // HACK - We cannot call getOwnerDocument even though it is public:
+    //
+    //   java.lang.IllegalAccessException: Class visad.util.ReflectedUniverse
+    //   can not access a member of class org.apache.crimson.tree.NodeBase with
+    //   modifiers "public"
+    //
+    // It seems the getOwnerDocument method of
+    // org.apache.crimson.tree.NodeBase, which implements org.w3c.dom.Element,
+    // is not accessible for some reason. So we have to grab the methoda
+    // directly from org.w3c.dom.Element using reflection the hard way.
+    Object rel = R.getVar("rel");
+    try {
+      Class c = Class.forName("org.w3c.dom.Element");
+      Method m = c.getMethod("getOwnerDocument", null);
+      R.setVar("doc", m.invoke(rel, null));
+    }
+    catch (Exception exc) { exc.printStackTrace(); }
+    //R.exec("doc = rel.getOwnerDocument()");
+
     R.exec("el = DOMUtil.findElement(name, doc)");
     if (R.getVar("el") == null) return null;
     return R.exec("OMEXMLNode.createNode(el)");
