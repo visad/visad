@@ -76,12 +76,14 @@ public abstract class BaseTiffForm extends Form implements FormBlockReader,
   /** Percent complete with current operation. */
   protected double percent;
 
+
   // -- Constructor --
 
   /** Constructs a new BaseTiffForm. */
   public BaseTiffForm(String name) {
     super(name);
   }
+
 
   // -- Static BaseTiffForm API methods --
 
@@ -739,7 +741,7 @@ public abstract class BaseTiffForm extends Form implements FormBlockReader,
   public Object getMetadataValue(String id, String field)
     throws BadFormException, IOException, VisADException
   {
-    if (id != currentId) initFile(id);
+    if (!id.equals(currentId)) initFile(id);
     return metadata.get(field);
   }
 
@@ -753,7 +755,7 @@ public abstract class BaseTiffForm extends Form implements FormBlockReader,
   public Hashtable getMetadata(String id)
     throws BadFormException, IOException, VisADException
   {
-    if (id != currentId) initFile(id);
+    if (!id.equals(currentId)) initFile(id);
     return metadata;
   }
 
@@ -769,7 +771,7 @@ public abstract class BaseTiffForm extends Form implements FormBlockReader,
   public Object getOMENode(String id)
     throws BadFormException, IOException, VisADException
   {
-    if (id != currentId) initFile(id);
+    if (!id.equals(currentId)) initFile(id);
     if (ome == null) {
       throw new BadFormException(
         "This functionality requires the LOCI OME-XML package " +

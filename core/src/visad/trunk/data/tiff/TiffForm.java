@@ -30,6 +30,7 @@ import java.io.*;
 import java.rmi.RemoteException;
 import visad.*;
 import visad.data.*;
+import visad.data.bio.OMETools;
 
 /**
  * TiffForm is the VisAD data form for the TIFF file format.
@@ -68,6 +69,19 @@ public class TiffForm extends BaseTiffForm {
   public TiffForm() {
     super("TiffForm" + formCount++);
     legacy = new LegacyTiffForm();
+  }
+
+
+  // -- Internal BaseTiffForm API methods --
+
+  /** Parses OME-XML metadata. */
+  protected void initOMEMetadata() {
+    // check for OME-XML in TIFF comment (OME-TIFF format)
+    Object o = TiffTools.getIFDValue(ifds[0], TiffTools.IMAGE_DESCRIPTION);
+    Object root = o instanceof String ? OMETools.createRoot((String) o) : null;
+    metadata.put("OME-TIFF", root == null ? "no" : "yes");
+    if (root == null) super.initOMEMetadata();
+    else ome = root;
   }
 
 
@@ -143,6 +157,7 @@ public class TiffForm extends BaseTiffForm {
     if (needLegacy) return legacy.getPercentComplete();
     return super.getPercentComplete();
   }
+
 
   // -- Main method --
 
