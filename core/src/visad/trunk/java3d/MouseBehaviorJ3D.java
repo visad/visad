@@ -376,7 +376,28 @@ public class MouseBehaviorJ3D extends Behavior
    */
   public double[] make_matrix(double rotx, double roty, double rotz,
          double scale, double transx, double transy, double transz) {
-    return static_make_matrix(rotx, roty, rotz, scale, transx, transy, transz);
+    return make_matrix(rotx, roty, rotz, scale, scale, scale, transx, transy, transz);
+  }
+
+  /**
+   * Make a transformation matrix to perform the given rotation, scale and
+   * translation.  This function uses the fast matrix post-concatenation
+   * techniques from Graphics Gems.
+   * @param rotx  x rotation
+   * @param roty  y rotation
+   * @param rotz  z rotation
+   * @param scalex  x scaling factor
+   * @param scaley  y scaling factor
+   * @param scalez  z scaling factor
+   * @param transx  x translation
+   * @param transy  y translation
+   * @param transz  z translation
+   * @return  new matrix
+   */
+  public double[] make_matrix(double rotx, double roty, double rotz,
+                              double scalex, double scaley, double scalez, 
+                              double transx, double transy, double transz) {
+    return static_make_matrix(rotx, roty, rotz, scalex, scaley, scalez, transx, transy, transz);
   }
 
   /**
@@ -397,6 +418,30 @@ public class MouseBehaviorJ3D extends Behavior
   public static double[] static_make_matrix(
          double rotx, double roty, double rotz,
          double scale, double transx, double transy, double transz) {
+    return static_make_matrix(rotx, roty, rotz, scale, scale, scale, transx, transy, transz);
+  }
+
+  /**
+   * Make a transformation matrix to perform the given rotation, scale and
+   * translation.  This function uses the fast matrix post-concatenation
+   * techniques from Graphics Gems.  Static version of make_matrix.
+   * @see #make_matrix(double rotx, double roty, double rotz,
+   *         double scale, double transx, double transy, double transz)
+   * @param rotx  x rotation
+   * @param roty  y rotation
+   * @param rotz  z rotation
+   * @param scalex  x scaling factor
+   * @param scaley  y scaling factor
+   * @param scalez  z scaling factor
+   * @param transx  x translation
+   * @param transy  y translation
+   * @param transz  z translation
+   * @return  new matrix
+   */
+  public static double[] static_make_matrix(
+         double rotx, double roty, double rotz,
+         double scalex, double scaley, double scalez, 
+         double transx, double transy, double transz) {
     double sx, sy, sz, cx, cy, cz, t;
     int i, j, k;
     double deg2rad = 1.0 / 57.2957;
@@ -440,9 +485,9 @@ public class MouseBehaviorJ3D extends Behavior
 
     /* Scale */
     for (i=0;i<3;i++) {
-      mat[i][0] *= scale;
-      mat[i][1] *= scale;
-      mat[i][2] *= scale;
+      mat[i][0] *= scalex;
+      mat[i][1] *= scaley;
+      mat[i][2] *= scalez;
     }
 
     /* Translation */
@@ -485,7 +530,8 @@ public class MouseBehaviorJ3D extends Behavior
    * matrix.  Results are not valid for non-uniform aspect (scale).
    * Static version of <CODE>instance_unmake_matrix</CODE>.
    * @param  rot  array to hold x,y,z rotation values
-   * @param  scale  array to hold scale value
+   * @param  scale  array to hold scale value(s). If length == 1, assumes
+   *                uniform scaling.
    * @param  trans  array to hold x,y,z translation values
    */
   public static void unmake_matrix(double[] rot, double[] scale,
@@ -495,10 +541,11 @@ public class MouseBehaviorJ3D extends Behavior
     double[][] mat = new double[4][4];
     double[][] nat = new double[4][4];
 
-    double scalex, scaley, scalez, scaleinv, cxa, cxb, cxinv;
+    double scalex, scaley, scalez, cxa, cxb, cxinv;
+    double[] scaleinv = new double[3];
 
     if (rot == null || rot.length != 3) return;
-    if (scale == null || scale.length != 1) return;
+    if (scale == null || !(scale.length == 1 || scale.length == 3)) return;
     if (trans == null || trans.length != 3) return;
     if (matrix == null || matrix.length != 16) return;
 
@@ -531,12 +578,23 @@ public class MouseBehaviorJ3D extends Behavior
     if (Math.abs(scalex - scaley) > EPS || Math.abs(scalex - scalez) > EPS) {
       // System.out.println("problem " + scalex + " " + scaley + " " + scalez);
     }
-    scale[0] = Math.sqrt((scalex + scaley + scalez)/3.0);
-    scaleinv = Math.abs(scale[0]) > EPS ? 1.0 / scale[0] : 1.0 / EPS;
+    if (scale.length == 1) {
+      scale[0] = Math.sqrt((scalex + scaley + scalez)/3.0);
+      scaleinv[0] = Math.abs(scale[0]) > EPS ? 1.0 / scale[0] : 1.0 / EPS;
+      scaleinv[1] = scaleinv[2] = scaleinv[0];
+    } else {
+      scale[0] = Math.sqrt(scalex);
+      scale[1] = Math.sqrt(scaley);
+      scale[2] = Math.sqrt(scalez);
+      for (i=0; i<3; i++) {
+        scaleinv[i] = Math.abs(scale[i]) > EPS ? 1.0 / scale[i] : 1.0 / EPS;
+      }
+    }
+        
 
     for (i=0; i<3; i++) {
       for (j=0; j<3; j++) {
-        nat[j][i] = scaleinv * mat[j][i];
+        nat[j][i] = scaleinv[j] * mat[j][i];
       }
     }
 

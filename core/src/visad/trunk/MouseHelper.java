@@ -164,11 +164,12 @@ public class MouseHelper
       if (start_ray != null && start_ray_x != null && start_ray_y != null) {
         double[] tstart = proj.getMatrix();
         double[] rot = new double[3];
-        double[] scale = new double[1];
+        double[] scale = new double[3];
         double[] trans = new double[3];
         behavior.instance_unmake_matrix(rot, scale, trans, tstart);
         double[] trot = behavior.make_matrix(rot[0], rot[1], rot[2],
-                                             scale[0], 0.0, 0.0, 0.0);
+                                             scale[0], scale[1], scale[2],
+                                             0.0, 0.0, 0.0);
         double[] xmat = behavior.make_translate(
                            start_ray_x.position[0] - start_ray.position[0],
                            start_ray_x.position[1] - start_ray.position[1],
@@ -573,12 +574,13 @@ public class MouseHelper
       tstart = proj.getMatrix();
       // print_matrix("tstart", tstart);
       double[] rot = new double[3];
-      double[] scale = new double[1];
+      double[] scale = new double[3];
       double[] trans = new double[3];
       behavior.instance_unmake_matrix(rot, scale, trans, tstart);
       double sts = scale[0];
       double[] trot = behavior.make_matrix(rot[0], rot[1], rot[2],
-                                           scale[0], 0.0, 0.0, 0.0);
+                                           scale[0], scale[1], scale[2],
+                                           0.0, 0.0, 0.0);
       // print_matrix("trot", trot);
 
       // WLH 17 Aug 2000
@@ -755,16 +757,36 @@ public class MouseHelper
   public void print_matrix(String title, double[] m) {
     if (behavior == null) return;
     double[] rot = new double[3];
-    double[] scale = new double[1];
+    double[] scale = new double[3];
     double[] trans = new double[3];
     behavior.instance_unmake_matrix(rot, scale, trans, m);
-    System.out.println(title + " = (" + Convert.shortString(rot[0]) + ", " +
-                       Convert.shortString(rot[1])  + ", " +
-                       Convert.shortString(rot[2]) + "), " +
-                       Convert.shortString(scale[0]) + ", (" +
-                       Convert.shortString(trans[0]) + ", " +
-                       Convert.shortString(trans[1]) + ", " +
-                       Convert.shortString(trans[2]) + ")");
+    StringBuffer buf = new StringBuffer(title);
+    buf.append(" = (");
+    buf.append(Convert.shortString(rot[0]));
+    buf.append(", ");
+    buf.append(Convert.shortString(rot[1]));
+    buf.append(", ");
+    buf.append(Convert.shortString(rot[2]));
+    buf.append("), ");
+    if (scale[0] == scale[1] && scale[0] == scale[2]) {
+      buf.append(Convert.shortString(scale[0]));
+      buf.append(", (");
+    } else {
+      buf.append("(");
+      buf.append(Convert.shortString(scale[0]));
+      buf.append(", ");
+      buf.append(Convert.shortString(scale[1]));
+      buf.append(", ");
+      buf.append(Convert.shortString(scale[2]));
+      buf.append("), (");
+    }
+    buf.append(Convert.shortString(trans[0]));
+    buf.append(", ");
+    buf.append(Convert.shortString(trans[1]));
+    buf.append(", ");
+    buf.append(Convert.shortString(trans[2]));
+    buf.append(")");
+    System.out.println(buf.toString());
   }
 
   /**

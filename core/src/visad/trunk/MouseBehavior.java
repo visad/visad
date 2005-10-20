@@ -91,10 +91,28 @@ public interface MouseBehavior {
       double rotz, double scale, double transx, double transy, double transz);
 
   /**
+   * Make a transformation matrix to perform the given rotation, scale and
+   * translation.  
+   * @param rotx  x rotation
+   * @param roty  y rotation
+   * @param rotz  z rotation
+   * @param scalex  x scaling factor
+   * @param scaley  y scaling factor
+   * @param scalez  z scaling factor
+   * @param transx  x translation
+   * @param transy  y translation
+   * @param transz  z translation
+   * @return  new matrix
+   */
+  double[] make_matrix(double rotx, double roty,
+      double rotz, double scalex, double scaley, double scalez, double transx, double transy, double transz);
+
+  /**
    * Get the rotation, scale and translation parameters for the specified
    * matrix.  Results are not valid for non-uniform aspect (scale).
    * @param  rot  array to hold x,y,z rotation values
-   * @param  scale  array to hold scale value
+   * @param  scale  array to hold scale value(s). If length == 1, assumes
+   *                uniform scaling.
    * @param  trans  array to hold x,y,z translation values
    */
   void instance_unmake_matrix(double[] rot, double[] scale,
