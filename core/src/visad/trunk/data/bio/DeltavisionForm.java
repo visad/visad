@@ -230,7 +230,7 @@ public class DeltavisionForm extends Form implements FormBlockReader,
       // case for 16 bit data
 
       for (int i=0; i<rawData.length; i+=2) {
-        int q = ((0x000000ff & rawData[i]) << 8) | (0x000000ff & rawData[i+1]);
+        int q = TiffTools.bytesToInt(rawData, i, 2, little);
         samples[0][i/2] = (float) q;
       }
     }
@@ -239,17 +239,14 @@ public class DeltavisionForm extends Form implements FormBlockReader,
       // could be broken, since we don't have any data to test
 
       for (int i=0; i<rawData.length; i+=4) {
-        int q = ((0x000000ff & rawData[i]) << 24) | ((0x000000ff &
-          rawData[i+1]) << 16) | ((0x000000ff & rawData[i+2]) <<
-          8) | (0x000000ff & rawData[i+3]);
+        int q = TiffTools.bytesToInt(rawData, i, little);
         samples[0][i/4] = (float) q;
       }
     }
     else if (bytesPerPixel == 8) {
       // Applied Precision doesn't provide much support for 64 bit data,
       // so we won't either
-      throw new BadFormException("Sorry, 64 bit pixel data " +
-        "not supported");
+      throw new BadFormException("Sorry, 64 bit pixel data not supported");
     }
 
     // construct the field
@@ -374,7 +371,7 @@ public class DeltavisionForm extends Form implements FormBlockReader,
   }
 
 
-  // -- Internal DeltavisionForm API methods --
+  // -- Internal BaseTiffForm API methods --
 
   /** Initializes the given Deltavision file. */
   protected void initFile(String id)
