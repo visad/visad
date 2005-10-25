@@ -1484,6 +1484,7 @@ public class AddeURLConnection extends URLConnection
         String groupString = null;
         String filenameString = null;
         String descrString = null;
+        String traceString = "TRACE=0";
 
         StringTokenizer cmdTokens = new StringTokenizer(uCmd, "&");
         while (cmdTokens.hasMoreTokens())
@@ -1495,17 +1496,19 @@ public class AddeURLConnection extends URLConnection
                 descrString =
                     testString.substring(testString.indexOf("=") + 1);
             }
-
-            if (lctestString.startsWith("file"))
+            else if (lctestString.startsWith("file"))
             {
                 filenameString = "FILE="+
                     testString.substring(testString.indexOf("=") + 1);
             }
-
-            if (lctestString.startsWith("grou"))
+            else if (lctestString.startsWith("grou"))
             {
                 groupString = 
                     testString.substring(testString.indexOf("=") + 1);
+            }
+            else if (lctestString.startsWith("tra"))       // trace keyword
+            {
+                traceString = testString;
             }
 
         }
@@ -1515,6 +1518,8 @@ public class AddeURLConnection extends URLConnection
         buf.append(descrString);
         buf.append(" ");
         buf.append(filenameString);
+        buf.append(" ");
+        buf.append(traceString.toUpperCase());
         return buf;
     }
 
