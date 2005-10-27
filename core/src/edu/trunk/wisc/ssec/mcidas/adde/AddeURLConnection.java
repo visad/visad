@@ -258,6 +258,19 @@ public class AddeURLConnection extends URLConnection
       port used for compressed transfers */
   private final static int GZIP = 112;
 
+  /** key for no compression */
+  private final int UNCOMPRESS_KEY = 1;
+
+  /** key for compress compression */
+  private final int COMPRESS_KEY = 2;
+
+  /** key for compress compression */
+  private final int GZIP_KEY = 3;
+
+  /** default port transfers */
+  /** default port transfers */
+  private final static int DEFAULT_PORT = 112;
+
   /**
    * ADDE Version 1 indicator
    */
@@ -304,7 +317,7 @@ public class AddeURLConnection extends URLConnection
   private boolean debug = false;
 
   /** port to use for compression */
-  private int portToUse = GZIP;   // DRM 03-Mar-2001
+  private int portToUse = 0;  // set to zero for default
 
   /** compression type */
   private int compressionType = GZIP; 
@@ -486,26 +499,73 @@ public class AddeURLConnection extends URLConnection
       throw new AddeURLException("Invalid project number: " + testStr);
     }
 
+    // Figure out the port.  
+    if (url.getPort() == -1) { // not specified as part of URL
+
+      testStr = getValue(uCmd, "port=", null);
+      if (testStr != null) {
+        try {
+          portToUse = Integer.parseInt(testStr);
+        } catch (NumberFormatException e) {
+          // just use default
+          System.out.println(
+            "Warning: Invalid port number \"" + testStr + 
+            "\" specified;  using default port " + portToUse + " instead");
+        }
+      }
+    } else {  // specified 
+      portToUse = url.getPort();
+    }
+
     // compression 
-    testStr = getValue(uCmd, "compress=", "none");
-    if (debug) System.out.println("compression = " + testStr);
+    testStr = getValue(uCmd, "compress=", null);
+
+    // if no compress keyword and if port was specified, use that as 
+    // the default for compression.
+    if (testStr == null) {  
+      switch (portToUse) {
+        case NO_COMPRESS:     // port == 500
+        case UNCOMPRESS_KEY:  // port == 1
+          testStr = "none";
+          break;
+        case COMPRESS:        // port == 503
+        case COMPRESS_KEY:    // port == 2
+          testStr = "compress";
+          break;
+        case GZIP:            // port == 112
+        case GZIP_KEY:        // port == 1
+        default:
+          testStr = "gzip";
+          break;
+      }
+    }
+           
     if (testStr.equalsIgnoreCase("gzip")) {
 
       compressionType = GZIP;
 
-    } else if (testStr.equals("compress") ||
-               testStr.equals("true")) {
+    } else if (testStr.equalsIgnoreCase("compress") ||
+               testStr.equalsIgnoreCase("true")) {
 
       // check to see if we can do uncompression
       try {
-          Class c = Class.forName("HTTPClient.UncompressInputStream");
-          compressionType = COMPRESS;
+        Class c = Class.forName("HTTPClient.UncompressInputStream");
+        compressionType = COMPRESS;
       } catch (ClassNotFoundException cnfe) {
-          System.err.println(
-            "Uncompression code not found, turning compression off");
+        System.err.println(
+          "Uncompression code not found, turning compression off");
       }
 
-    } 
+    } else if (testStr.equalsIgnoreCase("none")) {
+        compressionType = NO_COMPRESS;
+    }
+
+    if (debug) System.out.println("compression = " + testStr);
+
+    // zero by default, for newer mcservs (1,2,3)
+    if (portToUse < 4) {
+      portToUse = DEFAULT_PORT;
+    }
 
 // end of request decoding
 //-------------------------------------------------------------------------
@@ -521,31 +581,9 @@ public class AddeURLConnection extends URLConnection
     InetAddress ia = InetAddress.getByName(url.getHost());
     ipa = ia.getAddress();
 
-    if (url.getPort() == -1) { // not specified as part of URL
-
-      // see if there is a port=keyword
-
-      // default to the compression type
-      portToUse = compressionType;
-
-      // if local ADDE host, force the compressionType to "off" 
-      if (ipa[0]==127 && ipa[1]==0 && ipa[2]==0 && ipa[3]==1) {
-        compressionType = NO_COMPRESS;
-      }
-
-      testStr = getValue(uCmd, "port=", null);
-      try {
-        portToUse = Integer.parseInt(testStr);
-      } catch (NumberFormatException e) {
-        // just use default
-        if (testStr != null) {
-          System.out.println(
-            "Warning: Invalid port number \"" + testStr + 
-            "\" specified;  using default port " + portToUse + " instead");
-        }
-      }
-    } else {  // specified 
-      portToUse = url.getPort();
+    // if local ADDE host, force the compressionType to "off" 
+    if (ipa[0]==127 && ipa[1]==0 && ipa[2]==0 && ipa[3]==1) {
+      compressionType = NO_COMPRESS;
     }
 
     if (debug)  {
