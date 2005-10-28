@@ -74,6 +74,12 @@ public class TiffForm extends BaseTiffForm {
 
   // -- Internal BaseTiffForm API methods --
 
+  /** Parses standard metadata. */
+  protected void initStandardMetadata() {
+    super.initStandardMetadata();
+    metadata.put("Legacy", needLegacy ? "yes" : "no");
+  }
+
   /** Parses OME-XML metadata. */
   protected void initOMEMetadata() {
     // check for OME-XML in TIFF comment (OME-TIFF format)

@@ -96,6 +96,9 @@ public class LegacyZVIForm extends Form implements
   /** Percent complete with current operation. */
   private double percent;
 
+  /** Hashtable containing metadata for the current file. */
+  private Hashtable metadata;
+
 
   // -- Constructor --
 
@@ -140,7 +143,6 @@ public class LegacyZVIForm extends Form implements
       fields[i] = (FieldImpl) open(id, i);
       percent = (double) (i + 1) / nImages;
     }
-
     DataImpl data;
     if (nImages == 1) data = fields[0];
     else {
@@ -153,8 +155,6 @@ public class LegacyZVIForm extends Form implements
       indexField.setSamples(fields, false);
       data = indexField;
     }
-
-    readMetadata(id);
     close();
     percent = -1;
     return data;
@@ -256,111 +256,30 @@ public class LegacyZVIForm extends Form implements
   // -- MetadataReader methods --
 
   /**
-   * Takes a string containing the filename and read relevant metadata
-   * into a hashtable
+   * Obtains the specified metadata field's value for the given file.
    *
-   * @param String the filename
-   * @return Hashtable containing metadata from the image header
+   * @param field the name associated with the metadata field
+   * @return the value, or null if the field doesn't exist
    */
-  public Hashtable getMetadata(String id) throws
-    IOException, VisADException, BadFormException
+  public Object getMetadataValue(String id, String field)
+    throws BadFormException, IOException, VisADException
   {
-    // this one is handled differently than other getMetadata methods
-    // in the visad.data.bio package
+    if (!id.equals(currentId)) initFile(id);
+    return metadata.get(field);
+  }
 
-    // Since the ZVI specs are pretty much worthless, metadata support is
-    // primitive at best.
-
-    RandomAccessFile infile = new RandomAccessFile(id, "r");
-    Hashtable metadata = new Hashtable();
-
-    byte[] r = new byte[4];
-    byte[] dataType = new byte[4];
-    byte[] tagData; // not sure yet how big to make this
-
-    String type = "";
-    boolean ok = true;
-    long pos = 0;
-    Vector blocklist = new Vector();
-
-    // find each of the "magic blocks", after which we can read header info
-    while (true) {
-      long magic1 = findBlock(infile, ZVI_MAGIC_BLOCK_1, pos);
-      if (magic1 < 0) break;
-      pos = magic1 + ZVI_MAGIC_BLOCK_1.length;
-
-      infile.skipBytes(19);
-      pos += 19;
-
-      infile.read(new byte[ZVI_MAGIC_BLOCK_2.length]);
-      pos += ZVI_MAGIC_BLOCK_2.length;
-      infile.read(new byte[131]);
-      pos += 131;
-
-      long magic3 = findBlock(infile, ZVI_MAGIC_BLOCK_3, pos);
-      if (magic3 < 0) {
-        throw new BadFormException("Error parsing image header. " + WHINING);
-      }
-      pos = magic3 + ZVI_MAGIC_BLOCK_3.length;
-
-      int width = readInt(infile);
-      int height = readInt(infile);
-      int alwaysOne = readInt(infile); //depth--not used
-      int pixelType = readInt(infile);
-      int bytesPerPixel = readInt(infile);
-      int bitDepth = readInt(infile); // doesn't always equal bytesPerPixel * 8
-      pos += 24;
-
-      switch (pixelType) {
-        case 1: type = "8 bit rgb tuple, 24 bpp"; break;
-        case 2: type = "8 bit rgb quad, 32 bpp"; break;
-        case 3: type = "8 bit grayscale"; break;
-        case 4: type = "16 bit signed int, 8 bpp"; break;
-        case 5: type = "32 bit int, 32 bpp"; break;
-        case 6: type = "32 bit float, 32 bpp"; break;
-        case 7: type = "64 bit float, 64 bpp"; break;
-        case 8: type = "16 bit unsigned short triple, 48 bpp"; break;
-        case 9: type = "32 bit int triple, 96 bpp"; break;
-        default: type = "undefined pixel type"; System.out.println(pixelType);
-      }
-
-      metadata.put("Width", new Integer(width));
-      metadata.put("Height", new Integer(height));
-      metadata.put("PixelType", type);
-      metadata.put("BPP", new Integer(bytesPerPixel));
-      blocklist.add(new Long(pos));
-      pos += width * height * bytesPerPixel;
-    }
-
-    // trying to find the tags stream
-
+  /**
+   * Obtains the hashtable containing the metadata field/value pairs from the
+   * given file.
+   *
+   * @param id the filename
+   * @return the hashtable containing all metadata from the file
+   */
+  public Hashtable getMetadata(String id)
+    throws BadFormException, IOException, VisADException
+  {
+    if (!id.equals(currentId)) initFile(id);
     return metadata;
-  }
-
-  public Object getMetadataValue(String id1, String id2) throws
-    IOException, VisADException, BadFormException
-  {
-    Hashtable h = new Hashtable();
-    h = getMetadata(id1);
-    try {
-      return h.get(id2);
-    }
-    catch (NullPointerException e) {
-      return null;
-    }
-  }
-
-  public void readMetadata(String id) throws
-    VisADException, IOException
-  {
-    System.out.println("Reading the metadata: ");
-    Hashtable metadata = getMetadata(id);
-    String[] names = {"Width", "Height", "PixelType", "BPP"};
-
-    for (int j=0; j < names.length; j++) {
-      System.out.println(names[j] + " ");
-      System.out.println(metadata.get((Object) names[j]));
-    }
   }
 
 
@@ -585,6 +504,72 @@ public class LegacyZVIForm extends Form implements
     }
     if (numZ * numC * numT != blockList.size()) {
       System.err.println("Warning: image counts do not match. " + WHINING);
+    }
+    initMetadata();
+  }
+
+  private void initMetadata()
+    throws IOException, BadFormException
+  {
+    in.seek(0);
+    metadata = new Hashtable();
+
+    byte[] r = new byte[4];
+    byte[] dataType = new byte[4];
+    byte[] tagData; // not sure yet how big to make this
+
+    String type = "";
+    boolean ok = true;
+    long pos = 0;
+    Vector blocklist = new Vector();
+
+    // find each of the "magic blocks", after which we can read header info
+    while (true) {
+      long magic1 = findBlock(in, ZVI_MAGIC_BLOCK_1, pos);
+      if (magic1 < 0) break;
+      pos = magic1 + ZVI_MAGIC_BLOCK_1.length;
+
+      in.skipBytes(19);
+      pos += 19;
+
+      in.read(new byte[ZVI_MAGIC_BLOCK_2.length]);
+      pos += ZVI_MAGIC_BLOCK_2.length;
+      in.read(new byte[131]);
+      pos += 131;
+
+      long magic3 = findBlock(in, ZVI_MAGIC_BLOCK_3, pos);
+      if (magic3 < 0) {
+        throw new BadFormException("Error parsing image header. " + WHINING);
+      }
+      pos = magic3 + ZVI_MAGIC_BLOCK_3.length;
+
+      int width = readInt(in);
+      int height = readInt(in);
+      int alwaysOne = readInt(in); //depth--not used
+      int pixelType = readInt(in);
+      int bytesPerPixel = readInt(in);
+      int bitDepth = readInt(in); // doesn't always equal bytesPerPixel * 8
+      pos += 24;
+
+      switch (pixelType) {
+        case 1: type = "8 bit rgb tuple, 24 bpp"; break;
+        case 2: type = "8 bit rgb quad, 32 bpp"; break;
+        case 3: type = "8 bit grayscale"; break;
+        case 4: type = "16 bit signed int, 8 bpp"; break;
+        case 5: type = "32 bit int, 32 bpp"; break;
+        case 6: type = "32 bit float, 32 bpp"; break;
+        case 7: type = "64 bit float, 64 bpp"; break;
+        case 8: type = "16 bit unsigned short triple, 48 bpp"; break;
+        case 9: type = "32 bit int triple, 96 bpp"; break;
+        default: type = "undefined pixel type (" + pixelType + ")";
+      }
+
+      metadata.put("Width", new Integer(width));
+      metadata.put("Height", new Integer(height));
+      metadata.put("PixelType", type);
+      metadata.put("BPP", new Integer(bytesPerPixel));
+      blocklist.add(new Long(pos));
+      pos += width * height * bytesPerPixel;
     }
   }
 

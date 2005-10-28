@@ -36,6 +36,8 @@ import visad.*;
 import visad.data.*;
 import visad.data.qt.*;
 import visad.data.tiff.*;
+import visad.data.bio.OMEReader;
+import visad.data.bio.OMETools;
 
 /**
  * OpenlabForm is the VisAD data adapter used for Openlab LIFF files.
@@ -43,7 +45,7 @@ import visad.data.tiff.*;
  * @author Curtis Rueden ctrueden at wisc.edu
  */
 public class OpenlabForm extends Form implements FormBlockReader,
-  FormFileInformer, FormProgressInformer, MetadataReader
+  FormFileInformer, FormProgressInformer, MetadataReader, OMEReader
 {
 
   // -- Static fields --
@@ -113,6 +115,8 @@ public class OpenlabForm extends Form implements FormBlockReader,
   /** Percent complete with current operation. */
   private double percent;
 
+  /** Root node for OME-XML structure. */
+  private Object ome;
 
   // -- Constructor --
 
@@ -645,8 +649,6 @@ public class OpenlabForm extends Form implements FormBlockReader,
           metadata.put("Notes", new String(notes));
         }
         else in.skipBytes(123);
-
-
       }
       else if (tag == 69) {
         in.read(toRead);
@@ -678,8 +680,71 @@ public class OpenlabForm extends Form implements FormBlockReader,
         metadata.put("Other", new String(other));
       }
 
+      // Initialize OME metadata
+
+      ome = OMETools.createRoot();
+
+      if (ome != null) {
+        OMETools.setAttribute(ome, "Pixels", "BigEndian",
+            little ? "false" : "true");
+        if (metadata.get("BitDepth") != null) {
+          int bitDepth = ((Integer) metadata.get("BitDepth")).intValue();
+          String type;
+
+          if (bitDepth <= 8) type = "int8";
+          else if (bitDepth <= 16) type = "int16";
+          else type = "int32";
+
+          OMETools.setAttribute(ome, "Image", "PixelType", type);
+        }
+        if (metadata.get("Timestamp") != null) {
+          OMETools.setAttribute(ome, "Image", "CreationDate",
+            "" + metadata.get("Timestamp").toString());
+        }
+
+        if (metadata.get("XOrigin") != null) {
+          OMETools.setAttribute(ome, "StageLabel", "X",
+            "" + metadata.get("XOrigin").toString());
+        }
+
+        if (metadata.get("YOrigin") != null) {
+          OMETools.setAttribute(ome, "StageLabel", "Y",
+            "" + metadata.get("YOrigin").toString());
+        }
+
+        if (metadata.get("XScale") != null) {
+          OMETools.setAttribute(ome, "Image", "PixelSizeX",
+            "" + metadata.get("XScale").toString());
+        }
+
+        if (metadata.get("YScale") != null) {
+          OMETools.setAttribute(ome, "Image", "PixelSizeY",
+            "" + metadata.get("YScale").toString());
+        }
+      }
       in.seek(offset);
     }
+  }
+
+
+  // -- OMEReader API methods --
+
+  /**
+   * Obtains a loci.ome.xml.OMENode object representing the
+   * file's metadata as an OME-XML DOM structure.
+   *
+   * @throws BadFormException if the loci.ome.xml package is not present
+   */
+  public Object getOMENode(String id)
+    throws BadFormException, IOException, VisADException
+  {
+    if (!id.equals(currentId)) initFile(id);
+    if (ome == null) {
+      throw new BadFormException(
+        "This functionality requires the LOCI OME-XML " +
+        "package available at http://www.loci.wisc.edu/ome/");
+    }
+    return ome;
   }
 
 

@@ -166,7 +166,7 @@ public abstract class OMETools {
     //
     // It seems the getOwnerDocument method of
     // org.apache.crimson.tree.NodeBase, which implements org.w3c.dom.Element,
-    // is not accessible for some reason. So we have to grab the methoda
+    // is not accessible for some reason. So we have to grab the method
     // directly from org.w3c.dom.Element using reflection the hard way.
     Object rel = R.getVar("rel");
     try {

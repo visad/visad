@@ -62,6 +62,9 @@ public class DeltavisionForm extends Form implements FormBlockReader,
   /** Current file. */
   protected RandomAccessFile in;
 
+  /** Number of images in the current file. */
+  protected int numImages;
+
   /** Hashtable containing metadata. */
   protected Hashtable metadata;
 
@@ -179,10 +182,9 @@ public class DeltavisionForm extends Form implements FormBlockReader,
 
     int width = TiffTools.bytesToInt(header, 0, 4, little);
     int height = TiffTools.bytesToInt(header, 4, 4, little);
-    int numImages = TiffTools.bytesToInt(header, 8, 4, little);
     int numTimes = TiffTools.bytesToInt(header, 180, 2, little);
     int numWaves = TiffTools.bytesToInt(header, 196, 2, little);
-    int numZs = (numImages) / (numWaves * numTimes);
+    int numZs = numImages / (numWaves * numTimes);
     int pixelType = TiffTools.bytesToInt(header, 12, 4, little);
 
     int dimOrder = TiffTools.bytesToInt(header, 182, 2, little);
@@ -281,7 +283,7 @@ public class DeltavisionForm extends Form implements FormBlockReader,
   {
     if (!id.equals(currentId)) initFile(id);
 
-    return TiffTools.bytesToInt(header, 8, 4, little);
+    return numImages;
   }
 
   /** Closes any open files. */
@@ -331,7 +333,7 @@ public class DeltavisionForm extends Form implements FormBlockReader,
   public Object getMetadataValue(String id, String field)
     throws BadFormException, IOException, VisADException
   {
-    if (id != currentId) initFile(id);
+    if (!id.equals(currentId)) initFile(id);
     return metadata.get(field);
   }
 
@@ -345,7 +347,7 @@ public class DeltavisionForm extends Form implements FormBlockReader,
   public Hashtable getMetadata(String id)
     throws BadFormException, IOException, VisADException
   {
-    if (id != currentId) initFile(id);
+    if (!id.equals(currentId)) initFile(id);
     return metadata;
   }
 
@@ -361,7 +363,7 @@ public class DeltavisionForm extends Form implements FormBlockReader,
   public Object getOMENode(String id)
     throws BadFormException, IOException, VisADException
   {
-    if (id != currentId) initFile(id);
+    if (!id.equals(currentId)) initFile(id);
     if (ome == null) {
       throw new BadFormException(
         "This functionality requires the LOCI OME-XML " +
@@ -386,8 +388,8 @@ public class DeltavisionForm extends Form implements FormBlockReader,
     in.read(header);
 
     int endian = TiffTools.bytesToShort(header, 96, 2, true);
-
     little = endian == LITTLE_ENDIAN;
+    numImages = TiffTools.bytesToInt(header, 8, 4, little);
 
     int extSize = TiffTools.bytesToInt(header, 92, 4, little);
     extHeader = new byte[extSize];
@@ -501,12 +503,9 @@ public class DeltavisionForm extends Form implements FormBlockReader,
       Float.intBitsToFloat(TiffTools.bytesToInt(header, 172, 4, little))));
     metadata.put("Wavelength 5 max. intensity", new Float(
       Float.intBitsToFloat(TiffTools.bytesToInt(header, 176, 4, little))));
-    metadata.put("Number of timepoints", new Integer(TiffTools.bytesToShort(
-      header, 180, 2, little)));
-    if (ome != null) {
-      OMETools.setAttribute(ome, "Pixels", "SizeT",
-      "" + metadata.get("Number of timepoints"));
-    }
+    int numT = TiffTools.bytesToShort(header, 180, 2, little);
+    metadata.put("Number of timepoints", new Integer(numT));
+    if (ome != null) OMETools.setAttribute(ome, "Pixels", "SizeT", "" + numT);
 
     int sequence = TiffTools.bytesToInt(header, 182, 4, little);
     String imageSequence;
@@ -528,12 +527,12 @@ public class DeltavisionForm extends Form implements FormBlockReader,
       TiffTools.bytesToInt(header, 188, 4, little))));
     metadata.put("Z axis tilt angle", new Float(Float.intBitsToFloat(
       TiffTools.bytesToInt(header, 192, 4, little))));
-    metadata.put("Number of wavelengths", new Integer(
-      TiffTools.bytesToShort(header, 196, 2, little)));
-    if (ome != null) {
-      OMETools.setAttribute(ome, "Pixels", "SizeC",
-          "" + metadata.get("Number of wavelengths"));
-    }
+    int numW = TiffTools.bytesToShort(header, 196, 2, little);
+    metadata.put("Number of wavelengths", new Integer(numW));
+    if (ome != null) OMETools.setAttribute(ome, "Pixels", "SizeC", "" + numW);
+    int numZ = numImages / (numW * numT);
+    metadata.put("Number of focal planes", new Integer(numZ));
+    if (ome != null) OMETools.setAttribute(ome, "Pixels", "SizeZ", "" + numZ);
 
     metadata.put("Wavelength 1 (in nm)", new Integer(TiffTools.bytesToShort(
       header, 198, 2, little)));
@@ -570,6 +569,7 @@ public class DeltavisionForm extends Form implements FormBlockReader,
       }
     }
   }
+
 
   // -- Main method --
 

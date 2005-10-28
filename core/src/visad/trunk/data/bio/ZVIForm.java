@@ -483,6 +483,7 @@ public class ZVIForm extends Form implements FormBlockReader,
   /** Populates the metadata hashtable. */
   protected void initMetadata() {
     metadata = new Hashtable();
+    metadata.put("Legacy", needLegacy ? "yes" : "no");
 
     // parse the "header" byte array
     // right now we're using header data from an image item

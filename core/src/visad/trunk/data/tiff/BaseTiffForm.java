@@ -511,13 +511,13 @@ public abstract class BaseTiffForm extends Form implements FormBlockReader,
         TiffTools.getIFDIntValue(ifd, TiffTools.IMAGE_WIDTH));
       OMETools.setAttribute(ome, "Pixels", "SizeY", "" +
         TiffTools.getIFDIntValue(ifd, TiffTools.IMAGE_LENGTH));
-      OMETools.setAttribute(ome, "Pixels", "SizeZ", "" +
-        TiffTools.getIFDIntValue(ifd, TiffTools.X_RESOLUTION));
-      OMETools.setAttribute(ome, "Pixels", "SizeT", "" +
-        TiffTools.getIFDIntValue(ifd, TiffTools.Y_RESOLUTION));
-      OMETools.setAttribute(ome, "Pixels", "SizeC", "" +
-        TiffTools.getIFDIntValue(ifd, TiffTools.RESOLUTION_UNIT));
-      OMETools.setAttribute(ome, "Pixels", "DimensionOrder", "XYZTC");
+//      OMETools.setAttribute(ome, "Pixels", "SizeZ", "" +
+//        TiffTools.getIFDIntValue(ifd, TiffTools.X_RESOLUTION));
+//      OMETools.setAttribute(ome, "Pixels", "SizeT", "" +
+//        TiffTools.getIFDIntValue(ifd, TiffTools.Y_RESOLUTION));
+//      OMETools.setAttribute(ome, "Pixels", "SizeC", "" +
+//        TiffTools.getIFDIntValue(ifd, TiffTools.RESOLUTION_UNIT));
+//      OMETools.setAttribute(ome, "Pixels", "DimensionOrder", "XYZTC");
 
       boolean little = TiffTools.isLittleEndian(ifd);
       OMETools.setAttribute(ome,
