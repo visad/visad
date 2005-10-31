@@ -372,7 +372,7 @@ public class IPLabForm extends Form implements FormBlockReader,
   }
 
 
-  // -- Internal BaseTiffForm API methods --
+  // -- Internal IPLabForm API methods --
 
   /** Initializes the given IPLab file. */
   protected void initFile(String id)

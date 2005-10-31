@@ -373,7 +373,7 @@ public class DeltavisionForm extends Form implements FormBlockReader,
   }
 
 
-  // -- Internal BaseTiffForm API methods --
+  // -- Internal DeltavisionForm API methods --
 
   /** Initializes the given Deltavision file. */
   protected void initFile(String id)

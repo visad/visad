@@ -211,7 +211,7 @@ public class LeicaForm extends Form implements FormBlockReader,
 
   /** Checks if the given string is a valid filename for a Leica file. */
   public boolean isThisType(String name) {
-    return name.toLowerCase().endsWith("lei");
+    return name.toLowerCase().endsWith(".lei");
   }
 
   /** Checks if the given block is a valid header for a Leica file. */
@@ -224,7 +224,7 @@ public class LeicaForm extends Form implements FormBlockReader,
 
   /** Returns the default file suffixes for Leica file format. */
   public String[] getDefaultSuffixes() {
-    return new String[] {"lei", "LEI"};
+    return new String[] {"lei"};
   }
 
 
@@ -287,7 +287,7 @@ public class LeicaForm extends Form implements FormBlockReader,
   }
 
 
-  // -- Internal BaseTiffForm API methods --
+  // -- Internal LeicaForm API methods --
 
   /** Initializes the given Leica file. */
   protected void initFile(String id)
