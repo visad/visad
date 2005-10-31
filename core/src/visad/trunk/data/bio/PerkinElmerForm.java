@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package visad.data.bio;
 
 import java.io.*;
+import java.lang.reflect.Method;
 import java.rmi.RemoteException;
 import java.net.*;
 import java.util.Hashtable;
@@ -416,22 +417,29 @@ public class PerkinElmerForm extends Form implements FormBlockReader,
 
       String regex = "<p>|</p>|<br>|<hr>|<b>|</b>|<HTML>|<HEAD>|</HTML>|" +
         "</HEAD>|<h1>|</h1>|<HR>|</body>";
-      String[] tokens = (new String(data)).split(regex);
+      //String[] tokens = (new String(data)).split(regex);
 
-          for (int j=0; j<tokens.length; j++) {
-        if (tokens[j].indexOf("<") != -1) {
-          tokens[j] = "";
-        }
+      // use reflection to avoid dependency on Java 1.4-specific split method
+      Class c = String.class;
+      String[] tokens = new String[0];
+      try {
+        Method split = c.getMethod("split", new Class[] {c});
+        tokens = (String[]) split.invoke(new String(data),
+          new Object[] {regex});
+      }
+      catch (Throwable e) { }
+
+      for (int j=0; j<tokens.length; j++) {
+        if (tokens[j].indexOf("<") != -1) tokens[j] = "";
       }
 
       int slice = 0;
       for (int j=0; j<tokens.length-1; j+=2) {
         if (tokens[j].indexOf("Wavelength") != -1) {
-          metadata.put("Camera Data " + tokens[j].charAt(13),
-                    tokens[j]);
+          metadata.put("Camera Data " + tokens[j].charAt(13), tokens[j]);
           j--;
         }
-        else if (tokens[j].trim() != "") {
+        else if (!tokens[j].trim().equals("")) {
           metadata.put(tokens[j], tokens[j+1]);
         }
       }
