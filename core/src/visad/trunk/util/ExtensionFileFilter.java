@@ -33,27 +33,39 @@ public class ExtensionFileFilter extends javax.swing.filechooser.FileFilter
   implements java.io.FileFilter
 {
   
-  /** list of valid extensions */
+  /** List of valid extensions. */
   private String[] exts;
 
-  /** description */
+  /** Description. */
   private String desc;
 
-  /** construct a new filter that accepts the given filter */
+  /** Constructs a new filter that accepts the given extension. */
   public ExtensionFileFilter(String extension, String description) {
     this(new String[] {extension}, description);
   }
 
-  /** construct a new filter that accepts the given filters */
+  /** Constructs a new filter that accepts the given extensions. */
   public ExtensionFileFilter(String[] extensions, String description) {
     exts = new String[extensions.length];
     System.arraycopy(extensions, 0, exts, 0, extensions.length);
-    desc = description + " (*." + exts[0];
-    for (int i=1; i<exts.length; i++) desc = desc + ", *." + exts[i];
-    desc = desc + ")";
+    StringBuffer sb = new StringBuffer(description);
+    boolean first = true;
+    for (int i=0; i<exts.length; i++) {
+      if (exts[i] == null) exts[i] = "";
+      if (exts[i].equals("")) continue;
+      if (first) {
+        sb.append(" (");
+        first = false;
+      }
+      else sb.append(", ");
+      sb.append("*.");
+      sb.append(exts[i]);
+    }
+    sb.append(")");
+    desc = sb.toString();
   }
 
-  /** accept files with the proper extensions */
+  /** Accepts files with the proper extensions. */
   public boolean accept(File f) {
     if (f.isDirectory()) return true;
 
@@ -72,4 +84,5 @@ public class ExtensionFileFilter extends javax.swing.filechooser.FileFilter
   public String getDescription() {
     return desc;
   }
+
 }
