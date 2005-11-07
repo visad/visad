@@ -75,16 +75,18 @@ public class TiffRational extends Number implements Comparable {
   public byte byteValue() { return (byte) longValue(); }
 
   /** Returns the value of the specified number as a double. */
-  public double doubleValue() { return (double) numer / denom; }
+  public double doubleValue() { return (double) longValue(); }
 
   /** Returns the value of the specified number as a float. */
-  public float floatValue() { return (float) numer / denom; }
+  public float floatValue() { return (float) longValue(); }
 
   /** Returns the value of the specified number as an int. */
   public int intValue() { return (int) longValue(); }
 
   /** Returns the value of the specified number as a long. */
-  public long longValue() { return numer / denom; }
+  public long longValue() {
+    return denom == 0 ? Long.MAX_VALUE : (numer / denom);
+  }
 
   /** Returns the value of the specified number as a short. */
   public short shortValue() { return (short) longValue(); }
