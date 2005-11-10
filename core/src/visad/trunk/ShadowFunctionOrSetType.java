@@ -2304,9 +2304,29 @@ makeGeometry 350, 171
               }
             }
 
-            if (range_select[0] != null) {
-              //if (mode.getMissingTransparent() && color_values.length > 3) {
-              if (isMissingTransparent && color_values.length > 3) {
+            // DRM 10-Nov-2005 - copy logic from linear texture
+            //if (range_select[0] != null) {
+            if (range_select[0] != null && range_select[0].length > 1) {
+              int len = range_select[0].length;
+              float alpha =
+                default_values[display.getDisplayScalarIndex(Display.Alpha)];
+              if (constant_alpha == constant_alpha) {
+                alpha = 1.0f - constant_alpha;
+              }
+              if (color_values.length < 4) {
+                byte[][] c = new byte[4][];
+                c[0] = color_values[0];
+                c[1] = color_values[1];
+                c[2] = color_values[2];
+                c[3] = new byte[len];
+                for (int i=0; i<len; i++) c[3][i] = floatToByte(alpha);
+                constant_alpha = Float.NaN;
+                color_values = c;
+              }
+
+              // DRM 10-Nov-2005
+              //if (isMissingTransparent && color_values.length > 3) {
+              if (isMissingTransparent) {
                 for (int i=0; i<domain_length; i++) {
                   if (!range_select[0][i]) {
                     // make missing pixel invisible (transparent)
