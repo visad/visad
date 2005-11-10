@@ -196,14 +196,16 @@ public class Util
   }
 
   /**
-   * Return a JFileChooser that recognizes accepted VisAD file types.
+   * Return a JFileChooser that recognizes supported VisAD file types.
    */
   public static JFileChooser getVisADFileChooser() {
     JFileChooser dialog = null;
     try {
       dialog = new JFileChooser(System.getProperty("user.dir"));
       Vector filters = new Vector();
+      boolean ij = canDoImageJ();
       boolean jai = canDoJAI();
+      boolean qt = canDoQuickTime();
 
       // Amanda F2000 - amanda/F2000Form
       FileFilter f2000 = new ExtensionFileFilter("r", "Amanda F2000 datasets");
@@ -215,8 +217,10 @@ public class Util
       filters.add(biorad);
 
       // BMP - ij/ImageJForm, jai/JAIForm
-      FileFilter bmp = new ExtensionFileFilter("bmp", "BMP images");
-      filters.add(bmp);
+      if (jai || ij) {
+        FileFilter bmp = new ExtensionFileFilter("bmp", "BMP images");
+        filters.add(bmp);
+      }
 
       // Deltavision - bio/DeltavisionForm
       FileFilter deltavision = new ExtensionFileFilter("dv",
@@ -228,8 +232,10 @@ public class Util
       filters.add(dem);
 
       // DICOM - ij/ImageJForm
-      FileFilter dicom = new ExtensionFileFilter("dicom", "DICOM images");
-      filters.add(dicom);
+      if (ij) {
+        FileFilter dicom = new ExtensionFileFilter("dicom", "DICOM images");
+        filters.add(dicom);
+      }
 
       // FITS - fits/FitsForm, ij/ImageJForm
       FileFilter fits = new ExtensionFileFilter("fits", "FITS datasets");
@@ -241,6 +247,11 @@ public class Util
           "FlashPix images");
         filters.add(flashpix);
       }
+
+      // Gatan Digital Micrograph - bio/GatanForm
+      FileFilter gatan = new ExtensionFileFilter("dm3",
+        "Gatan Digital Micrograph images");
+      filters.add(gatan);
 
       // GIF - gif/GIFForm, ij/ImageJForm, jai/JAIForm
       FileFilter gif = new ExtensionFileFilter("gif", "GIF images");
@@ -258,6 +269,11 @@ public class Util
         new String[] {"hdf", "hdfeos"}, "HDF-EOS datasets");
       filters.add(hdfeos);
 
+      // Image-Pro SEQ - bio/ImageProSeqForm
+      FileFilter seq = new ExtensionFileFilter("seq",
+        "Image-Pro SEQ files");
+      filters.add(seq);
+
       // IPLab - bio/IPLabForm
       FileFilter iplab = new ExtensionFileFilter("ipl", "IPLab files");
       filters.add(iplab);
@@ -272,8 +288,10 @@ public class Util
       filters.add(leica);
 
       // LUT color tables - ij/ImageJForm
-      FileFilter lut = new ExtensionFileFilter("lut", "LUT data");
-      filters.add(lut);
+      if (ij) {
+        FileFilter lut = new ExtensionFileFilter("lut", "LUT data");
+        filters.add(lut);
+      }
 
       // McIDAS - mcidas/AreaForm, mcidas/MapForm, mcidas/PointForm
       FileFilter mcidas = new McIDASFileFilter();
@@ -298,8 +316,16 @@ public class Util
       filters.add(perkinElmer);
 
       // PGM - ij/ImageJForm
-      FileFilter pgm = new ExtensionFileFilter("pgm", "PGM images");
-      filters.add(pgm);
+      if (ij) {
+        FileFilter pgm = new ExtensionFileFilter("pgm", "PGM images");
+        filters.add(pgm);
+      }
+
+      if (qt) {
+        // PICT - qt/PictForm
+        FileFilter pict = new ExtensionFileFilter("pict", "PICT images");
+        filters.add(pict);
+      }
 
       // PNG - gif/GIFForm, ij/ImageJForm, jai/JAIForm
       FileFilter png = new ExtensionFileFilter("png", "PNG images");
@@ -312,14 +338,17 @@ public class Util
       }
 
       // QuickTime - qt/QTForm
-      if (canDoQuickTime()) {
-        FileFilter qt = new ExtensionFileFilter("mov", "QuickTime movies");
-        filters.add(qt);
+      if (qt) {
+        FileFilter quicktime = new ExtensionFileFilter(
+          "mov", "QuickTime movies");
+        filters.add(quicktime);
       }
 
       // ROI - ij/ImageJForm
-      FileFilter roi = new ExtensionFileFilter("roi", "ROI data");
-      filters.add(roi);
+      if (ij) {
+        FileFilter roi = new ExtensionFileFilter("roi", "ROI data");
+        filters.add(roi);
+      }
 
       // text - text/TextForm
       FileFilter text = new ExtensionFileFilter(
@@ -328,7 +357,7 @@ public class Util
 
       // TIFF - tiff/TiffForm, ij/ImageJForm, jai/JAIForm
       FileFilter tiff = new ExtensionFileFilter(
-        new String[] {"tiff", "tif"}, "TIFF datasets");
+        new String[] {"tif", "tiff"}, "TIFF datasets");
       filters.add(tiff);
 
       // VisAD binary/serialized - visad/VisADForm
@@ -341,9 +370,11 @@ public class Util
       filters.add(vis5d);
 
       // ZIP-compressed TIFF - ij/ImageJForm
-      FileFilter zip = new ExtensionFileFilter(
-        "zip", "ZIP-compressed TIFF data");
-      filters.add(zip);
+      if (ij) {
+        FileFilter zip = new ExtensionFileFilter(
+          "zip", "ZIP-compressed TIFF data");
+        filters.add(zip);
+      }
 
       // Zeiss LSM - bio/ZeissForm
       FileFilter lsm = new ExtensionFileFilter("lsm", "Zeiss LSM images");
@@ -434,6 +465,14 @@ public class Util
   }
 
   /**
+   * Test whether ImageJ is present in this JVM.
+   * @return true if found, otherwise false
+   */
+  public static boolean canDoImageJ() {
+    return canDoClass("ij.IJ") != null;
+  }
+
+  /**
    * Test whether JPEG codec (com.sun.image.codec.jpeg) is present in this JVM.
    * @return true if found, otherwise false
    */
@@ -450,7 +489,7 @@ public class Util
   }
 
   /**
-   * Test whether JPython is present in this JVM.
+   * Test whether Jython is present in this JVM.
    * @return true if found, otherwise false
    */
   public static boolean canDoPython() {
@@ -466,7 +505,7 @@ public class Util
   }
 
   /**
-   * Test whether Java 3D is present in this JVM.
+   * Test whether Java3D is present in this JVM.
    * @return true if found, otherwise false
    */
   public static boolean canDoJava3D() {
@@ -474,11 +513,11 @@ public class Util
   }
 
   /**
-   * Check to see if the version of Java 3D being used is compatible
+   * Check to see if the version of Java3D being used is compatible
    * with the desired specification version.
    * @param version   version to check.  Needs to conform to the dotted format
    *                  of specification version numbers (e.g., 1.2)
-   * @return true if the Java 3D version being used is greater than or
+   * @return true if the Java3D version being used is greater than or
    *         equal to the desired version number
    */
   public static boolean canDoJava3D(String version) {
