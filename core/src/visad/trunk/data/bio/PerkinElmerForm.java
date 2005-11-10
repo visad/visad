@@ -231,7 +231,7 @@ public class PerkinElmerForm extends Form implements FormBlockReader,
   public Object getMetadataValue(String id, String field)
     throws BadFormException, IOException, VisADException
   {
-    if (id != currentId) initFile(id);
+    if (!id.equals(currentId)) initFile(id);
     return metadata.get(field);
   }
 
@@ -245,7 +245,7 @@ public class PerkinElmerForm extends Form implements FormBlockReader,
   public Hashtable getMetadata(String id)
     throws BadFormException, IOException, VisADException
   {
-    if (id != currentId) initFile(id);
+    if (!id.equals(currentId)) initFile(id);
     return metadata;
   }
 
@@ -261,7 +261,7 @@ public class PerkinElmerForm extends Form implements FormBlockReader,
   public Object getOMENode(String id)
     throws BadFormException, IOException, VisADException
   {
-    if (id != currentId) initFile(id);
+    if (!id.equals(currentId)) initFile(id);
     if (ome == null) {
       throw new BadFormException(
         "This functionality requires the LOCI OME-XML " +
