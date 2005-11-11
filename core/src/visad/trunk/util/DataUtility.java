@@ -153,8 +153,25 @@ public class DataUtility {
     return values;
   }
 
-  /** create a VisAD Data object from the given Image */
+  /** 
+   * Create a VisAD Data object from the given Image 
+   * @param  image   image to use
+   * @return a FlatField representation of the image
+   */
   public static FlatField makeField(Image image)
+    throws IOException, VisADException
+  {
+    return makeField(image, false);
+  }
+
+  /** 
+   * Create a VisAD Data object from the given Image 
+   * @param  image   image to use
+   * @param  withAlpha   include Alpha in the field if the image ColorModel
+   *                     supports it and the image is not opaque.
+   * @return a FlatField representation of the image
+   */
+  public static FlatField makeField(Image image, boolean withAlpha)
     throws IOException, VisADException
   {
     if (image == null) {
@@ -177,9 +194,6 @@ public class DataUtility {
     // extract image pixels
     int numPixels = width * height;
     int[] words = new int[numPixels];
-    float[] red_pix = new float[numPixels];
-    float[] green_pix = new float[numPixels];
-    float[] blue_pix = new float[numPixels];
 
     PixelGrabber grabber = new PixelGrabber(
       image.getSource(), 0, 0, width, height, words, 0, width);
@@ -188,11 +202,33 @@ public class DataUtility {
     catch (InterruptedException e) { }
 
     ColorModel cm = grabber.getColorModel();
+    boolean doAlpha = cm.hasAlpha() && withAlpha;
+    //System.out.println("do alpha: " + doAlpha);
+
+    float[] red_pix = new float[numPixels];
+    float[] green_pix = new float[numPixels];
+    float[] blue_pix = new float[numPixels];
+    float[] alpha_pix = null;
+
     for (int i=0; i<numPixels; i++) {
       red_pix[i] = cm.getRed(words[i]);
       green_pix[i] = cm.getGreen(words[i]);
       blue_pix[i] = cm.getBlue(words[i]);
     }
+    boolean opaque = true;
+    if (doAlpha) {
+      alpha_pix = new float[numPixels];
+      for (int i=0; i<numPixels; i++) {
+        alpha_pix[i] = cm.getAlpha(words[i]);
+        if (alpha_pix[i] != 255.0f) opaque = false;
+      }
+    }
+
+    if (opaque && doAlpha) {  // if opaque, don't include alpha
+      doAlpha = false;
+      alpha_pix = null;
+    }
+    //System.out.println("opaque = " + opaque);
 
     // build FlatField
     RealType line = RealType.getRealType("ImageLine");
@@ -200,8 +236,11 @@ public class DataUtility {
     RealType c_red = RealType.getRealType("Red");
     RealType c_green = RealType.getRealType("Green");
     RealType c_blue = RealType.getRealType("Blue");
+    RealType c_alpha = RealType.getRealType("Alpha");
 
-    RealType[] c_all = {c_red, c_green, c_blue};
+    RealType[] c_all = 
+       (doAlpha) ? new RealType[] {c_red, c_green, c_blue, c_alpha}
+                  : new RealType[] {c_red, c_green, c_blue};
     RealTupleType radiance = new RealTupleType(c_all);
 
     RealType[] domain_components = {element, line};
@@ -212,10 +251,11 @@ public class DataUtility {
 
     FlatField field = new FlatField(image_type, domain_set);
 
-    float[][] samples = new float[3][];
+    float[][] samples = new float[doAlpha?4:3][];
     samples[0] = red_pix;
     samples[1] = green_pix;
     samples[2] = blue_pix;
+    if (doAlpha) samples[3] = alpha_pix;
     try { field.setSamples(samples, false); }
     catch (RemoteException e) {
       throw new VisADException("Couldn't finish image initialization");
