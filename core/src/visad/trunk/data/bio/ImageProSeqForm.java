@@ -43,12 +43,13 @@ public class ImageProSeqForm extends TiffForm {
 
   // -- Static fields --
 
-  /** An array of shorts (length 12) with identical values in all of our
+  /**
+   * An array of shorts (length 12) with identical values in all of our
    * samples; assuming this is some sort of format identifier.
    */
   private static final int IMAGE_PRO_TAG_1 = 50288;
 
-  /** This tag is an int with value 100 in all MULTI-IMAGE samples. */
+  /** Frame rate. */
   private static final int IMAGE_PRO_TAG_2 = 40105;
 
   /** Guessing this is thumbnail pixel data. */
@@ -71,11 +72,12 @@ public class ImageProSeqForm extends TiffForm {
         metadata.put("Image-Pro SEQ ID", seqId);
       }
 
-      int tag3 = TiffTools.getIFDIntValue(ifds[0], IMAGE_PRO_TAG_2);
+      int tag2 = TiffTools.getIFDIntValue(ifds[0], IMAGE_PRO_TAG_2);
 
-      if (tag3 != -1) {
+      if (tag2 != -1) {
         // should be one of these for every image plane
         imageCount++;
+        metadata.put("Frame Rate", new Integer(tag2));
       }
       else {
         imageCount = 1;
@@ -105,7 +107,7 @@ public class ImageProSeqForm extends TiffForm {
 
   /** Overridden to include the three SEQ-specific tags. */
   protected void initOMEMetadata() {
-  	super.initOMEMetadata();
+    super.initOMEMetadata();
 
     if (ome != null) {
       OMETools.setAttribute(ome, "Pixels", "SizeZ", "" +
