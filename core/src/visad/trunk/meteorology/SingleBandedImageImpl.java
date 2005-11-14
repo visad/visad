@@ -122,7 +122,8 @@ public class SingleBandedImageImpl
             if (!image.isMissing()) 
             {
                 setSamples(
-                   image.getFloats(false), image.getRangeErrors(), copyData);
+                   //image.getFloats(false), image.getRangeErrors(), copyData);
+                   image.getFloats(false), copyData);
             }
         }
         catch (java.rmi.RemoteException re) {;}  // can't happen since local
