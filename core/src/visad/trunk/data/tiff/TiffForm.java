@@ -28,9 +28,11 @@ package visad.data.tiff;
 
 import java.io.*;
 import java.rmi.RemoteException;
+import java.util.Hashtable;
 import visad.*;
 import visad.data.*;
 import visad.data.bio.OMETools;
+import visad.util.DataUtility;
 
 /**
  * TiffForm is the VisAD data form for the TIFF file format.
@@ -62,6 +64,15 @@ public class TiffForm extends BaseTiffForm {
   /** Flag indicating the current file requires the legacy TIFF form. */
   private boolean needLegacy;
 
+  /** Filename of TIFF file currently being saved. */
+  private String savingId;
+
+  /** Output stream of TIFF file currently being saved. */
+  private FileOutputStream out;
+
+  /** Offset into TIFF file currently being saved. */
+  private int offset;
+
 
   // -- Constructor --
 
@@ -69,6 +80,57 @@ public class TiffForm extends BaseTiffForm {
   public TiffForm() {
     super("TiffForm" + formCount++);
     legacy = new LegacyTiffForm();
+  }
+
+
+  // -- TiffForm API methods --
+
+  /**
+   * Saves the given image to the specified (possibly already open) file.
+   * If this image is the last one in the file, the last flag must be set.
+   */
+  public void saveImage(String id, FlatField image, boolean last)
+    throws IOException, VisADException
+  {
+    saveImage(id, image, null, last);
+  }
+
+  /**
+   * Saves the given image to the specified (possibly already open) file.
+   * The IFD hashtable allows specification of TIFF parameters such as bit
+   * depth, compression and units. If this image is the last one in the file,
+   * the last flag must be set.
+   */
+  public void saveImage(String id, FlatField image, Hashtable ifd,
+    boolean last) throws IOException, VisADException
+  {
+    ByteArrayOutputStream dataBuf = new ByteArrayOutputStream();
+    DataOutputStream dataOut = new DataOutputStream(dataBuf);
+    if (!id.equals(savingId)) {
+      if (out != null) {
+        System.err.println("Warning: abandoning previous TIFF file (" +
+          savingId + ")");
+        out.close();
+      }
+      savingId = id;
+      out = new FileOutputStream(savingId);
+      offset = 0;
+      dataOut.writeByte(TiffTools.BIG);
+      dataOut.writeByte(TiffTools.BIG);
+      dataOut.writeShort(TiffTools.MAGIC_NUMBER);
+      dataOut.writeInt(8); // offset to first IFD
+    }
+    TiffTools.writeImage(image, ifd, dataOut, offset == 0 ? 8 : offset, last);
+
+    // flush output to disk
+    byte[] data = dataBuf.toByteArray();
+    offset += data.length;
+    out.write(data);
+    if (last) {
+      out.close();
+      out = null;
+      savingId = null;
+    }
   }
 
 
@@ -103,8 +165,14 @@ public class TiffForm extends BaseTiffForm {
   public void save(String id, Data data, boolean replace)
     throws BadFormException, IOException, RemoteException, VisADException
   {
-    // save is not yet implemented; delegate to legacy form
-    legacy.save(id, data, replace);
+    FlatField[] ff = DataUtility.getImageFields(data);
+    if (ff == null || ff.length == 0) {
+      throw new BadFormException("Incompatible data object");
+    }
+    if (!replace && new File(id).exists()) {
+      throw new BadFormException("File already exists");
+    }
+    for (int i=0; i<ff.length; i++) saveImage(id, ff[i], i == ff.length - 1);
   }
 
 
@@ -196,7 +264,6 @@ public class TiffForm extends BaseTiffForm {
       form.save(args[1], data, true);
       System.out.println("[done]");
     }
-    System.exit(0);
   }
 
 }

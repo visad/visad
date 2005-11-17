@@ -119,11 +119,7 @@ public abstract class BaseTiffForm extends Form implements FormBlockReader,
       System.out.println("[done]");
 
       // output metadata
-      Enumeration e = meta.keys();
-      Vector v = new Vector();
-      while (e.hasMoreElements()) v.add(e.nextElement());
-      String[] keys = new String[v.size()];
-      v.copyInto(keys);
+      String[] keys = (String[]) meta.keySet().toArray(new String[0]);
       Arrays.sort(keys);
       for (int i=0; i<keys.length; i++) {
         System.out.print(keys[i] + ": ");
