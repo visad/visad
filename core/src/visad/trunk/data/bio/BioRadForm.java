@@ -29,13 +29,11 @@ package visad.data.bio;
 import java.io.*;
 import java.rmi.RemoteException;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
-
 import visad.*;
 import visad.data.*;
+import visad.data.tiff.BaseTiffForm;
 
 /**
  * BioRadForm is the VisAD data format adapter for Bio-Rad PIC files.
@@ -43,7 +41,7 @@ import visad.data.*;
  * @author Melissa Linkert linkert at cs.wisc.edu
  */
 public class BioRadForm extends Form implements FormBlockReader,
-  FormFileInformer, FormProgressInformer, MetadataReader
+  FormFileInformer, FormProgressInformer, MetadataReader, OMEReader
 {
 
   // -- Constants --
@@ -750,7 +748,7 @@ public class BioRadForm extends Form implements FormBlockReader,
     throws BadFormException, IOException, VisADException
   {
     if (!id.equals(currentId)) initFile(id);
-    return metadata.get(id);
+    return metadata.get(field);
   }
 
   /**
@@ -764,6 +762,27 @@ public class BioRadForm extends Form implements FormBlockReader,
   {
     if (!id.equals(currentId)) initFile(id);
     return metadata;
+  }
+
+
+  // -- OMEReader API methods --
+
+  /**
+   * Obtains a loci.ome.xml.OMENode object representing the
+   * file's metadata as an OME-XML DOM structure.
+   *
+   * @throws BadFormException if the loci.ome.xml package is not present
+   */
+  public Object getOMENode(String id)
+    throws BadFormException, IOException, VisADException
+  {
+    if (!id.equals(currentId)) initFile(id);
+    if (ome == null) {
+      throw new BadFormException(
+        "This functionality requires the LOCI OME-XML " +
+        "package available at http://www.loci.wisc.edu/ome/");
+    }
+    return ome;
   }
 
 
@@ -1009,7 +1028,6 @@ public class BioRadForm extends Form implements FormBlockReader,
     if (vertStep == 0) vertStep = 1;
 
     // create and populate OME-XML DOM tree
-
     ome = OMETools.createRoot();
     OMETools.setAttribute(ome, "Image", "Name", name);
     OMETools.setAttribute(ome, "Image", "SizeX", new Integer(nx).toString());
@@ -1056,29 +1074,7 @@ public class BioRadForm extends Form implements FormBlockReader,
 
     if (args.length == 1) {
       // Test read Bio-Rad PIC file
-      BioRadForm form = new BioRadForm();
-      System.out.print("Reading " + args[0] + " metadata ");
-      Hashtable meta = form.getMetadata(args[0]);
-      System.out.println("[done]");
-      System.out.println();
-
-      Enumeration e = meta.keys();
-      Vector v = new Vector();
-      while (e.hasMoreElements()) v.add(e.nextElement());
-      String[] keys = new String[v.size()];
-      v.copyInto(keys);
-      Arrays.sort(keys);
-
-      for (int i=0; i<keys.length; i++) {
-        System.out.println(keys[i] + ": " + meta.get(keys[i]));
-      }
-      System.out.println();
-
-      System.out.print("Reading " + args[0] + " pixel data ");
-      Data data = form.open(args[0]);
-      System.out.println("[done]");
-
-      System.out.println("MathType =\n" + data.getType());
+      BaseTiffForm.testRead(new BioRadForm(), "Bio-Rad PIC", args);
     }
     else if (args.length == 2) {
       // Convert file to Bio-Rad PIC format
@@ -1090,7 +1086,6 @@ public class BioRadForm extends Form implements FormBlockReader,
       form.save(args[1], data, true);
       System.out.println("[done]");
     }
-    System.exit(0);
   }
 
 }
