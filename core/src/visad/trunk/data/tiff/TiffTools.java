@@ -1450,21 +1450,9 @@ public abstract class TiffTools {
     if (getIFDValue(ifd, RESOLUTION_UNIT) == null) {
       putIFDValue(ifd, RESOLUTION_UNIT, 1); // no unit
     }
-//     required RGB & Grayscale fields:
-//     ImageWidth
-//     ImageLength
-//     BitsPerSample (8 for 0-255, 16 for 0-65536, 32 for 32-bit)
-//                   (write 1 value for grayscale, or 3 values for RGB)
-//     Compression (leave off for uncompressed; 5 for LZW)
-//     PhotometricInterpretatation (1 for grayscale, 2 for RGB)
-//     StripOffsets
-//     SamplesPerPixel (leave off for grayscale; 3 for RGB)
-//     RowsPerStrip (shoot for 8K bytes per strip -- 8192 / width)
-//     Software ("VisBio v3.20" or whatever)
-//     StripByteCounts (computable from ImageWidth and RowsPerStrip)
-//     XResolution (1/1 for no unit, mw/1,000,000 for mu)
-//     YResolution (1/1 for no unit, mh/1,000,000 for mu)
-//     ResolutionUnit (1 for no unit, 3 for cm)
+    if (getIFDValue(ifd, SOFTWARE) == null) {
+      putIFDValue(ifd, SOFTWARE, "VisAD");
+    }
 
     // create pixel output buffers
     int stripSize = 8192;
@@ -1516,6 +1504,7 @@ public abstract class TiffTools {
     putIFDValue(ifd, STRIP_BYTE_COUNTS, stripByteCounts);
 
     Object[] keys = ifd.keySet().toArray();
+    Arrays.sort(keys); // sort IFD tags in ascending order
     int ifdBytes = 2 + 12 * keys.length + 4;
     long pixelBytes = 0;
     for (int i=0; i<stripsPerImage; i++) {
