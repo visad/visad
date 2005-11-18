@@ -1374,8 +1374,9 @@ public abstract class TiffTools {
    * @param out The output stream to which the TIFF data should be written
    * @param offset The value to use for specifying byte offsets
    * @param last Whether this image is the final IFD entry of the TIFF data
+   * @return total number of bytes written
    */
-  public static void writeImage(FlatField image, Hashtable ifd,
+  public static long writeImage(FlatField image, Hashtable ifd,
     OutputStream out, int offset, boolean last)
     throws IOException, VisADException
   {
@@ -1661,9 +1662,16 @@ public abstract class TiffTools {
     ifdOut.writeInt(last ? 0 : offset + extraBuf.size()); // offset to next IFD
 
     // flush buffers to output stream
-    out.write(ifdBuf.toByteArray());
-    for (int i=0; i<strips.length; i++) out.write(strips[i]);
-    out.write(extraBuf.toByteArray());
+    byte[] ifdArray = ifdBuf.toByteArray();
+    byte[] extraArray = extraBuf.toByteArray();
+    long numBytes = ifdArray.length + extraArray.length;
+    out.write(ifdArray);
+    for (int i=0; i<strips.length; i++) {
+      out.write(strips[i]);
+      numBytes += strips[i].length;
+    }
+    out.write(extraArray);
+    return numBytes;
   }
 
 

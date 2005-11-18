@@ -104,8 +104,6 @@ public class TiffForm extends BaseTiffForm {
   public void saveImage(String id, FlatField image, Hashtable ifd,
     boolean last) throws IOException, VisADException
   {
-    ByteArrayOutputStream dataBuf = new ByteArrayOutputStream();
-    DataOutputStream dataOut = new DataOutputStream(dataBuf);
     if (!id.equals(savingId)) {
       if (out != null) {
         System.err.println("Warning: abandoning previous TIFF file (" +
@@ -114,18 +112,14 @@ public class TiffForm extends BaseTiffForm {
       }
       savingId = id;
       out = new FileOutputStream(savingId);
-      offset = 0;
+      DataOutputStream dataOut = new DataOutputStream(out);
       dataOut.writeByte(TiffTools.BIG);
       dataOut.writeByte(TiffTools.BIG);
       dataOut.writeShort(TiffTools.MAGIC_NUMBER);
       dataOut.writeInt(8); // offset to first IFD
+      offset = 8;
     }
-    TiffTools.writeImage(image, ifd, dataOut, offset == 0 ? 8 : offset, last);
-
-    // flush output to disk
-    byte[] data = dataBuf.toByteArray();
-    offset += data.length;
-    out.write(data);
+    offset += TiffTools.writeImage(image, ifd, out, offset, last);
     if (last) {
       out.close();
       out = null;
