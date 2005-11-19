@@ -32,15 +32,6 @@ package visad.data.tiff;
  */
 public class BitWriter {
 
-  // -- Constants --
-
-  private static final int[] BACK_MASK = new int[]
-    {0x0000, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F, 0x003F, 0x007F};
-
-  private static final int[] FRONT_MASK = new int[]
-    {0x0000, 0x0080, 0x00C0, 0x00E0, 0x00F0, 0x00F8, 0x00FC, 0x00FE};
-
-
   // -- Fields --
 
   /** Buffer storing all bits written thus far. */
