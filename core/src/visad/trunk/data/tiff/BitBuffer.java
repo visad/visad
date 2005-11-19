@@ -32,12 +32,16 @@ package visad.data.tiff;
  */
 public class BitBuffer {
 
+  private static final int[] BACK_MASK =
+    {0x0000, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F, 0x003F, 0x007F};
+
+  private static final int[] FRONT_MASK =
+    {0x0000, 0x0080, 0x00C0, 0x00E0, 0x00F0, 0x00F8, 0x00FC, 0x00FE};
+
   private int currentByte;
   private int currentBit;
   private byte[] byteBuffer;
   private int eofByte;
-  private int[] backMask;
-  private int[] frontMask;
   private boolean eofFlag;
 
   public BitBuffer(byte[] byteBuffer) {
@@ -45,10 +49,6 @@ public class BitBuffer {
     currentByte = 0;
     currentBit = 0;
     eofByte = byteBuffer.length;
-    backMask = new int[] {
-      0x0000, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F, 0x003F, 0x007F};
-    frontMask = new int[] {
-      0x0000, 0x0080, 0x00C0, 0x00E0, 0x00F0, 0x00F8, 0x00FC, 0x00FE};
   }
 
   public int getBits(int bitsToRead) {
@@ -67,7 +67,7 @@ public class BitBuffer {
         else {
           toStore = toStore << (8 - currentBit);
           toStore += ((int)
-            byteBuffer[currentByte]) & backMask[8 - currentBit];
+            byteBuffer[currentByte]) & BACK_MASK[8 - currentBit];
           bitsToRead -= (8 - currentBit);
           currentBit = 0;
           currentByte++;
@@ -77,7 +77,7 @@ public class BitBuffer {
         toStore = toStore << bitsToRead;
         int cb = ((int) byteBuffer[currentByte]);
         cb = (cb<0 ? (int) 256 + cb : (int) cb);
-        toStore += ((cb) & (0x00FF - frontMask[currentBit])) >>
+        toStore += ((cb) & (0x00FF - FRONT_MASK[currentBit])) >>
           (8 - (currentBit + bitsToRead));
         currentBit += bitsToRead;
         bitsToRead = 0;

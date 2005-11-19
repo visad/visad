@@ -1433,7 +1433,7 @@ public abstract class TiffTools {
       putIFDValue(ifd, BITS_PER_SAMPLE, bpsArray);
     }
     if (getIFDValue(ifd, COMPRESSION) == null) {
-      putIFDValue(ifd, COMPRESSION, 1);
+      putIFDValue(ifd, COMPRESSION, UNCOMPRESSED);
     }
     if (getIFDValue(ifd, PHOTOMETRIC_INTERPRETATION) == null) {
       putIFDValue(ifd, PHOTOMETRIC_INTERPRETATION, values.length == 1 ? 1 : 2);
@@ -1721,8 +1721,47 @@ public abstract class TiffTools {
    * http://partners.adobe.com/asn/developer/pdfs/tn/TIFF6.pdf (page 61)
    */
   public static byte[] lzwCompress(byte[] input) {
-    // CTR TODO
-    return input;
+    if (input == null || input.length == 0) return input;
+    if (DEBUG) debug("compressing " + input.length + " bytes of data to LZW");
+
+    // initialize symbol table
+    LZWTreeNode symbols = new LZWTreeNode(-1);
+    symbols.initialize();
+    int nextCode = 258;
+    int numBits = 9;
+
+    BitWriter out = new BitWriter();
+    out.write(CLEAR_CODE, numBits);
+    ByteVector omega = new ByteVector();
+    for (int i=0; i<input.length; i++) {
+      byte k = input[i];
+      LZWTreeNode omegaNode = symbols.nodeFromString(omega);
+      LZWTreeNode omegaKNode = omegaNode.getChild(k);
+      if (omegaKNode != null) {
+        // omega+k is in the string table
+        omega.add(k);
+      }
+      else {
+        out.write(omegaNode.getCode(), numBits);
+        omega.add(k);
+        symbols.addTableEntry(omega, nextCode++);
+        omega.clear();
+        omega.add(k);
+        if (nextCode == 511) numBits = 10;
+        else if (nextCode == 1023) numBits = 11;
+        else if (nextCode == 2047) numBits = 12;
+        else if (nextCode == 4095) {
+          out.write(CLEAR_CODE, numBits);
+          symbols.initialize();
+          numBits = 9;
+          out.write(symbols.codeFromString(omega), numBits);
+        }
+      }
+    }
+    out.write(symbols.codeFromString(omega), numBits);
+    out.write(EOI_CODE, numBits);
+
+    return out.toByteArray();
   }
 
 
