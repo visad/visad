@@ -507,6 +507,9 @@ public abstract class BaseTiffForm extends Form implements FormBlockReader,
         TiffTools.getIFDIntValue(ifd, TiffTools.IMAGE_WIDTH));
       OMETools.setAttribute(ome, "Pixels", "SizeY", "" +
         TiffTools.getIFDIntValue(ifd, TiffTools.IMAGE_LENGTH));
+      OMETools.setAttribute(ome, "Pixels", "SizeZ", "" + 1);
+      OMETools.setAttribute(ome, "Pixels", "SizeT", "" + ifds.length);
+      OMETools.setAttribute(ome, "Pixels", "SizeC", "" + 1);
 //      OMETools.setAttribute(ome, "Pixels", "SizeZ", "" +
 //        TiffTools.getIFDIntValue(ifd, TiffTools.X_RESOLUTION));
 //      OMETools.setAttribute(ome, "Pixels", "SizeT", "" +

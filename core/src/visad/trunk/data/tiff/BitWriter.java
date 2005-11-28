@@ -97,34 +97,32 @@ public class BitWriter {
 
   /** Tests the BitWriter class. */
   public static void main(String[] args) {
-    int max = 500000;
+    int max = 50000;
 
-    // write values out
-    BitWriter out = new BitWriter();
-    int num = 1, bits = 1, count = 0;
-    for (int i=1; i<=max; i++) {
-      out.write(i, bits);
-      count++;
-      if (count == num) {
-        num *= 2;
-        bits++;
-        count = 0;
-      }
+    // randomize values
+    System.out.println("Generating random list of " + max + " values");
+    int[] values = new int[max];
+    int[] bits = new int[max];
+    double log2 = Math.log(2);
+    for (int i=0; i<values.length; i++) {
+      values[i] = (int) (50000 * Math.random()) + 1;
+      int minBits = (int) Math.ceil(Math.log(values[i] + 1) / log2);
+      bits[i] = (int) (10 * Math.random()) + minBits;
     }
 
+    // write values out
+    System.out.println("Writing values to byte array");
+    BitWriter out = new BitWriter();
+    for (int i=0; i<values.length; i++) out.write(values[i], bits[i]);
+
     // read values back in
+    System.out.println("Reading values from byte array");
     BitBuffer bb = new BitBuffer(out.toByteArray());
-    num = 1; bits = 1; count = 0;
-    for (int i=1; i<=max; i++) {
-      int value = bb.getBits(bits);
-      if (value != i) {
-        System.out.println("Value #" + i + " does not match (" + value + ")");
-      }
-      count++;
-      if (count == num) {
-        num *= 2;
-        bits++;
-        count = 0;
+    for (int i=0; i<values.length; i++) {
+      int value = bb.getBits(bits[i]);
+      if (value != values[i]) {
+        System.out.println("Value #" + i + " does not match (got " +
+          value + "; expected " + values[i] + "; " + bits[i] + " bits)");
       }
     }
   }

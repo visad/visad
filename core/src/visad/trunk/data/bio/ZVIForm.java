@@ -520,8 +520,7 @@ public class ZVIForm extends Form implements FormBlockReader,
 
     metadata.put("PixelFormat", format);
 
-    metadata.put("NumberOfImages",
-      new Integer(TiffTools.bytesToInt(header, pt, 4, true)));
+    metadata.put("NumberOfImages", new Integer(nImages));
     pt += 6;
     metadata.put("BitsPerPixel",
       new Integer(TiffTools.bytesToInt(header, pt, 4, true)));
@@ -533,6 +532,10 @@ public class ZVIForm extends Form implements FormBlockReader,
         ((Integer) metadata.get("ImageWidth")).intValue());
       OMETools.setAttribute(ome, "Pixels", "SizeY", "" +
       ((Integer) metadata.get("ImageHeight")).intValue());
+      OMETools.setAttribute(ome, "Pixels", "SizeZ", "" + nImages);
+      OMETools.setAttribute(ome, "Pixels", "SizeC", "1");
+      OMETools.setAttribute(ome, "Pixels", "SizeT", "1");
+      OMETools.setAttribute(ome, "Pixels", "DimensionOrder", "XYZTC");
 
       String type;
       switch (pixel) {

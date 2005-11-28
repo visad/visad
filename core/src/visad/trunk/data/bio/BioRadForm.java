@@ -1030,8 +1030,11 @@ public class BioRadForm extends Form implements FormBlockReader,
     // create and populate OME-XML DOM tree
     ome = OMETools.createRoot();
     OMETools.setAttribute(ome, "Image", "Name", name);
-    OMETools.setAttribute(ome, "Image", "SizeX", new Integer(nx).toString());
-    OMETools.setAttribute(ome, "Image", "SizeY", new Integer(ny).toString());
+    OMETools.setAttribute(ome, "Pixels", "SizeX", "" + nx);
+    OMETools.setAttribute(ome, "Pixels", "SizeY", "" + ny);
+    OMETools.setAttribute(ome, "Pixels", "SizeZ", "" + npic);
+    OMETools.setAttribute(ome, "Pixels", "SizeT", "1");
+    OMETools.setAttribute(ome, "Pixels", "SizeC", "1");
 
     int type = getUnsignedShort(header[14], header[15]);
     String format;

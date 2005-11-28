@@ -56,7 +56,7 @@ public class MetamorphForm extends BaseTiffForm {
 
   /** Form instantiation counter. */
   private static int formCount = 0;
-
+  private int numPlanes;
 
   // -- Constructor --
 
@@ -74,6 +74,7 @@ public class MetamorphForm extends BaseTiffForm {
 
     long[] uic2 = TiffTools.getIFDLongArray(ifds[0], UIC2TAG, true);
     numImages = uic2.length;
+    numPlanes = numImages;
 
     // copy ifds into a new array of Hashtables that will accomodate the
     // additional image planes
@@ -147,10 +148,26 @@ public class MetamorphForm extends BaseTiffForm {
     ifds = tempIFDs;
   }
 
+  protected void initOMEMetadata() {
+    super.initOMEMetadata();
+    if(ome != null) {
+      try {
+        OMETools.setAttribute(ome, "Pixels", "SizeZ", "" +
+          TiffTools.getIFDLongArray(ifds[0], UIC2TAG, true).length);
+      }
+      catch (BadFormException e) { e.printStackTrace(); }
+    }
+  }
+
   /** Populates the metadata hashtable. */
-  protected void initMetadata() {
+  protected void initStandardMetadata() {
     try {
       Hashtable ifd = ifds[0];
+      super.initStandardMetadata();
+
+      String newDescr = ((String[])
+        ifd.get(new Integer(TiffTools.IMAGE_DESCRIPTION)))[0];
+      ifd.put(new Integer(TiffTools.IMAGE_DESCRIPTION), newDescr);
 
       Integer obj = new Integer(0);
 
@@ -422,6 +439,11 @@ public class MetamorphForm extends BaseTiffForm {
     }
     catch (IOException e) { e.printStackTrace(); }
     catch (BadFormException e) { e.printStackTrace(); }
+
+    try {
+      super.initStandardMetadata();
+    }
+    catch (Throwable t) { t.printStackTrace(); }
   }
 
 

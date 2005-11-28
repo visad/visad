@@ -214,9 +214,9 @@ public class FluoviewTiffForm extends BaseTiffForm {
           }
 
           newNum = TiffTools.read4SignedBytes(in, little);
-          if (j < 6) {
-            OMETools.setAttribute(ome, "Pixels", "Size" + attr, "" + newNum);
-          }
+  //        if (j < 6) {
+  //          OMETools.setAttribute(ome, "Pixels", "Size" + attr, "" + newNum);
+  //        }
 
           origin = TiffTools.readDouble(in, little);
           if (!attr.equals("T") && !attr.equals("C") && !attr.equals("")) {

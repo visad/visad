@@ -280,7 +280,7 @@ public abstract class TiffTools {
           if (count > 4) {
             in.seek(globalOffset + read4UnsignedBytes(in, littleEndian));
           }
-          in.readFully(ascii);
+          readFully(in, ascii);
 
           // count number of null terminators
           int nullCount = 0;
@@ -343,7 +343,7 @@ public abstract class TiffTools {
           if (count > 4) {
             in.seek(globalOffset + read4UnsignedBytes(in, littleEndian));
           }
-          in.readFully(sbytes);
+          readFully(in, sbytes);
           if (sbytes.length == 1) value = new Byte(sbytes[0]);
           else value = sbytes;
         }
@@ -1044,7 +1044,7 @@ public abstract class TiffTools {
   /** Reads 1 signed byte [-128, 127]. */
   public static byte readSignedByte(RandomAccessFile in) throws IOException {
     byte[] b = new byte[1];
-    in.readFully(b);
+    readFully(in, b);
     return b[0];
   }
 
@@ -1062,7 +1062,7 @@ public abstract class TiffTools {
     throws IOException
   {
     byte[] bytes = new byte[2];
-    in.readFully(bytes);
+    readFully(in, bytes);
     return bytesToShort(bytes, little);
   }
 
@@ -1080,7 +1080,7 @@ public abstract class TiffTools {
     throws IOException
   {
     byte[] bytes = new byte[4];
-    in.readFully(bytes);
+    readFully(in, bytes);
     return bytesToInt(bytes, little);
   }
 
@@ -1098,7 +1098,7 @@ public abstract class TiffTools {
     throws IOException
   {
     byte[] bytes = new byte[8];
-    in.readFully(bytes);
+    readFully(in, bytes);
     return bytesToLong(bytes, little);
   }
 
@@ -1770,6 +1770,19 @@ public abstract class TiffTools {
   /** Prints a debugging message with current time. */
   public static void debug(String message) {
     System.out.println(System.currentTimeMillis() + ": " + message);
+  }
+
+
+  // -- Helper methods --
+
+  /** Reads bytes from the given random access file or array. */
+  private static void readFully(RandomAccessFile in, byte[] bytes)
+    throws IOException
+  {
+    if (in instanceof RandomAccessArray) {
+      ((RandomAccessArray) in).copyArray(bytes);
+    }
+    else in.readFully(bytes);
   }
 
 }

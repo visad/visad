@@ -191,13 +191,13 @@ public class GatanForm extends Form implements FormBlockReader,
       }
     }
     else if (dims[2] == 2) {
-    	for (int i=0; i<pixelData.length; i+=2) {
+      for (int i=0; i<pixelData.length; i+=2) {
         int q = TiffTools.bytesToShort(pixelData, i, littleEndian);
         samples[0][i/2] = (float) q;
       }
     }
     else {
-    	throw new BadFormException("Sorry, " + dims[2] +
+      throw new BadFormException("Sorry, " + dims[2] +
         " bytes per pixel is unsupported");
     }
 
@@ -248,7 +248,7 @@ public class GatanForm extends Form implements FormBlockReader,
 
   /** Checks if the given string is a valid filename for a Gatan file. */
   public boolean isThisType(String name) {
-  	return name.toLowerCase().endsWith(".dm3");
+    return name.toLowerCase().endsWith(".dm3");
   }
 
   /** Checks if the given block is a valid header for a Gatan file. */
@@ -343,10 +343,10 @@ public class GatanForm extends Form implements FormBlockReader,
     // only support version 3
     if (temp[0] != GATAN_MAGIC_BLOCK_1[0] &&
       temp[1] != GATAN_MAGIC_BLOCK_1[1] &&
-    	temp[2] != GATAN_MAGIC_BLOCK_1[2] &&
+      temp[2] != GATAN_MAGIC_BLOCK_1[2] &&
       temp[3] != GATAN_MAGIC_BLOCK_1[3])
     {
-    	throw new BadFormException("invalid header");
+      throw new BadFormException("invalid header");
     }
 
     in.read(temp);
@@ -369,7 +369,7 @@ public class GatanForm extends Form implements FormBlockReader,
   public void parseTags(int numTags, String parent) throws IOException {
     byte[] temp = new byte[4];
     for (int i=0; i<numTags; i++) {
-    	byte type = in.readByte();	// can be 21 (data) or 20 (tag group)
+      byte type = in.readByte(); // can be 21 (data) or 20 (tag group)
       byte[] twobytes = new byte[2];
       in.read(twobytes);
       int length = TiffTools.bytesToInt(twobytes, !littleEndian);
@@ -382,7 +382,7 @@ public class GatanForm extends Form implements FormBlockReader,
       // bytes/pixel is in type 21 tag with label 'PixelDepth'
 
       if (type == 21) {
-        in.skipBytes(4);	// equal to '%%%%'
+        in.skipBytes(4); // equal to '%%%%'
         in.read(temp);
         int n = TiffTools.bytesToInt(temp, !littleEndian);
         int dataType = 0;
@@ -420,7 +420,7 @@ public class GatanForm extends Form implements FormBlockReader,
         else if (n == 2) {
           in.read(temp);
           dataType = TiffTools.bytesToInt(temp, littleEndian);
-          if (dataType == 18) {	// this should always be true
+          if (dataType == 18) { // this should always be true
             in.read(temp);
             length = TiffTools.bytesToInt(temp, littleEndian);
           }
@@ -431,7 +431,7 @@ public class GatanForm extends Form implements FormBlockReader,
         else if (n == 3) {
           in.read(temp);
           dataType = TiffTools.bytesToInt(temp, !littleEndian);
-          if (dataType == 20) {	// this should always be true
+          if (dataType == 20) { // this should always be true
             in.read(temp);
             dataType = TiffTools.bytesToInt(temp, !littleEndian);
             in.read(temp);
@@ -514,7 +514,7 @@ public class GatanForm extends Form implements FormBlockReader,
             int skip = 0;
             in.read(temp);
             dataType = TiffTools.bytesToInt(temp, !littleEndian);
-            if (dataType == 15) {	// should always be true
+            if (dataType == 15) { // should always be true
               in.read(temp);
               skip += TiffTools.bytesToInt(temp, !littleEndian);
               in.read(temp);
@@ -551,7 +551,7 @@ public class GatanForm extends Form implements FormBlockReader,
   }
 
   public void initOMEMetadata() {
-  	ome = OMETools.createRoot();
+    ome = OMETools.createRoot();
 
     if (ome != null) {
       int datatype = ((Integer) metadata.get("DataType")).intValue();
@@ -582,7 +582,7 @@ public class GatanForm extends Form implements FormBlockReader,
       OMETools.setAttribute(ome, "Pixels", "SizeC", "" + 1);
       OMETools.setAttribute(ome, "Pixels", "SizeZ", "" + 1);
       OMETools.setAttribute(ome, "Pixels", "SizeT", "" + 1);
-      OMETools.setAttribute(ome, "Pixels", "DimensionOrder", "XYCZT");
+      OMETools.setAttribute(ome, "Pixels", "DimensionOrder", "XYZTC");
     }
   }
 

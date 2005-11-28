@@ -431,6 +431,7 @@ public class IPLabForm extends Form implements FormBlockReader,
       OMETools.setAttribute(ome, "Pixels", "SizeT", "" + tDepth);
       OMETools.setAttribute(ome, "Pixels", "BigEndian",
         littleEndian ? "false" : "true");
+      OMETools.setAttribute(ome, "Pixels", "DimensionOrder", "XYZTC");
 
       // set the pixel type
       String type;

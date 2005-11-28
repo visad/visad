@@ -660,6 +660,10 @@ public class LeicaForm extends Form implements FormBlockReader,
         metadata.get("Image width").toString());
       OMETools.setAttribute(ome, "Pixels", "SizeY",
         metadata.get("Image height").toString());
+      OMETools.setAttribute(ome, "Pixels", "SizeZ",
+        metadata.get("Number of images").toString());
+      OMETools.setAttribute(ome, "Pixels", "SizeT", "1");
+      OMETools.setAttribute(ome, "Pixels", "SizeC", "1");
       OMETools.setAttribute(ome, "Pixels", "BigEndian",
         littleEndian ? "false" : "true");
       OMETools.setAttribute(ome, "Group", "Name", "OME");
@@ -680,7 +684,7 @@ public class LeicaForm extends Form implements FormBlockReader,
       OMETools.setAttribute(ome, "ChannelInfo", "SamplesPerPixel",
         metadata.get("Samples per pixel").toString());
 
-      OMETools.setAttribute(ome, "Image", "DimensionOrder", "XYZCT");
+      OMETools.setAttribute(ome, "Pixels", "DimensionOrder", "XYZTC");
     }
   }
 

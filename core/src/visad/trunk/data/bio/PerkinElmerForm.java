@@ -404,16 +404,16 @@ public class PerkinElmerForm extends Form implements FormBlockReader,
         tNum++;
       }
     }
-    else if (htmPos != -1) {
+
+    // be aggressive about parsing the HTML file, since it's the only one that
+    // explicitly defines the number of wavelengths and timepoints
+    if (htmPos != -1) {
       // ooh, pretty HTML
 
       tempFile = new File(workingDir, ls[htmPos]);
       read = new FileReader(tempFile);
       data = new char[(int) tempFile.length()];
       read.read(data);
-
-      // parsing is fairly primitive, since we only use this file if nothing
-      // else is available
 
       String regex = "<p>|</p>|<br>|<hr>|<b>|</b>|<HTML>|<HEAD>|</HTML>|" +
         "</HEAD>|<h1>|</h1>|<HR>|</body>";
@@ -448,10 +448,29 @@ public class PerkinElmerForm extends Form implements FormBlockReader,
       throw new BadFormException("Valid header files not found.");
     }
 
+    String details = (String) metadata.get("Experiment details:");
+    // parse details to get number of wavelengths and timepoints
+
+    t = new StringTokenizer(details);
+    int tokenNum = 0;
+    String timePoints = "1";
+    String wavelengths = "1";
+    int numTokens = t.countTokens();
+    while (t.hasMoreTokens()) {
+      if (tokenNum == numTokens - 6) {
+        wavelengths = (String) t.nextToken();
+      }
+      else if (tokenNum == numTokens - 4) {
+        timePoints = (String) t.nextToken();
+      }
+      else {
+        String temp = t.nextToken();
+      }
+      tokenNum++;
+    }
+
     // initialize OME-XML
-
     ome = OMETools.createRoot();
-
     if (ome != null) {
       OMETools.setAttribute(ome, "Image", "PixelSizeX", "" +
         metadata.get("Pixel Size X"));
@@ -463,6 +482,11 @@ public class PerkinElmerForm extends Form implements FormBlockReader,
         metadata.get("Image Width"));
       OMETools.setAttribute(ome, "Pixels", "SizeY", "" +
         metadata.get("Image Length"));
+      OMETools.setAttribute(ome, "Pixels", "SizeZ", "" +
+        metadata.get("Number of slices"));
+      OMETools.setAttribute(ome, "Pixels", "SizeT", "" + timePoints);
+      OMETools.setAttribute(ome, "Pixels", "SizeC", "" + wavelengths);
+      OMETools.setAttribute(ome, "Pixels", "DimensionOrder", "XYCTZ");
       OMETools.setAttribute(ome, "StageLabel", "X", "" +
         metadata.get("Origin X"));
       OMETools.setAttribute(ome, "StageLabel", "Y", "" +
