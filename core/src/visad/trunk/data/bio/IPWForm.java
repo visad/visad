@@ -212,7 +212,7 @@ public class IPWForm extends BaseTiffForm implements FormBlockReader,
     return name.toLowerCase().endsWith(".ipw");
   }
 
-  /** Checks if the given block is a valid header for a Image-Pro IPW file. */
+  /** Checks if the given block is a valid header for an Image-Pro IPW file. */
   public boolean isThisType(byte[] block) {
     // all of our samples begin with d0cf11e0
     return (block[0] == 0xd0 && block[1] == 0xcf &&
@@ -397,11 +397,10 @@ public class IPWForm extends BaseTiffForm implements FormBlockReader,
         if (DEBUG) {
           print(depth + 1, "Found document: " + r.getVar("entryName"));
         }
-        r.setVar("doc", r.getVar("entry"));
-        r.exec("dis = new DocumentInputStream(doc)");
+        r.exec("dis = new DocumentInputStream(entry)");
         r.exec("numBytes = dis.available()");
         int numbytes = ((Integer) r.getVar("numBytes")).intValue();
-        byte[] data = new byte[numbytes];
+        byte[] data = new byte[numbytes + 4]; // append 0 for final offset
         r.setVar("data", data);
         r.exec("dis.read(data)");
 
@@ -444,7 +443,7 @@ public class IPWForm extends BaseTiffForm implements FormBlockReader,
           else name = "0";
 
           Integer imageNum = Integer.valueOf(name);
-          pixelData.put(imageNum, (Object) data);
+          pixelData.put(imageNum, data);
           numImages++;
         }
         r.exec("dis.close()");
@@ -469,7 +468,7 @@ public class IPWForm extends BaseTiffForm implements FormBlockReader,
 
   /**
    * Run 'java visad.data.bio.ImageProForm in_file' to test read
-   * a ImagePro IPW file.
+   * an ImagePro IPW file.
    */
   public static void main(String[] args)
     throws VisADException, IOException, RemoteException
