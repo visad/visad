@@ -37,6 +37,8 @@ public class GRIDnav
     implements java.io.Serializable
 {
 
+  static final long serialVersionUID = 8741895066356394200L;
+
   /** Navigation type for pseudo-mercator grids */
   final int PSEUDO_MERCATOR = 1;
   /** Navigation type for polar stero or lambert conformal conic grids */

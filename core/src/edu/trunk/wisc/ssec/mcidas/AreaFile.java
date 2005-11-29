@@ -49,7 +49,9 @@ import java.util.Properties;
  * 
  */
 
-public class AreaFile {
+public class AreaFile implements java.io.Serializable {
+
+  static final long serialVersionUID = 3145724093430859967L;
 
   // indeces used by this and client classes
 
@@ -168,8 +170,8 @@ public class AreaFile {
 
   private boolean flipwords;
   private boolean fileok;
-  private boolean hasReadData = false;
-  private DataInputStream af;
+  private boolean hasReadData;
+  transient private DataInputStream af;
   private int status=0;
   private int navLoc, calLoc, auxLoc, datLoc;
   private int navbytes, calbytes, auxbytes;
@@ -306,6 +308,7 @@ public class AreaFile {
   private void readMetaData() throws AreaFileException {
     
     int i;
+    hasReadData = false;
 
     if (! fileok) {
       throw new AreaFileException("Error reading AreaFile directory");
@@ -734,6 +737,8 @@ public class AreaFile {
       }
 
     }
+
+    hasReadData = true;
 
     return ;
 

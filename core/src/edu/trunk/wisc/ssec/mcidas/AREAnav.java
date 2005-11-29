@@ -72,7 +72,9 @@ import visad.Set;
 public abstract class AREAnav 
     implements java.io.Serializable
 {
-
+    
+    static final long serialVersionUID = 2334637524537406773L;
+    
     /** Constant for radians to degrees conversion */
     public final static double RADIANS_TO_DEGREES = 180./Math.PI;
 

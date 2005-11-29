@@ -37,9 +37,11 @@ import java.util.Vector;
  * @author Don Murray
  * 
  */
-public class AreaDirectory 
+public class AreaDirectory implements java.io.Serializable
 {
 
+  static final long serialVersionUID = -3662123383682335190L;
+  
   private int[] dir = new int[AreaFile.AD_DIRSIZE];   // single directory
   private Date nominalTime;      // time of the image
   private Date startTime;      // start time of the image

@@ -29,6 +29,8 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Date;
 import java.util.TimeZone;
+import java.io.*;
+import edu.wisc.ssec.mcidas.AreaFile;
 
 /**
  * Class for static McIDAS utility methods.  In many cases, these
@@ -271,7 +273,7 @@ public final class McIDASUtil
       int[] values = new int[num];
       for (int i = 0; i < num; i++) {
         byte[] bytes = new byte[4];
-	System.arraycopy(b, i*4, bytes, 0, 4);
+        System.arraycopy(b, i*4, bytes, 0, 4);
         values[i] = bytesToInteger(bytes,0);
       }
       return values;
@@ -320,12 +322,56 @@ public final class McIDASUtil
      */
     public static boolean isChar(int value) {
         String valueString = intBitsToString(value);
-	char[] chars = valueString.toCharArray();
-	for (int i = 0; i < 4; i++) {
-	   if (!Character.UnicodeBlock.of(chars[i]).equals(
-	       Character.UnicodeBlock.BASIC_LATIN) ||
-	       Character.isISOControl(chars[i])) return false;
-	}
-	return true;
+      char[] chars = valueString.toCharArray();
+      for (int i = 0; i < 4; i++) {
+         if (!Character.UnicodeBlock.of(chars[i]).equals(
+             Character.UnicodeBlock.BASIC_LATIN) ||
+             Character.isISOControl(chars[i])) return false;
+      }
+      return true;
+    }
+
+    /**
+    * Serialize an AreaFile object to disk
+    *
+    * @param filename - name of disk file to write to
+    * @return true if no Exception; false otherwise
+    */
+    public static boolean putAreaFile(String filename, AreaFile af) {
+      try {
+        OutputStream os = new FileOutputStream(filename);
+        ObjectOutput oo = new ObjectOutputStream(os);
+        oo.writeObject(af);
+        oo.close();
+        return true;
+
+      } catch (Exception e) {
+        e.printStackTrace();
+        return false;
+      }
+
+    }
+
+    /**
+    * De-serialize an AreaFile object from disk
+    *
+    * @param filename - name of disk file to read
+    *
+    * @return AreaFile if okay; null otherwise
+    */
+
+    public static AreaFile getAreaFile(String filename) {
+      try {
+        InputStream is = new FileInputStream(filename);
+        ObjectInput oi = new ObjectInputStream(is);
+        AreaFile af = (AreaFile) oi.readObject();
+        oi.close();
+        return af;
+
+      } catch (Exception ei) {
+        ei.printStackTrace();
+        return null;
+      }
+
     }
 }
