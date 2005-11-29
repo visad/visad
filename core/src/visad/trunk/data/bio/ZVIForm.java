@@ -532,9 +532,9 @@ public class ZVIForm extends Form implements FormBlockReader,
         ((Integer) metadata.get("ImageWidth")).intValue());
       OMETools.setAttribute(ome, "Pixels", "SizeY", "" +
       ((Integer) metadata.get("ImageHeight")).intValue());
-      OMETools.setAttribute(ome, "Pixels", "SizeZ", "" + nImages);
+      OMETools.setAttribute(ome, "Pixels", "SizeZ", "1");
       OMETools.setAttribute(ome, "Pixels", "SizeC", "1");
-      OMETools.setAttribute(ome, "Pixels", "SizeT", "1");
+      OMETools.setAttribute(ome, "Pixels", "SizeT", "" + nImages);
       OMETools.setAttribute(ome, "Pixels", "DimensionOrder", "XYZTC");
 
       String type;
@@ -741,7 +741,14 @@ public class ZVIForm extends Form implements FormBlockReader,
           case 1044: metadata.put("CameraTriggerSignalType", data); break;
           case 1045: metadata.put("CameraTriggerEnable", data); break;
           case 1046: metadata.put("GrabberTimeout", data); break;
-          case 1281: metadata.put("MultiChannelEnabled", data); break;
+          case 1281:
+            metadata.put("MultiChannelEnabled", data);
+            if ((((Integer) data).intValue() == 1) && (ome != null)) {
+              OMETools.setAttribute(ome, "Pixels", "SizeC", "" + nImages);
+              OMETools.setAttribute(ome, "Pixels", "SizeT", "1");
+              OMETools.setAttribute(ome, "Pixels", "DimensionOrder", "XYCZT");
+            }
+            break;
           case 1282: metadata.put("MultiChannel Color", data); break;
           case 1283: metadata.put("MultiChannel Weight", data); break;
           case 1284: metadata.put("Channel Name", data); break;
