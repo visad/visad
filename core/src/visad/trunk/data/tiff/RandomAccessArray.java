@@ -145,18 +145,14 @@ public class RandomAccessArray extends RandomAccessFile {
   public void copyArray(byte[] b) throws IOException {
     if (fp >= length - b.length) throw new EOFException(EOF);
     if (b == null) throw new NullPointerException();
-    for (int i=0; i<b.length; i++) {
-      b[i] = stream[(int) fp];
-      fp++;
-    }
+    System.arraycopy(stream, (int) fp, b, 0, b.length);
+    fp += b.length;
   }
 
   public void copyArray(byte[] b, int off, int len) throws IOException {
     if (off >= length - len) throw new EOFException(EOF);
     if (b == null) throw new NullPointerException();
-    for (int i=0; i<len; i++) {
-      b[i] = stream[off+i];
-    }
+    System.arraycopy(stream, off, b, 0, b.length);
   }
 
 
