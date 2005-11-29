@@ -1738,7 +1738,7 @@ public abstract class TiffTools {
       LZWTreeNode omegaNode = symbols.nodeFromString(omega);
       LZWTreeNode omegaKNode = omegaNode.getChild(k);
       if (omegaKNode != null) {
-        // omega+k is in the string table
+        // omega+k is in the symbol table
         omega.add(k);
       }
       else {
@@ -1747,14 +1747,14 @@ public abstract class TiffTools {
         symbols.addTableEntry(omega, nextCode++);
         omega.clear();
         omega.add(k);
-        if (nextCode == 511) numBits = 10;
-        else if (nextCode == 1023) numBits = 11;
-        else if (nextCode == 2047) numBits = 12;
-        else if (nextCode == 4095) {
+        if (nextCode == 512) numBits = 10;
+        else if (nextCode == 1024) numBits = 11;
+        else if (nextCode == 2048) numBits = 12;
+        else if (nextCode == 4096) {
           out.write(CLEAR_CODE, numBits);
           symbols.initialize();
+          nextCode = 258;
           numBits = 9;
-          out.write(symbols.codeFromString(omega), numBits);
         }
       }
     }
