@@ -362,6 +362,7 @@ public class VisADCanvasJ3D extends Canvas3D {
     display.addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
     display.addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
     display.addMap(new ScalarMap(vis_radiance, Display.RGB));
+    display.addMap(new ScalarMap(vis_radiance, Display.IsoContour));
 
     DataReferenceImpl ref_imaget1 = new DataReferenceImpl("ref_imaget1");
     ref_imaget1.setData(imaget1);
