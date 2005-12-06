@@ -1705,7 +1705,7 @@ public abstract class TiffTools {
   {
     if (predictor == 2) {
       if (DEBUG) debug("performing horizontal differencing");
-      for (int b=0; b<input.length; b++) {
+      for (int b=input.length-1; b>=0; b--) {
         if (b / bitsPerSample.length % width == 0) continue;
         input[b] -= input[b - bitsPerSample.length];
       }
