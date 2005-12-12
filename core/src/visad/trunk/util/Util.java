@@ -270,8 +270,8 @@ public class Util
       filters.add(hdfeos);
 
       // Image Cytometry Standard - bio/ICSForm
-      FileFilter ics = new ExtensionFileFilter("ics",
-        "Image Cytometry Standard images");
+      FileFilter ics = new ExtensionFileFilter(
+        new String[] {"ics", "ids"}, "Image Cytometry Standard images");
       filters.add(ics);
 
       // Image-Pro IPW - bio/IPWForm
