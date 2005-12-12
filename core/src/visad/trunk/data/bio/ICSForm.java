@@ -345,42 +345,31 @@ public class ICSForm extends Form implements FormBlockReader,
   {
     close();
 
-    File tempFile = new File(id);
-    String absPath = tempFile.getAbsolutePath();
-    File workingDir = new File(absPath.substring(0, absPath.lastIndexOf("/")));
-    String workingDirPath = workingDir.getPath() + File.separator;
-    String[] ls = workingDir.list();
-
-    String tempFileName = tempFile.getName();
-    int dot = tempFileName.lastIndexOf(".");
-    String check = dot < 0 ? tempFileName : tempFileName.substring(0, dot);
-
-    if (id.toLowerCase().endsWith("ics")) {
-      currentIcsId = id;
-      icsIn = new File(id);
-      for (int i=0; i<ls.length; i++) {
-        if (ls[i].startsWith(check) && ls[i].toLowerCase().endsWith("ids")) {
-          currentIdsId = ls[i];
-          idsIn = new RandomAccessFile(currentIdsId, "r");
-        }
-      }
-      if (idsIn.length() == 0) {
-        throw new BadFormException("Sorry, .ids file not found.");
-      }
+    String icsId = id, idsId = id;
+    int dot = id.lastIndexOf(".");
+    String ext = dot < 0 ? "" : id.substring(dot + 1).toLowerCase();
+    if (ext.equals("ics")) {
+      // convert C to D regardless of case
+      char[] c = idsId.toCharArray();
+      c[c.length - 2]++;
+      idsId = new String(c);
     }
-    else {
-      currentIdsId = id;
-      idsIn = new RandomAccessFile(id, "r");
-      for (int i=0; i<ls.length; i++) {
-        if (ls[i].startsWith(check) && ls[i].toLowerCase().endsWith("ics")) {
-          currentIcsId = ls[i];
-          icsIn = new File(currentIcsId);
-        }
-      }
-      if (currentIcsId.length() == 0) {
-        throw new BadFormException("Sorry, .ics file not found.");
-      }
+    else if (ext.equals("ids")) {
+      // convert D to C regardless of case
+      char[] c = icsId.toCharArray();
+      c[c.length - 2]--;
+      id = icsId = new String(c);
     }
+    if (icsId == null) throw new BadFormException("No ICS file found.");
+    File icsFile = new File(icsId);
+    if (!icsFile.exists()) throw new BadFormException("ICS file not found.");
+    if (idsId == null) throw new BadFormException("No IDS file found.");
+    File idsFile = new File(idsId);
+    if (!idsFile.exists()) throw new BadFormException("IDS file not found.");
+    currentIcsId = icsId;
+    currentIdsId = idsId;
+    icsIn = icsFile;
+    idsIn = new RandomAccessFile(currentIdsId, "r");
 
     metadata = new Hashtable();
 
