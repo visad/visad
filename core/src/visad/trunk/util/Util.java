@@ -269,9 +269,19 @@ public class Util
         new String[] {"hdf", "hdfeos"}, "HDF-EOS datasets");
       filters.add(hdfeos);
 
+      // Image Cytometry Standard - bio/ICSForm
+      FileFilter ics = new ExtensionFileFilter("ics",
+        "Image Cytometry Standard images");
+      filters.add(ics);
+
+      // Image-Pro IPW - bio/IPWForm
+      FileFilter ipw = new ExtensionFileFilter("ipw",
+        "Image-Pro workspace files");
+      filters.add(ipw);
+
       // Image-Pro SEQ - bio/ImageProSeqForm
       FileFilter seq = new ExtensionFileFilter("seq",
-        "Image-Pro SEQ files");
+        "Image-Pro sequence files");
       filters.add(seq);
 
       // IPLab - bio/IPLabForm

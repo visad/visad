@@ -269,7 +269,7 @@ public class ICSForm extends Form implements FormBlockReader,
 
   /** Checks if the given block is a valid header for an ICS file. */
   public boolean isThisType(byte[] block) {
-    return true;
+    return false;
   }
 
   /** Returns the default file suffixes for ICS file format. */
