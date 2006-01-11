@@ -267,41 +267,22 @@ public class AreaDirectory implements java.io.Serializable
                 dir[AreaFile.AD_STARTTIME]));
     
 
-    //TDR int numbands = dir[AreaFile.AD_NUMBANDS]; AVHRR band 3a/b time sharing issue
-    int n_words = (dir[AreaFile.AD_NUMBANDS] > 32) ? 2 : 1;
-    int n_set   = 0;
-    for (int nw = 0; nw < n_words; nw++) {
-      int bit   = dir[AreaFile.AD_BANDMAP+nw];
-      for (int kk = 0; kk < 32; kk++) {
-        if ((bit & 1) == 1) n_set++;
-        bit >>= 1;
-      }
-    }
-    int numbands = n_set;
-    //---------------------------------------------------------------
+    // create the bands array.  Might be more bits set than bands, though cuz of the AVHRR band 3a/b thingy
+
+    int numbands = dir[AreaFile.AD_NUMBANDS];
     bands = new int[numbands];
     int j = 0;
-    for (int i = 0; i < 32; i++)
-    {
-      int bandmask = 1 << i;
-      if ( (bandmask & dir[AreaFile.AD_BANDMAP]) == bandmask)
-      {
+    for (int i=0; i<64; i++) {   // band bits in two consequtive words
+      int bandmask = 1 << ( i%32 );
+      if ( (bandmask & dir[AreaFile.AD_BANDMAP + (i/32) ]) == bandmask) {
         bands[j] = i+1 ;
         j++;
+        if (j >= numbands) break;  // done, one way or the other...
       }
-      if (j > numbands) break;
+
     }
-    if (numbands > 32) {
-      for (int i=0; i<32; i++) {
-        int bandmask = 1 << i;
-        if ( (bandmask & dir[AreaFile.AD_BANDMAP+1]) == bandmask)
-        {
-          bands[j] = i+33 ;
-          j++;
-        }
-        if (j > numbands) break;
-      }
-    }
+
+
     // get memo field
     int[] memoArray = new int[8];
     System.arraycopy(dir, 24, memoArray, 0, memoArray.length);
