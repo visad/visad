@@ -2133,6 +2133,29 @@ if (spatial_values[0].length == 5329) {
       return flow_values;
     }
 
+    FlowControl fcontrol = null;
+    DisplayImpl display = null;
+    boolean shouldAdjust = true;
+    DataDisplayLink link = renderer.getLinks()[0];
+    if (link != null) {
+      display = link.getDisplay();
+      if (display != null) {
+
+        if (which == 0) {
+          fcontrol = (FlowControl) display.getControl(Flow1Control.class);
+        }
+        else if (which == 1) {
+          fcontrol = (FlowControl) display.getControl(Flow2Control.class);
+        }
+        if (fcontrol == null) {
+          throw new VisADException(
+            "adjustFlowToEarth: Unable to get FlowControl");
+        }
+        shouldAdjust = fcontrol.getAdjustFlowToEarth();
+      }
+    }
+    if (!shouldAdjust) return flow_values;
+
     int flen = flow_values[0].length;
 // System.out.println("flen = " + flen); // IDV
 

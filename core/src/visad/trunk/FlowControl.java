@@ -46,6 +46,7 @@ public abstract class FlowControl extends Control {
   /** Southern Hemisphere orientation for wind barbs */
   public static final int SH_ORIENTATION = 1;
   int barbOrientation;
+  boolean adjustFlowToEarth = true;  
 
   boolean HorizontalVectorSlice;
   boolean VerticalVectorSlice;
@@ -122,6 +123,26 @@ public abstract class FlowControl extends Control {
     return barbOrientation;
   }
 
+  /**
+   * Get whether values should be adjusted to the earth 
+   *
+   * @param  adjust   true to adjust
+   */
+  public void setAdjustFlowToEarth(boolean adjust)
+         throws VisADException, RemoteException
+  {
+    adjustFlowToEarth = adjust;
+    changeControl(true);
+  }
+
+  /**
+   * Get barb orientation for wind barbs
+   *
+   * @return orientation (false = northern hemisphere)
+   */
+  public boolean getAdjustFlowToEarth() {
+    return adjustFlowToEarth;
+  }
 
   public void enableStreamlines(boolean flag)
          throws VisADException, RemoteException {
