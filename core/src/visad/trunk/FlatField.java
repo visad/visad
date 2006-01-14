@@ -936,8 +936,8 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     notifyReferences();
   }
 
-    private void pr (String message) {
-        //      System.err.println ( hashCode () + " " + getClass().getName () + "  " + message);
+    protected void pr (String message) {
+//              System.err.println ( hashCode () + " " + getClass().getName () + "  " + message);
     }
 
   /** pack an array of doubles into field sample values according to the
@@ -1094,7 +1094,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
    * @throws VisADException if {@link Set.indexToValue(int)} on a range set
    *                        fails.
    */
-    private double[][] unpackValues(boolean copy)
+    protected double[][] unpackValues(boolean copy)
         throws SetException, VisADException {
         double[][] range;
         synchronized (DoubleRange) {
@@ -1178,7 +1178,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
 
   /** unpack an array of floats from field sample values according to the
       RangeSet-s; returns a copy if copy == true */
- private float[][] unpackFloats(boolean copy) throws VisADException {
+ protected float[][] unpackFloats(boolean copy) throws VisADException {
     float[][] range;
     synchronized (DoubleRange) {
       if (isMissing()) {
@@ -1248,7 +1248,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     return range;
   }
 
-  private double[] unpackOneRangeComp(int comp) throws VisADException {
+  protected double[] unpackOneRangeComp(int comp) throws VisADException {
     double[] range = null;
     synchronized (DoubleRange) {
       if (isMissing()) {
@@ -1311,7 +1311,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
   }
 
   /*-  TDR  June 1998  */
-  private double[] unpackValues( int s_index ) throws VisADException {
+  protected double[] unpackValues( int s_index ) throws VisADException {
     double[] range;
     synchronized (DoubleRange) {
       if (isMissing()) {
@@ -1363,7 +1363,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
   }
 
   /*-  TDR  June 1998  */
-  private float[] unpackFloats( int s_index ) throws VisADException {
+  protected float[] unpackFloats( int s_index ) throws VisADException {
     float[] range;
     synchronized (FloatRange) {
       if (isMissing()) {
@@ -1443,6 +1443,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
    * @throws VisADException     if a VisAD object couldn't be created.
    */
   public float[][] getFloats (boolean copy) throws VisADException {
+      pr ("getFloats(" + copy + ")");
       float[][] values = unpackFloats(copy);
 
       Unit[] units_out =  ((FunctionType) Type).getFlatRange().getDefaultUnits();
@@ -1482,6 +1483,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
    * @throws VisADException     if a VisAD object couldn't be created.
    */
   public double[][] getValues(boolean copy) throws VisADException {
+      pr ("getValues(" + copy + ")");
       double[][] values = unpackValues(copy);
       Unit[] units_out =
           ((FunctionType) Type).getFlatRange().getDefaultUnits();
