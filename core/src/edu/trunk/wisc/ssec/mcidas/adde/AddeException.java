@@ -1,14 +1,13 @@
-
 //
 // AddeException.java
 //
 
 /*
-VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 1999 Bill Hibbard, Curtis Rueden, Tom
-Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
-Tommy Jasmin.
-
+This source file is part of the edu.wisc.ssec.mcidas package and is
+Copyright (C) 1998 - 2006 by Tom Whittaker, Tommy Jasmin, Tom Rink,
+Don Murray, James Kelly, Bill Hibbard, Dave Glowacki, Curtis Rueden
+and others.
+ 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either

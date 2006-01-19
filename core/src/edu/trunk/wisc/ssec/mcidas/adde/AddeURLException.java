@@ -1,14 +1,13 @@
-
 //
 // AddeURLException.java
 //
 
 /*
-The code in this file is Copyright(C) 1998-1999 by Tommy Jasmin, 
-Don Murray, and Tom Whittaker.  
-It is designed to be used with the VisAD system for
-interactive analysis and visualization of numerical data.
-
+This source file is part of the edu.wisc.ssec.mcidas package and is
+Copyright (C) 1998 - 2006 by Tom Whittaker, Tommy Jasmin, Tom Rink,
+Don Murray, James Kelly, Bill Hibbard, Dave Glowacki, Curtis Rueden
+and others.
+ 
 This library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public
 License as published by the Free Software Foundation; either
