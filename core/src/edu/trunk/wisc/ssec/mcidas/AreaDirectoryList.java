@@ -261,7 +261,7 @@ public class AreaDirectoryList
                 prevBlank = false;
               }
             }
-            String cd = new String(card,0,count);
+            String cd = new String(card,0,count).trim();
 
             //System.out.println("card["+i+"] = " + cd);
 
