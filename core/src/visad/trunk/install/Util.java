@@ -280,9 +280,9 @@ public class Util
 
     boolean result = true;
 
-    Enumeration enum = jar.entries();
-    while (enum.hasMoreElements()) {
-      JarEntry entry = (JarEntry )enum.nextElement();
+    Enumeration en = jar.entries();
+    while (en.hasMoreElements()) {
+      JarEntry entry = (JarEntry )en.nextElement();
 
       final String entryName = entry.getName();
 

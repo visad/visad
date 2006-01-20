@@ -253,12 +253,12 @@ public abstract class ScalarType extends MathType implements Comparable {
 /*
   public static void dumpAliases()
   {
-    java.util.Enumeration enum;
+    java.util.Enumeration en;
 
     boolean needHead = true;
-    enum = Translations.keys();
-    while (enum.hasMoreElements()) {
-      Object key = enum.nextElement();
+    en = Translations.keys();
+    while (en.hasMoreElements()) {
+      Object key = en.nextElement();
       if (needHead) {
         System.err.println("== Translation table");
         needHead = false;
@@ -268,9 +268,9 @@ public abstract class ScalarType extends MathType implements Comparable {
     }
 
     boolean needMid = true;
-    enum = ReverseTranslations.keys();
-    while (enum.hasMoreElements()) {
-      Object key = enum.nextElement();
+    en = ReverseTranslations.keys();
+    while (en.hasMoreElements()) {
+      Object key = en.nextElement();
       if (needMid) {
         if (needHead) {
           System.err.println("== Reverse Translation table");

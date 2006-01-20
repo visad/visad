@@ -55,8 +55,8 @@ public class StringAttributeAdapter
 	TextType	textType =
 	    TextType.getTextType(scalarName(name));
 	ArrayList	list = new ArrayList();
-	for (Enumeration enum = attr.getValues(); enum.hasMoreElements(); )
-	    list.add(new Text(textType, (String)enum.nextElement()));
+	for (Enumeration en = attr.getValues(); en.hasMoreElements(); )
+	    list.add(new Text(textType, (String)en.nextElement()));
 	data = 
 	    list.size() == 1
 		? (DataImpl)list.get(0)

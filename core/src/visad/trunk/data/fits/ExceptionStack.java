@@ -69,9 +69,9 @@ public class ExceptionStack
   {
     StringBuffer buf = new StringBuffer();
 
-    Enumeration enum = vec.elements();
-    while (enum.hasMoreElements()) {
-      Exception e = (Exception )enum.nextElement();
+    Enumeration en = vec.elements();
+    while (en.hasMoreElements()) {
+      Exception e = (Exception )en.nextElement();
 
       buf.append(e.getMessage());
       buf.append('\n');
@@ -87,9 +87,9 @@ public class ExceptionStack
   {
     StringBuffer buf = new StringBuffer();
 
-    Enumeration enum = vec.elements();
-    while (enum.hasMoreElements()) {
-      Exception e = (Exception )enum.nextElement();
+    Enumeration en = vec.elements();
+    while (en.hasMoreElements()) {
+      Exception e = (Exception )en.nextElement();
 
       buf.append(e.getLocalizedMessage());
       buf.append('\n');
@@ -109,9 +109,9 @@ public class ExceptionStack
 
   public void printStackTrace(java.io.PrintStream ps)
   {
-    Enumeration enum = vec.elements();
-    while (enum.hasMoreElements()) {
-      Exception e = (Exception )enum.nextElement();
+    Enumeration en = vec.elements();
+    while (en.hasMoreElements()) {
+      Exception e = (Exception )en.nextElement();
 
       e.printStackTrace(ps);
     }
@@ -120,9 +120,9 @@ public class ExceptionStack
 
   public void printStackTrace(java.io.PrintWriter pw)
   {
-    Enumeration enum = vec.elements();
-    while (enum.hasMoreElements()) {
-      Exception e = (Exception )enum.nextElement();
+    Enumeration en = vec.elements();
+    while (en.hasMoreElements()) {
+      Exception e = (Exception )en.nextElement();
 
       e.printStackTrace(pw);
     }

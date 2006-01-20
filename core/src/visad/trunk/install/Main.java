@@ -767,9 +767,9 @@ public class Main
 
     String topDir = null;
 
-    Enumeration enum = jar.entries();
-    while (enum.hasMoreElements()) {
-      JarEntry entry = (JarEntry )enum.nextElement();
+    Enumeration en = jar.entries();
+    while (en.hasMoreElements()) {
+      JarEntry entry = (JarEntry )en.nextElement();
 
       String entryName = entry.getName();
 

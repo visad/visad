@@ -232,9 +232,9 @@ public class FlexibleTrackManipulation extends Object {
         lon_index = i;
       }
       else {
-        Enumeration enum = scalar_map_vector.elements();
-        while (enum.hasMoreElements()) {
-          ScalarMap map = (ScalarMap) enum.nextElement();
+        Enumeration en = scalar_map_vector.elements();
+        while (en.hasMoreElements()) {
+          ScalarMap map = (ScalarMap) en.nextElement();
           if (real.equals(map.getScalar())) {
             DisplayRealType dreal = map.getDisplayScalar();
             if (Display.Shape.equals(dreal)) {

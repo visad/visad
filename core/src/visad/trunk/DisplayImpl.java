@@ -2220,9 +2220,9 @@ System.out.println("initialize = " + initialize + " go = " + go +
   {
     Class ctlClass = ctl.getClass();
     int num = 0;
-    Enumeration enum = ControlVector.elements();
-    while (enum.hasMoreElements()) {
-      Control c = (Control )enum.nextElement();
+    Enumeration en = ControlVector.elements();
+    while (en.hasMoreElements()) {
+      Control c = (Control )en.nextElement();
       if (ctlClass.isInstance(c)) {
         if (ctl == c) {
           return num;
@@ -2325,9 +2325,9 @@ System.out.println("initialize = " + initialize + " go = " + go +
     }
     else {
       synchronized (ControlVector) {
-        Enumeration enum = ControlVector.elements();
-        while(enum.hasMoreElements()) {
-          Control c = (Control )enum.nextElement();
+        Enumeration en = ControlVector.elements();
+        while(en.hasMoreElements()) {
+          Control c = (Control )en.nextElement();
           if (ctlClass.isInstance(c)) {
             if (v != null) {
               v.addElement(c);
@@ -2797,9 +2797,9 @@ System.out.println("initialize = " + initialize + " go = " + go +
       }
     }
 
-    Enumeration enum = RmtSrcListeners.elements();
-    while (enum.hasMoreElements()) {
-      RemoteSourceListener l = (RemoteSourceListener )enum.nextElement();
+    Enumeration en = RmtSrcListeners.elements();
+    while (en.hasMoreElements()) {
+      RemoteSourceListener l = (RemoteSourceListener )en.nextElement();
       l.dataSourceLost(link.getName());
     }
   }
@@ -2833,9 +2833,9 @@ System.out.println("initialize = " + initialize + " go = " + go +
   {
     RendererVector.removeElement(renderer);
 
-    Enumeration enum = RendererSourceListeners.elements();
-    while (enum.hasMoreElements()) {
-      ((RendererSourceListener )enum.nextElement()).rendererDeleted(renderer);
+    Enumeration en = RendererSourceListeners.elements();
+    while (en.hasMoreElements()) {
+      ((RendererSourceListener )en.nextElement()).rendererDeleted(renderer);
     }
   }
 
@@ -2887,9 +2887,9 @@ System.out.println("initialize = " + initialize + " go = " + go +
    */
   public void lostCollabConnection(int id)
   {
-    Enumeration enum = RmtSrcListeners.elements();
-    while (enum.hasMoreElements()) {
-      ((RemoteSourceListener )enum.nextElement()).collabSourceLost(id);
+    Enumeration en = RmtSrcListeners.elements();
+    while (en.hasMoreElements()) {
+      ((RemoteSourceListener )en.nextElement()).collabSourceLost(id);
     }
   }
 
@@ -2922,9 +2922,9 @@ System.out.println("initialize = " + initialize + " go = " + go +
     throws RemoteException
   {
     RemoteException exception = null;
-    Enumeration enum = MessageListeners.elements();
-    while (enum.hasMoreElements()) {
-      MessageListener l = (MessageListener )enum.nextElement();
+    Enumeration en = MessageListeners.elements();
+    while (en.hasMoreElements()) {
+      MessageListener l = (MessageListener )en.nextElement();
       try {
         l.receiveMessage(msg);
       } catch (RemoteException re) {

@@ -811,9 +811,9 @@ public class FrontDrawer extends Object implements ControlListener {
     lat_map = null;
     lon_map = null;
     Vector scalar_map_vector = display.getMapVector();
-    Enumeration enum = scalar_map_vector.elements();
-    while (enum.hasMoreElements()) {
-      ScalarMap map = (ScalarMap) enum.nextElement();
+    Enumeration en = scalar_map_vector.elements();
+    while (en.hasMoreElements()) {
+      ScalarMap map = (ScalarMap) en.nextElement();
       DisplayRealType real = map.getDisplayScalar();
       DisplayTupleType tuple = real.getTuple();
       if (tuple != null &&

@@ -885,11 +885,11 @@ public class DataUtility {
       Field	field = (Field)iter.next();
       if (!field.getType().equals(funcType))
 	throw new TypeException("Field type mismatch");
-      for (Enumeration enum = field.domainEnumeration();
-	  enum.hasMoreElements(); )
+      for (Enumeration en = field.domainEnumeration();
+	  en.hasMoreElements(); )
       {
 	consolidatedDomainTuples.add(
-	  new ReferencedDomainPoint((RealTuple)enum.nextElement(), field));
+	  new ReferencedDomainPoint((RealTuple)en.nextElement(), field));
       }
     }
 

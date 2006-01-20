@@ -108,9 +108,9 @@ public class Test44
   {
     boolean foundCtrl = false;
    TextControl text_control = null;
-    Enumeration enumeration = dpys[0].getMapVector().elements();
-    while (enumeration.hasMoreElements()) {
-      ScalarMap sm = (ScalarMap )enumeration.nextElement();
+    Enumeration en = dpys[0].getMapVector().elements();
+    while (en.hasMoreElements()) {
+      ScalarMap sm = (ScalarMap )en.nextElement();
 
       Control ctrl = sm.getControl();
       if (ctrl != null && ctrl instanceof TextControl) {

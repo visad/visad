@@ -79,8 +79,8 @@ public class FunctionFormFamily
 	throws IOException
     {
       // see if we can guess the file type based on the name
-      for (Enumeration enum = forms.elements(); enum.hasMoreElements(); ) {
-	FormNode node = (FormNode)enum.nextElement();
+      for (Enumeration en = forms.elements(); en.hasMoreElements(); ) {
+	FormNode node = (FormNode)en.nextElement();
 
 	if (node instanceof FormFileInformer) {
           // WLH 19 Feb 2000 - switch order of try and check
@@ -106,8 +106,8 @@ public class FunctionFormFamily
         is.close();
 
         // see if we can guess the file type based on first block of data
-        for (Enumeration enum = forms.elements(); enum.hasMoreElements(); ) {
-          FormNode node = (FormNode)enum.nextElement();
+        for (Enumeration en = forms.elements(); en.hasMoreElements(); ) {
+          FormNode node = (FormNode)en.nextElement();
 
           if (node instanceof FormFileInformer) {
             // WLH 19 Feb 2000 - switch order of try and check
@@ -127,8 +127,8 @@ public class FunctionFormFamily
       }
 
       // use the brute-force method of checking all the forms
-      for (Enumeration enum = forms.elements(); enum.hasMoreElements(); ) {
-	FormNode node = (FormNode)enum.nextElement();
+      for (Enumeration en = forms.elements(); en.hasMoreElements(); ) {
+	FormNode node = (FormNode)en.nextElement();
 
 	try {
 	  if (function(node)) {

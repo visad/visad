@@ -220,10 +220,10 @@ public class Vis5DForm extends Form implements FormFileInformer {
     int[] var_grps_nlevels = new int[n_var_groups];
     
 
-    Enumeration enum = var_table.keys();
+    Enumeration en = var_table.keys();
     for ( int grp = 0; grp < n_var_groups; grp++)
     {
-      Integer key = (Integer)enum.nextElement();
+      Integer key = (Integer)en.nextElement();
       int cnt = 0;
       for (int i = 0; i < nvars; i++) {
         if ( n_levels[i] == key.intValue() ) {

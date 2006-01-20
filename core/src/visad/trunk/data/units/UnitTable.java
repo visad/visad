@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: UnitTable.java,v 1.3 2005-10-20 15:38:09 donm Exp $
+ * $Id: UnitTable.java,v 1.4 2006-01-20 22:20:07 curtis Exp $
  */
 
 package visad.data.units;
@@ -369,11 +369,11 @@ UnitTable
     public void
     list()
     {
-	Enumeration	enumerator = getUnitEnumeration();
+	Enumeration	en = getUnitEnumeration();
 	
-	while (enumerator.hasMoreElements())
+	while (en.hasMoreElements())
 	{
-	    Unit	unit = (Unit)enumerator.nextElement();
+	    Unit	unit = (Unit)en.nextElement();
 	    System.out.println(unit.getIdentifier() + " = " + 
 		unit.getDefinition());
 	}

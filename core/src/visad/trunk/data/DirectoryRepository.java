@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: DirectoryRepository.java,v 1.10 2006-01-19 19:12:09 curtis Exp $
+$Id: DirectoryRepository.java,v 1.11 2006-01-20 22:20:07 curtis Exp $
 */
 
 package visad.data;
@@ -145,8 +145,8 @@ public class DirectoryRepository extends Repository
     {
 	DirectoryRepository	dir = new DirectoryRepository("Test", ".");
 
-	for (Enumeration enum = dir.getEnumeration(); enum.hasMoreElements();)
-	    System.out.println((String)enum.nextElement());
+	for (Enumeration en = dir.getEnumeration(); en.hasMoreElements();)
+	    System.out.println((String)en.nextElement());
 
 	System.out.println("dir.fullName(\"foo.bar\") = " +
 	    dir.fullName("foo.bar"));

@@ -277,9 +277,9 @@ public class CollectiveBarbManipulation extends Object {
       Vector scalar_map_vector = display1.getMapVector();
       for (int i=0; i<tuple_dim; i++) {
         RealType real = real_types[i];
-        Enumeration enum = scalar_map_vector.elements();
-        while (enum.hasMoreElements()) {
-          ScalarMap map = (ScalarMap) enum.nextElement();
+        Enumeration en = scalar_map_vector.elements();
+        while (en.hasMoreElements()) {
+          ScalarMap map = (ScalarMap) en.nextElement();
           if (real.equals(map.getScalar())) {
             DisplayRealType dreal = map.getDisplayScalar();
             if (Display.Flow1Azimuth.equals(dreal)) {
@@ -317,9 +317,9 @@ public class CollectiveBarbManipulation extends Object {
       Vector scalar_map_vector = display2.getMapVector();
       for (int i=0; i<tuple_dim; i++) {
         RealType real = real_types[i];
-        Enumeration enum = scalar_map_vector.elements();
-        while (enum.hasMoreElements()) {
-          ScalarMap map = (ScalarMap) enum.nextElement();
+        Enumeration en = scalar_map_vector.elements();
+        while (en.hasMoreElements()) {
+          ScalarMap map = (ScalarMap) en.nextElement();
           if (real.equals(map.getScalar())) {
             DisplayRealType dreal = map.getDisplayScalar();
             if (Display.Flow1Azimuth.equals(dreal)) {

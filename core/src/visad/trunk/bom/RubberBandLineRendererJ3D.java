@@ -158,9 +158,9 @@ public class RubberBandLineRendererJ3D extends DirectManipulationRendererJ3D {
     xmap = null;
     ymap = null;
     Vector scalar_map_vector = display.getMapVector();
-    Enumeration enum = scalar_map_vector.elements();
-    while (enum.hasMoreElements()) {
-      ScalarMap map = (ScalarMap) enum.nextElement();
+    Enumeration en = scalar_map_vector.elements();
+    while (en.hasMoreElements()) {
+      ScalarMap map = (ScalarMap) en.nextElement();
       ScalarType real = map.getScalar();
       if (real.equals(x)) {
         DisplayRealType dreal = map.getDisplayScalar();

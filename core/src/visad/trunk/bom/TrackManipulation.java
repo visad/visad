@@ -120,9 +120,9 @@ public class TrackManipulation extends Object {
 
     // find ScalarMaps of Latitude and Longitude
     Vector scalar_map_vector = display.getMapVector();
-    Enumeration enum = scalar_map_vector.elements();
-    while (enum.hasMoreElements()) {
-      ScalarMap map = (ScalarMap) enum.nextElement();
+    Enumeration en = scalar_map_vector.elements();
+    while (en.hasMoreElements()) {
+      ScalarMap map = (ScalarMap) en.nextElement();
       if (RealType.Latitude.equals(map.getScalar())) {
         latmap = map;
       }

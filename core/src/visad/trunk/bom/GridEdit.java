@@ -197,9 +197,9 @@ public class GridEdit extends Object implements ActionListener {
     }
 
     Vector scalar_map_vector = display.getMapVector();
-    Enumeration enum = scalar_map_vector.elements();
-    while (enum.hasMoreElements()) {
-      ScalarMap map = (ScalarMap) enum.nextElement();
+    Enumeration en = scalar_map_vector.elements();
+    while (en.hasMoreElements()) {
+      ScalarMap map = (ScalarMap) en.nextElement();
       ScalarType scalar = map.getScalar();
       DisplayRealType dreal = map.getDisplayScalar();
       DisplayTupleType tuple = dreal.getTuple();

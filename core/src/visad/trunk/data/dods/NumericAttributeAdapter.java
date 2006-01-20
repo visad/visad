@@ -55,8 +55,8 @@ public abstract class NumericAttributeAdapter
 	this.name = name;
 	realType = RealType.getRealType(scalarName(name));
 	ArrayList	list = new ArrayList();
-	for (Enumeration enum = attr.getValues(); enum.hasMoreElements(); )
-	    list.add(number((String)enum.nextElement()));
+	for (Enumeration en = attr.getValues(); en.hasMoreElements(); )
+	    list.add(number((String)en.nextElement()));
 	data =
 	    list.size() == 0
 		? (DataImpl)null

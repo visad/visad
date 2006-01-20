@@ -135,7 +135,7 @@ public class DiscoverableZoom extends Object
             }
           }
         }
-      } // end while (enum.hasMoreElements())
+      } // end while (maps.hasMoreElements())
       if (latmap == null || lonmap == null) {
         nrenderers = -1;
         return;

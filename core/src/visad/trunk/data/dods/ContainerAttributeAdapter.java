@@ -60,9 +60,9 @@ public class ContainerAttributeAdapter
 	ArrayList	list = new ArrayList();
 	AttributeTable	table = attr.getContainer();
 	boolean		allReals = true;
-	for (Enumeration enum = table.getNames(); enum.hasMoreElements(); )
+	for (Enumeration en = table.getNames(); en.hasMoreElements(); )
 	{
-	    name = (String)enum.nextElement();
+	    name = (String)en.nextElement();
 	    DataImpl	data =
 		factory.attributeAdapter(name, table.getAttribute(name))
 		.data(false);
