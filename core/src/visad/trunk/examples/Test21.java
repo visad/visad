@@ -62,7 +62,7 @@ public class Test21
   void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
-    RealType[] types = {RealType.Latitude, RealType.Longitude};
+    RealType[] types = {RealType.XAxis, RealType.YAxis};
     RealTupleType earth_location = new RealTupleType(types);
     RealType vis_radiance = RealType.getRealType("vis_radiance");
     RealType ir_radiance = RealType.getRealType("ir_radiance");
@@ -73,8 +73,8 @@ public class Test21
     int size = 64;
     FlatField imaget1 = FlatField.makeField(image_tuple, size, false);
 
-    dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
-    dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
+    dpys[0].addMap(new ScalarMap(RealType.XAxis, Display.YAxis));
+    dpys[0].addMap(new ScalarMap(RealType.YAxis, Display.XAxis));
     dpys[0].addMap(new ScalarMap(vis_radiance, Display.ZAxis));
     dpys[0].addMap(new ScalarMap(vis_radiance, Display.Green));
     dpys[0].addMap(new ConstantMap(0.5, Display.Blue));
