@@ -1460,7 +1460,8 @@ public class FieldImpl extends FunctionImpl implements Field {
 
       for ( ii = 0; ii < n_samples; ii++ )
       {
-        real = (Real) getSample(ii);
+        real = (Real)
+          ((TupleIface) getSample(ii)).getComponent( component );
         value = real.getValue();
         unit = real.getUnit();
 
