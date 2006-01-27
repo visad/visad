@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: StandardQuantityDB.java,v 1.16 2002-09-20 18:15:56 steve Exp $
+ * $Id: StandardQuantityDB.java,v 1.17 2006-01-27 21:11:01 donm Exp $
  */
 
 package visad.data.netcdf;
@@ -125,7 +125,7 @@ StandardQuantityDB
 	    super.add("VolumeFlow", "m3/s");
 	    super.add("Acceleration", "m/s2");
 	    super.add("Area", "m2");
-	    super.add("Frequency", "hz");
+	    super.add("Frequency", "Hz");
 	    super.add("WaveNumber", "m-1");
 	    super.add("Speed", "m/s");
 	    super.add("Velocity", "m/s");
