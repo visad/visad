@@ -86,15 +86,15 @@ import java.rmi.*;
 */
 public class FlatField extends FieldImpl implements FlatFieldIface {
 
-  private int TupleDimension; // dimension of Type.getFlatRange()
+  protected int TupleDimension; // dimension of Type.getFlatRange()
   private Set RangeSet[]; // one 1-D Set per range components
   private int RangeMode[]; // DOUBLE, FLOAT, INT, SHORT or BYTE
  // coordinate system of the function range R^n
-  private CoordinateSystem RangeCoordinateSystem; // used if Type.Real
-  private CoordinateSystem[] RangeCoordinateSystems; // used for Flat, not for Real
+  protected CoordinateSystem RangeCoordinateSystem; // used if Type.Real
+  protected CoordinateSystem[] RangeCoordinateSystems; // used for Flat, not for Real
   private boolean MissingFlag;
 
-  private Unit[] RangeUnits;
+  protected Unit[] RangeUnits;
 
   // RangeErrors, like range values, are not immutable
   private ErrorEstimate[] RangeErrors;

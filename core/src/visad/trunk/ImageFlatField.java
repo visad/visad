@@ -26,10 +26,9 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.awt.Image;
-import java.awt.image.ColorModel;
-import java.awt.image.PixelGrabber;
+import java.awt.image.*;
 import java.rmi.RemoteException;
+import java.util.Arrays;
 import visad.util.ImageHelper;
 
 /**
@@ -41,7 +40,7 @@ public class ImageFlatField extends FlatField {
   // -- Fields --
 
   /** The image backing this FlatField. */
-  protected Image image;
+  protected BufferedImage image;
   protected int width, height;
 
 
@@ -81,14 +80,14 @@ public class ImageFlatField extends FlatField {
   // -- ImageFlatField API methods --
 
   /** Gets the image backing this FlatField. */
-  public Image getImage() {
+  public BufferedImage getImage() {
     pr ("getImage");
     return image;
   }
 
   /** Sets the image backing this FlatField. */
-  public void setImage(Image image) throws VisADException {
-    pr ("setImage");
+  public void setImage(BufferedImage image) throws VisADException {
+//    pr ("setImage");
     if (image == null) throw new VisADException("image cannot be null");
     ImageHelper ih = new ImageHelper();
 
@@ -114,6 +113,118 @@ public class ImageFlatField extends FlatField {
     throws VisADException, RemoteException
   {
     throw new VisADException("Use setImage(Image) for ImageFlatField");
+  }
+
+  /**
+   * This method has been overridden to avoid a call to
+   * unpackValues or unpackFloats during range computation.
+   */
+  public DataShadow computeRanges(ShadowType type, DataShadow shadow)
+    throws VisADException
+  {
+    if (isMissing()) return shadow;
+
+    ShadowRealTupleType domainType = ((ShadowFunctionType) type).getDomain();
+    int n = domainType.getDimension();
+    double[][] ranges = new double[2][n];
+    // DomainSet.computeRanges handles Reference
+    shadow = DomainSet.computeRanges(domainType, shadow, ranges, true);
+    ShadowRealTupleType shadRef;
+    // skip range if no range components are mapped
+    int[] indices = ((ShadowFunctionType) type).getRangeDisplayIndices();
+    boolean anyMapped = false;
+    for (int i=0; i<TupleDimension; i++) {
+      if (indices[i] >= 0) anyMapped = true;
+    }
+    if (!anyMapped) return shadow;
+
+    // check for any range coordinate systems
+    boolean anyRangeRef = (RangeCoordinateSystem != null);
+    if (RangeCoordinateSystems != null) {
+      for (int i=0; i<RangeCoordinateSystems.length; i++) {
+        anyRangeRef |= (RangeCoordinateSystems[i] != null);
+      }
+    }
+    ranges = anyRangeRef ? new double[2][TupleDimension] : null;
+
+    // get image raster
+    WritableRaster raster = image.getRaster();
+
+    double[] min = new double[TupleDimension];
+    Arrays.fill(min, Double.MAX_VALUE);
+    double[] max = new double[TupleDimension];
+    Arrays.fill(max, -Double.MAX_VALUE);
+    double[] vals = new double[TupleDimension];
+    for (int y=0; y<height; y++) {
+      for (int x=0; x<width; x++) {
+        raster.getPixel(x, y, vals);
+        for (int i=0; i<TupleDimension; i++) {
+          min[i] = Math.min(min[i], vals[i]);
+          max[i] = Math.max(max[i], vals[i]);
+        }
+      }
+    }
+    for (int i=0; i<TupleDimension; i++) {
+      int k = indices[i];
+      if (k >= 0 || anyRangeRef) {
+        Unit dunit = ((RealType) ((FunctionType)
+          Type).getFlatRange().getComponent(i)).getDefaultUnit();
+        if (dunit != null && !dunit.equals(RangeUnits[i])) {
+          min[i] = dunit.toThis(min[i], RangeUnits[i]);
+          max[i] = dunit.toThis(max[i], RangeUnits[i]);
+        }
+        if (anyRangeRef) {
+          ranges[0][i] = Math.min(ranges[0][i], min[i]);
+          ranges[1][i] = Math.max(ranges[1][i], max[i]);
+        }
+        if (k >= 0 && k < shadow.ranges[0].length) {
+          shadow.ranges[0][k] = Math.min(shadow.ranges[0][k], min[i]);
+          shadow.ranges[1][k] = Math.max(shadow.ranges[1][k], max[i]);
+        }
+      }
+    }
+    if (RangeCoordinateSystem != null) {
+      // computeRanges for Reference (relative to range) RealTypes
+      ShadowRealTupleType rangeType =
+        (ShadowRealTupleType) ((ShadowFunctionType) type).getRange();
+      shadRef = rangeType.getReference();
+      shadow = computeReferenceRanges(rangeType, RangeCoordinateSystem,
+        RangeUnits, shadow, shadRef, ranges);
+    }
+    else if (RangeCoordinateSystems != null) {
+      TupleType rangeTupleType = (TupleType) ((FunctionType) Type).getRange();
+      int j = 0;
+      for (int i=0; i<RangeCoordinateSystems.length; i++) {
+        MathType component = rangeTupleType.getComponent(i);
+        if (component instanceof RealType) j++;
+        else { // (component instanceof RealTupleType)
+          int m = ((RealTupleType) component).getDimension();
+          if (RangeCoordinateSystems[i] != null) {
+            // computeRanges for Reference (relative to range
+            // component) RealTypes
+            double[][] subRanges = new double[2][m];
+            Unit[] subUnits = new Unit[m];
+            for (int k=0; k<m; k++) {
+              subRanges[0][k] = ranges[0][j];
+              subRanges[1][k] = ranges[1][j];
+              subUnits[k] = RangeUnits[j];
+              j++;
+            }
+            ShadowRealTupleType rangeType = (ShadowRealTupleType)
+              ((ShadowTupleType) ((ShadowFunctionType)
+              type).getRange()).getComponent(i);
+            shadRef = rangeType.getReference();
+            shadow = computeReferenceRanges(rangeType,
+              RangeCoordinateSystems[i], subUnits,
+              shadow, shadRef, subRanges);
+          }
+          else { // (RangeCoordinateSystems[i] == null)
+            j += m;
+          }
+        } // end if (component instanceof RealTupleType)
+      } // end for (int i=0; i<RangeCoordinateSystems.length; i++)
+    } // end if (RangeCoordinateSystems != null)
+    return shadow;
   }
 
   protected double[][] unpackValues(boolean copy) throws VisADException {
@@ -221,6 +332,11 @@ public class ImageFlatField extends FlatField {
       else if (comp == 2) samps[i] = cm.getBlue(words[i]);
     }
     return samps;
+  }
+
+  protected void pr(String message) {
+//    new Exception(hashCode () + " " + getClass().getName() +
+//      "  " + message).printStackTrace();
   }
 
 
