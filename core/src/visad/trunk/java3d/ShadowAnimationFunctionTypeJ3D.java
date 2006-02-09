@@ -100,6 +100,13 @@ public class ShadowAnimationFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       if (group instanceof BranchGroup &&
           ((BranchGroup) group).numChildren() > 0) {
         Node g = ((BranchGroup) group).getChild(0);
+
+        // WLH 06 Feb 06 - support switch in a branch group.
+        if (g instanceof BranchGroup &&
+            ((BranchGroup) g).numChildren() > 0) {
+            g = ((BranchGroup) g).getChild(0);
+        }
+
         if (g instanceof Switch) {
           old_swit = (Switch) g;
 

@@ -1012,7 +1012,14 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
          throws VisADException {
     ((AVControlJ3D) control).addPair((Switch) swit, domain_set, renderer);
     ((AVControlJ3D) control).init();
-    ((Group) group).addChild((Switch) swit);
+    // WLH 06 Feb 06 - fix problem adding a new switch to an existing group
+    // ((Group) group).addChild((Switch) swit);
+    BranchGroup branch = new BranchGroup();
+    branch.setCapability(BranchGroup.ALLOW_DETACH);
+    branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+    branch.addChild((Switch) swit);
+    ((Group) group).addChild(branch);
+
   }
 
   public boolean recurseRange(Object group, Data data, float[] value_array,
