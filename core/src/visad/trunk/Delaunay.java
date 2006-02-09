@@ -299,6 +299,10 @@ public abstract class Delaunay implements java.io.Serializable {
    *         the triangulation
    */
   public boolean test(float[][] samples) {
+    return test(samples, false);
+  }
+
+  public boolean test(float[][] samples, boolean printErrors) {
 
     int dim = samples.length;
     int dim1 = dim+1;
@@ -310,13 +314,26 @@ public abstract class Delaunay implements java.io.Serializable {
 
     // verify triangulation dimension
     for (int i=0; i<ntris; i++) {
-      if (Tri[i].length < dim1) return false;
+      if (Tri[i].length < dim1) {
+        if (printErrors) {
+          System.err.println("Delaunay.test: invalid triangulation " +
+            "dimension (Tri[" + i + "].length=" + Tri[i].length +
+            "; dim1=" + dim1 + ")");
+        }
+        return false;
+      }
     }
 
     // verify no illegal triangle vertices
     for (int i=0; i<ntris; i++) {
       for (int j=0; j<dim1; j++) {
-        if (Tri[i][j] < 0 || Tri[i][j] >= nrs) return false;
+        if (Tri[i][j] < 0 || Tri[i][j] >= nrs) {
+          if (printErrors) {
+            System.err.println("Delaunay.test: illegal triangle vertex (" +
+              "Tri[" + i + "][" + j + "]=" + Tri[i][j] + "; nrs=" + nrs + ")");
+          }
+          return false;
+        }
       }
     }
 
@@ -327,7 +344,13 @@ public abstract class Delaunay implements java.io.Serializable {
       for (int j=0; j<dim1; j++) nverts[Tri[i][j]]++;
     }
     for (int i=0; i<nrs; i++) {
-      if (nverts[i] == 0) return false;
+      if (nverts[i] == 0) {
+        if (printErrors) {
+          System.err.println("Delaunay.test: point not in triangle (" +
+            "nverts[" + i + "]=0)");
+        }
+        return false;
+      }
     }
 
     // test for duplicate triangles
@@ -346,7 +369,13 @@ public abstract class Delaunay implements java.io.Serializable {
         for (int k=0; k<dim1; k++) {
           if (!m[k]) mtot = false;
         }
-        if (mtot) return false;
+        if (mtot) {
+          if (printErrors) {
+            System.err.println("Delaunay.test: duplicate triangles (i=" + i +
+              "; j=" + j + ")");
+          }
+          return false;
+        }
       }
     }
 
@@ -358,7 +387,13 @@ public abstract class Delaunay implements java.io.Serializable {
           for (int k=0; k<dim1; k++) {
             if (Walk[Walk[i][j]][k] == i) found = true;
           }
-          if (!found) return false;
+          if (!found) {
+            if (printErrors) {
+              System.err.println("Delaunay.test: error in Walk array (i=" + i +
+                "; j=" + j + ")");
+            }
+            return false;
+          }
 
           // make sure two walk'ed triangles share dim vertices
           int sb = 0;
@@ -367,7 +402,13 @@ public abstract class Delaunay implements java.io.Serializable {
               if (Tri[i][k] == Tri[Walk[i][j]][l]) sb++;
             }
           }
-          if (sb != dim) return false;
+          if (sb != dim) {
+            if (printErrors) {
+              System.err.println("Delaunay.test: error in Walk array (i=" + i +
+                "; j=" + j + "; sb=" + sb + "; dim=" + dim + ")");
+            }
+            return false;
+          }
         }
       }
     }
