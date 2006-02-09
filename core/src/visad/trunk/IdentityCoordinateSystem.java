@@ -44,7 +44,18 @@ public class IdentityCoordinateSystem extends CoordinateSystem
     public IdentityCoordinateSystem(RealTupleType type)
         throws VisADException
     {
-        super(type, type.getDefaultUnits());
+        this(type, type.getDefaultUnits());
+    }
+
+    /**
+     * Construct a new <CODE>IdentityCoordinateSystem</CODE> for
+     * values of the type specified.
+     * @param  type  type of the values
+     */
+    public IdentityCoordinateSystem(RealTupleType type, Unit[] units)
+        throws VisADException
+    {
+        super(type, units);
     }
 
     /**
