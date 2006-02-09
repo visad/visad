@@ -37,6 +37,15 @@ import visad.java3d.DisplayImplJ3D;
 */
 public class DelaunayTest {
 
+  public static final int CLARKSON = 1;
+  public static final int WATSON = 2;
+  public static final int FAST = 3;
+
+  public static final int NONE = 1;
+  public static final int BOXES = 2;
+  public static final int TRIANGLES = 3;
+  public static final int VERTICES = 4;
+
   /** Run 'java DelaunayTest' for usage instructions */
   public static void main(String[] argv) throws VisADException,
                                                 RemoteException {
@@ -46,6 +55,7 @@ public class DelaunayTest {
     int points = 0;
     int type = 0;
     int l = 1;
+    boolean test = false;
     if (argv.length < 3) problem = true;
     else {
       try {
@@ -53,6 +63,7 @@ public class DelaunayTest {
         points = Integer.parseInt(argv[1]);
         type = Integer.parseInt(argv[2]);
         if (argv.length > 3) l = Integer.parseInt(argv[3]);
+        test = argv.length > 4;
         if (dim < 2 || dim > 3 || points < 1 || type < 1 || l < 1 || l > 4) {
           problem = true;
         }
@@ -68,21 +79,22 @@ public class DelaunayTest {
     }
     if (problem) {
       System.out.println("Usage:\n" +
-                         "   java DelaunayTest dim points type [label]\n" +
-                         "dim    = The dimension of the triangulation\n" +
-                         "         2 = 2-D\n" +
-                         "         3 = 3-D\n" +
-                         "points = The number of points to triangulate.\n" +
-                         "type   = The triangulation method to use:\n" +
-                         "         1 = Clarkson\n" +
-                         "         2 = Watson\n" +
-                         "         3 = Fast\n" +
-                         "     X + 3 = Fast with X improvement passes\n" +
-                         "label  = How to label the diagram:\n" +
-                         "         1 = No labels (default)\n" +
-                         "         2 = Vertex boxes\n" +
-                         "         3 = Triangle numbers\n" +
-                         "         4 = Vertex numbers\n");
+        "   java DelaunayTest dim points type [label] [test]\n" +
+        "dim    = The dimension of the triangulation\n" +
+        "         2 = 2-D\n" +
+        "         3 = 3-D\n" +
+        "points = The number of points to triangulate.\n" +
+        "type   = The triangulation method to use:\n" +
+        "         1 = Clarkson\n" +
+        "         2 = Watson\n" +
+        "         3 = Fast\n" +
+        "     X + 3 = Fast with X improvement passes\n" +
+        "label  = How to label the diagram:\n" +
+        "         1 = No labels (default)\n" +
+        "         2 = Vertex boxes\n" +
+        "         3 = Triangle numbers\n" +
+        "         4 = Vertex numbers\n" +
+        "test   = Whether to test the triangulation (default: no)\n");
       System.exit(1);
     }
     if (type > 3) {
@@ -99,7 +111,6 @@ public class DelaunayTest {
     float[] samp2 = null;
     if (dim == 3) samp2 = samples[2];
 
-    Delaunay delaun = null;
     for (int i=0; i<points; i++) {
       samp0[i] = (float) (500 * Math.random());
       samp1[i] = (float) (500 * Math.random());
@@ -109,23 +120,40 @@ public class DelaunayTest {
         samp2[i] = (float) (500 * Math.random());
       }
     }
+    visTriang(makeTriang(samples, type, numpass, test), samples, l);
+  }
+
+  /**
+   * Triangulates the given samples according to the specified algorithm.
+   *
+   * @param type One of CLARKSON, WATSON, FAST
+   * @param numpass Number of improvement passes
+   * @param test Whether to test the triangulation for errors
+   */
+  public static Delaunay makeTriang(float[][] samples, int type,
+    int numpass, boolean test) throws VisADException, RemoteException
+  {
+    int dim = samples.length;
+    int points = samples[0].length;
     System.out.print("Triangulating " + points + " points " +
                      "in " + dim + "-D with ");
+
     long start = 0;
     long end = 0;
-    if (type == 1) {
+    Delaunay delaun = null;
+    if (type == CLARKSON) {
       System.out.println("the Clarkson algorithm.");
       start = System.currentTimeMillis();
       delaun = (Delaunay) new DelaunayClarkson(samples);
       end = System.currentTimeMillis();
     }
-    else if (type == 2) {
+    else if (type == WATSON) {
       System.out.println("the Watson algorithm.");
       start = System.currentTimeMillis();
       delaun = (Delaunay) new DelaunayWatson(samples);
       end = System.currentTimeMillis();
     }
-    else if (type == 3) {
+    else if (type == FAST) {
       System.out.println("the Fast algorithm.");
       start = System.currentTimeMillis();
       delaun = (Delaunay) new DelaunayFast(samples);
@@ -142,14 +170,30 @@ public class DelaunayTest {
       time = (end - start) / 1000f;
       System.out.println("Improvement took " + time + " seconds.");
     }
-    /* Note: the following code tests the triangulation for errors
-    System.out.print("Testing triangulation integrity...");
-    if (delaun.test(samples)) System.out.println("OK");
-    else System.out.println("FAILED!");
-    */
+    if (test) {
+      System.out.print("Testing triangulation integrity...");
+      if (delaun.test(samples)) System.out.println("OK");
+      else System.out.println("FAILED!");
+    }
+    return delaun;
+  }
+
+  /**
+   * Displays the results for the given Delaunay triangulation of the
+   * specified samples in a window.
+   *
+   * @param delaun The triangulation to visualize
+   * @param samples The samples corresponding to the triangulation
+   * @param label One of NONE, BOXES, TRIANGLES, VERTICES
+   */
+  public static void visTriang(Delaunay delaun, float[][] samples,
+    int labels) throws VisADException, RemoteException
+  {
+    int dim = samples.length;
+    int points = samples[0].length;
 
     // set up final variables
-    final int label = l;
+    final int label = labels;
     final int[][] tri = delaun.Tri;
     final int[][] edges = delaun.Edges;
     final int numedges = delaun.NumEdges;
@@ -161,6 +205,11 @@ public class DelaunayTest {
         System.exit(0);
       }
     });
+
+    float[] samp0 = samples[0];
+    float[] samp1 = samples[1];
+    float[] samp2 = null;
+    if (dim == 3) samp2 = samples[2];
 
     if (dim == 2) {
       // set up GUI components in 2-D
@@ -257,17 +306,18 @@ public class DelaunayTest {
 
       // draw labels if specified
       if (label == 2) {
-        throw new UnimplementedException("Delaunay.main: vertex boxes");
+        throw new UnimplementedException(
+          "DelaunayTest.testTriang: vertex boxes");
       }
       else if (label == 3) {   // triangle numbers
         int len = tri.length;
         TextType text = new TextType("text");
         RealType t = RealType.getRealType("t");
         RealTupleType rtt = new RealTupleType(new RealType[] {t});
-        Linear1DSet time_set = new Linear1DSet(rtt, 0, len - 1, len);
-        TupleType text_tuple = new TupleType(new MathType[] {x, y, z, text});
-        FunctionType text_function = new FunctionType(t, text_tuple);
-        FieldImpl text_field = new FieldImpl(text_function, time_set);
+        Linear1DSet timeSet = new Linear1DSet(rtt, 0, len - 1, len);
+        TupleType textTuple = new TupleType(new MathType[] {x, y, z, text});
+        FunctionType textFunction = new FunctionType(t, textTuple);
+        FieldImpl textField = new FieldImpl(textFunction, timeSet);
         for (int i=0; i<len; i++) {
           int t0 = tri[i][0];
           int t1 = tri[i][1];
@@ -280,12 +330,12 @@ public class DelaunayTest {
                        new Real(y, avgY),
                        new Real(z, avgZ),
                        new Text(text, "" + i)};
-          TupleIface tt = new Tuple(text_tuple, td);
-          text_field.setSample(i, tt);
+          TupleIface tt = new Tuple(textTuple, td);
+          textField.setSample(i, tt);
         }
         display.addMap(new ScalarMap(text, Display.Text));
         DataReferenceImpl rtf = new DataReferenceImpl("rtf");
-        rtf.setData(text_field);
+        rtf.setData(textField);
         display.addReference(rtf, null);
       }
       else if (label == 4) {   // vertex numbers
@@ -293,21 +343,21 @@ public class DelaunayTest {
         TextType text = new TextType("text");
         RealType t = RealType.getRealType("t");
         RealTupleType rtt = new RealTupleType(new RealType[] {t});
-        Linear1DSet time_set = new Linear1DSet(rtt, 0, len - 1, len);
-        TupleType text_tuple = new TupleType(new MathType[] {x, y, z, text});
-        FunctionType text_function = new FunctionType(t, text_tuple);
-        FieldImpl text_field = new FieldImpl(text_function, time_set);
+        Linear1DSet timeSet = new Linear1DSet(rtt, 0, len - 1, len);
+        TupleType textTuple = new TupleType(new MathType[] {x, y, z, text});
+        FunctionType textFunction = new FunctionType(t, textTuple);
+        FieldImpl textField = new FieldImpl(textFunction, timeSet);
         for (int i=0; i<len; i++) {
           Data[] td = {new Real(x, s0[i]),
                        new Real(y, s1[i]),
                        new Real(z, s2[i]),
                        new Text(text, "" + i)};
-          TupleIface tt = new Tuple(text_tuple, td);
-          text_field.setSample(i, tt);
+          TupleIface tt = new Tuple(textTuple, td);
+          textField.setSample(i, tt);
         }
         display.addMap(new ScalarMap(text, Display.Text));
         DataReferenceImpl rtf = new DataReferenceImpl("rtf");
-        rtf.setData(text_field);
+        rtf.setData(textField);
         display.addReference(rtf, null);
       }
 
