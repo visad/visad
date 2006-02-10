@@ -114,7 +114,7 @@ public class DelaunayWatson extends Delaunay {
     Random rand = new Random(367);
     for (i0=0; i0<nrs; i0++) for (i1=0; i1<dim; i1++) {
       // random numbers [0, 1]
-      pts[i0][i1] += bgs * (0.5 - rand.nextDouble() / 0x7fffffff);
+      pts[i0][i1] += bgs * (0.5 - rand.nextDouble());
     }
     for (i0=0; i0<dim1; i0++) for (i1=0; i1<dim; i1++) {
       pts[nrs+i0][i1] = mxy[1][i1] + wrk[i1][i0] * mxy[0][i1];
