@@ -34,19 +34,16 @@ import visad.data.gif.GIFForm;
 
 import javax.media.j3d.*;
 
-import java.util.Vector;
+import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.Vector;
 import java.rmi.*;
 
 import java.net.URL;
 
-import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
-import java.awt.image.WritableRaster;
-import java.awt.image.DataBufferInt;
 
 /**
    The ShadowImageFunctionTypeJ3D class shadows the FunctionType class for
@@ -207,9 +204,9 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       constant_alpha =
         default_values[display.getDisplayScalarIndex(Display.Alpha)];
 
-      int[] color_ints = new int[domain_length];
+      byte[][] color_bytes;
       if (cmap != null) {
-        // build texture colors in color_ints array
+        // build texture colors in color_bytes array
         BaseColorControl control = (BaseColorControl) cmap.getControl();
         float[][] table = control.getTable();
         byte[][] bytes = null;
@@ -236,7 +233,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         }
         if (table != null) {
           // combine color table RGB components into ints
-          int[] itable = new int[table[0].length];
+          byte[][] itable = new byte[table[0].length][4];
           // int r, g, b, a = 255;
           int r, g, b;
           int c = (int) (255.0 * (1.0f - constant_alpha));
@@ -252,13 +249,32 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
               c = (int) (255.0 * table[3][j]);
               a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
             }
-            itable[j] = ((a << 24) | (r << 16) | (g << 8) | b);
+            itable[j][0] = (byte) r;
+            itable[j][1] = (byte) g;
+            itable[j][2] = (byte) b;
+            itable[j][3] = (byte) a;
           }
           int tblEnd = table[0].length - 1;
           // get scale for color table
-          double table_scale = (double) table[0].length;
+          int table_scale = table[0].length;
   
-          if (bytes != null && bytes[0] != null && is_default_unit &&
+          if (data instanceof ImageFlatField && is_default_unit) {
+            // avoid unpacking floats for ImageFlatFields
+            color_bytes = new byte[4][domain_length];
+            bytes[0] = cmap.scaleValues(bytes[0], table_scale);
+            // fast lookup from byte values to color bytes
+            byte[] bytes0 = bytes[0];
+            for (int i=0; i<domain_length; i++) {
+              int j = bytes0[i];
+              // clip to table
+              int ndx = j < 0 ? 0 : (j > tblEnd ? tblEnd : j);
+              color_bytes[0][i] = itable[ndx][0];
+              color_bytes[1][i] = itable[ndx][1];
+              color_bytes[2][i] = itable[ndx][2];
+              color_bytes[3][i] = itable[ndx][3];
+            }
+          }
+          else if (bytes != null && bytes[0] != null && is_default_unit &&
               rset != null && rset instanceof Linear1DSet) {
             // fast since FlatField with bytes, data Unit equals default
             // Unit and range set is Linear1DSet
@@ -277,24 +293,26 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
             float add = (float) (table_scale * (offset + scale * first));
   
             // build table for fast color lookup
-            int[] fast_table = new int[256];
+            byte[][] fast_table = new byte[256][];
             for (int j=0; j<256; j++) {
               int index = j - 1;
-              if (index < 0) {
-                fast_table[j] = 0; // missing
-              }
-              else {
+              if (index >= 0) { // not missing
                 int k = (int) (add + mult * index);
                 // clip to table
-                fast_table[j] =
-                  (k < 0) ? itable[0] : ((k > tblEnd) ? itable[tblEnd] : itable[k]);
+                int ndx = k < 0 ? 0 : (k > tblEnd ? tblEnd : k);
+                fast_table[j] = itable[ndx];
               }
             }
   
-            // now do fast lookup from byte values to color ints
+            // now do fast lookup from byte values to color bytes
+            color_bytes = new byte[4][domain_length];
             byte[] bytes0 = bytes[0];
             for (int i=0; i<domain_length; i++) {
-              color_ints[i] = fast_table[((int) bytes0[i]) - MISSING1];
+              int ndx = ((int) bytes0[i]) - MISSING1;
+              color_bytes[0][i] = fast_table[ndx][0];
+              color_bytes[1][i] = fast_table[ndx][1];
+              color_bytes[2][i] = fast_table[ndx][2];
+              color_bytes[3][i] = fast_table[ndx][3];
             }
             bytes = null; // take out the garbage
           }
@@ -304,17 +322,18 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
             float[][] values = ((Field) data).getFloats(false);
             values[0] = cmap.scaleValues(values[0]);
   
-            // now do fast lookup from byte values to color ints
+            // now do fast lookup from byte values to color bytes
+            color_bytes = new byte[4][domain_length];
             float[] values0 = values[0];
             for (int i=0; i<domain_length; i++) {
-              if (values0[i] != values0[i]) {
-                color_ints[i] = 0; // missing
-              }
-              else {
+              if (values0[i] == values0[i]) { // not missing
                 int j = (int) (table_scale * values0[i]);
                 // clip to table
-                color_ints[i] =
-                  (j < 0) ? itable[0] : ((j > tblEnd) ? itable[tblEnd] : itable[j]);
+                int ndx = j < 0 ? 0 : (j > tblEnd ? tblEnd : j);
+                color_bytes[0][i] = itable[ndx][0];
+                color_bytes[1][i] = itable[ndx][1];
+                color_bytes[2][i] = itable[ndx][2];
+                color_bytes[3][i] = itable[ndx][3];
               }
             }
             values = null; // take out the garbage
@@ -327,16 +346,14 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           values[0] = cmap.scaleValues(values[0]);
           // call lookupValues which will use function since table == null
           float[][] color_values = control.lookupValues(values[0]);
-          // combine color RGB components into ints
+          // combine color RGB components into bytes
           // int r, g, b, a = 255;
           int r, g, b;
           int c = (int) (255.0 * (1.0f - constant_alpha));
           int a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+          color_bytes = new byte[4][domain_length];
           for (int i=0; i<domain_length; i++) {
-            if (values[0][i] != values[0][i]) {
-              color_ints[i] = 0; // missing
-            }
-            else {
+            if (values[0][i] == values[0][i]) { // not missing
               c = (int) (255.0 * color_values[0][i]);
               r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
               c = (int) (255.0 * color_values[1][i]);
@@ -347,7 +364,10 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                 c = (int) (255.0 * color_values[3][i]);
                 a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
               }
-              color_ints[i] = ((a << 24) | (r << 16) | (g << 8) | b);
+              color_bytes[0][i] = (byte) r;
+              color_bytes[1][i] = (byte) g;
+              color_bytes[2][i] = (byte) b;
+              color_bytes[3][i] = (byte) a;
             }
           }
           // take out the garbage
@@ -356,33 +376,51 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         }
       }
       else if (cmaps != null) {
-        float[][] values = ((Field) data).getFloats(false);
-        float[][] new_values = new float[3][];
-        new_values[0] = cmaps[permute[0]].scaleValues(values[permute[0]]);
-        new_values[1] = cmaps[permute[1]].scaleValues(values[permute[1]]);
-        new_values[2] = cmaps[permute[2]].scaleValues(values[permute[2]]);
-        values = new_values;
-        int r, g, b;
-        int c = (int) (255.0 * (1.0f - constant_alpha));
-        int a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-        for (int i=0; i<domain_length; i++) {
-          if (values[0][i] != values[0][i] ||
-              values[1][i] != values[1][i] ||
-              values[2][i] != values[2][i]) {
-            color_ints[i] = 0; // missing
-          }
-          else {
-            c = (int) (255.0 * values[0][i]);
-            r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-            c = (int) (255.0 * values[1][i]);
-            g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-            c = (int) (255.0 * values[2][i]);
-            b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-            color_ints[i] = ((a << 24) | (r << 16) | (g << 8) | b);
-          }
+        if (data instanceof ImageFlatField) {
+          // grab bytes directly from ImageFlatField
+          ImageFlatField iff = (ImageFlatField) data;
+          byte[][] bytes = iff.grabBytes();
+          color_bytes = new byte[4][];
+          color_bytes[0] =
+            cmaps[permute[0]].scaleValues(bytes[permute[0]], 255);
+          color_bytes[1] =
+            cmaps[permute[1]].scaleValues(bytes[permute[1]], 255);
+          color_bytes[2] =
+            cmaps[permute[2]].scaleValues(bytes[permute[2]], 255);
+          int c = (int) (255.0 * (1.0f - constant_alpha));
+          color_bytes[3] = new byte[domain_length];
+          Arrays.fill(color_bytes[3], (byte) c);
         }
-        // take out the garbage
-        values = null;
+        else {
+          float[][] values = ((Field) data).getFloats(false);
+          float[][] new_values = new float[3][];
+          new_values[0] = cmaps[permute[0]].scaleValues(values[permute[0]]);
+          new_values[1] = cmaps[permute[1]].scaleValues(values[permute[1]]);
+          new_values[2] = cmaps[permute[2]].scaleValues(values[permute[2]]);
+          values = new_values;
+          int r, g, b;
+          int c = (int) (255.0 * (1.0f - constant_alpha));
+          int a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+          color_bytes = new byte[4][domain_length];
+          for (int i=0; i<domain_length; i++) {
+            if (values[0][i] == values[0][i] &&
+                values[1][i] == values[1][i] &&
+                values[2][i] == values[2][i]) { // not missing
+              c = (int) (255.0 * values[0][i]);
+              r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+              c = (int) (255.0 * values[1][i]);
+              g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+              c = (int) (255.0 * values[2][i]);
+              b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+              color_bytes[0][i] = (byte) r;
+              color_bytes[1][i] = (byte) g;
+              color_bytes[2][i] = (byte) b;
+              color_bytes[3][i] = (byte) a;
+            }
+          }
+          // take out the garbage
+          values = null;
+        }
       }
       else {
         throw new BadMappingException("cmap == null and cmaps == null ??");
@@ -476,7 +514,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         if (n_y_sub == 1 && n_x_sub == 1) {
           buildLinearTexture(group, domain_set, dataUnits, domain_units, default_values, DomainComponents,
                              valueArrayLength, inherited_values, valueToScalar, mode, constant_alpha, 
-                             value_array, constant_color, color_ints, display);
+                             value_array, constant_color, color_bytes, display);
         }
         else {
           BranchGroup branch = new BranchGroup();
@@ -498,11 +536,14 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
               double y0 = g00[1][0];
               double y1 = g11[1][0];
               Set dset = new Linear2DSet(x0, x1, lenx, y0, y1, leny);
-              int[] color_intsW = new int[lenx*leny];
+              byte[][] color_bytesW = new byte[4][lenx*leny];
               int cnt = 0;
               for (k=0; k<leny; k++) {
-                start = x_start_stop[j][0] +  i_total*lens[0] +  k*lens[0];
-                System.arraycopy(color_ints, start, color_intsW, cnt, lenx);
+                start = x_start_stop[j][0] + i_total*lens[0] + k*lens[0];
+                for (int c=0; c<4; c++) {
+                  System.arraycopy(color_bytes[c], start,
+                    color_bytesW[c], cnt, lenx);
+                }
                 cnt += lenx;
               }
               BranchGroup branch1 = new BranchGroup();
@@ -512,7 +553,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
               branch1.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
               buildLinearTexture(branch1, dset, dataUnits, domain_units, default_values, DomainComponents,
                                  valueArrayLength, inherited_values, valueToScalar, mode, constant_alpha, 
-                                 value_array, constant_color, color_intsW, display);
+                                 value_array, constant_color, color_bytesW, display);
               branch.addChild(branch1);
             }
             i_total += leny;
@@ -567,7 +608,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         if (n_y_sub == 1 && n_x_sub == 1) {
           buildCurvedTexture(group, domain_set, dataUnits, domain_units, default_values, DomainComponents,
                              valueArrayLength, inherited_values, valueToScalar, mode, constant_alpha,
-                             value_array, constant_color, color_ints, display, curved_size, Domain,
+                             value_array, constant_color, color_bytes, display, curved_size, Domain,
                              dataCoordinateSystem, renderer, adaptedShadowType, new int[] {0,
                               0}, lens[0], lens[1], null, lens[0], lens[1]);
         }
@@ -591,7 +632,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
        
             if (j > 0) {  // vertical stitch
               float[][] samplesC = new float[2][4*leny];
-              int[] color_intsC  = new int[4*leny];
+              byte[][] color_bytesC  = new byte[4][4*leny];
               int cntv = 0;
               int startv = x_start_stop[j][0] + i_total*lens[0];
               for (int iv=0; iv < leny; iv++) {
@@ -603,10 +644,12 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                 samplesC[1][cntv+1] = samples[1][startv-1];
                 samplesC[1][cntv+2] = samples[1][startv];
                 samplesC[1][cntv+3] = samples[1][startv+1];
-                color_intsC[cntv] = color_ints[startv-2];
-                color_intsC[cntv+1] = color_ints[startv-1];
-                color_intsC[cntv+2] = color_ints[startv];
-                color_intsC[cntv+3] = color_ints[startv+1];
+                for (int c=0; c<4; c++) {
+                  color_bytesC[c][cntv] = color_bytes[c][startv-2];
+                  color_bytesC[c][cntv+1] = color_bytes[c][startv-1];
+                  color_bytesC[c][cntv+2] = color_bytes[c][startv];
+                  color_bytesC[c][cntv+3] = color_bytes[c][startv+1];
+                }
                 cntv += 4;
                 startv += lens[0];
               }
@@ -618,14 +661,14 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
               branchv.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
               buildCurvedTexture(branchv, gsetv, dataUnits, domain_units, default_values, DomainComponents,
                                  valueArrayLength, inherited_values, valueToScalar, mode, constant_alpha,
-                                 value_array, constant_color, color_intsC, display, curved_size, Domain,
+                                 value_array, constant_color, color_bytesC, display, curved_size, Domain,
                                  dataCoordinateSystem, renderer, adaptedShadowType, new int[] {x_start_stop[j][0],
                                y_start_stop[i][0]}, lenx, leny, samples, lens[0], lens[1]);
               branch.addChild(branchv);
             }
             if (i > 0) {  // horz stitch
               float[][] samplesC = new float[2][4*lenx];
-              int[] color_intsC = new int[4*lenx];
+              byte[][] color_bytesC = new byte[4][4*lenx];
               int starth = x_start_stop[j][0] + i_total*lens[0];
               int cnth = 0;
               System.arraycopy(samples[0], starth-2*lens[0], samplesC[0], cnth, lenx);
@@ -641,14 +684,25 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
               System.arraycopy(samples[1], starth+1*lens[0], samplesC[1], cnth, lenx);
 
               cnth = 0;
-              System.arraycopy(color_ints, starth-2*lens[0], color_intsC, cnth, lenx);
+              for (int c=0; c<4; c++) {
+                System.arraycopy(color_bytes[c], starth-2*lens[0],
+                  color_bytesC[c], cnth, lenx);
+              }
               cnth += lenx;
-              System.arraycopy(color_ints, starth-1*lens[0], color_intsC, cnth, lenx);
+              for (int c=0; c<4; c++) {
+                System.arraycopy(color_bytes[c], starth-1*lens[0],
+                  color_bytesC[c], cnth, lenx);
+              }
               cnth += lenx;
-              System.arraycopy(color_ints, starth, color_intsC, cnth, lenx);
+              for (int c=0; c<4; c++) {
+                System.arraycopy(color_bytes[c], starth,
+                  color_bytesC[c], cnth, lenx);
+              }
               cnth += lenx;
-              System.arraycopy(color_ints, starth+1*lens[0], color_intsC, cnth, lenx);
-             
+              for (int c=0; c<4; c++) {
+                System.arraycopy(color_bytes[c], starth+1*lens[0],
+                  color_bytesC[c], cnth, lenx);
+              }
 
               Gridded2DSet gseth  = new Gridded2DSet(domain_set.getType(), samplesC, lenx, 4);
               BranchGroup branchh = new BranchGroup();
@@ -658,17 +712,20 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
               branchh.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
               buildCurvedTexture(branchh, gseth, dataUnits, domain_units, default_values, DomainComponents,
                                  valueArrayLength, inherited_values, valueToScalar, mode, constant_alpha,
-                                 value_array, constant_color, color_intsC, display, curved_size, Domain,
+                                 value_array, constant_color, color_bytesC, display, curved_size, Domain,
                                  dataCoordinateSystem, renderer, adaptedShadowType, new int[] {x_start_stop[j][0],
                                y_start_stop[i][0]}, lenx, leny, samples, lens[0], lens[1]);
               branch.addChild(branchh);
             }
             //- tile piece
-            int[] color_intsW  = new int[lenx*leny];
+            byte[][] color_bytesW  = new byte[4][lenx*leny];
             int cnt = 0;
             for (k=0; k<leny; k++) {
               start = x_start_stop[j][0] + i_total*lens[0] + k*lens[0];
-              System.arraycopy(color_ints, start, color_intsW, cnt, lenx);
+              for (int c=0; c<4; c++) {
+                System.arraycopy(color_bytes[c], start,
+                  color_bytesW[c], cnt, lenx);
+              }
               cnt += lenx;
             }
             Gridded2DSet gset1 = null;
@@ -679,14 +736,14 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
             branch1.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
             buildCurvedTexture(branch1, gset1, dataUnits, domain_units, default_values, DomainComponents,
                                valueArrayLength, inherited_values, valueToScalar, mode, constant_alpha,
-                               value_array, constant_color, color_intsW, display, curved_size, Domain,
+                               value_array, constant_color, color_bytesW, display, curved_size, Domain,
                                dataCoordinateSystem, renderer, adaptedShadowType, new int[] {x_start_stop[j][0], 
                                y_start_stop[i][0]}, lenx, leny, samples, lens[0], lens[1]);
             branch.addChild(branch1);
           }
           i_total += leny;
         }
-        color_ints = null;
+        color_bytes = null;
 
         // group: top level
         if (((Group) group).numChildren() > 0) {
@@ -861,504 +918,508 @@ if (i == (len / 2)) {
                                  float[] default_values, ShadowRealType[] DomainComponents,
                                  int valueArrayLength, int[] inherited_values, int[] valueToScalar,
                                  GraphicsModeControl mode, float constant_alpha, float[] value_array, 
-                                 float[] constant_color, int[] color_ints, DisplayImpl display,
+                                 float[] constant_color, byte[][] color_bytes, DisplayImpl display,
                                  int curved_size, ShadowRealTupleType Domain, CoordinateSystem dataCoordinateSystem,
                                  DataRenderer renderer, ShadowFunctionOrSetType adaptedShadowType,
                                  int[] start, int lenX, int lenY, float[][] samples, int bigX, int bigY)
          throws VisADException, DisplayException {
 // System.out.println("start curved texture " + (System.currentTimeMillis() - link.start_time));
-      float[] coordinates = null;
-      float[] texCoords = null;
-      float[] normals = null;
-      byte[] colors = null;
-      int data_width = 0;
-      int data_height = 0;
-      int texture_width = 1;
-      int texture_height = 1;
+    float[] coordinates = null;
+    float[] texCoords = null;
+    float[] normals = null;
+    byte[] colors = null;
+    int data_width = 0;
+    int data_height = 0;
+    int texture_width = 1;
+    int texture_height = 1;
 
-      int[] lengths = null;
-                                                                                                                       
-        // get domain_set sizes
-        if (domain_set != null) {
-          lengths = ((GriddedSet) domain_set).getLengths();
-        }
-        else {
-          lengths = new int[] {lenX, lenY};
-        }
+    int[] lengths = null;
+                                                                                                                     
+    // get domain_set sizes
+    if (domain_set != null) {
+      lengths = ((GriddedSet) domain_set).getLengths();
+    }
+    else {
+      lengths = new int[] {lenX, lenY};
+    }
 
-        data_width = lengths[0];
-        data_height = lengths[1];
-        // texture sizes must be powers of two
-        texture_width = textureWidth(data_width);
-        texture_height = textureHeight(data_height);
-                                                                                                                       
-        // compute size of triangle array to mapped texture onto
-        int size = (data_width + data_height) / 2;
-        curved_size = Math.max(2, Math.min(curved_size, size / 32));
-                                                                                                                       
-        int nwidth = 2 + (data_width - 1) / curved_size;
-        int nheight = 2 + (data_height - 1) / curved_size;
-                                                                                                                       
-        // compute locations of triangle vertices in texture
-        int nn = nwidth * nheight;
-        int[] is = new int[nwidth];
-        int[] js = new int[nheight];
-        for (int i=0; i<nwidth; i++) {
-          is[i] = Math.min(i * curved_size, data_width - 1);
-        }
-        for (int j=0; j<nheight; j++) {
-          js[j] = Math.min(j * curved_size, data_height - 1);
-        }
-                                                                                                                       
-        // get spatial coordinates at triangle vertices
-        int[] indices = new int[nn];
-        int k=0;
-        for (int j=0; j<nheight; j++) {
-          for (int i=0; i<nwidth; i++) {
-            indices[k] = is[i] + data_width * js[j];
-            k++;
-          }
-        }
-        float[][] spline_domain = null;
-        if (domain_set == null) {
-          for (int kk = 0; kk < indices.length; kk++) {
-            int x = indices[kk] % lenX;
-            int y = indices[kk] / lenX;
-            indices[kk] = (start[0] + x) + (start[1] + y)*bigX;
-          }
-          spline_domain = new float[2][indices.length];
-          for (int kk=0; kk<indices.length; kk++) {
-            spline_domain[0][kk] = samples[0][indices[kk]];
-            spline_domain[1][kk] = samples[1][indices[kk]];
-          }
-        }
-        else {
-          spline_domain = domain_set.indexToValue(indices);
-        }
+    data_width = lengths[0];
+    data_height = lengths[1];
+    // texture sizes must be powers of two
+    texture_width = textureWidth(data_width);
+    texture_height = textureHeight(data_height);
+                                                                                                                   
+    // compute size of triangle array to mapped texture onto
+    int size = (data_width + data_height) / 2;
+    curved_size = Math.max(2, Math.min(curved_size, size / 32));
+                                                                                                                   
+    int nwidth = 2 + (data_width - 1) / curved_size;
+    int nheight = 2 + (data_height - 1) / curved_size;
+                                                                                                                   
+    // compute locations of triangle vertices in texture
+    int nn = nwidth * nheight;
+    int[] is = new int[nwidth];
+    int[] js = new int[nheight];
+    for (int i=0; i<nwidth; i++) {
+      is[i] = Math.min(i * curved_size, data_width - 1);
+    }
+    for (int j=0; j<nheight; j++) {
+      js[j] = Math.min(j * curved_size, data_height - 1);
+    }
+                                                                                                                   
+    // get spatial coordinates at triangle vertices
+    int[] indices = new int[nn];
+    int k=0;
+    for (int j=0; j<nheight; j++) {
+      for (int i=0; i<nwidth; i++) {
+        indices[k] = is[i] + data_width * js[j];
+        k++;
+      }
+    }
+    float[][] spline_domain = null;
+    if (domain_set == null) {
+      for (int kk = 0; kk < indices.length; kk++) {
+        int x = indices[kk] % lenX;
+        int y = indices[kk] / lenX;
+        indices[kk] = (start[0] + x) + (start[1] + y)*bigX;
+      }
+      spline_domain = new float[2][indices.length];
+      for (int kk=0; kk<indices.length; kk++) {
+        spline_domain[0][kk] = samples[0][indices[kk]];
+        spline_domain[1][kk] = samples[1][indices[kk]];
+      }
+    }
+    else {
+      spline_domain = domain_set.indexToValue(indices);
+    }
 
-        spline_domain =
-            Unit.convertTuple(spline_domain, dataUnits, domain_units, false);
-                                                                                                                       
-        // transform for any CoordinateSystem in data (Field) Domain
-        ShadowRealTupleType domain_reference = Domain.getReference();
-                                                                                                                       
-        ShadowRealType[] DC = DomainComponents;
-        if (domain_reference != null &&
-            domain_reference.getMappedDisplayScalar()) {
-          RealTupleType ref = (RealTupleType) domain_reference.getType();
-          renderer.setEarthSpatialData(Domain, domain_reference, ref,
-                      ref.getDefaultUnits(), (RealTupleType) Domain.getType(),
-                      new CoordinateSystem[] {dataCoordinateSystem},
-                      domain_units);
-          spline_domain =
-            CoordinateSystem.transformCoordinates(
-              ref, null, ref.getDefaultUnits(), null,
-              (RealTupleType) Domain.getType(), dataCoordinateSystem,
-              domain_units, null, spline_domain);
-          // ShadowRealTypes of DomainReference
-          DC = adaptedShadowType.getDomainReferenceComponents();
-        }
-        else {
-          RealTupleType ref = (domain_reference == null) ? null :
-                              (RealTupleType) domain_reference.getType();
-          Unit[] ref_units = (ref == null) ? null : ref.getDefaultUnits();
-          renderer.setEarthSpatialData(Domain, domain_reference, ref,
-                      ref_units, (RealTupleType) Domain.getType(),
-                      new CoordinateSystem[] {dataCoordinateSystem},
-                      domain_units);
-        }
-                                                                                                                       
-        int[] tuple_index = new int[3];
-        int[] spatial_value_indices = {-1, -1, -1};
-        ScalarMap[] spatial_maps = new ScalarMap[3];
-                                                                                                                       
-        DisplayTupleType spatial_tuple = null;
-        for (int i=0; i<DC.length; i++) {
-          Enumeration maps =
-            DC[i].getSelectedMapVector().elements();
-          ScalarMap map = (ScalarMap) maps.nextElement();
-          DisplayRealType real = map.getDisplayScalar();
-          spatial_tuple = real.getTuple();
-          if (spatial_tuple == null) {
-            throw new DisplayException("texture with bad tuple: " +
-                                       "ShadowImageFunctionTypeJ3D.doTransform");
-          }
-          // get spatial index
-          tuple_index[i] = real.getTupleIndex();
-          spatial_value_indices[tuple_index[i]] = map.getValueIndex();
-          spatial_maps[tuple_index[i]] = map;
-          if (maps.hasMoreElements()) {
-            throw new DisplayException("texture with multiple spatial: " +
-                                       "ShadowImageFunctionTypeJ3D.doTransform");
-          }
-        } // end for (int i=0; i<DC.length; i++)
-        // get spatial index not mapped from domain_set
-        tuple_index[2] = 3 - (tuple_index[0] + tuple_index[1]);
-        DisplayRealType real =
-          (DisplayRealType) spatial_tuple.getComponent(tuple_index[2]);
-        int value2_index = display.getDisplayScalarIndex(real);
-        float value2 = default_values[value2_index];
-        for (int i=0; i<valueArrayLength; i++) {
-          if (inherited_values[i] > 0 &&
-              real.equals(display.getDisplayScalar(valueToScalar[i])) ) {
-            value2 = value_array[i];
-            break;
-          }
-        }
-                                                                                                                       
-        float[][] spatial_values = new float[3][];
-        spatial_values[tuple_index[0]] = spline_domain[0];
-        spatial_values[tuple_index[1]] = spline_domain[1];
-        spatial_values[tuple_index[2]] = new float[nn];
-        for (int i=0; i<nn; i++) spatial_values[tuple_index[2]][i] = value2;
-                                                                                                                       
-        for (int i=0; i<3; i++) {
-          if (spatial_maps[i] != null) {
-            spatial_values[i] = spatial_maps[i].scaleValues(spatial_values[i]);
-          }
-        }
-                                                                                                                       
-        if (spatial_tuple.equals(Display.DisplaySpatialCartesianTuple)) {
+    spline_domain =
+        Unit.convertTuple(spline_domain, dataUnits, domain_units, false);
+                                                                                                                   
+    // transform for any CoordinateSystem in data (Field) Domain
+    ShadowRealTupleType domain_reference = Domain.getReference();
+                                                                                                                   
+    ShadowRealType[] DC = DomainComponents;
+    if (domain_reference != null &&
+        domain_reference.getMappedDisplayScalar()) {
+      RealTupleType ref = (RealTupleType) domain_reference.getType();
+      renderer.setEarthSpatialData(Domain, domain_reference, ref,
+                  ref.getDefaultUnits(), (RealTupleType) Domain.getType(),
+                  new CoordinateSystem[] {dataCoordinateSystem},
+                  domain_units);
+      spline_domain =
+        CoordinateSystem.transformCoordinates(
+          ref, null, ref.getDefaultUnits(), null,
+          (RealTupleType) Domain.getType(), dataCoordinateSystem,
+          domain_units, null, spline_domain);
+      // ShadowRealTypes of DomainReference
+      DC = adaptedShadowType.getDomainReferenceComponents();
+    }
+    else {
+      RealTupleType ref = (domain_reference == null) ? null :
+                          (RealTupleType) domain_reference.getType();
+      Unit[] ref_units = (ref == null) ? null : ref.getDefaultUnits();
+      renderer.setEarthSpatialData(Domain, domain_reference, ref,
+                  ref_units, (RealTupleType) Domain.getType(),
+                  new CoordinateSystem[] {dataCoordinateSystem},
+                  domain_units);
+    }
+                                                                                                                   
+    int[] tuple_index = new int[3];
+    int[] spatial_value_indices = {-1, -1, -1};
+    ScalarMap[] spatial_maps = new ScalarMap[3];
+                                                                                                                   
+    DisplayTupleType spatial_tuple = null;
+    for (int i=0; i<DC.length; i++) {
+      Enumeration maps =
+        DC[i].getSelectedMapVector().elements();
+      ScalarMap map = (ScalarMap) maps.nextElement();
+      DisplayRealType real = map.getDisplayScalar();
+      spatial_tuple = real.getTuple();
+      if (spatial_tuple == null) {
+        throw new DisplayException("texture with bad tuple: " +
+                                   "ShadowImageFunctionTypeJ3D.doTransform");
+      }
+      // get spatial index
+      tuple_index[i] = real.getTupleIndex();
+      spatial_value_indices[tuple_index[i]] = map.getValueIndex();
+      spatial_maps[tuple_index[i]] = map;
+      if (maps.hasMoreElements()) {
+        throw new DisplayException("texture with multiple spatial: " +
+                                   "ShadowImageFunctionTypeJ3D.doTransform");
+      }
+    } // end for (int i=0; i<DC.length; i++)
+    // get spatial index not mapped from domain_set
+    tuple_index[2] = 3 - (tuple_index[0] + tuple_index[1]);
+    DisplayRealType real =
+      (DisplayRealType) spatial_tuple.getComponent(tuple_index[2]);
+    int value2_index = display.getDisplayScalarIndex(real);
+    float value2 = default_values[value2_index];
+    for (int i=0; i<valueArrayLength; i++) {
+      if (inherited_values[i] > 0 &&
+          real.equals(display.getDisplayScalar(valueToScalar[i])) ) {
+        value2 = value_array[i];
+        break;
+      }
+    }
+                                                                                                                   
+    float[][] spatial_values = new float[3][];
+    spatial_values[tuple_index[0]] = spline_domain[0];
+    spatial_values[tuple_index[1]] = spline_domain[1];
+    spatial_values[tuple_index[2]] = new float[nn];
+    for (int i=0; i<nn; i++) spatial_values[tuple_index[2]][i] = value2;
+                                                                                                                   
+    for (int i=0; i<3; i++) {
+      if (spatial_maps[i] != null) {
+        spatial_values[i] = spatial_maps[i].scaleValues(spatial_values[i]);
+      }
+    }
+                                                                                                                   
+    if (spatial_tuple.equals(Display.DisplaySpatialCartesianTuple)) {
 // inside 'if (anyFlow) {}' in ShadowType.assembleSpatial()
-          renderer.setEarthSpatialDisplay(null, spatial_tuple, display,
-                   spatial_value_indices, default_values, null);
-        }
-        else {
-          CoordinateSystem coord = spatial_tuple.getCoordinateSystem();
-          spatial_values = coord.toReference(spatial_values);
-          // float[][] new_spatial_values = coord.toReference(spatial_values);
-          // for (int i=0; i<3; i++) spatial_values[i] = new_spatial_values[i];
-                                                                                                                       
+      renderer.setEarthSpatialDisplay(null, spatial_tuple, display,
+               spatial_value_indices, default_values, null);
+    }
+    else {
+      CoordinateSystem coord = spatial_tuple.getCoordinateSystem();
+      spatial_values = coord.toReference(spatial_values);
+      // float[][] new_spatial_values = coord.toReference(spatial_values);
+      // for (int i=0; i<3; i++) spatial_values[i] = new_spatial_values[i];
+                                                                                                                   
 // inside 'if (anyFlow) {}' in ShadowType.assembleSpatial()
-          renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
-                   spatial_value_indices, default_values, null);
-        }
-                                                                                                                       
-        // break from ShadowFunctionOrSetType
-        coordinates = new float[3 * nn];
-        k = 0;
-        for (int i=0; i<nn; i++) {
-          coordinates[k++] = spatial_values[0][i];
-          coordinates[k++] = spatial_values[1][i];
-          coordinates[k++] = spatial_values[2][i];
-        }
-                                                                                                                       
-        boolean spatial_all_select = true;
-        for (int i=0; i<3*nn; i++) {
-          if (coordinates[i] != coordinates[i]) spatial_all_select = false;
-        }
-                                                                                                                       
-        normals = Gridded3DSet.makeNormals(coordinates, nwidth, nheight);
-        colors = new byte[3 * nn];
-        for (int i=0; i<3*nn; i++) colors[i] = (byte) 127;
-                                                                                                                       
-        float ratiow = ((float) data_width) / ((float) texture_width);
-        float ratioh = ((float) data_height) / ((float) texture_height);
-                                                                                                                       
+      renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
+               spatial_value_indices, default_values, null);
+    }
+                                                                                                                   
+    // break from ShadowFunctionOrSetType
+    coordinates = new float[3 * nn];
+    k = 0;
+    for (int i=0; i<nn; i++) {
+      coordinates[k++] = spatial_values[0][i];
+      coordinates[k++] = spatial_values[1][i];
+      coordinates[k++] = spatial_values[2][i];
+    }
+                                                                                                                   
+    boolean spatial_all_select = true;
+    for (int i=0; i<3*nn; i++) {
+      if (coordinates[i] != coordinates[i]) spatial_all_select = false;
+    }
+                                                                                                                   
+    normals = Gridded3DSet.makeNormals(coordinates, nwidth, nheight);
+    colors = new byte[3 * nn];
+    for (int i=0; i<3*nn; i++) colors[i] = (byte) 127;
+                                                                                                                   
+    float ratiow = ((float) data_width) / ((float) texture_width);
+    float ratioh = ((float) data_height) / ((float) texture_height);
+                                                                                                                   
+    // WLH 27 Jan 2003
+    float half_width = 0.5f / ((float) texture_width);
+    float half_height = 0.5f / ((float) texture_height);
+    float width = 1.0f / ((float) texture_width);
+    float height = 1.0f / ((float) texture_height);
+                                                                                                                   
+    int mt = 0;
+    texCoords = new float[2 * nn];
+    for (int j=0; j<nheight; j++) {
+      for (int i=0; i<nwidth; i++) {
+        //texCoords[mt++] = ratiow * is[i] / (data_width - 1.0f);
+        //texCoords[mt++] = 1.0f - ratioh * js[j] / (data_height - 1.0f);
         // WLH 27 Jan 2003
-        float half_width = 0.5f / ((float) texture_width);
-        float half_height = 0.5f / ((float) texture_height);
-        float width = 1.0f / ((float) texture_width);
-        float height = 1.0f / ((float) texture_height);
-                                                                                                                       
-        int mt = 0;
-        texCoords = new float[2 * nn];
-        for (int j=0; j<nheight; j++) {
-          for (int i=0; i<nwidth; i++) {
-            //texCoords[mt++] = ratiow * is[i] / (data_width - 1.0f);
-            //texCoords[mt++] = 1.0f - ratioh * js[j] / (data_height - 1.0f);
-            // WLH 27 Jan 2003
-            float isfactor = is[i] / (data_width - 1.0f);
-            float jsfactor = js[j] / (data_height - 1.0f);
-            texCoords[mt++] = (ratiow - width) * isfactor + half_width;
-            texCoords[mt++] = 1.0f - (ratioh - height) * jsfactor - half_height;
-          }
-        }
-        VisADTriangleStripArray tarray = new VisADTriangleStripArray();
-        tarray.stripVertexCounts = new int[nheight - 1];
-        for (int i=0; i<nheight - 1; i++) {
-          tarray.stripVertexCounts[i] = 2 * nwidth;
-        }
-        int len = (nheight - 1) * (2 * nwidth);
-        tarray.vertexCount = len;
-        tarray.normals = new float[3 * len];
-        tarray.coordinates = new float[3 * len];
-        tarray.colors = new byte[3 * len];
-        tarray.texCoords = new float[2 * len];
-                                                                                                                       
-        // shuffle normals into tarray.normals, etc
-        k = 0;
-        int kt = 0;
-        int nwidth3 = 3 * nwidth;
-        int nwidth2 = 2 * nwidth;
-        for (int i=0; i<nheight-1; i++) {
-          int m = i * nwidth3;
-          mt = i * nwidth2;
-          for (int j=0; j<nwidth; j++) {
-            tarray.coordinates[k] = coordinates[m];
-            tarray.coordinates[k+1] = coordinates[m+1];
-            tarray.coordinates[k+2] = coordinates[m+2];
-            tarray.coordinates[k+3] = coordinates[m+nwidth3];
-            tarray.coordinates[k+4] = coordinates[m+nwidth3+1];
-            tarray.coordinates[k+5] = coordinates[m+nwidth3+2];
-                                                                                                                       
-            tarray.normals[k] = normals[m];
-            tarray.normals[k+1] = normals[m+1];
-            tarray.normals[k+2] = normals[m+2];
-            tarray.normals[k+3] = normals[m+nwidth3];
-            tarray.normals[k+4] = normals[m+nwidth3+1];
-            tarray.normals[k+5] = normals[m+nwidth3+2];
-                                                                                                                       
-            tarray.colors[k] = colors[m];
-            tarray.colors[k+1] = colors[m+1];
-            tarray.colors[k+2] = colors[m+2];
-            tarray.colors[k+3] = colors[m+nwidth3];
-            tarray.colors[k+4] = colors[m+nwidth3+1];
-            tarray.colors[k+5] = colors[m+nwidth3+2];
-                                                                                                                       
-            tarray.texCoords[kt] = texCoords[mt];
-            tarray.texCoords[kt+1] = texCoords[mt+1];
-            tarray.texCoords[kt+2] = texCoords[mt+nwidth2];
-            tarray.texCoords[kt+3] = texCoords[mt+nwidth2+1];
-                                                                                                                       
-            k += 6;
-            m += 3;
-            kt += 4;
-            mt += 2;
-          }
-        }
-        // do surgery to remove any missing spatial coordinates in texture
-        if (!spatial_all_select) {
-          tarray = (VisADTriangleStripArray) tarray.removeMissing();
-        }
-                                                                                                                       
-        // do surgery along any longitude split (e.g., date line) in texture
-        if (adaptedShadowType.getAdjustProjectionSeam()) {
-          tarray = (VisADTriangleStripArray) tarray.adjustLongitude(renderer);
-          tarray = (VisADTriangleStripArray) tarray.adjustSeam(renderer);
-        }
+        float isfactor = is[i] / (data_width - 1.0f);
+        float jsfactor = js[j] / (data_height - 1.0f);
+        texCoords[mt++] = (ratiow - width) * isfactor + half_width;
+        texCoords[mt++] = 1.0f - (ratioh - height) * jsfactor - half_height;
+      }
+    }
+    VisADTriangleStripArray tarray = new VisADTriangleStripArray();
+    tarray.stripVertexCounts = new int[nheight - 1];
+    for (int i=0; i<nheight - 1; i++) {
+      tarray.stripVertexCounts[i] = 2 * nwidth;
+    }
+    int len = (nheight - 1) * (2 * nwidth);
+    tarray.vertexCount = len;
+    tarray.normals = new float[3 * len];
+    tarray.coordinates = new float[3 * len];
+    tarray.colors = new byte[3 * len];
+    tarray.texCoords = new float[2 * len];
+                                                                                                                   
+    // shuffle normals into tarray.normals, etc
+    k = 0;
+    int kt = 0;
+    int nwidth3 = 3 * nwidth;
+    int nwidth2 = 2 * nwidth;
+    for (int i=0; i<nheight-1; i++) {
+      int m = i * nwidth3;
+      mt = i * nwidth2;
+      for (int j=0; j<nwidth; j++) {
+        tarray.coordinates[k] = coordinates[m];
+        tarray.coordinates[k+1] = coordinates[m+1];
+        tarray.coordinates[k+2] = coordinates[m+2];
+        tarray.coordinates[k+3] = coordinates[m+nwidth3];
+        tarray.coordinates[k+4] = coordinates[m+nwidth3+1];
+        tarray.coordinates[k+5] = coordinates[m+nwidth3+2];
+                                                                                                                   
+        tarray.normals[k] = normals[m];
+        tarray.normals[k+1] = normals[m+1];
+        tarray.normals[k+2] = normals[m+2];
+        tarray.normals[k+3] = normals[m+nwidth3];
+        tarray.normals[k+4] = normals[m+nwidth3+1];
+        tarray.normals[k+5] = normals[m+nwidth3+2];
+                                                                                                                   
+        tarray.colors[k] = colors[m];
+        tarray.colors[k+1] = colors[m+1];
+        tarray.colors[k+2] = colors[m+2];
+        tarray.colors[k+3] = colors[m+nwidth3];
+        tarray.colors[k+4] = colors[m+nwidth3+1];
+        tarray.colors[k+5] = colors[m+nwidth3+2];
+                                                                                                                   
+        tarray.texCoords[kt] = texCoords[mt];
+        tarray.texCoords[kt+1] = texCoords[mt+1];
+        tarray.texCoords[kt+2] = texCoords[mt+nwidth2];
+        tarray.texCoords[kt+3] = texCoords[mt+nwidth2+1];
+                                                                                                                   
+        k += 6;
+        m += 3;
+        kt += 4;
+        mt += 2;
+      }
+    }
+    // do surgery to remove any missing spatial coordinates in texture
+    if (!spatial_all_select) {
+      tarray = (VisADTriangleStripArray) tarray.removeMissing();
+    }
+                                                                                                                   
+    // do surgery along any longitude split (e.g., date line) in texture
+    if (adaptedShadowType.getAdjustProjectionSeam()) {
+      tarray = (VisADTriangleStripArray) tarray.adjustLongitude(renderer);
+      tarray = (VisADTriangleStripArray) tarray.adjustSeam(renderer);
+    }
 // System.out.println("start createImage " + (System.currentTimeMillis() - link.start_time));
-        // create BufferedImage for texture from color_ints
-        BufferedImage image = createImage(data_width, data_height, texture_width,
-                                          texture_height, color_ints);
-                                                                                                                       
+    // create BufferedImage for texture from color_bytes
+    BufferedImage image = createImage(data_width, data_height, texture_width,
+                                      texture_height, color_bytes);
+                                                                                                                   
 // System.out.println("start textureToGroup " + (System.currentTimeMillis() - link.start_time));
-                                                                                                                       
-        // add texture as sub-node of group in scene graph
-        textureToGroup(group, tarray, image, mode, constant_alpha,
-                       constant_color, texture_width, texture_height);
+                                                                                                                   
+    // add texture as sub-node of group in scene graph
+    textureToGroup(group, tarray, image, mode, constant_alpha,
+                   constant_color, texture_width, texture_height);
 // System.out.println("end curved texture " + (System.currentTimeMillis() - link.start_time));
-
   }
 
   public void buildLinearTexture(Object group, Set domain_set, Unit[] dataUnits, Unit[] domain_units,
                                  float[] default_values, ShadowRealType[] DomainComponents,
                                  int valueArrayLength, int[] inherited_values, int[] valueToScalar,
                                  GraphicsModeControl mode, float constant_alpha,
-                                 float[] value_array, float[] constant_color, int[] color_ints, DisplayImpl display)
+                                 float[] value_array, float[] constant_color, byte[][] color_bytes, DisplayImpl display)
          throws VisADException, DisplayException {
 
-      float[] coordinates = null;
-      float[] texCoords = null;
-      float[] normals = null;
-      byte[] colors = null;
-      int data_width = 0;
-      int data_height = 0;
-      int texture_width = 1;
-      int texture_height = 1;
+    float[] coordinates = null;
+    float[] texCoords = null;
+    float[] normals = null;
+    byte[] colors = null;
+    int data_width = 0;
+    int data_height = 0;
+    int texture_width = 1;
+    int texture_height = 1;
 
-        Linear1DSet X = null;
-        Linear1DSet Y = null;
-        if (domain_set instanceof Linear2DSet) {
-          X = ((Linear2DSet) domain_set).getX();
-          Y = ((Linear2DSet) domain_set).getY();
-        }
-        else {
-          X = ((LinearNDSet) domain_set).getLinear1DComponent(0);
-          Y = ((LinearNDSet) domain_set).getLinear1DComponent(1);
-        }
-        float[][] limits = new float[2][2];
-        limits[0][0] = (float) X.getFirst();
-        limits[0][1] = (float) X.getLast();
-        limits[1][0] = (float) Y.getFirst();
-        limits[1][1] = (float) Y.getLast();
-                                                                                                                           
-        // get domain_set sizes
-        data_width = X.getLength();
-        data_height = Y.getLength();
-        // texture sizes must be powers of two
-        texture_width = textureWidth(data_width);
-        texture_height = textureHeight(data_height);
-                                                                                                                           
-                                                                                                                           
-        // WLH 27 Jan 2003
-        float half_width = 0.5f / ((float) (data_width - 1));
-        float half_height = 0.5f / ((float) (data_height - 1));
-        half_width = (limits[0][1] - limits[0][0]) * half_width;
-        half_height = (limits[1][1] - limits[1][0]) * half_height;
-        limits[0][0] -= half_width;
-        limits[0][1] += half_width;
-        limits[1][0] -= half_height;
-        limits[1][1] += half_height;
-                                                                                                                           
-                                                                                                                           
-        // convert values to default units (used in display)
-        limits = Unit.convertTuple(limits, dataUnits, domain_units);
+    Linear1DSet X = null;
+    Linear1DSet Y = null;
+    if (domain_set instanceof Linear2DSet) {
+      X = ((Linear2DSet) domain_set).getX();
+      Y = ((Linear2DSet) domain_set).getY();
+    }
+    else {
+      X = ((LinearNDSet) domain_set).getLinear1DComponent(0);
+      Y = ((LinearNDSet) domain_set).getLinear1DComponent(1);
+    }
+    float[][] limits = new float[2][2];
+    limits[0][0] = (float) X.getFirst();
+    limits[0][1] = (float) X.getLast();
+    limits[1][0] = (float) Y.getFirst();
+    limits[1][1] = (float) Y.getLast();
+                                                                                                                       
+    // get domain_set sizes
+    data_width = X.getLength();
+    data_height = Y.getLength();
+    // texture sizes must be powers of two
+    texture_width = textureWidth(data_width);
+    texture_height = textureHeight(data_height);
+                                                                                                                       
+                                                                                                                       
+    // WLH 27 Jan 2003
+    float half_width = 0.5f / ((float) (data_width - 1));
+    float half_height = 0.5f / ((float) (data_height - 1));
+    half_width = (limits[0][1] - limits[0][0]) * half_width;
+    half_height = (limits[1][1] - limits[1][0]) * half_height;
+    limits[0][0] -= half_width;
+    limits[0][1] += half_width;
+    limits[1][0] -= half_height;
+    limits[1][1] += half_height;
+                                                                                                                       
+                                                                                                                       
+    // convert values to default units (used in display)
+    limits = Unit.convertTuple(limits, dataUnits, domain_units);
 
-        int[] tuple_index = new int[3];
-        if (DomainComponents.length != 2) {
-          throw new DisplayException("texture domain dimension != 2:" +
-                                     "ShadowFunctionOrSetType.doTransform");
-        }
-                                                                                                                           
-        // find the spatial ScalarMaps
-        for (int i=0; i<DomainComponents.length; i++) {
-          Enumeration maps = DomainComponents[i].getSelectedMapVector().elements();
-          ScalarMap map = (ScalarMap) maps.nextElement();
-          // scale values
-          limits[i] = map.scaleValues(limits[i]);
-          DisplayRealType real = map.getDisplayScalar();
-          DisplayTupleType tuple = real.getTuple();
-          if (tuple == null ||
-              !tuple.equals(Display.DisplaySpatialCartesianTuple)) {
-            throw new DisplayException("texture with bad tuple: " +
-                                       "ShadowFunctionOrSetType.doTransform");
-          }
-          // get spatial index
-          tuple_index[i] = real.getTupleIndex();
-          if (maps.hasMoreElements()) {
-            throw new DisplayException("texture with multiple spatial: " +
-                                       "ShadowFunctionOrSetType.doTransform");
-          }
-        } // end for (int i=0; i<DomainComponents.length; i++)
-        // get spatial index not mapped from domain_set
-        tuple_index[2] = 3 - (tuple_index[0] + tuple_index[1]);
-        DisplayRealType real = (DisplayRealType)
-          Display.DisplaySpatialCartesianTuple.getComponent(tuple_index[2]);
-        int value2_index = display.getDisplayScalarIndex(real);
-        float value2 = default_values[value2_index];
-        for (int i=0; i<valueArrayLength; i++) {
-          if (inherited_values[i] > 0 &&
-              real.equals(display.getDisplayScalar(valueToScalar[i])) ) {
-            // value for unmapped spatial dimension
-            value2 = value_array[i];
-            break;
-          }
-        }
+    int[] tuple_index = new int[3];
+    if (DomainComponents.length != 2) {
+      throw new DisplayException("texture domain dimension != 2:" +
+                                 "ShadowFunctionOrSetType.doTransform");
+    }
+                                                                                                                       
+    // find the spatial ScalarMaps
+    for (int i=0; i<DomainComponents.length; i++) {
+      Enumeration maps = DomainComponents[i].getSelectedMapVector().elements();
+      ScalarMap map = (ScalarMap) maps.nextElement();
+      // scale values
+      limits[i] = map.scaleValues(limits[i]);
+      DisplayRealType real = map.getDisplayScalar();
+      DisplayTupleType tuple = real.getTuple();
+      if (tuple == null ||
+          !tuple.equals(Display.DisplaySpatialCartesianTuple)) {
+        throw new DisplayException("texture with bad tuple: " +
+                                   "ShadowFunctionOrSetType.doTransform");
+      }
+      // get spatial index
+      tuple_index[i] = real.getTupleIndex();
+      if (maps.hasMoreElements()) {
+        throw new DisplayException("texture with multiple spatial: " +
+                                   "ShadowFunctionOrSetType.doTransform");
+      }
+    } // end for (int i=0; i<DomainComponents.length; i++)
+    // get spatial index not mapped from domain_set
+    tuple_index[2] = 3 - (tuple_index[0] + tuple_index[1]);
+    DisplayRealType real = (DisplayRealType)
+      Display.DisplaySpatialCartesianTuple.getComponent(tuple_index[2]);
+    int value2_index = display.getDisplayScalarIndex(real);
+    float value2 = default_values[value2_index];
+    for (int i=0; i<valueArrayLength; i++) {
+      if (inherited_values[i] > 0 &&
+          real.equals(display.getDisplayScalar(valueToScalar[i])) ) {
+        // value for unmapped spatial dimension
+        value2 = value_array[i];
+        break;
+      }
+    }
 
-        // create VisADQuadArray that texture is mapped onto
-        coordinates = new float[12];
-        // corner 0
-        coordinates[tuple_index[0]] = limits[0][0];
-        coordinates[tuple_index[1]] = limits[1][0];
-        coordinates[tuple_index[2]] = value2;
-        // corner 1
-        coordinates[3 + tuple_index[0]] = limits[0][1];
-        coordinates[3 + tuple_index[1]] = limits[1][0];
-        coordinates[3 + tuple_index[2]] = value2;
-        // corner 2
-        coordinates[6 + tuple_index[0]] = limits[0][1];
-        coordinates[6 + tuple_index[1]] = limits[1][1];
-        coordinates[6 + tuple_index[2]] = value2;
-        // corner 3
-        coordinates[9 + tuple_index[0]] = limits[0][0];
-        coordinates[9 + tuple_index[1]] = limits[1][1];
-        coordinates[9 + tuple_index[2]] = value2;
-                                                                                                                           
-        // move image back in Java3D 2-D mode
-        adjustZ(coordinates);
-                                                                                                                           
-        texCoords = new float[8];
-        float ratiow = ((float) data_width) / ((float) texture_width);
-        float ratioh = ((float) data_height) / ((float) texture_height);
-        setTexCoords(texCoords, ratiow, ratioh);
-                                                                                                                           
-        normals = new float[12];
-        float n0 = ((coordinates[3+2]-coordinates[0+2]) *
-                    (coordinates[6+1]-coordinates[0+1])) -
-                   ((coordinates[3+1]-coordinates[0+1]) *
-                    (coordinates[6+2]-coordinates[0+2]));
-        float n1 = ((coordinates[3+0]-coordinates[0+0]) *
-                    (coordinates[6+2]-coordinates[0+2])) -
-                   ((coordinates[3+2]-coordinates[0+2]) *
-                    (coordinates[6+0]-coordinates[0+0]));
-        float n2 = ((coordinates[3+1]-coordinates[0+1]) *
-                    (coordinates[6+0]-coordinates[0+0])) -
-                   ((coordinates[3+0]-coordinates[0+0]) *
-                    (coordinates[6+1]-coordinates[0+1]));
-                                                                                                                           
-        float nlen = (float) Math.sqrt(n0 *  n0 + n1 * n1 + n2 * n2);
-        n0 = n0 / nlen;
-        n1 = n1 / nlen;
-        n2 = n2 / nlen;
+    // create VisADQuadArray that texture is mapped onto
+    coordinates = new float[12];
+    // corner 0
+    coordinates[tuple_index[0]] = limits[0][0];
+    coordinates[tuple_index[1]] = limits[1][0];
+    coordinates[tuple_index[2]] = value2;
+    // corner 1
+    coordinates[3 + tuple_index[0]] = limits[0][1];
+    coordinates[3 + tuple_index[1]] = limits[1][0];
+    coordinates[3 + tuple_index[2]] = value2;
+    // corner 2
+    coordinates[6 + tuple_index[0]] = limits[0][1];
+    coordinates[6 + tuple_index[1]] = limits[1][1];
+    coordinates[6 + tuple_index[2]] = value2;
+    // corner 3
+    coordinates[9 + tuple_index[0]] = limits[0][0];
+    coordinates[9 + tuple_index[1]] = limits[1][1];
+    coordinates[9 + tuple_index[2]] = value2;
+                                                                                                                       
+    // move image back in Java3D 2-D mode
+    adjustZ(coordinates);
+                                                                                                                       
+    texCoords = new float[8];
+    float ratiow = ((float) data_width) / ((float) texture_width);
+    float ratioh = ((float) data_height) / ((float) texture_height);
+    setTexCoords(texCoords, ratiow, ratioh);
+                                                                                                                       
+    normals = new float[12];
+    float n0 = ((coordinates[3+2]-coordinates[0+2]) *
+                (coordinates[6+1]-coordinates[0+1])) -
+               ((coordinates[3+1]-coordinates[0+1]) *
+                (coordinates[6+2]-coordinates[0+2]));
+    float n1 = ((coordinates[3+0]-coordinates[0+0]) *
+                (coordinates[6+2]-coordinates[0+2])) -
+               ((coordinates[3+2]-coordinates[0+2]) *
+                (coordinates[6+0]-coordinates[0+0]));
+    float n2 = ((coordinates[3+1]-coordinates[0+1]) *
+                (coordinates[6+0]-coordinates[0+0])) -
+               ((coordinates[3+0]-coordinates[0+0]) *
+                (coordinates[6+1]-coordinates[0+1]));
+                                                                                                                       
+    float nlen = (float) Math.sqrt(n0 *  n0 + n1 * n1 + n2 * n2);
+    n0 = n0 / nlen;
+    n1 = n1 / nlen;
+    n2 = n2 / nlen;
 
-        // corner 0
-        normals[0] = n0;
-        normals[1] = n1;
-        normals[2] = n2;
-        // corner 1
-        normals[3] = n0;
-        normals[4] = n1;
-        normals[5] = n2;
-        // corner 2
-        normals[6] = n0;
-        normals[7] = n1;
-        normals[8] = n2;
-        // corner 3
-        normals[9] = n0;
-        normals[10] = n1;
-        normals[11] = n2;
-                                                                                                                           
-        colors = new byte[12];
-        for (int i=0; i<12; i++) colors[i] = (byte) 127;
-                                                                                                                           
-        VisADQuadArray qarray = new VisADQuadArray();
-        qarray.vertexCount = 4;
-        qarray.coordinates = coordinates;
-        qarray.texCoords = texCoords;
-        qarray.colors = colors;
-        qarray.normals = normals;
-                                                                                                                           
+    // corner 0
+    normals[0] = n0;
+    normals[1] = n1;
+    normals[2] = n2;
+    // corner 1
+    normals[3] = n0;
+    normals[4] = n1;
+    normals[5] = n2;
+    // corner 2
+    normals[6] = n0;
+    normals[7] = n1;
+    normals[8] = n2;
+    // corner 3
+    normals[9] = n0;
+    normals[10] = n1;
+    normals[11] = n2;
+                                                                                                                       
+    colors = new byte[12];
+    for (int i=0; i<12; i++) colors[i] = (byte) 127;
+                                                                                                                       
+    VisADQuadArray qarray = new VisADQuadArray();
+    qarray.vertexCount = 4;
+    qarray.coordinates = coordinates;
+    qarray.texCoords = texCoords;
+    qarray.colors = colors;
+    qarray.normals = normals;
+                                                                                                                       
 // System.out.println("start createImage " + (System.currentTimeMillis() - link.start_time));
-                                                                                                                           
-        // create BufferedImage for texture from color_ints
-        BufferedImage image = createImage(data_width, data_height, texture_width,
-                                          texture_height, color_ints);
-                                                                                                                           
+                                                                                                                       
+    // create BufferedImage for texture from color_bytes
+    BufferedImage image = createImage(data_width, data_height, texture_width,
+                                      texture_height, color_bytes);
+                                                                                                                       
 // System.out.println("start textureToGroup " + (System.currentTimeMillis() - link.start_time));
-                                                                                                                           
-        // add texture as sub-node of group in scene graph
-        textureToGroup(group, qarray, image, mode, constant_alpha,
-                       constant_color, texture_width, texture_height);
+                                                                                                                       
+    // add texture as sub-node of group in scene graph
+    textureToGroup(group, qarray, image, mode, constant_alpha,
+                   constant_color, texture_width, texture_height);
                                                                                                                            
 // System.out.println("end texture map " + (System.currentTimeMillis() - link.start_time));
   }
 
   public BufferedImage createImage(int data_width, int data_height,
-                       int texture_width, int texture_height, int[] color_ints) {
-    BufferedImage image = null;
-    ColorModel colorModel = ColorModel.getRGBdefault();
-    WritableRaster raster =
-      colorModel.createCompatibleWritableRaster(texture_width, texture_height);
-    image = new BufferedImage(colorModel, raster, false, null);
-    int[] intData = ((DataBufferInt)raster.getDataBuffer()).getData();
-    int k = 0;
-    int m = 0;
-    int r, g, b, a;
-    for (int j=0; j<data_height; j++) {
-      for (int i=0; i<data_width; i++) {
-        intData[m++] = color_ints[k++];
-      }
-      for (int i=data_width; i<texture_width; i++) {
-        intData[m++] = 0;
-      }
-    }
-    for (int j=data_height; j<texture_height; j++) {
-      for (int i=0; i<texture_width; i++) {
-        intData[m++] = 0;
-      }
-    }
-    return image;
+                                   int texture_width, int texture_height,
+                                   byte[][] color_bytes) throws VisADException {
+    ShadowFunctionOrSetType adaptedShadowType =
+      (ShadowFunctionOrSetType) getAdaptedShadowType();
+    return adaptedShadowType.createImage(data_width, data_height,
+      texture_width, texture_height, color_bytes);
+//    BufferedImage image = null;
+//    ColorModel colorModel = ColorModel.getRGBdefault();
+//    WritableRaster raster = colorModel.createCompatibleWritableRaster(
+//      texture_width, texture_height);
+//    image = new BufferedImage(colorModel, raster, false, null);
+//    int[] intData = ((DataBufferInt)raster.getDataBuffer()).getData();
+//    int k = 0;
+//    int m = 0;
+//    int r, g, b, a;
+//    for (int j=0; j<data_height; j++) {
+//      for (int i=0; i<data_width; i++) {
+//        intData[m++] = color_ints[k++];
+//      }
+//      for (int i=data_width; i<texture_width; i++) {
+//        intData[m++] = 0;
+//      }
+//    }
+//    for (int j=data_height; j<texture_height; j++) {
+//      for (int i=0; i<texture_width; i++) {
+//        intData[m++] = 0;
+//      }
+//    }
+//    return image;
   }
 
 

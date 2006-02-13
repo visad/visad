@@ -29,7 +29,6 @@ package visad;
 import java.awt.image.*;
 import java.rmi.RemoteException;
 import java.util.Arrays;
-import visad.util.ImageHelper;
 
 /**
  * ImageFlatField is a VisAD FlatField backed by a java.awt.Image object,
@@ -41,39 +40,64 @@ public class ImageFlatField extends FlatField {
 
   /** The image backing this FlatField. */
   protected BufferedImage image;
-  protected int width, height;
+
+  /** Dimensions of the image. */
+  protected int num, width, height;
 
 
   // -- Constructors --
 
   public ImageFlatField(FunctionType type) throws VisADException {
-    super(type);
+    this(type, type.getDomain().getDefaultSet(), null, null, null, null);
   }
 
   public ImageFlatField(FunctionType type, Set domain_set)
                         throws VisADException {
-    super(type, domain_set);
+    this(type, domain_set, null, null, null, null);
   }
 
   public ImageFlatField(FunctionType type, Set domain_set,
                         CoordinateSystem range_coord_sys, Set[] range_sets,
                         Unit[] units) throws VisADException {
-    super(type, domain_set, range_coord_sys, range_sets, units);
+    this(type, domain_set, range_coord_sys, null, range_sets, units);
   }
 
   public ImageFlatField(FunctionType type, Set domain_set,
                         CoordinateSystem[] range_coord_syses, Set[] range_sets,
                         Unit[] units) throws VisADException {
-    super(type, domain_set, range_coord_syses, range_sets, units);
+    this(type, domain_set, null, range_coord_syses, range_sets, units);
   }
 
   public ImageFlatField(FunctionType type, Set domain_set,
                         CoordinateSystem range_coord_sys,
                         CoordinateSystem[] range_coord_syses,
-                        Set[] range_sets, Unit[] units)
-          throws VisADException {
+                        Set[] range_sets, Unit[] units) throws VisADException {
     super(type, domain_set, range_coord_sys,
       range_coord_syses, range_sets, units);
+
+    RealTupleType domain = type.getDomain();
+    if (domain.getNumberOfRealComponents() != 2) {
+      throw new VisADException(
+        "FunctionType domain must be flat with 2 components");
+    }
+    MathType range = type.getRange();
+    if (range instanceof RealType) num = 1;
+    else if (range instanceof RealTupleType) {
+      num = ((RealTupleType) range).getNumberOfRealComponents();
+    }
+    if (num != 1 && num != 3 && num != 4) {
+      throw new VisADException(
+        "FunctionType range must be flat with 1, 3 or 4 components");
+    }
+    if (domain_set instanceof Gridded2DSet) {
+      int[] len = ((Gridded2DSet) domain_set).getLengths();
+      width = len[0];
+      height = len[1];
+    }
+    else {
+      throw new VisADException(
+        "Domain set must be Gridded2DSet");
+    }
   }
 
 
@@ -89,19 +113,13 @@ public class ImageFlatField extends FlatField {
   public void setImage(BufferedImage image) throws VisADException {
 //    pr ("setImage");
     if (image == null) throw new VisADException("image cannot be null");
-    ImageHelper ih = new ImageHelper();
-
-    // determine image height and width
-    width = -1;
-    height = -1;
-    while (true) {
-      if (width < 0) width = image.getWidth(ih);
-      if (height < 0) height = image.getHeight(ih);
-      if (ih.badImage || (width >= 0 && height >= 0)) break;
-      try { Thread.sleep(100); } catch (InterruptedException e) { }
+    if (image.getWidth() != width || image.getHeight() != height) {
+      throw new VisADException("Image dimensions do not match domain set");
     }
-    if (ih.badImage) throw new VisADException("Not an image");
-
+    if (image.getRaster().getNumBands() != num) {
+      throw new VisADException(
+        "Image component count does not match FunctionType range");
+    }
     this.image = image;
     clearMissing();
   }
@@ -227,110 +245,55 @@ public class ImageFlatField extends FlatField {
     return shadow;
   }
 
+  /**
+   * Unpacks an array of doubles from field sample values.
+   *
+   * @param copy            Ignored (always returns a copy).
+   */
   protected double[][] unpackValues(boolean copy) throws VisADException {
     pr ("unpackValues(" + copy + ")");
     // copy flag is ignored
-    int numPixels = width * height;
-    int[] words = new int[numPixels];
-    PixelGrabber grabber = new PixelGrabber(
-      image.getSource(), 0, 0, width, height, words, 0, width);
-    try { grabber.grabPixels(); }
-    catch (InterruptedException e) { }
-
-    ColorModel cm = grabber.getColorModel();
-    double[] redPix = new double[numPixels];
-    double[] greenPix = new double[numPixels];
-    double[] bluePix = new double[numPixels];
-    for (int i=0; i<numPixels; i++) {
-      redPix[i] = cm.getRed(words[i]);
-      greenPix[i] = cm.getGreen(words[i]);
-      bluePix[i] = cm.getBlue(words[i]);
-    }
-
-    double[][] samps = new double[3][];
-    samps[0] = redPix;
-    samps[1] = greenPix;
-    samps[2] = bluePix;
+    Raster r = image.getRaster();
+    double[][] samps = new double[num][width * height];
+    for (int c=0; c<num; c++) r.getSamples(0, 0, width, height, c, samps[c]);
     return samps;
   }
 
+  /**
+   * Unpacks an array of floats from field sample values.
+   *
+   * @param copy            Ignored (always returns a copy).
+   */
   protected float[][] unpackFloats(boolean copy) throws VisADException {
     pr ("unpackFloats(" + copy + ")");
     // copy flag is ignored
-    int numPixels = width * height;
-    int[] words = new int[numPixels];
-    PixelGrabber grabber = new PixelGrabber(
-      image.getSource(), 0, 0, width, height, words, 0, width);
-    try { grabber.grabPixels(); }
-    catch (InterruptedException e) { }
-
-    ColorModel cm = grabber.getColorModel();
-    float[] redPix = new float[numPixels];
-    float[] greenPix = new float[numPixels];
-    float[] bluePix = new float[numPixels];
-    for (int i=0; i<numPixels; i++) {
-      redPix[i] = cm.getRed(words[i]);
-      greenPix[i] = cm.getGreen(words[i]);
-      bluePix[i] = cm.getBlue(words[i]);
-    }
-
-    float[][] samps = new float[3][];
-    samps[0] = redPix;
-    samps[1] = greenPix;
-    samps[2] = bluePix;
+    Raster r = image.getRaster();
+    float[][] samps = new float[num][width * height];
+    for (int c=0; c<num; c++) r.getSamples(0, 0, width, height, c, samps[c]);
     return samps;
   }
 
   protected double[] unpackValues(int s_index) throws VisADException {
     pr ("unpackValues(" + s_index + ")");
-    int numPixels = width * height;
-    int[] words = new int[numPixels];
-    PixelGrabber grabber = new PixelGrabber(
-      image.getSource(), 0, 0, width, height, words, 0, width);
-    try { grabber.grabPixels(); }
-    catch (InterruptedException e) { }
-
-    ColorModel cm = grabber.getColorModel();
-    double[] samps = new double[3];
-    samps[0] = cm.getRed(words[s_index]);
-    samps[1] = cm.getGreen(words[s_index]);
-    samps[2] = cm.getBlue(words[s_index]);
+    Raster r = image.getRaster();
+    double[] samps = new double[num];
+    r.getPixel(s_index % width, s_index / width, samps);
     return samps;
   }
 
   protected float[] unpackFloats(int s_index) throws VisADException {
     pr ("unpackFloats(" + s_index + ")");
-    int numPixels = width * height;
-    int[] words = new int[numPixels];
-    PixelGrabber grabber = new PixelGrabber(
-      image.getSource(), 0, 0, width, height, words, 0, width);
-    try { grabber.grabPixels(); }
-    catch (InterruptedException e) { }
-
-    ColorModel cm = grabber.getColorModel();
-    float[] samps = new float[3];
-    samps[0] = cm.getRed(words[s_index]);
-    samps[1] = cm.getGreen(words[s_index]);
-    samps[2] = cm.getBlue(words[s_index]);
+    Raster r = image.getRaster();
+    float[] samps = new float[num];
+    r.getPixel(s_index % width, s_index / width, samps);
     return samps;
   }
 
   protected double[] unpackOneRangeComp(int comp) throws VisADException {
     pr ("unpackOneRangeComp(" + comp + ")");
-    int numPixels = width * height;
-    int[] words = new int[numPixels];
-    PixelGrabber grabber = new PixelGrabber(
-      image.getSource(), 0, 0, width, height, words, 0, width);
-    try { grabber.grabPixels(); }
-    catch (InterruptedException e) { }
-
-    ColorModel cm = grabber.getColorModel();
-    double[] samps = new double[numPixels];
-    for (int i=0; i<numPixels; i++) {
-      if (comp == 0) samps[i] = cm.getRed(words[i]);
-      else if (comp == 1) samps[i] = cm.getGreen(words[i]);
-      else if (comp == 2) samps[i] = cm.getBlue(words[i]);
-    }
+    Raster r = image.getRaster();
+    double[] samps = new double[width * height];
+    r.getSamples(0, 0, width, height, comp, samps);
     return samps;
   }
 
@@ -374,6 +337,42 @@ public class ImageFlatField extends FlatField {
 
   public byte[][] grabBytes() {
     pr ("grabBytes");
+    WritableRaster raster = image.getRaster();
+    if (raster.getTransferType() == DataBuffer.TYPE_BYTE) {
+      DataBuffer buffer = raster.getDataBuffer();
+      if (buffer instanceof DataBufferByte) {
+        SampleModel model = raster.getSampleModel();
+        if (model instanceof BandedSampleModel) {
+          // fastest way to extract bytes; no copy
+          byte[][] data = ((DataBufferByte) buffer).getBankData();
+          return data;
+        }
+        else if (model instanceof ComponentSampleModel) {
+          // medium speed way to extract bytes; direct array copy
+          byte[][] data = ((DataBufferByte) buffer).getBankData();
+          ComponentSampleModel csm = (ComponentSampleModel) model;
+          int[] bandOffsets = csm.getBandOffsets();
+          int[] bankIndices = csm.getBankIndices();
+          int pixelStride = csm.getPixelStride();
+          int scanlineStride = csm.getScanlineStride();
+          int numBands = bandOffsets.length;
+          int numPixels = width * height;
+          byte[][] bytes = new byte[numBands][numPixels];
+          for (int c=0; c<numBands; c++) {
+            for (int h=0; h<height; h++) {
+              for (int w=0; w<width; w++) {
+                int ndx = width * h + w;
+                int q = bandOffsets[c] + h * scanlineStride + w * pixelStride;
+                bytes[c][ndx] = data[bankIndices[c]][q];
+              }
+            }
+          }
+          return bytes;
+        } // model instanceof ComponentSampleModel
+      } // buffer instanceof DataBufferByte
+    } // raster.getTransferType() == DataBuffer.TYPE_BYTE
+
+    // slower, more general way to extract bytes; use PixelGrabber
     int numPixels = width * height;
     int[] words = new int[numPixels];
     PixelGrabber grabber = new PixelGrabber(
@@ -385,17 +384,14 @@ public class ImageFlatField extends FlatField {
     byte[] redPix = new byte[numPixels];
     byte[] greenPix = new byte[numPixels];
     byte[] bluePix = new byte[numPixels];
+    byte[] alphaPix = new byte[numPixels];
     for (int i=0; i<numPixels; i++) {
       redPix[i] = (byte) cm.getRed(words[i]);
       greenPix[i] = (byte) cm.getGreen(words[i]);
       bluePix[i] = (byte) cm.getBlue(words[i]);
+      alphaPix[i] = (byte) cm.getAlpha(words[i]);
     }
-
-    byte[][] samps = new byte[3][];
-    samps[0] = redPix;
-    samps[1] = greenPix;
-    samps[2] = bluePix;
-    return samps;
+    return new byte[][] {redPix, greenPix, bluePix, alphaPix};
   }
 
 }

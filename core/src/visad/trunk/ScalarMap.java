@@ -1100,6 +1100,42 @@ if (overrideUnit != null) {
     return new_values;
   }
 
+  /** return an array of display (DisplayRealType) values by
+   *  linear scaling (if applicable) the data_values array
+   *  (RealType values); results are scaled by the given scale factor
+   * @param   values to scale as bytes
+   * @return  array of display values
+   */
+  public byte[] scaleValues(byte[] values, int factor) throws VisADException {
+    if (values == null) return null;
+    byte[] new_values = null;
+    if (badRange()) {
+      new_values = new byte[values.length];
+    }
+    else {
+      if (overrideUnit != null &&
+          !overrideUnit.equals(((RealType) Scalar).getDefaultUnit())) {
+        throw new VisADException(
+          "scaleValues(byte[]): non-default units not supported");
+      }
+      if (isScaled) {
+        new_values = new byte[values.length];
+        for (int i=0; i<values.length; i++) {
+          float v = (float) values[i];
+          if (v < 0) v += 256;
+          v = (float) (factor * (offset + scale * v));
+          if (v < 0) v = 0;
+          else if (v > 255) v = 255;
+          new_values[i] = (byte) v;
+        }
+      }
+      else {
+        new_values = values;
+      }
+    }
+    return new_values;
+  }
+
   /** return an array of data (RealType) values by inverse
    *  linear scaling (if applicable) the display_values array
    *  (DisplayRealType values); this is useful for direct
