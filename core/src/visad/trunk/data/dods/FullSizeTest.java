@@ -22,7 +22,6 @@ MA 02111-1307, USA
 
 package visad.data.dods;
 
-import dods.dap.*;
 import visad.DataImpl;
 
 public class FullSizeTest

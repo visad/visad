@@ -37,7 +37,6 @@ import java.awt.event.ItemListener;
 
 /* JFC packages */
 import javax.swing.*;
-import javax.swing.event.*;
 
 /* RMI classes */
 import java.rmi.RemoteException;

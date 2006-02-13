@@ -26,8 +26,6 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.rmi.*;
-
 /**
    LinearNDSet represents a finite set of samples of R^Dimension
    in a cross product of arithmetic progressions.<P>

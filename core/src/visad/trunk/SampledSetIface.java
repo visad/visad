@@ -26,8 +26,6 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.io.*;
-
 /**
  * Interface to the abstract superclass of GriddedSet-s and the like.
  */

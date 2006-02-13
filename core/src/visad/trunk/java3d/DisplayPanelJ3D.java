@@ -26,8 +26,6 @@ MA 02111-1307, USA
 
 package visad.java3d;
 
-import visad.*;
-
 // GUI handling
 import java.awt.*;
 import javax.swing.*;

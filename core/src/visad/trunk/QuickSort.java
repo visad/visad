@@ -26,8 +26,6 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.util.*;
-
 /**
    QuickSort sorts a set of samples in R using a quicksort
    algorithm combined with an insertion sort algorithm to

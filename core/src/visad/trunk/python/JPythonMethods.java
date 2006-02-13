@@ -44,7 +44,6 @@ import visad.matrix.*;
 import visad.data.*;
 import visad.data.netcdf.Plain;
 import visad.ss.*;
-import visad.meteorology.*;
 import ucar.netcdf.NetcdfFile;
 import visad.data.netcdf.QuantityDBManager;
 import visad.data.netcdf.in.DefaultView;

@@ -26,7 +26,6 @@ MA 02111-1307, USA
 
 package visad.cluster;
 
-import visad.*;
 import java.rmi.*;
 import java.io.Serializable;
 

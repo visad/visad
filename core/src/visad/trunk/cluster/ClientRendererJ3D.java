@@ -28,12 +28,9 @@ package visad.cluster;
 
 import visad.*;
 import visad.java3d.*;
-import visad.java2d.*;
-import visad.util.*;
 
 import javax.media.j3d.*;
 
-import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import javax.swing.*;

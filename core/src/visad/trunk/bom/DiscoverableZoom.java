@@ -27,15 +27,8 @@ MA 02111-1307, USA
 package visad.bom;
 
 import visad.*;
-import visad.util.*;
 import visad.java3d.*;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.text.*;
-import javax.swing.border.*;
 import java.util.Vector;
 import java.util.Enumeration;
 import java.rmi.*;

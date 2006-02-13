@@ -28,11 +28,9 @@ package visad.cluster;
 
 import visad.*;
 import visad.java3d.*;
-import visad.java2d.*;
 
 import java.rmi.*;
 
-import java.awt.*;
 import java.awt.image.*;
 
 /**

@@ -29,7 +29,6 @@ package visad.bom;
 import visad.*;
 import visad.java3d.*;
 
-import java.awt.*;
 import java.awt.event.*;
 import java.text.NumberFormat;
 import javax.swing.*;

@@ -26,8 +26,6 @@ MA 02111-1307, USA
 
 package visad.data.hdfeos;
 
-import java.util.*;
-
 abstract class Calibration
 {
    public abstract void fromCalibration( short[] in, double[] out );

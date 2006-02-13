@@ -27,7 +27,6 @@ MA 02111-1307, USA
 package visad.cluster;
 
 import visad.*;
-import java.rmi.*;
 
 /**
    RemoteClientTuple is the interface for cluster client

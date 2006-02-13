@@ -29,13 +29,9 @@ package visad.java3d;
 import visad.*;
 
 import java.lang.reflect.*;
-import java.awt.event.*;
 
 import javax.media.j3d.*;
 import javax.vecmath.*;
-
-import java.util.*;
-
 
 /**
  * <CODE>DefaultDisplayRendererJ3D</CODE> is the VisAD class for the

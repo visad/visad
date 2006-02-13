@@ -29,12 +29,10 @@ package visad.java3d;
 import visad.*;
 
 import javax.media.j3d.*;
-import javax.vecmath.*;
 
 import java.util.Vector;
 import java.rmi.*;
 
-import java.awt.*;
 import java.awt.image.*;
 
 /**

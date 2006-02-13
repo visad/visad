@@ -27,16 +27,8 @@ MA 02111-1307, USA
 package visad.math;
 
 import visad.*;
-import visad.util.*;
-import visad.data.mcidas.*;
-import visad.java3d.*;
-import visad.bom.*;
 
 import java.rmi.*;
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.border.*;
 
 /**
  FFT is the VisAD class for Fourier Transforms, using

@@ -28,7 +28,6 @@ package visad;
 
 import java.awt.Component;
 import java.awt.event.MouseEvent;
-import java.awt.image.*;
 import java.net.*;
 import java.io.*;
 import java.rmi.RemoteException;

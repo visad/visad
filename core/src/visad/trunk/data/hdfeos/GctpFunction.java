@@ -26,7 +26,6 @@ MA 02111-1307, USA
 
 package visad.data.hdfeos;
 
-import visad.*;
 import java.lang.Math.*;
 
 public class GctpFunction

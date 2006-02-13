@@ -27,7 +27,6 @@ MA 02111-1307, USA
 package visad.data;
 
 import visad.*;
-import java.rmi.*;
 
 public class CacheStrategy
 {

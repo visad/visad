@@ -28,7 +28,6 @@ package visad.data.gis;
 
 import visad.*;
 import visad.data.*;
-import visad.util.*;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.net.URL;

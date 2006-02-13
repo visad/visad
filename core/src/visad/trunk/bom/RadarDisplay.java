@@ -10,9 +10,7 @@ Copyright (C) 1999 Bureau of Meteorology
 
 package visad.bom;
 
-import java.util.*;
 import javax.swing.*;
-import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.rmi.RemoteException;

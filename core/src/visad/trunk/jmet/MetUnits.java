@@ -23,7 +23,6 @@ MA 02111-1307, USA
 package visad.jmet;
 
 import visad.*;
-import visad.data.netcdf.*;
 import visad.data.units.*;
 
 /** 

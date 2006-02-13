@@ -29,13 +29,8 @@ package visad.java2d;
 import visad.*;
 
 import java.lang.reflect.*;
-import java.awt.event.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
-
-import java.rmi.*;
-import java.awt.*;
-import java.util.*;
 
 /**
    MouseBehaviorJ2D is the VisAD class for mouse behaviors for Java2D

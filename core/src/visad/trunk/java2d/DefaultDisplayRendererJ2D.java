@@ -29,10 +29,6 @@ package visad.java2d;
 import visad.*;
 
 import java.lang.reflect.*;
-import java.awt.event.*;
-
-import java.util.*;
-
 
 /**
  * <CODE>DefaultDisplayRendererJ2D</CODE> is the VisAD class for

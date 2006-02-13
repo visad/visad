@@ -18,8 +18,6 @@ import java.net.MalformedURLException;
 
 // JFC packages
 import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.text.*;
 import javax.swing.border.*;
 
 // AWT packages

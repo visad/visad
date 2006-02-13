@@ -3,14 +3,10 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: MaxFileFieldStrategy.java,v 1.5 2001-12-19 20:55:19 steve Exp $
+ * $Id: MaxFileFieldStrategy.java,v 1.6 2006-02-13 22:30:08 curtis Exp $
  */
 
 package visad.data.netcdf.in;
-
-import visad.*;
-import visad.data.netcdf.*;
-
 
 /**
  * <p>Provides support for importing netCDF datasets using the strategy of

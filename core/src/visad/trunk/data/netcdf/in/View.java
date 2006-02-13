@@ -3,7 +3,7 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: View.java,v 1.8 2004-03-05 15:40:22 donm Exp $
+ * $Id: View.java,v 1.9 2006-02-13 22:30:08 curtis Exp $
  */
 
 package visad.data.netcdf.in;
@@ -11,7 +11,6 @@ package visad.data.netcdf.in;
 import java.io.IOException;
 import java.util.Map;
 import java.util.WeakHashMap;
-import java.util.Iterator;
 import ucar.netcdf.Attribute;
 import ucar.netcdf.Dimension;
 import ucar.netcdf.DimensionIterator;
@@ -43,7 +42,7 @@ import visad.VisADException;
  * A convention-dependent view of a netCDF dataset.
  *
  * @author Steven R. Emmerson
- * @version $Revision: 1.8 $ $Date: 2004-03-05 15:40:22 $
+ * @version $Revision: 1.9 $ $Date: 2006-02-13 22:30:08 $
  */
 public abstract class View
 {

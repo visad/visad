@@ -28,14 +28,11 @@ package visad.bom;
 
 import visad.*;
 import visad.java3d.*;
-import visad.util.Delay;
-import visad.data.netcdf.Plain;
 
 import javax.media.j3d.*;
 
 import java.rmi.*;
 import java.io.IOException;
-import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 

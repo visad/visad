@@ -36,7 +36,6 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import javax.swing.JOptionPane;
-import javax.swing.JWindow;
 
 import visad.util.CmdlineGenericConsumer;
 import visad.util.CmdlineParser;

@@ -34,7 +34,6 @@ MA 02111-1307, USA
 
 package visad.data.hdf5;
 
-import java.util.*;
 import java.rmi.RemoteException;
 import ncsa.hdf.hdf5lib.H5;
 import ncsa.hdf.hdf5lib.HDF5Constants;

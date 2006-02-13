@@ -27,7 +27,6 @@ MA 02111-1307, USA
 package visad;
 
 import java.awt.*;
-import java.awt.event.*;
 import java.awt.image.BufferedImage;
 
 import java.rmi.RemoteException;

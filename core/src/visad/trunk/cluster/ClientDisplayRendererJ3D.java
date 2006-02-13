@@ -29,11 +29,6 @@ package visad.cluster;
 import visad.*;
 import visad.java3d.*;
 
-import java.awt.event.*;
-
-import java.util.*;
-
-
 /**
  * <CODE>ClientDisplayRendererJ3D</CODE> is the DisplayRenderer
  * for cluster clients.<P>

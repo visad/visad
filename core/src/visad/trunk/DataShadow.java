@@ -26,9 +26,6 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.util.*;
-import java.rmi.*;
-
 /**
    DataShadow is the VisAD class for gathering RealType value
    ranges and Animation sampling Sets for auto-scaling Displays.<P>

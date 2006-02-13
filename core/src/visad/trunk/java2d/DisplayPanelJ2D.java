@@ -29,7 +29,6 @@ package visad.java2d;
 import visad.*;
 
 // GUI handling
-import java.awt.*;
 import javax.swing.*;
 
 public class DisplayPanelJ2D extends JPanel {

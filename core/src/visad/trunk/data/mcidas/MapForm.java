@@ -27,9 +27,7 @@ MA 02111-1307, USA
 package visad.data.mcidas;
 
 import visad.*;
-import visad.java3d.*;
 import visad.data.*;
-import visad.util.*;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.net.URL;

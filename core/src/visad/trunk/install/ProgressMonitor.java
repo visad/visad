@@ -22,7 +22,6 @@ MA 02111-1307, USA
 
 package visad.install;
 
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;

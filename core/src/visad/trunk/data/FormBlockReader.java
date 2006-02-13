@@ -27,7 +27,6 @@ MA 02111-1307, USA
 package visad.data;
 
 import java.io.IOException;
-import java.rmi.RemoteException;
 import visad.*;
 import visad.data.BadFormException;
 

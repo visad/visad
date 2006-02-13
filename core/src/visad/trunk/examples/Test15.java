@@ -25,7 +25,6 @@ import java.rmi.RemoteException;
 
 import visad.*;
 
-import visad.java3d.DirectManipulationRendererJ3D;
 import visad.java3d.DisplayImplJ3D;
 
 public class Test15

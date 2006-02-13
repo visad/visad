@@ -26,9 +26,6 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.io.*;
-import java.util.*;
-
 /**
    Delaunay represents an abstract class for calculating an
    N-dimensional Delaunay triangulation, that can be extended

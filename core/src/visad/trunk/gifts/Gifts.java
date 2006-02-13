@@ -29,7 +29,6 @@ package visad.gifts;
 import visad.*;
 import visad.java3d.DisplayImplJ3D;
 import visad.java2d.DisplayImplJ2D;
-import visad.util.*;
 import visad.data.mcidas.BaseMapAdapter;
 import visad.data.mcidas.AreaForm;
 import visad.bom.WindPolarCoordinateSystem;

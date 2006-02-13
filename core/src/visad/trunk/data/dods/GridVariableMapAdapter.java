@@ -27,7 +27,6 @@ import java.lang.ref.WeakReference;
 import java.util.*;
 import java.rmi.RemoteException;
 import visad.*;
-import visad.data.in.*;
 
 /**
  * Provides support for adapting the map vectors of a DODS {@link DGrid}

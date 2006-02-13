@@ -30,7 +30,6 @@ import visad.*;
 
 import javax.media.j3d.*;
 
-import java.util.*;
 import java.rmi.*;
 
 

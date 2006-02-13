@@ -12,7 +12,6 @@ import visad.java3d.DirectManipulationRendererJ3D;
 import visad.util.VisADSlider;
 import java.rmi.RemoteException;
 import java.io.IOException;
-import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;

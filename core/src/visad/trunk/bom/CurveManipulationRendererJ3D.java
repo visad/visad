@@ -28,9 +28,7 @@ package visad.bom;
 
 import visad.*;
 import visad.java3d.*;
-import visad.java2d.*;
 
-import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import java.util.*;

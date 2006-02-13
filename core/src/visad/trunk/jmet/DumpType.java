@@ -27,13 +27,7 @@ package visad.jmet;
 
 
 import visad.*;
-import visad.util.*;
 import visad.Set;
-
-import java.awt.*;
-import java.awt.event.*;
-
-import java.util.*;
 
 import java.io.*;
 
@@ -47,7 +41,7 @@ import visad.data.*;
  * Class of static methods for printing out information about VisAD
  * {@link Data} objects.
  *
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.12 $
  */
 public class DumpType {
 

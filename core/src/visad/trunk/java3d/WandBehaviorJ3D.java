@@ -28,13 +28,9 @@ package visad.java3d;
 
 import visad.*;
 
-import java.awt.event.*;
-
 import javax.media.j3d.*;
 import javax.vecmath.*;
 
-import java.rmi.*;
-import java.awt.*;
 import java.util.*;
 
 /**

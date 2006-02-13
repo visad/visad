@@ -30,7 +30,6 @@ import visad.*;
 import visad.java3d.*;
 import visad.java2d.*;
 import visad.ss.*;
-import visad.util.*;
 import visad.bom.*;
 import visad.data.netcdf.Plain;
 

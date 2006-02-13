@@ -26,9 +26,6 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.io.*;
-import java.util.*;
-
 /* The Delaunay triangulation algorithm in this class
  * is originally from hull by Ken Clarkson:
  *

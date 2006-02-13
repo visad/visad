@@ -36,7 +36,6 @@ package visad.data.hdf5;
 
 import java.lang.reflect.Array;
 import java.awt.image.*;
-import java.awt.*;
 import java.rmi.RemoteException;
 import visad.data.hdf5.hdf5objects.*;
 import ncsa.hdf.hdf5lib.exceptions.HDF5Exception;

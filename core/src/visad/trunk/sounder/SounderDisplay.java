@@ -26,8 +26,6 @@ MA 02111-1307, USA
 
 package visad.sounder;
 
-import visad.*;
-
 /**
    SoundingInstrument is the VisAD abstract class for atmospheric
    sounding instruments.<p>

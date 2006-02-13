@@ -28,7 +28,6 @@ package visad.jmet;
 
 import java.io.*;
 import java.util.*;
-import java.awt.*;
 import ucar.netcdf.*;
 import visad.*;
 import visad.Set;

@@ -23,7 +23,6 @@ MA 02111-1307, USA
 package visad.data.in;
 
 import java.util.Arrays;
-import visad.*;
 
 /**
  * Provides support for verifying data values (i.e. seeing that they aren't

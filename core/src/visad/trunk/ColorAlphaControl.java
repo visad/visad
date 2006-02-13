@@ -26,8 +26,6 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.rmi.*;
-
 /**
    ColorAlphaControl is the VisAD class for controlling 4-component Color
    DisplayRealType-s (e.g., RGBA).<P>

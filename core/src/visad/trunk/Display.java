@@ -26,7 +26,6 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.awt.event.MouseEvent;
 import java.util.*;
 import java.rmi.*;
 

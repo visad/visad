@@ -27,8 +27,6 @@ MA 02111-1307, USA
 package visad.data.hdfeos;
 
 import java.util.*;
-import visad.*;
-import java.rmi.*;
 import visad.data.hdfeos.hdfeosc.HdfeosLib;
 
 public class EosSwath extends EosStruct

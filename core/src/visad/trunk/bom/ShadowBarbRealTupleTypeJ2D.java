@@ -29,7 +29,6 @@ package visad.bom;
 import visad.*;
 import visad.java2d.*;
 
-import java.util.*;
 import java.rmi.*;
 
 /**

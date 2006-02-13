@@ -3,15 +3,13 @@
  * All Rights Reserved.
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: VirtualText.java,v 1.1 2002-10-21 20:07:47 donm Exp $
+ * $Id: VirtualText.java,v 1.2 2006-02-13 22:30:08 curtis Exp $
  */
 
 package visad.data.netcdf.in;
 
 
-import java.lang.reflect.Array;
 import java.io.IOException;
-import java.rmi.RemoteException;
 import ucar.netcdf.Variable;
 import ucar.multiarray.StringCharAdapter;
 import visad.*;

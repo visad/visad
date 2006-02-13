@@ -28,7 +28,6 @@ package visad.data.hdfeos;
 
 import visad.DataImpl;
 import visad.VisADException;
-import visad.data.*;
 import java.rmi.*;
 
 public class HdfeosAdaptedForm extends HdfeosForm

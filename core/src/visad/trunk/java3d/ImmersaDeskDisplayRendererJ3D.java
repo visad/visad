@@ -28,12 +28,8 @@ package visad.java3d;
 
 import visad.*;
 
-import java.awt.event.*;
-
 import javax.media.j3d.*;
 import javax.vecmath.*;
-
-import java.util.*;
 
 /*
 WandBehaviorJ3D extends MouseBehaviorJ3D:

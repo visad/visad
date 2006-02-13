@@ -31,7 +31,6 @@ import visad.*;
 import java.util.Vector;
 import java.rmi.*;
 
-import java.awt.*;
 import java.awt.image.*;
 
 /**

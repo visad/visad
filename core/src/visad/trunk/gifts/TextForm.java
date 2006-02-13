@@ -33,7 +33,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.StringTokenizer;
 import visad.*;
-import visad.data.*;
 import java.rmi.*;
 
 public class TextForm

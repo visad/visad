@@ -28,8 +28,6 @@ package visad;
 
 import java.rmi.*;
 import java.util.StringTokenizer;
-import java.awt.event.*;
-import java.util.Vector;
 
 import visad.browser.Convert;
 import visad.util.Util;

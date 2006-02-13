@@ -28,9 +28,7 @@ package visad.java2d;
 
 import visad.*;
 
-import java.util.*;
 import java.rmi.*;
-
 
 /**
    DefaultRendererJ2D is the VisAD class for the default graphics

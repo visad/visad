@@ -31,7 +31,6 @@ import javax.swing.JPanel;
 import visad.install.ProgressMonitor;
 import visad.install.Util;
 
-import visad.util.CmdlineConsumer;
 import visad.util.CmdlineGenericConsumer;
 import visad.util.CmdlineParser;
 

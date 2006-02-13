@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Vector;
 import visad.*;
 import visad.data.*;
-import visad.data.in.*;
 
 /**
  * Provides support for adapting DODS {@link DSequence} variables to the

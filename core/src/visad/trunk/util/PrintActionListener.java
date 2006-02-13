@@ -27,10 +27,8 @@ MA 02111-1307, USA
 package visad.util;
 
 import visad.*;
-import java.awt.*;
 import java.awt.print.*;
 import java.awt.event.*;
-import javax.swing.*;
 
 /** PrintActionListener is an ActionListener which is used to
 * print the contents of the VisAD DisplayImpl.  A

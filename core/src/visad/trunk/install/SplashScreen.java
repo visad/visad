@@ -29,8 +29,6 @@ import java.awt.Graphics;
 import java.awt.Toolkit;
 
 import javax.swing.ImageIcon;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JWindow;
 

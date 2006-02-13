@@ -26,9 +26,6 @@ MA 02111-1307, USA
 
 package visad.cluster;
 
-import visad.*;
-import java.rmi.*;
-
 /**
    RemoteClientData is the interface for cluster client
    VisAD data objects.<P>

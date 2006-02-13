@@ -26,8 +26,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.data.mcidas;
 
-import edu.wisc.ssec.mcidas.*;
-
 import java.io.IOException;
 
 import java.net.URL;

@@ -67,7 +67,6 @@ package visad.java3d;
 import visad.*;
 
 import java.rmi.*;
-import java.io.*;
 
 import java.awt.*;
 

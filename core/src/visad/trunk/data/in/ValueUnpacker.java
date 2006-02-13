@@ -22,8 +22,6 @@ MA 02111-1307, USA
 
 package visad.data.in;
 
-import visad.*;
-
 /**
  * Provides support for unpacking data values (i.e. converting them from smaller
  * types to bigger types).

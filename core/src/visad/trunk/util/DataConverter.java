@@ -32,10 +32,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.lang.reflect.*;
-import java.rmi.RemoteException;
 import java.util.Vector;
 import javax.swing.*;
-import javax.swing.text.*;
 
 /**
  * DataConverter provides a simple GUI for converting data

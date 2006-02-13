@@ -26,8 +26,6 @@ MA 02111-1307, USA
 
 package visad;
 
-import visad.*;
-
 /**
  * A CoordinateSystem to transform between values and their logarithms.
  * The logarithm is the reference.

@@ -27,8 +27,6 @@ import java.awt.Dimension;
 
 import java.io.File;
 
-import java.util.ArrayList;
-
 import javax.swing.JFileChooser;
 import javax.swing.JList;
 import javax.swing.JPanel;

@@ -27,10 +27,8 @@ MA 02111-1307, USA
 package visad.python;
 
 import java.lang.reflect.*;
-import java.io.*;
 import visad.VisADException;
 import visad.formula.FormulaUtil;
-import visad.util.*;
 
 /** A stand-alone wrapper for launching JPython code. */
 public class RunJPython {

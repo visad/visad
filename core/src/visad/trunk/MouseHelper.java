@@ -30,7 +30,6 @@ import java.awt.event.*;
 
 import java.rmi.*;
 import java.awt.*;
-import java.util.*;
 
 import visad.browser.Convert;
 

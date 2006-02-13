@@ -28,7 +28,6 @@ package visad.data.mcidas;
 import edu.wisc.ssec.mcidas.*;
 import java.io.IOException;
 import java.rmi.RemoteException;
-import visad.CommonUnit;
 import visad.CoordinateSystem;
 import visad.DateTime;
 import visad.FlatField;

@@ -26,8 +26,6 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.rmi.*;
-
 /**
  * <CODE>ScalarMapControlEvent</CODE> is the VisAD class for control-related
  * <CODE>Event</CODE>s from <CODE>ScalarMap</CODE> objects.  They are

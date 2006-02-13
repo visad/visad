@@ -26,7 +26,6 @@ import visad.util.DataUtility;
 import visad.data.netcdf.Plain;
 import java.rmi.RemoteException;
 import java.io.IOException;
-import java.awt.*;
 import javax.swing.*;
 
 public class VerySimple {

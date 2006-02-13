@@ -26,8 +26,6 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.io.*;
-
 /**
  * Interface to the abstract superclass of the VisAD hierarchy of sets.<P>
  * Sets are subsets of R^n for n>0.

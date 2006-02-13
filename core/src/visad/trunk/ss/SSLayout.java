@@ -27,7 +27,6 @@ MA 02111-1307, USA
 package visad.ss;
 
 import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
 
 /**

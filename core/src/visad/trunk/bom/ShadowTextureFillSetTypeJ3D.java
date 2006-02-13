@@ -28,9 +28,6 @@ package visad.bom;
 
 import visad.*;
 import visad.java3d.*;
-import visad.data.mcidas.BaseMapAdapter;
-import visad.data.mcidas.AreaAdapter;
-import visad.data.gif.GIFForm;
 
 import javax.media.j3d.*;
 
@@ -38,11 +35,6 @@ import java.util.Vector;
 import java.util.Enumeration;
 import java.rmi.*;
 
-import java.net.URL;
-
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.WritableRaster;

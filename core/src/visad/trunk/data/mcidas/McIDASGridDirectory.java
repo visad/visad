@@ -26,7 +26,6 @@ MA 02111-1307, USA
 
 package visad.data.mcidas;
 
-import java.util.*;
 import edu.wisc.ssec.mcidas.*;
 import visad.*;
 import visad.data.units.Parser;

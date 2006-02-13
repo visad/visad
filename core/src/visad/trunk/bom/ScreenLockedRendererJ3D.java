@@ -27,7 +27,6 @@ MA 02111-1307, USA
 package visad.bom;
 
 // Java
-import java.awt.Font;
 import java.rmi.RemoteException;
 import javax.swing.JFrame;
 
@@ -36,11 +35,9 @@ import javax.media.j3d.*;
 
 // VisAD
 import visad.ConstantMap;
-import visad.DataDisplayLink;
 import visad.DataReferenceImpl;
 import visad.DelaunayCustom;
 import visad.Display;
-import visad.FieldImpl;
 import visad.FunctionType;
 import visad.GraphicsModeControl;
 import visad.Gridded2DSet;
@@ -50,22 +47,12 @@ import visad.RealType;
 import visad.Text;
 import visad.TextControl;
 import visad.TextType;
-import visad.TupleType;
 import visad.RealTupleType;
 import visad.ScalarMap;
-import visad.Set;
-import visad.SetType;
-import visad.ShadowType;
 import visad.VisADException;
 import visad.java3d.DefaultRendererJ3D;
 import visad.java3d.DisplayImplJ3D;
 import visad.java3d.DisplayRendererJ3D;
-import visad.java3d.MouseBehaviorJ3D;
-import visad.java3d.ProjectionControlJ3D;
-import visad.java3d.ShadowFunctionTypeJ3D;
-import visad.java3d.ShadowSetTypeJ3D;
-import visad.java3d.ShadowTupleTypeJ3D;
-
 
 /**
  * This renderer locks text to its initial position on the

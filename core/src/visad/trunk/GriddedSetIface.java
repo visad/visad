@@ -26,8 +26,6 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.io.*;
-
 /**
  * GriddedSetIface is the interface to a finite set of samples of R^n.<P>
  */

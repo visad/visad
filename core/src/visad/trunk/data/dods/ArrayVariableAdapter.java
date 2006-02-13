@@ -27,7 +27,6 @@ import dods.dap.Server.InvalidParameterException;
 import java.rmi.RemoteException;
 import visad.*;
 import visad.data.*;
-import visad.data.in.*;
 
 /**
  * Provides support for adapting DODS {@link DArray} variables to the

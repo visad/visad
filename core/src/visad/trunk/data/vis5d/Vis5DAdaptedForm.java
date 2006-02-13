@@ -29,7 +29,6 @@ package visad.data.vis5d;
 import visad.FlatField;
 import visad.VisADException;
 import visad.data.*;
-import java.rmi.*;
 
 public class Vis5DAdaptedForm extends Vis5DForm
 {

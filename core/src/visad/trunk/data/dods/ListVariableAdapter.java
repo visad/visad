@@ -26,7 +26,6 @@ import dods.dap.*;
 import java.rmi.RemoteException;
 import visad.*;
 import visad.data.*;
-import visad.data.in.*;
 
 /**
  * Provides support for adapting a DODS {@link DList} variable to the

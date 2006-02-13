@@ -24,7 +24,6 @@ package visad.data.dods;
 
 import dods.dap.*;
 import visad.*;
-import visad.data.in.*;
 
 /**
  * Provides support for adapting DODS DBoolean variables to the

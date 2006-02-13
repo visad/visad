@@ -26,8 +26,6 @@ MA 02111-1307, USA
 
 package visad.data.hdfeos;
 
-import java.util.*;
-
 class CalibrationDefault extends Calibration
 {
   private static String scaleFactorName = "scale_factor";

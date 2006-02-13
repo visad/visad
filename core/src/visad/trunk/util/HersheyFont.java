@@ -47,7 +47,6 @@ MA 02111-1307, USA
 
 package visad.util;
 
-import java.awt. *;
 import java.io. *;
 import java.net.URL;
 

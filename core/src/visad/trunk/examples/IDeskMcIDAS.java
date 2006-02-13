@@ -23,13 +23,11 @@ MA 02111-1307, USA
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.border.*;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import javax.media.j3d.*;
 
 import visad.*;
-import visad.util.*;
 import visad.data.mcidas.*;
 import visad.java3d.*;
 import visad.bom.*;

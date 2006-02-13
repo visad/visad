@@ -28,14 +28,9 @@ package visad.java3d;
 
 import visad.*;
 
-import java.awt.event.*;
 import java.awt.image.BufferedImage;
 
 import javax.media.j3d.*;
-import javax.vecmath.*;
-
-import java.util.*;
-
 
 /**
  * <CODE>TransformOnlyDisplayRendererJ3D</CODE> is the VisAD class for the

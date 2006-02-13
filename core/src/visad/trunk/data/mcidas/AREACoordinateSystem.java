@@ -34,7 +34,6 @@ import java.awt.geom.Rectangle2D;
 import visad.CoordinateSystemException;
 import visad.QuickSort;
 import visad.RealTupleType;
-import visad.Set;
 import visad.Unit;
 import visad.VisADException;
 

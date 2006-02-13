@@ -27,13 +27,11 @@ MA 02111-1307, USA
 package visad.java3d;
 
 import visad.*;
-import visad.browser.Convert;
 
 import javax.media.j3d.*;
 
 import java.util.Vector;
 import java.util.Enumeration;
-import java.util.StringTokenizer;
 
 import java.rmi.*;
 

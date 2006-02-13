@@ -28,7 +28,6 @@ package visad.python;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.lang.reflect.*;
 import java.io.*;
 import java.util.*;
 import javax.swing.*;

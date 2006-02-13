@@ -26,8 +26,6 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.rmi.*;
-
 /**
    ColorControl is the VisAD class for controlling 3-component Color
    DisplayRealType-s (e.g., RGB, HSV, CMY).<P>

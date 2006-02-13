@@ -6,7 +6,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: QuantityDBImpl.java,v 1.6 2000-11-17 18:54:40 dglo Exp $
+ * $Id: QuantityDBImpl.java,v 1.7 2006-02-13 22:30:07 curtis Exp $
  */
 
 package visad.data.netcdf;
@@ -14,7 +14,6 @@ package visad.data.netcdf;
 import java.io.Serializable;
 import java.text.CollationKey;
 import java.text.Collator;
-import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.SortedSet;
 import java.util.TreeMap;

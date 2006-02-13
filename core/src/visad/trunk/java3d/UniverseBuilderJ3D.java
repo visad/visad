@@ -9,10 +9,6 @@
 
 package visad.java3d;
 
-import visad.*;
-
-import java.awt.event.*;
-
 import java.lang.reflect.Method;
 
 import javax.media.j3d.*;

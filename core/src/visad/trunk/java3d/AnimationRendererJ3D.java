@@ -33,7 +33,6 @@ import javax.media.j3d.*;
 
 import java.rmi.*;
 import java.io.IOException;
-import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import java.util.Vector;

@@ -22,13 +22,9 @@ MA 02111-1307, USA
 
 // JFC packages
 import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.text.*;
-import javax.swing.border.*;
 
 // AWT packages
 import java.awt.*;
-import java.awt.event.*;
 
 import java.rmi.RemoteException;
 

@@ -22,16 +22,10 @@ MA 02111-1307, USA
 
 package visad.install;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.IOException;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 
 import java.util.ArrayList;
 

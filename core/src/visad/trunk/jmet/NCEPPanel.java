@@ -25,12 +25,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.jmet;
 
-import edu.wisc.ssec.mcidas.*;
-
-import visad.java3d.*;
-
 import visad.*;
-import visad.util.*;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -39,14 +34,6 @@ import java.util.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.border.*;
-import javax.swing.filechooser.*;
-
-
-import java.io.*;
-
-import visad.data.netcdf.*;
-import visad.data.mcidas.*;
-
 
 public class NCEPPanel extends JPanel implements
         ActionListener, ChangeListener {

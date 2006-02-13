@@ -28,7 +28,6 @@ package visad.rabin;
 // import JFC packages
 import javax.swing.*;
 import javax.swing.border.*;
-import javax.swing.event.*;
 
 // import AWT package
 import java.awt.*;

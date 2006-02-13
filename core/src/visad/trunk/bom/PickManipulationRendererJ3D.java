@@ -33,8 +33,6 @@ import java.awt.event.*;
 import javax.swing.*;
 import java.rmi.RemoteException;
 
-import javax.media.j3d.*;
-
 /**
  * PickManipulationRendererJ3D is the VisAD class for picking
  * data in 3D.

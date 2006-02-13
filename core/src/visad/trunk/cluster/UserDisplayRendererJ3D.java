@@ -29,11 +29,6 @@ package visad.cluster;
 import visad.*;
 import visad.java3d.*;
 
-import java.awt.event.*;
-
-import java.util.*;
-
-
 /**
  * <CODE>UserDisplayRendererJ3D</CODE> is the DisplayRenderer
  * for remote users connecting to a cluster via a proxy on the

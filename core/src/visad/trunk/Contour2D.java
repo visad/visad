@@ -26,11 +26,6 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.applet.*;
-import java.awt.*;
-import java.awt.event.*;
-import visad.util.Util;
-
 /**
    Contour2D is a class equipped with a 2-D contouring function.<P>
 */

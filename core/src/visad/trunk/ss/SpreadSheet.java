@@ -26,7 +26,6 @@ MA 02111-1307, USA
 
 package visad.ss;
 
-import com.sun.image.codec.jpeg.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.print.*;
@@ -38,14 +37,12 @@ import java.rmi.registry.*;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.border.*;
-import javax.swing.event.*;
 import visad.*;
 import visad.data.Form;
 import visad.data.netcdf.Plain;
 import visad.data.tiff.TiffForm;
 import visad.data.visad.VisADForm;
 import visad.formula.*;
-import visad.java3d.*;
 import visad.util.*;
 
 /**

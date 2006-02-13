@@ -30,7 +30,6 @@ import java.awt.*;
 import java.io.*;
 import java.net.*;
 import java.rmi.*;
-import java.util.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import visad.*;

@@ -26,7 +26,6 @@ package visad.data.mcidas;
 import java.io.*;
 import java.util.*;
 import visad.*;
-import edu.wisc.ssec.mcidas.adde.*;
 import edu.wisc.ssec.mcidas.*;
 
 /**  Read grid(s) from a McIDAS grid file

@@ -27,15 +27,11 @@ MA 02111-1307, USA
 package visad.cluster;
 
 import visad.*;
-import visad.collab.*;
 import visad.java3d.*;
-import visad.java2d.*;
 import visad.util.Delay;
 
-import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import java.util.*;
 import java.rmi.*;
 
 /**

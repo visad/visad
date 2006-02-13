@@ -29,10 +29,7 @@ package visad.bom;
 import visad.*;
 import visad.java3d.*;
 
-import java.util.*;
 import java.rmi.*;
-
-import javax.media.j3d.*;
 
 /**
    The ShadowCurveSetTypeJ3D class shadows the SetType class for

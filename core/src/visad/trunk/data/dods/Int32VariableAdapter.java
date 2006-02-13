@@ -25,7 +25,6 @@ package visad.data.dods;
 import dods.dap.*;
 import java.rmi.RemoteException;
 import visad.*;
-import visad.data.in.*;
 
 /**
  * Provides support for adapting DODS DInt32 variables to the

@@ -33,8 +33,6 @@ import java.awt.image.BufferedImage;
 
 import java.rmi.RemoteException;
 
-import javax.media.j3d.*;
-
 import visad.*;
 
 import visad.java3d.*;

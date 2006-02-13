@@ -28,7 +28,6 @@ package visad.java3d;
 
 import visad.*;
 
-import java.util.*;
 import java.rmi.*;
 
 /**

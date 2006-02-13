@@ -33,7 +33,6 @@ import visad.util.ContourWidget;
 import visad.data.gif.GIFForm;
 
 import java.rmi.*;
-import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 

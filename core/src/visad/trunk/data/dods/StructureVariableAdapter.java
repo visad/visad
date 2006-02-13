@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.rmi.RemoteException;
 import visad.*;
 import visad.data.BadFormException;
-import visad.data.in.*;
 
 /**
  * Provides support for adapting DODS {@link DStructure} variables to the

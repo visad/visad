@@ -26,7 +26,6 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.rmi.*;
 import java.awt.Event;
 
 /**

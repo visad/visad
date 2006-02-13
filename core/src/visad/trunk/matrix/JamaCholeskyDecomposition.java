@@ -27,7 +27,6 @@ MA 02111-1307, USA
 package visad.matrix;
 
 import java.lang.reflect.*;
-import java.io.*;
 import java.rmi.RemoteException;
 
 import visad.*;

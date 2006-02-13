@@ -24,23 +24,13 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-// import JFC packages
-import javax.swing.*;
-import javax.swing.border.*;
-import javax.swing.event.*;
-
-// import AWT packages
 import java.awt.*;
 import java.awt.event.*;
-
-// import netCDF form, for saving data
+import javax.swing.*;
+import javax.swing.border.*;
 import visad.data.netcdf.Plain;
-
-// import needed SpreadSheet classes
 import visad.ss.BasicSSCell;
 import visad.ss.FancySSCell;
-
-// import VisAD utility class
 import visad.util.Util;
 
 /** MiniSheet is a &quot;toy&quot; version of visad.ss.SpreadSheet,

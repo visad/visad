@@ -27,7 +27,6 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import visad.*;
 import visad.data.*;
-import visad.data.in.*;
 
 /**
  * Provides support for adapting DODS {@link DGrid} variables to the
