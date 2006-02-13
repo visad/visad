@@ -1443,8 +1443,8 @@ public class AxisScale implements java.io.Serializable
   }
 
   /**
-   * Set the visibility of the AxisScale
-   * @param visibile  true to display the AxisScale
+   * Set whether both sides are labeled.
+   * @param visibile  true to label both sides
    */
   public void setLabelBothSides(boolean both) {
     boolean oldBoth = labelBothSides;
@@ -1457,8 +1457,8 @@ public class AxisScale implements java.io.Serializable
   }
 
   /**
-   * Get the visibility of the AxisScale
-   * @return true if AxisScale is being rendered
+   * See if both sides are labeled
+   * @return true if labelling is on both sides
    */
   public boolean getLabelBothSides() {
     return labelBothSides;
