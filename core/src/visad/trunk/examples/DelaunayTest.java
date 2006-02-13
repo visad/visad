@@ -362,6 +362,7 @@ public class DelaunayTest {
       }
 
       // finish setting up Java3D Display
+      display.getDisplayRenderer().setBoxOn(false);
       display.addReference(tetref);
 
       // set up frame's panel
