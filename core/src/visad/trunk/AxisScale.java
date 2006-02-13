@@ -56,6 +56,8 @@ public class AxisScale implements java.io.Serializable
   // true indicates axis is stationary relative to screen
   // rather than graphics coordinates
   private boolean screenBased = false;
+  private boolean gridLinesVisible = false;
+  private boolean labelBothSides = false;
 
   private VisADLineArray scaleArray;
   private VisADTriangleArray labelArray;
@@ -425,413 +427,516 @@ public class AxisScale implements java.io.Serializable
     double[] up = null; // vector from bottom of character to top
     double[] startn = null; // -1.0 position along axis
     double[] startp = null; // +1.0 position along axis
+    double[] gridstartn = null; // -1.0 position along axis
+    double[] gridstartp = null; // +1.0 position along axis
 
-    Vector lineArrayVector = new Vector(4);
+    int numSides = (getLabelBothSides()) ? 2 : 1;
+    Vector lineArrayVector = new Vector(4*numSides);
     Vector labelArrayVector = new Vector();
 
     double ONE = 1.0;
     if (dataRange[0] > dataRange[1]) ONE = -1.0; // inverted range
 
-    // set up the defaults for each of the axes.  startp and startn are the
-    // endpoints of the axis line.  base and up determine which way the
-    // tick marks are drawn along that line.  For 2-D, base and up are changed
-    // later on so that the labels are right side up. DRM 16-APR-2001
-    if (myAxis == X_AXIS) {
-      if (getSide() == PRIMARY)
-      {
-        base = new double[] {SCALE, 0.0, 0.0};
-        up = new double[] {0.0, SCALE, SCALE};
-        startp = new double[] {ONE * XMAX,
-                               YMIN - ((OFFSET - 1.0) + line),
-                               ZMIN - ((OFFSET - 1.0) + line)};
-        startn = new double[] {ONE * XMIN,
-                               YMIN - ((OFFSET - 1.0) + line),
-                               ZMIN - ((OFFSET - 1.0) + line)};
+    for (int l = 0; l < numSides; l++) {
+      int side = getSide();
+      if (l > 0) {
+         side = (side == PRIMARY) ? SECONDARY : PRIMARY;
       }
-      else
-      {
-        base = new double[] {-SCALE, 0.0, 0.0};
-        up = new double[] {0.0, -SCALE, SCALE};
-        startp = new double[] {ONE * XMAX,
-                               YMAX + ((OFFSET - 1.0) + line),
-                               ZMIN - ((OFFSET - 1.0) + line)};
-        startn = new double[] {ONE * XMIN,
-                               YMAX + ((OFFSET - 1.0) + line),
-                               ZMIN - ((OFFSET - 1.0) + line)};
-      }
-    }
-    else if (myAxis == Y_AXIS) {
-      if (getSide() == PRIMARY) {
-        base = new double[] {0.0, -SCALE, 0.0};
-        up = new double[] {SCALE, 0.0, SCALE};
-        startp = new double[] {XMIN - ((OFFSET - 1.0) + line),
-                               ONE * YMAX,
-                               ZMIN - ((OFFSET - 1.0) + line)};
-        startn = new double[] {XMIN - ((OFFSET - 1.0) + line),
-                               ONE * YMIN,
-                               ZMIN - ((OFFSET - 1.0) + line)};
-      }
-      else {
-        base = new double[] {0.0, SCALE, 0.0};
-        up = new double[] {-SCALE, 0.0, SCALE};
-        startp = new double[] {XMAX + ((OFFSET - 1.0) + line),
-                               ONE * YMAX,
-                               ZMIN - ((OFFSET - 1.0) + line)};
-        startn = new double[] {XMAX + ((OFFSET - 1.0) + line),
-                               ONE * YMIN,
-                               ZMIN - ((OFFSET - 1.0) + line)};
-      }
-
-    }
-    else if (myAxis == Z_AXIS) {
-      if (getSide() == PRIMARY)
-      {
-        base = new double[] {0.0, 0.0, -SCALE};
-        up = new double[] {SCALE, SCALE, 0.0};
-        startp = new double[] {XMIN - ((OFFSET - 1.0) + line),
-                               YMIN - ((OFFSET - 1.0) + line),
-                               ONE * ZMAX};
-        startn = new double[] {XMIN - ((OFFSET - 1.0) + line),
-                               YMIN - ((OFFSET - 1.0) + line),
-                               ONE * ZMIN};
-      }
-      else
-      {
-        base = new double[] {0.0, 0.0, SCALE};
-        up = new double[] {-SCALE, SCALE, 0.0};
-        startp = new double[] {XMAX + ((OFFSET - 1.0) + line),
-                               YMIN - ((OFFSET - 1.0) + line),
-                               ONE * ZMAX};
-        startn = new double[] {XMAX + ((OFFSET - 1.0) + line),
-                               YMIN - ((OFFSET - 1.0) + line),
-                               ONE * ZMIN};
-      }
-    }
-
-    if (twoD) {
-      if (myAxis == Z_AXIS) return false;  // can't have Z in 2D
-      // zero out z coordinates
-      base[2] = 0.0;
-      up[2] = 0.0;
-      startn[2] = 0.0;
-      startp[2] = 0.0;
-    }
-
-    // VisADLineArray coordinates have three entries for (x, y, z) of each point
-    // two points determine a line segment,
-    // hence 6 coordinates entries per segment
-
-    // base line for axis
-    if (baseLineVisible) // draw base line
-    {
-      VisADLineArray baseLineArray = new VisADLineArray();
-      float[] lineCoordinates = new float[6];
-      for (int i=0; i<3; i++) { // loop over x, y & z coordinates
-        lineCoordinates[i] = (float) startn[i];
-        lineCoordinates[3 + i] = (float) startp[i];
-      }
-      baseLineArray.vertexCount = 2;
-      baseLineArray.coordinates = lineCoordinates;
-      lineArrayVector.add(baseLineArray);
-    }
-
-    double range = Math.abs(dataRange[1] - dataRange[0]);
-    double min = Math.min(dataRange[0], dataRange[1]);
-    double max = Math.max(dataRange[0], dataRange[1]);
-    //System.out.println(
-    //  "range = " + range + " min = " + min + " max = " + max);
-
-    // compute tick mark values
-    double tens = 1.0;
-    if (range < tens) {
-      tens /= 10.0;
-      while (range < tens) tens /= 10.0;
-    }
-    else {
-      while (10.0 * tens <= range) tens *= 10.0;
-    }
-    // now tens <= range < 10.0 * tens;
-    if (autoComputeTicks || majorTickSpacing <= 0)
-    {
-      double ratio = range / tens;
-      if (ratio < 2.0) {
-        tens = tens/5.0;
-      }
-      else if (ratio < 4.0) {
-        tens = tens/2.0;
-      }
-      majorTickSpacing = tens;
-    }
-    // now tens = interval between major tick marks (majorTickSpacing)
-    //System.out.println("computed ticks " + majorTickSpacing);
-
-    double[] hilo = computeTicks(max, min, tickBase, majorTickSpacing);
-    // firstValue is the first Tick mark value
-    double firstValue = hilo[0];
-    double botval = hilo[0];
-    double topval = hilo[hilo.length-1];
-
-    // draw major tick marks
-    VisADLineArray majorTickArray = new VisADLineArray();
-    int nticks = (int) ((topval-botval)/majorTickSpacing) + 1;
-    float[] majorCoordinates = new float[6 * nticks];
-    double[] tickup = up;
-    if (getTickOrientation() != PRIMARY)
-    {
+      // set up the defaults for each of the axes.  startp and startn are the
+      // endpoints of the axis line.  base and up determine which way the
+      // tick marks are drawn along that line.  For 2-D, base and up are changed
+      // later on so that the labels are right side up. DRM 16-APR-2001
       if (myAxis == X_AXIS) {
-        tickup = new double[] {up[0], -up[1], -up[2]};
-      }
-      else if (myAxis == Y_AXIS) {
-        tickup = new double[] {-up[0], up[1], -up[2]};
-      }
-      else if (myAxis == Z_AXIS) {
-        tickup = new double[] {-up[0], -up[1], up[2]};
-      }
-    }
-    // initialize some stuff
-    int k = 0;
-    for (int j = 0; j< nticks; j++) //Change DRM 21-Feb-2001
-    {
-      double value = firstValue + (j * majorTickSpacing);
-      double a = (value - min) / (max - min);
-      for (int i=0; i<3; i++) {
-        if ((k + 3 + i) < majorCoordinates.length) {
-          // guard against error that cannot happen, but was seen?
-          majorCoordinates[k + i] =
-            (float) ((1.0 - a) * startn[i] + a * startp[i]);
-          majorCoordinates[k + 3 + i] =
-            (float) (majorCoordinates[k + i] - TICKSIZE * tickup[i]);
+        if (side == PRIMARY)
+        {
+          base = new double[] {SCALE, 0.0, 0.0};
+          up = new double[] {0.0, SCALE, SCALE};
+          startp = new double[] {ONE * XMAX,
+                                 YMIN - ((OFFSET - 1.0) + line),
+                                 ZMIN - ((OFFSET - 1.0) + line)};
+          startn = new double[] {ONE * XMIN,
+                                 YMIN - ((OFFSET - 1.0) + line),
+                                 ZMIN - ((OFFSET - 1.0) + line)};
+          gridstartp = new double[] {ONE * XMAX,
+                                 YMIN,
+                                 ZMIN};
+          gridstartn = new double[] {ONE * XMIN,
+                                 YMIN,
+                                 ZMIN};
+        }
+        else
+        {
+          base = new double[] {-SCALE, 0.0, 0.0};
+          up = new double[] {0.0, -SCALE, SCALE};
+          startp = new double[] {ONE * XMAX,
+                                 YMAX + ((OFFSET - 1.0) + line),
+                                 ZMIN - ((OFFSET - 1.0) + line)};
+          startn = new double[] {ONE * XMIN,
+                                 YMAX + ((OFFSET - 1.0) + line),
+                                 ZMIN - ((OFFSET - 1.0) + line)};
+          gridstartp = new double[] {ONE * XMAX,
+                                 YMAX,
+                                 ZMIN};
+          gridstartn = new double[] {ONE * XMIN,
+                                 YMAX,
+                                 ZMIN};
         }
       }
-      k += 6;
-    }
-
-    majorTickArray.vertexCount = 2 * (nticks);
-    majorTickArray.coordinates = majorCoordinates;
-    lineArrayVector.add(majorTickArray);
-
-    if (getMinorTickSpacing() > 0)  // create an array for the minor ticks
-    {
-      hilo = computeTicks(max, min, tickBase, minorTickSpacing);
-      // now lower * minorTickSpacing = value of lowest tick mark, and
-      // upper * minorTickSpacing = values of highest tick mark
-
-      VisADLineArray minorTickArray = new VisADLineArray();
-      // Change DRM 21-Feb-2001
-      nticks = (int) ((hilo[hilo.length-1]-hilo[0])/minorTickSpacing) + 1;
-      float[] minorCoordinates = new float[6 * nticks];
-
-      // draw tick marks
-      k = 0;
-      //for (long j=lower; j<=upper; j++) {  // Change DRM 21-Feb-2001
-      for (int j = 0; j < nticks; j++)
+      else if (myAxis == Y_AXIS) {
+        if (side == PRIMARY) {
+          base = new double[] {0.0, -SCALE, 0.0};
+          up = new double[] {SCALE, 0.0, SCALE};
+          startp = new double[] {XMIN - ((OFFSET - 1.0) + line),
+                                 ONE * YMAX,
+                                 ZMIN - ((OFFSET - 1.0) + line)};
+          startn = new double[] {XMIN - ((OFFSET - 1.0) + line),
+                                 ONE * YMIN,
+                                 ZMIN - ((OFFSET - 1.0) + line)};
+          gridstartp = new double[] {XMIN,
+                                 ONE * YMAX,
+                                 ZMIN};
+          gridstartn = new double[] {XMIN,
+                                 ONE * YMIN,
+                                 ZMIN};
+        }
+        else {
+          base = new double[] {0.0, SCALE, 0.0};
+          up = new double[] {-SCALE, 0.0, SCALE};
+          startp = new double[] {XMAX + ((OFFSET - 1.0) + line),
+                                 ONE * YMAX,
+                                 ZMIN - ((OFFSET - 1.0) + line)};
+          startn = new double[] {XMAX + ((OFFSET - 1.0) + line),
+                                 ONE * YMIN,
+                                 ZMIN - ((OFFSET - 1.0) + line)};
+          gridstartp = new double[] {XMAX,
+                                 ONE * YMAX,
+                                 ZMIN};
+          gridstartn = new double[] {XMAX,
+                                 ONE * YMIN,
+                                 ZMIN};
+        }
+  
+      }
+      else if (myAxis == Z_AXIS) {
+        if (side == PRIMARY)
+        {
+          base = new double[] {0.0, 0.0, -SCALE};
+          up = new double[] {SCALE, SCALE, 0.0};
+          startp = new double[] {XMIN - ((OFFSET - 1.0) + line),
+                                 YMIN - ((OFFSET - 1.0) + line),
+                                 ONE * ZMAX};
+          startn = new double[] {XMIN - ((OFFSET - 1.0) + line),
+                                 YMIN - ((OFFSET - 1.0) + line),
+                                 ONE * ZMIN};
+          gridstartp = new double[] {XMIN,
+                                 YMIN,
+                                 ONE * ZMAX};
+          gridstartn = new double[] {XMIN,
+                                 YMIN,
+                                 ONE * ZMIN};
+        }
+        else
+        {
+          base = new double[] {0.0, 0.0, SCALE};
+          up = new double[] {-SCALE, SCALE, 0.0};
+          startp = new double[] {XMAX + ((OFFSET - 1.0) + line),
+                                 YMIN - ((OFFSET - 1.0) + line),
+                                 ONE * ZMAX};
+          startn = new double[] {XMAX + ((OFFSET - 1.0) + line),
+                                 YMIN - ((OFFSET - 1.0) + line),
+                                 ONE * ZMIN};
+          gridstartp = new double[] {XMAX,
+                                 YMIN,
+                                 ONE * ZMAX};
+          gridstartn = new double[] {XMAX,
+                                 YMIN,
+                                 ONE * ZMIN};
+        }
+      }
+  
+      if (twoD) {
+        if (myAxis == Z_AXIS) return false;  // can't have Z in 2D
+        // zero out z coordinates
+        base[2] = 0.0;
+        up[2] = 0.0;
+        startn[2] = 0.0;
+        startp[2] = 0.0;
+      }
+  
+      // VisADLineArray coordinates have three entries for (x, y, z) of each point
+      // two points determine a line segment,
+      // hence 6 coordinates entries per segment
+  
+      // base line for axis
+      if (baseLineVisible) // draw base line
       {
-        double val = hilo[0] + (j * minorTickSpacing);
-        double a = (val - min) / (max - min);
+        VisADLineArray baseLineArray = new VisADLineArray();
+        float[] lineCoordinates = new float[6];
+        for (int i=0; i<3; i++) { // loop over x, y & z coordinates
+          lineCoordinates[i] = (float) startn[i];
+          lineCoordinates[3 + i] = (float) startp[i];
+        }
+        baseLineArray.vertexCount = 2;
+        baseLineArray.coordinates = lineCoordinates;
+        lineArrayVector.add(baseLineArray);
+      }
+  
+      double range = Math.abs(dataRange[1] - dataRange[0]);
+      double min = Math.min(dataRange[0], dataRange[1]);
+      double max = Math.max(dataRange[0], dataRange[1]);
+      //System.out.println(
+      //  "range = " + range + " min = " + min + " max = " + max);
+  
+      // compute tick mark values
+      double tens = 1.0;
+      if (range < tens) {
+        tens /= 10.0;
+        while (range < tens) tens /= 10.0;
+      }
+      else {
+        while (10.0 * tens <= range) tens *= 10.0;
+      }
+      // now tens <= range < 10.0 * tens;
+      if (autoComputeTicks || majorTickSpacing <= 0)
+      {
+        double ratio = range / tens;
+        if (ratio < 2.0) {
+          tens = tens/5.0;
+        }
+        else if (ratio < 4.0) {
+          tens = tens/2.0;
+        }
+        majorTickSpacing = tens;
+      }
+      // now tens = interval between major tick marks (majorTickSpacing)
+      //System.out.println("computed ticks " + majorTickSpacing);
+  
+      double[] hilo = computeTicks(max, min, tickBase, majorTickSpacing);
+      // firstValue is the first Tick mark value
+      double firstValue = hilo[0];
+      double botval = hilo[0];
+      double topval = hilo[hilo.length-1];
+  
+      // draw major tick marks
+      VisADLineArray majorTickArray = new VisADLineArray();
+      int nticks = (int) ((topval-botval)/majorTickSpacing) + 1;
+      float[] majorCoordinates = new float[6 * nticks];
+      double[] tickup = up;
+      if (getTickOrientation() != PRIMARY)
+      {
+        if (myAxis == X_AXIS) {
+          tickup = new double[] {up[0], -up[1], -up[2]};
+        }
+        else if (myAxis == Y_AXIS) {
+          tickup = new double[] {-up[0], up[1], -up[2]};
+        }
+        else if (myAxis == Z_AXIS) {
+          tickup = new double[] {-up[0], -up[1], up[2]};
+        }
+      }
+      // initialize some stuff
+      int k = 0;
+      for (int j = 0; j< nticks; j++) //Change DRM 21-Feb-2001
+      {
+        double value = firstValue + (j * majorTickSpacing);
+        double a = (value - min) / (max - min);
         for (int i=0; i<3; i++) {
-          if ((k + 3 + i) < minorCoordinates.length) {
+          if ((k + 3 + i) < majorCoordinates.length) {
             // guard against error that cannot happen, but was seen?
-            minorCoordinates[k + i] =
+            majorCoordinates[k + i] =
               (float) ((1.0 - a) * startn[i] + a * startp[i]);
-            // minor ticks are half the size of the major ticks
-            minorCoordinates[k + 3 + i] =
-              (float) (minorCoordinates[k + i] - TICKSIZE/2 * tickup[i]);
+            majorCoordinates[k + 3 + i] =
+              (float) (majorCoordinates[k + i] - TICKSIZE * tickup[i]);
           }
         }
         k += 6;
       }
-      minorTickArray.vertexCount = 2 * (nticks);
-      minorTickArray.coordinates = minorCoordinates;
-      lineArrayVector.add(minorTickArray);
-    }
-
-    // Title and labels
-    // by default, all labels rendered centered
-     TextControl.Justification justification =
-       TextControl.Justification.CENTER;
-
-    // PlotText is controlled by the initial starting point, base (controls
-    // direction) and up (which way is up).  We handle 2D and 3D differently.
-    // In 2-D, titles are drawn along the positive direction of the axis.
-    // Labels are drawn in the Y-positive direction.
-
-
-    // Labels first
-    if (twoD) {
-      if (myAxis == X_AXIS) {
-         up = new double[] {0.0, SCALE, 0.0};
+  
+      majorTickArray.vertexCount = 2 * (nticks);
+      majorTickArray.coordinates = majorCoordinates;
+      lineArrayVector.add(majorTickArray);
+  
+      if (gridLinesVisible && l == 0) {
+        VisADLineArray gridArray = new VisADLineArray();
+        float[] gridCoordinates = new float[6 * nticks];
+        // initialize some stuff
+        k = 0;
+        double[] gridup = null;
+        if (getTickOrientation() == PRIMARY)
+        {
+          if (myAxis == X_AXIS) {
+            gridup = new double[] {0, up[1], 0};
+          }
+          else if (myAxis == Y_AXIS) {
+            gridup = new double[] {up[0], 0, 0};
+          }
+          else if (myAxis == Z_AXIS) {
+            gridup = new double[] {up[0], 0, 0};
+          }
+        } else { // secondary
+          if (myAxis == X_AXIS) {
+            gridup = new double[] {0, -up[1], 0};
+          }
+          else if (myAxis == Y_AXIS) {
+            gridup = new double[] {-up[0], 0, 0};
+          }
+          else if (myAxis == Z_AXIS) {
+            gridup = new double[] {-up[0], 0, 0};
+          }
+        }
+        double gridLength = 1.0;
+        if (myAxis == X_AXIS) {
+          gridLength = (YMAX-YMIN)/SCALE;
+        }
+        else if (myAxis == Y_AXIS) {
+          gridLength = (XMAX-XMIN)/SCALE;
+        }
+        else if (myAxis == Z_AXIS) {
+          gridLength = (XMAX-XMIN)/SCALE;
+        }
+        for (int j = 0; j< nticks; j++) //Change DRM 21-Feb-2001
+        {
+          double value = firstValue + (j * majorTickSpacing);
+          double a = (value - min) / (max - min);
+          for (int i=0; i<3; i++) {
+            if ((k + 3 + i) < gridCoordinates.length) {
+              // guard against error that cannot happen, but was seen?
+              gridCoordinates[k + i] =
+                (float) ((1.0 - a) * gridstartn[i] + a * gridstartp[i]);
+              gridCoordinates[k + 3 + i] =
+                (float) (gridCoordinates[k + i] + gridLength*gridup[i]);
+            }
+          }
+          k += 6;
+        }
+        gridArray.vertexCount = 2 * (nticks);
+        gridArray.coordinates = gridCoordinates;
+        lineArrayVector.add(gridArray);
       }
-      else if (myAxis == Y_AXIS) {
-         up = new double[] {-SCALE, 0.0, 0.0};
+  
+      if (getMinorTickSpacing() > 0)  // create an array for the minor ticks
+      {
+        hilo = computeTicks(max, min, tickBase, minorTickSpacing);
+        // now lower * minorTickSpacing = value of lowest tick mark, and
+        // upper * minorTickSpacing = values of highest tick mark
+  
+        VisADLineArray minorTickArray = new VisADLineArray();
+        // Change DRM 21-Feb-2001
+        nticks = (int) ((hilo[hilo.length-1]-hilo[0])/minorTickSpacing) + 1;
+        float[] minorCoordinates = new float[6 * nticks];
+  
+        // draw tick marks
+        k = 0;
+        //for (long j=lower; j<=upper; j++) {  // Change DRM 21-Feb-2001
+        for (int j = 0; j < nticks; j++)
+        {
+          double val = hilo[0] + (j * minorTickSpacing);
+          double a = (val - min) / (max - min);
+          for (int i=0; i<3; i++) {
+            if ((k + 3 + i) < minorCoordinates.length) {
+              // guard against error that cannot happen, but was seen?
+              minorCoordinates[k + i] =
+                (float) ((1.0 - a) * startn[i] + a * startp[i]);
+              // minor ticks are half the size of the major ticks
+              minorCoordinates[k + 3 + i] =
+                (float) (minorCoordinates[k + i] - TICKSIZE/2 * tickup[i]);
+            }
+          }
+          k += 6;
+        }
+        minorTickArray.vertexCount = 2 * (nticks);
+        minorTickArray.coordinates = minorCoordinates;
+        lineArrayVector.add(minorTickArray);
       }
-    }
-
-    // Draw the labels.  If user hasn't defined their own, make defaults.
-    if (!userLabels) {
-      createStandardLabels(topval, botval, botval, 
-                           (labelAllTicks == false)
-                              ?(topval - botval):majorTickSpacing, 
-                           false);
-    }
-
-    double dist = 1.0 + TICKSIZE;   // dist from the line in the up direction;
-    double[] updir = (twoD != true) ? up : new double[] {0.0, SCALE, 0.0};
-    if (twoD) {
-      base = new double[] {SCALE, 0.0, 0.0};
-      if (myAxis == X_AXIS) {
-         dist = (getSide() == PRIMARY)
-           ? (1.0 + TICKSIZE + .15)
-           : -(TICKSIZE + .15);
+  
+      // Title and labels
+      // by default, all labels rendered centered
+       TextControl.Justification justification =
+         TextControl.Justification.CENTER;
+  
+      // PlotText is controlled by the initial starting point, base (controls
+      // direction) and up (which way is up).  We handle 2D and 3D differently.
+      // In 2-D, titles are drawn along the positive direction of the axis.
+      // Labels are drawn in the Y-positive direction.
+  
+  
+      // Labels first
+      if (twoD) {
+        if (myAxis == X_AXIS) {
+           up = new double[] {0.0, SCALE, 0.0};
+        }
+        else if (myAxis == Y_AXIS) {
+           up = new double[] {-SCALE, 0.0, 0.0};
+        }
       }
-      else if (myAxis == Y_AXIS) {
-         dist = (getSide() == PRIMARY)
-           ? -(TICKSIZE + .15)
-           : (TICKSIZE + .15);
-         justification =
-           (getSide() == PRIMARY)
-               ? TextControl.Justification.RIGHT
-               : TextControl.Justification.LEFT;
+  
+      // Draw the labels.  If user hasn't defined their own, make defaults.
+      if (!userLabels) {
+        createStandardLabels(topval, botval, botval, 
+                             (labelAllTicks == false)
+                                ?(topval - botval):majorTickSpacing, 
+                             false);
       }
-    }
-
-    // Added by Luke Catania on 05/07/2002
-    // Added maximumYAxisTickLabelSize & yAxisLabelLength to calculate 
-    // offset for Y-Axis label.
-    //
-    int maximumYAxisTickLabelSize = 1;
-    int yAxisLabelLength=0;
-    for (Enumeration e = labelTable.keys(); e.hasMoreElements();)
-    {
-      Double Value;
-      try {
-        Value = (Double) e.nextElement();
-      } catch (ClassCastException cce) {
-        throw new VisADException("Invalid keys in label hashtable");
+  
+      double dist = 1.0 + TICKSIZE;   // dist from the line in the up direction;
+      double[] updir = (twoD != true) ? up : new double[] {0.0, SCALE, 0.0};
+      if (twoD) {
+        base = new double[] {SCALE, 0.0, 0.0};
+        if (myAxis == X_AXIS) {
+           dist = (side == PRIMARY)
+             ? (1.0 + TICKSIZE + .15)
+             : -(TICKSIZE + .15);
+        }
+        else if (myAxis == Y_AXIS) {
+           dist = (side == PRIMARY)
+             ? -(TICKSIZE + .15)
+             : (TICKSIZE + .15);
+           justification =
+             (side == PRIMARY)
+                 ? TextControl.Justification.RIGHT
+                 : TextControl.Justification.LEFT;
+        }
       }
-      double test = Value.doubleValue();
-      if (test > max || test < min) continue; // don't draw labels beyond range
-
-      // Added by Luke Catania on 05/07/2002 - mods by DRM 28-Oct-2002
-      // For Y-Axis only, calculate offset for axis label, so it does 
-      // not overlap the tick labels.
-      if (myAxis == Y_AXIS) {
-        yAxisLabelLength = ((String) labelTable.get(Value)).length();
-        if (yAxisLabelLength > maximumYAxisTickLabelSize)
-          maximumYAxisTickLabelSize = yAxisLabelLength;
+  
+      // Added by Luke Catania on 05/07/2002
+      // Added maximumYAxisTickLabelSize & yAxisLabelLength to calculate 
+      // offset for Y-Axis label.
+      //
+      int maximumYAxisTickLabelSize = 1;
+      int yAxisLabelLength=0;
+      for (Enumeration e = labelTable.keys(); e.hasMoreElements();)
+      {
+        Double Value;
+        try {
+          Value = (Double) e.nextElement();
+        } catch (ClassCastException cce) {
+          throw new VisADException("Invalid keys in label hashtable");
+        }
+        double test = Value.doubleValue();
+        if (test > max || test < min) continue; // don't draw labels beyond range
+  
+        // Added by Luke Catania on 05/07/2002 - mods by DRM 28-Oct-2002
+        // For Y-Axis only, calculate offset for axis label, so it does 
+        // not overlap the tick labels.
+        if (myAxis == Y_AXIS) {
+          yAxisLabelLength = ((String) labelTable.get(Value)).length();
+          if (yAxisLabelLength > maximumYAxisTickLabelSize)
+            maximumYAxisTickLabelSize = yAxisLabelLength;
+        }
+        double val = (test - min) / (max - min);
+        // center label on tick if Y axis and 2D
+        if ((myAxis == Y_AXIS) && (twoD == true)) val -= .2 * SCALE; // HACK!!!!!
+  
+        double[] point = new double[3];
+        for (int j=0; j < 3; j++) {
+          point[j] = (1.0 - val) * startn[j] + val * startp[j] - dist * up[j];
+  
+  //        if (myAxis == Y_AXIS) System.out.println("Axis & Tick Label Position for " + test + ": " + startn[j] + ":" + startp[j] + ":" + point[j]);
+        }
+  
+        /*
+        System.out.println("For label = " + Value.doubleValue() + "(" + val + "), point is (" + point[0] + "," + point[1] + "," + point[2] + ")");
+        */
+  
+        if (labelFont == null)
+        {
+          VisADLineArray label =
+            PlotText.render_label(
+              (String) labelTable.get(Value), point, base, updir, justification);
+          lineArrayVector.add(label);
+        }
+        else if (labelFont instanceof Font)
+        {
+          VisADTriangleArray label =
+            PlotText.render_font(
+                (String) labelTable.get(Value), (Font) labelFont, point, base,
+                updir, justification);
+          labelArrayVector.add(label);
+  
+        } else if (labelFont instanceof HersheyFont) {
+          VisADLineArray label =
+            PlotText.render_font(
+                (String) labelTable.get(Value), (HersheyFont) labelFont,
+                   point, base, updir, justification);
+          lineArrayVector.add(label);
+        }
       }
-      double val = (test - min) / (max - min);
-      // center label on tick if Y axis and 2D
-      if ((myAxis == Y_AXIS) && (twoD == true)) val -= .2 * SCALE; // HACK!!!!!
-
-      double[] point = new double[3];
-      for (int j=0; j < 3; j++) {
-        point[j] = (1.0 - val) * startn[j] + val * startp[j] - dist * up[j];
-
-//        if (myAxis == Y_AXIS) System.out.println("Axis & Tick Label Position for " + test + ": " + startn[j] + ":" + startp[j] + ":" + point[j]);
+  
+      // Title
+      double[] startlabel = new double[3];
+      dist = 2.0 + TICKSIZE;   // dist from the line in the up direction;
+      justification =
+         TextControl.Justification.CENTER;
+      if (twoD) {
+        if (myAxis == X_AXIS) {
+           base = new double[] {SCALE, 0.0, 0.0};
+           up = new double[] {0.0, SCALE, 0.0};
+           dist = (side == PRIMARY)
+             ? 2.5 + TICKSIZE
+             : -(1.5 + TICKSIZE - .05);
+        }
+        else if (myAxis == Y_AXIS) {
+           base = new double[] {0.0, SCALE, 0.0};
+           up = new double[] {-SCALE, 0.0, 0.0};
+           dist = (side == PRIMARY)
+             ? -(.5 + TICKSIZE + maximumYAxisTickLabelSize)
+             : (.5 + TICKSIZE + maximumYAxisTickLabelSize) ;
+        }
       }
-
+      for (int i=0; i<3; i++) {
+        startlabel[i] = 0.5 * (startn[i] + startp[i]) - dist * up[i];
+      }
       /*
-      System.out.println("For label = " + Value.doubleValue() + "(" + val + "), point is (" + point[0] + "," + point[1] + "," + point[2] + ")");
+      System.out.println("For title, point is (" +
+        startlabel[0] + "," + startlabel[1] + "," + startlabel[2] + ")");
       */
-
+  
       if (labelFont == null)
       {
-        VisADLineArray label =
-          PlotText.render_label(
-            (String) labelTable.get(Value), point, base, updir, justification);
-        lineArrayVector.add(label);
+        VisADLineArray plotArray =
+          PlotText.render_label(myTitle, startlabel, base, up, justification);
+        lineArrayVector.add(plotArray);
       }
-      else if (labelFont instanceof Font)
+      else if (labelFont instanceof java.awt.Font)
       {
-        VisADTriangleArray label =
-          PlotText.render_font(
-              (String) labelTable.get(Value), (Font) labelFont, point, base,
-              updir, justification);
-        labelArrayVector.add(label);
-
-      } else if (labelFont instanceof HersheyFont) {
-        VisADLineArray label =
-          PlotText.render_font(
-              (String) labelTable.get(Value), (HersheyFont) labelFont,
-                 point, base, updir, justification);
-        lineArrayVector.add(label);
+        VisADTriangleArray nameArray =
+          PlotText.render_font(myTitle, (Font) labelFont,
+                               startlabel, base, up, justification);
+        labelArrayVector.add(nameArray);
+      } else if (labelFont instanceof visad.util.HersheyFont) {
+        VisADLineArray plotArray =
+          PlotText.render_font(myTitle, (HersheyFont) labelFont,
+                               startlabel, base, up, justification);
+        lineArrayVector.add(plotArray);
       }
-    }
-
-    // Title
-    double[] startlabel = new double[3];
-    dist = 2.0 + TICKSIZE;   // dist from the line in the up direction;
-    justification =
-       TextControl.Justification.CENTER;
-    if (twoD) {
-      if (myAxis == X_AXIS) {
-         base = new double[] {SCALE, 0.0, 0.0};
-         up = new double[] {0.0, SCALE, 0.0};
-         dist = (getSide() == PRIMARY)
-           ? 2.5 + TICKSIZE
-           : -(1.5 + TICKSIZE - .05);
+  
+      // merge the line arrays
+      VisADLineArray[] arrays =
+          (VisADLineArray[]) lineArrayVector.toArray(
+            new VisADLineArray[lineArrayVector.size()]);
+      scaleArray = VisADLineArray.merge(arrays);
+  
+      // merge the label arrays
+      if ( !(labelArrayVector.isEmpty()) )
+      {
+        VisADTriangleArray[] labelArrays =
+            (VisADTriangleArray[]) labelArrayVector.toArray(
+              new VisADTriangleArray[labelArrayVector.size()]);
+        labelArray = VisADTriangleArray.merge(labelArrays);
+        // set the color for the label arrays
+        float[] rgb = myColor.getColorComponents(null);
+        byte red = ShadowType.floatToByte(rgb[0]);
+        byte green = ShadowType.floatToByte(rgb[1]);
+        byte blue = ShadowType.floatToByte(rgb[2]);
+        int n = 3 * labelArray.vertexCount;
+        byte[] colors = new byte[n];
+        for (int i=0; i<n; i+=3) {
+          colors[i] = red;
+          colors[i+1] = green;
+          colors[i+2] = blue;
+        }
+        labelArray.colors = colors;
       }
-      else if (myAxis == Y_AXIS) {
-         base = new double[] {0.0, SCALE, 0.0};
-         up = new double[] {-SCALE, 0.0, 0.0};
-         dist = (getSide() == PRIMARY)
-           ? -(.5 + TICKSIZE + maximumYAxisTickLabelSize)
-           : (.5 + TICKSIZE + maximumYAxisTickLabelSize) ;
-      }
-    }
-    for (int i=0; i<3; i++) {
-      startlabel[i] = 0.5 * (startn[i] + startp[i]) - dist * up[i];
-    }
-    /*
-    System.out.println("For title, point is (" +
-      startlabel[0] + "," + startlabel[1] + "," + startlabel[2] + ")");
-    */
-
-    if (labelFont == null)
-    {
-      VisADLineArray plotArray =
-        PlotText.render_label(myTitle, startlabel, base, up, justification);
-      lineArrayVector.add(plotArray);
-    }
-    else if (labelFont instanceof java.awt.Font)
-    {
-      VisADTriangleArray nameArray =
-        PlotText.render_font(myTitle, (Font) labelFont,
-                             startlabel, base, up, justification);
-      labelArrayVector.add(nameArray);
-    } else if (labelFont instanceof visad.util.HersheyFont) {
-      VisADLineArray plotArray =
-        PlotText.render_font(myTitle, (HersheyFont) labelFont,
-                             startlabel, base, up, justification);
-      lineArrayVector.add(plotArray);
-    }
-
-    // merge the line arrays
-    VisADLineArray[] arrays =
-        (VisADLineArray[]) lineArrayVector.toArray(
-          new VisADLineArray[lineArrayVector.size()]);
-    scaleArray = VisADLineArray.merge(arrays);
-
-    // merge the label arrays
-    if ( !(labelArrayVector.isEmpty()) )
-    {
-      VisADTriangleArray[] labelArrays =
-          (VisADTriangleArray[]) labelArrayVector.toArray(
-            new VisADTriangleArray[labelArrayVector.size()]);
-      labelArray = VisADTriangleArray.merge(labelArrays);
-      // set the color for the label arrays
-      float[] rgb = myColor.getColorComponents(null);
-      byte red = ShadowType.floatToByte(rgb[0]);
-      byte green = ShadowType.floatToByte(rgb[1]);
-      byte blue = ShadowType.floatToByte(rgb[2]);
-      int n = 3 * labelArray.vertexCount;
-      byte[] colors = new byte[n];
-      for (int i=0; i<n; i+=3) {
-        colors[i] = red;
-        colors[i+1] = green;
-        colors[i+2] = blue;
-      }
-      labelArray.colors = colors;
     }
 
     return true;
@@ -1312,6 +1417,51 @@ public class AxisScale implements java.io.Serializable
    */
   public boolean isVisible() {
     return scalarMap.getScaleEnable();
+  }
+
+  /**
+   * Set the visibility of the grid lines; Grid lines are placed
+   * at major tick marks.
+   * @param visibile  true to display the grid lines
+   */
+  public void setGridLinesVisible(boolean show) {
+    boolean oldShow = gridLinesVisible;
+    gridLinesVisible = show;
+    if (!(oldShow == show) ) {
+      try {
+        scalarMap.makeScale();  // update the display
+      } catch (VisADException ve) {;}
+    }
+  }
+
+  /**
+   * Get the visibility of the grid lines
+   * @return true if grid lines are being rendered
+   */
+  public boolean getGridLinesVisible() {
+    return gridLinesVisible;
+  }
+
+  /**
+   * Set the visibility of the AxisScale
+   * @param visibile  true to display the AxisScale
+   */
+  public void setLabelBothSides(boolean both) {
+    boolean oldBoth = labelBothSides;
+    labelBothSides = both;
+    if (!(oldBoth == both) ) {
+      try {
+        scalarMap.makeScale();  // update the display
+      } catch (VisADException ve) {;}
+    }
+  }
+
+  /**
+   * Get the visibility of the AxisScale
+   * @return true if AxisScale is being rendered
+   */
+  public boolean getLabelBothSides() {
+    return labelBothSides;
   }
 
 
