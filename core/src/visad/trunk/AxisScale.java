@@ -662,36 +662,17 @@ public class AxisScale implements java.io.Serializable
         // initialize some stuff
         k = 0;
         double[] gridup = null;
-        if (getTickOrientation() == PRIMARY)
-        {
-          if (myAxis == X_AXIS) {
-            gridup = new double[] {0, up[1], 0};
-          }
-          else if (myAxis == Y_AXIS) {
-            gridup = new double[] {up[0], 0, 0};
-          }
-          else if (myAxis == Z_AXIS) {
-            gridup = new double[] {up[0], 0, 0};
-          }
-        } else { // secondary
-          if (myAxis == X_AXIS) {
-            gridup = new double[] {0, -up[1], 0};
-          }
-          else if (myAxis == Y_AXIS) {
-            gridup = new double[] {-up[0], 0, 0};
-          }
-          else if (myAxis == Z_AXIS) {
-            gridup = new double[] {-up[0], 0, 0};
-          }
-        }
         double gridLength = 1.0;
         if (myAxis == X_AXIS) {
+          gridup = new double[] {0, up[1], 0};
           gridLength = (YMAX-YMIN)/SCALE;
         }
         else if (myAxis == Y_AXIS) {
+          gridup = new double[] {up[0], 0, 0};
           gridLength = (XMAX-XMIN)/SCALE;
         }
         else if (myAxis == Z_AXIS) {
+          gridup = new double[] {up[0], 0, 0};
           gridLength = (XMAX-XMIN)/SCALE;
         }
         for (int j = 0; j< nticks; j++) //Change DRM 21-Feb-2001
@@ -1009,6 +990,8 @@ public class AxisScale implements java.io.Serializable
     newScale.tickOrient = tickOrient;
     newScale.userLabels = userLabels;
     newScale.labelAllTicks = labelAllTicks;
+    newScale.gridLinesVisible = gridLinesVisible;
+    newScale.labelBothSides = labelBothSides;
     return newScale;
   }
 
