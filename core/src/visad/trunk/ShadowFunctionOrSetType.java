@@ -3131,40 +3131,172 @@ WLH 15 March 2000 */
   public BufferedImage createImage(int data_width, int data_height,
                        int texture_width, int texture_height,
                        byte[][] color_values) throws VisADException {
-    BufferedImage image = null;
+    return createImage(data_width, data_height,
+      texture_width, texture_height, color_values, false);
+  }
 
-    if (data_width > texture_width || data_height > texture_height) {
-      throw new VisADException(
-        "Data dimensions cannot exceed texture dimensions");
+  public BufferedImage createImage(int data_width, int data_height,
+                       int texture_width, int texture_height,
+                       byte[][] color_values, boolean byRef)
+                       throws VisADException {
+    if (byRef) {
+      if (data_width > texture_width || data_height > texture_height) {
+        throw new VisADException(
+          "Data dimensions cannot exceed texture dimensions");
+      }
+      int size = texture_width * texture_height;
+      if (data_width != texture_width || data_height != texture_height) {
+        // expand color_values array to match texture size
+        byte[][] new_color_values =
+          new byte[color_values.length][size];
+        for (int c=0; c<color_values.length; c++) {
+          for (int h=0; h<data_height; h++) {
+            System.arraycopy(color_values[c], data_width * h,
+              new_color_values[c], texture_width * h, data_width);
+          }
+        }
+        color_values = new_color_values;
+      }
+
+      // CTR 17 Jan 2006 - create BufferedImage with TYPE_CUSTOM of the form
+      // "TYPE_3BYTE_RGB" or "TYPE_4BYTE_RGBA", since those types can work with
+      // Java3D texturing by reference
+      ColorSpace colorSpace = ColorSpace.getInstance(ColorSpace.CS_sRGB);
+      ColorModel colorModel = new ComponentColorModel(colorSpace,
+        color_values.length > 3, false, ColorModel.TRANSLUCENT,
+        DataBuffer.TYPE_BYTE);
+      SampleModel sampleModel = new BandedSampleModel(DataBuffer.TYPE_BYTE,
+        texture_width, texture_height, color_values.length);
+      DataBuffer buffer = new DataBufferByte(color_values, size);
+      WritableRaster raster =
+        Raster.createWritableRaster(sampleModel, buffer, null);
+      return new BufferedImage(colorModel, raster, false, null);
     }
-    int size = texture_width * texture_height;
-    if (data_width != texture_width || data_height != texture_height) {
-      // expand color_values array to match texture size
-      byte[][] new_color_values =
-        new byte[color_values.length][size];
-      for (int c=0; c<color_values.length; c++) {
-        for (int h=0; h<data_height; h++) {
-          System.arraycopy(color_values[c], data_width * h,
-            new_color_values[c], texture_width * h, data_width);
+
+    BufferedImage image = null;
+    if (color_values.length > 3) {
+      ColorModel colorModel = ColorModel.getRGBdefault();
+      WritableRaster raster =
+        colorModel.createCompatibleWritableRaster(texture_width, texture_height);
+      DataBuffer db = raster.getDataBuffer();
+      if (!(db instanceof DataBufferInt)) {
+        throw new UnimplementedException("getRGBdefault isn't DataBufferInt");
+      }
+      image = new BufferedImage(colorModel, raster, false, null);
+      int[] intData = ((DataBufferInt)db).getData();
+      int k = 0;
+      int m = 0;
+      int r, g, b, a;
+      for (int j=0; j<data_height; j++) {
+        for (int i=0; i<data_width; i++) {
+          r = (color_values[0][k] < 0) ? color_values[0][k] + 256 :
+                                         color_values[0][k];
+          g = (color_values[1][k] < 0) ? color_values[1][k] + 256 :
+                                         color_values[1][k];
+          b = (color_values[2][k] < 0) ? color_values[2][k] + 256 :
+                                         color_values[2][k];
+          a = (color_values[3][k] < 0) ? color_values[3][k] + 256 :
+                                         color_values[3][k];
+          intData[m++] = ((a << 24) | (r << 16) | (g << 8) | b);
+          k++;
+        }
+        for (int i=data_width; i<texture_width; i++) {
+          intData[m++] = 0;
         }
       }
-      color_values = new_color_values;
+      for (int j=data_height; j<texture_height; j++) {
+        for (int i=0; i<texture_width; i++) {
+          intData[m++] = 0;
+        }
+      }
     }
+    else { // (color_values.length == 3)
+      ColorModel colorModel = ColorModel.getRGBdefault();
+      WritableRaster raster =
+        colorModel.createCompatibleWritableRaster(texture_width, texture_height);
 
-    // CTR 17 Jan 2006 - create BufferedImage with TYPE_CUSTOM of the form
-    // "TYPE_3BYTE_RGB" or "TYPE_4BYTE_RGBA", since those types can work with
-    // Java3D texturing by reference
-    ColorSpace colorSpace = ColorSpace.getInstance(ColorSpace.CS_sRGB);
-    ColorModel colorModel = new ComponentColorModel(colorSpace,
-      color_values.length > 3, false, ColorModel.TRANSLUCENT,
-      DataBuffer.TYPE_BYTE);
-    SampleModel sampleModel = new BandedSampleModel(DataBuffer.TYPE_BYTE,
-      texture_width, texture_height, color_values.length);
-    DataBuffer buffer = new DataBufferByte(color_values, size);
-    WritableRaster raster =
-      Raster.createWritableRaster(sampleModel, buffer, null);
-    image = new BufferedImage(colorModel, raster, false, null);
+      // WLH 2 Nov 2000
+      DataBuffer db = raster.getDataBuffer();
+      int[] intData = null;
+      if (db instanceof DataBufferInt) {
+        intData = ((DataBufferInt)db).getData();
+        image = new BufferedImage(colorModel, raster, false, null);
+      }
+      else {
+// System.out.println("byteData 3 1");
+        image = new BufferedImage(texture_width, texture_height,
+                                  BufferedImage.TYPE_INT_RGB);
+        intData = new int[texture_width * texture_height];
+/*
+        ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_sRGB); 
+        int[] nBits = {8, 8, 8};
+        colorModel =
+          new ComponentColorModel(cs, nBits, false, false, Transparency.OPAQUE, 0); 
+        raster = 
+          colorModel.createCompatibleWritableRaster(texture_width, texture_height);
+*/
+      }
 
+      // image = new BufferedImage(colorModel, raster, false, null);
+      // int[] intData = ((DataBufferInt)raster.getDataBuffer()).getData();
+      int k = 0;
+      int m = 0;
+      int r, g, b, a;
+      for (int j=0; j<data_height; j++) {
+        for (int i=0; i<data_width; i++) {
+          r = (color_values[0][k] < 0) ? color_values[0][k] + 256 :
+                                         color_values[0][k];
+          g = (color_values[1][k] < 0) ? color_values[1][k] + 256 :
+                                         color_values[1][k];
+          b = (color_values[2][k] < 0) ? color_values[2][k] + 256 :
+                                         color_values[2][k];
+          a = 255;
+          intData[m++] = ((a << 24) | (r << 16) | (g << 8) | b);
+          k++;
+        }
+        for (int i=data_width; i<texture_width; i++) {
+          intData[m++] = 0;
+        }
+      }
+      for (int j=data_height; j<texture_height; j++) {
+        for (int i=0; i<texture_width; i++) {
+          intData[m++] = 0;
+        }
+      }
+
+      // WLH 2 Nov 2000
+      if (!(db instanceof DataBufferInt)) {
+// System.out.println("byteData 3 2");
+        image.setRGB(0, 0, texture_width, texture_height, intData, 0, texture_width);
+/*
+        byte[] byteData = ((DataBufferByte)raster.getDataBuffer()).getData();
+        k = 0;
+        for (int i=0; i<intData.length; i++) {
+          byteData[k++] = (byte) (intData[i] & 255);
+          byteData[k++] = (byte) ((intData[i] >> 8) & 255);
+          byteData[k++] = (byte) ((intData[i] >> 16) & 255);
+        }
+*/
+/* WLH 4 Nov 2000, from com.sun.j3d.utils.geometry.Text2D
+        // For now, jdk 1.2 only handles ARGB format, not the RGBA we want
+        BufferedImage bImage = new BufferedImage(width, height,
+                                                 BufferedImage.TYPE_INT_ARGB);
+        Graphics offscreenGraphics = bImage.createGraphics();
+
+        // First, erase the background to the text panel - set alpha to 0
+        Color myFill = new Color(0f, 0f, 0f, 0f);
+        offscreenGraphics.setColor(myFill);
+        offscreenGraphics.fillRect(0, 0, width, height);
+
+        // Next, set desired text properties (font, color) and draw String
+        offscreenGraphics.setFont(font);
+        Color myTextColor = new Color(color.x, color.y, color.z, 1f);
+        offscreenGraphics.setColor(myTextColor);
+        offscreenGraphics.drawString(text, 0, height - descent);
+*/
+      } // end if (!(db instanceof DataBufferInt))
+
+    } // end if (color_values.length == 3)
     return image;
   }
 
