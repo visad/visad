@@ -785,7 +785,11 @@ public class AxisScale implements java.io.Serializable
       //
       int maximumYAxisTickLabelSize = 1;
       int yAxisLabelLength=0;
-      for (Enumeration e = labelTable.keys(); e.hasMoreElements();)
+      Hashtable localTable;
+      synchronized(labelTable) {
+          localTable = new Hashtable(labelTable);
+      }
+      for (Enumeration e = localTable.keys(); e.hasMoreElements();)
       {
         Double Value;
         try {
@@ -800,7 +804,7 @@ public class AxisScale implements java.io.Serializable
         // For Y-Axis only, calculate offset for axis label, so it does 
         // not overlap the tick labels.
         if (myAxis == Y_AXIS) {
-          yAxisLabelLength = ((String) labelTable.get(Value)).length();
+          yAxisLabelLength = ((String) localTable.get(Value)).length();
           if (yAxisLabelLength > maximumYAxisTickLabelSize)
             maximumYAxisTickLabelSize = yAxisLabelLength;
         }
@@ -822,22 +826,21 @@ public class AxisScale implements java.io.Serializable
         if (labelFont == null)
         {
           VisADLineArray label =
-            PlotText.render_label(
-              (String) labelTable.get(Value), point, base, updir, justification);
+            PlotText.render_label((String) localTable.get(Value), point, base, updir, justification);
           lineArrayVector.add(label);
         }
         else if (labelFont instanceof Font)
         {
           VisADTriangleArray label =
             PlotText.render_font(
-                (String) labelTable.get(Value), (Font) labelFont, point, base,
+                (String) localTable.get(Value), (Font) labelFont, point, base,
                 updir, justification);
           labelArrayVector.add(label);
   
         } else if (labelFont instanceof HersheyFont) {
           VisADLineArray label =
             PlotText.render_font(
-                (String) labelTable.get(Value), (HersheyFont) labelFont,
+                (String) localTable.get(Value), (HersheyFont) labelFont,
                    point, base, updir, justification);
           lineArrayVector.add(label);
         }
@@ -1112,12 +1115,14 @@ public class AxisScale implements java.io.Serializable
   private void createStandardLabels(
     double max, double min, double base, double increment, boolean byuser)
   {
-    labelTable.clear();
-    double[] values = computeTicks(max, min, base, increment);
-    if (values != null) {
-      for (int i = 0; i < values.length; i++) {
-        labelTable.put(new Double(values[i]), createLabelString(values[i]));
-      }
+    synchronized(labelTable) {
+       labelTable.clear();
+       double[] values = computeTicks(max, min, base, increment);
+       if (values != null) {
+          for (int i = 0; i < values.length; i++) {
+            labelTable.put(new Double(values[i]), createLabelString(values[i]));
+          }
+        }
     }
     if (byuser) {
       try {
