@@ -72,6 +72,10 @@ public class ScalarMap extends Object
 
   /** ranges of values of Scalar */
   private double[] dataRange = new double[2];
+  
+  /** ranges of values of Scalar in default units*/
+  private double[] defaultUnitRange = new double[2];
+
   /** scale and offset */
   private double scale, offset;
 
@@ -150,6 +154,8 @@ public class ScalarMap extends Object
     isManual = false;
     dataRange[0] = Double.NaN;
     dataRange[1] = Double.NaN;
+    defaultUnitRange[0] = dataRange[0];
+    defaultUnitRange[1] = dataRange[1];
     OldTick = Long.MIN_VALUE;
     NewTick = Long.MIN_VALUE + 1;
     tickFlag = false;
@@ -657,44 +663,12 @@ if (shadow != null || remoteId != VisADEvent.LOCAL_SOURCE) {
 */
     // at this point dataRange is range for Scalar default Unit
     //   even if (overrideUnit != null)
+    // DRM 17 Feb 2006 - so set the defaultUnitRange to be these values.
+    defaultUnitRange[0] = dataRange[0];
+    defaultUnitRange[1] = dataRange[1];
+
     if (isScaled) {
       computeScaleAndOffset();
-/* WLH 24 Nov 2000
-      if (dataRange[0] == Double.MAX_VALUE ||
-          dataRange[1] == -Double.MAX_VALUE) {
-        dataRange[0] = Double.NaN;
-        dataRange[1] = Double.NaN;
-        scale = Double.NaN;
-        offset = Double.NaN;
-      }
-      else {
-        if (dataRange[0] == dataRange[1]) {
-          // WLH 11 April 2000
-          double half = dataRange[0] / 2000.0;
-          if (half < 0.5) half = 0.5;
-          dataRange[0] -= half;
-          dataRange[1] += half;
-        }
-
-        // WLH 31 Aug 2000
-        if (overrideUnit != null) {
-          // now convert dataRange to overrideUnit
-          dataRange[0] = dataRange[0] * override_scale + override_offset;
-          dataRange[1] = dataRange[1] * override_scale + override_offset;
-        }
-
-        scale = (displayRange[1] - displayRange[0]) /
-                (dataRange[1] - dataRange[0]);
-        offset = displayRange[0] - scale * dataRange[0];
-      }
-      if (Double.isInfinite(scale) || Double.isInfinite(offset) ||
-          scale != scale || offset != offset) {
-        dataRange[0] = Double.NaN;
-        dataRange[1] = Double.NaN;
-        scale = Double.NaN;
-        offset = Double.NaN;
-      }
-*/
     }
     else { // if (!isScaled)
       if (dataRange[0] == Double.MAX_VALUE ||
@@ -706,8 +680,8 @@ if (shadow != null || remoteId != VisADEvent.LOCAL_SOURCE) {
       // WLH 31 Aug 2000
       if (overrideUnit != null) {
         // now convert dataRange to overrideUnit
-        dataRange[0] = dataRange[0] * override_scale + override_offset;
-        dataRange[1] = dataRange[1] * override_scale + override_offset;
+        dataRange[0] = defaultUnitRange[0] * override_scale + override_offset;
+        dataRange[1] = defaultUnitRange[1] * override_scale + override_offset;
       }
 
     }
@@ -794,6 +768,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
   }
 
   private void computeScaleAndOffset() {
+
     if (dataRange[0] == Double.MAX_VALUE ||
         dataRange[1] == -Double.MAX_VALUE) {
       dataRange[0] = Double.NaN;
@@ -813,8 +788,8 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
       // WLH 31 Aug 2000
       if (overrideUnit != null) {
         // now convert dataRange to overrideUnit
-        dataRange[0] = dataRange[0] * override_scale + override_offset;
-        dataRange[1] = dataRange[1] * override_scale + override_offset;
+        dataRange[0] = defaultUnitRange[0] * override_scale + override_offset;
+        dataRange[1] = defaultUnitRange[1] * override_scale + override_offset;
       }
 
       scale = (displayRange[1] - displayRange[0]) /
@@ -828,6 +803,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
       scale = Double.NaN;
       offset = Double.NaN;
     }
+
   }
 
   /** add a ScalarMapListener, to be notified whenever setRange is
@@ -1332,6 +1308,8 @@ System.out.println("inverse values = " + values[0] + " " + old_values[0] + " " +
     map.isManual = isManual;
     map.dataRange[0] = dataRange[0];
     map.dataRange[1] = dataRange[1];
+    map.defaultUnitRange[0] = defaultUnitRange[0];
+    map.defaultUnitRange[1] = defaultUnitRange[1];
     map.displayRange[0] = displayRange[0];
     map.displayRange[1] = displayRange[1];
     map.scale = scale;
