@@ -873,6 +873,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       for (int j=0; j<old_len; j++) {
         if (!old_mark[j]) {
           ((RendererJ3D) renderer).flush(old_nodes[j]);
+          old_nodes[j] = null;
         }
       }
       // make sure group is live
@@ -884,6 +885,9 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           ((ImageRendererJ3D) renderer).getSetSetOnReUseFrames()) {
         control.setSet(domain_set, true);
       }
+      old_nodes = null;
+      old_times = null;
+      old_mark = null;
 
       // render new frames
       for (int i=0; i<len; i++) {
