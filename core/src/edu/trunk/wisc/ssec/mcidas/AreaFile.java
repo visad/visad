@@ -774,6 +774,9 @@ public class AreaFile implements java.io.Serializable {
       McIDASUtil.flip(nav,1,119);
     }
 
+    else if (nav[0] == AREAnav.GMSX) {
+
+    }
     else {
       McIDASUtil.flip(nav,1,nav.length-1);
     }

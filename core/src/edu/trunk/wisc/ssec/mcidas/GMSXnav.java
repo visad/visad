@@ -72,7 +72,6 @@ public class GMSXnav extends AREAnav
   private double [] ss = new double[3];
   private double [][] orbt1 = new double[35][8];
   private double [][] atit = new double[10][10];
-  private static String fileName = "GMSXAREA";
 
   // class constants
   private static final double cdr = Math.PI / 180.0d;
@@ -82,92 +81,6 @@ public class GMSXnav extends AREAnav
   private static final double ea = 6378136.0d;
   private static final double ef = 1.0d / 298.257d;
 
-  // main is used for unit testing
-
-  public static void main(String[] args) {
-
-    int [] navBlock = new int[800];
-    int [] dirBlock = new int[64];
-    DataInputStream dis = null;
-    GMSXnav gmsx = null;
-
-    System.out.println("unit test of class GMSXnav begin...");
-
-    // test assumes presence of test area called GMSXAREA
-    try {
-      dis = new DataInputStream (
-        new BufferedInputStream(new FileInputStream(fileName), 2048)
-      );
-    } catch (Exception e) {
-      System.out.println("error creating DataInputStream: " + e);
-      System.exit(0);
-    }
-
-    // read and discard the directory
-    System.out.println("reading in, discarding directory words...");
-    try {
-      for (int i = 0; i < 64; i++) {
-        dirBlock[i] = dis.readInt();
-      }
-    } catch (IOException e) {
-      System.out.println("error reading area file directory: " + e);
-      System.exit(0);
-    }
-
-    // now read in the navigation data
-    System.out.println("reading in navigation words...");
-    try {
-      for (int i = 0; i < navBlock.length; i++) {
-        navBlock[i] = dis.readInt();
-      }
-    } catch (IOException e) {
-      System.out.println("error reading area file navigation data: " + e);
-      System.exit(0);
-    }
-
-    if (navBlock[0] != GMSX) {
-      System.out.println("error: not a GMS navigation block.");
-      System.exit(0);
-    } 
-
-    System.out.println("creating GMSXnav object...");
-    gmsx = new GMSXnav(navBlock);
-    gmsx.setImageStart(dirBlock[5], dirBlock[6]);
-    gmsx.setRes(dirBlock[11], dirBlock[12]);
-    gmsx.setStart(1,1);
-    gmsx.setFlipLineCoordinates(dirBlock[8]); // invert Y axis coordinates
-
-    System.out.println(" test of toLatLon...");
-    System.out.println("  answer should be close to: -2.37, 133.31");
-
-    double [][] linEle = new double [2][1];
-    double [][] latLon = new double [2][1];
-    linEle[gmsx.indexLine][0] = 471.0f;
-    linEle[gmsx.indexEle][0] = 323.0f;
-
-    latLon = gmsx.toLatLon(linEle);
-    System.out.println("  answer is: " + latLon[gmsx.indexLat][0] + 
-      ", " + latLon[gmsx.indexLon][0]);
-
-    System.out.println(" test of toLinEle...");
-
-    System.out.println("  answer should be close to: 480.0, 1.0");
-    latLon[gmsx.indexLat][0] = -2.0f;
-    latLon[gmsx.indexLon][0] = 118.0f;
-    linEle = gmsx.toLinEle(latLon);
-    System.out.println("  answer is: " + linEle[gmsx.indexLine][0] + 
-      ", " + linEle[gmsx.indexEle][0]);
-
-    System.out.println("  answer should be close to: 16.0, 628.0");
-    latLon[gmsx.indexLat][0] = -24.0f;
-    latLon[gmsx.indexLon][0] = 148.0f;
-    linEle = gmsx.toLinEle(latLon);
-    System.out.println("  answer is: " + linEle[gmsx.indexLine][0] + 
-      ", " + linEle[gmsx.indexEle][0]);
-
-    System.out.println("unit test of class GMSXnav end...");
-
-  }
 
   /**
    *
@@ -1183,4 +1096,95 @@ public class GMSXnav extends AREAnav
 
   }
 
+  // main is used for unit testing
+
+  public static void main(String[] args) {
+
+    int [] navBlock = new int[800];
+    int [] dirBlock = new int[64];
+    DataInputStream dis = null;
+    GMSXnav gmsx = null;
+    String fileName = "GMSXAREA";
+
+    System.out.println("unit test of class GMSXnav begin...");
+
+    if (args.length > 0) fileName = args[0];
+
+    // test assumes presence of test area called GMSXAREA
+    try {
+      dis = new DataInputStream (
+        new BufferedInputStream(new FileInputStream(fileName), 2048)
+      );
+    } catch (Exception e) {
+      System.out.println("error creating DataInputStream: " + e);
+      System.exit(0);
+    }
+
+    // read and discard the directory
+    System.out.println("reading in, discarding directory words...");
+    try {
+      for (int i = 0; i < 64; i++) {
+        dirBlock[i] = dis.readInt();
+      }
+    } catch (IOException e) {
+      System.out.println("error reading area file directory: " + e);
+      System.exit(0);
+    }
+
+    // now read in the navigation data
+    System.out.println("reading in navigation words...");
+    try {
+      for (int i = 0; i < navBlock.length; i++) {
+        navBlock[i] = dis.readInt();
+      }
+    } catch (IOException e) {
+      System.out.println("error reading area file navigation data: " + e);
+      System.exit(0);
+    }
+
+    if (navBlock[0] != GMSX) {
+      System.out.println("error: not a GMS navigation block.");
+      System.exit(0);
+    } 
+
+    System.out.println("creating GMSXnav object...");
+    gmsx = new GMSXnav(navBlock);
+    gmsx.setImageStart(dirBlock[5], dirBlock[6]);
+    System.out.println("####  ImageStart set to:"+dirBlock[5]+" "+dirBlock[6]);
+    gmsx.setRes(dirBlock[11], dirBlock[12]);
+    System.out.println("####  ImageRes set to:"+dirBlock[11]+" "+dirBlock[12]);
+    gmsx.setStart(1,1);
+    gmsx.setFlipLineCoordinates(dirBlock[8]); // invert Y axis coordinates
+
+    System.out.println(" test of toLatLon...");
+    System.out.println("  answer should be close to: -2.37, 133.31");
+
+    double [][] linEle = new double [2][1];
+    double [][] latLon = new double [2][1];
+    linEle[gmsx.indexLine][0] = 471.0f;
+    linEle[gmsx.indexEle][0] = 323.0f;
+
+    latLon = gmsx.toLatLon(linEle);
+    System.out.println("  answer is: " + latLon[gmsx.indexLat][0] + 
+      ", " + latLon[gmsx.indexLon][0]);
+
+    System.out.println(" test of toLinEle...");
+
+    System.out.println("  answer should be close to: 480.0, 1.0");
+    latLon[gmsx.indexLat][0] = -2.0f;
+    latLon[gmsx.indexLon][0] = 118.0f;
+    linEle = gmsx.toLinEle(latLon);
+    System.out.println("  answer is: " + linEle[gmsx.indexLine][0] + 
+      ", " + linEle[gmsx.indexEle][0]);
+
+    System.out.println("  answer should be close to: 16.0, 628.0");
+    latLon[gmsx.indexLat][0] = -24.0f;
+    latLon[gmsx.indexLon][0] = 148.0f;
+    linEle = gmsx.toLinEle(latLon);
+    System.out.println("  answer is: " + linEle[gmsx.indexLine][0] + 
+      ", " + linEle[gmsx.indexEle][0]);
+
+    System.out.println("unit test of class GMSXnav end...");
+
+  }
 }
