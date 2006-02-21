@@ -115,6 +115,15 @@ public class Test73
     gr.dispose();
     gr = null;
 
+    // the following code also works, but is less efficient with grabBytes:
+//    BufferedImage image = null;
+//    try {
+//      image = javax.imageio.ImageIO.read(new java.io.File(fileName));
+//    }
+//    catch (java.io.IOException exc) { exc.printStackTrace(); }
+//    int w = image.getWidth();
+//    int h = image.getHeight();
+
     // convert image to VisAD object
     RealType x = RealType.getRealType("x");
     RealType y = RealType.getRealType("y");
