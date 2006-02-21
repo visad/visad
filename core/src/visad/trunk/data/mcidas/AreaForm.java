@@ -27,6 +27,7 @@ package visad.data.mcidas;
 
 import edu.wisc.ssec.mcidas.*;
 
+import java.io.File;
 import java.io.IOException;
 
 import java.net.URL;
@@ -64,6 +65,8 @@ public class AreaForm extends Form implements FormFileInformer {
     * @param name is the filename in question
     */
   public boolean isThisType(String name) {
+    File file = new File(name);
+    if (file.exists()) name = file.getName();
     return name.startsWith("AREA") || 
            name.endsWith("area")   || 
            ( name.startsWith("adde://") && 
