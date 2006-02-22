@@ -33,6 +33,7 @@ import visad.*;
 import visad.bom.ImageRendererJ3D;
 
 import visad.java3d.DisplayImplJ3D;
+import visad.java3d.TwoDDisplayRendererJ3D;
 
 public class Test73
   extends TestSkeleton
@@ -78,7 +79,8 @@ public class Test73
     throws RemoteException, VisADException
   {
     DisplayImpl[] dpys = new DisplayImpl[1];
-    dpys[0] = new DisplayImplJ3D("display", DisplayImplJ3D.APPLETFRAME);
+    dpys[0] = new DisplayImplJ3D("display",
+      new TwoDDisplayRendererJ3D(), DisplayImplJ3D.APPLETFRAME);
     return dpys;
   }
 
@@ -96,6 +98,7 @@ public class Test73
     catch (InterruptedException exc) { exc.printStackTrace(); }
     int w = img.getWidth(obs);
     int h = img.getHeight(obs);
+    if (w < 1 || h < 1) throw new VisADException("Invalid image: " + fileName);
 
     // create BufferedImage of "TYPE_3BYTE_RGB" (TYPE_CUSTOM)
     // this type of BufferedImage is efficient with ImageFlatField.grabBytes
@@ -125,42 +128,38 @@ public class Test73
 //    int h = image.getHeight();
 
     // convert image to VisAD object
-    RealType x = RealType.getRealType("x");
-    RealType y = RealType.getRealType("y");
-    RealTupleType xy = new RealTupleType(x, y);
-    int num = image.getRaster().getNumBands();
-    RealType r = null, g = null, b = null, v = null;
-    MathType range = null;
-    if (num == 3) {
-      r = RealType.getRealType("r");
-      g = RealType.getRealType("g");
-      b = RealType.getRealType("b");
-      range = new RealTupleType(r, g, b);
-    }
-    else if (num == 1) {
-      v = RealType.getRealType("value");
-      range = v;
-    }
-    else {
-      System.err.println("Image has unsupported # of bands (" + num + ")");
-      System.exit(1);
-    }
-    FunctionType type = new FunctionType(xy, range);
-    Integer2DSet set = new Integer2DSet(xy, w, h);
-    ImageFlatField ff = new ImageFlatField(type, set);
-    ff.setImage(image);
+    ImageFlatField ff = new ImageFlatField(image);
 
-    dpys[0].addMap(new ScalarMap(x, Display.XAxis));
-    dpys[0].addMap(new ScalarMap(y, Display.YAxis));
-    if (num == 3) {
-      dpys[0].addMap(new ScalarMap(r, Display.Red));
-      dpys[0].addMap(new ScalarMap(g, Display.Green));
-      dpys[0].addMap(new ScalarMap(b, Display.Blue));
+    // extract type information
+    FunctionType ftype = (FunctionType) ff.getType();
+    RealTupleType domain = ftype.getDomain();
+    RealType[] xy = domain.getRealComponents();
+    MathType range = ftype.getRange();
+    RealType[] v = null;
+    if (range instanceof RealType) v = new RealType[] {(RealType) range};
+    else if (range instanceof TupleType) {
+      v = ((TupleType) range).getRealComponents();
+    }
+    else v = new RealType[0];
+
+    // create display mappings
+    dpys[0].addMap(new ScalarMap(xy[0], Display.XAxis));
+    dpys[0].addMap(new ScalarMap(xy[1], Display.YAxis));
+    if (v.length == 3) {
+      dpys[0].addMap(new ScalarMap(v[0], Display.Red));
+      dpys[0].addMap(new ScalarMap(v[1], Display.Green));
+      dpys[0].addMap(new ScalarMap(v[2], Display.Blue));
     }
     else {
-      dpys[0].addMap(new ScalarMap(v, Display.RGB));
+      for (int i=0; i<v.length; i++) {
+        dpys[0].addMap(new ScalarMap(v[i], Display.RGB));
+      }
     }
-    dpys[0].getGraphicsModeControl().setTextureEnable(true);
+
+    // configure display
+    GraphicsModeControl gmc = dpys[0].getGraphicsModeControl();
+    gmc.setTextureEnable(true);
+    gmc.setScaleEnable(true);
     DataReferenceImpl ref = new DataReferenceImpl("ref");
     ref.setData(ff);
     dpys[0].addReferences(new ImageRendererJ3D(),

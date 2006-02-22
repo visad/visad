@@ -45,7 +45,45 @@ public class ImageFlatField extends FlatField {
   protected int num, width, height;
 
 
+  // -- Static methods --
+
+  /** Constructs a FunctionType suitable for use with the given image. */
+  public static FunctionType makeFunctionType(BufferedImage img)
+    throws VisADException
+  {
+    RealType x = RealType.getRealType("ImageElement");
+    RealType y = RealType.getRealType("ImageLine");
+    RealTupleType xy = new RealTupleType(x, y);
+    int num = img.getRaster().getNumBands();
+    MathType range = null;
+    if (num == 3) {
+      RealType r = RealType.getRealType("Red");
+      RealType g = RealType.getRealType("Green");
+      RealType b = RealType.getRealType("Blue");
+      range = new RealTupleType(r, g, b);
+    }
+    else if (num == 1) range = RealType.getRealType("Intensity");
+    else throw new VisADException("Unsupported # of bands (" + num + ")");
+    return new FunctionType(xy, range);
+  }
+
+  /** Constructs a domain Set suitable for use with the given image. */
+  public static Set makeDomainSet(BufferedImage img) throws VisADException {
+    RealType x = RealType.getRealType("ImageElement");
+    RealType y = RealType.getRealType("ImageLine");
+    RealTupleType xy = new RealTupleType(x, y);
+    int w = img.getWidth(), h = img.getHeight();
+    return new Linear2DSet(xy, 0, w - 1, w, h - 1, 0, h);
+  }
+
+
   // -- Constructors --
+
+  /** Constructs an ImageFlatField around the given BufferedImage. */
+  public ImageFlatField(BufferedImage img) throws VisADException {
+    this(makeFunctionType(img), makeDomainSet(img));
+    setImage(img);
+  }
 
   public ImageFlatField(FunctionType type) throws VisADException {
     this(type, type.getDomain().getDefaultSet(), null, null, null, null);
