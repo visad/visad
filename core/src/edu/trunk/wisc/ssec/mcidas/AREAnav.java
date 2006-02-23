@@ -26,8 +26,6 @@ MA 02111-1307, USA
 
 package edu.wisc.ssec.mcidas;
 
-import visad.Set;
-
 /**
  * The AREAnav is the superclass for AREA file navigation modules.
  * When used with AreaFile class, set up like this:
@@ -210,7 +208,7 @@ public abstract class AREAnav
      *
      */
     public float[][] toLatLon(float[][] linele) {
-       return Set.doubleToFloat(toLatLon(Set.floatToDouble(linele)));
+       return doubleToFloat(toLatLon(floatToDouble(linele)));
     }
 
     /**
@@ -229,7 +227,7 @@ public abstract class AREAnav
      *                    (not "image" coordinates);
      */
     public float[][] toLinEle(float[][] latlon) {
-       return Set.doubleToFloat(toLinEle(Set.floatToDouble(latlon)));
+       return doubleToFloat(toLinEle(floatToDouble(latlon)));
     }
 
     /** 
@@ -582,5 +580,39 @@ public abstract class AREAnav
     int lastDot = className.lastIndexOf('.');
     className = className.substring(lastDot+1);
     return className.substring(0,className.indexOf("nav"));
+  }
+
+  public static double[][] floatToDouble(float[][] value) {
+    if (value == null) return null;
+    double[][] val = new double[value.length][];
+    for (int i=0; i<value.length; i++) {
+      if (value[i] == null) {
+        val[i] = null;
+      }
+      else {
+        val[i] = new double[value[i].length];
+        for (int j=0; j<value[i].length; j++) {
+          val[i][j] = value[i][j];
+        }
+      }
+    }
+    return val;
+  }
+
+  public static float[][] doubleToFloat(double[][] value) {
+    if (value == null) return null;
+    float[][] val = new float[value.length][];
+    for (int i=0; i<value.length; i++) {
+      if (value[i] == null) {
+        val[i] = null;
+      }
+      else {
+        val[i] = new float[value[i].length];
+        for (int j=0; j<value[i].length; j++) {
+          val[i][j] = (float) value[i][j];
+        }
+      }
+    }
+    return val;
   }
 }
