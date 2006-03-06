@@ -666,6 +666,12 @@ if (shadow != null || remoteId != VisADEvent.LOCAL_SOURCE) {
     // DRM 17 Feb 2006 - so set the defaultUnitRange to be these values.
     defaultUnitRange[0] = dataRange[0];
     defaultUnitRange[1] = dataRange[1];
+    if (defaultUnitRange[0] == defaultUnitRange[1]) {
+      double half = defaultUnitRange[0] / 2000.0;
+      if (half < 0.5) half = 0.5;
+      defaultUnitRange[0] -= half;
+      defaultUnitRange[1] += half;
+    }
 
     if (isScaled) {
       computeScaleAndOffset();
@@ -676,6 +682,7 @@ if (shadow != null || remoteId != VisADEvent.LOCAL_SOURCE) {
         dataRange[0] = Double.NaN;
         dataRange[1] = Double.NaN;
       }
+      
 
       // WLH 31 Aug 2000
       if (overrideUnit != null) {
