@@ -34,6 +34,7 @@ import java.io.*;
 import java.lang.reflect.*;
 import java.util.Vector;
 import javax.swing.*;
+import loci.formats.ExtensionFileFilter;
 
 /**
  * DataConverter provides a simple GUI for converting data
@@ -43,7 +44,7 @@ public class DataConverter {
 
   // -- CONSTANTS --
 
-  protected static final ExtensionFileFilter filter =
+  protected static final ExtensionFileFilter FILTER =
     new ExtensionFileFilter("class", "Java classes");
 
 
@@ -104,23 +105,32 @@ public class DataConverter {
 
     for (int i=0; i<forms.size(); i++) {
       final FormNode form = (FormNode) forms.elementAt(i);
-      String label = form.getClass().getName();
+      StringBuffer label = new StringBuffer(form.getClass().getName());
       String[] suffixes = getSuffixes(form);
       if (suffixes != null) {
-        label = label + " (*." + suffixes[0];
+        label.append(" (*.");
+        label.append(suffixes[0]);
         for (int j=1; j<suffixes.length; j++) {
-          label = label + ", *." + suffixes[j];
+          if (j == 2 && j <= suffixes.length - 3) {
+            // too many suffixes; abbreviate them
+            label.append(", ...");
+            j = suffixes.length - 3;
+            continue;
+          }
+          label.append(", *.");
+          label.append(suffixes[j]);
         }
-        label = label + ")";
+        label.append(")");
       }
+      String s = label.toString();
 
-      JMenuItem readItem = new JMenuItem(label);
+      JMenuItem readItem = new JMenuItem(s);
       readItem.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) { importData(form); }
       });
       readMenu.add(readItem);
 
-      JMenuItem writeItem = new JMenuItem(label);
+      JMenuItem writeItem = new JMenuItem(s);
       writeItem.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) { exportData(form); }
       });
@@ -247,7 +257,7 @@ public class DataConverter {
 
   protected void findForms(File f, String prefix) {
     if (f.isDirectory()) {
-      File[] list = f.listFiles(filter);
+      File[] list = f.listFiles(FILTER);
       String name = f.getName();
       String pre = "".equals(prefix) ? name : prefix + "." + name;
       for (int i=0; i<list.length; i++) findForms(list[i], pre);

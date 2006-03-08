@@ -20,20 +20,15 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-import java.awt.*;
-import java.awt.color.ColorSpace;
-import java.awt.image.*;
+import java.awt.image.BufferedImage;
 
 import java.rmi.RemoteException;
-
-import javax.swing.JPanel;
 
 import visad.*;
 
 import visad.bom.ImageRendererJ3D;
 
 import visad.java3d.DisplayImplJ3D;
-import visad.java3d.TwoDDisplayRendererJ3D;
 
 public class Test73
   extends TestSkeleton
@@ -79,70 +74,32 @@ public class Test73
     throws RemoteException, VisADException
   {
     DisplayImpl[] dpys = new DisplayImpl[1];
-    dpys[0] = new DisplayImplJ3D("display",
-      new TwoDDisplayRendererJ3D(), DisplayImplJ3D.APPLETFRAME);
+    dpys[0] = new DisplayImplJ3D("display", DisplayImplJ3D.APPLETFRAME);
     return dpys;
   }
 
   void setupServerData(LocalDisplay[] dpys)
     throws RemoteException, VisADException
   {
-    // load image in Java 1.2 compliant manner
-    Image img = Toolkit.getDefaultToolkit().getImage(fileName);
-    JPanel obs = new JPanel();
-    MediaTracker tracker = new MediaTracker(obs);
-    tracker.addImage(img, 0);
+    // load image from disk
+    BufferedImage image = null;
     try {
-      tracker.waitForAll();
+      image = javax.imageio.ImageIO.read(new java.io.File(fileName));
     }
-    catch (InterruptedException exc) { exc.printStackTrace(); }
-    int w = img.getWidth(obs);
-    int h = img.getHeight(obs);
-    if (w < 1 || h < 1) throw new VisADException("Invalid image: " + fileName);
+    catch (java.io.IOException exc) {
+      exc.printStackTrace();
+      return;
+    }
 
-    // create BufferedImage of "TYPE_3BYTE_RGB" (TYPE_CUSTOM)
-    // this type of BufferedImage is efficient with ImageFlatField.grabBytes
-    int dataType = DataBuffer.TYPE_BYTE;
-    ColorModel colorModel = new ComponentColorModel(
-      ColorSpace.getInstance(ColorSpace.CS_sRGB),
-      false, false, ColorModel.TRANSLUCENT, dataType);
-    byte[][] data = new byte[3][w * h];
-    SampleModel model = new BandedSampleModel(dataType, w, h, data.length);
-    DataBuffer buffer = new DataBufferByte(data, data[0].length);
-    WritableRaster raster = Raster.createWritableRaster(model, buffer, null);
-    BufferedImage image = new BufferedImage(colorModel, raster, false, null);
-
-    // paint image into buffered image
-    Graphics gr = image.createGraphics();
-    gr.drawImage(img, 0, 0, obs);
-    gr.dispose();
-    gr = null;
-
-    // the following code also works, but is less efficient with grabBytes:
-//    BufferedImage image = null;
-//    try {
-//      image = javax.imageio.ImageIO.read(new java.io.File(fileName));
-//    }
-//    catch (java.io.IOException exc) { exc.printStackTrace(); }
-//    int w = image.getWidth();
-//    int h = image.getHeight();
+    // convert image to more efficient representation (optional)
+    image = ImageFlatField.make3ByteRGB(image);
 
     // convert image to VisAD object
     ImageFlatField ff = new ImageFlatField(image);
 
-    // extract type information
-    FunctionType ftype = (FunctionType) ff.getType();
-    RealTupleType domain = ftype.getDomain();
-    RealType[] xy = domain.getRealComponents();
-    MathType range = ftype.getRange();
-    RealType[] v = null;
-    if (range instanceof RealType) v = new RealType[] {(RealType) range};
-    else if (range instanceof TupleType) {
-      v = ((TupleType) range).getRealComponents();
-    }
-    else v = new RealType[0];
-
     // create display mappings
+    RealType[] xy = ff.getDomainTypes();
+    RealType[] v = ff.getRangeTypes();
     dpys[0].addMap(new ScalarMap(xy[0], Display.XAxis));
     dpys[0].addMap(new ScalarMap(xy[1], Display.YAxis));
     if (v.length == 3) {
@@ -162,8 +119,9 @@ public class Test73
     gmc.setScaleEnable(true);
     DataReferenceImpl ref = new DataReferenceImpl("ref");
     ref.setData(ff);
+    ConstantMap zmap = new ConstantMap(0.7, Display.ZAxis);
     dpys[0].addReferences(new ImageRendererJ3D(),
-      new DataReference[] {ref}, null);
+      ref, new ConstantMap[] {zmap});
   }
 
   String getFrameTitle() { return "ImageFlatField with ImageRendererJ3D"; }

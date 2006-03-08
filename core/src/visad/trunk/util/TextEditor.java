@@ -31,6 +31,7 @@ import java.io.*;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.undo.*;
+import loci.formats.ExtensionFileFilter;
 
 /** A general-purpose editor for reading and writing text files. */
 public class TextEditor extends JScrollPane implements UndoableEditListener {

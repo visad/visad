@@ -34,6 +34,8 @@ public class VisADException extends Exception {
 
   public VisADException() { super(); }
   public VisADException(String s) { super(s); }
+  public VisADException(String s, Throwable cause) { super(s, cause); }
+  public VisADException(Throwable cause) { super(cause); }
 
 }
 

@@ -67,6 +67,9 @@ import visad.util.*;
  * Also, no support for reading TIFF data from URLs is provided.
  * However, the visad.data.jai package provides limited support for
  * importing single-image TIFF data from a URL.
+ *
+ * @deprecated Use TiffForm, or visad.data.bio.LociForm
+ *   with loci.formats.TiffReader and loci.formats.TiffWriter
  */
 public class LegacyTiffForm extends Form
   implements FormFileInformer, FormBlockReader, FormProgressInformer
@@ -225,19 +228,19 @@ public class LegacyTiffForm extends Form
         }
         catch (ClassNotFoundException exc) {
           throw new BadFormException(
-            "Reflection exception: class not found: " + exc.getMessage());
+            "Reflection exception: class not found", exc);
         }
         catch (NoSuchMethodException exc) {
           throw new BadFormException(
-            "Reflection exception: no such method: " + exc.getMessage());
+            "Reflection exception: no such method", exc);
         }
         catch (IllegalAccessException exc) {
           throw new BadFormException(
-            "Reflection exception: illegal access: " + exc.getMessage());
+            "Reflection exception: illegal access", exc);
         }
         catch (InvocationTargetException exc) {
           throw new BadFormException(
-            "Reflection exception: " + exc.getTargetException().getMessage());
+            "Reflection exception", exc.getTargetException());
         }
 
         percent = (double) (i + 1) / fields.length;
@@ -349,9 +352,7 @@ public class LegacyTiffForm extends Form
         ColorModel cm = ri.getColorModel();
         img = new BufferedImage(cm, wr, false, null);
       }
-      catch (VisADException exc) {
-        throw new BadFormException(exc.getMessage());
-      }
+      catch (VisADException exc) { throw new BadFormException(exc); }
     }
     return DataUtility.makeField(img);
   }
@@ -488,9 +489,7 @@ public class LegacyTiffForm extends Form
         r.exec("id = ImageCodec.createImageDecoder(tiff, file, null)");
         numImages = ((Integer) r.exec("id.getNumPages()")).intValue();
       }
-      catch (VisADException exc) {
-        throw new BadFormException(exc.getMessage());
-      }
+      catch (VisADException exc) { throw new BadFormException(exc); }
     }
 
     currentId = id;

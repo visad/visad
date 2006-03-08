@@ -39,11 +39,16 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
+import loci.formats.ComboFileFilter;
+import loci.formats.ExtensionFileFilter;
 import ncsa.hdf.hdf5lib.H5;
 import visad.ConstantMap;
 import visad.Display;
 import visad.DisplayImpl;
 import visad.VisADException;
+import visad.data.bio.LociForm;
+import visad.data.mcidas.AreaForm;
+import visad.data.mcidas.MapForm;
 
 /**
  * A hodge-podge of general utility methods.
@@ -199,213 +204,90 @@ public class Util
    * Return a JFileChooser that recognizes supported VisAD file types.
    */
   public static JFileChooser getVisADFileChooser() {
-    JFileChooser dialog = null;
-    try {
-      dialog = new JFileChooser(System.getProperty("user.dir"));
-      Vector filters = new Vector();
-      boolean ij = canDoImageJ();
-      boolean jai = canDoJAI();
-      boolean qt = canDoQuickTime();
+    JFileChooser dialog = new JFileChooser(System.getProperty("user.dir"));
+    Vector filters = new Vector();
+    boolean jai = canDoJAI();
 
-      // Amanda F2000 - amanda/F2000Form
-      FileFilter f2000 = new ExtensionFileFilter("r", "Amanda F2000 datasets");
-      filters.add(f2000);
+    // Amanda F2000 - amanda/F2000Form
+    FileFilter f2000 = new ExtensionFileFilter("r", "Amanda F2000");
+    filters.add(f2000);
 
-      // Bio-Rad PIC - biorad/BioRadForm
-      FileFilter biorad = new ExtensionFileFilter("pic",
-        "Bio-Rad PIC datasets");
-      filters.add(biorad);
+    // ASCII text - text/TextForm
+    FileFilter text = new ExtensionFileFilter(
+      new String[] {"csv", "tsv","bsv","txt"}, "ASCII text");
+    filters.add(text);
 
-      // BMP - ij/ImageJForm, jai/JAIForm
-      if (jai || ij) {
-        FileFilter bmp = new ExtensionFileFilter("bmp", "BMP images");
-        filters.add(bmp);
-      }
+    // DEM - gis/DemFamily
+    FileFilter dem = new ExtensionFileFilter("dem",
+      "Digital Elevation Model");
+    filters.add(dem);
 
-      // Deltavision - bio/DeltavisionForm
-      FileFilter deltavision = new ExtensionFileFilter("dv",
-        "Deltavision files");
-      filters.add(deltavision);
+    // FITS - fits/FitsForm
+    FileFilter fits = new ExtensionFileFilter("fits",
+      "Flexible Image Transport System");
+    filters.add(fits);
 
-      // DEM - gis/DemFamily
-      FileFilter dem = new ExtensionFileFilter("dem", "DEM data");
-      filters.add(dem);
-
-      // DICOM - ij/ImageJForm
-      if (ij) {
-        FileFilter dicom = new ExtensionFileFilter("dicom", "DICOM images");
-        filters.add(dicom);
-      }
-
-      // FITS - fits/FitsForm, ij/ImageJForm
-      FileFilter fits = new ExtensionFileFilter("fits", "FITS datasets");
-      filters.add(fits);
-
-      // FlashPix - jai/JAIForm
-      if (jai) {
-        FileFilter flashpix = new ExtensionFileFilter("flashpix",
-          "FlashPix images");
-        filters.add(flashpix);
-      }
-
-      // Gatan Digital Micrograph - bio/GatanForm
-      FileFilter gatan = new ExtensionFileFilter("dm3",
-        "Gatan Digital Micrograph images");
-      filters.add(gatan);
-
-      // GIF - gif/GIFForm, ij/ImageJForm, jai/JAIForm
-      FileFilter gif = new ExtensionFileFilter("gif", "GIF images");
-      filters.add(gif);
-
-      // HDF-5 - hdf5/HDF5Form
-      if (canDoHDF5()) {
-        FileFilter hdf5 = new ExtensionFileFilter(
-          new String[] {"hdf", "hdf5"}, "HDF-5 datasets");
-        filters.add(hdf5);
-      }
-
-      // HDF-EOS - hdfeos/HdfeosForm
-      FileFilter hdfeos = new ExtensionFileFilter(
-        new String[] {"hdf", "hdfeos"}, "HDF-EOS datasets");
-      filters.add(hdfeos);
-
-      // Image Cytometry Standard - bio/ICSForm
-      FileFilter ics = new ExtensionFileFilter(
-        new String[] {"ics", "ids"}, "Image Cytometry Standard images");
-      filters.add(ics);
-
-      // Image-Pro IPW - bio/IPWForm
-      FileFilter ipw = new ExtensionFileFilter("ipw",
-        "Image-Pro workspace files");
-      filters.add(ipw);
-
-      // Image-Pro SEQ - bio/ImageProSeqForm
-      FileFilter seq = new ExtensionFileFilter("seq",
-        "Image-Pro sequence files");
-      filters.add(seq);
-
-      // IPLab - bio/IPLabForm
-      FileFilter iplab = new ExtensionFileFilter("ipl", "IPLab files");
-      filters.add(iplab);
-
-      // JPEG - gif/GIFForm, ij/ImageJForm, jai/JAIForm
-      FileFilter jpeg = new ExtensionFileFilter(
-        new String[] {"jpg", "jpeg", "jpe"}, "JPEG images");
-      filters.add(jpeg);
-
-      // Leica - bio/LeicaForm
-      FileFilter leica = new ExtensionFileFilter("lei", "Leica files");
-      filters.add(leica);
-
-      // LUT color tables - ij/ImageJForm
-      if (ij) {
-        FileFilter lut = new ExtensionFileFilter("lut", "LUT data");
-        filters.add(lut);
-      }
-
-      // McIDAS - mcidas/AreaForm, mcidas/MapForm, mcidas/PointForm
-      FileFilter mcidas = new McIDASFileFilter();
-      filters.add(mcidas);
-
-      // Metamorph STK - bio/MetamorphForm
-      FileFilter metamorph = new ExtensionFileFilter("stk", "Metamorph data");
-      filters.add(metamorph);
-
-      // netCDF - netcdf/Plain
-      FileFilter netcdf = new ExtensionFileFilter("nc", "netCDF datasets");
-      filters.add(netcdf);
-
-      // Openlab LIFF - bio/OpenlabForm
-      FileFilter openlab = new ExtensionFileFilter(
-        new String[] {"lif", "liff", ""}, "Openlab LIFF data");
-      filters.add(openlab);
-
-      // PerkinElmer - bio/PerkinElmerForm
-      FileFilter perkinElmer = new ExtensionFileFilter(new String[]
-        {"tim", "zpo", "csv", "htm"}, "PerkinElmer files");
-      filters.add(perkinElmer);
-
-      // PGM - ij/ImageJForm
-      if (ij) {
-        FileFilter pgm = new ExtensionFileFilter("pgm", "PGM images");
-        filters.add(pgm);
-      }
-
-      if (qt) {
-        // PICT - qt/PictForm
-        FileFilter pict = new ExtensionFileFilter("pict", "PICT images");
-        filters.add(pict);
-      }
-
-      // PNG - gif/GIFForm, ij/ImageJForm, jai/JAIForm
-      FileFilter png = new ExtensionFileFilter("png", "PNG images");
-      filters.add(png);
-
-      // PNM - jai/JAIForm
-      if (jai) {
-        FileFilter pnm = new ExtensionFileFilter("pnm", "PNM images");
-        filters.add(pnm);
-      }
-
-      // QuickTime - qt/QTForm
-      if (qt) {
-        FileFilter quicktime = new ExtensionFileFilter(
-          "mov", "QuickTime movies");
-        filters.add(quicktime);
-      }
-
-      // ROI - ij/ImageJForm
-      if (ij) {
-        FileFilter roi = new ExtensionFileFilter("roi", "ROI data");
-        filters.add(roi);
-      }
-
-      // text - text/TextForm
-      FileFilter text = new ExtensionFileFilter(
-        new String[] {"csv", "tsv","bsv","txt"}, "ASCII text data");
-      filters.add(text);
-
-      // TIFF - tiff/TiffForm, ij/ImageJForm, jai/JAIForm
-      FileFilter tiff = new ExtensionFileFilter(
-        new String[] {"tif", "tiff"}, "TIFF datasets");
-      filters.add(tiff);
-
-      // VisAD binary/serialized - visad/VisADForm
-      FileFilter visad = new ExtensionFileFilter(
-        "vad", "Binary or serialized VisAD data");
-      filters.add(visad);
-
-      // Vis5D - vis5d/Vis5DForm
-      FileFilter vis5d = new ExtensionFileFilter("v5d", "Vis5D datasets");
-      filters.add(vis5d);
-
-      // ZIP-compressed TIFF - ij/ImageJForm
-      if (ij) {
-        FileFilter zip = new ExtensionFileFilter(
-          "zip", "ZIP-compressed TIFF data");
-        filters.add(zip);
-      }
-
-      // Zeiss LSM - bio/ZeissForm
-      FileFilter lsm = new ExtensionFileFilter("lsm", "Zeiss LSM images");
-      filters.add(lsm);
-
-      // Zeiss ZVI - bio/ZVIForm
-      FileFilter zvi = new ExtensionFileFilter("zvi", "Zeiss ZVI images");
-      filters.add(zvi);
-
-      // combination filter
-      FileFilter[] ff = new FileFilter[filters.size()];
-      filters.copyInto(ff);
-      FileFilter combo = new ComboFileFilter(ff, "All VisAD file types");
-
-      // add filters to chooser
-      dialog.addChoosableFileFilter(combo);
-      for (int i=0; i<ff.length; i++) dialog.addChoosableFileFilter(ff[i]);
-      dialog.setFileFilter(combo);
+    // FlashPix - jai/JAIForm
+    if (jai) {
+      FileFilter flashpix = new ExtensionFileFilter("flashpix", "FlashPix");
+      filters.add(flashpix);
     }
-    catch (Throwable t) {
+
+    // HDF-5 - hdf5/HDF5Form
+    if (canDoHDF5()) {
+      FileFilter hdf5 = new ExtensionFileFilter(
+        new String[] {"hdf", "hdf5"}, "HDF-5");
+      filters.add(hdf5);
     }
+
+    // HDF-EOS - hdfeos/HdfeosForm
+    FileFilter hdfeos = new ExtensionFileFilter(
+      new String[] {"hdf", "hdfeos"}, "HDF-EOS");
+    filters.add(hdfeos);
+
+    // McIDAS area - mcidas/AreaForm
+    FormFileFilter mcidasArea =
+      new FormFileFilter(new AreaForm(), "McIDAS area (AREA*, *area)");
+    filters.add(mcidasArea);
+
+    // McIDAS map - mcidas/MapForm
+    FormFileFilter mcidasMap =
+      new FormFileFilter(new MapForm(), "McIDAS map (OUTL*)");
+    filters.add(mcidasMap);
+
+    // netCDF - netcdf/Plain
+    FileFilter netcdf = new ExtensionFileFilter("nc", "NetCDF");
+    filters.add(netcdf);
+
+    // PNM - jai/JAIForm
+    if (jai) {
+      FileFilter pnm = new ExtensionFileFilter("pnm", "PNM");
+      filters.add(pnm);
+    }
+
+    // VisAD binary/serialized - visad/VisADForm
+    FileFilter visad = new ExtensionFileFilter(
+      "vad", "Binary or serialized VisAD");
+    filters.add(visad);
+
+    // Vis5D - vis5d/Vis5DForm
+    FileFilter vis5d = new ExtensionFileFilter("v5d", "Vis5D");
+    filters.add(vis5d);
+
+    // biology-related formats - LociForm
+    FileFilter[] lociFilters = new LociForm().getReader().getFileFilters();
+    for (int i=0; i<lociFilters.length; i++) filters.add(lociFilters[i]);
+
+    // sort and combine filters alphanumerically
+    FileFilter[] ff = ComboFileFilter.sortFilters(filters);
+
+    // combination filter
+    FileFilter combo = new ComboFileFilter(ff, "All VisAD file types");
+
+    // add filters to chooser
+    dialog.addChoosableFileFilter(combo);
+    for (int i=0; i<ff.length; i++) dialog.addChoosableFileFilter(ff[i]);
+    dialog.setFileFilter(combo);
 
     return dialog;
   }

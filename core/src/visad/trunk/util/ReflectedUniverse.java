@@ -32,8 +32,8 @@ import java.net.*;
 import java.util.*;
 
 /**
- * A general-purpose reflection wrapper class. See visad.data.tiff.TiffForm,
- * visad.data.jai.JAIForm, and visad.data.qt.QTForm for examples of usage.
+ * A general-purpose reflection wrapper class.
+ * See visad.data.jai.JAIForm for examples of usage.
  */
 public class ReflectedUniverse {
 

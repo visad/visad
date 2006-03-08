@@ -29,28 +29,19 @@ import java.rmi.RemoteException;
 import visad.Data;
 import visad.VisADException;
 
-import visad.data.bio.BioRadForm;
-import visad.data.bio.FluoviewTiffForm;
-import visad.data.bio.MetamorphForm;
-import visad.data.bio.OpenlabForm;
-import visad.data.bio.ZVIForm;
+import visad.data.bio.LociForm;
 import visad.data.dods.DODSForm;
 import visad.data.fits.FitsForm;
-import visad.data.gif.GIFForm;
+import visad.data.gis.DemFamily;
 import visad.data.hdfeos.HdfeosAdaptedForm;
-import visad.data.ij.ImageJForm;
 import visad.data.jai.JAIForm;
 import visad.data.mcidas.AreaForm;
 import visad.data.mcidas.MapForm;
 import visad.data.mcidas.PointForm;
 import visad.data.netcdf.Plain;
-import visad.data.qt.PictForm;
-import visad.data.qt.QTForm;
 import visad.data.text.TextForm;
-import visad.data.tiff.TiffForm;
 import visad.data.vis5d.Vis5DFamily;
 import visad.data.visad.VisADForm;
-import visad.data.gis.DemFamily;
 
 /**
   * A container for all the officially supported VisAD datatypes.<br>
@@ -101,17 +92,7 @@ public class DefaultFamily
     } catch (Throwable t) {
     }
     try {
-      list[i] = new GIFForm();
-      i++;
-    } catch (Throwable t) {
-    }
-    try {
-      list[i] = new FluoviewTiffForm();
-      i++;
-    } catch (Throwable t) {
-    }
-    try {
-      list[i] = new TiffForm();
+      list[i] = new LociForm();
       i++;
     } catch (Throwable t) {
     }
@@ -156,47 +137,12 @@ public class DefaultFamily
     } catch (Throwable t) {
     }
     try {
-      list[i] = new BioRadForm();
-      i++;
-    } catch (Throwable t) {
-    }
-    try {
-      list[i] = new MetamorphForm();
-      i++;
-    } catch (Throwable t) {
-    }
-    try {
-      list[i] = new OpenlabForm();
-      i++;
-    } catch (Throwable t) {
-    }
-    try {
-      list[i] = new ZVIForm();
-      i++;
-    } catch (Throwable t) {
-    }
-    try {
-      list[i] = new ImageJForm();
-      i++;
-    } catch (Throwable t) {
-    }
-    try {
       list[i] = new DemFamily("Dem Data");
       i++;
     } catch (Throwable t) {
     }
     try {
       list[i] = new TextForm();
-      i++;
-    } catch (Throwable t) {
-    }
-    try {
-      list[i] = new QTForm();
-      i++;
-    } catch (Throwable t) {
-    }
-    try {
-      list[i] = new PictForm();
       i++;
     } catch (Throwable t) {
     }
@@ -210,8 +156,8 @@ public class DefaultFamily
     try {
       Object hdf5form = null;
       ClassLoader cl = ClassLoader.getSystemClassLoader();
-      Class hdf5form_class = cl.loadClass("visad.data.hdf5.HDF5Form");
-      hdf5form = hdf5form_class.newInstance();
+      Class hdf5formClass = cl.loadClass("visad.data.hdf5.HDF5Form");
+      hdf5form = hdf5formClass.newInstance();
       if (hdf5form != null) list[i++] = (Form)hdf5form;
     } catch (Throwable t) {
     }

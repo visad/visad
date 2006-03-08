@@ -26,6 +26,8 @@ MA 02111-1307, USA
 
 package visad;
 
+import java.awt.Graphics2D;
+import java.awt.color.ColorSpace;
 import java.awt.image.*;
 import java.rmi.RemoteException;
 import java.util.Arrays;
@@ -35,6 +37,12 @@ import java.util.Arrays;
  * instead of the usual float[][] or double[][] samples array.
  */
 public class ImageFlatField extends FlatField {
+
+  // -- Constants --
+
+  /** Debugging flag. */
+  protected static final boolean DEBUG = false;
+
 
   // -- Fields --
 
@@ -46,6 +54,35 @@ public class ImageFlatField extends FlatField {
 
 
   // -- Static methods --
+
+  /**
+   * Converts the given BufferedImage to a format efficient
+   * with ImageFlatField's grabBytes method and usable with
+   * Java3D texturing by reference.
+   */
+  public static BufferedImage make3ByteRGB(BufferedImage image) {
+    // create BufferedImage of "TYPE_3BYTE_RGB" (TYPE_CUSTOM)
+    // This type of image is efficient with grabBytes, and is
+    // compatible with Java3D's texturing by reference support.
+    int dataType = DataBuffer.TYPE_BYTE;
+    ColorModel colorModel = new ComponentColorModel(
+      ColorSpace.getInstance(ColorSpace.CS_sRGB),
+      false, false, ColorModel.TRANSLUCENT, dataType);
+    int w = image.getWidth(), h = image.getHeight();
+    byte[][] data = new byte[3][w * h];
+    SampleModel model = new BandedSampleModel(dataType, w, h, data.length);
+    DataBuffer buffer = new DataBufferByte(data, data[0].length);
+    WritableRaster raster = Raster.createWritableRaster(model, buffer, null);
+    BufferedImage result = new BufferedImage(colorModel, raster, false, null);
+
+    // paint image into buffered image
+    Graphics2D g = result.createGraphics();
+    g.drawRenderedImage(image, null);
+    g.dispose();
+    g = null;
+
+    return result;
+  }
 
   /** Constructs a FunctionType suitable for use with the given image. */
   public static FunctionType makeFunctionType(BufferedImage img)
@@ -80,7 +117,9 @@ public class ImageFlatField extends FlatField {
   // -- Constructors --
 
   /** Constructs an ImageFlatField around the given BufferedImage. */
-  public ImageFlatField(BufferedImage img) throws VisADException {
+  public ImageFlatField(BufferedImage img)
+    throws VisADException, RemoteException
+  {
     this(makeFunctionType(img), makeDomainSet(img));
     setImage(img);
   }
@@ -148,7 +187,9 @@ public class ImageFlatField extends FlatField {
   }
 
   /** Sets the image backing this FlatField. */
-  public void setImage(BufferedImage image) throws VisADException {
+  public void setImage(BufferedImage image)
+    throws VisADException, RemoteException
+  {
 //    pr ("setImage");
     if (image == null) throw new VisADException("image cannot be null");
     if (image.getWidth() != width || image.getHeight() != height) {
@@ -160,8 +201,27 @@ public class ImageFlatField extends FlatField {
     }
     this.image = image;
     clearMissing();
+    notifyReferences();
   }
- 
+
+  /** Gets RealType for each domain component (X and Y). */
+  public RealType[] getDomainTypes() {
+    RealTupleType domain = ((FunctionType) getType()).getDomain();
+    return domain.getRealComponents();
+  }
+
+  /** Gets RealType for each range component. */
+  public RealType[] getRangeTypes() {
+    MathType range = ((FunctionType) getType()).getRange();
+    RealType[] v = null;
+    if (range instanceof RealType) v = new RealType[] {(RealType) range};
+    else if (range instanceof TupleType) {
+      v = ((TupleType) range).getRealComponents();
+    }
+    else v = new RealType[0];
+    return v;
+  }
+
 
   // -- FlatField API methods --
 
@@ -336,8 +396,10 @@ public class ImageFlatField extends FlatField {
   }
 
   protected void pr(String message) {
-//    new Exception(hashCode () + " " + getClass().getName() +
-//      "  " + message).printStackTrace();
+    if (DEBUG) {
+      String s = hashCode () + " " + getClass().getName () + "  " + message;
+      new Exception(s).printStackTrace();
+    }
   }
 
 
@@ -382,11 +444,13 @@ public class ImageFlatField extends FlatField {
         SampleModel model = raster.getSampleModel();
         if (model instanceof BandedSampleModel) {
           // fastest way to extract bytes; no copy
+          if (DEBUG) System.err.println("grabBytes: FAST");
           byte[][] data = ((DataBufferByte) buffer).getBankData();
           return data;
         }
         else if (model instanceof ComponentSampleModel) {
           // medium speed way to extract bytes; direct array copy
+          if (DEBUG) System.err.println("grabBytes: MEDIUM");
           byte[][] data = ((DataBufferByte) buffer).getBankData();
           ComponentSampleModel csm = (ComponentSampleModel) model;
           int[] bandOffsets = csm.getBandOffsets();
@@ -411,6 +475,7 @@ public class ImageFlatField extends FlatField {
     } // raster.getTransferType() == DataBuffer.TYPE_BYTE
 
     // slower, more general way to extract bytes; use PixelGrabber
+    if (DEBUG) System.err.println("grabBytes: SLOW");
     int numPixels = width * height;
     int[] words = new int[numPixels];
     PixelGrabber grabber = new PixelGrabber(

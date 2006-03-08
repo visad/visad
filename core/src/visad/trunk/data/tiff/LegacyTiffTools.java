@@ -28,10 +28,13 @@ package visad.data.tiff;
 
 import java.util.*;
 import java.io.*;
+import loci.formats.TiffTools;
 
 /**
  * A utility class for manipulating TIFF files.
  * @author Eric Kjellman egkjellman at wisc.edu
+ *
+ * @deprecated Use loci.formats.TiffTools
  */
 public class LegacyTiffTools {
 
@@ -232,123 +235,12 @@ public class LegacyTiffTools {
   }
 
   public static byte[] lzwUncompress(byte[] input) throws IOException {
-    // Adapted from the TIFF 6.0 Specification
-    // http://partners.adobe.com/asn/developer/pdfs/tn/TIFF6.pdf page 61
-    if (input.length == 0) {
-      return new byte[0];
+    try {
+      return TiffTools.lzwUncompress(input);
     }
-    byte[][] symbolTable = new byte[4096][];
-    int bitsToRead = 9;
-    int nextSymbol = 258;
-    int currentCode;
-    int oldCode = -1;
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-    ByteArrayOutputStream symbol = new ByteArrayOutputStream();
-    LegacyBitBuffer bb = new LegacyBitBuffer(new ByteArrayInputStream(input));
-    int readcode;
-    // initialize the symbol table
-    for (int i = 0; i < 256; i++) {
-      symbolTable[i] = new byte[] { (byte) i };
+    catch (Exception exc) {
+      return null;
     }
-    // Handle the first character, since this causes problems somehow.
-    boolean firsthandled = false;
-    while (!firsthandled) {
-      currentCode = bb.getBits(bitsToRead);
-      if (currentCode == EOI_CODE || currentCode == -1) {
-        // -1 indicates no more to read
-        return out.toByteArray();
-      }
-      else if (currentCode == CLEAR_CODE) {
-        //System.out.println("Clear code was first!"); // ignore, already done
-      }
-      else { // the first character will be in the table, so:
-            //System.out.println("In table (first!)");
-            out.write(symbolTable[currentCode], 0,
-              symbolTable[currentCode].length);
-            //symbol.reset();
-            //symbol.write(symbolTable[oldCode], 0,
-            //  symbolTable[oldCode].length);
-            //symbol.write(symbolTable[currentCode], 0, 1);
-            //symbolTable[nextSymbol] = symbol.toByteArray();
-            //nextSymbol++;
-            oldCode = currentCode;
-            firsthandled = true;
-      }
-    }
-    while((currentCode = bb.getBits(bitsToRead)) != EOI_CODE) {
-      if (currentCode == CLEAR_CODE) {
-        symbolTable = new byte[4096][];
-        for (int i = 0; i < 256; i++) {
-          symbolTable[i] = new byte[] { (byte) i };
-        }
-        nextSymbol = 258;
-        bitsToRead = 9;
-        currentCode = bb.getBits(bitsToRead);
-
-        if (currentCode == EOI_CODE || currentCode == -1) {
-          break;
-        }
-        out.write(symbolTable[currentCode], 0,
-          symbolTable[currentCode].length);
-        oldCode = currentCode;
-      }
-      else {
-        //System.out.println("Handling: " + currentCode + " " + nextSymbol);
-        //System.out.print("Current: " + currentCode + " Old: " + oldCode);
-        if (currentCode < nextSymbol) {
-          //System.out.println("In table");
-          out.write(symbolTable[currentCode], 0,
-            symbolTable[currentCode].length);
-          //System.out.print(" Out: ");
-          for (int j = 0; j < symbolTable[currentCode].length ; j++) {
-            //System.out.print(symbolTable[currentCode][j]);
-          }
-
-          symbol.reset();
-          symbol.write(symbolTable[oldCode], 0, symbolTable[oldCode].length);
-          symbol.write(symbolTable[currentCode], 0, 1);
-          symbolTable[nextSymbol] = symbol.toByteArray();
-          for (int d = 0; d < symbolTable[nextSymbol].length ; d++) {
-            //System.out.print(symbolTable[nextSymbol][d]);
-          }
-          //System.out.println(" ");
-          nextSymbol++;
-          oldCode = currentCode;
-        }
-        else {
-          //System.out.println("Out of table");
-          //System.out.println("Code: " + oldCode);
-          out.write(symbolTable[oldCode], 0, symbolTable[oldCode].length);
-          out.write(symbolTable[oldCode], 0, 1); // probably not right
-          symbol.reset();
-          symbol.write(symbolTable[oldCode], 0, symbolTable[oldCode].length);
-          symbol.write(symbolTable[oldCode], 0, 1); // probably not right
-          symbolTable[nextSymbol] = symbol.toByteArray();
-          oldCode=currentCode;
-          nextSymbol++;
-        }
-        if (nextSymbol == 511) { bitsToRead = 10; }
-        if (nextSymbol == 1023) { bitsToRead = 11; }
-        if (nextSymbol == 2047) { bitsToRead = 12; }
-      }
-    }
-    /*
-    System.out.println(" *** Translation Table *** ");
-    for (int i = 258 ; i < nextSymbol ; i++) {
-      System.out.print(i + ": ");
-      for (int j = 0; j < symbolTable[i].length ; j++) {
-        System.out.print(symbolTable[i][j] + " ");
-      }
-      System.out.println();
-    }
-
-    System.out.println(" *** Image data *** ");
-    byte[] blah = out.toByteArray();
-    for (int i = 0; i < blah.length ; i++) {
-      System.out.print(blah[i] + " ");
-    }
-    */
-    return out.toByteArray();
   }
 
   public static int getPhotometricInterpretation(RandomAccessFile in)

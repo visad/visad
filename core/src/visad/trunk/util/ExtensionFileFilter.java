@@ -26,63 +26,19 @@ MA 02111-1307, USA
 
 package visad.util;
 
-import java.io.File;
+/**
+ * A file filter based on file extensions, for use with a JFileChooser.
+ *
+ * @deprecated Use loci.formats.ExtensionFileFilter
+ */
+public class ExtensionFileFilter extends loci.formats.ExtensionFileFilter {
 
-/** A file filter based on file extensions, for use with a JFileChooser. */
-public class ExtensionFileFilter extends javax.swing.filechooser.FileFilter
-  implements java.io.FileFilter
-{
-  
-  /** List of valid extensions. */
-  private String[] exts;
-
-  /** Description. */
-  private String desc;
-
-  /** Constructs a new filter that accepts the given extension. */
   public ExtensionFileFilter(String extension, String description) {
-    this(new String[] {extension}, description);
+    super(extension, description);
   }
 
-  /** Constructs a new filter that accepts the given extensions. */
   public ExtensionFileFilter(String[] extensions, String description) {
-    exts = new String[extensions.length];
-    System.arraycopy(extensions, 0, exts, 0, extensions.length);
-    StringBuffer sb = new StringBuffer(description);
-    boolean first = true;
-    for (int i=0; i<exts.length; i++) {
-      if (exts[i] == null) exts[i] = "";
-      if (exts[i].equals("")) continue;
-      if (first) {
-        sb.append(" (");
-        first = false;
-      }
-      else sb.append(", ");
-      sb.append("*.");
-      sb.append(exts[i]);
-    }
-    sb.append(")");
-    desc = sb.toString();
-  }
-
-  /** Accepts files with the proper extensions. */
-  public boolean accept(File f) {
-    if (f.isDirectory()) return true;
-
-    String name = f.getName();
-    int index = name.lastIndexOf('.');
-    String ext = index < 0 ? "" : name.substring(index + 1);
-
-    for (int i=0; i<exts.length; i++) {
-      if (ext.equalsIgnoreCase(exts[i])) return true;
-    }
-
-    return false;
-  }
-    
-  /** return the filter's description */
-  public String getDescription() {
-    return desc;
+    super(extensions, description);
   }
 
 }

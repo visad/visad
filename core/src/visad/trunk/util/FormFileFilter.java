@@ -1,5 +1,5 @@
 //
-// McIDASFileFilter.java
+// FormFileFilter.java
 //
 
 /*
@@ -28,27 +28,53 @@ package visad.util;
 
 import java.io.File;
 import javax.swing.filechooser.FileFilter;
+import visad.data.FormFileInformer;
 
 /**
- * A file filter for McIDAS area and map files, for use with a JFileChooser.
- *
- * @deprecated use FormFileFilter (see Util.getVisADFileChooser)
+ * A file filter based on a file form adapter's isThisType(String) method,
+ * for use with a JFileChooser.
  */
-public class McIDASFileFilter extends FileFilter {
-  
-  /** construct a new filter for McIDAS AREA files */
-  public McIDASFileFilter() { }
+public class FormFileFilter extends FileFilter
+  implements java.io.FileFilter, Comparable
+{
 
-  /** accept files with the proper filename prefix */
+  // -- Fields --
+
+  /** Associated file form implementing the FormFileAdapter interface. */
+  private FormFileInformer form;
+
+  /** Description. */
+  private String desc;
+
+
+  // -- Constructors --
+
+  /** Constructs a new filter that accepts the given extension. */
+  public FormFileFilter(FormFileInformer form, String description) {
+    this.form = form;
+    desc = description;
+  }
+
+
+  // -- FileFilter API methods --
+
+  /** Accepts files with the proper extensions. */
   public boolean accept(File f) {
     if (f.isDirectory()) return true;
-    String name = f.getName();
-    return name.startsWith("AREA") || name.endsWith("area") ||
-      name.startsWith("OUTL");
+    return form.isThisType(f.getPath());
   }
-    
+
   /** return the filter's description */
   public String getDescription() {
-    return "McIDAS area and map files (AREA*, *area, OUTL*)";
+    return desc;
   }
+
+
+  // -- Comparable API methods --
+
+  /** Compares two FileFilter objects alphanumerically. */
+  public int compareTo(Object o) {
+    return desc.compareTo(((FileFilter) o).getDescription());
+  }
+
 }

@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: BadFormException.java,v 1.7 2006-01-19 19:12:09 curtis Exp $
+$Id: BadFormException.java,v 1.8 2006-03-08 22:32:18 curtis Exp $
 */
 
 package visad.data;
@@ -28,18 +28,11 @@ package visad.data;
 import visad.VisADException;
 
 
-/**
- * Exception thrown when the form that the data is in is incorrect.
- */
-public class
-BadFormException
-    extends VisADException
-{
-    /**
-     * Construct an exception with a message.
-     */
-    public BadFormException(String msg)
-    {
-	super(msg);
-    }
+/** Exception thrown when the form that the data is in is incorrect. */
+public class BadFormException extends VisADException {
+
+  public BadFormException(String msg) { super(msg); }
+  public BadFormException(String msg, Throwable cause) { super(msg, cause); }
+  public BadFormException(Throwable cause) { super(cause); }
+
 }

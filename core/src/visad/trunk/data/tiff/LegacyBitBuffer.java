@@ -31,6 +31,8 @@ import java.io.*;
 /**
  * A class for reading arbitrary numbers of bits from an input stream.
  * @author Eric Kjellman egkjellman at wisc.edu
+ *
+ * @deprecated Use loci.formats.BitBuffer
  */
 public class LegacyBitBuffer {
 
