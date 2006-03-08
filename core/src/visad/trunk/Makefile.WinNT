@@ -82,6 +82,7 @@ HTTPClient\*.html \
 HTTPClient\*.java \
 ncsa\hdf\hdf5lib\*.java \
 ncsa\hdf\hdf5lib\exceptions\*.java \
+loci\formats\*.java \
 nom\tam\fits\*.java \
 nom\tam\util\*.java \
 nom\tam\test\*.java
@@ -277,6 +278,7 @@ visad\data\netcdf\units\*.java \
 visad\data\netcdf\in\*.java \
 visad\data\netcdf\out\*.java \
 visad\data\fits\*.java \
+loci\formats\*.java \
 nom\tam\fits\*.java \
 nom\tam\util\*.java \
 nom\tam\test\*.java \
@@ -415,6 +417,8 @@ save:
 		$(DEL) $(BACKUP)\visad\data\netcdf\out\*.java
 	if exist $(BACKUP)\visad\data\fits\*.java \
 		$(DEL) $(BACKUP)\visad\data\fits\*.java
+	if exist $(BACKUP)\loci\formats\*.java \
+		$(DEL) $(BACKUP)\loci\formats\*.java
 	if exist $(BACKUP)\nom\tam\fits\*.java \
 		$(DEL) $(BACKUP)\nom\tam\fits\*.java
 	if exist $(BACKUP)\nom\tam\util\*.java \
@@ -553,6 +557,7 @@ dods\dap\Server\*.class \
 dods\util\*.class \
 gnu\regexp\*.class \
 visad\data\fits\*.class \
+loci\formats\*.class \
 nom\tam\fits\*.class \
 nom\tam\util\*.class \
 nom\tam\test\*.class \
@@ -633,6 +638,7 @@ clear:
 	if exist data\netcdf\in\*.java $(DEL) data\netcdf\in\*.java
 	if exist data\netcdf\out\*.java $(DEL) data\netcdf\out\*.java
 	if exist data\fits\*.java $(DEL) data\fits\*.java
+	if exist ..\loci\formats\*.java $(DEL) ..\loci\formats\*.java
 	if exist ..\nom\tam\fits\*.java $(DEL) ..\nom\tam\fits\*.java
 	if exist ..\nom\tam\util\*.java $(DEL) ..\nom\tam\util\*.java
 	if exist ..\nom\tam\test\*.java $(DEL) ..\nom\tam\test\*.java
@@ -703,6 +709,7 @@ clean:
 	if exist data\netcdf\in\*.class $(DEL) data\netcdf\in\*.class
 	if exist data\netcdf\out\*.class $(DEL) data\netcdf\out\*.class
 	if exist data\fits\*.class $(DEL) data\fits\*.class
+	if exist ..\loci\formats\*.class $(DEL) ..\loci\formats\*.class
 	if exist ..\nom\tam\fits\*.class $(DEL) ..\nom\tam\fits\*.class
 	if exist ..\nom\tam\util\*.class $(DEL) ..\nom\tam\util\*.class
 	if exist ..\nom\tam\test\*.class $(DEL) ..\nom\tam\test\*.class
@@ -807,6 +814,7 @@ data\netcdf\units\*.class \
 data\netcdf\in\*.class \
 data\netcdf\out\*.class \
 data\netcdf\*.class \
+..\loci\formats\*.class \
 ..\nom\tam\util\*.class \
 ..\nom\tam\fits\*.class \
 ..\nom\tam\test\*.class \
@@ -885,6 +893,7 @@ compile: clean
 	$(JC) $(JFLAGS) data\netcdf\in\*.java
 	$(JC) $(JFLAGS) data\netcdf\out\*.java
 	$(JC) $(JFLAGS) data\netcdf\*.java
+	$(JC) $(JFLAGS) ..\loci\formats\*.java
 	$(JC) $(JFLAGS) ..\nom\tam\util\*.java
 	$(JC) $(JFLAGS) ..\nom\tam\fits\*.java
 	$(JC) $(JFLAGS) ..\nom\tam\test\*.java
@@ -966,6 +975,7 @@ visad.data.netcdf.units \
 visad.data.netcdf.in \
 visad.data.netcdf.out \
 visad.data.fits \
+loci.formats \
 nom.tam.fits \
 nom.tam.util \
 nom.tam.test \

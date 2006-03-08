@@ -197,6 +197,7 @@ SAVE_FILES = \
 	visad/data/netcdf/in/*.java			\
 	visad/data/netcdf/out/*.java			\
 	visad/data/fits/*.java				\
+	loci/formats/*.java				\
 	nom/tam/fits/*.java				\
 	nom/tam/util/*.java				\
 	nom/tam/test/*.java				\
@@ -321,6 +322,7 @@ DOC_PACKAGES = \
 		visad.data.netcdf.in \
 		visad.data.netcdf.out \
 		visad.data.netcdf \
+		loci.formats \
 		nom.tam.fits \
 		nom.tam.util \
 		nom.tam.test \
@@ -611,6 +613,7 @@ tonexus:
 	java2nexus `find ../ucar -name "*.java"`
 	java2nexus `find ../dods -name "*.java"`
 	java2nexus `find ../gnu -name "*.java"`
+	java2nexus `find ../loci -name "*.java"`
 	java2nexus `find ../nom -name "*.java"`
 	java2nexus `find ../edu -name "*.java"`
 
@@ -619,6 +622,7 @@ tojava:
 	nexus2java `find ../ucar -name "*.java"`
 	nexus2java `find ../dods -name "*.java"`
 	nexus2java `find ../gnu -name "*.java"`
+	nexus2java `find ../loci -name "*.java"`
 	nexus2java `find ../nom -name "*.java"`
 	nexus2java `find ../edu -name "*.java"`
 
