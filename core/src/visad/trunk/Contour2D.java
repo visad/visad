@@ -2825,7 +2825,7 @@ class ContourStripSet {
       vec.addElement(c_strp);
     }
     else {
-      int[] found_array = new int[2];
+      int[] found_array = new int[3];
       int found = 0;
       for (int kk = 0; kk < n_strip; kk++) {
         ContourStrip c_strp  = (ContourStrip)vec.elementAt(kk);
@@ -2834,7 +2834,12 @@ class ContourStripSet {
           found++;
         }
       }
-      if (found==2) {
+      if (found==3) {
+        ContourStrip c_strp =
+          new ContourStrip(mxsize, lev_idx, idx0, idx1, plot_s[lev_idx], this);
+        vec.addElement(c_strp);
+      }
+      else if (found==2) {
         ContourStrip c_strpA = (ContourStrip)vec.elementAt(found_array[0]);
         ContourStrip c_strpB = (ContourStrip)vec.elementAt(found_array[1]);
         ContourStrip c_strp  = c_strpA.merge(c_strpB);
