@@ -331,15 +331,11 @@ public class LociForm extends Form implements FormBlockReader,
     throws BadFormException, IOException, VisADException
   {
     if (reader == null) throw new BadFormException("No reader");
-    Image img;
+    BufferedImage image;
     try {
-      img = reader.open(id, block_number);
+      image = reader.open(id, block_number);
     }
     catch (FormatException exc) { throw new BadFormException(exc); }
-    if (!(img instanceof BufferedImage)) {
-      throw new BadFormException("Not a BufferedImage");
-    }
-    BufferedImage image = (BufferedImage) img;
     int width = image.getWidth(), height = image.getHeight();
     int num = image.getRaster().getNumBands();
 
