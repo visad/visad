@@ -219,6 +219,16 @@ public class DisplayEvent extends VisADEvent {
    */
   public final static int MAP_REMOVED = 24;
 
+  /**
+   * The "component resized" event.  This event occurs when
+   * a the display's component is resized.
+   *
+   * Note that you must call
+   * DisplayImpl.enableEvent(DisplayEvent.COMPONENT_RESIZED)
+   * to enable reporting of this type of event.
+   */
+  public final static int COMPONENT_RESIZED = 25;
+
   private final static String[] ids = {
       "?", "MOUSE_PRESSED", "TRANSFORM_DONE", "FRAME_DONE",
       "MOUSE_PRESSED_CENTER", "MOUSE_PRESSED_LEFT",  "MOUSE_PRESSED_RIGHT",
@@ -226,7 +236,7 @@ public class DisplayEvent extends VisADEvent {
       "MOUSE_RELEASED_RIGHT", "MAP_ADDED", "MAPS_CLEARED", "REFERENCE_ADDED",
       "REFERENCE_REMOVED", "DESTROYED", "KEY_PRESSED", "KEY_RELEASED",
       "MOUSE_DRAGGED", "MOUSE_ENTERED", "MOUSE_EXITED", "MOUSE_MOVED",
-      "WAIT_ON", "WAIT_OFF", "MAP_REMOVED"
+      "WAIT_ON", "WAIT_OFF", "MAP_REMOVED", "COMPONENT_RESIZED"
     };
 
   /** Dummy AWT component. */
@@ -408,6 +418,7 @@ public class DisplayEvent extends VisADEvent {
    *          <LI>DisplayEvent.WAIT_ON
    *          <LI>DisplayEvent.WAIT_OFF
    *          <LI>DisplayEvent.MAP_REMOVED
+   *          <LI>DisplayEvent.COMPONENT_RESIZED
    *          </UL>
    */
   public int getId() {

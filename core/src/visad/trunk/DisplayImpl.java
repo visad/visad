@@ -30,6 +30,7 @@ import java.rmi.*;
 import java.util.*;
 
 import java.awt.*;
+import java.awt.event.*;
 import java.awt.image.*;
 import java.awt.print.*;
 
@@ -97,6 +98,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       may be null for off-screen displays */
   Component component;
 
+  private ComponentChangedListener componentListener = null;
 
   /** set to indicate need to compute ranges of RealType-s
       and sampling for Animation */
@@ -559,7 +561,16 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    * @param c Component to set
    */
   public void setComponent(Component c) {
+    // lazy initialization
+    if (componentListener == null) {
+      componentListener = new ComponentChangedListener(this);
+    }
+    // in case setComponent is called multiple times
+    if (component != null) {
+      component.removeComponentListener(componentListener);
+    }
     component = c;
+    component.addComponentListener(componentListener);
   }
 
   /**
@@ -709,6 +720,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     false, // WAIT_ON
     false, // WAIT_OFF
     true,  // MAP_REMOVED
+    false, // COMPONENT_RESIZED
   };
 
   /**
@@ -740,6 +752,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    *          <LI>DisplayEvent.WAIT_ON
    *          <LI>DisplayEvent.WAIT_OFF
    *          <LI>DisplayEvent.MAP_REMOVED
+   *          <LI>DisplayEvent.COMPONENT_RESIZED
    *          </UL>
    */
   public void enableEvent(int id) {
@@ -780,6 +793,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    *          <LI>DisplayEvent.WAIT_ON
    *          <LI>DisplayEvent.WAIT_OFF
    *          <LI>DisplayEvent.MAP_REMOVED
+   *          <LI>DisplayEvent.COMPONENT_RESIZED
    *          </UL>
    */
   public void disableEvent(int id) {
@@ -1554,6 +1568,8 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       ListenerVector.removeAllElements();
       Slaves.removeAllElements();
       displayRenderer = null; // this disables most DisplayImpl methods
+      component.removeComponentListener(componentListener);
+      componentListener = null;
       component = null;
       mouse = null;
       displayMonitor = null;
@@ -3021,5 +3037,58 @@ System.out.println("initialize = " + initialize + " go = " + go +
     if (displayActivity != null) {
       displayActivity.updateBusyStatus();
     }
+  }
+
+  /** Class for listening to component events */
+  private class ComponentChangedListener extends ComponentAdapter {
+
+    /** the listener's display*/
+    DisplayImpl display;
+
+    /** 
+     * Create a listener for the display
+     */
+    public ComponentChangedListener(DisplayImpl d) {
+        display = d;
+    }
+
+    /**
+     * Invoked when the component has been resized.
+     * @param ce  ComponentEvent fired.
+     */
+    public void componentShown(ComponentEvent ce) {}
+
+    /**
+     * Invoked when the component has been made invisible.
+     * @param ce  ComponentEvent fired.
+     */
+    public void componentHidden(ComponentEvent ce) {}
+
+    /**
+     * Invoked when the component has been moved.
+     * @param ce  ComponentEvent fired.
+     */
+    public void componentMoved(ComponentEvent ce) {}
+
+    /**
+     * Invoked when the component has been resized.
+     * @param ce  ComponentEvent fired.
+     */
+    public void componentResized(ComponentEvent ce) {
+      Component component = ce.getComponent();
+      Dimension d = component.getSize();
+      try {
+        notifyListeners(
+          new DisplayEvent(
+            display, DisplayEvent.COMPONENT_RESIZED, d.width, d.height));
+      } 
+      catch (VisADException ve) {
+        System.err.println("Couldn't notify listeners of resize event");
+      }
+      catch (RemoteException re) {
+        System.err.println("Couldn't notify listeners of remote resize event");
+      }
+    }
+
   }
 }
