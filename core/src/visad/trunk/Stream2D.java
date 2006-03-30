@@ -293,15 +293,26 @@ public static int stream( float[] ugrid, float[] vgrid, int nr, int nc,
 
   /* density calculations */
   if (density < 0.5) density = 0.5f;
-  if (density > 2.0) density = 2.0f;
+  // WLH 30 March 2006
+  // if (density > 2.0) density = 2.0f;
+  if (density > nr/15f) density = nr/15f;
+  if (density > nc/15f) density = nc/15f;
 
   nrarrow = (int)(15f*density);
   ncarrow = (int)(15f*density);
   nrstart = (int)(15f*density);
   ncstart = (int)(15f*density);
+  // WLH 30 March 2006
+  if (nrarrow > nr) nrarrow = nr;
+  if (ncarrow > nc) ncarrow = nc;
+  if (nrstart > nr) nrstart = nr;
+  if (ncstart > nc) ncstart = nc;
 
   nrend = 4*nrstart;
   ncend = 4*ncstart;
+  // WLH 30 March 2006
+  if (nrend > nr) nrend = nr;
+  if (ncend > nc) ncend = nc;
 
   rowlength = LENGTH * nr / density;
   collength = LENGTH * nc / density;
@@ -313,7 +324,7 @@ public static int stream( float[] ugrid, float[] vgrid, int nr, int nc,
   vc[0]   = new float[50][];
 
   /* allocate mark arrays */
-  markarrow = new byte[nrstart*ncstart];
+  markarrow = new byte[nrarrow*ncarrow];
   markstart = new byte[nrstart*ncstart];
   markend   = new byte[nrend*ncend];
 
