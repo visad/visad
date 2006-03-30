@@ -7,27 +7,28 @@ LOCI Bio-Formats package for reading and converting biological file formats.
 Copyright (C) 2005-2006 Melissa Linkert, Curtis Rueden and Eric Kjellman.
 
 This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Library General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Library General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Library General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+package loci.formats;
+
 import ij.*;
 import ij.io.OpenDialog;
 import ij.plugin.PlugIn;
-import java.awt.Dimension;
-import java.awt.Image;
+import ij.process.*;
+import java.awt.image.*;
 import loci.formats.ImageReader;
-import loci.formats.ImageTools;
 
 /**
  * ImageJ plugin for the LOCI Bio-Formats package.
@@ -62,13 +63,33 @@ public class LociPlugin implements PlugIn {
       for (int i=0; i<num; i++) {
         if (i % 5 == 4) IJ.showStatus("Reading plane " + (i + 1) + "/" + num);
         IJ.showProgress((double) i / num);
-        Image img = reader.open(id, i);
+        BufferedImage img = reader.open(id, i);
         if (stack == null) {
-          Dimension dim = ImageTools.getSize(img);
-          stack = new ImageStack(dim.width, dim.height);
+          stack = new ImageStack(img.getWidth(), img.getHeight());
         }
-        stack.addSlice(fileName + ":" + (i + 1),
-          new ImagePlus(null, img).getProcessor());
+
+        ImageProcessor ip = null;
+        WritableRaster raster = img.getRaster();
+        int c = raster.getNumBands();
+        int tt = raster.getTransferType();
+        if (c == 1) {
+          int w = img.getWidth(), h = img.getHeight();
+          if (tt == DataBuffer.TYPE_BYTE) {
+            byte[] b = ImageTools.getBytes(img)[0];
+            ip = new ByteProcessor(w, h, b, null);
+          }
+          else if (tt == DataBuffer.TYPE_USHORT) {
+            short[] s = ImageTools.getShorts(img)[0];
+            ip = new ShortProcessor(w, h, s, null);
+          }
+          else if (tt == DataBuffer.TYPE_FLOAT) {
+            float[] f = ImageTools.getFloats(img)[0];
+            ip = new FloatProcessor(w, h, f, null);
+          }
+        }
+        if (ip == null) ip = new ImagePlus(null, img).getProcessor(); // slow
+
+        stack.addSlice(fileName + ":" + (i + 1), ip);
       }
       IJ.showStatus("Creating image");
       IJ.showProgress(1);

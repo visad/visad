@@ -7,25 +7,25 @@ LOCI Bio-Formats package for reading and converting biological file formats.
 Copyright (C) 2005-2006 Melissa Linkert, Curtis Rueden and Eric Kjellman.
 
 This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Library General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Library General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Library General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 package loci.formats;
 
-import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 
 /**
  * IPLabReader is the file format reader for IPLab (.IPL) files.
@@ -80,7 +80,7 @@ public class IPLabReader extends FormatReader {
   }
 
   /** Obtains the specified image from the given IPLab file. */
-  public Image open(String id, int no)
+  public BufferedImage open(String id, int no)
     throws FormatException, IOException
   {
     if (!id.equals(currentId)) initFile(id);
@@ -192,16 +192,6 @@ public class IPLabReader extends FormatReader {
     in.skipBytes((int) dataSize);
 
     if (ome != null) {
-      OMETools.setAttribute(ome, "Pixels", "SizeX", "" + width);
-      OMETools.setAttribute(ome, "Pixels", "SizeY", "" + height);
-      OMETools.setAttribute(ome, "Pixels", "SizeZ", "" + zDepth);
-      OMETools.setAttribute(ome, "Pixels", "SizeC", "" + channels);
-      OMETools.setAttribute(ome, "Pixels", "SizeT", "" + tDepth);
-      OMETools.setAttribute(ome, "Pixels", "BigEndian",
-        littleEndian ? "false" : "true");
-      OMETools.setAttribute(ome, "Pixels", "DimensionOrder", "XYZTC");
-
-      // set the pixel type
       String type;
       switch ((int) pixelType) {
         case 0: type = "Uint8"; break;
@@ -214,9 +204,16 @@ public class IPLabReader extends FormatReader {
         case 10: type = "float"; break;
         default: type = "Uint8";
       }
-
-      OMETools.setAttribute(ome, "Pixels", "PixelType", type);
-      OMETools.setAttribute(ome, "Image", "Name", id);
+      OMETools.setPixels(ome,
+        new Integer((int) width), // SizeX
+        new Integer((int) height), // SizeY
+        new Integer((int) zDepth), // SizeZ
+        new Integer((int) channels), // SizeC
+        new Integer((int) tDepth), // SizeT
+        type, // PixelType
+        new Boolean(!littleEndian), // BigEndian
+        "XYZTC"); // DimensionOrder
+      OMETools.setImageName(ome, id);
     }
 
     in.read(fourBytes);
@@ -315,14 +312,12 @@ public class IPLabReader extends FormatReader {
         long numRoiPts = DataTools.read4UnsignedBytes(in, littleEndian);
 
         if (ome != null) {
-          OMETools.setAttribute(ome, "ROI", "X0",
-            new Long(roiLeft).toString());
-          OMETools.setAttribute(ome, "ROI", "X1",
-            new Long(roiRight).toString());
-          OMETools.setAttribute(ome, "ROI", "Y0",
-            new Long(roiBottom).toString());
-          OMETools.setAttribute(ome, "ROI", "Y1",
-            new Long(roiTop).toString());
+          Integer x0 = new Integer((int) roiLeft);
+          Integer x1 = new Integer((int) roiRight);
+          Integer y0 = new Integer((int) roiBottom);
+          Integer y1 = new Integer((int) roiTop);
+          OMETools.setDisplayROI(ome,
+            x0, y0, null, x1, y1, null, null, null, null);
         }
 
         for (int i=0; i<numRoiPts; i++) {
@@ -346,10 +341,9 @@ public class IPLabReader extends FormatReader {
           metadata.put("UnitsPerPixel" + i, new Long(unitsPerPixel));
 
           if (i == 0 && ome != null) {
-            OMETools.setAttribute(ome,
-              "Image", "PixelSizeX", "" + unitsPerPixel);
-            OMETools.setAttribute(ome,
-              "Image", "PixelSizeY", "" + unitsPerPixel);
+            Float pixelSize = new Float(unitsPerPixel);
+            OMETools.setDimensions(ome,
+              pixelSize, pixelSize, null, null, null);
           }
 
           metadata.put("UnitName" + i, new Long(xUnitName));
@@ -378,7 +372,7 @@ public class IPLabReader extends FormatReader {
         metadata.put("Notes", notes);
 
         if (ome != null) {
-          OMETools.setAttribute(ome, "Image", "Description", notes);
+          OMETools.setDescription(ome, notes);
         }
       }
       int r = in.read(fourBytes);

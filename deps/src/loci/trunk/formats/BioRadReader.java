@@ -7,24 +7,27 @@ LOCI Bio-Formats package for reading and converting biological file formats.
 Copyright (C) 2005-2006 Melissa Linkert, Curtis Rueden and Eric Kjellman.
 
 This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Library General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Library General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Library General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 package loci.formats;
 
-import java.awt.Image;
-import java.io.*;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.Vector;
+import java.util.StringTokenizer;
 
 /**
  * BioRadReader is the file format reader for Bio-Rad PIC files.
@@ -36,12 +39,6 @@ import java.io.*;
 public class BioRadReader extends FormatReader {
 
   // -- Constants --
-
-  /** Debugging flag. */
-  private static final boolean DEBUG = false;
-
-  /** Debugging level. 1=basic, 2=extended, 3=everything. */
-  private static final int DEBUG_LEVEL = 1;
 
   /** Numerical ID of a valid Bio-Rad PIC file. */
   private static final int PIC_FILE_ID = 12345;
@@ -126,27 +123,31 @@ public class BioRadReader extends FormatReader {
   /** Flag indicating current Bio-Rad PIC is packed with bytes. */
   private boolean byteFormat;
 
+
   // -- Constructor --
 
   /** Constructs a new BioRadReader. */
   public BioRadReader() { super("Bio-Rad PIC", "pic"); }
 
+
   // -- FormatReader API methods --
 
-  /** Checks if the given block is a valid header for an ICS file. */
+  /** Checks if the given block is a valid header for a Bio-Rad PIC file. */
   public boolean isThisType(byte[] block) {
     if (block.length < 56) return false;
     return DataTools.bytesToShort(block, 54, 2, LITTLE_ENDIAN) == PIC_FILE_ID;
   }
 
-  /** Determines the number of images in the given ICS file. */
+  /** Determines the number of images in the given Bio-Rad PIC file. */
   public int getImageCount(String id) throws FormatException, IOException {
     if (!id.equals(currentId)) initFile(id);
     return npic;
   }
 
-  /** Obtains the specified image from the given ICS file. */
-  public Image open(String id, int no) throws FormatException, IOException {
+  /** Obtains the specified image from the given Bio-Rad PIC file. */
+  public BufferedImage open(String id, int no)
+    throws FormatException, IOException
+  {
     if(!id.equals(currentId)) initFile(id);
 
     if(no < 0 || no >= npic) {
@@ -251,6 +252,8 @@ public class BioRadReader extends FormatReader {
     int bpp = byteFormat ? 1 : 2;
     in.skipBytes(bpp * npic * imageLen);
 
+    Vector pixelSize = new Vector();
+
     // read notes
     int noteCount = 0;
     while (notes) {
@@ -270,6 +273,97 @@ public class BioRadReader extends FormatReader {
       noteCount++;
       metadata.put("note" + noteCount,
         noteString(num, level, status, type, x, y, text));
+
+      // if the text of the note contains "AXIS", parse the text
+      // more thoroughly (see pg. 21 of the BioRad specs)
+
+      if (text.indexOf("AXIS") != -1) {
+        // use StringTokenizer to break up the text
+        StringTokenizer st = new StringTokenizer(text);
+        String key = st.nextToken();
+        String noteType = "";
+        if (st.hasMoreTokens()) {
+          noteType = st.nextToken();
+        }
+
+        int axisType = Integer.parseInt(noteType);
+        Vector params = new Vector();
+        while (st.hasMoreTokens()) {
+          params.add(st.nextToken());
+        }
+
+        if (params.size() > 1) {
+          switch (axisType) {
+            case 1:
+              String dx = (String) params.get(0), dy = (String) params.get(1);
+              metadata.put(key + " distance (X) in microns", dx);
+              metadata.put(key + " distance (Y) in microns", dy);
+              pixelSize.add(dy);
+              break;
+            case 2:
+              metadata.put(key + " time (X) in seconds", params.get(0));
+              metadata.put(key + " time (Y) in seconds", params.get(1));
+              break;
+            case 3:
+              metadata.put(key + " angle (X) in degrees", params.get(0));
+              metadata.put(key + " angle (Y) in degrees", params.get(1));
+              break;
+            case 4:
+              metadata.put(key + " intensity (X)", params.get(0));
+              metadata.put(key + " intensity (Y)", params.get(1));
+              break;
+            case 6:
+              metadata.put(key + " ratio (X)", params.get(0));
+              metadata.put(key + " ratio (Y)", params.get(1));
+              break;
+            case 7:
+              metadata.put(key + " log ratio (X)", params.get(0));
+              metadata.put(key + " log ratio (Y)", params.get(1));
+              break;
+            case 9:
+              metadata.put(key + " noncalibrated intensity min",
+                params.get(0));
+              metadata.put(key + " noncalibrated intensity max",
+                params.get(1));
+              metadata.put(key + " calibrated intensity min", params.get(2));
+              metadata.put(key + " calibrated intensity max", params.get(3));
+              break;
+            case 11:
+              metadata.put(key + " RGB type (X)", params.get(0));
+              metadata.put(key + " RGB type (Y)", params.get(1));
+              break;
+            case 14:
+              metadata.put(key + " time course type (X)", params.get(0));
+              metadata.put(key + " time course type (Y)", params.get(1));
+              break;
+            case 15:
+              metadata.put(key + " inverse sigmoid calibrated intensity (min)",
+                params.get(0));
+              metadata.put(key + " inverse sigmoid calibrated intensity (max)",
+                params.get(1));
+              metadata.put(key +
+                " inverse sigmoid calibrated intensity (beta)", params.get(2));
+              metadata.put(key + " inverse sigmoid calibrated intensity (Kd)",
+                params.get(3));
+              metadata.put(key + " inverse sigmoid calibrated intensity " +
+                "(calibrated max)", params.get(0));
+              break;
+            case 16:
+              metadata.put(key + " log inverse sigmoid calibrated " +
+                "intensity (min)", params.get(0));
+              metadata.put(key + " log inverse sigmoid calibrated " +
+                "intensity (max)", params.get(1));
+              metadata.put(key + " log inverse sigmoid calibrated " +
+                "intensity (beta)", params.get(2));
+              metadata.put(key + " log inverse sigmoid calibrated " +
+                "intensity (Kd)", params.get(3));
+              metadata.put(key + " log inverse sigmoid calibrated " +
+                "intensity (calibrated max)", params.get(0));
+              break;
+          }
+
+        }
+      }
     }
 
     // read color tables
@@ -307,19 +401,33 @@ public class BioRadReader extends FormatReader {
     metadata.put("luts", colors);
 
     // create and populate OME-XML DOM tree
-    OMETools.setAttribute(ome, "Image", "Name", name);
-    OMETools.setAttribute(ome, "Pixels", "SizeX", "" + nx);
-    OMETools.setAttribute(ome, "Pixels", "SizeY", "" + ny);
-    OMETools.setAttribute(ome, "Pixels", "SizeZ", "" + npic);
-    OMETools.setAttribute(ome, "Pixels", "SizeT", "1");
-    OMETools.setAttribute(ome, "Pixels", "SizeC", "1");
 
+    // populate Image element
+    OMETools.setImage(ome, name, null, null);
+
+    // populate Pixels element
     int type = DataTools.bytesToInt(header, 14, 2, LITTLE_ENDIAN);
     String fmt;
     if (type == 1) fmt = "Uint8";
     else fmt = "Uint16";
+    OMETools.setPixels(ome,
+      new Integer(nx), // SizeX
+      new Integer(ny), // SizeY
+      new Integer(npic), // SizeZ
+      new Integer(1), // SizeC
+      new Integer(1), // SizeT
+      fmt, // PixelType
+      null, // BigEndian
+      null); // DimensionOrder
 
-    OMETools.setAttribute(ome, "Image", "PixelType", fmt);
+    // populate Dimensions element
+    int size = pixelSize.size();
+    Float pixelSizeX = null, pixelSizeY = null, pixelSizeZ = null;
+    if (size >= 1) pixelSizeX = new Float((String) pixelSize.get(0));
+    if (size >= 2) pixelSizeY = new Float((String) pixelSize.get(1));
+    if (size >= 3) pixelSizeZ = new Float((String) pixelSize.get(2));
+    OMETools.setDimensions(ome,
+      pixelSizeX, pixelSizeY, pixelSizeZ, null, null);
   }
 
   public String noteString(int n, int l, int s, int t, int x, int y, String p)

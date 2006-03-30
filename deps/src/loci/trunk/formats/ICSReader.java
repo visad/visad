@@ -7,23 +7,23 @@ LOCI Bio-Formats package for reading and converting biological file formats.
 Copyright (C) 2005-2006 Melissa Linkert, Curtis Rueden and Eric Kjellman.
 
 This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Library General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Library General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Library General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 package loci.formats;
 
-import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.StringTokenizer;
 import java.util.NoSuchElementException;
@@ -129,7 +129,9 @@ public class ICSReader extends FormatReader {
   }
 
   /** Obtains the specified image from the given ICS file. */
-  public Image open(String id, int no) throws FormatException, IOException {
+  public BufferedImage open(String id, int no)
+    throws FormatException, IOException
+  {
     if(!id.equals(currentIdsId) && !id.equals(currentIcsId)) initFile(id);
 
     byte[] data = openBytes(id, no);
@@ -267,14 +269,9 @@ public class ICSReader extends FormatReader {
     // initialize OME metadata
 
     if (ome != null) {
-      OMETools.setAttribute(ome, "Pixels", "SizeX", "" + dimensions[1]);
-      OMETools.setAttribute(ome, "Pixels", "SizeY", "" + dimensions[2]);
-      OMETools.setAttribute(ome, "Pixels", "SizeZ", "" + dimensions[3]);
-      OMETools.setAttribute(ome, "Pixels", "SizeC", "" + dimensions[4]);
-      OMETools.setAttribute(ome, "Pixels", "SizeT", "" + dimensions[5]);
-      OMETools.setAttribute(ome, "Pixels", "BigEndian", "" + !littleEndian);
-      OMETools.setAttribute(ome, "Image", "Name",
-        "" + metadata.get("filename"));
+      OMETools.setImageName(ome, (String) metadata.get("filename"));
+
+      // populate Pixels element
 
       String ord = (String) metadata.get("order");
       ord = ord.substring(ord.indexOf("x"));
@@ -284,13 +281,10 @@ public class ICSReader extends FormatReader {
         tempOrder[pt] = ord.charAt(i);
         pt++;
       }
-      ord = new String(tempOrder);
-      ord = order.toUpperCase();
-
+      ord = new String(tempOrder).toUpperCase();
       if (ord.indexOf("Z") == -1) ord = ord + "Z";
       if (ord.indexOf("T") == -1) ord = ord + "T";
       if (ord.indexOf("C") == -1) ord = ord + "C";
-      OMETools.setAttribute(ome, "Pixels", "DimensionOrder", ord);
 
       String bits = (String) metadata.get("significant_bits");
       String fmt = (String) metadata.get("format");
@@ -304,7 +298,16 @@ public class ICSReader extends FormatReader {
       else if (fmt.equals("integer")) {
         type = type + "int" + bits;
       }
-      OMETools.setAttribute(ome, "Pixels", "PixelType", type);
+
+      OMETools.setPixels(ome,
+        new Integer(dimensions[1]), // SizeX
+        new Integer(dimensions[2]), // SizeY
+        new Integer(dimensions[3]), // SizeZ
+        new Integer(dimensions[4]), // SizeC
+        new Integer(dimensions[5]), // SizeT
+        type, // PixelType
+        new Boolean(!littleEndian), // BigEndian
+        ord); // DimensionOrder
     }
   }
 

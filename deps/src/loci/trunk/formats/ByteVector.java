@@ -7,16 +7,16 @@ LOCI Bio-Formats package for reading and converting biological file formats.
 Copyright (C) 2005-2006 Melissa Linkert, Curtis Rueden and Eric Kjellman.
 
 This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Library General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Library General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Library General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
@@ -47,22 +47,25 @@ public class ByteVector {
   }
 
   public void add(byte x) {
-    if (size>=data.length) {
-      doubleCapacity();
-      add(x);
-    }
-    else data[size++] = x;
+    while (size >= data.length) doubleCapacity();
+    data[size++] = x;
   }
 
   public int size() {
     return size;
   }
 
-  public void add(byte[] array) {
-    int length = array.length;
-    while (data.length-size<length) doubleCapacity();
-    System.arraycopy(array, 0, data, size, length);
-    size += length;
+  public void add(byte[] array) { add(array, 0, array.length); }
+
+  public void add(byte[] array, int off, int len) {
+    while (data.length < size + len) doubleCapacity();
+    if (len == 1) data[size] = array[off];
+    else if (len < 35) {
+      // for loop is faster for small number of elements
+      for (int i=0; i<len; i++) data[size + i] = array[off + i];
+    }
+    else System.arraycopy(array, off, data, size, len);
+    size += len;
   }
 
   void doubleCapacity() {

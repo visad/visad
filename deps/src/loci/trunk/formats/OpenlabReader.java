@@ -7,16 +7,16 @@ LOCI Bio-Formats package for reading and converting biological file formats.
 Copyright (C) 2005-2006 Melissa Linkert, Curtis Rueden and Eric Kjellman.
 
 This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Library General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Library General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Library General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
@@ -24,16 +24,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 package loci.formats;
 
 import java.awt.Dimension;
-import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.io.*;
-import java.util.*;
+import java.util.Vector;
 
 /**
  * OpenlabReader is the file format reader for Openlab LIFF files.
- *
- * -- TODO --
- * address efficiency issues; testing showed 600-3000 ms were required
- * to process each plane, with an additional 2000-4500 ms of overhead
  *
  * @author Eric Kjellman egkjellman at wisc.edu
  * @author Curtis Rueden ctrueden at wisc.edu
@@ -42,8 +38,9 @@ public class OpenlabReader extends FormatReader {
 
   // -- Static fields --
 
-  /** Helper reader to read PICT data with QT Java library. */
-  private static LegacyQTReader qtReader = new LegacyQTReader();
+  /** Helper reader to decode PICT data. */
+  private static PictReader pictReader = new PictReader();
+
 
   // -- Fields --
 
@@ -58,9 +55,6 @@ public class OpenlabReader extends FormatReader {
 
   /** Image type for each block of current Openlab LIFF file. */
   private int[] imageType;
-
-  /** Whether there is any color data in current Openlab LIFF file. */
-  private boolean isColor;
 
   /** Flag indicating whether current file is little endian. */
   protected boolean little = true;
@@ -111,7 +105,7 @@ public class OpenlabReader extends FormatReader {
   }
 
   /** Obtains the specified image from the given Openlab file. */
-  public Image open(String id, int no)
+  public BufferedImage open(String id, int no)
     throws FormatException, IOException
   {
     if (!id.equals(currentId)) initFile(id);
@@ -129,9 +123,7 @@ public class OpenlabReader extends FormatReader {
     in.read(toRead);
     // right now I'm gonna skip all the header info
     // check to see whether or not this is v2 data
-    if (toRead[0] == 1) {
-      in.skipBytes(128);
-    }
+    if (toRead[0] == 1) in.skipBytes(128);
     in.skipBytes(169);
     // read in the block of data
     toRead = new byte[blockSize];
@@ -146,12 +138,8 @@ public class OpenlabReader extends FormatReader {
     int pixPos = 0;
 
     Dimension dim;
-    try {
-      dim= qtReader.getPictDimensions(toRead);
-    }
-    catch (Exception e) {
-      dim = new Dimension(0, 0);
-    }
+    try { dim = pictReader.getDimensions(toRead); }
+    catch (Exception e) { dim = new Dimension(0, 0); }
 
     int length = toRead.length;
     int num, size, blockEnd;
@@ -160,17 +148,15 @@ public class OpenlabReader extends FormatReader {
     int pos = 0;
     int imagePos = 0;
     int imageSize = dim.width * dim.height;
-    int[][] flatSamples = new int[1][imageSize];
+    short[] flatSamples = new short[imageSize];
     byte[] temp;
     boolean skipflag;
 
-    // read in deep grey pixel data into an array, and create a
+    // read in deep gray pixel data into an array, and create a
     // BufferedImage out of it
     //
     // First, checks the existence of a deep gray block. If it doesn't exist,
-    // assume it is PICT data, and attempt to read it. This is unpleasantly
-    // dangerous, because QuickTime has this unfortunate habit of crashing
-    // when it doesn't work.
+    // assume it is PICT data, and attempt to read it.
 
     // check whether or not there is deep gray data
     while (expectedBlock != totalBlocks) {
@@ -187,12 +173,9 @@ public class OpenlabReader extends FormatReader {
         if (expectedBlock == 0 && imageType[no] < 9) {
           // there has been no deep gray data, and it is supposed
           // to be a pict... *crosses fingers*
-          try {
-            // This never actually throws an exception, to my knowledge,
-            // but we can always hope.
-            return qtReader.pictToImage(toRead);
-          }
+          try { return pictReader.openBytes(toRead); }
           catch (Exception e) {
+            e.printStackTrace();
             throw new FormatException("No iPic comment block found", e);
           }
         }
@@ -249,23 +232,14 @@ public class OpenlabReader extends FormatReader {
           (int) pixelData[pos] << 8;
         pixelValue += pixelData[pos + 1] < 0 ? 256 + pixelData[pos + 1] :
           (int) pixelData[pos + 1];
+        pos += 2;
       }
-      else {
-        throw new FormatException("Malformed LIFF data");
-      }
-      flatSamples[0][imagePos] = pixelValue;
+      else throw new FormatException("Malformed LIFF data");
+      flatSamples[imagePos] = (short) pixelValue;
       imagePos++;
       if (imagePos == imageSize) {  // done, return it
-        if (isColor) {
-          int[][] flatSamp = new int[3][];
-          flatSamp[0] = flatSamp[1] = flatSamp[2] = flatSamples[0];
-          return ImageTools.makeImage(flatSamp, dim.width, dim.height);
-
-        }
-        else {  // it's all grayscale
-          return ImageTools.makeImage(flatSamples[0], dim.width, dim.height,
-            1, false);
-        }
+        return ImageTools.makeImage(flatSamples,
+          dim.width, dim.height, 1, false);
       }
     }
   }
@@ -292,7 +266,6 @@ public class OpenlabReader extends FormatReader {
     in.read(toRead);
     long order = batoi(toRead);  // byte ordering
     little = toRead[2] != 0xff || toRead[3] != 0xff;
-    isColor = false;
 
     toRead = new byte[4];
     Vector v = new Vector(); // a temp vector containing offsets.
@@ -321,10 +294,7 @@ public class OpenlabReader extends FormatReader {
           String layerName = new String(layerNameBytes);
           if (layerName.startsWith("Original Image")) ok = false;
         }
-        if (ok) {
-          /* debug */ System.out.println("adding an offset");
-          v.add(new Integer(nextOffset)); // add THIS tag offset
-        }
+        if (ok) v.add(new Integer(nextOffset)); // add THIS tag offset
       }
       if (nextOffset == nextOffsetTemp) break;
       nextOffset = nextOffsetTemp;
@@ -332,15 +302,14 @@ public class OpenlabReader extends FormatReader {
 
     in.seek(((Integer) v.firstElement()).intValue());
 
-    // create and populate the array of offsets from the vector.
+    // create and populate the array of offsets from the vector
     numBlocks = v.size();
     offsets = new int[numBlocks];
     for (int i = 0; i < numBlocks; i++) {
       offsets[i] = ((Integer) v.get(i)).intValue();
     }
 
-    // check to see whether there is any color data. This also populates
-    // the imageTypes that the file uses.
+    // populate the imageTypes that the file uses
     toRead = new byte[2];
     imageType = new int[numBlocks];
     for (int i = 0; i < numBlocks; i++) {
@@ -348,7 +317,6 @@ public class OpenlabReader extends FormatReader {
       in.skipBytes(40);
       in.read(toRead);
       imageType[i] = batoi(toRead);
-      if (imageType[i] < 9) isColor = true;
     }
 
     initMetadata();
@@ -493,8 +461,7 @@ public class OpenlabReader extends FormatReader {
       // Initialize OME metadata
 
       if (ome != null) {
-        OMETools.setAttribute(ome, "Pixels", "BigEndian",
-          little ? "false" : "true");
+        OMETools.setBigEndian(ome, !little);
         if (metadata.get("BitDepth") != null) {
           int bitDepth = ((Integer) metadata.get("BitDepth")).intValue();
           String type;
@@ -503,31 +470,30 @@ public class OpenlabReader extends FormatReader {
           else if (bitDepth <= 16) type = "int16";
           else type = "int32";
 
-          OMETools.setAttribute(ome, "Image", "PixelType", type);
+          OMETools.setPixelType(ome, type);
         }
         if (metadata.get("Timestamp") != null) {
-          OMETools.setAttribute(ome, "Image", "CreationDate",
-            "" + metadata.get("Timestamp").toString());
+          OMETools.setCreationDate(ome, (String) metadata.get("Timestamp"));
         }
 
         if (metadata.get("XOrigin") != null) {
-          OMETools.setAttribute(ome, "StageLabel", "X",
-            "" + metadata.get("XOrigin").toString());
+          Double xOrigin = (Double) metadata.get("XOrigin");
+          OMETools.setStageX(ome, xOrigin.floatValue());
         }
 
         if (metadata.get("YOrigin") != null) {
-          OMETools.setAttribute(ome, "StageLabel", "Y",
-            "" + metadata.get("YOrigin").toString());
+          Double yOrigin = (Double) metadata.get("YOrigin");
+          OMETools.setStageY(ome, yOrigin.floatValue());
         }
 
         if (metadata.get("XScale") != null) {
-          OMETools.setAttribute(ome, "Image", "PixelSizeX",
-            "" + metadata.get("XScale").toString());
+          Double xScale = (Double) metadata.get("XScale");
+          OMETools.setPixelSizeX(ome, xScale.floatValue());
         }
 
         if (metadata.get("YScale") != null) {
-          OMETools.setAttribute(ome, "Image", "PixelSizeY",
-            "" + metadata.get("YScale").toString());
+          Double yScale = (Double) metadata.get("YScale");
+          OMETools.setPixelSizeY(ome, yScale.floatValue());
         }
       }
       in.seek(offset);

@@ -7,33 +7,34 @@ LOCI Bio-Formats package for reading and converting biological file formats.
 Copyright (C) 2005-2006 Melissa Linkert, Curtis Rueden and Eric Kjellman.
 
 This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Library General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Library General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Library General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 package loci.formats;
 
-import java.lang.*;
-import java.io.*;
-import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.io.ByteArrayInputStream;
 import java.util.Vector;
+import javax.imageio.ImageIO;
 
 /**
  * QTReader is the file format reader for QuickTime movie files.
  * It does not require any external libraries to be installed.
  *
- * Currently, compressed movies are not supported, although video codecs will
- * be added as time permits.
+ * Additional video codecs will be added as time permits.
  *
  * @author Melissa Linkert linkert at cs.wisc.edu
  */
@@ -89,6 +90,7 @@ public class QTReader extends FormatReader {
   /** Amount to subtract from each offset. */
   private int scale;
 
+
   // -- Constructor --
 
   /** Constructs a new QuickTime reader. */
@@ -109,12 +111,20 @@ public class QTReader extends FormatReader {
   }
 
   /** Obtains the specified image from the given QuickTime file. */
-  public Image open(String id, int no) throws FormatException, IOException {
+  public BufferedImage open(String id, int no)
+    throws FormatException, IOException
+  {
     if (!id.equals(currentId)) initFile(id);
     if (no < 0 || no >= getImageCount(id)) {
       throw new FormatException("Invalid image number: " + no);
     }
-    if (!codec.equals("raw ")) {
+    if (!codec.equals("raw ") && !codec.equals("rle ") &&
+      !codec.equals("jpeg"))
+    {
+      if (DEBUG) {
+        System.out.println("Unsupported codec (" +
+          codec + "); using QTJava reader");
+      }
       if (legacy == null) legacy = new LegacyQTReader();
       return legacy.open(id, no);
     }
@@ -147,6 +157,10 @@ public class QTReader extends FormatReader {
     int pad = width % 4;
     pad = (4 - pad) % 4;
 
+    if (width * height * (bitsPerPixel / 8) == prevPixels.length) {
+      pad = 0;
+    }
+
     if (pad > 0) {
       bytes = new byte[prevPixels.length - height*pad];
 
@@ -155,15 +169,20 @@ public class QTReader extends FormatReader {
       }
     }
 
-    if (bitsPerPixel <= 8 || bitsPerPixel == 40) {
-      if (bitsPerPixel == 40) {
-        // invert the pixels
-        for (int i=0; i<bytes.length; i++) {
-          bytes[i] = (byte) (255 - bytes[i]);
-        }
+    if (bitsPerPixel == 40) {
+      // invert the pixels
+      for (int i=0; i<bytes.length; i++) {
+        bytes[i] = (byte) (255 - bytes[i]);
       }
 
       return ImageTools.makeImage(bytes, width, height, 1, false);
+    }
+    else if (bitsPerPixel == 8) {
+      // invert the pixels
+      for (int i=0; i<bytes.length; i++) {
+        bytes[i] = (byte) (255 - bytes[i]);
+      }
+      return ImageTools.makeImage(bytes, width, height, 3, false);
     }
     else if (bitsPerPixel == 16) {
       short[] newPix = new short[bytes.length / 2 + 1];
@@ -173,20 +192,18 @@ public class QTReader extends FormatReader {
       return ImageTools.makeImage(newPix, width, height, 1, false);
     }
     else if (bitsPerPixel == 24) {
-      byte[][] newPix = new byte[3][pixs.length / 3];
-      for (int j=0; j<newPix[0].length; j++) {
-        for (int i=0; i<newPix.length; i++) {
-          newPix[i][j] = pixs[3*j + i];
-        }
-      }
-      return ImageTools.makeImage(newPix, width, height);
+      return ImageTools.makeImage(bytes, width, height, 3, true);
     }
     else if (bitsPerPixel == 32) {
-      int[] newPix = new int[bytes.length / 4];
-      for (int i=0; i<bytes.length; i+=4) {
-        newPix[i/4] = DataTools.bytesToInt(bytes, i, little);
+      // strip out alpha channel
+      byte[][] data = new byte[3][bytes.length / 4];
+      for (int i=0; i<data[0].length; i++) {
+        data[0][i] = bytes[4*i + 1];
+        data[1][i] = bytes[4*i + 2];
+        data[2][i] = bytes[4*i + 3];
       }
-      return ImageTools.makeImage(newPix, width, height, 1, false);
+
+      return ImageTools.makeImage(data, width, height);
     }
     else {
       if (legacy == null) legacy = new LegacyQTReader();
@@ -312,83 +329,150 @@ public class QTReader extends FormatReader {
   }
 
   /** Uncompresses an image plane according to the the codec identifier. */
-  public byte[] uncompress(byte[] pixs, String code) throws FormatException {
+  public byte[] uncompress(byte[] pixs, String code)
+    throws FormatException
+  {
     if (code.equals("raw ")) return pixs;
     else if (code.equals("rle ")) return rleUncompress(pixs);
+    else if (code.equals("jpeg")) return jpegUncompress(pixs);
     else {
       throw new FormatException("Sorry, " + codec + " codec is not supported");
     }
   }
 
-  /** Uncompresses a QT RLE compressed image plane. */
-  public byte[] rleUncompress(byte[] pixs) throws FormatException {
-    // -- TODO -- broken
+  /** Uncompresses a JPEG compressed image plane. */
+  public byte[] jpegUncompress(byte[] input) throws FormatException {
+    // too lazy to write native JPEG support, so use ImageIO
 
-    /* debug */
-    // print out the first 30 bytes
-    System.out.println();
-    for (int i=0; i<30; i++) {
-      System.out.print(pixs[i] + " ");
-    }
-    System.out.println();
+    try {
+      BufferedImage img = ImageIO.read(new ByteArrayInputStream(input));
 
-    int pt = 8;
-    long size = DataTools.bytesToInt(pixs, pt, 4, little);
-    pt += 4;
-    if (size < 0) size += 4294967296L;
+      byte[][] bytes = ImageTools.getBytes(img);
 
-    // this frame is the same as the one before it
-    if (size < 8) return prevPixels;
+      byte[] output = new byte[bytes.length * bytes[0].length];
 
-    int header = DataTools.bytesToInt(pixs, pt, 2, little);
-    pt += 2;
-
-    Vector output = new Vector();
-
-    if (header == 0) {
-      int skip = 1;  // always one more than the number of bytes to skip
-      while (skip != 0) {
-        skip = pixs[pt];
-        pt++;
-        int rleCode = 0;
-
-        while (rleCode != -1) {
-          if (skip == 0) break;  // finished decoding
-          pt += skip;
-          rleCode = pixs[pt];
-          pt++;
-
-          if (rleCode > 0) {
-            // copy the pixels directly to output buffer
-            for (int i=0; i<rleCode; i++) {
-              output.add(new Byte(pixs[pt]));
-              pt++;
-            }
-          }
-          else if (rleCode < -1) {
-            // grab next byte and repeat it -(rleCode) times
-            for (int i=0; i<-1*rleCode; i++) {
-              output.add(new Byte(pixs[pt]));
-            }
-          }
-          else if (rleCode == 0) {
-            skip = pixs[pt];
-            pt++;
-          }
+      for (int i=0; i<bytes[0].length; i++) {
+        for (int j=0; j<bytes.length; j++) {
+          output[bytes.length*i + j] = bytes[j][i];
         }
       }
+      return output;
     }
-    else {
-      throw new FormatException("Sorry, unsupported header : " + header);
+    catch (IOException e) {
+      throw new FormatException("Invalid JPEG stream");
     }
-
-    byte[] toRtn = new byte[output.size()];
-    for (int i=0; i<toRtn.length; i++) {
-      toRtn[i] = ((Byte) output.get(i)).byteValue();
-    }
-    return toRtn;
   }
 
+  /** Uncompresses a QT RLE compressed image plane. */
+  public byte[] rleUncompress(byte[] input) throws FormatException {
+    if (input.length < 8) return prevPixels;
+
+    // read the 4 byte chunk length; this should equal input.length
+
+    int length = DataTools.bytesToInt(input, 0, 4, little);
+
+    // now read the header
+    // if the header is 0, we uncompress the remaining bytes
+    // otherwise, read extra header information to determine which
+    // scanlines to uncompress
+
+    int header = DataTools.bytesToInt(input, 4, 2, little);
+    int off = 0; // offset into output
+    int start = 0;
+    int pt = 6;
+    int numLines = height;
+    byte[] output = new byte[width * height * (bitsPerPixel / 8)];
+
+    if ((header & 0x0008) == 0x0008) {
+      start = DataTools.bytesToInt(input, pt, 2, little);
+      // skip 2 bytes
+      pt += 4;
+      numLines = DataTools.bytesToInt(input, pt, 2, little);
+      // skip 2 bytes
+      pt += 4;
+
+      // copy appropriate lines from prevPixels
+
+      for (int i=0; i<start; i++) {
+        off = i * width * (bitsPerPixel / 8);
+        System.arraycopy(prevPixels, off, output, off,
+          width * (bitsPerPixel / 8));
+      }
+      off += (width * (bitsPerPixel / 8));
+
+      for (int i=(start+numLines); i<height; i++) {
+        int offset = i * width * (bitsPerPixel / 8);
+        System.arraycopy(prevPixels, offset, output, offset,
+          width * (bitsPerPixel / 8));
+      }
+    }
+    else throw new FormatException("Unsupported header : " + header);
+
+    // uncompress the remaining scanlines
+
+    byte skip = 0; // number of bytes to skip
+    byte rle = 0; // RLE code
+
+    int rowPointer = start * (width * (bitsPerPixel / 8));
+
+
+    for (int i=0; i<numLines; i++) {
+      skip = input[pt];
+
+      if (prevPixels != null) {
+        try {
+          System.arraycopy(prevPixels, off, output, off,
+            (skip - 1) * (bitsPerPixel / 8));
+        }
+        catch (ArrayIndexOutOfBoundsException e) { }
+      }
+
+      off = rowPointer + ((skip - 1) * (bitsPerPixel / 8));
+      pt++;
+      while (true) {
+        rle = input[pt];
+        pt++;
+
+        if (rle == 0) {
+          skip = input[pt];
+
+          if (prevPixels != null) {
+            try {
+              System.arraycopy(prevPixels, off, output, off,
+                (skip - 1) * (bitsPerPixel / 8));
+            }
+            catch (ArrayIndexOutOfBoundsException e) { }
+          }
+
+          off += ((skip - 1) * (bitsPerPixel / 8));
+          pt++;
+        }
+        else if (rle == -1) break;
+        else if (rle < -1) {
+          // unpack next pixel and copy it to output -(rle) times
+
+          for (int j=0; j<(-1*rle); j++) {
+            if (off < output.length) {
+              System.arraycopy(input, pt, output, off, bitsPerPixel / 8);
+              off += (bitsPerPixel / 8);
+            }
+            else j = (-1*rle);
+          }
+          pt += (bitsPerPixel / 8);
+        }
+        else {
+          // copy (rle) pixels to output
+
+          System.arraycopy(input, pt, output, off, rle*(bitsPerPixel / 8));
+          pt += rle*(bitsPerPixel / 8);
+          off += rle*(bitsPerPixel / 8);
+        }
+      }
+      rowPointer += (width * (bitsPerPixel / 8));
+    }
+
+    return output;
+  }
 
   // -- Main method --
 

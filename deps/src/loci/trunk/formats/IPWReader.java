@@ -7,25 +7,24 @@ LOCI Bio-Formats package for reading and converting biological file formats.
 Copyright (C) 2005-2006 Melissa Linkert, Curtis Rueden and Eric Kjellman.
 
 This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Library General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Library General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Library General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 package loci.formats;
 
-import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.io.*;
-
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.StringTokenizer;
@@ -39,7 +38,6 @@ public class IPWReader extends BaseTiffReader {
 
   // -- Constants --
 
-  private static final boolean DEBUG = false;
   private static final String NO_POI_MSG = "You need to install Jakarta POI " +
     "from http://jakarta.apache.org/poi/";
 
@@ -97,7 +95,7 @@ public class IPWReader extends BaseTiffReader {
   }
 
   /** Obtains the specified image from the given IPW file. */
-  public Image open(String id, int no)
+  public BufferedImage open(String id, int no)
     throws FormatException, IOException
   {
     if (!id.equals(currentId)) initFile(id);
@@ -121,11 +119,10 @@ public class IPWReader extends BaseTiffReader {
   /** Initializes the given IPW file. */
   protected void initFile(String id) throws FormatException, IOException {
     if (noPOI) throw new FormatException(NO_POI_MSG);
-    close();
     currentId = id;
+    in = new RandomAccessFile(id, "r");
     metadata = new Hashtable();
     ome = OMETools.createRoot();
-    in = new RandomAccessFile(id, "r");
 
     allIFDs = new Hashtable();
     numImages = 0;
@@ -191,14 +188,13 @@ public class IPWReader extends BaseTiffReader {
 
     if (ome != null) {
       super.initOMEMetadata();
-      OMETools.setAttribute(ome, "Pixels", "SizeZ", "" +
-        metadata.get("slices"));
-      OMETools.setAttribute(ome, "Pixels", "SizeC", "" +
-        metadata.get("channels"));
-      OMETools.setAttribute(ome, "Pixels", "SizeT", "" +
-        metadata.get("frames"));
-      OMETools.setAttribute(ome, "Image", "Description", "" +
-        metadata.get("Version"));
+      int sizeZ = Integer.parseInt((String) metadata.get("slices"));
+      int sizeC = Integer.parseInt((String) metadata.get("channels"));
+      int sizeT = Integer.parseInt((String) metadata.get("frames"));
+      OMETools.setSizeZ(ome, sizeZ);
+      OMETools.setSizeC(ome, sizeC);
+      OMETools.setSizeT(ome, sizeT);
+      OMETools.setDescription(ome, (String) metadata.get("Version"));
     }
   }
 

@@ -7,23 +7,23 @@ LOCI Bio-Formats package for reading and converting biological file formats.
 Copyright (C) 2005-2006 Melissa Linkert, Curtis Rueden and Eric Kjellman.
 
 This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Library General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Library General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Library General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 package loci.formats;
 
-import java.io.*;
+import java.io.IOException;
 import java.util.Hashtable;
 
 /**
@@ -445,36 +445,25 @@ public class ZeissLSMReader extends BaseTiffReader {
       short[] omeData = TiffTools.getIFDShortArray(ifd, ZEISS_ID, true);
       int magicNum = DataTools.bytesToInt(omeData, 0, little);
 
-      ome = OMETools.createRoot();
-
-      int photoInterp2 = TiffTools.getIFDIntValue(ifd,
-        TiffTools.PHOTOMETRIC_INTERPRETATION, true, 0);
-      String photo2;
-      switch (photoInterp2) {
-        case 0: photo2 = "monochrome"; break;
-        case 1: photo2 = "monochrome"; break;
-        case 2: photo2 = "RGB"; break;
-        case 3: photo2 = "monochrome"; break;
-        case 4: photo2 = "RGB"; break;
-        default: photo2 = "monochrome";
-      }
-      OMETools.setAttribute(ome,
-        "ChannelInfo", "PhotometricInterpretation", photo2);
+//      int photoInterp2 = TiffTools.getIFDIntValue(ifd,
+//        TiffTools.PHOTOMETRIC_INTERPRETATION, true, 0);
+//      String photo2;
+//      switch (photoInterp2) {
+//        case 0: photo2 = "monochrome"; break;
+//        case 1: photo2 = "monochrome"; break;
+//        case 2: photo2 = "RGB"; break;
+//        case 3: photo2 = "monochrome"; break;
+//        case 4: photo2 = "RGB"; break;
+//        default: photo2 = "monochrome";
+//      }
+//      OMETools.setAttribute(ome,
+//        "ChannelInfo", "PhotometricInterpretation", photo2);
 
       int imageWidth = DataTools.bytesToInt(omeData, 8, little);
-      OMETools.setAttribute(ome, "Pixels", "SizeX", "" + imageWidth);
-
       int imageLength = DataTools.bytesToInt(omeData, 12, little);
-      OMETools.setAttribute(ome, "Pixels", "SizeY", "" + imageLength);
-
       int zSize = DataTools.bytesToInt(omeData, 16, little);
-      OMETools.setAttribute(ome, "Pixels", "SizeZ", "" + zSize);
-
       int cSize = DataTools.bytesToInt(omeData, 20, little);
-      OMETools.setAttribute(ome, "Pixels", "SizeC", "" + cSize);
-
       int tSize = DataTools.bytesToInt(omeData, 24, little);
-      OMETools.setAttribute(ome, "Pixels", "SizeT", "" + tSize);
 
       int pixel = DataTools.bytesToInt(omeData, 28, little);
       String pixelType;
@@ -484,7 +473,6 @@ public class ZeissLSMReader extends BaseTiffReader {
         case 5: pixelType = "float"; break;
         default: pixelType = "Uint8";
       }
-      OMETools.setAttribute(ome, "Image", "PixelType", pixelType);
 
       short scanType = DataTools.bytesToShort(omeData, 88, little);
       String dimOrder;
@@ -500,7 +488,16 @@ public class ZeissLSMReader extends BaseTiffReader {
         case 9: dimOrder = "XYTCZ"; break;
         default: dimOrder = "XYZCT";
       }
-      OMETools.setAttribute(ome, "Pixels", "DimensionOrder", dimOrder);
+
+      OMETools.setPixels(ome,
+        new Integer(imageWidth), // SizeX
+        new Integer(imageLength), // SizeY
+        new Integer(zSize), // SizeZ
+        new Integer(cSize), // SizeC
+        new Integer(tSize), // SizeT
+        pixelType, // PixelType
+        null, // BigEndian
+        dimOrder); // DimensionOrder
     }
     catch (FormatException e) { e.printStackTrace(); }
     catch (IOException e) { e.printStackTrace(); }

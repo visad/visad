@@ -7,23 +7,23 @@ LOCI Bio-Formats package for reading and converting biological file formats.
 Copyright (C) 2005-2006 Melissa Linkert, Curtis Rueden and Eric Kjellman.
 
 This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Library General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Library General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Library General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 package loci.formats;
 
-import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
 import javax.swing.JFileChooser;
@@ -37,24 +37,17 @@ public class ImageReader extends FormatReader {
 
   // -- Static fields --
 
-  /** List of supported file format readers. */
-  protected static FormatReader[] readers;
-
-  /** List of supported filename suffixes. */
-  protected static String[] suffixList;
-
-  /** Index of reader with last successful isThisType identification. */
-  protected static int lastGood = -1;
+  /** List of reader classes. */
+  protected static Class[] readerClasses;
 
 
   // -- Static initializer --
 
   static {
-    // add built-in readers to the list
+    // read built-in reader classes from readers.txt file
     BufferedReader in = new BufferedReader(new InputStreamReader(
       ImageReader.class.getResourceAsStream("readers.txt")));
     Vector v = new Vector();
-    HashSet suffixSet = new HashSet();
     while (true) {
       String line = null;
       try { line = in.readLine(); }
@@ -67,7 +60,7 @@ public class ImageReader extends FormatReader {
       line = line.trim();
       if (line.equals("")) continue;
 
-      // load reader class and instantiate
+      // load reader class
       Class c = null;
       try { c = Class.forName(line); }
       catch (ClassNotFoundException exc) { }
@@ -76,29 +69,19 @@ public class ImageReader extends FormatReader {
           "\" is not a valid format reader.");
         continue;
       }
-      FormatReader reader = null;
-      try { reader = (FormatReader) c.newInstance(); }
-      catch (IllegalAccessException exc) { }
-      catch (InstantiationException exc) { }
-      if (reader == null) {
-        System.err.println("Error: \"" + line + "\" cannot be instantiated.");
-        continue;
-      }
-      v.add(reader);
-      String[] suf = reader.getSuffixes();
-      for (int i=0; i<suf.length; i++) suffixSet.add(suf[i]);
+      v.add(c);
     }
     try { in.close(); }
     catch (IOException exc) { exc.printStackTrace(); }
-    readers = new FormatReader[v.size()];
-    v.copyInto(readers);
-    suffixList = new String[suffixSet.size()];
-    suffixSet.toArray(suffixList);
-    Arrays.sort(suffixList);
+    readerClasses = new Class[v.size()];
+    v.copyInto(readerClasses);
   }
 
 
   // -- Fields --
+
+  /** List of supported file format readers. */
+  protected FormatReader[] readers;
 
   /** Current form index. */
   protected int index;
@@ -108,7 +91,30 @@ public class ImageReader extends FormatReader {
 
   /** Constructs a new ImageReader. */
   public ImageReader() {
-    super("any image", suffixList);
+    super("any image", (String[]) null);
+
+    // add built-in readers to the list
+    Vector v = new Vector();
+    HashSet suffixSet = new HashSet();
+    for (int i=0; i<readerClasses.length; i++) {
+      FormatReader reader = null;
+      try { reader = (FormatReader) readerClasses[i].newInstance(); }
+      catch (IllegalAccessException exc) { }
+      catch (InstantiationException exc) { }
+      if (reader == null) {
+        System.err.println("Error: " + readerClasses[i].getName() +
+          " cannot be instantiated.");
+        continue;
+      }
+      v.add(reader);
+      String[] suf = reader.getSuffixes();
+      for (int j=0; j<suf.length; j++) suffixSet.add(suf[j]);
+    }
+    readers = new FormatReader[v.size()];
+    v.copyInto(readers);
+    suffixes = new String[suffixSet.size()];
+    suffixSet.toArray(suffixes);
+    Arrays.sort(suffixes);
   }
 
 
@@ -118,6 +124,14 @@ public class ImageReader extends FormatReader {
   public String getFormat(String id) throws FormatException, IOException {
     if (!id.equals(currentId)) initFile(id);
     return readers[index].getFormat();
+  }
+
+  /** Gets the reader used to open the given file. */
+  public FormatReader getReader(String id)
+    throws FormatException, IOException
+  {
+    if (!id.equals(currentId)) initFile(id);
+    return readers[index];
   }
 
   /** Gets the file format reader instance matching the given class. */
@@ -146,7 +160,9 @@ public class ImageReader extends FormatReader {
   }
 
   /** Obtains the specified image from the given image file. */
-  public Image open(String id, int no) throws FormatException, IOException {
+  public BufferedImage open(String id, int no)
+    throws FormatException, IOException
+  {
     if (!id.equals(currentId)) initFile(id);
     return readers[index].open(id, no);
   }
@@ -156,28 +172,12 @@ public class ImageReader extends FormatReader {
     for (int i=0; i<readers.length; i++) readers[i].close();
   }
 
-  /** Initializes the given image file. */
-  protected void initFile(String id) throws FormatException, IOException {
-    // try last known good type first, for efficiency
-    for (int i=-1; i<readers.length; i++) {
-      if (i == lastGood) continue;
-      int ii = i < 0 ? lastGood : i;
-      if (readers[ii].isThisType(id)) {
-        index = ii;
-        lastGood = ii;
-        currentId = id;
-        return;
-      }
-    }
-    throw new FormatException("Unknown file format: " + id);
-  }
-
   /**
    * Opens an existing file from the given filename.
    *
    * @return Java Images containing pixel data
    */
-  public Image[] open(String id) throws FormatException, IOException {
+  public BufferedImage[] open(String id) throws FormatException, IOException {
     if (!id.equals(currentId)) initFile(id);
     return readers[index].open(id);
   }
@@ -260,6 +260,21 @@ public class ImageReader extends FormatReader {
       if (readers[i].isThisType(name)) return true;
     }
     return false;
+  }
+
+
+  // -- Internal ImageReader API methods --
+
+  /** Initializes the given image file. */
+  protected void initFile(String id) throws FormatException, IOException {
+    for (int i=0; i<readers.length; i++) {
+      if (readers[i].isThisType(id)) {
+        index = i;
+        currentId = id;
+        return;
+      }
+    }
+    throw new FormatException("Unknown file format: " + id);
   }
 
 

@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package loci.formats;
 
-import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Hashtable;
@@ -31,6 +31,15 @@ import javax.swing.filechooser.FileFilter;
 
 /** Abstract superclass of all biological file format readers. */
 public abstract class FormatReader extends FormatHandler {
+
+  // -- Constants --
+
+  /** Debugging flag. */
+  protected static final boolean DEBUG = false;
+
+  /** Debugging level. 1=basic, 2=extended, 3=everything. */
+  protected static final int DEBUG_LEVEL = 1;
+
 
   // -- Fields --
 
@@ -62,7 +71,7 @@ public abstract class FormatReader extends FormatHandler {
     throws FormatException, IOException;
 
   /** Obtains the specified image from the given file. */
-  public abstract Image open(String id, int no)
+  public abstract BufferedImage open(String id, int no)
     throws FormatException, IOException;
 
   /** Closes the currently open file. */
@@ -88,9 +97,9 @@ public abstract class FormatReader extends FormatHandler {
    *
    * @return Java Images containing pixel data
    */
-  public Image[] open(String id) throws FormatException, IOException {
+  public BufferedImage[] open(String id) throws FormatException, IOException {
     int nImages = getImageCount(id);
-    Image[] images = new Image[nImages];
+    BufferedImage[] images = new BufferedImage[nImages];
     for (int i=0; i<nImages; i++) images[i] = open(id, i);
     close();
     return images;
@@ -168,7 +177,7 @@ public abstract class FormatReader extends FormatHandler {
       long s1 = System.currentTimeMillis();
       int num = getImageCount(args[0]);
       long e1 = System.currentTimeMillis();
-      final Image[] images = new Image[num];
+      BufferedImage[] images = new BufferedImage[num];
       long s2 = System.currentTimeMillis();
       for (int i=0; i<num; i++) {
         images[i] = open(args[0], i);
@@ -207,7 +216,7 @@ public abstract class FormatReader extends FormatHandler {
     // output OME-XML
     Object root = null;
     try { root = getOMENode(id); }
-    catch (FormatException exc) { }
+    catch (FormatException exc) { if (DEBUG) exc.printStackTrace(); }
     if (root == null) {
       System.out.println("OME-XML functionality not available " +
         "(package loci.ome.xml not installed)");

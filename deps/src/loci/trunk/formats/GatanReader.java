@@ -7,24 +7,25 @@ LOCI Bio-Formats package for reading and converting biological file formats.
 Copyright (C) 2005-2006 Melissa Linkert, Curtis Rueden and Eric Kjellman.
 
 This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Library General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Library General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Library General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 package loci.formats;
 
-import java.awt.Image;
-import java.io.*;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 
 /**
  * GatanReader is the file format reader for Gatan files.
@@ -81,7 +82,7 @@ public class GatanReader extends FormatReader {
   }
 
   /** Obtains the specified image from the given Gatan file. */
-  public Image open(String id, int no)
+  public BufferedImage open(String id, int no)
     throws FormatException, IOException
   {
     if (!id.equals(currentId)) initFile(id);
@@ -177,15 +178,15 @@ public class GatanReader extends FormatReader {
         case 23: type = "int32"; break;
       }
 
-      OMETools.setAttribute(ome, "Pixels", "PixelType", type);
-      OMETools.setAttribute(ome, "Pixels", "BigEndian",
-        littleEndian ? "false" : "true");
-      OMETools.setAttribute(ome, "Pixels", "SizeX", "" + dims[0]);
-      OMETools.setAttribute(ome, "Pixels", "SizeY", "" + dims[1]);
-      OMETools.setAttribute(ome, "Pixels", "SizeC", "1");
-      OMETools.setAttribute(ome, "Pixels", "SizeZ", "1");
-      OMETools.setAttribute(ome, "Pixels", "SizeT", "1");
-      OMETools.setAttribute(ome, "Pixels", "DimensionOrder", "XYZTC");
+      OMETools.setPixels(ome,
+        new Integer(dims[0]), // SizeX
+        new Integer(dims[1]), // SizeY
+        new Integer(1), // SizeZ
+        new Integer(1), // SizeC
+        new Integer(1), // SizeT
+        type, // PixelType
+        new Boolean(!littleEndian), // BigEndian
+        "XYZTC"); // DimensionOrder
     }
   }
 

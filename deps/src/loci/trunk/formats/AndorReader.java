@@ -7,16 +7,16 @@ LOCI Bio-Formats package for reading and converting biological file formats.
 Copyright (C) 2005-2006 Melissa Linkert, Curtis Rueden and Eric Kjellman.
 
 This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Library General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Library General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Library General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
@@ -42,9 +42,6 @@ public class AndorReader extends BaseTiffReader {
   /** Andor TIFF private IFD tags. */
   private static final int MMHEADER = 34361;
   private static final int MMSTAMP = 34362;
-
-  /** Debugging flag. */
-  private static final boolean DEBUG = false;
 
 
   // -- Constructor --
@@ -154,9 +151,9 @@ public class AndorReader extends BaseTiffReader {
       metadata.put("Image type", imgType);
 
       // clear OME-XML dimension info for Z, C and T axes
-      OMETools.setAttribute(ome, "Pixels", "SizeZ", "1");
-      OMETools.setAttribute(ome, "Pixels", "SizeC", "1");
-      OMETools.setAttribute(ome, "Pixels", "SizeT", "1");
+      OMETools.setSizeZ(ome, 1);
+      OMETools.setSizeC(ome, 1);
+      OMETools.setSizeT(ome, 1);
 
       int sizeC = 1;
 
@@ -195,19 +192,15 @@ public class AndorReader extends BaseTiffReader {
 
         // set OME-XML dimensions appropriately
 
-        if (name.equals("Z")) {
-          OMETools.setAttribute(ome, "Pixels", "SizeZ", "" + size);
-        }
-        else if (name.equals("Time")) {
-          OMETools.setAttribute(ome, "Pixels", "SizeT", "" + size);
-        }
+        if (name.equals("Z")) OMETools.setSizeZ(ome, size);
+        else if (name.equals("Time")) OMETools.setSizeT(ome, size);
         else if (!name.trim().equals("") && !name.equals("x") &&
           !name.equals("y"))
         {
           sizeC *= size;
         }
       }
-      OMETools.setAttribute(ome, "Pixels", "SizeC", "" + sizeC);
+      OMETools.setSizeC(ome, sizeC);
     }
 
     // parse stamp value, a sequence of 8 doubles representing the
@@ -301,7 +294,7 @@ public class AndorReader extends BaseTiffReader {
       else if (order.indexOf("C") < 0) order = order + "C";
     }
 
-    OMETools.setAttribute(ome, "Pixels", "DimensionOrder", order);
+    OMETools.setDimensionOrder(ome, order);
   }
 
 

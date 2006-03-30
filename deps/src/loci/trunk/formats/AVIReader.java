@@ -7,24 +7,25 @@ LOCI Bio-Formats package for reading and converting biological file formats.
 Copyright (C) 2005-2006 Melissa Linkert, Curtis Rueden and Eric Kjellman.
 
 This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Library General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Library General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Library General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 package loci.formats;
 
-import java.awt.Image;
-import java.io.*;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.Vector;
 
 /**
@@ -43,7 +44,7 @@ public class AVIReader extends FormatReader {
   /** Number of images in current AVI movie. */
   private int numImages;
 
-  /** Vector of Images. */
+  /** Vector of BufferedImages. */
   private Vector imgs;
 
   /** Endianness flag. */
@@ -103,7 +104,7 @@ public class AVIReader extends FormatReader {
   }
 
   /** Obtains the specified image from the given AVI file. */
-  public Image open(String id, int no)
+  public BufferedImage open(String id, int no)
     throws FormatException, IOException
   {
     if (!id.equals(currentId)) initFile(id);
@@ -112,7 +113,7 @@ public class AVIReader extends FormatReader {
       throw new FormatException("Invalid image number: " + no);
     }
 
-    return (Image) imgs.get(no);
+    return (BufferedImage) imgs.get(no);
   }
 
   /** Closes any open files. */
@@ -384,7 +385,8 @@ public class AVIReader extends FormatReader {
                 {
                   int len = bmpScanLineSize;
                   if (bmpBitsPerPixel > 8) {
-                    intData = new short[dwWidth * bmpHeight];
+                    byteData =
+                      new byte[(bmpBitsPerPixel / 8) * dwWidth * bmpHeight];
                   }
                   else {
                     byteData = new byte[dwWidth * bmpHeight];
@@ -400,22 +402,21 @@ public class AVIReader extends FormatReader {
                     }
 
                     if (bmpBitsPerPixel > 8) {
-                      unpack(rawData, rawOffset, intData, offset, dwWidth);
+                      unpack(rawData, rawOffset, byteData, offset, dwWidth);
                     }
                     else {
-                      unpack(rawData, rawOffset, bmpBitsPerPixel, byteData,
-                        offset, dwWidth);
+                      unpack(rawData, rawOffset, byteData, offset, dwWidth);
                     }
                     rawOffset += len;
                     offset -= dwWidth;
                   }
 
                   if (bmpBitsPerPixel > 8) {
-                    imgs.add(ImageTools.makeImage(intData, dwWidth, bmpHeight,
-                      1, false));
+                    imgs.add(ImageTools.makeImage(rawData, dwWidth, bmpHeight,
+                      (rawData.length / (dwWidth*bmpHeight)), true));
                   }
                   else {
-                    imgs.add(ImageTools.makeImage(byteData, dwWidth, bmpHeight,
+                    imgs.add(ImageTools.makeImage(rawData, dwWidth, bmpHeight,
                       1, false));
                   }
                 }
@@ -452,51 +453,24 @@ public class AVIReader extends FormatReader {
 
   /** Initialize the OME-XML tree. */
   public void initOMEMetadata() {
-    if (ome != null) {
-      OMETools.setAttribute(ome, "Pixels", "SizeX",
-        "" + metadata.get("Frame width"));
-      OMETools.setAttribute(ome, "Pixels", "SizeY",
-        "" + metadata.get("Frame height"));
-      OMETools.setAttribute(ome, "Pixels", "SizeT",
-        "" + metadata.get("Total frames"));
-      int bps = ((Integer) metadata.get("Bits per pixel")).intValue() / 8;
-      OMETools.setAttribute(ome, "Pixels", "SizeC", "" + bps);
-      OMETools.setAttribute(ome, "Pixels", "SizeZ", "1");
-      OMETools.setAttribute(ome, "Pixels", "BigEndian", "" + !little);
-      int tempBps = bps * 8;
-      bps = tempBps / bps;
+    if (ome == null) return;
 
-      String pixType = "int" + bps;
-      OMETools.setAttribute(ome, "Pixels", "PixelType", pixType);
-      OMETools.setAttribute(ome, "Pixels", "DimensionOrder", "XYTCZ");
-    }
-  }
-
-  /** Unpacks a byte array into an int array. */
-  public void unpack(byte[] rawData, int rawOffset, short[] intData,
-    int intOffset, int w)
-  {
-    int j = intOffset;
-    int k = rawOffset;
-    int mask = 0xff;
-    for (int i=0; i<w; i++) {
-      int b0 = (((int) (rawData[k++])) & mask);
-      int b1 = (((int) (rawData[k++])) & mask) << 8;
-      int b2 = (((int) (rawData[k++])) & mask) << 16;
-      if (bmpBitsPerPixel == 32) k++; // ignore alpha
-
-      if (pr != null && pg != null & pb != null) {
-        intData[j] = (short) (0xff000000 | pr[b0] | pg[b1] | pb[b2]);
-      }
-      else {
-        intData[j] = (short) (0xff000000 | b0 | b1 | b2);
-      }
-      j++;
-    }
+    int bps = ((Integer) metadata.get("Bits per pixel")).intValue() / 8;
+    int tempBps = bps * 8;
+    String pixType = "int" + (tempBps / bps);
+    OMETools.setPixels(ome,
+      (Integer) metadata.get("Frame width"), // SizeX
+      (Integer) metadata.get("Frame height"), // SizeY
+      new Integer(1), // SizeZ
+      new Integer(bps), // SizeC
+      (Integer) metadata.get("Total frames"), // SizeT
+      pixType, // PixelType
+      new Boolean(!little), // BigEndian
+      "XYTCZ"); // DimensionOrder
   }
 
   /** Unpacks a byte array into a new byte array. */
-  public void unpack(byte[] rawData, int rawOffset, int bpp, byte[] byteData,
+  public void unpack(byte[] rawData, int rawOffset, byte[] byteData,
     int byteOffset, int w)
   {
     for (int i=0; i<w; i++) {

@@ -7,24 +7,25 @@ LOCI Bio-Formats package for reading and converting biological file formats.
 Copyright (C) 2005-2006 Melissa Linkert, Curtis Rueden and Eric Kjellman.
 
 This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Library General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Library General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Library General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 package loci.formats;
 
-import java.awt.Image;
-import java.io.*;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 
 /**
  * DeltavisionReader is the file format reader for Deltavision files.
@@ -36,6 +37,7 @@ public class DeltavisionReader extends FormatReader {
   // -- Constants --
 
   private static final short LITTLE_ENDIAN = -16224;
+
 
   // -- Fields --
 
@@ -75,7 +77,7 @@ public class DeltavisionReader extends FormatReader {
   }
 
   /** Obtains the specified image from the given Deltavision file. */
-  public Image open(String id, int no)
+  public BufferedImage open(String id, int no)
     throws FormatException, IOException
   {
     if (!id.equals(currentId)) initFile(id);
@@ -171,10 +173,10 @@ public class DeltavisionReader extends FormatReader {
     extHeader = new byte[extSize];
     in.read(extHeader);
 
-    metadata.put("ImageWidth", new Integer(DataTools.bytesToInt(header, 0, 4,
-      little)));
-    metadata.put("ImageHeight", new Integer(DataTools.bytesToInt(header,
-      4, 4, little)));
+    Integer sizeX = new Integer(DataTools.bytesToInt(header, 0, 4, little));
+    Integer sizeY = new Integer(DataTools.bytesToInt(header, 4, 4, little));
+    metadata.put("ImageWidth", sizeX);
+    metadata.put("ImageHeight", sizeY);
     metadata.put("NumberOfImages", new Integer(DataTools.bytesToInt(header,
       8, 4, little)));
     int pixelType = DataTools.bytesToInt(header, 12, 4, little);
@@ -192,12 +194,8 @@ public class DeltavisionReader extends FormatReader {
     }
 
     if (ome != null) {
-      OMETools.setAttribute(ome, "Pixels", "SizeX",
-        "" + metadata.get("ImageWidth"));
-      OMETools.setAttribute(ome, "Pixels", "SizeY",
-        "" + metadata.get("ImageHeight"));
-      OMETools.setAttribute(ome, "Pixels", "PixelType", "" + omePixel);
-      OMETools.setAttribute(ome, "Pixels", "BigEndian", "" + !little);
+      OMETools.setPixels(ome, sizeX, sizeY, null, null, null, omePixel,
+        new Boolean(!little), null);
     }
 
     metadata.put("PixelType", pixel);
@@ -277,7 +275,7 @@ public class DeltavisionReader extends FormatReader {
 
     int numT = DataTools.bytesToShort(header, 180, 2, little);
     metadata.put("Number of timepoints", new Integer(numT));
-    if (ome != null) OMETools.setAttribute(ome, "Pixels", "SizeT", "" + numT);
+    if (ome != null) OMETools.setSizeT(ome, numT);
 
     int sequence = DataTools.bytesToInt(header, 182, 4, little);
     String imageSequence;
@@ -289,9 +287,7 @@ public class DeltavisionReader extends FormatReader {
       default: imageSequence = "unknown"; dimOrder = "XYZTC";
     }
     metadata.put("Image sequence", imageSequence);
-    if (ome != null) {
-      OMETools.setAttribute(ome, "Pixels", "DimensionOrder", dimOrder);
-    }
+    if (ome != null) OMETools.setDimensionOrder(ome, dimOrder);
 
     metadata.put("X axis tilt angle", new Float(Float.intBitsToFloat(
       DataTools.bytesToInt(header, 184, 4, little))));
@@ -302,10 +298,10 @@ public class DeltavisionReader extends FormatReader {
 
     int numW = DataTools.bytesToShort(header, 196, 2, little);
     metadata.put("Number of wavelengths", new Integer(numW));
-    if (ome != null) OMETools.setAttribute(ome, "Pixels", "SizeC", "" + numW);
+    if (ome != null) OMETools.setSizeC(ome, numW);
     int numZ = numImages / (numW * numT);
     metadata.put("Number of focal planes", new Integer(numZ));
-    if (ome != null) OMETools.setAttribute(ome, "Pixels", "SizeZ", "" + numZ);
+    if (ome != null) OMETools.setSizeZ(ome, numZ);
 
     metadata.put("Wavelength 1 (in nm)", new Integer(DataTools.bytesToShort(
       header, 198, 2, little)));
@@ -326,20 +322,17 @@ public class DeltavisionReader extends FormatReader {
     int numTitles = DataTools.bytesToInt(header, 220, 4, little);
 
     if (ome != null) {
-      OMETools.setAttribute(ome, "StageLabel", "X",
-        "" + metadata.get("X origin (in um)"));
-      OMETools.setAttribute(ome, "StageLabel", "Y",
-        "" + metadata.get("Y origin (in um)"));
-      OMETools.setAttribute(ome, "StageLabel", "Z",
-        "" + metadata.get("Z origin (in um)"));
+      Float x = (Float) metadata.get("X origin (in um)");
+      Float y = (Float) metadata.get("Y origin (in um)");
+      Float z = (Float) metadata.get("Z origin (in um)");
+      OMETools.setStageLabel(ome, null, x, y, z);
     }
 
     for (int i=1; i<=10; i++) {
       metadata.put("Title " + i, new String(header, 224 + 80*(i-1), 80));
-      if (i == 1 && ome != null) {
-        OMETools.setAttribute(ome, "Image", "Description",
-          "" + metadata.get("Title 1"));
-      }
+    }
+    if (ome != null) {
+      OMETools.setDescription(ome, (String) metadata.get("Title 1"));
     }
   }
 

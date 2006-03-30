@@ -7,16 +7,16 @@ LOCI Bio-Formats package for reading and converting biological file formats.
 Copyright (C) 2005-2006 Melissa Linkert, Curtis Rueden and Eric Kjellman.
 
 This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Library General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Library General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Library General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 package loci.formats;
 
 import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.swing.filechooser.FileFilter;
@@ -87,7 +88,7 @@ public class ImageJReader extends FormatReader {
   }
 
   /** Obtains the specified image from the given file. */
-  public Image open(String id, int no)
+  public BufferedImage open(String id, int no)
     throws FormatException, IOException
   {
     if (!id.equals(currentId)) initFile(id);
@@ -105,7 +106,8 @@ public class ImageJReader extends FormatReader {
       r.exec("image = opener.openImage(dir, name)");
       r.exec("size = image.getStackSize()");
       int size = ((Integer) r.getVar("size")).intValue();
-      return ((Image) r.exec("image.getImage()"));
+      Image img = (Image) r.exec("image.getImage()");
+      return ImageTools.makeBuffered(img);
     }
     catch (Exception exc) {
       exc.printStackTrace();

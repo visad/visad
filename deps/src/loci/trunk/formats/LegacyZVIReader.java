@@ -7,24 +7,25 @@ LOCI Bio-Formats package for reading and converting biological file formats.
 Copyright (C) 2005-2006 Melissa Linkert, Curtis Rueden and Eric Kjellman.
 
 This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Library General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Library General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Library General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 package loci.formats;
 
-import java.awt.Image;
-import java.io.*;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.Vector;
 
 /**
@@ -64,9 +65,6 @@ public class LegacyZVIReader extends FormatReader {
   private static final String WHINING = "Sorry, " +
     "ZVI support is still preliminary.  It will be improved as time permits.";
 
-  /** Debugging flag. */
-  private static final boolean DEBUG = false;
-
 
   // -- Fields --
 
@@ -102,7 +100,7 @@ public class LegacyZVIReader extends FormatReader {
   }
 
   /** Obtains the specified image from the given ZVI file. */
-  public Image open(String id, int no)
+  public BufferedImage open(String id, int no)
     throws FormatException, IOException
   {
     if (!id.equals(currentId)) initFile(id);
@@ -283,13 +281,15 @@ public class LegacyZVIReader extends FormatReader {
       // initialize the OME-XML tree
 
       if (ome != null) {
-        OMETools.setAttribute(ome, "Pixels", "SizeX", "" + width);
-        OMETools.setAttribute(ome, "Pixels", "SizeY", "" + height);
-        OMETools.setAttribute(ome, "Pixels", "SizeZ", "" + numZ);
-        OMETools.setAttribute(ome, "Pixels", "SizeT", "" + numT);
-        OMETools.setAttribute(ome, "Pixels", "SizeC", "" + numC);
-        OMETools.setAttribute(ome, "Pixels", "BigEndian", "false");
-        // TODO -- add pixel type
+        OMETools.setPixels(ome,
+          new Integer(width), // SizeX
+          new Integer(height), // SizeY
+          new Integer(numZ), // SizeZ
+          new Integer(numC), // SizeC
+          new Integer(numT), // SizeT
+          null, // PixelType
+          Boolean.FALSE, // BigEndian
+          null); // DimensionOrder
       }
     }
 
@@ -400,7 +400,7 @@ public class LegacyZVIReader extends FormatReader {
     }
 
     /** Reads in this block's image data from the given file. */
-    public Image readImage(RandomAccessFile in)
+    public BufferedImage readImage(RandomAccessFile in)
       throws IOException, FormatException
     {
       long fileSize = in.length();

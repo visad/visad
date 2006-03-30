@@ -7,23 +7,23 @@ LOCI Bio-Formats package for reading and converting biological file formats.
 Copyright (C) 2005-2006 Melissa Linkert, Curtis Rueden and Eric Kjellman.
 
 This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Library General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Library General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Library General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 package loci.formats;
 
-import java.io.*;
+import java.io.IOException;
 import java.util.StringTokenizer;
 
 /**
@@ -87,8 +87,8 @@ public class SEQReader extends BaseTiffReader {
       (String) TiffTools.getIFDValue(ifds[0], TiffTools.IMAGE_DESCRIPTION);
 
     // default values
-    metadata.put("slices", "1");
-    metadata.put("channels", "1");
+    metadata.put("slices", new Integer(1));
+    metadata.put("channels", new Integer(1));
     metadata.put("frames", new Integer(imageCount));
 
     // parse the description to get channels, slices and times where applicable
@@ -110,12 +110,21 @@ public class SEQReader extends BaseTiffReader {
     if ((ome != null) &&
       ((Integer) metadata.get("Number of images")).intValue() != 1)
     {
-      OMETools.setAttribute(ome, "Pixels", "SizeZ",
-        "" + metadata.get("slices"));
-//      OMETools.setAttribute(ome, "Pixels", "SizeC",
-//        "" + metadata.get("channels"));
-      OMETools.setAttribute(ome, "Pixels", "SizeT",
-        "" + metadata.get("frames"));
+      Integer sizeZ;
+      Integer sizeT;
+
+      if (metadata.get("slices") instanceof Integer) {
+        sizeZ = (Integer) metadata.get("slices");
+      }
+      else sizeZ = new Integer("" + metadata.get("slices"));
+
+      if (metadata.get("frames") instanceof Integer) {
+        sizeT = (Integer) metadata.get("frames");
+      }
+      else sizeT = new Integer("" + metadata.get("frames"));
+
+      OMETools.setPixels(ome, null, null,
+        sizeZ, null, sizeT, null, null, null);
     }
   }
 

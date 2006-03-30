@@ -1,5 +1,5 @@
 //
-// Reader.java
+// PerkinElmerReader.java
 //
 
 /*
@@ -7,29 +7,29 @@ LOCI Bio-Formats package for reading and converting biological file formats.
 Copyright (C) 2005-2006 Melissa Linkert, Curtis Rueden and Eric Kjellman.
 
 This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+it under the terms of the GNU Library General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+GNU Library General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU Library General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 package loci.formats;
 
-import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.io.*;
-import java.util.*;
-import java.lang.reflect.*;
+import java.lang.reflect.Method;
+import java.util.StringTokenizer;
 
 /**
- * Reader is the file format reader for PerkinElmer files.
+ * PerkinElmerReader is the file format reader for PerkinElmer files.
  *
  * @author Melissa Linkert linkert at cs.wisc.edu
  */
@@ -70,7 +70,7 @@ public class PerkinElmerReader extends FormatReader {
   }
 
   /** Obtains the specified image from the given PerkinElmer file. */
-  public Image open(String id, int no)
+  public BufferedImage open(String id, int no)
     throws FormatException, IOException
   {
     if (!id.equals(currentId)) initFile(id);
@@ -93,6 +93,7 @@ public class PerkinElmerReader extends FormatReader {
     // get the working directory
     File tempFile = new File(id);
     File workingDir = tempFile.getParentFile();
+    if (workingDir == null) workingDir = new File(".");
     String workingDirPath = workingDir.getPath() + File.separator;
     String[] ls = workingDir.list();
 
@@ -281,28 +282,37 @@ public class PerkinElmerReader extends FormatReader {
      // initialize OME-XML
 
      if (ome != null) {
-       OMETools.setAttribute(ome, "Image", "PixelSizeX", "" +
-         metadata.get("Pixel Size X"));
-       OMETools.setAttribute(ome, "Image", "PixelSizeY", "" +
-         metadata.get("Pixel Size Y"));
+       // populate Dimensions element
+       String pixelSizeX = (String) metadata.get("Pixel Size X");
+       String pixelSizeY = (String) metadata.get("Pixel Size Y");
+       OMETools.setDimensions(ome, new Float(pixelSizeX),
+         new Float(pixelSizeY), null, null, null);
+
+       // populate Image element
        String time = (String) metadata.get("Finish Time:");
        time = time.substring(1).trim();
-       OMETools.setAttribute(ome, "Image", "CreationDate", time);
-       OMETools.setAttribute(ome, "Pixels", "SizeX", "" +
-         metadata.get("Image Width"));
-       OMETools.setAttribute(ome, "Pixels", "SizeY", "" +
-         metadata.get("Image Length"));
-       OMETools.setAttribute(ome, "Pixels", "SizeZ", "" +
-         metadata.get("Number of slices"));
-       OMETools.setAttribute(ome, "Pixels", "SizeT", "" + timePoints);
-       OMETools.setAttribute(ome, "Pixels", "SizeC", "" + wavelengths);
-       OMETools.setAttribute(ome, "Pixels", "DimensionOrder", "XYCTZ");
-       OMETools.setAttribute(ome, "StageLabel", "X", "" +
-         metadata.get("Origin X"));
-       OMETools.setAttribute(ome, "StageLabel", "Y", "" +
-         metadata.get("Origin Y"));
-       OMETools.setAttribute(ome, "StageLabel", "Z", "" +
-         metadata.get("Origin Z"));
+       OMETools.setCreationDate(ome, time);
+
+       // populate Pixels element
+       String sizeX = (String) metadata.get("Image Width");
+       String sizeY = (String) metadata.get("Image Length");
+       String sizeZ = (String) metadata.get("Number of slices");
+       OMETools.setPixels(ome,
+         new Integer(sizeX), // SizeX
+         new Integer(sizeY), // SizeY
+         new Integer(sizeZ), // SizeZ
+         new Integer(wavelengths), // SizeC
+         new Integer(timePoints), // SizeT
+         null, // PixelType
+         null, // BigEndian
+         "XYCTZ"); // DimensionOrder
+
+       // populate StageLabel element
+       String originX = (String) metadata.get("Origin X");
+       String originY = (String) metadata.get("Origin Y");
+       String originZ = (String) metadata.get("Origin Z");
+       OMETools.setStageLabel(ome, null,
+         new Float(originX), new Float(originY), new Float(originZ));
      }
   }
 
