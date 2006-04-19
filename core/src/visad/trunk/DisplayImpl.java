@@ -561,16 +561,20 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    * @param c Component to set
    */
   public void setComponent(Component c) {
-    // lazy initialization
-    if (componentListener == null) {
-      componentListener = new ComponentChangedListener(this);
+    if (c != null) {
+      // lazy initialization
+      if (componentListener == null) {
+        componentListener = new ComponentChangedListener(this);
+      }
+      c.addComponentListener(componentListener);
     }
     // in case setComponent is called multiple times
     if (component != null) {
-      component.removeComponentListener(componentListener);
+      if (componentListener != null) {
+        component.removeComponentListener(componentListener);
+      }
     }
     component = c;
-    component.addComponentListener(componentListener);
   }
 
   /**
