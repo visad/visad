@@ -394,6 +394,8 @@ boolean anynotmissing = false;
           vy = new float[maxsize];
           System.arraycopy(tx, 0, vx, 0, numv);
           System.arraycopy(ty, 0, vy, 0, numv);
+          tx = null;
+          ty = null;
           if (naux > 0) {
             byte[][] ta = auxLevels;
             auxLevels = new byte[naux][maxsize];
@@ -552,12 +554,15 @@ any = true;
             vy = new float[maxsize];
             System.arraycopy(tx, 0, vx, 0, numv);
             System.arraycopy(ty, 0, vy, 0, numv);
+            tx = null;
+            ty = null;
             if (naux > 0) {
               byte[][] ta = auxLevels;
               auxLevels = new byte[naux][maxsize];
               for (int i=0; i<naux; i++) {
                 System.arraycopy(ta[i], 0, auxLevels[i], 0, numv);
               }
+              ta = null;
             }
           }
 
@@ -638,6 +643,8 @@ any = true;
               vy4[0] = new float[maxv4];
               System.arraycopy(tx[0], 0, vx4[0], 0, numv4[0]);
               System.arraycopy(ty[0], 0, vy4[0], 0, numv4[0]);
+              tx = null;
+              ty = null;
             }
 
             if (numv3[0]+1000 >= maxv3) {
@@ -649,6 +656,8 @@ any = true;
               vy3[0] = new float[maxv3];
               System.arraycopy(tx[0], 0, vx3[0], 0, numv3[0]);
               System.arraycopy(ty[0], 0, vy3[0], 0, numv3[0]);
+              tx = null;
+              ty = null;
               if (naux > 0) {
                 byte[][] ta = auxLevels3;
                 for (int i=0; i<naux; i++) {
@@ -656,6 +665,7 @@ any = true;
                   auxLevels3[i] = new byte[maxv3];
                   System.arraycopy(taa, 0, auxLevels3[i], 0, numv3[0]);
                 }
+                ta = null;
               }
             }
 
@@ -1110,9 +1120,12 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
 
 /**-------------------  Color Fill -------------------------*/
     if (fill) {
+
       fillGridBox(g, n_lines, vx, vy, xd, xdd, yd, ydd, nr, nrm, nc, ncm,
                   ctrLow, tri, tri_color, o_flags, myvals, color_bin,
                   grd_normals, tri_normals);
+      // for now, just return because we don't need to do labels
+      return;
     }
 
 
@@ -3007,6 +3020,7 @@ class ContourStripSet {
       }
       }
     }
+    btmp = null;
 
     for (int tt = 0; tt < 4; tt++) 
     {
@@ -3027,6 +3041,8 @@ class ContourStripSet {
         }
       }
     }
+    tmpL = null;
+    btmpL = null;
 
     for (int tt = 0; tt < 3; tt++)
     {
