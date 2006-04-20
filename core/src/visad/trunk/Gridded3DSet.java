@@ -2176,6 +2176,28 @@ for color_length = 3 this is 148 * Length
                       this);
 
     if (fill) {
+
+      // null out all these arrays since they are for non-fill contours.
+      color_levels1 = null;
+      color_levels2 = null;
+      color_levels3 = null;
+      vx1 = null;
+      vy1 = null;
+      vz1 = null;
+      vx2 = null;
+      vy2 = null;
+      vz2 = null;
+      vx3 = null;
+      vy3 = null;
+      vz3 = null;
+      vx4 = null;
+      vy4 = null;
+      vz4 = null;
+      numv1 = null;
+      numv2 = null;
+      numv3 = null;
+      numv4 = null;
+
       VisADGeometryArray[][] tri_array = new VisADGeometryArray[2][];
       tri_array[0] = new VisADGeometryArray[1];
       tri_array[0][0] = new VisADTriangleArray();
@@ -2183,6 +2205,15 @@ for color_length = 3 this is 148 * Length
       setGeometryArray(tri_array[0][0], gridToValue(tri), 3, tri_color);
       return tri_array;
     }
+    // since we now use the lbl_ arrays for labels, we'll null out these
+    // so they can get garbage collected.
+    vx3 = null;
+    vy3 = null;
+    vz3 = null;
+    vx4 = null;
+    vy4 = null;
+    vz4 = null;
+
     float[][] grid1 = new float[3][numv1[0]];
     System.arraycopy(vx1[0], 0, grid1[0], 0, numv1[0]);
     vx1 = null;
@@ -2337,7 +2368,6 @@ for color_length = 3 this is 148 * Length
       loc[2][0]      = lbl_loc[2][kk][2];
       setGeometryArray(arrays[3][kk*4+3], loc, 3, null);
     }
-
     return arrays;
   }
 
