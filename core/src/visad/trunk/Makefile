@@ -52,7 +52,7 @@ default:
 # JH is the Java header file generator (javah)
 #
 JC = javac
-JFLAGS = -J-mx64m -target 1.2
+JFLAGS = -J-mx64m -target 1.4 -source 1.4
 JH = javah
 
 # RMIC is the Remote Method Invokation compiler
