@@ -63,6 +63,10 @@ public abstract class FlowControl extends Control {
   float   streamlineDensity;
   float   arrowScale;
   float   stepFactor;
+  float   packingFactor;
+  float   cntrWeight;
+  int     n_pass;
+  float   reduction;
 
   // WLH  need Vertical*Slice location parameters
 
@@ -83,6 +87,10 @@ public abstract class FlowControl extends Control {
     streamlineDensity  = 1f;
     arrowScale         = 1f;
     stepFactor         = 2f;
+    packingFactor      = 1f;
+    cntrWeight         = 3f;
+    n_pass             = 0;
+    reduction          = 1f;
   }
 
   /** set scale length for flow vectors (default is 0.02f) */
@@ -168,6 +176,25 @@ public abstract class FlowControl extends Control {
     changeControl(true);
   }
 
+  public void setStreamlinePacking(float packing) 
+         throws VisADException, RemoteException {
+    this.packingFactor = packing;
+    changeControl(true);
+  }
+
+  public void setStreamlineSmoothing(float cntrWeight, int n_pass)
+         throws VisADException, RemoteException {
+    this.cntrWeight = cntrWeight;
+    this.n_pass = n_pass;
+    changeControl(true);
+  }
+ 
+  public void setStreamlineReduction(float reduction)
+         throws VisADException, RemoteException {
+    this.reduction = reduction;
+    changeControl(true);
+  }
+
   public boolean streamlinesEnabled() {
     return streamlinesEnabled;
   }
@@ -182,6 +209,18 @@ public abstract class FlowControl extends Control {
 
   public float getStepFactor() {
     return stepFactor;
+  }
+
+  public float getStreamlinePacking() {
+    return packingFactor;
+  }
+
+  public float[] getStreamlineSmoothing() {
+    return new float[] {cntrWeight, (float) n_pass};
+  }
+
+  public float getStreamlineReduction() {
+    return reduction;
   }
 
   /** get a string that can be used to reconstruct this control later */
@@ -299,6 +338,28 @@ public abstract class FlowControl extends Control {
       stepFactor = fc.stepFactor;
     }
 
+    if (!Util.isApproximatelyEqual(packingFactor, fc.packingFactor)) {
+      changed = true;
+      packingFactor = fc.packingFactor;
+    }
+
+    if (!Util.isApproximatelyEqual(cntrWeight, fc.cntrWeight)) {
+      changed = true;
+      cntrWeight = fc.cntrWeight;
+    }
+
+    if (!Util.isApproximatelyEqual(n_pass, fc.n_pass)) {
+      changed = true;
+      n_pass = fc.n_pass;
+    }
+
+    if (!Util.isApproximatelyEqual(reduction, fc.reduction)) {
+      changed = true;
+      reduction = fc.reduction;
+    }
+
+
+
     if (changed) {
       try {
         changeControl(true);
@@ -375,6 +436,22 @@ public abstract class FlowControl extends Control {
       return false;
     }
     if (!Util.isApproximatelyEqual(stepFactor, fc.stepFactor))
+    {
+      return false;
+    }
+    if (!Util.isApproximatelyEqual(packingFactor, fc.packingFactor))
+    {
+      return false;
+    }
+    if (!Util.isApproximatelyEqual(cntrWeight, fc.cntrWeight))
+    {
+      return false;
+    }
+    if (!Util.isApproximatelyEqual(n_pass, fc.n_pass))
+    {
+      return false;
+    }
+    if (!Util.isApproximatelyEqual(reduction, fc.reduction))
     {
       return false;
     }

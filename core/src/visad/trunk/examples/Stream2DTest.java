@@ -86,8 +86,7 @@ public static void main(String[] args)
 
 
   Stream2D.stream(uv_values[0], uv_values[1], nr, nc, 1f, 1, 1f,
-                  vr, vc, n_verts, numl, d_set);
-                  // vr, vc, n_verts, numl, null);
+                  vr, vc, n_verts, numl, d_set, 1f, 3f, 0, 1f);
 
   
   ScalarMap xmap = new ScalarMap(RealType.XAxis, Display.XAxis);

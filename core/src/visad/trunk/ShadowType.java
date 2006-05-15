@@ -130,6 +130,14 @@ public abstract class ShadowType extends Object
   float   arrowScale2;
   float   stepFactor1;
   float   stepFactor2;
+  float   packingFactor1;
+  float   packingFactor2;
+  float   cntrWeight1;
+  float   cntrWeight2;
+    int   n_pass1;
+    int   n_pass2;
+  float   reduction1;
+  float   reduction2;
   //---------------------
 
   /** makeContour, manifoldDimension == 2 */
@@ -2029,12 +2037,22 @@ if (spatial_values[0].length == 5329) {
               streamlineDensity1 = control.getStreamlineDensity();
               arrowScale1 = control.getArrowScale();
               stepFactor1 = control.getStepFactor();
+              packingFactor1 = control.getStreamlinePacking();
+              float[] pp = control.getStreamlineSmoothing();
+              cntrWeight1 = pp[0];
+              n_pass1  = (int) pp[1];
+              reduction1 = control.getStreamlineReduction();
             }
             if (k == 1) {
               streamline2 = control.streamlinesEnabled();
               streamlineDensity2 = control.getStreamlineDensity();
               arrowScale2 = control.getArrowScale();
               stepFactor2 = control.getStepFactor();
+              packingFactor2 = control.getStreamlinePacking();
+              float[] pp = control.getStreamlineSmoothing();
+              cntrWeight2 = pp[0];
+              n_pass2  = (int) pp[1];
+              reduction2 = control.getStreamlineReduction();
             }
           }
         }
@@ -2396,6 +2414,10 @@ System.out.println("vector earth_locs = " + earth_locs[0][0] + " " +
     float density    = 1;
     float arrowScale = 1;
     float stepFactor = 2;
+    float packingFactor = 1;
+    float cntrWeight = 3;
+    int   n_pass     = 0;
+    float reduction  = 1f;
 
     int[] numl = new int[1];
 
@@ -2411,6 +2433,14 @@ System.out.println("vector earth_locs = " + earth_locs[0][0] + " " +
     if (which == 1) arrowScale = arrowScale2;
     if (which == 0) stepFactor = stepFactor1;
     if (which == 1) stepFactor = stepFactor2;
+    if (which == 0) packingFactor = packingFactor1;
+    if (which == 1) packingFactor = packingFactor2;
+    if (which == 0) cntrWeight = cntrWeight1;
+    if (which == 1) cntrWeight = cntrWeight2;
+    if (which == 0) n_pass = n_pass1;
+    if (which == 1) n_pass = n_pass2;
+    if (which == 0) reduction = reduction1;
+    if (which == 1) reduction = reduction2;
 
     if ( spatialManifoldDimension == 2 )
     {
@@ -2422,7 +2452,7 @@ System.out.println("vector earth_locs = " + earth_locs[0][0] + " " +
 
       Stream2D.stream(flow_values[flow_dim0], flow_values[flow_dim1], nr, nc,
                       density, stepFactor, arrowScale, vr, vc,
-                      n_verts, numl, gset);
+                      n_verts, numl, gset, packingFactor, cntrWeight, n_pass, reduction);
     }
     else
     {
