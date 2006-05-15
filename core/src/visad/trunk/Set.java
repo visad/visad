@@ -182,6 +182,9 @@ public abstract class Set extends DataImpl implements SetIface {
 
   /** get DomainDimension (i.e., this is a subset of R^DomainDimension) */
   static int getDimension(MathType type) throws VisADException {
+    if (type == null) {
+      throw new TypeException("Set.getDimension: type cannot be null");
+    }
     if (type instanceof SetType) {
       return ((SetType) type).getDomain().getDimension();
     }
@@ -198,6 +201,9 @@ public abstract class Set extends DataImpl implements SetIface {
   }
 
   static MathType adjustType(MathType type) throws VisADException {
+    if (type == null) {
+      throw new TypeException("Set.adjustType: type cannot be null");
+    }
     if (type instanceof SetType) {
       return type;
     }
