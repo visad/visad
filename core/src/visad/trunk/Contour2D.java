@@ -260,6 +260,10 @@ boolean anynotmissing = false;
 
     byte[][] auxLevels = null;
     int naux = (auxValues != null) ? auxValues.length : 0;
+    byte[] auxa = null;
+    byte[] auxb = null;
+    byte[] auxc = null;
+    byte[] auxd = null;
     if (naux > 0) {
       if (auxLevels1 == null || auxLevels1.length != naux ||
           auxLevels2 == null || auxLevels2.length != naux ||
@@ -273,6 +277,10 @@ boolean anynotmissing = false;
                                 +"auxValues lengths don't match");
         }
       }
+      auxa = new byte[naux];
+      auxb = new byte[naux];
+      auxc = new byte[naux];
+      auxd = new byte[naux];
       auxLevels = new byte[naux][maxsize];
     }
     else {
@@ -402,6 +410,7 @@ boolean anynotmissing = false;
             for (int i=0; i<naux; i++) {
               System.arraycopy(ta[i], 0, auxLevels[i], 0, numv);
             }
+            ta = null;
           }
         }
 
@@ -449,6 +458,7 @@ else {
         // test for missing
         if (gd != gd) continue;
 
+        /*  DRM move outside the loop 
         byte[] auxa = null;
         byte[] auxb = null;
         byte[] auxc = null;
@@ -458,6 +468,8 @@ else {
           auxb = new byte[naux];
           auxc = new byte[naux];
           auxd = new byte[naux];
+        */
+        if (naux > 0) {
           for (int i=0; i<naux; i++) {
             auxa[i] = auxValues[i][(ic) * nr + (ir)];
             auxb[i] = auxValues[i][(ic) * nr + (ir+1)];
@@ -516,7 +528,8 @@ else {
             {
                  if (i == 0 && myvals[i] >= gn) { low = i; }
                  else if (myvals[i] >= gn && myvals[i-1] < gn) { low = i; }
-                 else if (myvals[i] > gx && myvals[i-1] < gn) { hi = i; }
+                 if (i == 0 && myvals[i] >= gx) { hi = i; } 
+                 else if (myvals[i] >= gx && myvals[i-1] < gx) { hi = i-1; }
             }
             numc = hi - low + 1;
         }
@@ -524,9 +537,11 @@ else {
 
 /*
 if (!any && numc > 0) {
+  System.out.println("gn = " + gn + " gx = " + gx + " gv = " + gv);
   System.out.println("numc = " + numc + " clow = " + myvals[low] +
                      " chi = " + myvals[hi]);
 any = true;
+}
 */
 
         o_flags[ir][ic]  = new byte[2*numc]; //- case flags
@@ -661,9 +676,9 @@ any = true;
               if (naux > 0) {
                 byte[][] ta = auxLevels3;
                 for (int i=0; i<naux; i++) {
-                  byte[] taa = auxLevels3[i];
+                  //byte[] taa = auxLevels3[i];
                   auxLevels3[i] = new byte[maxv3];
-                  System.arraycopy(taa, 0, auxLevels3[i], 0, numv3[0]);
+                  System.arraycopy(ta[i], 0, auxLevels3[i], 0, numv3[0]);
                 }
                 ta = null;
               }
@@ -1116,7 +1131,6 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
         }  // for il       -- NOTE:  gg incremented in for statement
       }  // for ic
     }  // for ir
-
 
 /**-------------------  Color Fill -------------------------*/
     if (fill) {
