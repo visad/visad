@@ -529,7 +529,7 @@ else {
                  if (i == 0 && myvals[i] >= gn) { low = i; }
                  else if (myvals[i] >= gn && myvals[i-1] < gn) { low = i; }
                  if (i == 0 && myvals[i] >= gx) { hi = i; } 
-                 else if (myvals[i] >= gx && myvals[i-1] < gx) { hi = i-1; }
+                 else if (myvals[i] >= gx && myvals[i-1] < gx) { hi = i; }
             }
             numc = hi - low + 1;
         }
