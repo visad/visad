@@ -558,6 +558,8 @@ dods\util\*.class \
 gnu\regexp\*.class \
 visad\data\fits\*.class \
 loci\formats\*.class \
+loci\formats\readers.txt \
+loci\formats\writers.txt \
 nom\tam\fits\*.class \
 nom\tam\util\*.class \
 nom\tam\test\*.class \

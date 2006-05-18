@@ -374,7 +374,9 @@ CLASS_FILES=	\
 	DATE \
 	`echo $(DOC_PACKAGES)' ' | sed -e 's/\./\//g' -e 's/ /\/\*\.class /g'` \
 	visad/ss/*.gif \
-	visad/util/*.jhf
+	visad/util/*.jhf \
+	loci/formats/readers.txt \
+	loci/formats/writers.txt
 
 JAVA_FILES=	\
 	`echo $(ALL_PACKAGES)' ' | sed -e 's/\./\//g' -e 's/ /\/\*\.java /g'` \
