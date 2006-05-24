@@ -376,27 +376,29 @@ public static int stream( float[] ugrid, float[] vgrid, int nr, int nc,
   if (cntrWeight > 6f) cntrWeight = 6;
   float ww = (6f - cntrWeight)/4f;
   for (int pass=0; pass<n_pass; pass++) {
-  float[] new_ugrid = new float[ugrid.length];
-  float[] new_vgrid = new float[vgrid.length];
-  for (int iic=1; iic < nc-1; iic++) {
+    float[] new_ugrid = new float[ugrid.length];
+    float[] new_vgrid = new float[vgrid.length];
+    System.arraycopy(ugrid, 0, new_ugrid, 0, new_ugrid.length);
+    System.arraycopy(vgrid, 0, new_vgrid, 0, new_vgrid.length);
     for (int iir=1; iir < nr-1; iir++) {
-      int kk = iic*nr + iir;
-      float suu = ugrid[kk];
-      float sua = ugrid[kk-1];
-      float sub = ugrid[kk+1];
-      float suc = ugrid[kk+nr];
-      float sud = ugrid[kk-nr];
-      new_ugrid[kk] = (cntrWeight*suu + ww*sua + ww*sub + ww*suc + ww*sud)/6;
-      float svv = vgrid[kk];
-      float sva = vgrid[kk-1];
-      float svb = vgrid[kk+1];
-      float svc = vgrid[kk+nr];
-      float svd = vgrid[kk-nr];
-      new_vgrid[kk] = (cntrWeight*svv + ww*sva + ww*svb + ww*svc + ww*svd)/6;
+      for (int iic=1; iic < nc-1; iic++) {
+        int kk = iir*nc + iic;
+        float suu = ugrid[kk];
+        float sua = ugrid[kk-1];
+        float sub = ugrid[kk+1];
+        float suc = ugrid[kk+nc];
+        float sud = ugrid[kk-nc];
+        new_ugrid[kk] = (cntrWeight*suu + ww*sua + ww*sub + ww*suc + ww*sud)/6;
+        float svv = vgrid[kk];
+        float sva = vgrid[kk-1];
+        float svb = vgrid[kk+1];
+        float svc = vgrid[kk+nc];
+        float svd = vgrid[kk-nc];
+        new_vgrid[kk] = (cntrWeight*svv + ww*sva + ww*svb + ww*svc + ww*svd)/6;
+      }
     }
-  }
-  ugrid = new_ugrid;
-  vgrid = new_vgrid;
+    ugrid = new_ugrid;
+    vgrid = new_vgrid;
   }
 
   int cnt = 0;
