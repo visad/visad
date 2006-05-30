@@ -1912,7 +1912,8 @@ System.out.println("initialize = " + initialize + " go = " + go +
            Display.ColorMode.equals(type) ||
            Display.PolygonOffset.equals(type) ||
            Display.PolygonOffsetFactor.equals(type)) ||
-           Display.AdjustProjectionSeam.equals(type) &&
+           Display.AdjustProjectionSeam.equals(type) ||
+           Display.Texture3DMode.equals(type) &&
           !(map instanceof ConstantMap))
       {
         throw new BadMappingException("DisplayImpl.addMap: " +

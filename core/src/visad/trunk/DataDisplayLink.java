@@ -288,6 +288,8 @@ public class DataDisplayLink extends ReferenceActionLink {
       }
       else if (Display.AdjustProjectionSeam.equals(dreal)) {
         defaultValues[i] = (mode.getAdjustProjectionSeam()) ? 1 : -1;
+      } else if (Display.Texture3DMode.equals(dreal)) {
+        defaultValues[i] = mode.getTexture3DMode();
       }
 /* WLH 21 Aug 98
       defaultValues[i] = (float) (((DisplayRealType)

@@ -707,6 +707,9 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
                            (domain_set instanceof Linear3DSet ||
                             (domain_set instanceof LinearNDSet &&
                              domain_set.getDimension() == 3));
+    int t3dm = (int)
+      default_values[display.getDisplayScalarIndex(Display.Texture3DMode)];
+
 
     // WLH 1 April 2000
     boolean range3D = isTexture3D && anyRange(Domain.getDisplayIndices());
@@ -1059,21 +1062,21 @@ System.out.println("doTransform.curvedTexture = " + curvedTexture + " " +
       float ratioh = ((float) data_height) / ((float) texture_height);
       float ratiod = ((float) data_depth) / ((float) texture_depth);
 
-/* WLH 3 June 99 - comment this out until Texture3D works on NT (etc)
-      texCoordsX =
-        shadow_api.setTex3DCoords(data_width, 0, ratiow, ratioh, ratiod);
-      texCoordsY =
-        shadow_api.setTex3DCoords(data_height, 1, ratiow, ratioh, ratiod);
-      texCoordsZ =
-        shadow_api.setTex3DCoords(data_depth, 2, ratiow, ratioh, ratiod);
-*/
-
-      texCoordsX =
-        shadow_api.setTexStackCoords(data_width, 0, ratiow, ratioh, ratiod);
-      texCoordsY =
-        shadow_api.setTexStackCoords(data_height, 1, ratiow, ratioh, ratiod);
-      texCoordsZ =
-        shadow_api.setTexStackCoords(data_depth, 2, ratiow, ratioh, ratiod);
+      if (t3dm == GraphicsModeControl.STACK2D) {
+        texCoordsX =
+          shadow_api.setTexStackCoords(data_width, 0, ratiow, ratioh, ratiod);
+        texCoordsY =
+          shadow_api.setTexStackCoords(data_height, 1, ratiow, ratioh, ratiod);
+        texCoordsZ =
+          shadow_api.setTexStackCoords(data_depth, 2, ratiow, ratioh, ratiod);
+      } else {
+        texCoordsX =
+          shadow_api.setTex3DCoords(data_width, 0, ratiow, ratioh, ratiod);
+        texCoordsY =
+          shadow_api.setTex3DCoords(data_height, 1, ratiow, ratioh, ratiod);
+        texCoordsZ =
+          shadow_api.setTex3DCoords(data_depth, 2, ratiow, ratioh, ratiod);
+      }
 
       normalsX = new float[12 * data_width];
       normalsY = new float[12 * data_height];
@@ -2606,16 +2609,20 @@ WLH 15 March 2000 */
             qarray[2].colors = colorsZ;
             qarray[2].normals = normalsZ;
 
+            /*
             // WLH 3 June 99 - until Texture3D works on NT (etc)
-            BufferedImage[][] images = new BufferedImage[3][];
-            for (int i=0; i<3; i++) {
-              images[i] = createImages(i, data_width, data_height, data_depth,
-                               texture_width, texture_height, texture_depth,
-                               color_values);
+            if (t3dm = GraphicsModeControl.STACK2D) {
+              BufferedImage[][] images = new BufferedImage[3][];
+              for (int i=0; i<3; i++) {
+                images[i] = createImages(i, data_width, data_height, data_depth,
+                                 texture_width, texture_height, texture_depth,
+                                 color_values);
+              }
+              BufferedImage[] imagesX = null;
+              BufferedImage[] imagesY = null;
+              BufferedImage[] imagesZ = null;
             }
-            BufferedImage[] imagesX = null;
-            BufferedImage[] imagesY = null;
-            BufferedImage[] imagesZ = null;
+            */
 
             VisADQuadArray qarrayX = null;
             VisADQuadArray qarrayY = null;
@@ -2623,40 +2630,62 @@ WLH 15 March 2000 */
             for (int i=0; i<3; i++) {
               if (volume_tuple_index[i] == 0) {
                 qarrayX = qarray[i];
-                imagesX = images[i];
+                //imagesX = images[i];
               }
               else if (volume_tuple_index[i] == 1) {
                 qarrayY = qarray[i];
-                imagesY = images[i];
+                //imagesY = images[i];
               }
               else if (volume_tuple_index[i] == 2) {
                 qarrayZ = qarray[i];
-                imagesZ = images[i];
+                //imagesZ = images[i];
               }
             }
             VisADQuadArray qarrayXrev = reverse(qarrayX);
             VisADQuadArray qarrayYrev = reverse(qarrayY);
             VisADQuadArray qarrayZrev = reverse(qarrayZ);
 
-/* WLH 3 June 99 - comment this out until Texture3D works on NT (etc)
-            BufferedImage[] images =
-              createImages(2, data_width, data_height, data_depth,
-                           texture_width, texture_height, texture_depth,
-                           color_values);
-            shadow_api.texture3DToGroup(group, qarrayX, qarrayY, qarrayZ,
-                                        qarrayXrev, qarrayYrev, qarrayZrev,
-                                        images, mode, constant_alpha,
-                                        constant_color, texture_width,
-                                        texture_height, texture_depth, renderer);
-*/
+            if (t3dm == GraphicsModeControl.STACK2D) {
+      // WLH 3 June 99 - comment this out until Texture3D works on NT (etc)
+              BufferedImage[][] images = new BufferedImage[3][];
+              for (int i=0; i<3; i++) {
+                images[i] = createImages(i, data_width, data_height, data_depth,
+                                 texture_width, texture_height, texture_depth,
+                                 color_values);
+              }
+              BufferedImage[] imagesX = null;
+              BufferedImage[] imagesY = null;
+              BufferedImage[] imagesZ = null;
+              for (int i=0; i<3; i++) {
+                if (volume_tuple_index[i] == 0) {
+                  imagesX = images[i];
+                }
+                else if (volume_tuple_index[i] == 1) {
+                  imagesY = images[i];
+                }
+                else if (volume_tuple_index[i] == 2) {
+                  imagesZ = images[i];
+                }
+              }
+              shadow_api.textureStackToGroup(group, qarrayX, qarrayY, qarrayZ,
+                                      qarrayXrev, qarrayYrev, qarrayZrev,
+                                      imagesX, imagesY, imagesZ,
+                                      mode, constant_alpha, constant_color,
+                                      texture_width, texture_height, texture_depth,
+                                      renderer);
+            } else {
 
-            shadow_api.textureStackToGroup(group, qarrayX, qarrayY, qarrayZ,
-                                    qarrayXrev, qarrayYrev, qarrayZrev,
-                                    imagesX, imagesY, imagesZ,
-                                    mode, constant_alpha, constant_color,
-                                    texture_width, texture_height, texture_depth,
-                                    renderer);
+              BufferedImage[] images =
+                createImages(2, data_width, data_height, data_depth,
+                             texture_width, texture_height, texture_depth,
+                             color_values);
+              shadow_api.texture3DToGroup(group, qarrayX, qarrayY, qarrayZ,
+                                          qarrayXrev, qarrayYrev, qarrayZrev,
+                                          images, mode, constant_alpha,
+                                          constant_color, texture_width,
+                                          texture_height, texture_depth, renderer);
 
+            }
             // System.out.println("isTexture3D done");
             return false;
           } // end if (isTexture3D)

@@ -63,6 +63,9 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
   private float polygonOffsetFactor = 0;
   private boolean adjustProjectionSeam = true;
 
+  /** mode for Texture3D */
+  private int texture3DMode = STACK2D;
+
   public GraphicsModeControlJ2D(DisplayImpl d) {
     super(d);
     lineWidth = 1.0f;
@@ -566,6 +569,31 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     return adjustProjectionSeam;
   }
 
+  /**
+   * Set the mode for Texture3D for volume rendering
+   *
+   * @param  mode   mode for Texture3D (STACK2D or TEXTURE3D)
+   *
+   * @throws  VisADException   Unable to change Texture3D mode
+   * @throws  RemoteException  can't change Texture3D mode on remote display
+   */
+  public void setTexture3DMode(int mode)
+         throws VisADException, RemoteException {
+    if (texture3DMode == mode) return;
+    texture3DMode = mode;
+    changeControl(true);
+    getDisplay().reDisplayAll();
+  }
+
+  /**
+   * Get the mode for Texture3D for volume rendering
+   *
+   * @return  mode for Texture3D (e.g., STACK2D or TEXTURE3D)
+   */
+  public int getTexture3DMode() {
+    return texture3DMode;
+  }
+
   public Object clone() {
     GraphicsModeControlJ2D mode =
       new GraphicsModeControlJ2D(getDisplay());
@@ -583,6 +611,7 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     mode.polygonOffset = polygonOffset;
     mode.polygonOffsetFactor = polygonOffsetFactor;
     mode.adjustProjectionSeam = adjustProjectionSeam;
+    mode.texture3DMode = texture3DMode;
     return mode;
   }
 
@@ -666,6 +695,12 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
       adjustProjectionSeam = rmtCtl.adjustProjectionSeam;
     }
 
+    if (texture3DMode != rmtCtl.texture3DMode) {
+      changed = true;
+      redisplay = true;
+      texture3DMode = rmtCtl.texture3DMode;
+    }
+
     if (changed) {
       try {
         changeControl(true);
@@ -731,6 +766,10 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
       return false;
     }
 
+    if (adjustProjectionSeam != gmc.adjustProjectionSeam) {
+      return false;
+    }
+
 
     return true;
   }
@@ -764,6 +803,8 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     buf.append(",pof ");
     buf.append(polygonOffsetFactor);
     buf.append(adjustProjectionSeam ? "as" : "!as");
+    buf.append(",t3dm ");
+    buf.append(texture3DMode);
 
     buf.append(']');
     return buf.toString();

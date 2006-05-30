@@ -318,6 +318,10 @@ public interface Display extends Action {
   DisplayRealType AdjustProjectionSeam =
     new DisplayRealType("AdjustProjectionSeam", true, -1.0, true);
 
+  /** texture 3D mode - ConstantMap only, values must be > 0 */
+  DisplayRealType Texture3DMode =
+    new DisplayRealType("Texture3DMode", true, -1.0, true);
+
   /** array of system intrinsic DisplayRealTypes */
   DisplayRealType[] DisplayRealArray =
     {XAxis, YAxis, ZAxis, Latitude, Longitude, Radius, List, Red, Green, Blue,
@@ -329,7 +333,8 @@ public interface Display extends Action {
      Flow2Elevation, Flow2Azimuth, Flow2Radial, 
      LineStyle, TextureEnable, MissingTransparent, 
      PolygonMode, CurvedSize, ColorMode, 
-     PolygonOffset, PolygonOffsetFactor, AdjustProjectionSeam};
+     PolygonOffset, PolygonOffsetFactor, 
+     AdjustProjectionSeam, Texture3DMode};
 
   // system intrinsic DisplayTupleType objects
 

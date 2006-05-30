@@ -55,6 +55,11 @@ public abstract class GraphicsModeControl extends Control
   /** Sum color style for merging color maps */
   public static final int SUM_COLOR_MODE = 1;
 
+  /** 2D stack type for volume rendering*/
+  public static final int STACK2D = 0;
+  /** 3D texture type for volume rendering*/
+  public static final int TEXTURE3D = 1;
+
   /**
    * Create a GraphicsModeControl for the display.
    * 
@@ -396,6 +401,24 @@ public abstract class GraphicsModeControl extends Control
   public abstract boolean getAdjustProjectionSeam();
 
   /**
+   * Set the mode for Texture3D for volume rendering
+   *
+   * @param  mode   mode for Texture3D (STACK2D or TEXTURE3D)
+   *
+   * @throws  VisADException   Unable to change Texture3D mode
+   * @throws  RemoteException  can't change Texture3D mode on remote display
+   */
+  public abstract void setTexture3DMode(int type)
+         throws VisADException, RemoteException;
+
+  /**
+   * Get the mode for Texture3D for volume rendering
+   *
+   * @return  mode for Texture3D (e.g., STACK2D or TEXTURE3D)
+   */
+  public abstract int getTexture3DMode();
+
+  /**
    * Set the undersampling factor of surface shape for curved texture maps
    *
    * @param  curved_size  undersampling factor (default 10)
@@ -465,6 +488,7 @@ public abstract class GraphicsModeControl extends Control
     float pof = st.hasMoreTokens() ? Convert.getFloat(st.nextToken()) : 0;
 
     boolean as = st.hasMoreTokens() ? Convert.getBoolean(st.nextToken()) : getAdjustProjectionSeam();
+    int t3dm = st.hasMoreTokens() ? Convert.getInt(st.nextToken()) : 0;
 
 
     // reset graphics mode settings
@@ -483,6 +507,7 @@ public abstract class GraphicsModeControl extends Control
     setPolygonOffset(po);
     setPolygonOffsetFactor(pof);
     setAdjustProjectionSeam(as);
+    setTexture3DMode(t3dm);
   }
 
   /** 
