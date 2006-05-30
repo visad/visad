@@ -37,6 +37,8 @@ public class Test61
 {
   private boolean nice = false;
 
+  private int texture3DMode = GraphicsModeControl.STACK2D;
+
   public Test61() { }
 
   public Test61(String[] args)
@@ -45,11 +47,19 @@ public class Test61
     super(args);
   }
 
-  public void initializeArgs() { nice = false; }
+  public void initializeArgs() { 
+    nice = false; 
+    texture3DMode = GraphicsModeControl.STACK2D;
+  }
 
   public int checkKeyword(String testName, int argc, String[] args)
   {
-    nice = true;
+    if (argc == 0 && !args[argc].equals("t")) {
+       nice = true;
+    }
+    if (argc == 1 || args[argc].equals("t")) {
+       texture3DMode = GraphicsModeControl.TEXTURE3D;
+    }
     return 1;
   }
 
@@ -125,6 +135,7 @@ public class Test61
     mode.setScaleEnable(true);
 
     if (nice) mode.setTransparencyMode(DisplayImplJ3D.NICEST);
+    mode.setTexture3DMode(texture3DMode);
 
     // new
     RealType duh = RealType.getRealType("duh");
@@ -186,7 +197,7 @@ public class Test61
 
   public String toString()
   {
-    return " smooth: volume rendering and ColorAlphaWidget";
+    return " smooth texture3D: volume rendering and ColorAlphaWidget";
   }
 
   public static void main(String[] args)
