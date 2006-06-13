@@ -41,7 +41,7 @@ import visad.data.*;
  * Class of static methods for printing out information about VisAD
  * {@link Data} objects.
  *
- * @version $Revision: 1.12 $
+ * @version $Revision: 1.13 $
  */
 public class DumpType {
 
@@ -85,8 +85,9 @@ public class DumpType {
    */
   private static void dumpDT(Data d, String prefix) {
 
+    PrintWriter out = new PrintWriter(new OutputStreamWriter(os));
     if (init) {
-      System.out.println("VisAD Data analysis");
+      out.println("VisAD Data analysis");
     }
     init = false;
 
@@ -97,15 +98,15 @@ public class DumpType {
         int nd = ((FlatField) d).getDomainDimension();
         Set ds = ((FlatField) d).getDomainSet();
         prefix = prefix + "  ";
-        System.out.println(prefix + " FlatField of length = "
-                           + ((FlatField) d).getLength());
-        System.out.println(prefix + " "
-                           + ((FlatField) d).getType().prettyString());
+        out.println(prefix + " FlatField of length = "
+                    + ((FlatField) d).getLength());
+        out.println(prefix + " "
+                    + ((FlatField) d).getType().prettyString());
         prefix = prefix + "  ";
-        System.out.println(prefix + " Domain has " + nd + " components:");
+        out.println(prefix + " Domain has " + nd + " components:");
         dumpDT(ds, prefix + "  ");
         dumpDomainCS(ds, prefix + "  ");
-        System.out.println(prefix + " Range has " + nr + " components:");
+        out.println(prefix + " Range has " + nr + " components:");
         Set[]     dr      = ((FlatField) d).getRangeSets();
         float[][] samples = ((FlatField) d).getFloats(false);
         for (int i = 0; i < dr.length; i++) {
@@ -120,54 +121,54 @@ public class DumpType {
               }
             }
           }
-          System.out.println(prefix + "   " + i + ". number missing = "
-                             + nmiss);
+          out.println(prefix + "   " + i + ". number missing = "
+                      + nmiss);
         }
 
       } else if (d instanceof FieldImpl) {
         int nd = ((FieldImpl) d).getDomainDimension();
         Set ds = ((FieldImpl) d).getDomainSet();
-        System.out.println(prefix + " FieldImpl of length = "
-                           + ((FieldImpl) d).getLength());
-        System.out.println(prefix + " "
-                           + ((FieldImpl) d).getType().prettyString());
-        System.out.println(prefix + " Domain has " + nd + " components:");
+        out.println(prefix + " FieldImpl of length = "
+                    + ((FieldImpl) d).getLength());
+        out.println(prefix + " "
+                    + ((FieldImpl) d).getType().prettyString());
+        out.println(prefix + " Domain has " + nd + " components:");
         dumpDT(ds, prefix + "  ");
-        System.out.println(prefix + " first sample = ");
+        out.println(prefix + " first sample = ");
         dumpDT(((FieldImpl) d).getSample(0, false), prefix + "   " + 0 + ".");
 
       } else if (d instanceof Field) {
-        System.out.println(prefix + " Field: ");
+        out.println(prefix + " Field: ");
 
       } else if (d instanceof Function) {
-        System.out.println(prefix + " Function: ");
-        System.out.println(prefix + "    Domain dimension= "
-                           + ((Function) d).getDomainDimension());
+        out.println(prefix + " Function: ");
+        out.println(prefix + "    Domain dimension= "
+                    + ((Function) d).getDomainDimension());
 
 
       } else if (d instanceof Irregular3DSet) {
-        System.out.println(prefix + " Irregular3DSet "
-                           + name(((Irregular3DSet) d).getType().toString())
-                           + " Length = " + ((Irregular3DSet) d).getLength());
+        out.println(prefix + " Irregular3DSet "
+                    + name(((Irregular3DSet) d).getType().toString())
+                    + " Length = " + ((Irregular3DSet) d).getLength());
 
       } else if (d instanceof Irregular2DSet) {
-        System.out.println(prefix + " Irregular2DSet "
-                           + name(((Irregular2DSet) d).getType().toString())
-                           + " Length = " + ((Irregular2DSet) d).getLength());
+        out.println(prefix + " Irregular2DSet "
+                    + name(((Irregular2DSet) d).getType().toString())
+                    + " Length = " + ((Irregular2DSet) d).getLength());
 
       } else if (d instanceof Irregular1DSet) {
-        System.out.println(prefix + " Irregular1DSet "
-                           + name(((Irregular1DSet) d).getType().toString())
-                           + " Length = " + ((Irregular1DSet) d).getLength());
+        out.println(prefix + " Irregular1DSet "
+                    + name(((Irregular1DSet) d).getType().toString())
+                    + " Length = " + ((Irregular1DSet) d).getLength());
 
       } else if (d instanceof IrregularSet) {
-        System.out.println(prefix + " IrregularSet "
-                           + name(((IrregularSet) d).getType().toString())
-                           + " Length = " + ((IrregularSet) d).getLength());
+        out.println(prefix + " IrregularSet "
+                    + name(((IrregularSet) d).getType().toString())
+                    + " Length = " + ((IrregularSet) d).getLength());
 
       } else if (d instanceof Integer3DSet) {
-        System.out.println(prefix + " Integer3DSet: Length = "
-                           + ((Integer3DSet) d).getLength());
+        out.println(prefix + " Integer3DSet: Length = "
+                    + ((Integer3DSet) d).getLength());
 
         for (int i = 0; i < 3; i++) {
           dumpDT(((Linear3DSet) d).getLinear1DComponent(i),
@@ -175,8 +176,8 @@ public class DumpType {
         }
 
       } else if (d instanceof Linear3DSet) {
-        System.out.println(prefix + " Linear3DSet: Length = "
-                           + ((Linear3DSet) d).getLength());
+        out.println(prefix + " Linear3DSet: Length = "
+                    + ((Linear3DSet) d).getLength());
 
         for (int i = 0; i < 3; i++) {
           dumpDT(((Linear3DSet) d).getLinear1DComponent(i),
@@ -184,18 +185,18 @@ public class DumpType {
         }
 
       } else if (d instanceof Gridded3DDoubleSet) {
-        System.out.println(prefix + " Gridded3DDoubleSet "
-                           + name(((Gridded3DDoubleSet) d).getType().toString())
-                           + " Length = " + ((Gridded3DDoubleSet) d).getLength());
+        out.println(prefix + " Gridded3DDoubleSet "
+                    + name(((Gridded3DDoubleSet) d).getType().toString())
+                    + " Length = " + ((Gridded3DDoubleSet) d).getLength());
 
       } else if (d instanceof Gridded3DSet) {
-        System.out.println(prefix + " Gridded3DSet "
-                           + name(((Gridded3DSet) d).getType().toString())
-                           + " Length = " + ((Gridded3DSet) d).getLength());
+        out.println(prefix + " Gridded3DSet "
+                    + name(((Gridded3DSet) d).getType().toString())
+                    + " Length = " + ((Gridded3DSet) d).getLength());
 
       } else if (d instanceof Integer2DSet) {
-        System.out.println(prefix + " Integer2DSet: Length = "
-                           + ((Integer2DSet) d).getLength());
+        out.println(prefix + " Integer2DSet: Length = "
+                    + ((Integer2DSet) d).getLength());
 
         for (int i = 0; i < 2; i++) {
           dumpDT(((Linear2DSet) d).getLinear1DComponent(i),
@@ -203,8 +204,8 @@ public class DumpType {
         }
 
       } else if (d instanceof Linear2DSet) {
-        System.out.println(prefix + " Linear2DSet: Length = "
-                           + ((Linear2DSet) d).getLength());
+        out.println(prefix + " Linear2DSet: Length = "
+                    + ((Linear2DSet) d).getLength());
 
         for (int i = 0; i < 2; i++) {
           dumpDT(((Linear2DSet) d).getLinear1DComponent(i),
@@ -212,41 +213,41 @@ public class DumpType {
         }
 
       } else if (d instanceof Gridded2DDoubleSet) {
-        System.out.println(prefix + " Gridded2DDoubleSet "
-                           + name(((Gridded2DDoubleSet) d).getType().toString())
-                           + " Length = " + ((Gridded2DDoubleSet) d).getLength());
+        out.println(prefix + " Gridded2DDoubleSet "
+                    + name(((Gridded2DDoubleSet) d).getType().toString())
+                    + " Length = " + ((Gridded2DDoubleSet) d).getLength());
 
       } else if (d instanceof Gridded2DSet) {
-        System.out.println(prefix + " Gridded2DSet "
-                           + name(((Gridded2DSet) d).getType().toString())
-                           + " Length = " + ((Gridded2DSet) d).getLength());
+        out.println(prefix + " Gridded2DSet "
+                    + name(((Gridded2DSet) d).getType().toString())
+                    + " Length = " + ((Gridded2DSet) d).getLength());
 
       } else if (d instanceof Integer1DSet) {
-        System.out.println(prefix + " Integer1DSet "
-                           + name(((Integer1DSet) d).getType().toString())
-                           + " Range = 0 to "
-                           + (((Integer1DSet) d).getLength() - 1));
+        out.println(prefix + " Integer1DSet "
+                    + name(((Integer1DSet) d).getType().toString())
+                    + " Range = 0 to "
+                    + (((Integer1DSet) d).getLength() - 1));
 
       } else if (d instanceof Linear1DSet) {
-        System.out.println(prefix + " Linear1DSet "
-                           + name(((Linear1DSet) d).getType().toString())
-                           + " Range = " + ((Linear1DSet) d).getFirst()
-                           + " to " + ((Linear1DSet) d).getLast() + " step "
-                           + ((Linear1DSet) d).getStep());
+        out.println(prefix + " Linear1DSet "
+                    + name(((Linear1DSet) d).getType().toString())
+                    + " Range = " + ((Linear1DSet) d).getFirst()
+                    + " to " + ((Linear1DSet) d).getLast() + " step "
+                    + ((Linear1DSet) d).getStep());
 
       } else if (d instanceof Gridded1DDoubleSet) {
-        System.out.println(prefix + " Gridded1DDoubleSet "
-                           + name(((Gridded1DDoubleSet) d).getType().toString())
-                           + "  Length = " + ((Gridded1DDoubleSet) d).getLength());
+        out.println(prefix + " Gridded1DDoubleSet "
+                    + name(((Gridded1DDoubleSet) d).getType().toString())
+                    + "  Length = " + ((Gridded1DDoubleSet) d).getLength());
 
       } else if (d instanceof Gridded1DSet) {
-        System.out.println(prefix + " Gridded1DSet "
-                           + name(((Gridded1DSet) d).getType().toString())
-                           + "  Length = " + ((Gridded1DSet) d).getLength());
+        out.println(prefix + " Gridded1DSet "
+                    + name(((Gridded1DSet) d).getType().toString())
+                    + "  Length = " + ((Gridded1DSet) d).getLength());
 
       } else if (d instanceof IntegerNDSet) {
-        System.out.println(prefix + " IntegerNDSet: Dimension = "
-                           + ((IntegerNDSet) d).getDimension());
+        out.println(prefix + " IntegerNDSet: Dimension = "
+                    + ((IntegerNDSet) d).getDimension());
 
         for (int i = 0; i < ((IntegerNDSet) d).getDimension(); i++) {
           dumpDT(((LinearNDSet) d).getLinear1DComponent(i),
@@ -254,8 +255,8 @@ public class DumpType {
         }
 
       } else if (d instanceof LinearNDSet) {
-        System.out.println(prefix + " LinearNDSet: Dimension = "
-                           + ((LinearNDSet) d).getDimension());
+        out.println(prefix + " LinearNDSet: Dimension = "
+                    + ((LinearNDSet) d).getDimension());
 
         for (int i = 0; i < ((LinearNDSet) d).getDimension(); i++) {
           dumpDT(((LinearNDSet) d).getLinear1DComponent(i),
@@ -263,49 +264,49 @@ public class DumpType {
         }
 
       } else if (d instanceof GriddedSet) {
-        System.out.println(prefix + " GriddedSet "
-                           + name(((GriddedSet) d).getType().toString())
-                           + "  Dimension = "
-                           + ((GriddedSet) d).getDimension());
+        out.println(prefix + " GriddedSet "
+                    + name(((GriddedSet) d).getType().toString())
+                    + "  Dimension = "
+                    + ((GriddedSet) d).getDimension());
 
       } else if (d instanceof UnionSet) {
-        System.out.println(prefix + " UnionSet "
-                           + name(((UnionSet) d).getType().toString())
-                           + "  Dimension = "
-                           + ((UnionSet) d).getDimension());
+        out.println(prefix + " UnionSet "
+                    + name(((UnionSet) d).getType().toString())
+                    + "  Dimension = "
+                    + ((UnionSet) d).getDimension());
 
       } else if (d instanceof ProductSet) {
-        System.out.println(prefix + " ProductSet "
-                           + name(((ProductSet) d).getType().toString())
-                           + "  Dimension = "
-                           + ((ProductSet) d).getDimension());
+        out.println(prefix + " ProductSet "
+                    + name(((ProductSet) d).getType().toString())
+                    + "  Dimension = "
+                    + ((ProductSet) d).getDimension());
 
       } else if (d instanceof SampledSet) {
-        System.out.println(prefix + " SampledSet "
-                           + name(((SampledSet) d).getType().toString())
-                           + "  Dimension = "
-                           + ((SampledSet) d).getDimension());
+        out.println(prefix + " SampledSet "
+                    + name(((SampledSet) d).getType().toString())
+                    + "  Dimension = "
+                    + ((SampledSet) d).getDimension());
 
       } else if (d instanceof FloatSet) {
-        System.out.println(prefix + " FloatSet "
-                           + name(((FloatSet) d).getType().toString())
-                           + " Dimension = " + ((FloatSet) d).getDimension());
+        out.println(prefix + " FloatSet "
+                    + name(((FloatSet) d).getType().toString())
+                    + " Dimension = " + ((FloatSet) d).getDimension());
 
       } else if (d instanceof DoubleSet) {
-        System.out.println(prefix + " DoubleSet "
-                           + name(((DoubleSet) d).getType().toString())
-                           + "  Dimension = "
-                           + ((DoubleSet) d).getDimension());
+        out.println(prefix + " DoubleSet "
+                    + name(((DoubleSet) d).getType().toString())
+                    + "  Dimension = "
+                    + ((DoubleSet) d).getDimension());
 
       } else if (d instanceof SimpleSet) {
-        System.out.println(prefix + " SimpleSet: ");
+        out.println(prefix + " SimpleSet: ");
 
       } else if (d instanceof Set) {
-        System.out.println(prefix + " Set: ");
+        out.println(prefix + " Set: ");
 
       } else if (d instanceof RealTuple) {
         int n = ((RealTuple) d).getDimension();
-        System.out.println(prefix + " RealTuple has " + n + " components:");
+        out.println(prefix + " RealTuple has " + n + " components:");
         Tuple df = (RealTuple) d;
         for (int i = 0; i < n; i++) {
           dumpDT(((RealTuple) d).getComponent(i), prefix + "   " + i + ".");
@@ -313,25 +314,25 @@ public class DumpType {
 
       } else if (d instanceof Tuple) {
         int n = ((Tuple) d).getDimension();
-        System.out.println(prefix + " Tuple has " + n + " components:");
+        out.println(prefix + " Tuple has " + n + " components:");
         Tuple df = (Tuple) d;
         for (int i = 0; i < n; i++) {
-          System.out.println("  ");
+          out.println("  ");
           dumpDT(((Tuple) d).getComponent(i), prefix + "   " + i + ".");
         }
 
       } else if (d instanceof Text) {
-        System.out.println(prefix + " Text: " + d);
+        out.println(prefix + " Text: " + d);
 
       } else if (d instanceof Real) {
-        System.out.println(prefix + " Real: " + d);
+        out.println(prefix + " Real: " + d);
 
       } else {
-        System.out.println("Unknown type for " + d);
+        out.println("Unknown type for " + d);
       }
 
     } catch (Exception e) {
-      System.out.println("Exception:" + e);
+      out.println("Exception:" + e);
       //System.exit(1);
       return;
     }
@@ -383,34 +384,35 @@ public class DumpType {
    * @param prefix   prefix string for any output
    */
   private static void dumpMT(MathType t, String prefix) {
+    PrintWriter out = new PrintWriter(new OutputStreamWriter(os));
     if (init) {
-      System.out.println("VisAD MathType analysis");
+      out.println("VisAD MathType analysis");
     }
     init = false;
 
     try {
 
       if (t instanceof FunctionType) {
-        System.out.println(prefix + " FunctionType: ");
+        out.println(prefix + " FunctionType: ");
         RealTupleType domain = ((FunctionType) t).getDomain();
         int           num    = domain.getDimension();
-        System.out.println(prefix + " Domain has " + num + " components:");
+        out.println(prefix + " Domain has " + num + " components:");
         for (int i = 0; i < num; i++) {
           MathType comp = domain.getComponent(i);
           dumpMT(comp, prefix + "  " + i + ".");
         }
 
-        System.out.println(prefix + " Range:");
+        out.println(prefix + " Range:");
         MathType range = ((FunctionType) t).getRange();
         dumpMT(range, prefix + "  ");
 
 
       } else if (t instanceof SetType) {
-        System.out.println(prefix + " SetType: " + t);
+        out.println(prefix + " SetType: " + t);
 
       } else if (t instanceof RealTupleType) {
         int num = ((RealTupleType) t).getDimension();
-        System.out.println(prefix + " RealTupleType has " + num
+        out.println(prefix + " RealTupleType has " + num
                            + " components:");
         for (int i = 0; i < num; i++) {
           MathType comp = ((RealTupleType) t).getComponent(i);
@@ -420,44 +422,44 @@ public class DumpType {
 
       } else if (t instanceof TupleType) {
         int num = ((TupleType) t).getDimension();
-        System.out.println(prefix + " TupleType has " + num + " components:");
+        out.println(prefix + " TupleType has " + num + " components:");
         for (int i = 0; i < num; i++) {
           MathType comp = ((TupleType) t).getComponent(i);
           dumpMT(comp, prefix + "  " + i + ".");
         }
 
       } else if (t instanceof TextType) {
-        System.out.println(prefix + " TextType: " + t);
+        out.println(prefix + " TextType: " + t);
 
       } else if (t instanceof RealType) {
-        System.out.println(prefix + " RealType: " + t);
+        out.println(prefix + " RealType: " + t);
         prefix = prefix + "  ";
-        System.out.println(prefix + " Name = " + ((RealType) t).toString());
+        out.println(prefix + " Name = " + ((RealType) t).toString());
         Unit   du = ((RealType) t).getDefaultUnit();
         String s  = null;
         if (du != null) {
           s = du.toString();
         }
         if (s != null) {
-          System.out.println(prefix + " Unit: " + s);
+          out.println(prefix + " Unit: " + s);
         }
 
         Set ds = ((RealType) t).getDefaultSet();
         if (ds != null) {
           MathType dsmt = ds.getType();
-          System.out.println(prefix + " Set: " + dsmt);
+          out.println(prefix + " Set: " + dsmt);
           // dumpMT(dsmt,prefix+"  ");
         }
 
       } else if (t instanceof ScalarType) {
-        System.out.println(prefix + " ScaleType: " + t);
+        out.println(prefix + " ScaleType: " + t);
 
       } else {
-        System.out.println("Unknown type for " + t);
+        out.println("Unknown type for " + t);
       }
 
     } catch (Exception e) {
-      System.out.println("Exception:" + e);
+      out.println("Exception:" + e);
       //System.exit(1);
 
       return;
@@ -478,9 +480,10 @@ public class DumpType {
     if (cs != null) {
       RealTupleType ref = cs.getReference();
       if (ref != null) {
-        System.out.println(prefix + " CoordinateSystem: "
-                           + rtt.prettyString() + " ==> "
-                           + ref.prettyString());
+        PrintWriter out = new PrintWriter(new OutputStreamWriter(os));
+        out.println(prefix + " CoordinateSystem: "
+                    + rtt.prettyString() + " ==> "
+                    + ref.prettyString());
       }
     }
   }
