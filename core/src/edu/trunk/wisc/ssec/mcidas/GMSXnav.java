@@ -147,6 +147,7 @@ public class GMSXnav extends AREAnav
     float[][] linele = new float[2][count];
     float line = 0.0f;
     float elem = 0.0f;
+    float lon = 0.0f;
 
     for (int point = 0; point < count; point++) {
 
@@ -158,15 +159,18 @@ public class GMSXnav extends AREAnav
         continue;
       }
 
-      if (Math.abs(latlon[indexLon][point]) > 180.0) {
-        continue;
-      }
-
+      // normalize to -180 to 180
+      lon = latlon[indexLon][point];
+      if (lon > 180.f) lon = lon - 360.f;
+      if (lon < -180.f) lon = lon + 360.f;
+      if (Math.abs(latlon[indexLon][point]) > 180.f) continue;
+      if (-lon > 90-subLon && -lon < 270-subLon) continue;
+      
       rtnPoint = mgivsr (  
         mode, 
         (float) elem, 
         (float) line, 
-        (float) latlon[indexLon][point], 
+        (float) lon, 
         (float) latlon[indexLat][point]
       );
 
@@ -189,6 +193,7 @@ public class GMSXnav extends AREAnav
     double[][] linele = new double[2][count];
     double line = 0.0d;
     double elem = 0.0d;
+    double lon = 0.0f;
 
     for (int point = 0; point < count; point++) {
 
@@ -200,15 +205,18 @@ public class GMSXnav extends AREAnav
         continue;
       }
 
-      if (Math.abs(latlon[indexLon][point]) > 180.0) {
-        continue;
-      }
-
+      // normalize to -180 to 180
+      lon = latlon[indexLon][point];
+      if (lon > 180.0) lon = lon - 360.0;
+      if (lon < -180.0) lon = lon + 360.0;
+      if (Math.abs(latlon[indexLon][point]) > 180.0) continue;
+      if (-lon > 90-subLon && -lon < 270-subLon) continue;
+      
       rtnPoint = mgivsr (  
         mode, 
         (float) elem, 
         (float) line, 
-        (float) latlon[indexLon][point], 
+        (float) lon, 
         (float) latlon[indexLat][point]
       );
 
@@ -261,12 +269,17 @@ public class GMSXnav extends AREAnav
         (float) lat
       );
 
-      if (rtnPoint[1] < 0) {
-        rtnPoint[1] += 360.0;
+      // normalize to -180 to 180
+      lon = rtnPoint[1];
+      if (lon > 180) lon = lon - 360;
+      if (lon < -180) lon = lon + 360;
+      if (Math.abs(lon) > 180 ||  (-lon > 90-subLon && -lon < 270-subLon)) {
+          rtnPoint[0] = Float.NaN;
+          lon  = Float.NaN;
       }
 
       latlon[indexLat][point] = rtnPoint[0];
-      latlon[indexLon][point] = rtnPoint[1];
+      latlon[indexLon][point] = lon;
 
     }
 
@@ -302,12 +315,17 @@ public class GMSXnav extends AREAnav
         (float) lat
       );
 
-      if (rtnPoint[1] < 0) {
-        rtnPoint[1] += 360.0;
+      // normalize to -180 to 180
+      lon = rtnPoint[1];
+      if (lon > 180.) lon = lon - 360.;
+      if (lon < -180.) lon = lon + 360.;
+      if (Math.abs(lon) > 180. ||  (-lon > 90.-subLon && -lon < 270.-subLon)) {
+          rtnPoint[0] = Float.NaN;
+          lon  = Float.NaN;
       }
 
       latlon[indexLat][point] = rtnPoint[0];
-      latlon[indexLon][point] = rtnPoint[1];
+      latlon[indexLon][point] = lon;
 
     }
 
@@ -671,9 +689,13 @@ public class GMSXnav extends AREAnav
       rLin = ri;
       rPix = rj;
       if ((rLin < 0) || (rLin > rftl)) {
+        point[0] = Float.NaN;
+        point[1] = Float.NaN;
         rc = 4;
       }
-      if ((rPix < 0) || (rPix > rftl)) {
+      if ((rPix < 0) || (rPix > rftp)) {
+        point[0] = Float.NaN;
+        point[1] = Float.NaN;
         rc = 5;
       }
 
@@ -1024,8 +1046,11 @@ public class GMSXnav extends AREAnav
     if (as2 == 0.0d) {
       return(asita);
     }
+    //asita = Math.acos(Math.min(Math.max(as1,.0000001),1.0) / Math.sqrt(as2));
+    double temp = as1/Math.sqrt(as2);
+    if (temp > 1.0 && temp-1.0 < 0.000001) temp = 1;
+    asita = Math.acos(temp);
 
-    asita = Math.acos(Math.min(Math.max(as1,.0000001),1.0) / Math.sqrt(as2));
     return(asita);
 
   }
