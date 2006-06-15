@@ -186,6 +186,7 @@ public class ShadowAnimationFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       for (int j=0; j<old_len; j++) {
         if (!old_mark[j]) {
           ((RendererJ3D) renderer).flush(old_nodes[j]);
+          old_nodes[j] = null;
         }
       }
       // make sure group is live
@@ -200,6 +201,9 @@ public class ShadowAnimationFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       else {
         control.setCurrent(0);
       }
+      old_nodes = null;
+      old_times = null;
+      old_mark = null;
 
       // render new frames
       for (int i=0; i<len; i++) {
