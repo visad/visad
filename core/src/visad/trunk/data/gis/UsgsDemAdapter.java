@@ -50,7 +50,7 @@ import java.rmi.RemoteException;
  * @author Don Murray
  * @author Jeffrey Albert Bergamini 
  *    (http://srproj.lib.calpoly.edu/projects/csc/jbergam/reports/final.html)
- * @version $Revision: 1.5 $ $Date: 2006-01-19 19:12:12 $
+ * @version $Revision: 1.6 $ $Date: 2006-06-21 15:34:54 $
  */
 public class UsgsDemAdapter {
 
@@ -115,6 +115,8 @@ public class UsgsDemAdapter {
           measureUnits[ARCSECONDS] = Parser.parse("arcseconds");
       } catch (Exception e) {}
   }
+
+  private static int MISSING_VALUE = -32767;
 
   /**
    * File Name -- USGS DEM Logical Record Type A, Data Element 1
@@ -344,13 +346,14 @@ public class UsgsDemAdapter {
     processRecordTypeA();
      
     for (int j=0; j<numColumns; j++)  {
+      //System.out.println("Processing column " + j);
       processRecordTypeB();
     }
      
     elevationRange = maxElevation - minElevation;
     xRange = maxX - minX;
     yRange = maxY - minY;
-    //makeFlatField();
+    // makeFlatField();
      
   }
   
@@ -445,6 +448,7 @@ public class UsgsDemAdapter {
     /*
      * Calculate profile coordinates
      */
+    int block = 0;
     for (int j=0; j<m; j++) {
       for (int i = 0; i<n; i++) {
 
@@ -454,7 +458,12 @@ public class UsgsDemAdapter {
         Xgp = Xgo + Xp*costheta + Yp*sintheta;
         Ygp = Ygo + Xp*sintheta + Yp*costheta;
 
-        elevation = parseInt()*zResolution+localElevation;
+        int rawElev = parseInt(6);
+        if (rawElev == MISSING_VALUE) {
+            elevation =  Float.NaN;
+        } else {
+            elevation = rawElev*zResolution+localElevation;
+        }
         /* 
         if( j == m-1)  {
           System.out.println(
@@ -473,12 +482,16 @@ public class UsgsDemAdapter {
         maxX = Math.max(Xgp, maxX);
         minY = Math.min(Ygp, minY);
         maxY = Math.max(Ygp, maxY);
-        minElevation = Math.min(minElevation, elevation);
-        maxElevation = Math.max(maxElevation, elevation);
+        if (!Float.isNaN(elevation)) {
+           minElevation = Math.min(minElevation, elevation);
+           maxElevation = Math.max(maxElevation, elevation);
+        }
         rawCoords[0][numPoints] = Xgp;
         rawCoords[1][numPoints] = Ygp;
         rawCoords[2][numPoints] = elevation;
         numPoints++;
+        int numLeft = BLOCK_SIZE-(pos%BLOCK_SIZE)+1;
+        if (numLeft < 6) skip(numLeft);
       }
     }
    
@@ -580,6 +593,8 @@ public class UsgsDemAdapter {
     }
      
     pos += digits;
+
+    // System.out.println("\"" + new String(array, 0, digits) + "\"");
      
     return Integer.parseInt((new String(array, 0 , digits)).trim());
   }
@@ -605,13 +620,14 @@ public class UsgsDemAdapter {
         c = (char) in.read();
         pos++;
         tempString += c;
-      } while(!Character.isWhitespace(c));
+      } while(!(Character.isWhitespace(c)));
         
     } catch (IOException e) {
       throw new IOException("Couldn't read integer from file");
     }
      
     tempString = tempString.substring(0,tempString.length()-1);
+    // System.out.println("tempString = " + tempString);
     return Integer.parseInt(tempString);
   }
 
@@ -635,7 +651,7 @@ public class UsgsDemAdapter {
      
     pos += digits;
 
-    //System.out.println("\"" + new String(array, 0, digits) + "\"");
+    // System.out.println("\"" + new String(array, 0, digits) + "\"");
      
     return translateReal((new String(array, 0 , digits)).trim());
   }
@@ -646,7 +662,7 @@ public class UsgsDemAdapter {
    */
   private float translateReal (String real) {
      
-    //System.out.println("\"" + real + "\"");
+    // System.out.println("\"" + real + "\"");
      
     int plus, exp;
      
@@ -655,7 +671,7 @@ public class UsgsDemAdapter {
     if (plus > 0)
       exp = Integer.parseInt(real.substring(plus+1,plus+3));
     else
-      return 0f;
+      return Float.parseFloat(real);
      
     if (real.charAt(0) != '-') {
       tempString = 
@@ -796,7 +812,7 @@ public class UsgsDemAdapter {
                                (CoordinateSystem) null,  /* in rtt if used */
                                units, (ErrorEstimate[]) null, 
                                true /*cache*/);
-    //System.out.println("domainSet = " + domainSet);
+    // System.out.println("domainSet = " + domainSet);
     return domainSet;
   }
 
@@ -842,4 +858,12 @@ public class UsgsDemAdapter {
     return (domainSet == null) ? makeDomainSet() : domainSet;
   }
   
+  public static void main(String[] args) throws Exception {
+    if (args.length == 0) {
+      System.out.println("Need to supply a filename");
+      System.exit(1);
+    }
+    UsgsDemAdapter uda = new UsgsDemAdapter(args[0]);
+    System.out.println(uda);
+  }
 }
