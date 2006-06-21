@@ -71,7 +71,8 @@ public class ContourControl extends Control {
 
   boolean contourFill;
 
-  private static double init_scale = 0.51;
+  private static double init_scale = Double.NaN;
+  private static double default_init_scale = 0.40;
   private boolean autoSizeLabels = false;
   private double labelSizeFactor = 1;
   private transient ZoomDoneListener zoom;
@@ -111,12 +112,19 @@ public class ContourControl extends Control {
     double[] trans           = new double[3];
     double[] scale           = new double[1];
     MouseBehavior mouse      = d.getMouseBehavior();
+
+    double projScale;
     if (mouse != null) {
       mouse.instance_unmake_matrix(rot, scale, trans, matrix);
-      if (!(init_scale==init_scale)) init_scale = scale[0];
+      if (init_scale != init_scale) init_scale = scale[0];
+      projScale = scale[0];
+    }
+    else {
+      init_scale = default_init_scale;
+      projScale = init_scale;
     }
 
-    zoom = new ZoomDoneListener(this, pcntrl, mouse, init_scale);
+    zoom = new ZoomDoneListener(this, pcntrl, mouse, projScale);
     d.addDisplayListener(zoom);
   }
 
@@ -976,18 +984,6 @@ public class ContourControl extends Control {
     public void displayChanged(DisplayEvent de)
            throws VisADException, RemoteException
     {
-      /**
-      if (de.getId() == DisplayEvent.KEY_RELEASED) {
-        InputEvent ie = de.getInputEvent();
-        if (ie != null) {
-          int mod = ie.getModifiers();
-          int key = ((KeyEvent)ie).getKeyCode();
-          if (key == KeyEvent.VK_SHIFT)  {
-            reLabel(ratio);
-          }
-        }
-      }
-      **/
       if (de.getId() == DisplayEvent.MOUSE_RELEASED_LEFT ||
           de.getId() == DisplayEvent.MOUSE_RELEASED_RIGHT) {
         reLabel(ratio);
