@@ -50,7 +50,7 @@ import java.rmi.RemoteException;
  * @author Don Murray
  * @author Jeffrey Albert Bergamini 
  *    (http://srproj.lib.calpoly.edu/projects/csc/jbergam/reports/final.html)
- * @version $Revision: 1.6 $ $Date: 2006-06-21 15:34:54 $
+ * @version $Revision: 1.7 $ $Date: 2006-06-27 21:27:57 $
  */
 public class UsgsDemAdapter {
 
@@ -219,14 +219,14 @@ public class UsgsDemAdapter {
   private float rotationAngle = 0;
 
   /** Minimum easting */
-  private float minX = Float.MAX_VALUE;
+  private float minX = Float.POSITIVE_INFINITY;
   /** Maximum easting */
-  private float maxX = Float.MIN_VALUE;
+  private float maxX = Float.NEGATIVE_INFINITY;
 
   /** Minimum northing */
-  private float minY = Float.MAX_VALUE;
+  private float minY = Float.POSITIVE_INFINITY;
   /** Maximum northing */
-  private float maxY = Float.MIN_VALUE;
+  private float maxY = Float.NEGATIVE_INFINITY;
 
   /** Range of elevation */
   private float elevationRange;
@@ -346,7 +346,7 @@ public class UsgsDemAdapter {
     processRecordTypeA();
      
     for (int j=0; j<numColumns; j++)  {
-      //System.out.println("Processing column " + j);
+      // System.out.println("Processing column " + j);
       processRecordTypeB();
     }
      
@@ -464,19 +464,6 @@ public class UsgsDemAdapter {
         } else {
             elevation = rawElev*zResolution+localElevation;
         }
-        /* 
-        if( j == m-1)  {
-          System.out.println(
-              "Start for column " + column + " = " + Xgo + "," + Ygo);
-          System.out.println("number of rows = " + m);
-          System.out.println("number of columns = " + n);
-          System.out.println("theta = " + rotationAngle);
-          System.out.println("costheta = " + costheta);
-          System.out.println("sintheta = " + sintheta);
-          System.out.println("Xgp = " + Xgp);
-          System.out.println("Ygp = " + Ygp);
-        }
-        */
         //update min and max x,y
         minX = Math.min(Xgp, minX);
         maxX = Math.max(Xgp, maxX);
@@ -486,20 +473,53 @@ public class UsgsDemAdapter {
            minElevation = Math.min(minElevation, elevation);
            maxElevation = Math.max(maxElevation, elevation);
         }
+        /* 
+        if( j == m-1)  {
+          System.out.println(
+              "Start for column " + column + " = " + Xgo + "," + Ygo);
+          System.out.print("number of rows = " + m);
+          System.out.print(" number of columns = " + n);
+          System.out.print(" theta = " + rotationAngle);
+          System.out.print(" costheta = " + costheta);
+          System.out.print(" sintheta = " + sintheta);
+          System.out.print(" Xgp = " + Xgp);
+          System.out.println(" Ygp = " + Ygp);
+          System.out.print("minX = " + minX);
+          System.out.print(" maxX = " + maxX);
+          System.out.print(" minY = " + minY);
+          System.out.println(" maxY = " + maxY);
+        }
+        */
         rawCoords[0][numPoints] = Xgp;
         rawCoords[1][numPoints] = Ygp;
         rawCoords[2][numPoints] = elevation;
         numPoints++;
+        // make new size if we need to.
+        if (numPoints == rawCoords[0].length) {
+           int oldSize = rawCoords[0].length;
+           int newSize = oldSize + oldSize/2;
+           // System.out.println("old size = " + oldSize + " new = " + newSize);
+           float[][] tempCoords = rawCoords;
+           rawCoords = new float[3][newSize];
+           for (int l = 0; l < rawCoords.length; l++) {
+               System.arraycopy(tempCoords[l], 0, rawCoords[l], 0, oldSize);
+           }
+           tempCoords = null;
+        }
         int numLeft = BLOCK_SIZE-(pos%BLOCK_SIZE)+1;
+        // System.out.println("numleft = " + numLeft);
         if (numLeft < 6) skip(numLeft);
       }
     }
-   
-    skip(BLOCK_SIZE-(pos%BLOCK_SIZE)+1);
+    // System.out.println("done with loop, skipping " + (BLOCK_SIZE-(pos%BLOCK_SIZE)+1) + " chars");
+    int numToNextRecord = BLOCK_SIZE-(pos%BLOCK_SIZE)+1;
+    if (numToNextRecord > 0 && numToNextRecord < BLOCK_SIZE) {
+        skip(numToNextRecord);
+    }
 
-    //System.out.println("Size was " + pos);
+    // System.out.println("Size was " + pos);
   
-    //System.out.println("DONE WITH B"); 
+    // System.out.println("DONE WITH B"); 
   }
 
   /**
@@ -831,9 +851,18 @@ public class UsgsDemAdapter {
     int index = 0;
     int[] indices = 
       domainSet.valueToIndex(new float[][] {rawCoords[0], rawCoords[1]});
+    float alt;
+    int numMissing = 0;
     for (int i = 0; i < numPoints; i++) {
-        altitudes[0][indices[i]] = rawCoords[2][i];
+        alt = rawCoords[2][i];
+        if (indices[i] < 0) {
+           numMissing++;
+           altitudes[0][indices[i]] = Float.NaN;
+        } else {
+           altitudes[0][indices[i]] = rawCoords[2][i];
+        }
     }
+    // System.out.println("Out of " +numPoints+ " points, " + numMissing + " were missing");
     try {
       ff.setSamples(altitudes, false);
     } catch (RemoteException re) {} // can't happen
@@ -865,5 +894,6 @@ public class UsgsDemAdapter {
     }
     UsgsDemAdapter uda = new UsgsDemAdapter(args[0]);
     System.out.println(uda);
+    System.out.println(uda.getData().getDomainSet());
   }
 }
