@@ -38,6 +38,10 @@ public class LatLonTuple extends RealTuple
     private Real lat;
     private Real lon;
 
+    /* Default units (degree, degree, meter) */
+    public static final Unit[] DEFAULT_UNITS = 
+      new Unit[] {CommonUnit.degree, CommonUnit.degree};
+
     /**
      * Construct a LatLonTuple with missing values
      *
@@ -64,7 +68,8 @@ public class LatLonTuple extends RealTuple
         throws VisADException, RemoteException
     {
         this(new Real(RealType.Latitude, lat),
-             new Real(RealType.Longitude, lon));
+             new Real(RealType.Longitude, lon),
+             DEFAULT_UNITS, false);
     }
 
     /**
@@ -82,8 +87,29 @@ public class LatLonTuple extends RealTuple
     public LatLonTuple(Real lat, Real lon)
         throws VisADException, RemoteException
     {
-        super ( RealTupleType.LatitudeLongitudeTuple,
-              new Real[] { lat, lon}, (CoordinateSystem) null);
+        this( lat, lon, (Unit[]) null, true);
+    }
+
+    /**
+     * Construct a LatLonTuple from Reals representing the latitude and
+     * longitude.
+     *
+     * @param  lat  Real representing latitude 
+     *              (must have MathType RealType.Latitude)
+     * @param  lon  Real representing longitude 
+     *              (must have MathType RealType.Longitude)
+     * @param  units  units for the reals (can be null)
+     * @param  checkUnits  true to make sure units is convertible with lat/lon
+     *
+     * @throws  VisADException   couldn't create the necessary VisAD object
+     * @throws  RemoteException  couldn't create the necessary remote object
+     */
+    public LatLonTuple(Real lat, Real lon, Unit[] units, boolean checkUnits)
+        throws VisADException, RemoteException
+    {
+        super( RealTupleType.LatitudeLongitudeTuple,
+              new Real[] { lat, lon}, 
+              (CoordinateSystem) null, units, checkUnits);
         this.lat = lat;
         this.lon = lon;
     }

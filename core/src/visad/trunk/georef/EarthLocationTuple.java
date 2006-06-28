@@ -45,6 +45,10 @@ public class EarthLocationTuple extends RealTuple
     LatLonTuple latlon;
     Real alt;
 
+    /* Default units (degree, degree, meter) */
+    public static final Unit[] DEFAULT_UNITS = 
+      new Unit[] {CommonUnit.degree, CommonUnit.degree, CommonUnit.meter};
+
     /**
      * Construct an EarthLocationTuple with missing values
      *
@@ -70,11 +74,49 @@ public class EarthLocationTuple extends RealTuple
     public EarthLocationTuple(Real lat, Real lon, Real alt)
         throws VisADException, RemoteException
     {
+        this(lat, lon, alt, (Unit[]) null, true);
+    }
+
+    /**
+     * Construct an EarthLocationTuple from Reals of lat, lon, alt
+     *
+     * @param  lat   Real representing the latitude
+     * @param  lon   Real representing the longitude
+     * @param  alt   Real representing the altitude
+     * @param  units   array of Units.  Must be same as Real units or null
+     * @param  checkUnits   true if should check the units
+     *
+     * @throws  VisADException   unable to create necessary VisAD object
+     * @throws  RemoteException  unable to create necessary remote object
+     */
+    public EarthLocationTuple(Real lat, Real lon, Real alt, Unit[] units, boolean checkUnits)
+        throws VisADException, RemoteException
+    {
+        this(lat, lon, alt, units, checkUnits, false);
+    }
+
+    /**
+     * Trusted Construct an EarthLocationTuple from Reals of lat, lon, alt
+     *
+     * @param  lat   Real representing the latitude
+     * @param  lon   Real representing the longitude
+     * @param  alt   Real representing the altitude
+     * @param  units   array of Units.  Must be same as Real units or null
+     * @param  checkUnits   true if should check the units
+     * @param  useLLTUnits   true to use the LatLonTuple units 
+     *
+     * @throws  VisADException   unable to create necessary VisAD object
+     * @throws  RemoteException  unable to create necessary remote object
+     */
+    EarthLocationTuple(Real lat, Real lon, Real alt, Unit[] units, boolean checkUnits, boolean useLLTUnits)
+        throws VisADException, RemoteException
+    {
         super(RealTupleType.LatitudeLongitudeAltitude,
               new Real[] {lat, lon, alt}, 
-              (CoordinateSystem) null
-              );
-        latlon = new LatLonTuple(lat, lon);
+              (CoordinateSystem) null, units, checkUnits);
+        latlon = (useLLTUnits)
+            ? new LatLonTuple(lat, lon, LatLonTuple.DEFAULT_UNITS, checkUnits)
+            : new LatLonTuple(lat, lon);
         this.alt = alt;
     }
 
@@ -91,8 +133,10 @@ public class EarthLocationTuple extends RealTuple
     public EarthLocationTuple(double lat, double lon, double alt)
         throws VisADException, RemoteException
     {
-        this(new LatLonTuple(lat, lon),
-             new Real(RealType.Altitude, alt));
+        this(new Real(RealType.Latitude, lat),
+             new Real(RealType.Longitude, lon),
+             new Real(RealType.Altitude, alt), 
+             DEFAULT_UNITS, false, true);
     }
 
     /**

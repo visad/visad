@@ -34,6 +34,7 @@ import visad.Data;
  */
 public interface LatLonPoint extends Data
 {
+
     /**
      * Get the latitude of this point
      *
