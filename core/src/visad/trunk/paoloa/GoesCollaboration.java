@@ -199,7 +199,7 @@ public class GoesCollaboration extends Object {
           System.out.println("This program requires the data files " +
                              "\"data_obs_1.dat\"");
           System.out.println("and \"goesrtcf\", available at:");
-          System.out.println("   ftp://www.ssec.wisc.edu/pub/visad-2.0/" +
+          System.out.println("   ftp://ftp.ssec.wisc.edu/pub/visad-2.0/" +
                              "paoloa-files.tar.Z");
           System.exit(1);
         }
