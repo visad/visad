@@ -33,8 +33,7 @@ import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import javax.swing.*;
@@ -162,6 +161,20 @@ public class Util
   public static boolean isApproximatelyEqual(double a, double b)
   {
     return isApproximatelyEqual(a, b, 0.000000001);
+  }
+
+  /**
+   * Return a string representation of VisAD's build date and time.
+   */
+  public static String getVersionDate() {
+    try {
+      InputStream is = Util.class.getResourceAsStream("/DATE");
+      BufferedReader in = new BufferedReader(new InputStreamReader(is));
+      String date = in.readLine();
+      in.close();
+      return date;
+    }
+    catch (IOException exc) { return null; }
   }
 
   /**
