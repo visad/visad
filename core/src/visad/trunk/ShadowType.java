@@ -3646,9 +3646,7 @@ try {
         boolean[] bvalues = new boolean[2];
         float[] fvalues = new float[5];
         control.getMainContours(bvalues, fvalues);
-        double init_scale  = ContourControl.getInitScale();
-        if (scale != scale) scale = init_scale;
-        double scale_ratio = scale/init_scale;
+        if (scale != scale) scale = control.getInitScale();
         double label_size  = control.getLabelSize();
         if (spatialManifoldDimension == 3 ||
             spatialManifoldDimension == 2) {
@@ -3738,7 +3736,7 @@ try {
                 spatial_set.makeIsoLines(levs, lowhibase[0], lowhibase[1],
                                          lowhibase[2], display_values[i],
                                          color_values, swap, dashes[0],
-                                         fill, smap, scale_ratio, label_size, f_array);
+                                         fill, smap, scale, label_size, f_array);
               if (array_s != null) {
               if (!fill && getAdjustProjectionSeam()) {
                 for (int j=0; j<2; j++) {

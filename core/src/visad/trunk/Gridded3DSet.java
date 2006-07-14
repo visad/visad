@@ -2013,7 +2013,7 @@ public class Gridded3DSet extends GriddedSet {
                   float lowlimit, float highlimit, float base,
                   float[] fieldValues, byte[][] color_values,
                   boolean[] swap, boolean dash,
-                  boolean fill, ScalarMap[] smap, double scale_ratio,
+                  boolean fill, ScalarMap[] smap, double scale,
                   double label_size, float[][][] f_array)
          throws VisADException {
 
@@ -2031,6 +2031,8 @@ public class Gridded3DSet extends GriddedSet {
     int nr = LengthX;
     int nc = LengthY;
     float[] g = fieldValues;
+
+    double scale_ratio = scale/0.5169703885552809;
 
     // these are just estimates
     // int est = 2 * Length; WLH 14 April 2000
