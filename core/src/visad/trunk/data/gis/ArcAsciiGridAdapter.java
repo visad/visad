@@ -130,9 +130,8 @@ public class ArcAsciiGridAdapter {
   private String filename;
   private DecimalFormat formatter =  new DecimalFormat();
   private int numHeaderLines = 0;
-  private float[][] dataValues;
+  private float[][] rangeVals;
   private boolean readHeader = false;
-  private boolean readData = false;
 
   /**
    * Create an ArcAsciiGridAdapter for the particular file.
@@ -281,15 +280,15 @@ public class ArcAsciiGridAdapter {
         in = new BufferedReader(
           new InputStreamReader(
             new GZIPInputStream(new FileInputStream(filename))));
-      else
-        in = new BufferedReader(new FileReader(filename));
+      else {
+	  in = new BufferedReader(new FileReader(filename));
+      }
     } catch (IOException e) {
       throw new VisADException("Couldn't open file: " + filename);
     }
   }
 
   private void readHeader() throws VisADException {
-
     if (readHeader) return;
     makeStream();
     headerTable = new Hashtable();
@@ -329,58 +328,64 @@ public class ArcAsciiGridAdapter {
     if (!checkHeader()) {
       throw new VisADException("Unable to find enough metadata " + headerTable);
     }
-       
     // System.out.println(headerTable.toString());
-
     readHeader = true;
   }
 
-  private void readData() throws VisADException {
-    if (readData) return;
+
+  private void readData(Gridded2DSet spatialSet) throws VisADException {
+    if(rangeVals!=null) return;
     if (!readHeader) readHeader();
-    dataValues = new float[numRows][numColumns];
+    rangeVals = new float[1][spatialSet.getLength()];
     makeStream();
     String line;
-    float value;
     try {
+      long t1 = System.currentTimeMillis();
       //skip header
       for (int i = 0; i < numHeaderLines; i++) line = in.readLine();
-
+      int index =0;
+      float[]tmpArray =rangeVals[0];
+      StreamTokenizer tok = new StreamTokenizer(in);
       for (int row = 0; row < numRows; row++) {
-        if ((line = in.readLine()) != null) {
-          if (line.trim().equals("")) {  // account for blank lines
-             row--;
-             continue;
-          }
-          StringTokenizer tok = new StringTokenizer(line);
-          if (numColumns <= tok.countTokens()) {
-            for (int col = 0; col < numColumns; col++) {
-              try {
-                value = parseValue(tok.nextToken());
-                if (value != missingData) {
-                   minimumValue = Math.min(minimumValue, value);
-                   maximumValue = Math.max(maximumValue, value);
-                }
-                dataValues[row][col] = value;
-              } catch (ParseException e) {
-                throw new VisADException("Unable to parse value");
-              }
-            }
-          } else {
-            throw new VisADException(
-                "number of values ("+ tok.countTokens() + 
-                ") < number of columns (" + numColumns + ")");
-          }
-        }
+	  int colsRead = 0;
+	  for (int col = 0; col < numColumns; col++) {
+	      colsRead++;
+	      int nextTok = tok.nextToken();
+	      if(nextTok == StreamTokenizer.TT_EOF) break;
+	      if(nextTok != StreamTokenizer.TT_NUMBER) {
+		  throw new VisADException("Unknown value:" + tok.sval);
+	      }
+	      float value = (float)tok.nval;
+	      if (value != missingData) {
+		  tmpArray[index++] = value;
+	      } else {
+		  tmpArray[index++] = Float.NaN;
+	      }	
+	  }
+          if (numColumns != colsRead) {
+	      throw new VisADException(
+				       "Number of values ("+ colsRead + 
+				       ") < number of columns (" + numColumns + ")");
+	      
+	  }
       }
+      if (index != numColumns*numRows) {
+	  throw new VisADException("Number of values read (" + index +") != expected ("+ (numColumns* numRows));
+	      
+      }
+      long t2 = System.currentTimeMillis();
+      //      System.err.println("time:" + (t2-t1));
       in.close();
-      readData = true;
     } catch (IOException ioe) {
-      throw new VisADException("number of values > number of columns");
+      throw new VisADException("Error reading data: " + ioe);
     }
     //System.out.println("minimum value = " + minimumValue);
     //System.out.println("maximum value = " + maximumValue);
   }
+
+
+
+
 
   private float parseValue(String value) 
       throws ParseException {
@@ -486,20 +491,12 @@ public class ArcAsciiGridAdapter {
   private FlatField makeFlatField(RealTupleType spatialType, RealType rangeType)
       throws VisADException {
     Gridded2DSet spatialSet = makeSpatialSet(spatialType);
-    readData();  // if already done, will just return
-    float[][] rangeVals = new float[1][spatialSet.getLength()];
+    readData(spatialSet);  // if already done, will just return
     FunctionType ft = new FunctionType(spatialType, rangeType);
     FlatField ff = new FlatField(ft, spatialSet,
                                  (CoordinateSystem) null, 
                                  (Set[]) null,
                                  new Unit[] {dataUnit});
-    int index = 0;
-    for (int i = 0; i < numRows; i++) {
-      for (int j = 0; j < numColumns; j++) {
-        rangeVals[0][index++] = 
-          (dataValues[i][j] == missingData) ? Float.NaN : dataValues[i][j];
-      }
-    }
     try {
       ff.setSamples(rangeVals, false);
     } catch (RemoteException re) {} // can't happen
@@ -714,6 +711,7 @@ public class ArcAsciiGridAdapter {
            ? new ArcAsciiGridAdapter(args[0], args[1])
            : new ArcAsciiGridAdapter(args[0], args[1], args[2]);
     System.out.println(aga);
+    aga.makeFlatField();
   }
 
 }
