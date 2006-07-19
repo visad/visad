@@ -185,9 +185,28 @@ public class FieldImpl extends FunctionImpl implements Field {
   /** set the range samples of the function; the order of range samples
       must be the same as the order of domain indices in the DomainSet;
       copy range objects if copy is true;
-      should use same MathType object in each Data object in range array */
+      should use same MathType object in each Data object in range array 
+  */
   public void setSamples(Data[] range, boolean copy)
          throws VisADException, RemoteException {
+      setSamples(range, copy, true);
+  }
+
+  /** set the range samples of the function; the order of range samples
+      must be the same as the order of domain indices in the DomainSet;
+      copy range objects if copy is true;
+      should use same MathType object in each Data object in range array 
+      @param range The range values 
+      @param copy should the range values be copied
+      @param checkAllRangeTypes If true then ensure that the MathType of each element in the range
+      matches the type of this field. If false then only check the first range element.
+      This is the "trust the calling method" flag. If you pass in false and there are elements
+      in the range whose type does not match the type of this field then this may result 
+      in hard-to-track-down bugs.
+   */
+   public void setSamples(Data[] range, boolean copy, boolean checkAllRangeTypes)
+         throws VisADException, RemoteException {
+
     if (range == null) {
         MyRange = null;
         MissingFlag = true;
@@ -206,16 +225,19 @@ public class FieldImpl extends FunctionImpl implements Field {
       MathType t = ((FunctionType) Type).getRange();
       for (int i=0; i<Length; i++) {
         if (range[i] != null) {
-          if (!t.equals(range[i].getType())) {
-            throw new TypeException("FieldImpl.setSamples: sample#" + i +
-                                    " type " + range[i].getType() +
-                                    " doesn't match field type " + t);
+          if(i==0 || checkAllRangeTypes) {
+              if(!t.equals(range[i].getType())) {
+                throw new TypeException("FieldImpl.setSamples: sample#" + i +
+                                        " type " + range[i].getType() +
+                                       " doesn't match field type " + t);
+              }
           }
           if (copy) Range[i] = (Data) range[i].dataClone();
           else Range[i] = range[i];
         }
         else Range[i] = null;
       }
+
       for (int i=0; i<Length; i++) {
         if (Range[i] instanceof DataImpl) {
           ((DataImpl) Range[i]).setParent(this);
