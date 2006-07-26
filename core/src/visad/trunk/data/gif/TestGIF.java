@@ -40,7 +40,7 @@ public class TestGIF
       args = new String[3];
 
       args[0] = "sseclogo.gif";
-      args[1] = "http://www.ssec.wisc.edu/sseclogo.gif";
+      args[1] = "http://www.ssec.wisc.edu/images/ssecsm.gif";
       args[2] = "http://www.ssec.wisc.edu/";
     }
 
