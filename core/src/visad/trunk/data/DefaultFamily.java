@@ -32,6 +32,7 @@ import visad.VisADException;
 import visad.data.bio.LociForm;
 import visad.data.dods.DODSForm;
 import visad.data.fits.FitsForm;
+import visad.data.gif.GIFForm;
 import visad.data.gis.DemFamily;
 import visad.data.hdfeos.HdfeosAdaptedForm;
 import visad.data.jai.JAIForm;
@@ -88,6 +89,11 @@ public class DefaultFamily
     }
     try {
       list[i] = new FitsForm();
+      i++;
+    } catch (Throwable t) {
+    }
+    try {
+      list[i] = new GIFForm();
       i++;
     } catch (Throwable t) {
     }
