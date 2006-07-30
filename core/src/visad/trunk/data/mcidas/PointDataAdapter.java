@@ -249,7 +249,7 @@ public class PointDataAdapter {
                                ? new RealTuple(
                                    (RealTupleType)rangeType, (Real[]) scalars, null, actualUnits, false)
                                : new Tuple(rangeType, scalars, false, false);
-        field.setSample(i, sample, false);  // don't make copy
+        field.setSample(i, sample, false, (i==0));  // don't make copy, don't check type after first
       }
       catch (VisADException e) {e.printStackTrace();} 
       catch (java.rmi.RemoteException e) {;}
