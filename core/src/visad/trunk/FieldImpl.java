@@ -182,27 +182,33 @@ public class FieldImpl extends FunctionImpl implements Field {
         return  MyRange;
     }
 
-  /** set the range samples of the function; the order of range samples
-      must be the same as the order of domain indices in the DomainSet;
-      copy range objects if copy is true;
-      should use same MathType object in each Data object in range array 
-  */
+  /** 
+   * Set the range samples of the function; the order of range samples
+   * must be the same as the order of domain indices in the DomainSet;
+   * copy range objects if copy is true;
+   * @param range The range values 
+   * @param copy should the range values be copied
+   */
   public void setSamples(Data[] range, boolean copy)
          throws VisADException, RemoteException {
       setSamples(range, copy, true);
   }
 
-  /** set the range samples of the function; the order of range samples
-      must be the same as the order of domain indices in the DomainSet;
-      copy range objects if copy is true;
-      should use same MathType object in each Data object in range array 
-      @param range The range values 
-      @param copy should the range values be copied
-      @param checkAllRangeTypes If true then ensure that the MathType of each element in the range
-      matches the type of this field. If false then only check the first range element.
-      This is the "trust the calling method" flag. If you pass in false and there are elements
-      in the range whose type does not match the type of this field then this may result 
-      in hard-to-track-down bugs.
+  /** 
+   * Set the range samples of the function; the order of range samples
+   * must be the same as the order of domain indices in the DomainSet;
+   * copy range objects if copy is true;
+   * should use same MathType object in each Data object in range array 
+   * @param range The range values 
+   * @param copy should the range values be copied
+   * @param checkAllRangeTypes  If true then ensure that the MathType of 
+   *                            each element in the range matches the type 
+   *                            of this field. If false then only check the 
+   *                            first range element.  This is the "trust 
+   *                            the calling method" flag. If you pass in false 
+   *                            and there are elements in the range whose type 
+   *                            does not match the type of this field then 
+   *                            this may result in hard-to-track-down bugs.
    */
    public void setSamples(Data[] range, boolean copy, boolean checkAllRangeTypes)
          throws VisADException, RemoteException {
@@ -536,14 +542,16 @@ public class FieldImpl extends FunctionImpl implements Field {
     return units;
   }
 
-  /** get range CoordinateSystem for 'RealTuple' range;
-      second index enumerates samples */
-  /** return range CoordinateSystem assuming range type is
-      a RealTupleType (throws a TypeException if its not);
-      this may differ from default CoordinateSystem of
-      range RealTupleType, but must be convertable;
-      the index enumerates samples since Units may
-      differ between samples */
+  /** 
+   * Get range CoordinateSystem for 'RealTuple' range;
+   * second index enumerates samples.
+   * @return range CoordinateSystem assuming range type is
+   * a RealTupleType (throws a TypeException if its not);
+   * this may differ from default CoordinateSystem of
+   * range RealTupleType, but must be convertable;
+   * the index enumerates samples since Units may
+   * differ between samples 
+   */
   public CoordinateSystem[] getRangeCoordinateSystem()
          throws VisADException, RemoteException {
     MathType RangeType = ((FunctionType) Type).getRange();
@@ -683,18 +691,44 @@ public class FieldImpl extends FunctionImpl implements Field {
     setSample(domain, range, true);
   }
 
+  /** 
+   * Set the range value at the index-th sample; makes a local copy
+   * @param  index  index in domain
+   * @param  range  sample at that index
+   */
   public void setSample(int index, Data range)
          throws VisADException, RemoteException {
     setSample(index, range, true);
   }
 
-  /** set the range value at the index-th sample */
+  /** 
+   * Set the range value at the index-th sample 
+   * @param  index  index in domain
+   * @param  range  sample at that index
+   * @param  copy   true to make a copy
+   */
   public void setSample(int index, Data range, boolean copy)
+         throws VisADException, RemoteException {
+    setSample(index, range, copy, true);
+  }
+
+  /** 
+   * Set the range value at the index-th sample 
+   * @param  index  index in domain
+   * @param  range  sample at that index
+   * @param  copy   true to make a copy
+   * @param  checkRangeType  setting to false will not check to make
+   *                         sure that the sample MathType is the same as
+   *                         this FieldImpl's range.  This saves on time
+   *                         at the expense of accuracy.  Use this only
+   *                         if you like shooting yourself in the foot.
+   */
+  public void setSample(int index, Data range, boolean copy, boolean checkRangeType)
          throws VisADException, RemoteException {
     if (DomainSet == null) {
       throw new FieldException("FieldImpl.setSample: DomainSet undefined");
     }
-    if (range != null &&
+    if (range != null && checkRangeType &&
         !((FunctionType) Type).getRange().equals(range.getType())) {
       throw new TypeException("FieldImpl.setSample: bad range type");
     }
@@ -1870,13 +1904,13 @@ public class FieldImpl extends FunctionImpl implements Field {
           index += work[jj];
           new_range_data[jj] = this.getSample(index);
         }
-        new_field.setSamples( new_range_data, false );
+        new_field.setSamples( new_range_data, false, false );
         new_range_data[ii] = new_field;
       }
     }
     factor_field = new FieldImpl( new FunctionType( factor, new_type),
                                   factor_domain );
-    factor_field.setSamples( new_range_data, copy );
+    factor_field.setSamples( new_range_data, copy, false );
     return factor_field;
   }
 
@@ -3019,7 +3053,7 @@ public class FieldImpl extends FunctionImpl implements Field {
         }
       }
     } // end if (coord_transform)
-    field.setSamples(range, false);
+    ((FieldImpl)field).setSamples(range, false, false);
     return field;
   }
 
