@@ -1106,13 +1106,13 @@ public class AddeURLConnection extends URLConnection
                 groupString + " " + descrString + " " + posString.toUpperCase() + " ");
 
         // Set up location information
-        if (latFlag && lonFlag)
-            posParams.append("EC " + latString + " " + lonString + " ");
-        else if (linFlag && eleFlag)
-            posParams.append(lineleType + placement +"  " + 
-                             linString + " " + eleString + " ");
-        else
-            posParams.append("X X X ");
+        String locString = "X X X ";
+        if (latFlag && lonFlag) {
+            locString = "e" + placement + " " + latString + " " + lonString + " ";
+        } else if (linFlag && eleFlag) {
+            locString = lineleType + placement +"  " + linString + " " + eleString + " ";
+        } 
+        posParams.append(locString.toUpperCase());
 
         // add on the mag, lin and ele pos params
         posParams.append(magString + " " + numlinString + 
