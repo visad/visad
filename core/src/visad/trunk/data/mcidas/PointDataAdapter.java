@@ -200,6 +200,7 @@ public class PointDataAdapter {
     long millis = System.currentTimeMillis();
     // now, fill in the data
     Scalar[]   firstTuple   = null;   // use this for saving memory/time
+    Unit[] actualUnits = null;
     for (int i = 0; i < numObs; i++)
     {
       Scalar[] scalars = (noText == true) ? new Real[numParams]
@@ -232,14 +233,13 @@ public class PointDataAdapter {
                 scalars[j] = new Real((RealType) types[j], value);
   
               }
+              usedUnits.add(((Real) scalars[j]).getUnit());
             } else {
                 scalars[j] = ((Real) firstTuple[j]).cloneButValue(value);
             }
-            usedUnits.add(((Real) scalars[j]).getUnit());
         }
       }
-      Unit[] actualUnits = null;
-      if (noText) {
+      if (noText && actualUnits == null) {
         actualUnits = new Unit[usedUnits.size()];
         for (int k = 0; k < usedUnits.size(); k++) actualUnits[k] = (Unit) usedUnits.get(k);
       }
