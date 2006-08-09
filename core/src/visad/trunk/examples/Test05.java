@@ -81,6 +81,7 @@ public class Test05
     dpys[0].addMap(new ScalarMap(RealType.Latitude, Display.YAxis));
     dpys[0].addMap(new ScalarMap(RealType.Longitude, Display.XAxis));
     dpys[0].addMap(new ScalarMap(ir_radiance, Display.Green));
+    dpys[0].addMap(new ScalarMap(vis_radiance, Display.RGB));
     dpys[0].addMap(new ScalarMap(ir_radiance, Display.ZAxis));
     dpys[0].addMap(new ConstantMap(0.5, Display.Blue));
     dpys[0].addMap(new ConstantMap(0.5, Display.Red));
