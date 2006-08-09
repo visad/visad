@@ -178,6 +178,27 @@ public class EnhancementTable
     }
 
     /**
+     * Look up a unique (hopefully) RGB value and return the index
+     *
+     * @return index value (0-255) or -1 if not found
+     *
+     */
+
+     public int getIndex(int red, int green, int blue) {
+       int inx;
+       for (inx=0; inx<256; inx++) {
+         if (rgbValues[0][inx] == red &&
+             rgbValues[1][inx] == green &&
+             rgbValues[2][inx] == blue) {
+
+           return inx;
+         }
+
+       }
+       return -1;
+     }
+
+    /**
      * Print out a pretty table.  Currently lists all values, but will
      * eventually print a format like EU TABLE.
      *
