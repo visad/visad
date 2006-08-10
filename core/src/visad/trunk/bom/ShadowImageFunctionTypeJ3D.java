@@ -265,7 +265,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
             // fast lookup from byte values to color bytes
             byte[] bytes0 = bytes[0];
             for (int i=0; i<domain_length; i++) {
-              int j = bytes0[i];
+              int j = bytes0[i] & 0xff; // unsigned
               // clip to table
               int ndx = j < 0 ? 0 : (j > tblEnd ? tblEnd : j);
               color_bytes[0][i] = itable[ndx][0];
