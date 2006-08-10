@@ -396,6 +396,13 @@ System.out.println("Texture.RGBA = " + Texture.RGBA); // 6
     Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
                                       texture_width, texture_height);
     texture.setCapability(Texture.ALLOW_IMAGE_READ);
+
+    // CTR - need yup to be true, but the array is passed into
+    // ShadowFunctionOrSetType.createImage upside down for that.
+    // CTR 17 Jan 2006 - construct ImageComponent2D by reference
+    // commented out for now, since it causes problems with Java2D
+//    ImageComponent2D image2d =
+//      new ImageComponent2D(ImageComponent.FORMAT_RGBA, image, true, false);
     ImageComponent2D image2d =
       new ImageComponent2D(ImageComponent.FORMAT_RGBA, image);
     image2d.setCapability(ImageComponent.ALLOW_IMAGE_READ);
