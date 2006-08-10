@@ -64,6 +64,7 @@ public class ImageFlatField extends FlatField {
     // create BufferedImage of "TYPE_3BYTE_RGB" (TYPE_CUSTOM)
     // This type of image is efficient with grabBytes, and is
     // compatible with Java3D's texturing by reference support.
+    if (image == null) return null;
     int dataType = DataBuffer.TYPE_BYTE;
     ColorModel colorModel = new ComponentColorModel(
       ColorSpace.getInstance(ColorSpace.CS_sRGB),
@@ -88,6 +89,7 @@ public class ImageFlatField extends FlatField {
   public static FunctionType makeFunctionType(BufferedImage img)
     throws VisADException
   {
+    if (img == null) throw new VisADException("image cannot be null");
     RealType x = RealType.getRealType("ImageElement");
     RealType y = RealType.getRealType("ImageLine");
     RealTupleType xy = new RealTupleType(x, y);
@@ -475,26 +477,30 @@ public class ImageFlatField extends FlatField {
     } // raster.getTransferType() == DataBuffer.TYPE_BYTE
 
     // slower, more general way to extract bytes; use PixelGrabber
+    // CTR NOTE - Something is fishy with this method of pixel extraction.
+    // Results do not seem to match those of the FAST or MEDIUM methods.
     if (DEBUG) System.err.println("grabBytes: SLOW");
     int numPixels = width * height;
     int[] words = new int[numPixels];
     PixelGrabber grabber = new PixelGrabber(
       image.getSource(), 0, 0, width, height, words, 0, width);
     try { grabber.grabPixels(); }
-    catch (InterruptedException e) { }
+    catch (InterruptedException e) { e.printStackTrace(); }
 
     ColorModel cm = grabber.getColorModel();
-    byte[] redPix = new byte[numPixels];
-    byte[] greenPix = new byte[numPixels];
-    byte[] bluePix = new byte[numPixels];
-    byte[] alphaPix = new byte[numPixels];
+    byte[][] bytes = new byte[num][numPixels];
     for (int i=0; i<numPixels; i++) {
-      redPix[i] = (byte) cm.getRed(words[i]);
-      greenPix[i] = (byte) cm.getGreen(words[i]);
-      bluePix[i] = (byte) cm.getBlue(words[i]);
-      alphaPix[i] = (byte) cm.getAlpha(words[i]);
+      int pixel = words[i];
+      int a = (pixel >> 24) & 0xff;
+      int r = (pixel >> 16) & 0xff;
+      int g = (pixel >> 8) & 0xff;
+      int b = pixel & 0xff;
+      bytes[0][i] = (byte) r;
+      if (num >= 2) bytes[1][i] = (byte) g;
+      if (num >= 3) bytes[2][i] = (byte) b;
+      if (num >= 4) bytes[3][i] = (byte) a;
     }
-    return new byte[][] {redPix, greenPix, bluePix, alphaPix};
+    return bytes;
   }
 
 }
