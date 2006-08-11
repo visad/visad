@@ -57,6 +57,9 @@ public abstract class FlowControl extends Control {
   double HorizontalVectorSliceHeight;
   double HorizontalStreamSliceHeight;
 
+  private boolean autoScale = false;
+  private ProjectionControlListener pcl = null;
+
   /** Streamline flags
   -------------------------------*/
   boolean streamlinesEnabled;
@@ -70,6 +73,10 @@ public abstract class FlowControl extends Control {
 
   // WLH  need Vertical*Slice location parameters
 
+  /**
+   * Create a FlowControl
+   * @param  d  DisplayImpl that this is associated with.
+   */
   public FlowControl(DisplayImpl d) {
     super(d);
     flowScale = 0.02f;
@@ -91,22 +98,30 @@ public abstract class FlowControl extends Control {
     cntrWeight         = 3f;
     n_pass             = 0;
     reduction          = 1f;
+    adjustFlowToEarth  = true;  
+    autoScale          = false;
   }
 
-  /** set scale length for flow vectors (default is 0.02f) */
+  /** 
+   * Set scale length for flow vectors (default is 0.02f) 
+   * @param scale  new scale
+   */
   public void setFlowScale(float scale)
          throws VisADException, RemoteException {
     flowScale = scale;
     changeControl(true);
   }
 
-  /** get scale length for flow vectors */
+  /** 
+   * Get scale length for flow vectors 
+   * @return  scale length for flow vectors
+   */
   public float getFlowScale() {
     return flowScale;
   }
 
   /**
-   * set barb orientation for wind barbs (default is southern hemisphere)
+   * Set barb orientation for wind barbs (default is southern hemisphere)
    *
    * @param  orientation   wind barb orientation
    *                       (NH_ORIENTATION or SH_ORIENTATION);
@@ -135,6 +150,8 @@ public abstract class FlowControl extends Control {
    * Get whether values should be adjusted to the earth 
    *
    * @param  adjust   true to adjust
+   * @throws VisADException  problem setting the value
+   * @throws RemoteException  problem setting the value on remote system
    */
   public void setAdjustFlowToEarth(boolean adjust)
          throws VisADException, RemoteException
@@ -152,36 +169,74 @@ public abstract class FlowControl extends Control {
     return adjustFlowToEarth;
   }
 
+  /**
+   * Enable/disable showing vectors as streamlines
+   *
+   * @param flag  true to display as streamlines
+   * @throws VisADException  problem enabling the streamlines
+   * @throws RemoteException  problem enabling the streamlines on remote system
+   */
   public void enableStreamlines(boolean flag)
          throws VisADException, RemoteException {
     streamlinesEnabled = flag;
     changeControl(true);
   }
 
+  /**
+   * Set the streamline density
+   * @param density the density value
+   * @throws VisADException  problem setting the density
+   * @throws RemoteException  problem setting the density on remote system
+   */
   public void setStreamlineDensity(float density)
          throws VisADException, RemoteException {
     streamlineDensity = density;
     changeControl(true);
   }
 
+  /**
+   * Set the streamline arrow size
+   * @param arrowScale the streamline arrow size
+   * @throws VisADException  problem setting the arrow scale
+   * @throws RemoteException  problem setting the arrow scale on remote system
+   */
   public void setArrowScale(float arrowScale)
          throws VisADException, RemoteException {
     this.arrowScale = arrowScale;
     changeControl(true);
   }
 
+  /**
+   * Set the streamline step factor
+   * @param stepFactor the streamline step factor
+   * @throws VisADException  problem setting the step factor
+   * @throws RemoteException  problem setting the step factor on remote system
+   */
   public void setStepFactor(float stepFactor)
          throws VisADException, RemoteException {
     this.stepFactor = stepFactor;
     changeControl(true);
   }
 
+  /**
+   * Set the streamline packing
+   * @param packing the streamline packing
+   * @throws VisADException  problem setting the packing
+   * @throws RemoteException  problem setting the packing on remote system
+   */
   public void setStreamlinePacking(float packing) 
          throws VisADException, RemoteException {
     this.packingFactor = packing;
     changeControl(true);
   }
 
+  /**
+   * Set the streamline smoothing
+   * @param cntrWeight  the center weight
+   * @param n_pass  number of smoothing passes
+   * @throws VisADException  problem setting the smoothing
+   * @throws RemoteException  problem setting the smoothing on remote system
+   */
   public void setStreamlineSmoothing(float cntrWeight, int n_pass)
          throws VisADException, RemoteException {
     this.cntrWeight = cntrWeight;
@@ -189,46 +244,97 @@ public abstract class FlowControl extends Control {
     changeControl(true);
   }
  
+  /**
+   * Set the streamline reduction
+   * @param reduction the streamline reduction
+   * @throws VisADException  problem setting the reduction
+   * @throws RemoteException  problem setting the reduction on remote system
+   */
   public void setStreamlineReduction(float reduction)
          throws VisADException, RemoteException {
     this.reduction = reduction;
     changeControl(true);
   }
 
+  /**
+   * Get the status of streamlines
+   * @return  true if streamlines are enabled.
+   */
   public boolean streamlinesEnabled() {
     return streamlinesEnabled;
   }
 
+  /**
+   * Get the streamline density factor.
+   * @return  the streamline density factor.
+   */
   public float getStreamlineDensity() {
     return streamlineDensity;
   }
 
+  /**
+   * Get the streamline arrow scale
+   * @return  the streamline arrow scale
+   */
   public float getArrowScale() {
     return arrowScale;
   }
 
+  /**
+   * Get the streamline step factor
+   * @return  the streamline step factor
+   */
   public float getStepFactor() {
     return stepFactor;
   }
 
+  /**
+   * Get the streamline packing value
+   * @return  the streamline packing value
+   */
   public float getStreamlinePacking() {
     return packingFactor;
   }
 
+  /**
+   * Get the streamline smoothing value
+   * @return  the streamline smoothing value
+   */
   public float[] getStreamlineSmoothing() {
     return new float[] {cntrWeight, (float) n_pass};
   }
 
+  /**
+   * Get the streamline reduction value
+   * @return  the streamline reduction value
+   */
   public float getStreamlineReduction() {
     return reduction;
   }
 
-  /** get a string that can be used to reconstruct this control later */
+  /** 
+   * Get a string that can be used to reconstruct this control later 
+   * @return a string representation of this control
+   */
   public String getSaveString() {
-    return "" + flowScale + " " + barbOrientation;
+    return "" + 
+           getFlowScale() + " " + 
+           getBarbOrientation() + " " +
+           streamlinesEnabled() + " " +
+           getStreamlineDensity() + " " +
+           getArrowScale() + " " +
+           getStepFactor() + " " +
+           getStreamlinePacking() + " " +
+           getStreamlineSmoothing()[0] + " " +
+           getStreamlineSmoothing()[1] + " " +
+           getStreamlineReduction() + " " +
+           getAdjustFlowToEarth() + " " +
+           getAutoScale();
   }
 
-  /** reconstruct this control using the specified save string */
+  /** 
+   * Reconstruct this control using the specified save string 
+   */
   public void setSaveString(String save)
     throws VisADException, RemoteException
   {
@@ -237,12 +343,35 @@ public abstract class FlowControl extends Control {
     if (st.countTokens() < 2) throw new VisADException("Invalid save string");
     float scale = Convert.getFloat(st.nextToken());
     int orientation = Convert.getInt(st.nextToken());
+    boolean es = st.hasMoreTokens() ? Convert.getBoolean(st.nextToken()) : streamlinesEnabled();
+    float sd = st.hasMoreTokens() ? Convert.getFloat(st.nextToken()) : getStreamlineDensity();
+    float as = st.hasMoreTokens() ? Convert.getFloat(st.nextToken()) : getArrowScale();
+    float sf = st.hasMoreTokens() ? Convert.getFloat(st.nextToken()) : getStepFactor();
+    float sp = st.hasMoreTokens() ? Convert.getFloat(st.nextToken()) : getStreamlinePacking();
+    float ssc = st.hasMoreTokens() ? Convert.getFloat(st.nextToken()) : getStreamlineSmoothing()[0];
+    float ssn = st.hasMoreTokens() ? Convert.getFloat(st.nextToken()) : getStreamlineSmoothing()[1];
+    float sr = st.hasMoreTokens() ? Convert.getFloat(st.nextToken()) : getStreamlineReduction();
+    boolean af = st.hasMoreTokens() ? Convert.getBoolean(st.nextToken()) : getAdjustFlowToEarth();
+    boolean asc = st.hasMoreTokens() ? Convert.getBoolean(st.nextToken()) : getAutoScale();
+
     flowScale = scale;
     barbOrientation = orientation;
+    streamlinesEnabled = es;
+    streamlineDensity = sd;
+    arrowScale = as;
+    stepFactor = sf;
+    packingFactor = sp;
+    cntrWeight = ssc;
+    n_pass= (int) ssn;
+    reduction = sr;
+    adjustFlowToEarth = af;
+    autoScale = asc;
     changeControl(true);
   }
 
-  /** copy the state of a remote control to this control */
+  /** 
+   * Copy the state of a remote control to this control 
+   */
   public void syncControl(Control rmt)
     throws VisADException
   {
@@ -358,6 +487,10 @@ public abstract class FlowControl extends Control {
       reduction = fc.reduction;
     }
 
+    if (autoScale != fc.autoScale) {
+      // changed = true;
+      setAutoScale(fc.autoScale);
+    }
 
 
     if (changed) {
@@ -370,6 +503,59 @@ public abstract class FlowControl extends Control {
     }
   }
 
+  /**
+   * Set whether the vector/barb size should scale with display zoom.
+   * @param  auto  true to enable autoscaling.
+   * @throws VisADException  problem setting the autoscaling
+   */
+  public void setAutoScale(boolean auto)
+         throws VisADException {
+    if (auto == autoScale) return;
+    DisplayImpl display = getDisplay();
+    DisplayRenderer dr = display.getDisplayRenderer();
+    MouseBehavior mouse = dr.getMouseBehavior();
+    ProjectionControl pc = display.getProjectionControl();
+    if (auto) {
+      pcl = new ProjectionControlListener(mouse, this, pc);
+      pc.addControlListener(pcl);
+    }
+    else {
+      pc.removeControlListener(pcl);
+    }
+    autoScale = auto;
+    try {
+      changeControl(true);
+    }
+    catch (RemoteException e) {
+    }
+  }
+
+  /**
+   * Get whether the vector/barb size should scale with display zoom.
+   * @return  true if autoscaling is enabled.
+   */
+  public boolean getAutoScale() {
+    return autoScale;
+  }
+
+
+  /**
+   * Null the control.  Override superclass to remove the autoscaling listener.
+   */
+  public void nullControl() {
+    try {
+      setAutoScale(false);
+    }
+    catch (VisADException e) {
+    }
+    super.nullControl();
+  }
+
+  /**
+   * See if this control equals another
+   * @param o  object in question
+   * @return true if they are equal.
+   */
   public boolean equals(Object o)
   {
     if (!super.equals(o)) {
@@ -455,10 +641,17 @@ public abstract class FlowControl extends Control {
     {
       return false;
     }
+    if (autoScale != fc.autoScale) {
+      return false;
+    }
 
     return true;
   }
 
+  /**
+   * Clone this control.
+   * @return a clone of this
+   */
   public Object clone()
   {
     FlowControl fc = (FlowControl )super.clone();
@@ -467,5 +660,49 @@ public abstract class FlowControl extends Control {
     }
 
     return fc;
+  }
+
+  /**
+   * A class for listening to changes in the control.
+   */
+  class ProjectionControlListener implements ControlListener {
+    private boolean pfirst = true;
+    private MouseBehavior mouse;
+    private ProjectionControl pcontrol;
+    private FlowControl flowControl;
+    private double base_scale = 1.0;
+    private float last_cscale = 1.0f;
+    private double base_size = 1.0;
+
+    ProjectionControlListener(MouseBehavior m, FlowControl s,
+                              ProjectionControl p) {
+      mouse = m;
+      flowControl = s;
+      pcontrol = p;
+    }
+
+    public void controlChanged(ControlEvent e)
+           throws VisADException, RemoteException {
+      double[] matrix = pcontrol.getMatrix();
+      double[] rot = new double[3];
+      double[] scale = new double[3];
+      double[] trans = new double[3];
+      mouse.instance_unmake_matrix(rot, scale, trans, matrix);
+
+      if (pfirst) {
+        pfirst = false;
+        base_scale = scale[2];
+        last_cscale = 1.0f;
+        base_size = flowControl.getFlowScale();
+      }
+      else {
+        float cscale = (float) (base_scale / scale[0]);
+        float ratio = cscale / last_cscale;
+        if (ratio < 0.95f || 1.05f < ratio) {
+          last_cscale = cscale;
+          flowControl.setFlowScale((float) base_size * cscale);
+        }
+      }
+    }
   }
 }
