@@ -159,6 +159,7 @@ public class SingleBandedImageImpl
      */
     public Real getMinRangeValue()
     {
+        checkMaxMinValues();
         return minValue;
     }
 
@@ -170,6 +171,7 @@ public class SingleBandedImageImpl
      */
     public Real getMaxRangeValue()
     {
+        checkMaxMinValues();
         return maxValue;
     }
 
@@ -203,7 +205,7 @@ public class SingleBandedImageImpl
         throws VisADException, RemoteException 
     {
         super.setSamples(range, errors, copy);
-        setMaxMinValues();
+        minValue = maxValue = null;
     }
 
     /** 
@@ -225,7 +227,7 @@ public class SingleBandedImageImpl
         throws VisADException, RemoteException 
     {
         super.setSamples(range, errors, copy);
-        setMaxMinValues();
+        minValue = maxValue = null;
     }
 
     /** return new SingleBandedImageImpl with value 'op this' */
@@ -240,14 +242,27 @@ public class SingleBandedImageImpl
                 startTime, description, false);
     }
 
+    private void checkMaxMinValues() {
+        if(minValue == null) {
+            try {
+                setMaxMinValues();
+            } catch(Exception exc) {
+                System.err.println ("error:" + exc);
+                exc.printStackTrace();
+            }
+        }
+    }
+
+
+
     private void setMaxMinValues()
         throws VisADException
     {
         Unit units = null;
         RealType type = RealType.Generic;
         ErrorEstimate errors = null;
-        float min = Float.MIN_VALUE;
-        float max = Float.MAX_VALUE;
+        float min = Float.POSITIVE_INFINITY;
+        float max = Float.NEGATIVE_INFINITY;
         try
         {
             Set rangeSet = getRangeSets()[0];
@@ -264,22 +279,12 @@ public class SingleBandedImageImpl
             else
             {
                 float[] values = getFloats(false)[0];
-                for (int i = 0; i < values.length; i++)
+                final int len = values.length;
+                for (int i = 0; i < len; i++)
                 {
-                    // initialize on first non-missing value
-                    if (!Float.isNaN(values[i]))
-                    {
-                        if (min == Float.MIN_VALUE)  // initialize first time
-                        {
-                           min = values[i];
-                           max = values[i];
-                        }
-                        else 
-                        {
-                            if (values[i] < min)  min = values[i];
-                            if (values[i] > max)  max = values[i];
-                        }
-                    }
+                    float value = values[i];
+                    if (value < min)  min = value;
+                    if (value > max)  max = value;
                 }
             }
         }
