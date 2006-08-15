@@ -3220,9 +3220,11 @@ System.out.println("color_values: nummissing = " + nummissing);
         */
         float inv_count = cm == GraphicsModeControl.SUM_COLOR_MODE ? 1.0f :
           1.0f / (tuple_value_counts[index] + tuple_single_counts[index]);
-        for (int j=0; j<tuple_values[index].length; j++) {
-          tuple_values[index][j] =
-            inv_count * (tuple_values[index][j] + tuple_singles[index]);
+        float[] t_values = tuple_values[index];
+        for (int j=0; j<t_values.length; j++) {
+          if (t_values[j] == t_values[j]) {
+            t_values[j] = inv_count * (t_values[j] + tuple_singles[index]);
+          }
         }
       }
     } // end for (int index=0; index<nindex; index++)
