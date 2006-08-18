@@ -42,15 +42,15 @@ import java.text.*;
 public class AxisScale implements java.io.Serializable
 {
   /** X_AXIS identifier */
-  public final static int X_AXIS = 0;
+  public static final int X_AXIS = 0;
   /** Y_AXIS identifier */
-  public final static int Y_AXIS = 1;
+  public static final int Y_AXIS = 1;
   /** Z_AXIS identifier */
-  public final static int Z_AXIS = 2;
+  public static final int Z_AXIS = 2;
   /** identifier for primary label side of axis*/
-  public final static int PRIMARY = 0;
+  public static final int PRIMARY = 0;
   /** identifier for secondary label side of axis*/
-  public final static int SECONDARY = 1;
+  public static final int SECONDARY = 1;
 
   // WLH 12 July 2001
   // true indicates axis is stationary relative to screen
@@ -80,6 +80,7 @@ public class AxisScale implements java.io.Serializable
   private Object labelFont = null;
   private int labelSize = 12;
   private int axisSide = PRIMARY;
+  private int axisSide2 = PRIMARY;
   private int tickOrient = PRIMARY;
   private static final double TICKSIZE = .5;  // major ticks are 1/2 char ht.
   private NumberFormat labelFormat = null;
@@ -238,8 +239,8 @@ public class AxisScale implements java.io.Serializable
    * Create the scale for screen based.
    * @return  true if scale was successfully created, otherwise false
    */
-  public boolean makeScreenBasedScale(double XMIN, double YMIN,
-                                      double XMAX, double YMAX,
+  public boolean makeScreenBasedScale(double xmin, double ymin,
+                                      double xmax, double ymax,
                                       double XTMIN, double YTMIN,
                                       double XTMAX, double YTMAX)
          throws VisADException {
@@ -277,23 +278,23 @@ public class AxisScale implements java.io.Serializable
     double d0 = (newMin - oldMin) * mult + dataRange[0];
     double[] dr = {d0, d1};
 
-    double ZMIN = 0.0;
-    double ZMAX = -ZMIN;
+    double zmin = 0.0;
+    double zmax = -zmin;
 
     // set scale according to labelSize
-    double SCALE =  labelSize/200.;
-    double OFFSET = 1.05;
+    double scale =  labelSize/200.;
+    double offset = 1.05;
 
     // WLH 20 Feb 2003 keep screen-based YAxis label in Frame
-    SCALE *= 0.6; // hack size for screen based
-    // SCALE *= 0.8; // hack size for screen based
+    scale *= 0.6; // hack size for screen based
+    // scale *= 0.8; // hack size for screen based
 
     // Add 16-APR-2001 DRM
     int position = 0;
     int myPosition = 0;
     // Snap to the box edge instead of being offset
     if (snapToBox) {
-      OFFSET = 1.0;
+      offset = 1.0;
     }
     else
     {
@@ -319,10 +320,10 @@ public class AxisScale implements java.io.Serializable
     // End Add 16-APR-2001 DRM
 
     // position of baseline for this scale
-    double line = 4.0 * myPosition * SCALE;  // DRM 17-APR-2001
+    double line = 4.0 * myPosition * scale;  // DRM 17-APR-2001
 
-    return makeScale(twoD, XMIN, YMIN, ZMIN, XMAX, YMAX, ZMAX,
-                     SCALE, OFFSET, line, dr);
+    return makeScale(twoD, xmin, ymin, zmin, xmax, ymax, zmax,
+                     scale, offset, line, dr);
   }
 
   /**
@@ -348,24 +349,24 @@ public class AxisScale implements java.io.Serializable
     ProjectionControl pcontrol = display.getProjectionControl();
     double[] aspect = pcontrol.getAspectCartesian();
 
-    double XMIN = -aspect[0];
-    double YMIN = -aspect[1];
-    double ZMIN = -aspect[2];
+    double xmin = -aspect[0];
+    double ymin = -aspect[1];
+    double zmin = -aspect[2];
 
-    double XMAX = -XMIN;
-    double YMAX = -YMIN;
-    double ZMAX = -ZMIN;
+    double xmax = -xmin;
+    double ymax = -ymin;
+    double zmax = -zmin;
 
     // set scale according to labelSize
-    double SCALE =  labelSize/200.;
-    double OFFSET = 1.05;
+    double scale =  labelSize/200.;
+    double offset = 1.05;
 
     // Add 16-APR-2001 DRM
     int position = 0;
     int myPosition = 0;
     // Snap to the box edge instead of being offset
     if (snapToBox) {
-      OFFSET = 1.0;
+      offset = 1.0;
     }
     else
     {
@@ -391,29 +392,29 @@ public class AxisScale implements java.io.Serializable
     // End Add 16-APR-2001 DRM
 
     // position of baseline for this scale
-    double line = 4.0 * myPosition * SCALE;  // DRM 17-APR-2001
+    double line = 4.0 * myPosition * scale;  // DRM 17-APR-2001
 
     /*  Remove 16-APR-2001
-    double ONE = 1.0;
-    if (dataRange[0] > dataRange[1]) ONE = -1.0; // inverted range
+    double one = 1.0;
+    if (dataRange[0] > dataRange[1]) one = -1.0; // inverted range
     int position = axisOrdinal;
     if (snapToBox) {
-      OFFSET = 1.0;
+      offset = 1.0;
       position = 0;
     }
-    double line = 2.0 * position * SCALE;
+    double line = 2.0 * position * scale;
     */
 
 
-    return makeScale(twoD, XMIN, YMIN, ZMIN, XMAX, YMAX, ZMAX,
-                     SCALE, OFFSET, line, dataRange);
+    return makeScale(twoD, xmin, ymin, zmin, xmax, ymax, zmax,
+                     scale, offset, line, dataRange);
   }
 
   /** inner logic of makeScale with no references to display, displayRenderer
       or scalarMap, allwoing more flexible placement of scales */
-  public boolean makeScale(boolean twoD, double XMIN, double YMIN, double ZMIN,
-                           double XMAX, double YMAX, double ZMAX,
-                           double SCALE, double OFFSET, double line,
+  public boolean makeScale(boolean twoD, double xmin, double ymin, double zmin,
+                           double xmax, double ymax, double zmax,
+                           double scale, double offset, double line,
                            double[] dataRange)
          throws VisADException {
 
@@ -434,123 +435,180 @@ public class AxisScale implements java.io.Serializable
     Vector lineArrayVector = new Vector(4*numSides);
     Vector labelArrayVector = new Vector();
 
-    double ONE = 1.0;
-    if (dataRange[0] > dataRange[1]) ONE = -1.0; // inverted range
+    double one = 1.0;
+    if (dataRange[0] > dataRange[1]) one = -1.0; // inverted range
 
     for (int l = 0; l < numSides; l++) {
       int side = getSide();
+      int side2 = getSide2();
       if (l > 0) {
          side = (side == PRIMARY) ? SECONDARY : PRIMARY;
+         side2 = (side2 == PRIMARY) ? SECONDARY : PRIMARY;
       }
       // set up the defaults for each of the axes.  startp and startn are the
       // endpoints of the axis line.  base and up determine which way the
       // tick marks are drawn along that line.  For 2-D, base and up are changed
       // later on so that the labels are right side up. DRM 16-APR-2001
       if (myAxis == X_AXIS) {
-        if (side == PRIMARY)
-        {
-          base = new double[] {SCALE, 0.0, 0.0};
-          up = new double[] {0.0, SCALE, SCALE};
-          startp = new double[] {ONE * XMAX,
-                                 YMIN - ((OFFSET - 1.0) + line),
-                                 ZMIN - ((OFFSET - 1.0) + line)};
-          startn = new double[] {ONE * XMIN,
-                                 YMIN - ((OFFSET - 1.0) + line),
-                                 ZMIN - ((OFFSET - 1.0) + line)};
-          gridstartp = new double[] {ONE * XMAX,
-                                 YMIN,
-                                 ZMIN};
-          gridstartn = new double[] {ONE * XMIN,
-                                 YMIN,
-                                 ZMIN};
+        if (side == PRIMARY) {
+          if (side2 == PRIMARY) { // X: PRIMARY / PRIMARY
+            base = new double[] {scale, 0.0, 0.0};
+            up = new double[] {0.0, scale, scale};
+            startp = new double[] {one * xmax,
+                                   ymin - ((offset - 1.0) + line),
+                                   zmin - ((offset - 1.0) + line)};
+            startn = new double[] {one * xmin,
+                                   ymin - ((offset - 1.0) + line),
+                                   zmin - ((offset - 1.0) + line)};
+            gridstartp = new double[] {one * xmax, ymin, zmin};
+            gridstartn = new double[] {one * xmin, ymin, zmin};
+          }
+          else { // X: PRIMARY / SECONDARY
+            base = new double[] {scale, 0.0, 0.0};
+            up = new double[] {0.0, scale, -scale};
+            startp = new double[] {one * xmax,
+                                   ymin - ((offset - 1.0) + line),
+                                   zmax + ((offset - 1.0) + line)};
+            startn = new double[] {one * xmin,
+                                   ymin - ((offset - 1.0) + line),
+                                   zmax + ((offset - 1.0) + line)};
+            gridstartp = new double[] {one * xmax, ymin, zmax};
+            gridstartn = new double[] {one * xmin, ymin, zmax};
+          }
         }
-        else
-        {
-          base = new double[] {-SCALE, 0.0, 0.0};
-          up = new double[] {0.0, -SCALE, SCALE};
-          startp = new double[] {ONE * XMAX,
-                                 YMAX + ((OFFSET - 1.0) + line),
-                                 ZMIN - ((OFFSET - 1.0) + line)};
-          startn = new double[] {ONE * XMIN,
-                                 YMAX + ((OFFSET - 1.0) + line),
-                                 ZMIN - ((OFFSET - 1.0) + line)};
-          gridstartp = new double[] {ONE * XMAX,
-                                 YMAX,
-                                 ZMIN};
-          gridstartn = new double[] {ONE * XMIN,
-                                 YMAX,
-                                 ZMIN};
+        else {
+          if (side2 == PRIMARY) { // X: SECONDARY / PRIMARY
+            base = new double[] {-scale, 0.0, 0.0};
+            up = new double[] {0.0, -scale, scale};
+            startp = new double[] {one * xmax,
+                                   ymax + ((offset - 1.0) + line),
+                                   zmin - ((offset - 1.0) + line)};
+            startn = new double[] {one * xmin,
+                                   ymax + ((offset - 1.0) + line),
+                                   zmin - ((offset - 1.0) + line)};
+            gridstartp = new double[] {one * xmax, ymax, zmin};
+            gridstartn = new double[] {one * xmin, ymax, zmin};
+          }
+          else { // X: SECONDARY / SECONDARY
+            base = new double[] {-scale, 0.0, 0.0};
+            up = new double[] {0.0, -scale, -scale};
+            startp = new double[] {one * xmax,
+                                   ymax + ((offset - 1.0) + line),
+                                   zmax + ((offset - 1.0) + line)};
+            startn = new double[] {one * xmin,
+                                   ymax + ((offset - 1.0) + line),
+                                   zmax + ((offset - 1.0) + line)};
+            gridstartp = new double[] {one * xmax, ymax, zmax};
+            gridstartn = new double[] {one * xmin, ymax, zmax};
+          }
         }
       }
       else if (myAxis == Y_AXIS) {
         if (side == PRIMARY) {
-          base = new double[] {0.0, -SCALE, 0.0};
-          up = new double[] {SCALE, 0.0, SCALE};
-          startp = new double[] {XMIN - ((OFFSET - 1.0) + line),
-                                 ONE * YMAX,
-                                 ZMIN - ((OFFSET - 1.0) + line)};
-          startn = new double[] {XMIN - ((OFFSET - 1.0) + line),
-                                 ONE * YMIN,
-                                 ZMIN - ((OFFSET - 1.0) + line)};
-          gridstartp = new double[] {XMIN,
-                                 ONE * YMAX,
-                                 ZMIN};
-          gridstartn = new double[] {XMIN,
-                                 ONE * YMIN,
-                                 ZMIN};
+          if (side2 == PRIMARY) { // Y: PRIMARY / PRIMARY
+            base = new double[] {0.0, -scale, 0.0};
+            up = new double[] {scale, 0.0, scale};
+            startp = new double[] {xmin - ((offset - 1.0) + line),
+                                   one * ymax,
+                                   zmin - ((offset - 1.0) + line)};
+            startn = new double[] {xmin - ((offset - 1.0) + line),
+                                   one * ymin,
+                                   zmin - ((offset - 1.0) + line)};
+            gridstartp = new double[] {xmin, one * ymax, zmin};
+            gridstartn = new double[] {xmin, one * ymin, zmin};
+          }
+          else { // Y: PRIMARY / SECONDARY
+            base = new double[] {0.0, -scale, 0.0};
+            up = new double[] {scale, 0.0, -scale};
+            startp = new double[] {xmin - ((offset - 1.0) + line),
+                                   one * ymax,
+                                   zmax + ((offset - 1.0) + line)};
+            startn = new double[] {xmin - ((offset - 1.0) + line),
+                                   one * ymin,
+                                   zmax + ((offset - 1.0) + line)};
+            gridstartp = new double[] {xmin, one * ymax, zmax};
+            gridstartn = new double[] {xmin, one * ymin, zmax};
+          }
         }
         else {
-          base = new double[] {0.0, SCALE, 0.0};
-          up = new double[] {-SCALE, 0.0, SCALE};
-          startp = new double[] {XMAX + ((OFFSET - 1.0) + line),
-                                 ONE * YMAX,
-                                 ZMIN - ((OFFSET - 1.0) + line)};
-          startn = new double[] {XMAX + ((OFFSET - 1.0) + line),
-                                 ONE * YMIN,
-                                 ZMIN - ((OFFSET - 1.0) + line)};
-          gridstartp = new double[] {XMAX,
-                                 ONE * YMAX,
-                                 ZMIN};
-          gridstartn = new double[] {XMAX,
-                                 ONE * YMIN,
-                                 ZMIN};
+          if (side2 == PRIMARY) { // Y: SECONDARY / PRIMARY
+            base = new double[] {0.0, scale, 0.0};
+            up = new double[] {-scale, 0.0, scale};
+            startp = new double[] {xmax + ((offset - 1.0) + line),
+                                   one * ymax,
+                                   zmin - ((offset - 1.0) + line)};
+            startn = new double[] {xmax + ((offset - 1.0) + line),
+                                   one * ymin,
+                                   zmin - ((offset - 1.0) + line)};
+            gridstartp = new double[] {xmax, one * ymax, zmin};
+            gridstartn = new double[] {xmax, one * ymin, zmin};
+          }
+          else { // Y: SECONDARY / SECONDARY
+            base = new double[] {0.0, scale, 0.0};
+            up = new double[] {-scale, 0.0, -scale};
+            startp = new double[] {xmax + ((offset - 1.0) + line),
+                                   one * ymax,
+                                   zmax + ((offset - 1.0) + line)};
+            startn = new double[] {xmax + ((offset - 1.0) + line),
+                                   one * ymin,
+                                   zmax + ((offset - 1.0) + line)};
+            gridstartp = new double[] {xmax, one * ymax, zmax};
+            gridstartn = new double[] {xmax, one * ymin, zmax};
+          }
         }
-  
       }
       else if (myAxis == Z_AXIS) {
-        if (side == PRIMARY)
-        {
-          base = new double[] {0.0, 0.0, -SCALE};
-          up = new double[] {SCALE, SCALE, 0.0};
-          startp = new double[] {XMIN - ((OFFSET - 1.0) + line),
-                                 YMIN - ((OFFSET - 1.0) + line),
-                                 ONE * ZMAX};
-          startn = new double[] {XMIN - ((OFFSET - 1.0) + line),
-                                 YMIN - ((OFFSET - 1.0) + line),
-                                 ONE * ZMIN};
-          gridstartp = new double[] {XMIN,
-                                 YMIN,
-                                 ONE * ZMAX};
-          gridstartn = new double[] {XMIN,
-                                 YMIN,
-                                 ONE * ZMIN};
+        if (side == PRIMARY) {
+          if (side2 == PRIMARY) { // Z: PRIMARY / PRIMARY
+            base = new double[] {0.0, 0.0, -scale};
+            up = new double[] {scale, scale, 0.0};
+            startp = new double[] {xmin - ((offset - 1.0) + line),
+                                   ymin - ((offset - 1.0) + line),
+                                   one * zmax};
+            startn = new double[] {xmin - ((offset - 1.0) + line),
+                                   ymin - ((offset - 1.0) + line),
+                                   one * zmin};
+            gridstartp = new double[] {xmin, ymin, one * zmax};
+            gridstartn = new double[] {xmin, ymin, one * zmin};
+          }
+          else { // Z: PRIMARY / SECONDARY
+            base = new double[] {0.0, 0.0, -scale};
+            up = new double[] {scale, -scale, 0.0};
+            startp = new double[] {xmin - ((offset - 1.0) + line),
+                                   ymax + ((offset - 1.0) + line),
+                                   one * zmax};
+            startn = new double[] {xmin - ((offset - 1.0) + line),
+                                   ymax + ((offset - 1.0) + line),
+                                   one * zmin};
+            gridstartp = new double[] {xmin, ymax, one * zmax};
+            gridstartn = new double[] {xmin, ymax, one * zmin};
+          }
         }
-        else
-        {
-          base = new double[] {0.0, 0.0, SCALE};
-          up = new double[] {-SCALE, SCALE, 0.0};
-          startp = new double[] {XMAX + ((OFFSET - 1.0) + line),
-                                 YMIN - ((OFFSET - 1.0) + line),
-                                 ONE * ZMAX};
-          startn = new double[] {XMAX + ((OFFSET - 1.0) + line),
-                                 YMIN - ((OFFSET - 1.0) + line),
-                                 ONE * ZMIN};
-          gridstartp = new double[] {XMAX,
-                                 YMIN,
-                                 ONE * ZMAX};
-          gridstartn = new double[] {XMAX,
-                                 YMIN,
-                                 ONE * ZMIN};
+        else {
+          if (side2 == PRIMARY) { // Z: SECONDARY / PRIMARY
+            base = new double[] {0.0, 0.0, scale};
+            up = new double[] {-scale, scale, 0.0};
+            startp = new double[] {xmax + ((offset - 1.0) + line),
+                                   ymin - ((offset - 1.0) + line),
+                                   one * zmax};
+            startn = new double[] {xmax + ((offset - 1.0) + line),
+                                   ymin - ((offset - 1.0) + line),
+                                   one * zmin};
+            gridstartp = new double[] {xmax, ymin, one * zmax};
+            gridstartn = new double[] {xmax, ymin, one * zmin};
+          }
+          else { // Z: SECONDARY / SECONDARY
+            base = new double[] {0.0, 0.0, scale};
+            up = new double[] {-scale, -scale, 0.0};
+            startp = new double[] {xmax + ((offset - 1.0) + line),
+                                   ymax + ((offset - 1.0) + line),
+                                   one * zmax};
+            startn = new double[] {xmax + ((offset - 1.0) + line),
+                                   ymax + ((offset - 1.0) + line),
+                                   one * zmin};
+            gridstartp = new double[] {xmax, ymax, one * zmax};
+            gridstartn = new double[] {xmax, ymax, one * zmin};
+          }
         }
       }
   
@@ -665,15 +723,15 @@ public class AxisScale implements java.io.Serializable
         double gridLength = 1.0;
         if (myAxis == X_AXIS) {
           gridup = new double[] {0, up[1], 0};
-          gridLength = (YMAX-YMIN)/SCALE;
+          gridLength = (ymax-ymin)/scale;
         }
         else if (myAxis == Y_AXIS) {
           gridup = new double[] {up[0], 0, 0};
-          gridLength = (XMAX-XMIN)/SCALE;
+          gridLength = (xmax-xmin)/scale;
         }
         else if (myAxis == Z_AXIS) {
           gridup = new double[] {up[0], 0, 0};
-          gridLength = (XMAX-XMIN)/SCALE;
+          gridLength = (xmax-xmin)/scale;
         }
         for (int j = 0; j< nticks; j++) //Change DRM 21-Feb-2001
         {
@@ -744,10 +802,10 @@ public class AxisScale implements java.io.Serializable
       // Labels first
       if (twoD) {
         if (myAxis == X_AXIS) {
-           up = new double[] {0.0, SCALE, 0.0};
+           up = new double[] {0.0, scale, 0.0};
         }
         else if (myAxis == Y_AXIS) {
-           up = new double[] {-SCALE, 0.0, 0.0};
+           up = new double[] {-scale, 0.0, 0.0};
         }
       }
   
@@ -760,9 +818,9 @@ public class AxisScale implements java.io.Serializable
       }
   
       double dist = 1.0 + TICKSIZE;   // dist from the line in the up direction;
-      double[] updir = (twoD != true) ? up : new double[] {0.0, SCALE, 0.0};
+      double[] updir = (twoD != true) ? up : new double[] {0.0, scale, 0.0};
       if (twoD) {
-        base = new double[] {SCALE, 0.0, 0.0};
+        base = new double[] {scale, 0.0, 0.0};
         if (myAxis == X_AXIS) {
            dist = (side == PRIMARY)
              ? (1.0 + TICKSIZE + .15)
@@ -791,26 +849,26 @@ public class AxisScale implements java.io.Serializable
       }
       for (Enumeration e = localTable.keys(); e.hasMoreElements();)
       {
-        Double Value;
+        Double value;
         try {
-          Value = (Double) e.nextElement();
+          value = (Double) e.nextElement();
         } catch (ClassCastException cce) {
           throw new VisADException("Invalid keys in label hashtable");
         }
-        double test = Value.doubleValue();
+        double test = value.doubleValue();
         if (test > max || test < min) continue; // don't draw labels beyond range
   
         // Added by Luke Catania on 05/07/2002 - mods by DRM 28-Oct-2002
         // For Y-Axis only, calculate offset for axis label, so it does 
         // not overlap the tick labels.
         if (myAxis == Y_AXIS) {
-          yAxisLabelLength = ((String) localTable.get(Value)).length();
+          yAxisLabelLength = ((String) localTable.get(value)).length();
           if (yAxisLabelLength > maximumYAxisTickLabelSize)
             maximumYAxisTickLabelSize = yAxisLabelLength;
         }
         double val = (test - min) / (max - min);
         // center label on tick if Y axis and 2D
-        if ((myAxis == Y_AXIS) && (twoD == true)) val -= .2 * SCALE; // HACK!!!!!
+        if ((myAxis == Y_AXIS) && (twoD == true)) val -= .2 * scale; // HACK!!!!!
   
         double[] point = new double[3];
         for (int j=0; j < 3; j++) {
@@ -820,27 +878,27 @@ public class AxisScale implements java.io.Serializable
         }
   
         /*
-        System.out.println("For label = " + Value.doubleValue() + "(" + val + "), point is (" + point[0] + "," + point[1] + "," + point[2] + ")");
+        System.out.println("For label = " + value.doubleValue() + "(" + val + "), point is (" + point[0] + "," + point[1] + "," + point[2] + ")");
         */
   
         if (labelFont == null)
         {
           VisADLineArray label =
-            PlotText.render_label((String) localTable.get(Value), point, base, updir, justification);
+            PlotText.render_label((String) localTable.get(value), point, base, updir, justification);
           lineArrayVector.add(label);
         }
         else if (labelFont instanceof Font)
         {
           VisADTriangleArray label =
             PlotText.render_font(
-                (String) localTable.get(Value), (Font) labelFont, point, base,
+                (String) localTable.get(value), (Font) labelFont, point, base,
                 updir, justification);
           labelArrayVector.add(label);
   
         } else if (labelFont instanceof HersheyFont) {
           VisADLineArray label =
             PlotText.render_font(
-                (String) localTable.get(Value), (HersheyFont) labelFont,
+                (String) localTable.get(value), (HersheyFont) labelFont,
                    point, base, updir, justification);
           lineArrayVector.add(label);
         }
@@ -853,15 +911,15 @@ public class AxisScale implements java.io.Serializable
          TextControl.Justification.CENTER;
       if (twoD) {
         if (myAxis == X_AXIS) {
-           base = new double[] {SCALE, 0.0, 0.0};
-           up = new double[] {0.0, SCALE, 0.0};
+           base = new double[] {scale, 0.0, 0.0};
+           up = new double[] {0.0, scale, 0.0};
            dist = (side == PRIMARY)
              ? 2.5 + TICKSIZE
              : -(1.5 + TICKSIZE - .05);
         }
         else if (myAxis == Y_AXIS) {
-           base = new double[] {0.0, SCALE, 0.0};
-           up = new double[] {-SCALE, 0.0, 0.0};
+           base = new double[] {0.0, scale, 0.0};
+           up = new double[] {-scale, 0.0, 0.0};
            dist = (side == PRIMARY)
              ? -(.5 + TICKSIZE + maximumYAxisTickLabelSize)
              : (.5 + TICKSIZE + maximumYAxisTickLabelSize) ;
@@ -1338,6 +1396,33 @@ public class AxisScale implements java.io.Serializable
   public int getSide()
   {
     return axisSide;
+  }
+
+  /**
+   * Set side for axis (PRIMARY, SECONDARY)
+   * (relative to 3rd axis; 3-D only)
+   * @param side side for axis to appear on
+   */
+  public void setSide2(int side)
+  {
+    double oldSide = axisSide2;
+    axisSide2 = (side == SECONDARY) ? SECONDARY : PRIMARY;  // sanity check
+    if (axisSide2 != oldSide) {
+      try {
+        scalarMap.makeScale();  // update the display
+      }
+      catch (VisADException ve) {;}
+    }
+  }
+
+  /**
+   * Get the alignment for the axis
+   * (relative to 3rd axis; 3-D only)
+   * @return  axis alignment (PRIMARY or SECONDARY)
+   */
+  public int getSide2()
+  {
+    return axisSide2;
   }
 
   /**
