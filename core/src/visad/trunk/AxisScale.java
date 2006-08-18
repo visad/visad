@@ -51,6 +51,10 @@ public class AxisScale implements java.io.Serializable
   public static final int PRIMARY = 0;
   /** identifier for secondary label side of axis*/
   public static final int SECONDARY = 1;
+  /** identifier for tertiary label side of axis*/
+  public static final int TERTIARY = 2;
+  /** identifier for quaternary label side of axis*/
+  public static final int QUATERNARY = 3;
 
   // WLH 12 July 2001
   // true indicates axis is stationary relative to screen
@@ -80,7 +84,6 @@ public class AxisScale implements java.io.Serializable
   private Object labelFont = null;
   private int labelSize = 12;
   private int axisSide = PRIMARY;
-  private int axisSide2 = PRIMARY;
   private int tickOrient = PRIMARY;
   private static final double TICKSIZE = .5;  // major ticks are 1/2 char ht.
   private NumberFormat labelFormat = null;
@@ -440,175 +443,159 @@ public class AxisScale implements java.io.Serializable
 
     for (int l = 0; l < numSides; l++) {
       int side = getSide();
-      int side2 = getSide2();
-      if (l > 0) {
-         side = (side == PRIMARY) ? SECONDARY : PRIMARY;
-         side2 = (side2 == PRIMARY) ? SECONDARY : PRIMARY;
-      }
+      side = (side + l) % (twoD ? 2 : 4);
       // set up the defaults for each of the axes.  startp and startn are the
       // endpoints of the axis line.  base and up determine which way the
       // tick marks are drawn along that line.  For 2-D, base and up are changed
       // later on so that the labels are right side up. DRM 16-APR-2001
       if (myAxis == X_AXIS) {
         if (side == PRIMARY) {
-          if (side2 == PRIMARY) { // X: PRIMARY / PRIMARY
-            base = new double[] {scale, 0.0, 0.0};
-            up = new double[] {0.0, scale, scale};
-            startp = new double[] {one * xmax,
-                                   ymin - ((offset - 1.0) + line),
-                                   zmin - ((offset - 1.0) + line)};
-            startn = new double[] {one * xmin,
-                                   ymin - ((offset - 1.0) + line),
-                                   zmin - ((offset - 1.0) + line)};
-            gridstartp = new double[] {one * xmax, ymin, zmin};
-            gridstartn = new double[] {one * xmin, ymin, zmin};
-          }
-          else { // X: PRIMARY / SECONDARY
-            base = new double[] {scale, 0.0, 0.0};
-            up = new double[] {0.0, scale, -scale};
-            startp = new double[] {one * xmax,
-                                   ymin - ((offset - 1.0) + line),
-                                   zmax + ((offset - 1.0) + line)};
-            startn = new double[] {one * xmin,
-                                   ymin - ((offset - 1.0) + line),
-                                   zmax + ((offset - 1.0) + line)};
-            gridstartp = new double[] {one * xmax, ymin, zmax};
-            gridstartn = new double[] {one * xmin, ymin, zmax};
-          }
+          base = new double[] {scale, 0.0, 0.0};
+          up = new double[] {0.0, scale, scale};
+          startp = new double[] {one * xmax,
+                                 ymin - ((offset - 1.0) + line),
+                                 zmin - ((offset - 1.0) + line)};
+          startn = new double[] {one * xmin,
+                                 ymin - ((offset - 1.0) + line),
+                                 zmin - ((offset - 1.0) + line)};
+          gridstartp = new double[] {one * xmax, ymin, zmin};
+          gridstartn = new double[] {one * xmin, ymin, zmin};
         }
-        else {
-          if (side2 == PRIMARY) { // X: SECONDARY / PRIMARY
-            base = new double[] {-scale, 0.0, 0.0};
-            up = new double[] {0.0, -scale, scale};
-            startp = new double[] {one * xmax,
-                                   ymax + ((offset - 1.0) + line),
-                                   zmin - ((offset - 1.0) + line)};
-            startn = new double[] {one * xmin,
-                                   ymax + ((offset - 1.0) + line),
-                                   zmin - ((offset - 1.0) + line)};
-            gridstartp = new double[] {one * xmax, ymax, zmin};
-            gridstartn = new double[] {one * xmin, ymax, zmin};
-          }
-          else { // X: SECONDARY / SECONDARY
-            base = new double[] {-scale, 0.0, 0.0};
-            up = new double[] {0.0, -scale, -scale};
-            startp = new double[] {one * xmax,
-                                   ymax + ((offset - 1.0) + line),
-                                   zmax + ((offset - 1.0) + line)};
-            startn = new double[] {one * xmin,
-                                   ymax + ((offset - 1.0) + line),
-                                   zmax + ((offset - 1.0) + line)};
-            gridstartp = new double[] {one * xmax, ymax, zmax};
-            gridstartn = new double[] {one * xmin, ymax, zmax};
-          }
+        else if (side == SECONDARY) {
+          base = new double[] {-scale, 0.0, 0.0};
+          up = new double[] {0.0, -scale, scale};
+          startp = new double[] {one * xmax,
+                                 ymax + ((offset - 1.0) + line),
+                                 zmin - ((offset - 1.0) + line)};
+          startn = new double[] {one * xmin,
+                                 ymax + ((offset - 1.0) + line),
+                                 zmin - ((offset - 1.0) + line)};
+          gridstartp = new double[] {one * xmax, ymax, zmin};
+          gridstartn = new double[] {one * xmin, ymax, zmin};
+        }
+        else if (side == TERTIARY) {
+          base = new double[] {scale, 0.0, 0.0};
+          up = new double[] {0.0, scale, -scale};
+          startp = new double[] {one * xmax,
+                                 ymin - ((offset - 1.0) + line),
+                                 zmax + ((offset - 1.0) + line)};
+          startn = new double[] {one * xmin,
+                                 ymin - ((offset - 1.0) + line),
+                                 zmax + ((offset - 1.0) + line)};
+          gridstartp = new double[] {one * xmax, ymin, zmax};
+          gridstartn = new double[] {one * xmin, ymin, zmax};
+        }
+        else { // side == QUATERNARY
+          base = new double[] {-scale, 0.0, 0.0};
+          up = new double[] {0.0, -scale, -scale};
+          startp = new double[] {one * xmax,
+                                 ymax + ((offset - 1.0) + line),
+                                 zmax + ((offset - 1.0) + line)};
+          startn = new double[] {one * xmin,
+                                 ymax + ((offset - 1.0) + line),
+                                 zmax + ((offset - 1.0) + line)};
+          gridstartp = new double[] {one * xmax, ymax, zmax};
+          gridstartn = new double[] {one * xmin, ymax, zmax};
         }
       }
       else if (myAxis == Y_AXIS) {
         if (side == PRIMARY) {
-          if (side2 == PRIMARY) { // Y: PRIMARY / PRIMARY
-            base = new double[] {0.0, -scale, 0.0};
-            up = new double[] {scale, 0.0, scale};
-            startp = new double[] {xmin - ((offset - 1.0) + line),
-                                   one * ymax,
-                                   zmin - ((offset - 1.0) + line)};
-            startn = new double[] {xmin - ((offset - 1.0) + line),
-                                   one * ymin,
-                                   zmin - ((offset - 1.0) + line)};
-            gridstartp = new double[] {xmin, one * ymax, zmin};
-            gridstartn = new double[] {xmin, one * ymin, zmin};
-          }
-          else { // Y: PRIMARY / SECONDARY
-            base = new double[] {0.0, -scale, 0.0};
-            up = new double[] {scale, 0.0, -scale};
-            startp = new double[] {xmin - ((offset - 1.0) + line),
-                                   one * ymax,
-                                   zmax + ((offset - 1.0) + line)};
-            startn = new double[] {xmin - ((offset - 1.0) + line),
-                                   one * ymin,
-                                   zmax + ((offset - 1.0) + line)};
-            gridstartp = new double[] {xmin, one * ymax, zmax};
-            gridstartn = new double[] {xmin, one * ymin, zmax};
-          }
+          base = new double[] {0.0, -scale, 0.0};
+          up = new double[] {scale, 0.0, scale};
+          startp = new double[] {xmin - ((offset - 1.0) + line),
+                                 one * ymax,
+                                 zmin - ((offset - 1.0) + line)};
+          startn = new double[] {xmin - ((offset - 1.0) + line),
+                                 one * ymin,
+                                 zmin - ((offset - 1.0) + line)};
+          gridstartp = new double[] {xmin, one * ymax, zmin};
+          gridstartn = new double[] {xmin, one * ymin, zmin};
         }
-        else {
-          if (side2 == PRIMARY) { // Y: SECONDARY / PRIMARY
-            base = new double[] {0.0, scale, 0.0};
-            up = new double[] {-scale, 0.0, scale};
-            startp = new double[] {xmax + ((offset - 1.0) + line),
-                                   one * ymax,
-                                   zmin - ((offset - 1.0) + line)};
-            startn = new double[] {xmax + ((offset - 1.0) + line),
-                                   one * ymin,
-                                   zmin - ((offset - 1.0) + line)};
-            gridstartp = new double[] {xmax, one * ymax, zmin};
-            gridstartn = new double[] {xmax, one * ymin, zmin};
-          }
-          else { // Y: SECONDARY / SECONDARY
-            base = new double[] {0.0, scale, 0.0};
-            up = new double[] {-scale, 0.0, -scale};
-            startp = new double[] {xmax + ((offset - 1.0) + line),
-                                   one * ymax,
-                                   zmax + ((offset - 1.0) + line)};
-            startn = new double[] {xmax + ((offset - 1.0) + line),
-                                   one * ymin,
-                                   zmax + ((offset - 1.0) + line)};
-            gridstartp = new double[] {xmax, one * ymax, zmax};
-            gridstartn = new double[] {xmax, one * ymin, zmax};
-          }
+        else if (side == SECONDARY) {
+          base = new double[] {0.0, scale, 0.0};
+          up = new double[] {-scale, 0.0, scale};
+          startp = new double[] {xmax + ((offset - 1.0) + line),
+                                 one * ymax,
+                                 zmin - ((offset - 1.0) + line)};
+          startn = new double[] {xmax + ((offset - 1.0) + line),
+                                 one * ymin,
+                                 zmin - ((offset - 1.0) + line)};
+          gridstartp = new double[] {xmax, one * ymax, zmin};
+          gridstartn = new double[] {xmax, one * ymin, zmin};
+        }
+        else if (side == TERTIARY) {
+          base = new double[] {0.0, -scale, 0.0};
+          up = new double[] {scale, 0.0, -scale};
+          startp = new double[] {xmin - ((offset - 1.0) + line),
+                                 one * ymax,
+                                 zmax + ((offset - 1.0) + line)};
+          startn = new double[] {xmin - ((offset - 1.0) + line),
+                                 one * ymin,
+                                 zmax + ((offset - 1.0) + line)};
+          gridstartp = new double[] {xmin, one * ymax, zmax};
+          gridstartn = new double[] {xmin, one * ymin, zmax};
+        }
+        else { // side == QUATERNARY
+          base = new double[] {0.0, scale, 0.0};
+          up = new double[] {-scale, 0.0, -scale};
+          startp = new double[] {xmax + ((offset - 1.0) + line),
+                                 one * ymax,
+                                 zmax + ((offset - 1.0) + line)};
+          startn = new double[] {xmax + ((offset - 1.0) + line),
+                                 one * ymin,
+                                 zmax + ((offset - 1.0) + line)};
+          gridstartp = new double[] {xmax, one * ymax, zmax};
+          gridstartn = new double[] {xmax, one * ymin, zmax};
         }
       }
       else if (myAxis == Z_AXIS) {
         if (side == PRIMARY) {
-          if (side2 == PRIMARY) { // Z: PRIMARY / PRIMARY
-            base = new double[] {0.0, 0.0, -scale};
-            up = new double[] {scale, scale, 0.0};
-            startp = new double[] {xmin - ((offset - 1.0) + line),
-                                   ymin - ((offset - 1.0) + line),
-                                   one * zmax};
-            startn = new double[] {xmin - ((offset - 1.0) + line),
-                                   ymin - ((offset - 1.0) + line),
-                                   one * zmin};
-            gridstartp = new double[] {xmin, ymin, one * zmax};
-            gridstartn = new double[] {xmin, ymin, one * zmin};
-          }
-          else { // Z: PRIMARY / SECONDARY
-            base = new double[] {0.0, 0.0, -scale};
-            up = new double[] {scale, -scale, 0.0};
-            startp = new double[] {xmin - ((offset - 1.0) + line),
-                                   ymax + ((offset - 1.0) + line),
-                                   one * zmax};
-            startn = new double[] {xmin - ((offset - 1.0) + line),
-                                   ymax + ((offset - 1.0) + line),
-                                   one * zmin};
-            gridstartp = new double[] {xmin, ymax, one * zmax};
-            gridstartn = new double[] {xmin, ymax, one * zmin};
-          }
+          base = new double[] {0.0, 0.0, -scale};
+          up = new double[] {scale, scale, 0.0};
+          startp = new double[] {xmin - ((offset - 1.0) + line),
+                                 ymin - ((offset - 1.0) + line),
+                                 one * zmax};
+          startn = new double[] {xmin - ((offset - 1.0) + line),
+                                 ymin - ((offset - 1.0) + line),
+                                 one * zmin};
+          gridstartp = new double[] {xmin, ymin, one * zmax};
+          gridstartn = new double[] {xmin, ymin, one * zmin};
         }
-        else {
-          if (side2 == PRIMARY) { // Z: SECONDARY / PRIMARY
-            base = new double[] {0.0, 0.0, scale};
-            up = new double[] {-scale, scale, 0.0};
-            startp = new double[] {xmax + ((offset - 1.0) + line),
-                                   ymin - ((offset - 1.0) + line),
-                                   one * zmax};
-            startn = new double[] {xmax + ((offset - 1.0) + line),
-                                   ymin - ((offset - 1.0) + line),
-                                   one * zmin};
-            gridstartp = new double[] {xmax, ymin, one * zmax};
-            gridstartn = new double[] {xmax, ymin, one * zmin};
-          }
-          else { // Z: SECONDARY / SECONDARY
-            base = new double[] {0.0, 0.0, scale};
-            up = new double[] {-scale, -scale, 0.0};
-            startp = new double[] {xmax + ((offset - 1.0) + line),
-                                   ymax + ((offset - 1.0) + line),
-                                   one * zmax};
-            startn = new double[] {xmax + ((offset - 1.0) + line),
-                                   ymax + ((offset - 1.0) + line),
-                                   one * zmin};
-            gridstartp = new double[] {xmax, ymax, one * zmax};
-            gridstartn = new double[] {xmax, ymax, one * zmin};
-          }
+        else if (side == SECONDARY) {
+          base = new double[] {0.0, 0.0, scale};
+          up = new double[] {-scale, scale, 0.0};
+          startp = new double[] {xmax + ((offset - 1.0) + line),
+                                 ymin - ((offset - 1.0) + line),
+                                 one * zmax};
+          startn = new double[] {xmax + ((offset - 1.0) + line),
+                                 ymin - ((offset - 1.0) + line),
+                                 one * zmin};
+          gridstartp = new double[] {xmax, ymin, one * zmax};
+          gridstartn = new double[] {xmax, ymin, one * zmin};
+        }
+        else if (side == TERTIARY) {
+          base = new double[] {0.0, 0.0, -scale};
+          up = new double[] {scale, -scale, 0.0};
+          startp = new double[] {xmin - ((offset - 1.0) + line),
+                                 ymax + ((offset - 1.0) + line),
+                                 one * zmax};
+          startn = new double[] {xmin - ((offset - 1.0) + line),
+                                 ymax + ((offset - 1.0) + line),
+                                 one * zmin};
+          gridstartp = new double[] {xmin, ymax, one * zmax};
+          gridstartn = new double[] {xmin, ymax, one * zmin};
+        }
+        else { // side == QUATERNARY
+          base = new double[] {0.0, 0.0, scale};
+          up = new double[] {-scale, -scale, 0.0};
+          startp = new double[] {xmax + ((offset - 1.0) + line),
+                                 ymax + ((offset - 1.0) + line),
+                                 one * zmax};
+          startn = new double[] {xmax + ((offset - 1.0) + line),
+                                 ymax + ((offset - 1.0) + line),
+                                 one * zmin};
+          gridstartp = new double[] {xmax, ymax, one * zmax};
+          gridstartn = new double[] {xmax, ymax, one * zmin};
         }
       }
   
@@ -1379,14 +1366,18 @@ public class AxisScale implements java.io.Serializable
    */
   public void setSide(int side)
   {
-    double oldSide = axisSide;
-    axisSide = (side == SECONDARY) ? SECONDARY : PRIMARY;  // sanity check
-    if (axisSide != oldSide) {
-      try {
-        scalarMap.makeScale();  // update the display
-      }
-      catch (VisADException ve) {;}
+    // sanity check
+    if (side != PRIMARY && side != SECONDARY &&
+      side != TERTIARY && side != QUATERNARY)
+    {
+      return;
     }
+    if (axisSide == side) return;
+    axisSide = side;
+    try {
+      scalarMap.makeScale();  // update the display
+    }
+    catch (VisADException ve) {;}
   }
 
   /**
@@ -1396,33 +1387,6 @@ public class AxisScale implements java.io.Serializable
   public int getSide()
   {
     return axisSide;
-  }
-
-  /**
-   * Set side for axis (PRIMARY, SECONDARY)
-   * (relative to 3rd axis; 3-D only)
-   * @param side side for axis to appear on
-   */
-  public void setSide2(int side)
-  {
-    double oldSide = axisSide2;
-    axisSide2 = (side == SECONDARY) ? SECONDARY : PRIMARY;  // sanity check
-    if (axisSide2 != oldSide) {
-      try {
-        scalarMap.makeScale();  // update the display
-      }
-      catch (VisADException ve) {;}
-    }
-  }
-
-  /**
-   * Get the alignment for the axis
-   * (relative to 3rd axis; 3-D only)
-   * @return  axis alignment (PRIMARY or SECONDARY)
-   */
-  public int getSide2()
-  {
-    return axisSide2;
   }
 
   /**
