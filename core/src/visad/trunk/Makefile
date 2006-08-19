@@ -5,17 +5,17 @@
 # VisAD system for interactive analysis and visualization of numerical
 # data.  Copyright (C) 1996 - 1998 Bill Hibbard, Curtis Rueden, Tom
 # Rink and Dave Glowacki.
-#  
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 1, or (at your option)
 # any later version.
-#  
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License in file NOTICE for more details.
-#  
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -112,7 +112,7 @@ DOC_DIR = ../docs
 DOC_MEM = 512m
 DOC_LINKS = -link http://java.sun.com/j2se/1.4/docs/api
 DOCFLAGS = $(DOC_LINKS) -d $(DOC_DIR) -J-Xmx$(DOC_MEM) -package \
-	-doctitle 'VisAD Documentation' -windowtitle 'VisAD' $(DOC_EXTRAFLAGS) 
+	-doctitle 'VisAD Documentation' -windowtitle 'VisAD' $(DOC_EXTRAFLAGS)
 
 ############################################################################
 # Customizations
@@ -142,7 +142,7 @@ DOCFLAGS = $(DOC_LINKS) -d $(DOC_DIR) -J-Xmx$(DOC_MEM) -package \
 # to build for AIX, uncomment the next few lines (UNTESTED!)
 #JAVAARCH = aix
 #SHLDFLAGS = -bE:shrsub.exp -bM:SRE -bnoentry
-#SHFLDFLAGS = 
+#SHFLDFLAGS =
 
 ############################################################################
 # You shouldn't need to change anything beyond this point
@@ -295,82 +295,85 @@ TAR_FILES = \
 	visad/java3d/*.c				\
 	visad/java3d/Makefile
 
+LITE_PACKAGES = \
+	visad \
+	visad.bom \
+	visad.browser \
+	visad.collab \
+	visad.data \
+	visad.data.avi \
+	visad.data.bio \
+	visad.data.gif \
+	visad.data.ij \
+	visad.data.jai \
+	visad.data.mcidas \
+	visad.data.netcdf \
+	visad.data.qt \
+	visad.data.tiff \
+	visad.data.units \
+	visad.data.visad \
+	visad.data.visad.object \
+	visad.java2d \
+	visad.java3d \
+	visad.util
+
 DOC_PACKAGES = \
-		visad \
-		visad.cluster \
-		visad.collab \
-		visad.java3d \
-		visad.java2d \
-		visad.python \
-		visad.browser \
-		visad.util \
-		HTTPClient \
-		ucar.multiarray \
-		ucar.util \
-		ucar.netcdf \
-		ucar.tests \
-		dods.dap \
-		dods.dap.parser \
-		dods.dap.Server \
-		dods.util \
-		gnu.regexp \
-		visad.data \
-		visad.data.in \
-		visad.data.dods \
-		visad.data.units \
-		visad.data.netcdf.units \
-		visad.data.netcdf.in \
-		visad.data.netcdf.out \
-		visad.data.netcdf \
-		loci.formats \
-		nom.tam.fits \
-		nom.tam.util \
-		nom.tam.test \
-		visad.data.fits \
-		visad.data.vis5d \
-		edu.wisc.ssec.mcidas \
-		edu.wisc.ssec.mcidas.adde \
-		visad.data.mcidas \
-		visad.data.avi \
-		visad.data.bio \
-		visad.data.biorad \
-		visad.data.ij \
-		visad.data.jai \
-		visad.data.qt \
-		visad.data.gif \
-		visad.data.gis \
-		visad.data.text \
-		visad.data.tiff \
-		visad.data.visad \
-		visad.data.visad.object \
-		visad.data.hdfeos.hdfeosc \
-		visad.data.hdfeos \
-		ncsa.hdf.hdf5lib.exceptions \
-		ncsa.hdf.hdf5lib \
-		visad.data.hdf5.hdf5objects \
-		visad.data.hdf5 \
-		visad.matrix \
-		visad.math \
-		visad.formula \
-		visad.ss \
-		visad.jmet \
-		visad.paoloa \
-		visad.paoloa.spline \
-		visad.aune \
-		visad.benjamin \
-		visad.rabin \
-		visad.bom \
-		visad.aeri \
-		visad.data.amanda \
-		visad.georef \
-		visad.meteorology \
-		visad.install
+	$(LITE_PACKAGES) \
+	visad.cluster \
+	visad.python \
+	HTTPClient \
+	ucar.multiarray \
+	ucar.util \
+	ucar.netcdf \
+	ucar.tests \
+	dods.dap \
+	dods.dap.parser \
+	dods.dap.Server \
+	dods.util \
+	gnu.regexp \
+	visad.data.in \
+	visad.data.dods \
+	visad.data.netcdf.units \
+	visad.data.netcdf.in \
+	visad.data.netcdf.out \
+	loci.formats \
+	nom.tam.fits \
+	nom.tam.util \
+	nom.tam.test \
+	visad.data.fits \
+	visad.data.vis5d \
+	edu.wisc.ssec.mcidas \
+	edu.wisc.ssec.mcidas.adde \
+	visad.data.biorad \
+	visad.data.gis \
+	visad.data.text \
+	visad.data.hdfeos.hdfeosc \
+	visad.data.hdfeos \
+	ncsa.hdf.hdf5lib.exceptions \
+	ncsa.hdf.hdf5lib \
+	visad.data.hdf5.hdf5objects \
+	visad.data.hdf5 \
+	visad.matrix \
+	visad.math \
+	visad.formula \
+	visad.ss \
+	visad.jmet \
+	visad.paoloa \
+	visad.paoloa.spline \
+	visad.aune \
+	visad.benjamin \
+	visad.rabin \
+	visad.aeri \
+	visad.data.amanda \
+	visad.georef \
+	visad.meteorology \
+	visad.install
 
 ALL_PACKAGES = \
-		$(DOC_PACKAGES) \
-		visad.examples
+	$(DOC_PACKAGES) \
+	visad.examples
 
-CLASS_FILES=	\
+CLASS_FILES = \
 	DATE \
 	`echo $(DOC_PACKAGES)' ' | sed -e 's/\./\//g' -e 's/ /\/\*\.class /g'` \
 	visad/ss/*.gif \
@@ -378,9 +381,14 @@ CLASS_FILES=	\
 	loci/formats/readers.txt \
 	loci/formats/writers.txt
 
-JAVA_FILES=	\
+JAVA_FILES = \
 	`echo $(ALL_PACKAGES)' ' | sed -e 's/\./\//g' -e 's/ /\/\*\.java /g'` \
 	visad/ss/*.gif \
+	visad/util/*.jhf
+
+LITE_FILES = \
+	DATE \
+	`echo $(LITE_PACKAGES)' ' | sed -e 's/\./\//g' -e 's/ /\/\*\.class /g'` \
 	visad/util/*.jhf
 
 tar:
@@ -418,13 +426,18 @@ unjar_split:
 	cat visad_a* > visad_src-2.0.jar ;
 	${JAR} ${JARVERBOSE}xf visad_src-2.0.jar
 
-
 classes:
 	@cd .. ; \
 	date > DATE ; \
 	${JAR} ${JARVERBOSE}cfm visad.jar visad/VisAD.Manifest $(CLASS_FILES) ; \
-	tar -cvf visad.tar visad.jar
+	tar -cvf visad.tar visad.jar ; \
+	ls -l visad.[jt]ar
 
+lite:
+	@cd .. ; \
+	date > DATE ; \
+	${JAR} ${JARVERBOSE}cf visad-lite.jar $(LITE_FILES) ; \
+	ls -l visad-lite.jar
 
 EXAMPLES_TAR_FILES = \
 	visad/examples/*.java				\
@@ -585,7 +598,7 @@ compile: clean
 		recompile
 
 docs:
-	@if [ ! -d $(DOC_DIR) ]; then mkdir $(DOC_DIR); fi   
+	@if [ ! -d $(DOC_DIR) ]; then mkdir $(DOC_DIR); fi
 	$(DOC) $(DOCFLAGS) $(DOC_PACKAGES)
 
 tardocs: docs
