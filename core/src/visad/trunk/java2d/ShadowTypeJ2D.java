@@ -173,7 +173,14 @@ public abstract class ShadowTypeJ2D extends ShadowType {
   /** map values into display_values according to ScalarMap-s in reals */
   public static void mapValues(float[][] display_values, float[][] values,
                                ShadowRealType[] reals) throws VisADException {
-    ShadowType.mapValues(display_values, values, reals);
+    mapValues(display_values, values, reals, true);
+  }
+
+  /** map values into display_values according to ScalarMap-s in reals */
+  public static void mapValues(float[][] display_values, float[][] values,
+                               ShadowRealType[] reals, boolean copy) 
+                               throws VisADException {
+    ShadowType.mapValues(display_values, values, reals, copy);
   }
 
   public static VisADGeometryArray makePointGeometry(float[][] spatial_values,

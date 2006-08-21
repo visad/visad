@@ -1079,6 +1079,19 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
   /** map values into display_values according to ScalarMap-s in reals */
   public static void mapValues(float[][] display_values, float[][] values,
                                ShadowRealType[] reals) throws VisADException {
+    mapValues(display_values, values, reals, true);
+  }
+
+  /** 
+   * Map values into display_values according to ScalarMap-s in reals 
+   * @param display_values  return display values
+   * @param values   data values
+   * @param reals    the ShadowRealTypes corresponding to the Scalar in maps
+   * @param copy     if true, don't scale values in place.  Use true if
+   *                 values represent a getSamples(false) or getFloats(false)
+   */
+  public static void mapValues(float[][] display_values, float[][] values,
+                               ShadowRealType[] reals, boolean copy) throws VisADException {
     int n = values.length;
     if (n != reals.length) {
       throw new DisplayException("lengths don't match: ShadowType.mapValues");
@@ -1094,7 +1107,7 @@ System.out.println(map.getScalar() + " -> " + map.getDisplayScalar() + " : " +
                    range[0] + " " + range[1] + "  value_index = " + value_index);
 */
         // MEM
-        display_values[value_index] = map.scaleValues(values[i]);
+        display_values[value_index] = map.scaleValues(values[i], copy);
 /*
 int m = values[i].length;
 for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i][j] +
@@ -1161,7 +1174,9 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
 
     // set coordinates and colors
     // MEM
+    visad.util.Trace.call1("ShadowType.makePointGeometry.setGeometryArray");
     SampledSet.setGeometryArray(array, spatial_values, 3, color_values);
+    visad.util.Trace.call2("ShadowType.makePointGeometry.setGeometryArray");
     return array;
   }
 /* CTR: 13 Oct 1998 - END CHANGES */
@@ -2932,6 +2947,7 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
     // display color_tuple
     while (true) {
       DisplayTupleType color_tuple = null;
+      visad.util.Trace.call1("loop through valueArrayLength");
       for (int i=0; i<valueArrayLength; i++) {
         float[] values = display_values[i];
         if (values != null && !mark[i]) {
@@ -2971,18 +2987,27 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
           } // end if component of a color tuple
         } // end if (values != null && !mark[i])
       } // end for (int i=0; i<valueArrayLength; i++)
+      visad.util.Trace.call2("loop through valueArrayLength");
       if (color_tuple != null) {
+        visad.util.Trace.call1("ShadowType:color_tuple != null");
+        visad.util.Trace.call1("colorSum(3)");
         colorSum(3, tuple_values, tuple_value_counts, tuple_singles,
                  tuple_single_counts, display, color_tuple, default_values);
+        visad.util.Trace.call2("colorSum(3)");
         if (!color_tuple.equals(Display.DisplayRGBTuple)) {
           // equalize all rgba_values[index] to same length
+          visad.util.Trace.call1("color_tuple !RGB");
           // and fill with default values
           equalizeAndDefault(tuple_values, display, color_tuple, default_values);
           // transform tuple_values to DisplayRGBTuple
           CoordinateSystem coord = color_tuple.getCoordinateSystem();
           tuple_values = coord.toReference(tuple_values);
+          visad.util.Trace.call2("color_tuple !RGB");
         }
+        visad.util.Trace.call1("colorComposite");
         colorComposite(rgba_values, rgba_value_counts, tuple_values);
+        visad.util.Trace.call2("colorComposite");
+        visad.util.Trace.call2("ShadowType:color_tuple != null");
       }
       else { // if (color_tuple == null)
         // no new color_tuple found on this loop iteration
@@ -2992,6 +3017,7 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
 
     int[] valueToMap = display.getValueToMap();
     Vector MapVector = display.getMapVector();
+    visad.util.Trace.call1("ShadowType:looking for maps");
     for (int i=0; i<valueArrayLength; i++) {
       float[] values = display_values[i];
       if (values != null && !mark[i]) {
@@ -3053,9 +3079,12 @@ System.out.println("color_values: nummissing = " + nummissing);
           display_values[i] = null; // MEM_WLH 27 March 99
         } // end if (real.equals(Display.RGB) || HSV || CMY)
         if (real.equals(Display.RGBA)) {
+          visad.util.Trace.call1("display = RGBA");
           ColorAlphaControl control = (ColorAlphaControl)
             ((ScalarMap) MapVector.elementAt(valueToMap[i])).getControl();
+          visad.util.Trace.call1("lookupValues");
           float[][] color_values = control.lookupValues(values);
+          visad.util.Trace.call2("lookupValues");
           if (len == 1) {
             for (int index = 0; index<4; index++) {
               rgba_singles[index] += color_values[index][0];
@@ -3063,6 +3092,7 @@ System.out.println("color_values: nummissing = " + nummissing);
             }
           }
           else { // (len != 1)
+            visad.util.Trace.call1("colorComposite");
             colorComposite(rgba_values, rgba_value_counts, color_values);
 
             for (int index = 0; index<4; index++) {
@@ -3071,7 +3101,9 @@ System.out.println("color_values: nummissing = " + nummissing);
               // FREE
               color_values[index] = null;
             }
+            visad.util.Trace.call2("colorComposite");
           }
+          visad.util.Trace.call2("display = RGBA");
           // FREE
           display_values[i] = null; // MEM_WLH 27 March 99
         } // end if (real.equals(Display.RGBA))
@@ -3089,9 +3121,11 @@ System.out.println("color_values: nummissing = " + nummissing);
         // no need for 'mark[i] = true;' in this loop
       } // end if (values != null && !mark[i])
     } // end for (int i=0; i<valueArrayLength; i++)
+    visad.util.Trace.call2("ShadowType:looking for maps");
     if (rgba_values[0] == null && rgba_values[1] == null &&
         rgba_values[2] == null && rgba_values[3] == null) {
       // no long color vectors, so try singles, then defaults
+      visad.util.Trace.call1("rgba_values == null");
       for (int index=0; index<4; index++) {
         rgba_values[index] = new float[1];
         if (rgba_single_counts[index] > 0) {
@@ -3111,26 +3145,34 @@ System.out.println("color_values: nummissing = " + nummissing);
           rgba_values[index][0] = default_values[default_index];
         }
       }
+      visad.util.Trace.call2("rgba_values == null");
     }
     else {
+      visad.util.Trace.call1("colorSum(4)");
       colorSum(4, rgba_values, rgba_value_counts, rgba_singles,
                rgba_single_counts, display, Display.DisplayRGBTuple,
                default_values);
+      visad.util.Trace.call2("colorSum(4)");
       // equalize all rgba_values[index] to same length
       // and fill with default values
+      visad.util.Trace.call1("equalizeAndDefault");
       equalizeAndDefault(rgba_values, display, Display.DisplayRGBTuple,
                          default_values);
+      visad.util.Trace.call2("equalizeAndDefault");
     }
 
     // test for any missing values
     int big_len = rgba_values[0].length;
+    visad.util.Trace.call1("test for missing values " + big_len);
     for (int i=0; i<4; i++) {
       int len = rgba_values[i].length;
       for (int j=0; j<len; j++) {
         if (rgba_values[i][j] != rgba_values[i][j]) {
           if (range_select[0] == null) {
+            visad.util.Trace.call1("range_select[0] == null");
             range_select[0] = new boolean[big_len];
             for (int k=0; k<big_len; k++) range_select[0][k] = true;
+            visad.util.Trace.call2("range_select[0] == null");
           }
           if (len > 1) {
             range_select[0][j] = false;
@@ -3147,6 +3189,7 @@ System.out.println("color_values: nummissing = " + nummissing);
         }
       } // end for (int j=0; j<len; j++)
     } // end for (int i=0; i<4; i++)
+    visad.util.Trace.call2("test for missing values " + big_len);
 
     //
     // TO_DO
@@ -3159,6 +3202,7 @@ System.out.println("color_values: nummissing = " + nummissing);
     // MEM_WLH
     // page 291 of Java3D book says byte colors are [0, 255] range
     byte[][] b = new byte[rgba_values.length][];
+    visad.util.Trace.call1("setting byte array");
     for (int i=0; i<rgba_values.length; i++) {
       if (rgba_values[i] != null) {
         int len = rgba_values[i].length;
@@ -3170,6 +3214,7 @@ System.out.println("color_values: nummissing = " + nummissing);
         }
       }
     }
+    visad.util.Trace.call2("setting byte array");
     return b;
   }
 
