@@ -398,9 +398,10 @@ public final class ScaledUnit
             newValues = (copy) ? (double[])values.clone() : values;
         }
         else {
-            newValues = that.toThat(values, derivedUnit);
-            for (int i = 0; i < newValues.length; ++i)
-                newValues[i] /= amount;
+            newValues = that.toThat(values, derivedUnit, copy);
+            for (int i = 0; i < newValues.length; ++i) {
+                if (newValues[i] == newValues[i]) newValues[i] /= amount;
+            }
         }
         return newValues;
     }
@@ -425,9 +426,10 @@ public final class ScaledUnit
             newValues = (copy) ? (float[])values.clone() : values;
         }
         else {
-            newValues = that.toThat(values, derivedUnit);
-            for (int i = 0; i < newValues.length; ++i)
-                newValues[i] /= amount;
+            newValues = that.toThat(values, derivedUnit, copy);
+            for (int i = 0; i < newValues.length; ++i) {
+                if (newValues[i] == newValues[i]) newValues[i] /= amount;
+            }
         }
         return newValues;
     }

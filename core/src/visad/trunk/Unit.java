@@ -146,11 +146,11 @@ public abstract class Unit
               if (units_in[i] != null && !(units_in[i] instanceof PromiscuousUnit)) {
                   throw new UnitException("Unit.convertTuple: illegal Unit conversion");
               }
-              new_value[i] = value[i];
+              new_value[i] = (copy) ? (double[]) value[i].clone() : value[i];
           }
           else {
               //If they are equal just do an assignment
-              if (units_out[i].equals (units_in[i]) && !copy) {
+              if (units_out[i].equals(units_in[i]) && !copy) {
                   new_value[i] = value[i];
               } else {
                   //else do the conversion (creates a new array)
@@ -245,7 +245,7 @@ public abstract class Unit
               if (units_in[i] != null && !(units_in[i] instanceof PromiscuousUnit)) {
                   throw new UnitException("Unit.convertTuple: illegal Unit conversion");
               }
-              new_value[i] = value[i];
+              new_value[i] = (copy) ? (float[]) value[i].clone() : value[i];
           }
           else {
               //If they are equal just do an assignment
@@ -450,7 +450,7 @@ public abstract class Unit
 
     if (unit_out == null || unit_in == null) {
       errors_out[0] = error_in;
-      return value;
+      return (copy) ? (double[]) value.clone() : value;
     }
     else {
       // convert value array
@@ -505,7 +505,7 @@ public abstract class Unit
 
     if (unit_out == null || unit_in == null) {
       errors_out[0] = error_in;
-      return value;
+      return (copy) ? (float[]) value.clone() : value;
     }
     else {
       // convert value array

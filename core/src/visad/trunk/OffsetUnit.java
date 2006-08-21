@@ -450,9 +450,10 @@ public final class OffsetUnit
             newValues = (copy) ? (double[])values.clone() : values;
         }
         else {
-          newValues = that.toThat(values, scaledUnit);
-          for (int i = 0; i < newValues.length; ++i)
-              newValues[i] -= offset;
+          newValues = that.toThat(values, scaledUnit, copy);
+          for (int i = 0; i < newValues.length; ++i) {
+              if (newValues[i] == newValues[i]) newValues[i] -= offset;
+          }
         }
         return newValues;
     }
@@ -476,9 +477,10 @@ public final class OffsetUnit
             newValues = (copy) ? (float[])values.clone() : values;
         }
         else {
-          newValues = that.toThat(values, scaledUnit);
-          for (int i = 0; i < newValues.length; ++i)
-              newValues[i] -= offset;
+          newValues = that.toThat(values, scaledUnit, copy);
+          for (int i = 0; i < newValues.length; ++i) {
+              if (newValues[i] == newValues[i]) newValues[i] -= offset;
+          }
         }
         return newValues;
     }
@@ -534,9 +536,10 @@ public final class OffsetUnit
     {
         double[]        newValues = (copy) ? (double[])values.clone() : values;
         if (!(equals(that) || that instanceof PromiscuousUnit)) {
-          for (int i = 0; i < newValues.length; ++i)
-              newValues[i] += offset;
-          newValues = that.toThis(newValues, scaledUnit);
+          for (int i = 0; i < newValues.length; ++i) {
+              if (newValues[i] == newValues[i]) newValues[i] += offset;
+          }
+          newValues = that.toThis(newValues, scaledUnit, copy);
         }
         return newValues;
     }
@@ -558,9 +561,10 @@ public final class OffsetUnit
     {
         float[]        newValues = (copy) ? (float[])values.clone() : values;
         if (!(equals(that) || that instanceof PromiscuousUnit)) {
-          for (int i = 0; i < newValues.length; ++i)
-              newValues[i] += offset;
-          newValues = that.toThis(newValues, scaledUnit);
+          for (int i = 0; i < newValues.length; ++i) {
+              if (newValues[i] == newValues[i]) newValues[i] += offset;
+          }
+          newValues = that.toThis(newValues, scaledUnit, copy);
         }
         return newValues;
     }

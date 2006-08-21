@@ -883,10 +883,15 @@ public final class DerivedUnit
         }
         else if (reciprocalDimensionality(that))
         {
-            newValues = new double[values.length];
+            newValues = (copy) ? (double[])values.clone() : values;
 
-            for (int i = 0; i < values.length; ++i)
-                newValues[i] = 1.0 / values[i];
+            for (int i = 0; i < values.length; ++i) {
+                if (values[i] == values[i]) {
+                    newValues[i] = 1.0 / values[i];
+                } else {
+                    newValues[i] = Double.NaN;
+                }
+            }
         }
         else
             throw new UnitException("Attempt to convert from unit \"" +
@@ -918,10 +923,16 @@ public final class DerivedUnit
         }
         else if (reciprocalDimensionality(that))
         {
-            newValues = new float[values.length];
+            newValues = (copy) ? (float[])values.clone() : values;
 
-            for (int i = 0; i < values.length; ++i)
+            for (int i = 0; i < values.length; ++i) {
                 newValues[i] = 1.0f / values[i];
+                if (values[i] == values[i]) {
+                    newValues[i] = 1.0f / values[i];
+                } else {
+                    newValues[i] = Float.NaN;
+                }
+            }
         }
         else
             throw new UnitException("Attempt to convert from unit \"" +
@@ -1015,7 +1026,7 @@ public final class DerivedUnit
         }
         return
             that instanceof DerivedUnit
-                ? toThat(values, (DerivedUnit)that)
+                ? toThat(values, (DerivedUnit)that, copy)
                 : that.toThis(values, this, copy);
     }
 
@@ -1040,7 +1051,7 @@ public final class DerivedUnit
         }
         return
             that instanceof DerivedUnit
-                ? toThat(values, (DerivedUnit)that)
+                ? toThat(values, (DerivedUnit)that, copy)
                 : that.toThis(values, this, copy);
     }
 
