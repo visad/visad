@@ -296,6 +296,7 @@ TAR_FILES = \
 	visad/java3d/Makefile
 
 LITE_PACKAGES = \
+	ucar.netcdf \
 	visad \
 	visad.bom \
 	visad.browser \
@@ -324,7 +325,6 @@ DOC_PACKAGES = \
 	HTTPClient \
 	ucar.multiarray \
 	ucar.util \
-	ucar.netcdf \
 	ucar.tests \
 	dods.dap \
 	dods.dap.parser \
