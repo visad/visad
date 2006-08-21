@@ -62,7 +62,7 @@ public class Gridded2DSet extends GriddedSet {
                ErrorEstimate[] errors, boolean copy)
                throws VisADException {
     this(type, samples, lengthX, lengthY, coord_sys, units, errors,
-         true, true);
+         copy, true);
   }
 
   public Gridded2DSet(MathType type, float[][] samples, int lengthX, int lengthY,
