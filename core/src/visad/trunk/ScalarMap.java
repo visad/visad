@@ -1036,13 +1036,24 @@ if (overrideUnit != null) {
    * @return  array of display values
    */
   public float[] scaleValues(float[] values) {
+    return scaleValues(values, true);
+  }
+
+  /** return an array of display (DisplayRealType) values by
+   *  linear scaling (if applicable) the data_values array
+   *  (RealType values) 
+   * @param   values to scale as floats
+   * @param   newArray   false to scale in place
+   * @return  array of display values
+   */
+  public float[] scaleValues(float[] values, boolean newArray) {
 /* WLH 23 June 99
     if (values == null || badRange()) return null;
 */
     if (values == null) return null;
     float[] new_values = null;
     if (badRange()) {
-      new_values = new float[values.length];
+      new_values = (newArray) ? new float[values.length] : values;
       for (int i=0; i<values.length; i++) new_values[i] = Float.NaN;
     }
     else {
@@ -1054,15 +1065,19 @@ if (overrideUnit != null) {
           !overrideUnit.equals(((RealType) Scalar).getDefaultUnit())) {
         try {
           values =
-            overrideUnit.toThis(values, ((RealType) Scalar).getDefaultUnit());
+            overrideUnit.toThis(values, ((RealType) Scalar).getDefaultUnit(), newArray);
         }
         catch (UnitException e) {
         }
       }
       if (isScaled) {
-        new_values = new float[values.length];
+        new_values = (newArray) ? new float[values.length] : values;
         for (int i=0; i<values.length; i++) {
-          new_values[i] = (float) (offset + scale * values[i]);
+          if (values[i] == values[i]) {
+            new_values[i] = (float) (offset + scale * values[i]);
+          } else {
+            new_values[i] = Float.NaN;
+          }
         }
       }
       else {
@@ -1127,16 +1142,34 @@ if (overrideUnit != null) {
    * @return data values
    */
   public float[] inverseScaleValues(float[] values) {
+    return inverseScaleValues(values, true);
+  }
+
+  /** return an array of data (RealType) values by inverse
+   *  linear scaling (if applicable) the display_values array
+   *  (DisplayRealType values); this is useful for direct
+   *  manipulation and cursor labels 
+   * @param  display values
+   * @param  newArray  false to transform in place
+   * @return data values
+   */
+  public float[] inverseScaleValues(float[] values, boolean newArray) {
     if (values == null) return null;
-    float[] new_values = new float[values.length];
+    float[] new_values = (newArray) ? new float[values.length] : values;
     if (isScaled) {
       for (int i=0; i<values.length; i++) {
-        new_values[i] = (float) ((values[i] - offset) / scale);
+        if (values[i] == values[i]) {
+           new_values[i] = (float) ((values[i] - offset) / scale);
+        } else {
+           new_values[i] = Float.NaN;
+        }
       }
     }
     else {
-      for (int i=0; i<values.length; i++) {
-        new_values[i] = values[i];
+      if (newArray) {
+        for (int i=0; i<values.length; i++) {
+          new_values[i] = values[i];
+        }
       }
     }
     // WLH 31 Aug 2000
@@ -1144,7 +1177,7 @@ if (overrideUnit != null) {
 // float[] old_values = new_values;
       try {
         new_values =
-          overrideUnit.toThat(new_values, ((RealType) Scalar).getDefaultUnit());
+          overrideUnit.toThat(new_values, ((RealType) Scalar).getDefaultUnit(), false); // already copied above
       }
       catch (UnitException e) {
       }
