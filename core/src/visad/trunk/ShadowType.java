@@ -1087,8 +1087,9 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
    * @param display_values  return display values
    * @param values   data values
    * @param reals    the ShadowRealTypes corresponding to the Scalar in maps
-   * @param copy     if true, don't scale values in place.  Use true if
-   *                 values represent a getSamples(false) or getFloats(false)
+   * @param copy     if false, scale values in place if reals[index] has only
+   *                 one mapping.  Use true if values represent a 
+   *                 getSamples(false) or getFloats(false)
    */
   public static void mapValues(float[][] display_values, float[][] values,
                                ShadowRealType[] reals, boolean copy) throws VisADException {
@@ -1097,6 +1098,9 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       throw new DisplayException("lengths don't match: ShadowType.mapValues");
     }
     for (int i=0; i<n; i++) {
+      boolean doCopy = copy;
+      int size = reals[i].getSelectedMapVector().size();
+      if (!copy && size > 1) doCopy = true;
       Enumeration maps = reals[i].getSelectedMapVector().elements();
       while (maps.hasMoreElements()) {
         ScalarMap map = (ScalarMap) maps.nextElement();
@@ -1107,7 +1111,7 @@ System.out.println(map.getScalar() + " -> " + map.getDisplayScalar() + " : " +
                    range[0] + " " + range[1] + "  value_index = " + value_index);
 */
         // MEM
-        display_values[value_index] = map.scaleValues(values[i], copy);
+        display_values[value_index] = map.scaleValues(values[i], doCopy);
 /*
 int m = values[i].length;
 for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i][j] +
