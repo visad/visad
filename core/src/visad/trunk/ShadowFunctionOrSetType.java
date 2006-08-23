@@ -945,7 +945,7 @@ System.out.println("doTransform.curvedTexture = " + curvedTexture + " " +
       limits[2][1] = (float) Z.getLast();
 
       // convert values to default units (used in display)
-      limits = Unit.convertTuple(limits, dataUnits, domain_units);
+      limits = Unit.convertTuple(limits, dataUnits, domain_units, false);
 
       // get domain_set sizes
       data_width = X.getLength();
@@ -1169,6 +1169,7 @@ for (int i=0; i < 4; i++) {
     // WLH 1 April 2000
     // else { // !isTextureMap && !isTexture3D
     // WLH 16 July 2000 - add '&& !isLinearContour3D'
+    visad.util.Trace.call1("doTransform:!isTextureMap");
     if (!isTextureMap && (!isTexture3D || range3D) && !isLinearContour3D) {
 
 // if (link != null) System.out.println("start domain " + (System.currentTimeMillis() - link.start_time));
@@ -1182,18 +1183,23 @@ for (int i=0; i < 4; i++) {
       }
       else {
         // do shallow clone and don't copy in convert DRM 2003-02-24
-        domain_values = (float[][]) domain_set.getSamples(false).clone();
+        // domain_values = (float[][]) domain_set.getSamples(false).clone();
+        domain_values = (float[][]) domain_set.getSamples(true);
 
         // convert values to default units (used in display)
         // MEM & FREE
         //domain_values = Unit.convertTuple(domain_values, dataUnits, domain_units);
+        visad.util.Trace.call1("doTransform:convertTuple");
         domain_values = 
            Unit.convertTuple(domain_values, dataUnits, domain_units, false);
         // System.out.println("got domain_values: domain_length = " + domain_length);
+        visad.util.Trace.call2("doTransform:convertTuple");
 
         // map domain_values to appropriate DisplayRealType-s
         // MEM
-        mapValues(display_values, domain_values, DomainComponents);
+        visad.util.Trace.call1("doTransform:convertTuple:mapValues");
+        mapValues(display_values, domain_values, DomainComponents, false);
+        visad.util.Trace.call2("doTransform:convertTuple:mapValues");
       }
 
       // System.out.println("mapped domain_values");
@@ -1271,7 +1277,7 @@ System.out.println("data_width = " + data_width + " data_height = " + data_heigh
               CoordinateSystem.transformCoordinates(
                 ref, null, ref.getDefaultUnits(), null,
                 (RealTupleType) Domain.getType(), dataCoordinateSystem,
-                domain_units, null, spline_domain);
+                domain_units, null, spline_domain, false);
             reference_values = new float[domain_dimension][domain_length];
             for (int i=0; i<domain_length; i++) {
               reference_values[0][i] = Float.NaN;
@@ -1291,20 +1297,24 @@ System.out.println("data_width = " + data_width + " data_height = " + data_heigh
 // if (link != null) System.out.println("end compute spline " + (System.currentTimeMillis() - link.start_time));
           }
           else { // if !(curvedTexture && domainOnlySpatial)
+            visad.util.Trace.call1("doTransform:transformCoordinates !(curvedTexture && domainOnlySpatial)");
             reference_values =
               CoordinateSystem.transformCoordinates(
                 ref, null, ref.getDefaultUnits(), null,
                 (RealTupleType) Domain.getType(), dataCoordinateSystem,
-                domain_units, null, domain_values);
+                domain_units, null, domain_values, false);
+            visad.util.Trace.call2("doTransform:transformCoordinates !(curvedTexture && domainOnlySpatial)");
           }
         } // end if !(domain_dimension == 1)
 
         // WLH 13 Macrh 2000
         // if (anyFlow) {
+          visad.util.Trace.call1("doTransform:setEarthSpatialData");
           renderer.setEarthSpatialData(Domain, domain_reference, ref,
                       ref.getDefaultUnits(), (RealTupleType) Domain.getType(),
                       new CoordinateSystem[] {dataCoordinateSystem},
                       domain_units);
+          visad.util.Trace.call2("doTransform:setEarthSpatialData");
         // WLH 13 Macrh 2000
         // }
 
@@ -1323,7 +1333,9 @@ System.out.println("data_width = " + data_width + " data_height = " + data_heigh
           mapValues(display_values, reference_doubles, DomainReferenceComponents);
         }
         else {
-          mapValues(display_values, reference_values, DomainReferenceComponents);
+          visad.util.Trace.call1("doTransform:mapValues");
+          mapValues(display_values, reference_values, DomainReferenceComponents, false);
+          visad.util.Trace.call2("doTransform:mapValues");
         }
 
 // if (link != null) System.out.println("end map reference " + (System.currentTimeMillis() - link.start_time));
@@ -1351,6 +1363,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
                       new CoordinateSystem[] {dataCoordinateSystem},
                       domain_units);
 */
+          visad.util.Trace.call1("doTransform:setEarthSpatialData domain_reference != null");
           RealTupleType ref = (domain_reference == null) ? null :
                               (RealTupleType) domain_reference.getType();
           Unit[] ref_units = (ref == null) ? null : ref.getDefaultUnits();
@@ -1358,6 +1371,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
                       ref_units, (RealTupleType) Domain.getType(),
                       new CoordinateSystem[] {dataCoordinateSystem},
                       domain_units);
+          visad.util.Trace.call2("doTransform:setEarthSpatialData domain_reference != null");
         // WLH 13 March 2000
         // }
       }
@@ -1366,11 +1380,13 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
       domain_doubles = null;
     } // end if (!isTextureMap && (!isTexture3D || range3D) &&
       //         !isLinearContour3D)
+    visad.util.Trace.call2("doTransform:!isTextureMap");
 
     if (this instanceof ShadowFunctionType) {
 
 // if (link != null) System.out.println("start range " + (System.currentTimeMillis() - link.start_time));
 
+      visad.util.Trace.call1("doTransform:range");
       // get range_values for RealType and RealTupleType
       // components, in defaultUnits for RealType-s
       // MEM - may copy (in convertTuple)
@@ -1379,10 +1395,13 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
       // System.out.println("got range_values");
 
       if (range_values != null) {
+        visad.util.Trace.call1("doTransform:range_values != null");
         // map range_values to appropriate DisplayRealType-s
         ShadowRealType[] RangeComponents = getRangeComponents();
         // MEM
-        mapValues(display_values, range_values, RangeComponents);
+        visad.util.Trace.call1("doTransform: range mapValues");
+        mapValues(display_values, range_values, RangeComponents, true);
+        visad.util.Trace.call2("doTransform: range mapValues");
 
         // System.out.println("mapped range_values");
 
@@ -1395,6 +1414,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
         int[] componentIndex = getComponentIndex();
 
         if (refToComponent != null) {
+          visad.util.Trace.call1("doTransform:refComponent != null");
 
           for (int i=0; i<refToComponent.length; i++) {
             int n = componentWithRef[i].getDimension();
@@ -1475,15 +1495,18 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
             // FREE (redundant reference to range_values)
             values = null;
           } // end for (int i=0; i<refToComponent.length; i++)
+          visad.util.Trace.call2("doTransform:refComponent != null");
         } // end (refToComponent != null)
 
 // if (link != null) System.out.println("end range " + (System.currentTimeMillis() - link.start_time));
+        visad.util.Trace.call2("doTransform:range");
 
         // setEarthSpatialData calls when no CoordinateSystem
         // WLH 13 March 2000
         // if (Range instanceof ShadowTupleType && anyFlow) {
         if (Range instanceof ShadowTupleType) {
           if (Range instanceof ShadowRealTupleType) {
+            visad.util.Trace.call1("doTransform:range = realtuple");
             Unit[] range_units = ((Field) data).getDefaultRangeUnits();
             CoordinateSystem[] range_coord_sys =
               ((Field) data).getRangeCoordinateSystem();
@@ -1501,8 +1524,10 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
                       component_reference, ref, ref_units,
                       (RealTupleType) Range.getType(),
                       range_coord_sys, range_units);
+            visad.util.Trace.call2("doTransform:range = realtuple");
           }
           else { // if (!(Range instanceof ShadowRealTupleType))
+            visad.util.Trace.call1("doTransform:range != real");
             Unit[] dummy_units = ((Field) data).getDefaultRangeUnits();
             int start = 0;
             int n = ((ShadowTupleType) Range).getDimension();
@@ -1531,6 +1556,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
                       (RealTupleType) range_component.getType(),
                       range_coord_sys, range_units);
                 start += ((ShadowRealTupleType) range_component).getDimension();
+                visad.util.Trace.call1("doTransform:range != real");
               }
               else if (range_component instanceof ShadowRealType) {
                 start++;
@@ -1538,6 +1564,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
             }
           } // end if (!(Range instanceof ShadowRealTupleType))
         } // end if (Range instanceof ShadowTupleType)
+        visad.util.Trace.call1("doTransform:range_values != null");
 
         // FREE
         range_values = null;
@@ -1631,6 +1658,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
         } // end if (text_values == null)
       } // end if (anyText && text_values == null)
     } // end if (this instanceof ShadowFunctionType)
+    visad.util.Trace.call1("doTransform:assembleSelect");
 
 // if (link != null) System.out.println("start assembleSelect " + (System.currentTimeMillis() - link.start_time));
 
@@ -1657,8 +1685,10 @@ if (range_select[0] != null) {
     if (range_select[0] != null && range_select[0].length == 1 &&
         !range_select[0][0]) {
       // single missing value in range_select[0], so render nothing
+      visad.util.Trace.call2("doTransform:assembleSelect");
       return false;
     }
+    visad.util.Trace.call2("doTransform:assembleSelect");
 
 // if (link != null) System.out.println("end assembleSelect " + (System.currentTimeMillis() - link.start_time));
 
@@ -1707,6 +1737,7 @@ System.out.println("doTerminal: isTerminal = " + getIsTerminal() +
       */
 
 // if (link != null) System.out.println("start assembleColor " + (System.currentTimeMillis() - link.start_time));
+      visad.util.Trace.call1("assembleColor " + shadow_api.getClass());
 
       // MEM_WLH - this moved
       boolean[] single_missing = {false, false, false, false};
@@ -1739,9 +1770,11 @@ if (color_values != null) {
         // single missing value in range_select[0], so render nothing
         return false;
       }
+      visad.util.Trace.call2("assembleColor " + shadow_api.getClass());
 
 // if (link != null) System.out.println("end assembleColor " + (System.currentTimeMillis() - link.start_time));
 
+      visad.util.Trace.call1("assembleFlow " + shadow_api.getClass());
       float[][] flow1_values = new float[3][];
       float[][] flow2_values = new float[3][];
       float[] flowScale = new float[2];
@@ -1764,6 +1797,7 @@ if (range_select[0] != null) {
         // single missing value in range_select[0], so render nothing
         return false;
       }
+      visad.util.Trace.call2("assembleFlow " + shadow_api.getClass());
 
       // System.out.println("assembleFlow");
 
@@ -1783,6 +1817,7 @@ if (range_select[0] != null) {
       boolean[][] spatial_range_select = new boolean[1][];
 
       // MEM - but not if isTextureMap
+      visad.util.Trace.call1("assembleSpatial " + shadow_api.getClass());
       Set spatial_set =
         shadow_api.assembleSpatial(spatial_values, display_values, valueArrayLength,
                         valueToScalar, display, default_values,
@@ -1844,6 +1879,7 @@ System.out.println("  isTextureMap = " + isTextureMap);
         // single missing value in range_select[0], so render nothing
         return false;
       }
+      visad.util.Trace.call2("assembleSpatial " + shadow_api.getClass());
 
 // if (link != null) System.out.println("end assembleSpatial " + (System.currentTimeMillis() - link.start_time));
 
@@ -2692,11 +2728,13 @@ WLH 15 March 2000 */
           else if (pointMode || spatial_set == null ||
                    spatialManifoldDimension == 0 ||
                    spatialManifoldDimension == 3) {
+            visad.util.Trace.call1("point mode");
             if (range_select[0] != null) {
               int len = range_select[0].length;
               if (len == 1 || spatial_values[0].length == 1) {
                 return false;
               }
+              visad.util.Trace.call1("nulling spatial values");
               for (int j=0; j<len; j++) {
                 // range_select[0][j] is either 0.0f or Float.NaN -
                 // setting to Float.NaN will move points off the screen
@@ -2704,14 +2742,18 @@ WLH 15 March 2000 */
                   spatial_values[0][j] = Float.NaN;
                 }
               }
+              visad.util.Trace.call2("nulling spatial values");
               // CTR 13 Oct 1998 - call new makePointGeometry signature
+              visad.util.Trace.call1("makePointGeometry for some missing");
               array = makePointGeometry(spatial_values, color_values, true);
               // System.out.println("makePointGeometry for some missing");
+              visad.util.Trace.call2("makePointGeometry for some missing");
             }
             else {
               array = makePointGeometry(spatial_values, color_values);
               // System.out.println("makePointGeometry for pointMode");
             }
+            visad.util.Trace.call2("point mode");
           }
           else if (spatialManifoldDimension == 1) {
             if (range_select[0] != null) {

@@ -153,7 +153,8 @@ public class Radar2DCoordinateSystem extends NavigatedCoordinateSystem {
     }
     int len = tuples[0].length;
 // System.out.println("toReference double len = " + len);
-    double[][] value = new double[2][len];
+    //double[][] value = new double[2][len];
+    double[][] value = tuples;
     for (int i=0; i<len ;i++) {
       double rad = radlow + radres * tuples[0][i];
       if (rad < 0.0) {
@@ -195,7 +196,8 @@ System.out.println(tuples[0][i] + " " + tuples[1][i] + " -> " +
     }
     int len = tuples[0].length;
 // System.out.println("fromReference double len = " + len);
-    double[][] value = new double[2][len];
+    // double[][] value = new double[2][len];
+    double[][] value = tuples;
     for (int i=0; i<len ;i++) {
       double slat = (tuples[0][i] - centlat) * latscale;
       double slon = (tuples[1][i] - centlon) * lonscale;
@@ -224,7 +226,8 @@ System.out.println(tuples[0][i] + " " + tuples[1][i] + " -> " +
     }
     int len = tuples[0].length;
 // System.out.println("toReference float len = " + len);
-    float[][] value = new float[2][len];
+    // float[][] value = new float[2][len];
+    float[][] value = tuples;
     for (int i=0; i<len ;i++) {
       double rad = radlow + radres * tuples[0][i];
       if (rad < 0.0) {
@@ -260,7 +263,8 @@ System.out.println(tuples[0][i] + " " + tuples[1][i] + " -> " +
     }
     int len = tuples[0].length;
 // System.out.println("fromReference float len = " + len);
-    float[][] value = new float[2][len];
+    //float[][] value = new float[2][len];
+    float[][] value = tuples;
     for (int i=0; i<len ;i++) {
       double slat = (tuples[0][i] - centlat) * latscale;
       double slon = (tuples[1][i] - centlon) * lonscale;

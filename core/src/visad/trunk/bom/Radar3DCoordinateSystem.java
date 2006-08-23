@@ -219,7 +219,8 @@ public class Radar3DCoordinateSystem extends NavigatedCoordinateSystem {
     }
     int len = tuples[0].length;
 // System.out.println("toReference double len = " + len);
-    double[][] value = new double[3][len];
+    // double[][] value = new double[3][len];
+    double[][] value = tuples;
 /* WLH 7 April 2000
     for (int i=0; i<len ;i++) {
       double rad = radlow + radres * tuples[0][i];
@@ -295,7 +296,8 @@ public class Radar3DCoordinateSystem extends NavigatedCoordinateSystem {
     }
     int len = tuples[0].length;
 // System.out.println("fromReference double len = " + len);
-    double[][] value = new double[3][len];
+    // double[][] value = new double[3][len];
+    double[][] value = tuples;
 /* WLH 7 April 2000
     for (int i=0; i<len ;i++) {
       double slat = (tuples[0][i] - centlat) * latscale;
@@ -360,7 +362,8 @@ public class Radar3DCoordinateSystem extends NavigatedCoordinateSystem {
     }
     int len = tuples[0].length;
 // System.out.println("toReference float len = " + len);
-    float[][] value = new float[3][len];
+    // float[][] value = new float[3][len];
+    float[][] value = tuples;
 /* WLH 7 April 2000
     for (int i=0; i<len ;i++) {
       double rad = radlow + radres * tuples[0][i];
@@ -436,7 +439,8 @@ public class Radar3DCoordinateSystem extends NavigatedCoordinateSystem {
     }
     int len = tuples[0].length;
 // System.out.println("fromReference float len = " + len);
-    float[][] value = new float[3][len];
+    // float[][] value = new float[3][len];
+    float[][] value = tuples;
 /* WLH 7 April 2000
     for (int i=0; i<len ;i++) {
       double slat = (tuples[0][i] - centlat) * latscale;

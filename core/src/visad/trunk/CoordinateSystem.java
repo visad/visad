@@ -283,6 +283,56 @@ public abstract class CoordinateSystem extends Object
                         RealTupleType in, CoordinateSystem coord_in,
                         Unit[] units_in, ErrorEstimate[] errors_in,
                         double[][] value) throws VisADException {
+    return transformCoordinates(out, coord_out, units_out, errors_out,
+                                in, coord_in, units_in, errors_in,
+                                value, true);
+  }
+
+  /**
+   * <p>Transforms double-valued coordinates between two {@link RealTupleType}s.
+   * Unit conversion is always performed even if no coordinate transformation
+   * is done.</p>
+   *
+   * <p>This implementation uses {@link #transformCoordinatesFreeUnits} to do
+   * most of the transformation.</p>
+   *
+   * <p>If both {@link RealTupleType}s have a reference coordinate system, then
+   * this implementation <em>always</em> transforms the input domain values by
+   * first transforming them according to the input reference coordinate system
+   * and then inverse transforming them according to the output reference
+   * coordinate system -- even if the input and output {@link RealTupleType}s
+   * are equal.</p>
+   *
+   * @param out              The output {@link RealTupleType}.
+   * @param coord_out        The coordinate system transformation associated
+   *                         with the output {@link RealTupleType} or <code>
+   *                         null</code>.
+   * @param units_out        The output units.
+   * @param errors_out       The output error estimates or <code>null</code>.
+   * @param in               The input {@link RealTupleType}.
+   * @param coord_in         The coordinate system transformation associated
+   *                         with the output {@link RealTupleType} or <code>
+   *                         null</code>.
+   * @param units_in         The input units or <code>null</code>.
+   * @param errors_in        The input error estimates or <code>null</code>.
+   * @param value            The input coordinate values.  <code>value[i][j]
+   *                         </code> is the <code>j</code>-th sample of the
+   *                         <code>i</code>-th component.  The values might
+   *                         be modified upon return from this method.
+   * @param copy             if false, the underlying <code>value</code> array
+   *                         transformations may be done in place.
+   * @return                 The transformed coordinate values not in the input
+   *                         array, if copy is true.
+   * @throws VisADException  if a VisAD failure occurs.
+   * @throws NullPointerException if <code>units_out</code> is 
+   *                         <code>null</code>.
+   */
+  public static double[][] transformCoordinates(
+                        RealTupleType out, CoordinateSystem coord_out,
+                        Unit[] units_out, ErrorEstimate[] errors_out,
+                        RealTupleType in, CoordinateSystem coord_in,
+                        Unit[] units_in, ErrorEstimate[] errors_in,
+                        double[][] value, boolean copy) throws VisADException {
     int n = out.getDimension();
     Unit[] units_free = new Unit[n];
     double[][] old_value = value;
@@ -299,13 +349,13 @@ public abstract class CoordinateSystem extends Object
     if (errors_out == null) {
       for (int i=0; i<n; i++) {
         value[i] = Unit.transformUnits(units_out[i], sub_errors_out, units_free[i],
-                                       null, value[i]);
+                                       null, value[i], copy);
       }
     }
     else {
       for (int i=0; i<n; i++) {
         value[i] = Unit.transformUnits(units_out[i], sub_errors_out, units_free[i],
-                                       errors_out[i], value[i]);
+                                       errors_out[i], value[i], copy);
         errors_out[i] = sub_errors_out[0];
       }
     }
@@ -517,6 +567,57 @@ public abstract class CoordinateSystem extends Object
                         RealTupleType in, CoordinateSystem coord_in,
                         Unit[] units_in, ErrorEstimate[] errors_in,
                         float[][] value) throws VisADException {
+    return transformCoordinates(out, coord_out, units_out, errors_out,
+                                in, coord_in, units_in, errors_in,
+                                value, true);
+  }
+
+
+  /**
+   * <p>Transforms float-valued coordinates between two {@link RealTupleType}s.
+   * Unit conversion is always performed even if no coordinate transformation
+   * is done.</p>
+   *
+   * <p>This implementation uses {@link #transformCoordinatesFreeUnits} to do
+   * most of the transformation.</p>
+   *
+   * <p>If both {@link RealTupleType}s have a reference coordinate system, then
+   * this implementation <em>always</em> transforms the input domain values by
+   * first transforming them according to the input reference coordinate system
+   * and then inverse transforming them according to the output reference
+   * coordinate system -- even if the input and output {@link RealTupleType}s
+   * are equal.</p>
+   *
+   * @param out              The output {@link RealTupleType}.
+   * @param coord_out        The coordinate system transformation associated
+   *                         with the output {@link RealTupleType} or <code>
+   *                         null</code>.
+   * @param units_out        The output units.
+   * @param errors_out       The output error estimates or <code>null</code>.
+   * @param in               The input {@link RealTupleType}.
+   * @param coord_in         The coordinate system transformation associated
+   *                         with the output {@link RealTupleType} or <code>
+   *                         null</code>.
+   * @param units_in         The input units or <code>null</code>.
+   * @param errors_in        The input error estimates or <code>null</code>.
+   * @param value            The input coordinate values.  <code>value[i][j]
+   *                         </code> is the <code>j</code>-th sample of the
+   *                         <code>i</code>-th component.  The values might
+   *                         be modified upon return from this method.
+   * @param copy             if false, the underlying <code>value</code> array
+   *                         transformations may be done in place.
+   * @return                 The transformed coordinate values not in the input
+   *                         array, if copy is true.
+   * @throws VisADException  if a VisAD failure occurs.
+   * @throws NullPointerException if <code>units_out</code> is 
+   *                         <code>null</code>.
+   */
+  public static float[][] transformCoordinates(
+                        RealTupleType out, CoordinateSystem coord_out,
+                        Unit[] units_out, ErrorEstimate[] errors_out,
+                        RealTupleType in, CoordinateSystem coord_in,
+                        Unit[] units_in, ErrorEstimate[] errors_in,
+                        float[][] value, boolean copy) throws VisADException {
 
     int n = out.getDimension();
     Unit[] units_free = new Unit[n];
@@ -534,13 +635,13 @@ public abstract class CoordinateSystem extends Object
     if (errors_out == null) {
       for (int i=0; i<n; i++) {
         value[i] = Unit.transformUnits(units_out[i], sub_errors_out, units_free[i],
-                                       null, value[i]);
+                                       null, value[i], copy);
       }
     }
     else {
       for (int i=0; i<n; i++) {
         value[i] = Unit.transformUnits(units_out[i], sub_errors_out, units_free[i],
-                                       errors_out[i], value[i]);
+                                       errors_out[i], value[i], copy);
         errors_out[i] = sub_errors_out[0];
       }
     }
@@ -727,7 +828,9 @@ public abstract class CoordinateSystem extends Object
     if (CoordinateSystemUnits != null) {
       for (int i=0; i<n; i++) {
         if (CoordinateSystemUnits[i] != null) {
-          value[i] = CoordinateSystemUnits[i].toThis(value[i], units[i]);
+          if (units[i] != null && !CoordinateSystemUnits[i].equals(units[i])) {
+            value[i] = CoordinateSystemUnits[i].toThis(value[i], units[i], false);
+          }
         }
       }
     }
@@ -760,7 +863,9 @@ public abstract class CoordinateSystem extends Object
     if (CoordinateSystemUnits != null) {
       for (int i=0; i<n; i++) {
         if (CoordinateSystemUnits[i] != null) {
-          value[i] = CoordinateSystemUnits[i].toThis(value[i], units[i]);
+          if (units[i] != null && !CoordinateSystemUnits[i].equals(units[i])) {
+            value[i] = CoordinateSystemUnits[i].toThis(value[i], units[i], false);
+          }
         }
       }
     }
@@ -794,7 +899,9 @@ public abstract class CoordinateSystem extends Object
     if (us != null) {
       for (int i=0; i<n; i++) {
         if (us[i] != null) {
-          value[i] = us[i].toThis(value[i], units[i]);
+          if (units[i] != null && !us[i].equals(units[i])) {
+            value[i] = us[i].toThis(value[i], units[i], false);
+          }
         }
       }
     }
@@ -827,7 +934,9 @@ public abstract class CoordinateSystem extends Object
     if (us != null) {
       for (int i=0; i<n; i++) {
         if (us[i] != null) {
-          value[i] = us[i].toThis(value[i], units[i]);
+          if (units[i] != null && !us[i].equals(units[i])) {
+            value[i] = us[i].toThis(value[i], units[i], false);
+          }
         }
       }
     }
