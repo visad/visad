@@ -31,6 +31,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import java.text.FieldPosition;
@@ -49,6 +50,10 @@ DateTime
     extends     Real
 {
 
+    /** This is around so we can use a different date formatter */
+    private static Class dateFormatClass;
+
+
     /**
      * Default Time Format Pattern (yyyy-MM-dd HH:mm:ss)
      */
@@ -62,8 +67,10 @@ DateTime
     // Time related variables
     private static String formatPattern = DEFAULT_TIME_FORMAT;
     private static TimeZone timeZone = DEFAULT_TIMEZONE;
-    private final GregorianCalendar utcCalendar =
-                          new GregorianCalendar(DEFAULT_TIMEZONE);
+
+    //Don't create this right away now
+    private GregorianCalendar utcCalendar;
+
     private static final double secondsPerDay = (double) (24 * 60 * 60);
 
     /**
@@ -82,8 +89,9 @@ DateTime
                real.getValue(CommonUnit.secondsSinceTheEpoch),
                CommonUnit.secondsSinceTheEpoch);
 
+        //We create and set the utcCalendar when we need it
         // set up in terms of java date
-        utcCalendar.setTime(new Date(Math.round(getValue()*1000.)));
+	//        utcCalendar.setTime(new Date(Math.round(getValue()*1000.)));
     }
 
     /**
@@ -97,11 +105,14 @@ DateTime
     public DateTime(double seconds)
             throws VisADException
     {
-        this(seconds, CommonUnit.secondsSinceTheEpoch);
+        super(RealType.Time,
+              seconds,
+              CommonUnit.secondsSinceTheEpoch,null);
+        //        this(seconds, CommonUnit.secondsSinceTheEpoch);
     }
 
     /**
-     * Construct a DateTime object from a number of value and a Unit
+     * Construct a DateTime object from a tim value and a Unit
      * @param  timeValue  value of time in timeUnits
      * @param  timeUnits  units of value
      */
@@ -109,6 +120,7 @@ DateTime
             throws VisADException {
          this(new Real(RealType.Time, timeValue, timeUnits));
      }
+
 
     /**
      * Construct a DateTime object and initialize it with a Java date.
@@ -120,9 +132,10 @@ DateTime
     public DateTime(Date date)
             throws VisADException
     {
-        this(new Real(RealType.Time,
-                      date.getTime()/1000.,
-                      CommonUnit.secondsSinceTheEpoch));
+	//Just go directly to the super with the Date value
+        super( RealType.Time,
+	       date.getTime()/1000.,
+               CommonUnit.secondsSinceTheEpoch, null);
     }
 
     /**
@@ -136,6 +149,7 @@ DateTime
         this(new Real(RealType.Time,
                       System.currentTimeMillis()/1000.,
                       CommonUnit.secondsSinceTheEpoch));
+
     }
 
     /**
@@ -156,6 +170,9 @@ DateTime
     {
         this(fromYearDaySeconds(year, day, seconds));
     }
+
+
+
 
     /**
      * Return a Real object whose value is the seconds since the Epoch
@@ -181,7 +198,7 @@ DateTime
             throw new VisADException(
                               "DateTime.fromYearDaySeconds: invalid year");
         }
-        int dayLimit = utcCalendar.isLeapYear(year) ? 366 : 365;
+        int dayLimit = getCalendar().isLeapYear(year) ? 366 : 365;
 */
 
         // require positive day
@@ -243,6 +260,22 @@ DateTime
         return this;
     }
 
+
+    /** 
+     * Create, if needed, and return the utcCalendar 
+     *
+     * @returns The Calendar object to use
+     */
+    private Calendar getCalendar() 
+    {
+	if(utcCalendar == null) {
+	    utcCalendar =new GregorianCalendar(DEFAULT_TIMEZONE);
+	    utcCalendar.setTime(new Date(Math.round(getValue()*1000.)));
+	}	    
+	return utcCalendar;
+    }
+
+
     /**
      * Return a string representation of this DateTime.  Unless the
      * setFormatPattern() and/or setTimeZone() methods were used, the
@@ -265,7 +298,7 @@ DateTime
             } else {
                 pat = pat + " z";
             }
-            if (utcCalendar.get(Calendar.ERA) == GregorianCalendar.BC) {
+            if (getCalendar().get(Calendar.ERA) == GregorianCalendar.BC) {
                 pat = pat + " 'BCE'";
             }
         }
@@ -299,11 +332,23 @@ DateTime
     public String formattedString(String pattern, TimeZone timezone)
     {
         StringBuffer buf = new StringBuffer();
-        SimpleDateFormat sdf = new SimpleDateFormat();
+        DateFormat sdf = null;
+        if(dateFormatClass!=null) {
+            try {
+                sdf = (DateFormat) dateFormatClass.newInstance();
+            } catch(Exception ie) {
+                throw new IllegalStateException("Error creating a DateFormat from:" + dateFormatClass.getName() +" " + ie);
+            }
+        } else {
+            sdf = new SimpleDateFormat();
+        }
         sdf.setTimeZone(timezone);
-        if (pattern != null) sdf.applyPattern(pattern);
-        return new String((sdf.format(utcCalendar.getTime(), buf,
-                                new FieldPosition(0))).toString());
+        if (pattern != null&& sdf instanceof SimpleDateFormat) {
+
+            ((SimpleDateFormat)sdf).applyPattern(pattern);
+        }
+        return (sdf.format(getCalendar().getTime(), buf,
+                                new FieldPosition(0))).toString();
     }
 
     /**
@@ -315,7 +360,7 @@ DateTime
     public String dateString()
     {
         String pattern =
-                  (utcCalendar.get(Calendar.ERA) == GregorianCalendar.BC)
+                  (getCalendar().get(Calendar.ERA) == GregorianCalendar.BC)
                             ? "yyyy-MM-dd 'BCE'"
                             : "yyyy-MM-dd";
         return formattedString(pattern, DEFAULT_TIMEZONE);
@@ -330,6 +375,18 @@ DateTime
     public String timeString()
     {
         return formattedString("HH:mm:ss'Z'", DEFAULT_TIMEZONE);
+    }
+
+    /** 
+     * You can override the DateFormat by specifying a class. 
+     *
+     * @param dateFormatClass The class. This must be derived from java.text.DateFormat 
+     */
+    public static void setDateFormatClass(Class dateFormatClass) {
+        if(!java.text.DateFormat.class.isAssignableFrom(dateFormatClass)) {
+            throw new IllegalArgumentException("Not a DateFormat class: " + dateFormatClass.getName());
+        }
+        DateTime.dateFormatClass = dateFormatClass;
     }
 
     /**
