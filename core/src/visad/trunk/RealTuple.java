@@ -210,7 +210,8 @@ public class RealTuple
   public double[] getValues() {
     int n = getDimension();
     double[] values = new double[n];
-    for (int i=0; i<n; i++) values[i] = ((Real) tupleComponents[i]).getValue();
+    Data[] tupleComps = getComponents();
+    for (int i=0; i<n; i++) values[i] = ((Real) tupleComps[i]).getValue();
     return values;
   }
 
@@ -258,30 +259,32 @@ public class RealTuple
       if (isMissing() || data.isMissing()) {
         return new RealTuple((RealTupleType) new_type);
       }
-      double[][] vals = new double[tupleComponents.length][1];
-      for (int j=0; j<tupleComponents.length; j++) {
+      int dim = getDimension();
+      double[][] vals = new double[dim][1];
+      for (int j=0; j<dim; j++) {
         vals[j][0] = ((Real) ((RealTuple) data).getComponent(j)).getValue();
       }
-      ErrorEstimate[] errors_out = new ErrorEstimate[tupleComponents.length];
+      ErrorEstimate[] errors_out = new ErrorEstimate[dim];
       vals = CoordinateSystem.transformCoordinates(
-                      (RealTupleType) Type, TupleCoordinateSystem,
-                      TupleUnits, errors_out,
+                      (RealTupleType) Type, getCoordinateSystem(),
+                      getTupleUnits(), errors_out,
                       (RealTupleType) data.getType(),
                       ((RealTuple) data).getCoordinateSystem(),
                       ((RealTuple) data).getTupleUnits(),
                       ((RealTuple) data).getErrors(), vals);
-      Real[] reals = new Real[tupleComponents.length];
-      for (int j=0; j<tupleComponents.length; j++) {
+      Real[] reals = new Real[dim];
+      Unit[] tupleUnits = getTupleUnits();
+      for (int j=0; j<dim; j++) {
         Real real = new Real((RealType) ((RealTupleType) Type).getComponent(j),
-                             vals[j][0], TupleUnits[j], errors_out[j]);
+                             vals[j][0], tupleUnits[j], errors_out[j]);
         /*- TDR May 1998 */
         m_type = ((RealTupleType)new_type).getComponent(j);
         /*- end */
         reals[j] =
         /*- TDR May 1998
-          (Real) tupleComponents[j].binary(real, op, sampling_mode, error_mode);
+          (Real) getComponent(j).binary(real, op, sampling_mode, error_mode);
          */
-          (Real) tupleComponents[j].binary(real, op, m_type, sampling_mode, error_mode);
+          (Real) getComponent(j).binary(real, op, m_type, sampling_mode, error_mode);
       }
       /* BINARY - TDR May 28, 1998
       return new RealTuple((RealTupleType)Type, reals, TupleCoordinateSystem);
@@ -295,15 +298,16 @@ public class RealTuple
       if (isMissing() || data.isMissing()) {
         return new RealTuple((RealTupleType) Type);
       }
-      Real[] reals = new Real[tupleComponents.length];
-      for (int j=0; j<tupleComponents.length; j++) {
+      int dim = getDimension();
+      Real[] reals = new Real[dim];
+      for (int j=0; j<dim; j++) {
         m_type = ((RealTupleType)new_type).getComponent(j);
 
         /*- TDR May 1998
-        reals[j] = (Real) tupleComponents[j].binary(data, op, sampling_mode,
+        reals[j] = (Real) getComponent(j).binary(data, op, sampling_mode,
                                                     error_mode);
         */
-        reals[j] = (Real) tupleComponents[j].binary(data, op, m_type,
+        reals[j] = (Real) getComponent(j).binary(data, op, m_type,
                                              sampling_mode, error_mode);
 
       }
@@ -342,12 +346,13 @@ public class RealTuple
     RealTupleType RT_type= (RealTupleType)new_type;
 
     if (isMissing()) return new RealTuple((RealTupleType) Type);
-    Real[] reals = new Real[tupleComponents.length];
-    for (int j=0; j<tupleComponents.length; j++) {
-      reals[j] = (Real) tupleComponents[j].unary(op, RT_type.getComponent(j),
+    int dim = getDimension();
+    Real[] reals = new Real[dim];
+    for (int j=0; j<dim; j++) {
+      reals[j] = (Real) getComponent(j).unary(op, RT_type.getComponent(j),
                                                  sampling_mode, error_mode);
     }
-    return new RealTuple((RealTupleType) new_type, reals, TupleCoordinateSystem);
+    return new RealTuple((RealTupleType) new_type, reals, getCoordinateSystem());
   }
 
   public DataShadow computeRanges(ShadowType type, DataShadow shadow)
@@ -359,13 +364,14 @@ public class RealTuple
     // computeRanges for Reference RealTypes
     double[][] ranges = new double[2][n];
     for (int i=0; i<n; i++) {
-      double value = ((Real) tupleComponents[i]).getValue();
+      double value = ((Real) getComponent(i)).getValue();
 
       // WLH 20 Nov 2001
+      Unit[] tupleUnits = getTupleUnits();
       Unit unit =
         ((RealType) ((RealTupleType) Type).getComponent(i)).getDefaultUnit();
-      if (unit != null && !unit.equals(TupleUnits[i])) {
-        value = unit.toThis(value, TupleUnits[i]);
+      if (unit != null && !unit.equals(tupleUnits[i])) {
+        value = unit.toThis(value, tupleUnits[i]);
       }
 
       if (value != value) return shadow;
@@ -373,8 +379,8 @@ public class RealTuple
       ranges[1][i] = value;
     }
     return computeReferenceRanges((ShadowRealTupleType) type,
-                                  // TupleCoordinateSystem, TupleUnits,
-                                  TupleCoordinateSystem,
+                                  // getCoordinateSystem(), getTupleUnits(),
+                                  getCoordinateSystem(),
                                   ((RealTupleType) Type).getDefaultUnits(),
                                   shadow, shad_ref, ranges);
   }
@@ -403,9 +409,10 @@ public class RealTuple
    */
   public String toString() {
     if (isMissing()) return "missing";
-    String s = "(" + tupleComponents[0];
-    for (int i=1; i<tupleComponents.length; i++) {
-      s = s + ", " + tupleComponents[i];
+    Data[] tupleComps = getComponents();
+    String s = "(" + tupleComps[0];
+    for (int i=1; i<getDimension(); i++) {
+      s = s + ", " + tupleComps[i];
     }
     return s + ")";
   }
@@ -414,10 +421,10 @@ public class RealTuple
          throws VisADException, RemoteException {
     String s = pre + "RealTuple\n" + pre + "  Type: " + Type.toString() + "\n";
     if (isMissing()) return s + "  missing\n";
-    for (int i=0; i<tupleComponents.length; i++) {
+    for (int i=0; i<getDimension(); i++) {
       s = s + pre + "  Tuple Component " + i + ": Value = " +
-          ((Real) tupleComponents[i]).getValue() + "  (TypeName = " +
-          ((RealType) tupleComponents[i].getType()).getName() + ")\n";
+          ((Real) getComponent(i)).getValue() + "  (TypeName = " +
+          ((RealType) getComponent(i).getType()).getName() + ")\n";
     }
     return s;
   }
@@ -476,4 +483,3 @@ iris 202%
 */
 
 }
-

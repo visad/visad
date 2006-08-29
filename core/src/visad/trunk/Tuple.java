@@ -186,14 +186,15 @@ public class Tuple extends DataImpl implements TupleIface {
    */
   public Real[] getRealComponents()
          throws VisADException, RemoteException {
-    if (tupleComponents == null) return null;
+    if (getComponents() == null) return null;
     Vector reals = new Vector();
-    for (int i=0; i<tupleComponents.length; i++) {
-      if (tupleComponents[i] instanceof Real) {
-        reals.addElement(tupleComponents[i]);
+    for (int i=0; i<getDimension(); i++) {
+      Data comp = getComponent(i);
+      if (comp instanceof Real) {
+        reals.addElement(comp);
       }
-      else if (tupleComponents[i] instanceof RealTuple) {
-        RealTuple rt = (RealTuple) tupleComponents[i]; 
+      else if (comp instanceof RealTuple) {
+        RealTuple rt = (RealTuple) comp;
         for (int j=0; j<rt.getDimension(); j++) {
           reals.addElement(rt.getComponent(j));
         }
@@ -254,7 +255,7 @@ public class Tuple extends DataImpl implements TupleIface {
     if (isMissing()) {
       return ((TupleType) Type).getComponent(i).missingData();
     }
-    else if (0 <= i && i < tupleComponents.length) {
+    else if (0 <= i && i < getDimension()) {
       return (Data) tupleComponents[i];
     }
     else {
@@ -267,7 +268,7 @@ public class Tuple extends DataImpl implements TupleIface {
    * @return true if there is no data.
    */
   public boolean isMissing() {
-    return (tupleComponents == null);
+    return (getComponents() == null);
   }
 
 /*-  TDR May 1998
@@ -298,12 +299,14 @@ public class Tuple extends DataImpl implements TupleIface {
       if (isMissing() || data.isMissing()) {
         return new Tuple((TupleType) new_type);
       }
-      Data[] datums = new Data[tupleComponents.length];
-      for (int j=0; j<tupleComponents.length; j++) {
+      int dim = getDimension();
+      Data[] datums = new Data[dim];
+      for (int j=0; j<dim; j++) {
         /* BINARY - TDR June 2, 1998 */
         m_type = ((TupleType)new_type).getComponent(j);
+        System.out.println("m_type = " + m_type);
         /* end  */
-        datums[j] = tupleComponents[j].binary(((Tuple) data).getComponent(j), op,
+        datums[j] = getComponent(j).binary(((Tuple) data).getComponent(j), op,
                                               m_type, sampling_mode, error_mode);
       }
       return new Tuple(datums);
@@ -317,12 +320,13 @@ public class Tuple extends DataImpl implements TupleIface {
       if (isMissing() || data.isMissing()) {
         return new Tuple((TupleType) new_type);
       }
-      Data[] datums = new Data[tupleComponents.length];
-      for (int j=0; j<tupleComponents.length; j++) {
+      int dim = getDimension();
+      Data[] datums = new Data[getDimension()];
+      for (int j=0; j<dim; j++) {
         /* BINARY - TDR June 2, 1998 */
         m_type = ((TupleType)new_type).getComponent(j);
         /* end  */
-        datums[j] = tupleComponents[j].binary(data, op, m_type, sampling_mode, error_mode);
+        datums[j] = getComponent(j).binary(data, op, m_type, sampling_mode, error_mode);
       }
       return new Tuple(datums);
     }
@@ -363,9 +367,10 @@ public class Tuple extends DataImpl implements TupleIface {
 
     if (isMissing()) return new Tuple((TupleType) new_type);
 
-    Data[] datums = new Data[tupleComponents.length];
-    for (int j=0; j<tupleComponents.length; j++) {
-      datums[j] = tupleComponents[j].unary(op, T_type.getComponent(j),
+    int dim = getDimension();
+    Data[] datums = new Data[dim];
+    for (int j=0; j<dim; j++) {
+      datums[j] = getComponent(j).unary(op, T_type.getComponent(j),
                                            sampling_mode, error_mode);
     }
     return new Tuple(datums);
@@ -374,9 +379,9 @@ public class Tuple extends DataImpl implements TupleIface {
   public DataShadow computeRanges(ShadowType type, DataShadow shadow)
          throws VisADException, RemoteException {
     if (isMissing()) return shadow;
-    for (int i=0; i<tupleComponents.length; i++) {
+    for (int i=0; i<getDimension(); i++) {
       shadow =
-        tupleComponents[i].computeRanges(((ShadowTupleType) type).getComponent(i),
+        getComponent(i).computeRanges(((ShadowTupleType) type).getComponent(i),
                                          shadow);
     }
     return shadow;
@@ -387,12 +392,12 @@ public class Tuple extends DataImpl implements TupleIface {
   public Data adjustSamplingError(Data error, int error_mode)
          throws VisADException, RemoteException {
     if (isMissing() || error == null || error.isMissing()) return this;
-    int n = tupleComponents.length;
+    int n = getDimension();
     Data[] newComponents = new Data[n];
     for (int i=0; i<n; i++) {
       Data errorComponent = ((Tuple) error).getComponent(i);
       newComponents[i] =
-        tupleComponents[i].adjustSamplingError(errorComponent, error_mode);
+        getComponent(i).adjustSamplingError(errorComponent, error_mode);
     }
     return new Tuple(newComponents);
   }
@@ -468,9 +473,9 @@ public class Tuple extends DataImpl implements TupleIface {
          throws VisADException, RemoteException {
     String s = pre + "Tuple\n" + pre + "  Type: " + Type.toString() + "\n";
     if (isMissing()) return s + "  missing\n";
-    for (int i=0; i<tupleComponents.length; i++) {
+    for (int i=0; i<getDimension(); i++) {
       s = s + pre + "  Tuple Component " + i + ":\n" +
-              tupleComponents[i].longString(pre + "    ");
+              getComponent(i).longString(pre + "    ");
     }
     return s;
   }
