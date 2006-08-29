@@ -128,6 +128,30 @@ public final class McIDASUtil
     }
 
     /**
+     * Create a calendar to be used for mcDayTimeToSecs.
+     * Use this to minimize object creation overhead when calling the method
+     * many times.
+     *
+     * @return A calendar to use for mcDayTimeToSecs.
+     */
+    public static GregorianCalendar makeCalendarForDayTimeToSecs() 
+    {
+        GregorianCalendar cal = new GregorianCalendar();
+        cal.setTimeZone(TimeZone.getTimeZone("GMT"));
+        cal.set(Calendar.ERA, GregorianCalendar.AD);
+        /* 
+           allow us to specify # of days since the year began without having
+           worry about leap years and seconds since the day began, instead
+           of in the minute.  Saves on some calculations.
+        */
+        cal.setLenient(true);         
+        return cal;
+    }
+
+
+
+    /**
+
      * Convert day (yyddd or yyyyddd) and time (hhmmss) to seconds since
      * the epoch (January 1, 1970, 00:00GMT).  Java version of 'mcdaytimetosecs'
      * except it returns a long instead of an int.
@@ -141,27 +165,45 @@ public final class McIDASUtil
      */
     public static long mcDayTimeToSecs(int yearday, int time)
     {
+
+        return mcDayTimeToSecs(yearday,time,null);
+    }
+
+    /**
+     * Convert day (yyddd or yyyyddd) and time (hhmmss) to seconds since
+     * the epoch (January 1, 1970, 00:00GMT).  Java version of 'mcdaytimetosecs'
+     * except it returns a long instead of an int.
+     *
+     * @param    yearday    year/day in either yyddd or yyyyddd format.  
+     *                      Only works for years > 1900.
+     * @param    time       time in packed integer format (hhmmss)
+     * @param    cal        If non-null then use this calendar to do the formatting.
+     *                      else create a new one. Note: The calendar you pass in should be
+     *                      one created from makeCalendarForDayTimeToSecs
+     *
+     * @return  seconds since the epoch
+     *
+     */
+    public static long mcDayTimeToSecs(int yearday, int time, GregorianCalendar cal)
+    {
+        //jeffmc: Add the cal parameter to this method
+       if(cal == null) {
+            cal = makeCalendarForDayTimeToSecs();
+        }
+
         int year = ((yearday/1000)%1900) + 1900;  // convert to yyyyddd first
         int day =  yearday%1000;
         double seconds = mcPackedIntegerToDouble(time)*3600.;
-
-        GregorianCalendar cal = new GregorianCalendar();
         cal.clear();
-        cal.setTimeZone(TimeZone.getTimeZone("GMT"));
-        cal.set(Calendar.ERA, GregorianCalendar.AD);
-        cal.set(Calendar.YEAR, year);
-        /* 
-           allow us to specify # of days since the year began without having
-           worry about leap years and seconds since the day began, instead
-           of in the minute.  Saves on some calculations.
-        */
-        cal.setLenient(true);         
-
         cal.set(Calendar.DAY_OF_YEAR, day);
+        cal.set(Calendar.YEAR, year);
         int secs = ((int) Math.round(seconds * 1000))/1000;
         cal.set(Calendar.SECOND, secs);
         cal.set(Calendar.MILLISECOND, 0);
-        return cal.getTime().getTime()/1000;
+        //jeffmc: Change:
+        //        return cal.getTime().getTime()/1000;
+        //to:
+        return cal.getTimeInMillis()/1000;
     }
 
     /**
@@ -180,11 +222,15 @@ public final class McIDASUtil
         int year = date/10000;
         int month = (date%10000)/100;
         int day =  date%100;
+
+        /** 
+            jeffmc: Comment these out?
         System.out.println("year = " + year);
         System.out.println("month = " + month);
         System.out.println("day = " + day);
+        */
         double seconds = mcPackedIntegerToDouble(time)*3600.;
-
+ 
         GregorianCalendar cal = new GregorianCalendar();
         cal.clear();
         cal.setTimeZone(TimeZone.getTimeZone("GMT"));
