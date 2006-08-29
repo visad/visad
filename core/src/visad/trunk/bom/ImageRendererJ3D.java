@@ -136,8 +136,12 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
       if (rt instanceof RealType) {
         range = new RealTupleType((RealType) rt);
       }
-      else {
+      else if (rt instanceof RealTupleType) {
         range = (RealTupleType) rt;
+      } 
+      else {
+        // illegal MathType
+        throw new VisADException("Illegal RangeType");
       }
     }
     else {
