@@ -516,9 +516,66 @@ public class Util
 
     // test each component
     for (int i=0; i<o1.length; i++) {
-      if (!o1[i].equals(o2[i])) return false;
+      //if (!o1[i].equals(o2[i])) return false;
+      Object a1 = o1[i];
+      Object a2 = o2[i];
+      if (!(a1==null ? a2==null : a1.equals(a2))) return false;
     }
     return true;
+  }
+
+
+  /**
+   * Create a string representation of the given array
+   *
+   * @param array  array to print
+   *
+   * @return  array as a String
+   */
+  public static void printArray(String prefix, Object[] array) {
+    StringBuffer buf = new StringBuffer();
+    buf.append(prefix);
+    buf.append(": ");
+    if (array == null) {
+      buf.append(" null ");
+    } 
+    else {
+      for (int i = 0; i < array.length; i++) {
+        buf.append("[");
+        buf.append(i);
+        buf.append("]: ");
+        buf.append((array[i] == null)
+                   ? "null"
+                   : array[i]);
+        buf.append(" ");
+      }
+    }
+    System.out.println(buf.toString());
+  }
+
+  /**
+   * Print out the values in a double array.
+   *
+   * @param prefix  prefix string
+   * @param array  array to print
+   */
+  public static void printArray(String prefix, double[] array) {
+    StringBuffer buf = new StringBuffer();
+    buf.append(prefix);
+    buf.append(": ");
+    if (array == null) {
+      buf.append(" null ");
+    } 
+    else {
+      for (int i = 0; i < array.length; i++) {
+        buf.append("[");
+        buf.append(i);
+        buf.append("]: ");
+        buf.append(array[i]);
+        buf.append(" ");
+      }
+    }
+    System.out.println(buf.toString());
   }
 
   /**
