@@ -1329,7 +1329,7 @@ System.out.println("data_width = " + data_width + " data_height = " + data_heigh
           mapValues(display_values, reference_doubles, DomainReferenceComponents);
         }
         else {
-          mapValues(display_values, reference_values, DomainReferenceComponents, false);
+          mapValues(display_values, reference_values, DomainReferenceComponents);
         }
 
 // if (link != null) System.out.println("end map reference " + (System.currentTimeMillis() - link.start_time));
