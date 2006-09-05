@@ -41,7 +41,7 @@ import visad.data.*;
  * Class of static methods for printing out information about VisAD
  * {@link Data} objects.
  *
- * @version $Revision: 1.13 $
+ * @version $Revision: 1.14 $
  */
 public class DumpType {
 
@@ -84,8 +84,8 @@ public class DumpType {
    * @param prefix    prefix string for any output
    */
   private static void dumpDT(Data d, String prefix) {
-
-    PrintWriter out = new PrintWriter(new OutputStreamWriter(os));
+    PrintStream out = os instanceof PrintStream ?
+      (PrintStream) os : new PrintStream(os);
     if (init) {
       out.println("VisAD Data analysis");
     }
@@ -384,7 +384,8 @@ public class DumpType {
    * @param prefix   prefix string for any output
    */
   private static void dumpMT(MathType t, String prefix) {
-    PrintWriter out = new PrintWriter(new OutputStreamWriter(os));
+    PrintStream out = os instanceof PrintStream ?
+      (PrintStream) os : new PrintStream(os);
     if (init) {
       out.println("VisAD MathType analysis");
     }
@@ -480,7 +481,8 @@ public class DumpType {
     if (cs != null) {
       RealTupleType ref = cs.getReference();
       if (ref != null) {
-        PrintWriter out = new PrintWriter(new OutputStreamWriter(os));
+        PrintStream out = os instanceof PrintStream ?
+          (PrintStream) os : new PrintStream(os);
         out.println(prefix + " CoordinateSystem: "
                     + rtt.prettyString() + " ==> "
                     + ref.prettyString());
