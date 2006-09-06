@@ -389,7 +389,189 @@ public final class MOLLnav extends AREAnav
         } // end point loop
 
         // Return in 'File' coordinates
-        return imageCoordToAreaCoord(linele);
+        return imageCoordToAreaCoord(linele, linele);
+    }
+
+    /** 
+     * Converts from satellite coordinates to latitude/longitude
+     *
+     * @param  linele[][]  array of line/element pairs.  Where 
+     *                     linele[indexLine][] is a 'line' and 
+     *                     linele[indexEle][] is an element. These are in 
+     *                     'file' coordinates (not "image" coordinates.)
+     *
+     * @return latlon[][]  array of lat/long pairs. Output array is 
+     *                     latlon[indexLat][] of latitudes and 
+     *                     latlon[indexLon][] of longitudes.
+     *
+     */
+    public float[][] toLatLon(float[][] linele) 
+    {
+
+        double xlin, xele;
+        double xldif, xedif;
+        double w;
+        double xlat, xlon;
+        double ylat, ylon;
+        double snlt, cslt, snln, csln, r, tnlt, z;
+
+        int number = linele[0].length;
+        float[][] latlon = new float[2][number];
+        // Convert from file to Image coordinates for calculations
+        float[][] imglinele = areaCoordToImageCoord(linele);
+
+        for (int point=0; point < number; point++) 
+        {
+            xlin = imglinele[indexLine][point];
+            xele = imglinele[indexEle][point];
+
+            xldif = Math.abs(xlin - xrow)/rpix;
+            xedif = (xcol - xele)/rpix;
+
+            // WLH 8 March 2000
+            // if (xldif > 1.0)
+            if (xlin != xlin || xele != xele || xldif > 1.0)
+            {
+                xlat = Double.NaN;
+                xlon = Double.NaN;
+            }
+            else
+            {
+                w = Math.sqrt(1.0 - xldif*xldif);
+                if (w == 0.0 || Math.abs(xedif/w) > 2.0)
+                {
+                    xlat = Double.NaN;
+                    xlon = Double.NaN;
+                }
+                else
+                {
+                    xlat = Math.asin((Math.asin(xldif)+
+                                 xldif*w)/1.57080)/DEGREES_TO_RADIANS;
+                    if (xlin > xrow) xlat = -xlat;
+
+                    // Compute angular displacement from std longitude (XQLON)
+                    xlon = -90.*(xedif/w);
+                    xlon = xqlon - xlon;
+
+                    // Force angles to (-180 < XLON < 180)
+                    if (xlon > 180.) xlon = xlon - 360.;
+                    if (xlon < -180.) xlon = xlon + 360.;
+
+                    // Convert to cartesian? coordinates
+                    if (itype == 1)
+                    {
+                       // LLCART(YLAT,YLON,XLAT,XLON,Z)
+                       ylat=DEGREES_TO_RADIANS*xlat;
+                       if (kcord >= 0) 
+                           ylat = Math.atan2(bsq*Math.sin(ylat),
+                                             asq*Math.cos(ylat));
+                       ylon = kwest*DEGREES_TO_RADIANS*xlon;
+                       snlt = Math.sin(ylat);
+                       cslt = Math.cos(ylat);
+                       csln = Math.cos(ylon);
+                       snln = Math.sin(ylon);
+                       tnlt = Math.pow((snlt/cslt),2.0);
+                       r = ab*Math.sqrt((1.0+tnlt)/(bsq+asq*tnlt));
+                       xlat = r*cslt*csln;
+                       xlon = r*cslt*snln;
+                       z = r*snlt;
+                    }
+                }
+            }
+            // transform from McIDAS (west positive longitude) coordinates
+            if (isEastPositive) xlon = -xlon;
+            latlon[indexLat][point] = (float) xlat;
+            latlon[indexLon][point] = (float) xlon;
+
+        } // end point for loop
+
+        return latlon;
+
+    }
+
+    /**
+     * toLinEle converts lat/long to satellite line/element
+     *
+     * @param  latlon[][] array of lat/long pairs. Where latlon[indexLat][]
+     *                    are latitudes and latlon[indexLon][] are longitudes.
+     *
+     * @return linele[][] array of line/element pairs.  Where
+     *                    linele[indexLine][] is a line and linele[indexEle][]
+     *                    is an element.  These are in 'file' coordinates
+     *                    (not "image" coordinates);
+     */
+    public float[][] toLinEle(float[][] latlon) 
+    {
+        double x, y, z;
+        double xlin, xele;
+        double xlat, xlon;
+        double flat, t, t2, w, diff_lon, xedif;
+
+        int number = latlon[0].length;
+        float[][] linele = new float[2][number];
+
+        for (int point=0; point < number; point++) 
+        {
+
+            xlat = latlon[indexLat][point];
+
+            // transform to McIDAS (west longitude positive) coordinates
+            xlon = isEastPositive 
+                     ? - latlon[indexLon][point]
+                     :  latlon[indexLon][point];
+
+            // WLH 8 March 2000
+            if (Double.isNaN(xlat) || Double.isNaN(xlon) ||
+                (Math.abs(xlat) > 90.) ) {   // DRM 10 June 2003
+              xele = Double.NaN;
+              xlin = Double.NaN;
+            }
+            else {
+              // if in cartesian coords, transform to lat/lon
+              if (itype == 1)
+              {
+                  x = xlat;
+                  y = xlon;
+                  // CALL CARTLL(X,Y,Z,XLAT,XLON)
+              }
+  
+              int isign = -1;
+              if (xlat < 0.0) isign = 1;
+              int ilat = (int) (Math.abs(xlat));
+              flat = Math.abs(xlat) - ilat;
+              t = lattbl[ilat];
+              if (ilat != 90) t = t + flat*(lattbl[ilat+1] - lattbl[ilat]);
+              t2 = Math.max(0.0, 1.0-t*t);
+              w = Math.sqrt(t2);
+         
+              //** Here we need to handle the problem of computing
+              //** angular differences across the dateline.
+  
+              diff_lon = xlon - xqlon;
+  
+              if (diff_lon < -180.0) diff_lon = diff_lon  + 360.;
+              if (diff_lon >  180.0) diff_lon = diff_lon  - 360.;
+       
+              xedif = w * (diff_lon)/90.;
+       
+              if (Math.abs(xedif) > 2.0) 
+              {
+                 xele = Double.NaN;
+                 xlin = Double.NaN;
+              }
+              else
+              {
+                 xele = xcol - xedif*rpix;
+                 xlin = isign*t*rpix + xrow;
+              }
+            } // end if (xlat == xlat && xlon == xlon)
+            linele[indexLine][point] = (float) xlin;
+            linele[indexEle][point] = (float) xele;
+
+        } // end point loop
+
+        // Return in 'File' coordinates
+        return imageCoordToAreaCoord(linele, linele);
     }
 
 }

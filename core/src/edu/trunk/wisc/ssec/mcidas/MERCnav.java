@@ -177,6 +177,107 @@ public final class MERCnav extends AREAnav
         } // end point loop
 
         // Return in 'File' coordinates
-        return imageCoordToAreaCoord(linele);
+        return imageCoordToAreaCoord(linele, linele);
+    }
+
+    /** converts from satellite coordinates to latitude/longitude
+     *
+     * @param  linele[][]  array of line/element pairs.  Where 
+     *                     linele[indexLine][] is a 'line' and 
+     *                     linele[indexEle][] is an element. These are in 
+     *                     'file' coordinates (not "image" coordinates.)
+     *
+     * @return latlon[][]  array of lat/long pairs. Output array is 
+     *                     latlon[indexLat][] of latitudes and 
+     *                     latlon[indexLon][] of longitudes.
+     *
+     */
+    public float[][] toLatLon(float[][] linele) 
+    {
+
+        double xldif;
+        double xedif;
+        double xlon;
+        double xlat;
+
+        int number = linele[0].length;
+        float[][] latlon = new float[2][number];
+
+        // Convert array to Image coordinates for computations
+        float[][] imglinele = areaCoordToImageCoord(linele);
+
+        for (int point=0; point < number; point++) 
+        {
+            xldif = xrow - imglinele[indexLine][point];
+            xedif = xcol - imglinele[indexEle][point];
+            double xrlon = iwest*xedif/xblon;
+            xlon = xrlon+xqlon;
+            double xrlat = Math.atan(Math.exp(xldif/xblat));
+            xlat = (xrlat/DEGREES_TO_RADIANS - 45.)*2.+xlat1;
+            if (xlon > (360.+leftlon) || xlon < leftlon) 
+            {
+                latlon[indexLat][point] = Float.NaN;
+                latlon[indexLon][point] = Float.NaN;
+            }
+            else
+            {
+                latlon[indexLat][point] = (float) xlat;
+                latlon[indexLon][point] = (float) ((iwest == 1) ? -xlon  : xlon);
+            }
+        } // end point for loop
+
+        return latlon;
+
+    }
+
+    /**
+     * toLinEle converts lat/long to satellite line/element
+     *
+     * @param  latlon[][] array of lat/long pairs. Where latlon[indexLat][]
+     *                    are latitudes and latlon[indexLon][] are longitudes.
+     *
+     * @return linele[][] array of line/element pairs.  Where
+     
+     *                    is an element.  These are in 'file' coordinates
+     *                    (not "image" coordinates);
+     */
+    public float[][] toLinEle(float[][] latlon) 
+    {
+        double xlon;
+        double xlat;
+
+        int number = latlon[0].length;
+        float[][] linele = new float[2][number];
+
+        for (int point=0; point < number; point++) 
+        {
+
+            xlat = latlon[indexLat][point];
+            // transform to McIDAS (west positive longitude) coordinates
+            xlon = (iwest == 1) 
+                   ? -latlon[indexLon][point]
+                   : latlon[indexLon][point];
+
+            double xrlon = iwest*(xlon-xqlon);
+            if (xrlon > 180.) xrlon -= 360.;
+            if (xrlon < -180.) xrlon += 360.;
+            if (xlat >= 90.) xlat = 89.99;
+            if (xlat <= -90.) xlat = -89.99;
+            double xrlat = ((xlat-xlat1)/2 + 45.)*DEGREES_TO_RADIANS;
+            if (xrlat <= 0.0)
+            {
+                linele[indexLine][point] = Float.NaN;
+                linele[indexEle][point] = Float.NaN;
+            }
+            else
+            {
+                linele[indexLine][point] =  (float)
+                    (xrow - xblat*Math.log(Math.tan(xrlat)));
+                linele[indexEle][point] = (float) (xcol - xrlon*xblon);
+            }
+        } // end point loop
+
+        // Return in 'File' coordinates
+        return imageCoordToAreaCoord(linele, linele);
     }
 }

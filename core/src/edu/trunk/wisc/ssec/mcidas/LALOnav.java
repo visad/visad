@@ -425,7 +425,7 @@ public final class LALOnav extends AREAnav
         linele[indexEle][k] = ulelem + lonres*linele[0][k];
       }
 
-      return imageCoordToAreaCoord(linele);
+      return imageCoordToAreaCoord(linele,linele);
     } catch (Exception e) {
       return null;
     }
@@ -447,7 +447,7 @@ public final class LALOnav extends AREAnav
         linele[indexEle][k] = ulelem + lonres*xy[0][k];
       }
 
-      return imageCoordToAreaCoord(linele);
+      return imageCoordToAreaCoord(linele,linele);
     } catch (Exception e) {
       return null;
     }

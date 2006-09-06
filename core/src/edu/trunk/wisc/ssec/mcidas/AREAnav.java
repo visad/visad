@@ -378,18 +378,35 @@ public abstract class AREAnav
      */
     public double[][] areaCoordToImageCoord(double[][] linele)
     {
-        double newvals[][] = new double[2][linele[0].length];
+        return areaCoordToImageCoord(linele, null);
+    }
+
+    /**
+     * Converts line/element array values from AREA (file) to Image 
+     * coordinates.  Creates new array if newvals is null.
+     *
+     * @param   linele  input line/element array in AREA coordinates
+     * @param   newvals return array - create a new array if null 
+     * @return  array in Image coordinates
+     */
+    public double[][] areaCoordToImageCoord(double[][] linele, double[][] newvals)
+    {
+        if (newvals == null) newvals = new double[2][linele[0].length];
         double line;
         for (int i = 0; i < linele[0].length; i++)
         {
-           // account for flipped coordinates
-           line = isLineFlipped ? lineOffset - linele[indexLine][i]
-                                         : linele[indexLine][i];
-           newvals[indexLine][i] = 
+          if (linele[indexLine][i] == linele[indexLine][i]) {
+            // account for flipped coordinates
+            line = isLineFlipped ? lineOffset - linele[indexLine][i]
+                                          : linele[indexLine][i];
+            newvals[indexLine][i] = 
                startImageLine + (resLine * (line - startLine)) / magLine;
-               newvals[indexEle][i] = 
+          }
+          if (linele[indexEle][i] == linele[indexEle][i]) {
+            newvals[indexEle][i] = 
                startImageElement + (resElement * (linele[indexEle][i] -
                startElement))/magElement;
+          }
         }
         return newvals;
     }
@@ -403,18 +420,35 @@ public abstract class AREAnav
      */
     public double[][] imageCoordToAreaCoord(double[][] linele)
     {
-        double newvals[][] = new double[2][linele[0].length];
+        return imageCoordToAreaCoord(linele, null);
+    } 
+
+    /**
+     * Converts line/element array values from Image to AREA (File) 
+     * coordinates.  Creates new array if newvals is null.
+     *
+     * @param   linele  input line/element array Image coordinates
+     * @param   newvals return array - create a new array if null 
+     * @return  array in AREA coordinates
+     */
+    public double[][] imageCoordToAreaCoord(double[][] linele, double[][] newvals)
+    {
+        if (newvals == null) newvals = new double[2][linele[0].length];
         for (int i = 0; i < linele[0].length; i++)
         {
-           newvals[indexLine][i] = startLine + 
-               ( magLine * (linele[indexLine][i] -
-                 startImageLine)) / resLine;
-           // account for flipped coordinates
-           if (isLineFlipped) newvals[indexLine][i] = 
-                        lineOffset - newvals[indexLine][i];
-           newvals[indexEle][i] = startElement + 
+          if (linele[indexLine][i] == linele[indexLine][i]) {
+            newvals[indexLine][i] = startLine + 
+                ( magLine * (linele[indexLine][i] -
+                  startImageLine)) / resLine;
+            // account for flipped coordinates
+            if (isLineFlipped) newvals[indexLine][i] = 
+                         lineOffset - newvals[indexLine][i];
+          }
+          if (linele[indexEle][i] == linele[indexEle][i]) {
+            newvals[indexEle][i] = startElement + 
                 ( magElement * (linele[indexEle][i] -
                   startImageElement)) / resElement;
+          }
         }
         return newvals;
     }
@@ -428,18 +462,35 @@ public abstract class AREAnav
      */
     public float[][] areaCoordToImageCoord(float[][] linele)
     {
-        float newvals[][] = new float[2][linele[0].length];
+        return areaCoordToImageCoord(linele, null);
+    } 
+
+    /**
+     * Converts line/element array values from AREA (file) to Image 
+     * coordinates.  Creates new array if newvals is null.
+     *
+     * @param   linele  input line/element array in AREA coordinates
+     * @param   newvals return array - create a new array if null 
+     * @return  array in Image coordinates
+     */
+    public float[][] areaCoordToImageCoord(float[][] linele, float[][] newvals)
+    {
+        if (newvals == null) newvals = new float[2][linele[0].length];
         float line;
         for (int i = 0; i < linele[0].length; i++)
         {
            // account for flipped coordinates
-           line = isLineFlipped ? lineOffset - linele[indexLine][i]
+           if (linele[indexLine][i] == linele[indexLine][i]) {
+             line = isLineFlipped ? lineOffset - linele[indexLine][i]
                                          : linele[indexLine][i];
-           newvals[indexLine][i] = 
+             newvals[indexLine][i] = 
                startImageLine + (resLine * (line - startLine)) / magLine;
-               newvals[indexEle][i] = 
+           }
+           if (linele[indexEle][i] == linele[indexEle][i]) {
+             newvals[indexEle][i] = 
                startImageElement + (resElement * (linele[indexEle][i] -
                startElement))/magElement;
+           }
         }
         return newvals;
     }
@@ -453,18 +504,35 @@ public abstract class AREAnav
      */
     public float[][] imageCoordToAreaCoord(float[][] linele)
     {
-        float newvals[][] = new float[2][linele[0].length];
+        return imageCoordToAreaCoord(linele, null);
+    }
+
+    /**
+     * Converts line/element array values from Image to AREA (File) 
+     * coordinates.  Creates new array if newvals is null.
+     *
+     * @param   linele  input line/element array Image coordinates
+     * @param   newvals return array - create a new array if null 
+     * @return  array in AREA coordinates
+     */
+    public float[][] imageCoordToAreaCoord(float[][] linele, float[][] newvals)
+    {
+        if (newvals == null) newvals = new float[2][linele[0].length];
         for (int i = 0; i < linele[0].length; i++)
         {
-           newvals[indexLine][i] = startLine + 
+           if (linele[indexLine][i] == linele[indexLine][i]) {
+             newvals[indexLine][i] = startLine + 
                ( magLine * (linele[indexLine][i] -
                  startImageLine)) / resLine;
-           // account for flipped coordinates
-           if (isLineFlipped) newvals[indexLine][i] = 
-                        lineOffset - newvals[indexLine][i];
-           newvals[indexEle][i] = startElement + 
-                ( magElement * (linele[indexEle][i] -
+             // account for flipped coordinates
+             if (isLineFlipped) newvals[indexLine][i] = 
+                          lineOffset - newvals[indexLine][i];
+           }
+           if (linele[indexEle][i] == linele[indexEle][i]) {
+             newvals[indexEle][i] = startElement + 
+               ( magElement * (linele[indexEle][i] -
                   startImageElement)) / resElement;
+           }
         }
         return newvals;
     }

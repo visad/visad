@@ -286,6 +286,203 @@ public final class MSATnav extends AREAnav
         } // end point loop
 
         // Return in 'File' coordinates
-        return imageCoordToAreaCoord(linele);
+        return imageCoordToAreaCoord(linele, linele);
+    }
+
+    /** converts from satellite coordinates to latitude/longitude
+     *
+     * @param  linele[][]  array of line/element pairs.  Where 
+     *                     linele[indexLine][] is a 'line' and 
+     *                     linele[indexEle][] is an element. These are in 
+     *                     'file' coordinates (not "image" coordinates.)
+     *
+     * @return latlon[][]  array of lat/long pairs. Output array is 
+     *                     latlon[indexLat][] of latitudes and 
+     *                     latlon[indexLon][] of longitudes.
+     *
+     */
+    public float[][] toLatLon(float[][] linele) 
+    {
+
+        double xele, xlin;
+        double ylat, ylon;
+        double xele2, xlin2;
+        double xfi, xla, z;
+        double x, y;
+        double xr, yr;
+        double tanx, tany;
+        double val1, val2;
+        double yk;
+        double vmu;
+        double cosrf, sinrf;
+        double teta;
+        double xt, yt, zt;
+        double rs;
+
+        int number = linele[0].length;
+        float[][] latlon = new float[2][number];
+
+        // Convert array to Image coordinates for computations
+        float[][] imglinele = areaCoordToImageCoord(linele);
+
+        for (int point=0; point < number; point++) 
+        {
+            xlin = imglinele[indexLine][point];
+            xele = imglinele[indexEle][point];
+
+            xele2 = xele/2.;
+            xlin2 = xlin/2.;
+            x = 1250.5 - xele2;
+            y = ioff[2] - (xlin2 + ioff[1] - ioff[0]);
+            xr = x;
+            yr = y;
+            x = xr*lpsi2*deltax*DEGREES_TO_RADIANS;
+            y = yr*lpsi2*deltay*DEGREES_TO_RADIANS;
+            rs = EARTH_RADIUS + h;
+            tanx = Math.tan(x);
+            tany = Math.tan(y);
+            val1=1.+tanx*tanx;
+            val2=1.+(tany*tany)*((1.+a)*(1.+a));
+            yk=rs/EARTH_RADIUS;
+            if ((val1*val2) > ((yk*yk)/(yk*yk-1)))
+            {
+                latlon[indexLat][point] = Float.NaN;
+                latlon[indexLon][point] = Float.NaN;
+            }
+            else
+            {
+                vmu = (rs-(EARTH_RADIUS*(Math.sqrt((yk*yk)-
+                                  (yk*yk-1)*val1*val2))))/(val1*val2); 
+                cosrf = Math.cos(rflon*DEGREES_TO_RADIANS);
+                sinrf = Math.sin(rflon*DEGREES_TO_RADIANS);
+                xt = (rs*cosrf) + (vmu*(tanx*sinrf - cosrf));
+                yt = (rs*sinrf) - (vmu*(tanx*cosrf + sinrf));
+                zt = vmu*tany/Math.cos(x);
+                teta = Math.asin(zt/rp);
+                xfi = (Math.atan(((Math.tan(teta))*EARTH_RADIUS)/rp))*
+                         RADIANS_TO_DEGREES;
+                xla=-Math.atan(yt/xt)*RADIANS_TO_DEGREES;
+                
+                // change longitude for correct subpoint
+                xla = xla + sublon;
+    
+                // see if we have to convert to x, y, z
+                if (itype == 1) 
+                {
+                    ylat = xfi;
+                    ylon = xla;
+                    // NLLXYZ(YLAT,YLON,XFI,XLA,Z)
+                }
+
+                //  put longitude into East Positive (form)
+                if (isEastPositive) xla = -xla;
+    
+                latlon[indexLat][point] = (float) xfi;
+                latlon[indexLon][point] = (float) xla;
+            }  // end lat/lon point calculation 
+        } // end point for loop
+
+        return latlon;
+
+    }
+
+    /**
+     * toLinEle converts lat/long to satellite line/element
+     *
+     * @param  latlon[][] array of lat/long pairs. Where latlon[indexLat][]
+     *                    are latitudes and latlon[indexLon][] are longitudes.
+     *
+     * @return linele[][] array of line/element pairs.  Where
+     *                    linele[indexLine][] is a line and linele[indexEle][]
+     *                    is an element.  These are in 'file' coordinates
+     *                    (not "image" coordinates);
+     */
+    public float[][] toLinEle(float[][] latlon) 
+    {
+        double x, y, z;
+        double x1, y1;
+        double xlat, xlon;
+        double xfi, xla;
+        double rom;
+        double r1, r2;
+        double coslo, sinlo;
+        double teta;
+        double xt, yt, zt;
+        double px, py;
+        double rs;
+        double reph, rpph;
+        double xr, yr;
+
+        int number = latlon[0].length;
+        float[][] linele = new float[2][number];
+
+        for (int point=0; point < number; point++) 
+        {
+
+            x1 = latlon[indexLat][point];
+
+            // expects positive East Longitude.
+            y1 = isEastPositive 
+                     ?  latlon[indexLon][point]
+                     : -latlon[indexLon][point];
+
+            // if in cartesian coords, transform to lat/lon
+            if (itype == 1)
+            {
+                x = latlon[indexLat][point];
+                y = latlon[indexLon][point];
+                // NXYZLL(x,y,z,zlat,zlon);
+                y1 = -y1;
+            }
+
+            // correct for sublon
+            y1 = y1 + sublon;
+            xfi = x1*DEGREES_TO_RADIANS;
+            xla = y1*DEGREES_TO_RADIANS;
+            rom = 
+                (EARTH_RADIUS*rp)/
+                    Math.sqrt(
+                        rp*rp*Math.cos(xfi)*Math.cos(xfi)+
+                        EARTH_RADIUS*EARTH_RADIUS*Math.sin(xfi)*Math.sin(xfi));
+            y = Math.sqrt(h*h+rom*rom-2*h*rom*Math.cos(xfi)*Math.cos(xla));
+            r1 = y*y + rom*rom;
+            r2 = h*h;
+            if (r1 > r2)  // invalid point
+            {
+                linele[indexLine][point] = Float.NaN;
+                linele[indexEle][point] = Float.NaN;
+            }
+            else          // calculate line an element
+            {
+                rs    = EARTH_RADIUS + h;
+                reph  = EARTH_RADIUS;
+                rpph  = rp;
+                coslo = Math.cos(rflon*DEGREES_TO_RADIANS);
+                sinlo = Math.sin(rflon*DEGREES_TO_RADIANS);
+                teta  = Math.atan((rpph/reph)*Math.tan(xfi));
+                xt    = reph*Math.cos(teta)*Math.cos(xla);
+                yt    = reph*Math.cos(teta)*Math.sin(xla);
+                zt    = rpph*Math.sin(teta);
+
+                px    = Math.atan((coslo*(yt-rs*sinlo)-(xt-rs*coslo)*sinlo)/
+                               (sinlo*(yt-rs*sinlo)+(xt-rs*coslo)*coslo));
+                py    = Math.atan(zt*((Math.tan(px)*sinlo-
+                                    coslo)/(xt-rs*coslo))*Math.cos(px));
+                px = px*RADIANS_TO_DEGREES;
+                py = py*RADIANS_TO_DEGREES;
+                xr = px/(deltax*lpsi2);
+                yr = py/(deltay*lpsi2);
+                xr = 1250.5-xr;
+                yr = yr + ioff[2] + ioff[1] - ioff[0];
+                xr = xr*2;
+                yr = 5000-yr*2;
+                linele[indexLine][point] = (float) yr;
+                linele[indexEle][point] = (float) xr;
+
+            }  // end calculations
+        } // end point loop
+
+        // Return in 'File' coordinates
+        return imageCoordToAreaCoord(linele, linele);
     }
 }

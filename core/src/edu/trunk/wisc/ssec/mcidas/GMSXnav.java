@@ -180,7 +180,7 @@ public class GMSXnav extends AREAnav
     }
 
     // Return in 'File' coordinates
-    return imageCoordToAreaCoord(linele);
+    return imageCoordToAreaCoord(linele, linele);
 
   }
 
@@ -226,7 +226,7 @@ public class GMSXnav extends AREAnav
     }
 
     // Return in 'File' coordinates
-    return imageCoordToAreaCoord(linele);
+    return imageCoordToAreaCoord(linele, linele);
 
   }
 

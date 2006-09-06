@@ -188,6 +188,6 @@ public final class LAMBnav extends AREAnav
         } // end point loop
 
         // Return in 'File' coordinates
-        return imageCoordToAreaCoord(linele);
+        return imageCoordToAreaCoord(linele, linele);
     }
 }

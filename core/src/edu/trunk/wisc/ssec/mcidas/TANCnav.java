@@ -246,6 +246,6 @@ public final class TANCnav extends AREAnav
         } // end point loop
 
         // Return in 'File' coordinates
-        return imageCoordToAreaCoord(linele);
+        return imageCoordToAreaCoord(linele, linele);
     }
 }

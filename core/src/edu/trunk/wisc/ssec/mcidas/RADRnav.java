@@ -204,7 +204,7 @@ public final class RADRnav extends AREAnav
         } // end point loop
 
         // Return in 'File' coordinates
-        return imageCoordToAreaCoord(linele);
+        return imageCoordToAreaCoord(linele, linele);
     }
 
     /** converts from satellite coordinates to latitude/longitude
@@ -234,14 +234,18 @@ public final class RADRnav extends AREAnav
 
         int number = linele[0].length;
         float[][] latlon = new float[2][number];
+        float[] lats = latlon[indexLat];
+        float[] lons = latlon[indexLon];
 
         // Convert array to Image coordinates for computations
         float[][] imglinele = areaCoordToImageCoord(linele);
 
+        float[] lines = imglinele[indexLine];
+        float[] eles = imglinele[indexEle];
         for (int point=0; point < number; point++) 
         {
-           xldif = xrow - imglinele[indexLine][point];
-           xedif = xcol - imglinele[indexEle][point];
+           xldif = xrow - lines[point];
+           xedif = xcol - eles[point];
            xdis = Math.sqrt(xldif*xldif + xedif*xedif);
            if (xdis > 0.001)
            {
@@ -256,8 +260,8 @@ public final class RADRnav extends AREAnav
             // transform from McIDAS coordinates
             if (isEastPositive) ylon = -ylon;
             
-            latlon[indexLat][point] = (float) ylat;
-            latlon[indexLon][point] = (float) ylon;
+            lats[point] = (float) ylat;
+            lons[point] = (float) ylon;
 
         } // end point for loop
 
@@ -290,16 +294,20 @@ public final class RADRnav extends AREAnav
 
         int number = latlon[0].length;
         float[][] linele = new float[2][number];
+        float[] lines = linele[indexLine];
+        float[] eles = linele[indexEle];
+        float[] lats = latlon[indexLat];
+        float[] lons = latlon[indexLon];
 
         for (int point=0; point < number; point++) 
         {
 
-            zlat = latlon[indexLat][point];
+            zlat = lats[point];
 
             // transform to McIDAS (west positive longitude) coordinates
             zlon = isEastPositive 
-                     ?  -latlon[indexLon][point]
-                     : latlon[indexLon][point];
+                     ? -lons[point]
+                     :  lons[point];
             if (zlon > 180) zlon -= 360;
             if (zlon < -180) zlon += 360;
             xrlon = zlon - xlon;
@@ -314,13 +322,13 @@ public final class RADRnav extends AREAnav
                 xldif = xdis*Math.cos(-xrot+xangl);
                 xedif = xdis*Math.sin(-xrot+xange);
             }
-            linele[indexLine][point] = (float) (xrow - xldif);
-            linele[indexEle][point] = (float) (xcol - xedif);
+            lines[point] = (float) (xrow - xldif);
+            eles[point] = (float) (xcol - xedif);
 
         } // end point loop
 
         // Return in 'File' coordinates
-        return imageCoordToAreaCoord(linele);
+        return imageCoordToAreaCoord(linele, linele);
     }
 
     public boolean equals(Object o)

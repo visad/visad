@@ -1094,7 +1094,7 @@ public class GVARnav extends AREAnav
     } // end for loop on points
 
     // Return in 'File' coordinates
-    return imageCoordToAreaCoord(linele);
+    return imageCoordToAreaCoord(linele, linele);
   }
 
   /**
@@ -1226,7 +1226,7 @@ public class GVARnav extends AREAnav
     } // end for loop on points
 
     // Return in 'File' coordinates
-    return imageCoordToAreaCoord(linele);
+    return imageCoordToAreaCoord(linele, linele);
   }
 
 }

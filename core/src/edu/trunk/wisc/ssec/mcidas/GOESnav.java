@@ -688,7 +688,7 @@ public final class GOESnav extends AREAnav
         } // end point loop
 
         // Return in 'File' coordinates
-        return imageCoordToAreaCoord(linele);
+        return imageCoordToAreaCoord(linele, linele);
     }
 
 
@@ -843,7 +843,7 @@ public final class GOESnav extends AREAnav
         } // end point loop
 
         // Return in 'File' coordinates
-        return imageCoordToAreaCoord(linele);
+        return imageCoordToAreaCoord(linele, linele);
     }
 
     private int icon1(int yymmdd)
