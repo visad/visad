@@ -995,6 +995,35 @@ public class FieldImpl extends FunctionImpl implements Field {
   public static Field combine( Field[] fields, int sampling_mode, int error_mode , boolean flatten)
                 throws VisADException, RemoteException
   {
+    return combine(fields, sampling_mode, error_mode, flatten, true);
+  }
+
+  /** 
+   * Resample all elements of the fields array to the domain
+   * set of fields[0], then return a Field whose range samples
+   * are Tuples merging the corresponding range samples from
+   * each element of fields.  If <code>flatten</code> is true and 
+   * if the range of fields[i] is a
+   * Tuple without a RangeCoordinateSystem, then each Tuple
+   * component of a range sample of fields[i] becomes a
+   * Tuple component of a range sample of the result -
+   * otherwise a range sample of fields[i] becomes a Tuple
+   * component of a range sample of the result; this assumes
+   * all elements of the fields array have the same domain
+   * dimension.
+   *
+   * @param fields  fields to combine
+   * @param sampling_mode   sampling mode to use (e.g., Data.NEAREST_NEIGHBOR)
+   * @param error_mode   error mode to use (e.g., Data.NO_ERRORS)
+   * @param flatten   true to flatten range tuples with no CoordinateSystem
+   * @param copy   true to copy the values from the original fields
+   *
+   * @return  combined fields
+   */
+  public static Field combine( Field[] fields, int sampling_mode, int error_mode , boolean flatten, boolean copy)
+                throws VisADException, RemoteException
+  {
+    visad.util.Trace.call1("combine, copy = " + copy);
     int ii, jj, kk, n_fields;
     int domainDim = 0;                 //- domain dimension of field_0.
     Set domainSet_0;                   //- domain set of field_0.
@@ -1012,7 +1041,10 @@ public class FieldImpl extends FunctionImpl implements Field {
     MathType m_type;
     MathType fieldRange;
     FlatField f_field;
-    double[][] values, new_values;
+    float[][] valuesF = null;
+    float[][] new_valuesF = null;
+    double[][] valuesD = null;
+    double[][] new_valuesD = null;
     int n_comps;
     int n_dims;
     int length;
@@ -1196,7 +1228,6 @@ public class FieldImpl extends FunctionImpl implements Field {
       Unit[][] rangeUnits;
       Unit[] new_rangeUnits = new Unit[ tupleDim ];
       Unit[] sub_units;
-      new_values = new double[ tupleDim ][n_samples_0];
 
       int cnt_a = 0;
       int cnt_b = 0;
@@ -1204,6 +1235,8 @@ public class FieldImpl extends FunctionImpl implements Field {
       int cnt_u = 0;
       int n_coordsys = 0;
       int n_units;
+      boolean allFloat = true;  // default set for FlatField
+      FlatField[] resampledFields = new FlatField[n_fields];
 
       for ( ii = 0; ii < n_fields; ii++ )
       {
@@ -1214,16 +1247,27 @@ public class FieldImpl extends FunctionImpl implements Field {
 
           f_field = (FlatField) f_field.resample( domainSet_0, sampling_mode, error_mode );
         }
+        resampledFields[ii] = f_field;
 
         //-  collect rangeSets for each tuple dimension  -*
 
         rangeSets = f_field.getRangeSets();
         n_sets = rangeSets.length;
+        // check for float sets
+        if (allFloat) {
+          for (int s = 0; s < n_sets; s++) {
+            if (!(rangeSets[s] instanceof FloatSet)) {
+              allFloat = false;
+              break;
+            }
+          }
+        }
+
         System.arraycopy( rangeSets, 0, new_rangeSets, cnt_a, n_sets );
         cnt_a += n_sets;
 
+        /* Don't need to do this because getSamples/Values uses default units)
         //-  collect rangeUnits for each tuple dimension  -*
-
         rangeUnits = f_field.getRangeUnits();
         n_units = rangeUnits.length;
         sub_units = new Unit[ n_units ];
@@ -1232,13 +1276,33 @@ public class FieldImpl extends FunctionImpl implements Field {
         }
         System.arraycopy( sub_units, 0, new_rangeUnits, cnt_u, n_units );
         cnt_u += n_units;
+        */
+      }
+      // metadata collected.  Now get Data
 
+      if (allFloat) {
+         new_valuesF = new float[ tupleDim ][];
+      } 
+      else {
+         new_valuesD = new double[ tupleDim ][];
+      }
+
+      for (int f = 0; f < n_fields; f++) {
+        
         //-  get range values for each field, and combine into one array  -*
-
-        values = f_field.getValues(false);
-        for ( jj = 0; jj < values.length; jj++ )
-        {
-          System.arraycopy( values[jj], 0, new_values[cnt_b++], 0, n_samples_0 );
+        if (allFloat) {
+          valuesF = resampledFields[f].getFloats(copy);
+          for ( jj = 0; jj < valuesF.length; jj++ )
+          {
+            new_valuesF[cnt_b++] = valuesF[jj];
+          }
+        }
+        else {
+          valuesD = resampledFields[f].getValues(copy);
+          for ( jj = 0; jj < valuesD.length; jj++ )
+          {
+            new_valuesD[cnt_b++] = valuesD[jj];
+          }
         }
       }
 
@@ -1256,8 +1320,12 @@ public class FieldImpl extends FunctionImpl implements Field {
       }
 
       //- set range values for new flatfield  -*
-
-      ((FlatField)new_field).setSamples( new_values, false );
+      if (allFloat) {
+        ((FlatField)new_field).setSamples( new_valuesF, false );
+      } 
+      else {
+        ((FlatField)new_field).setSamples( new_valuesD, false );
+      }
     }
     else  //- not all FlatField(s)  -*
     {
@@ -1411,10 +1479,11 @@ public class FieldImpl extends FunctionImpl implements Field {
           data_s[jj] = (Data) v_array[ii].elementAt( jj );
         }
         data = new Tuple( data_s );
-        new_field.setSample( ii, data );
+        new_field.setSample( ii, data, copy );
       }
     }
 
+    visad.util.Trace.call2("combine, copy = " + copy);
     return new_field;
   }
 
