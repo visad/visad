@@ -4373,8 +4373,10 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
    */
   public Field resample (Set set, int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
+    visad.util.Trace.call1("FlatField.resample");
     if (DomainSet.equals(set)) {
       // nothing to do
+      visad.util.Trace.call2("FlatField.resample", "sampling set==domain set");
       return this;
     }
 
@@ -4429,15 +4431,17 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     // only useful to help estmate range errors due to resampling
     ErrorEstimate[] errors_out = new ErrorEstimate[dim];
     float[][] oldvals = vals;
+    visad.util.Trace.call1("FlatField.resample:transformCoords");
     try {  // this is only to throw a more meaningful message
       vals = CoordinateSystem.transformCoordinates(
                       ((FunctionType) Type).getDomain(), DomainCoordinateSystem,
                       DomainUnits, errors_out,
                       ((SetType) set.getType()).getDomain(), coord_sys,
-                      units, errors, vals);
+                      units, errors, vals, false);
     } catch (UnitException ue) {
         throw new VisADException("Sampling set is not compatible with domain");
     }
+    visad.util.Trace.call2("FlatField.resample:transformCoords");
     boolean coord_transform = !(vals == oldvals);
 
     // check whether we need to do sampling error calculations
@@ -4734,6 +4738,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
     // new_field.DoubleRange = new_values;
     new_field.setRangeErrors(range_errors_out);
     new_field.clearMissing();
+    visad.util.Trace.call2("FlatField.resample");
 
 
     return new_field;
@@ -4951,7 +4956,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
   }
 
   /*- TDR June 1998  */
-  private FlatField cloneDouble ( MathType f_type, Unit[] units,
+  protected FlatField cloneDouble ( MathType f_type, Unit[] units,
                                  ErrorEstimate[] errors )
           throws VisADException
   {
@@ -4960,7 +4965,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
 
 
   /*- TDR June 1998  */
-  private FlatField cloneDouble (MathType f_type, 
+  protected FlatField cloneDouble (MathType f_type, 
                                  Unit[] units,
                                  ErrorEstimate[] errors, 
                                  double[][]newValues )
@@ -5013,7 +5018,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
 
 
 
-  private FlatField cloneFloat (MathType f_type, 
+  protected FlatField cloneFloat (MathType f_type, 
                                 Unit[] units,
                                 ErrorEstimate[] errors)
           throws VisADException
@@ -5023,7 +5028,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
   }
 
   /*- TDR June 1998  */
-  private FlatField cloneFloat (MathType f_type, 
+  protected FlatField cloneFloat (MathType f_type, 
                                 Unit[] units,
                                 ErrorEstimate[] errors, 
                                 float[][]newValues )
