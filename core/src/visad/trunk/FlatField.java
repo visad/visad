@@ -5106,6 +5106,9 @@ if (pr) System.out.println("value = " + new_values[0][0]);
     synchronized(DoubleRange) {
       if (!MissingFlag) {
         try {
+          // DRM 3 Oct 2006 - we need to recreate this otherwise 
+          // it's shared and it's mutable!
+          clone.DoubleRange = new double[TupleDimension][];
           clone.packValues(unpackValues(true), false);
         }
         catch (VisADException ex) {
