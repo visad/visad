@@ -235,7 +235,7 @@ public class EarthLocationLite extends RealTuple implements EarthLocation {
     for (int j = 0; j < 10; j++) {
       long t1 = System.currentTimeMillis();
       for (int i = 0; i < 100000; i++) {
-        EarthLocationTuple elt = new EarthLocationTuple(lat, lon, alt, EarthLocationTuple.DEFAULT_UNITS, false, true);
+        EarthLocationTuple elt = new EarthLocationTuple(lat, lon, alt);
       }
 
       long t2 = System.currentTimeMillis();
