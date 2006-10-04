@@ -30,7 +30,7 @@ package visad;
    Contour2D is a class equipped with a 2-D contouring function.<P>
 */
 public class Contour2D {
-
+  
   // Applet variables
   protected Contour2D con;
   protected int whichlabels = 0;
@@ -253,6 +253,10 @@ boolean anynotmissing = false;
       myvals = (float[]) values.clone();
       java.util.Arrays.sort(myvals);
     }
+    
+    // flags for each level indicating dashed rendering
+    boolean[] dashFlags = new boolean[myvals.length];
+    
     int low;
     int hi;
 
@@ -1103,15 +1107,19 @@ any = true;
 
           // If contour level is negative, make dashed line
           if (gg < base && dash) {           /* DRM: 1999-05-19 */
-            float vxa, vya, vxb, vyb;
-            vxa = vx[numv-2];
-            vya = vy[numv-2];
-            vxb = vx[numv-1];
-            vyb = vy[numv-1];
-            vx[numv-2] = (3.0f*vxa+vxb) * 0.25f;
-            vy[numv-2] = (3.0f*vya+vyb) * 0.25f;
-            vx[numv-1] = (vxa+3.0f*vxb) * 0.25f;
-            vy[numv-1] = (vya+3.0f*vyb) * 0.25f;
+            
+//  2006-09-29 BMF -- Moved to ContourStrip.getDashedLineArray(...)
+//            float vxa, vya, vxb, vyb;
+//            vxa = vx[numv-2];
+//            vya = vy[numv-2];
+//            vxb = vx[numv-1];
+//            vyb = vy[numv-1];
+//            vx[numv-2] = (3.0f*vxa+vxb) * 0.25f;
+//            vy[numv-2] = (3.0f*vya+vyb) * 0.25f;
+//            vx[numv-1] = (vxa+3.0f*vxb) * 0.25f;
+//            vy[numv-1] = (vya+3.0f*vyb) * 0.25f;
+            
+              dashFlags[low+il] = true;
           }
 /*
 if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
@@ -1147,7 +1155,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
 
     float[][][] vvv          = new float[2][][];
     byte[][][] new_colors    = new byte[2][][];
-    ctrSet.getLineColorArrays(vx, vy, auxLevels, vvv, new_colors, lbl_vv, lbl_cc, lbl_loc);
+    ctrSet.getLineColorArrays(vx, vy, auxLevels, vvv, new_colors, lbl_vv, lbl_cc, lbl_loc, dashFlags);
 
     vx1[0]   = vvv[0][0];
     vy1[0]   = vvv[0][1];
@@ -2742,6 +2750,10 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
 */
 class ContourStripSet {
 
+  // value for dash algm.
+  static final int DEFAULT_DASH_VALUE = 2;
+  static final int DISABLE_DASH_VALUE = -1;
+  
   int     mxsize;
   float[] levels;
   int     n_levs;
@@ -2840,7 +2852,7 @@ class ContourStripSet {
     }
     add(vx, vy, idx0, idx1, lev_idx);
   }
-
+  
   void add(float[] vx, float[] vy, int idx0, int idx1, int lev_idx)
   {
     vec = vecArray[lev_idx];
@@ -2885,19 +2897,36 @@ class ContourStripSet {
 
   void getLineColorArrays(float[] vx, float[] vy, byte[][] colors, int lev_idx,
                           float[][][] out_vv, byte[][][] out_bb,
-                          float[][][][] out_vvL, byte[][][][] out_bbL, float[][][] out_loc)
+                          float[][][][] out_vvL, byte[][][][] out_bbL, float[][][] out_loc,
+                          boolean[] dashed)
   {
     int n_strips = vecArray[lev_idx].size();
 
     float[][][][] la    = new float[n_strips][2][][];
-    byte[][][][]  ca    = new byte[n_strips][2][][];
+    byte [][][][] ca    = new byte [n_strips][2][][];
     float[][][][][] laL = new float[n_strips][4][][][];
-    byte[][][][][]  caL = new byte[n_strips][4][][][];
-    float[][][][]  locL = new float[n_strips][3][][];
-
+    byte [][][][][] caL = new byte [n_strips][4][][][];
+    float[][][][] locL  = new float[n_strips][3][][];
+    
     for (int kk=0; kk<n_strips; kk++) {
       ContourStrip cs = (ContourStrip)vecArray[lev_idx].elementAt(kk);
-      cs.getLabeledLineColorArray(vx, vy, colors, la[kk], ca[kk], laL[kk], caL[kk], locL[kk]);
+      
+      // BMF 2006-09-29 ////////////////////
+      // changes to dashed line algm. 
+      // add code to display labels for strips with a small number of points
+      
+      // do dashed redering for specified level
+      if (dashed[lev_idx]) cs.dashed = DEFAULT_DASH_VALUE;
+      else cs.dashed = DISABLE_DASH_VALUE;
+      
+      // do the standard label algorithm or the modified for short strips
+      if((cs.hi_idx - cs.low_idx + 1) < ContourStrip.LBL_ALGM_THRESHHOLD){
+        cs.getInterpolatedLabeledColorArray
+               (vx, vy, colors, la[kk], ca[kk], laL[kk], caL[kk], locL[kk]);
+      } else
+        cs.getLabeledLineColorArray
+               (vx, vy, colors, la[kk], ca[kk], laL[kk], caL[kk], locL[kk]);
+      // end BMF 2006-09-29 //////////////////
     }
 
     //-- contour/contour label gap line arrays
@@ -2987,9 +3016,20 @@ class ContourStripSet {
     }
   }
 
+  /**
+   * @param vx
+   * @param vy
+   * @param colors shared colors
+   * @param out_vv output vector verticie array {{ X }, { Y }}
+   * @param out_bb
+   * @param out_vvL
+   * @param out_bbL
+   * @param out_loc
+   */
   void getLineColorArrays(float[] vx, float[] vy, byte[][] colors,
                           float[][][] out_vv, byte[][][] out_bb,
-                          float[][][][] out_vvL, byte[][][][] out_bbL, float[][][] out_loc) {
+                          float[][][][] out_vvL, byte[][][][] out_bbL, float[][][] out_loc,
+                          boolean[] dashFlags) {
 
     float[][][][] tmp    = new float[n_levs][2][][];
     byte[][][][] btmp    = new byte[n_levs][2][][];
@@ -2999,7 +3039,7 @@ class ContourStripSet {
 
     int n_lbl = 0;
     for (int kk=0; kk<n_levs; kk++) {
-      getLineColorArrays(vx, vy, colors, kk, tmp[kk], btmp[kk], tmpL[kk], btmpL[kk], tmpLoc[kk]);
+      getLineColorArrays(vx, vy, colors, kk, tmp[kk], btmp[kk], tmpL[kk], btmpL[kk], tmpLoc[kk], dashFlags);
       n_lbl += tmpL[kk][0].length;
     }
       
@@ -3079,10 +3119,23 @@ class ContourStripSet {
 */
 class ContourStrip {
 
+  /** Minimum number of points for which to perform label algm */
+  static final int LBL_ALGM_THRESHHOLD = 20;
+  /** Intpereted arrays smaller than this will be interpreted again essentially
+      resulting in a re-doubleing. */
+  static final int INTERP_THRESHHOLD = 5;
+  
   int[] idx_array;
   int     low_idx;
   int      hi_idx;
   int     lev_idx;
+  
+  /* BMF 2006-10-04
+   * dashed > 1 indicated this strip is to be dashed with
+   * a skip equal to dashed.
+   * @see #getDashedLineArray(float[][], int)
+   */ 
+  int dashed = -1;
 
   PlotDigits plot;
   ContourStripSet css;
@@ -3103,8 +3156,7 @@ class ContourStrip {
     this.lbl_half += this.lbl_half*0.30;
   }
 
-  ContourStrip(int[] idx_array, int lev_idx, PlotDigits plot,
-               ContourStripSet css) {
+  ContourStrip(int[] idx_array, int lev_idx, PlotDigits plot,ContourStripSet css) {
     this.lev_idx   = lev_idx;
     int mxsize         = idx_array.length + 400;
     this.idx_array = new int[mxsize];
@@ -3203,9 +3255,64 @@ class ContourStrip {
                                 float[][][][] out_vvL, byte[][][][] out_colorsL,
                                 float[][][]  lbl_loc)
   {
+    
+    float[][] vv = getLineArray(vx, vy);
+    byte[][] bb = getColorArray(colors);
+    
+    processLineArrays(vv, bb, out_vv, out_colors, out_vvL, out_colorsL, lbl_loc);
+  }
+  
+  /* BMF 2006-10-04
+   * getLabeledLineColorArray() for interpolated short strips
+   */
+  void getInterpolatedLabeledColorArray(float[] vx, float[] vy, byte[][] colors,
+                                float[][][] out_vv, byte[][][] out_colors,
+                                float[][][][] out_vvL, byte[][][][] out_colorsL,
+                                float[][][]  lbl_loc)
+  {
+    
+      byte[][] bb = getColorArray(colors);
+      byte[][] interp_bb = interpolateColorArray(bb);
+      
+      float[][] vv = getLineArray(vx, vy);
+      float[][] interp_vv = interpolateLineArray(vv);
+      
+      // BMF 2006-10-04
+      // interpolate twice if below threshhold to
+      // make sure there are visible labels
+      if (vv.length < INTERP_THRESHHOLD){
+        interp_bb = interpolateColorArray(interp_bb);
+        interp_vv = interpolateLineArray(interp_vv);
+      }
+      
+      processLineArrays(interp_vv, interp_bb, out_vv, out_colors, out_vvL, out_colorsL, lbl_loc);
+  }
+  
+  /** 
+   * Common line array code
+   * 
+   * @param vv_grid
+   * @param bb
+   * @param out_vv
+   * @param out_colors
+   * @param out_vvL
+   * @param out_colorsL
+   * @param lbl_loc
+   */
+  private void processLineArrays(float[][] vv_grid, byte[][] bb, 
+                                 float[][][] out_vv, byte[][][] out_colors,
+                                 float[][][][] out_vvL, byte[][][][] out_colorsL,
+                                 float[][][]  lbl_loc)
+  {
+    
+    // dash lines if necessary
+    if (this.dashed > 1){
+      vv_grid = getDashedLineArray(vv_grid);
+    }
+    
+    
     float[][] vv = null;
-    float[][] vv_grid = getLineArray(vx, vy);
-
+    
     try {
       vv = css.spatial_set.gridToValue(vv_grid);
     }
@@ -3213,9 +3320,8 @@ class ContourStrip {
       System.out.println(e.getMessage());
     }
 
-    byte[][]  bb      = getColorArray(colors);
     int clr_dim       = 0;
-    if (colors != null) clr_dim = colors.length;
+    if (bb != null) clr_dim = bb.length;
     int n_lbl         = 1;
 
     out_vvL[0]        = null;
@@ -3236,7 +3342,7 @@ class ContourStrip {
     out_vv[1]         = null;
     out_colors[1]     = null;
 
-    if (vv[0].length > 20 && ((lev_idx & 1) == 1))
+    if (vv[0].length > LBL_ALGM_THRESHHOLD && ((lev_idx & 1) == 1))
     {
       int loc         = (vv[0].length)/2;
       int start_break = 0;
@@ -3383,7 +3489,18 @@ class ContourStrip {
         vy_tmp[kk]      += vv[1][loc];
         vxB_tmp[kk]     += vv[0][loc];
         vyB_tmp[kk]     += vv[1][loc];
-        if (bb != null) {
+      }
+      //-- assign color to contour labels --------------
+      byte[] labelColor = null;
+      if (labelColor != null) {
+        for (int kk=0; kk<plot.NumVerts; kk++) {
+          lbl_clr[0][kk]   = labelColor[0];
+          lbl_clr[1][kk]   = labelColor[1];
+          lbl_clr[2][kk]   = labelColor[2];
+        }
+      }
+      else if (bb != null) {
+        for (int kk=0; kk<plot.NumVerts; kk++) {
           lbl_clr[0][kk]   = bb[0][loc];
           lbl_clr[1][kk]   = bb[1][loc];
           lbl_clr[2][kk]   = bb[2][loc];
@@ -3546,6 +3663,11 @@ class ContourStrip {
     }
   }
 
+  /**
+   * @param vx
+   * @param vy
+   * @return
+   */
   float[][] getLineArray(float[] vx, float[] vy) {
     float[] vvx = new float[(hi_idx-low_idx)+1];
     float[] vvy = new float[vvx.length];
@@ -3558,7 +3680,7 @@ class ContourStrip {
     }
     return new float[][] {vvx, vvy};
   }
-
+  
   byte[][] getColorArray(byte[][] colors) {
     if (colors == null) return null;
     int clr_dim = colors.length;
@@ -3574,6 +3696,188 @@ class ContourStrip {
     }
     return new_colors;
   }
+
+  
+  
+  
+//  alternate dashed interpolation
+//  /**
+//   * Take a line array and remove <code>skip</code> sized segments to 
+//   * simulate a dashed line. No-op for <code>skip</code> <= 1.
+//   * @param vv Line array as returned by <code>getLineArray</code>.
+//   * @param skip Number of points to make up a dash; ie. number to skip. 
+//   * @see #getDashedColorArray(byte[][], int)
+//   * @return A line array interpolated as a dashed line array.
+//   */
+//  float[][] getDashedLineArray(float[][] vv, int skip) {
+//    
+//    int X = 0;
+//    int Y = 1;
+//    
+//    // length of new array, Always even for line array
+//    int len =  (vv[0].length)/skip;
+//    if( len % 2 == 1 ) len += 1;
+//    
+//    float[][] interp = new float[2][len];
+//    
+//    //System.err.println("    vv[0].length:"+vv[0].length+" len:"+len+" skip:"+skip);
+//
+//    for(int i=0, j=0; i+skip<vv[0].length; i+=2*skip, j+=2) {
+//      interp[X][j] = vv[X][i];
+//      interp[Y][j] = vv[Y][i];
+//      
+//      interp[X][j+1] = vv[X][i+skip];
+//      interp[Y][j+1] = vv[Y][i+skip];
+//      
+//    }
+//    
+//    return interp;
+//    
+//  }
+  
+  
+  
+  
+  float[][] getDashedLineArray(float[][] vv) {
+    
+    int X = 0;
+    int Y = 1;
+    
+    // length of new array, Always even for line array
+    int len =  vv[0].length;
+    
+    float[][] interp = new float[2][len];
+    
+    //System.err.println("    vv[0].length:"+vv[0].length+" len:"+len+" skip:"+skip);
+
+    // from Contour2D.contour(...)
+    for(int i=0; i<vv[0].length; i+=2) {
+      float vxa, vya, vxb, vyb;
+      vxa = vv[X][i+1];
+      vya = vv[Y][i+1];
+      vxb = vv[X][i];
+      vyb = vv[Y][i];
+      interp[X][i+1] = (3.0f*vxa+vxb) * 0.25f;
+      interp[Y][i+1] = (3.0f*vya+vyb) * 0.25f;
+      interp[X][i] = (vxa+3.0f*vxb) * 0.25f;
+      interp[Y][i] = (vya+3.0f*vyb) * 0.25f;
+    }
+    
+    return interp;
+    
+  }
+  
+  
+  
+//  alternate interpolation
+//  /**
+//   * Take a color array and remove <code>skip</code> sized segments to 
+//   * match a dashed line array. No-op for <code>skip</code> <= 1.
+//   * @param vv Line array as returned by <code>getLineArray</code>.
+//   * @param skip Number of points to make up a dash; ie. number to skip.
+//   * @see #getDashedLineArray(float[][], int)
+//   * @return A line array interpolated as a dashed line array.
+//   */
+//  byte[][] getDashedColorArray(byte[][] colors, int skip) {
+//    
+//    if (colors == null) return null;
+//    
+//    // length of new array, Always even for line array
+//    int len =  (colors[0].length)/skip;
+//    if( len % 2 == 1 ) len += 1;
+//    
+//    //System.err.println("colors[0].length:"+colors[0].length+" len:"+len+" skip:"+skip);
+//    
+//    byte[][] interp = new byte[colors.length][len];
+//    
+//    for(int i=0, j=0; i+skip<colors[0].length; i+=2*skip, j+=2) {
+//      for (int k=0; k<colors.length; k++) {
+//        interp[k][j]   = colors[k][i];
+//        interp[k][j+1] = colors[k][i+skip];
+//      }
+//    }
+//    
+//    Make all colors white, for DEBUG'ing
+//    for (int j=0; j<interp[0].length; j++){ 
+//      for (int i=0; i<interp.length; i++){
+//        interp[i][j] = (byte)255;
+//      }
+//    }
+//    
+//    return interp;
+//  }
+  
+  
+  
+  
+  
+  /** BMF 2006-09-29
+   * Double the size of a line array by adding the computed midmoint
+   * between existing values.
+   * @param vv Line array as returned by getLineArray(float[], float[])
+   * @return An interpolated line array
+   * @author BMF 2006/09/25
+   */
+  float[][] interpolateLineArray(float[][] vv) {
+
+    int X = 0;
+    int Y = 1;
+    
+    int len = vv[0].length*2;
+    float[][] interp = new float[2][len];
+
+    for(int i=0, j=0; i<vv[0].length; i+=2, j+=4) {
+      interp[X][j]   = vv[X][i];
+      interp[Y][j]   = vv[Y][i];
+      
+      interp[X][j+1] = vv[X][i] + 0.5f*(vv[X][i+1] - vv[X][i]); 
+      interp[Y][j+1] = vv[Y][i] + 0.5f*(vv[Y][i+1] - vv[Y][i]);
+      
+      interp[X][j+2] = interp[X][j+1]; 
+      interp[Y][j+2] = interp[Y][j+1];
+      
+      interp[X][j+3] = vv[X][i+1];
+      interp[Y][j+3] = vv[Y][i+1];
+    }
+    
+    return interp;
+    
+  }
+
+  /** BMF 2006-09-29
+   * Doubles the size of the color array by adding averaged colors
+   * between existing colors.
+   * @param colors Color array as returned by <code>getColorArray()</code>.
+   * @return Interpreted color array.
+   * @author BMF 2006/09/25
+   */
+  byte[][] interpolateColorArray(byte[][] colors) {
+    
+    if (colors == null) return null;
+    
+    byte[][] interp = new byte[colors.length][colors[0].length*2];
+    
+    for(int i=0, j=0; i<colors[0].length; i+=2, j+=4) {
+      for (int k=0; k<colors.length; k++) {
+        byte avg = (byte) ((colors[k][i] + colors[k][i+1]) / 2);
+        interp[k]  [j] = colors[k][i];
+        interp[k][j+1] = avg;
+        interp[k][j+2] = avg;
+        interp[k][j+3] = colors[k][i+1];
+      }
+    }
+
+// set all colors to white for debuging    
+//    for (int j=0; j<interp[0].length; j++){ 
+//      for (int i=0; i<interp.length; i++){
+//        if(i==3) interp[i][j] = (byte)255;
+//        else     interp[i][j] = (byte)255;
+//      }
+//    }
+    
+    return interp;
+  }
+
 
   ContourStrip merge(ContourStrip c_strp)
   {
