@@ -2009,6 +2009,9 @@ public class Gridded3DSet extends GriddedSet {
     return new float[] {gx, gy, gz};
   }
 
+  /* (non-Javadoc)
+   * @see visad.Set#makeIsoLines(float[], float, float, float, float[], byte[][], boolean[], boolean, boolean, visad.ScalarMap[], double, double, float[][][])
+   */
   public VisADGeometryArray[][] makeIsoLines(float[] intervals,
                   float lowlimit, float highlimit, float base,
                   float[] fieldValues, byte[][] color_values,
@@ -2139,6 +2142,7 @@ for color_length = 3 this is 148 * Length
           k3++;
         }
       }
+      
       //-- compute color at field contour intervals
       float[] default_intervals = null;
       Unit ounit = smap[0].getOverrideUnit();
@@ -2168,45 +2172,20 @@ for color_length = 3 this is 148 * Length
     byte[][][][]  lbl_cc     = new byte[4][][][];
     float[][][]   lbl_loc    = new float[3][][];
   
+    // BMF 2006-10-10 get label color from control for Contour2D.contour(...)
+    ContourControl ctrl = (ContourControl)smap[1].getControl();
+    byte[] labelColor = ctrl.getLabelColor();
+    
     Contour2D.contour( g, nr, nc, intervals, lowlimit, highlimit, base, dash,
                       vx1, vy1, vz1, maxv1, numv1, vx2, vy2, vz2, maxv2, numv2,
                       vx3, vy3, vz3, maxv3, numv3, vx4, vy4, vz4, maxv4, numv4,
                       color_values, color_levels1, color_levels2,
                       color_levels3, swap,
                       fill, tri, tri_color, grd_normals, tri_normals,
-                      interval_colors, lbl_vv, lbl_cc, lbl_loc, scale_ratio, label_size,
+                      interval_colors, lbl_vv, lbl_cc, lbl_loc, scale_ratio, 
+                      label_size, labelColor,
                       this);
 
-    if (fill) {
-
-      // null out all these arrays since they are for non-fill contours.
-      color_levels1 = null;
-      color_levels2 = null;
-      color_levels3 = null;
-      vx1 = null;
-      vy1 = null;
-      vz1 = null;
-      vx2 = null;
-      vy2 = null;
-      vz2 = null;
-      vx3 = null;
-      vy3 = null;
-      vz3 = null;
-      vx4 = null;
-      vy4 = null;
-      vz4 = null;
-      numv1 = null;
-      numv2 = null;
-      numv3 = null;
-      numv4 = null;
-
-      VisADGeometryArray[][] tri_array = new VisADGeometryArray[2][];
-      tri_array[0] = new VisADGeometryArray[1];
-      tri_array[0][0] = new VisADTriangleArray();
-      tri_array[0][0].normals = tri_normals[0];
-      setGeometryArray(tri_array[0][0], gridToValue(tri), 3, tri_color);
-      return tri_array;
-    }
     // since we now use the lbl_ arrays for labels, we'll null out these
     // so they can get garbage collected.
     vx3 = null;
@@ -2370,7 +2349,44 @@ for color_length = 3 this is 148 * Length
       loc[2][0]      = lbl_loc[2][kk][2];
       setGeometryArray(arrays[3][kk*4+3], loc, 3, null);
     }
-    return arrays;
+    
+    // BMF 2006-10-10 moved from above to ensure lable code runs
+    if (fill) {
+      
+      // null out all these arrays since they are for non-fill contours.
+      color_levels1 = null;
+      color_levels2 = null;
+      color_levels3 = null;
+      vx1 = null;
+      vy1 = null;
+      vz1 = null;
+      vx2 = null;
+      vy2 = null;
+      vz2 = null;
+      vx3 = null;
+      vy3 = null;
+      vz3 = null;
+      vx4 = null;
+      vy4 = null;
+      vz4 = null;
+      numv1 = null;
+      numv2 = null;
+      numv3 = null;
+      numv4 = null;
+      
+      VisADGeometryArray[][] tri_array = new VisADGeometryArray[4][];
+      tri_array[0] = new VisADGeometryArray[1];
+      tri_array[0][0] = new VisADTriangleArray();
+      tri_array[0][0].normals = tri_normals[0];
+      setGeometryArray(tri_array[0][0], gridToValue(tri), 3, tri_color);
+      
+      // FIXME:BMF is setGeometryArray(...) required?
+      tri_array[2] = arrays[2];
+//      tri_array[3] = arrays[3];
+      tri_array[3] = null;      
+      return tri_array;
+      
+    } else return arrays;
   }
 
   public float[][] getNormals(float[][] grid)
