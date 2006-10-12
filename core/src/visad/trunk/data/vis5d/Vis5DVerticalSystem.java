@@ -241,6 +241,42 @@ public class Vis5DVerticalSystem
       return pressures;
     }
   
+    /**
+     * Converts pressures in millibars to altitude in meters.
+     * @param  pressures  array of pressures
+     * @return array of corresponding altitudes
+     * @throws VisADException  illegal input
+     */
+    public float[][] toReference(float[][] pressures)
+           throws VisADException
+    {
+      int length = pressures[0].length;
+      float[][] alts = new float[1][length];
+  
+      for (int kk = 0; kk < length; kk++) {
+        alts[0][kk] = (float) pressureToAltitude(pressures[0][kk]);
+      }
+      return alts;
+    }
+  
+    /**
+     * Converts altitudes in m to pressure in millibars.
+     * @param  alts  array of altitudes
+     * @return array of corresponding pressures
+     * @throws VisADException  illegal input
+     */
+    public float[][] fromReference(float[][] alts)
+           throws VisADException
+    {
+      int length = alts[0].length;
+      float[][] pressures = new float[1][length];
+  
+      for (int kk = 0; kk < length; kk++) {
+        pressures[0][kk] = (float) altitudeToPressure(alts[0][kk]);
+      }
+      return pressures;
+    }
+  
     /** 
      * Checks the equality of o against this coordinate system
      * @param o object in question
