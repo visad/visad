@@ -83,7 +83,8 @@ public class Contour2D {
                       boolean fill, float[][] tri, byte[][] tri_color,
                       float[][][] grd_normals, float[][] tri_normals,
                       byte[][] interval_colors, float[][][][] lbl_vv, byte[][][][] lbl_cc,
-                      float[][][] lbl_loc, double scale_ratio, double label_size,
+                      float[][][] lbl_loc, double scale_ratio, 
+                      double label_size, byte[] labelColor,
                       Gridded3DSet spatial_set)
                           throws VisADException
   {
@@ -102,7 +103,8 @@ public class Contour2D {
              auxLevels2, auxLevels3, swap,
              fill, tri, tri_color,
              grd_normals, tri_normals,
-             interval_colors, lbl_vv, lbl_cc, lbl_loc, scale_ratio, label_size,
+             interval_colors, lbl_vv, lbl_cc, lbl_loc, scale_ratio, 
+             label_size, labelColor,
              spatial_set);
   }
 
@@ -167,7 +169,7 @@ public class Contour2D {
 
     return levs;
   }
-
+  
   /**
    * Compute contour lines for a 2-D array.  If the interval is negative,
    * then contour lines less than base will be drawn as dashed lines.
@@ -175,32 +177,55 @@ public class Contour2D {
    *           lowlimit <= V <= highlimit<br>
    *     and   V = base + n*interval  for some integer n<br>
    * Note that the input array, g, should be in column-major (FORTRAN) order.
-   *
-   * @param    g         the 2-D array to contour.
-   * @param    nr        size of 2-D array in rows
-   * @param    nc        size of 2-D array in columns.
-   * @param    values    the values to be plotted
-   * @param    lowlimit  the lower limit on values to contour.
-   * @param    highlimit the upper limit on values to contour.
-   * @param    base      base value to start contouring at.
-   * @param    dash      boolean to dash contours below base or not
-   * @param    vx1       array to put contour line vertices (x value)
-   * @param    vy1       array to put contour line vertices (y value)
-   * @param    maxv1     size of vx1, vy1 arrays
-   * @param    numv1     pointer to int to return number of vertices in vx1,vy1
-   * @param    vx2       array to put 'hidden' contour line vertices (x value)
-   * @param    vy2       array to put 'hidden' contour line vertices (y value)
-   * @param    maxv2     size of vx2, vy2 arrays
-   * @param    numv2     pointer to int to return number of vertices in vx2,vy2
-   * @param    vx3       array to put contour label vertices (x value)
-   * @param    vy3       array to put contour label vertices (y value)
-   * @param    maxv3     size of vx3, vy3 arrays
-   * @param    numv3     pointer to int to return number of vertices in vx3,vy3
-   * @param    vx4       array to put contour label vertices, inverted (x value)
-   * @param    vy4       array to put contour label vertices, inverted (y value)
+   * 
+   * @param g         the 2-D array to contour.
+   * @param nr        size of 2-D array in rows
+   * @param nc        size of 2-D array in columns.
+   * @param values    the values to be plotted
+   * @param lowlimit  the lower limit on values to contour.
+   * @param highlimit the upper limit on values to contour.
+   * @param base      base value to start contouring at.
+   * @param dash      boolean to dash contours below base or not
+   * @param vx1       array to put contour line vertices (x value)
+   * @param vy1       array to put contour line vertices (y value)
+   * @param vz1
+   * @param maxv1     size of vx1, vy1 arrays
+   * @param numv1     pointer to int to return number of vertices in vx1,vy1
+   * @param vx2       array to put 'hidden' contour line vertices (x value)
+   * @param vy2       array to put 'hidden' contour line vertices (y value)
+   * @param vz2
+   * @param maxv2     size of vx2, vy2 arrays
+   * @param numv2     pointer to int to return number of vertices in vx2,vy2
+   * @param vx3       array to put contour label vertices (x value)
+   * @param vy3       array to put contour label vertices (y value)
+   * @param vz3
+   * @param maxv3     size of vx3, vy3 arrays
+   * @param numv3     pointer to int to return number of vertices in vx3,vy3
+   * @param vx4       array to put contour label vertices, inverted (x value)
+   * @param vy4       array to put contour label vertices, inverted (y value)
    *                     <br>** see note for VxB and VyB in PlotDigits.java **
-   * @param    maxv4     size of vx4, vy4 arrays
-   * @param    numv4     pointer to int to return number of vertices in vx4,vy4
+   * @param vz4
+   * @param maxv4     size of vx4, vy4 arrays
+   * @param numv4     pointer to int to return number of vertices in vx4,vy4
+   * @param auxValues
+   * @param auxLevels1
+   * @param auxLevels2
+   * @param auxLevels3
+   * @param swap
+   * @param fill
+   * @param tri
+   * @param tri_color
+   * @param grd_normals
+   * @param tri_normals
+   * @param interval_colors
+   * @param lbl_vv
+   * @param lbl_cc
+   * @param lbl_loc
+   * @param scale_ratio
+   * @param label_size
+   * @param labelColor RGB label color byte array
+   * @param spatial_set
+   * @throws VisADException
    */
   public static void contour( float g[], int nr, int nc, float[] values,
                       float lowlimit, float highlimit, float base, boolean dash,
@@ -213,7 +238,8 @@ public class Contour2D {
                       boolean fill, float[][] tri, byte[][] tri_color,
                       float[][][] grd_normals, float[][] tri_normals,
                       byte[][] interval_colors, float[][][][] lbl_vv, byte[][][][] lbl_cc,
-                      float[][][] lbl_loc, double scale_ratio, double label_size,
+                      float[][][] lbl_loc, double scale_ratio, 
+                      double label_size, byte[] labelColor,
                       Gridded3DSet spatial_set)
                           throws VisADException {
 /*
@@ -1146,16 +1172,19 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
       fillGridBox(g, n_lines, vx, vy, xd, xdd, yd, ydd, nr, nrm, nc, ncm,
                   ctrLow, tri, tri_color, o_flags, myvals, color_bin,
                   grd_normals, tri_normals);
+                 
+      // BMF 2006-10-04 do not return, ie. draw labels on filled contours
       // for now, just return because we don't need to do labels
-      return;
+      //return;
     }
-
 
 //---TDR, build Contour Strips
 
     float[][][] vvv          = new float[2][][];
-    byte[][][] new_colors    = new byte[2][][];
-    ctrSet.getLineColorArrays(vx, vy, auxLevels, vvv, new_colors, lbl_vv, lbl_cc, lbl_loc, dashFlags);
+    byte [][][] new_colors   = new byte[2][][];
+    
+    
+    ctrSet.getLineColorArrays(vx, vy, auxLevels, labelColor, vvv, new_colors, lbl_vv, lbl_cc, lbl_loc, dashFlags);
 
     vx1[0]   = vvv[0][0];
     vy1[0]   = vvv[0][1];
@@ -2895,8 +2924,8 @@ class ContourStripSet {
     }
   }
 
-  void getLineColorArrays(float[] vx, float[] vy, byte[][] colors, int lev_idx,
-                          float[][][] out_vv, byte[][][] out_bb,
+  void getLineColorArrays(float[] vx, float[] vy, byte[][] colors, byte[] labelColor, 
+                          int lev_idx, float[][][] out_vv, byte[][][] out_bb,
                           float[][][][] out_vvL, byte[][][][] out_bbL, float[][][] out_loc,
                           boolean[] dashed)
   {
@@ -2920,12 +2949,13 @@ class ContourStripSet {
       else cs.dashed = DISABLE_DASH_VALUE;
       
       // do the standard label algorithm or the modified for short strips
+      
       if((cs.hi_idx - cs.low_idx + 1) < ContourStrip.LBL_ALGM_THRESHHOLD){
         cs.getInterpolatedLabeledColorArray
-               (vx, vy, colors, la[kk], ca[kk], laL[kk], caL[kk], locL[kk]);
+               (vx, vy, colors, labelColor, la[kk], ca[kk], laL[kk], caL[kk], locL[kk]);
       } else
         cs.getLabeledLineColorArray
-               (vx, vy, colors, la[kk], ca[kk], laL[kk], caL[kk], locL[kk]);
+               (vx, vy, colors, labelColor, la[kk], ca[kk], laL[kk], caL[kk], locL[kk]);
       // end BMF 2006-09-29 //////////////////
     }
 
@@ -3016,17 +3046,19 @@ class ContourStripSet {
     }
   }
 
+	
   /**
-   * @param vx
+   * @param vx 
    * @param vy
    * @param colors shared colors
+   * @param labelColor RGB label color byte array
    * @param out_vv output vector verticie array {{ X }, { Y }}
    * @param out_bb
    * @param out_vvL
    * @param out_bbL
    * @param out_loc
    */
-  void getLineColorArrays(float[] vx, float[] vy, byte[][] colors,
+  void getLineColorArrays(float[] vx, float[] vy, byte[][] colors, byte[] labelColor,
                           float[][][] out_vv, byte[][][] out_bb,
                           float[][][][] out_vvL, byte[][][][] out_bbL, float[][][] out_loc,
                           boolean[] dashFlags) {
@@ -3039,7 +3071,7 @@ class ContourStripSet {
 
     int n_lbl = 0;
     for (int kk=0; kk<n_levs; kk++) {
-      getLineColorArrays(vx, vy, colors, kk, tmp[kk], btmp[kk], tmpL[kk], btmpL[kk], tmpLoc[kk], dashFlags);
+      getLineColorArrays(vx, vy, colors, labelColor, kk, tmp[kk], btmp[kk], tmpL[kk], btmpL[kk], tmpLoc[kk], dashFlags);
       n_lbl += tmpL[kk][0].length;
     }
       
@@ -3250,7 +3282,8 @@ class ContourStrip {
    return false;
   }
 
-  void getLabeledLineColorArray(float[] vx, float[] vy, byte[][] colors,
+	
+  void getLabeledLineColorArray(float[] vx, float[] vy, byte[][] colors, byte[] labelColor, 
                                 float[][][] out_vv, byte[][][] out_colors,
                                 float[][][][] out_vvL, byte[][][][] out_colorsL,
                                 float[][][]  lbl_loc)
@@ -3259,13 +3292,13 @@ class ContourStrip {
     float[][] vv = getLineArray(vx, vy);
     byte[][] bb = getColorArray(colors);
     
-    processLineArrays(vv, bb, out_vv, out_colors, out_vvL, out_colorsL, lbl_loc);
+    processLineArrays(vv, bb, labelColor, out_vv, out_colors, out_vvL, out_colorsL, lbl_loc);
   }
   
   /* BMF 2006-10-04
    * getLabeledLineColorArray() for interpolated short strips
    */
-  void getInterpolatedLabeledColorArray(float[] vx, float[] vy, byte[][] colors,
+  void getInterpolatedLabeledColorArray(float[] vx, float[] vy, byte[][] colors, byte[] labelColor,
                                 float[][][] out_vv, byte[][][] out_colors,
                                 float[][][][] out_vvL, byte[][][][] out_colorsL,
                                 float[][][]  lbl_loc)
@@ -3285,21 +3318,23 @@ class ContourStrip {
         interp_vv = interpolateLineArray(interp_vv);
       }
       
-      processLineArrays(interp_vv, interp_bb, out_vv, out_colors, out_vvL, out_colorsL, lbl_loc);
+      processLineArrays(interp_vv, interp_bb, labelColor, out_vv, out_colors, out_vvL, out_colorsL, lbl_loc);
   }
+  
   
   /** 
    * Common line array code
    * 
    * @param vv_grid
    * @param bb
+   * @param labelColor RGB label color byte array
    * @param out_vv
    * @param out_colors
    * @param out_vvL
    * @param out_colorsL
    * @param lbl_loc
    */
-  private void processLineArrays(float[][] vv_grid, byte[][] bb, 
+  private void processLineArrays(float[][] vv_grid, byte[][] bb, byte[] labelColor,
                                  float[][][] out_vv, byte[][][] out_colors,
                                  float[][][][] out_vvL, byte[][][][] out_colorsL,
                                  float[][][]  lbl_loc)
@@ -3491,7 +3526,6 @@ class ContourStrip {
         vyB_tmp[kk]     += vv[1][loc];
       }
       //-- assign color to contour labels --------------
-      byte[] labelColor = null;
       if (labelColor != null) {
         for (int kk=0; kk<plot.NumVerts; kk++) {
           lbl_clr[0][kk]   = labelColor[0];
@@ -3816,7 +3850,6 @@ class ContourStrip {
    * between existing values.
    * @param vv Line array as returned by getLineArray(float[], float[])
    * @return An interpolated line array
-   * @author BMF 2006/09/25
    */
   float[][] interpolateLineArray(float[][] vv) {
 
@@ -3849,7 +3882,6 @@ class ContourStrip {
    * between existing colors.
    * @param colors Color array as returned by <code>getColorArray()</code>.
    * @return Interpreted color array.
-   * @author BMF 2006/09/25
    */
   byte[][] interpolateColorArray(byte[][] colors) {
     
