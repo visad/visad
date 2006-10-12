@@ -3662,6 +3662,7 @@ try {
         ContourControl control = (ContourControl)
           ((ScalarMap) MapVector.elementAt(valueToMap[i])).getControl();
         c_cntrl = control;
+        
         boolean[] bvalues = new boolean[2];
         float[] fvalues = new float[5];
         control.getMainContours(bvalues, fvalues);
@@ -3726,13 +3727,13 @@ try {
           else if (spatialManifoldDimension == 2) {
             if (spatial_set != null) {
               control.setAutoScaleLabels(true);
-
+              
               float[] lowhibase = new float[3];
               boolean[] dashes  = {false};
               float[] levs = control.getLevels(lowhibase, dashes);
 
               boolean fill = control.contourFilled();
-              ScalarMap[] smap = new ScalarMap[1];
+              ScalarMap[] smap = new ScalarMap[2]; // changed to 2 to pass IsoContour Map to Set
               if (fill) {
                 ScalarType sc = ((ScalarMap)MapVector.elementAt(valueToMap[i])).getScalar();
                 for (int kk = 0; kk < MapVector.size(); kk++) {
@@ -3749,85 +3750,113 @@ try {
                   throw new DisplayException("IsoContour color-fill is enabled, so "+
                       sc+" must also be mapped to Display.RGB");
                 }
+                
+                // BMF 2006-10-05 set offset to make labels more clear
+                // FIXME: There may be a better value to use here
+                mode.setPolygonOffsetFactor(10f, false);
+                
+              } else {
+                // BMF 2006-10-05 no offeset if we're not filling
+                mode.setPolygonOffsetFactor(0f, false);
               }
+              
+              // BMF 2006-10-04 get the IsoContour ScalarMap
+              for (int kk = 0; kk < MapVector.size(); kk++) {
+                ScalarMap sm = (ScalarMap)MapVector.elementAt(kk);
+                if (sm != null) {
+                  if ( sm.getDisplayScalar().equals(Display.IsoContour) ) {
+                    smap[1] = sm;
+                  }
+                }
+              }
+              
               float[][][] f_array = new float[1][][];
               VisADGeometryArray[][] array_s =
                 spatial_set.makeIsoLines(levs, lowhibase[0], lowhibase[1],
                                          lowhibase[2], display_values[i],
                                          color_values, swap, dashes[0],
                                          fill, smap, scale, label_size, f_array);
+              
               if (array_s != null) {
-              if (!fill && getAdjustProjectionSeam()) {
-                for (int j=0; j<2; j++) {
-                  if (array_s[j][0] != null) { //- lines, fill-lines
-                    try {
-                      array_s[j][0] = ((VisADLineArray)array_s[j][0]).adjustLongitude(renderer);
-                      array_s[j][0] = ((VisADLineArray)array_s[j][0]).adjustSeam(renderer);
+                if (!fill && getAdjustProjectionSeam()) {
+                  for (int j=0; j<2; j++) {
+                    if (array_s[j][0] != null) { //- lines, fill-lines
+                      try {
+                        array_s[j][0] = ((VisADLineArray)array_s[j][0]).adjustLongitude(renderer);
+                        array_s[j][0] = ((VisADLineArray)array_s[j][0]).adjustSeam(renderer);
+                      }
+                      catch (Exception e) {
+                        e.printStackTrace();
+                      }
                     }
-                    catch (Exception e) {
-                      e.printStackTrace();
+                  }
+                  if (array_s.length > 2 && array_s[2] != null) {
+                    for (int k=0; k<(array_s[2].length)/2; k++) { //-labels, label anchor points
+                      try {
+                        array_s[2][k*2] = array_s[2][k*2].adjustLongitude(renderer);
+                        array_s[2][k*2] = array_s[2][k*2].adjustSeam(renderer);
+                        array_s[2][k*2+1] = array_s[2][k*2+1].adjustLongitude(renderer);
+                        array_s[2][k*2+1] = array_s[2][k*2+1].adjustSeam(renderer);
+                      }
+                      catch (Exception e) {
+                        e.printStackTrace();
+                      }
+                    }
+                  }
+                  if (array_s.length > 3 && array_s[3] != null) {
+                    for (int k=0; k<(array_s[3].length)/4; k++) { //- left/right expanding segments
+                      try {
+                        array_s[3][k*4] = array_s[3][k*4].adjustLongitude(renderer);
+                        array_s[3][k*4] = array_s[3][k*4].adjustSeam(renderer);
+                        array_s[3][k*4+1] = array_s[3][k*4+1].adjustLongitude(renderer);
+                        array_s[3][k*4+1] = array_s[3][k*4+1].adjustSeam(renderer);
+                        array_s[3][k*4+2] = array_s[3][k*4+2].adjustLongitude(renderer);
+                        array_s[3][k*4+2] = array_s[3][k*4+2].adjustSeam(renderer);
+                        array_s[3][k*4+3] = array_s[3][k*4+3].adjustLongitude(renderer);
+                        array_s[3][k*4+3] = array_s[3][k*4+3].adjustSeam(renderer);
+                      }
+                      catch (Exception e) {
+                        e.printStackTrace();
+                      }
                     }
                   }
                 }
-                if (array_s.length > 2 && array_s[2] != null) {
-                  for (int k=0; k<(array_s[2].length)/2; k++) { //-labels, label anchor points
-                    try {
-                      array_s[2][k*2] = array_s[2][k*2].adjustLongitude(renderer);
-                      array_s[2][k*2] = array_s[2][k*2].adjustSeam(renderer);
-                      array_s[2][k*2+1] = array_s[2][k*2+1].adjustLongitude(renderer);
-                      array_s[2][k*2+1] = array_s[2][k*2+1].adjustSeam(renderer);
-                    }
-                    catch (Exception e) {
-                      e.printStackTrace();
-                    }
-                  }
-                }
-                if (array_s.length > 3 && array_s[3] != null) {
-                  for (int k=0; k<(array_s[3].length)/4; k++) { //- left/right expanding segments
-                    try {
-                      array_s[3][k*4] = array_s[3][k*4].adjustLongitude(renderer);
-                      array_s[3][k*4] = array_s[3][k*4].adjustSeam(renderer);
-                      array_s[3][k*4+1] = array_s[3][k*4+1].adjustLongitude(renderer);
-                      array_s[3][k*4+1] = array_s[3][k*4+1].adjustSeam(renderer);
-                      array_s[3][k*4+2] = array_s[3][k*4+2].adjustLongitude(renderer);
-                      array_s[3][k*4+2] = array_s[3][k*4+2].adjustSeam(renderer);
-                      array_s[3][k*4+3] = array_s[3][k*4+3].adjustLongitude(renderer);
-                      array_s[3][k*4+3] = array_s[3][k*4+3].adjustSeam(renderer);
-                    }
-                    catch (Exception e) {
-                      e.printStackTrace();
-                    }
-                  }
-                }
-              }
-
-              if (array_s.length > 0 && array_s[0][0] != null &&
-                  array_s[0][0].vertexCount > 0)
-              {
-                shadow_api.addToGroup(group, array_s[0][0], mode,
-                                      constant_alpha, constant_color);
-                array_s[0][0] = null;
-                if (!fill) {
-                  if (bvalues[1] && array_s[2] != null)
-                  {
-                    // draw labels
-                    shadow_api.addLabelsToGroup(group, array_s, mode, control,
-                                                p_cntrl, cnt, constant_alpha,
-                                                constant_color, f_array);
-                    array_s[2] = null;
-                  }
-                  else if ((!bvalues[1]) && array_s[1] != null)
-                  {
-                    // fill in contour lines in place of labels
-                    array = array_s[1][0];
-                    shadow_api.addToGroup(group, array_s[1][0], mode,
+  
+                if (array_s.length > 0 && array_s[0][0] != null &&
+                    array_s[0][0].vertexCount > 0)
+                {
+                  shadow_api.addToGroup(group, array_s[0][0], mode,
                                         constant_alpha, constant_color);
-                    array_s[1][0] = null;
-                  }
+                  
+                  array_s[0][0] = null;
+                  
+                  // BMF 2006-10-05 add labels for filled contours if (!fill) {
+                    if (bvalues[1] && array_s[2] != null)
+                    {
+                      // draw labels
+                      shadow_api.addLabelsToGroup(group, array_s, mode, control,
+                                                  p_cntrl, cnt, constant_alpha,
+                                                  constant_color, f_array);
+                      array_s[2] = null;
+                    }
+                    else if ((!bvalues[1]) && array_s[1] != null)
+                    {
+                      // fill in contour lines in place of labels
+                      array = array_s[1][0];
+                      shadow_api.addToGroup(group, array_s[1][0], mode,
+                                          constant_alpha, constant_color);
+                      
+                      shadow_api.addLabelsToGroup(group, array_s, mode, control,
+                          p_cntrl, cnt, constant_alpha,
+                          constant_color, f_array);
+                      
+                      
+                      array_s[1][0] = null;
+                    }
+                  // BMF}
+                  array_s = null;
                 }
-                array_s = null;
               }
-            }
             } // end if (spatial_set != null)
             // anyContourCreated = true;
           } // end if (spatialManifoldDimension == 2)
