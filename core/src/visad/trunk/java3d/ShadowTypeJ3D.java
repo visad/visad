@@ -477,6 +477,10 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   }
 
 
+  /* (non-Javadoc)
+   * @see visad.ShadowType#addLabelsToGroup(java.lang.Object, visad.VisADGeometryArray[][], visad.GraphicsModeControl, visad.ContourControl, visad.ProjectionControl, int[], float, float[], float[][][])
+   * BMF 2006-10-11 seperated code for stretchy lines from label code
+   */
   public void addLabelsToGroup(Object group, VisADGeometryArray[][] arrays,
                                GraphicsModeControl mode, ContourControl control,
                                ProjectionControl p_cntrl, int[] cnt_a,
@@ -494,63 +498,83 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     VisADGeometryArray[] seg_arrays = new VisADGeometryArray[4];
 
     int n_labels = arrays[2].length/2;
-    projListener.LT_array[cnt] = new LabelTransform[3][n_labels];
 
+    // add the stretchy line segments if we are not filling
+    if (!control.contourFilled()) 
+    {
+      projListener.LT_array[cnt] = new LabelTransform[3][n_labels];
+      
+      for ( int ii = 0; ii < n_labels; ii++ ) {
+        
+        seg_arrays[0] = arrays[3][ii*4];
+        seg_arrays[1] = arrays[3][ii*4+1];
+        seg_arrays[2] = arrays[3][ii*4+2];
+        seg_arrays[3] = arrays[3][ii*4+3];
+        
+        TransformGroup segL_trans_group = new TransformGroup();
+        TransformGroup segR_trans_group = new TransformGroup();
+        
+        segL_trans_group.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+        segL_trans_group.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+        segL_trans_group.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
+        segR_trans_group.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+        segR_trans_group.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+        segR_trans_group.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
+        
+        if (control.getAutoSizeLabels())
+        {
+
+          LabelTransform lbl_trans =
+            new LabelTransform(segL_trans_group, p_cntrl,
+              new VisADGeometryArray[] {seg_arrays[0], seg_arrays[1]},
+                new float[] {f_array[0][ii][0], f_array[0][ii][1]}, 1);
+          projListener.LT_array[cnt][1][ii] = lbl_trans;
+
+          lbl_trans =
+            new LabelTransform(segR_trans_group, p_cntrl,
+              new VisADGeometryArray[] {seg_arrays[2], seg_arrays[3]},
+                new float[] {f_array[0][ii][2], f_array[0][ii][3]}, 1);
+          projListener.LT_array[cnt][2][ii] = lbl_trans;
+         }
+        
+        ((Group)group).addChild(segL_trans_group);
+        ((Group)group).addChild(segR_trans_group);
+        
+        addToGroup(segL_trans_group, seg_arrays[0], mode, constant_alpha, constant_color);
+        addToGroup(segR_trans_group, seg_arrays[2], mode, constant_alpha, constant_color);
+        
+      }
+      
+    } else {
+      projListener.LT_array[cnt] = new LabelTransform[1][n_labels];
+    }
+    
+    cnt = cnt_a[0];
+    
     for ( int ii = 0; ii < n_labels; ii++ )
     {
       lbl_arrays[0] = arrays[2][ii*2];
       lbl_arrays[1] = arrays[2][ii*2+1];
-      seg_arrays[0] = arrays[3][ii*4];
-      seg_arrays[1] = arrays[3][ii*4+1];
-      seg_arrays[2] = arrays[3][ii*4+2];
-      seg_arrays[3] = arrays[3][ii*4+3];
 
       TransformGroup lbl_trans_group  = new TransformGroup();
-      TransformGroup segL_trans_group = new TransformGroup();
-      TransformGroup segR_trans_group = new TransformGroup();
       lbl_trans_group.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
       lbl_trans_group.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
       lbl_trans_group.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
-      segL_trans_group.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-      segL_trans_group.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-      segL_trans_group.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
-      segR_trans_group.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-      segR_trans_group.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-      segR_trans_group.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
 
       if (control.getAutoSizeLabels())
       {
         LabelTransform lbl_trans =
           new LabelTransform(lbl_trans_group, p_cntrl,
             lbl_arrays, f_array[0][ii], 0);
-               projListener.LT_array[cnt][0][ii] = lbl_trans;
-
-        lbl_trans =
-          new LabelTransform(segL_trans_group, p_cntrl,
-            new VisADGeometryArray[] {seg_arrays[0], seg_arrays[1]},
-              new float[] {f_array[0][ii][0], f_array[0][ii][1]}, 1);
-                projListener.LT_array[cnt][1][ii] = lbl_trans;
-
-        lbl_trans =
-          new LabelTransform(segR_trans_group, p_cntrl,
-            new VisADGeometryArray[] {seg_arrays[2], seg_arrays[3]},
-              new float[] {f_array[0][ii][2], f_array[0][ii][3]}, 1);
-                projListener.LT_array[cnt][2][ii] = lbl_trans;
-       }
+        projListener.LT_array[cnt][0][ii] = lbl_trans;
+      }
 
        ((Group)group).addChild(lbl_trans_group);
-       ((Group)group).addChild(segL_trans_group);
-       ((Group)group).addChild(segR_trans_group);
 
-       addToGroup(lbl_trans_group, lbl_arrays[0], mode,
-                  constant_alpha, constant_color);
+       addToGroup(lbl_trans_group, lbl_arrays[0], mode, constant_alpha, constant_color);
 
-       addToGroup(segL_trans_group, seg_arrays[0], mode,
-                  constant_alpha, constant_color);
-
-       addToGroup(segR_trans_group, seg_arrays[2], mode,
-                  constant_alpha, constant_color);
     }
+    
     cnt++;
     projListener.cnt = cnt;
     cnt_a[0] = cnt;
@@ -862,14 +886,15 @@ class ProjectionControlListener implements ControlListener
     if (scale_a[0]/last_scale > 1.15 ||
         scale_a[0]/last_scale < 1/1.15)
     {
+      //BMF 2006-10-11 added loop for iterating controlChanged(...) calls to 
+      // avoid null pointer exceptions
       if (current_time - last_time < 3000)
       {
         if (LT_array != null) {
           for (int ii = 0; ii < cnt; ii++) {
             for (int kk = 0; kk < LT_array[ii][0].length; kk++) {
-              LT_array[ii][0][kk].controlChanged(first_scale, scale_a);
-              LT_array[ii][1][kk].controlChanged(first_scale, scale_a);
-              LT_array[ii][2][kk].controlChanged(first_scale, scale_a);
+              for (int jj = 0; jj < LT_array[0].length; jj ++)
+                LT_array[ii][jj][kk].controlChanged(first_scale, scale_a);
             }
           }
         }
@@ -878,9 +903,8 @@ class ProjectionControlListener implements ControlListener
         if (LT_array != null) {
           for (int ii = 0; ii < cnt; ii++) {
             for (int kk = 0; kk < LT_array[ii][0].length; kk++) {
-              LT_array[ii][0][kk].controlChanged(first_scale, scale_a);
-              LT_array[ii][1][kk].controlChanged(first_scale, scale_a);
-              LT_array[ii][2][kk].controlChanged(first_scale, scale_a);
+              for (int jj = 0; jj < LT_array[0].length; jj++)
+                LT_array[ii][jj][kk].controlChanged(first_scale, scale_a);
             }
           }
         }
