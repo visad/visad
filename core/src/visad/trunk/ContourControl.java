@@ -79,6 +79,7 @@ public class ContourControl extends Control {
   private ProjectionControl pcntrl;
   private ControlListener projListener;
   private double ratio = 1.20;
+  private byte[] labelColor = null;
 
   /**
    * Construct a new ContourControl for the display
@@ -566,6 +567,7 @@ public class ContourControl extends Control {
 
   public void setContourFill(boolean flag)
          throws VisADException, RemoteException {
+    setLabelColor(new byte[]{(byte)255, (byte)255, (byte)255});
     synchronized(this) {
       contourFill = flag;
     }
@@ -609,6 +611,40 @@ public class ContourControl extends Control {
    */
   public boolean getAutoSizeLabels() {
     return autoSizeLabels;
+  }
+  
+  //BMF 2006-10-04
+  /** 
+   * Sets the color for label.
+   * @param color RGB color array
+   * @throws VisADException 
+   * @throws RemoteException 
+   */
+  public void setLabelColor(byte[] color) throws RemoteException, VisADException {
+    labelColor = color;
+    changeControl(false);
+  }
+
+  //BMF 2006-10-04
+  /**
+   * Sets the label color. 
+   * @param color RGB color array.
+   * @param change If false, no {@link visad.ControlEvent} is fired.
+   * @throws RemoteException
+   * @throws VisADException
+   */
+  public void setLabelColor(byte[] color, boolean change) throws RemoteException, VisADException {
+    labelColor = color;
+    changeControl(change);
+  }
+  
+  //BMF 2006-10-04
+  /**
+   * Gets the label color.
+   * @return label color as RGB array, null if not set
+   */
+  public byte[] getLabelColor() {
+    return labelColor;
   }
 
   /**
@@ -954,15 +990,18 @@ public class ContourControl extends Control {
     return cc;
   }
 
+  //BMF 2006-10-04 added contourFill condition
   /**
-   * if zoom scale has changed sufficiently, re-transform in
-   * order to recompute labels
+   * If zoom scale has changed sufficiently, re-transform in
+   * order to recompute labels. 
+   * 
+   * No action is taken if {@link #setContourFill(boolean)} has been set.
+   *  
    * @throws VisADException if a VisAD error occurs
    * @throws RemoteException if an RMI error occurs
    */
-  public void reLabel() 
-         throws VisADException, RemoteException {   
-    if (zoom == null) return;
+  public void reLabel() throws VisADException, RemoteException {   
+    if (zoom == null || contourFill) return;
     zoom.reLabel(ratio);
   }
 
