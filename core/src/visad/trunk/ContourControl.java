@@ -79,8 +79,11 @@ public class ContourControl extends Control {
   private ProjectionControl pcntrl;
   private ControlListener projListener;
   private double ratio = 1.20;
+  
+  // label color defaults to white
   private byte[] labelColor = null;
-
+  private boolean colorSet = false;
+  
   /**
    * Construct a new ContourControl for the display
    * @param d    Display to associate with this
@@ -567,7 +570,16 @@ public class ContourControl extends Control {
 
   public void setContourFill(boolean flag)
          throws VisADException, RemoteException {
-    setLabelColor(new byte[]{(byte)255, (byte)255, (byte)255});
+    
+    if (flag) {
+      if (!colorSet)
+        labelColor = new byte[]{(byte)255, (byte)255, (byte)255};
+    
+    } else {
+      if (!colorSet)
+        labelColor = null;
+    }
+        
     synchronized(this) {
       contourFill = flag;
     }
@@ -616,25 +628,25 @@ public class ContourControl extends Control {
   //BMF 2006-10-04
   /** 
    * Sets the color for label.
-   * @param color RGB color array
+   * @param color RGB color array, if null label takes contour color
    * @throws VisADException 
    * @throws RemoteException 
    */
   public void setLabelColor(byte[] color) throws RemoteException, VisADException {
-    labelColor = color;
-    changeControl(false);
+    setLabelColor(color, true);
   }
 
   //BMF 2006-10-04
   /**
    * Sets the label color. 
-   * @param color RGB color array.
+   * @param color RGB color array, if null label takes contour color
    * @param change If false, no {@link visad.ControlEvent} is fired.
    * @throws RemoteException
    * @throws VisADException
    */
   public void setLabelColor(byte[] color, boolean change) throws RemoteException, VisADException {
     labelColor = color;
+    colorSet = true;
     changeControl(change);
   }
   

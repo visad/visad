@@ -151,6 +151,8 @@ public abstract class ShadowType extends Object
   int[] refToComponent;
   ShadowRealTupleType[] componentWithRef;
   int[] componentIndex;
+  
+  private float prevPolygonOffset = 0f;
 
   public ShadowType(MathType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
@@ -3753,11 +3755,12 @@ try {
                 
                 // BMF 2006-10-05 set offset to make labels more clear
                 // FIXME: There may be a better value to use here
+                prevPolygonOffset = mode.getPolygonOffsetFactor();
                 mode.setPolygonOffsetFactor(10f, false);
                 
               } else {
                 // BMF 2006-10-05 no offeset if we're not filling
-                mode.setPolygonOffsetFactor(0f, false);
+                mode.setPolygonOffsetFactor(prevPolygonOffset, false);
               }
               
               // BMF 2006-10-04 get the IsoContour ScalarMap
@@ -3845,12 +3848,6 @@ try {
                       array = array_s[1][0];
                       shadow_api.addToGroup(group, array_s[1][0], mode,
                                           constant_alpha, constant_color);
-                      
-                      shadow_api.addLabelsToGroup(group, array_s, mode, control,
-                          p_cntrl, cnt, constant_alpha,
-                          constant_color, f_array);
-                      
-                      
                       array_s[1][0] = null;
                     }
                   // BMF}
