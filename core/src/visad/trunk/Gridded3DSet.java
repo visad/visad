@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package visad;
 
 import java.io.*;
+import java.util.Enumeration;
 
 
 /**
@@ -3087,6 +3088,295 @@ for (int j=0; j<nvertex; j++) {
       return array;
     } // end if (!indexed)
   }
+
+  public VisADGeometryArray makeIsoSurfaceMissingSpatial(float isolevel, float[] fieldValues, byte[][] color_values,
+         boolean indexed, ShadowRealTupleType Domain, ShadowRealTupleType domain_reference,
+         Unit[] domain_units, CoordinateSystem dataCoordinateSystem, CoordinateSystem coord_sys, ShadowRealType[] DomainReferenceComponents, DisplayTupleType spatial_tuple, float[][] spatial_offset_values)
+         throws VisADException {
+
+    boolean debug = false;
+    int      i, NVT, cnt;
+    int      size_stripe;
+    int      xdim_x_ydim, xdim_x_ydim_x_zdim;
+    int      num_cubes, nvertex, npolygons;
+    int      ix, iy, ii;
+    int nvertex_estimate;
+                                                                                                                                                  
+    if (ManifoldDimension != 3) {
+      throw new DisplayException("Gridded3DSet.makeIsoSurface: " +
+                                 "ManifoldDimension must be 3");
+    }
+                                                                                                                                                  
+    /* adapt isosurf algorithm to Gridded3DSet variables */
+    // NOTE X & Y swap
+    int xdim = LengthY;
+    int ydim = LengthX;
+    int zdim = LengthZ;
+                                                                                                                                                  
+    float[] ptGRID = fieldValues;
+                                                                                                                                                  
+    xdim_x_ydim = xdim * ydim;
+    xdim_x_ydim_x_zdim = xdim_x_ydim * zdim;
+    num_cubes = (xdim-1) * (ydim-1) * (zdim-1);
+                                                                                                                                                  
+    int[]  ptFLAG = new int[ num_cubes ];
+    int[]  ptAUX  = new int[ xdim_x_ydim_x_zdim ];
+    int[]  pcube  = new int[ num_cubes+1 ];
+                                                                                                                                                  
+    // System.out.println("pre-flags: isolevel = " + isolevel +
+    //                    " xdim, ydim, zdim = " + xdim + " " + ydim + " " + zdim);
+                                                                                                                                                  
+    npolygons = flags( isolevel, ptFLAG, ptAUX, pcube,
+                       ptGRID, xdim, ydim, zdim );
+                                                                                                                                                  
+    if (debug) System.out.println("npolygons= "+npolygons);
+                                                                                                                                                  
+    if (npolygons == 0) return null;
+                                                                                                                                                  
+    // take the garbage out
+    pcube = null;
+                                                                                                                                                  
+    nvertex_estimate = 4 * npolygons + 100;
+    ix = 9 * (nvertex_estimate + 50);
+    iy = 7 * npolygons;
+                                                                                                                                                  
+    float[][] VX = new float[1][nvertex_estimate];
+    float[][] VY = new float[1][nvertex_estimate];
+    float[][] VZ = new float[1][nvertex_estimate];
+                                                                                                                                                  
+    byte[][] color_temps = null;
+    if (color_values != null) {
+      color_temps = new byte[color_values.length][];
+    }
+                                                                                                                                                  
+    int[] Pol_f_Vert = new int[ix];
+    int[] Vert_f_Pol = new int[iy];
+    int[][] arg_Pol_f_Vert = new int[][] {Pol_f_Vert};
+                                                                                                                                                  
+    nvertex = isosurf( isolevel, ptFLAG, nvertex_estimate, npolygons,
+                       ptGRID, xdim, ydim, zdim, VX, VY, VZ,
+                       color_values, color_temps, arg_Pol_f_Vert, Vert_f_Pol );
+    Pol_f_Vert = arg_Pol_f_Vert[0];
+                                                                                                                                                  
+    if (nvertex == 0) return null;
+                                                                                                                                                  
+    // take the garbage out
+    ptFLAG = null;
+    ptAUX = null;
+/*
+for (int j=0; j<nvertex; j++) {
+  System.out.println("iso vertex[" + j + "] " + VX[0][j] + " " + VY[0][j] +
+                     " " + VZ[0][j]);
+}
+*/
+    //float[][] fieldVertices = new float[3][nvertex];
+    float[][] fieldVertices;
+    float[][] fieldVertices_tmp = new float[3][nvertex];
+    // NOTE - NO X & Y swap
+    System.arraycopy(VX[0], 0, fieldVertices_tmp[0], 0, nvertex);
+    System.arraycopy(VY[0], 0, fieldVertices_tmp[1], 0, nvertex);
+    System.arraycopy(VZ[0], 0, fieldVertices_tmp[2], 0, nvertex);
+    // take the garbage out
+    VX = null;
+    VY = null;
+    VZ = null;
+                                                                                                                                                  
+                                                                                                                                                  
+    int[] fieldVertices_indices = null;
+    if (spatial_offset_values[0] != null) {
+      int offset_len = spatial_offset_values[0].length;
+      if (offset_len > 1) {
+        fieldVertices_indices = this.valueToIndex(fieldVertices_tmp);
+      }
+    }
+                                                                                                                                                  
+    RealTupleType ref = (RealTupleType) domain_reference.getType();
+    fieldVertices = CoordinateSystem.transformCoordinates(
+                ref, null, ref.getDefaultUnits(), null,
+                (RealTupleType) Domain.getType(), dataCoordinateSystem,
+                domain_units, null, fieldVertices_tmp);
+                                                                                                                                                  
+    float[][] farray = new float[3][fieldVertices.length];
+    RealType[] dspSpatialReals = spatial_tuple.getRealComponents();
+                                                                                                                                                  
+    for (i=0; i<3; i++) {
+      Enumeration maps = DomainReferenceComponents[i].getSelectedMapVector().elements();
+      while (maps.hasMoreElements()) {
+        ScalarMap map = (ScalarMap) maps.nextElement();
+        DisplayRealType dspScalar = map.getDisplayScalar();
+        for (int k=0; k<3; k++) {
+          if (dspSpatialReals[k].equals(dspScalar)) {
+            farray[k] = map.scaleValues(fieldVertices[i]);
+          }
+        }
+      }
+    }
+                                                                                                                                                  
+    fieldVertices = coord_sys.toReference(farray);
+                                                                                                                                                  
+    //- apply spatial offsets?
+    if (spatial_offset_values[0] != null) {
+      if (spatial_offset_values[0].length == 1) {
+        for (i=0; i<fieldVertices[0].length; i++) {
+          fieldVertices[0][i] += spatial_offset_values[0][0];
+          fieldVertices[1][i] += spatial_offset_values[1][0];
+          fieldVertices[2][i] += spatial_offset_values[2][0];
+        }
+      }
+      else {
+        for (i=0; i<fieldVertices[0].length; i++) {
+          fieldVertices[0][i] += spatial_offset_values[0][fieldVertices_indices[i]];
+          fieldVertices[1][i] += spatial_offset_values[1][fieldVertices_indices[i]];
+          fieldVertices[2][i] += spatial_offset_values[2][fieldVertices_indices[i]];
+        }
+      }
+    }
+                                                                                                                                                  
+                                                                                                                                                  
+                                                                                                                                                  
+    byte[][] color_levels = null;
+    if (color_values != null) {
+      color_levels = new byte[color_values.length][nvertex];
+      System.arraycopy(color_temps[0], 0, color_levels[0], 0, nvertex);
+      System.arraycopy(color_temps[1], 0, color_levels[1], 0, nvertex);
+      System.arraycopy(color_temps[2], 0, color_levels[2], 0, nvertex);
+      if (color_temps.length > 3) {
+        System.arraycopy(color_temps[3], 0, color_levels[3], 0, nvertex);
+      }
+      // take the garbage out
+      color_temps = null;
+    }
+                                                                                                                                                  
+    if (debug) System.out.println("nvertex= "+nvertex);
+                                                                                                                                                  
+    float[] NxA = new float[npolygons];
+    float[] NxB = new float[npolygons];
+    float[] NyA = new float[npolygons];
+    float[] NyB = new float[npolygons];
+    float[] NzA = new float[npolygons];
+    float[] NzB = new float[npolygons];
+                                                                                                                                                  
+    float[] Pnx = new float[npolygons];
+    float[] Pny = new float[npolygons];
+    float[] Pnz = new float[npolygons];
+                                                                                                                                                  
+    float[] NX = new float[nvertex];
+    float[] NY = new float[nvertex];
+    float[] NZ = new float[nvertex];
+                                                                                                                                                  
+    make_normals( fieldVertices[0], fieldVertices[1],  fieldVertices[2],
+                  NX, NY, NZ, nvertex, npolygons, Pnx, Pny, Pnz,
+                  NxA, NxB, NyA, NyB, NzA, NzB, Pol_f_Vert, Vert_f_Pol);
+                                                                                                                                                  
+    // take the garbage out
+    NxA = NxB = NyA = NyB = NzA = NzB = Pnx = Pny = Pnz = null;
+                                                                                                                                                  
+    float[] normals = new float[3 * nvertex];
+    int j = 0;
+    for (i=0; i<nvertex; i++) {
+      normals[j++] = (float) NX[i];
+      normals[j++] = (float) NY[i];
+      normals[j++] = (float) NZ[i];
+    }
+    // take the garbage out
+    NX = NY = NZ = null;
+                                                                                                                                                  
+    /* ----- Find PolyTriangle Stripe */
+    // temporary array to hold maximum possible polytriangle strip
+    int[] stripe = new int[6 * npolygons];
+    int[] vet_pol = new int[npolygons];
+    size_stripe = poly_triangle_stripe( vet_pol, stripe, nvertex,
+                                        npolygons, Pol_f_Vert, Vert_f_Pol );
+                                                                                                                                                  
+    // take the garbage out
+    Pol_f_Vert = null;
+    Vert_f_Pol = null;
+                                                                                                                                                  
+    if (indexed) {
+      VisADIndexedTriangleStripArray array =
+        new VisADIndexedTriangleStripArray();
+                                                                                                                                                  
+      // set up indices
+      array.indexCount = size_stripe;
+      array.indices = new int[size_stripe];
+      System.arraycopy(stripe, 0, array.indices, 0, size_stripe);
+      array.stripVertexCounts = new int[1];
+      array.stripVertexCounts[0] = size_stripe;
+      // take the garbage out
+      stripe = null;
+                                                                                                                                                  
+      // set coordinates and colors
+      setGeometryArray(array, fieldVertices, 4, color_levels);
+      // take the garbage out
+      fieldVertices = null;
+      color_levels = null;
+                                                                                                                                                  
+      // array.vertexFormat |= NORMALS;
+      array.normals = normals;
+                                                                                                                                                  
+      if (debug) {
+        System.out.println("size_stripe= "+size_stripe);
+        for(ii=0;ii<size_stripe;ii++) System.out.println(+array.indices[ii]);
+      }
+      return array;
+    }
+    else { // if (!indexed)
+      VisADTriangleStripArray array = new VisADTriangleStripArray();
+      array.stripVertexCounts = new int[] {size_stripe};
+      array.vertexCount = size_stripe;
+                                                                                                                                                  
+      array.normals = new float[3 * size_stripe];
+      int k = 0;
+      for (i=0; i<3*size_stripe; i+=3) {
+        j = 3 * stripe[k];
+        array.normals[i] = normals[j];
+        array.normals[i+1] = normals[j+1];
+        array.normals[i+2] = normals[j+2];
+        k++;
+      }
+      normals = null;
+                                                                                                                                                  
+      array.coordinates = new float[3 * size_stripe];
+      k = 0;
+      for (i=0; i<3*size_stripe; i+=3) {
+        j = stripe[k];
+        array.coordinates[i] = fieldVertices[0][j];
+        array.coordinates[i+1] = fieldVertices[1][j];
+        array.coordinates[i+2] = fieldVertices[2][j];
+        k++;
+      }
+      fieldVertices = null;
+                                                                                                                                                  
+      if (color_levels != null) {
+        int color_length = color_levels.length;
+        array.colors = new byte[color_length * size_stripe];
+        k = 0;
+        if (color_length == 4) {
+          for (i=0; i<color_length*size_stripe; i+=color_length) {
+            j = stripe[k];
+            array.colors[i] = color_levels[0][j];
+            array.colors[i+1] = color_levels[1][j];
+            array.colors[i+2] = color_levels[2][j];
+            array.colors[i+3] = color_levels[3][j];
+            k++;
+          }
+        }
+        else { // if (color_length == 3)
+          for (i=0; i<color_length*size_stripe; i+=color_length) {
+            j = stripe[k];
+            array.colors[i] = color_levels[0][j];
+            array.colors[i+1] = color_levels[1][j];
+            array.colors[i+2] = color_levels[2][j];
+            k++;
+          }
+        }
+      }
+      color_levels = null;
+      stripe = null;
+      return array;
+    } // end if (!indexed)
+  }
+
 
   public static int flags( float isovalue, int[] ptFLAG, int[] ptAUX, int[] pcube,
                             float[] ptGRID, int xdim, int ydim, int zdim ) {

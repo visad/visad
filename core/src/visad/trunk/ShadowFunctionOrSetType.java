@@ -2142,10 +2142,14 @@ makeGeometry 350, 171
                        display_values, inherited_values, MapVector, valueToMap,
                        domain_length, range_select, spatialManifoldDimension,
                        spatial_set, color_values, indexed, group, mode,
-                       swap, constant_alpha, constant_color, shadow_api);
+                       swap, constant_alpha, constant_color, shadow_api,
+                       Domain, DomainReferenceComponents, domain_set, domain_units,
+                       dataCoordinateSystem);
         visad.util.Trace.call2("makeContour");
 // if (link != null) System.out.println("end makeContour " + (System.currentTimeMillis() - link.start_time));
         } // end if (anyContour)
+
+        spatial_offset_values = null;
 
         if (!anyContourCreated && !anyFlowCreated &&
             !anyTextCreated && !anyShapeCreated) {

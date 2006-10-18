@@ -145,6 +145,10 @@ public abstract class ShadowType extends Object
   ProjectionControl p_cntrl = null;
   ContourControl    c_cntrl = null;
   //-------------------------------------
+  
+  /** makeContour, manifoldDimension == 3. Needed for case
+      of missing final spatial coords */
+  float[][] spatial_offset_values = null;
 
   /** used by getComponents to record RealTupleTypes
       with coordinate transforms */
@@ -1951,6 +1955,8 @@ if (spatial_values[0].length == 5329) {
       }
     } // end for (int i=0; i<3; i++)
 
+    spatial_offset_values = offset_values;
+
     if (set_needed) {
       try {
         if (spatialDimension == 0) {
@@ -2467,7 +2473,8 @@ System.out.println("vector earth_locs = " + earth_locs[0][0] + " " +
       nr = ((Gridded3DSet)spatial_set).LengthY;
 
       Gridded2DSet gset = new Gridded2DSet(RealTupleType.Generic2D,
-        new float[][] {spatial_values[flow_dim0], spatial_values[flow_dim1]}, nc, nr);
+        new float[][] {spatial_values[flow_dim0], spatial_values[flow_dim1]}, nc, nr,
+             null, null, null, false, false);
 
       Stream2D.stream(flow_values[flow_dim0], flow_values[flow_dim1], nr, nc,
                       density, stepFactor, arrowScale, vr, vc,
@@ -2511,6 +2518,7 @@ System.out.println("vector earth_locs = " + earth_locs[0][0] + " " +
 
       ((Gridded3DSet)spatial_set).setGeometryArray(arrays[kk],
         spatial_set_vals, 3, intrp_color_values);
+      arrays[kk] = (VisADLineArray) arrays[kk].removeMissing();
     }
 
     return arrays;
@@ -3599,7 +3607,10 @@ System.out.println("range = " + range[0] + " " + range[1] +
                        Set spatial_set, byte[][] color_values, boolean indexed,
                        Object group, GraphicsModeControl mode, boolean[] swap,
                        float constant_alpha, float[] constant_color,
-                       ShadowType shadow_api)
+                       ShadowType shadow_api, ShadowRealTupleType Domain,
+                       ShadowRealType[] DomainReferenceComponents,
+                       Set domain_set, Unit[] domain_units,
+                       CoordinateSystem dataCoordinateSystem)
          throws VisADException {
     boolean anyContourCreated = false;
 
@@ -3650,6 +3661,12 @@ try {
         }
       }
     }
+
+    ShadowRealTupleType domain_reference = null;
+    CoordinateSystem coord_sys = null;
+    if (spatialTuple != null) coord_sys = spatialTuple.getCoordinateSystem();
+    domain_reference = Domain.getReference();
+
 
     VisADGeometryArray[] arrays = null;
     for (int i=0; i<valueArrayLength; i++) {
@@ -3721,6 +3738,17 @@ try {
                 shadow_api.addToGroup(group, array, mode,
                                       constant_alpha, constant_color);
 // System.out.println("end addToGroup " + (System.currentTimeMillis() - Link.start_time));
+                array = null;
+              }
+              else if (coord_sys != null) { // missing spatials set as result of transform (coord_sys)
+                array = ((Gridded3DSet)domain_set).makeIsoSurfaceMissingSpatial(fvalues[0], display_values[i], color_values, 
+                                   indexed, Domain, domain_reference, domain_units, dataCoordinateSystem, coord_sys,
+                                   DomainReferenceComponents, spatialTuple, spatial_offset_values);
+                if (array != null) {
+                  array = array.removeMissing();
+                }
+                shadow_api.addToGroup(group, array, mode,
+                                      constant_alpha, constant_color);
                 array = null;
               }
             }

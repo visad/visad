@@ -467,13 +467,15 @@ public abstract class ShadowTypeJ3D extends ShadowType {
                        Set spatial_set, byte[][] color_values, boolean indexed,
                        Object group, GraphicsModeControl mode, boolean[] swap,
                        float constant_alpha, float[] constant_color,
-                       ShadowType shadow_api)
+                       ShadowType shadow_api, ShadowRealTupleType Domain, ShadowRealType[] DomainReferenceComponents,
+                       Set domain_set, Unit[] domain_units, CoordinateSystem dataCoordinateSystem)
          throws VisADException {
     return adaptedShadowType.makeContour(valueArrayLength, valueToScalar,
                        display_values, inherited_values, MapVector, valueToMap,
                        domain_length, range_select, spatialManifoldDimension,
                        spatial_set, color_values, indexed, group, mode,
-                       swap, constant_alpha, constant_color, shadow_api);
+                       swap, constant_alpha, constant_color, shadow_api, Domain, DomainReferenceComponents,
+                       domain_set, domain_units, dataCoordinateSystem);
   }
 
 
