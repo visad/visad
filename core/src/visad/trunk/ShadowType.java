@@ -155,8 +155,6 @@ public abstract class ShadowType extends Object
   int[] refToComponent;
   ShadowRealTupleType[] componentWithRef;
   int[] componentIndex;
-  
-  private float prevPolygonOffset = 0f;
 
   public ShadowType(MathType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
@@ -3765,6 +3763,10 @@ try {
               boolean fill = control.contourFilled();
               ScalarMap[] smap = new ScalarMap[2]; // changed to 2 to pass IsoContour Map to Set
               if (fill) {
+                
+                // BMF 2006-10-17 need a clone to localize req. label params
+                mode = (GraphicsModeControl) mode.clone();
+                
                 ScalarType sc = ((ScalarMap)MapVector.elementAt(valueToMap[i])).getScalar();
                 for (int kk = 0; kk < MapVector.size(); kk++) {
                   ScalarMap sm = (ScalarMap)MapVector.elementAt(kk);
@@ -3781,15 +3783,12 @@ try {
                       sc+" must also be mapped to Display.RGB");
                 }
                 
-                // BMF 2006-10-05 set offset to make labels more clear
+                // BMF 2006-10-05 set offset to make labels more clear.
                 // FIXME: There may be a better value to use here
-                prevPolygonOffset = mode.getPolygonOffsetFactor();
                 mode.setPolygonOffsetFactor(10f, false);
+                mode.setPolygonOffset(1f, false);
                 
-              } else {
-                // BMF 2006-10-05 no offeset if we're not filling
-                mode.setPolygonOffsetFactor(prevPolygonOffset, false);
-              }
+              } 
               
               // BMF 2006-10-04 get the IsoContour ScalarMap
               for (int kk = 0; kk < MapVector.size(); kk++) {
@@ -3861,24 +3860,24 @@ try {
                   
                   array_s[0][0] = null;
                   
-                  // BMF 2006-10-05 add labels for filled contours if (!fill) {
-                    if (bvalues[1] && array_s[2] != null)
-                    {
-                      // draw labels
-                      shadow_api.addLabelsToGroup(group, array_s, mode, control,
-                                                  p_cntrl, cnt, constant_alpha,
-                                                  constant_color, f_array);
-                      array_s[2] = null;
-                    }
-                    else if ((!bvalues[1]) && array_s[1] != null)
-                    {
-                      // fill in contour lines in place of labels
-                      array = array_s[1][0];
-                      shadow_api.addToGroup(group, array_s[1][0], mode,
-                                          constant_alpha, constant_color);
-                      array_s[1][0] = null;
-                    }
-                  // BMF}
+                  // BMF 2006-10-05 add labels for filled contours
+                  if (bvalues[1] && array_s[2] != null)
+                  {
+                    // draw labels using cloned GMC with poly offsets
+                    shadow_api.addLabelsToGroup(group, array_s, mode, control,
+                                                p_cntrl, cnt, constant_alpha,
+                                                constant_color, f_array);
+                    array_s[2] = null;
+                  }
+                  else if ((!bvalues[1]) && array_s[1] != null)
+                  {
+                    // fill in contour lines in place of labels
+                    array = array_s[1][0];
+                    shadow_api.addToGroup(group, array_s[1][0], mode,
+                                        constant_alpha, constant_color);
+                    array_s[1][0] = null;
+                  }
+                  // BMF
                   array_s = null;
                 }
               }
