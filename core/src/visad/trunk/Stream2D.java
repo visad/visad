@@ -126,24 +126,27 @@ static void stream_trace( float[] ugrid, float[] vgrid, int nr, int nc,
     prevrow = row;
     prevcol = col;
 
-    float[][] loc = spatial_set.gridToValue(new float[][] {{prevcol}, {prevrow}});
+    float[][] loc = new float[2][1];
+    loc[1][0] = row;
+    loc[0][0] = col;
 
-    //-TDR test
     float mag = (float) Math.sqrt((double)(u*u + v*v));
     int[] lens = spatial_set.getLengths();
     int lenX = lens[0];
-    float del_x = Math.abs(spatial_values[0][lenX+1] - spatial_values[0][0]);
-    float del_y = Math.abs(spatial_values[1][lenX+1] - spatial_values[1][0]);
-    float dist = (float) Math.sqrt((double)(del_x*del_x + del_y*del_y));
+    int ii = ((int)row)*lenX + (int)col;
+    float del_x = Math.abs(spatial_values[0][ii+1] - spatial_values[0][ii]);
+    float del_y = Math.abs(spatial_values[1][ii+1] - spatial_values[1][ii]);
+    if (((del_x != del_x) || (del_y != del_y)) || ((u!=u || v!=v))) {
+      break;
+    }
+    float dist = 1f;
     float step = stepFactor*cell_fraction*(dist/mag);
 
     loc[1][0] += step*dir*v;
     loc[0][0] += step*dir*u;
 
-
-    float[][] grid = spatial_set.valueToGrid(loc);
-    row = grid[1][0];
-    col = grid[0][0];
+    row = loc[1][0];
+    col = loc[0][0];
 
 
     /* terminate stream if out of grid
