@@ -72,6 +72,9 @@ public class AddeServerInfo extends Object {
   private boolean debug = false;
   private boolean priv = false;
 
+  private boolean isArchive = false;
+  private String archiveDate = null;
+
  /** Creates new AddeServerInfo. This collects information about
  * ADDE server(s) -- their groups, datasets, and date-times (right
  * now only image date-time implemented).  This is a helper class
@@ -395,6 +398,10 @@ public class AddeServerInfo extends Object {
     if (userproj != null) addeCmdBuff.append("&"+userproj);
     addeCmdBuff.append("&pos=all&version=1");
 
+    if (isArchive && archiveDate != null) {
+      addeCmdBuff.append("&DAY="+archiveDate);
+    }
+
     if (debug) System.out.println("cmd:"+addeCmdBuff.toString());
 
     String[] times = {"No data available"};
@@ -447,7 +454,22 @@ public class AddeServerInfo extends Object {
     selectedDataset = d;
     hasDataset = true;
   }
-  
+
+  public void setIsArchive(boolean flag) {
+    isArchive = flag;
+  }
+
+  public boolean getIsArchive() {
+    return isArchive;
+  }
+
+  public void setArchiveDate(String d) {
+    archiveDate = d;
+  }
+ 
+  public String getArchiveDate() {
+    return archiveDate;
+  }
   
   /** return the bandNames text
   *
