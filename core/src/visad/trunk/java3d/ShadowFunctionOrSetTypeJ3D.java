@@ -95,9 +95,72 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
                              float[] default_values, DataRenderer renderer)
          throws VisADException, RemoteException {
 
-    boolean post = ((ShadowFunctionOrSetType) adaptedShadowType).
-                        doTransform(group, data, value_array,
-                                    default_values, renderer, this);
+    boolean post = true; // FIXME what value for animation?
+    boolean isAnimation1d = false;
+    boolean isTerminal = adaptedShadowType.getIsTerminal();
+    
+    ScalarMap timeMap = null; // used in the animation case to get control
+    
+    // only determine if it's an animation if non-terminal
+    if (!isTerminal) {
+      
+      // determine if it's an animation
+      DataDisplayLink link = renderer.getLink();
+      MathType mtype = link.getType();
+      if (mtype instanceof FunctionType) {
+        FunctionType function = (FunctionType) mtype;
+        RealTupleType functionD = function.getDomain();
+        Vector scalarMaps = link.getSelectedMapVector();
+        for (int kk = 0; kk < scalarMaps.size(); kk++) {
+          ScalarMap scalarMap = (ScalarMap) scalarMaps.elementAt(kk);
+          String scalar_name = scalarMap.getScalarName();
+          if (scalar_name.equals(((RealType) functionD.getComponent(0)).getName())) {
+            if (((scalarMap.getDisplayScalar()).equals(Display.Animation))
+                && (functionD.getDimension() == 1)) {
+              isAnimation1d = true;
+            }
+          }
+        }
+        // animation domain
+        timeMap = (ScalarMap) scalarMaps.elementAt(0);
+      }
+    }
+    
+    // animation logic
+    if (isAnimation1d){
+      
+      if(group instanceof BranchGroup){
+        ((DefaultRendererJ3D) renderer).setBranchEarly((BranchGroup) group);
+      }
+      
+      // analyze data's domain (its a Field)
+      Set domainSet = ((Field) data).getDomainSet();
+      
+      // create and add switch with nodes for animation images
+      int domainLength = domainSet.getLength(); // num of domain nodes
+      Switch swit = (Switch) makeSwitch(domainLength);
+      AnimationControlJ3D control = (AnimationControlJ3D)timeMap.getControl();
+      
+      addSwitch(group, swit, control, domainSet, renderer);
+
+      // render frames
+      for (int i=0; i<domainLength; i++) {
+        BranchGroup node = (BranchGroup) swit.getChild(i);
+        // not necessary, but perhaps if this is modified
+        // int[] lat_lon_indices = renderer.getLatLonIndices();
+        BranchGroup branch = (BranchGroup) makeBranch();
+        recurseRange(branch, ((Field) data).getSample(i),
+                     value_array, default_values, renderer);
+        node.addChild(branch);
+        // not necessary, but perhaps if this is modified
+        // renderer.setLatLonIndices(lat_lon_indices);
+      }
+      
+    } else {
+      ShadowFunctionOrSetType shadow = (ShadowFunctionOrSetType)adaptedShadowType;
+      post = shadow.doTransform(group, data, value_array, default_values, renderer, this); 
+    }
+    
     ensureNotEmpty(group);
     return post;
   }
@@ -396,13 +459,6 @@ System.out.println("Texture.RGBA = " + Texture.RGBA); // 6
     Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
                                       texture_width, texture_height);
     texture.setCapability(Texture.ALLOW_IMAGE_READ);
-
-    // CTR - need yup to be true, but the array is passed into
-    // ShadowFunctionOrSetType.createImage upside down for that.
-    // CTR 17 Jan 2006 - construct ImageComponent2D by reference
-    // commented out for now, since it causes problems with Java2D
-//    ImageComponent2D image2d =
-//      new ImageComponent2D(ImageComponent.FORMAT_RGBA, image, true, false);
     ImageComponent2D image2d =
       new ImageComponent2D(ImageComponent.FORMAT_RGBA, image);
     image2d.setCapability(ImageComponent.ALLOW_IMAGE_READ);
@@ -985,6 +1041,23 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     return swit;
   }
 
+  public Object makeSwitch(int length) throws VisADException {
+    Switch swit = (Switch)makeSwitch();
+
+//  -TDR
+    swit.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
+    for (int i=0; i<length; i++) {
+      BranchGroup node = new BranchGroup();
+      node.setCapability(BranchGroup.ALLOW_DETACH);
+      node.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
+      node.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+      node.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
+      ensureNotEmpty(node);
+      addToSwitch(swit, node);
+    }
+    return swit;
+  }
+  
   public Object makeBranch() {
     BranchGroup branch = new BranchGroup();
     branch.setCapability(BranchGroup.ALLOW_DETACH);
