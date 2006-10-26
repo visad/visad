@@ -26,11 +26,32 @@ MA 02111-1307, USA
 
 package visad.java3d;
 
-import visad.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.IOException;
+import java.rmi.RemoteException;
 
-import javax.media.j3d.*;
+import javax.media.j3d.BranchGroup;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 
-import java.rmi.*;
+import visad.AnimationControl;
+import visad.ContourControl;
+import visad.Data;
+import visad.DataDisplayLink;
+import visad.DataReferenceImpl;
+import visad.Display;
+import visad.DisplayException;
+import visad.DisplayImpl;
+import visad.FieldImpl;
+import visad.FlatField;
+import visad.FunctionType;
+import visad.Integer1DSet;
+import visad.Integer3DSet;
+import visad.RealTupleType;
+import visad.RealType;
+import visad.ScalarMap;
+import visad.VisADException;
 
 
 /**
@@ -63,6 +84,7 @@ public class DefaultRendererJ3D extends RendererJ3D {
     BranchGroup branch = new BranchGroup();
     branch.setCapability(BranchGroup.ALLOW_DETACH);
     branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+    branch.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND); // BMF
     ShadowTypeJ3D type = (ShadowTypeJ3D) link.getShadow();
 
     // initialize valueArray to missing
@@ -130,5 +152,104 @@ public class DefaultRendererJ3D extends RendererJ3D {
     return new DefaultRendererJ3D();
   }
 
+  public static void main(String args[]) throws VisADException,
+      RemoteException, IOException {
+
+    String test = "new";
+    if (args.length > 0) {
+      test = args[0];
+      if (!test.equals("default")) {
+        System.out.println("args: 'default' for Default logic, None for Animation");
+        System.exit(0);
+      }
+    }
+
+    int size = 160;
+    int nr = size;
+    int nc = size;
+    int nz = size;
+    double ang = 2 * Math.PI / nr;
+
+    RealType[] types = { 
+        RealType.Latitude, 
+        RealType.Longitude,
+        RealType.Altitude 
+    };
+    RealTupleType earth_location = new RealTupleType(types);
+    RealType radiance = RealType.getRealType("radiance", null, null);
+    RealType index = RealType.getRealType("index", null, null);
+    FunctionType image_type = new FunctionType(earth_location, radiance);
+
+    Integer3DSet image_domain_set = new Integer3DSet(
+        RealTupleType.SpatialCartesian3DTuple, nr, nc, nz);
+    FunctionType field_type = new FunctionType(index, image_type);
+    Integer1DSet field_domain_set = new Integer1DSet(index, 6);
+    FieldImpl field = new FieldImpl(field_type, field_domain_set);
+
+    FlatField image = null;
+    for (int tt = 0; tt < field_domain_set.getLength(); tt++) {
+      float[][] values = new float[1][nr * nc * nz];
+      for (int kk = 0; kk < nz; kk++) {
+        for (int jj = 0; jj < nc; jj++) {
+          for (int ii = 0; ii < nr; ii++) {
+            int idx = kk * nr * nc + jj * nr + ii;
+            values[0][idx] = 
+              (tt + 1)*(2f*((float) Math.sin(2*ang*ii)) + 
+                  2f*((float) Math.sin(2 * ang * jj))) + kk;
+          }
+        }
+      }
+      image = new FlatField(image_type, image_domain_set);
+      image.setSamples(values);
+      field.setSample(tt, image, false);
+    }
+
+    DisplayImplJ3D dpys = new DisplayImplJ3D("AnimationRendererJ3D Test");
+
+    JFrame jframe = new JFrame("AnimationRendererTest");
+    jframe.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {
+        System.exit(0);
+      }
+    });
+    jframe.setContentPane((JPanel) dpys.getComponent());
+    jframe.pack();
+    jframe.setVisible(true);
+    
+    ScalarMap xmap = new ScalarMap(RealType.Longitude, Display.XAxis);
+    dpys.addMap(xmap);
+    
+    ScalarMap ymap = new ScalarMap(RealType.Latitude, Display.YAxis);
+    dpys.addMap(ymap);
+    
+    ScalarMap zmap = new ScalarMap(RealType.Altitude, Display.ZAxis);
+    dpys.addMap(zmap);
+    
+    ScalarMap rgbaMap = new ScalarMap(radiance, Display.RGBA);
+    dpys.addMap(rgbaMap);
+    
+    ScalarMap amap = new ScalarMap(index, Display.Animation);
+    dpys.addMap(amap);
+
+    ScalarMap map1contour = new ScalarMap(radiance, Display.IsoContour);
+    dpys.addMap(map1contour);
+    ContourControl ctr_cntrl = (ContourControl) map1contour.getControl();
+    ctr_cntrl.setSurfaceValue(24f);
+
+    AnimationControl acontrol = (AnimationControl) amap.getControl();
+    acontrol.setOn(true);
+    acontrol.setStep(1000);
+
+    DataReferenceImpl ref = new DataReferenceImpl("field_ref");
+
+    if (test.equals("default")) {
+      ref.setData(image);
+    } else {
+      ref.setData(field);
+    }
+    
+    dpys.addReference(ref);
+  }
+  
 }
 
