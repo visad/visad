@@ -317,8 +317,11 @@ public class PointDataAdapter {
       type = RealType.Latitude;
     } else if (name.equalsIgnoreCase("lon")) {
       type = RealType.Longitude;
-    } else if (name.equalsIgnoreCase("z") ||
-               name.equalsIgnoreCase("zs") ) {
+    //} else if (name.equalsIgnoreCase("z") ||
+    //           name.equalsIgnoreCase("zs") ) {
+    } else if (name.equalsIgnoreCase("zs")) {
+      type = RealType.Altitude;
+    } else if (name.equalsIgnoreCase("z") && useAliases) {
       type = RealType.Altitude;
     } else {
       type = RealType.getRealType(name, unit);
