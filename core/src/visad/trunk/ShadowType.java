@@ -3762,12 +3762,12 @@ try {
 
               boolean fill = control.contourFilled();
               ScalarMap[] smap = new ScalarMap[2]; // changed to 2 to pass IsoContour Map to Set
+              ScalarType sc = ((ScalarMap)MapVector.elementAt(valueToMap[i])).getScalar();
               if (fill) {
                 
                 // BMF 2006-10-17 need a clone to localize req. label params
                 mode = (GraphicsModeControl) mode.clone();
                 
-                ScalarType sc = ((ScalarMap)MapVector.elementAt(valueToMap[i])).getScalar();
                 for (int kk = 0; kk < MapVector.size(); kk++) {
                   ScalarMap sm = (ScalarMap)MapVector.elementAt(kk);
                   if (sm != null) {
@@ -3794,7 +3794,8 @@ try {
               for (int kk = 0; kk < MapVector.size(); kk++) {
                 ScalarMap sm = (ScalarMap)MapVector.elementAt(kk);
                 if (sm != null) {
-                  if ( sm.getDisplayScalar().equals(Display.IsoContour) ) {
+                  if ( sm.getScalar().equals(sc) &&
+                       sm.getDisplayScalar().equals(Display.IsoContour) ) {
                     smap[1] = sm;
                   }
                 }
