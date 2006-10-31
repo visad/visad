@@ -34,7 +34,8 @@ import java.rmi.RemoteException;
 
 /**
  * This provides a LoCal EarthLocation that is much faster to create than the
- * EarthLocationTuple
+ * EarthLocationTuple.  Assumes units of lat/lon are degrees and Altitude
+ * is meters.
  *
  * @author Jeff McWhirter
  */
@@ -48,6 +49,9 @@ public class EarthLocationLite extends RealTuple implements EarthLocation {
 
   /** The alt */
   Real alt;
+
+  /** The LatLonPoint */
+  RealTuple latlon;
 
   /** Holds the components as we create them */
   Data[] components;
@@ -120,12 +124,20 @@ public class EarthLocationLite extends RealTuple implements EarthLocation {
   }
 
   /**
-   * This is an EarthLocation interface method. It just returns this
+   * This is an EarthLocation interface method. It just a LatLonTuple
+   * made from getLatitude() and getLongitude();
    *
    * @return this
    */
   public LatLonPoint getLatLonPoint() {
-    return this;
+    if (latlon == null) {
+      try {
+        latlon = new LatLonTuple(lat, lon);
+      } catch (Exception e) {  // shouldn't happen
+        latlon = this;
+      }
+    }
+    return (LatLonPoint) latlon;
   }
 
   /**
