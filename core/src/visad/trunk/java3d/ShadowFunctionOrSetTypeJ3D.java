@@ -106,7 +106,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       
       // determine if it's an animation
       DataDisplayLink link = renderer.getLink();
-      MathType mtype = link.getType();
+      MathType mtype = data.getType();
       if (mtype instanceof FunctionType) {
         FunctionType function = (FunctionType) mtype;
         RealTupleType functionD = function.getDomain();
