@@ -716,7 +716,7 @@ public abstract class Set extends DataImpl implements SetIface {
   /** for JPython */
   public Data __getitem__(int index) throws VisADException, RemoteException {
     int[] indices = {index};
-    float[][] values = indexToValue(indices);
+    double[][] values = indexToDouble(indices);
     RealType[] types = ((SetType) getType()).getDomain().getRealComponents();
     Real[] reals = new Real[DomainDimension];
     for (int i=0; i<DomainDimension; i++) {
