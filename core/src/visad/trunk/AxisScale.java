@@ -61,6 +61,7 @@ public class AxisScale implements java.io.Serializable
   // rather than graphics coordinates
   private boolean screenBased = false;
   private boolean gridLinesVisible = false;
+  private boolean ticksVisible = true;
   private boolean labelBothSides = false;
 
   private VisADLineArray scaleArray;
@@ -681,25 +682,27 @@ public class AxisScale implements java.io.Serializable
       }
       // initialize some stuff
       int k = 0;
-      for (int j = 0; j< nticks; j++) //Change DRM 21-Feb-2001
-      {
-        double value = firstValue + (j * majorTickSpacing);
-        double a = (value - min) / (max - min);
-        for (int i=0; i<3; i++) {
-          if ((k + 3 + i) < majorCoordinates.length) {
-            // guard against error that cannot happen, but was seen?
-            majorCoordinates[k + i] =
-              (float) ((1.0 - a) * startn[i] + a * startp[i]);
-            majorCoordinates[k + 3 + i] =
-              (float) (majorCoordinates[k + i] - TICKSIZE * tickup[i]);
+      if (ticksVisible) {
+        for (int j = 0; j< nticks; j++) //Change DRM 21-Feb-2001
+        {
+          double value = firstValue + (j * majorTickSpacing);
+          double a = (value - min) / (max - min);
+          for (int i=0; i<3; i++) {
+            if ((k + 3 + i) < majorCoordinates.length) {
+              // guard against error that cannot happen, but was seen?
+              majorCoordinates[k + i] =
+                (float) ((1.0 - a) * startn[i] + a * startp[i]);
+              majorCoordinates[k + 3 + i] =
+                (float) (majorCoordinates[k + i] - TICKSIZE * tickup[i]);
+            }
           }
+          k += 6;
         }
-        k += 6;
-      }
   
-      majorTickArray.vertexCount = 2 * (nticks);
-      majorTickArray.coordinates = majorCoordinates;
-      lineArrayVector.add(majorTickArray);
+        majorTickArray.vertexCount = 2 * (nticks);
+        majorTickArray.coordinates = majorCoordinates;
+        lineArrayVector.add(majorTickArray);
+      }
   
       if (gridLinesVisible && l == 0) {
         VisADLineArray gridArray = new VisADLineArray();
@@ -740,7 +743,8 @@ public class AxisScale implements java.io.Serializable
         lineArrayVector.add(gridArray);
       }
   
-      if (getMinorTickSpacing() > 0)  // create an array for the minor ticks
+      // create an array for the minor ticks
+      if (getMinorTickSpacing() > 0 && ticksVisible)  
       {
         hilo = computeTicks(max, min, tickBase, minorTickSpacing);
         // now lower * minorTickSpacing = value of lowest tick mark, and
@@ -1039,6 +1043,7 @@ public class AxisScale implements java.io.Serializable
     newScale.userLabels = userLabels;
     newScale.labelAllTicks = labelAllTicks;
     newScale.gridLinesVisible = gridLinesVisible;
+    newScale.ticksVisible = ticksVisible;
     newScale.labelBothSides = labelBothSides;
     return newScale;
   }
@@ -1499,6 +1504,29 @@ public class AxisScale implements java.io.Serializable
    */
   public boolean getLabelBothSides() {
     return labelBothSides;
+  }
+
+
+  /**
+   * Set whether ticks are visible
+   * @param visibile  true to show ticks
+   */
+  public void setTicksVisible(boolean visible) {
+    boolean oldValue = ticksVisible;
+    ticksVisible = visible;
+    if (!(oldValue == visible) ) {
+      try {
+        scalarMap.makeScale();  // update the display
+      } catch (VisADException ve) {;}
+    }
+  }
+
+  /**
+   * See if ticks are visible
+   * @return true if labelling is on both sides
+   */
+  public boolean getTicksVisible() {
+    return ticksVisible;
   }
 
 
