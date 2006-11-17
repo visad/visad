@@ -26,6 +26,9 @@ MA 02111-1307, USA
 
 package visad;
 
+import java.util.HashMap;
+
+
 /**
    Contour2D is a class equipped with a 2-D contouring function.<P>
 */
@@ -38,6 +41,18 @@ public class Contour2D {
   protected int rows, cols, scale;
   protected int[] num1, num2, num3, num4;
   protected float[][] vx1, vy1, vx2, vy2, vx3, vy3, vx4, vy4;
+
+  public static final int EASY = 0;
+  public static final int HARD = 1;
+  public static final int DIFFICULTY_THRESHOLD = 100000;
+  public static final float DIMENSION_THRESHOLD = 2.5E5f;
+
+  public static float[] vx_last = null;
+  public static float[] vy_last = null;
+  public static byte[][] auxLevels_last = null;
+  public static int numv_last;
+  public static ContourStripSet ctrSet_last = null;
+  public static boolean[] dashFlags_last = null;
 
   /**
    * Compute contour lines for a 2-D array.  If the interval is negative,
@@ -398,14 +413,22 @@ boolean anynotmissing = false;
     }
     numv = nump = 0;
 
-
     //- color fill arrays
-    byte[][]   color_bin = interval_colors;
-    byte[][][] o_flags   = new byte[nrm][ncm][];
-    short[][]  n_lines   = new short[nrm][ncm];
-    short[][]  ctrLow    = new short[nrm][ncm];
-   
-    ContourStripSet ctrSet =
+    byte[][]   color_bin = null;
+    byte[][][] o_flags   = null;
+    short[][]  n_lines   = null;
+    short[][]  ctrLow    = null;
+
+    if (fill) {
+      color_bin = interval_colors;
+      o_flags   = new byte[nrm][ncm][];
+      n_lines   = new short[nrm][ncm];
+      ctrLow    = new short[nrm][ncm];
+    }
+
+    ContourStripSet ctrSet = null;
+    //-if (vx_last == null) {
+    ctrSet =
       new ContourStripSet(nrm, myvals, swap, scale_ratio, label_size, nr, nc, spatial_set);
 
     // compute contours
@@ -574,9 +597,11 @@ any = true;
 }
 */
 
-        o_flags[ir][ic]  = new byte[2*numc]; //- case flags
-        n_lines[ir][ic]  = 0;  //- number of contour line segments
-        ctrLow[ir][ic]   = (short)hi;
+        if (fill) {
+          o_flags[ir][ic]  = new byte[2*numc]; //- case flags
+          n_lines[ir][ic]  = 0;  //- number of contour line segments
+          ctrLow[ir][ic]   = (short)hi;
+        }
 
         for (il=0; il<numc; il++) {
 
@@ -631,7 +656,9 @@ any = true;
           if (ii > 7) ii = 15 - ii;
           if (ii <= 0) continue;
 
-          if ((low+il) < ctrLow[ir][ic]) ctrLow[ir][ic] = (short)(low+il);
+          if (fill) { 
+            if ((low+il) < ctrLow[ir][ic]) ctrLow[ir][ic] = (short)(low+il);
+          }
 
           // DO LABEL HERE
           if (( mark[ (ic) * nr + (ir) ] )==0) {
@@ -774,8 +801,10 @@ any = true;
               }
               vx[numv] = xx;
               numv++;
-              o_flags[ir][ic][n_lines[ir][ic]] = (byte)ii;
-              n_lines[ir][ic]++;
+              if (fill) {
+                o_flags[ir][ic][n_lines[ir][ic]] = (byte)ii;
+                n_lines[ir][ic]++;
+              }
               if (vx[numv-2]==vx[numv-1] || vy[numv-2]==vy[numv-1]) {
                 vx[numv-2] += 0.00001f;
                 vy[numv-1] += 0.00001f;
@@ -821,8 +850,10 @@ any = true;
                 vy[numv] = yy+yd*(gg-gb)/gdb;
               vx[numv] = xx+xd;
               numv++;
-              o_flags[ir][ic][n_lines[ir][ic]] = (byte)ii;
-              n_lines[ir][ic]++;
+              if (fill) {
+                o_flags[ir][ic][n_lines[ir][ic]] = (byte)ii;
+                n_lines[ir][ic]++;
+              }
               if (vx[numv-2]==vx[numv-1] || vy[numv-2]==vy[numv-1]) {
                 vx[numv-2] -= 0.00001f;
                 vy[numv-1] += 0.00001f;
@@ -868,8 +899,10 @@ any = true;
                 vy[numv] = yy+yd*(gg-gb)/gdb;
               vx[numv] = xx+xd;
               numv++;
-              o_flags[ir][ic][n_lines[ir][ic]] = (byte)ii;
-              n_lines[ir][ic]++;
+              if (fill) {
+                o_flags[ir][ic][n_lines[ir][ic]] = (byte)ii;
+                n_lines[ir][ic]++;
+              }
               break;
 
             case 4:
@@ -911,8 +944,10 @@ any = true;
                 vx[numv] = xx+xd*(gg-gc)/gdc;
               vy[numv] = yy+yd;
               numv++;
-              o_flags[ir][ic][n_lines[ir][ic]] = (byte)ii;
-              n_lines[ir][ic]++;
+              if (fill) {
+                o_flags[ir][ic][n_lines[ir][ic]] = (byte)ii;
+                n_lines[ir][ic]++;
+              }
               if (vx[numv-2]==vx[numv-1] || vy[numv-2]==vy[numv-1]) {
                 vx[numv-1] += 0.00001f;
                 vy[numv-2] -= 0.00001f;
@@ -958,8 +993,10 @@ any = true;
                 vx[numv] = xx+xd*(gg-gc)/gdc;
               vy[numv] = yy+yd;
               numv++;
-              o_flags[ir][ic][n_lines[ir][ic]] = (byte)ii;
-              n_lines[ir][ic]++;
+              if (fill) {
+                o_flags[ir][ic][n_lines[ir][ic]] = (byte)ii;
+                n_lines[ir][ic]++;
+              }
               break;
 
             case 6:
@@ -1045,15 +1082,19 @@ any = true;
                   vy[numv] = yy+yd*(gg-ga)/gca;
                 vx[numv] = xx;
                 numv++;
-                o_flags[ir][ic][n_lines[ir][ic]] = (byte)1 + (byte)32;
-                n_lines[ir][ic]++;
+                if (fill) {
+                  o_flags[ir][ic][n_lines[ir][ic]] = (byte)1 + (byte)32;
+                  n_lines[ir][ic]++;
+                }
                 if (( (gdb) < 0 ? -(gdb) : (gdb) ) < 0.0000001)
                   vy[numv] = yy;
                 else
                   vy[numv] = yy+yd*(gg-gb)/gdb;
                 vx[numv] = xx+xd;
-                o_flags[ir][ic][n_lines[ir][ic]] = (byte)7 + (byte)32;
-                n_lines[ir][ic]++;
+                if (fill) {
+                  o_flags[ir][ic][n_lines[ir][ic]] = (byte)7 + (byte)32;
+                  n_lines[ir][ic]++;
+                }
                 numv++;
               }
               else {
@@ -1063,16 +1104,20 @@ any = true;
                   vy[numv] = yy+yd*(gg-gb)/gdb;
                 vx[numv] = xx+xd;
                 numv++;
-                o_flags[ir][ic][n_lines[ir][ic]] = (byte)2 + (byte)32;
-                n_lines[ir][ic]++;
+                if (fill) {
+                  o_flags[ir][ic][n_lines[ir][ic]] = (byte)2 + (byte)32;
+                  n_lines[ir][ic]++;
+                }
                 if (( (gca) < 0 ? -(gca) : (gca) ) < 0.0000001)
                   vy[numv] = yy;
                 else
                   vy[numv] = yy+yd*(gg-ga)/gca;
                 vx[numv] = xx;
                 numv++;
-                o_flags[ir][ic][n_lines[ir][ic]] = (byte)4 + (byte)32;
-                n_lines[ir][ic]++;
+                if (fill) {
+                  o_flags[ir][ic][n_lines[ir][ic]] = (byte)4 + (byte)32;
+                  n_lines[ir][ic]++;
+                }
               }
               if (( (gdc) < 0 ? -(gdc) : (gdc) ) < 0.0000001)
                 vx[numv] = xx;
@@ -1121,8 +1166,10 @@ any = true;
                 vx[numv] = xx+xd*(gg-gc)/gdc;
               vy[numv] = yy+yd;
               numv++;
-              o_flags[ir][ic][n_lines[ir][ic]] = (byte)ii;
-              n_lines[ir][ic]++;
+              if (fill) {
+                o_flags[ir][ic][n_lines[ir][ic]] = (byte)ii;
+                n_lines[ir][ic]++;
+              }
               if (vx[numv-2]==vx[numv-1] || vy[numv-2]==vy[numv-1]) {
                 vx[numv-1] -= 0.00001f;
                 vy[numv-2] -= 0.00001f;
@@ -1155,24 +1202,43 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
 }
 */
           if (ii == 6) { //- add last two pairs
-            ctrSet.add(vx, vy, numv-4, numv-3, low+il);
-            ctrSet.add(vx, vy, numv-2, numv-1, low+il);
+            ctrSet.add(vx, vy, numv-4, numv-3, low+il, ic, ir);
+            ctrSet.add(vx, vy, numv-2, numv-1, low+il, ic, ir);
           }
           else {
-            ctrSet.add(vx, vy, numv-2, numv-1, low+il);
+            ctrSet.add(vx, vy, numv-2, numv-1, low+il, ic, ir);
           }
 
         }  // for il       -- NOTE:  gg incremented in for statement
       }  // for ic
     }  // for ir
 
+    /**
+    vx_last = vx;
+    vy_last = vy;
+    auxLevels_last = auxLevels;
+    numv_last = numv;
+    ctrSet_last = ctrSet;
+    dashFlags_last = dashFlags;
+    }
+    else {
+      vx = vx_last;
+      vy = vy_last;
+      auxLevels = auxLevels_last;
+      numv = numv_last;
+      ctrSet = ctrSet_last;
+      dashFlags = dashFlags_last;
+    }
+    **/
+
+    int contourDifficulty = Contour2D.EASY;
+    if (numv > Contour2D.DIFFICULTY_THRESHOLD) contourDifficulty = Contour2D.HARD;
+
 /**-------------------  Color Fill -------------------------*/
     if (fill) {
-
       fillGridBox(g, n_lines, vx, vy, xd, xdd, yd, ydd, nr, nrm, nc, ncm,
                   ctrLow, tri, tri_color, o_flags, myvals, color_bin,
                   grd_normals, tri_normals);
-                 
       // BMF 2006-10-04 do not return, ie. draw labels on filled contours
       // for now, just return because we don't need to do labels
       //return;
@@ -1184,17 +1250,14 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     byte [][][] new_colors   = new byte[2][][];
     
     
-    ctrSet.getLineColorArrays(vx, vy, auxLevels, labelColor, vvv, new_colors, lbl_vv, lbl_cc, lbl_loc, dashFlags);
+    ctrSet.getLineColorArrays(vx, vy, auxLevels, labelColor, vvv, new_colors, lbl_vv, lbl_cc, lbl_loc, dashFlags, contourDifficulty);
 
-    vx1[0]   = vvv[0][0];
-    vy1[0]   = vvv[0][1];
-    vz1[0]   = vvv[0][2];
     vx2[0]   = vvv[1][0];
     vy2[0]   = vvv[1][1];
     vz2[0]   = vvv[1][2];
     numv1[0] = vvv[0][0].length;
     numv2[0] = vvv[1][0].length;
-
+                                                                                                                                      
     int n_lbls = lbl_vv[0].length;
     if (n_lbls > 0) {
       vx3[0]   = lbl_vv[0][0][0];
@@ -1206,7 +1269,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
       numv3[0] = lbl_vv[0][0][0].length;
       numv4[0] = lbl_vv[1][0][0].length;
     }
-
+                                                                                                                                      
     if (auxLevels != null) {
       int clr_dim = auxValues.length;
       auxLevels1[0] = new_colors[0][0];
@@ -1224,6 +1287,69 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
         if (clr_dim == 4) auxLevels3[3] = lbl_cc[0][0][3];
       }
     }
+
+    if (contourDifficulty == Contour2D.EASY) {
+      vx1[0] = vvv[0][0];
+      vy1[0] = vvv[0][1];
+      vz1[0] = vvv[0][2];
+    }
+    else {
+    int start = numv1[0];
+                                                                                                                                      
+    float[][] vx_tmp = new float[1][];
+    float[][] vy_tmp = new float[1][];
+    float[][] vz_tmp = new float[1][];
+    byte[][]  aux_tmp = new byte[4][];
+                                                                                                                                      
+    float[] vx1_tmp = new float[numv];
+    float[] vy1_tmp = new float[numv];
+    float[] vz1_tmp = new float[numv];
+    byte[][] aux1_tmp = new byte[4][];
+    aux1_tmp[0] = new byte[numv];
+    aux1_tmp[1] = new byte[numv];
+    aux1_tmp[2] = new byte[numv];
+                                                                                                                                      
+    int cnt = 0;
+    for (int kk=0; kk<ctrSet.qSet.length;kk++) {
+      ctrSet.qSet[kk].getArrays(vx, vy, auxLevels, vx_tmp, vy_tmp, vz_tmp, aux_tmp, spatial_set);
+      int len = vx_tmp[0].length;
+      System.arraycopy(vx_tmp[0], 0, vx1_tmp, cnt, len);
+      System.arraycopy(vy_tmp[0], 0, vy1_tmp, cnt, len);
+      System.arraycopy(vz_tmp[0], 0, vz1_tmp, cnt, len);
+      System.arraycopy(aux_tmp[0], 0, aux1_tmp[0], cnt, len);
+      System.arraycopy(aux_tmp[1], 0, aux1_tmp[1], cnt, len);
+      System.arraycopy(aux_tmp[2], 0, aux1_tmp[2], cnt, len);
+      cnt += len;
+    }
+                                                                                                                                      
+    vx1[0] = new float[numv1[0]+cnt];
+    vy1[0] = new float[numv1[0]+cnt];
+    vz1[0] = new float[numv1[0]+cnt];
+    auxLevels1[0] = new byte[numv1[0]+cnt];
+    auxLevels1[1] = new byte[numv1[0]+cnt];
+    auxLevels1[2] = new byte[numv1[0]+cnt];
+    auxLevels1[3] = new byte[numv1[0]+cnt];
+                                                                                                                                      
+    System.arraycopy(vvv[0][0], 0, vx1[0], 0, numv1[0]);
+    System.arraycopy(vvv[0][1], 0, vy1[0], 0, numv1[0]);
+    System.arraycopy(vvv[0][2], 0, vz1[0], 0, numv1[0]);
+    System.arraycopy(new_colors[0][0], 0, auxLevels1[0], 0, numv1[0]);
+    System.arraycopy(new_colors[0][1], 0, auxLevels1[1], 0, numv1[0]);
+    System.arraycopy(new_colors[0][2], 0, auxLevels1[2], 0, numv1[0]);
+                                                                                                                                      
+    System.arraycopy(vx1_tmp, 0, vx1[0], start, cnt);
+    System.arraycopy(vy1_tmp, 0, vy1[0], start, cnt);
+    System.arraycopy(vz1_tmp, 0, vz1[0], start, cnt);
+    System.arraycopy(aux1_tmp[0], 0, auxLevels1[0], start, cnt);
+    System.arraycopy(aux1_tmp[1], 0, auxLevels1[1], start, cnt);
+    System.arraycopy(aux1_tmp[2], 0, auxLevels1[2], start, cnt);
+    numv1[0] += cnt;
+
+    vx1_tmp = null;
+    vy1_tmp = null;
+    vz1_tmp = null;
+    }
+
   }
 
   private static void fillGridBox(float[] g, short[][] n_lines,
@@ -2774,6 +2900,440 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
 
 } // end class
 
+class ContourQuadSet {
+                                                                                                                                      
+  int nx = 1;
+  int ny = 1;
+  int npx;
+  int npy;
+  int nc;
+  int nr;
+  int lev_idx;
+  int numv = 0;
+
+  ContourStripSet css = null;
+  ContourQuad[][] qarray = null;
+                                                                                                                                      
+  int snumv = 0;
+                                                                                                                                      
+  public static HashMap subGridMap = new HashMap();
+  public static HashMap subGrid2Map = new HashMap();
+  public static HashMap markGridMap = new HashMap();
+  public static HashMap markGrid2Map = new HashMap();
+                                                                                                                                      
+                                                                                                                                      
+  ContourQuadSet(int nr, int nc, int lev_idx, ContourStripSet css) {
+   this.nc = nc;
+   this.nr = nr;
+   this.lev_idx = lev_idx;
+   this.css = css;
+
+   if ( ((float)nc)*((float)nr) > Contour2D.DIMENSION_THRESHOLD ) {
+     nx = 20;
+     ny = 20;
+   }
+   else {
+     nx = 1;
+     ny = 1;
+   }
+ 
+   npy = (int) (nr/ny);
+   npx = (int) (nc/nx);
+                                                                                                                                      
+   qarray = new ContourQuad[ny][nx];
+   for (int j=0; j<ny; j++) {
+     for (int i=0; i<nx; i++) {
+       int lenx = npx;
+       int leny = npy;
+       if (j==ny-1) leny = nr - (ny-1)*npy;
+       if (i==nx-1) lenx = nc - (nx-1)*npx;
+       qarray[j][i] = new ContourQuad(this, j*npy, i*npx, leny, lenx);
+     }
+    }
+  }
+                                                                                                                                      
+  public void add(int idx0, int gy, int gx) {
+    int ix = (int) (gx/npx);
+    int iy = (int) (gy/npy);
+    if (ix == nx) ix -= 1;
+    if (iy == ny) iy -= 1;
+    qarray[iy][ix].add(idx0, gy, gx);
+  }
+
+  public void get(float[] vx, float[] vy) {
+    numv = 0;
+    snumv = 0;
+    for (int j=0; j<ny; j++) {
+      for (int i=0; i<nx; i++) {
+        ContourStrip[] c_strps = qarray[j][i].getContourStrips(vx, vy);
+        numv += qarray[j][i].numv;
+        snumv += qarray[j][i].stripCnt;
+        if (c_strps != null) {
+          css.vecArray[lev_idx].add(c_strps[0]);
+        }
+      }
+    }
+  }
+
+  public void getArrays(float[] vx, float[] vy, byte[][] auxLevels, float[][] vx1, float[][] vy1, float[][] vz1, byte[][] colors, Gridded3DSet spatial_set)
+         throws VisADException {
+                                                                                                                                      
+    float[][] arrays = new float[2][2*numv];
+    colors[0] = new byte[2*numv];
+    colors[1] = new byte[2*numv];
+    colors[2] = new byte[2*numv];
+                                                                                                                                      
+    int cnt=0;
+    for (int j=0; j<ny; j++) {
+      for (int i=0; i<nx; i++) {
+        for (int k=0; k<qarray[j][i].numv; k++) {
+          int vidx = qarray[j][i].vert_indices[k];
+          if (vidx >= 0) {
+          arrays[0][cnt] = vx[vidx];
+          arrays[1][cnt] = vy[vidx];
+          colors[0][cnt] = auxLevels[0][vidx];
+          colors[1][cnt] = auxLevels[1][vidx];
+          colors[2][cnt] = auxLevels[2][vidx];
+          cnt++;
+          arrays[0][cnt] = vx[vidx+1];
+          arrays[1][cnt] = vy[vidx+1];
+          colors[0][cnt] = auxLevels[0][vidx+1];
+          colors[1][cnt] = auxLevels[1][vidx+1];
+          colors[2][cnt] = auxLevels[2][vidx+1];
+          cnt++;
+          }
+        }
+      }
+    }
+                                                                                                                                      
+    float[][] tmp = new float[2][cnt];
+    byte[][] clr_tmp = new byte[3][cnt];
+    System.arraycopy(arrays[0], 0, tmp[0], 0, cnt);
+    System.arraycopy(arrays[1], 0, tmp[1], 0, cnt);
+    System.arraycopy(colors[0], 0, clr_tmp[0], 0, cnt);
+    System.arraycopy(colors[1], 0, clr_tmp[1], 0, cnt);
+    System.arraycopy(colors[2], 0, clr_tmp[2], 0, cnt);
+                                                                                                                                      
+    float[][] tmp3D = spatial_set.gridToValue(tmp);
+    vx1[0] = tmp3D[0];
+    vy1[0] = tmp3D[1];
+    vz1[0] = tmp3D[2];
+    arrays = null;
+    colors = null;
+  }
+}
+
+class ContourQuad {
+  int[] vert_indices;
+  int[] vert_indices_save = null;
+  int[] grid_indices;
+  int maxnumv;
+  int numv;
+  ContourQuadSet qs;
+  int nc;
+  int nr;
+  int strty;
+  int strtx;
+  int leny;
+  int lenx;
+  int lev_idx;
+  int[][] sub_grid = null;
+  int[][] sub_grid_2 = null;
+  int[][] mark_grid = null;
+  int[][] mark_grid_2 = null;
+  ContourStripSet css = null;
+                                                                                                                                      
+  int[] stripVert_indices;
+  int stripCnt = 0;
+                                                                                                                                      
+  ContourQuad(ContourQuadSet qs, int strty, int strtx, int leny, int lenx) {
+    maxnumv = 100;
+    numv = 0;
+    vert_indices = new int[maxnumv]; //- indices into vx,vy
+    grid_indices = new int[maxnumv]; //- location on the grid
+    this.qs = qs;
+    this.nc = qs.nc;
+    this.nr = qs.nr;
+    this.strty = strty;
+    this.strtx = strtx;
+    this.leny = leny;
+    this.lenx = lenx;
+    css = qs.css;
+    lev_idx = qs.lev_idx;
+  }
+
+  public void add(int idx0, int gy, int gx) {
+    if (numv < maxnumv-2) {
+      vert_indices[numv] = idx0;
+      grid_indices[numv] = gy*nc + gx;
+      numv++;
+    }
+    else {
+      maxnumv += 50;
+      int[] tmpA = vert_indices;
+      int[] tmpB = grid_indices;
+      vert_indices = new int[maxnumv];
+      grid_indices = new int[maxnumv];
+      System.arraycopy(tmpA, 0, vert_indices, 0, numv);
+      System.arraycopy(tmpB, 0, grid_indices, 0, numv);
+      tmpA = null;
+      tmpB = null;
+      vert_indices[numv] = idx0;
+      grid_indices[numv] = gy*nc + gx;
+      numv++;
+    }
+  }
+                                                                                                                                      
+  public int[][][] getWorkArrays(int leny, int lenx) {
+    Object key;
+                                                                                                                                      
+    java.util.Set keySet = ContourQuadSet.subGridMap.keySet();
+                                                                                                                                      
+    key = null;
+    for (java.util.Iterator i = keySet.iterator(); i.hasNext();) {
+      CachedArrayDimension obj = (CachedArrayDimension) i.next();
+      if (obj.equals(new CachedArrayDimension(leny, lenx))) {
+        key = obj;
+        break;
+      }
+    }
+    int[][] subgrid = null;
+    int[][] subgrid2 = null;
+    int[][] markgrid = null;
+    int[][] markgrid2 = null;
+                                                                                                                                      
+    if (key != null) {
+      subgrid = ((CachedArray)ContourQuadSet.subGridMap.get(key)).getArray();
+      subgrid2 = ((CachedArray)ContourQuadSet.subGrid2Map.get(key)).getArray();
+      markgrid = ((CachedArray)ContourQuadSet.markGridMap.get(key)).getArray();
+      markgrid2 = ((CachedArray)ContourQuadSet.markGrid2Map.get(key)).getArray();
+    }
+    else {
+      subgrid = new int[leny][lenx];
+      subgrid2 = new int[leny][lenx];
+      markgrid = new int[leny][lenx];
+      markgrid2 = new int[leny][lenx];
+      Object newKey = new CachedArrayDimension(leny,lenx);
+      ContourQuadSet.subGridMap.put(newKey, new CachedArray(subgrid));
+      ContourQuadSet.subGrid2Map.put(newKey, new CachedArray(subgrid2));
+      ContourQuadSet.markGridMap.put(newKey, new CachedArray(markgrid));
+      ContourQuadSet.markGrid2Map.put(newKey, new CachedArray(markgrid2));
+    }
+    return new int[][][] {subgrid, subgrid2, markgrid, markgrid2};
+  }
+
+  public void get() {
+    int ix_i = -1;
+    int iy_i = -1;
+                                                                                                                                      
+    int[][][] workarrays = getWorkArrays(leny, lenx);
+    sub_grid = workarrays[0];
+    sub_grid_2 = workarrays[1];
+    mark_grid = workarrays[2];
+    mark_grid_2 = workarrays[3];
+
+    for (int j=0; j<leny; j++) {
+      for (int i=0; i<lenx; i++) {
+        sub_grid[j][i] = 0;
+        sub_grid_2[j][i] = 0;
+      }
+    }
+
+    if (vert_indices_save == null) {
+      vert_indices_save = new int[vert_indices.length];
+      System.arraycopy(vert_indices, 0, vert_indices_save, 0, vert_indices.length);
+    }
+    else {
+      System.arraycopy(vert_indices_save, 0, vert_indices, 0, vert_indices.length);
+    }
+                                                                                                                                      
+    for (int ii=0; ii<numv; ii++) {
+      int kk = grid_indices[ii];
+      int iy = (int) kk/nc;
+      int ix = kk - iy*nc;
+      sub_grid[iy-strty][ix-strtx] = vert_indices[ii];
+      mark_grid[iy-strty][ix-strtx] = ii;
+      if (ix_i == ix && iy_i == iy) {
+        sub_grid_2[iy-strty][ix-strtx] = vert_indices[ii];
+        mark_grid_2[iy-strty][ix-strtx] = ii;
+      }
+      ix_i = ix;
+      iy_i = iy;
+    }
+  }
+                                                                                                                                      
+  public void reset() {
+    for (int j=0; j<leny; j++) {
+      for (int i=0; i<lenx; i++) {
+         if (sub_grid[j][i] < 0) {
+           sub_grid[j][i] *= -1;
+         }
+      }
+    }
+  }
+                                                                                                                                      
+  public ContourStrip[] getContourStrips(float[] vx, float[] vy) {
+    get();
+    stripVert_indices = new int[200];
+    int n_segs = 0;
+    int[][] udrl = {{1,-1,0,0}, {0,0,1,-1}};  //-up/down, right/left
+
+    //- find starting point
+    int[] start = getStartPoint();
+    if (start == null) {
+      return null;
+    }
+    int iy = start[0];
+    int ix = start[1];
+
+    int idx0 = sub_grid[iy][ix];
+    int idx1 = idx0 + 1;
+                                                                                                                                      
+    ContourStrip c_strp =
+        new ContourStrip(200, lev_idx, idx0, idx1, css.plot_s[lev_idx], css);
+                                                                                                                                      
+    boolean foundA = true;
+    boolean foundB = true;
+                                                                                                                                      
+    int idxA = idx0;
+    int idxB = idx0;
+    int last_idxA = idxA;
+    int last_idxB = idxB;
+    int idxA_2;
+    int idxB_2;
+                                                                                                                                      
+    int ix_t, iy_t;
+    int ix_a = ix;
+    int iy_a = iy;
+    int ix_b = ix;
+    int iy_b = iy;
+                                                                                                                                      
+    int cnt = 0;
+    stripVert_indices[cnt++] = idx0;
+    sub_grid[iy][ix] *= -1;
+                                                                                                                                      
+    int test_cnt = 0;
+    while( (n_segs < 100) && (test_cnt < 300) ) {
+      test_cnt++;
+                                                                                                                                      
+      //- A
+      for (int k=0; k<4; k++) {
+        ix_t = ix_a+udrl[0][k];
+        iy_t = iy_a+udrl[1][k];
+        if ((iy_t >=0 && iy_t < leny) && (ix_t >=0 && ix_t < lenx)) {
+                                                                                                                                      
+          idxA = sub_grid[iy_t][ix_t];
+          idxA_2 = sub_grid_2[iy_t][ix_t];
+                                                                                                                                      
+          if (idxA > 0) {
+            if (c_strp.addPair(vx, vy, idxA, idxA+1)) {
+              sub_grid[iy_t][ix_t] *= -1;
+              stripVert_indices[cnt++] = idxA;
+              ix_a = ix_t;
+              iy_a = iy_t;
+              vert_indices[mark_grid[iy_t][ix_t]] = -1;
+              n_segs++;
+              break;
+            }
+          }
+          if (idxA_2 > 0) {
+            if (c_strp.addPair(vx, vy, idxA_2, idxA_2+1)) {
+              sub_grid_2[iy_t][ix_t] *= -1;
+              stripVert_indices[cnt++] = idxA_2;
+              ix_a = ix_t;
+              iy_a = iy_t;
+              vert_indices[mark_grid_2[iy_t][ix_t]] = -1;
+              n_segs++;
+              break;
+            }
+          }
+        }
+      }
+                                                                                                                                      
+      //- B
+      for (int k=0; k<4; k++) {
+        ix_t = ix_b+udrl[0][k];
+        iy_t = iy_b+udrl[1][k];
+        if ((iy_t >=0 && iy_t < leny) && (ix_t >=0 && ix_t < lenx)) {
+                                                                                                                                      
+          idxB = sub_grid[iy_t][ix_t];
+          idxB_2 = sub_grid_2[iy_t][ix_t];
+                                                                                                                                      
+          if (idxB > 0) {
+            if (c_strp.addPair(vx, vy, idxB, idxB+1)) {
+              sub_grid[iy_t][ix_t] *= -1;
+              stripVert_indices[cnt++] = idxB;
+              ix_b = ix_t;
+              iy_b = iy_t;
+              vert_indices[mark_grid[iy_t][ix_t]] = -1;
+              n_segs++;
+              break;
+            }
+          }
+          if (idxB_2 > 0) {
+            if (c_strp.addPair(vx, vy, idxB_2, idxB_2+1)) {
+              sub_grid_2[iy_t][ix_t] *= -1;
+              stripVert_indices[cnt++] = idxB_2;
+              ix_b = ix_t;
+              iy_b = iy_t;
+              vert_indices[mark_grid_2[iy_t][ix_t]] = -1;
+              n_segs++;
+              break;
+            }
+          }
+       }
+      }
+    }
+    stripCnt = cnt;
+                                                                                                                                      
+    sub_grid = null;
+    sub_grid_2 = null;
+    return new ContourStrip[] {c_strp};
+  }
+                                                                                                                                      
+  public int[] getStartPoint() {
+    int n_trys = 20;
+    float nn = (float) lenx*leny;
+    java.util.Random rnd = new java.util.Random();
+                                                                                                                                      
+    for (int tt=0; tt<n_trys; tt++) {
+      int kk = (int) (nn*rnd.nextFloat());
+      int j = (int) kk/lenx;
+      int i = kk - j*lenx;
+      if (sub_grid[j][i] != 0) {
+        return new int[] {j,i};
+      }
+    }
+    return null;
+  }
+}
+                                                                                                                                      
+class CachedArray {
+  int [][] array;
+                                                                                                                                      
+  public CachedArray(int[][] array) {
+    this.array = array;
+  }
+                                                                                                                                      
+  int[][] getArray() {
+    return array;
+  }
+}
+                                                                                                                                      
+class CachedArrayDimension {
+  int lenx;
+  int leny;
+                                                                                                                                      
+  CachedArrayDimension(int leny, int lenx) {
+    this.leny = leny;
+    this.lenx = lenx;
+  }
+                                                                                                                                      
+  public boolean equals(CachedArrayDimension obj) {
+    return (lenx == obj.lenx && leny == obj.leny);
+  }
+}
+
 /**
    ContourStripSet is used internally by Contour2D
 */
@@ -2796,6 +3356,9 @@ class ContourStripSet {
   PlotDigits[] plot_s;
   float[][] plot_min_max;
   boolean[] swap;
+
+  ContourQuadSet[] qSet;
+
 
   ContourStripSet(int size, float[] levels, boolean[] swap, 
                   double scale_ratio, double label_size, int nr, int nc,
@@ -2872,6 +3435,15 @@ class ContourStripSet {
         plot_min_max[kk][0] = vx_min;
         plot_min_max[kk][1] = vx_max;
     }
+
+    qSet = new ContourQuadSet[n_levs];
+    for (int kk=0; kk<n_levs; kk++) {
+      qSet[kk] = new ContourQuadSet(nr,nc,kk,this);
+    }
+  }
+
+  void add(float[] vx, float[] vy, int idx0, int idx1, int lev_idx, int gx, int gy) {
+    qSet[lev_idx].add(idx0, gy, gx);
   }
 
   void add(float[] vx, float[] vy, int idx0, int idx1, float level) {
@@ -3061,7 +3633,17 @@ class ContourStripSet {
   void getLineColorArrays(float[] vx, float[] vy, byte[][] colors, byte[] labelColor,
                           float[][][] out_vv, byte[][][] out_bb,
                           float[][][][] out_vvL, byte[][][][] out_bbL, float[][][] out_loc,
-                          boolean[] dashFlags) {
+                          boolean[] dashFlags, int contourDifficulty) {
+
+    if (contourDifficulty == Contour2D.EASY) {
+      makeContourStrips(vx, vy);
+    }
+    else {
+      for (int kk=0; kk<qSet.length; kk++) {
+        qSet[kk].get(vx, vy);
+      }
+    }
+
 
     float[][][][] tmp    = new float[n_levs][2][][];
     byte[][][][] btmp    = new byte[n_levs][2][][];
@@ -3144,6 +3726,23 @@ class ContourStripSet {
       }
     }
   }
+
+  void makeContourStrips(float[] vx, float[] vy) {
+    for (int kk=0; kk<n_levs; kk++) {
+      int nx = qSet[kk].nx;
+      int ny = qSet[kk].ny;
+      for (int j=0; j<ny; j++) {
+        for (int i=0; i<nx; i++) {
+          int[] vert_indices = qSet[kk].qarray[j][i].vert_indices;
+          for (int q=0; q<vert_indices.length; q++) {
+            int idx = vert_indices[q];
+            add(vx, vy, idx, idx+1, kk);
+          }
+        }
+      }
+    }
+  }
+
 }
 
 /**
@@ -3207,7 +3806,6 @@ class ContourStrip {
    float vy0  = vy[idx0];
    float vx1  = vx[idx1];
    float vy1  = vy[idx1];
-
 
    float vx_s = vx[idx_array[low_idx]];
    float vy_s = vy[idx_array[low_idx]];
