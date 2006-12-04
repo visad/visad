@@ -452,7 +452,7 @@ public class Gridded1DDoubleSet extends Gridded1DSet
     }
     int length = value[0].length; // number of values
     if (indices.length != length) {
-      throw new SetException("Gridded1DDoubleinearLatLonSet.doubleToInterp: indices length " +
+      throw new SetException("Gridded1DDoubleSet.doubleToInterp: indices length " +
                              indices.length +
                              " doesn't match value[0] length " +
                              value[0].length);
