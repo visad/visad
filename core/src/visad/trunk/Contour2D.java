@@ -44,15 +44,8 @@ public class Contour2D {
 
   public static final int EASY = 0;
   public static final int HARD = 1;
-  public static final int DIFFICULTY_THRESHOLD = 100000;
-  public static final float DIMENSION_THRESHOLD = 2.5E5f;
-
-  public static float[] vx_last = null;
-  public static float[] vy_last = null;
-  public static byte[][] auxLevels_last = null;
-  public static int numv_last;
-  public static ContourStripSet ctrSet_last = null;
-  public static boolean[] dashFlags_last = null;
+  public static final int DIFFICULTY_THRESHOLD = 7000;
+  public static final float DIMENSION_THRESHOLD = 5.0E5f;
 
   /**
    * Compute contour lines for a 2-D array.  If the interval is negative,
@@ -397,10 +390,15 @@ boolean anynotmissing = false;
     for (int i=0; i<nr * nc; i++) mark[i] = 0;
 
     // set top and bottom rows to 1
+    float max_g = -Float.MAX_VALUE;
+    float min_g = Float.MAX_VALUE;
     for (ic=0;ic<nc;ic++) {
       for (ir=0;ir<lr;ir++) {
         mark[ (ic) * nr + (ir) ] = 1;
         mark[ (ic) * nr + (nr-ir-2) ] = 1;
+        float val = g[(ic) * nr + (ir)];
+        if (val > max_g) max_g = val;
+        if (val < min_g) min_g = val;
       }
     }
 
@@ -426,10 +424,36 @@ boolean anynotmissing = false;
       ctrLow    = new short[nrm][ncm];
     }
 
-    ContourStripSet ctrSet = null;
-    //-if (vx_last == null) {
-    ctrSet =
-      new ContourStripSet(nrm, myvals, swap, scale_ratio, label_size, nr, nc, spatial_set);
+
+    //- estimate contour difficutly
+    int ctr_lo = 0;
+    int ctr_hi = myvals.length-1;
+    for (int k=0; k<myvals.length; k++) {
+      if (min_g >= myvals[k]) ctr_lo = k;
+      if (max_g >= myvals[k]) ctr_hi = k;
+    }
+
+    float ctr_int = myvals[1] - myvals[0];
+    int switch_cnt = 0;
+    float[] last_diff = new float[(ctr_hi-ctr_lo)+1];
+    for (ir=2; ir<nrm-2; ir+=1) {
+      for (int k=0; k<last_diff.length;k++) {
+      last_diff[k] = g[ir] - myvals[ctr_lo+k];
+        for (ic=2; ic<ncm-2; ic+=1) {
+          float diff = g[ic*nr + ir] - myvals[ctr_lo+k];
+          if ((diff*last_diff[k] < 0) && ((diff > 0.005*ctr_int) || (diff < -0.005*ctr_int)) ) {
+            switch_cnt++;
+          }
+          last_diff[k] = diff;
+        }
+      }
+    }
+
+    int contourDifficulty = Contour2D.EASY;
+    if (switch_cnt > Contour2D.DIFFICULTY_THRESHOLD) contourDifficulty = Contour2D.HARD;
+
+    ContourStripSet ctrSet =
+      new ContourStripSet(nrm, myvals, swap, scale_ratio, label_size, nr, nc, spatial_set, contourDifficulty);
 
     // compute contours
     for (ir=0; ir<nrm; ir++) {
@@ -1213,26 +1237,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
       }  // for ic
     }  // for ir
 
-    /**
-    vx_last = vx;
-    vy_last = vy;
-    auxLevels_last = auxLevels;
-    numv_last = numv;
-    ctrSet_last = ctrSet;
-    dashFlags_last = dashFlags;
-    }
-    else {
-      vx = vx_last;
-      vy = vy_last;
-      auxLevels = auxLevels_last;
-      numv = numv_last;
-      ctrSet = ctrSet_last;
-      dashFlags = dashFlags_last;
-    }
-    **/
-
-    int contourDifficulty = Contour2D.EASY;
-    if (numv > Contour2D.DIFFICULTY_THRESHOLD) contourDifficulty = Contour2D.HARD;
+    System.out.println("contourDifficulty: "+contourDifficulty+", "+numv);
 
 /**-------------------  Color Fill -------------------------*/
     if (fill) {
@@ -1385,6 +1390,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
         }
       }
     }
+    System.out.println("n_tri: "+n_tri+"  "+nr+","+nc);
     tri[0] = new float[n_tri*3];
     tri[1] = new float[n_tri*3];
     for (int kk=0; kk<color_bin.length; kk++) {
@@ -2901,7 +2907,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
 } // end class
 
 class ContourQuadSet {
-                                                                                                                                      
+
   int nx = 1;
   int ny = 1;
   int npx;
@@ -2916,19 +2922,18 @@ class ContourQuadSet {
                                                                                                                                       
   int snumv = 0;
                                                                                                                                       
-  public static HashMap subGridMap = new HashMap();
-  public static HashMap subGrid2Map = new HashMap();
-  public static HashMap markGridMap = new HashMap();
-  public static HashMap markGrid2Map = new HashMap();
-                                                                                                                                      
-                                                                                                                                      
+  public HashMap subGridMap = new HashMap();
+  public HashMap subGrid2Map = new HashMap();
+  public HashMap markGridMap = new HashMap();
+  public HashMap markGrid2Map = new HashMap();
+
   ContourQuadSet(int nr, int nc, int lev_idx, ContourStripSet css) {
    this.nc = nc;
    this.nr = nr;
    this.lev_idx = lev_idx;
    this.css = css;
 
-   if ( ((float)nc)*((float)nr) > Contour2D.DIMENSION_THRESHOLD ) {
+   if (css.contourDifficulty == Contour2D.HARD) {
      nx = 20;
      ny = 20;
    }
@@ -3087,7 +3092,7 @@ class ContourQuad {
   public int[][][] getWorkArrays(int leny, int lenx) {
     Object key;
                                                                                                                                       
-    java.util.Set keySet = ContourQuadSet.subGridMap.keySet();
+    java.util.Set keySet = qs.subGridMap.keySet();
                                                                                                                                       
     key = null;
     for (java.util.Iterator i = keySet.iterator(); i.hasNext();) {
@@ -3103,10 +3108,10 @@ class ContourQuad {
     int[][] markgrid2 = null;
                                                                                                                                       
     if (key != null) {
-      subgrid = ((CachedArray)ContourQuadSet.subGridMap.get(key)).getArray();
-      subgrid2 = ((CachedArray)ContourQuadSet.subGrid2Map.get(key)).getArray();
-      markgrid = ((CachedArray)ContourQuadSet.markGridMap.get(key)).getArray();
-      markgrid2 = ((CachedArray)ContourQuadSet.markGrid2Map.get(key)).getArray();
+      subgrid = ((CachedArray)qs.subGridMap.get(key)).getArray();
+      subgrid2 = ((CachedArray)qs.subGrid2Map.get(key)).getArray();
+      markgrid = ((CachedArray)qs.markGridMap.get(key)).getArray();
+      markgrid2 = ((CachedArray)qs.markGrid2Map.get(key)).getArray();
     }
     else {
       subgrid = new int[leny][lenx];
@@ -3114,10 +3119,10 @@ class ContourQuad {
       markgrid = new int[leny][lenx];
       markgrid2 = new int[leny][lenx];
       Object newKey = new CachedArrayDimension(leny,lenx);
-      ContourQuadSet.subGridMap.put(newKey, new CachedArray(subgrid));
-      ContourQuadSet.subGrid2Map.put(newKey, new CachedArray(subgrid2));
-      ContourQuadSet.markGridMap.put(newKey, new CachedArray(markgrid));
-      ContourQuadSet.markGrid2Map.put(newKey, new CachedArray(markgrid2));
+      qs.subGridMap.put(newKey, new CachedArray(subgrid));
+      qs.subGrid2Map.put(newKey, new CachedArray(subgrid2));
+      qs.markGridMap.put(newKey, new CachedArray(markgrid));
+      qs.markGrid2Map.put(newKey, new CachedArray(markgrid2));
     }
     return new int[][][] {subgrid, subgrid2, markgrid, markgrid2};
   }
@@ -3358,11 +3363,12 @@ class ContourStripSet {
   boolean[] swap;
 
   ContourQuadSet[] qSet;
+  int contourDifficulty = Contour2D.EASY;
 
 
-  ContourStripSet(int size, float[] levels, boolean[] swap, 
+  ContourStripSet(int size, float[] levels, boolean[] swap,
                   double scale_ratio, double label_size, int nr, int nc,
-                  Gridded3DSet spatial_set) 
+                  Gridded3DSet spatial_set, int contourDifficulty)
     throws VisADException {
 
     this.mxsize  = 40*size;
@@ -3376,6 +3382,7 @@ class ContourStripSet {
     this.nc      = nc;
     this.swap    = swap;
     this.spatial_set = spatial_set;
+    this.contourDifficulty = contourDifficulty;
 
     for (int kk = 0; kk < n_levs; kk++) {
       vecArray[kk]    = new java.util.Vector();
@@ -3734,7 +3741,8 @@ class ContourStripSet {
       for (int j=0; j<ny; j++) {
         for (int i=0; i<nx; i++) {
           int[] vert_indices = qSet[kk].qarray[j][i].vert_indices;
-          for (int q=0; q<vert_indices.length; q++) {
+          int len = qSet[kk].qarray[j][i].numv;
+          for (int q=0; q<len; q++) {
             int idx = vert_indices[q];
             add(vx, vy, idx, idx+1, kk);
           }
