@@ -4373,6 +4373,12 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
    */
   public Field resample (Set set, int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
+
+    /* NB: resampling is done in this method for a float domain.  If
+     * you make changes to this method, make the corresponding changes
+     * in resampleDouble.
+     */
+
     visad.util.Trace.call1("FlatField.resample");
     if (DomainSet.equals(set)) {
       // nothing to do
@@ -4383,6 +4389,10 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     int dim = DomainSet.getDimension();
     if (dim != set.getDimension()) {
       throw new SetException("FlatField.resample: bad Set Dimension");
+    }
+
+    if (DomainSet instanceof GriddedDoubleSet) {
+      return resampleDouble(set, sampling_mode, error_mode);
     }
 
     CoordinateSystem coord_sys = set.getCoordinateSystem();
@@ -4703,6 +4713,401 @@ if (pr) System.out.println("value = " + new_values[0][0]);
           if (comp_type instanceof RealVectorType) {
             int mm = ((RealVectorType) comp_type).getDimension();
             float[][] comp_vals = new float[mm][];
+            for (int jj=0; jj<mm; jj++) {
+              comp_vals[jj] = new_values[offset + jj];
+            }
+            ErrorEstimate[] comp_errors_in = new ErrorEstimate[mm];
+            for (int jj=0; jj<mm; jj++) {
+              comp_errors_in[jj] = range_errors_in[offset + jj];
+            }
+            ErrorEstimate[] comp_errors_out = comp_errors_in;
+            comp_vals = ((RealVectorType) comp_type).transformVectors(
+                        ((FunctionType) Type).getDomain(),
+                        DomainCoordinateSystem, DomainUnits, errors_out,
+                        ((SetType) set.getType()).getDomain(), coord_sys, units,
+                        RangeCoordinateSystems[j],
+                        comp_errors_in, comp_errors_out,
+                        oldvals, vals, comp_vals);
+            for (int jj=0; jj<mm; jj++) {
+              new_values[offset + jj] = comp_vals[jj];
+            }
+            for (int jj=0; jj<mm; jj++) {
+              range_errors_out[offset + jj] = comp_errors_out[jj];
+            }
+          }
+          if (comp_type instanceof RealType) {
+            offset++;
+          }
+          else {
+            offset += ((RealTupleType) comp_type).getDimension();
+          }
+        }
+      }
+    } // end if (coord_transform)
+    new_field.packValues(new_values, false);
+    // new_field.DoubleRange = new_values;
+    new_field.setRangeErrors(range_errors_out);
+    new_field.clearMissing();
+    visad.util.Trace.call2("FlatField.resample");
+
+
+    return new_field;
+  }
+
+  /**
+   * Resamples the range to domain samples of a given double set.  Resampling is either
+   * by nearest neighbor or mulit-linear interpolation.  NOTE: This code is very
+   * similar to FieldImpl.resample(Set,int,int).
+   * @param set                 The set of points at which to resample this
+   *                            field.
+   * @param sampling_mode       Resampling mode: Data.NEAREST_NEIGHBOR or
+   *                            Data.WEIGHTED_AVERAGE
+   * @param error_mode          Error estimation mode: Data.DEPENDENT,
+   *                            Data.INDEPENDENT, or Data.NO_ERRORS.
+   * @return                    Field of resampled data.  RangeSet objects
+   *                            in result are set to DoubleSet.  NOTE: May
+   *                            return this (i.e., not a copy).
+   */
+  public Field resampleDouble(Set set, int sampling_mode, int error_mode)
+         throws VisADException, RemoteException {
+
+    /* NB: resampling is done in this method for a double domain.  If
+     * you make changes to this method, make the corresponding changes
+     * in resample if necessary.
+     */
+    visad.util.Trace.call1("FlatField.resample");
+    if (DomainSet.equals(set)) {
+      // nothing to do
+      visad.util.Trace.call2("FlatField.resample", "sampling set==domain set");
+      return this;
+    }
+
+    int dim = DomainSet.getDimension();
+    if (dim != set.getDimension()) {
+      throw new SetException("FlatField.resample: bad Set Dimension");
+    }
+
+    if (!(DomainSet instanceof GriddedDoubleSet)) {
+      return resample(set, sampling_mode, error_mode);
+    }
+
+    CoordinateSystem coord_sys = set.getCoordinateSystem();
+    Unit[] units = set.getSetUnits();
+    ErrorEstimate[] errors =
+      (error_mode == NO_ERRORS) ? new ErrorEstimate[dim] : set.getSetErrors();
+
+    // create (initially missing) FlatField for return
+    Set[] sets = new Set[TupleDimension];
+    for (int i=0; i<TupleDimension; i++) {
+      SetType set_type =
+        new SetType(((FunctionType) Type).getFlatRange().getComponent(i));
+      // WLH 26 Nov 2001
+      // sets[i] = new DoubleSet(set_type);
+      if (sampling_mode == Data.NEAREST_NEIGHBOR) {
+        sets[i] = RangeSet[i];
+      }
+      else {
+        sets[i] = new FloatSet(set_type);
+      }
+    }
+
+    MathType range_type = ((FunctionType) Type).getRange();
+    RealTupleType domain_type = ((SetType) set.getType()).getDomain();
+    FunctionType func_type = new FunctionType(domain_type, range_type);
+    FlatField new_field =
+      new FlatField(func_type, set, RangeCoordinateSystem,
+                    RangeCoordinateSystems, sets, RangeUnits);
+
+    if (isMissing()) return new_field;
+
+    ErrorEstimate[] range_errors_in =
+      (error_mode == NO_ERRORS) ? new ErrorEstimate[TupleDimension] :
+                                  RangeErrors;
+    ErrorEstimate[] range_errors_out = range_errors_in;
+
+    int i, j, k; // loop indices
+
+    // create an array containing all indices of 'this'
+    int length = set.getLength();
+    int[] wedge = set.getWedge();
+
+    // get values from wedge and possibly transform coordinates
+    double[][] vals = set.indexToDouble(wedge);
+    // holder for sampling errors of transformed set; these are
+    // only useful to help estmate range errors due to resampling
+    ErrorEstimate[] errors_out = new ErrorEstimate[dim];
+    double[][] oldvals = vals;
+    visad.util.Trace.call1("FlatField.resample:transformCoords");
+    try {  // this is only to throw a more meaningful message
+      vals = CoordinateSystem.transformCoordinates(
+                      ((FunctionType) Type).getDomain(), DomainCoordinateSystem,
+                      DomainUnits, errors_out,
+                      ((SetType) set.getType()).getDomain(), coord_sys,
+                      units, errors, vals, false);
+    } catch (UnitException ue) {
+        throw new VisADException("Sampling set is not compatible with domain");
+    }
+    visad.util.Trace.call2("FlatField.resample:transformCoords");
+    boolean coord_transform = !(vals == oldvals);
+
+    // check whether we need to do sampling error calculations
+    boolean sampling_errors = (error_mode != NO_ERRORS);
+    if (sampling_errors) {
+      for (i=0; i<dim; i++) {
+        if (errors_out[i] == null) sampling_errors = false;
+      }
+      boolean any_range_error = false;
+      for (i=0; i<TupleDimension; i++) {
+        if (range_errors_in[i] != null) any_range_error = true;
+      }
+      if (!any_range_error) sampling_errors = false;
+    }
+    double[][] sampling_partials = new double[TupleDimension][dim];
+    double[][] error_values = new double[1][1];
+    if (sampling_errors) {
+      error_values = ErrorEstimate.init_error_values(errors_out);
+    }
+
+    // WLH 20 July 2000
+    float[][] values = null;
+    if (sampling_errors || (10 * length > getLength()) || 
+        !shouldBeDouble() || sampling_mode == WEIGHTED_AVERAGE) {
+      values = unpackFloats(false);
+      // values = Set.doubleToFloat(unpackValues());
+    }
+
+    double[][] new_values = new double[TupleDimension][length];
+    double[] new_valuesJ;
+    float[] valuesJ;
+
+    if (sampling_mode == WEIGHTED_AVERAGE) {
+      // resample by interpolation
+      int[][] indices = new int[length][];
+      double[][] coefs = new double[length][];
+      ((GriddedDoubleSet) DomainSet).doubleToInterp(vals, indices, coefs);
+
+/* DEBUG
+// System.out.println("DomainSet = " + DomainSet);
+// System.out.println("set = " + set);
+
+// for (i=0; i<length; i++) {
+boolean pr = false;
+int ii = length;
+if (ii > 0) ii = 1;
+if (indices == null) ii = 0;
+for (i=0; i<ii; i++) {
+  if (indices[i] != null && coefs[i] != null) {
+    pr = true;
+    if (i == 0) {
+      System.out.println("DomainSet = " + DomainSet);
+      System.out.println("set = " + set);
+    }
+    System.out.println("vals[0][" + i + "] = " + vals[0][i] +
+                      " vals[1][" + i + "] = " + vals[1][i]);
+    String s = "indices[" + i + "] = ";
+    for (j=0; j<indices[i].length; j++) s = s + indices[i][j] + " ";
+    System.out.println(s);
+    s = "coefs[" + i + "] = ";
+    for (j=0; j<coefs[i].length; j++) s = s + coefs[i][j] + " ";
+    System.out.println(s);
+  }
+}
+*/
+      // WLH 20 July 2000
+      if (values != null) {
+        for (j=0; j<TupleDimension; j++) {
+          valuesJ = values[j];
+          new_valuesJ = new_values[j];
+          for (i=0; i<length; i++) {
+            double v = Double.NaN;
+            int len = indices[i] == null ? 0 : indices[i].length;
+            if (len > 0) {
+              v = valuesJ[indices[i][0]] * coefs[i][0];
+              for (k=1; k<len; k++) {
+                v += valuesJ[indices[i][k]] * coefs[i][k];
+              }
+              new_valuesJ[wedge[i]] = v;
+            }
+            else { // values outside grid
+              new_valuesJ[wedge[i]] = Float.NaN;
+            }
+          }
+        }
+      }
+      else {
+        for (i=0; i<length; i++) {
+          int len = indices[i] == null ? 0 : indices[i].length;
+          if (len > 0) {
+            float[][] xvals = new float[len][];
+            for (k = 0; k<len; k++) {
+              xvals[k] = unpackFloats(indices[i][k]);
+            }
+            for (j=0; j<TupleDimension; j++) {
+              double v = xvals[0][j] * coefs[i][0];
+              for (k=1; k<len; k++) v += xvals[k][j] * coefs[i][k];
+              new_values[j][wedge[i]] = v;
+            }
+          }         
+          else { // values outside grid
+            for (j=0; j<TupleDimension; j++) {
+              new_values[j][wedge[i]] = Float.NaN;
+            }
+          }
+        }
+      }
+/* DEBUG
+if (pr) System.out.println("value = " + new_values[0][0]);
+*/
+
+      if (sampling_errors) {
+        int[][] error_indices = new int[2 * dim][];
+        double[][] error_coefs = new double[2 * dim][];
+        ((GriddedDoubleSet) DomainSet).doubleToInterp(error_values, error_indices,
+                                              error_coefs);
+
+        for (j=0; j<TupleDimension; j++) {
+          for (i=0; i<dim; i++) {
+            double a = Double.NaN;
+            double b = Double.NaN;;
+            int len = error_indices[2*i].length;
+            if (len > 0) {
+              a = values[j][error_indices[2*i][0]] * error_coefs[2*i][0];
+              for (k=1; k<len; k++) {
+                a += values[j][error_indices[2*i][k]] * error_coefs[2*i][k];
+              }
+            }
+            len = error_indices[2*i+1].length;
+            if (len > 0) {
+              b = values[j][error_indices[2*i+1][0]] * error_coefs[2*i+1][0];
+              for (k=1; k<len; k++) {
+                b += values[j][error_indices[2*i+1][k]] * error_coefs[2*i+1][k];
+              }
+            }
+            sampling_partials[j][i] = Math.abs(b - a);
+          }
+        }
+      }
+
+    }
+    else { // NEAREST_NEIGHBOR or set is not SimpleSet
+      // simple resampling
+      int[] indices = DomainSet.doubleToIndex(vals);
+/* DEBUG
+// System.out.println("DomainSet = " + DomainSet);
+// System.out.println("set = " + set);
+
+// for (i=0; i<length; i++) {
+boolean pr = false;
+int ii = length;
+if (ii > 0) ii = 1;
+if (indices == null) ii = 0;
+for (i=0; i<ii; i++) {
+  if (indices[i] >= 0) {
+    pr = true;
+    if (i == 0) {
+      System.out.println("DomainSet = " + DomainSet);
+      System.out.println("set = " + set);
+    }
+    System.out.println("NEAREST_NEIGHBOR indices[" + i + "] = " + indices[i]);
+  }
+}
+*/
+      // WLH 20 July 2000
+      if (values != null) {
+        for (j=0; j<TupleDimension; j++) {
+          valuesJ = values[j];
+          new_valuesJ = new_values[j];
+          for (i=0; i<length; i++) {
+            new_valuesJ[wedge[i]] =
+              ((indices[i] >= 0) ? valuesJ[indices[i]]: Float.NaN);
+          }
+        }
+      }
+      else {
+        for (i=0; i<length; i++) {
+          if (indices[i] >= 0) {
+            float[] xvals = unpackFloats(indices[i]);
+            for (j=0; j<TupleDimension; j++) {
+              new_values[j][wedge[i]] = xvals[j];
+            }
+          }
+          else { // values outside grid
+            for (j=0; j<TupleDimension; j++) {
+              new_values[j][wedge[i]] = Float.NaN;
+            }
+          }
+        }
+      }
+/* DEBUG
+if (pr) System.out.println("value = " + new_values[0][0]);
+*/
+
+      if (sampling_errors) {
+        int[] error_indices = DomainSet.doubleToIndex(error_values);
+        for (j=0; j<TupleDimension; j++) {
+          for (i=0; i<dim; i++) {
+            float a = (float) ((error_indices[2*i] >= 0) ?
+                       values[j][error_indices[2*i]]: Double.NaN);
+            float b = (float) ((error_indices[2*i+1] >= 0) ?
+                       values[j][error_indices[2*i+1]]: Double.NaN);
+            sampling_partials[j][i] = Math.abs(b - a);
+          }
+        }
+      }
+
+    }
+
+    if (sampling_errors) {
+      for (j=0; j<TupleDimension; j++) {
+        if (range_errors_in[j] != null) {
+          float error = (float) range_errors_in[j].getErrorValue();
+          if (error_mode == Data.INDEPENDENT) {
+            error = error * error;
+            for (i=0; i<dim; i++) {
+              error += sampling_partials[j][i] * sampling_partials[j][i];
+            }
+            error = (float) Math.sqrt(error);
+          }
+          else { // error_mode == Data.DEPENDENT
+            for (i=0; i<dim; i++) {
+              error += sampling_partials[j][i];
+            }
+          }
+          range_errors_out[j] =
+            new ErrorEstimate(new_values[j], error, RangeUnits[j]);
+        }
+      }
+    }
+    else if (error_mode != NO_ERRORS) {
+      for (j=0; j<TupleDimension; j++) {
+        if (range_errors_in[j] != null) {
+          range_errors_out[j] =
+            new ErrorEstimate(new_values[j], range_errors_in[j].getErrorValue(),
+                              RangeUnits[j]);
+        }
+      }
+    }
+
+    if (coord_transform) {
+      range_errors_in = range_errors_out;
+      MathType Range = ((FunctionType) Type).getRange();
+      if (Range instanceof RealVectorType) {
+        new_values = ((RealVectorType) Range).transformVectors(
+                      ((FunctionType) Type).getDomain(),
+                      DomainCoordinateSystem, DomainUnits, errors_out,
+                      ((SetType) set.getType()).getDomain(),
+                      coord_sys, units, RangeCoordinateSystem,
+                      range_errors_in, range_errors_out,
+                      oldvals, vals, new_values);
+      }
+      else if (Range instanceof TupleType && !(Range instanceof RealTupleType)) {
+        int offset = 0;
+        int m = ((TupleType) Range).getDimension();
+        for (j=0; j<m; j++) {
+          MathType comp_type = ((TupleType) Range).getComponent(j);
+          if (comp_type instanceof RealVectorType) {
+            int mm = ((RealVectorType) comp_type).getDimension();
+            double[][] comp_vals = new double[mm][];
             for (int jj=0; jj<mm; jj++) {
               comp_vals[jj] = new_values[offset + jj];
             }

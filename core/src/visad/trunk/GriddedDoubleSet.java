@@ -30,7 +30,8 @@ package visad;
    GriddedDoubleSet is an interface for GriddedSets that have
    double-precision samples rather than single-precision samples.<P>
 */
-public interface GriddedDoubleSet {
+public interface GriddedDoubleSet extends GriddedSetIface 
+{
 
   /*
   In addition to implementing all the methods given here, an implementation

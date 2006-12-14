@@ -2842,6 +2842,12 @@ public class FieldImpl extends FunctionImpl implements Field {
    */
   public Field resample(Set set, int sampling_mode, int error_mode)
          throws VisADException, RemoteException {
+
+    /* NB: resampling is done in this method for a float domain.  If
+     * you make changes to this method, make the corresponding changes
+     * in resampleDouble if necessary.
+     */
+
     if (DomainSet.equals(set)) {
       // nothing to do
       return this;
@@ -2857,6 +2863,12 @@ public class FieldImpl extends FunctionImpl implements Field {
     int dim = DomainSet.getDimension();
     if (dim != set.getDimension()) {
       throw new SetException("FieldImpl.resample: bad Set Dimension");
+    }
+
+    // Resampling in this method is done if floats so if we have
+    // a double domain, call resampleDouble. 
+    if (DomainSet instanceof GriddedDoubleSet) {
+      return resampleDouble(set, sampling_mode, error_mode);
     }
 
     CoordinateSystem coord_sys = set.getCoordinateSystem();
@@ -3096,6 +3108,315 @@ public class FieldImpl extends FunctionImpl implements Field {
           int n = vals.length;
           float[][] inloc = new float[n][1];
           float[][] outloc = new float[n][1];
+          Data[] datums = new Data[m];
+          for (int i=0; i<length; i++) {
+            for (int k=0; k<n; k++) inloc[k][0] = oldvals[k][i];
+            for (int k=0; k<n; k++) outloc[k][0] = vals[k][i];
+            for (int j=0; j<m; j++) {
+              MathType comp_type = ((TupleType) RangeType).getComponent(j);
+              if (comp_type instanceof RealVectorType) {
+                RealTuple component =
+                  (RealTuple) ((TupleIface) range[i]).getComponent(j);
+                datums[j] = ((RealVectorType) comp_type).transformVectors(
+                            ((FunctionType) Type).getDomain(),
+                            DomainCoordinateSystem, DomainUnits, errors_out,
+                            ((SetType) set.getType()).getDomain(),
+                            coord_sys, units, component.getCoordinateSystem(),
+                            inloc, outloc, component);
+              }
+              else {
+                datums[j] = ((TupleIface) range[i]).getComponent(j);
+              }
+            }
+            range[i] = new Tuple(datums);
+
+          }
+        }
+      }
+    } // end if (coord_transform)
+    ((FieldImpl)field).setSamples(range, false, false);
+    return field;
+  }
+
+  /** 
+   * Resample range values of this Field to domain samples in set either
+   * byt nearest neighbor or multi-linear interpolation.
+   * NOTE: this code is very similar to resample in FlatField.java 
+   * @param set            finite sampling values for the function.
+   * @param sampling_mode  type of interpolation to perform (e.g., 
+   *                       Data.WEIGHTED_AVERAGE, Data.NEAREST_NEIGHBOR)
+   * @param error_mode     type of error estimation to perform (e.g., 
+   *                       Data.INDEPENDENT, Data.DEPENDENT, Data.NO_ERRORS)
+   * @return Data object corresponding to the function value at that domain,
+   *         using the sampling_mode and error_modes specified.  NOTE: may
+   *         return this (i.e., not a copy).
+   * @throws  VisADException   unable to resample function
+   * @throws  RemoteException  Java RMI exception
+   */
+  public Field resampleDouble(Set set, int sampling_mode, int error_mode)
+         throws VisADException, RemoteException {
+
+    /* NB: resampling is done in this method for a double domain.  If
+     * you make changes to this method, make the corresponding changes
+     * in resample if necessary.
+     */
+
+    if (DomainSet.equals(set)) {
+      // nothing to do
+      return this;
+    }
+
+    MathType range_type = ((FunctionType) Type).getRange();
+    RealTupleType domain_type = ((SetType) set.getType()).getDomain();
+    FunctionType func_type = new FunctionType(domain_type, range_type);
+    Field field = new FieldImpl(func_type, set);
+    // Field field = new FieldImpl((FunctionType) Type, set);
+    if (isMissing()) return field;
+
+    int dim = DomainSet.getDimension();
+    if (dim != set.getDimension()) {
+      throw new SetException("FieldImpl.resample: bad Set Dimension");
+    }
+
+    if (!(DomainSet instanceof GriddedDoubleSet)) {
+      return resample(set, sampling_mode, error_mode);
+    }
+
+    CoordinateSystem coord_sys = set.getCoordinateSystem();
+    Unit[] units = set.getSetUnits();
+    ErrorEstimate[] errors =
+      (error_mode == NO_ERRORS) ? new ErrorEstimate[dim] : set.getSetErrors();
+
+    // create an array containing all indices of 'this'
+    int length = set.getLength();
+    int[] wedge = set.getWedge();
+
+    // array of Data objects to receive resampled Range objects
+    Data[] range = new Data[length];
+
+    // get values from wedge and possibly transform coordinates
+    double[][] vals = set.indexToDouble(wedge);
+    // holder for sampling errors of transformed set - these are
+    // only useful to help estmate range errors due to resampling
+    ErrorEstimate[] errors_out = new ErrorEstimate[dim];
+    double[][] oldvals = vals;
+    try {  // this is only to throw a more meaningful message
+      vals = CoordinateSystem.transformCoordinates(
+                      ((FunctionType) Type).getDomain(), DomainCoordinateSystem,
+                      DomainUnits, errors_out,
+                      ((SetType) set.getType()).getDomain(), coord_sys,
+                      units, errors, vals);
+    } catch (UnitException ue) {
+        throw new VisADException("Sampling set is not compatible with domain");
+    }
+
+    boolean coord_transform = !(vals == oldvals);
+
+    // check whether we need to do sampling error calculations
+    boolean sampling_errors = (error_mode != NO_ERRORS);
+    if (sampling_errors) {
+      for (int i=0; i<dim; i++) {
+        if (errors_out[i] == null) sampling_errors = false;
+      }
+    }
+    Data[] sampling_partials = new Data[dim];
+    double[][] error_values;
+    double[] means = new double[dim];
+
+    Data[]Range = getRange ();
+    if (sampling_mode == WEIGHTED_AVERAGE) {
+      // resample by interpolation
+      int[][] indices = new int[length][];
+      double[][] coefs = new double[length][];
+      ((GriddedDoubleSet) DomainSet).doubleToInterp(vals, indices, coefs);
+      for (int i=0; i<length; i++) {
+        int len;
+        len = (indices[i] == null) ? 0 : indices[i].length;
+        if (len > 0) {
+          Data r = null;
+          // WLH
+          for (int k=0; k<len; k++) {
+            Data RangeIK;
+            synchronized (RangeLock) {
+              RangeIK = Range[indices[i][k]];
+            }
+            if (RangeIK != null) {
+              r = (r == null) ? RangeIK.multiply(new Real(coefs[i][k])) :
+                                r.add(RangeIK.multiply(new Real(coefs[i][k])));
+            }
+            else {
+              r = null;
+              break;
+            }
+          }
+
+          // SRE 2002-02-13
+          if (r != null) {
+            r = r.changeMathType(((FunctionType)Type).getRange());
+          }
+
+          range[wedge[i]] = r;
+        }
+        else {
+          // set range[wedge[i]] to a missing Data object
+          range[wedge[i]] = ((FunctionType) Type).getRange().missingData();
+        }
+
+        if (sampling_errors && !range[wedge[i]].isMissing()) {
+          for (int j=0; j<dim; j++) means[j] = vals[j][i];
+          error_values = ErrorEstimate.init_error_values(errors_out, means);
+          int[][] error_indices = new int[2 * dim][];
+          double[][] error_coefs = new double[2 * dim][];
+          coefs = new double[2 * dim][];
+          ((GriddedDoubleSet) DomainSet).doubleToInterp(error_values, error_indices,
+                                                error_coefs);
+
+          for (int j=0; j<dim; j++) {
+            Data a = null;
+            Data b = null;
+            len = error_indices[2*j].length;
+            if (len > 0) {
+              for (int k=0; k<len; k++) {
+                Data RangeIK;
+                synchronized (RangeLock) {
+                  RangeIK = Range[error_indices[2*j][k]];
+                }
+                if (RangeIK != null) {
+                  a = (a == null) ?
+                      RangeIK.multiply(new Real(error_coefs[2*j][k])) :
+                      a.add(RangeIK.multiply(new Real(error_coefs[2*j][k])));
+                }
+                else {
+                  a = null;
+                  break;
+                }
+              }
+            }
+            len = error_indices[2*j+1].length;
+            if (len > 0) {
+              for (int k=0; k<len; k++) {
+                Data RangeIK;
+                synchronized (RangeLock) {
+                  RangeIK = Range[error_indices[2*j+1][k]];
+                }
+                if (RangeIK != null) {
+                  b = (b == null) ?
+                      RangeIK.multiply(new Real(error_coefs[2*j+1][k])) :
+                      b.add(RangeIK.multiply(new Real(error_coefs[2*j+1][k])));
+                }
+                else {
+                  b = null;
+                  break;
+                }
+              }
+            }
+            if (a == null || b == null) {
+              sampling_partials[j] = null;
+            }
+            else {
+              sampling_partials[j] = b.subtract(a).abs();
+            }
+          }
+
+          Data error = null;
+          if (error_mode == Data.INDEPENDENT) {
+            for (int j=0; j<dim; j++) {
+              Data e = sampling_partials[j].multiply(sampling_partials[j]);
+              error = (error == null) ? e : error.add(e);
+            }
+            error = error.sqrt();
+          }
+          else { // error_mode == Data.DEPENDENT
+            for (int j=0; j<dim; j++) {
+              Data e = sampling_partials[j];
+              error = (error == null) ? e : error.add(e);
+            }
+          }
+          range[wedge[i]] =
+            range[wedge[i]].adjustSamplingError(error, error_mode);
+        } // end if (sampling_errors && !range[wedge[i]].isMissing())
+      } // end for (int i=0; i<length; i++)
+    }
+    else { // Mode is NEAREST_NEIGHBOR or set is not GriddedSet
+      // simple resampling
+      int[] indices = DomainSet.doubleToIndex(vals);
+      for (int i=0; i<length; i++) {
+        synchronized (RangeLock) {
+          range[wedge[i]] = (indices[i] >= 0 && Range[indices[i]] != null) ?
+                            Range[indices[i]] :
+                            ((FunctionType) Type).getRange().missingData();
+        }
+
+        if (sampling_errors && !range[wedge[i]].isMissing()) {
+          for (int j=0; j<dim; j++) means[j] = vals[j][i];
+          error_values = ErrorEstimate.init_error_values(errors_out, means);
+          int[] error_indices = DomainSet.doubleToIndex(error_values);
+          for (int j=0; j<dim; j++) {
+            synchronized (RangeLock) {
+              if (error_indices[2*j] < 0 || Range[error_indices[2*j]] == null ||
+                  error_indices[2*j+1] < 0 || Range[error_indices[2*j+1]] == null) {
+                sampling_partials[j] = null;
+              }
+              else {
+                sampling_partials[j] = Range[error_indices[2*j+1]].
+                                         subtract(Range[error_indices[2*j]]).abs();
+              }
+            }
+          }
+
+          Data error = null;
+          if (error_mode == Data.INDEPENDENT) {
+            for (int j=0; j<dim; j++) {
+              Data e = sampling_partials[j].multiply(sampling_partials[j]);
+              error = (error == null) ? e : error.add(e);
+            }
+            error = error.sqrt();
+          }
+          else { // error_mode == Data.DEPENDENT
+            for (int j=0; j<dim; j++) {
+              Data e = sampling_partials[j];
+              error = (error == null) ? e : error.add(e);
+            }
+          }
+          range[wedge[i]] =
+            range[wedge[i]].adjustSamplingError(error, error_mode);
+        } // end if (sampling_errors && !range[wedge[i]].isMissing())
+      } // end for (int i=0; i<length; i++)
+    }
+
+    if (coord_transform) {
+      // domain coordinates were transformed, so make corresponding
+      // vector transform to any RealVectorType-s in range
+      MathType RangeType = ((FunctionType) Type).getRange();
+      if (RangeType instanceof RealVectorType) {
+        int n = vals.length;
+        double[][] inloc = new double[n][1];
+        double[][] outloc = new double[n][1];
+        for (int i=0; i<length; i++) {
+          for (int k=0; k<n; k++) inloc[k][0] = oldvals[k][i];
+          for (int k=0; k<n; k++) outloc[k][0] = vals[k][i];
+          range[i] = ((RealVectorType) RangeType).transformVectors(
+                      ((FunctionType) Type).getDomain(),
+                      DomainCoordinateSystem, DomainUnits, errors_out,
+                      ((SetType) set.getType()).getDomain(),
+                      coord_sys, units,
+                      ((RealTuple) range[i]).getCoordinateSystem(),
+                      inloc, outloc, (RealTuple) range[i]);
+        }
+      }
+      else if (RangeType instanceof TupleType &&
+               !(RangeType instanceof RealTupleType)) {
+        int m = ((TupleType) RangeType).getDimension();
+        boolean any_vector = false;
+        for (int j=0; j<m; j++) {
+          if (((TupleType) RangeType).getComponent(j) instanceof RealVectorType) {
+            any_vector = true;
+          }
+        }
+        if (any_vector) {
+          int n = vals.length;
+          double[][] inloc = new double[n][1];
+          double[][] outloc = new double[n][1];
           Data[] datums = new Data[m];
           for (int i=0; i<length; i++) {
             for (int k=0; k<n; k++) inloc[k][0] = oldvals[k][i];

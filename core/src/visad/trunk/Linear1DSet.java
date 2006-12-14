@@ -33,7 +33,7 @@ package visad;
    The samples are ordered from First to Last.<P>
 */
 public class Linear1DSet extends Gridded1DSet
-       implements LinearSet {
+       implements LinearSet, GriddedDoubleSet {
 
   private double First, Last, Step, Invstep;
   private boolean cacheSamples;
@@ -224,6 +224,34 @@ public class Linear1DSet extends Gridded1DSet
     return value;
   }
 
+  /** transform an array of non-integer grid coordinates to an array
+      of values in R */
+  public double[][] gridToDouble(double[][] grid) throws VisADException {
+    if (grid.length != 1) {
+      throw new SetException("Linear1DSet.gridToValue: grid dimension" +
+                             " should be 1, not " + grid.length);
+    }
+    /* remove DRM: 2004-09-14
+    if (Length < 2) {
+      throw new SetException("Linear1DSet.gridToValue: requires all grid " +
+                             "dimensions to be > 1");
+    }
+    */
+    int length = grid[0].length;
+    double[][] value = new double[1][length];
+    double[] value0 = value[0];
+    double[] grid0 = grid[0];
+    double l = -0.5;
+    double h = (Length) - 0.5;
+    double g;
+
+    for (int i=0; i<length; i++) {
+      g = grid0[i];
+      value0[i] = ((l < g && g < h) ? First + g * Step : Float.NaN);
+    }
+    return value;
+  }
+
   /** transform an array of values in R to an array
       of non-integer grid coordinates */
   public float[][] valueToGrid(float[][] value) throws VisADException {
@@ -255,6 +283,169 @@ public class Linear1DSet extends Gridded1DSet
       grid0[i] = (float) ((l < v && v < h) ? (v - First) * Invstep : Float.NaN);
     }
     return grid;
+  }
+
+  /** transform an array of values in R to an array
+      of non-integer grid coordinates */
+  public double[][] doubleToGrid(double[][] value) throws VisADException {
+    if (value.length != 1) {
+      throw new SetException("Linear1DSet.valueToGrid: value dimension" +
+                             " should be 1, not " + value.length);
+    }
+    /* remove DRM: 2004-09-14
+    if (Lengths[0] < 2) {
+      throw new SetException("Linear1DSet.valueToGrid: requires all grid " +
+                             "dimensions to be > 1");
+    }
+    */
+    int length = value[0].length;
+    double[][] grid = new double[1][length];
+    double[] grid0 = grid[0];
+    double[] value0 = value[0];
+    double l = (First - 0.5 * Step);
+    double h = (First + (((float) Length) - 0.5) * Step);
+    double v;
+
+    if (h < l) {
+      double temp = l;
+      l = h;
+      h = temp;
+    }
+    for (int i=0; i<length; i++) {
+      v = value0[i];
+      grid0[i] = ((l < v && v < h) ? (v - First) * Invstep : Double.NaN);
+    }
+    return grid;
+  }
+
+  /** for each of an array of values in R^DomainDimension, compute an array
+      of 1-D indices and an array of weights, to be used for interpolation;
+      indices[i] and weights[i] are null if i-th value is outside grid
+      (i.e., if no interpolation is possible) */
+  public void doubleToInterp(double[][] value, int[][] indices,
+    double[][] weights) throws VisADException
+  {
+    if (value.length != DomainDimension) {
+      throw new SetException("Linear1DSet.doubleToInterp: value dimension " +
+                             value.length + " not equal to Domain dimension " +
+                             DomainDimension);
+    }
+    int length = value[0].length; // number of values
+    if (indices.length != length) {
+      throw new SetException("Linear1DSet.doubleToInterp: indices length " +
+                             indices.length +
+                             " doesn't match value[0] length " +
+                             value[0].length);
+    }
+    if (weights.length != length) {
+      throw new SetException("Linear1DSet.doubleToInterp: weights length " +
+                             weights.length +
+                             " doesn't match value[0] length " +
+                             value[0].length);
+    }
+    // convert value array to grid coord array
+    double[][] grid = doubleToGrid(value);
+
+    int i, j, k; // loop indices
+    int lis; // temporary length of is & cs
+    int length_is; // final length of is & cs, varies by i
+    int isoff; // offset along one grid dimension
+    double a, b; // weights along one grid dimension; a + b = 1.0
+    int[] is; // array of indices, becomes part of indices
+    double[] cs; // array of coefficients, become part of weights
+
+    int base; // base index, as would be returned by valueToIndex
+    int[] l = new int[ManifoldDimension]; // integer 'factors' of base
+    // fractions with l; -0.5 <= c <= 0.5
+    double[] c = new double[ManifoldDimension];
+
+    // array of index offsets by grid dimension
+    int[] off = new int[ManifoldDimension];
+    off[0] = 1;
+    for (j=1; j<ManifoldDimension; j++) off[j] = off[j-1] * Lengths[j-1];
+
+    for (i=0; i<length; i++) {
+      // compute length_is, base, l & c
+      length_is = 1;
+      if (Double.isNaN(grid[ManifoldDimension-1][i])) {
+        base = -1;
+      }
+      else {
+        l[ManifoldDimension-1] = (int) (grid[ManifoldDimension-1][i] + 0.5);
+        // WLH 23 Dec 99
+        if (l[ManifoldDimension-1] == Lengths[ManifoldDimension-1]) {
+          l[ManifoldDimension-1]--;
+        }
+        c[ManifoldDimension-1] = grid[ManifoldDimension-1][i] -
+                                 ((double) l[ManifoldDimension-1]);
+        if (!((l[ManifoldDimension-1] == 0 && c[ManifoldDimension-1] <= 0.0) ||
+              (l[ManifoldDimension-1] == Lengths[ManifoldDimension-1] - 1 &&
+               c[ManifoldDimension-1] >= 0.0))) {
+          // only interp along ManifoldDimension-1
+          // if between two valid grid coords
+          length_is *= 2;
+        }
+        base = l[ManifoldDimension-1];
+      }
+      for (j=ManifoldDimension-2; j>=0 && base>=0; j--) {
+        if (Double.isNaN(grid[j][i])) {
+          base = -1;
+        }
+        else {
+          l[j] = (int) (grid[j][i] + 0.5);
+          if (l[j] == Lengths[j]) l[j]--; // WLH 23 Dec 99
+          c[j] = grid[j][i] - ((double) l[j]);
+          if (!((l[j] == 0 && c[j] <= 0.0) ||
+                (l[j] == Lengths[j] - 1 && c[j] >= 0.0))) {
+            // only interp along dimension j if between two valid grid coords
+            length_is *= 2;
+          }
+          base = l[j] + Lengths[j] * base;
+        }
+      }
+
+      if (base < 0) {
+        // value is out of grid so return null
+        is = null;
+        cs = null;
+      }
+      else {
+        // create is & cs of proper length, and init first element
+        is = new int[length_is];
+        cs = new double[length_is];
+        is[0] = base;
+        cs[0] = 1.0f;
+        lis = 1;
+
+        for (j=0; j<ManifoldDimension; j++) {
+          if (!((l[j] == 0 && c[j] <= 0.0) ||
+                (l[j] == Lengths[j] - 1 && c[j] >= 0.0))) {
+            // only interp along dimension j if between two valid grid coords
+            if (c[j] >= 0.0) {
+              // grid coord above base
+              isoff = off[j];
+              a = 1.0f - c[j];
+              b = c[j];
+            }
+            else {
+              // grid coord below base
+              isoff = -off[j];
+              a = 1.0f + c[j];
+              b = -c[j];
+            }
+            // double is & cs; adjust new offsets; split weights
+            for (k=0; k<lis; k++) {
+              is[k+lis] = is[k] + isoff;
+              cs[k+lis] = cs[k] * b;
+              cs[k] *= a;
+            }
+            lis *= 2;
+          }
+        }
+      }
+      indices[i] = is;
+      weights[i] = cs;
+    }
   }
 
   /**
