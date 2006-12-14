@@ -1237,8 +1237,6 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
       }  // for ic
     }  // for ir
 
-    System.out.println("contourDifficulty: "+contourDifficulty+", "+numv);
-
 /**-------------------  Color Fill -------------------------*/
     if (fill) {
       fillGridBox(g, n_lines, vx, vy, xd, xdd, yd, ydd, nr, nrm, nc, ncm,
@@ -1390,7 +1388,6 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
         }
       }
     }
-    System.out.println("n_tri: "+n_tri+"  "+nr+","+nc);
     tri[0] = new float[n_tri*3];
     tri[1] = new float[n_tri*3];
     for (int kk=0; kk<color_bin.length; kk++) {
