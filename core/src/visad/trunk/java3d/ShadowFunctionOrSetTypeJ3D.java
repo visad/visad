@@ -103,7 +103,6 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
     
     // only determine if it's an animation if non-terminal
     if (!isTerminal) {
-      
       // determine if it's an animation
       DataDisplayLink link = renderer.getLink();
       MathType mtype = data.getType();
@@ -125,13 +124,8 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
         timeMap = (ScalarMap) scalarMaps.elementAt(0);
       }
     }
-    
     // animation logic
     if (isAnimation1d){
-      
-      if(group instanceof BranchGroup){
-        ((DefaultRendererJ3D) renderer).setBranchEarly((BranchGroup) group);
-      }
       
       // analyze data's domain (its a Field)
       Set domainSet = ((Field) data).getDomainSet();
@@ -155,8 +149,8 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
         // not necessary, but perhaps if this is modified
         // renderer.setLatLonIndices(lat_lon_indices);
       }
-      
-    } else {
+    } 
+    else {
       ShadowFunctionOrSetType shadow = (ShadowFunctionOrSetType)adaptedShadowType;
       post = shadow.doTransform(group, data, value_array, default_values, renderer, this); 
     }

@@ -87,6 +87,19 @@ public class DefaultRendererJ3D extends RendererJ3D {
     branch.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND); // BMF
     ShadowTypeJ3D type = (ShadowTypeJ3D) link.getShadow();
 
+
+    /** TDR, if a scalarMap to Animation, make make the Data's
+        node live, ie add it to Display via setBranchEarly. */
+    boolean isAnimation = false;
+    java.util.Vector scalarMaps = link.getSelectedMapVector();
+    for (int kk = 0; kk < scalarMaps.size(); kk++) {
+      ScalarMap scalarMap = (ScalarMap) scalarMaps.elementAt(kk);
+      if ( (scalarMap.getDisplayScalar()).equals(Display.Animation) ) {
+              isAnimation = true;
+      }
+    }
+    if (isAnimation) setBranchEarly(branch);
+
     // initialize valueArray to missing
     int valueArrayLength = getDisplay().getValueArrayLength();
     float[] valueArray = new float[valueArrayLength];
@@ -237,8 +250,8 @@ public class DefaultRendererJ3D extends RendererJ3D {
     ctr_cntrl.setSurfaceValue(24f);
 
     AnimationControl acontrol = (AnimationControl) amap.getControl();
-    acontrol.setOn(true);
-    acontrol.setStep(1000);
+    //acontrol.setOn(true);
+    acontrol.setStep(500);
 
     DataReferenceImpl ref = new DataReferenceImpl("field_ref");
 
