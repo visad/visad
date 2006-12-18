@@ -2379,7 +2379,7 @@ for color_length = 3 this is 148 * Length
       tri_array[0] = new VisADGeometryArray[1];
       tri_array[0][0] = new VisADTriangleArray();
       tri_array[0][0].normals = tri_normals[0];
-      setGeometryArray(tri_array[0][0], gridToValue(tri), 3, tri_color);
+      setGeometryArray(tri_array[0][0], gridToValue(tri), 4, tri_color);
       
       // FIXME:BMF is setGeometryArray(...) required?
       tri_array[2] = arrays[2];
