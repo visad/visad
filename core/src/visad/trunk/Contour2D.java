@@ -433,18 +433,20 @@ boolean anynotmissing = false;
       if (max_g >= myvals[k]) ctr_hi = k;
     }
 
-    float ctr_int = myvals[1] - myvals[0];
     int switch_cnt = 0;
-    float[] last_diff = new float[(ctr_hi-ctr_lo)+1];
-    for (ir=2; ir<nrm-2; ir+=1) {
-      for (int k=0; k<last_diff.length;k++) {
-      last_diff[k] = g[ir] - myvals[ctr_lo+k];
-        for (ic=2; ic<ncm-2; ic+=1) {
-          float diff = g[ic*nr + ir] - myvals[ctr_lo+k];
-          if ((diff*last_diff[k] < 0) && ((diff > 0.005*ctr_int) || (diff < -0.005*ctr_int)) ) {
-            switch_cnt++;
+    if (myvals.length > 1) {
+      float ctr_int = myvals[1] - myvals[0];
+      float[] last_diff = new float[(ctr_hi-ctr_lo)+1];
+      for (ir=2; ir<nrm-2; ir+=1) {
+        for (int k=0; k<last_diff.length;k++) {
+        last_diff[k] = g[ir] - myvals[ctr_lo+k];
+          for (ic=2; ic<ncm-2; ic+=1) {
+            float diff = g[ic*nr + ir] - myvals[ctr_lo+k];
+            if ((diff*last_diff[k] < 0) && ((diff > 0.005*ctr_int) || (diff < -0.005*ctr_int)) ) {
+              switch_cnt++;
+            }
+            last_diff[k] = diff;
           }
-          last_diff[k] = diff;
         }
       }
     }
