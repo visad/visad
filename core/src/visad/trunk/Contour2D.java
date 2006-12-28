@@ -434,19 +434,23 @@ boolean anynotmissing = false;
     }
 
     int switch_cnt = 0;
+    float ctr_int = 0;
     if (myvals.length > 1) {
-      float ctr_int = myvals[1] - myvals[0];
-      float[] last_diff = new float[(ctr_hi-ctr_lo)+1];
-      for (ir=2; ir<nrm-2; ir+=1) {
-        for (int k=0; k<last_diff.length;k++) {
-        last_diff[k] = g[ir] - myvals[ctr_lo+k];
-          for (ic=2; ic<ncm-2; ic+=1) {
-            float diff = g[ic*nr + ir] - myvals[ctr_lo+k];
-            if ((diff*last_diff[k] < 0) && ((diff > 0.005*ctr_int) || (diff < -0.005*ctr_int)) ) {
-              switch_cnt++;
-            }
-            last_diff[k] = diff;
+      ctr_int = myvals[1] - myvals[0];
+    }
+    else {
+      ctr_int = Math.abs(myvals[0]);
+    }
+    float[] last_diff = new float[(ctr_hi-ctr_lo)+1];
+    for (ir=2; ir<nrm-2; ir+=1) {
+      for (int k=0; k<last_diff.length;k++) {
+      last_diff[k] = g[ir] - myvals[ctr_lo+k];
+        for (ic=2; ic<ncm-2; ic+=1) {
+          float diff = g[ic*nr + ir] - myvals[ctr_lo+k];
+          if ((diff*last_diff[k] < 0) && ((diff > 0.005*ctr_int) || (diff < -0.005*ctr_int)) ) {
+            switch_cnt++;
           }
+          last_diff[k] = diff;
         }
       }
     }
@@ -3982,7 +3986,7 @@ class ContourStrip {
     out_vv[1]         = null;
     out_colors[1]     = null;
 
-    if (vv[0].length > LBL_ALGM_THRESHHOLD && ((lev_idx & 1) == 1))
+    if ( (vv[0].length > LBL_ALGM_THRESHHOLD && ((lev_idx & 1) == 1)) || (css.n_levs == 1))
     {
       int loc         = (vv[0].length)/2;
       int start_break = 0;
