@@ -342,7 +342,10 @@
         t = jj_consume_token(INTEGER);
                     try
                     {
-                        unit = unit.pow(Integer.parseInt(t.image));
+                        // must use parseFloat in case we have "+00" which
+                        // causes parseInt to bomb
+                        unit = unit.pow((int) Float.parseFloat(t.image));
+                        //unit = unit.pow(Integer.parseInt(t.image));
                     }
                     catch (UnitException e)
                     {
