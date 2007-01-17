@@ -10,7 +10,7 @@ use strict;
 sub print_header {
   print "/*\n";
   print "VisAD system for interactive analysis and visualization of numerical\n";
-  print "data.  Copyright (C) 1996 - 2006 Bill Hibbard, Curtis Rueden, Tom\n";
+  print "data.  Copyright (C) 1996 - 2007 Bill Hibbard, Curtis Rueden, Tom\n";
   print "Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and\n";
   print "Tommy Jasmin.\n";
   print "\n";
