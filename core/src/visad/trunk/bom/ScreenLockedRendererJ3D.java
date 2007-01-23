@@ -65,6 +65,7 @@ import visad.java3d.DisplayRendererJ3D;
  */
 public class ScreenLockedRendererJ3D extends DefaultRendererJ3D 
 {
+  boolean initWithProj = false;
 
   /**
    * Default constructor.
@@ -74,9 +75,19 @@ public class ScreenLockedRendererJ3D extends DefaultRendererJ3D
     super();
   }
 
+  public ScreenLockedRendererJ3D(boolean initWithProj) {
+    this();
+    this.initWithProj = initWithProj;
+  }
+
   public void addSwitch(DisplayRendererJ3D displayRenderer,
                          BranchGroup branch) {
-    displayRenderer.addLockedSceneGraphComponent(branch);
+    if (initWithProj) {
+      displayRenderer.addLockedSceneGraphComponent(branch, initWithProj);
+    }
+    else {
+      displayRenderer.addLockedSceneGraphComponent(branch);
+    }
   }
 
 

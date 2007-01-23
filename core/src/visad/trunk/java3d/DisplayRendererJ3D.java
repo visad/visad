@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2007 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2006 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -762,6 +762,23 @@ public abstract class DisplayRendererJ3D
     if (not_destroyed == null || screen_locked == null) return;
     screen_locked.addChild(group);
   }
+
+  //- TDR, Hydra stuff
+  public void addLockedSceneGraphComponent(Group group, boolean initWithProj) {
+    if (not_destroyed == null || screen_locked == null) return;
+    if (initWithProj) {
+      ProjectionControl proj = getDisplay().getProjectionControl();
+      locked_trans.setTransform(new Transform3D(proj.getMatrix()));
+    }
+    screen_locked.addChild(group);
+  }
+                                                                                                                                         
+  public void updateLockedTrans(double[] matrix) {
+    if (locked_trans != null) {
+      locked_trans.setTransform(new Transform3D(matrix));
+    }
+  }
+
 
   public void addDirectManipulationSceneGraphComponent(Group group,
                          DirectManipulationRendererJ3D renderer) {
