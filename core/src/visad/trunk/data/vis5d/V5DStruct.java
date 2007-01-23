@@ -1268,22 +1268,26 @@ public class V5DStruct {
       System.err.println("Too few rows: " + Nr + " (2 is minimum)");
       valid = false;
     }
+    /* Don't check on max rows in case user overrode defaults
     else if (Nr > MAXROWS) {
       System.err.println("Too many rows: " + Nr +
         " (" + MAXROWS + " is maximum)");
       valid = false;
     }
+    */
 
     // Columns
     if (Nc < 2) {
       System.err.println("Too few columns: " + Nc + " (2 is minimum)");
       valid = false;
     }
+    /* Don't check on max columns in case user overrode defaults
     else if (Nc > MAXCOLUMNS) {
       System.err.println("Too many columns: " + Nc +
         " (" + MAXCOLUMNS + " is maximum)");
       valid = false;
     }
+    */
 
     // Levels
     maxnl = 0;
