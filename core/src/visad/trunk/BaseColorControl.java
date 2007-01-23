@@ -98,7 +98,13 @@ public class BaseColorControl
    *
    * @return the initialized table.
    */
-  public static float[][] initTableGreyWedge(float[][] table)
+
+  public static float[][] initTableGreyWedge(float[][] table) 
+  {
+    return initTableGreyWedge(table, false);
+  }
+
+  public static float[][] initTableGreyWedge(float[][] table, boolean invert)
   {
     if (table == null || table[0] == null) {
       return null;
@@ -109,16 +115,18 @@ public class BaseColorControl
     final int numColors = table[0].length;
     float scale = (float) (1.0f / (float) (numColors - 1));
     for (int i=0; i<numColors; i++) {
-      table[RED][i] = scale * i;
-      table[GREEN][i] = scale * i;
-      table[BLUE][i] = scale * i;
+      int idx = invert ? (numColors-1)-i : i;
+      table[RED][idx]   = scale * i;
+      table[GREEN][idx] = scale * i;
+      table[BLUE][idx]  = scale * i;
       if (hasAlpha) {
-        table[ALPHA][i] = scale * i;
+        table[ALPHA][idx] = scale * i;
       }
     }
 
     return table;
   }
+
 
   /**
    * Initialize the colormap to a grey wedge
@@ -126,6 +134,11 @@ public class BaseColorControl
   public void initGreyWedge()
   {
     initTableGreyWedge(table);
+  }
+
+  public void initGreyWedge(boolean invert)
+  { 
+    initTableGreyWedge(table, invert);
   }
 
   /**
