@@ -3,7 +3,7 @@
 <project name="VisAD" default="init" basedir="..">
 	<description>
 Build script for VisAD core packages
-$Id: build.xml,v 1.4 2007-01-24 16:59:34 brucef Exp $
+$Id: build.xml,v 1.5 2007-01-24 17:05:08 brucef Exp $
 
     init             -- print ant configuration 
 
@@ -339,7 +339,7 @@ visad Xmx: ${max.mem}
 
 
 
-	<compile Jama folder 
+	<!-- compile Jama folder --> 
 	<target name="Jama" depends="init">
 		<javac srcdir="${Jama.dir}" 
            source="${source.ver}" 
