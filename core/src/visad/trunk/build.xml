@@ -3,7 +3,7 @@
 <project name="VisAD" default="init" basedir="..">
 	<description>
 Build script for VisAD core packages
-$Id: build.xml,v 1.5 2007-01-24 17:05:08 brucef Exp $
+$Id: build.xml,v 1.6 2007-01-25 15:57:34 brucef Exp $
 
     init             -- print ant configuration 
 
@@ -16,7 +16,8 @@ $Id: build.xml,v 1.5 2007-01-24 17:05:08 brucef Exp $
 
     dist             -- clean, compile, and jar the entire VisAD distribution
     
-    jar              -- compile and jar the entire VisAD distribution 
+    jar              -- compile and jar the entire VisAD distribution
+    jar.src          -- jar the source for the entire VisAD distribution
     jar.docs         -- jar javadoc
     jar.examples     -- jar examples (binary and source)
 
@@ -206,7 +207,7 @@ $Id: build.xml,v 1.5 2007-01-24 17:05:08 brucef Exp $
   </patternset>
 
 	<!-- files to include in the distribution jar file -->
-	<patternset id="jar.include.patterns">
+	<patternset id="jar.include">
     <include name="visad/util/*.jhf" />
     <include name="visad/ss/*.gif" />
     <include name="loci/formats/readers.txt"/>
@@ -223,10 +224,25 @@ $Id: build.xml,v 1.5 2007-01-24 17:05:08 brucef Exp $
 		<include name="edu/**/*.class"/>
 	</patternset>
 
+	<!-- files to include in the source jar file -->
+	<patternset id="jar.src.include">
+		<include name="DATE" />
+		<include name="HTTPClient/**/*.java"/>
+		<include name="visad/**/*.java"/>
+		<include name="ucar/**/*.java"/>
+		<include name="dods/**/*.java"/>
+		<include name="gnu/**/*.java"/>
+		<include name="loci/**/*.java"/>
+		<include name="nom/**/*.java"/>
+		<include name="ncsa/**/*.java"/>
+		<include name="edu/**/*.java"/>
+	</patternset>
+
 	<!-- filenames -->
 	<property name="visad.jarfile" value="visad.jar" />
+	<property name="visad.src.jarfile" value="visad_src.jar"/>
 	<property name="examples.jarfile" value="visad_examples.jar" />
-	<property name="docs.jarfile" value="visaddoc.jar" />
+	<property name="docs.jarfile" value="visad_doc.jar" />
 	<property name="date.file" value="DATE"/>
 
 	<!-- directory settings -->
@@ -470,7 +486,7 @@ visad Xmx: ${max.mem}
 
 
 
-
+  <!-- same as jar except does a clean first -->
 	<target name="dist" depends="clean">
 		<antcall target="jar"/>
 	</target>
@@ -482,10 +498,6 @@ visad Xmx: ${max.mem}
 
 	<!-- compile visad package -->
 	<target name="visad" depends="init">
-
-		<!-- FIXME: for some reason you have to specify the visad directory
-                rather than using ${visad.dir}
-    -->
 
 		<!-- compile visad -->
 		<javac sourcepath=""
@@ -528,11 +540,31 @@ visad Xmx: ${max.mem}
         <attribute name="Main-Class" value="visad.ss.SpreadSheet"/>
       </manifest>
       <fileset dir="${basedir}">
-        <patternset refid="jar.include.patterns"/>
+        <patternset refid="jar.include"/>
       </fileset>
     </jar>
 	</target>
 
+
+
+
+  <!-- make jar for all the source files -->
+	<target name="jar.src" depends="init">
+
+		<!-- write the DATE file -->
+		<tstamp>
+			<format property="date.value" pattern="EEE MMM dd HH:mm:ss zzz yyyy"/>
+		</tstamp>
+		<echo message="${date.value}" file="${basedir}/${date.file}"/>
+
+		<!-- jar the class files -->
+		<delete file="${visad.src.jarfile}"/>
+    <jar destfile="${visad.src.jarfile}" filesonly="true">
+      <fileset dir="${basedir}">
+        <patternset refid="jar.src.include"/>
+      </fileset>
+    </jar>
+	</target>
 
 
 
@@ -591,7 +623,7 @@ visad Xmx: ${max.mem}
 
 
 	<target name="all" depends="init, clean, deps, visad, 
-                              jar, javadoc, jar.examples, jar.docs"/>
+                              jar, javadoc, jar.src, jar.examples, jar.docs"/>
 
 
 
@@ -602,6 +634,7 @@ visad Xmx: ${max.mem}
 		<delete failonerror="false">
 			<fileset dir="${basedir}">
 			  <include name="${visad.jarfile}"/>
+			  <include name="${visad.src.jarfile}"/>
 			  <include name="${docs.jarfile}"/>
 			  <include name="${examples.jarfile}"/>
 			  <include name="${date.file}"/>
