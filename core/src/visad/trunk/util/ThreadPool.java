@@ -196,6 +196,19 @@ waiting for other ActionImpls to run
     }
   }
 
+
+   
+ /** return the number of tasks in the queue and that are running 
+  * @return number of queued and active tasks
+  */
+  public int getTaskCount() 
+  {
+    int count = 0;
+    if(tasks!=null) count+= tasks.size();
+    if(busy_tasks!=null) count+= busy_tasks.size();
+    return count;
+  }
+
   // WLH 17 Dec 2001
   public void remove(Runnable r) {
     synchronized (tasks) {

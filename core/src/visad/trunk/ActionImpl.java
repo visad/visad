@@ -130,6 +130,17 @@ public abstract class ActionImpl
     }
   }
 
+
+ /** return the number of tasks in the threadpool queue 
+  * @return number of queued and active tasks
+ */
+  public static int getTaskCount() 
+  {
+    if(pool == null) return 0;
+    return pool.getTaskCount();
+  }
+
+
   /**
    * destroy all threads after they've drained the job queue
    */
