@@ -3,7 +3,7 @@
 <project name="VisAD" default="init" basedir="..">
 	<description>
 Build script for VisAD core packages
-$Id: build.xml,v 1.6 2007-01-25 15:57:34 brucef Exp $
+$Id: build.xml,v 1.7 2007-01-31 22:58:09 brucef Exp $
 
     init             -- print ant configuration 
 
@@ -37,8 +37,15 @@ $Id: build.xml,v 1.6 2007-01-25 15:57:34 brucef Exp $
 
   </description>
 
-  <patternset id="visad.source">
-  	<include name="edu/wisc/ssec/mcidas/**"/>
+  <!--
+    Package include defenitions. 
+    
+    These are used to create filesets containing all files in 
+    the given directories. The filesets are then filtered further
+    for compiling, jaring, and javadocing.
+  -->
+  <patternset id="visad.package">
+  	<include name="edu/wisc/ssec/mcidas/**/*"/>
   	<include name="visad/*"/>
   	<include name="visad/bom/*"/>
   	<include name="visad/browser/*"/>
@@ -91,151 +98,132 @@ $Id: build.xml,v 1.6 2007-01-25 15:57:34 brucef Exp $
   	<include name="visad/meteorology/*"/>
   	<include name="visad/install/*"/>
   </patternset>
+  
+  <patternset id="visad.examples.package">
+    <include name="visad/examples/*"/>
+  </patternset>
 
-  <patternset id="HTTPClient.source">
+  <patternset id="HTTPClient.package">
     <include name="HTTPClient/*"/>
   </patternset>
   
-  <patternset id="ucar.source">
+  <patternset id="ucar.package">
 		<include name="ucar/multiarray/*"/>
 		<include name="ucar/util/*"/>
 		<include name="ucar/netcdf/*"/>
 		<include name="ucar/tests/*"/>  
   </patternset>
 
-  <patternset id="dods.source">
+  <patternset id="dods.package">
 		<include name="dods/dap/*"/>
 		<include name="dods/dap/parser/*"/>
 		<include name="dods/dap/Server/*"/>
 		<include name="dods/util/*"/>    
   </patternset>
 
-  <patternset id="gnu.source">
+  <patternset id="gnu.package">
 		<include name="gnu/regexp/*"/>    
   </patternset>
 
-  <patternset id="loci.source">
+  <patternset id="loci.package">
 		<include name="loci/formats/*"/>
 	</patternset>
 	
-	<patternset id="nom.source">
+	<patternset id="nom.package">
 		<include name="nom/tam/fits/*"/>
 		<include name="nom/tam/util/*"/>
 		<include name="nom/tam/test/*"/>	  
 	</patternset>    
 
-  <patternset id="edu.source">
+  <patternset id="edu.package">
 		<include name="edu/wisc/ssec/mcidas/*"/>
 		<include name="edu/wisc/ssec/mcidas/adde/*"/>    
   </patternset>
 
-  <patternset id="ncsa.source">
+  <patternset id="ncsa.package">
 		<include name="ncsa/hdf/hdf5lib/exceptions/*"/>
 		<include name="ncsa/hdf/hdf5lib/*"/>
 	</patternset>
 
-  <patternset id="doc.packages">
-    <include name="visad"/>
-    <include name="visad/cluster"/>
-    <include name="visad/collab"/>
-    <include name="visad/java3d"/>
-    <include name="visad/java2d"/>
-    <include name="visad/python"/>
-    <include name="visad/browser"/>
-    <include name="visad/util"/>
-    <include name="HTTPClient"/>
-    <include name="ucar/multiarray"/>
-    <include name="ucar/util"/>
-    <include name="ucar/netcdf"/>
-    <include name="ucar/tests"/>
-    <include name="dods/dap"/>
-    <include name="dods/dap/parser"/>
-    <include name="dods/dap/Server"/>
-    <include name="dods/util"/>
-    <include name="gnu/regexp"/>
-    <include name="visad/data"/>
-    <include name="visad/data/in"/>
-    <include name="visad/data/dods"/>
-    <include name="visad/data/units"/>
-    <include name="visad/data/netcdf/units"/>
-    <include name="visad/data/netcdf/in"/>
-    <include name="visad/data/netcdf/out"/>
-    <include name="visad/data/netcdf"/>
-    <include name="loci/formats"/>
-    <include name="nom/tam/fits"/>
-    <include name="nom/tam/util"/>
-    <include name="nom/tam/test"/>
-    <include name="visad/data/fits"/>
-    <include name="visad/data/vis5d"/>
-    <include name="edu/wisc/ssec/mcidas"/>
-    <include name="edu/wisc/ssec/mcidas/adde"/>
-    <include name="visad/data/mcidas"/>
-    <include name="visad/data/avi"/>
-    <include name="visad/data/bio"/>
-    <include name="visad/data/biorad"/>
-    <include name="visad/data/ij"/>
-    <include name="visad/data/jai"/>
-    <include name="visad/data/qt"/>
-    <include name="visad/data/gif"/>
-    <include name="visad/data/gis"/>
-    <include name="visad/data/text"/>
-    <include name="visad/data/tiff"/>
-    <include name="visad/data/visad"/>
-    <include name="visad/data/visad/object"/>
-    <include name="visad/data/hdfeos/hdfeosc"/>
-    <include name="visad/data/hdfeos"/>
-    <include name="ncsa/hdf/hdf5lib/exceptions"/>
-    <include name="ncsa/hdf/hdf5lib"/>
-    <include name="visad/data/hdf5/hdf5objects"/>
-    <include name="visad/data/hdf5"/>
-    <include name="visad/matrix"/>
-    <include name="visad/math"/>
-    <include name="visad/formula"/>
-    <include name="visad/ss"/>
-    <include name="visad/jmet"/>
-    <include name="visad/paoloa"/>
-    <include name="visad/paoloa/spline"/>
-    <include name="visad/aune"/>
-    <include name="visad/benjamin"/>
-    <include name="visad/rabin"/>
-    <include name="visad/bom"/>
-    <include name="visad/aeri"/>
-    <include name="visad/data/amanda"/>
-    <include name="visad/georef"/>
-    <include name="visad/meteorology"/>
-    <include name="visad/install"/>
-  </patternset>
-
-	<!-- files to include in the distribution jar file -->
-	<patternset id="jar.include">
+	<!-- Non-java files to include in the distribution jar -->
+	<patternset id="dist.nonjava.includes">
     <include name="visad/util/*.jhf" />
     <include name="visad/ss/*.gif" />
     <include name="loci/formats/readers.txt"/>
     <include name="loci/formats/writers.txt"/>
 		<include name="DATE" />
-		<include name="HTTPClient/**/*.class"/>
-		<include name="visad/**/*.class"/>
-		<include name="ucar/**/*.class"/>
-		<include name="dods/**/*.class"/>
-		<include name="gnu/**/*.class"/>
-		<include name="loci/**/*.class"/>
-		<include name="nom/**/*.class"/>
-		<include name="ncsa/**/*.class"/>
-		<include name="edu/**/*.class"/>
 	</patternset>
 
-	<!-- files to include in the source jar file -->
-	<patternset id="jar.src.include">
-		<include name="DATE" />
-		<include name="HTTPClient/**/*.java"/>
-		<include name="visad/**/*.java"/>
-		<include name="ucar/**/*.java"/>
-		<include name="dods/**/*.java"/>
-		<include name="gnu/**/*.java"/>
-		<include name="loci/**/*.java"/>
-		<include name="nom/**/*.java"/>
-		<include name="ncsa/**/*.java"/>
-		<include name="edu/**/*.java"/>
+	<!-- Non-java files to include in the source jar -->
+	<patternset id="src.nonjava.includes">
+	  <include name="visad/build.xml"/>
+	  <include name="visad/README"/>
+    <include name="visad/DEDICATION"/>
+    <include name="visad/NOTICE"/>
+    <include name="visad/LICENSE"/>
+    <include name="visad/DATE"/>
+    <include name="visad/Makefile"/>
+    <include name="visad/Makefile.WinNT"/>
+    <include name="visad/README.nexusrmi"/>
+    <include name="visad/rmic_script"/>
+    <include name="visad/VisAD.Manifest"/>
+    <include name="visad/examples/display_test.c"/>
+    <include name="visad/python/*.py"/>
+    <include name="visad/python/README.python"/>
+    <include name="visad/browser/*.html"/>
+    <include name="visad/browser/README.browser"/>
+    <include name="visad/util/*.jhf"/>
+    <include name="visad/ss/*.gif"/>
+    <include name="visad/ss/README.ss"/>
+    <include name="visad/data/units/*.jj"/>
+    <include name="visad/data/in/package.html"/>
+    <include name="visad/data/dods/package.html"/>
+    <include name="HTTPClient/0*"/>
+    <include name="HTTPClient/*.html"/>
+    <include name="ucar/COPYRIGHT"/>
+    <include name="ucar/VERSION"/>
+    <include name="ucar/tests/test.nc"/>
+    <include name="ucar/tests/test.out"/>
+    <include name="visad/data/hdfeos/hdfeosc/*.c"/>
+    <include name="visad/data/hdfeos/hdfeosc/*.h"/>
+    <include name="visad/data/hdfeos/hdfeosc/Makefile"/>
+    <include name="visad/data/mcidas/README.mcidas"/>
+    <include name="visad/data/text/example1.txt"/>
+    <include name="visad/data/text/example2.csv"/>
+    <include name="visad/data/text/example3.txt"/>
+    <include name="visad/data/text/README.text"/>
+    <include name="visad/paoloa/README.paoloa"/>
+    <include name="visad/paoloa/Makefile"/>
+    <include name="visad/paoloa/*.f"/>
+    <include name="visad/paoloa/*.c"/>
+    <include name="visad/paoloa/*.h"/>
+    <include name="visad/paoloa/spline/Makefile"/>
+    <include name="visad/paoloa/spline/*.f"/>
+    <include name="visad/paoloa/spline/*.c"/>
+    <include name="visad/paoloa/spline/*.h"/>
+    <include name="visad/aune/README.aune"/>
+    <include name="visad/aune/Makefile"/>
+    <include name="visad/aune/shsize.fcm"/>
+    <include name="visad/aune/*.f"/>
+    <include name="visad/aune/*.c"/>
+    <include name="visad/aune/*.h"/>
+    <include name="visad/benjamin/Makefile"/>
+    <include name="visad/benjamin/*.f"/>
+    <include name="visad/benjamin/*.c"/>
+    <include name="visad/benjamin/*.h"/>
+    <include name="visad/benjamin/switch.inp"/>
+    <include name="visad/benjamin/*.table"/>
+    <include name="visad/install/install_visad"/>
+    <include name="visad/install/README"/>
+    <include name="visad/install/README.html"/>
+    <include name="visad/Gridded1D.txt"/>
+    <include name="visad/Gridded2D.txt"/>
+    <include name="visad/Gridded3D.txt"/>
+		<include name="visad/data/gif/sseclogo.gif"/>
+		<include name="visad/data/hdf5/COPYING"/>
+  	<include name="visad/data/hdfeos/README.hdfeos"/>
+  	<include name="visad/java3d/*.c"/>
+  	<include name="visad/java3d/Makefile"/>
 	</patternset>
 
 	<!-- filenames -->
@@ -313,7 +301,7 @@ visad Xmx: ${max.mem}
            target="${target.ver}"
            debug="${debug.flag}"
            deprecation="${deprecation.flag}">
-			<patternset refid="dods.source"/>
+			<patternset refid="dods.package"/>
 			<classpath refid="project.classpath"/>
 		</javac>
 	</target>
@@ -330,7 +318,7 @@ visad Xmx: ${max.mem}
            debug="${debug.flag}"
            deprecation="${deprecation.flag}">
 			<classpath refid="project.classpath"/>
-			<patternset refid="loci.source"/>
+			<patternset refid="loci.package"/>
 		</javac>
 	</target>
 
@@ -347,7 +335,7 @@ visad Xmx: ${max.mem}
            debug="${debug.flag}"
            deprecation="${deprecation.flag}">
 			<classpath refid="project.classpath"/>
-			<patternset refid="HTTPClient.source"/>
+			<patternset refid="HTTPClient.package"/>
 		</javac>
 	</target>
 
@@ -379,7 +367,7 @@ visad Xmx: ${max.mem}
            target="${target.ver}"
            debug="${debug.flag}"
            deprecation="${deprecation.flag}">
-			<patternset refid="gnu.source"/>
+			<patternset refid="gnu.package"/>
 			<classpath refid="project.classpath"/>
 		</javac>
 	</target>
@@ -397,7 +385,7 @@ visad Xmx: ${max.mem}
            target="${target.ver}"
            debug="${debug.flag}"
            deprecation="${deprecation.flag}">
-      <patternset refid="ncsa.source"/>
+      <patternset refid="ncsa.package"/>
 			<classpath refid="project.classpath"/>
 		</javac>
 	</target>
@@ -416,7 +404,7 @@ visad Xmx: ${max.mem}
            debug="${debug.flag}"
            deprecation="${deprecation.flag}">
 			<classpath refid="project.classpath"/>
-			<patternset refid="nom.source"/>
+			<patternset refid="nom.package"/>
 		</javac>
 	</target>
 
@@ -434,7 +422,7 @@ visad Xmx: ${max.mem}
            debug="${debug.flag}"
            deprecation="${deprecation.flag}">
 			<classpath refid="project.classpath"/>
-			<patternset refid="ucar.source"/>
+			<patternset refid="ucar.package"/>
 		</javac>
 
 		<rmic base="${basedir}" verify="true">
@@ -458,7 +446,7 @@ visad Xmx: ${max.mem}
            debug="${debug.flag}"
            deprecation="${deprecation.flag}">
 			<classpath refid="project.classpath"/>
-			<patternset refid="edu.source"/>
+			<patternset refid="edu.package"/>
 		</javac>
 	</target>
 
@@ -510,7 +498,7 @@ visad Xmx: ${max.mem}
            memoryMaximumSize="${max.mem}"
            fork="true">
 			<classpath refid="project.classpath"/>
-			<patternset refid="visad.source"/>
+			<patternset refid="visad.package"/>
 		</javac>
 
 		<!-- generate RMI stubs -->
@@ -533,15 +521,42 @@ visad Xmx: ${max.mem}
 		</tstamp>
 		<echo message="${date.value}" file="${basedir}/${date.file}"/>
 
+    <!-- non-java files to include in jar -->
+    <fileset dir="${basedir}" id="dist.nonjava.set">
+      <patternset refid="dist.nonjava.includes"/>
+    </fileset>
+    <pathconvert property="dist.nonjava.includes" pathsep=" " refid="dist.nonjava.set"> 
+      <map from="${basedir}/" to=""/> 
+    </pathconvert> 
+      
+    <!-- java class files to include in jar -->
+    <fileset dir="${basedir}" id="dist.java.set">
+      <patternset refid="visad.package"/>
+      <patternset refid="HTTPClient.package"/>
+      <patternset refid="dods.package"/>
+      <patternset refid="loci.package"/>
+      <patternset refid="gnu.package"/>
+      <patternset refid="nom.package"/>
+      <patternset refid="ucar.package"/>
+      <patternset refid="edu.package"/>
+      <patternset refid="ncsa.package"/>
+      <filename name="**/*.class"/>
+    </fileset>
+    <pathconvert property="dist.java.includes" pathsep=" " refid="dist.java.set">
+      <map from="${basedir}/" to=""/>
+    </pathconvert>
+
+    <!-- <echo>INCLUDES: ${java.includes} ${nonjava.includes}</echo> -->
+
 		<!-- jar the class files -->
 		<delete file="${visad.jarfile}"/>
-    <jar destfile="${visad.jarfile}" filesonly="true">
+    <jar destfile="${visad.jarfile}" 
+         basedir="${basedir}" 
+         includes="${dist.java.includes} ${dist.nonjava.includes}" 
+         filesonly="true">
       <manifest>
         <attribute name="Main-Class" value="visad.ss.SpreadSheet"/>
       </manifest>
-      <fileset dir="${basedir}">
-        <patternset refid="jar.include"/>
-      </fileset>
     </jar>
 	</target>
 
@@ -557,12 +572,41 @@ visad Xmx: ${max.mem}
 		</tstamp>
 		<echo message="${date.value}" file="${basedir}/${date.file}"/>
 
+    <!-- non-java files to include in jar -->
+    <fileset dir="${basedir}" id="src.nonjava.set">
+      <patternset refid="src.nonjava.includes"/>
+    </fileset>
+    <pathconvert property="src.nonjava.includes" pathsep=" " refid="src.nonjava.set"> 
+      <map from="${basedir}/" to=""/> 
+    </pathconvert> 
+      
+    <!-- java class files to include in jar -->
+    <fileset dir="${basedir}" id="src.java.set">
+      <patternset refid="visad.package"/>
+      <patternset refid="HTTPClient.package"/>
+      <patternset refid="dods.package"/>
+      <patternset refid="loci.package"/>
+      <patternset refid="gnu.package"/>
+      <patternset refid="nom.package"/>
+      <patternset refid="ucar.package"/>
+      <patternset refid="edu.package"/>
+      <patternset refid="ncsa.package"/>
+      <patternset refid="visad.examples.package"/>
+      <filename name="**/*.java"/>
+    </fileset>
+    <pathconvert property="src.java.includes" pathsep=" " refid="src.java.set">
+      <map from="${basedir}/" to=""/>
+    </pathconvert>
+       
+    <!-- <echo>INCLUDES: ${nonjava.includes}</echo> -->
+       
 		<!-- jar the class files -->
 		<delete file="${visad.src.jarfile}"/>
-    <jar destfile="${visad.src.jarfile}" filesonly="true">
-      <fileset dir="${basedir}">
-        <patternset refid="jar.src.include"/>
-      </fileset>
+    <jar destfile="${visad.src.jarfile}" 
+         basedir="${basedir}" 
+         filesonly="true"
+         includes="${src.nonjava.includes} ${src.java.includes}">
+         
     </jar>
 	</target>
 
@@ -589,6 +633,23 @@ visad Xmx: ${max.mem}
 
 
 	<target name="javadoc" depends="init">
+      
+    <fileset dir="${basedir}" id="java.set">
+      <patternset refid="visad.package"/>
+      <patternset refid="HTTPClient.package"/>
+      <patternset refid="dods.package"/>
+      <patternset refid="loci.package"/>
+      <patternset refid="gnu.package"/>
+      <patternset refid="nom.package"/>
+      <patternset refid="ucar.package"/>
+      <patternset refid="edu.package"/>
+      <patternset refid="ncsa.package"/>
+      <filename name="**/*.java"/>
+    </fileset>
+    
+    <pathconvert property="javadoc.includes" pathsep="," refid="java.set">
+      <map from="${basedir}/" to=""/>
+    </pathconvert>
 	  
 		<javadoc destdir="${doc.dir}" 
       access="private" 
@@ -603,11 +664,8 @@ visad Xmx: ${max.mem}
       nodeprecated="false" 
       sourcepath="${basedir}" 
       breakiterator="yes"
-      doctitle="VisAD Documentation">
-
-			<packageset dir="${basedir}">
-			  <patternset refid="doc.packages"/>
-			</packageset>
+      doctitle="VisAD Documentation"
+      sourcefiles="${javadoc.includes}">
 
 			<link href="http://java.sun.com/products/java-media/3D/forDevelopers/J3D_1_3_API/j3dapi" />
 			<link href="http://java.sun.com/j2se/1.4.2/docs/api" />
@@ -622,7 +680,7 @@ visad Xmx: ${max.mem}
 
 
 
-	<target name="all" depends="init, clean, deps, visad, 
+	<target name="all" depends="init, clean, deps, Jama, visad, 
                               jar, javadoc, jar.src, jar.examples, jar.docs"/>
 
 
@@ -648,8 +706,8 @@ visad Xmx: ${max.mem}
     <delete failonerror="false">
       <fileset dir="${loci.dir}" includes="**/*.class"/>
   		<fileset dir="${HTTPClient.dir}" includes="**/*.class"/>
-  		<fileset dir="${Jama.dir}" includes="**/*.class"/>
   		<fileset dir="${dods.dir}" includes="**/*.class"/>
+  		<fileset dir="${Jama.dir}" includes="**/*.class"/>
   		<fileset dir="${edu.dir}" includes="**/*.class"/>
   		<fileset dir="${gnu.dir}" includes="**/*.class"/>
   		<fileset dir="${hdf5.dir}" includes="**/*.class"/>
