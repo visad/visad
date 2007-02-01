@@ -100,16 +100,18 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
     boolean isTerminal = adaptedShadowType.getIsTerminal();
     
     ScalarMap timeMap = null; // used in the animation case to get control
+    DataDisplayLink link = renderer.getLink();
+    Vector scalarMaps = link.getSelectedMapVector();
     
-    // only determine if it's an animation if non-terminal
-    if (!isTerminal) {
+    // only determine if it's an animation if non-terminal. isTerminal will
+    // only be determined if there are scalar maps - defaults to false
+    if (!isTerminal && !scalarMaps.isEmpty()) {
       // determine if it's an animation
-      DataDisplayLink link = renderer.getLink();
       MathType mtype = data.getType();
       if (mtype instanceof FunctionType) {
+        int ani_map_idx = 0;
         FunctionType function = (FunctionType) mtype;
         RealTupleType functionD = function.getDomain();
-        Vector scalarMaps = link.getSelectedMapVector();
         for (int kk = 0; kk < scalarMaps.size(); kk++) {
           ScalarMap scalarMap = (ScalarMap) scalarMaps.elementAt(kk);
           String scalar_name = scalarMap.getScalarName();
@@ -117,11 +119,12 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
             if (((scalarMap.getDisplayScalar()).equals(Display.Animation))
                 && (functionD.getDimension() == 1)) {
               isAnimation1d = true;
+              ani_map_idx = kk;
             }
           }
         }
         // animation domain
-        timeMap = (ScalarMap) scalarMaps.elementAt(0);
+        timeMap = (ScalarMap) scalarMaps.elementAt(ani_map_idx);
       }
     }
     // animation logic
