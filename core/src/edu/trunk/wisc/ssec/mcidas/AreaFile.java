@@ -4,7 +4,7 @@
 
 /*
 This source file is part of the edu.wisc.ssec.mcidas package and is
-Copyright (C) 1998 - 2007 by Tom Whittaker, Tommy Jasmin, Tom Rink,
+Copyright (C) 1998 - 2006 by Tom Whittaker, Tommy Jasmin, Tom Rink,
 Don Murray, James Kelly, Bill Hibbard, Dave Glowacki, Curtis Rueden
 and others.
  
@@ -27,15 +27,19 @@ MA 02111-1307, USA
 package edu.wisc.ssec.mcidas;
 
 import java.applet.Applet;
-import java.io.*;
-import java.lang.*;
+import java.awt.Frame;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.awt.event.*;
-import java.awt.Frame;
+
 import edu.wisc.ssec.mcidas.adde.GetAreaGUI;
-import java.util.Properties;
 
 /** 
  * AreaFile interface with McIDAS 'area' file format image data.
@@ -176,11 +180,16 @@ public class AreaFile implements java.io.Serializable {
   private int status=0;
   private int navLoc, calLoc, auxLoc, datLoc;
   private int navbytes, calbytes, auxbytes;
-  private int linePrefixLength, lineDataLength, lineLength, numberLines;
+  // original values
+  private int lineDataLen, 
+  						lineLength,
+  						origNumLines,
+  						origNumElements,
+  						origNumBands;
+  private int linePrefixLength;
   private long position;
   private int skipByteCount;
   private long newPosition;
-  private int numBands;
   int[] dir;
   int[] nav = null;
   int[] cal = null;
@@ -189,6 +198,13 @@ public class AreaFile implements java.io.Serializable {
   private AreaDirectory areaDirectory;
   private String imageSource = null;
   private AREAnav areaNav;
+  
+  class Subset {
+    int lineNumber, numLines, lineMag, eleNumber, numEles,
+    eleMag, bandNumber;
+  }
+  
+  private Subset subset = null;
   
   /**
    * creates an AreaFile object that allows reading
@@ -204,8 +220,8 @@ public class AreaFile implements java.io.Serializable {
   public AreaFile(String source) throws AreaFileException {
     
     imageSource = source;
-    if (imageSource.startsWith("adde://") && (
-      imageSource.endsWith("image?") || imageSource.endsWith("imagedata?") )) {
+    if (imageSource.startsWith("adde://") && 
+    	 (imageSource.endsWith("image?") || imageSource.endsWith("imagedata?") )) {
 
       GetAreaGUI gag = new GetAreaGUI((Frame)null, true, "Get data", false, true);
       gag.addActionListener(new ActionListener() {
@@ -298,12 +314,97 @@ public class AreaFile implements java.io.Serializable {
     readMetaData();
   }
 
-  /** 
-   *  Read the metadata for an area file (directory, nav,  and cal). 
-   *
-   * @exception AreaFileException if there is a problem
-   * reading any portion of the metadata.
-   *
+  /**
+   * Create an <code>AreaFile</code> which allows reading of a subset of a 
+   * McIDAS 'area' file format image data from a local file.
+   *  
+   * @param source Path to local file.
+   * @param lineNumber Starting line number.
+   * @param numLines Total number of lines
+   * @param lineMag Line magnification. Valid values are <= 1. -1, 0, and 1 are
+   *                all all taken to be 1.
+   * @param eleNumber Starting element number.
+   * @param numEles Total number of elements.
+   * @param eleMag Element magnification. Valid values are <= 1. -1, 0, and 1
+   *               are all all taken to be 1.
+   * @param bandNumber 1-based band number.
+   * @throws AreaFileException if file cannot be opened
+   */
+  public AreaFile(String source, int lineNumber, int numLines, int lineMag,
+      int eleNumber, int numEles, int eleMag, int bandNumber)
+      throws AreaFileException {
+
+    this(source);
+
+    if (eleMag == 0) eleMag = 1;
+    if (lineMag == 0) eleMag = 1;
+    
+    if (lineNumber + numLines > origNumLines
+        || eleNumber + numEles > origNumElements || bandNumber > origNumBands
+        || lineNumber + numLines * Math.abs(lineMag) > origNumLines
+        || eleNumber + numEles * Math.abs(eleMag) > origNumElements) {
+      throw new IllegalArgumentException(
+          "Arguments outside of file line/element counts");
+
+    } else if (lineMag > 1 || eleMag > 1) {
+      throw new IllegalArgumentException(
+          "Magnifications greater that 1 are not currently supported");
+    }
+
+    // save subset data
+    subset = new Subset();
+    subset.lineNumber = lineNumber;
+    subset.numLines = numLines;
+    subset.lineMag = lineMag;
+    subset.eleNumber = eleNumber;
+    subset.numEles = numEles;
+    subset.eleMag = eleMag;
+    subset.bandNumber = bandNumber;
+
+    int newDatOffset = lineNumber * lineLength; 
+    newDatOffset += linePrefixLength;
+    newDatOffset += eleNumber * (origNumBands * dir[AD_DATAWIDTH]);
+    newDatOffset += (bandNumber - 1) * dir[AD_DATAWIDTH];
+
+    // reflect subset in directory
+    dir[AD_DATAOFFSET] = newDatOffset;
+    dir[AD_NUMLINES] = numLines;
+    dir[AD_NUMELEMS] = numEles;
+    
+    // if mag is positive devide to get resolution, otherwise mult.
+    if (lineMag < 0) {
+      dir[AD_LINERES] = dir[AD_LINERES] * Math.abs(lineMag);
+    } else {
+      dir[AD_LINERES] = dir[AD_LINERES] / lineMag;;
+    }
+    if (eleMag < 0) {
+      dir[AD_ELEMRES] = dir[AD_ELEMRES] * Math.abs(eleMag);
+    } else {
+      dir[AD_ELEMRES] = dir[AD_ELEMRES] / eleMag;
+    }
+    
+    dir[AD_STLINE] = dir[AD_STLINE] + (lineNumber * dir[AD_LINERES]);
+    dir[AD_STELEM] = dir[AD_STELEM] + (eleNumber * dir[AD_ELEMRES]);
+    dir[AD_NUMBANDS] = 1;
+
+    areaDirectory = new AreaDirectory(dir);
+  }
+  
+  /**
+   * Was this <code>AreaFile</code> created as a subset.
+   * 
+   * @return True if subsetting constructor was used to create this object.
+   */
+  public boolean isSubsetted() {
+    return !(subset == null);
+  }
+
+  /**
+   * Read the metadata for an area file (directory, nav, and cal).
+   * 
+   * @exception AreaFileException
+   *              if there is a problem reading any portion of the metadata.
+   * 
    */
 
   private void readMetaData() throws AreaFileException {
@@ -353,15 +454,16 @@ public class AreaFile implements java.io.Serializable {
     calLoc = dir[AD_CALOFFSET];
     auxLoc = dir[AD_AUXOFFSET];
     datLoc = dir[AD_DATAOFFSET];
-    numBands = dir[AD_NUMBANDS];
+    origNumBands = dir[AD_NUMBANDS];
     linePrefixLength = 
-      dir[AD_DOCLENGTH] + dir[AD_CALLENGTH] + dir[AD_LEVLENGTH];
+    	dir[AD_DOCLENGTH] + dir[AD_CALLENGTH] + dir[AD_LEVLENGTH];
     if (dir[AD_VALCODE] != 0) linePrefixLength = linePrefixLength + 4;
     if (linePrefixLength != dir[AD_PFXSIZE]) 
       throw new AreaFileException("Invalid line prefix length in AREA file.");
-    lineDataLength = numBands * dir[AD_NUMELEMS] * dir[AD_DATAWIDTH];
-    lineLength = linePrefixLength + lineDataLength;
-    numberLines = dir[AD_NUMLINES];
+    lineDataLen = origNumBands * dir[AD_NUMELEMS] * dir[AD_DATAWIDTH];
+    lineLength = linePrefixLength + lineDataLen;
+    origNumLines = dir[AD_NUMLINES];
+    origNumElements = dir[AD_NUMELEMS];
 
     if (datLoc > 0 && datLoc != McIDASUtil.MCMISSING) {
       navbytes = datLoc - navLoc;
@@ -587,16 +689,31 @@ public class AreaFile implements java.io.Serializable {
   }
 
   /**
-   * Read the AREA file and return the entire contents
+   * Read the AREA file and return the contents.
    *
-   * @return int array[band][lines][elements]
+   * @return int array[band][lines][elements] - If the <code>AreaFile</code>
+   * was created as a subset only the band and subset indicated are returned, 
+   * otherwise all bands are returned.
    *
    * @exception AreaFileException if there is a problem
    *
    */
 
   public int[][][] getData() throws AreaFileException {
-    if (!hasReadData) readData();
+    if (!hasReadData) {
+    	if (subset == null)
+    		readData();
+    	else
+    		readData(
+    				subset.lineNumber,
+    				subset.numLines,
+    				subset.lineMag,
+    				subset.eleNumber,
+    				subset.numEles,
+    				subset.eleMag,
+    				subset.bandNumber
+    		);
+    }
     return data;
   }
 
@@ -613,12 +730,12 @@ public class AreaFile implements java.io.Serializable {
    * @param numEles    the number of elements to return for each line
    *
    * @return int array[lines][elements] with data values.
-   *
+   * @deprecated Use the subsetting constructor. 
    * @exception AreaFileException if the is a problem reading the file
    */
   public int[][] getData(int lineNumber, int eleNumber, int
          numLines, int numEles) throws AreaFileException {
-   return getData(lineNumber, eleNumber, numLines, numEles, 1);
+    return getData(lineNumber, eleNumber, numLines, numEles, 1);
   }
 
 
@@ -636,13 +753,12 @@ public class AreaFile implements java.io.Serializable {
    * @param bandNumber the spectral band to return
    *
    * @return int array[lines][elements] with data values.
-   *
+   * @deprecated Use the subsetting constructor.
    * @exception AreaFileException if the is a problem reading the file
    */
   public int[][] getData(int lineNumber, int eleNumber, int
          numLines, int numEles, int bandNumber) throws AreaFileException {
-
-    // note band numbers are 1-based, and data offsets are 0-based
+        
     if (!hasReadData) readData();
     int[][] subset = new int[numLines][numEles];
     for (int i=0; i<numLines; i++) {
@@ -659,7 +775,111 @@ public class AreaFile implements java.io.Serializable {
     }
     return subset;
   }
+  
+  private int flipShort(short s) {
+  	return (int) ( ((s >> 8) & 0xff) | ((s << 8) & 0xff00) );
+  }
+  
+  private int flipInt(int i) {
+  	return ( (i >>> 24) & 0xff) | ( (i >>> 8) & 0xff00) | 
+    			 ( (i & 0xff) << 24 ) | ( (i & 0xff00) << 8);
+  }
+  
+  /**
+   * Read a single band of subsetted data.
+   */
+  private void readData(
+  		int lineNumber, int numLines, int lineMag,
+	    int eleNumber, int numEles, int eleMag, 
+	    int bandNumber) throws AreaFileException {
 
+		if (!fileok) {
+			throw new AreaFileException("Error reading AreaFile data");
+		}
+
+    // multipliers for line/element skips
+    int lineMagMult = (lineMag >= 1) ? 0 : Math.abs(lineMag) - 1;
+		int eleMagMult = (eleMag >= 1) ? 0 : Math.abs(eleMag) - 1;
+
+		int startLoc = dir[AD_DATAOFFSET];
+		int elementSize = origNumBands * dir[AD_DATAWIDTH];
+		int readElements = eleMagMult == 0 ? numEles : numEles * Math.abs(eleMag);
+
+		// num of lines to skip due to line resolution
+		int lineSkip = lineMagMult * lineLength;
+		// skip to read position on next line
+		int readSkip = (origNumElements - readElements) * elementSize 
+                 + linePrefixLength;
+		
+ 		// number of element to skip due to resolution
+ 		int elementSkip = eleMagMult * elementSize;
+ 		// skip for bands we are not interrested in
+ 		int bandSkip = elementSize - dir[AD_DATAWIDTH];
+ 		
+ 		int nextReadSkip = readSkip + lineSkip;
+ 		int nextElementSkip = bandSkip + elementSkip;
+
+		data = new int[1][numLines][numEles];
+		short shdata;
+		int intdata;
+		
+		try {
+			af.skipBytes(startLoc);
+		} catch (IOException e) {
+		  throw new AreaFileException("Error skipping to start of data");
+		}
+
+		String calType = areaDirectory.getCalibrationType();
+		boolean isBrit = calType.equalsIgnoreCase("BRIT"); 
+    
+		for (int i = 0; i < numLines; i++) {
+			for (int j = 0; j < numEles; j++) {
+
+				try {
+
+					if (dir[AD_DATAWIDTH] == 1) {
+						data[0][i][j] = (int) af.readByte();
+						if (data[0][i][j] < 0 && isBrit)
+							data[0][i][j] += 256; 
+
+					} else if (dir[AD_DATAWIDTH] == 2) {
+						shdata = af.readShort();
+						if (flipwords) {
+							data[0][i][j] = flipShort(shdata);
+						} else {
+							data[0][i][j] = (int) shdata;
+						}
+
+					} else if (dir[AD_DATAWIDTH] == 4) {
+						intdata = af.readInt();
+						if (flipwords) {
+							data[0][i][j] = flipInt(intdata);
+						} else {
+							data[0][i][j] = intdata;
+						}
+					}
+
+          af.skipBytes(nextElementSkip);
+
+				} catch (IOException e) {
+				  throw new AreaFileException("Error reading element "+i+" in line "+j);
+				}
+			}
+
+			// done with line, skip to relavent element in next relavent line
+			try {
+				af.skipBytes(nextReadSkip);
+			} catch (IOException e) {
+			  throw new AreaFileException("Error skipping to next line");
+			}
+
+		}
+		hasReadData = true;
+	}
+
+  /**
+   * Read all data including all bands.
+   */
   private void readData() throws AreaFileException {
 
     int i,j,k;
@@ -669,7 +889,7 @@ public class AreaFile implements java.io.Serializable {
       throw new AreaFileException("Error reading AreaFile data");
     }
 
-    data = new int[numBands][numLines][numEles];
+    data = new int[origNumBands][numLines][numEles];
     short shdata;
     int intdata;
     boolean isBrit = 
@@ -678,24 +898,23 @@ public class AreaFile implements java.io.Serializable {
     for (i = 0; i<numLines; i++) {
 
       try {
-        newPosition = (long) (datLoc +
-               linePrefixLength + i*lineLength) ;
+        newPosition = (long) (datLoc + linePrefixLength + i*lineLength) ;
         skipByteCount = (int) (newPosition - position);
         af.skipBytes(skipByteCount);
         position = newPosition;
 
       } catch (IOException e) {
          for (j = 0; j<numEles; j++) {
-           for (k=0; k<numBands; k++) {data[k][i][j] = 0;}
+           for (k=0; k<origNumBands; k++) {data[k][i][j] = 0;}
          }
         break;
       }
 
       for (j = 0; j<numEles; j++) {
 
-        for (k=0; k<numBands; k++) {
+        for (k=0; k<origNumBands; k++) {
 
-          if (j > lineDataLength) {
+          if (j > lineDataLen) {
             data[k][i][j] = 0;
           } else {
 
@@ -710,8 +929,7 @@ public class AreaFile implements java.io.Serializable {
               if (dir[AD_DATAWIDTH] == 2) {
                 shdata = af.readShort();
                 if (flipwords) {
-                  data[k][i][j] = (int) ( ((shdata >> 8) & 0xff) | 
-                                          ((shdata << 8) & 0xff00) );
+                  data[k][i][j] = flipShort(shdata);
                 } else {
                   data[k][i][j] = (int) shdata;
                 }
@@ -721,10 +939,7 @@ public class AreaFile implements java.io.Serializable {
               if (dir[AD_DATAWIDTH] == 4) {
                 intdata = af.readInt();
                 if (flipwords) {
-                  data[k][i][j] = ( (intdata >>> 24) & 0xff) | 
-                                  ( (intdata >>> 8) & 0xff00) | 
-                                  ( (intdata & 0xff) << 24 )  | 
-                                  ( (intdata & 0xff00) << 8);
+                  data[k][i][j] = flipInt(intdata);
                 } else {
                   data[k][i][j] = intdata;
                 }
@@ -784,6 +999,47 @@ public class AreaFile implements java.io.Serializable {
     return;
   }
 
-
+  public static void main(String[] args) throws Exception{
+    System.err.println("USAGE: AreaFile <file> <start> <number> <res> <band>");
+    System.err.println("Note: start, number, and res are used for lines and elements.");
+    
+    AreaFile af = new AreaFile(args[0]);
+    
+    int s,n,r,b;
+    s = Integer.parseInt(args[1]);
+    n = Integer.parseInt(args[2]);
+    r = Integer.parseInt(args[3]);
+    b = Integer.parseInt(args[4]);
+    
+    AreaFile sf = new AreaFile(args[0], s, n, r, s, n, r, b);
+    
+    System.err.println("Directory: "+af.getAreaDirectory());
+    System.err.println("Subsetted Directory: "+sf.getAreaDirectory());
+    
+    System.err.println("start: "+s);
+    System.err.println("number: "+n);
+    System.err.println("band: "+b);
+    
+    int[][][] data = sf.getData();
+    System.err.println("SUBSETTED DATA ["+data.length+"]["+data[0].length+"]["+data[0][0].length+"] ================================");
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j < n; j++) {
+        System.err.print("" + data[0][i][j] + " ");
+      }
+      System.err.println();
+    }
+    data = af.getData();
+    
+    int res = (r >= 1) ? 1 : Math.abs(r);
+    System.err.println("res: "+res);
+    System.err.println("ACTUAL DATA ["+data.length+"]["+data[0].length+"]["+data[0][0].length+"] ================================");
+    for (int i = s; i < s + (n*res); i+=res) {
+      for (int j = s; j < s + (n*res); j+=res) {
+        System.err.print("" + data[b-1][i][j] + " ");
+      }
+      System.err.println();
+    }
+    System.err.flush();
+  }
 
 }
