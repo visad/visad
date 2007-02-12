@@ -1232,11 +1232,11 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
 }
 */
           if (ii == 6) { //- add last two pairs
-            ctrSet.add(vx, vy, numv-4, numv-3, low+il, ic, ir);
-            ctrSet.add(vx, vy, numv-2, numv-1, low+il, ic, ir);
+            ctrSet.add(vx, vy, numv-4, numv-3, low+il, ir, ic);
+            ctrSet.add(vx, vy, numv-2, numv-1, low+il, ir, ic);
           }
           else {
-            ctrSet.add(vx, vy, numv-2, numv-1, low+il, ic, ir);
+            ctrSet.add(vx, vy, numv-2, numv-1, low+il, ir, ic);
           }
 
         }  // for il       -- NOTE:  gg incremented in for statement
@@ -2944,7 +2944,7 @@ class ContourQuadSet {
      nx = 1;
      ny = 1;
    }
- 
+
    npy = (int) (nr/ny);
    npx = (int) (nc/nx);
                                                                                                                                       
@@ -2960,12 +2960,12 @@ class ContourQuadSet {
     }
   }
                                                                                                                                       
-  public void add(int idx0, int gy, int gx) {
-    int ix = (int) (gx/npx);
-    int iy = (int) (gy/npy);
-    if (ix == nx) ix -= 1;
-    if (iy == ny) iy -= 1;
-    qarray[iy][ix].add(idx0, gy, gx);
+  public void add(int idx0, int ir, int ic) {
+    int ix = (int) (ic/npx);
+    int iy = (int) (ir/npy);
+    if (ix >= nx) ix = nx-1;
+    if (iy >= ny) iy = ny-1;
+    qarray[iy][ix].add(idx0, ir, ic);
   }
 
   public void get(float[] vx, float[] vy) {
@@ -2985,12 +2985,12 @@ class ContourQuadSet {
 
   public void getArrays(float[] vx, float[] vy, byte[][] auxLevels, float[][] vx1, float[][] vy1, float[][] vz1, byte[][] colors, Gridded3DSet spatial_set)
          throws VisADException {
-                                                                                                                                      
+
     float[][] arrays = new float[2][2*numv];
     colors[0] = new byte[2*numv];
     colors[1] = new byte[2*numv];
     colors[2] = new byte[2*numv];
-                                                                                                                                      
+
     int cnt=0;
     for (int j=0; j<ny; j++) {
       for (int i=0; i<nx; i++) {
@@ -3094,9 +3094,9 @@ class ContourQuad {
                                                                                                                                       
   public int[][][] getWorkArrays(int leny, int lenx) {
     Object key;
-                                                                                                                                      
+
     java.util.Set keySet = qs.subGridMap.keySet();
-                                                                                                                                      
+
     key = null;
     for (java.util.Iterator i = keySet.iterator(); i.hasNext();) {
       CachedArrayDimension obj = (CachedArrayDimension) i.next();
@@ -3105,6 +3105,7 @@ class ContourQuad {
         break;
       }
     }
+
     int[][] subgrid = null;
     int[][] subgrid2 = null;
     int[][] markgrid = null;
@@ -3229,10 +3230,10 @@ class ContourQuad {
         ix_t = ix_a+udrl[0][k];
         iy_t = iy_a+udrl[1][k];
         if ((iy_t >=0 && iy_t < leny) && (ix_t >=0 && ix_t < lenx)) {
-                                                                                                                                      
+
           idxA = sub_grid[iy_t][ix_t];
           idxA_2 = sub_grid_2[iy_t][ix_t];
-                                                                                                                                      
+
           if (idxA > 0) {
             if (c_strp.addPair(vx, vy, idxA, idxA+1)) {
               sub_grid[iy_t][ix_t] *= -1;
@@ -3257,16 +3258,16 @@ class ContourQuad {
           }
         }
       }
-                                                                                                                                      
+
       //- B
       for (int k=0; k<4; k++) {
         ix_t = ix_b+udrl[0][k];
         iy_t = iy_b+udrl[1][k];
         if ((iy_t >=0 && iy_t < leny) && (ix_t >=0 && ix_t < lenx)) {
-                                                                                                                                      
+
           idxB = sub_grid[iy_t][ix_t];
           idxB_2 = sub_grid_2[iy_t][ix_t];
-                                                                                                                                      
+
           if (idxB > 0) {
             if (c_strp.addPair(vx, vy, idxB, idxB+1)) {
               sub_grid[iy_t][ix_t] *= -1;
@@ -3293,7 +3294,7 @@ class ContourQuad {
       }
     }
     stripCnt = cnt;
-                                                                                                                                      
+
     sub_grid = null;
     sub_grid_2 = null;
     return new ContourStrip[] {c_strp};
@@ -3452,8 +3453,8 @@ class ContourStripSet {
     }
   }
 
-  void add(float[] vx, float[] vy, int idx0, int idx1, int lev_idx, int gx, int gy) {
-    qSet[lev_idx].add(idx0, gy, gx);
+  void add(float[] vx, float[] vy, int idx0, int idx1, int lev_idx, int ir, int ic) {
+    qSet[lev_idx].add(idx0, ir, ic);
   }
 
   void add(float[] vx, float[] vy, int idx0, int idx1, float level) {
