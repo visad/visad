@@ -134,6 +134,14 @@ public class AreaFile implements java.io.Serializable {
   /** AD_DIRSIZE - size in 4 byte words of an image directory block */
   public static final int AD_DIRSIZE    = 64;
 
+  /** Meteosat Second Generation. */
+  public static final int SENSOR_MSG = 51;
+  /** GOES 8 imager. */
+  public static final int SENSER_GOES8_IMGR = 70;
+  /** GOES 12 imager. */
+  public static final int SENSOR_GOES12_IMGR = 78;
+  
+  
   /** VERSION_NUMBER - version number for a valid AREA file (since 1985) */
   public static final int VERSION_NUMBER = 4;
 
@@ -337,7 +345,7 @@ public class AreaFile implements java.io.Serializable {
     this(source);
 
     if (eleMag == 0) eleMag = 1;
-    if (lineMag == 0) eleMag = 1;
+    if (lineMag == 0) lineMag = 1;
     
     if (lineNumber + numLines > origNumLines
         || eleNumber + numEles > origNumElements || bandNumber > origNumBands
@@ -629,7 +637,6 @@ public class AreaFile implements java.io.Serializable {
    * the file start (0,0), and Mag (1,1).
    *
    * @return  AREAnav for this image  (may be null)
-
    */
   public AREAnav getNavigation()
       throws AreaFileException
@@ -701,9 +708,9 @@ public class AreaFile implements java.io.Serializable {
 
   public int[][][] getData() throws AreaFileException {
     if (!hasReadData) {
-    	if (subset == null)
+    	if (subset == null) {
     		readData();
-    	else
+      } else {
     		readData(
     				subset.lineNumber,
     				subset.numLines,
@@ -713,8 +720,75 @@ public class AreaFile implements java.io.Serializable {
     				subset.eleMag,
     				subset.bandNumber
     		);
+      }
     }
     return data;
+  }
+  
+  
+  
+  /**
+   * Read the AREA file and return the contents calibrated according to
+   * <code>type</code>.
+   * 
+   * @param type type of calibration to perform from {@link Calibrator}
+   * 
+   * @return calibrated data[band][lines][elements]
+   * @throws AreaFileException If an error occurs calibrating the data or the
+   * source type in the directory for this instrument is unknown.
+   * @see Calibrator
+   */
+  public float[][][] getData(int type) 
+      throws AreaFileException {
+    
+    int[][][] inData = getData();
+    float[][][] outData = 
+      new float[dir[AD_NUMBANDS]][dir[AD_NUMELEMS]][dir[AD_NUMLINES]];
+    
+    // create the appropriate calibrator
+    Calibrator calibrator = null;
+    try {
+      switch (areaDirectory.getSensorID()) {
+        
+        case SENSOR_MSG:
+          calibrator = new CalibratorMsg(cal);
+          break;
+          
+        default:
+          throw new IllegalArgumentException(
+              "Unable to create calibrator for source type in directory"
+          );
+      }
+    } catch(CalibratorException e) {
+      throw new AreaFileException(e.getMessage());
+    }
+    
+    if (subset == null) {
+      for (int band_idx = 0; band_idx < inData.length; band_idx++) {
+        for (int line = 0; line < inData[0].length; line++) {
+          for (int elem = 0; elem < inData[0][0].length; elem++) {
+            outData[band_idx][line][elem] = calibrator.calibrate(
+                (float) inData[band_idx][line][elem],
+                band_idx + 1, 
+                type
+            );
+          }
+        }
+      }
+      
+    } else {
+      for (int line = 0; line < inData[0].length; line++) {
+        for (int elem = 0; elem < inData[0][0].length; elem++) {
+          outData[0][line][elem] = calibrator.calibrate(
+              (float) inData[0][line][elem],
+              subset.bandNumber,
+              type
+          );
+        }
+      }
+    }
+    
+    return outData;
   }
 
   /**
@@ -730,7 +804,7 @@ public class AreaFile implements java.io.Serializable {
    * @param numEles    the number of elements to return for each line
    *
    * @return int array[lines][elements] with data values.
-   * @deprecated Use the subsetting constructor. 
+   * @deprecated Use the subsetting constructor.
    * @exception AreaFileException if the is a problem reading the file
    */
   public int[][] getData(int lineNumber, int eleNumber, int
@@ -1000,10 +1074,14 @@ public class AreaFile implements java.io.Serializable {
   }
 
   public static void main(String[] args) throws Exception{
-    System.err.println("USAGE: AreaFile <file> <start> <number> <res> <band>");
-    System.err.println("Note: start, number, and res are used for lines and elements.");
+    System.out.println();
+    System.out.println("USAGE: AreaFile <file> <start> <number> <mag> <band> " +
+        "(raw|temp|brit|rad|refl)");
+    System.out.println("Note: start, number, and mag are used for " +
+        "lines and elements.");
+    System.out.println();
     
-    AreaFile af = new AreaFile(args[0]);
+    if (args.length < 6) System.exit(1);
     
     int s,n,r,b;
     s = Integer.parseInt(args[1]);
@@ -1013,33 +1091,41 @@ public class AreaFile implements java.io.Serializable {
     
     AreaFile sf = new AreaFile(args[0], s, n, r, s, n, r, b);
     
-    System.err.println("Directory: "+af.getAreaDirectory());
-    System.err.println("Subsetted Directory: "+sf.getAreaDirectory());
+    AreaDirectory dir = sf.getAreaDirectory();
+    System.out.println("Directory: " + dir);
+    System.out.println("Source Type: " + dir.getSourceType());
+    System.out.println("Sensor Type: " + dir.getSensorType());
+    System.out.println("Sensor ID: " + dir.getSensorID());
+    System.out.println("Cal Type: " + dir.getCalibrationType());
     
-    System.err.println("start: "+s);
-    System.err.println("number: "+n);
-    System.err.println("band: "+b);
+    System.out.println("start: "+s);
+    System.out.println("number: "+n);
+    System.out.println("band: "+b);
+    System.out.println("cal type: " + args[5]);
+    System.out.println();
     
-    int[][][] data = sf.getData();
-    System.err.println("SUBSETTED DATA ["+data.length+"]["+data[0].length+"]["+data[0][0].length+"] ================================");
+    int cal_type = Calibrator.CAL_RAW;
+    if (args[5].equals("temp")) cal_type = Calibrator.CAL_TEMP;
+    if (args[5].equals("rad")) cal_type = Calibrator.CAL_RAD;
+    if (args[5].equals("brit")) cal_type = Calibrator.CAL_BRIT;
+    if (args[5].equals("refl")) cal_type = Calibrator.CAL_ALB;
+    
+    long time = System.currentTimeMillis();
+    float[][][] data = sf.getData(cal_type);
+    System.out.println("" + (System.currentTimeMillis() - time)
+        + " ms to retrieve data");
+    System.out.println();
+    System.out.println("SUBSETTED DATA ["+data.length+"]["+data[0].length+"]["
+        +data[0][0].length+"]");
+
+    // write data to std err so it may be piped to file w/o all the
+    // other garbage
     for (int i = 0; i < n; i++) {
       for (int j = 0; j < n; j++) {
         System.err.print("" + data[0][i][j] + " ");
       }
       System.err.println();
     }
-    data = af.getData();
-    
-    int res = (r >= 1) ? 1 : Math.abs(r);
-    System.err.println("res: "+res);
-    System.err.println("ACTUAL DATA ["+data.length+"]["+data[0].length+"]["+data[0][0].length+"] ================================");
-    for (int i = s; i < s + (n*res); i+=res) {
-      for (int j = s; j < s + (n*res); j+=res) {
-        System.err.print("" + data[b-1][i][j] + " ");
-      }
-      System.err.println();
-    }
-    System.err.flush();
   }
 
 }

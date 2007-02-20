@@ -42,7 +42,7 @@ package edu.wisc.ssec.mcidas;
  * 0.2312809974E-01-0.1179533087E+01</i>
  * </p>
  * @author Bruce Flynn, SSEC
- * @version $Id: CalibratorMsg.java,v 1.1 2007-02-19 17:42:08 brucef Exp $
+ * @version $Id: CalibratorMsg.java,v 1.2 2007-02-20 00:44:00 brucef Exp $
  */
 public class CalibratorMsg implements Calibrator {
 
@@ -83,7 +83,9 @@ public class CalibratorMsg implements Calibrator {
 
     /** Cal block converted from an int array. */
     private byte[] calBytes;
-    /** Current cal type as set by <code>setCalType</code>. */
+    /** 
+     * Current cal type as set by <code>setCalType</code>
+     */
     private int curCalType = CAL_RAW;
     
     /**
@@ -166,7 +168,6 @@ public class CalibratorMsg implements Calibrator {
         final float inputPixel, 
         final int band, 
         final int calTypeOut) {
-
         float pxl;
 
         switch (curCalType) {
@@ -213,6 +214,10 @@ public class CalibratorMsg implements Calibrator {
         final int band,
         final int calTypeOut) {
 
+    	if (calTypeOut == CAL_RAW) { // no-op
+    		return inputPixel;
+    	}
+    	
         double[] coefs = planckCoefs[band - 1];
 
         double pxl = inputPixel * coefs[GAIN] + coefs[OFFSET];
@@ -291,7 +296,7 @@ public class CalibratorMsg implements Calibrator {
 
                 default:
                     throw new IllegalArgumentException(
-                        "Unknown calibration type: " + calTypeOut
+                        "Unsupported calibration type: " + calTypeOut
                     );
 
             } 
