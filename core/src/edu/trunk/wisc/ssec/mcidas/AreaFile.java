@@ -134,14 +134,6 @@ public class AreaFile implements java.io.Serializable {
   /** AD_DIRSIZE - size in 4 byte words of an image directory block */
   public static final int AD_DIRSIZE    = 64;
 
-  /** Meteosat Second Generation. */
-  public static final int SENSOR_MSG = 51;
-  /** GOES 8 imager. */
-  public static final int SENSER_GOES8_IMGR = 70;
-  /** GOES 12 imager. */
-  public static final int SENSOR_GOES12_IMGR = 78;
-  
-  
   /** VERSION_NUMBER - version number for a valid AREA file (since 1985) */
   public static final int VERSION_NUMBER = 4;
 
@@ -725,8 +717,6 @@ public class AreaFile implements java.io.Serializable {
     return data;
   }
   
-  
-  
   /**
    * Read the AREA file and return the contents calibrated according to
    * <code>type</code>.
@@ -734,35 +724,25 @@ public class AreaFile implements java.io.Serializable {
    * @param type type of calibration to perform from {@link Calibrator}
    * 
    * @return calibrated data[band][lines][elements]
-   * @throws AreaFileException If an error occurs calibrating the data or the
-   * source type in the directory for this instrument is unknown.
+   * @throws CalibratorException If an error occurs calibrating the data or the
+   * sensor id in the directory is unknown.
+   * @throws AreaFileException on error reading data.
    * @see Calibrator
    */
   public float[][][] getData(int type) 
-      throws AreaFileException {
+      throws CalibratorException, AreaFileException {
     
     int[][][] inData = getData();
     float[][][] outData = 
       new float[dir[AD_NUMBANDS]][dir[AD_NUMELEMS]][dir[AD_NUMLINES]];
     
     // create the appropriate calibrator
-    Calibrator calibrator = null;
-    try {
-      switch (areaDirectory.getSensorID()) {
-        
-        case SENSOR_MSG:
-          calibrator = new CalibratorMsg(cal);
-          break;
-          
-        default:
-          throw new IllegalArgumentException(
-              "Unable to create calibrator for source type in directory"
-          );
-      }
-    } catch(CalibratorException e) {
-      throw new AreaFileException(e.getMessage());
-    }
-    
+    Calibrator calibrator = CalibratorFactory.getCalibrator(
+			areaDirectory.getSensorID(),
+			cal
+    );
+	
+	// calibrate all bands
     if (subset == null) {
       for (int band_idx = 0; band_idx < inData.length; band_idx++) {
         for (int line = 0; line < inData[0].length; line++) {
@@ -776,6 +756,7 @@ public class AreaFile implements java.io.Serializable {
         }
       }
       
+    // calibrate single banded subset data
     } else {
       for (int line = 0; line < inData[0].length; line++) {
         for (int elem = 0; elem < inData[0][0].length; elem++) {
@@ -1075,13 +1056,21 @@ public class AreaFile implements java.io.Serializable {
 
   public static void main(String[] args) throws Exception{
     System.out.println();
-    System.out.println("USAGE: AreaFile <file> <start> <number> <mag> <band> " +
-        "(raw|temp|brit|rad|refl)");
+    System.out.println("USAGE: AreaFile <file> [<start> <number> <mag> <band> " +
+        "(raw|temp|brit|rad|refl)]");
     System.out.println("Note: start, number, and mag are used for " +
         "lines and elements.");
     System.out.println();
     
-    if (args.length < 6) System.exit(1);
+    if (args.length == 1) {
+      AreaFile af = new AreaFile(args[0]);
+      System.out.println("Directory info:");
+      AreaDirectory ad = af.getAreaDirectory();
+      System.out.println(""+ ad.getLines() + " lines");
+      System.out.println(""+ ad.getElements() + " elements");
+      System.out.println(""+ad.getBands().length + " bands");
+      System.exit(0);
+    } else if (args.length < 6) System.exit(1);
     
     int s,n,r,b;
     s = Integer.parseInt(args[1]);

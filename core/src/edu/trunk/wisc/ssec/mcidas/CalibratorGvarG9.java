@@ -145,6 +145,10 @@ class CalibratorGvarG9 extends CalibratorGvar {
   {
     super(dis, ad, cb);
   }
+  
+  public CalibratorGvarG9(final int id, final int[] cal) {
+	super(id, cal);
+  }
 
   /**
    *

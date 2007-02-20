@@ -146,6 +146,11 @@ class CalibratorGvarG8 extends CalibratorGvar {
     super(dis, ad, cb);
   }
 
+  
+  public CalibratorGvarG8(final int id, final int[] cal) {
+	super(id, cal);
+  }
+  
   /**
    *
    * calibrate from radiance to temperature

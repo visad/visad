@@ -2,7 +2,6 @@ package edu.wisc.ssec.mcidas;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.lang.String;
 
 /**
  * CalibratorGvar creates a Calibrator object designed specifically
@@ -64,9 +63,14 @@ abstract class CalibratorGvar implements Calibrator {
     throws IOException
 
   {
+	  this(ad.getSensorId(), calBlock);
+  }
+	  
+	  
+  public CalibratorGvar(final int sensorId, int[] calBlock) {
 
     int calIndex = 0;
-    sid = ad.getSensorId();
+    sid = sensorId;
 
     //System.out.println("xxx sid = "+sid);
     if ((sid % 2) == 0) {
