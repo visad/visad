@@ -101,7 +101,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
     
     ScalarMap timeMap = null; // used in the animation case to get control
     DataDisplayLink[] link_s = renderer.getLinks();
-    link = link_s[0];
+    DataDisplayLink link = link_s[0];
     Vector scalarMaps = link.getSelectedMapVector();
     
     // only determine if it's an animation if non-terminal. isTerminal will
