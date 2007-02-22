@@ -68,14 +68,17 @@ import visad.data.in.ArithProg;
   */
 public class TextAdapter {
 
+  private static final String COMMA = ",";
+  private static final String SEMICOLON = ";";
+  private static final String TAB = "\t";
+  private static final String BLANK = " ";
+
+
+
   private FlatField ff = null;
   private Field field = null;
   private boolean debug = false;
   private String DELIM;
-  private final String COMMA = ",";
-  private final String SEMICOLON = ";";
-  private final String TAB = "\t";
-  private final String BLANK = " ";
   private boolean DOQUOTE = true;
   private boolean GOTTIME = false;
 
@@ -94,6 +97,7 @@ public class TextAdapter {
   Unit[] domainUnits;
   double[] hdrScales;
   double[] hdrOffsets;
+  String[] hdrValues;
   int[][] hdrColumns;
   int[][] values_to_index;
 
@@ -105,13 +109,7 @@ public class TextAdapter {
     * @exception VisADException if an unexpected problem occurs.
     */
   public TextAdapter(String filename) throws IOException, VisADException {
-    InputStream is = new FileInputStream(filename);
-    DELIM = null;
-    if (filename.trim().toLowerCase().endsWith(".csv")) DELIM=COMMA;
-    if (filename.trim().toLowerCase().endsWith(".tsv")) DELIM=TAB;
-    if (filename.trim().toLowerCase().endsWith(".bsv")) DELIM=BLANK;
-    
-    readit(is, null, null);
+    this(filename, null, null);
   }
 
   /** Create a VisAD FlatField from a local Text (comma-, tab- or 
@@ -126,10 +124,7 @@ public class TextAdapter {
   public TextAdapter(String filename, String map, String params) 
                          throws IOException, VisADException {
     InputStream is = new FileInputStream(filename);
-    DELIM = null;
-    if (filename.trim().toLowerCase().endsWith(".csv")) DELIM=COMMA;
-    if (filename.trim().toLowerCase().endsWith(".tsv")) DELIM=TAB;
-    if (filename.trim().toLowerCase().endsWith(".bsv")) DELIM=BLANK;
+    DELIM = getDelimiter(filename);
     readit(is, map, params);
   }
 
@@ -141,13 +136,7 @@ public class TextAdapter {
     * @exception VisADException if an unexpected problem occurs.
     */
   public TextAdapter(URL url) throws IOException, VisADException {
-    DELIM = null;
-    String filename = url.getFile();
-    if (filename.trim().toLowerCase().endsWith(".csv")) DELIM=COMMA;
-    if (filename.trim().toLowerCase().endsWith(".tsv")) DELIM=TAB;
-    if (filename.trim().toLowerCase().endsWith(".bsv")) DELIM=BLANK;
-    InputStream is = url.openStream();
-    readit(is, null, null);
+    this(url, null, null);
   }
 
   /** Create a VisAD FlatField from a local Text (comma-, tab- or 
@@ -161,13 +150,49 @@ public class TextAdapter {
     */
   public TextAdapter(URL url, String map, String params) 
                         throws IOException, VisADException {
-    DELIM = null;
-    String filename = url.getFile();
-    if (filename.trim().toLowerCase().endsWith(".csv")) DELIM=COMMA;
-    if (filename.trim().toLowerCase().endsWith(".tsv")) DELIM=TAB;
-    if (filename.trim().toLowerCase().endsWith(".bsv")) DELIM=BLANK;
+    DELIM = getDelimiter(url.getFile());
     InputStream is = url.openStream();
-    readit(is, map, null);
+    readit(is, map, params);
+  }
+
+
+  /** Create a VisAD FlatField from a local Text (comma-, tab- or 
+    * blank-separated values) ASCII file
+    * @param inputStream The input stream to read from
+    * @param delimiter the delimiter
+    * @param map the VisAD "MathType" as a string defining the FlatField
+    * @param params the list of parameters used to define what columns
+    *  of the text file correspond to what MathType parameters.
+    * @exception IOException if there was a problem reading the file.
+    * @exception VisADException if an unexpected problem occurs.
+    */
+  public TextAdapter(InputStream inputStream, String delimiter, String map, String params) 
+                         throws IOException, VisADException {
+    DELIM = delimiter;
+    readit(inputStream, map, params);
+  }
+
+
+  public static  String getDelimiter(String filename) {
+    if(filename == null) return null;
+    filename = filename.trim().toLowerCase();
+    if (filename.endsWith(".csv")) return COMMA;
+    if (filename.endsWith(".tsv")) return TAB;
+    if (filename.endsWith(".bsv")) return BLANK;    
+    return null;
+  }
+
+
+  /**
+   * Is the given text line a comment
+   *
+   * @return is it a comment line
+   */
+  public static boolean isComment(String line) {
+    return (line.startsWith("#") || 
+            line.startsWith("!") || 
+            line.startsWith("%") || 
+            line.length() < 1);
   }
 
   void readit(InputStream is, String map, String params) 
@@ -192,10 +217,7 @@ public class TextAdapter {
         t = bis.readLine();
         if (t == null) return;
         if (!isText(t)) return;
-        if (t.startsWith("#") ||
-            t.startsWith("!") || 
-            t.startsWith("%") || 
-            t.length() < 1) continue;
+        if (isComment(t)) continue;
         break;
       }
       maps = t.trim();
@@ -217,15 +239,11 @@ public class TextAdapter {
 
     String hdr = null;
     if (params == null) {
-
       while (true) {
         hdr = bis.readLine();
         if (hdr == null) return;
         if (!isText(hdr)) return;
-        if (hdr.startsWith("#") || 
-           hdr.startsWith("!") || 
-           hdr.startsWith("%") || 
-           hdr.length() < 1) continue;
+        if (isComment(hdr)) continue;
         break;
       }
     } else {
@@ -247,6 +265,7 @@ public class TextAdapter {
     int nhdr = sthdr.countTokens();
     hdrNames = new String[nhdr];
     hdrUnits = new Unit[nhdr];
+    Real[] prototypeReals = new Real[nhdr];
     hdrMissingValues = new double[nhdr];
     hdrMissingStrings = new String[nhdr];
     hdrFormatStrings = new String[nhdr];
@@ -255,7 +274,8 @@ public class TextAdapter {
     hdrScales = new double[nhdr];
     hdrOffsets = new double[nhdr];
     hdrColumns = new int[2][nhdr];
-
+    hdrValues = new String[nhdr];
+    int numHdrValues=0;
 
     // pre-scan of the header names to seek out Units
     // since we cannot change a RealType once it's defined!!
@@ -369,6 +389,9 @@ public class TextAdapter {
             } else if (tok.toLowerCase().startsWith("off")) {
               hdrOffsets[i] = Double.parseDouble(val);
 
+            } else if (tok.toLowerCase().startsWith("value")) {
+              hdrValues[i] = val.trim();
+              numHdrValues++;
             } else if (tok.toLowerCase().startsWith("pos")) {
               StringTokenizer stp = new StringTokenizer(val,":");
               if (stp.countTokens() != 2) {
@@ -402,7 +425,6 @@ public class TextAdapter {
         try {
 
           u = visad.data.units.Parser.parse(hdrUnitString.trim());
-
         } catch (Exception ue) {
 
           try {
@@ -674,6 +696,7 @@ public class TextAdapter {
     ArrayList domainValues = new ArrayList();
     ArrayList rangeValues = new ArrayList();
     ArrayList tupleValues = new ArrayList(); 
+    boolean tryToMakeTuple = true;
     Tuple tuple = null;
     
     String dataDelim = DELIM;
@@ -688,16 +711,13 @@ public class TextAdapter {
     if (countRange == 1 && numRng == 1 && 
                 numDom == 2 && countDomain < 2) isRaster = true;
 
+    int index;
     while (true) {
       String s = bis.readLine();
       if (debug) System.out.println("read:"+s);
       if (s == null) break;
       if (!isText(s)) return;
-      if (s.startsWith("#") || 
-         s.startsWith("!") || 
-         s.startsWith("%") || 
-         s.length() < 1) continue;
-
+      if (isComment(s)) continue;
       if (dataDelim == null) {
         if (s.indexOf(BLANK) != -1) dataDelim = BLANK; 
         if (s.indexOf(COMMA) != -1) dataDelim = COMMA; 
@@ -708,13 +728,36 @@ public class TextAdapter {
                                        (dataDelim.getBytes())[0]);
       }
 
+      
+      if((index=s.indexOf("="))>=0) {
+        String name  = s.substring(0,index).trim();
+        String value  = s.substring(index+1).trim();
+        boolean foundIt = false;
+        for(int paramIdx=0;paramIdx<hdrNames.length;paramIdx++) {
+            if(hdrNames[paramIdx].equals(name)  || hdrNames[paramIdx].equals(name+"(Text)") ) {
+                if(hdrValues[paramIdx]==null) {
+                    numHdrValues++;
+                }
+                hdrValues[paramIdx] = value;
+                foundIt = true;
+                break;
+            }
+        }
+        if(!foundIt) {
+           throw new VisADException(
+                    "TextAdapter: Cannot find field with name:" +name +" from line:" + s);
+        }
+        continue;
+      }
+
+
+
       StringTokenizer st = new StringTokenizer(s,dataDelim);
       int n = st.countTokens();
       if (n < 1) continue; // something is wrong if this happens!
 
       double [] dValues = new double[numDom];
       double [] rValues = null;
-      
       Data [] tValues = null;
 
       if (isRaster) {
@@ -770,10 +813,16 @@ public class TextAdapter {
         double thisDouble; 
         MathType thisMT;
         if (n > nhdr) n = nhdr; // in case the # tokens > # parameters
+        n +=numHdrValues;
 
         for (int i=0; i<n; i++) {
+          String sa;
+          if(hdrValues[i]!=null) {
+            sa = hdrValues[i];
+          }  else {
+            sa = st.nextToken().trim();
+          }
 
-          String sa = st.nextToken().trim();
           String sThisText;
 
           if (values_to_index[0][i] != -1) {
@@ -823,10 +872,14 @@ public class TextAdapter {
               
             // if not Text, then treat as numeric
             } else {
-              rValues[values_to_index[1][i]] = getVal(sa,i);
+              double value = getVal(sa,i);
+              rValues[values_to_index[1][i]] = value;
               try {
-                tValues[values_to_index[1][i]] = 
-                    new Real((RealType) thisMT, getVal(sa,i), hdrUnits[i]);
+                  if(prototypeReals[i]==null) {
+                      prototypeReals[i] =    new Real((RealType) thisMT, getVal(sa,i), hdrUnits[i]);
+                  }
+                  tValues[values_to_index[1][i]] = 
+                      prototypeReals[i].cloneButValue(value);
                 if (debug) System.out.println("tValues[" + 
                     values_to_index[1][i] + "] = " + 
                     tValues[values_to_index[1][i]]);
@@ -839,13 +892,15 @@ public class TextAdapter {
         }
       }
 
-      try {
-
-        if (tValues != null) tuple = new Tuple(tValues);
-      } catch (visad.TypeException te) {
-        // do nothing: it means they are all reals
-        // tuple = new RealTuple(tValues);
-        tuple = null;
+      if(tryToMakeTuple) {
+        try {
+          if (tValues != null) tuple = new Tuple(tValues);
+        } catch (visad.TypeException te) {
+          // do nothing: it means they are all reals
+          // tuple = new RealTuple(tValues);
+          tuple = null;
+          tryToMakeTuple = false;
+        }
       }
 
       domainValues.add(dValues);
@@ -1291,7 +1346,7 @@ public class TextAdapter {
   }
 
 //  uncomment to test
-/*
+
   public static void main(String[] args) throws Exception {
     if (args.length == 0) {
       System.out.println("Must supply a filename");
@@ -1304,6 +1359,6 @@ public class TextAdapter {
     System.out.println("####  Data = "+ta.getData());
     System.out.println("EOF... ");
   }
-*/
+
 
 }
