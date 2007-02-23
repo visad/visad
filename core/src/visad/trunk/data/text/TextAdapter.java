@@ -68,6 +68,18 @@ import visad.data.in.ArithProg;
   */
 public class TextAdapter {
 
+ private static final String ATTR_COLSPAN = "colspan";
+ private static final String ATTR_VALUE   = "value";
+ private static final String ATTR_OFFSET = "off";
+ private static final String ATTR_ERROR  = "err";
+ private static final String ATTR_SCALE = "sca";
+ private static final String ATTR_POSITION ="pos";
+ private static final String ATTR_FORMAT = "fmt";
+ private static final String ATTR_UNIT= "unit";
+ private static final String ATTR_MISSING = "mis";
+ private static final String ATTR_INTERVAL = "int";
+
+
   private static final String COMMA = ",";
   private static final String SEMICOLON = ";";
   private static final String TAB = "\t";
@@ -83,21 +95,15 @@ public class TextAdapter {
   private boolean GOTTIME = false;
 
 
-  String[] hdrNames;
-  Unit[] hdrUnits;
-  double[] hdrMissingValues;
-  String[] hdrMissingStrings;
-  String[] hdrFormatStrings;
-  int[] hdrIsInterval;
-  double[] hdrErrorEstimates;
+  HeaderInfo []infos;
+
   double[] rangeErrorEstimates;
   Unit[] rangeUnits;
   Set[] rangeSets;
   double[] domainErrorEstimates;
   Unit[] domainUnits;
-  double[] hdrScales;
-  double[] hdrOffsets;
-  String[] hdrValues;
+
+
   int[][] hdrColumns;
   int[][] values_to_index;
 
@@ -263,18 +269,12 @@ public class TextAdapter {
 
     StringTokenizer sthdr = new StringTokenizer(hdr,hdrDelim);
     int nhdr = sthdr.countTokens();
-    hdrNames = new String[nhdr];
-    hdrUnits = new Unit[nhdr];
+    infos    = new HeaderInfo[nhdr];
+    for(int i=0;i<infos.length;i++) {
+      infos[i] = new HeaderInfo();
+    }
     Real[] prototypeReals = new Real[nhdr];
-    hdrMissingValues = new double[nhdr];
-    hdrMissingStrings = new String[nhdr];
-    hdrFormatStrings = new String[nhdr];
-    hdrIsInterval = new int[nhdr];
-    hdrErrorEstimates = new double[nhdr];
-    hdrScales = new double[nhdr];
-    hdrOffsets = new double[nhdr];
     hdrColumns = new int[2][nhdr];
-    hdrValues = new String[nhdr];
     int numHdrValues=0;
 
     // pre-scan of the header names to seek out Units
@@ -283,21 +283,13 @@ public class TextAdapter {
     for (int i=0; i<nhdr; i++) {
       String name = sthdr.nextToken().trim();
       String hdrUnitString = null;
-      hdrMissingValues[i] = Double.NaN;
-      hdrMissingStrings[i] = null;
-      hdrFormatStrings[i] = null;
-      hdrIsInterval[i] = 0;
-      hdrScales[i] = 1.0;
-      hdrOffsets[i] = 0.0;
-      hdrErrorEstimates[i] = 0.0;
       hdrColumns[0][i] = -1; // indicating no fixed columns
       
       int m = name.indexOf("[");
 
       if (m == -1) {
-        hdrNames[i] = name;
-        hdrUnitString = null;
-
+          infos[i].name = name;
+          hdrUnitString = null;
       } else {
         int m2 = name.indexOf("]");
         if (m2 == -1) {
@@ -314,9 +306,9 @@ public class TextAdapter {
         //    and fill in the values in array[i]
 
         if (m2 >= name.length()) {
-          hdrNames[i] = name.substring(0,m).trim();
+          infos[i].name = name.substring(0,m).trim();
         } else {
-          hdrNames[i] = (name.substring(0,m)+name.substring(m2+1)).trim();
+          infos[i].name = (name.substring(0,m)+name.substring(m2+1)).trim();
         }
 
         String cl = name.substring(m+1,m2).trim();
@@ -360,39 +352,35 @@ public class TextAdapter {
 
             if (debug) System.out.println("####   tok = "+tok+ " val = '"+val+"'");
 
-            if (tok.toLowerCase().startsWith("unit")) {
+            if (tok.toLowerCase().startsWith(ATTR_UNIT)) {
               hdrUnitString = val;
 
-            } else if (tok.toLowerCase().startsWith("mis")) {
-              hdrMissingStrings[i] = val.trim();
+            } else if (tok.toLowerCase().startsWith(ATTR_MISSING)) {
+                infos[i].missingString = val.trim();
               try {
-                hdrMissingValues[i] = Double.parseDouble(val);
+                infos[i].missingValue = Double.parseDouble(val);
               } catch (java.lang.NumberFormatException me) {
-                hdrMissingValues[i] = Double.NaN;
+                  infos[i].missingValue = Double.NaN;
               }
-              
-            } else if (tok.toLowerCase().startsWith("int")) {
-
-              hdrIsInterval[i] = -1;
-              if (val.toLowerCase().startsWith("t")) hdrIsInterval[i] = 1;
-              if (val.toLowerCase().startsWith("f")) hdrIsInterval[i] = 0;
-              if (hdrIsInterval[i] == -1) {
+            } else if (tok.toLowerCase().startsWith(ATTR_INTERVAL)) {
+              infos[i].isInterval = -1;
+              if (val.toLowerCase().startsWith("t")) infos[i].isInterval = 1;
+              if (val.toLowerCase().startsWith("f")) infos[i].isInterval = 0;
+              if (infos[i].isInterval == -1) {
                 throw new VisADException("TextAdapter: Value of \'interval\' must be \'true\' or \'false\'");
               }
-
-            } else if (tok.toLowerCase().startsWith("err")) {
-              hdrErrorEstimates[i] = Double.parseDouble(val);
-
-            } else if (tok.toLowerCase().startsWith("sca")) {
-              hdrScales[i] = Double.parseDouble(val);
-
-            } else if (tok.toLowerCase().startsWith("off")) {
-              hdrOffsets[i] = Double.parseDouble(val);
-
-            } else if (tok.toLowerCase().startsWith("value")) {
-              hdrValues[i] = val.trim();
+            } else if (tok.toLowerCase().startsWith(ATTR_ERROR)) {
+                infos[i].errorEstimate = Double.parseDouble(val);
+            } else if (tok.toLowerCase().startsWith(ATTR_SCALE)) {
+                infos[i].scale = Double.parseDouble(val);
+            } else if (tok.toLowerCase().startsWith(ATTR_OFFSET)) {
+              infos[i].offset = Double.parseDouble(val);
+            } else if (tok.toLowerCase().startsWith(ATTR_VALUE)) {
+              infos[i].fixedValue = val.trim();
               numHdrValues++;
-            } else if (tok.toLowerCase().startsWith("pos")) {
+            } else if (tok.toLowerCase().startsWith(ATTR_COLSPAN)) {
+              infos[i].colspan = (int)Double.parseDouble(val.trim());
+            } else if (tok.toLowerCase().startsWith(ATTR_POSITION)) {
               StringTokenizer stp = new StringTokenizer(val,":");
               if (stp.countTokens() != 2) {
                 throw new VisADException("TextAdapter: invalid Position parameter in:"+s);
@@ -400,8 +388,8 @@ public class TextAdapter {
               hdrColumns[0][i] = Integer.parseInt(stp.nextToken().trim());
               hdrColumns[1][i] = Integer.parseInt(stp.nextToken().trim());
 
-            } else if (tok.toLowerCase().startsWith("fmt")) {
-              hdrFormatStrings[i] = val.trim();
+            } else if (tok.toLowerCase().startsWith(ATTR_FORMAT)) {
+                infos[i].formatString = val.trim();
             } else {
               throw new VisADException("TextAdapter: invalid token name: "+s);
             }
@@ -411,12 +399,13 @@ public class TextAdapter {
 
       }
 
+
       if (debug) 
-            System.out.println("hdr name = "+hdrNames[i]+" units="+
+            System.out.println("hdr name = "+infos[i]+" units="+
              hdrUnitString+
-             " miss="+hdrMissingValues[i]+" interval="+hdrIsInterval[i]+ 
-             " errorest="+hdrErrorEstimates[i]+" scale="+hdrScales[i]+
-             " offset="+hdrOffsets[i]+" pos="+hdrColumns[0][i]+":"+
+             " miss="+infos[i].missingValue+" interval="+infos[i].isInterval+ 
+             " errorest="+infos[i].errorEstimate+" scale="+infos[i].scale+
+             " offset="+infos[i].offset+" pos="+hdrColumns[0][i]+":"+
              hdrColumns[1][i]);
 
       Unit u = null;
@@ -439,7 +428,8 @@ public class TextAdapter {
 
       if (debug) System.out.println("####   assigned Unit as u="+u);
 
-      String rttemp = hdrNames[i].trim();
+
+      String rttemp = infos[i].name.trim();
       if (rttemp.indexOf("(Text)") == -1) {
 
         int parenIndex = rttemp.indexOf("(");
@@ -449,7 +439,8 @@ public class TextAdapter {
         if (parenIndex < 0) parenIndex = rttemp.indexOf(" ");
         String rtname = parenIndex < 0 ? rttemp.trim() : rttemp.substring(0,parenIndex);
 
-        RealType rt = RealType.getRealType(rtname, u, null, hdrIsInterval[i]);
+
+        RealType rt = RealType.getRealType(rtname, u, null, infos[i].isInterval);
 
         if (rt == null) {  // tried to re-use with different units
           if (debug) System.out.println("####   rt was returned as null");
@@ -471,7 +462,7 @@ public class TextAdapter {
         if(debug) System.out.println("####  retrieve units from RealType = "+u);
       }
 
-      hdrUnits[i] = u;
+      infos[i].unit = u;
     }
 
     // get the MathType of the function
@@ -580,7 +571,8 @@ public class TextAdapter {
       values_to_index[2][i] = -1;  // points to names/units/etc
       countValues ++;
 
-      String name = hdrNames[i];
+      String name = infos[i].name;
+
 
       // see if it's a domain name
       boolean gotName = false;
@@ -602,8 +594,8 @@ public class TextAdapter {
 
         if (test_name.equals(domainNames[k]) ) { 
           domainPointer[k] = countValues;
-          domainErrorEstimates[k] = hdrErrorEstimates[i];
-          domainUnits[k] = hdrUnits[i];
+          domainErrorEstimates[k] = infos[i].errorEstimate;
+          domainUnits[k] = infos[i].unit;
           gotName = true;
           countDomain ++;
           // now see if a list is given...
@@ -644,8 +636,8 @@ public class TextAdapter {
     for (int k=0; k<numRng; k++) {
       if (name.equals(rangeNames[k]) ) {
         rangePointer[k] = countValues;
-        rangeErrorEstimates[k] = hdrErrorEstimates[i];
-        rangeUnits[k] = hdrUnits[i];
+        rangeErrorEstimates[k] = infos[i].errorEstimate;
+        rangeUnits[k] = infos[i].unit;
         countRange ++;
         values_to_index[1][countValues] = k;
         values_to_index[2][countValues] = i;
@@ -733,12 +725,12 @@ public class TextAdapter {
         String name  = s.substring(0,index).trim();
         String value  = s.substring(index+1).trim();
         boolean foundIt = false;
-        for(int paramIdx=0;paramIdx<hdrNames.length;paramIdx++) {
-            if(hdrNames[paramIdx].equals(name)  || hdrNames[paramIdx].equals(name+"(Text)") ) {
-                if(hdrValues[paramIdx]==null) {
+        for(int paramIdx=0;paramIdx<infos.length;paramIdx++) {
+            if(infos[paramIdx].isParam(name)) {
+                if(infos[paramIdx].fixedValue==null) {
                     numHdrValues++;
                 }
-                hdrValues[paramIdx] = value;
+                infos[paramIdx].fixedValue = value;
                 foundIt = true;
                 break;
             }
@@ -817,10 +809,15 @@ public class TextAdapter {
 
         for (int i=0; i<n; i++) {
           String sa;
-          if(hdrValues[i]!=null) {
-            sa = hdrValues[i];
+          if(infos[i].fixedValue!=null) {
+            sa = infos[i].fixedValue;
           }  else {
             sa = st.nextToken().trim();
+            int moreColumns = infos[i].colspan-1;
+            if(moreColumns>0) {
+                sa = sa + " " + st.nextToken().trim();
+                moreColumns--;
+            }
           }
 
           String sThisText;
@@ -861,6 +858,7 @@ public class TextAdapter {
               try {
                 tValues[values_to_index[1][i]] = 
                         new Text((TextType) thisMT, sThisText);
+
                 if (debug) System.out.println("tValues[" + 
                           values_to_index[1][i] + "] = " + 
                           tValues[values_to_index[1][i]]);
@@ -876,7 +874,7 @@ public class TextAdapter {
               rValues[values_to_index[1][i]] = value;
               try {
                   if(prototypeReals[i]==null) {
-                      prototypeReals[i] =    new Real((RealType) thisMT, getVal(sa,i), hdrUnits[i]);
+                      prototypeReals[i] =    new Real((RealType) thisMT, getVal(sa,i), infos[i].unit);
                   }
                   tValues[values_to_index[1][i]] = 
                       prototypeReals[i].cloneButValue(value);
@@ -1042,7 +1040,6 @@ public class TextAdapter {
 
 
     try {
-
       ff = new FlatField((FunctionType) mt, domain, 
                                 null, null, rangeSets, rangeUnits);
 
@@ -1227,19 +1224,19 @@ public class TextAdapter {
 
   double getVal(String s, int k) {
     int i = values_to_index[2][k];
-    if (i < 0 || s == null || s.length()<1 || s.equals(hdrMissingStrings[i])) {
+    if (i < 0 || s == null || s.length()<1 || s.equals(infos[i].missingString)) {
       return Double.NaN;
     }
 
     // try parsing as a double first
-    if (hdrFormatStrings[i] == null) {
+    if (infos[i].formatString == null) {
       // no format provided : parse as a double
       try {
         double v = Double.parseDouble(s);
-        if (v == hdrMissingValues[i]) {
+        if (v == infos[i].missingValue) {
           return Double.NaN;
         }
-        v = v * hdrScales[i] + hdrOffsets[i];
+        v = v * infos[i].scale + infos[i].offset;
         return v;
       } catch (java.lang.NumberFormatException ne) {
         System.out.println("Invalid number format for "+s);
@@ -1248,7 +1245,7 @@ public class TextAdapter {
       // a format was specified: only support DateTime format 
       // so try to parse as a DateTime
       try{
-        visad.DateTime dt = makeDateTimeFromString(s, hdrFormatStrings[i]);
+        visad.DateTime dt = makeDateTimeFromString(s, infos[i].formatString);
         return dt.getReal().getValue();
 
       } catch (java.text.ParseException pe) {
@@ -1345,13 +1342,41 @@ public class TextAdapter {
     return set;
   }
 
+
+    private static class HeaderInfo {
+        String  name;
+        Unit    unit;
+        double  missingValue = Double.NaN;
+        String  missingString;
+        String  formatString;
+        int     isInterval = 0;
+        double  errorEstimate=0;
+        double  scale=1.0;
+        double  offset=0.0;
+        String  fixedValue;
+        int     colspan = 1;
+
+        public boolean isParam(String param) {
+            return name.equals(param)  || name.equals(param+"(Text)");
+        }
+        public String toString() {
+            return name;
+        }
+
+
+    }
+
+
+
 //  uncomment to test
+
 
   public static void main(String[] args) throws Exception {
     if (args.length == 0) {
       System.out.println("Must supply a filename");
       System.exit(1);
     }
+    RealType.getRealType("foobar");
     TextAdapter ta = new TextAdapter(args[0]);
     System.out.println(ta.getData().getType());
     new visad.jmet.DumpType().dumpMathType(ta.getData().getType(),System.out);
@@ -1359,6 +1384,9 @@ public class TextAdapter {
     System.out.println("####  Data = "+ta.getData());
     System.out.println("EOF... ");
   }
+
+
+
 
 
 }
