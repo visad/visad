@@ -201,6 +201,18 @@ public class TextAdapter {
             line.length() < 1);
   }
 
+    public static  String readLine(BufferedReader bis) 
+        throws IOException {
+      while (true) {
+        String line = bis.readLine();
+        if (line == null) return null;
+        if (!isText(line)) return null;
+        if (isComment(line)) continue;
+        return line;
+      }
+    }
+
+
   void readit(InputStream is, String map, String params) 
                               throws IOException, VisADException {
     // read the ASCII file, using commas as field separators
@@ -218,20 +230,17 @@ public class TextAdapter {
 
     String maps = null;
     if (map == null) {
-      String t;
-      while (true) {
-        t = bis.readLine();
-        if (t == null) return;
-        if (!isText(t)) return;
-        if (isComment(t)) continue;
-        break;
+      maps = readLine(bis);
+      if(maps != null) {
+          maps = maps.trim();
       }
-      maps = t.trim();
     } else {
       maps = map;
     }
 
-    maps = makeMT(maps);
+    if (maps != null) {
+       maps = makeMT(maps);
+    }
     if (maps == null) {
       throw new visad.data.BadFormException(
         "TextAdapter: Invalid or missing MathType");
@@ -245,13 +254,7 @@ public class TextAdapter {
 
     String hdr = null;
     if (params == null) {
-      while (true) {
-        hdr = bis.readLine();
-        if (hdr == null) return;
-        if (!isText(hdr)) return;
-        if (isComment(hdr)) continue;
-        break;
-      }
+      hdr = readLine(bis);
     } else {
       hdr = params;
     }
@@ -1139,7 +1142,7 @@ public class TextAdapter {
 
     int k = s.indexOf("->");
     if (k < 0) {
-      System.out.println("TextAdapter: invalid MathType form; -> required");
+        //      System.out.println("TextAdapter: invalid MathType form; -> required");
       return null;
     }
 
