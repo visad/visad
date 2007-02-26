@@ -1055,66 +1055,82 @@ public class AreaFile implements java.io.Serializable {
   }
 
   public static void main(String[] args) throws Exception{
-    System.out.println();
-    System.out.println("USAGE: AreaFile <file> [<start> <number> <mag> <band> " +
-        "(raw|temp|brit|rad|refl)]");
-    System.out.println("Note: start, number, and mag are used for " +
-        "lines and elements.");
-    System.out.println();
-    
-    if (args.length == 1) {
-      AreaFile af = new AreaFile(args[0]);
-      System.out.println("Directory info:");
-      AreaDirectory ad = af.getAreaDirectory();
-      System.out.println(""+ ad.getLines() + " lines");
-      System.out.println(""+ ad.getElements() + " elements");
-      System.out.println(""+ad.getBands().length + " bands");
-      System.exit(0);
-    } else if (args.length < 6) System.exit(1);
-    
-    int s,n,r,b;
-    s = Integer.parseInt(args[1]);
-    n = Integer.parseInt(args[2]);
-    r = Integer.parseInt(args[3]);
-    b = Integer.parseInt(args[4]);
-    
-    AreaFile sf = new AreaFile(args[0], s, n, r, s, n, r, b);
-    
-    AreaDirectory dir = sf.getAreaDirectory();
-    System.out.println("Directory: " + dir);
-    System.out.println("Source Type: " + dir.getSourceType());
-    System.out.println("Sensor Type: " + dir.getSensorType());
-    System.out.println("Sensor ID: " + dir.getSensorID());
-    System.out.println("Cal Type: " + dir.getCalibrationType());
-    
-    System.out.println("start: "+s);
-    System.out.println("number: "+n);
-    System.out.println("band: "+b);
-    System.out.println("cal type: " + args[5]);
-    System.out.println();
-    
-    int cal_type = Calibrator.CAL_RAW;
-    if (args[5].equals("temp")) cal_type = Calibrator.CAL_TEMP;
-    if (args[5].equals("rad")) cal_type = Calibrator.CAL_RAD;
-    if (args[5].equals("brit")) cal_type = Calibrator.CAL_BRIT;
-    if (args[5].equals("refl")) cal_type = Calibrator.CAL_ALB;
-    
-    long time = System.currentTimeMillis();
-    float[][][] data = sf.getData(cal_type);
-    System.out.println("" + (System.currentTimeMillis() - time)
-        + " ms to retrieve data");
-    System.out.println();
-    System.out.println("SUBSETTED DATA ["+data.length+"]["+data[0].length+"]["
-        +data[0][0].length+"]");
+	    System.out.println();
+	    System.out.println("USAGE: AreaFile <file> [<start> <number> <mag> <band>] " 
+	        + "[(raw|temp|brit|rad|refl)]");
+	    System.out.println("Note: start, number, and mag are used for " +
+	        "lines and elements.");
+	    System.out.println();
+	    
+	    boolean calFlag = true;
+	    
+	    if (args.length == 1) {
+	      AreaFile af = new AreaFile(args[0]);
+	      System.out.println("Directory info:");
+	      AreaDirectory ad = af.getAreaDirectory();
+	      System.out.println(""+ ad.getLines() + " lines");
+	      System.out.println(""+ ad.getElements() + " elements");
+	      System.out.println(""+ad.getBands().length + " bands");
+	      System.exit(0);
+	    } else if (args.length == 5) {
+	      calFlag = false;
+	    } else if (args.length != 6) {
+	      System.exit(-1);
+	    }
+	    
+	    int s,n,r,b;
+	    s = Integer.parseInt(args[1]);
+	    n = Integer.parseInt(args[2]);
+	    r = Integer.parseInt(args[3]);
+	    b = Integer.parseInt(args[4]);
+	    
+	    AreaFile sf = new AreaFile(args[0], s, n, r, s, n, r, b);
+	    
+	    AreaDirectory dir = sf.getAreaDirectory();
+	    System.out.println("Directory: " + dir);
+	    System.out.println("Source Type: " + dir.getSourceType());
+	    System.out.println("Sensor Type: " + dir.getSensorType());
+	    System.out.println("Sensor ID: " + dir.getSensorID());
+	    System.out.println("Cal Type: " + dir.getCalibrationType());
+	    
+	    System.out.println("start: "+s);
+	    System.out.println("number: "+n);
+	    System.out.println("band: "+b);
+	    if (calFlag) System.out.println("cal type: " + args[5]);
+	    System.out.println();
+	    
+	    int cal_type = Calibrator.CAL_RAW;
+	    if (calFlag && args[5].equals("temp")) cal_type = Calibrator.CAL_TEMP;
+	    if (calFlag && args[5].equals("rad")) cal_type = Calibrator.CAL_RAD;
+	    if (calFlag && args[5].equals("brit")) cal_type = Calibrator.CAL_BRIT;
+	    if (calFlag && args[5].equals("refl")) cal_type = Calibrator.CAL_ALB;
+	    
+	    long time = System.currentTimeMillis();
+	    float[][][] data = null;
+	    if (calFlag) {
+	      data = sf.getData(cal_type);
+	    } else {
+	      int intData[][][] = sf.getData();
+	      data = new float[intData.length][intData[0].length][intData[0][0].length];
+	      for (int i=0; i<intData.length; i++)
+	    	  for (int j=0; j<intData[0].length; j++)
+	    		  for (int k=0; k<intData[0][0].length; k++)
+	    			  data[i][j][k] = (float) intData[i][j][k];
+	    }
+	    System.out.println("" + (System.currentTimeMillis() - time)
+	        + " ms to retrieve data");
+	    System.out.println();
+	    System.out.println("SUBSETTED DATA ["+data.length+"]["+data[0].length+"]["
+	        +data[0][0].length+"]");
 
-    // write data to std err so it may be piped to file w/o all the
-    // other garbage
-    for (int i = 0; i < n; i++) {
-      for (int j = 0; j < n; j++) {
-        System.err.print("" + data[0][i][j] + " ");
-      }
-      System.err.println();
-    }
-  }
+	    // write data to std err so it may be piped to file w/o all the
+	    // other garbage
+	    for (int i = 0; i < n; i++) {
+	      for (int j = 0; j < n; j++) {
+	        System.err.print("" + data[0][i][j] + " ");
+	      }
+	      System.err.println();
+	    }
+	  }
 
 }

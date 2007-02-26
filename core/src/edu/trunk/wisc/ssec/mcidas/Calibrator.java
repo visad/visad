@@ -18,8 +18,8 @@ interface Calibrator {
   public static final int CAL_BRIT = 5;
   public static final int CAL_MAX  = 5;
 
-  /** Meteosat Second Generation. */
-  public static final int SENSOR_MSG = 51;
+  /** Meteosat Second Generation imager. */
+  public static final int SENSOR_MSG_IMGR = 51;
   /** GOES 8 imager. */
   public static final int SENSOR_GOES8_IMGR = 70;
   /** GOES 8 sounder. */
