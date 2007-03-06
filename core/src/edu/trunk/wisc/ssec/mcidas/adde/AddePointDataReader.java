@@ -162,7 +162,16 @@ public class AddePointDataReader {
         //
         //  first get number of bytes for Parameter Names
         //
-        int numParamBytes = ((AddeURLConnection) urlc).getInitialRecordSize();
+        int numParamBytes;
+        if(urlc instanceof AddeURLConnection) {
+          numParamBytes = ((AddeURLConnection) urlc).getInitialRecordSize();
+        } else {
+           try {
+             numParamBytes = dataInputStream.readInt();
+           }    catch (IOException e) {
+            throw new AddeException("Error reading data: " + e);
+           }
+        }
         if (debug) System.out.println("numParamBytes = " + numParamBytes);
         if (numParamBytes == 0)
         {
