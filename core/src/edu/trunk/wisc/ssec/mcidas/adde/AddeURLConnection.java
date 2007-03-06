@@ -228,6 +228,12 @@ public class AddeURLConnection extends URLConnection
   private DataOutputStream dos = null;
   private URL url;
 
+  /** 
+     Set from the rawstream attribute. When true we don't read the first int bytes.
+     This enables client code to move the byte stream to disk.
+  */
+  private boolean rawStream = false;
+
   /** The default number of lines for an image request */
   private final int DEFAULT_LINES = 480;
 
@@ -372,6 +378,8 @@ public class AddeURLConnection extends URLConnection
     {
         throw new AddeURLException("Request for unknown data");
     }
+
+    rawStream = (request.indexOf("rawstream=true")>=0);
 
     // service - for area files, it's either AGET (Area GET) or 
     // ADIR (AREA directory)
@@ -704,16 +712,19 @@ public class AddeURLConnection extends URLConnection
                             ((compressionType == GZIP)?"GZIP":"compress"))));
     }
 
-    // get response from server, byte count coming back
-    numBytes = dis.readInt();
-    if (debug) System.out.println("server is sending: " + numBytes + " bytes");
+    // get response from server, byte count coming
 
-    // if server returns zero, there was an error so read trailer and exit
-    if (numBytes == 0) {
-      byte [] trailer = new byte[TRAILER_SIZE];
-      dis.readFully(trailer, 0, trailer.length);
-      String errMsg = new String(trailer, ERRMSG_OFFS, ERRMSG_SIZE);
-      throw new AddeURLException(errMsg);
+    if(!rawStream) {
+      numBytes = dis.readInt();
+      if (debug) System.out.println("server is sending: " + numBytes + " bytes");
+
+      // if server returns zero, there was an error so read trailer and exit
+      if (numBytes == 0) {
+        byte [] trailer = new byte[TRAILER_SIZE];
+        dis.readFully(trailer, 0, trailer.length);
+        String errMsg = new String(trailer, ERRMSG_OFFS, ERRMSG_SIZE);
+        throw new AddeURLException(errMsg);
+      }
     }
 
     // if we made it to here, we're getting data
@@ -2019,6 +2030,7 @@ public class AddeURLConnection extends URLConnection
             {
                 posString = testString;
             }
+
         } 
         // fudge the max string in case ALL is specified.  Some servers
         // don't handle all
