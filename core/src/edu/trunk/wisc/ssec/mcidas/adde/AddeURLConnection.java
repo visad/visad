@@ -2254,7 +2254,7 @@ public class AddeURLConnection extends URLConnection
 
       String x;
       try {
-        x = URLDecoder.decode(url.toString());
+        x = URLDecoder.decode(url.toString(), "UTF-8");
       }
       catch (java.lang.Exception e) {
         throw new RuntimeException(e.toString());
