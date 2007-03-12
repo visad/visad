@@ -25,9 +25,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.data.mcidas;
 
-import edu.wisc.ssec.mcidas.*;
 import java.io.IOException;
 import java.rmi.RemoteException;
+
 import visad.CoordinateSystem;
 import visad.DateTime;
 import visad.FlatField;
@@ -39,14 +39,19 @@ import visad.RealType;
 import visad.Set;
 import visad.Unit;
 import visad.VisADException;
-
-// WLH 24 August 2000
-import visad.meteorology.*;
+import visad.meteorology.NavigatedImage;
+import visad.meteorology.SingleBandedImage;
+import visad.meteorology.SingleBandedImageImpl;
+import edu.wisc.ssec.mcidas.AreaDirectory;
+import edu.wisc.ssec.mcidas.AreaFile;
+import edu.wisc.ssec.mcidas.AreaFileFactory;
+import edu.wisc.ssec.mcidas.Calibrator;
+import edu.wisc.ssec.mcidas.McIDASException;
 
 /** this is an adapter for McIDAS AREA images */
 
 public class AreaAdapter {
-
+  
   private FlatField field = null;
   private AREACoordinateSystem cs;
   private AreaDirectory areaDirectory;
@@ -57,9 +62,32 @@ public class AreaAdapter {
     * @exception VisADException if an unexpected problem occurs.
     */
   public AreaAdapter(String imageSource) throws IOException, VisADException {
-    this(imageSource, true);
+    this(
+        imageSource, 
+        0, 0, 
+        0, 0, 
+        0, 0, 
+        Calibrator.CAL_NONE, 0, true
+    );
   }
 
+  /** Create a VisAD FlatField from a local McIDAS AREA file or a URL.
+   * @param imageSource name of local file or a URL to locate file.
+   * @param cal type of calibration to perform on retrieved data; ignored if
+   * 'unit' is specified in <code>imageSource</code>.
+   * @exception IOException if there was a problem reading the file.
+   * @exception VisADException if an unexpected problem occurs.
+   */
+  public AreaAdapter(String imageSource, int cal) throws IOException, VisADException {
+    this(
+        imageSource, 
+        0, 0, 
+        0, 0, 
+        0, 0, 
+        cal, 0, true
+    );
+  }
+  
   /** Create a VisAD FlatField from a local McIDAS AREA file or a URL.
     * @param imageSource name of local file or a URL to locate file.
     * @param pack      pack data if possible.  If calibration is BRIT, 
@@ -69,7 +97,13 @@ public class AreaAdapter {
     */
   public AreaAdapter(String imageSource, boolean pack) 
       throws IOException, VisADException {
-    this(imageSource, 0, 0, 0, 0, 0, pack);
+    this(
+        imageSource, 
+        0, 0, 
+        0, 0, 
+        0, 0, 
+        Calibrator.CAL_NONE, 0, pack
+    );
   }
 
   /** Create a VisAD FlatField from a local McIDAS AREA file using
@@ -87,7 +121,12 @@ public class AreaAdapter {
                      int startEle, 
                      int numLines, 
                      int numEles ) throws IOException, VisADException {
-    this(imageSource, startLine, startEle, numLines, numEles, 0);
+    this(
+        imageSource, 
+        startLine, startEle, 
+        numLines, numEles, 
+        0, 0, 
+        Calibrator.CAL_NONE, 0, true);
   }
 
   /** Create a VisAD FlatField from a local McIDAS AREA subsected
@@ -107,33 +146,238 @@ public class AreaAdapter {
                      int numLines, 
                      int numEles, 
                      int band ) throws IOException, VisADException {
-    this(imageSource, startLine, startEle, numLines, numEles, band, true);
+    this(
+        imageSource, 
+        startLine, startEle, 
+        numLines, numEles, 
+        0, 0, 
+        Calibrator.CAL_NONE, band, true
+    );
+  } 
+  
+  /** Create a VisAD FlatField from a local McIDAS AREA subsected
+   * according to the parameters
+   * @param imageSource name of local file or a URL to locate file.
+   * @param startLine starting line from the file (AREA coordinates)
+   * @param startEle  starting element from the file (AREA coordinates)
+   * @param numLines  number of lines to read
+   * @param numEles   number of elements to read
+   * @param band      band number to get
+   * @param pack      pack data if possible.  If calibration is BRIT, 
+   *                  images are packed into bytes
+   *                      
+   * @exception IOException if there was a problem reading the file.
+   * @exception VisADException if an unexpected problem occurs.
+   */
+  public AreaAdapter(String imageSource, 
+      int startLine, 
+      int startEle, 
+      int numLines, 
+      int numEles,
+      int band,
+      boolean pack) throws IOException, VisADException {
+    this(
+        imageSource, 
+        startLine, startEle, 
+        numLines, numEles, 
+        0, 0, 
+        Calibrator.CAL_NONE, band, pack
+    );
+  }
+ 
+  /** Create a VisAD FlatField from a local McIDAS AREA subsected
+   * according to the parameters
+   * @param imageSource name of local file or a URL to locate file.
+   * @param startLine starting line from the file (AREA coordinates)
+   * @param startEle starting element from the file (AREA coordinates)
+   * @param numLines number of lines to read
+   * @param numEles number of elements to read
+   * @param band band number to get
+   * @param lineMag magnification for lines
+   * @param eleMag magnification for elements
+   * @exception IOException if there was a problem reading the file.
+   * @exception VisADException if an unexpected problem occurs.
+   */
+  public AreaAdapter(String imageSource, 
+      int startLine, 
+      int startEle, 
+      int numLines, 
+      int numEles,
+      int lineMag,
+      int eleMag,
+      int band) throws IOException, VisADException {
+    
+    this(
+        imageSource, 
+        startLine, startEle, 
+        numLines, numEles, 
+        lineMag, eleMag, 
+        Calibrator.CAL_NONE, band, true
+    );
   }
 
   /** Create a VisAD FlatField from a local McIDAS AREA subsected
-    * according to the parameters
-    * @param imageSource name of local file or a URL to locate file.
-    * @param startLine starting line from the file (AREA coordinates)
-    * @param startEle  starting element from the file (AREA coordinates)
-    * @param numLines  number of lines to read
-    * @param numEles   number of elements to read
-    * @param band      band number to get
-    * @param pack      pack data if possible.  If calibration is BRIT, 
-    *                  images are packed into bytes
-    *                      
-    * @exception IOException if there was a problem reading the file.
-    * @exception VisADException if an unexpected problem occurs.
-    */
+   * according to the parameters
+   * @param imageSource name of local file or a URL to locate file.
+   * @param startLine starting line from the file (AREA coordinates)
+   * @param startEle starting element from the file (AREA coordinates)
+   * @param numLines number of lines to read
+   * @param numEles number of elements to read
+   * @param lineMag magnification for lines
+   * @param eleMag magnification for elements
+   * @param cal type of calibration to perform on retrieved data; ignored if
+   * 'unit' is specified in <code>imageSource</code>.
+   * @param band band number to get
+   * @exception IOException if there was a problem reading the file.
+   * @exception VisADException if an unexpected problem occurs.
+   */
+  public AreaAdapter(String imageSource, 
+      int startLine, 
+      int startEle, 
+      int numLines, 
+      int numEles,
+      int lineMag,
+      int eleMag,
+      int cal,
+      int band) throws IOException, VisADException {
+    
+    this(
+        imageSource, 
+        startLine, startEle, 
+        numLines, numEles, 
+        lineMag, eleMag, 
+        cal, band, true
+    );
+  }
+  
+  /** Create a VisAD FlatField from a local McIDAS AREA subsected
+   * according to the parameters
+   * @param imageSource name of local file or a URL to locate file.
+   * @param startLine starting line from the file (AREA coordinates)
+   * @param startEle  starting element from the file (AREA coordinates)
+   * @param numLines  number of lines to read
+   * @param numEles   number of elements to read
+   * @param band      band number to get
+   * @param lineMag magnification for lines
+   * @param eleMag magnification for elements
+   * @param pack      pack data if possible.  If calibration is BRIT, 
+   *                  images are packed into bytes
+   *                      
+   * @exception IOException if there was a problem reading the file.
+   * @exception VisADException if an unexpected problem occurs.
+   */
   public AreaAdapter(String imageSource, 
                      int startLine, 
                      int startEle, 
                      int numLines, 
-                     int numEles, 
+                     int numEles,
+                     int lineMag,
+                     int eleMag,
                      int band,
                      boolean pack) throws IOException, VisADException {
+    this(
+        imageSource, 
+        startLine, startEle, 
+        numLines, numEles,
+        lineMag, eleMag, 
+        Calibrator.CAL_NONE, band, pack
+    );
+  }
+  
+  /** Create a VisAD FlatField from a local McIDAS AREA subsected
+   * according to the parameters
+   * @param imageSource name of local file or a URL to locate file.
+   * @param startLine starting line from the file (AREA coordinates)
+   * @param startEle  starting element from the file (AREA coordinates)
+   * @param numLines  number of lines to read
+   * @param numEles   number of elements to read
+   * @param lineMag magnification for lines
+   * @param eleMag magnification for elements
+   * @param cal type of calibration to perform on retrieved data; ignored if
+   * 'unit' is specified in <code>imageSource</code>.
+   * @param band      band number to get
+   * @param pack      pack data if possible.  If calibration is BRIT, 
+   *                  images are packed into bytes
+   *                      
+   * @exception IOException if there was a problem reading the file.
+   * @exception VisADException if an unexpected problem occurs.
+   */
+  public AreaAdapter(String imageSource, 
+                     int startLine, 
+                     int startEle, 
+                     int numLines, 
+                     int numEles,
+                     int lineMag,
+                     int eleMag,
+                     int cal,
+                     int band,
+                     boolean pack) throws IOException, VisADException {    
+
     try {
-      AreaFile af = new AreaFile(imageSource);
-      buildFlatField(af, startLine, startEle, numLines, numEles, band, pack);
+      AreaFile af = AreaFileFactory.getAreaFileInstance(imageSource);
+      
+      // cal type not set in the imageSource URL
+      if (af.getCalType() == Calibrator.CAL_NONE) {
+        af.setCalType(cal);
+      }
+      
+      AreaDirectory dir = af.getAreaDirectory();
+      
+      // indicates subsetting using the parameters
+      boolean paramSubset = numLines != 0 && numEles != 0 && band != 0;
+      
+      // subsetted using the URL in imageSource, ignore params
+      if (af.isSubsetted()) {
+        buildFlatField(
+            af,
+            0,
+            0,
+            dir.getLines(),
+            dir.getElements(),
+            dir.getBands()[0],
+            pack
+        );
+      
+      // subsetted in parameters, so subset manually
+      } else if (!af.isSubsetted() && paramSubset){
+        af = AreaFileFactory.getAreaFileInstance(
+                imageSource, 
+                startLine, 
+                numLines, 
+                lineMag, 
+                startEle, 
+                numEles, 
+                eleMag, 
+                band
+        );
+        // cal type not set in the imageSource URL
+        if (af.getCalType() == Calibrator.CAL_NONE) {
+          af.setCalType(cal);
+        }
+        dir = af.getAreaDirectory(); // be sure to re-get the directory
+        buildFlatField(
+            af, 
+            0, 
+            0, 
+            dir.getLines(), 
+            dir.getElements(),
+            dir.getBands()[0],
+            pack
+        );
+        
+      // getting the entire file including all bands
+      } else {
+        buildFlatField(
+            af, 
+            0, 
+            0, 
+            dir.getLines(), 
+            dir.getElements(),
+            0,
+            pack
+        );
+      }
+      
     } catch (McIDASException afe) {
          throw new VisADException("Problem with McIDAS AREA file: " + afe);
     }
@@ -176,7 +420,7 @@ public class AreaAdapter {
     // NB: always zero now
     int bandNums[] = areaDirectory.getBands();
     int numBands = areaDirectory.getNumberOfBands();  // this might be different
-
+    
     // create indicies into the data structure for the bands
     int[] bandIndices = new int[numBands];
     if (band != 0) { // specific bands requested
@@ -194,7 +438,7 @@ public class AreaAdapter {
     } else {  // all bands
         for (int i = 0; i < numBands; i++) bandIndices[i] = i;
     }
-
+    
     RealType[] bands = new RealType[numBands];
     // If we have calibration units, might as well use them.
     Unit calUnit = null;
@@ -234,10 +478,11 @@ public class AreaAdapter {
     {
         // adjust the directory in case a subsection was requested
         int[] dirBlock = (int[]) areaDirectory.getDirectoryBlock().clone();
-        dirBlock[5] = dirBlock[5] + (startLine * dirBlock[11]);
-        dirBlock[6] = dirBlock[6] + (startEle  * dirBlock[12]);
-        dirBlock[8] = nLines;
-        dirBlock[9] = nEles;
+// BMF: directory modification is now handled in AreaFile
+//        dirBlock[5] = dirBlock[5] + (startLine * dirBlock[11]);
+//        dirBlock[6] = dirBlock[6] + (startEle  * dirBlock[12]);
+//        dirBlock[8] = nLines;
+//        dirBlock[9] = nEles;
         cs = new AREACoordinateSystem( dirBlock, nav, aux);
     }
     catch (VisADException e)
@@ -297,13 +542,12 @@ public class AreaAdapter {
     }
 
 
-    // get the data
-    int[][][] int_samples;
+    // get the data, possibly calibrated
+    float[][][] flt_samples;
     try {
-      int_samples = af.getData();
-
+      flt_samples = af.getFloatData();
     } catch (McIDASException samp) {
-        throw new VisADException("Problem reading AREA file: "+samp);
+      throw new VisADException("Problem reading AREA file: "+samp);
     }
 
     // for each band, create a sample array for the FlatField
@@ -311,14 +555,14 @@ public class AreaAdapter {
     try {
       float[][] samples = new float[numBands][nEles*nLines];
 
-      //if (areaDirectory.getCalibrationType().equalsIgnoreCase("BRIT")) {
+      //if (areaDirectory.getCalibrationType().equalsIgnoreCase("BRIT"))
       if (pack) {
 
         for (int b=0; b<numBands; b++) {
           for (int i=0; i<nLines; i++) {
             for (int j=0; j<nEles; j++) {
   
-              int val = int_samples[bandIndices[b]][startLine+i][startEle+j];
+              float val = flt_samples[bandIndices[b]][startLine+i][startEle+j];
               samples[b][j + (nEles * i) ] =
                 (val == 255)
                    ? 254.0f                   // push 255 into 254 for BRIT
@@ -334,7 +578,7 @@ public class AreaAdapter {
             for (int j=0; j<nEles; j++) {
 
               samples[b][j + (nEles * i) ] = calScale * 
-                (float) int_samples[bandIndices[b]][startLine+i][startEle+j];
+                flt_samples[bandIndices[b]][startLine+i][startEle+j];
 
             }
           }
