@@ -4,6 +4,7 @@ package edu.wisc.ssec.mcidas;
 /**
  * CalibratorException class is to handle exceptions when calibrating data.
  *
+ * @version $Id: CalibratorException.java,v 1.2 2007-03-12 21:16:20 brucef Exp $
  * @author Bruce Flynn, SSEC
  */
 public class CalibratorException extends McIDASException {

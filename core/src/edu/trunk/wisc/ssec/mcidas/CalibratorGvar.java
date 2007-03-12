@@ -12,7 +12,7 @@ import java.io.IOException;
  * @author Tommy Jasmin, SSEC
  */
 
-abstract class CalibratorGvar implements Calibrator {
+public abstract class CalibratorGvar implements Calibrator {
 
   protected static final int NUM_BANDS_IMAGER = 5;
   protected static final int NUM_BANDS_SOUNDER = 18;

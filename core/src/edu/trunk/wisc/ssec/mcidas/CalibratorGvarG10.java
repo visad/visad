@@ -2,7 +2,6 @@ package edu.wisc.ssec.mcidas;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.lang.String;
 
 /**
  * CalibratorGvarG10 creates a Calibrator object designed specifically
@@ -14,7 +13,7 @@ import java.lang.String;
  * @author Tommy Jasmin, SSEC
  */
 
-class CalibratorGvarG10 extends CalibratorGvar {
+public class CalibratorGvarG10 extends CalibratorGvar {
 
   protected static float [] imager10FK1  = new float[NUM_BANDS_IMAGER];
   protected static float [] sounder10FK1 = new float[NUM_BANDS_SOUNDER];

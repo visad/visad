@@ -2,7 +2,6 @@ package edu.wisc.ssec.mcidas;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.lang.String;
 
 /**
  * CalibratorDefault creates a Calibrator object designed to
@@ -14,7 +13,7 @@ import java.lang.String;
  * @author Tommy Jasmin, SSEC
  */
 
-class CalibratorDefault implements Calibrator {
+public class CalibratorDefault implements Calibrator {
 
   // public static final int CAL_NONE = -1;
   // public static final int CAL_MIN  = 1;

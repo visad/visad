@@ -14,7 +14,7 @@ import java.lang.String;
  * @author Tommy Jasmin, SSEC
  */
 
-class CalibratorGvarG9 extends CalibratorGvar {
+public class CalibratorGvarG9 extends CalibratorGvar {
 
   protected static float [] imager9FK1  = new float[NUM_BANDS_IMAGER];
   protected static float [] sounder9FK1 = new float[NUM_BANDS_SOUNDER];
