@@ -43,14 +43,17 @@ import edu.wisc.ssec.mcidas.adde.GetAreaGUI;
 
 /** 
  * AreaFile interface with McIDAS 'area' file format image data.
- * This will allow 'area' format data to be read from disk; the
- * navigation block is made available (see GVARnav for example).
+ * 
+ * <p>This will allow 'area' format data to be read from disk; the
+ * navigation block is made available (see GVARnav for example).</p>
+ * 
+ * <p>Calibration is handled via classes that implement the {@link Calibrator}
+ * interface.</p>
+ * 
+ * <p>This implementation does not check the 'valcode' on each line.</p>
  *
- * This implementation does not do calibration (other than
- * accounting for its presence in the data).  Also, the 'valcode'
- * is not checked on each line.
- *
- * @authors - Tom Whittaker & Tommy Jasmin at SSEC
+ * @author Tom Whittaker, SSEC
+ * @author Tommy Jasmin, SSEC
  * 
  */
 
@@ -172,7 +175,7 @@ public class AreaFile implements java.io.Serializable {
   {
     return handlerLoaded;
   }
-
+  
   private boolean flipwords;
   private boolean fileok;
   private boolean hasReadData;
@@ -198,12 +201,22 @@ public class AreaFile implements java.io.Serializable {
   private AreaDirectory areaDirectory;
   private String imageSource = null;
   private AREAnav areaNav;
+  private int calType = Calibrator.CAL_NONE;
+  private boolean isRemote = false;
   
-  class Subset {
+  // master of all subsetting paramters
+  private class Subset {
     int lineNumber, numLines, lineMag, eleNumber, numEles,
     eleMag, bandNumber;
+    public String toString() {
+      return "Start_line:"+lineNumber+" Num_lines:"+numLines
+      	+ " Line_mag:"+lineMag+" Start_ele:"+eleNumber
+      	+ " Num_ele:"+numEles+" Ele_mag:"+eleMag
+      	+ " Band:"+bandNumber;
+    }
   }
   
+  // if subset is not null, we have been subsetted
   private Subset subset = null;
   
   /**
@@ -211,7 +224,7 @@ public class AreaFile implements java.io.Serializable {
    * of McIDAS 'area' file format image data.  allows reading
    * either from a disk file, or a server via ADDE.
    *
-   * @param imageSource the file name or ADDE URL to read from
+   * @param imageSource the file name, ADDE URL, or local file URL to read from
    *
    * @exception AreaFileException if file cannot be opened
    *
@@ -242,14 +255,16 @@ public class AreaFile implements java.io.Serializable {
       URL url;
       try {
         url = new URL(imageSource);
+        System.out.println(url);
         URLConnection urlc = url.openConnection();
         InputStream is = urlc.getInputStream();
         af = new DataInputStream( new BufferedInputStream(is));
       }
-      catch (Exception e) {
+      catch (IOException e) {
         fileok = false;
         throw new AreaFileException("Error opening AreaFile: " + e);
       }
+      isRemote = url.getProtocol().equalsIgnoreCase("adde");
     }
     fileok=true;
     position = 0;
@@ -284,6 +299,9 @@ public class AreaFile implements java.io.Serializable {
         fileok = false;
         throw new AreaFileException("Error opening AreaFile:"+e);
     }
+    
+    isRemote = url.getProtocol().equalsIgnoreCase("adde");
+    
     fileok=true;
     position = 0;
     readMetaData();
@@ -291,15 +309,14 @@ public class AreaFile implements java.io.Serializable {
   }
 
   /**
-   * creates an AreaFile object that allows reading
-   * of McIDAS 'area' file format image data from a URL
-   *
-   * @param URL - the URL to go after
-   *
+   * create an <code>AreaFile</code> that allows reading of McIDAS 'area' 
+   * file format image data from a <code>URL</code> with a protocol of either
+   * <code>file</code> or <code>ADDE</code>.  See 
+   * {@link edu.wisc.ssec.mcidas.adde.AddeURLConnection} for more information on
+   * constructing ADDE urls.   
+   *  
    * @exception AreaFileException if file cannot be opened
-   *
    */
-
   public AreaFile(URL url) throws AreaFileException {
 
     imageSource = url.toString();
@@ -309,69 +326,101 @@ public class AreaFile implements java.io.Serializable {
         fileok = false;
         throw new AreaFileException("Error opening URL for AreaFile:"+e);
     }
+    
+    isRemote = url.getProtocol().equalsIgnoreCase("adde");
+    
     fileok=true;
     position = 0;
     readMetaData();
   }
-
+  
   /**
-   * Create an <code>AreaFile</code> which allows reading of a subset of a 
-   * McIDAS 'area' file format image data from a local file.
-   *  
-   * @param source Path to local file.
-   * @param lineNumber Starting line number.
-   * @param numLines Total number of lines
-   * @param lineMag Line magnification. Valid values are <= 1. -1, 0, and 1 are
-   *                all all taken to be 1.
-   * @param eleNumber Starting element number.
-   * @param numEles Total number of elements.
-   * @param eleMag Element magnification. Valid values are <= 1. -1, 0, and 1
-   *               are all all taken to be 1.
-   * @param bandNumber 1-based band number.
+   * Create a subsetted instance. When subsetted, the data not included in the 
+   * subset is no longer available to this instance due to the directory block
+   * being updated with the subsetting parameters. 
+   * 
+   * @param startLine the starting image line
+   * @param numLines the total number of lines to return
+   * @param lineMag the line magnification. Valid values are &gt;= -1. -1, 0, and
+   *                1 are all taken to be full line resolution, 2 is every 
+   *                other line, 3 every third, etc...
+   * @param startElem the starting image element
+   * @param numEles the total number of elements to return
+   * @param eleMag the element magnification. Valid values are &gt;= -1. -1, 0, and 1
+   *               are all taken to be full element resolution, 2 is every
+   *               other element, 3 every third, etc...
+   * @param band the 1-based band number for the subset, which must be present
+   *             in the directory blocks band map
    * @throws AreaFileException if file cannot be opened
+   * @throws IllegalArgumentException If the magnification is greater than 1, 
+   * the band number is not in the band map, or either of the following are 
+   * true:
+   * <pre>
+   *  startLine + (numLines * abs(lineMag)) &gt; total number of lines
+   *  startElem + (numEles * abs(eleMag)) &gt; total number of elements
+   * </pre>
    */
-  public AreaFile(String source, int lineNumber, int numLines, int lineMag,
-      int eleNumber, int numEles, int eleMag, int bandNumber)
+  public AreaFile(String source,
+      int startLine, int numLines, int lineMag,
+      int startElem, int numEles, int eleMag, int band)
       throws AreaFileException {
-
+    
     this(source);
 
+    // must have subsetted in the url
+    if (isSubsetted()) return;
+    
+    // 0, 1, -1 are all full res
     if (eleMag == 0) eleMag = 1;
     if (lineMag == 0) lineMag = 1;
-    
-    if (lineNumber + numLines > origNumLines
-        || eleNumber + numEles > origNumElements || bandNumber > origNumBands
-        || lineNumber + numLines * Math.abs(lineMag) > origNumLines
-        || eleNumber + numEles * Math.abs(eleMag) > origNumElements) {
-      throw new IllegalArgumentException(
-          "Arguments outside of file line/element counts");
 
-    } else if (lineMag > 1 || eleMag > 1) {
+    if (lineMag > 1 || eleMag > 1) {
       throw new IllegalArgumentException(
           "Magnifications greater that 1 are not currently supported");
+
+    } else if (startLine + numLines * Math.abs(lineMag) > origNumLines
+            || startElem + numEles * Math.abs(eleMag) > origNumElements) {
+      throw new IllegalArgumentException(
+          "Arguments outside of file line/element counts");
+    } 
+    
+    int bandIdx = -1;
+    int[] bands = getAreaDirectory().getBands();
+    for (int i = 0; i < bands.length; i++) {
+      if (bands[i] == band) bandIdx = i;
+    }
+    
+    if (bandIdx == -1) {
+      throw new IllegalArgumentException("Band not found in band map");
     }
 
     // save subset data
     subset = new Subset();
-    subset.lineNumber = lineNumber;
+    subset.lineNumber = startLine;
     subset.numLines = numLines;
     subset.lineMag = lineMag;
-    subset.eleNumber = eleNumber;
+    subset.eleNumber = startElem;
     subset.numEles = numEles;
     subset.eleMag = eleMag;
-    subset.bandNumber = bandNumber;
+    subset.bandNumber = band;
 
-    int newDatOffset = lineNumber * lineLength; 
+    int newDatOffset = startLine * lineLength; 
     newDatOffset += linePrefixLength;
-    newDatOffset += eleNumber * (origNumBands * dir[AD_DATAWIDTH]);
-    newDatOffset += (bandNumber - 1) * dir[AD_DATAWIDTH];
-
+    newDatOffset += startElem * (origNumBands * dir[AD_DATAWIDTH]);
+    newDatOffset += (band - 1) * dir[AD_DATAWIDTH];
+    
     // reflect subset in directory
     dir[AD_DATAOFFSET] = newDatOffset;
     dir[AD_NUMLINES] = numLines;
     dir[AD_NUMELEMS] = numEles;
+    dir[AD_NUMBANDS] = 1;
     
-    // if mag is positive devide to get resolution, otherwise mult.
+    dir[AD_STLINE] = dir[AD_STLINE] + (startLine * dir[AD_LINERES]);
+    dir[AD_STELEM] = dir[AD_STELEM] + (startElem * dir[AD_ELEMRES]);
+    
+    // if mag is positive divide to get resolution, otherwise mult.
+    // NOTE: resolution in area file is not necessarily full resolution, full
+    // resolution is based on the instrument, not the file.
     if (lineMag < 0) {
       dir[AD_LINERES] = dir[AD_LINERES] * Math.abs(lineMag);
     } else {
@@ -383,22 +432,37 @@ public class AreaFile implements java.io.Serializable {
       dir[AD_ELEMRES] = dir[AD_ELEMRES] / eleMag;
     }
     
-    dir[AD_STLINE] = dir[AD_STLINE] + (lineNumber * dir[AD_LINERES]);
-    dir[AD_STELEM] = dir[AD_STELEM] + (eleNumber * dir[AD_ELEMRES]);
-    dir[AD_NUMBANDS] = 1;
-
+    // set the band in the band map. Bandmap is in words 18 and 19
+    if (band <= 32) {
+      dir[AD_BANDMAP] = 1 << (band - 1);
+    } else {
+      dir[AD_BANDMAP + 1] = 1 << (band - 32);
+    }
+    
+    // FIXME update word 14?
+    
+    // create new directory with subsetted parameters
     areaDirectory = new AreaDirectory(dir);
   }
   
   /**
-   * Was this <code>AreaFile</code> created as a subset.
+   * Is this <code>AreaFile</code> instance subseted.
    * 
-   * @return True if subsetting constructor was used to create this object.
+   * @return True if this instance represents a subset of the total data
+   * available.
    */
   public boolean isSubsetted() {
     return !(subset == null);
   }
 
+  /**
+   * Was this instance create with a remote data source.
+   * @return True if created with an ADDE url
+   */
+  public boolean isRemote() {
+    return isRemote;
+  }
+  
   /**
    * Read the metadata for an area file (directory, nav, and cal).
    * 
@@ -718,53 +782,96 @@ public class AreaFile implements java.io.Serializable {
   }
   
   /**
-   * Read the AREA file and return the contents calibrated according to
-   * <code>type</code>.
+   * Set the calibration type that will be used on data returned from 
+   * <code>getCalibratedData()</code>. This must be called before
+   * <code>getCalibratedData()</code> to get calibrated data, otherwise it will
+   * just return the data in the format specified in the directory.
+   * @param cal calibration type from {@link Calibrator}.
+   */
+  public void setCalType(int cal) {
+    calType = cal;
+  }
+  
+  /**
+   * Get the calibration type that will be used on data returned form
+   * <code>getCalibratedData()</code>.
+   * @return calibration type from {@link Calibrator}.
+   */
+  public int getCalType() {
+    return calType;
+  }
+  
+  
+  /**
+   * Read the AREA file and return the contents as floats. If the calibration
+   * type has been set via <code>setCalType()</code>, <code>isRemote()</code>
+   * is false, and a <code>Calibrator</code> is available data is calibrated 
+   * before returning, otherwise the calibration type is ignored. 
+   * The original data is alway preserved.
    * 
-   * @param type type of calibration to perform from {@link Calibrator}
-   * 
-   * @return calibrated data[band][lines][elements]
-   * @throws CalibratorException If an error occurs calibrating the data or the
-   * sensor id in the directory is unknown.
+   * @return data[band][lines][elements] as described above
    * @throws AreaFileException on error reading data.
    * @see Calibrator
    */
-  public float[][][] getData(int type) 
-      throws CalibratorException, AreaFileException {
+  public float[][][] getFloatData() throws AreaFileException {
     
     int[][][] inData = getData();
     float[][][] outData = 
-      new float[dir[AD_NUMBANDS]][dir[AD_NUMELEMS]][dir[AD_NUMLINES]];
+      new float[dir[AD_NUMBANDS]][dir[AD_NUMLINES]][dir[AD_NUMELEMS]];
     
     // create the appropriate calibrator
-    Calibrator calibrator = CalibratorFactory.getCalibrator(
-			areaDirectory.getSensorID(),
-			cal
-    );
+    Calibrator calibrator = null;
+
+    int origType = AreaFileFactory.calStrToInt(
+              areaDirectory.getCalibrationType());
+
+    if (!isRemote() &&
+        getCalType() != Calibrator.CAL_NONE &&
+        origType != getCalType()) {
+
+    try {
+      calibrator = CalibratorFactory.getCalibrator(
+        areaDirectory.getSensorID(),
+			  cal
+      );
+    } catch(CalibratorException e) {
+      // can't calibrate
+    }
+    }
 	
-	// calibrate all bands
+    // get all bands
     if (subset == null) {
       for (int band_idx = 0; band_idx < inData.length; band_idx++) {
         for (int line = 0; line < inData[0].length; line++) {
           for (int elem = 0; elem < inData[0][0].length; elem++) {
-            outData[band_idx][line][elem] = calibrator.calibrate(
-                (float) inData[band_idx][line][elem],
-                band_idx + 1, 
-                type
-            );
+            if (calibrator != null) {
+              outData[band_idx][line][elem] = calibrator.calibrate(
+                  (float) inData[band_idx][line][elem],
+                  band_idx + 1, 
+                  calType
+              );
+            } else {
+              outData[band_idx][line][elem] = inData[band_idx][line][elem];
+            }
           }
         }
       }
       
-    // calibrate single banded subset data
+    // just subsetted band
     } else {
       for (int line = 0; line < inData[0].length; line++) {
         for (int elem = 0; elem < inData[0][0].length; elem++) {
-          outData[0][line][elem] = calibrator.calibrate(
-              (float) inData[0][line][elem],
-              subset.bandNumber,
-              type
-          );
+          if (!isRemote 
+              && calType != Calibrator.CAL_NONE
+              && calibrator != null) {
+            outData[0][line][elem] = calibrator.calibrate(
+                (float) inData[0][line][elem],
+                subset.bandNumber,
+                calType
+            );
+          } else {
+            outData[0][line][elem] = inData[0][line][elem];
+          }
         }
       }
     }
@@ -785,7 +892,8 @@ public class AreaFile implements java.io.Serializable {
    * @param numEles    the number of elements to return for each line
    *
    * @return int array[lines][elements] with data values.
-   * @deprecated Use the subsetting constructor.
+   * @deprecated Use one of the factory methods from {@link AreaFileFactory} 
+   * with the appropriate subsetting parameters.
    * @exception AreaFileException if the is a problem reading the file
    */
   public int[][] getData(int lineNumber, int eleNumber, int
@@ -808,7 +916,8 @@ public class AreaFile implements java.io.Serializable {
    * @param bandNumber the spectral band to return
    *
    * @return int array[lines][elements] with data values.
-   * @deprecated Use the subsetting constructor.
+   * @deprecated Use one of the factory methods from {@link AreaFileFactory} 
+   * with the appropriate subsetting parameters.
    * @exception AreaFileException if the is a problem reading the file
    */
   public int[][] getData(int lineNumber, int eleNumber, int
@@ -1053,80 +1162,83 @@ public class AreaFile implements java.io.Serializable {
 
     return;
   }
+  
+  /* (non-Javadoc)
+   * @see java.lang.Object#toString()
+   */
+  public String toString() {
+    AreaDirectory dir = getAreaDirectory();
+    String EOL = "\n";
+    StringBuffer buff = new StringBuffer();
+    buff.append("Directory values ========="+EOL);
+    buff.append("Num Lines: " + dir.getLines()+EOL);
+    buff.append("Num Elements: " + dir.getElements()+EOL);
+    buff.append("Start Line: " + dir.getDirectoryBlock()[AD_STLINE]+EOL);
+    buff.append("Start Element: " + dir.getDirectoryBlock()[AD_STELEM]+EOL);
+    buff.append("Bands:");
+    for (int i = 0; i < dir.getBands().length; i++)
+      buff.append(" " + dir.getBands()[i]);
+    buff.append(EOL);
+    buff.append("Source Type: " + dir.getSourceType()+EOL);
+    buff.append("Sensor Type: " + dir.getSensorType()+EOL);
+    buff.append("Sensor ID: " + dir.getSensorID()+EOL);
+    buff.append("Cal Type: " + dir.getCalibrationType()+EOL);
+    buff.append("=========================="+EOL);
+    try {
+      buff.append("Nav: " + getNavigation() +EOL);
+    } catch (AreaFileException e) {}
+    buff.append("User Cal Type: " 
+        + AreaFileFactory.calIntToStr(getCalType()).toUpperCase());
+    return buff.toString();
+  }
 
+  /**
+   * Test Method. 
+   * <pre>
+   * USAGE: AreaFile &lt;source&gt; [(raw|temp|brit|rad|refl)]
+   * </pre>
+   * <p>If source is a file path or url without subsetting information directory
+   * information is printed. If source is a local file url with subsetting
+   * information data is printed according to the parameters.</p>
+   * 
+   * <p>This has not been tested with an ADDE url, but it should work ... 
+   * maybe.</p>
+   * 
+   * @param args
+   * @throws Exception
+   */
   public static void main(String[] args) throws Exception{
 	    System.out.println();
-	    System.out.println("USAGE: AreaFile <file> [<start> <number> <mag> <band>] " 
-	        + "[(raw|temp|brit|rad|refl)]");
-	    System.out.println("Note: start, number, and mag are used for " +
-	        "lines and elements.");
+	    System.out.println("USAGE: AreaFile <source>");
 	    System.out.println();
+      
+      AreaFile af = AreaFileFactory.getAreaFileInstance(new URL(args[0]));
+      
+	    System.out.println(af);
+      
+      if (args.length == 1 && !af.isSubsetted()) System.exit(0);
 	    
-	    boolean calFlag = true;
-	    
-	    if (args.length == 1) {
-	      AreaFile af = new AreaFile(args[0]);
-	      System.out.println("Directory info:");
-	      AreaDirectory ad = af.getAreaDirectory();
-	      System.out.println(""+ ad.getLines() + " lines");
-	      System.out.println(""+ ad.getElements() + " elements");
-	      System.out.println(""+ad.getBands().length + " bands");
-	      System.exit(0);
-	    } else if (args.length == 5) {
-	      calFlag = false;
-	    } else if (args.length != 6) {
-	      System.exit(-1);
-	    }
-	    
-	    int s,n,r,b;
-	    s = Integer.parseInt(args[1]);
-	    n = Integer.parseInt(args[2]);
-	    r = Integer.parseInt(args[3]);
-	    b = Integer.parseInt(args[4]);
-	    
-	    AreaFile sf = new AreaFile(args[0], s, n, r, s, n, r, b);
-	    
-	    AreaDirectory dir = sf.getAreaDirectory();
-	    System.out.println("Directory: " + dir);
-	    System.out.println("Source Type: " + dir.getSourceType());
-	    System.out.println("Sensor Type: " + dir.getSensorType());
-	    System.out.println("Sensor ID: " + dir.getSensorID());
-	    System.out.println("Cal Type: " + dir.getCalibrationType());
-	    
-	    System.out.println("start: "+s);
-	    System.out.println("number: "+n);
-	    System.out.println("band: "+b);
-	    if (calFlag) System.out.println("cal type: " + args[5]);
-	    System.out.println();
-	    
-	    int cal_type = Calibrator.CAL_RAW;
-	    if (calFlag && args[5].equals("temp")) cal_type = Calibrator.CAL_TEMP;
-	    if (calFlag && args[5].equals("rad")) cal_type = Calibrator.CAL_RAD;
-	    if (calFlag && args[5].equals("brit")) cal_type = Calibrator.CAL_BRIT;
-	    if (calFlag && args[5].equals("refl")) cal_type = Calibrator.CAL_ALB;
-	    
+      System.out.println();
+      System.out.println(af.subset);
+      
+      System.out.println();
 	    long time = System.currentTimeMillis();
-	    float[][][] data = null;
-	    if (calFlag) {
-	      data = sf.getData(cal_type);
-	    } else {
-	      int intData[][][] = sf.getData();
-	      data = new float[intData.length][intData[0].length][intData[0][0].length];
-	      for (int i=0; i<intData.length; i++)
-	    	  for (int j=0; j<intData[0].length; j++)
-	    		  for (int k=0; k<intData[0][0].length; k++)
-	    			  data[i][j][k] = (float) intData[i][j][k];
-	    }
+      System.out.print("Getting data ... ");
+      float data[][][] = af.getFloatData();
+      
 	    System.out.println("" + (System.currentTimeMillis() - time)
-	        + " ms to retrieve data");
+	        + "ms to retrieve " 
+          + AreaFileFactory.calIntToStr(af.getCalType()).toUpperCase() 
+          + " data");
 	    System.out.println();
-	    System.out.println("SUBSETTED DATA ["+data.length+"]["+data[0].length+"]["
+	    
+	    System.out.println("DATA ["+data.length+"]["+data[0].length+"]["
 	        +data[0][0].length+"]");
 
 	    // write data to std err so it may be piped to file w/o all the
 	    // other garbage
-	    for (int i = 0; i < n; i++) {
-	      for (int j = 0; j < n; j++) {
+	    for (int i = 0; i < data[0].length; i++) {
+	      for (int j = 0; j < data[0][0].length; j++) {
 	        System.err.print("" + data[0][i][j] + " ");
 	      }
 	      System.err.println();

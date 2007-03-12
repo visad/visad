@@ -4,7 +4,7 @@ package edu.wisc.ssec.mcidas;
  * Utility class for creating <code>Calibrator</code> instances.
  * 
  * @author Bruce Flynn, SSEC
- * @version $Id: CalibratorFactory.java,v 1.2 2007-02-26 16:41:10 brucef Exp $
+ * @version $Id: CalibratorFactory.java,v 1.3 2007-03-12 20:54:15 brucef Exp $
  */
 public final class CalibratorFactory {
 
@@ -36,10 +36,11 @@ public final class CalibratorFactory {
      * for a table of sensor ids.
      * @param id Sensor id from the directory block
      * @param srcType the source data type from the directory block
-     * @param cal Calibration block used to initialize the <code>Calibrator
-     * </code>
+     * @param cal Calibration block used to initialize the 
+     *        <code>Calibrator</code>
      * @return initialized <code>Calibrator</code>.
-     * @throws CalibratorException on an error initializing the object.
+     * @throws CalibratorException on an error initializing the object or if the
+     *         sensor is unknown.
      */
 	public final static Calibrator getCalibrator(
 			final int id, final int srcType, final int[] cal) 
@@ -78,4 +79,28 @@ public final class CalibratorFactory {
 	    }
 	    return calibrator;
 	}
+  
+  /**
+   * Check if there is a <code>Calibrator</code> implemented for a sensor.
+   * 
+   * @param id Id of the sensor from the McIDAS Users Guide
+   * <a href="http://www.ssec.wisc.edu/mcidas/doc/users_guide/current/app_c-1.html">Appendix C</a>
+   * @return True if there is an implemented <code>Calibrator</code>, false
+   *         otherwise.
+   * @see The McIDAS Users Guide 
+   */
+  public final static boolean hasCalibrator(int id) {
+    switch (id) {
+      case Calibrator.SENSOR_GOES10_IMGR:
+      case Calibrator.SENSOR_GOES10_SNDR:
+      case Calibrator.SENSOR_GOES8_IMGR:
+      case Calibrator.SENSOR_GOES8_SNDR:
+      case Calibrator.SENSOR_GOES9_IMGR:
+      case Calibrator.SENSOR_GOES9_SNDR:
+      case Calibrator.SENSOR_MSG_IMGR:
+        return true;
+      default:
+        return false;
+    }
+  }
 }

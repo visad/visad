@@ -7,7 +7,7 @@ package edu.wisc.ssec.mcidas;
  * @author Tommy Jasmin, SSEC
  */
 
-interface Calibrator {
+public interface Calibrator {
 
   public static final int CAL_NONE = -1;
   public static final int CAL_MIN  = 1;

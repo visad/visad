@@ -42,7 +42,7 @@ package edu.wisc.ssec.mcidas;
  * 0.2312809974E-01-0.1179533087E+01</i>
  * </p>
  * @author Bruce Flynn, SSEC
- * @version $Id: CalibratorMsg.java,v 1.2 2007-02-20 00:44:00 brucef Exp $
+ * @version $Id: CalibratorMsg.java,v 1.3 2007-03-12 20:54:15 brucef Exp $
  */
 public class CalibratorMsg implements Calibrator {
 
@@ -145,6 +145,10 @@ public class CalibratorMsg implements Calibrator {
     public float[] calibrate(final float[] input, final int band, 
         final int calTypeOut) {
         
+        if (calTypeOut == curCalType || calTypeOut == CAL_NONE) { // no-op
+          return (float[])input.clone();
+        }
+      
         float[] output = new float[input.length];
 
         for (int i = 0; i < input.length; i++) {
@@ -170,6 +174,10 @@ public class CalibratorMsg implements Calibrator {
         final int calTypeOut) {
         float pxl;
 
+        if (calTypeOut == curCalType || calTypeOut == CAL_NONE) { // no-op
+          return inputPixel;
+        }
+        
         switch (curCalType) {
             case CAL_ALB:
                 throw new UnsupportedOperationException(
@@ -213,11 +221,11 @@ public class CalibratorMsg implements Calibrator {
         final float inputPixel,
         final int band,
         final int calTypeOut) {
-
-    	if (calTypeOut == CAL_RAW) { // no-op
-    		return inputPixel;
-    	}
     	
+        if (calTypeOut == CAL_RAW || calTypeOut == CAL_NONE) { // no-op
+            return inputPixel;
+        }
+      
         double[] coefs = planckCoefs[band - 1];
 
         double pxl = inputPixel * coefs[GAIN] + coefs[OFFSET];
@@ -235,7 +243,6 @@ public class CalibratorMsg implements Calibrator {
                     break;
                 
                 case CAL_RAD: // radiance
-                    pxl *= 100.0;
                     break;
             
                 case CAL_ALB: // reflectance
@@ -245,7 +252,6 @@ public class CalibratorMsg implements Calibrator {
                     } else if (pxl > 100) {
                         pxl = 100.0;
                     }
-                    pxl *= 100.0;
                     break;
                 
                 case CAL_BRIT: // brightness
@@ -273,11 +279,9 @@ public class CalibratorMsg implements Calibrator {
                         pxl = (coefs[C2W] / Math.log(1.0 + coefs[C1W3] / pxl) 
                             - coefs[BETA]) / coefs[ALPHA];
                     }
-                    pxl *= 100.0;
                     break;
 
                 case CAL_RAD: // radiance
-                    pxl *= 100.0;
                     break;
             
                 case CAL_ALB: // can't do reflectance
@@ -399,88 +403,4 @@ public class CalibratorMsg implements Calibrator {
         return bites;
     }
 
-    /**
-     * Test method. 
-     *
-     * @param args file band [start_line num_lines line_mag start_ele num_eles
-     * ele_mag]
-     * @throws Exception everything passes through.
-     */
-    public static void main(final String[] args) throws Exception {
-
-        if (args.length != 2 && args.length != 8) {
-            System.err.println("ARGS: file band [start_line num_lines line_mag "
-                    + "start_ele num_eles ele_mag]");
-            System.exit(1);
-        }
-
-        int sl, nl, lm, se, ne, em;
-        int b = Integer.parseInt(args[1]);
-        AreaFile af = null;
-
-        if (args.length != 2) { 
-            sl = Integer.parseInt(args[2]);
-            nl = Integer.parseInt(args[3]);
-            lm = Integer.parseInt(args[4]);
-            se = Integer.parseInt(args[5]);
-            ne = Integer.parseInt(args[6]);
-            em = Integer.parseInt(args[7]);
-            af = new AreaFile(args[0], sl, nl, lm, se, ne, em, b);
-        } else {
-            af = new AreaFile(args[0]);
-        }   
-
-        CalibratorMsg c = new CalibratorMsg(af.getCal());
-
-        System.err.println("CAL BLOCK CONV TO STRING =================");
-        System.err.println(new String(c.calBytes));
-        System.err.println("==========================================");
-
-
-
-        for (int i = 0; i < c.planckCoefs.length; i++) {
-            String[] strVals = c.getBandVals(
-                new String(c.calBytes, (i * (BAND_SIZE + 1)) + 4, BAND_SIZE)
-            );
-            System.err.println();
-            System.err.println("[B" + (i + 1) + "]   VALUE\t\t E17.10 String");
-            System.err.println("C1W3   = " + c.planckCoefs[i][C1W3]
-                + "\t \"" + strVals[C1W3] + "\"");
-            System.err.println("C2W    = " + c.planckCoefs[i][C2W]
-                  + "\t \"" + strVals[C2W] + "\"");
-            System.err.println("ALPHA  = " + c.planckCoefs[i][ALPHA]
-                    + "\t \"" + strVals[ALPHA] + "\"");
-            System.err.println("BETA   = " + c.planckCoefs[i][BETA]
-                      + "\t \"" + strVals[BETA] + "\"");
-            System.err.println("GAIN   = " + c.planckCoefs[i][GAIN]
-                        + "\t \"" + strVals[GAIN] + "\"");
-            System.err.println("OFFSET = " + c.planckCoefs[i][OFFSET]
-                          + "\t \"" + strVals[OFFSET] + "\"");
-        }
-        System.err.println();
-
-        long start = System.currentTimeMillis();
-        int[][][] data = af.getData();
-        System.err.println("" + (System.currentTimeMillis() - start) / 1000f 
-            + "s to get data from file\n");
-        int r1 = (int) (Math.random() * data[0].length);
-        int r2 = (int) (Math.random() * data[0][0].length);
-        int pxl = data[0][r1][r2];
-
-        System.err.println("== VALUES FOR RANDOM PIXEL ====================");
-        int i = args.length == 2 ? b : 0;
-        System.err.println("RAW VALUE pixel value at data[" + i + "]["
-            + r1 + "][" + r2 + "]: " + pxl);
-        System.err.println("RADIANCE VALUE: " 
-            + c.calibrate(pxl, b, Calibrator.CAL_RAD));
-
-        System.err.println("ALBEDO VALUE: "
-            + c.calibrate(pxl, b, Calibrator.CAL_ALB));
-
-        System.err.println("TEMP VALUE: "
-            + c.calibrate(pxl, b, Calibrator.CAL_TEMP));
-
-        System.err.println("BRIT VALUE: "
-            + c.calibrate(pxl, b, Calibrator.CAL_BRIT));
-    }
 }
