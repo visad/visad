@@ -42,6 +42,8 @@ import java.awt.Graphics;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+import com.sun.j3d.utils.universe.SimpleUniverse;
+
 /**
    VisADCanvasJ3D is the VisAD extension of Canvas3D
 */
@@ -95,7 +97,7 @@ public class VisADCanvasJ3D extends Canvas3D {
    * Set up the texture properties from the GraphicsConfiguration
    * @param c  GraphicsConfiguration
    */
-  private void setTextureProperties(GraphicsConfiguration c) {
+  private void setTextureProperties() {
     //- see if we've already set this
     if (!((textureHeightMax == 0) && (textureWidthMax == 0))) return;
     //- determine textureWidthMax ---------------------------------------
@@ -111,7 +113,7 @@ public class VisADCanvasJ3D extends Canvas3D {
     if ((textureHeightMax == 0) && (textureWidthMax == 0)) {
       Integer wProp = null;
       Integer hProp = null;
-      Canvas3D cnvs = new Canvas3D(c);
+      Canvas3D cnvs = new Canvas3D(getDefaultConfig());
       try {
         java.lang.reflect.Method method = cnvs.getClass().getMethod("queryProperties", null); 
         java.util.Map propertiesMap = (java.util.Map) method.invoke(cnvs, null);
@@ -165,7 +167,8 @@ public class VisADCanvasJ3D extends Canvas3D {
   public VisADCanvasJ3D(DisplayRendererJ3D renderer,
                  GraphicsConfiguration config) {
     super(config == null ? defaultConfig = (defaultConfig == null ? makeConfig(false) : defaultConfig) : config);
-    setTextureProperties(getGraphicsConfiguration());
+
+    setTextureProperties();
     displayRenderer = renderer;
     display = (DisplayImplJ3D) renderer.getDisplay();
     component = null;
@@ -203,7 +206,7 @@ public class VisADCanvasJ3D extends Canvas3D {
     **/
 // AND comment out the rest of this constructor,
     super(defaultConfig = (defaultConfig == null ? makeConfig(true) : defaultConfig), true);
-    setTextureProperties(getGraphicsConfiguration());
+    setTextureProperties();
     displayRenderer = renderer;
     display = (DisplayImplJ3D) renderer.getDisplay();
     component = null;
