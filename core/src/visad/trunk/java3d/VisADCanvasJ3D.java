@@ -71,6 +71,8 @@ public class VisADCanvasJ3D extends Canvas3D {
 
   private static GraphicsConfiguration defaultConfig = null;
 
+  private GraphicsConfiguration myConfig = null;
+
   /**
    * Make the graphics configuration
    * @param offscreen  true if this is offscreen rendering (sets double
@@ -113,7 +115,7 @@ public class VisADCanvasJ3D extends Canvas3D {
     if ((textureHeightMax == 0) && (textureWidthMax == 0)) {
       Integer wProp = null;
       Integer hProp = null;
-      Canvas3D cnvs = new Canvas3D(getDefaultConfig());
+      Canvas3D cnvs = new Canvas3D(myConfig);
       try {
         java.lang.reflect.Method method = cnvs.getClass().getMethod("queryProperties", null); 
         java.util.Map propertiesMap = (java.util.Map) method.invoke(cnvs, null);
@@ -167,6 +169,7 @@ public class VisADCanvasJ3D extends Canvas3D {
   public VisADCanvasJ3D(DisplayRendererJ3D renderer,
                  GraphicsConfiguration config) {
     super(config == null ? defaultConfig = (defaultConfig == null ? makeConfig(false) : defaultConfig) : config);
+    myConfig = (config == null) ? defaultConfig : config;
 
     setTextureProperties();
     displayRenderer = renderer;
@@ -206,6 +209,7 @@ public class VisADCanvasJ3D extends Canvas3D {
     **/
 // AND comment out the rest of this constructor,
     super(defaultConfig = (defaultConfig == null ? makeConfig(true) : defaultConfig), true);
+    myConfig = defaultConfig;
     setTextureProperties();
     displayRenderer = renderer;
     display = (DisplayImplJ3D) renderer.getDisplay();
@@ -415,6 +419,7 @@ public class VisADCanvasJ3D extends Canvas3D {
     }
     component = null; // WLH 17 Dec 2001
     captureImage = null;
+    myConfig = null;
   }
 
 }
