@@ -113,6 +113,7 @@ import HTTPClient.UncompressInputStream;
  *                               (imagedata only)
  *   doc=&lt;yes/no&gt;              specify yes to include line documentation 
  *                               with image (def=no) 
+ *   nav=&lt;lalo&gt;                include the lat-lon navigation info and not the O&A.
  *   aux=&lt;yes/no&gt;              specify yes to include auxilliary information 
  *                               with image 
  *   time=&lt;time1&gt; &lt;time2&gt;      specify the time range of images to select
@@ -833,6 +834,7 @@ public class AddeURLConnection extends URLConnection
      *   spac=&lt;bytes&gt;              number of bytes per data point, 1, 2, or 4 
      *   doc=&lt;yes/no&gt;              specify yes to include line documentation 
      *                                   with image (def=no) 
+     *   nav=&lt;lalo&gt;                include the lat-lon navigation info and not the O&A.
      *   aux=&lt;yes/no&gt;              specify yes to include auxilliary information
      *                                   with image 
      *   time=&lt;time1&gt; &lt;time2&gt;      specify the time range of images to select
@@ -878,6 +880,7 @@ public class AddeURLConnection extends URLConnection
         String spaceString = "SPAC=X";
         String unitString = "UNIT=BRIT";
         String auxString = "AUX=YES";
+        String navString = "NAV=X";
         String calString = "CAL=X";
         String docString = "DOC=NO";
         String timeString = "TIME=X X I";
@@ -1036,9 +1039,14 @@ public class AddeURLConnection extends URLConnection
                 traceString = testString;
             }
             else
-            if (lctestString.startsWith("spa"))       // aux keyword
+            if (lctestString.startsWith("spa"))       // spa keyword
             {
                 spaceString = testString;
+            }
+            else
+            if (lctestString.startsWith("nav"))       // nav keyword
+            {
+                navString = testString;
             }
             else
             if (lctestString.startsWith("aux"))       // aux keyword
@@ -1102,6 +1110,8 @@ public class AddeURLConnection extends URLConnection
         buf.append(spaceString);
         buf.append(" ");
         buf.append(unitString);
+        buf.append(" ");
+        buf.append(navString);
         buf.append(" ");
         buf.append(auxString);
         buf.append(" ");
@@ -1370,6 +1380,7 @@ public class AddeURLConnection extends URLConnection
      *                               number
      *   doc=&lt;yes/no&gt;              specify yes to include line documentation 
      *                               with image (def=no) 
+     *   nav=&lt;lalo&gt;                include the lat-lon navigation info and not the O&A.
      *   aux=&lt;yes/no&gt;              specify yes to include auxilliary information
      *                               with image 
      *   time=&lt;time1&gt; &lt;time2&gt;      specify the time range of images to select
