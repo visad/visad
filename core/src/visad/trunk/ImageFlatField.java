@@ -41,7 +41,7 @@ public class ImageFlatField extends FlatField {
   // -- Constants --
 
   /** Debugging flag. */
-  protected static final boolean DEBUG = false;
+  protected static final boolean DEBUG = true;
 
 
   // -- Fields --
@@ -439,6 +439,16 @@ public class ImageFlatField extends FlatField {
 
   public byte[][] grabBytes() {
     pr ("grabBytes");
+    byte[][] data = grabBytes(image);
+    if (data.length > num) {
+      byte[][] bytes = new byte[num][];
+      System.arraycopy(data, 0, bytes, 0, num);
+      data = bytes;
+    }
+    return data;
+  }
+
+  public static byte[][] grabBytes(BufferedImage image) {
     WritableRaster raster = image.getRaster();
     if (raster.getTransferType() == DataBuffer.TYPE_BYTE) {
       DataBuffer buffer = raster.getDataBuffer();
@@ -460,6 +470,8 @@ public class ImageFlatField extends FlatField {
           int pixelStride = csm.getPixelStride();
           int scanlineStride = csm.getScanlineStride();
           int numBands = bandOffsets.length;
+          int width = image.getWidth();
+          int height = image.getHeight();
           int numPixels = width * height;
           byte[][] bytes = new byte[numBands][numPixels];
           for (int c=0; c<numBands; c++) {
@@ -476,6 +488,8 @@ public class ImageFlatField extends FlatField {
       } // buffer instanceof DataBufferByte
     } // raster.getTransferType() == DataBuffer.TYPE_BYTE
 
+    return grabBytes(make3ByteRGB(image));
+/*
     // slower, more general way to extract bytes; use PixelGrabber
     // CTR NOTE - Something is fishy with this method of pixel extraction.
     // Results do not seem to match those of the FAST or MEDIUM methods.
@@ -501,6 +515,7 @@ public class ImageFlatField extends FlatField {
       if (num >= 4) bytes[3][i] = (byte) a;
     }
     return bytes;
+*/
   }
 
 }
