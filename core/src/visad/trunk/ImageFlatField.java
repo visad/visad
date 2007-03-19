@@ -41,7 +41,7 @@ public class ImageFlatField extends FlatField {
   // -- Constants --
 
   /** Debugging flag. */
-  protected static final boolean DEBUG = true;
+  protected static final boolean DEBUG = false;
 
 
   // -- Fields --
