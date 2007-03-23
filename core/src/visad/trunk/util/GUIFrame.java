@@ -26,6 +26,7 @@ MA 02111-1307, USA
 
 package visad.util;
 
+import java.awt.Toolkit;
 import java.awt.event.*;
 import java.lang.reflect.*;
 import java.util.Hashtable;
@@ -33,6 +34,10 @@ import javax.swing.*;
 
 /** A general-purpose frame for simplifing GUI construction and management. */
 public class GUIFrame extends JFrame implements ActionListener {
+
+  /** key mask for use with keyboard shortcuts on this operating system */
+  public static final int MENU_MASK =
+    Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
   /** menu bar */
   protected JMenuBar menubar;
@@ -144,7 +149,14 @@ public class GUIFrame extends JFrame implements ActionListener {
     m.addSeparator();
   }
 
-  /** handle menu item actions */
+  /** sets the keyboard shortcut for the given menu item */
+  public void setMenuShortcut(String menu, String item, int keycode) {
+    JMenuItem jmi = getMenuItem(menu, item);
+    if (jmi == null) return;
+    jmi.setAccelerator(KeyStroke.getKeyStroke(keycode, MENU_MASK));
+  }
+
+  /** handles menu item actions */
   public void actionPerformed(ActionEvent e) {
     // convert command name to method
     String command = e.getActionCommand();
