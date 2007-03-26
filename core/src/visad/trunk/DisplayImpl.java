@@ -1595,15 +1595,17 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   public void doAction() throws VisADException, RemoteException {
     if (displayRenderer == null) return;
     if (mapslock == null) return;
-    synchronized (mapslock) {
-      if (RendererVector == null || displayRenderer == null) {
-        return;
-      }
-      // put a try/finally block around the setWaitFlag(true), so that we unset
-      // the flag before exiting even if an Exception or Error is thrown
-      try {
+    // put a try/finally block around the setWaitFlag(true), so that we unset
+    // the flag before exiting even if an Exception or Error is thrown
+    try {
 // System.out.println("DisplayImpl call setWaitFlag(true)");
-        displayRenderer.setWaitFlag(true);
+      displayRenderer.setWaitFlag(true);
+      synchronized (mapslock) {
+        if (RendererVector == null || displayRenderer == null) {
+// System.out.println("DisplayImpl call setWaitFlag(false)");
+        displayRenderer.setWaitFlag(false);
+          return;
+        }
         // set tickFlag-s in changed Control-s
         // clone MapVector to avoid need for synchronized access
         Vector tmap = (Vector) MapVector.clone();
@@ -1747,11 +1749,11 @@ System.out.println("initialize = " + initialize + " go = " + go +
           ScalarMap map = (ScalarMap) maps.nextElement();
           map.resetTicks();
         }
-      } finally {
+      } // end synchronized (mapslock)
+    } finally {
 // System.out.println("DisplayImpl call setWaitFlag(false)");
-        displayRenderer.setWaitFlag(false);
-      }
-    } // end synchronized (mapslock)
+      displayRenderer.setWaitFlag(false);
+    }
   }
 
   /**
