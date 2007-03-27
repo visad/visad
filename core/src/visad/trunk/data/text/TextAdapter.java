@@ -817,7 +817,7 @@ public class TextAdapter {
           }  else {
             sa = st.nextToken().trim();
             int moreColumns = infos[i].colspan-1;
-            if(moreColumns>0) {
+            while (moreColumns>0) {
                 sa = sa + " " + st.nextToken().trim();
                 moreColumns--;
             }
