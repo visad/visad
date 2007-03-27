@@ -76,7 +76,7 @@ public class GridCoordinateSystem extends CoordinateSystem {
     for (int i=0; i<dimension; i++) {
       values[i] =
         Unit.transformUnits(units_out[i], errors_out, units_in[i],
-                            null, values[i]);
+                            null, values[i],false);
     }
     return values;
   }
@@ -94,7 +94,7 @@ public class GridCoordinateSystem extends CoordinateSystem {
     for (int i=0; i<dimension; i++) {
       values[i] =
         Unit.transformUnits(units_out[i], errors_out, units_in[i],
-                            null, values[i]);
+                            null, values[i],false);
     }
     values =
       Set.floatToDouble(set.valueToGrid(Set.doubleToFloat(values)));
@@ -113,7 +113,7 @@ public class GridCoordinateSystem extends CoordinateSystem {
     for (int i=0; i<dimension; i++) {
       values[i] =
         Unit.transformUnits(units_out[i], errors_out, units_in[i],
-                            null, values[i]);
+                            null, values[i],false);
     }
     return values;
   }
@@ -131,7 +131,7 @@ public class GridCoordinateSystem extends CoordinateSystem {
     for (int i=0; i<dimension; i++) {
       values[i] =
         Unit.transformUnits(units_out[i], errors_out, units_in[i],
-                            null, values[i]);
+                            null, values[i],false);
     }
     values = set.valueToGrid(values);
     return values;
