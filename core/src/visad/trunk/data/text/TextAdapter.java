@@ -75,6 +75,7 @@ public class TextAdapter {
  private static final String ATTR_SCALE = "sca";
  private static final String ATTR_POSITION ="pos";
  private static final String ATTR_FORMAT = "fmt";
+ private static final String ATTR_TIMEZONE = "tz";
  private static final String ATTR_UNIT= "unit";
  private static final String ATTR_MISSING = "mis";
  private static final String ATTR_INTERVAL = "int";
@@ -393,6 +394,8 @@ public class TextAdapter {
 
             } else if (tok.toLowerCase().startsWith(ATTR_FORMAT)) {
                 infos[i].formatString = val.trim();
+            } else if (tok.toLowerCase().startsWith(ATTR_TIMEZONE)) {
+                infos[i].tzString = val.trim();
             } else {
               throw new VisADException("TextAdapter: invalid token name: "+s);
             }
@@ -1209,13 +1212,13 @@ public class TextAdapter {
    * (lifted from au.gov.bom.aifs.common.ada.VisADXMLAdapter.java)
    */
   private static visad.DateTime makeDateTimeFromString(String string, 
-                                                       String format)
+                                                       String format, String tz)
     throws java.text.ParseException
   {
     visad.DateTime dt = null;
     // try to parse the string using the supplied DateTime format
     try {
-      dt = visad.DateTime.createDateTime(string, format);
+      dt = visad.DateTime.createDateTime(string, format, TimeZone.getTimeZone(tz));
     } catch (VisADException e) {}
     if (dt==null) {
       throw new java.text.ParseException("Couldn't parse visad.DateTime from \""
@@ -1248,7 +1251,7 @@ public class TextAdapter {
       // a format was specified: only support DateTime format 
       // so try to parse as a DateTime
       try{
-        visad.DateTime dt = makeDateTimeFromString(s, infos[i].formatString);
+        visad.DateTime dt = makeDateTimeFromString(s, infos[i].formatString, infos[i].tzString);
         return dt.getReal().getValue();
 
       } catch (java.text.ParseException pe) {
@@ -1352,6 +1355,7 @@ public class TextAdapter {
         double  missingValue = Double.NaN;
         String  missingString;
         String  formatString;
+        String  tzString = "GMT";
         int     isInterval = 0;
         double  errorEstimate=0;
         double  scale=1.0;
