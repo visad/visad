@@ -128,6 +128,10 @@ public abstract class AREAnav
         navigation */
     public static final int TANC =  0x54414E43;
 
+    /** Code value in AREA files used to designate SIN (sinusoidal cone) 
+        navigation */
+    public static final int SIN =  0x53494E20;
+
     /** Code value in AREA files used to designate LAMB (lambert conformal) 
         navigation */
     public static final int LAMB =  0x4C414D42;
@@ -590,6 +594,9 @@ public abstract class AREAnav
                 break;
             case TANC:
                 anav = new TANCnav(navBlock);
+                break;
+            case SIN:
+                anav = new SINUnav(navBlock);
                 break;
             case LALO:
                 anav = new LALOnav(navBlock, auxBlock);
