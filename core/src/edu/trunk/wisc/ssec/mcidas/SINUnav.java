@@ -8,7 +8,6 @@ public final class SINUnav extends AREAnav {
   boolean isEastPositive = true;
 
 
-
   public SINUnav(int[] iparms) throws IllegalArgumentException {
     
      if (iparms[0] != SIN )
@@ -33,9 +32,11 @@ public final class SINUnav extends AREAnav {
      xblat = r*DEGREES_TO_RADIANS/xspace;
      xblon = DEGREES_TO_RADIANS*r/yspace;
 
+     /*
      for (int i=0; i<10; i++) {
        System.out.println("####   i="+i+"  val = "+iparms[i]);
      }
+     */
    }
 
    public double[][] toLatLon(double[][] linele) {
