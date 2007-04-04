@@ -131,7 +131,7 @@ public class EASECoordinateSystem extends visad.georef.MapProjection {
    *  return the bounding box for this projection
    */
   public Rectangle2D getDefaultMapArea() { 
-    return new Rectangle2D.Double(0., 0., 100., 100.); 
+    return new Rectangle2D.Double(0., 0., (double)ncols, (double)nrows); 
   }
 
   /** return the ratio of the grid spacing between rows and columns
