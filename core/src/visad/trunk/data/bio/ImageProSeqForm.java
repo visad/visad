@@ -30,12 +30,12 @@ package visad.data.bio;
  * ImageProSeqForm is the VisAD data adapter
  * for Image-Pro sequence (SEQ) files.
  *
- * @deprecated Use LociForm with loci.formats.SEQReader
+ * @deprecated Use LociForm with loci.formats.in.SEQReader
  */
 public class ImageProSeqForm extends LociForm {
 
   public ImageProSeqForm() {
-    super(new loci.formats.SEQReader());
+    super(new loci.formats.in.SEQReader());
   }
 
   public static void main(String[] args) throws Exception {

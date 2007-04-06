@@ -29,12 +29,12 @@ package visad.data.bio;
 /**
  * IPLabForm is the VisAD data adapter for IPLab files.
  *
- * @deprecated Use LociForm with loci.formats.IPLabReader
+ * @deprecated Use LociForm with loci.formats.in.IPLabReader
  */
 public class IPLabForm extends LociForm {
 
   public IPLabForm() {
-    super(new loci.formats.IPLabReader());
+    super(new loci.formats.in.IPLabReader());
   }
 
   public static void main(String[] args) throws Exception {

@@ -30,12 +30,12 @@ package visad.data.qt;
  * QTForm is the VisAD data adapter for QuickTime movies.
  *
  * @deprecated Use visad.data.bio.LociForm with
- *   loci.formats.QTReader and loci.formats.QTWriter
+ *   loci.formats.in.QTReader and loci.formats.out.QTWriter
  */
 public class QTForm extends visad.data.bio.LociForm {
 
   public QTForm() {
-    super(new loci.formats.QTReader()/*, new loci.formats.QTWriter()*/);
+    super(new loci.formats.in.QTReader(), new loci.formats.out.QTWriter());
   }
 
   public static void main(String[] args) throws Exception {

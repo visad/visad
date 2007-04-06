@@ -29,12 +29,12 @@ package visad.data.bio;
 /**
  * ZeissForm is the VisAD data adapter for Zeiss LSM files.
  *
- * @deprecated Use LociForm with loci.formats.ZeissLSMReader
+ * @deprecated Use LociForm with loci.formats.in.ZeissLSMReader
  */
 public class ZeissForm extends LociForm {
 
   public ZeissForm() {
-    super(new loci.formats.ZeissLSMReader());
+    super(new loci.formats.in.ZeissLSMReader());
   }
 
   public static void main(String[] args) throws Exception {

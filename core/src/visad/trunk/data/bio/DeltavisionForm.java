@@ -29,12 +29,12 @@ package visad.data.bio;
 /**
  * DeltavisionForm is the VisAD data adapter for Deltavision DV files.
  *
- * @deprecated Use LociForm with loci.formats.DeltavisionReader
+ * @deprecated Use LociForm with loci.formats.in.DeltavisionReader
  */
 public class DeltavisionForm extends LociForm {
 
   public DeltavisionForm() {
-    super(new loci.formats.DeltavisionReader());
+    super(new loci.formats.in.DeltavisionReader());
   }
 
   public static void main(String[] args) throws Exception {

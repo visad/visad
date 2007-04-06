@@ -3,7 +3,7 @@
 <project name="VisAD" default="init" basedir="..">
 	<description>
 Build script for VisAD core packages
-$Id: build.xml,v 1.8 2007-03-12 21:12:43 brucef Exp $
+$Id: build.xml,v 1.9 2007-04-06 20:12:38 curtis Exp $
 
     init             -- print ant configuration 
 
@@ -54,7 +54,6 @@ $Id: build.xml,v 1.8 2007-03-12 21:12:43 brucef Exp $
   	<include name="visad/data/avi/*"/>
   	<include name="visad/data/bio/*"/>
   	<include name="visad/data/gif/*"/>
-  	<include name="visad/data/ij/*"/>
   	<include name="visad/data/jai/*"/>
   	<include name="visad/data/mcidas/*"/>
   	<include name="visad/data/netcdf/*"/>
@@ -127,6 +126,9 @@ $Id: build.xml,v 1.8 2007-03-12 21:12:43 brucef Exp $
 
   <patternset id="loci.package">
 		<include name="loci/formats/*"/>
+		<include name="loci/formats/codec/*"/>
+		<include name="loci/formats/in/*"/>
+		<include name="loci/formats/out/*"/>
 	</patternset>
 	
 	<patternset id="nom.package">

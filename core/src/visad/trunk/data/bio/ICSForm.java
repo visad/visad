@@ -29,12 +29,12 @@ package visad.data.bio;
 /**
  * ICSForm is the VisAD data adapter for Image Cytometry Standard files.
  *
- * @deprecated Use LociForm with loci.formats.ICSReader
+ * @deprecated Use LociForm with loci.formats.in.ICSReader
  */
 public class ICSForm extends LociForm {
 
   public ICSForm() {
-    super(new loci.formats.ICSReader());
+    super(new loci.formats.in.ICSReader());
   }
 
   public static void main(String[] args) throws Exception {

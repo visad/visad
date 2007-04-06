@@ -29,12 +29,12 @@ package visad.data.bio;
 /**
  * MetamorphForm is the VisAD data adapter for Metamorph STK files.
  *
- * @deprecated Use LociForm with loci.formats.MetamorphReader
+ * @deprecated Use LociForm with loci.formats.in.MetamorphReader
  */
 public class MetamorphForm extends LociForm {
 
   public MetamorphForm() {
-    super(new loci.formats.MetamorphReader());
+    super(new loci.formats.in.MetamorphReader());
   }
 
   public static void main(String[] args) throws Exception {

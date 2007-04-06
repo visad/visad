@@ -30,12 +30,12 @@ package visad.data.avi;
  * AVIForm is the VisAD data adapter for uncompressed AVI movies.
  *
  * @deprecated Use visad.data.bio.LociForm with
- *   loci.formats.AVIReader and loci.formats.AVIWriter
+ *   loci.formats.in.AVIReader and loci.formats.out.AVIWriter
  */
 public class AVIForm extends visad.data.bio.LociForm {
 
   public AVIForm() {
-    super(new loci.formats.AVIReader(), new loci.formats.AVIWriter());
+    super(new loci.formats.in.AVIReader(), new loci.formats.out.AVIWriter());
   }
 
   public static void main(String[] args) throws Exception {

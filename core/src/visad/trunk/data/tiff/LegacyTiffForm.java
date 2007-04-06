@@ -69,7 +69,7 @@ import visad.util.*;
  * importing single-image TIFF data from a URL.
  *
  * @deprecated Use TiffForm, or visad.data.bio.LociForm
- *   with loci.formats.TiffReader and loci.formats.TiffWriter
+ *   with loci.formats.in.TiffReader and loci.formats.out.TiffWriter
  */
 public class LegacyTiffForm extends Form
   implements FormFileInformer, FormBlockReader, FormProgressInformer

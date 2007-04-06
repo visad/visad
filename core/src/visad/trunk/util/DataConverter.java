@@ -34,7 +34,6 @@ import java.io.*;
 import java.lang.reflect.*;
 import java.util.Vector;
 import javax.swing.*;
-import loci.formats.ExtensionFileFilter;
 
 /**
  * DataConverter provides a simple GUI for converting data

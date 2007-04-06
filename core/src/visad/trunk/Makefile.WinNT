@@ -83,6 +83,9 @@ HTTPClient\*.java \
 ncsa\hdf\hdf5lib\*.java \
 ncsa\hdf\hdf5lib\exceptions\*.java \
 loci\formats\*.java \
+loci\formats\codec\*.java \
+loci\formats\in\*.java \
+loci\formats\out\*.java \
 nom\tam\fits\*.java \
 nom\tam\util\*.java \
 nom\tam\test\*.java
@@ -155,8 +158,7 @@ visad\data\hdfeos\*.java \
 visad\data\hdfeos\README.hdfeos \
 visad\data\hdfeos\hdfeosc\*.java \
 visad\data\hdfeos\hdfeosc\*.c \
-visad\data\hdfeos\hdfeosc\Makefile \
-visad\data\ij\*.java
+visad\data\hdfeos\hdfeosc\Makefile
 
 JAR_FILES5 = \
 visad\data\jai\*.java \
@@ -279,6 +281,9 @@ visad\data\netcdf\in\*.java \
 visad\data\netcdf\out\*.java \
 visad\data\fits\*.java \
 loci\formats\*.java \
+loci\formats\codec\*.java \
+loci\formats\in\*.java \
+loci\formats\out\*.java \
 nom\tam\fits\*.java \
 nom\tam\util\*.java \
 nom\tam\test\*.java \
@@ -312,7 +317,6 @@ visad\data\mcidas\README.mcidas \
 visad\data\avi\*.java \
 visad\data\bio\*.java \
 visad\data\biorad\*.java \
-visad\data\ij\*.java \
 visad\data\jai\*.java \
 visad\data\qt\*.java \
 visad\data\visad\*.java \
@@ -419,6 +423,12 @@ save:
 		$(DEL) $(BACKUP)\visad\data\fits\*.java
 	if exist $(BACKUP)\loci\formats\*.java \
 		$(DEL) $(BACKUP)\loci\formats\*.java
+	if exist $(BACKUP)\loci\formats\codec\*.java \
+		$(DEL) $(BACKUP)\loci\formats\codec\*.java
+	if exist $(BACKUP)\loci\formats\in\*.java \
+		$(DEL) $(BACKUP)\loci\formats\in\*.java
+	if exist $(BACKUP)\loci\formats\out\*.java \
+		$(DEL) $(BACKUP)\loci\formats\out\*.java
 	if exist $(BACKUP)\nom\tam\fits\*.java \
 		$(DEL) $(BACKUP)\nom\tam\fits\*.java
 	if exist $(BACKUP)\nom\tam\util\*.java \
@@ -461,8 +471,6 @@ save:
 		$(DEL) $(BACKUP)\visad\data\bio\*.java
 	if exist $(BACKUP)\visad\data\biorad\*.java \
 		$(DEL) $(BACKUP)\visad\data\biorad\*.java
-	if exist $(BACKUP)\visad\data\ij\*.java \
-		$(DEL) $(BACKUP)\visad\data\ij\*.java
 	if exist $(BACKUP)\visad\data\jai\*.java \
 		$(DEL) $(BACKUP)\visad\data\jai\*.java
 	if exist $(BACKUP)\visad\data\qt\*.java \
@@ -560,6 +568,9 @@ visad\data\fits\*.class \
 loci\formats\*.class \
 loci\formats\readers.txt \
 loci\formats\writers.txt \
+loci\formats\codec\*.class \
+loci\formats\in\*.class \
+loci\formats\out\*.class \
 nom\tam\fits\*.class \
 nom\tam\util\*.class \
 nom\tam\test\*.class \
@@ -572,7 +583,6 @@ visad\data\mcidas\*.class \
 visad\data\avi\*.class \
 visad\data\bio\*.class \
 visad\data\biorad\*.class \
-visad\data\ij\*.class \
 visad\data\jai\*.class \
 visad\data\qt\*.class \
 visad\data\gif\*.class \
@@ -641,6 +651,9 @@ clear:
 	if exist data\netcdf\out\*.java $(DEL) data\netcdf\out\*.java
 	if exist data\fits\*.java $(DEL) data\fits\*.java
 	if exist ..\loci\formats\*.java $(DEL) ..\loci\formats\*.java
+	if exist ..\loci\formats\codec\*.java $(DEL) ..\loci\formats\codec\*.java
+	if exist ..\loci\formats\in\*.java $(DEL) ..\loci\formats\in\*.java
+	if exist ..\loci\formats\out\*.java $(DEL) ..\loci\formats\out\*.java
 	if exist ..\nom\tam\fits\*.java $(DEL) ..\nom\tam\fits\*.java
 	if exist ..\nom\tam\util\*.java $(DEL) ..\nom\tam\util\*.java
 	if exist ..\nom\tam\test\*.java $(DEL) ..\nom\tam\test\*.java
@@ -665,7 +678,6 @@ clear:
 	if exist data\avi\*.java $(DEL) data\avi\*.java
 	if exist data\bio\*.java $(DEL) data\bio\*.java
 	if exist data\biorad\*.java $(DEL) data\biorad\*.java
-	if exist data\ij\*.java $(DEL) data\ij\*.java
 	if exist data\jai\*.java $(DEL) data\jai\*.java
 	if exist data\qt\*.java $(DEL) data\qt\*.java
 	if exist data\visad\*.java $(DEL) data\visad\*.java
@@ -712,6 +724,9 @@ clean:
 	if exist data\netcdf\out\*.class $(DEL) data\netcdf\out\*.class
 	if exist data\fits\*.class $(DEL) data\fits\*.class
 	if exist ..\loci\formats\*.class $(DEL) ..\loci\formats\*.class
+	if exist ..\loci\formats\codec\*.class $(DEL) ..\loci\formats\codec\*.class
+	if exist ..\loci\formats\in\*.class $(DEL) ..\loci\formats\in\*.class
+	if exist ..\loci\formats\out\*.class $(DEL) ..\loci\formats\out\*.class
 	if exist ..\nom\tam\fits\*.class $(DEL) ..\nom\tam\fits\*.class
 	if exist ..\nom\tam\util\*.class $(DEL) ..\nom\tam\util\*.class
 	if exist ..\nom\tam\test\*.class $(DEL) ..\nom\tam\test\*.class
@@ -733,7 +748,6 @@ clean:
 	if exist data\avi\*.class $(DEL) data\avi\*.class
 	if exist data\bio\*.class $(DEL) data\bio\*.class
 	if exist data\biorad\*.class $(DEL) data\biorad\*.class
-	if exist data\ij\*.class $(DEL) data\ij\*.class
 	if exist data\jai\*.class $(DEL) data\jai\*.class
 	if exist data\qt\*.class $(DEL) data\qt\*.class
 	if exist data\gif\*.class $(DEL) data\gif\*.class
@@ -817,6 +831,9 @@ data\netcdf\in\*.class \
 data\netcdf\out\*.class \
 data\netcdf\*.class \
 ..\loci\formats\*.class \
+..\loci\formats\codec\*.class \
+..\loci\formats\in\*.class \
+..\loci\formats\out\*.class \
 ..\nom\tam\util\*.class \
 ..\nom\tam\fits\*.class \
 ..\nom\tam\test\*.class \
@@ -828,7 +845,6 @@ data\mcidas\*.class \
 data\avi\*.class \
 data\bio\*.class \
 data\biorad\*.class \
-data\ij\*.class \
 data\jai\*.class \
 data\qt\*.class \
 data\gif\*.class \
@@ -896,6 +912,9 @@ compile: clean
 	$(JC) $(JFLAGS) data\netcdf\out\*.java
 	$(JC) $(JFLAGS) data\netcdf\*.java
 	$(JC) $(JFLAGS) ..\loci\formats\*.java
+	$(JC) $(JFLAGS) ..\loci\formats\codec\*.java
+	$(JC) $(JFLAGS) ..\loci\formats\in\*.java
+	$(JC) $(JFLAGS) ..\loci\formats\out\*.java
 	$(JC) $(JFLAGS) ..\nom\tam\util\*.java
 	$(JC) $(JFLAGS) ..\nom\tam\fits\*.java
 	$(JC) $(JFLAGS) ..\nom\tam\test\*.java
@@ -907,7 +926,6 @@ compile: clean
 	$(JC) $(JFLAGS) data\avi\*.java
 	$(JC) $(JFLAGS) data\bio\*.java
 	$(JC) $(JFLAGS) data\biorad\*.java
-	$(JC) $(JFLAGS) data\ij\*.java
 	$(JC) $(JFLAGS) data\jai\*.java
 	$(JC) $(JFLAGS) data\qt\*.java
 	$(JC) $(JFLAGS) data\gif\*.java
@@ -978,6 +996,9 @@ visad.data.netcdf.in \
 visad.data.netcdf.out \
 visad.data.fits \
 loci.formats \
+loci.formats.codec \
+loci.formats.in \
+loci.formats.out \
 nom.tam.fits \
 nom.tam.util \
 nom.tam.test \
@@ -1002,7 +1023,6 @@ visad.data.mcidas \
 visad.data.avi \
 visad.data.bio \
 visad.data.biorad \
-visad.data.ij \
 visad.data.jai \
 visad.data.qt \
 visad.data.visad \

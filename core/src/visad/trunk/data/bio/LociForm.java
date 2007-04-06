@@ -31,26 +31,27 @@ import java.awt.BorderLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.IOException;
 import java.rmi.RemoteException;
-import java.net.*;
-import java.util.Arrays;
+import java.net.URL;
 import java.util.Hashtable;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.filechooser.FileFilter;
 import loci.formats.*;
+import loci.formats.gui.GUITools;
 import visad.*;
 import visad.data.*;
 import visad.java2d.DisplayImplJ2D;
 import visad.util.*;
 
 /**
- * LociForm is the VisAD data adapter for images handled by the loci.formats
- * package. It works by wrapping a loci.formats.FormatReader and/or
- * loci.formats.FormatWriter object.
+ * LociForm is the VisAD data adapter for images handled by the Bio-Formats
+ * package (loci.formats). It works by wrapping a loci.formats.IFormatReader
+ * and/or loci.formats.IFormatWriter object.
  */
 public class LociForm extends Form implements FormBlockReader,
-  FormFileInformer, FormProgressInformer, MetadataReader, OMEReader
+  FormFileInformer, FormProgressInformer, MetadataReader
 {
 
   // -- Static fields --
@@ -61,13 +62,19 @@ public class LociForm extends Form implements FormBlockReader,
   // -- Fields --
 
   /** Reader to use for open-related functions. */
-  protected FormatReader reader;
+  protected IFormatReader reader;
 
   /** Writer to use for save-related functions. */
-  protected FormatWriter writer;
+  protected IFormatWriter writer;
 
   /** Percent complete for current operation. */
   protected double percent;
+
+  /** File filters for reader formats. */
+  protected FileFilter[] rFilters;
+
+  /** File filters for writer formats. */
+  protected FileFilter[] wFilters;
 
 
   // -- Constructor --
@@ -78,17 +85,17 @@ public class LociForm extends Form implements FormBlockReader,
   }
 
   /** Constructs a new LociForm that handles the given reader. */
-  public LociForm(FormatReader reader) {
+  public LociForm(IFormatReader reader) {
     this(reader, null);
   }
 
   /** Constructs a new LociForm that handles the given writer. */
-  public LociForm(FormatWriter writer) {
+  public LociForm(IFormatWriter writer) {
     this(null, writer);
   }
 
   /** Constructs a new LociForm that handles the given reader/writer pair. */
-  public LociForm(FormatReader reader, FormatWriter writer) {
+  public LociForm(IFormatReader reader, IFormatWriter writer) {
     super("LociForm" + formCount++);
     this.reader = reader;
     this.writer = writer;
@@ -97,11 +104,11 @@ public class LociForm extends Form implements FormBlockReader,
 
   // -- LociForm API methods --
 
-  /** Gets the FormatReader backing this form's reading capabilities. */
-  public FormatReader getReader() { return reader; }
+  /** Gets the IFormatReader backing this form's reading capabilities. */
+  public IFormatReader getReader() { return reader; }
 
-  /** Gets the FormatWriter backing this form's writing capabilities. */
-  public FormatWriter getWriter() { return writer; }
+  /** Gets the IFormatWriter backing this form's writing capabilities. */
+  public IFormatWriter getWriter() { return writer; }
 
   /** Sets the frames per second to use when writing files. */
   public void setFrameRate(int fps) {
@@ -127,36 +134,6 @@ public class LociForm extends Form implements FormBlockReader,
     // check type
     System.out.print("Checking " + format + " format ");
     System.out.println(isThisType(id) ? "[yes]" : "[no]");
-
-    // read metadata
-    System.out.print("Reading " + id + " metadata ");
-    Hashtable meta = getMetadata(id);
-    System.out.println("[done]");
-
-    // output metadata
-    String[] keys = (String[]) meta.keySet().toArray(new String[0]);
-    Arrays.sort(keys);
-    for (int i=0; i<keys.length; i++) {
-      System.out.print(keys[i] + ": ");
-      System.out.print(getMetadataValue(id, keys[i]) + "\n");
-    }
-    System.out.println();
-
-    // output OME-XML
-    Object root = null;
-    try {
-      root = getOMENode(id);
-    }
-    catch (BadFormException exc) { }
-    if (root == null) {
-      System.out.println("OME-XML functionality not available " +
-        "(package loci.ome.xml not installed)");
-      System.out.println();
-    }
-    else {
-      System.out.println(OMETools.dumpXML(root));
-      System.out.println();
-    }
 
     // read pixels
     System.out.print("Reading " + id + " pixel data ");
@@ -232,7 +209,21 @@ public class LociForm extends Form implements FormBlockReader,
     }
     frame.pack();
     frame.setLocation(300, 300);
-    frame.show();
+    frame.setVisible(true);
+  }
+
+  /** Gets file filters for use with formats supported for reading. */
+  public FileFilter[] getReaderFilters() {
+    if (reader == null) return null;
+    if (rFilters == null) rFilters = GUITools.buildFileFilters(reader);
+    return rFilters;
+  }
+
+  /** Gets file filters for use with formats supported for writing. */
+  public FileFilter[] getWriterFilters() {
+    if (writer == null) return null;
+    if (wFilters == null) wFilters = GUITools.buildFileFilters(writer);
+    return wFilters;
   }
 
 
@@ -285,7 +276,7 @@ public class LociForm extends Form implements FormBlockReader,
           image = ((ImageFlatField) fields[i]).getImage();
         }
         else image = DataUtility.extractImage(fields[i], false);
-        writer.save(id, image, i == fields.length - 1);
+        writer.saveImage(id, image, i == fields.length - 1);
         percent = (double) (i+1) / fields.length;
       }
     }
@@ -333,7 +324,7 @@ public class LociForm extends Form implements FormBlockReader,
     if (reader == null) throw new BadFormException("No reader");
     BufferedImage image;
     try {
-      image = reader.open(id, block_number);
+      image = reader.openImage(id, block_number);
     }
     catch (FormatException exc) { throw new BadFormException(exc); }
     int width = image.getWidth(), height = image.getHeight();
@@ -436,25 +427,6 @@ public class LociForm extends Form implements FormBlockReader,
     if (reader == null) throw new BadFormException("No reader");
     try {
       return reader.getMetadata(id);
-    }
-    catch (FormatException exc) { throw new BadFormException(exc); }
-  }
-
-
-  // -- OMEReader API methods --
-
-  /**
-   * Obtains a loci.ome.xml.OMENode object representing the
-   * file's metadata as an OME-XML DOM structure.
-   *
-   * @throws BadFormException if the loci.ome.xml package is not present
-   */
-  public Object getOMENode(String id)
-    throws BadFormException, IOException, VisADException
-  {
-    if (reader == null) throw new BadFormException("No reader");
-    try {
-      return reader.getOMENode(id);
     }
     catch (FormatException exc) { throw new BadFormException(exc); }
   }

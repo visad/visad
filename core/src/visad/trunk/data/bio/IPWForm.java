@@ -29,12 +29,12 @@ package visad.data.bio;
 /**
  * IPWForm is the VisAD data adapter for Image-Pro workspace (IPW) files.
  *
- * @deprecated Use LociForm with loci.formats.IPWReader
+ * @deprecated Use LociForm with loci.formats.in.IPWReader
  */
 public class IPWForm extends LociForm {
 
   public IPWForm() {
-    super(new loci.formats.IPWReader());
+    super(new loci.formats.in.IPWReader());
   }
 
   public static void main(String[] args) throws Exception {

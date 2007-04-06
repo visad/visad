@@ -29,12 +29,12 @@ package visad.data.bio;
 /**
  * BioRadForm is the VisAD data adapter for Bio-Rad PIC files.
  *
- * @deprecated Use LociForm with loci.formats.BioRadReader
+ * @deprecated Use LociForm with loci.formats.in.BioRadReader
  */
 public class BioRadForm extends LociForm {
 
   public BioRadForm() {
-    super(new loci.formats.BioRadReader());
+    super(new loci.formats.in.BioRadReader());
   }
 
   public static void main(String[] args) throws Exception {

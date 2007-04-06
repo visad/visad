@@ -29,12 +29,12 @@ package visad.data.qt;
 /**
  * PictForm is the VisAD data adapter for PICT images.
  *
- * @deprecated Use visad.data.bio.LociForm with loci.formats.PictReader
+ * @deprecated Use visad.data.bio.LociForm with loci.formats.in.PictReader
  */
 public class PictForm extends visad.data.bio.LociForm {
 
   public PictForm() {
-    super(new loci.formats.PictReader());
+    super(new loci.formats.in.PictReader());
   }
 
   public static void main(String[] args) throws Exception {

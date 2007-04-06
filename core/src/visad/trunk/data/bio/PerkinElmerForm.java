@@ -29,12 +29,12 @@ package visad.data.bio;
 /**
  * PerkinElmerForm is the VisAD data adapter for PerkinElmer files.
  *
- * @deprecated Use LociForm with loci.formats.PerkinElmerReader
+ * @deprecated Use LociForm with loci.formats.in.PerkinElmerReader
  */
 public class PerkinElmerForm extends LociForm {
 
   public PerkinElmerForm() {
-    super(new loci.formats.PerkinElmerReader());
+    super(new loci.formats.in.PerkinElmerReader());
   }
 
   public static void main(String[] args) throws Exception {

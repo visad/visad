@@ -38,8 +38,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
-import loci.formats.ComboFileFilter;
-import loci.formats.ExtensionFileFilter;
 import ncsa.hdf.hdf5lib.H5;
 import visad.ConstantMap;
 import visad.Display;
@@ -288,7 +286,7 @@ public class Util
     filters.add(vis5d);
 
     // biology-related formats - LociForm
-    FileFilter[] lociFilters = new LociForm().getReader().getFileFilters();
+    FileFilter[] lociFilters = new LociForm().getReaderFilters();
     for (int i=0; i<lociFilters.length; i++) filters.add(lociFilters[i]);
 
     // sort and combine filters alphanumerically

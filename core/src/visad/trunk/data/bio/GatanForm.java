@@ -29,12 +29,12 @@ package visad.data.bio;
 /**
  * GatanForm is the VisAD data adapter for Gatan Digital Micrograph files.
  *
- * @deprecated Use LociForm with loci.formats.GatanReader
+ * @deprecated Use LociForm with loci.formats.in.GatanReader
  */
 public class GatanForm extends LociForm {
 
   public GatanForm() {
-    super(new loci.formats.GatanReader());
+    super(new loci.formats.in.GatanReader());
   }
 
   public static void main(String[] args) throws Exception {

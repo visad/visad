@@ -30,12 +30,12 @@ package visad.data.bio;
  * FluoviewTiffForm is the VisAD data adapter
  * for Olympus Fluoview TIFF files.
  *
- * @deprecated Use LociForm with loci.formats.FluoviewReader
+ * @deprecated Use LociForm with loci.formats.in.FluoviewReader
  */
 public class FluoviewTiffForm extends LociForm {
 
   public FluoviewTiffForm() {
-    super(new loci.formats.FluoviewReader());
+    super(new loci.formats.in.FluoviewReader());
   }
 
   public static void main(String[] args) throws Exception {

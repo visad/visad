@@ -29,12 +29,12 @@ package visad.data.bio;
 /**
  * LegacyZVIForm is a VisAD data adapter for Zeiss ZVI files.
  *
- * @deprecated Use LociForm with loci.formats.LegacyZVIReader
+ * @deprecated Use LociForm with loci.formats.in.LegacyZVIReader
  */
 public class LegacyZVIForm extends LociForm {
 
   public LegacyZVIForm() {
-    super(new loci.formats.LegacyZVIReader());
+    super(new loci.formats.in.LegacyZVIReader());
   }
 
   public static void main(String[] args) throws Exception {

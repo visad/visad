@@ -198,6 +198,9 @@ SAVE_FILES = \
 	visad/data/netcdf/out/*.java			\
 	visad/data/fits/*.java				\
 	loci/formats/*.java				\
+	loci/formats/codec/*.java				\
+	loci/formats/in/*.java				\
+	loci/formats/out/*.java				\
 	nom/tam/fits/*.java				\
 	nom/tam/util/*.java				\
 	nom/tam/test/*.java				\
@@ -229,7 +232,6 @@ SAVE_FILES = \
 	visad/data/avi/*.java				\
 	visad/data/bio/*.java				\
 	visad/data/biorad/*.java			\
-	visad/data/ij/*.java				\
 	visad/data/jai/*.java				\
 	visad/data/qt/*.java				\
 	visad/data/vis5d/*.java				\
@@ -305,7 +307,6 @@ LITE_PACKAGES = \
 	visad.data.avi \
 	visad.data.bio \
 	visad.data.gif \
-	visad.data.ij \
 	visad.data.jai \
 	visad.data.mcidas \
 	visad.data.netcdf \
@@ -337,6 +338,9 @@ DOC_PACKAGES = \
 	visad.data.netcdf.in \
 	visad.data.netcdf.out \
 	loci.formats \
+	loci.formats.codec \
+	loci.formats.in \
+	loci.formats.out \
 	nom.tam.fits \
 	nom.tam.util \
 	nom.tam.test \

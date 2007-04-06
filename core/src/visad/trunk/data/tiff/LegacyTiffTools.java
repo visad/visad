@@ -28,7 +28,7 @@ package visad.data.tiff;
 
 import java.util.*;
 import java.io.*;
-import loci.formats.Compression;
+import loci.formats.codec.LZWCodec;
 
 /**
  * A utility class for manipulating TIFF files.
@@ -236,7 +236,7 @@ public class LegacyTiffTools {
 
   public static byte[] lzwUncompress(byte[] input) throws IOException {
     try {
-      return Compression.lzwUncompress(input);
+      return new LZWCodec().decompress(input);
     }
     catch (Exception exc) {
       return null;

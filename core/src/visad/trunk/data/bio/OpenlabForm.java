@@ -29,12 +29,12 @@ package visad.data.bio;
 /**
  * OpenlabForm is the VisAD data adapter for Openlab LIFF files.
  *
- * @deprecated Use LociForm with loci.formats.OpenlabReader
+ * @deprecated Use LociForm with loci.formats.in.OpenlabReader
  */
 public class OpenlabForm extends LociForm {
 
   public OpenlabForm() {
-    super(new loci.formats.OpenlabReader());
+    super(new loci.formats.in.OpenlabReader());
   }
 
   public static void main(String[] args) throws Exception {

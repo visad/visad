@@ -28,7 +28,9 @@ package visad.data.tiff;
 
 import java.util.Hashtable;
 import java.io.IOException;
-import loci.formats.*;
+import loci.formats.FormatException;
+import loci.formats.in.TiffReader;
+import loci.formats.out.TiffWriter;
 import visad.FlatField;
 import visad.data.BadFormException;
 import visad.util.DataUtility;
@@ -36,7 +38,7 @@ import visad.util.DataUtility;
 /**
  * TiffForm is the VisAD data adapter for the TIFF file format.
  *
- * This class is just a wrapper for the TIFF logic in the loci.formats package.
+ * This class is just a wrapper for the TIFF logic in the loci.formats packages.
  */
 public class TiffForm extends visad.data.bio.LociForm {
 
