@@ -4,7 +4,8 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2006 Melissa Linkert, Curtis Rueden and Eric Kjellman.
+Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU Library General Public License as published by
@@ -23,38 +24,44 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package loci.formats;
 
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 
 /**
  * A utility class with convenience methods for
  * reading, writing and decoding words.
  *
  * @author Curtis Rueden ctrueden at wisc.edu
+ * @author Chris Allan callan at blackcat.ca
  */
-public abstract class DataTools {
+public final class DataTools {
+
+  // -- Static fields --
+
+  /**
+   * Persistent byte array for calling
+   * {@link java.io.DataInput#readFully(byte[], int, int)} efficiently.
+   */
+  private static ThreadLocal eightBytes = new ThreadLocal() {
+    protected synchronized Object initialValue() {
+      return new byte[8];
+    }
+  };
+
+  // -- Constructor --
+
+  private DataTools() { }
 
   // -- Data reading --
 
-  /** Reads bytes from the given random access file or array. */
-  public static void readFully(RandomAccessFile in, byte[] bytes)
-    throws IOException
-  {
-    if (in instanceof RandomAccessArray) {
-      ((RandomAccessArray) in).copyArray(bytes);
-    }
-    else in.readFully(bytes);
-  }
-
   /** Reads 1 signed byte [-128, 127]. */
-  public static byte readSignedByte(RandomAccessFile in) throws IOException {
-    byte[] b = new byte[1];
-    readFully(in, b);
+  public static byte readSignedByte(DataInput in) throws IOException {
+    byte[] b = (byte[]) eightBytes.get();
+    in.readFully(b, 0, 1);
     return b[0];
   }
 
   /** Reads 1 unsigned byte [0, 255]. */
-  public static short readUnsignedByte(RandomAccessFile in)
+  public static short readUnsignedByte(DataInput in)
     throws IOException
   {
     short q = readSignedByte(in);
@@ -63,16 +70,16 @@ public abstract class DataTools {
   }
 
   /** Reads 2 signed bytes [-32768, 32767]. */
-  public static short read2SignedBytes(RandomAccessFile in, boolean little)
+  public static short read2SignedBytes(DataInput in, boolean little)
     throws IOException
   {
-    byte[] bytes = new byte[2];
-    readFully(in, bytes);
-    return bytesToShort(bytes, little);
+    byte[] b = (byte[]) eightBytes.get();
+    in.readFully(b, 0, 2);
+    return bytesToShort(b, little);
   }
 
   /** Reads 2 unsigned bytes [0, 65535]. */
-  public static int read2UnsignedBytes(RandomAccessFile in, boolean little)
+  public static int read2UnsignedBytes(DataInput in, boolean little)
     throws IOException
   {
     int q = read2SignedBytes(in, little);
@@ -81,16 +88,16 @@ public abstract class DataTools {
   }
 
   /** Reads 4 signed bytes [-2147483648, 2147483647]. */
-  public static int read4SignedBytes(RandomAccessFile in, boolean little)
+  public static int read4SignedBytes(DataInput in, boolean little)
     throws IOException
   {
-    byte[] bytes = new byte[4];
-    readFully(in, bytes);
-    return bytesToInt(bytes, little);
+    byte[] b = (byte[]) eightBytes.get();
+    in.readFully(b, 0, 4);
+    return bytesToInt(b, little);
   }
 
   /** Reads 4 unsigned bytes [0, 4294967296]. */
-  public static long read4UnsignedBytes(RandomAccessFile in, boolean little)
+  public static long read4UnsignedBytes(DataInput in, boolean little)
     throws IOException
   {
     long q = read4SignedBytes(in, little);
@@ -99,85 +106,68 @@ public abstract class DataTools {
   }
 
   /** Reads 8 signed bytes [-9223372036854775808, 9223372036854775807]. */
-  public static long read8SignedBytes(RandomAccessFile in, boolean little)
+  public static long read8SignedBytes(DataInput in, boolean little)
     throws IOException
   {
-    byte[] bytes = new byte[8];
-    readFully(in, bytes);
-    return bytesToLong(bytes, little);
+    byte[] b = (byte[]) eightBytes.get();
+    in.readFully(b, 0, 8);
+    return bytesToLong(b, little);
   }
 
   /** Reads 4 bytes in single precision IEEE format. */
-  public static float readFloat(RandomAccessFile in, boolean little)
+  public static float readFloat(DataInput in, boolean little)
     throws IOException
   {
     return Float.intBitsToFloat(read4SignedBytes(in, little));
   }
 
   /** Reads 8 bytes in double precision IEEE format. */
-  public static double readDouble(RandomAccessFile in, boolean little)
+  public static double readDouble(DataInput in, boolean little)
     throws IOException
   {
     return Double.longBitsToDouble(read8SignedBytes(in, little));
   }
 
-
   // -- Data writing --
 
-  /** Writes a string to the given random access file. */
-  public static void writeString(RandomAccessFile out, String s)
+  /** Writes a string to the given data output destination. */
+  public static void writeString(DataOutput out, String s)
     throws IOException
   {
-    byte[] bytes =  s.getBytes("UTF-8");
-    out.write(bytes);
+    byte[] b =  s.getBytes("UTF-8");
+    out.write(b);
   }
 
-  /**
-   * Writes an integer to the given random access file
-   * in little-endian format.
-   */
-  public static void writeInt(RandomAccessFile out, int v)
+  /** Writes an integer to the given data output destination. */
+  public static void writeInt(DataOutput out, int v, boolean little)
     throws IOException
   {
-    out.write(v & 0xFF);
-    out.write((v >>> 8) & 0xFF);
-    out.write((v >>> 16) & 0xFF);
-    out.write((v >>> 24) & 0xFF);
+    if (little) {
+      out.write(v & 0xFF);
+      out.write((v >>> 8) & 0xFF);
+      out.write((v >>> 16) & 0xFF);
+      out.write((v >>> 24) & 0xFF);
+    }
+    else {
+      out.write((v >>> 24) & 0xFF);
+      out.write((v >>> 16) & 0xFF);
+      out.write((v >>> 8) & 0xFF);
+      out.write(v & 0xFF);
+    }
   }
 
-  /**
-   * Writes a short to the given random access file
-   * in little-endian format.
-   */
-  public static void writeShort(RandomAccessFile out, int v)
+  /** Writes a short to the given data output destination. */
+  public static void writeShort(DataOutput out, int v, boolean little)
     throws IOException
   {
-    out.write(v & 0xFF);
-    out.write((v >>> 8) & 0xFF);
-  }
-
-  /**
-   * Writes an integer to the given random access file
-   * in big-endian format.
-   */
-  public static void writeReverseInt(RandomAccessFile out, int v)
-    throws IOException
-  {
-    out.write((v >>> 24) & 0xFF);
-    out.write((v >>> 16) & 0xFF);
-    out.write((v >>> 8) & 0xFF);
-    out.write(v & 0xFF);
-  }
-
-  /**
-   * Writes a short to the given random access file
-   * in big-endian format.
-   */
-  public static void writeReverseShort(RandomAccessFile out, int v)
-    throws IOException
-  {
-    out.write((v >>> 8) & 0xFF);
-    out.write(v & 0xFF);
+    if (little) {
+      out.write(v & 0xFF);
+      out.write((v >>> 8) & 0xFF);
+    }
+    else {
+      out.write((v >>> 8) & 0xFF);
+      out.write(v & 0xFF);
+    }
   }
 
   // -- Word decoding --
@@ -330,9 +320,9 @@ public abstract class DataTools {
   {
     if (bytes.length - off < len) len = bytes.length - off;
     long total = 0;
-    for (int i=0; i<len; i++) {
-      total |= (bytes[i] < 0 ? 256L + bytes[i] :
-        (long) bytes[i]) << ((little ? i : len - i - 1) * 8);
+    for (int i=0, ndx=off; i<len; i++, ndx++) {
+      total |= (bytes[ndx] < 0 ? 256L + bytes[ndx] :
+        (long) bytes[ndx]) << ((little ? i : len - i - 1) * 8);
     }
     return total;
   }
@@ -389,28 +379,133 @@ public abstract class DataTools {
     return bytesToLong(bytes, 0, 8, little);
   }
 
-  /** Translates bytes from the given array into a string. */
-  public static String bytesToString(short[] bytes, int off, int len) {
-    if (bytes.length - off < len) len = bytes.length - off;
-    for (int i=0; i<len; i++) {
-      if (bytes[off + i] == 0) {
-        len = i;
-        break;
+  /** Remove null bytes from a string. */
+  public static String stripString(String toStrip) {
+    char[] toRtn = new char[toStrip.length()];
+    int counter = 0;
+    for (int i=0; i<toRtn.length; i++) {
+      if (toStrip.charAt(i) != 0) {
+        toRtn[counter] = toStrip.charAt(i);
+        counter++;
       }
     }
-    byte[] b = new byte[len];
-    for (int i=0; i<b.length; i++) b[i] = (byte) bytes[off + i];
-    return new String(b);
+    toStrip = new String(toRtn);
+    toStrip = toStrip.trim();
+    return toStrip;
   }
 
-  /** Translates bytes from the given array into a string. */
-  public static String bytesToString(short[] bytes, int off) {
-    return bytesToString(bytes, off, bytes.length - off);
+  /** Check if two filenames have the same prefix. */
+  public static boolean samePrefix(String s1, String s2) {
+    if (s1 == null || s2 == null) return false;
+    int n1 = s1.indexOf(".");
+    int n2 = s2.indexOf(".");
+    if ((n1 == -1) || (n2 == -1)) return false;
+
+    int slash1 = s1.lastIndexOf(File.pathSeparator);
+    int slash2 = s2.lastIndexOf(File.pathSeparator);
+
+    String sub1 = s1.substring((slash1 == -1) ? 0 : slash1 + 1, n1);
+    String sub2 = s2.substring((slash2 == -1) ? 0 : slash2 + 1, n2);
+    return sub1.equals(sub2) || sub1.startsWith(sub2) || sub2.startsWith(sub1);
   }
 
-  /** Translates bytes from the given array into a string. */
-  public static String bytesToString(short[] bytes) {
-    return bytesToString(bytes, 0, bytes.length);
+  /**
+   * Convert a byte array to the appropriate primitive type array.
+   * The 'bpp' parameter denotes the number of bytes in the returned primitive
+   * type (e.g. if bpp == 2, we should return an array of type short).
+   * If 'fp' is set and bpp == 4 or bpp == 8, then return floats or doubles.
+   */
+  public static Object makeDataArray(byte[] b, int bpp, boolean fp,
+    boolean little)
+  {
+    if (bpp == 1) return b;
+    else if (bpp == 2) {
+      short[] s = new short[b.length / 2];
+      for (int i=0; i<s.length; i++) {
+        s[i] = bytesToShort(b, i*2, 2, little);
+      }
+      return s;
+    }
+    else if (bpp == 4 && fp) {
+      float[] f = new float[b.length / 4];
+      for (int i=0; i<f.length; i++) {
+        f[i] = Float.intBitsToFloat(bytesToInt(b, i*4, 4, little));
+      }
+      return f;
+    }
+    else if (bpp == 4) {
+      int[] i = new int[b.length / 4];
+      for (int j=0; j<i.length; j++) {
+        i[j] = bytesToInt(b, j*4, 4, little);
+      }
+      return i;
+    }
+    else if (bpp == 8 && fp) {
+      double[] d = new double[b.length / 8];
+      for (int i=0; i<d.length; i++) {
+        d[i] = Double.longBitsToDouble(bytesToLong(b, i*8, 8, little));
+      }
+      return d;
+    }
+    else if (bpp == 8) {
+      long[] l = new long[b.length / 8];
+      for (int i=0; i<l.length; i++) {
+        l[i] = bytesToLong(b, i*8, 8, little);
+      }
+      return l;
+    }
+    return null;
+  }
+
+  /**
+   * Normalize the given float array so that the minimum value maps to 0.0
+   * and the maximum value maps to 1.0.
+   */
+  public static float[] normalizeFloats(float[] data) {
+    float[] rtn = new float[data.length];
+
+    // make a quick pass through to determine the real min and max values
+
+    float min = Float.MAX_VALUE;
+    float max = Float.MIN_VALUE;
+    int maxNdx = 0;
+
+    for (int i=0; i<data.length; i++) {
+      if (data[i] < min) min = data[i];
+      if (data[i] > max) {
+        max = data[i];
+        maxNdx = i;
+      }
+    }
+
+    // now normalize; min => 0.0, max => 1.0
+
+    for (int i=0; i<rtn.length; i++) {
+      rtn[i] = data[i] / max;
+      if (rtn[i] < 0f) rtn[i] = 0f;
+      if (rtn[i] > 1f) rtn[i] = 1f;
+    }
+
+    return rtn;
+  }
+
+  // -- Byte swapping --
+
+  public static short swap(short x) {
+    return (short) ((x << 8) | ((x >> 8) & 0xFF));
+  }
+
+  public static char swap(char x) {
+    return (char) ((x << 8) | ((x >> 8) & 0xFF));
+  }
+
+  public static int swap(int x) {
+    return (int) ((swap((short) x) << 16) | (swap((short) (x >> 16)) & 0xFFFF));
+  }
+
+  public static long swap(long x) {
+    return (long) (((long) swap((int) x) << 32) |
+      ((long) swap((int) (x >> 32)) & 0xFFFFFFFFL));
   }
 
 }

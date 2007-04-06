@@ -4,7 +4,8 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2006 Melissa Linkert, Curtis Rueden and Eric Kjellman.
+Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU Library General Public License as published by
@@ -24,128 +25,131 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 package loci.formats;
 
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.IOException;
 import java.util.*;
-import javax.swing.JFileChooser;
 
 /**
- * ImageReader is master file format reader for all supported formats.
+ * ImageReader is the master file format reader for all supported formats.
+ * It uses one instance of each reader subclass (specified in readers.txt,
+ * or other class list source) to identify file formats and read data.
  *
  * @author Curtis Rueden ctrueden at wisc.edu
  */
-public class ImageReader extends FormatReader {
+public class ImageReader implements IFormatReader {
 
   // -- Static fields --
 
   /** List of reader classes. */
-  protected static Class[] readerClasses;
-
+  private static ClassList readerClasses;
 
   // -- Static initializer --
 
   static {
-    // read built-in reader classes from readers.txt file
-    BufferedReader in = new BufferedReader(new InputStreamReader(
-      ImageReader.class.getResourceAsStream("readers.txt")));
-    Vector v = new Vector();
-    while (true) {
-      String line = null;
-      try { line = in.readLine(); }
-      catch (IOException exc) { exc.printStackTrace(); }
-      if (line == null) break;
-
-      // ignore characters following # sign (comments)
-      int ndx = line.indexOf("#");
-      if (ndx >= 0) line = line.substring(0, ndx);
-      line = line.trim();
-      if (line.equals("")) continue;
-
-      // load reader class
-      Class c = null;
-      try { c = Class.forName(line); }
-      catch (ClassNotFoundException exc) { }
-      if (c == null || !FormatReader.class.isAssignableFrom(c)) {
-        System.err.println("Error: \"" + line +
-          "\" is not a valid format reader.");
-        continue;
-      }
-      v.add(c);
+    // load built-in reader classes from readers.txt file
+    try {
+      readerClasses = new ClassList("readers.txt", IFormatReader.class);
     }
-    try { in.close(); }
-    catch (IOException exc) { exc.printStackTrace(); }
-    readerClasses = new Class[v.size()];
-    v.copyInto(readerClasses);
+    catch (IOException exc) {
+      exc.printStackTrace();
+      readerClasses = new ClassList(IFormatReader.class);
+    }
   }
-
 
   // -- Fields --
 
   /** List of supported file format readers. */
-  protected FormatReader[] readers;
+  private IFormatReader[] readers;
+
+  /**
+   * Valid suffixes for this file format.
+   * Populated the first time getSuffixes() is called.
+   */
+  private String[] suffixes;
+
+  /** Name of current file. */
+  private String currentId;
 
   /** Current form index. */
-  protected int index;
+  private int current;
 
+  // -- Constructors --
 
-  // -- Constructor --
-
-  /** Constructs a new ImageReader. */
+  /**
+   * Constructs a new ImageReader with the default
+   * list of reader classes from readers.txt.
+   */
   public ImageReader() {
-    super("any image", (String[]) null);
+    this(readerClasses);
+  }
 
-    // add built-in readers to the list
+  /** Constructs a new ImageReader from the given list of reader classes. */
+  public ImageReader(ClassList classList) {
+    // add readers to the list
     Vector v = new Vector();
-    HashSet suffixSet = new HashSet();
-    for (int i=0; i<readerClasses.length; i++) {
-      FormatReader reader = null;
-      try { reader = (FormatReader) readerClasses[i].newInstance(); }
+    Class[] c = classList.getClasses();
+    for (int i=0; i<c.length; i++) {
+      IFormatReader reader = null;
+      try {
+        reader = (IFormatReader) c[i].newInstance();
+      }
       catch (IllegalAccessException exc) { }
       catch (InstantiationException exc) { }
       if (reader == null) {
-        System.err.println("Error: " + readerClasses[i].getName() +
+        System.err.println("Error: " + c[i].getName() +
           " cannot be instantiated.");
         continue;
       }
       v.add(reader);
-      String[] suf = reader.getSuffixes();
-      for (int j=0; j<suf.length; j++) suffixSet.add(suf[j]);
     }
-    readers = new FormatReader[v.size()];
+    readers = new IFormatReader[v.size()];
     v.copyInto(readers);
-    suffixes = new String[suffixSet.size()];
-    suffixSet.toArray(suffixes);
-    Arrays.sort(suffixes);
   }
-
 
   // -- ImageReader API methods --
 
   /** Gets a string describing the file format for the given file. */
   public String getFormat(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return readers[index].getFormat();
+    return getReader(id).getFormat();
   }
 
   /** Gets the reader used to open the given file. */
-  public FormatReader getReader(String id)
+  public IFormatReader getReader(String id)
     throws FormatException, IOException
   {
-    if (!id.equals(currentId)) initFile(id);
-    return readers[index];
+    if (!id.equals(currentId)) {
+      // initialize file
+      boolean success = false;
+      for (int i=0; i<readers.length; i++) {
+        if (readers[i].isThisType(id)) {
+          current = i;
+          currentId = id;
+          success = true;
+          break;
+        }
+      }
+      if (!success) throw new FormatException("Unknown file format: " + id);
+    }
+    return readers[current];
   }
 
   /** Gets the file format reader instance matching the given class. */
-  public FormatReader getReader(Class c) {
+  public IFormatReader getReader(Class c) {
     for (int i=0; i<readers.length; i++) {
       if (readers[i].getClass().equals(c)) return readers[i];
     }
     return null;
   }
 
+  /** Gets all constituent file format readers. */
+  public IFormatReader[] getReaders() {
+    IFormatReader[] r = new IFormatReader[readers.length];
+    System.arraycopy(readers, 0, r, 0, readers.length);
+    return r;
+  }
 
-  // -- FormatReader API methods --
+  // -- IFormatReader API methods --
 
-  /** Checks if the given block is a valid header for an image file. */
+  /* @see IFormatReader.isThisType(byte[]) */
   public boolean isThisType(byte[] block) {
     for (int i=0; i<readers.length; i++) {
       if (readers[i].isThisType(block)) return true;
@@ -153,130 +157,318 @@ public class ImageReader extends FormatReader {
     return false;
   }
 
-  /** Determines the number of images in the given image file. */
+  /* @see IFormatReader.getImageCount(String) */
   public int getImageCount(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return readers[index].getImageCount(id);
+    return getReader(id).getImageCount(id);
   }
 
-  /** Obtains the specified image from the given image file. */
-  public BufferedImage open(String id, int no)
+  /* @see IFormatReader.isRGB(String) */
+  public boolean isRGB(String id) throws FormatException, IOException {
+    return getReader(id).isRGB(id);
+  }
+
+  /* @see IFormatReader.getSizeX(String) */
+  public int getSizeX(String id) throws FormatException, IOException {
+    return getReader(id).getSizeX(id);
+  }
+
+  /* @see IFormatReader.getSizeY(String) */
+  public int getSizeY(String id) throws FormatException, IOException {
+    return getReader(id).getSizeY(id);
+  }
+
+  /* @see IFormatReader.getSizeZ(String) */
+  public int getSizeZ(String id) throws FormatException, IOException {
+    return getReader(id).getSizeZ(id);
+  }
+
+  /* @see IFormatReader.getSizeC(String) */
+  public int getSizeC(String id) throws FormatException, IOException {
+    return getReader(id).getSizeC(id);
+  }
+
+  /* @see IFormatReader.getSizeT(String) */
+  public int getSizeT(String id) throws FormatException, IOException {
+    return getReader(id).getSizeT(id);
+  }
+
+  /* @see IFormatReader#getPixelType(String) */
+  public int getPixelType(String id) throws FormatException, IOException {
+    return getReader(id).getPixelType(id);
+  }
+
+  /* @see IFormatReader#getEffectiveSizeC(String) */
+  public int getEffectiveSizeC(String id) throws FormatException, IOException {
+    return getReader(id).getEffectiveSizeC(id);
+  }
+
+  /* @see IFormatReader#getRGBChannelCount(String) */
+  public int getRGBChannelCount(String id) throws FormatException, IOException {
+    return getReader(id).getRGBChannelCount(id);
+  }
+
+  /* @see IFormatReader#getChannelDimLengths(String) */
+  public int[] getChannelDimLengths(String id)
     throws FormatException, IOException
   {
-    if (!id.equals(currentId)) initFile(id);
-    return readers[index].open(id, no);
+    return getReader(id).getChannelDimLengths(id);
   }
 
-  /** Closes any open files. */
+  /* @see IFormatReader#getChannelDimTypes(String) */
+  public String[] getChannelDimTypes(String id)
+    throws FormatException, IOException
+  {
+    return getReader(id).getChannelDimTypes(id);
+  }
+
+  /* @see IFormatReader#getThumbSizeX(String) */
+  public int getThumbSizeX(String id) throws FormatException, IOException {
+    return getReader(id).getThumbSizeX(id);
+  }
+
+  /* @see IFormatReader#getThumbSizeY(String) */
+  public int getThumbSizeY(String id) throws FormatException, IOException {
+    return getReader(id).getThumbSizeY(id);
+  }
+
+  /* @see IFormatReader#isLittleEndian(String) */
+  public boolean isLittleEndian(String id) throws FormatException, IOException {
+    return getReader(id).isLittleEndian(id);
+  }
+
+  /* @see IFormatReader#getDimensionOrder(String) */
+  public String getDimensionOrder(String id)
+    throws FormatException, IOException
+  {
+    return getReader(id).getDimensionOrder(id);
+  }
+
+  /* @see IFormatReader#isOrderCertain(String) */
+  public boolean isOrderCertain(String id) throws FormatException, IOException {
+    return getReader(id).isOrderCertain(id);
+  }
+
+  /* @see IFormatReader#isInterleaved(String) */
+  public boolean isInterleaved(String id) throws FormatException, IOException {
+    return getReader(id).isInterleaved(id);
+  }
+
+  /* @see IFormatReader#isInterleaved(String, int) */
+  public boolean isInterleaved(String id, int subC)
+    throws FormatException, IOException
+  {
+    return getReader(id).isInterleaved(id, subC);
+  }
+
+  /* @see IFormatReader#openImage(String, int) */
+  public BufferedImage openImage(String id, int no)
+    throws FormatException, IOException
+  {
+    return getReader(id).openImage(id, no);
+  }
+
+  /* @see IFormatReader#openBytes(String, int) */
+  public byte[] openBytes(String id, int no)
+    throws FormatException, IOException
+  {
+    return getReader(id).openBytes(id, no);
+  }
+
+  /* @see IFormatReader#openBytes(String, int, byte[]) */
+  public byte[] openBytes(String id, int no, byte[] buf)
+    throws FormatException, IOException
+  {
+    return getReader(id).openBytes(id, no, buf);
+  }
+
+  /* @see IFormatReader#openThumbImage(String, int) */
+  public BufferedImage openThumbImage(String id, int no)
+    throws FormatException, IOException
+  {
+    return getReader(id).openThumbImage(id, no);
+  }
+
+  /* @see IFormatReader#openThumbBytes(String, int) */
+  public byte[] openThumbBytes(String id, int no)
+    throws FormatException, IOException
+  {
+    return getReader(id).openThumbBytes(id, no);
+  }
+
+  /* @see IFormatReader#close(boolean) */
+  public void close(boolean fileOnly) throws FormatException, IOException {
+    for (int i=0; i<readers.length; i++) readers[i].close(fileOnly);
+  }
+
+  /* @see IFormatReader#close() */
   public void close() throws FormatException, IOException {
     for (int i=0; i<readers.length; i++) readers[i].close();
   }
 
-  /**
-   * Opens an existing file from the given filename.
-   *
-   * @return Java Images containing pixel data
-   */
-  public BufferedImage[] open(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return readers[index].open(id);
+  /* @see IFormatReader#getSeriesCount(String) */
+  public int getSeriesCount(String id) throws FormatException, IOException {
+    return getReader(id).getSeriesCount(id);
   }
 
-  /**
-   * Obtains a loci.ome.xml.OMENode object representing the
-   * file's metadata as an OME-XML DOM structure.
-   *
-   * @return null if the loci.ome.xml package is not present.
-   */
-  public Object getOMENode(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return readers[index].getOMENode(id);
+  /* @see IFormatReader#setSeries(String, int) */
+  public void setSeries(String id, int no) throws FormatException, IOException {
+    getReader(id).setSeries(id, no);
   }
 
-  /**
-   * Obtains the specified metadata field's value for the given file.
-   *
-   * @param field the name associated with the metadata field
-   * @return the value, or null if the field doesn't exist
-   */
+  /* @see IFormatReader#getSeries(String) */
+  public int getSeries(String id) throws FormatException, IOException {
+    return getReader(id).getSeries(id);
+  }
+
+  /* @see IFormatReader#setNormalized(boolean) */
+  public void setNormalized(boolean normalize) {
+    for (int i=0; i<readers.length; i++) readers[i].setNormalized(normalize);
+  }
+
+  /* @see IFormatReader#isNormalized() */
+  public boolean isNormalized() {
+    // NB: all readers should have the same normalization setting
+    return readers[0].isNormalized();
+  }
+
+  /* @see IFormatReader#getUsedFiles(String) */
+  public String[] getUsedFiles(String id) throws FormatException, IOException {
+    return getReader(id).getUsedFiles(id);
+  }
+
+  /* @see IFormatReader#getCurrentFile() */
+  public String getCurrentFile() {
+    try {
+      return getReader(currentId).getCurrentFile();
+    }
+    catch (FormatException e) { e.printStackTrace(); }
+    catch (IOException e) { e.printStackTrace(); }
+    return null;
+  }
+
+  /* @see IFormatReader#getIndex(String, int, int, int) */
+  public int getIndex(String id, int z, int c, int t)
+    throws FormatException, IOException
+  {
+    return getReader(id).getIndex(id, z, c, t);
+  }
+
+  /* @see IFormatReader#getZCTCoords(String, int) */
+  public int[] getZCTCoords(String id, int index)
+    throws FormatException, IOException
+  {
+    return getReader(id).getZCTCoords(id, index);
+  }
+
+  /* @see IFormatReader#getMetadataValue(String, String) */
   public Object getMetadataValue(String id, String field)
     throws FormatException, IOException
   {
-    if (!id.equals(currentId)) initFile(id);
-    return readers[index].getMetadataValue(id, field);
+    return getReader(id).getMetadataValue(id, field);
   }
 
-  /**
-   * Obtains the hashtable containing the metadata field/value pairs from
-   * the given file.
-   *
-   * @param id the filename
-   * @return the hashtable containing all metadata from the file
-   */
+  /* @see IFormatReader#getMetadata(String) */
   public Hashtable getMetadata(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return readers[index].getMetadata(id);
+    return getReader(id).getMetadata(id);
   }
 
-  /**
-   * A utility method for test reading a file from the command line,
-   * and displaying the results in a simple display.
-   */
+  /* @see IFormatReader#getCoreMetadata(String) */
+  public CoreMetadata getCoreMetadata(String id)
+    throws FormatException, IOException
+  {
+    return getReader(id).getCoreMetadata(id);
+  }
+
+  /* @see IFormatReader#setMetadataFiltered(boolean) */
+  public void setMetadataFiltered(boolean filter) {
+    for (int i=0; i<readers.length; i++) readers[i].setMetadataFiltered(filter);
+  }
+
+  /* @see IFormatReader#isMetadataFiltered() */
+  public boolean isMetadataFiltered() {
+    // NB: all readers should have the same metadata filtering setting
+    return readers[0].isNormalized();
+  }
+
+  /* @see FormatReader#setMetadataStore(MetadataStore) */
+  public void setMetadataStore(MetadataStore store) {
+    for (int i=0; i<readers.length; i++) {
+      readers[i].setMetadataStore(store);
+    }
+  }
+
+  /* @see IFormatReader#getMetadataStore(String) */
+  public MetadataStore getMetadataStore(String id)
+    throws FormatException, IOException
+  {
+    return getReader(id).getMetadataStore(id);
+  }
+
+  /* @see IFormatReader#getMetadataStoreRoot(String) */
+  public Object getMetadataStoreRoot(String id)
+    throws FormatException, IOException
+  {
+    return getReader(id).getMetadataStoreRoot(id);
+  }
+
+  /* @see IFormatReader#testRead(String[]) */
   public boolean testRead(String[] args) throws FormatException, IOException {
-    if (args.length == 0) {
-      JFileChooser box = getFileChooser();
-      int rval = box.showOpenDialog(null);
-      if (rval == JFileChooser.APPROVE_OPTION) {
-        File file = box.getSelectedFile();
-        if (file != null) args = new String[] {file.getPath()};
-      }
-    }
-    if (args.length > 0) {
-      // check file format
-      System.out.print("Checking file format ");
-      System.out.println("[" + getFormat(args[0]) + "]");
-    }
-    return super.testRead(args);
+    return FormatTools.testRead(this, args);
   }
 
+  // -- IFormatHandler API methods --
 
-  // -- FormatHandler API methods --
-
-  /** Creates JFileChooser file filters for this file format. */
-  protected void createFilters() {
-    Vector v = new Vector();
-    for (int i=0; i<readers.length; i++) {
-      javax.swing.filechooser.FileFilter[] ff = readers[i].getFileFilters();
-      for (int j=0; j<ff.length; j++) v.add(ff[j]);
-    }
-    filters = ComboFileFilter.sortFilters(v);
-  }
-
-  /**
-   * Checks if the given string is a valid filename for any supported format.
-   */
+  /* @see IFormatHandler#isThisType(String) */
   public boolean isThisType(String name) {
+    // NB: Unlike individual format readers, ImageReader defaults to *not*
+    // allowing files to be opened to analyze type, because doing so is
+    // quite slow with the large number of supported formats.
+    return isThisType(name, false);
+  }
+
+  /* @see IFormatHandler#isThisType(String, boolean) */
+  public boolean isThisType(String name, boolean open) {
     for (int i=0; i<readers.length; i++) {
-      if (readers[i].isThisType(name)) return true;
+      if (readers[i].isThisType(name, open)) return true;
     }
     return false;
   }
 
+  /* @see IFormatHandler#getFormat() */
+  public String getFormat() { return "image"; }
 
-  // -- Internal ImageReader API methods --
-
-  /** Initializes the given image file. */
-  protected void initFile(String id) throws FormatException, IOException {
-    for (int i=0; i<readers.length; i++) {
-      if (readers[i].isThisType(id)) {
-        index = i;
-        currentId = id;
-        return;
+  /* @see IFormatHandler#getSuffixes() */
+  public String[] getSuffixes() {
+    if (suffixes == null) {
+      HashSet suffixSet = new HashSet();
+      for (int i=0; i<readers.length; i++) {
+        String[] suf = readers[i].getSuffixes();
+        for (int j=0; j<suf.length; j++) suffixSet.add(suf[j]);
       }
+      suffixes = new String[suffixSet.size()];
+      suffixSet.toArray(suffixes);
+      Arrays.sort(suffixes);
     }
-    throw new FormatException("Unknown file format: " + id);
+    return suffixes;
   }
 
+  // -- StatusReporter API methods --
+
+  /* @see IFormatHandler#addStatusListener(StatusListener) */
+  public void addStatusListener(StatusListener l) {
+    for (int i=0; i<readers.length; i++) readers[i].addStatusListener(l);
+  }
+
+  /* @see IFormatHandler#removeStatusListener(StatusListener) */
+  public void removeStatusListener(StatusListener l) {
+    for (int i=0; i<readers.length; i++) readers[i].removeStatusListener(l);
+  }
+
+  /* @see IFormatHandler#getStatusListeners() */
+  public StatusListener[] getStatusListeners() {
+    // NB: all readers should have the same status listeners
+    return readers[0].getStatusListeners();
+  }
 
   // -- Main method --
 

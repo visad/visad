@@ -4,7 +4,8 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2006 Melissa Linkert, Curtis Rueden and Eric Kjellman.
+Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU Library General Public License as published by
@@ -24,16 +25,35 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 package loci.formats;
 
 import java.awt.Image;
+import java.awt.image.ColorModel;
 import java.io.IOException;
 
 /** Abstract superclass of all biological file format writers. */
-public abstract class FormatWriter extends FormatHandler {
+public abstract class FormatWriter extends FormatHandler
+  implements IFormatWriter
+{
+
+  // -- Constants --
+
+  /** Debugging flag. */
+  public static boolean debug = false;
+
+  /** Debugging level. 1=basic, 2=extended, 3=everything, 4=insane. */
+  public static int debugLevel = 1;
 
   // -- Fields --
 
   /** Frame rate to use when writing in frames per second, if applicable. */
   protected int fps = 10;
 
+  /** Default color model. */
+  protected ColorModel cm;
+
+  /** Available compression types. */
+  protected String[] compressionTypes;
+
+  /** Current compression type. */
+  protected String compression;
 
   // -- Constructors --
 
@@ -45,71 +65,71 @@ public abstract class FormatWriter extends FormatHandler {
     super(format, suffixes);
   }
 
+  // -- IFormatWriter API methods --
 
-  // -- Abstract FormatWriter API methods --
-
-  /**
-   * Saves the given image to the specified (possibly already open) file.
-   * If this image is the last one in the file, the last flag must be set.
-   */
-  public abstract void save(String id, Image image, boolean last)
+  /* @see IFormatWriter#saveImage(String, Image, boolean) */
+  public abstract void saveImage(String id, Image image, boolean last)
     throws FormatException, IOException;
 
-
-  // -- FormatWriter API methods --
-
-  /** Saves the given images to the specified file. */
-  public void save(String id, Image[] images)
+  /** @deprecated Replaced by {@link #saveImage(String, Image, boolean)} */
+  public void save(String id, Image image, boolean last)
     throws FormatException, IOException
   {
-    for (int i=0; i<images.length; i++) {
-      save(id, images[i], i == images.length - 1);
-    }
+    saveImage(id, image, last);
   }
 
+  /** Reports whether the writer can save multiple images to a single file. */
+  public abstract boolean canDoStacks(String id);
+
+  /** Sets the color model. */
+  public void setColorModel(ColorModel model) { cm = model; }
+
+  /** Gets the color model. */
+  public ColorModel getColorModel() { return cm; }
+
   /** Sets the frames per second to use when writing. */
-  public void setFramesPerSecond(int fps) { this.fps = fps; }
+  public void setFramesPerSecond(int rate) { fps = rate; }
 
   /** Gets the frames per second to use when writing. */
   public int getFramesPerSecond() { return fps; }
 
-  /** A utility method for converting a file from the command line. */
-  public void testConvert(String[] args) throws FormatException, IOException {
-    String className = getClass().getName();
-    if (args == null || args.length < 2) {
-      System.out.println("To convert a file to " + format + " format, run:");
-      System.out.println("  java " + className + " in_file out_file");
-      return;
-    }
-    String in = args[0];
-    String out = args[1];
-    System.out.print(in + " -> " + out + " ");
+  /** Get the available compression types. */
+  public String[] getCompressionTypes() { return compressionTypes; }
 
-    ImageReader reader = new ImageReader();
-    long start = System.currentTimeMillis();
-    int num = reader.getImageCount(in);
-    long mid = System.currentTimeMillis();
-    long read = 0, write = 0;
-    for (int i=0; i<num; i++) {
-      long s = System.currentTimeMillis();
-      Image image = reader.open(in, i);
-      long m = System.currentTimeMillis();
-      save(out, image, i == num - 1);
-      long e = System.currentTimeMillis();
-      System.out.print(".");
-      read += m - s;
-      write += e - m;
+  /** Set the current compression type. */
+  public void setCompression(String compress) throws FormatException {
+    // check that this is a valid type
+    for (int i=0; i<compressionTypes.length; i++) {
+      if (compressionTypes[i].equals(compress)) {
+        compression = compress;
+        return;
+      }
     }
-    long end = System.currentTimeMillis();
-    System.out.println(" [done]");
+    throw new FormatException("Invalid compression type: " + compress);
+  }
 
-    // output timing results
-    float sec = (end - start) / 1000f;
-    long initial = mid - start;
-    float readAvg = (float) read / num;
-    float writeAvg = (float) write / num;
-    System.out.println(sec + "s elapsed (" +
-      readAvg + "+" + writeAvg + "ms per image, " + initial + "ms overhead)");
+  /* @see IFormatWriter#getPixelTypes(String) */
+  public int[] getPixelTypes(String id) throws FormatException, IOException {
+    return new int[] {FormatTools.UINT8, FormatTools.UINT16,
+      FormatTools.UINT32, FormatTools.FLOAT};
+  }
+
+  /* @see IFormatWriter#isSupportedType(String, int) */
+  public boolean isSupportedType(String id, int type)
+    throws FormatException, IOException
+  {
+    int[] types = getPixelTypes(id);
+    for (int i=0; i<types.length; i++) {
+      if (type == types[i]) return true;
+    }
+    return false;
+  }
+
+  /* @see IFormatWriter#testConvert(String[]) */
+  public boolean testConvert(String[] args)
+    throws FormatException, IOException
+  {
+    return FormatTools.testConvert(this, args);
   }
 
 }

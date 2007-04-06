@@ -4,7 +4,8 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2006 Melissa Linkert, Curtis Rueden and Eric Kjellman.
+Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU Library General Public License as published by
@@ -41,7 +42,6 @@ public class ReflectedUniverse {
   /** Debugging flag. */
   protected boolean debug;
 
-
   // -- Constructors --
 
   /** Constructs a new reflected universe. */
@@ -63,7 +63,6 @@ public class ReflectedUniverse {
     debug = false;
   }
 
-
   // -- Utility methods --
 
   /**
@@ -81,7 +80,6 @@ public class ReflectedUniverse {
       (c == boolean.class && o instanceof Boolean) ||
       (c == char.class && o instanceof Character));
   }
-
 
   // -- API methods --
 
@@ -110,6 +108,10 @@ public class ReflectedUniverse {
       Class c;
       try {
         c = Class.forName(command, true, loader);
+      }
+      catch (NoClassDefFoundError err) {
+        if (debug) err.printStackTrace();
+        throw new ReflectException("No such class: " + command, err);
       }
       catch (ClassNotFoundException exc) {
         if (debug) exc.printStackTrace();
@@ -151,7 +153,10 @@ public class ReflectedUniverse {
       // command is a constructor call
       String className = command.substring(4).trim();
       Object var = getVar(className);
-      if (!(var instanceof Class)) {
+      if (var == null) {
+        throw new ReflectException("class not found: " + className);
+      }
+      else if (!(var instanceof Class)) {
         throw new ReflectException("not a class: " + className);
       }
       Class cl = (Class) var;
@@ -309,7 +314,11 @@ public class ReflectedUniverse {
     int dot = varName.indexOf(".");
     if (dot >= 0) {
       // get field value of variable
-      Object var = variables.get(varName.substring(0, dot).trim());
+      String className = varName.substring(0, dot).trim();
+      Object var = variables.get(className);
+      if (var == null) {
+        throw new ReflectException("No such class: " + className);
+      }
       Class varClass = var instanceof Class ? (Class) var : var.getClass();
       String fieldName = varName.substring(dot + 1).trim();
       Field field;
