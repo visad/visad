@@ -3856,6 +3856,8 @@ try {
                 if (array_s.length > 0 && array_s[0][0] != null &&
                     array_s[0][0].vertexCount > 0)
                 {
+
+                  if (fill) shadow_api.adjustZ(array_s[0][0].coordinates);
                   shadow_api.addToGroup(group, array_s[0][0], mode,
                                         constant_alpha, constant_color);
                   

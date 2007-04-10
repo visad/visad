@@ -2313,6 +2313,7 @@ makeGeometry 350, 171
             }
 //-- end texture split logic -------------------------------------------------------------
             //System.out.println("isTextureMap done");
+            visad.util.Trace.call2("linear texture");
             return false;
           } // end if (isTextureMap)
           else if (curvedTexture) {
