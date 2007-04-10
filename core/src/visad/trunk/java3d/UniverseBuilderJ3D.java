@@ -111,7 +111,7 @@ public class UniverseBuilderJ3D extends Object {
           REMOVE_ALL_CANVAS3DS.invoke(view, NIL_CLASS_ARRAY);
         }
         catch (Exception ex) {
-            throw new RuntimeException("Assertion failure: " + ex);
+            throw new RuntimeException("Assertion failure", ex);
         }
       }
       // in Java3D 1.3.1
@@ -121,7 +121,7 @@ public class UniverseBuilderJ3D extends Object {
           REMOVE_ALL_LOCALES.invoke(universe, NIL_CLASS_ARRAY);
         }
         catch (Exception ex) {
-            throw new RuntimeException("Assertion failure: " + ex);
+            throw new RuntimeException("Assertion failure", ex);
         }
       }
       // in Java3D 1.3.1
