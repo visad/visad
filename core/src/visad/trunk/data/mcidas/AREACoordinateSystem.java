@@ -51,6 +51,7 @@ public class AREACoordinateSystem
   private int elements;
   private int[] dirBlock;
   private int[] navBlock;
+  private int[] auxBlock;
 
   private static Unit[] coordinate_system_units =
     {null, null};
@@ -162,6 +163,7 @@ public class AREACoordinateSystem
     }
     dirBlock = dir;
     navBlock = nav;
+    auxBlock = aux;
     anav.setImageStart(dir[5], dir[6]);
     anav.setRes(dir[11], dir[12]);
     anav.setStart(0,0);
@@ -180,6 +182,11 @@ public class AREACoordinateSystem
   /** Get the navigation block used to initialize this AREACoordinateSystem */
   public int[] getNavBlock() {
     return navBlock;
+  }
+
+  /** Get the navigation block used to initialize this AREACoordinateSystem */
+  public int[] getAuxBlock() {
+    return auxBlock;
   }
 
   /** convert from image element,line to latitude,longitude
