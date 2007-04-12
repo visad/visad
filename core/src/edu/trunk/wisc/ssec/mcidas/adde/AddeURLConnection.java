@@ -50,7 +50,7 @@ import HTTPClient.UncompressInputStream;
  * and dataset information (McIDAS AGET, ADIR, GDIR, GGET, MDKS, 
  * TXTG, OBTG, WXTG and LWPR requests) are supported.
  *
- * @see <A HREF="http://www.ssec.wisc.edu/mug/prog_man/prog_man.html">
+ * @see <A HREF="http://www.ssec.wisc.edu/mcidas/doc//prog_man.html">
  *      McIDAS Programmer's Manual</A>
  *
  * <pre>
