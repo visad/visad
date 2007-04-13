@@ -363,6 +363,17 @@ public abstract class AREAnav
         return isLineFlipped;
     }
 
+    /** Get the lat,lon of the subpoint if available
+    *
+    * @return double[2] {lat, lon}
+    *
+    */
+    
+    public double[] getSubpoint() {
+      return new double[] {Double.NaN, Double.NaN};
+    }
+
+
     /**
      * Get the line offset for flipped coordinates
      *

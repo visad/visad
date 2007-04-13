@@ -223,6 +223,7 @@ public class GVARnav extends AREAnav
   private int instr, itype;
   private double sublat, sublon;
   private double rlat, rlon, gam, alf;
+  private double[] subpoint;
 
   final int RELLST [][] = {  { 4,  10}, { 13,  63}, { 65,  94},
                      { 98, 100}, {103, 105}, {108, 110}, {113, 115},
@@ -410,6 +411,11 @@ public class GVARnav extends AREAnav
     dr  = rparms[REFDIS];
     phi = rparms[REFLAT];
     psi = rparms[REFYAW];
+
+    subpoint = new double[2];
+    subpoint[0] = rparms[REFLAT]/RAD;
+    subpoint[1] = rparms[REFLON]/RAD;
+
 
     // assign reference values to the attitudes and misalignments
     roll  = rparms[RATROL];
@@ -664,6 +670,17 @@ public class GVARnav extends AREAnav
 
   }
 
+
+
+  /** return the lat,lon of the subpoint
+  *
+  * @return double[2] {lat, lon}
+  *
+  */
+  
+  public double[] getSubpoint() {
+    return subpoint;
+  }
 
 
   /** converts from satellite coordinates to latitude/longitude
