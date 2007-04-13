@@ -668,6 +668,19 @@ public abstract class AREAnav
     return className.substring(0,className.indexOf("nav"));
   }
 
+  /**
+   * See if we can approximate by a spline.  Subclasses can override
+   * @return true
+   */
+  public boolean canApproximateWithSpline() {
+      return true;
+  }
+
+  /**
+   * Convert arrays of floats to doubles
+   * @param value  arrays of floats
+   * @return value converted to arrays of doubles
+   */
   public static double[][] floatToDouble(float[][] value) {
     if (value == null) return null;
     double[][] val = new double[value.length][];
@@ -685,6 +698,11 @@ public abstract class AREAnav
     return val;
   }
 
+  /**
+   * Convert arrays of floats to doubles
+   * @param value  arrays of floats
+   * @return value converted to arrays of doubles
+   */
   public static float[][] doubleToFloat(double[][] value) {
     if (value == null) return null;
     float[][] val = new float[value.length][];
