@@ -21,19 +21,18 @@ MA 02111-1307, USA
 */
 
 import java.awt.image.BufferedImage;
-
 import java.rmi.RemoteException;
-
+import java.util.Vector;
 import visad.*;
-
 import visad.bom.ImageRendererJ3D;
-
 import visad.java3d.DisplayImplJ3D;
+import visad.java3d.TwoDDisplayRendererJ3D;
+import visad.util.CursorUtil;
 
-public class Test73
-  extends TestSkeleton
-{
+public class Test73 extends TestSkeleton implements DisplayListener {
   private String fileName;
+  private boolean norm;
+  private ImageFlatField ff;
 
   public Test73() { }
 
@@ -43,25 +42,33 @@ public class Test73
     super(args);
   }
 
-  public int checkKeyword(String testName, int argc, String[] args)
-  {
-    if (fileName == null) {
-      fileName = args[argc];
-    } else {
-      System.err.println(testName + ": Ignoring extra filename \"" +
-                         args[argc] + "\"");
+  public void initializeArgs() { fileName = null; norm = false; }
+
+  public int checkOption(String progName, char ch, String arg) {
+    if (ch == 'n') {
+      norm = true;
+      return 1;
+    }
+
+    return 0;
+  }
+
+
+  public int checkKeyword(String testName, int argc, String[] args) {
+    if (fileName == null) fileName = args[argc];
+    else {
+      System.err.println(testName +
+        ": Ignoring extra filename \"" + args[argc] + "\"");
     }
 
     return 1;
   }
 
-  public String keywordUsage()
-  {
-    return super.keywordUsage() + " file";
+  public String keywordUsage() {
+    return super.keywordUsage() + " [-n(ormalize)] file";
   }
 
-  public boolean finalizeArgs(String mainName)
-  {
+  public boolean finalizeArgs(String mainName) {
     if (fileName == null) {
       System.err.println(mainName + ": No filename specified!");
       return false;
@@ -74,7 +81,8 @@ public class Test73
     throws RemoteException, VisADException
   {
     DisplayImpl[] dpys = new DisplayImpl[1];
-    dpys[0] = new DisplayImplJ3D("display", DisplayImplJ3D.APPLETFRAME);
+    dpys[0] = new DisplayImplJ3D("display",
+      new TwoDDisplayRendererJ3D(), DisplayImplJ3D.APPLETFRAME);
     return dpys;
   }
 
@@ -92,10 +100,10 @@ public class Test73
     }
 
     // convert image to more efficient representation (optional)
-    image = ImageFlatField.make3ByteRGB(image);
+    if (norm) image = ImageFlatField.make3ByteRGB(image);
 
     // convert image to VisAD object
-    ImageFlatField ff = new ImageFlatField(image);
+    ff = new ImageFlatField(image);
 
     // create display mappings
     RealType[] xy = ff.getDomainTypes();
@@ -119,15 +127,38 @@ public class Test73
     gmc.setScaleEnable(true);
     DataReferenceImpl ref = new DataReferenceImpl("ref");
     ref.setData(ff);
-    ConstantMap zmap = new ConstantMap(0.7, Display.ZAxis);
-    dpys[0].addReferences(new ImageRendererJ3D(),
-      ref, new ConstantMap[] {zmap});
+    dpys[0].addReferences(new ImageRendererJ3D(), ref, null);
+    dpys[0].addDisplayListener(this);
+  }
+
+  public void displayChanged(DisplayEvent e) {
+    int id = e.getId();
+    if (id == DisplayEvent.FRAME_DONE) {
+      // check for active cursor
+      Display display = e.getDisplay();
+      if (!(display instanceof DisplayImpl)) return;
+      DisplayImpl d = (DisplayImpl) display;
+      DisplayRenderer dr = d.getDisplayRenderer();
+      Vector cursorStringVector = dr.getCursorStringVector();
+      if (cursorStringVector == null || cursorStringVector.size() == 0) return;
+
+      // get cursor value
+      double[] cur = dr.getCursor();
+      if (cur == null || cur.length == 0 || cur[0] != cur[0]) return;
+
+      // get range values at the given cursor location
+      double[] domain = CursorUtil.cursorToDomain(d, cur);
+
+      System.out.print("Cursor =");
+      for (int i=0; i<2; i++) System.out.print(" " + domain[i]);
+      System.out.println();
+    }
   }
 
   String getFrameTitle() { return "ImageFlatField with ImageRendererJ3D"; }
 
   public String toString() {
-    return " file_name: ImageFlatField with ImageRendererJ3D";
+    return " [-n(ormalize)] file_name: ImageFlatField";
   }
 
   public static void main(String[] args)
@@ -135,4 +166,5 @@ public class Test73
   {
     new Test73(args);
   }
+
 }
