@@ -107,10 +107,10 @@ public final class MSGTnav extends AREAnav
 
 
         int number = linele[0].length;
-        double[][] latlon = new double[2][number];
 
         // Convert array to Image coordinates for computations
         double[][] imglinele = areaCoordToImageCoord(linele);
+        double[][] latlon = imglinele;
 
         double xlin, xele, xr, yr, tanx, tany, v1, v2;
         double vmu, xt, yt, zt, teta, xlat, xlon;
@@ -118,6 +118,10 @@ public final class MSGTnav extends AREAnav
         for (int point=0; point < number; point++) 
         {
 
+            if (Double.isNaN(imglinele[indexLine][point]) || 
+                Double.isNaN(imglinele[indexEle][point])) {
+                continue;
+            }
             xlin = 3712. - (imglinele[indexLine][point] -2)/3.0;
             xele = 3712. - (imglinele[indexEle][point] -2)/3.0;
 
@@ -186,6 +190,12 @@ public final class MSGTnav extends AREAnav
       for (int point=0; point < number; point++) 
       {
 
+          if (Double.isNaN(latlon[indexLat][point]) || 
+              Double.isNaN(latlon[indexLon][point])) {
+              linele[indexLine][point] = Double.NaN;
+              linele[indexEle][point] = Double.NaN;
+              continue;
+          }
 
           xlat = latlon[indexLat][point];
 
@@ -263,10 +273,10 @@ public final class MSGTnav extends AREAnav
 
 
         int number = linele[0].length;
-        float[][] latlon = new float[2][number];
 
         // Convert array to Image coordinates for computations
         float[][] imglinele = areaCoordToImageCoord(linele);
+        float[][] latlon = imglinele;
 
         double xlin, xele, xr, yr, tanx, tany, v1, v2;
         double vmu, xt, yt, zt, teta, xlat, xlon;
@@ -274,6 +284,10 @@ public final class MSGTnav extends AREAnav
         for (int point=0; point < number; point++) 
         {
 
+            if (Float.isNaN(imglinele[indexLine][point]) || 
+                Float.isNaN(imglinele[indexEle][point])) {
+                continue;
+            }
             xlin = 3712. - (imglinele[indexLine][point] -2)/3.0;
             xele = 3712. - (imglinele[indexEle][point] -2)/3.0;
 
@@ -342,6 +356,12 @@ public final class MSGTnav extends AREAnav
       for (int point=0; point < number; point++) 
       {
 
+          if (Float.isNaN(latlon[indexLat][point]) || 
+              Float.isNaN(latlon[indexLon][point])) {
+              linele[indexLine][point] = Float.NaN;
+              linele[indexEle][point] = Float.NaN;
+              continue;
+          }
 
           xlat = latlon[indexLat][point];
 
