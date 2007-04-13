@@ -1212,7 +1212,8 @@ public class AreaFile implements java.io.Serializable {
 	    System.out.println("USAGE: AreaFile <source>");
 	    System.out.println();
       
-      AreaFile af = AreaFileFactory.getAreaFileInstance(new URL(args[0]));
+      //AreaFile af = AreaFileFactory.getAreaFileInstance(new URL(args[0]));
+      AreaFile af = AreaFileFactory.getAreaFileInstance(args[0]);
       
 	    System.out.println(af);
       
