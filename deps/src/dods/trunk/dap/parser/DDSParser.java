@@ -4,7 +4,7 @@ import java.util.Stack;
 import dods.dap.*;
 
 public class DDSParser implements DDSParserConstants {
-  /* $Id: DDSParser.java,v 1.3 2004-02-06 15:23:48 donm Exp $ */
+  /* $Id: DDSParser.java,v 1.4 2007-04-16 16:40:54 tomw Exp $ */
   private DDS dds;
   private BaseTypeFactory factory;  // used to construct new types
   private Stack ctor;        // stack for ctor types
@@ -883,8 +883,8 @@ public class DDSParser implements DDSParserConstants {
         jj_expentry[i] = jj_lasttokens[i];
       }
       boolean exists = false;
-      for (java.util.Enumeration enum = jj_expentries.elements(); enum.hasMoreElements();) {
-        int[] oldentry = (int[])(enum.nextElement());
+      for (java.util.Enumeration enumx = jj_expentries.elements(); enumx.hasMoreElements();) {
+        int[] oldentry = (int[])(enumx.nextElement());
         if (oldentry.length == jj_expentry.length) {
           exists = true;
           for (int i = 0; i < jj_expentry.length; i++) {
