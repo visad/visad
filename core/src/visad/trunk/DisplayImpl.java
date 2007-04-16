@@ -1603,7 +1603,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       synchronized (mapslock) {
         if (RendererVector == null || displayRenderer == null) {
 // System.out.println("DisplayImpl call setWaitFlag(false)");
-        displayRenderer.setWaitFlag(false);
+          if (displayRenderer != null) displayRenderer.setWaitFlag(false);
           return;
         }
         // set tickFlag-s in changed Control-s
@@ -1752,7 +1752,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
       } // end synchronized (mapslock)
     } finally {
 // System.out.println("DisplayImpl call setWaitFlag(false)");
-      displayRenderer.setWaitFlag(false);
+      if (displayRenderer != null) displayRenderer.setWaitFlag(false);
     }
   }
 
