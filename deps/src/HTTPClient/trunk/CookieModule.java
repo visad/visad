@@ -168,15 +168,15 @@ public class CookieModule implements HTTPClientModule
 	     cookie_jar.isFile()  &&  cookie_jar.canWrite()))
 	{
 	    Hashtable cookie_list = new Hashtable();
-	    Enumeration enum = Util.getList(cookie_cntxt_list,
+	    Enumeration enumx = Util.getList(cookie_cntxt_list,
 					    HTTPConnection.getDefaultContext())
 				   .elements();
 
 	    // discard cookies which are not to be kept across sessions
 
-	    while (enum.hasMoreElements())
+	    while (enumx.hasMoreElements())
 	    {
-		Cookie cookie = (Cookie) enum.nextElement();
+		Cookie cookie = (Cookie) enumx.nextElement();
 		if (!cookie.discard())
 		    cookie_list.put(cookie, cookie);
 	    }
@@ -555,9 +555,9 @@ public class CookieModule implements HTTPClientModule
 	    Cookie[] cookies = new Cookie[cookie_list.size()];
 	    int idx = 0;
 
-	    Enumeration enum = cookie_list.elements();
-	    while (enum.hasMoreElements())
-		cookies[idx++] = (Cookie) enum.nextElement();
+	    Enumeration enumx = cookie_list.elements();
+	    while (enumx.hasMoreElements())
+		cookies[idx++] = (Cookie) enumx.nextElement();
 
 	    return cookies;
 	}

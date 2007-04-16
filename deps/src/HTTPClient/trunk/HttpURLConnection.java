@@ -455,11 +455,11 @@ public class HttpURLConnection extends java.net.HttpURLConnection
 
 	    // count number of headers
 	    int num = 1;
-	    Enumeration enum = resp.listHeaders();
-	    while (enum.hasMoreElements())
+	    Enumeration enumx = resp.listHeaders();
+	    while (enumx.hasMoreElements())
 	    {
 		num++;
-		enum.nextElement();
+		enumx.nextElement();
 	    }
 
 	    // allocate arrays
@@ -467,10 +467,10 @@ public class HttpURLConnection extends java.net.HttpURLConnection
 	    hdr_values = new String[num];
 
 	    // fill arrays
-	    enum = resp.listHeaders();
+	    enumx = resp.listHeaders();
 	    for (int idx=1; idx<num; idx++)
 	    {
-		hdr_keys[idx]   = (String) enum.nextElement();
+		hdr_keys[idx]   = (String) enumx.nextElement();
 		hdr_values[idx] = resp.getHeader(hdr_keys[idx]);
 	    }
 
