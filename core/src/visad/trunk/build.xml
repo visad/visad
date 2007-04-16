@@ -3,7 +3,7 @@
 <project name="VisAD" default="init" basedir="..">
 	<description>
 Build script for VisAD core packages
-$Id: build.xml,v 1.9 2007-04-06 20:12:38 curtis Exp $
+$Id: build.xml,v 1.10 2007-04-16 16:50:48 tomw Exp $
 
     init             -- print ant configuration 
 
@@ -129,6 +129,7 @@ $Id: build.xml,v 1.9 2007-04-06 20:12:38 curtis Exp $
 		<include name="loci/formats/codec/*"/>
 		<include name="loci/formats/in/*"/>
 		<include name="loci/formats/out/*"/>
+		<include name="loci/formats/gui/*"/>
 	</patternset>
 	
 	<patternset id="nom.package">
