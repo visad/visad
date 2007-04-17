@@ -84,6 +84,7 @@ ncsa\hdf\hdf5lib\*.java \
 ncsa\hdf\hdf5lib\exceptions\*.java \
 loci\formats\*.java \
 loci\formats\codec\*.java \
+loci\formats\gui\*.java \
 loci\formats\in\*.java \
 loci\formats\out\*.java \
 nom\tam\fits\*.java \
@@ -282,6 +283,7 @@ visad\data\netcdf\out\*.java \
 visad\data\fits\*.java \
 loci\formats\*.java \
 loci\formats\codec\*.java \
+loci\formats\gui\*.java \
 loci\formats\in\*.java \
 loci\formats\out\*.java \
 nom\tam\fits\*.java \
@@ -425,6 +427,8 @@ save:
 		$(DEL) $(BACKUP)\loci\formats\*.java
 	if exist $(BACKUP)\loci\formats\codec\*.java \
 		$(DEL) $(BACKUP)\loci\formats\codec\*.java
+	if exist $(BACKUP)\loci\formats\gui\*.java \
+		$(DEL) $(BACKUP)\loci\formats\gui\*.java
 	if exist $(BACKUP)\loci\formats\in\*.java \
 		$(DEL) $(BACKUP)\loci\formats\in\*.java
 	if exist $(BACKUP)\loci\formats\out\*.java \
@@ -569,6 +573,7 @@ loci\formats\*.class \
 loci\formats\readers.txt \
 loci\formats\writers.txt \
 loci\formats\codec\*.class \
+loci\formats\gui\*.class \
 loci\formats\in\*.class \
 loci\formats\out\*.class \
 nom\tam\fits\*.class \
@@ -652,6 +657,7 @@ clear:
 	if exist data\fits\*.java $(DEL) data\fits\*.java
 	if exist ..\loci\formats\*.java $(DEL) ..\loci\formats\*.java
 	if exist ..\loci\formats\codec\*.java $(DEL) ..\loci\formats\codec\*.java
+	if exist ..\loci\formats\gui\*.java $(DEL) ..\loci\formats\gui\*.java
 	if exist ..\loci\formats\in\*.java $(DEL) ..\loci\formats\in\*.java
 	if exist ..\loci\formats\out\*.java $(DEL) ..\loci\formats\out\*.java
 	if exist ..\nom\tam\fits\*.java $(DEL) ..\nom\tam\fits\*.java
@@ -725,6 +731,7 @@ clean:
 	if exist data\fits\*.class $(DEL) data\fits\*.class
 	if exist ..\loci\formats\*.class $(DEL) ..\loci\formats\*.class
 	if exist ..\loci\formats\codec\*.class $(DEL) ..\loci\formats\codec\*.class
+	if exist ..\loci\formats\gui\*.class $(DEL) ..\loci\formats\gui\*.class
 	if exist ..\loci\formats\in\*.class $(DEL) ..\loci\formats\in\*.class
 	if exist ..\loci\formats\out\*.class $(DEL) ..\loci\formats\out\*.class
 	if exist ..\nom\tam\fits\*.class $(DEL) ..\nom\tam\fits\*.class
@@ -832,6 +839,7 @@ data\netcdf\out\*.class \
 data\netcdf\*.class \
 ..\loci\formats\*.class \
 ..\loci\formats\codec\*.class \
+..\loci\formats\gui\*.class \
 ..\loci\formats\in\*.class \
 ..\loci\formats\out\*.class \
 ..\nom\tam\util\*.class \
@@ -913,6 +921,7 @@ compile: clean
 	$(JC) $(JFLAGS) data\netcdf\*.java
 	$(JC) $(JFLAGS) ..\loci\formats\*.java
 	$(JC) $(JFLAGS) ..\loci\formats\codec\*.java
+	$(JC) $(JFLAGS) ..\loci\formats\gui\*.java
 	$(JC) $(JFLAGS) ..\loci\formats\in\*.java
 	$(JC) $(JFLAGS) ..\loci\formats\out\*.java
 	$(JC) $(JFLAGS) ..\nom\tam\util\*.java
@@ -997,6 +1006,7 @@ visad.data.netcdf.out \
 visad.data.fits \
 loci.formats \
 loci.formats.codec \
+loci.formats.gui \
 loci.formats.in \
 loci.formats.out \
 nom.tam.fits \

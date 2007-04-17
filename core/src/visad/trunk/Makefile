@@ -199,6 +199,7 @@ SAVE_FILES = \
 	visad/data/fits/*.java				\
 	loci/formats/*.java				\
 	loci/formats/codec/*.java				\
+	loci/formats/gui/*.java				\
 	loci/formats/in/*.java				\
 	loci/formats/out/*.java				\
 	nom/tam/fits/*.java				\
@@ -339,6 +340,7 @@ DOC_PACKAGES = \
 	visad.data.netcdf.out \
 	loci.formats \
 	loci.formats.codec \
+	loci.formats.gui \
 	loci.formats.in \
 	loci.formats.out \
 	nom.tam.fits \
