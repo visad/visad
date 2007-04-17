@@ -3,7 +3,7 @@
 <project name="VisAD" default="init" basedir="..">
 	<description>
 Build script for VisAD core packages
-$Id: build.xml,v 1.10 2007-04-16 16:50:48 tomw Exp $
+$Id: build.xml,v 1.11 2007-04-17 16:11:58 tomw Exp $
 
     init             -- print ant configuration 
 
@@ -100,6 +100,10 @@ $Id: build.xml,v 1.10 2007-04-16 16:50:48 tomw Exp $
   
   <patternset id="visad.examples.package">
     <include name="visad/examples/*"/>
+  </patternset>
+
+  <patternset id="Jama.package">
+    <include name="Jama/**/*"/>
   </patternset>
 
   <patternset id="HTTPClient.package">
@@ -476,7 +480,7 @@ visad Xmx: ${max.mem}
 
 
 	<!-- compile all the visad dependancies -->
-	<target name="deps" depends="init, loci, dods, nom, ncsa, gnu"/>
+	<target name="deps" depends="init, loci, dods, nom, ncsa, gnu, Jama"/>
 
 
 
@@ -539,6 +543,7 @@ visad Xmx: ${max.mem}
     <fileset dir="${basedir}" id="dist.java.set">
       <patternset refid="visad.package"/>
       <patternset refid="HTTPClient.package"/>
+      <patternset refid="Jama.package"/>
       <patternset refid="dods.package"/>
       <patternset refid="loci.package"/>
       <patternset refid="gnu.package"/>
@@ -593,6 +598,7 @@ visad Xmx: ${max.mem}
       <patternset refid="dods.package"/>
       <patternset refid="loci.package"/>
       <patternset refid="gnu.package"/>
+      <patternset refid="Jama.package"/>
       <patternset refid="nom.package"/>
       <patternset refid="ucar.package"/>
       <patternset refid="edu.package"/>
@@ -644,6 +650,7 @@ visad Xmx: ${max.mem}
       <patternset refid="visad.package"/>
       <patternset refid="HTTPClient.package"/>
       <patternset refid="dods.package"/>
+      <patternset refid="Jama.package"/>
       <patternset refid="loci.package"/>
       <patternset refid="gnu.package"/>
       <patternset refid="nom.package"/>
@@ -687,7 +694,7 @@ visad Xmx: ${max.mem}
 
 
 
-	<target name="all" depends="init, clean, deps, Jama, visad, 
+	<target name="all" depends="init, clean, deps, visad, 
                               jar, javadoc, jar.src, jar.examples, jar.docs"/>
 
 
