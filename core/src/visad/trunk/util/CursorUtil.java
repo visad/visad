@@ -107,13 +107,11 @@ public class CursorUtil {
     // build data objects
     FunctionType functionType = (FunctionType) data.getType();
     RealTupleType domainType = functionType.getDomain();
-    RealType[] xyzTypes = domainType.getRealComponents();
-    if (xyzTypes.length != domain.length) {
-      throw new VisADException("Invalid domain array length (expected " +
-        xyzTypes.length + ", got " + domain.length + ")");
-    }
-    Real[] v = new Real[domain.length];
-    for (int i=0; i<domain.length; i++) v[i] = new Real(xyzTypes[i], domain[i]);
+    RealType[] domainTypes = domainType.getRealComponents();
+    int len = domainTypes.length < domain.length ?
+      domainTypes.length : domain.length;
+    Real[] v = new Real[len];
+    for (int i=0; i<len; i++) v[i] = new Real(domainTypes[i], domain[i]);
     RealTuple tuple = new RealTuple(v);
 
     // evaluate function

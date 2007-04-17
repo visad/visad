@@ -148,10 +148,21 @@ public class Test73 extends TestSkeleton implements DisplayListener {
 
       // get range values at the given cursor location
       double[] domain = CursorUtil.cursorToDomain(d, cur);
+      double[] range = null;
+      try {
+        range = CursorUtil.evaluate(ff, domain);
+      }
+      catch (VisADException exc) { exc.printStackTrace(); }
+      catch (RemoteException exc) { exc.printStackTrace(); }
 
       System.out.print("Cursor =");
       for (int i=0; i<2; i++) System.out.print(" " + domain[i]);
-      System.out.println();
+      System.out.print(" ->");
+      if (range == null) System.out.println(" null");
+      else {
+        for (int i=0; i<range.length; i++) System.out.print(" " + range[i]);
+        System.out.println();
+      }
     }
   }
 
