@@ -189,6 +189,12 @@ public class AREACoordinateSystem
     return auxBlock;
   }
 
+  /** get the subpoint if available
+  */
+  public double[] getSubpoint() {
+    return anav.getSubpoint();
+  }
+
   /** convert from image element,line to latitude,longitude
     *
     * @param tuples contains the element,line pairs to convert
