@@ -33,7 +33,7 @@ import edu.wisc.ssec.mcidas.adde.AddeURLException;
  * constructors do not.
  * 
  * <p>No instances of this class can be created.</p>
- * @version $Id: AreaFileFactory.java,v 1.1 2007-03-12 20:56:41 brucef Exp $
+ * @version $Id: AreaFileFactory.java,v 1.2 2007-04-19 17:17:36 tomw Exp $
  * @author Bruce Flynn, SSEC
  */
 public final class AreaFileFactory {
@@ -199,6 +199,13 @@ public final class AreaFileFactory {
   public static final AreaFile getAreaFileInstance(final String src) 
     throws AreaFileException {
     
+    // handle the special "pop up a gui" case for adde://image?
+    if (src.startsWith("adde://") &&
+               (src.endsWith("image?") || src.endsWith("imagedata?") )) {
+       return new AreaFile(src);
+    }
+
+
     AreaFile af = null;
     URL url = null;
     try {
