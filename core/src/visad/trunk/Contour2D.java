@@ -1302,21 +1302,30 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
       vy1[0] = vvv[0][1];
       vz1[0] = vvv[0][2];
     }
-    else {
+    else { // contourDifficulty == Contour2D.HARD
     int start = numv1[0];
                                                                                                                                       
+
     float[][] vx_tmp = new float[1][];
     float[][] vy_tmp = new float[1][];
     float[][] vz_tmp = new float[1][];
-    byte[][]  aux_tmp = new byte[4][];
-                                                                                                                                      
     float[] vx1_tmp = new float[numv];
     float[] vy1_tmp = new float[numv];
     float[] vz1_tmp = new float[numv];
-    byte[][] aux1_tmp = new byte[4][];
-    aux1_tmp[0] = new byte[numv];
-    aux1_tmp[1] = new byte[numv];
-    aux1_tmp[2] = new byte[numv];
+
+   
+    byte[][] aux_tmp = null;
+    byte[][] aux1_tmp = null;
+    int clr_dim = 3;
+    if (auxLevels != null) {
+      clr_dim = auxValues.length;
+      aux_tmp = new byte[4][];
+      aux1_tmp = new byte[4][];
+      aux1_tmp[0] = new byte[numv];
+      aux1_tmp[1] = new byte[numv];
+      aux1_tmp[2] = new byte[numv];
+      if (clr_dim == 4) aux1_tmp[3] = new byte[numv];
+    }
                                                                                                                                       
     int cnt = 0;
     for (int kk=0; kk<ctrSet.qSet.length;kk++) {
@@ -1325,33 +1334,42 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
       System.arraycopy(vx_tmp[0], 0, vx1_tmp, cnt, len);
       System.arraycopy(vy_tmp[0], 0, vy1_tmp, cnt, len);
       System.arraycopy(vz_tmp[0], 0, vz1_tmp, cnt, len);
-      System.arraycopy(aux_tmp[0], 0, aux1_tmp[0], cnt, len);
-      System.arraycopy(aux_tmp[1], 0, aux1_tmp[1], cnt, len);
-      System.arraycopy(aux_tmp[2], 0, aux1_tmp[2], cnt, len);
+      if (auxLevels != null) {
+        System.arraycopy(aux_tmp[0], 0, aux1_tmp[0], cnt, len);
+        System.arraycopy(aux_tmp[1], 0, aux1_tmp[1], cnt, len);
+        System.arraycopy(aux_tmp[2], 0, aux1_tmp[2], cnt, len);
+        if (clr_dim == 4) System.arraycopy(aux_tmp[3], 0, aux1_tmp[3], cnt, len);
+      }
       cnt += len;
     }
                                                                                                                                       
     vx1[0] = new float[numv1[0]+cnt];
     vy1[0] = new float[numv1[0]+cnt];
     vz1[0] = new float[numv1[0]+cnt];
-    auxLevels1[0] = new byte[numv1[0]+cnt];
-    auxLevels1[1] = new byte[numv1[0]+cnt];
-    auxLevels1[2] = new byte[numv1[0]+cnt];
-    auxLevels1[3] = new byte[numv1[0]+cnt];
-                                                                                                                                      
     System.arraycopy(vvv[0][0], 0, vx1[0], 0, numv1[0]);
     System.arraycopy(vvv[0][1], 0, vy1[0], 0, numv1[0]);
     System.arraycopy(vvv[0][2], 0, vz1[0], 0, numv1[0]);
-    System.arraycopy(new_colors[0][0], 0, auxLevels1[0], 0, numv1[0]);
-    System.arraycopy(new_colors[0][1], 0, auxLevels1[1], 0, numv1[0]);
-    System.arraycopy(new_colors[0][2], 0, auxLevels1[2], 0, numv1[0]);
-                                                                                                                                      
     System.arraycopy(vx1_tmp, 0, vx1[0], start, cnt);
     System.arraycopy(vy1_tmp, 0, vy1[0], start, cnt);
     System.arraycopy(vz1_tmp, 0, vz1[0], start, cnt);
-    System.arraycopy(aux1_tmp[0], 0, auxLevels1[0], start, cnt);
-    System.arraycopy(aux1_tmp[1], 0, auxLevels1[1], start, cnt);
-    System.arraycopy(aux1_tmp[2], 0, auxLevels1[2], start, cnt);
+
+    if (auxLevels != null) {
+      auxLevels1[0] = new byte[numv1[0]+cnt];
+      auxLevels1[1] = new byte[numv1[0]+cnt];
+      auxLevels1[2] = new byte[numv1[0]+cnt];
+      if (clr_dim == 4) auxLevels1[3] = new byte[numv1[0]+cnt];
+                                                                                                                                      
+      System.arraycopy(new_colors[0][0], 0, auxLevels1[0], 0, numv1[0]);
+      System.arraycopy(new_colors[0][1], 0, auxLevels1[1], 0, numv1[0]);
+      System.arraycopy(new_colors[0][2], 0, auxLevels1[2], 0, numv1[0]);
+      if (clr_dim == 4) System.arraycopy(new_colors[0][3], 0, auxLevels1[3], 0, numv1[0]);
+                                                                                                                                      
+      System.arraycopy(aux1_tmp[0], 0, auxLevels1[0], start, cnt);
+      System.arraycopy(aux1_tmp[1], 0, auxLevels1[1], start, cnt);
+      System.arraycopy(aux1_tmp[2], 0, auxLevels1[2], start, cnt);
+      if (clr_dim == 4) System.arraycopy(aux1_tmp[3], 0, auxLevels1[3], start, cnt);
+    }
+
     numv1[0] += cnt;
 
     vx1_tmp = null;
@@ -2987,9 +3005,14 @@ class ContourQuadSet {
          throws VisADException {
 
     float[][] arrays = new float[2][2*numv];
-    colors[0] = new byte[2*numv];
-    colors[1] = new byte[2*numv];
-    colors[2] = new byte[2*numv];
+    int clr_dim = 3;
+    if (auxLevels != null) {
+      clr_dim = auxLevels.length;
+      colors[0] = new byte[2*numv];
+      colors[1] = new byte[2*numv];
+      colors[2] = new byte[2*numv];
+      colors[3] = new byte[2*numv];
+    }
 
     int cnt=0;
     for (int j=0; j<ny; j++) {
@@ -2999,15 +3022,21 @@ class ContourQuadSet {
           if (vidx >= 0) {
           arrays[0][cnt] = vx[vidx];
           arrays[1][cnt] = vy[vidx];
-          colors[0][cnt] = auxLevels[0][vidx];
-          colors[1][cnt] = auxLevels[1][vidx];
-          colors[2][cnt] = auxLevels[2][vidx];
+          if (auxLevels != null) {
+            colors[0][cnt] = auxLevels[0][vidx];
+            colors[1][cnt] = auxLevels[1][vidx];
+            colors[2][cnt] = auxLevels[2][vidx];
+            if (clr_dim == 4) colors[3][cnt] = auxLevels[3][vidx];
+          }
           cnt++;
           arrays[0][cnt] = vx[vidx+1];
           arrays[1][cnt] = vy[vidx+1];
-          colors[0][cnt] = auxLevels[0][vidx+1];
-          colors[1][cnt] = auxLevels[1][vidx+1];
-          colors[2][cnt] = auxLevels[2][vidx+1];
+          if (auxLevels != null) {
+            colors[0][cnt] = auxLevels[0][vidx+1];
+            colors[1][cnt] = auxLevels[1][vidx+1];
+            colors[2][cnt] = auxLevels[2][vidx+1];
+            if (clr_dim == 4) colors[3][cnt] = auxLevels[3][vidx];
+          }
           cnt++;
           }
         }
@@ -3015,13 +3044,9 @@ class ContourQuadSet {
     }
                                                                                                                                       
     float[][] tmp = new float[2][cnt];
-    byte[][] clr_tmp = new byte[3][cnt];
     System.arraycopy(arrays[0], 0, tmp[0], 0, cnt);
     System.arraycopy(arrays[1], 0, tmp[1], 0, cnt);
-    System.arraycopy(colors[0], 0, clr_tmp[0], 0, cnt);
-    System.arraycopy(colors[1], 0, clr_tmp[1], 0, cnt);
-    System.arraycopy(colors[2], 0, clr_tmp[2], 0, cnt);
-                                                                                                                                      
+
     float[][] tmp3D = spatial_set.gridToValue(tmp);
     vx1[0] = tmp3D[0];
     vy1[0] = tmp3D[1];
