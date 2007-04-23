@@ -308,13 +308,16 @@ public class AxisScale implements java.io.Serializable
         ScalarMap map = (ScalarMap) e.nextElement();
         if (map.getDisplayScalar().equals(scalarMap.getDisplayScalar()))
         {
-          if (getSide() == map.getAxisScale().getSide() &&
-              !map.equals(scalarMap)) // same side someone else
+          if (getSide() == map.getAxisScale().getSide()) 
           {
-            position++;
+            if (!map.equals(scalarMap)) // same side someone else
+            {
+              position++;
+            } else {
+              myPosition = position;
+            }
           }
         }
-        myPosition = position;
       }
     }
     /*
@@ -380,12 +383,14 @@ public class AxisScale implements java.io.Serializable
         ScalarMap map = (ScalarMap) e.nextElement();
         if (map.getDisplayScalar().equals(scalarMap.getDisplayScalar()))
         {
-          if (getSide() == map.getAxisScale().getSide() &&
-              !map.equals(scalarMap)) // same side someone else
-          {
-            position++;
+          if (getSide() == map.getAxisScale().getSide()) {
+            if (!map.equals(scalarMap)) // same side someone else
+            {
+              position++;
+            } else {
+              myPosition = position;// this is me
+            }
           }
-          myPosition = position;// this is me
         }
       }
     }
