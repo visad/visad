@@ -258,7 +258,12 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           // get scale for color table
           int table_scale = table[0].length;
   
-          if (data instanceof ImageFlatField && is_default_unit) {
+          if (data instanceof ImageFlatField &&
+              bytes != null && is_default_unit) {
+            if (ImageFlatField.DEBUG) {
+              System.err.println("ShadowImageFunctionTypeJ3D.doTransform: " +
+                "cmap != null: looking up color values");
+            }
             // avoid unpacking floats for ImageFlatFields
             color_bytes = new byte[4][domain_length];
             bytes[0] = cmap.scaleValues(bytes[0], table_scale);
@@ -376,10 +381,16 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         }
       }
       else if (cmaps != null) {
+        byte[][] bytes = null;
         if (data instanceof ImageFlatField) {
+          bytes = ((ImageFlatField) data).grabBytes();
+        }
+        if (bytes != null) {
           // grab bytes directly from ImageFlatField
-          ImageFlatField iff = (ImageFlatField) data;
-          byte[][] bytes = iff.grabBytes();
+          if (ImageFlatField.DEBUG) {
+            System.err.println("ShadowImageFunctionTypeJ3D.doTransform: " +
+              "cmaps != null: grab bytes directly");
+          }
           color_bytes = new byte[4][];
           color_bytes[0] =
             cmaps[permute[0]].scaleValues(bytes[permute[0]], 255);

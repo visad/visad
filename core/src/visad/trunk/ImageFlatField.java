@@ -33,15 +33,20 @@ import java.rmi.RemoteException;
 import java.util.Arrays;
 
 /**
- * ImageFlatField is a VisAD FlatField backed by a java.awt.Image object,
- * instead of the usual float[][] or double[][] samples array.
+ * ImageFlatField is a VisAD FlatField backed by a java.awt.image.BufferedImage
+ * object, instead of the usual float[][] or double[][] samples array.
+ * Expands the samples into floats or doubles on demand using
+ * {@link #unpackFloats(boolean)}, which can be expensive for repeated
+ * operations of certain types. Such calls can be avoided for certain types of
+ * visualization using an 8-bit image with
+ * {@link visad.bom.ShadowImageFunctionTypeJ3D}.
  */
 public class ImageFlatField extends FlatField {
 
   // -- Constants --
 
   /** Debugging flag. */
-  protected static final boolean DEBUG = false;
+  public static final boolean DEBUG = false;
 
 
   // -- Fields --
@@ -440,6 +445,7 @@ public class ImageFlatField extends FlatField {
   public byte[][] grabBytes() {
     pr ("grabBytes");
     byte[][] data = grabBytes(image);
+    if (data == null) return null;
     if (data.length > num) {
       byte[][] bytes = new byte[num][];
       System.arraycopy(data, 0, bytes, 0, num);
@@ -450,44 +456,45 @@ public class ImageFlatField extends FlatField {
 
   public static byte[][] grabBytes(BufferedImage image) {
     WritableRaster raster = image.getRaster();
-    if (raster.getTransferType() == DataBuffer.TYPE_BYTE) {
-      DataBuffer buffer = raster.getDataBuffer();
-      if (buffer instanceof DataBufferByte) {
-        SampleModel model = raster.getSampleModel();
-        if (model instanceof BandedSampleModel) {
-          // fastest way to extract bytes; no copy
-          if (DEBUG) System.err.println("grabBytes: FAST");
-          byte[][] data = ((DataBufferByte) buffer).getBankData();
-          return data;
-        }
-        else if (model instanceof ComponentSampleModel) {
-          // medium speed way to extract bytes; direct array copy
-          if (DEBUG) System.err.println("grabBytes: MEDIUM");
-          byte[][] data = ((DataBufferByte) buffer).getBankData();
-          ComponentSampleModel csm = (ComponentSampleModel) model;
-          int[] bandOffsets = csm.getBandOffsets();
-          int[] bankIndices = csm.getBankIndices();
-          int pixelStride = csm.getPixelStride();
-          int scanlineStride = csm.getScanlineStride();
-          int numBands = bandOffsets.length;
-          int width = image.getWidth();
-          int height = image.getHeight();
-          int numPixels = width * height;
-          byte[][] bytes = new byte[numBands][numPixels];
-          for (int c=0; c<numBands; c++) {
-            for (int h=0; h<height; h++) {
-              for (int w=0; w<width; w++) {
-                int ndx = width * h + w;
-                int q = bandOffsets[c] + h * scanlineStride + w * pixelStride;
-                bytes[c][ndx] = data[bankIndices[c]][q];
-              }
+    if (raster.getTransferType() != DataBuffer.TYPE_BYTE) return null;
+
+    DataBuffer buffer = raster.getDataBuffer();
+    if (buffer instanceof DataBufferByte) {
+      SampleModel model = raster.getSampleModel();
+      if (model instanceof BandedSampleModel) {
+        // fastest way to extract bytes; no copy
+        if (DEBUG) System.err.println("grabBytes: FAST");
+        byte[][] data = ((DataBufferByte) buffer).getBankData();
+        return data;
+      }
+      else if (model instanceof ComponentSampleModel) {
+        // medium speed way to extract bytes; direct array copy
+        if (DEBUG) System.err.println("grabBytes: MEDIUM");
+        byte[][] data = ((DataBufferByte) buffer).getBankData();
+        ComponentSampleModel csm = (ComponentSampleModel) model;
+        int[] bandOffsets = csm.getBandOffsets();
+        int[] bankIndices = csm.getBankIndices();
+        int pixelStride = csm.getPixelStride();
+        int scanlineStride = csm.getScanlineStride();
+        int numBands = bandOffsets.length;
+        int width = image.getWidth();
+        int height = image.getHeight();
+        int numPixels = width * height;
+        byte[][] bytes = new byte[numBands][numPixels];
+        for (int c=0; c<numBands; c++) {
+          for (int h=0; h<height; h++) {
+            for (int w=0; w<width; w++) {
+              int ndx = width * h + w;
+              int q = bandOffsets[c] + h * scanlineStride + w * pixelStride;
+              bytes[c][ndx] = data[bankIndices[c]][q];
             }
           }
-          return bytes;
-        } // model instanceof ComponentSampleModel
-      } // buffer instanceof DataBufferByte
-    } // raster.getTransferType() == DataBuffer.TYPE_BYTE
+        }
+        return bytes;
+      } // model instanceof ComponentSampleModel
+    } // buffer instanceof DataBufferByte
 
+    if (DEBUG) System.err.println("grabBytes: make3ByteRGB");
     return grabBytes(make3ByteRGB(image));
 /*
     // slower, more general way to extract bytes; use PixelGrabber
