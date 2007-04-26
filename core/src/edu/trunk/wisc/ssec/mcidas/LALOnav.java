@@ -191,10 +191,10 @@ public final class LALOnav extends AREAnav
 
           if (debug) {
             count ++;
-            if (count < 20) {
-              System.out.println(" ulline, lrlin, ulelem, lrele="+ulline+" "+lrlin+" "+ulelem+" "+lrele);
+            //if (count < 20) {
+              System.out.println(" floats...ulline, lrlin, ulelem, lrele="+ulline+" "+lrlin+" "+ulelem+" "+lrele);
               System.out.println(" rlin, rele="+" "+rlin+" "+rele);
-            }
+            //}
           }
 
           if (rlin < ulline || rlin > lrlin ||
@@ -212,8 +212,8 @@ public final class LALOnav extends AREAnav
            float  ax, bx, cx;
 
            /* offset to the top_left (tl) corner lat/lon */
-           tl_entry = ((((int)rlin-ulline)/latres) * cols) +
-                      ((int)rele-ulelem) / lonres;
+           tl_entry = (((((int)rlin-ulline)/latres) * cols) +
+                      ((int)rele-ulelem) / lonres);
 
 
            /* offsets for top_right, bottom_left and bottom_left lat/lon
@@ -221,6 +221,21 @@ public final class LALOnav extends AREAnav
            tr_entry = tl_entry + 1;
            bl_entry = tl_entry + cols;
            br_entry = bl_entry + 1;
+
+           // check to see if on last row or column...
+           if ( (((int)rlin - ulline)/latres) >= rows-1) {
+             bl_entry = tl_entry;
+             br_entry = bl_entry + 1;
+           }
+
+           if ( (((int)rele -ulelem)/lonres) >= cols-1) {
+             tr_entry = tl_entry;
+             br_entry = bl_entry;
+           }
+
+           if (debug) {
+             System.out.println(" tl_entry="+tl_entry+ " bl_entry="+bl_entry);
+           }
 
            /* read the 4 corner latitudes */
            tl_lats = latData[tl_entry];
@@ -251,7 +266,6 @@ public final class LALOnav extends AREAnav
              frac_col = (float)(((int)rele-ulelem) % lonres) / (float)lonres;
 
            if (debug && count < 20) {
-             System.out.println(" tl_entry="+tl_entry);
              if (linele[indexLine][point] < .1) {
                System.out.println(" lats: tl, tr, bl, br="+tl_lats+" "+tr_lats+" "+bl_lats+" "+br_lats);
                System.out.println(" frac_row="+frac_row+" frac_col="+frac_col);
@@ -300,7 +314,7 @@ public final class LALOnav extends AREAnav
           if (debug) {
             count ++;
             if (count < 20) {
-              System.out.println(" ulline, lrlin, ulelem, lrele="+ulline+" "+lrlin+" "+ulelem+" "+lrele);
+              System.out.println(" double....ulline, lrlin, ulelem, lrele="+ulline+" "+lrlin+" "+ulelem+" "+lrele);
               System.out.println(" rlin, rele="+" "+rlin+" "+rele);
             }
           }
@@ -320,8 +334,8 @@ public final class LALOnav extends AREAnav
            float  ax, bx, cx;
 
            /* offset to the top_left (tl) corner lat/lon */
-           tl_entry = ((((int)rlin-ulline)/latres) * cols) +
-                      ((int)rele-ulelem) / lonres;
+           tl_entry = (((((int)rlin-ulline)/latres) * cols) +
+                      ((int)rele-ulelem) / lonres);
 
 
            /* offsets for top_right, bottom_left and bottom_left lat/lon
@@ -329,6 +343,21 @@ public final class LALOnav extends AREAnav
            tr_entry = tl_entry + 1;
            bl_entry = tl_entry + cols;
            br_entry = bl_entry + 1;
+
+           // check to see if on last row or column...
+           if ( (((int)rlin - ulline)/latres) >= rows-1) {
+             bl_entry = tl_entry;
+             br_entry = bl_entry + 1;
+           }
+
+           if ( (((int)rele -ulelem)/lonres) >= cols-1) {
+             tr_entry = tl_entry;
+             br_entry = bl_entry;
+           }
+
+           if (debug && count < 20) {
+             System.out.println(" tl_entry="+tl_entry+ " bl_entry="+bl_entry);
+           }
 
            /* read the 4 corner latitudes */
            tl_lats = latData[tl_entry];
