@@ -167,7 +167,7 @@ public class WeatherSymbols {
    * @return shape for code
    */
   public static VisADLineArray getPresentWeatherSymbol(int wxCode) {
-    if (wxCode < 0 || wxCode > PRESENTWX_NUM) {
+    if (wxCode < 0 || wxCode >= PRESENTWX_NUM) {
       throw new IllegalArgumentException( "unknown weather symbol: " + wxCode);
     }
     return getVLAClone(metSymbols, PRESENTWX_INDEX+wxCode);
@@ -499,7 +499,7 @@ public class WeatherSymbols {
    * @return  corresponding shape
    */
   public static VisADLineArray getLightningSymbol(int lghtCode) {
-    if (lghtCode < 1 || lghtCode > LIGHTNING_NUM) {
+    if (lghtCode < 0 || lghtCode >= LIGHTNING_NUM) {
        throw new IllegalArgumentException(
            "unknown lightning symbol: " + lghtCode );
     }
@@ -558,7 +558,7 @@ public class WeatherSymbols {
     frame.getContentPane().add(display.getComponent());
     frame.pack();
     frame.setSize(500, 500);
-    frame.show();
+    frame.setVisible(true);
 
   }
 }
