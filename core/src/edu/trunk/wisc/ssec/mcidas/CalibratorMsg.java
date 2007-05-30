@@ -42,7 +42,7 @@ package edu.wisc.ssec.mcidas;
  * 0.2312809974E-01-0.1179533087E+01</i>
  * </p>
  * @author Bruce Flynn, SSEC
- * @version $Id: CalibratorMsg.java,v 1.3 2007-03-12 20:54:15 brucef Exp $
+ * @version $Id: CalibratorMsg.java,v 1.4 2007-05-30 16:09:13 rink Exp $
  */
 public class CalibratorMsg implements Calibrator {
 
@@ -236,7 +236,6 @@ public class CalibratorMsg implements Calibrator {
 
         // Visible and near-visible (VIS006, VIS008, IR016, HRV)
         if (band < 4 || band == 12) {
-                
             switch (calTypeOut) {
                 case CAL_TEMP: // can't do temp 
                     pxl = Double.NaN;
@@ -246,7 +245,7 @@ public class CalibratorMsg implements Calibrator {
                     break;
             
                 case CAL_ALB: // reflectance
-                    pxl = (pxl / bandCoefs[band]) * 100.0;
+                    pxl = (pxl / bandCoefs[band-1]) * 100.0;
                     if (pxl < 0) {
                         pxl = 0.0;
                     } else if (pxl > 100) {
@@ -255,7 +254,7 @@ public class CalibratorMsg implements Calibrator {
                     break;
                 
                 case CAL_BRIT: // brightness
-                    pxl = (pxl / bandCoefs[band]) * 100.0;
+                    pxl = (pxl / bandCoefs[band-1]) * 100.0;
                     if (pxl < 0) {
                         pxl = 0.0;
                     } else if (pxl > 100) {
