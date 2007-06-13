@@ -223,8 +223,6 @@ System.out.println("doAction " + getDisplay().getName() + " " +
       }
 
       if (branch != null) {
-        int nextIndex = 0;
-        branch.detach();
         synchronized (this) {
           if (!branchNonEmpty[currentIndex] ||
               branches[currentIndex].numChildren() == 0) {
@@ -276,7 +274,6 @@ System.out.println("doAction " + getDisplay().getName() + " " +
     ShadowTypeJ3D shadow = (ShadowTypeJ3D) (getLinks()[0].getShadow());
     shadow.ensureNotEmpty(branch);
 
-    branch.detach();
     synchronized (this) {
       if (!branchNonEmpty[currentIndex] ||
           branches[currentIndex].numChildren() == 0) {
@@ -285,8 +282,10 @@ System.out.println("doAction " + getDisplay().getName() + " " +
         branchNonEmpty[currentIndex] = true;
       }
       else { // if (branchNonEmpty[currentIndex])
-        flush(branches[currentIndex]);
-        branches[currentIndex].setChild(branch, 0);
+        if (!(branches[currentIndex].getChild(0) == branch)) {
+          flush(branches[currentIndex]);
+          branches[currentIndex].setChild(branch, 0);
+        }
       } // end if (branchNonEmpty[currentIndex])
     } // end synchronized (this)
   }
