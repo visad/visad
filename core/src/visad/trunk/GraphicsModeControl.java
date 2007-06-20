@@ -26,10 +26,13 @@ MA 02111-1307, USA
 
 package visad;
 
+
 import java.rmi.*;
+
 import java.util.StringTokenizer;
 
 import visad.browser.Convert;
+
 
 /**
  * GraphicsModeControl is the VisAD interface class for controlling various
@@ -38,31 +41,35 @@ import visad.browser.Convert;
  * A GraphicsModeControl is not linked to any DisplayRealType or
  * ScalarMap.  It is linked to a DisplayImpl.<P>
  */
-public abstract class GraphicsModeControl extends Control
-       implements Cloneable {
+public abstract class GraphicsModeControl extends Control implements Cloneable {
 
   /** Solid line style for Display.LineStyle mapping */
   public static final int SOLID_STYLE = 0;
+
   /** Dash line style for Display.LineStyle mapping */
   public static final int DASH_STYLE = 1;
+
   /** Dot line style for Display.LineStyle mapping */
   public static final int DOT_STYLE = 2;
+
   /** Dash-Dot line style for Display.LineStyle mapping */
   public static final int DASH_DOT_STYLE = 3;
 
   /** Average color style for merging color maps */
   public static final int AVERAGE_COLOR_MODE = 0;
+
   /** Sum color style for merging color maps */
   public static final int SUM_COLOR_MODE = 1;
 
-  /** 2D stack type for volume rendering*/
+  /** 2D stack type for volume rendering */
   public static final int STACK2D = 0;
-  /** 3D texture type for volume rendering*/
+
+  /** 3D texture type for volume rendering */
   public static final int TEXTURE3D = 1;
 
   /**
    * Create a GraphicsModeControl for the display.
-   * 
+   *
    * @param d  DisplayImpl to use
    */
   public GraphicsModeControl(DisplayImpl d) {
@@ -78,54 +85,59 @@ public abstract class GraphicsModeControl extends Control
 
   /**
    * Get the width of line rendering.
-   * 
+   *
    * @return line width
    */
   public abstract float getLineWidth();
 
-  /** 
+  /**
    * Set the width of line rendering; this is over-ridden by
    * ConstantMaps to Display.LineWidth.
    *
    * @param width      line width to use
+   *
+   * @throws RemoteException 
+   * @throws VisADException 
    */
   public abstract void setLineWidth(float width)
-         throws VisADException, RemoteException;
+    throws VisADException, RemoteException;
 
-  /** 
+  /**
    * Set the width of line rendering, do not update the display.
    *
    * @param width      line width to use
+   * @param noChange   dummy flag
    */
   public abstract void setLineWidth(float width, boolean noChange);
 
-  /** 
+  /**
    * Get the size for point rendering
    *
    * @return point size
    */
   public abstract float getPointSize();
 
-  /** 
+  /**
    * Set the size for point rendering; this is over-ridden by
    * ConstantMaps to Display.PointSize.
    *
    * @param size   point size
    *
-   * @throws  VisADException   unable to set point size 
+   * @throws  VisADException   unable to set point size
    * @throws  RemoteException  unable to set point size on remote display
    */
   public abstract void setPointSize(float size)
-         throws VisADException, RemoteException;
+    throws VisADException, RemoteException;
 
-  /** 
+  /**
    * Set the size for point rendering, does not update the display.
    *
    * @param size   point size
+   * @param noChange   dummy flag
    */
   public abstract void setPointSize(float size, boolean noChange);
 
-  /** 
+  /**
    * Get the line style
    *
    * @return line style
@@ -143,11 +155,11 @@ public abstract class GraphicsModeControl extends Control
    *                        <li>GraphicsModeControl.DOT_STYLE
    *                        <li>GraphicsModeControl.DASH_DOT_STYLE
    *                        </ul>
-   * @throws  VisADException   unable to set line style 
+   * @throws  VisADException   unable to set line style
    * @throws  RemoteException  unable to set line style on remote display
    */
   public abstract void setLineStyle(int style)
-         throws VisADException, RemoteException;
+    throws VisADException, RemoteException;
 
   /**
    * Set the style of line rendering, does not update the display.
@@ -159,6 +171,7 @@ public abstract class GraphicsModeControl extends Control
    *                        <li>GraphicsModeControl.DOT_STYLE
    *                        <li>GraphicsModeControl.DASH_DOT_STYLE
    *                        </ul>
+   * @param noChange   dummy flag
    */
   public abstract void setLineStyle(int style, boolean noChange);
 
@@ -180,7 +193,7 @@ public abstract class GraphicsModeControl extends Control
    * @throws  RemoteException  unable to set color mode on remote display
    */
   public abstract void setColorMode(int mode)
-         throws VisADException, RemoteException;
+    throws VisADException, RemoteException;
 
   /**
    * Get the point mode.
@@ -189,17 +202,17 @@ public abstract class GraphicsModeControl extends Control
    */
   public abstract boolean getPointMode();
 
-  /** 
+  /**
    * Set the point rendering mode.
    *
-   * @param mode  if true, this will cause some rendering as points 
+   * @param mode  if true, this will cause some rendering as points
    *              rather than lines or surfaces.
    *
    * @throws  VisADException   unable to enable point mode
    * @throws  RemoteException  unable to enable point mode on remote display
    */
   public abstract void setPointMode(boolean mode)
-         throws VisADException, RemoteException;
+    throws VisADException, RemoteException;
 
   /**
    * Get the use of texture mapping.
@@ -207,38 +220,38 @@ public abstract class GraphicsModeControl extends Control
    */
   public abstract boolean getTextureEnable();
 
-  /** 
+  /**
    * Set the use of texture mapping.
    *
    * @param enable  if true this will enable the use of texture
-   *                mapping, where appropriate 
+   *                mapping, where appropriate
    *
    * @throws  VisADException   unable to enable texture mapping
    * @throws  RemoteException  unable to enable texture mapping on remote display
    */
   public abstract void setTextureEnable(boolean enable)
-         throws VisADException, RemoteException;
+    throws VisADException, RemoteException;
 
   /**
    * Get the use of numerical scales along display axes.
    *
-   * @return true if numerical scales are enabled along display spatial axes 
+   * @return true if numerical scales are enabled along display spatial axes
    */
   public abstract boolean getScaleEnable();
 
-  /** 
+  /**
    * Set the use of numerical scales along display axes.
    *
    * @param enable     if true, this will enable numerical
-   *                   scales along display spatial axes 
+   *                   scales along display spatial axes
    *
    * @throws  VisADException   unable to enable scales
    * @throws  RemoteException  unable to enable scales on remote display
    */
   public abstract void setScaleEnable(boolean enable)
-         throws VisADException, RemoteException;
+    throws VisADException, RemoteException;
 
-  /** 
+  /**
    * Gets the graphics-API-specific transparency mode (e.g.,
    * SCREEN_DOOR, BLENDED) used in the display
    *
@@ -246,7 +259,7 @@ public abstract class GraphicsModeControl extends Control
    */
   public abstract int getTransparencyMode();
 
-  /** 
+  /**
    * Sets a graphics-API-specific transparency mode (e.g.,
    * SCREEN_DOOR, BLENDED) on the display.
    *
@@ -256,20 +269,20 @@ public abstract class GraphicsModeControl extends Control
    * @throws  RemoteException  can't change transparency mode on remote display
    */
   public abstract void setTransparencyMode(int mode)
-         throws VisADException, RemoteException;
+    throws VisADException, RemoteException;
 
   /**
    * Sets a graphics-API-specific projection policy (e.g.,
    * PARALLEL_PROJECTION, PERSPECTIVE_PROJECTION) for the display.
    *
-   * @param   policy      policy to be used 
+   * @param   policy      policy to be used
    *
    * @throws  VisADException   bad policy or can't create the necessary VisAD
    *                           object
    * @throws  RemoteException  change policy on remote display
    */
   public abstract void setProjectionPolicy(int policy)
-         throws VisADException, RemoteException;
+    throws VisADException, RemoteException;
 
   /**
    * Get the current graphics-API-specific projection policy for the display.
@@ -288,20 +301,26 @@ public abstract class GraphicsModeControl extends Control
    * @throws  RemoteException  can't change mode on remote display
    */
   public abstract void setPolygonMode(int mode)
-         throws VisADException, RemoteException;
+    throws VisADException, RemoteException;
 
   /**
    * Sets the graphics-API-specific polygon mode.  Does not update the display.
    *
    * @param  mode   the polygon mode to be used
+   * @param noChange   dummy flag
    *
    * @throws  VisADException   bad mode or can't create the necessary VisAD
    *                           object
    * @throws  RemoteException  can't change mode on remote display
    */
   public abstract void setPolygonMode(int mode, boolean noChange)
-         throws VisADException, RemoteException;
+    throws VisADException, RemoteException;
 
+  /**
+   * Get the Polygon mode
+   *
+   * @return  the polygon mode
+   */
   public abstract int getPolygonMode();
 
   /**
@@ -313,45 +332,40 @@ public abstract class GraphicsModeControl extends Control
    * @throws  RemoteException  can't change offset on remote display
    */
   public abstract void setPolygonOffset(float polygonOffset)
-         throws VisADException, RemoteException;
+    throws VisADException, RemoteException;
 
   /**
    * Sets the polygon offset.  Does not update the display.
    *
    * @param  polygonOffset   the polygon offset to be used
    * @param  noChange   dummy variable
-   *
-   * @throws  VisADException   Unable to change offset
-   * @throws  RemoteException  can't change offset on remote display
    */
-  public abstract void setPolygonOffset(float polygonOffset, boolean noChange);
+  public abstract void setPolygonOffset(float polygonOffset,
+                                        boolean noChange);
 
   /**
    * Get the current polygon offset.
    *
-   * @return  offset 
+   * @return  offset
    */
   public abstract float getPolygonOffset();
 
   /**
    * Sets the polygon offset factor and updates the display.
    *
-   * @param  polygonOffsetFactor   the polygon offset factor to be used
+   * @param factor  the polygon offset factor to be used
    *
    * @throws  VisADException   Unable to change offset factor
    * @throws  RemoteException  can't change offset factor on remote display
    */
   public abstract void setPolygonOffsetFactor(float factor)
-         throws VisADException, RemoteException;
+    throws VisADException, RemoteException;
 
   /**
    * Sets the polygon offset factor, does not update display.
    *
-   * @param  polygonOffsetFactor  the polygon offset to be used
+   * @param factor  the polygon offset to be used
    * @param  noChange   dummy variable
-   *
-   * @throws  VisADException   Unable to change offset factor
-   * @throws  RemoteException  can't change offset factor on remote display
    */
   public abstract void setPolygonOffsetFactor(float factor, boolean noChange);
 
@@ -371,7 +385,7 @@ public abstract class GraphicsModeControl extends Control
    * @throws  RemoteException  can't change missing transparent on remote display
    */
   public abstract void setMissingTransparent(boolean missing)
-         throws VisADException, RemoteException;
+    throws VisADException, RemoteException;
 
   /**
    * See whether missing values are rendered as transparent or not.
@@ -390,7 +404,7 @@ public abstract class GraphicsModeControl extends Control
    * @throws  RemoteException  can't change adjust seam property on remote display
    */
   public abstract void setAdjustProjectionSeam(boolean adjust)
-         throws VisADException, RemoteException;
+    throws VisADException, RemoteException;
 
   /**
    * See whether or not to call methods to adjust the projection seam
@@ -408,8 +422,8 @@ public abstract class GraphicsModeControl extends Control
    * @throws  VisADException   Unable to change Texture3D mode
    * @throws  RemoteException  can't change Texture3D mode on remote display
    */
-  public abstract void setTexture3DMode(int type)
-         throws VisADException, RemoteException;
+  public abstract void setTexture3DMode(int mode)
+    throws VisADException, RemoteException;
 
   /**
    * Get the mode for Texture3D for volume rendering
@@ -435,36 +449,68 @@ public abstract class GraphicsModeControl extends Control
    */
   public abstract int getCurvedSize();
 
-  /** 
-   * Get a string that can be used to reconstruct this control later 
+  /**
+   * Set whether the Appearances are reused
+   *
+   * @param  cache   true to cache and reuse appearances
+   */
+  public abstract void setCacheAppearances(boolean cache);
+
+  /**
+   * Get whether Appearances are cached or not
+   *
+   * @return  true if caching
+   */
+  public abstract boolean getCacheAppearances();
+
+  /**
+   * Set whether Geometries for shapes should be merged into Group if
+   * possible to reduce memory use.
+   *
+   * @param  merge   true to merge geometries if possible
+   */
+  public abstract void setMergeGeometries(boolean merge);
+
+  /**
+   * Set whether Geometries for shapes should be merged into Group
+   *
+   * @return  true if merging is used
+   */
+  public abstract boolean getMergeGeometries();
+
+  /**
+   * Get a string that can be used to reconstruct this control later
    * @return save string
    */
   public String getSaveString() {
-    return "" +
-      getLineWidth() + " " +
-      getPointSize() + " " +
-      getPointMode() + " " +
-      getTextureEnable() + " " +
-      getScaleEnable() + " " +
-      getTransparencyMode() + " " +
-      getProjectionPolicy() + " " +
-      getPolygonMode() + " " +
-      getMissingTransparent() + " " +
-      getCurvedSize() + " " +
-      getLineStyle() + " " + 
-      getColorMode() + " " + 
-      getPolygonOffset() + " " +
-      getPolygonOffsetFactor() + " " +
-      getAdjustProjectionSeam();
+    return "" + getLineWidth() + " " 
+           + getPointSize() + " " +
+           getPointMode() + " " + 
+           getTextureEnable() + " " +
+           getScaleEnable() + " " + 
+           getTransparencyMode() + " " +
+           getProjectionPolicy() + " " + 
+           getPolygonMode() + " " +
+           getMissingTransparent() + " " + 
+           getCurvedSize() + " " +
+           getLineStyle() + " " + 
+           getColorMode() + " " + 
+           getPolygonOffset() + " " + 
+           getPolygonOffsetFactor() + " " + 
+           getAdjustProjectionSeam() + " " + 
+           getCacheAppearances() + " " + 
+           getMergeGeometries();
   }
 
-  /** 
-   * Reconstruct this control using the specified save string 
+  /**
+   * Reconstruct this control using the specified save string
    * @param save  save string
+   *
+   * @throws RemoteException 
+   * @throws VisADException 
    */
   public void setSaveString(String save)
-    throws VisADException, RemoteException
-  {
+          throws VisADException, RemoteException {
     if (save == null) throw new VisADException("Invalid save string");
     StringTokenizer st = new StringTokenizer(save);
     int numTokens = st.countTokens();
@@ -482,13 +528,31 @@ public abstract class GraphicsModeControl extends Control
     boolean mt = Convert.getBoolean(st.nextToken());
     int cs = Convert.getInt(st.nextToken());
 
-    int ls = st.hasMoreTokens() ? Convert.getInt(st.nextToken()) : SOLID_STYLE;
-    int cm = st.hasMoreTokens() ? Convert.getInt(st.nextToken()) : 0;
-    float po = st.hasMoreTokens() ? Convert.getFloat(st.nextToken()) : Float.NaN;
-    float pof = st.hasMoreTokens() ? Convert.getFloat(st.nextToken()) : 0;
+    int ls = st.hasMoreTokens()
+             ? Convert.getInt(st.nextToken())
+             : SOLID_STYLE;
+    int cm = st.hasMoreTokens()
+             ? Convert.getInt(st.nextToken())
+             : 0;
+    float po = st.hasMoreTokens()
+               ? Convert.getFloat(st.nextToken())
+               : Float.NaN;
+    float pof = st.hasMoreTokens()
+                ? Convert.getFloat(st.nextToken())
+                : 0;
 
-    boolean as = st.hasMoreTokens() ? Convert.getBoolean(st.nextToken()) : getAdjustProjectionSeam();
-    int t3dm = st.hasMoreTokens() ? Convert.getInt(st.nextToken()) : 0;
+    boolean as = st.hasMoreTokens()
+                 ? Convert.getBoolean(st.nextToken())
+                 : getAdjustProjectionSeam();
+    int t3dm = st.hasMoreTokens()
+               ? Convert.getInt(st.nextToken())
+               : 0;
+    boolean ca = st.hasMoreTokens()
+                 ? Convert.getBoolean(st.nextToken())
+                 : getCacheAppearances();
+    boolean mg = st.hasMoreTokens()
+                 ? Convert.getBoolean(st.nextToken())
+                 : getMergeGeometries();
 
 
     // reset graphics mode settings
@@ -508,13 +572,16 @@ public abstract class GraphicsModeControl extends Control
     setPolygonOffsetFactor(pof);
     setAdjustProjectionSeam(as);
     setTexture3DMode(t3dm);
+    setCacheAppearances(ca);
+    setMergeGeometries(mg);
   }
 
-  /** 
-   * A method to copy this object 
+  /**
+   * A method to copy this object
    *
    * @return a copy of this object
    */
   public abstract Object clone();
 
 }
+

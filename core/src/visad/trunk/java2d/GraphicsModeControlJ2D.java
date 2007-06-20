@@ -66,6 +66,12 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
   /** mode for Texture3D */
   private int texture3DMode = STACK2D;
 
+  /** for caching Appearances*/
+  private boolean cacheAppearances = false;
+
+  /** for merging geometries */
+  private boolean mergeGeometries = false;
+
   public GraphicsModeControlJ2D(DisplayImpl d) {
     super(d);
     lineWidth = 1.0f;
@@ -586,6 +592,49 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
   }
 
   /**
+   * Set whether the Appearances are reused
+   *
+   * @param  cache   true to cache and reuse appearances
+   *
+   * @throws  VisADException   Unable to change caching
+   * @throws  RemoteException  can't change caching on remote display
+   */
+  public void setCacheAppearances(boolean cache) {
+    cacheAppearances = cache;
+  }
+
+  /**
+   * Get whether Appearances are cached or not
+   *
+   * @return  true if caching
+   */
+  public boolean getCacheAppearances() {
+    return cacheAppearances;
+  }
+
+  /**
+   * Set whether Geometries for shapes should be merged into Group if
+   * possible to reduce memory use.
+   *
+   * @param  merge   true to merge geometries if possible
+   *
+   * @throws  VisADException   Unable to change caching
+   * @throws  RemoteException  can't change caching on remote display
+   */
+  public void setMergeGeometries(boolean merge) {
+    mergeGeometries = merge;
+  }
+
+  /**
+   * Set whether Geometries for shapes should be merged into Group
+   *
+   * @return  true if merging is used
+   */
+  public boolean getMergeGeometries() {
+    return mergeGeometries;
+  }
+
+  /**
    * Get the mode for Texture3D for volume rendering
    *
    * @return  mode for Texture3D (e.g., STACK2D or TEXTURE3D)
@@ -612,6 +661,8 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     mode.polygonOffsetFactor = polygonOffsetFactor;
     mode.adjustProjectionSeam = adjustProjectionSeam;
     mode.texture3DMode = texture3DMode;
+    mode.cacheAppearances = cacheAppearances;
+    mode.mergeGeometries = mergeGeometries;
     return mode;
   }
 
@@ -701,6 +752,16 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
       texture3DMode = rmtCtl.texture3DMode;
     }
 
+    if (cacheAppearances != rmtCtl.cacheAppearances) {
+      changed = true;
+      cacheAppearances = rmtCtl.cacheAppearances;
+    }
+
+    if (mergeGeometries != rmtCtl.mergeGeometries) {
+      changed = true;
+      mergeGeometries = rmtCtl.mergeGeometries;
+    }
+
     if (changed) {
       try {
         changeControl(true);
@@ -766,7 +827,15 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
       return false;
     }
 
-    if (adjustProjectionSeam != gmc.adjustProjectionSeam) {
+    if (texture3DMode != gmc.texture3DMode) {
+      return false;
+    }
+
+    if (cacheAppearances != gmc.cacheAppearances) {
+      return false;
+    }
+
+    if (mergeGeometries != gmc.mergeGeometries) {
       return false;
     }
 
@@ -805,6 +874,10 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
     buf.append(adjustProjectionSeam ? "as" : "!as");
     buf.append(",t3dm ");
     buf.append(texture3DMode);
+    buf.append(",ca ");
+    buf.append(cacheAppearances);
+    buf.append(",mg ");
+    buf.append(mergeGeometries);
 
     buf.append(']');
     return buf.toString();

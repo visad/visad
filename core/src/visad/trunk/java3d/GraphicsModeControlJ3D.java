@@ -90,6 +90,12 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
   /** mode for Texture3D */
   private int texture3DMode;
 
+  /** for caching Appearances*/
+  private boolean cacheAppearances = false;
+
+  /** for merging geometries */
+  private boolean mergeGeometries = false;
+
   /**
    * Construct a GraphicsModeControlJ3D associated with the input display
    *
@@ -699,6 +705,49 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     return texture3DMode;
   }
 
+  /**
+   * Set whether the Appearances are reused
+   *
+   * @param  cache   true to cache and reuse appearances
+   *
+   * @throws  VisADException   Unable to change caching
+   * @throws  RemoteException  can't change caching on remote display
+   */
+  public void setCacheAppearances(boolean cache) {
+    cacheAppearances = cache;
+  }
+
+  /**
+   * Get whether Appearances are cached or not
+   *
+   * @return  true if caching
+   */
+  public boolean getCacheAppearances() {
+    return cacheAppearances;
+  }
+
+  /**
+   * Set whether Geometries for shapes should be merged into Group if
+   * possible to reduce memory use.
+   *
+   * @param  merge   true to merge geometries if possible
+   *
+   * @throws  VisADException   Unable to change caching
+   * @throws  RemoteException  can't change caching on remote display
+   */
+  public void setMergeGeometries(boolean merge) {
+    mergeGeometries = merge;
+  }
+
+  /**
+   * Set whether Geometries for shapes should be merged into Group
+   *
+   * @return  true if merging is used
+   */
+  public boolean getMergeGeometries() {
+    return mergeGeometries;
+  }
+
   /** clone this GraphicsModeControlJ3D */
   public Object clone() {
     GraphicsModeControlJ3D mode =
@@ -719,6 +768,8 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     mode.anti_alias_flag = anti_alias_flag;
     mode.adjustProjectionSeam = adjustProjectionSeam;
     mode.texture3DMode = texture3DMode;
+    mode.cacheAppearances = cacheAppearances;
+    mode.mergeGeometries = mergeGeometries;
     return mode;
   }
 
@@ -791,6 +842,16 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
       changed = true;
       redisplay = true;
       texture3DMode = rmtCtl.texture3DMode;
+    }
+
+    if (cacheAppearances != rmtCtl.cacheAppearances) {
+      changed = true;
+      cacheAppearances = rmtCtl.cacheAppearances;
+    }
+
+    if (mergeGeometries != rmtCtl.mergeGeometries) {
+      changed = true;
+      mergeGeometries = rmtCtl.mergeGeometries;
     }
 
     if (projectionPolicy != rmtCtl.projectionPolicy) {
@@ -939,6 +1000,14 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
       return false;
     }
 
+    if (cacheAppearances != gmc.cacheAppearances) {
+      return false;
+    }
+
+    if (mergeGeometries != gmc.mergeGeometries) {
+      return false;
+    }
+
     return true;
   }
 
@@ -978,6 +1047,10 @@ public class GraphicsModeControlJ3D extends GraphicsModeControl {
     buf.append(adjustProjectionSeam ? "as" : "!as");
     buf.append(",t3dm ");
     buf.append(texture3DMode);
+    buf.append(",ca ");
+    buf.append(cacheAppearances);
+    buf.append(",mg ");
+    buf.append(mergeGeometries);
 
     buf.append(']');
     return buf.toString();
