@@ -3440,6 +3440,15 @@ System.out.println("range = " + range[0] + " " + range[1] +
       default_values[
         display.getDisplayScalarIndex(Display.PolygonOffsetFactor)];
     mode.setPolygonOffsetFactor(polygonOffsetFactor, true);
+    float cacheAppearances = 
+      default_values[
+        display.getDisplayScalarIndex(Display.CacheAppearances)];
+    mode.setCacheAppearances(cacheAppearances > 0.5f);
+    float mergeArrays = 
+      default_values[
+        display.getDisplayScalarIndex(Display.MergeGeometries)];
+    mode.setMergeGeometries(mergeArrays > 0.5f);
+
 
     float[][] flow1_values = new float[3][];
     float[][] flow2_values = new float[3][];

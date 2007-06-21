@@ -288,8 +288,15 @@ public class DataDisplayLink extends ReferenceActionLink {
       }
       else if (Display.AdjustProjectionSeam.equals(dreal)) {
         defaultValues[i] = (mode.getAdjustProjectionSeam()) ? 1 : -1;
-      } else if (Display.Texture3DMode.equals(dreal)) {
+      } 
+      else if (Display.Texture3DMode.equals(dreal)) {
         defaultValues[i] = mode.getTexture3DMode();
+      }
+      else if (Display.CacheAppearances.equals(dreal)) {
+        defaultValues[i] = (mode.getCacheAppearances()) ? 1 : -1;
+      }
+      else if (Display.MergeGeometries.equals(dreal)) {
+        defaultValues[i] = (mode.getMergeGeometries()) ? 1 : -1;
       }
 /* WLH 21 Aug 98
       defaultValues[i] = (float) (((DisplayRealType)

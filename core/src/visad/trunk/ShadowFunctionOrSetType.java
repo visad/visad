@@ -1705,6 +1705,14 @@ System.out.println("doTerminal: isTerminal = " + getIsTerminal() +
         default_values[
           display.getDisplayScalarIndex(Display.PolygonOffsetFactor)];
       mode.setPolygonOffsetFactor(polygonOffsetFactor, true);
+      float cacheAppearances = 
+        default_values[
+          display.getDisplayScalarIndex(Display.CacheAppearances)];
+      mode.setCacheAppearances(cacheAppearances > 0.5f);
+      float mergeArrays = 
+        default_values[
+          display.getDisplayScalarIndex(Display.MergeGeometries)];
+      mode.setMergeGeometries(mergeArrays > 0.5f);
 
       boolean pointMode = mode.getPointMode();
 
@@ -2020,6 +2028,7 @@ END MISSING TEST */
 */
         VisADGeometryArray array;
 
+        visad.util.Trace.call1("assembleShape");
         boolean anyShapeCreated = false;
         VisADGeometryArray[] arrays =
           shadow_api.assembleShape(display_values, valueArrayLength, valueToMap,
@@ -2048,25 +2057,31 @@ if (range_select[0] != null) {
           anyShapeCreated = true;
           arrays = null;
         }
+        visad.util.Trace.call2("assembleShape");
 
         boolean anyTextCreated = false;
         if (anyText && text_values != null && text_control != null) {
+          visad.util.Trace.call1("makeText");
           array = shadow_api.makeText(text_values, text_control, spatial_values,
                                       color_values, range_select);
           shadow_api.addTextToGroup(group, array, mode,
                                     constant_alpha, constant_color);
           array = null;
           anyTextCreated = true;
+          visad.util.Trace.call2("makeText");
         }
 
         boolean anyFlowCreated = false;
         if (anyFlow) {
+          visad.util.Trace.call1("flow");
           // try Flow1
 
+          visad.util.Trace.call1("makeStreamline flow1");
           arrays = shadow_api.makeStreamline(0, flow1_values, flowScale[0],
                         spatial_values, spatial_set, spatialManifoldDimension,
                         color_values, range_select,  valueArrayLength,
                         valueToMap, MapVector);
+          visad.util.Trace.call2("makeStreamline flow1");
           if (arrays != null) {
             for (int i=0; i<arrays.length; i++) {
               if (arrays[i] != null) {
@@ -2077,6 +2092,7 @@ if (range_select[0] != null) {
             }
           }
           else {
+            visad.util.Trace.call1("makeFlow flow1");
             arrays = shadow_api.makeFlow(0, flow1_values, flowScale[0],
                               spatial_values, color_values, range_select);
             if (arrays != null) {
@@ -2088,15 +2104,18 @@ if (range_select[0] != null) {
                 }
               }
             }
+            visad.util.Trace.call2("makeFlow flow1");
           }
           anyFlowCreated = true;
 
           // try Flow2
 
+          visad.util.Trace.call1("makeStreamline flow2");
           arrays = shadow_api.makeStreamline(1, flow2_values, flowScale[1],
                           spatial_values, spatial_set, spatialManifoldDimension,
                           color_values, range_select, valueArrayLength,
                         valueToMap, MapVector);
+          visad.util.Trace.call2("makeStreamline flow2");
           if (arrays != null) {
             for (int i=0; i<arrays.length; i++) {
               if (arrays[i] != null) {
@@ -2107,6 +2126,7 @@ if (range_select[0] != null) {
             }
           }
           else {
+            visad.util.Trace.call1("makeFlow flow2");
             arrays = shadow_api.makeFlow(1, flow2_values, flowScale[1],
                               spatial_values, color_values, range_select);
             if (arrays != null) {
@@ -2118,8 +2138,10 @@ if (range_select[0] != null) {
                 }
               }
             }
+            visad.util.Trace.call2("makeFlow flow2");
           }
           anyFlowCreated = true;
+          visad.util.Trace.call2("flow");
         }
 
         boolean anyContourCreated = false;

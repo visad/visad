@@ -1913,9 +1913,11 @@ System.out.println("initialize = " + initialize + " go = " + go +
            Display.CurvedSize.equals(type) ||
            Display.ColorMode.equals(type) ||
            Display.PolygonOffset.equals(type) ||
-           Display.PolygonOffsetFactor.equals(type)) ||
+           Display.PolygonOffsetFactor.equals(type) ||
            Display.AdjustProjectionSeam.equals(type) ||
-           Display.Texture3DMode.equals(type) &&
+           Display.Texture3DMode.equals(type) ||
+           Display.CacheAppearances.equals(type) ||
+           Display.MergeGeometries.equals(type)) &&
           !(map instanceof ConstantMap))
       {
         throw new BadMappingException("DisplayImpl.addMap: " +

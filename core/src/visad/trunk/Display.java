@@ -322,6 +322,14 @@ public interface Display extends Action {
   DisplayRealType Texture3DMode =
     new DisplayRealType("Texture3DMode", true, -1.0, true);
 
+  /** cache appearances - ConstantMap only */
+  DisplayRealType CacheAppearances =
+    new DisplayRealType("CacheAppearances", true, -1.0, true);
+
+  /** cache appearances - ConstantMap only */
+  DisplayRealType MergeGeometries =
+    new DisplayRealType("MergeGeometries", true, -1.0, true);
+
   /** array of system intrinsic DisplayRealTypes */
   DisplayRealType[] DisplayRealArray =
     {XAxis, YAxis, ZAxis, Latitude, Longitude, Radius, List, Red, Green, Blue,
@@ -334,7 +342,9 @@ public interface Display extends Action {
      LineStyle, TextureEnable, MissingTransparent, 
      PolygonMode, CurvedSize, ColorMode, 
      PolygonOffset, PolygonOffsetFactor, 
-     AdjustProjectionSeam, Texture3DMode};
+     AdjustProjectionSeam, Texture3DMode,
+     CacheAppearances, MergeGeometries
+     };
 
   // system intrinsic DisplayTupleType objects
 
