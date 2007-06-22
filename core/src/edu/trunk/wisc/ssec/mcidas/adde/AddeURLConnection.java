@@ -241,6 +241,13 @@ public class AddeURLConnection extends URLConnection
   /** The default number of elements for an image request */
   private final int DEFAULT_ELEMS = 640;
 
+  /** The default user id*/
+  public static final String DEFAULT_USER = "XXXX";
+
+  /** The default number of elements for an image request */
+  public static final int DEFAULT_PROJ = 0;
+
+  /** The default user id*/
   /** Size of an ADDE trailer */
   private final static int TRAILER_SIZE = 92;
 
@@ -275,13 +282,12 @@ public class AddeURLConnection extends URLConnection
   private final int GZIP_KEY = 3;
 
   /** default port transfers */
-  /** default port transfers */
-  private final static int DEFAULT_PORT = 112;
+  public final static int DEFAULT_PORT = 112;
 
   /**
    * ADDE Version 1 indicator
    */
-  private final static int VERSION_1 = 1;
+  public final static int VERSION_1 = 1;
 
   // ADDE server requests
   /** AGET request type */
@@ -364,18 +370,20 @@ public class AddeURLConnection extends URLConnection
     // keep original to preserve case for user= clause
     String requestOriginal = url.getFile().substring(1);
     String request = requestOriginal.toLowerCase();
+    String path = url.getPath().substring(1).toLowerCase();
+    String query = url.getQuery();
     debug = debug || request.indexOf("debug=true") >= 0;
 
     if (debug) System.out.println("host from URL: " + url.getHost());
     if (debug) System.out.println("file from URL: " + url.getFile());
 
-    if (!request.startsWith("image") && 
-        (!request.startsWith("datasetinfo")) &&
-        (!request.startsWith("text")) &&
-        (!request.startsWith("wxtext")) &&
-        (!request.startsWith("obtext")) &&
-        (!request.startsWith("grid"))   && 
-        (!request.startsWith("point"))  )
+    if (!path.startsWith("image") && 
+        (!path.startsWith("datasetinfo")) &&
+        (!path.startsWith("text")) &&
+        (!path.startsWith("wxtext")) &&
+        (!path.startsWith("obtext")) &&
+        (!path.startsWith("grid"))   && 
+        (!path.startsWith("point"))  )
     {
         throw new AddeURLException("Request for unknown data");
     }
@@ -385,47 +393,47 @@ public class AddeURLConnection extends URLConnection
     // service - for area files, it's either AGET (Area GET) or 
     // ADIR (AREA directory)
     byte [] svc = null;
-    if (request.startsWith("imagedir"))
+    if (path.startsWith("imagedir") || path.equals(AddeURL.REQ_ADIR))
     {
         svc = "adir".getBytes();
         reqType = ADIR;
     }
-    else if (request.startsWith("datasetinfo"))
+    else if (path.startsWith("datasetinfo") || path.equals(AddeURL.REQ_LWPR))
     {
         svc = "lwpr".getBytes();
         reqType = LWPR;
     }
-    else if (request.startsWith("text"))
+    else if (path.startsWith("text") || path.equals(AddeURL.REQ_TXTG))
     {
         svc = "txtg".getBytes();
         reqType = TXTG;
     }
-    else if (request.startsWith("wxtext"))
+    else if (path.startsWith("wxtext") || path.equals(AddeURL.REQ_WTXG))
     {
         svc = "wtxg".getBytes();
         reqType = WTXG;
     }
-    else if (request.startsWith("obtext"))
+    else if (path.startsWith("obtext") || path.equals(AddeURL.REQ_OBTG))
     {
         svc = "obtg".getBytes();
         reqType = OBTG;
     }
-    else if (request.startsWith("image"))
+    else if (path.startsWith("image") || path.equals(AddeURL.REQ_AGET))
     {
         svc = "aget".getBytes();
         reqType = AGET;
     }
-    else if (request.startsWith("griddir"))
+    else if (path.startsWith("griddir") || path.equals(AddeURL.REQ_GDIR))
     {
         svc = "gdir".getBytes();
         reqType = GDIR;
     }
-    else if (request.startsWith("grid"))
+    else if (path.startsWith("grid") || path.equals(AddeURL.REQ_GGET))
     {
         svc = "gget".getBytes();
         reqType = GGET;
     }
-    else if (request.startsWith("point"))
+    else if (path.startsWith("point") || path.equals(AddeURL.REQ_MDKS))
     {
         svc = "mdks".getBytes();
         reqType = MDKS;
@@ -439,7 +447,8 @@ public class AddeURLConnection extends URLConnection
 
     // prep for real thing - get cmd from file part of URL
     int test = requestOriginal.indexOf("?");
-    String uCmd = (test >=0) ? requestOriginal.substring(test+1) : requestOriginal;
+    //String uCmd = (test >=0) ? requestOriginal.substring(test+1) : requestOriginal;
+    String uCmd = (query == null) ? requestOriginal : query;
     if (debug) System.out.println("uCmd="+uCmd);
 
     // build the command string
@@ -484,7 +493,7 @@ public class AddeURLConnection extends URLConnection
     boolean a = Boolean.getBoolean("adde.auto-upcase");
     boolean b = 
       new Boolean(
-        getValue(requestOriginal, "auto-upcase=", "false")).booleanValue();
+        getValue(uCmd, "auto-upcase=", "false")).booleanValue();
     String cmd = (a || b) ? sb.toString().toUpperCase() : sb.toString();
     if (debug) System.out.println(cmd);
     byte [] ob = cmd.getBytes();
@@ -493,13 +502,13 @@ public class AddeURLConnection extends URLConnection
 
     // user initials - pass on what client supplied in user= keyword
     byte [] usr; 
-    String testStr = getValue(requestOriginal, "user=", "XXXX");
+    String testStr = getValue(uCmd, "user=", DEFAULT_USER);
     if (debug) System.out.println("user = " + testStr);
     usr = testStr.getBytes();
 
     // project number - we won't validate, but make sure it's there
     int proj = 0;
-    testStr = getValue(uCmd, "proj=", "0");
+    testStr = getValue(uCmd, "proj=", ""+DEFAULT_PROJ);
     if (debug) System.out.println("proj = " + testStr);
     try {
       proj = Integer.parseInt(testStr);
@@ -542,7 +551,7 @@ public class AddeURLConnection extends URLConnection
           testStr = "compress";
           break;
         case GZIP:            // port == 112
-        case GZIP_KEY:        // port == 1
+        case GZIP_KEY:        // port == 3
         default:
           testStr = "gzip";
           break;

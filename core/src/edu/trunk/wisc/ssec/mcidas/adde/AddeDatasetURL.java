@@ -1,0 +1,122 @@
+// AddeDatasetURL.java
+//
+//
+
+/*
+VisAD system for interactive analysis and visualization of numerical
+data.  Copyright (C) 1996 - 2007 Bill Hibbard, Curtis Rueden, Tom
+Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
+Tommy Jasmin.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Library General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Library General Public License for more details.
+
+You should have received a copy of the GNU Library General Public
+License along with this library; if not, write to the Free
+Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+MA 02111-1307, USA
+*/
+
+package edu.wisc.ssec.mcidas.adde;
+
+
+/**
+ * A subclass of AddeURL to support queries on datasets.
+ * <pre>
+ *
+ * URLs must all have the following format:
+ *
+ *   adde://host/request?keyword_1=value_1&amp;keyword_2=value_2
+ *
+ *   group=&lt;groupname&gt;         ADDE group name
+ *   user=&lt;user_id&gt;            ADDE user identification
+ *   proj=&lt;proj #&gt;             a valid ADDE project number
+ *   trace=&lt;0/1&gt;               setting to 1 tells server to write debug 
+ *                               trace file 
+ *   version=                  ADDE version number, currently 1 except for
+ *                             griddata requests
+ *   debug=                    set to true to watch the printlns stream by
+ *   compress=                 set to "gzip" if you want to use the GZIP
+ *                             compression or "compress" if you want to use 
+ *                             transfers in Unix compress format (You need to 
+ *                             have the VisAD package if you want to support 
+ *                             this.)  default = none.
+ *   port=                     Socket port to connect on.  Overridden by
+ *                             a port specified in the host 
+ *                             (e.g., adde.ucar.edu:500)
+ * </pre>
+ */
+public class AddeDatasetURL extends AddeURL {
+
+  /** Keyword for dataset group */
+  public static final String KEY_GROUP = "GROUP";
+
+  /**
+   * Dataset name
+   */
+  private String group = null;
+
+  /**
+   * Create an ADDE URL
+   */
+  public AddeDatasetURL() {}
+
+  /**
+   * Create an ADDE Dataset URL from the given spec
+   * @param host host to send to
+   * @param requestType   type of request (REQ_*)
+   * @param group   ADDE group
+   */
+  public AddeDatasetURL(String host, String requestType, String group) {
+    this(host, requestType, group, null);
+  }
+
+  /**
+   * Create an ADDE URL from the given spec
+   * @param host host to send to
+   * @param requestType   type of request (REQ_*)
+   * @param group   ADDE group
+   * @param extraKeys   extraKeys string (key/value pairs)
+   */
+  public AddeDatasetURL(String host, String requestType, String group,
+                        String extraKeys) {
+    super(host, requestType, extraKeys);
+    this.group = group;
+  }
+
+  /**
+   * Make the query portion of the URL (e.g., key1=value1&amp;key2=value2..)
+   * Subclasses should override.
+   *
+   * @return the query portion of the URL
+   */
+  protected String makeQuery() {
+    StringBuffer buf = new StringBuffer(super.makeQuery());
+    appendKeyValue(buf, KEY_GROUP, getGroup());
+    return buf.toString();
+  }
+
+  /**
+   * Get the group for this ADDE URL
+   * @return the group
+   */
+  public String getGroup() {
+    return group;
+  }
+
+  /**
+   * Set the group for this ADDE URL
+   * @param group the group
+   */
+  public void setGroup(String group) {
+    this.group = group;
+  }
+
+}

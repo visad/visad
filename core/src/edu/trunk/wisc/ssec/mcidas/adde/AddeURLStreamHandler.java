@@ -60,5 +60,13 @@ public class AddeURLStreamHandler extends URLStreamHandler
     return new AddeURLConnection(url);
   }
 
-}
+  /** 
+   * Returns the default port for a URL parsed by this handler. 
+   * This method is meant to be overidden by handlers with default 
+   * port numbers.
+   */ 
+  protected int getDefaultPort() {
+      return AddeURLConnection.DEFAULT_PORT;
+  }
 
+}
