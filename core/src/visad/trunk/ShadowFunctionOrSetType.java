@@ -923,7 +923,7 @@ System.out.println("doTransform.curvedTexture = " + curvedTexture + " " +
     ***/
     }
     else if (isTexture3D) {
-      visad.util.Trace.call1("isTexture3D");
+      visad.util.Trace.call1("ShadowFunctionOrSetType:isTexture3D");
       Linear1DSet X = null;
       Linear1DSet Y = null;
       Linear1DSet Z = null;
@@ -1166,7 +1166,7 @@ for (int i=0; i < 4; i++) {
                      normalsX[3 * i + 1] + " " + normalsX[3 * i + 2]);
 }
 */
-      visad.util.Trace.call2("isTexture3D");
+      visad.util.Trace.call2("ShadowFunctionOrSetType:isTexture3D");
     }
     // WLH 1 April 2000
     // else { // !isTextureMap && !isTexture3D
@@ -1174,7 +1174,7 @@ for (int i=0; i < 4; i++) {
     if (!isTextureMap && (!isTexture3D || range3D) && !isLinearContour3D) {
 
 // if (link != null) System.out.println("start domain " + (System.currentTimeMillis() - link.start_time));
-      visad.util.Trace.call1("domain");
+      visad.util.Trace.call1("ShadowFunctionOrSetType:domain");
 
       // get values from Function Domain
       // NOTE - may defer this until needed, if needed
@@ -1212,7 +1212,7 @@ for (int i=0; i < 4; i++) {
       }
 */
 
-      visad.util.Trace.call2("domain");
+      visad.util.Trace.call2("ShadowFunctionOrSetType:domain");
 // if (link != null) System.out.println("end domain " + (System.currentTimeMillis() - link.start_time));
 
       if (domain_reference != null && domain_reference.getMappedDisplayScalar()) {
@@ -1320,7 +1320,7 @@ System.out.println("data_width = " + data_width + " data_height = " + data_heigh
         //
 
 // if (link != null) System.out.println("start map reference " + (System.currentTimeMillis() - link.start_time));
-        visad.util.Trace.call1("map reference");
+        visad.util.Trace.call1("ShadowFunctionOrSetType:map reference");
 
         // map reference_values to appropriate DisplayRealType-s
         ShadowRealType[] DomainReferenceComponents = getDomainReferenceComponents();
@@ -1333,7 +1333,7 @@ System.out.println("data_width = " + data_width + " data_height = " + data_heigh
         }
 
 // if (link != null) System.out.println("end map reference " + (System.currentTimeMillis() - link.start_time));
-        visad.util.Trace.call2("map reference");
+        visad.util.Trace.call2("ShadowFunctionOrSetType:map reference");
 
 /*
 for (int i=0; i<DomainReferenceComponents.length; i++) {
@@ -1386,7 +1386,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
       // System.out.println("got range_values");
 
       if (range_values != null) {
-        visad.util.Trace.call1("range_values != null");
+        visad.util.Trace.call1("ShadowFunctionOrSetType:range_values != null");
         // map range_values to appropriate DisplayRealType-s
         ShadowRealType[] RangeComponents = getRangeComponents();
         // MEM
@@ -1549,7 +1549,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
 
         // FREE
         range_values = null;
-        visad.util.Trace.call2("range_values != null");
+        visad.util.Trace.call2("ShadowFunctionOrSetType:range_values != null");
       } // end if (range_values != null)
 
       if (anyText && text_values == null) {
@@ -1642,7 +1642,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
     } // end if (this instanceof ShadowFunctionType)
 
 // if (link != null) System.out.println("start assembleSelect " + (System.currentTimeMillis() - link.start_time));
-    visad.util.Trace.call1("assembleSelect");
+    visad.util.Trace.call1("ShadowFunctionOrSetType:assembleSelect");
 
     //
     // NOTE -
@@ -1667,12 +1667,12 @@ if (range_select[0] != null) {
     if (range_select[0] != null && range_select[0].length == 1 &&
         !range_select[0][0]) {
       // single missing value in range_select[0], so render nothing
-      visad.util.Trace.call2("assembleSelect");
+      visad.util.Trace.call2("ShadowFunctionOrSetType:assembleSelect");
       return false;
     }
 
 // if (link != null) System.out.println("end assembleSelect " + (System.currentTimeMillis() - link.start_time));
-    visad.util.Trace.call2("assembleSelect");
+    visad.util.Trace.call2("ShadowFunctionOrSetType:assembleSelect");
 
     // System.out.println("assembleSelect");
  /*
@@ -1727,7 +1727,7 @@ System.out.println("doTerminal: isTerminal = " + getIsTerminal() +
       */
 
 // if (link != null) System.out.println("start assembleColor " + (System.currentTimeMillis() - link.start_time));
-      visad.util.Trace.call1("assembleColor ");
+      visad.util.Trace.call1("ShadowFunctionOrSetType:assembleColor ");
 
       // MEM_WLH - this moved
       boolean[] single_missing = {false, false, false, false};
@@ -1760,7 +1760,7 @@ if (color_values != null) {
         // single missing value in range_select[0], so render nothing
         return false;
       }
-      visad.util.Trace.call2("assembleColor ");
+      visad.util.Trace.call2("ShadowFunctionOrSetType:assembleColor ");
 
 // if (link != null) System.out.println("end assembleColor " + (System.currentTimeMillis() - link.start_time));
 
@@ -1800,7 +1800,7 @@ if (range_select[0] != null) {
       boolean[] swap = {false, false, false};
 
 // if (link != null) System.out.println("start assembleSpatial " + (System.currentTimeMillis() - link.start_time));
-      visad.util.Trace.call1("assembleSpatial");
+      visad.util.Trace.call1("ShadowFunctionOrSetType:assembleSpatial");
 
       // WLH 29 April 99
       boolean[][] spatial_range_select = new boolean[1][];
@@ -1868,7 +1868,7 @@ System.out.println("  isTextureMap = " + isTextureMap);
         return false;
       }
 
-      visad.util.Trace.call2("assembleSpatial");
+      visad.util.Trace.call2("ShadowFunctionOrSetType:assembleSpatial");
 // if (link != null) System.out.println("end assembleSpatial " + (System.currentTimeMillis() - link.start_time));
 
       int spatialDomainDimension = spatialDimensions[0];
@@ -1887,7 +1887,7 @@ System.out.println("  isTextureMap = " + isTextureMap);
 
 // if (link != null) System.out.println("start missing color " + (System.currentTimeMillis() - link.start_time));
 
-      visad.util.Trace.call1("missing color");
+      visad.util.Trace.call1("ShadowFunctionOrSetType:missing color");
       float constant_alpha = Float.NaN;
       float[] constant_color = null;
 
@@ -1984,7 +1984,7 @@ System.out.println("replicate alpha = " + v + " " + constant_alpha +
           color_values = c;
         }
       } // end if (color_length == 1)
-      visad.util.Trace.call2("missing color");
+      visad.util.Trace.call2("ShadowFunctionOrSetType:missing color");
 
 // if (link != null) System.out.println("end missing color " + (System.currentTimeMillis() - link.start_time));
 
@@ -2028,7 +2028,7 @@ END MISSING TEST */
 */
         VisADGeometryArray array;
 
-        visad.util.Trace.call1("assembleShape");
+        visad.util.Trace.call1("ShadowFunctionOrSetType:assembleShape");
         boolean anyShapeCreated = false;
         VisADGeometryArray[] arrays =
           shadow_api.assembleShape(display_values, valueArrayLength, valueToMap,
@@ -2057,31 +2057,31 @@ if (range_select[0] != null) {
           anyShapeCreated = true;
           arrays = null;
         }
-        visad.util.Trace.call2("assembleShape");
+        visad.util.Trace.call2("ShadowFunctionOrSetType:assembleShape");
 
         boolean anyTextCreated = false;
         if (anyText && text_values != null && text_control != null) {
-          visad.util.Trace.call1("makeText");
+          visad.util.Trace.call1("ShadowFunctionOrSetType:makeText");
           array = shadow_api.makeText(text_values, text_control, spatial_values,
                                       color_values, range_select);
           shadow_api.addTextToGroup(group, array, mode,
                                     constant_alpha, constant_color);
           array = null;
           anyTextCreated = true;
-          visad.util.Trace.call2("makeText");
+          visad.util.Trace.call2("ShadowFunctionOrSetType:makeText");
         }
 
         boolean anyFlowCreated = false;
         if (anyFlow) {
-          visad.util.Trace.call1("flow");
+          visad.util.Trace.call1("ShadowFunctionOrSetType:flow");
           // try Flow1
 
-          visad.util.Trace.call1("makeStreamline flow1");
+          visad.util.Trace.call1("ShadowFunctionOrSetType:makeStreamline flow1");
           arrays = shadow_api.makeStreamline(0, flow1_values, flowScale[0],
                         spatial_values, spatial_set, spatialManifoldDimension,
                         color_values, range_select,  valueArrayLength,
                         valueToMap, MapVector);
-          visad.util.Trace.call2("makeStreamline flow1");
+          visad.util.Trace.call2("ShadowFunctionOrSetType:makeStreamline flow1");
           if (arrays != null) {
             for (int i=0; i<arrays.length; i++) {
               if (arrays[i] != null) {
@@ -2092,7 +2092,7 @@ if (range_select[0] != null) {
             }
           }
           else {
-            visad.util.Trace.call1("makeFlow flow1");
+            visad.util.Trace.call1("ShadowFunctionOrSetType:makeFlow flow1");
             arrays = shadow_api.makeFlow(0, flow1_values, flowScale[0],
                               spatial_values, color_values, range_select);
             if (arrays != null) {
@@ -2104,18 +2104,18 @@ if (range_select[0] != null) {
                 }
               }
             }
-            visad.util.Trace.call2("makeFlow flow1");
+            visad.util.Trace.call2("ShadowFunctionOrSetType:makeFlow flow1");
           }
           anyFlowCreated = true;
 
           // try Flow2
 
-          visad.util.Trace.call1("makeStreamline flow2");
+          visad.util.Trace.call1("ShadowFunctionOrSetType:makeStreamline flow2");
           arrays = shadow_api.makeStreamline(1, flow2_values, flowScale[1],
                           spatial_values, spatial_set, spatialManifoldDimension,
                           color_values, range_select, valueArrayLength,
                         valueToMap, MapVector);
-          visad.util.Trace.call2("makeStreamline flow2");
+          visad.util.Trace.call2("ShadowFunctionOrSetType:makeStreamline flow2");
           if (arrays != null) {
             for (int i=0; i<arrays.length; i++) {
               if (arrays[i] != null) {
@@ -2126,7 +2126,7 @@ if (range_select[0] != null) {
             }
           }
           else {
-            visad.util.Trace.call1("makeFlow flow2");
+            visad.util.Trace.call1("ShadowFunctionOrSetType:makeFlow flow2");
             arrays = shadow_api.makeFlow(1, flow2_values, flowScale[1],
                               spatial_values, color_values, range_select);
             if (arrays != null) {
@@ -2138,10 +2138,10 @@ if (range_select[0] != null) {
                 }
               }
             }
-            visad.util.Trace.call2("makeFlow flow2");
+            visad.util.Trace.call2("ShadowFunctionOrSetType:makeFlow flow2");
           }
           anyFlowCreated = true;
-          visad.util.Trace.call2("flow");
+          visad.util.Trace.call2("ShadowFunctionOrSetType:flow");
         }
 
         boolean anyContourCreated = false;
@@ -2158,7 +2158,7 @@ makeGeometry 350, 171
 */
 
 // if (link != null) System.out.println("start makeContour " + (System.currentTimeMillis() - link.start_time));
-        visad.util.Trace.call1("makeContour");
+        visad.util.Trace.call1("ShadowFunctionOrSetType:makeContour");
           anyContourCreated =
             shadow_api.makeContour(valueArrayLength, valueToScalar,
                        display_values, inherited_values, MapVector, valueToMap,
@@ -2167,7 +2167,7 @@ makeGeometry 350, 171
                        swap, constant_alpha, constant_color, shadow_api,
                        Domain, DomainReferenceComponents, domain_set, domain_units,
                        dataCoordinateSystem);
-        visad.util.Trace.call2("makeContour");
+        visad.util.Trace.call2("ShadowFunctionOrSetType:makeContour");
 // if (link != null) System.out.println("end makeContour " + (System.currentTimeMillis() - link.start_time));
         } // end if (anyContour)
 
@@ -2177,7 +2177,7 @@ makeGeometry 350, 171
             !anyTextCreated && !anyShapeCreated) {
           // MEM
           if (isTextureMap) {
-            visad.util.Trace.call1("linear texture");
+            visad.util.Trace.call1("ShadowFunctionOrSetType:linear texture");
             if (color_values == null) {
               // must be color_values array for texture mapping
               color_values = new byte[3][domain_length];
@@ -2335,12 +2335,12 @@ makeGeometry 350, 171
             }
 //-- end texture split logic -------------------------------------------------------------
             //System.out.println("isTextureMap done");
-            visad.util.Trace.call2("linear texture");
+            visad.util.Trace.call2("ShadowFunctionOrSetType:linear texture");
             return false;
           } // end if (isTextureMap)
           else if (curvedTexture) {
 // if (link != null) System.out.println("start texture " + (System.currentTimeMillis() - link.start_time));
-            visad.util.Trace.call1("curved texture");
+            visad.util.Trace.call1("ShadowFunctionOrSetType:curved texture");
             if (color_values == null) { // never true?
               // must be color_values array for texture mapping
               color_values = new byte[3][domain_length];
@@ -2579,11 +2579,11 @@ makeGeometry 350, 171
 //-- end texture split logic
             //System.out.println("curvedTexture done");
 // if (link != null) System.out.println("end texture " + (System.currentTimeMillis() - link.start_time));
-            visad.util.Trace.call2("curved texture");
+            visad.util.Trace.call2("ShadowFunctionOrSetType:curved texture");
             return false;
           } // end if (curvedTexture)
           else if (isTexture3D) {
-            visad.util.Trace.call1("3D texture");
+            visad.util.Trace.call1("ShadowFunctionOrSetType:3D texture");
             if (color_values == null) {
               // must be color_values array for texture mapping
               color_values = new byte[3][domain_length];
@@ -2738,13 +2738,13 @@ WLH 15 March 2000 */
 
             }
             // System.out.println("isTexture3D done");
-            visad.util.Trace.call1("3D texture");
+            visad.util.Trace.call1("ShadowFunctionOrSetType:3D texture");
             return false;
           } // end if (isTexture3D)
           else if (pointMode || spatial_set == null ||
                    spatialManifoldDimension == 0 ||
                    spatialManifoldDimension == 3) {
-            visad.util.Trace.call1("point mode");
+            visad.util.Trace.call1("ShadowFunctionOrSetType:point mode");
             if (range_select[0] != null) {
               int len = range_select[0].length;
               if (len == 1 || spatial_values[0].length == 1) {
@@ -2765,10 +2765,10 @@ WLH 15 March 2000 */
               array = makePointGeometry(spatial_values, color_values);
               // System.out.println("makePointGeometry for pointMode");
             }
-            visad.util.Trace.call2("point mode");
+            visad.util.Trace.call2("ShadowFunctionOrSetType:point mode");
           }
           else if (spatialManifoldDimension == 1) {
-            visad.util.Trace.call1("manifold dimension == 1");
+            visad.util.Trace.call1("ShadowFunctionOrSetType:manifold dimension == 1");
             if (range_select[0] != null) {
               // WLH 27 March 2000
               //if (mode.getMissingTransparent()) {
@@ -2803,11 +2803,11 @@ WLH 15 March 2000 */
                 array = array.adjustSeam(renderer);
               }
             }
-            visad.util.Trace.call2("manifold dimension == 1");
+            visad.util.Trace.call2("ShadowFunctionOrSetType:manifold dimension == 1");
             // System.out.println("make1DGeometry");
           }
           else if (spatialManifoldDimension == 2) {
-            visad.util.Trace.call1("manifold dimension == 2");
+            visad.util.Trace.call1("ShadowFunctionOrSetType:manifold dimension == 2");
             if (range_select[0] != null) {
               // WLH 27 March 2000
               //if (mode.getMissingTransparent()) {
@@ -2844,7 +2844,7 @@ WLH 15 March 2000 */
             }
             // System.out.println("make2DGeometry  vertexCount = " +
             //                    array.vertexCount);
-            visad.util.Trace.call2("manifold dimension == 2");
+            visad.util.Trace.call2("ShadowFunctionOrSetType:manifold dimension == 2");
           }
           else {
             throw new DisplayException("bad spatialManifoldDimension: " +
