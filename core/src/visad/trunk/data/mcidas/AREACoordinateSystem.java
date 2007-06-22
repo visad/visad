@@ -52,6 +52,7 @@ public class AREACoordinateSystem
   private int[] dirBlock;
   private int[] navBlock;
   private int[] auxBlock;
+  private boolean useSpline = true;
 
   private static Unit[] coordinate_system_units =
     {null, null};
@@ -115,7 +116,24 @@ public class AREACoordinateSystem
     */
   public AREACoordinateSystem(int[] dir, int[] nav, int[] aux) 
                                              throws VisADException {
-      this(RealTupleType.LatitudeLongitudeTuple, dir, nav, aux);
+      this(dir, nav, aux, true);
+  }
+
+  /** create a AREA coordinate system from the Area file's
+    * directory and navigation blocks.
+    *
+    * This routine uses a flipped Y axis (first line of
+    * the image file is number 0)
+    *
+    * @param dir[] is the AREA file directory block
+    * @param nav[] is the AREA file navigation block
+    * @param aux[] is the AREA file auxillary block
+    * @param useSpline  use a spline approximation for speed
+    *
+    */
+  public AREACoordinateSystem(int[] dir, int[] nav, int[] aux, boolean useSpline) 
+                                             throws VisADException {
+      this(RealTupleType.LatitudeLongitudeTuple, dir, nav, aux, useSpline);
   }
 
   /** create a AREA coordinate system from the Area file's
@@ -153,6 +171,27 @@ public class AREACoordinateSystem
 
   public AREACoordinateSystem(RealTupleType reference, int[] dir,
                                  int[] nav, int[] aux) throws VisADException {
+      this(reference, dir, nav, aux, true);
+  }
+
+  /** create a AREA coordinate system from the Area file's
+    * directory and navigation blocks.
+    *
+    * This routine uses a flipped Y axis (first line of
+    * the image file is number 0)
+    *
+    * @param reference the CoordinateSystem reference (must be equivalent
+    *                  to RealTupleType.LatitudeLongitudeTuple)
+    * @param dir[] is the AREA file directory block
+    * @param nav[] is the AREA file navigation block
+    * @param aux[] is the AREA file auxillary block
+    * @param useSpline  use a spline approximation for speed
+    *
+    */
+  public AREACoordinateSystem(RealTupleType reference, int[] dir,
+                                 int[] nav, int[] aux,
+                                 boolean useSpline) throws VisADException {
+
 
     super(reference, coordinate_system_units);
     try {
@@ -164,6 +203,9 @@ public class AREACoordinateSystem
     dirBlock = dir;
     navBlock = nav;
     auxBlock = aux;
+    this.useSpline = !useSpline 
+                       ? false  // user overrode
+                       : anav.canApproximateWithSpline(); // let nav decide
     anav.setImageStart(dir[5], dir[6]);
     anav.setRes(dir[11], dir[12]);
     anav.setStart(0,0);
@@ -193,6 +235,13 @@ public class AREACoordinateSystem
   */
   public double[] getSubpoint() {
     return anav.getSubpoint();
+  }
+
+  /** 
+   * Get whether we are using a spline or not 
+   */
+  public boolean getUseSpline() {
+    return useSpline;
   }
 
   /** convert from image element,line to latitude,longitude
@@ -377,6 +426,8 @@ public class AREACoordinateSystem
   private double[][] makeSpline(double[][] val, double[] mins,
                                 double[] maxs, int[] nums)
          throws VisADException {
+//     System.out.println("using spline = " + useSpline);
+    if (!useSpline) return null;
     int len = val[0].length;
     if (len < 1000) return null;
     double reduction = 10.0;
