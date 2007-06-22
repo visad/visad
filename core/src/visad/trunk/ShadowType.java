@@ -1182,7 +1182,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
 
     // set coordinates and colors
     // MEM
-    SampledSet.setGeometryArray(array, spatial_values, 3, color_values);
+    SampledSet.setGeometryArray(array, spatial_values, 4, color_values);
     return array;
   }
 /* CTR: 13 Oct 1998 - END CHANGES */
@@ -2498,24 +2498,31 @@ System.out.println("vector earth_locs = " + earth_locs[0][0] + " " +
 
       byte[][] intrp_color_values = null;
       if (color_values != null) {
-        intrp_color_values = new byte[3][n_verts[0][kk]];
+        int len = color_values.length;
+        intrp_color_values = new byte[len][n_verts[0][kk]];
         int[] indices = grid_set.valueToIndex(grid);
         for ( int cc = 0; cc < n_verts[0][kk]; cc++ ) {
           if ( indices[cc] >= 0) {
             intrp_color_values[0][cc] = color_values[0][indices[cc]];
             intrp_color_values[1][cc] = color_values[1][indices[cc]];
             intrp_color_values[2][cc] = color_values[2][indices[cc]];
+            if (len > 3) {
+              intrp_color_values[3][cc] = color_values[3][indices[cc]];
+            }
           }
           else {
             intrp_color_values[0][cc] = (byte)255;
             intrp_color_values[1][cc] = 0;
             intrp_color_values[2][cc] = 0;
+            if (len > 3) {
+              intrp_color_values[3][cc] = color_values[3][indices[cc]];
+            }
           }
         }
       }
 
       ((Gridded3DSet)spatial_set).setGeometryArray(arrays[kk],
-        spatial_set_vals, 3, intrp_color_values);
+        spatial_set_vals, 4, intrp_color_values);
       arrays[kk] = (VisADLineArray) arrays[kk].removeMissing();
     }
 

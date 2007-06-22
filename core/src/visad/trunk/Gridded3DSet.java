@@ -2237,11 +2237,11 @@ for color_length = 3 this is 148 * Length
     arrays[1] = new VisADLineArray[1];
 
     arrays[0][0] = new VisADLineArray();
-    setGeometryArray(arrays[0][0], grid1, 3, color_levels1);
+    setGeometryArray(arrays[0][0], grid1, 4, color_levels1);
     grid1 = null;
 
     arrays[1][0] = new VisADLineArray();
-    setGeometryArray(arrays[1][0], grid2, 3, color_levels2);
+    setGeometryArray(arrays[1][0], grid2, 4, color_levels2);
     grid2 = null;
 
     arrays[2] = new VisADLineArray[n_labels*2];

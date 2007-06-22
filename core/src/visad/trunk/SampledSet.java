@@ -318,7 +318,7 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
       ((VisADLineStripArray) array).stripVertexCounts[0] = Length;
     }
     // set coordinates and colors
-    setGeometryArray(array, 3, color_values);
+    setGeometryArray(array, 4, color_values);
     return array;
   }
 
@@ -351,7 +351,7 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
     }
     VisADPointArray array = new VisADPointArray();
     // set coordinates and colors
-    setGeometryArray(array, 3, color_values);
+    setGeometryArray(array, 4, color_values);
     return array;
   }
 

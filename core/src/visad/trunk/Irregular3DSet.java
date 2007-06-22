@@ -796,7 +796,7 @@ public class Irregular3DSet extends IrregularSet {
 */
       color_levels = null;
     }
-    setGeometryArray(arrays[0][0], coordinates, 3, colors);
+    setGeometryArray(arrays[0][0], coordinates, 4, colors);
     arrays[1][0] = null;
     arrays[2][0] = null;
     return arrays;
