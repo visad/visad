@@ -117,10 +117,11 @@ public final class RADRnav extends AREAnav
         double ylon;
 
         int number = linele[0].length;
-        double[][] latlon = new double[2][number];
+        //double[][] latlon = new double[2][number];
 
         // Convert array to Image coordinates for computations
         double[][] imglinele = areaCoordToImageCoord(linele);
+        double[][] latlon = imglinele;
 
         for (int point=0; point < number; point++) 
         {
@@ -177,6 +178,12 @@ public final class RADRnav extends AREAnav
 
         for (int point=0; point < number; point++) 
         {
+            if (Double.isNaN(latlon[indexLat][point]) || 
+                Double.isNaN(latlon[indexLon][point])) {
+                linele[indexLine][point] = Float.NaN;
+                linele[indexEle][point] = Float.NaN;
+                continue;
+            }
 
             zlat = latlon[indexLat][point];
 
@@ -233,12 +240,17 @@ public final class RADRnav extends AREAnav
         double ylon;
 
         int number = linele[0].length;
+        /*
         float[][] latlon = new float[2][number];
         float[] lats = latlon[indexLat];
         float[] lons = latlon[indexLon];
+        */
 
         // Convert array to Image coordinates for computations
         float[][] imglinele = areaCoordToImageCoord(linele);
+        float[][] latlon = imglinele;
+        float[] lats = latlon[indexLat];
+        float[] lons = latlon[indexLon];
 
         float[] lines = imglinele[indexLine];
         float[] eles = imglinele[indexEle];
@@ -301,6 +313,12 @@ public final class RADRnav extends AREAnav
 
         for (int point=0; point < number; point++) 
         {
+            if (Float.isNaN(lats[point]) || 
+                Float.isNaN(lons[point])) {
+                linele[indexLine][point] = Float.NaN;
+                linele[indexEle][point] = Float.NaN;
+                continue;
+            }
 
             zlat = lats[point];
 
