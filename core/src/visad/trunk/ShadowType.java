@@ -2669,7 +2669,8 @@ System.out.println("vector earth_locs = " + earth_locs[0][0] + " " +
     // array.vertexFormat = COORDINATES;
 
     if (color_values != null) {
-      byte[] colors = new byte[18 * rlen];
+      int c_len = color_values.length;
+      byte[] colors = new byte[6*c_len * rlen];
       m = 0;
       float c0 = 0.0f, c1 = 0.0f, c2 = 0.0f;
       for (int j=0; j<len; j++) {
@@ -2683,21 +2684,27 @@ System.out.println("vector earth_locs = " + earth_locs[0][0] + " " +
           colors[m++] = color_values[0][j];
           colors[m++] = color_values[1][j];
           colors[m++] = color_values[2][j];
+          if (c_len == 4) colors[m++] = color_values[3][j];
           colors[m++] = colors[k1++];
           colors[m++] = colors[k1++];
           colors[m++] = colors[k1++];
+          if (c_len == 4) colors[m++] = colors[k1++];
           colors[m++] = colors[k2++];
           colors[m++] = colors[k2++];
           colors[m++] = colors[k2++];
+          if (c_len == 4) colors[m++] = colors[k2++];
           colors[m++] = colors[k3++];
           colors[m++] = colors[k3++];
           colors[m++] = colors[k3++];
+          if (c_len == 4) colors[m++] = colors[k3++];
           colors[m++] = colors[k4++];
           colors[m++] = colors[k4++];
           colors[m++] = colors[k4++];
+          if (c_len == 4) colors[m++] = colors[k4++];
           colors[m++] = colors[k5++];
           colors[m++] = colors[k5++];
           colors[m++] = colors[k5++];
+          if (c_len == 4) colors[m++] = colors[k5++];
         }
       }
       array.colors = colors;
@@ -2759,10 +2766,14 @@ System.out.println("vector earth_locs = " + earth_locs[0][0] + " " +
     byte r = 0;
     byte g = 0;
     byte b = 0;
+    byte a = 0;
+    int color_length = 0;
     if (color_values != null) {
+      color_length = color_values.length;
       r = color_values[0][0];
       g = color_values[1][0];
       b = color_values[2][0];
+      if (color_length > 3) a = color_values[3][0];
     }
 
     int n = text_values.length;
@@ -2902,17 +2913,20 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
         }
 
         int len = (as[k] == null) ? 0 : as[k].coordinates.length;
+        int numPts = len/3;
         if (len > 0 && color_values != null) {
+          byte[] colors = new byte[numPts*color_length];
           if (color_values[0].length > 1) {
             r = color_values[0][k];
             g = color_values[1][k];
             b = color_values[2][k];
+            if (color_length > 3) a = color_values[3][k];
           }
-          byte[] colors = new byte[len];
-          for (int j=0; j<len; j+=3) {
+          for (int j=0; j<colors.length; j+=color_length) {
             colors[j] = r;
             colors[j+1] = g;
             colors[j+2] = b;
+            if (color_length > 3) colors[j+3] = a;
           }
           as[k].colors = colors;
         }

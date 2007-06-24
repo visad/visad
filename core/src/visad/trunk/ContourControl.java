@@ -573,7 +573,7 @@ public class ContourControl extends Control {
     
     if (flag) {
       if (!colorSet)
-        labelColor = new byte[]{(byte)255, (byte)255, (byte)255};
+        labelColor = new byte[]{(byte)255, (byte)255, (byte)255, (byte)255};
     
     } else {
       if (!colorSet)

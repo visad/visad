@@ -2307,14 +2307,14 @@ for color_length = 3 this is 148 * Length
 
       arrays[2][kk*2] = new VisADLineArray();
       arrays[2][kk*2+1] = new VisADLineArray();
-      setGeometryArray(arrays[2][kk*2], grid_label, 3, color_levels3);
+      setGeometryArray(arrays[2][kk*2], grid_label, 4, color_levels3);
       grid_label = null;
 
       float[][] loc = new float[3][1];
       loc[0][0] = lbl_loc[0][kk][0];
       loc[1][0] = lbl_loc[0][kk][1];
       loc[2][0] = lbl_loc[0][kk][2];
-      setGeometryArray(arrays[2][kk*2+1], loc, 3, null);
+      setGeometryArray(arrays[2][kk*2+1], loc, 4, null);
 
       arrays[3][kk*4] = new VisADLineArray();
       arrays[3][kk*4+1] = new VisADLineArray();
@@ -2328,12 +2328,12 @@ for color_length = 3 this is 148 * Length
       segL[0][1]     = lbl_vv[2][kk][0][1];
       segL[1][1]     = lbl_vv[2][kk][1][1];
       segL[2][1]     = lbl_vv[2][kk][2][1];
-      setGeometryArray(arrays[3][kk*4], segL, 3, segL_color);
+      setGeometryArray(arrays[3][kk*4], segL, 4, segL_color);
 
       loc[0][0]      = lbl_loc[1][kk][0];
       loc[1][0]      = lbl_loc[1][kk][1];
       loc[2][0]      = lbl_loc[1][kk][2];
-      setGeometryArray(arrays[3][kk*4+1], loc, 3, null);
+      setGeometryArray(arrays[3][kk*4+1], loc, 4, null);
 
       float[][] segR = new float[3][2];
       segR[0][0]     = lbl_vv[3][kk][0][0];
@@ -2342,13 +2342,13 @@ for color_length = 3 this is 148 * Length
       segR[0][1]     = lbl_vv[3][kk][0][1];
       segR[1][1]     = lbl_vv[3][kk][1][1];
       segR[2][1]     = lbl_vv[3][kk][2][1];
-      setGeometryArray(arrays[3][kk*4+2], segR, 3, segR_color);
+      setGeometryArray(arrays[3][kk*4+2], segR, 4, segR_color);
 
 
       loc[0][0]      = lbl_loc[2][kk][0];
       loc[1][0]      = lbl_loc[2][kk][1];
       loc[2][0]      = lbl_loc[2][kk][2];
-      setGeometryArray(arrays[3][kk*4+3], loc, 3, null);
+      setGeometryArray(arrays[3][kk*4+3], loc, 4, null);
     }
     
     // BMF 2006-10-10 moved from above to ensure lable code runs

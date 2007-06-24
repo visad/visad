@@ -4166,6 +4166,7 @@ class ContourStrip {
           lbl_clr[0][kk]   = labelColor[0];
           lbl_clr[1][kk]   = labelColor[1];
           lbl_clr[2][kk]   = labelColor[2];
+          if (clr_dim == 4) lbl_clr[3][kk]   = labelColor[3];
         }
       }
       else if (bb != null) {
@@ -4173,6 +4174,7 @@ class ContourStrip {
           lbl_clr[0][kk]   = bb[0][loc];
           lbl_clr[1][kk]   = bb[1][loc];
           lbl_clr[2][kk]   = bb[2][loc];
+          if (clr_dim == 4) lbl_clr[3][kk]   = bb[3][loc];
         }
       }
 
