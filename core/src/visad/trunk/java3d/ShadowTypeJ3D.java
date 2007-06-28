@@ -37,8 +37,6 @@ import java.util.Vector;
 
 import java.rmi.*;
 
-import ucar.unidata.util.Misc;
-
 
 /**
    The ShadowTypeJ3D hierarchy shadows the MathType hierarchy,
