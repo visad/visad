@@ -71,7 +71,7 @@ package edu.wisc.ssec.mcidas.adde;
  *
  * </pre>
  */
-public class AddeURL {
+public class AddeURL implements Cloneable {
 
   /** The protocol */
   public static final String ADDE_PROTOCOL = "adde";
@@ -288,14 +288,14 @@ public class AddeURL {
   }
 
   /**
-   * Compare two AddURLs
+   * Compare two AddeURLs
    *
    * @param o   Object in question
    *
    * @return true if they are the same object or if all
    */
   public boolean equals(Object o) {
-    if (!(o instanceof AddeURL)) {
+    if (!(o.getClass().equals(this.getClass()))) {
       return false;
     }
     AddeURL that = (AddeURL)o;
@@ -303,6 +303,15 @@ public class AddeURL {
       return true;
     }
     return (this == that) && getURLString().equals(that.getURLString());
+  }
+
+  /**
+   * Get the hashcode for this
+   *
+   * @return the hashcode
+   */
+  public int hashCode() {
+    return getURLString().hashCode();
   }
 
   /**
@@ -492,6 +501,26 @@ public class AddeURL {
         break;
     }
     return testStr;
+  }
+
+  /**
+   * Clones this instance.  
+   *
+   * <p>This implementation never throws {@link CloneNotSupportException}.</p>
+   *
+   * @return                            A clone of this instance.
+   * @throws CloneNotSupportedException if cloning isn't supported.
+   */
+  public Object clone() throws CloneNotSupportedException {
+    
+    Object clone = null;
+    try {
+      clone = super.clone();
+    }
+    catch (CloneNotSupportedException ex) {
+      throw new Error("Assertion failure");  // can't happen
+    }
+    return clone;
   }
 
 }
