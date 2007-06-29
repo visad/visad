@@ -264,9 +264,10 @@ public class AddeURL {
     appendKeyValue(buf, KEY_VERSION, getVersion());
     appendKeyValue(buf, KEY_DEBUG, Boolean.toString(getDebug()));
     appendKeyValue(buf, KEY_TRACE, "" + getTrace());
-    if (extraKeys != null) {
-      if (!extraKeys.startsWith("&")) buf.append("&");
-      buf.append(extraKeys);
+    if (getExtraKeys() != null) {
+      System.out.println("extra keys = " + extraKeys);
+      if (!getExtraKeys().startsWith("&")) buf.append("&");
+      buf.append(getExtraKeys());
     }
     return buf.toString();
   }
