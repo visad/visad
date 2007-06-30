@@ -185,6 +185,9 @@ public class AddeImageURL extends AddeDatasetURL {
   /** spacing value */
   private int spacing = -1;
 
+  /** station id */
+  private String locationId = null;
+
 
   /** no arg constructor */
   public AddeImageURL() {}
@@ -451,6 +454,24 @@ public class AddeImageURL extends AddeDatasetURL {
   }
 
   /**
+   * Set the location ID for radar images
+   *
+   * @param value   the location ID
+   */
+  public void setId(String value) {
+    locationId = value;
+  }
+
+  /**
+   * Set the location ID for radar images
+   *
+   * @return location ID
+   */
+  public String getId() {
+    return locationId;
+  }
+
+  /**
    * Create the ADDE URL
    * @return a Adde URL
    */
@@ -467,6 +488,7 @@ public class AddeImageURL extends AddeDatasetURL {
                                      ? DEFAULT_VALUE
                                      : "" + getSpacing()));
       appendKeyValue(buf, KEY_NAV, getNavType());
+      if (getId() != null) appendKeyValue(buf, KEY_ID, getId());
     }
     return buf.toString();
   }
