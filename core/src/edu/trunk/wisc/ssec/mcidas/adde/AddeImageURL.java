@@ -383,7 +383,7 @@ public class AddeImageURL extends AddeDatasetURL {
    * @param value the data size
    */
   public void setSpacing(int value) {
-    spacing = spacing;
+    spacing = value;
   }
 
   /**
@@ -433,6 +433,24 @@ public class AddeImageURL extends AddeDatasetURL {
   }
 
   /**
+   * Set the navigation type
+   *
+   * @param value   the navigation type (X or LALO)
+   */
+  public void setNavType(String value) {
+    navType = value;
+  }
+
+  /**
+   * Get the navigation type
+   *
+   * @return navigation type (default or LALO)
+   */
+  public String getNavType() {
+    return navType;
+  }
+
+  /**
    * Create the ADDE URL
    * @return a Adde URL
    */
@@ -448,6 +466,7 @@ public class AddeImageURL extends AddeDatasetURL {
       appendKeyValue(buf, KEY_SPAC, ((getSpacing() == -1)
                                      ? DEFAULT_VALUE
                                      : "" + getSpacing()));
+      appendKeyValue(buf, KEY_NAV, getNavType());
     }
     return buf.toString();
   }

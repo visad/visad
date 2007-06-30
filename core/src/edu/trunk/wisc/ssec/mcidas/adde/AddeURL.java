@@ -257,9 +257,10 @@ public class AddeURL implements Cloneable {
    * @return the query portion of the URL
    */
   protected String makeQuery() {
-    StringBuffer buf = new StringBuffer(KEY_PORT + "=" + port);
+    StringBuffer buf = new StringBuffer();
+    appendKeyValue(buf, KEY_PORT, "" + getPort());
     appendKeyValue(buf, KEY_COMPRESS, getCompressionType());
-    appendKeyValue(buf, KEY_USER, "" + getUser());
+    appendKeyValue(buf, KEY_USER, getUser());
     appendKeyValue(buf, KEY_PROJ, "" + getProject());
     appendKeyValue(buf, KEY_VERSION, getVersion());
     appendKeyValue(buf, KEY_DEBUG, Boolean.toString(getDebug()));
@@ -367,8 +368,8 @@ public class AddeURL implements Cloneable {
    * Get the project for this ADDE URL
    * @return the project
    */
-  public int getUser() {
-    return project;
+  public String getUser() {
+    return user;
   }
 
   /**
@@ -504,7 +505,7 @@ public class AddeURL implements Cloneable {
   }
 
   /**
-   * Clones this instance.  
+   * Clones this instance.
    *
    * <p>This implementation never throws {@link CloneNotSupportException}.</p>
    *
@@ -512,13 +513,13 @@ public class AddeURL implements Cloneable {
    * @throws CloneNotSupportedException if cloning isn't supported.
    */
   public Object clone() throws CloneNotSupportedException {
-    
+
     Object clone = null;
     try {
       clone = super.clone();
     }
     catch (CloneNotSupportedException ex) {
-      throw new Error("Assertion failure");  // can't happen
+      throw new Error("Assertion failure"); // can't happen
     }
     return clone;
   }
