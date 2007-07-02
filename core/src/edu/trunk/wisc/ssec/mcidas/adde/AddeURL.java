@@ -303,7 +303,7 @@ public class AddeURL implements Cloneable {
     if (this == that) {
       return true;
     }
-    return (this == that) && getURLString().equals(that.getURLString());
+    return getURLString().equals(that.getURLString());
   }
 
   /**

@@ -27,6 +27,11 @@ MA 02111-1307, USA
 package edu.wisc.ssec.mcidas.adde;
 
 
+import java.util.Date;
+
+import edu.wisc.ssec.mcidas.McIDASUtil;
+
+
 /**
  * A class for holding the ADDE URL for an image directory or data request.
  *
@@ -137,6 +142,12 @@ public class AddeImageURL extends AddeDatasetURL {
   /** Keyword for doc request */
   public static final String KEY_DOC = "DOC";
 
+  /** Keyword for day request */
+  public static final String KEY_DAY = "DAY";
+
+  /** Keyword for time request */
+  public static final String KEY_TIME = "TIME";
+
   /** number of lines */
   private int lines;
 
@@ -187,6 +198,15 @@ public class AddeImageURL extends AddeDatasetURL {
 
   /** station id */
   private String locationId = null;
+
+  /** dataset position */
+  private int pos = 0;
+
+  /** start time */
+  private Date startDate = null;
+
+  /** end time */
+  private Date endDate = null;
 
 
   /** no arg constructor */
@@ -463,13 +483,68 @@ public class AddeImageURL extends AddeDatasetURL {
   }
 
   /**
-   * Set the location ID for radar images
+   * Get the location ID for radar images
    *
    * @return location ID
    */
   public String getId() {
     return locationId;
   }
+
+  /**
+   * Set the dataset position
+   *
+   * @param value   the dataset position
+   */
+  public void setDatasetPosition(int value) {
+    pos = value;
+  }
+
+  /**
+   * Get the dataset position
+   *
+   * @return dataset position
+   */
+  public int getDatasetPosition() {
+    return pos;
+  }
+
+  /**
+   * Set the start date for the request
+   *
+   * @param value   the starting date for the request
+   */
+  public void setStartDate(Date value) {
+    startDate = value;
+  }
+
+  /**
+   * Get the start date for the request
+   *
+   * @return the start date for the request
+   */
+  public Date getStartDate() {
+    return startDate;
+  }
+
+  /**
+   * Set the end date for the request
+   *
+   * @param value   the ending date for the request
+   */
+  public void setEndDate(Date value) {
+    endDate = value;
+  }
+
+  /**
+   * Get the end date for the request
+   *
+   * @return the ending date for the request
+   */
+  public Date getEndDate() {
+    return endDate;
+  }
+
 
   /**
    * Create the ADDE URL
@@ -490,7 +565,40 @@ public class AddeImageURL extends AddeDatasetURL {
       appendKeyValue(buf, KEY_NAV, getNavType());
       if (getId() != null) appendKeyValue(buf, KEY_ID, getId());
     }
+    appendDateOrPosString(buf);
     return buf.toString();
+  }
+
+  /**
+   * Create a DAY/TIME or POS string
+   * @param buf  buffer to append to
+   */
+  protected void appendDateOrPosString(StringBuffer buf) {
+    if (getStartDate() == null && getEndDate() == null) {
+      appendKeyValue(buf, KEY_POS, "" + getDatasetPosition());
+    }
+    else {
+      int[] start = null;
+      if (getStartDate() != null)
+        start = McIDASUtil.mcSecsToDayTime(getStartDate().getTime() / 1000l);
+      int[] end = null;
+      if (getEndDate() != null)
+        start = McIDASUtil.mcSecsToDayTime(getEndDate().getTime() / 1000l);
+      StringBuffer day = new StringBuffer();
+      StringBuffer time = new StringBuffer();
+      if (start != null) {
+        day.append("" + start[0]);
+        time.append("" + start[1]);
+      }
+      day.append(" ");
+      time.append(" ");
+      if (end != null) {
+        if (getRequestType().equals(REQ_IMAGEDIR)) day.append("" + end[0]);
+        time.append("" + end[1]);
+      }
+      appendKeyValue(buf, KEY_DAY, day.toString().trim());
+      appendKeyValue(buf, KEY_TIME, time.toString().trim());
+    }
   }
 }
 
