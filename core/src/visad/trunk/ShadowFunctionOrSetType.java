@@ -1751,7 +1751,8 @@ if (color_values != null) {
   System.out.println("color_values.length = " + color_values.length +
                      " color_values[0].length = " + color_values[0].length);
   System.out.println(color_values[0][0] + " " + color_values[1][0] +
-                     " " + color_values[2][0]);
+                     " " + color_values[2][0] + 
+                     ((color_values.length > 3)? " " + color_values[3][0]:""));
 }
 */
 
@@ -1950,8 +1951,10 @@ System.out.println("replicate alpha = " + v + " " + constant_alpha +
 */
       } // end if (alpha_length == 1)
       if (color_length == 1) {
-        if (spatialManifoldDimension == 1 ||
-            shadow_api.allowConstantColorSurfaces()) {
+        // DRM 2007-06-29: allow transparency on lines
+        //if (spatialManifoldDimension == 1 ||
+        //    shadow_api.allowConstantColorSurfaces()) {
+        if (shadow_api.allowConstantColorSurfaces()) {
 /* MEM_WLH
           if (color_values[0][0] != color_values[0][0] ||
               color_values[1][0] != color_values[1][0] ||
