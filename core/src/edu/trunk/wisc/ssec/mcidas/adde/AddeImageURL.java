@@ -188,7 +188,7 @@ public class AddeImageURL extends AddeDatasetURL {
   private String navType = DEFAULT_VALUE;
 
   /** aux value */
-  private String auxValue = DEFAULT_VALUE;
+  private String auxValue = YES;
 
   /** doc value */
   private String docValue = DEFAULT_VALUE;
@@ -547,6 +547,43 @@ public class AddeImageURL extends AddeDatasetURL {
 
 
   /**
+   * Set the AUX keyword value
+   *
+   * @param value   the AUX keyword value (YES, NO or DEFAULT_VALUE)
+   */
+  public void setAuxValue(String value) {
+    auxValue = value;
+  }
+
+  /**
+   * Get the AUX keyword value
+   *
+   * @return the AUX keyword value (YES, NO or DEFAULT_VALUE)
+   */
+  public String getAuxValue() {
+    return auxValue;
+  }
+
+  /**
+   * Set the DOC keyword value
+   *
+   * @param value   the DOC keyword value (YES, NO or DEFAULT_VALUE)
+   */
+  public void setDocValue(String value) {
+    docValue = value;
+  }
+
+  /**
+   * Get the DOC keyword value
+   *
+   * @return the DOC keyword value (YES, NO or DEFAULT_VALUE)
+   */
+  public String getDocValue() {
+    return docValue;
+  }
+
+
+  /**
    * Create the ADDE URL
    * @return a Adde URL
    */
@@ -563,6 +600,8 @@ public class AddeImageURL extends AddeDatasetURL {
                                      ? DEFAULT_VALUE
                                      : "" + getSpacing()));
       appendKeyValue(buf, KEY_NAV, getNavType());
+      appendKeyValue(buf, KEY_AUX, getAuxValue());
+      appendKeyValue(buf, KEY_DOC, getDocValue());
       if (getId() != null) appendKeyValue(buf, KEY_ID, getId());
     }
     appendDateOrPosString(buf);
