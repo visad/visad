@@ -222,7 +222,7 @@ public class GVARnav extends AREAnav
   private double aebe2c, aebe3c, aebe4c, ferc;
   private int instr, itype;
   private double sublat, sublon;
-  private double rlat, rlon, gam, alf;
+  //private double rlat, rlon, gam, alf;
   private double[] subpoint;
 
   final int RELLST [][] = {  { 4,  10}, { 13,  63}, { 65,  94},
@@ -699,6 +699,7 @@ public class GVARnav extends AREAnav
 
     double rl, rp;
     double ylat, ylon;
+    double rlat, rlon, gam, alf;
     int number = linele[0].length;
 
     navTransformOK = true;
@@ -848,6 +849,7 @@ public class GVARnav extends AREAnav
 
     double rl, rp;
     double ylat, ylon;
+    double rlat, rlon, gam, alf;
     int number = linele[0].length;
 
     navTransformOK = true;
@@ -998,6 +1000,7 @@ public class GVARnav extends AREAnav
     double x, y;
     double tmplin, tmpele;
     double sing, slat, w1, w2, ff, doff, alpha1;
+    double rlat, rlon, gam, alf;
     double [] f = new double[3];
     double [] ft = new double[3];
     double [] u = new double[3];
@@ -1130,6 +1133,7 @@ public class GVARnav extends AREAnav
     double x, y;
     double tmplin, tmpele;
     double sing, slat, w1, w2, ff, doff, alpha1;
+    double rlat, rlon, gam, alf;
     double [] f = new double[3];
     double [] ft = new double[3];
     double [] u = new double[3];
