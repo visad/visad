@@ -2272,7 +2272,7 @@ public abstract class JPythonMethods {
     return f;
 
   }
- 
+
   /**
   * Mask out values outside testing limits
   *
@@ -2292,6 +2292,42 @@ public abstract class JPythonMethods {
              throws VisADException, RemoteException {
     return mask(f, op, new Real(v));
   }
+
+
+  /**
+  * re-scale the values in a FlatField
+  *
+  * @param f the FlatField
+  * @param inlo the input low-range value
+  * @param inhi the input high-range value
+  * @param outlo the output low-range value
+  * @param outhi the output high range value
+  *
+  * Values of the original FlatField will be linearly
+  * scaled from "inlo:inhi" to "outlo:outhi"
+  * 
+  * Values < inlo will be set to outlo; values > inhi set to outhi
+  */
+
+  public static FlatField rescale(FlatField f, 
+    double inlo, double inhi, double outlo, double outhi)
+             throws VisADException, RemoteException {
+        
+    double [][] dv = f.getValues(false);
+    double outrange = outhi - outlo;
+    double inrange = inhi - inlo;
+    for (int i=0; i<dv.length; i++) {
+      for (int k=0; k<dv[i].length; k++) {
+        dv[i][k] = outlo + outrange * (dv[i][k] - inlo)/inrange;
+        if (dv[i][k] < outlo) dv[i][k] = outlo;
+        if (dv[i][k] > outhi) dv[i][k] = outhi;
+      }
+    }
+
+    f.setSamples(dv);
+    return f;
+  }
+
 
   /**
   * Mask out values outside testing limits

@@ -5,7 +5,7 @@ data object in a variety of ways.
 """
 try:  # try/except done to remove these lines from documentation
   from org.python.core import PyTuple, PyList
-  from visad import RealType, RealTupleType, FunctionType, FieldImpl, ScalarMap, Display
+  from visad import RealType, RealTupleType, FunctionType, FieldImpl, ScalarMap, Display, LinearNDSet
   from visad.util import AnimationWidget
   from visad.python.JPythonMethods import *
   from javax.swing import JFrame, JPanel
@@ -86,15 +86,28 @@ def resampleImage(imagedata, maxpoints=1024):
   image.
   """
   dom = getDomain(imagedata)
-  xc = dom.getX()
-  yc = dom.getY()
-  xl = len(xc)
-  yl = len(yc)
+  if isinstance(dom,LinearNDSet):
+    xl = dom.getLengths()[0]
+    yl = dom.getLengths()[1]
+    x0 = dom.getFirsts()[0]
+    y0 = dom.getFirsts()[1]
+    xN = dom.getLasts()[0]
+    yN = dom.getLasts()[1]
+
+  else:
+    xc = dom.getX()
+    yc = dom.getY()
+    xl = len(xc)
+    yl = len(yc)
+    x0 = xc.getFirst()
+    y0 = yc.getFirst()
+    xN = xc.getLast()
+    yN = yc.getLast()
+
   if xl > maxpoints or yl > maxpoints:
     print "Resampling image from",yl,"x",xl,"to",min(yl,maxpoints),"x",min(xl,maxpoints)
     imagedata = resample(imagedata, makeDomain(dom.getType(),
-                         xc.getFirst(), xc.getLast(), min(xl, maxpoints),
-                         yc.getFirst(), yc.getLast(), min(yl, maxpoints) ) )
+              x0, xN, min(xl, maxpoints), y0, yN, min(yl, maxpoints) ) )
   
   return imagedata
 
