@@ -324,6 +324,7 @@ public final class MOLLnav extends AREAnav
         double xlin, xele;
         double xlat, xlon;
         double flat, t, t2, w, diff_lon, xedif;
+        int isign, ilat;
 
         int number = latlon[0].length;
         double[][] linele = new double[2][number];
@@ -353,9 +354,9 @@ public final class MOLLnav extends AREAnav
                   // CALL CARTLL(X,Y,Z,XLAT,XLON)
               }
   
-              int isign = -1;
+              isign = -1;
               if (xlat < 0.0) isign = 1;
-              int ilat = (int) (Math.abs(xlat));
+              ilat = (int) (Math.abs(xlat));
               flat = Math.abs(xlat) - ilat;
               t = lattbl[ilat];
               if (ilat != 90) t = t + flat*(lattbl[ilat+1] - lattbl[ilat]);
@@ -506,6 +507,7 @@ public final class MOLLnav extends AREAnav
         double xlin, xele;
         double xlat, xlon;
         double flat, t, t2, w, diff_lon, xedif;
+        int isign, ilat;
 
         int number = latlon[0].length;
         float[][] linele = new float[2][number];
@@ -535,9 +537,9 @@ public final class MOLLnav extends AREAnav
                   // CALL CARTLL(X,Y,Z,XLAT,XLON)
               }
   
-              int isign = -1;
+              isign = -1;
               if (xlat < 0.0) isign = 1;
-              int ilat = (int) (Math.abs(xlat));
+              ilat = (int) (Math.abs(xlat));
               flat = Math.abs(xlat) - ilat;
               t = lattbl[ilat];
               if (ilat != 90) t = t + flat*(lattbl[ilat+1] - lattbl[ilat]);

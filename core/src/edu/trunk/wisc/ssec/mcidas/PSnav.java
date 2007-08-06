@@ -106,6 +106,7 @@ public final class PSnav extends AREAnav
         double xedif;
         double xlon;
         double xlat;
+        double xrlon, radius;
 
         int number = linele[0].length;
         double[][] latlon = new double[2][number];
@@ -117,13 +118,13 @@ public final class PSnav extends AREAnav
         {
             xldif = ihem * (imglinele[indexLine][point] - xrow)/xblat;
             xedif = (xcol - imglinele[indexEle][point])/xblat;
-            double xrlon = 0;
+            xrlon = 0;
             if (!(xldif == 0. && xedif == 0.))
                 xrlon = Math.atan2(xedif, xldif);
             xlon = iwest * xrlon/DEGREES_TO_RADIANS + xqlon;
             if (xlon > 180.) xlon -= 360.; 
             if (xlon < -180.) xlon += 360.; 
-            double radius = Math.sqrt(xldif*xldif + xedif*xedif);
+            radius = Math.sqrt(xldif*xldif + xedif*xedif);
             if (Math.abs(radius) < 1.e-10)
                 xlat = ihem*90;
             else
@@ -153,6 +154,7 @@ public final class PSnav extends AREAnav
     {
         double xlon;
         double xlat;
+        double xrlon, xclat, xrlat;
 
         int number = latlon[0].length;
         double[][] linele = new double[2][number];
@@ -166,12 +168,12 @@ public final class PSnav extends AREAnav
                    ? -latlon[indexLon][point]
                    : latlon[indexLon][point];
 
-            double xrlon = ihem*(xlon-xqlon);
+            xrlon = ihem*(xlon-xqlon);
             if (xrlon > 180.) xrlon -= 360.;
             if (xrlon < -180.) xrlon += 360.;
             xrlon = iwest*xrlon*DEGREES_TO_RADIANS;
-            double xclat = (xpole-xlat)*DEGREES_TO_RADIANS*.5;
-            double xrlat = xblat*Math.tan(xclat);
+            xclat = (xpole-xlat)*DEGREES_TO_RADIANS*.5;
+            xrlat = xblat*Math.tan(xclat);
             linele[indexLine][point] = xrlat*Math.cos(xrlon) + xrow;
             linele[indexEle][point] = -xrlat*Math.sin(xrlon) + xcol;
            

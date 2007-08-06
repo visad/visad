@@ -98,6 +98,7 @@ public final class MERCnav extends AREAnav
         double xedif;
         double xlon;
         double xlat;
+        double xrlat, xrlon;
 
         int number = linele[0].length;
         double[][] latlon = new double[2][number];
@@ -109,9 +110,9 @@ public final class MERCnav extends AREAnav
         {
             xldif = xrow - imglinele[indexLine][point];
             xedif = xcol - imglinele[indexEle][point];
-            double xrlon = iwest*xedif/xblon;
+            xrlon = iwest*xedif/xblon;
             xlon = xrlon+xqlon;
-            double xrlat = Math.atan(Math.exp(xldif/xblat));
+            xrlat = Math.atan(Math.exp(xldif/xblat));
             xlat = (xrlat/DEGREES_TO_RADIANS - 45.)*2.+xlat1;
             if (xlon > (360.+leftlon) || xlon < leftlon) 
             {
@@ -144,6 +145,7 @@ public final class MERCnav extends AREAnav
     {
         double xlon;
         double xlat;
+        double xrlon, xrlat;
 
         int number = latlon[0].length;
         double[][] linele = new double[2][number];
@@ -157,12 +159,12 @@ public final class MERCnav extends AREAnav
                    ? -latlon[indexLon][point]
                    : latlon[indexLon][point];
 
-            double xrlon = iwest*(xlon-xqlon);
+            xrlon = iwest*(xlon-xqlon);
             if (xrlon > 180.) xrlon -= 360.;
             if (xrlon < -180.) xrlon += 360.;
             if (xlat >= 90.) xlat = 89.99;
             if (xlat <= -90.) xlat = -89.99;
-            double xrlat = ((xlat-xlat1)/2 + 45.)*DEGREES_TO_RADIANS;
+            xrlat = ((xlat-xlat1)/2 + 45.)*DEGREES_TO_RADIANS;
             if (xrlat <= 0.0)
             {
                 linele[indexLine][point] = Double.NaN;
@@ -199,6 +201,7 @@ public final class MERCnav extends AREAnav
         double xedif;
         double xlon;
         double xlat;
+        double xrlon, xrlat;
 
         int number = linele[0].length;
         float[][] latlon = new float[2][number];
@@ -210,9 +213,9 @@ public final class MERCnav extends AREAnav
         {
             xldif = xrow - imglinele[indexLine][point];
             xedif = xcol - imglinele[indexEle][point];
-            double xrlon = iwest*xedif/xblon;
+            xrlon = iwest*xedif/xblon;
             xlon = xrlon+xqlon;
-            double xrlat = Math.atan(Math.exp(xldif/xblat));
+            xrlat = Math.atan(Math.exp(xldif/xblat));
             xlat = (xrlat/DEGREES_TO_RADIANS - 45.)*2.+xlat1;
             if (xlon > (360.+leftlon) || xlon < leftlon) 
             {
@@ -245,6 +248,7 @@ public final class MERCnav extends AREAnav
     {
         double xlon;
         double xlat;
+        double xrlon, xrlat;
 
         int number = latlon[0].length;
         float[][] linele = new float[2][number];
@@ -258,12 +262,12 @@ public final class MERCnav extends AREAnav
                    ? -latlon[indexLon][point]
                    : latlon[indexLon][point];
 
-            double xrlon = iwest*(xlon-xqlon);
+            xrlon = iwest*(xlon-xqlon);
             if (xrlon > 180.) xrlon -= 360.;
             if (xrlon < -180.) xrlon += 360.;
             if (xlat >= 90.) xlat = 89.99;
             if (xlat <= -90.) xlat = -89.99;
-            double xrlat = ((xlat-xlat1)/2 + 45.)*DEGREES_TO_RADIANS;
+            xrlat = ((xlat-xlat1)/2 + 45.)*DEGREES_TO_RADIANS;
             if (xrlat <= 0.0)
             {
                 linele[indexLine][point] = Float.NaN;

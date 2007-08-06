@@ -54,7 +54,6 @@ public final class MSGnav extends AREAnav
     double deltay;
     int[] ioff = new int[3];
 
-    boolean first = true;
     int count = 0;
 
     /**
@@ -175,11 +174,6 @@ public final class MSGnav extends AREAnav
       double xfi, xla, rom, y, r1, r2, teta, xt, yt, zt;
       double px, py, xr, yr, xele, xlin;
       double xlat, xlon;
-
-      if (first) {
-       //System.out.println("####   first time...");
-       first = false;
-      }
 
       for (int point=0; point < number; point++) 
       {
@@ -336,11 +330,6 @@ public final class MSGnav extends AREAnav
       double xfi, xla, rom, y, r1, r2, teta, xt, yt, zt;
       double px, py, xr, yr, xele, xlin;
       double xlat, xlon;
-
-      if (first) {
-       //System.out.println("####   first time...");
-       first = false;
-      }
 
       for (int point=0; point < number; point++) 
       {

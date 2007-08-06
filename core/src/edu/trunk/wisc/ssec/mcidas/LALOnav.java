@@ -179,6 +179,13 @@ public final class LALOnav extends AREAnav
     public float[][] toLatLon(float[][] linele) {
 
       int number = linele[0].length;
+      double rlin, rele;
+      int  tl_entry, tr_entry, bl_entry, br_entry;
+      float  tl_lats, tr_lats, bl_lats, br_lats;
+      float  tl_lons, tr_lons, bl_lons, br_lons;
+      float  frac_row, frac_col;
+      float  ax, bx, cx;
+
       float[][] latlon = new float[2][number];
 
       // Convert array to Image coordinates for computations
@@ -186,8 +193,8 @@ public final class LALOnav extends AREAnav
 
       for (int point=0; point < number; point++) 
       {
-          double rlin = imglinele[indexLine][point];
-          double rele = imglinele[indexEle][point];
+          rlin = imglinele[indexLine][point];
+          rele = imglinele[indexEle][point];
 
           if (debug) {
             count ++;
@@ -204,12 +211,6 @@ public final class LALOnav extends AREAnav
 
           } else {
 
-
-           int  tl_entry, tr_entry, bl_entry, br_entry;
-           float  tl_lats, tr_lats, bl_lats, br_lats;
-           float  tl_lons, tr_lons, bl_lons, br_lons;
-           float  frac_row, frac_col;
-           float  ax, bx, cx;
 
            /* offset to the top_left (tl) corner lat/lon */
            tl_entry = (((((int)rlin-ulline)/latres) * cols) +
@@ -298,18 +299,27 @@ public final class LALOnav extends AREAnav
       return latlon;
 
     }
+
+
+
     public double[][] toLatLon(double[][] linele) {
 
       int number = linele[0].length;
       double[][] latlon = new double[2][number];
+      double rlin, rele;
+      int  tl_entry, tr_entry, bl_entry, br_entry;
+      float  tl_lats, tr_lats, bl_lats, br_lats;
+      float  tl_lons, tr_lons, bl_lons, br_lons;
+      float  frac_row, frac_col;
+      float  ax, bx, cx;
 
       // Convert array to Image coordinates for computations
       double[][] imglinele = areaCoordToImageCoord(linele);
 
       for (int point=0; point < number; point++) 
       {
-          double rlin = imglinele[indexLine][point];
-          double rele = imglinele[indexEle][point];
+          rlin = imglinele[indexLine][point];
+          rele = imglinele[indexEle][point];
 
           if (debug) {
             count ++;
@@ -327,11 +337,6 @@ public final class LALOnav extends AREAnav
           } else {
 
 
-           int  tl_entry, tr_entry, bl_entry, br_entry;
-           float  tl_lats, tr_lats, bl_lats, br_lats;
-           float  tl_lons, tr_lons, bl_lons, br_lons;
-           float  frac_row, frac_col;
-           float  ax, bx, cx;
 
            /* offset to the top_left (tl) corner lat/lon */
            tl_entry = (((((int)rlin-ulline)/latres) * cols) +

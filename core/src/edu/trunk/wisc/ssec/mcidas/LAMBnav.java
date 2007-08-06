@@ -114,6 +114,7 @@ public final class LAMBnav extends AREAnav
         double xedif;
         double xlon;
         double xlat;
+        double xrlon, radius;
 
         int number = linele[0].length;
         double[][] latlon = new double[2][number];
@@ -125,11 +126,11 @@ public final class LAMBnav extends AREAnav
         {
             xldif = ihem*(imglinele[indexLine][point] - xrow)/xblat;
             xedif = -ihem*(imglinele[indexEle][point] - xcol)/xblat;
-            double xrlon = 0;
+            xrlon = 0;
             if (!(xldif == 0 && xedif == 0)) xrlon = Math.atan2(xedif, xldif);
             xlon = ihem*xrlon/xfac/DEGREES_TO_RADIANS + xqlon;
             xlon = (xlon+900.)%360. - 180.0;
-            double radius = Math.sqrt(xldif*xldif + xedif*xedif);
+            radius = Math.sqrt(xldif*xldif + xedif*xedif);
             if (Math.abs(radius) < 1.e-10)
                 xlat = ihem*90;
             else
@@ -160,6 +161,7 @@ public final class LAMBnav extends AREAnav
     {
         double xlon;
         double xlat;
+        double xrlon, xrlat, xclat;
 
         int number = latlon[0].length;
         double[][] linele = new double[2][number];
@@ -172,11 +174,10 @@ public final class LAMBnav extends AREAnav
                    ? -latlon[indexLon][point]
                    : latlon[indexLon][point];
 
-            double xrlon = ihem*(xlon-xqlon);
+            xrlon = ihem*(xlon-xqlon);
             xrlon = (xrlon+900.)%360. - 180.;
             xrlon = xrlon*xfac*DEGREES_TO_RADIANS;
-            double xclat = (90. - ihem*xlat)*DEGREES_TO_RADIANS*.5;
-            double xrlat;
+            xclat = (90. - ihem*xlat)*DEGREES_TO_RADIANS*.5;
             if (xclat == 0.0)
                 xrlat = 0.0;
             else

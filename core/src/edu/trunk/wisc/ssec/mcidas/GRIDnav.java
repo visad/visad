@@ -215,6 +215,8 @@ public class GRIDnav
     double xlon = Double.NaN; // temp variable for lon
     double xrlon = 0.;
     double xldif, xedif;
+    double radius;
+
     for (int i = 0; i < rowcol[0].length; i++)
     {
       
@@ -258,7 +260,7 @@ public class GRIDnav
             xlon = xrlon / xfac / xrad + xqlon;
             if(xlon > 180.) xlon = xlon - 360.;
       
-            double radius = Math.sqrt( xldif * xldif + xedif * xedif);
+            radius = Math.sqrt( xldif * xldif + xedif * xedif);
             if( radius < 1.E-5 ) {
                xlat = xh * 90.;
             } else {
@@ -292,18 +294,22 @@ public class GRIDnav
   public double[][] toRowCol(double[][] latlon)
   {
     double[][] rowcol = new double[2][latlon[0].length];
+    double xrow, xcol, xlat, xlon;
+    double xrlon, xclat, xrlat;
+    double glomx1;
+    double xldif, xedif, xdis, xangl, xange;
+
     for (int i = 0; i < latlon[0].length; i++)
     {
-      double xrow = Double.NaN;
-      double xcol = Double.NaN;
-      double xlat = latlon[indexLat][i];
-      double xlon = -latlon[indexLon][i];  // convert to McIDAS (west pos)
-      double xrlon, xclat, xrlat;
+      xrow = Double.NaN;
+      xcol = Double.NaN;
+      xlat = latlon[indexLat][i];
+      xlon = -latlon[indexLon][i];  // convert to McIDAS (west pos)
       switch(navType)
       {
         case PSEUDO_MERCATOR:
         case PSEUDO_MERCATOR_GENERAL:
-          double glomx1 = glomx;
+          glomx1 = glomx;
           if (glomx < 0 && glomx*xlon < 0)
             glomx1 = glomx + 360;
           xrow = (glamx-xlat)/ginct + 1.0;
@@ -312,12 +318,12 @@ public class GRIDnav
         case EQUIDISTANT:
           xrlon = xlon-glomx;
           xrlat = xlat-glamx;
-          double xldif = xblat*xrlat;
-          double xedif = xrlon*xblon*Math.cos(xlat*xrad);
-          double xdis  = Math.sqrt(xldif*xldif+xedif*xedif);
+          xldif = xblat*xrlat;
+          xedif = xrlon*xblon*Math.cos(xlat*xrad);
+          xdis  = Math.sqrt(xldif*xldif+xedif*xedif);
           if( xdis > .001) {
-             double xangl = Math.atan2(xldif,xedif)-90.*xrad;
-             double xange = Math.atan2(xldif,xedif)+90.*xrad;
+             xangl = Math.atan2(xldif,xedif)-90.*xrad;
+             xange = Math.atan2(xldif,xedif)+90.*xrad;
              xldif = xdis*Math.cos(-xrot+xangl);
              xedif = xdis*Math.sin(-xrot+xange);
           }

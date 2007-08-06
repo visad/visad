@@ -73,7 +73,6 @@ import java.util.*;
 public class GVARnav extends AREAnav
 {
 
-  public boolean navTransformOK;
   private boolean isEastPositive = true;
 
   final double PI=3.141592653589793d;
@@ -702,8 +701,6 @@ public class GVARnav extends AREAnav
     double rlat, rlon, gam, alf;
     int number = linele[0].length;
 
-    navTransformOK = true;
-
     // alpha = elevation angle (rad)
     // zeta = scan angle (rad)
     double q1, q2, d, h, alpha, zeta, alpha0, zeta0, ff, doff;
@@ -807,7 +804,6 @@ public class GVARnav extends AREAnav
       } else {
         latlon[indexLat][point] = Double.NaN;
         latlon[indexLon][point] = Double.NaN;
-        navTransformOK = false;
         continue;
       }
 
@@ -851,8 +847,6 @@ public class GVARnav extends AREAnav
     double ylat, ylon;
     double rlat, rlon, gam, alf;
     int number = linele[0].length;
-
-    navTransformOK = true;
 
     // alpha = elevation angle (rad)
     // zeta = scan angle (rad)
@@ -957,7 +951,6 @@ public class GVARnav extends AREAnav
       } else {
         latlon[indexLat][point] = Float.NaN;
         latlon[indexLon][point] = Float.NaN;
-        navTransformOK = false;
         continue;
       }
 
@@ -1007,8 +1000,6 @@ public class GVARnav extends AREAnav
     int number = latlon[0].length;
     double[][] linele = new double[2][number];
 
-    navTransformOK = true;
-
     ff = (double) iflip;
     if (instr == 2) ff = -ff;
     doff = scnmax[instr-1] - ewnom[instr - 1];
@@ -1025,7 +1016,6 @@ public class GVARnav extends AREAnav
       if (Math.abs(latlon[indexLat][point]) > 90.) {
         linele[indexLine][point] = Double.NaN;
         linele[indexEle][point] = Double.NaN;
-        navTransformOK = false;
         continue;
       }
 
@@ -1083,7 +1073,6 @@ public class GVARnav extends AREAnav
         // not visible...
         linele[indexLine][point] = Double.NaN;
         linele[indexEle][point] = Double.NaN;
-        navTransformOK = false;
         continue;
       }
 
@@ -1140,8 +1129,6 @@ public class GVARnav extends AREAnav
     int number = latlon[0].length;
     float[][] linele = new float[2][number];
 
-    navTransformOK = true;
-
     ff = (double) iflip;
     if (instr == 2) ff = -ff;
     doff = scnmax[instr-1] - ewnom[instr - 1];
@@ -1158,7 +1145,6 @@ public class GVARnav extends AREAnav
       if (Math.abs(latlon[indexLat][point]) > 90.) {
         linele[indexLine][point] = Float.NaN;
         linele[indexEle][point] = Float.NaN;
-        navTransformOK = false;
         continue;
       }
 
@@ -1216,7 +1202,6 @@ public class GVARnav extends AREAnav
         // not visible...
         linele[indexLine][point] = Float.NaN;
         linele[indexEle][point] = Float.NaN;
-        navTransformOK = false;
         continue;
       }
 
