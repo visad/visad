@@ -67,6 +67,9 @@ public class GMSXnav extends AREAnav
   private double sitagt = 0.0d;
   private double sunalp = 0.0d;
   private double sundel = 0.0d;
+  private double [] sat = new double[3];
+  private double [] sp = new double[3];
+  private double [] ss = new double[3];
   private double [][] orbt1 = new double[35][8];
   private double [][] atit = new double[10][10];
 
@@ -135,7 +138,7 @@ public class GMSXnav extends AREAnav
    *
    */
 
-  public float[][] toLinEle (float[][] latlon) 
+  public synchronized float[][] toLinEle (float[][] latlon) 
   {
 
     int mode = 1;
@@ -181,7 +184,7 @@ public class GMSXnav extends AREAnav
 
   }
 
-  public double[][] toLinEle (double[][] latlon) 
+  public synchronized double[][] toLinEle (double[][] latlon) 
   {
 
     int mode = 1;
@@ -239,7 +242,7 @@ public class GMSXnav extends AREAnav
    *
    */
 
-  public float[][] toLatLon (float[][] linele) 
+  public synchronized float[][] toLatLon (float[][] linele) 
   {
 
     int mode = -1;
@@ -285,7 +288,7 @@ public class GMSXnav extends AREAnav
   }
 
 
-  public double[][] toLatLon (double[][] linele) 
+  public synchronized double[][] toLatLon (double[][] linele) 
   {
 
     int mode = -1;
@@ -607,9 +610,6 @@ public class GMSXnav extends AREAnav
     double [] sw1;
     double [] sw2;
     double [] sw3 = new double[3];
-    double [] sat = new double[3];
-    double [] sp = new double[3];
-    double [] ss = new double[3];
 
     point[0] = Float.NaN;
     point[1] = Float.NaN;
@@ -650,7 +650,7 @@ public class GMSXnav extends AREAnav
 
       loop: while (true) {
 
-        beta = mg1100(rtim, sat, ss, sp);
+        beta = mg1100(rtim);
         sw1 = mg1220(sp, ss);
         sw2 = mg1220(sw1, sp);
         bc = Math.cos(beta);
@@ -704,7 +704,7 @@ public class GMSXnav extends AREAnav
     if (iMode < 0) {
       rtim = (double) (Math.rint((rLin - 1) / sens) + 
         (rPix * rsamp) / dpai) / (dspin * 1440.0) + dtims;
-      beta = mg1100(rtim, sat, ss, sp);
+      beta = mg1100(rtim);
       sw1 = mg1220(sp, ss);
       sw2 = mg1220(sw1, sp);
       bc = Math.cos(beta);
@@ -786,8 +786,7 @@ public class GMSXnav extends AREAnav
    */
 
   private double mg1100 (
-    double rtim,
-    double[] sat, double[] ss, double[] sp
+    double rtim
   ) 
 
   {
@@ -805,7 +804,7 @@ public class GMSXnav extends AREAnav
 
     for (int i = 0; i < 7; i++) {
       if ((rtim > orbt1[0][i]) && (rtim < orbt1[0][i+1])) {
-        npa = mg1110(i, rtim, orbt1, sat);
+        npa = mg1110(i, rtim, orbt1);
         break;
       }
     }
@@ -877,7 +876,7 @@ public class GMSXnav extends AREAnav
   private double [][] mg1110 (
     int i,
     double rtim,
-    double [][] orbta, double[] sat
+    double [][] orbta
   )
 
   {
