@@ -100,7 +100,14 @@ public class ImageFlatField extends FlatField {
     RealTupleType xy = new RealTupleType(x, y);
     int num = img.getRaster().getNumBands();
     MathType range = null;
-    if (num == 3) {
+    if (num == 4) {
+      RealType r = RealType.getRealType("Red");
+      RealType g = RealType.getRealType("Green");
+      RealType b = RealType.getRealType("Blue");
+      RealType a = RealType.getRealType("Alpha");
+      range = new RealTupleType(r, g, b, a);
+    }
+    else if (num == 3) {
       RealType r = RealType.getRealType("Red");
       RealType g = RealType.getRealType("Green");
       RealType b = RealType.getRealType("Blue");
