@@ -411,8 +411,8 @@ public class ImageFlatField extends FlatField {
 
   public Data getSample(int index) throws VisADException, RemoteException {
     double[] v = unpackValues(index);
-    RealTupleType domain = ((FunctionType) getType()).getDomain();
-    return new RealTuple(domain, v);
+    RealTupleType range = (RealTupleType) ((FunctionType) getType()).getRange();
+    return new RealTuple(range, v);
   }
 
   protected void pr(String message) {
