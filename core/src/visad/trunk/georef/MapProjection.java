@@ -104,12 +104,32 @@ public abstract class MapProjection extends NavigatedCoordinateSystem
    */
   public LatLonPoint getCenterLatLon() 
       throws VisADException {
-
     java.awt.geom.Rectangle2D rect = getDefaultMapArea();
-    double[][] xy =
-      (isXYOrder()) 
-        ? new double[][] { {rect.getCenterX()}, {rect.getCenterY()} }
-        : new double[][] { {rect.getCenterY()}, {rect.getCenterX()} };
+    return getLatLon(new double[][] { {rect.getCenterX()}, {rect.getCenterY()}});
+  }
+
+
+
+  /**
+   * Get the  lat/lon point for the given xy pairs.
+   * this method will flip the order of the xy if it is not in xyorder
+   * @return the lat/lon point for the given xy pairs
+   */
+  public LatLonPoint getLatLon(double[][]xy) 
+      throws VisADException {
+      //Flip them if needed
+      if(!isXYOrder()) {
+          double tmp;
+          tmp = xy[0][0];
+          xy[0][0] = xy[0][1];
+          xy[0][1] = tmp;
+
+          tmp = xy[1][0];
+          xy[1][0] = xy[1][1];
+          xy[1][1] = tmp;
+      }
+
+
     double[][] latlon = toReference(xy);
     double lat = 
       (isLatLonOrder())
