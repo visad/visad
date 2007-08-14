@@ -830,7 +830,6 @@ public class TextAdapter {
 
           if (values_to_index[0][i] != -1) {
             dValues[values_to_index[0][i]] = getVal(sa, i);
-
           } else if (values_to_index[1][i] != -1) {
 
             thisMT = rngType.getComponent(values_to_index[1][i]);
@@ -865,6 +864,7 @@ public class TextAdapter {
                 tValues[values_to_index[1][i]] = 
                         new Text((TextType) thisMT, sThisText);
 
+
                 if (debug) System.out.println("tValues[" + 
                           values_to_index[1][i] + "] = " + 
                           tValues[values_to_index[1][i]]);
@@ -884,7 +884,7 @@ public class TextAdapter {
                   }
                   tValues[values_to_index[1][i]] = 
                       prototypeReals[i].cloneButValue(value);
-                if (debug) System.out.println("tValues[" + 
+                  if(debug)System.out.println("tValues[" + 
                     values_to_index[1][i] + "] = " + 
                     tValues[values_to_index[1][i]]);
 
@@ -1238,7 +1238,19 @@ public class TextAdapter {
     if (infos[i].formatString == null) {
       // no format provided : parse as a double
       try {
-        double v = Double.parseDouble(s);
+        double v;
+        try {
+          v = Double.parseDouble(s);
+        } catch (java.lang.NumberFormatException nfe1) {
+            //If units are degrees then try to decode this as a lat/lon
+            // We should probably not rely on throwing an exception to handle this but...
+            if(infos[i].unit !=null && Unit.canConvert(infos[i].unit, visad.CommonUnit.degree)) {
+                v=decodeLatLon(s);
+            } else {
+                throw nfe1;
+            }
+            if(v!=v) throw new java.lang.NumberFormatException(s);
+        }
         if (v == infos[i].missingValue) {
           return Double.NaN;
         }
@@ -1383,7 +1395,6 @@ public class TextAdapter {
       System.out.println("Must supply a filename");
       System.exit(1);
     }
-    RealType.getRealType("foobar");
     TextAdapter ta = new TextAdapter(args[0]);
     System.out.println(ta.getData().getType());
     new visad.jmet.DumpType().dumpMathType(ta.getData().getType(),System.out);
@@ -1394,6 +1405,83 @@ public class TextAdapter {
 
 
 
+
+    /**
+     * A cut-and-paste from the IDV Misc method
+     * Decodes a string representation of a latitude or longitude and
+     * returns a double version (in degrees).  Acceptible formats are:
+     * <pre>
+     * +/-  ddd:mm, ddd:mm:, ddd:mm:ss, ddd::ss, ddd.fffff ===>   [+/-] ddd.fffff
+     * +/-  ddd, ddd:, ddd::                               ===>   [+/-] ddd
+     * +/-  :mm, :mm:, :mm:ss, ::ss, .fffff                ===>   [+/-] .fffff
+     * +/-  :, ::                                          ===>       0.0
+     * Any of the above with N,S,E,W appended
+     * </pre>
+     *
+     * @param latlon  string representation of lat or lon
+     * @return the decoded value in degrees
+     */
+    public static double decodeLatLon(String latlon) {
+        // first check to see if there is a N,S,E,or W on this
+        latlon = latlon.trim();
+        int    dirIndex    = -1;
+        int    southOrWest = 1;
+        double value       = Double.NaN;
+        if (latlon.indexOf("S") > 0) {
+            southOrWest = -1;
+            dirIndex    = latlon.indexOf("S");
+        } else if (latlon.indexOf("W") > 0) {
+            southOrWest = -1;
+            dirIndex    = latlon.indexOf("W");
+        } else if (latlon.indexOf("N") > 0) {
+            dirIndex = latlon.indexOf("N");
+        } else if (latlon.indexOf("E") > 0) {
+            dirIndex = latlon.indexOf("E");
+        }
+        if (dirIndex > 0) {
+            latlon = latlon.substring(0, dirIndex).trim();
+        }
+
+        // now see if this is a negative value
+        if (latlon.indexOf("-") == 0) {
+            southOrWest *= -1;
+            latlon      = latlon.substring(latlon.indexOf("-") + 1).trim();
+        }
+
+        if (latlon.indexOf(":") >= 0) {  //have something like DD:MM:SS, DD::, DD:MM:, etc
+            int    firstIdx = latlon.indexOf(":");
+            String hours    = latlon.substring(0, firstIdx);
+            String minutes  = latlon.substring(firstIdx + 1);
+            String seconds  = "";
+            if (minutes.indexOf(":") >= 0) {
+                firstIdx = minutes.indexOf(":");
+                String temp = minutes.substring(0, firstIdx);
+                seconds = minutes.substring(firstIdx + 1);
+                minutes = temp;
+            }
+            try {
+
+                value = (hours.equals("") == true)
+                        ? 0
+                        : Double.parseDouble(hours);
+                if ( !minutes.equals("")) {
+                    value += Double.parseDouble(minutes) / 60.;
+                }
+                if ( !seconds.equals("")) {
+                    value += Double.parseDouble(seconds) / 3600.;
+                }
+            } catch (NumberFormatException nfe) {
+                value = Double.NaN;
+            }
+        } else {  //have something like DD.ddd
+            try {
+                value = Double.parseDouble(latlon);
+            } catch (NumberFormatException nfe) {
+                value = Double.NaN;
+            }
+        }
+        return value * southOrWest;
+    }
 
 
 }
