@@ -220,6 +220,21 @@ public class WeatherSymbols {
   }
 
   /**
+   * Look up the symbol directly in the full array
+   *
+   * @param index array index
+   * @return The symbol
+   */
+  public static VisADLineArray getSymbol(int index) {
+      if(index<0 || index>= metSymbols.length) {
+       throw new IllegalArgumentException(
+             "bad symbol index: " + index);
+      }
+      return getVLAClone(metSymbols,index);
+  }
+
+
+  /**
    * Get the shape corresponding to a total sky cover code.
    * Codes are:
    * <pre>
