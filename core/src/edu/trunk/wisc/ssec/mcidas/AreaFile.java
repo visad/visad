@@ -28,29 +28,22 @@ package edu.wisc.ssec.mcidas;
 
 
 import java.applet.Applet;
-
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
-import java.io.BufferedInputStream;
-import java.io.DataInput;
-import java.io.DataInputStream;
-import java.io.FileInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-
-import javax.imageio.ImageIO;
-
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
 import java.awt.image.Raster;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 
 import edu.wisc.ssec.mcidas.adde.GetAreaGUI;
 
@@ -496,7 +489,6 @@ public class AreaFile implements java.io.Serializable {
 
     int bandIdx = -1;
     int[] bands = getAreaDirectory().getBands();
-    ucar.unidata.util.Misc.printArray("bands", bands);
     for (int i = 0; i < bands.length; i++) {
       if (bands[i] == band) bandIdx = i;
     }
@@ -1395,15 +1387,19 @@ public class AreaFile implements java.io.Serializable {
   public static void main(String[] args) throws Exception {
     if (args == null || args.length == 0) {
       System.out.println();
-      System.out.println("USAGE: AreaFile <source>");
+      System.out.println("USAGE: AreaFile <URL or filepath> [(raw|temp|brit|rad|refl)]");
       System.out.println();
+      System.exit(1);
     }
 
     AreaFile af = AreaFileFactory.getAreaFileInstance(args[0]);
 
     System.out.println(af);
 
-    if (args.length == 1 && !af.isSubsetted()) System.exit(0);
+    if (args.length == 1 && !af.isSubsetted()) {
+    	System.err.println("Sorry, I won't print an unsubsetted file");
+    	System.exit(0);
+    }
 
     System.out.println();
     System.out.println(af.subset);

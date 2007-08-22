@@ -23,6 +23,7 @@ package edu.wisc.ssec.mcidas;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 
 import edu.wisc.ssec.mcidas.adde.AddeURLException;
@@ -33,7 +34,7 @@ import edu.wisc.ssec.mcidas.adde.AddeURLException;
  * constructors do not.
  * 
  * <p>No instances of this class can be created.</p>
- * @version $Id: AreaFileFactory.java,v 1.2 2007-04-19 17:17:36 tomw Exp $
+ * @version $Id: AreaFileFactory.java,v 1.3 2007-08-22 21:15:09 brucef Exp $
  * @author Bruce Flynn, SSEC
  */
 public final class AreaFileFactory {
@@ -212,6 +213,7 @@ public final class AreaFileFactory {
       url = new URL(src);
       af = getAreaFileInstance(url);
     } catch (IOException e) {
+      e.printStackTrace();
       af = new AreaFile(src);
     }
     
@@ -245,22 +247,39 @@ public final class AreaFileFactory {
    * file://&lt;abs file path&gt;?linele=10 10&amp;band=3&amp;mag=-2 -4&amp;size=500 500&unit=BRIT
    * </pre>
    * </p>
+   * <p>URLs containing encoded characters in their query strings will be decoded
+   * before parsing.
+   * </p>
    * @param url - the url as described above
    * @return an initialized, possibly subsetted, instance
    * @throws AreaFileException on any error constructing the instance.
    * @throws AddeURLException if the ADDE url is malformed
+   * @throws MalformedURLException 
    * @throws MalformedURLException if the file url is malformed
    */
   public static final AreaFile getAreaFileInstance(final URL url) 
     throws AreaFileException, AddeURLException, MalformedURLException {
 
-    AreaFile af = new AreaFile(url);
-    
     // it's a local file, investigate further
     if (url.getProtocol().equalsIgnoreCase("file")) {
       
+      AreaFile af = null;
+      if (url.getQuery() == null){
+        af = new AreaFile(url);
+      } else {
+        af = new AreaFile(url.toString().split("\\?")[0]);
+      }
+
       // is it a local url with subsetting
-      if (url.getQuery() != null) {
+      String query = url.getQuery();
+      if (query != null && query.contains("%")) {
+    	  try {
+          query = url.toURI().getQuery(); // URI queries are decoded
+        } catch (URISyntaxException e) {
+          throw new AddeURLException(e.getMessage());
+        }
+      }
+      if (query != null) {
         final String whtspc = "(\\s)+";
         int startLine = 0;
         int numLines = af.getAreaDirectory().getLines(); 
@@ -275,9 +294,10 @@ public final class AreaFileFactory {
         boolean mag = false;
         
         // parse query string
-        String[] props = url.getQuery().split("&");
+        String[] props = query.split("&");
         for (int i = 0; i < props.length; i++) {
           String[] kv = props[i].split("=");
+          
           if (kv[0].equalsIgnoreCase("mag")) {
             lineMag = Integer.parseInt(kv[1].split(whtspc)[0]);
             eleMag = Integer.parseInt(kv[1].split(whtspc)[1]);
@@ -320,18 +340,22 @@ public final class AreaFileFactory {
                 throw new AreaFileException(
                     "Unsupported calibration type: "+kv[1]);
             }
-            af.setCalType(calType);
           }
           
         }
 
+        if (mag) {
+          numLines = numLines / (Math.abs(lineMag) == 0 ? 1 : Math.abs(lineMag));
+          numEles = numEles / (Math.abs(eleMag) == 0 ? 1 : Math.abs(eleMag));
+        }
+
         // enforce parameter requirements
         if ((!linele && size) || (!size && linele)) {
-          throw new MalformedURLException(
+         throw new MalformedURLException(
               "linele and size must be used together");
         } else if(mag && (!linele || !size)) {
-          throw new MalformedURLException(
-              "mag must be used with linele and size");
+//          throw new MalformedURLException(
+//              "mag must be used with linele and size");
         }
         
         // recreate with new parameters
@@ -347,10 +371,11 @@ public final class AreaFileFactory {
         );
         af.setCalType(calType);
       }
+      return af;
     
+    } else {
+      return new AreaFile(url);    
     }
-    
-    return af;
   }
   
   /**
