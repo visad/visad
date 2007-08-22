@@ -3,7 +3,7 @@
 <project name="VisAD" default="init" basedir="..">
   <description>
 Build script for VisAD core packages
-$Id: build.xml,v 1.13 2007-04-18 01:16:15 brucef Exp $
+$Id: build.xml,v 1.14 2007-08-22 18:45:42 brucef Exp $
 
     init             -- print ant configuration 
 
@@ -235,6 +235,7 @@ $Id: build.xml,v 1.13 2007-04-18 01:16:15 brucef Exp $
 
   <!-- filenames -->
   <property name="visad.jarfile" value="visad.jar" />
+  <property name="deps.jarfile" value="visaddeps.jar"/>
   <property name="visad.src.jarfile" value="visad_src.jar"/>
   <property name="examples.jarfile" value="visad_examples.jar" />
   <property name="docs.jarfile" value="visad_doc.jar" />
@@ -573,7 +574,46 @@ visad Xmx: ${max.mem}
       </manifest>
     </jar>
   </target>
+	
+	
+  <target name="jar.deps" depends="deps" description="Jar everything but visad">
 
+    <!-- non-java files to include in jar -->
+    <fileset dir="${basedir}" id="dist.nonjava.set">
+      <patternset refid="dist.nonjava.includes"/>
+    </fileset>
+    <pathconvert property="dist.nonjava.includes" pathsep=" " refid="dist.nonjava.set"> 
+      <map from="${basedir}/" to=""/> 
+    </pathconvert> 
+      
+    <!-- java class files to include in jar -->
+    <fileset dir="${basedir}" id="dist.java.set">
+      <patternset refid="HTTPClient.package"/>
+      <patternset refid="Jama.package"/>
+      <patternset refid="dods.package"/>
+      <patternset refid="loci.package"/>
+      <patternset refid="gnu.package"/>
+      <patternset refid="nom.package"/>
+      <patternset refid="ucar.package"/>
+      <patternset refid="edu.package"/>
+      <patternset refid="ncsa.package"/>
+      <include name="**/*.class"/>
+      <exclude name="**/*.java"/>
+    </fileset>
+    <pathconvert property="dist.java.includes" pathsep=" " refid="dist.java.set">
+      <map from="${basedir}/" to=""/>
+    </pathconvert>
+
+    <!-- <echo>INCLUDES: ${java.includes} ${nonjava.includes}</echo> -->
+
+    <!-- jar the class files -->
+  	<delete file="${deps.jarfile}"/>
+    <jar destfile="${deps.jarfile}" 
+         basedir="${basedir}" 
+         includes="${dist.java.includes} ${dist.nonjava.includes}" 
+         filesonly="true">
+    </jar>
+  </target>
 
 
 
@@ -699,7 +739,8 @@ visad Xmx: ${max.mem}
 
 
   <target name="all" depends="init, clean, deps, visad, 
-                              jar, javadoc, jar.src, jar.examples, jar.docs"/>
+                              jar, jar.deps, javadoc, jar.src,
+  							  jar.examples, jar.docs"/>
 
 
 
@@ -722,6 +763,7 @@ visad Xmx: ${max.mem}
 
   <target name="deps.clean" depends="init">
     <delete failonerror="false">
+      <fileset dir="${basedir}" includes="${deps.jarfile}"/>
       <fileset dir="${loci.dir}" includes="**/*.class"/>
       <fileset dir="${HTTPClient.dir}" includes="**/*.class"/>
       <fileset dir="${dods.dir}" includes="**/*.class"/>
