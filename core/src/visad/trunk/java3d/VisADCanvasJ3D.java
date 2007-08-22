@@ -408,16 +408,20 @@ public class VisADCanvasJ3D extends Canvas3D {
    * Stop the applet
    */
   public void stop() {
-    stopRenderer();
+    if(!offscreen) {
+      stopRenderer();
+    }
     display = null;
     displayRenderer = null;
-    if (component instanceof DisplayPanelJ3D) {
-      ((DisplayPanelJ3D) component).destroy();
+    if(component!=null) {
+      if (component instanceof DisplayPanelJ3D) {
+        ((DisplayPanelJ3D) component).destroy();
+      }
+      else if (component instanceof DisplayAppletJ3D) {
+        ((DisplayAppletJ3D) component).destroy();
+      }
+      component = null; // WLH 17 Dec 2001
     }
-    else if (component instanceof DisplayAppletJ3D) {
-      ((DisplayAppletJ3D) component).destroy();
-    }
-    component = null; // WLH 17 Dec 2001
     captureImage = null;
     myConfig = null;
   }
