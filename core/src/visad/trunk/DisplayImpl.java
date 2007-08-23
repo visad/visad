@@ -1572,7 +1572,9 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       ListenerVector.removeAllElements();
       Slaves.removeAllElements();
       displayRenderer = null; // this disables most DisplayImpl methods
-      component.removeComponentListener(componentListener);
+      if(component!=null) {
+         component.removeComponentListener(componentListener);
+      }
       componentListener = null;
       component = null;
       mouse = null;
@@ -2022,6 +2024,22 @@ System.out.println("initialize = " + initialize + " go = " + go +
         throw new BadMappingException("Display.removeMap: " + map + " not " +
                                       "in Display " + getName());
       }
+
+      //Remove the control from the ControlVector
+      Control control = map.getControl();
+      synchronized (ControlVector) {
+          if(control!=null && ControlVector.contains(control)) {
+              ControlVector.remove(control);
+              control.removeControlListener((ControlListener )displayMonitor);
+              control.setInstanceNumber(-1);
+              control.setIndex(-1);
+              for(int i=0;i<ControlVector.size();i++) {
+                  Control ctl = (Control) ControlVector.get(i);
+                  ctl.setIndex(i);
+              }
+          }
+      }
+
       MapVector.removeElementAt(index);
       ScalarType real = map.getScalar();
       if (real != null) {
