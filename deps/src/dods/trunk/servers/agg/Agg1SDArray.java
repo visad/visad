@@ -1,4 +1,4 @@
-// $Id: Agg1SDArray.java,v 1.3 2004-02-06 15:23:49 donm Exp $
+// $Id: Agg1SDArray.java,v 1.4 2007-08-27 20:13:04 brucef Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -31,7 +31,7 @@ import java.util.*;
  * Aggregates an SDArray distributed across multiple datasets (type 1), where
  * the outer dimension is synthesized, and there is one AggFile per step.
  *
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * @author jcaron
  */
 public class Agg1SDArray extends SDArray  {
@@ -50,8 +50,8 @@ public class Agg1SDArray extends SDArray  {
     this.aggD = aggD;
 
     // connect dim always first
-    java.util.Enumeration enum = connectCoord.getDimensions();
-    DArrayDimension dd = (DArrayDimension) enum.nextElement();
+    java.util.Enumeration enumx = connectCoord.getDimensions();
+    DArrayDimension dd = (DArrayDimension) enumx.nextElement();
     appendDim(dd.getSize(), dd.getName());
 
     // other dimensions
@@ -158,6 +158,9 @@ public class Agg1SDArray extends SDArray  {
 
 /* Change History:
    $Log: not supported by cvs2svn $
+   Revision 1.3  2004/02/06 15:23:49  donm
+   update to 1.1.4
+
    Revision 1.2  2002/02/25 15:50:12  caron
    byte array padding
 

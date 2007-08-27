@@ -1,4 +1,4 @@
-// $Id: ProxySDString.java,v 1.3 2004-02-06 15:23:49 donm Exp $
+// $Id: ProxySDString.java,v 1.4 2007-08-27 20:13:04 brucef Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -28,7 +28,7 @@ import dods.dap.*;
 
 /**
  * Proxy for a variable in another (DODS) dataset
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * @author jcaron
  */
 public class ProxySDString extends SDString implements HasProxyObject {
@@ -66,8 +66,8 @@ public class ProxySDString extends SDString implements HasProxyObject {
     }
 
     // get data
-    java.util.Enumeration enum = dataDDS.getVariables();
-    DString v = (DString) enum.nextElement(); // better only be one! better be DVector!
+    java.util.Enumeration enumx = dataDDS.getVariables();
+    DString v = (DString) enumx.nextElement(); // better only be one! better be DVector!
     setValue( v.getValue());
 
     setRead(true);
@@ -78,6 +78,9 @@ public class ProxySDString extends SDString implements HasProxyObject {
 
 /* Change History:
    $Log: not supported by cvs2svn $
+   Revision 1.3  2004/02/06 15:23:49  donm
+   update to 1.1.4
+
    Revision 1.1.1.1  2001/09/26 15:36:47  caron
    checkin beta1
 

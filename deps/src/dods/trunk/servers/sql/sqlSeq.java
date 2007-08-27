@@ -27,7 +27,7 @@ import dods.dap.Server.*;
 /**
  * Holds a DODS Server <code>Sequence</code> value.
  *
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * @author ndp
  * @see BaseType
  */
@@ -109,10 +109,10 @@ public class sqlSeq extends SDSequence {
         if (_Debug) System.out.println("\nReading row " + rowCount + " of Sequence \"" + getName() + "\" from " + datasetName + ":");
 
 
-        Enumeration enum = this.getVariables();
+        Enumeration enumx = this.getVariables();
 
-        while (enum.hasMoreElements()) {
-            ServerMethods sm = (ServerMethods) enum.nextElement();
+        while (enumx.hasMoreElements()) {
+            ServerMethods sm = (ServerMethods) enumx.nextElement();
             //System.out.println("Reading variable: "+((BaseType)sm).getName());
             if (sm.isProject()) {
                 sm.read(datasetName, specialO);

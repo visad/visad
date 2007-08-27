@@ -1,4 +1,4 @@
-// $Id: AggDDS.java,v 1.3 2004-02-06 15:23:49 donm Exp $
+// $Id: AggDDS.java,v 1.4 2007-08-27 20:13:04 brucef Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -170,9 +170,9 @@ public class AggDDS extends ServerDDS {
 
         // while we're at it, construct the DAS also
         DAS orgDAS = ds.getDAS();
-        java.util.Enumeration enum = orgDAS.getNames();
-        while (enum.hasMoreElements()) {
-          String attTableName = (String) enum.nextElement();
+        java.util.Enumeration enumx = orgDAS.getNames();
+        while (enumx.hasMoreElements()) {
+          String attTableName = (String) enumx.nextElement();
           if (null != das.getAttributeTable(attTableName))
             continue; // already got it.
 
@@ -420,6 +420,9 @@ public class AggDDS extends ServerDDS {
 
 /* Change History:
    $Log: not supported by cvs2svn $
+   Revision 1.3  2004/02/06 15:23:49  donm
+   update to 1.1.4
+
    Revision 1.3  2002/02/25 15:50:12  caron
    byte array padding
 

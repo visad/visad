@@ -15,7 +15,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 
-/* $Id: sqlCEEval.java,v 1.3 2004-02-06 15:23:50 donm Exp $
+/* $Id: sqlCEEval.java,v 1.4 2007-08-27 20:13:03 brucef Exp $
 *
 */
 
@@ -50,7 +50,7 @@ import dods.dap.parser.ExprParserConstants;
  by converting the "Selection" (the Clauses) into the constraint used in
  the Select statement's WHERE section.
 
- @version $Revision: 1.3 $
+ @version $Revision: 1.4 $
  @author ndp
  @see ServerDDS
  @see ServerMethods
@@ -228,9 +228,9 @@ public class sqlCEEval extends CEEvaluator implements ExprParserConstants {
         String distinct = "";
         LinkedList uClauses = new LinkedList();
 
-        Enumeration enum = getClauses();
-        while (enum.hasMoreElements()) {
-            Clause c = (Clause) enum.nextElement();
+        Enumeration enumx = getClauses();
+        while (enumx.hasMoreElements()) {
+            Clause c = (Clause) enumx.nextElement();
             if (c instanceof BoolFunctionClause) {
 
 
@@ -277,12 +277,12 @@ public class sqlCEEval extends CEEvaluator implements ExprParserConstants {
 
 
         String constraint = null;
-        Enumeration enum = getClauses();
+        Enumeration enumx = getClauses();
         LinkedList toBePurged = new LinkedList();
 
-        while (enum.hasMoreElements()) {
+        while (enumx.hasMoreElements()) {
 
-            Clause c = (Clause) enum.nextElement();
+            Clause c = (Clause) enumx.nextElement();
 
             String s = convertClauseToSQL(c, useDatasetName);
 

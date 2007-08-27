@@ -1,4 +1,4 @@
-// $Id: ProxySDArray.java,v 1.3 2004-02-06 15:23:49 donm Exp $
+// $Id: ProxySDArray.java,v 1.4 2007-08-27 20:13:04 brucef Exp $
 /*
  * Copyright 1997-2000 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -31,7 +31,7 @@ import java.util.*;
  * Proxy for an array in another (DODS) dataset.
  * If its 1D, read the entire array the first time and cache it.
  *
- * @version $Revision: 1.3 $
+ * @version $Revision: 1.4 $
  * @author jcaron
  */
 public class ProxySDArray extends SDArray implements HasProxyObject {
@@ -161,8 +161,8 @@ public class ProxySDArray extends SDArray implements HasProxyObject {
     }
 
     // get data
-    Enumeration enum = dataDDS.getVariables();
-    BaseType bt = (BaseType) enum.nextElement();
+    Enumeration enumx = dataDDS.getVariables();
+    BaseType bt = (BaseType) enumx.nextElement();
 
     DVector dv;
     if (bt instanceof DGrid) {
@@ -365,6 +365,9 @@ public class ProxySDArray extends SDArray implements HasProxyObject {
 
 /* Change History:
    $Log: not supported by cvs2svn $
+   Revision 1.3  2004/02/06 15:23:49  donm
+   update to 1.1.4
+
    Revision 1.2  2002/02/25 15:45:16  caron
    cache 1D arrays; efficient Coord vars
 
