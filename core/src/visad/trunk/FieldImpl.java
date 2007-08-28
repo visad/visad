@@ -2891,7 +2891,8 @@ public class FieldImpl extends FunctionImpl implements Field {
     float[][] oldvals = vals;
     try {  // this is only to throw a more meaningful message
       vals = CoordinateSystem.transformCoordinates(
-                      ((FunctionType) Type).getDomain(), DomainCoordinateSystem,
+                      ((FunctionType) Type).getDomain(), 
+                      getDomainCoordinateSystem(),
                       DomainUnits, errors_out,
                       ((SetType) set.getType()).getDomain(), coord_sys,
                       units, errors, vals);
@@ -3088,7 +3089,7 @@ public class FieldImpl extends FunctionImpl implements Field {
           for (int k=0; k<n; k++) outloc[k][0] = vals[k][i];
           range[i] = ((RealVectorType) RangeType).transformVectors(
                       ((FunctionType) Type).getDomain(),
-                      DomainCoordinateSystem, DomainUnits, errors_out,
+                      getDomainCoordinateSystem(), DomainUnits, errors_out,
                       ((SetType) set.getType()).getDomain(),
                       coord_sys, units,
                       ((RealTuple) range[i]).getCoordinateSystem(),
@@ -3119,7 +3120,7 @@ public class FieldImpl extends FunctionImpl implements Field {
                   (RealTuple) ((TupleIface) range[i]).getComponent(j);
                 datums[j] = ((RealVectorType) comp_type).transformVectors(
                             ((FunctionType) Type).getDomain(),
-                            DomainCoordinateSystem, DomainUnits, errors_out,
+                            getDomainCoordinateSystem(), DomainUnits, errors_out,
                             ((SetType) set.getType()).getDomain(),
                             coord_sys, units, component.getCoordinateSystem(),
                             inloc, outloc, component);
@@ -3202,7 +3203,8 @@ public class FieldImpl extends FunctionImpl implements Field {
     double[][] oldvals = vals;
     try {  // this is only to throw a more meaningful message
       vals = CoordinateSystem.transformCoordinates(
-                      ((FunctionType) Type).getDomain(), DomainCoordinateSystem,
+                      ((FunctionType) Type).getDomain(), 
+                      getDomainCoordinateSystem(),
                       DomainUnits, errors_out,
                       ((SetType) set.getType()).getDomain(), coord_sys,
                       units, errors, vals);
@@ -3397,7 +3399,7 @@ public class FieldImpl extends FunctionImpl implements Field {
           for (int k=0; k<n; k++) outloc[k][0] = vals[k][i];
           range[i] = ((RealVectorType) RangeType).transformVectors(
                       ((FunctionType) Type).getDomain(),
-                      DomainCoordinateSystem, DomainUnits, errors_out,
+                      getDomainCoordinateSystem(), DomainUnits, errors_out,
                       ((SetType) set.getType()).getDomain(),
                       coord_sys, units,
                       ((RealTuple) range[i]).getCoordinateSystem(),
@@ -3428,7 +3430,7 @@ public class FieldImpl extends FunctionImpl implements Field {
                   (RealTuple) ((TupleIface) range[i]).getComponent(j);
                 datums[j] = ((RealVectorType) comp_type).transformVectors(
                             ((FunctionType) Type).getDomain(),
-                            DomainCoordinateSystem, DomainUnits, errors_out,
+                            getDomainCoordinateSystem(), DomainUnits, errors_out,
                             ((SetType) set.getType()).getDomain(),
                             coord_sys, units, component.getCoordinateSystem(),
                             inloc, outloc, component);

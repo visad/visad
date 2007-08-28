@@ -4444,7 +4444,8 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     visad.util.Trace.call1("FlatField.resample:transformCoords");
     try {  // this is only to throw a more meaningful message
       vals = CoordinateSystem.transformCoordinates(
-                      ((FunctionType) Type).getDomain(), DomainCoordinateSystem,
+                      ((FunctionType) Type).getDomain(), 
+                      getDomainCoordinateSystem(),
                       DomainUnits, errors_out,
                       ((SetType) set.getType()).getDomain(), coord_sys,
                       units, errors, vals, false);
@@ -4699,7 +4700,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
       if (Range instanceof RealVectorType) {
         new_values = ((RealVectorType) Range).transformVectors(
                       ((FunctionType) Type).getDomain(),
-                      DomainCoordinateSystem, DomainUnits, errors_out,
+                      getDomainCoordinateSystem(), DomainUnits, errors_out,
                       ((SetType) set.getType()).getDomain(),
                       coord_sys, units, RangeCoordinateSystem,
                       range_errors_in, range_errors_out,
@@ -4723,7 +4724,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
             ErrorEstimate[] comp_errors_out = comp_errors_in;
             comp_vals = ((RealVectorType) comp_type).transformVectors(
                         ((FunctionType) Type).getDomain(),
-                        DomainCoordinateSystem, DomainUnits, errors_out,
+                        getDomainCoordinateSystem(), DomainUnits, errors_out,
                         ((SetType) set.getType()).getDomain(), coord_sys, units,
                         RangeCoordinateSystems[j],
                         comp_errors_in, comp_errors_out,
@@ -4840,7 +4841,8 @@ if (pr) System.out.println("value = " + new_values[0][0]);
     visad.util.Trace.call1("FlatField.resample:transformCoords");
     try {  // this is only to throw a more meaningful message
       vals = CoordinateSystem.transformCoordinates(
-                      ((FunctionType) Type).getDomain(), DomainCoordinateSystem,
+                      ((FunctionType) Type).getDomain(), 
+                      getDomainCoordinateSystem(),
                       DomainUnits, errors_out,
                       ((SetType) set.getType()).getDomain(), coord_sys,
                       units, errors, vals, false);
@@ -5094,7 +5096,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
       if (Range instanceof RealVectorType) {
         new_values = ((RealVectorType) Range).transformVectors(
                       ((FunctionType) Type).getDomain(),
-                      DomainCoordinateSystem, DomainUnits, errors_out,
+                      getDomainCoordinateSystem(), DomainUnits, errors_out,
                       ((SetType) set.getType()).getDomain(),
                       coord_sys, units, RangeCoordinateSystem,
                       range_errors_in, range_errors_out,
@@ -5118,7 +5120,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
             ErrorEstimate[] comp_errors_out = comp_errors_in;
             comp_vals = ((RealVectorType) comp_type).transformVectors(
                         ((FunctionType) Type).getDomain(),
-                        DomainCoordinateSystem, DomainUnits, errors_out,
+                        getDomainCoordinateSystem(), DomainUnits, errors_out,
                         ((SetType) set.getType()).getDomain(), coord_sys, units,
                         RangeCoordinateSystems[j],
                         comp_errors_in, comp_errors_out,
