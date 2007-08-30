@@ -37,6 +37,10 @@ import loci.formats.*;
  * ImageIOWriter is the superclass for file format writers that use the
  * javax.imageio library.
  *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/out/ImageIOWriter.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/out/ImageIOWriter.java">SVN</a></dd></dl>
+ *
  * @author Curtis Rueden ctrueden at wisc.edu
  */
 public abstract class ImageIOWriter extends FormatWriter {
@@ -67,11 +71,8 @@ public abstract class ImageIOWriter extends FormatWriter {
 
   // -- IFormatWriter API methods --
 
-  /**
-   * Saves the given image to the specified (possibly already open) file.
-   * The last flag is ignored, since this writer produces single-image files.
-   */
-  public void saveImage(String id, Image image, boolean last)
+  /* @see loci.formats.IFormatWriter#saveImage(Image, boolean) */
+  public void saveImage(Image image, boolean last)
     throws FormatException, IOException
   {
     BufferedImage img = (cm == null) ?
@@ -80,23 +81,23 @@ public abstract class ImageIOWriter extends FormatWriter {
       throw new FormatException("Floating point data not supported.");
     }
     out = new DataOutputStream(new BufferedOutputStream(
-      new FileOutputStream(id), 4096));
+      new FileOutputStream(currentId), 4096));
     ImageIO.write(img, kind, out);
   }
 
-  /* @see loci.formats.IFormatWriter#close() */
-  public void close() throws FormatException, IOException {
+  /* @see loci.formats.IFormatWriter#getPixelTypes() */
+  public int[] getPixelTypes() {
+    return new int[] {FormatTools.UINT8, FormatTools.UINT16};
+  }
+
+  // -- IFormatHandler API methods --
+
+  /* @see loci.formats.IFormatHandler#close() */
+  public void close() throws IOException {
     if (out != null) out.close();
     out = null;
     currentId = null;
-  }
-
-  /** Reports whether the writer can save multiple images to a single file. */
-  public boolean canDoStacks(String id) { return false; }
-
-  /* @see loci.formats.IFormatWriter#getPixelTypes(String) */
-  public int[] getPixelTypes(String id) throws FormatException, IOException {
-    return new int[] {FormatTools.UINT8, FormatTools.UINT16};
+    initialized = false;
   }
 
 }

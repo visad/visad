@@ -27,7 +27,13 @@ package loci.formats.in;
 import java.util.*;
 import loci.formats.*;
 
-/** Utility class for parsing MDB database files. */
+/**
+ * Utility class for parsing MDB database files.
+ *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/in/MDBParser.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/in/MDBParser.java">SVN</a></dd></dl>
+ */
 public final class MDBParser {
 
   // -- Constants --
@@ -59,8 +65,9 @@ public final class MDBParser {
       r.exec("import mdbtools.libmdb.file");
       r.exec("import mdbtools.libmdb.mem");
     }
-    catch (Throwable exc) {
+    catch (Throwable t) {
       noMDB = true;
+      if (FormatHandler.debug) LogTools.trace(t);
     }
     return r;
   }
@@ -88,7 +95,7 @@ public final class MDBParser {
 
       // print out all data
 
-      r.setVar("filename", filename); 
+      r.setVar("filename", filename);
       r.exec("dbfile = new File(filename)");
       r.exec("mdb = file.mdb_open(dbfile)");
       r.exec("Catalog.mdb_read_catalog(mdb, Constants.MDB_TABLE)");
@@ -170,8 +177,8 @@ public final class MDBParser {
         }
       }
     }
-    catch (ReflectException re) {
-      re.printStackTrace();
+    catch (ReflectException exc) {
+      LogTools.trace(exc);
     }
   }
 

@@ -32,6 +32,10 @@ import loci.formats.*;
 /**
  * EPSWriter is the file format writer for Encapsulated PostScript (EPS) files.
  *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/out/EPSWriter.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/out/EPSWriter.java">SVN</a></dd></dl>
+ *
  * @author Melissa Linkert linkert at wisc.edu
  */
 public class EPSWriter extends FormatWriter {
@@ -47,18 +51,15 @@ public class EPSWriter extends FormatWriter {
 
   // -- IFormatWriter API methods --
 
-  /**
-   * Saves the given image to the specified (possibly already open) file.
-   * If this image is the last one in the file, the last flag must be set.
-   */
-  public void saveImage(String id, Image image, boolean last)
+  /* @see loci.formats.IFormatWriter#saveImage(Image, boolean) */
+  public void saveImage(Image image, boolean last)
     throws FormatException, IOException
   {
     if (image == null) {
       throw new FormatException("Image is null");
     }
 
-    out = new RandomAccessFile(id, "rw");
+    out = new RandomAccessFile(currentId, "rw");
 
     BufferedImage img = (cm == null) ?
       ImageTools.makeBuffered(image) : ImageTools.makeBuffered(image, cm);
@@ -73,7 +74,7 @@ public class EPSWriter extends FormatWriter {
     // write the header
 
     DataTools.writeString(out, "%!PS-Adobe-2.0 EPSF-1.2\n");
-    DataTools.writeString(out, "%%Title: " + id + "\n");
+    DataTools.writeString(out, "%%Title: " + currentId + "\n");
     DataTools.writeString(out, "%%Creator: LOCI Bio-Formats\n");
     DataTools.writeString(out, "%%Pages: 1\n");
     DataTools.writeString(out, "%%BoundingBox: 0 0 " + width +
@@ -143,25 +144,19 @@ public class EPSWriter extends FormatWriter {
     out.close();
   }
 
-  /* @see loci.formats.IFormatWriter#close() */
-  public void close() throws FormatException, IOException {
-    if (out != null) out.close();
-    out = null;
-    currentId = null;
-  }
-
-  /** Reports whether the writer can save multiple images to a single file. */
-  public boolean canDoStacks(String id) { return false; }
-
-  /* @see loci.formats.IFormatWriter#getPixelTypes(String) */
-  public int[] getPixelTypes(String id) throws FormatException, IOException {
+  /* @see loci.formats.IFormatWriter#getPixelTypes() */
+  public int[] getPixelTypes() {
     return new int[] {FormatTools.UINT8};
   }
 
-  // -- Main method --
+  // -- IFormatHandler API methods --
 
-  public static void main(String[] args) throws IOException, FormatException {
-    new EPSWriter().testConvert(args);
+  /* @see loci.formats.IFormatHandler#close() */
+  public void close() throws IOException {
+    if (out != null) out.close();
+    out = null;
+    currentId = null;
+    initialized = false;
   }
 
 }

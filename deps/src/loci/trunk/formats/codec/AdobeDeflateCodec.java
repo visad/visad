@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package loci.formats.codec;
 
+import java.io.IOException;
 import java.io.PipedInputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
@@ -32,6 +33,10 @@ import loci.formats.FormatException;
 /**
  * This class implements Adobe Deflate decompression. Compression is not yet
  * implemented.
+ *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/codec/AdobeDeflateCodec.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/codec/AdobeDeflateCodec.java">SVN</a></dd></dl>
  *
  * @author Melissa Linkert linkert at wisc.edu
  */
@@ -63,7 +68,9 @@ public class AdobeDeflateCodec extends BaseCodec implements Codec {
    * @throws FormatException if data is not valid compressed data for this
    *                         decompressor
    */
-  public byte[] decompress(byte[] input) throws FormatException {
+  public byte[] decompress(byte[] input, Object options)
+    throws FormatException
+  {
     try {
       Inflater inf = new Inflater(false);
       inf.setInput(input);
@@ -78,7 +85,7 @@ public class AdobeDeflateCodec extends BaseCodec implements Codec {
       }
       return bytes.toByteArray();
     }
-    catch (Exception e) {
+    catch (IOException e) {
       throw new FormatException("Error uncompressing " +
         "Adobe Deflate (ZLIB) compressed image strip.", e);
     }

@@ -34,6 +34,10 @@ import loci.formats.codec.LZOCodec;
 /**
  * OpenlabReader is the file format reader for Openlab LIFF files.
  *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/in/OpenlabReader.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/in/OpenlabReader.java">SVN</a></dd></dl>
+ *
  * @author Melissa Linkert linkert at wisc.edu
  * @author Eric Kjellman egkjellman at wisc.edu
  * @author Curtis Rueden ctrueden at wisc.edu
@@ -56,14 +60,8 @@ public class OpenlabReader extends FormatReader {
 
   // -- Fields --
 
-  /** Current file. */
-  private RandomAccessStream in;
-
   /** LIFF version (should be 2 or 5). */
   private int version;
-
-  /** Number of images in the file. */
-  private int[] numImages;
 
   /** Number of series. */
   private int numSeries;
@@ -80,72 +78,19 @@ public class OpenlabReader extends FormatReader {
   /** Constructs a new OpenlabReader. */
   public OpenlabReader() { super("Openlab LIFF", "liff"); }
 
-  // -- FormatReader API methods --
+  // -- IFormatReader API methods --
 
-  /* @see loci.formats.IFormatReader#isThisType(byte[]) */ 
+  /* @see loci.formats.IFormatReader#isThisType(byte[]) */
   public boolean isThisType(byte[] block) {
     return block.length >= 8 && block[0] == 0 && block[1] == 0 &&
       block[2] == -1 && block[3] == -1 && block[4] == 105 &&
       block[5] == 109 && block[6] == 112 && block[7] == 114;
   }
 
-  /* @see loci.foramts.IFormatReader#isThisType(String, boolean) */ 
-  public boolean isThisType(String name, boolean open) {
-    if (super.isThisType(name, open)) return true; // check extension
-
-    if (open) {
-      byte[] b = new byte[8];
-      try {
-        in = new RandomAccessStream(name);
-        in.read(b);
-      }
-      catch (IOException e) {
-        if (debug) e.printStackTrace();
-        return false;
-      }
-      return isThisType(b);
-    }
-    else {
-      return name.indexOf(".") < 0; // file appears to have no extension
-    }
-  }
-
-  /* @see loci.formats.IFormatReader#getImageCount(String) */ 
-  public int getImageCount(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return numImages[series];
-  }
-
-  /* @see loci.formats.IFormatReader#isRGB(String) */ 
-  public boolean isRGB(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return core.sizeC[series] > 1;
-  }
-
-  /* @see loci.formats.IFormatReader#getSeriesCount(String) */ 
-  public int getSeriesCount(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return numSeries;
-  }
-
-  /* @see loci.formats.IFormatReader#isLittleEndian(String) */ 
-  public boolean isLittleEndian(String id) throws FormatException, IOException {
-    return false;
-  }
-
-  /* @see loci.formats.IFormatReader#isInterleaved(String, int) */ 
-  public boolean isInterleaved(String id, int subC)
-    throws FormatException, IOException
-  {
-    return true;
-  }
-
-  /* @see loci.formats.IFormatReader#openBytes(String, int) */ 
-  public byte[] openBytes(String id, int no)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-    if (no < 0 || no >= getImageCount(id)) {
+  /* @see loci.formats.IFormatReader#openBytes(int) */
+  public byte[] openBytes(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 1);
+    if (no < 0 || no >= getImageCount()) {
       throw new FormatException("Invalid image number: " + no);
     }
 
@@ -161,24 +106,24 @@ public class OpenlabReader extends FormatReader {
     }
 
     in.skipBytes(24);
-    int volumeType = DataTools.read2SignedBytes(in, false);
+    int volumeType = in.readShort();
     in.skipBytes(272);
 
     int top, left, bottom, right;
 
     if (version == 2) {
       in.skipBytes(2);
-      top = DataTools.read2SignedBytes(in, false);
-      left = DataTools.read2SignedBytes(in, false);
-      bottom = DataTools.read2SignedBytes(in, false);
-      right = DataTools.read2SignedBytes(in, false);
+      top = in.readShort();
+      left = in.readShort();
+      bottom = in.readShort();
+      right = in.readShort();
 
       if (core.sizeX[series] == 0) core.sizeX[series] = right - left;
       if (core.sizeY[series] == 0) core.sizeY[series] = bottom - top;
     }
     else {
-      core.sizeX[series] = DataTools.read4SignedBytes(in, false);
-      core.sizeY[series] = DataTools.read4SignedBytes(in, false);
+      core.sizeX[series] = in.readInt();
+      core.sizeY[series] = in.readInt();
     }
 
     in.seek(info.layerStart);
@@ -194,6 +139,7 @@ public class OpenlabReader extends FormatReader {
       in.skipBytes(298);
 
       // open image using pict reader
+      Exception exception = null;
       try {
         b = new byte[(int) (nextTag - in.getFilePointer())];
         in.read(b);
@@ -204,9 +150,10 @@ public class OpenlabReader extends FormatReader {
           System.arraycopy(tmp[i], 0, b, i * tmp[i].length, tmp[i].length);
         }
       }
-      catch (Exception e) {
-        // CTR TODO - eliminate catch-all exception handling
-        if (debug) e.printStackTrace();
+      catch (FormatException exc) { exception = exc; }
+      catch (IOException exc) { exception = exc; }
+      if (exception != null) {
+        if (debug) trace(exception);
 
         b = null;
         in.seek(info.layerStart + 12);
@@ -284,11 +231,11 @@ public class OpenlabReader extends FormatReader {
       }
 
       in.skipBytes(24);
-      volumeType = DataTools.read2SignedBytes(in, false);
+      volumeType = in.readShort();
 
       in.skipBytes(280);
-      int size = DataTools.read4SignedBytes(in, false);
-      int compressedSize = DataTools.read4SignedBytes(in, false);
+      int size = in.readInt();
+      int compressedSize = in.readInt();
       b = new byte[size];
       byte[] c = new byte[compressedSize];
       in.read(c);
@@ -296,8 +243,8 @@ public class OpenlabReader extends FormatReader {
       LZOCodec lzoc = new LZOCodec();
       b = lzoc.decompress(c);
       if (b.length != size) {
-        System.err.println("LZOCodec failed to predict image size");
-        System.err.println(size + " expected, got " + b.length +
+        LogTools.println("LZOCodec failed to predict image size");
+        LogTools.println(size + " expected, got " + b.length +
           ". The image displayed may not be correct.");
       }
 
@@ -331,6 +278,14 @@ public class OpenlabReader extends FormatReader {
           bytesPerPixel = 3;
         }
       }
+      else if (volumeType == MAC_256_GREYS) {
+        byte[] tmp = b;
+        b = new byte[core.sizeX[series] * core.sizeY[series]];
+        for (int y=0; y<core.sizeY[series]; y++) {
+          System.arraycopy(tmp, y*(core.sizeX[series] + 16), b,
+            y*core.sizeX[series], core.sizeX[series]);
+        }
+      }
       else if (volumeType < MAC_24_BIT) {
         throw new FormatException("Unsupported image type : " + volumeType);
       }
@@ -346,16 +301,14 @@ public class OpenlabReader extends FormatReader {
     return b;
   }
 
-  /* @see loci.formats.IFormatReader#openImage(String, int) */ 
-  public BufferedImage openImage(String id, int no)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-    if (no < 0 || no >= getImageCount(id)) {
+  /* @see loci.formats.IFormatReader#openImage(int) */
+  public BufferedImage openImage(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 1);
+    if (no < 0 || no >= getImageCount()) {
       throw new FormatException("Invalid image number: " + no);
     }
 
-    byte[] b = openBytes(id, no);
+    byte[] b = openBytes(no);
     bytesPerPixel = b.length / (core.sizeX[series] * core.sizeY[series]);
     if (bytesPerPixel > 3) bytesPerPixel = 3;
     return ImageTools.makeImage(b, core.sizeX[series], core.sizeY[series],
@@ -364,7 +317,7 @@ public class OpenlabReader extends FormatReader {
   }
 
   /* @see loci.formats.IFormatReader#close(boolean) */
-  public void close(boolean fileOnly) throws FormatException, IOException {
+  public void close(boolean fileOnly) throws IOException {
     if (fileOnly) {
       if (in != null) in.close();
       if (pict != null) pict.close(fileOnly);
@@ -372,16 +325,39 @@ public class OpenlabReader extends FormatReader {
     else close();
   }
 
-  /* @see loci.formats.IFormatReader#close() */ 
-  public void close() throws FormatException, IOException {
-    currentId = null;
-    if (in != null) in.close();
-    in = null;
+  // -- IFormatHandler API methods --
+
+  /* @see loci.formats.IFormatHandler#isThisType(String, boolean) */
+  public boolean isThisType(String name, boolean open) {
+    if (super.isThisType(name, open)) return true; // check extension
+
+    if (open) {
+      byte[] b = new byte[8];
+      try {
+        in = new RandomAccessStream(name);
+        in.read(b);
+      }
+      catch (IOException exc) {
+        if (debug) trace(exc);
+        return false;
+      }
+      return isThisType(b);
+    }
+    else { // not allowed to check the file contents
+      return name.indexOf(".") < 0; // file appears to have no extension
+    }
+  }
+
+  /* @see loci.formats.IFormatHandler#close() */
+  public void close() throws IOException {
+    super.close();
     if (pict != null) pict.close();
     layerInfoList = null;
   }
 
-  /** Initialize the given Openlab LIFF file. */
+  // -- Internal FormatReader API methods --
+
+  /* @see loci.formats.FormatReader#initFile(String) */
   protected void initFile(String id) throws FormatException, IOException {
     if (debug) debug("OpenlabReader.initFile(" + id + ")");
     super.initFile(id);
@@ -389,13 +365,13 @@ public class OpenlabReader extends FormatReader {
 
     status("Verifying Openlab LIFF format");
 
+    in.order(false);
     in.skipBytes(4);
-    byte[] b = new byte[4];
-    in.read(b);
-    String s = new String(b);
-    if (!s.equals("impr")) throw new FormatException("Invalid LIFF file.");
+    if (!in.readString(4).equals("impr")) {
+      throw new FormatException("Invalid LIFF file.");
+    }
 
-    version = DataTools.read4SignedBytes(in, false);
+    version = in.readInt();
 
     if (version != 2 && version != 5) {
       throw new FormatException("Invalid version : " + version);
@@ -405,7 +381,7 @@ public class OpenlabReader extends FormatReader {
     in.skipBytes(4);
 
     // read offset to first plane
-    int offset = DataTools.read4SignedBytes(in, false);
+    int offset = in.readInt();
     in.seek(offset);
 
     status("Finding image offsets");
@@ -424,11 +400,11 @@ public class OpenlabReader extends FormatReader {
         startPos = in.getFilePointer();
         nextTag = readTagHeader();
       }
-      catch (IOException e) {
-        if (debug) e.printStackTrace();
+      catch (IOException exc) {
+        if (debug) trace(exc);
 
         if (in.getFilePointer() >= in.length()) break;
-        else throw new FormatException(e.getMessage());
+        else throw new FormatException(exc.getMessage());
       }
 
       try {
@@ -441,31 +417,27 @@ public class OpenlabReader extends FormatReader {
           info.wavelength = -1;
 
           in.skipBytes(24);
-          int volumeType = DataTools.read2SignedBytes(in, false);
+          int volumeType = in.readShort();
 
           if (volumeType == MAC_1_BIT || volumeType == MAC_256_GREYS ||
             volumeType == MAC_256_COLORS ||
             (volumeType >= MAC_24_BIT && volumeType <= GREY_16_BIT))
           {
             in.skipBytes(16);
-            b = new byte[128];
-            in.read(b);
-            info.layerName = new String(b);
+            info.layerName = in.readString(128);
 
             if (!info.layerName.trim().equals("Original Image")) {
-              info.timestamp = DataTools.read8SignedBytes(in, false);
+              info.timestamp = in.readLong();
               layerInfoList[0].add(info);
             }
           }
 
         }
         else if (tag == 69) {
-          in.skipBytes(4);
-          int units = DataTools.read2SignedBytes(in, false);
-          in.skipBytes(12);
+          in.skipBytes(18);
 
-          xCal = Float.intBitsToFloat(DataTools.read4SignedBytes(in, false));
-          yCal = Float.intBitsToFloat(DataTools.read4SignedBytes(in, false));
+          xCal = in.readFloat();
+          yCal = in.readFloat();
         }
         else if (tag == 72 || fmt.equals("USER")) {
           char aChar = (char) in.read();
@@ -481,7 +453,7 @@ public class OpenlabReader extends FormatReader {
             aChar = (char) in.read();
 
             if (aChar == 1) {
-              int numVars = DataTools.read2SignedBytes(in, false);
+              int numVars = in.readShort();
               while (numVars > 0) {
                 aChar = (char) in.read();
                 sb = new StringBuffer();
@@ -503,26 +475,21 @@ public class OpenlabReader extends FormatReader {
                 }
 
                 if (className.equals("CStringVariable")) {
-                  int strSize = DataTools.read4SignedBytes(in, false);
-                  b = new byte[strSize];
-                  in.read(b);
-                  varStringValue = new String(b);
+                  int strSize = in.readInt();
+                  varStringValue = in.readString(strSize);
                   varNumValue = Float.parseFloat(varStringValue);
 
                   in.skipBytes(1);
                 }
                 else if (className.equals("CFloatVariable")) {
-                  varNumValue = Double.longBitsToDouble(
-                    DataTools.read8SignedBytes(in, false));
+                  varNumValue = in.readDouble();
                   varStringValue = "" + varNumValue;
                 }
 
                 int baseClassVersion = in.read();
                 if (baseClassVersion == 1 || baseClassVersion == 2) {
-                  int strSize = DataTools.read4SignedBytes(in, false);
-                  b = new byte[strSize];
-                  in.read(b);
-                  varName = new String(b);
+                  int strSize = in.readInt();
+                  varName = in.readString(strSize);
                   in.skipBytes(baseClassVersion == 1 ? 3 : 2);
                 }
                 else {
@@ -538,9 +505,9 @@ public class OpenlabReader extends FormatReader {
 
         in.seek(nextTag);
       }
-      catch (Exception e) {
+      catch (Exception exc) {
         // CTR TODO - eliminate catch-all exception handling
-        if (debug) e.printStackTrace();
+        if (debug) trace(exc);
         in.seek(nextTag);
       }
     }
@@ -552,48 +519,41 @@ public class OpenlabReader extends FormatReader {
 
     core = new CoreMetadata(2);
 
-    numImages = new int[2];
-    numImages[0] = tmp.size();
+    core.imageCount[0] = tmp.size();
 
     // determine if we have a multi-series file
 
     status("Determining series count");
 
-    int oldChannels = 
-      openBytes(id, 0).length / (core.sizeX[0] * core.sizeY[0] * 3);
+    int oldChannels = openBytes(0).length / (core.sizeX[0] * core.sizeY[0] * 3);
     int oldWidth = core.sizeX[0];
 
-    int oldSize = 0;
     for (int i=0; i<tmp.size(); i++) {
       LayerInfo layer = (LayerInfo) tmp.get(i);
       in.seek(layer.layerStart);
 
       long nextTag = readTagHeader();
       if (fmt.equals("PICT")) {
-        in.skipBytes(24);
-        int volumeType = DataTools.read2SignedBytes(in, false);
-        in.skipBytes(272);
+        in.skipBytes(298);
 
         int top, left, bottom, right;
 
         if (version == 2) {
           in.skipBytes(2);
-          top = DataTools.read2SignedBytes(in, false);
-          left = DataTools.read2SignedBytes(in, false);
-          bottom = DataTools.read2SignedBytes(in, false);
-          right = DataTools.read2SignedBytes(in, false);
+          top = in.readShort();
+          left = in.readShort();
+          bottom = in.readShort();
+          right = in.readShort();
 
           if (core.sizeX[series] == 0) core.sizeX[series] = right - left;
           if (core.sizeY[series] == 0) core.sizeY[series] = bottom - top;
         }
         else {
-          core.sizeX[series] = DataTools.read4SignedBytes(in, false);
-          core.sizeY[series] = DataTools.read4SignedBytes(in, false);
+          core.sizeX[series] = in.readInt();
+          core.sizeY[series] = in.readInt();
         }
 
         in.seek(layer.layerStart);
-
-        b = new byte[0];
 
         if (version == 2) {
           nextTag = readTagHeader();
@@ -605,7 +565,7 @@ public class OpenlabReader extends FormatReader {
 
           // open image using pict reader
           try {
-            b = new byte[(int) (nextTag - in.getFilePointer())];
+            byte[] b = new byte[(int) (nextTag - in.getFilePointer())];
             in.read(b);
             BufferedImage img = pict.open(b);
             if (img.getRaster().getNumBands() != oldChannels ||
@@ -634,14 +594,18 @@ public class OpenlabReader extends FormatReader {
       core.sizeC[0] = layerInfoList[1].size() == 0 ? 1 : 3;
       if (core.sizeC[0] == 1 && oldChannels == 1) core.sizeC[0] = 3;
 
-      int oldImages = numImages[0];
-      numImages = new int[1];
-      numImages[0] = oldImages;
+      int oldImages = core.imageCount[0];
+      core.imageCount = new int[1];
+      core.imageCount[0] = oldImages;
       if (layerInfoList[0].size() == 0) layerInfoList[0] = layerInfoList[1];
+
+      int x = core.sizeX[0];
+      core.sizeX = new int[1];
+      core.sizeX[0] = x;
     }
     else {
-      numImages[0] = layerInfoList[0].size();
-      numImages[1] = layerInfoList[1].size();
+      core.imageCount[0] = layerInfoList[0].size();
+      core.imageCount[1] = layerInfoList[1].size();
       core.sizeC[0] = 1;
       core.sizeC[1] = 3;
       int oldW = core.sizeX[0];
@@ -656,18 +620,19 @@ public class OpenlabReader extends FormatReader {
 
     status("Populating metadata");
 
-    numSeries = numImages.length;
+    numSeries = core.imageCount.length;
 
     int[] bpp = new int[numSeries];
 
     Arrays.fill(core.orderCertain, true);
 
-    int oldSeries = getSeries(currentId);
+    int oldSeries = getSeries();
     for (int i=0; i<bpp.length; i++) {
-      setSeries(currentId, i);
-      bpp[i] = openBytes(id, 0).length / (core.sizeX[i] * core.sizeY[i]);
+      setSeries(i);
+      if (core.sizeC[i] == 0) core.sizeC[i] = 1;
+      bpp[i] = openBytes(0).length / (core.sizeX[i] * core.sizeY[i]);
     }
-    setSeries(currentId, oldSeries);
+    setSeries(oldSeries);
 
     if (bytesPerPixel == 3) bytesPerPixel = 1;
     if (bytesPerPixel == 0) bytesPerPixel++;
@@ -683,16 +648,20 @@ public class OpenlabReader extends FormatReader {
       addMeta("Number of channels (Series " + i + ")",
         new Integer(core.sizeC[i]));
       addMeta("Number of images (Series " + i + ")",
-        new Integer(numImages[i]));
+        new Integer(core.imageCount[i]));
     }
 
     // populate MetadataStore
 
-    MetadataStore store = getMetadataStore(id);
+    MetadataStore store = getMetadataStore();
 
     for (int i=0; i<numSeries; i++) {
       core.sizeT[i] += 1;
-      core.currentOrder[i] = isRGB(id) ? "XYCZT" : "XYZCT";
+      core.sizeZ[i] = core.imageCount[i] / core.sizeT[i];
+      core.currentOrder[i] = isRGB() ? "XYCZT" : "XYZCT";
+      core.rgb[i] = core.sizeC[i] > 1;
+      core.interleaved[i] = true;
+      core.littleEndian[i] = false;
 
       try {
         if (i != 0) {
@@ -703,19 +672,15 @@ public class OpenlabReader extends FormatReader {
 
       switch (bpp[i]) {
         case 1:
-          core.pixelType[i] = FormatTools.INT8;
-          break;
-        case 2:
-          core.pixelType[i] = FormatTools.UINT16;
-          break;
         case 3:
           core.pixelType[i] = FormatTools.UINT8;
           break;
-        case 4:
-          core.pixelType[i] = FormatTools.INT32;
-          break;
+        case 2:
         case 6:
-          core.pixelType[i] = FormatTools.INT16;
+          core.pixelType[i] = FormatTools.UINT16;
+          break;
+        case 4:
+          core.pixelType[i] = FormatTools.UINT32;
           break;
       }
 
@@ -727,15 +692,16 @@ public class OpenlabReader extends FormatReader {
         new Integer(core.sizeC[i]),
         new Integer(core.sizeT[i]),
         new Integer(core.pixelType[i]),
-        new Boolean(!isLittleEndian(id)),
-        core.currentOrder[i], 
+        new Boolean(!isLittleEndian()),
+        core.currentOrder[i],
         new Integer(i),
         null);
       store.setDimensions(new Float(xCal), new Float(yCal), new Float(zCal),
         null, null, new Integer(i));
       for (int j=0; j<core.sizeC[0]; j++) {
-        store.setLogicalChannel(j, null, null, null, null, null,
-          null, new Integer(i));
+        store.setLogicalChannel(j, null, null, null, null, null, null, null,
+          null, null, null, null, null, null, null, null, null, null, null,
+          null, null, null, null, null, new Integer(i));
       }
     }
   }
@@ -746,11 +712,10 @@ public class OpenlabReader extends FormatReader {
   private long readTagHeader()
     throws IOException
   {
-    tag = DataTools.read2SignedBytes(in, false);
-    subTag = DataTools.read2SignedBytes(in, false);
+    tag = in.readShort();
+    subTag = in.readShort();
 
-    long nextTag = (version == 2 ? DataTools.read4SignedBytes(in, false) :
-      DataTools.read8SignedBytes(in, false));
+    long nextTag = (version == 2 ? in.readInt() : in.readLong());
 
     byte[] b = new byte[4];
     in.read(b);
@@ -759,6 +724,8 @@ public class OpenlabReader extends FormatReader {
     else in.skipBytes(8);
     return nextTag;
   }
+
+  // -- Helper classes --
 
   /** Helper class for storing layer info. */
   protected class LayerInfo {

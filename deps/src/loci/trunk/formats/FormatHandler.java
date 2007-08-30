@@ -24,10 +24,25 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package loci.formats;
 
+import java.io.*;
 import java.util.Vector;
 
-/** Abstract superclass of all biological file format readers and writers. */
+/**
+ * Abstract superclass of all biological file format readers and writers.
+ *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/FormatHandler.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/FormatHandler.java">SVN</a></dd></dl>
+ */
 public abstract class FormatHandler implements IFormatHandler {
+
+  // -- Static fields --
+
+  /** Debugging flag. */
+  public static boolean debug = false;
+
+  /** Debugging level. 1=basic, 2=extended, 3=everything, 4=insane. */
+  public static int debugLevel = 1;
 
   // -- Fields --
 
@@ -74,6 +89,24 @@ public abstract class FormatHandler implements IFormatHandler {
     for (int i=0; i<l.length; i++) l[i].statusUpdated(e);
   }
 
+  /** Issues a debugging statement. Convenience method for format handlers. */
+  protected void debug(String s) {
+    String name = getClass().getName();
+    String prefix = "loci.formats.";
+    if (name.startsWith(prefix)) {
+      name = name.substring(name.lastIndexOf(".") + 1);
+    }
+    String msg = System.currentTimeMillis() + ": " + name + ": " + s;
+    if (debugLevel > 3) LogTools.trace(msg);
+    else LogTools.println(msg);
+  }
+
+  /** Issues a stack trace. Convenience method for format handlers. */
+  protected void trace(String s) { LogTools.trace(s); }
+
+  /** Issues a stack trace. Convenience method for format handlers. */
+  protected void trace(Throwable t) { LogTools.trace(t); }
+
   // -- IFormatHandler API methods --
 
   /**
@@ -95,6 +128,9 @@ public abstract class FormatHandler implements IFormatHandler {
     String lname = name.toLowerCase();
     for (int i=0; i<suffixes.length; i++) {
       if (lname.endsWith("." + suffixes[i])) return true;
+      if (lname.endsWith("." + suffixes[i] + ".gz")) return true;
+      if (lname.endsWith("." + suffixes[i] + ".bz2")) return true;
+      if (lname.endsWith("." + suffixes[i] + ".zip")) return true;
     }
     return false;
   }
@@ -104,6 +140,11 @@ public abstract class FormatHandler implements IFormatHandler {
 
   /* @see IFormatHandler#getSuffixes() */
   public String[] getSuffixes() { return suffixes; }
+
+  /* @see IFormatHandler#setId(String) */
+  public void setId(String id) throws FormatException, IOException {
+    setId(id, false);
+  }
 
   // -- StatusReporter API methods --
 
@@ -128,6 +169,21 @@ public abstract class FormatHandler implements IFormatHandler {
       statusListeners.copyInto(l);
       return l;
     }
+  }
+
+  // -- Utility methods --
+
+  /** Toggles debug mode (more verbose output and error messages). */
+  public static void setDebug(boolean debug) {
+    FormatHandler.debug = debug;
+  }
+
+  /**
+   * Toggles debug mode verbosity (which kinds of output are produced).
+   * @param debugLevel 1=basic, 2=extended, 3=everything.
+   */
+  public static void setDebugLevel(int debugLevel) {
+    FormatHandler.debugLevel = debugLevel;
   }
 
 }

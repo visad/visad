@@ -28,7 +28,12 @@ import loci.formats.FormatException;
 
 /**
  * Implements encoding (compress) and decoding (decompress) methods
- * for Base64.
+ * for Base64.  This code was adapted from the Jakarta Commons Codec source,
+ * http://jakarta.apache.org/commons
+ *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/codec/Base64Codec.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/codec/Base64Codec.java">SVN</a></dd></dl>
  *
  * @author Melissa Linkert linkert at wisc.edu
  */
@@ -166,7 +171,9 @@ public class Base64Codec extends BaseCodec implements Codec {
    * @return The decoded data
    * @throws FormatException if data is not valid Base64 data
    */
-  public byte[] decompress(byte[] base64Data) throws FormatException {
+  public byte[] decompress(byte[] base64Data, Object options)
+    throws FormatException
+  {
     // TODO: Add checks for invalid data.
     if (base64Data.length == 0) return new byte[0];
 

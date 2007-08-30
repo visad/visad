@@ -28,25 +28,61 @@ import java.awt.Image;
 import java.awt.image.ColorModel;
 import java.io.IOException;
 
-/** Interface for all biological file format writers. */
+/**
+ * Interface for all biological file format writers.
+ *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/IFormatWriter.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/IFormatWriter.java">SVN</a></dd></dl>
+ */
 public interface IFormatWriter extends IFormatHandler {
 
   /**
-   * Saves the given image to the specified (possibly already open) file.
+   * Saves the given image to the current file.
    * If this image is the last one in the file, the last flag must be set.
    */
-  void saveImage(String id, Image image, boolean last)
-    throws FormatException, IOException;
-  
-  /** @deprecated Replaced by {@link #saveImage(String, Image, boolean)} */
-  void save(String id, Image image, boolean last)
+  void saveImage(Image image, boolean last) throws FormatException, IOException;
+
+  /**
+   * Saves the given image to the given series in the current file.
+   * If this image is the last one in the series, the lastInSeries flag
+   * must be set.
+   * If this image is the last one in the file, the last flag must be set.
+   */
+  void saveImage(Image image, int series, boolean lastInSeries, boolean last)
     throws FormatException, IOException;
 
-  /** Closes open files. */
-  void close() throws FormatException, IOException;
+  /**
+   * Saves the given byte array to the current file.
+   * If this is the last array to be written, the last flag must be set.
+   */
+  void saveBytes(byte[] bytes, boolean last)
+    throws FormatException, IOException;
+
+  /**
+   * Saves the given byte array to the given series in the current file.
+   * If this is the last array in the series, the lastInSeries flag must be set.
+   * If this is the last array to be written, the last flag must be set.
+   */
+  void saveBytes(byte[] bytes, int series, boolean lastInSeries, boolean last)
+    throws FormatException, IOException;
 
   /** Reports whether the writer can save multiple images to a single file. */
-  boolean canDoStacks(String id) throws FormatException;
+  boolean canDoStacks();
+
+  /**
+   * Sets the metadata retrieval object from
+   * which to retrieve standardized metadata.
+   */
+  void setMetadataRetrieve(MetadataRetrieve r);
+
+  /**
+   * Retrieves the current metadata retrieval object for this writer. You can
+   * be assured that this method will <b>never</b> return a <code>null</code>
+   * metadata retrieval object.
+   * @return A metadata retrieval object.
+   */
+  MetadataRetrieve getMetadataRetrieve();
 
   /** Sets the color model. */
   void setColorModel(ColorModel cm);
@@ -64,16 +100,28 @@ public interface IFormatWriter extends IFormatHandler {
   String[] getCompressionTypes();
 
   /** Gets the supported pixel types. */
-  int[] getPixelTypes(String id) throws FormatException, IOException;
+  int[] getPixelTypes();
 
   /** Checks if the given pixel type is supported. */
-  boolean isSupportedType(String id, int type)
-    throws FormatException, IOException;
+  boolean isSupportedType(int type);
 
   /** Sets the current compression type. */
   void setCompression(String compress) throws FormatException;
 
-  /** A utility method for converting a file from the command line. */
-  boolean testConvert(String[] args) throws FormatException, IOException;
+  // -- Deprecated API methods --
+
+  /** @deprecated Replaced by {@link #canDoStacks()} */
+  boolean canDoStacks(String id) throws FormatException;
+
+  /** @deprecated Replaced by {@link #getPixelTypes()} */
+  int[] getPixelTypes(String id) throws FormatException, IOException;
+
+  /** @deprecated Replaced by {@link #isSupportedType(int type)} */
+  boolean isSupportedType(String id, int type)
+    throws FormatException, IOException;
+
+  /** @deprecated Replaced by {@link #saveImage(Image, boolean)} */
+  void save(String id, Image image, boolean last)
+    throws FormatException, IOException;
 
 }

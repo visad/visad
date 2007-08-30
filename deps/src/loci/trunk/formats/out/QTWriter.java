@@ -33,6 +33,10 @@ import loci.formats.*;
 /**
  * QTWriter is the file format writer for uncompressed QuickTime movie files.
  *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/out/QTWriter.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/out/QTWriter.java">SVN</a></dd></dl>
+ *
  * @author Melissa Linkert linkert at wisc.edu
  */
 
@@ -113,7 +117,7 @@ public class QTWriter extends FormatWriter {
   public QTWriter() {
     super("QuickTime", "mov");
     compressionTypes = new String[] {
-      "Uncompressed", "Motion JPEG-B", "Cinepak", "Animation", "H.263",
+      "Uncompressed", /*"Motion JPEG-B", */"Cinepak", "Animation", "H.263",
       "Sorenson", "Sorenson 3", "MPEG 4"
     };
 
@@ -149,20 +153,16 @@ public class QTWriter extends FormatWriter {
 
   // -- IFormatWriter API methods --
 
-  /* @see loci.formats.IFormatWriter#saveImage(String, Image, boolean) */ 
-  public void saveImage(String id, Image image, boolean last)
+  /* @see loci.formats.IFormatWriter#saveImage(Image, boolean) */
+  public void saveImage(Image image, boolean last)
     throws FormatException, IOException
   {
-    if (image == null) {
-      throw new FormatException("Image is null");
-    }
-
-    if (legacy == null) {
-      legacy = new LegacyQTWriter();
-    }
+    if (image == null) throw new FormatException("Image is null");
+    if (legacy == null) legacy = new LegacyQTWriter();
 
     if (needLegacy) {
-      legacy.saveImage(id, image, last);
+      legacy.setId(currentId);
+      legacy.saveImage(image, last);
       return;
     }
 
@@ -215,21 +215,21 @@ public class QTWriter extends FormatWriter {
       }
     }
 
-    if (!id.equals(currentId)) {
-      close();
+    if (!initialized) {
+      initialized = true;
       setCodec();
       if (codec != 0) {
         needLegacy = true;
         legacy.setCodec(codec);
-        legacy.saveImage(id, image, last);
+        legacy.setId(currentId);
+        legacy.saveImage(image, last);
         return;
       }
 
       // -- write the header --
 
       offsets = new Vector();
-      currentId = id;
-      out = new RandomAccessFile(id, "rw");
+      out = new RandomAccessFile(currentId, "rw");
       created = (int) System.currentTimeMillis();
       numWritten = 0;
       numBytes = byteData.length * byteData[0].length;
@@ -575,8 +575,18 @@ public class QTWriter extends FormatWriter {
     }
   }
 
-  /* @see loci.formats.IFormatWriter#close() */
-  public void close() throws FormatException, IOException {
+  /* @see loci.formats.IFormatWriter#canDoStacks() */
+  public boolean canDoStacks() { return true; }
+
+  /* @see loci.formats.IFormatWriter#getPixelTypes(String) */
+  public int[] getPixelTypes() {
+    return new int[] {FormatTools.UINT8, FormatTools.UINT16};
+  }
+
+  // -- IFormatHandler API methods --
+
+  /* @see loci.formats.IFormatHandler#close() */
+  public void close() throws IOException {
     if (out != null) out.close();
     out = null;
     numWritten = 0;
@@ -584,34 +594,22 @@ public class QTWriter extends FormatWriter {
     numBytes = 0;
     created = 0;
     offsets = null;
+    currentId = null;
+    initialized = false;
   }
 
-  /* @see loci.formats.IFormatWriter#canDoStacks(String) */
-  public boolean canDoStacks(String id) { return true; }
-
-  /* @see loci.formats.IFormatWriter#getPixelTypes(String) */
-  public int[] getPixelTypes(String id) throws FormatException, IOException {
-    return new int[] {FormatTools.UINT8, FormatTools.UINT16};
-  }
-
-  // -- Helper method --
+  // -- Helper methods --
 
   private void setCodec() {
     if (compression == null) compression = "Uncompressed";
     if (compression.equals("Uncompressed")) codec = CODEC_RAW;
-    else if (compression.equals("Motion JPEG-B")) codec = CODEC_MOTION_JPEG_B;
+    //else if (compression.equals("Motion JPEG-B")) codec = CODEC_MOTION_JPEG_B;
     else if (compression.equals("Cinepak")) codec = CODEC_CINEPAK;
     else if (compression.equals("Animation")) codec = CODEC_ANIMATION;
     else if (compression.equals("H.263")) codec = CODEC_H_263;
     else if (compression.equals("Sorenson")) codec = CODEC_SORENSON;
     else if (compression.equals("Sorenson 3")) codec = CODEC_SORENSON_3;
     else if (compression.equals("MPEG 4")) codec = CODEC_MPEG_4;
-  }
-
-  // -- Main method --
-
-  public static void main(String[] args) throws IOException, FormatException {
-    new QTWriter().testConvert(args);
   }
 
 }

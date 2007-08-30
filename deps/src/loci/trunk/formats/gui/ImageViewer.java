@@ -28,6 +28,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
 import java.io.File;
+import java.io.IOException;
 import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
@@ -37,7 +38,11 @@ import loci.formats.*;
 
 /**
  * ImageViewer is a simple viewer/converter
- * for the LOCI Bio-Formats image formats.
+ * for the Bio-Formats image formats.
+ *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/gui/ImageViewer.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/gui/ImageViewer.java">SVN</a></dd></dl>
  *
  * @author Curtis Rueden ctrueden at wisc.edu
  */
@@ -47,7 +52,7 @@ public class ImageViewer extends JFrame
 
   // -- Constants --
 
-  protected static final String TITLE = "LOCI Bio-Formats Viewer";
+  protected static final String TITLE = "Bio-Formats Viewer";
   protected static final GraphicsConfiguration GC =
     ImageTools.getDefaultConfiguration();
 
@@ -163,13 +168,15 @@ public class ImageViewer extends JFrame
     fileSave.setActionCommand("save");
     fileSave.addActionListener(this);
     file.add(fileSave);
-    boolean canDoNotebook = false;
+    boolean canDoNotes = false;
     try {
-      Class c = Class.forName("loci.ome.notebook.Notebook");
-      if (c != null) canDoNotebook = true;
+      Class c = Class.forName("loci.ome.notes.Notes");
+      if (c != null) canDoNotes = true;
     }
-    catch (Throwable t) { }
-    if (canDoNotebook) {
+    catch (Throwable t) {
+      if (FormatHandler.debug) LogTools.trace(t);
+    }
+    if (canDoNotes) {
       JMenuItem fileView = new JMenuItem("View Metadata...");
       fileView.setMnemonic('m');
       fileView.setEnabled(true);
@@ -202,25 +209,31 @@ public class ImageViewer extends JFrame
     try {
       Location f = new Location(id);
       id = f.getAbsolutePath();
-      int num = myReader.getImageCount(id);
+      myReader.setId(id);
+      int num = myReader.getImageCount();
       ProgressMonitor progress = new ProgressMonitor(this,
         "Reading " + id, null, 0, num + 1);
-      sizeZ = myReader.getSizeZ(id);
-      sizeT = myReader.getSizeT(id);
-      sizeC = myReader.getEffectiveSizeC(id);
+      sizeZ = myReader.getSizeZ();
+      sizeT = myReader.getSizeT();
+      sizeC = myReader.getEffectiveSizeC();
       //if (myReader.isRGB(id)) sizeC = (sizeC + 2) / 3; // adjust for RGB
       progress.setProgress(1);
       BufferedImage[] img = new BufferedImage[num];
       for (int i=0; i<num; i++) {
         if (progress.isCanceled()) break;
-        img[i] = myReader.openImage(id, i);
-        if (i == 0) setImages(id, myReader, img);
+        img[i] = myReader.openImage(i);
+        if (i == 0) setImages(myReader, img);
         progress.setProgress(i + 2);
       }
-      myReader.close();
+      myReader.close(true);
     }
-    catch (Exception exc) {
-      exc.printStackTrace();
+    catch (FormatException exc) {
+      LogTools.trace(exc);
+      wait(false);
+      return;
+    }
+    catch (IOException exc) {
+      LogTools.trace(exc);
       wait(false);
       return;
     }
@@ -232,8 +245,8 @@ public class ImageViewer extends JFrame
     if (images == null) return;
     wait(true);
     try {
-      //myWriter.save(id, images);
-      boolean stack = myWriter.canDoStacks(id);
+      myWriter.setId(id);
+      boolean stack = myWriter.canDoStacks();
       ProgressMonitor progress = new ProgressMonitor(this,
         "Saving " + id, null, 0, stack ? images.length : 1);
       if (stack) {
@@ -241,34 +254,32 @@ public class ImageViewer extends JFrame
         for (int i=0; i<images.length; i++) {
           progress.setProgress(i);
           boolean canceled = progress.isCanceled();
-          myWriter.saveImage(id, images[i], i == images.length - 1 || canceled);
+          myWriter.saveImage(images[i], i == images.length - 1 || canceled);
           if (canceled) break;
         }
         progress.setProgress(images.length);
       }
       else {
         // save current image only
-        myWriter.saveImage(id, getImage(), true);
+        myWriter.saveImage(getImage(), true);
         progress.setProgress(1);
       }
     }
-    catch (Exception exc) { exc.printStackTrace(); }
+    catch (FormatException exc) { LogTools.trace(exc); }
+    catch (IOException exc) { LogTools.trace(exc); }
     wait(false);
   }
 
   /** Sets the viewer to display the given images. */
-  public void setImages(String id, IFormatReader reader, BufferedImage[] img) {
-    filename = id;
+  public void setImages(IFormatReader reader, BufferedImage[] img) {
+    filename = reader.getCurrentFile();
     in = reader;
     images = img;
 
-    try {
-      sizeZ = reader.getSizeZ(id);
-      sizeT = reader.getSizeT(id);
-      sizeC = reader.getEffectiveSizeC(id);
-      //if (reader.isRGB(id)) sizeC = (sizeC + 2) / 3; // adjust for RGB
-    }
-    catch (Exception exc) { exc.printStackTrace(); }
+    sizeZ = reader.getSizeZ();
+    sizeT = reader.getSizeT();
+    sizeC = reader.getEffectiveSizeC();
+    //if (reader.isRGB(id)) sizeC = (sizeC + 2) / 3; // adjust for RGB
 
     fileSave.setEnabled(true);
     nSlider.removeChangeListener(this);
@@ -295,7 +306,7 @@ public class ImageViewer extends JFrame
 
     updateLabel(-1, -1);
     sb.setLength(0);
-    if (id != null) {
+    if (filename != null) {
       sb.append(reader.getCurrentFile());
       sb.append(" ");
     }
@@ -306,7 +317,7 @@ public class ImageViewer extends JFrame
       sb.append(")");
       sb.append(" ");
     }
-    if (id != null || format != null) sb.append("- ");
+    if (filename != null || format != null) sb.append("- ");
     sb.append(TITLE);
     setTitle(sb.toString());
     icon.setImage(images == null ? null : images[0]);
@@ -344,7 +355,7 @@ public class ImageViewer extends JFrame
       if (rval == JFileChooser.APPROVE_OPTION) {
         final File file = chooser.getSelectedFile();
         if (file != null) {
-          new Thread() {
+          new Thread("ImageViewer-Opener") {
             public void run() { open(file.getAbsolutePath()); }
           }.start();
         }
@@ -358,26 +369,27 @@ public class ImageViewer extends JFrame
       if (rval == JFileChooser.APPROVE_OPTION) {
         final File file = chooser.getSelectedFile();
         if (file != null) {
-          new Thread() {
+          new Thread("ImageViewer-Saver") {
             public void run() { save(file.getPath()); }
           }.start();
         }
       }
     }
     else if ("view".equals(cmd)) {
-      // NB: avoid dependencies on optional loci.ome.notebook package
+      // NB: avoid dependencies on optional loci.ome.notes package
       ReflectedUniverse r = new ReflectedUniverse();
       try {
-        r.exec("import loci.ome.notebook.Notebook");
+        r.exec("import loci.ome.notes.Notes");
         r.setVar("filename", filename);
-        r.exec("new Notebook(null, filename)");
+        r.exec("new Notes(null, filename)");
       }
-      catch (ReflectException exc) { exc.printStackTrace(); }
+      catch (ReflectException exc) { LogTools.trace(exc); }
     }
     else if ("exit".equals(cmd)) dispose();
     else if ("about".equals(cmd)) {
       // HACK - JOptionPane prevents shutdown on dispose
       setDefaultCloseOperation(EXIT_ON_CLOSE);
+
       JOptionPane.showMessageDialog(this,
         "LOCI Bio-Formats\n" +
         "Built @date@\n\n" +
@@ -385,7 +397,7 @@ public class ImageViewer extends JFrame
         "Melissa Linkert, Curtis Rueden, Chris Allan, Eric Kjellman\n" +
         "and Brian Loranger.\n" +
         "http://www.loci.wisc.edu/ome/formats.html",
-        "LOCI Bio-Formats", JOptionPane.INFORMATION_MESSAGE);
+        "Bio-Formats", JOptionPane.INFORMATION_MESSAGE);
     }
   }
 
@@ -398,8 +410,7 @@ public class ImageViewer extends JFrame
       // update Z, T and C sliders
       int ndx = getImageIndex();
       int[] zct = {-1, -1, -1};
-      try { zct = in.getZCTCoords(filename, ndx); }
-      catch (Exception exc) { exc.printStackTrace(); }
+      zct = in.getZCTCoords(ndx);
       if (zct[0] >= 0) {
         zSlider.removeChangeListener(this);
         zSlider.setValue(zct[0] + 1);
@@ -418,9 +429,7 @@ public class ImageViewer extends JFrame
     }
     else {
       // update N slider
-      int ndx = -1;
-      try { ndx = in.getIndex(filename, getZ(), getC(), getT()); }
-      catch (Exception exc) { exc.printStackTrace(); }
+      int ndx = in.getIndex(getZ(), getC(), getT());
       if (ndx >= 0) {
         nSlider.removeChangeListener(this);
         nSlider.setValue(ndx + 1);

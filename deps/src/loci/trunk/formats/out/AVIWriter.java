@@ -36,6 +36,10 @@ import loci.formats.*;
  * Much of this writer's code was adapted from Wayne Rasband's
  * AVI Movie Writer plugin for ImageJ
  * (available at http://rsb.info.nih.gov/ij/).
+ *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/out/AVIWriter.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/out/AVIWriter.java">SVN</a></dd></dl>
  */
 public class AVIWriter extends FormatWriter {
 
@@ -82,7 +86,6 @@ public class AVIWriter extends FormatWriter {
   private int xMod;
   private long frameOffset;
   private long frameOffset2;
-  private int savePlaneNum;
 
   // -- Constructor --
 
@@ -90,11 +93,8 @@ public class AVIWriter extends FormatWriter {
 
   // -- IFormatWriter API methods --
 
-  /**
-   * Saves the given image to the specified (possibly already open) file.
-   * If this image is the last one in the file, the last flag must be set.
-   */
-  public void saveImage(String id, Image image, boolean last)
+  /* @see loci.formats.IFormatWriter#saveImage(Image, boolean) */
+  public void saveImage(Image image, boolean last)
     throws FormatException, IOException
   {
     if (image == null) {
@@ -105,12 +105,12 @@ public class AVIWriter extends FormatWriter {
     else img = ImageTools.makeBuffered(image);
     byte[][] byteData = ImageTools.getBytes(img);
 
-    if (!id.equals(currentId)) {
+    if (!initialized) {
+      initialized = true;
       planesWritten = 0;
-      currentId = id;
       bytesPerPixel = byteData.length;
 
-      file = new File(id);
+      file = new File(currentId);
       raFile = new RandomAccessFile(file, "rw");
       raFile.seek(raFile.length());
       saveFileSize = 4;
@@ -173,8 +173,7 @@ public class AVIWriter extends FormatWriter {
 
         DataTools.writeInt(raFile, 0, true); // dwReserved1 - set to 0
         // dwFlags - just set the bit for AVIF_HASINDEX
-        savePlaneNum = (int) raFile.getFilePointer(); 
-        DataTools.writeInt(raFile, 0x10, true); 
+        DataTools.writeInt(raFile, 0x10, true);
 
         // 10H AVIF_HASINDEX: The AVI file has an idx1 chunk containing
         //   an index at the end of the file. For good performance, all
@@ -382,8 +381,8 @@ public class AVIWriter extends FormatWriter {
         text[2] = 108; // l
         text[3] = 101; // e
         text[4] = 65; // A
-        text[5] = 86; // V 
-        text[6] = 73; // I 
+        text[5] = 86; // V
+        text[6] = 73; // I
         text[7] = 32; // space
         text[8] = 119; // w
         text[9] = 114; // r
@@ -519,25 +518,22 @@ public class AVIWriter extends FormatWriter {
     }
   }
 
-  /* @see loci.formats.IFormatWriter#close() */
-  public void close() throws FormatException, IOException {
-    if (raFile != null) raFile.close();
-    raFile = null;
-    currentId = null;
-  }
+  /* @see loci.formats.IFormatWriter#canDoStacks() */
+  public boolean canDoStacks() { return true; }
 
-  /** Reports whether the writer can save multiple images to a single file. */
-  public boolean canDoStacks(String id) { return true; }
-
-  /* @see loci.formats.IFormatWriter#getPixelTypes(String) */
-  public int[] getPixelTypes(String id) throws FormatException, IOException {
+  /* @see loci.formats.IFormatWriter#getPixelTypes() */
+  public int[] getPixelTypes() {
     return new int[] {FormatTools.UINT8};
   }
 
-  // -- Main method --
+  // -- IFormatHandler API methods --
 
-  public static void main(String[] args) throws IOException, FormatException {
-    new AVIWriter().testConvert(args);
+  /* @see loci.formats.IFormatHandler#close() */
+  public void close() throws IOException {
+    if (raFile != null) raFile.close();
+    raFile = null;
+    currentId = null;
+    initialized = false;
   }
 
 }

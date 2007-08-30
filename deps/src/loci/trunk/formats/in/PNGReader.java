@@ -28,6 +28,10 @@ package loci.formats.in;
  * PNGReader is the file format reader for
  * Portable Network Graphics (PNG) images.
  *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/in/PNGReader.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/in/PNGReader.java">SVN</a></dd></dl>
+ *
  * @author Curtis Rueden ctrueden at wisc.edu
  */
 public class PNGReader extends ImageIOReader {
@@ -35,6 +39,7 @@ public class PNGReader extends ImageIOReader {
   // -- Constructor --
 
   /** Constructs a new PNGReader. */
-  public PNGReader() { super("Portable Network Graphics", "png"); }
-
+  public PNGReader() {
+    super("Portable Network Graphics", new String[] {"png", "pnm"});
+  }
 }

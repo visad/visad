@@ -30,25 +30,34 @@ import java.io.*;
 import java.util.*;
 import loci.formats.*;
 
-//import org.openmicroscopy.xml.*;
-//import org.openmicroscopy.xml.st.*;
-//import loci.formats.ome.OMEXMLMetadataStore;
-
-/** TiffWriter is the file format writer for TIFF files. */
+/**
+ * TiffWriter is the file format writer for TIFF files.
+ *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/out/TiffWriter.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/out/TiffWriter.java">SVN</a></dd></dl>
+ */
 public class TiffWriter extends FormatWriter {
 
   // -- Fields --
 
   /** The last offset written to. */
-  private int lastOffset;
+  protected int lastOffset;
 
   /** Current output stream. */
-  private BufferedOutputStream out;
+  protected BufferedOutputStream out;
 
-  // -- Constructor --
+  /** Image counts for each open series. */
+  protected Vector imageCounts;
+
+  // -- Constructors --
 
   public TiffWriter() {
-    super("Tagged Image File Format", new String[] {"tif", "tiff"});
+    this("Tagged Image File Format", new String[] {"tif", "tiff"});
+  }
+
+  public TiffWriter(String format, String[] exts) {
+    super(format, exts);
     lastOffset = 0;
     compressionTypes = new String[] {"Uncompressed", "LZW"};
   }
@@ -61,12 +70,25 @@ public class TiffWriter extends FormatWriter {
    * depth, compression and units.  If this image is the last one in the file,
    * the last flag must be set.
    */
-  public void saveImage(String id, Image image, Hashtable ifd, boolean last)
+  public void saveImage(Image image, Hashtable ifd, boolean last)
     throws IOException, FormatException
   {
-    if (!id.equals(currentId)) {
-      close();
-      currentId = id;
+    saveImage(image, ifd, 0, last, last);
+  }
+
+  /**
+   * Saves the given image to the specified series in the current file.
+   * The IFD hashtable allows specification of TIFF parameters such as bit
+   * depth, compression and units. If this image is the last one in the series,
+   * the lastInSeries flag must be set. If this image is the last one in the
+   * file, the last flag must be set.
+   */
+  public void saveImage(Image image, Hashtable ifd, int series,
+    boolean lastInSeries, boolean last) throws IOException, FormatException
+  {
+    if (!initialized) {
+      imageCounts = new Vector();
+      initialized = true;
       out =
         new BufferedOutputStream(new FileOutputStream(currentId, true), 4096);
 
@@ -99,72 +121,51 @@ public class TiffWriter extends FormatWriter {
       ImageTools.makeBuffered(image) : ImageTools.makeBuffered(image, cm);
 
     lastOffset += TiffTools.writeImage(img, ifd, out, lastOffset, last);
-    if (last) {
-      close();
-    }
+    if (last) close();
   }
 
   // -- IFormatWriter API methods --
 
-  /* @see loci.formats.IFormatWriter#save(String, Image, boolean) */ 
-  public void saveImage(String id, Image image, boolean last)
+  /* @see loci.formats.IFormatWriter#saveImage(Image, boolean) */
+  public void saveImage(Image image, boolean last)
     throws FormatException, IOException
+  {
+    saveImage(image, 0, last, last);
+  }
+
+  /* @see loci.formats.IFormatWriter#saveImage(Image, int, boolean, boolean) */
+  public void saveImage(Image image, int series, boolean lastInSeries,
+    boolean last) throws FormatException, IOException
   {
     Hashtable h = new Hashtable();
     if (compression == null) compression = "";
     h.put(new Integer(TiffTools.COMPRESSION), compression.equals("LZW") ?
       new Integer(TiffTools.LZW) : new Integer(TiffTools.UNCOMPRESSED));
-    saveImage(id, image, h, last);
-  }
-
-  /* @see loci.formats.IFormatWriter#close() */
-  public void close() throws FormatException, IOException {
-    // write the metadata, if enabled 
-  
-    /*
-    if (metadataEnabled && store != null && currentId != null) {
-      // TODO : use reflection to access the OMEXMLMetadataStore
-      if (store instanceof OMEXMLMetadataStore) {
-        try { 
-          // writes valid OME-TIFF 
-          RandomAccessFile raf = new RandomAccessFile(currentId, "rw"); 
-          RandomAccessStream in = new RandomAccessStream(currentId);
-          OMENode xml = (OMENode) ((OMEXMLMetadataStore) store).getRoot();
-          Vector images = xml.getChildNodes("Image");
-          for (int p=0; p<images.size(); p++) {
-            PixelsNode pix = 
-              (PixelsNode) ((ImageNode) images.get(p)).getDefaultPixels();
-            DOMUtil.createChild(pix.getDOMElement(), "TiffData");
-          }
-        
-          Hashtable[] ifds = TiffTools.getIFDs(in);  
-          TiffTools.overwriteIFDValue(raf, 0, TiffTools.IMAGE_DESCRIPTION,
-            xml.writeOME(true));
-        }
-        catch (Exception e) {
-          e.printStackTrace();
-        }
-      }
-      else {
-        throw new FormatException("Expecting an OMEXMLMetadataStore; got a " + 
-          store.getClass());
-      } 
-    }
-    */ 
-
-    if (out != null) out.close();
-    out = null;
-    currentId = null;
-    lastOffset = 0;
+    saveImage(image, h, series, lastInSeries, last);
   }
 
   /* @see loci.formats.IFormatWriter#canDoStacks(String) */
-  public boolean canDoStacks(String id) { return true; }
+  public boolean canDoStacks() { return true; }
 
-  // -- Main method --
+  // -- IFormatHandler API methods --
 
-  public static void main(String[] args) throws FormatException, IOException {
-    new TiffWriter().testConvert(args);
+  /* @see loci.formats.IFormatHandler#close() */
+  public void close() throws IOException {
+    if (out != null) out.close();
+    out = null;
+    currentId = null;
+    initialized = false;
+    lastOffset = 0;
+  }
+
+  // -- Deprecated API methods --
+
+  /** @deprecated Replaced by {@link #saveImage(Image, Hashtable, boolean)} */
+  public void saveImage(String id, Image image, Hashtable ifd, boolean last)
+    throws IOException, FormatException
+  {
+    setId(id);
+    saveImage(image, ifd, last);
   }
 
 }

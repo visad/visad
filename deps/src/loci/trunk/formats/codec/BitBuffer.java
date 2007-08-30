@@ -25,9 +25,14 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 package loci.formats.codec;
 
 import java.util.Random; // used in main method test
+import loci.formats.LogTools;
 
 /**
  * A class for reading arbitrary numbers of bits from a byte array.
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/codec/BitBuffer.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/codec/BitBuffer.java">SVN</a></dd></dl>
+ *
  * @author Eric Kjellman egkjellman at wisc.edu
  */
 public class BitBuffer {
@@ -164,8 +169,8 @@ public class BitBuffer {
     int totallen = 0;
 
     Random r = new Random();
-    System.out.println("Generating " + trials + " trials.");
-    System.out.println("Writing to byte array");
+    LogTools.println("Generating " + trials + " trials.");
+    LogTools.println("Writing to byte array");
     // we want the trials to be able to be all possible bit lengths.
     // r.nextInt() by itself is not sufficient... in 50000 trials it would be
     // extremely unlikely to produce bit strings of 1 bit.
@@ -186,14 +191,14 @@ public class BitBuffer {
     }
     BitBuffer bb = new BitBuffer(bw.toByteArray());
     int readint;
-    System.out.println("Reading from BitBuffer");
+    LogTools.println("Reading from BitBuffer");
     // Randomly skip or read bytes
     for(int i = 0; i < trials; i++) {
       int c = r.nextInt(100);
       if(c > 50) {
         readint = bb.getBits(len[i]);
         if(readint != nums[i]) {
-          System.out.println("Error at #" + i + ": " + readint + " received, " +
+          LogTools.println("Error at #" + i + ": " + readint + " received, " +
             nums[i] + " expected.");
         }
       }
@@ -202,13 +207,13 @@ public class BitBuffer {
       }
     }
     // Test reading past end of buffer.
-    System.out.println("Testing end of buffer");
+    LogTools.println("Testing end of buffer");
     bb = new BitBuffer(bw.toByteArray());
     // The total length could be mid byte. Add one byte to test.
     bb.skipBits(totallen + 8);
     int read = bb.getBits(1);
     if(-1 != read) {
-      System.out.println("-1 expected at end of buffer, " +
+      LogTools.println("-1 expected at end of buffer, " +
                          read + " received.");
     }
   }

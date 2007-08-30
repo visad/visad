@@ -30,9 +30,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 /**
- * Logic to stitch together files with similar names. Stitches based on the
- * first series for each file, and assumes that all files have the same
- * dimensions.
+ * Logic to stitch together files with similar names.
+ * Assumes that all files have the same dimensions.
+ *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/FileStitcher.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/FileStitcher.java">SVN</a></dd></dl>
  */
 public class FileStitcher implements IFormatReader {
 
@@ -77,26 +80,17 @@ public class FileStitcher implements IFormatReader {
   /** Blank thumbnail bytes, for use when image counts vary between files. */
   private byte[][] blankThumbBytes;
 
-  /** Image dimensions. */
-  private int[] width, height;
-
   /** Number of images per file. */
   private int[] imagesPerFile;
-
-  /** Total number of image planes. */
-  private int[] totalImages;
-
-  /** Dimension order. */
-  private String[] order;
 
   /** Dimensional axis lengths per file. */
   private int[] sizeZ, sizeC, sizeT;
 
-  /** Total dimensional axis lengths. */
-  private int[] totalSizeZ, totalSizeC, totalSizeT;
-
   /** Component lengths for each axis type. */
   private int[][] lenZ, lenC, lenT;
+
+  /** Core metadata. */
+  private CoreMetadata core;
 
   // -- Constructors --
 
@@ -143,11 +137,9 @@ public class FileStitcher implements IFormatReader {
    *     <li>AxisGuesser.C_AXIS: channels</li>
    *   </ul>
    */
-  public int[] getAxisTypes(String id)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-    return ag[getSeries(id)].getAxisTypes();
+  public int[] getAxisTypes() {
+    FormatTools.assertId(currentId, true, 2);
+    return ag[getSeries()].getAxisTypes();
   }
 
   /**
@@ -159,19 +151,15 @@ public class FileStitcher implements IFormatReader {
    *     <li>AxisGuesser.C_AXIS: channels</li>
    *   </ul>
    */
-  public void setAxisTypes(String id, int[] axes)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-    ag[getSeries(id)].setAxisTypes(axes);
+  public void setAxisTypes(int[] axes) throws FormatException {
+    FormatTools.assertId(currentId, true, 2);
+    ag[getSeries()].setAxisTypes(axes);
     computeAxisLengths();
   }
 
   /** Gets the file pattern object used to build the list of files. */
-  public FilePattern getFilePattern(String id)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
+  public FilePattern getFilePattern() {
+    FormatTools.assertId(currentId, true, 2);
     return fp;
   }
 
@@ -179,11 +167,9 @@ public class FileStitcher implements IFormatReader {
    * Gets the axis guesser object used to guess
    * which dimensional axes are which.
    */
-  public AxisGuesser getAxisGuesser(String id)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-    return ag[getSeries(id)];
+  public AxisGuesser getAxisGuesser() {
+    FormatTools.assertId(currentId, true, 2);
+    return ag[getSeries()];
   }
 
   /**
@@ -191,6 +177,7 @@ public class FileStitcher implements IFormatReader {
    * stitcher. Takes both ID map entries and the patternIds flag into account.
    */
   public FilePattern findPattern(String id) {
+    FormatTools.assertId(currentId, true, 2);
     if (!patternIds) {
       // find the containing pattern
       Hashtable map = Location.getIdMap();
@@ -221,224 +208,232 @@ public class FileStitcher implements IFormatReader {
     return reader.isThisType(block);
   }
 
-  /* @see IFormatReader#getImageCount(String) */
-  public int getImageCount(String id) throws FormatException, IOException {
+  /* @see IFormatReader#setId(String) */
+  public void setId(String id) throws FormatException, IOException {
     if (!id.equals(currentId)) initFile(id);
-    return totalImages[getSeries(id)];
   }
 
-  /* @see IFormatReader#isRGB(String) */
-  public boolean isRGB(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return reader.isRGB(files[0]);
-  }
-
-  /* @see IFormatReader#getSizeX(String) */
-  public int getSizeX(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return width[getSeries(id)];
-  }
-
-  /* @see IFormatReader#getSizeY(String) */
-  public int getSizeY(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return height[getSeries(id)];
-  }
-
-  /* @see IFormatReader#getSizeZ(String) */
-  public int getSizeZ(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return totalSizeZ[getSeries(id)];
-  }
-
-  /* @see IFormatReader#getSizeC(String) */
-  public int getSizeC(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return totalSizeC[getSeries(id)];
-  }
-
-  /* @see IFormatReader#getSizeT(String) */
-  public int getSizeT(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return totalSizeT[getSeries(id)];
-  }
-
-  /* @see IFormatReader#getPixelType(String) */
-  public int getPixelType(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return reader.getPixelType(files[0]);
-  }
-
-  /* @see IFormatReader#getEffectiveSizeC(String) */
-  public int getEffectiveSizeC(String id) throws FormatException, IOException {
-    return getImageCount(id) / (getSizeZ(id) * getSizeT(id));
-  }
-
-  /* @see IFormatReader#getRGBChannelCount(String) */
-  public int getRGBChannelCount(String id) throws FormatException, IOException {
-    return getSizeC(id) / getEffectiveSizeC(id);
-  }
-
-  /* @see IFormatReader#getChannelDimLengths(String) */
-  public int[] getChannelDimLengths(String id)
+  /* @see IFormatReader#setId(String, boolean) */
+  public void setId(String id, boolean force)
     throws FormatException, IOException
   {
-    if (!id.equals(currentId)) initFile(id);
-    int sno = getSeries(id);
-    int len = lenC[sno].length;
-    int[] cLengths = new int[len];
-    System.arraycopy(lenC[sno], 0, cLengths, 0, len);
-    return cLengths;
+    if (!id.equals(currentId) || force) initFile(id);
   }
 
-  /* @see IFormatReader#getChannelDimTypes(String) */
-  public String[] getChannelDimTypes(String id)
-    throws FormatException, IOException
-  {
-    int sno = getSeries(id);
-    int len = lenC[sno].length;
-    String[] cTypes = new String[len];
-    Arrays.fill(cTypes, FormatTools.CHANNEL);
-    return cTypes;
+  /* @see IFormatReader#getImageCount() */
+  public int getImageCount() {
+    FormatTools.assertId(currentId, true, 2);
+    return core.imageCount[getSeries()];
   }
 
-  /* @see IFormatReader#getThumbSizeX(String) */
-  public int getThumbSizeX(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return reader.getThumbSizeX(files[0]);
+  /* @see IFormatReader#isRGB() */
+  public boolean isRGB() {
+    FormatTools.assertId(currentId, true, 2);
+    return core.rgb[getSeries()];
   }
 
-  /* @see IFormatReader#getThumbSizeY(String) */
-  public int getThumbSizeY(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return reader.getThumbSizeY(files[0]);
+  /* @see IFormatReader#getSizeX() */
+  public int getSizeX() {
+    FormatTools.assertId(currentId, true, 2);
+    return core.sizeX[getSeries()];
   }
 
-  /* @see IFormatReader#isLittleEndian(String) */
-  public boolean isLittleEndian(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return reader.isLittleEndian(files[0]);
+  /* @see IFormatReader#getSizeY() */
+  public int getSizeY() {
+    FormatTools.assertId(currentId, true, 2);
+    return core.sizeY[getSeries()];
   }
 
-  /**
-   * Gets a five-character string representing the
-   * dimension order across the file series.
-   */
-  public String getDimensionOrder(String id)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-    return order[getSeries(id)];
+  /* @see IFormatReader#getSizeZ() */
+  public int getSizeZ() {
+    FormatTools.assertId(currentId, true, 2);
+    return core.sizeZ[getSeries()];
   }
 
-  /* @see IFormatReader#isOrderCertain(String) */
-  public boolean isOrderCertain(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return ag[getSeries(id)].isCertain();
+  /* @see IFormatReader#getSizeC() */
+  public int getSizeC() {
+    FormatTools.assertId(currentId, true, 2);
+    return core.sizeC[getSeries()];
   }
 
-  /* @see IFormatReader#isInterleaved(String) */
-  public boolean isInterleaved(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return reader.isInterleaved(files[0]);
+  /* @see IFormatReader#getSizeT() */
+  public int getSizeT() {
+    FormatTools.assertId(currentId, true, 2);
+    return core.sizeT[getSeries()];
   }
 
-  /* @see IFormatReader#isInterleaved(String, int) */
-  public boolean isInterleaved(String id, int subC)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-    return reader.isInterleaved(files[0], subC);
+  /* @see IFormatReader#getPixelType() */
+  public int getPixelType() {
+    FormatTools.assertId(currentId, true, 2);
+    return core.pixelType[getSeries()];
   }
 
-  /** Obtains the specified image from the given file series. */
-  public BufferedImage openImage(String id, int no)
-    throws FormatException, IOException
-  {
-    int[] q = computeIndices(id, no);
+  /* @see IFormatReader#getEffectiveSizeC() */
+  public int getEffectiveSizeC() {
+    FormatTools.assertId(currentId, true, 2);
+    return getImageCount() / (getSizeZ() * getSizeT());
+  }
+
+  /* @see IFormatReader#getRGBChannelCount() */
+  public int getRGBChannelCount() {
+    FormatTools.assertId(currentId, true, 2);
+    return getSizeC() / getEffectiveSizeC();
+  }
+
+  /* @see IFormatReader#getChannelDimLengths() */
+  public int[] getChannelDimLengths() {
+    FormatTools.assertId(currentId, true, 1);
+    return core.cLengths[getSeries()];
+  }
+
+  /* @see IFormatReader#getChannelDimTypes() */
+  public String[] getChannelDimTypes() {
+    FormatTools.assertId(currentId, true, 1);
+    return core.cTypes[getSeries()];
+  }
+
+  /* @see IFormatReader#getThumbSizeX() */
+  public int getThumbSizeX() {
+    FormatTools.assertId(currentId, true, 2);
+    return reader.getThumbSizeX();
+  }
+
+  /* @see IFormatReader#getThumbSizeY() */
+  public int getThumbSizeY() {
+    FormatTools.assertId(currentId, true, 2);
+    return reader.getThumbSizeY();
+  }
+
+  /* @see IFormatReader#isLittleEndian() */
+  public boolean isLittleEndian() {
+    FormatTools.assertId(currentId, true, 2);
+    return reader.isLittleEndian();
+  }
+
+  /* @see IFormatReader#getDimensionOrder() */
+  public String getDimensionOrder() {
+    FormatTools.assertId(currentId, true, 2);
+    return core.currentOrder[getSeries()];
+  }
+
+  /* @see IFormatReader#isOrderCertain() */
+  public boolean isOrderCertain() {
+    FormatTools.assertId(currentId, true, 2);
+    return core.orderCertain[getSeries()];
+  }
+
+  /* @see IFormatReader#isInterleaved() */
+  public boolean isInterleaved() {
+    FormatTools.assertId(currentId, true, 2);
+    return reader.isInterleaved();
+  }
+
+  /* @see IFormatReader#isInterleaved(int) */
+  public boolean isInterleaved(int subC) {
+    FormatTools.assertId(currentId, true, 2);
+    return reader.isInterleaved(subC);
+  }
+
+  /* @see IFormatReader#openImage(int) */
+  public BufferedImage openImage(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 2);
+    int[] q = computeIndices(no);
     int fno = q[0], ino = q[1];
-    if (ino < readers[fno].getImageCount(files[fno])) {
-      return readers[fno].openImage(files[fno], ino);
+    if (ino < readers[fno].getImageCount()) {
+      return readers[fno].openImage(ino);
     }
+
     // return a blank image to cover for the fact that
     // this file does not contain enough image planes
-    int sno = getSeries(id);
+    int sno = getSeries();
     if (blankImage[sno] == null) {
-      blankImage[sno] = ImageTools.blankImage(width[sno], height[sno],
-        sizeC[sno], getPixelType(currentId));
+      blankImage[sno] = ImageTools.blankImage(core.sizeX[sno], core.sizeY[sno],
+        sizeC[sno], getPixelType());
     }
+
     return blankImage[sno];
   }
 
-  /** Obtains the specified image from the given file series as a byte array. */
-  public byte[] openBytes(String id, int no)
-    throws FormatException, IOException
-  {
-    int[] q = computeIndices(id, no);
+  /* @see IFormatReader#openBytes(int) */
+  public byte[] openBytes(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 2);
+    int[] q = computeIndices(no);
     int fno = q[0], ino = q[1];
-    if (ino < readers[fno].getImageCount(files[fno])) {
-      return readers[fno].openBytes(files[fno], ino);
+    if (ino < readers[fno].getImageCount()) {
+      return readers[fno].openBytes(ino);
     }
+
     // return a blank image to cover for the fact that
     // this file does not contain enough image planes
-    int sno = getSeries(id);
+    int sno = getSeries();
     if (blankBytes[sno] == null) {
-      int bytes = FormatTools.getBytesPerPixel(getPixelType(currentId));
-      blankBytes[sno] = new byte[width[sno] * height[sno] *
-        bytes * getRGBChannelCount(id)];
+      int bytes = FormatTools.getBytesPerPixel(getPixelType());
+      blankBytes[sno] = new byte[core.sizeX[sno] * core.sizeY[sno] *
+        bytes * getRGBChannelCount()];
     }
     return blankBytes[sno];
   }
 
-  /* @see IFormatReader#openBytes(String, int, byte[]) */
-  public byte[] openBytes(String id, int no, byte[] buf)
+  /* @see IFormatReader#openBytes(int, byte[]) */
+  public byte[] openBytes(int no, byte[] buf)
     throws FormatException, IOException
   {
-    int[] q = computeIndices(id, no);
+    FormatTools.assertId(currentId, true, 2);
+    int[] q = computeIndices(no);
     int fno = q[0], ino = q[1];
-    return readers[fno].openBytes(files[fno], ino, buf);
-  }
-
-  /* @see IFormatReader#openThumbImage(String, int) */
-  public BufferedImage openThumbImage(String id, int no)
-    throws FormatException, IOException
-  {
-    int[] q = computeIndices(id, no);
-    int fno = q[0], ino = q[1];
-    if (ino < readers[fno].getImageCount(files[fno])) {
-      return readers[fno].openThumbImage(files[fno], ino);
+    if (ino < readers[fno].getImageCount()) {
+      return readers[fno].openBytes(ino, buf);
     }
+
     // return a blank image to cover for the fact that
     // this file does not contain enough image planes
-    int sno = getSeries(id);
+    Arrays.fill(buf, (byte) 0);
+    return buf;
+  }
+
+  /* @see IFormatReader#openThumbImage(int) */
+  public BufferedImage openThumbImage(int no)
+    throws FormatException, IOException
+  {
+    FormatTools.assertId(currentId, true, 2);
+    int[] q = computeIndices(no);
+    int fno = q[0], ino = q[1];
+    if (ino < readers[fno].getImageCount()) {
+      return readers[fno].openThumbImage(ino);
+    }
+
+    // return a blank image to cover for the fact that
+    // this file does not contain enough image planes
+    int sno = getSeries();
     if (blankThumb[sno] == null) {
-      blankThumb[sno] = ImageTools.blankImage(getThumbSizeX(id),
-        getThumbSizeY(id), sizeC[sno], FormatTools.UINT8);
+      blankThumb[sno] = ImageTools.blankImage(getThumbSizeX(),
+        getThumbSizeY(), sizeC[sno], getPixelType());
     }
     return blankThumb[sno];
   }
 
-  /* @see IFormatReader#openThumbImage(String, int) */
-  public byte[] openThumbBytes(String id, int no)
-    throws FormatException, IOException
-  {
-    int[] q = computeIndices(id, no);
+  /* @see IFormatReader#openThumbBytes(int) */
+  public byte[] openThumbBytes(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 2);
+    int[] q = computeIndices(no);
     int fno = q[0], ino = q[1];
-    if (ino < readers[fno].getImageCount(files[fno])) {
-      return readers[fno].openThumbBytes(files[fno], ino);
+    if (ino < readers[fno].getImageCount()) {
+      return readers[fno].openThumbBytes(ino);
     }
+
     // return a blank image to cover for the fact that
     // this file does not contain enough image planes
-    int sno = getSeries(id);
+    int sno = getSeries();
     if (blankThumbBytes[sno] == null) {
-      blankThumbBytes[sno] = new byte[getThumbSizeX(id) * getThumbSizeY(id) *
-        getRGBChannelCount(id)];
+      int bytes = FormatTools.getBytesPerPixel(getPixelType());
+      blankThumbBytes[sno] = new byte[getThumbSizeX() * getThumbSizeY() *
+        bytes * getRGBChannelCount()];
     }
     return blankThumbBytes[sno];
   }
 
   /* @see IFormatReader#close(boolean) */
-  public void close(boolean fileOnly) throws FormatException, IOException {
+  public void close(boolean fileOnly) throws IOException {
     if (readers == null) reader.close(fileOnly);
     else {
       for (int i=0; i<readers.length; i++) readers[i].close(fileOnly);
@@ -452,7 +447,7 @@ public class FileStitcher implements IFormatReader {
   }
 
   /* @see IFormatReader#close() */
-  public void close() throws FormatException, IOException {
+  public void close() throws IOException {
     if (readers == null) reader.close();
     else {
       for (int i=0; i<readers.length; i++) readers[i].close();
@@ -463,26 +458,47 @@ public class FileStitcher implements IFormatReader {
     currentId = null;
   }
 
-  /* @see IFormatReader#getSeriesCount(String) */
-  public int getSeriesCount(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return reader.getSeriesCount(files[0]);
+  /* @see IFormatReader#getSeriesCount() */
+  public int getSeriesCount() {
+    FormatTools.assertId(currentId, true, 2);
+    return reader.getSeriesCount();
   }
 
-  /* @see IFormatReader#setSeries(String, int) */
-  public void setSeries(String id, int no) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    reader.setSeries(files[0], no);
+  /* @see IFormatReader#setSeries(int) */
+  public void setSeries(int no) {
+    FormatTools.assertId(currentId, true, 2);
+    reader.setSeries(no);
   }
 
-  /* @see IFormatReader#getSeries(String) */
-  public int getSeries(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return reader.getSeries(files[0]);
+  /* @see IFormatReader#getSeries() */
+  public int getSeries() {
+    FormatTools.assertId(currentId, true, 2);
+    return reader.getSeries();
+  }
+
+  /* @see IFormatReader#setGroupFiles(boolean) */
+  public void setGroupFiles(boolean group) {
+    for (int i=0; i<readers.length; i++) readers[i].setGroupFiles(group);
+  }
+
+  /* @see IFormatReader#isGroupFiles() */
+  public boolean isGroupFiles() {
+    return readers[0].isGroupFiles();
+  }
+
+  /* @see IFormatReader#fileGroupOption(String) */
+  public int fileGroupOption(String id) throws FormatException, IOException {
+    return readers[0].fileGroupOption(id);
+  }
+
+  /* @see IFormatReader#isMetadataComplete() */
+  public boolean isMetadataComplete() {
+    return readers[0].isMetadataComplete();
   }
 
   /* @see IFormatReader#setNormalized(boolean) */
   public void setNormalized(boolean normalize) {
+    FormatTools.assertId(currentId, false, 2);
     if (readers == null) reader.setNormalized(normalize);
     else {
       for (int i=0; i<readers.length; i++) {
@@ -494,15 +510,47 @@ public class FileStitcher implements IFormatReader {
   /* @see IFormatReader#isNormalized() */
   public boolean isNormalized() { return reader.isNormalized(); }
 
+  /* @see IFormatReader#setMetadataCollected(boolean) */
+  public void setMetadataCollected(boolean collect) {
+    FormatTools.assertId(currentId, false, 2);
+    if (readers == null) reader.setMetadataCollected(collect);
+    else {
+      for (int i=0; i<readers.length; i++) {
+        readers[i].setMetadataCollected(collect);
+      }
+    }
+  }
+
+  /* @see IFormatReader#isMetadataCollected() */
+  public boolean isMetadataCollected() {
+    return reader.isMetadataCollected();
+  }
+
+  /* @see IFormatReader#setOriginalMetadataPopulated(boolean) */
+  public void setOriginalMetadataPopulated(boolean populate) {
+    FormatTools.assertId(currentId, false, 1);
+    if (readers == null) reader.setOriginalMetadataPopulated(populate);
+    else {
+      for (int i=0; i<readers.length; i++) {
+        readers[i].setOriginalMetadataPopulated(populate);
+      }
+    }
+  }
+
+  /* @see IFormatReader#isOriginalMetadataPopulated() */
+  public boolean isOriginalMetadataPopulated() {
+    return reader.isOriginalMetadataPopulated();
+  }
+
   /* @see IFormatReader#getUsedFiles() */
-  public String[] getUsedFiles(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
+  public String[] getUsedFiles() {
+    FormatTools.assertId(currentId, true, 2);
 
     // returning the files list directly here is fast, since we do not
     // have to call initFile on each constituent file; but we can only do so
     // when each constituent file does not itself have multiple used files
 
-    if (reader.getUsedFiles(files[0]).length > 1) {
+    if (reader.getUsedFiles().length > 1) {
       // each constituent file has multiple used files; we must build the list
       // this could happen with, e.g., a stitched collection of ICS/IDS pairs
       // we have no datasets structured this way, so this logic is untested
@@ -510,7 +558,18 @@ public class FileStitcher implements IFormatReader {
         String[][] used = new String[files.length][];
         int total = 0;
         for (int i=0; i<files.length; i++) {
-          used[i] = readers[i].getUsedFiles(files[i]);
+          try {
+            readers[i].setId(files[i]);
+          }
+          catch (FormatException exc) {
+            LogTools.trace(exc);
+            return null;
+          }
+          catch (IOException exc) {
+            LogTools.trace(exc);
+            return null;
+          }
+          used[i] = readers[i].getUsedFiles();
           total += used[i].length;
         }
         usedFiles = new String[total];
@@ -530,44 +589,37 @@ public class FileStitcher implements IFormatReader {
   /* @see IFormatReader#getCurrentFile() */
   public String getCurrentFile() { return currentId; }
 
-  /* @see IFormatReader#getIndex(String, int, int, int) */
-  public int getIndex(String id, int z, int c, int t)
-    throws FormatException, IOException
-  {
-    return FormatTools.getIndex(this, id, z, c, t);
+  /* @see IFormatReader#getIndex(int, int, int) */
+  public int getIndex(int z, int c, int t) {
+    return FormatTools.getIndex(this, z, c, t);
   }
 
-  /* @see IFormatReader#getZCTCoords(String, int) */
-  public int[] getZCTCoords(String id, int index)
-    throws FormatException, IOException
-  {
-    return FormatTools.getZCTCoords(this, id, index);
+  /* @see IFormatReader#getZCTCoords(int) */
+  public int[] getZCTCoords(int index) {
+    return FormatTools.getZCTCoords(this, index);
   }
 
-  /* @see IFormatReader#getMetadataValue(String, String) */
-  public Object getMetadataValue(String id, String field)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-    return reader.getMetadataValue(files[0], field);
+  /* @see IFormatReader#getMetadataValue(String) */
+  public Object getMetadataValue(String field) {
+    FormatTools.assertId(currentId, true, 2);
+    return reader.getMetadataValue(field);
   }
 
-  /* @see IFormatReader#getMetadata(String) */
-  public Hashtable getMetadata(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return reader.getMetadata(files[0]);
+  /* @see IFormatReader#getMetadata() */
+  public Hashtable getMetadata() {
+    FormatTools.assertId(currentId, true, 2);
+    return reader.getMetadata();
   }
 
-  /* @see IFormatReader#getCoreMetadata(String) */
-  public CoreMetadata getCoreMetadata(String id)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-    return reader.getCoreMetadata(files[0]);
+  /* @see IFormatReader#getCoreMetadata() */
+  public CoreMetadata getCoreMetadata() {
+    FormatTools.assertId(currentId, true, 2);
+    return core;
   }
 
   /* @see IFormatReader#setMetadataFiltered(boolean) */
   public void setMetadataFiltered(boolean filter) {
+    FormatTools.assertId(currentId, false, 2);
     reader.setMetadataFiltered(filter);
   }
 
@@ -578,28 +630,20 @@ public class FileStitcher implements IFormatReader {
 
   /* @see IFormatReader#setMetadataStore(MetadataStore) */
   public void setMetadataStore(MetadataStore store) {
+    FormatTools.assertId(currentId, false, 2);
     reader.setMetadataStore(store);
   }
 
-  /* @see IFormatReader#getMetadataStore(String) */
-  public MetadataStore getMetadataStore(String id)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-    return reader.getMetadataStore(files[0]);
+  /* @see IFormatReader#getMetadataStore() */
+  public MetadataStore getMetadataStore() {
+    FormatTools.assertId(currentId, true, 2);
+    return reader.getMetadataStore();
   }
 
-  /* @see IFormatReader#getMetadataStoreRoot(String) */
-  public Object getMetadataStoreRoot(String id)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-    return reader.getMetadataStoreRoot(files[0]);
-  }
-
-  /* @see IFormatReader#testRead(String[]) */
-  public boolean testRead(String[] args) throws FormatException, IOException {
-    return FormatTools.testRead(this, args);
+  /* @see IFormatReader#getMetadataStoreRoot() */
+  public Object getMetadataStoreRoot() {
+    FormatTools.assertId(currentId, true, 2);
+    return reader.getMetadataStoreRoot();
   }
 
   // -- IFormatHandler API methods --
@@ -616,6 +660,7 @@ public class FileStitcher implements IFormatReader {
 
   /* @see IFormatHandler#getFormat() */
   public String getFormat() {
+    FormatTools.assertId(currentId, true, 2);
     return reader.getFormat();
   }
 
@@ -651,8 +696,8 @@ public class FileStitcher implements IFormatReader {
 
   /** Initializes the given file. */
   protected void initFile(String id) throws FormatException, IOException {
-    if (FormatReader.debug) {
-      System.out.println("calling FileStitcher.initFile(" + id + ")");
+    if (FormatHandler.debug) {
+      LogTools.println("calling FileStitcher.initFile(" + id + ")");
     }
 
     currentId = id;
@@ -705,85 +750,95 @@ public class FileStitcher implements IFormatReader {
         }
         readers[i] = (IFormatReader) r;
       }
-      catch (InstantiationException exc) { exc.printStackTrace(); }
-      catch (IllegalAccessException exc) { exc.printStackTrace(); }
-      catch (NoSuchMethodException exc) { exc.printStackTrace(); }
-      catch (InvocationTargetException exc) { exc.printStackTrace(); }
+      catch (InstantiationException exc) { LogTools.trace(exc); }
+      catch (IllegalAccessException exc) { LogTools.trace(exc); }
+      catch (NoSuchMethodException exc) { LogTools.trace(exc); }
+      catch (InvocationTargetException exc) { LogTools.trace(exc); }
     }
 
     // sync reader configurations with original reader
     boolean normalized = reader.isNormalized();
     boolean metadataFiltered = reader.isMetadataFiltered();
+    boolean metadataCollected = reader.isMetadataCollected();
     StatusListener[] statusListeners = reader.getStatusListeners();
     for (int i=1; i<readers.length; i++) {
       readers[i].setNormalized(normalized);
       readers[i].setMetadataFiltered(metadataFiltered);
+      readers[i].setMetadataCollected(metadataCollected);
       for (int j=0; j<statusListeners.length; j++) {
         readers[i].addStatusListener(statusListeners[j]);
       }
     }
 
-    String f0 = files[0];
+    reader.setId(files[0]);
 
-    int seriesCount = reader.getSeriesCount(f0);
+    int seriesCount = reader.getSeriesCount();
     ag = new AxisGuesser[seriesCount];
     blankImage = new BufferedImage[seriesCount];
     blankBytes = new byte[seriesCount][];
     blankThumb = new BufferedImage[seriesCount];
     blankThumbBytes = new byte[seriesCount][];
-    width = new int[seriesCount];
-    height = new int[seriesCount];
     imagesPerFile = new int[seriesCount];
-    totalImages = new int[seriesCount];
-    order = new String[seriesCount];
     sizeZ = new int[seriesCount];
     sizeC = new int[seriesCount];
     sizeT = new int[seriesCount];
     boolean[] certain = new boolean[seriesCount];
-    totalSizeZ = new int[seriesCount];
-    totalSizeC = new int[seriesCount];
-    totalSizeT = new int[seriesCount];
     lenZ = new int[seriesCount][];
     lenC = new int[seriesCount][];
     lenT = new int[seriesCount][];
 
     // analyze first file; assume each file has the same parameters
-
-    int oldSeries = reader.getSeries(f0);
+    core = new CoreMetadata(seriesCount);
+    int oldSeries = reader.getSeries();
     for (int i=0; i<seriesCount; i++) {
-      reader.setSeries(f0, i);
-      width[i] = reader.getSizeX(f0);
-      height[i] = reader.getSizeY(f0);
-      imagesPerFile[i] = reader.getImageCount(f0);
-      totalImages[i] = files.length * imagesPerFile[i];
-      order[i] = reader.getDimensionOrder(f0);
-      sizeZ[i] = reader.getSizeZ(f0);
-      sizeC[i] = reader.getSizeC(f0);
-      sizeT[i] = reader.getSizeT(f0);
-      certain[i] = reader.isOrderCertain(f0);
+      reader.setSeries(i);
+      core.sizeX[i] = reader.getSizeX();
+      core.sizeY[i] = reader.getSizeY();
+      // NB: core.sizeZ populated in computeAxisLengths below
+      // NB: core.sizeC populated in computeAxisLengths below
+      // NB: core.sizeT populated in computeAxisLengths below
+      core.pixelType[i] = reader.getPixelType();
+      imagesPerFile[i] = reader.getImageCount();
+      core.imageCount[i] = files.length * imagesPerFile[i];
+      core.thumbSizeX[i] = reader.getThumbSizeX();
+      core.thumbSizeY[i] = reader.getThumbSizeY();
+      // NB: core.cLengths[i] populated in computeAxisLengths below
+      // NB: core.cTypes[i] populated in computeAxisLengths below
+      core.currentOrder[i] = reader.getDimensionOrder();
+      // NB: core.orderCertain[i] populated below
+      core.rgb[i] = reader.isRGB();
+      core.littleEndian[i] = reader.isLittleEndian();
+      core.interleaved[i] = reader.isInterleaved();
+      core.seriesMetadata[i] = reader.getMetadata();
+      sizeZ[i] = reader.getSizeZ();
+      sizeC[i] = reader.getSizeC();
+      sizeT[i] = reader.getSizeT();
+      certain[i] = reader.isOrderCertain();
     }
-    reader.setSeries(f0, oldSeries);
+    reader.setSeries(oldSeries);
 
     // guess at dimensions corresponding to file numbering
     for (int i=0; i<seriesCount; i++) {
-      ag[i] = new AxisGuesser(fp, order[i],
+      ag[i] = new AxisGuesser(fp, core.currentOrder[i],
         sizeZ[i], sizeT[i], sizeC[i], certain[i]);
     }
 
     // order may need to be adjusted
     for (int i=0; i<seriesCount; i++) {
-      setSeries(currentId, i);
-      order[i] = ag[i].getAdjustedOrder();
+      setSeries(i);
+      core.currentOrder[i] = ag[i].getAdjustedOrder();
+      core.orderCertain[i] = ag[i].isCertain();
+      computeAxisLengths();
     }
-    setSeries(currentId, oldSeries);
+    setSeries(oldSeries);
 
     // initialize used files list only when requested
     usedFiles = null;
   }
 
   /** Computes axis length arrays, and total axis lengths. */
-  protected void computeAxisLengths() throws FormatException, IOException {
-    int sno = getSeries(currentId);
+  protected void computeAxisLengths() throws FormatException {
+    int sno = getSeries();
 
     int[] count = fp.getCount();
     int[] axes = ag[sno].getAxisTypes();
@@ -791,28 +846,27 @@ public class FileStitcher implements IFormatReader {
     int numC = ag[sno].getAxisCountC();
     int numT = ag[sno].getAxisCountT();
 
-    totalSizeZ[sno] = sizeZ[sno];
-    totalSizeC[sno] = sizeC[sno];
-    totalSizeT[sno] = sizeT[sno];
+    core.sizeZ[sno] = sizeZ[sno];
+    core.sizeC[sno] = sizeC[sno];
+    core.sizeT[sno] = sizeT[sno];
     lenZ[sno] = new int[numZ + 1];
     lenC[sno] = new int[numC + 1];
     lenT[sno] = new int[numT + 1];
     lenZ[sno][0] = sizeZ[sno];
     lenC[sno][0] = sizeC[sno];
     lenT[sno][0] = sizeT[sno];
-    int z = 1, c = 1, t = 1;
-    for (int i=0; i<axes.length; i++) {
+    for (int i=0, z=1, c=1, t=1; i<axes.length; i++) {
       switch (axes[i]) {
         case AxisGuesser.Z_AXIS:
-          totalSizeZ[sno] *= count[i];
+          core.sizeZ[sno] *= count[i];
           lenZ[sno][z++] = count[i];
           break;
         case AxisGuesser.C_AXIS:
-          totalSizeC[sno] *= count[i];
+          core.sizeC[sno] *= count[i];
           lenC[sno][c++] = count[i];
           break;
         case AxisGuesser.T_AXIS:
-          totalSizeT[sno] *= count[i];
+          core.sizeT[sno] *= count[i];
           lenT[sno][t++] = count[i];
           break;
         default:
@@ -821,15 +875,44 @@ public class FileStitcher implements IFormatReader {
       }
     }
 
+    int[] cLengths = reader.getChannelDimLengths();
+    String[] cTypes = reader.getChannelDimTypes();
+    int cCount = 0;
+    for (int i=0; i<cLengths.length; i++) {
+      if (cLengths[i] > 1) cCount++;
+    }
+    for (int i=1; i<lenC[sno].length; i++) {
+      if (lenC[sno][i] > 1) cCount++;
+    }
+    if (cCount == 0) {
+      core.cLengths[sno] = new int[] {1};
+      core.cTypes[sno] = new String[] {FormatTools.CHANNEL};
+    }
+    else {
+      core.cLengths[sno] = new int[cCount];
+      core.cTypes[sno] = new String[cCount];
+    }
+    int c = 0;
+    for (int i=0; i<cLengths.length; i++) {
+      if (cLengths[i] == 1) continue;
+      core.cLengths[sno][c] = cLengths[i];
+      core.cTypes[sno][c] = cTypes[i];
+      c++;
+    }
+    for (int i=1; i<lenC[sno].length; i++) {
+      if (lenC[sno][i] == 1) continue;
+      core.cLengths[sno][c] = lenC[sno][i];
+      core.cTypes[sno][c] = FormatTools.CHANNEL;
+    }
+
     // populate metadata store
-    String f0 = files[0];
-    int pixelType = getPixelType(currentId);
-    boolean little = reader.isLittleEndian(f0);
-    MetadataStore s = reader.getMetadataStore(f0);
-    s.setPixels(new Integer(width[sno]), new Integer(height[sno]),
-      new Integer(totalSizeZ[sno]), new Integer(totalSizeC[sno]),
-      new Integer(totalSizeT[sno]), new Integer(pixelType),
-      new Boolean(!little), order[sno], new Integer(sno), null);
+    int pixelType = getPixelType();
+    boolean little = reader.isLittleEndian();
+    MetadataStore s = reader.getMetadataStore();
+    s.setPixels(new Integer(core.sizeX[sno]), new Integer(core.sizeY[sno]),
+      new Integer(core.sizeZ[sno]), new Integer(core.sizeC[sno]),
+      new Integer(core.sizeT[sno]), new Integer(pixelType),
+      new Boolean(!little), core.currentOrder[sno], new Integer(sno), null);
   }
 
   /**
@@ -838,17 +921,14 @@ public class FileStitcher implements IFormatReader {
    *
    * @return An array of size 2, dimensioned {file index, image index}.
    */
-  protected int[] computeIndices(String id, int no)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-    int sno = getSeries(id);
+  protected int[] computeIndices(int no) throws FormatException, IOException {
+    int sno = getSeries();
 
     int[] axes = ag[sno].getAxisTypes();
     int[] count = fp.getCount();
 
     // get Z, C and T positions
-    int[] zct = getZCTCoords(id, no);
+    int[] zct = getZCTCoords(no);
     int[] posZ = FormatTools.rasterToPosition(lenZ[sno], zct[0]);
     int[] posC = FormatTools.rasterToPosition(lenC[sno], zct[1]);
     int[] posT = FormatTools.rasterToPosition(lenT[sno], zct[2]);
@@ -865,13 +945,20 @@ public class FileStitcher implements IFormatReader {
           i + ": " + axes[i]);
       }
     }
+
     int fno = FormatTools.positionToRaster(count, pos);
-    int ino = FormatTools.getIndex(order[sno], sizeZ[sno],
-      reader.getEffectiveSizeC(files[0]), sizeT[sno], imagesPerFile[sno],
-      posZ[0], posC[0], posT[0]);
 
     // configure the reader, in case we haven't done this one yet
-    readers[fno].setSeries(files[fno], reader.getSeries(files[0]));
+    readers[fno].setId(files[fno]);
+    readers[fno].setSeries(reader.getSeries());
+
+    int ino;
+    if (posZ[0] < readers[fno].getSizeZ() &&
+      posC[0] < readers[fno].getSizeC() && posT[0] < readers[fno].getSizeT())
+    {
+      ino = FormatTools.getIndex(readers[fno], posZ[0], posC[0], posT[0]);
+    }
+    else ino = Integer.MAX_VALUE; // coordinates out of range
 
     return new int[] {fno, ino};
   }
@@ -881,15 +968,13 @@ public class FileStitcher implements IFormatReader {
    * @return Array with indices corresponding to the list of readers, and
    *   values indicating the internal channel index to use for that reader.
    */
-  protected int[] getIncludeList(String id, int theC)
-    throws FormatException, IOException
-  {
+  protected int[] getIncludeList(int theC) throws FormatException, IOException {
     int[] include = new int[readers.length];
     Arrays.fill(include, -1);
-    for (int t=0; t<sizeT[getSeries(id)]; t++) {
-      for (int z=0; z<sizeZ[getSeries(id)]; z++) {
-        int no = getIndex(id, z, theC, t);
-        int[] q = computeIndices(id, no);
+    for (int t=0; t<sizeT[getSeries()]; t++) {
+      for (int z=0; z<sizeZ[getSeries()]; z++) {
+        int no = getIndex(z, theC, t);
+        int[] q = computeIndices(no);
         int fno = q[0], ino = q[1];
         include[fno] = ino;
       }
@@ -897,10 +982,280 @@ public class FileStitcher implements IFormatReader {
     return include;
   }
 
-  // -- Main method --
+  // -- Deprecated FileStitcher API methods --
 
-  public static void main(String[] args) throws FormatException, IOException {
-    if (!new FileStitcher().testRead(args)) System.exit(1);
+  /** @deprecated Replaced by {@link #getAxisTypes()} */
+  public int[] getAxisTypes(String id)
+    throws FormatException, IOException
+  {
+    setId(id);
+    return getAxisTypes();
+  }
+
+  /** @deprecated Replaced by {@link #setAxisTypes(int[])} */
+  public void setAxisTypes(String id, int[] axes)
+    throws FormatException, IOException
+  {
+    setId(id);
+    setAxisTypes(axes);
+  }
+
+  /** @deprecated Replaced by {@link #getFilePattern()} */
+  public FilePattern getFilePattern(String id)
+    throws FormatException, IOException
+  {
+    setId(id);
+    return getFilePattern();
+  }
+
+  /** @deprecated Replaced by {@link #getAxisGuesser()} */
+  public AxisGuesser getAxisGuesser(String id)
+    throws FormatException, IOException
+  {
+    setId(id);
+    return getAxisGuesser();
+  }
+
+  // -- Deprecated IFormatReader API methods --
+
+  /** @deprecated Replaced by {@link #getImageCount()} */
+  public int getImageCount(String id) throws FormatException, IOException {
+    setId(id);
+    return getImageCount();
+  }
+
+  /** @deprecated Replaced by {@link #isRGB()} */
+  public boolean isRGB(String id) throws FormatException, IOException {
+    setId(id);
+    return isRGB();
+  }
+
+  /** @deprecated Replaced by {@link #getSizeX()} */
+  public int getSizeX(String id) throws FormatException, IOException {
+    setId(id);
+    return getSizeX();
+  }
+
+  /** @deprecated Replaced by {@link #getSizeY()} */
+  public int getSizeY(String id) throws FormatException, IOException {
+    setId(id);
+    return getSizeY();
+  }
+
+  /** @deprecated Replaced by {@link #getSizeZ()} */
+  public int getSizeZ(String id) throws FormatException, IOException {
+    setId(id);
+    return getSizeZ();
+  }
+
+  /** @deprecated Replaced by {@link #getSizeC()} */
+  public int getSizeC(String id) throws FormatException, IOException {
+    setId(id);
+    return getSizeC();
+  }
+
+  /** @deprecated Replaced by {@link #getSizeT()} */
+  public int getSizeT(String id) throws FormatException, IOException {
+    setId(id);
+    return getSizeT();
+  }
+
+  /** @deprecated Replaced by {@link #getPixelType()} */
+  public int getPixelType(String id) throws FormatException, IOException {
+    setId(id);
+    return getPixelType();
+  }
+
+  /** @deprecated Replaced by {@link #getEffectiveSizeC()} */
+  public int getEffectiveSizeC(String id) throws FormatException, IOException {
+    setId(id);
+    return getEffectiveSizeC();
+  }
+
+  /** @deprecated Replaced by {@link #getRGBChannelCount()} */
+  public int getRGBChannelCount(String id) throws FormatException, IOException {
+    setId(id);
+    return getSizeC() / getEffectiveSizeC();
+  }
+
+  /** @deprecated Replaced by {@link #getChannelDimLengths()} */
+  public int[] getChannelDimLengths(String id)
+    throws FormatException, IOException
+  {
+    setId(id);
+    return getChannelDimLengths();
+  }
+
+  /** @deprecated Replaced by {@link #getChannelDimTypes()} */
+  public String[] getChannelDimTypes(String id)
+    throws FormatException, IOException
+  {
+    setId(id);
+    return getChannelDimTypes();
+  }
+
+  /** @deprecated Replaced by {@link #getThumbSizeX()} */
+  public int getThumbSizeX(String id) throws FormatException, IOException {
+    setId(id);
+    return getThumbSizeX();
+  }
+
+  /** @deprecated Replaced by {@link #getThumbSizeY()} */
+  public int getThumbSizeY(String id) throws FormatException, IOException {
+    setId(id);
+    return getThumbSizeY();
+  }
+
+  /** @deprecated Replaced by {@link #isLittleEndian()} */
+  public boolean isLittleEndian(String id) throws FormatException, IOException {
+    setId(id);
+    return isLittleEndian();
+  }
+
+  /** @deprecated Replaced by {@link #getDimensionOrder()} */
+  public String getDimensionOrder(String id)
+    throws FormatException, IOException
+  {
+    setId(id);
+    return getDimensionOrder();
+  }
+
+  /** @deprecated Replaced by {@link #isOrderCertain()} */
+  public boolean isOrderCertain(String id) throws FormatException, IOException {
+    setId(id);
+    return isOrderCertain();
+  }
+
+  /** @deprecated Replaced by {@link #isInterleaved()} */
+  public boolean isInterleaved(String id) throws FormatException, IOException {
+    setId(id);
+    return isInterleaved();
+  }
+
+  /** @deprecated Replaced by {@link #isInterleaved(int)} */
+  public boolean isInterleaved(String id, int subC)
+    throws FormatException, IOException
+  {
+    setId(id);
+    return isInterleaved(subC);
+  }
+
+  /** @deprecated Replaced by {@link #openImage(int)} */
+  public BufferedImage openImage(String id, int no)
+    throws FormatException, IOException
+  {
+    setId(id);
+    return openImage(no);
+  }
+
+  /** @deprecated Replaced by {@link #openBytes(int)} */
+  public byte[] openBytes(String id, int no)
+    throws FormatException, IOException
+  {
+    setId(id);
+    return openBytes(no);
+  }
+
+  /** @deprecated Replaced by {@link #openBytes(int, byte[])} */
+  public byte[] openBytes(String id, int no, byte[] buf)
+    throws FormatException, IOException
+  {
+    setId(id);
+    return openBytes(no, buf);
+  }
+
+  /** @deprecated Replaced by {@link #openThumbImage(int)} */
+  public BufferedImage openThumbImage(String id, int no)
+    throws FormatException, IOException
+  {
+    setId(id);
+    return openThumbImage(no);
+  }
+
+  /** @deprecated Replaced by {@link #openThumbImage(int)} */
+  public byte[] openThumbBytes(String id, int no)
+    throws FormatException, IOException
+  {
+    setId(id);
+    return openThumbBytes(no);
+  }
+
+  /** @deprecated Replaced by {@link #getSeriesCount()} */
+  public int getSeriesCount(String id) throws FormatException, IOException {
+    setId(id);
+    return getSeriesCount();
+  }
+
+  /** @deprecated Replaced by {@link #setSeries(int)} */
+  public void setSeries(String id, int no) throws FormatException, IOException {
+    setId(id);
+    setSeries(no);
+  }
+
+  /** @deprecated Replaced by {@link #getSeries()} */
+  public int getSeries(String id) throws FormatException, IOException {
+    setId(id);
+    return getSeries();
+  }
+
+  /** @deprecated Replaced by {@link #getUsedFiles()} */
+  public String[] getUsedFiles(String id) throws FormatException, IOException {
+    setId(id);
+    return getUsedFiles();
+  }
+
+  /** @deprecated Replaced by {@link #getIndex(int, int, int)} */
+  public int getIndex(String id, int z, int c, int t)
+    throws FormatException, IOException
+  {
+    setId(id);
+    return getIndex(z, c, t);
+  }
+
+  /** @deprecated Replaced by {@link #getZCTCoords(int)} */
+  public int[] getZCTCoords(String id, int index)
+    throws FormatException, IOException
+  {
+    setId(id);
+    return getZCTCoords(index);
+  }
+
+  /** @deprecated Replaced by {@link #getMetadataValue(String)} */
+  public Object getMetadataValue(String id, String field)
+    throws FormatException, IOException
+  {
+    setId(id);
+    return getMetadataValue(field);
+  }
+
+  /** @deprecated Replaced by {@link #getMetadata()} */
+  public Hashtable getMetadata(String id) throws FormatException, IOException {
+    setId(id);
+    return getMetadata();
+  }
+
+  /** @deprecated Replaced by {@link #getCoreMetadata()} */
+  public CoreMetadata getCoreMetadata(String id)
+    throws FormatException, IOException
+  {
+    setId(id);
+    return getCoreMetadata();
+  }
+
+  /** @deprecated Replaced by {@link #getMetadataStore()} */
+  public MetadataStore getMetadataStore(String id)
+    throws FormatException, IOException
+  {
+    setId(id);
+    return getMetadataStore();
+  }
+
+  /** @deprecated Replaced by {@link #getMetadataStoreRoot()} */
+  public Object getMetadataStoreRoot(String id)
+    throws FormatException, IOException
+  {
+    setId(id);
+    return getMetadataStoreRoot();
   }
 
 }

@@ -27,175 +27,122 @@ package loci.formats.in;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
+import javax.xml.parsers.*;
 import loci.formats.*;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * LIFReader is the file format reader for Leica LIF files.
+ *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/in/LIFReader.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/in/LIFReader.java">SVN</a></dd></dl>
  *
  * @author Melissa Linkert linkert at wisc.edu
  */
 public class LIFReader extends FormatReader {
 
+  // -- Constants --
+
+  /** Factory for generating SAX parsers. */
+  public static final SAXParserFactory SAX_FACTORY =
+    SAXParserFactory.newInstance();
+
   // -- Fields --
-
-  /** Current file. */
-  protected RandomAccessStream in;
-
-  /** Flag indicating whether current file is little endian. */
-  protected boolean littleEndian;
-
-  /** Number of image planes in the file. */
-  protected int numImages = 0;
 
   /** Offsets to memory blocks, paired with their corresponding description. */
   protected Vector offsets;
 
-  /**
-   * Dimension information for each image.
-   * The first index specifies the image number, and the second specifies
-   * the dimension from the following list:
-   * 0) width
-   * 1) height
-   * 2) Z
-   * 3) T
-   * 4) channels (1 or 3)
-   * 5) bits per pixel
-   * 6) extra dimensions
-   */
-  protected int[][] dims;
+  /** Bits per pixel. */
+  private int[] bitsPerPixel;
 
-  /** Number of valid bits per pixel */
-  private int[][] validBits;
+  /** Extra dimensions. */
+  private int[] extraDimensions;
 
-  private int width;
-  private int height;
-  private int c;
   private int bpp;
   private Vector xcal;
   private Vector ycal;
   private Vector zcal;
   private Vector seriesNames;
-
-  private Vector channelMins;
-  private Vector channelMaxs;
+  private Vector containerNames;
+  private Vector containerCounts;
 
   // -- Constructor --
 
   /** Constructs a new Leica LIF reader. */
   public LIFReader() { super("Leica Image File Format", "lif"); }
 
-  // -- FormatReader API methods --
+  // -- IFormatReader API methods --
 
-  /* @see loci.formats.IFormatReader#isThisType(byte[]) */ 
+  /* @see loci.formats.IFormatReader#isThisType(byte[]) */
   public boolean isThisType(byte[] block) {
     return block[0] == 0x70;
   }
 
-  /* @see loci.formats.IFormatReader#getImageCount(String) */ 
-  public int getImageCount(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    numImages = dims[series][2] * dims[series][3];
-    return numImages * (isRGB(id) ? 1 : dims[series][4]);
-  }
-
-  /* @see loci.formats.IFormatReader#isRGB(String) */ 
-  public boolean isRGB(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return dims[series][4] > 1 && dims[series][4] < 4;
-  }
-
-  /* @see loci.formats.IFormatReader#isLittleEndian(String) */ 
-  public boolean isLittleEndian(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return littleEndian;
-  }
-
-  /* @see loci.formats.IFormatReader#isInterleaved(String, int) */ 
-  public boolean isInterleaved(String id, int subC)
-    throws FormatException, IOException
-  {
+  /* @see loci.formats.IFormatReader#isMetadataComplete() */
+  public boolean isMetadataComplete() {
     return true;
   }
 
-  /* @see loci.formats.IFormatReader#getSeriesCount(String) */ 
-  public int getSeriesCount(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return dims.length;
-  }
-
-  /* @see loci.formats.IFormatReader#openBytes(String, int) */ 
-  public byte[] openBytes(String id, int no)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-    bpp = dims[series][5];
+  /* @see loci.formats.IFormatReader#openBytes(int) */
+  public byte[] openBytes(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 1);
+    bpp = bitsPerPixel[series];
     while (bpp % 8 != 0) bpp++;
     byte[] buf = new byte[core.sizeX[series] * core.sizeY[series] *
-      (bpp / 8) * getRGBChannelCount(id)];
-    return openBytes(id, no, buf);
+      (bpp / 8) * getRGBChannelCount()];
+    return openBytes(no, buf);
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(String, int, byte[]) */
-  public byte[] openBytes(String id, int no, byte[] buf)
+  /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
+  public byte[] openBytes(int no, byte[] buf)
     throws FormatException, IOException
   {
-    if (!id.equals(currentId)) initFile(id);
-    if (no < 0 || no >= getImageCount(id)) {
+    FormatTools.assertId(currentId, true, 1);
+    if (no < 0 || no >= getImageCount()) {
       throw new FormatException("Invalid image number: " + no);
     }
-    bpp = dims[series][5];
+    bpp = bitsPerPixel[series];
     while (bpp % 8 != 0) bpp++;
     int bytes = bpp / 8;
-    if (buf.length < core.sizeX[series] * core.sizeY[series] * bytes * 
-      getRGBChannelCount(id)) 
+    if (buf.length < core.sizeX[series] * core.sizeY[series] * bytes *
+      getRGBChannelCount())
     {
       throw new FormatException("Buffer too small.");
     }
 
-    int offset = ((Long) offsets.get(series)).intValue();
-    in.seek(offset + core.sizeX[series] * core.sizeY[series] * 
-      bytes * no * getRGBChannelCount(id));
-   
+    long offset = ((Long) offsets.get(series)).longValue();
+    in.seek(offset + core.sizeX[series] * core.sizeY[series] *
+      bytes * no * getRGBChannelCount());
+
     in.read(buf);
     return buf;
   }
 
-  /* @see loci.formats.IFormatReader#openImage(String, int) */ 
-  public BufferedImage openImage(String id, int no)
-    throws FormatException, IOException
-  {
-    return ImageTools.makeImage(openBytes(id, no), core.sizeX[series],
-      core.sizeY[series], isRGB(id) ? core.sizeC[series] : 1, false, bpp / 8,
-      littleEndian, validBits[series]);
+  /* @see loci.formats.IFormatReader#openImage(int) */
+  public BufferedImage openImage(int no) throws FormatException, IOException {
+    return ImageTools.makeImage(openBytes(no), core.sizeX[series],
+      core.sizeY[series], getRGBChannelCount(), false, bpp / 8,
+      core.littleEndian[series]);
   }
 
-  /* @see loci.formats.IFormatReader#close(boolean) */
-  public void close(boolean fileOnly) throws FormatException, IOException {
-    if (fileOnly && in != null) in.close();
-    else if (!fileOnly) close();
-  }
+  // -- Internal FormatReader API methods --
 
-  /* @see loci.formats.IFormatReader#close() */ 
-  public void close() throws FormatException, IOException {
-    if (in != null) in.close();
-    in = null;
-    currentId = null;
-  }
-
-  /** Initializes the given LIF file. */
+  /* @see loci.formats.FormatReader#initFile(String) */
   protected void initFile(String id) throws FormatException, IOException {
     if (debug) debug("LIFReader.initFile(" + id + ")");
     super.initFile(id);
     in = new RandomAccessStream(id);
     offsets = new Vector();
 
-    littleEndian = true;
+    core.littleEndian[0] = true;
+    in.order(core.littleEndian[0]);
 
     xcal = new Vector();
     ycal = new Vector();
     zcal = new Vector();
-    channelMins = new Vector();
-    channelMaxs = new Vector();
 
     // read the header
 
@@ -218,15 +165,13 @@ public class LIFReader extends FormatReader {
 
     // number of Unicode characters in the XML block
 
-    int nc = DataTools.read4SignedBytes(in, littleEndian);
-    byte[] s = new byte[nc * 2];
-    in.read(s);
-    String xml = DataTools.stripString(new String(s));
+    int nc = in.readInt();
+    String xml = DataTools.stripString(in.readString(nc * 2));
 
     status("Finding image offsets");
 
     while (in.getFilePointer() < in.length()) {
-      if (DataTools.read4SignedBytes(in, littleEndian) != 0x70) {
+      if (in.readInt() != 0x70) {
         throw new FormatException("Invalid Memory Block");
       }
 
@@ -235,14 +180,16 @@ public class LIFReader extends FormatReader {
         throw new FormatException("Invalid Memory Description");
       }
 
-      int blockLength = DataTools.read4SignedBytes(in, littleEndian);
+      int blockLength = in.readInt();
       if (in.read() != 0x2a) {
-        throw new FormatException("Invalid Memory Description");
+        in.skipBytes(3);
+        if (in.read() != 0x2a) {
+          throw new FormatException("Invalid Memory Description");
+        }
       }
 
-      int descrLength = DataTools.read4SignedBytes(in, littleEndian);
-      byte[] memDescr = new byte[2*descrLength];
-      in.read(memDescr);
+      int descrLength = in.readInt();
+      in.skipBytes(descrLength * 2);
 
       if (blockLength > 0) {
         offsets.add(new Long(in.getFilePointer()));
@@ -250,7 +197,6 @@ public class LIFReader extends FormatReader {
 
       in.skipBytes(blockLength);
     }
-    numImages = offsets.size();
     initMetadata(xml);
   }
 
@@ -258,8 +204,37 @@ public class LIFReader extends FormatReader {
 
   /** Parses a string of XML and puts the values in a Hashtable. */
   private void initMetadata(String xml) throws FormatException, IOException {
-    Vector elements = new Vector();
+    // parse raw key/value pairs - adapted from FlexReader
+
+    containerNames = new Vector();
+    containerCounts = new Vector();
     seriesNames = new Vector();
+
+    LIFHandler handler = new LIFHandler();
+
+    xml = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><LEICA>" + xml +
+      "</LEICA>";
+
+    // strip out invalid characters
+    for (int i=0; i<xml.length(); i++) {
+      char c = xml.charAt(i);
+      if (Character.isISOControl(c) || !Character.isDefined(c)) {
+        xml = xml.replace(c, ' ');
+      }
+    }
+
+    try {
+      SAXParser parser = SAX_FACTORY.newSAXParser();
+      parser.parse(new ByteArrayInputStream(xml.getBytes()), handler);
+    }
+    catch (ParserConfigurationException exc) {
+      throw new FormatException(exc);
+    }
+    catch (SAXException exc) {
+      throw new FormatException(exc);
+    }
+
+    Vector elements = new Vector();
 
     status("Populating native metadata");
 
@@ -282,7 +257,6 @@ public class LIFReader extends FormatReader {
     // be parsed into the appropriate image dimensions
 
     int ndx = 1;
-    numImages = 0;
 
     // the image data we need starts with the token "ElementName='blah'" and
     // ends with the token "/ImageDescription"
@@ -296,23 +270,11 @@ public class LIFReader extends FormatReader {
     Vector bps = new Vector();
     Vector extraDims = new Vector();
 
-    String prefix = "";
-
     while (ndx < elements.size()) {
       token = (String) elements.get(ndx);
 
       // if the element contains a key/value pair, parse it and put it in
       // the metadata hashtable
-
-      String tmpToken = token;
-      if (token.indexOf("=") != -1) {
-        int idx = token.indexOf("Identifier") + 12;
-        key = token.substring(idx, token.indexOf("\"", idx + 1));
-        idx = token.indexOf("Variant") + 9;
-        value = token.substring(idx, token.indexOf("\"", idx + 1));
-        if (key.indexOf("=") == -1) addMeta(prefix + " - " + key, value);
-      }
-      token = tmpToken;
 
       if (token.startsWith("ScannerSettingRecord")) {
         if (token.indexOf("csScanMode") != -1) {
@@ -364,8 +326,6 @@ public class LIFReader extends FormatReader {
       }
       else if (token.startsWith("Element Name")) {
         // loop until we find "/ImageDescription"
-        seriesNames.add(token.substring(token.indexOf("=") + 2,
-          token.length() - 1));
 
         numDatasets++;
         int numChannels = 0;
@@ -377,9 +337,11 @@ public class LIFReader extends FormatReader {
 
             if (token.startsWith("Element Name")) {
               // hack to override first series name
-              seriesNames.setElementAt(token.substring(token.indexOf("=") + 2,
-                token.length() - 1), seriesNames.size() - 1);
-              prefix = (String) seriesNames.get(seriesNames.size() - 1);
+              int idx = numDatasets - 1;
+              if (idx >= seriesNames.size()) {
+                numDatasets = seriesNames.size();
+                idx = numDatasets - 1;
+              }
             }
 
             Hashtable tmp = new Hashtable();
@@ -400,14 +362,6 @@ public class LIFReader extends FormatReader {
               numChannels++;
               if (numChannels == 1) {
                 bps.add(new Integer((String) tmp.get("Resolution")));
-                String sMin = (String) tmp.get("Min");
-                String sMax = (String) tmp.get("Max");
-                if (sMin != null && sMax != null) {
-                  double min = Double.parseDouble(sMin);
-                  double max = Double.parseDouble(sMax);
-                  channelMins.add(new Integer((int) min));
-                  channelMaxs.add(new Integer((int) max));
-                }
               }
             }
             else if (tmp.get("DimensionDescription DimID") != null) {
@@ -461,53 +415,46 @@ public class LIFReader extends FormatReader {
     }
 
     numDatasets = widths.size();
-    dims = new int[numDatasets][7];
 
-    for (int i=0; i<numDatasets; i++) {
-      dims[i][0] = ((Integer) widths.get(i)).intValue();
-      dims[i][1] = ((Integer) heights.get(i)).intValue();
-      dims[i][2] = ((Integer) zs.get(i)).intValue();
-      dims[i][3] = ((Integer) ts.get(i)).intValue();
-      dims[i][4] = ((Integer) channels.get(i)).intValue();
-      dims[i][5] = ((Integer) bps.get(i)).intValue();
-      dims[i][6] = ((Integer) extraDims.get(i)).intValue();
-
-      if (dims[i][6] > 1) {
-        if (dims[i][2] == 1) dims[i][2] = dims[i][6];
-        else dims[i][3] *= dims[i][6];
-        dims[i][6] = 1;
-      }
-
-      numImages += (dims[i][2] * dims[i][3] * dims[i][6]);
-    }
+    bitsPerPixel = new int[numDatasets];
+    extraDimensions = new int[numDatasets];
 
     // Populate metadata store
 
     status("Populating metadata");
 
     // The metadata store we're working with.
-    MetadataStore store = getMetadataStore(currentId);
+    MetadataStore store = getMetadataStore();
 
     core = new CoreMetadata(numDatasets);
     Arrays.fill(core.orderCertain, true);
-    validBits = new int[numDatasets][];
 
     for (int i=0; i<numDatasets; i++) {
-      core.sizeX[i] = dims[i][0];
-      core.sizeY[i] = dims[i][1];
-      core.sizeZ[i] = dims[i][2];
-      core.sizeC[i] = dims[i][4];
-      core.sizeT[i] = dims[i][3];
-      core.currentOrder[i] = 
+      core.sizeX[i] = ((Integer) widths.get(i)).intValue();
+      core.sizeY[i] = ((Integer) heights.get(i)).intValue();
+      core.sizeZ[i] = ((Integer) zs.get(i)).intValue();
+      core.sizeC[i] = ((Integer) channels.get(i)).intValue();
+      core.sizeT[i] = ((Integer) ts.get(i)).intValue();
+      core.currentOrder[i] =
         (core.sizeZ[i] > core.sizeT[i]) ? "XYCZT" : "XYCTZ";
 
-      validBits[i] = new int[core.sizeC[i] != 2 ? core.sizeC[i] : 3];
-      for (int j=0; j<validBits[i].length; j++) {
-        validBits[i][j] = dims[i][5];
+      bitsPerPixel[i] = ((Integer) bps.get(i)).intValue();
+      extraDimensions[i] = ((Integer) extraDims.get(i)).intValue();
+
+      if (extraDimensions[i] > 1) {
+        if (core.sizeZ[i] == 1) core.sizeZ[i] = extraDimensions[i];
+        else core.sizeT[i] *= extraDimensions[i];
+        extraDimensions[i] = 1;
       }
 
-      while (dims[i][5] % 8 != 0) dims[i][5]++;
-      switch (dims[i][5]) {
+      core.littleEndian[i] = true;
+      core.rgb[i] = core.sizeC[i] > 1 && core.sizeC[i] < 4;
+      core.interleaved[i] = true;
+      core.imageCount[i] = core.sizeZ[i] * core.sizeT[i];
+      if (!core.rgb[i]) core.imageCount[i] *= core.sizeC[i];
+
+      while (bitsPerPixel[i] % 8 != 0) bitsPerPixel[i]++;
+      switch (bitsPerPixel[i]) {
         case 8:
           core.pixelType[i] = FormatTools.UINT8;
           break;
@@ -521,16 +468,20 @@ public class LIFReader extends FormatReader {
 
       Integer ii = new Integer(i);
 
-      store.setImage((String) seriesNames.get(i), null, null, ii);
+      String seriesName = (String) seriesNames.get(i);
+      if (seriesName == null || seriesName.trim().length() == 0) {
+        seriesName = "Series " + (i + 1);
+      }
+      store.setImage(seriesName, null, null, ii);
 
       store.setPixels(
-        new Integer(core.sizeX[0]), // SizeX
-        new Integer(core.sizeY[0]), // SizeY
-        new Integer(core.sizeZ[0]), // SizeZ
-        new Integer(core.sizeC[0]), // SizeC
-        new Integer(core.sizeT[0]), // SizeT
+        new Integer(core.sizeX[i]), // SizeX
+        new Integer(core.sizeY[i]), // SizeY
+        new Integer(core.sizeZ[i]), // SizeZ
+        new Integer(core.sizeC[i]), // SizeC
+        new Integer(core.sizeT[i]), // SizeT
         new Integer(core.pixelType[i]), // PixelType
-        new Boolean(!littleEndian), // BigEndian
+        new Boolean(!core.littleEndian[i]), // BigEndian
         core.currentOrder[i], // DimensionOrder
         ii, // Image index
         null); // Pixels index
@@ -541,15 +492,226 @@ public class LIFReader extends FormatReader {
 
       store.setDimensions(xf, yf, zf, null, null, ii);
       for (int j=0; j<core.sizeC[i]; j++) {
-        store.setLogicalChannel(j, null, null, null, null, null, null, ii);
+        store.setLogicalChannel(j, null, null, null, null, null, null, null,
+          null, null, null, null, null, null, null, null, null, null, null,
+          null, null, null, null, null, ii);
       }
 
-      String zoom =
-        (String) getMeta((String) seriesNames.get(i) + " - dblZoom");
+      String zoom = (String) getMeta(seriesName + " - dblZoom");
       store.setDisplayOptions(zoom == null ? null : new Float(zoom),
         new Boolean(core.sizeC[i] > 1), new Boolean(core.sizeC[i] > 1),
-        new Boolean(core.sizeC[i] > 2), new Boolean(isRGB(currentId)), null, 
+        new Boolean(core.sizeC[i] > 2), new Boolean(isRGB()), null,
         null, null, null, null, ii, null, null, null, null, null);
+
+      Enumeration keys = metadata.keys();
+      while (keys.hasMoreElements()) {
+        String k = (String) keys.nextElement();
+        if (k.startsWith((String) seriesNames.get(i) + " ")) {
+          core.seriesMetadata[i].put(k, metadata.get(k));
+        }
+      }
+    }
+  }
+
+  // -- Helper class --
+
+  /** SAX handler for parsing XML. */
+  class LIFHandler extends DefaultHandler {
+    private String series;
+    private String fullSeries;
+    private int count = 0;
+    private boolean firstElement = true;
+    private boolean dcroiOpen = false;
+
+    public void endElement(String uri, String localName, String qName) {
+      if (qName.equals("Element")) {
+        if (dcroiOpen) {
+          dcroiOpen = false;
+          return;
+        }
+        if (fullSeries.indexOf("/") != -1) {
+          fullSeries = fullSeries.substring(0, fullSeries.lastIndexOf("/"));
+        }
+        else fullSeries = "";
+      }
+    }
+
+    public void startElement(String uri, String localName, String qName,
+      Attributes attributes)
+    {
+      if (qName.equals("Element")) {
+        if (!attributes.getValue("Name").equals("DCROISet") && !firstElement) {
+          series = attributes.getValue("Name");
+          containerNames.add(series);
+          if (fullSeries == null || fullSeries.equals("")) fullSeries = series;
+          else fullSeries += "/" + series;
+        }
+        else if (firstElement) firstElement = false;
+
+        if (attributes.getValue("Name").equals("DCROISet")) {
+          dcroiOpen = true;
+        }
+      }
+      else if (qName.equals("Experiment")) {
+        for (int i=0; i<attributes.getLength(); i++) {
+          addMeta(attributes.getQName(i), attributes.getValue(i));
+        }
+      }
+      else if (qName.equals("Image")) {
+        containerNames.remove(series);
+        if (containerCounts.size() < containerNames.size()) {
+          containerCounts.add(new Integer(1));
+        }
+        else if (containerCounts.size() > 0) {
+          int ndx = containerCounts.size() - 1;
+          int n = ((Integer) containerCounts.get(ndx)).intValue();
+          containerCounts.setElementAt(new Integer(n + 1), ndx);
+        }
+        if (fullSeries == null || fullSeries.equals("")) fullSeries = series;
+        seriesNames.add(fullSeries);
+      }
+      else if (qName.equals("ChannelDescription")) {
+        String prefix = fullSeries + " - Channel " + count + " - ";
+        addMeta(prefix + "Min", attributes.getValue("Min"));
+        addMeta(prefix + "Max", attributes.getValue("Max"));
+        addMeta(prefix + "Resolution", attributes.getValue("Resolution"));
+        addMeta(prefix + "LUTName", attributes.getValue("LUTName"));
+        addMeta(prefix + "IsLUTInverted", attributes.getValue("IsLUTInverted"));
+        count++;
+      }
+      else if (qName.equals("DimensionDescription")) {
+        String prefix = fullSeries + " - Dimension " + count + " - ";
+        addMeta(prefix + "NumberOfElements",
+          attributes.getValue("NumberOfElements"));
+        addMeta(prefix + "Length", attributes.getValue("Length"));
+        addMeta(prefix + "Origin", attributes.getValue("Origin"));
+        addMeta(prefix + "DimID", attributes.getValue("DimID"));
+      }
+      else if (qName.equals("ScannerSettingRecord")) {
+        String key = attributes.getValue("Identifier") + " - " +
+          attributes.getValue("Description");
+        addMeta(fullSeries + " - " + key, attributes.getValue("Variant"));
+      }
+      else if (qName.equals("FilterSettingRecord")) {
+        String key = attributes.getValue("ObjectName") + " - " +
+          attributes.getValue("Description") + " - " +
+          attributes.getValue("Attribute");
+        addMeta(fullSeries + " - " + key, attributes.getValue("Variant"));
+      }
+      else if (qName.equals("ATLConfocalSettingDefinition")) {
+        if (fullSeries.endsWith(" - Master sequential setting")) {
+          fullSeries = fullSeries.replaceAll(" - Master sequential setting",
+            " - Sequential Setting 0");
+        }
+
+        if (fullSeries.indexOf("- Sequential Setting ") == -1) {
+          fullSeries += " - Master sequential setting";
+        }
+        else {
+          int ndx = fullSeries.indexOf(" - Sequential Setting ") + 22;
+          int n = Integer.parseInt(fullSeries.substring(ndx));
+          n++;
+          fullSeries = fullSeries.substring(0, ndx) + String.valueOf(n);
+        }
+
+        for (int i=0; i<attributes.getLength(); i++) {
+          addMeta(fullSeries + " - " + attributes.getQName(i),
+            attributes.getValue(i));
+        }
+      }
+      else if (qName.equals("Wheel")) {
+        String prefix = fullSeries + " - Wheel " + count + " - ";
+        addMeta(prefix + "Qualifier", attributes.getValue("Qualifier"));
+        addMeta(prefix + "FilterIndex", attributes.getValue("FilterIndex"));
+        addMeta(prefix + "FilterSpectrumPos",
+          attributes.getValue("FilterSpectrumPos"));
+        addMeta(prefix + "IsSpectrumTurnMode",
+          attributes.getValue("IsSpectrumTurnMode"));
+        addMeta(prefix + "IndexChanged", attributes.getValue("IndexChanged"));
+        addMeta(prefix + "SpectrumChanged",
+          attributes.getValue("SpectrumChanged"));
+        count++;
+      }
+      else if (qName.equals("WheelName")) {
+        String prefix = fullSeries + " - Wheel " + (count - 1) + " - WheelName ";
+        int ndx = 0;
+        while (getMeta(prefix + ndx) != null) ndx++;
+
+        addMeta(prefix + ndx, attributes.getValue("FilterName"));
+      }
+      else if (qName.equals("MultiBand")) {
+        String prefix = fullSeries + " - MultiBand Channel " +
+          attributes.getValue("Channel") + " - ";
+        addMeta(prefix + "LeftWorld", attributes.getValue("LeftWorld"));
+        addMeta(prefix + "RightWorld", attributes.getValue("RightWorld"));
+        addMeta(prefix + "DyeName", attributes.getValue("DyeName"));
+      }
+      else if (qName.equals("LaserLineSetting")) {
+        String prefix = fullSeries + " - LaserLine " +
+          attributes.getValue("LaserLine") + " - ";
+        addMeta(prefix + "IntensityDev", attributes.getValue("IntensityDev"));
+        addMeta(prefix + "IntensityLowDev",
+          attributes.getValue("IntensityLowDev"));
+        addMeta(prefix + "AOBSIntensityDev",
+          attributes.getValue("AOBSIntensityDev"));
+        addMeta(prefix + "AOBSIntensityLowDev",
+          attributes.getValue("AOBSIntensityLowDev"));
+        addMeta(prefix + "EnableDoubleMode",
+          attributes.getValue("EnableDoubleMode"));
+        addMeta(prefix + "LineIndex", attributes.getValue("LineIndex"));
+        addMeta(prefix + "Qualifier", attributes.getValue("Qualifier"));
+        addMeta(prefix + "SequenceIndex",
+          attributes.getValue("SequenceIndex"));
+      }
+      else if (qName.equals("Detector")) {
+        String prefix = fullSeries + " - Detector Channel " +
+          attributes.getValue("Channel") + " - ";
+        addMeta(prefix + "IsActive", attributes.getValue("IsActive"));
+        addMeta(prefix + "IsReferenceUnitActivatedForCorrection",
+          attributes.getValue("IsReferenceUnitActivatedForCorrection"));
+        addMeta(prefix + "Gain", attributes.getValue("Gain"));
+        addMeta(prefix + "Offset", attributes.getValue("Offset"));
+      }
+      else if (qName.equals("Laser")) {
+        String prefix = fullSeries + " Laser " +
+          attributes.getValue("LaserName") + " - ";
+        addMeta(prefix + "CanDoLinearOutputPower",
+          attributes.getValue("CanDoLinearOutputPower"));
+        addMeta(prefix + "OutputPower", attributes.getValue("OutputPower"));
+        addMeta(prefix + "Wavelength", attributes.getValue("Wavelength"));
+      }
+      else if (qName.equals("TimeStamp")) {
+
+        long high = Long.parseLong(attributes.getValue("HighInteger"));
+        long low = Long.parseLong(attributes.getValue("LowInteger"));
+
+        long stamp = 0;
+        high <<= 32;
+        if ((int) low < 0) {
+          low &= 0xffffffffL;
+        }
+        stamp = high + low;
+
+        long ms = stamp / 10000;
+
+        String n = String.valueOf(count);
+        while (n.length() < 4) n = "0" + n;
+        addMeta(fullSeries + " - TimeStamp " + n,
+          DataTools.convertDate(ms, DataTools.COBOL));
+        count++;
+      }
+      else if (qName.equals("ChannelScalingInfo")) {
+        String prefix = fullSeries + " - ChannelScalingInfo " + count + " - ";
+        addMeta(prefix + "WhiteValue", attributes.getValue("WhiteValue"));
+        addMeta(prefix + "BlackValue", attributes.getValue("BlackValue"));
+        addMeta(prefix + "GammaValue", attributes.getValue("GammaValue"));
+        addMeta(prefix + "Automatic", attributes.getValue("Automatic"));
+      }
+      else if (qName.equals("RelTimeStamp")) {
+        addMeta(fullSeries + " RelTimeStamp " + attributes.getValue("Frame"),
+          attributes.getValue("Time"));
+      }
+      else count = 0;
     }
   }
 

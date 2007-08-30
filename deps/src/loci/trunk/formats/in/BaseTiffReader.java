@@ -36,6 +36,10 @@ import loci.formats.*;
  * BaseTiffReader is the superclass for file format readers compatible with
  * or derived from the TIFF 6.0 file format.
  *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/in/BaseTiffReader.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/in/BaseTiffReader.java">SVN</a></dd></dl>
+ *
  * @author Curtis Rueden ctrueden at wisc.edu
  * @author Melissa Linkert linkert at wisc.edu
  */
@@ -43,14 +47,8 @@ public abstract class BaseTiffReader extends FormatReader {
 
   // -- Fields --
 
-  /** Current TIFF file. */
-  protected RandomAccessStream in;
-
   /** List of IFDs for the current TIFF. */
   protected Hashtable[] ifds;
-
-  /** Number of images in the current TIFF stack. */
-  protected int numImages;
 
   // -- Constructors --
 
@@ -65,16 +63,62 @@ public abstract class BaseTiffReader extends FormatReader {
   // -- BaseTiffReader API methods --
 
   /** Gets the dimensions of the given (possibly multi-page) TIFF file. */
-  public int[] getTiffDimensions(String id)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
+  public int[] getTiffDimensions() throws FormatException, IOException {
     if (ifds == null || ifds.length == 0) return null;
     return new int[] {
       TiffTools.getIFDIntValue(ifds[0], TiffTools.IMAGE_WIDTH, false, -1),
       TiffTools.getIFDIntValue(ifds[0], TiffTools.IMAGE_LENGTH, false, -1),
-      numImages
+      core.imageCount[0]
     };
+  }
+
+  // -- IFormatReader API methods --
+
+  /* @see loci.formats.IFormatReader#isThisType(byte[]) */
+  public boolean isThisType(byte[] block) {
+    return TiffTools.isValidHeader(block);
+  }
+
+  /* @see loci.formats.IFormatReader#getMetadataValue(String) */
+  public Object getMetadataValue(String field) {
+    FormatTools.assertId(currentId, true, 1);
+    return getMeta(field);
+  }
+
+  /* @see loci.formats.FormatReader#openBytes(int) */
+  public byte[] openBytes(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 1);
+    if (no < 0 || no >= getImageCount()) {
+      throw new FormatException("Invalid image number: " + no);
+    }
+
+    int bytesPerPixel = FormatTools.getBytesPerPixel(getPixelType());
+    byte[] buf = new byte[getSizeX() * getSizeY() * bytesPerPixel *
+      getRGBChannelCount()];
+    return openBytes(no, buf);
+  }
+
+  /* @see loci.formats.FormatReader#openBytes(int, byte[]) */
+  public byte[] openBytes(int no, byte[] buf)
+    throws FormatException, IOException
+  {
+    FormatTools.assertId(currentId, true, 1);
+    if (no < 0 || no >= getImageCount()) {
+      throw new FormatException("Invalid image number: " + no);
+    }
+
+    TiffTools.getSamples(ifds[no], in, buf);
+    return swapIfRequired(buf);
+  }
+
+  /* @see loci.formats.IFormatReader#openImage(int) */
+  public BufferedImage openImage(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 1);
+    if (no < 0 || no >= getImageCount()) {
+      throw new FormatException("Invalid image number: " + no);
+    }
+
+    return TiffTools.getImage(ifds[no], in);
   }
 
   // -- Internal BaseTiffReader API methods --
@@ -447,19 +491,19 @@ public abstract class BaseTiffReader extends FormatReader {
       put("Comment", comment);
     }
 
+    int samples = TiffTools.getIFDIntValue(ifds[0],
+      TiffTools.SAMPLES_PER_PIXEL, false, 1);
+    core.rgb[0] = samples > 1 || p == TiffTools.RGB_PALETTE ||
+      p == TiffTools.CFA_ARRAY || p == TiffTools.RGB;
+    core.interleaved[0] = true;
+    core.littleEndian[0] = TiffTools.isLittleEndian(ifds[0]);
+
     core.sizeX[0] =
       TiffTools.getIFDIntValue(ifds[0], TiffTools.IMAGE_WIDTH, false, 0);
     core.sizeY[0] =
       TiffTools.getIFDIntValue(ifds[0], TiffTools.IMAGE_LENGTH, false, 0);
     core.sizeZ[0] = 1;
-
-    try {
-      core.sizeC[0] = isRGB(currentId) ? 3 : 1;
-    }
-    catch (IOException e) {
-      throw new FormatException(e);
-    }
-
+    core.sizeC[0] = core.rgb[0] ? 3 : 1;
     core.sizeT[0] = ifds.length;
 
     int bitFormat = TiffTools.getIFDIntValue(ifds[0],
@@ -471,9 +515,6 @@ public abstract class BaseTiffReader extends FormatReader {
     if (bitFormat == 3) core.pixelType[0] = FormatTools.FLOAT;
     else if (bitFormat == 2) {
       switch (bps) {
-        case 8:
-          core.pixelType[0] = FormatTools.UINT8;
-          break;
         case 16:
           core.pixelType[0] = FormatTools.INT16;
           break;
@@ -486,9 +527,6 @@ public abstract class BaseTiffReader extends FormatReader {
     }
     else {
       switch (bps) {
-        case 8:
-          core.pixelType[0] = FormatTools.UINT8;
-          break;
         case 16:
           core.pixelType[0] = FormatTools.UINT16;
           break;
@@ -516,15 +554,15 @@ public abstract class BaseTiffReader extends FormatReader {
     Hashtable ifd = ifds[0];
     try {
       // the metadata store we're working with
-      MetadataStore store = getMetadataStore(currentId);
+      MetadataStore store = getMetadataStore();
 
       // set the pixel values in the metadata store
-      store.setPixels(new Integer(getSizeX(currentId)),
-        new Integer(getSizeY(currentId)), new Integer(getSizeZ(currentId)),
-        new Integer(getSizeC(currentId)), new Integer(getSizeT(currentId)),
-        new Integer(getPixelType(currentId)),
-        new Boolean(!isLittleEndian(currentId)),
-        getDimensionOrder(currentId), null, null);
+      store.setPixels(new Integer(getSizeX()),
+        new Integer(getSizeY()), new Integer(getSizeZ()),
+        new Integer(getSizeC()), new Integer(getSizeT()),
+        new Integer(getPixelType()),
+        new Boolean(!isLittleEndian()),
+        getDimensionOrder(), null, null);
 
       // populate Experimenter element
       String artist = (String) TiffTools.getIFDValue(ifd, TiffTools.ARTIST);
@@ -547,13 +585,22 @@ public abstract class BaseTiffReader extends FormatReader {
       String creationDate = getImageCreationDate();
       try {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-        SimpleDateFormat parse = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss"); 
+        SimpleDateFormat parse = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss");
         Date date = parse.parse(creationDate, new ParsePosition(0));
         creationDate = sdf.format(date);
       }
-      catch (Exception e) {
-        if (debug) e.printStackTrace();
-        creationDate = null;
+      catch (NullPointerException e) {
+        try {
+          SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+          SimpleDateFormat parse =
+            new SimpleDateFormat("dd/MM/yyyy HH:mm:ss.SS");
+          Date date = parse.parse(creationDate, new ParsePosition(0));
+          creationDate = sdf.format(date);
+        }
+        catch (NullPointerException exc) {
+          if (debug) trace(exc);
+          creationDate = null;
+        }
       }
 
       // populate Image element
@@ -562,15 +609,15 @@ public abstract class BaseTiffReader extends FormatReader {
         creationDate, getImageDescription(), null);
 
       // populate Logical Channel elements
-      for (int i=0; i<getSizeC(currentId); i++) {
+      for (int i=0; i<getSizeC(); i++) {
         try {
           setLogicalChannel(i);
         }
-        catch (FormatException e) {
-          if (debug) e.printStackTrace();
+        catch (FormatException exc) {
+          if (debug) trace(exc);
         }
-        catch (IOException e) {
-          if (debug) e.printStackTrace();
+        catch (IOException exc) {
+          if (debug) trace(exc);
         }
       }
 
@@ -622,8 +669,7 @@ public abstract class BaseTiffReader extends FormatReader {
         TiffTools.getIFDValue(ifd, TiffTools.MAKE);
       store.setInstrument(null, model, serialNumber, null, null);
     }
-    catch (FormatException exc) { exc.printStackTrace(); }
-    catch (IOException ex) { ex.printStackTrace(); }
+    catch (FormatException exc) { trace(exc); }
   }
 
   /**
@@ -665,7 +711,7 @@ public abstract class BaseTiffReader extends FormatReader {
     // are floating point.
     if (bitsPerSample == 8 || bitsPerSample == 32) return byteArray;
 
-    if (isLittleEndian(currentId)) {
+    if (isLittleEndian()) {
       if (bitsPerSample == 16) { // short
         ShortBuffer buf = ByteBuffer.wrap(byteArray).asShortBuffer();
         for (int i = 0; i < (byteArray.length / 2); i++) {
@@ -681,116 +727,9 @@ public abstract class BaseTiffReader extends FormatReader {
     return byteArray;
   }
 
-  // -- FormatReader API methods --
+  // -- Internal FormatReader API methods --
 
-  /* @see loci.formats.IFormatReader#isThisType(byte[]) */ 
-  public boolean isThisType(byte[] block) {
-    return TiffTools.isValidHeader(block);
-  }
-
-  /* @see loci.formats.IFormatReader#getImageCount(String) */ 
-  public int getImageCount(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return numImages;
-  }
-
-  /* @see loci.formats.IFormatReader#isRGB(String) */
-  public boolean isRGB(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    if (TiffTools.getIFDIntValue(ifds[0],
-      TiffTools.SAMPLES_PER_PIXEL, false, 1) > 1)
-    {
-      return true;
-    }
-    int p = TiffTools.getIFDIntValue(ifds[0],
-      TiffTools.PHOTOMETRIC_INTERPRETATION, true, 0);
-    return p == TiffTools.RGB_PALETTE || p == TiffTools.CFA_ARRAY || 
-      p == TiffTools.RGB;
-  }
-
-  /* @see loci.formats.IFormatReader#getMetadataValue(String, String) */ 
-  public Object getMetadataValue(String id, String field)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId) && !DataTools.samePrefix(id, currentId)) {
-      initFile(id);
-    }
-    return getMeta(field);
-  }
-
-  /* @see loci.formats.IFormatReader#isLittleEndian(String) */ 
-  public boolean isLittleEndian(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return TiffTools.isLittleEndian(ifds[0]);
-  }
-
-  /* @see loci.formats.IFormatReader#isInterleaved(String, int) */ 
-  public boolean isInterleaved(String id, int subC)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-    return TiffTools.getSamplesPerPixel(ifds[0]) > 1; 
-  }
-
-  /* @see loci.formats.FormatReader#openBytes(String, int, byte[]) */
-  public byte[] openBytes(String id, int no, byte[] buf)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-
-    if (no < 0 || no >= getImageCount(id)) {
-      throw new FormatException("Invalid image number: " + no);
-    }
-
-    TiffTools.getSamples(ifds[no], in, buf);
-    return swapIfRequired(buf);
-  }
-
-  /* @see loci.formats.FormatReader#openBytes(String, int) */
-  public byte[] openBytes(String id, int no)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-
-    if (no < 0 || no >= getImageCount(id)) {
-      throw new FormatException("Invalid image number: " + no);
-    }
-
-    int bytesPerPixel = FormatTools.getBytesPerPixel(getPixelType(id));
-    byte[] buf = new byte[getSizeX(id) * getSizeY(id) * bytesPerPixel *
-      getRGBChannelCount(id)];
-    return openBytes(id, no, buf);
-  }
-
-  /* @see loci.formats.IFormatReader#openImage(String, int) */ 
-  public BufferedImage openImage(String id, int no)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId) && !DataTools.samePrefix(id, currentId)) {
-      initFile(id);
-    }
-
-    if (no < 0 || no >= getImageCount(id)) {
-      throw new FormatException("Invalid image number: " + no);
-    }
-
-    return TiffTools.getImage(ifds[no], in);
-  }
-
-  /* @see loci.formats.IFormatReader#close(boolean) */
-  public void close(boolean fileOnly) throws FormatException, IOException {
-    if (fileOnly && in != null) in.close();
-    else if (!fileOnly) close();
-  }
-
-  /* @see loci.formats.IFormatReader#close() */ 
-  public void close() throws FormatException, IOException {
-    if (in != null) in.close();
-    in = null;
-    currentId = null;
-  }
-
-  /** Initializes the given TIFF file. */
+  /* @see loci.formats.FormatReader#initFile(String) */
   protected void initFile(String id) throws FormatException, IOException {
     if (debug) debug("BaseTiffReader.initFile(" + id + ")");
     super.initFile(id);
@@ -801,10 +740,10 @@ public abstract class BaseTiffReader extends FormatReader {
 
     ifds = TiffTools.getIFDs(in);
     if (ifds == null) throw new FormatException("No IFDs found");
-    
-    status("Populating metadata"); 
 
-    numImages = ifds.length;
+    status("Populating metadata");
+
+    core.imageCount[0] = ifds.length;
     initMetadata();
   }
 
@@ -817,15 +756,10 @@ public abstract class BaseTiffReader extends FormatReader {
    * @throws IOException if there is an error reading the file.
    */
   private void setLogicalChannel(int i) throws FormatException, IOException {
-    getMetadataStore(currentId).setLogicalChannel(
-      i,
-      getChannelName(i),
-      getNdFilter(i),
-      getEmWave(i),
-      getExWave(i),
-      getPhotometricInterpretation(i),
-      getMode(i), // aquisition mode
-      null);
+    getMetadataStore().setLogicalChannel(i, getChannelName(i), null, null, null,
+      null, null, null, null, null, null, null, null,
+      getPhotometricInterpretation(i), getMode(i), null, null, null, null, null,
+      getEmWave(i), getExWave(i), null, getNdFilter(i), null);
   }
 
   private String getChannelName(int i) { return null; }
@@ -839,8 +773,7 @@ public abstract class BaseTiffReader extends FormatReader {
   private String getPhotometricInterpretation(int i)
     throws FormatException, IOException
   {
-    return (String) getMetadataValue(currentId,
-      "metaDataPhotometricInterpretation");
+    return (String) getMetadataValue("metaDataPhotometricInterpretation");
   }
 
   private String getMode(int i) { return null; }

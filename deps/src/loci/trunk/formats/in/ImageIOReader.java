@@ -35,14 +35,13 @@ import loci.formats.*;
  * ImageIOReader is the superclass for file format readers
  * that use the javax.imageio package.
  *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/in/ImageIOReader.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/in/ImageIOReader.java">SVN</a></dd></dl>
+ *
  * @author Curtis Rueden ctrueden at wisc.edu
  */
 public abstract class ImageIOReader extends FormatReader {
-
-  // -- Fields --
-
-  /** Flag indicating image is RGB. */
-  private boolean rgb;
 
   // -- Constructors --
 
@@ -54,39 +53,15 @@ public abstract class ImageIOReader extends FormatReader {
     super(name, suffixes);
   }
 
-  // -- FormatReader API methods --
+  // -- IFormatReader API methods --
 
-  /* @see loci.formats.IFormatReader#isThisType(byte[]) */ 
+  /* @see loci.formats.IFormatReader#isThisType(byte[]) */
   public boolean isThisType(byte[] block) { return false; }
 
-  /* @see loci.formats.IFormatReader#getImageCount(String) */ 
-  public int getImageCount(String id) throws FormatException, IOException {
-    return 1;
-  }
-
-  /* @see loci.formats.IFormatReader#isRGB(String) */ 
-  public boolean isRGB(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return rgb;
-  }
-
-  /* @see loci.formats.IFormatReader#isLittleEndian(String) */ 
-  public boolean isLittleEndian(String id) throws FormatException, IOException {
-    return false;
-  }
-
-  /* @see loci.formats.IFormatReader#isInterleaved(String, int) */ 
-  public boolean isInterleaved(String id, int subC)
-    throws FormatException, IOException
-  {
-    return true;
-  }
-
-  /* @see loci.formats.IFormatReader#openBytes(String, int) */ 
-  public byte[] openBytes(String id, int no)
-    throws FormatException, IOException
-  {
-    byte[] b = ImageTools.getBytes(openImage(id, no), false, no);
+  /* @see loci.formats.IFormatReader#openBytes(int) */
+  public byte[] openBytes(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 1);
+    byte[] b = ImageTools.getBytes(openImage(no), false, no);
     int bytesPerChannel = core.sizeX[0] * core.sizeY[0];
     if (b.length > bytesPerChannel) {
       byte[] tmp = b;
@@ -99,15 +74,14 @@ public abstract class ImageIOReader extends FormatReader {
     return b;
   }
 
-  /* @see loci.formats.IFormatReader#openImage(String, int) */ 
-  public BufferedImage openImage(String id, int no)
-    throws FormatException, IOException
-  {
-    if (no < 0 || no >= getImageCount(id)) {
+  /* @see loci.formats.IFormatReader#openImage(int) */
+  public BufferedImage openImage(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 1);
+    if (no < 0 || no >= getImageCount()) {
       throw new FormatException("Invalid image number: " + no);
     }
 
-    RandomAccessStream ras = new RandomAccessStream(id);
+    RandomAccessStream ras = new RandomAccessStream(currentId);
     DataInputStream dis =
       new DataInputStream(new BufferedInputStream(ras, 4096));
     BufferedImage b = ImageIO.read(dis);
@@ -117,34 +91,42 @@ public abstract class ImageIOReader extends FormatReader {
   }
 
   /* @see loci.formats.IFormatReader#close(boolean) */
-  public void close(boolean fileOnly) throws FormatException, IOException { }
+  public void close(boolean fileOnly) throws IOException { }
 
-  /* @see loci.formats.IFormatReader#close() */ 
-  public void close() throws FormatException, IOException { }
+  // -- IFormatHandler API methods --
 
-  /** Initializes the given file. */
-  public void initFile(String id) throws FormatException, IOException {
+  /* @see loci.formats.IFormatHandler#close() */
+  public void close() throws IOException { 
+    currentId = null; 
+  }
+
+  // -- Internal FormatReader API methods --
+
+  /* @see loci.formats.FormatReader#initFile(String) */
+  protected void initFile(String id) throws FormatException, IOException {
     if (debug) debug("ImageIOReader.initFile(" + id + ")");
     super.initFile(id);
 
     status("Populating metadata");
-    BufferedImage img = openImage(id, 0);
+    core.imageCount[0] = 1;
+    BufferedImage img = openImage(0);
 
     core.sizeX[0] = img.getWidth();
     core.sizeY[0] = img.getHeight();
 
-    rgb = img.getRaster().getNumBands() > 1;
+    core.rgb[0] = img.getRaster().getNumBands() > 1;
 
     core.sizeZ[0] = 1;
-    core.sizeC[0] = rgb ? 3 : 1;
+    core.sizeC[0] = core.rgb[0] ? 3 : 1;
     core.sizeT[0] = 1;
     core.currentOrder[0] = "XYCZT";
     core.pixelType[0] = ImageTools.getPixelType(img);
+    core.interleaved[0] = true;
+    core.littleEndian[0] = false;
 
     // populate the metadata store
-
-    MetadataStore store = getMetadataStore(id);
-
+    MetadataStore store = getMetadataStore();
+    store.setImage(currentId, null, null, null);
     store.setPixels(
       new Integer(core.sizeX[0]),
       new Integer(core.sizeY[0]),
@@ -152,14 +134,15 @@ public abstract class ImageIOReader extends FormatReader {
       new Integer(core.sizeC[0]),
       new Integer(core.sizeT[0]),
       new Integer(core.pixelType[0]),
-      new Boolean(false),
-      core.currentOrder[0], 
+      new Boolean(!core.littleEndian[0]),
+      core.currentOrder[0],
       null,
       null);
     for (int i=0; i<core.sizeC[0]; i++) {
-      store.setLogicalChannel(i, null, null, null, null, null, null, null);
+      store.setLogicalChannel(i, null, null, null, null, null, null, null, null,
+        null, null, null, null, null, null, null, null, null, null, null, null,
+        null, null, null, null);
     }
-    setMetadataStore(store);
   }
 
 }

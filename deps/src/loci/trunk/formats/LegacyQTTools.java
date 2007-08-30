@@ -30,7 +30,13 @@ import java.awt.image.MemoryImageSource;
 import java.net.*;
 import java.util.StringTokenizer;
 
-/** Utility class for working with QuickTime for Java. */
+/**
+ * Utility class for working with QuickTime for Java.
+ *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/LegacyQTTools.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/LegacyQTTools.java">SVN</a></dd></dl>
+ */
 public class LegacyQTTools {
 
   // -- Constants --
@@ -69,7 +75,7 @@ public class LegacyQTTools {
           new URL("file:/System/Library/Java/Extensions/QTJava.zip")
         };
       }
-      catch (MalformedURLException exc) { exc.printStackTrace(); }
+      catch (MalformedURLException exc) { LogTools.trace(exc); }
       return paths == null ? null : new URLClassLoader(paths);
     }
 
@@ -83,7 +89,7 @@ public class LegacyQTTools {
         try {
           paths = new URL[] {f.toURL()};
         }
-        catch (MalformedURLException exc) { exc.printStackTrace(); }
+        catch (MalformedURLException exc) { LogTools.trace(exc); }
         return paths == null ? null : new URLClassLoader(paths);
       }
     }
@@ -139,6 +145,7 @@ public class LegacyQTTools {
       r.exec("import quicktime.std.movies.media.VideoMedia");
       r.exec("import quicktime.util.QTHandle");
       r.exec("import quicktime.util.RawEncodedImage");
+      r.exec("import quicktime.util.EndianOrder");
     }
     catch (ExceptionInInitializerError err) {
       noQT = true;
@@ -150,11 +157,14 @@ public class LegacyQTTools {
     }
     catch (Throwable t) {
       noQT = true;
+      if (FormatHandler.debug) LogTools.trace(t);
     }
     finally {
       if (needClose) {
         try { r.exec("QTSession.close()"); }
-        catch (Throwable t) { }
+        catch (Throwable t) {
+          if (FormatHandler.debug) LogTools.trace(t);
+        }
       }
       initialized = true;
     }
@@ -195,7 +205,7 @@ public class LegacyQTTools {
       r.exec("QTSession.close()");
       return new Dimension(width, height);
     }
-    catch (Exception e) {
+    catch (ReflectException e) {
       r.exec("QTSession.close()");
       throw new FormatException("PICT height determination failed", e);
     }
@@ -249,9 +259,9 @@ public class LegacyQTTools {
       return Toolkit.getDefaultToolkit().createImage(new MemoryImageSource(
         width, height, colorModel, pixels, 0, intsPerRow));
     }
-    catch (Exception e) {
+    catch (ReflectException e) {
       try { r.exec("QTSession.close()"); }
-      catch (ReflectException exc) { exc.printStackTrace(); }
+      catch (ReflectException exc) { LogTools.trace(exc); }
       throw new FormatException("PICT extraction failed", e);
     }
   }

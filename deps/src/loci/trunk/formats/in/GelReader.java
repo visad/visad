@@ -31,6 +31,10 @@ import loci.formats.*;
  * GelReader is the file format reader for
  * Molecular Dynamics GEL TIFF files.
  *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/in/GelReader.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/in/GelReader.java">SVN</a></dd></dl>
+ *
  * @author Melissa Linkert linkert at wisc.edu
  */
 public class GelReader extends BaseTiffReader {
@@ -53,9 +57,9 @@ public class GelReader extends BaseTiffReader {
     super("Molecular Dynamics GEL TIFF", new String[] {"gel"});
   }
 
-  // -- FormatReader API methods --
+  // -- IFormatReader API methods --
 
-  /* @see loci.formats.IFormatReader#isThisType(byte[]) */ 
+  /* @see loci.formats.IFormatReader#isThisType(byte[]) */
   public boolean isThisType(byte[] block) { return false; }
 
   // -- Internal BaseTiffReader API methods --
@@ -64,14 +68,14 @@ public class GelReader extends BaseTiffReader {
   protected void initStandardMetadata() throws FormatException, IOException {
     super.initStandardMetadata();
 
-    numImages--;
+    core.imageCount[0]--;
 
     try {
       long fmt = TiffTools.getIFDLongValue(ifds[1], MD_FILETAG, true, 128);
       addMeta("Data format", fmt == 2 ? "square root" : "linear");
     }
-    catch (FormatException f) {
-      f.printStackTrace();
+    catch (FormatException exc) {
+      trace(exc);
     }
 
     TiffRational scale =
@@ -95,9 +99,9 @@ public class GelReader extends BaseTiffReader {
     String units = (String) TiffTools.getIFDValue(ifds[1], MD_FILE_UNITS);
     addMeta("File units", units == null ? "unknown" : units);
 
-    core.sizeT[series] = numImages;
+    core.sizeT[series] = core.imageCount[series];
 
-    MetadataStore store = getMetadataStore(currentId);
+    MetadataStore store = getMetadataStore();
     store.setDimensions(new Float(scale.floatValue()),
       new Float(scale.floatValue()), null, null, null, null);
   }

@@ -31,6 +31,10 @@ import loci.formats.FormatException;
  * TIFF 6.0 Specification at
  * http://partners.adobe.com/asn/developer/pdfs/tn/TIFF6.pdf (page 61).
  *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/codec/LZWCodec.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/codec/LZWCodec.java">SVN</a></dd></dl>
+ *
  * @author Eric Kjellman egkjellman at wisc.edu
  * @author Curtis Rueden ctrueden at wisc.edu
  * @author Wayne Rasband wsr at nih.gov
@@ -104,7 +108,8 @@ public class LZWCodec extends BaseCodec implements Codec {
    * @return The decompressed data
    * @throws FormatException If input is not an LZW-compressed data block.
    */
-  public byte[] decompress(byte[] input) throws FormatException {
+  public byte[] decompress(byte[] input, Object options) throws FormatException
+  {
     if (input == null || input.length == 0) return input;
 
     byte[][] symbolTable = new byte[4096][1];

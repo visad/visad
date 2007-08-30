@@ -33,14 +33,15 @@ import loci.formats.*;
  * See http://astronomy.swin.edu.au/~pbourke/dataformats/bmp/ for a nice
  * description of the BMP file format.
  *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/in/BMPReader.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/in/BMPReader.java">SVN</a></dd></dl>
+ *
  * @author Melissa Linkert linkert at wisc.edu
  */
 public class BMPReader extends FormatReader {
 
   // -- Fields --
-
-  /** Current file. */
-  protected RandomAccessStream in;
 
   /** Offset to the image data. */
   protected int offset;
@@ -61,16 +62,16 @@ public class BMPReader extends FormatReader {
   protected int compression;
 
   /** Offset to image data. */
-  private int global;
+  private long global;
 
   // -- Constructor --
 
   /** Constructs a new BMP reader. */
   public BMPReader() { super("Windows Bitmap", "bmp"); }
 
-  // -- FormatReader API methods --
+  // -- IFormatReader API methods --
 
-  /* @see loci.formats.IFormatReader#isThisType(byte[]) */ 
+  /* @see loci.formats.IFormatReader#isThisType(byte[]) */
   public boolean isThisType(byte[] block) {
     if (block.length != 14) {
       return false;
@@ -79,35 +80,19 @@ public class BMPReader extends FormatReader {
     return true;
   }
 
-  /* @see loci.formats.IFormatReader#getImageCount(String) */ 
-  public int getImageCount(String id) throws FormatException, IOException {
-    return 1;
+  /* @see loci.formats.IFormatReader#openBytes(int) */
+  public byte[] openBytes(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 1);
+    byte[] buf = new byte[core.sizeX[0] * core.sizeY[0] * core.sizeC[0]];
+    return openBytes(no, buf);
   }
 
-  /* @see loci.formats.IFormatReader#isRGB(String) */
-  public boolean isRGB(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return bpp > 8;
-  }
-
-  /* @see loci.formats.IFormatReader#isLittleEndian(String) */ 
-  public boolean isLittleEndian(String id) throws FormatException, IOException {
-    return true;
-  }
-
-  /* @see loci.formats.IFormatReader#isInterleaved(String, int) */ 
-  public boolean isInterleaved(String id, int subC)
+  /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
+  public byte[] openBytes(int no, byte[] buf)
     throws FormatException, IOException
   {
-    return true;
-  }
-
-  /* @see loci.formats.IFormatReader#openBytes(String, int, byte[]) */
-  public byte[] openBytes(String id, int no, byte[] buf)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-    if (no < 0 || no >= getImageCount(id)) {
+    FormatTools.assertId(currentId, true, 1);
+    if (no < 0 || no >= getImageCount()) {
       throw new FormatException("Invalid image number: " + no);
     }
 
@@ -136,20 +121,20 @@ public class BMPReader extends FormatReader {
       }
     }
     else {
-      if (bpp <= 8) {
+      if (core.sizeC[0] == 1) {
         for (int y=core.sizeY[0]-1; y>=0; y--) {
           for (int x=0; x<core.sizeX[0]; x++) {
-            buf[y*core.sizeX[0] + x] = (byte) in.read();
+            buf[y*core.sizeX[0] + x] = (byte) (in.read() & 0xff);
           }
         }
       }
       else {
         for (int y=core.sizeY[0]-1; y>=0; y--) {
           for (int x=0; x<core.sizeX[0]; x++) {
-            buf[y*core.sizeX[0] + x + 2*pixels] = (byte) in.read();
-            buf[y*core.sizeX[0] + x + pixels] = (byte) in.read();
-            buf[y*core.sizeX[0] + x] = (byte) in.read();
-            for (int j=0; j<(bpp - 24) / 8; j++) in.read();
+            int off = y*core.sizeX[0] + x;
+            buf[2*core.sizeX[0]*core.sizeY[0] + off] = (byte)(in.read() & 0xff);
+            buf[core.sizeX[0]*core.sizeY[0] + off] = (byte) (in.read() & 0xff);
+            buf[off] = (byte) (in.read() & 0xff);
           }
         }
       }
@@ -157,37 +142,16 @@ public class BMPReader extends FormatReader {
     return buf;
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(String, int) */ 
-  public byte[] openBytes(String id, int no)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-    byte[] buf = new byte[core.sizeX[0] * core.sizeY[0] * (bpp / 8)];
-    return openBytes(id, no, buf);
-  }
-
-  /* @see loci.formats.IFormatReader#openImage(String, int) */ 
-  public BufferedImage openImage(String id, int no)
-    throws FormatException, IOException
-  {
-    return ImageTools.makeImage(openBytes(id, no), core.sizeX[0], core.sizeY[0], 
+  /* @see loci.formats.IFormatReader#openImage(int) */
+  public BufferedImage openImage(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 1);
+    return ImageTools.makeImage(openBytes(no), core.sizeX[0], core.sizeY[0],
       core.sizeC[0], false);
   }
 
-  /* @see loci.formats.IFormatReader#close(boolean) */
-  public void close(boolean fileOnly) throws FormatException, IOException {
-    if (fileOnly && in != null) in.close();
-    else if (!fileOnly) close();
-  }
+  // -- Internel FormatReader API methods --
 
-  /* @see loci.formats.IFormatReader#close() */ 
-  public void close() throws FormatException, IOException {
-    if (in != null) in.close();
-    in = null;
-    currentId = null;
-  }
-
-  /** Initializes the given BMP file. */
+  /* @see loci.formats.FormatReader#initFile(String) */
   protected void initFile(String id) throws FormatException, IOException {
     if (debug) debug("BMPReader.initFile(" + id + ")");
     super.initFile(id);
@@ -199,9 +163,7 @@ public class BMPReader extends FormatReader {
 
     // read the first header - 14 bytes
 
-    byte[] two = new byte[2];
-    in.read(two);
-    addMeta("Magic identifier", new String(two));
+    addMeta("Magic identifier", in.readString(2));
 
     addMeta("File size (in bytes)", "" + in.readInt());
     in.skipBytes(4); // reserved
@@ -250,19 +212,21 @@ public class BMPReader extends FormatReader {
     addMeta("Compression type", comp);
 
     in.skipBytes(4);
-    addMeta("X resolution", "" + in.readInt());
-    addMeta("Y resolution", "" + in.readInt());
+    int pixelSizeX = in.readInt();
+    int pixelSizeY = in.readInt();
+    addMeta("X resolution", "" + pixelSizeX);
+    addMeta("Y resolution", "" + pixelSizeY);
     int nColors = in.readInt();
     in.skipBytes(4);
 
     // read the palette, if it exists
 
-    if (offset != in.getFilePointer()) {
+    if (offset != in.getFilePointer() && nColors > 0) {
       palette = new byte[3][nColors];
 
       for (int i=0; i<nColors; i++) {
         for (int j=palette.length; j>0; j--) {
-          palette[j][i] = (byte) in.read();
+          palette[j][i] = (byte) (in.read() & 0xff);
         }
         in.read();
       }
@@ -273,7 +237,7 @@ public class BMPReader extends FormatReader {
 
     status("Populating metadata");
 
-    core.sizeC[0] = (palette == null & bpp == 8) ? 1 : 3;
+    core.sizeC[0] = (palette == null && bpp == 8) ? 1 : 3;
     if (bpp > 8) bpp /= 3;
     while (bpp % 8 != 0) bpp++;
 
@@ -289,16 +253,21 @@ public class BMPReader extends FormatReader {
         break;
     }
 
-    if (core.sizeX[0] % 2 == 1) core.sizeX[0]++; 
+    if (core.sizeX[0] % 2 == 1) core.sizeX[0]++;
+    core.rgb[0] = core.sizeC[0] > 1;
+    core.littleEndian[0] = true;
+    core.interleaved[0] = true;
+    core.imageCount[0] = 1;
     core.sizeZ[0] = 1;
-    core.sizeC[0] = isRGB(id) ? 3 : 1;
     core.sizeT[0] = 1;
     core.currentOrder[0] = "XYCTZ";
 
     // Populate metadata store.
 
     // The metadata store we're working with.
-    MetadataStore store = getMetadataStore(id);
+    MetadataStore store = getMetadataStore();
+
+    store.setImage(currentId, null, null, null);
 
     store.setPixels(
       new Integer(core.sizeX[0]),  // sizeX
@@ -315,17 +284,16 @@ public class BMPReader extends FormatReader {
     // resolution is stored as pixels per meter; we want to convert to
     // microns per pixel
 
-    int pixSizeX = Integer.parseInt((String) getMeta("X resolution"));
-    int pixSizeY = Integer.parseInt((String) getMeta("Y resolution"));
-
-    float correctedX = (1 / (float) pixSizeX) * 1000000;
-    float correctedY = (1 / (float) pixSizeY) * 1000000;
+    float correctedX = (1 / (float) pixelSizeX) * 1000000;
+    float correctedY = (1 / (float) pixelSizeY) * 1000000;
 
     store.setDimensions(new Float(correctedX), new Float(correctedY), null,
       null, null, null);
 
     for (int i=0; i<core.sizeC[0]; i++) {
-      store.setLogicalChannel(i, null, null, null, null, null, null, null);
+      store.setLogicalChannel(i, null, null, null, null, null, null, null, null,
+       null, null, null, null, null, null, null, null, null, null, null, null,
+       null, null, null, null);
     }
   }
 

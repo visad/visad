@@ -25,15 +25,32 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 package loci.formats;
 
 import java.io.*;
+import java.text.*;
+import java.util.Date;
 
 /**
  * A utility class with convenience methods for
  * reading, writing and decoding words.
  *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/DataTools.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/DataTools.java">SVN</a></dd></dl>
+ *
  * @author Curtis Rueden ctrueden at wisc.edu
  * @author Chris Allan callan at blackcat.ca
+ * @author Melissa Linkert linkert at wisc.edu
  */
 public final class DataTools {
+
+  // -- Constants --
+
+  /** Timestamp formats. */
+  public static final int UNIX = 0;  // January 1, 1970
+  public static final int COBOL = 1;  // January 1, 1601
+
+  /** Milliseconds until UNIX epoch. */
+  public static final long UNIX_EPOCH = 0;
+  public static final long COBOL_EPOCH = 11644444800000L;
 
   // -- Static fields --
 
@@ -61,9 +78,7 @@ public final class DataTools {
   }
 
   /** Reads 1 unsigned byte [0, 255]. */
-  public static short readUnsignedByte(DataInput in)
-    throws IOException
-  {
+  public static short readUnsignedByte(DataInput in) throws IOException {
     short q = readSignedByte(in);
     if (q < 0) q += 256;
     return q;
@@ -379,6 +394,27 @@ public final class DataTools {
     return bytesToLong(bytes, 0, 8, little);
   }
 
+  // -- Byte swapping --
+
+  public static short swap(short x) {
+    return (short) ((x << 8) | ((x >> 8) & 0xFF));
+  }
+
+  public static char swap(char x) {
+    return (char) ((x << 8) | ((x >> 8) & 0xFF));
+  }
+
+  public static int swap(int x) {
+    return (int) ((swap((short) x) << 16) | (swap((short) (x >> 16)) & 0xFFFF));
+  }
+
+  public static long swap(long x) {
+    return (long) (((long) swap((int) x) << 32) |
+      ((long) swap((int) (x >> 32)) & 0xFFFFFFFFL));
+  }
+
+  // -- Miscellaneous --
+
   /** Remove null bytes from a string. */
   public static String stripString(String toStrip) {
     char[] toRtn = new char[toStrip.length()];
@@ -468,13 +504,11 @@ public final class DataTools {
 
     float min = Float.MAX_VALUE;
     float max = Float.MIN_VALUE;
-    int maxNdx = 0;
 
     for (int i=0; i<data.length; i++) {
       if (data[i] < min) min = data[i];
       if (data[i] > max) {
         max = data[i];
-        maxNdx = i;
       }
     }
 
@@ -489,23 +523,28 @@ public final class DataTools {
     return rtn;
   }
 
-  // -- Byte swapping --
+  // -- Date handling --
 
-  public static short swap(short x) {
-    return (short) ((x << 8) | ((x >> 8) & 0xFF));
-  }
+  /** Converts the given timestamp into an ISO 8061 date. */
+  public static String convertDate(long stamp, int format) {
+    // see http://www.merlyn.demon.co.uk/critdate.htm for more information on
+    // dates than you will ever need (or want)
 
-  public static char swap(char x) {
-    return (char) ((x << 8) | ((x >> 8) & 0xFF));
-  }
+    long ms = stamp;
 
-  public static int swap(int x) {
-    return (int) ((swap((short) x) << 16) | (swap((short) (x >> 16)) & 0xFFFF));
-  }
+    switch (format) {
+      case COBOL:
+        ms -= COBOL_EPOCH;
+        break;
+    }
 
-  public static long swap(long x) {
-    return (long) (((long) swap((int) x) << 32) |
-      ((long) swap((int) (x >> 32)) & 0xFFFFFFFFL));
+    SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    StringBuffer sb = new StringBuffer();
+
+    Date d = new Date(ms);
+
+    fmt.format(d, sb, new FieldPosition(0));
+    return sb.toString();
   }
 
 }

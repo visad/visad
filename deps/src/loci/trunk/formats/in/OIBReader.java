@@ -33,6 +33,10 @@ import loci.formats.*;
 /**
  * OIBReader is the file format reader for Fluoview FV1000 OIB files.
  *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/in/OIBReader.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/in/OIBReader.java">SVN</a></dd></dl>
+ *
  * @author Melissa Linkert linkert at wisc.edu
  */
 public class OIBReader extends FormatReader {
@@ -66,9 +70,6 @@ public class OIBReader extends FormatReader {
 
   // -- Fields --
 
-  /** Current file */
-  private RandomAccessStream in;
-
   /** Number of images. */
   private Vector nImages;
 
@@ -90,12 +91,6 @@ public class OIBReader extends FormatReader {
   /** Number of bytes per pixel. */
   private Vector bpp;
 
-  /** Thumbnail width. */
-  private int thumbWidth;
-
-  /** Thumbnail height. */
-  private int thumbHeight;
-
   /** Hashtable containing the directory entry for each plane. */
   private Vector pixels;
 
@@ -105,82 +100,57 @@ public class OIBReader extends FormatReader {
    */
   private Vector names;
 
-  /** Vector containing Z indices. */
-  private Vector[] zIndices;
-
-  /** Vector containing C indices. */
-  private Vector[] cIndices;
-
-  /** Vector containing T indices. */
-  private Vector[] tIndices;
-
-  /** Number of valid bits per pixel. */
-  private int[][] validBits;
-
-  private boolean[] littleEndian;
   private Vector rgb;
+
+  /** Axis data. */
+  private String[] labels = new String[9];
+  private String[] dims = new String[9];
+  private String[] starts = new String[9];
+  private String[] stops = new String[9];
 
   // -- Constructor --
 
   /** Constructs a new OIB reader. */
   public OIBReader() { super("Fluoview FV1000 OIB", "oib"); }
 
-  // -- FormatReader API methods --
+  // -- IFormatReader API methods --
 
-  /* @see loci.formats.IFormatReader#isThisType(byte[]) */ 
+  /* @see loci.formats.IFormatReader#isThisType(byte[]) */
   public boolean isThisType(byte[] block) {
     return (block[0] == 0xd0 && block[1] == 0xcf &&
       block[2] == 0x11 && block[3] == 0xe0);
   }
 
-  /* @see loci.formats.IFormatReader#getImageCount(String) */ 
-  public int getImageCount(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return ((Integer) nImages.get(getSeries(id))).intValue();
+  /* @see loci.formats.IFormatReader#openImage(int) */
+  public BufferedImage openImage(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 1);
+    if (no < 0 || no >= getImageCount()) {
+      throw new FormatException("Invalid image number: " + no);
+    }
+
+    byte[] b = openBytes(no);
+    int bytes = b.length / (core.sizeX[series] * core.sizeY[series] *
+      getRGBChannelCount());
+
+    return ImageTools.makeImage(b, core.sizeX[series], core.sizeY[series],
+      getRGBChannelCount(), false, bytes, core.littleEndian[series]);
   }
 
-  /* @see loci.formats.IFormatReader#isRGB(String) */ 
-  public boolean isRGB(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return ((Boolean) rgb.get(getSeries(id))).booleanValue();
-  }
-
-  /* @see loci.formats.IFormatReader#isLittleEndian(String) */ 
-  public boolean isLittleEndian(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return false;
-  }
-
-  /* @see loci.formats.IFormatReader#isInterleaved(String, int) */ 
-  public boolean isInterleaved(String id, int subC)
-    throws FormatException, IOException
-  {
-    return false;
-  }
-
-  /* @see loci.formats.IFormatReader#getSeriesCount(String) */
-  public int getSeriesCount(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return width.size();
-  }
-
-  /* @see loci.formats.IFormatReader#openBytes(String, int) */ 
-  public byte[] openBytes(String id, int no)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
+  /* @see loci.formats.IFormatReader#openBytes(int) */
+  public byte[] openBytes(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 1);
     byte[] buf = new byte[core.sizeX[series] * core.sizeY[series] *
-      getRGBChannelCount(id) *
+      getRGBChannelCount() *
       FormatTools.getBytesPerPixel(core.pixelType[series])];
-    return openBytes(id, no, buf);
+    return openBytes(no, buf);
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(String, int, byte[]) */
-  public byte[] openBytes(String id, int no, byte[] buf)
+  /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
+  public byte[] openBytes(int no, byte[] buf)
     throws FormatException, IOException
   {
-    if (!id.equals(currentId)) initFile(id);
-    if (no < 0 || no >= getImageCount(id)) {
+    FormatTools.assertId(currentId, true, 1);
+    if (no < 0 || no >= getImageCount()) {
       throw new FormatException("Invalid image number: " + no);
     }
 
@@ -203,7 +173,6 @@ public class OIBReader extends FormatReader {
 
       RandomAccessStream stream = new RandomAccessStream(b);
       Hashtable[] ifds = TiffTools.getIFDs(stream);
-      littleEndian[series] = TiffTools.isLittleEndian(ifds[0]);
       TiffTools.getSamples(ifds[0], stream, buf);
       stream.close();
       return buf;
@@ -213,51 +182,24 @@ public class OIBReader extends FormatReader {
     }
   }
 
-  /* @see loci.formats.IFormatReader#openImage(String, int) */ 
-  public BufferedImage openImage(String id, int no)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-    if (no < 0 || no >= getImageCount(id)) {
-      throw new FormatException("Invalid image number: " + no);
-    }
+  // -- IFormatHandler API methods --
 
-    byte[] b = openBytes(id, no);
-    int bytes = b.length / (core.sizeX[series] * core.sizeY[series] *
-      getRGBChannelCount(id));
-
-    return ImageTools.makeImage(b, core.sizeX[series], core.sizeY[series], 
-      getRGBChannelCount(id), false, bytes, !littleEndian[series], 
-      validBits[series]);
-  }
-
-  /* @see loci.formats.IFormatReader#close(boolean) */
-  public void close(boolean fileOnly) throws FormatException, IOException {
-    if (fileOnly && in != null) in.close();
-    else if (!fileOnly) close();
-  }
-
-  /* @see loci.formats.IFormatReader#close() */ 
-  public void close() throws FormatException, IOException {
-    if (in != null) in.close();
-    in = null;
-    currentId = null;
-
+  /* @see loci.formats.IFormatHandler#close() */
+  public void close() throws IOException {
+    super.close();
     String[] vars = {"dirName", "root", "dir", "document", "dis",
       "numBytes", "data", "fis", "fs", "iter", "isInstance", "isDocument",
       "entry", "documentName", "entryName"};
     for (int i=0; i<vars.length; i++) r.setVar(vars[i], null);
   }
 
-  /** Initializes the given OIB file. */
+  // -- Internal FormatReader API methods --
+
+  /* @see loci.formats.FormatReader#initFile(String) */
   protected void initFile(String id) throws FormatException, IOException {
     if (debug) debug("OIBReader.initFile(" + id + ")");
     if (noPOI) throw new FormatException(NO_POI_MSG);
     super.initFile(id);
-
-    zIndices = new Vector[] {new Vector()};
-    cIndices = new Vector[] {new Vector()};
-    tIndices = new Vector[] {new Vector()};
 
     width = new Vector();
     height = new Vector();
@@ -323,17 +265,7 @@ public class OIBReader extends FormatReader {
 
       status("Populating metadata");
 
-      String[] labels = new String[9];
-      String[] dims = new String[9];
-      String[] starts = new String[9];
-      String[] stops = new String[9];
-
       for (int i=0; i<labels.length; i++) {
-        String pre = "[Axis " + i + " Parameters Common] - ";
-        labels[i] = (String) getMeta(pre + "AxisCode");
-        dims[i] = (String) getMeta(pre + "MaxSize");
-        starts[i] = (String) getMeta(pre + "StartPosition");
-        stops[i] = (String) getMeta(pre + "EndPosition");
         if (labels[i] == null) labels[i] = "";
         if (dims[i] == null) dims[i] = "0";
         if (starts[i] == null) starts[i] = "0";
@@ -364,11 +296,7 @@ public class OIBReader extends FormatReader {
         }
       }
 
-      littleEndian = new boolean[numSeries];
-
       core = new CoreMetadata(numSeries);
-
-      validBits = new int[numSeries][];
 
       for (int i=0; i<numSeries; i++) {
         core.sizeX[i] = ((Integer) width.get(i)).intValue();
@@ -376,7 +304,7 @@ public class OIBReader extends FormatReader {
 
         if (i < zSize.size()) {
           core.sizeZ[i] = ((Integer) zSize.get(i)).intValue();
-        } 
+        }
         else core.sizeZ[i] = 1;
 
         if (i < nChannels.size()) {
@@ -386,71 +314,88 @@ public class OIBReader extends FormatReader {
 
         if (i < tSize.size()) {
           core.sizeT[i] = ((Integer) tSize.get(i)).intValue();
-        } 
+        }
         else core.sizeT[i] = 1;
 
         if (core.sizeZ[i] == 0) core.sizeZ[i]++;
         if (core.sizeT[i] == 0) core.sizeT[i]++;
 
-        core.currentOrder[i] = 
+        core.currentOrder[i] =
           (core.sizeZ[i] > core.sizeT[i]) ? "XYCZT" : "XYCTZ";
 
-        int numImages = ((Integer) nImages.get(i)).intValue();
+        core.imageCount[i] = ((Integer) nImages.get(i)).intValue();
 
-        if (numImages > core.sizeZ[i] * core.sizeT[i] * core.sizeC[i]) {
-          int diff = numImages - 
+        if (core.imageCount[i] > core.sizeZ[i] * core.sizeT[i] * core.sizeC[i])
+        {
+          int diff = core.imageCount[i] -
             (core.sizeZ[i] * core.sizeT[i] * core.sizeC[i]);
 
           if (diff % core.sizeZ[i] == 0 && core.sizeZ[i] > 1) {
-            while (numImages > core.sizeZ[i] * core.sizeT[i] * core.sizeC[i]) {
+            while (core.imageCount[i] >
+              core.sizeZ[i] * core.sizeT[i] * core.sizeC[i])
+            {
               core.sizeT[i]++;
-            } 
+            }
           }
           else if (diff % core.sizeT[i] == 0 && core.sizeT[i] > 1) {
-            while (numImages > core.sizeZ[i] * core.sizeT[i] * core.sizeC[i]) {
+            while (core.imageCount[i] >
+              core.sizeZ[i] * core.sizeT[i] * core.sizeC[i])
+            {
               core.sizeZ[i]++;
-            } 
+            }
           }
           else if (diff % core.sizeC[i] == 0) {
             if (core.sizeZ[i] > core.sizeT[i]) {
-              while (numImages > core.sizeZ[i] * core.sizeC[i] * core.sizeT[i])
+              while (core.imageCount[i] >
+                core.sizeZ[i] * core.sizeC[i] * core.sizeT[i])
               {
                 core.sizeZ[i]++;
-              } 
+              }
             }
             else {
-              while (numImages > core.sizeZ[i] * core.sizeC[i] * core.sizeT[i]) 
-              { 
+              while (core.imageCount[i] >
+                core.sizeZ[i] * core.sizeC[i] * core.sizeT[i])
+              {
                 core.sizeT[i]++;
-              } 
+              }
             }
           }
         }
 
-        int oldSeries = getSeries(id);
-        setSeries(id, i);
-        while (numImages < core.sizeZ[i] * core.sizeT[i] * 
-          getEffectiveSizeC(id)) 
+        int oldSeries = getSeries();
+        setSeries(i);
+        while (core.imageCount[i] <
+          core.sizeZ[i] * core.sizeT[i] * getEffectiveSizeC())
         {
-          numImages++;
+          core.imageCount[i]++;
         }
-        nImages.setElementAt(new Integer(numImages), i);
-        setSeries(id, oldSeries);
+        nImages.setElementAt(new Integer(core.imageCount[i]), i);
+        setSeries(oldSeries);
 
-        validBits[i] = new int[core.sizeC[i] == 2 ? 3 : core.sizeC[i]];
-        int vb = 0;
-        Enumeration k = metadata.keys();
-        while (k.hasMoreElements()) {
-          String key = k.nextElement().toString();
-          if (key.indexOf("ValidBitCounts") != -1) {
-            vb = Integer.parseInt((String) getMeta(key));
-          }
-        }
-        if (vb > 0) {
-          for (int j=0; j<validBits[i].length; j++) validBits[i][j] = vb;
-        }
-        else validBits[i] = null;
+        core.rgb[i] = ((Boolean) rgb.get(i)).booleanValue();
+        core.interleaved[i] = false;
       }
+
+      Integer ii = new Integer(0);
+      String directory = (String) ((Hashtable) pixels.get(series)).get(ii);
+      String name = (String) ((Hashtable) names.get(series)).get(ii);
+
+      r.setVar("dirName", directory);
+      r.exec("root = fs.getRoot()");
+      r.exec("dir = root.getEntry(dirName)");
+      r.setVar("entryName", name);
+      r.exec("document = dir.getEntry(entryName)");
+      r.exec("dis = new DocumentInputStream(document)");
+      r.exec("numBytes = dis.available()");
+      int numBytes = ((Integer) r.getVar("numBytes")).intValue();
+      byte[] b = new byte[numBytes + 4]; // append 0 for final offset
+      r.setVar("data", b);
+      r.exec("dis.read(data)");
+
+      RandomAccessStream stream = new RandomAccessStream(b);
+      Hashtable[] ifds = TiffTools.getIFDs(stream);
+
+      Arrays.fill(core.littleEndian, !TiffTools.isLittleEndian(ifds[0]));
     }
     catch (ReflectException e) {
       throw new FormatException(e);
@@ -459,11 +404,11 @@ public class OIBReader extends FormatReader {
     try {
       initMetadata();
     }
-    catch (FormatException e) {
-      if (debug) e.printStackTrace();
+    catch (FormatException exc) {
+      if (debug) trace(exc);
     }
-    catch (IOException e) {
-      if (debug) e.printStackTrace();
+    catch (IOException exc) {
+      if (debug) trace(exc);
     }
   }
 
@@ -471,37 +416,29 @@ public class OIBReader extends FormatReader {
 
   /** Initialize metadata hashtable and OME-XML structure. */
   private void initMetadata() throws FormatException, IOException {
-    MetadataStore store = getMetadataStore(currentId);
-    store.setImage((String) getMeta("DataName"), null, null, null);
+    MetadataStore store = getMetadataStore();
+    store.setImage((String) getMeta("[File Info] - DataName"), null,
+      null, null);
 
     for (int i=0; i<width.size(); i++) {
       switch (((Integer) bpp.get(0)).intValue() % 3) {
-        case 0:
-        case 1:
-          core.pixelType[i] = FormatTools.UINT8;
-          break;
         case 2:
           core.pixelType[i] = FormatTools.UINT16;
           break;
-        case 4:
-          core.pixelType[i] = FormatTools.UINT32;
-          break;
-        default:
-          throw new RuntimeException(
-            "Unknown matching for pixel byte width of: " + bpp);
+        default: core.pixelType[i] = FormatTools.UINT8;
       }
 
       String acquisition = "[Acquisition Parameters Common] - ";
-      
-      String stamp = (String) getMeta(acquisition + "ImageCaputreDate"); 
-    
+
+      String stamp = (String) getMeta(acquisition + "ImageCaputreDate");
+
       if (stamp != null) {
-        stamp = stamp.substring(1, stamp.length() - 1); 
+        stamp = stamp.substring(1, stamp.length() - 1);
         SimpleDateFormat parse = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date = parse.parse(stamp, new ParsePosition(0));
         SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
         stamp = fmt.format(date);
-      } 
+      }
 
       store.setImage(null, stamp, null, null);
 
@@ -517,24 +454,25 @@ public class OIBReader extends FormatReader {
         new Integer(i),
         null);
 
-      Float pixX = new Float(getMeta(
-        "[Reference Image Parameter] - WidthConvertValue").toString());
-      Float pixY = new Float(getMeta(
-        "[Reference Image Parameter] - HeightConvertValue").toString());
-      store.setDimensions(pixX, pixY, null, null, null, new Integer(i));
-      for (int j=0; j<core.sizeC[0]; j++) {
-        store.setLogicalChannel(j, null, null, null, null, null,
-          null, new Integer(i));
+      String pre = "[Reference Image Parameter] - ";
+      String x = (String) getMeta(pre + "WidthConvertValue");
+      String y = (String) getMeta(pre + "HeightConvertValue");
 
+      store.setDimensions(x == null ? null : new Float(x),
+        y == null ? null : new Float(y), null, null, null, new Integer(i));
+      for (int j=0; j<core.sizeC[0]; j++) {
         String prefix = "[Channel " + (j + 1) + " Parameters] - ";
         String gain = (String) getMeta(prefix + "AnalogPMTGain");
         String offset = (String) getMeta(prefix + "AnalogPMTOffset");
         String voltage = (String) getMeta(prefix + "AnalogPMTVoltage");
 
-        store.setDetector(null, null, null, null,
-          gain == null ? null : new Float(gain),
-          voltage == null ? null : new Float(voltage),
-          offset == null ? null : new Float(offset), null, new Integer(j));
+        store.setDetector(null, null, null, null, null, voltage == null ? null :
+          new Float(voltage), null, null, new Integer(j));
+
+        store.setLogicalChannel(j, null, null, null, null, null, null, null,
+          null, offset == null ? null : new Float(offset),
+          gain == null ? null : new Float(gain), null, null, null, null, null,
+          null, null, null, null, null, null, null, null, new Integer(i));
       }
 
       String laserCount = (String) getMeta(acquisition + "Number of use Laser");
@@ -547,7 +485,6 @@ public class OIBReader extends FormatReader {
         store.setLaser(null, null, new Integer(wave), null, null, null, null,
           null, null, null, new Integer(j));
       }
-
     }
   }
 
@@ -568,7 +505,7 @@ public class OIBReader extends FormatReader {
       r.setVar("dir", dir);
       r.exec("dirName = dir.getName()");
       if (isInstance)  {
-        status("Parsing embedded folder (" + (depth + 1) + ")"); 
+        status("Parsing embedded folder (" + (depth + 1) + ")");
         parseDir(depth + 1, r.getVar("entry"));
       }
       else if (isDocument) {
@@ -586,11 +523,6 @@ public class OIBReader extends FormatReader {
 
         String entryName = (String) r.getVar("entryName");
         String dirName = (String) r.getVar("dirName");
-
-        boolean isContents = entryName.toUpperCase().equals("CONTENTS");
-        Object directory = r.getVar("dir");
-
-        int pt = 0;
 
         // check the first 2 bytes of the stream
 
@@ -642,8 +574,9 @@ public class OIBReader extends FormatReader {
             rgb.add(new Boolean(isRGB));
           }
         }
-        else if (entryName.equals("OibInfo.txt")) { /* ignore this */ }
-        else if (data[0] == (byte) 0xff && data[1] == (byte) 0xfe) {
+        else if (entryName.equals("OibInfo.txt")) { }
+        else {
+        //else if (data[0] == (byte) 0xff && data[1] == (byte) 0xfe) {
           String ini = DataTools.stripString(new String(data));
           StringTokenizer st = new StringTokenizer(ini, "\n");
           String prefix = "";
@@ -669,6 +602,17 @@ public class OIBReader extends FormatReader {
                 prefix.indexOf("Green") == -1 && prefix.indexOf("Blue") == -1)
               {
                 addMeta(prefix + key, value);
+
+                if (prefix.startsWith("[Axis ") &&
+                  prefix.endsWith("Parameters Common] - "))
+                {
+                  int ndx = Integer.parseInt(
+                    prefix.substring(6, prefix.indexOf("P")).trim());
+                  if (key.equals("AxisCode")) labels[ndx] = value;
+                  else if (key.equals("MaxSize")) dims[ndx] = value;
+                  else if (key.equals("StartPosition")) starts[ndx] = value;
+                  else if (key.equals("EndPosition")) stops[ndx] = value;
+                }
               }
             }
             else {

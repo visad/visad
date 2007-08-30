@@ -26,261 +26,303 @@ package loci.formats.in;
 
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.util.Vector;
 
 import loci.formats.*;
 
 /**
  * SlidebookReader is the file format reader for 3I Slidebook files.
+ * The strategies employed by this reader are highly suboptimal, as we
+ * have very little information on the Slidebook format.
+ *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/in/SlidebookReader.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/in/SlidebookReader.java">SVN</a></dd></dl>
  *
  * @author Melissa Linkert linkert at wisc.edu
  */
 public class SlidebookReader extends FormatReader {
 
-  // -- Constants --
-
   // -- Fields --
 
-  /** Current file. */
-  protected RandomAccessStream in;
-
-  /** Number of image planes in the file. */
-  protected int numImages = 0;
-
-  /** Offset to pixel data. */
-  private int offset = 1792;
-
-  /** Number of bytes per pixel. */
-  private int bpp;
-
-  /** Flag is true if the data is in little-endian order. */
-  private boolean little;
+  private Vector metadataOffsets;
+  private Vector pixelOffsets;
+  private Vector pixelLengths;
 
   // -- Constructor --
 
   /** Constructs a new Slidebook reader. */
-  public SlidebookReader() { super("Intelligent Imaging Slidebook", "sld"); }
+  public SlidebookReader() { super("Olympus Slidebook", "sld"); }
 
-  // -- FormatReader API methods --
+  // -- IFormatReader API methods --
 
-  /* @see loci.formats.IFormatReader#isThisType(byte[]) */ 
+  /* @see loci.formats.IFormatReader#isThisType(byte[]) */
   public boolean isThisType(byte[] block) {
     if (block.length < 8) return false;
     return block[0] == 0x6c && block[1] == 0 && block[2] == 0 &&
       block[3] == 1 && block[4] == 0x49 && block[5] == 0x49 && block[6] == 0;
   }
 
-  /* @see loci.formats.IFormatReader#getImageCount(String) */ 
-  public int getImageCount(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return numImages;
+  /* @see loci.formats.IFormatReader#openBytes(int) */
+  public byte[] openBytes(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 1);
+    byte[] buf = new byte[core.sizeX[series] * core.sizeY[series] * 2];
+    return openBytes(no, buf);
   }
 
-  /* @see loci.formats.IFormatReader#isRGB(String) */ 
-  public boolean isRGB(String id) throws FormatException, IOException {
-    return false;
-  }
-
-  /* @see loci.formats.IFormatReader#isLittleEndian(String) */ 
-  public boolean isLittleEndian(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return little;
-  }
-
-  /* @see loci.formats.IFormatReader#isInterleaved(String, int) */ 
-  public boolean isInterleaved(String id, int subC)
+  /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
+  public byte[] openBytes(int no, byte[] buf)
     throws FormatException, IOException
   {
-    return false;
-  }
-
-  /* @see loci.formats.IFormatReader#openBytes(String, int) */ 
-  public byte[] openBytes(String id, int no)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-    byte[] buf = new byte[core.sizeX[0] * core.sizeY[0] * 2];
-    return openBytes(id, no, buf);
-  }
-
-  /* @see loci.formats.IFormatReader#openBytes(String, int, byte[]) */
-  public byte[] openBytes(String id, int no, byte[] buf)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-    if (no < 0 || no >= getImageCount(id)) {
+    FormatTools.assertId(currentId, true, 1);
+    if (no < 0 || no >= getImageCount()) {
       throw new FormatException("Invalid image number: " + no);
     }
-    if (buf.length < core.sizeX[0] * core.sizeY[0] * 2) {
+    if (buf.length < core.sizeX[series] * core.sizeY[series] * 2) {
       throw new FormatException("Buffer too small.");
     }
-    in.seek(offset + (no * core.sizeX[0] * core.sizeY[0] * 2));
+
+    int plane = core.sizeX[series] * core.sizeY[series] * 2;
+
+    long offset = ((Long) pixelOffsets.get(series)).longValue() + plane * no;
+    in.seek(offset);
     in.read(buf);
     return buf;
   }
 
-  /* @see loci.formats.IFormatReader#openImage(String, int) */ 
-  public BufferedImage openImage(String id, int no)
-    throws FormatException, IOException
-  {
-    return ImageTools.makeImage(openBytes(id, no), core.sizeX[0], 
-      core.sizeY[0], 1, true, bpp, true);
+  /* @see loci.formats.IFormatReader#openImage(int) */
+  public BufferedImage openImage(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 1);
+    return ImageTools.makeImage(openBytes(no), core.sizeX[0],
+      core.sizeY[0], 1, true, 2, true);
   }
 
-  /* @see loci.formats.IFormatReader#close(boolean) */
-  public void close(boolean fileOnly) throws FormatException, IOException {
-    if (fileOnly && in != null) in.close();
-    else if (!fileOnly) close();
-  }
+  // -- Internal FormatReader API methods --
 
-  /* @see loci.formats.IFormatReader#close() */ 
-  public void close() throws FormatException, IOException {
-    if (in != null) in.close();
-    in = null;
-    currentId = null;
-  }
-
-  /** Initializes the given Slidebook file. */
+  /* @see loci.formats.FormatReader#initFile(String) */
   protected void initFile(String id) throws FormatException, IOException {
     if (debug) debug("SlidebookReader.initFile(" + id + ")");
     super.initFile(id);
     in = new RandomAccessStream(id);
+    in.order(true);
 
-    status("Determining series count");
+    status("Finding offsets to pixel data");
 
     in.skipBytes(4);
-    little = in.read() == 0x49;
+    core.littleEndian[0] = in.read() == 0x49;
 
-    bpp = 2; // this is a major assumption
+    metadataOffsets = new Vector();
+    pixelOffsets = new Vector();
+    pixelLengths = new Vector();
 
-    // check if there are multiple "series" - note that each series has the
-    // same dimensions, so we can display each plane as part of the same series
+    in.seek(0);
 
-    in.seek(160);
-    boolean multiSeries = DataTools.read4UnsignedBytes(in, true) > 1;
+    while (in.getFilePointer() < in.length() - 8) {
+      in.skipBytes(4);
+      int checkOne = in.read();
+      int checkTwo = in.read();
+      if (checkOne == 'I' && checkTwo == 'I') {
+        metadataOffsets.add(new Long(in.getFilePointer() - 6));
+        if (in.read() == 0) in.skipBytes(249);
+        else in.skipBytes(121);
+      }
+      else {
+        String s = null;
+        long fp = in.getFilePointer() - 6;
+        in.seek(fp);
+        int len = in.read();
+        if (len > 0 && len <= 32) {
+          byte[] b = new byte[len];
+          in.read(b);
+          s = new String(b);
+        }
 
-    // pixel data always begins at 0x6b0
+        if (s != null && s.indexOf("Annotation") != -1) {
+          if (s.equals("CTimelapseAnnotation")) {
+            in.skipBytes(41);
+            if (in.read() == 0) in.skipBytes(10);
+            else in.seek(in.getFilePointer() - 1);
+          }
+          else if (s.equals("CIntensityBarAnnotation")) {
+            in.skipBytes(56);
+            int n = in.read();
+            while (n == 0 || n < 6 || n > 0x80) n = in.read();
+            in.seek(in.getFilePointer() - 1);
+          }
+          else if (s.equals("CCubeAnnotation")) {
+            in.skipBytes(66);
+            int n = in.read();
+            if (n != 0) in.seek(in.getFilePointer() - 1);
+          }
+          else if (s.equals("CScaleBarAnnotation")) {
+            in.skipBytes(52);
+          }
+        }
+        else if (s != null && s.indexOf("Decon") != -1) {
+          in.seek(fp);
+          while (in.read() != ']');
+        }
+        else {
+          in.seek(fp);
+          pixelOffsets.add(new Long(fp));
+          try {
+            byte[] buf = new byte[8192];
+            boolean found = false;
+            int n = in.read(buf);
 
-    in.seek(1792);
+            while (!found && in.getFilePointer() < in.length()) {
+              for (int i=0; i<buf.length-6; i++) {
+                if (buf[i] == 'h' && buf[i+4] == 'I' && buf[i+5] == 'I') {
+                  found = true;
+                  in.seek(in.getFilePointer() - n + i - 20);
+                  break;
+                }
+              }
+              if (!found) {
+                byte[] tmp = buf;
+                buf = new byte[8192];
+                System.arraycopy(tmp, tmp.length - 20, buf, 0, 20);
+                n = in.read(buf, 20, buf.length - 20);
+              }
+            }
 
-    // determine the number of images
-
-    status("Determining image count"); 
-
-    byte[] buf = new byte[8192];
-    boolean found = false;
-
-    int count = 0;
-    int n = in.read(buf);
-
-    while (!found && in.getFilePointer() < in.length()) {
-      count += n;
-      for (int i=0; i<n-3; i++) {
-        found = buf[i] == 0x68 && buf[i+1] == 0x00 && buf[i+2] == 0x00 &&
-          buf[i+3] == 0x01;
-        if (found) {
-          count -= (n - i);
-          i = n;
+            if (in.getFilePointer() <= in.length()) {
+              pixelLengths.add(new Long(in.getFilePointer() - fp));
+            }
+            else pixelOffsets.remove(pixelOffsets.size() - 1);
+          }
+          catch (EOFException e) {
+            pixelOffsets.remove(pixelOffsets.size() - 1);
+          }
         }
       }
-      byte[] tmp = buf;
-      buf = new byte[8192];
-      System.arraycopy(tmp, tmp.length - 20, buf, 0, 20);
-      n = in.read(buf, 20, buf.length - 20);
     }
 
-    in.seek(1792 + count - 20);
+    core = new CoreMetadata(pixelOffsets.size() - 1);
 
-    int check = in.read();
-    int lastH = 0;
-    while (check == 'h') {
-      lastH = in.getFilePointer();
-      in.skipBytes(255);
-      core.sizeC[0]++;
-      check = in.read();
+    status("Determining dimensions");
+
+    // determine total number of pixel bytes
+
+    long pixelBytes = 0;
+    for (int i=0; i<pixelLengths.size(); i++) {
+      pixelBytes += ((Long) pixelLengths.get(i)).longValue();
     }
 
-    // scan the remaining bytes for the "CTimelapseAnnotation" tag
-
-    in.seek(1792 + count);
-    buf = new byte[8192];
-    n = in.read(buf);
-    while (n > 0) {
-      String t = new String(buf);
-      t.trim();
-      while (t.indexOf("CTimelapseAnnotation") != -1) {
-        t = t.substring(t.indexOf("CTimelapseAnnotation") + 20);
-        core.sizeT[0]++;
+    // try to find the width and height
+    int iCount = 0;
+    int hCount = 0;
+    int uCount = 0;
+    for (int i=0; i<metadataOffsets.size(); i++) {
+      long off = ((Long) metadataOffsets.get(i)).longValue();
+      in.seek(off);
+      int n = in.read();
+      if (n == 'i') {
+        in.skipBytes(79);
+        core.sizeX[0] = in.readShort();
+        core.sizeY[0] = in.readShort();
+        iCount++;
       }
-      byte[] tmp = buf;
-      buf = new byte[8192];
-      System.arraycopy(tmp, tmp.length - 20, buf, 0, 20);
-      n = in.read(buf, 20, buf.length - 20);
+      else if (n == 'h') hCount++;
+      else if (n == 'u') uCount++;
     }
 
-    // look for the first "i...II" block - this will have the width and height
+    core.rgb[0] = false;
+    core.sizeC[0] = iCount < 5 ? iCount : 1;
 
-    status("Populating metadata");
-
-    in.seek(lastH);
-    in.skipBytes(335);
-
-    core.sizeX[0] = DataTools.read2UnsignedBytes(in, true);
-    core.sizeY[0] = DataTools.read2UnsignedBytes(in, true);
-
-    if (multiSeries) {
-      core.sizeX[0] /= core.sizeC[0];
-      core.sizeY[0] /= core.sizeC[0];
-    }
-
-    numImages = count / (core.sizeX[0] * core.sizeY[0] * bpp);
-
-    float planes = (float) count / (float) (core.sizeX[0]*core.sizeY[0] * bpp);
-    numImages = (int) planes;
-
-    core.sizeZ[0] = numImages / (core.sizeC[0] * core.sizeT[0]);
-
-    core.pixelType[0] = FormatTools.UINT16;
-    core.currentOrder[0] = "XY";
-
-    if (numImages != (core.sizeZ[0] * core.sizeC[0] * core.sizeT[0])) {
-      core.sizeZ[0] = 1;
-      core.sizeT[0] = numImages / core.sizeC[0];
-    }
-
-    int[] dims = {core.sizeZ[0], core.sizeC[0], core.sizeT[0]};
-    String[] names = {"Z", "C", "T"};
-    int max = 0, min = Integer.MAX_VALUE;
-    int maxNdx = 0, minNdx = 0, medNdx = 0;
-    for (int i=0; i<dims.length; i++) {
-      if (dims[i] > max) {
-        max = dims[i];
-        maxNdx = i;
-      }
-      else if (dims[i] < min) {
-        min = dims[i];
-        minNdx = i;
-      }
-    }
-
-    for (int i=0; i<dims.length; i++) {
-      if (maxNdx != i && minNdx != i) medNdx = i;
-    }
-
-    core.currentOrder[0] += names[maxNdx];
-    core.currentOrder[0] += names[medNdx];
-    core.currentOrder[0] += names[minNdx];
-
-    if (core.sizeZ[0] == 0) core.sizeZ[0] = 1;
     if (core.sizeC[0] == 0) core.sizeC[0] = 1;
+    if (core.sizeZ[0] == 0) core.sizeZ[0] = 1;
     if (core.sizeT[0] == 0) core.sizeT[0] = 1;
 
-    MetadataStore store = getMetadataStore(currentId);
-    store.setPixels(new Integer(core.sizeX[0]), new Integer(core.sizeY[0]),
-      new Integer(core.sizeZ[0]), new Integer(core.sizeC[0]), 
-      new Integer(core.sizeT[0]), new Integer(core.pixelType[0]), 
-      new Boolean(!little), core.currentOrder[0], null, null);
-    for (int i=0; i<core.sizeC[0]; i++) {
-      store.setLogicalChannel(i, null, null, null, null, null, null, null);
+    if (core.sizeX[0] * core.sizeY[0] * 2 * core.sizeC[0] *
+      core.sizeZ[0] * core.sizeT[0] != pixelBytes && hCount > 0)
+    {
+      core.sizeZ[0] = hCount / core.sizeC[0];
+    }
+
+    int n = core.sizeZ[0] * core.sizeC[0] * core.sizeT[0];
+
+    if (uCount == core.sizeZ[0] * core.sizeT[0]) uCount = n;
+    if (uCount < core.sizeZ[0] * core.sizeT[0] * core.sizeC[0]) {
+      int planesPerMontage = (n * 2) / uCount;
+
+      while (planesPerMontage > 1) {
+        core.sizeY[0] /= 2;
+        planesPerMontage /= 2;
+        if (planesPerMontage > 1) {
+          core.sizeX[0] /= 2;
+          planesPerMontage /= 2;
+        }
+      }
+      if (core.sizeC[0] == 1) core.sizeC[0] = 2;
+      else core.sizeT[0] *= 2;
+    }
+    else if (uCount > core.sizeZ[0] * core.sizeT[0] * core.sizeC[0]) {
+      int planesPerMontage =
+        (int) ((core.sizeX[0] * core.sizeY[0] * 2) / (pixelBytes / uCount));
+      if (planesPerMontage % 2 != 0) planesPerMontage++;
+      if (planesPerMontage == 2) planesPerMontage += 2;
+      if (planesPerMontage == 0) planesPerMontage++;
+
+      int plane = core.sizeX[0] * core.sizeY[0];
+      while (uCount * core.sizeC[0] * (plane*2 / planesPerMontage) <
+        (pixelBytes - plane))
+      {
+        uCount++;
+      }
+
+      while (planesPerMontage > 1 &&
+        core.sizeX[0] * core.sizeY[0] * 2 * uCount > pixelBytes)
+      {
+        core.sizeY[0] /= 2;
+        planesPerMontage /= 2;
+        if (planesPerMontage > 1 &&
+          core.sizeX[0] * core.sizeY[0] * 2 * uCount > pixelBytes)
+        {
+          core.sizeX[0] /= 2;
+          planesPerMontage /= 2;
+        }
+        else planesPerMontage = 1;
+      }
+      core.sizeZ[0] = uCount;
+    }
+
+    // couldn't find the dimensions; these are reasonable guesses
+    if (core.sizeX[0] == 0) core.sizeX[0] = 512;
+    if (core.sizeY[0] == 0) core.sizeY[0] = 512;
+
+    for (int i=0; i<core.sizeX.length; i++) {
+      core.sizeX[i] = core.sizeX[0];
+      core.sizeY[i] = core.sizeY[0];
+      core.currentOrder[i] = "XYZCT";
+      core.pixelType[i] = FormatTools.UINT16;
+      core.littleEndian[i] = true;
+
+      core.sizeC[i] = core.sizeC[0];
+      core.sizeT[i] = core.sizeT[0];
+      long len = ((Long) pixelLengths.get(i)).longValue();
+      core.sizeZ[i] =
+        (int) (len / (core.sizeX[i] * core.sizeY[i] * 2 * core.sizeC[i]));
+
+      core.imageCount[i] = core.sizeC[i] * core.sizeZ[i] * core.sizeT[i];
+    }
+
+    MetadataStore store = getMetadataStore();
+    store.setImage(currentId, null, null, null);
+
+    for (int i=0; i<core.sizeX.length; i++) {
+      store.setPixels(new Integer(core.sizeX[i]), new Integer(core.sizeY[i]),
+        new Integer(core.sizeZ[i]), new Integer(core.sizeC[i]),
+        new Integer(core.sizeT[i]), new Integer(core.pixelType[i]),
+        new Boolean(!core.littleEndian[i]), core.currentOrder[i],
+        new Integer(i), null);
+
+      for (int j=0; j<core.sizeC[i]; j++) {
+        store.setLogicalChannel(j, null, null, null, null, null, null, null,
+          null, null, null, null, null, core.sizeC[i] == 1 ? "monochrome" :
+          "RGB", null, null, null, null, null, null, null, null, null, null,
+          new Integer(i));
+      }
     }
   }
 

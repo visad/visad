@@ -32,6 +32,10 @@ import java.util.Vector;
 /**
  * Pseudo-extension of java.io.File that supports reading over HTTP.
  * It is strongly recommended that you use this instead of java.io.File.
+ *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/Location.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/Location.java">SVN</a></dd></dl>
  */
 public class Location {
 
@@ -43,7 +47,6 @@ public class Location {
   // -- Fields --
 
   private boolean isURL = true;
-  private String path;
   private URL url;
   private File file;
 
@@ -52,7 +55,6 @@ public class Location {
   public Location(String pathname) {
     try {
       url = new URL(getMappedId(pathname));
-      path = pathname;
     }
     catch (MalformedURLException e) {
       isURL = false;
@@ -265,7 +267,6 @@ public class Location {
         Vector files = new Vector();
         while (!foundEnd) {
           byte[] b = new byte[is.available()];
-          int read = is.read(b);
           String s = new String(b);
           if (s.toLowerCase().indexOf("</html>") != -1) foundEnd = true;
 

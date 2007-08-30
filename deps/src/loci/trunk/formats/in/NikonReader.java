@@ -32,6 +32,10 @@ import loci.formats.*;
  * NikonReader is the file format reader for
  * Nikon NEF (TIFF) files.
  *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/in/NikonReader.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/in/NikonReader.java">SVN</a></dd></dl>
+ *
  * @author Melissa Linkert linkert at wisc.edu
  */
 public class NikonReader extends BaseTiffReader {
@@ -104,9 +108,6 @@ public class NikonReader extends BaseTiffReader {
 
   // -- Fields --
 
-  /** True if the data is little endian. */
-  protected boolean littleEndian;
-
   /** Offset to the Nikon Maker Note. */
   protected int makerNoteOffset;
 
@@ -120,9 +121,9 @@ public class NikonReader extends BaseTiffReader {
     super("Nikon NEF (TIFF)", new String[] {"nef", "tif", "tiff"});
   }
 
-  // -- FormatReader API methods --
+  // -- IFormatReader API methods --
 
-  /* @see loci.formats.IFormatReader#isThisType(byte[]) */ 
+  /* @see loci.formats.IFormatReader#isThisType(byte[]) */
   public boolean isThisType(byte[] block) {
     // adapted from MetamorphReader.isThisType(byte[])
 
@@ -159,7 +160,7 @@ public class NikonReader extends BaseTiffReader {
 
   // -- IFormatHandler API methods --
 
-  /* @see loci.formats.IFormatHandler#isThisType(String, boolean) */ 
+  /* @see loci.formats.IFormatHandler#isThisType(String, boolean) */
   public boolean isThisType(String name, boolean open) {
     String lname = name.toLowerCase();
     if (lname.endsWith(".nef")) return true;
@@ -171,43 +172,6 @@ public class NikonReader extends BaseTiffReader {
   }
 
   // -- Internal BaseTiffReader API methods --
-
-  /* @see BaseTiffReader#initFile(String) */
-  protected void initFile(String id) throws FormatException, IOException {
-    if (debug) debug("NikonReader.initFile(" + id + ")");
-    super.initFile(id);
-
-    in = new RandomAccessStream(id);
-    if (in.readShort() == 0x4949) in.order(true);
-
-    ifds = TiffTools.getIFDs(in);
-    if (ifds == null) throw new FormatException("No IFDs found");
-
-    // look for the SubIFD tag (330);
-
-    int offset = 0;
-    try {
-      offset = TiffTools.getIFDIntValue(ifds[0], 330, false, 0);
-    }
-    catch (Exception e) {
-      // CTR TODO - eliminate catch-all exception handling
-      if (debug) e.printStackTrace();
-      long[] array = TiffTools.getIFDLongArray(ifds[0], 330, false);
-      offset = (int) array[array.length - 1];
-    }
-
-    Hashtable realImage = TiffTools.getIFD(in, 1, offset);
-    realImage.put(new Integer(TiffTools.VALID_BITS), new int[] {12, 12, 12});
-
-    original = ifds[0];
-    ifds[0] = realImage;
-    numImages = 1;
-
-    Object pattern = getMeta("CFA pattern");
-    if (pattern != null) {
-      realImage.put(new Integer(TiffTools.COLOR_MAP), getMeta("CFA pattern"));
-    }
-  }
 
   /* @see BaseTiffReader#initStandardMetadata() */
   protected void initStandardMetadata() throws FormatException, IOException {
@@ -222,9 +186,9 @@ public class NikonReader extends BaseTiffReader {
     for (int i=0; i<version.length; i++) v += version[i];
     addMeta("Version", v);
 
-    littleEndian = true;
+    core.littleEndian[0] = true;
     try {
-      littleEndian = TiffTools.isLittleEndian(ifds[0]);
+      core.littleEndian[0] = TiffTools.isLittleEndian(ifds[0]);
     }
     catch (FormatException f) { }
 
@@ -259,7 +223,7 @@ public class NikonReader extends BaseTiffReader {
     // read the maker note
 
     byte[] offsets = (byte[]) getMeta("Offset to maker note");
-    makerNoteOffset = offsets[0];
+    if (offsets != null) makerNoteOffset = offsets[0];
     try {
       if (makerNoteOffset >= in.length() || makerNoteOffset == 0) return;
       Hashtable makerNote = TiffTools.getIFD(in, 0, makerNoteOffset);
@@ -275,8 +239,46 @@ public class NikonReader extends BaseTiffReader {
         }
       }
     }
-    catch (IOException e) {
-      if (debug) e.printStackTrace();
+    catch (IOException exc) {
+      if (debug) trace(exc);
+    }
+  }
+
+  // -- Internal FormatReader API methods --
+
+  /* @see loci.formats.FormatReader#initFile(String) */
+  protected void initFile(String id) throws FormatException, IOException {
+    if (debug) debug("NikonReader.initFile(" + id + ")");
+    super.initFile(id);
+
+    in = new RandomAccessStream(id);
+    if (in.readShort() == 0x4949) in.order(true);
+
+    ifds = TiffTools.getIFDs(in);
+    if (ifds == null) throw new FormatException("No IFDs found");
+
+    // look for the SubIFD tag (330);
+
+    int offset = 0;
+    try {
+      offset = TiffTools.getIFDIntValue(ifds[0], 330, false, 0);
+    }
+    catch (FormatException exc) {
+      if (debug) trace(exc);
+      long[] array = TiffTools.getIFDLongArray(ifds[0], 330, false);
+      offset = (int) array[array.length - 1];
+    }
+
+    Hashtable realImage = TiffTools.getIFD(in, 1, offset);
+    realImage.put(new Integer(TiffTools.VALID_BITS), new int[] {12, 12, 12});
+
+    original = ifds[0];
+    ifds[0] = realImage;
+    core.imageCount[0] = 1;
+
+    Object pattern = getMeta("CFA pattern");
+    if (pattern != null) {
+      realImage.put(new Integer(TiffTools.COLOR_MAP), getMeta("CFA pattern"));
     }
   }
 

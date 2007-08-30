@@ -32,6 +32,10 @@ import loci.formats.*;
 /**
  * IPWReader is the file format reader for Image-Pro Workspace (IPW) files.
  *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/in/IPWReader.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/in/IPWReader.java">SVN</a></dd></dl>
+ *
  * @author Melissa Linkert linkert at wisc.edu
  */
 public class IPWReader extends BaseTiffReader {
@@ -59,6 +63,7 @@ public class IPWReader extends BaseTiffReader {
     }
     catch (Throwable t) {
       noPOI = true;
+      if (debug) LogTools.trace(t);
     }
     return r;
   }
@@ -69,59 +74,37 @@ public class IPWReader extends BaseTiffReader {
   private Hashtable names;
   private byte[] header;  // general image header data
   private byte[] tags; // tags data
-  private boolean rgb;
-  private boolean little;
 
   // -- Constructor --
 
   /** Constructs a new IPW reader. */
   public IPWReader() { super("Image-Pro Workspace", "ipw"); }
 
-  // -- FormatReader API methods --
+  // -- IFormatReader API methods --
 
-  /* @see loci.formats.IFormatReader#isThisType(byte[]) */ 
+  /* @see loci.formats.IFormatReader#isThisType(byte[]) */
   public boolean isThisType(byte[] block) {
     // all of our samples begin with 0xd0cf11e0
     return (block[0] == 0xd0 && block[1] == 0xcf &&
       block[2] == 0x11 && block[3] == 0xe0);
   }
 
-  /* @see loci.formats.IFormatReader#getImageCount(String) */ 
-  public int getImageCount(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return numImages;
-  }
-
-  /* @see loci.formats.IFormatReader#isRGB(String) */ 
-  public boolean isRGB(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return rgb;
-  }
-
-  /* @see loci.formats.IFormatReader#isLittleEndian(String) */ 
-  public boolean isLittleEndian(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return little;
-  }
-
-  /* @see loci.formats.IFormatReader#openBytes(String, int) */ 
-  public byte[] openBytes(String id, int no)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-    int c = getRGBChannelCount(id);
+  /* @see loci.formats.IFormatReader#openBytes(int) */
+  public byte[] openBytes(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 1);
+    int c = getRGBChannelCount();
     if (c == 2) c++;
     byte[] buf = new byte[core.sizeX[0] * core.sizeY[0] * c *
       FormatTools.getBytesPerPixel(core.pixelType[0])];
-    return openBytes(id, no, buf);
+    return openBytes(no, buf);
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(String, int, byte[]) */
-  public byte[] openBytes(String id, int no, byte[] buf)
+  /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
+  public byte[] openBytes(int no, byte[] buf)
     throws FormatException, IOException
   {
-    if (!id.equals(currentId)) initFile(id);
-    if (no < 0 || no >= getImageCount(id)) {
+    FormatTools.assertId(currentId, true, 1);
+    if (no < 0 || no >= getImageCount()) {
       throw new FormatException("Invalid image number: " + no);
     }
 
@@ -151,7 +134,7 @@ public class IPWReader extends BaseTiffReader {
 
       RandomAccessStream stream = new RandomAccessStream(b);
       ifds = TiffTools.getIFDs(stream);
-      little = TiffTools.isLittleEndian(ifds[0]);
+      core.littleEndian[0] = TiffTools.isLittleEndian(ifds[0]);
       TiffTools.getSamples(ifds[0], stream, buf);
       stream.close();
       return buf;
@@ -162,32 +145,19 @@ public class IPWReader extends BaseTiffReader {
     }
   }
 
-  /* @see loci.formats.IFormatReader#openImage(String, int) */ 
-  public BufferedImage openImage(String id, int no)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-    if (no < 0 || no >= getImageCount(id)) {
-      throw new FormatException("Invalid image number: " + no);
-    }
-
-    byte[] b = openBytes(id, no);
+  /* @see loci.formats.IFormatReader#openImage(int) */
+  public BufferedImage openImage(int no) throws FormatException, IOException {
+    byte[] b = openBytes(no);
     int bytes = b.length / (core.sizeX[0] * core.sizeY[0]);
     return ImageTools.makeImage(b, core.sizeX[0], core.sizeY[0],
-      bytes == 3 ? 3 : 1, false, bytes == 3 ? 1 : bytes, little);
+      bytes == 3 ? 3 : 1, false, bytes == 3 ? 1 : bytes, core.littleEndian[0]);
   }
 
-  /* @see loci.formats.IFormatReader#close(boolean) */
-  public void close(boolean fileOnly) throws FormatException, IOException {
-    if (fileOnly && in != null) in.close();
-    else if (!fileOnly) close();
-  }
+  // -- IFormatHandler API methods --
 
-  /* @see loci.formats.IFormatReader#close() */ 
-  public void close() throws FormatException, IOException {
-    if (in != null) in.close();
-    in = null;
-    currentId = null;
+  /* @see loci.formats.IFormatHandler#close() */
+  public void close() throws IOException {
+    super.close();
 
     pixels = null;
     names = null;
@@ -200,38 +170,10 @@ public class IPWReader extends BaseTiffReader {
     for (int i=0; i<vars.length; i++) r.setVar(vars[i], null);
   }
 
-  /** Initializes the given IPW file. */
-  protected void initFile(String id) throws FormatException, IOException {
-    if (debug) debug("IPWReader.initFile(" + id + ")");
-    if (noPOI) throw new FormatException(NO_POI_MSG);
-    super.initFile(id);
-
-    in = new RandomAccessStream(id);
-
-    pixels = new Hashtable();
-    names = new Hashtable();
-    numImages = 0;
-
-    try {
-      r.setVar("fis", in);
-      r.exec("fs = new POIFSFileSystem(fis)");
-      r.exec("dir = fs.getRoot()");
-      parseDir(0, r.getVar("dir"));
-      status("Populating metadata"); 
-      initMetadata(id);
-    }
-    catch (Throwable t) {
-      noPOI = true;
-      if (debug) t.printStackTrace();
-    }
-  }
-
   // -- Internal BaseTiffReader API methods --
 
-  /* @see loci.formats.in.BaseTiffReader#initMetadata(String) */ 
-  public void initMetadata(String id)
-    throws FormatException, IOException
-  {
+  /* @see BaseTiffReader#initMetadata() */
+  public void initMetadata() throws FormatException, IOException {
     String directory = (String) pixels.get(new Integer(0));
     String name = (String) names.get(new Integer(0));
 
@@ -261,28 +203,32 @@ public class IPWReader extends BaseTiffReader {
     }
     catch (ReflectException e) { }
 
-    rgb = (TiffTools.getIFDIntValue(ifds[0],
+    core.rgb[0] = (TiffTools.getIFDIntValue(ifds[0],
       TiffTools.SAMPLES_PER_PIXEL, false, 1) > 1);
 
-    if (!rgb) {
-      rgb = TiffTools.getIFDIntValue(ifds[0],
+    if (!core.rgb[0]) {
+      core.rgb[0] = TiffTools.getIFDIntValue(ifds[0],
         TiffTools.PHOTOMETRIC_INTERPRETATION, false, 1) ==
         TiffTools.RGB_PALETTE;
     }
 
-    little = TiffTools.isLittleEndian(ifds[0]);
+    core.littleEndian[0] = TiffTools.isLittleEndian(ifds[0]);
 
     // parse the image description
     String description = new String(tags, 22, tags.length-22);
     addMeta("Image Description", description);
 
     // default values
+
+    core.sizeZ[0] = 1;
+    core.sizeC[0] = 1;
+    core.sizeT[0] = getImageCount();
     addMeta("slices", "1");
     addMeta("channels", "1");
-    addMeta("frames", new Integer(getImageCount(id)));
+    addMeta("frames", new Integer(getImageCount()));
 
     // parse the description to get channels/slices/times where applicable
-    // basically the same as in SEQReader 
+    // basically the same as in SEQReader
     if (description != null) {
       StringTokenizer tokenizer = new StringTokenizer(description, "\n");
       while (tokenizer.hasMoreTokens()) {
@@ -297,6 +243,11 @@ public class IPWReader extends BaseTiffReader {
           data = token.trim();
         }
         addMeta(label, data);
+        if (label.equals("frames")) core.sizeZ[0] = Integer.parseInt(data);
+        else if (label.equals("slices")) core.sizeT[0] = Integer.parseInt(data);
+        else if (label.equals("channels")) {
+          core.sizeC[0] = Integer.parseInt(data);
+        }
       }
     }
 
@@ -305,12 +256,13 @@ public class IPWReader extends BaseTiffReader {
     Hashtable h = ifds[0];
     core.sizeX[0] = TiffTools.getIFDIntValue(h, TiffTools.IMAGE_WIDTH);
     core.sizeY[0] = TiffTools.getIFDIntValue(h, TiffTools.IMAGE_LENGTH);
-    core.sizeZ[0] = Integer.parseInt((String) getMeta("frames"));
-    core.sizeC[0] = Integer.parseInt((String) getMeta("channels"));
-    core.sizeT[0] = Integer.parseInt((String) getMeta("slices"));
     core.currentOrder[0] = "XY";
 
-    if (rgb) core.sizeC[0] *= 3;
+    if (core.sizeZ[0] == 0) core.sizeZ[0] = 1;
+    if (core.sizeC[0] == 0) core.sizeC[0] = 1;
+    if (core.sizeT[0] == 0) core.sizeT[0] = 1;
+
+    if (core.rgb[0]) core.sizeC[0] *= 3;
 
     int maxNdx = 0, max = 0;
     int[] dims = {core.sizeZ[0], core.sizeC[0], core.sizeT[0]};
@@ -336,9 +288,6 @@ public class IPWReader extends BaseTiffReader {
       if (core.sizeZ[0] > core.sizeT[0]) core.currentOrder[0] += "ZT";
       else core.currentOrder[0] += "TZ";
     }
-
-    // TODO : look into removing this logic, as it appears to be copied directly
-    // from BaseTiffReader
 
     int bitsPerSample = TiffTools.getIFDIntValue(ifds[0],
       TiffTools.BITS_PER_SAMPLE);
@@ -378,16 +327,52 @@ public class IPWReader extends BaseTiffReader {
     }
 
     // The metadata store we're working with.
-    MetadataStore store = getMetadataStore(id);
+    MetadataStore store = getMetadataStore();
 
-    store.setPixels(null, null, new Integer(core.sizeZ[0]), 
-      new Integer(core.sizeC[0]), new Integer(core.sizeT[0]), 
-      new Integer(core.pixelType[0]), new Boolean(!isLittleEndian(id)), 
+    store.setPixels(null, null, new Integer(core.sizeZ[0]),
+      new Integer(core.sizeC[0]), new Integer(core.sizeT[0]),
+      new Integer(core.pixelType[0]), new Boolean(!isLittleEndian()),
       core.currentOrder[0], null, null);
-    store.setImage(null, null, (String) getMeta("Version"), null);
+    store.setImage(currentId, null, (String) getMeta("Version"), null);
     for (int i=0; i<core.sizeC[0]; i++) {
-      store.setLogicalChannel(i, null, null, null, null, null, null, null);
+      store.setLogicalChannel(i, null, null, null, null, null, null, null, null,
+        null, null, null, null, null, null, null, null, null, null, null, null,
+        null, null, null, null);
     }
+  }
+
+  // -- Internal FormatReader API methods --
+
+  /* @see loci.formats.FormatReader#initFile(String) */
+  protected void initFile(String id) throws FormatException, IOException {
+    if (debug) debug("IPWReader.initFile(" + id + ")");
+    if (noPOI) throw new FormatException(NO_POI_MSG);
+
+    currentId = id;
+    metadata = new Hashtable();
+    core = new CoreMetadata(1);
+    Arrays.fill(core.orderCertain, true);
+    getMetadataStore().createRoot();
+
+    in = new RandomAccessStream(id);
+
+    pixels = new Hashtable();
+    names = new Hashtable();
+
+    try {
+      r.setVar("fis", in);
+      r.exec("fs = new POIFSFileSystem(fis)");
+      r.exec("dir = fs.getRoot()");
+      parseDir(0, r.getVar("dir"));
+      status("Populating metadata");
+      initMetadata();
+    }
+    catch (Throwable t) {
+      noPOI = true;
+      if (debug) trace(t);
+    }
+
+    core.interleaved[0] = true;
   }
 
   // -- Helper methods --
@@ -409,7 +394,7 @@ public class IPWReader extends BaseTiffReader {
       r.setVar("dir", dir);
       r.exec("dirName = dir.getName()");
       if (isInstance)  {
-        status("Parsing embedded folder (" + (depth + 1) + ")"); 
+        status("Parsing embedded folder (" + (depth + 1) + ")");
         parseDir(depth + 1, r.getVar("entry"));
       }
       else if (isDocument) {
@@ -421,6 +406,9 @@ public class IPWReader extends BaseTiffReader {
         byte[] data = new byte[numbytes + 4]; // append 0 for final offset
         r.setVar("data", data);
         r.exec("dis.read(data)");
+
+        RandomAccessStream ds = new RandomAccessStream(data);
+        ds.order(true);
 
         String entryName = (String) r.getVar("entryName");
         String dirName = (String) r.getVar("dirName");
@@ -434,13 +422,12 @@ public class IPWReader extends BaseTiffReader {
         else if (entryName.equals("FrameRate")) {
           // should always be exactly 4 bytes
           // only exists if the file has more than one image
-          addMeta("Frame Rate", new Long(DataTools.bytesToInt(data, true)));
+          addMeta("Frame Rate", new Long(ds.readInt()));
         }
         else if (entryName.equals("FrameInfo")) {
           // should always be 16 bytes (if present)
           for(int i=0; i<data.length/2; i++) {
-            addMeta("FrameInfo "+i,
-              new Short(DataTools.bytesToShort(data, i*2, true)));
+            addMeta("FrameInfo "+i, new Short(ds.readShort()));
           }
         }
         else if (entryName.equals("ImageInfo")) {
@@ -461,12 +448,12 @@ public class IPWReader extends BaseTiffReader {
           Integer imageNum = Integer.valueOf(name);
           pixels.put(imageNum, dirName);
           names.put(imageNum, entryName);
-          numImages++;
+          core.imageCount[0]++;
         }
+        ds.close();
         r.exec("dis.close()");
         if (debug) {
-          print(depth + 1, ((byte[])
-            r.getVar("data")).length + " bytes read.");
+          print(depth + 1, data.length + " bytes read.");
         }
       }
     }

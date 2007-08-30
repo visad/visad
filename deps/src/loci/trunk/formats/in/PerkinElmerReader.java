@@ -26,6 +26,7 @@ package loci.formats.in;
 
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.*;
 import java.util.*;
@@ -34,14 +35,15 @@ import loci.formats.*;
 /**
  * PerkinElmerReader is the file format reader for PerkinElmer files.
  *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/in/PerkinElmerReader.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/in/PerkinElmerReader.java">SVN</a></dd></dl>
+ *
  * @author Melissa Linkert linkert at wisc.edu
  */
 public class PerkinElmerReader extends FormatReader {
 
   // -- Fields --
-
-  /** Number of images. */
-  protected int numImages;
 
   /** Helper reader. */
   protected TiffReader[] tiff;
@@ -55,60 +57,32 @@ public class PerkinElmerReader extends FormatReader {
   /** List of all files to open */
   private Vector allFiles;
 
+  private String details, sliceSpace;
+
   // -- Constructor --
 
   /** Constructs a new PerkinElmer reader. */
   public PerkinElmerReader() {
-    super("PerkinElmer", new String[] {"rec", "ano", "2", "3", "4",
-      "csv", "htm", "tim", "zpo"});
+    super("PerkinElmer", new String[] {
+      "ano", "cfg", "csv", "htm", "rec", "tim", "zpo"});
   }
 
-  // -- FormatReader API methods --
+  // -- IFormatReader API methods --
 
-  /* @see loci.formats.IFormatReader#isThisType(byte[]) */ 
+  /* @see loci.formats.IFormatReader#isThisType(byte[]) */
   public boolean isThisType(byte[] block) { return false; }
 
-  /* @see loci.formats.IFormatReader#getImageCount(String) */ 
-  public int getImageCount(String id) throws FormatException, IOException {
-    if (!id.equals(currentId) && !isUsedFile(currentId, id)) {
-      initFile(id);
-    }
-    return numImages;
+  /* @see loci.formats.IFormatReader#fileGroupOption(String) */
+  public int fileGroupOption(String id) throws FormatException, IOException {
+    return FormatTools.MUST_GROUP;
   }
 
-  /* @see loci.formats.IFormatReader#isRGB(String) */ 
-  public boolean isRGB(String id) throws FormatException, IOException {
-    if (!id.equals(currentId) && !isUsedFile(currentId, id)) {
-      initFile(id);
-    }
-    return isTiff ? tiff[0].isRGB(files[0]) : false; 
-  }
-
-  /* @see loci.formats.IFormatReader#isLittleEndian(String) */ 
-  public boolean isLittleEndian(String id) throws FormatException, IOException {
-    if (!id.equals(currentId) && !isUsedFile(currentId, id)) {
-      initFile(id);
-    }
-    return isTiff ? tiff[0].isLittleEndian(files[0]) : true;
-  }
-
-  /* @see loci.formats.IFormatReader#isInterleaved(String, int) */ 
-  public boolean isInterleaved(String id, int subC)
-    throws FormatException, IOException
-  {
-    return false;
-  }
-
-  /* @see loci.formats.IFormatReader#openBytes(String, int) */ 
-  public byte[] openBytes(String id, int no)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId) && !isUsedFile(currentId, id)) {
-      initFile(id);
-    }
+  /* @see loci.formats.IFormatReader#openBytes(int) */
+  public byte[] openBytes(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 1);
     if (isTiff) {
-      int idx = no / core.sizeC[0];
-      return tiff[idx].openBytes(files[idx], 0);
+      tiff[no / core.sizeC[0]].setId(files[no / core.sizeC[0]]);
+      return tiff[no / core.sizeC[0]].openBytes(0);
     }
 
     String file = files[no];
@@ -120,38 +94,32 @@ public class PerkinElmerReader extends FormatReader {
     return b;
   }
 
-  /* @see loci.formats.IFormatReader#openImage(String, int) */ 
-  public BufferedImage openImage(String id, int no)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId) && !isUsedFile(currentId, id)) {
-      initFile(id);
-    }
-
-    if (no < 0 || no >= getImageCount(id)) {
+  /* @see loci.formats.IFormatReader#openImage(int) */
+  public BufferedImage openImage(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 1);
+    if (no < 0 || no >= getImageCount()) {
       throw new FormatException("Invalid image number: " + no);
     }
     if (isTiff) {
       int idx = no / core.sizeC[0];
-      return tiff[idx].openImage(files[idx], 0);
+      tiff[idx].setId(files[idx]);
+      return tiff[idx].openImage(0);
     }
 
-    byte[] b = openBytes(id, no);
+    byte[] b = openBytes(no);
     int bpp = b.length / (core.sizeX[0] * core.sizeY[0]);
     return ImageTools.makeImage(b, core.sizeX[0], core.sizeY[0], 1,
       false, bpp, true);
   }
 
-  /* @see loci.formats.IFormatReader#getUsedFiles(String) */
-  public String[] getUsedFiles(String id) throws FormatException, IOException {
-    if (!id.equals(currentId) && !isUsedFile(currentId, id)) {
-      initFile(id);
-    }
+  /* @see loci.formats.IFormatReader#getUsedFiles() */
+  public String[] getUsedFiles() {
+    FormatTools.assertId(currentId, true, 1);
     return (String[]) allFiles.toArray(new String[0]);
   }
 
   /* @see loci.formats.IFormatReader#close(boolean) */
-  public void close(boolean fileOnly) throws FormatException, IOException {
+  public void close(boolean fileOnly) throws IOException {
     if (fileOnly) {
       if (tiff != null) {
         for (int i=0; i<tiff.length; i++) {
@@ -162,8 +130,10 @@ public class PerkinElmerReader extends FormatReader {
     else close();
   }
 
-  /* @see loci.formats.IFormatReader#close() */ 
-  public void close() throws FormatException, IOException {
+  // -- IFormatHandler API methods --
+
+  /* @see loci.formats.IFormatHandler#close() */
+  public void close() throws IOException {
     currentId = null;
     files = null;
     if (tiff != null) {
@@ -173,13 +143,11 @@ public class PerkinElmerReader extends FormatReader {
     }
   }
 
-  /** Initializes the given PerkinElmer file. */
+  // -- Internal FormatReader API methods --
+
+  /* @see loci.formats.FormatReader#initFile(String) */
   protected void initFile(String id) throws FormatException, IOException {
-    if (currentId != null &&
-      (id.equals(currentId) || isUsedFile(currentId, id)))
-    {
-      return;
-    }
+    if (currentId != null && (id.equals(currentId) || isUsedFile(id))) return;
 
     status("Finding HTML companion file");
 
@@ -238,7 +206,7 @@ public class PerkinElmerReader extends FormatReader {
       // specified file
 
       int d = ls[i].lastIndexOf(".");
-      while (d == -1 && i < ls.length) {
+      while (d == -1 && i < ls.length - 1) {
         i++;
         d = ls[i].lastIndexOf(".");
       }
@@ -249,50 +217,33 @@ public class PerkinElmerReader extends FormatReader {
       if (s.startsWith(check) || check.startsWith(s) ||
         ((prefix != null) && (s.startsWith(prefix))))
       {
-        if (cfgPos == -1) {
-          if (filename.endsWith(".cfg")) {
-            cfgPos = i;
-            prefix = ls[i].substring(0, d);
-          }
+        if (cfgPos == -1 && filename.endsWith(".cfg")) {
+          cfgPos = i;
+          prefix = ls[i].substring(0, d);
         }
-
-        if (anoPos == -1) {
-          if (filename.endsWith(".ano")) {
-            anoPos = i;
-            prefix = ls[i].substring(0, d);
-          }
+        if (anoPos == -1 && filename.endsWith(".ano")) {
+          anoPos = i;
+          prefix = ls[i].substring(0, d);
         }
-
-        if (recPos == -1) {
-          if (filename.endsWith(".rec")) {
-            recPos = i;
-            prefix = ls[i].substring(0, d);
-          }
+        if (recPos == -1 && filename.endsWith(".rec")) {
+          recPos = i;
+          prefix = ls[i].substring(0, d);
         }
-
-        if (timPos == -1) {
-          if (filename.endsWith(".tim")) {
-            timPos = i;
-            prefix = ls[i].substring(0, d);
-          }
+        if (timPos == -1 && filename.endsWith(".tim")) {
+          timPos = i;
+          prefix = ls[i].substring(0, d);
         }
-        if (csvPos == -1) {
-          if (filename.endsWith(".csv")) {
-            csvPos = i;
-            prefix = ls[i].substring(0, d);
-          }
+        if (csvPos == -1 && filename.endsWith(".csv")) {
+          csvPos = i;
+          prefix = ls[i].substring(0, d);
         }
-        if (zpoPos == -1) {
-          if (filename.endsWith(".zpo")) {
-            zpoPos = i;
-            prefix = ls[i].substring(0, d);
-          }
+        if (zpoPos == -1 && filename.endsWith(".zpo")) {
+          zpoPos = i;
+          prefix = ls[i].substring(0, d);
         }
-        if (htmPos == -1) {
-          if (filename.endsWith(".htm")) {
-            htmPos = i;
-            prefix = ls[i].substring(0, d);
-          }
+        if (htmPos == -1 && filename.endsWith(".htm")) {
+          htmPos = i;
+          prefix = ls[i].substring(0, d);
         }
 
         if (filename.endsWith(".tif") || filename.endsWith(".tiff")) {
@@ -302,7 +253,7 @@ public class PerkinElmerReader extends FormatReader {
 
         try {
           String ext = filename.substring(filename.lastIndexOf(".") + 1);
-          int num = Integer.parseInt(ext);
+          Integer.parseInt(ext);
           isTiff = false;
           files[filesPt] = workingDirPath + ls[i];
           filesPt++;
@@ -310,13 +261,13 @@ public class PerkinElmerReader extends FormatReader {
         catch (NumberFormatException e) {
           try {
             String ext = filename.substring(filename.lastIndexOf(".") + 1);
-            int num = Integer.parseInt(ext, 16);
+            Integer.parseInt(ext, 16);
             isTiff = false;
             files[filesPt] = workingDirPath + ls[i];
             filesPt++;
           }
-          catch (NumberFormatException f) {
-            if (debug) f.printStackTrace();
+          catch (NumberFormatException exc) {
+            if (debug) trace(exc);
           }
         }
       }
@@ -372,17 +323,16 @@ public class PerkinElmerReader extends FormatReader {
 
     for (int i=0; i<files.length; i++) allFiles.add(files[i]);
 
-    numImages = files.length;
+    core.imageCount[0] = files.length;
     RandomAccessStream read;
     byte[] data;
     StringTokenizer t;
 
-    tiff = new TiffReader[numImages];
+    tiff = new TiffReader[core.imageCount[0]];
     for (int i=0; i<tiff.length; i++) {
       tiff[i] = new TiffReader();
+      if (i > 0) tiff[i].setMetadataCollected(false);
     }
-
-    // highly questionable metadata parsing
 
     // we always parse the .tim and .htm files if they exist, along with
     // either the .csv file or the .zpo file
@@ -418,6 +368,17 @@ public class PerkinElmerReader extends FormatReader {
           catch (NumberFormatException e) { tNum++; }
         }
         addMeta(hashKeys[tNum], token);
+        if (hashKeys[tNum].equals("Image Width")) {
+          core.sizeX[0] = Integer.parseInt(token);
+        }
+        else if (hashKeys[tNum].equals("Image Length")) {
+          core.sizeY[0] = Integer.parseInt(token);
+        }
+        else if (hashKeys[tNum].equals("Number of slices")) {
+          core.sizeZ[0] = Integer.parseInt(token);
+        }
+        else if (hashKeys[tNum].equals("Experiment details:")) details = token;
+        else if (hashKeys[tNum].equals("Z slice space")) sliceSpace = token;
         tNum++;
       }
       read.close();
@@ -442,11 +403,36 @@ public class PerkinElmerReader extends FormatReader {
           t.nextToken();
         }
         else if (pt < hashKeys.length) {
-          addMeta(hashKeys[pt], t.nextToken());
+          String token = t.nextToken();
+          addMeta(hashKeys[pt], token);
+          if (hashKeys[pt].equals("Image Width")) {
+            core.sizeX[0] = Integer.parseInt(token);
+          }
+          else if (hashKeys[pt].equals("Image Length")) {
+            core.sizeY[0] = Integer.parseInt(token);
+          }
+          else if (hashKeys[pt].equals("Number of slices")) {
+            core.sizeZ[0] = Integer.parseInt(token);
+          }
+          else if (hashKeys[pt].equals("Experiment details:")) details = token;
+          else if (hashKeys[pt].equals("Z slice space")) sliceSpace = token;
           pt++;
         }
         else {
-          addMeta(t.nextToken() + t.nextToken(), t.nextToken());
+          String key = t.nextToken() + t.nextToken();
+          String value = t.nextToken();
+          addMeta(key, value);
+          if (key.equals("Image Width")) {
+            core.sizeX[0] = Integer.parseInt(value);
+          }
+          else if (key.equals("Image Length")) {
+            core.sizeY[0] = Integer.parseInt(value);
+          }
+          else if (key.equals("Number of slices")) {
+            core.sizeZ[0] = Integer.parseInt(value);
+          }
+          else if (key.equals("Experiment details:")) details = value;
+          else if (key.equals("Z slice space")) sliceSpace = value;
         }
         tNum++;
       }
@@ -483,15 +469,15 @@ public class PerkinElmerReader extends FormatReader {
       // use reflection to avoid dependency on Java 1.4-specific split method
       Class c = String.class;
       String[] tokens = new String[0];
+      Throwable th = null;
       try {
         Method split = c.getMethod("split", new Class[] {c});
         tokens = (String[]) split.invoke(new String(data),
           new Object[] {regex});
       }
-      catch (Throwable th) {
-        // CTR TODO - eliminate catch-all exception handling
-        if (debug) th.printStackTrace();
-      }
+      catch (NoSuchMethodException exc) { if (debug) trace(exc); }
+      catch (IllegalAccessException exc) { if (debug) trace(exc); }
+      catch (InvocationTargetException exc) { if (debug) trace(exc); }
 
       for (int j=0; j<tokens.length; j++) {
         if (tokens[j].indexOf("<") != -1) tokens[j] = "";
@@ -504,6 +490,21 @@ public class PerkinElmerReader extends FormatReader {
         }
         else if (!tokens[j].trim().equals("")) {
           addMeta(tokens[j].trim(), tokens[j+1].trim());
+          if (tokens[j].trim().equals("Image Width")) {
+            core.sizeX[0] = Integer.parseInt(tokens[j+1].trim());
+          }
+          else if (tokens[j].trim().equals("Image Length")) {
+            core.sizeY[0] = Integer.parseInt(tokens[j+1].trim());
+          }
+          else if (tokens[j].trim().equals("Number of slices")) {
+            core.sizeZ[0] = Integer.parseInt(tokens[j+1].trim());
+          }
+          else if (tokens[j].trim().equals("Experiment details:")) {
+            details = tokens[j+1].trim();
+          }
+          else if (tokens[j].trim().equals("Z slice space")) {
+            sliceSpace = tokens[j+1].trim();
+          }
         }
       }
       read.close();
@@ -512,14 +513,12 @@ public class PerkinElmerReader extends FormatReader {
       throw new FormatException("Valid header files not found.");
     }
 
-    String details = (String) getMeta("Experiment details:");
     // parse details to get number of wavelengths and timepoints
 
     String wavelengths = "1";
     if (details != null) {
       t = new StringTokenizer(details);
       int tokenNum = 0;
-      int numTokens = t.countTokens();
       boolean foundId = false;
       String prevToken = "";
       while (t.hasMoreTokens()) {
@@ -537,25 +536,23 @@ public class PerkinElmerReader extends FormatReader {
 
     core.sizeC[0] = Integer.parseInt(wavelengths);
 
-    core.sizeX[0] = Integer.parseInt((String) getMeta("Image Width"));
-    core.sizeY[0] = Integer.parseInt((String) getMeta("Image Length"));
-    core.sizeZ[0] = Integer.parseInt((String) getMeta("Number of slices"));
-    core.sizeT[0] = getImageCount(currentId) / (core.sizeZ[0] * core.sizeC[0]);
-    if (isTiff) core.pixelType[0] = tiff[0].getPixelType(files[0]);
+    core.sizeT[0] = getImageCount() / (core.sizeZ[0] * core.sizeC[0]);
+    if (isTiff) {
+      tiff[0].setId(files[0]);
+      core.pixelType[0] = tiff[0].getPixelType();
+    }
     else {
-      int bpp = openBytes(id, 0).length / (core.sizeX[0] * core.sizeY[0]);
+      int bpp = openBytes(0).length / (core.sizeX[0] * core.sizeY[0]);
       switch (bpp) {
         case 1:
-          core.pixelType[0] = FormatTools.INT8;
+        case 3:
+          core.pixelType[0] = FormatTools.UINT8;
           break;
         case 2:
           core.pixelType[0] = FormatTools.UINT16;
           break;
-        case 3:
-          core.pixelType[0] = FormatTools.INT8;
-          break;
         case 4:
-          core.pixelType[0] = FormatTools.INT32;
+          core.pixelType[0] = FormatTools.UINT32;
           break;
       }
     }
@@ -564,57 +561,53 @@ public class PerkinElmerReader extends FormatReader {
 
     if (core.sizeZ[0] <= 0) {
       core.sizeZ[0] = 1;
-      core.sizeT[0] = getImageCount(currentId) / 
-        (core.sizeZ[0] * core.sizeC[0]);
+      core.sizeT[0] = getImageCount() / (core.sizeZ[0] * core.sizeC[0]);
     }
     if (core.sizeC[0] <= 0) {
       core.sizeC[0] = 1;
-      core.sizeT[0] = 
-        getImageCount(currentId) / (core.sizeZ[0] * core.sizeC[0]);
+      core.sizeT[0] = getImageCount() / (core.sizeZ[0] * core.sizeC[0]);
     }
     if (core.sizeT[0] <= 0) core.sizeT[0] = 1;
 
-    Object o = getMeta("Z slice space");
-    if (o != null) {
-      float spacing = Float.parseFloat(o.toString());
+    if (sliceSpace != null) {
+      float spacing = Float.parseFloat(sliceSpace);
       if (spacing <= 1f) core.currentOrder[0] += "TZ";
       else core.currentOrder[0] += "ZT";
     }
     else core.currentOrder[0] += "ZT"; // doesn't matter, since Z = T = 1
 
+    core.rgb[0] = isTiff ? tiff[0].isRGB() : false;
+    core.interleaved[0] = false;
+    core.littleEndian[0] = isTiff ? tiff[0].isLittleEndian() : true;
+
     // Populate metadata store
 
     // The metadata store we're working with.
-    MetadataStore store = getMetadataStore(currentId);
+    MetadataStore store = getMetadataStore();
 
     // populate Dimensions element
     String pixelSizeX = (String) getMeta("Pixel Size X");
     String pixelSizeY = (String) getMeta("Pixel Size Y");
-    store.setDimensions(new Float(pixelSizeX),
-        new Float(pixelSizeY), null, null, null, null);
+    store.setDimensions(pixelSizeX == null ? null : new Float(pixelSizeX),
+      pixelSizeY == null ? null : new Float(pixelSizeY),
+      null, null, null, null);
 
     // populate Image element
     String time = (String) getMeta("Finish Time:");
-   
-    SimpleDateFormat parse = new SimpleDateFormat("HH:mm:ss (MM/dd/yyyy)");
-    Date date = parse.parse(time, new ParsePosition(0));
-    SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-    time = fmt.format(date);
 
-    store.setImage(null, time, null, null);
+    if (time != null) {
+      SimpleDateFormat parse = new SimpleDateFormat("HH:mm:ss (MM/dd/yyyy)");
+      Date date = parse.parse(time, new ParsePosition(0));
+      SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+      time = fmt.format(date);
+    }
+    store.setImage(currentId, time, null, null);
 
     // populate Pixels element
-    store.setPixels(
-      new Integer(core.sizeX[0]), // SizeX
-      new Integer(core.sizeY[0]), // SizeY
-      new Integer(core.sizeZ[0]), // SizeZ
-      new Integer(core.sizeC[0]), // SizeC
-      new Integer(core.sizeT[0]), // SizeT
-      new Integer(core.pixelType[0]), // PixelType
-      new Boolean(!isLittleEndian(currentId)), // BigEndian
-      core.currentOrder[0], // DimensionOrder
-      null, // Use image index 0
-      null); // Use pixels index 0
+    store.setPixels(new Integer(core.sizeX[0]), new Integer(core.sizeY[0]),
+      new Integer(core.sizeZ[0]), new Integer(core.sizeC[0]),
+      new Integer(core.sizeT[0]), new Integer(core.pixelType[0]),
+      new Boolean(!core.littleEndian[0]), core.currentOrder[0], null, null);
 
     // populate StageLabel element
     String originX = (String) getMeta("Origin X");
@@ -626,12 +619,14 @@ public class PerkinElmerReader extends FormatReader {
         originY == null ? null : new Float(originY),
         originZ == null ? null : new Float(originZ), null);
     }
-    catch (NumberFormatException e) {
-      if (debug) e.printStackTrace();
+    catch (NumberFormatException exc) {
+      if (debug) trace(exc);
     }
 
     for (int i=0; i<core.sizeC[0]; i++) {
-      store.setLogicalChannel(i, null, null, null, null, null, null, null);
+      store.setLogicalChannel(i, null, null, null, null, null, null, null,
+        null, null, null, null, null, null, null, null, null, null, null, null,
+        null, null, null, null, null);
     }
   }
 

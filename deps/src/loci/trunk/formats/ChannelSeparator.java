@@ -27,7 +27,13 @@ package loci.formats;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
-/** Logic to automatically separate the channels in a file. */
+/**
+ * Logic to automatically separate the channels in a file.
+ *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/ChannelSeparator.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/ChannelSeparator.java">SVN</a></dd></dl>
+ */
 public class ChannelSeparator extends ReaderWrapper {
 
   // -- Fields --
@@ -51,22 +57,41 @@ public class ChannelSeparator extends ReaderWrapper {
 
   // -- IFormatReader API methods --
 
-  /** Determines the number of images in the given file. */
-  public int getImageCount(String id) throws FormatException, IOException {
-    return reader.isRGB(id) ?
-      (getSizeC(id) / reader.getEffectiveSizeC(id)) * reader.getImageCount(id) :
-      reader.getImageCount(id);
+  /* @see IFormatReader#setId(String) */
+  public void setId(String id) throws FormatException, IOException {
+    super.setId(id);
+
+    // clear last image cache
+    lastImage = null;
+    lastImageIndex = -1;
+    lastImageSeries = -1;
   }
 
-  /**
-   * Gets a five-character string representing
-   * the dimension order within the file.
-   */
-  public String getDimensionOrder(String id)
+  /* @see IFormatReader#setId(id, force) */
+  public void setId(String id, boolean force)
     throws FormatException, IOException
   {
-    String order = super.getDimensionOrder(id);
-    if (reader.isRGB(id)) {
+    super.setId(id, force);
+
+    // clear last image cache
+    lastImage = null;
+    lastImageIndex = -1;
+    lastImageSeries = -1;
+  }
+
+  /* @see IFormatReader#getImageCount() */
+  public int getImageCount() {
+    FormatTools.assertId(getCurrentFile(), true, 2);
+    return reader.isRGB() ?
+      (getSizeC() / reader.getEffectiveSizeC()) * reader.getImageCount() :
+      reader.getImageCount();
+  }
+
+  /* @see IFormatReader#getDimensionOrder() */
+  public String getDimensionOrder() {
+    FormatTools.assertId(getCurrentFile(), true, 2);
+    String order = super.getDimensionOrder();
+    if (reader.isRGB()) {
       String newOrder = "XYC";
       if (order.indexOf("Z") > order.indexOf("T")) newOrder += "TZ";
       else newOrder += "ZT";
@@ -75,109 +100,85 @@ public class ChannelSeparator extends ReaderWrapper {
     return order;
   }
 
-  /** Checks if the images in the file are RGB. */
-  public boolean isRGB(String id) {
+  /* @see IFormatReader#isRGB() */
+  public boolean isRGB() {
+    FormatTools.assertId(getCurrentFile(), true, 2);
     return false;
   }
 
-  /** Obtains the specified image from the given file. */
-  public BufferedImage openImage(String id, int no)
-    throws FormatException, IOException
-  {
-    if (no < 0 || no >= getImageCount(id)) {
+  /* @see IFormatReader#openImage(int) */
+  public BufferedImage openImage(int no) throws FormatException, IOException {
+    FormatTools.assertId(getCurrentFile(), true, 2);
+    if (no < 0 || no >= getImageCount()) {
       throw new FormatException("Invalid image number: " + no);
     }
 
-    int bytes = 0;
-    switch (getPixelType(id)) {
-      case 0:
-      case 1:
-        bytes = 1;
-        break;
-      case 2:
-      case 3:
-        bytes = 2;
-        break;
-      case 4:
-      case 5:
-      case 6:
-        bytes = 4;
-        break;
-      case 7:
-        bytes = 8;
-        break;
-    }
+    int bytes = FormatTools.getBytesPerPixel(getPixelType());
 
-    byte[] b = openBytes(id, no);
+    byte[] b = openBytes(no);
 
-    if (getPixelType(id) == FormatTools.FLOAT) {
+    if (getPixelType() == FormatTools.FLOAT) {
       float[] f = new float[b.length / 4];
       for (int i=0; i<b.length; i+=4) {
         f[i/4] = Float.intBitsToFloat(DataTools.bytesToInt(b, i, 4,
-          isLittleEndian(id)));
+          isLittleEndian()));
       }
       if (isNormalized()) f = DataTools.normalizeFloats(f);
-      return ImageTools.makeImage(f, getSizeX(id), getSizeY(id));
+      return ImageTools.makeImage(f, getSizeX(), getSizeY());
     }
 
-    return ImageTools.makeImage(b, getSizeX(id), getSizeY(id), 1, false,
-      bytes, isLittleEndian(id));
+    return ImageTools.makeImage(b, getSizeX(), getSizeY(), 1, false,
+      bytes, isLittleEndian());
   }
 
-  /** Obtains the specified image from the given file, as a byte array. */
-  public byte[] openBytes(String id, int no)
-    throws FormatException, IOException
-  {
-    if (no < 0 || no >= getImageCount(id)) {
+  /* @see IFormatReader#openBytes(int) */
+  public byte[] openBytes(int no) throws FormatException, IOException {
+    FormatTools.assertId(getCurrentFile(), true, 2);
+    if (no < 0 || no >= getImageCount()) {
       throw new FormatException("Invalid image number: " + no);
     }
 
-    if (reader.isRGB(id)) {
-      int c = getSizeC(id) / reader.getEffectiveSizeC(id);
+    if (reader.isRGB()) {
+      int c = getSizeC() / reader.getEffectiveSizeC();
       int source = no / c;
       int channel = no % c;
-      int series = getSeries(id);
+      int series = getSeries();
 
       if (source != lastImageIndex || series != lastImageSeries) {
-        lastImage = reader.openBytes(id, source);
+        lastImage = reader.openBytes(source);
         lastImageIndex = source;
         lastImageSeries = series;
       }
 
       return ImageTools.splitChannels(lastImage, c,
-        false, isInterleaved(id))[channel];
+        FormatTools.getBytesPerPixel(getPixelType()),
+        false, isInterleaved())[channel];
     }
-    else return reader.openBytes(id, no);
+    else return reader.openBytes(no);
   }
 
-  /** Obtains a thumbnail for the specified image from the given file. */
-  public BufferedImage openThumbImage(String id, int no)
+  /* @see IFormatReader#openThumbImage(int) */
+  public BufferedImage openThumbImage(int no)
     throws FormatException, IOException
   {
-    return ImageTools.scale(openImage(id, no), getThumbSizeX(id),
-      getThumbSizeY(id), true);
+    FormatTools.assertId(getCurrentFile(), true, 2);
+    return ImageTools.scale(openImage(no), getThumbSizeX(),
+      getThumbSizeY(), true);
   }
 
-  public void close() {
+  public void close() throws IOException {
+    super.close();
     lastImage = null;
     lastImageIndex = -1;
     lastImageSeries = -1;
   }
 
-  public int getIndex(String id, int z, int c, int t)
-    throws FormatException, IOException
-  {
-    return FormatTools.getIndex(this, id, z, c, t);
+  public int getIndex(int z, int c, int t) {
+    return FormatTools.getIndex(this, z, c, t);
   }
 
-  public int[] getZCTCoords(String id, int index)
-    throws FormatException, IOException
-  {
-    return FormatTools.getZCTCoords(this, id, index);
-  }
-
-  public boolean testRead(String[] args) throws FormatException, IOException {
-    return FormatTools.testRead(this, args);
+  public int[] getZCTCoords(int index) {
+    return FormatTools.getZCTCoords(this, index);
   }
 
 }

@@ -31,6 +31,10 @@ import loci.formats.*;
 /**
  * DeltavisionReader is the file format reader for Deltavision files.
  *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/in/DeltavisionReader.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/in/DeltavisionReader.java">SVN</a></dd></dl>
+ *
  * @author Melissa Linkert linkert at wisc.edu
  */
 public class DeltavisionReader extends FormatReader {
@@ -41,15 +45,6 @@ public class DeltavisionReader extends FormatReader {
 
   // -- Fields --
 
-  /** Current file. */
-  protected RandomAccessStream in;
-
-  /** Number of images in the current file. */
-  protected int numImages;
-
-  /** Flag indicating whether current file is little endian. */
-  protected boolean little;
-
   /** Byte array containing basic image header data. */
   protected byte[] header;
 
@@ -58,9 +53,6 @@ public class DeltavisionReader extends FormatReader {
 
   /** Bytes per pixel. */
   private int bytesPerPixel;
-
-  /** Offset where the ExtHdr starts. */
-  protected int initExtHdrOffset = 1024;
 
   /** Size of one wave in the extended header. */
   protected int wSize;
@@ -72,7 +64,7 @@ public class DeltavisionReader extends FormatReader {
   protected int tSize;
 
   /**
-   * the Number of ints in each extended header section. These fields appear
+   * The number of ints in each extended header section. These fields appear
    * to be all blank but need to be skipped to get to the floats afterwards
    */
   protected int numIntsPerSection;
@@ -88,87 +80,55 @@ public class DeltavisionReader extends FormatReader {
     super("Deltavision", new String[] {"dv", "r3d", "r3d_d3d"});
   }
 
-  // -- FormatReader API methods --
+  // -- IFormatReader API methods --
 
-  /* @see loci.formats.IFormatReader#isThisType(byte[]) */ 
+  /* @see loci.formats.IFormatReader#isMetadataComplete() */
+  public boolean isMetadataComplete() {
+    return true;
+  }
+
+  /* @see loci.formats.IFormatReader#isThisType(byte[]) */
   public boolean isThisType(byte[] block) {
-    return (DataTools.bytesToShort(block, 0, 2, little) == LITTLE_ENDIAN);
-  }
-
-  /* @see loci.formats.IFormatReader#getImageCount(String) */ 
-  public int getImageCount(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return numImages;
-  }
-
-  /* @see loci.formats.IFormatReader#isRGB(String) */
-  public boolean isRGB(String id) throws FormatException, IOException {
     return false;
   }
 
-  /* @see loci.formats.IFormatReader#isLittleEndian(String) */ 
-  public boolean isLittleEndian(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return little;
-  }
-
-  /* @see loci.formats.IFormatReader#isInterleaved(String, int) */ 
-  public boolean isInterleaved(String id, int subC)
-    throws FormatException, IOException
-  {
-    return false;
-  }
-
-  /* @see loci.formats.IFormatReader#openBytes(String, int) */ 
-  public byte[] openBytes(String id, int no)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
+  /* @see loci.formats.IFormatReader#openBytes(int) */
+  public byte[] openBytes(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 1);
     byte[] buf = new byte[core.sizeX[0] * core.sizeY[0] * bytesPerPixel];
-    return openBytes(id, no, buf);
+    return openBytes(no, buf);
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(String, int, byte[]) */
-  public byte[] openBytes(String id, int no, byte[] buf)
+  /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
+  public byte[] openBytes(int no, byte[] buf)
     throws FormatException, IOException
   {
-    if (!id.equals(currentId)) initFile(id);
-
-    if (no < 0 || no >= numImages) {
+    FormatTools.assertId(currentId, true, 1);
+    if (no < 0 || no >= core.imageCount[0]) {
       throw new FormatException("Invalid image number: " + no);
     }
 
     // read the image plane's pixel data
-    int offset = header.length + extHeader.length;
-    offset += core.sizeX[0] * core.sizeY[0] * bytesPerPixel * no;
-
+    long offset = header.length + extHeader.length;
+    long bytes = core.sizeX[0] * core.sizeY[0] * bytesPerPixel;
+    offset += bytes * no;
     in.seek(offset);
     in.read(buf);
     return buf;
   }
 
-  /* @see loci.formats.IFormatReader#openImage(String, int) */ 
-  public BufferedImage openImage(String id, int no)
+  /* @see loci.formats.IFormatReader#openImage(int) */
+  public BufferedImage openImage(int no)
     throws FormatException, IOException
   {
-    return ImageTools.makeImage(openBytes(id, no), core.sizeX[0], 
-      core.sizeY[0], 1, false, bytesPerPixel, little);
+    FormatTools.assertId(currentId, true, 1);
+    return ImageTools.makeImage(openBytes(no), core.sizeX[0],
+      core.sizeY[0], 1, false, bytesPerPixel, core.littleEndian[0]);
   }
 
-  /* @see loci.formats.IFormatReader#close(boolean) */
-  public void close(boolean fileOnly) throws FormatException, IOException {
-    if (fileOnly && in != null) in.close();
-    else if (!fileOnly) close();
-  }
+  // -- Internal FormatReader API methods --
 
-  /* @see loci.formats.IFormatReader#close() */ 
-  public void close() throws FormatException, IOException {
-    if (in != null) in.close();
-    in = null;
-    currentId = null;
-  }
-
-  /** Initializes the given Deltavision file. */
+  /* @see loci.formats.FormatReader#initFile(String) */
   protected void initFile(String id) throws FormatException, IOException {
     if (debug) debug("DeltavisionReader.initFile(" + id + ")");
     super.initFile(id);
@@ -182,23 +142,28 @@ public class DeltavisionReader extends FormatReader {
     in.read(header);
 
     int endian = DataTools.bytesToShort(header, 96, 2, true);
-    little = endian == LITTLE_ENDIAN;
-    numImages = DataTools.bytesToInt(header, 8, 4, little);
+    core.littleEndian[0] = endian == LITTLE_ENDIAN;
+    RandomAccessStream hstream = new RandomAccessStream(header);
+    hstream.order(core.littleEndian[0]);
 
-    int extSize = DataTools.bytesToInt(header, 92, 4, little);
+    hstream.skipBytes(8);
+    core.imageCount[0] = hstream.readInt();
+
+    hstream.seek(92);
+    int extSize = hstream.readInt();
     extHeader = new byte[extSize];
     in.read(extHeader);
 
-    core.sizeX[0] = DataTools.bytesToInt(header, 0, 4, little);
-    core.sizeY[0] = DataTools.bytesToInt(header, 4, 4, little);
+    hstream.seek(0);
+    core.sizeX[0] = hstream.readInt();
+    core.sizeY[0] = hstream.readInt();
 
     Integer xSize = new Integer(core.sizeX[0]);
     Integer ySize = new Integer(core.sizeY[0]);
     addMeta("ImageWidth", xSize);
     addMeta("ImageHeight", ySize);
-    addMeta("NumberOfImages", new Integer(DataTools.bytesToInt(header,
-      8, 4, little)));
-    int filePixelType = DataTools.bytesToInt(header, 12, 4, little);
+    addMeta("NumberOfImages", new Integer(hstream.readInt()));
+    int filePixelType = hstream.readInt();
     String pixel;
 
     switch (filePixelType) {
@@ -239,74 +204,54 @@ public class DeltavisionReader extends FormatReader {
     }
 
     addMeta("PixelType", pixel);
-    addMeta("Sub-image starting point (X)", new Integer(
-      DataTools.bytesToInt(header, 16, 4, little)));
-    addMeta("Sub-image starting point (Y)", new Integer(
-      DataTools.bytesToInt(header, 20, 4, little)));
-    addMeta("Sub-image starting point (Z)", new Integer(
-      DataTools.bytesToInt(header, 24, 4, little)));
-    addMeta("Pixel sampling size (X)", new Integer(
-      DataTools.bytesToInt(header, 28, 4, little)));
-    addMeta("Pixel sampling size (Y)", new Integer(
-      DataTools.bytesToInt(header, 32, 4, little)));
-    addMeta("Pixel sampling size (Z)", new Integer(
-      DataTools.bytesToInt(header, 36, 4, little)));
-    addMeta("X element length (in um)", new Float(Float.intBitsToFloat(
-      DataTools.bytesToInt(header, 40, 4, little))));
-    addMeta("Y element length (in um)", new Float(Float.intBitsToFloat(
-      DataTools.bytesToInt(header, 44, 4, little))));
-    addMeta("Z element length (in um)", new Float(Float.intBitsToFloat(
-      DataTools.bytesToInt(header, 48, 4, little))));
-    addMeta("X axis angle", new Float(Float.intBitsToFloat(
-      DataTools.bytesToInt(header, 52, 4, little))));
-    addMeta("Y axis angle", new Float(Float.intBitsToFloat(
-      DataTools.bytesToInt(header, 56, 4, little))));
-    addMeta("Z axis angle", new Float(Float.intBitsToFloat(
-      DataTools.bytesToInt(header, 60, 4, little))));
-    addMeta("Column axis sequence", new Integer(
-      DataTools.bytesToInt(header, 64, 4, little)));
-    addMeta("Row axis sequence", new Integer(
-      DataTools.bytesToInt(header, 68, 4, little)));
-    addMeta("Section axis sequence", new Integer(
-      DataTools.bytesToInt(header, 72, 4, little)));
-    Float wave1Min = new Float(Float.intBitsToFloat(
-        DataTools.bytesToInt(header, 76, 4, little)));
+    addMeta("Sub-image starting point (X)", new Integer(hstream.readInt()));
+    addMeta("Sub-image starting point (Y)", new Integer(hstream.readInt()));
+    addMeta("Sub-image starting point (Z)", new Integer(hstream.readInt()));
+    addMeta("Pixel sampling size (X)", new Integer(hstream.readInt()));
+    addMeta("Pixel sampling size (Y)", new Integer(hstream.readInt()));
+    addMeta("Pixel sampling size (Z)", new Integer(hstream.readInt()));
+
+    float pixX = hstream.readFloat();
+    float pixY = hstream.readFloat();
+    float pixZ = hstream.readFloat();
+
+    addMeta("X element length (in um)", new Float(pixX));
+    addMeta("Y element length (in um)", new Float(pixY));
+    addMeta("Z element length (in um)", new Float(pixZ));
+    addMeta("X axis angle", new Float(hstream.readFloat()));
+    addMeta("Y axis angle", new Float(hstream.readFloat()));
+    addMeta("Z axis angle", new Float(hstream.readFloat()));
+    addMeta("Column axis sequence", new Integer(hstream.readInt()));
+    addMeta("Row axis sequence", new Integer(hstream.readInt()));
+    addMeta("Section axis sequence", new Integer(hstream.readInt()));
+    Float wave1Min = new Float(hstream.readFloat());
     addMeta("Wavelength 1 min. intensity", wave1Min);
-    Float wave1Max = new Float(Float.intBitsToFloat(
-        DataTools.bytesToInt(header, 80, 4, little)));
+    Float wave1Max = new Float(hstream.readFloat());
     addMeta("Wavelength 1 max. intensity", wave1Max);
-    addMeta("Wavelength 1 mean intensity", new Float(Float.intBitsToFloat(
-      DataTools.bytesToInt(header, 84, 4, little))));
-    addMeta("Space group number", new Integer(
-      DataTools.bytesToInt(header, 88, 4, little)));
-    addMeta("Number of Sub-resolution sets", new Integer(
-      DataTools.bytesToInt(header, 132, 2, little)));
-    addMeta("Z axis reduction quotient", new Integer(
-      DataTools.bytesToInt(header, 134, 2, little)));
-    Float wave2Min = new Float(
-      Float.intBitsToFloat(DataTools.bytesToInt(header, 136, 4, little)));
+    addMeta("Wavelength 1 mean intensity", new Float(hstream.readFloat()));
+    addMeta("Space group number", new Integer(hstream.readInt()));
+
+    hstream.seek(132);
+    addMeta("Number of Sub-resolution sets", new Integer(hstream.readShort()));
+    addMeta("Z axis reduction quotient", new Integer(hstream.readShort()));
+    Float wave2Min = new Float(hstream.readFloat());
     addMeta("Wavelength 2 min. intensity", wave2Min);
-    Float wave2Max = new Float(
-      Float.intBitsToFloat(DataTools.bytesToInt(header, 140, 4, little)));
+    Float wave2Max = new Float(hstream.readFloat());
     addMeta("Wavelength 2 max. intensity", wave2Max);
 
-    Float wave3Min = new Float(
-      Float.intBitsToFloat(DataTools.bytesToInt(header, 144, 4, little)));
+    Float wave3Min = new Float(hstream.readFloat());
     addMeta("Wavelength 3 min. intensity", wave3Min);
 
-    Float wave3Max = new Float(
-      Float.intBitsToFloat(DataTools.bytesToInt(header, 148, 4, little)));
+    Float wave3Max = new Float(hstream.readFloat());
     addMeta("Wavelength 3 max. intensity", wave3Max);
 
-    Float wave4Min = new Float(
-      Float.intBitsToFloat(DataTools.bytesToInt(header, 152, 4, little)));
+    Float wave4Min = new Float(hstream.readFloat());
     addMeta("Wavelength 4 min. intensity", wave4Min);
 
-    Float wave4Max = new Float(
-      Float.intBitsToFloat(DataTools.bytesToInt(header, 156, 4, little)));
+    Float wave4Max = new Float(hstream.readFloat());
     addMeta("Wavelength 4 max. intensity", wave4Max);
 
-    int type = DataTools.bytesToShort(header, 160, 2, little);
+    int type = hstream.readShort();
     String imageType;
     switch (type) {
       case 0:
@@ -329,20 +274,19 @@ public class DeltavisionReader extends FormatReader {
     }
 
     addMeta("Image Type", imageType);
-    addMeta("Lens ID Number", new Integer(DataTools.bytesToShort(
-      header, 162, 2, little)));
-    Float wave5Min = new Float(
-      Float.intBitsToFloat(DataTools.bytesToInt(header, 172, 4, little)));
+    addMeta("Lens ID Number", new Integer(hstream.readShort()));
+
+    hstream.seek(172);
+    Float wave5Min = new Float(hstream.readFloat());
     addMeta("Wavelength 5 min. intensity", wave5Min);
 
-    Float wave5Max = new Float(
-      Float.intBitsToFloat(DataTools.bytesToInt(header, 176, 4, little)));
+    Float wave5Max = new Float(hstream.readFloat());
     addMeta("Wavelength 5 max. intensity", wave5Max);
 
-    core.sizeT[0] = DataTools.bytesToShort(header, 180, 2, little);
+    core.sizeT[0] = hstream.readShort();
     addMeta("Number of timepoints", new Integer(core.sizeT[0]));
 
-    int sequence = DataTools.bytesToInt(header, 182, 4, little);
+    int sequence = hstream.readShort();
     String imageSequence;
     switch (sequence) {
       case 0:
@@ -362,40 +306,35 @@ public class DeltavisionReader extends FormatReader {
     }
     addMeta("Image sequence", imageSequence);
 
-    addMeta("X axis tilt angle", new Float(Float.intBitsToFloat(
-      DataTools.bytesToInt(header, 184, 4, little))));
-    addMeta("Y axis tilt angle", new Float(Float.intBitsToFloat(
-      DataTools.bytesToInt(header, 188, 4, little))));
-    addMeta("Z axis tilt angle", new Float(Float.intBitsToFloat(
-      DataTools.bytesToInt(header, 192, 4, little))));
+    addMeta("X axis tilt angle", new Float(hstream.readFloat()));
+    addMeta("Y axis tilt angle", new Float(hstream.readFloat()));
+    addMeta("Z axis tilt angle", new Float(hstream.readFloat()));
 
-    core.sizeC[0] = DataTools.bytesToShort(header, 196, 2, little);
+    core.sizeC[0] = hstream.readShort();
     addMeta("Number of wavelengths", new Integer(core.sizeC[0]));
-    core.sizeZ[0] = numImages / (core.sizeC[0] * core.sizeT[0]);
+    core.sizeZ[0] = core.imageCount[0] / (core.sizeC[0] * core.sizeT[0]);
     addMeta("Number of focal planes", new Integer(core.sizeZ[0]));
 
-    addMeta("Wavelength 1 (in nm)", new Integer(DataTools.bytesToShort(
-      header, 198, 2, little)));
-    addMeta("Wavelength 2 (in nm)", new Integer(DataTools.bytesToShort(
-      header, 200, 2, little)));
-    addMeta("Wavelength 3 (in nm)", new Integer(DataTools.bytesToShort(
-      header, 202, 2, little)));
-    addMeta("Wavelength 4 (in nm)", new Integer(DataTools.bytesToShort(
-      header, 204, 2, little)));
-    addMeta("Wavelength 5 (in nm)", new Integer(DataTools.bytesToShort(
-      header, 206, 2, little)));
-    addMeta("X origin (in um)", new Float(Float.intBitsToFloat(
-      DataTools.bytesToInt(header, 208, 4, little))));
-    addMeta("Y origin (in um)", new Float(Float.intBitsToFloat(
-      DataTools.bytesToInt(header, 212, 4, little))));
-    addMeta("Z origin (in um)", new Float(Float.intBitsToFloat(
-      DataTools.bytesToInt(header, 216, 4, little))));
+    core.rgb[0] = false;
+    core.interleaved[0] = false;
+
+    short[] waves = new short[5];
+    for (int i=0; i<waves.length; i++) waves[i] = hstream.readShort();
+
+    addMeta("Wavelength 1 (in nm)", new Integer(waves[0]));
+    addMeta("Wavelength 2 (in nm)", new Integer(waves[1]));
+    addMeta("Wavelength 3 (in nm)", new Integer(waves[2]));
+    addMeta("Wavelength 4 (in nm)", new Integer(waves[3]));
+    addMeta("Wavelength 5 (in nm)", new Integer(waves[4]));
+    addMeta("X origin (in um)", new Float(hstream.readFloat()));
+    addMeta("Y origin (in um)", new Float(hstream.readFloat()));
+    addMeta("Z origin (in um)", new Float(hstream.readFloat()));
 
     // The metadata store we're working with.
-    MetadataStore store = getMetadataStore(id);
+    MetadataStore store = getMetadataStore();
 
-    String title;
-    for (int i=1; i<=10; i++) {
+    String title = null;
+    for (int i=10; i>=1; i--) {
       // Make sure that "null" characters are stripped out
       title = new String(header, 224 + 80*(i-1), 80).replaceAll("\0", "");
       addMeta("Title " + i, title);
@@ -405,35 +344,34 @@ public class DeltavisionReader extends FormatReader {
 
     status("Reading extended header");
 
-    numIntsPerSection = DataTools.bytesToInt(header, 128, 2, little);
-    numFloatsPerSection = DataTools.bytesToInt(header, 130, 2, little);
+    hstream.seek(128);
+    numIntsPerSection = hstream.readShort();
+    numFloatsPerSection = hstream.readShort();
     setOffsetInfo(sequence, core.sizeZ[0], core.sizeC[0], core.sizeT[0]);
-    extHdrFields = 
+    extHdrFields =
       new DVExtHdrFields[core.sizeZ[0]][core.sizeC[0]][core.sizeT[0]];
 
-    store.setPixels(new Integer(core.sizeX[0]), new Integer(core.sizeY[0]), 
-      new Integer(core.sizeZ[0]), new Integer(core.sizeC[0]), 
-      new Integer(core.sizeT[0]), new Integer(core.pixelType[0]),
-      new Boolean(!little), core.currentOrder[0], null, null);
+    hstream.close();
 
-    store.setDimensions(
-      (Float) getMeta("X element length (in um)"),
-      (Float) getMeta("Y element length (in um)"),
-      (Float) getMeta("Z element length (in um)"),
+    store.setPixels(new Integer(core.sizeX[0]), new Integer(core.sizeY[0]),
+      new Integer(core.sizeZ[0]), new Integer(core.sizeC[0]),
+      new Integer(core.sizeT[0]), new Integer(core.pixelType[0]),
+      new Boolean(!core.littleEndian[0]), core.currentOrder[0], null, null);
+
+    store.setDimensions(new Float(pixX), new Float(pixY), new Float(pixZ),
       null, null, null);
 
-    String description = (String) getMeta("Title 1");
-    if (description == null) description = "";
-    description = description.length() == 0 ? null : description;
-    store.setImage(id, null, description, null);
+    if (title == null) title = "";
+    title = title.length() == 0 ? null : title;
+    store.setImage(id, null, title, null);
 
     // Run through every timeslice, for each wavelength, for each z section
     // and fill in the Extended Header information array for that image
-    for (int z = 0; z < core.sizeZ[0]; z++) {
-      for (int t = 0; t < core.sizeT[0]; t++) {
-        for (int w = 0; w < core.sizeC[0]; w++) {
+    for (int z=0; z<core.sizeZ[0]; z++) {
+      for (int t=0; t<core.sizeT[0]; t++) {
+        for (int w=0; w<core.sizeC[0]; w++) {
           extHdrFields[z][w][t] = new DVExtHdrFields(getTotalOffset(z, w, t),
-            numIntsPerSection, extHeader, little);
+            numIntsPerSection, extHeader, core.littleEndian[0]);
 
           store.setPlaneInfo(z, w, t,
             new Float(extHdrFields[z][w][t].getTimeStampSeconds()),
@@ -445,11 +383,11 @@ public class DeltavisionReader extends FormatReader {
     status("Populating metadata");
 
     for (int w=0; w<core.sizeC[0]; w++) {
-      store.setLogicalChannel(w, null,
-        new Float(extHdrFields[0][w][0].getNdFilter()),
-        (Integer) getMeta("Wavelength " + (w+1) + " (in nm)"),
-        new Integer((int) extHdrFields[0][w][0].getExFilter()),
-        "Monochrome", "Wide-field", null);
+      store.setLogicalChannel(w, null, null, null, null, null, null, null, null,
+        null, null, null, null, "Monochrome", "Wide-field", null, null, null,
+        null, null, new Integer(waves[w]),
+        new Integer((int) extHdrFields[0][w][0].getExFilter()), null,
+        new Float(extHdrFields[0][w][0].getNdFilter()), null);
     }
 
     store.setStageLabel("ome",
@@ -478,8 +416,10 @@ public class DeltavisionReader extends FormatReader {
         new Double(wave5Max.floatValue()), null);
     }
 
-    store.setDefaultDisplaySettings(null);
+    //store.setDefaultDisplaySettings(null);
   }
+
+  // -- Helper methods --
 
   /**
    * This method calculates the size of a w, t, z section depending on which
@@ -539,6 +479,8 @@ public class DeltavisionReader extends FormatReader {
     int smallOffset = (numIntsPerSection + numFloatsPerSection) * 4;
     return getTotalOffset(currentZ, currentW, currentT) / smallOffset;
   }
+
+  // -- Helper classes --
 
   /**
    * This private class structure holds the details for the extended header
@@ -637,62 +579,44 @@ public class DeltavisionReader extends FormatReader {
     protected DVExtHdrFields(int startingOffset, int numIntsPerSection,
       byte[] extHeader, boolean little)
     {
-      // skip over the int values that have nothing in them
-      offsetWithInts = startingOffset + (numIntsPerSection * 4);
+      try {
+        RandomAccessStream ext = new RandomAccessStream(extHeader);
+        ext.order(little);
 
-      // DV files store the ND (neuatral density) Filter (normally expressed as
-      // a %T (transmittance)) as an OD (optical density) rating.
-      // To convert from one to the other the formula is %T = 10^(-OD) X 100.
-      oDFilter = Float.intBitsToFloat(
-        DataTools.bytesToInt(extHeader, offsetWithInts + 36, 4, little));
+        // skip over the int values that have nothing in them
+        offsetWithInts = startingOffset + (numIntsPerSection * 4);
 
-      // fill in the extended header information for the floats
-      photosensorReading =
-        Float.intBitsToFloat(
-          DataTools.bytesToInt(extHeader, offsetWithInts, 4, little));
-      timeStampSeconds =
-        Float.intBitsToFloat(
-          DataTools.bytesToInt(extHeader, offsetWithInts + 4, 4, little));
-      stageXCoord =
-        Float.intBitsToFloat(
-          DataTools.bytesToInt(extHeader, offsetWithInts + 8, 4, little));
-      stageYCoord =
-        Float.intBitsToFloat(
-          DataTools.bytesToInt(extHeader, offsetWithInts + 12, 4, little));
-      stageZCoord =
-        Float.intBitsToFloat(
-          DataTools.bytesToInt(extHeader, offsetWithInts + 16, 4, little));
-      minInten =
-        Float.intBitsToFloat(
-          DataTools.bytesToInt(extHeader, offsetWithInts + 20, 4, little));
-      maxInten =
-        Float.intBitsToFloat(
-          DataTools.bytesToInt(extHeader, offsetWithInts + 24, 4, little));
-      meanInten =
-        Float.intBitsToFloat(
-          DataTools.bytesToInt(extHeader, offsetWithInts + 28, 4, little));
-      expTime =
-        Float.intBitsToFloat(
-          DataTools.bytesToInt(extHeader, offsetWithInts + 32, 4, little));
-      ndFilter = (float) Math.pow(10.0, -oDFilter);
-      exFilter =
-        Float.intBitsToFloat(
-          DataTools.bytesToInt(extHeader, offsetWithInts + 40, 4, little));
-      emFilter =
-        Float.intBitsToFloat(
-          DataTools.bytesToInt(extHeader, offsetWithInts + 44, 4, little));
-      exWavelen =
-        Float.intBitsToFloat(
-          DataTools.bytesToInt(extHeader, offsetWithInts + 48, 4, little));
-      emWavelen =
-        Float.intBitsToFloat(
-          DataTools.bytesToInt(extHeader, offsetWithInts + 52, 4, little));
-      intenScaling =
-        Float.intBitsToFloat(
-          DataTools.bytesToInt(extHeader, offsetWithInts + 56, 4, little));
-      energyConvFactor =
-        Float.intBitsToFloat(
-          DataTools.bytesToInt(extHeader, offsetWithInts + 60, 4, little));
+        // DV files store the ND (neuatral density) Filter
+        // (normally expressed as a %T (transmittance)) as an OD
+        // (optical density) rating.
+        // To convert from one to the other the formula is %T = 10^(-OD) X 100.
+        ext.seek(offsetWithInts + 36);
+        oDFilter = ext.readFloat();
+
+        // fill in the extended header information for the floats
+        ext.seek(offsetWithInts);
+        photosensorReading = ext.readFloat();
+        timeStampSeconds = ext.readFloat();
+        stageXCoord = ext.readFloat();
+        stageYCoord = ext.readFloat();
+        stageZCoord = ext.readFloat();
+        minInten = ext.readFloat();
+        maxInten = ext.readFloat();
+        meanInten = ext.readFloat();
+        expTime = ext.readFloat();
+        ndFilter = (float) Math.pow(10.0, -oDFilter);
+        ext.skipBytes(4);
+
+        exFilter = ext.readFloat();
+        emFilter = ext.readFloat();
+        exWavelen = ext.readFloat();
+        emWavelen = ext.readFloat();
+        intenScaling = ext.readFloat();
+        energyConvFactor = ext.readFloat();
+      }
+      catch (IOException e) {
+        LogTools.trace(e);
+      }
     }
 
     /** Various getters for the Extended header fields. */

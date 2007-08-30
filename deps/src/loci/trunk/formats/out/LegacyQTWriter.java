@@ -36,6 +36,10 @@ import loci.formats.*;
  *
  * Much of this code was based on the QuickTime Movie Writer for ImageJ
  * (available at http://rsb.info.nih.gov/ij/plugins/movie-writer.html).
+ *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/out/LegacyQTWriter.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/out/LegacyQTWriter.java">SVN</a></dd></dl>
  */
 public class LegacyQTWriter extends FormatWriter {
 
@@ -80,7 +84,6 @@ public class LegacyQTWriter extends FormatWriter {
   /**
    * Sets the encoded movie's codec.
    * @param codec Codec value:<ul>
-   *   <li>QTWriter.CODEC_MOTION_JPEG_B</li>
    *   <li>QTWriter.CODEC_CINEPAK</li>
    *   <li>QTWriter.CODEC_ANIMATION</li>
    *   <li>QTWriter.CODEC_H_263</li>
@@ -105,8 +108,8 @@ public class LegacyQTWriter extends FormatWriter {
 
   // -- IFormatWriter API methods --
 
-  /* @see loci.formats.IFormatWriter#save(String, Image, boolean) */
-  public void saveImage(String id, Image image, boolean last)
+  /* @see loci.formats.IFormatWriter#saveImage(Image, boolean) */
+  public void saveImage(Image image, boolean last)
     throws FormatException, IOException
   {
     if (tools == null) {
@@ -119,15 +122,15 @@ public class LegacyQTWriter extends FormatWriter {
     }
     if (!tools.canDoQT()) throw new FormatException(LegacyQTTools.NO_QT_MSG);
 
-    if (!id.equals(currentId)) {
-      currentId = id;
+    if (!initialized) {
+      initialized = true;
 
       try {
         r.exec("QTSession.open()");
         BufferedImage img = ImageTools.makeBuffered(image);
         width = img.getWidth();
         height = img.getHeight();
-        File f = new File(id);
+        File f = new File(currentId);
         r.setVar("f", f);
         r.setVar("width", (float) width);
         r.setVar("height", (float) height);
@@ -168,15 +171,16 @@ public class LegacyQTWriter extends FormatWriter {
         r.exec("compressedImage = RawEncodedImage.fromQTHandle(imageHandle)");
 
         r.setVar("rate", 30);
+        
         r.exec("seq = new CSequence(gw, bounds, pixSize, codec, " +
           "CodecComponent.bestFidelityCodec, quality, quality, rate, null, " +
           "zero)");
 
         r.exec("imgDesc = seq.getDescription()");
       }
-      catch (Exception e) {
-        e.printStackTrace();
-        throw new FormatException("Legacy QuickTime writer failed.");
+      catch (ReflectException e) {
+        trace(e);
+        throw new FormatException("Legacy QuickTime writer failed", e);
       }
     }
 
@@ -249,9 +253,9 @@ public class LegacyQTWriter extends FormatWriter {
       r.exec("videoMedia.addSample(imageHandle, zero, dataSize, " +
         "rate, imgDesc, one, sync)");
     }
-    catch (Exception e) {
-      e.printStackTrace();
-      throw new FormatException("Legacy QuickTime writer failed.");
+    catch (ReflectException e) {
+      trace(e);
+      throw new FormatException("Legacy QuickTime writer failed", e);
     }
     if (last) {
       try {
@@ -265,29 +269,27 @@ public class LegacyQTWriter extends FormatWriter {
         r.exec("movie.addResource(omf, minusOne, name)");
         r.exec("QTSession.close()");
       }
-      catch (Exception e) {
-        e.printStackTrace();
-        throw new FormatException("Legacy QuickTime writer failed.");
+      catch (ReflectException e) {
+        trace(e);
+        throw new FormatException("Legacy QuickTime writer failed", e);
       }
     }
   }
 
-  /* @see loci.formats.IFormatWriter#close() */
-  public void close() throws FormatException, IOException {
+  /* @see loci.formats.IFormatWriter#canDoStacks() */
+  public boolean canDoStacks() { return true; }
+
+  // -- IFormatHandler API methods --
+
+  /* @see loci.formats.IFormatHandler#close() */
+  public void close() throws IOException {
     r = null;
     numWritten = 0;
     width = 0;
     height = 0;
     pixels2 = null;
-  }
-
-  /* @see loci.formats.IFormatWriter#canDoStacks(String) */
-  public boolean canDoStacks(String id) { return true; }
-
-  // -- Main method --
-
-  public static void main(String[] args) throws IOException, FormatException {
-    new LegacyQTWriter().testConvert(args);
+    currentId = null;
+    initialized = false;
   }
 
 }

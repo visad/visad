@@ -32,6 +32,10 @@ import loci.formats.*;
  * ImarisTiffReader is the file format reader for
  * Imaris 5 files (TIFF variant).
  *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/in/ImarisTiffReader.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/in/ImarisTiffReader.java">SVN</a></dd></dl>
+ *
  * @author Melissa Linkert linkert at wisc.edu
  */
 public class ImarisTiffReader extends BaseTiffReader {
@@ -43,9 +47,9 @@ public class ImarisTiffReader extends BaseTiffReader {
     super("Imaris 5 (TIFF)", "ims");
   }
 
-  // -- FormatReader API methods --
+  // -- IFormatReader API methods --
 
-  /* @see loci.formats.IFormatReader#isThisType(byte[]) */ 
+  /* @see loci.formats.IFormatReader#isThisType(byte[]) */
   public boolean isThisType(byte[] block) {
     // adapted from MetamorphReader.isThisType(byte[])
     if (block.length < 3) return false;
@@ -78,7 +82,7 @@ public class ImarisTiffReader extends BaseTiffReader {
 
   // -- IFormatHandler API methods --
 
-  /* @see loci.formats.IFormatHandler#isThisType(String, boolean) */ 
+  /* @see loci.formats.IFormatHandler#isThisType(String, boolean) */
   public boolean isThisType(String name, boolean open) {
     if (!super.isThisType(name, open)) return false; // check extension
 
@@ -88,20 +92,6 @@ public class ImarisTiffReader extends BaseTiffReader {
   }
 
   // -- Internal BaseTiffReader API methods --
-
-  /* @see BaseTiffReader#getImageCount(String) */
-  public int getImageCount(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return numImages;
-  }
-
-  /* @see BaseTiffReader#isInterleaved(String) */
-  public boolean isInterleaved(String id, int subC)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-    return false;
-  }
 
   /* @see BaseTiffReader#initFile(String) */
   protected void initFile(String id) throws FormatException, IOException {
@@ -148,15 +138,15 @@ public class ImarisTiffReader extends BaseTiffReader {
       TiffTools.getIFDIntValue(ifds[1], TiffTools.IMAGE_LENGTH, false, 0);
 
     ifds = (Hashtable[]) tmp.toArray(new Hashtable[0]);
-    numImages = core.sizeC[0] * core.sizeZ[0];
+    core.imageCount[0] = core.sizeC[0] * core.sizeZ[0];
     core.currentOrder[0] = "XYZCT";
+    core.interleaved[0] = false;
+    core.rgb[0] =
+      core.imageCount[0] != core.sizeZ[0] * core.sizeC[0] * core.sizeT[0];
 
     int bitsPerSample = TiffTools.getIFDIntValue(ifds[0],
       TiffTools.BITS_PER_SAMPLE);
     int bitFormat = TiffTools.getIFDIntValue(ifds[0], TiffTools.SAMPLE_FORMAT);
-
-    // TODO : look into removing this logic, since it's copied directly from
-    // BaseTiffReader
 
     while (bitsPerSample % 8 != 0) bitsPerSample++;
     if (bitsPerSample == 24 || bitsPerSample == 48) bitsPerSample /= 3;
@@ -209,13 +199,12 @@ public class ImarisTiffReader extends BaseTiffReader {
       metadata.remove("Comment");
     }
 
-    MetadataStore store = getMetadataStore(currentId);
+    MetadataStore store = getMetadataStore();
 
     store.setPixels(new Integer(core.sizeX[0]), new Integer(core.sizeY[0]),
-      new Integer(core.sizeZ[0]), new Integer(core.sizeC[0]), 
-      new Integer(core.sizeT[0]), new Integer(core.pixelType[0]), null, 
+      new Integer(core.sizeZ[0]), new Integer(core.sizeC[0]),
+      new Integer(core.sizeT[0]), new Integer(core.pixelType[0]), null,
       core.currentOrder[0], null, null);
-
   }
 
 }

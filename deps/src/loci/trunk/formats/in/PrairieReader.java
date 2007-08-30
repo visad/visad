@@ -33,6 +33,10 @@ import loci.formats.*;
 /**
  * PrairieReader is the file format reader for
  * Prairie Technologies' TIFF variant.
+ *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/in/PrairieReader.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/in/PrairieReader.java">SVN</a></dd></dl>
  */
 public class PrairieReader extends FormatReader {
 
@@ -47,9 +51,6 @@ public class PrairieReader extends FormatReader {
   private static final int PRAIRIE_TAG_3 = 33630;
 
   // -- Fields --
-
-  /** Number of images */
-  private int numImages;
 
   /** List of files in the current dataset */
   private String[] files;
@@ -68,38 +69,17 @@ public class PrairieReader extends FormatReader {
     super("Prairie (TIFF)", new String[] {"tif", "tiff", "cfg", "xml"});
   }
 
-  // -- IFormatHandler API methods --
+  // -- IFormatReader API methods --
 
-  /* @see loci.formats.IFormatHandler#isThisType(String, boolean) */ 
-  public boolean isThisType(String name, boolean open) {
-    if (!super.isThisType(name, open)) return false; // check extension
-
-    // check if there is an XML file in the same directory
-    Location  f = new Location(name);
-    f = f.getAbsoluteFile();
-    Location parent = f.getParentFile();
-    String[] listing = parent.list();
-    int xmlCount = 0;
-    for (int i=0; i<listing.length; i++) {
-      if (listing[i].toLowerCase().endsWith(".xml")) xmlCount++;
-    }
-
-    boolean xml = xmlCount > 0;
-
-    // just checking the filename isn't enough to differentiate between
-    // Prairie and regular TIFF; open the file and check more thoroughly
-    return open ? checkBytes(name, 524304) && xml : xml;
-  }
-
-  // -- FormatReader API methods --
-
-  /* @see loci.formats.IFormatReader#isThisType(byte[]) */ 
+  /* @see loci.formats.IFormatReader#isThisType(byte[]) */
   public boolean isThisType(byte[] block) {
     // adapted from MetamorphReader.isThisType(byte[])
     if (block.length < 3) return false;
     if (block.length < 8) {
       return true; // we have no way of verifying further
     }
+
+    if (new String(block).indexOf("xml") != -1) return true;
 
     boolean little = (block[0] == 0x49 && block[1] == 0x49);
 
@@ -127,9 +107,16 @@ public class PrairieReader extends FormatReader {
     }
   }
 
-  /* @see loci.formats.IFormatReader#getUsedFiles(String) */
-  public String[] getUsedFiles(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
+  /* @see loci.formats.IFormatReader#fileGroupOption(String) */
+  public int fileGroupOption(String id) throws FormatException, IOException {
+    id = id.toLowerCase();
+    return (id.endsWith(".cfg") || id.endsWith(".xml")) ?
+      FormatTools.MUST_GROUP : FormatTools.CAN_GROUP;
+  }
+
+  /* @see loci.formats.IFormatReader#getUsedFiles() */
+  public String[] getUsedFiles() {
+    FormatTools.assertId(currentId, true, 1);
     String[] s = new String[files.length + 2];
     System.arraycopy(files, 0, s, 0, files.length);
     s[files.length] = xmlFile;
@@ -137,74 +124,77 @@ public class PrairieReader extends FormatReader {
     return s;
   }
 
-  /* @see loci.formats.IFormatReader#getImageCount(String) */
-  public int getImageCount(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return numImages;
-  }
-
-  /* @see loci.formats.IFormatReader#isRGB(String) */
-  public boolean isRGB(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return false;
-  }
-
-  /* @see loci.formats.IFormatReader#isLittleEndian(String) */
-  public boolean isLittleEndian(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return tiff.isLittleEndian(files[0]);
-  }
-
-  /* @see loci.formats.IFormatReader#isInterleaved(String) */
-  public boolean isInterleaved(String id, int subC)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-    return false;
-  }
-
-  /* @see loci.formats.IFormatReader#openBytes(String, int) */
-  public byte[] openBytes(String id, int no)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-    if (no < 0 || no >= getImageCount(id)) {
+  /* @see loci.formats.IFormatReader#openBytes(int) */
+  public byte[] openBytes(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 1);
+    if (no < 0 || no >= getImageCount()) {
       throw new FormatException("Invalid image number: " + no);
     }
-    return tiff.openBytes(files[no], 0);
+    tiff.setId(files[no]);
+    return tiff.openBytes(0);
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(String, int, byte[]) */
-  public byte[] openBytes(String id, int no, byte[] buf)
+  /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
+  public byte[] openBytes(int no, byte[] buf)
     throws FormatException, IOException
   {
-    if (!id.equals(currentId)) initFile(id);
-    if (no < 0 || no >= getImageCount(id)) {
+    FormatTools.assertId(currentId, true, 1);
+    if (no < 0 || no >= getImageCount()) {
       throw new FormatException("Invalid image number: " + no);
     }
-    tiff.openBytes(files[no], 0, buf);
+    tiff.setId(files[no]);
+    tiff.openBytes(0, buf);
     return buf;
   }
 
-  /* @see loci.formats.IFormatReader#openImage(String, int) */
-  public BufferedImage openImage(String id, int no)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-    if (no < 0 || no >= getImageCount(id)) {
+  /* @see loci.formats.IFormatReader#openImage(int) */
+  public BufferedImage openImage(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 1);
+    if (no < 0 || no >= getImageCount()) {
       throw new FormatException("Invalid image number: " + no);
     }
-    return tiff.openImage(files[no], 0);
+    tiff.setId(files[no]);
+    return tiff.openImage(0);
   }
 
   /* @see loci.formats.IFormatReader#close(boolean) */
-  public void close(boolean fileOnly) throws FormatException, IOException {
+  public void close(boolean fileOnly) throws IOException {
     if (fileOnly && tiff != null) tiff.close(fileOnly);
     else if (!fileOnly) close();
   }
 
-  /* @see loci.formats.IFormatReader#close() */
-  public void close() throws FormatException, IOException {
+  // -- IFormatHandler API methods --
+
+  /* @see loci.formats.IFormatHandler#isThisType(String, boolean) */
+  public boolean isThisType(String name, boolean open) {
+    if (!super.isThisType(name, open)) return false; // check extension
+    if (!isGroupFiles()) return false;
+
+    // check if there is an XML file in the same directory
+    Location  f = new Location(name);
+    f = f.getAbsoluteFile();
+    Location parent = f.getParentFile();
+    String[] listing = parent.list();
+    int xmlCount = 0;
+    for (int i=0; i<listing.length; i++) {
+      if (listing[i].toLowerCase().endsWith(".xml")) xmlCount++;
+    }
+    if (xmlCount == 0) {
+      listing = (String[]) Location.getIdMap().keySet().toArray(new String[0]);
+      for (int i=0; i<listing.length; i++) {
+        if (listing[i].toLowerCase().endsWith(".xml")) xmlCount++;
+      }
+    }
+
+    boolean xml = xmlCount > 0;
+
+    // just checking the filename isn't enough to differentiate between
+    // Prairie and regular TIFF; open the file and check more thoroughly
+    return open ? checkBytes(name, 524304) && xml : xml;
+  }
+
+  /* @see loci.formats.IFormatHandler#close() */
+  public void close() throws IOException {
     files = null;
     if (tiff != null) tiff.close();
     tiff = null;
@@ -213,9 +203,14 @@ public class PrairieReader extends FormatReader {
     readCFG = false;
   }
 
+  // -- Internal FormatReader API methods --
+
   /* @see loci.formats.IFormatReader#initFile(String) */
   protected void initFile(String id) throws FormatException, IOException {
     if (debug) debug("PrairieReader.initFile(" + id + ")");
+
+    if (metadata == null) metadata = new Hashtable();
+    if (core == null) core = new CoreMetadata(1);
 
     if (id.endsWith("xml") || id.endsWith("cfg")) {
       // we have been given the XML file that lists TIFF files (best case)
@@ -229,7 +224,6 @@ public class PrairieReader extends FormatReader {
         readXML = true;
       }
       else if (id.endsWith("cfg")) {
-        if (metadata == null) metadata = new Hashtable();
         cfgFile = id;
         readCFG = true;
       }
@@ -253,9 +247,10 @@ public class PrairieReader extends FormatReader {
       }
 
       int zt = 0;
+      boolean isZ = false;
       Vector f = new Vector();
       int fileIndex = 1;
-      if (id.endsWith(".xml")) numImages = 0;
+      if (id.endsWith(".xml")) core.imageCount[0] = 0;
 
       String pastPrefix = "";
       for (int i=1; i<elements.size(); i++) {
@@ -264,7 +259,7 @@ public class PrairieReader extends FormatReader {
           boolean closed = el.endsWith("/");
 
           String prefix = el.substring(0, el.indexOf(" "));
-          if (prefix.equals("File")) numImages++;
+          if (prefix.equals("File")) core.imageCount[0]++;
           if (prefix.equals("Frame")) {
             zt++;
             fileIndex = 1;
@@ -281,12 +276,23 @@ public class PrairieReader extends FormatReader {
                   " " + key, value);
                 if (key.equals("filename")) fileIndex++;
               }
-              else addMeta(pastPrefix + " " + prefix + " " + key, value);
+              else {
+                addMeta(pastPrefix + " " + prefix + " " + key, value);
+                if (pastPrefix.equals("PVScan") &&
+                  prefix.equals("Sequence") && key.equals("type"))
+                {
+                  isZ = value.equals("ZSeries");
+                }
+              }
               el = el.substring(el.indexOf("\"", eq + 2) + 1).trim();
               if (prefix.equals("File") && key.equals("filename")) {
-                Location current = new Location(id);
-                current = current.getAbsoluteFile();
-                f.add(current.getParent() + "/" + value);
+                File current = new File(id).getAbsoluteFile();
+                String dir = "";
+                if (current.exists()) {
+                  dir = current.getPath();
+                  dir = dir.substring(0, dir.lastIndexOf(File.separator) + 1);
+                }
+                f.add(dir + value);
               }
             }
           }
@@ -297,6 +303,13 @@ public class PrairieReader extends FormatReader {
             String value =
               el.substring(valueIndex, el.indexOf("\"", valueIndex));
             addMeta(key, value);
+
+            if (key.equals("pixelsPerLine")) {
+              core.sizeX[0] = Integer.parseInt(value);
+            }
+            else if (key.equals("linesPerFrame")) {
+              core.sizeY[0] = Integer.parseInt(value);
+            }
           }
           if (!closed) {
             pastPrefix = prefix;
@@ -312,27 +325,27 @@ public class PrairieReader extends FormatReader {
       if (id.endsWith("xml")) {
         files = new String[f.size()];
         f.copyInto(files);
+        tiff.setId(files[0]);
 
         status("Populating metadata");
 
-        boolean isZ =
-          ((String) getMeta("PVScan Sequence type")).equals("ZSeries");
         if (zt == 0) zt = 1;
 
-        core.sizeX[0] = Integer.parseInt((String) getMeta("pixelsPerLine"));
-        core.sizeY[0] = Integer.parseInt((String) getMeta("linesPerFrame"));
         core.sizeZ[0] = isZ ? zt : 1;
         core.sizeT[0] = isZ ? 1 : zt;
-        core.sizeC[0] = numImages / (core.sizeZ[0] * core.sizeT[0]);
+        core.sizeC[0] = core.imageCount[0] / (core.sizeZ[0] * core.sizeT[0]);
         core.currentOrder[0] = "XYC" + (isZ ? "ZT" : "TZ");
         core.pixelType[0] = FormatTools.UINT16;
+        core.rgb[0] = false;
+        core.interleaved[0] = false;
+        core.littleEndian[0] = tiff.isLittleEndian();
 
-        float pixSizeX =
-          Float.parseFloat((String) getMeta("micronsPerPixel_XAxis"));
-        float pixSizeY =
-          Float.parseFloat((String) getMeta("micronsPerPixel_YAxis"));
+        String px = (String) getMeta("micronsPerPixel_XAxis");
+        String py = (String) getMeta("micronsPerPixel_YAxis");
+        float pixSizeX = px == null ? 0f : Float.parseFloat(px);
+        float pixSizeY = py == null ? 0f : Float.parseFloat(py);
 
-        MetadataStore store = getMetadataStore(id);
+        MetadataStore store = getMetadataStore();
 
         store.setPixels(
           new Integer(core.sizeX[0]),
@@ -341,24 +354,32 @@ public class PrairieReader extends FormatReader {
           new Integer(core.sizeC[0]),
           new Integer(core.sizeT[0]),
           new Integer(core.pixelType[0]),
-          new Boolean(!isLittleEndian(id)),
+          new Boolean(!isLittleEndian()),
           core.currentOrder[0],
           null,
           null);
         store.setDimensions(new Float(pixSizeX), new Float(pixSizeY), null,
           null, null, null);
         for (int i=0; i<core.sizeC[0]; i++) {
-          store.setLogicalChannel(i, null, null, null, null, null, null, null);
+          String gain = (String) getMeta("pmtGain_" + i);
+          String offset = (String) getMeta("pmtOffset_" + i);
+
+          store.setLogicalChannel(i, null, null,
+            null, null, null, null, null,
+            null, offset == null ? null : new Float(offset),
+            gain == null ? null : new Float(gain), null, null, null, null,
+            null, null, null, null, null, null, null, null, null, null);
         }
 
         String date = (String) getMeta(" PVScan date");
 
-        SimpleDateFormat parse = new SimpleDateFormat("MM/dd/yyyy h:mm:ss a");
-        Date d = parse.parse(date, new ParsePosition(0));
-        SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-        date = fmt.format(d);
-
-        store.setImage(null, date, null, null);
+        if (date != null) {
+          SimpleDateFormat parse = new SimpleDateFormat("MM/dd/yyyy h:mm:ss a");
+          Date d = parse.parse(date, new ParsePosition(0));
+          SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+          date = fmt.format(d);
+        }
+        store.setImage(currentId, date, null, null);
 
         String laserPower = (String) getMeta("laserPower_0");
 
@@ -366,38 +387,35 @@ public class PrairieReader extends FormatReader {
           laserPower == null ? null : new Float(laserPower),
           null, null, null, null);
 
-        for (int i=0; i<4; i++) {
-          String gain = (String) getMeta("pmtGain_" + i);
-          String offset = (String) getMeta("pmtOffset_" + i);
-          store.setDetector(null, null, null, null,
-            gain == null ? null : new Float(gain), null,
-            offset == null ? null : new Float(offset), null, new Integer(i));
-        }
-
+        /*
         String zoom = (String) getMeta("opticalZoom");
         if (zoom != null) {
-          store.setDisplayOptions(new Float(zoom), 
-            new Boolean(core.sizeC[0] > 1), new Boolean(core.sizeC[0] > 1), 
+          store.setDisplayOptions(new Float(zoom),
+            new Boolean(core.sizeC[0] > 1), new Boolean(core.sizeC[0] > 1),
             new Boolean(core.sizeC[0] > 2), Boolean.FALSE,
             null, null, null, null, null, null, null, null, null, null, null);
         }
+        */
       }
 
       if (!readXML || !readCFG) {
-        Location file = new Location(id);
-        file = file.getAbsoluteFile();
-        Location parent = file.getParentFile();
-        String[] listing = parent.list();
-        Location next = null;
+        File file = new File(id).getAbsoluteFile();
+        File parent = file.getParentFile();
+        String[] listing = file.exists() ? parent.list() :
+          (String[]) Location.getIdMap().keySet().toArray(new String[0]);
         for (int i=0; i<listing.length; i++) {
           String path = listing[i].toLowerCase();
           if ((!readXML && path.endsWith(".xml")) ||
             (readXML && path.endsWith(".cfg")))
           {
-            next = new Location(parent, path);
+            String dir = "";
+            if (file.exists()) {
+              dir = parent.getPath();
+              if (!dir.endsWith(File.separator)) dir += File.separator;
+            }
+            initFile(dir + listing[i]);
           }
         }
-        if (next != null) initFile(next.getAbsolutePath());
       }
     }
     else {
@@ -416,6 +434,7 @@ public class PrairieReader extends FormatReader {
         }
       }
     }
+    if (currentId == null) currentId = id;
   }
 
 }

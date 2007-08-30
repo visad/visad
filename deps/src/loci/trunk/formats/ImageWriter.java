@@ -34,26 +34,33 @@ import java.util.*;
  * It uses one instance of each writer subclass (specified in writers.txt,
  * or other class list source) to identify file formats and write data.
  *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/ImageWriter.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/ImageWriter.java">SVN</a></dd></dl>
+ *
  * @author Curtis Rueden ctrueden at wisc.edu
  */
 public class ImageWriter implements IFormatWriter {
 
   // -- Static fields --
 
-  /** List of writer classes. */
-  private static ClassList writerClasses;
+  /** Default list of writer classes, for use with noargs constructor. */
+  private static ClassList defaultClasses;
 
-  // -- Static initializer --
+  // -- Static helper methods --
 
-  static {
-    // load built-in writer classes from writers.txt file
-    try {
-      writerClasses = new ClassList("writers.txt", IFormatWriter.class);
+  private static ClassList getDefaultWriterClasses() {
+    if (defaultClasses == null) {
+      // load built-in writer classes from writers.txt file
+      try {
+        defaultClasses = new ClassList("writers.txt", IFormatWriter.class);
+      }
+      catch (IOException exc) {
+        defaultClasses = new ClassList(IFormatWriter.class);
+        LogTools.trace(exc);
+      }
     }
-    catch (IOException exc) {
-      exc.printStackTrace();
-      writerClasses = new ClassList(IFormatWriter.class);
-    }
+    return defaultClasses;
   }
 
   // -- Fields --
@@ -74,7 +81,7 @@ public class ImageWriter implements IFormatWriter {
   protected String[] compressionTypes;
 
   /** Name of current file. */
-  private String currentId;
+  protected String currentId;
 
   /** Current form index. */
   protected int current;
@@ -86,7 +93,7 @@ public class ImageWriter implements IFormatWriter {
    * list of writer classes from writers.txt.
    */
   public ImageWriter() {
-    this(writerClasses);
+    this(getDefaultWriterClasses());
   }
 
   /** Constructs a new ImageWriter from the given list of writer classes. */
@@ -102,7 +109,7 @@ public class ImageWriter implements IFormatWriter {
       catch (IllegalAccessException exc) { }
       catch (InstantiationException exc) { }
       if (writer == null) {
-        System.err.println("Error: " + c[i].getName() +
+        LogTools.println("Error: " + c[i].getName() +
           " cannot be instantiated.");
         continue;
       }
@@ -137,6 +144,11 @@ public class ImageWriter implements IFormatWriter {
     return writers[current];
   }
 
+  /** Gets the writer used to save the current file. */
+  public IFormatWriter getWriter() {
+    return writers[current];
+  }
+
   /** Gets the file format writer instance matching the given class. */
   public IFormatWriter getWriter(Class c) {
     for (int i=0; i<writers.length; i++) {
@@ -154,28 +166,47 @@ public class ImageWriter implements IFormatWriter {
 
   // -- IFormatWriter API methods --
 
-  /* @see IFormatWriter#saveImage(String, Image, boolean) */
-  public void saveImage(String id, Image image, boolean last)
+  /* @see IFormatWriter#saveBytes(byte[], boolean) */
+  public void saveBytes(byte[] bytes, boolean last)
     throws FormatException, IOException
   {
-    getWriter(id).saveImage(id, image, last);
+    getWriter().saveBytes(bytes, last);
   }
 
-  /** @deprecated Replaced by {@link #saveImage(String, Image, boolean)} */
-  public void save(String id, Image image, boolean last)
+  /* @see IFormatWriter#saveBytes(byte[], int, boolean, boolean) */
+  public void saveBytes(byte[] bytes, int series, boolean lastInSeries,
+    boolean last) throws FormatException, IOException
+  {
+    getWriter().saveBytes(bytes, series, lastInSeries, last);
+  }
+
+  /* @see IFormatWriter#saveImage(Image, boolean) */
+  public void saveImage(Image image, boolean last)
     throws FormatException, IOException
   {
-    getWriter(id).save(id, image, last);
+    getWriter().saveImage(image, last);
   }
 
-  /* @see IFormatWriter#close() */
-  public void close() throws FormatException, IOException {
-    getWriter(currentId).close();
+  /* @see IFormatWriter#saveImage(Image, int, boolean, boolean) */
+  public void saveImage(Image image, int series, boolean lastInSeries,
+    boolean last) throws FormatException, IOException
+  {
+    getWriter().saveImage(image, series, lastInSeries, last);
   }
 
-  /* @see IFormatWriter#canDoStacks(String) */
-  public boolean canDoStacks(String id) throws FormatException {
-    return getWriter(id).canDoStacks(id);
+  /* @see IFormatWriter#canDoStacks() */
+  public boolean canDoStacks() {
+    return getWriter().canDoStacks();
+  }
+
+  /* @see IFormatWriter#setMetadataRetrieve(MetadataRetrieve) */
+  public void setMetadataRetrieve(MetadataRetrieve r) {
+    for (int i=0; i<writers.length; i++) writers[i].setMetadataRetrieve(r);
+  }
+
+  /* @see IFormatReader#getMetadataStore() */
+  public MetadataRetrieve getMetadataRetrieve() {
+    return getWriter().getMetadataRetrieve();
   }
 
   /* @see IFormatWriter#setColorModel(ColorModel) */
@@ -217,16 +248,14 @@ public class ImageWriter implements IFormatWriter {
     return compressionTypes;
   }
 
-  /* @see IFormatWriter#getPixelTypes(String) */
-  public int[] getPixelTypes(String id) throws FormatException, IOException {
-    return getWriter(id).getPixelTypes(id);
+  /* @see IFormatWriter#getPixelTypes() */
+  public int[] getPixelTypes() {
+    return getWriter().getPixelTypes();
   }
 
-  /* @see IFormatWriter#isSupportedType(String, int) */
-  public boolean isSupportedType(String id, int type)
-    throws FormatException, IOException
-  {
-    return getWriter(id).isSupportedType(id, type);
+  /* @see IFormatWriter#isSupportedType(int) */
+  public boolean isSupportedType(int type) {
+    return getWriter().isSupportedType(type);
   }
 
   /* @see IFormatWriter#setCompression(String) */
@@ -243,18 +272,6 @@ public class ImageWriter implements IFormatWriter {
       }
     }
     if (!ok) throw new FormatException("Invalid compression type: " + compress);
-  }
-
-  /* @see IFormatWriter#testConvert(String[]) */
-  public boolean testConvert(String[] args)
-    throws FormatException, IOException
-  {
-    if (args.length > 1) {
-      // check file format
-      System.out.print("Checking file format ");
-      System.out.println("[" + getFormat(args[1]) + "]");
-    }
-    return FormatTools.testConvert(this, args);
   }
 
   // -- IFormatHandler API methods --
@@ -276,7 +293,7 @@ public class ImageWriter implements IFormatWriter {
   }
 
   /* @see IFormatHandler#getFormat() */
-  public String getFormat() { return "image"; }
+  public String getFormat() { return getWriter().getFormat(); }
 
   /* @see IFormatHandler#getSuffixes() */
   public String[] getSuffixes() {
@@ -291,6 +308,23 @@ public class ImageWriter implements IFormatWriter {
       Arrays.sort(suffixes);
     }
     return suffixes;
+  }
+
+  /* @see IFormatHandler#setId(String) */
+  public void setId(String id) throws FormatException, IOException {
+    getWriter(id).setId(id);
+  }
+
+  /* @see IFormatHandler#setId(String, boolean) */
+  public void setId(String id, boolean force)
+    throws FormatException, IOException
+  {
+    getWriter(id).setId(id, force);
+  }
+
+  /* @see IFormatHandler#close() */
+  public void close() throws IOException {
+    for (int i=0; i<writers.length; i++) writers[i].close();
   }
 
   // -- StatusReporter API methods --
@@ -314,7 +348,43 @@ public class ImageWriter implements IFormatWriter {
   // -- Main method --
 
   public static void main(String[] args) throws FormatException, IOException {
-    if (!new ImageWriter().testConvert(args)) System.exit(1);
+    if (!ConsoleTools.testConvert(new ImageWriter(), args)) System.exit(1);
+  }
+
+  // -- Deprecated IFormatWriter API methods --
+
+  /** @deprecated Replaced by {@link #canDoStacks()} */
+  public boolean canDoStacks(String id) throws FormatException {
+    try {
+      setId(id);
+    }
+    catch (IOException exc) {
+      // NB: should never happen
+      throw new FormatException(exc);
+    }
+    return canDoStacks(id);
+  }
+
+  /** @deprecated Replaced by {@link #getPixelTypes()} */
+  public int[] getPixelTypes(String id) throws FormatException, IOException {
+    setId(id);
+    return getPixelTypes(id);
+  }
+
+  /** @deprecated Replaced by {@link #isSupportedType(int type)} */
+  public boolean isSupportedType(String id, int type)
+    throws FormatException, IOException
+  {
+    setId(id);
+    return isSupportedType(type);
+  }
+
+  /** @deprecated Replaced by {@link #saveImage(Image, boolean)} */
+  public void save(String id, Image image, boolean last)
+    throws FormatException, IOException
+  {
+    setId(id);
+    saveImage(image, last);
   }
 
 }

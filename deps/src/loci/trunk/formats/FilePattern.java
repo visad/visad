@@ -41,6 +41,10 @@ import java.util.Vector;
  *   <li>/data/Josiah/cell-Z&lt;0-39&gt;.C&lt;0-1&gt;.tiff</li>
  * </ul>
  *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/FilePattern.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/FilePattern.java">SVN</a></dd></dl>
+ *
  * @author Curtis Rueden ctrueden at wisc.edu
  */
 public class FilePattern {
@@ -546,7 +550,7 @@ public class FilePattern {
     if (args.length > 0) {
       // test file pattern detection based on the given file on disk
       Location file = new Location(args[0]);
-      System.out.println("File = " + file.getAbsoluteFile());
+      LogTools.println("File = " + file.getAbsoluteFile());
       pat = findPattern(file);
     }
     else {
@@ -567,19 +571,19 @@ public class FilePattern {
       }
       pat = findPattern(nameList[1], null, nameList);
     }
-    if (pat == null) System.out.println("No pattern found.");
+    if (pat == null) LogTools.println("No pattern found.");
     else {
-      System.out.println("Pattern = " + pat);
+      LogTools.println("Pattern = " + pat);
       FilePattern fp = new FilePattern(pat);
       if (fp.isValid()) {
-        System.out.println("Pattern is valid.");
-        System.out.println("Files:");
+        LogTools.println("Pattern is valid.");
+        LogTools.println("Files:");
         String[] ids = fp.getFiles();
         for (int i=0; i<ids.length; i++) {
-          System.out.println("  #" + i + ": " + ids[i]);
+          LogTools.println("  #" + i + ": " + ids[i]);
         }
       }
-      else System.out.println("Pattern is invalid: " + fp.getErrorMessage());
+      else LogTools.println("Pattern is invalid: " + fp.getErrorMessage());
     }
   }
 

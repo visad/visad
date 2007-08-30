@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package loci.formats.in;
 
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
 import loci.formats.*;
@@ -31,6 +32,10 @@ import loci.formats.*;
 /**
  * FluoviewReader is the file format reader for
  * Olympus Fluoview TIFF files AND Andor Bio-imaging Division (ABD) TIFF files.
+ *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/in/FluoviewReader.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/in/FluoviewReader.java">SVN</a></dd></dl>
  *
  * @author Eric Kjellman egkjellman at wisc.edu
  * @author Melissa Linkert linkert at wisc.edu
@@ -52,23 +57,22 @@ public class FluoviewReader extends BaseTiffReader {
 
   // -- Fields --
 
-  /** Flag indicating this is a Fluoview file. */
-  private boolean isFluoview;
-
   /** Pixel dimensions for this file. */
   private float voxelX = 0f, voxelY = 0f, voxelZ = 0f, voxelC = 0f, voxelT = 0f;
+
+  /** First image. */
+  private BufferedImage zeroImage = null;
 
   // -- Constructor --
 
   /** Constructs a new Fluoview TIFF reader. */
   public FluoviewReader() {
-    super("Olympus Fluoview/Andor Bio-imaging TIFF",
-      new String[] {"tif", "tiff"});
+    super("Olympus Fluoview/ABD TIFF", new String[] {"tif", "tiff"});
   }
 
-  // -- FormatReader API methods --
+  // -- IFormatReader API methods --
 
-  /* @see loci.formats.IFormatReader#isThisType(byte[]) */ 
+  /* @see loci.formats.IFormatReader#isThisType(byte[]) */
   public boolean isThisType(byte[] block) {
     if (!TiffTools.isValidHeader(block)) return false;
 
@@ -77,7 +81,6 @@ public class FluoviewReader extends BaseTiffReader {
 
     String test = new String(block);
     if (test.indexOf(FLUOVIEW_MAGIC_STRING) != -1) {
-      isFluoview = true;
       return true;
     }
 
@@ -97,9 +100,59 @@ public class FluoviewReader extends BaseTiffReader {
     return false;
   }
 
+  /* @see loci.formats.IFormatReader#openBytes(int) */
+  public byte[] openBytes(int no) throws FormatException, IOException {
+    if (core.sizeY[0] == TiffTools.getImageLength(ifds[0])) {
+      return super.openBytes(no);
+    }
+    return openBytes(no, new byte[core.sizeX[0] *
+      FormatTools.getBytesPerPixel(core.pixelType[0])]);
+  }
+
+  /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
+  public byte[] openBytes(int no, byte[] buf)
+    throws FormatException, IOException
+  {
+    if (core.sizeY[0] == TiffTools.getImageLength(ifds[0])) {
+      return super.openBytes(no, buf);
+    }
+    FormatTools.assertId(currentId, true, 1);
+    if (no < 0 || no >= core.imageCount[0]) {
+      throw new FormatException("Invalid image number: " + no);
+    }
+    if (buf.length < core.sizeX[0] *
+      FormatTools.getBytesPerPixel(core.pixelType[0]))
+    {
+      throw new FormatException("Buffer too small.");
+    }
+
+    byte[] b = new byte[core.sizeX[0] *
+      (int) TiffTools.getImageLength(ifds[0]) *
+      getRGBChannelCount() * FormatTools.getBytesPerPixel(core.pixelType[0])];
+    super.openBytes(0, b);
+    System.arraycopy(b, 0, buf, 0, buf.length);
+    return buf;
+  }
+
+  /* @see loci.formats.IFormatReader#openImage(int) */
+  public BufferedImage openImage(int no) throws FormatException, IOException {
+    if (core.sizeY[0] == TiffTools.getImageLength(ifds[0])) {
+      return super.openImage(no);
+    }
+
+    if (zeroImage == null) zeroImage = super.openImage(0);
+    return zeroImage.getSubimage(0, no, core.sizeX[0], 1);
+  }
+
+  /* @see loci.formats.IFormatReader#close() */
+  public void close() throws IOException {
+    super.close();
+    zeroImage = null;
+  }
+
   // -- IFormatHandler API methods --
 
-  /* @see loci.formats.IFormatHandler#isThisType(String, boolean) */ 
+  /* @see loci.formats.IFormatHandler#isThisType(String, boolean) */
   public boolean isThisType(String name, boolean open) {
     if (!super.isThisType(name, open)) return false; // check extension
 
@@ -122,7 +175,6 @@ public class FluoviewReader extends BaseTiffReader {
     byte[] buf = new byte[BLOCK_CHECK_LEN];
     in.seek(0);
     in.read(buf);
-    isFluoview = new String(buf).indexOf(FLUOVIEW_MAGIC_STRING) != -1;
 
     short[] s = TiffTools.getIFDShortArray(ifds[0], MMHEADER, true);
     byte[] mmheader = new byte[s.length];
@@ -132,14 +184,12 @@ public class FluoviewReader extends BaseTiffReader {
     }
 
     RandomAccessStream ras = new RandomAccessStream(mmheader);
-    ras.order(isLittleEndian(currentId));
+    ras.order(isLittleEndian());
 
     put("Header Flag", ras.readShort());
     put("Image Type", (char) ras.read());
 
-    byte[] nameBytes = new byte[257];
-    ras.read(nameBytes);
-    put("Image name", new String(nameBytes));
+    put("Image name", ras.readString(257));
 
     ras.skipBytes(4); // skip pointer to data field
 
@@ -151,20 +201,20 @@ public class FluoviewReader extends BaseTiffReader {
     ras.skipBytes(4); // skip pointer to comment field
 
     // read dimension information
-    byte[] dimNameBytes = new byte[16];
-    byte[] dimCalibrationUnits = new byte[64];
+    String[] names = new String[10];
+    int[] sizes = new int[10];
+    double[] resolutions = new double[10];
     for (int i=0; i<10; i++) {
-      ras.read(dimNameBytes);
-      int size = ras.readInt();
+      names[i] = ras.readString(16);
+      sizes[i] = ras.readInt();
       double origin = ras.readDouble();
-      double resolution = ras.readDouble();
-      ras.read(dimCalibrationUnits);
+      resolutions[i] = ras.readDouble();
 
-      put("Dimension " + (i+1) + " Name", new String(dimNameBytes));
-      put("Dimension " + (i+1) + " Size", size);
+      put("Dimension " + (i+1) + " Name", names[i]);
+      put("Dimension " + (i+1) + " Size", sizes[i]);
       put("Dimension " + (i+1) + " Origin", origin);
-      put("Dimension " + (i+1) + " Resolution", resolution);
-      put("Dimension " + (i+1) + " Units", new String(dimCalibrationUnits));
+      put("Dimension " + (i+1) + " Resolution", resolutions[i]);
+      put("Dimension " + (i+1) + " Units", ras.readString(64));
     }
 
     ras.skipBytes(4); // skip pointer to spatial position data
@@ -181,13 +231,11 @@ public class FluoviewReader extends BaseTiffReader {
     put("Offset", ras.readDouble());
 
     // read gray channel data
-    ras.read(dimNameBytes);
-    put("Gray Channel Name", new String(dimNameBytes));
+    put("Gray Channel Name", ras.readString(16));
     put("Gray Channel Size", ras.readInt());
     put("Gray Channel Origin", ras.readDouble());
     put("Gray Channel Resolution", ras.readDouble());
-    ras.read(dimCalibrationUnits);
-    put("Gray Channel Units", new String(dimCalibrationUnits));
+    put("Gray Channel Units", ras.readString(64));
 
     ras.skipBytes(4); // skip pointer to thumbnail data
 
@@ -218,35 +266,41 @@ public class FluoviewReader extends BaseTiffReader {
     core.currentOrder[0] = "XY";
 
     for (int i=0; i<10; i++) {
-      String name = (String) getMeta("Dimension " + (i+1) + " Name");
-      Integer size = (Integer) getMeta("Dimension " + (i+1) + " Size");
-      Double voxel = (Double) getMeta("Dimension " + (i+1) + " Resolution");
-      if (name == null || size == null || size.intValue() == 0) continue;
+      String name = names[i];
+      int size = sizes[i];
+      float voxel = (float) resolutions[i];
+      if (name == null || size == 0) continue;
       name = name.toLowerCase().trim();
       if (name.length() == 0) continue;
 
       if (name.equals("x")) {
-        core.sizeX[0] = size.intValue();
-        if (voxel != null) voxelX = voxel.floatValue();
+        if (core.sizeX[0] == 0) core.sizeX[0] = size;
+        voxelX = voxel;
       }
       else if (name.equals("y")) {
-        core.sizeY[0] = size.intValue();
-        if (voxel != null) voxelY = voxel.floatValue();
+        core.sizeY[0] = size;
+        voxelY = voxel;
       }
       else if (name.equals("z") || name.equals("event")) {
-        core.sizeZ[0] *= size.intValue();
-        if (core.currentOrder[0].indexOf("Z") == -1) core.currentOrder[0] += "Z";
-        if (voxel != null) voxelZ = voxel.floatValue();
+        core.sizeZ[0] *= size;
+        if (core.currentOrder[0].indexOf("Z") == -1) {
+          core.currentOrder[0] += "Z";
+        }
+        voxelZ = voxel;
       }
       else if (name.equals("ch") || name.equals("wavelength")) {
-        core.sizeC[0] *= size.intValue();
-        if (core.currentOrder[0].indexOf("C") == -1) core.currentOrder[0] += "C";
-        if (voxel != null) voxelC = voxel.floatValue();
+        core.sizeC[0] *= size;
+        if (core.currentOrder[0].indexOf("C") == -1) {
+          core.currentOrder[0] += "C";
+        }
+        voxelC = voxel;
       }
       else {
-        core.sizeT[0] *= size.intValue();
-        if (core.currentOrder[0].indexOf("T") == -1) core.currentOrder[0] += "T";
-        if (voxel != null) voxelT = voxel.floatValue();
+        core.sizeT[0] *= size;
+        if (core.currentOrder[0].indexOf("T") == -1) {
+          core.currentOrder[0] += "T";
+        }
+        voxelT = voxel;
       }
     }
 
@@ -254,7 +308,15 @@ public class FluoviewReader extends BaseTiffReader {
     if (core.currentOrder[0].indexOf("T") == -1) core.currentOrder[0] += "T";
     if (core.currentOrder[0].indexOf("C") == -1) core.currentOrder[0] += "C";
 
-    numImages = ifds.length;
+    core.imageCount[0] = ifds.length;
+
+    if (core.imageCount[0] == 1 && (core.sizeT[0] == core.sizeY[0] ||
+      core.sizeZ[0] == core.sizeY[0]) && (core.sizeT[0] > core.imageCount[0] ||
+      core.sizeZ[0] > core.imageCount[0]))
+    {
+      core.sizeY[0] = 1;
+      core.imageCount[0] = core.sizeZ[0] * core.sizeT[0] * core.sizeC[0];
+    }
 
     // cut up the comment, if necessary
     String comment = (String) getMeta("Comment");
@@ -296,43 +358,34 @@ public class FluoviewReader extends BaseTiffReader {
   /* @see loci.formats.in.BaseTiffReader#initMetadataStore() */
   protected void initMetadataStore() {
     super.initMetadataStore();
-    try {
-      MetadataStore store = getMetadataStore(currentId);
-      store.setDimensions(new Float(voxelX), new Float(voxelY),
-        new Float(voxelZ), new Float(voxelC), new Float(voxelT), null);
+    MetadataStore store = getMetadataStore();
+    store.setDimensions(new Float(voxelX), new Float(voxelY),
+      new Float(voxelZ), new Float(voxelC), new Float(voxelT), null);
 
-      Double gamma = (Double) getMeta("Gamma");
-      for (int i=0; i<core.sizeC[0]; i++) {
-        store.setDisplayChannel(new Integer(i), null, null,
-          gamma == null ? null : new Float(gamma.floatValue()), null);
+    Double gamma = (Double) getMeta("Gamma");
+    for (int i=0; i<core.sizeC[0]; i++) {
+      store.setDisplayChannel(new Integer(i), null, null,
+        gamma == null ? null : new Float(gamma.floatValue()), null);
 
-        String gain = (String) getMeta("Gain Ch" + (i+1));
-        String voltage = (String) getMeta("PMT Voltage Ch" + (i+1));
-        String offset = (String) getMeta("Offset Ch" + (i+1));
+      String gain = (String) getMeta("Gain Ch" + (i+1));
+      String voltage = (String) getMeta("PMT Voltage Ch" + (i+1));
+      String offset = (String) getMeta("Offset Ch" + (i+1));
 
-        if (gain != null || voltage != null || offset != null) {
-          store.setDetector((String) getMeta("System Configuration"), null,
-            null, null, gain == null ? null : new Float(gain),
-            voltage == null ? null : new Float(voltage),
-            offset == null ? null : new Float(offset), null, new Integer(i));
-        }
+      if (gain != null || voltage != null || offset != null) {
+        store.setDetector((String) getMeta("System Configuration"), null,
+          null, null, gain == null ? null : new Float(gain),
+          voltage == null ? null : new Float(voltage),
+          offset == null ? null : new Float(offset), null, new Integer(i));
       }
+    }
 
-      String mag = (String) getMeta("Magnification");
-      if (mag != null && mag.toLowerCase().endsWith("x")) {
-        mag = mag.substring(0, mag.length() - 1);
-      }
-      else if (mag == null) mag = "1";
-      store.setObjective((String) getMeta("Objective Lens"), null, null, null,
-        new Float(mag), null, null);
-
+    String mag = (String) getMeta("Magnification");
+    if (mag != null && mag.toLowerCase().endsWith("x")) {
+      mag = mag.substring(0, mag.length() - 1);
     }
-    catch (FormatException fe) {
-      if (debug) fe.printStackTrace();
-    }
-    catch (IOException ie) {
-      if (debug) ie.printStackTrace();
-    }
+    else if (mag == null) mag = "1";
+    store.setObjective((String) getMeta("Objective Lens"), null, null, null,
+      new Float(mag), null, null);
   }
 
 }

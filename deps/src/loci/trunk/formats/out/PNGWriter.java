@@ -24,22 +24,19 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package loci.formats.out;
 
-import java.io.IOException;
-import loci.formats.*;
-
-/** PNGWriter is the file format writer for PNG files. */
+/**
+ * PNGWriter is the file format writer for PNG files.
+ *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/out/PNGWriter.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/out/PNGWriter.java">SVN</a></dd></dl>
+ */
 public class PNGWriter extends ImageIOWriter {
 
   // -- Constructor --
 
   public PNGWriter() {
     super("Portable Network Graphics", "png", "png");
-  }
-
-  // -- Main method --
-
-  public static void main(String[] args) throws FormatException, IOException {
-    new PNGWriter().testConvert(args);
   }
 
 }

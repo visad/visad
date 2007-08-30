@@ -32,16 +32,14 @@ import loci.formats.*;
  * MRCReader is the file format reader for MRC files.
  * Specifications available at
  * http://bio3d.colorado.edu/imod/doc/mrc_format.txt
+ *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/in/MRCReader.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/in/MRCReader.java">SVN</a></dd></dl>
  */
 public class MRCReader extends FormatReader {
 
   // -- Fields --
-
-  /** Current file. */
-  protected RandomAccessStream in;
-
-  /** Number of image planes in the file. */
-  protected int numImages = 0;
 
   /** Number of bytes per pixel */
   private int bpp = 0;
@@ -52,9 +50,6 @@ public class MRCReader extends FormatReader {
   /** Flag set to true if we are using float data. */
   private boolean isFloat = false;
 
-  /** Flag set to true if data is little-endian. */
-  private boolean little;
-
   // -- Constructor --
 
   /** Constructs a new MRC reader. */
@@ -64,49 +59,23 @@ public class MRCReader extends FormatReader {
 
   // -- IFormatReader API methods --
 
-  /* @see loci.formats.IFormatReader#isThisType(byte[]) */ 
+  /* @see loci.formats.IFormatReader#isThisType(byte[]) */
   public boolean isThisType(byte[] block) {
     return false; // no way to tell if this is an MRC file or not
   }
 
-  /* @see loci.formats.IFormatReader#getImageCount(String) */ 
-  public int getImageCount(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return numImages;
-  }
-
-  /* @see loci.formats.IFormatReader#isRGB(String) */ 
-  public boolean isRGB(String id) throws FormatException, IOException {
-    return false;
-  }
-
-  /* @see loci.formats.IFormatReader#isLittleEndian(String) */ 
-  public boolean isLittleEndian(String id) throws FormatException, IOException {
-    return little;
-  }
-
-  /* @see loci.formats.IFormatReader#isInterleaved(String, int) */ 
-  public boolean isInterleaved(String id, int subC)
-    throws FormatException, IOException
-  {
-    return true;
-  }
-
-  /* @see loci.formats.IFormatReader#openBytes(String, int) */ 
-  public byte[] openBytes(String id, int no)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
+  /* @see loci.formats.IFormatReader#openBytes(int) */
+  public byte[] openBytes(int no) throws FormatException, IOException {
     byte[] buf = new byte[core.sizeX[0] * core.sizeY[0] * bpp];
-    return openBytes(id, no, buf);
+    return openBytes(no, buf);
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(String, int, byte[]) */
-  public byte[] openBytes(String id, int no, byte[] buf)
+  /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
+  public byte[] openBytes(int no, byte[] buf)
     throws FormatException, IOException
   {
-    if (!id.equals(currentId)) initFile(id);
-    if (no < 0 || no >= getImageCount(id)) {
+    FormatTools.assertId(currentId, true, 1);
+    if (no < 0 || no >= getImageCount()) {
       throw new FormatException("Invalid image number: " + no);
     }
     if (buf.length < core.sizeX[0] * core.sizeY[0] * bpp) {
@@ -117,28 +86,25 @@ public class MRCReader extends FormatReader {
     return buf;
   }
 
-  /* @see loci.formats.IFormatReader#openImage(String, int) */ 
-  public BufferedImage openImage(String id, int no)
-    throws FormatException, IOException
-  {
-    return ImageTools.makeImage(openBytes(id, no), core.sizeX[0],
-      core.sizeY[0], 1, true, bpp, little);
+  /* @see loci.formats.IFormatReader#openImage(int) */
+  public BufferedImage openImage(int no) throws FormatException, IOException {
+    if (isFloat) {
+      byte[] b = openBytes(no);
+      float[] f = new float[b.length / 4];
+      for (int i=0; i<f.length; i++) {
+        f[i] = Float.intBitsToFloat(DataTools.bytesToInt(b, i*4,
+          4, core.littleEndian[0]));
+      }
+      return ImageTools.makeImage(f, core.sizeX[0], core.sizeY[0], 1,
+        core.interleaved[0]);
+    }
+	return ImageTools.makeImage(openBytes(no), core.sizeX[0],
+      core.sizeY[0], 1, true, bpp, core.littleEndian[0]);
   }
 
-  /* @see loci.formats.IFormatReader#close(boolean) */
-  public void close(boolean fileOnly) throws FormatException, IOException {
-    if (fileOnly && in != null) in.close();
-    else if (!fileOnly) close();
-  }
+  // -- Internal FormatReader API methods --
 
-  /* @see loci.formats.IFormatReader#close() */ 
-  public void close() throws FormatException, IOException {
-    if (in != null) in.close();
-    in = null;
-    currentId = null;
-  }
-
-  /** Initializes the given MRC file. */
+  /* @see loci.formats.FormatReader#initFile(String) */
   public void initFile(String id) throws FormatException, IOException {
     if (debug) debug("MRCReader.initFile(" + id + ")");
     super.initFile(id);
@@ -149,30 +115,27 @@ public class MRCReader extends FormatReader {
     // check endianness
 
     in.seek(213);
-    little = in.read() == 68;
+    core.littleEndian[0] = in.read() == 68;
 
     // read 1024 byte header
 
     in.seek(0);
-    byte[] b = new byte[4];
+    in.order(core.littleEndian[0]);
 
-    in.read(b);
-    core.sizeX[0] = DataTools.bytesToInt(b, little);
-    in.read(b);
-    core.sizeY[0] = DataTools.bytesToInt(b, little);
-    in.read(b);
-    core.sizeZ[0] = DataTools.bytesToInt(b, little);
+    core.sizeX[0] = in.readInt();
+    core.sizeY[0] = in.readInt();
+    core.sizeZ[0] = in.readInt();
 
     core.sizeC[0] = 1;
 
-    in.read(b);
-    int mode = DataTools.bytesToInt(b, little);
+    int mode = in.readInt();
     switch (mode) {
       case 0:
         bpp = 1;
         core.pixelType[0] = FormatTools.UINT8;
         break;
       case 1:
+      case 6:
         bpp = 2;
         core.pixelType[0] = FormatTools.UINT16;
         break;
@@ -190,10 +153,6 @@ public class MRCReader extends FormatReader {
         isFloat = true;
         core.pixelType[0] = FormatTools.DOUBLE;
         break;
-      case 6:
-        bpp = 2;
-        core.pixelType[0] = FormatTools.UINT16;
-        break;
       case 16:
         bpp = 2;
         core.sizeC[0] = 3;
@@ -201,135 +160,64 @@ public class MRCReader extends FormatReader {
         break;
     }
 
-    in.read(b);
-    int thumbX = DataTools.bytesToInt(b, little);
-    in.read(b);
-    int thumbY = DataTools.bytesToInt(b, little);
-    in.read(b);
-    int thumbZ = DataTools.bytesToInt(b, little);
-
     // pixel size = xlen / mx
 
-    in.read(b);
-    int mx = DataTools.bytesToInt(b, little);
-    in.read(b);
-    int my = DataTools.bytesToInt(b, little);
-    in.read(b);
-    int mz = DataTools.bytesToInt(b, little);
+    int mx = in.readInt();
+    int my = in.readInt();
+    int mz = in.readInt();
 
-    in.read(b);
-    float xlen = Float.intBitsToFloat(DataTools.bytesToInt(b, little));
-    in.read(b);
-    float ylen = Float.intBitsToFloat(DataTools.bytesToInt(b, little));
-    in.read(b);
-    float zlen = Float.intBitsToFloat(DataTools.bytesToInt(b, little));
+    float xlen = in.readFloat();
+    float ylen = in.readFloat();
+    float zlen = in.readFloat();
 
     addMeta("Pixel size (X)", "" + (xlen / mx));
     addMeta("Pixel size (Y)", "" + (ylen / my));
     addMeta("Pixel size (Z)", "" + (zlen / mz));
 
-    in.read(b);
-    float alpha = Float.intBitsToFloat(DataTools.bytesToInt(b, little));
-    in.read(b);
-    float beta = Float.intBitsToFloat(DataTools.bytesToInt(b, little));
-    in.read(b);
-    float gamma = Float.intBitsToFloat(DataTools.bytesToInt(b, little));
-
-    addMeta("Alpha angle", "" + alpha);
-    addMeta("Beta angle", "" + beta);
-    addMeta("Gamma angle", "" + gamma);
+    addMeta("Alpha angle", "" + in.readFloat());
+    addMeta("Beta angle", "" + in.readFloat());
+    addMeta("Gamma angle", "" + in.readFloat());
 
     in.skipBytes(12);
 
     // min, max and mean pixel values
 
-    in.read(b);
-    float min = Float.intBitsToFloat(DataTools.bytesToInt(b, little));
-    in.read(b);
-    float max = Float.intBitsToFloat(DataTools.bytesToInt(b, little));
-    in.read(b);
-    float mean = Float.intBitsToFloat(DataTools.bytesToInt(b, little));
-
-    addMeta("Minimum pixel value", "" + min);
-    addMeta("Maximum pixel value", "" + max);
-    addMeta("Mean pixel value", "" + mean);
+    addMeta("Minimum pixel value", "" + in.readFloat());
+    addMeta("Maximum pixel value", "" + in.readFloat());
+    addMeta("Mean pixel value", "" + in.readFloat());
 
     in.skipBytes(4);
-    in.read(b);
 
-    extHeaderSize = DataTools.bytesToInt(b, little);
-    b = new byte[2];
-    in.read(b);
-    int creator = DataTools.bytesToInt(b, little);
+    extHeaderSize = in.readInt();
 
-    in.skipBytes(30);
+    in.skipBytes(64);
 
-    in.read(b);
-    int nint = DataTools.bytesToInt(b, little);
-    in.read(b);
-    int nreal = DataTools.bytesToInt(b, little);
+    int idtype = in.readShort();
 
-    in.skipBytes(28);
-
-    in.read(b);
-    int idtype = DataTools.bytesToInt(b, little);
-    in.read(b);
-    int lens = DataTools.bytesToInt(b, little);
-    in.read(b);
-    int nd1 = DataTools.bytesToInt(b, little);
-    in.read(b);
-    int nd2 = DataTools.bytesToInt(b, little);
-    in.read(b);
-    int vd1 = DataTools.bytesToInt(b, little);
-    in.read(b);
-    int vd2 = DataTools.bytesToInt(b, little);
-
-    String type = "";
-    switch (idtype) {
-      case 0:
-        type = "mono";
-        break;
-      case 1:
-        type = "tilt";
-        break;
-      case 2:
-        type = "tilts";
-        break;
-      case 3:
-        type = "lina";
-        break;
-      case 4:
-        type = "lins";
-        break;
-      default:
-        type = "unknown";
-    }
+    String[] types = new String[] {"mono", "tilt", "tilts", "lina", "lins"};
+    String type = (idtype >= 0 && idtype < types.length) ? types[idtype] :
+      "unknown";
 
     addMeta("Series type", type);
-    addMeta("Lens", "" + lens);
-    addMeta("ND1", "" + nd1);
-    addMeta("ND2", "" + nd2);
-    addMeta("VD1", "" + vd1);
-    addMeta("VD2", "" + vd2);
+    addMeta("Lens", "" + in.readShort());
+    addMeta("ND1", "" + in.readShort());
+    addMeta("ND2", "" + in.readShort());
+    addMeta("VD1", "" + in.readShort());
+    addMeta("VD2", "" + in.readShort());
 
-    b = new byte[4];
     float[] angles = new float[6];
     for (int i=0; i<angles.length; i++) {
-      in.read(b);
-      angles[i] = Float.intBitsToFloat(DataTools.bytesToInt(b, little));
+      angles[i] = in.readFloat();
       addMeta("Angle " + (i+1), "" + angles[i]);
     }
 
     in.skipBytes(24);
 
-    in.read(b);
-    int nUsefulLabels = DataTools.bytesToInt(b, little);
+    int nUsefulLabels = in.readInt();
     addMeta("Number of useful labels", "" + nUsefulLabels);
 
-    b = new byte[80];
     for (int i=0; i<10; i++) {
-      in.read(b);
-      addMeta("Label " + (i+1), new String(b));
+      addMeta("Label " + (i+1), in.readString(80));
     }
 
     in.skipBytes(extHeaderSize);
@@ -338,26 +226,24 @@ public class MRCReader extends FormatReader {
 
     core.sizeT[0] = 1;
     core.currentOrder[0] = "XYZTC";
-    numImages = core.sizeZ[0];
+    core.imageCount[0] = core.sizeZ[0];
+    core.rgb[0] = false;
+    core.interleaved[0] = true;
 
-    MetadataStore store = getMetadataStore(id);
-    store.setPixels(
-      new Integer(core.sizeX[0]),
-      new Integer(core.sizeY[0]),
-      new Integer(core.sizeZ[0]),
-      new Integer(core.sizeC[0]),
-      new Integer(core.sizeT[0]),
-      new Integer(core.pixelType[0]),
-      new Boolean(!little),
-      core.currentOrder[0],
-      null,
-      null);
+    MetadataStore store = getMetadataStore();
+    store.setImage(currentId, null, null, null);
+    store.setPixels(new Integer(core.sizeX[0]), new Integer(core.sizeY[0]),
+      new Integer(core.sizeZ[0]), new Integer(core.sizeC[0]),
+      new Integer(core.sizeT[0]), new Integer(core.pixelType[0]),
+      new Boolean(!core.littleEndian[0]), core.currentOrder[0], null, null);
 
     store.setDimensions(new Float(xlen / mx), new Float(ylen / my),
       new Float(zlen / mz), null, null, null);
     for (int i=0; i<core.sizeC[0]; i++) {
-      store.setLogicalChannel(i, null, null, null, null, null, null, null);
-      // TODO : get channel min/max from metadata 
+      store.setLogicalChannel(i, null, null, null, null, null, null, null, null,
+        null, null, null, null, null, null, null, null, null, null, null, null,
+        null, null, null, null);
+      // TODO : get channel min/max from metadata
       //store.setChannelGlobalMinMax(i, getChannelGlobalMinimum(id, i),
       //  getChannelGlobalMaximum(id, i), null);
     }

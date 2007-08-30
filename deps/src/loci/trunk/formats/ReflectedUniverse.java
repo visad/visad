@@ -25,10 +25,17 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 package loci.formats;
 
 import java.lang.reflect.*;
+import java.io.*;
 import java.net.*;
 import java.util.*;
 
-/** A general-purpose reflection wrapper class. */
+/**
+ * A general-purpose reflection wrapper class.
+ *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/ReflectedUniverse.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/ReflectedUniverse.java">SVN</a></dd></dl>
+ */
 public class ReflectedUniverse {
 
   // -- Fields --
@@ -38,6 +45,9 @@ public class ReflectedUniverse {
 
   /** Class loader for imported classes. */
   protected ClassLoader loader;
+
+  /** Whether to force our way past restrictive access modifiers. */
+  protected boolean force;
 
   /** Debugging flag. */
   protected boolean debug;
@@ -81,22 +91,31 @@ public class ReflectedUniverse {
       (c == char.class && o instanceof Character));
   }
 
-  // -- API methods --
+  // -- ReflectedUniverse API methods --
 
   /**
    * Executes a command in the universe. The following syntaxes are valid:
    * <li>import fully.qualified.package.ClassName
    * <li>var = new ClassName(param1, ..., paramN)
    * <li>var.method(param1, ..., paramN)
-   * <li>var2 = var1.method(param1, ..., paramN)
+   * <li>var2 = var.method(param1, ..., paramN)
    * <li>ClassName.method(param1, ..., paramN)
+   * <li>var2 = ClassName.method(param1, ..., paramN)
+   * <li>var2 = var
    * <p>
    * Important guidelines:
    * <li>Any referenced class must be imported first using "import".
    * <li>Variables can be exported from the universe with getVar().
    * <li>Variables can be imported to the universe with setVar().
-   * <li>Each parameter must be either a variable in the universe
-   *     or a static or instance field (i.e., no nested methods).
+   * <li>Each parameter must be either:
+   *     1) a variable in the universe;
+   *     2) a static or instance field (i.e., no nested methods);
+   *     3) a string literal (remember to escape the double quotes);
+   *     4) an integer literal;
+   *     6) a long literal (ending in L);
+   *     7) a double literal (containing a decimal point);
+   *     8) a boolean literal (true or false);
+   *     or 9) the null keyword.
    */
   public Object exec(String command) throws ReflectException {
     command = command.trim();
@@ -110,11 +129,18 @@ public class ReflectedUniverse {
         c = Class.forName(command, true, loader);
       }
       catch (NoClassDefFoundError err) {
-        if (debug) err.printStackTrace();
+        if (debug) LogTools.trace(err);
         throw new ReflectException("No such class: " + command, err);
       }
       catch (ClassNotFoundException exc) {
-        if (debug) exc.printStackTrace();
+        if (debug) LogTools.trace(exc);
+        throw new ReflectException("No such class: " + command, exc);
+      }
+      catch (RuntimeException exc) {
+        // HACK: workaround for bug in Apache Axis2
+        String msg = exc.getMessage();
+        if (msg != null && msg.indexOf("ClassNotFound") < 0) throw exc;
+        if (debug) LogTools.trace(exc);
         throw new ReflectException("No such class: " + command, exc);
       }
       setVar(varName, c);
@@ -129,12 +155,20 @@ public class ReflectedUniverse {
       command = command.substring(eqIndex + 1).trim();
     }
 
+    Object result = null;
+
     // parse parentheses
     int leftParen = command.indexOf("(");
-    if (leftParen < 0 || leftParen != command.lastIndexOf("(") ||
+    if (leftParen < 0) {
+      // command is a simple assignment
+      result = getVar(command);
+      if (target != null) setVar(target, result);
+      return result;
+    }
+    else if (leftParen != command.lastIndexOf("(") ||
       command.indexOf(")") != command.length() - 1)
     {
-      throw new ReflectException("invalid parentheses");
+      throw new ReflectException("Invalid parentheses");
     }
 
     // parse arguments
@@ -148,16 +182,15 @@ public class ReflectedUniverse {
     }
     command = command.substring(0, leftParen);
 
-    Object result;
     if (command.startsWith("new ")) {
       // command is a constructor call
       String className = command.substring(4).trim();
       Object var = getVar(className);
       if (var == null) {
-        throw new ReflectException("class not found: " + className);
+        throw new ReflectException("Class not found: " + className);
       }
       else if (!(var instanceof Class)) {
-        throw new ReflectException("not a class: " + className);
+        throw new ReflectException("Not a class: " + className);
       }
       Class cl = (Class) var;
 
@@ -169,6 +202,7 @@ public class ReflectedUniverse {
       Constructor constructor = null;
       Constructor[] c = cl.getConstructors();
       for (int i=0; i<c.length; i++) {
+        if (force) c[i].setAccessible(true);
         Class[] params = c[i].getParameterTypes();
         if (params.length == args.length) {
           boolean match = true;
@@ -195,18 +229,20 @@ public class ReflectedUniverse {
       }
 
       // invoke constructor
-      try {
-        result = constructor.newInstance(args);
-      }
-      catch (Exception exc) {
-        if (debug) exc.printStackTrace();
+      Exception exc = null;
+      try { result = constructor.newInstance(args); }
+      catch (InstantiationException e) { exc = e; }
+      catch (IllegalAccessException e) { exc = e; }
+      catch (InvocationTargetException e) { exc = e; }
+      if (exc != null) {
+        if (debug) LogTools.trace(exc);
         throw new ReflectException("Cannot instantiate object", exc);
       }
     }
     else {
       // command is a method call
       int dot = command.indexOf(".");
-      if (dot < 0) throw new ReflectException("syntax error");
+      if (dot < 0) throw new ReflectException("Syntax error");
       String varName = command.substring(0, dot).trim();
       String methodName = command.substring(dot + 1).trim();
       Object var = getVar(varName);
@@ -223,6 +259,7 @@ public class ReflectedUniverse {
       Method method = null;
       Method[] m = varClass.getMethods();
       for (int i=0; i<m.length; i++) {
+        if (force) m[i].setAccessible(true);
         if (methodName.equals(m[i].getName())) {
           Class[] params = m[i].getParameterTypes();
           if (params.length == args.length) {
@@ -245,13 +282,13 @@ public class ReflectedUniverse {
       }
 
       // invoke method
-      try {
-        result = method.invoke(var, args);
-      }
-      catch (Exception exc) {
-        if (debug) exc.printStackTrace();
-        throw new ReflectException("Cannot execute method: " +
-          methodName, exc);
+      Exception exc = null;
+      try { result = method.invoke(var, args); }
+      catch (IllegalAccessException e) { exc = e; }
+      catch (InvocationTargetException e) { exc = e; }
+      if (exc != null) {
+        if (debug) LogTools.trace(exc);
+        throw new ReflectException("Cannot execute method: " + methodName, exc);
       }
     }
 
@@ -311,6 +348,39 @@ public class ReflectedUniverse {
    * Primitive types will be wrapped in their Java Object wrapper classes.
    */
   public Object getVar(String varName) throws ReflectException {
+    if (varName.equals("null")) {
+      // variable is a null value
+      return null;
+    }
+    else if (varName.equals("true")) {
+      // variable is a boolean literal
+      return new Boolean(true);
+    }
+    else if (varName.equals("false")) {
+      // variable is a boolean literal
+      return new Boolean(false);
+    }
+    else if (varName.startsWith("\"") && varName.endsWith("\"")) {
+      // variable is a string literal
+      return varName.substring(1, varName.length() - 1);
+    }
+    try {
+      if (varName.matches("-?\\d+")) {
+        // variable is an int literal
+        return new Integer(varName);
+      }
+      else if (varName.matches("-?\\d+L")) {
+        // variable is a long literal
+        return new Long(varName);
+      }
+      else if (varName.matches("-?\\d*\\.\\d*")) {
+        // variable is a double literal
+        return new Double(varName);
+      }
+    }
+    catch (NumberFormatException exc) {
+      throw new ReflectException("Invalid literal: " + varName, exc);
+    }
     int dot = varName.indexOf(".");
     if (dot >= 0) {
       // get field value of variable
@@ -324,17 +394,16 @@ public class ReflectedUniverse {
       Field field;
       try {
         field = varClass.getField(fieldName);
+        if (force) field.setAccessible(true);
       }
       catch (NoSuchFieldException exc) {
-        if (debug) exc.printStackTrace();
+        if (debug) LogTools.trace(exc);
         throw new ReflectException("No such field: " + varName, exc);
       }
       Object fieldVal;
-      try {
-        fieldVal = field.get(var);
-      }
-      catch (Exception exc) {
-        if (debug) exc.printStackTrace();
+      try { fieldVal = field.get(var); }
+      catch (IllegalAccessException exc) {
+        if (debug) LogTools.trace(exc);
         throw new ReflectException("Cannot get field value: " + varName, exc);
       }
       return fieldVal;
@@ -346,10 +415,40 @@ public class ReflectedUniverse {
     }
   }
 
+  /** Sets whether access modifiers (protected, private, etc.) are ignored. */
+  public void setAccessibilityIgnored(boolean ignore) { force = ignore; }
+
+  /** Gets whether access modifiers (protected, private, etc.) are ignored. */
+  public boolean isAccessibilityIgnored() { return force; }
+
   /** Enables or disables extended debugging output. */
   public void setDebug(boolean debug) { this.debug = debug; }
 
   /** Gets whether extended debugging output is enabled. */
   public boolean isDebug() { return debug; }
+
+  // -- Main method --
+
+  /**
+   * Allows exploration of a reflected universe in an interactive environment.
+   */
+  public static void main(String[] args) throws IOException {
+    ReflectedUniverse r = new ReflectedUniverse();
+    LogTools.println("Reflected universe test environment. " +
+      "Type commands, or press ^D to quit.");
+    if (args.length > 0) {
+      r.setAccessibilityIgnored(true);
+      LogTools.println("Ignoring accessibility modifiers.");
+    }
+    BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+    while (true) {
+      LogTools.print("> ");
+      String line = in.readLine();
+      if (line == null) break;
+      try { r.exec(line); }
+      catch (ReflectException exc) { LogTools.trace(exc); }
+    }
+    LogTools.println();
+  }
 
 }

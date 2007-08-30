@@ -35,6 +35,10 @@ import java.awt.image.*;
  * Much code was stolen and adapted from DrLaszloJamf's posts at:
  *   http://forum.java.sun.com/thread.jspa?threadID=522483
  *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/ImageTools.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/ImageTools.java">SVN</a></dd></dl>
+ *
  * @author Curtis Rueden ctrueden at wisc.edu
  */
 public final class ImageTools {
@@ -956,7 +960,6 @@ public final class ImageTools {
     boolean interleaved)
   {
     int[] rtn = new int[w * h];
-    int stride = interleaved ? w * h : 1;
 
     byte[] b = null;
 
@@ -1003,6 +1006,12 @@ public final class ImageTools {
       for (int j=c-1; j>=0; j--) {
         a[j] = b[interleaved ? i*c + j : i + j*w*h];
       }
+      if (c == 1) {
+        for (int j=1; j<a.length; j++) {
+          a[j] = a[0];
+        }
+      }
+
       byte tmp = a[0];
       a[0] = a[2];
       a[2] = tmp;
@@ -1019,8 +1028,8 @@ public final class ImageTools {
    * The "reverse" parameter is false if channels are in RGB order, true if
    * channels are in BGR order.
    */
-  public static byte[][] splitChannels(byte[] array, int c, boolean reverse,
-    boolean interleaved)
+  public static byte[][] splitChannels(byte[] array, int c, int bytes,
+    boolean reverse, boolean interleaved)
   {
     byte[][] rtn = new byte[c][array.length / c];
 
@@ -1041,20 +1050,30 @@ public final class ImageTools {
     else {
       if (reverse) {
         int next = 0;
-        for (int i=0; i<array.length; i+=c) {
+        for (int i=0; i<array.length; i+=c*bytes) {
           for (int j=c-1; j>=0; j--) {
-            rtn[j][next] = array[i + j];
+            for (int k=0; k<bytes; k++) {
+              if (next < rtn[j].length) {
+                rtn[c - j - 1][next] = array[i + j*bytes + k];
+              }
+              next++;
+            }
+            next -= bytes;
           }
-          next++;
+          next += bytes;
         }
       }
       else {
         int next = 0;
-        for (int i=0; i<array.length; i+=c) {
+        for (int i=0; i<array.length; i+=c*bytes) {
           for (int j=0; j<c; j++) {
-            if (next < rtn[j].length) rtn[j][next] = array[i + j];
+            for (int k=0; k<bytes; k++) {
+              if (next < rtn[j].length) rtn[j][next] = array[i + j*bytes + k];
+              next++;
+            }
+            next -= bytes;
           }
-          next++;
+          next += bytes;
         }
       }
     }
@@ -1871,8 +1890,15 @@ public final class ImageTools {
       }
     }
 
-    BufferedImage result = makeBuffered(scaleAWT(source, width, height,
-      Image.SCALE_AREA_AVERAGING), source.getColorModel());
+    BufferedImage result = null;
+    Image scaled = scaleAWT(source, width, height, Image.SCALE_AREA_AVERAGING);
+    try {
+      result = makeBuffered(scaled, source.getColorModel());
+    }
+    catch (Exception e) {
+      // CTR TODO - eliminate catch-all exception handling
+      result = makeBuffered(scaled);
+    }
     return padImage(result, finalWidth, finalHeight);
   }
 
@@ -1890,7 +1916,7 @@ public final class ImageTools {
     int[] pixels = new int[w * h];
     PixelGrabber pg = new PixelGrabber(image, 0, 0, w, h, pixels, 0, w);
     try { pg.grabPixels(); }
-    catch (InterruptedException exc) { exc.printStackTrace(); }
+    catch (InterruptedException exc) { LogTools.trace(exc); }
     BufferedImage result = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
     result.setRGB(0, 0, w, h, pixels, 0, w);
     return result;

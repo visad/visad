@@ -24,13 +24,25 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package loci.formats;
 
-/** Encompasses core metadata values. */
+import java.util.Hashtable;
+
+/**
+ * Encompasses core metadata values.
+ *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/CoreMetadata.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/CoreMetadata.java">SVN</a></dd></dl>
+ */
 public class CoreMetadata {
-  public int[] sizeX, sizeY, sizeZ, sizeC, sizeT, pixelType;
+  public int[] sizeX, sizeY, sizeZ, sizeC, sizeT;
+  public int[] thumbSizeX, thumbSizeY;
+  public int[] pixelType;
+  public int[] imageCount;
   public int[][] cLengths;
   public String[][] cTypes;
   public String[] currentOrder;
-  public boolean[] orderCertain;
+  public boolean[] orderCertain, rgb, littleEndian, interleaved;
+  public Hashtable[] seriesMetadata;
 
   public CoreMetadata(int series) {
     sizeX = new int[series];
@@ -38,11 +50,19 @@ public class CoreMetadata {
     sizeZ = new int[series];
     sizeC = new int[series];
     sizeT = new int[series];
+    thumbSizeX = new int[series];
+    thumbSizeY = new int[series];
     pixelType = new int[series];
+    imageCount = new int[series];
     cLengths = new int[series][];
     cTypes = new String[series][];
     currentOrder = new String[series];
     orderCertain = new boolean[series];
+    rgb = new boolean[series];
+    littleEndian = new boolean[series];
+    interleaved = new boolean[series];
+    seriesMetadata = new Hashtable[series];
+    for (int i=0; i<series; i++) seriesMetadata[i] = new Hashtable();
   }
 
 }

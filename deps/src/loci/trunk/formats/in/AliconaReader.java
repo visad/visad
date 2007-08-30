@@ -29,16 +29,16 @@ import java.io.*;
 
 import loci.formats.*;
 
-/** AliconaReader is the file format reader for Alicona AL3D files. */
+/**
+ * AliconaReader is the file format reader for Alicona AL3D files.
+ *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/in/AliconaReader.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/in/AliconaReader.java">SVN</a></dd></dl>
+ */
 public class AliconaReader extends FormatReader {
 
   // -- Fields --
-
-  /** Current file. */
-  protected RandomAccessStream in;
-
-  /** Number of image planes in the file. */
-  protected int numImages = 0;
 
   /** Image offset. */
   private int textureOffset;
@@ -51,64 +51,39 @@ public class AliconaReader extends FormatReader {
   /** Constructs a new Alicona reader. */
   public AliconaReader() { super("Alicona AL3D", "al3d"); }
 
-  // -- FormatReader API methods --
+  // -- IFormatReader API methods --
 
-  /* @see loci.formats.IFormatReader#isThisType(byte[]) */ 
+  /* @see loci.formats.IFormatReader#isThisType(byte[]) */
   public boolean isThisType(byte[] block) {
     return (new String(block)).indexOf("Alicona") != -1;
   }
- 
-  /* @see loci.formats.IFormatReader#getImageCount(String) */
-  public int getImageCount(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return numImages;
-  }
 
-  /* @see loci.formats.IFormatReader#isRGB(String) */
-  public boolean isRGB(String id) throws FormatException, IOException {
-    return false;
-  }
-
-  /* @see loci.formats.IFormatReader#isLittleEndian(String) */ 
-  public boolean isLittleEndian(String id) throws FormatException, IOException {
-    return true;
-  }
-
-  /* @see loci.formats.IFormatReader#isInterleaved(String, int) */ 
-  public boolean isInterleaved(String id, int subC)
-    throws FormatException, IOException
-  {
-    return false;
-  }
-
-  /* @see loci.formats.IFormatReader#openBytes(String, int) */ 
-  public byte[] openBytes(String id, int no)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
+  /* @see loci.formats.IFormatReader#openBytes(int) */
+  public byte[] openBytes(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 1);
     byte[] buf = new byte[core.sizeX[0] * core.sizeY[0] * numBytes];
-    return openBytes(id, no, buf);
+    return openBytes(no, buf);
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(String, int, byte[]) */
-  public byte[] openBytes(String id, int no, byte[] buf)
+  /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
+  public byte[] openBytes(int no, byte[] buf)
     throws FormatException, IOException
   {
-    if (!id.equals(currentId)) initFile(id);
-    if (no < 0 || no >= getImageCount(id)) {
+    FormatTools.assertId(currentId, true, 1);
+    if (no < 0 || no >= getImageCount()) {
       throw new FormatException("Invalid image number: " + no);
     }
 
     int pad = (8 - (core.sizeX[0] % 8)) % 8;
 
     if (buf.length < core.sizeX[0] * core.sizeY[0] * numBytes) {
-      throw new FormatException("Buffer to small.");
+      throw new FormatException("Buffer too small.");
     }
 
     for (int i=0; i<numBytes; i++) {
       in.seek(textureOffset + (no * (core.sizeX[0] + pad)*core.sizeY[0]*(i+1)));
       for (int j=0; j<core.sizeX[0] * core.sizeY[0]; j++) {
-        buf[j*numBytes + i] = (byte) in.read();
+        buf[j*numBytes + i] = (byte) (in.read() & 0xff);
         if (j % core.sizeX[0] == core.sizeX[0] - 1) in.skipBytes(pad);
       }
     }
@@ -116,28 +91,16 @@ public class AliconaReader extends FormatReader {
     return buf;
   }
 
-  /* @see loci.formats.IFormatReader#openImage(String, int) */ 
-  public BufferedImage openImage(String id, int no)
-    throws FormatException, IOException
-  {
-    return ImageTools.makeImage(openBytes(id, no), core.sizeX[0], core.sizeY[0],
+  /* @see loci.formats.IFormatReader#openImage(int) */
+  public BufferedImage openImage(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 1);
+    return ImageTools.makeImage(openBytes(no), core.sizeX[0], core.sizeY[0],
       1, false, numBytes, true);
   }
 
-  /* @see loci.formats.IFormatReader#close(boolean) */
-  public void close(boolean fileOnly) throws FormatException, IOException {
-    if (fileOnly && in != null) in.close();
-    else if (!fileOnly) close();
-  }
+  // -- Internal FormatReader API methods --
 
-  /* @see loci.formats.IFormatReader#close() */ 
-  public void close() throws FormatException, IOException {
-    if (in != null) in.close();
-    in = null;
-    currentId = null;
-  }
-
-  /** Initializes the given Alicona file. */
+  /* @see loci.formats.FormatReader#initFile(String) */
   protected void initFile(String id) throws FormatException, IOException {
     if (debug) debug("AliconaReader.initFile(" + id + ")");
     super.initFile(id);
@@ -145,9 +108,7 @@ public class AliconaReader extends FormatReader {
 
     // check that this is a valid AL3D file
     status("Verifying Alicona format");
-    byte[] check = new byte[17];
-    in.read(check);
-    String magicString = new String(check);
+    String magicString = in.readString(17);
     if (!magicString.trim().equals("AliconaImaging")) {
       throw new FormatException("Invalid magic string : " +
         "expected 'AliconaImaging', got " + magicString);
@@ -158,49 +119,57 @@ public class AliconaReader extends FormatReader {
 
     status("Reading tags");
 
-    byte[] keyBytes = new byte[20];
-    byte[] valueBytes = new byte[30];
-
     int count = 2;
 
-    for (int i=0; i<count; i++) {
-      in.read(keyBytes);
-      in.read(valueBytes);
-      in.skipBytes(2);
+    boolean hasC = false;
+    String voltage = null, magnification = null;
+    String pntX = null, pntY = null, pntZ = null;
 
-      String key = new String(keyBytes);
-      String value = new String(valueBytes);
+    for (int i=0; i<count; i++) {
+      String key = in.readString(20);
+      String value = in.readString(30);
       key = key.trim();
       value = value.trim();
 
       addMeta(key, value);
+      in.skipBytes(2);
 
       if (key.equals("TagCount")) count += Integer.parseInt(value);
       else if (key.equals("Rows")) core.sizeY[0] = Integer.parseInt(value);
       else if (key.equals("Cols")) core.sizeX[0] = Integer.parseInt(value);
       else if (key.equals("NumberOfPlanes")) {
-        numImages = Integer.parseInt(value);
+        core.imageCount[0] = Integer.parseInt(value);
       }
       else if (key.equals("TextureImageOffset")) {
         textureOffset = Integer.parseInt(value);
       }
+      else if (key.equals("TexturePtr") && !value.equals("7")) hasC = true;
+      else if (key.equals("Voltage")) voltage = value;
+      else if (key.equals("Magnification")) magnification = value;
+      else if (key.equals("PlanePntX")) pntX = value;
+      else if (key.equals("PlanePntY")) pntY = value;
+      else if (key.equals("PlanePntZ")) pntZ = value;
     }
 
     status("Populating metadata");
 
-    numBytes = (int) (in.length() - textureOffset) / 
-      (core.sizeX[0] * core.sizeY[0] * numImages);
-
-    boolean hasC = !((String) getMeta("TexturePtr")).trim().equals("7");
+    numBytes = (int) (in.length() - textureOffset) /
+      (core.sizeX[0] * core.sizeY[0] * core.imageCount[0]);
 
     core.sizeC[0] = hasC ? 3 : 1;
     core.sizeZ[0] = 1;
-    core.sizeT[0] = numImages / core.sizeC[0];
+    core.sizeT[0] = core.imageCount[0] / core.sizeC[0];
+    core.rgb[0] = false;
+    core.interleaved[0] = false;
+    core.littleEndian[0] = true;
 
     core.pixelType[0] = numBytes == 2 ? FormatTools.UINT16 : FormatTools.UINT8;
     core.currentOrder[0] = "XYCTZ";
 
-    MetadataStore store = getMetadataStore(id);
+    MetadataStore store = getMetadataStore();
+
+    store.setImage(currentId, null, null, null);
+
     store.setPixels(
       new Integer(core.sizeX[0]),
       new Integer(core.sizeY[0]),
@@ -208,32 +177,30 @@ public class AliconaReader extends FormatReader {
       new Integer(core.sizeC[0]),
       new Integer(core.sizeT[0]),
       new Integer(core.pixelType[0]),
-      new Boolean(true),
+      new Boolean(!core.littleEndian[0]),
       core.currentOrder[0],
       null,
       null
     );
 
-    if (getMeta("Voltage") != null) {
-      store.setDetector(null, null, null, null, null,
-        new Float((String) getMeta("Voltage")), null, null, null);
+    if (voltage != null) {
+      store.setDetector(null, null, null, null, null, new Float(voltage),
+        null, null, null);
     }
-    if (getMeta("Magnification") != null) {
-      store.setObjective(null, null, null, null,
-        new Float((String) getMeta("Magnification")), null, null);
+    if (magnification != null) {
+      store.setObjective(null, null, null, null, new Float(magnification),
+        null, null);
     }
 
-    if (getMeta("PlanePntX") != null && getMeta("PlanePntY") != null &&
-      getMeta("PlanePntZ") != null)
-    {
-      store.setDimensions(
-        new Float(((String) getMeta("PlanePntX")).trim()),
-        new Float(((String) getMeta("PlanePntY")).trim()),
-        new Float(((String) getMeta("PlanePntZ")).trim()), null, null, null);
+    if (pntX != null && pntY != null && pntZ != null) {
+      store.setDimensions(new Float(pntX.trim()), new Float(pntY.trim()),
+        new Float(pntZ.trim()), null, null, null);
     }
 
     for (int i=0; i<core.sizeC[0]; i++) {
-      store.setLogicalChannel(i, null, null, null, null, null, null, null);
+      store.setLogicalChannel(i, null, null, null, null, null, null, null, null,
+       null, null, null, null, null, null, null, null, null, null, null, null,
+       null, null, null, null);
     }
   }
 

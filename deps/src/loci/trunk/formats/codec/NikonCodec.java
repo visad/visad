@@ -30,6 +30,10 @@ import loci.formats.FormatException;
  * This class implements Nikon decompression. Compression is not yet
  * implemented.
  *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/codec/NikonCodec.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/codec/NikonCodec.java">SVN</a></dd></dl>
+ *
  * @author Melissa Linkert linkert at wisc.edu
  */
 public class NikonCodec extends BaseCodec implements Codec {
@@ -69,7 +73,8 @@ public class NikonCodec extends BaseCodec implements Codec {
    * @throws FormatException if data is not valid compressed data for this
    *                         decompressor
    */
-  public byte[] decompress(byte[] input) throws FormatException {
+  public byte[] decompress(byte[] input, Object options) throws FormatException
+  {
     BitWriter out = new BitWriter(input.length);
     BitBuffer bb = new BitBuffer(input);
     boolean eof = false;

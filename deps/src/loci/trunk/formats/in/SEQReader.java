@@ -31,6 +31,10 @@ import loci.formats.*;
 /**
  * SEQReader is the file format reader for Image-Pro Sequence files.
  *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/in/SEQReader.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/in/SEQReader.java">SVN</a></dd></dl>
+ *
  * @author Melissa Linkert linkert at wisc.edu
  */
 public class SEQReader extends BaseTiffReader {
@@ -52,14 +56,14 @@ public class SEQReader extends BaseTiffReader {
   public SEQReader() { super("Image-Pro Sequence", "seq"); }
 
   // -- Internal BaseTiffReader API methods --
- 
+
   /* @see BaseTiffReader#initStandardMetadata() */
   protected void initStandardMetadata() throws FormatException, IOException {
     super.initStandardMetadata();
 
-    core.sizeZ[0] = 0; 
-    core.sizeT[0] = 0; 
-    
+    core.sizeZ[0] = 0;
+    core.sizeT[0] = 0;
+
     for (int j=0; j<ifds.length; j++) {
       short[] tag1 = (short[]) TiffTools.getIFDValue(ifds[j], IMAGE_PRO_TAG_1);
 
@@ -73,14 +77,15 @@ public class SEQReader extends BaseTiffReader {
 
       if (tag2 != -1) {
         // should be one of these for every image plane
-        core.sizeZ[0]++; 
+        core.sizeZ[0]++;
         addMeta("Frame Rate", new Integer(tag2));
       }
 
       addMeta("Number of images", new Integer(core.sizeZ[0]));
     }
 
-    if (core.sizeZ[0] == 0) core.sizeZ[0] = 1; 
+    if (core.sizeZ[0] == 0) core.sizeZ[0] = 1;
+    if (core.sizeT[0] == 0) core.sizeT[0] = 1;
 
     if (core.sizeZ[0] == 1 && core.sizeT[0] == 1) {
       core.sizeZ[0] = ifds.length;
@@ -88,11 +93,12 @@ public class SEQReader extends BaseTiffReader {
 
     // default values
     addMeta("frames", "" + core.sizeZ[0]);
-    addMeta("channels", getMeta("NumberOfChannels").toString());
+    addMeta("channels", "" + super.getSizeC());
     addMeta("slices", "" + core.sizeT[0]);
 
     // parse the description to get channels, slices and times where applicable
-    String descr = (String) getMeta("Comment");
+    String descr = (String) TiffTools.getIFDValue(ifds[0],
+      TiffTools.IMAGE_DESCRIPTION);
     metadata.remove("Comment");
     if (descr != null) {
       StringTokenizer tokenizer = new StringTokenizer(descr, "\n");
@@ -101,17 +107,13 @@ public class SEQReader extends BaseTiffReader {
         String label = token.substring(0, token.indexOf("="));
         String data = token.substring(token.indexOf("=") + 1);
         addMeta(label, data);
+        if (label.equals("channels")) core.sizeC[0] = Integer.parseInt(data);
+        else if (label.equals("frames")) core.sizeZ[0] = Integer.parseInt(data);
+        else if (label.equals("slices")) core.sizeT[0] = Integer.parseInt(data);
       }
     }
 
-    core.sizeC[0] = Integer.parseInt((String) getMeta("channels"));
-
-    try {
-      if (isRGB(currentId) && core.sizeC[0] != 3) core.sizeC[0] *= 3;
-    }
-    catch (IOException e) {
-      throw new FormatException(e);
-    }
+    if (isRGB() && core.sizeC[0] != 3) core.sizeC[0] *= 3;
 
     core.currentOrder[0] = "XY";
 

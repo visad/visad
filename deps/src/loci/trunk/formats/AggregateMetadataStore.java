@@ -32,6 +32,10 @@ import java.util.List;
  * A metadata store which delegates the actual storage to one or more <i>sub</i>
  * metadata stores.
  *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/AggregateMetadataStore.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/AggregateMetadataStore.java">SVN</a></dd></dl>
+ *
  * @author Chris Allan callan at blackcat.ca
  */
 public class AggregateMetadataStore implements MetadataStore {
@@ -42,10 +46,8 @@ public class AggregateMetadataStore implements MetadataStore {
   /**
    * Creates a new instance.
    * @param delegates of type {@link MetadataStore}.
-   * @throws MetadataStoreException if the constructor is unable to
-   * import pre-requisites of its delegates.
    */
-  public AggregateMetadataStore(List delegates) throws MetadataStoreException {
+  public AggregateMetadataStore(List delegates) {
     this.delegates = delegates;
   }
 
@@ -85,8 +87,8 @@ public class AggregateMetadataStore implements MetadataStore {
    * Throws a RuntimeException up to the caller.
    */
   public Object getRoot() {
-    throw new RuntimeException("Unsupported with AggregateMetadataStore. Use" +
-      " getDelegates() and getRoot().");
+    throw new RuntimeException("Unsupported with AggregateMetadataStore. " +
+      "Use getDelegates() and getRoot().");
   }
 
   /**
@@ -94,8 +96,8 @@ public class AggregateMetadataStore implements MetadataStore {
    * Throws a RuntimeException up to the caller.
    */
   public void setRoot(Object root) {
-    throw new RuntimeException("Unsupported with AggregateMetadataStore. Use" +
-      " getDelegates() and setRoot().");
+    throw new RuntimeException("Unsupported with AggregateMetadataStore. " +
+      "Use getDelegates() and setRoot().");
   }
 
   /* @see MetadataStore#setChannelGlobalMinMax(int, Double, Double, Integer) */
@@ -189,17 +191,29 @@ public class AggregateMetadataStore implements MetadataStore {
   }
 
   /*
-   * @see MetadataStore#setLogicalChannel(int, String,
-   *   Float, Integer, Integer, String, String, Integer)
+   * @see MetadataStore#setLogicalChannel(int, String, Integer, Integer,
+   * Integer, Float, Integer, Integer, Integer, Float, Float, String,
+   * Integer, String, String, String, Integer, Float, String, Integer, Integer,
+   * Integer, String, Float, Integer)
    */
-  public void setLogicalChannel(int channelIdx, String name, Float ndFilter,
-    Integer emWave, Integer exWave, String photometricInterpretation,
-    String mode, Integer i)
+  public void setLogicalChannel(int channelIdx, String name,
+    Integer samplesPerPixel, Integer filter, Integer lightSource,
+    Float lightAttenuation, Integer lightWavelength, Integer otf,
+    Integer detector, Float detectorOffset, Float detectorGain,
+    String illuminationType, Integer pinholeSize,
+    String photometricInterpretation, String mode, String contrastMethod,
+    Integer auxLightSource, Float auxLightAttenuation, String auxTechnique,
+    Integer auxLightWavelength, Integer emWave, Integer exWave, String fluor,
+    Float ndFilter, Integer i)
   {
     for (Iterator iter = delegates.iterator(); iter.hasNext();) {
       MetadataStore s = (MetadataStore) iter.next();
-      s.setLogicalChannel(channelIdx, name, ndFilter, emWave, exWave,
-                          photometricInterpretation, mode, i);
+      s.setLogicalChannel(channelIdx, name, samplesPerPixel, filter,
+        lightSource, lightAttenuation, lightWavelength, otf, detector,
+        detectorOffset, detectorGain, illuminationType, pinholeSize,
+        photometricInterpretation, mode, contrastMethod, auxLightSource,
+        auxLightAttenuation, auxTechnique, auxLightWavelength, emWave, exWave,
+        fluor, ndFilter, i);
     }
   }
 

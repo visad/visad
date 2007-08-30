@@ -29,8 +29,19 @@ import java.io.*;
 import java.util.*;
 import loci.formats.*;
 
-/** MicromanagerReader is the file format reader for Micro-Manager files. */
+/**
+ * MicromanagerReader is the file format reader for Micro-Manager files.
+ *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/in/MicromanagerReader.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/in/MicromanagerReader.java">SVN</a></dd></dl>
+ */
 public class MicromanagerReader extends FormatReader {
+
+  // -- Constants --
+
+  /** File containing extra metadata. */
+  private static final String METADATA = "metadata.txt";
 
   // -- Fields --
 
@@ -54,73 +65,82 @@ public class MicromanagerReader extends FormatReader {
     return tiffReader.isThisType(b);
   }
 
-  /* @see loci.formats.IFormatReader#getImageCount(String) */
-  public int getImageCount(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return tiffs.size();
+  /* @see loci.formats.IFormatReader#getUsedFiles() */
+  public String[] getUsedFiles() {
+    FormatTools.assertId(currentId, true, 1);
+    String[] s = new String[tiffs.size() + 1];
+    tiffs.copyInto(s);
+    s[tiffs.size()] = currentId;
+    return s;
   }
 
-  /* @see loci.formats.IFormatReader#isLittleEndian(String) */
-  public boolean isLittleEndian(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return tiffReader.isLittleEndian((String) tiffs.get(0));
-  }
-
-  /* @see loci.formats.IFormatReader#isInterleaved(String) */
-  public boolean isInterleaved(String id, int subC)
-    throws FormatException, IOException
-  {
-    return false;
-  }
-
-  /* @see loci.formats.IFormatReader#openBytes(String, int) */
-  public byte[] openBytes(String id, int no)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-    if (no < 0 || no >= getImageCount(id)) {
+  /* @see loci.formats.IFormatReader#openBytes(int) */
+  public byte[] openBytes(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 1);
+    if (no < 0 || no >= getImageCount()) {
       throw new FormatException("Invalid image number: " + no);
     }
-    return tiffReader.openBytes((String) tiffs.get(no), 0);
+    tiffReader.setId((String) tiffs.get(no));
+    return tiffReader.openBytes(0);
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(String, int, byte[]) */
-  public byte[] openBytes(String id, int no, byte[] buf)
+  /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
+  public byte[] openBytes(int no, byte[] buf)
     throws FormatException, IOException
   {
-    if (!id.equals(currentId)) initFile(id);
-    if (no < 0 || no >= getImageCount(id)) {
+    FormatTools.assertId(currentId, true, 1);
+    if (no < 0 || no >= getImageCount()) {
       throw new FormatException("Invalid image number: " + no);
     }
-    return tiffReader.openBytes((String) tiffs.get(no), 0, buf);
+    tiffReader.setId((String) tiffs.get(no));
+    return tiffReader.openBytes(0, buf);
   }
 
-  /* @see loci.formats.IFormatReader#openImage(String, int) */
-  public BufferedImage openImage(String id, int no)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-    if (no < 0 || no >= getImageCount(id)) {
+  /* @see loci.formats.IFormatReader#openImage(int) */
+  public BufferedImage openImage(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 1);
+    if (no < 0 || no >= getImageCount()) {
       throw new FormatException("Invalid image number: " + no);
     }
-    return tiffReader.openImage((String) tiffs.get(no), 0);
-  }
-
-  /* @see loci.formats.IFormatReader#close() */
-  public void close() throws FormatException, IOException {
-    if (tiffReader != null) tiffReader.close();
-    tiffReader = null;
-    currentId = null;
-    tiffs = null;
+    tiffReader.setId((String) tiffs.get(no));
+    return tiffReader.openImage(0);
   }
 
   /* @see loci.formats.IFormatReader#close(boolean) */
-  public void close(boolean fileOnly) throws FormatException, IOException {
-    if (fileOnly) tiffReader.close(fileOnly);
+  public void close(boolean fileOnly) throws IOException {
+    if (fileOnly) {
+      if (tiffReader != null) tiffReader.close(fileOnly);
+    }
     else close();
   }
 
-  /* @see loci.formats.IFormatReader#initFile(String) */
+  // -- IFormatHandler API methods --
+
+  /* @see loci.formats.IFormatHandler#isThisType(String, boolean) */
+  public boolean isThisType(String name, boolean open) {
+    File f = new File(name).getAbsoluteFile();
+    String[] list = null;
+    if (f.exists()) list = f.getParentFile().list();
+    else list = (String[]) Location.getIdMap().keySet().toArray(new String[0]);
+
+    if (list == null) return false;
+    for (int i=0; i<list.length; i++) {
+      if (list[i].endsWith("metadata.txt")) return super.isThisType(name, open);
+    }
+    return false;
+  }
+
+  /* @see loci.formats.IFormatHandler#close() */
+  public void close() throws IOException {
+    super.close();
+    if (tiffReader != null) tiffReader.close();
+    tiffReader = null;
+    tiffs = null;
+  }
+
+  // -- Internal FormatReader API methods --
+
+  /* @see loci.formats.FormatReader#initFile(String) */
   public void initFile(String id) throws FormatException, IOException {
     super.initFile(id);
     tiffReader = new TiffReader();
@@ -129,14 +149,14 @@ public class MicromanagerReader extends FormatReader {
 
     // find metadata.txt
 
-    Location parent = new Location(currentId).getAbsoluteFile().getParentFile();
-    RandomAccessStream ras = new RandomAccessStream(
-      new Location(parent, "metadata.txt").getAbsolutePath());
+    File file = new File(currentId).getAbsoluteFile();
+    in = new RandomAccessStream(file.exists() ? new File(file.getParentFile(),
+      METADATA).getAbsolutePath() : METADATA);
 
     // usually a small file, so we can afford to read it into memory
 
-    byte[] meta = new byte[(int) ras.length()];
-    ras.read(meta);
+    byte[] meta = new byte[(int) in.length()];
+    in.read(meta);
     String s = new String(meta);
     meta = null;
 
@@ -147,7 +167,7 @@ public class MicromanagerReader extends FormatReader {
     int pos = 0;
     while (true) {
       pos = s.indexOf("FileName", pos);
-      if (pos == -1 || pos >= ras.length()) break;
+      if (pos == -1 || pos >= in.length()) break;
       String name = s.substring(s.indexOf(":", pos), s.indexOf(",", pos));
       tiffs.add(0, name.substring(3, name.length() - 1));
       pos++;
@@ -174,7 +194,9 @@ public class MicromanagerReader extends FormatReader {
 
         if (!open && !closed) {
           String value = token.substring(token.indexOf(":") + 1).trim();
-          addMeta(key, value.substring(0, value.length() - 1));
+          value = value.substring(0, value.length() - 1);
+          addMeta(key, value);
+          if (key.equals("Channels")) core.sizeC[0] = Integer.parseInt(value);
         }
         else if (!closed){
           StringBuffer valueBuffer = new StringBuffer();
@@ -185,24 +207,44 @@ public class MicromanagerReader extends FormatReader {
           }
           String value = valueBuffer.toString();
           value.replaceAll("\n", "").trim();
-          addMeta(key, value.substring(0, value.length() - 1));
+          value = value.substring(0, value.length() - 1);
+          addMeta(key, value);
+          if (key.equals("Channels")) core.sizeC[0] = Integer.parseInt(value);
         }
         else {
           String value =
             token.substring(token.indexOf("[") + 1, token.indexOf("]")).trim();
-          addMeta(key, value.substring(0, value.length() - 1));
+          value = value.substring(0, value.length() - 1);
+          addMeta(key, value);
+          if (key.equals("Channels")) core.sizeC[0] = Integer.parseInt(value);
         }
       }
     }
-    core.sizeC[0] = Integer.parseInt((String) getMeta("Channels"));
-    core.sizeZ[0] = 1;
-    core.sizeT[0] = tiffs.size() / core.sizeC[0];
-    core.sizeX[0] = tiffReader.getSizeX((String) tiffs.get(0));
-    core.sizeY[0] = tiffReader.getSizeY((String) tiffs.get(0));
-    core.currentOrder[0] = "XYCTZ";
-    core.pixelType[0] = tiffReader.getPixelType((String) tiffs.get(0));
+    tiffReader.setId((String) tiffs.get(0));
 
-    MetadataStore store = getMetadataStore(id);
+    String z = (String) metadata.get("Slices");
+    if (z != null) {
+      core.sizeZ[0] = Integer.parseInt(z);
+    }
+    else core.sizeZ[0] = 1;
+
+    String t = (String) metadata.get("Frames");
+    if (t != null) {
+      core.sizeT[0 ] = Integer.parseInt(t);
+    }
+    else core.sizeT[0] = tiffs.size() / core.sizeC[0];
+
+    core.sizeX[0] = tiffReader.getSizeX();
+    core.sizeY[0] = tiffReader.getSizeY();
+    core.currentOrder[0] = "XYZCT";
+    core.pixelType[0] = tiffReader.getPixelType();
+    core.rgb[0] = tiffReader.isRGB();
+    core.interleaved[0] = false;
+    core.littleEndian[0] = tiffReader.isLittleEndian();
+    core.imageCount[0] = tiffs.size();
+
+    MetadataStore store = getMetadataStore();
+    store.setImage(currentId, null, null, null);
 
     store.setPixels(
       new Integer(core.sizeX[0]),
@@ -211,27 +253,17 @@ public class MicromanagerReader extends FormatReader {
       new Integer(core.sizeC[0]),
       new Integer(core.sizeT[0]),
       new Integer(core.pixelType[0]),
-      new Boolean(isLittleEndian(id)),
+      new Boolean(!core.littleEndian[0]),
       core.currentOrder[0],
       null, null);
     for (int i=0; i<core.sizeC[0]; i++) {
-      store.setLogicalChannel(i, null, null, null, null, null, null, null);
-      // TODO : retrieve min/max from the metadata 
+      store.setLogicalChannel(i, null, null, null, null, null, null, null, null,
+        null, null, null, null, null, null, null, null, null, null, null, null,
+        null, null, null, null);
+      // TODO : retrieve min/max from the metadata
       //store.setChannelGlobalMinMax(i, getChannelGlobalMinimum(id, i),
       //  getChannelGlobalMaximum(id, i), null);
     }
-  }
-
-  // -- IFormatHandler API methods --
-
-  /* @see loci.formats.IFormatHandler#isThisType(String, boolean) */
-  public boolean isThisType(String name, boolean open) {
-    Location parent = new Location(name).getAbsoluteFile().getParentFile();
-    String[] list = parent.list();
-    for (int i=0; i<list.length; i++) {
-      if (list[i].endsWith("metadata.txt")) return super.isThisType(name, open);
-    }
-    return false;
   }
 
 }

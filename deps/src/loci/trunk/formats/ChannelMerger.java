@@ -27,7 +27,13 @@ package loci.formats;
 import java.awt.image.BufferedImage;
 import java.io.*;
 
-/** Logic to automatically merge channels in a file. */
+/**
+ * Logic to automatically merge channels in a file.
+ *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/ChannelMerger.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/ChannelMerger.java">SVN</a></dd></dl>
+ */
 public class ChannelMerger extends ReaderWrapper {
 
   // -- Constructor --
@@ -41,26 +47,26 @@ public class ChannelMerger extends ReaderWrapper {
   // -- ChannelMerger API methods --
 
   /** Determines whether the channels in the file can be merged. */
-  public boolean canMerge(String id) throws FormatException, IOException {
-    int c = getSizeC(id);
-    return c > 1 && c <= 4 && !reader.isRGB(id);
+  public boolean canMerge() {
+    int c = getSizeC();
+    return c > 1 && c <= 4 && !reader.isRGB();
   }
 
   // -- IFormatReader API methods --
 
-  /** Determines the number of images in the given file. */
-  public int getImageCount(String id) throws FormatException, IOException {
-    int no = reader.getImageCount(id);
-    if (canMerge(id)) no /= getSizeC(id);
+  /* @see IFormatReader#getImageCount() */
+  public int getImageCount() {
+    FormatTools.assertId(getCurrentFile(), true, 2);
+    int no = reader.getImageCount();
+    if (canMerge()) no /= getSizeC();
     return no;
   }
 
-  /* @see IFormatReader#getDimensionOrder(String) */
-  public String getDimensionOrder(String id)
-    throws FormatException, IOException
-  {
-    String order = reader.getDimensionOrder(id);
-    if (canMerge(id)) {
+  /* @see IFormatReader#getDimensionOrder() */
+  public String getDimensionOrder() {
+    FormatTools.assertId(getCurrentFile(), true, 2);
+    String order = reader.getDimensionOrder();
+    if (canMerge()) {
       StringBuffer sb = new StringBuffer(order);
       while (order.indexOf("C") != 2) {
         char pre = order.charAt(order.indexOf("C") - 1);
@@ -72,28 +78,28 @@ public class ChannelMerger extends ReaderWrapper {
     return order;
   }
 
-  /** Checks if the images in the file are RGB. */
-  public boolean isRGB(String id) throws FormatException, IOException {
-    return canMerge(id) || reader.isRGB(id);
+  /* @see IFormatReader#isRGB() */
+  public boolean isRGB() {
+    FormatTools.assertId(getCurrentFile(), true, 2);
+    return canMerge() || reader.isRGB();
   }
 
-  /** Obtains the specified image from the given file. */
-  public BufferedImage openImage(String id, int no)
-    throws FormatException, IOException
-  {
-    if (!canMerge(id)) return super.openImage(id, no);
-    int sizeC = getSizeC(id);
-    int[] nos = getZCTCoords(id, no);
+  /* @see IFormatReader#openImage(int) */
+  public BufferedImage openImage(int no) throws FormatException, IOException {
+    FormatTools.assertId(getCurrentFile(), true, 2);
+    if (!canMerge()) return super.openImage(no);
+    int sizeC = getSizeC();
+    int[] nos = getZCTCoords(no);
 
     int z = nos[0], t = nos[2];
-    String order = reader.getDimensionOrder(id);
+    String order = reader.getDimensionOrder();
     int ic = order.indexOf("C") - 2;
     if (ic < 0 || ic > 2) {
       throw new FormatException("Invalid dimension order: " + order);
     }
     BufferedImage[] img = new BufferedImage[sizeC];
     for (int c=0; c<sizeC; c++) {
-      img[c] = reader.openImage(id, reader.getIndex(id, z, c, t));
+      img[c] = reader.openImage(reader.getIndex(z, c, t));
     }
     return ImageTools.mergeChannels(img);
   }
@@ -102,18 +108,15 @@ public class ChannelMerger extends ReaderWrapper {
    * Obtains the specified image from the given file as a byte array.
    * For convenience, the channels are sequential, i.e. "RRR...GGG...BBB".
    */
-  public byte[] openBytes(String id, int no)
-    throws FormatException, IOException
-  {
-    if (!canMerge(id)) return super.openBytes(id, no);
-    int sizeC = getSizeC(id);
-    int[] nos = getZCTCoords(id, no);
+  public byte[] openBytes(int no) throws FormatException, IOException {
+    FormatTools.assertId(getCurrentFile(), true, 2);
+    if (!canMerge()) return super.openBytes(no);
+    int sizeC = getSizeC();
+    int[] nos = getZCTCoords(no);
     int z = nos[0], t = nos[2];
-    String dimOrder = reader.getDimensionOrder(id);
-    int ic = dimOrder.indexOf("C") - 2;
     byte[] bytes = null;
     for (int c=0; c<sizeC; c++) {
-      byte[] b = reader.openBytes(id, reader.getIndex(id, z, c, t));
+      byte[] b = reader.openBytes(reader.getIndex(z, c, t));
 
       if (c == 0) {
         // assume array lengths for each channel are equal
@@ -124,29 +127,22 @@ public class ChannelMerger extends ReaderWrapper {
     return bytes;
   }
 
-  /** Obtains a thumbnail for the specified image from the given file. */
-  public BufferedImage openThumbImage(String id, int no)
+  /* @see IFormatReader#openThumbImage(int) */
+  public BufferedImage openThumbImage(int no)
     throws FormatException, IOException
   {
-    if (!canMerge(id)) return super.openThumbImage(id, no);
-    return ImageTools.scale(openImage(id, no), getThumbSizeX(id),
-      getThumbSizeY(id), true);
+    FormatTools.assertId(getCurrentFile(), true, 2);
+    if (!canMerge()) return super.openThumbImage(no);
+    return ImageTools.scale(openImage(no), getThumbSizeX(),
+      getThumbSizeY(), true);
   }
 
-  public int getIndex(String id, int z, int c, int t)
-    throws FormatException, IOException
-  {
-    return FormatTools.getIndex(this, id, z, c, t);
+  public int getIndex(int z, int c, int t) {
+    return FormatTools.getIndex(this, z, c, t);
   }
 
-  public int[] getZCTCoords(String id, int index)
-    throws FormatException, IOException
-  {
-    return FormatTools.getZCTCoords(this, id, index);
-  }
-
-  public boolean testRead(String[] args) throws FormatException, IOException {
-    return FormatTools.testRead(this, args);
+  public int[] getZCTCoords(int index) {
+    return FormatTools.getZCTCoords(this, index);
   }
 
 }

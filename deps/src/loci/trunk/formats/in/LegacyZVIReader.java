@@ -34,6 +34,10 @@ import loci.formats.*;
 /**
  * LegacyZVIReader is the legacy file format reader for Zeiss ZVI files.
  *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/in/LegacyZVIReader.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/in/LegacyZVIReader.java">SVN</a></dd></dl>
+ *
  * @author Curtis Rueden ctrueden at wisc.edu
  * @author Melissa Linkert linkert at wisc.edu
  * @author Michel Boudinot Michel dot boudinot at iaf.cnrs-gif.fr
@@ -65,9 +69,6 @@ public class LegacyZVIReader extends FormatReader {
 
   // -- Fields --
 
-  /** Current file. */
-  protected RandomAccessStream in;
-
   /** List of image blocks. */
   private Vector blockList;
 
@@ -84,9 +85,9 @@ public class LegacyZVIReader extends FormatReader {
   /** Constructs a new legacy ZVI reader. */
   public LegacyZVIReader() { super("Legacy ZVI", "zvi"); }
 
-  // -- FormatReader API methods --
+  // -- IFormatReader API methods --
 
-  /* @see loci.formats.IFormatReader#isThisType(byte[]) */ 
+  /* @see loci.formats.IFormatReader#isThisType(byte[]) */
   public boolean isThisType(byte[] block) {
     if (block == null) return false;
     int len = block.length < ZVI_SIG.length ? block.length : ZVI_SIG.length;
@@ -96,38 +97,19 @@ public class LegacyZVIReader extends FormatReader {
     return true;
   }
 
-  /* @see loci.formats.IFormatReader#isRGB(String) */ 
-  public boolean isRGB(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return (bytesPerPixel == 3) || (bytesPerPixel > 4);
-  }
-
-  /* @see loci.formats.IFormatReader#isLittleEndian(String) */ 
-  public boolean isLittleEndian(String id) throws FormatException, IOException {
-    return true;
-  }
-
-  /* @see loci.formats.IFormatReader#isInterleaved(String, int) */ 
-  public boolean isInterleaved(String id, int subC)
-    throws FormatException, IOException
-  {
-    return false;
-  }
-
-  /* @see loci.formats.IFormatReader#openBytes(String, int) */ 
-  public byte[] openBytes(String id, int no) throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
+  /* @see loci.formats.IFormatReader#openBytes(int) */
+  public byte[] openBytes(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 1);
     byte[] buf = new byte[((ZVIBlock) blockList.elementAt(no)).imageSize];
-    return openBytes(id, no, buf);
+    return openBytes(no, buf);
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(String, int, byte[]) */
-  public byte[] openBytes(String id, int no, byte[] buf)
+  /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
+  public byte[] openBytes(int no, byte[] buf)
     throws FormatException, IOException
   {
-    if (!id.equals(currentId)) initFile(id);
-    if (no < 0 || no >= getImageCount(id)) {
+    FormatTools.assertId(currentId, true, 1);
+    if (no < 0 || no >= getImageCount()) {
       throw new FormatException("Invalid image number: " + no);
     }
 
@@ -136,19 +118,10 @@ public class LegacyZVIReader extends FormatReader {
     return buf;
   }
 
-  /* @see loci.formats.IFormatReader#getImageCount(String) */ 
-  public int getImageCount(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return blockList.size();
-  }
-
-  /* @see loci.formats.IFormatReader#openImage(String, int) */ 
-  public BufferedImage openImage(String id, int no)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-
-    if (no < 0 || no >= getImageCount(id)) {
+  /* @see loci.formats.IFormatReader#openImage(int) */
+  public BufferedImage openImage(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 1);
+    if (no < 0 || no >= getImageCount()) {
       throw new FormatException("Invalid image number: " + no);
     }
 
@@ -158,24 +131,14 @@ public class LegacyZVIReader extends FormatReader {
     return zviBlock.readImage(in);
   }
 
-  /* @see loci.formats.IFormatReader#close(boolean) */
-  public void close(boolean fileOnly) throws FormatException, IOException {
-    if (fileOnly && in != null) in.close();
-    else if (!fileOnly) close();
-  }
+  // -- Internal FormatReader API methods --
 
-  /* @see loci.formats.IFormatReader#close() */ 
-  public void close() throws FormatException, IOException {
-    if (in != null) in.close();
-    in = null;
-    currentId = null;
-  }
-
-  /** Initializes the given ZVI file. */
+  /* @see loci.formats.FormatReader#initFile(String) */
   protected void initFile(String id) throws FormatException, IOException {
     if (debug) debug("LegacyZVIReader.initFile(" + id + ")");
     super.initFile(id);
     in = new RandomAccessStream(id);
+    in.order(true);
 
     // Highly questionable decoding strategy:
     //
@@ -226,7 +189,7 @@ public class LegacyZVIReader extends FormatReader {
 
     while (true) {
       // search for start of next image header
-      status("Searching for next image"); 
+      status("Searching for next image");
       long header = findBlock(in, ZVI_MAGIC_BLOCK_1, pos);
 
       if (header < 0) {
@@ -267,9 +230,9 @@ public class LegacyZVIReader extends FormatReader {
       if (!ok) continue;
 
       // read potential header information
-      int theZ = (int) DataTools.read4UnsignedBytes(in, true);
-      int theC = (int) DataTools.read4UnsignedBytes(in, true);
-      int theT = (int) DataTools.read4UnsignedBytes(in, true);
+      int theZ = in.readInt();
+      int theC = in.readInt();
+      int theT = in.readInt();
       pos += 12;
 
       // these byte should be 00
@@ -328,38 +291,38 @@ public class LegacyZVIReader extends FormatReader {
       status("Reading image header");
 
       // read more header information
-      core.sizeX[0] = (int) DataTools.read4UnsignedBytes(in, true);
-      core.sizeY[0] = (int) DataTools.read4UnsignedBytes(in, true);
+      core.sizeX[0] = in.readInt();
+      core.sizeY[0] = in.readInt();
       // don't know what this is for
-      int alwaysOne = (int) DataTools.read4UnsignedBytes(in, true);
-      bytesPerPixel = (int) DataTools.read4UnsignedBytes(in, true);
+      int alwaysOne = in.readInt();
+      bytesPerPixel = in.readInt();
       // not clear what this value signifies
-      int pixType = (int) DataTools.read4UnsignedBytes(in, true);
+      int pixType = in.readInt();
       // doesn't always equal bytesPerPixel * 8
-      int bitDepth = (int) DataTools.read4UnsignedBytes(in, true);
+      int bitDepth = in.readInt();
       pos += 24;
 
       String type = "";
       switch (pixType) {
         case 1:
           type = "8 bit rgb tuple, 24 bpp";
-          core.pixelType[0] = FormatTools.INT8;
+          core.pixelType[0] = FormatTools.UINT8;
           break;
         case 2:
           type = "8 bit rgb quad, 32 bpp";
-          core.pixelType[0] = FormatTools.INT8;
+          core.pixelType[0] = FormatTools.UINT8;
           break;
         case 3:
           type = "8 bit grayscale";
-          core.pixelType[0] = FormatTools.INT8;
+          core.pixelType[0] = FormatTools.UINT8;
           break;
         case 4:
           type = "16 bit signed int, 16 bpp";
-          core.pixelType[0] = FormatTools.INT16;
+          core.pixelType[0] = FormatTools.UINT16;
           break;
         case 5:
           type = "32 bit int, 32 bpp";
-          core.pixelType[0] = FormatTools.INT32;
+          core.pixelType[0] = FormatTools.UINT32;
           break;
         case 6:
           type = "32 bit float, 32 bpp";
@@ -371,11 +334,11 @@ public class LegacyZVIReader extends FormatReader {
           break;
         case 8:
           type = "16 bit unsigned short triple, 48 bpp";
-          core.pixelType[0] = FormatTools.INT16;
+          core.pixelType[0] = FormatTools.UINT16;
           break;
         case 9:
           type = "32 bit int triple, 96 bpp";
-          core.pixelType[0] = FormatTools.INT32;
+          core.pixelType[0] = FormatTools.UINT32;
           break;
         default:
           type = "undefined pixel type (" + pixType + ")";
@@ -386,7 +349,7 @@ public class LegacyZVIReader extends FormatReader {
       addMeta("PixelType", type);
       addMeta("BPP", new Integer(bytesPerPixel));
 
-      ZVIBlock zviBlock = new ZVIBlock(theZ, theC, theT, core.sizeX[0], 
+      ZVIBlock zviBlock = new ZVIBlock(theZ, theC, theT, core.sizeX[0],
         core.sizeY[0], alwaysOne, bytesPerPixel, pixType, bitDepth, pos);
       if (debug) debug(zviBlock.toString());
 
@@ -398,9 +361,9 @@ public class LegacyZVIReader extends FormatReader {
       numI++;
       // sorry not a very clever way to find dimension order
 
-      if ((numI == 2) && (cSet.size() == 2))  cFlag = 1;
-      if ((numI == 2) && (zSet.size() == 2))  zFlag = 1;
-      if ((numI == 2) && (tSet.size() == 2))  tFlag = 1;
+      if ((numI == 2) && (cSet.size() == 2)) cFlag = 1;
+      if ((numI == 2) && (zSet.size() == 2)) zFlag = 1;
+      if ((numI == 2) && (tSet.size() == 2)) tFlag = 1;
 
       if ((numI % 3 == 0) && (zSet.size() > 1) && (cFlag == 1)) {
         core.currentOrder[0] = "XYCZT";
@@ -421,19 +384,26 @@ public class LegacyZVIReader extends FormatReader {
         core.currentOrder[0] = "XYTZC";
       }
 
+      if (core.currentOrder[0] == null) core.currentOrder[0] = "XYZCT";
+
       // save this image block's position
       blockList.add(zviBlock);
       pos += core.sizeX[0] * core.sizeY[0] * bytesPerPixel;
 
-      core.sizeX[0] = openImage(id, 0).getWidth();
-      core.sizeY[0] = openImage(id, 0).getHeight();
+      core.imageCount[0] = blockList.size();
+      core.sizeX[0] = openImage(0).getWidth();
+      core.sizeY[0] = openImage(0).getHeight();
       core.sizeZ[0] = zSet.size();
       core.sizeC[0] = cSet.size();
       core.sizeT[0] = tSet.size();
+      core.rgb[0] = bytesPerPixel == 3 || bytesPerPixel > 4;
+      core.interleaved[0] = false;
+      core.littleEndian[0] = true;
 
       // Populate metadata store
 
-      MetadataStore store = getMetadataStore(id);
+      MetadataStore store = getMetadataStore();
+      store.setImage(currentId, null, null, null);
 
       store.setPixels(
         new Integer(core.sizeX[0]), // SizeX
@@ -448,7 +418,9 @@ public class LegacyZVIReader extends FormatReader {
         null); // Use pixels index 0
 
       for (int i=0; i<core.sizeC[0]; i++) {
-        store.setLogicalChannel(i, null, null, null, null, null, null, null);
+        store.setLogicalChannel(i, null, null, null, null, null, null, null,
+          null, null, null, null, null, null, null, null, null, null, null,
+          null, null, null, null, null, null);
       }
     }
 
@@ -462,7 +434,7 @@ public class LegacyZVIReader extends FormatReader {
     numC = cSet.size();
     numT = tSet.size();
     if (numZ * numC * numT != blockList.size()) {
-      System.err.println("Warning: image counts do not match. " + WHINING);
+      LogTools.println("Warning: image counts do not match. " + WHINING);
     }
   }
 
@@ -555,7 +527,7 @@ public class LegacyZVIReader extends FormatReader {
       imageSize = numPixels * bytesPerPixel;
       numChannels = pixelType == 1 ? 3 : 1;  // a total shot in the dark
       if (bytesPerPixel % numChannels != 0) {
-        System.err.println("Warning: incompatible bytesPerPixel (" +
+        LogTools.println("Warning: incompatible bytesPerPixel (" +
           bytesPerPixel + ") and numChannels (" + numChannels +
           "). Assuming grayscale data. " + WHINING);
         numChannels = 1;
@@ -617,12 +589,6 @@ public class LegacyZVIReader extends FormatReader {
         "  bytesPerPixel = " + bytesPerPixel + "\n" +
         "  pixelType = " + pixelType + "\n" + "  bitDepth = " + bitDepth;
     }
-  }
-
-  // -- Main method --
-
-  public static void main(String[] args) throws FormatException, IOException {
-    new LegacyZVIReader().testRead(args);
   }
 
 }

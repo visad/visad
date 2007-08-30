@@ -33,16 +33,14 @@ import loci.formats.*;
 /**
  * MNGReader is the file format reader for Multiple Network Graphics (MNG)
  * files.  Does not support JNG (JPEG Network Graphics).
+ *
+ * <dl><dt><b>Source code:</b></dt>
+ * <dd><a href="https://skyking.microscopy.wisc.edu/trac/java/browser/trunk/loci/formats/in/MNGReader.java">Trac</a>,
+ * <a href="https://skyking.microscopy.wisc.edu/svn/java/trunk/loci/formats/in/MNGReader.java">SVN</a></dd></dl>
  */
 public class MNGReader extends FormatReader {
 
   // -- Fields --
-
-  /** Current file. */
-  protected RandomAccessStream in;
-
-  /** Number of image planes in the file. */
-  protected int numImages = 0;
 
   /** Offsets to each plane. */
   private Vector offsets;
@@ -53,11 +51,11 @@ public class MNGReader extends FormatReader {
   // -- Constructor --
 
   /** Constructs a new MNG reader. */
-  public MNGReader() { super("Multiple Network Graphics (MNG)", "mng"); }
+  public MNGReader() { super("Multiple Network Graphics", "mng"); }
 
-  // -- FormatReader API methods --
+  // -- IFormatReader API methods --
 
-  /* @see loci.formats.IFormatReader#isThisType(byte[]) */ 
+  /* @see loci.formats.IFormatReader#isThisType(byte[]) */
   public boolean isThisType(byte[] block) {
     if (block.length < 8) return false;
     return block[0] == 0x8a && block[1] == 0x4d && block[2] == 0x4e &&
@@ -65,51 +63,22 @@ public class MNGReader extends FormatReader {
       block[6] == 0x1a && block[7] == 0x0a;
   }
 
-  /* @see loci.formats.IFormatReader#getImageCount(String) */ 
-  public int getImageCount(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return numImages;
+  /* @see loci.formats.IFormatReader#openBytes(int) */
+  public byte[] openBytes(int no) throws FormatException, IOException {
+    return ImageTools.getBytes(openImage(no), true, core.sizeC[0]);
   }
 
-  /* @see loci.formats.IFormatReader#isRGB(String) */ 
-  public boolean isRGB(String id) throws FormatException, IOException {
-    if (!id.equals(currentId)) initFile(id);
-    return core.sizeC[0] > 1;
-  }
-
-  /* @see loci.formats.IFormatReader#isLittleEndian(String) */ 
-  public boolean isLittleEndian(String id) throws FormatException, IOException {
-    return false;
-  }
-
-  /* @see loci.formats.IFormatReader#isInterleaved(String) */ 
-  public boolean isInterleaved(String id, int subC)
-    throws FormatException, IOException
-  {
-    return false;
-  }
-
-  /* @see loci.formats.IFormatReader#openBytes(String, int) */ 
-  public byte[] openBytes(String id, int no)
-    throws FormatException, IOException
-  {
-    return ImageTools.getBytes(openImage(id, no), true, core.sizeC[0]);
-  }
-
-  /* @see loci.formats.IFormatReader#openImage(String, int) */ 
-  public BufferedImage openImage(String id, int no)
-    throws FormatException, IOException
-  {
-    if (!id.equals(currentId)) initFile(id);
-
-    if (no < 0 || no >= getImageCount(id)) {
+  /* @see loci.formats.IFormatReader#openImage(int) */
+  public BufferedImage openImage(int no) throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 1);
+    if (no < 0 || no >= getImageCount()) {
       throw new FormatException("Invalid image number: " + no);
     }
 
-    int offset = ((Integer) offsets.get(no)).intValue();
+    long offset = ((Long) offsets.get(no)).longValue();
     in.seek(offset);
-    int end = ((Integer) lengths.get(no)).intValue();
-    byte[] b = new byte[end - offset + 8];
+    long end = ((Long) lengths.get(no)).longValue();
+    byte[] b = new byte[(int) (end - offset + 8)];
     in.read(b, 8, b.length - 8);
     b[0] = (byte) 0x89;
     b[1] = 0x50;
@@ -123,24 +92,14 @@ public class MNGReader extends FormatReader {
     return ImageIO.read(new ByteArrayInputStream(b));
   }
 
-  /* @see loci.formats.IFormatReader#close(boolean) */
-  public void close(boolean fileOnly) throws FormatException, IOException {
-    if (fileOnly && in != null) in.close();
-    else if (!fileOnly) close();
-  }
+  // -- Internal FormatReader API methods --
 
-  /* @see loci.formats.IFormatReader#close() */ 
-  public void close() throws FormatException, IOException {
-    if (in != null) in.close();
-    in = null;
-    currentId = null;
-  }
-
-  /** Initializes the given MNG file. */
+  /* @see loci.formats.FormatReader#initFile(String) */
   protected void initFile(String id) throws FormatException, IOException {
     if (debug) debug("MNGReader.initFile(" + id + ")");
     super.initFile(id);
     in = new RandomAccessStream(id);
+    in.order(false);
 
     status("Verifying MNG format");
 
@@ -158,16 +117,9 @@ public class MNGReader extends FormatReader {
 
     status("Reading dimensions");
 
-    core.sizeX[0] = (int) DataTools.read4UnsignedBytes(in, false);
-    core.sizeY[0] = (int) DataTools.read4UnsignedBytes(in, false);
-    long fps = DataTools.read4UnsignedBytes(in, false);
-    long layerCounter = DataTools.read4UnsignedBytes(in, false);
-    in.skipBytes(4);
-
-    long playTime = DataTools.read4UnsignedBytes(in, false);
-    long profile = DataTools.read4UnsignedBytes(in, false);
-
-    in.skipBytes(4); // skip the CRC
+    core.sizeX[0] = in.readInt();
+    core.sizeY[0] = in.readInt();
+    in.skipBytes(24);
 
     Vector stack = new Vector();
     int maxIterations = 0;
@@ -176,23 +128,23 @@ public class MNGReader extends FormatReader {
     status("Finding image offsets");
 
     while (in.getFilePointer() < in.length()) {
-      long len = DataTools.read4UnsignedBytes(in, false);
+      int len = in.readInt();
       in.read(b);
       String code = new String(b);
 
-      int fp = in.getFilePointer();
+      long fp = in.getFilePointer();
 
       if (code.equals("IHDR")) {
-        offsets.add(new Integer((int) in.getFilePointer() - 8));
-        numImages++;
+        offsets.add(new Long(in.getFilePointer() - 8));
+        core.imageCount[0]++;
       }
       else if (code.equals("IEND")) {
-        lengths.add(new Integer(fp + (int) len + 4));
+        lengths.add(new Long(fp + len + 4));
       }
       else if (code.equals("LOOP")) {
-        stack.add(new Integer((int) (in.getFilePointer() + len + 4)));
+        stack.add(new Long(in.getFilePointer() + len + 4));
         in.skipBytes(1);
-        maxIterations = DataTools.read4SignedBytes(in, false);
+        maxIterations = in.readInt();
       }
       else if (code.equals("ENDL")) {
         int seek = ((Integer) stack.get(stack.size() - 1)).intValue();
@@ -207,25 +159,31 @@ public class MNGReader extends FormatReader {
         }
       }
 
-      in.seek(fp + (int) len + 4);
+      in.seek(fp + len + 4);
     }
 
     status("Populating metadata");
 
     core.sizeZ[0] = 1;
-    core.sizeC[0] = openImage(id, 0).getRaster().getNumBands();
-    core.sizeT[0] = numImages;
+    core.sizeC[0] = openImage(0).getRaster().getNumBands();
+    core.sizeT[0] = core.imageCount[0];
     core.currentOrder[0] = "XYCZT";
     core.pixelType[0] = FormatTools.UINT8;
+    core.rgb[0] = core.sizeC[0] > 1;
+    core.interleaved[0] = false;
+    core.littleEndian[0] = false;
 
-    MetadataStore store = getMetadataStore(id);
+    MetadataStore store = getMetadataStore();
+    store.setImage(currentId, null, null, null);
 
-    store.setPixels(new Integer(core.sizeX[0]), new Integer(core.sizeY[0]), 
-      new Integer(core.sizeZ[0]), new Integer(core.sizeC[0]), 
+    store.setPixels(new Integer(core.sizeX[0]), new Integer(core.sizeY[0]),
+      new Integer(core.sizeZ[0]), new Integer(core.sizeC[0]),
       new Integer(core.sizeT[0]), new Integer(core.pixelType[0]),
       Boolean.TRUE, core.currentOrder[0], null, null);
     for (int i=0; i<core.sizeC[0]; i++) {
-      store.setLogicalChannel(i, null, null, null, null, null, null, null);
+      store.setLogicalChannel(i, null, null, null, null, null, null, null, null,
+        null, null, null, null, null, null, null, null, null, null, null, null,
+        null, null, null, null);
     }
   }
 
