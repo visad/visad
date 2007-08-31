@@ -589,8 +589,8 @@ public class AddeImageURL extends AddeDatasetURL {
    */
   protected String makeQuery() {
     StringBuffer buf = new StringBuffer(super.makeQuery());
-    appendKeyValue(buf, KEY_BAND, band);
     if (getRequestType().equals(REQ_IMAGEDATA)) {
+      appendKeyValue(buf, KEY_BAND, band);
       appendKeyValue(buf, getLocateKey(), getLocateValue());
       appendKeyValue(buf, KEY_PLACE, getPlaceValue());
       appendKeyValue(buf, KEY_SIZE, getLines() + " " + getElements());
@@ -603,6 +603,8 @@ public class AddeImageURL extends AddeDatasetURL {
       appendKeyValue(buf, KEY_AUX, getAuxValue());
       appendKeyValue(buf, KEY_DOC, getDocValue());
       if (getId() != null) appendKeyValue(buf, KEY_ID, getId());
+    } else {
+      appendKeyValue(buf, KEY_BAND, ALL);
     }
     appendDateOrPosString(buf);
     return buf.toString();
