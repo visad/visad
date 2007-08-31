@@ -284,6 +284,13 @@ public class AreaAdapter {
     );
   }
   
+  private AreaFile af;
+
+  public AreaFile getAreaFile() {
+       return af;
+   }
+
+
   /** Create a VisAD FlatField from a local McIDAS AREA subsected
    * according to the parameters
    * @param imageSource name of local file or a URL to locate file.
@@ -314,8 +321,7 @@ public class AreaAdapter {
                      boolean pack) throws IOException, VisADException {    
 
     try {
-      AreaFile af = AreaFileFactory.getAreaFileInstance(imageSource);
-      
+        af = AreaFileFactory.getAreaFileInstance(imageSource);
       // cal type not set in the imageSource URL
       if (af.getCalType() == Calibrator.CAL_NONE) {
         af.setCalType(cal);
