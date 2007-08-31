@@ -270,13 +270,14 @@ public class LociForm extends Form implements FormBlockReader,
     percent = 0;
     FlatField[] fields = DataUtility.getImageFields(data);
     try {
+      initHandler(writer, id);
       for (int i=0; i<fields.length; i++) {
         Image image;
         if (fields[i] instanceof ImageFlatField) {
           image = ((ImageFlatField) fields[i]).getImage();
         }
         else image = DataUtility.extractImage(fields[i], false);
-        writer.saveImage(id, image, i == fields.length - 1);
+        writer.saveImage(image, i == fields.length - 1);
         percent = (double) (i+1) / fields.length;
       }
     }
@@ -324,7 +325,8 @@ public class LociForm extends Form implements FormBlockReader,
     if (reader == null) throw new BadFormException("No reader");
     BufferedImage image;
     try {
-      image = reader.openImage(id, block_number);
+      initHandler(reader, id);
+      image = reader.openImage(block_number);
     }
     catch (FormatException exc) { throw new BadFormException(exc); }
     int width = image.getWidth(), height = image.getHeight();
@@ -350,19 +352,14 @@ public class LociForm extends Form implements FormBlockReader,
     throws BadFormException, IOException, VisADException
   {
     if (reader == null) throw new BadFormException("No reader");
-    try {
-      return reader.getImageCount(id);
-    }
-    catch (FormatException exc) { throw new BadFormException(exc); }
+    initHandler(reader, id);
+    return reader.getImageCount();
   }
 
   /** Closes any open files. */
   public void close() throws BadFormException, IOException, VisADException {
     if (reader == null) throw new BadFormException("No reader");
-    try {
-      reader.close();
-    }
-    catch (FormatException exc) { throw new BadFormException(exc); }
+    reader.close();
   }
 
 
@@ -408,10 +405,8 @@ public class LociForm extends Form implements FormBlockReader,
     throws BadFormException, IOException, VisADException
   {
     if (reader == null) throw new BadFormException("No reader");
-    try {
-      return reader.getMetadataValue(id, field);
-    }
-    catch (FormatException exc) { throw new BadFormException(exc); }
+    initHandler(reader, id);
+    return reader.getMetadataValue(field);
   }
 
   /**
@@ -425,10 +420,8 @@ public class LociForm extends Form implements FormBlockReader,
     throws BadFormException, IOException, VisADException
   {
     if (reader == null) throw new BadFormException("No reader");
-    try {
-      return reader.getMetadata(id);
-    }
-    catch (FormatException exc) { throw new BadFormException(exc); }
+    initHandler(reader, id);
+    return reader.getMetadata();
   }
 
 
@@ -436,6 +429,18 @@ public class LociForm extends Form implements FormBlockReader,
 
   public static void main(String[] args) throws Exception {
     new LociForm().testRead(args);
+  }
+
+
+  // -- Helper methods --
+
+  public void initHandler(IFormatHandler h, String id)
+    throws BadFormException, IOException
+  {
+    try {
+      h.setId(id);
+    }
+    catch (FormatException exc) { throw new BadFormException(exc); }
   }
 
 }
