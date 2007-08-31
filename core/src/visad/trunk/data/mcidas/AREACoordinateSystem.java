@@ -46,7 +46,7 @@ public class AREACoordinateSystem
     extends visad.georef.MapProjection
 {
 
-  private AREAnav anav = null;
+  protected AREAnav anav = null;
   private int lines;
   private int elements;
   private int[] dirBlock;
@@ -174,6 +174,16 @@ public class AREACoordinateSystem
       this(reference, dir, nav, aux, true);
   }
 
+  /** create a AREA coordinate system with nothing initialized.
+    * This allows for derived classes to do a lazy initialization
+    * of the coordinate system. To do this they must overwrite getAreaNav
+    * in order to create the nav.
+    */
+   protected AREACoordinateSystem() throws VisADException {
+       super(RealTupleType.LatitudeLongitudeTuple,coordinate_system_units);
+   }
+
+
   /** create a AREA coordinate system from the Area file's
     * directory and navigation blocks.
     *
@@ -194,8 +204,33 @@ public class AREACoordinateSystem
 
 
     super(reference, coordinate_system_units);
+    init(dir,nav,aux,useSpline);
+  }
+
+
+  /**
+   * This is used by the methods that do the work and can be overwritten
+   * by a derived class to do a lazy instantiation of the coordinate system.
+   * 
+   * @return The area nav 
+   */
+  protected AREAnav getAreaNav() {
+      return anav;
+  }
+
+  /**
+   * Create and initialize the areanav.
+   * This used to be in the constructor is snow its own method to enable 
+   * derived classes to lazily create the areanav
+   *
+   * @param dir[] is the AREA file directory block
+   * @param nav[] is the AREA file navigation block
+   * @param aux[] is the AREA file auxillary block
+   * @param useSpline  use a spline approximation for speed
+   */
+  protected void init(int[]dir, int[] nav, int[] aux, boolean useSpline) throws VisADException {
     try {
-      anav = AREAnav.makeAreaNav(nav, aux);
+        anav = AREAnav.makeAreaNav(nav, aux);
     } catch (McIDASException excp) {
       throw new CoordinateSystemException(
           "AREACoordinateSystem: problem creating navigation" + excp);
@@ -218,23 +253,26 @@ public class AREACoordinateSystem
 
   /** Get the directory block used to initialize this AREACoordinateSystem */
   public int[] getDirBlock() {
+    getAreaNav();
     return dirBlock;
   }
 
   /** Get the navigation block used to initialize this AREACoordinateSystem */
   public int[] getNavBlock() {
+    getAreaNav();
     return navBlock;
   }
 
   /** Get the navigation block used to initialize this AREACoordinateSystem */
   public int[] getAuxBlock() {
+    getAreaNav();
     return auxBlock;
   }
 
   /** get the subpoint if available
   */
   public double[] getSubpoint() {
-    return anav.getSubpoint();
+    return getAreaNav().getSubpoint();
   }
 
   /** 
@@ -254,6 +292,8 @@ public class AREACoordinateSystem
       throw new CoordinateSystemException("AREACoordinateSystem." +
              "toReference: tuples wrong dimension");
     }
+
+    AREAnav  anav = getAreaNav();
 
     if (anav == null) {
       throw new CoordinateSystemException("AREA O & A data not availble");
@@ -297,6 +337,7 @@ public class AREACoordinateSystem
              "fromReference: tuples wrong dimension");
     }
 
+    AREAnav  anav = getAreaNav();
     if (anav == null) {
       throw new CoordinateSystemException("AREA O & A data not availble");
     }
@@ -340,6 +381,7 @@ public class AREACoordinateSystem
              "toReference: tuples wrong dimension");
     }
 
+    AREAnav  anav = getAreaNav();
     if (anav == null) {
       throw new CoordinateSystemException("AREA O & A data not availble");
     }
@@ -386,6 +428,7 @@ public class AREACoordinateSystem
              "fromReference: tuples wrong dimension");
     }
 
+    AREAnav  anav = getAreaNav();
     if (anav == null) {
       throw new CoordinateSystemException("AREA O & A data not availble");
     }
