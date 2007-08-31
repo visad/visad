@@ -428,6 +428,7 @@ public class AREACoordinateSystem
              "fromReference: tuples wrong dimension");
     }
 
+
     AREAnav  anav = getAreaNav();
     if (anav == null) {
       throw new CoordinateSystemException("AREA O & A data not availble");
@@ -839,8 +840,9 @@ public class AREACoordinateSystem
     if (!(obj instanceof AREACoordinateSystem))
         return false;
     AREACoordinateSystem that = (AREACoordinateSystem) obj;
+    AREAnav  anav = getAreaNav();
     return this == that ||
-           (anav.equals(that.anav) && 
+          (anav.equals(that.getAreaNav()) && 
            this.lines == that.lines &&
            this.elements == that.elements);
   }
@@ -850,6 +852,9 @@ public class AREACoordinateSystem
    * @return wordy String
    */
   public String toString() {
+     if(anav==null) {
+        return "Image  Projection";
+     }
      return "Image (" + anav.toString() + ") Projection";
   }
 }
