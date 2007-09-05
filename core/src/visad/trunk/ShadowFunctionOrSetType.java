@@ -382,6 +382,10 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 2:" +
         boolean textureEnabled = 
           default_values[display.getDisplayScalarIndex(Display.TextureEnable)] > 0.5f;
 
+        boolean pointMode =  
+          default_values[
+            display.getDisplayScalarIndex(Display.PointMode)] > 0.5f;
+
         // test for texture mapping
         // WLH 30 April 99
         isTextureMap = !getMultipleDisplayScalar() &&
@@ -395,14 +399,16 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 2:" +
                        checkColorAlphaRange(Range.getDisplayIndices()) &&
                        checkAny(Range.getDisplayIndices()) &&
                        textureEnabled &&
-                       !display.getGraphicsModeControl().getPointMode();
+                       //!display.getGraphicsModeControl().getPointMode();
+                       !pointMode;
 
         curvedTexture = getLevelOfDifficulty() == ShadowType.SIMPLE_FIELD &&
                         Domain.getAllSpatial() &&
                         checkSpatialOffsetColorAlphaRange(Domain.getDisplayIndices()) &&
                         checkSpatialOffsetColorAlphaRange(Range.getDisplayIndices()) &&
                         checkAny(Range.getDisplayIndices()) &&
-                        !display.getGraphicsModeControl().getPointMode();
+                        //!display.getGraphicsModeControl().getPointMode();
+                        !pointMode;
 
         // WLH 15 March 2000
         // isTexture3D = !getMultipleDisplayScalar() &&
@@ -419,7 +425,8 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 2:" +
                        checkColorAlphaRange(Range.getDisplayIndices()) &&
                        checkAny(Range.getDisplayIndices()) &&
                        textureEnabled &&
-                       !display.getGraphicsModeControl().getPointMode();
+                       //!display.getGraphicsModeControl().getPointMode();
+                       !pointMode;
 
         // note GgraphicsModeControl.setTextureEnable(false) disables this
         isLinearContour3D =
@@ -447,7 +454,8 @@ System.out.println("checkIndices.isTexture3D = " + isTexture3D + " " +
                    checkColorAlphaRange(Range.getDisplayIndices()) + " " +
                    checkAny(Range.getDisplayIndices()) + " " +
                    textureEnabled &&
-                   !display.getGraphicsModeControl().getPointMode() );
+                   //!display.getGraphicsModeControl().getPointMode() );
+                   !pointMode;
 */
 
 /*
@@ -463,7 +471,8 @@ System.out.println("checkIndices.isTextureMap = " + isTextureMap + " " +
                    checkColorAlphaRange(Range.getDisplayIndices()) + " " +
                    checkAny(Range.getDisplayIndices()) + " " +
                    textureEnabled &&
-                   !display.getGraphicsModeControl().getPointMode() );
+                   //!display.getGraphicsModeControl().getPointMode() );
+                   !pointMode;
 
 System.out.println("checkIndices.curvedTexture = " + curvedTexture + " " +
                     (getLevelOfDifficulty() == ShadowType.SIMPLE_FIELD) + " " +
@@ -473,7 +482,8 @@ System.out.println("checkIndices.curvedTexture = " + curvedTexture + " " +
                     checkSpatialOffsetColorAlphaRange(Range.getDisplayIndices()) + " " +
                     checkAny(Range.getDisplayIndices()) + " " +
                     textureEnabled &&
-                    !display.getGraphicsModeControl().getPointMode() );
+                    //!display.getGraphicsModeControl().getPointMode() );
+                    !pointMode;
 */
       }
     }
@@ -519,6 +529,7 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
                              ShadowType shadow_api)
          throws VisADException, RemoteException {
 
+    visad.util.Trace.msg(""+data.getType());
     // return if data is missing or no ScalarMaps
     if (data.isMissing()) return false;
     if (LevelOfDifficulty == NOTHING_MAPPED) return false;
@@ -1216,17 +1227,20 @@ for (int i=0; i < 4; i++) {
 // if (link != null) System.out.println("end domain " + (System.currentTimeMillis() - link.start_time));
 
       if (domain_reference != null && domain_reference.getMappedDisplayScalar()) {
+        visad.util.Trace.call1("ShadowFunctionOrSetType:domain_ref_mapped");
         // apply coordinate transform to domain values
         RealTupleType ref = (RealTupleType) domain_reference.getType();
         // MEM
         float[][] reference_values = null;
         double[][] reference_doubles = null;
         if (domain_dimension == 1) {
+          visad.util.Trace.call1("ShadowFunctionOrSetType:domain_ref_mapped:1");
           reference_doubles =
             CoordinateSystem.transformCoordinates(
               ref, null, ref.getDefaultUnits(), null,
               (RealTupleType) Domain.getType(), dataCoordinateSystem,
               domain_units, null, domain_doubles);
+          visad.util.Trace.call2("ShadowFunctionOrSetType:domain_ref_mapped:1");
         }
         else {
           // this interferes with correct handling of missing data
@@ -1296,11 +1310,13 @@ System.out.println("data_width = " + data_width + " data_height = " + data_heigh
 // if (link != null) System.out.println("end compute spline " + (System.currentTimeMillis() - link.start_time));
           }
           else { // if !(curvedTexture && domainOnlySpatial)
+            visad.util.Trace.call1("ShadowFunctionOrSetType:domain_ref_mapped:2");
             reference_values =
               CoordinateSystem.transformCoordinates(
                 ref, null, ref.getDefaultUnits(), null,
                 (RealTupleType) Domain.getType(), dataCoordinateSystem,
                 domain_units, null, domain_values, false);
+            visad.util.Trace.call2("ShadowFunctionOrSetType:domain_ref_mapped:2");
           }
         } // end if !(domain_dimension == 1)
 
@@ -1347,6 +1363,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
         // FREE
         reference_values = null;
         reference_doubles = null;
+        visad.util.Trace.call2("ShadowFunctionOrSetType:domain_ref_mapped");
       }
       else { // if !(domain_reference != null &&
              //      domain_reference.getMappedDisplayScalar())
@@ -1358,6 +1375,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
                       new CoordinateSystem[] {dataCoordinateSystem},
                       domain_units);
 */
+          visad.util.Trace.call1("ShadowFunctionOrSetType:!domain_ref_mapped");
           RealTupleType ref = (domain_reference == null) ? null :
                               (RealTupleType) domain_reference.getType();
           Unit[] ref_units = (ref == null) ? null : ref.getDefaultUnits();
@@ -1367,6 +1385,7 @@ for (int i=0; i<DomainReferenceComponents.length; i++) {
                       domain_units);
         // WLH 13 March 2000
         // }
+          visad.util.Trace.call2("ShadowFunctionOrSetType:!domain_ref_mapped");
       }
       // FREE
       domain_values = null;
@@ -1714,7 +1733,11 @@ System.out.println("doTerminal: isTerminal = " + getIsTerminal() +
           display.getDisplayScalarIndex(Display.MergeGeometries)];
       mode.setMergeGeometries(mergeArrays > 0.5f);
 
-      boolean pointMode = mode.getPointMode();
+      //boolean pointMode = mode.getPointMode();
+      boolean pointMode = 
+          default_values[
+            display.getDisplayScalarIndex(Display.PointMode)] > 0.5f;
+
 
       float missingTransparent =
           default_values[display.getDisplayScalarIndex(Display.MissingTransparent)];

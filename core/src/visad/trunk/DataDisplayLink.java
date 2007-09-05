@@ -298,6 +298,9 @@ public class DataDisplayLink extends ReferenceActionLink {
       else if (Display.MergeGeometries.equals(dreal)) {
         defaultValues[i] = (mode.getMergeGeometries()) ? 1 : -1;
       }
+      else if (Display.PointMode.equals(dreal)) {
+        defaultValues[i] = (mode.getPointMode()) ? 1 : -1;
+      }
 /* WLH 21 Aug 98
       defaultValues[i] = (float) (((DisplayRealType)
         ((DisplayImpl) local_action).getDisplayScalar(i)).getDefaultValue());

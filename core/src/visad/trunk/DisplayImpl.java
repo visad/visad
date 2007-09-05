@@ -1908,6 +1908,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
       }
       if ((Display.LineWidth.equals(type) ||
            Display.PointSize.equals(type) ||
+           Display.PointMode.equals(type) ||
            Display.LineStyle.equals(type) ||
            Display.TextureEnable.equals(type) ||
            Display.MissingTransparent.equals(type) ||

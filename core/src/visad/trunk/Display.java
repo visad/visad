@@ -330,6 +330,10 @@ public interface Display extends Action {
   DisplayRealType MergeGeometries =
     new DisplayRealType("MergeGeometries", true, -1.0, true);
 
+  /** point mode - ConstantMap only */
+  DisplayRealType PointMode =
+    new DisplayRealType("PointMode", true, -1.0, true);
+
   /** array of system intrinsic DisplayRealTypes */
   DisplayRealType[] DisplayRealArray =
     {XAxis, YAxis, ZAxis, Latitude, Longitude, Radius, List, Red, Green, Blue,
@@ -343,7 +347,7 @@ public interface Display extends Action {
      PolygonMode, CurvedSize, ColorMode, 
      PolygonOffset, PolygonOffsetFactor, 
      AdjustProjectionSeam, Texture3DMode,
-     CacheAppearances, MergeGeometries
+     CacheAppearances, MergeGeometries, PointMode
      };
 
   // system intrinsic DisplayTupleType objects
