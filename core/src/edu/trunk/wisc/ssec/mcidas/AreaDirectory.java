@@ -57,18 +57,18 @@ public class AreaDirectory implements java.io.Serializable
   private String calTypeUnit = null;
   private int calTypeScaleFactor = 1;
   private String memo;
-  private String[] sensors = {"derived data",
-                "test patterns",
-                "graphics",
-                "miscellaneous",
+  private String[] sensors = {"Derived Data",
+                "Test Patterns",
+                "Graphics",
+                "Miscellaneous",
                 "PDUS Meteosat visible",
                 "PDUS Meteosat infrared",
                 "PDUS Meteosat water vapor",
-                "radar",
-                "miscellaneous aircraft data",
-                "raw Meteosat",
-                "composite image",
-                "topography image",
+                "Radar",
+                "Miscellaneous Aircraft Data",
+                "Raw Meteosat",
+                "Composite image",
+                "Topography image",
                 "GMS visible",
                 "GMS infrared",
                 "ATS 6 visible",
@@ -160,8 +160,8 @@ public class AreaDirectory implements java.io.Serializable
                 "",
                 "TERRA L1B", // 101
                 "TERRA CLD",
-                "",
-                "",
+                "TERRA GEO",
+                "TERRA-AER",
                 "",
                 "TERRA TOP",
                 "TERRA ATM",
@@ -170,8 +170,8 @@ public class AreaDirectory implements java.io.Serializable
                 "",
                 "AQUA L1B", // 111
                 "AQUA CLD",
-                "",
-                "",
+                "AQUA GEO",
+                "AQUA AER",
                 "",
                 "AQUA TOP",
                 "AQUA ATM",
@@ -181,9 +181,13 @@ public class AreaDirectory implements java.io.Serializable
                 "", "", "", "", "", "", "", "","", "", // 130
                 "", "", "", "", "", "", "", "","", "", // 140
                 "", "", "", "", "", "", "", "","", "", // 150
-                "", "", "", "", "", "", "", "","", "", // 160
-                "", "", "", "", "", "", "", "","", "", // 170
                 "", "", "", "", "", "", "", "","", 
+                "TERRA NDVI", // 160
+                "TERRA CREF", 
+                "", "", "", "", "", "", "","", 
+                "AQUA NDVI", // 170
+                "AQUA CREF", 
+                "", "", "", "", "", "", "","", 
                 "GOES 13 imager", // 180
                 "GOES 13 sounder",
                 "GOES 14 imager",
@@ -196,20 +200,22 @@ public class AreaDirectory implements java.io.Serializable
                 "","", // 190
                 "","","","",
                 "DMSP F-16", // 195
-                "","","","", // 199
+                "DMSP F-17",
+                "","","", // 199
                 "AIRS L1B", // 200
                 "","","","","","","","","",
                 "AMSR-E L1B", // 210
-                "",
+                "AMSR-E RAIN",
+                "","","","","","","","","", // 220
+                "","","","","","","","","",
+                "Kalpana-1", // 230
+                "","","","","","","","","",
+                "MetOp-A", // 240
+                "MetOp-B",
+                "MetOp-C",
+
 
                 ""};
-                                   
-/*
-180 & 181 - GOES13 (Imager/Sounder)
-182 & 183 - GOES14
-184 & 185 - GOES15
-186 & 187 - GOES16 
-*/
 
   /**
    * Create an AreaDirectory from the raw block of data of
