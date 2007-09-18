@@ -90,6 +90,10 @@ public abstract class AREAnav
     /** Code value in AREA files used to designate GOES (GOES D-H) navigation */
     public static final int GOES =  0x474F4553;    
 
+    /** Code value in AREA files used to designate GEOS navigation */
+    public static final int GEOS =  0x47454F53;    
+
+
     /** Code value in AREA files used to designate GVAR (GOES I-M) navigation */
     public static final int GVAR =  0x47564152;    
 
@@ -593,6 +597,9 @@ public abstract class AREAnav
                 break;
             case GOES:
                 anav = new GOESnav(navBlock);
+                break;
+            case GEOS:
+                anav = new GEOSnav(navBlock);
                 break;
             case PS:
                 anav = new PSnav(navBlock);
