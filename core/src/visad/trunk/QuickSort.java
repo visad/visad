@@ -155,6 +155,12 @@ public class QuickSort {
     }
   }
 
+  /**
+   * Sort the array in place and return an array of the
+   * orginal indices.
+   * @param  a  array of floats to sort
+   * @return  array of the original indices of each  element of a.
+   */
   public static int[] sort(float a[]) throws VisADException {
     int[] p = new int[a.length];
     for (int i=0; i<a.length; i++) p[i] = i;
@@ -162,7 +168,12 @@ public class QuickSort {
     return p;
   }
 
-  // version for doubles
+  /**
+   * Sort the array in place and return an array of the
+   * orginal indices.
+   * @param  a  array of doubles to sort
+   * @return  array of the original indices of each  element of a.
+   */
   public static int[] sort(double a[]) throws VisADException {
     int[] p = new int[a.length];
     for (int i=0; i<a.length; i++) p[i] = i;
