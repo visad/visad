@@ -21,7 +21,6 @@ MA 02111-1307, USA
 */
 package edu.wisc.ssec.mcidas;
 
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -34,7 +33,7 @@ import edu.wisc.ssec.mcidas.adde.AddeURLException;
  * constructors do not.
  * 
  * <p>No instances of this class can be created.</p>
- * @version $Id: AreaFileFactory.java,v 1.3 2007-08-22 21:15:09 brucef Exp $
+ * @version $Id: AreaFileFactory.java,v 1.4 2007-09-19 21:14:50 brucef Exp $
  * @author Bruce Flynn, SSEC
  */
 public final class AreaFileFactory {
@@ -194,11 +193,16 @@ public final class AreaFileFactory {
    * <code>AreaFile</code> instance. For more information on urls appropriate 
    * for creating <code>AreaFile</code> instances see 
    * {@link #getAreaFileInstance(URL)}. 
+   * <p>URLs containing encoded characters in their query strings will be decoded
+   * before parsing.
+   * </p>
    * @return an initialized, possibly subsetted, instance
    * @throws AreaFileException on any error constructing the instance.
+   * @throws AddeURLException If the source is a URL and the query string is 
+   *  not formatted correctly.
    */
   public static final AreaFile getAreaFileInstance(final String src) 
-    throws AreaFileException {
+    throws AreaFileException, AddeURLException {
     
     // handle the special "pop up a gui" case for adde://image?
     if (src.startsWith("adde://") &&
@@ -206,14 +210,16 @@ public final class AreaFileFactory {
        return new AreaFile(src);
     }
 
-
+    // Try to create an instance as a URL first. If a valid URL instance cannot
+    // be created lets try 'src' as a filename. 
+    // NOTE: it's important to make sure the AreaFile and AddeURL exceptions 
+    // are propagated from constructor or factory method.
     AreaFile af = null;
     URL url = null;
     try {
       url = new URL(src);
       af = getAreaFileInstance(url);
-    } catch (IOException e) {
-      e.printStackTrace();
+    } catch (MalformedURLException e) {
       af = new AreaFile(src);
     }
     
@@ -253,12 +259,11 @@ public final class AreaFileFactory {
    * @param url - the url as described above
    * @return an initialized, possibly subsetted, instance
    * @throws AreaFileException on any error constructing the instance.
-   * @throws AddeURLException if the ADDE url is malformed
-   * @throws MalformedURLException 
-   * @throws MalformedURLException if the file url is malformed
+   * @throws AddeURLException if the query string is not a valid ADDE query
+   *  stirng.
    */
   public static final AreaFile getAreaFileInstance(final URL url) 
-    throws AreaFileException, AddeURLException, MalformedURLException {
+    throws AddeURLException, AreaFileException {
 
     // it's a local file, investigate further
     if (url.getProtocol().equalsIgnoreCase("file")) {
@@ -267,13 +272,14 @@ public final class AreaFileFactory {
       if (url.getQuery() == null){
         af = new AreaFile(url);
       } else {
+        // open w/o query string
         af = new AreaFile(url.toString().split("\\?")[0]);
       }
 
       // is it a local url with subsetting
       String query = url.getQuery();
       if (query != null && query.contains("%")) {
-    	  try {
+        try {
           query = url.toURI().getQuery(); // URI queries are decoded
         } catch (URISyntaxException e) {
           throw new AddeURLException(e.getMessage());
@@ -287,7 +293,7 @@ public final class AreaFileFactory {
         int startElem = 0; 
         int numEles = af.getAreaDirectory().getElements(); 
         int eleMag = 1;
-        int band = 1;
+        int band = -1;
         int calType = Calibrator.CAL_NONE;
         boolean linele = false;
         boolean size = false;
@@ -311,7 +317,18 @@ public final class AreaFileFactory {
           }
           
           if (kv[0].equalsIgnoreCase("band")) {
-            band = Integer.parseInt(kv[1]);
+            int bandIdx = -1;
+            int[] bands = af.getAreaDirectory().getBands();
+            if (band == -1) {
+              bandIdx = 0;
+            } else {
+              for (int j = 0; i < bands.length; j++) {
+                if (bands[j] == band) {
+                  bandIdx = j;
+                }
+              }
+            }
+            band = bands[bandIdx];
           }
           
           if (kv[0].equalsIgnoreCase("linele")) {
@@ -351,10 +368,10 @@ public final class AreaFileFactory {
 
         // enforce parameter requirements
         if ((!linele && size) || (!size && linele)) {
-         throw new MalformedURLException(
+         throw new AddeURLException(
               "linele and size must be used together");
         } else if(mag && (!linele || !size)) {
-//          throw new MalformedURLException(
+//          throw new IllegalArgumentException(
 //              "mag must be used with linele and size");
         }
         
