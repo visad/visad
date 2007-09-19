@@ -29,6 +29,7 @@ package visad.util;
 import java.awt.Font;
 import java.io.*;
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 import javax.swing.event.*;
 import javax.swing.undo.*;
 
@@ -214,6 +215,16 @@ public class TextEditor extends JScrollPane implements UndoableEditListener {
     text.paste();
   }
 
+ /**
+  * Provide direct access to the text component
+  *
+  * @return the text component
+  */
+ public JTextComponent getTextComponent() {
+     return text;
+ }
+
+
   /** returns a string containing the text of the document */
   public String getText() {
     return text.getText();
@@ -224,6 +235,20 @@ public class TextEditor extends JScrollPane implements UndoableEditListener {
     this.text.setText(text);
   }
   
+  /**
+   * Insert the given text at the caret
+   *
+   * @param textToInsert the text
+   */
+  public void insertText(String textToInsert) {
+    int    pos = this.text.getCaretPosition();
+    String t   = this.text.getText();
+    t = t.substring(0, pos) + textToInsert + t.substring(pos);
+    this.text.setText(t);
+    this.text.setCaretPosition(pos + textToInsert.length());
+  }
+
+
   /** returns the filename being edited */
   public String getFilename() {
     return (currentFile == null ? null : currentFile.getPath());
