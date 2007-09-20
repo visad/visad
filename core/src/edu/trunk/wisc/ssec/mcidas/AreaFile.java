@@ -447,19 +447,20 @@ public class AreaFile implements java.io.Serializable {
    * being updated with the subsetting parameters.
    *
    *
-   * @param source
+   * @param source  the path to the file
    * @param startLine the starting image line
    * @param numLines the total number of lines to return
-   * @param lineMag the line magnification. Valid values are &gt;= -1. -1, 0, and
-   *                1 are all taken to be full line resolution, 2 is every
-   *                other line, 3 every third, etc...
+   * @param lineMag the line magnification. Valid values are &lt;= -1. 
+   *                -1, 0, and 1 are all taken to be full line resolution, 
+   *                -2 is every other line, -3 every third, etc...
    * @param startElem the starting image element
    * @param numEles the total number of elements to return
-   * @param eleMag the element magnification. Valid values are &gt;= -1. -1, 0, and 1
-   *               are all taken to be full element resolution, 2 is every
-   *               other element, 3 every third, etc...
+   * @param eleMag the element magnification. Valid values are &lt;= -1. 
+   *               -1, 0, and 1 are all taken to be full element resolution, 
+   *               -2 is every other element, -3 every third, etc...
    * @param band the 1-based band number for the subset, which must be present
-   *             in the directory blocks band map
+   *             in the directory blocks band map or -1 for the first band
+   *
    * @throws AreaFileException if file cannot be opened
    * @throws IllegalArgumentException If the magnification is greater than 1,
    * the band number is not in the band map, or either of the following are
@@ -483,12 +484,14 @@ public class AreaFile implements java.io.Serializable {
     if (lineMag == 0) lineMag = 1;
 
     if (lineMag > 1 || eleMag > 1) {
-      throw new IllegalArgumentException("Magnifications greater that 1 are not currently supported");
+      throw new IllegalArgumentException(
+        "Magnifications greater that 1 are not currently supported");
 
     }
     else if (startLine + numLines * Math.abs(lineMag) > origNumLines ||
              startElem + numEles * Math.abs(eleMag) > origNumElements) {
-      throw new IllegalArgumentException("Arguments outside of file line/element counts");
+      throw new IllegalArgumentException(
+        "Arguments outside of file line/element counts");
     }
 
     int bandIdx = -1;
@@ -1402,7 +1405,7 @@ public class AreaFile implements java.io.Serializable {
     if (args == null || args.length == 0) {
       System.out.println();
       System.out.println(
-        "USAGE: AreaFile <URL or filepath> [(raw|temp|brit|rad|refl)]");
+        "USAGE: AreaFile <URL or filepath> <show_vals>");
       System.out.println();
       System.exit(1);
     }
@@ -1410,11 +1413,6 @@ public class AreaFile implements java.io.Serializable {
     AreaFile af = AreaFileFactory.getAreaFileInstance(args[0]);
 
     System.out.println(af);
-
-    if (args.length == 1 && !af.isSubsetted()) {
-      System.err.println("Sorry, I won't print an unsubsetted file");
-      System.exit(0);
-    }
 
     System.out.println();
     System.out.println(af.subset);
@@ -1433,13 +1431,20 @@ public class AreaFile implements java.io.Serializable {
       "DATA [" + data.length + "][" + data[0].length + "][" +
       data[0][0].length + "]");
 
-    // write data to std err so it may be piped to file w/o all the
-    // other garbage
-    for (int i = 0; i < data[0].length; i++) {
-      for (int j = 0; j < data[0][0].length; j++) {
-        System.err.print("" + data[0][i][j] + " ");
+    if (args.length > 1 && !af.isSubsetted()) {
+      System.err.println("Sorry, I won't print an unsubsetted file");
+      System.exit(0);
+    }
+
+    if (args.length > 1) {
+      // write data to std err so it may be piped to file w/o all the
+      // other garbage
+      for (int i = 0; i < data[0].length; i++) {
+        for (int j = 0; j < data[0][0].length; j++) {
+          System.err.print("" + data[0][i][j] + " ");
+        }
+        System.err.println();
       }
-      System.err.println();
     }
   }
 
