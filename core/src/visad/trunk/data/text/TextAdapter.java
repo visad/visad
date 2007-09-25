@@ -109,6 +109,9 @@ public class TextAdapter {
   int[][] values_to_index;
 
 
+  private boolean onlyReadOneLine = false;
+
+
   /** Create a VisAD FlatField from a local Text (comma-, tab- or 
     * blank-separated values) ASCII file
     * @param filename name of local file.
@@ -175,6 +178,26 @@ public class TextAdapter {
     */
   public TextAdapter(InputStream inputStream, String delimiter, String map, String params) 
                          throws IOException, VisADException {
+      this(inputStream, delimiter, map,params,false);
+  }
+
+
+  /** Create a VisAD FlatField from a local Text (comma-, tab- or 
+    * blank-separated values) ASCII file
+    * @param inputStream The input stream to read from
+    * @param delimiter the delimiter
+    * @param map the VisAD "MathType" as a string defining the FlatField
+    * @param params the list of parameters used to define what columns
+    *  of the text file correspond to what MathType parameters.
+    * @param onlyReadOneLine If true then only read one line of data. This is used so client code can
+    * read the meta data.
+    * @exception IOException if there was a problem reading the file.
+    * @exception VisADException if an unexpected problem occurs.
+    */
+
+  public TextAdapter(InputStream inputStream, String delimiter, String map, String params,boolean onlyReadOneLine) 
+                         throws IOException, VisADException {
+    this.onlyReadOneLine = onlyReadOneLine;
     DELIM = delimiter;
     readit(inputStream, map, params);
   }
@@ -911,6 +934,9 @@ public class TextAdapter {
       rangeValues.add(rValues);
       if (tuple != null) tupleValues.add(tuple); 
       if (isRaster) numElements = rValues.length;
+
+      if(onlyReadOneLine) break;
+
     }
 
     int numSamples = rangeValues.size(); // # lines of data
