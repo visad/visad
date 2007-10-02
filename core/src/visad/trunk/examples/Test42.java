@@ -21,6 +21,7 @@ MA 02111-1307, USA
 */
 
 import java.rmi.RemoteException;
+import java.awt.Font;
 
 import visad.*;
 
@@ -77,6 +78,8 @@ public class Test42
     ScalarMap xmap0 = new ScalarMap(dom0, Display.XAxis);
     xmap0.getAxisScale().setScreenBased(true);
     xmap0.getAxisScale().setLabelAllTicks(true);
+    xmap0.getAxisScale().setTitle("test");
+    xmap0.getAxisScale().setFont(Font.decode("dialog-16"));
     dpys[0].addMap(xmap0);
     ScalarMap ymap0 = new ScalarMap(dom1, Display.YAxis);
     ymap0.getAxisScale().setScreenBased(true);

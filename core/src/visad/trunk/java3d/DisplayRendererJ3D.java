@@ -1083,7 +1083,17 @@ public abstract class DisplayRendererJ3D
             appearance.setColoringAttributes(color);
             graphics.setAppearance(appearance);
             graphics.draw(((DisplayImplJ3D) getDisplay()).makeGeometry(array));
-            graphics.draw(((DisplayImplJ3D) getDisplay()).makeGeometry(labels));
+
+            if (labels != null) {
+              GeometryArray labelGeometry = 
+                ((DisplayImplJ3D) getDisplay()).makeGeometry(labels);
+              Appearance labelAppearance =
+                ShadowTypeJ3D.staticMakeAppearance(
+                    getDisplay().getGraphicsModeControl(), null, null, 
+                    labelGeometry, true);
+              graphics.setAppearance(labelAppearance);
+              graphics.draw(labelGeometry);
+            }
           }
           else {
 //  System.out.println("makeScreenBasedScale fail");
