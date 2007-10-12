@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package loci.formats.in;
 
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
 import loci.formats.*;
@@ -74,36 +73,14 @@ public class MicromanagerReader extends FormatReader {
     return s;
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(int) */
-  public byte[] openBytes(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
-    tiffReader.setId((String) tiffs.get(no));
-    return tiffReader.openBytes(0);
-  }
-
   /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
   public byte[] openBytes(int no, byte[] buf)
     throws FormatException, IOException
   {
     FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
+    FormatTools.checkPlaneNumber(this, no);
     tiffReader.setId((String) tiffs.get(no));
     return tiffReader.openBytes(0, buf);
-  }
-
-  /* @see loci.formats.IFormatReader#openImage(int) */
-  public BufferedImage openImage(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
-    tiffReader.setId((String) tiffs.get(no));
-    return tiffReader.openImage(0);
   }
 
   /* @see loci.formats.IFormatReader#close(boolean) */
@@ -152,6 +129,7 @@ public class MicromanagerReader extends FormatReader {
     File file = new File(currentId).getAbsoluteFile();
     in = new RandomAccessStream(file.exists() ? new File(file.getParentFile(),
       METADATA).getAbsolutePath() : METADATA);
+    String parent = file.exists() ? file.getParentFile().getAbsolutePath() : "";
 
     // usually a small file, so we can afford to read it into memory
 
@@ -169,7 +147,8 @@ public class MicromanagerReader extends FormatReader {
       pos = s.indexOf("FileName", pos);
       if (pos == -1 || pos >= in.length()) break;
       String name = s.substring(s.indexOf(":", pos), s.indexOf(",", pos));
-      tiffs.add(0, name.substring(3, name.length() - 1));
+      tiffs.add(0,
+        parent + File.separator + name.substring(3, name.length() - 1));
       pos++;
     }
 
@@ -242,20 +221,14 @@ public class MicromanagerReader extends FormatReader {
     core.interleaved[0] = false;
     core.littleEndian[0] = tiffReader.isLittleEndian();
     core.imageCount[0] = tiffs.size();
+    core.indexed[0] = false;
+    core.falseColor[0] = false;
+    core.metadataComplete[0] = true;
 
     MetadataStore store = getMetadataStore();
     store.setImage(currentId, null, null, null);
 
-    store.setPixels(
-      new Integer(core.sizeX[0]),
-      new Integer(core.sizeY[0]),
-      new Integer(core.sizeZ[0]),
-      new Integer(core.sizeC[0]),
-      new Integer(core.sizeT[0]),
-      new Integer(core.pixelType[0]),
-      new Boolean(!core.littleEndian[0]),
-      core.currentOrder[0],
-      null, null);
+    FormatTools.populatePixels(store, this);
     for (int i=0; i<core.sizeC[0]; i++) {
       store.setLogicalChannel(i, null, null, null, null, null, null, null, null,
         null, null, null, null, null, null, null, null, null, null, null, null,

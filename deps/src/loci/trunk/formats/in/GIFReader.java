@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package loci.formats.in;
 
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.Vector;
 import loci.formats.*;
@@ -96,6 +95,7 @@ public class GIFReader extends FormatReader {
   private byte[] pixels;
 
   private Vector images;
+  private Vector colorTables;
 
   // -- Constructor --
 
@@ -109,11 +109,16 @@ public class GIFReader extends FormatReader {
   /* @see loci.formats.IFormatReader#isThisType(byte[]) */
   public boolean isThisType(byte[] block) { return false; }
 
-  /* @see loci.formats.IFormatReader#openBytes(int) */
-  public byte[] openBytes(int no) throws FormatException, IOException {
+  /* @see loci.formats.IFormatReader#get8BitLookupTable() */
+  public byte[][] get8BitLookupTable() throws FormatException, IOException {
     FormatTools.assertId(currentId, true, 1);
-    byte[] buf = new byte[core.sizeX[0] * core.sizeY[0] * core.sizeC[0]];
-    return openBytes(no, buf);
+    byte[][] table = new byte[3][act.length];
+    for (int i=0; i<act.length; i++) {
+      table[0][i] = (byte) ((act[i] >> 16) & 0xff);
+      table[1][i] = (byte) ((act[i] >> 8) & 0xff);
+      table[2][i] = (byte) (act[i] & 0xff);
+    }
+    return table;
   }
 
   /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
@@ -121,40 +126,23 @@ public class GIFReader extends FormatReader {
     throws FormatException, IOException
   {
     FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
-    if (buf.length < core.sizeX[0] * core.sizeY[0] * core.sizeC[0]) {
-      throw new FormatException("Buffer too small.");
-    }
+    FormatTools.checkPlaneNumber(this, no);
+    FormatTools.checkBufferSize(this, buf.length);
 
-    int[] ints = (int[]) images.get(no);
+    act = (int[]) colorTables.get(no);
+
+    buf = (byte[]) images.get(no);
     if (no > 0) {
-      int[] prev = (int[]) images.get(no - 1);
-      for (int i=0; i<ints.length; i++) {
-        if ((ints[i] & 0x00ffffff) == 0) {
-          ints[i] = prev[i];
+      byte[] prev = (byte[]) images.get(no - 1);
+      for (int i=0; i<buf.length; i++) {
+        if ((act[buf[i] & 0xff] & 0xffffff) == 0) {
+          buf[i] = prev[i];
         }
       }
-      images.setElementAt(ints, no);
+      images.setElementAt(buf, no);
     }
 
-    for (int i=0; i<ints.length; i++) {
-      buf[i] = (byte) ((ints[i] & 0xff0000) >> 16);
-      buf[i + ints.length] = (byte) ((ints[i] & 0xff00) >> 8);
-      buf[i + 2*ints.length] = (byte) (ints[i] & 0xff);
-    }
     return buf;
-  }
-
-  /* @see loci.formats.IFormatReader#openImage(int) */
-  public BufferedImage openImage(int no)
-    throws FormatException, IOException
-  {
-    FormatTools.assertId(currentId, true, 1);
-    byte[] bytes = openBytes(no);
-    return ImageTools.makeImage(bytes, core.sizeX[0], core.sizeY[0],
-      bytes.length / (core.sizeX[0] * core.sizeY[0]), false, 1, true);
   }
 
   // -- Internal FormatReader API methods --
@@ -169,6 +157,7 @@ public class GIFReader extends FormatReader {
     in = new RandomAccessStream(id);
     in.order(true);
     images = new Vector();
+    colorTables = new Vector();
 
     String ident = in.readString(6);
 
@@ -197,9 +186,9 @@ public class GIFReader extends FormatReader {
       int j = 0;
       int r, g, b;
       while (i < gctSize) {
-        r = ((int) c[j++]) & 0xff;
-        g = ((int) c[j++]) & 0xff;
-        b = ((int) c[j++]) & 0xff;
+        r = c[j++] & 0xff;
+        g = c[j++] & 0xff;
+        b = c[j++] & 0xff;
         gct[i++] = 0xff000000 | (r << 16) | (g << 8) | b;
       }
     }
@@ -236,9 +225,9 @@ public class GIFReader extends FormatReader {
             int i = 0;
             int j = 0;
             while (i < lctSize) {
-              int r = ((int) c[j++]) & 0xff;
-              int g = ((int) c[j++]) & 0xff;
-              int b = ((int) c[j++]) & 0xff;
+              int r = c[j++] & 0xff;
+              int g = c[j++] & 0xff;
+              int b = c[j++] & 0xff;
               lct[i++] = 0xff000000 | (r << 16) + (g << 8) | b;
             }
 
@@ -325,6 +314,9 @@ public class GIFReader extends FormatReader {
     core.rgb[0] = true;
     core.littleEndian[0] = true;
     core.interleaved[0] = true;
+    core.metadataComplete[0] = true;
+    core.indexed[0] = true;
+    core.falseColor[0] = false;
 
     // populate metadata store
 
@@ -332,17 +324,7 @@ public class GIFReader extends FormatReader {
     store.setImage(currentId, null, null, null);
 
     core.pixelType[0] = FormatTools.UINT8;
-    store.setPixels(
-      new Integer(core.sizeX[0]),
-      new Integer(core.sizeY[0]),
-      new Integer(core.sizeZ[0]),
-      new Integer(core.sizeC[0]),
-      new Integer(core.sizeT[0]),
-      new Integer(core.pixelType[0]),
-      Boolean.FALSE,
-      core.currentOrder[0],
-      null,
-      null);
+    FormatTools.populatePixels(store, this);
     for (int i=0; i<core.sizeC[0]; i++) {
       store.setLogicalChannel(i, null, null, null, null, null, null, null, null,
         null, null, null, null, null, null, null, null, null, null, null, null,
@@ -481,7 +463,7 @@ public class GIFReader extends FormatReader {
 
   private void setPixels() {
     // expose destination image's pixels as an int array
-    int[] dest = new int[core.sizeX[0] * core.sizeY[0]];
+    byte[] dest = new byte[core.sizeX[0] * core.sizeY[0]];
     int lastImage = -1;
 
     // fill in starting image contents based on last image's dispose code
@@ -492,7 +474,7 @@ public class GIFReader extends FormatReader {
       }
 
       if (lastImage != -1) {
-        int[] prev = (int[]) images.get(lastImage);
+        byte[] prev = (byte[]) images.get(lastImage);
         System.arraycopy(prev, 0, dest, 0, core.sizeX[0] * core.sizeY[0]);
       }
     }
@@ -534,10 +516,11 @@ public class GIFReader extends FormatReader {
         while (dx < dlim) {
           // map color and insert in destination
           int index = ((int) pixels[sx++]) & 0xff;
-          dest[dx++] = act[index];
+          dest[dx++] = (byte) index;
         }
       }
     }
+    colorTables.add(act);
     images.add(dest);
   }
 

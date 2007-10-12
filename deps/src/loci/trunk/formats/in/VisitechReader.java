@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package loci.formats.in;
 
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
 import loci.formats.*;
@@ -56,43 +55,29 @@ public class VisitechReader extends FormatReader {
     return false;
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(int) */
-  public byte[] openBytes(int no) throws FormatException, IOException {
-    byte[] buf = new byte[core.sizeX[0] * core.sizeY[0] *
-      FormatTools.getBytesPerPixel(core.pixelType[0])];
-    return openBytes(no, buf);
-  }
-
   /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
   public byte[] openBytes(int no, byte[] buf)
     throws FormatException, IOException
   {
     FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= core.imageCount[0]) {
-      throw new FormatException("Invalid image number: " + no);
-    }
+    FormatTools.checkPlaneNumber(this, no);
+    FormatTools.checkBufferSize(this, buf.length);
+
     int plane = core.sizeX[0] * core.sizeY[0] *
       FormatTools.getBytesPerPixel(core.pixelType[0]);
-    if (buf.length < plane) {
-      throw new FormatException("Buffer too small.");
-    }
 
-    int fileIndex = no / (core.sizeZ[0] * core.sizeT[0]);
-    int planeIndex = no % (core.sizeZ[0] * core.sizeT[0]);
+    int div = core.sizeZ[0] * core.sizeT[0];
+    int fileIndex = no / div;
+    int planeIndex = no % div;
 
     String file = (String) files.get(fileIndex);
     RandomAccessStream s = new RandomAccessStream(file);
-    s.skipBytes(382 + (plane + 164)*planeIndex);
+    s.skipBytes(374);
+    while (s.read() != (byte) 0xf0);
+    s.skipBytes((plane + 164) * planeIndex + 1);
     s.read(buf);
     s.close();
     return buf;
-  }
-
-  /* @see loci.formats.IFormatReader#openImage(int) */
-  public BufferedImage openImage(int no) throws FormatException, IOException {
-    return ImageTools.makeImage(openBytes(no), core.sizeX[0], core.sizeY[0],
-      1, core.interleaved[0], FormatTools.getBytesPerPixel(core.pixelType[0]),
-      core.littleEndian[0]);
   }
 
   /* @see loci.formats.IFormatReader#getUsedFiles() */
@@ -115,9 +100,10 @@ public class VisitechReader extends FormatReader {
       int ndx = path.lastIndexOf(File.separator);
       String base = path.substring(ndx + 1, path.indexOf(" ", ndx));
 
+      String suffix = " Report.html";
       currentId = null;
       initFile(file.exists() ? new Location(file.getParent(),
-        base + " Report.html").getAbsolutePath() : base + " Report.html");
+        base + suffix).getAbsolutePath() : base + suffix);
       return;
     }
 
@@ -135,8 +121,9 @@ public class VisitechReader extends FormatReader {
       "[sS][cC][rR][iI][pP][tT]>", "");
 
     StringTokenizer st = new StringTokenizer(s, "\n");
+    String token = null, key = null, value = null;
     while (st.hasMoreTokens()) {
-      String token = st.nextToken().trim();
+      token = st.nextToken().trim();
 
       if ((token.startsWith("<") && !token.startsWith("</")) ||
         token.indexOf("pixels") != -1)
@@ -145,8 +132,33 @@ public class VisitechReader extends FormatReader {
         int ndx = token.indexOf(":");
 
         if (ndx != -1) {
-          addMeta(token.substring(0, ndx).trim(),
-            token.substring(ndx + 1).trim());
+          key = token.substring(0, ndx).trim();
+          value = token.substring(ndx + 1).trim();
+
+          if (key.equals("Number of steps")) {
+            core.sizeZ[0] = Integer.parseInt(value);
+          }
+          else if (key.equals("Image bit depth")) {
+            int bits = Integer.parseInt(value);
+            while ((bits % 8) != 0) bits++;
+            switch (bits) {
+              case 16:
+                core.pixelType[0] = FormatTools.UINT16;
+                break;
+              case 32:
+                core.pixelType[0] = FormatTools.UINT32;
+                break;
+              default: core.pixelType[0] = FormatTools.UINT8;
+            }
+          }
+          else if (key.equals("Image dimensions")) {
+            int n = value.indexOf(",");
+            core.sizeX[0] = Integer.parseInt(value.substring(1, n).trim());
+            core.sizeY[0] = Integer.parseInt(value.substring(n + 1,
+              value.length() - 1).trim());
+          }
+
+          addMeta(key, value);
         }
 
         if (token.indexOf("pixels") != -1) {
@@ -157,31 +169,14 @@ public class VisitechReader extends FormatReader {
       }
     }
 
-    // now look for dimensions in the hashtable
-
-    core.sizeZ[0] = Integer.parseInt((String) metadata.get("Number of steps"));
     core.sizeT[0] = core.imageCount[0] / (core.sizeZ[0] * core.sizeC[0]);
-
-    int bits = Integer.parseInt((String) metadata.get("Image bit depth"));
-    while (bits % 8 != 0) bits++;
-    switch (bits) {
-      case 16:
-        core.pixelType[0] = FormatTools.UINT16;
-        break;
-      case 32:
-        core.pixelType[0] = FormatTools.UINT32;
-        break;
-      default: core.pixelType[0] = FormatTools.UINT8;
-    }
-
-    String xy = (String) metadata.get("Image dimensions");
-    core.sizeX[0] = Integer.parseInt(xy.substring(1, xy.indexOf(",")).trim());
-    core.sizeY[0] = Integer.parseInt(xy.substring(xy.indexOf(",") + 1,
-      xy.length() - 1).trim());
     core.rgb[0] = false;
     core.currentOrder[0] = "XYZTC";
     core.interleaved[0] = false;
     core.littleEndian[0] = true;
+    core.indexed[0] = false;
+    core.falseColor[0] = false;
+    core.metadataComplete[0] = true;
 
     // find pixels files - we think there is one channel per file
 
@@ -200,16 +195,12 @@ public class VisitechReader extends FormatReader {
 
     MetadataStore store = getMetadataStore();
     store.setImage(currentId, null, null, null);
-    store.setPixels(new Integer(core.sizeX[0]), new Integer(core.sizeY[0]),
-      new Integer(core.sizeZ[0]), new Integer(core.sizeC[0]),
-      new Integer(core.sizeT[0]), new Integer(core.pixelType[0]),
-      new Boolean(!core.littleEndian[0]), core.currentOrder[0], null, null);
+    FormatTools.populatePixels(store, this);
 
     for (int i=0; i<core.sizeC[0]; i++) {
       store.setLogicalChannel(i, null, null, null, null, null, null, null,
-        null, null, null, null, null, core.sizeC[0] == 1 ?
-        "monochrome" : "RGB", null, null, null, null, null, null, null, null,
-        null, null, null);
+        null, null, null, null, null, null, null, null, null, null, null, null,
+        null, null, null, null, null);
     }
 
   }

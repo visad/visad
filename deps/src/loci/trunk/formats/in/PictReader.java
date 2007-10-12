@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -277,18 +277,18 @@ public class PictReader extends FormatReader {
     return true;
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(int) */
-  public byte[] openBytes(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    return ImageTools.getBytes(openImage(no), false, no % 3);
+  /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
+  public byte[] openBytes(int no, byte[] buf)
+    throws FormatException, IOException
+  {
+    buf = ImageTools.getBytes(openImage(no), false, no % 3);
+    return buf;
   }
 
   /* @see loci.formats.IFormatReader#openImage(int) */
   public BufferedImage openImage(int no) throws FormatException, IOException {
     FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
+    FormatTools.checkPlaneNumber(this, no);
 
     return open(bytes);
   }
@@ -324,19 +324,19 @@ public class PictReader extends FormatReader {
     core.sizeT[0] = 1;
     core.currentOrder[0] = "XYCZT";
     core.rgb[0] = true;
-    core.interleaved[0] = true;
+    core.interleaved[0] = false;
     core.imageCount[0] = 1;
+    core.indexed[0] = false;
+    core.falseColor[0] = false;
+    core.metadataComplete[0] = true;
 
     // The metadata store we're working with.
     MetadataStore store = getMetadataStore();
     store.setImage(currentId, null, null, null);
 
-    core.pixelType[0] = FormatTools.UINT8;
-    store.setPixels(
-      new Integer(core.sizeX[0]), new Integer(core.sizeY[0]),
-      new Integer(core.sizeZ[0]), new Integer(core.sizeC[0]),
-      new Integer(core.sizeT[0]), new Integer(core.pixelType[0]),
-      new Boolean(!core.littleEndian[0]), core.currentOrder[0], null, null);
+    core.pixelType[0] = ImageTools.getPixelType(openImage(0));
+
+    FormatTools.populatePixels(store, this);
     for (int i=0; i<core.sizeC[0]; i++) {
       store.setLogicalChannel(i, null, null, null, null, null, null, null,
         null, null, null, null, null, null, null, null, null, null, null, null,

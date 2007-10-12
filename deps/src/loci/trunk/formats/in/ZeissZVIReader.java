@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -24,10 +24,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package loci.formats.in;
 
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
 import loci.formats.*;
+import loci.formats.codec.JPEGCodec;
 
 /**
  * ZeissZVIReader is the file format reader for Zeiss ZVI files.
@@ -95,12 +95,13 @@ public class ZeissZVIReader extends FormatReader {
   /** Vector containing T indices. */
   private Vector tIndices;
 
-  /** Valid bits per pixel */
-  private int[] validBits;
-
   private Hashtable offsets;
 
   private int zIndex = -1, cIndex = -1, tIndex = -1;
+
+  private boolean isTiled;
+  private int tileRows, tileColumns;
+  private boolean isJPEG;
 
   // -- Constructor --
 
@@ -123,47 +124,85 @@ public class ZeissZVIReader extends FormatReader {
     if (noPOI || needLegacy) legacy.setMetadataStore(store);
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(int) */
-  public byte[] openBytes(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    byte[] buf = new byte[core.sizeX[0] * core.sizeY[0] *
-      FormatTools.getBytesPerPixel(core.pixelType[0]) * getRGBChannelCount()];
-    return openBytes(no, buf);
-  }
-
   /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
   public byte[] openBytes(int no, byte[] buf)
     throws FormatException, IOException
   {
     FormatTools.assertId(currentId, true, 1);
     if (noPOI || needLegacy) return legacy.openBytes(no, buf);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
-
-    if (buf.length < core.sizeX[0] * core.sizeY[0] *
-      FormatTools.getBytesPerPixel(core.pixelType[0]) * getRGBChannelCount())
-    {
-      throw new FormatException("Buffer too small.");
-    }
+    FormatTools.checkPlaneNumber(this, no);
+    FormatTools.checkBufferSize(this, buf.length);
 
     try {
-      Integer ii = new Integer(no);
-      Object directory = pixels.get(ii);
-      String name = (String) names.get(ii);
+      int tiles = tileRows * tileColumns;
+      if (tiles == 0) {
+        tiles = 1;
+        tileRows = 1;
+        tileColumns = 1;
+      }
+      int start = no * tiles;
 
-      r.setVar("dir", directory);
-      r.setVar("entryName", name);
-      r.exec("document = dir.getEntry(entryName)");
-      r.exec("dis = new DocumentInputStream(document)");
-      r.exec("numBytes = dis.available()");
-      r.setVar("skipBytes", ((Integer) offsets.get(ii)).longValue());
-      r.exec("blah = dis.skip(skipBytes)");
-      r.setVar("data", buf);
-      r.exec("dis.read(data)");
+      int bytes =
+        FormatTools.getBytesPerPixel(core.pixelType[0]) * getRGBChannelCount();
+      int ex = core.sizeX[0] / tileColumns;
+      int ey = core.sizeY[0] / tileRows;
+      int row = ex * bytes;
+
+      int[] tileOrder = new int[tiles];
+      if (tiles == 1) tileOrder[0] = no;
+      else {
+        int p = 0;
+        for (int r=0; r<tileRows; r++) {
+          for (int c=0; c<tileColumns; c++) {
+            int n = (no % core.sizeC[0]) +
+              (tiles * core.sizeC[0] * (no / core.sizeC[0]));
+            if (r % 2 == 0) {
+              tileOrder[p] = p*core.sizeC[0] + n;
+            }
+            else {
+              tileOrder[p] = (tileColumns - c)*core.sizeC[0];
+              if (p > 0 && c == 0) tileOrder[p] += tileOrder[p - 1];
+              else if (c > 0) tileOrder[p] = tileOrder[p - 1] - core.sizeC[0];
+            }
+            p++;
+          }
+        }
+      }
+
+      for (int i=start; i<start+tiles; i++) {
+        Integer ii = new Integer(tileOrder[i - start]);
+        Object directory = pixels.get(ii);
+        String name = (String) names.get(ii);
+
+        r.setVar("dir", directory);
+        r.setVar("entryName", name);
+        r.exec("document = dir.getEntry(entryName)");
+        r.exec("dis = new DocumentInputStream(document)");
+        r.exec("numBytes = dis.available()");
+        r.setVar("skipBytes", ((Integer) offsets.get(ii)).longValue());
+        r.exec("blah = dis.skip(skipBytes)");
+        r.setVar("data", buf);
+
+        int xf = ((i - start) % tileColumns) * ex * bytes;
+        int yf = ((i - start) / tileRows) * ey;
+        int offset = yf*core.sizeX[0]*bytes + xf;
+        for (int y=0; y<ey; y++) {
+          r.setVar("offset", offset);
+          r.setVar("len", row);
+          try {
+            r.exec("dis.read(data, offset, len)");
+          }
+          catch (ReflectException e) { }
+          offset += core.sizeX[0]*bytes;
+        }
+
+        if (isJPEG) {
+          JPEGCodec codec = new JPEGCodec();
+          buf = codec.decompress(buf);
+        }
+      }
 
       if (bpp > 6) bpp = 1;
-
       if (bpp == 3) {
         // reverse bytes in groups of 3 to account for BGR storage
         for (int i=0; i<buf.length; i+=3) {
@@ -172,21 +211,12 @@ public class ZeissZVIReader extends FormatReader {
           buf[i] = b;
         }
       }
-
       return buf;
     }
     catch (ReflectException e) {
       needLegacy = true;
       return openBytes(no, buf);
     }
-  }
-
-  /* @see loci.formats.IFormatReader#openImage(int) */
-  public BufferedImage openImage(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    return ImageTools.makeImage(openBytes(no), core.sizeX[0], core.sizeY[0],
-      getRGBChannelCount(), true, bpp == 3 ? 1 : bpp, true,
-      validBits);
   }
 
   /* @see loci.formats.IFormatReader#close(boolean) */
@@ -256,24 +286,40 @@ public class ZeissZVIReader extends FormatReader {
       core.rgb[0] = core.sizeC[0] > 1 &&
         (core.sizeZ[0] * core.sizeC[0] * core.sizeT[0] != core.imageCount[0]);
       core.littleEndian[0] = true;
-      core.interleaved[0] = false;
+      core.interleaved[0] = !isJPEG;
+      core.indexed[0] = false;
+      core.falseColor[0] = false;
+      core.metadataComplete[0] = true;
 
       core.sizeZ[0] = zIndices.size();
       core.sizeT[0] = tIndices.size();
 
       if (core.sizeC[0] != cIndices.size()) core.sizeC[0] *= cIndices.size();
 
-      core.imageCount[0] = core.sizeZ[0] * core.sizeT[0] * getEffectiveSizeC();
+      core.imageCount[0] = core.sizeZ[0] * core.sizeT[0] *
+        (core.rgb[0] ? core.sizeC[0] / 3 : core.sizeC[0]);
 
-      String s = (String) getMeta("Acquisition Bit Depth");
-      if (s != null && s.trim().length() > 0) {
-        validBits = new int[core.sizeC[0]];
-        if (core.sizeC[0] == 2) validBits = new int[3];
-        for (int i=0; i<core.sizeC[0]; i++) {
-          validBits[i] = Integer.parseInt(s.trim());
+      if (isTiled) {
+        String zeroIndex = (String) getMeta("ImageTile Index 0");
+        String oneIndex = (String) getMeta("ImageTile Index 1");
+        if (zeroIndex == null || zeroIndex.equals("")) zeroIndex = null;
+        if (oneIndex == null || oneIndex.equals("")) oneIndex = null;
+        if (zeroIndex == null || oneIndex == null) {
+          isTiled = false;
+        }
+        else {
+          int lowerLeft = Integer.parseInt(zeroIndex);
+          int middle = Integer.parseInt(oneIndex);
+
+          tileColumns = lowerLeft - middle - 1;
+          tileRows = (lowerLeft / tileColumns) + 1;
+          if (tileColumns < 0) tileColumns = 1;
+          if (tileRows < 0) tileRows = 1;
+          core.sizeX[0] *= tileColumns;
+          core.sizeY[0] *= tileRows;
+          if (tileColumns == 1 && tileRows == 1) isTiled = false;
         }
       }
-      else validBits = null;
 
       if (cIndex != -1) {
         int[] dims = {core.sizeZ[0], core.sizeC[0], core.sizeT[0]};
@@ -361,6 +407,62 @@ public class ZeissZVIReader extends FormatReader {
       }
     }
 
+    // correct emission/excitation wavelengths, if necessary
+
+    if (metadata.size() > 0) {
+      // HACK
+      String lastEM =
+        (String) getMeta("Emission Wavelength " + (core.sizeC[0] - 1));
+      String nextToLastEM =
+        (String) getMeta("Emission Wavelength " + (core.sizeC[0] - 2));
+      if (lastEM == null || nextToLastEM == null ||
+        lastEM.equals(nextToLastEM))
+      {
+        String lastDye = (String) getMeta("Reflector " + (core.sizeC[0] - 1));
+        String nextToLastDye =
+          (String) getMeta("Reflector " + (core.sizeC[0] - 2));
+        if (lastDye == null) lastDye = "";
+        if (nextToLastDye == null) nextToLastDye = "";
+
+        lastDye = DataTools.stripString(lastDye);
+        nextToLastDye = DataTools.stripString(nextToLastDye);
+
+        if (nextToLastDye.indexOf("Rhodamine") != -1) {
+          addMeta("Emission Wavelength " + (core.sizeC[0] - 2), "580");
+          addMeta("Excitation Wavelength " + (core.sizeC[0] - 2), "540");
+        }
+        else if (nextToLastDye.indexOf("DAPI") != -1) {
+          addMeta("Emission Wavelength " + (core.sizeC[0] - 2), "461");
+          addMeta("Excitation Wavelength " + (core.sizeC[0] - 2), "359");
+        }
+        else if (nextToLastDye.startsWith("Alexa Fluor")) {
+          addMeta("Emission Wavelength " + (core.sizeC[0] - 2), "519");
+          addMeta("Excitation Wavelength " + (core.sizeC[0] - 2), "495");
+        }
+        else if (nextToLastDye.indexOf("Alexa Fluor") != -1) {
+          addMeta("Emission Wavelength " + (core.sizeC[0] - 2), "668");
+          addMeta("Excitation Wavelength " + (core.sizeC[0] - 2), "650");
+        }
+
+        if (lastDye.indexOf("Rhodamine") != -1) {
+          addMeta("Emission Wavelength " + (core.sizeC[0] - 1), "580");
+          addMeta("Excitation Wavelength " + (core.sizeC[0] - 1), "540");
+        }
+        else if (lastDye.indexOf("DAPI") != -1) {
+          addMeta("Emission Wavelength " + (core.sizeC[0] - 1), "461");
+          addMeta("Excitation Wavelength " + (core.sizeC[0] - 1), "359");
+        }
+        else if (lastDye.startsWith("Alexa Fluor")) {
+          addMeta("Emission Wavelength " + (core.sizeC[0] - 1), "519");
+          addMeta("Excitation Wavelength " + (core.sizeC[0] - 1), "495");
+        }
+        else if (lastDye.indexOf("Alexa Fluor") != -1) {
+          addMeta("Emission Wavelength " + (core.sizeC[0] - 1), "668");
+          addMeta("Excitation Wavelength " + (core.sizeC[0] - 1), "650");
+        }
+      }
+    }
+
     try {
       initMetadata();
     }
@@ -400,17 +502,7 @@ public class ZeissZVIReader extends FormatReader {
     if (bpp == 1 || bpp == 3) core.pixelType[0] = FormatTools.UINT8;
     else if (bpp == 2 || bpp == 6) core.pixelType[0] = FormatTools.UINT16;
 
-    store.setPixels(
-      new Integer(core.sizeX[0]),
-      new Integer(core.sizeY[0]),
-      new Integer(core.sizeZ[0]),
-      new Integer(core.sizeC[0]),
-      new Integer(core.sizeT[0]),
-      new Integer(core.pixelType[0]),
-      Boolean.FALSE,
-      core.currentOrder[0],
-      null,
-      null);
+    FormatTools.populatePixels(store, this);
 
     String pixX = (String) getMeta("Scale Factor for X");
     String pixY = (String) getMeta("Scale Factor for Y");
@@ -422,9 +514,12 @@ public class ZeissZVIReader extends FormatReader {
       pixZ == null ? null : new Float(pixZ),
       null, null, null);
 
-    for (int i=0; i<getEffectiveSizeC(); i++) {
-      int idx = FormatTools.getIndex(this, 0, i, 0);
-      String name = (String) getMeta("Channel Name " + idx);
+    String scopeName = (String) getMeta("Microscope Name");
+    if (scopeName == null) scopeName = (String) getMeta("Microscope Name 0");
+    store.setInstrument(null, scopeName, null, null, null);
+
+    for (int i=0; i<core.sizeC[0]; i++) {
+      int idx = FormatTools.getIndex(this, 0, i % getEffectiveSizeC(), 0);
       String emWave = (String) getMeta("Emission Wavelength " + idx);
       String exWave = (String) getMeta("Excitation Wavelength " + idx);
 
@@ -434,8 +529,7 @@ public class ZeissZVIReader extends FormatReader {
       if (exWave != null && exWave.indexOf(".") != -1) {
         exWave = exWave.substring(0, exWave.indexOf("."));
       }
-
-      store.setLogicalChannel(i, name, null, null, null, null, null, null,
+      store.setLogicalChannel(i, null, null, null, null, null, null, null,
         null, null, null, null, null, null, null, null, null, null, null, null,
         emWave == null ? null : new Integer(emWave),
         exWave == null ? null : new Integer(exWave), null, null, null);
@@ -449,10 +543,13 @@ public class ZeissZVIReader extends FormatReader {
 
       try { blackValue = new Double(black); }
       catch (NumberFormatException e) { }
+      catch (NullPointerException e) { }
       try { whiteValue = new Double(white); }
       catch (NumberFormatException e) { }
+      catch (NullPointerException e) { }
       try { gammaValue = new Float(gamma); }
       catch (NumberFormatException e) { }
+      catch (NullPointerException e) { }
 
       store.setDisplayChannel(new Integer(i), blackValue, whiteValue,
         gammaValue, null);
@@ -464,8 +561,8 @@ public class ZeissZVIReader extends FormatReader {
       Float exp = new Float(0.0);
       try { exp = new Float(exposure); }
       catch (NumberFormatException e) { }
-
-      store.setPlaneInfo(zct[0], zct[1], zct[2], null, exp, null);
+      catch (NullPointerException e) { }
+      store.setPlaneInfo(zct[0], zct[1], zct[2], new Float(0.0), exp, null);
     }
 
     String objectiveName = (String) getMeta("Objective Name 0");
@@ -542,9 +639,15 @@ public class ZeissZVIReader extends FormatReader {
         if (dirName.toUpperCase().equals("ROOT ENTRY") ||
           dirName.toUpperCase().equals("ROOTENTRY"))
         {
-          if (entryName.equals("Tags")) parseTags(s);
+          if (entryName.equals("Tags")) {
+            try { parseTags(s); }
+            catch (EOFException e) { }
+          }
         }
-        else if (dirName.equals("Tags") && isContents) parseTags(s);
+        else if (dirName.equals("Tags") && isContents) {
+          try { parseTags(s); }
+          catch (EOFException e) { }
+        }
         else if (isContents && (dirName.equals("Image") ||
           dirName.toUpperCase().indexOf("ITEM") != -1) &&
           (data.length > core.sizeX[0]*core.sizeY[0]))
@@ -654,6 +757,7 @@ public class ZeissZVIReader extends FormatReader {
           try { parseTags(s); }
           catch (IOException e) { }
         }
+
         s.close();
         data = null;
         r.exec("dis.close()");
@@ -682,7 +786,10 @@ public class ZeissZVIReader extends FormatReader {
     core.sizeY[0] = s.readInt();
     s.skipBytes(4);
     bpp = s.readInt();
-    s.skipBytes(8);
+    //s.skipBytes(8);
+    s.skipBytes(4);
+    int valid = s.readInt();
+    isJPEG = valid == 0 || valid == 1;
 
     pixels.put(new Integer(num), directory);
     names.put(new Integer(num), entry);
@@ -802,6 +909,7 @@ public class ZeissZVIReader extends FormatReader {
         key += " " + ndx;
       }
 
+      if (key.indexOf("ImageTile") != -1) isTiled = true;
       addMeta(key, value);
     }
   }

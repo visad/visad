@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -269,6 +269,16 @@ public final class FormatTools {
     return new int[] {z, c, t};
   }
 
+  /** Converts indices from the given dimension order to the native one. */
+  public static int getReorderedIndex(IFormatReader r, String order, int no)
+    throws FormatException
+  {
+    int[] zct = getZCTCoords(order, r.getSizeZ(), r.getSizeC(), r.getSizeT(),
+      r.getImageCount(), no);
+    return getIndex(r.getDimensionOrder(), r.getSizeZ(), r.getSizeC(),
+      r.getSizeT(), r.getImageCount(), zct[0], zct[1], zct[2]);
+  }
+
   /**
    * Computes a unique 1-D index corresponding
    * to the given multidimensional position.
@@ -379,6 +389,25 @@ public final class FormatTools {
     throw new IllegalArgumentException("Unknown pixel type: " + pixelType);
   }
 
+  // -- Utility methods - metadata
+
+  /**
+   * Populates the 'pixels' element of the given metadata store, using core
+   * metadata from the given reader.
+   */
+  public static void populatePixels(MetadataStore store, IFormatReader r) {
+    int oldSeries = r.getSeries();
+    for (int i=0; i<r.getSeriesCount(); i++) {
+      Integer ii = new Integer(i);
+      r.setSeries(i);
+      store.setPixels(new Integer(r.getSizeX()), new Integer(r.getSizeY()),
+        new Integer(r.getSizeZ()), new Integer(r.getSizeC()),
+        new Integer(r.getSizeT()), new Integer(r.getPixelType()),
+        new Boolean(!r.isLittleEndian()), r.getDimensionOrder(), ii, null);
+    }
+    r.setSeries(oldSeries);
+  }
+
   // -- Utility methods - sanity checking
 
   /**
@@ -412,6 +441,26 @@ public final class FormatTools {
     }
     else header = "";
     throw new IllegalStateException(header + msg);
+  }
+
+  /** Checks that the given plane number is valid for the given reader. */
+  public static void checkPlaneNumber(IFormatReader r, int no)
+    throws FormatException
+  {
+    if (no < 0 || no >= r.getImageCount()) {
+      throw new FormatException("Invalid image number: " + no);
+    }
+  }
+
+  public static void checkBufferSize(IFormatReader r, int len)
+    throws FormatException
+  {
+    int size = r.getSizeX() * r.getSizeY() *
+      (r.isIndexed() ? 1 : r.getRGBChannelCount()) *
+      getBytesPerPixel(r.getPixelType());
+    if (size > len) {
+      throw new FormatException("Buffer too small.");
+    }
   }
 
 }

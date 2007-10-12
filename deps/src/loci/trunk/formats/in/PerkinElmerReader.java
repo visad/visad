@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package loci.formats.in;
 
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -77,39 +76,25 @@ public class PerkinElmerReader extends FormatReader {
     return FormatTools.MUST_GROUP;
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(int) */
-  public byte[] openBytes(int no) throws FormatException, IOException {
+  /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
+  public byte[] openBytes(int no, byte[] buf)
+    throws FormatException, IOException
+  {
     FormatTools.assertId(currentId, true, 1);
+    FormatTools.checkPlaneNumber(this, no);
     if (isTiff) {
       tiff[no / core.sizeC[0]].setId(files[no / core.sizeC[0]]);
-      return tiff[no / core.sizeC[0]].openBytes(0);
+      return tiff[no / core.sizeC[0]].openBytes(0, buf);
     }
+
+    FormatTools.checkBufferSize(this, buf.length);
 
     String file = files[no];
     RandomAccessStream ras = new RandomAccessStream(file);
-    byte[] b = new byte[(int) ras.length() - 6]; // each file has 6 magic bytes
     ras.skipBytes(6);
-    ras.read(b);
+    ras.read(buf);
     ras.close();
-    return b;
-  }
-
-  /* @see loci.formats.IFormatReader#openImage(int) */
-  public BufferedImage openImage(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
-    if (isTiff) {
-      int idx = no / core.sizeC[0];
-      tiff[idx].setId(files[idx]);
-      return tiff[idx].openImage(0);
-    }
-
-    byte[] b = openBytes(no);
-    int bpp = b.length / (core.sizeX[0] * core.sizeY[0]);
-    return ImageTools.makeImage(b, core.sizeX[0], core.sizeY[0], 1,
-      false, bpp, true);
+    return buf;
   }
 
   /* @see loci.formats.IFormatReader#getUsedFiles() */
@@ -143,6 +128,22 @@ public class PerkinElmerReader extends FormatReader {
     }
   }
 
+  /* @see loci.formats.IFormatHandler#isThisType(String, boolean) */
+  public boolean isThisType(String name, boolean open) {
+    if (name.toLowerCase().endsWith(".cfg")) {
+      try {
+        RandomAccessStream s = new RandomAccessStream(name);
+        String ss = s.readString(512);
+        return ss.indexOf("Series") != -1;
+      }
+      catch (IOException e) {
+        if (debug) trace(e);
+        return false;
+      }
+    }
+    return super.isThisType(name, open);
+  }
+
   // -- Internal FormatReader API methods --
 
   /* @see loci.formats.FormatReader#initFile(String) */
@@ -160,7 +161,7 @@ public class PerkinElmerReader extends FormatReader {
       String[] ls = parent.list();
       for (int i=0; i<ls.length; i++) {
         if (ls[i].toLowerCase().endsWith(".htm")) {
-          id = new Location(ls[i]).getAbsolutePath();
+          id = new Location(parent.getAbsolutePath(), ls[i]).getAbsolutePath();
           break;
         }
       }
@@ -542,7 +543,9 @@ public class PerkinElmerReader extends FormatReader {
       core.pixelType[0] = tiff[0].getPixelType();
     }
     else {
-      int bpp = openBytes(0).length / (core.sizeX[0] * core.sizeY[0]);
+      RandomAccessStream tmp = new RandomAccessStream(files[0]);
+      int bpp = (int) (tmp.length() - 6) / (core.sizeX[0] * core.sizeY[0]);
+      tmp.close();
       switch (bpp) {
         case 1:
         case 3:
@@ -570,15 +573,16 @@ public class PerkinElmerReader extends FormatReader {
     if (core.sizeT[0] <= 0) core.sizeT[0] = 1;
 
     if (sliceSpace != null) {
-      float spacing = Float.parseFloat(sliceSpace);
-      if (spacing <= 1f) core.currentOrder[0] += "TZ";
-      else core.currentOrder[0] += "ZT";
+      core.currentOrder[0] += "TZ";
     }
     else core.currentOrder[0] += "ZT"; // doesn't matter, since Z = T = 1
 
     core.rgb[0] = isTiff ? tiff[0].isRGB() : false;
     core.interleaved[0] = false;
     core.littleEndian[0] = isTiff ? tiff[0].isLittleEndian() : true;
+    core.metadataComplete[0] = true;
+    core.indexed[0] = isTiff ? tiff[0].isIndexed() : false;
+    core.falseColor[0] = false;
 
     // Populate metadata store
 
@@ -604,10 +608,7 @@ public class PerkinElmerReader extends FormatReader {
     store.setImage(currentId, time, null, null);
 
     // populate Pixels element
-    store.setPixels(new Integer(core.sizeX[0]), new Integer(core.sizeY[0]),
-      new Integer(core.sizeZ[0]), new Integer(core.sizeC[0]),
-      new Integer(core.sizeT[0]), new Integer(core.pixelType[0]),
-      new Boolean(!core.littleEndian[0]), core.currentOrder[0], null, null);
+    FormatTools.populatePixels(store, this);
 
     // populate StageLabel element
     String originX = (String) getMeta("Origin X");

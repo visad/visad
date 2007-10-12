@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -271,15 +271,23 @@ public class ImageViewer extends JFrame
   }
 
   /** Sets the viewer to display the given images. */
+  public void setImages(BufferedImage[] img) { setImages(null, img); }
+
+  /**
+   * Sets the viewer to display the given images, obtaining
+   * corresponding core metadata from the specified format reader.
+   */
   public void setImages(IFormatReader reader, BufferedImage[] img) {
-    filename = reader.getCurrentFile();
+    filename = reader == null ? null : reader.getCurrentFile();
     in = reader;
     images = img;
 
-    sizeZ = reader.getSizeZ();
-    sizeT = reader.getSizeT();
-    sizeC = reader.getEffectiveSizeC();
-    //if (reader.isRGB(id)) sizeC = (sizeC + 2) / 3; // adjust for RGB
+    if (reader == null) sizeZ = sizeC = sizeT = 1;
+    else {
+      sizeZ = reader.getSizeZ();
+      sizeT = reader.getSizeT();
+      sizeC = reader.getEffectiveSizeC();
+    }
 
     fileSave.setEnabled(true);
     nSlider.removeChangeListener(this);
@@ -310,7 +318,7 @@ public class ImageViewer extends JFrame
       sb.append(reader.getCurrentFile());
       sb.append(" ");
     }
-    String format = reader.getFormat();
+    String format = reader == null ? null : reader.getFormat();
     if (format != null) {
       sb.append("(");
       sb.append(format);
@@ -409,8 +417,7 @@ public class ImageViewer extends JFrame
     if (src == nSlider) {
       // update Z, T and C sliders
       int ndx = getImageIndex();
-      int[] zct = {-1, -1, -1};
-      zct = in.getZCTCoords(ndx);
+      int[] zct = in == null ? new int[] {-1, -1, -1} : in.getZCTCoords(ndx);
       if (zct[0] >= 0) {
         zSlider.removeChangeListener(this);
         zSlider.setValue(zct[0] + 1);
@@ -429,7 +436,7 @@ public class ImageViewer extends JFrame
     }
     else {
       // update N slider
-      int ndx = in.getIndex(getZ(), getC(), getT());
+      int ndx = in == null ? -1 : in.getIndex(getZ(), getC(), getT());
       if (ndx >= 0) {
         nSlider.removeChangeListener(this);
         nSlider.setValue(ndx + 1);

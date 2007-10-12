@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -44,6 +44,7 @@ public class QTWriter extends FormatWriter {
 
   // -- Constants --
 
+  // NB: Writing to Motion JPEG-B with QTJava seems to be broken.
   /** Value indicating Motion JPEG-B codec. */
   public static final int CODEC_MOTION_JPEG_B = 1835692130;
 
@@ -117,8 +118,10 @@ public class QTWriter extends FormatWriter {
   public QTWriter() {
     super("QuickTime", "mov");
     compressionTypes = new String[] {
-      "Uncompressed", /*"Motion JPEG-B", */"Cinepak", "Animation", "H.263",
-      "Sorenson", "Sorenson 3", "MPEG 4"
+      "Uncompressed",
+      // NB: Writing to Motion JPEG-B with QTJava seems to be broken.
+      "Motion JPEG-B",
+      "Cinepak", "Animation", "H.263", "Sorenson", "Sorenson 3", "MPEG 4"
     };
 
   }
@@ -128,7 +131,6 @@ public class QTWriter extends FormatWriter {
   /**
    * Sets the encoded movie's codec.
    * @param codec Codec value:<ul>
-   *   <li>QTWriter.CODEC_MOTION_JPEG_B</li>
    *   <li>QTWriter.CODEC_CINEPAK</li>
    *   <li>QTWriter.CODEC_ANIMATION</li>
    *   <li>QTWriter.CODEC_H_263</li>
@@ -601,9 +603,10 @@ public class QTWriter extends FormatWriter {
   // -- Helper methods --
 
   private void setCodec() {
-    if (compression == null) compression = "Uncompressed";
+    if (compression == null) return;
     if (compression.equals("Uncompressed")) codec = CODEC_RAW;
-    //else if (compression.equals("Motion JPEG-B")) codec = CODEC_MOTION_JPEG_B;
+    // NB: Writing to Motion JPEG-B with QTJava seems to be broken.
+    else if (compression.equals("Motion JPEG-B")) codec = CODEC_MOTION_JPEG_B;
     else if (compression.equals("Cinepak")) codec = CODEC_CINEPAK;
     else if (compression.equals("Animation")) codec = CODEC_ANIMATION;
     else if (compression.equals("H.263")) codec = CODEC_H_263;

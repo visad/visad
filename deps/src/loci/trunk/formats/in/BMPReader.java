@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package loci.formats.in;
 
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import loci.formats.*;
 
@@ -73,18 +72,13 @@ public class BMPReader extends FormatReader {
 
   /* @see loci.formats.IFormatReader#isThisType(byte[]) */
   public boolean isThisType(byte[] block) {
-    if (block.length != 14) {
-      return false;
-    }
-    if (block[0] != 'B' || block[1] != 'M') return false;
-    return true;
+    return new String(block).startsWith("BM");
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(int) */
-  public byte[] openBytes(int no) throws FormatException, IOException {
+  /* @see loci.formats.IFormatReader#get8BitLookupTable() */
+  public byte[][] get8BitLookupTable() throws FormatException, IOException {
     FormatTools.assertId(currentId, true, 1);
-    byte[] buf = new byte[core.sizeX[0] * core.sizeY[0] * core.sizeC[0]];
-    return openBytes(no, buf);
+    return palette;
   }
 
   /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
@@ -92,15 +86,8 @@ public class BMPReader extends FormatReader {
     throws FormatException, IOException
   {
     FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
-
-    int pixels = core.sizeX[0] * core.sizeY[0];
-
-    if (buf.length < pixels * (bpp / 8)) {
-      throw new FormatException("Buffer too small.");
-    }
+    FormatTools.checkPlaneNumber(this, no);
+    FormatTools.checkBufferSize(this, buf.length);
 
     if (compression != 0) {
       throw new FormatException("Compression type " + compression +
@@ -109,44 +96,22 @@ public class BMPReader extends FormatReader {
 
     in.seek(global);
 
-    if (palette != null && palette[0].length > 0) {
+    if ((palette != null && palette[0].length > 0) || core.sizeC[0] == 1) {
       for (int y=core.sizeY[0]-1; y>=0; y--) {
-        for (int x=0; x<core.sizeX[0]; x++) {
-          int val = in.read();
-          if (val < 0) val += 127;
-          buf[y*core.sizeX[0] + x] = palette[0][val];
-          buf[y*core.sizeX[0] + x + pixels] = palette[1][val];
-          buf[y*core.sizeX[0] + x + 2*pixels] = palette[2][val];
-        }
+        in.read(buf, y*core.sizeX[0], core.sizeX[0]);
       }
     }
     else {
-      if (core.sizeC[0] == 1) {
-        for (int y=core.sizeY[0]-1; y>=0; y--) {
-          for (int x=0; x<core.sizeX[0]; x++) {
-            buf[y*core.sizeX[0] + x] = (byte) (in.read() & 0xff);
-          }
-        }
+      for (int y=core.sizeY[0]-1; y>=0; y--) {
+        in.read(buf, y*core.sizeX[0]*3, core.sizeX[0]*3);
       }
-      else {
-        for (int y=core.sizeY[0]-1; y>=0; y--) {
-          for (int x=0; x<core.sizeX[0]; x++) {
-            int off = y*core.sizeX[0] + x;
-            buf[2*core.sizeX[0]*core.sizeY[0] + off] = (byte)(in.read() & 0xff);
-            buf[core.sizeX[0]*core.sizeY[0] + off] = (byte) (in.read() & 0xff);
-            buf[off] = (byte) (in.read() & 0xff);
-          }
-        }
+      for (int i=0; i<buf.length/3; i++) {
+        byte tmp = buf[i*3 + 2];
+        buf[i*3 + 2] = buf[i*3];
+        buf[i*3] = tmp;
       }
     }
     return buf;
-  }
-
-  /* @see loci.formats.IFormatReader#openImage(int) */
-  public BufferedImage openImage(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    return ImageTools.makeImage(openBytes(no), core.sizeX[0], core.sizeY[0],
-      core.sizeC[0], false);
   }
 
   // -- Internel FormatReader API methods --
@@ -226,9 +191,9 @@ public class BMPReader extends FormatReader {
 
       for (int i=0; i<nColors; i++) {
         for (int j=palette.length; j>0; j--) {
-          palette[j][i] = (byte) (in.read() & 0xff);
+          palette[j][i] = in.readByte();
         }
-        in.read();
+        in.skipBytes(1);
       }
     }
 
@@ -261,6 +226,9 @@ public class BMPReader extends FormatReader {
     core.sizeZ[0] = 1;
     core.sizeT[0] = 1;
     core.currentOrder[0] = "XYCTZ";
+    core.metadataComplete[0] = true;
+    core.indexed[0] = palette != null;
+    core.falseColor[0] = false;
 
     // Populate metadata store.
 
@@ -269,17 +237,7 @@ public class BMPReader extends FormatReader {
 
     store.setImage(currentId, null, null, null);
 
-    store.setPixels(
-      new Integer(core.sizeX[0]),  // sizeX
-      new Integer(core.sizeY[0]), // sizeY
-      new Integer(core.sizeZ[0]), // sizeZ
-      new Integer(core.sizeC[0]), // sizeC
-      new Integer(core.sizeT[0]), // sizeT
-      new Integer(core.pixelType[0]),
-      new Boolean(false), // BigEndian
-      core.currentOrder[0], // Dimension order
-      null, // Use image index 0
-      null); // Use pixels index 0
+    FormatTools.populatePixels(store, this);
 
     // resolution is stored as pixels per meter; we want to convert to
     // microns per pixel

@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -24,11 +24,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package loci.formats.in;
 
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.text.*;
 import java.util.*;
 import loci.formats.*;
+import loci.formats.codec.*;
 
 /**
  * DicomReader is the file format reader for DICOM files.
@@ -66,13 +66,13 @@ public class DicomReader extends FormatReader {
   private static final int SEQUENCE_DELIMINATION = 0xFFFEE0DD;
   private static final int PIXEL_DATA = 0x7FE00010;
 
-  private static final int AE=0x4145, AS=0x4153, AT=0x4154, CS=0x4353;
-  private static final int DA=0x4441, DS=0x4453, DT=0x4454, FD=0x4644;
-  private static final int FL=0x464C, IS=0x4953, LO=0x4C4F, LT=0x4C54;
-  private static final int PN=0x504E, SH=0x5348, SL=0x534C, SS=0x5353;
-  private static final int ST=0x5354, TM=0x544D, UI=0x5549, UL=0x554C;
-  private static final int US=0x5553, UT=0x5554, OB=0x4F42, OW=0x4F57;
-  private static final int SQ=0x5351, UN=0x554E, QQ=0x3F3F;
+  private static final int AE = 0x4145, AS = 0x4153, AT = 0x4154, CS = 0x4353;
+  private static final int DA = 0x4441, DS = 0x4453, DT = 0x4454, FD = 0x4644;
+  private static final int FL = 0x464C, IS = 0x4953, LO = 0x4C4F, LT = 0x4C54;
+  private static final int PN = 0x504E, SH = 0x5348, SL = 0x534C, SS = 0x5353;
+  private static final int ST = 0x5354, TM = 0x544D, UI = 0x5549, UL = 0x554C;
+  private static final int US = 0x5553, UT = 0x5554, OB = 0x4F42, OW = 0x4F57;
+  private static final int SQ = 0x5351, UN = 0x554E, QQ = 0x3F3F;
 
   private static final int IMPLICIT_VR = 0x2d2d;
 
@@ -90,6 +90,10 @@ public class DicomReader extends FormatReader {
   private boolean oddLocations;
   private boolean inSequence;
   private boolean bigEndianTransferSyntax;
+  private byte[][] lut;
+
+  private boolean isJPEG = false;
+  private boolean isRLE = false;
 
   // -- Constructor --
 
@@ -106,16 +110,10 @@ public class DicomReader extends FormatReader {
     return false;
   }
 
-  /* @see loci.formats.IFormatReader#isMetadataComplete() */
-  public boolean isMetadataComplete() {
-    return true;
-  }
-
-  /* @see loci.formats.IFormatReader#openBytes(int) */
-  public byte[] openBytes(int no) throws FormatException, IOException {
+  /* @see loci.formats.IFormatReader#get8BitLookupTable() */
+  public byte[][] get8BitLookupTable() {
     FormatTools.assertId(currentId, true, 1);
-    byte[] buf = new byte[core.sizeX[0] * core.sizeY[0] * (bitsPerPixel / 8)];
-    return openBytes(no, buf);
+    return lut;
   }
 
   /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
@@ -123,26 +121,51 @@ public class DicomReader extends FormatReader {
     throws FormatException, IOException
   {
     FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
+    FormatTools.checkPlaneNumber(this, no);
+    FormatTools.checkBufferSize(this, buf.length);
 
-    int bytes = core.sizeX[0] * core.sizeY[0] * (bitsPerPixel / 8);
-
-    if (buf.length < bytes) {
-      throw new FormatException("Buffer too small.");
-    }
-
+    int bytes = core.sizeX[0] * core.sizeY[0] *
+      FormatTools.getBytesPerPixel(core.pixelType[0]) *
+      (isIndexed() ? 1 : core.sizeC[0]);
     in.seek(offsets + bytes * no);
+    if (isRLE) {
+      in.skipBytes(67);
+      while (in.read() == 0);
+      in.seek(in.getFilePointer() - 1);
+    }
     in.read(buf);
-    return buf;
-  }
 
-  /* @see loci.formats.IFormatReader#openImage(int) */
-  public BufferedImage openImage(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    return ImageTools.makeImage(openBytes(no), core.sizeX[0], core.sizeY[0],
-      1, false, bitsPerPixel / 8, core.littleEndian[0]);
+    if (isRLE) {
+      PackbitsCodec codec = new PackbitsCodec();
+      buf = codec.decompress(buf);
+
+      int b = FormatTools.getBytesPerPixel(core.pixelType[0]);
+      int plane = bytes / b;
+      if (b > 1) {
+        byte[][] tmp = new byte[b][plane];
+        for (int i=0; i<b; i++) {
+          System.arraycopy(buf, i*plane, tmp[i], 0, plane);
+        }
+        for (int i=0; i<plane; i++) {
+          for (int j=0; j<b; j++) {
+            buf[i*b + j] = core.littleEndian[0] ? tmp[b - j - 1][i] : tmp[j][i];
+          }
+        }
+      }
+
+      if (buf.length < plane * b) {
+        byte[] tmp = buf;
+        buf = new byte[plane * b];
+        System.arraycopy(tmp, 0, buf, 0, tmp.length);
+      }
+    }
+
+    if (isJPEG) {
+      JPEGCodec codec = new JPEGCodec();
+      buf = codec.decompress(buf);
+    }
+
+    return buf;
   }
 
   // -- Internal FormatReader API methods --
@@ -192,7 +215,9 @@ public class DicomReader extends FormatReader {
         case TRANSFER_SYNTAX_UID:
           s = in.readString(elementLength);
           addInfo(tag, s);
-          if (s.indexOf("1.2.4") > -1 || s.indexOf("1.2.5") > -1) {
+          if (s.startsWith("1.2.840.10008.1.2.4")) isJPEG = true;
+          else if (s.startsWith("1.2.840.10008.1.2.5")) isRLE = true;
+          else if (s.indexOf("1.2.4") > -1 || s.indexOf("1.2.5") > -1) {
             throw new FormatException("Sorry, compressed DICOM images not " +
               "supported");
           }
@@ -269,11 +294,13 @@ public class DicomReader extends FormatReader {
     status("Populating metadata");
 
     core.sizeZ[0] = core.imageCount[0];
-    core.sizeC[0] = 1;
+    if (core.sizeC[0] == 0) core.sizeC[0] = 1;
+    core.rgb[0] = core.sizeC[0] > 1;
     core.sizeT[0] = 1;
-    core.currentOrder[0] = "XYZTC";
-    core.rgb[0] = false;
-    core.interleaved[0] = false;
+    core.currentOrder[0] = "XYCZT";
+    core.interleaved[0] = !(isJPEG || isRLE);
+    core.metadataComplete[0] = true;
+    core.falseColor[0] = false;
 
     // The metadata store we're working with.
     MetadataStore store = getMetadataStore();
@@ -294,17 +321,7 @@ public class DicomReader extends FormatReader {
     }
 
     // populate OME-XML node
-    store.setPixels(
-      new Integer(core.sizeX[0]), // SizeX
-      new Integer(core.sizeY[0]), // SizeY
-      new Integer(core.sizeZ[0]), // SizeZ
-      new Integer(core.sizeC[0]), // SizeC
-      new Integer(core.sizeT[0]), // SizeT
-      new Integer(core.pixelType[0]),  // PixelType
-      new Boolean(!core.littleEndian[0]),  // BigEndian
-      core.currentOrder[0], // Dimension order
-      null, // Use image index 0
-      null); // Use pixels index 0
+    FormatTools.populatePixels(store, this);
 
     String date = (String) getMeta("Content Date");
     String time = (String) getMeta("Content Time");
@@ -340,11 +357,38 @@ public class DicomReader extends FormatReader {
   // -- Helper methods --
 
   private void addInfo(int tag, String value) throws IOException {
+    long oldFp = in.getFilePointer();
     String info = getHeaderInfo(tag, value);
+
     if (inSequence && info != null && vr != SQ) info = ">" + info;
     if (info != null && tag != ITEM) {
       String key = (String) TYPES.get(new Integer(tag));
       if (key == null) key = "" + tag;
+      if (key.equals("Samples per pixel")) {
+        core.sizeC[0] = Integer.parseInt(info.trim());
+        if (core.sizeC[0] > 1) core.rgb[0] = true;
+      }
+      else if (key.equals("Photometric Interpretation")) {
+        if (info.trim().equals("PALETTE COLOR")) {
+          core.indexed[0] = true;
+          core.sizeC[0] = 3;
+          core.rgb[0] = true;
+          lut = new byte[3][];
+        }
+      }
+      else if (key.indexOf("Palette Color LUT Data") != -1) {
+        String color = key.substring(0, key.indexOf(" ")).trim();
+        int ndx = color.equals("Red") ? 0 : color.equals("Green") ? 1 : 2;
+        long fp = in.getFilePointer();
+        in.seek(oldFp + ndx*ndx);
+        lut[ndx] = new byte[elementLength / 2];
+        for (int i=0; i<lut[ndx].length; i++) {
+          lut[ndx][i] = (byte) (in.read() & 0xff);
+          in.skipBytes(1);
+        }
+        in.seek(fp);
+      }
+
       if (tag != PIXEL_DATA) addMeta(key, info);
     }
   }
@@ -497,7 +541,12 @@ public class DicomReader extends FormatReader {
     }
 
     int elementWord = in.readShort();
-    int tag = groupWord << 16 | elementWord;
+    int tag = ((groupWord << 16) & 0xffff0000) | (elementWord & 0xffff);
+
+    if (tag == PIXEL_DATA && (isRLE || isJPEG)) {
+      in.skipBytes(20);
+    }
+
     elementLength = getLength();
 
     // HACK - needed to read some GE files

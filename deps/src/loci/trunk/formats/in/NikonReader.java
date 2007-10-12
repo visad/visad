@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -180,11 +180,14 @@ public class NikonReader extends BaseTiffReader {
     // look for the TIFF_EPS_STANDARD tag
     // it should contain version information
 
-    short[] version = (short[])
-      TiffTools.getIFDValue(original, TIFF_EPS_STANDARD);
-    String v = "";
-    for (int i=0; i<version.length; i++) v += version[i];
-    addMeta("Version", v);
+    try {
+      short[] version = (short[])
+        TiffTools.getIFDValue(original, TIFF_EPS_STANDARD);
+      String v = "";
+      for (int i=0; i<version.length; i++) v += version[i];
+      addMeta("Version", v);
+    }
+    catch (NullPointerException e) { }
 
     core.littleEndian[0] = true;
     try {
@@ -219,6 +222,7 @@ public class NikonReader extends BaseTiffReader {
       }
     }
     catch (IOException io) { }
+    catch (NullPointerException e) { }
 
     // read the maker note
 
@@ -270,7 +274,6 @@ public class NikonReader extends BaseTiffReader {
     }
 
     Hashtable realImage = TiffTools.getIFD(in, 1, offset);
-    realImage.put(new Integer(TiffTools.VALID_BITS), new int[] {12, 12, 12});
 
     original = ifds[0];
     ifds[0] = realImage;

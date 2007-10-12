@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package loci.formats.in;
 
-import java.awt.image.BufferedImage;
 import java.io.*;
 import loci.formats.*;
 
@@ -118,38 +117,27 @@ public class SDTReader extends FormatReader {
     return !intensity && subC == 0;
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(int) */
-  public byte[] openBytes(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    int c = getRGBChannelCount();
-    byte[] buf = new byte[2 * c * core.sizeX[series] * core.sizeY[series]];
-    return openBytes(no, buf);
-  }
-
   /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
   public byte[] openBytes(int no, byte[] buf)
     throws FormatException, IOException
   {
     FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= timeBins * channels) {
-      throw new FormatException("Invalid image number: " + no);
-    }
-    int c = getRGBChannelCount();
-    if (buf.length < 2 * c * core.sizeX[series] * core.sizeY[series]) {
-      throw new FormatException("Buffer too small");
-    }
+    FormatTools.checkPlaneNumber(this, no);
+    FormatTools.checkBufferSize(this, buf.length);
 
     if (intensity) {
       in.seek(off + 2 * core.sizeX[series] * core.sizeY[series] *
         timeBins * no);
+      byte[] timeBin = new byte[timeBins * 2];
       for (int y=0; y<core.sizeY[series]; y++) {
         for (int x=0; x<core.sizeX[series]; x++) {
           // read all lifetime bins at this pixel for this channel
 
           // combine lifetime bins into intensity value
           short sum = 0;
+          in.read(timeBin);
           for (int t=0; t<timeBins; t++) {
-            sum += DataTools.read2SignedBytes(in, true);
+            sum += DataTools.bytesToShort(timeBin, t*2, true);
           }
           int ndx = 2 * (core.sizeX[0] * y + x);
           buf[ndx] = (byte) (sum & 0xff);
@@ -169,13 +157,6 @@ public class SDTReader extends FormatReader {
       }
     }
     return buf;
-  }
-
-  /* @see loci.formats.IFormatReader#openImage(int) */
-  public BufferedImage openImage(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    return ImageTools.makeImage(openBytes(no), core.sizeX[series],
-      core.sizeY[series], getRGBChannelCount(), false, 2, true);
   }
 
   // -- Internal FormatReader API methods --
@@ -209,13 +190,13 @@ public class SDTReader extends FormatReader {
     core.rgb[0] = !intensity;
     core.littleEndian[0] = true;
     core.imageCount[0] = channels;
+    core.indexed[0] = false;
+    core.falseColor[0] = false;
+    core.metadataComplete[0] = true;
 
     MetadataStore store = getMetadataStore();
     store.setImage(currentId, null, null, null);
-    store.setPixels(new Integer(core.sizeX[0]), new Integer(core.sizeY[0]),
-      new Integer(core.sizeZ[0]), new Integer(core.sizeC[0]),
-      new Integer(core.sizeT[0]), new Integer(core.pixelType[0]),
-      new Boolean(!isLittleEndian()), core.currentOrder[0], null, null);
+    FormatTools.populatePixels(store, this);
     for (int i=0; i<core.sizeC[0]; i++) {
       store.setLogicalChannel(i, null, null, null, null, null, null, null,
         null, null, null, null, null, null, null, null, null, null, null, null,

@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package loci.formats.in;
 
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.Vector;
 
@@ -63,24 +62,13 @@ public class SlidebookReader extends FormatReader {
       block[3] == 1 && block[4] == 0x49 && block[5] == 0x49 && block[6] == 0;
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(int) */
-  public byte[] openBytes(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    byte[] buf = new byte[core.sizeX[series] * core.sizeY[series] * 2];
-    return openBytes(no, buf);
-  }
-
   /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
   public byte[] openBytes(int no, byte[] buf)
     throws FormatException, IOException
   {
     FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
-    if (buf.length < core.sizeX[series] * core.sizeY[series] * 2) {
-      throw new FormatException("Buffer too small.");
-    }
+    FormatTools.checkPlaneNumber(this, no);
+    FormatTools.checkBufferSize(this, buf.length);
 
     int plane = core.sizeX[series] * core.sizeY[series] * 2;
 
@@ -88,13 +76,6 @@ public class SlidebookReader extends FormatReader {
     in.seek(offset);
     in.read(buf);
     return buf;
-  }
-
-  /* @see loci.formats.IFormatReader#openImage(int) */
-  public BufferedImage openImage(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    return ImageTools.makeImage(openBytes(no), core.sizeX[0],
-      core.sizeY[0], 1, true, 2, true);
   }
 
   // -- Internal FormatReader API methods --
@@ -305,23 +286,22 @@ public class SlidebookReader extends FormatReader {
         (int) (len / (core.sizeX[i] * core.sizeY[i] * 2 * core.sizeC[i]));
 
       core.imageCount[i] = core.sizeC[i] * core.sizeZ[i] * core.sizeT[i];
+
+      core.indexed[i] = false;
+      core.falseColor[i] = false;
+      core.metadataComplete[i] = true;
     }
 
     MetadataStore store = getMetadataStore();
-    store.setImage(currentId, null, null, null);
+    FormatTools.populatePixels(store, this);
 
     for (int i=0; i<core.sizeX.length; i++) {
-      store.setPixels(new Integer(core.sizeX[i]), new Integer(core.sizeY[i]),
-        new Integer(core.sizeZ[i]), new Integer(core.sizeC[i]),
-        new Integer(core.sizeT[i]), new Integer(core.pixelType[i]),
-        new Boolean(!core.littleEndian[i]), core.currentOrder[i],
-        new Integer(i), null);
-
+      Integer ii = new Integer(i);
+      store.setImage(currentId, null, null, ii);
       for (int j=0; j<core.sizeC[i]; j++) {
         store.setLogicalChannel(j, null, null, null, null, null, null, null,
-          null, null, null, null, null, core.sizeC[i] == 1 ? "monochrome" :
-          "RGB", null, null, null, null, null, null, null, null, null, null,
-          new Integer(i));
+          null, null, null, null, null, null, null, null, null, null, null,
+          null, null, null, null, null, ii);
       }
     }
   }

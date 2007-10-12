@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package loci.formats.in;
 
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -65,24 +64,13 @@ public class OpenlabRawReader extends FormatReader {
       (block[3] == 'W');
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(int) */
-  public byte[] openBytes(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    byte[] buf = new byte[core.sizeX[0] * core.sizeY[0] * bytesPerPixel];
-    return openBytes(no, buf);
-  }
-
   /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
   public byte[] openBytes(int no, byte[] buf)
     throws FormatException, IOException
   {
     FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
-    if (buf.length < core.sizeX[0] * core.sizeY[0] * bytesPerPixel) {
-      throw new FormatException("Buffer too small.");
-    }
+    FormatTools.checkPlaneNumber(this, no);
+    FormatTools.checkBufferSize(this, buf.length);
 
     in.seek(offsets[no / core.sizeC[0]] + 288);
     in.read(buf);
@@ -94,12 +82,6 @@ public class OpenlabRawReader extends FormatReader {
       }
     }
     return buf;
-  }
-
-  /* @see loci.formats.IFormatReader#openImage(int) */
-  public BufferedImage openImage(int no) throws FormatException, IOException {
-    return ImageTools.makeImage(openBytes(no), core.sizeX[0],
-      core.sizeY[0], core.sizeC[0], false, bytesPerPixel, false);
   }
 
   // -- Internal FormatReader API methods --
@@ -172,6 +154,9 @@ public class OpenlabRawReader extends FormatReader {
     core.rgb[0] = core.sizeC[0] > 1;
     core.interleaved[0] = false;
     core.littleEndian[0] = false;
+    core.metadataComplete[0] = true;
+    core.indexed[0] = false;
+    core.falseColor[0] = false;
 
     // The metadata store we're working with.
     MetadataStore store = getMetadataStore();
@@ -190,17 +175,7 @@ public class OpenlabRawReader extends FormatReader {
 
     store.setImage((String) getMeta("Image name"),
       timestamp == null ? null : sdf.format(timestamp), null, null);
-    store.setPixels(
-      new Integer(core.sizeX[0]),
-      new Integer(core.sizeY[0]),
-      new Integer(core.sizeZ[0]),
-      new Integer(core.sizeC[0]),
-      new Integer(core.sizeT[0]),
-      new Integer(core.pixelType[0]),
-      Boolean.TRUE,
-      core.currentOrder[0],
-      null,
-      null);
+    FormatTools.populatePixels(store, this);
     for (int i=0; i<core.sizeC[0]; i++) {
       store.setLogicalChannel(i, null, null, null, null, null, null, null,
         null, null, null, null, null, null, null, null, null, null, null, null,

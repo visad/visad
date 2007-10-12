@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package loci.formats.in;
 
-import java.awt.image.BufferedImage;
 import java.io.*;
 import loci.formats.*;
 
@@ -64,42 +63,16 @@ public class MRCReader extends FormatReader {
     return false; // no way to tell if this is an MRC file or not
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(int) */
-  public byte[] openBytes(int no) throws FormatException, IOException {
-    byte[] buf = new byte[core.sizeX[0] * core.sizeY[0] * bpp];
-    return openBytes(no, buf);
-  }
-
   /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
   public byte[] openBytes(int no, byte[] buf)
     throws FormatException, IOException
   {
     FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
-    if (buf.length < core.sizeX[0] * core.sizeY[0] * bpp) {
-      throw new FormatException("Buffer too small.");
-    }
-    in.seek(1024 + extHeaderSize + (no * core.sizeX[0] * core.sizeY[0] * bpp));
+    FormatTools.checkPlaneNumber(this, no);
+    FormatTools.checkBufferSize(this, buf.length);
+    in.seek(1024 + (no * core.sizeX[0] * core.sizeY[0] * bpp));
     in.read(buf);
     return buf;
-  }
-
-  /* @see loci.formats.IFormatReader#openImage(int) */
-  public BufferedImage openImage(int no) throws FormatException, IOException {
-    if (isFloat) {
-      byte[] b = openBytes(no);
-      float[] f = new float[b.length / 4];
-      for (int i=0; i<f.length; i++) {
-        f[i] = Float.intBitsToFloat(DataTools.bytesToInt(b, i*4,
-          4, core.littleEndian[0]));
-      }
-      return ImageTools.makeImage(f, core.sizeX[0], core.sizeY[0], 1,
-        core.interleaved[0]);
-    }
-	return ImageTools.makeImage(openBytes(no), core.sizeX[0],
-      core.sizeY[0], 1, true, bpp, core.littleEndian[0]);
   }
 
   // -- Internal FormatReader API methods --
@@ -187,7 +160,6 @@ public class MRCReader extends FormatReader {
     addMeta("Mean pixel value", "" + in.readFloat());
 
     in.skipBytes(4);
-
     extHeaderSize = in.readInt();
 
     in.skipBytes(64);
@@ -229,16 +201,22 @@ public class MRCReader extends FormatReader {
     core.imageCount[0] = core.sizeZ[0];
     core.rgb[0] = false;
     core.interleaved[0] = true;
+    core.indexed[0] = false;
+    core.falseColor[0] = false;
+    core.metadataComplete[0] = true;
 
     MetadataStore store = getMetadataStore();
     store.setImage(currentId, null, null, null);
-    store.setPixels(new Integer(core.sizeX[0]), new Integer(core.sizeY[0]),
-      new Integer(core.sizeZ[0]), new Integer(core.sizeC[0]),
-      new Integer(core.sizeT[0]), new Integer(core.pixelType[0]),
-      new Boolean(!core.littleEndian[0]), core.currentOrder[0], null, null);
+    FormatTools.populatePixels(store, this);
 
-    store.setDimensions(new Float(xlen / mx), new Float(ylen / my),
-      new Float(zlen / mz), null, null, null);
+    Float x = new Float(xlen / mx);
+    Float y = new Float(ylen / my);
+    Float z = new Float(zlen / mz);
+    if (x.floatValue() == Float.POSITIVE_INFINITY) x = new Float(1.0);
+    if (y.floatValue() == Float.POSITIVE_INFINITY) y = new Float(1.0);
+    if (z.floatValue() == Float.POSITIVE_INFINITY) z = new Float(1.0);
+
+    store.setDimensions(x, y, z, null, null, null);
     for (int i=0; i<core.sizeC[0]; i++) {
       store.setLogicalChannel(i, null, null, null, null, null, null, null, null,
         null, null, null, null, null, null, null, null, null, null, null, null,

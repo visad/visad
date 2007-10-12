@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package loci.formats.in;
 
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
 import java.util.zip.*;
@@ -86,27 +85,28 @@ public class OMEXMLReader extends FormatReader {
     return new String(block, 0, 5).equals("<?xml");
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(int) */
-  public byte[] openBytes(int no) throws FormatException, IOException {
+  /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
+  public byte[] openBytes(int no, byte[] buf)
+    throws FormatException, IOException
+  {
     FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= core.imageCount[series]) {
-      throw new FormatException("Invalid image number: " + no);
-    }
+    FormatTools.checkPlaneNumber(this, no);
+    FormatTools.checkBufferSize(this, buf.length);
 
     in.seek(((Integer) offsets[series].get(no)).intValue());
 
-    byte[] buf;
+    byte[] b;
     if (no < getImageCount() - 1) {
-      buf = new byte[((Integer) offsets[series].get(no + 1)).intValue() -
+      b = new byte[((Integer) offsets[series].get(no + 1)).intValue() -
         ((Integer) offsets[series].get(no)).intValue()];
     }
     else {
-      buf = new byte[(int) (in.length() -
+      b = new byte[(int) (in.length() -
         ((Integer) offsets[series].get(no)).intValue())];
     }
-    in.read(buf);
-    String data = new String(buf);
-    buf = null;
+    in.read(b);
+    String data = new String(b);
+    b = null;
 
     // retrieve the compressed pixel data
 
@@ -149,14 +149,8 @@ public class OMEXMLReader extends FormatReader {
         throw new FormatException("Error uncompressing zlib data.");
       }
     }
-    return pixels;
-  }
-
-  /* @see loci.formats.IFormatReader#openImage(int) */
-  public BufferedImage openImage(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    return ImageTools.makeImage(openBytes(no), core.sizeX[series],
-      core.sizeY[series], 1, false, bpp[series], core.littleEndian[series]);
+    buf = pixels;
+    return buf;
   }
 
   // -- Internal FormatReader API methods --
@@ -376,6 +370,8 @@ public class OMEXMLReader extends FormatReader {
       core.sizeC[i] = c.intValue();
       core.rgb[i] = false;
       core.interleaved[i] = false;
+      core.indexed[i] = false;
+      core.falseColor[i] = false;
 
       String type = pixType.toLowerCase();
       if (type.endsWith("16")) {

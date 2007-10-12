@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -278,6 +278,30 @@ public class FileStitcher implements IFormatReader {
   public int getRGBChannelCount() {
     FormatTools.assertId(currentId, true, 2);
     return getSizeC() / getEffectiveSizeC();
+  }
+
+  /* @see IFormatReader#isIndexed() */
+  public boolean isIndexed() {
+    FormatTools.assertId(currentId, true, 2);
+    return reader.isIndexed();
+  }
+
+  /* @see IFormatReader#isFalseColor() */
+  public boolean isFalseColor() {
+    FormatTools.assertId(currentId, true, 2);
+    return reader.isFalseColor();
+  }
+
+  /* @see IFormatReader#get8BitLookupTable() */
+  public byte[][] get8BitLookupTable() throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 2);
+    return reader.get8BitLookupTable();
+  }
+
+  /* @see IFormatReader#get16BitLookupTable() */
+  public short[][] get16BitLookupTable() throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 2);
+    return reader.get16BitLookupTable();
   }
 
   /* @see IFormatReader#getChannelDimLengths() */
@@ -929,6 +953,7 @@ public class FileStitcher implements IFormatReader {
 
     // get Z, C and T positions
     int[] zct = getZCTCoords(no);
+    zct[1] *= getRGBChannelCount();
     int[] posZ = FormatTools.rasterToPosition(lenZ[sno], zct[0]);
     int[] posC = FormatTools.rasterToPosition(lenC[sno], zct[1]);
     int[] posT = FormatTools.rasterToPosition(lenT[sno], zct[2]);

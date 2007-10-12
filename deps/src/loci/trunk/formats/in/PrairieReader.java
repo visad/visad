@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package loci.formats.in;
 
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.text.*;
 import java.util.*;
@@ -79,7 +78,8 @@ public class PrairieReader extends FormatReader {
       return true; // we have no way of verifying further
     }
 
-    if (new String(block).indexOf("xml") != -1) return true;
+    String s = new String(block);
+    if (s.indexOf("xml") != -1 && s.indexOf("PV") != -1) return true;
 
     boolean little = (block[0] == 0x49 && block[1] == 0x49);
 
@@ -124,37 +124,14 @@ public class PrairieReader extends FormatReader {
     return s;
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(int) */
-  public byte[] openBytes(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
-    tiff.setId(files[no]);
-    return tiff.openBytes(0);
-  }
-
   /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
   public byte[] openBytes(int no, byte[] buf)
     throws FormatException, IOException
   {
     FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
+    FormatTools.checkPlaneNumber(this, no);
     tiff.setId(files[no]);
-    tiff.openBytes(0, buf);
-    return buf;
-  }
-
-  /* @see loci.formats.IFormatReader#openImage(int) */
-  public BufferedImage openImage(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
-    tiff.setId(files[no]);
-    return tiff.openImage(0);
+    return tiff.openBytes(0, buf);
   }
 
   /* @see loci.formats.IFormatReader#close(boolean) */
@@ -177,12 +154,25 @@ public class PrairieReader extends FormatReader {
     String[] listing = parent.list();
     int xmlCount = 0;
     for (int i=0; i<listing.length; i++) {
-      if (listing[i].toLowerCase().endsWith(".xml")) xmlCount++;
+      if (listing[i].toLowerCase().endsWith(".xml")) {
+        try {
+          RandomAccessStream s = new RandomAccessStream(
+            parent.getAbsolutePath() + File.separator + listing[i]);
+          if (s.readString(512).indexOf("PV") != -1) xmlCount++;
+        }
+        catch (IOException e) { }
+      }
     }
     if (xmlCount == 0) {
       listing = (String[]) Location.getIdMap().keySet().toArray(new String[0]);
       for (int i=0; i<listing.length; i++) {
-        if (listing[i].toLowerCase().endsWith(".xml")) xmlCount++;
+        if (listing[i].toLowerCase().endsWith(".xml")) {
+          try {
+            RandomAccessStream s = new RandomAccessStream(listing[i]);
+            if (s.readString(512).indexOf("PV") != -1) xmlCount++;
+          }
+          catch (IOException e) { }
+        }
       }
     }
 
@@ -339,6 +329,8 @@ public class PrairieReader extends FormatReader {
         core.rgb[0] = false;
         core.interleaved[0] = false;
         core.littleEndian[0] = tiff.isLittleEndian();
+        core.indexed[0] = tiff.isIndexed();
+        core.falseColor[0] = false;
 
         String px = (String) getMeta("micronsPerPixel_XAxis");
         String py = (String) getMeta("micronsPerPixel_YAxis");
@@ -347,17 +339,7 @@ public class PrairieReader extends FormatReader {
 
         MetadataStore store = getMetadataStore();
 
-        store.setPixels(
-          new Integer(core.sizeX[0]),
-          new Integer(core.sizeY[0]),
-          new Integer(core.sizeZ[0]),
-          new Integer(core.sizeC[0]),
-          new Integer(core.sizeT[0]),
-          new Integer(core.pixelType[0]),
-          new Boolean(!isLittleEndian()),
-          core.currentOrder[0],
-          null,
-          null);
+        FormatTools.populatePixels(store, this);
         store.setDimensions(new Float(pixSizeX), new Float(pixSizeY), null,
           null, null, null);
         for (int i=0; i<core.sizeC[0]; i++) {

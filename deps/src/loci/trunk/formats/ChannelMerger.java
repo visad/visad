@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -49,7 +49,7 @@ public class ChannelMerger extends ReaderWrapper {
   /** Determines whether the channels in the file can be merged. */
   public boolean canMerge() {
     int c = getSizeC();
-    return c > 1 && c <= 4 && !reader.isRGB();
+    return c > 1 && c <= 4 && !reader.isRGB() && !reader.isIndexed();
   }
 
   // -- IFormatReader API methods --

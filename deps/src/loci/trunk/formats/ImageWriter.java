@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -343,12 +343,6 @@ public class ImageWriter implements IFormatWriter {
   public StatusListener[] getStatusListeners() {
     // NB: all writers should have the same status listeners
     return writers[0].getStatusListeners();
-  }
-
-  // -- Main method --
-
-  public static void main(String[] args) throws FormatException, IOException {
-    if (!ConsoleTools.testConvert(new ImageWriter(), args)) System.exit(1);
   }
 
   // -- Deprecated IFormatWriter API methods --

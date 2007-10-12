@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -24,9 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package loci.formats.in;
 
-import java.awt.image.BufferedImage;
 import java.io.*;
-
 import loci.formats.*;
 
 /**
@@ -58,44 +56,25 @@ public class AliconaReader extends FormatReader {
     return (new String(block)).indexOf("Alicona") != -1;
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(int) */
-  public byte[] openBytes(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    byte[] buf = new byte[core.sizeX[0] * core.sizeY[0] * numBytes];
-    return openBytes(no, buf);
-  }
-
   /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
   public byte[] openBytes(int no, byte[] buf)
     throws FormatException, IOException
   {
     FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
+    FormatTools.checkPlaneNumber(this, no);
+    FormatTools.checkBufferSize(this, buf.length);
 
     int pad = (8 - (core.sizeX[0] % 8)) % 8;
-
-    if (buf.length < core.sizeX[0] * core.sizeY[0] * numBytes) {
-      throw new FormatException("Buffer too small.");
-    }
 
     for (int i=0; i<numBytes; i++) {
       in.seek(textureOffset + (no * (core.sizeX[0] + pad)*core.sizeY[0]*(i+1)));
       for (int j=0; j<core.sizeX[0] * core.sizeY[0]; j++) {
-        buf[j*numBytes + i] = (byte) (in.read() & 0xff);
+        buf[j*numBytes + i] = in.readByte();
         if (j % core.sizeX[0] == core.sizeX[0] - 1) in.skipBytes(pad);
       }
     }
 
     return buf;
-  }
-
-  /* @see loci.formats.IFormatReader#openImage(int) */
-  public BufferedImage openImage(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    return ImageTools.makeImage(openBytes(no), core.sizeX[0], core.sizeY[0],
-      1, false, numBytes, true);
   }
 
   // -- Internal FormatReader API methods --
@@ -126,10 +105,8 @@ public class AliconaReader extends FormatReader {
     String pntX = null, pntY = null, pntZ = null;
 
     for (int i=0; i<count; i++) {
-      String key = in.readString(20);
-      String value = in.readString(30);
-      key = key.trim();
-      value = value.trim();
+      String key = in.readString(20).trim();
+      String value = in.readString(30).trim();
 
       addMeta(key, value);
       in.skipBytes(2);
@@ -165,23 +142,15 @@ public class AliconaReader extends FormatReader {
 
     core.pixelType[0] = numBytes == 2 ? FormatTools.UINT16 : FormatTools.UINT8;
     core.currentOrder[0] = "XYCTZ";
+    core.metadataComplete[0] = true;
+    core.indexed[0] = false;
+    core.falseColor[0] = false;
 
     MetadataStore store = getMetadataStore();
 
     store.setImage(currentId, null, null, null);
 
-    store.setPixels(
-      new Integer(core.sizeX[0]),
-      new Integer(core.sizeY[0]),
-      new Integer(core.sizeZ[0]),
-      new Integer(core.sizeC[0]),
-      new Integer(core.sizeT[0]),
-      new Integer(core.pixelType[0]),
-      new Boolean(!core.littleEndian[0]),
-      core.currentOrder[0],
-      null,
-      null
-    );
+    FormatTools.populatePixels(store, this);
 
     if (voltage != null) {
       store.setDetector(null, null, null, null, null, new Float(voltage),

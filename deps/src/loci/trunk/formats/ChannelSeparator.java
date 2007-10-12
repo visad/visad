@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -82,7 +82,7 @@ public class ChannelSeparator extends ReaderWrapper {
   /* @see IFormatReader#getImageCount() */
   public int getImageCount() {
     FormatTools.assertId(getCurrentFile(), true, 2);
-    return reader.isRGB() ?
+    return (reader.isRGB() && !reader.isIndexed()) ?
       (getSizeC() / reader.getEffectiveSizeC()) * reader.getImageCount() :
       reader.getImageCount();
   }
@@ -91,7 +91,7 @@ public class ChannelSeparator extends ReaderWrapper {
   public String getDimensionOrder() {
     FormatTools.assertId(getCurrentFile(), true, 2);
     String order = super.getDimensionOrder();
-    if (reader.isRGB()) {
+    if (reader.isRGB() && !reader.isIndexed()) {
       String newOrder = "XYC";
       if (order.indexOf("Z") > order.indexOf("T")) newOrder += "TZ";
       else newOrder += "ZT";
@@ -103,26 +103,23 @@ public class ChannelSeparator extends ReaderWrapper {
   /* @see IFormatReader#isRGB() */
   public boolean isRGB() {
     FormatTools.assertId(getCurrentFile(), true, 2);
-    return false;
+    return isIndexed() && !isFalseColor();
   }
 
   /* @see IFormatReader#openImage(int) */
   public BufferedImage openImage(int no) throws FormatException, IOException {
     FormatTools.assertId(getCurrentFile(), true, 2);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
+    FormatTools.checkPlaneNumber(this, no);
+
+    if (isIndexed()) return reader.openImage(no);
 
     int bytes = FormatTools.getBytesPerPixel(getPixelType());
 
     byte[] b = openBytes(no);
 
     if (getPixelType() == FormatTools.FLOAT) {
-      float[] f = new float[b.length / 4];
-      for (int i=0; i<b.length; i+=4) {
-        f[i/4] = Float.intBitsToFloat(DataTools.bytesToInt(b, i, 4,
-          isLittleEndian()));
-      }
+      float[] f =
+        (float[]) DataTools.makeDataArray(b, 4, true, isLittleEndian());
       if (isNormalized()) f = DataTools.normalizeFloats(f);
       return ImageTools.makeImage(f, getSizeX(), getSizeY());
     }
@@ -134,11 +131,9 @@ public class ChannelSeparator extends ReaderWrapper {
   /* @see IFormatReader#openBytes(int) */
   public byte[] openBytes(int no) throws FormatException, IOException {
     FormatTools.assertId(getCurrentFile(), true, 2);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
+    FormatTools.checkPlaneNumber(this, no);
 
-    if (reader.isRGB()) {
+    if (reader.isRGB() && !reader.isIndexed()) {
       int c = getSizeC() / reader.getEffectiveSizeC();
       int source = no / c;
       int channel = no % c;
@@ -152,7 +147,7 @@ public class ChannelSeparator extends ReaderWrapper {
 
       return ImageTools.splitChannels(lastImage, c,
         FormatTools.getBytesPerPixel(getPixelType()),
-        false, isInterleaved())[channel];
+        false, !isInterleaved())[channel];
     }
     else return reader.openBytes(no);
   }
@@ -166,6 +161,7 @@ public class ChannelSeparator extends ReaderWrapper {
       getThumbSizeY(), true);
   }
 
+  /* @see IFormatReader#close() */
   public void close() throws IOException {
     super.close();
     lastImage = null;

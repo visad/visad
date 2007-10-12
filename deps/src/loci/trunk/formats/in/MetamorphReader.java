@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package loci.formats.in;
 
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.text.DecimalFormat;
 import java.util.*;
@@ -66,8 +65,10 @@ public class MetamorphReader extends BaseTiffReader {
 
   private int mmPlanes; //number of metamorph planes
 
+  private MetamorphReader r;
+
   /** List of STK files in the dataset. */
-  private String[] stks;
+  private String[][] stks;
 
   // -- Constructor --
 
@@ -113,9 +114,10 @@ public class MetamorphReader extends BaseTiffReader {
     }
   }
 
-  /* @see loci.formats.IFormatReader#isMetadataComplete() */
-  public boolean isMetadataComplete() {
-    return true;
+  /* @see loci.formats.IFormatReader#close() */
+  public void close() throws IOException {
+    super.close();
+    if (r != null) r.close();
   }
 
   /* @see loci.formats.IFormatReader#fileGroupOption(String) */
@@ -139,7 +141,7 @@ public class MetamorphReader extends BaseTiffReader {
 
   /* @see loci.formats.IFormatReader#getUsedFiles() */
   public String[] getUsedFiles() {
-    return stks == null ? super.getUsedFiles() : stks;
+    return stks == null ? super.getUsedFiles() : stks[series];
   }
 
   /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
@@ -147,28 +149,17 @@ public class MetamorphReader extends BaseTiffReader {
     throws FormatException, IOException
   {
     FormatTools.assertId(currentId, true, 1);
-    if (stks == null || stks.length == 1) return super.openBytes(no, buf);
+    if (stks == null || stks[series].length == 1) {
+      return super.openBytes(no, buf);
+    }
 
-    int[] coords = FormatTools.getZCTCoords(this, no);
-    int ndx = coords[1] * getEffectiveSizeC() + coords[2] * core.sizeT[0];
+    int[] coords = FormatTools.getZCTCoords(this, no % core.sizeZ[series]);
+    int ndx = no / core.sizeZ[series];
+    String file = stks[series][ndx];
 
-    RandomAccessStream tmp = new RandomAccessStream(stks[ndx]);
-    Hashtable[] fds = TiffTools.getIFDs(tmp);
-    TiffTools.getSamples(fds[coords[0]], tmp, buf);
-    tmp.close();
-    return buf;
-  }
-
-  /* @see loci.formats.IFormatReader#openImage(int) */
-  public BufferedImage openImage(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    if (stks == null || stks.length == 1) return super.openImage(no);
-
-    int[] coords = FormatTools.getZCTCoords(this, no);
-    int ndx = no / core.sizeZ[0];
-
-    initFile(stks[ndx]);
-    return TiffTools.getImage(ifds[coords[0]], in);
+    if (r == null) r = new MetamorphReader();
+    r.setId(file);
+    return r.openBytes(coords[0], buf);
   }
 
   /* @see loci.formats.FormatReader#initFile(String) */
@@ -212,24 +203,10 @@ public class MetamorphReader extends BaseTiffReader {
 
     Location ndfile = null;
 
-    if (!id.toLowerCase().endsWith(".nd")) {
-      Location abs = new Location(currentId).getAbsoluteFile();
+    if (id.toLowerCase().endsWith(".nd")) ndfile = new Location(id);
 
-      int idx = id.indexOf("_");
-      if (idx == -1) idx = id.lastIndexOf(".");
-
-      ndfile = new Location(abs.getParent(), id.substring(0, idx) + ".nd");
-      if (!ndfile.exists()) {
-        ndfile =
-          new Location(ndfile.getAbsolutePath().replaceAll(".nd", ".ND"));
-      }
-    }
-    else {
-      ndfile = new Location(id);
-    }
-
-    if (ndfile.exists() && (fileGroupOption(id) == FormatTools.MUST_GROUP ||
-      isGroupFiles()))
+    if (ndfile != null && ndfile.exists() &&
+      (fileGroupOption(id) == FormatTools.MUST_GROUP || isGroupFiles()))
     {
       RandomAccessStream ndStream =
         new RandomAccessStream(ndfile.getAbsolutePath());
@@ -257,32 +234,80 @@ public class MetamorphReader extends BaseTiffReader {
 
       int numFiles = cc * tc;
 
-      stks = new String[numFiles];
+      // determine series count
+
+      boolean[] hasZ = new boolean[cc];
+      int seriesCount = 1;
+      for (int i=0; i<cc; i++) {
+        hasZ[i] = ((String) getMeta("WaveDoZ" + (i + 1))).equals("TRUE");
+        if (i > 0 && hasZ[i] != hasZ[i - 1]) seriesCount = 2;
+      }
+
+      int channelsInFirstSeries = cc;
+      if (seriesCount == 2) {
+        channelsInFirstSeries = 0;
+        for (int i=0; i<cc; i++) {
+          if (hasZ[i]) channelsInFirstSeries++;
+        }
+      }
+
+      stks = new String[seriesCount][];
+      if (seriesCount == 1) stks[0] = new String[numFiles];
+      else {
+        stks[0] = new String[channelsInFirstSeries * tc];
+        stks[1] = new String[(cc - channelsInFirstSeries) * tc];
+      }
 
       String prefix = ndfile.getPath();
       prefix = prefix.substring(prefix.lastIndexOf(File.separator) + 1,
         prefix.lastIndexOf("."));
 
-      int pt = 0;
+      int[] pt = new int[seriesCount];
       for (int i=0; i<tc; i++) {
         for (int j=0; j<cc; j++) {
           String chName = (String) getMeta("WaveName" + (j + 1));
           chName = chName.substring(1, chName.length() - 1);
-          stks[pt] = prefix + "_w" + (j + 1) + chName + "_t" +
-            (i + 1) + ".STK";
-          pt++;
+          int seriesNdx = seriesCount == 1 ? 0 : (hasZ[j] ? 0 : 1);
+          stks[seriesNdx][pt[seriesNdx]++] =
+            prefix + "_w" + (j + 1) + chName + "_t" + (i + 1) + ".STK";
         }
       }
 
       ndfile = ndfile.getAbsoluteFile();
 
-      for (int i=0; i<numFiles; i++) {
-        Location l = new Location(ndfile.getParent(), stks[i]);
-        if (!l.exists()) {
-          stks = null;
-          return;
+      for (int s=0; s<stks.length; s++) {
+        for (int f=0; f<stks[s].length; f++) {
+          Location l = new Location(ndfile.getParent(), stks[s][f]);
+          if (!l.exists()) {
+            // '%' can be converted to '-'
+            if (stks[s][f].indexOf("%") != -1) {
+              stks[s][f] = stks[s][f].replaceAll("%", "-");
+              l = new Location(ndfile.getParent(), stks[s][f]);
+              if (!l.exists()) {
+                // try replacing extension
+                stks[s][f] = stks[s][f].substring(0,
+                  stks[s][f].lastIndexOf(".")) + ".TIF";
+                l = new Location(ndfile.getParent(), stks[s][f]);
+                if (!l.exists()) {
+                  stks = null;
+                  return;
+                }
+              }
+            }
+
+            if (!l.exists()) {
+              // try replacing extension
+              stks[s][f] = stks[s][f].substring(0,
+                stks[s][f].lastIndexOf(".")) + ".TIF";
+              l = new Location(ndfile.getParent(), stks[s][f]);
+              if (!l.exists()) {
+                stks = null;
+                return;
+              }
+            }
+          }
+          stks[s][f] = l.getAbsolutePath();
         }
-        stks[i] = l.getAbsolutePath();
       }
 
       core.sizeZ[0] = zc;
@@ -290,6 +315,31 @@ public class MetamorphReader extends BaseTiffReader {
       core.sizeT[0] = tc;
       core.imageCount[0] = zc * tc * cc;
       core.currentOrder[0] = "XYZCT";
+
+      if (stks.length > 1) {
+        CoreMetadata newCore = new CoreMetadata(stks.length);
+        for (int i=0; i<stks.length; i++) {
+          newCore.sizeX[i] = core.sizeX[0];
+          newCore.sizeY[i] = core.sizeY[0];
+          newCore.sizeZ[i] = core.sizeZ[0];
+          newCore.sizeC[i] = core.sizeC[0];
+          newCore.sizeT[i] = core.sizeT[0];
+          newCore.pixelType[i] = core.pixelType[0];
+          newCore.imageCount[i] = core.imageCount[0];
+          newCore.currentOrder[i] = core.currentOrder[0];
+          newCore.rgb[i] = core.rgb[0];
+          newCore.littleEndian[i] = core.littleEndian[0];
+          newCore.interleaved[i] = core.interleaved[0];
+          newCore.orderCertain[i] = true;
+        }
+        newCore.sizeC[0] = stks[0].length / newCore.sizeT[0];
+        newCore.sizeC[1] = stks[1].length / newCore.sizeT[1];
+        newCore.sizeZ[1] = 1;
+        newCore.imageCount[0] =
+          newCore.sizeC[0] * newCore.sizeT[0] * newCore.sizeZ[0];
+        newCore.imageCount[1] = newCore.sizeC[1] * newCore.sizeT[1];
+        core = newCore;
+      }
     }
   }
 
@@ -302,8 +352,8 @@ public class MetamorphReader extends BaseTiffReader {
     try {
       // Now that the base TIFF standard metadata has been parsed, we need to
       // parse out the STK metadata from the UIC4TAG.
-      TiffIFDEntry uic1tagEntry= TiffTools.getFirstIFDEntry(in, UIC1TAG);
-      TiffIFDEntry uic2tagEntry=TiffTools.getFirstIFDEntry(in, UIC2TAG);
+      TiffIFDEntry uic1tagEntry = TiffTools.getFirstIFDEntry(in, UIC1TAG);
+      TiffIFDEntry uic2tagEntry = TiffTools.getFirstIFDEntry(in, UIC2TAG);
       TiffIFDEntry uic4tagEntry = TiffTools.getFirstIFDEntry(in, UIC4TAG);
       int planes = uic4tagEntry.getValueCount();
       mmPlanes = planes;
@@ -397,6 +447,7 @@ public class MetamorphReader extends BaseTiffReader {
       }
       ifds = tempIFDs;
     }
+    catch (UnknownTagException exc) { trace(exc); }
     catch (NullPointerException exc) { trace(exc); }
     catch (IOException exc) { trace(exc); }
     catch (FormatException exc) { trace(exc); }
@@ -459,8 +510,11 @@ public class MetamorphReader extends BaseTiffReader {
       else put("Comment", descr);
     }
     try {
-      core.sizeZ[0] = TiffTools.getIFDLongArray(ifds[0], UIC2TAG, true).length;
-      core.sizeT[0] = getImageCount() / core.sizeZ[0];
+      if (core.sizeZ[0] == 0) {
+        core.sizeZ[0] =
+          TiffTools.getIFDLongArray(ifds[0], UIC2TAG, true).length;
+      }
+      if (core.sizeT[0] == 0) core.sizeT[0] = getImageCount() / core.sizeZ[0];
     }
     catch (FormatException exc) {
       if (debug) trace(exc);
@@ -480,7 +534,7 @@ public class MetamorphReader extends BaseTiffReader {
   }
 
   Integer getEmWave(int i) {
-    if (emWavelength[i] == 0)  return null;
+    if (emWavelength == null || emWavelength[i] == 0)  return null;
     return new Integer((int) emWavelength[i]);
   }
 

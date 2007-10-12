@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -45,13 +45,6 @@ public class TiffReader extends BaseTiffReader {
   /** Constructs a new Tiff reader. */
   public TiffReader() {
     super("Tagged Image File Format", new String[] {"tif", "tiff"});
-  }
-
-  // -- IFormatReader API methods --
-
-  /* @see loci.formats.IFormatReader#isMetadataComplete() */
-  public boolean isMetadataComplete() {
-    return true;
   }
 
   // -- Internal TiffReader API methods --

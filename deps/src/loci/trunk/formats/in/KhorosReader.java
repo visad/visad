@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package loci.formats.in;
 
-import java.awt.image.BufferedImage;
 import java.io.*;
 import loci.formats.*;
 
@@ -57,12 +56,18 @@ public class KhorosReader extends FormatReader {
     return block[0] == (byte) 0xab && block[1] == 1;
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(int) */
-  public byte[] openBytes(int no) throws FormatException, IOException {
+  /* @see loci.formats.IFormatReader#get8BitLookupTable() */
+  public byte[][] get8BitLookupTable() throws FormatException, IOException {
     FormatTools.assertId(currentId, true, 1);
-    byte[] buf = new byte[core.sizeX[0] * core.sizeY[0] * core.sizeC[0] *
-      FormatTools.getBytesPerPixel(core.pixelType[0])];
-    return openBytes(no, buf);
+    if (lut == null) return null;
+    byte[][] table = new byte[3][lut.length / 3];
+    int next = 0;
+    for (int i=0; i<table[0].length; i++) {
+      for (int j=0; j<table.length; j++) {
+        table[j][i] = lut[next++];
+      }
+    }
+    return table;
   }
 
   /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
@@ -70,48 +75,15 @@ public class KhorosReader extends FormatReader {
     throws FormatException, IOException
   {
     FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= core.imageCount[0]) {
-      throw new FormatException("Invalid image number: " + no);
-    }
+    FormatTools.checkPlaneNumber(this, no);
+    FormatTools.checkBufferSize(this, buf.length);
 
-    in.seek(offset +
-      no * (core.sizeX[0] * core.sizeY[0] * getRGBChannelCount()));
-    if (lut == null) in.read(buf);
-    else {
-      int plane = core.sizeX[0] * core.sizeY[0] *
-        FormatTools.getBytesPerPixel(core.pixelType[0]);
+    int bufSize = core.sizeX[0] * core.sizeY[0] *
+      FormatTools.getBytesPerPixel(core.pixelType[0]);
 
-      for (int i=0; i<plane; i++) {
-        int ndx = in.read();
-        if (ndx < 0) ndx += 256;
-        buf[i] = lut[ndx*3];
-        buf[i + plane] = lut[ndx*3 + 1];
-        buf[i + 2*plane] = lut[ndx*3 + 2];
-      }
-    }
-
+    in.seek(offset + no * bufSize);
+    in.read(buf, 0, bufSize);
     return buf;
-  }
-
-  /* @see loci.formats.IFormatReader#openImage(int) */
-  public BufferedImage openImage(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-
-    if (core.pixelType[0] == FormatTools.FLOAT) {
-      byte[] b = openBytes(no);
-      float[] f = new float[core.sizeX[0] * core.sizeY[0] * core.sizeC[0]];
-      for (int i=0; i<f.length; i++) {
-        f[i] = Float.intBitsToFloat(DataTools.bytesToInt(b,
-          i*4, !core.littleEndian[0]));
-      }
-
-      return ImageTools.makeImage(f, core.sizeX[0], core.sizeY[0],
-        core.sizeC[0], core.interleaved[0]);
-    }
-
-    return ImageTools.makeImage(openBytes(no), core.sizeX[0], core.sizeY[0],
-      core.sizeC[0], core.interleaved[0],
-      FormatTools.getBytesPerPixel(core.pixelType[0]), core.littleEndian[0]);
   }
 
   /* @see loci.formats.IFormatReader#close() */
@@ -195,17 +167,17 @@ public class KhorosReader extends FormatReader {
     core.interleaved[0] = false;
     core.littleEndian[0] = dependency == 4 || dependency == 8;
     core.currentOrder[0] = "XYCZT";
+    core.indexed[0] = lut != null;
+    core.falseColor[0] = false;
+    core.metadataComplete[0] = true;
 
     MetadataStore store = getMetadataStore();
     store.setImage(currentId, null, null, null);
-    store.setPixels(new Integer(core.sizeX[0]), new Integer(core.sizeY[0]),
-      new Integer(core.sizeZ[0]), new Integer(core.sizeC[0]),
-      new Integer(core.sizeT[0]), new Integer(core.pixelType[0]),
-      new Boolean(core.littleEndian[0]), core.currentOrder[0], null, null);
+    FormatTools.populatePixels(store, this);
 
     for (int i=0; i<core.sizeC[0]; i++) {
       store.setLogicalChannel(i, null, null, null, null, null, null, null, null,
-        null, null, null, null, core.sizeC[0] == 1 ? "monochrome" : "RGB", null,
+        null, null, null, null, null, null,
         null, null, null, null, null, null, null, null, null, null);
     }
   }

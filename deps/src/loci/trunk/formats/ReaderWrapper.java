@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -115,6 +115,22 @@ public abstract class ReaderWrapper implements IFormatReader {
 
   public int getRGBChannelCount() {
     return getSizeC() / getEffectiveSizeC();
+  }
+
+  public boolean isIndexed() {
+    return reader.isIndexed();
+  }
+
+  public boolean isFalseColor() {
+    return reader.isFalseColor();
+  }
+
+  public byte[][] get8BitLookupTable() throws FormatException, IOException {
+    return reader.get8BitLookupTable();
+  }
+
+  public short[][] get16BitLookupTable() throws FormatException, IOException {
+    return reader.get16BitLookupTable();
   }
 
   public int[] getChannelDimLengths() {

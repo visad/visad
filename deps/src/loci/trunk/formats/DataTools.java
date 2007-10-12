@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -394,6 +394,56 @@ public final class DataTools {
     return bytesToLong(bytes, 0, 8, little);
   }
 
+  /**
+   * Convert a byte array to the appropriate primitive type array.
+   * @param b Byte array to convert.
+   * @param bpp Denotes the number of bytes in the returned primitive type
+   *   (e.g. if bpp == 2, we should return an array of type short).
+   * @param fp If set and bpp == 4 or bpp == 8, then return floats or doubles.
+   * @param little Whether byte array is in little-endian order.
+   */
+  public static Object makeDataArray(byte[] b,
+    int bpp, boolean fp, boolean little)
+  {
+    if (bpp == 1) return b;
+    else if (bpp == 2) {
+      short[] s = new short[b.length / 2];
+      for (int i=0; i<s.length; i++) {
+        s[i] = bytesToShort(b, i*2, 2, little);
+      }
+      return s;
+    }
+    else if (bpp == 4 && fp) {
+      float[] f = new float[b.length / 4];
+      for (int i=0; i<f.length; i++) {
+        f[i] = Float.intBitsToFloat(bytesToInt(b, i*4, 4, little));
+      }
+      return f;
+    }
+    else if (bpp == 4) {
+      int[] i = new int[b.length / 4];
+      for (int j=0; j<i.length; j++) {
+        i[j] = bytesToInt(b, j*4, 4, little);
+      }
+      return i;
+    }
+    else if (bpp == 8 && fp) {
+      double[] d = new double[b.length / 8];
+      for (int i=0; i<d.length; i++) {
+        d[i] = Double.longBitsToDouble(bytesToLong(b, i*8, 8, little));
+      }
+      return d;
+    }
+    else if (bpp == 8) {
+      long[] l = new long[b.length / 8];
+      for (int i=0; i<l.length; i++) {
+        l[i] = bytesToLong(b, i*8, 8, little);
+      }
+      return l;
+    }
+    return null;
+  }
+
   // -- Byte swapping --
 
   public static short swap(short x) {
@@ -446,54 +496,6 @@ public final class DataTools {
   }
 
   /**
-   * Convert a byte array to the appropriate primitive type array.
-   * The 'bpp' parameter denotes the number of bytes in the returned primitive
-   * type (e.g. if bpp == 2, we should return an array of type short).
-   * If 'fp' is set and bpp == 4 or bpp == 8, then return floats or doubles.
-   */
-  public static Object makeDataArray(byte[] b, int bpp, boolean fp,
-    boolean little)
-  {
-    if (bpp == 1) return b;
-    else if (bpp == 2) {
-      short[] s = new short[b.length / 2];
-      for (int i=0; i<s.length; i++) {
-        s[i] = bytesToShort(b, i*2, 2, little);
-      }
-      return s;
-    }
-    else if (bpp == 4 && fp) {
-      float[] f = new float[b.length / 4];
-      for (int i=0; i<f.length; i++) {
-        f[i] = Float.intBitsToFloat(bytesToInt(b, i*4, 4, little));
-      }
-      return f;
-    }
-    else if (bpp == 4) {
-      int[] i = new int[b.length / 4];
-      for (int j=0; j<i.length; j++) {
-        i[j] = bytesToInt(b, j*4, 4, little);
-      }
-      return i;
-    }
-    else if (bpp == 8 && fp) {
-      double[] d = new double[b.length / 8];
-      for (int i=0; i<d.length; i++) {
-        d[i] = Double.longBitsToDouble(bytesToLong(b, i*8, 8, little));
-      }
-      return d;
-    }
-    else if (bpp == 8) {
-      long[] l = new long[b.length / 8];
-      for (int i=0; i<l.length; i++) {
-        l[i] = bytesToLong(b, i*8, 8, little);
-      }
-      return l;
-    }
-    return null;
-  }
-
-  /**
    * Normalize the given float array so that the minimum value maps to 0.0
    * and the maximum value maps to 1.0.
    */
@@ -515,9 +517,7 @@ public final class DataTools {
     // now normalize; min => 0.0, max => 1.0
 
     for (int i=0; i<rtn.length; i++) {
-      rtn[i] = data[i] / max;
-      if (rtn[i] < 0f) rtn[i] = 0f;
-      if (rtn[i] > 1f) rtn[i] = 1f;
+      rtn[i] = (data[i] - min) / (max - min);
     }
 
     return rtn;

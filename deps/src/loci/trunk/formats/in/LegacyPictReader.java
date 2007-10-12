@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -55,17 +55,18 @@ public class LegacyPictReader extends FormatReader {
     return false;
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(int) */
-  public byte[] openBytes(int no) throws FormatException, IOException {
-    return ImageTools.getBytes(openImage(no), false, 3);
+  /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
+  public byte[] openBytes(int no, byte[] buf)
+    throws FormatException, IOException
+  {
+    buf = ImageTools.getBytes(openImage(no), false, 3);
+    return buf;
   }
 
   /* @see loci.formats.IFormatReader#openImage(int) */
   public BufferedImage openImage(int no) throws FormatException, IOException {
     FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
+    FormatTools.checkPlaneNumber(this, no);
 
     // read in PICT data
     RandomAccessStream fin = new RandomAccessStream(currentId);
@@ -105,13 +106,12 @@ public class LegacyPictReader extends FormatReader {
     core.interleaved[0] = false;
     core.imageCount[0] = 1;
     core.littleEndian[0] = false;
+    core.indexed[0] = false;
+    core.falseColor[0] = false;
 
     MetadataStore store = getMetadataStore();
     store.setImage(currentId, null, null, null);
-    store.setPixels(new Integer(core.sizeX[0]), new Integer(core.sizeY[0]),
-      new Integer(core.sizeZ[0]), new Integer(core.sizeC[0]),
-      new Integer(core.sizeT[0]), new Integer(core.pixelType[0]), Boolean.TRUE,
-      core.currentOrder[0], null, null);
+    FormatTools.populatePixels(store, this);
 
     for (int i=0; i<core.sizeC[0]; i++) {
       store.setLogicalChannel(i, null, null, null, null, null, null, null, null,

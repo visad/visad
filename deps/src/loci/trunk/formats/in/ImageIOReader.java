@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -58,28 +58,27 @@ public abstract class ImageIOReader extends FormatReader {
   /* @see loci.formats.IFormatReader#isThisType(byte[]) */
   public boolean isThisType(byte[] block) { return false; }
 
-  /* @see loci.formats.IFormatReader#openBytes(int) */
-  public byte[] openBytes(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    byte[] b = ImageTools.getBytes(openImage(no), false, no);
+  /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
+  public byte[] openBytes(int no, byte[] buf)
+    throws FormatException, IOException
+  {
+    buf = ImageTools.getBytes(openImage(no), false, no);
     int bytesPerChannel = core.sizeX[0] * core.sizeY[0];
-    if (b.length > bytesPerChannel) {
-      byte[] tmp = b;
-      b = new byte[bytesPerChannel * 3];
+    if (buf.length > bytesPerChannel) {
+      byte[] tmp = buf;
+      buf = new byte[bytesPerChannel * 3];
       for (int i=0; i<3; i++) {
-        System.arraycopy(tmp, i * bytesPerChannel, b, i*bytesPerChannel,
+        System.arraycopy(tmp, i * bytesPerChannel, buf, i*bytesPerChannel,
           bytesPerChannel);
       }
     }
-    return b;
+    return buf;
   }
 
   /* @see loci.formats.IFormatReader#openImage(int) */
   public BufferedImage openImage(int no) throws FormatException, IOException {
     FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
+    FormatTools.checkPlaneNumber(this, no);
 
     RandomAccessStream ras = new RandomAccessStream(currentId);
     DataInputStream dis =
@@ -96,8 +95,8 @@ public abstract class ImageIOReader extends FormatReader {
   // -- IFormatHandler API methods --
 
   /* @see loci.formats.IFormatHandler#close() */
-  public void close() throws IOException { 
-    currentId = null; 
+  public void close() throws IOException {
+    currentId = null;
   }
 
   // -- Internal FormatReader API methods --
@@ -121,23 +120,16 @@ public abstract class ImageIOReader extends FormatReader {
     core.sizeT[0] = 1;
     core.currentOrder[0] = "XYCZT";
     core.pixelType[0] = ImageTools.getPixelType(img);
-    core.interleaved[0] = true;
+    core.interleaved[0] = false;
     core.littleEndian[0] = false;
+    core.metadataComplete[0] = true;
+    core.indexed[0] = false;
+    core.falseColor[0] = false;
 
     // populate the metadata store
     MetadataStore store = getMetadataStore();
     store.setImage(currentId, null, null, null);
-    store.setPixels(
-      new Integer(core.sizeX[0]),
-      new Integer(core.sizeY[0]),
-      new Integer(core.sizeZ[0]),
-      new Integer(core.sizeC[0]),
-      new Integer(core.sizeT[0]),
-      new Integer(core.pixelType[0]),
-      new Boolean(!core.littleEndian[0]),
-      core.currentOrder[0],
-      null,
-      null);
+    FormatTools.populatePixels(store, this);
     for (int i=0; i<core.sizeC[0]; i++) {
       store.setLogicalChannel(i, null, null, null, null, null, null, null, null,
         null, null, null, null, null, null, null, null, null, null, null, null,

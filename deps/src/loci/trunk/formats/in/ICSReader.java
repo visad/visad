@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package loci.formats.in;
 
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.StringTokenizer;
 import java.util.zip.*;
@@ -114,27 +113,13 @@ public class ICSReader extends FormatReader {
     return FormatTools.MUST_GROUP;
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(int) */
-  public byte[] openBytes(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    byte[] buf = new byte[core.sizeX[0] * core.sizeY[0] * (bitsPerPixel / 8) *
-      getRGBChannelCount()];
-    return openBytes(no, buf);
-  }
-
   /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
   public byte[] openBytes(int no, byte[] buf)
     throws FormatException, IOException
   {
     FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
-    if (buf.length < core.sizeX[0] * core.sizeY[0] * (bitsPerPixel / 8) *
-      getRGBChannelCount())
-    {
-      throw new FormatException("Buffer too small.");
-    }
+    FormatTools.checkPlaneNumber(this, no);
+    FormatTools.checkBufferSize(this, buf.length);
 
     int bpp = bitsPerPixel / 8;
 
@@ -150,31 +135,6 @@ public class ICSReader extends FormatReader {
     else System.arraycopy(data, offset, buf, 0, len);
 
     return buf;
-  }
-
-  /* @see loci.formats.IFormatReader#openImage(int) */
-  public BufferedImage openImage(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    byte[] plane = openBytes(no);
-    int channels = core.rgb[0] ? core.sizeC[0] : 1;
-
-    int bytes = bitsPerPixel / 8;
-
-    if (bytes == 4) {
-      float[] f = new float[core.sizeX[0] * core.sizeY[0] * channels];
-      for (int i=0; i<f.length; i++) {
-        int p = DataTools.bytesToInt(plane, i*4, 4, core.littleEndian[0]);
-        f[i] = Float.intBitsToFloat(p);
-      }
-
-      if (normalizeData) f = DataTools.normalizeFloats(f);
-
-      return ImageTools.makeImage(f, core.sizeX[0], core.sizeY[0],
-        channels, true);
-    }
-
-    return ImageTools.makeImage(plane, core.sizeX[0], core.sizeY[0], channels,
-      true, bytes, core.littleEndian[0]);
   }
 
   /* @see loci.formats.IFormatReader#getUsedFiles() */
@@ -348,9 +308,12 @@ public class ICSReader extends FormatReader {
 
     if (core.imageCount[0] == 0) core.imageCount[0] = 1;
     core.rgb[0] = core.rgb[0] && core.sizeC[0] > 1;
-    core.interleaved[0] = !core.rgb[0];
+    core.interleaved[0] = core.rgb[0];
     core.imageCount[0] = core.sizeZ[0] * core.sizeT[0];
     if (!core.rgb[0]) core.imageCount[0] *= core.sizeC[0];
+    core.indexed[0] = false;
+    core.falseColor[0] = false;
+    core.metadataComplete[0] = true;
 
     String endian = byteOrder;
     core.littleEndian[0] = true;
@@ -450,17 +413,7 @@ public class ICSReader extends FormatReader {
 
     core.currentOrder[0] = o.trim();
 
-    store.setPixels(
-      new Integer(core.sizeX[0]), // SizeX
-      new Integer(core.sizeY[0]), // SizeY
-      new Integer(core.sizeZ[0]), // SizeZ
-      new Integer(core.sizeC[0]), // SizeC
-      new Integer(core.sizeT[0]), // SizeT
-      new Integer(core.pixelType[0]), // PixelType
-      new Boolean(!core.littleEndian[0]), // BigEndian
-      core.currentOrder[0], // DimensionOrder
-      null, // Use image index 0
-      null); // Use pixels index 0
+    FormatTools.populatePixels(store, this);
 
     String pixelSizes = scale;
     o = layoutOrder;

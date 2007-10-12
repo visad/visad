@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package loci.formats.in;
 
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.StringTokenizer;
 import loci.formats.*;
@@ -71,28 +70,13 @@ public class NRRDReader extends FormatReader {
     return new String[] {currentId, dataFile};
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(int) */
-  public byte[] openBytes(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    byte[] buf = new byte[core.sizeX[0] * core.sizeY[0] * core.sizeC[0] *
-      FormatTools.getBytesPerPixel(core.pixelType[0])];
-    return openBytes(no, buf);
-  }
-
   /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
   public byte[] openBytes(int no, byte[] buf)
     throws FormatException, IOException
   {
     FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= core.imageCount[0]) {
-      throw new FormatException("Invalid image number: " + no);
-    }
-
-    if (buf.length < core.sizeX[0] * core.sizeY[0] * core.sizeC[0] *
-      FormatTools.getBytesPerPixel(core.pixelType[0]))
-    {
-      throw new FormatException("Buffer too small.");
-    }
+    FormatTools.checkPlaneNumber(this, no);
+    FormatTools.checkBufferSize(this, buf.length);
 
     // TODO : add support for additional encoding types
     if (dataFile == null) {
@@ -104,26 +88,6 @@ public class NRRDReader extends FormatReader {
       else throw new FormatException("Unsupported encoding: " + encoding);
     }
     return helper.openBytes(no, buf);
-  }
-
-  /* @see loci.formats.IFormatReader#openImage(int) */
-  public BufferedImage openImage(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    if (core.pixelType[0] == FormatTools.FLOAT) {
-      byte[] b = openBytes(no);
-      float[] f = new float[core.sizeX[0] * core.sizeY[0] * core.sizeC[0]];
-      for (int i=0; i<f.length; i++) {
-        f[i] = Float.intBitsToFloat(
-          DataTools.bytesToInt(b, i*4, 4, core.littleEndian[0]));
-      }
-      if (normalizeData) f = DataTools.normalizeFloats(f);
-      return ImageTools.makeImage(f, core.sizeX[0], core.sizeY[0],
-        core.sizeC[0], core.interleaved[0]);
-    }
-
-    return ImageTools.makeImage(openBytes(no), core.sizeX[0], core.sizeY[0],
-      core.sizeC[0], core.interleaved[0],
-      FormatTools.getBytesPerPixel(core.pixelType[0]), core.littleEndian[0]);
   }
 
   /* @see loci.formats.IFormatReader#close() */
@@ -224,23 +188,30 @@ public class NRRDReader extends FormatReader {
     }
 
     if (dataFile == null) offset = in.getFilePointer();
-    else helper.setId(dataFile);
+    else {
+      File f = new File(currentId);
+      if (f.exists() && f.getParentFile() != null) {
+        dataFile =
+          f.getParentFile().getAbsolutePath() + File.separator + dataFile;
+      }
+      helper.setId(dataFile);
+    }
 
     core.rgb[0] = core.sizeC[0] > 1;
     core.interleaved[0] = true;
     core.imageCount[0] = core.sizeZ[0] * core.sizeT[0];
+    core.indexed[0] = false;
+    core.falseColor[0] = false;
+    core.metadataComplete[0] = true;
 
     MetadataStore store = getMetadataStore();
     store.setImage(currentId, null, null, null);
 
-    store.setPixels(new Integer(core.sizeX[0]), new Integer(core.sizeY[0]),
-      new Integer(core.sizeZ[0]), new Integer(core.sizeC[0]),
-      new Integer(core.sizeT[0]), new Integer(core.pixelType[0]),
-      new Boolean(core.littleEndian[0]), core.currentOrder[0], null, null);
+    FormatTools.populatePixels(store, this);
 
     for (int i=0; i<core.sizeC[0]; i++) {
       store.setLogicalChannel(i, null, null, null, null, null, null, null, null,
-        null, null, null, null, core.sizeC[0] == 1 ? "monochrome" : "RGB", null,
+        null, null, null, null, null, null,
         null, null, null, null, null, null, null, null, null, null);
     }
   }

@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -25,7 +25,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 package loci.formats.in;
 
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
 import java.io.*;
 import java.util.*;
 import loci.formats.*;
@@ -78,41 +77,16 @@ public class OIFReader extends FormatReader {
     return FormatTools.MUST_GROUP;
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(int) */
-  public byte[] openBytes(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    byte[] b = tiffReader[no].openBytes(0);
-    tiffReader[no].close();
-    return b;
-  }
-
   /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
   public byte[] openBytes(int no, byte[] buf)
     throws FormatException, IOException
   {
     FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
+    FormatTools.checkPlaneNumber(this, no);
 
     tiffReader[no].openBytes(0, buf);
     tiffReader[no].close();
     return buf;
-  }
-
-  /* @see loci.formats.IFormatReader#openImage(int) */
-  public BufferedImage openImage(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
-
-    BufferedImage b = tiffReader[no].openImage(0);
-    ColorModel cm = ImageTools.makeColorModel(b.getRaster().getNumBands(),
-      b.getRaster().getTransferType(), null);
-    b = ImageTools.makeBuffered(b, cm);
-    tiffReader[no].close();
-    return b;
   }
 
   /* @see loci.formats.IFormatReader#openThumbImage(int) */
@@ -120,9 +94,7 @@ public class OIFReader extends FormatReader {
     throws FormatException, IOException
   {
     FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
+    FormatTools.checkPlaneNumber(this, no);
 
     String dir =
       currentId.substring(0, currentId.lastIndexOf(File.separator) + 1);
@@ -393,18 +365,11 @@ public class OIFReader extends FormatReader {
     core.rgb[0] = tiffReader[0].isRGB();
     core.littleEndian[0] = true;
     core.interleaved[0] = false;
+    core.metadataComplete[0] = true;
+    core.indexed[0] = tiffReader[0].isIndexed();
+    core.falseColor[0] = false;
 
-    store.setPixels(
-      new Integer(core.sizeX[0]),
-      new Integer(core.sizeY[0]),
-      new Integer(core.sizeZ[0]),
-      new Integer(core.sizeC[0]),
-      new Integer(core.sizeT[0]),
-      new Integer(core.pixelType[0]),
-      Boolean.FALSE,
-      "XYZTC",
-      null,
-      null);
+    FormatTools.populatePixels(store, this);
 
     prefix = "[Reference Image Parameter] - ";
     String px = (String) getMeta(prefix + "WidthConvertValue");

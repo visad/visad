@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -25,6 +25,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 package loci.formats;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.Raster;
+import java.awt.image.WritableRaster;
 import java.io.IOException;
 import java.util.*;
 
@@ -58,9 +60,6 @@ public abstract class FormatReader extends FormatHandler
   /** Core metadata values. */
   protected CoreMetadata core;
 
-  /** Whether or not the metadata is completely parsed. */
-  protected boolean complete = false;
-
   /** Whether or not to normalize float data. */
   protected boolean normalizeData;
 
@@ -78,7 +77,7 @@ public abstract class FormatReader extends FormatHandler
 
   /**
    * Current metadata store. Should <b>never</b> be accessed directly as the
-   * semantics of {@link #getMetadataStore(String)} prevent "null" access.
+   * semantics of {@link #getMetadataStore()} prevent "null" access.
    */
   protected MetadataStore metadataStore = new DummyMetadata();
 
@@ -246,6 +245,28 @@ public abstract class FormatReader extends FormatHandler
     return getSizeC() / getEffectiveSizeC();
   }
 
+  /* @see IFormatReader#isIndexed() */
+  public boolean isIndexed() {
+    FormatTools.assertId(currentId, true, 1);
+    return core.indexed[series];
+  }
+
+  /* @see IFormatReader#isFalseColor() */
+  public boolean isFalseColor() {
+    FormatTools.assertId(currentId, true, 1);
+    return core.falseColor[series];
+  }
+
+  /* @see IFormatReader#get8BitLookupTable() */
+  public byte[][] get8BitLookupTable() throws FormatException, IOException {
+    return null;
+  }
+
+  /* @see IFormatReader#get16BitLookupTable() */
+  public short[][] get16BitLookupTable() throws FormatException, IOException {
+    return null;
+  }
+
   /* @see IFormatReader#getChannelDimLengths() */
   public int[] getChannelDimLengths() {
     FormatTools.assertId(currentId, true, 1);
@@ -317,11 +338,51 @@ public abstract class FormatReader extends FormatHandler
     return core.interleaved[series];
   }
 
-  /* @see IFormatReader#openBytes(int, byte[]) */
-  public byte[] openBytes(int no, byte[] buf)
-    throws FormatException, IOException
-  {
-    return openBytes(no);
+  /* @see IFormatReader#openBytes(int) */
+  public byte[] openBytes(int no) throws FormatException, IOException {
+    byte[] buf = new byte[getSizeX() * getSizeY() * getRGBChannelCount() *
+      FormatTools.getBytesPerPixel(getPixelType())];
+    return openBytes(no, buf);
+  }
+
+  /* @see IFormatReader#openImage(int) */
+  public BufferedImage openImage(int no) throws FormatException, IOException {
+    byte[] buf = openBytes(no);
+
+    if (getPixelType() == FormatTools.FLOAT) {
+      float[] f =
+        (float[]) DataTools.makeDataArray(buf, 4, true, isLittleEndian());
+
+      if (normalizeData) f = DataTools.normalizeFloats(f);
+      return ImageTools.makeImage(f, core.sizeX[series], core.sizeY[series],
+        getRGBChannelCount(), true);
+    }
+
+    BufferedImage b = ImageTools.makeImage(buf, core.sizeX[series],
+      core.sizeY[series], isIndexed() ? 1 : getRGBChannelCount(),
+      core.interleaved[0], FormatTools.getBytesPerPixel(core.pixelType[series]),
+      core.littleEndian[series]);
+    if (isIndexed()) {
+      IndexedColorModel model = null;
+      if (core.pixelType[series] == FormatTools.UINT8 ||
+        core.pixelType[series] == FormatTools.INT8)
+      {
+        byte[][] table = get8BitLookupTable();
+        model = new IndexedColorModel(8, table[0].length, table);
+      }
+      else if (core.pixelType[series] == FormatTools.UINT16 ||
+        core.pixelType[series] == FormatTools.INT16)
+      {
+        short[][] table = get16BitLookupTable();
+        model = new IndexedColorModel(16, table[0].length, table);
+      }
+      if (model != null) {
+        WritableRaster raster = Raster.createWritableRaster(b.getSampleModel(),
+          b.getData().getDataBuffer(), null);
+        b = new BufferedImage(model, raster, false, null);
+      }
+    }
+    return b;
   }
 
   /* @see IFormatReader#openThumbImage(int) */
@@ -393,7 +454,8 @@ public abstract class FormatReader extends FormatHandler
 
   /* @see IFormatReader#isMetadataComplete() */
   public boolean isMetadataComplete() {
-    return complete;
+    FormatTools.assertId(currentId, true, 1);
+    return core.metadataComplete[series];
   }
 
   /* @see IFormatReader#setNormalized(boolean) */

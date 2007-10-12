@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -79,13 +79,41 @@ public interface IFormatReader extends IFormatHandler {
 
   /**
    * Gets the effective size of the C dimension, guaranteeing that
-   * getEffectiveSizeC(id) * getSizeZ(id) * getSizeT(id) == getImageCount(id)
-   * regardless of the result of isRGB(id).
+   * getEffectiveSizeC() * getSizeZ() * getSizeT() == getImageCount()
+   * regardless of the result of isRGB().
    */
   int getEffectiveSizeC();
 
   /** Gets the number of channels per RGB image (if not RGB, this returns 1). */
   int getRGBChannelCount();
+
+  /** Gets whether the images are indexed color. */
+  boolean isIndexed();
+
+  /**
+   * Returns false if isIndexed is false, or if isIndexed is true and the lookup
+   * table represents "real" color data.  Returns true if isIndexed is true
+   * and the lookup table is only present to aid in visualization.
+   */
+  boolean isFalseColor();
+
+  /**
+   * Gets the 8-bit color lookup table associated with
+   * the most recently opened image.
+   * If no images have been opened, or if isIndexed() returns false, then
+   * this returns null.  Also, if getPixelType() returns anything other than
+   * <code>INT8</code> or <code>UINT8</code>, this method will return null.
+   */
+  byte[][] get8BitLookupTable() throws FormatException, IOException;
+
+  /**
+   * Gets the 16-bit color lookup table associated with
+   * the most recently opened image.
+   * If no images have been opened, or if isIndexed() returns false, then
+   * this returns null.  Also, if getPixelType() returns anything other than
+   * <code>INT16</code> or <code>UINT16</code>, this method will return null.
+   */
+  short[][] get16BitLookupTable() throws FormatException, IOException;
 
   /**
    * Gets the lengths of each subdimension of C,

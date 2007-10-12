@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -87,12 +87,22 @@ public class OpenlabReader extends FormatReader {
       block[5] == 109 && block[6] == 112 && block[7] == 114;
   }
 
+  /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
+  public byte[] openBytes(int no, byte[] buf)
+    throws FormatException, IOException
+  {
+    FormatTools.assertId(currentId, true, 1);
+    FormatTools.checkPlaneNumber(this, no);
+    FormatTools.checkBufferSize(this, buf.length);
+
+    buf = openBytes(no);
+    return buf;
+  }
+
   /* @see loci.formats.IFormatReader#openBytes(int) */
   public byte[] openBytes(int no) throws FormatException, IOException {
     FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
+    FormatTools.checkPlaneNumber(this, no);
 
     LayerInfo info = (LayerInfo) layerInfoList[series].get(no);
     in.seek(info.layerStart);
@@ -146,8 +156,11 @@ public class OpenlabReader extends FormatReader {
         BufferedImage img = pict.open(b);
         byte[][] tmp = ImageTools.getBytes(img);
         b = new byte[tmp.length * tmp[0].length];
-        for (int i=0; i<tmp.length; i++) {
-          System.arraycopy(tmp[i], 0, b, i * tmp[i].length, tmp[i].length);
+        int pt = 0;
+        for (int i=0; i<tmp[0].length; i++) {
+          for (int j=0; j<tmp.length; j++) {
+            b[pt++] = tmp[j][i];
+          }
         }
       }
       catch (FormatException exc) { exception = exc; }
@@ -299,21 +312,6 @@ public class OpenlabReader extends FormatReader {
       System.arraycopy(tmp, 0, b, 0, b.length);
     }
     return b;
-  }
-
-  /* @see loci.formats.IFormatReader#openImage(int) */
-  public BufferedImage openImage(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
-
-    byte[] b = openBytes(no);
-    bytesPerPixel = b.length / (core.sizeX[series] * core.sizeY[series]);
-    if (bytesPerPixel > 3) bytesPerPixel = 3;
-    return ImageTools.makeImage(b, core.sizeX[series], core.sizeY[series],
-      bytesPerPixel == 3 ? 3 : 1, false,
-      bytesPerPixel == 3 ? 1 : bytesPerPixel, false);
   }
 
   /* @see loci.formats.IFormatReader#close(boolean) */
@@ -618,6 +616,8 @@ public class OpenlabReader extends FormatReader {
       core.sizeY[1] = oldH;
     }
 
+    Arrays.fill(core.metadataComplete, true);
+
     status("Populating metadata");
 
     numSeries = core.imageCount.length;
@@ -685,20 +685,12 @@ public class OpenlabReader extends FormatReader {
       }
 
       store.setImage("Series " + i, null, null, new Integer(i));
-      store.setPixels(
-        new Integer(core.sizeX[i]),
-        new Integer(core.sizeY[i]),
-        new Integer(core.sizeZ[i]),
-        new Integer(core.sizeC[i]),
-        new Integer(core.sizeT[i]),
-        new Integer(core.pixelType[i]),
-        new Boolean(!isLittleEndian()),
-        core.currentOrder[i],
-        new Integer(i),
-        null);
       store.setDimensions(new Float(xCal), new Float(yCal), new Float(zCal),
         null, null, new Integer(i));
-      for (int j=0; j<core.sizeC[0]; j++) {
+    }
+    FormatTools.populatePixels(store, this);
+    for (int i=0; i<numSeries; i++) {
+      for (int j=0; j<core.sizeC[i]; j++) {
         store.setLogicalChannel(j, null, null, null, null, null, null, null,
           null, null, null, null, null, null, null, null, null, null, null,
           null, null, null, null, null, new Integer(i));

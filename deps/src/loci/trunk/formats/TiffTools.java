@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -54,9 +54,12 @@ public final class TiffTools {
   /** The number of bytes in each IFD entry. */
   public static final int BYTES_PER_ENTRY = 12;
 
+  /** The number of bytes in each IFD entry of a BigTIFF file. */
+  public static final int BIG_TIFF_BYTES_PER_ENTRY = 20;
+
   // non-IFD tags (for internal use)
   public static final int LITTLE_ENDIAN = 0;
-  public static final int VALID_BITS = 1;
+  public static final int BIG_TIFF = 1;
 
   // IFD types
   public static final int BYTE = 1;
@@ -71,6 +74,9 @@ public final class TiffTools {
   public static final int SRATIONAL = 10;
   public static final int FLOAT = 11;
   public static final int DOUBLE = 12;
+  public static final int LONG8 = 16;
+  public static final int SLONG8 = 17;
+  public static final int IFD8 = 18;
 
   public static final int[] BYTES_PER_ELEMENT = {
     -1, // invalid type
@@ -86,6 +92,13 @@ public final class TiffTools {
     8, // SRATIONAL
     4, // FLOAT
     8, // DOUBLE
+    -1, // invalid type
+    -1, // invalid type
+    -1, // invalid type
+    -1, // invalid type
+    8, // LONG8
+    8, // SLONG8
+    8 // IFD8
   };
 
   // IFD tags
@@ -192,6 +205,7 @@ public final class TiffTools {
 
   // TIFF header constants
   public static final int MAGIC_NUMBER = 42;
+  public static final int BIG_TIFF_MAGIC_NUMBER = 43;
   public static final int LITTLE = 0x49;
   public static final int BIG = 0x4d;
 
@@ -225,9 +239,15 @@ public final class TiffTools {
 
     // check magic number (42)
     short magic = DataTools.bytesToShort(block, 2, littleEndian);
-    if (magic != MAGIC_NUMBER) return null;
+    if (magic != MAGIC_NUMBER && magic != BIG_TIFF_MAGIC_NUMBER) return null;
 
     return new Boolean(littleEndian);
+  }
+
+  /** Gets whether this is a BigTIFF IFD. */
+  public static boolean isBigTiff(Hashtable ifd) throws FormatException {
+    return ((Boolean)
+      getIFDValue(ifd, BIG_TIFF, false, Boolean.class)).booleanValue();
   }
 
   /** Gets whether the TIFF information in the given IFD is little-endian. */
@@ -249,7 +269,10 @@ public final class TiffTools {
     Boolean result = checkHeader(in);
     if (result == null) return null;
 
-    long offset = getFirstOffset(in);
+    in.seek(2);
+    boolean bigTiff = in.readShort() == BIG_TIFF_MAGIC_NUMBER;
+
+    long offset = getFirstOffset(in, bigTiff);
 
     // compute maximum possible number of IFDs, for loop safety
     // each IFD must have at least one directory entry, which means that
@@ -259,10 +282,10 @@ public final class TiffTools {
     // read in IFDs
     Vector v = new Vector();
     for (long ifdNum=0; ifdNum<ifdMax; ifdNum++) {
-      Hashtable ifd = getIFD(in, ifdNum, offset);
+      Hashtable ifd = getIFD(in, ifdNum, offset, bigTiff);
       if (ifd == null || ifd.size() <= 1) break;
       v.add(ifd);
-      offset = in.readInt();
+      offset = bigTiff ? in.readLong() : in.readInt();
       if (offset <= 0 || offset >= in.length()) break;
     }
 
@@ -306,23 +329,20 @@ public final class TiffTools {
 
     // The following loosely resembles the logic of getIFD()...
     in.seek(offset);
-    int numEntries = in.readShort();
-    if (numEntries < 0) numEntries += 65536;
+    int numEntries = in.readShort() & 0xffff;
 
     for (int i = 0; i < numEntries; i++) {
       in.seek(offset + // The beginning of the IFD
         2 + // The width of the initial numEntries field
-        (BYTES_PER_ENTRY * i));
+        BYTES_PER_ENTRY * i);
 
-      int entryTag = in.readShort();
-      if (entryTag < 0) entryTag += 65536;
+      int entryTag = in.readShort() & 0xffff;
 
       // Skip this tag unless it matches the one we want
       if (entryTag != tag) continue;
 
       // Parse the entry's "Type"
-      int entryType = in.readShort();
-      if (entryType < 0) entryType += 65536;
+      int entryType = in.readShort() & 0xffff;
 
       // Parse the entry's "ValueCount"
       int valueCount = in.readInt();
@@ -364,36 +384,58 @@ public final class TiffTools {
   public static long getFirstOffset(RandomAccessStream in)
     throws IOException
   {
-    // get offset to first IFD
-    return in.readInt();
+    return getFirstOffset(in, false);
+  }
+
+  /**
+   * Gets offset to the first IFD, or -1 if stream is not TIFF.
+   * Assumes the stream is positioned properly (checkHeader just called).
+   * 
+   * @param bigTiff true if this is a BigTIFF file (8 byte pointers).
+   */
+  public static long getFirstOffset(RandomAccessStream in, boolean bigTiff)
+    throws IOException
+  {
+    if (bigTiff) in.skipBytes(4);
+    return bigTiff ? in.readLong() : in.readInt();
+  }
+
+  /** Gets the IFD stored at the given offset. */
+  public static Hashtable getIFD(RandomAccessStream in, long ifdNum,
+    long offset) throws IOException
+  {
+    return getIFD(in, ifdNum, offset, false);
   }
 
   /** Gets the IFD stored at the given offset. */
   public static Hashtable getIFD(RandomAccessStream in,
-    long ifdNum, long offset) throws IOException
+    long ifdNum, long offset, boolean bigTiff) throws IOException
   {
     Hashtable ifd = new Hashtable();
 
     // save little-endian flag to internal LITTLE_ENDIAN tag
     ifd.put(new Integer(LITTLE_ENDIAN), new Boolean(in.isLittleEndian()));
+    ifd.put(new Integer(BIG_TIFF), new Boolean(bigTiff));
 
     // read in directory entries for this IFD
     if (DEBUG) {
       debug("getIFDs: seeking IFD #" + ifdNum + " at " + offset);
     }
-    in.seek((int) offset);
-    int numEntries = in.readShort();
-    if (numEntries < 0) numEntries += 65536;
+    in.seek(offset);
+    long numEntries = bigTiff ? in.readLong() : in.readShort() & 0xffff;
     if (DEBUG) debug("getIFDs: " + numEntries + " directory entries to read");
     if (numEntries == 0 || numEntries == 1) return ifd;
 
+    int bytesPerEntry = bigTiff ? BIG_TIFF_BYTES_PER_ENTRY : BYTES_PER_ENTRY;
+    int baseOffset = bigTiff ? 8 : 2;
+    int threshhold = bigTiff ? 8 : 4;
+
     for (int i=0; i<numEntries; i++) {
-      in.seek((int) (offset + 2 + 12 * i));
-      int tag = in.readShort();
-      if (tag < 0) tag += 65536;
-      int type = in.readShort();
-      if (type < 0) type += 65536;
-      int count = in.readInt();
+      in.seek(offset + baseOffset + bytesPerEntry * i);
+      int tag = in.readShort() & 0xffff;
+      int type = in.readShort() & 0xffff;
+      // BigTIFF case is a slight hack
+      int count = bigTiff ? (int) (in.readLong() & 0xffffffff) : in.readInt();
 
       if (DEBUG) {
         debug("getIFDs: read " + getIFDTagName(tag) +
@@ -404,15 +446,15 @@ public final class TiffTools {
 
       if (type == BYTE) {
         // 8-bit unsigned integer
-        if (count > 4) {
-          long pointer = in.readInt();
-          in.seek((int) pointer);
+        if (count > threshhold) {
+          long pointer = bigTiff ? in.readLong() : in.readInt();
+          in.seek(pointer);
         }
-        if (count == 1) value = new Short((byte) in.read());
+        if (count == 1) value = new Short(in.readByte());
         else {
           short[] bytes = new short[count];
           for (int j=0; j<count; j++) {
-            bytes[j] = (byte) in.read();
+            bytes[j] = in.readByte();
             if (bytes[j] < 0) bytes[j] += 255;
           }
           value = bytes;
@@ -422,9 +464,9 @@ public final class TiffTools {
         // 8-bit byte that contain a 7-bit ASCII code;
         // the last byte must be NUL (binary zero)
         byte[] ascii = new byte[count];
-        if (count > 4) {
-          long pointer = in.readInt();
-          in.seek((int) pointer);
+        if (count > threshhold) {
+          long pointer = bigTiff ? in.readLong() : in.readInt();
+          in.seek(pointer);
         }
         in.read(ascii);
 
@@ -454,25 +496,24 @@ public final class TiffTools {
       }
       else if (type == SHORT) {
         // 16-bit (2-byte) unsigned integer
-        if (count > 2) {
-          long pointer = in.readInt();
-          in.seek((int) pointer);
+        if (count > threshhold / 2) {
+          long pointer = bigTiff ? in.readLong() : in.readInt();
+          in.seek(pointer);
         }
         if (count == 1) value = new Integer(in.readShort());
         else {
           int[] shorts = new int[count];
           for (int j=0; j<count; j++) {
-            shorts[j] = in.readShort();
-            if (shorts[j] < 0) shorts[j] += 65536;
+            shorts[j] = in.readShort() & 0xffff;
           }
           value = shorts;
         }
       }
       else if (type == LONG) {
         // 32-bit (4-byte) unsigned integer
-        if (count > 1) {
-          long pointer = in.readInt();
-          in.seek((int) pointer);
+        if (count > threshhold / 4) {
+          long pointer = bigTiff ? in.readLong() : in.readInt();
+          in.seek(pointer);
         }
         if (count == 1) value = new Long(in.readInt());
         else {
@@ -481,13 +522,25 @@ public final class TiffTools {
           value = longs;
         }
       }
+      else if (type == LONG8 || type == SLONG8 || type == IFD8) {
+        if (count > threshhold / 8) {
+          long pointer = bigTiff ? in.readLong() : in.readInt();
+          in.seek(pointer);
+        }
+        if (count == 1) value = new Long(in.readLong());
+        else {
+          long[] longs = new long[count];
+          for (int j=0; j<count; j++) longs[j] = in.readLong();
+          value = longs;
+        }
+      }
       else if (type == RATIONAL || type == SRATIONAL) {
         // Two LONGs: the first represents the numerator of a fraction;
         // the second, the denominator
         // Two SLONG's: the first represents the numerator of a fraction,
         // the second the denominator
-        long pointer = in.readInt();
-        in.seek((int) pointer);
+        long pointer = bigTiff ? in.readLong() : in.readInt();
+        if (count > threshhold / 8) in.seek(pointer);
         if (count == 1) value = new TiffRational(in.readInt(), in.readInt());
         else {
           TiffRational[] rationals = new TiffRational[count];
@@ -501,11 +554,11 @@ public final class TiffTools {
         // SBYTE: An 8-bit signed (twos-complement) integer
         // UNDEFINED: An 8-bit byte that may contain anything,
         // depending on the definition of the field
-        if (count > 4) {
-          long pointer = in.readInt();
-          in.seek((int) pointer);
+        if (count > threshhold) {
+          long pointer = bigTiff ? in.readLong() : in.readInt();
+          in.seek(pointer);
         }
-        if (count == 1) value = new Byte((byte) in.read());
+        if (count == 1) value = new Byte(in.readByte());
         else {
           byte[] sbytes = new byte[count];
           in.readFully(sbytes);
@@ -514,9 +567,9 @@ public final class TiffTools {
       }
       else if (type == SSHORT) {
         // A 16-bit (2-byte) signed (twos-complement) integer
-        if (count > 2) {
-          long pointer = in.readInt();
-          in.seek((int) pointer);
+        if (count > threshhold / 2) {
+          long pointer = bigTiff ? in.readLong() : in.readInt();
+          in.seek(pointer);
         }
         if (count == 1) value = new Short(in.readShort());
         else {
@@ -527,9 +580,9 @@ public final class TiffTools {
       }
       else if (type == SLONG) {
         // A 32-bit (4-byte) signed (twos-complement) integer
-        if (count > 1) {
-          long pointer = in.readInt();
-          in.seek((int) pointer);
+        if (count > threshhold / 4) {
+          long pointer = bigTiff ? in.readLong() : in.readInt();
+          in.seek(pointer);
         }
         if (count == 1) value = new Integer(in.readInt());
         else {
@@ -540,9 +593,9 @@ public final class TiffTools {
       }
       else if (type == FLOAT) {
         // Single precision (4-byte) IEEE format
-        if (count > 1) {
-          long pointer = in.readInt();
-          in.seek((int) pointer);
+        if (count > threshhold / 4) {
+          long pointer = bigTiff ? in.readLong() : in.readInt();
+          in.seek(pointer);
         }
         if (count == 1) value = new Float(in.readFloat());
         else {
@@ -553,8 +606,8 @@ public final class TiffTools {
       }
       else if (type == DOUBLE) {
         // Double precision (8-byte) IEEE format
-        long pointer = in.readInt();
-        in.seek((int) pointer);
+        long pointer = bigTiff ? in.readLong() : in.readInt();
+        in.seek(pointer);
         if (count == 1) value = new Double(in.readDouble());
         else {
           double[] doubles = new double[count];
@@ -566,7 +619,7 @@ public final class TiffTools {
       }
       if (value != null) ifd.put(new Integer(tag), value);
     }
-    in.seek((int) (offset + 2 + 12 * numEntries));
+    in.seek(offset + baseOffset + bytesPerEntry * numEntries);
 
     return ifd;
   }
@@ -589,7 +642,7 @@ public final class TiffTools {
         if (fields[i].getInt(null) == value) return fields[i].getName();
       }
       catch (IllegalAccessException exc) { }
-      catch (IllegalArgumentException exc) { } 
+      catch (IllegalArgumentException exc) { }
     }
     return "" + value;
   }
@@ -798,6 +851,33 @@ public final class TiffTools {
     return results;
   }
 
+  /** Convenience method for obtaining a file's first ImageDescription. */
+  public static String getComment(String id)
+    throws FormatException, IOException
+  {
+    // read first IFD
+    RandomAccessStream in = new RandomAccessStream(id);
+    Hashtable ifd = TiffTools.getFirstIFD(in);
+    in.close();
+
+    // extract comment
+    Object o = TiffTools.getIFDValue(ifd, TiffTools.IMAGE_DESCRIPTION);
+    String comment = null;
+    if (o instanceof String) comment = (String) o;
+    else if (o instanceof String[]) {
+      String[] s = (String[]) o;
+      if (s.length > 0) comment = s[0];
+    }
+    else if (o != null) comment = o.toString();
+
+    if (comment != null) {
+      // sanitize line feeds
+      comment = comment.replaceAll("\r\n", "\n");
+      comment = comment.replaceAll("\r", "\n");
+    }
+    return comment;
+  }
+
   // -- Image reading methods --
 
   /** Reads the image defined in the given IFD from the specified file. */
@@ -806,11 +886,6 @@ public final class TiffTools {
   {
     int samplesPerPixel = getSamplesPerPixel(ifd);
     int photoInterp = getPhotometricInterpretation(ifd);
-    if (samplesPerPixel == 1 && (photoInterp == RGB_PALETTE ||
-      photoInterp == CFA_ARRAY))
-    {
-      samplesPerPixel = 3;
-    }
     int bpp = getBitsPerSample(ifd)[0];
     while ((bpp % 8) != 0) bpp++;
     bpp /= 8;
@@ -855,16 +930,6 @@ public final class TiffTools {
     long[] maxes = getIFDLongArray(ifd, MAX_SAMPLE_VALUE, false);
     long maxValue = maxes == null ? 0 : maxes[0];
 
-    if (ifd.get(new Integer(VALID_BITS)) == null && bitsPerSample[0] > 0) {
-      int[] validBits = bitsPerSample;
-      if (photoInterp == RGB_PALETTE || photoInterp == CFA_ARRAY) {
-        int vb = validBits[0];
-        validBits = new int[3];
-        for (int i=0; i<validBits.length; i++) validBits[i] = vb;
-      }
-      putIFDValue(ifd, VALID_BITS, validBits);
-    }
-
     if (isTiled) {
       stripOffsets = getIFDLongArray(ifd, TILE_OFFSETS, true);
       stripByteCounts = getIFDLongArray(ifd, TILE_BYTE_COUNTS, true);
@@ -878,9 +943,14 @@ public final class TiffTools {
       // don't rely on RowsPerStrip, since it's likely that if the file doesn't
       // have the StripByteCounts tag, it also won't have the RowsPerStrip tag
       stripByteCounts = new long[stripOffsets.length];
-      stripByteCounts[0] = stripOffsets[0];
-      for (int i=1; i<stripByteCounts.length; i++) {
-        stripByteCounts[i] = stripOffsets[i] - stripByteCounts[i-1];
+      if (stripByteCounts.length == 1) {
+        stripByteCounts[0] = imageWidth * imageLength * (bitsPerSample[0] / 8);
+      }
+      else {
+        stripByteCounts[0] = stripOffsets[0];
+        for (int i=1; i<stripByteCounts.length; i++) {
+          stripByteCounts[i] = stripOffsets[i] - stripByteCounts[i-1];
+        }
       }
     }
 
@@ -903,11 +973,13 @@ public final class TiffTools {
       bitsPerSample = new int[bitsPerSample.length];
       for (int i=0; i<bitsPerSample.length; i++) bitsPerSample[i] = (int) temp;
       temp = stripOffsets[0];
+      /*
       stripOffsets = new long[bitsPerSample.length];
       for (int i=0; i<bitsPerSample.length; i++) {
         stripOffsets[i] = i == 0 ? temp :
           stripOffsets[i - 1] + stripByteCounts[i];
       }
+      */
 
       // we have two files that reverse the endianness for BitsPerSample,
       // StripOffsets, and StripByteCounts
@@ -1021,12 +1093,12 @@ public final class TiffTools {
         }
       }
 
-      samplesPerPixel = stripOffsets.length;
+      //samplesPerPixel = stripOffsets.length;
     }
 
     if (lastBitsZero) {
       bitsPerSample[bitsPerSample.length - 1] = 0;
-      samplesPerPixel--;
+      //samplesPerPixel--;
     }
 
     TiffRational xResolution = getIFDRationalValue(ifd, X_RESOLUTION, false);
@@ -1038,9 +1110,9 @@ public final class TiffTools {
     int predictor = getIFDIntValue(ifd, PREDICTOR, false, 1);
 
     // If the subsequent color maps are empty, use the first IFD's color map
-    if (colorMap == null) {
-      colorMap = getIFDIntArray(getFirstIFD(in), COLOR_MAP, false);
-    }
+    //if (colorMap == null) {
+    //  colorMap = getIFDIntArray(getFirstIFD(in), COLOR_MAP, false);
+    //}
 
     // use special color map for YCbCr
     if (photoInterp == Y_CB_CR) {
@@ -1161,14 +1233,15 @@ public final class TiffTools {
 
     long numStrips = (imageLength + rowsPerStrip - 1) / rowsPerStrip;
 
-    if (isTiled) numStrips = stripOffsets.length;
+    if (isTiled || fakeRPS) numStrips = stripOffsets.length;
     if (planarConfig == 2) numStrips *= samplesPerPixel;
 
-    if (stripOffsets.length < numStrips) {
+    if (stripOffsets.length < numStrips && !fakeRPS) {
       throw new FormatException("StripOffsets length (" +
         stripOffsets.length + ") does not match expected " +
         "number of strips (" + numStrips + ")");
     }
+    else if (fakeRPS) numStrips = stripOffsets.length;
 
     if (stripByteCounts.length < numStrips) {
       throw new FormatException("StripByteCounts length (" +
@@ -1196,12 +1269,6 @@ public final class TiffTools {
         samplesPerPixel + "; numSamples=" + numSamples + ")");
     }
 
-    if (samplesPerPixel == 1 &&
-      (photoInterp == RGB_PALETTE || photoInterp == CFA_ARRAY))
-    {
-      samplesPerPixel = 3;
-    }
-
     if (photoInterp == CFA_ARRAY) {
       int[] tempMap = new int[colorMap.length + 2];
       System.arraycopy(colorMap, 0, tempMap, 0, colorMap.length);
@@ -1210,7 +1277,14 @@ public final class TiffTools {
       colorMap = tempMap;
     }
 
-    //if (planarConfig == 2) numSamples *= samplesPerPixel;
+    if (stripOffsets.length > 1 && (stripOffsets[stripOffsets.length - 1] ==
+      stripOffsets[stripOffsets.length - 2]))
+    {
+      long[] tmp = stripOffsets;
+      stripOffsets = new long[tmp.length - 1];
+      System.arraycopy(tmp, 0, stripOffsets, 0, stripOffsets.length);
+      numStrips--;
+    }
 
     short[][] samples = new short[samplesPerPixel][numSamples];
     byte[] altBytes = new byte[0];
@@ -1221,7 +1295,8 @@ public final class TiffTools {
       long tileWidth = getIFDLongValue(ifd, TILE_WIDTH, true, 0);
       long tileLength = getIFDLongValue(ifd, TILE_LENGTH, true, 0);
 
-      byte[] data = new byte[(int) stripByteCounts[0] * stripOffsets.length];
+      byte[] data = new byte[(int) (imageWidth * imageLength *
+        samplesPerPixel * (bitsPerSample[0] / 8))];
 
       int row = 0;
       int col = 0;
@@ -1235,17 +1310,18 @@ public final class TiffTools {
 
         b = uncompress(b, compression);
 
-        int rowBytes = (int) (tileWidth *
-          (stripByteCounts[0] / (tileWidth*tileLength)));
+        int ext = (int) (b.length / (tileWidth * tileLength));
+        int rowBytes = (int) (tileWidth * ext);
+        if (tileWidth + col > imageWidth) {
+          rowBytes = (int) ((imageWidth - col) * ext);
+        }
 
         for (int j=0; j<tileLength; j++) {
-          int len = rowBytes;
-          if (col*bytes + rowBytes > imageWidth*bytes) {
-            len = (int) (imageWidth*bytes - col*bytes);
+          if (row + j < imageLength) {
+            System.arraycopy(b, rowBytes*j, data,
+              (int) ((row + j)*imageWidth*ext + ext*col), rowBytes);
           }
-
-          System.arraycopy(b, j*rowBytes, data,
-            (int) ((row+j)*imageWidth*bytes + col*bytes), len);
+          else break;
         }
 
         // update row and column
@@ -1385,12 +1461,6 @@ public final class TiffTools {
     int samplesPerPixel = getSamplesPerPixel(ifd);
     int photoInterp = getPhotometricInterpretation(ifd);
 
-    int[] validBits = getIFDIntArray(ifd, VALID_BITS, false);
-
-    if (photoInterp == RGB_PALETTE || photoInterp == CFA_ARRAY) {
-      samplesPerPixel = 3;
-    }
-
     if (bitsPerSample[0] == 16 || bitsPerSample[0] == 12) {
       // First wrap the byte arrays and then use the features of the
       // ByteBuffer to transform to a ShortBuffer. Finally, use the ShortBuffer
@@ -1423,11 +1493,11 @@ public final class TiffTools {
         // float data
         float[][] floatData = new float[samplesPerPixel][samples[0].length / 4];
         for (int i=0; i<samplesPerPixel; i++) {
-          FloatBuffer sampleBuf = ByteBuffer.wrap(samples[i]).asFloatBuffer();
-          sampleBuf.get(floatData[i]);
+          floatData[i] = (float[]) DataTools.makeDataArray(samples[i], 4, true,
+            isLittleEndian(ifd));
         }
         return ImageTools.makeImage(floatData,
-          (int) imageWidth, (int) imageLength, validBits);
+          (int) imageWidth, (int) imageLength);
       }
       else {
         // int data
@@ -1445,22 +1515,15 @@ public final class TiffTools {
         }
 
         return ImageTools.makeImage(shortData,
-          (int) imageWidth, (int) imageLength, validBits);
+          (int) imageWidth, (int) imageLength);
       }
     }
     if (samplesPerPixel == 1) {
       return ImageTools.makeImage(samples[0], (int) imageWidth,
-        (int) imageLength, 1, false, validBits);
+        (int) imageLength, 1, false);
     }
 
-    if (samples.length == 2) {
-      byte[][] s = new byte[3][samples[0].length];
-      System.arraycopy(samples[0], 0, s[0], 0, s[0].length);
-      System.arraycopy(samples[1], 0, s[1], 0, s[1].length);
-      samples = s;
-    }
-    return ImageTools.makeImage(samples, (int) imageWidth, (int) imageLength,
-      validBits);
+    return ImageTools.makeImage(samples, (int) imageWidth, (int) imageLength);
   }
 
   /**
@@ -1529,15 +1592,17 @@ public final class TiffTools {
         index++;
 
         int ndx = startIndex + j;
-        samples[channelNum][ndx] = (short) (b < 0 ? 256 + b : b);
+        if (ndx < samples[channelNum].length) {
+          samples[channelNum][ndx] = (short) (b < 0 ? 256 + b : b);
 
-        if (photoInterp == WHITE_IS_ZERO) { // invert color value
-          samples[channelNum][ndx] =
-            (short) (Integer.MAX_VALUE - samples[channelNum][ndx]);
-        }
-        else if (photoInterp == CMYK) {
-          samples[channelNum][ndx] =
-            (short) (Integer.MAX_VALUE - samples[channelNum][ndx]);
+          if (photoInterp == WHITE_IS_ZERO) { // invert color value
+            samples[channelNum][ndx] =
+              (short) ((65535 - samples[channelNum][ndx]) & 0xffff);
+          }
+          else if (photoInterp == CMYK) {
+            samples[channelNum][ndx] =
+              (short) (Integer.MAX_VALUE - samples[channelNum][ndx]);
+          }
         }
       }
       else {
@@ -1670,16 +1735,6 @@ public final class TiffTools {
             samples[i][ndx] =
               (short) (Integer.MAX_VALUE - samples[i][ndx]); // invert colors
           }
-          else if (photoInterp == RGB_PALETTE) {
-            int x = (int) (b < 0 ? 256 + b : b);
-            int red = colorMap[x % colorMap.length];
-            int green = colorMap[(x + bpsPow) %
-              colorMap.length];
-            int blue = colorMap[(x + 2*bpsPow) %
-              colorMap.length];
-            int[] components = {red, green, blue};
-            samples[i][ndx] = (short) components[i];
-          }
           else if (photoInterp == CFA_ARRAY) {
             if (i == 0) {
               int pixelIndex = (int) ((row + (count / cw))*imageWidth + col +
@@ -1710,14 +1765,7 @@ public final class TiffTools {
           samples[i][ndx] = (short) (b < 0 ? Integer.MAX_VALUE + b : b);
 
           if (photoInterp == WHITE_IS_ZERO) { // invert color value
-            samples[i][ndx] = (short) (Integer.MAX_VALUE - samples[i][ndx]);
-          }
-          else if (photoInterp == RGB_PALETTE) {
-            index--;
-            int x = (int) (b < 0 ? 256 + b : b);
-            int cndx = i == 0 ? x : (i == 1 ? (x + bpsPow) : (x + 2*bpsPow));
-            int cm = colorMap[cndx];
-            samples[i][ndx] = (short) (maxValue == 0 ? (cm / 256) : cm);
+            samples[i][ndx] = (short) ((65535 - samples[i][ndx]) & 0xffff);
           }
           else if (photoInterp == CMYK) {
             samples[i][ndx] = (short) (Integer.MAX_VALUE - samples[i][ndx]);
@@ -1754,15 +1802,6 @@ public final class TiffTools {
             for (int q=0; q<numBytes; q++) max *= 8;
             samples[i][ndx] = (short) (max - samples[i][ndx]);
           }
-          else if (photoInterp == RGB_PALETTE) {
-            index -= numBytes;
-
-            int x = samples[i][ndx];  // this is the index into the color table
-            int cndx = i == 0 ? x : (i == 1 ? (x + bpsPow) : (x + 2*bpsPow));
-            int cm = colorMap[cndx];
-            samples[i][ndx] = (short) (maxValue == 0 ?
-              (cm % (bpsPow - 1)) : cm);
-          }
           else if (photoInterp == CMYK) {
             samples[i][ndx] = (short) (Integer.MAX_VALUE - samples[i][ndx]);
           }
@@ -1785,22 +1824,11 @@ public final class TiffTools {
             for (int q=0; q<numBytes; q++) max *= 8;
             samples[i][ndx] = (short) (max - samples[i][ndx]);
           }
-          else if (photoInterp == RGB_PALETTE) {
-            index -= numBytes;
-
-            int x = samples[i][ndx];  // this is the index into the color table
-            int cndx = i == 0 ? x : (i == 1 ? (x + bpsPow) : (x + 2*bpsPow));
-            int cm = colorMap[cndx];
-
-            samples[i][ndx] = (short) (maxValue == 0 ?
-              (cm % (bpsPow - 1)) : cm);
-          }
           else if (photoInterp == CMYK) {
             samples[i][ndx] = (short) (Integer.MAX_VALUE - samples[i][ndx]);
           }
         } // end else
       }
-      if (photoInterp == RGB_PALETTE) index += (bps0 / 8);
     }
   }
 
@@ -1810,7 +1838,7 @@ public final class TiffTools {
   public static byte[] uncompress(byte[] input, int compression)
     throws FormatException, IOException
   {
-    if (compression < 0) compression += 65536; 
+    if (compression < 0) compression += 65536;
     if (compression == UNCOMPRESSED) return input;
     else if (compression == CCITT_1D) {
       throw new FormatException(
@@ -2026,15 +2054,6 @@ public final class TiffTools {
     }
   }
 
-  /** Convenience method for overwriting a file's first ImageDescription. */
-  public static void overwriteComment(String id, Object value)
-    throws FormatException, IOException
-  {
-    RandomAccessFile raf = new RandomAccessFile(id, "rw");
-    overwriteIFDValue(raf, 0, TiffTools.IMAGE_DESCRIPTION, value);
-    raf.close();
-  }
-
   /**
    * Surgically overwrites an existing IFD value with the given one. This
    * method requires that the IFD directory entry already exist. It
@@ -2069,7 +2088,7 @@ public final class TiffTools {
       }
       raf.seek(offset);
       num = DataTools.read2UnsignedBytes(raf, little);
-      if (i < ifd) raf.seek(offset + 2 + 12 * num);
+      if (i < ifd) raf.seek(offset + 2 + BYTES_PER_ENTRY * num);
     }
 
     // search directory entries for proper tag
@@ -2141,6 +2160,15 @@ public final class TiffTools {
     }
 
     throw new FormatException("Tag not found (" + getIFDTagName(tag) + ")");
+  }
+
+  /** Convenience method for overwriting a file's first ImageDescription. */
+  public static void overwriteComment(String id, Object value)
+    throws FormatException, IOException
+  {
+    RandomAccessFile raf = new RandomAccessFile(id, "rw");
+    overwriteIFDValue(raf, 0, TiffTools.IMAGE_DESCRIPTION, value);
+    raf.close();
   }
 
   // -- Image writing methods --
@@ -2277,7 +2305,7 @@ public final class TiffTools {
 
     Object[] keys = ifd.keySet().toArray();
     Arrays.sort(keys); // sort IFD tags in ascending order
-    int ifdBytes = 2 + 12 * keys.length + 4;
+    int ifdBytes = 2 + BYTES_PER_ENTRY * keys.length + 4;
     long pixelBytes = 0;
     for (int i=0; i<stripsPerImage; i++) {
       stripByteCounts[i] = strips[i].length;

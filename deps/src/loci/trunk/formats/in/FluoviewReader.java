@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -117,14 +117,8 @@ public class FluoviewReader extends BaseTiffReader {
       return super.openBytes(no, buf);
     }
     FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= core.imageCount[0]) {
-      throw new FormatException("Invalid image number: " + no);
-    }
-    if (buf.length < core.sizeX[0] *
-      FormatTools.getBytesPerPixel(core.pixelType[0]))
-    {
-      throw new FormatException("Buffer too small.");
-    }
+    FormatTools.checkPlaneNumber(this, no);
+    FormatTools.checkBufferSize(this, buf.length);
 
     byte[] b = new byte[core.sizeX[0] *
       (int) TiffTools.getImageLength(ifds[0]) *
@@ -187,7 +181,7 @@ public class FluoviewReader extends BaseTiffReader {
     ras.order(isLittleEndian());
 
     put("Header Flag", ras.readShort());
-    put("Image Type", (char) ras.read());
+    put("Image Type", ras.readChar());
 
     put("Image name", ras.readString(257));
 
@@ -264,6 +258,7 @@ public class FluoviewReader extends BaseTiffReader {
 
     core.sizeZ[0] = core.sizeC[0] = core.sizeT[0] = 1;
     core.currentOrder[0] = "XY";
+    core.metadataComplete[0] = true;
 
     for (int i=0; i<10; i++) {
       String name = names[i];

@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -171,7 +171,7 @@ public class LegacyQTWriter extends FormatWriter {
         r.exec("compressedImage = RawEncodedImage.fromQTHandle(imageHandle)");
 
         r.setVar("rate", 30);
-        
+
         r.exec("seq = new CSequence(gw, bounds, pixSize, codec, " +
           "CodecComponent.bestFidelityCodec, quality, quality, rate, null, " +
           "zero)");
@@ -219,8 +219,7 @@ public class LegacyQTWriter extends FormatWriter {
           for (int x=0; x<width; x++) {
             r.setVar("thisByte", pixels[offset1++]);
             r.exec("b = EndianOrder.flipBigEndianToNative32(thisByte)");
-            byte b = ((Byte) r.getVar("b")).byteValue();
-            pixels2[offset2++] = b;
+            pixels2[offset2++] = ((Integer) r.getVar("b")).intValue();
           }
         }
       }

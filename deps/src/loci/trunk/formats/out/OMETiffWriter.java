@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -63,8 +63,12 @@ public class OMETiffWriter extends TiffWriter {
       try {
         TiffTools.overwriteComment(currentId, xml);
       }
-      catch (FormatException exc) { LogTools.trace(exc); }
-      catch (IOException exc) { LogTools.trace(exc); }
+      catch (FormatException exc) {
+        IOException io =
+          new IOException("Unable to append OME-XML comment");
+        io.initCause(exc);
+        throw io;
+      }
     }
     super.close();
   }

@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -80,52 +80,17 @@ public class ZeissLSMReader extends BaseTiffReader {
     }
   }
 
-  /* @see loci.formats.IFormatReader#isMetadataComplete() */
-  public boolean isMetadataComplete() {
-    return true;
-  }
-
-  /* @see loci.formats.IFormatReader#openBytes(int) */
-  public byte[] openBytes(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
-
-    byte[] b = new byte[core.sizeX[0] * core.sizeY[0] * core.sizeC[0] *
-      FormatTools.getBytesPerPixel(core.pixelType[0])];
-    return openBytes(no, b);
-  }
-
   /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
   public byte[] openBytes(int no, byte[] buf)
     throws FormatException, IOException
   {
     FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
-
-    int bpp = FormatTools.getBytesPerPixel(core.pixelType[0]);
-
-    if (buf.length < core.sizeX[0] * core.sizeY[0] * core.sizeC[0] * bpp) {
-      throw new FormatException("Buffer too small.");
-    }
+    FormatTools.checkPlaneNumber(this, no);
+    FormatTools.checkBufferSize(this, buf.length);
 
     ifds = TiffTools.getIFDs(in);
     TiffTools.getSamples(ifds[2*no], in, buf);
     return swapIfRequired(buf);
-  }
-
-  /* @see loci.formats.IFormatReader#openImage(int) */
-  public BufferedImage openImage(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
-
-    ifds = TiffTools.getIFDs(in);
-    return TiffTools.getImage(ifds[2*no], in);
   }
 
   /* @see loci.formats.IFormatReader#openThumbImage(int) */
@@ -133,9 +98,7 @@ public class ZeissLSMReader extends BaseTiffReader {
     throws FormatException, IOException
   {
     FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
+    FormatTools.checkPlaneNumber(this, no);
 
     if (2*no + 1 < ifds.length) return TiffTools.getImage(ifds[2*no + 1], in);
     return super.openThumbImage(no);
@@ -293,17 +256,7 @@ public class ZeissLSMReader extends BaseTiffReader {
 
       MetadataStore store = getMetadataStore();
 
-      store.setPixels(
-        new Integer(core.sizeX[0]), // SizeX
-        new Integer(core.sizeY[0]), // SizeY
-        new Integer(core.sizeZ[0]), // SizeZ
-        new Integer(core.sizeC[0]), // SizeC
-        new Integer(core.sizeT[0]), // SizeT
-        new Integer(core.pixelType[0]), // PixelType
-        new Boolean(!little), // BigEndian
-        core.currentOrder[0], // DimensionOrder
-        null, // Image index
-        null); // Pixels index
+      FormatTools.populatePixels(store, this);
       for (int i=0; i<core.sizeC[0]; i++) {
         store.setLogicalChannel(i, null, null, null, null, null, null, null,
           null, null, null, null, null, null, null, null, null, null, null,

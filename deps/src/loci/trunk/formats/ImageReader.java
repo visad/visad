@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -229,6 +229,30 @@ public class ImageReader implements IFormatReader {
     return getReader().getRGBChannelCount();
   }
 
+  /* @see IFormatReader#isIndexed() */
+  public boolean isIndexed() {
+    FormatTools.assertId(currentId, true, 2);
+    return getReader().isIndexed();
+  }
+
+  /* @see IFormatReader#isFalseColor() */
+  public boolean isFalseColor() {
+    FormatTools.assertId(currentId, true, 2);
+    return getReader().isFalseColor();
+  }
+
+  /* @see IFormatReader#get8BitLookupTable() */
+  public byte[][] get8BitLookupTable() throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 2);
+    return getReader().get8BitLookupTable();
+  }
+
+  /* @see IFormatReader#get16BitLookupTable() */
+  public short[][] get16BitLookupTable() throws FormatException, IOException {
+    FormatTools.assertId(currentId, true, 2);
+    return getReader().get16BitLookupTable();
+  }
+
   /* @see IFormatReader#getChannelDimLengths() */
   public int[] getChannelDimLengths() {
     FormatTools.assertId(currentId, true, 2);
@@ -383,7 +407,7 @@ public class ImageReader implements IFormatReader {
 
   /* @see IFormatReader#isGroupFiles() */
   public boolean isGroupFiles() {
-    return readers[0].isGroupFiles();
+    return getReader().isGroupFiles();
   }
 
   /* @see IFormatReader#fileGroupOption(String) */
@@ -393,7 +417,8 @@ public class ImageReader implements IFormatReader {
 
   /* @see IFormatReader#isMetadataComplete() */
   public boolean isMetadataComplete() {
-    return readers[0].isMetadataComplete();
+    FormatTools.assertId(currentId, true, 2);
+    return getReader().isMetadataComplete();
   }
 
   /* @see IFormatReader#setNormalized(boolean) */
@@ -539,12 +564,6 @@ public class ImageReader implements IFormatReader {
   public StatusListener[] getStatusListeners() {
     // NB: all readers should have the same status listeners
     return readers[0].getStatusListeners();
-  }
-
-  // -- Main method --
-
-  public static void main(String[] args) throws FormatException, IOException {
-    if (!ConsoleTools.testRead(new ImageReader(), args)) System.exit(1);
   }
 
   // -- Deprecated IFormatReader API methods --

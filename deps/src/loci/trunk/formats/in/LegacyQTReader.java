@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -74,23 +74,18 @@ public class LegacyQTReader extends FormatReader {
   /* @see loci.formats.IFormatReader#isThisType(byte[]) */
   public boolean isThisType(byte[] block) { return false; }
 
-  /* @see loci.formats.IFormatReader#openBytes(int) */
-  public byte[] openBytes(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    return ImageTools.getBytes(openImage(no), false, 3);
+  /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
+  public byte[] openBytes(int no, byte[] buf)
+    throws FormatException, IOException
+  {
+    buf = ImageTools.getBytes(openImage(no), false, 3);
+    return buf;
   }
 
   /* @see loci.formats.IFormatReader#openImage(int) */
   public BufferedImage openImage(int no) throws FormatException, IOException {
     FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
-
-    if (tools.isQTExpired()) {
-      throw new FormatException(LegacyQTTools.EXPIRED_QT_MSG);
-    }
-    if (!tools.canDoQT()) throw new FormatException(LegacyQTTools.NO_QT_MSG);
+    FormatTools.checkPlaneNumber(this, no);
 
     // paint frame into image
     try {
@@ -102,18 +97,19 @@ public class LegacyQTReader extends FormatReader {
     catch (ReflectException re) {
       throw new FormatException("Open movie failed", re);
     }
-
     return ImageTools.makeBuffered(image);
   }
 
   /* @see loci.formats.IFormatReader#close(boolean) */
   public void close(boolean fileOnly) throws IOException {
     try {
-      r.exec("openMovieFile.close()");
-      if (!fileOnly) {
-        r.exec("m.disposeQTObject()");
-        r.exec("imageTrack.disposeQTObject()");
-        r.exec("QTSession.close()");
+      if (r.getVar("openMovieFile") != null) {
+        r.exec("openMovieFile.close()");
+        if (!fileOnly) {
+          r.exec("m.disposeQTObject()");
+          r.exec("imageTrack.disposeQTObject()");
+          r.exec("QTSession.close()");
+        }
       }
     }
     catch (ReflectException e) {
@@ -146,7 +142,9 @@ public class LegacyQTReader extends FormatReader {
     if (tools.isQTExpired()) {
       throw new FormatException(LegacyQTTools.EXPIRED_QT_MSG);
     }
-    if (!tools.canDoQT()) throw new FormatException(LegacyQTTools.NO_QT_MSG);
+    if (!tools.canDoQT()) {
+      throw new FormatException(LegacyQTTools.NO_QT_MSG);
+    }
 
     super.initFile(id);
 
@@ -220,13 +218,12 @@ public class LegacyQTReader extends FormatReader {
       core.rgb[0] = true;
       core.interleaved[0] = false;
       core.littleEndian[0] = false;
+      core.indexed[0] = false;
+      core.falseColor[0] = false;
 
       MetadataStore store = getMetadataStore();
       store.setImage(currentId, null, null, null);
-      store.setPixels(new Integer(core.sizeX[0]), new Integer(core.sizeY[0]),
-        new Integer(core.sizeZ[0]), new Integer(core.sizeC[0]),
-        new Integer(core.sizeT[0]), new Integer(core.pixelType[0]),
-        Boolean.TRUE, core.currentOrder[0], null, null);
+      FormatTools.populatePixels(store, this);
 
       for (int i=0; i<core.sizeC[0]; i++) {
         store.setLogicalChannel(i, null, null, null, null, null, null, null,
@@ -234,8 +231,7 @@ public class LegacyQTReader extends FormatReader {
           null, null, null, null, null, null);
       }
     }
-    catch (Exception e) {
-      // CTR TODO - eliminate catch-all exception handling
+    catch (ReflectException e) {
       throw new FormatException("Open movie failed", e);
     }
   }

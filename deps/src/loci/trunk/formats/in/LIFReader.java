@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package loci.formats.in;
 
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
 import javax.xml.parsers.*;
@@ -81,51 +80,20 @@ public class LIFReader extends FormatReader {
     return block[0] == 0x70;
   }
 
-  /* @see loci.formats.IFormatReader#isMetadataComplete() */
-  public boolean isMetadataComplete() {
-    return true;
-  }
-
-  /* @see loci.formats.IFormatReader#openBytes(int) */
-  public byte[] openBytes(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    bpp = bitsPerPixel[series];
-    while (bpp % 8 != 0) bpp++;
-    byte[] buf = new byte[core.sizeX[series] * core.sizeY[series] *
-      (bpp / 8) * getRGBChannelCount()];
-    return openBytes(no, buf);
-  }
-
   /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
   public byte[] openBytes(int no, byte[] buf)
     throws FormatException, IOException
   {
     FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
-    bpp = bitsPerPixel[series];
-    while (bpp % 8 != 0) bpp++;
-    int bytes = bpp / 8;
-    if (buf.length < core.sizeX[series] * core.sizeY[series] * bytes *
-      getRGBChannelCount())
-    {
-      throw new FormatException("Buffer too small.");
-    }
+    FormatTools.checkPlaneNumber(this, no);
+    FormatTools.checkBufferSize(this, buf.length);
 
     long offset = ((Long) offsets.get(series)).longValue();
-    in.seek(offset + core.sizeX[series] * core.sizeY[series] *
-      bytes * no * getRGBChannelCount());
+    in.seek(offset + core.sizeX[series] * core.sizeY[series] * no *
+      FormatTools.getBytesPerPixel(getPixelType()) * getRGBChannelCount());
 
     in.read(buf);
     return buf;
-  }
-
-  /* @see loci.formats.IFormatReader#openImage(int) */
-  public BufferedImage openImage(int no) throws FormatException, IOException {
-    return ImageTools.makeImage(openBytes(no), core.sizeX[series],
-      core.sizeY[series], getRGBChannelCount(), false, bpp / 8,
-      core.littleEndian[series]);
   }
 
   // -- Internal FormatReader API methods --
@@ -180,9 +148,10 @@ public class LIFReader extends FormatReader {
         throw new FormatException("Invalid Memory Description");
       }
 
-      int blockLength = in.readInt();
+      long blockLength = in.readInt();
       if (in.read() != 0x2a) {
-        in.skipBytes(3);
+        in.seek(in.getFilePointer() - 5);
+        blockLength = in.readLong();
         if (in.read() != 0x2a) {
           throw new FormatException("Invalid Memory Description");
         }
@@ -194,8 +163,15 @@ public class LIFReader extends FormatReader {
       if (blockLength > 0) {
         offsets.add(new Long(in.getFilePointer()));
       }
-
-      in.skipBytes(blockLength);
+      long skipped = 0;
+      while (skipped < blockLength) {
+        if (blockLength - skipped > 4096) {
+          skipped += in.skipBytes(4096);
+        }
+        else {
+          skipped += in.skipBytes((int) (blockLength - skipped));
+        }
+      }
     }
     initMetadata(xml);
   }
@@ -447,11 +423,14 @@ public class LIFReader extends FormatReader {
         extraDimensions[i] = 1;
       }
 
+      core.metadataComplete[i] = true;
       core.littleEndian[i] = true;
-      core.rgb[i] = core.sizeC[i] > 1 && core.sizeC[i] < 4;
-      core.interleaved[i] = true;
+      core.rgb[i] = false;
+      core.interleaved[i] = false;
       core.imageCount[i] = core.sizeZ[i] * core.sizeT[i];
-      if (!core.rgb[i]) core.imageCount[i] *= core.sizeC[i];
+      core.imageCount[i] *= core.sizeC[i];
+      core.indexed[i] = false;
+      core.falseColor[i] = false;
 
       while (bitsPerPixel[i] % 8 != 0) bitsPerPixel[i]++;
       switch (bitsPerPixel[i]) {
@@ -474,17 +453,7 @@ public class LIFReader extends FormatReader {
       }
       store.setImage(seriesName, null, null, ii);
 
-      store.setPixels(
-        new Integer(core.sizeX[i]), // SizeX
-        new Integer(core.sizeY[i]), // SizeY
-        new Integer(core.sizeZ[i]), // SizeZ
-        new Integer(core.sizeC[i]), // SizeC
-        new Integer(core.sizeT[i]), // SizeT
-        new Integer(core.pixelType[i]), // PixelType
-        new Boolean(!core.littleEndian[i]), // BigEndian
-        core.currentOrder[i], // DimensionOrder
-        ii, // Image index
-        null); // Pixels index
+      FormatTools.populatePixels(store, this);
 
       Float xf = i < xcal.size() ? (Float) xcal.get(i) : null;
       Float yf = i < ycal.size() ? (Float) ycal.get(i) : null;

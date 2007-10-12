@@ -4,7 +4,7 @@
 
 /*
 LOCI Bio-Formats package for reading and converting biological file formats.
-Copyright (C) 2005-2007 Melissa Linkert, Curtis Rueden, Chris Allan,
+Copyright (C) 2005-@year@ Melissa Linkert, Curtis Rueden, Chris Allan,
 Eric Kjellman and Brian Loranger.
 
 This program is free software; you can redistribute it and/or modify
@@ -24,7 +24,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 package loci.formats.in;
 
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
 import loci.formats.*;
@@ -89,68 +88,20 @@ public class IPWReader extends BaseTiffReader {
       block[2] == 0x11 && block[3] == 0xe0);
   }
 
-  /* @see loci.formats.IFormatReader#openBytes(int) */
-  public byte[] openBytes(int no) throws FormatException, IOException {
-    FormatTools.assertId(currentId, true, 1);
-    int c = getRGBChannelCount();
-    if (c == 2) c++;
-    byte[] buf = new byte[core.sizeX[0] * core.sizeY[0] * c *
-      FormatTools.getBytesPerPixel(core.pixelType[0])];
-    return openBytes(no, buf);
-  }
-
   /* @see loci.formats.IFormatReader#openBytes(int, byte[]) */
   public byte[] openBytes(int no, byte[] buf)
     throws FormatException, IOException
   {
     FormatTools.assertId(currentId, true, 1);
-    if (no < 0 || no >= getImageCount()) {
-      throw new FormatException("Invalid image number: " + no);
-    }
+    FormatTools.checkPlaneNumber(this, no);
+    FormatTools.checkBufferSize(this, buf.length);
 
-    try {
-      String directory = (String) pixels.get(new Integer(no));
-      String name = (String) names.get(new Integer(no));
-
-      r.setVar("dirName", directory);
-      r.exec("root = fs.getRoot()");
-
-      if (!directory.equals("Root Entry")) {
-        r.exec("dir = root.getEntry(dirName)");
-        r.setVar("entryName", name);
-        r.exec("document = dir.getEntry(entryName)");
-      }
-      else {
-        r.setVar("entryName", name);
-        r.exec("document = root.getEntry(entryName)");
-      }
-
-      r.exec("dis = new DocumentInputStream(document)");
-      r.exec("numBytes = dis.available()");
-      int numBytes = ((Integer) r.getVar("numBytes")).intValue();
-      byte[] b = new byte[numBytes + 4];
-      r.setVar("data", b);
-      r.exec("dis.read(data)");
-
-      RandomAccessStream stream = new RandomAccessStream(b);
-      ifds = TiffTools.getIFDs(stream);
-      core.littleEndian[0] = TiffTools.isLittleEndian(ifds[0]);
-      TiffTools.getSamples(ifds[0], stream, buf);
-      stream.close();
-      return buf;
-    }
-    catch (ReflectException e) {
-      noPOI = true;
-      return null;
-    }
-  }
-
-  /* @see loci.formats.IFormatReader#openImage(int) */
-  public BufferedImage openImage(int no) throws FormatException, IOException {
-    byte[] b = openBytes(no);
-    int bytes = b.length / (core.sizeX[0] * core.sizeY[0]);
-    return ImageTools.makeImage(b, core.sizeX[0], core.sizeY[0],
-      bytes == 3 ? 3 : 1, false, bytes == 3 ? 1 : bytes, core.littleEndian[0]);
+    RandomAccessStream stream = getStream(no);
+    ifds = TiffTools.getIFDs(stream);
+    core.littleEndian[0] = TiffTools.isLittleEndian(ifds[0]);
+    TiffTools.getSamples(ifds[0], stream, buf);
+    stream.close();
+    return buf;
   }
 
   // -- IFormatHandler API methods --
@@ -329,10 +280,7 @@ public class IPWReader extends BaseTiffReader {
     // The metadata store we're working with.
     MetadataStore store = getMetadataStore();
 
-    store.setPixels(null, null, new Integer(core.sizeZ[0]),
-      new Integer(core.sizeC[0]), new Integer(core.sizeT[0]),
-      new Integer(core.pixelType[0]), new Boolean(!isLittleEndian()),
-      core.currentOrder[0], null, null);
+    FormatTools.populatePixels(store, this);
     store.setImage(currentId, null, (String) getMeta("Version"), null);
     for (int i=0; i<core.sizeC[0]; i++) {
       store.setLogicalChannel(i, null, null, null, null, null, null, null, null,
@@ -372,7 +320,6 @@ public class IPWReader extends BaseTiffReader {
       if (debug) trace(t);
     }
 
-    core.interleaved[0] = true;
   }
 
   // -- Helper methods --
@@ -456,6 +403,40 @@ public class IPWReader extends BaseTiffReader {
           print(depth + 1, data.length + " bytes read.");
         }
       }
+    }
+  }
+
+  /** Retrieve the file corresponding to the given image number. */
+  private RandomAccessStream getStream(int no) throws IOException {
+    try {
+      String directory = (String) pixels.get(new Integer(no));
+      String name = (String) names.get(new Integer(no));
+
+      r.setVar("dirName", directory);
+      r.exec("root = fs.getRoot()");
+
+      if (!directory.equals("Root Entry")) {
+        r.exec("dir = root.getEntry(dirName)");
+        r.setVar("entryName", name);
+        r.exec("document = dir.getEntry(entryName)");
+      }
+      else {
+        r.setVar("entryName", name);
+        r.exec("document = root.getEntry(entryName)");
+      }
+
+      r.exec("dis = new DocumentInputStream(document)");
+      r.exec("numBytes = dis.available()");
+      int numBytes = ((Integer) r.getVar("numBytes")).intValue();
+      byte[] b = new byte[numBytes + 4];
+      r.setVar("data", b);
+      r.exec("dis.read(data)");
+
+      return new RandomAccessStream(b);
+    }
+    catch (ReflectException e) {
+      noPOI = true;
+      return null;
     }
   }
 
