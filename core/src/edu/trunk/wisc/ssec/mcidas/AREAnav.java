@@ -568,6 +568,7 @@ public abstract class AREAnav
   public static AREAnav makeAreaNav(int[] navBlock, int[] auxBlock) 
                        throws McIDASException {
     AREAnav anav = null;
+    //System.out.println("nav = " + McIDASUtil.intBitsToString(navBlock[0]));
     try
     {
         switch (navBlock[0]) {
