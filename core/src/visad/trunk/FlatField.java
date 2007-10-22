@@ -1248,7 +1248,28 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     return range;
   }
 
+  /**
+   * Unpack one range component, makes a copy.
+   *
+   * @param component index
+   *
+   * @return  array of the values
+   * @throws VisADException  bad range mode
+   */
   protected double[] unpackOneRangeComp(int comp) throws VisADException {
+    return unpackOneRangeComp(comp, true);
+  }
+
+  /**
+   * Unpack one range component.
+   *
+   * @param component index
+   * @param copy  true to make a copy
+   *
+   * @return  array of the values
+   * @throws VisADException  bad range mode
+   */
+  protected double[] unpackOneRangeComp(int comp, boolean copy) throws VisADException {
     double[] range = null;
     synchronized (DoubleRange) {
       if (isMissing()) {
@@ -1264,9 +1285,12 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
       for (int i=0; i<TupleDimension; i++) {
         switch (RangeMode[comp]) {
           case DOUBLE:
-            range = new double[Length];
-            double[] DoubleRangeI = DoubleRange[comp];
-            System.arraycopy(DoubleRangeI, 0, range, 0, Length);
+            if (copy) {
+              range = new double[Length];
+              System.arraycopy (DoubleRange[comp], 0, range, 0, Length);
+            }  else {
+              range = DoubleRange[comp];
+            }
             break;
           case FLOAT:
             range = new double[Length];
@@ -1310,7 +1334,98 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     return range;
   }
 
-  /*-  TDR  June 1998  */
+  /**
+   * Unpack one range component, makes a copy.
+   *
+   * @param component index
+   *
+   * @return  array of the values
+   * @throws VisADException  bad range mode
+   */
+  protected float[] unpackOneFloatRangeComp(int comp) throws VisADException {
+    return unpackOneFloatRangeComp(comp, true);
+  }
+
+  /**
+   * Unpack one range component.
+   *
+   * @param component index
+   * @param copy  true to make a copy
+   *
+   * @return  array of the values
+   * @throws VisADException  bad range mode
+   */
+  protected float[] unpackOneFloatRangeComp(int comp, boolean copy) throws VisADException {
+    float[] range = null;
+    synchronized (FloatRange) {
+      if (isMissing()) {
+        range = new float[Length];
+        for (int j=0; j<Length; j++) {
+          range[j] = Float.NaN;
+        }
+        return range;
+      }
+      int[] index;
+      float[][] range0;
+      float[] rangeI;
+      for (int i=0; i<TupleDimension; i++) {
+        switch (RangeMode[comp]) {
+          case DOUBLE:
+            range = new float[Length];
+            double[] DoubleRangeI = DoubleRange[comp];
+            for (int j=0; j<Length; j++) {
+              range[j] = (float) DoubleRangeI[j];
+            }
+            break;
+          case FLOAT:
+            if (copy) {
+              range = new float[Length];
+              System.arraycopy (FloatRange[comp], 0, range, 0, Length);
+            }  else {
+              range = FloatRange[comp];
+            }
+            break;
+          case BYTE:
+            index = new int[Length];
+            byte[] ByteRangeI = ByteRange[comp];
+            for (int j=0; j<Length; j++) {
+              index[j] = ((int) ByteRangeI[j]) - MISSING1 - 1;
+            }
+            range0 = RangeSet[comp].indexToValue(index);
+            range = range0[0];
+            break;
+          case SHORT:
+            index = new int[Length];
+            short[] ShortRangeI = ShortRange[comp];
+            for (int j=0; j<Length; j++) {
+              index[j] = ((int) ShortRangeI[j]) - MISSING2 - 1;
+            }
+            range0 = RangeSet[comp].indexToValue(index);
+            range = range0[0];
+            break;
+          case INT:
+            index = new int[Length];
+            int[] IntRangeI = IntRange[comp];
+            for (int j=0; j<Length; j++) {
+              index[j] = ((int) IntRangeI[j]) - MISSING4 - 1;
+            }
+            range0 = RangeSet[comp].indexToValue(index);
+            range = range0[0];
+            break;
+          default:
+            throw new SetException("FlatField.unpackValues: bad RangeMode");
+        }
+      }
+    }
+    return range;
+  }
+
+  /** 
+   * Unpack the double value at the sample index.
+   * @param s_index  sample index
+   * @return array of values at that index
+   * @throws VisADException  unable to unpack values
+   */
   protected double[] unpackValues( int s_index ) throws VisADException {
     double[] range;
     synchronized (DoubleRange) {
@@ -1362,7 +1477,12 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     return range;
   }
 
-  /*-  TDR  June 1998  */
+  /** 
+   * Unpack the floats at the sample index.
+   * @param s_index  sample index
+   * @return array of values at that index
+   * @throws VisADException  unable to unpack floats
+   */
   protected float[] unpackFloats( int s_index ) throws VisADException {
     float[] range;
     synchronized (FloatRange) {
@@ -3721,6 +3841,14 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
   public Field extract(int component)
          throws VisADException, RemoteException
   {
+    return extract(component, true);
+  }
+
+  /** extract field from this[].component;
+      this is OK, when we get around to it */
+  public Field extract(int component, boolean copy)
+         throws VisADException, RemoteException
+  {
     Set domainSet = getDomainSet();
     int n_samples = domainSet.getLength();
     MathType rangeType = ((FunctionType)Type).getRange();
@@ -3730,7 +3858,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     MathType m_type;
     int ii, jj, compSize;
 
-    int[] flat_indeces;
+    int[] flat_indices;
 
     if ( rangeType instanceof RealType )
     {
@@ -3771,17 +3899,17 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     if ( new_range instanceof RealType )
     {
       compSize = 1;
-      flat_indeces = new int[compSize];
-      flat_indeces[0] = cnt;
+      flat_indices = new int[compSize];
+      flat_indices[0] = cnt;
       coord_sys = null;
     }
     else
     {
       compSize = ((RealTupleType)new_range).getDimension();
-      flat_indeces = new int[ compSize ];
+      flat_indices = new int[ compSize ];
       for ( jj = 0; jj < compSize; jj++ )
       {
-        flat_indeces[jj] = cnt++;
+        flat_indices[jj] = cnt++;
       }
       coord_sys = RangeCoordinateSystems[t_cnt];
     }
@@ -3790,26 +3918,37 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     Unit[] units_out = new Unit[ compSize ];
     Set[] rangeSet_out = new Set[ compSize ];
 
+    boolean needDoubles = false;
     for ( ii = 0; ii < compSize; ii++ )
     {
-      units_out[ii] = RangeUnits[ flat_indeces[ii] ];
-      errors_out[ii] = RangeErrors[ flat_indeces[ii] ];
-      rangeSet_out[ii] = RangeSet[ flat_indeces[ii] ];
+      units_out[ii] = RangeUnits[ flat_indices[ii] ];
+      errors_out[ii] = RangeErrors[ flat_indices[ii] ];
+      rangeSet_out[ii] = RangeSet[ flat_indices[ii] ];
+      if (rangeSet_out[ii] instanceof DoubleSet) needDoubles = true;
     }
 
     FlatField new_field = new FlatField( new_type, domainSet, coord_sys, null,
                                          rangeSet_out, units_out );
     new_field.setRangeErrors( errors_out );
 
-    double[][] new_values = new double[ compSize ][ n_samples ];
-    double[] values = null;
-
-    for ( ii = 0; ii < compSize; ii++ )
-    {
-      values = unpackOneRangeComp( flat_indeces[ii] );
-      System.arraycopy( values, 0, new_values[ii], 0, n_samples );
+    if (needDoubles) {
+   
+        double[][] new_values = new double[ compSize ][ n_samples ];
+    
+        for ( ii = 0; ii < compSize; ii++ )
+        {
+          new_values[ii] = unpackOneRangeComp( flat_indices[ii], copy);
+        }
+        new_field.setSamples( new_values, false );
+    } else {
+        float[][] new_floats = new float[ compSize ][ n_samples ];
+    
+        for ( ii = 0; ii < compSize; ii++ )
+        {
+          new_floats[ii] = unpackOneFloatRangeComp( flat_indices[ii], copy);
+        }
+        new_field.setSamples( new_floats, false );
     }
-    new_field.setSamples( new_values, false );
 
     return new_field;
   }
