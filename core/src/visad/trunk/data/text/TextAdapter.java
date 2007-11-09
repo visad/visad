@@ -85,6 +85,7 @@ public class TextAdapter {
   private static final String SEMICOLON = ";";
   private static final String TAB = "\t";
   private static final String BLANK = " ";
+  private static final String BLANK_DELIM = "\\s+";
 
 
 
@@ -285,7 +286,7 @@ public class TextAdapter {
 
     String hdrDelim = DELIM;
     if (DELIM == null) {
-      if (hdr.indexOf(BLANK) != -1) hdrDelim = BLANK; 
+      if (hdr.indexOf(BLANK) != -1) hdrDelim = BLANK_DELIM; 
       if (hdr.indexOf(COMMA) != -1) hdrDelim = COMMA; 
       if (hdr.indexOf(SEMICOLON) != -1) hdrDelim = SEMICOLON; 
       if (hdr.indexOf(TAB) != -1) hdrDelim = TAB; 
@@ -294,8 +295,8 @@ public class TextAdapter {
                                      (hdrDelim.getBytes())[0]);
     }
 
-    StringTokenizer sthdr = new StringTokenizer(hdr,hdrDelim);
-    int nhdr = sthdr.countTokens();
+    String[] sthdr = hdr.split(hdrDelim);
+    int nhdr = sthdr.length;
     infos    = new HeaderInfo[nhdr];
     for(int i=0;i<infos.length;i++) {
       infos[i] = new HeaderInfo();
@@ -308,7 +309,7 @@ public class TextAdapter {
     // since we cannot change a RealType once it's defined!!
 
     for (int i=0; i<nhdr; i++) {
-      String name = sthdr.nextToken().trim();
+      String name = sthdr[i].trim();
       String hdrUnitString = null;
       hdrColumns[0][i] = -1; // indicating no fixed columns
       
@@ -339,21 +340,21 @@ public class TextAdapter {
         }
 
         String cl = name.substring(m+1,m2).trim();
-        StringTokenizer stcl = new StringTokenizer(cl," ");
-        int ncl = stcl.countTokens();
+        String[] stcl = cl.split(BLANK_DELIM);
+        int ncl = stcl.length;
 
         if (ncl == 1 && cl.indexOf("=") == -1) {
           hdrUnitString = cl;  // backward compatible...
 
         } else {
-          while (stcl.hasMoreTokens()) {
-            String s = stcl.nextToken().trim();
-            StringTokenizer sts = new StringTokenizer(s,"=");
-            if (sts.countTokens() != 2) {
+          for (int l = 0; l  < ncl; l++) {
+            String s = stcl[l++];
+            String[] sts = s.split("=");
+            if (sts.length != 2) {
               throw new VisADException("TextAdapter: Invalid clause in: "+s);
             }
-            String tok = sts.nextToken().trim();
-            String val = sts.nextToken();
+            String tok = sts[0];
+            String val = sts[1];
             
             // check for quoted strings
             if (val.startsWith("\"")) {
@@ -366,12 +367,25 @@ public class TextAdapter {
               } else {
                 // if not, then reparse stcl to suck up spaces...
                 try {
-                  String v2 = stcl.nextToken("\"");
-                  stcl.nextToken(" ");
+                  String v2="";
+                  for (int q=l; q < ncl; q++) {
+                      String  vTmp = stcl[q];
+                      // find next token that has a " in it
+                      int pos = vTmp.indexOf("\"");
+                      if (pos < 0) {  // no "
+                          v2 = v2+" "+vTmp;
+                          l++;
+                      } else {
+                          v2 = v2+" "+vTmp.substring(0,pos);
+                          stcl[l] = vTmp.substring(pos+1);
+                          break;
+                      }
+                  }
                   String v3 = val.substring(1)+v2;
                   val = v3;
 
-                } catch (NoSuchElementException nse2) {
+                //} catch (NoSuchElementException nse2) {
+                } catch (ArrayIndexOutOfBoundsException nse2) {
                   val="";
                 }
               }
@@ -408,12 +422,12 @@ public class TextAdapter {
             } else if (tok.toLowerCase().startsWith(ATTR_COLSPAN)) {
               infos[i].colspan = (int)Double.parseDouble(val.trim());
             } else if (tok.toLowerCase().startsWith(ATTR_POSITION)) {
-              StringTokenizer stp = new StringTokenizer(val,":");
-              if (stp.countTokens() != 2) {
+              String[] stp = val.split(":");
+              if (stp.length != 2) {
                 throw new VisADException("TextAdapter: invalid Position parameter in:"+s);
               }
-              hdrColumns[0][i] = Integer.parseInt(stp.nextToken().trim());
-              hdrColumns[1][i] = Integer.parseInt(stp.nextToken().trim());
+              hdrColumns[0][i] = Integer.parseInt(stp[0].trim());
+              hdrColumns[1][i] = Integer.parseInt(stp[1].trim());
 
             } else if (tok.toLowerCase().startsWith(ATTR_FORMAT)) {
                 infos[i].formatString = val.trim();
@@ -633,11 +647,11 @@ public class TextAdapter {
             try {
 
               String ss = name.substring(n+1,name.length()-1);
-              StringTokenizer sct = new StringTokenizer(ss,":");
-              String first = sct.nextToken().trim();
-              String second = sct.nextToken().trim();
+              String[] sct = ss.split(":");
+              String first = sct[0].trim();
+              String second = sct[1].trim();
               String third = "1";
-              if (sct.hasMoreTokens()) third = sct.nextToken().trim();
+              if (sct.length == 3) third = sct[2].trim();
               domainRanges[0][k] = Double.parseDouble(first);
               domainRanges[1][k] = Double.parseDouble(second);
               domainRanges[2][k] = Double.parseDouble(third);
@@ -740,7 +754,7 @@ public class TextAdapter {
       if (!isText(s)) return;
       if (isComment(s)) continue;
       if (dataDelim == null) {
-        if (s.indexOf(BLANK) != -1) dataDelim = BLANK; 
+        if (s.indexOf(BLANK) != -1) dataDelim = BLANK_DELIM; 
         if (s.indexOf(COMMA) != -1) dataDelim = COMMA; 
         if (s.indexOf(SEMICOLON) != -1) dataDelim = SEMICOLON; 
         if (s.indexOf(TAB) != -1) dataDelim = TAB; 
@@ -773,8 +787,8 @@ public class TextAdapter {
 
 
 
-      StringTokenizer st = new StringTokenizer(s,dataDelim);
-      int n = st.countTokens();
+      String[] st = s.split(dataDelim);
+      int n = st.length;
       if (n < 1) continue; // something is wrong if this happens!
 
       double [] dValues = new double[numDom];
@@ -789,7 +803,7 @@ public class TextAdapter {
         int irange = 0;
         for (int i=0; i<n; i++) {
 
-          String sa = st.nextToken().trim();
+          String sa = st[i];
           
           if (i >= nhdr) {  // are we past where domain would be found?
 
@@ -836,15 +850,18 @@ public class TextAdapter {
         if (n > nhdr) n = nhdr; // in case the # tokens > # parameters
         n +=numHdrValues;
 
-        for (int i=0; i<n; i++) {
+        int l = 0;   // token counter
+        for (int i=0; i<nhdr; i++) {   // loop over the columns
           String sa;
           if(infos[i].fixedValue!=null) {
             sa = infos[i].fixedValue;
-          }  else {
-            sa = st.nextToken().trim();
+          }  else if (l >= st.length) {   // more params than tokens
+            sa = "";                      // need to have a missing value
+          } else {
+            sa = st[l++].trim();
             int moreColumns = infos[i].colspan-1;
             while (moreColumns>0) {
-                sa = sa + " " + st.nextToken().trim();
+                sa = sa + " " + st[l++].trim();
                 moreColumns--;
             }
           }
@@ -865,11 +882,29 @@ public class TextAdapter {
                   String sa2 = sa.substring(1,sa.length()-1);
                   sThisText = sa2;
                 } else {
-
+                  // TODO:  work on this
                   try {
-                    String sa2 = st.nextToken("\"");
-                    sThisText = sa.substring(1)+sa2;
-                  } catch (NoSuchElementException nse) {
+                    String delim = 
+                        dataDelim.equals(BLANK_DELIM) ? BLANK : dataDelim;
+                    String sa2="";
+                    for (int q=l; q < st.length; q++) {
+                        String  saTmp = st[q];
+                        // find next token that has a " in it
+                        int pos = saTmp.indexOf("\"");
+                        if (pos < 0) {  // no dataDelim
+                            sa2 = sa2+delim+saTmp;
+                            l++;
+                        } else {
+                            sa2 = sa2+saTmp.substring(0,pos);
+                            st[l] = saTmp.substring(pos+1);
+                            break;
+                        }
+                    }
+
+                    //sThisText = sa.substring(1)+sa2;
+                    sThisText = sa.substring(1)+delim+sa2;
+                  //} catch (NoSuchElementException nse) {
+                  } catch (ArrayIndexOutOfBoundsException nse) {
                     sThisText = "";
                   }
                 }
