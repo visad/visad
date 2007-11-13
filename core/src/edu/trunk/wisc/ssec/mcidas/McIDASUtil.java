@@ -207,7 +207,7 @@ public final class McIDASUtil
     }
 
     /**
-     * Convert date (yyyymmdd or yyyymmdd) and hms (hhmmss) to seconds since
+     * Convert date (yymmdd or yyyymmdd) and hms (hhmmss) to seconds since
      * the epoch (January 1, 1970, 00:00GMT).  
      *
      * @param    date       year/day in yyymmdd format.
@@ -220,6 +220,11 @@ public final class McIDASUtil
     public static long mcDateHmsToSecs(int date, int time)
     {
         int year = date/10000;
+        if  (year < 50) {
+            year = year + 2000;
+        } else if ( year < 100) {
+            year = year + 1900;
+        }
         int month = (date%10000)/100;
         int day =  date%100;
 
@@ -236,7 +241,7 @@ public final class McIDASUtil
         cal.setTimeZone(TimeZone.getTimeZone("GMT"));
         cal.set(Calendar.ERA, GregorianCalendar.AD);
         cal.set(Calendar.YEAR, year);
-        cal.set(Calendar.MONTH, month);
+        cal.set(Calendar.MONTH, month-1);  // stupid Calendar.MONTH is 0 based
         cal.set(Calendar.DAY_OF_MONTH, day);
         int secs = ((int) Math.round(seconds * 1000))/1000;
         cal.set(Calendar.SECOND, secs);
