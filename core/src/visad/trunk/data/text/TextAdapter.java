@@ -348,7 +348,7 @@ public class TextAdapter {
 
         } else {
           for (int l = 0; l  < ncl; l++) {
-            String s = stcl[l++];
+            String s = stcl[l];
             String[] sts = s.split("=");
             if (sts.length != 2) {
               throw new VisADException("TextAdapter: Invalid clause in: "+s);
@@ -368,16 +368,15 @@ public class TextAdapter {
                 // if not, then reparse stcl to suck up spaces...
                 try {
                   String v2="";
-                  for (int q=l; q < ncl; q++) {
+                  for (int q=l+1; q < ncl; q++) {
                       String  vTmp = stcl[q];
                       // find next token that has a " in it
                       int pos = vTmp.indexOf("\"");
+                      l++;
                       if (pos < 0) {  // no "
                           v2 = v2+" "+vTmp;
-                          l++;
                       } else {
                           v2 = v2+" "+vTmp.substring(0,pos);
-                          stcl[l] = vTmp.substring(pos+1);
                           break;
                       }
                   }
@@ -856,7 +855,7 @@ public class TextAdapter {
           if(infos[i].fixedValue!=null) {
             sa = infos[i].fixedValue;
           }  else if (l >= st.length) {   // more params than tokens
-            sa = "";                      // need to have a missing value
+            sa = "";                    // need to have a missing value
           } else {
             sa = st[l++].trim();
             int moreColumns = infos[i].colspan-1;
@@ -891,12 +890,12 @@ public class TextAdapter {
                         String  saTmp = st[q];
                         // find next token that has a " in it
                         int pos = saTmp.indexOf("\"");
+                        l++;
                         if (pos < 0) {  // no dataDelim
                             sa2 = sa2+delim+saTmp;
-                            l++;
                         } else {
                             sa2 = sa2+saTmp.substring(0,pos);
-                            st[l] = saTmp.substring(pos+1);
+                            //st[l] = saTmp.substring(pos+1);
                             break;
                         }
                     }
