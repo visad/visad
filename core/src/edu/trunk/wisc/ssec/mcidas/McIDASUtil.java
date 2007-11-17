@@ -222,7 +222,7 @@ public final class McIDASUtil
         int year = date/10000;
         if  (year < 50) {
             year = year + 2000;
-        } else if ( year < 100) {
+        } else if ( year < 1000) {
             year = year + 1900;
         }
         int month = (date%10000)/100;
@@ -272,6 +272,21 @@ public final class McIDASUtil
             (cal.get(cal.MINUTE)*100) +
             cal.get(cal.SECOND);
         return retvals;
+    }
+
+    /**
+     * Flip the bytes of an integer array.  Java version of 'm0swbyt4'.
+     *
+     * @param array[] array of integers to be flipped
+     * @param first starting element of the array
+     * @param last last element of array to flip
+     *
+     */
+    public static int swpbyt4(int val)
+    {
+        int[] vals = new int[] {val};
+        flip(vals,0,0);
+        return vals[0];
     }
 
     /**
