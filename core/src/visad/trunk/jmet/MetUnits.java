@@ -120,6 +120,8 @@ public class MetUnits {
     else if (in.equalsIgnoreCase("mw**"))  { out = "mW/m^2/sr/cm-1"; }
     else if (in.equalsIgnoreCase("wm**"))  { out = "W/m^2/sr/micron"; }
     else if (in.equalsIgnoreCase("wp**"))  { out = "W/m^2/sr"; }
+    else if (in.equalsIgnoreCase("mb"))  { out = "hPa"; }
+    else if (in.equalsIgnoreCase("mbag"))  { out = "hPa"; }
 
     return out;
   }
