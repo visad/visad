@@ -275,18 +275,27 @@ public final class McIDASUtil
     }
 
     /**
-     * Flip the bytes of an integer array.  Java version of 'm0swbyt4'.
+     * Flip the bytes of an integer. 
      *
-     * @param array[] array of integers to be flipped
-     * @param first starting element of the array
-     * @param last last element of array to flip
-     *
+     * @param val value to swap
      */
-    public static int swpbyt4(int val)
+    public static int swbyt4(int val)
     {
         int[] vals = new int[] {val};
         flip(vals,0,0);
         return vals[0];
+    }
+
+    /**
+     * Flip the bytes of an integer array.  Java version of 'm0swbyt4'.
+     *
+     * @param array   array of integers to be flipped
+     * @param first   starting element of the array
+     * @param num     number of values to swap
+     */
+    public static void swbyt4(int[] array, int first, int num) 
+    {
+        flip(array, first, first+num);
     }
 
     /**
