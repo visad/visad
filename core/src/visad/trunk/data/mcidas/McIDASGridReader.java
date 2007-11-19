@@ -54,7 +54,7 @@ public class McIDASGridReader {
       int numEntries = Math.abs(readInt(10));
       if (numEntries > 10000000) {
           needToSwap = true;
-          numEntries = Math.abs(McIDASUtil.swpbyt4(numEntries));
+          numEntries = Math.abs(McIDASUtil.swbyt4(numEntries));
       }
       fn.seek(0);
       // read the fileheader
@@ -112,7 +112,7 @@ public class McIDASGridReader {
       for (int nc=0; nc<cols; nc++) {
         for (int nr=0; nr<rows; nr++) {
          int temp = fn.readInt();           // check for missing value
-         if (needToSwap) temp = McIDASUtil.swpbyt4(temp);
+         if (needToSwap) temp = McIDASUtil.swbyt4(temp);
          data[(rows-nr-1)*cols + nc] = 
            (temp == McIDASUtil.MCMISSING)
              ? Double.NaN
@@ -182,7 +182,7 @@ public class McIDASGridReader {
         int idata = fn.readInt();
         // set the order
         if (needToSwap) {
-            idata = McIDASUtil.swpbyt4(idata);
+            idata = McIDASUtil.swbyt4(idata);
         }
         return idata;
     }
