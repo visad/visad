@@ -34,6 +34,7 @@ public class McIDASGridReader {
   ArrayList gridH, gridD;
   int[] entry;
   RandomAccessFile fn;
+  boolean needToSwap = false;
 
 
   public McIDASGridReader() {
@@ -50,19 +51,28 @@ public class McIDASGridReader {
     // open file and get pointer block
     try {
       fn = new RandomAccessFile(filename,"r");
+      int numEntries = Math.abs(readInt(10));
+      if (numEntries > 10000000) {
+          needToSwap = true;
+          numEntries = Math.abs(McIDASUtil.swpbyt4(numEntries));
+      }
       fn.seek(0);
       // read the fileheader
-      int[] fileHeader = new int[10];
-      for (int i=0; i<10; i++) {
+      int[] fileHeader = new int[8];
+      for (int i=0; i<8; i++) {
         fileHeader[i] = fn.readInt();
-        System.out.println("head="+fileHeader[i]);
       }
+      System.out.println("head="+McIDASUtil.intBitsToString(fileHeader));
 
-      int numEntries = Math.abs( fn.readInt() );
-      System.out.println("number entries="+numEntries);
+      int project = readInt(8);
+      //System.out.println("Project = " + project);
+
+      int date = readInt(9);
+      //System.out.println("date = " + date);
+
       entry = new int[numEntries];
       for (int i=0; i<numEntries; i++) {
-        entry[i] = fn.readInt();
+        entry[i] = readInt(i + 11);
       }
 
       readEntry(0);
@@ -77,11 +87,16 @@ public class McIDASGridReader {
     try {
       int te = entry[ent] * 4;
       System.out.println("Entry 0 = "+te);
-      byte[] gridHeader = new byte[256];
+      int[] gridHeader = new int[64];
       fn.seek(te);
-      fn.readFully(gridHeader);
-      //gridHeader[32]='m';         // we had to make the units m instead of M
-      McIDASGridDirectory mgd = new McIDASGridDirectory(gridHeader);
+      for (int i = 0; i < 64; i++) {
+          gridHeader[i] = fn.readInt();
+      }
+      if (needToSwap) {
+          swapGridHeader(gridHeader);
+      }
+      McIDASGridDirectory mgd = 
+        new McIDASGridDirectory(new GridDirectory(gridHeader));
       System.out.println("grid header ="+mgd.toString());
       CoordinateSystem c = mgd.getCoordinateSystem();
       int rows = mgd.getRows();
@@ -97,6 +112,7 @@ public class McIDASGridReader {
       for (int nc=0; nc<cols; nc++) {
         for (int nr=0; nr<rows; nr++) {
          int temp = fn.readInt();           // check for missing value
+         if (needToSwap) temp = McIDASUtil.swpbyt4(temp);
          data[(rows-nr-1)*cols + nc] = 
            (temp == McIDASUtil.MCMISSING)
              ? Double.NaN
@@ -108,6 +124,17 @@ public class McIDASGridReader {
       gridH.add(mgd);
       gridD.add(data);
     } catch (Exception esc) {System.out.println(esc);}
+  }
+
+  /**
+   * Swap the grid header, avoiding strings
+   *
+   * @param gh   grid header to swap
+   */
+  private void swapGridHeader(int[] gh) {
+    McIDASUtil.flip(gh, 0, 5);
+    McIDASUtil.flip(gh, 7, 7);
+    McIDASUtil.flip(gh, 9, 51);
   }
 
   /** to get some grid, by index value, other than the first one
@@ -129,8 +156,33 @@ public class McIDASGridReader {
 
   /** for testing purposes
   */
-  public  static void main(String[] a) {
+  public  static void main(String[] args) {
+    String file = "/src/visad/data/mcidas/GRID1715";
+    if (args.length > 0) {
+      file = args[0];
+    }
     McIDASGridReader mg = new McIDASGridReader();
-    mg.getGridData("/src/visad/data/mcidas/GRID1715");
+    mg.getGridData(file);
   }
+    /**
+     * Read an integer
+     * @param word   word in file (0 based) to read
+     *
+     * @return  int read
+     *
+     * @throws IOException   problem reading file
+     */
+    private int readInt(int word) throws IOException {
+        if (fn == null) {
+            throw new IOException("no file to read from");
+        }
+        fn.seek(word * 4);
+        int idata = fn.readInt();
+        // set the order
+        if (needToSwap) {
+            idata = McIDASUtil.swpbyt4(idata);
+        }
+        return idata;
+    }
+
 }
