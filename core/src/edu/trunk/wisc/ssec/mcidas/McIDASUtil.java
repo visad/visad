@@ -295,7 +295,7 @@ public final class McIDASUtil
      */
     public static void swbyt4(int[] array, int first, int num) 
     {
-        flip(array, first, first+num);
+        flip(array, first, first+num-1);
     }
 
     /**
