@@ -143,6 +143,9 @@ public abstract class AREAnav
     /** Code value in AREA files used to designate Lat/Lon */
     public static final int LALO = 0x4C414C4F;
 
+    /** Code value in AREA files used to designate Lat/Lon */
+    public static final int KALP = 0x4B414C50;
+
     /** Code value for specifying Latitude/Longitude transformations */
     public static final int LL = 123;
 
@@ -619,6 +622,9 @@ public abstract class AREAnav
                 break;
             case LALO:
                 anav = new LALOnav(navBlock, auxBlock);
+                break;
+            case KALP:
+                anav = new KALPnav(navBlock);
                 break;
             default:
                 throw new McIDASException(
