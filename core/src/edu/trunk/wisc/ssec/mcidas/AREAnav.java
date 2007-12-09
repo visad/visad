@@ -146,6 +146,9 @@ public abstract class AREAnav
     /** Code value in AREA files used to designate Lat/Lon */
     public static final int KALP = 0x4B414C50;
 
+    /** Code value in AREA files used to designate ABIS */
+    public static final int ABIS = 0x41424953;
+
     /** Code value for specifying Latitude/Longitude transformations */
     public static final int LL = 123;
 
@@ -625,6 +628,9 @@ public abstract class AREAnav
                 break;
             case KALP:
                 anav = new KALPnav(navBlock);
+                break;
+            case ABIS:
+                anav = new ABISnav(navBlock);
                 break;
             default:
                 throw new McIDASException(
