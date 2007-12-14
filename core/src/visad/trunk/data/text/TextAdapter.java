@@ -960,7 +960,14 @@ public class TextAdapter {
           // do nothing: it means they are all reals
           // tuple = new RealTuple(tValues);
           tuple = null;
-          tryToMakeTuple = false;
+          tryToMakeTuple = false; 
+        } catch(NullPointerException npe) {
+            for(int i=0;i<tValues.length;i++) {
+                if(tValues[i] == null) {
+                    throw new IllegalArgumentException("An error occurred reading column number:" + (i+1));
+                }
+            }
+            throw npe;
         }
       }
 
