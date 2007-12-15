@@ -1285,7 +1285,16 @@ public class TextAdapter {
     visad.DateTime dt = null;
     // try to parse the string using the supplied DateTime format
     try {
-      dt = visad.DateTime.createDateTime(string, format, TimeZone.getTimeZone(tz));
+      if(dateParsers!=null) {
+         for(int i=0;i<dateParsers.size();i++) {
+             DateParser dateParser = (DateParser) dateParsers.get(i);
+             dt = dateParser.createDateTime(string, format, TimeZone.getTimeZone(tz));
+             if(dt !=null) {
+                 return dt;
+             }
+          }
+       }
+       dt = visad.DateTime.createDateTime(string, format, TimeZone.getTimeZone(tz));
     } catch (VisADException e) {}
     if (dt==null) {
       throw new java.text.ParseException("Couldn't parse visad.DateTime from \""
@@ -1294,6 +1303,26 @@ public class TextAdapter {
       return dt;
     }
   }
+
+  /** This list of DateFormatter-s will be checked when we are making a DateTime wiht a given format */
+  private static List dateParsers;
+
+  /** used to allow applications to define their own date parsing */
+  public static interface DateParser {
+        /** If this particular DateParser does not know how to handle the give  format then this method should return null */
+      public DateTime createDateTime(String value, String format, TimeZone timezone) throws VisADException;
+  }
+
+
+  /** used to allow applications to define their own date parsing */
+  public static void addDateParser(DateParser dateParser) {
+      if(dateParsers==null) {
+          dateParsers  = new ArrayList();
+      }
+      dateParsers.add(dateParser);
+  }
+
+
 
   double getVal(String s, int k) {
     int i = values_to_index[2][k];
@@ -1332,7 +1361,6 @@ public class TextAdapter {
       try{
         visad.DateTime dt = makeDateTimeFromString(s, infos[i].formatString, infos[i].tzString);
         return dt.getReal().getValue();
-
       } catch (java.text.ParseException pe) {
         System.out.println("Invalid number/time format for "+s);
       }
