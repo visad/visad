@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package edu.wisc.ssec.mcidas;
 
 import java.util.*;
+import java.io.*;
 
 /**
  * The KALPnav class creates the ability to navigate KALP
@@ -63,7 +64,8 @@ import java.util.*;
  *  }
  *  ng.setImageStart(dir[5], dir[6]);
  *  ng.setRes(dir[11], dir[12]);
- *  ng.setStart(1,1);
+ *  ng.setMag(1,1);
+ *  ng.setStart(0,0);
  *  ......................
  * </code></pre>
  *
@@ -74,9 +76,7 @@ public class KALPnav extends AREAnav {
   private int ic;
   private double h, a, rp, re, cdr, crd, lpsi2, deltax, deltay;
   private double sublat, sublon, cenlin, cenele, altitude;
-  final double PI=3.141592653589793d;
-  final double DEG=180.d/PI;
-  final double RAD=PI/180.d; // degrees to radians conversion pi/180
+  private double PI;
 
   private boolean isEastPositive = true;
 
@@ -93,31 +93,31 @@ public class KALPnav extends AREAnav {
     }
  
 //        H=42150.766-6378.155
-    altitude = (iparms[11]) / 10000.0;
+    altitude = (double)iparms[11] / 10000.0;
     h=altitude-6378.155;
 
     re=6378.155;
     a=1./297.;
     rp=re/(1.+a);
-    //PI=3.141592653
+    PI=3.141592653;
     cdr=PI/180.;
     crd=180./PI;
-    lpsi2=1;
+    lpsi2=1.0;
 
 //        DELTAX=18.03674/1408.
 //        DELTAY=18.03674/1408.
-    deltax = (iparms[12]) / 1000000000.0;
+    deltax = (double)iparms[12] / 1000000000.0;
     deltax = deltax * crd;
     deltay = deltax;
 
-    sublat=(iparms[10])/10000.;
-    sublon=(iparms[6])/10000.;
+    sublat=(double)iparms[10]/10000.;
+    sublon=(double)iparms[6]/10000.;
 
 //        The center line and element are in full res coords *10
 //        They are used in scan coords, so divide by 40.
 
-    cenlin = iparms[13]/40.;
-    cenele = iparms[14]/40.;
+    cenlin = (double)iparms[13]/40.;
+    cenele = (double)iparms[14]/40.;
     if(iparms[13] == 0) {
        cenlin = 704.5;
        cenele = 704.5;
@@ -339,7 +339,102 @@ public class KALPnav extends AREAnav {
       latlon[indexLon][point] = xla;
     }
 
-    return imageCoordToAreaCoord(linele, linele);
+    return latlon;
+  }
+
+  public static void main(String[] args) {
+
+    int [] navBlock = new int[800];
+    int [] dirBlock = new int[64];
+    DataInputStream dis = null;
+    KALPnav kalp = null;
+    String fileName = "KALPAREA";
+
+    System.out.println("unit test of class KALP begin...");
+
+    if (args.length > 0) fileName = args[0];
+
+    // test assumes presence of test area called KALPXAREA
+    try {
+      dis = new DataInputStream (
+        new BufferedInputStream(new FileInputStream(fileName), 2048)
+      );
+    } catch (Exception e) {
+      System.out.println("error creating DataInputStream: " + e);
+      System.exit(0);
+    }
+
+    // read and discard the directory
+    System.out.println("reading in, discarding directory words...");
+    try {
+      for (int i = 0; i < 64; i++) {
+        dirBlock[i] = dis.readInt();
+      }
+    } catch (IOException e) {
+      System.out.println("error reading area file directory: " + e);
+      System.exit(0);
+    }
+
+    // now read in the navigation data
+    System.out.println("reading in navigation words...");
+    try {
+      for (int i = 0; i < navBlock.length; i++) {
+        navBlock[i] = dis.readInt();
+      }
+    } catch (IOException e) {
+      System.out.println("error reading area file navigation data: " + e);
+      System.exit(0);
+    }
+
+    if (navBlock[0] != KALP) {
+      System.out.println("error: not a KALP navigation block.");
+      System.exit(0);
+    } 
+
+    double [][] linEle = new double [2][1];
+    double [][] latLon = new double [2][1];
+
+    System.out.println("creating KALPnav object...");
+    kalp = new KALPnav(navBlock);
+    kalp.setImageStart(dirBlock[5], dirBlock[6]);
+    System.out.println("####  ImageStart set to:"+dirBlock[5]+" "+dirBlock[6]);
+    kalp.setRes(dirBlock[11], dirBlock[12]);
+    System.out.println("####  ImageRes set to:"+dirBlock[11]+" "+dirBlock[12]);
+    kalp.setStart(0,0);
+
+    //System.out.println("####  setFlipLineCoord called with "+dirBlock[8]);
+    //kalp.setFlipLineCoordinates(dirBlock[8]); // invert Y axis coordinates
+
+    System.out.println(" test of toLinEle...");
+
+    latLon[kalp.indexLat][0] = 11.0f;
+    latLon[kalp.indexLon][0] = 50.f;
+    linEle = kalp.toLinEle(latLon);
+    System.out.println("  answer is: " + linEle[kalp.indexLine][0] + 
+      ", " + linEle[kalp.indexEle][0]);
+
+    latLon[0][0] = Double.NaN;
+    latLon = kalp.toLatLon(linEle);
+    System.out.println("testing inverse of 11N/50E");
+    System.out.println("  answer is: " + latLon[kalp.indexLat][0] + 
+      ", " + latLon[kalp.indexLon][0]);
+
+    System.out.println(" another test of toLinEle...");
+
+    latLon[kalp.indexLat][0] = -20.0f;
+    latLon[kalp.indexLon][0] = 100.f;
+    linEle = kalp.toLinEle(latLon);
+    System.out.println("  answer is: " + linEle[kalp.indexLine][0] + 
+      ", " + linEle[kalp.indexEle][0]);
+
+    latLon[0][0] = Double.NaN;
+    latLon = kalp.toLatLon(linEle);
+    System.out.println("testing inverse of 20S/100E");
+    System.out.println("  answer is: " + latLon[kalp.indexLat][0] + 
+      ", " + latLon[kalp.indexLon][0]);
+
+    System.out.println("unit test of class KALPnav end...");
+
   }
 
 }
