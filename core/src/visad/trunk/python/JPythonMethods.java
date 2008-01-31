@@ -2244,7 +2244,7 @@ public abstract class JPythonMethods {
 
 
   /**
-  * Replaces values in a FlatField with the constant given
+  * Replaces specified values in a FlatField with the constant given
   *
   * @param f is the input FlatField
   * @param list is the int[] list of indecies into f to replace
@@ -2256,7 +2256,7 @@ public abstract class JPythonMethods {
   }
 
   /**
-  * Replaces values in a FlatField with the constant given
+  * Replaces specified values in a FlatField with the constant given
   *
   * @param f is the input FlatField
   * @param list is the int[] list of indecies into f to replace
@@ -2273,6 +2273,60 @@ public abstract class JPythonMethods {
 
   }
 
+  /**
+  * Replaces all the missing values in a FlatField with the constant given
+  *
+  * @param f is the input FlatField
+  * @param v is the value to insert into f.
+  */
+  public static FlatField replaceMissing(FlatField f, double v) 
+             throws VisADException, RemoteException {
+    double [][] dv = f.getValues(false);
+    for (int i=0; i<dv[0].length; i++) {
+      if (dv[0][i] != dv[0][i]) dv[0][i] = v;
+    }
+
+    f.setSamples(dv);
+    return f;
+
+  }
+
+  /**
+  * Replaces all the values in a FlatField with the constant given
+  *
+  * @param f is the input FlatField
+  * @param v is the value to insert into f.
+  */
+  public static FlatField replace(FlatField f, double v) 
+             throws VisADException, RemoteException {
+    double [][] dv = f.getValues(false);
+    for (int i=0; i<dv[0].length; i++) {
+      dv[0][i] = v;
+    }
+
+    f.setSamples(dv);
+    return f;
+
+  }
+
+  /**
+  * Replaces all the values in a FlatField with the constant given
+  *
+  * @param f is the input FlatField
+  * @param v is the value to insert into f.
+  */
+  public static FlatField replace(FlatField f, Real v) 
+             throws VisADException, RemoteException {
+    double [][] dv = f.getValues(false);
+    double vv = v.getValue();
+    for (int i=0; i<dv[0].length; i++) {
+      dv[0][i] = vv;
+    }
+
+    f.setSamples(dv);
+    return f;
+
+  }
   /**
   * Mask out values outside testing limits
   *
