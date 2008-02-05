@@ -1,6 +1,6 @@
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2007 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2008 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: MathTypeCondition.java,v 1.6 2007-01-17 22:57:14 curtis Exp $
+$Id: MathTypeCondition.java,v 1.7 2008-02-05 20:26:08 curtis Exp $
 */
 
 package visad.data.in;
