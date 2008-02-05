@@ -1,6 +1,10 @@
+//
+// AreaFileFactory.java
+//
+
 /*
 This source file is part of the edu.wisc.ssec.mcidas package and is
-Copyright (C) 1998 - 2006 by Tom Whittaker, Tommy Jasmin, Tom Rink,
+Copyright (C) 1998 - 2008 by Tom Whittaker, Tommy Jasmin, Tom Rink,
 Don Murray, James Kelly, Bill Hibbard, Dave Glowacki, Curtis Rueden
 and others.
 
@@ -36,7 +40,7 @@ import edu.wisc.ssec.mcidas.adde.AddeURLException;
  * constructors do not.
  *
  * <p>No instances of this class can be created.</p>
- * @version $Id: AreaFileFactory.java,v 1.5 2007-09-20 15:05:36 donm Exp $
+ * @version $Id: AreaFileFactory.java,v 1.6 2008-02-05 20:26:00 curtis Exp $
  * @author Bruce Flynn, SSEC
  */
 public final class AreaFileFactory {
