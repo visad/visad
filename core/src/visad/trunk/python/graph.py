@@ -327,7 +327,11 @@ def lineplot(data, panel=None, color=None, width=400, height=400, title="Line Pl
   domt = domainType(data)
   rngt = rangeType(data)
   xaxis = ScalarMap(domt[0], Display.XAxis)
-  yaxis = ScalarMap(rngt, Display.YAxis)
+  if isinstance(rngt,RealTupleType):
+    yaxis = ScalarMap(rngt[0], Display.YAxis)
+  else:
+    yaxis = ScalarMap(rngt, Display.YAxis)
+
   axes = (xaxis, yaxis)
 
   disp = subs.makeDisplay( axes )
