@@ -121,6 +121,17 @@ public final class GOESnav extends AREAnav
 
     private int iold = 0;
 
+    // variables needed for satvec
+    private double tdife;
+    private double xmmc;
+    private double epsiln;
+    private double srome2;
+    private double pz;
+    private double py;
+    private double px;
+    private double qz;
+    private double qy;
+    private double qx;
 
     /**
      * Set up for the real math work.  Must pass in the int array
@@ -984,18 +995,6 @@ C VECTOR EARTH-CENTER-TO-SAT (FUNC OF TIME)
 */
     private double[] satvec(double samtim)
     {
-        // variables needed for satvec
-        double tdife = 0;
-        double xmmc = 0;
-        double epsiln = 0;
-        double srome2 = 0;
-        double pz = 0;
-        double py = 0;
-        double px = 0;
-        double qz = 0;
-        double qy = 0;
-        double qx = 0;
-
         if (iold != 1)
         {
             iold = 1;
