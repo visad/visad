@@ -305,6 +305,24 @@ public final class ScaledUnit
     }
 
     /**
+     * Get the scale amount
+     *
+     * @return The scale amount
+     */
+    public double getAmount() {
+        return amount;
+    }
+
+    /**
+     * Get the base unit
+     *
+     * @return The base unit
+     */
+    public DerivedUnit getUnit() {
+        return derivedUnit;
+    }
+
+    /**
      * Multiplies this unit by another unit.
      *
      * @param that      The unit with which to multiply this unit.
