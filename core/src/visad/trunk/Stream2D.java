@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2008 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2007 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -79,6 +79,9 @@ static void stream_trace( float[] ugrid, float[] vgrid, int nr, int nc,
   float[] vr = vr2[0];
   float[] vc = vc2[0];
 
+  float[] vec_row = new float[2];
+  float[] vec_col = new float[2];
+
   while (true) {
     float ubd, ubc, uad, uac, vbd, vbc, vad, vac;
 
@@ -134,16 +137,28 @@ static void stream_trace( float[] ugrid, float[] vgrid, int nr, int nc,
     int[] lens = spatial_set.getLengths();
     int lenX = lens[0];
     int ii = ((int)row)*lenX + (int)col;
-    float del_x = Math.abs(spatial_values[0][ii+1] - spatial_values[0][ii]);
-    float del_y = Math.abs(spatial_values[1][ii+1] - spatial_values[1][ii]);
+
+    float del_x = spatial_values[0][ii+1] - spatial_values[0][ii];
+    float del_y = spatial_values[1][ii+1] - spatial_values[1][ii];
     if (((del_x != del_x) || (del_y != del_y)) || ((u!=u || v!=v))) {
       break;
     }
+    float mag_col = (float) Math.sqrt((double)(del_x*del_x + del_y*del_y));
+    vec_col[0] = del_x/mag_col;
+    vec_col[1] = del_y/mag_col;
+
+    del_x = spatial_values[0][ii+lenX] - spatial_values[0][ii];
+    del_y = spatial_values[1][ii+lenX] - spatial_values[1][ii];
+    float mag_row = (float) Math.sqrt((double)(del_x*del_x + del_y*del_y));
+    vec_row[0] = del_x/mag_row;
+    vec_row[1] = del_y/mag_row;
+
     float dist = 1f;
     float step = stepFactor*cell_fraction*(dist/mag);
 
-    loc[1][0] += step*dir*v;
-    loc[0][0] += step*dir*u;
+    loc[0][0] += step*dir*(u*vec_col[0] + v*vec_col[1]);
+    loc[1][0] += step*dir*(u*vec_row[0] + v*vec_row[1]);
+
 
     row = loc[1][0];
     col = loc[0][0];
