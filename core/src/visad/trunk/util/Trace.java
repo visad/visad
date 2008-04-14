@@ -67,6 +67,7 @@ public  class Trace
     private static Method call2Method;
     private static Method msgMethod;
     private static Method startMethod;
+    private static Method stopMethod;
 
 
     public static void main(String[]args) {
@@ -88,6 +89,7 @@ public  class Trace
                 call2Method = c.getDeclaredMethod("call2", new Class[]{String.class,String.class});
                 msgMethod = c.getDeclaredMethod("msg", new Class[]{String.class});
                 startMethod = c.getDeclaredMethod("startTrace", new Class[]{});
+                stopMethod = c.getDeclaredMethod("stopTrace", new Class[]{});
             } catch(Exception exc){
             }
             doneReflectionLookup = true;
@@ -126,6 +128,19 @@ public  class Trace
             startMethod.invoke(null, new Object[]{});
         } catch(Exception iae){
             System.err.println("Trace.startTrace:" + iae);
+        }
+    }
+
+    /** Call this to start tracing */
+    public static void stopTrace() {
+        if(!checkReflection()) {
+            System.err.println("Could not stop tracing");
+            return;
+        }
+        try {
+            stopMethod.invoke(null, new Object[]{});
+        } catch(Exception iae){
+            System.err.println("Trace.stopTrace:" + iae);
         }
     }
 
