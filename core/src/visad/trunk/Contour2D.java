@@ -44,8 +44,7 @@ public class Contour2D {
 
   public static final int EASY = 0;
   public static final int HARD = 1;
-  public static final int DIFFICULTY_THRESHOLD = 7000;
-  public static final float DIMENSION_THRESHOLD = 5.0E5f;
+  public static final int DIFFICULTY_THRESHOLD = 600000;
 
   /**
    * Compute contour lines for a 2-D array.  If the interval is negative,
@@ -426,37 +425,30 @@ boolean anynotmissing = false;
 
 
     //- estimate contour difficutly
-    int ctr_lo = 0;
-    int ctr_hi = myvals.length-1;
-    for (int k=0; k<myvals.length; k++) {
-      if (min_g >= myvals[k]) ctr_lo = k;
-      if (max_g >= myvals[k]) ctr_hi = k;
-    }
-
-    int switch_cnt = 0;
-    float ctr_int = 0;
-    if (myvals.length > 1) {
-      ctr_int = myvals[1] - myvals[0];
-    }
-    else {
-      ctr_int = Math.abs(myvals[0]);
-    }
-    float[] last_diff = new float[(ctr_hi-ctr_lo)+1];
-    for (ir=2; ir<nrm-2; ir+=1) {
-      for (int k=0; k<last_diff.length;k++) {
-      last_diff[k] = g[ir] - myvals[ctr_lo+k];
-        for (ic=2; ic<ncm-2; ic+=1) {
-          float diff = g[ic*nr + ir] - myvals[ctr_lo+k];
-          if ((diff*last_diff[k] < 0) && ((diff > 0.005*ctr_int) || (diff < -0.005*ctr_int)) ) {
-            switch_cnt++;
-          }
-          last_diff[k] = diff;
+    float left_diff=0;
+    float rght_diff=0;
+    float up_diff=0;
+    float down_diff=0;
+    
+    int cnt_local_min_max=0;
+    int skip = (int) ((Math.max(nr,nc)/100 < 1) ? 1 : Math.max(nr,nc)/100);
+    int test_skip = 2;
+    for (ir=test_skip; ir<nrm-test_skip; ir+=skip) {
+      for (ic=test_skip; ic<ncm-test_skip; ic+=skip) {
+        up_diff   = g[ic*nr + (ir+test_skip)] - g[ic*nr + ir];
+        down_diff = g[ic*nr + ir] - g[ic*nr + (ir-test_skip)];
+        rght_diff = g[(ic+test_skip)*nr + ir] - g[ic*nr + ir];
+        left_diff = g[ic*nr + ir] - g[(ic-test_skip)*nr + ir];
+        
+        if ((left_diff*rght_diff < 0) || (up_diff*down_diff < 0)) {
+          cnt_local_min_max++;
         }
       }
     }
 
-    int contourDifficulty = Contour2D.EASY;
-    if (switch_cnt > Contour2D.DIFFICULTY_THRESHOLD) contourDifficulty = Contour2D.HARD;
+    int threshold = cnt_local_min_max*skip*skip*skip;
+    int contourDifficulty = 
+       (threshold > Contour2D.DIFFICULTY_THRESHOLD) ? Contour2D.HARD : Contour2D.EASY;
 
     ContourStripSet ctrSet =
       new ContourStripSet(nrm, myvals, swap, scale_ratio, label_size, nr, nc, spatial_set, contourDifficulty);
@@ -1242,6 +1234,7 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
         }  // for il       -- NOTE:  gg incremented in for statement
       }  // for ic
     }  // for ir
+
 
 /**-------------------  Color Fill -------------------------*/
     if (fill) {
