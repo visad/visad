@@ -94,6 +94,7 @@ public class MetUnits {
     else if (in.equalsIgnoreCase("degrees k")) { out = "K"; }
     else if (in.equalsIgnoreCase("gp m")) { out = "gpm"; }
     else if (in.equalsIgnoreCase("gp_m")) { out = "gpm"; }
+    else if (in.equalsIgnoreCase("kg"))  { out = "kg"; }  // handle Kg
 
     // the following are decidedly McIDAS
     else if (in.equalsIgnoreCase("paps")) { out = "Pa/s"; }
