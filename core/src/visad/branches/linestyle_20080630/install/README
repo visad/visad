@@ -1,0 +1,56 @@
+To install VisAD-in-a-Box:
+1) If you've received an visad-in-a-box.tar file,
+   run 'tar xvf visad-in-a-box.tar'
+2) If you've received an visad-in-a-box.tar.gz file,
+   run 'gzcat -c visad-in-a-box.tar | tar xvf -'
+3) Move into the extracted 'visad-in-a-box'
+   distribution directory and run 'install_visad'
+4) Answer the few installation questions, then wait
+   for everything to finish installing.
+5) You can remove the 'visad-in-a-box' distribution
+   directory after the installation is complete.
+
+Note: The 'cpush' utility must be available in order
+      to install on all nodes in a cluster.
+
+
+To keep your visad.jar file up to date:
+   Simply run 'java visad.install.UpdateJar <dir>'
+   where <dir> is the directory in which you've
+   installed your 'visad.jar' file.
+
+   This will only update the local 'visad.jar' file
+   if it is older than the distributed 'visad.jar'
+   file.
+
+To create a new VisAD-in-a-Box distribution:
+1) Create a distribution directory (in this example,
+   the distribution directory will be named
+   'visad-in-a-box')
+2) Copy 'visad/install/install_visad' to the
+   'visad-in-a-box' directory.
+3) Copy a 'visad.jar' file to the 'visad-in-a-box'
+   directory.
+ a) If you have a VisAD source distribution, you can
+    run 'make compile' (or 'make recompile') to
+    compile all the VisAD sources, then run
+    'make classes' to create 'visad.jar' in the
+    directory about the Makefile.
+4) If you want to include Java executables, you can
+   do either of the following:
+ a) Copy a JDK directory tree into the
+    'visad-in-a-box' directory and name it
+    'jdk-<OS>-<MACH>' where <OS> is whatever is
+    printed by 'uname -s' and <MACH> is whatever is
+    printed by 'uname -p'.
+
+    If you do this, the included java executable will
+    be used to run the installer on machines which
+    match this machine's OS and MACH.
+ b) Package up a JDK directory tree in a jar file
+    named 'jdk-<OS>-<MACH>.jar' (where <OS> and
+    <MACH> are as in the item above.)
+5) In the directory above the 'visad-in-a-box'
+   directory, package everything up with
+   'tar cvf visad-in-a-box.tar visad-in-a-box' (or
+   whatever you've named your distribution directory.)

@@ -1,0 +1,410 @@
+                          The VisAD TextAdapter
+                             January, 2001
+
+                         updated: December, 2004
+
+Contents.
+
+Introduction
+   I. Text File Formats
+  II. Line 1
+ IIa. 2-D arrays
+ IIb. 1,2, or 3-D points
+ III. Line2
+IIIa. for 2-D arrays
+IIIb. for 1,2,or 3-D points
+  IV. Examples
+
+Introduction
+
+The VisAD TextAdapter is designed to allow you to quickly read in data
+that are in the form of an ASCII text file.  We fully expect this
+class to continue to grow to accommodate other, common variations of
+text file formats that might be encountered.  
+
+Two example files are also contained in the release.  It is most
+convenient to test these using the VisAD Spreadsheet or the Jython
+(Python) interface.  Fire up either the visad.python.JPythonFrame, or
+simply start it from the command line and use a sequence like:
+
+  >>> from visad.python.JPythonMethods import *
+  >>> a = load("example1.txt")
+  >>> plot(a)
+  >>> clearplot()
+  >>> b = load("example2.csv")
+  >>> plot(b)
+  >>> clearplot()
+
+Or simply load these files into the SpreadSheet, and then experiment
+with the mappings!
+
+
+I. Text file formats
+
+The text files usually consist of 2 header lines and then data.
+Optional comment lines may be interspersed throughout.  The data
+portion of the file may be either blank-, comma-, semicolon- or
+tab-separated values.  At present only numeric data can be read.  The
+model for these files is spreadsheet (Excel, etc) output -- that is,
+column-oriented values.
+
+Comment lines are any line that starts with either #, !, or %.
+
+The file extensions recognized by the VisAD DefaultFamily and the
+TextAdapter:  
+
+  .bsv -> blank-separated values
+  .tsv -> tab-separated values
+  .csv -> comma-separated values
+
+In addition, the VisAD DefaultFamily will recognize the extension .txt
+and invoke TextAdapter.  In this case, however, the TextAdapter
+attempts to sense the delimiter using the hierarchy:
+
+          tab,  semicolon,  comma,  blank
+
+That is, if a tab character appears in the line, tab will be used.  If
+not, then it looks for a semicolon.  Otherwise, if a comma appears in
+the line it will be used.  If neither a tab, semicolon, or comma appears,
+then blank will be used.
+
+We tried to keep the amount of modification you might have to make to
+existing files to a minimum.   The general layout is:
+
+Line 1:  functional description of the data in "VisAD" lingo (aka the
+         "MathType")
+
+Line 2:  column headers, which name each parameter and possibly give
+         them a physical unit, using the delimiter defined above  
+         (tab, semicolon, comma or blank).
+
+Line 3-n: the data values (with delimiters as define above; for
+          filenames without recognized extensions, the delimiter 
+          used in this data section does not have to be the same 
+          as the one used on Line 2)
+
+Please refer to the VisAD Library Developers Guide, section "3.1
+MathTypes" for information on how to define the functional
+description.  Also, take a look to the examples at the end of this
+file.
+
+Also, please note that if you are using the TextAdapter constructor
+directly, the "Line 1" and "Line 2" values do not have to be in the
+file - alternate signatures allow these values to be passed as
+arguments.  However, if your text file is used through the
+VisAD DefaultFamily (as in the SpreadSheet), you must provide the
+information right in the text file.
+
+
+II. Line 1  (ignoring any preceding comment lines...)
+
+This line specifies a functional description of the data, using the
+VisAD "MathType" string.  
+
+There are two categories of data that may be represented in these text
+of files:  
+
+   1) 2-D arrays of a single parameter, or 
+   2) 1,2,or 3-D (domain) points of one or more parameters.
+
+IIa.  2-D arrays
+
+  In this case, the "VisAD" functional description looks like:
+  
+     (x,y)->(temperature)
+     (Longitude, Latitude)->(speed)
+
+  And the data portion of the file contains "x" values per line,
+  and "y" lines of data.  See Examples #2 and Example #6, below.
+
+  Only the "y" domain component may have its values defined in the
+  file.  
+
+  2-D arrays are implied when:
+      * there are 2 domain components
+      * there is only one range component
+      * there is more than one domain sampling value for the first
+        domain component (that is, more than one data value on a line
+        in the text file)
+
+
+IIb.  1,2,or 3-D points
+
+  Just about every other form of a text file falls into this category.
+
+  Examples of VisAD functional descriptions:
+
+  (x)->(temperature, dewpoint, speed)
+  (x,y,z)->(temperature, speed)
+  
+   At least one of the domain variables (x,y,z) _must_ be defined
+   by data in the file.  See Examples #1, #3, #4 and #5, below.
+
+   You may also use Text types for these data.  For example:
+   (Latitude,Longitude)->(City(Text))
+
+   Strictly speaking, you may have a domain with more than
+   3 components.  If you do this, however, the TextAdapter
+   will not be able to optimize the construction of the
+   sampling set, and will use either a LinearNDSet (if
+   you supply simple ranges for all domain components) or
+   an IrregularSet (if one or more of the domain components
+   has values specified in the file).
+
+
+
+III. Line 2  (ignoring any comment lines that might come before)
+
+The second line of the text files defines which column of the data
+portion contains what parameters.  (Note that, as with the "Line 1",
+an alternate form of the constructor is available so this information
+can be passed as an argument rather than being read from the file.) 
+
+If you have other information that you need to specify for a parameter,
+you should use a blank-separated sequence of phrases in the form
+"key=value", to specify what you need.  Here are the possible keys:
+
+     key      value
+     ----     ---------------
+     unit     name of Unit (default = no unit)
+
+     miss     value to be treated as missing (default = no missing values)
+
+     scale    value that each datum is multiplied by (default = 1.0)
+
+     offset   value that is added to each scaled datum (default = 0.0)
+
+     error    value of the estimated error for this parameter (default = none)
+           ** In this release, only range error estimates are implemented.
+
+     interval either 'true' or 'false' to indicate that this parameter
+              is an _interval_, like a difference (default = false)
+
+           ** The following is _not_ implemented in this release:
+     pos      column-oriented location of the data values in the form
+              first:last (if present for one item, this MUST be supplied
+              for all items!)
+
+     fmt      format pattern, using SimpleDateFormat type patterns 
+              (without spaces).
+              Commas should also be avoided in the format pattern, 
+              especially if comma is used as the header column delimiter
+
+     value   a value that is used for this field. When a value is defined there 
+             should not be a correspoding value for this field in the data lines.
+             i.e., if you had 5 parameters defined in Line 2 (e.g., p1,p2,p3,p4,p5)
+             and one of them (e.g., p3) had a value attribute then the data lines
+             would only contain the values for the other parameters, e.g.:
+             p1,p2,p4,p5
+             p1,p2,p4,p5
+             ...
+
+             When using the value attribute you can also include in any subsequent lines a:
+             name=value
+             Where name is one of the parameter names. This allows you to reset the fixed value
+             that is used.
+
+             For example, this facility could be used if you had a set of observations from
+             a single station:
+             (index) -> (Longitude,Latitude,Time,T)
+              Longitude[unit="degrees west" value="110"],Latitude[unit="deg" value="40"],Time[fmt="yyyy-MM-dd HH:mm:ss z"],T[unit="celsius"]
+              2007-02-20 11:00:00 MST,13.3
+              2007-02-20 11:00:00 MST,-2.0
+              Latitude=30
+              Longitude=100
+              2007-02-20 11:00:00 MST,5.0
+              ...
+ 
+              Note: You don't have to have the value attribute in Line 2. You can just do:
+             (index) -> (Longitude,Latitude,Time,T)
+              Longitude[unit="degrees west" ],Latitude[unit="deg"],Time[fmt="yyyy-MM-dd HH:mm:ss z"],T[unit="celsius"]
+              Longitude=110
+              Latitude=40
+              2007-02-20 11:00:00 MST,13.3
+              2007-02-20 11:00:00 MST,-2.0
+              Latitude=30
+              Longitude=100
+              2007-02-20 11:00:00 MST,5.0
+              ...
+
+              
+
+Three short examples:
+     a, b, c, temperature[unit=degC err=.1 miss=999.9], speed[m/s]
+     Longitude[scale=-1], Latitude, temp[unit=degK miss=999.9], dewPoint[unit=degK miss=999.9]
+     Time[fmt=yyyy-MM-dd'T'HH:mm:ss'Z'], Longitude, Latitude, Pressure
+
+(Please note in the second example, the "scale=-1" for the Longitude serves
+to invert the sign of the values read from the file).
+
+(You might also note that "C" is not the VisAD unit name for degrees
+Celcius..."C" means Coulomb...)
+
+For some 'values' you might need to imbed a space.  You may do this
+by enclosing the entire 'value' in double quote marks, as in:  
+unit="international inch".  If you do this, however, you must be
+careful about ambiguities using "blank separated values" formats.
+
+As with Line 1, there are two cases to consider when defining the contents of
+this Line:
+
+
+IIIa. 2-D arrays
+
+  In this case, _only_ one range parameter is permitted.  You may have
+  0 or 1 domain parameter names, as well as any "column skip" dummy names
+  (these are only permitted _before_ the actual range parameter name,
+  though).  For this simplest example:
+
+    temperature[unit=degF]
+
+  Says that the data contains only values of temperature in degrees F.
+  The domain parameters defined in Line 1 will be computed based on
+  the number of items per line and the number of lines of text.
+
+  If you need to skip some columns before the values of the variable
+  start, just put in a "skip" name for each column.  For example:
+
+    skip, skip, skip, temperature[unit=degF]
+
+  indicates that the values in the first three columns should be
+  skipped, and the rest of the values on the line will make up the
+  "columns" of the 2-D array.   The name "skip" can be _any_ unused
+  name.
+
+  
+IIIb. 1,2,or 3-D points
+
+  In this case, you define which column corresponds to which
+  parameter you named on Line 1. The order doesn't matter, only that
+  the correct column is identified.  If there are columns of data that
+  are to be ignored, just use a "skip" name that was not defined on
+  Line 1.  For example:
+
+   x, y, skip, temperature[unit=degC], skip, pressure[unit=hPa]
+
+  In this case, the name "skip" is a filler to indicate what column(s)
+  should be skipped.
+
+  If you are dealing with Text type data, you must include the (Text)
+  phrase here as well:
+
+  Longitude, Latitude, skip, City(Text)
+
+    (Note that with this "Text" form, each data item MUST be enclosed in 
+    double-quote marks -- see example, below)
+  
+  
+In both cases, you may also use this line of text to define the values
+of the domain component samplings in the form:
+
+    name(first:last)
+
+This means that 
+   a) "name" is a domain component, and... 
+   b) the (sampling) values of "name" are NOT read from the file, but are
+      computed based on the range "first to last" and the number of lines
+      of text (number of samples), or (in the case of 2-D arrays)
+      possibly the number of range values on the line (see below), and....  
+   c) this name is ignored for the purposes of counting/locating, 
+      columns for other parameters.
+
+If the name of a domain component variable does NOT appear on Line
+2, it's values are assumed to be 0:(N-1)  where "N" is the number of
+samples (number of lines) in the file.  
+
+There is one exception to this:  in the case of 2-D arrays, the first 
+domain component is assumed to apply to the number of range values 
+on each line of text, _not_ the number of "samples" or lines of text.
+
+If you have only one value per input line of text, and you have a 2-D
+array, you may optionally add a third specification:
+    name(first:last:number)
+
+where 'number' is the number of values for this domain component.  See
+examples, below.
+
+Finally, if you need to combine the range with other information about
+the parameter, it would look like:
+          
+          x(1.0:13.7)[unit=cm]
+
+
+IV. Examples
+
+Here are a few examples taken from the beginning of some files:
+
+Example #1 - Simple CSV file, for a function value=f(x) <==
+
+(x)->(value)
+value
+0 
+7.2
+-9.1
+
+Example #2 -  CSV file of a 2-D array <==
+
+(x,y)->(value)
+skip,skip,skip,skip,value
+0 , 0 , 17 , 34 , 50 , 64 , 76 , 86 , 93 , 98 , 99 
+1 , 17 , 34 , 50 , 64 , 76 , 86 , 93 , 98 , 99 , 98 
+
+Example #3 - a ".txt" file of two range components (note that the
+delimiters used on "Line 2" are different that the ones used in the
+data) <==
+
+(x)->(value1, value2)
+skip  value1  skip  skip  skip  skip  value2
+100 , 0 , 17 , 34 , 50 , 64 , 76 , 86 , 93 , 98 , 99 
+101 , 17 , 34 , 50 , 64 , 76 , 86 , 93 , 98 , 99 , 98 
+
+Example #4 - CSV file of two range components located at 2-d coordinates <==
+
+(x,y)->(value_a, value_b)
+y,x,p,value_a[unit="degC"],p,p,p,value_b[unit=degF]
+0 , 0 , 17 , 34 , 50 , 64 , 76 , 86 , 93 , 98 , 99 
+1 , 17 , 34 , 50 , 64 , 76 , 86 , 93 , 98 , 99 , 98 
+
+Example #5 -  BSV file of real data <==
+
+% Retrieval statistics for mlw_K+ir3_2a.ret :
+% Zbottom threshold = 0.0 km  liqclouds=1
+%   IWP      IWP errors (dB)        Dme errors (dB) 
+% (g/m^2)   mean   rms   median    mean   rms    median 
+(IPW)->(IWP_Error, Dme_error, IWP_Error_mean, Dme_error_mean)
+IPW[g/m^2]   IWP_Error_mean p  IWP_Error   Dme_error_mean  p   Dme_error
+   1.41    7.092  7.890  6.831    0.746  1.768  1.139    717
+
+Example #6 - BSV file of a 2D grid, with the locations given Lat/Lon values <==
+
+(Longitude,Latitude)->(value)
+Longitude(-130:-40) Latitude(20:60) p value[unit=degC]
+0   0   17   34   50   64   76   86   93   98   99 
+1   17   34   50   64   76   86   93   98   99   98 
+
+Example #7 - TXT file of point (in situ) data with non-numeric range values <==
+
+(Longitude, Latitude) -> (City(Text))
+Latitude, Longitude, City(Text)
+-12.3, 130.8, "Darwin"
+-16.9, 146.5, "Cairns"
+-23.6, 133.9, "Alice Springs"
+-33.9, 151.2, "Sydney"
+-37.6, 144.9, "Melbourne"
+
+Example #8 - CSV file of time series point data with time format specified <==
+(Time->(Latitude,Longitude,Pressure))
+Time[fmt=yyyy-MM-dd'T'HH:mm:ss'Z'],Latitude,Longitude,Pressure
+2003-05-02T07:00:00Z,-10.0,150.0,998.0
+2003-05-02T10:00:00Z,-10.5,150.5,997.0
+2003-05-02T13:00:00Z,-11.0,151.0,996.0
+
+Example #9 - Text file of a 2-D grid, with one value per line <==
+(Longitude,Latitude)->Altitude
+Longitude(-107.495:-103.605:109),Latitude(38.5572:41.487:109), Altitude[unit=m]
+     3060.
+     3043.
+     2949.
+     2865.
+     .... 
+     ....

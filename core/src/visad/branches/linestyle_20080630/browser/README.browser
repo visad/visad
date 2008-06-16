@@ -1,0 +1,40 @@
+The classes in the visad.browser package compile under
+JDK 1.1 for use in web browsers.  They enable client
+applets to connect to VisAD DisplayImpls running on
+the same computer that served the applet.
+
+To test and demonstrate this, we provide a sample
+server in visad/examples/Test68.java, a sample client
+applet in visad/browser/VisADApplet.java, and a sample
+web page in socket_applet.html.
+
+To start the server, change to the visad/examples
+directory and run:
+
+  java Test68
+
+On the same machine, install socket_applet.html in the
+htdocs directory for the machine's web server, and copy
+the *.class files from visad/browser directory to the
+htdocs/visad/browser directory.
+
+On the client machine where you will run your web
+browser, you must make sure that the classes in
+visad/browser are not available via your CLASSPATH.
+You can do this by either using a machine where VisAD
+is not installed or setting CLASSPATH to blank.
+
+If you are using Internet Explorer for web browing,
+simply aim it at socket_applet.html on your server
+machine.  When the applet comes up, substitute the IP
+name of the server for localhost, and click on 'Connect'.
+
+If you using Netscape for web browsing, you must first
+add the following line:
+
+  user_pref("signed.applets.codebase_principal_support", true);
+
+to your ~/.netscape/preferences.js file.  Then aim
+netscape at socket_applet.html on your server machine
+and proceed as described above.
+

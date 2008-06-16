@@ -1,0 +1,8 @@
+SUBPACKAGE	= java3d
+
+include ../macros.make
+
+JAR_CLASSES     = *.class
+JARFILE         = visad.$(SUBPACKAGE).jar
+
+include ../rules.make

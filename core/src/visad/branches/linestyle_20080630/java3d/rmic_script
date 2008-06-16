@@ -1,0 +1,1 @@
+rmic visad.java3d.RemoteServerTestImpl visad.java3d.RemoteClientTestImpl

@@ -1,0 +1,648 @@
+
+                       VisAD Python Scripts
+
+
+1. Overview
+
+The visad.python package defines a Python-based language for using
+VisAD.  The classes in this package are:
+
+  JPythonEditor - an editor for VisAD Python scripts that can be
+                  incorporated in application programs
+  JPythonFrame - a program and GUI for editing and running
+                 VisAD Python scripts
+  JPythonMethods - a set of functions for accessing VisAD that can
+                   be called from VisAD Python scripts
+
+Python scripts are usually stored in files with the .py extension.  The
+package includes a few example script files, such as mcidas_test.py.
+
+VisAD is a Java API and its full power is only accessible by writing
+Java programs.  However, Python scripts can be much simpler so VisAD
+includes this package.  For example, the following script computes and
+displays a 2-D histogram of 2 bands of a McIDAS area file:
+
+  # load a McIDAS area file
+  area = load("../examples/AREA0008")
+
+  # compute a 2-D histogram of the first two bands of the area
+  histogram = hist(area, [0, 1])
+
+  # plot the histogram
+  clearplot()
+  plot(histogram)
+
+Python is an object-oriented language so it is also possible to write
+quite complex VisAD Python programs.  However, the main purpose of this
+package is to support simple scripts.
+
+
+2. Installation
+
+To run VisAD Python scripts, you nee to install:
+
+  VisAD from http://www.ssec.wisc.edu/~billh/visad.html
+
+  Jython from http://jython.sourceforge.net/
+
+  Java 2 and Java3D (see the Prerequisites section of the VisAD web page)
+
+  Jama from http://math.nist.gov/javanumerics/jama/
+    if you want to use the VisAD Python matrix functions
+
+
+3. Editing and Running VisAD Python Scripts
+
+To edit and run VisAD Python scripts, run the command:
+
+  java visad.python.JPythonFrame
+
+If you think you'll be using a lot of memory, run:
+
+  java -mx256m visad.python.JPythonFrame
+
+or something similar (the -mx256m means use 256 MB of memory).
+
+Note that VisAD's JPythonEditor puts an implicit line:
+
+  from visad.python.JPythonMethods import *
+
+at the start of every VisAD Python script.  This is invisible if
+you are using the JPythonEditor (e.g., by running JPythonFrame)
+but allows you to run your scripts from any JPython interpreter.
+
+
+4. The VisAD Python Language
+
+VisAD uses the great Jython interpreter, written in Java, as the basis
+for its Python language.  See:
+
+  http://jython.sourceforge.net/
+  
+for more information about it.  And see:
+
+  http://www.python.org/doc/current/tut/tut.html
+
+for a tutorial on the Python language.
+
+
+4.1 Using VisAD data in Python scripts
+
+Python programs can manipulate all kinds of data.  The key for
+VisAD Python scripts is manipulating VisAD data objects.  These
+are created when you load a file, and when you call VisAD Python
+functions.
+
+You can write ordinary arithmetic expressions involving VisAD
+data object.  For example, you can load two McIDAS area files:
+
+  area1 = load("AREA0001")
+  area2 = load("AREA0002")
+
+then compute their difference by:
+
+  difference = area1 - area2
+
+This is like array operations in IDL or Matlab, except that the
+images will be georeferenced before their difference is computed.
+That is, it is a pointwise difference, but first the image in
+area2 is resampled to the pixel locations in area1.
+
+You can access the pixels in area1 like an array.  For example
+you can compute the total of pixel values in area1 by:
+
+  sum = 0
+  for i = range(area.length):
+	sum = sum + area[i]
+
+Note that range(area.length) is standard Python and means
+that i takes the values 0, 1, 2, ..., area.length - 1.
+
+
+4.2 VisAD data objects
+
+Not all VisAD data objects are images.  In fact, one of the key
+ideas in VisAD is that its data objects can be virtually any
+numerical data.  Every VisAD data object has a "MathType" that
+describes its organization.  You can find out its MathType by:
+
+  print data.getType()
+
+A second key idea in VisAD is that metadata are integrated into
+data operations.  As for example the McIDAS areas were implicitly
+georeferenced when we computed their difference.  VisAD metadata
+include MathTypes, units, coordinate systems, sampling geometry
+and topology, missing data indicators and error estimates.  Unit
+conversions, coordinate transforms, resampling, and propagation
+of missing data and error estimates are implicit in data
+operations.
+
+Here are a few example of VisAD data objects and their MathTypes.
+A pixel radiance might have MathType:
+
+  band1
+
+In VisAD the radiance object is called a Real.  It includes a
+real value, the name "band1", possibly a unit such as w/m^2, and
+possibly an estimate of the variance of error of the real value.
+
+An earth location may have MathType:
+
+  (latitude, longitude)
+
+In VisAD this is called a Tuple.  Tuple components can be any
+VisAD data objects.  If they are all reals, then the Tuple is a
+RealTuple.  Note that latitude and longitude may have degrees or
+radians as units.
+
+The coordinates of a pixel in an image may be a RealTuple with
+MathType:
+
+  (line, element)
+
+If the image has earth navigation, then this RealTuple may have
+a CoordinateSystem that defines an invertable mapping:
+
+  (line, element) <--> (latitude, longitude)
+
+An image defines a function from image coordinates to radiances,
+sampled at a finite number of pixels.  In VisAD this is called a
+Field, and may have a MathType:
+
+  ((line, element) -> band1)
+
+You get a Field with this sort of MathType when you load a McIDAS
+area file by a statement like:
+
+  area1 = load("AREA0001")
+
+Note that Fields can be mappings from any RealTuple to any MathType
+at all.  For example, a time sequence of images may have MathType:
+
+  (time -> ((line, element) -> band1))
+
+Here time may have units of "seconds since 0Z, 1 Jan 1970", and
+the field defines images at a finite number of time samples.
+
+VisAD includes one other type of data, Sets.  These are finite
+sets of points in some real vector space defined by a RealTuple.
+For example, map outlines are a Set with MathType:
+
+  Set(latitude, longitude)
+
+and in fact you can such a data object when you load a McIDAS map
+outline file by a statement like:
+
+  map = load("OUTLUSAM")
+
+Sets are also included as metadata in Fields, to define the
+locations of samples.
+
+The power of VisAD data objects comes because you can combine Real,
+Text, Tuple, Field and Set objects in any complex way you like.
+You can learn more about VisAD data objects in the Tutorials and
+Developer's Guide available on the VisAD web page.
+
+
+4.3 More about accessing VisAD data from Python scripts
+
+Given a Tuple data object, you can find out how many components it
+has by:
+
+  number_of_components = tuple_data.length
+
+and you can access the components by:
+
+  component_0 = tuple_data[0]
+  component_1 = tuple_data[1]
+  . . .
+  component_last = tuple_data[number_of_components - 1]
+
+Given a Field data object, you can find out how many samples it
+has by:
+
+  number_of_samples = field_data.length;
+
+and you can get the samples by:
+
+  for i in range(number_of_samples):
+	sample = field_data[i]
+
+You can get the number of components in the domain by:
+
+  n_domain = domainDimension(field_data);
+
+and the name of a component by (#1 in this case):
+
+  domainName_1 = domainType(field_data, 1);
+
+Similarly, for the range components, the number of components is:
+
+  n_range = rangeDimension(field_data);
+
+and the name of a component by (#0 in this case):
+
+  rangeName_0 = rangeType(field_data, domainType0);
+
+You can also get the Set of sample locations of the Field by:
+
+  set = field_data.getDomainSet()
+
+You can get the number of locations in the set, and access the
+locations, by:
+
+  number_of_locations = set.length
+  for i in range(number_of_locations):
+	location = set[i]
+
+You can access Field samples by location as well as by index, so we
+could replace the difference:
+
+  area1 = area1 - area2
+
+by the code:
+
+  set = area1.getDomainSet()
+  for i in range(set.length):
+	area1[i] = area1[i] - area2[set[i]]
+
+The expression "area2[set[i]]" is the radiance of area2 at the
+location of the i-th sample of area1.  Please note that this way
+of computing the difference is much slower than "area1 - area2".
+In general, your scripts will run much faster if you can avoid
+explicitly looping over all the points in a Set or Field, but
+rather do it implicitly.
+
+Note also "area[i] = ..." indicates that you can set values in
+Fields by index.  But you cannot set Tuple components this way.
+
+Just for kicks, you could compute image radiances along a map
+outline by:
+
+  map = load("OUTLUSAM")
+  area1 = load("AREA0001")
+  for i in range(map.length):
+	print area1[map[i]]
+
+
+5. The VisAD Python Library Functions
+
+This is a list of functions specially designed for accessing VisAD
+from Python scripts.  For a more complete description, see
+visad.python.JPythonMethods in the VisAD JavaDoc, available
+on-line at:
+
+  http://www.ssec.wisc.edu/~dglo/visad/
+
+Note that any VisAD class or method is accessible from Python scripts,
+so you are not restricted to just these functions.
+
+
+5.1 File loading function
+
+  load(String location) - reads in data from the given location
+                          (filename or URL)
+
+Note that VisAD currently knows how to read the following kinds of
+files: McIDAS AREA and map OUTLine files (including from ADDE),
+netCDF, HDF-5, HDF-EOS (HDF-5 and HDF-EOS require native code to be
+installed, as described on the VisAD web page), Vis5D, FITS, GIF
+and JPEG.  Some users have written VisAD adapters for other formats
+such as Shape and ARCGRID ASCII files.
+
+The load function will determine the format of the named file and
+read it approproiately.
+
+
+5.2 Plotting functions
+
+  clearplot() - clear the onscreen data display
+  
+  plot(data) - plot data
+  
+  plot(data, red, green, blue) - plot data
+  
+Controls for how data are plotted are brought up in a GUI.  The
+plot function includes implicit georeferencing, for example to
+overlay a McIDAS area with a map outline.  We are currently
+adding improvements to the ViaAD Python plot function, which
+should be available soon.
+
+
+5.3 Pointwise math library functions
+
+  abs(data) - return pointwise absolute value of data
+
+  acos(data) - return pointwise arccos value of data, in radians
+
+  acosDegrees(data) - return pointwise arccos value of data, in degrees
+  
+  asin(data) - return pointwise arcsin value of data, in radians
+  
+  asinDegrees(data) - return pointwise arcsin value of data, in degrees
+  
+  atan(data) - return pointwise arctan value of data, in radians
+  
+  atanDegrees(data) - return pointwise arctan value of data, in degrees
+  
+  atan2(data1, data2) - return pointwise tan value of data1 / data2,
+                        in radians
+  
+  atan2Degrees(data1, data2) - return pointwise tan value of
+                               data1 / data2, in degrees
+  
+  ceil(data) - return pointwise ceil value of data (smallest integer not
+               less than)
+  
+  cos(data) - return pointwise cos value of data
+  
+  cosDegrees(data) - return pointwise cos value of data
+  
+  exp(data) - return pointwise exp value of data
+  
+  floor(data) - return pointwise floor value of data (largest integer
+                not greater than)
+  
+  log(data) - return pointwise log value of data
+  
+  max(data1, data2) - return pointwise maximum value of data1 and data2
+  
+  min(data1, data2) - return pointwise minimum value of data1 and data2
+  
+  round(data) - return pointwise round value of data (closest integer)
+  
+  sin(data) - return pointwise sin value of data, assuming radians
+  
+  sinDegrees(data) - return pointwise sin value of data, assuming degrees
+  
+  sqrt(data) - return pointwise square root value of data
+  
+  tan(data) - return pointwise tan value of data, assuming radians
+  
+  tanDegrees(data) - return pointwise tan value of data, assuming degrees
+
+The arguments to these functions may be any VisAD data object.
+They are augmented by support for python infix expressions for
++ (addition), - (subtraction), * (multiplication), / (division)
+and % (remainder).  Binary operators (e.g., + and max) require
+consistency between the MathTypes of the operands, although Reals
+can be combined with any other data.
+
+Literal constants can be used with binary operators, as long as
+they do not occur first for infix operators.  That is, "data + 1"
+is legal but "1 + data" is not.
+
+The forward trig functions (e.g., sin but not asin) assume their
+default units of either radians (e.g., sin) or degrees (e.g.,
+sinDegrees) only if data values do not have units convertable to
+radians.  If they do then data units are used.
+
+
+5.4 Fourier transform functions
+
+  fft(field) - return forward Fourier transform of field
+  
+  ifft(field) - return backward Fourier transform of field
+
+
+5.5 Field creation functions
+
+  field(float[] values) - return a VisAD Field
+  
+  field(float[][] values) - return a VisAD Field
+  
+  field(set, String name, float[] values) - return a VisAD Field
+  
+  field(set, String name, float[][] values) - return a VisAD Field
+  
+  field(String name, float[] values) - return a VisAD Field
+  
+  field(String name, float[][] values) - return a VisAD Field
+  
+
+5.6 Histogram functions
+
+  hist(field, int[] ranges) - return histogram of field values
+  
+  hist(field, int[] ranges, int[] sizes) - return histogram of field
+                                           values
+  
+  hist(field, set) - return histogram of field values
+  
+
+5.7 Matrix functions
+
+  chol(data) - return matrix Cholesky Decomposition of data
+  
+  cond(data) - return matrix condition of data (ratio of largest to
+               smallest singular value)
+  
+  det(data) - return matrix determinant of data
+  
+  eig(data) - return matrix Eigenvalue Decomposition of data
+  
+  inverse(data) - return matrix inverse of data
+  
+  lu(data) - return matrix LU Decomposition of data
+  
+  matrixMultiply(data1, data2) - return matrix multiply of data1 * data2
+  
+  norm1(data) - return matrix one norm of data (maximum column sum)
+  
+  norm2(data) - return matrix two norm of data (maximum singular value)
+  
+  normF(data) - return matrix Frobenius norm of data (sqrt of sum of
+                squares of all elements)
+  
+  normInf(data) - return matrix infinity norm of data (maximum row sum)
+  
+  qr(data) - return matrix QR Decomposition of data
+  
+  rank(data) - return matrix effective numerical rank (from SVD) of data
+  
+  solve(data1, data2) - return matrix soluton X of data1 * X = data2
+  
+  svd(data) - return matrix Singular Value Decomposition of data
+  
+  trace(data) - return matrix trace of data (sum of the diagonal elements)
+  
+  transpose(data) - return matrix transpose of data
+
+
+5.8 Misc. Field functions
+
+  makeUnit(name) - makes a Unit object from name (like "degC")
+
+  rangeType(data, component) - returns String name of component
+
+  domainType(data, component) - returns String name of component
+
+  domainDimension(data) - returns integer number of domain components
+
+  rangeDimension(data) - returns integer number of rangecomponents
+
+
+6. Example VisAD Python Scripts
+
+A number of VisAD Python scripts are distributed with the VisAD
+source code.  They are the *.py files in the visad/python
+directory.  Here are some of them.
+
+
+# area_test.py
+#
+# load two McIDAS area files
+area7 = load("../examples/AREA0007")
+area8 = load("../examples/AREA0008")
+
+# extract one band from area8
+area8 = area8.extract(0)
+
+# subtract one area from the other, georeferenced
+difference = area8 - area7
+
+# plot area difference
+clearplot()
+plot(difference)
+
+
+
+
+# fft_test.py
+#
+# load a netCDF file containg a NAST-I spectrum
+data = load("../examples/b2rlc.nc")
+# extract the spectrum
+data2 = data[2][0]
+spectrum = data2[data2.length-1]
+
+# print the VisAD MathType of the spectrum
+print spectrum.getType()
+
+# compute the Fourier transform of the spectrum
+ft = fft(spectrum)
+
+# plot the Fourier transform in red = 1, green = 0, blue = 0
+# i.e., red
+clearplot()
+plot(ft, 1, 0, 0)
+
+
+
+
+# hist_test.py
+#
+# load a McIDAS area file
+area = load("../examples/AREA0008")
+
+# compute a 2-D histogram of the first two bands of the area
+histogram = hist(area, [0, 1])
+
+# plot the histogram
+clearplot()
+plot(histogram)
+
+
+
+
+# matrix_test.py
+#
+# construct a 2 x 2 matrix in a VisAD Field
+matrix = field([[1, 2], [1, 3]])
+# construct a 2 vector in a VisAD Field
+vector = field([2, 1])
+
+# solve the linear system
+solution = solve(matrix, vector)
+
+# print the solution
+print solution[0], solution[1]
+
+# prints 4.0 -1.0
+#
+# note
+# 1  2       4       2
+#        *       =
+# 1  3      -1       1
+
+
+
+
+# mcidas_test.py
+#
+# load a McIDAS area file
+area = load("../examples/AREA2001")
+print area.length
+
+# make a scratch across the top of the area
+for i in range(20000, 21000):
+	area[i] = 0
+
+# load a McIDAS map file
+map = load("../examples/OUTLSUPW")
+print map.length
+
+# print area pixel values at some map locations
+for j in range(map.length/200):
+	i = 200 * j
+	print "area = ", area[map[i]], " at ", map[i]
+
+# plot the area overlaid with the map
+clearplot()
+plot(area)
+plot(map)
+
+
+
+
+# resample_test.py
+#
+# load two McIDAS area files
+area7 = load("../examples/AREA0007")
+area8 = load("../examples/AREA0008")
+
+# extract one band from area8
+area8 = area8.extract(0)
+
+# get set of area8 pixel locations
+set = area8.getDomainSet()
+
+# resample area7 to area8 locations
+area9 = area7.resample(set)
+
+# resample area7 to area8 locations one pixel at a time
+# and compute difference with all at once resample
+#   NOTE - this is slow
+for i in range(set.length):
+	area9[i] = area9[i] - area7[set[i]]
+
+clearplot()
+plot(area9)
+
+
+
+
+"""\
+vis_test.py
+
+An example of a JPython script that utilizes
+VisAD functionality.
+
+To execute at the command prompt, type:
+  jpython vis_test.py
+
+To execute within the JPython editor, launch
+the editor with:
+  java visad.python.JPythonFrame
+Then open this file and choose "Command", "Run"
+"""
+
+# load a GIF image file
+data = load("../ss/cut.gif")
+
+# plot the GIF image
+clearplot()
+plot(data)
+
+
+

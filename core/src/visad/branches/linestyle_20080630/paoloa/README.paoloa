@@ -1,0 +1,159 @@
+
+                     GoesCollaboration
+
+
+1. Introduction
+
+This is a demonstration of interactive and collaborative GOES
+satellite sounding analysis using VisAD.  GoesCollaboration is
+a collaborative application that runs in both 'server' and
+'client' modes, as well as stand-alone.
+
+Because of native code, the server mode of GoesCollaboration
+runs only on Sparc Solaris.
+
+These applications are based on an application developed
+under VisAD 1.1 by Paolo Antonelli and Bob Aune.
+
+
+2. Downloading GoesCollaboration data files
+
+The source code for the GoesCollaboration application is
+included in the main VisAD distribution in the package
+visad.paoloa.  However, the applications need two data files to
+run, data_obs_1.dat and goesrtcf.  Download these files from:
+
+  ftp://www.ssec.wisc.edu/pub/visad-2.0/paoloa.files.tar.Z
+
+Unpack the file by running:
+
+  uncompress paoloa.files.tar.Z
+  tar -xvf paoloa.files.tar
+
+
+3. Building GoesCollaboration
+
+Running GoesCollaboration requires VisAD, JDK 1.2 and Java3D.
+More information about these is available at:
+ 
+  http://java.sun.com/
+
+and
+
+  http://www.ssec.wisc.edu/~billh/visad.html
+
+To build the server mode of GoesCollaboration first edit
+java/paoloa/Makefile to change the path:
+ 
+  JAVADIR=/opt/java
+
+to point to the appopriate directory where you installed Java.
+Then run 'make' in the visad/paoloa directory.
+
+To build the client mode of GoesCollaboration it is
+sufficient to run 'javac GoesCollaboration.java' in the
+visad/paoloa directory.
+
+
+4. Running GoesCollaboration in stand-alone mode
+
+Before you run the GoesCollaboration application make sure that
+your LD_LIBRARY_PATH includes the visad/paoloa directory (for
+access to native code in the shared object
+libGoesCollaboration.so).  Then run the GoesCollaboration
+application by typing:
+
+  java visad.paoloa.GoesCollaboration
+
+
+5. Running GoesCollaboration in Server Mode
+
+Before you run the GoesCollaboration application in server
+mode make sure that your LD_LIBRARY_PATH includes the
+visad/paoloa directory (for access to native code in the
+shared object libGoesCollaboration.so).  You also need to
+make sure that rmiregistry is running - it can started
+simply by typing:
+
+  rmiregistry &
+
+Then run the GoesCollaboration application in server mode
+by typing:
+ 
+  java visad.paoloa.GoesCollaboration
+
+
+6. Running GoesCollaboration in Client Mode
+
+Before you can run GoesCollaboration in client mode, it
+must already be running in server mode (on a Sparc Solaris
+system with IP name ip.name.of.server).
+
+Then run the GoesCollaboration application in client mode
+by typing:
+
+  java visad.paoloa.GoesCollaboration ip.name.of.server
+
+
+7. How to Operate GoesCollaboration
+
+The index slider retrieves a new model of a vertical
+column of atmosphere and derives the vertical weighting
+function of 18 spectral channel of the GOES satellite
+sounder from this model and from the solar zenith angle
+and skin (surface) temperature set on sliders.  The
+weighting function is displayed in the upper left window.
+Brightness temperature errors for this model and
+weighting function are displayed in the lower right
+display window.  Any motion of the "save as ref. conf.?"
+slider saves a snapshot of the wieghting function, and
+the upper right window displays the difference between
+the current weighting function and the last saved
+weighting function.
+
+The model atmosphere column is displayed as graphs of
+perssure, temperature, water vapor and ozone versus
+vertical level in the lower left window.  The user can
+change these vertical profile by re-drawing the graphs
+for temperature, water vapor and ozone (re-draw these
+graphs by clicking the right mouse button the graph you
+want to re-draw and dragging the mouse).
+
+You can rotate the displays in the upper two windows
+by clicking the left mouse button and dragging.  Zoom
+any of the four display windows by dragging the left
+mouse button while the SHIFT key is pressed, and pan
+any of the four display windows by dragging the left
+mouse button while the CTRL key is pressed.
+
+Any changes to the four sliders or to the vertical
+profile trigger recomputations, much like a spread
+sheet.
+
+In the GoesCollaboration application, all users see the
+same values on their sliders, the same vertical profiles,
+weighting functions, weighting function differences, and
+brightness temperature errors.
+
+
+8. Problems
+ 
+If you have problems, send en email message to the VisAD mailing
+list at:
+ 
+  visad-list@ssec.wisc.edu
+ 
+Join the list by sending an email message to:
+ 
+  majordomo@ssec.wisc.edu
+ 
+with:
+ 
+  subscribe visad-list
+ 
+as the first line of the message body (not the subject line).
+ 
+Please include any compiler or run time error messages in the text
+of email messages to the mailing list.
+
+

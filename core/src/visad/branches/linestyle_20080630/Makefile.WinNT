@@ -1,0 +1,1065 @@
+# Makefile.WinNT for VisAD version 2.0
+# For use with Windows 9X/NT/XP (e.g., Microsoft's NMAKE, available at:
+#      ftp://ftp.microsoft.com/Softlib/MSLFILES/nmake15.exe)
+# To compile VisAD using this Makefile, type:
+#      nmake -f Makefile.WinNT compile
+# To compile VisAD in a Unix-based system, use Makefile instead.
+
+# VisAD system for interactive analysis and visualization of numerical
+# data.  Copyright (C) 1996 - 2003 Bill Hibbard, Curtis Rueden, Tom
+# Rink and Dave Glowacki.
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Library General Public
+# License as published by the Free Software Foundation; either
+# version 2 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Library General Public License for more details.
+#
+# You should have received a copy of the GNU Library General Public
+# License along with this library; if not, write to the Free
+# Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+# MA 02111-1307, USA
+
+default:
+	@echo Type one of the following:
+	@echo nmake -f Makefile.WinNT recompile (recompile modified source files)
+	@echo nmake -f Makefile.WinNT compile (compile source files from scratch)
+	@echo nmake -f Makefile.WinNT debug (compile source files for debugging)
+	@echo nmake -f Makefile.WinNT jar (make visad_src-2.0.jar)
+	@echo nmake -f Makefile.WinNT save (save files to a backup directory)
+	@echo nmake -f Makefile.WinNT classes (make jar files containing classes)
+	@echo nmake -f Makefile.WinNT clear (clear source files)
+	@echo nmake -f Makefile.WinNT clean (clean class files)
+	@echo nmake -f Makefile.WinNT docs (create javadoc documentation)
+
+.SUFFIXES : .java .class
+
+JC = javac
+JFLAGS = -J-mx64m -target 1.4 -source 1.4
+
+# to always use IBM's 'jikes' compiler, uncomment the following two lines
+#JC = jikes
+#JFLAGS =
+
+JAR = jar
+JARVERBOSE = v
+
+RMIC = rmic
+RMIC_DIR = ..
+RMIC_COLLAB_DIR = .
+RMIC_CLUSTER_DIR = .
+# if you are using JDK 1.2, uncomment the following three lines
+#RMIC_DIR = .
+#RMIC_COLLAB_DIR = collab
+#RMIC_CLUSTER_DIR = ..\cluster
+
+.java.class:
+	$(JC) $(JFLAGS) $<
+
+DEL = del
+
+DOC = javadoc
+DOC_DIR = ..\docs
+DOC_MEM = 96m
+DOC_LINKS = -link http://java.sun.com/j2se/1.4/docs/api
+DOCFLAGS = $(DOC_LINKS) -d $(DOC_DIR) -J-Xmx$(DOC_MEM) -package \
+	-doctitle 'VisAD Documentation' $(DOC_EXTRAFLAGS)
+
+JAR_FILES1 = \
+dods\dap\*.java \
+dods\dap\parser\*.java \
+dods\dap\Server\*.java \
+dods\util\*.java \
+edu\wisc\ssec\mcidas\*.java \
+edu\wisc\ssec\mcidas\adde\*.java \
+gnu\regexp\*.java \
+HTTPClient\0* \
+HTTPClient\*.html \
+HTTPClient\*.java \
+ncsa\hdf\hdf5lib\*.java \
+ncsa\hdf\hdf5lib\exceptions\*.java \
+loci\formats\*.java \
+loci\formats\codec\*.java \
+loci\formats\gui\*.java \
+loci\formats\in\*.java \
+loci\formats\out\*.java \
+nom\tam\fits\*.java \
+nom\tam\util\*.java \
+nom\tam\test\*.java
+
+JAR_FILES2 = \
+ucar\COPYRIGHT \
+ucar\VERSION \
+ucar\multiarray\*.java \
+ucar\netcdf\*.java \
+ucar\tests\*.java \
+ucar\tests\test.nc \
+ucar\tests\test.out \
+visad\README \
+visad\DEDICATION \
+visad\NOTICE \
+visad\LICENSE \
+visad\DATE \
+visad\Makefile \
+visad\Makefile.WinNT \
+visad\README.nexusrmi \
+visad\rmic_script \
+visad\VisAD.Manifest \
+visad\Gridded1D.txt \
+visad\Gridded2D.txt \
+visad\Gridded3D.txt \
+visad\*.java
+
+JAR_FILES3 = \
+visad\aeri\*.java \
+visad\aune\README.aune \
+visad\aune\Makefile \
+visad\aune\shsize.fcm \
+visad\aune\*.java \
+visad\aune\*.f \
+visad\aune\*.c \
+visad\benjamin\Makefile \
+visad\benjamin\*.java \
+visad\benjamin\*.f \
+visad\benjamin\*.c \
+visad\benjamin\*.h \
+visad\benjamin\switch.inp \
+visad\benjamin\*.table \
+visad\bom\*.java \
+visad\browser\*.java \
+visad\browser\*.html \
+visad\browser\README.browser \
+visad\cluster\*.java \
+visad\collab\*.java
+
+JAR_FILES4 = \
+visad\data\*.java \
+visad\data\in\*.java \
+visad\data\in\package.html \
+visad\data\units\*.java \
+visad\data\units\*.jj \
+visad\data\amanda\*.java \
+visad\data\avi\*.java \
+visad\data\bio\*.java \
+visad\data\biorad\*.java \
+visad\data\dods\*.java \
+visad\data\dods\package.html \
+visad\data\fits\*.java \
+visad\data\gif\*.java \
+visad\data\gif\sseclogo.gif \
+visad\data\gis\*.java \
+visad\data\hdf5\*.java \
+visad\data\hdf5\COPYING \
+visad\data\hdf5\hdf5objects\*.java \
+visad\data\hdfeos\*.java \
+visad\data\hdfeos\README.hdfeos \
+visad\data\hdfeos\hdfeosc\*.java \
+visad\data\hdfeos\hdfeosc\*.c \
+visad\data\hdfeos\hdfeosc\Makefile
+
+JAR_FILES5 = \
+visad\data\jai\*.java \
+visad\data\mcidas\*.java \
+visad\data\mcidas\README.mcidas \
+visad\data\netcdf\*.java \
+visad\data\netcdf\units\*.java \
+visad\data\netcdf\in\*.java \
+visad\data\netcdf\out\*.java \
+visad\data\qt\*.java \
+visad\data\text\*.java \
+visad\data\text\README.text \
+visad\data\text\example1.txt \
+visad\data\text\example3.txt \
+visad\data\text\example2.csv \
+visad\data\tiff\*.java \
+visad\data\vis5d\*.java \
+visad\data\visad\*.java \
+visad\data\visad\object\*.java \
+visad\examples\*.java \
+visad\examples\display_test.c \
+visad\formula\*.java \
+visad\georef\*.java
+
+JAR_FILES6 = \
+visad\install\*.java \
+visad\install\install_visad \
+visad\install\README \
+visad\install\README.html \
+visad\java2d\*.java \
+visad\java3d\Makefile \
+visad\java3d\*.java \
+visad\java3d\*.c \
+visad\jmet\*.java \
+visad\matrix\*.java \
+visad\math\*.java \
+visad\meteorology\*.java \
+visad\paoloa\README.paoloa \
+visad\paoloa\Makefile \
+visad\paoloa\*.java \
+visad\paoloa\*.f \
+visad\paoloa\*.c \
+visad\paoloa\spline\Makefile \
+visad\paoloa\spline\*.java \
+visad\paoloa\spline\*.f \
+visad\paoloa\spline\*.c
+
+JAR_FILES7 = \
+visad\python\*.java \
+visad\python\*.py \
+visad\python\README.python \
+visad\rabin\*.java \
+visad\ss\*.java \
+visad\ss\*.gif \
+visad\ss\README.ss \
+visad\ss\*.java \
+visad\util\*.java \
+visad\util\*.jhf
+
+jar:
+	date /t > DATE
+	time /t >> DATE
+	cd ..
+	$(JAR) $(JARVERBOSE)cf visad_src-2.0.jar $(JAR_FILES1)
+	$(JAR) $(JARVERBOSE)uf visad_src-2.0.jar $(JAR_FILES2)
+	$(JAR) $(JARVERBOSE)uf visad_src-2.0.jar $(JAR_FILES3)
+	$(JAR) $(JARVERBOSE)uf visad_src-2.0.jar $(JAR_FILES4)
+	$(JAR) $(JARVERBOSE)uf visad_src-2.0.jar $(JAR_FILES5)
+	$(JAR) $(JARVERBOSE)uf visad_src-2.0.jar $(JAR_FILES6)
+	$(JAR) $(JARVERBOSE)uf visad_src-2.0.jar $(JAR_FILES7)
+	move visad_src-2.0.jar visad
+	cd visad
+	copy visad_src-2.0.jar visadsrc.jar
+	dir /-w visad_src-2.0.jar visadsrc.jar
+
+BACKUP = backup
+
+SAVE_FILES1 = \
+visad\README \
+visad\DEDICATION \
+visad\NOTICE \
+visad\LICENSE \
+visad\DATE \
+visad\Makefile \
+visad\Makefile.WinNT \
+visad\README.nexusrmi \
+visad\rmic_script \
+visad\VisAD.Manifest \
+visad\*.java \
+visad\examples\*.java \
+visad\examples\display_test.c \
+visad\java3d\*.java \
+visad\java2d\*.java \
+visad\python\*.java \
+visad\python\*.py \
+visad\python\README.python \
+visad\browser\*.java \
+visad\browser\*.html \
+visad\browser\README.browser \
+visad\util\*.java \
+visad\util\*.jhf \
+visad\matrix\*.java \
+visad\math\*.java \
+visad\formula\*.java \
+visad\ss\*.java \
+visad\ss\*.gif \
+visad\ss\README.ss \
+visad\cluster\*.java \
+visad\collab\*.java \
+visad\data\*.java \
+visad\data\units\*.java \
+visad\data\units\*.jj \
+visad\data\in\*.java \
+visad\data\in\package.html \
+visad\data\dods\*.java \
+visad\data\dods\package.html \
+visad\data\netcdf\*.java \
+visad\data\netcdf\units\*.java \
+visad\data\netcdf\in\*.java \
+visad\data\netcdf\out\*.java \
+visad\data\fits\*.java \
+loci\formats\*.java \
+loci\formats\codec\*.java \
+loci\formats\gui\*.java \
+loci\formats\in\*.java \
+loci\formats\out\*.java \
+nom\tam\fits\*.java \
+nom\tam\util\*.java \
+nom\tam\test\*.java \
+HTTPClient\0* \
+HTTPClient\*.html \
+HTTPClient\*.java \
+ucar\COPYRIGHT \
+ucar\VERSION \
+ucar\multiarray\*.java \
+ucar\netcdf\*.java \
+ucar\tests\*.java \
+ucar\tests\test.nc \
+ucar\tests\test.out \
+dods\dap\*.java \
+dods\dap\parser\*.java \
+dods\dap\Server\*.java \
+dods\util\*.java \
+gnu\regexp\*.java \
+visad\data\hdfeos\*.java \
+visad\data\hdfeos\hdfeosc\*.java \
+visad\data\hdfeos\hdfeosc\*.c \
+visad\data\hdfeos\hdfeosc\Makefile \
+visad\data\vis5d\*.java \
+visad\data\gif\*.java \
+visad\data\gis\*.java \
+visad\data\tiff\*.java \
+edu\wisc\ssec\mcidas\*.java \
+edu\wisc\ssec\mcidas\adde\*.java \
+visad\data\mcidas\*.java \
+visad\data\mcidas\README.mcidas \
+visad\data\avi\*.java \
+visad\data\bio\*.java \
+visad\data\biorad\*.java \
+visad\data\jai\*.java \
+visad\data\qt\*.java \
+visad\data\visad\*.java \
+visad\data\visad\object\*.java \
+visad\data\text\*.java \
+visad\data\text\*.java \
+visad\data\text\README.text \
+visad\data\text\example1.txt \
+visad\data\text\example3.txt \
+visad\data\text\example2.csv \
+visad\data\hdf5\*.java \
+visad\data\hdf5\hdf5objects\*.java \
+ncsa\hdf\hdf5lib\*.java \
+ncsa\hdf\hdf5lib\exceptions\*.java
+
+SAVE_FILES2 = \
+visad\jmet\*.java \
+visad\paoloa\README.paoloa \
+visad\paoloa\Makefile \
+visad\paoloa\*.java \
+visad\paoloa\*.f \
+visad\paoloa\*.c \
+visad\paoloa\spline\Makefile \
+visad\paoloa\spline\*.java \
+visad\paoloa\spline\*.f \
+visad\paoloa\spline\*.c \
+visad\aune\README.aune \
+visad\aune\Makefile \
+visad\aune\shsize.fcm \
+visad\aune\*.java \
+visad\aune\*.f \
+visad\aune\*.c \
+visad\benjamin\Makefile \
+visad\benjamin\*.java \
+visad\benjamin\*.f \
+visad\benjamin\*.c \
+visad\benjamin\*.h \
+visad\benjamin\switch.inp \
+visad\benjamin\*.table \
+visad\rabin\*.java \
+visad\bom\*.java \
+visad\aeri\*.java \
+visad\data\amanda\*.java \
+visad\georef\*.java \
+visad\meteorology\*.java \
+visad\install\*.java \
+visad\install\install_visad \
+visad\install\README \
+visad\install\README.html \
+visad\Gridded1D.txt \
+visad\Gridded2D.txt \
+visad\Gridded3D.txt
+
+save:
+	cd ..
+	if not exist $(BACKUP) mkdir $(BACKUP)
+	if exist $(BACKUP)\visad\*.java \
+		$(DEL) $(BACKUP)\visad\*.java
+	if exist $(BACKUP)\visad\cluster\*.java \
+		$(DEL) $(BACKUP)\visad\cluster\*.java
+	if exist $(BACKUP)\visad\collab\*.java \
+		$(DEL) $(BACKUP)\visad\collab\*.java
+	if exist $(BACKUP)\visad\examples\*.java \
+		$(DEL) $(BACKUP)\visad\examples\*.java
+	if exist $(BACKUP)\visad\java3d\*.java \
+		$(DEL) $(BACKUP)\visad\java3d\*.java
+	if exist $(BACKUP)\visad\java2d\*.java \
+		$(DEL) $(BACKUP)\visad\java2d\*.java
+	if exist $(BACKUP)\visad\matrix\*.java \
+		$(DEL) $(BACKUP)\visad\matrix\*.java
+	if exist $(BACKUP)\visad\math\*.java \
+		$(DEL) $(BACKUP)\visad\math\*.java
+	if exist $(BACKUP)\visad\python\*.java \
+		$(DEL) $(BACKUP)\visad\python\*.java
+	if exist $(BACKUP)\visad\browser\*.java \
+		$(DEL) $(BACKUP)\visad\browser\*.java
+	if exist $(BACKUP)\visad\util\*.java \
+		$(DEL) $(BACKUP)\visad\util\*.java
+	if exist $(BACKUP)\visad\util\*.jhf \
+		$(DEL) $(BACKUP)\visad\util\*.jhf
+	if exist $(BACKUP)\visad\formula\*.java \
+		$(DEL) $(BACKUP)\visad\formula\*.java
+	if exist $(BACKUP)\visad\ss\*.java \
+		$(DEL) $(BACKUP)\visad\ss\*.java
+	if exist $(BACKUP)\visad\ss\*.gif \
+		$(DEL) $(BACKUP)\visad\ss\*.gif
+	if exist $(BACKUP)\visad\data\*.java \
+		$(DEL) $(BACKUP)\visad\data\*.java
+	if exist $(BACKUP)\visad\data\units\*.java \
+		$(DEL) $(BACKUP)\visad\data\units\*.java
+	if exist $(BACKUP)\visad\data\in\*.java \
+		$(DEL) $(BACKUP)\visad\data\in\*.java
+	if exist $(BACKUP)\visad\data\dods\*.java \
+		$(DEL) $(BACKUP)\visad\data\dods\*.java
+	if exist $(BACKUP)\visad\data\netcdf\*.java \
+		$(DEL) $(BACKUP)\visad\data\netcdf\*.java
+	if exist $(BACKUP)\visad\data\netcdf\units\*.java \
+		$(DEL) $(BACKUP)\visad\data\netcdf\units\*.java
+	if exist $(BACKUP)\visad\data\netcdf\in\*.java \
+		$(DEL) $(BACKUP)\visad\data\netcdf\in\*.java
+	if exist $(BACKUP)\visad\data\netcdf\out\*.java \
+		$(DEL) $(BACKUP)\visad\data\netcdf\out\*.java
+	if exist $(BACKUP)\visad\data\fits\*.java \
+		$(DEL) $(BACKUP)\visad\data\fits\*.java
+	if exist $(BACKUP)\loci\formats\*.java \
+		$(DEL) $(BACKUP)\loci\formats\*.java
+	if exist $(BACKUP)\loci\formats\codec\*.java \
+		$(DEL) $(BACKUP)\loci\formats\codec\*.java
+	if exist $(BACKUP)\loci\formats\gui\*.java \
+		$(DEL) $(BACKUP)\loci\formats\gui\*.java
+	if exist $(BACKUP)\loci\formats\in\*.java \
+		$(DEL) $(BACKUP)\loci\formats\in\*.java
+	if exist $(BACKUP)\loci\formats\out\*.java \
+		$(DEL) $(BACKUP)\loci\formats\out\*.java
+	if exist $(BACKUP)\nom\tam\fits\*.java \
+		$(DEL) $(BACKUP)\nom\tam\fits\*.java
+	if exist $(BACKUP)\nom\tam\util\*.java \
+		$(DEL) $(BACKUP)\nom\tam\util\*.java
+	if exist $(BACKUP)\nom\tam\test\*.java \
+		$(DEL) $(BACKUP)\nom\tam\test\*.java
+	if exist $(BACKUP)\HTTPClient\*.java \
+		$(DEL) $(BACKUP)\HTTPClient\*.java
+	if exist $(BACKUP)\ucar\multiarray\*.java \
+		$(DEL) $(BACKUP)\ucar\multiarray\*.java
+	if exist $(BACKUP)\ucar\netcdf\*.java \
+		$(DEL) $(BACKUP)\ucar\netcdf\*.java
+	if exist $(BACKUP)\ucar\tests\*.java \
+		$(DEL) $(BACKUP)\ucar\tests\*.java
+	if exist $(BACKUP)\dods\dap\*.java \
+		$(DEL) $(BACKUP)\dods\dap\*.java
+	if exist $(BACKUP)\dods\dap\parser\*.java \
+		$(DEL) $(BACKUP)\dods\dap\parser\*.java
+	if exist $(BACKUP)\dods\dap\Server\*.java \
+		$(DEL) $(BACKUP)\dods\dap\Server\*.java
+	if exist $(BACKUP)\dods\util\*.java \
+		$(DEL) $(BACKUP)\dods\util\*.java
+	if exist $(BACKUP)\gnu\regexp\*.java \
+		$(DEL) $(BACKUP)\gnu\regexp\*.java
+	if exist $(BACKUP)\visad\data\hdfeos\*.java \
+		$(DEL) $(BACKUP)\visad\data\hdfeos\*.java
+	if exist $(BACKUP)\visad\data\hdfeos\hdfeosc\*.java \
+		$(DEL) $(BACKUP)\visad\data\hdfeos\hdfeosc\*.java
+	if exist $(BACKUP)\visad\data\vis5d\*.java \
+		$(DEL) $(BACKUP)\visad\data\vis5d\*.java
+	if exist $(BACKUP)\edu\wisc\ssec\mcidas\*.java \
+		$(DEL) $(BACKUP)\edu\wisc\ssec\mcidas\*.java
+	if exist $(BACKUP)\edu\wisc\ssec\mcidas\adde\*.java \
+		$(DEL) $(BACKUP)\edu\wisc\ssec\mcidas\adde\*.java
+	if exist $(BACKUP)\visad\data\mcidas\*.java \
+		$(DEL) $(BACKUP)\visad\data\mcidas\*.java
+	if exist $(BACKUP)\visad\data\avi\*.java \
+		$(DEL) $(BACKUP)\visad\data\avi\*.java
+	if exist $(BACKUP)\visad\data\bio\*.java \
+		$(DEL) $(BACKUP)\visad\data\bio\*.java
+	if exist $(BACKUP)\visad\data\biorad\*.java \
+		$(DEL) $(BACKUP)\visad\data\biorad\*.java
+	if exist $(BACKUP)\visad\data\jai\*.java \
+		$(DEL) $(BACKUP)\visad\data\jai\*.java
+	if exist $(BACKUP)\visad\data\qt\*.java \
+		$(DEL) $(BACKUP)\visad\data\qt\*.java
+	if exist $(BACKUP)\visad\data\gif\*.java \
+		$(DEL) $(BACKUP)\visad\data\gif\*.java
+	if exist $(BACKUP)\visad\data\gis\*.java \
+		$(DEL) $(BACKUP)\visad\data\gis\*.java
+	if exist $(BACKUP)\visad\data\tiff\*.java \
+		$(DEL) $(BACKUP)\visad\data\tiff\*.java
+	if exist $(BACKUP)\visad\data\visad\*.java \
+		$(DEL) $(BACKUP)\visad\data\visad\*.java
+	if exist $(BACKUP)\visad\data\visad\object\*.java \
+		$(DEL) $(BACKUP)\visad\data\visad\object\*.java
+	if exist $(BACKUP)\visad\data\text\*.java \
+		$(DEL) $(BACKUP)\visad\data\text\*.java
+	if exist $(BACKUP)\visad\data\hdf5\*.java \
+		$(DEL) $(BACKUP)\visad\data\hdf5\*.java
+	if exist $(BACKUP)\visad\data\hdf5\hdf5objects\*.java \
+		$(DEL) $(BACKUP)\visad\data\hdf5\hdf5objects\*.java
+	if exist $(BACKUP)\ncsa\hdf\hdf5lib\*.java \
+		$(DEL) $(BACKUP)\ncsa\hdf\hdf5lib\*.java
+	if exist $(BACKUP)\ncsa\hdf\hdf5lib\exceptions\*.java \
+		$(DEL) $(BACKUP)\ncsa\hdf\hdf5lib\exceptions\*.java
+	if exist $(BACKUP)\visad\jmet\*.java \
+		$(DEL) $(BACKUP)\visad\jmet\*.java
+	if exist $(BACKUP)\visad\paoloa\*.java \
+		$(DEL) $(BACKUP)\visad\paoloa\*.java
+	if exist $(BACKUP)\visad\paoloa\spline\*.java \
+		$(DEL) $(BACKUP)\visad\paoloa\spline\*.java
+	if exist $(BACKUP)\visad\aune\*.java \
+		$(DEL) $(BACKUP)\visad\aune\*.java
+	if exist $(BACKUP)\visad\benjamin\*.java \
+		$(DEL) $(BACKUP)\visad\benjamin\*.java
+	if exist $(BACKUP)\visad\rabin\*.java \
+		$(DEL) $(BACKUP)\visad\rabin\*.java
+	if exist $(BACKUP)\visad\bom\*.java \
+		$(DEL) $(BACKUP)\visad\bom\*.java
+	if exist $(BACKUP)\visad\aeri\*.java \
+		$(DEL) $(BACKUP)\visad\aeri\*.java
+	if exist $(BACKUP)\visad\data\amanda\*.java \
+		$(DEL) $(BACKUP)\visad\data\amanda\*.java
+	if exist $(BACKUP)\visad\georef\*.java \
+		$(DEL) $(BACKUP)\visad\georef\*.java
+	if exist $(BACKUP)\visad\meteorology\*.java \
+		$(DEL) $(BACKUP)\visad\meteorology\*.java
+	if exist $(BACKUP)\visad\install\*.java \
+		$(DEL) $(BACKUP)\visad\install\*.java
+	if exist $(BACKUP)\visad\install\install_visad \
+		$(DEL) $(BACKUP)\visad\install\install_visad
+	if exist $(BACKUP)\visad\install\README \
+		$(DEL) $(BACKUP)\visad\install\README
+	if exist $(BACKUP)\visad\install\README.html \
+		$(DEL) $(BACKUP)\visad\install\README.html
+	$(JAR) $(JARVERBOSE)cf $(BACKUP)\save.jar $(SAVE_FILES1)
+	$(JAR) $(JARVERBOSE)uf $(BACKUP)\save.jar $(SAVE_FILES2)
+	cd $(BACKUP)
+	$(JAR) $(JARVERBOSE)xf save.jar
+	$(DEL) save.jar
+
+CLASS_FILES = \
+DATE \
+visad\*.class \
+visad\java3d\*.class \
+visad\java2d\*.class \
+visad\python\*.class \
+visad\browser\*.class \
+visad\util\*.class \
+visad\util\*.jhf \
+visad\matrix\*.class \
+visad\math\*.class \
+visad\formula\*.class \
+visad\ss\*.class \
+visad\ss\*.gif \
+visad\cluster\*.class \
+visad\collab\*.class \
+visad\data\*.class \
+visad\data\units\*.class \
+visad\data\in\*.class \
+visad\data\dods\*.class \
+visad\data\netcdf\*.class \
+visad\data\netcdf\units\*.class \
+visad\data\netcdf\in\*.class \
+visad\data\netcdf\out\*.class \
+HTTPClient\*.class \
+ucar\multiarray\*.class \
+ucar\netcdf\*.class \
+ucar\tests\*.class \
+dods\dap\*.class \
+dods\dap\parser\*.class \
+dods\dap\Server\*.class \
+dods\util\*.class \
+gnu\regexp\*.class \
+visad\data\fits\*.class \
+loci\formats\*.class \
+loci\formats\readers.txt \
+loci\formats\writers.txt \
+loci\formats\codec\*.class \
+loci\formats\gui\*.class \
+loci\formats\in\*.class \
+loci\formats\out\*.class \
+nom\tam\fits\*.class \
+nom\tam\util\*.class \
+nom\tam\test\*.class \
+visad\data\hdfeos\*.class \
+visad\data\hdfeos\hdfeosc\*.class \
+visad\data\vis5d\*.class \
+edu\wisc\ssec\mcidas\*.class \
+edu\wisc\ssec\mcidas\adde\*.class \
+visad\data\mcidas\*.class \
+visad\data\avi\*.class \
+visad\data\bio\*.class \
+visad\data\biorad\*.class \
+visad\data\jai\*.class \
+visad\data\qt\*.class \
+visad\data\gif\*.class \
+visad\data\gis\*.class \
+visad\data\tiff\*.class \
+visad\data\visad\*.class \
+visad\data\visad\object\*.class \
+visad\data\text\*.class \
+visad\data\hdf5\*.class \
+visad\data\hdf5\hdf5objects\*.class \
+ncsa\hdf\hdf5lib\*.class \
+ncsa\hdf\hdf5lib\exceptions\*.class \
+visad\jmet\*.class \
+visad\paoloa\*.class \
+visad\paoloa\spline\*.class \
+visad\aune\*.class \
+visad\benjamin\*.class \
+visad\rabin\*.class \
+visad\bom\*.class \
+visad\aeri\*.class \
+visad\data\amanda\*.class \
+visad\georef\*.class \
+visad\meteorology\*.class \
+visad\install\*.class
+
+classes:
+	cd ..
+	date /t > DATE
+	time /t >> DATE
+	$(JAR) $(JARVERBOSE)cfm visad.jar visad\VisAD.Manifest $(CLASS_FILES)
+	dir /-w visad.jar
+
+EXAMPLES_TAR_FILES = \
+visad\examples\*.java \
+visad\examples\display_test.c \
+visad\examples\*.html \
+visad\examples\*.class
+
+examplesjar:
+	cd ..
+	$(JAR) $(JARVERBOSE)cf visad_examples.jar $(EXAMPLES_TAR_FILES)
+	dir /-w visad_examples.jar
+
+clear:
+	if exist *.java $(DEL) *.java
+	if exist cluster\*.java $(DEL) cluster\*.java
+	if exist collab\*.java $(DEL) collab\*.java
+	if exist java3d\*.java $(DEL) java3d\*.java
+	if exist java2d\*.java $(DEL) java2d\*.java
+	if exist python\*.java $(DEL) python\*.java
+	if exist browser\*.java $(DEL) browser\*.java
+	if exist util\*.java $(DEL) util\*.java
+	if exist util\*.jhf $(DEL) util\*.jhf
+	if exist matrix\*.java $(DEL) matrix\*.java
+	if exist math\*.java $(DEL) math\*.java
+	if exist formula\*.java $(DEL) formula\*.java
+	if exist ss\*.java $(DEL) ss\*.java
+	if exist ss\*.gif $(DEL) ss\*.gif
+	if exist data\*.java $(DEL) data\*.java
+	if exist data\units\*.java $(DEL) data\units\*.java
+	if exist data\in\*.java $(DEL) data\in\*.java
+	if exist data\dods\*.java $(DEL) data\dods\*.java
+	if exist data\netcdf\*.java $(DEL) data\netcdf\*.java
+	if exist data\netcdf\units\*.java $(DEL) data\netcdf\units\*.java
+	if exist data\netcdf\in\*.java $(DEL) data\netcdf\in\*.java
+	if exist data\netcdf\out\*.java $(DEL) data\netcdf\out\*.java
+	if exist data\fits\*.java $(DEL) data\fits\*.java
+	if exist ..\loci\formats\*.java $(DEL) ..\loci\formats\*.java
+	if exist ..\loci\formats\codec\*.java $(DEL) ..\loci\formats\codec\*.java
+	if exist ..\loci\formats\gui\*.java $(DEL) ..\loci\formats\gui\*.java
+	if exist ..\loci\formats\in\*.java $(DEL) ..\loci\formats\in\*.java
+	if exist ..\loci\formats\out\*.java $(DEL) ..\loci\formats\out\*.java
+	if exist ..\nom\tam\fits\*.java $(DEL) ..\nom\tam\fits\*.java
+	if exist ..\nom\tam\util\*.java $(DEL) ..\nom\tam\util\*.java
+	if exist ..\nom\tam\test\*.java $(DEL) ..\nom\tam\test\*.java
+	if exist ..\HTTPClient\*.java $(DEL) ..\HTTPClient\*.java
+	if exist ..\ucar\multiarray\*.java $(DEL) ..\ucar\multiarray\*.java
+	if exist ..\ucar\netcdf\*.java $(DEL) ..\ucar\netcdf\*.java
+	if exist ..\ucar\tests\*.java $(DEL) ..\ucar\tests\*.java
+	if exist ..\dods\dap\*.java $(DEL) ..\dods\dap\*.java 
+	if exist ..\dods\dap\parser\*.java $(DEL) ..\dods\dap\parser\*.java 
+	if exist ..\dods\dap\Server\*.java $(DEL) ..\dods\dap\Server\*.java 
+	if exist ..\dods\util\*.java $(DEL) ..\dods\util\*.java 
+	if exist ..\gnu\regexp\*.java $(DEL) ..\gnu\regexp\*.java 
+	if exist data\hdfeos\*.java $(DEL) data\hdfeos\*.java
+	if exist data\hdfeos\hdfeosc\*.java $(DEL) data\hdfeos\hdfeosc\*.java
+	if exist data\vis5d\*.java $(DEL) data\vis5d\*.java
+	if exist data\gif\*.java $(DEL) data\gif\*.java
+	if exist data\gis\*.java $(DEL) data\gis\*.java
+	if exist data\tiff\*.java $(DEL) data\tiff\*.java
+	if exist ..\edu\wisc\ssec\mcidas\*.java $(DEL) ..\edu\wisc\ssec\mcidas\*.java
+	if exist ..\edu\wisc\ssec\mcidas\adde\*.java $(DEL) ..\edu\wisc\ssec\mcidas\adde\*.java
+	if exist data\mcidas\*.java $(DEL) data\mcidas\*.java
+	if exist data\avi\*.java $(DEL) data\avi\*.java
+	if exist data\bio\*.java $(DEL) data\bio\*.java
+	if exist data\biorad\*.java $(DEL) data\biorad\*.java
+	if exist data\jai\*.java $(DEL) data\jai\*.java
+	if exist data\qt\*.java $(DEL) data\qt\*.java
+	if exist data\visad\*.java $(DEL) data\visad\*.java
+	if exist data\visad\object\*.java $(DEL) data\visad\object\*.java
+	if exist data\text\*.java $(DEL) data\text\*.java
+	if exist data\hdf5\*.java $(DEL) data\hdf5\*.java
+	if exist data\hdf5\hdf5objects\*.java $(DEL) data\hdf5\hdf5objects\*.java
+	if exist ..\ncsa\hdf\hdf5lib\*.java $(DEL) ..\ncsa\hdf\hdf5lib\*.java
+	if exist ..\ncsa\hdf\hdf5lib\exceptions\*.java $(DEL) ..\ncsa\hdf\hdf5lib\exceptions\*.java
+	if exist jmet\*.java $(DEL) jmet\*.java
+	if exist paoloa\*.java $(DEL) paoloa\*.java
+	if exist paoloa\spline\*.java $(DEL) paoloa\spline\*.java
+	if exist aune\*.java $(DEL) aune\*.java
+	if exist benjamin\*.java $(DEL) benjamin\*.java
+	if exist rabin\*.java $(DEL) rabin\*.java
+	if exist bom\*.java $(DEL) bom\*.java
+	if exist aeri\*.java $(DEL) aeri\*.java
+	if exist data\amanda\*.java $(DEL) data\amanda\*.java
+	if exist georef\*.java $(DEL) georef\*.java
+	if exist meteorology\*.java $(DEL) meteorology\*.java
+	if exist install\*.java $(DEL) install\*.java
+	if exist examples\*.java $(DEL) examples\*.java
+
+clean:
+	if exist *.class $(DEL) *.class
+	if exist cluster\*.class $(DEL) cluster\*.class
+	if exist collab\*.class $(DEL) collab\*.class
+	if exist java3d\*.class $(DEL) java3d\*.class
+	if exist java2d\*.class $(DEL) java2d\*.class
+	if exist python\*.class $(DEL) python\*.class
+	if exist browser\*.class $(DEL) browser\*.class
+	if exist util\*.class $(DEL) util\*.class
+	if exist matrix\*.class $(DEL) matrix\*.class
+	if exist math\*.class $(DEL) math\*.class
+	if exist formula\*.class $(DEL) formula\*.class
+	if exist ss\*.class $(DEL) ss\*.class
+	if exist data\*.class $(DEL) data\*.class
+	if exist data\units\*.class $(DEL) data\units\*.class
+	if exist data\in\*.class $(DEL) data\in\*.class
+	if exist data\in\*.class $(DEL) data\in\*.class
+	if exist data\dods\*.class $(DEL) data\dods\*.class
+	if exist data\netcdf\units\*.class $(DEL) data\netcdf\units\*.class
+	if exist data\netcdf\in\*.class $(DEL) data\netcdf\in\*.class
+	if exist data\netcdf\out\*.class $(DEL) data\netcdf\out\*.class
+	if exist data\fits\*.class $(DEL) data\fits\*.class
+	if exist ..\loci\formats\*.class $(DEL) ..\loci\formats\*.class
+	if exist ..\loci\formats\codec\*.class $(DEL) ..\loci\formats\codec\*.class
+	if exist ..\loci\formats\gui\*.class $(DEL) ..\loci\formats\gui\*.class
+	if exist ..\loci\formats\in\*.class $(DEL) ..\loci\formats\in\*.class
+	if exist ..\loci\formats\out\*.class $(DEL) ..\loci\formats\out\*.class
+	if exist ..\nom\tam\fits\*.class $(DEL) ..\nom\tam\fits\*.class
+	if exist ..\nom\tam\util\*.class $(DEL) ..\nom\tam\util\*.class
+	if exist ..\nom\tam\test\*.class $(DEL) ..\nom\tam\test\*.class
+	if exist ..\HTTPClient\*.class $(DEL) ..\HTTPClient\*.class
+	if exist ..\ucar\multiarray\*.class $(DEL) ..\ucar\multiarray\*.class
+	if exist ..\ucar\netcdf\*.class $(DEL) ..\ucar\netcdf\*.class
+	if exist ..\ucar\tests\*.class $(DEL) ..\ucar\tests\*.class
+	if exist ..\dods\dap\*.class $(DEL) ..\dods\dap\*.class 
+	if exist ..\dods\dap\parser\*.class $(DEL) ..\dods\dap\parser\*.class 
+	if exist ..\dods\dap\Server\*.class $(DEL) ..\dods\dap\Server\*.class 
+	if exist ..\dods\util\*.class $(DEL) ..\dods\util\*.class 
+	if exist ..\gnu\regexp\*.class $(DEL) ..\gnu\regexp\*.class 
+	if exist data\hdfeos\*.class $(DEL) data\hdfeos\*.class
+	if exist data\hdfeos\hdfeosc\*.class $(DEL) data\hdfeos\hdfeosc\*.class
+	if exist data\vis5d\*.class $(DEL) data\vis5d\*.class
+	if exist ..\edu\wisc\ssec\mcidas\*.class $(DEL) ..\edu\wisc\ssec\mcidas\*.class
+	if exist ..\edu\wisc\ssec\mcidas\adde\*.class $(DEL) ..\edu\wisc\ssec\mcidas\adde\*.class
+	if exist data\mcidas\*.class $(DEL) data\mcidas\*.class
+	if exist data\avi\*.class $(DEL) data\avi\*.class
+	if exist data\bio\*.class $(DEL) data\bio\*.class
+	if exist data\biorad\*.class $(DEL) data\biorad\*.class
+	if exist data\jai\*.class $(DEL) data\jai\*.class
+	if exist data\qt\*.class $(DEL) data\qt\*.class
+	if exist data\gif\*.class $(DEL) data\gif\*.class
+	if exist data\gis\*.class $(DEL) data\gis\*.class
+	if exist data\tiff\*.class $(DEL) data\tiff\*.class
+	if exist data\visad\*.class $(DEL) data\visad\*.class
+	if exist data\visad\object\*.class $(DEL) data\visad\object\*.class
+	if exist data\text\*.class $(DEL) data\text\*.class
+	if exist data\hdf5\*.class $(DEL) data\hdf5\*.class
+	if exist data\hdf5\hdf5objects\*.class $(DEL) data\hdf5\hdf5objects\*.class
+	if exist ..\ncsa\hdf\hdf5lib\*.class $(DEL) ..\ncsa\hdf\hdf5lib\*.class
+	if exist ..\ncsa\hdf\hdf5lib\exceptions\*.class $(DEL) ..\ncsa\hdf\hdf5lib\exceptions\*.class
+	if exist jmet\*.class $(DEL) jmet\*.class
+	if exist paoloa\*.class $(DEL) paoloa\*.class
+	if exist paoloa\spline\*.class $(DEL) paoloa\spline\*.class
+	if exist aune\*.class $(DEL) aune\*.class
+	if exist benjamin\*.class $(DEL) benjamin\*.class
+	if exist rabin\*.class $(DEL) rabin\*.class
+	if exist bom\*.class $(DEL) bom\*.class
+	if exist aeri\*.class $(DEL) aeri\*.class
+	if exist data\amanda\*.class $(DEL) data\amanda\*.class
+	if exist georef\*.class $(DEL) georef\*.class
+	if exist meteorology\*.class $(DEL) meteorology\*.class
+	if exist install\*.class $(DEL) install\*.class
+	if exist examples\*.class $(DEL) examples\*.class
+
+RMIC_FILES = \
+visad.RemoteActionImpl \
+visad.RemoteCellImpl \
+visad.RemoteDataImpl \
+visad.RemoteDataReferenceImpl \
+visad.RemoteDisplayImpl \
+visad.RemoteFieldImpl \
+visad.RemoteFunctionImpl \
+visad.RemoteReferenceLinkImpl \
+visad.RemoteServerImpl \
+visad.RemoteSlaveDisplayImpl \
+visad.RemoteThingImpl \
+visad.RemoteThingReferenceImpl
+
+RMIC_COLLAB_FILES = \
+visad.collab.RemoteDisplayMonitorImpl \
+visad.collab.RemoteDisplaySyncImpl \
+visad.collab.RemoteEventProviderImpl
+
+RMIC_CLUSTER_FILES = \
+visad.cluster.RemoteAgentContactImpl \
+visad.cluster.RemoteClientAgentImpl \
+visad.cluster.RemoteClientDataImpl \
+visad.cluster.RemoteClientFieldImpl \
+visad.cluster.RemoteClientPartitionedFieldImpl \
+visad.cluster.RemoteClientTupleImpl \
+visad.cluster.RemoteClusterDataImpl \
+visad.cluster.RemoteNodeDataImpl \
+visad.cluster.RemoteNodeFieldImpl \
+visad.cluster.RemoteNodePartitionedFieldImpl \
+visad.cluster.RemoteNodeTupleImpl \
+visad.cluster.RemoteProxyAgentImpl
+
+recompile: \
+*.class \
+java3d\*.class \
+java2d\*.class \
+cluster\*.class \
+collab\*.class \
+data\*.class \
+..\HTTPClient\*.class \
+..\ucar\multiarray\*.class \
+..\ucar\netcdf\*.class \
+..\ucar\tests\*.class \
+..\dods\dap\*.class \
+..\dods\dap\parser\*.class \
+..\dods\dap\Server\*.class \
+..\dods\util\*.class \
+..\gnu\regexp\*.class \
+data\units\*.class \
+data\in\*.class \
+data\dods\*.class \
+data\netcdf\units\*.class \
+data\netcdf\in\*.class \
+data\netcdf\out\*.class \
+data\netcdf\*.class \
+..\loci\formats\*.class \
+..\loci\formats\codec\*.class \
+..\loci\formats\gui\*.class \
+..\loci\formats\in\*.class \
+..\loci\formats\out\*.class \
+..\nom\tam\util\*.class \
+..\nom\tam\fits\*.class \
+..\nom\tam\test\*.class \
+data\fits\*.class \
+data\vis5d\*.class \
+..\edu\wisc\ssec\mcidas\*.class \
+..\edu\wisc\ssec\mcidas\adde\*.class \
+data\mcidas\*.class \
+data\avi\*.class \
+data\bio\*.class \
+data\biorad\*.class \
+data\jai\*.class \
+data\qt\*.class \
+data\gif\*.class \
+data\gis\*.class \
+data\tiff\*.class \
+data\visad\*.class \
+data\visad\object\*.class \
+data\text\*.class \
+data\hdfeos\hdfeosc\*.class \
+data\hdfeos\*.class \
+..\ncsa\hdf\hdf5lib\*.class \
+..\ncsa\hdf\hdf5lib\exceptions\*.class \
+data\hdf5\hdf5objects\*.class \
+data\hdf5\*.class \
+python\*.class \
+matrix\*.class \
+math\*.class \
+browser\*.class \
+util\*.class \
+formula\*.class \
+ss\*.class \
+jmet\*.class \
+paoloa\*.class \
+paoloa\spline\*.class \
+benjamin\*.class \
+rabin\*.class \
+aune\*.class \
+bom\*.class \
+aeri\*.class \
+data\amanda\*.class \
+georef\*.class \
+meteorology\*.class \
+install\*.class
+	cd examples
+	$(JC) $(JFLAGS) *.java
+	cd ..
+	cd $(RMIC_DIR)
+	$(RMIC) $(RMIC_FILES)
+	cd $(RMIC_COLLAB_DIR)
+	$(RMIC) $(RMIC_COLLAB_FILES)
+	cd $(RMIC_CLUSTER_DIR)
+	$(RMIC) $(RMIC_CLUSTER_FILES)
+
+compile: clean
+	$(JC) $(JFLAGS) *.java
+	$(JC) $(JFLAGS) java3d\*.java
+	$(JC) $(JFLAGS) java2d\*.java
+	$(JC) $(JFLAGS) cluster\*.java
+	$(JC) $(JFLAGS) collab\*.java
+	$(JC) $(JFLAGS) data\*.java
+	$(JC) $(JFLAGS) data\units\*.java
+	$(JC) $(JFLAGS) ..\HTTPClient\*.java
+	$(JC) $(JFLAGS) ..\ucar\multiarray\*.java
+	$(JC) $(JFLAGS) ..\ucar\netcdf\*.java
+	$(JC) $(JFLAGS) ..\ucar\tests\*.java
+	$(JC) $(JFLAGS) ..\dods\dap\*.java
+	$(JC) $(JFLAGS) ..\dods\dap\parser\*.java
+	$(JC) $(JFLAGS) ..\dods\dap\Server\*.java
+	$(JC) $(JFLAGS) ..\dods\util\*.java
+	$(JC) $(JFLAGS) ..\gnu\regexp\*.java
+	$(JC) $(JFLAGS) data\in\*.java
+	$(JC) $(JFLAGS) data\dods\*.java
+	$(JC) $(JFLAGS) data\netcdf\units\*.java
+	$(JC) $(JFLAGS) data\netcdf\in\*.java
+	$(JC) $(JFLAGS) data\netcdf\out\*.java
+	$(JC) $(JFLAGS) data\netcdf\*.java
+	$(JC) $(JFLAGS) ..\loci\formats\*.java
+	$(JC) $(JFLAGS) ..\loci\formats\codec\*.java
+	$(JC) $(JFLAGS) ..\loci\formats\gui\*.java
+	$(JC) $(JFLAGS) ..\loci\formats\in\*.java
+	$(JC) $(JFLAGS) ..\loci\formats\out\*.java
+	$(JC) $(JFLAGS) ..\nom\tam\util\*.java
+	$(JC) $(JFLAGS) ..\nom\tam\fits\*.java
+	$(JC) $(JFLAGS) ..\nom\tam\test\*.java
+	$(JC) $(JFLAGS) data\fits\*.java
+	$(JC) $(JFLAGS) data\vis5d\*.java
+	$(JC) $(JFLAGS) ..\edu\wisc\ssec\mcidas\*.java
+	$(JC) $(JFLAGS) ..\edu\wisc\ssec\mcidas\adde\*.java
+	$(JC) $(JFLAGS) data\mcidas\*.java
+	$(JC) $(JFLAGS) data\avi\*.java
+	$(JC) $(JFLAGS) data\bio\*.java
+	$(JC) $(JFLAGS) data\biorad\*.java
+	$(JC) $(JFLAGS) data\jai\*.java
+	$(JC) $(JFLAGS) data\qt\*.java
+	$(JC) $(JFLAGS) data\gif\*.java
+	$(JC) $(JFLAGS) data\gis\*.java
+	$(JC) $(JFLAGS) data\tiff\*.java
+	$(JC) $(JFLAGS) data\visad\*.java
+	$(JC) $(JFLAGS) data\visad\object\*.java
+	$(JC) $(JFLAGS) data\text\*.java
+	$(JC) $(JFLAGS) data\hdfeos\hdfeosc\*.java
+	$(JC) $(JFLAGS) data\hdfeos\*.java
+	$(JC) $(JFLAGS) ..\ncsa\hdf\hdf5lib\exceptions\*.java
+	$(JC) $(JFLAGS) ..\ncsa\hdf\hdf5lib\*.java
+	$(JC) $(JFLAGS) data\hdf5\hdf5objects\*.java
+	$(JC) $(JFLAGS) data\hdf5\*.java
+	$(JC) $(JFLAGS) python\*.java
+	$(JC) $(JFLAGS) matrix\*.java
+	$(JC) $(JFLAGS) math\*.java
+	$(JC) $(JFLAGS) browser\*.java
+	$(JC) $(JFLAGS) util\*.java
+	$(JC) $(JFLAGS) formula\*.java
+	$(JC) $(JFLAGS) ss\*.java
+	$(JC) $(JFLAGS) jmet\*.java
+	$(JC) $(JFLAGS) paoloa\*.java
+	$(JC) $(JFLAGS) paoloa\spline\*.java
+	$(JC) $(JFLAGS) benjamin\*.java
+	$(JC) $(JFLAGS) rabin\*.java
+	$(JC) $(JFLAGS) aune\*.java
+	$(JC) $(JFLAGS) bom\*.java
+	$(JC) $(JFLAGS) aeri\*.java
+	$(JC) $(JFLAGS) data\amanda\*.java
+	$(JC) $(JFLAGS) georef\*.java
+	$(JC) $(JFLAGS) meteorology\*.java
+	$(JC) $(JFLAGS) install\*.java
+	cd examples
+	$(JC) $(JFLAGS) *.java
+	cd ..
+	cd $(RMIC_DIR)
+	$(RMIC) $(RMIC_FILES)
+	cd $(RMIC_COLLAB_DIR)
+	$(RMIC) $(RMIC_COLLAB_FILES)
+	cd $(RMIC_CLUSTER_DIR)
+	$(RMIC) $(RMIC_CLUSTER_FILES)
+
+debug:
+	@nmake /nologo -f Makefile.WinNT compile \
+	"JFLAGS = -J-mx64m -g"
+
+VISAD_PACKAGES = \
+visad \
+visad.cluster \
+visad.collab \
+visad.java3d \
+visad.java2d \
+visad.python \
+visad.browser \
+visad.util \
+visad.matrix \
+visad.math \
+visad.formula \
+visad.ss \
+visad.data \
+visad.data.units \
+visad.data.in \
+visad.data.dods \
+visad.data.netcdf \
+visad.data.netcdf.units \
+visad.data.netcdf.in \
+visad.data.netcdf.out \
+visad.data.fits \
+loci.formats \
+loci.formats.codec \
+loci.formats.gui \
+loci.formats.in \
+loci.formats.out \
+nom.tam.fits \
+nom.tam.util \
+nom.tam.test \
+HTTPClient \
+ucar.multiarray \
+ucar.util \
+ucar.netcdf \
+ucar.tests \
+dods.dap \
+dods.dap.parser \
+dods.dap.Server \
+dods.util \
+gnu.regexp \
+visad.data.hdfeos \
+visad.data.hdfeos.hdfeosc \
+visad.data.vis5d \
+visad.data.gif \
+visad.data.gis \
+visad.data.tiff \
+edu.wisc.ssec.mcidas \
+visad.data.mcidas \
+visad.data.avi \
+visad.data.bio \
+visad.data.biorad \
+visad.data.jai \
+visad.data.qt \
+visad.data.visad \
+visad.data.visad.object \
+visad.data.text \
+ncsa.hdf.hdf5lib \
+ncsa.hdf.hdf5lib.exceptions \
+visad.data.hdf5 \
+visad.data.hdf5.hdf5objects \
+visad.jmet \
+visad.paoloa \
+visad.paoloa.spline \
+visad.aune \
+visad.benjamin \
+visad.rabin \
+visad.bom \
+visad.aeri \
+visad.data.amanda \
+visad.georef \
+visad.meteorology \
+visad.install
+
+docs:
+	if not exist $(DOC_DIR) mkdir $(DOC_DIR)
+	$(DOC) $(DOCFLAGS) $(VISAD_PACKAGES)
+
+jikes_compile:
+	@nmake /nologo -f Makefile.WinNT compile \
+	"JC = jikes" \
+	"JFLAGS = "

@@ -1,0 +1,399 @@
+
+                           VisAD
+
+1. Introduction
+
+VisAD is a pure Java system for interactive and collaborative
+visualization and analysis of numerical data.  It is described
+in detail in the:
+
+  VisAD Java Class Library Developers Guide
+
+available from the VisAD web page at:
+
+  http://www.ssec.wisc.edu/~billh/visad.html
+
+This README file primarily consists of installation
+instructions.
+
+
+2. Downloading the VisAD Source Code
+
+To download the VisAD source code, first make sure the current
+directory is a directory in your CLASSPATH (which we will refer
+to as '/parent_dir' through the rest of this README file).
+Then get:
+
+  ftp://ftp.ssec.wisc.edu/pub/visad-2.0/visad_src-2.0.jar
+ 
+If you have previously downloaded the VisAD source you
+should run 'make clear' in your visad directory to clear
+out the old source files before you unpack the new source.
+
+Unpack the jar file by running:
+ 
+  jar xvf visad_src-2.0.jar
+ 
+Unpacking VisAD will create the following sub-directories:
+
+  visad				// the core VisAD package
+  visad/ss			// VisAD Spread Sheet
+  visad/formula			// formula parser
+  visad/java3d			// Java3D displays for VisAD
+  visad/java2d			// Java2D displays for VisAD
+  visad/util			// VisAD UI utilities
+  visad/collab                  // collaboration support
+  visad/cluster                 // data and displays distributed on clusters
+  visad/python                  // python scripts for VisAD
+  visad/browser                 // connecting applets to VisAD servers
+  visad/math                    // math (fft, histogram) operations
+  visad/matrix                  // JAMA (matlab) matrix operations
+  visad/data			// VisAD data (file) format adapters
+  visad/data/fits		// VisAD - FITS file adapter
+  visad/data/netcdf		// VisAD - netCDF file adapter
+  visad/data/netcdf/in		// netCDF file adapter input
+  visad/data/netcdf/out		// netCDF file adapter output
+  visad/data/netcdf/units	// units parser for netCDF adapter
+  visad/data/hdfeos		// VisAD - HDF-EOS file adapter
+  visad/data/hdfeos/hdfeosc	// native interface to HDF-EOS
+  visad/data/vis5d		// VisAD - Vis5D file adapter
+  visad/data/mcidas		// VisAD - McIDAS file adapter
+  visad/data/gif		// VisAD - GIF file adapter
+  visad/data/tiff		// VisAD - TIFF file adapter
+  visad/data/jai		// VisAD file adapter for various image formats
+  visad/data/biorad             // VisAD - Biorad file adapter
+  visad/data/visad		// VisAD serialized object file adapter
+  visad/data/hdf5 		// VisAD - HDF-5 file adapter
+  visad/data/hdf5/hdf5objects	// VisAD - HDF-5 file adapter
+  visad/data/amanda             // VisAD - F2000 file adapter (neutrino events)
+  visad/paoloa			// GoesCollaboration application
+  visad/paoloa/spline		// spline fitting application
+  visad/aune			// ShallowFluid application
+  visad/benjamin		// Galaxy application
+  visad/rabin                   // Rainfall estimation spread sheet
+  visad/bom                     // wind barb rendering for ABOM
+  visad/jmet                    // JMet - Java Meteorology package
+  visad/aeri                    // Aeri data visualization
+  visad/georef                  // specialized earth coordinates
+  visad/meteorology             // meteorology
+  visad/examples		// small application examples
+  nom/tam/fits			// Java FITS file binding
+  nom/tam/util			// Java FITS file binding
+  nom/tam/test			// Java FITS file binding
+  ucar/multiarray		// Java netCDF file binding
+  ucar/util			// Java netCDF file binding
+  ucar/netcdf			// Java netCDF file binding
+  ucar/tests			// Java netCDF file binding
+  edu/wisc/ssec/mcidas          // Java McIDAS file binding
+  edu/wisc/ssec/mcidas/adde     // Java McIDAS file binding
+  ncsa/hdf/hdf5lib              // Java HDF-5 file binding
+  ncsa/hdf/hdf5lib/exceptions   // Java HDF-5 file binding
+  ij                            // ImageJ
+  ij/gui                        // ImageJ
+  ij/io                         // ImageJ
+  ij/measure                    // ImageJ
+  ij/plugin                     // ImageJ
+  ij/plugin/filter              // ImageJ
+  ij/plugin/frame               // ImageJ
+  ij/process                    // ImageJ
+  ij/text                       // ImageJ
+  ij/util                       // ImageJ
+
+These directories correspond to the packages in distributed with
+VisAD, except that the classes in visad/examples are in the
+default package (i.e., they do not include a package statement).
+ 
+
+3. Building VisAD
+
+Your CLASSPATH sould include:
+
+  1. The parent directory of your visad directory.
+  2. The current directory.
+
+Thus if VisAD is installed at /parent_dir/visad and you use csh,
+your .cshrc file should include:
+
+  setenv CLASSPATH /parent_dir:.
+
+VisAD requires JDK 1.2 and Java3D.  More information about
+these is available at:
+
+  http://java.sun.com/
+
+On systems that support Unix make, you can simply run:
+
+  make debug
+
+to compile the Java source code in all the directories unpacked
+from the source distribution, as well as native code in the
+visad/data/hdfeos/hdfeosc directory and certain application
+directories.  If you want 'make debug' to compile native
+libraries, then you may need to change the line:
+
+  JAVADIR=/opt/java
+
+in visad/Makefile if your java is installed in a directory
+other than /opt/java.
+
+If you have NMAKE on WinNT you may run:
+
+  nmake -f Makefile.WinNT debug
+
+This does not compile native code.
+
+Note that using 'make debug' rather than 'make compile' will
+enable you to run using jdb in place of java in order to make
+error reports that include line numbers in stack dumps.
+
+If you cannot use Unix make or WinNT NMAKE, you must invoke the
+Java compiler on the Java source files in all the directories
+unpacked from the source distribution.  Note that the Java
+source code in the visad/examples directory has no package, so
+you must run 'cd visad/examples' before you compile these Java
+source files.
+
+If you do not use make, then you must also run the rmic compiler
+on the following classes (after they are compiled by the javac
+compiler):
+
+  visad.RemoteActionImpl
+  visad.RemoteCellImpl
+  visad.RemoteDataImpl
+  visad.RemoteDataReferenceImpl
+  visad.RemoteDisplayImpl
+  visad.RemoteFieldImpl
+  visad.RemoteFunctionImpl
+  visad.RemoteReferenceLinkImpl
+  visad.RemoteServerImpl
+  visad.RemoteSlaveDisplayImpl
+  visad.RemoteThingImpl
+  visad.RemoteThingReferenceImpl
+  visad.collab.RemoteDisplayMonitorImpl
+  visad.collab.RemoteDisplaySyncImpl
+  visad.collab.RemoteEventProviderImpl
+  visad.cluster.RemoteAgentContactImpl
+  visad.cluster.RemoteClientAgentImpl
+  visad.cluster.RemoteClientDataImpl
+  visad.cluster.RemoteClientFieldImpl
+  visad.cluster.RemoteClientTupleImpl
+  visad.cluster.RemoteClusterDataImpl
+  visad.cluster.RemoteNodeDataImpl
+  visad.cluster.RemoteNodeFieldImpl
+  visad.cluster.RemoteNodePartitionedFieldImpl
+  visad.cluster.RemoteNodeTupleImpl
+
+
+4. Building Native Code for the HDF-EOS and HDF-5 File Adapters
+
+Although VisAD is a pure Java system, it does require native
+code interfaces in its adapters for HDF-EOS and HDF-5 file
+formats.  We believe that the need for these will disappear
+as the organizations supporting these file formats develop
+Java interfaces.
+
+You can build the necessary libraries from source or on
+Sparc Solaris you can simply download:
+
+  ftp://ftp.ssec.wisc.edu/pub/visad-2.0/libhdfeos.so
+
+into your visad/data/hdfeos/hdfeosc directory, and download
+the appropriate file (for Sparc Solaris, Irix, Linux and
+Windows) from:
+
+  ftp://hdf.ncsa.uiuc.edu/HDF5/current/java-hdf5/JHI5_1_1_bin/lib/
+
+into your ncsa/hdf/hdf5lib directory according to instructions
+available under 'Download' at:
+
+  http://hdf.ncsa.uiuc.edu/java-hdf5-html/
+
+The HDF-EOS and HDF-5 file adapters include native interfaces
+(JNI) to file interfaces written in C.  To make the HDF-EOS
+VisAD native library on systems that support Unix make,
+change to the visad/data/hdfeos/hdfeosc directory and run
+'make all'.
+
+Note that the native code in visad/data/hdfeos/hdfeosc does
+not include NASA/Hughes' HDF-EOS C file interface code; it
+only includes our C native code for creating a Java binding
+to their HDF-EOS C file interface.  You must obtain the
+HDF-EOS C file interface code directly from NASA and NCSA.
+To do this, please follow the instructions in:
+
+   visad/data/hdfeos/README.hdfeos
+
+We have successfully linked these libraries on Irix and
+Solaris.
+
+You can also make the HDF-5 native libraries from source,
+according to instructions available from:
+
+  http://hdf.ncsa.uiuc.edu/java-hdf5-html/
+
+Before you can run applications that use the HDF-EOS and
+HDF-5 file adapters, you must add:
+ 
+  /parent_dir/visad/data/hdfeos/hdfeosc
+
+and:
+
+  /parent_dir/ncsa/hdf/hdf5lib
+ 
+to your LD_LIBRARY_PATH.
+
+
+5. Building Native Code for Applications
+
+Although VisAD is a pure Java system, applications of VisAD
+may include native code.  The reality is that most science
+code is still written in Fortran.
+
+The applications in visad/paoloa, visad/paoloa/spline,
+visad/aune and visad/benjamin also include native code in
+both C and Fortran.
+
+Edit the Makefile in the visad/paoloa, visad/paoloa/spline,
+visad/aune and visad/benjamin to change the path:
+ 
+  JAVADIR=/opt/java
+ 
+to point to the appopriate directory where you installed Java.
+
+On systems that support Unix make, change to each of
+the directories visad/paoloa, visad/paoloa/spline, visad/aune
+and visad/benjamin run 'make'.  This will create the shared
+object files (i.e., file names ending in ".so") containing
+native code.  To run these applications make sure that your
+LD_LIBRARY_PATH includes ".", change to one of these
+directories:
+
+  /parent_dir/visad/paoloa
+  /parent_dir/visad/paoloa/spline
+  /parent_dir/visad/aune
+  /parent_dir/visad/benjamin
+
+and run the appropriate "java ..." command.
+
+Note that the applications in visad/paoloa require data files
+available from:
+
+  ftp://ftp.ssec.wisc.edu/pub/visad-2.0/paoloa-files.tar.Z
+
+
+6. Downloading VisAD Classes in Jar Files
+
+If you want to write applications for VisAD but don't want
+to compile VisAD from source, you can dowload a jar file that
+includes the VisAD classes.  This file is:
+
+  ftp://ftp.ssec.wisc.edu/pub/visad-2.0/visad.jar
+
+Once you've got visad.jar simply add:
+
+   /parent_dir/visad.jar;.
+
+to your CLASSPATH.  Then you can compile and run applications
+that import the VisAD classes.  However, if your application
+uses the HDF-EOS or HDF-5 file format adapters, then you will
+need to compile the native code as described in Section 4 of
+this README file.  The visad.jar file includes the classes from
+these packages:
+
+  visad				// the core VisAD package
+  visad/ss			// VisAD Spread Sheet
+  visad/formula			// formula parser
+  visad/java3d			// Java3D displays for VisAD
+  visad/java2d			// Java2D displays for VisAD
+  visad/util			// VisAD UI utilities
+  visad/collab                  // collaboration support
+  visad/cluster                 // data and displays distributed on clusters
+  visad/python                  // python scripts for VisAD
+  visad/browser                 // connecting applets to VisAD servers
+  visad/math                    // math (fft, histogram) operations
+  visad/matrix                  // JAMA (matlab) matrix operations
+  visad/data			// VisAD data (file) format adapters
+  visad/data/fits		// VisAD - FITS file adapter
+  visad/data/netcdf		// VisAD - netCDF file adapter
+  visad/data/netcdf/in		// netCDF file adapter input
+  visad/data/netcdf/out		// netCDF file adapter output
+  visad/data/netcdf/units	// units parser for netCDF adapter
+  visad/data/hdfeos		// VisAD - HDF-EOS file adapter
+  visad/data/hdfeos/hdfeosc	// native interface to HDF-EOS
+  visad/data/vis5d		// VisAD - Vis5D file adapter
+  visad/data/mcidas		// VisAD - McIDAS file adapter
+  visad/data/gif		// VisAD - GIF file adapter
+  visad/data/tiff		// VisAD - TIFF file adapter
+  visad/data/jai		// VisAD file adapter for various image formats
+  visad/data/biorad             // VisAD - Biorad file adapter
+  visad/data/visad		// VisAD serialized object file adapter
+  visad/data/hdf5 		// VisAD - HDF-5 file adapter
+  visad/data/hdf5/hdf5objects	// VisAD - HDF-5 file adapter
+  visad/data/amanda             // VisAD - F2000 file adapter (neutrino events)
+  visad/paoloa			// GoesCollaboration application
+  visad/paoloa/spline		// spline fitting application
+  visad/aune			// ShallowFluid application
+  visad/benjamin		// Galaxy application
+  visad/rabin                   // Rainfall estimation spread sheet
+  visad/bom                     // wind barb rendering for ABOM
+  visad/jmet                    // JMet - Java Meteorology package
+  visad/aeri                    // Aeri data visualization
+  visad/georef                  // specialized earth coordinates
+  visad/meteorology             // meteorology
+  visad/examples		// small application examples
+  nom/tam/fits			// Java FITS file binding
+  nom/tam/util			// Java FITS file binding
+  nom/tam/test			// Java FITS file binding
+  ucar/multiarray		// Java netCDF file binding
+  ucar/util			// Java netCDF file binding
+  ucar/netcdf			// Java netCDF file binding
+  ucar/tests			// Java netCDF file binding
+  edu/wisc/ssec/mcidas          // Java McIDAS file binding
+  edu/wisc/ssec/mcidas/adde     // Java McIDAS file binding
+  ncsa/hdf/hdf5lib              // Java HDF-5 file binding
+  ncsa/hdf/hdf5lib/exceptions   // Java HDF-5 file binding
+  ij                            // ImageJ
+  ij/gui                        // ImageJ
+  ij/io                         // ImageJ
+  ij/measure                    // ImageJ
+  ij/plugin                     // ImageJ
+  ij/plugin/filter              // ImageJ
+  ij/plugin/frame               // ImageJ
+  ij/process                    // ImageJ
+  ij/text                       // ImageJ
+  ij/util                       // ImageJ
+
+In order to run the examples with visad.jar, download:
+
+  ftp://ftp.ssec.wisc.edu/pub/visad-2.0/visad_examples.jar
+
+Unpack this jar file by running:
+
+  jar xvf visad_examples.jar
+
+This will put *.java and *.class files into your visad/examples
+directory.  Change to that directory and run the appropriate
+example application.  Make sure that '.' is in your CLASS_PATH.
+
+
+7. Problems
+
+If you have problems, send an email message to the VisAD mailing
+list at:
+
+  visad-list@ssec.wisc.edu
+
+Join the list by sending an email message to:
+
+  majordomo@ssec.wisc.edu
+
+with:
+
+  subscribe visad-list
+
+as the first line of the message body (not the subject line).
+
+Please include any compiler or run time error messages in the text
+of email messages to the mailing list.
+
+

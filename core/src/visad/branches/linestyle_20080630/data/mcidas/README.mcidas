@@ -1,0 +1,56 @@
+(update 7.13.00)
+
+The classes in this directory and in the edu.wisc.ssec.mcidas and
+edu.wisc.ssec.mcidas.adde packages will support the import of data in
+some of the the McIDAS (http://www.ssec.wisc.edu/mcidas) formats.  
+You will find some code there to handle McIDAS GRID and MD files as
+well.
+
+Also, please look at the visad.examples package for more examples of
+using the ADDE protocol for images.
+
+Initially, the AreaAdapter class (and AreaForm) will read the McIDAS image
+file format known as AREAs.  This files may contain single or
+multi-banded data from any of several sources.
+
+The AREA format allows for optional navigation and calibration
+data to be included.  These data are supposed to then be used
+with runtime load modules to provide for the desired
+transformations.  
+
+In the VisAD implementation, we intend to support navigation by
+provided particular CoordinateSystem classes.  At this time, the
+AREACoordinateSystem only supports GVAR, MSAT and MOLL navigations.  
+It provides a reference coordinate system of Latitude and Longitude, 
+and will transform to/from that from image pixel locations.
+
+The McIDAS base map file format (OUTL) provides latitude and
+longitude data needed to construct basemap overlays for images
+and backgrounds for data plotting and contour drawing.  The
+BaseMapAdapter class is provided here to allow these OUTL files
+to be used.  We will probably make only a limitied number of
+these files available, and instead concentrate efforts for map
+drawing in the world of "shapefiles".
+
+In order to test the classes in the visad.data.mcidas directory,
+you should acquire an AREA file and probably a basemap file. I've
+provided samples at:
+
+ftp://www.ssec.wisc.edu/pub/visad-2.0/AREA0007
+ftp://www.ssec.wisc.edu/pub/visad-2.0/OUTLUSAM
+
+FTP these files (using binary mode) into the visad/data/mcidas
+directory, and then run:  java TestArea 
+
+Alternatively, you may use them directly over the Inet by:
+
+java TestArea ftp://www.ssec.wisc.edu/pub/visad-2.0/AREA0007 1 ftp://www.ssec.wisc.edu/pub/visad-2.0/OUTLUSAM
+
+This TestArea includes both the display of the image from
+AREA0007 and the overlay of the basemap from OUTLUSAM, correctly
+navigated into the GVAR coordinate system.
+
+Please send me your questions and comments.
+
+Tom Whittaker, SSEC
+tomw@ssec.wisc.edu
