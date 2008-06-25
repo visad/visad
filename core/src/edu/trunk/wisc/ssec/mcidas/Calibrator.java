@@ -58,6 +58,10 @@ public interface Calibrator {
   public static final int SENSOR_GOES10_IMGR = 74;
   /** GOES 10 sounder. */
   public static final int SENSOR_GOES10_SNDR = 75;
+  /** GOES 12 imager. */
+  public static final int SENSOR_GOES12_IMGR = 78;
+  /** GOES 12 sounder. */
+  public static final int SENSOR_GOES12_SNDR = 79;
   
   public int setCalType (
     int calType

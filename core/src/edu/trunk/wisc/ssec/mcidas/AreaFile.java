@@ -956,8 +956,8 @@ public class AreaFile implements java.io.Serializable {
         for (int line = 0; line < inData[0].length; line++) {
           for (int elem = 0; elem < inData[0][0].length; elem++) {
             if (calibrator != null) {
-              outData[band_idx][line][elem] =
-                calibrator.calibrate((float)inData[band_idx][line][elem],
+              outData[band_idx][line][elem] = 
+                calibrator.calibrate((float)inData[band_idx][line][elem], 
                                      band_idx + 1, calType);
             }
             else {
@@ -974,9 +974,9 @@ public class AreaFile implements java.io.Serializable {
         for (int elem = 0; elem < inData[0][0].length; elem++) {
           if (!isRemote && calType != Calibrator.CAL_NONE &&
               calibrator != null) {
-            outData[0][line][elem] =
-              calibrator.calibrate((float)inData[0][line][elem],
-                                   subset.bandNumber, calType);
+              outData[0][line][elem] = 
+                 calibrator.calibrate((float)inData[0][line][elem], 
+                                      subset.bandNumber, calType);
           }
           else {
             outData[0][line][elem] = inData[0][line][elem];
@@ -1363,6 +1363,8 @@ public class AreaFile implements java.io.Serializable {
     buff.append("Num Elements: " + dir.getElements() + EOL);
     buff.append("Start Line: " + dir.getDirectoryBlock()[AD_STLINE] + EOL);
     buff.append("Start Element: " + dir.getDirectoryBlock()[AD_STELEM] + EOL);
+    buff.append("Line Res: " + dir.getDirectoryBlock()[AD_LINERES] + EOL);
+    buff.append("Elem Res: " + dir.getDirectoryBlock()[AD_ELEMRES] + EOL);
     buff.append("Bands:");
     for (int i = 0; i < dir.getBands().length; i++)
       buff.append(" " + dir.getBands()[i]);
