@@ -98,6 +98,10 @@ public abstract class CalibratorGvar implements Calibrator {
     int calIndex = 0;
     sid = sensorId;
 
+    // now, correct for satellites starting with G12 (sid = 78)
+    int irOffset = 2;
+    if (sid > 77) irOffset = 0;
+
     //System.out.println("xxx sid = "+sid);
     if ((sid % 2) == 0) {
 
@@ -133,25 +137,25 @@ public abstract class CalibratorGvar implements Calibrator {
       calIndex++;
 
       for (int i = 0; i < NUM_IR_BANDS; i++) {
-        irBiasCoef[0][(i + 2) % NUM_IR_BANDS] = 
+        irBiasCoef[0][(i + irOffset) % NUM_IR_BANDS] = 
           (float) ConversionUtility.GouldToNative(calBlock[calIndex]);
         calIndex++;
       }
 
       for (int i = 0; i < NUM_IR_BANDS; i++) {
-        irBiasCoef[1][(i + 2) % NUM_IR_BANDS] = 
+        irBiasCoef[1][(i + irOffset) % NUM_IR_BANDS] = 
           (float) ConversionUtility.GouldToNative(calBlock[calIndex]);
         calIndex++;
       }
 
       for (int i = 0; i < NUM_IR_BANDS; i++) {
-        irGainCoef[0][(i + 2) % NUM_IR_BANDS] = 
+        irGainCoef[0][(i + irOffset) % NUM_IR_BANDS] = 
           (float) ConversionUtility.GouldToNative(calBlock[calIndex]);
         calIndex++;
       }
 
       for (int i = 0; i < NUM_IR_BANDS; i++) {
-        irGainCoef[1][(i + 2) % NUM_IR_BANDS] = 
+        irGainCoef[1][(i + irOffset) % NUM_IR_BANDS] = 
           (float) ConversionUtility.GouldToNative(calBlock[calIndex]);
         calIndex++;
       }
@@ -282,6 +286,7 @@ public abstract class CalibratorGvar implements Calibrator {
   {
 
     float outputData = 0.0f;
+    //System.out.println("####  input pixel="+inputPixel);
 
     //System.out.println("####  cal band = "+band);
     //System.out.println("####  len lookup = "+lookupTable.length+" "+lookupTable[3].length);
@@ -296,8 +301,11 @@ public abstract class CalibratorGvar implements Calibrator {
         } else {
           gain = irGainCoef[0][band - 2];
           bias = irBiasCoef[0][band - 2];
+          //System.out.println("####  band="+band+"  gain="+gain+"  bias"+bias);
         }
         scale = 32;
+        gain = 5.2f;
+        bias = 68.f;
 
       } else {
         if (band == 19) {

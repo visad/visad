@@ -41,7 +41,6 @@ import edu.wisc.ssec.mcidas.AncillaryData;
  */
 
 public class CalibratorGvarG12 extends CalibratorGvar {
-  public int cnt;
 
   // the following static init block sets the class temp/rad constants
   protected static float [] imager12FK1  = {0.f, 0.20096E6f, 0.43702E5f, 0.96859E4f, 0.50471E4f};
@@ -99,8 +98,6 @@ public class CalibratorGvarG12 extends CalibratorGvar {
     throws IOException
   {
     super(dis, ad, cb);
-    System.out.println("####  G12 nitialized");
-    cnt = 0;
   }
 
 
@@ -123,7 +120,6 @@ public class CalibratorGvarG12 extends CalibratorGvar {
     double expn;
     double temp;
     float outVal;
-    System.out.println("####  inVal = "+inVal);
  
     if ((sId % 2) == 0) {
       expn = (imager12FK1[band - 1] / inVal) + 1.0;
@@ -136,8 +132,6 @@ public class CalibratorGvarG12 extends CalibratorGvar {
         ((temp - sounder12TC1[band - 1]) / sounder12TC2[band - 1]);
     }
  
-    cnt++;
-    if (cnt %100 == 0) System.out.println("####   in/out="+inVal+" "+outVal);
     return (outVal);
   }
  
