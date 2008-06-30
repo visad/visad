@@ -57,6 +57,7 @@ public class ContourControl extends Control {
   private boolean arithmeticProgression = true;
   // contour line levels
   private float[] levels = null;
+  private int lineStyle = GraphicsModeControl.SOLID_STYLE;
   private boolean dash = false;
 
   private boolean horizontalContourSlice;
@@ -679,6 +680,23 @@ public class ContourControl extends Control {
   public double getLabelSize() {
     return labelSizeFactor;
   }
+  
+  
+  /**
+   * Get the line style for this control.
+   * @return One of the line style constants from <code>GraphicsModeControl</code>.
+   */
+  public int getLineStyle() {
+	  return lineStyle;
+  }
+  
+  /**
+   * Set the line style.
+   * @param style One of the line style constants from <code>GraphicsModeControl</code>.
+   */
+  public void setLineStyle(int style) {
+	  lineStyle = style;
+  }
 
   /**
    * @return String representation of this ContourControl
@@ -998,6 +1016,7 @@ public class ContourControl extends Control {
     if (levels != null) {
       cc.levels = (float[] )levels.clone();
     }
+    cc.lineStyle = lineStyle;
 
     return cc;
   }

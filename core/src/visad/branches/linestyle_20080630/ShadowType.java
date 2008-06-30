@@ -2521,7 +2521,7 @@ System.out.println("vector earth_locs = " + earth_locs[0][0] + " " +
         }
       }
 
-      ((Gridded3DSet)spatial_set).setGeometryArray(arrays[kk],
+      Gridded3DSet.setGeometryArray(arrays[kk],
         spatial_set_vals, 4, intrp_color_values);
       arrays[kk] = (VisADLineArray) arrays[kk].removeMissing();
     }
@@ -3695,8 +3695,6 @@ try {
     if (spatialTuple != null) coord_sys = spatialTuple.getCoordinateSystem();
     domain_reference = Domain.getReference();
 
-
-    VisADGeometryArray[] arrays = null;
     for (int i=0; i<valueArrayLength; i++) {
       int displayScalarIndex = valueToScalar[i];
       DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
@@ -3710,16 +3708,20 @@ try {
           ((ScalarMap) MapVector.elementAt(valueToMap[i])).getControl();
         c_cntrl = control;
         
+        final int CONTOUR = 0; // contour enabled?
+        final int LABEL = 1; // labels enabled?
         boolean[] bvalues = new boolean[2];
+        final int LVL = 0; // contour level
         float[] fvalues = new float[5];
         control.getMainContours(bvalues, fvalues);
-        if (scale != scale) scale = control.getInitScale();
+        
+        if (scale != scale) scale = ContourControl.getInitScale();
         double label_size  = control.getLabelSize();
         if (spatialManifoldDimension == 3 ||
             spatialManifoldDimension == 2) {
           anyContourCreated = true;
         }
-        if (bvalues[0]) {
+        if (bvalues[CONTOUR]) {
           if (range_select[0] != null) {
             int len = range_select[0].length;
             if (len == 1 || display_values[i].length == 1) break;
@@ -3737,17 +3739,15 @@ try {
             }
           }
           if (spatialManifoldDimension == 3) {
-            if (fvalues[0] == fvalues[0]) {
+            if (fvalues[LVL] == fvalues[LVL]) {
               if (spatial_set != null) {
-                // System.out.println("makeIsoSurface at " + fvalues[0]);
-// System.out.println("start makeIsoSurface " + (System.currentTimeMillis() - Link.start_time));
                 if (isLinearContour3D) {
                   array =
-                    ((Linear3DSet) spatial_set).makeLinearIsoSurface(fvalues[0],
+                    ((Linear3DSet) spatial_set).makeLinearIsoSurface(fvalues[LVL],
                         display_values[i], color_values, indexed, spatial_maps, permute);
                 }
                 else {
-                  array = spatial_set.makeIsoSurface(fvalues[0],
+                  array = spatial_set.makeIsoSurface(fvalues[LVL],
                               display_values[i], color_values, indexed);
                 }
 
@@ -3761,17 +3761,21 @@ try {
                   }
                 }
 
-// System.out.println("end makeIsoSurface " + (System.currentTimeMillis() - Link.start_time));
-                // System.out.println("makeIsoSurface " + (array != null ? array.vertexCount : 0) );
-                shadow_api.addToGroup(group, array, mode,
-                                      constant_alpha, constant_color);
-// System.out.println("end addToGroup " + (System.currentTimeMillis() - Link.start_time));
+                // add all data to group
+                shadow_api.addToGroup(
+                	group, array, mode,
+                    constant_alpha, constant_color
+                );
                 array = null;
               }
               else if (coord_sys != null) { // missing spatials set as result of transform (coord_sys)
-                array = ((Gridded3DSet)domain_set).makeIsoSurfaceMissingSpatial(fvalues[0], display_values[i], color_values, 
-                                   indexed, Domain, domain_reference, domain_units, dataCoordinateSystem, coord_sys,
-                                   DomainReferenceComponents, spatialTuple, spatial_offset_values);
+                array = ((Gridded3DSet)domain_set).makeIsoSurfaceMissingSpatial(
+                	fvalues[LVL], display_values[i], color_values, 
+                    indexed, Domain, domain_reference, 
+                    domain_units, dataCoordinateSystem, 
+                    coord_sys, DomainReferenceComponents, 
+                    spatialTuple, spatial_offset_values
+                );
                 if (array != null) {
                   array = array.removeMissing();
                 }
@@ -3787,17 +3791,13 @@ try {
               control.setAutoScaleLabels(true);
               
               float[] lowhibase = new float[3];
-              boolean[] dashes  = {false};
-              float[] levs = control.getLevels(lowhibase, dashes);
+              boolean[] doStyle  = {false};
+              float[] levs = control.getLevels(lowhibase, doStyle);
 
               boolean fill = control.contourFilled();
               ScalarMap[] smap = new ScalarMap[2]; // changed to 2 to pass IsoContour Map to Set
               ScalarType sc = ((ScalarMap)MapVector.elementAt(valueToMap[i])).getScalar();
               if (fill) {
-                
-                // BMF 2006-10-17 need a clone to localize req. label params
-                mode = (GraphicsModeControl) mode.clone();
-                
                 for (int kk = 0; kk < MapVector.size(); kk++) {
                   ScalarMap sm = (ScalarMap)MapVector.elementAt(kk);
                   if (sm != null) {
@@ -3812,12 +3812,6 @@ try {
                   throw new DisplayException("IsoContour color-fill is enabled, so "+
                       sc+" must also be mapped to Display.RGB");
                 }
-                
-                // BMF 2006-10-05 set offset to make labels more clear.
-                // FIXME: There may be a better value to use here
-                mode.setPolygonOffsetFactor(10f, false);
-                mode.setPolygonOffset(1f, false);
-                
               } 
               
               // BMF 2006-10-04 get the IsoContour ScalarMap
@@ -3831,50 +3825,56 @@ try {
                 }
               }
               
+              // FIXME: return idicies back to original
               float[][][] f_array = new float[1][][];
+              final int UBASIC = 0; // styled line segments
+              final int SBASIC = 4; // unstyled line segments
+              final int FILL = 1; // label fill lines
+              final int LABELS = 2; // label lines
+              final int EXP = 3; // expanding line segments around labels
+              
               VisADGeometryArray[][] array_s =
                 spatial_set.makeIsoLines(levs, lowhibase[0], lowhibase[1],
                                          lowhibase[2], display_values[i],
-                                         color_values, swap, dashes[0],
+                                         color_values, swap, doStyle[0],
                                          fill, smap, scale, label_size, f_array);
-              
+
               if (array_s != null) {
                 if (!fill && getAdjustProjectionSeam()) {
-                  for (int j=0; j<2; j++) {
-                    if (array_s[j][0] != null) { //- lines, fill-lines
+                  for (int j=0; j<3; j++) { // - basic and fill lines
+                  	for (VisADGeometryArray arr : array_s[j]) {
+                  		try {
+	                  		arr = arr.adjustLongitude(renderer);
+	                  		arr = arr.adjustSeam(renderer);
+                  		} catch (Exception e) {
+                  			e.printStackTrace();
+                  		}
+                  	}
+                  }
+                  if (array_s.length > 3 && array_s[LABELS] != null) {
+                    for (int k=0; k<(array_s[LABELS].length)/2; k++) { //-labels, label anchor points
                       try {
-                        array_s[j][0] = ((VisADLineArray)array_s[j][0]).adjustLongitude(renderer);
-                        array_s[j][0] = ((VisADLineArray)array_s[j][0]).adjustSeam(renderer);
+                        array_s[LABELS][k*2] = array_s[LABELS][k*2].adjustLongitude(renderer);
+                        array_s[LABELS][k*2] = array_s[LABELS][k*2].adjustSeam(renderer);
+                        array_s[LABELS][k*2+1] = array_s[LABELS][k*2+1].adjustLongitude(renderer);
+                        array_s[LABELS][k*2+1] = array_s[LABELS][k*2+1].adjustSeam(renderer);
                       }
                       catch (Exception e) {
                         e.printStackTrace();
                       }
                     }
                   }
-                  if (array_s.length > 2 && array_s[2] != null) {
-                    for (int k=0; k<(array_s[2].length)/2; k++) { //-labels, label anchor points
+                  if (array_s.length > 4 && array_s[EXP] != null) {
+                    for (int k=0; k<(array_s[EXP].length)/4; k++) { //- left/right expanding segments
                       try {
-                        array_s[2][k*2] = array_s[2][k*2].adjustLongitude(renderer);
-                        array_s[2][k*2] = array_s[2][k*2].adjustSeam(renderer);
-                        array_s[2][k*2+1] = array_s[2][k*2+1].adjustLongitude(renderer);
-                        array_s[2][k*2+1] = array_s[2][k*2+1].adjustSeam(renderer);
-                      }
-                      catch (Exception e) {
-                        e.printStackTrace();
-                      }
-                    }
-                  }
-                  if (array_s.length > 3 && array_s[3] != null) {
-                    for (int k=0; k<(array_s[3].length)/4; k++) { //- left/right expanding segments
-                      try {
-                        array_s[3][k*4] = array_s[3][k*4].adjustLongitude(renderer);
-                        array_s[3][k*4] = array_s[3][k*4].adjustSeam(renderer);
-                        array_s[3][k*4+1] = array_s[3][k*4+1].adjustLongitude(renderer);
-                        array_s[3][k*4+1] = array_s[3][k*4+1].adjustSeam(renderer);
-                        array_s[3][k*4+2] = array_s[3][k*4+2].adjustLongitude(renderer);
-                        array_s[3][k*4+2] = array_s[3][k*4+2].adjustSeam(renderer);
-                        array_s[3][k*4+3] = array_s[3][k*4+3].adjustLongitude(renderer);
-                        array_s[3][k*4+3] = array_s[3][k*4+3].adjustSeam(renderer);
+                        array_s[EXP][k*4] = array_s[EXP][k*4].adjustLongitude(renderer);
+                        array_s[EXP][k*4] = array_s[EXP][k*4].adjustSeam(renderer);
+                        array_s[EXP][k*4+1] = array_s[EXP][k*4+1].adjustLongitude(renderer);
+                        array_s[EXP][k*4+1] = array_s[EXP][k*4+1].adjustSeam(renderer);
+                        array_s[EXP][k*4+2] = array_s[EXP][k*4+2].adjustLongitude(renderer);
+                        array_s[EXP][k*4+2] = array_s[EXP][k*4+2].adjustSeam(renderer);
+                        array_s[EXP][k*4+3] = array_s[EXP][k*4+3].adjustLongitude(renderer);
+                        array_s[EXP][k*4+3] = array_s[EXP][k*4+3].adjustSeam(renderer);
                       }
                       catch (Exception e) {
                         e.printStackTrace();
@@ -3883,32 +3883,58 @@ try {
                   }
                 }
   
-                if (array_s.length > 0 && array_s[0][0] != null &&
-                    array_s[0][0].vertexCount > 0)
-                {
+                if (array_s.length > 0 && array_s[UBASIC].length > 0) {
 
-                  if (fill) shadow_api.adjustZ(array_s[0][0].coordinates);
-                  shadow_api.addToGroup(group, array_s[0][0], mode,
-                                        constant_alpha, constant_color);
+                  GraphicsModeControl labelMode = (GraphicsModeControl) mode.clone();
+            	    labelMode.setLineStyle(GraphicsModeControl.SOLID_STYLE, false);
+            	    
+            	    GraphicsModeControl styledMode = (GraphicsModeControl) mode.clone();
+            	    control.setLineStyle(GraphicsModeControl.DASH_DOT_STYLE); // XXX
+            	    styledMode.setLineStyle(control.getLineStyle(), false);
+            	  
+                  if (fill) {
+                    // BMF set offset to make labels more clear.
+                    // FIXME: There may be a better value to use here
+                	  labelMode.setPolygonOffsetFactor(10f, false);
+                	  labelMode.setPolygonOffset(1f, false);
+                	  // make adjustment for all basic lines
+                	  for (int b = 0; b < 2; i++) {
+	                	  for (VisADGeometryArray arr : array_s[b]) {
+	                	  	if (arr == null) continue;
+	                	  	shadow_api.adjustZ(arr.coordinates);
+	                	  }
+                	  }
+                  }
                   
-                  array_s[0][0] = null;
+                  // add unstyled lines
+                  for (VisADGeometryArray arr : array_s[UBASIC]) {
+                  	if (arr == null) continue;
+                  	shadow_api.addToGroup(group, arr, mode,
+                  			constant_alpha, constant_color);
+                  }
+                  
+                  // add styled lines
+                  for (VisADGeometryArray arr : array_s[SBASIC]) {
+                  	if (arr == null) continue;
+                  	shadow_api.addToGroup(group, arr, styledMode,
+                  			constant_alpha, constant_color);
+                  }
                   
                   // BMF 2006-10-05 add labels for filled contours
-                  if (bvalues[1] && array_s[2] != null)
-                  {
-                    // draw labels using cloned GMC with poly offsets
-                    shadow_api.addLabelsToGroup(group, array_s, mode, control,
+                  if (bvalues[LABEL] && array_s[LABELS] != null) {
+                    shadow_api.addLabelsToGroup(group, array_s, labelMode, control,
                                                 p_cntrl, cnt, constant_alpha,
                                                 constant_color, f_array);
-                    array_s[2] = null;
-                  }
-                  else if ((!bvalues[1]) && array_s[1] != null)
-                  {
+                    array_s[LABELS] = null;
+                    
+                  } else if (!bvalues[LABEL] && array_s[FILL] != null) {
                     // fill in contour lines in place of labels
-                    array = array_s[1][0];
-                    shadow_api.addToGroup(group, array_s[1][0], mode,
-                                        constant_alpha, constant_color);
-                    array_s[1][0] = null;
+                    array = array_s[FILL][0];
+                    shadow_api.addToGroup(
+                    	group, array_s[FILL][0], mode,
+                        constant_alpha, constant_color
+                    );
+                    array_s[FILL][0] = null;
                   }
                   // BMF
                   array_s = null;
@@ -3917,7 +3943,7 @@ try {
             } // end if (spatial_set != null)
             // anyContourCreated = true;
           } // end if (spatialManifoldDimension == 2)
-        } // end if (bvalues[0])
+        } // end if (bvalues[CONTOUR])
       } // end if (real.equals(Display.IsoContour) && not inherited)
     } // end for (int i=0; i<valueArrayLength; i++)
 

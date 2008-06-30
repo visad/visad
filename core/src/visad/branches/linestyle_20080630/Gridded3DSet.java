@@ -26,8 +26,11 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.io.*;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.List;
 
 
 /**
@@ -2009,6 +2012,48 @@ public class Gridded3DSet extends GriddedSet {
     }
     return new float[] {gx, gy, gz};
   }
+  
+  /**
+   * Make the <code>VisADLineStripArray</code>s for the basic lines.
+   * @param o Output from <code>Contour2D.contour</code>.
+   * @param lvlCnt Number of levels.
+   * @return Unstyled lines at index 0, styled at index 1. Never null, but may
+   * 	be empty.
+   * @throws VisADException
+   */
+  private VisADLineStripArray[][] makeBasicLineStripArrays(
+  		Contour2D.ContourOutput o) throws VisADException {
+  	
+  	List<VisADLineStripArray> styled = new ArrayList<VisADLineStripArray>();
+  	List<VisADLineStripArray> unstyled = new ArrayList<VisADLineStripArray>();
+  	List<float[][]> lvlGrids = null;
+  	List<byte[][]> lvlColors = null;
+  	
+  	for (int lvlIdx = 0; lvlIdx < o.getIntervalCount(); lvlIdx++) {
+  		lvlGrids = o.getLineStripCoordinates(lvlIdx);
+			lvlColors = o.getLineStripColors(lvlIdx);
+			boolean styleFlag = o.isLineStyled(lvlIdx);
+		
+			for (int gridIdx = 0; gridIdx < lvlGrids.size(); gridIdx++) {
+				byte[][] colors = lvlColors.get(gridIdx);
+				float[][] grid = lvlGrids.get(gridIdx);
+				VisADLineStripArray arr = new VisADLineStripArray();
+				arr.stripVertexCounts = new int[]{grid[0].length};
+				
+				setGeometryArray(arr, gridToValue(grid), colors.length, colors);
+				if (styleFlag) {
+					styled.add(arr);
+				} else {
+					unstyled.add(arr);
+				}
+			}
+  	}
+  	
+  	return new VisADLineStripArray[][]{
+  			unstyled.toArray(new VisADLineStripArray[0]),
+  			styled.toArray(new VisADLineStripArray[0])
+  	};
+  }
 
   /* (non-Javadoc)
    * @see visad.Set#makeIsoLines(float[], float, float, float, float[], byte[][], boolean[], boolean, boolean, visad.ScalarMap[], double, double, float[][][])
@@ -2038,17 +2083,6 @@ public class Gridded3DSet extends GriddedSet {
 
     double scale_ratio = scale/0.5169703885552809;
 
-    // these are just estimates
-    // int est = 2 * Length; WLH 14 April 2000
-    double dest = Math.sqrt((double) Length);
-    int est = (int) (dest * Math.sqrt(dest));
-    if (est < 1000) est = 1000;
-    int maxv2 = est;
-    int maxv1 = 2 * 2 * maxv2;
-    // maxv3 and maxv4 should be equal
-    int maxv3 = est;
-    int maxv4 = maxv3;
-
 /* memory use for temporaries, in bytes (for est = 2 * Length):
 12 * color_length * Length +
 64 * Length +
@@ -2057,34 +2091,6 @@ public class Gridded3DSet extends GriddedSet {
 for color_length = 3 this is 148 * Length
 */
     int color_length = (color_values != null) ? color_values.length : 0;
-    byte[][] color_levels1 = null;
-    byte[][] color_levels2 = null;
-    byte[][] color_levels3 = null;
-    if (color_length > 0) {
-      color_levels1 = new byte[color_length][maxv1];
-      color_levels2 = new byte[color_length][maxv2];
-      color_levels3 = new byte[color_length][maxv3];
-    }
-    float[][] vx1 = new float[1][maxv1];
-    float[][] vy1 = new float[1][maxv1];
-    float[][] vz1 = new float[1][maxv1];
-    float[][] vx2 = new float[1][maxv2];
-    float[][] vy2 = new float[1][maxv2];
-    float[][] vz2 = new float[1][maxv2];
-    float[][] vx3 = new float[1][maxv3];
-    float[][] vy3 = new float[1][maxv3];
-    float[][] vz3 = new float[1][maxv3];
-    float[][] vx4 = new float[1][maxv4];
-    float[][] vy4 = new float[1][maxv4];
-    float[][] vz4 = new float[1][maxv4];
-    int[] numv1 = new int[1];
-    int[] numv2 = new int[1];
-    int[] numv3 = new int[1];
-    int[] numv4 = new int[1];
-
-    float[][] tri            = new float[2][];
-    float[][] tri_normals    = new float[1][];
-    byte[][]  tri_color      = new byte[color_length][];
     float[][][] grd_normals  = null;
     if (intervals == null) {
       return null;
@@ -2168,90 +2174,41 @@ for color_length = 3 this is 148 * Length
         }
       }
     }
-
-    float[][][][] lbl_vv     = new float[4][][][];
-    byte[][][][]  lbl_cc     = new byte[4][][][];
-    float[][][]   lbl_loc    = new float[3][][];
   
     // BMF 2006-10-10 get label color from control for Contour2D.contour(...)
     ContourControl ctrl = (ContourControl)smap[1].getControl();
     byte[] labelColor = ctrl.getLabelColor();
     
-    Contour2D.contour( g, nr, nc, intervals, lowlimit, highlimit, base, dash,
-                      vx1, vy1, vz1, maxv1, numv1, vx2, vy2, vz2, maxv2, numv2,
-                      vx3, vy3, vz3, maxv3, numv3, vx4, vy4, vz4, maxv4, numv4,
-                      color_values, color_levels1, color_levels2,
-                      color_levels3, swap,
-                      fill, tri, tri_color, grd_normals, tri_normals,
-                      interval_colors, lbl_vv, lbl_cc, lbl_loc, scale_ratio, 
-                      label_size, labelColor,
-                      this);
+    Contour2D.ContourOutput contour = Contour2D.contour(
+    		g, nr, nc, intervals, lowlimit, highlimit, base, dash,
+        color_values, swap, fill, grd_normals, 
+        interval_colors,
+        scale_ratio, label_size, labelColor, this);
 
-    // since we now use the lbl_ arrays for labels, we'll null out these
-    // so they can get garbage collected.
-    vx3 = null;
-    vy3 = null;
-    vz3 = null;
-    vx4 = null;
-    vy4 = null;
-    vz4 = null;
+    int cnt = contour.fillXCoords.length;
+    float[][] grid2 = new float[3][cnt];
+    System.arraycopy(contour.fillXCoords, 0, grid2[0], 0, cnt);
+    System.arraycopy(contour.fillYCoords, 0, grid2[1], 0, cnt);
+    System.arraycopy(contour.fillZCoords, 0, grid2[2], 0, cnt);
 
-    float[][] grid1 = new float[3][numv1[0]];
-    System.arraycopy(vx1[0], 0, grid1[0], 0, numv1[0]);
-    vx1 = null;
-    System.arraycopy(vy1[0], 0, grid1[1], 0, numv1[0]);
-    vy1 = null;
-    System.arraycopy(vz1[0], 0, grid1[2], 0, numv1[0]);
-    vz1 = null;
-
-    if (color_length > 0) {
-      byte[][] a = new byte[color_length][numv1[0]];
-      for (int i=0; i<color_length; i++) {
-        System.arraycopy(color_levels1[i], 0, a[i], 0, numv1[0]);
-      }
-      color_levels1 = a;
-    }
-
-    float[][] grid2 = new float[3][numv2[0]];
-    System.arraycopy(vx2[0], 0, grid2[0], 0, numv2[0]);
-    vx2 = null;
-    System.arraycopy(vy2[0], 0, grid2[1], 0, numv2[0]);
-    vy2 = null;
-    System.arraycopy(vz2[0], 0, grid2[2], 0, numv2[0]);
-    vz2 = null;
-
-    if (color_length > 0) {
-      byte[][] a = new byte[color_length][numv2[0]];
-      for (int i=0; i<color_length; i++) {
-        System.arraycopy(color_levels2[i], 0, a[i], 0, numv2[0]);
-      }
-      color_levels2 = a;
-    }
-
-    int n_labels = lbl_loc[0].length;
+    int n_labels = contour.labelLocations[0].length;
 
     f_array[0] = new float[n_labels][4];
+    
+    
+    VisADGeometryArray[][] basicLines = makeBasicLineStripArrays(contour);
+    VisADGeometryArray[] fillLines = new VisADLineArray[]{new VisADLineArray()};
+    VisADGeometryArray[] labelLines = new VisADLineArray[n_labels*2];
+    VisADGeometryArray[] expLines = new VisADLineArray[n_labels*4];
 
-    VisADLineArray[][] arrays = new VisADLineArray[4][];
-    arrays[0] = new VisADLineArray[1];
-    arrays[1] = new VisADLineArray[1];
-
-    arrays[0][0] = new VisADLineArray();
-    setGeometryArray(arrays[0][0], grid1, 4, color_levels1);
-    grid1 = null;
-
-    arrays[1][0] = new VisADLineArray();
-    setGeometryArray(arrays[1][0], grid2, 4, color_levels2);
-    grid2 = null;
-
-    arrays[2] = new VisADLineArray[n_labels*2];
-    arrays[3] = new VisADLineArray[n_labels*4];
+    setGeometryArray(fillLines[0], grid2, 4, contour.fillColors);
+    
     for (int kk = 0; kk < n_labels; kk++) {
 
-      f_array[0][kk][0] = lbl_loc[0][kk][3];
-      f_array[0][kk][1] = lbl_loc[0][kk][4];
-      f_array[0][kk][2] = lbl_loc[0][kk][5];
-      f_array[0][kk][3] = lbl_loc[0][kk][6];
+      f_array[0][kk][0] = contour.labelLocations[0][kk][3];
+      f_array[0][kk][1] = contour.labelLocations[0][kk][4];
+      f_array[0][kk][2] = contour.labelLocations[0][kk][5];
+      f_array[0][kk][3] = contour.labelLocations[0][kk][6];
 
       // temporary label orientation hack
       // TO_DO - eventually return all 4 label orientations
@@ -2261,31 +2218,24 @@ for color_length = 3 this is 148 * Length
       float[] vx = null;
       float[] vy = null;
       if (backwards) {
-        //vy = vy4[0];
-        vy = lbl_vv[1][kk][1];
+        vy = contour.labelVV[1][kk][1];
       }
       else {
-        //vy = vy3[0];
-        vy = lbl_vv[0][kk][1];
+        vy = contour.labelVV[0][kk][1];
       }
-      vy3 = null;
-      vy4 = null;
       if (upsidedown) {
-        //vx = vx4[0];
-        vx = lbl_vv[1][kk][0];
+        vx = contour.labelVV[1][kk][0];
       }
       else {
-        //vx = vx3[0];
-        vx = lbl_vv[0][kk][0];
+        vx = contour.labelVV[0][kk][0];
       }
-      //vx3 = null;
-      //vx4 = null;
+      
       int num = vx.length;
 
       float[][] grid_label = new float[3][num];
       System.arraycopy(vx, 0, grid_label[0], 0, num);
       System.arraycopy(vy, 0, grid_label[1], 0, num);
-      System.arraycopy(lbl_vv[0][kk][2], 0, grid_label[2], 0, num);
+      System.arraycopy(contour.labelVV[0][kk][2], 0, grid_label[2], 0, num);
 
       // WLH 5 Nov 98
       vx = null;
@@ -2293,101 +2243,85 @@ for color_length = 3 this is 148 * Length
 
       byte[][] segL_color = null;
       byte[][] segR_color = null;
+      byte[][] a = null;
       if (color_length > 0) {
-        byte[][] a = new byte[color_length][num];
+        a = new byte[color_length][num];
         segL_color = new byte[color_length][2];
         segR_color = new byte[color_length][2];
         for (int i=0; i<color_length; i++) {
-          System.arraycopy(lbl_cc[0][kk][i], 0, a[i], 0, num);
-          System.arraycopy(lbl_cc[2][kk][i], 0, segL_color[i], 0, 2);
-          System.arraycopy(lbl_cc[3][kk][i], 0, segR_color[i], 0, 2);
+          System.arraycopy(contour.labelCC[0][kk][i], 0, a[i], 0, num);
+          System.arraycopy(contour.labelCC[2][kk][i], 0, segL_color[i], 0, 2);
+          System.arraycopy(contour.labelCC[3][kk][i], 0, segR_color[i], 0, 2);
         }
-        color_levels3 = a;
       }
 
-      arrays[2][kk*2] = new VisADLineArray();
-      arrays[2][kk*2+1] = new VisADLineArray();
-      setGeometryArray(arrays[2][kk*2], grid_label, 4, color_levels3);
+      labelLines[kk*2] = new VisADLineArray();
+      labelLines[kk*2+1] = new VisADLineArray();
+      setGeometryArray(labelLines[kk*2], grid_label, 4, contour.labelColors);
       grid_label = null;
 
       float[][] loc = new float[3][1];
-      loc[0][0] = lbl_loc[0][kk][0];
-      loc[1][0] = lbl_loc[0][kk][1];
-      loc[2][0] = lbl_loc[0][kk][2];
-      setGeometryArray(arrays[2][kk*2+1], loc, 4, null);
+      loc[0][0] = contour.labelLocations[0][kk][0];
+      loc[1][0] = contour.labelLocations[0][kk][1];
+      loc[2][0] = contour.labelLocations[0][kk][2];
+      setGeometryArray(labelLines[kk*2+1], loc, 4, null);
 
-      arrays[3][kk*4] = new VisADLineArray();
-      arrays[3][kk*4+1] = new VisADLineArray();
-      arrays[3][kk*4+2] = new VisADLineArray();
-      arrays[3][kk*4+3] = new VisADLineArray();
+      expLines[kk*4] = new VisADLineArray();
+      expLines[kk*4+1] = new VisADLineArray();
+      expLines[kk*4+2] = new VisADLineArray();
+      expLines[kk*4+3] = new VisADLineArray();
 
       float[][] segL = new float[3][2];
-      segL[0][0]     = lbl_vv[2][kk][0][0];
-      segL[1][0]     = lbl_vv[2][kk][1][0];
-      segL[2][0]     = lbl_vv[2][kk][2][0];
-      segL[0][1]     = lbl_vv[2][kk][0][1];
-      segL[1][1]     = lbl_vv[2][kk][1][1];
-      segL[2][1]     = lbl_vv[2][kk][2][1];
-      setGeometryArray(arrays[3][kk*4], segL, 4, segL_color);
+      segL[0][0]     = contour.labelVV[2][kk][0][0];
+      segL[1][0]     = contour.labelVV[2][kk][1][0];
+      segL[2][0]     = contour.labelVV[2][kk][2][0];
+      segL[0][1]     = contour.labelVV[2][kk][0][1];
+      segL[1][1]     = contour.labelVV[2][kk][1][1];
+      segL[2][1]     = contour.labelVV[2][kk][2][1];
+      setGeometryArray(expLines[kk*4], segL, 4, segL_color);
 
-      loc[0][0]      = lbl_loc[1][kk][0];
-      loc[1][0]      = lbl_loc[1][kk][1];
-      loc[2][0]      = lbl_loc[1][kk][2];
-      setGeometryArray(arrays[3][kk*4+1], loc, 4, null);
+      loc[0][0]      = contour.labelLocations[1][kk][0];
+      loc[1][0]      = contour.labelLocations[1][kk][1];
+      loc[2][0]      = contour.labelLocations[1][kk][2];
+      setGeometryArray(expLines[kk*4+1], loc, 4, null);
 
       float[][] segR = new float[3][2];
-      segR[0][0]     = lbl_vv[3][kk][0][0];
-      segR[1][0]     = lbl_vv[3][kk][1][0];
-      segR[2][0]     = lbl_vv[3][kk][2][0];
-      segR[0][1]     = lbl_vv[3][kk][0][1];
-      segR[1][1]     = lbl_vv[3][kk][1][1];
-      segR[2][1]     = lbl_vv[3][kk][2][1];
-      setGeometryArray(arrays[3][kk*4+2], segR, 4, segR_color);
+      segR[0][0]     = contour.labelVV[3][kk][0][0];
+      segR[1][0]     = contour.labelVV[3][kk][1][0];
+      segR[2][0]     = contour.labelVV[3][kk][2][0];
+      segR[0][1]     = contour.labelVV[3][kk][0][1];
+      segR[1][1]     = contour.labelVV[3][kk][1][1];
+      segR[2][1]     = contour.labelVV[3][kk][2][1];
+      setGeometryArray(expLines[kk*4+2], segR, 4, segR_color);
 
-
-      loc[0][0]      = lbl_loc[2][kk][0];
-      loc[1][0]      = lbl_loc[2][kk][1];
-      loc[2][0]      = lbl_loc[2][kk][2];
-      setGeometryArray(arrays[3][kk*4+3], loc, 4, null);
+      loc[0][0]      = contour.labelLocations[2][kk][0];
+      loc[1][0]      = contour.labelLocations[2][kk][1];
+      loc[2][0]      = contour.labelLocations[2][kk][2];
+      setGeometryArray(expLines[kk*4+3], loc, 4, null);
     }
     
-    // BMF 2006-10-10 moved from above to ensure lable code runs
     if (fill) {
-      
-      // null out all these arrays since they are for non-fill contours.
-      color_levels1 = null;
-      color_levels2 = null;
-      color_levels3 = null;
-      vx1 = null;
-      vy1 = null;
-      vz1 = null;
-      vx2 = null;
-      vy2 = null;
-      vz2 = null;
-      vx3 = null;
-      vy3 = null;
-      vz3 = null;
-      vx4 = null;
-      vy4 = null;
-      vz4 = null;
-      numv1 = null;
-      numv2 = null;
-      numv3 = null;
-      numv4 = null;
       
       VisADGeometryArray[][] tri_array = new VisADGeometryArray[4][];
       tri_array[0] = new VisADGeometryArray[1];
       tri_array[0][0] = new VisADTriangleArray();
-      tri_array[0][0].normals = tri_normals[0];
-      setGeometryArray(tri_array[0][0], gridToValue(tri), 4, tri_color);
+      tri_array[0][0].normals = contour.triangleNormals[0];
+      setGeometryArray(tri_array[0][0], gridToValue(contour.triangleCoords), 4, contour.triangleColors);
       
-      // FIXME:BMF is setGeometryArray(...) required?
-      tri_array[2] = arrays[2];
-//      tri_array[3] = arrays[3];
+      tri_array[1] = fillLines;
+      tri_array[2] = labelLines;
       tri_array[3] = null;      
       return tri_array;
       
-    } else return arrays;
+    }
+    
+    return new VisADGeometryArray[][]{
+    		basicLines[0],
+    		fillLines,
+    		labelLines,
+    		expLines,
+    		basicLines[1]
+    };
   }
 
   public float[][] getNormals(float[][] grid)

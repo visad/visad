@@ -30,6 +30,9 @@ package visad;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Vector;
+
+import visad.util.Trace;
 
 
 /**
@@ -68,13 +71,13 @@ public class Contour2D {
 
   /**           */
   public static final float DIMENSION_THRESHOLD = 5.0E5f;
-
+  
   /**
    * Compute contour lines for a 2-D array.  If the interval is negative,
    * then contour lines less than base will be drawn as dashed lines.
-   * The contour lines will be computed for all V such that:<br>
-   *           lowlimit <= V <= highlimit<br>
-   *     and   V = base + n*interval  for some integer n<br>
+   * The contour lines will be computed for all V such that:
+   * <pre>lowlimit <= V <= highlimit</pre> and
+   * <pre>V = base + n*interval  for some integer n</pre>
    * Note that the input array, g, should be in column-major (FORTRAN) order.
    *
    * @param    g         the 2-D array to contour.
@@ -105,20 +108,20 @@ public class Contour2D {
    * @param vz4 
    * @param    maxv4     size of vx4, vy4 arrays
    * @param    numv4     pointer to int to return number of vertices in vx4,vy4
-   * @param auxValues 
-   * @param auxLevels1 
-   * @param auxLevels2 
-   * @param auxLevels3 
-   * @param swap 
-   * @param fill 
+   * @param auxValues 	 colors corresponding to grid points
+   * @param auxLevels1   colors corresponding to interpolated points for basic lines
+   * @param auxLevels2   colors corresponding to interpolated points for fill lines
+   * @param auxLevels3   colors corresponding to interpolated points for expanding label lines
+   * @param swap        
+   * @param fill 		true if filling contours
    * @param tri 
    * @param tri_color 
    * @param grd_normals 
    * @param tri_normals 
    * @param interval_colors 
-   * @param lbl_vv 
-   * @param lbl_cc 
-   * @param lbl_loc 
+   * @param lbl_vv     values for label line segments
+   * @param lbl_cc     label color triples
+   * @param lbl_loc    center points for label locations
    * @param scale_ratio 
    * @param label_size 
    * @param labelColor 
@@ -149,13 +152,10 @@ public class Contour2D {
                                          dashes);
     boolean dash = dashes[0];
 
-    contour(
-      g, nr, nc, intervals, lowlimit, highlimit, base, dash, vx1, vy1, vz1,
-      maxv1, numv1, vx2, vy2, vz2, maxv2, numv2, vx3, vy3, vz3, maxv3, numv3,
-      vx4, vy4, vz4, maxv4, numv4, auxValues, auxLevels1, auxLevels2,
-      auxLevels3, swap, fill, tri, tri_color, grd_normals, tri_normals,
-      interval_colors, lbl_vv, lbl_cc, lbl_loc, scale_ratio, label_size,
-      labelColor, spatial_set);
+    contour(g, nr, nc, intervals, lowlimit, highlimit, base, dash, auxValues, 
+    	swap, fill, grd_normals, interval_colors, scale_ratio, label_size,
+      labelColor, spatial_set
+    );
   }
 
   /**
@@ -233,98 +233,14 @@ public class Contour2D {
   /**           */
   public static boolean TRUEVALUE = true;
 
-  /**
-   * Compute contour lines for a 2-D array.  If the interval is negative,
-   * then contour lines less than base will be drawn as dashed lines.
-   * The contour lines will be computed for all V such that:<br>
-   *           lowlimit <= V <= highlimit<br>
-   *     and   V = base + n*interval  for some integer n<br>
-   * Note that the input array, g, should be in column-major (FORTRAN) order.
-   *
-   * @param g         the 2-D array to contour.
-   * @param nr        size of 2-D array in rows
-   * @param nc        size of 2-D array in columns.
-   * @param values    the values to be plotted
-   * @param lowlimit  the lower limit on values to contour.
-   * @param highlimit the upper limit on values to contour.
-   * @param base      base value to start contouring at.
-   * @param dash      boolean to dash contours below base or not
-   * @param vx1       array to put contour line vertices (x value)
-   * @param vy1       array to put contour line vertices (y value)
-   * @param vz1
-   * @param maxv1     size of vx1, vy1 arrays
-   * @param numv1     pointer to int to return number of vertices in vx1,vy1
-   * @param vx2       array to put 'hidden' contour line vertices (x value)
-   * @param vy2       array to put 'hidden' contour line vertices (y value)
-   * @param vz2
-   * @param maxv2     size of vx2, vy2 arrays
-   * @param numv2     pointer to int to return number of vertices in vx2,vy2
-   * @param vx3       array to put contour label vertices (x value)
-   * @param vy3       array to put contour label vertices (y value)
-   * @param vz3
-   * @param maxv3     size of vx3, vy3 arrays
-   * @param numv3     pointer to int to return number of vertices in vx3,vy3
-   * @param vx4       array to put contour label vertices, inverted (x value)
-   * @param vy4       array to put contour label vertices, inverted (y value)
-   *                     <br>** see note for VxB and VyB in PlotDigits.java 
-   * @param vz4
-   * @param maxv4     size of vx4, vy4 arrays
-   * @param numv4     pointer to int to return number of vertices in vx4,vy4
-   * @param auxValues
-   * @param auxLevels1
-   * @param auxLevels2
-   * @param auxLevels3
-   * @param swap
-   * @param fill
-   * @param tri
-   * @param tri_color
-   * @param grd_normals
-   * @param tri_normals
-   * @param interval_colors
-   * @param lbl_vv
-   * @param lbl_cc
-   * @param lbl_loc
-   * @param scale_ratio
-   * @param label_size
-   * @param labelColor RGB label color byte array
-   * @param spatial_set
-   * @throws VisADException
-   */
-  public static void contour(float g[], int nr, int nc, float[] values,
-                             float lowlimit, float highlimit, float base,
-                             boolean dash, float vx1[][], float vy1[][],
-                             float[][] vz1, int maxv1, int[] numv1,
-                             float vx2[][], float vy2[][], float[][] vz2,
-                             int maxv2, int[] numv2, float vx3[][],
-                             float vy3[][], float[][] vz3, int maxv3,
-                             int[] numv3, float vx4[][], float vy4[][],
-                             float[][] vz4, int maxv4, int[] numv4,
-                             byte[][] auxValues, byte[][] auxLevels1,
-                             byte[][] auxLevels2, byte[][] auxLevels3,
-                             boolean[] swap, boolean fill, float[][] tri,
-                             byte[][] tri_color, float[][][] grd_normals,
-                             float[][] tri_normals, byte[][] interval_colors,
-                             float[][][][] lbl_vv, byte[][][][] lbl_cc,
-                             float[][][] lbl_loc, double scale_ratio,
-                             double label_size, byte[] labelColor,
-                             Gridded3DSet spatial_set)
-          throws VisADException {
+  
+  public static ContourOutput contour(float g[], int nr, int nc, float[] values,
+      float lowlimit, float highlimit, float base, boolean dash, byte[][] auxValues, 
+      boolean[] swap, boolean fill, float[][][] grd_normals, byte[][] interval_colors, 
+      double scale_ratio, double label_size, byte[] labelColor, 
+      Gridded3DSet spatial_set) throws VisADException {
 
-
-
-/*
-System.out.println("interval = " + values[0] + " lowlimit = " + lowlimit +
-                   " highlimit = " + highlimit + " base = " + base);
-boolean any = false;
-boolean anymissing = false;
-boolean anynotmissing = false;
-*/
-
-//System.out.println("contour: swap = " + swap[0] + " " + swap[1] + " " + swap[2]);
-
-    dash = (fill == true)
-           ? false
-           : dash;
+    dash = fill ? false : dash;
     PlotDigits plot = new PlotDigits();
     int ir, ic;
     int nrm, ncm;
@@ -334,17 +250,50 @@ boolean anynotmissing = false;
     float xdd, ydd;
 //  float clow, chi;
     float gg;
+
+    // these are just estimates
+    // int est = 2 * Length; WLH 14 April 2000
+    double dest = Math.sqrt((double) spatial_set.getLength());
+    int est = (int) (dest * Math.sqrt(dest));
+    if (est < 1000) est = 1000;
+    int maxv2 = est;
+    int maxv1 = 2 * 2 * maxv2;
+    // maxv3 and maxv4 should be equal
+    int maxv3 = est;
+    int maxv4 = maxv3;
     int maxsize = maxv1 + maxv2;
+    
+    // setup colors arrays
+    int color_length = (auxValues != null) ? auxValues.length : 0;
+    byte[][] auxLevels1 = null;
+    byte[][] auxLevels2 = null;
+    byte[][] auxLevels3 = null;
+    if (color_length > 0) {
+    	auxLevels1 = new byte[color_length][maxv1];
+    	auxLevels2 = new byte[color_length][maxv2];
+    	auxLevels3 = new byte[color_length][maxv3];
+    }
+    
+    // setup display coordinate arrays
     float[] vx = new float[maxsize];
     float[] vy = new float[maxsize];
+    float[] vx1 = new float[maxv1];
+    float[] vy1 = new float[maxv1];
+    float[] vz1 = new float[maxv1];
+    float[] vx2 = new float[maxv2];
+    float[] vy2 = new float[maxv2];
+    float[] vz2 = new float[maxv2];
+    float[] vx3 = new float[maxv3];
+    float[] vy3 = new float[maxv3];
+    float[] vz3 = new float[maxv3];
+    float[] vx4 = new float[maxv4];
+    float[] vy4 = new float[maxv4];
+    float[] vz4 = new float[maxv4];
 
-    // WLH 21 April 2000
-    // int[] ipnt = new int[2*maxsize];
-
-    //JDM: we're not using this right now    
-    //int[] ipnt = new int[nr*nc+4];
-
-
+    float[][] tri            = new float[2][];
+    float[][] tri_normals    = new float[1][];
+    byte[][]  tri_color      = new byte[color_length][];
+    
     int nump, ip;
     int numv;
 
@@ -356,12 +305,14 @@ boolean anynotmissing = false;
       if (g[i] < minValue) minValue = g[i];
     }
 
+
+    
 /* DRM 1999-05-18, CTR 29 Jul 1999: values could be null */
     float[] myvals = null;
     boolean debug = false;
     if (values != null && 
        (minValue < maxValue) /* grid was not all missing */) {
-      myvals = (float[])values.clone();
+      myvals = (float[]) values.clone();
 
       //Sort the values. Get the original indidices
       int[] indices = QuickSort.sort(myvals);
@@ -437,7 +388,7 @@ boolean anynotmissing = false;
     int hi;
 
     int t;
-
+    
     byte[][] auxLevels = null;
     int naux = (auxValues != null)
                ? auxValues.length
@@ -473,15 +424,15 @@ boolean anynotmissing = false;
     }
 
     // initialize vertex counts
-    numv1[0] = 0;
-    numv2[0] = 0;
-    numv3[0] = 0;
-    numv4[0] = 0;
+    int[] numv1 = new int[]{0};
+    int[] numv2 = new int[]{0};
+    int[] numv3 = new int[]{0};
+    int[] numv4 = new int[]{0};
 
-    if (values == null) return; // WLH 24 Aug 99
+    if (values == null) return null; // WLH 24 Aug 99
 
     //JDM: if we have no values then return
-    if (myvals == null || myvals.length == 0) return;
+    if (myvals == null || myvals.length == 0) return null;
 
     // flags for each level indicating dashed rendering
     boolean[] dashFlags = new boolean[myvals.length];
@@ -586,7 +537,8 @@ boolean anynotmissing = false;
 
 
     //- estimate contour difficutly
-    visad.util.Trace.call1("Contour2d.calculating difficulty");
+//    Trace.startTrace();
+    Trace.call1("Contour2d.calculating difficulty");
     float left_diff=0;
     float rght_diff=0;
     float up_diff=0;
@@ -611,7 +563,7 @@ boolean anynotmissing = false;
     int threshold = cnt_local_min_max*skip*skip*skip;
     int contourDifficulty = 
        (threshold > Contour2D.DIFFICULTY_THRESHOLD) ? Contour2D.HARD : Contour2D.EASY;
-    visad.util.Trace.call2("Contour2d.calculating difficulty", (contourDifficulty == EASY)?"EASY":"HARD");
+    Trace.call2("Contour2d.calculating difficulty", (contourDifficulty == EASY)?"EASY":"HARD");
 
 
     ContourStripSet ctrSet = new ContourStripSet(nrm, myvals, swap,
@@ -927,15 +879,15 @@ any = true;
               // allocate more space
               maxv4 = 2 * (numv4[0] + 1000);
               float[][] tx = new float[][] {
-                vx4[0]
+                vx4
               };
               float[][] ty = new float[][] {
-                vy4[0]
+                vy4
               };
-              vx4[0] = new float[maxv4];
-              vy4[0] = new float[maxv4];
-              System.arraycopy(tx[0], 0, vx4[0], 0, numv4[0]);
-              System.arraycopy(ty[0], 0, vy4[0], 0, numv4[0]);
+              vx4 = new float[maxv4];
+              vy4 = new float[maxv4];
+              System.arraycopy(tx[0], 0, vx4, 0, numv4[0]);
+              System.arraycopy(ty[0], 0, vy4, 0, numv4[0]);
               tx = null;
               ty = null;
             }
@@ -944,15 +896,15 @@ any = true;
               // allocate more space
               maxv3 = 2 * (numv3[0] + 1000);
               float[][] tx = new float[][] {
-                vx3[0]
+                vx3
               };
               float[][] ty = new float[][] {
-                vy3[0]
+                vy3
               };
-              vx3[0] = new float[maxv3];
-              vy3[0] = new float[maxv3];
-              System.arraycopy(tx[0], 0, vx3[0], 0, numv3[0]);
-              System.arraycopy(ty[0], 0, vy3[0], 0, numv3[0]);
+              vx3 = new float[maxv3];
+              vy3 = new float[maxv3];
+              System.arraycopy(tx[0], 0, vx3, 0, numv3[0]);
+              System.arraycopy(ty[0], 0, vy3, 0, numv3[0]);
               tx = null;
               ty = null;
               if (naux > 0) {
@@ -1565,8 +1517,6 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     visad.util.Trace.call2("Contour2d.loop");
 
 
-
-
 /**-------------------  Color Fill -------------------------*/
     if (fill) {
       fillGridBox(
@@ -1579,30 +1529,33 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
 
 //---TDR, build Contour Strips
 
+    float[][][][] lbl_vv     = new float[4][][][];
+    byte[][][][]  lbl_cc     = new byte[4][][][];
+    float[][][]   lbl_loc    = new float[3][][];
     float[][][] vvv = new float[2][][];
     byte[][][] new_colors = new byte[2][][];
 
 
-    visad.util.Trace.call1("Contour2d.getLineColorArrays");
+    Trace.call1("Contour2d.getLineColorArrays");
     ctrSet.getLineColorArrays(
       vx, vy, auxLevels, labelColor, vvv, new_colors, lbl_vv, lbl_cc,
       lbl_loc, dashFlags, contourDifficulty);
-    visad.util.Trace.call2("Contour2d.getLineColorArrays");
+    Trace.call2("Contour2d.getLineColorArrays");
 
-    vx2[0] = vvv[1][0];
-    vy2[0] = vvv[1][1];
-    vz2[0] = vvv[1][2];
+    vx2 = vvv[1][0];
+    vy2 = vvv[1][1];
+    vz2 = vvv[1][2];
     numv1[0] = vvv[0][0].length;
     numv2[0] = vvv[1][0].length;
 
     int n_lbls = lbl_vv[0].length;
     if (n_lbls > 0) {
-      vx3[0] = lbl_vv[0][0][0];
-      vy3[0] = lbl_vv[0][0][1];
-      vz3[0] = lbl_vv[0][0][2];
-      vx4[0] = lbl_vv[1][0][0];
-      vy4[0] = lbl_vv[1][0][1];
-      vz4[0] = lbl_vv[1][0][2];
+      vx3 = lbl_vv[0][0][0];
+      vy3 = lbl_vv[0][0][1];
+      vz3 = lbl_vv[0][0][2];
+      vx4 = lbl_vv[1][0][0];
+      vy4 = lbl_vv[1][0][1];
+      vz4 = lbl_vv[1][0][2];
       numv3[0] = lbl_vv[0][0][0].length;
       numv4[0] = lbl_vv[1][0][0].length;
     }
@@ -1625,12 +1578,12 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
       }
     }
 
-    visad.util.Trace.call1("Contour2d.final block");
+    Trace.call1("Contour2d.final block");
 
     if (contourDifficulty == Contour2D.EASY) {
-      vx1[0] = vvv[0][0];
-      vy1[0] = vvv[0][1];
-      vz1[0] = vvv[0][2];
+      vx1 = vvv[0][0];
+      vy1 = vvv[0][1];
+      vz1 = vvv[0][2];
     }
     else { // contourDifficulty == Contour2D.HARD
       int start = numv1[0];
@@ -1675,15 +1628,15 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
         cnt += len;
       }
 
-      vx1[0] = new float[numv1[0] + cnt];
-      vy1[0] = new float[numv1[0] + cnt];
-      vz1[0] = new float[numv1[0] + cnt];
-      System.arraycopy(vvv[0][0], 0, vx1[0], 0, numv1[0]);
-      System.arraycopy(vvv[0][1], 0, vy1[0], 0, numv1[0]);
-      System.arraycopy(vvv[0][2], 0, vz1[0], 0, numv1[0]);
-      System.arraycopy(vx1_tmp, 0, vx1[0], start, cnt);
-      System.arraycopy(vy1_tmp, 0, vy1[0], start, cnt);
-      System.arraycopy(vz1_tmp, 0, vz1[0], start, cnt);
+      vx1 = new float[numv1[0] + cnt];
+      vy1 = new float[numv1[0] + cnt];
+      vz1 = new float[numv1[0] + cnt];
+      System.arraycopy(vvv[0][0], 0, vx1, 0, numv1[0]);
+      System.arraycopy(vvv[0][1], 0, vy1, 0, numv1[0]);
+      System.arraycopy(vvv[0][2], 0, vz1, 0, numv1[0]);
+      System.arraycopy(vx1_tmp, 0, vx1, start, cnt);
+      System.arraycopy(vy1_tmp, 0, vy1, start, cnt);
+      System.arraycopy(vz1_tmp, 0, vz1, start, cnt);
 
       if (auxLevels != null) {
         auxLevels1[0] = new byte[numv1[0] + cnt];
@@ -1710,8 +1663,20 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
       vy1_tmp = null;
       vz1_tmp = null;
     }
-    visad.util.Trace.call2("Contour2d.final block");
-
+    Trace.call2("Contour2d.final block");
+   
+    ctrSet.setGridValues(vx, vy);
+    ctrSet.setGridColors(auxLevels);
+    
+    return new ContourOutput(
+  			vx1, vy1, vz1, auxLevels1, // basic lines
+  			vx2, vy2, vz2, auxLevels1, // fill lines
+  			vx3, vy3, vz3, auxLevels1, // label lines
+  			vx4, vy4, vz4,             // expanding lines
+  			tri, tri_color, tri_normals, 
+  			lbl_loc, lbl_vv, lbl_cc,
+  			ctrSet);
+    
   }
 
   /**
@@ -3481,8 +3446,91 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     t_idx[0] = tt;
 
   }
-
+  
+  static final class ContourOutput {
+  	
+  	final float[] linesXCoords;
+  	final float[] linesYCoords;
+  	final float[] linesZCoords;
+  	final byte[][] linesColors;
+  	
+  	final float[] fillXCoords;
+  	final float[] fillYCoords;
+  	final float[] fillZCoords;
+  	final byte[][] fillColors;
+  	
+  	final float[] labelXCoords;
+  	final float[] labelYCoords;
+  	final float[] labelZCoords;
+  	final byte[][] labelColors;
+  	
+  	final float[] expLineXCoords;
+  	final float[] expLineYCoords;
+  	final float[] expLineZCoords;
+  	
+  	final float[][] triangleCoords;
+  	final byte[][] triangleColors;
+  	final float[][] triangleNormals;
+  	
+  	final float[][][] labelLocations;
+  	final float[][][][] labelVV;
+  	final byte[][][][] labelCC;
+  	
+  	private final ContourStripSet stripSet;
+  	
+  	ContourOutput(
+  			float[] linesX, float[] linesY, float[] linesZ, byte[][] linesClr, 
+  			float[] fillX, float[] fillY, float[] fillZ, byte[][] fillClr,
+  			float[] lblX, float[] lblY, float[] lblZ, byte[][] lblClr,
+  			float[] expX, float[] expY, float[] expZ,
+  			float[][] tri, byte[][] triClr, float[][] triNorm,
+  			float[][][] lblLoc, float[][][][] lblVV, byte[][][][] lblCC,
+  			ContourStripSet set
+  	) {
+  		linesXCoords = linesX;
+  		linesYCoords = linesY;
+  		linesZCoords = linesZ;
+  		linesColors = linesClr;
+  		fillXCoords = fillX;
+  		fillYCoords = fillY;
+  		fillZCoords = fillZ;
+  		fillColors = fillClr;
+  		labelXCoords = lblX;
+  		labelYCoords = lblY;
+  		labelZCoords = lblZ;
+  		labelColors = lblClr;
+  		expLineXCoords = expX;
+  		expLineYCoords = expY;
+  		expLineZCoords = expZ;
+  		triangleCoords = tri;
+  		triangleColors =  triClr;
+  		triangleNormals = triNorm;
+  		labelLocations = lblLoc;
+  		labelVV = lblVV;
+  		labelCC = lblCC;
+  		
+  		stripSet = set;
+  	}
+  	
+  	boolean isLineStyled(int lvl) {
+  		return stripSet.isLineStyled(lvl);
+  	}
+  	
+  	List<float[][]> getLineStripCoordinates(int lvl) {
+  		return stripSet.getLineStripCoordinates(lvl);
+  	}
+  	
+  	List<byte[][]> getLineStripColors(int lvl) {
+  		return stripSet.getLineStripColors(lvl);
+  	}
+  	
+  	int getIntervalCount() {
+  		return stripSet.vecArray.length;
+  	}
+  }
 } // end class
+
+
 
 /**
  * Class ContourQuadSet
@@ -3700,8 +3748,6 @@ class ContourQuadSet {
     colors = null;
   }
 }
-
-
 
 /**
  * Class ContourQuad
@@ -4184,10 +4230,10 @@ class ContourStripSet {
   Gridded3DSet spatial_set;
 
   /**           */
-  java.util.Vector[] vecArray;
+  Vector<ContourStrip>[] vecArray;
 
   /**           */
-  java.util.Vector vec;
+  Vector<ContourStrip> vec;
 
   /**           */
   PlotDigits[] plot_s;
@@ -4204,6 +4250,12 @@ class ContourStripSet {
   /**           */
   int contourDifficulty = Contour2D.EASY;
 
+  /** Grid X coordinates. */
+  private float[] gridX;
+  /** Grid Y coordinates. */
+  private float[] gridY;
+  /** Colors corresponding to grid values. */
+  private byte[][] gridColors;
 
   /**
    * 
@@ -4228,7 +4280,7 @@ class ContourStripSet {
     this.mxsize = 40 * size;
     this.levels = levels;
     n_levs = levels.length;
-    vecArray = new java.util.Vector[n_levs];
+    vecArray = new Vector[n_levs];
     plot_s = new PlotDigits[n_levs];
     plot_min_max = new float[n_levs][2];
     float fac = (float)((0.15 * (1.0 / scale_ratio)) * label_size);
@@ -4239,7 +4291,7 @@ class ContourStripSet {
     this.contourDifficulty = contourDifficulty;
 
     for (int kk = 0; kk < n_levs; kk++) {
-      vecArray[kk] = new java.util.Vector();
+      vecArray[kk] = new Vector<ContourStrip>();
       PlotDigits plot = new PlotDigits();
       plot.Number = levels[kk];
       plot.plotdigits(
@@ -4304,6 +4356,20 @@ class ContourStripSet {
     }
   }
 
+  /**
+   * Set the grid coordinates used to contruct <code>ContourStrip</code>s 
+   * contained in this set.
+   * @param gx
+   * @param gy
+   */
+  void setGridValues(float[] gx, float[] gy) {
+  	gridX = gx;
+  	gridY = gy;
+  }
+  
+  void setGridColors(byte[][] colors) {
+  	gridColors = colors;
+  }
 
   /**
    * 
@@ -4354,13 +4420,13 @@ class ContourStripSet {
     if (n_strip == 0) {
       ContourStrip c_strp = new ContourStrip(mxsize, lev_idx, idx0, idx1,
                                              plot_s[lev_idx], this);
-      vec.addElement(c_strp);
+      vec.add(c_strp);
     }
     else {
       int[] found_array = new int[3];
       int found = 0;
       for (int kk = 0; kk < n_strip; kk++) {
-        ContourStrip c_strp = (ContourStrip)vec.elementAt(kk);
+        ContourStrip c_strp = vec.get(kk);
         if (c_strp.addPair(vx, vy, idx0, idx1)) {
           found_array[found] = kk;
           found++;
@@ -4369,21 +4435,21 @@ class ContourStripSet {
       if (found == 3) {
         ContourStrip c_strp = new ContourStrip(mxsize, lev_idx, idx0, idx1,
                                 plot_s[lev_idx], this);
-        vec.addElement(c_strp);
+        vec.add(c_strp);
       }
       else if (found == 2) {
-        ContourStrip c_strpA = (ContourStrip)vec.elementAt(found_array[0]);
-        ContourStrip c_strpB = (ContourStrip)vec.elementAt(found_array[1]);
+        ContourStrip c_strpA = vec.get(found_array[0]);
+        ContourStrip c_strpB = vec.get(found_array[1]);
         ContourStrip c_strp = c_strpA.merge(c_strpB);
 
-        vec.addElement(c_strp);
-        vec.removeElement(c_strpA);
-        vec.removeElement(c_strpB);
+        vec.add(c_strp);
+        vec.remove(c_strpA);
+        vec.remove(c_strpB);
       }
       else if (found == 0) {
         ContourStrip c_strp = new ContourStrip(mxsize, lev_idx, idx0, idx1,
                                 plot_s[lev_idx], this);
-        vec.addElement(c_strp);
+        vec.add(c_strp);
       }
     }
   }
@@ -4391,17 +4457,17 @@ class ContourStripSet {
   /**
    * 
    *
-   * @param vx 
-   * @param vy 
-   * @param colors 
-   * @param labelColor 
-   * @param lev_idx 
-   * @param out_vv 
-   * @param out_bb 
-   * @param out_vvL 
-   * @param out_bbL 
-   * @param out_loc 
-   * @param dashed 
+   * @param vx Grid coordinate values.
+   * @param vy Grid coordinate values.
+   * @param colors Colors for grid coordinate values.
+   * @param labelColor Color for labels if filling.
+   * @param lev_idx Index of the level to process.
+   * @param out_vv Output line display coords for basic lines.
+   * @param out_bb Output colors for basic lines.
+   * @param out_vvL Output line display coords for labels.
+   * @param out_bbL Output colors for label lines.
+   * @param out_loc Output location coords for labels.
+   * @param dashed Flags indicating which levels to dash.
    */
   void getLineColorArrays(float[] vx, float[] vy, byte[][] colors,
                           byte[] labelColor, int lev_idx, float[][][] out_vv,
@@ -4411,14 +4477,14 @@ class ContourStripSet {
 
     int n_strips = vecArray[lev_idx].size();
 
-    float[][][][] la = new float[n_strips][2][][];
-    byte[][][][] ca = new byte[n_strips][2][][];
-    float[][][][][] laL = new float[n_strips][4][][][];
-    byte[][][][][] caL = new byte[n_strips][4][][][];
-    float[][][][] locL = new float[n_strips][3][][];
+    float[][][][] la = new float[n_strips][2][][]; // line arrays
+    byte[][][][] ca = new byte[n_strips][2][][]; // color arrays
+    float[][][][][] laL = new float[n_strips][4][][][]; // line arrays for labels
+    byte[][][][][] caL = new byte[n_strips][4][][][]; // color arrays for labels
+    float[][][][] locL = new float[n_strips][3][][]; // location arrays for labels
 
     for (int kk = 0; kk < n_strips; kk++) {
-      ContourStrip cs = (ContourStrip)vecArray[lev_idx].elementAt(kk);
+      ContourStrip cs = vecArray[lev_idx].get(kk);
 
       // BMF 2006-09-29 ////////////////////
       // changes to dashed line algm. 
@@ -4431,9 +4497,9 @@ class ContourStripSet {
       // do the standard label algorithm or the modified for short strips
 
       if ((cs.hi_idx - cs.low_idx + 1) < ContourStrip.LBL_ALGM_THRESHHOLD) {
-        cs.getInterpolatedLabeledColorArray(
-          vx, vy, colors, labelColor, la[kk], ca[kk], laL[kk], caL[kk],
-          locL[kk]);
+//        cs.getInterpolatedLabeledColorArray(
+//          vx, vy, colors, labelColor, la[kk], ca[kk], laL[kk], caL[kk],
+//          locL[kk]);
       }
       else
         cs.getLabeledLineColorArray(
@@ -4572,6 +4638,8 @@ class ContourStripSet {
     float[][][][] tmpLoc = new float[n_levs][3][][];
 
     int n_lbl = 0;
+    
+    // set the line and color arrays for each level
     for (int kk = 0; kk < n_levs; kk++) {
       getLineColorArrays(
         vx, vy, colors, labelColor, kk, tmp[kk], btmp[kk], tmpL[kk],
@@ -4586,31 +4654,31 @@ class ContourStripSet {
       }
       out_vv[tt] = new float[3][len];
       int cnt = 0;
-      for (int kk = 0; kk < n_levs; kk++) {
+      for (int lvl = 0; lvl < n_levs; lvl++) {
         System.arraycopy(
-          tmp[kk][tt][0], 0, out_vv[tt][0], cnt, tmp[kk][tt][0].length);
+          tmp[lvl][tt][0], 0, out_vv[tt][0], cnt, tmp[lvl][tt][0].length);
         System.arraycopy(
-          tmp[kk][tt][1], 0, out_vv[tt][1], cnt, tmp[kk][tt][0].length);
+          tmp[lvl][tt][1], 0, out_vv[tt][1], cnt, tmp[lvl][tt][0].length);
         System.arraycopy(
-          tmp[kk][tt][2], 0, out_vv[tt][2], cnt, tmp[kk][tt][0].length);
-        cnt += tmp[kk][tt][0].length;
+          tmp[lvl][tt][2], 0, out_vv[tt][2], cnt, tmp[lvl][tt][0].length);
+        cnt += tmp[lvl][tt][0].length;
       }
       int clr_dim = 0;
       if (colors != null) {
         clr_dim = colors.length;
         len = 0;
-        for (int kk = 0; kk < n_levs; kk++) {
-          len += btmp[kk][tt][0].length;
+        for (int lvl = 0; lvl < n_levs; lvl++) {
+          len += btmp[lvl][tt][0].length;
         }
         out_bb[tt] = new byte[clr_dim][len];
         cnt = 0;
-        for (int kk = 0; kk < n_levs; kk++) {
+        for (int lvl = 0; lvl < n_levs; lvl++) {
           for (int cc = 0; cc < clr_dim; cc++) {
             System.arraycopy(
-              btmp[kk][tt][cc], 0, out_bb[tt][cc], cnt,
-              btmp[kk][tt][cc].length);
+              btmp[lvl][tt][cc], 0, out_bb[tt][cc], cnt,
+              btmp[lvl][tt][cc].length);
           }
-          cnt += btmp[kk][tt][0].length;
+          cnt += btmp[lvl][tt][0].length;
         }
       }
     }
@@ -4619,17 +4687,17 @@ class ContourStripSet {
     for (int tt = 0; tt < 4; tt++) {
       out_vvL[tt] = new float[n_lbl][][];
       int cnt = 0;
-      for (int kk = 0; kk < n_levs; kk++) {
-        for (int ll = 0; ll < tmpL[kk][tt].length; ll++) {
-          out_vvL[tt][cnt] = tmpL[kk][tt][ll];
+      for (int lvl = 0; lvl < n_levs; lvl++) {
+        for (int ll = 0; ll < tmpL[lvl][tt].length; ll++) {
+          out_vvL[tt][cnt] = tmpL[lvl][tt][ll];
           cnt++;
         }
       }
       out_bbL[tt] = new byte[n_lbl][][];
       cnt = 0;
-      for (int kk = 0; kk < n_levs; kk++) {
-        for (int ll = 0; ll < tmpL[kk][tt].length; ll++) {
-          out_bbL[tt][cnt] = btmpL[kk][tt][ll];
+      for (int lvl = 0; lvl < n_levs; lvl++) {
+        for (int ll = 0; ll < tmpL[lvl][tt].length; ll++) {
+          out_bbL[tt][cnt] = btmpL[lvl][tt][ll];
           cnt++;
         }
       }
@@ -4640,10 +4708,10 @@ class ContourStripSet {
     for (int tt = 0; tt < 3; tt++) {
       out_loc[tt] = new float[n_lbl][];
       int cnt = 0;
-      for (int kk = 0; kk < n_levs; kk++) {
-        if (tmpLoc[kk][tt] != null) {
-          for (int ll = 0; ll < tmpLoc[kk][tt].length; ll++) {
-            out_loc[tt][cnt] = tmpLoc[kk][tt][ll];
+      for (int lvl = 0; lvl < n_levs; lvl++) {
+        if (tmpLoc[lvl][tt] != null) {
+          for (int ll = 0; ll < tmpLoc[lvl][tt].length; ll++) {
+            out_loc[tt][cnt] = tmpLoc[lvl][tt][ll];
             cnt++;
           }
         }
@@ -4675,12 +4743,62 @@ class ContourStripSet {
     }
   }
 
+  /**
+   * Get grid coordinates representing the data at the level specified.
+   * @param lvlIdx The level for which to generate an array.
+   * @return An list of in line strip format, an emtpy list if none.
+   * @see {@link VisADLineStripArray}
+   */
+  List<float[][]> getLineStripCoordinates(int lvlIdx) {
+  	if (lvlIdx > vecArray.length - 1) {
+  		return new ArrayList<float[][]>(0);
+  	}
+  	Vector<ContourStrip> strips = vecArray[lvlIdx];
+  	List<float[][]> stripValues = new ArrayList<float[][]>();
+  	for (ContourStrip strip : strips) {
+	  	stripValues.add(strip.getLineStripArray(gridX, gridY));
+  	}
+    return stripValues;
+  }
+  
+  /**
+   * Get colors corresponding to the grid coordinates for a level.
+   * @param lvlIdx The level for which to get colors.
+   * @return A list of arrays for the strips that make up the level, an empty
+   * 	list if none.
+   */
+  List<byte[][]> getLineStripColors(int lvlIdx) {
+  	if (lvlIdx > vecArray.length - 1) {
+  		return new ArrayList<byte[][]>(0);
+  	}
+  	Vector<ContourStrip> strips = vecArray[lvlIdx];
+  	List<byte[][]> stripColors = new ArrayList<byte[][]>();
+  	for (ContourStrip strip : strips) {
+	    stripColors.add(strip.getColorStripArray(gridColors));
+  	}
+    return stripColors;
+  }
+  
+  /**
+   * Are we using line style for a level.
+   * @param lvl The index of the the level.
+   * @return True if the first strip is using line style, false otherwise. There
+   * 	is an assumption that if the first level is styled they all are.
+   */
+  boolean isLineStyled(int lvl) {
+  	if (vecArray.length > lvl + 1 && vecArray[lvl] != null) {
+  		if (vecArray[lvl].size() > 0) {
+  			return vecArray[lvl].get(0).dashed >= 0;
+  		}
+  	}
+  	return false;
+  }
 }
 
 /**
-   ContourStrip is used internally by Contour2D
-*/
-
+ * ContourStrip is used internally by Contour2D to track the indexes associated
+ * with a strip. Indexes are in line strip format and not line array format.
+ */
 class ContourStrip {
 
   /** Minimum number of points for which to perform label algm */
@@ -4688,20 +4806,23 @@ class ContourStrip {
 
   /**
    * Intpereted arrays smaller than this will be interpreted again essentially
-   *   resulting in a re-doubleing. 
+   * resulting in a re-doubleing. 
    */
   static final int INTERP_THRESHHOLD = 5;
 
-  /**           */
+  /** 
+   * Array of indexes to values in the grid coordinate arrays that make up
+   * this strip.
+   */
   int[] idx_array;
 
-  /**           */
+  /** Starting index in the strip data array. */
   int low_idx;
 
-  /**           */
+  /** Ending index in the strip data array. */
   int hi_idx;
 
-  /**           */
+  /** Index to the level for this strip in the intervals array. */
   int lev_idx;
 
   /* BMF 2006-10-04
@@ -4936,8 +5057,8 @@ class ContourStrip {
   /**
    * Common line array code
    *
-   * @param vv_grid
-   * @param bb
+   * @param vv_grid grid coordinates..
+   * @param bb grid color values.
    * @param labelColor RGB label color byte array
    * @param out_vv
    * @param out_colors
@@ -4951,12 +5072,6 @@ class ContourStrip {
                                  float[][][][] out_vvL,
                                  byte[][][][] out_colorsL,
                                  float[][][] lbl_loc) {
-
-    // dash lines if necessary
-    if (this.dashed > 1) {
-      vv_grid = getDashedLineArray(vv_grid);
-    }
-
 
     float[][] vv = null;
 
@@ -4989,8 +5104,9 @@ class ContourStrip {
     out_vv[1] = null;
     out_colors[1] = null;
 
-    if ((vv[0].length > LBL_ALGM_THRESHHOLD && ((lev_idx & 1) == 1)) ||
-        (css.n_levs == 1)) {
+    // Don't use threshold anymore because we're not using J3D line styles
+//    if ((vv[0].length > LBL_ALGM_THRESHHOLD && ((lev_idx & 1) == 1)) || css.n_levs == 1) {
+    if ((lev_idx & 1) == 1 || css.n_levs == 1) {
       int loc = (vv[0].length) / 2;
       int start_break = 0;
       int stop_break = 0;
@@ -5318,11 +5434,17 @@ class ContourStrip {
   }
 
   /**
-   * @param vx
-   * @param vy
+   * Get a line array using this instances cached indexes. 
+   * 
+   * @param vx X values to apply cached indexes to.
+   * @param vy Y values to apply cached indexes to.
+   * @see {@link VisADLineArray}
    * @return
    */
   float[][] getLineArray(float[] vx, float[] vy) {
+  	if (vx == null || vy == null) {
+  		return null;
+  	}
     float[] vvx = new float[(hi_idx - low_idx) + 1];
     float[] vvy = new float[vvx.length];
 
@@ -5336,13 +5458,39 @@ class ContourStrip {
       vvx, vvy
     };
   }
+  
+  /**
+   * Get a line strip array using this instances cached indexes. 
+   * 
+   * @param vx X grid coords to apply cached indexes to.
+   * @param vy Y grid coords to apply cached indexes to.
+   * @see {@link VisADLineStripArray}
+   * @return
+   */
+  float[][] getLineStripArray(float[] vx, float[] vy) {
+  	if (vx == null || vy == null) {
+  		return null;
+  	}
+  	int count = hi_idx - low_idx + 1;
+  	float[][] vv = new float[2][count];
+    vv[0][0] = vx[idx_array[low_idx]];
+    vv[1][0] = vy[idx_array[low_idx]];
+  	if (count != 1) {
+	    for (int kk = low_idx + 1, ii = 1; ii < count; kk++, ii++) {
+	      vv[0][ii] = vx[idx_array[kk]];
+	      vv[1][ii] = vy[idx_array[kk]];
+	    }
+  	}
+    return vv;
+  }
 
   /**
+   * Get the array of colors corresponding to cached indexes.
    * 
-   *
-   * @param colors 
-   *
-   * @return 
+   * @param colors Line array formatted colors where the first dimension is the
+   * 	color dimension and the second the color values.
+   * @see {@link VisADLineArray}
+   * @return Array of colors in line array format.
    */
   byte[][] getColorArray(byte[][] colors) {
     if (colors == null) return null;
@@ -5360,53 +5508,41 @@ class ContourStrip {
     return new_colors;
   }
 
+  /**
+   * Get the array of colors corresponding to cached indexes.
+   * 
+   * @param colors Line array formatted colors where the first dimension is the
+   * 	color dimension and the second the color values.
+   * @see {@link VisADStripLineArray}
+   * @return Array of colors in line strip array format.
+   */
+  byte[][] getColorStripArray(byte[][] colors) {
+    if (colors == null) return null;
+    int clr_dim = colors.length;
+    int clr_len = hi_idx - low_idx + 1;
+    byte[][] new_colors = new byte[clr_dim][clr_len];
 
-
-
-//  alternate dashed interpolation
-//  /**
-//   * Take a line array and remove <code>skip</code> sized segments to 
-//   * simulate a dashed line. No-op for <code>skip</code> <= 1.
-//   * @param vv Line array as returned by <code>getLineArray</code>.
-//   * @param skip Number of points to make up a dash; ie. number to skip. 
-//   * @see #getDashedColorArray(byte[][], int)
-//   * @return A line array interpolated as a dashed line array.
-//   */
-//  float[][] getDashedLineArray(float[][] vv, int skip) {
-//    
-//    int X = 0;
-//    int Y = 1;
-//    
-//    // length of new array, Always even for line array
-//    int len =  (vv[0].length)/skip;
-//    if( len % 2 == 1 ) len += 1;
-//    
-//    float[][] interp = new float[2][len];
-//    
-//    //System.err.println("    vv[0].length:"+vv[0].length+" len:"+len+" skip:"+skip);
-//
-//    for(int i=0, j=0; i+skip<vv[0].length; i+=2*skip, j+=2) {
-//      interp[X][j] = vv[X][i];
-//      interp[Y][j] = vv[Y][i];
-//      
-//      interp[X][j+1] = vv[X][i+skip];
-//      interp[Y][j+1] = vv[Y][i+skip];
-//      
-//    }
-//    
-//    return interp;
-//    
-//  }
-
-
-
+    for (int cc = 0; cc < clr_dim; cc++) {
+    	new_colors[cc][0] = colors[cc][idx_array[low_idx]];
+    }
+    if (clr_len != 1) {
+	    for (int kk = low_idx + 1, ii = 1; ii < clr_len; kk++, ii++) {
+	      for (int cc = 0; cc < clr_dim; cc++) {
+	        new_colors[cc][ii] = colors[cc][idx_array[kk]];
+	      }
+	    }
+    }
+    return new_colors;
+  }
 
   /**
-   * 
+   * Make dashes out of line array.
    *
    * @param vv 
    *
-   * @return 
+   * @return A line array adjusted for dashes.
+   * @deprecated Dashing can be set via a <code>ContantMap</code> or by
+   * using {@link GraphicsModeControl#setLineStyle(int)}.
    */
   float[][] getDashedLineArray(float[][] vv) {
 
