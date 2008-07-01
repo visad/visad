@@ -63,6 +63,7 @@ public final class MSGnav extends AREAnav
     int[] ioff = new int[3];
 
     int count = 0;
+    double sublon = 0.0;
 
     /**
      * Set up for the real math work.  Must pass in the int array
@@ -86,6 +87,9 @@ public final class MSGnav extends AREAnav
         rp = EARTH_RADIUS / (1. + a);
         crd = 180. / Math.PI;
         cdr = Math.PI / 180.;
+        //sublon = McIDASUtil.integerLatLonToDouble(iparms[1]); 
+        sublon = iparms[1]/10000.;
+        if (isEastPositive) sublon = -sublon; 
 
         deltax = 17.832/3712.;
         deltay = 17.832/3712.;
@@ -153,6 +157,7 @@ public final class MSGnav extends AREAnav
             }  
 
             //  put longitude into East Positive (form)
+            xlon = xlon + sublon;
             if (!isEastPositive) xlon = -xlon;
 
             latlon[indexLat][point] = xlat;
@@ -198,6 +203,7 @@ public final class MSGnav extends AREAnav
           xlon = isEastPositive 
                    ?  latlon[indexLon][point]
                    : -latlon[indexLon][point];
+          xlon = xlon - sublon;
 
 
           xfi = xlat*cdr;
@@ -309,6 +315,7 @@ public final class MSGnav extends AREAnav
             }  
 
             //  put longitude into East Positive (form)
+            xlon = xlon + sublon;
             if (!isEastPositive) xlon = -xlon;
 
             latlon[indexLat][point] = (float) xlat;
@@ -355,6 +362,7 @@ public final class MSGnav extends AREAnav
           xlon = isEastPositive 
                    ?  latlon[indexLon][point]
                    : -latlon[indexLon][point];
+          xlon = xlon - sublon;
 
 
           xfi = xlat*cdr;
