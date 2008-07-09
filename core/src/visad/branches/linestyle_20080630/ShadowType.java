@@ -3708,20 +3708,19 @@ try {
           ((ScalarMap) MapVector.elementAt(valueToMap[i])).getControl();
         c_cntrl = control;
         
-        final int CONTOUR = 0; // contour enabled?
-        final int LABEL = 1; // labels enabled?
         boolean[] bvalues = new boolean[2];
-        final int LVL = 0; // contour level
         float[] fvalues = new float[5];
         control.getMainContours(bvalues, fvalues);
+        boolean doContour = bvalues[0];
+        boolean doLabels = bvalues[1];
+        float isoLvl = fvalues[0];
         
         if (scale != scale) scale = ContourControl.getInitScale();
         double label_size  = control.getLabelSize();
-        if (spatialManifoldDimension == 3 ||
-            spatialManifoldDimension == 2) {
+        if (spatialManifoldDimension == 3 || spatialManifoldDimension == 2) {
           anyContourCreated = true;
         }
-        if (bvalues[CONTOUR]) {
+        if (doContour) {
           if (range_select[0] != null) {
             int len = range_select[0].length;
             if (len == 1 || display_values[i].length == 1) break;
@@ -3739,15 +3738,15 @@ try {
             }
           }
           if (spatialManifoldDimension == 3) {
-            if (fvalues[LVL] == fvalues[LVL]) {
+            if (isoLvl == isoLvl) { // not NaN
               if (spatial_set != null) {
                 if (isLinearContour3D) {
                   array =
-                    ((Linear3DSet) spatial_set).makeLinearIsoSurface(fvalues[LVL],
+                    ((Linear3DSet) spatial_set).makeLinearIsoSurface(isoLvl,
                         display_values[i], color_values, indexed, spatial_maps, permute);
                 }
                 else {
-                  array = spatial_set.makeIsoSurface(fvalues[LVL],
+                  array = spatial_set.makeIsoSurface(isoLvl,
                               display_values[i], color_values, indexed);
                 }
 
@@ -3770,7 +3769,7 @@ try {
               }
               else if (coord_sys != null) { // missing spatials set as result of transform (coord_sys)
                 array = ((Gridded3DSet)domain_set).makeIsoSurfaceMissingSpatial(
-                	fvalues[LVL], display_values[i], color_values, 
+                	isoLvl, display_values[i], color_values, 
                     indexed, Domain, domain_reference, 
                     domain_units, dataCoordinateSystem, 
                     coord_sys, DomainReferenceComponents, 
@@ -3825,56 +3824,72 @@ try {
                 }
               }
               
-              // FIXME: return idicies back to original
               float[][][] f_array = new float[1][][];
-              final int UBASIC = 0; // styled line segments
-              final int SBASIC = 4; // unstyled line segments
-              final int FILL = 1; // label fill lines
-              final int LABELS = 2; // label lines
-              final int EXP = 3; // expanding line segments around labels
               
-              VisADGeometryArray[][] array_s =
-                spatial_set.makeIsoLines(levs, lowhibase[0], lowhibase[1],
-                                         lowhibase[2], display_values[i],
-                                         color_values, swap, doStyle[0],
-                                         fill, smap, scale, label_size, f_array);
+              VisADGeometryArray[][] array_s = spatial_set.makeIsoLines(
+              		levs, lowhibase[0], lowhibase[1],
+                  lowhibase[2], display_values[i],
+                  color_values, swap, doStyle[0],
+                  fill, smap, scale, label_size, f_array
+              );
+              
+              VisADGeometryArray[] uBasicLines = array_s[0];
+              VisADGeometryArray[] fillLines = array_s[1];
+              VisADGeometryArray[] labelLines = null;
+              VisADGeometryArray[] expLines = null;
+              VisADGeometryArray[] sBasicLines = null;
+              
+              // set'em if you got em
+              switch (array_s.length) {
+              case 5: sBasicLines = array_s[4];
+              case 4: expLines = array_s[3];
+              case 3: labelLines = array_s[2];
+              }
 
               if (array_s != null) {
+              	
+              	// FIXME: Is it appropriate to ignore exceptions for
+              	// adjustments?
+              	
+              	// make necessary adjustments
                 if (!fill && getAdjustProjectionSeam()) {
-                  for (int j=0; j<3; j++) { // - basic and fill lines
-                  	for (VisADGeometryArray arr : array_s[j]) {
-                  		try {
-	                  		arr = arr.adjustLongitude(renderer);
-	                  		arr = arr.adjustSeam(renderer);
-                  		} catch (Exception e) {
-                  			e.printStackTrace();
-                  		}
+                	// do not do adjustments for 
+                  for (int j=0; j<5; j++) {
+                  	if (j != 3) { // don't adjust label fill lines
+	                  	for (VisADGeometryArray arr : array_s[j]) {
+	                  		try {
+		                  		arr = arr.adjustLongitude(renderer);
+		                  		arr = arr.adjustSeam(renderer);
+	                  		} catch (Exception e) {
+	                  			e.printStackTrace();
+	                  		}
+	                  	}
                   	}
                   }
-                  if (array_s.length > 3 && array_s[LABELS] != null) {
-                    for (int k=0; k<(array_s[LABELS].length)/2; k++) { //-labels, label anchor points
+                  if (labelLines != null) {
+                    for (int k=0; k<(labelLines.length)/2; k++) { //-labels, label anchor points
                       try {
-                        array_s[LABELS][k*2] = array_s[LABELS][k*2].adjustLongitude(renderer);
-                        array_s[LABELS][k*2] = array_s[LABELS][k*2].adjustSeam(renderer);
-                        array_s[LABELS][k*2+1] = array_s[LABELS][k*2+1].adjustLongitude(renderer);
-                        array_s[LABELS][k*2+1] = array_s[LABELS][k*2+1].adjustSeam(renderer);
+                        labelLines[k*2] = labelLines[k*2].adjustLongitude(renderer);
+                        labelLines[k*2] = labelLines[k*2].adjustSeam(renderer);
+                        labelLines[k*2+1] = labelLines[k*2+1].adjustLongitude(renderer);
+                        labelLines[k*2+1] = labelLines[k*2+1].adjustSeam(renderer);
                       }
                       catch (Exception e) {
                         e.printStackTrace();
                       }
                     }
                   }
-                  if (array_s.length > 4 && array_s[EXP] != null) {
-                    for (int k=0; k<(array_s[EXP].length)/4; k++) { //- left/right expanding segments
+                  if (expLines != null) {
+                    for (int k=0; k<(expLines.length)/4; k++) { //- left/right expanding segments
                       try {
-                        array_s[EXP][k*4] = array_s[EXP][k*4].adjustLongitude(renderer);
-                        array_s[EXP][k*4] = array_s[EXP][k*4].adjustSeam(renderer);
-                        array_s[EXP][k*4+1] = array_s[EXP][k*4+1].adjustLongitude(renderer);
-                        array_s[EXP][k*4+1] = array_s[EXP][k*4+1].adjustSeam(renderer);
-                        array_s[EXP][k*4+2] = array_s[EXP][k*4+2].adjustLongitude(renderer);
-                        array_s[EXP][k*4+2] = array_s[EXP][k*4+2].adjustSeam(renderer);
-                        array_s[EXP][k*4+3] = array_s[EXP][k*4+3].adjustLongitude(renderer);
-                        array_s[EXP][k*4+3] = array_s[EXP][k*4+3].adjustSeam(renderer);
+                        expLines[k*4] = expLines[k*4].adjustLongitude(renderer);
+                        expLines[k*4] = expLines[k*4].adjustSeam(renderer);
+                        expLines[k*4+1] = expLines[k*4+1].adjustLongitude(renderer);
+                        expLines[k*4+1] = expLines[k*4+1].adjustSeam(renderer);
+                        expLines[k*4+2] = expLines[k*4+2].adjustLongitude(renderer);
+                        expLines[k*4+2] = expLines[k*4+2].adjustSeam(renderer);
+                        expLines[k*4+3] = expLines[k*4+3].adjustLongitude(renderer);
+                        expLines[k*4+3] = expLines[k*4+3].adjustSeam(renderer);
                       }
                       catch (Exception e) {
                         e.printStackTrace();
@@ -3883,13 +3898,14 @@ try {
                   }
                 }
   
-                if (array_s.length > 0 && array_s[UBASIC].length > 0) {
+                if (array_s.length > 0 && uBasicLines.length > 0) {
 
+                	// label mode, forcing labels to have solid J3D line style
                   GraphicsModeControl labelMode = (GraphicsModeControl) mode.clone();
             	    labelMode.setLineStyle(GraphicsModeControl.SOLID_STYLE, false);
-            	    
+
+            	    // mode for lines rendered with J3D line style 
             	    GraphicsModeControl styledMode = (GraphicsModeControl) mode.clone();
-            	    control.setLineStyle(GraphicsModeControl.DASH_DOT_STYLE); // XXX
             	    styledMode.setLineStyle(control.getLineStyle(), false);
             	  
                   if (fill) {
@@ -3897,46 +3913,52 @@ try {
                     // FIXME: There may be a better value to use here
                 	  labelMode.setPolygonOffsetFactor(10f, false);
                 	  labelMode.setPolygonOffset(1f, false);
-                	  // make adjustment for all basic lines
-                	  for (int b = 0; b < 2; i++) {
-	                	  for (VisADGeometryArray arr : array_s[b]) {
-	                	  	if (arr == null) continue;
-	                	  	shadow_api.adjustZ(arr.coordinates);
-	                	  }
+                	  
+                	  // make adjustment for basic lines
+                	  for (VisADGeometryArray arr : uBasicLines) {
+	                	 	if (arr == null) continue;
+	                	 	shadow_api.adjustZ(arr.coordinates);
+	                	}
+                	  // there may not be unstyled lines
+                	  if (sBasicLines != null) {
+	                	  for (VisADGeometryArray arr : sBasicLines) {
+		                	 	if (arr == null) continue;
+		                	 	shadow_api.adjustZ(arr.coordinates);
+		                	}
                 	  }
                   }
                   
                   // add unstyled lines
-                  for (VisADGeometryArray arr : array_s[UBASIC]) {
+                  for (VisADGeometryArray arr : uBasicLines) {
                   	if (arr == null) continue;
                   	shadow_api.addToGroup(group, arr, mode,
                   			constant_alpha, constant_color);
                   }
                   
                   // add styled lines
-                  for (VisADGeometryArray arr : array_s[SBASIC]) {
-                  	if (arr == null) continue;
-                  	shadow_api.addToGroup(group, arr, styledMode,
-                  			constant_alpha, constant_color);
+                  if (sBasicLines != null) {
+	                  for (VisADGeometryArray arr : sBasicLines) {
+	                  	if (arr == null) continue;
+	                  	shadow_api.addToGroup(group, arr, styledMode,
+	                  			constant_alpha, constant_color);
+	                  }
                   }
                   
-                  // BMF 2006-10-05 add labels for filled contours
-                  if (bvalues[LABEL] && array_s[LABELS] != null) {
+                  // add labels for filled contours
+                  if (doLabels && labelLines != null) {
                     shadow_api.addLabelsToGroup(group, array_s, labelMode, control,
                                                 p_cntrl, cnt, constant_alpha,
                                                 constant_color, f_array);
-                    array_s[LABELS] = null;
+                    labelLines = null;
                     
-                  } else if (!bvalues[LABEL] && array_s[FILL] != null) {
+                  } else if (!doLabels && fillLines != null) {
                     // fill in contour lines in place of labels
-                    array = array_s[FILL][0];
                     shadow_api.addToGroup(
-                    	group, array_s[FILL][0], mode,
+                    	group, fillLines[0], mode,
                         constant_alpha, constant_color
                     );
-                    array_s[FILL][0] = null;
+                    fillLines[0] = null;
                   }
-                  // BMF
                   array_s = null;
                 }
               }
