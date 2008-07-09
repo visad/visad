@@ -28,7 +28,6 @@ package visad;
 
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -2066,7 +2065,6 @@ public class Gridded3DSet extends GriddedSet {
                   double label_size, float[][][] f_array)
          throws VisADException {
 
-    int Length = getLength();
     int ManifoldDimension = getManifoldDimension();
     int[] Lengths = getLengths();
     int LengthX = Lengths[0];
@@ -2257,7 +2255,7 @@ for color_length = 3 this is 148 * Length
 
       labelLines[kk*2] = new VisADLineArray();
       labelLines[kk*2+1] = new VisADLineArray();
-      setGeometryArray(labelLines[kk*2], grid_label, 4, contour.labelColors);
+      setGeometryArray(labelLines[kk*2], grid_label, 4, a);
       grid_label = null;
 
       float[][] loc = new float[3][1];
@@ -2301,17 +2299,16 @@ for color_length = 3 this is 148 * Length
     }
     
     if (fill) {
-      
-      VisADGeometryArray[][] tri_array = new VisADGeometryArray[4][];
-      tri_array[0] = new VisADGeometryArray[1];
-      tri_array[0][0] = new VisADTriangleArray();
-      tri_array[0][0].normals = contour.triangleNormals[0];
-      setGeometryArray(tri_array[0][0], gridToValue(contour.triangleCoords), 4, contour.triangleColors);
-      
-      tri_array[1] = fillLines;
-      tri_array[2] = labelLines;
-      tri_array[3] = null;      
-      return tri_array;
+      VisADTriangleArray triangles = new VisADTriangleArray();
+      triangles.normals = contour.triangleNormals[0];
+      setGeometryArray(triangles, gridToValue(contour.triangleCoords), 4, contour.triangleColors);
+
+      return new VisADGeometryArray[][]{
+      		new VisADGeometryArray[]{triangles},
+      		fillLines,
+      		labelLines,
+      		null	// no label fill lines
+      };
       
     }
     
@@ -2796,7 +2793,7 @@ for color_length = 3 this is 148 * Length
          throws VisADException {
     boolean debug = false;
 
-    int      i, NVT, cnt;
+    int      i;
     int      size_stripe;
     int      xdim_x_ydim, xdim_x_ydim_x_zdim;
     int      num_cubes, nvertex, npolygons;
@@ -3029,7 +3026,7 @@ for (int j=0; j<nvertex; j++) {
          throws VisADException {
 
     boolean debug = false;
-    int      i, NVT, cnt;
+    int      i;
     int      size_stripe;
     int      xdim_x_ydim, xdim_x_ydim_x_zdim;
     int      num_cubes, nvertex, npolygons;
@@ -3517,7 +3514,6 @@ for (int j=0; j<nvertex; j++) {
     int  aa;
     int  bb;
     int  temp;
-    float  nodeDiff;
     int xdim_x_ydim = xdim*ydim;
     int nvet;
 
@@ -4574,9 +4570,8 @@ for (int j=0; j<nvertex; j++) {
          throws VisADException {
 
    int   i, k,  n;
-   int   i1, i2, ix, iy, iz, ixb, iyb, izb;
    int   max_vert_per_pol, swap_flag;
-   float x, y, z, a, minimum_area, len;
+   float x, y, z, minimum_area, len;
 
    int iv[] = new int[3];
 
