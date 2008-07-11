@@ -304,8 +304,6 @@ public abstract class CalibratorGvar implements Calibrator {
           //System.out.println("####  band="+band+"  gain="+gain+"  bias"+bias);
         }
         scale = 32;
-        gain = 5.2f;
-        bias = 68.f;
 
       } else {
         if (band == 19) {
