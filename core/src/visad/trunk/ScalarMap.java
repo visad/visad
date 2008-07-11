@@ -697,7 +697,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + " range: " + dataRange[0] +
                    " to " + dataRange[1] + " scale: " + scale + " " + offset);
 */
     if (DisplayScalar.equals(Display.Animation) && shadow != null) {
-      if (control != null) {
+      if (control != null && ((AnimationControl)control).getComputeSet()) {
         Set set = shadow.animationSampling;
         /* DRM: 04 Jan 2003
         if (set == null) {
