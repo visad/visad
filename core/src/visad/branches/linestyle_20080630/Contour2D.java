@@ -5107,7 +5107,7 @@ class ContourStrip {
     // Don't use threshold anymore because we're not using J3D line styles
 //    if ((vv[0].length > LBL_ALGM_THRESHHOLD && ((lev_idx & 1) == 1)) || css.n_levs == 1) {
     if ((lev_idx & 1) == 1 || css.n_levs == 1) {
-      int loc = (vv[0].length) / 2;
+      int loc = (vv[0].length) / 2;  //- start at half-way pt.
       int start_break = 0;
       int stop_break = 0;
       int n_pairs_b = 1;
@@ -5115,7 +5115,13 @@ class ContourStrip {
       boolean found = false;
       float ctr_dist;
       int pos = loc;
-      while(!found) {
+      
+      //- compute distance between label location (loc) and points
+      //- on each side, when greater than lbl_half - stop.  This
+      //- assumes that around the label the contour line is fairly
+      //- linear, seems good approx almost all of time.
+
+      while(!found) {  //- go backwards, ie decreasing index val
         pos -= 2;
         if (pos < 0 || pos > (vv[0].length - 1)) return;
         float dx = vv[0][pos] - vv[0][loc];
@@ -5132,7 +5138,7 @@ class ContourStrip {
 
       pos = loc;
       found = false;
-      while(!found) {
+      while(!found) { //- go fowards, ie increasing index val
         pos += 2;
         if (pos < 0 || pos > (vv[0].length - 1)) return;
         float dx = vv[0][pos] - vv[0][loc];
@@ -5147,6 +5153,7 @@ class ContourStrip {
         }
       }
 
+      //- total number of points skipped (removed)
       int n_skip = (n_pairs_b + n_pairs_f) * 2;
       if ((loc & 1) == 1) { //- odd
         start_break = loc - (1 + (n_pairs_b - 1) * 2);
@@ -5157,6 +5164,9 @@ class ContourStrip {
         stop_break = loc + (1 + (n_pairs_f - 1) * 2);
       }
 
+      //- get the label vertices from the PlotDigits object for
+      //- the isopleth value of the ContourStrip.  'B' arrays are
+      //- for the flipped orientation.
       float[] vx_tmp = new float[plot.NumVerts];
       float[] vy_tmp = new float[plot.NumVerts];
       System.arraycopy(plot.Vx, 0, vx_tmp, 0, plot.NumVerts);
@@ -5171,9 +5181,13 @@ class ContourStrip {
         lbl_clr = new byte[clr_dim][plot.NumVerts];
       }
 
+      //- Align labels with contour lines if rotate = true
+      //------------------------------------------------------
       boolean rotate = true;
       float[][] lbl_dcoords = null;
       if (rotate) {
+        //- get a unit vector perpendicular to display coordinate grid
+        //- at this label location (loc)
         float[][] norm = null;
         Gridded3DSet cg3d = (Gridded3DSet)css.spatial_set;
         try {
@@ -5191,6 +5205,8 @@ class ContourStrip {
           norm[2][0] = -norm[2][0];
         }
 
+        //- get a unit vector parallel to the contour line at the label
+        //- position.
         float del_x;
         float del_y;
         float del_z;
@@ -5200,12 +5216,16 @@ class ContourStrip {
         float mag = (float)Math.sqrt(del_y * del_y + del_x * del_x +
                                      del_z * del_z);
         float[] ctr_u = new float[] {del_x / mag, del_y / mag, del_z / mag};
+
         if (ctr_u[0] < 0) {
           ctr_u[0] = -ctr_u[0];
           ctr_u[1] = -ctr_u[1];
           ctr_u[2] = -ctr_u[2];
         }
 
+        //- get a vector perpendicular to contour line, and in the local
+        //- tangent plane.  norm_x_ctr: cross-product of local norm and
+        //- unit vector parallel to contour line at label location.
         float[] norm_x_ctr = new float[] {
                                norm[1][0] * ctr_u[2] - norm[2][0] * ctr_u[1],
                                -(norm[0][0] * ctr_u[2] -
@@ -5216,6 +5236,7 @@ class ContourStrip {
                                norm_x_ctr[1] * norm_x_ctr[1] +
                                norm_x_ctr[2] * norm_x_ctr[2]);
 
+        //- normalize vector
         norm_x_ctr[0] = norm_x_ctr[0] / mag;
         norm_x_ctr[1] = norm_x_ctr[1] / mag;
         norm_x_ctr[2] = norm_x_ctr[2] / mag;
@@ -5235,6 +5256,8 @@ class ContourStrip {
           }
         }
 
+        //- align labels with contour lines at label location,
+        //- lbl_dcoords are the result of the rotation.
         lbl_dcoords = new float[3][plot.NumVerts];
         for (int kk = 0; kk < plot.NumVerts; kk++) {
           lbl_dcoords[0][kk] = vx_tmp[kk] * ctr_u[0] +
@@ -5244,6 +5267,7 @@ class ContourStrip {
           lbl_dcoords[2][kk] = vx_tmp[kk] * ctr_u[2] +
                                vyB_tmp[kk] * norm_x_ctr[2];
         }
+        //- translate rotated label to plot location (loc)
         for (int kk = 0; kk < plot.NumVerts; kk++) {
           lbl_dcoords[0][kk] += vv[0][loc];
           lbl_dcoords[1][kk] += vv[1][loc];
@@ -5251,6 +5275,7 @@ class ContourStrip {
         }
 
       }
+      //-- end label alignment
 
       //-- translate to label plot location --------------
       for (int kk = 0; kk < plot.NumVerts; kk++) {
@@ -5277,6 +5302,7 @@ class ContourStrip {
         }
       }
 
+      //- this sections creates the contour gap for the label
       out_vvL[0] = new float[n_lbl][][];
       out_colorsL[0] = new byte[n_lbl][][];
       out_vvL[1] = new float[n_lbl][][];
@@ -5330,6 +5356,7 @@ class ContourStrip {
           System.arraycopy(bb[cc], s_pos, out_colors[0][cc], d_pos, cnt);
         }
       }
+      //--- end label gap code
 
 
       //--- expanding/contracting left-right segments
