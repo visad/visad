@@ -2228,9 +2228,6 @@ for color_length = 3 this is 148 * Length
       color_levels2 = a;
     }
 
-    int n_labels = lbl_loc[0].length;
-
-    f_array[0] = new float[n_labels][4];
 
     VisADLineArray[][] arrays = new VisADLineArray[4][];
     arrays[0] = new VisADLineArray[1];
@@ -2244,111 +2241,115 @@ for color_length = 3 this is 148 * Length
     setGeometryArray(arrays[1][0], grid2, 4, color_levels2);
     grid2 = null;
 
-    arrays[2] = new VisADLineArray[n_labels*2];
-    arrays[3] = new VisADLineArray[n_labels*4];
-    for (int kk = 0; kk < n_labels; kk++) {
-
-      f_array[0][kk][0] = lbl_loc[0][kk][3];
-      f_array[0][kk][1] = lbl_loc[0][kk][4];
-      f_array[0][kk][2] = lbl_loc[0][kk][5];
-      f_array[0][kk][3] = lbl_loc[0][kk][6];
-
-      // temporary label orientation hack
-      // TO_DO - eventually return all 4 label orientations
-      // and have ProjectionControl switch among them
-      boolean backwards  = true;
-      boolean upsidedown = false;
-      float[] vx = null;
-      float[] vy = null;
-      if (backwards) {
-        //vy = vy4[0];
-        vy = lbl_vv[1][kk][1];
-      }
-      else {
-        //vy = vy3[0];
-        vy = lbl_vv[0][kk][1];
-      }
-      vy3 = null;
-      vy4 = null;
-      if (upsidedown) {
-        //vx = vx4[0];
-        vx = lbl_vv[1][kk][0];
-      }
-      else {
-        //vx = vx3[0];
-        vx = lbl_vv[0][kk][0];
-      }
-      //vx3 = null;
-      //vx4 = null;
-      int num = vx.length;
-
-      float[][] grid_label = new float[3][num];
-      System.arraycopy(vx, 0, grid_label[0], 0, num);
-      System.arraycopy(vy, 0, grid_label[1], 0, num);
-      System.arraycopy(lbl_vv[0][kk][2], 0, grid_label[2], 0, num);
-
-      // WLH 5 Nov 98
-      vx = null;
-      vy = null;
-
-      byte[][] segL_color = null;
-      byte[][] segR_color = null;
-      if (color_length > 0) {
-        byte[][] a = new byte[color_length][num];
-        segL_color = new byte[color_length][2];
-        segR_color = new byte[color_length][2];
-        for (int i=0; i<color_length; i++) {
-          System.arraycopy(lbl_cc[0][kk][i], 0, a[i], 0, num);
-          System.arraycopy(lbl_cc[2][kk][i], 0, segL_color[i], 0, 2);
-          System.arraycopy(lbl_cc[3][kk][i], 0, segR_color[i], 0, 2);
+    if (lbl_loc[0] != null) {
+      int n_labels = lbl_loc[0].length;
+      f_array[0] = new float[n_labels][4];
+      arrays[2] = new VisADLineArray[n_labels*2];
+      arrays[3] = new VisADLineArray[n_labels*4];
+      for (int kk = 0; kk < n_labels; kk++) {
+  
+        f_array[0][kk][0] = lbl_loc[0][kk][3];
+        f_array[0][kk][1] = lbl_loc[0][kk][4];
+        f_array[0][kk][2] = lbl_loc[0][kk][5];
+        f_array[0][kk][3] = lbl_loc[0][kk][6];
+  
+        // temporary label orientation hack
+        // TO_DO - eventually return all 4 label orientations
+        // and have ProjectionControl switch among them
+        boolean backwards  = true;
+        boolean upsidedown = false;
+        float[] vx = null;
+        float[] vy = null;
+        if (backwards) {
+          //vy = vy4[0];
+          vy = lbl_vv[1][kk][1];
         }
-        color_levels3 = a;
+        else {
+          //vy = vy3[0];
+          vy = lbl_vv[0][kk][1];
+        }
+        vy3 = null;
+        vy4 = null;
+        if (upsidedown) {
+          //vx = vx4[0];
+          vx = lbl_vv[1][kk][0];
+        }
+        else {
+          //vx = vx3[0];
+          vx = lbl_vv[0][kk][0];
+        }
+        //vx3 = null;
+        //vx4 = null;
+        int num = vx.length;
+  
+        float[][] grid_label = new float[3][num];
+        System.arraycopy(vx, 0, grid_label[0], 0, num);
+        System.arraycopy(vy, 0, grid_label[1], 0, num);
+        System.arraycopy(lbl_vv[0][kk][2], 0, grid_label[2], 0, num);
+  
+        // WLH 5 Nov 98
+        vx = null;
+        vy = null;
+  
+        byte[][] segL_color = null;
+        byte[][] segR_color = null;
+        if (color_length > 0) {
+          byte[][] a = new byte[color_length][num];
+          segL_color = new byte[color_length][2];
+          segR_color = new byte[color_length][2];
+          for (int i=0; i<color_length; i++) {
+            System.arraycopy(lbl_cc[0][kk][i], 0, a[i], 0, num);
+            System.arraycopy(lbl_cc[2][kk][i], 0, segL_color[i], 0, 2);
+            System.arraycopy(lbl_cc[3][kk][i], 0, segR_color[i], 0, 2);
+          }
+          color_levels3 = a;
+        }
+  
+        arrays[2][kk*2] = new VisADLineArray();
+        arrays[2][kk*2+1] = new VisADLineArray();
+        setGeometryArray(arrays[2][kk*2], grid_label, 4, color_levels3);
+        grid_label = null;
+  
+        float[][] loc = new float[3][1];
+        loc[0][0] = lbl_loc[0][kk][0];
+        loc[1][0] = lbl_loc[0][kk][1];
+        loc[2][0] = lbl_loc[0][kk][2];
+        setGeometryArray(arrays[2][kk*2+1], loc, 4, null);
+  
+        arrays[3][kk*4] = new VisADLineArray();
+        arrays[3][kk*4+1] = new VisADLineArray();
+        arrays[3][kk*4+2] = new VisADLineArray();
+        arrays[3][kk*4+3] = new VisADLineArray();
+  
+        float[][] segL = new float[3][2];
+        segL[0][0]     = lbl_vv[2][kk][0][0];
+        segL[1][0]     = lbl_vv[2][kk][1][0];
+        segL[2][0]     = lbl_vv[2][kk][2][0];
+        segL[0][1]     = lbl_vv[2][kk][0][1];
+        segL[1][1]     = lbl_vv[2][kk][1][1];
+        segL[2][1]     = lbl_vv[2][kk][2][1];
+        setGeometryArray(arrays[3][kk*4], segL, 4, segL_color);
+  
+        loc[0][0]      = lbl_loc[1][kk][0];
+        loc[1][0]      = lbl_loc[1][kk][1];
+        loc[2][0]      = lbl_loc[1][kk][2];
+        setGeometryArray(arrays[3][kk*4+1], loc, 4, null);
+  
+        float[][] segR = new float[3][2];
+        segR[0][0]     = lbl_vv[3][kk][0][0];
+        segR[1][0]     = lbl_vv[3][kk][1][0];
+        segR[2][0]     = lbl_vv[3][kk][2][0];
+        segR[0][1]     = lbl_vv[3][kk][0][1];
+        segR[1][1]     = lbl_vv[3][kk][1][1];
+        segR[2][1]     = lbl_vv[3][kk][2][1];
+        setGeometryArray(arrays[3][kk*4+2], segR, 4, segR_color);
+  
+  
+        loc[0][0]      = lbl_loc[2][kk][0];
+        loc[1][0]      = lbl_loc[2][kk][1];
+        loc[2][0]      = lbl_loc[2][kk][2];
+        setGeometryArray(arrays[3][kk*4+3], loc, 4, null);
       }
-
-      arrays[2][kk*2] = new VisADLineArray();
-      arrays[2][kk*2+1] = new VisADLineArray();
-      setGeometryArray(arrays[2][kk*2], grid_label, 4, color_levels3);
-      grid_label = null;
-
-      float[][] loc = new float[3][1];
-      loc[0][0] = lbl_loc[0][kk][0];
-      loc[1][0] = lbl_loc[0][kk][1];
-      loc[2][0] = lbl_loc[0][kk][2];
-      setGeometryArray(arrays[2][kk*2+1], loc, 4, null);
-
-      arrays[3][kk*4] = new VisADLineArray();
-      arrays[3][kk*4+1] = new VisADLineArray();
-      arrays[3][kk*4+2] = new VisADLineArray();
-      arrays[3][kk*4+3] = new VisADLineArray();
-
-      float[][] segL = new float[3][2];
-      segL[0][0]     = lbl_vv[2][kk][0][0];
-      segL[1][0]     = lbl_vv[2][kk][1][0];
-      segL[2][0]     = lbl_vv[2][kk][2][0];
-      segL[0][1]     = lbl_vv[2][kk][0][1];
-      segL[1][1]     = lbl_vv[2][kk][1][1];
-      segL[2][1]     = lbl_vv[2][kk][2][1];
-      setGeometryArray(arrays[3][kk*4], segL, 4, segL_color);
-
-      loc[0][0]      = lbl_loc[1][kk][0];
-      loc[1][0]      = lbl_loc[1][kk][1];
-      loc[2][0]      = lbl_loc[1][kk][2];
-      setGeometryArray(arrays[3][kk*4+1], loc, 4, null);
-
-      float[][] segR = new float[3][2];
-      segR[0][0]     = lbl_vv[3][kk][0][0];
-      segR[1][0]     = lbl_vv[3][kk][1][0];
-      segR[2][0]     = lbl_vv[3][kk][2][0];
-      segR[0][1]     = lbl_vv[3][kk][0][1];
-      segR[1][1]     = lbl_vv[3][kk][1][1];
-      segR[2][1]     = lbl_vv[3][kk][2][1];
-      setGeometryArray(arrays[3][kk*4+2], segR, 4, segR_color);
-
-
-      loc[0][0]      = lbl_loc[2][kk][0];
-      loc[1][0]      = lbl_loc[2][kk][1];
-      loc[2][0]      = lbl_loc[2][kk][2];
-      setGeometryArray(arrays[3][kk*4+3], loc, 4, null);
     }
     
     // BMF 2006-10-10 moved from above to ensure lable code runs
@@ -2379,7 +2380,10 @@ for color_length = 3 this is 148 * Length
       tri_array[0] = new VisADGeometryArray[1];
       tri_array[0][0] = new VisADTriangleArray();
       tri_array[0][0].normals = tri_normals[0];
-      setGeometryArray(tri_array[0][0], gridToValue(tri), 4, tri_color);
+      // make sure there are some contours
+      if (tri != null && (tri[0] != null && tri[1] != null)) {
+          setGeometryArray(tri_array[0][0], gridToValue(tri), 4, tri_color);
+      }
       
       // FIXME:BMF is setGeometryArray(...) required?
       tri_array[2] = arrays[2];
