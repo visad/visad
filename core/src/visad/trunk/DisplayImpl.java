@@ -497,7 +497,8 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    */
   public void notifyListeners(int id, int x, int y)
          throws VisADException, RemoteException {
-    notifyListeners(new DisplayEvent(this, id, x, y));
+    notifyListeners(null, id, x, y);
+    //    notifyListeners(new DisplayEvent(this, id, x, y));
   }
 
   /**
@@ -514,22 +515,57 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     synchronized (eventStatus) {
       if (!eventStatus[evt.getId()]) return;  // ignore disabled events
     }
+    notifyListeners(evt,0,0,0);
+  }
 
-    for (Enumeration listeners = ((Vector)ListenerVector.clone()).elements();
-      listeners.hasMoreElements(); ) {
 
-      DisplayListener listener = (DisplayListener) listeners.nextElement();
 
-      if (listener instanceof Remote) {
-	if (rd == null) {
-	  rd = new RemoteDisplayImpl(this);
-	}
-	listener.displayChanged(evt.cloneButDisplay(rd));
-      } else {
-	listener.displayChanged(evt.cloneButDisplay(this));
+  /**
+   * Notify this instance's {@link DisplayListener}s. This method creates a runnable that actually
+   * does the notification. It invokes the runnable directly if its in the Swing event dispatch thread.
+   * Else, it invokes the runnable in a separate thread.
+   *
+   * @param evt                 The {@link DisplayEvent} to be passed to the
+   *                            {@link DisplayListener}s. If this is null then construct the
+                                event from the other parameters
+   * @param  id  type of DisplayEvent that is to be sent
+   * @param  x  the horizontal x coordinate for the mouse location in
+   *            the display component
+   * @param  y  the vertical y coordinate for the mouse location in
+   *            the display component
+   */
+  private void notifyListeners(final DisplayEvent evt, final int id, final int x, final int y) {
+    Runnable runnable = new Runnable() {
+      public void run() {
+        try {
+          DisplayEvent displayEvent = evt;
+          if (displayEvent==null) {
+            displayEvent = new DisplayEvent(DisplayImpl.this, id, x, y);
+          }
+          for (Enumeration listeners = ((Vector)ListenerVector.clone()).elements(); listeners.hasMoreElements(); ) {
+            DisplayListener listener = (DisplayListener) listeners.nextElement();
+            if (listener instanceof Remote) {
+              if (rd == null) {
+                rd = new RemoteDisplayImpl(DisplayImpl.this);
+              }
+              listener.displayChanged(displayEvent.cloneButDisplay(rd));
+            } else {
+              listener.displayChanged(displayEvent.cloneButDisplay(DisplayImpl.this));
+            }
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
       }
+    };
+
+    if(SwingUtilities.isEventDispatchThread()) {
+      runnable.run();
+    } else {
+      SwingUtilities.invokeLater(runnable);
     }
   }
+
 
   /**
    * add a DisplayListener
