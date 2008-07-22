@@ -3904,9 +3904,9 @@ try {
                   GraphicsModeControl labelMode = (GraphicsModeControl) mode.clone();
             	    labelMode.setLineStyle(GraphicsModeControl.SOLID_STYLE, false);
 
-            	    // mode for lines rendered with J3D line style 
+            	    // mode for dashed lines rendered with J3D line style 
             	    GraphicsModeControl styledMode = (GraphicsModeControl) mode.clone();
-            	    styledMode.setLineStyle(control.getLineStyle(), false);
+            	    styledMode.setLineStyle(control.getDashedStyle(), false);
             	  
                   if (fill) {
                     // BMF set offset to make labels more clear.

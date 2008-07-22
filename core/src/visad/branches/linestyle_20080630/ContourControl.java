@@ -683,18 +683,18 @@ public class ContourControl extends Control {
   
   
   /**
-   * Get the line style for this control.
+   * Get the line style for lines that are styled.
    * @return One of the line style constants from <code>GraphicsModeControl</code>.
    */
-  public int getLineStyle() {
+  public int getDashedStyle() {
 	  return lineStyle;
   }
   
   /**
-   * Set the line style.
+   * Set the line style to apply to dashed lines.
    * @param style One of the line style constants from <code>GraphicsModeControl</code>.
    */
-  public void setLineStyle(int style) {
+  public void setDashedStyle(int style) {
 	  lineStyle = style;
   }
 
