@@ -2189,124 +2189,130 @@ for color_length = 3 this is 148 * Length
     System.arraycopy(contour.fillYCoords, 0, grid2[1], 0, cnt);
     System.arraycopy(contour.fillZCoords, 0, grid2[2], 0, cnt);
 
-    int n_labels = contour.labelLocations[0].length;
-
-    f_array[0] = new float[n_labels][4];
-    
-    
     VisADGeometryArray[][] basicLines = makeBasicLineStripArrays(contour);
     VisADGeometryArray[] fillLines = new VisADLineArray[]{new VisADLineArray()};
-    VisADGeometryArray[] labelLines = new VisADLineArray[n_labels*2];
-    VisADGeometryArray[] expLines = new VisADLineArray[n_labels*4];
-
+    VisADGeometryArray[] labelLines = null;
+    VisADGeometryArray[] expLines = null;
+    
     setGeometryArray(fillLines[0], grid2, 4, contour.fillColors);
     
-    for (int kk = 0; kk < n_labels; kk++) {
-
-      f_array[0][kk][0] = contour.labelLocations[0][kk][3];
-      f_array[0][kk][1] = contour.labelLocations[0][kk][4];
-      f_array[0][kk][2] = contour.labelLocations[0][kk][5];
-      f_array[0][kk][3] = contour.labelLocations[0][kk][6];
-
-      // temporary label orientation hack
-      // TO_DO - eventually return all 4 label orientations
-      // and have ProjectionControl switch among them
-      boolean backwards  = true;
-      boolean upsidedown = false;
-      float[] vx = null;
-      float[] vy = null;
-      if (backwards) {
-        vy = contour.labelVV[1][kk][1];
-      }
-      else {
-        vy = contour.labelVV[0][kk][1];
-      }
-      if (upsidedown) {
-        vx = contour.labelVV[1][kk][0];
-      }
-      else {
-        vx = contour.labelVV[0][kk][0];
-      }
-      
-      int num = vx.length;
-
-      float[][] grid_label = new float[3][num];
-      System.arraycopy(vx, 0, grid_label[0], 0, num);
-      System.arraycopy(vy, 0, grid_label[1], 0, num);
-      System.arraycopy(contour.labelVV[0][kk][2], 0, grid_label[2], 0, num);
-
-      // WLH 5 Nov 98
-      vx = null;
-      vy = null;
-
-      byte[][] segL_color = null;
-      byte[][] segR_color = null;
-      byte[][] a = null;
-      if (color_length > 0) {
-        a = new byte[color_length][num];
-        segL_color = new byte[color_length][2];
-        segR_color = new byte[color_length][2];
-        for (int i=0; i<color_length; i++) {
-          System.arraycopy(contour.labelCC[0][kk][i], 0, a[i], 0, num);
-          System.arraycopy(contour.labelCC[2][kk][i], 0, segL_color[i], 0, 2);
-          System.arraycopy(contour.labelCC[3][kk][i], 0, segR_color[i], 0, 2);
-        }
-      }
-
-      labelLines[kk*2] = new VisADLineArray();
-      labelLines[kk*2+1] = new VisADLineArray();
-      setGeometryArray(labelLines[kk*2], grid_label, 4, a);
-      grid_label = null;
-
-      float[][] loc = new float[3][1];
-      loc[0][0] = contour.labelLocations[0][kk][0];
-      loc[1][0] = contour.labelLocations[0][kk][1];
-      loc[2][0] = contour.labelLocations[0][kk][2];
-      setGeometryArray(labelLines[kk*2+1], loc, 4, null);
-
-      expLines[kk*4] = new VisADLineArray();
-      expLines[kk*4+1] = new VisADLineArray();
-      expLines[kk*4+2] = new VisADLineArray();
-      expLines[kk*4+3] = new VisADLineArray();
-
-      float[][] segL = new float[3][2];
-      segL[0][0]     = contour.labelVV[2][kk][0][0];
-      segL[1][0]     = contour.labelVV[2][kk][1][0];
-      segL[2][0]     = contour.labelVV[2][kk][2][0];
-      segL[0][1]     = contour.labelVV[2][kk][0][1];
-      segL[1][1]     = contour.labelVV[2][kk][1][1];
-      segL[2][1]     = contour.labelVV[2][kk][2][1];
-      setGeometryArray(expLines[kk*4], segL, 4, segL_color);
-
-      loc[0][0]      = contour.labelLocations[1][kk][0];
-      loc[1][0]      = contour.labelLocations[1][kk][1];
-      loc[2][0]      = contour.labelLocations[1][kk][2];
-      setGeometryArray(expLines[kk*4+1], loc, 4, null);
-
-      float[][] segR = new float[3][2];
-      segR[0][0]     = contour.labelVV[3][kk][0][0];
-      segR[1][0]     = contour.labelVV[3][kk][1][0];
-      segR[2][0]     = contour.labelVV[3][kk][2][0];
-      segR[0][1]     = contour.labelVV[3][kk][0][1];
-      segR[1][1]     = contour.labelVV[3][kk][1][1];
-      segR[2][1]     = contour.labelVV[3][kk][2][1];
-      setGeometryArray(expLines[kk*4+2], segR, 4, segR_color);
-
-      loc[0][0]      = contour.labelLocations[2][kk][0];
-      loc[1][0]      = contour.labelLocations[2][kk][1];
-      loc[2][0]      = contour.labelLocations[2][kk][2];
-      setGeometryArray(expLines[kk*4+3], loc, 4, null);
+    if (contour.labelLocations[0] != null){
+    	int n_labels = contour.labelLocations[0].length;
+    	f_array[0] = new float[n_labels][4];
+      labelLines = new VisADLineArray[n_labels*2];
+      expLines = new VisADLineArray[n_labels*4];
+	    for (int kk = 0; kk < n_labels; kk++) {
+	
+	      f_array[0][kk][0] = contour.labelLocations[0][kk][3];
+	      f_array[0][kk][1] = contour.labelLocations[0][kk][4];
+	      f_array[0][kk][2] = contour.labelLocations[0][kk][5];
+	      f_array[0][kk][3] = contour.labelLocations[0][kk][6];
+	
+	      // temporary label orientation hack
+	      // TO_DO - eventually return all 4 label orientations
+	      // and have ProjectionControl switch among them
+	      boolean backwards  = true;
+	      boolean upsidedown = false;
+	      float[] vx = null;
+	      float[] vy = null;
+	      if (backwards) {
+	        vy = contour.labelVV[1][kk][1];
+	      }
+	      else {
+	        vy = contour.labelVV[0][kk][1];
+	      }
+	      if (upsidedown) {
+	        vx = contour.labelVV[1][kk][0];
+	      }
+	      else {
+	        vx = contour.labelVV[0][kk][0];
+	      }
+	      
+	      int num = vx.length;
+	
+	      float[][] grid_label = new float[3][num];
+	      System.arraycopy(vx, 0, grid_label[0], 0, num);
+	      System.arraycopy(vy, 0, grid_label[1], 0, num);
+	      System.arraycopy(contour.labelVV[0][kk][2], 0, grid_label[2], 0, num);
+	
+	      // WLH 5 Nov 98
+	      vx = null;
+	      vy = null;
+	
+	      byte[][] segL_color = null;
+	      byte[][] segR_color = null;
+	      byte[][] a = null;
+	      if (color_length > 0) {
+	        a = new byte[color_length][num];
+	        segL_color = new byte[color_length][2];
+	        segR_color = new byte[color_length][2];
+	        for (int i=0; i<color_length; i++) {
+	          System.arraycopy(contour.labelCC[0][kk][i], 0, a[i], 0, num);
+	          System.arraycopy(contour.labelCC[2][kk][i], 0, segL_color[i], 0, 2);
+	          System.arraycopy(contour.labelCC[3][kk][i], 0, segR_color[i], 0, 2);
+	        }
+	      }
+	
+	      labelLines[kk*2] = new VisADLineArray();
+	      labelLines[kk*2+1] = new VisADLineArray();
+	      setGeometryArray(labelLines[kk*2], grid_label, 4, a);
+	      grid_label = null;
+	
+	      float[][] loc = new float[3][1];
+	      loc[0][0] = contour.labelLocations[0][kk][0];
+	      loc[1][0] = contour.labelLocations[0][kk][1];
+	      loc[2][0] = contour.labelLocations[0][kk][2];
+	      setGeometryArray(labelLines[kk*2+1], loc, 4, null);
+	
+	      expLines[kk*4] = new VisADLineArray();
+	      expLines[kk*4+1] = new VisADLineArray();
+	      expLines[kk*4+2] = new VisADLineArray();
+	      expLines[kk*4+3] = new VisADLineArray();
+	
+	      float[][] segL = new float[3][2];
+	      segL[0][0]     = contour.labelVV[2][kk][0][0];
+	      segL[1][0]     = contour.labelVV[2][kk][1][0];
+	      segL[2][0]     = contour.labelVV[2][kk][2][0];
+	      segL[0][1]     = contour.labelVV[2][kk][0][1];
+	      segL[1][1]     = contour.labelVV[2][kk][1][1];
+	      segL[2][1]     = contour.labelVV[2][kk][2][1];
+	      setGeometryArray(expLines[kk*4], segL, 4, segL_color);
+	
+	      loc[0][0]      = contour.labelLocations[1][kk][0];
+	      loc[1][0]      = contour.labelLocations[1][kk][1];
+	      loc[2][0]      = contour.labelLocations[1][kk][2];
+	      setGeometryArray(expLines[kk*4+1], loc, 4, null);
+	
+	      float[][] segR = new float[3][2];
+	      segR[0][0]     = contour.labelVV[3][kk][0][0];
+	      segR[1][0]     = contour.labelVV[3][kk][1][0];
+	      segR[2][0]     = contour.labelVV[3][kk][2][0];
+	      segR[0][1]     = contour.labelVV[3][kk][0][1];
+	      segR[1][1]     = contour.labelVV[3][kk][1][1];
+	      segR[2][1]     = contour.labelVV[3][kk][2][1];
+	      setGeometryArray(expLines[kk*4+2], segR, 4, segR_color);
+	
+	      loc[0][0]      = contour.labelLocations[2][kk][0];
+	      loc[1][0]      = contour.labelLocations[2][kk][1];
+	      loc[2][0]      = contour.labelLocations[2][kk][2];
+	      setGeometryArray(expLines[kk*4+3], loc, 4, null);
+	    }
     }
     
     if (fill) {
       VisADTriangleArray triangles = new VisADTriangleArray();
       triangles.normals = contour.triangleNormals[0];
-      setGeometryArray(triangles, gridToValue(contour.triangleCoords), 4, contour.triangleColors);
+      
+      // make sure there are some contours
+      if (contour.triangleCoords != null 
+      		&& (contour.triangleCoords[0] != null && contour.triangleCoords[1] != null)) {
+      	setGeometryArray(triangles, gridToValue(contour.triangleCoords), 4, contour.triangleColors);
+      }
 
       return new VisADGeometryArray[][]{
       		new VisADGeometryArray[]{triangles},
-      		fillLines,
-      		labelLines,
+      		fillLines,  // may be null
+      		labelLines, // may be null
       		null	// no label fill lines
       };
       
