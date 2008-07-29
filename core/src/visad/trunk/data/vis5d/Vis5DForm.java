@@ -53,12 +53,12 @@ import java.awt.event.*;
 public class Vis5DForm extends Form implements FormFileInformer {
 
   /** from vis5d-4.3/src/v5d.h */
-  private final int MAXVARS     = 30;
+  private final int MAXVARS     = 200;
   private final int MAXTIMES    = 400;
-  private final int MAXROWS     = 300;
-  private final int MAXCOLUMNS  = 300;
-  private final int MAXLEVELS   = 100;
-  private final int MAXPROJARGS = 100;
+  private final int MAXROWS     = 400;
+  private final int MAXCOLUMNS  = 400;
+  private final int MAXLEVELS   = 400;
+  private final int MAXPROJARGS = MAXROWS+MAXCOLUMNS+1;
   private final int MAXVERTARGS = MAXLEVELS+1;
 
   private static int num = 0;

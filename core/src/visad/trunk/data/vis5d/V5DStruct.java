@@ -101,7 +101,7 @@ public class V5DStruct {
   }
 
   /** Limit on 5-D grid variables */
-  private static final int MAXVARS = 30;
+  private static final int MAXVARS = 200;
 
   /** Limit on 5-D grid times */
   private static final int MAXTIMES = 400;
@@ -113,7 +113,7 @@ public class V5DStruct {
   private static final int MAXCOLUMNS = 400;
 
   /** Limit on 5-D grid levels */
-  private static final int MAXLEVELS = 100;
+  private static final int MAXLEVELS = 400;
 
 
   // ********************************************************************** //
@@ -122,7 +122,7 @@ public class V5DStruct {
   // **                                                                  ** //
   // ********************************************************************** //
 
-  private static final int MAXPROJARGS = 100;
+  private static final int MAXPROJARGS = (MAXROWS+MAXCOLUMNS+1);
   private static final int MAXVERTARGS = (MAXLEVELS+1);
 
   /** File version. This should be updated when the file version changes. */
