@@ -2174,6 +2174,7 @@ if (spatial_values[0].length == 5329) {
       return flow_values;
     }
 
+
     FlowControl fcontrol = null;
     DisplayImpl display = null;
     boolean shouldAdjust = true;
@@ -2199,6 +2200,10 @@ if (spatial_values[0].length == 5329) {
 
     int flen = flow_values[0].length;
 // System.out.println("flen = " + flen); // IDV
+/*
+System.out.println("original flow values = " + flow_values[0][0] + " " +
+                   flow_values[1][0] + " " + flow_values[2][0]);
+*/
 
     // get flow_values maximum
     float scale = 0.0f;
@@ -2309,7 +2314,7 @@ System.out.println("degree earth_locs = " + earth_locs[0][0] +
       for (int j=0; j<flen; j++) {
         vert[j] = factor_vert * flow_values[2][j];
       }
-      earth_locs = renderer.earthToSpatial(earth_locs, vert);
+      earth_locs = renderer.earthToSpatial(earth_locs, vert, base_spatial_locs);
       for (int i=0; i<earth_locs.length; i++) {
         if (earth_locs[i] == null) {
           earth_locs[i] = new float[flen];
@@ -2346,6 +2351,10 @@ System.out.println("vector earth_locs = " + earth_locs[0][0] + " " +
       flow_values[1][j] = ratio * earth_locs[1][j];
       flow_values[2][j] = ratio * earth_locs[2][j];
     }
+/*
+System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
+                   flow_values[1][0] + " " + flow_values[2][0]);
+*/
     testFlow("adjust", flow_values);
     return flow_values;
   }
