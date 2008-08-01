@@ -693,9 +693,13 @@ public class ContourControl extends Control {
   /**
    * Set the line style to apply to dashed lines.
    * @param style One of the line style constants from <code>GraphicsModeControl</code>.
+   * @throws RemoteException
+   * @throws VisADException
    */
-  public void setDashedStyle(int style) {
-	  lineStyle = style;
+  public void setDashedStyle(int style) 
+  	throws RemoteException, VisADException {
+  	lineStyle = style;
+  	changeControl(true);
   }
 
   /**
