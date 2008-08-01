@@ -54,9 +54,8 @@ import javax.vecmath.Color3f;
 
 
 /**
- * Produce a vector based chart based on a visad screen.
- * By implementing both the Plottable and Printable interfaces, this chart
- * can then be sent to a printer or a vector based graphics file such as SVG
+ * Render the non-texture components of a scene graph to a Graphics2D.
+ * This does not handle any 3D aspect, rotation, etc. 
  */
 public class SceneGraphRenderer {
 
@@ -1176,16 +1175,7 @@ public class SceneGraphRenderer {
             if(texture==null) {
                 plot(quadArray, colours, thickness, graphics);
             } else {
-                ImageComponent imageComp = texture.getImage(0);
-
-                if(imageComp instanceof ImageComponent2D) {
-                    BufferedImage image  = ((ImageComponent2D)imageComp).getImage();
-                    ucar.unidata.util.GuiUtils.showOkCancelDialog(null, "",
-                                                new JLabel(new ImageIcon(image)),
-                                                null);
-                    
-                }
-
+                //Don't do textures
             }
         } else if (geometryArray instanceof LineStripArray) {
             LineStripArray lineStripArray = (LineStripArray) geometryArray;
@@ -1864,18 +1854,14 @@ public class SceneGraphRenderer {
             vertices[1][1] = coordinates[i + 4];
             vertices[0][2] = coordinates[i + 6];
             vertices[1][2] = coordinates[i + 7];
-            vertices[0][3] = coordinates[i + 8];
-            vertices[1][3] = coordinates[i + 9];
+            vertices[0][3] = coordinates[i + 9];
+            vertices[1][3] = coordinates[i + 10];
             // Must be clockwise (batik screws up otherwise)
             int clockwise = clockwise(vertices[0], vertices[1]);
             if (clockwise >= 0) {
                 vertices[0] = reverseDirection(vertices[0]);
                 vertices[1] = reverseDirection(vertices[1]);
             }
-            System.err.print("color:" + color + " ");
-            for(int j=0;j<4;j++)
-                System.err.print(" " + vertices[0][j]+"," + vertices[1][j]);
-            System.err.println("");
             fillShapeReprojected(vertices, color, graphics);
         }
     }
@@ -2579,7 +2565,7 @@ public class SceneGraphRenderer {
      *
      *
      * @author IDV Development Team
-     * @version $Revision: 1.1 $
+     * @version $Revision: 1.2 $
      */
     public class ChartException extends Exception {
 
@@ -2602,7 +2588,7 @@ public class SceneGraphRenderer {
      *
      *
      * @author IDV Development Team
-     * @version $Revision: 1.1 $
+     * @version $Revision: 1.2 $
      */
     public class Hatching {
 
