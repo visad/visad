@@ -1668,8 +1668,8 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     
     return new ContourOutput(
   			vx1, vy1, vz1, auxLevels1, // basic lines
-  			vx2, vy2, vz2, auxLevels1, // fill lines
-  			vx3, vy3, vz3, auxLevels1, // label lines
+  			vx2, vy2, vz2, auxLevels2, // fill lines
+  			vx3, vy3, vz3, auxLevels3, // label lines
   			vx4, vy4, vz4,             // expanding lines
   			tri, tri_color, tri_normals, 
   			lbl_loc, lbl_vv, lbl_cc,
@@ -5532,11 +5532,6 @@ class ContourStrip {
       }
       
 //      return new float[][][]{vvAfter};
-      if (vvAfter[0].length < 2 || vvBefore[0].length < 2) {
-      	System.err.println();
-      }
-      assert vvBefore[0].length >= 2: "Before len < 2";
-      assert vvAfter[0].length >= 2: "After len < 2";
       return new float[][][]{vvBefore, vvAfter};
   	}
 
