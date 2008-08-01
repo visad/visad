@@ -162,9 +162,13 @@ public class SceneGraphRenderer {
         viewPort =
             AffineTransform.getTranslateInstance(lTransX, lTransY);
         AffineTransform scale =
-            //            AffineTransform.getScaleInstance(lScale, lScale);
             AffineTransform.getScaleInstance(lScaleX, lScaleY);
         viewPort.concatenate(scale);
+        
+
+        AffineTransform rot =
+            AffineTransform.getRotateInstance(Math.toRadians(-rotArray[2]));
+        viewPort.concatenate(rot);
 
         // Create another transform which matches the viewport
         // coordinates to the device coordinates
@@ -238,7 +242,6 @@ public class SceneGraphRenderer {
         } catch (VisADException e) {
             System.err.println("Chart.getLonLatSamples: " + e);
         }
-
         return lonLatSamples;
     }
 
@@ -2565,7 +2568,7 @@ public class SceneGraphRenderer {
      *
      *
      * @author IDV Development Team
-     * @version $Revision: 1.2 $
+     * @version $Revision: 1.3 $
      */
     public class ChartException extends Exception {
 
@@ -2588,7 +2591,7 @@ public class SceneGraphRenderer {
      *
      *
      * @author IDV Development Team
-     * @version $Revision: 1.2 $
+     * @version $Revision: 1.3 $
      */
     public class Hatching {
 
