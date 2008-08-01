@@ -1085,7 +1085,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     int n_labels = arrays[2].length / 2;
 
     // add the stretchy line segments if we are not filling
-    if (!control.contourFilled()) {
+    if (!control.contourFilled() && arrays[3] != null) {
       projListener.LT_array[cnt] = new LabelTransform[3][n_labels];
 
       for (int ii = 0; ii < n_labels; ii++) {
