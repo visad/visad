@@ -3944,7 +3944,6 @@ try {
 	                  }
                   }
                   
-                  // add labels for filled contours
                   if (doLabels && labelLines != null) {
                     shadow_api.addLabelsToGroup(group, array_s, labelMode, control,
                                                 p_cntrl, cnt, constant_alpha,

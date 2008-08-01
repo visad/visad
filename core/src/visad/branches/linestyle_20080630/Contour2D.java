@@ -225,8 +225,6 @@ public class Contour2D {
     return levs;
   }
 
-
-
   /**           */
   public static int vertexCnt = 0;
 
@@ -3516,11 +3514,11 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
   		return stripSet.isLineStyled(lvl);
   	}
   	
-  	List<float[][]> getLineStripCoordinates(int lvl) {
+  	List<float[][][]> getLineStripCoordinates(int lvl) {
   		return stripSet.getLineStripCoordinates(lvl);
   	}
   	
-  	List<byte[][]> getLineStripColors(int lvl) {
+  	List<byte[][][]> getLineStripColors(int lvl) {
   		return stripSet.getLineStripColors(lvl);
   	}
   	
@@ -4749,14 +4747,14 @@ class ContourStripSet {
    * @return An list of in line strip format, an emtpy list if none.
    * @see {@link VisADLineStripArray}
    */
-  List<float[][]> getLineStripCoordinates(int lvlIdx) {
+  List<float[][][]> getLineStripCoordinates(int lvlIdx) {
   	if (lvlIdx > vecArray.length - 1) {
-  		return new ArrayList<float[][]>(0);
+  		return new ArrayList<float[][][]>(0);
   	}
   	Vector<ContourStrip> strips = vecArray[lvlIdx];
-  	List<float[][]> stripValues = new ArrayList<float[][]>();
+  	List<float[][][]> stripValues = new ArrayList<float[][][]>();
   	for (ContourStrip strip : strips) {
-	  	stripValues.add(strip.getLineStripArray(gridX, gridY));
+	  	stripValues.add(strip.getLineStripArrays(gridX, gridY));
   	}
     return stripValues;
   }
@@ -4767,14 +4765,14 @@ class ContourStripSet {
    * @return A list of arrays for the strips that make up the level, an empty
    * 	list if none.
    */
-  List<byte[][]> getLineStripColors(int lvlIdx) {
+  List<byte[][][]> getLineStripColors(int lvlIdx) {
   	if (lvlIdx > vecArray.length - 1) {
-  		return new ArrayList<byte[][]>(0);
+  		return new ArrayList<byte[][][]>(0);
   	}
   	Vector<ContourStrip> strips = vecArray[lvlIdx];
-  	List<byte[][]> stripColors = new ArrayList<byte[][]>();
+  	List<byte[][][]> stripColors = new ArrayList<byte[][][]>();
   	for (ContourStrip strip : strips) {
-	    stripColors.add(strip.getColorStripArray(gridColors));
+	    stripColors.add(strip.getColorStripArrays(gridColors));
   	}
     return stripColors;
   }
@@ -4806,10 +4804,10 @@ class ContourStrip {
 
   /**
    * Intpereted arrays smaller than this will be interpreted again essentially
-   * resulting in a re-doubleing. 
+   * resulting in a re-doubleing of the number of points. 
    */
-  static final int INTERP_THRESHHOLD = 5;
-
+  static final int INTERP_THRESHHOLD = 4;
+  
   /** 
    * Array of indexes to values in the grid coordinate arrays that make up
    * this strip.
@@ -4825,12 +4823,14 @@ class ContourStrip {
   /** Index to the level for this strip in the intervals array. */
   int lev_idx;
 
-  /* BMF 2006-10-04
-   * dashed > 1 indicated this strip is to be dashed with
-   * a skip equal to dashed.
-   * @see #getDashedLineArray(float[][], int)
-   */
-
+  private boolean isLabeled = false;
+  /** First index which starts the break for the label. */
+  private int start_break;
+  /** Last index which ends the break for the label. */
+  private int stop_break;
+  /** Number of indexes that make up the break for the label. */
+  private int n_skip;
+  
   /**           */
   int dashed = -1;
 
@@ -4891,7 +4891,7 @@ class ContourStrip {
                      css.plot_min_max[lev_idx][0]) / 2;
     this.lbl_half += this.lbl_half * 0.30;
   }
-
+  
   /**
    * 
    *
@@ -5043,7 +5043,8 @@ class ContourStrip {
     // BMF 2006-10-04
     // interpolate twice if below threshhold to
     // make sure there are visible labels
-    if (vv.length < INTERP_THRESHHOLD) {
+    int ptCnt = vv.length / 2;
+    if (ptCnt < INTERP_THRESHHOLD) {
       interp_bb = interpolateColorArray(interp_bb);
       interp_vv = interpolateLineArray(interp_vv);
     }
@@ -5072,7 +5073,7 @@ class ContourStrip {
                                  float[][][][] out_vvL,
                                  byte[][][][] out_colorsL,
                                  float[][][] lbl_loc) {
-
+  	
     float[][] vv = null;
 
     try {
@@ -5104,12 +5105,12 @@ class ContourStrip {
     out_vv[1] = null;
     out_colors[1] = null;
 
-    // Don't use threshold anymore because we're not using J3D line styles
-//    if ((vv[0].length > LBL_ALGM_THRESHHOLD && ((lev_idx & 1) == 1)) || css.n_levs == 1) {
-    if ((lev_idx & 1) == 1 || css.n_levs == 1) {
+    int totalPts = vv[0].length / 2;
+    
+    if ((totalPts > LBL_ALGM_THRESHHOLD && ((lev_idx & 1) == 1)) || css.n_levs == 1) {
+    //if ((lev_idx & 1) == 1 || css.n_levs == 1) {
+    	isLabeled = true;
       int loc = (vv[0].length) / 2;  //- start at half-way pt.
-      int start_break = 0;
-      int stop_break = 0;
       int n_pairs_b = 1;
       int n_pairs_f = 1;
       boolean found = false;
@@ -5154,7 +5155,7 @@ class ContourStrip {
       }
 
       //- total number of points skipped (removed)
-      int n_skip = (n_pairs_b + n_pairs_f) * 2;
+      n_skip = (n_pairs_b + n_pairs_f) * 2;
       if ((loc & 1) == 1) { //- odd
         start_break = loc - (1 + (n_pairs_b - 1) * 2);
         stop_break = loc + (2 + (n_pairs_f - 1) * 2);
@@ -5472,14 +5473,12 @@ class ContourStrip {
   	if (vx == null || vy == null) {
   		return null;
   	}
-    float[] vvx = new float[(hi_idx - low_idx) + 1];
+    float[] vvx = new float[hi_idx - low_idx + 1];
     float[] vvy = new float[vvx.length];
 
-    int ii = 0;
-    for (int kk = low_idx; kk <= hi_idx; kk++) {
+    for (int kk = low_idx, ii = 0; kk <= hi_idx; kk++, ii++) {
       vvx[ii] = vx[idx_array[kk]];
       vvy[ii] = vy[idx_array[kk]];
-      ii++;
     }
     return new float[][] {
       vvx, vvy
@@ -5487,28 +5486,77 @@ class ContourStrip {
   }
   
   /**
-   * Get a line strip array using this instances cached indexes. 
+   * Get line strip arrays for this strip.
    * 
    * @param vx X grid coords to apply cached indexes to.
    * @param vy Y grid coords to apply cached indexes to.
-   * @see {@link VisADLineStripArray}
-   * @return
+   * @return If this strip is has a label the first dim will be 2 arrays, one 
+   * 	for before the label and one for after. Otherwise the first dimension
+   * 	will be a single array for the entire strip.
    */
-  float[][] getLineStripArray(float[] vx, float[] vy) {
-  	if (vx == null || vy == null) {
-  		return null;
-  	}
+  float[][][] getLineStripArrays(float[] vx, float[] vy) {
+
   	int count = hi_idx - low_idx + 1;
-  	float[][] vv = new float[2][count];
-    vv[0][0] = vx[idx_array[low_idx]];
-    vv[1][0] = vy[idx_array[low_idx]];
-  	if (count != 1) {
-	    for (int kk = low_idx + 1, ii = 1; ii < count; kk++, ii++) {
-	      vv[0][ii] = vx[idx_array[kk]];
-	      vv[1][ii] = vy[idx_array[kk]];
-	    }
+  	
+  	int lenBefore = start_break / 2 + 1;
+  	int lenAfter = (count - stop_break + 1) / 2;
+  	
+  	// if we're labeling and there are enough points before
+  	// and after to make at least 1 line
+  	if (isLabeled && (lenBefore >= 2 && lenAfter >= 2)) {
+  		float[][] vvBefore = new float[2][lenBefore];
+  		
+    	// the first point in the array
+    	vvBefore[0][0] = vx[idx_array[low_idx]];
+    	vvBefore[1][0] = vy[idx_array[low_idx]];
+    	
+    	// every other point up to the start of the break 
+    	int kk = low_idx + 1;
+      for (int ii = 1; ii < vvBefore[0].length; kk+=2, ii++) {
+      	vvBefore[0][ii] = vx[idx_array[kk]];
+      	vvBefore[1][ii] = vy[idx_array[kk]];
+      }
+      
+      // skip to stop_break
+      kk += n_skip - 1;
+      
+      float[][] vvAfter = new float[2][lenAfter];
+    	vvAfter[0][0] = vx[idx_array[kk]];
+    	vvAfter[1][0] = vy[idx_array[kk]];
+      
+      // every other point to the end
+    	kk++;
+      for (int ii = 1; ii < vvAfter[0].length; kk+=2, ii++) {
+      	vvAfter[0][ii] = vx[idx_array[kk]];
+      	vvAfter[1][ii] = vy[idx_array[kk]];
+      }
+      
+//      return new float[][][]{vvAfter};
+      if (vvAfter[0].length < 2 || vvBefore[0].length < 2) {
+      	System.err.println();
+      }
+      assert vvBefore[0].length >= 2: "Before len < 2";
+      assert vvAfter[0].length >= 2: "After len < 2";
+      return new float[][][]{vvBefore, vvAfter};
   	}
-    return vv;
+
+  	// no label
+  	float[][] vv = null;
+  	if (count == 2) { // can't have less than 2 verticies
+  		vv = new float[2][count];
+  	} else {
+  		vv = new float[2][count / 2 + 1];
+  	}
+
+		vv[0][0] = vx[idx_array[low_idx]];
+		vv[1][0] = vy[idx_array[low_idx]];
+
+    for (int kk = low_idx + 1, ii = 1; kk <= hi_idx; kk+=2, ii++) {
+    	vv[0][ii] = vx[idx_array[kk]];
+    	vv[1][ii] = vy[idx_array[kk]];
+    }
+   
+    return new float[][][]{vv};
   }
 
   /**
@@ -5543,23 +5591,65 @@ class ContourStrip {
    * @see {@link VisADStripLineArray}
    * @return Array of colors in line strip array format.
    */
-  byte[][] getColorStripArray(byte[][] colors) {
-    if (colors == null) return null;
-    int clr_dim = colors.length;
-    int clr_len = hi_idx - low_idx + 1;
-    byte[][] new_colors = new byte[clr_dim][clr_len];
-
-    for (int cc = 0; cc < clr_dim; cc++) {
-    	new_colors[cc][0] = colors[cc][idx_array[low_idx]];
-    }
-    if (clr_len != 1) {
-	    for (int kk = low_idx + 1, ii = 1; ii < clr_len; kk++, ii++) {
-	      for (int cc = 0; cc < clr_dim; cc++) {
-	        new_colors[cc][ii] = colors[cc][idx_array[kk]];
+  byte[][][] getColorStripArrays(byte[][] colors) {
+    
+    int clrDim = colors.length;
+    int count = hi_idx - low_idx + 1;
+    
+    if (isLabeled) {
+	    byte[][] colorsBefore = new byte[clrDim][start_break / 2 + 1];
+	    
+	    // first point
+      for (int cc = 0; cc < clrDim; cc++) {
+      	colorsBefore[cc][0] = colors[cc][idx_array[low_idx]];
+      }
+      
+      // every other redundant point
+      int kk = low_idx + 1;
+	    for (int ii = 1; ii < colorsBefore[0].length; kk+=2, ii++) {
+	      for (int cc = 0; cc < clrDim; cc++) {
+	      	colorsBefore[cc][ii] = colors[cc][idx_array[kk]];
 	      }
 	    }
+	    
+	    kk += n_skip - 1;
+	    
+	    byte[][] colorsAfter = new byte[clrDim][(count - stop_break + 1) / 2];
+      for (int cc = 0; cc < clrDim; cc++) {
+      	colorsAfter[cc][0] = colors[cc][idx_array[kk]];
+      }
+	    
+      // every other redundant point
+	    kk++;
+	    for (int ii = 1; ii < colorsAfter[0].length; kk+=2, ii++) {
+	      for (int cc = 0; cc < clrDim; cc++) {
+	      	colorsAfter[cc][ii] = colors[cc][idx_array[kk]];
+	      }
+	    }
+	    
+//	    return new byte[][][]{colorsAfter};
+	    return new byte[][][]{colorsBefore, colorsAfter};
     }
-    return new_colors;
+    
+    // no label
+    byte[][] bb = null;
+    if (count == 2) {
+    	bb = new byte[clrDim][count];
+    } else {
+    	bb = new byte[clrDim][count / 2 + 1];
+    }
+    
+    for (int cc = 0; cc < clrDim; cc++) {
+    	bb[cc][0] = colors[cc][idx_array[low_idx]];
+    }
+    
+    for (int ii = 1, kk = low_idx + 1; kk <= hi_idx; kk+=2, ii++) {
+      for (int cc = 0; cc < clrDim; cc++) {
+      	bb[cc][ii] = colors[cc][idx_array[kk]];
+      }
+    }
+    
+    return new byte[][][]{bb};
   }
 
   /**

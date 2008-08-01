@@ -2025,25 +2025,30 @@ public class Gridded3DSet extends GriddedSet {
   	
   	List<VisADLineStripArray> styled = new ArrayList<VisADLineStripArray>();
   	List<VisADLineStripArray> unstyled = new ArrayList<VisADLineStripArray>();
-  	List<float[][]> lvlGrids = null;
-  	List<byte[][]> lvlColors = null;
+  	List<float[][][]> lvlGrids = null;
+  	List<byte[][][]> lvlColors = null;
   	
   	for (int lvlIdx = 0; lvlIdx < o.getIntervalCount(); lvlIdx++) {
   		lvlGrids = o.getLineStripCoordinates(lvlIdx);
 			lvlColors = o.getLineStripColors(lvlIdx);
 			boolean styleFlag = o.isLineStyled(lvlIdx);
-		
 			for (int gridIdx = 0; gridIdx < lvlGrids.size(); gridIdx++) {
-				byte[][] colors = lvlColors.get(gridIdx);
-				float[][] grid = lvlGrids.get(gridIdx);
-				VisADLineStripArray arr = new VisADLineStripArray();
-				arr.stripVertexCounts = new int[]{grid[0].length};
 				
-				setGeometryArray(arr, gridToValue(grid), colors.length, colors);
-				if (styleFlag) {
-					styled.add(arr);
-				} else {
-					unstyled.add(arr);
+				byte[][][] colors = lvlColors.get(gridIdx);
+				float[][][] grid = lvlGrids.get(gridIdx);
+				
+				// strip parts
+				for (int ii = 0; ii < grid.length; ii++) {
+					VisADLineStripArray arr = new VisADLineStripArray();
+					arr.stripVertexCounts = new int[]{grid[ii][0].length};
+					assert arr.stripVertexCounts[0] >= 2: "Vertex count < 2";
+					
+					setGeometryArray(arr, gridToValue(grid[ii]), colors[ii].length, colors[ii]);
+					if (styleFlag) {
+						styled.add(arr);
+					} else {
+						unstyled.add(arr);
+					}
 				}
 			}
   	}
