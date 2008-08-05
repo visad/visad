@@ -1080,7 +1080,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     }
 
     VisADGeometryArray[] lbl_arrays = new VisADGeometryArray[2];
-    VisADGeometryArray[] seg_arrays = new VisADGeometryArray[4];
+    VisADGeometryArray[] seg_arrays = new VisADGeometryArray[6];
 
     int n_labels = arrays[2].length / 2;
 
@@ -1088,12 +1088,17 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     if (!control.contourFilled() && arrays[3] != null) {
       projListener.LT_array[cnt] = new LabelTransform[3][n_labels];
 
+      GraphicsModeControl styledMode = (GraphicsModeControl)mode.clone();
+      styledMode.setLineStyle(control.getDashedStyle(), false);
+      
       for (int ii = 0; ii < n_labels; ii++) {
 
-        seg_arrays[0] = arrays[3][ii * 4];
-        seg_arrays[1] = arrays[3][ii * 4 + 1];
-        seg_arrays[2] = arrays[3][ii * 4 + 2];
-        seg_arrays[3] = arrays[3][ii * 4 + 3];
+        seg_arrays[0] = arrays[3][ii * 6];
+        seg_arrays[1] = arrays[3][ii * 6 + 1];
+        seg_arrays[2] = arrays[3][ii * 6 + 2];
+        seg_arrays[3] = arrays[3][ii * 6 + 3];
+        seg_arrays[4] = arrays[3][ii * 6 + 4];
+        seg_arrays[5] = arrays[3][ii * 6 + 5];
 
         TransformGroup segL_trans_group = new TransformGroup();
         TransformGroup segR_trans_group = new TransformGroup();
@@ -1106,14 +1111,14 @@ public abstract class ShadowTypeJ3D extends ShadowType {
         segR_trans_group.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
 
         if (control.getAutoSizeLabels()) {
-
-          LabelTransform lbl_trans = new LabelTransform(segL_trans_group,
-                                       p_cntrl,
-                                       new VisADGeometryArray[] {
-                                         seg_arrays[0],
-                                         seg_arrays[1]}, new float[] {
-                                           f_array[0][ii][0],
-                                           f_array[0][ii][1]}, 1);
+        	
+          LabelTransform lbl_trans = new LabelTransform(
+          		segL_trans_group,
+          		p_cntrl, 
+          		new VisADGeometryArray[] {seg_arrays[0], seg_arrays[1]}, 
+          		new float[] {f_array[0][ii][0], f_array[0][ii][1]}, 
+          		1
+          );
           projListener.LT_array[cnt][1][ii] = lbl_trans;
 
           lbl_trans = new LabelTransform(segR_trans_group, p_cntrl,
@@ -1128,13 +1133,25 @@ public abstract class ShadowTypeJ3D extends ShadowType {
         ((Group)group).addChild(segL_trans_group);
         ((Group)group).addChild(segR_trans_group);
 
-        addToGroup(
-          segL_trans_group, seg_arrays[0], mode, constant_alpha,
-          constant_color);
-        addToGroup(
-          segR_trans_group, seg_arrays[2], mode, constant_alpha,
-          constant_color);
-
+        if (seg_arrays[4] != null) {
+	        addToGroup(
+		          segL_trans_group, seg_arrays[4], styledMode, constant_alpha,
+		          constant_color);
+        } else {
+	        addToGroup(
+		          segL_trans_group, seg_arrays[0], styledMode, constant_alpha,
+		          constant_color);
+        }
+        
+        if (seg_arrays[5] != null) {
+	        addToGroup(
+		          segL_trans_group, seg_arrays[5], styledMode, constant_alpha,
+		          constant_color);
+        } else {
+		      addToGroup(
+		          segR_trans_group, seg_arrays[2], styledMode, constant_alpha,
+		          constant_color);     	
+        } 
       }
 
     }

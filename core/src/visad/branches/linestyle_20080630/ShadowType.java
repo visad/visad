@@ -3880,16 +3880,14 @@ try {
                     }
                   }
                   if (expLines != null) {
-                    for (int k=0; k<(expLines.length)/4; k++) { //- left/right expanding segments
+                    for (int k=0; k<(expLines.length)/6; k++) { //- left/right expanding segments
                       try {
-                        expLines[k*4] = expLines[k*4].adjustLongitude(renderer);
-                        expLines[k*4] = expLines[k*4].adjustSeam(renderer);
-                        expLines[k*4+1] = expLines[k*4+1].adjustLongitude(renderer);
-                        expLines[k*4+1] = expLines[k*4+1].adjustSeam(renderer);
-                        expLines[k*4+2] = expLines[k*4+2].adjustLongitude(renderer);
-                        expLines[k*4+2] = expLines[k*4+2].adjustSeam(renderer);
-                        expLines[k*4+3] = expLines[k*4+3].adjustLongitude(renderer);
-                        expLines[k*4+3] = expLines[k*4+3].adjustSeam(renderer);
+                      	for (int j = 0; j < 6; j++) {
+                      		if (expLines[k*6+j] != null) {
+                      			expLines[k*6+j] = expLines[k*6+j].adjustLongitude(renderer);
+                      			expLines[k*6+j] = expLines[k*6+j].adjustSeam(renderer);
+                      		}
+                      	}
                       }
                       catch (Exception e) {
                         e.printStackTrace();
@@ -3934,6 +3932,8 @@ try {
                   	shadow_api.addToGroup(group, arr, mode,
                   			constant_alpha, constant_color);
                   }
+                  array_s[0] = null;
+                  uBasicLines = null;
                   
                   // add styled lines
                   if (sBasicLines != null) {
@@ -3942,6 +3942,8 @@ try {
 	                  	shadow_api.addToGroup(group, arr, styledMode,
 	                  			constant_alpha, constant_color);
 	                  }
+	                  sBasicLines = null;
+	                  array_s[4] = null;
                   }
                   
                   if (doLabels && labelLines != null) {
@@ -3949,6 +3951,7 @@ try {
                                                 p_cntrl, cnt, constant_alpha,
                                                 constant_color, f_array);
                     labelLines = null;
+                    array_s[2] = null;
                     
                   } else if (!doLabels && fillLines != null) {
                     // fill in contour lines in place of labels
@@ -3957,6 +3960,7 @@ try {
                         constant_alpha, constant_color
                     );
                     fillLines[0] = null;
+                    array_s[1] = null;
                   }
                   array_s = null;
                 }

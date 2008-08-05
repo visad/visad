@@ -3525,6 +3525,10 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
   	int getIntervalCount() {
   		return stripSet.vecArray.length;
   	}
+  	
+  	Vector<ContourStrip> getStrips(int lvl) {
+  		return stripSet.vecArray[lvl];
+  	}
   }
 } // end class
 
@@ -4227,7 +4231,7 @@ class ContourStripSet {
   /**           */
   Gridded3DSet spatial_set;
 
-  /**           */
+  /** Contour strips by level. */
   Vector<ContourStrip>[] vecArray;
 
   /**           */
@@ -4503,7 +4507,6 @@ class ContourStripSet {
         cs.getLabeledLineColorArray(
           vx, vy, colors, labelColor, la[kk], ca[kk], laL[kk], caL[kk],
           locL[kk]);
-      // end BMF 2006-09-29 //////////////////
     }
 
     //-- contour/contour label gap line arrays
@@ -4580,6 +4583,7 @@ class ContourStripSet {
             if (caL[kk][tt] != null) {
               out_bbL[tt][n_lbl] = caL[kk][tt][mm];
             }
+            vecArray[lev_idx].get(kk).addLabelIndex(n_lbl);
             n_lbl++;
           }
         }
@@ -4842,6 +4846,12 @@ class ContourStrip {
 
   /**           */
   float lbl_half;
+  
+  /**
+   * List of indexes for the corresponding label and expanding line segment
+   * arrays for this strip.
+   */
+  private List<Integer> labelIndexes = new ArrayList<Integer>();
 
   /**
    * 
@@ -4890,6 +4900,22 @@ class ContourStrip {
     this.lbl_half = (css.plot_min_max[lev_idx][1] -
                      css.plot_min_max[lev_idx][0]) / 2;
     this.lbl_half += this.lbl_half * 0.30;
+  }
+  
+  void addLabelIndex(int idx) {
+  	labelIndexes.add(idx);
+  }
+  
+  /**
+   * Get the indexes for labels for this strip.
+   * @return All the indexes if there is a label, otherwise an empty array.
+   */
+  int[] getLabelIndexes() {
+  	int[] idxs = new int[labelIndexes.size()];
+  	for (int i = 0; i < labelIndexes.size(); i++) {
+  		idxs[i] = labelIndexes.get(i);
+  	}
+  	return idxs;
   }
   
   /**
@@ -5008,10 +5034,6 @@ class ContourStrip {
     processLineArrays(
       vv, bb, labelColor, out_vv, out_colors, out_vvL, out_colorsL, lbl_loc);
   }
-
-  /* BMF 2006-10-04
-   * getLabeledLineColorArray() for interpolated short strips
-   */
 
   /**
    * 

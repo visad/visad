@@ -30,6 +30,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Vector;
 
 
 /**
@@ -2059,6 +2060,31 @@ public class Gridded3DSet extends GriddedSet {
   	};
   }
 
+  /**
+   * Process the expanding label lines to determine which are to be styled. 
+   * Arrays to be styled are referenced in indexes 4 and 5.
+   * 
+   * @param expLines Should be of dimension (number of labels * 6)
+   * @param contour Initialized output from <code>Contour2D.contour</code>.
+   */
+  private void processStyledExpLines(VisADGeometryArray[] expLines,
+  		Contour2D.ContourOutput contour) {
+  	
+  	for (int lvlIdx = 0; lvlIdx < contour.getIntervalCount(); lvlIdx++) {
+	  	Vector<ContourStrip> strips = contour.getStrips(lvlIdx);
+	  	for (ContourStrip strip : strips) {
+	  		if (strip.dashed <= 0) {
+	  			continue; // not dashed
+	  		}
+	  		int [] idxs = strip.getLabelIndexes();
+	  		for (int idx : idxs) {
+	  			expLines[idx*6+4] = expLines[idx*6];
+	  			expLines[idx*6+5] = expLines[idx*6+2];
+	  		}
+	  	}
+  	}
+  }
+  
   /* (non-Javadoc)
    * @see visad.Set#makeIsoLines(float[], float, float, float, float[], byte[][], boolean[], boolean, boolean, visad.ScalarMap[], double, double, float[][][])
    */
@@ -2205,7 +2231,7 @@ for color_length = 3 this is 148 * Length
     	int n_labels = contour.labelLocations[0].length;
     	f_array[0] = new float[n_labels][4];
       labelLines = new VisADLineArray[n_labels*2];
-      expLines = new VisADLineArray[n_labels*4];
+      expLines = new VisADLineArray[n_labels*6];
 	    for (int kk = 0; kk < n_labels; kk++) {
 	
 	      f_array[0][kk][0] = contour.labelLocations[0][kk][3];
@@ -2269,10 +2295,10 @@ for color_length = 3 this is 148 * Length
 	      loc[2][0] = contour.labelLocations[0][kk][2];
 	      setGeometryArray(labelLines[kk*2+1], loc, 4, null);
 	
-	      expLines[kk*4] = new VisADLineArray();
-	      expLines[kk*4+1] = new VisADLineArray();
-	      expLines[kk*4+2] = new VisADLineArray();
-	      expLines[kk*4+3] = new VisADLineArray();
+	      expLines[kk*6] = new VisADLineArray();
+	      expLines[kk*6+1] = new VisADLineArray();
+	      expLines[kk*6+2] = new VisADLineArray();
+	      expLines[kk*6+3] = new VisADLineArray();
 	
 	      float[][] segL = new float[3][2];
 	      segL[0][0]     = contour.labelVV[2][kk][0][0];
@@ -2281,12 +2307,12 @@ for color_length = 3 this is 148 * Length
 	      segL[0][1]     = contour.labelVV[2][kk][0][1];
 	      segL[1][1]     = contour.labelVV[2][kk][1][1];
 	      segL[2][1]     = contour.labelVV[2][kk][2][1];
-	      setGeometryArray(expLines[kk*4], segL, 4, segL_color);
+	      setGeometryArray(expLines[kk*6], segL, 6, segL_color);
 	
 	      loc[0][0]      = contour.labelLocations[1][kk][0];
 	      loc[1][0]      = contour.labelLocations[1][kk][1];
 	      loc[2][0]      = contour.labelLocations[1][kk][2];
-	      setGeometryArray(expLines[kk*4+1], loc, 4, null);
+	      setGeometryArray(expLines[kk*6+1], loc, 6, null);
 	
 	      float[][] segR = new float[3][2];
 	      segR[0][0]     = contour.labelVV[3][kk][0][0];
@@ -2295,14 +2321,17 @@ for color_length = 3 this is 148 * Length
 	      segR[0][1]     = contour.labelVV[3][kk][0][1];
 	      segR[1][1]     = contour.labelVV[3][kk][1][1];
 	      segR[2][1]     = contour.labelVV[3][kk][2][1];
-	      setGeometryArray(expLines[kk*4+2], segR, 4, segR_color);
+	      setGeometryArray(expLines[kk*6+2], segR, 6, segR_color);
 	
 	      loc[0][0]      = contour.labelLocations[2][kk][0];
 	      loc[1][0]      = contour.labelLocations[2][kk][1];
 	      loc[2][0]      = contour.labelLocations[2][kk][2];
-	      setGeometryArray(expLines[kk*4+3], loc, 4, null);
+	      setGeometryArray(expLines[kk*6+3], loc, 6, null);
 	    }
     }
+    
+    // make not of segment arrays that are to be styled.s
+    processStyledExpLines(expLines, contour);
     
     if (fill) {
       VisADTriangleArray triangles = new VisADTriangleArray();
