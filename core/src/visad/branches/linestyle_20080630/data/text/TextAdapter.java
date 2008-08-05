@@ -291,8 +291,8 @@ public class TextAdapter {
       if (hdr.indexOf(SEMICOLON) != -1) hdrDelim = SEMICOLON; 
       if (hdr.indexOf(TAB) != -1) hdrDelim = TAB; 
 
-      if (debug) System.out.println("Using header delimiter = "+
-                                     (hdrDelim.getBytes())[0]);
+      if (debug) System.out.println("Using header delimiter = "+ hdrDelim + "("+
+                                     (hdrDelim.getBytes())[0] + ")");
     }
 
     String[] sthdr = hdr.split(hdrDelim);
@@ -752,18 +752,7 @@ public class TextAdapter {
       if (s == null) break;
       if (!isText(s)) return;
       if (isComment(s)) continue;
-      if (dataDelim == null) {
-        if (s.indexOf(BLANK) != -1) dataDelim = BLANK_DELIM; 
-        if (s.indexOf(COMMA) != -1) dataDelim = COMMA; 
-        if (s.indexOf(SEMICOLON) != -1) dataDelim = SEMICOLON; 
-        if (s.indexOf(TAB) != -1) dataDelim = TAB; 
-
-        if (debug) System.out.println("Using data delimiter = "+
-                                       (dataDelim.getBytes())[0]);
-      }
-
-      
-      if((index=s.indexOf("="))>=0) {
+      if((index=s.indexOf("="))>=0) {  // fixed value
         String name  = s.substring(0,index).trim();
         String value  = s.substring(index+1).trim();
         boolean foundIt = false;
@@ -784,6 +773,19 @@ public class TextAdapter {
         continue;
       }
 
+      if (dataDelim == null) {
+        if (s.indexOf(BLANK) != -1) dataDelim = BLANK_DELIM; 
+        if (s.indexOf(COMMA) != -1) dataDelim = COMMA; 
+        if (s.indexOf(SEMICOLON) != -1) dataDelim = SEMICOLON; 
+        if (s.indexOf(TAB) != -1) dataDelim = TAB; 
+
+        if (debug) System.out.println("Using data delimiter = "+
+                                       ((dataDelim == null) 
+                                           ? "null" 
+                                           : dataDelim  + " (" + (dataDelim.getBytes())[0] +")"));
+      }
+
+      
 
 
       String[] st = s.split(dataDelim);
