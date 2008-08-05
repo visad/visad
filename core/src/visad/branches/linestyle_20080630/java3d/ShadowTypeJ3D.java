@@ -1051,7 +1051,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
    */
 
   /**
-   *
+   * Add labels to a group. Transforms are
    *
    * @param group
    * @param arrays
@@ -1093,12 +1093,12 @@ public abstract class ShadowTypeJ3D extends ShadowType {
       
       for (int ii = 0; ii < n_labels; ii++) {
 
-        seg_arrays[0] = arrays[3][ii * 6];
-        seg_arrays[1] = arrays[3][ii * 6 + 1];
-        seg_arrays[2] = arrays[3][ii * 6 + 2];
-        seg_arrays[3] = arrays[3][ii * 6 + 3];
-        seg_arrays[4] = arrays[3][ii * 6 + 4];
-        seg_arrays[5] = arrays[3][ii * 6 + 5];
+        seg_arrays[0] = arrays[3][ii * 6];     // left segments
+        seg_arrays[1] = arrays[3][ii * 6 + 1]; // left locations
+        seg_arrays[2] = arrays[3][ii * 6 + 2]; // right segments
+        seg_arrays[3] = arrays[3][ii * 6 + 3]; // right locations
+        seg_arrays[4] = arrays[3][ii * 6 + 4]; // left segments if styled, null otherwise
+        seg_arrays[5] = arrays[3][ii * 6 + 5]; // right segments if styled, null otherwise
 
         TransformGroup segL_trans_group = new TransformGroup();
         TransformGroup segR_trans_group = new TransformGroup();
@@ -1133,23 +1133,32 @@ public abstract class ShadowTypeJ3D extends ShadowType {
         ((Group)group).addChild(segL_trans_group);
         ((Group)group).addChild(segR_trans_group);
 
+        /* FIXME?
+         * 
+         * Yes, it's really clunky to use a null as a flag value, but it's quick
+         * and avoid memory and processing of other possible solutions.
+         * 
+         * Essentially, if the segment array at index 4 or 5 is not null it 
+         * indicates that we are to apply the line style from the control
+         * to the lines
+         */
         if (seg_arrays[4] != null) {
 	        addToGroup(
 		          segL_trans_group, seg_arrays[4], styledMode, constant_alpha,
 		          constant_color);
         } else {
 	        addToGroup(
-		          segL_trans_group, seg_arrays[0], styledMode, constant_alpha,
+		          segL_trans_group, seg_arrays[0], mode, constant_alpha,
 		          constant_color);
         }
         
         if (seg_arrays[5] != null) {
 	        addToGroup(
-		          segL_trans_group, seg_arrays[5], styledMode, constant_alpha,
+		          segR_trans_group, seg_arrays[5], styledMode, constant_alpha,
 		          constant_color);
         } else {
 		      addToGroup(
-		          segR_trans_group, seg_arrays[2], styledMode, constant_alpha,
+		          segR_trans_group, seg_arrays[2], mode, constant_alpha,
 		          constant_color);     	
         } 
       }

@@ -30,6 +30,7 @@ package visad;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import visad.util.Trace;
@@ -292,7 +293,6 @@ public class Contour2D {
     float[][] tri_normals    = new float[1][];
     byte[][]  tri_color      = new byte[color_length][];
     
-    int nump, ip;
     int numv;
 
     //JDM:Find the max and min values of the data
@@ -518,7 +518,7 @@ public class Contour2D {
         mark[(nc - ic - 2) * nr + (ir)] = 1;
       }
     }
-    numv = nump = 0;
+    numv = 0;
 
     //- color fill arrays
     byte[][] color_bin = null;
@@ -830,7 +830,6 @@ any = true;
           // DO LABEL HERE
           if ((mark[(ic) * nr + (ir)]) == 0) {
             int kc, kr, mc, mr, jc, jr;
-            float xk, yk, xm, ym, value;
 
             // Insert a label
 
@@ -866,12 +865,6 @@ any = true;
                 }
               }
             }
-
-            xk = xdd * kr + 0.0f;
-            yk = ydd * kc + 0.0f;
-            xm = xdd * (mr + 1.0f) + 0.0f;
-            ym = ydd * (mc + 1.0f) + 0.0f;
-            value = gg;
 
             if (numv4[0] + 1000 >= maxv4) {
               // allocate more space
@@ -1810,33 +1803,25 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
                                   float[][] tri_normals_a) {
 
     float[] tri_normals = tri_normals_a[0];
-    int n_tri = 4 + (numc - 1) * 2;
     int[] cnt_tri = new int[1];
     cnt_tri[0] = 0;
     int il = 0;
     int color_length = color_bin.length;
-    float[] vec = new float[2];
-    float[] vec_last = new float[2];
     float[] vv1 = new float[2];
     float[] vv2 = new float[2];
     float[] vv1_last = new float[2];
     float[] vv2_last = new float[2];
     float[][] vv = new float[2][2];
     float[][] vv_last = new float[2][2];
-    float[] vv3 = new float[2];
 
     int dir = 1;
     int start = numv - 2;
     int o_start = numc - 1;
-    int x_min_idx = 0;
     int o_idx = 0;
     byte o_flag = o_flags[o_idx];
-    int ydir = 1;
-    boolean special = false;
     int[] closed = {0};
     boolean up;
     boolean right;
-    float dist_sqrd = 0;
 
     int v_idx = start + dir * il * 2;
 
@@ -1891,7 +1876,6 @@ if ((20.0 <= vy[numv-2] && vy[numv-2] < 22.0) ||
     else if (numc == 0) //- empty grid box (no contour lines)
     {
       if (all_out) return;
-      n_tri = 2;
 
       tri_normals[n_idx[0]++] = grd_normals[nc][nr][0];
       tri_normals[n_idx[0]++] = grd_normals[nc][nr][1];
@@ -3575,16 +3559,20 @@ class ContourQuadSet {
   int snumv = 0;
 
   /**           */
-  public HashMap subGridMap = new HashMap();
+  public Map<CachedArrayDimension, CachedArray> subGridMap 
+  	= new HashMap<CachedArrayDimension, CachedArray>();
 
   /**           */
-  public HashMap subGrid2Map = new HashMap();
+  public Map<CachedArrayDimension, CachedArray> subGrid2Map 
+  	= new HashMap<CachedArrayDimension, CachedArray>();
 
   /**           */
-  public HashMap markGridMap = new HashMap();
+  public Map<CachedArrayDimension, CachedArray> markGridMap 
+  	= new HashMap<CachedArrayDimension, CachedArray>();
 
   /**           */
-  public HashMap markGrid2Map = new HashMap();
+  public Map<CachedArrayDimension, CachedArray> markGrid2Map 
+  	= new HashMap<CachedArrayDimension, CachedArray>();
 
   /**
    * 
@@ -3886,11 +3874,10 @@ class ContourQuad {
   public int[][][] getWorkArrays(int leny, int lenx) {
     Object key;
 
-    java.util.Set keySet = qs.subGridMap.keySet();
+    java.util.Set<CachedArrayDimension> keySet = qs.subGridMap.keySet();
 
     key = null;
-    for (java.util.Iterator i = keySet.iterator(); i.hasNext(); ) {
-      CachedArrayDimension obj = (CachedArrayDimension)i.next();
+    for (CachedArrayDimension obj : keySet) {
       if (obj.equals(new CachedArrayDimension(leny, lenx))) {
         key = obj;
         break;
@@ -3913,7 +3900,7 @@ class ContourQuad {
       subgrid2 = new int[leny][lenx];
       markgrid = new int[leny][lenx];
       markgrid2 = new int[leny][lenx];
-      Object newKey = new CachedArrayDimension(leny, lenx);
+      CachedArrayDimension newKey = new CachedArrayDimension(leny, lenx);
       qs.subGridMap.put(newKey, new CachedArray(subgrid));
       qs.subGrid2Map.put(newKey, new CachedArray(subgrid2));
       qs.markGridMap.put(newKey, new CachedArray(markgrid));
@@ -4012,13 +3999,8 @@ class ContourQuad {
     ContourStrip c_strp = new ContourStrip(200, lev_idx, idx0, idx1,
                                            css.plot_s[lev_idx], css);
 
-    boolean foundA = true;
-    boolean foundB = true;
-
     int idxA = idx0;
     int idxB = idx0;
-    int last_idxA = idxA;
-    int last_idxB = idxB;
     int idxA_2;
     int idxB_2;
 
@@ -4458,7 +4440,6 @@ class ContourStripSet {
 
   /**
    * 
-   *
    * @param vx Grid coordinate values.
    * @param vy Grid coordinate values.
    * @param colors Colors for grid coordinate values.
@@ -4487,24 +4468,8 @@ class ContourStripSet {
 
     for (int kk = 0; kk < n_strips; kk++) {
       ContourStrip cs = vecArray[lev_idx].get(kk);
-
-      // BMF 2006-09-29 ////////////////////
-      // changes to dashed line algm. 
-      // add code to display labels for strips with a small number of points
-
-      // do dashed redering for specified level
-      if (dashed[lev_idx]) cs.dashed = DEFAULT_DASH_VALUE;
-      else cs.dashed = DISABLE_DASH_VALUE;
-
-      // do the standard label algorithm or the modified for short strips
-
-      if ((cs.hi_idx - cs.low_idx + 1) < ContourStrip.LBL_ALGM_THRESHHOLD) {
-//        cs.getInterpolatedLabeledColorArray(
-//          vx, vy, colors, labelColor, la[kk], ca[kk], laL[kk], caL[kk],
-//          locL[kk]);
-      }
-      else
-        cs.getLabeledLineColorArray(
+      cs.isDashed = dashed[lev_idx];
+      cs.getLabeledLineColorArray(
           vx, vy, colors, labelColor, la[kk], ca[kk], laL[kk], caL[kk],
           locL[kk]);
     }
@@ -4583,6 +4548,7 @@ class ContourStripSet {
             if (caL[kk][tt] != null) {
               out_bbL[tt][n_lbl] = caL[kk][tt][mm];
             }
+            // make the ContourStip aware of what labels belong to it
             vecArray[lev_idx].get(kk).addLabelIndex(n_lbl);
             n_lbl++;
           }
@@ -4790,7 +4756,7 @@ class ContourStripSet {
   boolean isLineStyled(int lvl) {
   	if (vecArray.length > lvl + 1 && vecArray[lvl] != null) {
   		if (vecArray[lvl].size() > 0) {
-  			return vecArray[lvl].get(0).dashed >= 0;
+  			return vecArray[lvl].get(0).isDashed;
   		}
   	}
   	return false;
@@ -4809,6 +4775,8 @@ class ContourStrip {
   /**
    * Intpereted arrays smaller than this will be interpreted again essentially
    * resulting in a re-doubleing of the number of points. 
+   * @deprecated J3D line styles are now used for dashing, so interrpretation is
+   * 	no longer necessary.
    */
   static final int INTERP_THRESHHOLD = 4;
   
@@ -4835,8 +4803,7 @@ class ContourStrip {
   /** Number of indexes that make up the break for the label. */
   private int n_skip;
   
-  /**           */
-  int dashed = -1;
+  boolean isDashed = false;
 
   /**           */
   PlotDigits plot;
@@ -4848,8 +4815,8 @@ class ContourStrip {
   float lbl_half;
   
   /**
-   * List of indexes for the corresponding label and expanding line segment
-   * arrays for this strip.
+   * List of indexes into the main label array for all the labels on this
+   * instance.
    */
   private List<Integer> labelIndexes = new ArrayList<Integer>();
 
@@ -4902,13 +4869,19 @@ class ContourStrip {
     this.lbl_half += this.lbl_half * 0.30;
   }
   
+  /**
+   * Let this instance know where to find it's labels.
+   * @param idx An index into the main label array that is associated with 
+   * 	this instance.
+   */
   void addLabelIndex(int idx) {
   	labelIndexes.add(idx);
   }
   
   /**
    * Get the indexes for labels for this strip.
-   * @return All the indexes if there is a label, otherwise an empty array.
+   * @return All the indexes, or an empty array if there are no labels. 
+   * 	Never null.
    */
   int[] getLabelIndexes() {
   	int[] idxs = new int[labelIndexes.size()];
@@ -5036,7 +5009,8 @@ class ContourStrip {
   }
 
   /**
-   * 
+   * Get an array of points where the number of points is doubled if the number
+   * of points is below a treshold.
    *
    * @param vx 
    * @param vy 
@@ -5046,7 +5020,9 @@ class ContourStrip {
    * @param out_colors 
    * @param out_vvL 
    * @param out_colorsL 
-   * @param lbl_loc 
+   * @param lbl_loc
+   * @deprecated J3D line styles are now used, so interrpretation is no longer
+   * 	necessary.
    */
   void getInterpolatedLabeledColorArray(float[] vx, float[] vy,
                                         byte[][] colors, byte[] labelColor,
