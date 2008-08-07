@@ -35,6 +35,7 @@ import visad.data.fits.FitsForm;
 import visad.data.gif.GIFForm;
 import visad.data.gis.DemFamily;
 import visad.data.hdfeos.HdfeosAdaptedForm;
+import visad.data.hrit.HRITForm;
 import visad.data.jai.JAIForm;
 import visad.data.mcidas.AreaForm;
 import visad.data.mcidas.MapForm;
@@ -81,7 +82,7 @@ public class DefaultFamily
   private static void buildList()
   {
     int i = 0;
-
+ 
     try {
       list[i] = DODSForm.dodsForm();
       i++;
@@ -106,7 +107,7 @@ public class DefaultFamily
       list[i] = new HdfeosAdaptedForm();
       i++;
     } catch (Throwable t) {
-    }
+    }  
     try {
       list[i] = new Plain();
       i++;
@@ -154,6 +155,11 @@ public class DefaultFamily
     }
     try {
       list[i] = new JAIForm();
+      i++;
+    } catch (Throwable t) {
+    }
+    try {
+      list[i] = new HRITForm();
       i++;
     } catch (Throwable t) {
     }
