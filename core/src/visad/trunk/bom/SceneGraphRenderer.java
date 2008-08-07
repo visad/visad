@@ -1500,11 +1500,12 @@ public class SceneGraphRenderer {
      */
     private void plot(LineStripArray lineArray, Color[] colours,
                       float thickness, int lineStyle, Graphics2D graphics) {
-        if (lineStyle == LineAttributes.PATTERN_DASH) {
+        //if (lineStyle == LineAttributes.PATTERN_DASH) {
+        if (lineStyle != LineAttributes.PATTERN_SOLID) {
             // According to the Java3d docs, 8 pixels is the
             // ideal size for the dashes
-            float[] dash = { 8.0f * pixelWidth, 8.0f * pixelWidth };
-            graphics.setStroke(getStroke(thickness, dash));
+            //float[] dash = { 8.0f * pixelWidth, 8.0f * pixelWidth };
+            graphics.setStroke(getStroke(thickness, getStrokeDash(lineStyle, pixelWidth)));
         } else {
             graphics.setStroke(getStroke(thickness));
         }
@@ -1553,7 +1554,7 @@ public class SceneGraphRenderer {
                 vertices[0][j] = coordinates[base + j * 3];
                 vertices[1][j] = coordinates[base + j * 3 + 1];
             }
-            drawShapeReprojected(vertices, color, thickness, graphics);
+            drawShapeReprojected(vertices, color, thickness, lineStyle != LineAttributes.PATTERN_SOLID, graphics);
             base += 3 * numCoords;
         }
     }
@@ -2568,7 +2569,7 @@ public class SceneGraphRenderer {
      *
      *
      * @author IDV Development Team
-     * @version $Revision: 1.3 $
+     * @version $Revision: 1.4 $
      */
     public class ChartException extends Exception {
 
@@ -2591,7 +2592,7 @@ public class SceneGraphRenderer {
      *
      *
      * @author IDV Development Team
-     * @version $Revision: 1.3 $
+     * @version $Revision: 1.4 $
      */
     public class Hatching {
 
@@ -2732,6 +2733,28 @@ public class SceneGraphRenderer {
                 }
             }
         }
+    }
+
+    /**
+     * Get the BasicStroke float arrays for dashing
+     * @param dashStyle  dashing style
+     * @return array of alternating stroke lengths (on/off)
+     */
+    private float[] getStrokeDash(int dashStyle, float pixelWidth) {
+        float[] dash = null;
+        switch (dashStyle) {
+            case LineAttributes.PATTERN_DOT:
+                // 1 on, 7 off
+                dash = new float[] { 1.0f * pixelWidth, 7.0f * pixelWidth };
+            case LineAttributes.PATTERN_DASH_DOT:
+                // 7 on, 4 off, 1 on, 4 off
+                dash = new float[] { 7.0f * pixelWidth, 4.0f * pixelWidth, 1.0f * pixelWidth, 4 * pixelWidth };
+            case LineAttributes.PATTERN_DASH:  //
+            default:  //
+                // 8 on, 8 off
+                dash = new float[] { 8.0f * pixelWidth, 8.0f * pixelWidth };
+        }
+        return  dash;
     }
 }
 
