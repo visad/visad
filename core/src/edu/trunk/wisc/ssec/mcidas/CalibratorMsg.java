@@ -68,7 +68,7 @@ package edu.wisc.ssec.mcidas;
  * 0.2312809974E-01-0.1179533087E+01</i>
  * </p>
  * @author Bruce Flynn, SSEC
- * @version $Id: CalibratorMsg.java,v 1.5 2008-02-05 20:26:00 curtis Exp $
+ * @version $Id: CalibratorMsg.java,v 1.6 2008-08-11 18:16:41 tommyj Exp $
  */
 public class CalibratorMsg implements Calibrator {
 
@@ -142,6 +142,15 @@ public class CalibratorMsg implements Calibrator {
         }
 
         planckCoefs = getCalCoefs();
+    }
+    
+    /**
+     * 
+     * @param coefs
+     * @throws CalibratorException
+     */
+    public CalibratorMsg(final double[][] coefs) throws CalibratorException {
+    	planckCoefs = coefs;
     }
 
     /**
