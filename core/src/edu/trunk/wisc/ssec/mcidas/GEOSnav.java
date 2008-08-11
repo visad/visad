@@ -46,11 +46,11 @@ C               de los servidores FSDX y SAFN-HDF5 en McIDAS
 C
 */
 
-
 public class GEOSnav extends AREAnav {
 
+  private static final long serialVersionUID = 1L;
   final int loff, coff, lfac, cfac, plon;
-  final double PI=3.1415926535;
+  final double PI = 3.1415926535;
   final double radpol = 6356.5838;
   final double radeq = 6378.1690;
   final double X42 = 42164.0;
@@ -60,9 +60,7 @@ public class GEOSnav extends AREAnav {
   public GEOSnav(int[] iparms) throws IllegalArgumentException {
 
     if (iparms[0] != GEOS) 
-      throw new IllegalArgumentException ("Invald navigation type "+iparms[0]);
-
-    int itype = 2;
+      throw new IllegalArgumentException ("Invald navigation type " + iparms[0]);
 
     loff = iparms[1];
     coff = iparms[2];
@@ -83,7 +81,6 @@ public class GEOSnav extends AREAnav {
     double x,y;
     double lat,lon,splon;
     double ad2, bd, cd, delta2, halfsom, r_eq2, r_pol2;
-
 
     int number = latlon[0].length;
     double[][] linele = new double[2][number];
