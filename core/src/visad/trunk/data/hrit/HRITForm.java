@@ -42,7 +42,7 @@ import visad.data.FormNode;
 import visad.data.FormFileInformer;
 
 /** 
- * to allow determination of whether a file is of type HRIT
+ * to allow determination of whether a data file is of type HRIT
  *
  */
 public class HRITForm extends Form implements FormFileInformer {
