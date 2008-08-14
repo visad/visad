@@ -23,8 +23,6 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 */
 
 
-
-
 package visad.bom;
 
 
@@ -125,8 +123,14 @@ public class SceneGraphRenderer {
   /** display side coordinate system */
   CoordinateSystem coordSys;
 
+  /** Mouse behavior */
+  MouseBehavior behavior;
+
   /** line thickness */
   private double lineThickness = 1;
+
+  /** transform to screen */
+  private boolean transformToScreenCoords = false;
 
 
   /**
@@ -153,8 +157,7 @@ public class SceneGraphRenderer {
    */
   private AffineTransform getViewport(DisplayImpl displayImpl) {
     ProjectionControl pc = displayImpl.getProjectionControl();
-    MouseBehavior behavior =
-      displayImpl.getDisplayRenderer().getMouseBehavior();
+    behavior = displayImpl.getDisplayRenderer().getMouseBehavior();
 
     double[] tstart = pc.getMatrix();
     double[] rotArray = new double[3];
@@ -583,6 +586,23 @@ public class SceneGraphRenderer {
   public void drawShapeReprojected(float[][] vertices, Color colour,
                                    float width, int dashStyle,
                                    Graphics2D graphics) {
+    drawShapeReprojected(vertices, colour, width, dashStyle, graphics, false);
+  }
+
+
+  /**
+   * Draw a reprojected shape
+   *
+   * @param vertices  vertices
+   * @param colour    default color
+   * @param width     line width
+   * @param dashStyle line dash style
+   * @param graphics  the graphics
+   * @param isScreen  vertices are in screen coordinates
+   */
+  public void drawShapeReprojected(float[][] vertices, Color colour,
+                                   float width, int dashStyle,
+                                   Graphics2D graphics, boolean isScreen) {
 
     graphics.setColor(colour);
     /*
@@ -602,12 +622,14 @@ public class SceneGraphRenderer {
     for (int j = 1; j < vertices[0].length; j++) {
       line.lineTo(vertices[0][j], vertices[1][j]);
     }
-    line.transform(viewPort);
+    if (!isScreen) line.transform(viewPort);
     line = clip(line);
     graphics.setColor(colour);
     //TODO: the colour have a 0 alpha
+    /*
     graphics.setColor(
       new Color(colour.getRed(), colour.getGreen(), colour.getBlue()));
+      */
     graphics.draw(line);
   }
 
@@ -667,6 +689,19 @@ public class SceneGraphRenderer {
    */
   public void fillShapeReprojected(float[][] vertices, Color colour,
                                    Graphics2D graphics) {
+    fillShapeReprojected(vertices, colour, graphics, false);
+  }
+
+  /**
+   * Fill a reprojected shape
+   *
+   * @param vertices  the vertices of the shape
+   * @param colour    the color
+   * @param graphics  the graphics
+   * @param isScreen  true if vertices are in screen (AWT) coordinates
+   */
+  public void fillShapeReprojected(float[][] vertices, Color colour,
+                                   Graphics2D graphics, boolean isScreen) {
     if (gradientFill) {
       GradientPaint gradient = makeGradient(colour, 0, 0, width, height);
       graphics.setPaint(gradient);
@@ -680,7 +715,7 @@ public class SceneGraphRenderer {
       for (int j = 1; j < vertices[0].length; j++) {
         shape.lineTo(vertices[0][j], vertices[1][j]);
       }
-      shape.transform(viewPort);
+      if (!isScreen) shape.transform(viewPort);
       shape = clip(shape);
       graphics.fill(shape);
     }
@@ -774,6 +809,23 @@ public class SceneGraphRenderer {
    */
   public void fillShapeReprojected(float[][] vertices, int texture,
                                    Graphics2D graphics) {
+    fillShapeReprojected(vertices, texture, graphics, false);
+  }
+
+  /**
+   * Fill a reprojected shape from a texture
+   *
+   * @param vertices  the shape vertices
+   * @param texture The hatching texture to fill the shape with
+   * can be Hatching.DIAGONAL1, Hatching.DIAGONAL2,
+   * Hatching.DIAGONAL_BOTH, Hatching.HORIZONTAL = 3, Hatching.VERTICAL
+   * or Hatching.SQUARE
+   * @param graphics The java2d graphics object supplied by the
+   * plotting/printing medium
+   * @param isScreen  true if vertices are in screen (AWT) coordinates
+   */
+  public void fillShapeReprojected(float[][] vertices, int texture,
+                                   Graphics2D graphics, boolean isScreen) {
     BufferedImage fillTexture = hatching.getPattern(texture);
     Rectangle anchor = new Rectangle(30, 30);
     TexturePaint hatching = new TexturePaint(fillTexture, anchor);
@@ -785,7 +837,7 @@ public class SceneGraphRenderer {
       shape.lineTo(vertices[0][j], vertices[1][j]);
     }
     graphics.setPaint(hatching);
-    shape.transform(viewPort);
+    if (!isScreen) shape.transform(viewPort);
     shape = clip(shape);
     graphics.fill(shape);
   }
@@ -1060,12 +1112,25 @@ public class SceneGraphRenderer {
     Color[] colours = null;
     ColoringAttributes colourAttr = appearance.getColoringAttributes();
     int colourFlag = ColoringAttributes.ALLOW_COLOR_READ;
+    TransparencyAttributes transAttr = appearance.getTransparencyAttributes();
+    int transMFlag = TransparencyAttributes.ALLOW_MODE_READ;
+    int transVFlag = TransparencyAttributes.ALLOW_VALUE_READ;
 
     if ((colourAttr != null) && (colourAttr.getCapability(colourFlag))) {
       Color3f color3f = new Color3f();
       colourAttr.getColor(color3f);
       colours = new Color[1];
-      colours[0] = color3f.get();
+      Color color3 = color3f.get();
+      float[] colourComps = new float[4];
+      colourComps = color3.getColorComponents(colourComps);
+      colourComps[3] = 1.0f;
+      if (transAttr != null &&
+          transAttr.getCapability(transMFlag) &&
+          transAttr.getCapability(transVFlag) &&
+          transAttr.getTransparencyMode() != TransparencyAttributes.NONE) {
+          colourComps[3] = transAttr.getTransparency();
+      }
+      colours[0] = new Color(colourComps[0], colourComps[1], colourComps[2], colourComps[3]);
     }
 
     return colours;
@@ -1186,7 +1251,7 @@ public class SceneGraphRenderer {
   private void plot(GeometryArray geometryArray, Color[] colours,
                     float thickness, Texture texture, int lineStyle,
                     Graphics2D graphics) {
-    // System.err.println ("plot:" + geometryArray.getClass().getName());
+    //System.err.println ("plot:" + geometryArray.getClass().getName());
     if (geometryArray instanceof LineArray) {
       LineArray lineArray = (LineArray)geometryArray;
       plot(lineArray, colours, thickness, lineStyle, graphics);
@@ -1219,6 +1284,10 @@ public class SceneGraphRenderer {
       IndexedTriangleStripArray triangleArray =
         (IndexedTriangleStripArray)geometryArray;
       plot(triangleArray, colours, thickness, graphics);
+    } // Draw a VisADPointArray
+    else if (geometryArray instanceof PointArray) {
+      PointArray pointArray = (PointArray)geometryArray;
+      plot(pointArray, colours, thickness, graphics);
     }
     else {
       // Other geometries go here
@@ -1522,20 +1591,12 @@ public class SceneGraphRenderer {
    */
   private void plot(LineStripArray lineArray, Color[] colours,
                     float thickness, int lineStyle, Graphics2D graphics) {
-    //if (lineStyle == LineAttributes.PATTERN_DASH) {
-    /*
-    if (lineStyle != LineAttributes.PATTERN_SOLID) {
-        // According to the Java3d docs, 8 pixels is the
-        // ideal size for the dashes
-        //float[] dash = { 8.0f * pixelWidth, 8.0f * pixelWidth };
-    } else {
-        graphics.setStroke(getStroke(thickness));
-    }
-    */
 
     int vertexCount = lineArray.getVertexCount();
+    boolean hasAlpha = hasAlpha(lineArray);
     float[] coordinates = new float[vertexCount * 3];
     lineArray.getCoordinates(0, coordinates);
+    coordinates = transformToScreen(coordinates);
 
     int numStrips = lineArray.getNumStrips();
     int[] vertexCounts = new int[numStrips];
@@ -1554,6 +1615,16 @@ public class SceneGraphRenderer {
     else {
       lineArray.getColor(0, colour);
     }
+    if (!hasAlpha || !useTransparency) {
+      colour[3] = 1.0f;
+    }
+
+    // If monochrome
+    if (monochrome) {
+      // Set everything except white to black
+      monochromatise(colour);
+    }
+
     // Loop over each chunk
     for (int i = 0; i < vertexCounts.length; i++) {
       int numCoords = vertexCounts[i];
@@ -1562,13 +1633,13 @@ public class SceneGraphRenderer {
       if (colours == null) {
         lineArray.getColor(i, colour);
       }
+      if (!useTransparency || !hasAlpha) {
+        colour[3] = 1.0f;
+      }
       // If monochrome
       if (monochrome) {
         // Set everything except white to black
         monochromatise(colour);
-      }
-      if (!useTransparency) {
-        colour[3] = 1.0f;
       }
       Color color = new Color(colour[0], colour[1], colour[2], colour[3]);
 
@@ -1577,7 +1648,7 @@ public class SceneGraphRenderer {
         vertices[0][j] = coordinates[base + j * 3];
         vertices[1][j] = coordinates[base + j * 3 + 1];
       }
-      drawShapeReprojected(vertices, color, thickness, lineStyle, graphics);
+      drawShapeReprojected(vertices, color, thickness, lineStyle, graphics, transformToScreenCoords);
       base += 3 * numCoords;
     }
   }
@@ -1593,23 +1664,20 @@ public class SceneGraphRenderer {
    */
   private void plot(LineArray lineArray, Color[] colours, float thickness,
                     int lineStyle, Graphics2D graphics) {
-    int vertexFormat = lineArray.getVertexFormat();
-    int numColComponents = 3;
-    if ((vertexFormat & LineArray.COLOR_4) == LineArray.COLOR_4) {
-      numColComponents = 4;
-    }
+    boolean hasAlpha = hasAlpha(lineArray);
     // If a colour was supplied, use it
-    float[] colour = new float[numColComponents];
+    float[] colour = new float[4];
     if (colours != null) {
       colour[0] = ((float)colours[0].getRed()) / 255.0f;
       colour[1] = ((float)colours[0].getGreen()) / 255.0f;
       colour[2] = ((float)colours[0].getBlue()) / 255.0f;
-      if (numColComponents == 4) {
-        colour[3] = ((float)colours[0].getAlpha()) / 255.0f;
-      }
+      colour[3] = ((float)colours[0].getAlpha()) / 255.0f;
     }
     else {
       lineArray.getColor(0, colour);
+    }
+    if (!useTransparency || !hasAlpha) {
+      colour[3] = 1.0f;
     }
 
     // If monochrome
@@ -1636,13 +1704,17 @@ public class SceneGraphRenderer {
     int vertexCount = lineArray.getVertexCount();
     float[] coordinates = new float[vertexCount * 3];
     lineArray.getCoordinates(0, coordinates);
+    coordinates = transformToScreen(coordinates);
 
-    Color lastColor = new Color(colour[0], colour[1], colour[2]);
+    Color lastColor = new Color(colour[0], colour[1], colour[2], colour[3]);
     linePath = new GeneralPath();
     graphics.setColor(lastColor);
     for (int j = 0; j < vertexCount; j += 2) {
       if (colours == null) {
         lineArray.getColor(j, colour);
+      }
+      if (!useTransparency || !hasAlpha) {
+        colour[3] = 1.0f;
       }
       // If monochrome
       if (monochrome) {
@@ -1650,23 +1722,14 @@ public class SceneGraphRenderer {
         monochromatise(colour);
       }
 
-      Color color = null;
-      if (numColComponents == 4) {
-        color = new Color(colour[0], colour[1], colour[2], colour[3]);
-        if (!useTransparency) {
-          colour[3] = 1.0f;
-        }
-      }
-      else {
-        color = new Color(colour[0], colour[1], colour[2]);
-      }
+      Color color = new Color(colour[0], colour[1], colour[2], colour[3]);
       // Draw lines of one colour in a sigle GeneralPath
       // This makes the resulting image MUCH more slick
       // when plotting many small lines (eg. observations)
       if (!color.equals(lastColor)) {
         graphics.setColor(lastColor);
         lastColor = color;
-        linePath.transform(viewPort);
+        if (!transformToScreenCoords) linePath.transform(viewPort);
         graphics.draw(linePath);
         linePath = new GeneralPath();
       }
@@ -1676,14 +1739,14 @@ public class SceneGraphRenderer {
       float nY1 = coordinates[j * 3 + 1];
       float nX2 = coordinates[j * 3 + 3];
       float nY2 = coordinates[j * 3 + 4];
-      if (!visible(nX1, nY1, nX2, nY2, graphics)) {
+      if (!visible(nX1, nY1, nX2, nY2, graphics, transformToScreenCoords)) {
         continue;
       }
       linePath.moveTo(nX1, nY1);
       linePath.lineTo(nX2, nY2);
     }
     // Translate them to device coordinates and plot
-    linePath.transform(viewPort);
+    if (!transformToScreenCoords) linePath.transform(viewPort);
     graphics.draw(linePath);
   }
 
@@ -1702,6 +1765,7 @@ public class SceneGraphRenderer {
         == GeometryArray.TEXTURE_COORDINATE_2) {
       return;
     }
+    boolean hasAlpha = hasAlpha(triangleArray);
     float[] colour = new float[4];
     if (colours != null) {
       colour[0] = ((float)colours[0].getRed()) / 255.0f;
@@ -1711,9 +1775,14 @@ public class SceneGraphRenderer {
     }
     else {
       triangleArray.getColor(0, colour);
-      if (triangleArray.getCapability(GeometryArray.COLOR_3)) {
+      if (!useTransparency || !hasAlpha) {
         colour[3] = 1.0f;
       }
+    }
+    // If monochrome
+    if (monochrome) {
+      // Set everything except white to black
+      monochromatise(colour);
     }
 
     graphics.setStroke(getStroke(thickness));
@@ -1722,6 +1791,8 @@ public class SceneGraphRenderer {
     float[] coordinates = new float[vertexCount * 3];
 
     triangleArray.getCoordinates(0, coordinates);
+    coordinates = transformToScreen(coordinates);
+
     int cCount = 0;
 
     // Find out how many strips
@@ -1737,13 +1808,13 @@ public class SceneGraphRenderer {
       if (colours == null) {
         triangleArray.getColor(cCount++, colour);
       }
+      if (!useTransparency || !hasAlpha) {
+        colour[3] = 1.0f;
+      }
       // If monochrome
       if (monochrome) {
         // Set everything except white to black
         monochromatise(colour);
-      }
-      if (!useTransparency) {
-        colour[3] = 1.0f;
       }
       Color color = new Color(colour[0], colour[1], colour[2], colour[3]);
       graphics.setColor(color);
@@ -1767,7 +1838,7 @@ public class SceneGraphRenderer {
         lastNormX1 = normalX;
         lastNormY2 = lastNormY1;
         lastNormY1 = normalY;
-        fillShapeReprojected(triangle, color, graphics);
+        fillShapeReprojected(triangle, color, graphics, transformToScreenCoords);
       }
       base += 3 * numCoords;
 
@@ -1791,7 +1862,16 @@ public class SceneGraphRenderer {
       colour[2] = ((float)colours[0].getBlue()) / 255.0f;
       colour[3] = ((float)colours[0].getAlpha()) / 255.0f;
     }
+    boolean  hasAlpha = hasAlpha(triangleArray);
+    if (!hasAlpha || !useTransparency) {
+      colour[3] = 1.0f;
+    }
 
+    // If monochrome
+    if (monochrome) {
+      // Set everything except white to black
+      monochromatise(colour);
+    }
 
     graphics.setStroke(getStroke(thickness));
 
@@ -1799,23 +1879,21 @@ public class SceneGraphRenderer {
     float[] coordinates = new float[vertexCount * 3];
 
     triangleArray.getCoordinates(0, coordinates);
+    coordinates = transformToScreen(coordinates);
 
     for (int i = 0; i < 3 * vertexCount; i += 9) {
       if (colours == null) {
         if (i < vertexCount * 3) {
           triangleArray.getColor(i / 3, colour);
         }
-        if (triangleArray.getCapability(GeometryArray.COLOR_3)) {
-          colour[3] = 1.0f;
-        }
       }
       // If monochrome
-      if (monochrome) {
-        // Set everything except white to black
-        monochromatise(colour);
-      }
-      if (!useTransparency) {
+      if (!useTransparency || !hasAlpha) {
         colour[3] = 1.0f;
+      }
+      if (monochrome) {
+        // Set everything except white to black 
+        monochromatise(colour);
       }
       Color color = new Color(colour[0], colour[1], colour[2], colour[3]);
       graphics.setColor(color);
@@ -1834,7 +1912,7 @@ public class SceneGraphRenderer {
         vertices[0] = reverseDirection(vertices[0]);
         vertices[1] = reverseDirection(vertices[1]);
       }
-      fillShapeReprojected(vertices, color, graphics);
+      fillShapeReprojected(vertices, color, graphics, transformToScreenCoords);
     }
   }
 
@@ -1849,19 +1927,29 @@ public class SceneGraphRenderer {
   private void plot(QuadArray quadArray, Color[] colours, float thickness,
                     Graphics2D graphics) {
     float[] colour = new float[4];
+    boolean hasAlpha = hasAlpha(quadArray);
     if (colours != null) {
       colour[0] = ((float)colours[0].getRed()) / 255.0f;
       colour[1] = ((float)colours[0].getGreen()) / 255.0f;
       colour[2] = ((float)colours[0].getBlue()) / 255.0f;
       colour[3] = ((float)colours[0].getAlpha()) / 255.0f;
     }
+    if (!useTransparency || !hasAlpha) {
+      colour[3] = 1.0f;
+    }
+    // If monochrome
+    if (monochrome) {
+      // Set everything except white to black
+      monochromatise(colour);
+    }
+
 
     graphics.setStroke(getStroke(thickness));
 
     int vertexCount = quadArray.getVertexCount();
     float[] coordinates = new float[vertexCount * 3];
-
     quadArray.getCoordinates(0, coordinates);
+    coordinates = transformToScreen(coordinates);
 
     //        System.err.println("quad:" + vertexCount);
     for (int i = 0; i < 3 * vertexCount; i += 12) {
@@ -1870,13 +1958,13 @@ public class SceneGraphRenderer {
           quadArray.getColor(i / 4, colour);
         }
       }
+      if (!useTransparency || !hasAlpha) {
+        colour[3] = 1.0f;
+      }
       // If monochrome
       if (monochrome) {
         // Set everything except white to black
         monochromatise(colour);
-      }
-      if (!useTransparency) {
-        colour[3] = 1.0f;
       }
       Color color = new Color(colour[0], colour[1], colour[2], colour[3]);
       graphics.setColor(color);
@@ -1897,10 +1985,87 @@ public class SceneGraphRenderer {
         vertices[0] = reverseDirection(vertices[0]);
         vertices[1] = reverseDirection(vertices[1]);
       }
-      fillShapeReprojected(vertices, color, graphics);
+      fillShapeReprojected(vertices, color, graphics, transformToScreenCoords);
     }
   }
 
+  /**
+   * Plot a PointArray into postscript format
+   *
+   * @param pointArray  The pointArray to be plotted
+   * @param colours     The colour to plot the points
+   * @param size        Size of the points
+   * @param graphics    The graphics to plot to
+   */
+  private void plot(PointArray pointArray, Color[] colours, float size,
+                    Graphics2D graphics) {
+    boolean hasAlpha = hasAlpha(pointArray);
+    float[] colour = new float[4];
+    if (colours != null) {
+      colour[0] = ((float)colours[0].getRed()) / 255.0f;
+      colour[1] = ((float)colours[0].getGreen()) / 255.0f;
+      colour[2] = ((float)colours[0].getBlue()) / 255.0f;
+      colour[3] = ((float)colours[0].getAlpha()) / 255.0f;
+    }
+    if (!useTransparency || !hasAlpha) {
+      colour[3] = 1.0f;
+    }
+    if (!hasAlpha || !useTransparency) {
+      colour[3] = 1.0f;
+    }
+
+    // If monochrome
+    if (monochrome) {
+      // Set everything except white to black
+      monochromatise(colour);
+    }
+
+
+    graphics.setStroke(getStroke(size));
+    int vertexCount = pointArray.getVertexCount();
+    float[] coordinates = new float[vertexCount * 3];
+    pointArray.getCoordinates(0, coordinates);
+    coordinates = transformToScreen(coordinates);
+
+    // Loop over each point
+    for (int i = 0; i < vertexCount; i++) {
+      float x = coordinates[i * 3];
+      float y = coordinates[i * 3 + 1];
+      float[] vertices = {x, y};
+      if (!transformToScreenCoords) {
+        float[] device = new float[2];
+        viewPort.transform(new float[] {x, y}, 0, vertices, 0, 1);
+      }
+      if (colours == null) {
+          pointArray.getColor(i, colour);
+      }
+      if (!useTransparency || !hasAlpha) {
+        colour[3] = 1.0f;
+      }
+      // If monochrome
+      if (monochrome) {
+        // Set everything except white to black
+        monochromatise(colour);
+      }
+      Color color = new Color(colour[0], colour[1], colour[2], colour[3]);
+      graphics.setColor(color);
+      graphics.setStroke(getStroke(1));
+      graphics.fillRect((int) vertices[0], (int) vertices[1], (int) size,(int) size);
+    }
+  }
+
+  /**
+   * Get the number of colour components for the geometry array
+   * @param the array to check
+   * @return the number of components (3 or 4)
+   */
+  private boolean hasAlpha(GeometryArray array) {
+    int vertexFormat = array.getVertexFormat();
+    if ((vertexFormat & GeometryArray.COLOR_4) == GeometryArray.COLOR_4) {
+      return true;
+    }
+    return false;
+  }
 
 
   /**
@@ -2095,9 +2260,36 @@ public class SceneGraphRenderer {
    */
   private boolean visible(double x1, double y1, double x2, double y2,
                           Graphics2D graphics) {
+    return visible(x1, y1, x2, y2, graphics, false);
+  }
+
+  /**
+   * Long winded way of checking if any part of an area is visible in an
+   * area bounded by the graphics2d clipping region Significantly
+   * increases the plotting time, but significantly decreases the size of
+   * the resulting file Probably better to investigate ways of clipping
+   * the lines using DelaunayCustom.clip()
+   *
+   * @param x1   The X coordinate of the start of the line
+   * @param y1   The Y coordinate of the start of the line
+   * @param x2   The X coordinate of the end of the line
+   * @param y2   The Y coordinate of the end of the line
+   * @param graphics  the graphics
+   * @param isScreen  true to transform xy to graphics space
+   * @return a boolean flag, true means that the triangle is at least
+   *          partially visible
+   *
+   * @return true if visible
+   */
+  private boolean visible(double x1, double y1, double x2, double y2,
+                          Graphics2D graphics, boolean isScreen) {
     double[] coords = {x1, y1, x2, y2};
     double[] device = new double[4];
-    viewPort.transform(coords, 0, device, 0, 2);
+    if (!isScreen) {
+      viewPort.transform(coords, 0, device, 0, 2);
+    } else {
+      device = coords;
+    }
 
     // Find the area occupied by the line
     double xMin = Math.min(device[0], device[2]);
@@ -2770,6 +2962,38 @@ public class SceneGraphRenderer {
         break;
     }
     return dash;
+  }
+
+  /**
+   * Set whether the vertices should be transformed from display coords
+   * to screen coords before drawing.  This ends up bypassing the use of
+   * the AffineTransform when drawing.  Use this if you are in a rotated
+   * 3D display.
+   * 
+   * @param value  true to transform
+   */
+  public void setTransformToScreenCoords(boolean value) {
+      transformToScreenCoords = value;
+  }
+
+  /** 
+   * Transform coordinates from 3D space to 2D space
+   * @param 3D space coords
+   * @return 2D space coords
+   */
+  private float[] transformToScreen(float[] coords) {
+    if (!transformToScreenCoords) return coords;
+    int numvertex = coords.length/3;
+    float[] retCoords = new float[coords.length];
+    for (int i = 0; i < numvertex; i++) {
+      double[] xyz = { coords[i*3], coords[i*3+1], coords[i*3+2] };
+      int[] screenLocs = behavior.getScreenCoords(xyz);
+      retCoords[i*3] = screenLocs[0];
+      retCoords[i*3+1] = screenLocs[1];
+      retCoords[i*3+2] = 0;
+    }
+    return retCoords;
+
   }
 }
 
