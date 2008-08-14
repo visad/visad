@@ -2343,9 +2343,10 @@ public class Gridded3DSet extends GriddedSet {
       }
 
       return new VisADGeometryArray[][] {
-          new VisADGeometryArray[] { triangles }, fillLines, // may be null
-          labelLines, // may be null
-          null // no label fill lines
+          new VisADGeometryArray[] { triangles }, // triangles instead of lines
+          null, // no label fill lines
+          labelLines, // label array may be null
+          null // no expanding line segments
       };
 
     }
