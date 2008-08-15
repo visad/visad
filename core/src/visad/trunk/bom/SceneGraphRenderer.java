@@ -23,6 +23,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 */
 
 
+
 package visad.bom;
 
 
@@ -853,7 +854,7 @@ public class SceneGraphRenderer {
    * or Hatching.SQUARE
    * @param graphics The java2d graphics object supplied by the
    * plotting/printing medium
-   * @throws VisADException  problem transforming from lat/lon 
+   * @throws VisADException  problem transforming from lat/lon
    *                         to display space
    */
   public void fillShape(float[][] data, int texture, Graphics2D graphics)
@@ -1124,13 +1125,16 @@ public class SceneGraphRenderer {
       float[] colourComps = new float[4];
       colourComps = color3.getColorComponents(colourComps);
       colourComps[3] = 1.0f;
+      /*
       if (transAttr != null &&
           transAttr.getCapability(transMFlag) &&
           transAttr.getCapability(transVFlag) &&
           transAttr.getTransparencyMode() != TransparencyAttributes.NONE) {
           colourComps[3] = transAttr.getTransparency();
       }
-      colours[0] = new Color(colourComps[0], colourComps[1], colourComps[2], colourComps[3]);
+      */
+      colours[0] = new Color(colourComps[0], colourComps[1], colourComps[2],
+                             colourComps[3]);
     }
 
     return colours;
@@ -1648,7 +1652,9 @@ public class SceneGraphRenderer {
         vertices[0][j] = coordinates[base + j * 3];
         vertices[1][j] = coordinates[base + j * 3 + 1];
       }
-      drawShapeReprojected(vertices, color, thickness, lineStyle, graphics, transformToScreenCoords);
+      drawShapeReprojected(
+        vertices, color, thickness, lineStyle, graphics,
+        transformToScreenCoords);
       base += 3 * numCoords;
     }
   }
@@ -1838,7 +1844,8 @@ public class SceneGraphRenderer {
         lastNormX1 = normalX;
         lastNormY2 = lastNormY1;
         lastNormY1 = normalY;
-        fillShapeReprojected(triangle, color, graphics, transformToScreenCoords);
+        fillShapeReprojected(
+          triangle, color, graphics, transformToScreenCoords);
       }
       base += 3 * numCoords;
 
@@ -1862,7 +1869,7 @@ public class SceneGraphRenderer {
       colour[2] = ((float)colours[0].getBlue()) / 255.0f;
       colour[3] = ((float)colours[0].getAlpha()) / 255.0f;
     }
-    boolean  hasAlpha = hasAlpha(triangleArray);
+    boolean hasAlpha = hasAlpha(triangleArray);
     if (!hasAlpha || !useTransparency) {
       colour[3] = 1.0f;
     }
@@ -1912,7 +1919,8 @@ public class SceneGraphRenderer {
         vertices[0] = reverseDirection(vertices[0]);
         vertices[1] = reverseDirection(vertices[1]);
       }
-      fillShapeReprojected(vertices, color, graphics, transformToScreenCoords);
+      fillShapeReprojected(
+        vertices, color, graphics, transformToScreenCoords);
     }
   }
 
@@ -1985,7 +1993,8 @@ public class SceneGraphRenderer {
         vertices[0] = reverseDirection(vertices[0]);
         vertices[1] = reverseDirection(vertices[1]);
       }
-      fillShapeReprojected(vertices, color, graphics, transformToScreenCoords);
+      fillShapeReprojected(
+        vertices, color, graphics, transformToScreenCoords);
     }
   }
 
@@ -2037,7 +2046,7 @@ public class SceneGraphRenderer {
         viewPort.transform(new float[] {x, y}, 0, vertices, 0, 1);
       }
       if (colours == null) {
-          pointArray.getColor(i, colour);
+        pointArray.getColor(i, colour);
       }
       if (!useTransparency || !hasAlpha) {
         colour[3] = 1.0f;
@@ -2050,14 +2059,16 @@ public class SceneGraphRenderer {
       Color color = new Color(colour[0], colour[1], colour[2], colour[3]);
       graphics.setColor(color);
       graphics.setStroke(getStroke(1));
-      graphics.fillRect((int) vertices[0], (int) vertices[1], (int) size,(int) size);
+      graphics.fillRect(
+        (int)vertices[0], (int)vertices[1], (int)size, (int)size);
     }
   }
 
   /**
    * Get the number of colour components for the geometry array
-   * @param the array to check
-   * @return the number of components (3 or 4)
+   * @param array the array to check
+   *
+   * @return true if vertexFormat has COLOR_4
    */
   private boolean hasAlpha(GeometryArray array) {
     int vertexFormat = array.getVertexFormat();
@@ -2287,7 +2298,8 @@ public class SceneGraphRenderer {
     double[] device = new double[4];
     if (!isScreen) {
       viewPort.transform(coords, 0, device, 0, 2);
-    } else {
+    }
+    else {
       device = coords;
     }
 
@@ -2969,31 +2981,31 @@ public class SceneGraphRenderer {
    * to screen coords before drawing.  This ends up bypassing the use of
    * the AffineTransform when drawing.  Use this if you are in a rotated
    * 3D display.
-   * 
+   *
    * @param value  true to transform
    */
   public void setTransformToScreenCoords(boolean value) {
-      transformToScreenCoords = value;
+    transformToScreenCoords = value;
   }
 
-  /** 
-   * Transform coordinates from 3D space to 2D space
-   * @param 3D space coords
-   * @return 2D space coords
+  /**
+   * Transform coordinates from 3D display space to 2D space (AWT screen) space
+   * @param coords display space coords
+   *
+   * @return screen coords
    */
   private float[] transformToScreen(float[] coords) {
     if (!transformToScreenCoords) return coords;
-    int numvertex = coords.length/3;
+    int numvertex = coords.length / 3;
     float[] retCoords = new float[coords.length];
     for (int i = 0; i < numvertex; i++) {
-      double[] xyz = { coords[i*3], coords[i*3+1], coords[i*3+2] };
+      double[] xyz = {coords[i * 3], coords[i * 3 + 1], coords[i * 3 + 2]};
       int[] screenLocs = behavior.getScreenCoords(xyz);
-      retCoords[i*3] = screenLocs[0];
-      retCoords[i*3+1] = screenLocs[1];
-      retCoords[i*3+2] = 0;
+      retCoords[i * 3] = screenLocs[0];
+      retCoords[i * 3 + 1] = screenLocs[1];
+      retCoords[i * 3 + 2] = 0;
     }
     return retCoords;
 
   }
 }
-
