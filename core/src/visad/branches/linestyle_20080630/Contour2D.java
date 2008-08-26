@@ -3299,6 +3299,10 @@ public class Contour2D {
     boolean isLineStyled(int lvl) {
       return stripSet.isLevelStyled(lvl);
     }
+    
+    boolean isLabeled(int lvl) {
+      return stripSet.isLabeled(lvl);
+    }
 
     List<float[][][]> getLineStripCoordinates(int lvl) {
       return stripSet.getLineStripCoordinates(lvl);
@@ -4569,7 +4573,7 @@ class ContourStripSet {
     }
     Vector<ContourStrip> strips = vecArray[lvlIdx];
     List<byte[][][]> stripColors = new ArrayList<byte[][][]>();
-    for (ContourStrip strip : strips) {
+    for (ContourStrip strip : strips) {;
       stripColors.add(strip.getColorStripArrays(gridColors));
     }
     return stripColors;
@@ -4590,6 +4594,10 @@ class ContourStripSet {
       }
     }
     return false;
+  }
+  
+  boolean isLabeled(int lvl) {
+    return vecArray[lvl].get(0).isLabeled();
   }
 }
 
@@ -5383,7 +5391,10 @@ class ContourStrip {
     int clrDim = colors.length;
     int count = hi_idx - low_idx + 1;
 
-    if (isLabeled) {
+    int lenBefore = start_break / 2 + 1;
+    int lenAfter = (count - stop_break + 1) / 2;
+    
+    if (isLabeled && (lenBefore >= 2 && lenAfter >= 2)) {
       byte[][] colorsBefore = new byte[clrDim][start_break / 2 + 1];
 
       // first point
@@ -5437,6 +5448,10 @@ class ContourStrip {
     }
 
     return new byte[][][] { bb };
+  }
+  
+  boolean isLabeled() {
+    return isLabeled;
   }
 
   /**

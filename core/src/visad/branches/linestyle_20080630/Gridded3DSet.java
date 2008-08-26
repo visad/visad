@@ -32,6 +32,8 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Vector;
 
+import visad.util.Trace;
+
 /**
  * Gridded3DSet represents a finite set of samples of R^3.
  * <P>
@@ -2028,9 +2030,9 @@ public class Gridded3DSet extends GriddedSet {
           VisADLineStripArray arr = new VisADLineStripArray();
           arr.stripVertexCounts = new int[] { grid[ii][0].length };
           assert arr.stripVertexCounts[0] >= 2 : "Vertex count < 2";
-
-          setGeometryArray(arr, gridToValue(grid[ii]), colors[ii].length,
-              colors[ii]);
+          
+          setGeometryArray(arr, gridToValue(grid[ii]), colors[ii].length, colors[ii]);
+          
           if (styleFlag) {
             styled.add(arr);
           } else {
@@ -2069,25 +2071,20 @@ public class Gridded3DSet extends GriddedSet {
    */
   private void processStyledExpLines(VisADGeometryArray[] expLines,
       Contour2D.ContourOutput contour) {
-
-    float[] levels = contour.getLevels();
     
     for (int lvlIdx = 0; lvlIdx < contour.getIntervalCount(); lvlIdx++) {
-      System.err.print("level:" + levels[lvlIdx]);
       Vector<ContourStrip> strips = contour.getStrips(lvlIdx);
       if (strips.size() > 0) {
         ContourStrip strip = strips.get(0);
         if (strip.isDashed) { // assume if one is dashed they all are
           int[] idxs = contour.getLabelIndexes(lvlIdx);
           for (int idx : idxs) {
-            System.err.print(" " + idx);
             // just copy a reference
             expLines[idx * 6 + 4] = expLines[idx * 6];
             expLines[idx * 6 + 5] = expLines[idx * 6 + 2];
           }
         }
       }
-      System.err.println();
     }
   }
 
@@ -2104,6 +2101,7 @@ public class Gridded3DSet extends GriddedSet {
       double scale, double label_size, float[][][] f_array)
       throws VisADException {
 
+    
     int ManifoldDimension = getManifoldDimension();
     int[] Lengths = getLengths();
     int LengthX = Lengths[0];
