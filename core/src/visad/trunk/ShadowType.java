@@ -3,26 +3,26 @@
 //
 
 /*
-VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2008 Bill Hibbard, Curtis Rueden, Tom
-Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
-Tommy Jasmin.
+ VisAD system for interactive analysis and visualization of numerical
+ data.  Copyright (C) 1996 - 2008 Bill Hibbard, Curtis Rueden, Tom
+ Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
+ Tommy Jasmin.
 
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Library General Public
-License as published by the Free Software Foundation; either
-version 2 of the License, or (at your option) any later version.
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Library General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
 
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Library General Public License for more details.
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Library General Public License for more details.
 
-You should have received a copy of the GNU Library General Public
-License along with this library; if not, write to the Free
-Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
-MA 02111-1307, USA
-*/
+ You should have received a copy of the GNU Library General Public
+ License along with this library; if not, write to the Free
+ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+ MA 02111-1307, USA
+ */
 
 package visad;
 
@@ -33,11 +33,11 @@ import java.awt.*;
 import visad.util.HersheyFont;
 
 /**
-   The ShadowType hierarchy shadows the MathType hierarchy,
-   within a DataDisplayLink.<P>
-*/
-public abstract class ShadowType extends Object
-       implements java.io.Serializable {
+ * The ShadowType hierarchy shadows the MathType hierarchy, within a
+ * DataDisplayLink.
+ * <P>
+ */
+public abstract class ShadowType extends Object implements java.io.Serializable {
 
   /** possible values for LevelOfDifficulty */
   public static final int NOTHING_MAPPED = 6;
@@ -55,24 +55,33 @@ public abstract class ShadowType extends Object
   private ShadowType Parent;
 
   /** information calculated by constructors */
-  /** count of occurences of DisplayRealType-s
-      ShadowScalarType: set for mappings to DisplayRealType-s
-      ShadowTupleType (incl ShadowRealTupleType): set to
-        sum for ShadowScalarType & ShadowRealTupleType components
-      ShadowRealTupleType: add contribution from Reference */
+  /**
+   * count of occurences of DisplayRealType-s ShadowScalarType: set for mappings
+   * to DisplayRealType-s ShadowTupleType (incl ShadowRealTupleType): set to sum
+   * for ShadowScalarType & ShadowRealTupleType components ShadowRealTupleType:
+   * add contribution from Reference
+   */
   int[] DisplayIndices;
-  /** ValueIndices is like DisplayIndices, but distinguishes
-      different ScalarMap-s of non-Single DisplayRealTypes */
+  /**
+   * ValueIndices is like DisplayIndices, but distinguishes different
+   * ScalarMap-s of non-Single DisplayRealTypes
+   */
   int[] ValueIndices;
-  /** MultipleSpatialDisplayScalar is true if any RealType component is
-      mapped to multiple spatial DisplayRealType-s */
+  /**
+   * MultipleSpatialDisplayScalar is true if any RealType component is mapped to
+   * multiple spatial DisplayRealType-s
+   */
   boolean MultipleSpatialDisplayScalar;
-  /** MultipleDisplayScalar is true if any RealType component is mapped
-      to multiple DisplayRealType-s, or if any RealTupleType component
-      and its Reference are both mapped */
+  /**
+   * MultipleDisplayScalar is true if any RealType component is mapped to
+   * multiple DisplayRealType-s, or if any RealTupleType component and its
+   * Reference are both mapped
+   */
   boolean MultipleDisplayScalar;
-  /** MappedDisplayScalar is true if any RealType component is mapped
-      to any DisplayRealType-s, including via a RealTupleType.Reference */
+  /**
+   * MappedDisplayScalar is true if any RealType component is mapped to any
+   * DisplayRealType-s, including via a RealTupleType.Reference
+   */
   boolean MappedDisplayScalar;
 
   /** information calculated by checkIndices & testIndices */
@@ -84,30 +93,31 @@ public abstract class ShadowType extends Object
   boolean isLinearContour3D;
   boolean adjustProjectionSeam;
 
-  /** Dtype and Rtype used only with ShadowSetType and
-      Flat ShadowFunctionType */
+  /**
+   * Dtype and Rtype used only with ShadowSetType and Flat ShadowFunctionType
+   */
   int Dtype; // Domain Type: D0, D1, D2, D3, D4 or Dbad
   int Rtype; // Range Type: R0, R1, R2, R3, R4 or Rbad
   /** possible values for Dtype */
   static final int D0 = 0; // (Unmapped)*
   static final int D1 = 1; // allSpatial + (SpatialOffset, IsoContour, Flow,
-                           // Text, Shape, ShapeScale, Color, Alpha, Range,
-                           // Unmapped)*
+  // Text, Shape, ShapeScale, Color, Alpha, Range,
+  // Unmapped)*
   static final int D2 = 2; // (SpatialOffset, Spatial, Color, Alpha,
-                           //  Range, Unmapped)*
+  // Range, Unmapped)*
   static final int D3 = 3; // (Color, Alpha, Range, Unmapped)*
   static final int D4 = 4; // (Animation, Value)*
   static final int Dbad = 5;
   /** possible values for Rtype */
   static final int R0 = 0; // (Unmapped)*
   static final int R1 = 1; // (Color, Alpha, Range, Unmapped)*
-  static final int R2 = 2; // (Spatial, SpatialOffset,  Color, Alpha,
-                           //  Range, Unmapped)*
+  static final int R2 = 2; // (Spatial, SpatialOffset, Color, Alpha,
+  // Range, Unmapped)*
   static final int R3 = 3; // (IsoContour, Flow, Text, Shape, ShapeScale Color,
-                           //  Alpha, Range, Unmapped)*
+  // Alpha, Range, Unmapped)*
   static final int R4 = 4; // (Spatial, SpatialOffset, IsoContour, Flow,
-                           //  Text, Shape, ShapeScale, Color, Alpha, Range,
-                           //  Unmapped)*
+  // Text, Shape, ShapeScale, Color, Alpha, Range,
+  // Unmapped)*
   static final int Rbad = 5;
 
   /** spatial DisplayTupleType at terminal nodes */
@@ -120,44 +130,46 @@ public abstract class ShadowType extends Object
   boolean anyShape;
   boolean anyText;
 
-
   /** streamline flags */
   boolean streamline1;
   boolean streamline2;
-  float   streamlineDensity1;
-  float   streamlineDensity2;
-  float   arrowScale1;
-  float   arrowScale2;
-  float   stepFactor1;
-  float   stepFactor2;
-  float   packingFactor1;
-  float   packingFactor2;
-  float   cntrWeight1;
-  float   cntrWeight2;
-    int   n_pass1;
-    int   n_pass2;
-  float   reduction1;
-  float   reduction2;
-  //---------------------
+  float streamlineDensity1;
+  float streamlineDensity2;
+  float arrowScale1;
+  float arrowScale2;
+  float stepFactor1;
+  float stepFactor2;
+  float packingFactor1;
+  float packingFactor2;
+  float cntrWeight1;
+  float cntrWeight2;
+  int n_pass1;
+  int n_pass2;
+  float reduction1;
+  float reduction2;
+  // ---------------------
 
   /** makeContour, manifoldDimension == 2 */
-  int[] cnt = {0};
+  int[] cnt = { 0 };
   ProjectionControl p_cntrl = null;
-  ContourControl    c_cntrl = null;
-  //-------------------------------------
-  
-  /** makeContour, manifoldDimension == 3. Needed for case
-      of missing final spatial coords */
+  ContourControl c_cntrl = null;
+  // -------------------------------------
+
+  /**
+   * makeContour, manifoldDimension == 3. Needed for case of missing final
+   * spatial coords
+   */
   float[][] spatial_offset_values = null;
 
-  /** used by getComponents to record RealTupleTypes
-      with coordinate transforms */
+  /**
+   * used by getComponents to record RealTupleTypes with coordinate transforms
+   */
   int[] refToComponent;
   ShadowRealTupleType[] componentWithRef;
   int[] componentIndex;
 
   public ShadowType(MathType type, DataDisplayLink link, ShadowType parent)
-         throws VisADException, RemoteException {
+      throws VisADException, RemoteException {
     Type = type;
     Link = link;
     display = link.getDisplay();
@@ -223,8 +235,9 @@ public abstract class ShadowType extends Object
   }
 
   public ShadowRealType[] getComponents(ShadowType type, boolean doRef)
-          throws VisADException {
-    if (type == null) return null;
+      throws VisADException {
+    if (type == null)
+      return null;
     if (doRef) {
       refToComponent = null;
       componentWithRef = null;
@@ -232,18 +245,17 @@ public abstract class ShadowType extends Object
     }
     ShadowRealType[] reals;
     if (type instanceof ShadowRealType) {
-      ShadowRealType[] r = {(ShadowRealType) type};
+      ShadowRealType[] r = { (ShadowRealType) type };
       return r;
-    }
-    else if (type instanceof ShadowRealTupleType) {
+    } else if (type instanceof ShadowRealTupleType) {
       int n = ((ShadowRealTupleType) type).getDimension();
       reals = new ShadowRealType[n];
-      for (int i=0; i<n; i++) {
-        reals[i] = (ShadowRealType) ((ShadowRealTupleType) type).getComponent(i);
+      for (int i = 0; i < n; i++) {
+        reals[i] = (ShadowRealType) ((ShadowRealTupleType) type)
+            .getComponent(i);
       }
       if (doRef) {
-        ShadowRealTupleType ref =
-          ((ShadowRealTupleType) type).getReference();
+        ShadowRealTupleType ref = ((ShadowRealTupleType) type).getReference();
         if (ref != null && ref.getMappedDisplayScalar()) {
           refToComponent = new int[1];
           componentWithRef = new ShadowRealTupleType[1];
@@ -253,48 +265,45 @@ public abstract class ShadowType extends Object
           componentIndex[0] = 0;
         }
       }
-    }
-    else if (type instanceof ShadowTupleType) {
+    } else if (type instanceof ShadowTupleType) {
       int m = ((ShadowTupleType) type).getDimension();
       int n = 0;
       int nref = 0;
-      for (int i=0; i<m; i++) {
+      for (int i = 0; i < m; i++) {
         ShadowType component = ((ShadowTupleType) type).getComponent(i);
         if (component instanceof ShadowRealType) {
           n++;
-        }
-        else if (component instanceof ShadowRealTupleType) {
+        } else if (component instanceof ShadowRealTupleType) {
           n += getComponents(component, false).length;
           if (doRef) {
-            ShadowRealTupleType ref =
-              ((ShadowRealTupleType) component).getReference();
-            if (ref != null && ref.getMappedDisplayScalar()) nref++;
+            ShadowRealTupleType ref = ((ShadowRealTupleType) component)
+                .getReference();
+            if (ref != null && ref.getMappedDisplayScalar())
+              nref++;
           }
         }
       }
       reals = new ShadowRealType[n];
       int j = 0;
-      if (nref == 0) doRef = false;
+      if (nref == 0)
+        doRef = false;
       if (doRef) {
         refToComponent = new int[nref];
         componentWithRef = new ShadowRealTupleType[nref];
         componentIndex = new int[nref];
       }
       int rj = 0;
-      for (int i=0; i<m; i++) {
+      for (int i = 0; i < m; i++) {
         ShadowType component = ((ShadowTupleType) type).getComponent(i);
-        if (component instanceof ShadowRealType ||
-            component instanceof ShadowRealTupleType) {
-/* WLH 17 April 99
-          ShadowRealType[] r = getComponents(component, false);
-          for (int k=0; k<r.length; k++) {
-            reals[j] = r[k];
-            j++;
-          }
-*/
+        if (component instanceof ShadowRealType
+            || component instanceof ShadowRealTupleType) {
+          /*
+           * WLH 17 April 99 ShadowRealType[] r = getComponents(component,
+           * false); for (int k=0; k<r.length; k++) { reals[j] = r[k]; j++; }
+           */
           if (doRef && component instanceof ShadowRealTupleType) {
-            ShadowRealTupleType ref =
-              ((ShadowRealTupleType) component).getReference();
+            ShadowRealTupleType ref = ((ShadowRealTupleType) component)
+                .getReference();
             if (ref != null && ref.getMappedDisplayScalar()) {
               refToComponent[rj] = j;
               componentWithRef[rj] = (ShadowRealTupleType) component;
@@ -303,14 +312,13 @@ public abstract class ShadowType extends Object
             }
           }
           ShadowRealType[] r = getComponents(component, false);
-          for (int k=0; k<r.length; k++) {
+          for (int k = 0; k < r.length; k++) {
             reals[j] = r[k];
             j++;
           }
         }
       }
-    }
-    else {
+    } else {
       reals = null;
     }
     return reals;
@@ -324,10 +332,13 @@ public abstract class ShadowType extends Object
     return this;
   }
 
-  /** create a zero'd array of indices (for each RealType or each DisplayRealType) */
+  /**
+   * create a zero'd array of indices (for each RealType or each
+   * DisplayRealType)
+   */
   static int[] zeroIndices(int length) {
     int[] local_indices = new int[length];
-    for (int i=0; i<length; i++) {
+    for (int i = 0; i < length; i++) {
       local_indices[i] = 0;
     }
     return local_indices;
@@ -336,7 +347,7 @@ public abstract class ShadowType extends Object
   /** copy an array of indices (for each RealType or each DisplayRealType) */
   static int[] copyIndices(int[] indices) {
     int[] local_indices = new int[indices.length];
-    for (int i=0; i<indices.length; i++) {
+    for (int i = 0; i < indices.length; i++) {
       local_indices[i] = indices[i];
     }
     return local_indices;
@@ -348,7 +359,7 @@ public abstract class ShadowType extends Object
       throw new DisplayException("ShadowType.addIndices: lengths don't match");
     }
     int[] local_indices = new int[indices.length];
-    for (int i=0; i<indices.length; i++) {
+    for (int i = 0; i < indices.length; i++) {
       local_indices[i] = indices[i] + indices2[i];
     }
     return local_indices;
@@ -370,165 +381,166 @@ public abstract class ShadowType extends Object
     return anyText;
   }
 
-  /** test for display_indices in
-      (Spatial, SpatialOffset, Color, Alpha, Animation, Range, Value,
-       Flow, Text, Unmapped) */
+  /**
+   * test for display_indices in (Spatial, SpatialOffset, Color, Alpha,
+   * Animation, Range, Value, Flow, Text, Unmapped)
+   */
   boolean checkNested(int[] display_indices) throws RemoteException {
-    for (int i=0; i<display_indices.length; i++) {
-      if (display_indices[i] == 0) continue;
+    for (int i = 0; i < display_indices.length; i++) {
+      if (display_indices[i] == 0)
+        continue;
       DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
       DisplayTupleType tuple = real.getTuple();
-      if (tuple != null &&
-          (tuple.equals(Display.DisplaySpatialCartesianTuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplaySpatialCartesianTuple)))) continue;  // Spatial
+      if (tuple != null
+          && (tuple.equals(Display.DisplaySpatialCartesianTuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplaySpatialCartesianTuple))))
+        continue; // Spatial
       // SpatialOffset
-      if (Display.DisplaySpatialOffsetTuple.equals(tuple)) continue;
-      if (tuple != null &&
-          (tuple.equals(Display.DisplayRGBTuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplayRGBTuple)))) continue;  // Color
-      if (tuple != null &&
-          (tuple.equals(Display.DisplayFlow1Tuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplayFlow1Tuple)))) continue;  // Flow1
-      if (tuple != null &&
-          (tuple.equals(Display.DisplayFlow2Tuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplayFlow2Tuple)))) continue;  // Flow2
-      if (real.equals(Display.RGB) ||
-          real.equals(Display.RGBA) ||
-          real.equals(Display.HSV) ||
-          real.equals(Display.CMY)) continue;  // more Color
-      if (real.equals(Display.Alpha) ||
-          real.equals(Display.Animation) ||
-          real.equals(Display.SelectValue) ||
-          real.equals(Display.SelectRange) ||
-          real.equals(Display.Shape) ||
-          real.equals(Display.ShapeScale) ||
-          real.equals(Display.Text)) continue;
+      if (Display.DisplaySpatialOffsetTuple.equals(tuple))
+        continue;
+      if (tuple != null
+          && (tuple.equals(Display.DisplayRGBTuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplayRGBTuple))))
+        continue; // Color
+      if (tuple != null
+          && (tuple.equals(Display.DisplayFlow1Tuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplayFlow1Tuple))))
+        continue; // Flow1
+      if (tuple != null
+          && (tuple.equals(Display.DisplayFlow2Tuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplayFlow2Tuple))))
+        continue; // Flow2
+      if (real.equals(Display.RGB) || real.equals(Display.RGBA)
+          || real.equals(Display.HSV) || real.equals(Display.CMY))
+        continue; // more Color
+      if (real.equals(Display.Alpha) || real.equals(Display.Animation)
+          || real.equals(Display.SelectValue)
+          || real.equals(Display.SelectRange) || real.equals(Display.Shape)
+          || real.equals(Display.ShapeScale) || real.equals(Display.Text))
+        continue;
       return false;
     }
     return true;
   }
 
-  /** test for display_indices in
-      (Spatial, SpatialOffset, IsoContour, Color, Alpha, Flow,
-       Text, Range, Unmapped) */
+  /**
+   * test for display_indices in (Spatial, SpatialOffset, IsoContour, Color,
+   * Alpha, Flow, Text, Range, Unmapped)
+   */
   boolean checkR4(int[] display_indices) throws RemoteException {
-    for (int i=0; i<display_indices.length; i++) {
-      if (display_indices[i] == 0) continue;
+    for (int i = 0; i < display_indices.length; i++) {
+      if (display_indices[i] == 0)
+        continue;
       DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
       DisplayTupleType tuple = real.getTuple();
-      if (tuple != null &&
-          (tuple.equals(Display.DisplaySpatialCartesianTuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplaySpatialCartesianTuple)))) continue;  // Spatial
+      if (tuple != null
+          && (tuple.equals(Display.DisplaySpatialCartesianTuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplaySpatialCartesianTuple))))
+        continue; // Spatial
       // SpatialOffset
-      if (Display.DisplaySpatialOffsetTuple.equals(tuple)) continue;
-      if (tuple != null &&
-          (tuple.equals(Display.DisplayRGBTuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplayRGBTuple)))) continue;  // Color
-      if (tuple != null &&
-          (tuple.equals(Display.DisplayFlow1Tuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplayFlow1Tuple)))) continue;  // Flow1
-      if (tuple != null &&
-          (tuple.equals(Display.DisplayFlow2Tuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplayFlow2Tuple)))) continue;  // Flow2
-      if (real.equals(Display.RGB) ||
-          real.equals(Display.RGBA) ||
-          real.equals(Display.HSV) ||
-          real.equals(Display.CMY)) continue;  // more Color
-      if (real.equals(Display.Alpha) ||
-          real.equals(Display.SelectRange) ||
-          real.equals(Display.Shape) ||
-          real.equals(Display.ShapeScale) ||
-          real.equals(Display.Text) ||
-          real.equals(Display.IsoContour)) continue;
+      if (Display.DisplaySpatialOffsetTuple.equals(tuple))
+        continue;
+      if (tuple != null
+          && (tuple.equals(Display.DisplayRGBTuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplayRGBTuple))))
+        continue; // Color
+      if (tuple != null
+          && (tuple.equals(Display.DisplayFlow1Tuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplayFlow1Tuple))))
+        continue; // Flow1
+      if (tuple != null
+          && (tuple.equals(Display.DisplayFlow2Tuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplayFlow2Tuple))))
+        continue; // Flow2
+      if (real.equals(Display.RGB) || real.equals(Display.RGBA)
+          || real.equals(Display.HSV) || real.equals(Display.CMY))
+        continue; // more Color
+      if (real.equals(Display.Alpha) || real.equals(Display.SelectRange)
+          || real.equals(Display.Shape) || real.equals(Display.ShapeScale)
+          || real.equals(Display.Text) || real.equals(Display.IsoContour))
+        continue;
       return false;
     }
     return true;
   }
 
-  /** test for display_indices in
-      (IsoContour, Color, Alpha, Flow, Text, Range, Unmapped) */
+  /**
+   * test for display_indices in (IsoContour, Color, Alpha, Flow, Text, Range,
+   * Unmapped)
+   */
   boolean checkR3(int[] display_indices) throws RemoteException {
-    for (int i=0; i<display_indices.length; i++) {
-      if (display_indices[i] == 0) continue;
+    for (int i = 0; i < display_indices.length; i++) {
+      if (display_indices[i] == 0)
+        continue;
       DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
       DisplayTupleType tuple = real.getTuple();
-      if (tuple != null &&
-          (tuple.equals(Display.DisplayRGBTuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplayRGBTuple)))) continue;  // Color
-      if (tuple != null &&
-          (tuple.equals(Display.DisplayFlow1Tuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplayFlow1Tuple)))) continue;  // Flow1
-      if (tuple != null &&
-          (tuple.equals(Display.DisplayFlow2Tuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplayFlow2Tuple)))) continue;  // Flow2
-      if (real.equals(Display.RGB) ||
-          real.equals(Display.RGBA) ||
-          real.equals(Display.HSV) ||
-          real.equals(Display.CMY)) continue;  // more Color
-      if (real.equals(Display.Alpha) ||
-          real.equals(Display.SelectRange) ||
-          real.equals(Display.Shape) ||
-          real.equals(Display.ShapeScale) ||
-          real.equals(Display.Text) ||
-          real.equals(Display.IsoContour)) continue;
+      if (tuple != null
+          && (tuple.equals(Display.DisplayRGBTuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplayRGBTuple))))
+        continue; // Color
+      if (tuple != null
+          && (tuple.equals(Display.DisplayFlow1Tuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplayFlow1Tuple))))
+        continue; // Flow1
+      if (tuple != null
+          && (tuple.equals(Display.DisplayFlow2Tuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplayFlow2Tuple))))
+        continue; // Flow2
+      if (real.equals(Display.RGB) || real.equals(Display.RGBA)
+          || real.equals(Display.HSV) || real.equals(Display.CMY))
+        continue; // more Color
+      if (real.equals(Display.Alpha) || real.equals(Display.SelectRange)
+          || real.equals(Display.Shape) || real.equals(Display.ShapeScale)
+          || real.equals(Display.Text) || real.equals(Display.IsoContour))
+        continue;
       return false;
     }
     return true;
   }
 
-  /** test for display_indices in (Color, Alpha, Range, Flow, Shape,
-      ShapeScale, Text, Unmapped) */
+  /**
+   * test for display_indices in (Color, Alpha, Range, Flow, Shape, ShapeScale,
+   * Text, Unmapped)
+   */
   boolean checkR1D3(int[] display_indices) throws RemoteException {
-    for (int i=0; i<display_indices.length; i++) {
-      if (display_indices[i] == 0) continue;
+    for (int i = 0; i < display_indices.length; i++) {
+      if (display_indices[i] == 0)
+        continue;
       DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
       DisplayTupleType tuple = real.getTuple();
-      if (tuple != null &&
-          (tuple.equals(Display.DisplayRGBTuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplayRGBTuple)))) continue;  // Color
-      if (tuple != null &&
-          (tuple.equals(Display.DisplayFlow1Tuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplayFlow1Tuple)))) continue;  // Flow1
-      if (tuple != null &&
-          (tuple.equals(Display.DisplayFlow2Tuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplayFlow2Tuple)))) continue;  // Flow2
-      if (real.equals(Display.RGB) ||
-          real.equals(Display.RGBA) ||
-          real.equals(Display.HSV) ||
-          real.equals(Display.CMY)) continue;  // more Color
-      if (real.equals(Display.Alpha) ||
-          real.equals(Display.Shape) ||
-          real.equals(Display.ShapeScale) ||
-          real.equals(Display.Text) ||
-          real.equals(Display.SelectRange)) continue;
+      if (tuple != null
+          && (tuple.equals(Display.DisplayRGBTuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplayRGBTuple))))
+        continue; // Color
+      if (tuple != null
+          && (tuple.equals(Display.DisplayFlow1Tuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplayFlow1Tuple))))
+        continue; // Flow1
+      if (tuple != null
+          && (tuple.equals(Display.DisplayFlow2Tuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplayFlow2Tuple))))
+        continue; // Flow2
+      if (real.equals(Display.RGB) || real.equals(Display.RGBA)
+          || real.equals(Display.HSV) || real.equals(Display.CMY))
+        continue; // more Color
+      if (real.equals(Display.Alpha) || real.equals(Display.Shape)
+          || real.equals(Display.ShapeScale) || real.equals(Display.Text)
+          || real.equals(Display.SelectRange))
+        continue;
       return false;
     }
     return true;
@@ -536,19 +548,21 @@ public abstract class ShadowType extends Object
 
   /** test for display_indices in (Color, Range, Unmapped) */
   boolean checkColorRange(int[] display_indices) throws RemoteException {
-    for (int i=0; i<display_indices.length; i++) {
-      if (display_indices[i] == 0) continue;
+    for (int i = 0; i < display_indices.length; i++) {
+      if (display_indices[i] == 0)
+        continue;
       DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
       DisplayTupleType tuple = real.getTuple();
-      if (tuple != null &&
-          (tuple.equals(Display.DisplayRGBTuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplayRGBTuple)))) continue;  // Color
-      if (real.equals(Display.RGB) ||
-          real.equals(Display.HSV) ||
-          real.equals(Display.CMY)) continue;  // more Color
-      if (real.equals(Display.SelectRange)) continue;
+      if (tuple != null
+          && (tuple.equals(Display.DisplayRGBTuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplayRGBTuple))))
+        continue; // Color
+      if (real.equals(Display.RGB) || real.equals(Display.HSV)
+          || real.equals(Display.CMY))
+        continue; // more Color
+      if (real.equals(Display.SelectRange))
+        continue;
       return false;
     }
     return true;
@@ -556,177 +570,183 @@ public abstract class ShadowType extends Object
 
   /** test for display_indices in (Color, Alpha, Range, Unmapped) */
   boolean checkColorAlphaRange(int[] display_indices) throws RemoteException {
-    for (int i=0; i<display_indices.length; i++) {
-      if (display_indices[i] == 0) continue;
+    for (int i = 0; i < display_indices.length; i++) {
+      if (display_indices[i] == 0)
+        continue;
       DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
       DisplayTupleType tuple = real.getTuple();
-      if (tuple != null &&
-          (tuple.equals(Display.DisplayRGBTuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplayRGBTuple)))) continue;  // Color
-      if (real.equals(Display.RGB) ||
-          real.equals(Display.RGBA) ||
-          real.equals(Display.Alpha) ||
-          real.equals(Display.HSV) ||
-          real.equals(Display.CMY)) continue;  // more Color
-      if (real.equals(Display.SelectRange)) continue;
+      if (tuple != null
+          && (tuple.equals(Display.DisplayRGBTuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplayRGBTuple))))
+        continue; // Color
+      if (real.equals(Display.RGB) || real.equals(Display.RGBA)
+          || real.equals(Display.Alpha) || real.equals(Display.HSV)
+          || real.equals(Display.CMY))
+        continue; // more Color
+      if (real.equals(Display.SelectRange))
+        continue;
       return false;
     }
     return true;
   }
 
   /** test for display_indices in (IsoContour, Color, Alpha, Range, Unmapped) */
-  boolean checkContourColorAlphaRange(int[] display_indices) throws RemoteException {
-    for (int i=0; i<display_indices.length; i++) {
-      if (display_indices[i] == 0) continue;
+  boolean checkContourColorAlphaRange(int[] display_indices)
+      throws RemoteException {
+    for (int i = 0; i < display_indices.length; i++) {
+      if (display_indices[i] == 0)
+        continue;
       DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
       DisplayTupleType tuple = real.getTuple();
-      if (real.equals(Display.IsoContour)) continue;
-      if (tuple != null &&
-          (tuple.equals(Display.DisplayRGBTuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplayRGBTuple)))) continue;  // Color
-      if (real.equals(Display.RGB) ||
-          real.equals(Display.RGBA) ||
-          real.equals(Display.Alpha) ||
-          real.equals(Display.HSV) ||
-          real.equals(Display.CMY)) continue;  // more Color
-      if (real.equals(Display.SelectRange)) continue;
+      if (real.equals(Display.IsoContour))
+        continue;
+      if (tuple != null
+          && (tuple.equals(Display.DisplayRGBTuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplayRGBTuple))))
+        continue; // Color
+      if (real.equals(Display.RGB) || real.equals(Display.RGBA)
+          || real.equals(Display.Alpha) || real.equals(Display.HSV)
+          || real.equals(Display.CMY))
+        continue; // more Color
+      if (real.equals(Display.SelectRange))
+        continue;
       return false;
     }
     return true;
   }
 
-  /** test for display_indices in (Spatial, SpatialOffset, Color, Alpha,
-      Range, Flow, Shape, ShapeScale, Text, Unmapped) */
+  /**
+   * test for display_indices in (Spatial, SpatialOffset, Color, Alpha, Range,
+   * Flow, Shape, ShapeScale, Text, Unmapped)
+   */
   boolean checkR2D2(int[] display_indices) throws RemoteException {
-    for (int i=0; i<display_indices.length; i++) {
-      if (display_indices[i] == 0) continue;
+    for (int i = 0; i < display_indices.length; i++) {
+      if (display_indices[i] == 0)
+        continue;
       DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
       DisplayTupleType tuple = real.getTuple();
-      if (tuple != null &&
-          (tuple.equals(Display.DisplaySpatialCartesianTuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplaySpatialCartesianTuple)))) continue;  // Spatial
+      if (tuple != null
+          && (tuple.equals(Display.DisplaySpatialCartesianTuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplaySpatialCartesianTuple))))
+        continue; // Spatial
       // SpatialOffset
-      if (Display.DisplaySpatialOffsetTuple.equals(tuple)) continue;
-      if (tuple != null &&
-          (tuple.equals(Display.DisplayRGBTuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplayRGBTuple)))) continue;  // Color
-      if (tuple != null &&
-          (tuple.equals(Display.DisplayFlow1Tuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplayFlow1Tuple)))) continue;  // Flow1
-      if (tuple != null &&
-          (tuple.equals(Display.DisplayFlow2Tuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplayFlow2Tuple)))) continue;  // Flow2
-      if (real.equals(Display.RGB) ||
-          real.equals(Display.RGBA) ||
-          real.equals(Display.HSV) ||
-          real.equals(Display.CMY)) continue;  // more Color
-      if (real.equals(Display.Alpha) ||
-          real.equals(Display.Shape) ||
-          real.equals(Display.ShapeScale) ||
-          real.equals(Display.Text) ||
-          real.equals(Display.SelectRange)) continue;
+      if (Display.DisplaySpatialOffsetTuple.equals(tuple))
+        continue;
+      if (tuple != null
+          && (tuple.equals(Display.DisplayRGBTuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplayRGBTuple))))
+        continue; // Color
+      if (tuple != null
+          && (tuple.equals(Display.DisplayFlow1Tuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplayFlow1Tuple))))
+        continue; // Flow1
+      if (tuple != null
+          && (tuple.equals(Display.DisplayFlow2Tuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplayFlow2Tuple))))
+        continue; // Flow2
+      if (real.equals(Display.RGB) || real.equals(Display.RGBA)
+          || real.equals(Display.HSV) || real.equals(Display.CMY))
+        continue; // more Color
+      if (real.equals(Display.Alpha) || real.equals(Display.Shape)
+          || real.equals(Display.ShapeScale) || real.equals(Display.Text)
+          || real.equals(Display.SelectRange))
+        continue;
       return false;
     }
     return true;
   }
 
-  /** test for display_indices in (Spatial, SpatialOffset, Color,
-      Range, Unmapped) */
-/* WLH 16 July 2000
-  boolean checkSpatialColorRange(int[] display_indices) throws RemoteException {
-    for (int i=0; i<display_indices.length; i++) {
-      if (display_indices[i] == 0) continue;
-      DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
-      DisplayTupleType tuple = real.getTuple();
-      if (tuple != null &&
-          (tuple.equals(Display.DisplaySpatialCartesianTuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplaySpatialCartesianTuple)))) continue;  // Spatial
-      // SpatialOffset
-      if (Display.DisplaySpatialOffsetTuple.equals(tuple)) continue;
-      if (tuple != null &&
-          (tuple.equals(Display.DisplayRGBTuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplayRGBTuple)))) continue;  // Color
-      if (real.equals(Display.RGB) ||
-          real.equals(Display.HSV) ||
-          real.equals(Display.CMY)) continue;  // more Color
-      if (real.equals(Display.SelectRange)) continue;
-      return false;
-    }
-    return true;
-  }
-*/
+  /**
+   * test for display_indices in (Spatial, SpatialOffset, Color, Range,
+   * Unmapped)
+   */
+  /*
+   * WLH 16 July 2000 boolean checkSpatialColorRange(int[] display_indices)
+   * throws RemoteException { for (int i=0; i<display_indices.length; i++) { if
+   * (display_indices[i] == 0) continue; DisplayRealType real =
+   * (DisplayRealType) display.getDisplayScalar(i); DisplayTupleType tuple =
+   * real.getTuple(); if (tuple != null &&
+   * (tuple.equals(Display.DisplaySpatialCartesianTuple) ||
+   * (tuple.getCoordinateSystem() != null &&
+   * tuple.getCoordinateSystem().getReference().equals(
+   * Display.DisplaySpatialCartesianTuple)))) continue; // Spatial //
+   * SpatialOffset if (Display.DisplaySpatialOffsetTuple.equals(tuple))
+   * continue; if (tuple != null && (tuple.equals(Display.DisplayRGBTuple) ||
+   * (tuple.getCoordinateSystem() != null &&
+   * tuple.getCoordinateSystem().getReference().equals(
+   * Display.DisplayRGBTuple)))) continue; // Color if (real.equals(Display.RGB)
+   * || real.equals(Display.HSV) || real.equals(Display.CMY)) continue; // more
+   * Color if (real.equals(Display.SelectRange)) continue; return false; }
+   * return true; }
+   */
 
-  /** test for display_indices in (Spatial, SpatialOffset, Color,
-      Alpha, Range, Unmapped) */
+  /**
+   * test for display_indices in (Spatial, SpatialOffset, Color, Alpha, Range,
+   * Unmapped)
+   */
   boolean checkSpatialOffsetColorAlphaRange(int[] display_indices)
-          throws RemoteException {
-    for (int i=0; i<display_indices.length; i++) {
-      if (display_indices[i] == 0) continue;
+      throws RemoteException {
+    for (int i = 0; i < display_indices.length; i++) {
+      if (display_indices[i] == 0)
+        continue;
       DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
       DisplayTupleType tuple = real.getTuple();
-      if (tuple != null &&
-          (tuple.equals(Display.DisplaySpatialCartesianTuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplaySpatialCartesianTuple)))) continue;  // Spatial
+      if (tuple != null
+          && (tuple.equals(Display.DisplaySpatialCartesianTuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplaySpatialCartesianTuple))))
+        continue; // Spatial
       // SpatialOffset
-      if (Display.DisplaySpatialOffsetTuple.equals(tuple)) continue;
-      if (tuple != null &&
-          (tuple.equals(Display.DisplayRGBTuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplayRGBTuple)))) continue;  // Color
-      if (real.equals(Display.RGB) ||
-          real.equals(Display.RGBA) ||
-          real.equals(Display.Alpha) ||
-          real.equals(Display.HSV) ||
-          real.equals(Display.CMY)) continue;  // more Color
-      if (real.equals(Display.SelectRange)) continue;
+      if (Display.DisplaySpatialOffsetTuple.equals(tuple))
+        continue;
+      if (tuple != null
+          && (tuple.equals(Display.DisplayRGBTuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplayRGBTuple))))
+        continue; // Color
+      if (real.equals(Display.RGB) || real.equals(Display.RGBA)
+          || real.equals(Display.Alpha) || real.equals(Display.HSV)
+          || real.equals(Display.CMY))
+        continue; // more Color
+      if (real.equals(Display.SelectRange))
+        continue;
       return false;
     }
     return true;
   }
 
-  /** test for display_indices in (Spatial, Color,
-      Alpha, Range, Unmapped) */
+  /**
+   * test for display_indices in (Spatial, Color, Alpha, Range, Unmapped)
+   */
   boolean checkSpatialColorAlphaRange(int[] display_indices)
-          throws RemoteException {
-    for (int i=0; i<display_indices.length; i++) {
-      if (display_indices[i] == 0) continue;
+      throws RemoteException {
+    for (int i = 0; i < display_indices.length; i++) {
+      if (display_indices[i] == 0)
+        continue;
       DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
       DisplayTupleType tuple = real.getTuple();
-      if (tuple != null &&
-          (tuple.equals(Display.DisplaySpatialCartesianTuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplaySpatialCartesianTuple)))) continue;  // Spatial
-      if (tuple != null &&
-          (tuple.equals(Display.DisplayRGBTuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplayRGBTuple)))) continue;  // Color
-      if (real.equals(Display.RGB) ||
-          real.equals(Display.RGBA) ||
-          real.equals(Display.Alpha) ||
-          real.equals(Display.HSV) ||
-          real.equals(Display.CMY)) continue;  // more Color
-      if (real.equals(Display.SelectRange)) continue;
+      if (tuple != null
+          && (tuple.equals(Display.DisplaySpatialCartesianTuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplaySpatialCartesianTuple))))
+        continue; // Spatial
+      if (tuple != null
+          && (tuple.equals(Display.DisplayRGBTuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplayRGBTuple))))
+        continue; // Color
+      if (real.equals(Display.RGB) || real.equals(Display.RGBA)
+          || real.equals(Display.Alpha) || real.equals(Display.HSV)
+          || real.equals(Display.CMY))
+        continue; // more Color
+      if (real.equals(Display.SelectRange))
+        continue;
       return false;
     }
     return true;
@@ -734,97 +754,107 @@ public abstract class ShadowType extends Object
 
   /** test for display_indices in (Spatial, Range, Unmapped) */
   boolean checkSpatialRange(int[] display_indices) throws RemoteException {
-    for (int i=0; i<display_indices.length; i++) {
-      if (display_indices[i] == 0) continue;
+    for (int i = 0; i < display_indices.length; i++) {
+      if (display_indices[i] == 0)
+        continue;
       DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
       DisplayTupleType tuple = real.getTuple();
-      if (tuple != null &&
-          (tuple.equals(Display.DisplaySpatialCartesianTuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplaySpatialCartesianTuple)))) continue;  // Spatial
-      if (real.equals(Display.SelectRange)) continue;
+      if (tuple != null
+          && (tuple.equals(Display.DisplaySpatialCartesianTuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplaySpatialCartesianTuple))))
+        continue; // Spatial
+      if (real.equals(Display.SelectRange))
+        continue;
       return false;
     }
     return true;
   }
 
   /** test for any Animation or Value in display_indices */
-  int checkAnimationOrValue(int[] display_indices)
-      throws RemoteException {
+  int checkAnimationOrValue(int[] display_indices) throws RemoteException {
     int count = 0;
-    for (int i=0; i<display_indices.length; i++) {
-      if (display_indices[i] == 0) continue;
+    for (int i = 0; i < display_indices.length; i++) {
+      if (display_indices[i] == 0)
+        continue;
       DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
-      if (real.equals(Display.Animation) ||
-          real.equals(Display.SelectValue)) count++;
+      if (real.equals(Display.Animation) || real.equals(Display.SelectValue))
+        count++;
     }
     return count;
   }
 
   /** test for any SelectRange in display_indices */
   boolean anyRange(int[] display_indices) throws RemoteException {
-    for (int i=0; i<display_indices.length; i++) {
-      if (display_indices[i] == 0) continue;
+    for (int i = 0; i < display_indices.length; i++) {
+      if (display_indices[i] == 0)
+        continue;
       DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
-      if (real.equals(Display.SelectRange)) return true;
+      if (real.equals(Display.SelectRange))
+        return true;
     }
     return false;
   }
 
   /** test for any IsoContour in display_indices */
   boolean checkContour(int[] display_indices) throws RemoteException {
-    for (int i=0; i<display_indices.length; i++) {
-      if (display_indices[i] == 0) continue;
+    for (int i = 0; i < display_indices.length; i++) {
+      if (display_indices[i] == 0)
+        continue;
       DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
-      if (real.equals(Display.IsoContour)) return true;
+      if (real.equals(Display.IsoContour))
+        return true;
     }
     return false;
   }
 
   /** test for any Flow in display_indices */
   boolean checkFlow(int[] display_indices) throws RemoteException {
-    for (int i=0; i<display_indices.length; i++) {
-      if (display_indices[i] == 0) continue;
+    for (int i = 0; i < display_indices.length; i++) {
+      if (display_indices[i] == 0)
+        continue;
       DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
       DisplayTupleType tuple = real.getTuple();
-      if (tuple != null &&
-          (tuple.equals(Display.DisplayFlow1Tuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplayFlow1Tuple)))) return true;  // Flow1
-      if (tuple != null &&
-          (tuple.equals(Display.DisplayFlow2Tuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplayFlow2Tuple)))) return true;  // Flow2
+      if (tuple != null
+          && (tuple.equals(Display.DisplayFlow1Tuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplayFlow1Tuple))))
+        return true; // Flow1
+      if (tuple != null
+          && (tuple.equals(Display.DisplayFlow2Tuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplayFlow2Tuple))))
+        return true; // Flow2
     }
     return false;
   }
 
   /** test for any Shape in display_indices */
   boolean checkShape(int[] display_indices) throws RemoteException {
-    for (int i=0; i<display_indices.length; i++) {
-      if (display_indices[i] == 0) continue;
+    for (int i = 0; i < display_indices.length; i++) {
+      if (display_indices[i] == 0)
+        continue;
       DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
-      if (real.equals(Display.Shape)) return true;
+      if (real.equals(Display.Shape))
+        return true;
     }
     return false;
   }
 
   /** test for any Text in display_indices */
   boolean checkText(int[] display_indices) throws RemoteException {
-    for (int i=0; i<display_indices.length; i++) {
-/*
-System.out.println("checkText: display_indices[" + i + "] = " +
-                   display_indices[i] + " real = " +
-                   ((DisplayRealType) display.getDisplayScalar(i)).getName());
-*/
-      if (display_indices[i] == 0) continue;
+    for (int i = 0; i < display_indices.length; i++) {
+      /*
+       * System.out.println("checkText: display_indices[" + i + "] = " +
+       * display_indices[i] + " real = " + ((DisplayRealType)
+       * display.getDisplayScalar(i)).getName());
+       */
+      if (display_indices[i] == 0)
+        continue;
       DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
-/*
-System.out.println("checkText: real = " + real.getName());
-*/
+      /*
+       * System.out.println("checkText: real = " + real.getName());
+       */
       if (real.equals(Display.Text)) {
         return true;
       }
@@ -834,24 +864,25 @@ System.out.println("checkText: real = " + real.getName());
 
   boolean checkAdjustProjectionSeam() throws RemoteException {
     float[] default_values = getLink().getDefaultValues();
-    return default_values[display.getDisplayScalarIndex(Display.AdjustProjectionSeam)] > 0.5f;
+    return default_values[display
+        .getDisplayScalarIndex(Display.AdjustProjectionSeam)] > 0.5f;
   }
 
   /** test for display_indices in (Color, Unmapped) */
   boolean checkColor(int[] display_indices) throws RemoteException {
-    for (int i=0; i<display_indices.length; i++) {
-      if (display_indices[i] == 0) continue;
+    for (int i = 0; i < display_indices.length; i++) {
+      if (display_indices[i] == 0)
+        continue;
       DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
       DisplayTupleType tuple = real.getTuple();
-      if (tuple != null &&
-          (tuple.equals(Display.DisplayRGBTuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplayRGBTuple)))) continue;  // Color
-      if (real.equals(Display.RGB) ||
-          real.equals(Display.RGBA) ||
-          real.equals(Display.HSV) ||
-          real.equals(Display.CMY)) continue;  // more Color
+      if (tuple != null
+          && (tuple.equals(Display.DisplayRGBTuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplayRGBTuple))))
+        continue; // Color
+      if (real.equals(Display.RGB) || real.equals(Display.RGBA)
+          || real.equals(Display.HSV) || real.equals(Display.CMY))
+        continue; // more Color
       return false;
     }
     return true;
@@ -859,20 +890,21 @@ System.out.println("checkText: real = " + real.getName());
 
   /** test for display_indices in (Color, Alpha, Unmapped) */
   boolean checkColorOrAlpha(int[] display_indices) throws RemoteException {
-    for (int i=0; i<display_indices.length; i++) {
-      if (display_indices[i] == 0) continue;
+    for (int i = 0; i < display_indices.length; i++) {
+      if (display_indices[i] == 0)
+        continue;
       DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
       DisplayTupleType tuple = real.getTuple();
-      if (tuple != null &&
-          (tuple.equals(Display.DisplayRGBTuple) ||
-           (tuple.getCoordinateSystem() != null &&
-            tuple.getCoordinateSystem().getReference().equals(
-            Display.DisplayRGBTuple)))) continue;  // Color
-      if (real.equals(Display.RGB) ||
-          real.equals(Display.RGBA) ||
-          real.equals(Display.HSV) ||
-          real.equals(Display.CMY)) continue;  // more Color
-      if (real.equals(Display.Alpha)) continue;
+      if (tuple != null
+          && (tuple.equals(Display.DisplayRGBTuple) || (tuple
+              .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+              .getReference().equals(Display.DisplayRGBTuple))))
+        continue; // Color
+      if (real.equals(Display.RGB) || real.equals(Display.RGBA)
+          || real.equals(Display.HSV) || real.equals(Display.CMY))
+        continue; // more Color
+      if (real.equals(Display.Alpha))
+        continue;
       return false;
     }
     return true;
@@ -880,8 +912,9 @@ System.out.println("checkText: real = " + real.getName());
 
   /** test for any non-zero display_indices */
   boolean checkAny(int[] display_indices) throws RemoteException {
-    for (int i=0; i<display_indices.length; i++) {
-      if (display_indices[i] > 0) return true;
+    for (int i = 0; i < display_indices.length; i++) {
+      if (display_indices[i] > 0)
+        return true;
     }
     return false;
   }
@@ -893,25 +926,24 @@ System.out.println("checkText: real = " + real.getName());
     // make sure some DisplayRealType is mapped
 
     // test whether any RealType-s occur more than once
-    for (int i=0; i<indices.length; i++) {
+    for (int i = 0; i < indices.length; i++) {
       if (indices[i] > 1) {
         ScalarType real = display.getScalar(i);
-        throw new BadMappingException("RealType " + real.getName() +
-                                      " occurs more than once: " +
-                                      "ShadowType.testIndices");
+        throw new BadMappingException("RealType " + real.getName()
+            + " occurs more than once: " + "ShadowType.testIndices");
       }
     }
 
     // test whether any DisplayRealType occurs at least once;
     // test whether any Single DisplayRealType occurs more than once
-    for (int i=0; i<display_indices.length; i++) {
+    for (int i = 0; i < display_indices.length; i++) {
       DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
-      if (display_indices[i] > 0) isTerminal = true;
+      if (display_indices[i] > 0)
+        isTerminal = true;
       if (display_indices[i] > 1 && real.isSingle()) {
-        throw new BadMappingException("Single " + "DisplayRealType " +
-                                      real.getName() +
-                                      " occurs more than once: " +
-                                      "ShadowType.testIndices");
+        throw new BadMappingException("Single " + "DisplayRealType "
+            + real.getName() + " occurs more than once: "
+            + "ShadowType.testIndices");
       }
     }
 
@@ -919,19 +951,19 @@ System.out.println("checkText: real = " + real.getName());
     // spatial DisplayTupleType-s occur
     spatialTuple = null;
     spatialDimension = 0;
-    for (int i=0; i<display_indices.length; i++) {
+    for (int i = 0; i < display_indices.length; i++) {
       if (display_indices[i] > 0) {
         DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
         DisplayTupleType rtuple = real.getTuple();
         if (rtuple != null) {
-          if (rtuple.equals(Display.DisplaySpatialCartesianTuple) ||
-              (rtuple.getCoordinateSystem() != null &&
-               rtuple.getCoordinateSystem().getReference().equals(
-               Display.DisplaySpatialCartesianTuple))) {
+          if (rtuple.equals(Display.DisplaySpatialCartesianTuple)
+              || (rtuple.getCoordinateSystem() != null && rtuple
+                  .getCoordinateSystem().getReference().equals(
+                      Display.DisplaySpatialCartesianTuple))) {
             if (spatialTuple != null && !spatialTuple.equals(rtuple)) {
-              throw new BadMappingException("DisplayRealType-s occur from " +
-                                            "multiple spatial DisplayTupleType-s: " +
-                                            "ShadowType.testIndices");
+              throw new BadMappingException("DisplayRealType-s occur from "
+                  + "multiple spatial DisplayTupleType-s: "
+                  + "ShadowType.testIndices");
             }
             spatialTuple = rtuple;
             spatialDimension++;
@@ -943,37 +975,37 @@ System.out.println("checkText: real = " + real.getName());
     if (isTerminal) {
       if (levelOfDifficulty == LEGAL) {
         LevelOfDifficulty = LEGAL;
-      }
-      else {
+      } else {
         LevelOfDifficulty = NESTED;
       }
-    }
-    else {
+    } else {
       // this is not illegal but also not a terminal node
       // (no DisplayRealType-s mapped)
       LevelOfDifficulty = NOTHING_MAPPED;
     }
-/*
-System.out.println("testIndices: LevelOfDifficulty = " + LevelOfDifficulty +
-                   " isTerminal = " + isTerminal +
-                   " Type = " + Type.prettyString());
-*/
+    /*
+     * System.out.println("testIndices: LevelOfDifficulty = " +
+     * LevelOfDifficulty + " isTerminal = " + isTerminal + " Type = " +
+     * Type.prettyString());
+     */
     return LevelOfDifficulty;
   }
 
-  /* DEPRECATE THIS, no longer needed because SetTypes, Flat
-     FieldTypes and Flat TupleTypes are terminals:
-     this defines the default logic for ShadowTextType and
-     ShadowMissingType - which may occur as a Field Range and
-     are treated as unmapped */
-  /** scans ShadowType tree to determine display feasibility
-      and precompute useful information for Data transform;
-      indices & display_indices are counts (at leaves) of
-      numbers of occurrences of RealTypes and DisplayRealTypes;
-      isTransform flags for (Animation, Range, Value) re-transform;
-      levelOfDifficulty passed down and up call chain */
+  /*
+   * DEPRECATE THIS, no longer needed because SetTypes, Flat FieldTypes and Flat
+   * TupleTypes are terminals: this defines the default logic for ShadowTextType
+   * and ShadowMissingType - which may occur as a Field Range and are treated as
+   * unmapped
+   */
+  /**
+   * scans ShadowType tree to determine display feasibility and precompute
+   * useful information for Data transform; indices & display_indices are counts
+   * (at leaves) of numbers of occurrences of RealTypes and DisplayRealTypes;
+   * isTransform flags for (Animation, Range, Value) re-transform;
+   * levelOfDifficulty passed down and up call chain
+   */
   public int checkIndices(int[] indices, int[] display_indices,
-             int[] value_indices, boolean[] isTransform, int levelOfDifficulty)
+      int[] value_indices, boolean[] isTransform, int levelOfDifficulty)
       throws VisADException, RemoteException {
 
     adjustProjectionSeam = checkAdjustProjectionSeam();
@@ -1003,149 +1035,159 @@ System.out.println("testIndices: LevelOfDifficulty = " + LevelOfDifficulty +
 
   public int[] getDisplayIndices() {
     int[] ii = new int[DisplayIndices.length];
-    for (int i=0; i<DisplayIndices.length; i++) ii[i] = DisplayIndices[i];
+    for (int i = 0; i < DisplayIndices.length; i++)
+      ii[i] = DisplayIndices[i];
     return ii;
   }
 
   public int[] getValueIndices() {
     int[] ii = new int[ValueIndices.length];
-    for (int i=0; i<ValueIndices.length; i++) ii[i] = ValueIndices[i];
+    for (int i = 0; i < ValueIndices.length; i++)
+      ii[i] = ValueIndices[i];
     return ii;
   }
 
-  /** return true if DisplayIndices include multiple
-      Animation, SelectValue and SelectRange */
+  /**
+   * return true if DisplayIndices include multiple Animation, SelectValue and
+   * SelectRange
+   */
   boolean testTransform() {
     int count = 0;
-    for (int i=0; i<DisplayIndices.length; i++) {
-      if (DisplayIndices[i] == 0) continue;
+    for (int i = 0; i < DisplayIndices.length; i++) {
+      if (DisplayIndices[i] == 0)
+        continue;
       DisplayRealType real = (DisplayRealType) display.getDisplayScalar(i);
-      if (real.equals(Display.Animation) ||
-          real.equals(Display.SelectValue) ||
-          real.equals(Display.SelectRange)) {
+      if (real.equals(Display.Animation) || real.equals(Display.SelectValue)
+          || real.equals(Display.SelectRange)) {
         count++;
-        if (count > 1) return true;
+        if (count > 1)
+          return true;
       }
     }
     return false;
   }
 
-  /** mark Control-s as needing re-Transform;
-      default for ShadowTextType and ShadowMissingType */
+  /**
+   * mark Control-s as needing re-Transform; default for ShadowTextType and
+   * ShadowMissingType
+   */
   void markTransform(boolean[] isTransform) {
   }
 
-
-  /** helpers for doTransform; they are in ShadowType
-      because they are independent of graphics library */
+  /**
+   * helpers for doTransform; they are in ShadowType because they are
+   * independent of graphics library
+   */
 
   /** map values to display_values according to ScalarMap-s in reals */
   public static void mapValues(float[][] display_values, double[][] values,
-                               ShadowRealType[] reals) throws VisADException {
+      ShadowRealType[] reals) throws VisADException {
     int n = values.length;
     if (n != reals.length) {
-      throw new DisplayException("lengths don't match " +
-                                 n + " != " + reals.length + ": " +
-                                 "ShadowType.mapValues");
+      throw new DisplayException("lengths don't match " + n + " != "
+          + reals.length + ": " + "ShadowType.mapValues");
     }
-    for (int i=0; i<n; i++) {
+    for (int i = 0; i < n; i++) {
       Enumeration maps = reals[i].getSelectedMapVector().elements();
       while (maps.hasMoreElements()) {
         ScalarMap map = (ScalarMap) maps.nextElement();
         int value_index = map.getValueIndex();
-/*
-double[] range = map.getRange();
-System.out.println(map.getScalar() + " -> " + map.getDisplayScalar() + " : " +
-                   range[0] + " " + range[1] + "  value_index = " + value_index);
-*/
+        /*
+         * double[] range = map.getRange(); System.out.println(map.getScalar() +
+         * " -> " + map.getDisplayScalar() + " : " + range[0] + " " + range[1] +
+         * "  value_index = " + value_index);
+         */
         // MEM
         display_values[value_index] = map.scaleValues(values[i]);
-/*
-int m = values[i].length;
-for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i][j] +
-" display_values["+value_index+"]["+j+"] = " + display_values[value_index][j]);
-*/
-/*
-      int total = 0;
-      int missing = 0;
-      total = display_values[value_index].length;
-      for (int j=0; j<display_values[value_index].length; j++) {
-        if (display_values[value_index][j] != display_values[value_index][j]) {
-          missing++;
-        }
-      }
-      System.out.println("  total = " + total + " missing = " + missing);
-*/
+        /*
+         * int m = values[i].length; for (int j=0; j<m; j++)
+         * System.out.println("values["+i+"]["+j+"] = " + values[i][j] +
+         * " display_values["+value_index+"]["+j+"] = " +
+         * display_values[value_index][j]);
+         */
+        /*
+         * int total = 0; int missing = 0; total =
+         * display_values[value_index].length; for (int j=0;
+         * j<display_values[value_index].length; j++) { if
+         * (display_values[value_index][j] != display_values[value_index][j]) {
+         * missing++; } } System.out.println("  total = " + total +
+         * " missing = " + missing);
+         */
       }
     }
   }
 
   /** map values into display_values according to ScalarMap-s in reals */
   public static void mapValues(float[][] display_values, float[][] values,
-                               ShadowRealType[] reals) throws VisADException {
+      ShadowRealType[] reals) throws VisADException {
     mapValues(display_values, values, reals, true);
   }
 
-  /** 
-   * Map values into display_values according to ScalarMap-s in reals 
-   * @param display_values  return display values
-   * @param values   data values
-   * @param reals    the ShadowRealTypes corresponding to the Scalar in maps
-   * @param copy     if false, scale values in place if reals[index] has only
-   *                 one mapping.  Use true if values represent a 
-   *                 getSamples(false) or getFloats(false)
+  /**
+   * Map values into display_values according to ScalarMap-s in reals
+   * 
+   * @param display_values
+   *          return display values
+   * @param values
+   *          data values
+   * @param reals
+   *          the ShadowRealTypes corresponding to the Scalar in maps
+   * @param copy
+   *          if false, scale values in place if reals[index] has only one
+   *          mapping. Use true if values represent a getSamples(false) or
+   *          getFloats(false)
    */
   public static void mapValues(float[][] display_values, float[][] values,
-                               ShadowRealType[] reals, boolean copy) throws VisADException {
+      ShadowRealType[] reals, boolean copy) throws VisADException {
     int n = values.length;
     if (n != reals.length) {
       throw new DisplayException("lengths don't match: ShadowType.mapValues");
     }
-    for (int i=0; i<n; i++) {
+    for (int i = 0; i < n; i++) {
       boolean doCopy = copy;
       int size = reals[i].getSelectedMapVector().size();
-      if (!copy && size > 1) doCopy = true;
+      if (!copy && size > 1)
+        doCopy = true;
       Enumeration maps = reals[i].getSelectedMapVector().elements();
       while (maps.hasMoreElements()) {
         ScalarMap map = (ScalarMap) maps.nextElement();
         int value_index = map.getValueIndex();
-/*
-double[] range = map.getRange();
-System.out.println(map.getScalar() + " -> " + map.getDisplayScalar() + " : " +
-                   range[0] + " " + range[1] + "  value_index = " + value_index);
-*/
+        /*
+         * double[] range = map.getRange(); System.out.println(map.getScalar() +
+         * " -> " + map.getDisplayScalar() + " : " + range[0] + " " + range[1] +
+         * "  value_index = " + value_index);
+         */
         // MEM
         display_values[value_index] = map.scaleValues(values[i], doCopy);
-/*
-int m = values[i].length;
-for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i][j] +
-" display_values["+value_index+"]["+j+"] = " + display_values[value_index][j]);
-*/
-/*
-      int total = 0;
-      int missing = 0;
-      total = display_values[value_index].length;
-      for (int j=0; j<display_values[value_index].length; j++) {
-        if (display_values[value_index][j] != display_values[value_index][j]) missing++;
-      }
-      System.out.println("  total = " + total + " missing = " + missing);
-*/
+        /*
+         * int m = values[i].length; for (int j=0; j<m; j++)
+         * System.out.println("values["+i+"]["+j+"] = " + values[i][j] +
+         * " display_values["+value_index+"]["+j+"] = " +
+         * display_values[value_index][j]);
+         */
+        /*
+         * int total = 0; int missing = 0; total =
+         * display_values[value_index].length; for (int j=0;
+         * j<display_values[value_index].length; j++) { if
+         * (display_values[value_index][j] != display_values[value_index][j])
+         * missing++; } System.out.println("  total = " + total + " missing = "
+         * + missing);
+         */
       }
     }
   }
 
-/* CTR: 13 Oct 1998 - BEGIN CHANGES */
+  /* CTR: 13 Oct 1998 - BEGIN CHANGES */
   public static VisADGeometryArray makePointGeometry(float[][] spatial_values,
-                byte[][] color_values) throws VisADException {
+      byte[][] color_values) throws VisADException {
     return makePointGeometry(spatial_values, color_values, false);
   }
 
   public static VisADGeometryArray makePointGeometry(float[][] spatial_values,
-                byte[][] color_values, boolean compress)
-                                        throws VisADException {
+      byte[][] color_values, boolean compress) throws VisADException {
     if (spatial_values == null) {
-      throw new DisplayException("bad spatial_values: " +
-                                 "ShadowType.makePointGeometry: bad");
+      throw new DisplayException("bad spatial_values: "
+          + "ShadowType.makePointGeometry: bad");
     }
     VisADPointArray array = new VisADPointArray();
 
@@ -1153,23 +1195,28 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       // redimension arrays to eliminate Float.NaN values
       int len = spatial_values.length;
       int clen;
-      if (color_values == null) clen = 0;
-      else clen = color_values.length;
+      if (color_values == null)
+        clen = 0;
+      else
+        clen = color_values.length;
       float[] f = spatial_values[0];
       int flen = f.length;
       int nan = 0;
-      for (int i=0; i<flen; i++) if (f[i] != f[i]) nan++;
+      for (int i = 0; i < flen; i++)
+        if (f[i] != f[i])
+          nan++;
       if (nan > 0) {
-        float[][] new_s_values = new float[len][flen-nan];
+        float[][] new_s_values = new float[len][flen - nan];
         byte[][] new_c_values = color_values;
-        if (clen > 0) new_c_values = new byte[clen][flen-nan];
+        if (clen > 0)
+          new_c_values = new byte[clen][flen - nan];
         int c = 0;
-        for (int i=0; i<flen; i++) {
+        for (int i = 0; i < flen; i++) {
           if (f[i] == f[i]) {
-            for (int j=0; j<len; j++) {
+            for (int j = 0; j < len; j++) {
               new_s_values[j][c] = spatial_values[j][i];
             }
-            for (int j=0; j<clen; j++) {
+            for (int j = 0; j < clen; j++) {
               new_c_values[j][c] = color_values[j][i];
             }
             c++;
@@ -1185,20 +1232,23 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     SampledSet.setGeometryArray(array, spatial_values, 4, color_values);
     return array;
   }
-/* CTR: 13 Oct 1998 - END CHANGES */
 
-  /** collect and transform Shape DisplayRealType values from display_values;
-      offset by spatial_values, colored by color_values and selected by
-      range_select */
+  /* CTR: 13 Oct 1998 - END CHANGES */
+
+  /**
+   * collect and transform Shape DisplayRealType values from display_values;
+   * offset by spatial_values, colored by color_values and selected by
+   * range_select
+   */
   public VisADGeometryArray[] assembleShape(float[][] display_values,
-                int valueArrayLength, int[] valueToMap, Vector MapVector,
-                int[] valueToScalar, DisplayImpl display,
-                float[] default_values, int[] inherited_values,
-                float[][] spatial_values, byte[][] color_values,
-                boolean[][] range_select, int index, ShadowType shadow_api)
-         throws VisADException, RemoteException {
+      int valueArrayLength, int[] valueToMap, Vector MapVector,
+      int[] valueToScalar, DisplayImpl display, float[] default_values,
+      int[] inherited_values, float[][] spatial_values, byte[][] color_values,
+      boolean[][] range_select, int index, ShadowType shadow_api)
+      throws VisADException, RemoteException {
 
-    if (spatial_values[0] == null) return null;
+    if (spatial_values[0] == null)
+      return null;
     int total_length = 0;
     Vector array_vector = new Vector();
     float x = spatial_values[0][0];
@@ -1214,11 +1264,12 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       r = color_values[0][0];
       g = color_values[1][0];
       b = color_values[2][0];
-      if (color_length > 3) a = color_values[3][0];
+      if (color_length > 3)
+        a = color_values[3][0];
     }
 
     float[] scales = null;
-    for (int i=0; i<valueArrayLength; i++) {
+    for (int i = 0; i < valueArrayLength; i++) {
       if (display_values[i] != null) {
         int displayScalarIndex = valueToScalar[i];
         DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
@@ -1226,13 +1277,11 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
           if (index < 0) {
             scales = display_values[i];
             display_values[i] = null; // MEM_WLH 27 March 99
-          }
-          else {
+          } else {
             if (display_values[i].length == 1) {
-              scales = new float[] {display_values[i][0]};
-            }
-            else {
-              scales = new float[] {display_values[i][index]};
+              scales = new float[] { display_values[i][0] };
+            } else {
+              scales = new float[] { display_values[i][index] };
             }
           }
         }
@@ -1241,12 +1290,12 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     if (scales == null) {
       int default_index = display.getDisplayScalarIndex(Display.ShapeScale);
       float default_scale = default_values[default_index];
-      scales = new float[] {default_scale};
+      scales = new float[] { default_scale };
     }
 
     float[] values = null;
     ShapeControl control = null;
-    for (int j=0; j<valueArrayLength; j++) {
+    for (int j = 0; j < valueArrayLength; j++) {
       if (display_values[j] != null) {
         int displayScalarIndex = valueToScalar[j];
         DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
@@ -1255,31 +1304,34 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
           if (index < 0) {
             values = display_values[j];
             display_values[j] = null; // MEM_WLH 27 March 99
-          }
-          else {
+          } else {
             if (display_values[j].length == 1) {
-              values = new float[] {display_values[j][0]};
-            }
-            else {
-              values = new float[] {display_values[j][index]};
+              values = new float[] { display_values[j][0] };
+            } else {
+              values = new float[] { display_values[j][index] };
             }
           }
-          control = (ShapeControl)
-            ((ScalarMap) MapVector.elementAt(valueToMap[j])).getControl();
-          if (values == null || control == null) continue;
+          control = (ShapeControl) ((ScalarMap) MapVector
+              .elementAt(valueToMap[j])).getControl();
+          if (values == null || control == null)
+            continue;
 
           // make len maximum of lengths of color_values,
           // spatial_values & scales
           int len = values.length;
           if (color_values != null) {
-            if (color_values[0].length > len) len = color_values[0].length;
+            if (color_values[0].length > len)
+              len = color_values[0].length;
           }
-          if (spatial_values[0].length > len) len = spatial_values[0].length;
-          if (scales.length > len) len = scales.length;
+          if (spatial_values[0].length > len)
+            len = spatial_values[0].length;
+          if (scales.length > len)
+            len = scales.length;
           // expand values if necessary
           if (values.length < len) {
             float[] new_values = new float[len];
-            for (int i=0; i<len; i++) new_values[i] = values[0];
+            for (int i = 0; i < len; i++)
+              new_values[i] = values[0];
             values = new_values;
           }
 
@@ -1287,13 +1339,14 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
           float cscale = control.getScale();
 
           VisADGeometryArray[] arrays = control.getShapes(values);
-          for (int i=0; i<arrays.length; i++) {
+          for (int i = 0; i < arrays.length; i++) {
             if (range_select[0] != null) {
               if (range_select[0].length == 1) {
-                if (!range_select[0][0]) arrays[i] = null;
-              }
-              else {
-                if (!range_select[0][i]) arrays[i] = null;
+                if (!range_select[0][0])
+                  arrays[i] = null;
+              } else {
+                if (!range_select[0][i])
+                  arrays[i] = null;
               }
             }
             VisADGeometryArray array = arrays[i];
@@ -1310,10 +1363,10 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
               // WLH 31 May 2000
               scale *= cscale;
 
-              for (int k=0; k<array.coordinates.length; k+=3) {
+              for (int k = 0; k < array.coordinates.length; k += 3) {
                 array.coordinates[k] = x + scale * array.coordinates[k];
-                array.coordinates[k+1] = y + scale * array.coordinates[k+1];
-                array.coordinates[k+2] = z + scale * array.coordinates[k+2];
+                array.coordinates[k + 1] = y + scale * array.coordinates[k + 1];
+                array.coordinates[k + 2] = z + scale * array.coordinates[k + 2];
               }
 
               if (array.colors == null && color_values != null) {
@@ -1322,13 +1375,15 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
                   r = color_values[0][i];
                   g = color_values[1][i];
                   b = color_values[2][i];
-                  if (color_length > 3) a = color_values[3][i];
+                  if (color_length > 3)
+                    a = color_values[3][i];
                 }
-                for (int k=0; k<array.colors.length; k+=color_length) {
+                for (int k = 0; k < array.colors.length; k += color_length) {
                   array.colors[k] = r;
-                  array.colors[k+1] = g;
-                  array.colors[k+2] = b;
-                  if (color_length > 3) array.colors[k+3] = a;
+                  array.colors[k + 1] = g;
+                  array.colors[k + 2] = b;
+                  if (color_length > 3)
+                    array.colors[k + 3] = a;
                 }
               }
 
@@ -1340,14 +1395,14 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
       } // end if (display_values[i] != null)
     } // end for (int j=0; j<valueArrayLength; j++)
 
-    if (total_length == 0) return null;
-    VisADGeometryArray[] total_arrays =
-      new VisADGeometryArray[total_length];
+    if (total_length == 0)
+      return null;
+    VisADGeometryArray[] total_arrays = new VisADGeometryArray[total_length];
     Enumeration arrayses = array_vector.elements();
     int k = 0;
     while (arrayses.hasMoreElements()) {
-      VisADGeometryArray[] arrays =
-        (VisADGeometryArray[]) arrayses.nextElement();
+      VisADGeometryArray[] arrays = (VisADGeometryArray[]) arrayses
+          .nextElement();
       System.arraycopy(arrays, 0, total_arrays, k, arrays.length);
       k += arrays.length;
     }
@@ -1355,7 +1410,7 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     // WLH 30 May 2002
     DataRenderer renderer = getLink().getRenderer();
     if (getAdjustProjectionSeam()) {
-      for (int i=0; i<total_length; i++) {
+      for (int i = 0; i < total_length; i++) {
         if (total_arrays[i] != null) {
           total_arrays[i] = total_arrays[i].adjustLongitudeBulk(renderer);
         }
@@ -1365,23 +1420,22 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     return total_arrays;
   }
 
-  /** collect and transform spatial DisplayRealType values from display_values;
-      add spatial offset DisplayRealType values;
-      adjust flow1_values and flow2_values for any coordinate transform;
-      if needed, return a spatial Set from spatial_values, with the same topology
-      as domain_set (or an appropriate Irregular topology);
-      domain_set = null and allSpatial = false if not called from
-      ShadowFunctionType */
+  /**
+   * collect and transform spatial DisplayRealType values from display_values;
+   * add spatial offset DisplayRealType values; adjust flow1_values and
+   * flow2_values for any coordinate transform; if needed, return a spatial Set
+   * from spatial_values, with the same topology as domain_set (or an
+   * appropriate Irregular topology); domain_set = null and allSpatial = false
+   * if not called from ShadowFunctionType
+   */
   public Set assembleSpatial(float[][] spatial_values,
-                float[][] display_values, int valueArrayLength,
-                int[] valueToScalar, DisplayImpl display,
-                float[] default_values, int[] inherited_values,
-                Set domain_set, boolean allSpatial, boolean set_for_shape,
-                int[] spatialDimensions, boolean[][] range_select,
-                float[][] flow1_values, float[][] flow2_values,
-                float[] flowScale, boolean[] swap, DataRenderer renderer,
-                ShadowType shadow_api)
-         throws VisADException, RemoteException {
+      float[][] display_values, int valueArrayLength, int[] valueToScalar,
+      DisplayImpl display, float[] default_values, int[] inherited_values,
+      Set domain_set, boolean allSpatial, boolean set_for_shape,
+      int[] spatialDimensions, boolean[][] range_select,
+      float[][] flow1_values, float[][] flow2_values, float[] flowScale,
+      boolean[] swap, DataRenderer renderer, ShadowType shadow_api)
+      throws VisADException, RemoteException {
     DisplayTupleType spatial_tuple = null;
     // number of spatial samples, default is 1
     int len = 1;
@@ -1393,33 +1447,32 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     spatialDimensions[1] = 0; // spatialManifoldDimension
     // holder for SpatialOffset values
     float[][] offset_values = new float[3][];
-    boolean[] offset_copy = {false, false, false};
+    boolean[] offset_copy = { false, false, false };
 
     // spatial map RealType Units
-    Unit[] spatial_units = new Unit[] {null, null, null};
+    Unit[] spatial_units = new Unit[] { null, null, null };
     // spatial map getRange() results for flow adjustment
-    double[] ranges = new double[] {Double.NaN, Double.NaN, Double.NaN};
+    double[] ranges = new double[] { Double.NaN, Double.NaN, Double.NaN };
     // some helpers for computing ranges for flow adjustment
     int[] valueToMap = display.getValueToMap();
     Vector MapVector = display.getMapVector();
 
     // indexed by tuple_index
-    int[] spatial_value_indices = {-1, -1, -1};
+    int[] spatial_value_indices = { -1, -1, -1 };
 
-    for (int i=0; i<valueArrayLength; i++) {
+    for (int i = 0; i < valueArrayLength; i++) {
       if (display_values[i] != null) {
         int displayScalarIndex = valueToScalar[i];
         DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
         DisplayTupleType tuple = real.getTuple();
 
-        if (tuple != null &&
-            (tuple.equals(Display.DisplaySpatialCartesianTuple) ||
-             (tuple.getCoordinateSystem() != null &&
-              tuple.getCoordinateSystem().getReference().equals(
-                  Display.DisplaySpatialCartesianTuple)))) {
+        if (tuple != null
+            && (tuple.equals(Display.DisplaySpatialCartesianTuple) || (tuple
+                .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+                .getReference().equals(Display.DisplaySpatialCartesianTuple)))) {
           if (spatial_tuple != null && !spatial_tuple.equals(tuple)) {
-            throw new DisplayException("multiple spatial display tuples: " +
-                                       "ShadowType.assembleSpatial");
+            throw new DisplayException("multiple spatial display tuples: "
+                + "ShadowType.assembleSpatial");
           }
           spatial_tuple = tuple;
           int tuple_index = real.getTupleIndex();
@@ -1436,8 +1489,8 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
           ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
           double[] map_range = map.getRange();
           ranges[tuple_index] = map_range[1] - map_range[0];
-          spatial_units[tuple_index] =
-            ((RealType) map.getScalar()).getDefaultUnit();
+          spatial_units[tuple_index] = ((RealType) map.getScalar())
+              .getDefaultUnit();
         }
       } // end if (display_values[i] != null)
     } // end for (int i=0; i<valueArrayLength; i++)
@@ -1448,18 +1501,16 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     if (spatialDimension == 0) {
       // len = 1 in this case
       spatialDimensions[1] = 0; // spatialManifoldDimension
-    }
-    else if (domain_set == null) {
+    } else if (domain_set == null) {
       spatialDimensions[1] = spatialDimension; // spatialManifoldDimension
-    }
-    else if (!allSpatial) {
+    } else if (!allSpatial) {
       spatialDimensions[1] = spatialDimension; // spatialManifoldDimension
       if (set_for_shape) {
         // cannot inherit Set topology from Field domain, so
         // construct IrregularSet topology of appropriate dimension
         RealType[] reals = new RealType[spatialDimension];
         float[][] samples = new float[spatialDimension][];
-        for (int i=0; i<spatialDimension; i++) {
+        for (int i = 0; i < spatialDimension; i++) {
           reals[i] = RealType.Generic;
           samples[i] = spatial_values[tuple_indices[i]];
         }
@@ -1467,33 +1518,27 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
         // MEM
         try {
           switch (spatialDimension) {
-            case 1:
-              domain_set =
-                new Irregular1DSet(tuple_type, samples, null,
-                                   null, null, false);
-              break;
-            case 2:
-              domain_set =
-                new Irregular2DSet(tuple_type, samples, null,
-                                   null, null, null, false);
-              break;
-            case 3:
-              domain_set =
-                new Irregular3DSet(tuple_type, samples, null,
-                                   null, null, null, false);
-              break;
+          case 1:
+            domain_set = new Irregular1DSet(tuple_type, samples, null, null,
+                null, false);
+            break;
+          case 2:
+            domain_set = new Irregular2DSet(tuple_type, samples, null, null,
+                null, null, false);
+            break;
+          case 3:
+            domain_set = new Irregular3DSet(tuple_type, samples, null, null,
+                null, null, false);
+            break;
           }
-        }
-        catch (VisADException e) {
+        } catch (VisADException e) {
           domain_set = null;
         }
         // System.out.println("IrregularSet done");
-      }
-      else { // !set_for_shape
+      } else { // !set_for_shape
         domain_set = null;
       }
-    }
-    else { // spatialDimension > 0 && allSpatial && domain_set != null
+    } else { // spatialDimension > 0 && allSpatial && domain_set != null
       // spatialManifoldDimension
       spatialDimensions[1] = domain_set.getManifoldDimension();
     }
@@ -1503,24 +1548,24 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     // or spatialManifoldDimension < 3
     // NOTE - 3-D volume rendering may eventually need a spatial Set
     //
-    boolean set_needed =
-      domain_set != null && (set_for_shape || spatialDimensions[1] < 3);
+    boolean set_needed = domain_set != null
+        && (set_for_shape || spatialDimensions[1] < 3);
 
-    boolean[] missing_checked = {false, false, false};
-    for (int i=0; i<3; i++) {
+    boolean[] missing_checked = { false, false, false };
+    for (int i = 0; i < 3; i++) {
       if (spatial_values[i] == null) {
         // fill any null spatial value arrays with default values
         // MEM
         spatial_values[i] = new float[len];
-        int default_index = display.getDisplayScalarIndex(
-          ((DisplayRealType) spatial_tuple.getComponent(i)) );
+        int default_index = display
+            .getDisplayScalarIndex(((DisplayRealType) spatial_tuple
+                .getComponent(i)));
         float default_value = default_values[default_index];
-        for (int j=0; j<len; j++) {
+        for (int j = 0; j < len; j++) {
           spatial_values[i][j] = default_value;
         }
         missing_checked[i] = true;
-      }
-      else if (spatial_values[i].length == 1) {
+      } else if (spatial_values[i].length == 1) {
         // check solitary spatial value array for missing
         float v = spatial_values[i][0];
         missing_checked[i] = true;
@@ -1534,17 +1579,18 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
           // expand solitary spatial value array
           // MEM
           spatial_values[i] = new float[len];
-          for (int j=0; j<len; j++) spatial_values[i][j] = v;
+          for (int j = 0; j < len; j++)
+            spatial_values[i][j] = v;
         }
       }
     } // end for (int i=0; i<3; i++)
 
     // first equalize lengths of flow*_values and spatial_values
     boolean anyFlow = false;
-    int[] flen = {0, 0};
-    float[][][] ff_values = {flow1_values, flow2_values};
-    for (int k=0; k<2; k++) {
-      for (int i=0; i<3; i++) {
+    int[] flen = { 0, 0 };
+    float[][][] ff_values = { flow1_values, flow2_values };
+    for (int k = 0; k < 2; k++) {
+      for (int i = 0; i < 3; i++) {
         if (ff_values[k][i] != null) {
           anyFlow = true;
           flen[k] = Math.max(flen[k], ff_values[k][i].length);
@@ -1553,17 +1599,19 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
     }
     len = Math.max(len, Math.max(flen[0], flen[1]));
     fillOut(spatial_values, len);
-    if (flen[0] > 0) fillOut(flow1_values, len);
-    if (flen[1] > 0) fillOut(flow2_values, len);
+    if (flen[0] > 0)
+      fillOut(flow1_values, len);
+    if (flen[1] > 0)
+      fillOut(flow2_values, len);
 
     boolean spatial_flow = anyFlow;
-    for (int i=0; i<3; i++) {
+    for (int i = 0; i < 3; i++) {
       if (ranges[i] == ranges[i]) {
         if (spatial_units[i] == null) {
           spatial_flow = false;
           break;
         }
-        for (int j=0; j<3; j++) {
+        for (int j = 0; j < 3; j++) {
           if (ranges[j] == ranges[j]) {
             if (spatial_units[j] == null) {
               spatial_flow = false;
@@ -1577,35 +1625,34 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
         }
       }
     }
-// System.out.println("spatial_flow = " + spatial_flow);
+    // System.out.println("spatial_flow = " + spatial_flow);
 
     if (spatial_flow) {
 
       // adjust flow for spatial setRange scaling
       double max_range = -1.0;
-      for (int i=0; i<3; i++) {
+      for (int i = 0; i < 3; i++) {
         if (ranges[i] == ranges[i]) {
           double ar = Math.abs(ranges[i]);
-          if (ar > max_range) max_range = ar;
+          if (ar > max_range)
+            max_range = ar;
         }
       }
-      for (int i=0; i<3; i++) {
+      for (int i = 0; i < 3; i++) {
         if (ranges[i] == ranges[i]) {
           ranges[i] = ranges[i] / max_range;
-        }
-        else {
+        } else {
           ranges[i] = 1.0;
         }
       }
-      for (int k=0; k<2; k++) {
+      for (int k = 0; k < 2; k++) {
         if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType)) {
-          if (ff_values[k][0] != null ||
-              ff_values[k][1] != null ||
-              ff_values[k][2] != null) {
-            for (int j=0; j<len; j++) {
+          if (ff_values[k][0] != null || ff_values[k][1] != null
+              || ff_values[k][2] != null) {
+            for (int j = 0; j < len; j++) {
               float old_speed = 0.0f;
               float new_speed = 0.0f;
-              for (int i=0; i<3; i++) {
+              for (int i = 0; i < 3; i++) {
                 if (ff_values[k][i] != null) {
                   old_speed += ff_values[k][i][j] * ff_values[k][i][j];
                   ff_values[k][i][j] *= ranges[i];
@@ -1614,63 +1661,61 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
               }
               // but don't change vector magnitude ??
               float ratio = (float) Math.sqrt(old_speed / new_speed);
-              for (int i=0; i<3; i++) {
+              for (int i = 0; i < 3; i++) {
                 if (ff_values[k][i] != null) {
                   ff_values[k][i][j] *= ratio;
                 }
               }
             }
           } // end if (ff_values[k][0] != null || ...)
-        } // end if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType))
+        } // end if (!(renderer.getRealVectorTypes(k) instanceof
+          // EarthVectorType))
       } // end for (int k=0; k<2; k++)
 
     } // end if (spatial_flow)
 
     // adjust Flow values for coordinate transform
     if (spatial_tuple.equals(Display.DisplaySpatialCartesianTuple)) {
-      // if (anyFlow) {    WLH 4 March 2000
-        renderer.setEarthSpatialDisplay(null, spatial_tuple, display,
-                 spatial_value_indices, default_values, ranges);
-      // }    WLH 4 March 2000
-    }
-    else {
+      // if (anyFlow) { WLH 4 March 2000
+      renderer.setEarthSpatialDisplay(null, spatial_tuple, display,
+          spatial_value_indices, default_values, ranges);
+      // } WLH 4 March 2000
+    } else {
       // transform tuple_values to DisplaySpatialCartesianTuple
       CoordinateSystem coord = spatial_tuple.getCoordinateSystem();
 
-
       float[][][] vector_ends = new float[2][][];
 
-
-        // WLH 4 March 2000
+      // WLH 4 March 2000
       renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
-               spatial_value_indices, default_values, ranges);
+          spatial_value_indices, default_values, ranges);
       if (spatial_flow) {
         if (anyFlow) {
           // WLH 4 March 2000
           // renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
-          //          spatial_value_indices, default_values, ranges);
+          // spatial_value_indices, default_values, ranges);
 
           // compute and transform 'end points' of flow vectors
-          for (int k=0; k<2; k++) {
+          for (int k = 0; k < 2; k++) {
             if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType)) {
               if (flen[k] > 0) {
                 vector_ends[k] = new float[3][len];
-                for (int i=0; i<3; i++) {
+                for (int i = 0; i < 3; i++) {
                   if (ff_values[k][i] != null) {
-                    for (int j=0; j<len; j++) {
-                      vector_ends[k][i][j] =
-                        spatial_values[i][j] + flowScale[k] * ff_values[k][i][j];
+                    for (int j = 0; j < len; j++) {
+                      vector_ends[k][i][j] = spatial_values[i][j]
+                          + flowScale[k] * ff_values[k][i][j];
                     }
-                  }
-                  else { // (ff_values[k][i] == null)
-                    for (int j=0; j<len; j++) {
+                  } else { // (ff_values[k][i] == null)
+                    for (int j = 0; j < len; j++) {
                       vector_ends[k][i][j] = spatial_values[i][j];
                     }
                   }
                 } // end for (int i=0; i<3; i++)
                 vector_ends[k] = coord.toReference(vector_ends[k]);
               } // end if (flen[k] > 0)
-            } // end if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType))
+            } // end if (!(renderer.getRealVectorTypes(k) instanceof
+              // EarthVectorType))
           } // end for (int k=0; k<2; k++)
         }
 
@@ -1678,46 +1723,42 @@ for (int j=0; j<m; j++) System.out.println("values["+i+"]["+j+"] = " + values[i]
 
       // transform spatial_values
       float[][] new_spatial_values = coord.toReference(spatial_values);
-/*
-System.out.println("in length = " + spatial_values[0].length +
-                   " out length = " + new_spatial_values[0].length);
-if (spatial_values[0].length == 5329) {
-  // System.out.println(domain_set); // 73 * 73
-  for (int i=0; i<spatial_values[0].length; i+=71) {
-    System.out.println("out " + new_spatial_values[0][i] + " " +
-                       new_spatial_values[1][i] + " " +
-                       new_spatial_values[2][i] + " in " +
-                       spatial_values[0][i] + " " +
-                       spatial_values[1][i] + " " +
-                       spatial_values[2][i] + " (i,j) = " +
-                       i/73 + " " + i%73);
-  }
-}
-*/
-      for (int i=0; i<3; i++) spatial_values[i] = new_spatial_values[i];
+      /*
+       * System.out.println("in length = " + spatial_values[0].length +
+       * " out length = " + new_spatial_values[0].length); if
+       * (spatial_values[0].length == 5329) { // System.out.println(domain_set);
+       * // 73 73 for (int i=0; i<spatial_values[0].length; i+=71) {
+       * System.out.println("out " + new_spatial_values[0][i] + " " +
+       * new_spatial_values[1][i] + " " + new_spatial_values[2][i] + " in " +
+       * spatial_values[0][i] + " " + spatial_values[1][i] + " " +
+       * spatial_values[2][i] + " (i,j) = " + i/73 + " " + i%73); } }
+       */
+      for (int i = 0; i < 3; i++)
+        spatial_values[i] = new_spatial_values[i];
 
       if (spatial_flow) {
 
         if (anyFlow) {
           // subtract transformed spatial_values from transformed flow vectors
-          for (int k=0; k<2; k++) {
+          for (int k = 0; k < 2; k++) {
             if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType)) {
               if (flen[k] > 0) {
-                for (int i=0; i<3; i++) {
-                  for (int j=0; j<len; j++) {
-                    vector_ends[k][i][j] =
-                      (vector_ends[k][i][j] - spatial_values[i][j]) / flowScale[k];
+                for (int i = 0; i < 3; i++) {
+                  for (int j = 0; j < len; j++) {
+                    vector_ends[k][i][j] = (vector_ends[k][i][j] - spatial_values[i][j])
+                        / flowScale[k];
                   }
                   ff_values[k][i] = vector_ends[k][i];
                 }
               }
-            } // end if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType))
+            } // end if (!(renderer.getRealVectorTypes(k) instanceof
+              // EarthVectorType))
           } // end for (int k=0; k<2; k++)
         }
 
       } // end if (spatial_flow)
 
-      missing_checked = new boolean[] {false, false, false};
+      missing_checked = new boolean[] { false, false, false };
 
     } // end if (!spatial_tuple.equals(Display.DisplaySpatialCartesianTuple))
 
@@ -1730,7 +1771,7 @@ if (spatial_values[0].length == 5329) {
       float simax = 0.0f;
       float max = -1.0f;
       int imax = -1;
-      for (int i=0; i<3; i++) {
+      for (int i = 0; i < 3; i++) {
         float sdiff = spatial_values[i][1] - spatial_values[i][0];
         float diff = Math.abs(sdiff);
         if (diff > max) {
@@ -1740,14 +1781,16 @@ if (spatial_values[0].length == 5329) {
         }
       }
 
-      // set ll = number of samples along a side of fastest factor of Gridded2DSet
-      //          i.e., "stride"
+      // set ll = number of samples along a side of fastest factor of
+      // Gridded2DSet
+      // i.e., "stride"
       // WLH 6 April 2001
       // int ll = len;
       int ll = len - 1;
       if (domain_set != null && domain_set instanceof Gridded2DSet) {
         ll = ((Gridded2DSet) domain_set).getLength(0);
-        if (ll > (len - 1)) ll = len - 1; // WLH 6 April 2001
+        if (ll > (len - 1))
+          ll = len - 1; // WLH 6 April 2001
       }
 
       // find the axis most nearly parallel to second grid direction
@@ -1755,7 +1798,7 @@ if (spatial_values[0].length == 5329) {
       float sjmax = 0.0f;
       max = -1.0f;
       int jmax = -1;
-      for (int i=0; i<3; i++) {
+      for (int i = 0; i < 3; i++) {
         if (i != imax) {
           // WLH 6 April 2001
           // float sdiff = spatial_values[i][ll-1] - spatial_values[i][0];
@@ -1771,34 +1814,31 @@ if (spatial_values[0].length == 5329) {
       /*-TDR, debug
       System.out.println("imax: "+imax+" jmax: "+jmax);
       System.out.println("simax: "+simax+" sjmax: "+sjmax);
-      */
+       */
       if (imax == 0) {
         swap[0] = true;
         swap[1] = (simax < 0.0f);
         swap[2] = (sjmax < 0.0f);
-      }
-      else if (imax == 1) {
-       /*-TDR, (4-18-01):
-          wrong grid dimension swapped
+      } else if (imax == 1) {
+        /*-TDR, (4-18-01):
+           wrong grid dimension swapped
 
-        swap[1] = (sjmax < 0.0f);
-        swap[2] = (simax < 0.0f);
-        */
+         swap[1] = (sjmax < 0.0f);
+         swap[2] = (simax < 0.0f);
+         */
         swap[2] = (sjmax < 0.0f);
         swap[1] = (simax < 0.0f);
-      }
-      else { // imax == 2
+      } else { // imax == 2
         if (jmax == 1) {
           swap[0] = true;
           swap[1] = (simax < 0.0f);
           swap[2] = (sjmax < 0.0f);
-        }
-        else {
-         /*-TDR, (4-18-01) Untested:
-            should probably be same as change above
-          swap[1] = (sjmax < 0.0f);
-          swap[2] = (simax < 0.0f);
-          */
+        } else {
+          /*-TDR, (4-18-01) Untested:
+             should probably be same as change above
+           swap[1] = (sjmax < 0.0f);
+           swap[2] = (simax < 0.0f);
+           */
           swap[2] = (sjmax < 0.0f);
           swap[1] = (simax < 0.0f);
         }
@@ -1806,12 +1846,12 @@ if (spatial_values[0].length == 5329) {
       /*-TDR, debug
       System.out.println("swap[0]: "+swap[0]+" swap[1]: "+swap[1]+
                          " swap[2]: "+swap[2]);
-      */
+       */
     }
 
     // assemble SpatialOffsets
     int offset_len = len;
-    for (int i=0; i<valueArrayLength; i++) {
+    for (int i = 0; i < valueArrayLength; i++) {
       if (display_values[i] != null) {
         int displayScalarIndex = valueToScalar[i];
         DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
@@ -1820,8 +1860,7 @@ if (spatial_values[0].length == 5329) {
           int tuple_index = real.getTupleIndex();
           if (offset_values[tuple_index] == null) {
             offset_values[tuple_index] = display_values[i];
-          }
-          else {
+          } else {
             int leno = offset_values[tuple_index].length;
             int lend = display_values[i].length;
             if (leno > lend) {
@@ -1829,37 +1868,33 @@ if (spatial_values[0].length == 5329) {
               float[] off;
               if (offset_copy[tuple_index]) {
                 off = offset_values[tuple_index];
-              }
-              else {
+              } else {
                 off = new float[leno];
                 offset_copy[tuple_index] = true;
               }
-              for (int j=0; j<leno; j++) {
+              for (int j = 0; j < leno; j++) {
                 off[j] = offset_values[tuple_index][j] + display_values[i][0];
               }
               offset_values[tuple_index] = off;
               off = null;
-            }
-            else if (leno < lend) {
+            } else if (leno < lend) {
               // assume leno == 1
               float[] off = new float[lend];
-              for (int j=0; j<lend; j++) {
+              for (int j = 0; j < lend; j++) {
                 off[j] = offset_values[tuple_index][0] + display_values[i][j];
               }
               offset_values[tuple_index] = off;
               off = null;
               offset_copy[tuple_index] = true;
-            }
-            else {
+            } else {
               float[] off;
               if (offset_copy[tuple_index]) {
                 off = offset_values[tuple_index];
-              }
-              else {
+              } else {
                 off = new float[leno];
                 offset_copy[tuple_index] = true;
               }
-              for (int j=0; j<leno; j++) {
+              for (int j = 0; j < leno; j++) {
                 off[j] = offset_values[tuple_index][j] + display_values[i][j];
               }
               offset_values[tuple_index] = off;
@@ -1872,26 +1907,25 @@ if (spatial_values[0].length == 5329) {
       } // end if (display_values[i] != null)
     } // end for (int i=0; i<valueArrayLength; i++)
 
-    boolean[] offset_missing_checked = {false, false, false};
-    for (int i=0; i<3; i++) {
+    boolean[] offset_missing_checked = { false, false, false };
+    for (int i = 0; i < 3; i++) {
       if (offset_values[i] == null) {
         // WLH 13 June 2003
-        DisplayRealType offset = (DisplayRealType)
-          Display.DisplaySpatialOffsetTuple.getComponent(i);
+        DisplayRealType offset = (DisplayRealType) Display.DisplaySpatialOffsetTuple
+            .getComponent(i);
         int default_index = display.getDisplayScalarIndex(offset);
         if (0 <= default_index && default_index < default_values.length) {
           float default_value = default_values[default_index];
           if (default_value == default_value) {
-            offset_values[i] = new float[] {default_value};
+            offset_values[i] = new float[] { default_value };
           }
         }
         // end WLH 13 June 2003
         offset_missing_checked[i] = true;
-      }
-      else if (offset_values[i].length == 1) {
+      } else if (offset_values[i].length == 1) {
         offset_missing_checked[i] = true;
-        if (offset_values[i][0] != offset_values[i][0] ||
-            Float.isInfinite(offset_values[i][0])) {
+        if (offset_values[i][0] != offset_values[i][0]
+            || Float.isInfinite(offset_values[i][0])) {
           // missing with length = 1, so nothing to render
           range_select[0] = new boolean[1];
           range_select[0][0] = false;
@@ -1903,9 +1937,10 @@ if (spatial_values[0].length == 5329) {
     // spatial offsets longer than spatial, so increase len
     if (offset_len > len) {
       // assume len == 1
-      for (int i=0; i<3; i++) {
+      for (int i = 0; i < 3; i++) {
         float[] s = new float[offset_len];
-        for (int k=0; k<offset_len; k++) s[k] = spatial_values[i][0];
+        for (int k = 0; k < offset_len; k++)
+          s[k] = spatial_values[i][0];
         spatial_values[i] = s;
         s = null;
       }
@@ -1913,18 +1948,17 @@ if (spatial_values[0].length == 5329) {
     }
 
     // add any spatial offsets to spatial values
-    for (int i=0; i<3; i++) {
+    for (int i = 0; i < 3; i++) {
       if (offset_values[i] != null) {
         int leno = offset_values[i].length;
         if (leno < len) {
           // assume leno == 1
-          for (int k=0; k<offset_len; k++) {
+          for (int k = 0; k < offset_len; k++) {
             spatial_values[i][k] += offset_values[i][0];
           }
-        }
-        else {
+        } else {
           // assume leno == len
-          for (int k=0; k<offset_len; k++) {
+          for (int k = 0; k < offset_len; k++) {
             spatial_values[i][k] += offset_values[i][k];
           }
         }
@@ -1933,17 +1967,18 @@ if (spatial_values[0].length == 5329) {
       }
 
       if (!missing_checked[i]) {
-        for (int j=0; j<len; j++) {
-          if (spatial_values[i][j] != spatial_values[i][j] ||
-              Float.isInfinite(spatial_values[i][j])) {
+        for (int j = 0; j < len; j++) {
+          if (spatial_values[i][j] != spatial_values[i][j]
+              || Float.isInfinite(spatial_values[i][j])) {
             if (range_select[0] == null) {
               range_select[0] = new boolean[len];
-              for (int k=0; k<len; k++) range_select[0][k] = true;
-            }
-            else if (range_select[0].length < len) {
+              for (int k = 0; k < len; k++)
+                range_select[0][k] = true;
+            } else if (range_select[0].length < len) {
               // assume range_select[0].length == 1
               boolean[] r = new boolean[len];
-              for (int k=0; k<len; k++) r[k] = range_select[0][0];
+              for (int k = 0; k < len; k++)
+                r[k] = range_select[0][0];
               range_select[0] = r;
             }
             range_select[0][j] = false;
@@ -1959,88 +1994,84 @@ if (spatial_values[0].length == 5329) {
       try {
         if (spatialDimension == 0) {
           double[] values = new double[3];
-          for (int i=0; i<3; i++) values[i] = spatial_values[i][0];
-          RealTuple tuple =
-            new RealTuple(Display.DisplaySpatialCartesianTuple, values);
+          for (int i = 0; i < 3; i++)
+            values[i] = spatial_values[i][0];
+          RealTuple tuple = new RealTuple(Display.DisplaySpatialCartesianTuple,
+              values);
           return new SingletonSet(tuple);
-        }
-        else {
+        } else {
           SetType type = new SetType(Display.DisplaySpatialCartesianTuple);
           // MEM
           // WLH 5 April 2000
           // return domain_set.makeSpatial(type, spatial_values);
           return shadow_api.makeSpatialSet(domain_set, type, spatial_values);
         }
-      }
-      catch (VisADException e) {
+      } catch (VisADException e) {
         return null;
       }
-    }
-    else {
+    } else {
       return null;
     }
   }
 
   // WLH 5 April 2000
   public Set makeSpatialSet(Set domain_set, SetType type,
-             float[][] spatial_values) throws VisADException {
+      float[][] spatial_values) throws VisADException {
     return domain_set.makeSpatial(type, spatial_values);
   }
 
   private static void fillOut(float[][] values, int flen) {
-    for (int i=0; i<values.length; i++) {
+    for (int i = 0; i < values.length; i++) {
       if (values[i] != null) {
         int len = values[i].length;
         if (len < flen) {
           // assume len == 1
           float[] s = new float[flen];
           float v = values[i][0];
-          for (int k=0; k<flen; k++) s[k] = v;
+          for (int k = 0; k < flen; k++)
+            s[k] = v;
           values[i] = s;
         }
       }
     }
   }
 
-  /** assemble Flow components;
-      Flow components are 'single', so no compositing is required */
-  public void assembleFlow(float[][] flow1_values,
-                float[][] flow2_values, float[] flowScale,
-                float[][] display_values, int valueArrayLength,
-                int[] valueToScalar, DisplayImpl display,
-                float[] default_values, boolean[][] range_select,
-                DataRenderer renderer, ShadowType shadow_api)
-         throws VisADException, RemoteException {
+  /**
+   * assemble Flow components; Flow components are 'single', so no compositing
+   * is required
+   */
+  public void assembleFlow(float[][] flow1_values, float[][] flow2_values,
+      float[] flowScale, float[][] display_values, int valueArrayLength,
+      int[] valueToScalar, DisplayImpl display, float[] default_values,
+      boolean[][] range_select, DataRenderer renderer, ShadowType shadow_api)
+      throws VisADException, RemoteException {
 
     int[] valueToMap = display.getValueToMap();
     Vector MapVector = display.getMapVector();
 
-    int[] flen = {0, 0};
-    float[][][] ff_values = {flow1_values, flow2_values};
-    DisplayTupleType[] flow_tuple =
-      {Display.DisplayFlow1Tuple, Display.DisplayFlow2Tuple};
-    DisplayTupleType[] actual_tuple = {null, null};
+    int[] flen = { 0, 0 };
+    float[][][] ff_values = { flow1_values, flow2_values };
+    DisplayTupleType[] flow_tuple = { Display.DisplayFlow1Tuple,
+        Display.DisplayFlow2Tuple };
+    DisplayTupleType[] actual_tuple = { null, null };
 
     boolean anyFlow = false;
-/* WLH 15 April 2000
-    ScalarMap[][] maps = new ScalarMap[2][3];
-*/
+    /*
+     * WLH 15 April 2000 ScalarMap[][] maps = new ScalarMap[2][3];
+     */
 
-    for (int i=0; i<valueArrayLength; i++) {
+    for (int i = 0; i < valueArrayLength; i++) {
       if (display_values[i] != null) {
         int displayScalarIndex = valueToScalar[i];
         DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
         DisplayTupleType tuple = real.getTuple();
-        for (int k=0; k<2; k++) {
-          if (tuple != null &&
-              (tuple.equals(flow_tuple[k]) ||
-               (tuple.getCoordinateSystem() != null &&
-                tuple.getCoordinateSystem().getReference().equals(
-                    flow_tuple[k])))) {
+        for (int k = 0; k < 2; k++) {
+          if (tuple != null
+              && (tuple.equals(flow_tuple[k]) || (tuple.getCoordinateSystem() != null && tuple
+                  .getCoordinateSystem().getReference().equals(flow_tuple[k])))) {
             if (actual_tuple[k] != null && !actual_tuple[k].equals(tuple)) {
-              throw new DisplayException("multiple flow " + k +
-                                         " display tuples: " +
-                                         "ShadowType.assembleFlow");
+              throw new DisplayException("multiple flow " + k
+                  + " display tuples: " + "ShadowType.assembleFlow");
             }
             actual_tuple[k] = tuple;
             ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
@@ -2050,9 +2081,10 @@ if (spatial_values[0].length == 5329) {
             ff_values[k][flow_index] = display_values[i];
             flen[k] = Math.max(flen[k], display_values[i].length);
             display_values[i] = null; // MEM_WLH 27 March 99
-/* WLH 15 April 2000
-            maps[k][flow_index] = map;
-*/
+            /*
+             * WLH 15 April 2000 maps[k][flow_index] = map;
+             */
+
             anyFlow = true;
 
             if (k == 0) {
@@ -2063,7 +2095,7 @@ if (spatial_values[0].length == 5329) {
               packingFactor1 = control.getStreamlinePacking();
               float[] pp = control.getStreamlineSmoothing();
               cntrWeight1 = pp[0];
-              n_pass1  = (int) pp[1];
+              n_pass1 = (int) pp[1];
               reduction1 = control.getStreamlineReduction();
             }
             if (k == 1) {
@@ -2074,7 +2106,7 @@ if (spatial_values[0].length == 5329) {
               packingFactor2 = control.getStreamlinePacking();
               float[] pp = control.getStreamlineSmoothing();
               cntrWeight2 = pp[0];
-              n_pass2  = (int) pp[1];
+              n_pass2 = (int) pp[1];
               reduction2 = control.getStreamlineReduction();
             }
           }
@@ -2082,31 +2114,31 @@ if (spatial_values[0].length == 5329) {
       }
     }
 
-/* WLH 15 April 2000
-    if (anyFlow) renderer.setFlowDisplay(maps, flowScale);
-*/
+    /*
+     * WLH 15 April 2000 if (anyFlow) renderer.setFlowDisplay(maps, flowScale);
+     */
 
     //
     // TO_DO
     // this should all happen in flow rendering method
     //
-    for (int k=0; k<2; k++) {
-      boolean[] missing_checked = {false, false, false};
+    for (int k = 0; k < 2; k++) {
+      boolean[] missing_checked = { false, false, false };
       if (flen[k] > 0) {
-        for (int i=0; i<3; i++) {
+        for (int i = 0; i < 3; i++) {
           if (ff_values[k][i] == null) {
             // fill any null flow value arrays with default values
             // MEM
             ff_values[k][i] = new float[flen[k]];
-            int default_index = display.getDisplayScalarIndex(
-              ((DisplayRealType) flow_tuple[k].getComponent(i)) );
+            int default_index = display
+                .getDisplayScalarIndex(((DisplayRealType) flow_tuple[k]
+                    .getComponent(i)));
             float default_value = default_values[default_index];
-            for (int j=0; j<flen[k]; j++) {
+            for (int j = 0; j < flen[k]; j++) {
               ff_values[k][i][j] = default_value;
             }
             missing_checked[i] = true;
-          }
-          else if (ff_values[k][i].length == 1) {
+          } else if (ff_values[k][i].length == 1) {
             // check solitary spatial value array for missing
             float v = ff_values[k][i][0];
             missing_checked[i] = true;
@@ -2119,7 +2151,7 @@ if (spatial_values[0].length == 5329) {
             if (flen[k] > 1) {
               // expand solitary flow value array
               ff_values[k][i] = new float[flen[k]];
-              for (int j=0; j<flen[k]; j++) {
+              for (int j = 0; j < flen[k]; j++) {
                 ff_values[k][i][j] = v;
               }
             }
@@ -2128,26 +2160,28 @@ if (spatial_values[0].length == 5329) {
       } // end if (flen[k] > 0)
 
       if (actual_tuple[k] != null && !actual_tuple[k].equals(flow_tuple[k])) {
-        missing_checked = new boolean[] {false, false, false};
+        missing_checked = new boolean[] { false, false, false };
         // transform tuple_values to flow_tuple[k]
         CoordinateSystem coord = actual_tuple[k].getCoordinateSystem();
         float[][] new_ff_values = coord.toReference(ff_values[k]);
-        for (int i=0; i<3; i++) ff_values[k][i] = new_ff_values[i];
+        for (int i = 0; i < 3; i++)
+          ff_values[k][i] = new_ff_values[i];
       }
 
       if (flen[k] > 0) {
-        for (int i=0; i<3; i++) {
+        for (int i = 0; i < 3; i++) {
           if (!missing_checked[i]) {
-            for (int j=0; j<flen[k]; j++) {
+            for (int j = 0; j < flen[k]; j++) {
               if (ff_values[k][i][j] != ff_values[k][i][j]) {
                 if (range_select[0] == null) {
                   range_select[0] = new boolean[flen[k]];
-                  for (int m=0; m<flen[k]; m++) range_select[0][m] = true;
-                }
-                else if (range_select[0].length < flen[k]) {
+                  for (int m = 0; m < flen[k]; m++)
+                    range_select[0][m] = true;
+                } else if (range_select[0].length < flen[k]) {
                   // assume range_select[0].length == 1
                   boolean[] r = new boolean[flen[k]];
-                  for (int m=0; m<flen[k]; m++) r[m] = range_select[0][0];
+                  for (int m = 0; m < flen[k]; m++)
+                    r[m] = range_select[0][0];
                   range_select[0] = r;
                 }
                 range_select[0][j] = false;
@@ -2164,11 +2198,10 @@ if (spatial_values[0].length == 5329) {
   public static final float METERS_PER_DEGREE = 111137.0f;
 
   public static float[][] adjustFlowToEarth(int which, float[][] flow_values,
-                                    float[][] spatial_values, float flowScale,
-                                    DataRenderer renderer)
-         throws VisADException {
-// System.out.println("adjustFlowToEarth " + renderer.getDisplay().getName()
-//                    + " " + renderer.getRealVectorTypes(which)); // IDV
+      float[][] spatial_values, float flowScale, DataRenderer renderer)
+      throws VisADException {
+    // System.out.println("adjustFlowToEarth " + renderer.getDisplay().getName()
+    // + " " + renderer.getRealVectorTypes(which)); // IDV
     if (!(renderer.getRealVectorTypes(which) instanceof EarthVectorType)) {
       // only do this for EarthVectorType
       return flow_values;
@@ -2185,29 +2218,24 @@ if (spatial_values[0].length == 5329) {
 
         if (which == 0) {
           fcontrol = (FlowControl) display.getControl(Flow1Control.class);
-        }
-        else if (which == 1) {
+        } else if (which == 1) {
           fcontrol = (FlowControl) display.getControl(Flow2Control.class);
         }
         if (fcontrol == null) {
           throw new VisADException(
-            "adjustFlowToEarth: Unable to get FlowControl");
+              "adjustFlowToEarth: Unable to get FlowControl");
         }
         shouldAdjust = fcontrol.getAdjustFlowToEarth();
       }
     }
-    if (!shouldAdjust) return flow_values;
+    if (!shouldAdjust)
+      return flow_values;
 
     int flen = flow_values[0].length;
-// System.out.println("flen = " + flen); // IDV
-/*
-System.out.println("original flow values = " + flow_values[0][0] + " " +
-                   flow_values[1][0] + " " + flow_values[2][0]);
-*/
 
     // get flow_values maximum
     float scale = 0.0f;
-    for (int j=0; j<flen; j++) {
+    for (int j = 0; j < flen; j++) {
       if (Math.abs(flow_values[0][j]) > scale) {
         scale = (float) Math.abs(flow_values[0][j]);
       }
@@ -2219,133 +2247,126 @@ System.out.println("original flow values = " + flow_values[0][0] + " " +
       }
     }
     float inv_scale = 1.0f / scale;
-    if (inv_scale != inv_scale) inv_scale = 1.0f;
-/*
-System.out.println("spatial_values = " + spatial_values[0][0] + " " +
-                   spatial_values[1][0] + " " + spatial_values[2][0]);
-*/
+    if (inv_scale != inv_scale)
+      inv_scale = 1.0f;
+    /*
+     * System.out.println("spatial_values = " + spatial_values[0][0] + " " +
+     * spatial_values[1][0] + " " + spatial_values[2][0]);
+     */
     // convert spatial DisplayRealType values to earth coordinates
     float[][] base_spatial_locs = new float[3][]; // WLH 9 Dec 99
-    float[][] earth_locs =
-      renderer.spatialToEarth(spatial_values, base_spatial_locs);
-    if (earth_locs == null) return flow_values;
+    float[][] earth_locs = renderer.spatialToEarth(spatial_values,
+        base_spatial_locs);
+    if (earth_locs == null)
+      return flow_values;
     int elen = earth_locs.length; // 2 or 3
-/*
-System.out.println("earth_locs = " + earth_locs[0][0] + " " + earth_locs[1][0]);
-*/
+    /*
+     * System.out.println("earth_locs = " + earth_locs[0][0] + " " +
+     * earth_locs[1][0]);
+     */
+
     // convert earth coordinate Units to (radian, radian, meter)
     boolean other_meters = false;
     Unit[] earth_units = renderer.getEarthUnits();
     if (earth_units != null) {
       if (Unit.canConvert(earth_units[0], CommonUnit.radian)) {
-        earth_locs[0] =
-          CommonUnit.radian.toThis(earth_locs[0], earth_units[0]);
+        earth_locs[0] = CommonUnit.radian.toThis(earth_locs[0], earth_units[0]);
       }
       if (Unit.canConvert(earth_units[1], CommonUnit.radian)) {
-        earth_locs[1] =
-          CommonUnit.radian.toThis(earth_locs[1], earth_units[1]);
+        earth_locs[1] = CommonUnit.radian.toThis(earth_locs[1], earth_units[1]);
       }
-      if (elen == 3 && earth_units.length == 3 &&
-          Unit.canConvert(earth_units[2], CommonUnit.meter)) {
+      if (elen == 3 && earth_units.length == 3
+          && Unit.canConvert(earth_units[2], CommonUnit.meter)) {
         other_meters = true;
-        earth_locs[2] =
-          CommonUnit.meter.toThis(earth_locs[2], earth_units[2]);
+        earth_locs[2] = CommonUnit.meter.toThis(earth_locs[2], earth_units[2]);
       }
     }
-/*
-System.out.println("radian earth_locs = " + earth_locs[0][0] +
-                   " " + earth_locs[1][0]);
-*/
+    /*
+     * System.out.println("radian earth_locs = " + earth_locs[0][0] + " " +
+     * earth_locs[1][0]);
+     */
     // add scaled flow vector to earth location
     if (elen == 3) {
       // assume meters even if other_meters == false
-      float factor_lat = (float) (inv_scale * 1000.0f *
-                         Data.DEGREES_TO_RADIANS / METERS_PER_DEGREE);
+      float factor_lat = (float) (inv_scale * 1000.0f * Data.DEGREES_TO_RADIANS / METERS_PER_DEGREE);
       float factor_vert = inv_scale * 1000.0f;
-      for (int j=0; j<flen; j++) {
+      for (int j = 0; j < flen; j++) {
         earth_locs[2][j] += factor_vert * flow_values[2][j];
-        earth_locs[1][j] += factor_lat * flow_values[0][j] /
-                            ((float) Math.cos(earth_locs[0][j]));
+        earth_locs[1][j] += factor_lat * flow_values[0][j]
+            / ((float) Math.cos(earth_locs[0][j]));
+        earth_locs[0][j] += factor_lat * flow_values[1][j];
+      }
+    } else {
+      float factor_lat = 0.00001f * inv_scale
+          * (0.5f * renderer.getLatLonRange());
+      for (int j = 0; j < flen; j++) {
+        earth_locs[1][j] += factor_lat * flow_values[0][j]
+            / ((float) Math.cos(earth_locs[0][j]));
         earth_locs[0][j] += factor_lat * flow_values[1][j];
       }
     }
-    else {
-      float factor_lat = 0.00001f * inv_scale *
-                         (0.5f * renderer.getLatLonRange());
-      for (int j=0; j<flen; j++) {
-        earth_locs[1][j] += factor_lat * flow_values[0][j] /
-                            ((float) Math.cos(earth_locs[0][j]));
-        earth_locs[0][j] += factor_lat * flow_values[1][j];
-      }
-    }
-/*
-System.out.println("flow earth_locs = " + earth_locs[0][0] +
-                   " " + earth_locs[1][0]);
-*/
+    /*
+     * System.out.println("flow earth_locs = " + earth_locs[0][0] + " " +
+     * earth_locs[1][0]);
+     */
     // convert earth coordinate Units from (radian, radian, meter)
     if (earth_units != null) {
       if (Unit.canConvert(earth_units[0], CommonUnit.radian)) {
-        earth_locs[0] =
-          CommonUnit.radian.toThat(earth_locs[0], earth_units[0]);
+        earth_locs[0] = CommonUnit.radian.toThat(earth_locs[0], earth_units[0]);
       }
       if (Unit.canConvert(earth_units[1], CommonUnit.radian)) {
-        earth_locs[1] =
-          CommonUnit.radian.toThat(earth_locs[1], earth_units[1]);
+        earth_locs[1] = CommonUnit.radian.toThat(earth_locs[1], earth_units[1]);
       }
-      if (elen == 3 && earth_units.length == 3 &&
-          Unit.canConvert(earth_units[2], CommonUnit.meter)) {
-        earth_locs[2] =
-          CommonUnit.meter.toThat(earth_locs[2], earth_units[2]);
+      if (elen == 3 && earth_units.length == 3
+          && Unit.canConvert(earth_units[2], CommonUnit.meter)) {
+        earth_locs[2] = CommonUnit.meter.toThat(earth_locs[2], earth_units[2]);
       }
     }
-/*
-System.out.println("degree earth_locs = " + earth_locs[0][0] +
-                   " " + earth_locs[1][0]);
-*/
+    /*
+     * System.out.println("degree earth_locs = " + earth_locs[0][0] + " " +
+     * earth_locs[1][0]);
+     */
     // convert earth coordinates to spatial DisplayRealType values
     if (elen == 3) {
-      earth_locs =
-        renderer.earthToSpatial(earth_locs, null, base_spatial_locs);
-    }
-    else {
+      earth_locs = renderer.earthToSpatial(earth_locs, null, base_spatial_locs);
+    } else {
       // apply vertical flow in earthToSpatial
       float factor_vert = 0.00001f * inv_scale;
       float[] vert = new float[flen];
-      for (int j=0; j<flen; j++) {
+      for (int j = 0; j < flen; j++) {
         vert[j] = factor_vert * flow_values[2][j];
       }
       earth_locs = renderer.earthToSpatial(earth_locs, vert, base_spatial_locs);
       for (int i=0; i<earth_locs.length; i++) {
         if (earth_locs[i] == null) {
           earth_locs[i] = new float[flen];
-          for (int j=0; j<flen; j++) earth_locs[i][j] = spatial_values[i][j];
+          for (int j = 0; j < flen; j++)
+            earth_locs[i][j] = spatial_values[i][j];
         }
       }
     }
-/*
-System.out.println("spatial earth_locs = " + earth_locs[0][0] + " " +
-                   earth_locs[1][0] + " " + earth_locs[2][0]);
-*/
+    /*
+     * System.out.println("spatial earth_locs = " + earth_locs[0][0] + " " +
+     * earth_locs[1][0] + " " + earth_locs[2][0]);
+     */
     // flow = change in spatial_values
-    for (int i=0; i<3; i++) {
-      for (int j=0; j<flen; j++) {
+    for (int i = 0; i < 3; i++) {
+      for (int j = 0; j < flen; j++) {
         earth_locs[i][j] -= spatial_values[i][j];
       }
     }
-/*
-System.out.println("vector earth_locs = " + earth_locs[0][0] + " " +
-                   earth_locs[1][0] + " " + earth_locs[2][0]);
-*/
+    /*
+     * System.out.println("vector earth_locs = " + earth_locs[0][0] + " " +
+     * earth_locs[1][0] + " " + earth_locs[2][0]);
+     */
     // combine earth_locs direction with flow_values magnitude
-    for (int j=0; j<flen; j++) {
-      float mag =
-        (float) Math.sqrt(flow_values[0][j] * flow_values[0][j] +
-                          flow_values[1][j] * flow_values[1][j] +
-                          flow_values[2][j] * flow_values[2][j]);
-      float new_mag =
-        (float) Math.sqrt(earth_locs[0][j] * earth_locs[0][j] +
-                          earth_locs[1][j] * earth_locs[1][j] +
-                          earth_locs[2][j] * earth_locs[2][j]);
+    for (int j = 0; j < flen; j++) {
+      float mag = (float) Math.sqrt(flow_values[0][j] * flow_values[0][j]
+          + flow_values[1][j] * flow_values[1][j] + flow_values[2][j]
+          * flow_values[2][j]);
+      float new_mag = (float) Math.sqrt(earth_locs[0][j] * earth_locs[0][j]
+          + earth_locs[1][j] * earth_locs[1][j] + earth_locs[2][j]
+          * earth_locs[2][j]);
       float ratio = mag / new_mag;
       flow_values[0][j] = ratio * earth_locs[0][j];
       flow_values[1][j] = ratio * earth_locs[1][j];
@@ -2360,77 +2381,85 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
   }
 
   public VisADGeometryArray[] makeStreamline(int which, float[][] flow_values,
-                float flowScale, float[][] spatial_values, Set spatial_set,
-                int spatialManifoldDimension,
-                byte[][] color_values, boolean[][] range_select,
-                int valueArrayLength, int[] valueToMap, Vector MapVector)
-         throws VisADException {
+      float flowScale, float[][] spatial_values, Set spatial_set,
+      int spatialManifoldDimension, byte[][] color_values,
+      boolean[][] range_select, int valueArrayLength, int[] valueToMap,
+      Vector MapVector) throws VisADException {
 
-    if (flow_values[0] == null) return null;
-    if (spatial_set    == null) return null;
+    if (flow_values[0] == null)
+      return null;
+    if (spatial_set == null)
+      return null;
 
-    if (which == 0 && !streamline1) return null;
-    if (which == 1 && !streamline2) return null;
+    if (which == 0 && !streamline1)
+      return null;
+    if (which == 1 && !streamline2)
+      return null;
 
-    if (!(spatial_set instanceof Gridded3DSet)) return null;
+    if (!(spatial_set instanceof Gridded3DSet))
+      return null;
 
-    //-- TDR, only 2 possibilities: (0,1),(0,2),(1,2) because streamline
-    //   algorithm, adapted from Vis5D,  only works with 2 flow components. 2004-01-14
-    FunctionType ftype = (FunctionType)Type;
-    RealTupleType rtt  = ftype.getFlatRange();
+    // -- TDR, only 2 possibilities: (0,1),(0,2),(1,2) because streamline
+    // algorithm, adapted from Vis5D, only works with 2 flow components.
+    // 2004-01-14
+    FunctionType ftype = (FunctionType) Type;
+    RealTupleType rtt = ftype.getFlatRange();
     RealType[] range_reals = rtt.getRealComponents();
 
-    int flow_dim0     = -1;
-    int flow_dim1     = -1;
+    int flow_dim0 = -1;
+    int flow_dim1 = -1;
     int cnt_flow_maps = 0;
-    for (int k=0; k<range_reals.length; k++) {
-    for (int i=0; i<valueArrayLength; i++) {
-      ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
-      DisplayRealType dreal = map.getDisplayScalar();
-      ScalarType scalar = map.getScalar();
-      if (!scalar.equals(range_reals[k])) continue;
-      if ((dreal.equals(Display.Flow1X))||(dreal.equals(Display.Flow2X))||(dreal.equals(Display.Flow1Elevation))||
-          (dreal.equals(Display.Flow2Elevation))) {
-        if (flow_dim0 == -1) {
-          flow_dim0 = 0;
+    for (int k = 0; k < range_reals.length; k++) {
+      for (int i = 0; i < valueArrayLength; i++) {
+        ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
+        DisplayRealType dreal = map.getDisplayScalar();
+        ScalarType scalar = map.getScalar();
+        if (!scalar.equals(range_reals[k]))
+          continue;
+        if ((dreal.equals(Display.Flow1X)) || (dreal.equals(Display.Flow2X))
+            || (dreal.equals(Display.Flow1Elevation))
+            || (dreal.equals(Display.Flow2Elevation))) {
+          if (flow_dim0 == -1) {
+            flow_dim0 = 0;
+          } else {
+            flow_dim0 = 0;
+            flow_dim1 = 1;
+          }
+          cnt_flow_maps++;
         }
-        else {
-          flow_dim0 = 0;
-          flow_dim1 = 1;
+        if ((dreal.equals(Display.Flow1Y)) || (dreal.equals(Display.Flow2Y))
+            || (dreal.equals(Display.Flow1Azimuth))
+            || (dreal.equals(Display.Flow2Azimuth))) {
+          if (flow_dim0 == -1) {
+            flow_dim0 = 1;
+          } else {
+            flow_dim1 = 1;
+          }
+          cnt_flow_maps++;
         }
-        cnt_flow_maps++;
+        if ((dreal.equals(Display.Flow1Z)) || (dreal.equals(Display.Flow2Z))
+            || (dreal.equals(Display.Flow1Radial))
+            || (dreal.equals(Display.Flow2Radial))) {
+          flow_dim1 = 2;
+          cnt_flow_maps++;
+        }
       }
-      if ((dreal.equals(Display.Flow1Y))||(dreal.equals(Display.Flow2Y))||(dreal.equals(Display.Flow1Azimuth))||
-          (dreal.equals(Display.Flow2Azimuth))) {
-        if (flow_dim0 == -1) {
-          flow_dim0 = 1;
-        }
-        else {
-          flow_dim1 = 1;
-        }
-        cnt_flow_maps++;
-      }
-      if ((dreal.equals(Display.Flow1Z))||(dreal.equals(Display.Flow2Z))||(dreal.equals(Display.Flow1Radial))||
-          (dreal.equals(Display.Flow2Radial))) {
-        flow_dim1 = 2;
-        cnt_flow_maps++;
-      }
-    }
     }
 
     if (cnt_flow_maps > 2) {
-      throw new BadMappingException("only one or two ScalarMaps to Flow per data allowed if streamlines enabled");
+      throw new BadMappingException(
+          "only one or two ScalarMaps to Flow per data allowed if streamlines enabled");
     }
-    //- 2004-01-14  ------------------------------------------------------
-
+    // - 2004-01-14 ------------------------------------------------------
 
     if (range_select[0] != null) {
-      if ((range_select[0].length == 1) && (!range_select[0][0])) return null;
+      if ((range_select[0].length == 1) && (!range_select[0][0]))
+        return null;
       for (int ii = 0; ii < range_select[0].length; ii++) {
         if (!range_select[0][ii]) {
           flow_values[0][ii] = Float.NaN;
           flow_values[1][ii] = Float.NaN;
-          //-TDR, 2004-01-15
+          // -TDR, 2004-01-15
           flow_values[2][ii] = Float.NaN;
         }
       }
@@ -2438,89 +2467,100 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
 
     DataRenderer renderer = getLink().getRenderer();
     flow_values = adjustFlowToEarth(which, flow_values, spatial_values,
-                                    flowScale, renderer);
+        flowScale, renderer);
 
     /*- start make streamline vertices
     System.out.println("----start streamlines----------"); */
 
-    float density    = 1;
+    float density = 1;
     float arrowScale = 1;
     float stepFactor = 2;
     float packingFactor = 1;
     float cntrWeight = 3;
-    int   n_pass     = 0;
-    float reduction  = 1f;
+    int n_pass = 0;
+    float reduction = 1f;
 
     int[] numl = new int[1];
 
     int[][] n_verts = new int[1][];
-    float[][][] vr  = new float[1][][];
-    float[][][] vc  = new float[1][][];
+    float[][][] vr = new float[1][][];
+    float[][][] vc = new float[1][][];
     int nr;
     int nc;
 
-    if (which == 0) density    = streamlineDensity1;
-    if (which == 1) density    = streamlineDensity2;
-    if (which == 0) arrowScale = arrowScale1;
-    if (which == 1) arrowScale = arrowScale2;
-    if (which == 0) stepFactor = stepFactor1;
-    if (which == 1) stepFactor = stepFactor2;
-    if (which == 0) packingFactor = packingFactor1;
-    if (which == 1) packingFactor = packingFactor2;
-    if (which == 0) cntrWeight = cntrWeight1;
-    if (which == 1) cntrWeight = cntrWeight2;
-    if (which == 0) n_pass = n_pass1;
-    if (which == 1) n_pass = n_pass2;
-    if (which == 0) reduction = reduction1;
-    if (which == 1) reduction = reduction2;
+    if (which == 0)
+      density = streamlineDensity1;
+    if (which == 1)
+      density = streamlineDensity2;
+    if (which == 0)
+      arrowScale = arrowScale1;
+    if (which == 1)
+      arrowScale = arrowScale2;
+    if (which == 0)
+      stepFactor = stepFactor1;
+    if (which == 1)
+      stepFactor = stepFactor2;
+    if (which == 0)
+      packingFactor = packingFactor1;
+    if (which == 1)
+      packingFactor = packingFactor2;
+    if (which == 0)
+      cntrWeight = cntrWeight1;
+    if (which == 1)
+      cntrWeight = cntrWeight2;
+    if (which == 0)
+      n_pass = n_pass1;
+    if (which == 1)
+      n_pass = n_pass2;
+    if (which == 0)
+      reduction = reduction1;
+    if (which == 1)
+      reduction = reduction2;
 
-    if ( spatialManifoldDimension == 2 )
-    {
-      nc = ((Gridded3DSet)spatial_set).LengthX;
-      nr = ((Gridded3DSet)spatial_set).LengthY;
+    if (spatialManifoldDimension == 2) {
+      nc = ((Gridded3DSet) spatial_set).LengthX;
+      nr = ((Gridded3DSet) spatial_set).LengthY;
 
-      Gridded2DSet gset = new Gridded2DSet(RealTupleType.Generic2D,
-        new float[][] {spatial_values[flow_dim0], spatial_values[flow_dim1]}, nc, nr,
-             null, null, null, false, false);
+      Gridded2DSet gset = new Gridded2DSet(
+          RealTupleType.Generic2D,
+          new float[][] { spatial_values[flow_dim0], spatial_values[flow_dim1] },
+          nc, nr, null, null, null, false, false);
 
       Stream2D.stream(flow_values[flow_dim0], flow_values[flow_dim1], nr, nc,
-                      density, stepFactor, arrowScale, vr, vc,
-                      n_verts, numl, gset, packingFactor, cntrWeight, n_pass, reduction);
-    }
-    else
-    {
-      throw new
-        VisADException("only manifoldDimension==2 supported for streamlimes");
+          density, stepFactor, arrowScale, vr, vc, n_verts, numl, gset,
+          packingFactor, cntrWeight, n_pass, reduction);
+    } else {
+      throw new VisADException(
+          "only manifoldDimension==2 supported for streamlimes");
     }
 
     VisADLineArray[] arrays = new VisADLineArray[numl[0]];
-    Integer2DSet grid_set   = new Integer2DSet(nc, nr);
+    Integer2DSet grid_set = new Integer2DSet(nc, nr);
 
-    for (int kk = 0; kk < arrays.length; kk++ ) {
+    for (int kk = 0; kk < arrays.length; kk++) {
       arrays[kk] = new VisADLineArray();
       float[][] grid = new float[2][n_verts[0][kk]];
       System.arraycopy(vr[0][kk], 0, grid[1], 0, n_verts[0][kk]);
       System.arraycopy(vc[0][kk], 0, grid[0], 0, n_verts[0][kk]);
 
-      float[][] spatial_set_vals =
-       ((Gridded3DSet)spatial_set).gridToValue(grid);
+      float[][] spatial_set_vals = ((Gridded3DSet) spatial_set)
+          .gridToValue(grid);
 
       byte[][] intrp_color_values = null;
       if (color_values != null) {
         int len = color_values.length;
         intrp_color_values = new byte[len][n_verts[0][kk]];
         int[] indices = grid_set.valueToIndex(grid);
-        for ( int cc = 0; cc < n_verts[0][kk]; cc++ ) {
-          if ( indices[cc] >= 0) {
+        for (int cc = 0; cc < n_verts[0][kk]; cc++) {
+          if (indices[cc] >= 0) {
             intrp_color_values[0][cc] = color_values[0][indices[cc]];
             intrp_color_values[1][cc] = color_values[1][indices[cc]];
             intrp_color_values[2][cc] = color_values[2][indices[cc]];
             if (len > 3) {
               intrp_color_values[3][cc] = color_values[3][indices[cc]];
             }
-          }
-          else {
-            intrp_color_values[0][cc] = (byte)255;
+          } else {
+            intrp_color_values[0][cc] = (byte) 255;
             intrp_color_values[1][cc] = 0;
             intrp_color_values[2][cc] = 0;
             if (len > 3) {
@@ -2530,8 +2570,8 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
         }
       }
 
-      ((Gridded3DSet)spatial_set).setGeometryArray(arrays[kk],
-        spatial_set_vals, 4, intrp_color_values);
+      Gridded3DSet.setGeometryArray(arrays[kk], spatial_set_vals, 4,
+          intrp_color_values);
       arrays[kk] = (VisADLineArray) arrays[kk].removeMissing();
     }
 
@@ -2540,15 +2580,15 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
 
   private static void testFlow(String id, float[][] flow_values) {
     int flen = flow_values[0].length;
-    for (int i=0; i<flen; i++) {
-      if (flow_values[0][i] != flow_values[0][i] ||
-          flow_values[1][i] != flow_values[1][i] ||
-          flow_values[2][i] != flow_values[2][i] ||
-          Float.isInfinite(flow_values[0][i]) ||
-          Float.isInfinite(flow_values[1][i]) ||
-          Float.isInfinite(flow_values[2][i])) {
+    for (int i = 0; i < flen; i++) {
+      if (flow_values[0][i] != flow_values[0][i]
+          || flow_values[1][i] != flow_values[1][i]
+          || flow_values[2][i] != flow_values[2][i]
+          || Float.isInfinite(flow_values[0][i])
+          || Float.isInfinite(flow_values[1][i])
+          || Float.isInfinite(flow_values[2][i])) {
         // System.out.println(id + " " + i + " " + flow_values[0][i] + " " +
-        //                    flow_values[1][i] + " " + flow_values[2][i]);
+        // flow_values[1][i] + " " + flow_values[2][i]);
         flow_values[0][i] = 0.0f;
         flow_values[1][i] = 0.0f;
         flow_values[2][i] = 0.0f;
@@ -2561,11 +2601,12 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
 
   /** which = 0 for Flow1 and which = 1 for Flow2 */
   public VisADGeometryArray[] makeFlow(int which, float[][] flow_values,
-                float flowScale, float[][] spatial_values,
-                byte[][] color_values, boolean[][] range_select)
-         throws VisADException {
-    if (flow_values[0] == null) return null;
-    if (spatial_values[0] == null) return null;
+      float flowScale, float[][] spatial_values, byte[][] color_values,
+      boolean[][] range_select) throws VisADException {
+    if (flow_values[0] == null)
+      return null;
+    if (spatial_values[0] == null)
+      return null;
 
     VisADLineArray array = new VisADLineArray();
 
@@ -2574,17 +2615,18 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
     int rlen = 0; // number of non-missing values
     if (range_select[0] == null) {
       rlen = len;
-    }
-    else {
-      for (int j=0; j<range_select[0].length; j++) {
-        if (range_select[0][j]) rlen++;
+    } else {
+      for (int j = 0; j < range_select[0].length; j++) {
+        if (range_select[0][j])
+          rlen++;
       }
     }
-    if (rlen == 0) return null;
+    if (rlen == 0)
+      return null;
 
     DataRenderer renderer = getLink().getRenderer();
     flow_values = adjustFlowToEarth(which, flow_values, spatial_values,
-                                    flowScale, renderer);
+        flowScale, renderer);
 
     array.vertexCount = 6 * rlen;
 
@@ -2595,14 +2637,13 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
     // arrow head vector
     float a0 = 0.0f, a1 = 0.0f, a2 = 0.0f;
     float b0 = 0.0f, b1 = 0.0f, b2 = 0.0f;
-    for (int j=0; j<len; j++) {
+    for (int j = 0; j < len; j++) {
       if (range_select[0] == null || range_select[0][j]) {
         if (flen == 1) {
           f0 = flowScale * flow_values[0][0];
           f1 = flowScale * flow_values[1][0];
           f2 = flowScale * flow_values[2][0];
-        }
-        else {
+        } else {
           f0 = flowScale * flow_values[0][j];
           f1 = flowScale * flow_values[1][j];
           f2 = flowScale * flow_values[2][j];
@@ -2632,20 +2673,18 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
         b1 = a1 = BACK_SCALE * f1;
         b2 = a2 = BACK_SCALE * f2;
 
-        if (mode2d || (Math.abs(f2) <= Math.abs(f0) &&
-                       Math.abs(f2) <= Math.abs(f1))) {
+        if (mode2d
+            || (Math.abs(f2) <= Math.abs(f0) && Math.abs(f2) <= Math.abs(f1))) {
           a0 += PERP_SCALE * f1;
           a1 -= PERP_SCALE * f0;
           b0 -= PERP_SCALE * f1;
           b1 += PERP_SCALE * f0;
-        }
-        else if (Math.abs(f1) <= Math.abs(f0)) {
+        } else if (Math.abs(f1) <= Math.abs(f0)) {
           a0 += PERP_SCALE * f2;
           a2 -= PERP_SCALE * f0;
           b0 -= PERP_SCALE * f2;
           b2 += PERP_SCALE * f0;
-        }
-        else { // f0 is least
+        } else { // f0 is least
           a1 += PERP_SCALE * f2;
           a2 -= PERP_SCALE * f1;
           b1 -= PERP_SCALE * f2;
@@ -2679,10 +2718,10 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
 
     if (color_values != null) {
       int c_len = color_values.length;
-      byte[] colors = new byte[6*c_len * rlen];
+      byte[] colors = new byte[6 * c_len * rlen];
       m = 0;
       float c0 = 0.0f, c1 = 0.0f, c2 = 0.0f;
-      for (int j=0; j<len; j++) {
+      for (int j = 0; j < len; j++) {
         if (range_select[0] == null || range_select[0][j]) {
           int k1 = m;
           int k2 = m;
@@ -2693,27 +2732,33 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
           colors[m++] = color_values[0][j];
           colors[m++] = color_values[1][j];
           colors[m++] = color_values[2][j];
-          if (c_len == 4) colors[m++] = color_values[3][j];
+          if (c_len == 4)
+            colors[m++] = color_values[3][j];
           colors[m++] = colors[k1++];
           colors[m++] = colors[k1++];
           colors[m++] = colors[k1++];
-          if (c_len == 4) colors[m++] = colors[k1++];
+          if (c_len == 4)
+            colors[m++] = colors[k1++];
           colors[m++] = colors[k2++];
           colors[m++] = colors[k2++];
           colors[m++] = colors[k2++];
-          if (c_len == 4) colors[m++] = colors[k2++];
+          if (c_len == 4)
+            colors[m++] = colors[k2++];
           colors[m++] = colors[k3++];
           colors[m++] = colors[k3++];
           colors[m++] = colors[k3++];
-          if (c_len == 4) colors[m++] = colors[k3++];
+          if (c_len == 4)
+            colors[m++] = colors[k3++];
           colors[m++] = colors[k4++];
           colors[m++] = colors[k4++];
           colors[m++] = colors[k4++];
-          if (c_len == 4) colors[m++] = colors[k4++];
+          if (c_len == 4)
+            colors[m++] = colors[k4++];
           colors[m++] = colors[k5++];
           colors[m++] = colors[k5++];
           colors[m++] = colors[k5++];
-          if (c_len == 4) colors[m++] = colors[k5++];
+          if (c_len == 4)
+            colors[m++] = colors[k5++];
         }
       }
       array.colors = colors;
@@ -2725,20 +2770,17 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
       array = (VisADLineArray) array.adjustLongitudeBulk(renderer);
     }
 
-    return new VisADGeometryArray[] {array};
+    return new VisADGeometryArray[] { array };
   }
 
   private static final double FONT_SCALE = 0.07;
 
-
   /**
-   * abcd - 2 February 2001
-   * Rotate the base and up vectors
-   *
+   * abcd - 2 February 2001 Rotate the base and up vectors
+   * 
    * Rotation is in degrees clockwise from positive X axis
    */
-  static void rotateVectors(double[] base, double[] up, double rotationDegrees)
-  {
+  static void rotateVectors(double[] base, double[] up, double rotationDegrees) {
     double rotation = Data.DEGREES_TO_RADIANS * rotationDegrees;
     double sinRotation = Math.sin(rotation);
     double cosRotation = Math.cos(rotation);
@@ -2751,7 +2793,7 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
     }
 
     // For each axis
-    for (int i=0; i<3; i++) {
+    for (int i = 0; i < 3; i++) {
       // Rotate the point
       newBase[i] = cosRotation * base[i] - sinRotation * up[i];
       newUp[i] = sinRotation * base[i] + cosRotation * up[i];
@@ -2762,15 +2804,14 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
     System.arraycopy(newUp, 0, up, 0, 3);
   }
 
-
   public VisADGeometryArray makeText(String[] text_values,
-                TextControl text_control, float[][] spatial_values,
-                byte[][] color_values, boolean[][] range_select)
-         throws VisADException {
-    if (text_values == null || text_values.length == 0 ||
-        text_control == null) return null;
+      TextControl text_control, float[][] spatial_values,
+      byte[][] color_values, boolean[][] range_select) throws VisADException {
+    if (text_values == null || text_values.length == 0 || text_control == null)
+      return null;
 
-    if (spatial_values[0] == null) return null;
+    if (spatial_values[0] == null)
+      return null;
 
     byte r = 0;
     byte g = 0;
@@ -2782,21 +2823,23 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
       r = color_values[0][0];
       g = color_values[1][0];
       b = color_values[2][0];
-      if (color_length > 3) a = color_values[3][0];
+      if (color_length > 3)
+        a = color_values[3][0];
     }
 
     int n = text_values.length;
 
     // CTR 22 Jan 2001
-    if (n > spatial_values[0].length) n = spatial_values[0].length;
+    if (n > spatial_values[0].length)
+      n = spatial_values[0].length;
 
     VisADGeometryArray[] as = new VisADGeometryArray[n];
     // abcd 5 February 2001
-    //boolean center = text_control.getCenter();
+    // boolean center = text_control.getCenter();
     TextControl.Justification justification = text_control.getJustification();
     // abcd 19 March 2003
-    TextControl.Justification verticalJustification =
-      text_control.getVerticalJustification();
+    TextControl.Justification verticalJustification = text_control
+        .getVerticalJustification();
     double size = text_control.getSize();
     Font font = text_control.getFont();
     HersheyFont hfont = text_control.getHersheyFont();
@@ -2810,72 +2853,68 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
     boolean sphere = text_control.getSphere();
     float[][] spatial_sphere = null;
     if (sphere) {
-      spatial_sphere =
-        Display.DisplaySphericalCoordSys.fromReference(spatial_values);
+      spatial_sphere = Display.DisplaySphericalCoordSys
+          .fromReference(spatial_values);
     }
 
     double[] start = new double[3];
-    double[] base = new double[] {size * FONT_SCALE, 0.0, 0.0};
-    double[] up = new double[] {0.0, size * FONT_SCALE, 0.0};
+    double[] base = new double[] { size * FONT_SCALE, 0.0, 0.0 };
+    double[] up = new double[] { 0.0, size * FONT_SCALE, 0.0 };
 
     // abcd 2 February 2001
     // This cannot be moved outside the for loop
     rotateVectors(base, up, text_control.getRotation());
 
     int k = 0;
-    for (int i=0; i<n; i++) {
-      if (range_select[0] == null || range_select[0].length == 1 ||
-          range_select[0][i]) {
-/*
-System.out.println("makeText, i = " + i + " text = " + text_values[i] +
-                   " spatial_values = " + spatial_values[0][i] + " " +
-                   spatial_values[1][i] + " " + spatial_values[2][i]);
-*/
+    for (int i = 0; i < n; i++) {
+      if (range_select[0] == null || range_select[0].length == 1
+          || range_select[0][i]) {
+        /*
+         * System.out.println("makeText, i = " + i + " text = " + text_values[i]
+         * + " spatial_values = " + spatial_values[0][i] + " " +
+         * spatial_values[1][i] + " " + spatial_values[2][i]);
+         */
         if (sphere) {
           double size_in_radians = (size * FONT_SCALE) / spatial_sphere[2][i];
           double size_in_degrees = size_in_radians * Data.RADIANS_TO_DEGREES;
-          double lon_size_in_degrees =
-            size_in_degrees / Math.cos(Data.DEGREES_TO_RADIANS * spatial_sphere[0][i]);
-          start = new double[] {spatial_sphere[0][i],
-                                spatial_sphere[1][i],
-                                spatial_sphere[2][i]};
-          base = new double[] {0.0, lon_size_in_degrees, 0.0};
-          up = new double[] {size_in_degrees, 0.0, 0.0};
+          double lon_size_in_degrees = size_in_degrees
+              / Math.cos(Data.DEGREES_TO_RADIANS * spatial_sphere[0][i]);
+          start = new double[] { spatial_sphere[0][i], spatial_sphere[1][i],
+              spatial_sphere[2][i] };
+          base = new double[] { 0.0, lon_size_in_degrees, 0.0 };
+          up = new double[] { size_in_degrees, 0.0, 0.0 };
 
           // abcd 2 February 2001
           // This cannot be moved outside the for loop
           rotateVectors(base, up, text_control.getRotation());
 
           if (font != null) {
-            as[k] = PlotText.render_font(text_values[i], font,
-                                         start, base, up,
-                                         justification, verticalJustification,
-                                         characterRotation, scale, offset);
-          }
-          else if (hfont != null) {
-            as[k] = PlotText.render_font(text_values[i], hfont,
-                                         start, base, up,
-                                         justification, verticalJustification,
-                                         characterRotation, scale, offset);
+            as[k] = PlotText.render_font(text_values[i], font, start, base, up,
+                justification, verticalJustification, characterRotation, scale,
+                offset);
+          } else if (hfont != null) {
+            as[k] = PlotText.render_font(text_values[i], hfont, start, base,
+                up, justification, verticalJustification, characterRotation,
+                scale, offset);
 
           } else {
             as[k] = PlotText.render_label(text_values[i], start, base, up,
-                                          justification, verticalJustification,
-                                          characterRotation, scale, offset);
+                justification, verticalJustification, characterRotation, scale,
+                offset);
           }
           int len = (as[k] == null) ? 0 : as[k].coordinates.length;
           if (len > 0) {
             float[] coordinates = as[k].coordinates;
             float[][] cs = new float[3][len / 3];
             int m = 0;
-            for (int j=0; j<len/3; j++) {
+            for (int j = 0; j < len / 3; j++) {
               cs[0][j] = coordinates[m++];
               cs[1][j] = coordinates[m++];
               cs[2][j] = coordinates[m++];
             }
             cs = Display.DisplaySphericalCoordSys.toReference(cs);
             m = 0;
-            for (int j=0; j<len/3; j++) {
+            for (int j = 0; j < len / 3; j++) {
               coordinates[m++] = cs[0][j];
               coordinates[m++] = cs[1][j];
               coordinates[m++] = cs[2][j];
@@ -2883,11 +2922,11 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
             as[k].coordinates = coordinates; // not necessary
             if (font != null) {
               float[] normals = as[k].normals;
-              for (int j3=0; j3<len; j3+=3) {
-                float c = (float)
-                  Math.sqrt(coordinates[j3 + 0] * coordinates[j3 + 0] +
-                            coordinates[j3 + 1] * coordinates[j3 + 1] +
-                            coordinates[j3 + 2] * coordinates[j3 + 2]);
+              for (int j3 = 0; j3 < len; j3 += 3) {
+                float c = (float) Math.sqrt(coordinates[j3 + 0]
+                    * coordinates[j3 + 0] + coordinates[j3 + 1]
+                    * coordinates[j3 + 1] + coordinates[j3 + 2]
+                    * coordinates[j3 + 2]);
                 float cinv = (c == 0.0f) ? 1.0f : 1.0f / c;
                 normals[j3 + 0] = cinv * coordinates[j3 + 0];
                 normals[j3 + 1] = cinv * coordinates[j3 + 1];
@@ -2896,98 +2935,99 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
               as[k].normals = normals; // not necessary
             }
           }
-        }
-        else { // !sphere
-          start = new double[] {spatial_values[0][i],
-                                spatial_values[1][i],
-                                spatial_values[2][i]};
+        } else { // !sphere
+          start = new double[] { spatial_values[0][i], spatial_values[1][i],
+              spatial_values[2][i] };
           if (font != null) {
-            as[k] = PlotText.render_font(text_values[i], font,
-                                         start, base, up,
-                                         justification, verticalJustification,
-                                         characterRotation, scale, offset);
+            as[k] = PlotText.render_font(text_values[i], font, start, base, up,
+                justification, verticalJustification, characterRotation, scale,
+                offset);
 
-          }
-          else if (hfont != null) {
-            as[k] = PlotText.render_font(text_values[i], hfont,
-                                         start, base, up,
-                                         justification, verticalJustification,
-                                         characterRotation, scale, offset);
+          } else if (hfont != null) {
+            as[k] = PlotText.render_font(text_values[i], hfont, start, base,
+                up, justification, verticalJustification, characterRotation,
+                scale, offset);
 
           } else {
             as[k] = PlotText.render_label(text_values[i], start, base, up,
-                                          justification, verticalJustification,
-                                          characterRotation, scale, offset);
+                justification, verticalJustification, characterRotation, scale,
+                offset);
           }
         }
 
         int len = (as[k] == null) ? 0 : as[k].coordinates.length;
-        int numPts = len/3;
+        int numPts = len / 3;
         if (len > 0 && color_values != null) {
-          byte[] colors = new byte[numPts*color_length];
+          byte[] colors = new byte[numPts * color_length];
           if (color_values[0].length > 1) {
             r = color_values[0][k];
             g = color_values[1][k];
             b = color_values[2][k];
-            if (color_length > 3) a = color_values[3][k];
+            if (color_length > 3)
+              a = color_values[3][k];
           }
-          for (int j=0; j<colors.length; j+=color_length) {
+          for (int j = 0; j < colors.length; j += color_length) {
             colors[j] = r;
-            colors[j+1] = g;
-            colors[j+2] = b;
-            if (color_length > 3) colors[j+3] = a;
+            colors[j + 1] = g;
+            colors[j + 2] = b;
+            if (color_length > 3)
+              colors[j + 3] = a;
           }
           as[k].colors = colors;
         }
         k++;
       }
     } // end for (int i=0; i<n; i++)
-    if (k == 0) return null;
+    if (k == 0)
+      return null;
     VisADGeometryArray[] arrays = new VisADGeometryArray[k];
     System.arraycopy(as, 0, arrays, 0, k);
     VisADGeometryArray array = null;
 
     // WLH 30 May 2002
     DataRenderer renderer = getLink().getRenderer();
-    for (int i=0; i<k; i++) {
+    for (int i = 0; i < k; i++) {
       if (arrays[i] != null) {
         if (getAdjustProjectionSeam()) {
           arrays[i] = arrays[i].adjustLongitudeBulk(renderer);
         }
-        if (array == null) array = (VisADGeometryArray) arrays[i].clone();
+        if (array == null)
+          array = (VisADGeometryArray) arrays[i].clone();
       }
     }
-    if (array != null) VisADGeometryArray.merge(arrays, array);
+    if (array != null)
+      VisADGeometryArray.merge(arrays, array);
     return array;
   }
 
-  /** composite and transform color and Alpha DisplayRealType values
-      from display_values, and return as (Red, Green, Blue, Alpha) */
-  public byte[][] assembleColor(float[][] display_values,
-                int valueArrayLength, int[] valueToScalar,
-                DisplayImpl display, float[] default_values,
-                boolean[][] range_select, boolean[] single_missing,
-                ShadowType shadow_api)
-         throws VisADException, RemoteException {
+  /**
+   * composite and transform color and Alpha DisplayRealType values from
+   * display_values, and return as (Red, Green, Blue, Alpha)
+   */
+  public byte[][] assembleColor(float[][] display_values, int valueArrayLength,
+      int[] valueToScalar, DisplayImpl display, float[] default_values,
+      boolean[][] range_select, boolean[] single_missing, ShadowType shadow_api)
+      throws VisADException, RemoteException {
     float[][] rgba_values = new float[4][];
-    float[] rgba_value_counts = {0.0f, 0.0f, 0.0f, 0.0f};
+    float[] rgba_value_counts = { 0.0f, 0.0f, 0.0f, 0.0f };
     float[] rgba_singles = new float[4];
-    float[] rgba_single_counts = {0.0f, 0.0f, 0.0f, 0.0f};
+    float[] rgba_single_counts = { 0.0f, 0.0f, 0.0f, 0.0f };
     float[][] tuple_values = new float[3][];
-    float[] tuple_value_counts = {0.0f, 0.0f, 0.0f};
+    float[] tuple_value_counts = { 0.0f, 0.0f, 0.0f };
     float[] tuple_singles = new float[3];
-    float[] tuple_single_counts = {0.0f, 0.0f, 0.0f};
+    float[] tuple_single_counts = { 0.0f, 0.0f, 0.0f };
 
     // mark array to keep track of which valueIndices have
     // contributed to display color_tuples
     boolean[] mark = new boolean[valueArrayLength];
-    for (int i=0; i<valueArrayLength; i++) mark[i] = false;
+    for (int i = 0; i < valueArrayLength; i++)
+      mark[i] = false;
 
     // loop to assemble values for each different
     // display color_tuple
     while (true) {
       DisplayTupleType color_tuple = null;
-      for (int i=0; i<valueArrayLength; i++) {
+      for (int i = 0; i < valueArrayLength; i++) {
         float[] values = display_values[i];
         if (values != null && !mark[i]) {
           int len = values.length;
@@ -2995,16 +3035,15 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
           DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
           DisplayTupleType tuple = real.getTuple();
           // check whether this real is part of a display color tuple
-          if (tuple != null &&
-              (tuple.equals(Display.DisplayRGBTuple) ||
-               (tuple.getCoordinateSystem() != null &&
-                tuple.getCoordinateSystem().getReference().equals(
-                Display.DisplayRGBTuple)))) {
+          if (tuple != null
+              && (tuple.equals(Display.DisplayRGBTuple) || (tuple
+                  .getCoordinateSystem() != null && tuple.getCoordinateSystem()
+                  .getReference().equals(Display.DisplayRGBTuple)))) {
             if (color_tuple == null || color_tuple.equals(tuple)) {
               if (color_tuple == null) {
                 // start a new color_tuple
                 color_tuple = tuple;
-                for (int j=0; j<3; j++) {
+                for (int j = 0; j < 3; j++) {
                   tuple_singles[j] = 0.0f;
                   tuple_single_counts[j] = 0.0f;
                   tuple_values[j] = null;
@@ -3015,8 +3054,7 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
               if (len == 1) {
                 tuple_singles[index] += values[0];
                 tuple_single_counts[index]++;
-              }
-              else { // (len != 1)
+              } else { // (len != 1)
                 singleComposite(index, tuple_values, tuple_value_counts, values);
               }
               // FREE
@@ -3028,7 +3066,7 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
       } // end for (int i=0; i<valueArrayLength; i++)
       if (color_tuple != null) {
         colorSum(3, tuple_values, tuple_value_counts, tuple_singles,
-                 tuple_single_counts, display, color_tuple, default_values);
+            tuple_single_counts, display, color_tuple, default_values);
         if (!color_tuple.equals(Display.DisplayRGBTuple)) {
           // equalize all rgba_values[index] to same length
           // and fill with default values
@@ -3038,8 +3076,7 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
           tuple_values = coord.toReference(tuple_values);
         }
         colorComposite(rgba_values, rgba_value_counts, tuple_values);
-      }
-      else { // if (color_tuple == null)
+      } else { // if (color_tuple == null)
         // no new color_tuple found on this loop iteration
         break;
       }
@@ -3047,82 +3084,69 @@ System.out.println("makeText, i = " + i + " text = " + text_values[i] +
 
     int[] valueToMap = display.getValueToMap();
     Vector MapVector = display.getMapVector();
-    for (int i=0; i<valueArrayLength; i++) {
+    for (int i = 0; i < valueArrayLength; i++) {
       float[] values = display_values[i];
       if (values != null && !mark[i]) {
         int len = values.length;
         int displayScalarIndex = valueToScalar[i];
-        DisplayRealType real =
-          display.getDisplayScalar(displayScalarIndex);
-        if (real.equals(Display.RGB) ||
-            real.equals(Display.HSV) ||
-            real.equals(Display.CMY)) {
-          ColorControl control = (ColorControl)
-            ((ScalarMap) MapVector.elementAt(valueToMap[i])).getControl();
-/*
-ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
-System.out.println("map = " + map);
-int nummissing = 0;
-for (int k=0; k<values.length; k++) {
-  if (values[k] != values[k]) nummissing++;
-}
-System.out.println("values: nummissing = " + nummissing);
-*/
+        DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
+        if (real.equals(Display.RGB) || real.equals(Display.HSV)
+            || real.equals(Display.CMY)) {
+          ColorControl control = (ColorControl) ((ScalarMap) MapVector
+              .elementAt(valueToMap[i])).getControl();
+          /*
+           * ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
+           * System.out.println("map = " + map); int nummissing = 0; for (int
+           * k=0; k<values.length; k++) { if (values[k] != values[k])
+           * nummissing++; } System.out.println("values: nummissing = " +
+           * nummissing);
+           */
 
           float[][] color_values = control.lookupValues(values);
 
-/*
-nummissing = 0;
-for (int k=0; k<color_values[0].length; k++) {
-  if (color_values[0][k] != color_values[0][k]) nummissing++;
-}
-System.out.println("color_values: nummissing = " + nummissing);
-*/
+          /*
+           * nummissing = 0; for (int k=0; k<color_values[0].length; k++) { if
+           * (color_values[0][k] != color_values[0][k]) nummissing++; }
+           * System.out.println("color_values: nummissing = " + nummissing);
+           */
           if (real.equals(Display.HSV)) {
             // transform color_values to DisplayRGBTuple
-            color_values =
-              Display.DisplayHSVCoordSys.toReference(color_values);
-          }
-          else if (real.equals(Display.CMY)) {
+            color_values = Display.DisplayHSVCoordSys.toReference(color_values);
+          } else if (real.equals(Display.CMY)) {
             // transform color_values to DisplayRGBTuple
-            color_values =
-              Display.DisplayCMYCoordSys.toReference(color_values);
-          }
-          else if (real.equals(Display.RGB)) {
+            color_values = Display.DisplayCMYCoordSys.toReference(color_values);
+          } else if (real.equals(Display.RGB)) {
             // do nothing
-          }
-          else {
-            throw new DisplayException("unrecognized color CoordinateSsystem: " +
-                                       "ShadowType.assembleColor");
+          } else {
+            throw new DisplayException("unrecognized color CoordinateSsystem: "
+                + "ShadowType.assembleColor");
           }
           if (len == 1) {
-            for (int index = 0; index<3; index++) {
+            for (int index = 0; index < 3; index++) {
               rgba_singles[index] += color_values[index][0];
               rgba_single_counts[index]++;
             }
-          }
-          else { // (len != 1)
+          } else { // (len != 1)
             colorComposite(rgba_values, rgba_value_counts, color_values);
           }
           // FREE
           display_values[i] = null; // MEM_WLH 27 March 99
         } // end if (real.equals(Display.RGB) || HSV || CMY)
         if (real.equals(Display.RGBA)) {
-          ColorAlphaControl control = (ColorAlphaControl)
-            ((ScalarMap) MapVector.elementAt(valueToMap[i])).getControl();
+          ColorAlphaControl control = (ColorAlphaControl) ((ScalarMap) MapVector
+              .elementAt(valueToMap[i])).getControl();
           float[][] color_values = control.lookupValues(values);
           if (len == 1) {
-            for (int index = 0; index<4; index++) {
+            for (int index = 0; index < 4; index++) {
               rgba_singles[index] += color_values[index][0];
               rgba_single_counts[index]++;
             }
-          }
-          else { // (len != 1)
+          } else { // (len != 1)
             colorComposite(rgba_values, rgba_value_counts, color_values);
 
-            for (int index = 0; index<4; index++) {
+            for (int index = 0; index < 4; index++) {
               singleComposite(index, rgba_values, rgba_value_counts,
-                              color_values[index]);
+                  color_values[index]);
               // FREE
               color_values[index] = null;
             }
@@ -3134,8 +3158,7 @@ System.out.println("color_values: nummissing = " + nummissing);
           if (len == 1) {
             rgba_singles[3] += values[0];
             rgba_single_counts[3]++;
-          }
-          else {
+          } else {
             singleComposite(3, rgba_values, rgba_value_counts, values);
           }
           // FREE
@@ -3144,55 +3167,53 @@ System.out.println("color_values: nummissing = " + nummissing);
         // no need for 'mark[i] = true;' in this loop
       } // end if (values != null && !mark[i])
     } // end for (int i=0; i<valueArrayLength; i++)
-    if (rgba_values[0] == null && rgba_values[1] == null &&
-        rgba_values[2] == null && rgba_values[3] == null) {
+    if (rgba_values[0] == null && rgba_values[1] == null
+        && rgba_values[2] == null && rgba_values[3] == null) {
       // no long color vectors, so try singles, then defaults
-      for (int index=0; index<4; index++) {
+      for (int index = 0; index < 4; index++) {
         rgba_values[index] = new float[1];
         if (rgba_single_counts[index] > 0) {
-          rgba_values[index][0] =
-            rgba_singles[index] / rgba_single_counts[index];
-        }
-        else {
+          rgba_values[index][0] = rgba_singles[index]
+              / rgba_single_counts[index];
+        } else {
           // nothing mapped to this color component, so use default
           int default_index = getDefaultColorIndex(display, index);
-/* WLH 7 Feb 98
-          int default_index =
-            index == 0 ? display.getDisplayScalarIndex(Display.Red) :
-            (index == 1 ? display.getDisplayScalarIndex(Display.Green) :
-             (index == 2 ? display.getDisplayScalarIndex(Display.Blue) :
-              display.getDisplayScalarIndex(Display.Alpha) ) );
-*/
+          /*
+           * WLH 7 Feb 98 int default_index = index == 0 ?
+           * display.getDisplayScalarIndex(Display.Red) : (index == 1 ?
+           * display.getDisplayScalarIndex(Display.Green) : (index == 2 ?
+           * display.getDisplayScalarIndex(Display.Blue) :
+           * display.getDisplayScalarIndex(Display.Alpha) ) );
+           */
           rgba_values[index][0] = default_values[default_index];
         }
       }
-    }
-    else {
+    } else {
       colorSum(4, rgba_values, rgba_value_counts, rgba_singles,
-               rgba_single_counts, display, Display.DisplayRGBTuple,
-               default_values);
+          rgba_single_counts, display, Display.DisplayRGBTuple, default_values);
       // equalize all rgba_values[index] to same length
       // and fill with default values
       equalizeAndDefault(rgba_values, display, Display.DisplayRGBTuple,
-                         default_values);
+          default_values);
     }
 
     // test for any missing values
     int big_len = rgba_values[0].length;
-    for (int i=0; i<4; i++) {
+    for (int i = 0; i < 4; i++) {
       int len = rgba_values[i].length;
-      for (int j=0; j<len; j++) {
+      for (int j = 0; j < len; j++) {
         if (rgba_values[i][j] != rgba_values[i][j]) {
           if (range_select[0] == null) {
             range_select[0] = new boolean[big_len];
-            for (int k=0; k<big_len; k++) range_select[0][k] = true;
+            for (int k = 0; k < big_len; k++)
+              range_select[0][k] = true;
           }
           if (len > 1) {
             range_select[0][j] = false;
             rgba_values[i][j] = 0.0f;
-          }
-          else {
-            for (int k=0; k<big_len; k++) range_select[0][k] = false;
+          } else {
+            for (int k = 0; k < big_len; k++)
+              range_select[0][k] = false;
             // leave any single color value missing -
             // this will prevent anything from being rendered
             // MEM_WLH
@@ -3208,17 +3229,17 @@ System.out.println("color_values: nummissing = " + nummissing);
     // should colors be clamped to range (0.0f, 1.0f)?
     //
 
-/* MEM_WLH
-    return rgba_values;
-*/
+    /*
+     * MEM_WLH return rgba_values;
+     */
     // MEM_WLH
     // page 291 of Java3D book says byte colors are [0, 255] range
     byte[][] b = new byte[rgba_values.length][];
-    for (int i=0; i<rgba_values.length; i++) {
+    for (int i = 0; i < rgba_values.length; i++) {
       if (rgba_values[i] != null) {
         int len = rgba_values[i].length;
         b[i] = new byte[len];
-        for (int j=0; j<len; j++) {
+        for (int j = 0; j < len; j++) {
           int k = (int) (rgba_values[i][j] * 255.0);
           k = (k < 0) ? 0 : (k > 255) ? 255 : k;
           b[i][j] = (byte) ((k < 128) ? k : k - 256);
@@ -3231,52 +3252,49 @@ System.out.println("color_values: nummissing = " + nummissing);
   public static final float byteToFloat(byte b) {
     return (b < 0) ? (((float) b) + 256.0f) / 255.0f : ((float) b) / 255.0f;
     //
-    //  no 255.0f divide:
+    // no 255.0f divide:
     // return ((b < 0) ? ((float) b) + 256.0f : ((float) b));
   }
 
   public static final byte floatToByte(float f) {
-/*
+    /*
+     * int k = (int) (f 255.0); k = (k < 0) ? 0 : (k > 255) ? 255 : k; return
+     * (byte) ((k < 128) ? k : k - 256);
+     */
     int k = (int) (f * 255.0);
-    k = (k < 0) ? 0 : (k > 255) ? 255 : k;
-    return (byte) ((k < 128) ? k : k - 256);
-*/
-    int k = (int) (f * 255.0);
-    return (byte) ( (k < 0) ? 0 : ((k > 255) ? -1 : ((k < 128) ? k : k - 256) ) );
+    return (byte) ((k < 0) ? 0 : ((k > 255) ? -1 : ((k < 128) ? k : k - 256)));
     //
     // no 255.0f multiply:
     // return ((byte) ( ((int) f) < 0 ? 0 : ((int) f) > 255 ? -1 :
-    //          ((int) f) < 128 ? ((byte) f) : ((byte) (f - 256.0f)) ));
+    // ((int) f) < 128 ? ((byte) f) : ((byte) (f - 256.0f)) ));
   }
 
   static void colorSum(int nindex, float[][] tuple_values,
-                       float[] tuple_value_counts, float[] tuple_singles,
-                       float[] tuple_single_counts, DisplayImpl display,
-                       DisplayTupleType tuple, float[] default_values)
-         throws VisADException {
+      float[] tuple_value_counts, float[] tuple_singles,
+      float[] tuple_single_counts, DisplayImpl display, DisplayTupleType tuple,
+      float[] default_values) throws VisADException {
 
-    for (int index=nindex-1; index>=0; index--) {
+    for (int index = nindex - 1; index >= 0; index--) {
       if (tuple_values[index] == null) {
         if (tuple_single_counts[index] > 0) {
           tuple_values[index] = new float[1];
           tuple_values[index][0] = tuple_singles[index];
           tuple_value_counts[index] = tuple_single_counts[index];
         }
-      }
-      else { // (tuple_values[index] != null)
+      } else { // (tuple_values[index] != null)
         // DRM: 2003-09-19 allow for setting by ConstantMap
-        //int cm = display.getGraphicsModeControl().getColorMode();
-        int cm = (int)
-          default_values[display.getDisplayScalarIndex(Display.ColorMode)];
-        /* DRM: 2005-09-25 default_values now has default from GMC
-        int cm =  
-             (colorMode >= 0)
-                 ? colorMode : display.getGraphicsModeControl().getColorMode();
-        */
-        float inv_count = cm == GraphicsModeControl.SUM_COLOR_MODE ? 1.0f :
-          1.0f / (tuple_value_counts[index] + tuple_single_counts[index]);
+        // int cm = display.getGraphicsModeControl().getColorMode();
+        int cm = (int) default_values[display
+            .getDisplayScalarIndex(Display.ColorMode)];
+        /*
+         * DRM: 2005-09-25 default_values now has default from GMC int cm =
+         * (colorMode >= 0) ? colorMode :
+         * display.getGraphicsModeControl().getColorMode();
+         */
+        float inv_count = cm == GraphicsModeControl.SUM_COLOR_MODE ? 1.0f
+            : 1.0f / (tuple_value_counts[index] + tuple_single_counts[index]);
         float[] t_values = tuple_values[index];
-        for (int j=0; j<t_values.length; j++) {
+        for (int j = 0; j < t_values.length; j++) {
           if (t_values[j] == t_values[j]) {
             t_values[j] = inv_count * (t_values[j] + tuple_singles[index]);
           }
@@ -3286,113 +3304,112 @@ System.out.println("color_values: nummissing = " + nummissing);
   }
 
   public static int getDefaultColorIndex(DisplayImpl display, int index) {
-    return index == 0 ? display.getDisplayScalarIndex(Display.Red) :
-           (index == 1 ? display.getDisplayScalarIndex(Display.Green) :
-            (index == 2 ? display.getDisplayScalarIndex(Display.Blue) :
-             display.getDisplayScalarIndex(Display.Alpha) ) );
+    return index == 0 ? display.getDisplayScalarIndex(Display.Red)
+        : (index == 1 ? display.getDisplayScalarIndex(Display.Green)
+            : (index == 2 ? display.getDisplayScalarIndex(Display.Blue)
+                : display.getDisplayScalarIndex(Display.Alpha)));
   }
 
   /** equalize lengths and fill with default values */
   static void equalizeAndDefault(float[][] tuple_values, DisplayImpl display,
-                                 DisplayTupleType tuple, float[] default_values)
-         throws VisADException {
+      DisplayTupleType tuple, float[] default_values) throws VisADException {
     int nindex = tuple_values.length;
     // fill any empty tuple_values[index] with default values
-    for (int index=0; index<nindex; index++) {
+    for (int index = 0; index < nindex; index++) {
       if (tuple_values[index] == null) {
         tuple_values[index] = new float[1];
-        int default_index = (index < 3) ?
-                            display.getDisplayScalarIndex(
-                              ((DisplayRealType) tuple.getComponent(index)) ) :
-                            display.getDisplayScalarIndex(Display.Alpha);
+        int default_index = (index < 3) ? display
+            .getDisplayScalarIndex(((DisplayRealType) tuple.getComponent(index)))
+            : display.getDisplayScalarIndex(Display.Alpha);
         tuple_values[index][0] = default_values[default_index];
-/*
-        System.out.println("default color " + index + " is " +
-                           default_values[default_index]);
-*/
+        /*
+         * System.out.println("default color " + index + " is " +
+         * default_values[default_index]);
+         */
       }
     }
     // compute maximum length of tuple_values[index]
     int len = 1;
-    for (int index=0; index<nindex; index++) {
+    for (int index = 0; index < nindex; index++) {
       len = Math.max(len, tuple_values[index].length);
     }
     // entend any tuple_values[index], except Alpha, to maximum length
-    for (int index=0; index<3; index++) {
+    for (int index = 0; index < 3; index++) {
       int t_len = tuple_values[index].length;
       if (len > t_len) {
         if (t_len != 1) {
-          throw new DisplayException("bad length: ShadowType.equalizeAndDefault");
+          throw new DisplayException(
+              "bad length: ShadowType.equalizeAndDefault");
         }
         float[] t = new float[len];
         float v = tuple_values[index][0];
-        for (int i=0; i<len; i++) t[i] = v;
+        for (int i = 0; i < len; i++)
+          t[i] = v;
         tuple_values[index] = t;
       }
     }
   }
 
-  /** composite tuple_values into rgba_values and
-      rgba_value_counts, for index = 0, 1, 2 */
+  /**
+   * composite tuple_values into rgba_values and rgba_value_counts, for index =
+   * 0, 1, 2
+   */
   static void colorComposite(float[][] rgba_values, float[] rgba_value_counts,
-                             float[][] tuple_values) throws VisADException {
-    for (int index = 0; index<3; index++) {
+      float[][] tuple_values) throws VisADException {
+    for (int index = 0; index < 3; index++) {
       singleComposite(index, rgba_values, rgba_value_counts,
-                      tuple_values[index]);
+          tuple_values[index]);
       // FREE
       tuple_values[index] = null;
     }
   }
 
-  /** composite values into rgba_values[index] and
-      rgba_value_counts[index] */
+  /**
+   * composite values into rgba_values[index] and rgba_value_counts[index]
+   */
   static void singleComposite(int index, float[][] rgba_values,
-                              float[] rgba_value_counts,
-                              float[] values) throws VisADException {
-    if (values == null) return;
+      float[] rgba_value_counts, float[] values) throws VisADException {
+    if (values == null)
+      return;
     if (rgba_values[index] == null) {
       rgba_values[index] = values;
       rgba_value_counts[index] = 1.0f;
-    }
-    else {
+    } else {
       rgba_value_counts[index]++;
       int rgba_len = rgba_values[index].length;
       int values_len = values.length;
       if (rgba_len == values_len) {
-        for (int j=0; j<rgba_len; j++) {
+        for (int j = 0; j < rgba_len; j++) {
           rgba_values[index][j] += values[j];
         }
-      }
-      else if (values_len == 1) {
-        for (int j=0; j<rgba_len; j++) {
+      } else if (values_len == 1) {
+        for (int j = 0; j < rgba_len; j++) {
           rgba_values[index][j] += values[0];
         }
-      }
-      else if (rgba_len == 1) {
-        for (int j=0; j<rgba_len; j++) {
+      } else if (rgba_len == 1) {
+        for (int j = 0; j < rgba_len; j++) {
           values[j] += rgba_values[index][0];
         }
         rgba_values[index] = values;
-      }
-      else {
+      } else {
         throw new DisplayException("bad length: ShadowType.singleComposite");
       }
     }
   }
 
-  /** return a composite of SelectRange DisplayRealType values from
-      display_values, as 0.0 for select and Double.Nan for no select
-      (these values can be added to other DisplayRealType values) */
+  /**
+   * return a composite of SelectRange DisplayRealType values from
+   * display_values, as 0.0 for select and Double.Nan for no select (these
+   * values can be added to other DisplayRealType values)
+   */
   public boolean[][] assembleSelect(float[][] display_values,
-                             int domain_length, int valueArrayLength,
-                             int[] valueToScalar, DisplayImpl display,
-                             ShadowType shadow_api)
-         throws VisADException {
+      int domain_length, int valueArrayLength, int[] valueToScalar,
+      DisplayImpl display, ShadowType shadow_api) throws VisADException {
     int[] valueToMap = display.getValueToMap();
     Vector MapVector = display.getMapVector();
     boolean[][] range_select = new boolean[1][];
     boolean anySelect = false;
-    for (int i=0; i<valueArrayLength; i++) {
+    for (int i = 0; i < valueArrayLength; i++) {
       float[] values = display_values[i];
       if (values != null) {
         int displayScalarIndex = valueToScalar[i];
@@ -3401,32 +3418,31 @@ System.out.println("color_values: nummissing = " + nummissing);
           if (range_select[0] == null) {
             // MEM
             range_select[0] = new boolean[domain_length];
-            for (int j=0; j<domain_length; j++) {
+            for (int j = 0; j < domain_length; j++) {
               range_select[0][j] = true;
             }
           }
-          RangeControl control = (RangeControl)
-            ((ScalarMap) MapVector.elementAt(valueToMap[i])).getControl();
+          RangeControl control = (RangeControl) ((ScalarMap) MapVector
+              .elementAt(valueToMap[i])).getControl();
           float[] range = control.getRange();
           // System.out.println("range = " + range[0] + " " + range[1]);
 
           if (values.length == 1) {
             if (values[0] < range[0] || range[1] < values[0]) {
-              for (int j=0; j<domain_length; j++) {
+              for (int j = 0; j < domain_length; j++) {
                 range_select[0][j] = false;
               }
               anySelect = true;
             }
-          }
-          else {
-            for (int j=0; j<values.length; j++) {
+          } else {
+            for (int j = 0; j < values.length; j++) {
               if (values[j] < range[0] || range[1] < values[j]) {
                 range_select[0][j] = false;
                 anySelect = true;
-/*
-System.out.println("range = " + range[0] + " " + range[1] +
-                   " values[" + j + "] = " + values[j]);
-*/
+                /*
+                 * System.out.println("range = " + range[0] + " " + range[1] +
+                 * " values[" + j + "] = " + values[j]);
+                 */
               }
             }
           }
@@ -3435,83 +3451,78 @@ System.out.println("range = " + range[0] + " " + range[1] +
         } // end if (real.equals(Display.SelectRange))
       } // end if (values != null)
     } // end for (int i=0; i<valueArrayLength; i++)
-    if (range_select[0] != null && !anySelect) range_select[0] = null;
+    if (range_select[0] != null && !anySelect)
+      range_select[0] = null;
     return range_select;
   }
 
-  /** transform data into a (Java3D or Java2D) scene graph;
-      add generated scene graph components as children of group;
-      group is Group (Java3D) or VisADGroup (Java2D);
-      value_array are inherited valueArray values;
-      default_values are defaults for each display.DisplayRealTypeVector;
-      return true if need post-process */
+  /**
+   * transform data into a (Java3D or Java2D) scene graph; add generated scene
+   * graph components as children of group; group is Group (Java3D) or
+   * VisADGroup (Java2D); value_array are inherited valueArray values;
+   * default_values are defaults for each display.DisplayRealTypeVector; return
+   * true if need post-process
+   */
   public boolean terminalTupleOrScalar(Object group, float[][] display_values,
-                                String text_value, TextControl text_control,
-                                int valueArrayLength, int[] valueToScalar,
-                                float[] default_values, int[] inherited_values,
-                                DataRenderer renderer, ShadowType shadow_api)
-          throws VisADException, RemoteException {
+      String text_value, TextControl text_control, int valueArrayLength,
+      int[] valueToScalar, float[] default_values, int[] inherited_values,
+      DataRenderer renderer, ShadowType shadow_api) throws VisADException,
+      RemoteException {
 
-    GraphicsModeControl mode = (GraphicsModeControl)
-      display.getGraphicsModeControl().clone();
-    float pointSize =
-      default_values[display.getDisplayScalarIndex(Display.PointSize)];
+    GraphicsModeControl mode = (GraphicsModeControl) display
+        .getGraphicsModeControl().clone();
+    float pointSize = default_values[display
+        .getDisplayScalarIndex(Display.PointSize)];
     mode.setPointSize(pointSize, true);
-    float lineWidth =
-      default_values[display.getDisplayScalarIndex(Display.LineWidth)];
+    float lineWidth = default_values[display
+        .getDisplayScalarIndex(Display.LineWidth)];
     mode.setLineWidth(lineWidth, true);
-    int lineStyle = (int)
-      default_values[display.getDisplayScalarIndex(Display.LineStyle)];
+    int lineStyle = (int) default_values[display
+        .getDisplayScalarIndex(Display.LineStyle)];
     mode.setLineStyle(lineStyle, true);
-    float polygonOffset =
-      default_values[display.getDisplayScalarIndex(Display.PolygonOffset)];
+    float polygonOffset = default_values[display
+        .getDisplayScalarIndex(Display.PolygonOffset)];
     mode.setPolygonOffset(polygonOffset, true);
-    float polygonOffsetFactor = 
-      default_values[
-        display.getDisplayScalarIndex(Display.PolygonOffsetFactor)];
+    float polygonOffsetFactor = default_values[display
+        .getDisplayScalarIndex(Display.PolygonOffsetFactor)];
     mode.setPolygonOffsetFactor(polygonOffsetFactor, true);
-    float cacheAppearances = 
-      default_values[
-        display.getDisplayScalarIndex(Display.CacheAppearances)];
+    float cacheAppearances = default_values[display
+        .getDisplayScalarIndex(Display.CacheAppearances)];
     mode.setCacheAppearances(cacheAppearances > 0.5f);
-    float mergeArrays = 
-      default_values[
-        display.getDisplayScalarIndex(Display.MergeGeometries)];
+    float mergeArrays = default_values[display
+        .getDisplayScalarIndex(Display.MergeGeometries)];
     mode.setMergeGeometries(mergeArrays > 0.5f);
-
 
     float[][] flow1_values = new float[3][];
     float[][] flow2_values = new float[3][];
     float[] flowScale = new float[2];
     boolean[][] range_select = new boolean[1][];
     shadow_api.assembleFlow(flow1_values, flow2_values, flowScale,
-                 display_values, valueArrayLength, valueToScalar,
-                 display, default_values, range_select, renderer,
-                 shadow_api);
+        display_values, valueArrayLength, valueToScalar, display,
+        default_values, range_select, renderer, shadow_api);
 
     if (range_select[0] != null && !range_select[0][0]) {
       // data not selected
       return false;
     }
 
-    boolean[] swap = {false, false, false};
+    boolean[] swap = { false, false, false };
     int[] spatialDimensions = new int[2];
     float[][] spatial_values = new float[3][];
-    shadow_api.assembleSpatial(spatial_values, display_values, valueArrayLength,
-                    valueToScalar, display, default_values,
-                    inherited_values, null, false, false,
-                    spatialDimensions, range_select, flow1_values,
-                    flow2_values, flowScale, swap, renderer, shadow_api);
+    shadow_api.assembleSpatial(spatial_values, display_values,
+        valueArrayLength, valueToScalar, display, default_values,
+        inherited_values, null, false, false, spatialDimensions, range_select,
+        flow1_values, flow2_values, flowScale, swap, renderer, shadow_api);
 
     if (range_select[0] != null && !range_select[0][0]) {
       // data not selected
       return false;
     }
 
-    boolean[] single_missing = {false, false, false, false};
-    byte[][] color_values =
-      shadow_api.assembleColor(display_values, valueArrayLength, valueToScalar,
-            display, default_values, range_select, single_missing, shadow_api);
+    boolean[] single_missing = { false, false, false, false };
+    byte[][] color_values = shadow_api.assembleColor(display_values,
+        valueArrayLength, valueToScalar, display, default_values, range_select,
+        single_missing, shadow_api);
 
     if (range_select[0] != null && !range_select[0][0]) {
       // data not selected
@@ -3523,46 +3534,40 @@ System.out.println("range = " + range[0] + " " + range[1] +
       // only manage Spatial, Color and Alpha here
       // i.e., the 'dots'
 
-      if (single_missing[0] || single_missing[1] ||
-          single_missing[2]) {
+      if (single_missing[0] || single_missing[1] || single_missing[2]) {
         // System.out.println("single missing alpha");
         // a single missing color value, so render nothing
         return false;
       }
       // put single color in appearance
-/*
-      ColoringAttributes constant_color = new ColoringAttributes();
-      constant_color.setColor(byteToFloat(color_values[0][0]),
-                              byteToFloat(color_values[1][0]),
-                              byteToFloat(color_values[2][0]));
-*/
-      float[] constant_color = new float[] {byteToFloat(color_values[0][0]),
-                                            byteToFloat(color_values[1][0]),
-                                            byteToFloat(color_values[2][0])};
+      /*
+       * ColoringAttributes constant_color = new ColoringAttributes();
+       * constant_color.setColor(byteToFloat(color_values[0][0]),
+       * byteToFloat(color_values[1][0]), byteToFloat(color_values[2][0]));
+       */
+      float[] constant_color = new float[] { byteToFloat(color_values[0][0]),
+          byteToFloat(color_values[1][0]), byteToFloat(color_values[2][0]) };
       float constant_alpha = Float.NaN;
-
 
       VisADGeometryArray array;
 
       boolean anyShapeCreated = false;
       int[] valueToMap = display.getValueToMap();
       Vector MapVector = display.getMapVector();
-      VisADGeometryArray[] arrays =
-        shadow_api.assembleShape(display_values, valueArrayLength, valueToMap,
-                      MapVector, valueToScalar, display, default_values,
-                      inherited_values, spatial_values, color_values,
-                      range_select, -1, shadow_api);
+      VisADGeometryArray[] arrays = shadow_api.assembleShape(display_values,
+          valueArrayLength, valueToMap, MapVector, valueToScalar, display,
+          default_values, inherited_values, spatial_values, color_values,
+          range_select, -1, shadow_api);
       if (arrays != null) {
-        for (int i=0; i<arrays.length; i++) {
+        for (int i = 0; i < arrays.length; i++) {
           array = arrays[i];
           if (array != null) {
-            shadow_api.addToGroup(group, array, mode,
-                                  constant_alpha, constant_color);
-/* WLH 25 June 2000
-            if (renderer.getIsDirectManipulation()) {
-              renderer.setSpatialValues(spatial_values);
-            }
-*/
+            shadow_api.addToGroup(group, array, mode, constant_alpha,
+                constant_color);
+            /*
+             * WLH 25 June 2000 if (renderer.getIsDirectManipulation()) {
+             * renderer.setSpatialValues(spatial_values); }
+             */
           }
         }
         anyShapeCreated = true;
@@ -3570,35 +3575,35 @@ System.out.println("range = " + range[0] + " " + range[1] +
 
       boolean anyTextCreated = false;
       if (text_value != null && text_control != null) {
-        String[] text_values = {text_value};
+        String[] text_values = { text_value };
         array = shadow_api.makeText(text_values, text_control, spatial_values,
-                                    color_values, range_select);
-        shadow_api.addTextToGroup(group, array, mode,
-                                  constant_alpha, constant_color);
+            color_values, range_select);
+        shadow_api.addTextToGroup(group, array, mode, constant_alpha,
+            constant_color);
         anyTextCreated = true;
       }
 
       boolean anyFlowCreated = false;
       // try Flow1
-      arrays = shadow_api.makeFlow(0, flow1_values, flowScale[0], spatial_values,
-                       color_values, range_select);
+      arrays = shadow_api.makeFlow(0, flow1_values, flowScale[0],
+          spatial_values, color_values, range_select);
       if (arrays != null) {
-        for (int i=0; i<arrays.length; i++) {
+        for (int i = 0; i < arrays.length; i++) {
           if (arrays[i] != null) {
-            shadow_api.addToGroup(group, arrays[i], mode,
-                                  constant_alpha, constant_color);
+            shadow_api.addToGroup(group, arrays[i], mode, constant_alpha,
+                constant_color);
           }
         }
         anyFlowCreated = true;
       }
       // try Flow2
-      arrays = shadow_api.makeFlow(1, flow2_values, flowScale[1], spatial_values,
-                       color_values, range_select);
+      arrays = shadow_api.makeFlow(1, flow2_values, flowScale[1],
+          spatial_values, color_values, range_select);
       if (arrays != null) {
-        for (int i=0; i<arrays.length; i++) {
+        for (int i = 0; i < arrays.length; i++) {
           if (arrays[i] != null) {
-            shadow_api.addToGroup(group, arrays[i], mode,
-                                  constant_alpha, constant_color);
+            shadow_api.addToGroup(group, arrays[i], mode, constant_alpha,
+                constant_color);
           }
         }
         anyFlowCreated = true;
@@ -3607,13 +3612,12 @@ System.out.println("range = " + range[0] + " " + range[1] +
       if (!anyFlowCreated && !anyTextCreated && !anyShapeCreated) {
         array = makePointGeometry(spatial_values, null);
         if (array != null && array.vertexCount > 0) {
-          shadow_api.addToGroup(group, array, mode,
-                                constant_alpha, constant_color);
-/* WLH 25 June 2000
-          if (renderer.getIsDirectManipulation()) {
-            renderer.setSpatialValues(spatial_values);
-          }
-*/
+          shadow_api.addToGroup(group, array, mode, constant_alpha,
+              constant_color);
+          /*
+           * WLH 25 June 2000 if (renderer.getIsDirectManipulation()) {
+           * renderer.setSpatialValues(spatial_values); }
+           */
         }
       }
 
@@ -3623,8 +3627,7 @@ System.out.println("range = " + range[0] + " " + range[1] +
       }
 
       return false;
-    }
-    else { // if (!(LevelOfDifficulty == SIMPLE_TUPLE))
+    } else { // if (!(LevelOfDifficulty == SIMPLE_TUPLE))
       // must be LevelOfDifficulty == LEGAL
       // add values to value_array according to SelectedMapVector-s
       // of RealType-s in components (including Reference)
@@ -3632,63 +3635,58 @@ System.out.println("range = " + range[0] + " " + range[1] +
       // accumulate Vector of value_array-s at this ShadowTypeJ3D,
 
       // to be rendered in a post-process to scanning data
-      throw new UnimplementedException("terminal LEGAL unimplemented: " +
-                                       "ShadowType.terminalTupleOrReal");
+      throw new UnimplementedException("terminal LEGAL unimplemented: "
+          + "ShadowType.terminalTupleOrReal");
     }
   }
 
   public boolean makeContour(int valueArrayLength, int[] valueToScalar,
-                       float[][] display_values, int[] inherited_values,
-                       Vector MapVector, int[] valueToMap, int domain_length,
-                       boolean[][] range_select, int spatialManifoldDimension,
-                       Set spatial_set, byte[][] color_values, boolean indexed,
-                       Object group, GraphicsModeControl mode, boolean[] swap,
-                       float constant_alpha, float[] constant_color,
-                       ShadowType shadow_api, ShadowRealTupleType Domain,
-                       ShadowRealType[] DomainReferenceComponents,
-                       Set domain_set, Unit[] domain_units,
-                       CoordinateSystem dataCoordinateSystem)
-         throws VisADException {
+      float[][] display_values, int[] inherited_values, Vector MapVector,
+      int[] valueToMap, int domain_length, boolean[][] range_select,
+      int spatialManifoldDimension, Set spatial_set, byte[][] color_values,
+      boolean indexed, Object group, GraphicsModeControl mode, boolean[] swap,
+      float constant_alpha, float[] constant_color, ShadowType shadow_api,
+      ShadowRealTupleType Domain, ShadowRealType[] DomainReferenceComponents,
+      Set domain_set, Unit[] domain_units, CoordinateSystem dataCoordinateSystem)
+      throws VisADException {
     boolean anyContourCreated = false;
 
     // WLH 4 May 2001
     DataRenderer renderer = getLink().getRenderer();
 
-    double[] matrix          = p_cntrl.getMatrix();
-    double scale             = Double.NaN;
-    MouseBehavior mouse      = display.getMouseBehavior();
+    double[] matrix = p_cntrl.getMatrix();
+    double scale = Double.NaN;
+    MouseBehavior mouse = display.getMouseBehavior();
     if (mouse != null) {
-      double[] rot_a           = new double[3];
-      double[] trans_a         = new double[3];
-      double[] scale_a         = new double[1];
+      double[] rot_a = new double[3];
+      double[] trans_a = new double[3];
+      double[] scale_a = new double[1];
       mouse.instance_unmake_matrix(rot_a, scale_a, trans_a, matrix);
       scale = scale_a[0];
     }
 
-/*
-try {
-  System.out.println("makeContour " + getLink().getThingReference().getName());
-} catch (RemoteException e) { }
-*/
+    /*
+     * try { System.out.println("makeContour " +
+     * getLink().getThingReference().getName()); } catch (RemoteException e) { }
+     */
 
-    boolean isLinearContour3D = getIsLinearContour3D() &&
-                                spatial_set instanceof Linear3DSet;
-    ScalarMap[] spatial_maps = {null, null, null};
-    int[] permute = {-1, -1, -1};
+    boolean isLinearContour3D = getIsLinearContour3D()
+        && spatial_set instanceof Linear3DSet;
+    ScalarMap[] spatial_maps = { null, null, null };
+    int[] permute = { -1, -1, -1 };
     if (isLinearContour3D) {
-      RealType[] reals =
-        ((SetType) spatial_set.getType()).getDomain().getRealComponents();
-      for (int i=0; i<valueArrayLength; i++) {
+      RealType[] reals = ((SetType) spatial_set.getType()).getDomain()
+          .getRealComponents();
+      for (int i = 0; i < valueArrayLength; i++) {
         ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
         ScalarType sc = map.getScalar();
         RealType real = (sc instanceof RealType) ? (RealType) sc : null;
         DisplayRealType dreal = map.getDisplayScalar();
         DisplayTupleType tuple = dreal.getTuple();
 
-        if (tuple != null &&
-            tuple.equals(Display.DisplaySpatialCartesianTuple)) {
+        if (tuple != null && tuple.equals(Display.DisplaySpatialCartesianTuple)) {
           int tuple_index = dreal.getTupleIndex();
-          for (int j=0; j<reals.length; j++) {
+          for (int j = 0; j < reals.length; j++) {
             if (real.equals(reals[j])) {
               permute[j] = tuple_index;
               spatial_maps[j] = map;
@@ -3701,37 +3699,40 @@ try {
 
     ShadowRealTupleType domain_reference = null;
     CoordinateSystem coord_sys = null;
-    if (spatialTuple != null) coord_sys = spatialTuple.getCoordinateSystem();
+    if (spatialTuple != null)
+      coord_sys = spatialTuple.getCoordinateSystem();
     domain_reference = Domain.getReference();
 
-
-    VisADGeometryArray[] arrays = null;
-    for (int i=0; i<valueArrayLength; i++) {
+    for (int i = 0; i < valueArrayLength; i++) {
       int displayScalarIndex = valueToScalar[i];
       DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
-      if (real.equals(Display.IsoContour) &&
-          display_values[i] != null &&
-          display_values[i].length == domain_length &&
-          inherited_values[i] == 0) {
+      if (real.equals(Display.IsoContour) && display_values[i] != null
+          && display_values[i].length == domain_length
+          && inherited_values[i] == 0) {
         // non-inherited IsoContour, so generate contours
         VisADGeometryArray array = null;
-        ContourControl control = (ContourControl)
-          ((ScalarMap) MapVector.elementAt(valueToMap[i])).getControl();
+        ContourControl control = (ContourControl) ((ScalarMap) MapVector
+            .elementAt(valueToMap[i])).getControl();
         c_cntrl = control;
-        
+
         boolean[] bvalues = new boolean[2];
         float[] fvalues = new float[5];
         control.getMainContours(bvalues, fvalues);
-        if (scale != scale) scale = control.getInitScale();
-        double label_size  = control.getLabelSize();
-        if (spatialManifoldDimension == 3 ||
-            spatialManifoldDimension == 2) {
+        boolean doContour = bvalues[0];
+        boolean doLabels = bvalues[1];
+        float isoLvl = fvalues[0];
+
+        if (scale != scale)
+          scale = ContourControl.getInitScale();
+        double label_size = control.getLabelSize();
+        if (spatialManifoldDimension == 3 || spatialManifoldDimension == 2) {
           anyContourCreated = true;
         }
-        if (bvalues[0]) {
+        if (doContour) {
           if (range_select[0] != null) {
             int len = range_select[0].length;
-            if (len == 1 || display_values[i].length == 1) break;
+            if (len == 1 || display_values[i].length == 1)
+              break;
 
             // WLH 30 July 99
             int dlen = display_values[i].length;
@@ -3739,25 +3740,22 @@ try {
             display_values[i] = new float[dlen];
             System.arraycopy(temp, 0, display_values[i], 0, dlen);
 
-            for (int j=0; j<len; j++) {
+            for (int j = 0; j < len; j++) {
               if (!range_select[0][j]) {
                 display_values[i][j] = Float.NaN;
               }
             }
           }
           if (spatialManifoldDimension == 3) {
-            if (fvalues[0] == fvalues[0]) {
+            if (isoLvl == isoLvl) { // not NaN
               if (spatial_set != null) {
-                // System.out.println("makeIsoSurface at " + fvalues[0]);
-// System.out.println("start makeIsoSurface " + (System.currentTimeMillis() - Link.start_time));
                 if (isLinearContour3D) {
-                  array =
-                    ((Linear3DSet) spatial_set).makeLinearIsoSurface(fvalues[0],
-                        display_values[i], color_values, indexed, spatial_maps, permute);
-                }
-                else {
-                  array = spatial_set.makeIsoSurface(fvalues[0],
-                              display_values[i], color_values, indexed);
+                  array = ((Linear3DSet) spatial_set).makeLinearIsoSurface(
+                      isoLvl, display_values[i], color_values, indexed,
+                      spatial_maps, permute);
+                } else {
+                  array = spatial_set.makeIsoSurface(isoLvl, display_values[i],
+                      color_values, indexed);
                 }
 
                 // WLH 4 May 2001
@@ -3765,168 +3763,234 @@ try {
                   try {
                     array = array.adjustLongitude(renderer);
                     array = array.adjustSeam(renderer);
-                  }
-                  catch (Exception e) {
+                  } catch (Exception e) {
                   }
                 }
 
-// System.out.println("end makeIsoSurface " + (System.currentTimeMillis() - Link.start_time));
-                // System.out.println("makeIsoSurface " + (array != null ? array.vertexCount : 0) );
-                shadow_api.addToGroup(group, array, mode,
-                                      constant_alpha, constant_color);
-// System.out.println("end addToGroup " + (System.currentTimeMillis() - Link.start_time));
+                // add all data to group
+                shadow_api.addToGroup(group, array, mode, constant_alpha,
+                    constant_color);
                 array = null;
-              }
-              else if (coord_sys != null) { // missing spatials set as result of transform (coord_sys)
-                array = ((Gridded3DSet)domain_set).makeIsoSurfaceMissingSpatial(fvalues[0], display_values[i], color_values, 
-                                   indexed, Domain, domain_reference, domain_units, dataCoordinateSystem, coord_sys,
-                                   DomainReferenceComponents, spatialTuple, spatial_offset_values);
+              } else if (coord_sys != null) { // missing spatials set as result
+                                              // of transform (coord_sys)
+                array = ((Gridded3DSet) domain_set)
+                    .makeIsoSurfaceMissingSpatial(isoLvl, display_values[i],
+                        color_values, indexed, Domain, domain_reference,
+                        domain_units, dataCoordinateSystem, coord_sys,
+                        DomainReferenceComponents, spatialTuple,
+                        spatial_offset_values);
                 if (array != null) {
                   array = array.removeMissing();
                 }
-                shadow_api.addToGroup(group, array, mode,
-                                      constant_alpha, constant_color);
+                shadow_api.addToGroup(group, array, mode, constant_alpha,
+                    constant_color);
                 array = null;
               }
             }
             // anyContourCreated = true;
-          }
-          else if (spatialManifoldDimension == 2) {
+          } else if (spatialManifoldDimension == 2) {
             if (spatial_set != null) {
               control.setAutoScaleLabels(true);
-              
+
               float[] lowhibase = new float[3];
-              boolean[] dashes  = {false};
-              float[] levs = control.getLevels(lowhibase, dashes);
+              boolean[] doStyle = { false };
+              float[] levs = control.getLevels(lowhibase, doStyle);
 
               boolean fill = control.contourFilled();
-              ScalarMap[] smap = new ScalarMap[2]; // changed to 2 to pass IsoContour Map to Set
-              ScalarType sc = ((ScalarMap)MapVector.elementAt(valueToMap[i])).getScalar();
+              ScalarMap[] smap = new ScalarMap[2]; // changed to 2 to pass
+                                                   // IsoContour Map to Set
+              ScalarType sc = ((ScalarMap) MapVector.elementAt(valueToMap[i]))
+                  .getScalar();
               if (fill) {
-                
-                // BMF 2006-10-17 need a clone to localize req. label params
-                mode = (GraphicsModeControl) mode.clone();
-                
                 for (int kk = 0; kk < MapVector.size(); kk++) {
-                  ScalarMap sm = (ScalarMap)MapVector.elementAt(kk);
+                  ScalarMap sm = (ScalarMap) MapVector.elementAt(kk);
                   if (sm != null) {
-                    if ( sm.getScalar().equals(sc) &&
-                        (sm.getDisplayScalar().equals(Display.RGB) ||
-                         sm.getDisplayScalar().equals(Display.RGBA)) ) {
+                    if (sm.getScalar().equals(sc)
+                        && (sm.getDisplayScalar().equals(Display.RGB) || sm
+                            .getDisplayScalar().equals(Display.RGBA))) {
                       smap[0] = sm;
                     }
                   }
                 }
                 if (smap[0] == null) {
-                  throw new DisplayException("IsoContour color-fill is enabled, so "+
-                      sc+" must also be mapped to Display.RGB");
+                  throw new DisplayException(
+                      "IsoContour color-fill is enabled, so " + sc
+                          + " must also be mapped to Display.RGB");
                 }
-                
-                // BMF 2006-10-05 set offset to make labels more clear.
-                // FIXME: There may be a better value to use here
-                mode.setPolygonOffsetFactor(10f, false);
-                mode.setPolygonOffset(1f, false);
-                
-              } 
-              
+              }
+
               // BMF 2006-10-04 get the IsoContour ScalarMap
               for (int kk = 0; kk < MapVector.size(); kk++) {
-                ScalarMap sm = (ScalarMap)MapVector.elementAt(kk);
+                ScalarMap sm = (ScalarMap) MapVector.elementAt(kk);
                 if (sm != null) {
-                  if ( sm.getScalar().equals(sc) &&
-                       sm.getDisplayScalar().equals(Display.IsoContour) ) {
+                  if (sm.getScalar().equals(sc)
+                      && sm.getDisplayScalar().equals(Display.IsoContour)) {
                     smap[1] = sm;
                   }
                 }
               }
-              
+
               float[][][] f_array = new float[1][][];
-              VisADGeometryArray[][] array_s =
-                spatial_set.makeIsoLines(levs, lowhibase[0], lowhibase[1],
-                                         lowhibase[2], display_values[i],
-                                         color_values, swap, dashes[0],
-                                         fill, smap, scale, label_size, f_array);
-              
+
+              VisADGeometryArray[][] array_s = spatial_set.makeIsoLines(levs,
+                  lowhibase[0], lowhibase[1], lowhibase[2], display_values[i],
+                  color_values, swap, doStyle[0], fill, smap, scale,
+                  label_size, f_array);
+
+              VisADGeometryArray[] uBasicLines = array_s[0];
+              VisADGeometryArray[] fillLines = array_s[1];
+              VisADGeometryArray[] labelLines = null;
+              VisADGeometryArray[] expLines = null;
+              VisADGeometryArray[] sBasicLines = null;
+
+              // set'em if you got em
+              switch (array_s.length) {
+              case 5:
+                sBasicLines = array_s[4];
+              case 4:
+                expLines = array_s[3];
+              case 3:
+                labelLines = array_s[2];
+              }
+
               if (array_s != null) {
+
+                // FIXME: Is it appropriate to ignore exceptions for
+                // adjustments?
+
+                // make necessary adjustments
                 if (!fill && getAdjustProjectionSeam()) {
-                  for (int j=0; j<2; j++) {
-                    if (array_s[j][0] != null) { //- lines, fill-lines
-                      try {
-                        array_s[j][0] = ((VisADLineArray)array_s[j][0]).adjustLongitude(renderer);
-                        array_s[j][0] = ((VisADLineArray)array_s[j][0]).adjustSeam(renderer);
+                  // do not do adjustments for
+                  for (int j = 0; j < 5; j++) {
+                    if (j != 3) { // don't adjust label fill lines
+                      for (VisADGeometryArray arr : array_s[j]) {
+                        try {
+                          arr = arr.adjustLongitude(renderer);
+                          arr = arr.adjustSeam(renderer);
+                        } catch (Exception e) {
+                          e.printStackTrace();
+                        }
                       }
-                      catch (Exception e) {
+                    }
+                  }
+                  if (labelLines != null) {
+                    for (int k = 0; k < (labelLines.length) / 2; k++) { //-labels
+                                                                        // ,
+                                                                        // label
+                                                                        // anchor
+                                                                        // points
+                      try {
+                        labelLines[k * 2] = labelLines[k * 2]
+                            .adjustLongitude(renderer);
+                        labelLines[k * 2] = labelLines[k * 2]
+                            .adjustSeam(renderer);
+                        labelLines[k * 2 + 1] = labelLines[k * 2 + 1]
+                            .adjustLongitude(renderer);
+                        labelLines[k * 2 + 1] = labelLines[k * 2 + 1]
+                            .adjustSeam(renderer);
+                      } catch (Exception e) {
                         e.printStackTrace();
                       }
                     }
                   }
-                  if (array_s.length > 2 && array_s[2] != null) {
-                    for (int k=0; k<(array_s[2].length)/2; k++) { //-labels, label anchor points
+                  if (expLines != null) {
+                    for (int k = 0; k < (expLines.length) / 6; k++) { // - left/
+                                                                      // right
+                                                                      // expanding
+                                                                      // segments
                       try {
-                        array_s[2][k*2] = array_s[2][k*2].adjustLongitude(renderer);
-                        array_s[2][k*2] = array_s[2][k*2].adjustSeam(renderer);
-                        array_s[2][k*2+1] = array_s[2][k*2+1].adjustLongitude(renderer);
-                        array_s[2][k*2+1] = array_s[2][k*2+1].adjustSeam(renderer);
-                      }
-                      catch (Exception e) {
-                        e.printStackTrace();
-                      }
-                    }
-                  }
-                  if (array_s.length > 3 && array_s[3] != null) {
-                    for (int k=0; k<(array_s[3].length)/4; k++) { //- left/right expanding segments
-                      try {
-                        array_s[3][k*4] = array_s[3][k*4].adjustLongitude(renderer);
-                        array_s[3][k*4] = array_s[3][k*4].adjustSeam(renderer);
-                        array_s[3][k*4+1] = array_s[3][k*4+1].adjustLongitude(renderer);
-                        array_s[3][k*4+1] = array_s[3][k*4+1].adjustSeam(renderer);
-                        array_s[3][k*4+2] = array_s[3][k*4+2].adjustLongitude(renderer);
-                        array_s[3][k*4+2] = array_s[3][k*4+2].adjustSeam(renderer);
-                        array_s[3][k*4+3] = array_s[3][k*4+3].adjustLongitude(renderer);
-                        array_s[3][k*4+3] = array_s[3][k*4+3].adjustSeam(renderer);
-                      }
-                      catch (Exception e) {
+                        for (int j = 0; j < 6; j++) {
+                          if (expLines[k * 6 + j] != null) {
+                            expLines[k * 6 + j] = expLines[k * 6 + j]
+                                .adjustLongitude(renderer);
+                            expLines[k * 6 + j] = expLines[k * 6 + j]
+                                .adjustSeam(renderer);
+                          }
+                        }
+                      } catch (Exception e) {
                         e.printStackTrace();
                       }
                     }
                   }
                 }
-  
-                if (array_s.length > 0 && array_s[0][0] != null &&
-                    array_s[0][0].vertexCount > 0)
-                {
 
-                  if (fill) shadow_api.adjustZ(array_s[0][0].coordinates);
-                  shadow_api.addToGroup(group, array_s[0][0], mode,
-                                        constant_alpha, constant_color);
-                  
-                  array_s[0][0] = null;
-                  
-                  // BMF 2006-10-05 add labels for filled contours
-                  if (bvalues[1] && array_s[2] != null)
-                  {
-                    // draw labels using cloned GMC with poly offsets
-                    shadow_api.addLabelsToGroup(group, array_s, mode, control,
-                                                p_cntrl, cnt, constant_alpha,
-                                                constant_color, f_array);
+                if (array_s.length > 0 && uBasicLines.length > 0) {
+
+                  // label mode, forcing labels to have solid J3D line style
+                  GraphicsModeControl labelMode 
+                    = (GraphicsModeControl) mode.clone();
+                  labelMode.setLineStyle(GraphicsModeControl.SOLID_STYLE, false);
+
+                  // mode for dashed lines rendered with J3D line style
+                  GraphicsModeControl styledMode 
+                    = (GraphicsModeControl) mode.clone();
+                  styledMode.setLineStyle(control.getDashedStyle(), false);
+
+                  if (fill) {
+                    // BMF set offset to make labels more clear.
+                    // FIXME: There may be a better value to use here
+                    labelMode.setPolygonOffsetFactor(10f, false);
+                    labelMode.setPolygonOffset(1f, false);
+
+                    // make adjustment for basic lines
+                    for (VisADGeometryArray arr : uBasicLines) {
+                      if (arr == null)
+                        continue;
+                      shadow_api.adjustZ(arr.coordinates);
+                    }
+                    // there may not be unstyled lines
+                    if (sBasicLines != null) {
+                      for (VisADGeometryArray arr : sBasicLines) {
+                        if (arr == null)
+                          continue;
+                        shadow_api.adjustZ(arr.coordinates);
+                      }
+                    }
+                  }
+
+                  // add unstyled lines
+                  for (VisADGeometryArray arr : uBasicLines) {
+                    if (arr == null)
+                      continue;
+                    shadow_api.addToGroup(group, arr, mode, constant_alpha,
+                        constant_color);
+                  }
+                  array_s[0] = null;
+                  uBasicLines = null;
+
+                  // add styled lines
+                  if (sBasicLines != null) {
+                    for (VisADGeometryArray arr : sBasicLines) {
+                      if (arr == null)
+                        continue;
+                      shadow_api.addToGroup(group, arr, styledMode,
+                          constant_alpha, constant_color);
+                    }
+                    sBasicLines = null;
+                    array_s[4] = null;
+                  }
+
+                  if (doLabels && labelLines != null) {
+                    shadow_api.addLabelsToGroup(group, array_s, labelMode,
+                        control, p_cntrl, cnt, constant_alpha, constant_color,
+                        f_array);
+                    labelLines = null;
                     array_s[2] = null;
-                  }
-                  else if ((!bvalues[1]) && array_s[1] != null)
-                  {
+
+                  } else if (!doLabels && fillLines != null) {
                     // fill in contour lines in place of labels
-                    array = array_s[1][0];
-                    shadow_api.addToGroup(group, array_s[1][0], mode,
-                                        constant_alpha, constant_color);
-                    array_s[1][0] = null;
+                    shadow_api.addToGroup(group, fillLines[0], mode,
+                        constant_alpha, constant_color);
+                    fillLines[0] = null;
+                    array_s[1] = null;
                   }
-                  // BMF
                   array_s = null;
                 }
               }
             } // end if (spatial_set != null)
             // anyContourCreated = true;
           } // end if (spatialManifoldDimension == 2)
-        } // end if (bvalues[0])
+        } // end if (bvalues[CONTOUR])
       } // end if (real.equals(Display.IsoContour) && not inherited)
     } // end for (int i=0; i<valueArrayLength; i++)
 
@@ -3952,12 +4016,12 @@ try {
   }
 
   public float[] setTex3DCoords(int length, int axis, float ratiow,
-                                float ratioh, float ratiod) {
+      float ratioh, float ratiod) {
     return null;
   }
 
   public float[] setTexStackCoords(int length, int axis, float ratiow,
-                                   float ratioh, float ratiod) {
+      float ratioh, float ratiod) {
     return null;
   }
 
@@ -3966,59 +4030,46 @@ try {
   }
 
   public boolean addToGroup(Object group, VisADGeometryArray array,
-                            GraphicsModeControl mode,
-                            float constant_alpha, float[] constant_color)
-         throws VisADException {
+      GraphicsModeControl mode, float constant_alpha, float[] constant_color)
+      throws VisADException {
     return false;
   }
 
   public void addLabelsToGroup(Object group, VisADGeometryArray[][] arrays,
-                               GraphicsModeControl mode, ContourControl control,
-                               ProjectionControl p_cntrl, int[] cnt,
-                               float constant_alpha, float[] contstant_color,
-                               float[][][] f_array)
-         throws VisADException {
+      GraphicsModeControl mode, ContourControl control,
+      ProjectionControl p_cntrl, int[] cnt, float constant_alpha,
+      float[] contstant_color, float[][][] f_array) throws VisADException {
   }
 
   public boolean addTextToGroup(Object group, VisADGeometryArray array,
-                            GraphicsModeControl mode,
-                            float constant_alpha, float[] constant_color)
-         throws VisADException {
+      GraphicsModeControl mode, float constant_alpha, float[] constant_color)
+      throws VisADException {
     return addToGroup(group, array, mode, constant_alpha, constant_color);
   }
 
   public void textureToGroup(Object group, VisADGeometryArray array,
-                            BufferedImage image, GraphicsModeControl mode,
-                            float constant_alpha, float[] constant_color,
-                            int texture_width, int texture_height)
-         throws VisADException {
+      BufferedImage image, GraphicsModeControl mode, float constant_alpha,
+      float[] constant_color, int texture_width, int texture_height)
+      throws VisADException {
   }
 
   public void texture3DToGroup(Object group, VisADGeometryArray arrayX,
-                    VisADGeometryArray arrayY, VisADGeometryArray arrayZ,
-                    VisADGeometryArray arrayXrev,
-                    VisADGeometryArray arrayYrev,
-                    VisADGeometryArray arrayZrev,
-                    BufferedImage[] images, GraphicsModeControl mode,
-                    float constant_alpha, float[] constant_color,
-                    int texture_width, int texture_height, int texture_depth,
-                    DataRenderer renderer)
-         throws VisADException {
+      VisADGeometryArray arrayY, VisADGeometryArray arrayZ,
+      VisADGeometryArray arrayXrev, VisADGeometryArray arrayYrev,
+      VisADGeometryArray arrayZrev, BufferedImage[] images,
+      GraphicsModeControl mode, float constant_alpha, float[] constant_color,
+      int texture_width, int texture_height, int texture_depth,
+      DataRenderer renderer) throws VisADException {
   }
 
   public void textureStackToGroup(Object group, VisADGeometryArray arrayX,
-                    VisADGeometryArray arrayY, VisADGeometryArray arrayZ,
-                    VisADGeometryArray arrayXrev,
-                    VisADGeometryArray arrayYrev,
-                    VisADGeometryArray arrayZrev,
-                    BufferedImage[] imagesX,
-                    BufferedImage[] imagesY,
-                    BufferedImage[] imagesZ,
-                    GraphicsModeControl mode,
-                    float constant_alpha, float[] constant_color,
-                    int texture_width, int texture_height,
-                    int texture_depth, DataRenderer renderer)
-         throws VisADException {
+      VisADGeometryArray arrayY, VisADGeometryArray arrayZ,
+      VisADGeometryArray arrayXrev, VisADGeometryArray arrayYrev,
+      VisADGeometryArray arrayZrev, BufferedImage[] imagesX,
+      BufferedImage[] imagesY, BufferedImage[] imagesZ,
+      GraphicsModeControl mode, float constant_alpha, float[] constant_color,
+      int texture_width, int texture_height, int texture_depth,
+      DataRenderer renderer) throws VisADException {
   }
 
   public Object makeSwitch() {
@@ -4029,28 +4080,25 @@ try {
     return null;
   }
 
-  public void addToGroup(Object group, Object branch)
-         throws VisADException {
+  public void addToGroup(Object group, Object branch) throws VisADException {
   }
 
-  public void addToSwitch(Object swit, Object branch)
-         throws VisADException {
+  public void addToSwitch(Object swit, Object branch) throws VisADException {
   }
 
   public void addSwitch(Object group, Object swit, Control control,
-                        Set domain_set, DataRenderer renderer)
-         throws VisADException {
+      Set domain_set, DataRenderer renderer) throws VisADException {
   }
 
   public boolean recurseRange(Object group, Data data, float[] value_array,
-                             float[] default_values, DataRenderer renderer)
-         throws VisADException, RemoteException {
+      float[] default_values, DataRenderer renderer) throws VisADException,
+      RemoteException {
     return false;
   }
 
   public boolean recurseComponent(int i, Object group, Data data,
-             float[] value_array, float[] default_values, DataRenderer renderer)
-         throws VisADException, RemoteException {
+      float[] value_array, float[] default_values, DataRenderer renderer)
+      throws VisADException, RemoteException {
     return false;
   }
 
