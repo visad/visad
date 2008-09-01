@@ -3836,6 +3836,9 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
                   lowhibase[0], lowhibase[1], lowhibase[2], display_values[i],
                   color_values, swap, doStyle[0], fill, smap, scale,
                   label_size, f_array);
+              // even though no contours were created, we at least tried
+              // so have to return true.
+              if (array_s == null) return anyContourCreated;
 
               VisADGeometryArray[] uBasicLines = array_s[0];
               VisADGeometryArray[] fillLines = array_s[1];

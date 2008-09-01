@@ -2211,6 +2211,7 @@ public class Gridded3DSet extends GriddedSet {
     Contour2D.ContourOutput contour = Contour2D.contour(g, nr, nc, intervals,
         lowlimit, highlimit, base, dash, color_values, swap, fill, grd_normals,
         interval_colors, scale_ratio, label_size, labelColor, this);
+    if (contour == null) return null;
 
     int cnt = contour.fillXCoords.length;
     float[][] grid2 = new float[3][cnt];
