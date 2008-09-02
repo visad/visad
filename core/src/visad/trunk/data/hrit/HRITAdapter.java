@@ -58,15 +58,25 @@ public class HRITAdapter {
   private static final int HEADER_TYPE_IMAGE_STRUCTURE = 1;
   private static final int HEADER_TYPE_IMAGE_NAVIGATION = 2;
   private static final int PRIMARY_HEADER_LENGTH = 16;
+  private int magFactor = 1;
 
   /** Create a VisAD FlatField from local HRIT file(s).
     * @param filenames names of local files.
     * @exception IOException if there was a problem reading the file(s).
     * @exception VisADException if an unexpected problem occurs.
     */
-  public HRITAdapter(String [] filenames)
+  public HRITAdapter(String [] filenames, int magFactor)
 	throws IOException, VisADException
   {
+	  // set new mag factor if necessary
+	  if ((magFactor == 1) ||
+	      (magFactor == 2) ||
+	      (magFactor == 4) ||
+	      (magFactor == 8) ||
+	      (magFactor == 16)) {
+		  this.magFactor = magFactor;
+	  }
+	  
 	  // Initial sanity checks on input file names
 	  
 	  // null parameter
@@ -232,9 +242,9 @@ public class HRITAdapter {
 	  //  domain set of the FlatField to map the Y axis accordingly
 
 	  Linear2DSet domainSet = new Linear2DSet(imageDomain,
-	                                0, (imageSegmentElements[0] - 1), imageSegmentElements[0],
+	                                0, (imageSegmentElements[0] - 1), imageSegmentElements[0] / magFactor,
 	                                ((imageSegmentLines[0] * filenames.length) - 1), 
-	                                0, (imageSegmentLines[0] * filenames.length));
+	                                0, (imageSegmentLines[0] * filenames.length) / magFactor);
 	  // the range of the FunctionType is the band(s)
 	  int numBands = 1;
 	  RealType[] bands = new RealType[numBands];
@@ -263,7 +273,7 @@ public class HRITAdapter {
 		  tenBitInputArray = new byte[(int) f.length() - lengthAllHeaders[i] + 2];
 		  tenBitOutputArray = new short[imageSegmentLines[i] * imageSegmentElements[i]];
 		  
-		  double[][] samples = new double[numBands][imageSegmentElements[i] * imageSegmentLines[i]];
+		  double[][] samples = new double[numBands][imageSegmentElements[i]/magFactor * imageSegmentLines[i]/magFactor];
 		  byte[] sampleTwoByte = new byte[2];
 		  byte[] sampleOneByte = new byte[1];
 		  
@@ -293,12 +303,13 @@ public class HRITAdapter {
 				// System.out.println("10 bit to 16 bit conversion successful!");
 					  int idx = 0;
 					  for (int b = 0; b < numBands; b++) {
-						  for (int l = imageSegmentLines[i] - 1; l >= 0; l--) {
-							  for (int j = imageSegmentElements[i]-1; j >= 0; j--) {
-								  samples[b][j + (imageSegmentElements[i] * l) ] = 
+						  for (int l = imageSegmentLines[i]/magFactor - 1; l >= 0; l--) {
+							  for (int j = imageSegmentElements[i]/magFactor - 1; j >= 0; j--) {
+								  samples[b][j + ((imageSegmentElements[i]/magFactor) * l) ] = 
 									  cmsg.calibrateFromRaw((float) (tenBitOutputArray[idx]), 1, CalibratorMsg.CAL_BRIT);
-								  idx++;
+								  idx += magFactor;
 							  }
+							  idx += imageSegmentElements[i] * (magFactor - 1);
 						  }
 					  }
 				}
