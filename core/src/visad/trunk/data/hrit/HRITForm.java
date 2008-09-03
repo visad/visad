@@ -118,7 +118,7 @@ public class HRITForm extends Form implements FormFileInformer {
     try {
       String [] fileNames = new String[1];
       fileNames[0] = path;
-      ha = new HRITAdapter(fileNames);
+      ha = new HRITAdapter(fileNames,1);
       return ha.getData();
     } catch (IOException e) {
       throw new VisADException("IOException: " + e.getMessage());
@@ -137,7 +137,7 @@ public class HRITForm extends Form implements FormFileInformer {
     // HRITAdapter constructor decides if argument is a file or a URL
 	String [] urls = new String[1];
 	urls[0] = url.toString();
-    ha = new HRITAdapter(urls);
+    ha = new HRITAdapter(urls,1);
     return ha.getData();
   }
 
