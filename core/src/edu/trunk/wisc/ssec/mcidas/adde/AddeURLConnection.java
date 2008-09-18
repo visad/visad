@@ -39,6 +39,7 @@ import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.util.StringTokenizer;
 import java.util.zip.GZIPInputStream;
+import edu.wisc.ssec.mcidas.McIDASUtil;
 import HTTPClient.UncompressInputStream;
 
 /**
@@ -1607,7 +1608,7 @@ public class AddeURLConnection extends URLConnection
      *   wmo= &lt;val1 .. valn&gt;   WMO product headers to match (don't 
      *                         use with apro keyword
      *   wstn=&lt;val1 .. valn&gt;   WMO stations to match
-     *   day=&lt;start end&gt;       range of days to search
+     *   day=&lt;start end&gt;       range of days to search (def = current)
      *   dtime=&lt;numhours&gt;      maximum number of hours to search back (def=96)
      *   match=&lt;match strings&gt; list of character match strings to find from text
      *   num=&lt;num&gt;             number of matches to find (def=1)
@@ -1631,6 +1632,7 @@ public class AddeURLConnection extends URLConnection
         String numString = "NUM=1";
         String dTimeString = "DTIME=96.0000";
         String traceString = "TRACE=0";
+        String dayString = "DAY="+McIDASUtil.mcSecsToDayTime(System.currentTimeMillis()/1000l)[0];
         // Mandatory strings
         String groupString = "RTWXTEXT";
 
@@ -1660,8 +1662,7 @@ public class AddeURLConnection extends URLConnection
             else
             if (lctestString.startsWith("day"))       // day keyword
             {
-                buf.append(" ");
-                buf.append(testString);
+                dayString = testString;
             }
             else
             if (lctestString.startsWith("mat"))        // match keyword
@@ -1710,6 +1711,8 @@ public class AddeURLConnection extends URLConnection
             }
         } 
 
+        buf.append(" ");
+        buf.append(dayString);
         buf.append(" ");
         buf.append(dTimeString);
         buf.append(" ");
