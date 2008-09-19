@@ -299,6 +299,7 @@ public class AddeTextReader {
           String line = new String(text, i*80, 80);
           linesOfText.add(line);
           wxText.append(line);
+          wxText.append("\n");
         }
         wtp.setText(wxText.toString());
         wxTextProds.add(wtp);
