@@ -146,6 +146,7 @@ public class AddeTextReader {
   private URLConnection urlc;           
   private DataInputStream dis;
   private final int HEARTBEAT = 11223344;
+  private List<WxTextProduct> wxTextProds = new ArrayList<WxTextProduct>();
     
   /**
    * Creates an AddeTextReader object that allows reading an ADDE
@@ -275,10 +276,13 @@ public class AddeTextReader {
       // Now we go read the data
       if (debug) System.out.println("numBytes for text = "+numBytes);
 
+      wxTextProds = new ArrayList<WxTextProduct>();
+
       while (numBytes != 0) {
         // read in the header
         byte[] header = new byte[64];
         dis.readFully(header,0,64);
+        WxTextProduct wtp = new WxTextProduct(header);
         String head = new String(header);
         // note this is not true text so prints as garbage
         if (debug) System.out.println(decodeWxTextHeader(header));
@@ -289,11 +293,15 @@ public class AddeTextReader {
         dis.readFully(text,0,numBytes-64);
         int nLines = text.length/80;
         if (debug) System.out.println("nLines = " + nLines);
+        StringBuilder wxText = new StringBuilder();
         for (int i = 0; i < nLines; i++)
         {
           String line = new String(text, i*80, 80);
           linesOfText.add(line);
+          wxText.append(line);
         }
+        wtp.setText(wxText.toString());
+        wxTextProds.add(wtp);
         // read in next length, but check for heartbeat
         while ((numBytes = dis.readInt()) == 4) {
             int check = dis.readInt();
@@ -302,6 +310,7 @@ public class AddeTextReader {
                break;
            }
         }
+
       }
 
     } catch (Exception iox) {
@@ -415,6 +424,13 @@ public class AddeTextReader {
     return v;
   }
 
+  public List<WxTextProduct> getWxTextProducts() {
+    List<WxTextProduct> retList = new ArrayList<WxTextProduct>();
+    retList.addAll(wxTextProds);
+    return retList;
+  }
+      
+
   /** test by running 'java edu.wisc.ssec.mcidas.adde.AddeTextReader' */
   public static void main (String[] args)
       throws Exception
@@ -478,4 +494,5 @@ public class AddeTextReader {
       buf.append(McIDASUtil.intBitsToString(values[8]));
       return buf.toString();
   }
+
 }
