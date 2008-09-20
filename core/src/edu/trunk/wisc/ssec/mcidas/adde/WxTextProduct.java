@@ -1,79 +1,222 @@
+//
+// WxTextProduct.java
+//
+
+/*
+VisAD system for interactive analysis and visualization of numerical
+data.  Copyright (C) 1996 - 2008 Bill Hibbard, Curtis Rueden, Tom
+Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
+Tommy Jasmin.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Library General Public
+License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Library General Public License for more details.
+
+You should have received a copy of the GNU Library General Public
+License along with this library; if not, write to the Free
+Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+MA 02111-1307, USA
+*/
+
 package edu.wisc.ssec.mcidas.adde;
 
+
 import edu.wisc.ssec.mcidas.McIDASUtil;
+
 import java.util.Date;
 
+
+/**
+ * Class to hold a weather text product returned from an ADDE server
+ */
 public class WxTextProduct {
-       String source = "";
-       int numBytes = 0;
-       int location = 0;
-       int day = 0;
-       int time = 0;
-       String wmoId = "";
-       String wmoStn = "";
-       String apro = "";
-       String astn = "";
-       String text = "";
-       Date date = new Date();
 
-       public WxTextProduct(byte[] header) {
-           int[] values = McIDASUtil.bytesToIntegerArray(header,0,13);
-           source = McIDASUtil.intBitsToString(values[0]);
-           numBytes = values[1];
-           location = values[2];
-           day = values[10];
-           time = values[3];
-           String wmoBase = McIDASUtil.intBitsToString(values[4]);
-           int wmoNum = values[5];
-           wmoId = wmoBase + ((wmoNum < 10) ? "0" : "") + wmoNum;
-           wmoStn = McIDASUtil.intBitsToString(values[6]);
-           apro = McIDASUtil.intBitsToString(values[7]);
-           astn = McIDASUtil.intBitsToString(values[8]);
-           date = new Date(McIDASUtil.mcDayTimeToSecs(day,time)*1000);
-        }
+  /** soure of the data */
+  private String source = "";
 
-        public void addText(String newText) {
-           text = text + newText;
-        }
+  /** number of bytes */
+  private int numBytes = 0;
 
-        public void setText(String newText) {
-           text = newText;
-        }
+  /** location in the file */
+  private int location = 0;
 
-        public String getText() {
-           return text;
-        }
+  /** day of report */
+  private int day = 0;
 
-        public String getSource() {
-           return source;
-        }
+  /** time of report */
+  private int time = 0;
 
-        public int getDay() {
-           return day;
-        }
+  /** WMO id*/
+  private String wmo = "";
 
-        public int getTime() {
-           return time;
-        }
+  /** WMO station */
+  private String wstn = "";
 
-        public String getWmo() {
-           return wmoId;
-        }
+  /** AFOS product id */
+  private String apro = "";
 
-        public String getWstn() {
-           return wmoStn;
-        }
+  /** AFOS station */
+  private String astn = "";
 
-        public String getApro() {
-           return apro;
-        }
+  /** product text */
+  private String text = "";
 
-        public String getAstn() {
-           return astn;
-        }
+  /** date of bulleting */
+  private Date date = new Date();
 
-        public Date getDate() {
-           return date;
-        }
+  /**
+   * Create a new WxTextProduct from the header info.
+   *
+   * @param header   the ADDE header
+   */
+  public WxTextProduct(byte[] header) {
+    int[] values = McIDASUtil.bytesToIntegerArray(header, 0, 13);
+    source = McIDASUtil.intBitsToString(values[0]);
+    numBytes = values[1];
+    location = values[2];
+    day = values[10];
+    time = values[3];
+    String wmoBase = McIDASUtil.intBitsToString(values[4]);
+    int wmoNum = values[5];
+    wmo = wmoBase + ((wmoNum < 10)
+                       ? "0"
+                       : "") + wmoNum;
+    wstn = McIDASUtil.intBitsToString(values[6]);
+    apro = McIDASUtil.intBitsToString(values[7]);
+    astn = McIDASUtil.intBitsToString(values[8]);
+    date = new Date(McIDASUtil.mcDayTimeToSecs(day, time) * 1000);
+  }
 
-    }
+  /**
+   *  Adde text to the existing text
+   *
+   * @param newText 
+   */
+  public void addText(String newText) {
+    text = text + newText;
+  }
+
+  /**
+   * Set the text of the bulleting
+   *
+   * @param newText  the text
+   */
+  public void setText(String newText) {
+    text = newText;
+  }
+
+  /**
+   * Get the product text
+   *
+   * @return the product text
+   */
+  public String getText() {
+    return text;
+  }
+
+  /**
+   * Get the source of the product
+   *
+   * @return the source of the product
+   */
+  public String getSource() {
+    return source;
+  }
+
+  /**
+   * Get the day of the product
+   *
+   * @return the day of the product
+   */
+  public int getDay() {
+    return day;
+  }
+
+  /**
+   * Get the time of the product
+   *
+   * @return the time of the product
+   */
+  public int getTime() {
+    return time;
+  }
+
+  /**
+   * Get the wmo id of the product
+   *
+   * @return the wmo id of the product
+   */
+  public String getWmo() {
+    return wmo;
+  }
+
+  /**
+   * Get the wmo station
+   *
+   * @return the wmo station
+   */
+  public String getWstn() {
+    return wstn;
+  }
+
+  /**
+   * Get the AFOS product id
+   *
+   * @return the AFOS product id
+   */
+  public String getApro() {
+    return apro;
+  }
+
+  /**
+   * Get the AFOS station
+   *
+   * @return the AFOS station
+   */
+  public String getAstn() {
+    return astn;
+  }
+
+  /**
+   * Get the date of the product
+   *
+   * @return the date of the product
+   */
+  public Date getDate() {
+    return date;
+  }
+
+  /**
+   * Get the string representation of this product
+   */
+  public String toString() {
+    StringBuffer buf = new StringBuffer();
+    buf.append("SOU    nb  location   day    time  WMO     WSTN APRO ASTN\n");
+    buf.append("---  ----  -------- ------- ------ ------- ---- ---- ----\n"); 
+    buf.append(source);
+    buf.append(numBytes);
+    buf.append(" ");
+    buf.append(location);
+    buf.append(" ");
+    buf.append(day);
+    buf.append(" ");
+    buf.append(time);
+    buf.append(" ");
+    buf.append(wmo);
+    buf.append("  ");
+    buf.append(wstn);
+    buf.append(" ");
+    buf.append(apro);
+    buf.append(" ");
+    buf.append(astn);
+    return buf.toString();
+  }
+
+}
+

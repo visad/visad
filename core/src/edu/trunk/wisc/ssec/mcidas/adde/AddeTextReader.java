@@ -285,7 +285,8 @@ public class AddeTextReader {
         WxTextProduct wtp = new WxTextProduct(header);
         String head = new String(header);
         // note this is not true text so prints as garbage
-        if (debug) System.out.println(decodeWxTextHeader(header));
+        //if (debug) System.out.println(decodeWxTextHeader(header));
+        if (debug) System.out.println(wtp);
 
 
         // read in the text in 80 byte chunks
