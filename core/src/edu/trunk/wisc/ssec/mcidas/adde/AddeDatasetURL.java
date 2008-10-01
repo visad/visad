@@ -160,5 +160,24 @@ public class AddeDatasetURL extends AddeURL {
     this.descriptor = desc;
   }
 
+  /**
+   * Parse the query string and set the values accordingly, subclasses
+   * should extend to parse their particular keywords
+   * @param query query string
+   */
+  protected void parseQuery(String query) {
+    super.parseQuery(query);
+    String test = getValue(query, KEY_GROUP);
+    if (test != null) {
+      setGroup(test);
+    }
+    // should be able to do this, but old URLS have desc
+    //test = getValue(query, KEY_DESCRIPTOR);
+    test = getValue(query, "DESC");
+    if (test != null) {
+      setDescriptor(test);
+    }
+  }
+
 }
 

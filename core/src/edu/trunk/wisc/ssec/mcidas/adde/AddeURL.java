@@ -273,6 +273,65 @@ public class AddeURL implements Cloneable {
   }
 
   /**
+   * Parse the query string and set the values accordingly, subclasses
+   * should extend to parse their particular keywords
+   * @param query query string
+   */
+  protected void parseQuery(String query) {
+    String test = getValue(query, KEY_PORT);
+    if (test != null) {
+      setPort(Integer.parseInt(test));
+    }
+    test = getValue(query, KEY_COMPRESS);
+    if (test != null) {
+      setCompressionFromString(test);
+    }
+    test = getValue(query, KEY_USER);
+    if (test != null) {
+      setUser(test);
+    }
+    test = getValue(query, KEY_PROJ);
+    if (test != null) {
+      setProject(Integer.parseInt(test));
+    }
+    test = getValue(query, KEY_VERSION);
+    if (test != null) {
+      setVersion(test);
+    }
+    test = getValue(query, KEY_DEBUG);
+    if (test != null) {
+      setDebug(test.equals("true"));
+    }
+    test = getValue(query, KEY_TRACE);
+    if (test != null) {
+      setCompression(Integer.parseInt(test));
+    }
+  }
+
+  /**
+   * Get the value for a particular key.
+   * @param query  the query string
+   * @param key    the key to search
+   * @return the  value or null if it doesn't exist
+   */
+  public String getValue(String query, String key) {
+    String retVal = null;
+    int keyIndex = query.indexOf(key);
+    if (keyIndex < 0) { // try lowercase version;
+      keyIndex = query.indexOf(key.toLowerCase());
+    }
+    if (keyIndex >= 0) {
+      keyIndex = keyIndex + key.length() + 1; // key=
+      int ampIndex = query.indexOf("&", keyIndex);
+      retVal = (ampIndex >= 0)
+               ? query.substring(keyIndex, ampIndex) // to the amp
+               : query.substring(keyIndex); // to the end
+    }
+    return retVal;
+  }
+
+
+  /**
    * A utility method to make a name=value part of the adde request string
    *
    * @param buf The buffer to append to
@@ -505,6 +564,23 @@ public class AddeURL implements Cloneable {
   }
 
   /**
+   * Set the compression type from a string
+   *
+   * @param type  the string type
+   */
+  private void setCompressionFromString(String type) {
+    if (type.equals("gzip") || type.equals("112")) {
+      setCompression(112);
+    }
+    else if (type.equals("compress") || type.equals("503")) {
+      setCompression(503);
+    }
+    else if (type.equals("none") || type.equals("500")) {
+      setCompression(500);
+    }
+  }
+
+  /**
    * Clones this instance.
    *
    * <p>This implementation never throws {@link CloneNotSupportException}.</p>
@@ -525,4 +601,3 @@ public class AddeURL implements Cloneable {
   }
 
 }
-
