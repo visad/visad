@@ -321,11 +321,11 @@ public class AddeURL implements Cloneable {
       keyIndex = query.indexOf(key.toLowerCase());
     }
     if (keyIndex >= 0) {
-      keyIndex = keyIndex + key.length() + 1; // key=
+      int equalIndex = query.indexOf("=", keyIndex); 
       int ampIndex = query.indexOf("&", keyIndex);
       retVal = (ampIndex >= 0)
-               ? query.substring(keyIndex, ampIndex) // to the amp
-               : query.substring(keyIndex); // to the end
+               ? query.substring(equalIndex+1, ampIndex) // to the amp
+               : query.substring(equalIndex+1); // to the end
     }
     return retVal;
   }
