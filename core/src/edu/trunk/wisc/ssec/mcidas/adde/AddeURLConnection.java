@@ -693,6 +693,7 @@ public class AddeURLConnection extends URLConnection
 
     if (ob.length > REQUEST_SIZE)
     {
+      if (debug)  System.out.println("numBinaryBytes= " + numBinaryBytes);
       dos.writeInt(ob.length + numBinaryBytes); // number of additional bytes
       dos.writeInt(ob.length);                  // number of bytes in request
       for (int i=0; i < REQUEST_SIZE - 4; i++) {  // - 4 accounts for prev line
