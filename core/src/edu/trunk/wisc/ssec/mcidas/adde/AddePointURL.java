@@ -300,7 +300,6 @@ public class AddePointURL extends AddeDatasetURL {
           num = Integer.parseInt(test);
         }
         catch (Exception e) {
-          e.printStackTrace();
         }
       }
       setMaxNumber(num);
