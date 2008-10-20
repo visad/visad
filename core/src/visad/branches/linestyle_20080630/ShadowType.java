@@ -3839,17 +3839,18 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
               VisADGeometryArray[] expLines = null;
               VisADGeometryArray[] sBasicLines = null;
 
-              // set'em if you got em
-              switch (array_s.length) {
-              case 5:
-                sBasicLines = array_s[4];
-              case 4:
-                expLines = array_s[3];
-              case 3:
-                labelLines = array_s[2];
-              }
-
               if (array_s != null) {
+
+                // set'em if you got em
+                switch (array_s.length) {
+                case 5:
+                  sBasicLines = array_s[4];
+                case 4:
+                  expLines = array_s[3];
+                case 3:
+                  labelLines = array_s[2];
+                }
+
 
                 // FIXME: Is it appropriate to ignore exceptions for
                 // adjustments?
@@ -3910,7 +3911,8 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
                   }
                 }
 
-                if (array_s.length > 0 && uBasicLines.length > 0) {
+                //if (array_s.length > 0 && uBasicLines.length > 0) {
+                if (array_s.length > 0) {
 
                   // label mode, forcing labels to have solid J3D line style
                   GraphicsModeControl labelMode 
@@ -3957,7 +3959,7 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
                   // add styled lines
                   if (sBasicLines != null) {
                     for (VisADGeometryArray arr : sBasicLines) {
-                      if (arr == null)
+                      if (arr == null) 
                         continue;
                       shadow_api.addToGroup(group, arr, styledMode,
                           constant_alpha, constant_color);
