@@ -3846,17 +3846,17 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
               VisADGeometryArray[] expLines = null;
               VisADGeometryArray[] sBasicLines = null;
 
-              // set'em if you got em
-              switch (array_s.length) {
-              case 5:
-                sBasicLines = array_s[4];
-              case 4:
-                expLines = array_s[3];
-              case 3:
-                labelLines = array_s[2];
-              }
-
               if (array_s != null) {
+                // set'em if you got em
+                switch (array_s.length) {
+                case 5:
+                  sBasicLines = array_s[4];
+                case 4:
+                  expLines = array_s[3];
+                case 3:
+                  labelLines = array_s[2];
+                }
+
 
                 // FIXME: Is it appropriate to ignore exceptions for
                 // adjustments?
@@ -3917,7 +3917,8 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
                   }
                 }
 
-                if (array_s.length > 0 && uBasicLines.length > 0) {
+                //if (array_s.length > 0 && uBasicLines.length > 0) {
+                if (array_s.length > 0) {
 
                   // label mode, forcing labels to have solid J3D line style
                   GraphicsModeControl labelMode 
