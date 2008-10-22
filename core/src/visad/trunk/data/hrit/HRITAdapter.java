@@ -31,17 +31,16 @@ import java.io.FileInputStream;
 import java.io.IOException;
 
 import edu.wisc.ssec.mcidas.AREAnav;
+import edu.wisc.ssec.mcidas.Calibrator;
 import edu.wisc.ssec.mcidas.CalibratorException;
 import edu.wisc.ssec.mcidas.CalibratorMsg;
 
 import visad.CoordinateSystem;
 import visad.FlatField;
 import visad.FunctionType;
-import visad.Integer1DSet;
 import visad.Linear2DSet;
 import visad.RealTupleType;
 import visad.RealType;
-import visad.Set;
 import visad.Unit;
 import visad.VisADException;
 
@@ -58,23 +57,47 @@ public class HRITAdapter {
   private static final int HEADER_TYPE_IMAGE_STRUCTURE = 1;
   private static final int HEADER_TYPE_IMAGE_NAVIGATION = 2;
   private static final int PRIMARY_HEADER_LENGTH = 16;
-  private int magFactor = 1;
 
-  /** Create a VisAD FlatField from local HRIT file(s).
-    * @param filenames names of local files.
-    * @exception IOException if there was a problem reading the file(s).
-    * @exception VisADException if an unexpected problem occurs.
-    */
-  public HRITAdapter(String [] filenames, int magFactor)
+  /**
+   * Create a VisAD FlatField from local HRIT file(s).  This constructor 
+   * is included for backward compatibility but should not be used and 
+   * should be phased out in future revisions since it does not make a 
+   * valid band number determination.
+   * 
+   * @param filenames array of file names
+   * @param magFactor magnification factor
+   * @exception IOException if there was a problem reading the file(s).
+   * @exception VisADException if an unexpected problem occurs.
+   */
+  
+  public HRITAdapter(String [] filenames, int magFactor) 
+  	throws IOException, VisADException
+  {
+	  this (
+		 filenames, magFactor, Calibrator.CAL_BRIT, 1
+	  );
+  }
+
+  /** 
+   * Create a VisAD FlatField from local HRIT file(s).
+   * @param filenames names of local files.
+   * @param magFactor magnification factor
+   * @param calType calibration type
+   * @param bandNum band number
+   * @exception IOException if there was a problem reading the file(s).
+   * @exception VisADException if an unexpected problem occurs.
+   */
+  
+  public HRITAdapter(String [] filenames, int magFactor, int calType, int bandNum)
 	throws IOException, VisADException
   {
 	  // set new mag factor if necessary
-	  if ((magFactor == 1) ||
-	      (magFactor == 2) ||
-	      (magFactor == 4) ||
-	      (magFactor == 8) ||
-	      (magFactor == 16)) {
-		  this.magFactor = magFactor;
+	  if ((magFactor != 1) &&
+	      (magFactor != 2) &&
+	      (magFactor != 4) &&
+	      (magFactor != 8) &&
+	      (magFactor != 16)) {
+		  throw new VisADException("Invalid magnification factor for HRIT: " + magFactor);
 	  }
 	  
 	  // Initial sanity checks on input file names
@@ -248,12 +271,9 @@ public class HRITAdapter {
 	  // the range of the FunctionType is the band(s)
 	  int numBands = 1;
 	  RealType[] bands = new RealType[numBands];
-	  bands[0] = RealType.getRealType("Band" + 1);
-	  RealTupleType radiance = new RealTupleType(bands);
-	  FunctionType imageType = new FunctionType(imageDomain, radiance);
-	  Set[] rangeSets = new Set[numBands];
-	  rangeSets[0] = new Integer1DSet(bands[0], 255);
-	  Unit calUnit = null;
+	  bands[0] = RealType.getRealType("Band" + bandNum);
+	  RealTupleType rtt = new RealTupleType(bands);
+	  FunctionType imageType = new FunctionType(imageDomain, rtt);
 	  Unit[] rangeUnits = null;
 	  field = new FlatField (
 		imageType,
@@ -306,7 +326,7 @@ public class HRITAdapter {
 						  for (int l = imageSegmentLines[i]/magFactor - 1; l >= 0; l--) {
 							  for (int j = imageSegmentElements[i]/magFactor - 1; j >= 0; j--) {
 								  samples[b][j + ((imageSegmentElements[i]/magFactor) * l) ] = 
-									  cmsg.calibrateFromRaw((float) (tenBitOutputArray[idx]), 1, CalibratorMsg.CAL_BRIT);
+									  cmsg.calibrateFromRaw((float) (tenBitOutputArray[idx]), bandNum, calType);
 								  idx += magFactor;
 							  }
 							  idx += imageSegmentElements[i] * (magFactor - 1);
