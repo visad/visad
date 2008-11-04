@@ -3304,6 +3304,24 @@ public class Contour2D {
       return stripSet.isLabeled(lvl);
     }
 
+    float[][] getLineCoordinates() {
+      if (stripSet.contourDifficulty == Contour2D.HARD) {
+        return new float[][] { linesXCoords, linesYCoords, linesZCoords };
+      }
+      else {
+        return null;
+      }
+    }
+
+    byte[][] getLineColors() {
+      if (stripSet.contourDifficulty == Contour2D.HARD) {
+        return linesColors;
+      }
+      else {
+        return null;
+      }
+    }
+
     List<float[][][]> getLineStripCoordinates(int lvl) {
       return stripSet.getLineStripCoordinates(lvl);
     }

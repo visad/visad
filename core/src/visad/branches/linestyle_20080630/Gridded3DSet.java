@@ -2212,6 +2212,7 @@ public class Gridded3DSet extends GriddedSet {
         lowlimit, highlimit, base, dash, color_values, swap, fill, grd_normals,
         interval_colors, scale_ratio, label_size, labelColor, this);
 
+
     int cnt = contour.fillXCoords.length;
     float[][] grid2 = new float[3][cnt];
     System.arraycopy(contour.fillXCoords, 0, grid2[0], 0, cnt);
@@ -2349,8 +2350,18 @@ public class Gridded3DSet extends GriddedSet {
 
     }
 
-    return new VisADGeometryArray[][] { basicLines[0], fillLines, labelLines,
-        expLines, basicLines[1] };
+    float[][] lineCoords = contour.getLineCoordinates();
+    byte[][] lineColors = contour.getLineColors();
+    if (lineCoords != null && lineColors != null) {
+      VisADGeometryArray other = new VisADLineArray();
+      setGeometryArray(other, contour.getLineCoordinates(), 4, contour.getLineColors());
+      return new VisADGeometryArray[][] { new VisADGeometryArray[] {other}, fillLines, labelLines,
+          expLines, basicLines[1] };
+    }
+    else {
+      return new VisADGeometryArray[][] { basicLines[0], fillLines, labelLines,
+          expLines, basicLines[1] };
+    }
   }
 
   public float[][] getNormals(float[][] grid) throws VisADException {
