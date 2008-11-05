@@ -2351,8 +2351,18 @@ public class Gridded3DSet extends GriddedSet {
 
     }
 
-    return new VisADGeometryArray[][] { basicLines[0], fillLines, labelLines,
-        expLines, basicLines[1] };
+    float[][] lineCoords = contour.getLineCoordinates();
+    byte[][] lineColors = contour.getLineColors();
+    if (lineCoords != null && lineColors != null) {
+      VisADGeometryArray other = new VisADLineArray();
+      setGeometryArray(other, contour.getLineCoordinates(), 4, contour.getLineColors());
+      return new VisADGeometryArray[][] { new VisADGeometryArray[] {other}, fillLines, labelLines,
+          expLines, basicLines[1] };
+    }
+    else {
+      return new VisADGeometryArray[][] { basicLines[0], fillLines, labelLines,
+          expLines, basicLines[1] };
+    }
   }
 
   public float[][] getNormals(float[][] grid) throws VisADException {
