@@ -50,14 +50,6 @@ public class DisplayRealType extends RealType {
   private boolean text;     // admitedly a kludge
   private boolean circular;
 
-  // this is tricky, since DisplayRealType is Serializable
-  // this may also be unnecessary
-  private static int Count = 0;   // count of DisplayRealType-s
-  private transient int Index;    // index of this DisplayRealType
-  // Vector of scalar names used to make sure scalar names are unique
-  // (within local VM)
-  private static Vector DisplayRealTypeVector = new Vector();
-
   /**
    * trusted constructor for intrinsic DisplayRealType's created by system
    * without range or Unit
@@ -120,11 +112,6 @@ public class DisplayRealType extends RealType {
     tupleIndex = -1;
     text = false;
     circular = false;
-    synchronized (DisplayRealTypeVector) {
-      Count++;
-      Index = Count;
-      DisplayRealTypeVector.addElement(this);
-    }
   }
 
   /**
@@ -142,11 +129,6 @@ public class DisplayRealType extends RealType {
     Single = single;
     text = true;
     circular = false;
-    synchronized (DisplayRealTypeVector) {
-      Count++;
-      Index = Count;
-      DisplayRealTypeVector.addElement(this);
-    }
   }
 
   /**
@@ -176,14 +158,6 @@ public class DisplayRealType extends RealType {
     tupleIndex = -1;
     text = false;
     circular = false;
-    synchronized (DisplayRealTypeVector) {
-      Count++;
-      Index = Count;
-      if (DisplayRealType.getDisplayRealTypeByName(getName()) != null) {
-        throw new TypeException("DisplayRealType: name already used");
-      }
-      DisplayRealTypeVector.addElement(this);
-    }
   }
 
   /**
@@ -203,46 +177,11 @@ public class DisplayRealType extends RealType {
   }
 
   private static DisplayRealType getDisplayRealTypeByName(String name) {
-    synchronized (DisplayRealTypeVector) {
-      Enumeration reals = DisplayRealTypeVector.elements();
-      while (reals.hasMoreElements()) {
-        DisplayRealType real = (DisplayRealType) reals.nextElement();
-        if (real.getName().equals(name)) {
-          return real;
-        }
-      }
+    ScalarType scalarType = getScalarTypeByName(name);
+    if (scalarType instanceof DisplayRealType) {
+      return (DisplayRealType) scalarType;
     }
     return null;
-  }
-
-  /**
-   * get the index of this in DisplayRealTypeVector;
-   * insert this into the Vector if it isn't already
-   * @return the index of this in DisplayRealTypeVector
-   */
-  public int getIndex() {
-    if (Index <= 0) {
-      synchronized (DisplayRealTypeVector) {
-        DisplayRealType real =
-          DisplayRealType.getDisplayRealTypeByName(getName());
-        if (real == null) {
-          Count++;
-          Index = Count;
-          DisplayRealTypeVector.addElement(this);
-        }
-        else {
-          Index = real.getIndex();
-        }
-      }
-    }
-    return Index;
-  }
-
-  /**
-   * @return the number of DisplayRealTypes in DisplayRealTypeVector
-   */
-  public static int getCount() {
-    return Count;
   }
 
   /**
