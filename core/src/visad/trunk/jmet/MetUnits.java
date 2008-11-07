@@ -103,9 +103,9 @@ public class MetUnits {
     else if (in.equalsIgnoreCase("kpm"))  { out = "K/m"; }
     else if (in.equalsIgnoreCase("m2ps")) { out = "m^2/s"; }
     else if (in.equalsIgnoreCase("gpkg")) { out = "g/kg"; }
-    else if (in.equalsIgnoreCase("kgm2")) { out = "kg/m^2"; }
+    else if (in.equalsIgnoreCase("kgm2")) { out = "mm"; }
     else if (in.equalsIgnoreCase("kgm3")) { out = "kg/m^3"; }
-    else if (in.equalsIgnoreCase("mmps")) { out = "(kg/m^2)/s"; }
+    else if (in.equalsIgnoreCase("mmps")) { out = "mm/s"; }
     else if (in.equalsIgnoreCase("ps"))   { out = "s-1"; }
     else if (in.equalsIgnoreCase("wpm2")) { out = "W/m^2"; }
     else if (in.equalsIgnoreCase("nm2"))  { out = "N/m^2"; }
@@ -124,7 +124,18 @@ public class MetUnits {
     else if (in.equalsIgnoreCase("mb"))  { out = "hPa"; }
     else if (in.equalsIgnoreCase("mbag"))  { out = "hPa"; }
 
+    // the following handle (rightly or wrongly) converting mass/area to length
+    else if (in.equalsIgnoreCase("kg/m**2"))  { out = "mm"; }
+    else if (in.equalsIgnoreCase("kg/m2"))  { out = "mm"; }
+    else if (in.equalsIgnoreCase("kg/m^2"))  { out = "mm"; }
+    else if (in.equalsIgnoreCase("kg m-2"))  { out = "mm"; }
+    else if (in.equalsIgnoreCase("kg.m-2"))  { out = "mm"; }
+    else if (in.equalsIgnoreCase("kg/m**2/s"))  { out = "mm/s"; }
+    else if (in.equalsIgnoreCase("kg/m2/s"))  { out = "mm/s"; }
+    else if (in.equalsIgnoreCase("kg/m^2/s"))  { out = "mm/s"; }
+    else if (in.equalsIgnoreCase("kg m-2 s-1"))  { out = "mm/s"; }
+    else if (in.equalsIgnoreCase("kg.m-2.s-1"))  { out = "mm/s"; }
+
     return out;
   }
 }
-
