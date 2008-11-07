@@ -298,7 +298,12 @@ public class VisADCanvasJ3D extends Canvas3D {
       Runnable notify = new Runnable() {
         public void run() {
           try {
-            display.notifyListeners(DisplayEvent.FRAME_DONE, 0, 0);
+            //Check if the display is null. We get this when doing off screen
+            //image capture from the IDV
+            DisplayImplJ3D tmpDisplay = display;
+            if(tmpDisplay!=null) {
+                tmpDisplay.notifyListeners(DisplayEvent.FRAME_DONE, 0, 0);
+            }
           }
           catch (VisADException e) {}
           catch (RemoteException e) {}

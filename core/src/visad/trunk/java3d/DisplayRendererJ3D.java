@@ -233,6 +233,7 @@ public abstract class DisplayRendererJ3D
           canvas.setDoubleBufferEnable(false);
           canvas.captureFlag = true;
           if (canvas.getOffscreen()) {
+            hasNotifyBeenCalled = false;
             try {
               Method renderMethod =
                 Canvas3D.class.getMethod("renderOffScreenBuffer",
@@ -258,7 +259,14 @@ public abstract class DisplayRendererJ3D
           }
           catch (RemoteException e) { }
           catch (VisADException e) { }
-          wait();
+          //Make sure the notify has not been called. There is the possbility that the above renderOffScreenBuffer call
+          //gets completed before we get to this wait, resulting in a starvation lockup here because the canvas already 
+          //notifies the display renderer and when we get to the wait nothing is going to notify this object.
+          if(!hasNotifyBeenCalled) {
+              waitingOnImageCapture = true;
+              wait();
+              waitingOnImageCapture = false;
+          } 
         }
       }
       catch(InterruptedException e) {
@@ -274,10 +282,22 @@ public abstract class DisplayRendererJ3D
     return image;
   }
 
+  /** used for doing offscreen capture to prevent a starvation lockup */
+  private boolean hasNotifyBeenCalled = false;
+
+  /** used for doing offscreen capture to prevent the extra notify */
+  private boolean waitingOnImageCapture = false;
+
   void notifyCapture() {
-    synchronized (this) {
-      notify();
-    }
+      hasNotifyBeenCalled = true;
+      if(waitingOnImageCapture) {
+         waitingOnImageCapture = false;
+         synchronized (this) {
+             notify(); 
+         }
+      } else {
+      }
+      //    }
   }
 
   public BranchGroup getRoot() {
