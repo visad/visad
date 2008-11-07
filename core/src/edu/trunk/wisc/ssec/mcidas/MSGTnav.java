@@ -58,6 +58,7 @@ public final class MSGTnav extends AREAnav
 
     boolean first = true;
     int count = 0;
+    double sublon = 0.0;
 
     /**
      * Set up for the real math work.  Must pass in the int array
@@ -78,6 +79,8 @@ public final class MSGTnav extends AREAnav
         COFF = iparms[2];
         LFAC = iparms[3];
         CFAC = iparms[4];
+        sublon = iparms[6]/10000.;
+        if (isEastPositive) sublon = -sublon; 
 
         h = NOMORB - EARTH_RADIUS;
         rs = EARTH_RADIUS + h;
@@ -152,6 +155,7 @@ public final class MSGTnav extends AREAnav
             }  
 
             //  put longitude into East Positive (form)
+            xlon = xlon + sublon;
             if (!isEastPositive) xlon = -xlon;
 
             latlon[indexLat][point] = xlat;
@@ -203,6 +207,7 @@ public final class MSGTnav extends AREAnav
           xlon = isEastPositive 
                    ?  latlon[indexLon][point]
                    : -latlon[indexLon][point];
+          xlon = xlon - sublon;
 
 
           xfi = xlat*cdr;
@@ -318,6 +323,7 @@ public final class MSGTnav extends AREAnav
             }  
 
             //  put longitude into East Positive (form)
+            xlon = xlon + sublon;
             if (!isEastPositive) xlon = -xlon;
 
             latlon[indexLat][point] = (float) xlat;
@@ -369,6 +375,7 @@ public final class MSGTnav extends AREAnav
           xlon = isEastPositive 
                    ?  latlon[indexLon][point]
                    : -latlon[indexLon][point];
+          xlon = xlon - sublon;
 
 
           xfi = xlat*cdr;
