@@ -1154,18 +1154,18 @@ public class AreaFile implements java.io.Serializable {
       for (int j = 0; j < numEles; j++) {
 
         try {
+          // all 1- and 2-byte data are un-signed!
           if (dir[AD_DATAWIDTH] == 1) {
-            data[0][i][j] = (int)af.readByte();
-            if (data[0][i][j] < 0 && isBrit) data[0][i][j] += 256;
+            data[0][i][j] = ( (int)af.readByte()) & 0xff;
 
           }
           else if (dir[AD_DATAWIDTH] == 2) {
             shdata = af.readShort();
             if (flipwords) {
-              data[0][i][j] = flipShort(shdata);
+              data[0][i][j] = flipShort(shdata) & 0xffff;
             }
             else {
-              data[0][i][j] = (int)shdata;
+              data[0][i][j] = ( (int)shdata) & 0xffff;
             }
 
           }
@@ -1261,18 +1261,19 @@ public class AreaFile implements java.io.Serializable {
           else {
 
             try {
+              // all 1- and 2-byte data are un-signed!
+
               if (dir[AD_DATAWIDTH] == 1) {
-                data[k][i][j] = (int)af.readByte();
-                if (data[k][i][j] < 0 && isBrit) data[k][i][j] += 256;
+                data[k][i][j] = ( (int)af.readByte()) & 0xff;
                 position = position + 1;
               }
               else if (dir[AD_DATAWIDTH] == 2) {
                 shdata = af.readShort();
                 if (flipwords) {
-                  data[k][i][j] = flipShort(shdata);
+                  data[k][i][j] = flipShort(shdata) & 0xffff;
                 }
                 else {
-                  data[k][i][j] = (int)shdata;
+                  data[k][i][j] = ((int)shdata) & 0xffff;
                 }
                 position = position + 2;
               }
