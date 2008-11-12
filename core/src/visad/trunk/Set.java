@@ -401,7 +401,8 @@ public abstract class Set extends DataImpl implements SetIface {
         if (values[0][i] < min) min = values[0][i];
       }
       double delt = (max - min) / length;
-      if ((min - delt) < set_val && set_val < (max + delt)) {
+      //System.out.println("min = " + min + " max = " + max + " delt = " + delt);
+      if ((min - delt) <= set_val && set_val <= (max + delt)) {
         set_indices[0] = false;
       }
     }
