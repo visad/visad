@@ -1421,7 +1421,7 @@ public class AddeURLConnection extends URLConnection
         // Mandatory strings
         String groupString = null;
         String descrString = "ALL";
-        String posString = "0";
+        String posString = "0 0";
         String traceString = "TRACE=0";
         String bandString = "BAND=ALL X";
         String auxString = "AUX=YES";
@@ -1449,7 +1449,7 @@ public class AddeURLConnection extends URLConnection
                 tempString = 
                     testString.substring(testString.indexOf("=") + 1).toLowerCase();
                 if (tempString.equals("")) {  // null string
-                  posString = "0";
+                  posString = "0 0";
                 } else {
 
                   // see if a single argument
@@ -1459,14 +1459,14 @@ public class AddeURLConnection extends URLConnection
                       posString =  "1095519264";
 
                     } else if (tempString.equals("x")) {
-                      posString = tempString;
+                      posString = "X X";
 
                     } else {
                       int posval = Integer.parseInt(stp.nextToken().trim());
-                      if (posval < 0) {  // if value < 0 insert 0 as ending
+                      if (posval <= 0) {  // if value < 0 insert 0 as ending
                         posString = tempString + " 0";
                       } else {
-                        posString = tempString;  // else default
+                        posString = tempString + " " + tempString;  // else default
                       }
                     }
 
