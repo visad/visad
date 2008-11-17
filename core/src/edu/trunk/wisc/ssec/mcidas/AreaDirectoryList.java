@@ -55,6 +55,7 @@ import java.util.Vector;
  */
 public class AreaDirectoryList
 {
+  private static boolean debug = false;
 
   // load protocol for ADDE URLs
   // See java.net.URL for explanation of URL handling
@@ -190,8 +191,7 @@ public class AreaDirectoryList
         // skip first int which is dataset area number if ADDE request
         if (isADDE) {
           int areaNumber = inputStream.readInt();
-          //System.out.println("Area number = " + areaNumber);
-          if (areaNumber == 0) break;
+          if (debug) System.out.println("Area number = " + areaNumber);
         }
     
         for (int i=0; i < AreaFile.AD_DIRSIZE; i++) {
@@ -215,12 +215,13 @@ public class AreaDirectoryList
           McIDASUtil.flip(dir,57,63);
         }
   
-  /*   Debug
+
+        if (debug) {
         for (int i = 0; i < AreaFile.AD_DIRSIZE; i++)
-        {
-          System.out.println("dir[" + i +"] = " + dir[i]);
+          {
+            System.out.println("dir[" + i +"] = " + dir[i]);
+          }
         }
-  */
     
         AreaDirectory ad = new AreaDirectory(dir);
         int[] bands = ad.getBands();
@@ -242,7 +243,7 @@ public class AreaDirectoryList
           */
           /* */
           int numCards = dir[AreaFile.AD_DIRSIZE -1];
-          //System.out.println("Number of comment cards = " + numCards);
+          if (debug) System.out.println("Number of comment cards = " + numCards);
           for (int i = 0; i < numCards; i++)
           {
             byte[] card = new byte[80];
@@ -263,7 +264,7 @@ public class AreaDirectoryList
             }
             String cd = new String(card,0,count).trim();
 
-            //System.out.println("card["+i+"] = " + cd);
+            if (debug) System.out.println("card["+i+"] = " + cd);
 
             if (cd.indexOf("Center latitude") > -1) {
               int m = cd.indexOf("=");
@@ -347,7 +348,7 @@ public class AreaDirectoryList
 
           /* */
           numBytes = inputStream.readInt();
-          //System.out.println("Bytes in next record = " + numBytes);
+          if (debug) System.out.println("Bytes in next record = " + numBytes);
         }
         dirs.add(ad);
       }
