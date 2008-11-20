@@ -47,27 +47,31 @@ public class MouseHelper
 
   /** DisplayRenderer for Display */
   DisplayRenderer display_renderer;
+
+  /** Display */
   DisplayImpl display;
+
   /** ProjectionControl for Display */
   private ProjectionControl proj;
 
-  private double xymul;
-
-  DataRenderer direct_renderer = null;
+  /** DataRenderer for direct manipulation */
+  protected DataRenderer direct_renderer = null;
 
   /** matrix from ProjectionControl when mousePressed1 (left) */
-  private double[] tstart;
+  protected double[] tstart;
 
   /** screen location when mousePressed1 or mousePressed3 */
-  private int start_x, start_y;
-  private double xmul, ymul;
-  private double[] xtrans = new double[3];
-  private double[] ytrans = new double[3];
+  protected int start_x, start_y;
+  protected double xmul, ymul;
+  protected double xymul;
+  //protected double[] xtrans = new double[3];
+  //protected double[] ytrans = new double[3];
 
-  /** mouse in window */
+  /** mouse in window (not used) */
   private boolean mouseEntered;
+
   /** ((InputEvent) event).getModifiers() when mouse pressed */
-  private int mouseModifiers;
+  protected int mouseModifiers;
 
   /** flag for 2-D mode */
   private boolean mode2D;
@@ -77,26 +81,28 @@ public class MouseHelper
 
   // index values for functions
   public static final int NONE = -1, ROTATE = 0, ZOOM = 1, TRANSLATE = 2,
-    CURSOR_TRANSLATE = 3, CURSOR_ZOOM = 4, CURSOR_ROTATE = 5, DIRECT = 6,
-    NFUNCTIONS = 7;
+    CURSOR_TRANSLATE = 3, CURSOR_ZOOM = 4, CURSOR_ROTATE = 5, DIRECT = 6;
+
+  /* Number of functions */
+  //protected int NFUNCTIONS = 7;
 
   // index values for mouse buttons
   public static final int LEFT = 0, CENTER = 1, RIGHT = 2;
 
   // actual mouse buttons pressed
-  boolean[] actual_button = {false, false, false};
+  protected boolean[] actual_button = {false, false, false};
 
   // mouse button pressed accounting for combos
-  int virtual_button = -1;
+  protected int virtual_button = -1;
 
   // array of enables for functions
-  boolean[] function = {false, false, false, false, false, false, false};
+  protected boolean[] function = {false, false, false, false, false, false, false};
 
   // save previous function to compute function change
-  boolean[] old_function = {false, false, false, false, false, false, false};
+  protected boolean[] old_function = {false, false, false, false, false, false, false};
 
   // enable any two mouse buttons = the third
-  boolean enable_combos = true;
+  private boolean enable_combos = true;
 
   // mapping from buttons/keys to function
   //   function_map[button][CTRL][SHIFT] where
@@ -122,11 +128,40 @@ public class MouseHelper
     // track Display's DataRenderers in case direct_renderer is removed
     display.addRendererSourceListener(this);
 
-    function =
-      new boolean[] {false, false, false, false, false, false, false};
-    enable_combos = true;
-
+    //function =
+    //  new boolean[] {false, false, false, false, false, false, false};
+    //enable_combos = true;
   }
+
+  /** 
+   * Get the MouseBehavior for this Helper
+   * @return MouseBehavior
+   */
+  public MouseBehavior getMouseBehavior() { return behavior; }
+
+  /** 
+   * Get the Display for this Helper
+   * @return Display
+   */
+  public DisplayImpl getDisplay() { return display; }
+
+  /** 
+   * Get the DisplayRenderer for this Helper
+   * @return DisplayRenderer
+   */
+  public DisplayRenderer getDisplayRenderer() { return display_renderer; }
+
+  /** 
+   * Get the ProjectionControl for this Helper
+   * @return ProjectionControl
+   */
+  public ProjectionControl getProjectionControl() { return proj; }
+
+  /** 
+   * Get whether we're in 2D mode
+   * @return true if 2D mode
+   */
+  public boolean getMode2D() { return mode2D; }
 
   /**
    * Process the given event treating it as a local event.
@@ -136,7 +171,7 @@ public class MouseHelper
     processEvent(event, VisADEvent.LOCAL_SOURCE);
   }
 
-  // WLH 17 Aug 2000
+  // WLH 17 Aug 2000  (no longer used)
   private boolean first = true;
 
   /** 
@@ -147,7 +182,7 @@ public class MouseHelper
    */
   public void processEvent(AWTEvent event, int remoteId) {
 
-    if (behavior == null) return;
+    if (getMouseBehavior() == null) return;
 
     // WLH 13 May 2003
     // if (first) {
@@ -155,33 +190,35 @@ public class MouseHelper
         ((MouseEvent) event).getID() == MouseEvent.MOUSE_PRESSED) {
       start_x = 0;
       start_y = 0;
-      VisADRay start_ray = behavior.findRay(start_x, start_y);
-      VisADRay start_ray_x = behavior.findRay(start_x + 1, start_y);
-      VisADRay start_ray_y = behavior.findRay(start_x, start_y + 1);
+      VisADRay start_ray = getMouseBehavior().findRay(start_x, start_y);
+      VisADRay start_ray_x = getMouseBehavior().findRay(start_x + 1, start_y);
+      VisADRay start_ray_y = getMouseBehavior().findRay(start_x, start_y + 1);
 
       if (start_ray != null && start_ray_x != null && start_ray_y != null) {
-        double[] tstart = proj.getMatrix();
+        double[] tstart = getProjectionControl().getMatrix();
         double[] rot = new double[3];
         double[] scale = new double[3];
         double[] trans = new double[3];
-        behavior.instance_unmake_matrix(rot, scale, trans, tstart);
-        double[] trot = behavior.make_matrix(rot[0], rot[1], rot[2],
+        getMouseBehavior().instance_unmake_matrix(rot, scale, trans, tstart);
+        double[] trot = getMouseBehavior().make_matrix(rot[0], rot[1], rot[2],
                                              scale[0], scale[1], scale[2],
                                              0.0, 0.0, 0.0);
-        double[] xmat = behavior.make_translate(
+        double[] xmat = getMouseBehavior().make_translate(
                            start_ray_x.position[0] - start_ray.position[0],
                            start_ray_x.position[1] - start_ray.position[1],
                            start_ray_x.position[2] - start_ray.position[2]);
-        double[] ymat = behavior.make_translate(
+        double[] ymat = getMouseBehavior().make_translate(
                            start_ray_y.position[0] - start_ray.position[0],
                            start_ray_y.position[1] - start_ray.position[1],
                            start_ray_y.position[2] - start_ray.position[2]);
-        double[] xmatmul = behavior.multiply_matrix(trot, xmat);
-        double[] ymatmul = behavior.multiply_matrix(trot, ymat);
-        behavior.instance_unmake_matrix(rot, scale, trans, xmatmul);
-        double xmul = trans[0];
-        behavior.instance_unmake_matrix(rot, scale, trans, ymatmul);
-        double ymul = trans[1];
+        double[] xmatmul = getMouseBehavior().multiply_matrix(trot, xmat);
+        double[] ymatmul = getMouseBehavior().multiply_matrix(trot, ymat);
+        getMouseBehavior().instance_unmake_matrix(rot, scale, trans, xmatmul);
+        //double xmul = trans[0];
+        xmul = trans[0];
+        getMouseBehavior().instance_unmake_matrix(rot, scale, trans, ymatmul);
+        //double ymul = trans[1];
+        ymul = trans[1];
         xymul = Math.sqrt(xmul * xmul + ymul * ymul);
         // System.out.println("xymul = " + xymul);
         first = false;
@@ -189,10 +226,10 @@ public class MouseHelper
     }
 
     if (!(event instanceof MouseEvent)) {
-      System.out.println("MouseHelper.processStimulus: non-" +
-                         "MouseEvent");
+      System.out.println("MouseHelper.processStimulus: non-MouseEvent");
       return;
     }
+
     MouseEvent mouse_event = (MouseEvent) event;
 
     int event_id = event.getID();
@@ -200,9 +237,9 @@ public class MouseHelper
     if (event_id == MouseEvent.MOUSE_ENTERED) {
       mouseEntered = true;
       try {
-        DisplayEvent e = new DisplayEvent(display,
+        DisplayEvent e = new DisplayEvent(getDisplay(),
           DisplayEvent.MOUSE_ENTERED, mouse_event, remoteId);
-        display.notifyListeners(e);
+        getDisplay().notifyListeners(e);
       }
       catch (VisADException e) {
       }
@@ -213,9 +250,9 @@ public class MouseHelper
     else if (event_id == MouseEvent.MOUSE_EXITED) {
       mouseEntered = false;
       try {
-        DisplayEvent e = new DisplayEvent(display,
+        DisplayEvent e = new DisplayEvent(getDisplay(),
           DisplayEvent.MOUSE_EXITED, mouse_event, remoteId);
-        display.notifyListeners(e);
+        getDisplay().notifyListeners(e);
       }
       catch (VisADException e) {
       }
@@ -225,9 +262,9 @@ public class MouseHelper
     }
     else if (event_id == MouseEvent.MOUSE_MOVED) {
       try {
-        DisplayEvent e = new DisplayEvent(display,
+        DisplayEvent e = new DisplayEvent(getDisplay(),
           DisplayEvent.MOUSE_MOVED, mouse_event, remoteId);
-        display.notifyListeners(e);
+        getDisplay().notifyListeners(e);
       }
       catch (VisADException e) {
       }
@@ -245,7 +282,7 @@ public class MouseHelper
       int mshift = m & InputEvent.SHIFT_MASK;
 
       if (event_id == MouseEvent.MOUSE_PRESSED) {
-        display.updateBusyStatus();
+        getDisplay().updateBusyStatus();
         if (m1 != 0) {
           actual_button[LEFT] = true;
         }
@@ -258,7 +295,7 @@ public class MouseHelper
         mouseModifiers = m;
       }
       else { // event_id == MouseEvent.MOUSE_RELEASED
-        display.updateBusyStatus();
+        getDisplay().updateBusyStatus();
         if (m1 != 0) {
           actual_button[LEFT] = false;
         }
@@ -282,15 +319,15 @@ public class MouseHelper
       if (n == 1) {
         virtual_button = sum;
       }
-      else if (n == 2 && enable_combos) {
+      else if (n == 2 && getEnableCombos()) {
         virtual_button = 3 - sum;
       }
-      else { // n == 0 || n == 3 || (n == 2 && !enable_combos)
+      else { // n == 0 || n == 3 || (n == 2 && !getEnableCombos())
         virtual_button = -1;
       }
   
       // compute old and new functions
-      for (int i=0; i<NFUNCTIONS; i++) {
+      for (int i=0; i<function.length; i++) {
         old_function[i] = function[i];
         function[i] = false;
       }
@@ -306,9 +343,9 @@ public class MouseHelper
 
       if (event_id == MouseEvent.MOUSE_PRESSED) {
         try {
-          DisplayEvent e = new DisplayEvent(display,
+          DisplayEvent e = new DisplayEvent(getDisplay(),
             DisplayEvent.MOUSE_PRESSED, mouse_event, remoteId);
-          display.notifyListeners(e);
+          getDisplay().notifyListeners(e);
         }
         catch (VisADException e) {
         }
@@ -316,9 +353,9 @@ public class MouseHelper
         }
         if (m1 != 0) {
           try {
-            DisplayEvent e = new DisplayEvent(display,
+            DisplayEvent e = new DisplayEvent(getDisplay(),
               DisplayEvent.MOUSE_PRESSED_LEFT, mouse_event, remoteId);
-            display.notifyListeners(e);
+            getDisplay().notifyListeners(e);
           }
           catch (VisADException e) {
           }
@@ -327,9 +364,9 @@ public class MouseHelper
         }
         if (m2 != 0) {
           try {
-            DisplayEvent e = new DisplayEvent(display,
+            DisplayEvent e = new DisplayEvent(getDisplay(),
               DisplayEvent.MOUSE_PRESSED_CENTER, mouse_event, remoteId);
-            display.notifyListeners(e);
+            getDisplay().notifyListeners(e);
           }
           catch (VisADException e) {
           }
@@ -338,9 +375,9 @@ public class MouseHelper
         }
         if (m3 != 0) {
           try {
-            DisplayEvent e = new DisplayEvent(display,
+            DisplayEvent e = new DisplayEvent(getDisplay(),
               DisplayEvent.MOUSE_PRESSED_RIGHT, mouse_event, remoteId);
-            display.notifyListeners(e);
+            getDisplay().notifyListeners(e);
           }
           catch (VisADException e) {
           }
@@ -350,9 +387,9 @@ public class MouseHelper
       }
       else { // event_id == MouseEvent.MOUSE_RELEASED
         try {
-          DisplayEvent e = new DisplayEvent(display,
+          DisplayEvent e = new DisplayEvent(getDisplay(),
             DisplayEvent.MOUSE_RELEASED, mouse_event, remoteId);
-          display.notifyListeners(e);
+          getDisplay().notifyListeners(e);
         }
         catch (VisADException e) {
         }
@@ -360,9 +397,9 @@ public class MouseHelper
         }
         if (m1 != 0) {
           try {
-            DisplayEvent e = new DisplayEvent(display,
+            DisplayEvent e = new DisplayEvent(getDisplay(),
               DisplayEvent.MOUSE_RELEASED_LEFT, mouse_event, remoteId);
-            display.notifyListeners(e);
+            getDisplay().notifyListeners(e);
           }
           catch (VisADException e) {
           }
@@ -371,9 +408,9 @@ public class MouseHelper
         }
         if (m2 != 0) {
           try {
-            DisplayEvent e = new DisplayEvent(display,
+            DisplayEvent e = new DisplayEvent(getDisplay(),
               DisplayEvent.MOUSE_RELEASED_CENTER, mouse_event, remoteId);
-            display.notifyListeners(e);
+            getDisplay().notifyListeners(e);
           }
           catch (VisADException e) {
           }
@@ -382,9 +419,9 @@ public class MouseHelper
         }
         if (m3 != 0) {
           try {
-            DisplayEvent e = new DisplayEvent(display,
+            DisplayEvent e = new DisplayEvent(getDisplay(),
               DisplayEvent.MOUSE_RELEASED_RIGHT, mouse_event, remoteId);
-            display.notifyListeners(e);
+            getDisplay().notifyListeners(e);
           }
           catch (VisADException e) {
           }
@@ -392,9 +429,24 @@ public class MouseHelper
           }
         }
       }
-      if (cursor_off) display_renderer.setCursorOn(false);
+      if (cursor_off) getDisplayRenderer().setCursorOn(false);
     }
     else if (event_id == MouseEvent.MOUSE_DRAGGED) {
+      handleMouseDragged(mouse_event, remoteId);
+      try {
+        DisplayEvent e = new DisplayEvent(getDisplay(),
+          DisplayEvent.MOUSE_DRAGGED, mouse_event, remoteId);
+        getDisplay().notifyListeners(e);
+      }
+      catch (VisADException e) {
+      }
+      catch (RemoteException e) {
+      }
+    }
+
+  }
+
+  protected void handleMouseDragged(MouseEvent event, int remoteId) {
       boolean cursor = function[CURSOR_TRANSLATE] ||
                        function[CURSOR_ZOOM] ||
                        function[CURSOR_ROTATE];
@@ -404,11 +456,11 @@ public class MouseHelper
                        function[TRANSLATE];
 
       if (cursor || matrix || function[DIRECT]) {
-        display.updateBusyStatus();
+        getDisplay().updateBusyStatus();
 
-        Dimension d = ((MouseEvent) event).getComponent().getSize();
-        int current_x = ((MouseEvent) event).getX();
-        int current_y = ((MouseEvent) event).getY();
+        Dimension d = event.getComponent().getSize();
+        int current_x = event.getX();
+        int current_y = event.getY();
 
         if (matrix) {
           double[] t1 = null;
@@ -416,7 +468,7 @@ public class MouseHelper
             // current_y -> scale
             double scale =
               Math.exp((start_y-current_y) / (double) d.height);
-            t1 = behavior.make_matrix(0.0, 0.0, 0.0, scale, 0.0, 0.0, 0.0);
+            t1 = getMouseBehavior().make_matrix(0.0, 0.0, 0.0, scale, 0.0, 0.0, 0.0);
           }
           if (function[TRANSLATE]) {
             // current_x, current_y -> translate
@@ -425,13 +477,13 @@ public class MouseHelper
             double transy = ymul * (start_y - current_y);
             // System.out.println("xmul = " + xmul + " ymul = " + ymul);
             // System.out.println("transx = " + transx + " transy = " + transy);
-            t1 = behavior.make_translate(-transx, -transy);
+            t1 = getMouseBehavior().make_translate(-transx, -transy);
           }
           if (function[ROTATE]) {
-            if (mode2D) {
+            if (getMode2D()) {
               double transx = xmul * (start_x - current_x);
               double transy = ymul * (start_y - current_y);
-              t1 = behavior.make_translate(-transx, -transy);
+              t1 = getMouseBehavior().make_translate(-transx, -transy);
             }
             else {
               // don't do 3-D rotation in 2-D mode
@@ -439,14 +491,14 @@ public class MouseHelper
                 - (current_x - start_x) * 100.0 / (double) d.width;
               double anglex =
                 - (current_y - start_y) * 100.0 / (double) d.height;
-              t1 = behavior.make_matrix(anglex, angley,
+              t1 = getMouseBehavior().make_matrix(anglex, angley,
                 0.0, 1.0, 0.0, 0.0, 0.0);
             }
           }
           if (t1 != null) {
-            t1 = behavior.multiply_matrix(t1, tstart);
+            t1 = getMouseBehavior().multiply_matrix(t1, tstart);
             try {
-              proj.setMatrix(t1);
+              getProjectionControl().setMatrix(t1);
             }
             catch (VisADException e) {
             }
@@ -457,26 +509,26 @@ public class MouseHelper
 
 
         if (function[CURSOR_ZOOM]) {
-          if (!mode2D) {
+          if (!getMode2D()) {
             // don't do cursor Z in 2-D mode
             // current_y -> 3-D cursor Z
             float diff =
               (start_y - current_y) * 4.0f / (float) d.height;
-            display_renderer.drag_depth(diff);
+            getDisplayRenderer().drag_depth(diff);
           }
         }
         if (function[CURSOR_ROTATE]) {
-          if (!mode2D) {
+          if (!getMode2D()) {
             // don't do 3-D rotation in 2-D mode
             double angley =
               - (current_x - start_x) * 100.0 / (double) d.width;
             double anglex =
               - (current_y - start_y) * 100.0 / (double) d.height;
-            double[] t1 = behavior.make_matrix(anglex, angley,
+            double[] t1 = getMouseBehavior().make_matrix(anglex, angley,
               0.0, 1.0, 0.0, 0.0, 0.0);
-            t1 = behavior.multiply_matrix(t1, tstart);
+            t1 = getMouseBehavior().multiply_matrix(t1, tstart);
             try {
-              proj.setMatrix(t1);
+              getProjectionControl().setMatrix(t1);
             }
             catch (VisADException e) {
             }
@@ -486,43 +538,34 @@ public class MouseHelper
         }
         if(function[CURSOR_TRANSLATE]) {
           // current_x, current_y -> 3-D cursor X and Y
-          VisADRay cursor_ray = behavior.findRay(current_x, current_y);
+          VisADRay cursor_ray = getMouseBehavior().findRay(current_x, current_y);
           if (cursor_ray != null) {
-            display_renderer.drag_cursor(cursor_ray, false);
+            getDisplayRenderer().drag_cursor(cursor_ray, false);
           }
         }
 
         if (function[DIRECT]) {
           if (direct_renderer != null) {
-            VisADRay direct_ray = behavior.findRay(current_x, current_y);
+            VisADRay direct_ray = getMouseBehavior().findRay(current_x, current_y);
             if (direct_ray != null) {
               direct_renderer.setLastMouseModifiers(mouseModifiers);
               direct_renderer.drag_direct(direct_ray, false, mouseModifiers);
             }
           }
         }
-
-
       }
-      try {
-        DisplayEvent e = new DisplayEvent(display,
-          DisplayEvent.MOUSE_DRAGGED, mouse_event, remoteId);
-        display.notifyListeners(e);
-      }
-      catch (VisADException e) {
-      }
-      catch (RemoteException e) {
-      }
-    }
-
   }
 
-  private boolean enableFunctions(MouseEvent event) {
+  /**
+   * Enable the functions for this mouse helper
+   * @param event  The MouseEvent
+   */
+  protected boolean enableFunctions(MouseEvent event) {
 
     boolean cursor_off = false;
 
     if (event == null) {
-      for (int i=0; i<NFUNCTIONS; i++) {
+      for (int i=0; i<function.length; i++) {
         old_function[i] = function[i];
         function[i] = false;
       }
@@ -545,12 +588,12 @@ public class MouseHelper
 
     // disable functions
     if (old_cursor && !cursor) {
-      // display_renderer.setCursorOn(false);
+      // getDisplayRenderer().setCursorOn(false);
       cursor_off = true;
     }
 
     if (old_function[DIRECT] && !function[DIRECT]) {
-      display_renderer.setDirectOn(false);
+      getDisplayRenderer().setDirectOn(false);
       if (direct_renderer != null) {
         direct_renderer.release_direct();
         direct_renderer = null;
@@ -565,46 +608,46 @@ public class MouseHelper
       start_y = ((MouseEvent) event).getY();
 
       // WLH 9 Aug 2000
-      VisADRay start_ray = behavior.findRay(start_x, start_y);
-      VisADRay start_ray_x = behavior.findRay(start_x + 1, start_y);
-      VisADRay start_ray_y = behavior.findRay(start_x, start_y + 1);
+      VisADRay start_ray = getMouseBehavior().findRay(start_x, start_y);
+      VisADRay start_ray_x = getMouseBehavior().findRay(start_x + 1, start_y);
+      VisADRay start_ray_y = getMouseBehavior().findRay(start_x, start_y + 1);
 
-      tstart = proj.getMatrix();
+      tstart = getProjectionControl().getMatrix();
       // print_matrix("tstart", tstart);
       double[] rot = new double[3];
       double[] scale = new double[3];
       double[] trans = new double[3];
-      behavior.instance_unmake_matrix(rot, scale, trans, tstart);
+      getMouseBehavior().instance_unmake_matrix(rot, scale, trans, tstart);
       double sts = scale[0];
-      double[] trot = behavior.make_matrix(rot[0], rot[1], rot[2],
+      double[] trot = getMouseBehavior().make_matrix(rot[0], rot[1], rot[2],
                                            scale[0], scale[1], scale[2],
                                            0.0, 0.0, 0.0);
       // print_matrix("trot", trot);
 
       // WLH 17 Aug 2000
-      double[] xmat = behavior.make_translate(
+      double[] xmat = getMouseBehavior().make_translate(
                          start_ray_x.position[0] - start_ray.position[0],
                          start_ray_x.position[1] - start_ray.position[1],
                          start_ray_x.position[2] - start_ray.position[2]);
-      double[] ymat = behavior.make_translate(
+      double[] ymat = getMouseBehavior().make_translate(
                          start_ray_y.position[0] - start_ray.position[0],
                          start_ray_y.position[1] - start_ray.position[1],
                          start_ray_y.position[2] - start_ray.position[2]);
-      double[] xmatmul = behavior.multiply_matrix(trot, xmat);
-      double[] ymatmul = behavior.multiply_matrix(trot, ymat);
+      double[] xmatmul = getMouseBehavior().multiply_matrix(trot, xmat);
+      double[] ymatmul = getMouseBehavior().multiply_matrix(trot, ymat);
 /*
       print_matrix("xmat", xmat);
       print_matrix("ymat", ymat);
       print_matrix("xmatmul", xmatmul);
       print_matrix("ymatmul", ymatmul);
 */
-      behavior.instance_unmake_matrix(rot, scale, trans, xmatmul);
+      getMouseBehavior().instance_unmake_matrix(rot, scale, trans, xmatmul);
       xmul = trans[0];
-      behavior.instance_unmake_matrix(rot, scale, trans, ymatmul);
+      getMouseBehavior().instance_unmake_matrix(rot, scale, trans, ymatmul);
       ymul = trans[1];
 
       // horrible hack, WLH 17 Aug 2000
-      if (behavior instanceof visad.java2d.MouseBehaviorJ2D) {
+      if (getMouseBehavior() instanceof visad.java2d.MouseBehaviorJ2D) {
         double factor = xymul / Math.sqrt(xmul * xmul + ymul * ymul);
         xmul *= factor;
         ymul *= factor;
@@ -624,42 +667,42 @@ public class MouseHelper
     if (cursor && !old_cursor) {
 
       // turn cursor on whenever mouse button2 pressed
-      display_renderer.setCursorOn(true);
+      getDisplayRenderer().setCursorOn(true);
 
       start_x = ((MouseEvent) event).getX();
       start_y = ((MouseEvent) event).getY();
 
-      tstart = proj.getMatrix();
+      tstart = getProjectionControl().getMatrix();
     }
 
     if (function[CURSOR_TRANSLATE] && !old_function[CURSOR_TRANSLATE]) {
-      VisADRay cursor_ray = behavior.findRay(start_x, start_y);
+      VisADRay cursor_ray = getMouseBehavior().findRay(start_x, start_y);
       if (cursor_ray != null) {
-        display_renderer.drag_cursor(cursor_ray, true);
+        getDisplayRenderer().drag_cursor(cursor_ray, true);
       }
     }
 
     if (function[CURSOR_ZOOM] && !old_function[CURSOR_ZOOM]) {
-      if (!mode2D) {
+      if (!getMode2D()) {
         // don't do cursor Z in 2-D mode
         // current_y -> 3-D cursor Z
         VisADRay cursor_ray =
-          behavior.cursorRay(display_renderer.getCursor());
-        display_renderer.depth_cursor(cursor_ray);
+          getMouseBehavior().cursorRay(getDisplayRenderer().getCursor());
+        getDisplayRenderer().depth_cursor(cursor_ray);
       }
     }
 
     if (function[DIRECT] && !old_function[DIRECT]) {
-      if (display_renderer.anyDirects()) {
+      if (getDisplayRenderer().anyDirects()) {
         int current_x = ((MouseEvent) event).getX();
         int current_y = ((MouseEvent) event).getY();
         VisADRay direct_ray =
-          behavior.findRay(current_x, current_y);
+          getMouseBehavior().findRay(current_x, current_y);
         if (direct_ray != null) {
           direct_renderer =
-            display_renderer.findDirect(direct_ray, mouseModifiers);
+            getDisplayRenderer().findDirect(direct_ray, mouseModifiers);
           if (direct_renderer != null) {
-            display_renderer.setDirectOn(true);
+            getDisplayRenderer().setDirectOn(true);
             direct_renderer.setLastMouseModifiers(mouseModifiers);
             direct_renderer.drag_direct(direct_ray, true,
               mouseModifiers);
@@ -680,6 +723,12 @@ public class MouseHelper
     enable_combos = e;
     enableFunctions(null);
   }
+
+  /**
+   * Get whether the mouse button combos are enabled
+   * @return true if any pair of mouse buttons is interpreted as the third
+   */
+  public boolean getEnableCombos() { return enable_combos; }
 
   /** 
    * Set mapping from (button, ctrl, shift) to function.
@@ -729,8 +778,8 @@ public class MouseHelper
           throw new DisplayException("bad map array");
         }
         for (int k=0; k<2; k++) {
-          if (map[i][j][k] >= NFUNCTIONS) {
-            throw new DisplayException("bad map array value" + map[i][j][k]);
+          if (map[i][j][k] >= function.length) {
+            throw new DisplayException("bad map array value: " + map[i][j][k]);
           }
         }
       }
@@ -753,11 +802,11 @@ public class MouseHelper
    * @param m  matrix to print.
    */
   public void print_matrix(String title, double[] m) {
-    if (behavior == null) return;
+    if (getMouseBehavior() == null) return;
     double[] rot = new double[3];
     double[] scale = new double[3];
     double[] trans = new double[3];
-    behavior.instance_unmake_matrix(rot, scale, trans, m);
+    getMouseBehavior().instance_unmake_matrix(rot, scale, trans, m);
     StringBuffer buf = new StringBuffer(title);
     buf.append(" = (");
     buf.append(Convert.shortString(rot[0]));
@@ -801,4 +850,3 @@ public class MouseHelper
     }
   }
 }
-
