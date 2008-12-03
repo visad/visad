@@ -28,6 +28,7 @@ package visad.data.hrit;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import edu.wisc.ssec.mcidas.AREAnav;
@@ -57,6 +58,15 @@ public class HRITAdapter {
   private static final int HEADER_TYPE_IMAGE_STRUCTURE = 1;
   private static final int HEADER_TYPE_IMAGE_NAVIGATION = 2;
   private static final int PRIMARY_HEADER_LENGTH = 16;
+  
+  // record sizes for prologue file sections - used to offset to cal
+  private static final int SAT_STAT_LEN = 60134;
+  private static final int IMG_ACQ_LEN = 700;
+  private static final int CEL_EVENTS_LEN = 326058;
+  private static final int IMG_DESC_LEN = 101;
+  private static final int CAL_OFFS = 72;
+  
+  private static final int SPACECRAFT_ID_MSG2 = 322;
 
   /**
    * Create a VisAD FlatField from local HRIT file(s).  This constructor 
@@ -208,8 +218,8 @@ public class HRITAdapter {
 					  minLineOffset = lineOffset[i];
 				  }
 				  // System.out.println("Projection: " + projectionName + 
-					//	  ", lsf: " + lineScalingFactor + ", csf: " + columnScalingFactor +
-					//	  ", co: " + columnOffset + ", lo: " + lineOffset[i]);
+				  //	  ", lsf: " + lineScalingFactor + ", csf: " + columnScalingFactor +
+				  //	  ", co: " + columnOffset + ", lo: " + lineOffset[i]);
 			  }
 		  }
 		  
@@ -228,12 +238,12 @@ public class HRITAdapter {
 	  }
 	  int [] iparms = new int[6];
 	  iparms[0] = AREAnav.GEOS;
-	  iparms[1] = 55720;
-	  iparms[2] = 55720;
+	  iparms[1] = columnOffset * resMultiplier * 10;
+	  iparms[2] = columnOffset * resMultiplier * 10;	  
 	  iparms[3] = lineScalingFactor * resMultiplier * 10;
 	  iparms[4] = columnScalingFactor * resMultiplier * 10;
-	  // hardcoding for now: 1400 for MTSAT, 0 for MSG
-	  // iparms[5] = 1400;
+	  // XXX FIXME TJJ - hardcoding for now: 0 for MSG.  Should be able
+	  // to pull this out of the signal/segment data
 	  iparms[5] = 0;
 	  int [] dir = new int[64];
 	  //dir[5] = resMultiplier * minLineOffset;
@@ -252,7 +262,7 @@ public class HRITAdapter {
 	  RealTupleType imageDomain = new RealTupleType(domainComponents, cs, null);
 	  
 	  // create calibration object
-	  double [][] calBlock = makeMSGCal();
+	  double [][] calBlock = makeMSGCal(filenames[0]);
 	  CalibratorMsg cmsg = null;
 	  try {
 	    cmsg = new CalibratorMsg(calBlock);
@@ -342,53 +352,109 @@ public class HRITAdapter {
 	  
   }
   
-  private double[][] makeMSGCal() {
+  /**
+   * Attempt to build a McIDAS-style calibration block.
+   * If unsuccessful, a warning is popped up that calibration 
+   * will be approximated, and should not be considered accurate.
+   * @param s an image segment file name for the data request
+   * @return a McIDAS-style calibration block
+   */
+  
+  private double[][] makeMSGCal(String s) {
+	  
 	  double [][] msgCal = new double[12][6];
-	  double [] waveNum  = new double[12];
-	  double [] alpha    = new double[12];
-	  double [] beta     = new double[12];
+	  double [] waveNumMSG1  = new double[12];
+	  double [] waveNumMSG2  = new double[12];
+	  double [] alphaMSG1    = new double[12];
+	  double [] alphaMSG2    = new double[12];
+	  double [] betaMSG1     = new double[12];
+	  double [] betaMSG2     = new double[12];
 	  double [] gain     = new double[12];
 	  double [] offset   = new double[12];
+
+	  // various constants.  I know this doesn't look good... for now we are
+	  // only covering MSG-1 and MSG-2.  Needs work, but at present this is
+	  // no different than the core McIDAS and ADDE server code!
+	  waveNumMSG1[0] = 0.0d;
+	  waveNumMSG1[1] = 0.0d;
+	  waveNumMSG1[2] = 0.0d;
+	  waveNumMSG1[3] = 2567.33d;
+	  waveNumMSG1[4] = 1598.103d;
+	  waveNumMSG1[5] = 1362.081d;
+	  waveNumMSG1[6] = 1149.069d;
+	  waveNumMSG1[7] = 1034.343d;
+	  waveNumMSG1[8] = 930.647d;
+	  waveNumMSG1[9] = 839.660d;
+	  waveNumMSG1[10] = 752.387d;
+	  waveNumMSG1[11] = 0.0d;
 	  
-	  waveNum[0] = 0.0d;
-	  waveNum[1] = 0.0d;
-	  waveNum[2] = 0.0d;
-	  waveNum[3] = 2568.832d;
-	  waveNum[4] = 1600.548d;
-	  waveNum[5] = 1360.330d;
-	  waveNum[6] = 1148.620d;
-	  waveNum[7] = 1035.289d;
-	  waveNum[8] = 931.700d;
-	  waveNum[9] = 836.445d;
-	  waveNum[10] = 751.792d;
-	  waveNum[11] = 0.0d;
+	  waveNumMSG2[0] = 0.0d;
+	  waveNumMSG2[1] = 0.0d;
+	  waveNumMSG2[2] = 0.0d;
+	  waveNumMSG2[3] = 2568.832d;
+	  waveNumMSG2[4] = 1600.548d;
+	  waveNumMSG2[5] = 1360.330d;
+	  waveNumMSG2[6] = 1148.620d;
+	  waveNumMSG2[7] = 1035.289d;
+	  waveNumMSG2[8] = 931.700d;
+	  waveNumMSG2[9] = 836.445d;
+	  waveNumMSG2[10] = 751.792d;
+	  waveNumMSG2[11] = 0.0d;
+
+	  alphaMSG1[0] = 0.0d;
+	  alphaMSG1[1] = 0.0d;
+	  alphaMSG1[2] = 0.0d;
+	  alphaMSG1[3] = 0.9956d;
+	  alphaMSG1[4] = 0.9962d;
+	  alphaMSG1[5] = 0.9991d;
+	  alphaMSG1[6] = 0.9996d;
+	  alphaMSG1[7] = 0.9999d;
+	  alphaMSG1[8] = 0.9983d;
+	  alphaMSG1[9] = 0.9988d;
+	  alphaMSG1[10] = 0.9981d;
+	  alphaMSG1[11] = 0.0d;
 	  
-	  alpha[0] = 0.0d;
-	  alpha[1] = 0.0d;
-	  alpha[2] = 0.0d;
-	  alpha[3] = 0.9954d;
-	  alpha[4] = 0.9963d;
-	  alpha[5] = 0.9991d;
-	  alpha[6] = 0.9996d;
-	  alpha[7] = 0.9999d;
-	  alpha[8] = 0.9983d;
-	  alpha[9] = 0.9988d;
-	  alpha[10] = 0.9981d;
-	  alpha[11] = 0.0d;
+	  alphaMSG2[0] = 0.0d;
+	  alphaMSG2[1] = 0.0d;
+	  alphaMSG2[2] = 0.0d;
+	  alphaMSG2[3] = 0.9954d;
+	  alphaMSG2[4] = 0.9963d;
+	  alphaMSG2[5] = 0.9991d;
+	  alphaMSG2[6] = 0.9996d;
+	  alphaMSG2[7] = 0.9999d;
+	  alphaMSG2[8] = 0.9983d;
+	  alphaMSG2[9] = 0.9988d;
+	  alphaMSG2[10] = 0.9981d;
+	  alphaMSG2[11] = 0.0d;
+
+	  betaMSG1[0] = 0.0d;
+	  betaMSG1[1] = 0.0d;
+	  betaMSG1[2] = 0.0d;
+	  betaMSG1[3] = 3.410d;
+	  betaMSG1[4] = 2.218d;
+	  betaMSG1[5] = 0.478d;
+	  betaMSG1[6] = 0.179d;
+	  betaMSG1[7] = 0.060d;
+	  betaMSG1[8] = 0.625d;
+	  betaMSG1[9] = 0.397d;
+	  betaMSG1[10] = 0.578d;
+	  betaMSG1[11] = 0.0d;
 	  
-	  beta[0] = 0.0d;
-	  beta[1] = 0.0d;
-	  beta[2] = 0.0d;
-	  beta[3] = 3.438d;
-	  beta[4] = 2.185d;
-	  beta[5] = 0.470d;
-	  beta[6] = 0.179d;
-	  beta[7] = 0.056d;
-	  beta[8] = 0.640d;
-	  beta[9] = 0.408d;
-	  beta[10] = 0.561d;
-	  beta[11] = 0.0d;
+	  betaMSG2[0] = 0.0d;
+	  betaMSG2[1] = 0.0d;
+	  betaMSG2[2] = 0.0d;
+	  betaMSG2[3] = 3.438d;
+	  betaMSG2[4] = 2.185d;
+	  betaMSG2[5] = 0.470d;
+	  betaMSG2[6] = 0.179d;
+	  betaMSG2[7] = 0.056d;
+	  betaMSG2[8] = 0.640d;
+	  betaMSG2[9] = 0.408d;
+	  betaMSG2[10] = 0.561d;
+	  betaMSG2[11] = 0.0d;
 	  
+	  // initialize with approximate values - this will get you a
+	  // pretty picture but should not be considered accurate
 	  gain[0] = 0.2331010000E-01d;
 	  gain[1] = 0.2540430000E-01d;
 	  gain[2] = 0.2187850000E-01d;
@@ -413,26 +479,114 @@ public class HRITAdapter {
 	  offset[8] = -0.9992782340E+01d;
 	  offset[9] = -0.1094432338E+02d;
 	  offset[10] = -0.1066756128E+02d;
-	  offset[11] = -0.1428150000E+01d;	  
+	  offset[11] = -0.1428150000E+01d;	 
 	  
-	  double c1 = 0.0d;
-	  double c2 = 0.0d;
+	  // for now, assume we calibrate based on MSG-2, unless we detect otherwise
+	  int scId = SPACECRAFT_ID_MSG2;
+	  
+	  // now the real work - try to convert the image segment file name
+	  // to an MSG prologue file name (file with the cal slopes and offsets)
+	  boolean accurateCal = false;
+	  // to build the filename for the matching prologue file, swap out channel and segment
+	  // number sections with underscores and -PRO
+	  String plFileName = s.replaceFirst("......___-0000\\d\\d___", "_________-PRO______");
+	  File f = new File(plFileName);
+	  try {
+		  
+		  FileInputStream fis = new FileInputStream(f);
+          // try to pull out the primary header
+          byte [] primaryHeader = new byte[PRIMARY_HEADER_LENGTH];
+          int bytesRead = fis.read(primaryHeader);
+          if ((bytesRead < 0) || (bytesRead != PRIMARY_HEADER_LENGTH)) {
+                  throw new IOException("File " + s + " is not an HRIT file");
+          }
+          // validate primary header contents
+          int headerSize = bytesToShort(primaryHeader, 1);
+          if (headerSize != PRIMARY_HEADER_LENGTH) {
+                  throw new IOException("File " + s + " is not a valid HRIT file");
+          }
+          // make sure file is at least as long as the claimed length of all headers
+          int lengthAllHeaders = -1;
+          lengthAllHeaders = bytesToInt(primaryHeader, 4);
+          if (f.length() < lengthAllHeaders) {
+                  throw new IOException("File " + s + " is not a valid HRIT file");
+          }
+          // ok, we got the primary header, moving along to the other headers...
+          int headerBytesConsumed = PRIMARY_HEADER_LENGTH;
+          byte [] headerType = new byte[1];
+          byte [] headerLength = new byte[2];
+          while (headerBytesConsumed < lengthAllHeaders) {
+                  bytesRead = fis.read(headerType);
+                  headerBytesConsumed += bytesRead;
+                  bytesRead = fis.read(headerLength);
+                  headerBytesConsumed += bytesRead;
+                  headerSize = bytesToShort(headerLength, 0);
+                  byte [] header = new byte[headerSize - 3];
+                  bytesRead = fis.read(header);
+                  headerBytesConsumed += bytesRead;
+          }
+          // two-byte utility array for pulling out shorts
+          byte [] b2 = new byte[2];
+          // spacecraft id - will be used to further improve cal, as time permits
+          fis.read(b2);
+          scId = bytesToShort(b2, 0);
+          long n = fis.skip((SAT_STAT_LEN - 2) + IMG_ACQ_LEN + CEL_EVENTS_LEN + IMG_DESC_LEN + CAL_OFFS);
+          if (n != (SAT_STAT_LEN - 2) + IMG_ACQ_LEN + CEL_EVENTS_LEN + IMG_DESC_LEN + CAL_OFFS) {
+              throw new IOException("Failed to read calibration coefficients, corrupt file?");
+          }
+          for (int i = 0; i < 12; i++) {
+              byte [] d1 = new byte[8];
+              byte [] d2 = new byte[8];
+              int count = fis.read(d1);
+              if (count != 8) {
+                  throw new IOException("Failed to read calibration coefficients, corrupt file?");
+              }
+              count = fis.read(d2);
+              if (count != 8) {
+                  throw new IOException("Failed to read calibration coefficients, corrupt file?");
+              }
+              long l1 = bytesToLong(d1, 0);
+              long l2 = bytesToLong(d2, 0);
+              gain[i] = Double.longBitsToDouble(l1);
+              offset[i] = Double.longBitsToDouble(l2);
+              // TODO: should probably add a sanity check on gain/offset values,
+              // to make sure we found and will be using reasonable numbers.
+           }
+           // if we got this far, assume we have accurate calibration coefficients
+           accurateCal = true;
+
+	  } catch (FileNotFoundException e) {
+		  // Do nothing - we just won't have accurate calibration
+	  } catch (IOException e) {
+		  // Do nothing - we just won't have accurate calibration
+	  }
+	  
+	  if (! accurateCal) {
+		  System.err.println("WARNING: Data will be displayed, but calibration is approximate.");
+	  }
+
 	  double w  = 0.0d;
 	  double c1w3 = 0.0d;
 	  double c2w = 0.0d;
 	  double PLANCK = 6.626176E-34;
 	  double LIGHT  = 2.99792458E8;
 	  double BOLTZMAN = 1.380662E-23;
-	  for (int band = 0; band < 12; band++) {
-	      c1 = 2.0E5 * PLANCK * (LIGHT*LIGHT);
-	      c2 = PLANCK * LIGHT / BOLTZMAN;
-	      w  = 1.0E2 * waveNum[band];
-	      c1w3 = c1*w*w*w;
-	      c2w  = c2*w;
+	  double c1 = 2.0E5 * PLANCK * (LIGHT * LIGHT);
+	  double c2 = PLANCK * LIGHT / BOLTZMAN;
+	  for (int band = 0; band < 12; band++) {	 
+		  if (scId == SPACECRAFT_ID_MSG2) {
+			  w  = 1.0E2 * waveNumMSG2[band];
+			  msgCal[band][2] = alphaMSG2[band];
+			  msgCal[band][3] = betaMSG2[band];
+		  } else {
+		      w  = 1.0E2 * waveNumMSG1[band];
+		      msgCal[band][2] = alphaMSG1[band];
+		      msgCal[band][3] = betaMSG1[band];
+		  }
+	      c1w3 = c1 * w * w * w;
+	      c2w  = c2 * w;
 	      msgCal[band][0] = c1w3;
 	      msgCal[band][1] = c2w;
-	      msgCal[band][2] = alpha[band];
-	      msgCal[band][3] = beta[band];
 	      msgCal[band][4] = gain[band];
 	      msgCal[band][5] = offset[band];
 	  }
@@ -459,6 +613,25 @@ public class HRITAdapter {
 	  return field;
   }
   
+  /**
+   * Converts a set of four consecutive bytes into a single long.
+   * @param data An array of bytes
+   * @param offset The array index to begin with
+   * @return The resulting int
+   */
+  public static long bytesToLong(byte[] data, int offset) {
+          long l = 0;
+          l += unsignedByteToLong(data[offset + 0]) << 56;
+          l += unsignedByteToLong(data[offset + 1]) << 48;
+          l += unsignedByteToLong(data[offset + 2]) << 40;
+          l += unsignedByteToLong(data[offset + 3]) << 32;
+          l += unsignedByteToLong(data[offset + 4]) << 24;
+          l += unsignedByteToLong(data[offset + 5]) << 16;
+          l += unsignedByteToLong(data[offset + 6]) << 8;
+          l += unsignedByteToLong(data[offset + 7]);
+          return l;
+  }
+
   /**
    * Converts a set of four consecutive bytes into a single int.
    * @param data An array of bytes
@@ -501,7 +674,20 @@ public class HRITAdapter {
   }
   
   /**
-   * 
+   * Converts an (unsigned) byte to an unsigned long.
+   * Since Java doesn't have an unsigned
+   * byte type, this requires some foolery.
+   * This solution based on information and code from
+   * http://www.rgagnon.com/javadetails/java-0026.html
+   * @param b The unsigned byte to convert
+   * @return the unsigned long equivalent
+   */
+  public static long unsignedByteToLong(byte b) {
+      return (long) b & 0xFF;
+  }
+  
+  /**
+   * Convert 10-bit data to 2-byte data
    * @param input
    * @param output
    * @return 0 if no errors
