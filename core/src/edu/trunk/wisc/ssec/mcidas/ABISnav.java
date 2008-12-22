@@ -83,6 +83,9 @@ public class ABISnav extends AREAnav {
   /** satellite subpoint */
   double sublon;
 
+  /** nstepfullres */
+  double nstepfullres;
+
   /**
    * Set up for the real math work.  Must pass in the int array
    * of the ABIS nav 'codicil'.
@@ -138,6 +141,8 @@ public class ABISnav extends AREAnav {
       deltax = 17.76 / 5535.;
       deltay = 17.76 / 5535.;
       rflon = 0.0;
+      nstepfullres = 22141.0;
+
       sublon = McIDASUtil.mcPackedIntegerToDouble(iparms[6]);
     }
   }
@@ -174,7 +179,7 @@ public class ABISnav extends AREAnav {
       xele2 = xele / 4.;
       xlin2 = xlin / 4.;
       x = (5535. / 2.) - xele2;
-      y = ioff[2] - (xlin2 + ioff[1] - ioff[0]);
+      y = ((nstepfullres - xlin)/4.) - ioff[2] - ioff[1] + ioff[0];
       xr = x;
       yr = y;
       x = xr * lpsi2 * deltax * cdr;
@@ -330,7 +335,7 @@ public class ABISnav extends AREAnav {
       xele2 = xele / 4.;
       xlin2 = xlin / 4.;
       x = (5535. / 2.) - xele2;
-      y = ioff[2] - (xlin2 + ioff[1] - ioff[0]);
+      y = ((nstepfullres - xlin)/4.) - ioff[2] - ioff[1] + ioff[0];
       xr = x;
       yr = y;
       x = xr * lpsi2 * deltax * cdr;
