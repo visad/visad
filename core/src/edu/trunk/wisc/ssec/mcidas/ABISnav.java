@@ -83,8 +83,8 @@ public class ABISnav extends AREAnav {
   /** satellite subpoint */
   double sublon;
 
-  /** nstepfullres */
-  double nstepfullres;
+  /** nstepfullres and nstep */
+  double nstepfullres, nstep;
 
   /**
    * Set up for the real math work.  Must pass in the int array
@@ -130,18 +130,27 @@ public class ABISnav extends AREAnav {
       for (int i = 0; i < 3; i++) {
         ioff[i] = iparms[3 + i];
       }
-      h = 42164 - 6378.155;
       re = 6378.155;
+      h = 42164 - re;
       a = 1. / 297.;
       rp = re / (1. + a);
       pi = 3.141592653;
       cdr = pi / 180.;
       crd = 180. / pi;
       lpsi2 = 1;
-      deltax = 17.76 / 5535.;
-      deltay = 17.76 / 5535.;
+      double angle=17.76;
+      nstep = 5535.;
+      nstepfullres = 22141.;
+
+      if (iparms[7] != 0 && iparms[8] != 0 && iparms[10] != 0) {
+          nstep = (double)iparms[7];
+          nstepfullres = (double)iparms[8];
+          angle = ((double)iparms[10])/10000.;
+      }
+
+      deltax = angle / nstep;
+      deltay = angle / nstep;
       rflon = 0.0;
-      nstepfullres = 22141.0;
 
       sublon = McIDASUtil.mcPackedIntegerToDouble(iparms[6]);
     }
@@ -162,8 +171,6 @@ public class ABISnav extends AREAnav {
    */
   public double[][] toLatLon(double[][] linele) {
 
-    //FUNCTION NVXSAE(XLIN,XELE,XDUM,XFI,XLA,Z)
-
     int number = linele[0].length;
     double[][] latlon = new double[2][number];
     //  transform line/pixel to geographic coordinates:
@@ -178,7 +185,7 @@ public class ABISnav extends AREAnav {
       xele = imglinele[indexEle][point];
       xele2 = xele / 4.;
       xlin2 = xlin / 4.;
-      x = (5535. / 2.) - xele2;
+      x = (nstep / 2.) - xele2;
       y = ((nstepfullres - xlin)/4.) - ioff[2] - ioff[1] + ioff[0];
       xr = x;
       yr = y;
@@ -236,7 +243,6 @@ public class ABISnav extends AREAnav {
    */
   public double[][] toLinEle(double[][] latlon) {
 
-    //FUNCTION NVXEAS(VFI,VLA,Z,YR,XR,XDUM)
     int number = latlon[0].length;
     double[][] linele = new double[2][number];
     //  transform line/pixel to geographic coordinates:
@@ -293,10 +299,10 @@ public class ABISnav extends AREAnav {
       py = py * crd;
       xr = px / (deltax * lpsi2);
       yr = py / (deltay * lpsi2);
-      xr = (5535 / 2.) - xr;
+      xr = (nstep / 2.) - xr;
       yr = yr + ioff[2] + ioff[1] - ioff[0];
       xr = xr * 4;
-      yr = 22141 - yr * 4;
+      yr = nstepfullres - yr * 4;
       linele[indexLine][point] = yr;
       linele[indexEle][point] = xr;
     }
@@ -318,8 +324,6 @@ public class ABISnav extends AREAnav {
    */
   public float[][] toLatLon(float[][] linele) {
 
-    //FUNCTION NVXSAE(XLIN,XELE,XDUM,XFI,XLA,Z)
-
     int number = linele[0].length;
     float[][] latlon = new float[2][number];
     //  transform line/pixel to geographic coordinates:
@@ -334,7 +338,7 @@ public class ABISnav extends AREAnav {
       xele = imglinele[indexEle][point];
       xele2 = xele / 4.;
       xlin2 = xlin / 4.;
-      x = (5535. / 2.) - xele2;
+      x = (nstep / 2.) - xele2;
       y = ((nstepfullres - xlin)/4.) - ioff[2] - ioff[1] + ioff[0];
       xr = x;
       yr = y;
@@ -392,7 +396,6 @@ public class ABISnav extends AREAnav {
    */
   public float[][] toLinEle(float[][] latlon) {
 
-    //FUNCTION NVXEAS(VFI,VLA,Z,YR,XR,XDUM)
     int number = latlon[0].length;
     float[][] linele = new float[2][number];
     //  transform line/pixel to geographic coordinates:
@@ -449,10 +452,10 @@ public class ABISnav extends AREAnav {
       py = py * crd;
       xr = px / (deltax * lpsi2);
       yr = py / (deltay * lpsi2);
-      xr = (5535 / 2.) - xr;
+      xr = (nstep / 2.) - xr;
       yr = yr + ioff[2] + ioff[1] - ioff[0];
       xr = xr * 4;
-      yr = 22141 - yr * 4;
+      yr = nstepfullres - yr * 4;
       linele[indexLine][point] = (float)yr;
       linele[indexEle][point] = (float)xr;
     }
