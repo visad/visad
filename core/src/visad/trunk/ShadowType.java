@@ -3843,16 +3843,13 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
               VisADGeometryArray[] uBasicLines = array_s[0];
               VisADGeometryArray[] fillLines = array_s[1];
               VisADGeometryArray[] labelLines = null;
-              VisADGeometryArray[] expLines = null;
               VisADGeometryArray[] sBasicLines = null;
 
               if (array_s != null) {
                 // set'em if you got em
                 switch (array_s.length) {
-                case 5:
-                  sBasicLines = array_s[4];
                 case 4:
-                  expLines = array_s[3];
+                  sBasicLines = array_s[3];
                 case 3:
                   labelLines = array_s[2];
                 }
@@ -3864,55 +3861,37 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
                 // make necessary adjustments
                 if (!fill && getAdjustProjectionSeam()) {
                   // do not do adjustments for
-                  for (int j = 0; j < 5; j++) {
-                    if (j != 3) { // don't adjust label fill lines
+                  for (int j = 0; j < 4; j++) {
+                    if (j != 2) { // don't adjust label fill lines
+                      if (array_s[j] != null) {
                       for (VisADGeometryArray arr : array_s[j]) {
                         try {
+                          if (arr != null) {
                           arr = arr.adjustLongitude(renderer);
                           arr = arr.adjustSeam(renderer);
+                          }
                         } catch (Exception e) {
                           e.printStackTrace();
                         }
                       }
+                     }
                     }
                   }
                   if (labelLines != null) {
-                    for (int k = 0; k < (labelLines.length) / 2; k++) { //-labels
-                                                                        // ,
-                                                                        // label
-                                                                        // anchor
-                                                                        // points
-                      try {
-                        labelLines[k * 2] = labelLines[k * 2]
-                            .adjustLongitude(renderer);
-                        labelLines[k * 2] = labelLines[k * 2]
-                            .adjustSeam(renderer);
-                        labelLines[k * 2 + 1] = labelLines[k * 2 + 1]
-                            .adjustLongitude(renderer);
-                        labelLines[k * 2 + 1] = labelLines[k * 2 + 1]
-                            .adjustSeam(renderer);
-                      } catch (Exception e) {
-                        e.printStackTrace();
-                      }
+                    for (int k = 0; k < (labelLines.length); k++) {
+                      labelLines[k] = labelLines[k].adjustLongitude(renderer);
+                      labelLines[k] = labelLines[k].adjustSeam(renderer);
                     }
                   }
-                  if (expLines != null) {
-                    for (int k = 0; k < (expLines.length) / 6; k++) { // - left/
-                                                                      // right
-                                                                      // expanding
-                                                                      // segments
-                      try {
-                        for (int j = 0; j < 6; j++) {
-                          if (expLines[k * 6 + j] != null) {
-                            expLines[k * 6 + j] = expLines[k * 6 + j]
-                                .adjustLongitude(renderer);
-                            expLines[k * 6 + j] = expLines[k * 6 + j]
-                                .adjustSeam(renderer);
-                          }
-                        }
-                      } catch (Exception e) {
-                        e.printStackTrace();
-                      }
+
+                  if (fillLines != null) {
+                    if (fillLines[0] != null) {
+                        fillLines[0] = fillLines[0].adjustLongitude(renderer);
+                        fillLines[0] = fillLines[0].adjustSeam(renderer);
+                    }
+                    if (fillLines[1] != null) {
+                        fillLines[1] = fillLines[1].adjustLongitude(renderer);
+                        fillLines[1] = fillLines[1].adjustSeam(renderer);
                     }
                   }
                 }
@@ -3971,19 +3950,20 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
                           constant_alpha, constant_color);
                     }
                     sBasicLines = null;
-                    array_s[4] = null;
+                    array_s[3] = null;
                   }
 
                   if (doLabels && labelLines != null) {
-                    shadow_api.addLabelsToGroup(group, array_s, labelMode,
-                        control, p_cntrl, cnt, constant_alpha, constant_color,
-                        f_array);
+                    shadow_api.addLabelsToGroup(group, labelLines, labelMode,
+                        control, p_cntrl, cnt, constant_alpha, constant_color);
                     labelLines = null;
                     array_s[2] = null;
 
                   } else if (!doLabels && fillLines != null) {
                     // fill in contour lines in place of labels
                     shadow_api.addToGroup(group, fillLines[0], mode,
+                        constant_alpha, constant_color);
+                    shadow_api.addToGroup(group, fillLines[1], styledMode,
                         constant_alpha, constant_color);
                     fillLines[0] = null;
                     array_s[1] = null;
@@ -4039,10 +4019,11 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
     return false;
   }
 
-  public void addLabelsToGroup(Object group, VisADGeometryArray[][] arrays,
+  //public void addLabelsToGroup(Object group, VisADGeometryArray[][] arrays,
+  public void addLabelsToGroup(Object group, VisADGeometryArray[] arrays,
       GraphicsModeControl mode, ContourControl control,
       ProjectionControl p_cntrl, int[] cnt, float constant_alpha,
-      float[] contstant_color, float[][][] f_array) throws VisADException {
+      float[] contstant_color) throws VisADException {
   }
 
   public boolean addTextToGroup(Object group, VisADGeometryArray array,

@@ -1003,25 +1003,10 @@ public abstract class ShadowTypeJ3D extends ShadowType {
         dataCoordinateSystem);
   }
 
-  /**
-   * Add labels to a group. Transforms are
-   * 
-   * @param group
-   * @param arrays
-   * @param mode
-   * @param control
-   * @param p_cntrl
-   * @param cnt_a
-   * @param constant_alpha
-   * @param constant_color
-   * @param f_array
-   * 
-   * @throws VisADException
-   */
-  public void addLabelsToGroup(Object group, VisADGeometryArray[][] arrays,
+  public void addLabelsToGroup(Object group, VisADGeometryArray[] arrays,
       GraphicsModeControl mode, ContourControl control,
       ProjectionControl p_cntrl, int[] cnt_a, float constant_alpha,
-      float[] constant_color, float[][][] f_array) throws VisADException {
+      float[] constant_color) throws VisADException {
 
     int cnt = cnt_a[0];
 
@@ -1029,28 +1014,17 @@ public abstract class ShadowTypeJ3D extends ShadowType {
       projListener = new ProjectionControlListener(p_cntrl, control);
     }
 
-    VisADGeometryArray[] lbl_arrays = new VisADGeometryArray[2];
-    VisADGeometryArray[] seg_arrays = new VisADGeometryArray[6];
-
-    int n_labels = arrays[2].length / 2;
+    int n_labels = arrays.length;
 
     // add the stretchy line segments if we are not filling
-    if (!control.contourFilled() && arrays[3] != null) {
+    if (!control.contourFilled() && arrays != null) {
       projListener.LT_array[cnt] = new LabelTransform[3][n_labels];
 
       GraphicsModeControl styledMode = (GraphicsModeControl) mode.clone();
       styledMode.setLineStyle(control.getDashedStyle(), false);
 
       for (int ii = 0; ii < n_labels; ii++) {
-
-        seg_arrays[0] = arrays[3][ii * 6]; // left segments
-        seg_arrays[1] = arrays[3][ii * 6 + 1]; // left locations
-        seg_arrays[2] = arrays[3][ii * 6 + 2]; // right segments
-        seg_arrays[3] = arrays[3][ii * 6 + 3]; // right locations
-        seg_arrays[4] = arrays[3][ii * 6 + 4]; // left segments if styled, null
-                                               // otherwise
-        seg_arrays[5] = arrays[3][ii * 6 + 5]; // right segments if styled, null
-                                               // otherwise
+        ContourLabelGeometry array = (ContourLabelGeometry) arrays[ii];
 
         TransformGroup segL_trans_group = new TransformGroup();
         TransformGroup segR_trans_group = new TransformGroup();
@@ -1064,45 +1038,30 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
         if (control.getAutoSizeLabels()) {
 
-          LabelTransform lbl_trans = new LabelTransform(segL_trans_group,
-              p_cntrl,
-              new VisADGeometryArray[] { seg_arrays[0], seg_arrays[1] },
-              new float[] { f_array[0][ii][0], f_array[0][ii][1] }, 1);
+          LabelTransform lbl_trans = new LabelTransform(segL_trans_group, p_cntrl,
+              new VisADGeometryArray[] { array.expSegLeft, array.segLeftAnchor },
+              array.segLeftScaleInfo, 1);
           projListener.LT_array[cnt][1][ii] = lbl_trans;
 
           lbl_trans = new LabelTransform(segR_trans_group, p_cntrl,
-              new VisADGeometryArray[] { seg_arrays[2], seg_arrays[3] },
-              new float[] { f_array[0][ii][2], f_array[0][ii][3] }, 1);
+              new VisADGeometryArray[] { array.expSegRight, array.segRightAnchor },
+              array.segRightScaleInfo, 1);
           projListener.LT_array[cnt][2][ii] = lbl_trans;
         }
-
         ((Group) group).addChild(segL_trans_group);
         ((Group) group).addChild(segR_trans_group);
 
-        /*
-         * FIXME?
-         * 
-         * Yes, it's really clunky to use a null as a flag value, but it's quick
-         * and avoid memory and processing of other possible solutions.
-         * 
-         * Essentially, if the segment array at index 4 or 5 is not null it
-         * indicates that we are to apply the line style from the control to the
-         * lines
-         */
-        if (seg_arrays[4] != null) {
-          addToGroup(segL_trans_group, seg_arrays[4], styledMode,
-              constant_alpha, constant_color);
-        } else {
-          addToGroup(segL_trans_group, seg_arrays[0], mode, constant_alpha,
-              constant_color);
-        }
-
-        if (seg_arrays[5] != null) {
-          addToGroup(segR_trans_group, seg_arrays[5], styledMode,
-              constant_alpha, constant_color);
-        } else {
-          addToGroup(segR_trans_group, seg_arrays[2], mode, constant_alpha,
-              constant_color);
+        if (array.isStyled) {
+          addToGroup(segL_trans_group, array.expSegLeft, styledMode,
+                     constant_alpha, constant_color);
+          addToGroup(segR_trans_group, array.expSegRight, styledMode,
+                     constant_alpha, constant_color);
+        } 
+        else {
+          addToGroup(segL_trans_group, array.expSegLeft, mode,
+                     constant_alpha, constant_color);
+          addToGroup(segR_trans_group, array.expSegRight, mode,
+                     constant_alpha, constant_color);
         }
       }
 
@@ -1113,31 +1072,29 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     cnt = cnt_a[0];
 
     for (int ii = 0; ii < n_labels; ii++) {
-      lbl_arrays[0] = arrays[2][ii * 2];
-      lbl_arrays[1] = arrays[2][ii * 2 + 1];
-
       TransformGroup lbl_trans_group = new TransformGroup();
       lbl_trans_group.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
       lbl_trans_group.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
       lbl_trans_group.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
 
+      ContourLabelGeometry array = (ContourLabelGeometry) arrays[ii];
+
       if (control.getAutoSizeLabels()) {
         LabelTransform lbl_trans = new LabelTransform(lbl_trans_group, p_cntrl,
-            lbl_arrays, f_array[0][ii], 0);
+            new VisADGeometryArray[] { array.label, array.labelAnchor }, null, 0);
         projListener.LT_array[cnt][0][ii] = lbl_trans;
       }
 
       ((Group) group).addChild(lbl_trans_group);
 
-      addToGroup(lbl_trans_group, lbl_arrays[0], mode, constant_alpha,
+      addToGroup(lbl_trans_group, array.label, mode, constant_alpha,
           constant_color);
-
     }
-
     cnt++;
     projListener.cnt = cnt;
     cnt_a[0] = cnt;
   }
+
 
   /**
    * 

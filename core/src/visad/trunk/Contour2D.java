@@ -1379,150 +1379,15 @@ public class Contour2D {
 
     // ---TDR, build Contour Strips
 
-    float[][][][] lbl_vv = new float[4][][][];
-    byte[][][][] lbl_cc = new byte[4][][][];
-    float[][][] lbl_loc = new float[3][][];
-    float[][][] vvv = new float[2][][];
-    byte[][][] new_colors = new byte[2][][];
-
     Trace.call1("Contour2d.getLineColorArrays");
-    ctrSet.getLineColorArrays(vx, vy, auxLevels, labelColor, vvv, new_colors,
-        lbl_vv, lbl_cc, lbl_loc, dashFlags, contourDifficulty);
+    ctrSet.getLineColorArrays(vx, vy, auxLevels, labelColor, dashFlags, contourDifficulty);
     Trace.call2("Contour2d.getLineColorArrays");
-
-    vx2 = vvv[1][0];
-    vy2 = vvv[1][1];
-    vz2 = vvv[1][2];
-    numv1[0] = vvv[0][0].length;
-    numv2[0] = vvv[1][0].length;
-
-    int n_lbls = lbl_vv[0].length;
-    if (n_lbls > 0) {
-      vx3 = lbl_vv[0][0][0];
-      vy3 = lbl_vv[0][0][1];
-      vz3 = lbl_vv[0][0][2];
-      vx4 = lbl_vv[1][0][0];
-      vy4 = lbl_vv[1][0][1];
-      vz4 = lbl_vv[1][0][2];
-      numv3[0] = lbl_vv[0][0][0].length;
-      numv4[0] = lbl_vv[1][0][0].length;
-    }
-
-    if (auxLevels != null) {
-      int clr_dim = auxValues.length;
-      auxLevels1[0] = new_colors[0][0];
-      auxLevels1[1] = new_colors[0][1];
-      auxLevels1[2] = new_colors[0][2];
-      if (clr_dim == 4)
-        auxLevels1[3] = new_colors[0][3];
-      auxLevels2[0] = new_colors[1][0];
-      auxLevels2[1] = new_colors[1][1];
-      auxLevels2[2] = new_colors[1][2];
-      if (clr_dim == 4)
-        auxLevels2[3] = new_colors[1][3];
-      if (n_lbls > 0) {
-        auxLevels3[0] = lbl_cc[0][0][0];
-        auxLevels3[1] = lbl_cc[0][0][1];
-        auxLevels3[2] = lbl_cc[0][0][2];
-        if (clr_dim == 4)
-          auxLevels3[3] = lbl_cc[0][0][3];
-      }
-    }
-
-    Trace.call1("Contour2d.final block");
-
-    if (contourDifficulty == Contour2D.EASY) {
-      vx1 = vvv[0][0];
-      vy1 = vvv[0][1];
-      vz1 = vvv[0][2];
-    } else { // contourDifficulty == Contour2D.HARD
-      int start = numv1[0];
-
-      float[][] vx_tmp = new float[1][];
-      float[][] vy_tmp = new float[1][];
-      float[][] vz_tmp = new float[1][];
-      float[] vx1_tmp = new float[numv];
-      float[] vy1_tmp = new float[numv];
-      float[] vz1_tmp = new float[numv];
-
-      byte[][] aux_tmp = null;
-      byte[][] aux1_tmp = null;
-      int clr_dim = 3;
-      if (auxLevels != null) {
-        clr_dim = auxValues.length;
-        aux_tmp = new byte[4][];
-        aux1_tmp = new byte[4][];
-        aux1_tmp[0] = new byte[numv];
-        aux1_tmp[1] = new byte[numv];
-        aux1_tmp[2] = new byte[numv];
-        if (clr_dim == 4)
-          aux1_tmp[3] = new byte[numv];
-      }
-
-      int cnt = 0;
-      for (int kk = 0; kk < ctrSet.qSet.length; kk++) {
-        ctrSet.qSet[kk].getArrays(vx, vy, auxLevels, vx_tmp, vy_tmp, vz_tmp,
-            aux_tmp, spatial_set);
-        int len = vx_tmp[0].length;
-        System.arraycopy(vx_tmp[0], 0, vx1_tmp, cnt, len);
-        System.arraycopy(vy_tmp[0], 0, vy1_tmp, cnt, len);
-        System.arraycopy(vz_tmp[0], 0, vz1_tmp, cnt, len);
-        if (auxLevels != null) {
-          System.arraycopy(aux_tmp[0], 0, aux1_tmp[0], cnt, len);
-          System.arraycopy(aux_tmp[1], 0, aux1_tmp[1], cnt, len);
-          System.arraycopy(aux_tmp[2], 0, aux1_tmp[2], cnt, len);
-          if (clr_dim == 4)
-            System.arraycopy(aux_tmp[3], 0, aux1_tmp[3], cnt, len);
-        }
-        cnt += len;
-      }
-
-      vx1 = new float[numv1[0] + cnt];
-      vy1 = new float[numv1[0] + cnt];
-      vz1 = new float[numv1[0] + cnt];
-      System.arraycopy(vvv[0][0], 0, vx1, 0, numv1[0]);
-      System.arraycopy(vvv[0][1], 0, vy1, 0, numv1[0]);
-      System.arraycopy(vvv[0][2], 0, vz1, 0, numv1[0]);
-      System.arraycopy(vx1_tmp, 0, vx1, start, cnt);
-      System.arraycopy(vy1_tmp, 0, vy1, start, cnt);
-      System.arraycopy(vz1_tmp, 0, vz1, start, cnt);
-
-      if (auxLevels != null) {
-        auxLevels1[0] = new byte[numv1[0] + cnt];
-        auxLevels1[1] = new byte[numv1[0] + cnt];
-        auxLevels1[2] = new byte[numv1[0] + cnt];
-        if (clr_dim == 4)
-          auxLevels1[3] = new byte[numv1[0] + cnt];
-
-        System.arraycopy(new_colors[0][0], 0, auxLevels1[0], 0, numv1[0]);
-        System.arraycopy(new_colors[0][1], 0, auxLevels1[1], 0, numv1[0]);
-        System.arraycopy(new_colors[0][2], 0, auxLevels1[2], 0, numv1[0]);
-        if (clr_dim == 4)
-          System.arraycopy(new_colors[0][3], 0, auxLevels1[3], 0, numv1[0]);
-
-        System.arraycopy(aux1_tmp[0], 0, auxLevels1[0], start, cnt);
-        System.arraycopy(aux1_tmp[1], 0, auxLevels1[1], start, cnt);
-        System.arraycopy(aux1_tmp[2], 0, auxLevels1[2], start, cnt);
-        if (clr_dim == 4)
-          System.arraycopy(aux1_tmp[3], 0, auxLevels1[3], start, cnt);
-      }
-
-      numv1[0] += cnt;
-
-      vx1_tmp = null;
-      vy1_tmp = null;
-      vz1_tmp = null;
-    }
-    Trace.call2("Contour2d.final block");
-
-    ctrSet.setGridValues(vx, vy);
-    ctrSet.setGridColors(auxLevels);
 
     return new ContourOutput(vx1, vy1, vz1, auxLevels1, // basic lines
         vx2, vy2, vz2, auxLevels2, // fill lines
         vx3, vy3, vz3, auxLevels3, // label lines
         vx4, vy4, vz4, // expanding lines
-        tri, tri_color, tri_normals, lbl_loc, lbl_vv, lbl_cc, ctrSet);
+        tri, tri_color, tri_normals, ctrSet);
 
   }
 
@@ -3259,18 +3124,13 @@ public class Contour2D {
     final byte[][] triangleColors;
     final float[][] triangleNormals;
 
-    final float[][][] labelLocations;
-    final float[][][][] labelVV;
-    final byte[][][][] labelCC;
-
-    private final ContourStripSet stripSet;
+    public final ContourStripSet stripSet;
 
     ContourOutput(float[] linesX, float[] linesY, float[] linesZ,
         byte[][] linesClr, float[] fillX, float[] fillY, float[] fillZ,
         byte[][] fillClr, float[] lblX, float[] lblY, float[] lblZ,
         byte[][] lblClr, float[] expX, float[] expY, float[] expZ,
-        float[][] tri, byte[][] triClr, float[][] triNorm, float[][][] lblLoc,
-        float[][][][] lblVV, byte[][][][] lblCC, ContourStripSet set) {
+        float[][] tri, byte[][] triClr, float[][] triNorm, ContourStripSet set) {
       linesXCoords = linesX;
       linesYCoords = linesY;
       linesZCoords = linesZ;
@@ -3289,10 +3149,6 @@ public class Contour2D {
       triangleCoords = tri;
       triangleColors = triClr;
       triangleNormals = triNorm;
-      labelLocations = lblLoc;
-      labelVV = lblVV;
-      labelCC = lblCC;
-
       stripSet = set;
     }
 
@@ -4062,6 +3918,12 @@ class ContourStripSet {
   /** Colors corresponding to grid values. */
   private byte[][] gridColors;
 
+  ArrayList<ContourLabelGeometry> labels = new ArrayList<ContourLabelGeometry>();
+  ArrayList<VisADLineStripArray> fillLines = new ArrayList<VisADLineStripArray>();
+  ArrayList<VisADLineStripArray> fillLinesStyled = new ArrayList<VisADLineStripArray>();
+  ArrayList<VisADLineStripArray> cntrLines = new ArrayList<VisADLineStripArray>();
+  ArrayList<VisADLineStripArray> cntrLinesStyled = new ArrayList<VisADLineStripArray>();
+
   /**
    * 
    * 
@@ -4290,120 +4152,14 @@ class ContourStripSet {
    *          Flags indicating which levels to dash.
    */
   void getLineColorArrays(float[] vx, float[] vy, byte[][] colors,
-      byte[] labelColor, int lev_idx, float[][][] out_vv, byte[][][] out_bb,
-      float[][][][] out_vvL, byte[][][][] out_bbL, float[][][] out_loc,
-      boolean[] dashed) {
+      byte[] labelColor, int lev_idx, boolean[] dashed) {
 
     int n_strips = vecArray[lev_idx].size();
 
-    float[][][][] la = new float[n_strips][2][][]; // line arrays
-    byte[][][][] ca = new byte[n_strips][2][][]; // color arrays
-    float[][][][][] laL = new float[n_strips][4][][][]; // line arrays for
-                                                        // labels
-    byte[][][][][] caL = new byte[n_strips][4][][][]; // color arrays for labels
-    float[][][][] locL = new float[n_strips][3][][]; // location arrays for
-                                                     // labels
-
-    // populate output arrays by strip
     for (int kk = 0; kk < n_strips; kk++) {
       ContourStrip cs = vecArray[lev_idx].get(kk);
       cs.isDashed = dashed[lev_idx];
-      cs.getLabeledLineColorArray(vx, vy, colors, labelColor, la[kk], ca[kk],
-          laL[kk], caL[kk], locL[kk]);
-    }
-
-    // -- contour/contour label gap line arrays
-    for (int tt = 0; tt < 2; tt++) {
-      int len = 0;
-      for (int mm = 0; mm < n_strips; mm++) {
-        if (la[mm][tt] != null) {
-          len += la[mm][tt][0].length;
-        }
-      }
-      out_vv[tt] = new float[3][len];
-      int cnt = 0;
-      for (int mm = 0; mm < n_strips; mm++) {
-        if (la[mm][tt] != null) {
-          System.arraycopy(la[mm][tt][0], 0, out_vv[tt][0], cnt,
-              la[mm][tt][0].length);
-          System.arraycopy(la[mm][tt][1], 0, out_vv[tt][1], cnt,
-              la[mm][tt][1].length);
-          System.arraycopy(la[mm][tt][2], 0, out_vv[tt][2], cnt,
-              la[mm][tt][1].length);
-          cnt += la[mm][tt][0].length;
-        }
-      }
-
-      int clr_dim = 0;
-      if (colors != null) {
-        clr_dim = colors.length;
-        len = 0;
-        for (int mm = 0; mm < n_strips; mm++) {
-          if (ca[mm][tt] != null) {
-            len += ca[mm][tt][0].length;
-          }
-        }
-        out_bb[tt] = new byte[clr_dim][len];
-        cnt = 0;
-        for (int mm = 0; mm < n_strips; mm++) {
-          if (ca[mm][tt] != null) {
-            for (int cc = 0; cc < clr_dim; cc++) {
-              System.arraycopy(ca[mm][tt][cc], 0, out_bb[tt][cc], cnt,
-                  ca[mm][tt][cc].length);
-            }
-            cnt += ca[mm][tt][0].length;
-          }
-        }
-      }
-    }
-
-    // -- label, vx3/vx4, line arrays
-    int n_lbl = 0; // total number of labels for this level
-    for (int mm = 0; mm < n_strips; mm++) {
-      if (laL[mm][0] != null) {
-        n_lbl += laL[mm][0].length;
-      }
-    }
-    out_vvL[0] = new float[n_lbl][][];
-    out_vvL[1] = new float[n_lbl][][];
-    out_vvL[2] = new float[n_lbl][][];
-    out_vvL[3] = new float[n_lbl][][];
-    out_bbL[0] = new byte[n_lbl][][];
-    out_bbL[1] = new byte[n_lbl][][];
-    out_bbL[2] = new byte[n_lbl][][];
-    out_bbL[3] = new byte[n_lbl][][];
-    out_loc[0] = new float[n_lbl][];
-    out_loc[1] = new float[n_lbl][];
-    out_loc[2] = new float[n_lbl][];
-
-    // fill label value and color arrays 
-    for (int tt = 0; tt < 4; tt++) { // left, left loc, right, right loc
-      n_lbl = 0;
-      for (int kk = 0; kk < n_strips; kk++) {
-        if (laL[kk][tt] != null) { // we have location for a label
-          for (int mm = 0; mm < laL[kk][tt].length; mm++) {
-            out_vvL[tt][n_lbl] = laL[kk][tt][mm];
-            if (caL[kk][tt] != null) {
-              out_bbL[tt][n_lbl] = caL[kk][tt][mm];
-            }
-            vecArray[lev_idx].get(kk).numLabels++;
-            n_lbl++;
-          }
-        }
-      }
-    }
-    
-    // fill label location arrays
-    for (int tt = 0; tt < 3; tt++) {
-      n_lbl = 0;
-      for (int kk = 0; kk < n_strips; kk++) {
-        if (locL[kk][0] != null) {
-          for (int mm = 0; mm < locL[kk][tt].length; mm++) {
-            out_loc[tt][n_lbl] = locL[kk][tt][mm];
-            n_lbl++;
-          }
-        }
-      }
+      cs.getLabeledLineColorArray(vx, vy, colors, labelColor);
     }
 
   }
@@ -4425,8 +4181,7 @@ class ContourStripSet {
    * @param contourDifficulty
    */
   void getLineColorArrays(float[] vx, float[] vy, byte[][] colors,
-      byte[] labelColor, float[][][] out_vv, byte[][][] out_bb,
-      float[][][][] out_vvL, byte[][][][] out_bbL, float[][][] out_loc,
+      byte[] labelColor,
       boolean[] dashFlags, int contourDifficulty) {
 
     if (contourDifficulty == Contour2D.EASY) {
@@ -4437,99 +4192,13 @@ class ContourStripSet {
       }
     }
 
-    float[][][][] tmp = new float[n_levs][2][][];
-    byte[][][][] btmp = new byte[n_levs][2][][];
-    float[][][][][] tmpL = new float[n_levs][4][][][];
-    byte[][][][][] btmpL = new byte[n_levs][4][][][];
-    float[][][][] tmpLoc = new float[n_levs][3][][];
-
     int n_lbl = 0;
 
     // set the line and color arrays for each level
     for (int kk = 0; kk < n_levs; kk++) {
-      getLineColorArrays(vx, vy, colors, labelColor, kk, tmp[kk], btmp[kk],
-          tmpL[kk], btmpL[kk], tmpLoc[kk], dashFlags);
-      
-      
-      // note the indexes to the labels for this level
-      labelIndexes[kk] = new int[tmpL[kk][0].length];
-      for (int ii = 0; ii < tmpL[kk][0].length; ii++) {
-        labelIndexes[kk][ii] = n_lbl + ii;
-      }
-      
-      n_lbl += tmpL[kk][0].length;
+      getLineColorArrays(vx, vy, colors, labelColor, kk, dashFlags);
     }
 
-    for (int tt = 0; tt < 2; tt++) {
-      int len = 0;
-      for (int kk = 0; kk < n_levs; kk++) {
-        len += tmp[kk][tt][0].length;
-      }
-      out_vv[tt] = new float[3][len];
-      int cnt = 0;
-      for (int lvl = 0; lvl < n_levs; lvl++) {
-        System.arraycopy(tmp[lvl][tt][0], 0, out_vv[tt][0], cnt,
-            tmp[lvl][tt][0].length);
-        System.arraycopy(tmp[lvl][tt][1], 0, out_vv[tt][1], cnt,
-            tmp[lvl][tt][0].length);
-        System.arraycopy(tmp[lvl][tt][2], 0, out_vv[tt][2], cnt,
-            tmp[lvl][tt][0].length);
-        cnt += tmp[lvl][tt][0].length;
-      }
-      int clr_dim = 0;
-      if (colors != null) {
-        clr_dim = colors.length;
-        len = 0;
-        for (int lvl = 0; lvl < n_levs; lvl++) {
-          len += btmp[lvl][tt][0].length;
-        }
-        out_bb[tt] = new byte[clr_dim][len];
-        cnt = 0;
-        for (int lvl = 0; lvl < n_levs; lvl++) {
-          for (int cc = 0; cc < clr_dim; cc++) {
-            System.arraycopy(btmp[lvl][tt][cc], 0, out_bb[tt][cc], cnt,
-                btmp[lvl][tt][cc].length);
-          }
-          cnt += btmp[lvl][tt][0].length;
-        }
-      }
-    }
-    btmp = null;
-
-    for (int tt = 0; tt < 4; tt++) { // left lines, left locs, 
-                                     // right lines, right locs
-      out_vvL[tt] = new float[n_lbl][][];
-      int cnt = 0;
-      for (int lvl = 0; lvl < n_levs; lvl++) {
-        for (int ll = 0; ll < tmpL[lvl][tt].length; ll++) {
-          out_vvL[tt][cnt] = tmpL[lvl][tt][ll];
-          cnt++;
-        }
-      }
-      out_bbL[tt] = new byte[n_lbl][][];
-      cnt = 0;
-      for (int lvl = 0; lvl < n_levs; lvl++) {
-        for (int ll = 0; ll < tmpL[lvl][tt].length; ll++) {
-          out_bbL[tt][cnt] = btmpL[lvl][tt][ll];
-          cnt++;
-        }
-      }
-    }
-    tmpL = null;
-    btmpL = null;
-
-    for (int tt = 0; tt < 3; tt++) { // x, y, z
-      out_loc[tt] = new float[n_lbl][];
-      int cnt = 0;
-      for (int lvl = 0; lvl < n_levs; lvl++) {
-        if (tmpLoc[lvl][tt] != null) {
-          for (int ll = 0; ll < tmpLoc[lvl][tt].length; ll++) {
-            out_loc[tt][cnt] = tmpLoc[lvl][tt][ll];
-            cnt++;
-          }
-        }
-      }
-    }
   }
 
   /**
@@ -4825,57 +4494,15 @@ class ContourStrip {
    * @param lbl_loc
    */
   void getLabeledLineColorArray(float[] vx, float[] vy, byte[][] colors,
-      byte[] labelColor, float[][][] out_vv, byte[][][] out_colors,
-      float[][][][] out_vvL, byte[][][][] out_colorsL, float[][][] lbl_loc) {
+      byte[] labelColor) {
 
     float[][] vv = getLineArray(vx, vy);
     byte[][] bb = getColorArray(colors);
 
-    processLineArrays(vv, bb, labelColor, out_vv, out_colors, out_vvL,
-        out_colorsL, lbl_loc);
+    processLineArrays(vv, bb, labelColor);
   }
 
-  /**
-   * Get an array of points where the number of points is doubled if the number
-   * of points is below a treshold.
-   * 
-   * @param vx
-   * @param vy
-   * @param colors
-   * @param labelColor
-   * @param out_vv
-   * @param out_colors
-   * @param out_vvL
-   * @param out_colorsL
-   * @param lbl_loc
-   * @deprecated J3D line styles are now used, so interrpretation is no longer
-   *             necessary.
-   */
-  void getInterpolatedLabeledColorArray(float[] vx, float[] vy,
-      byte[][] colors, byte[] labelColor, float[][][] out_vv,
-      byte[][][] out_colors, float[][][][] out_vvL, byte[][][][] out_colorsL,
-      float[][][] lbl_loc) {
-
-    byte[][] bb = getColorArray(colors);
-    byte[][] interp_bb = interpolateColorArray(bb);
-
-    float[][] vv = getLineArray(vx, vy);
-    float[][] interp_vv = interpolateLineArray(vv);
-
-    // BMF 2006-10-04
-    // interpolate twice if below threshhold to
-    // make sure there are visible labels
-    int ptCnt = vv.length / 2;
-    if (ptCnt < INTERP_THRESHHOLD) {
-      interp_bb = interpolateColorArray(interp_bb);
-      interp_vv = interpolateLineArray(interp_vv);
-    }
-
-    processLineArrays(interp_vv, interp_bb, labelColor, out_vv, out_colors,
-        out_vvL, out_colorsL, lbl_loc);
-  }
-
-  /**
+  /*/
    * Common line array code
    * 
    * @param vv_grid
@@ -4890,9 +4517,7 @@ class ContourStrip {
    * @param out_colorsL
    * @param lbl_loc
    */
-  private void processLineArrays(float[][] vv_grid, byte[][] bb,
-      byte[] labelColor, float[][][] out_vv, byte[][][] out_colors,
-      float[][][][] out_vvL, byte[][][][] out_colorsL, float[][][] lbl_loc) {
+  private void processLineArrays(float[][] vv_grid, byte[][] bb, byte[] labelColor) {
 
     float[][] vv = null;
 
@@ -4906,24 +4531,6 @@ class ContourStrip {
     if (bb != null)
       clr_dim = bb.length;
     int n_lbl = 1;
-
-    out_vvL[0] = null;
-    out_colorsL[0] = null;
-    out_vvL[1] = null;
-    out_colorsL[1] = null;
-    lbl_loc[0] = null;
-
-    out_vvL[2] = null;
-    out_colorsL[2] = null;
-    out_vvL[3] = null;
-    out_colorsL[3] = null;
-    lbl_loc[1] = null;
-    lbl_loc[2] = null;
-
-    out_vv[0] = vv;
-    out_colors[0] = bb;
-    out_vv[1] = null;
-    out_colors[1] = null;
 
     int totalPts = vv[0].length / 2;
 
@@ -4977,6 +4584,7 @@ class ContourStrip {
 
       // - total number of points skipped (removed)
       n_skip = (n_pairs_b + n_pairs_f) * 2;
+      // always start_break on even (1st in pair), stop_break on odd index (2nd in pair)
       if ((loc & 1) == 1) { // - odd
         start_break = loc - (1 + (n_pairs_b - 1) * 2);
         stop_break = loc + (2 + (n_pairs_f - 1) * 2);
@@ -4985,6 +4593,7 @@ class ContourStrip {
         stop_break = loc + (1 + (n_pairs_f - 1) * 2);
       }
 
+      /*-------LABEL START --------------------*/
       // - get the label vertices from the PlotDigits object for
       // - the isopleth value of the ContourStrip. 'B' arrays are
       // - for the flipped orientation.
@@ -5119,79 +4728,148 @@ class ContourStrip {
         }
       }
 
-      // - this sections creates the contour gap for the label
-      out_vvL[0] = new float[n_lbl][][];
-      out_colorsL[0] = new byte[n_lbl][][];
-      out_vvL[1] = new float[n_lbl][][];
-      out_colorsL[1] = new byte[n_lbl][][];
-      lbl_loc[0] = new float[n_lbl][7];
-      lbl_loc[0][0][0] = vv[0][loc];
-      lbl_loc[0][0][1] = vv[1][loc];
-      lbl_loc[0][0][2] = vv[2][loc];
-      out_vv[0] = new float[3][vv[0].length - n_skip];
-      out_vv[1] = new float[3][n_skip];
-      if (bb != null) {
-        out_colors[0] = new byte[clr_dim][bb[0].length - n_skip];
-        out_colors[1] = new byte[clr_dim][n_skip];
+      VisADLineArray label = null;
+      VisADLineArray labelAnchor = null;
+      try {
+        VisADLineArray labelA = new VisADLineArray();
+        VisADLineArray labelB = new VisADLineArray();
+        label = new VisADLineArray();
+        SampledSet.setGeometryArray(
+            labelA, new float[][] {lbl_dcoords[0], vy_tmp, lbl_dcoords[2]}, clr_dim, lbl_clr);
+        SampledSet.setGeometryArray(
+            labelB, new float[][] {vxB_tmp, lbl_dcoords[1], lbl_dcoords[2]}, clr_dim, lbl_clr);
+        SampledSet.setGeometryArray(
+            label, new float[][] {lbl_dcoords[0], lbl_dcoords[1], lbl_dcoords[2]}, clr_dim, lbl_clr);
+        labelAnchor = new VisADLineArray();
+        SampledSet.setGeometryArray(
+            labelAnchor, new float[][] {{vv[0][loc]}, {vv[1][loc]}, {vv[2][loc]}}, clr_dim, null);
       }
+      catch (Exception e) {
+        System.out.println(e.getMessage());
+      }
+      /*-------- LABEL DONE -------------------*/
+
+
+      // - this sections creates the contour gap for the label
 
       int s_pos = 0;
       int d_pos = 0;
       int cnt = start_break;
 
-      System.arraycopy(vv[0], s_pos, out_vv[0][0], d_pos, cnt);
-      System.arraycopy(vv[1], s_pos, out_vv[0][1], d_pos, cnt);
-      System.arraycopy(vv[2], s_pos, out_vv[0][2], d_pos, cnt);
-      if (bb != null) {
-        for (int cc = 0; cc < clr_dim; cc++) {
-          System.arraycopy(bb[cc], s_pos, out_colors[0][cc], d_pos, cnt);
-        }
+
+      //- make indexed
+      float[] lineCoords = new float[3*((start_break/2+1)+(((totalPts*2-start_break)-n_skip)/2)+1)];
+      byte[] lineColors = new byte[clr_dim*((start_break/2+1)+(((totalPts*2-start_break)-n_skip)/2)+1)];
+      float[] fillLineCoords = new float[3*(n_skip/2+1)];
+      byte[] fillLineColors = new byte[clr_dim*(n_skip/2+1)];
+      
+      int lineClrCnt=0;
+      int lineCnt=0;
+      lineCoords[lineCnt++] = vv[0][0];
+      lineCoords[lineCnt++] = vv[1][0];
+      lineCoords[lineCnt++] = vv[2][0];
+      for (int cc=0; cc<clr_dim; cc++) {
+        lineColors[lineClrCnt++] = bb[cc][0];
+      }
+      
+      for (int t=1; t<cnt; t+=2) {
+         lineCoords[lineCnt++] = vv[0][t];
+         lineCoords[lineCnt++] = vv[1][t];
+         lineCoords[lineCnt++] = vv[2][t];
+         for (int c=0; c<clr_dim; c++) {
+           lineColors[lineClrCnt++] = bb[c][t];
+         }
       }
 
+      // label fill line
       s_pos = start_break;
       d_pos = 0;
       cnt = n_skip;
 
-      System.arraycopy(vv[0], s_pos, out_vv[1][0], d_pos, cnt);
-      System.arraycopy(vv[1], s_pos, out_vv[1][1], d_pos, cnt);
-      System.arraycopy(vv[2], s_pos, out_vv[1][2], d_pos, cnt);
-      if (bb != null) {
-        for (int cc = 0; cc < clr_dim; cc++) {
-          System.arraycopy(bb[cc], s_pos, out_colors[1][cc], d_pos, cnt);
+
+      fillLineCoords[0] = vv[0][s_pos];
+      fillLineCoords[1] = vv[1][s_pos];
+      fillLineCoords[2] = vv[2][s_pos];
+      for (int cc=0; cc<clr_dim; cc++) {
+        fillLineColors[cc] = bb[cc][s_pos];
+      }
+      int kk=3;
+      int nn=clr_dim;
+      for (int t=1; t<n_skip; t+=2) {
+         fillLineCoords[kk++] = vv[0][s_pos+t];
+         fillLineCoords[kk++] = vv[1][s_pos+t];
+         fillLineCoords[kk++] = vv[2][s_pos+t];
+         for (int cc=0; cc<clr_dim; cc++) {
+           fillLineColors[nn++] = bb[cc][s_pos+t];
+         }
+      }
+
+      try {
+        VisADLineStripArray fillLineArray = new VisADLineStripArray();
+        fillLineArray.stripVertexCounts = new int[] {(n_skip/2)+1};
+        fillLineArray.vertexCount = (n_skip/2)+1;
+        fillLineArray.coordinates = fillLineCoords;
+        fillLineArray.colors = fillLineColors;
+        if (isDashed) {
+          css.fillLinesStyled.add(fillLineArray);
+        } 
+        else {
+          css.fillLines.add(fillLineArray);
         }
       }
+      catch (Exception e) {
+        System.out.println(e.getMessage());
+      }
+
+      //-- end label fill line;
+
 
       s_pos = stop_break + 1;
       d_pos = start_break;
       cnt = vv[0].length - s_pos;
 
-      System.arraycopy(vv[0], s_pos, out_vv[0][0], d_pos, cnt);
-      System.arraycopy(vv[1], s_pos, out_vv[0][1], d_pos, cnt);
-      System.arraycopy(vv[2], s_pos, out_vv[0][2], d_pos, cnt);
-      if (bb != null) {
-        for (int cc = 0; cc < clr_dim; cc++) {
-          System.arraycopy(bb[cc], s_pos, out_colors[0][cc], d_pos, cnt);
+      //- make indexed
+      lineCoords[lineCnt++] = vv[0][s_pos];
+      lineCoords[lineCnt++] = vv[1][s_pos];
+      lineCoords[lineCnt++] = vv[2][s_pos];
+      for (int cc=0; cc<clr_dim; cc++) {
+        lineColors[lineClrCnt++] = bb[cc][s_pos];
+      }
+
+      for (int t=1; t<((totalPts*2-start_break)-n_skip); t+=2) {
+         lineCoords[lineCnt++] = vv[0][s_pos+t];
+         lineCoords[lineCnt++] = vv[1][s_pos+t];
+         lineCoords[lineCnt++] = vv[2][s_pos+t];
+         for (int c=0; c<clr_dim; c++) {
+           lineColors[lineClrCnt++] = bb[c][s_pos+t];
+         }
+      }
+
+      try {
+        VisADLineStripArray lineArray = new VisADLineStripArray();
+        lineArray.stripVertexCounts = new int[] {(start_break/2)+1,(((totalPts*2-start_break)-n_skip)/2)+1};
+        lineArray.vertexCount = lineArray.stripVertexCounts[0] + lineArray.stripVertexCounts[1];
+        lineArray.coordinates = lineCoords;
+        lineArray.colors = lineColors;
+        if (isDashed) {
+          css.cntrLinesStyled.add(lineArray);
+        }
+        else {
+          css.cntrLines.add(lineArray);
         }
       }
+      catch (Exception e) {
+        System.out.println(e.getMessage());
+      }
+
       // --- end label gap code
 
       // --- expanding/contracting left-right segments
 
-      out_vvL[2] = new float[n_lbl][3][2];
-      out_vvL[3] = new float[n_lbl][3][2];
-      lbl_loc[1] = new float[n_lbl][3];
-      lbl_loc[2] = new float[n_lbl][3];
-      if (bb != null) {
-        out_colorsL[2] = new byte[n_lbl][clr_dim][2];
-        out_colorsL[3] = new byte[n_lbl][clr_dim][2];
-      }
       // - left
       s_pos = start_break;
       d_pos = 0;
       cnt = 2;
-      lbl_loc[1][0][0] = vv[0][s_pos];
-      lbl_loc[1][0][1] = vv[1][s_pos];
-      lbl_loc[1][0][2] = vv[2][s_pos];
 
       // - unit left
       float dx = vv[0][loc] - vv[0][s_pos];
@@ -5205,27 +4883,35 @@ class ContourStrip {
       dx *= mm;
       dy *= mm;
       dz *= mm;
-      out_vvL[2][0][0][0] = vv[0][s_pos];
-      out_vvL[2][0][1][0] = vv[1][s_pos];
-      out_vvL[2][0][2][0] = vv[2][s_pos];
-      out_vvL[2][0][0][1] = vv[0][s_pos] + dx;
-      out_vvL[2][0][1][1] = vv[1][s_pos] + dy;
-      out_vvL[2][0][2][1] = vv[2][s_pos] + dz;
-      lbl_loc[0][0][3] = lbl_half;
-      lbl_loc[0][0][4] = dd;
+      byte[][] segColors = new byte[clr_dim][2];
       if (bb != null) {
         for (int cc = 0; cc < clr_dim; cc++) {
-          System.arraycopy(bb[cc], s_pos, out_colorsL[2][0][cc], d_pos, cnt);
+          System.arraycopy(bb[cc], s_pos, segColors[cc], d_pos, cnt);
         }
       }
+
+      VisADLineArray expSegLeft = null;
+      VisADLineArray segLeftAnchor = null;
+      try {
+      expSegLeft = new VisADLineArray();
+      SampledSet.setGeometryArray(expSegLeft, 
+        new float[][] { {vv[0][s_pos], vv[0][s_pos]+dx},
+                        {vv[1][s_pos], vv[1][s_pos]+dy}, 
+                        {vv[2][s_pos], vv[2][s_pos]+dz} }, clr_dim, segColors);
+      segLeftAnchor = new VisADLineArray();
+      SampledSet.setGeometryArray(segLeftAnchor, 
+        new float[][] {{vv[0][s_pos]}, {vv[1][s_pos]}, {vv[2][s_pos]}}, clr_dim, null);
+      }
+      catch (Exception e) {
+        System.out.println(e.getMessage());
+      }
+      float[] segLeftScaleInfo = new float[] {lbl_half, dd};
+
 
       // - right
       s_pos = stop_break - 1;
       d_pos = 0;
       cnt = 2;
-      lbl_loc[2][0][0] = vv[0][stop_break];
-      lbl_loc[2][0][1] = vv[1][stop_break];
-      lbl_loc[2][0][2] = vv[2][stop_break];
 
       // - unit right
       dx = vv[0][loc] - vv[0][stop_break];
@@ -5239,38 +4925,77 @@ class ContourStrip {
       dx *= mm;
       dy *= mm;
       dz *= mm;
-      out_vvL[3][0][0][0] = vv[0][stop_break];
-      out_vvL[3][0][1][0] = vv[1][stop_break];
-      out_vvL[3][0][2][0] = vv[2][stop_break];
-      out_vvL[3][0][0][1] = vv[0][stop_break] + dx;
-      out_vvL[3][0][1][1] = vv[1][stop_break] + dy;
-      out_vvL[3][0][2][1] = vv[2][stop_break] + dz;
-      lbl_loc[0][0][5] = lbl_half;
-      lbl_loc[0][0][6] = dd;
+      segColors = new byte[clr_dim][2];
       if (bb != null) {
         for (int cc = 0; cc < clr_dim; cc++) {
-          System.arraycopy(bb[cc], s_pos, out_colorsL[3][0][cc], d_pos, cnt);
+          System.arraycopy(bb[cc], s_pos, segColors[cc], d_pos, cnt);
         }
       }
+
+      VisADLineArray expSegRight = null;
+      VisADLineArray segRightAnchor = null;
+      try {
+        expSegRight = new VisADLineArray();
+        SampledSet.setGeometryArray(expSegRight,
+          new float[][] {{vv[0][stop_break], vv[0][stop_break]+dx},
+                         {vv[1][stop_break], vv[1][stop_break]+dy},
+                         {vv[2][stop_break], vv[2][stop_break]+dz}}, clr_dim, segColors);
+        segRightAnchor = new VisADLineArray();
+        SampledSet.setGeometryArray(segRightAnchor,
+          new float[][] {{vv[0][stop_break]}, {vv[1][stop_break]}, {vv[2][stop_break]}}, clr_dim, null);
+      }
+      catch (Exception e) {
+        System.out.println(e.getMessage());
+      }
+      float[] segRightScaleInfo = new float[] {lbl_half, dd};
+
       // ----- end expanding/contracting line segments
 
-      // --- label vertices
-      out_vvL[0][0] = new float[3][];
-      out_vvL[0][0][0] = lbl_dcoords[0];
-      out_vvL[0][0][1] = vy_tmp;
-      out_colorsL[0][0] = lbl_clr;
-      out_vvL[1][0] = new float[3][];
-      out_vvL[1][0][0] = vxB_tmp;
-      out_vvL[1][0][1] = lbl_dcoords[1];
-      out_colorsL[1][0] = lbl_clr;
-      out_vvL[0][0][2] = lbl_dcoords[2];
-      out_vvL[1][0][2] = lbl_dcoords[2];
-    } else { // - no label
-      out_vv[0] = vv;
-      out_colors[0] = bb;
-      out_vv[1] = null;
-      out_colors[1] = null;
-      return;
+      ContourLabelGeometry ctrLabel =
+         new ContourLabelGeometry(label, labelAnchor, expSegLeft, segLeftAnchor, segLeftScaleInfo,
+                                  expSegRight, segRightAnchor, segRightScaleInfo);
+      ctrLabel.isStyled = isDashed; 
+      css.labels.add(ctrLabel);
+    } else { // no label 
+      float[] lineCoords = new float[3*(totalPts+1)];
+      byte[] lineColors = new byte[clr_dim*(totalPts+1)];
+
+      int lineClrCnt=0;
+      int lineCnt=0;
+      lineCoords[lineCnt++] = vv[0][0];
+      lineCoords[lineCnt++] = vv[1][0];
+      lineCoords[lineCnt++] = vv[2][0];
+      for (int cc=0; cc<clr_dim; cc++) {
+        lineColors[lineClrCnt++] = bb[cc][0];
+      }
+
+      for (int t=1; t<totalPts*2; t+=2) {
+         lineCoords[lineCnt++] = vv[0][t];
+         lineCoords[lineCnt++] = vv[1][t];
+         lineCoords[lineCnt++] = vv[2][t];
+         for (int c=0; c<clr_dim; c++) {
+           lineColors[lineClrCnt++] = bb[c][t];
+         }
+      }
+
+      try {
+        VisADLineStripArray lineArray = new VisADLineStripArray();
+        lineArray.stripVertexCounts = new int[] {(totalPts)+1};
+        lineArray.vertexCount = lineArray.stripVertexCounts[0];
+        lineArray.coordinates = lineCoords;
+        lineArray.colors = lineColors;
+        if (totalPts >= 2) {
+          if (isDashed) {
+            css.cntrLinesStyled.add(lineArray);
+          }
+          else {
+            css.cntrLines.add(lineArray);
+          }
+        }
+      }
+      catch (Exception e) {
+        System.out.println(e.getMessage());
+      }
     }
   }
 
