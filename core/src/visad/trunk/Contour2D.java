@@ -264,8 +264,6 @@ public class Contour2D {
       double label_size, byte[] labelColor, Gridded3DSet spatial_set)
       throws VisADException {
 
-    System.err.println("Using new");
-    
     dash = fill ? false : dash;
     PlotDigits plot = new PlotDigits();
     int ir, ic;
@@ -4390,17 +4388,18 @@ class ContourStrip {
       clr_dim = bb.length;
 
     int totalPts = vv[0].length / 2;
+    int loc = 0;
+    int pos = 0;
 
     if ((totalPts > LBL_ALGM_THRESHHOLD && ((lev_idx & 1) == 1))
         || css.n_levs == 1) {
-      // if ((lev_idx & 1) == 1 || css.n_levs == 1) {
       isLabeled = true;
-      int loc = (vv[0].length) / 2; // - start at half-way pt.
+      loc = (vv[0].length) / 2; // - start at half-way pt.
       int n_pairs_b = 1;
       int n_pairs_f = 1;
       boolean found = false;
       float ctr_dist;
-      int pos = loc;
+      pos = loc;
 
       // - compute distance between label location (loc) and points
       // - on each side, when greater than lbl_half - stop. This
@@ -4449,6 +4448,15 @@ class ContourStrip {
         start_break = loc - (2 + (n_pairs_b - 1) * 2);
         stop_break = loc + (1 + (n_pairs_f - 1) * 2);
       }
+
+    }
+
+    boolean doLabel = false;
+    //- check if label blocks out too may points
+    if (start_break >= 4 && stop_break <= totalPts*2-3) doLabel = true;
+
+    if (doLabel && ((lev_idx & 1) == 1)) 
+    {
 
       /*-------LABEL START --------------------*/
       // - get the label vertices from the PlotDigits object for
