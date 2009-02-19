@@ -2047,47 +2047,6 @@ public class Gridded3DSet extends GriddedSet {
         styled.toArray(new VisADLineStripArray[0]) };
   }
 
-  /**
-   * Process the expanding label lines to determine which are to be styled.
-   * Lines are styled if the <code>ContourStrip</code> they are associated with
-   * are styled.
-   * 
-   * @param expLines
-   *          Should be of dimension (number of labels * 6) where the dimensions
-   *          are as follows:
-   * 
-   * <pre>
-   *  expLines[label_idx*6+0] = right segment lines for the label at label_idx
-   *  expLines[label_idx*6+1] = right locations for the label at label_idx
-   *  expLines[label_idx*6+2] = left segment lines for the label at label_idx
-   *  expLines[label_idx*6+3] = left locations for the label at label_idx
-   *  expLines[label_idx*6+4] = right segment lines for the label at index label_idx
-   *                            if the segment at label_idx is styled, null otherwise
-   *  expLines[label_idx*6+5] = left segment lines for the label at index label_idx
-   *                            if the segment at label_idx is styled, null otherwise
-   * </pre>
-   * @param contour
-   *          Initialized output from <code>Contour2D.contour</code>.
-   */
-  private void processStyledExpLines(VisADGeometryArray[] expLines,
-      Contour2D.ContourOutput contour) {
-    
-    for (int lvlIdx = 0; lvlIdx < contour.getIntervalCount(); lvlIdx++) {
-      Vector<ContourStrip> strips = contour.getStrips(lvlIdx);
-      if (strips.size() > 0) {
-        ContourStrip strip = strips.get(0);
-        if (strip.isDashed) { // assume if one is dashed they all are
-          int[] idxs = contour.getLabelIndexes(lvlIdx);
-          for (int idx : idxs) {
-            // just copy a reference
-            expLines[idx * 6 + 4] = expLines[idx * 6];
-            expLines[idx * 6 + 5] = expLines[idx * 6 + 2];
-          }
-        }
-      }
-    }
-  }
-
   /*
    * (non-Javadoc)
    * 
