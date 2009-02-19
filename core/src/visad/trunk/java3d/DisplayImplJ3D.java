@@ -148,6 +148,21 @@ public class DisplayImplJ3D extends DisplayImpl {
   /** Field for specifying that the DisplayImpl transforms but does not render */
   public static final int TRANSFORM_ONLY = 4;
 
+  /** 
+   * Property name for setting whether to use geometry by reference.
+   * @see #GEOMETRY_BY_REF
+   */
+  public static final String PROP_GEOMETRY_BY_REF = "visad.java3d.geometryByRef";
+  /**
+   * Indicates whether to use geometry by reference when creating geometry arrays.
+   * @see javax.media.j3d.GeometryArray#BY_REFERENCE
+   */
+  public static final boolean GEOMETRY_BY_REF;
+  static {
+    GEOMETRY_BY_REF = Boolean.parseBoolean(System.getProperty(PROP_GEOMETRY_BY_REF, "false"));
+    System.err.println("GEOMETRY_BY_REF:" + GEOMETRY_BY_REF);
+  }
+
   /** this is used for APPLETFRAME */
   private DisplayAppletJ3D applet = null;
 
@@ -443,26 +458,34 @@ public class DisplayImplJ3D extends DisplayImpl {
     return apiValue;
   }
 
-  public GeometryArray makeGeometry(VisADGeometryArray vga)
-         throws VisADException {
+  private void setGeometryCapabilities(GeometryArray array) {
+    array.setCapability(GeometryArray.ALLOW_COLOR_READ);
+    array.setCapability(GeometryArray.ALLOW_COORDINATE_READ);
+    array.setCapability(GeometryArray.ALLOW_COUNT_READ);
+    array.setCapability(GeometryArray.ALLOW_FORMAT_READ);
+    array.setCapability(GeometryArray.ALLOW_NORMAL_READ);
+    array.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
+    
+    // only used when using BY_REFERENCE, so just set it anyways
+    //array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
+  }
+  
+  public GeometryArray makeGeometry(VisADGeometryArray vga) throws VisADException {
     if (vga == null) return null;
-
+    
     boolean mode2d = getDisplayRenderer().getMode2D();
+    int vertexFormat = makeFormat(vga);
 
     if (vga instanceof VisADIndexedTriangleStripArray) {
       /* this is the 'normal' makeGeometry */
       VisADIndexedTriangleStripArray vgb = (VisADIndexedTriangleStripArray) vga;
       if (vga.vertexCount == 0) return null;
       IndexedTriangleStripArray array =
-        new IndexedTriangleStripArray(vga.vertexCount, makeFormat(vga),
+        new IndexedTriangleStripArray(vga.vertexCount, vertexFormat,
                                       vgb.indexCount, vgb.stripVertexCounts);
-     array.setCapability(GeometryArray.ALLOW_COLOR_READ);
-     array.setCapability(GeometryArray.ALLOW_COORDINATE_READ);
-     array.setCapability(GeometryArray.ALLOW_COUNT_READ);
-     array.setCapability(GeometryArray.ALLOW_FORMAT_READ);
-     array.setCapability(GeometryArray.ALLOW_NORMAL_READ);
-     // array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
-     array.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
+     
+      setGeometryCapabilities(array);
+     
       basicGeometry(vga, array, mode2d);
       if (vga.coordinates != null) {
         array.setCoordinateIndices(0, vgb.indices);
@@ -583,28 +606,15 @@ public class DisplayImplJ3D extends DisplayImpl {
       VisADTriangleStripArray vgb = (VisADTriangleStripArray) vga;
       if (vga.vertexCount == 0) return null;
       TriangleStripArray array =
-        new TriangleStripArray(vga.vertexCount, makeFormat(vga),
-                               vgb.stripVertexCounts);
-      array.setCapability(GeometryArray.ALLOW_COLOR_READ);
-      array.setCapability(GeometryArray.ALLOW_COORDINATE_READ);
-      array.setCapability(GeometryArray.ALLOW_COUNT_READ);
-      array.setCapability(GeometryArray.ALLOW_FORMAT_READ);
-      array.setCapability(GeometryArray.ALLOW_NORMAL_READ);
-      // array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
-      array.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
+        new TriangleStripArray(vga.vertexCount, vertexFormat, vgb.stripVertexCounts);
+      setGeometryCapabilities(array);
       basicGeometry(vga, array, mode2d);
       return array;
     }
     else if (vga instanceof VisADLineArray) {
       if (vga.vertexCount == 0) return null;
-      LineArray array = new LineArray(vga.vertexCount, makeFormat(vga));
-      array.setCapability(GeometryArray.ALLOW_COLOR_READ);
-      array.setCapability(GeometryArray.ALLOW_COORDINATE_READ);
-      array.setCapability(GeometryArray.ALLOW_COUNT_READ);
-      array.setCapability(GeometryArray.ALLOW_FORMAT_READ);
-      array.setCapability(GeometryArray.ALLOW_NORMAL_READ);
-      // array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
-      array.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
+      LineArray array = new LineArray(vga.vertexCount, vertexFormat);
+      setGeometryCapabilities(array);
       basicGeometry(vga, array, false);
       return array;
     }
@@ -612,54 +622,29 @@ public class DisplayImplJ3D extends DisplayImpl {
       if (vga.vertexCount == 0) return null;
       VisADLineStripArray vgb = (VisADLineStripArray) vga;
       LineStripArray array =
-        new LineStripArray(vga.vertexCount, makeFormat(vga),
-                           vgb.stripVertexCounts);
-      array.setCapability(GeometryArray.ALLOW_COLOR_READ);
-      array.setCapability(GeometryArray.ALLOW_COORDINATE_READ);
-      array.setCapability(GeometryArray.ALLOW_COUNT_READ);
-      array.setCapability(GeometryArray.ALLOW_FORMAT_READ);
-      array.setCapability(GeometryArray.ALLOW_NORMAL_READ);
-      // array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
-      array.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
+        new LineStripArray(vga.vertexCount, vertexFormat, vgb.stripVertexCounts);
+      setGeometryCapabilities(array);
       basicGeometry(vga, array, false);
       return array;
     }
     else if (vga instanceof VisADPointArray) {
       if (vga.vertexCount == 0) return null;
-      PointArray array = new PointArray(vga.vertexCount, makeFormat(vga));
-      array.setCapability(GeometryArray.ALLOW_COLOR_READ);
-      array.setCapability(GeometryArray.ALLOW_COORDINATE_READ);
-      array.setCapability(GeometryArray.ALLOW_COUNT_READ);
-      array.setCapability(GeometryArray.ALLOW_FORMAT_READ);
-      array.setCapability(GeometryArray.ALLOW_NORMAL_READ);
-      // array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
-      array.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
+      PointArray array = new PointArray(vga.vertexCount, vertexFormat);
+      setGeometryCapabilities(array);
       basicGeometry(vga, array, false);
       return array;
     }
     else if (vga instanceof VisADTriangleArray) {
       if (vga.vertexCount == 0) return null;
-      TriangleArray array = new TriangleArray(vga.vertexCount, makeFormat(vga));
-      array.setCapability(GeometryArray.ALLOW_COLOR_READ);
-      array.setCapability(GeometryArray.ALLOW_COORDINATE_READ);
-      array.setCapability(GeometryArray.ALLOW_COUNT_READ);
-      array.setCapability(GeometryArray.ALLOW_FORMAT_READ);
-      array.setCapability(GeometryArray.ALLOW_NORMAL_READ);
-      // array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
-      array.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
+      TriangleArray array = new TriangleArray(vga.vertexCount, vertexFormat);
+      setGeometryCapabilities(array);
       basicGeometry(vga, array, mode2d);
       return array;
     }
     else if (vga instanceof VisADQuadArray) {
       if (vga.vertexCount == 0) return null;
-      QuadArray array = new QuadArray(vga.vertexCount, makeFormat(vga));
-      array.setCapability(GeometryArray.ALLOW_COLOR_READ);
-      array.setCapability(GeometryArray.ALLOW_COORDINATE_READ);
-      array.setCapability(GeometryArray.ALLOW_COUNT_READ);
-      array.setCapability(GeometryArray.ALLOW_FORMAT_READ);
-      array.setCapability(GeometryArray.ALLOW_NORMAL_READ);
-      // array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
-      array.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
+      QuadArray array = new QuadArray(vga.vertexCount, vertexFormat);
+      setGeometryCapabilities(array);
       basicGeometry(vga, array, mode2d);
       return array;
     }
@@ -667,26 +652,39 @@ public class DisplayImplJ3D extends DisplayImpl {
       throw new DisplayException("DisplayImplJ3D.makeGeometry");
     }
   }
-
-  private void basicGeometry(VisADGeometryArray vga,
-                             GeometryArray array, boolean mode2d) {
+  
+  private void basicGeometry(VisADGeometryArray vga, GeometryArray array, boolean mode2d) {
+    
     if (mode2d) {
       if (vga.coordinates != null) {
         int len = vga.coordinates.length;
         float[] coords = new float[len];
         System.arraycopy(vga.coordinates, 0, coords, 0, len);
         for (int i=2; i<len; i+=3) coords[i] = BACK2D;
-        array.setCoordinates(0, coords);
+        if (GEOMETRY_BY_REF) array.setCoordRefFloat(coords);
+        else array.setCoordinates(0, coords);
       }
     }
     else {
-      if (vga.coordinates != null) array.setCoordinates(0, vga.coordinates);
+      if (vga.coordinates != null) {
+        if (GEOMETRY_BY_REF) array.setCoordRefFloat(vga.coordinates);
+        else array.setCoordinates(0, vga.coordinates);
+      }
     }
-    if (vga.colors != null) array.setColors(0, vga.colors);
-    if (vga.normals != null) array.setNormals(0, vga.normals);
-    if (vga.texCoords != null) array.setTextureCoordinates(0, vga.texCoords);
+    if (vga.colors != null) {
+      if (GEOMETRY_BY_REF) array.setColorRefByte(vga.colors);
+      else array.setColors(0, vga.colors);
+    }
+    if (vga.normals != null) {
+      if (GEOMETRY_BY_REF) array.setNormalRefFloat(vga.normals);
+      else array.setNormals(0, vga.normals);
+    }
+    if (vga.texCoords != null) {
+      if (GEOMETRY_BY_REF) array.setTexCoordRefFloat(0, vga.texCoords);
+      else array.setTextureCoordinates(0, vga.texCoords);
+    }
   }
-
+  
   private static int makeFormat(VisADGeometryArray vga) {
     int format = 0;
     if (vga.coordinates != null) format |= GeometryArray.COORDINATES;
@@ -707,6 +705,7 @@ public class DisplayImplJ3D extends DisplayImpl {
         format |= GeometryArray.TEXTURE_COORDINATE_3;
       }
     }
+    if (GEOMETRY_BY_REF) format |= GeometryArray.BY_REFERENCE;
     return format;
   }
 
