@@ -117,8 +117,8 @@ public class VisADCanvasJ3D extends Canvas3D {
       Integer hProp = null;
       Canvas3D cnvs = new Canvas3D(myConfig);
       try {
-        java.lang.reflect.Method method = cnvs.getClass().getMethod("queryProperties", null); 
-        java.util.Map propertiesMap = (java.util.Map) method.invoke(cnvs, null);
+        java.lang.reflect.Method method = cnvs.getClass().getMethod("queryProperties", (Class[]) null); 
+        java.util.Map propertiesMap = (java.util.Map) method.invoke(cnvs, (Object[]) null);
         wProp = (Integer) propertiesMap.get("textureWidthMax");
         hProp = (Integer) propertiesMap.get("textureHeightMax");
       }
