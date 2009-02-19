@@ -3864,7 +3864,8 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
                   for (int j = 0; j < 4; j++) {
                     if (j != 2) { // don't adjust label fill lines
                       if (array_s[j] != null) {
-                      for (VisADGeometryArray arr : array_s[j]) {
+                      for (int k=0; k< array_s[j].length; k++) {
+                        VisADGeometryArray arr = array_s[j][k];
                         try {
                           if (arr != null) {
                           arr = arr.adjustLongitude(renderer);
@@ -3873,10 +3874,12 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
                         } catch (Exception e) {
                           e.printStackTrace();
                         }
+                        array_s[j][k] = arr;
                       }
                      }
                     }
                   }
+
                   if (labelLines != null) {
                     for (int k = 0; k < (labelLines.length); k++) {
                       labelLines[k] = labelLines[k].adjustLongitude(renderer);
