@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2008 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2009 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -50,7 +50,7 @@ import java.rmi.RemoteException;
  * @author Don Murray
  * @author Jeffrey Albert Bergamini 
  *    (http://srproj.lib.calpoly.edu/projects/csc/jbergam/reports/final.html)
- * @version $Revision: 1.9 $ $Date: 2008-02-05 20:26:07 $
+ * @version $Revision: 1.10 $ $Date: 2009-03-02 23:35:48 $
  */
 public class UsgsDemAdapter {
 

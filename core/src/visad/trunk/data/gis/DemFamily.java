@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2008 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2009 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -53,7 +53,7 @@ import java.net.URL;
  * @see  visad.data.gis.UsgsDemForm;
  * @see  visad.data.gis.ArcAsciiGridForm;
  * @author Don Murray
- * @version $Revision: 1.5 $ $Date: 2008-02-05 20:26:07 $
+ * @version $Revision: 1.6 $ $Date: 2009-03-02 23:35:48 $
  */
 public class DemFamily extends FunctionFormFamily implements FormFileInformer{
 

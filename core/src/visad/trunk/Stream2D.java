@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2007 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2009 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -26,7 +26,7 @@ MA 02111-1307, USA
 
 package visad;
 
-public class Stream2D 
+public class Stream2D
 {
 
 /*
@@ -207,14 +207,14 @@ static void stream_trace( float[] ugrid, float[] vgrid, int nr, int nc,
       vc = tmp;
     }
 
-    /*- make line segment 
+    /*- make line segment
     ----------------------*/
     vr[num]   = prevrow;
     vc[num++] = prevcol;
     vr[num]   = row;
     vc[num++] = col;
 
-    /* mark start box 
+    /* mark start box
     ---------------------*/
     irs = ( (int) (nrstart * (row) / ((float) nr-1.0) ) );
     ics = ( (int) (ncstart * (col) / ((float) nc-1.0) ) );
@@ -224,7 +224,7 @@ static void stream_trace( float[] ugrid, float[] vgrid, int nr, int nc,
     }
 
 
-    /*- check for need to draw arrow head 
+    /*- check for need to draw arrow head
     --------------------------------------*/
     ira = ( (int) (nrarrow * (row) / ((float) nr-1.0) ) );
     ica = ( (int) (ncarrow * (col) / ((float) nc-1.0) ) );
@@ -346,9 +346,9 @@ public static int stream( float[] ugrid, float[] vgrid, int nr, int nc,
   n_end_per_cell  = packingFactor*8f*n_start_per_cell;
 
 
-  nrstart = (int) (n_start_per_cell * nr); 
+  nrstart = (int) (n_start_per_cell * nr);
   nrarrow = nrstart;
-  ncstart = (int) (n_start_per_cell * nc); 
+  ncstart = (int) (n_start_per_cell * nc);
   ncarrow = ncstart;
   nrend   = (int) (n_end_per_cell * nr);
   ncend   = (int) (n_end_per_cell * nc);
@@ -425,7 +425,7 @@ public static int stream( float[] ugrid, float[] vgrid, int nr, int nc,
   /* iterate over start boxes */
   for (icstart=0; icstart<ncstart; icstart++) {
     for (irstart=0; irstart<nrstart; irstart++) {
-      
+
       cnt = 0;
       if (markstart[icstart*nrstart + irstart] == 0) {
         markstart[ icstart*nrstart + irstart ] = 1;
@@ -437,7 +437,7 @@ public static int stream( float[] ugrid, float[] vgrid, int nr, int nc,
         icend = ( (int) (ncend * (col) / ((float) nc-1f) ) );
 
         markend[icend*nrend + irend] = 1;
-        
+
         if (n_lines == vr[0].length) {
           float[][] f_tmp = new float[vr[0].length + 50][];
           System.arraycopy(vr[0], 0, f_tmp, 0, vr[0].length);
@@ -540,7 +540,7 @@ public static int stream( float[] ugrid, float[] vgrid, int nr, int nc,
           ftmp = new float[num[0]];
           System.arraycopy(vc[0][n_lines], 0, ftmp, 0, ftmp.length);
           vc[0][n_lines] = ftmp;
-          
+
           numv[0][n_lines] = num[0];
           n_lines++;
         }

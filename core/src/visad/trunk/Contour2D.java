@@ -4,7 +4,7 @@
 
 /*
  VisAD system for interactive analysis and visualization of numerical
- data.  Copyright (C) 1996 - 2008 Bill Hibbard, Curtis Rueden, Tom
+ data.  Copyright (C) 1996 - 2009 Bill Hibbard, Curtis Rueden, Tom
  Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
  Tommy Jasmin.
 
@@ -22,7 +22,7 @@
  License along with this library; if not, write to the Free
  Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
  MA 02111-1307, USA
- */
+*/
 
 package visad;
 
@@ -69,19 +69,19 @@ public class Contour2D {
    * Compute contour lines for a 2-D array. If the interval is negative, then
    * contour lines less than base will be drawn as dashed lines. The contour
    * lines will be computed for all V such that:
-   * 
+   *
    * <pre>
    * lowlimit &lt;= V &lt;= highlimit
    * </pre>
-   * 
+   *
    * and
-   * 
+   *
    * <pre>
    * V = base + n*interval  for some integer n
    * </pre>
-   * 
+   *
    * Note that the input array, g, should be in column-major (FORTRAN) order.
-   * 
+   *
    * @param g
    *          the 2-D array to contour.
    * @param nr
@@ -160,7 +160,7 @@ public class Contour2D {
    * @param label_size
    * @param labelColor
    * @param spatial_set
-   * 
+   *
    * @throws VisADException
    */
   public static void contour(float g[], int nr, int nc, float interval,
@@ -188,7 +188,7 @@ public class Contour2D {
   /**
    * Returns an array of contour values and an indication on whether to use
    * dashed lines below the base value.
-   * 
+   *
    * @param interval
    *          The contouring interval. Must be non-zero. If the interval is
    *          negative, then contour lines less than the base will be drawn as
@@ -205,7 +205,7 @@ public class Contour2D {
    *          NaN. dash Whether or not contour lines less than the base should
    *          be drawn as dashed lines. This is a computed and returned value.
    * @param dash
-   * 
+   *
    * @return
    * @throws VisADException
    *           The contour interval is zero or too small.
@@ -480,7 +480,7 @@ public class Contour2D {
     /*
      * set up mark array mark= 0 if avail for label center, 2 if in label, and 1
      * if not available and not in label
-     * 
+     *
      * lr and lc give label size in grid boxes lrr and lcc give unavailable
      * radius
      */
@@ -677,14 +677,14 @@ public class Contour2D {
          * interval; clow = base + interval (( (tmp1) >= 0 ? (int) ((tmp1) +
          * 0.5) : (int) ((tmp1)-0.5) )-1); while (clow<gMin) { clow += interval;
          * }
-         * 
+         *
          * tmp1 = (gMax-base) / interval; chi = base + interval (( (tmp1) >= 0 ?
          * (int) ((tmp1) + 0.5) : (int) ((tmp1)-0.5) )+1); while (chi>gMax) {
          * chi -= interval; }
-         * 
+         *
          * // how many contour lines in the box: tmp1 = (chi-clow) / interval;
          * numc = 1+( (tmp1) >= 0 ? (int) ((tmp1) + 0.5) : (int) ((tmp1)-0.5) );
-         * 
+         *
          * // gg is current contour line value gg = clow;
          */
 
@@ -1377,8 +1377,8 @@ public class Contour2D {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param g
    * @param n_lines
    * @param vx
@@ -1475,8 +1475,8 @@ public class Contour2D {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param corners
    * @param numc
    * @param vx
@@ -1956,8 +1956,8 @@ public class Contour2D {
   } // --- end fillGridBox
 
   /**
-   * 
-   * 
+   *
+   *
    * @param vx
    * @param vy
    * @param xx
@@ -2015,8 +2015,8 @@ public class Contour2D {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param vx
    * @param vy
    * @param xx
@@ -2095,8 +2095,8 @@ public class Contour2D {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param xx
    * @param yy
    * @param xd
@@ -2184,8 +2184,8 @@ public class Contour2D {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param xx
    * @param yy
    * @param xd
@@ -2552,8 +2552,8 @@ public class Contour2D {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param xx
    * @param yy
    * @param xd
@@ -2669,8 +2669,8 @@ public class Contour2D {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param xx
    * @param yy
    * @param xd
@@ -2896,8 +2896,8 @@ public class Contour2D {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param xx
    * @param yy
    * @param xd
@@ -3156,11 +3156,11 @@ public class Contour2D {
     List<ContourStrip> getStrips(int lvl) {
       return stripSet.vecArray[lvl];
     }
-    
+
     int[] getLabelIndexes(int lvlIdx) {
       return stripSet.labelIndexes[lvlIdx];
     }
-    
+
     float[] getLevels() {
       return stripSet.levels;
     }
@@ -3169,7 +3169,7 @@ public class Contour2D {
 
 /**
  * Class ContourQuadSet
- * 
+ *
  */
 
 class ContourQuadSet {
@@ -3220,8 +3220,8 @@ class ContourQuadSet {
   public Map<CachedArrayDimension, CachedArray> markGrid2Map = new HashMap<CachedArrayDimension, CachedArray>();
 
   /**
-   * 
-   * 
+   *
+   *
    * @param nr
    * @param nc
    * @param lev_idx
@@ -3245,11 +3245,11 @@ class ContourQuadSet {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param j
    * @param i
-   * 
+   *
    * @return
    */
   private ContourQuad makeContourQuad(int j, int i) {
@@ -3263,8 +3263,8 @@ class ContourQuadSet {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param idx0
    * @param ir
    * @param ic
@@ -3283,8 +3283,8 @@ class ContourQuadSet {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param vx
    * @param vy
    */
@@ -3306,8 +3306,8 @@ class ContourQuadSet {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param vx
    * @param vy
    * @param auxLevels
@@ -3316,7 +3316,7 @@ class ContourQuadSet {
    * @param vz1
    * @param colors
    * @param spatial_set
-   * 
+   *
    * @throws VisADException
    */
   public void getArrays(float[] vx, float[] vy, byte[][] auxLevels,
@@ -3381,7 +3381,7 @@ class ContourQuadSet {
 
 /**
  * Class ContourQuad
- * 
+ *
  */
 
 class ContourQuad {
@@ -3447,8 +3447,8 @@ class ContourQuad {
   int stripCnt = 0;
 
   /**
-   * 
-   * 
+   *
+   *
    * @param qs
    * @param strty
    * @param strtx
@@ -3472,8 +3472,8 @@ class ContourQuad {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param idx0
    * @param gy
    * @param gx
@@ -3500,11 +3500,11 @@ class ContourQuad {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param leny
    * @param lenx
-   * 
+   *
    * @return
    */
   public int[][][] getWorkArrays(int leny, int lenx) {
@@ -3545,7 +3545,7 @@ class ContourQuad {
   }
 
   /**
-   * 
+   *
    */
   public void get() {
     int ix_i = -1;
@@ -3588,7 +3588,7 @@ class ContourQuad {
   }
 
   /**
-   * 
+   *
    */
   public void reset() {
     for (int j = 0; j < leny; j++) {
@@ -3601,11 +3601,11 @@ class ContourQuad {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param vx
    * @param vy
-   * 
+   *
    * @return
    */
   public ContourStrip[] getContourStrips(float[] vx, float[] vy) {
@@ -3725,8 +3725,8 @@ class ContourQuad {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @return
    */
   public int[] getStartPoint() {
@@ -3748,7 +3748,7 @@ class ContourQuad {
 
 /**
  * Class CachedArray
- * 
+ *
  */
 
 class CachedArray {
@@ -3757,8 +3757,8 @@ class CachedArray {
   int[][] array;
 
   /**
-   * 
-   * 
+   *
+   *
    * @param array
    */
   public CachedArray(int[][] array) {
@@ -3766,8 +3766,8 @@ class CachedArray {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @return
    */
   int[][] getArray() {
@@ -3777,7 +3777,7 @@ class CachedArray {
 
 /**
  * Class CachedArrayDimension
- * 
+ *
  */
 
 class CachedArrayDimension {
@@ -3789,8 +3789,8 @@ class CachedArrayDimension {
   int leny;
 
   /**
-   * 
-   * 
+   *
+   *
    * @param leny
    * @param lenx
    */
@@ -3800,10 +3800,10 @@ class CachedArrayDimension {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param obj
-   * 
+   *
    * @return
    */
   public boolean equals(CachedArrayDimension obj) {
@@ -3832,7 +3832,7 @@ class ContourStripSet {
   float[] levels;
 
   int[][] labelIndexes;
-  
+
   /**           */
   int n_levs;
 
@@ -3877,8 +3877,8 @@ class ContourStripSet {
   ArrayList<VisADLineStripArray> cntrLinesStyled = new ArrayList<VisADLineStripArray>();
 
   /**
-   * 
-   * 
+   *
+   *
    * @param size
    * @param levels
    * @param swap
@@ -3888,7 +3888,7 @@ class ContourStripSet {
    * @param nc
    * @param spatial_set
    * @param contourDifficulty
-   * 
+   *
    * @throws VisADException
    */
   ContourStripSet(int size, float[] levels, boolean[] swap, double scale_ratio,
@@ -3982,7 +3982,7 @@ class ContourStripSet {
   /**
    * Set the grid coordinates used to contruct <code>ContourStrip</code>s
    * contained in this set.
-   * 
+   *
    * @param gx
    * @param gy
    */
@@ -3996,8 +3996,8 @@ class ContourStripSet {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param vx
    * @param vy
    * @param idx0
@@ -4012,8 +4012,8 @@ class ContourStripSet {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param vx
    * @param vy
    * @param idx0
@@ -4030,8 +4030,8 @@ class ContourStripSet {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param vx
    * @param vy
    * @param idx0
@@ -4060,7 +4060,7 @@ class ContourStripSet {
         ContourStrip c_strp = new ContourStrip(mxsize, lev_idx, idx0, idx1,
             plot_s[lev_idx], this);
         vec.add(c_strp);
-        
+
       } else if (found == 2) {
         ContourStrip c_strpA = vec.get(found_array[0]);
         ContourStrip c_strpB = vec.get(found_array[1]);
@@ -4076,7 +4076,7 @@ class ContourStripSet {
   }
 
   /**
-   * 
+   *
    * @param vx
    *          Grid coordinate values.
    * @param vy
@@ -4142,8 +4142,8 @@ class ContourStripSet {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param vx
    * @param vy
    */
@@ -4168,7 +4168,7 @@ class ContourStripSet {
 
   /**
    * Get grid coordinates representing the data at the level specified.
-   * 
+   *
    * @param lvlIdx
    *          The level for which to generate an array.
    * @return An list of in line strip format, an emtpy list if none.
@@ -4188,7 +4188,7 @@ class ContourStripSet {
 
   /**
    * Get colors corresponding to the grid coordinates for a level.
-   * 
+   *
    * @param lvlIdx
    *          The level for which to get colors.
    * @return A list of arrays for the strips that make up the level, an empty
@@ -4208,7 +4208,7 @@ class ContourStripSet {
 
   /**
    * Are we using line style for a level.
-   * 
+   *
    * @param lvl
    *          The index of the the level.
    * @return True if the first strip is using line style, false otherwise. There
@@ -4222,7 +4222,7 @@ class ContourStripSet {
     }
     return false;
   }
-  
+
   boolean isLabeled(int lvl) {
     return vecArray[lvl].get(0).isLabeled();
   }
@@ -4242,7 +4242,7 @@ class ContourStrip {
    * strip.
    */
   IndexPairList idxs = new IndexPairList();
-  
+
   /** Index to the level for this strip in the intervals array. */
   int lev_idx;
 
@@ -4255,8 +4255,8 @@ class ContourStrip {
   private int n_skip;
 
   /** Number of labels on this strip. */
-  int numLabels; 
-  
+  int numLabels;
+
   boolean isDashed = false;
 
   /**           */
@@ -4269,8 +4269,8 @@ class ContourStrip {
   float lbl_half;
 
   /**
-   * 
-   * 
+   *
+   *
    * @param mxsize
    * @param lev_idx
    * @param idx0
@@ -4282,22 +4282,22 @@ class ContourStrip {
       ContourStripSet css) {
     this.lev_idx = lev_idx;
     this.plot = plot;
-    
+
     idxs.addFirst(idx0, idx1);
-    
+
     this.css = css;
     this.lbl_half = (css.plot_min_max[lev_idx][1] - css.plot_min_max[lev_idx][0]) / 2;
     this.lbl_half += this.lbl_half * 0.30;
   }
-  
+
   /**
-   * 
-   * 
+   *
+   *
    * @param vx
    * @param vy
    * @param idx0
    * @param idx1
-   * 
+   *
    * @return
    */
   boolean addPair(float[] vx, float[] vy, int idx0, int idx1) {
@@ -4337,8 +4337,8 @@ class ContourStrip {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param vx
    * @param vy
    * @param colors
@@ -4360,7 +4360,7 @@ class ContourStrip {
 
   /*/
    * Common line array code
-   * 
+   *
    * @param vv_grid
    *          grid coordinates..
    * @param bb
@@ -4455,7 +4455,7 @@ class ContourStrip {
     //- check if label blocks out too may points
     if (start_break >= 4 && stop_break <= totalPts*2-3) doLabel = true;
 
-    if (doLabel && ((lev_idx & 1) == 1)) 
+    if (doLabel && ((lev_idx & 1) == 1))
     {
 
       /*-------LABEL START --------------------*/
@@ -4627,7 +4627,7 @@ class ContourStrip {
       byte[] lineColors = new byte[clr_dim*((start_break/2+1)+(((totalPts*2-start_break)-n_skip)/2)+1)];
       float[] fillLineCoords = new float[3*(n_skip/2+1)];
       byte[] fillLineColors = new byte[clr_dim*(n_skip/2+1)];
-      
+
       int lineClrCnt=0;
       int lineCnt=0;
       lineCoords[lineCnt++] = vv[0][0];
@@ -4636,7 +4636,7 @@ class ContourStrip {
       for (int cc=0; cc<clr_dim; cc++) {
         lineColors[lineClrCnt++] = bb[cc][0];
       }
-      
+
       for (int t=1; t<cnt; t+=2) {
          lineCoords[lineCnt++] = vv[0][t];
          lineCoords[lineCnt++] = vv[1][t];
@@ -4677,7 +4677,7 @@ class ContourStrip {
         fillLineArray.colors = fillLineColors;
         if (isDashed) {
           css.fillLinesStyled.add(fillLineArray);
-        } 
+        }
         else {
           css.fillLines.add(fillLineArray);
         }
@@ -4759,12 +4759,12 @@ class ContourStrip {
       VisADLineArray segLeftAnchor = null;
       try {
       expSegLeft = new VisADLineArray();
-      SampledSet.setGeometryArray(expSegLeft, 
+      SampledSet.setGeometryArray(expSegLeft,
         new float[][] { {vv[0][s_pos], vv[0][s_pos]+dx},
-                        {vv[1][s_pos], vv[1][s_pos]+dy}, 
+                        {vv[1][s_pos], vv[1][s_pos]+dy},
                         {vv[2][s_pos], vv[2][s_pos]+dz} }, clr_dim, segColors);
       segLeftAnchor = new VisADLineArray();
-      SampledSet.setGeometryArray(segLeftAnchor, 
+      SampledSet.setGeometryArray(segLeftAnchor,
         new float[][] {{vv[0][s_pos]}, {vv[1][s_pos]}, {vv[2][s_pos]}}, clr_dim, null);
       }
       catch (Exception e) {
@@ -4819,9 +4819,9 @@ class ContourStrip {
       ContourLabelGeometry ctrLabel =
          new ContourLabelGeometry(label, labelAnchor, expSegLeft, segLeftAnchor, segLeftScaleInfo,
                                   expSegRight, segRightAnchor, segRightScaleInfo);
-      ctrLabel.isStyled = isDashed; 
+      ctrLabel.isStyled = isDashed;
       css.labels.add(ctrLabel);
-    } else { // no label 
+    } else { // no label
       float[] lineCoords = new float[3*(totalPts+1)];
       byte[] lineColors = new byte[clr_dim*(totalPts+1)];
 
@@ -4866,7 +4866,7 @@ class ContourStrip {
 
   /**
    * Get a line array using this instances cached indexes.
-   * 
+   *
    * @param vx
    *          X values to apply cached indexes to.
    * @param vy
@@ -4879,7 +4879,7 @@ class ContourStrip {
       return null;
     }
     int[] idx_array = idxs.toArray();
-    
+
     float[] vvx = new float[idx_array.length];
     float[] vvy = new float[vvx.length];
 
@@ -4892,7 +4892,7 @@ class ContourStrip {
 
   /**
    * Get line strip arrays for this strip.
-   * 
+   *
    * @param vx
    *          X grid coords to apply cached indexes to.
    * @param vy
@@ -4964,7 +4964,7 @@ class ContourStrip {
 
   /**
    * Get the array of colors corresponding to cached indexes.
-   * 
+   *
    * @param colors
    *          Line array formatted colors where the first dimension is the color
    *          dimension and the second the color values.
@@ -4988,7 +4988,7 @@ class ContourStrip {
 
   /**
    * Get the array of colors corresponding to cached indexes.
-   * 
+   *
    * @param colors
    *          Line array formatted colors where the first dimension is the color
    *          dimension and the second the color values.
@@ -5003,7 +5003,7 @@ class ContourStrip {
 
     int lenBefore = start_break / 2 + 1;
     int lenAfter = (count - stop_break + 1) / 2;
-    
+
     if (isLabeled && (lenBefore >= 2 && lenAfter >= 2)) {
       byte[][] colorsBefore = new byte[clrDim][start_break / 2 + 1];
 
@@ -5059,16 +5059,16 @@ class ContourStrip {
 
     return new byte[][][] { bb };
   }
-  
+
   boolean isLabeled() {
     return isLabeled;
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param c_strp
-   * 
+   *
    * @return
    */
   void merge(ContourStrip that) {
@@ -5085,16 +5085,16 @@ class ContourStrip {
     thisLo[1] = this.idxs.first.idx1;
     thisHi[0] = this.idxs.last.idx1;
     thisHi[1] = this.idxs.last.idx0;
-    
+
     thatLo[0] = that.idxs.first.idx0;
     thatLo[1] = that.idxs.first.idx1;
     thatHi[0] = that.idxs.last.idx1;
     thatHi[1] = that.idxs.last.idx0;
-    
+
       /*
        *       THAT                        THIS
-       * H----------------------L L---------------------H 
-       * 
+       * H----------------------L L---------------------H
+       *
        */
     if (((thisLo[0] == thatLo[0]) || (thisLo[0] == thatLo[1]))
         || ((thisLo[1] == thatLo[0]) || (thisLo[1] == thatLo[1]))) {
@@ -5104,57 +5104,57 @@ class ContourStrip {
         this.idxs.addFirst(n.idx1, n.idx0);
         n = n.next;
       }
-      
+
       /*
        *       THAT                        THIS
-       * L----------------------H L---------------------H 
+       * L----------------------H L---------------------H
        *
        */
     } else if (((thisLo[0] == thatHi[0]) || (thisLo[0] == thatHi[1]))
         || ((thisLo[1] == thatHi[0]) || (thisLo[1] == thatHi[1]))) {
-      
+
       this.idxs.first.prev = that.idxs.last.prev; // skip redundant point idxs
       this.idxs.first.prev.next = this.idxs.first;
       this.idxs.first = that.idxs.first;
       this.idxs.numIndices = this.idxs.numIndices + that.idxs.numIndices - 2;
-      
+
       /*
        *       THIS                        THAT
-       * L----------------------H H---------------------L 
-       * 
+       * L----------------------H H---------------------L
+       *
        */
     } else if (((thisHi[0] == thatHi[0]) || (thisHi[0] == thatHi[1]))
         || ((thisHi[1] == thatHi[0]) || (thisHi[1] == thatHi[1]))) {
 
       IndexPairList.Node n = that.idxs.last.prev; // skip redundant point idxs
       while (n != null) {
-        this.idxs.addLast(n.idx1, n.idx0); 
+        this.idxs.addLast(n.idx1, n.idx0);
         n = n.prev;
-      }  
-      
+      }
+
       /*
        *       THIS                        THAT
-       * L----------------------H L---------------------H 
-       * 
+       * L----------------------H L---------------------H
+       *
        */
     } else if (((thisHi[0] == thatLo[0]) || (thisHi[0] == thatLo[1]))
         || ((thisHi[1] == thatLo[0]) || (thisHi[1] == thatLo[1]))) {
-      
+
       this.idxs.last.next = that.idxs.first.next; // skip redundant point idxs
       this.idxs.last.next.prev = this.idxs.last;
       this.idxs.last = that.idxs.last;
       this.idxs.numIndices = this.idxs.numIndices + that.idxs.numIndices - 2;
-      
+
     }
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @return
    */
   public String toString() {
-    return "<" + this.getClass().getName() + "(" + idxs.first.idx0 + "," + 
+    return "<" + this.getClass().getName() + "(" + idxs.first.idx0 + "," +
       idxs.first.idx1 + "), (" + idxs.last.idx0 + "," + idxs.first.idx1 + ")>";
   }
 }
@@ -5163,7 +5163,7 @@ class ContourStrip {
  * A double ended list for pairs of integers implemented as a doubly linked list.
  */
 class IndexPairList {
-  
+
   /**
    * Node object of a pair of indices.
    */
@@ -5178,7 +5178,7 @@ class IndexPairList {
       }
   }
 
-  /** 
+  /**
    * Total number of indices which will always be the number of nodes divided by 2.
    */
   int numIndices = 0;
@@ -5186,7 +5186,7 @@ class IndexPairList {
   Node last;
   /** First pair node in list. */
   Node first;
-  
+
   /**
    * Create a node for the pair of indices and add to the beginning of this list.
    * @param i0
@@ -5195,8 +5195,8 @@ class IndexPairList {
   void addFirst(int i0, int i1) {
       addFirst(new Node(i0, i1));
   }
-  
-  /** 
+
+  /**
    * Add a node the the beginning of this list.
    * @param n
    */
@@ -5213,7 +5213,7 @@ class IndexPairList {
     }
     numIndices+=2;
   }
-  
+
   /**
    * Create a node for the pair of indices and add to the end of this list.
    * @param i0
@@ -5222,7 +5222,7 @@ class IndexPairList {
   void addLast(int i0, int i1) {
       addLast(new Node(i0, i1));
   }
-  
+
   /**
    * Add the Node to the end of this list.
    * @param n
@@ -5240,11 +5240,11 @@ class IndexPairList {
     }
     numIndices+=2;
   }
-  
+
   /**
-   * Clear the list.    
+   * Clear the list.
    * <p>
-   * NOTE: We do not need to null out all the node objects because the 
+   * NOTE: We do not need to null out all the node objects because the
    * garbage collector is <u>supposed</u> to collect even cyclic references.
    */
   void clear() {
@@ -5252,8 +5252,8 @@ class IndexPairList {
       last = null;
       numIndices = 0;
   }
-  
-  /** 
+
+  /**
    * Return array of this lists indices. Each nodes idx0 precedes it's idx1
    * with a total array length of <code>numIndices</code>.
    * @return

@@ -4,7 +4,7 @@
 
 /*
  VisAD system for interactive analysis and visualization of numerical
- data.  Copyright (C) 1996 - 2008 Bill Hibbard, Curtis Rueden, Tom
+ data.  Copyright (C) 1996 - 2009 Bill Hibbard, Curtis Rueden, Tom
  Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
  Tommy Jasmin.
 
@@ -22,7 +22,7 @@
  License along with this library; if not, write to the Free
  Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
  MA 02111-1307, USA
- */
+*/
 
 package visad.java3d;
 
@@ -97,14 +97,14 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
   /**
    * Create a new ShadowTypeJ3D
-   * 
+   *
    * @param type
    *          MathType of the data
    * @param link
    *          the data/display link
    * @param parent
    *          parent ShadowType
-   * 
+   *
    * @throws RemoteException
    *           problem creating remote instance
    * @throws VisADException
@@ -122,10 +122,10 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
   /**
    * Get the adapted ShadowType for the parent
-   * 
+   *
    * @param parent
    *          the parent object to test
-   * 
+   *
    * @return the adapted ShadowType
    */
   public static ShadowType getAdaptedParent(ShadowType parent) {
@@ -137,7 +137,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
   /**
    * Get the adapted ShadowType for this instance
-   * 
+   *
    * @return the adapted ShadowType
    */
   public ShadowType getAdaptedShadowType() {
@@ -145,13 +145,13 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param type
    * @param doRef
-   * 
+   *
    * @return
-   * 
+   *
    * @throws VisADException
    */
   public ShadowRealType[] getComponents(ShadowType type, boolean doRef)
@@ -160,8 +160,8 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @return
    */
   public String getParentText() {
@@ -174,8 +174,8 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @return
    */
   public TextControl getParentTextControl() {
@@ -188,8 +188,8 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param text
    * @param control
    */
@@ -200,7 +200,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
   /**
    * Get the data
-   * 
+   *
    * @return the data
    */
   public Data getData() {
@@ -209,7 +209,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
   /**
    * Get the display
-   * 
+   *
    * @return the display
    */
   public DisplayImpl getDisplay() {
@@ -218,7 +218,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
   /**
    * Get the MathType of the Data
-   * 
+   *
    * @return the MathType
    */
   public MathType getType() {
@@ -227,7 +227,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
   /**
    * Get the level of difficulty for this transform
-   * 
+   *
    * @return the level of difficulty
    */
   public int getLevelOfDifficulty() {
@@ -235,8 +235,8 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @return
    */
   public boolean getMultipleDisplayScalar() {
@@ -244,8 +244,8 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @return
    */
   public boolean getMappedDisplayScalar() {
@@ -253,8 +253,8 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @return
    */
   public int[] getDisplayIndices() {
@@ -262,8 +262,8 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @return
    */
   public int[] getValueIndices() {
@@ -272,15 +272,15 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
   /**
    * checkIndices: check for rendering difficulty, etc
-   * 
+   *
    * @param indices
    * @param display_indices
    * @param value_indices
    * @param isTransform
    * @param levelOfDifficulty
-   * 
+   *
    * @return
-   * 
+   *
    * @throws RemoteException
    * @throws VisADException
    */
@@ -293,7 +293,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
   /**
    * clear AccumulationVector
-   * 
+   *
    * @throws VisADException
    */
   public void preProcess() throws VisADException {
@@ -304,7 +304,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
    * components as children of group; value_array are inherited valueArray
    * values; default_values are defaults for each display.DisplayRealTypeVector;
    * return true if need post-process; this is default (for ShadowTextType)
-   * 
+   *
    * @param group
    *          group to add to
    * @param data
@@ -315,9 +315,9 @@ public abstract class ShadowTypeJ3D extends ShadowType {
    *          the default values
    * @param renderer
    *          the renderer
-   * 
+   *
    * @return false
-   * 
+   *
    * @throws RemoteException
    * @throws VisADException
    */
@@ -330,9 +330,9 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   /**
    * render accumulated Vector of value_array-s to and add to group; then clear
    * AccumulationVector
-   * 
+   *
    * @param group
-   * 
+   *
    * @throws VisADException
    */
   public void postProcess(Object group) throws VisADException {
@@ -342,11 +342,11 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
   /**
    * map values into display_values according to ScalarMap-s in reals
-   * 
+   *
    * @param display_values
    * @param values
    * @param reals
-   * 
+   *
    * @throws VisADException
    */
   public static void mapValues(float[][] display_values, double[][] values,
@@ -356,11 +356,11 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
   /**
    * map values into display_values according to ScalarMap-s in reals
-   * 
+   *
    * @param display_values
    * @param values
    * @param reals
-   * 
+   *
    * @throws VisADException
    */
   public static void mapValues(float[][] display_values, float[][] values,
@@ -370,12 +370,12 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
   /**
    * map values into display_values according to ScalarMap-s in reals
-   * 
+   *
    * @param display_values
    * @param values
    * @param reals
    * @param copy
-   * 
+   *
    * @throws VisADException
    */
   public static void mapValues(float[][] display_values, float[][] values,
@@ -384,13 +384,13 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param spatial_values
    * @param color_values
-   * 
+   *
    * @return
-   * 
+   *
    * @throws VisADException
    */
   public static VisADGeometryArray makePointGeometry(float[][] spatial_values,
@@ -400,7 +400,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
   /**
    * Make an Appearance object for this display
-   * 
+   *
    * @param mode
    *          GraphicsModeControl
    * @param constant_alpha
@@ -411,7 +411,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
    *          the GeometryArray
    * @param no_material
    *          flag for material
-   * 
+   *
    * @return
    */
   public Appearance makeAppearance(GraphicsModeControl mode,
@@ -424,7 +424,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   /**
    * Make an Appearance that may be cached or not, depending on the okToCache
    * and the cache flag
-   * 
+   *
    * @param mode
    *          GraphicsModeControl
    * @param constant_alpha
@@ -437,7 +437,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
    *          flag for material
    * @param okToCache
    *          flag for caching checked with mode.getCacheAppearances
-   * 
+   *
    * @return
    */
   private Appearance makeCachedAppearance(GraphicsModeControl mode,
@@ -454,7 +454,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
    * and contains geometries of the same type. If found it will add the geometry
    * to that Shape3D node. If not found or if mergeShapes is false then this
    * behaves normally, creating a new Shape3D node and adding it to the group.
-   * 
+   *
    * @param group
    *          group to add to
    * @param geometry
@@ -504,14 +504,14 @@ public abstract class ShadowTypeJ3D extends ShadowType {
    * ColoringAttribute in the cache. If false it just creates a new one. Note:
    * If caching is on then the result object should be treated as being
    * immutable
-   * 
+   *
    * @param red
    *          red value
    * @param green
    *          green value
    * @param blue
    *          blue value
-   * 
+   *
    * @return the ColoringAttributes
    */
   private ColoringAttributes getColoringAttributes(float red, float green,
@@ -540,12 +540,12 @@ public abstract class ShadowTypeJ3D extends ShadowType {
    * TransparencyAttributes in the cache. If false it just creates a new one.
    * Note: If caching is on then the result object should be treated as being
    * immutable
-   * 
+   *
    * @param mode
    *          Transparency mode
    * @param value
    *          transparancy value
-   * 
+   *
    * @return
    */
   private TransparencyAttributes getTransparencyAttributes(int mode, float value) {
@@ -568,7 +568,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
   /**
    * Construct an Appearance object from a GeometryArray
-   * 
+   *
    * @param mode
    *          GraphicsModeControl
    * @param constant_alpha
@@ -580,7 +580,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
    * @param no_material
    *          true to not use a Material for illumination, false to use it for
    *          2-D geometries
-   * 
+   *
    * @return The new appearance
    */
   public static Appearance staticMakeAppearance(GraphicsModeControl mode,
@@ -593,7 +593,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
   /**
    * Construct an Appearance object from a GeometryArray
-   * 
+   *
    * @param mode
    *          GraphicsModeControl
    * @param constant_alpha
@@ -608,7 +608,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
    * @param okToCache
    *          If true and if the mode's cacheAppearances flag is true then we
    *          will use the appearance cache.
-   * 
+   *
    * @return The new appearance or, if available a previously cached one_
    */
   private static Appearance staticMakeCachedAppearance(
@@ -753,30 +753,30 @@ public abstract class ShadowTypeJ3D extends ShadowType {
    * appearance.setCapability(Appearance.ALLOW_TEXTURE_READ);
    * appearance.setCapability(Appearance.ALLOW_TEXTURE_UNIT_STATE_READ);
    * appearance.setCapability(Appearance.ALLOW_TRANSPARENCY_ATTRIBUTES_READ);
-   * 
+   *
    * LineAttributes line = new LineAttributes();
    * line.setLineWidth(mode.getLineWidth()); int pattern =
    * GraphicsModeControlJ3D.LINE_PATTERN[mode.getLineStyle()];
    * line.setLinePattern(pattern); appearance.setLineAttributes(line);
-   * 
+   *
    * PointAttributes point = new PointAttributes();
    * point.setPointSize(mode.getPointSize());
    * appearance.setPointAttributes(point);
-   * 
+   *
    * PolygonAttributes polygon = new PolygonAttributes();
    * polygon.setCullFace(PolygonAttributes.CULL_NONE);
    * polygon.setPolygonMode(mode.getPolygonMode());
-   * 
+   *
    * try { float polygonOffset = mode.getPolygonOffset(); if (polygonOffset ==
    * polygonOffset) polygon.setPolygonOffset(polygonOffset); } catch (Exception
    * e) { }
-   * 
+   *
    * appearance.setPolygonAttributes(polygon);
-   * 
+   *
    * RenderingAttributes rendering = new RenderingAttributes();
    * rendering.setDepthBufferEnable(true);
    * appearance.setRenderingAttributes(rendering);
-   * 
+   *
    * if (constant_color != null) {
    * appearance.setColoringAttributes(constant_color); } // only do Material if
    * geometry is 2-D (not 0-D points or 1-D lines) if (!(geometry instanceof
@@ -790,14 +790,14 @@ public abstract class ShadowTypeJ3D extends ShadowType {
    * appearance.setCapability(Appearance.ALLOW_MATERIAL_READ); } if
    * (constant_alpha != null) {
    * appearance.setTransparencyAttributes(constant_alpha); } }
-   * 
+   *
    * return appearance; }
    */
 
   /**
    * collect and transform Shape DisplayRealType values from display_values;
    * offset by spatial_values, selected by range_select
-   * 
+   *
    * @param display_values
    * @param valueArrayLength
    * @param valueToMap
@@ -811,9 +811,9 @@ public abstract class ShadowTypeJ3D extends ShadowType {
    * @param range_select
    * @param index
    * @param shadow_api
-   * 
+   *
    * @return
-   * 
+   *
    * @throws RemoteException
    * @throws VisADException
    */
@@ -836,7 +836,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
    * from spatial_values, with the same topology as domain_set (or an
    * appropriate Irregular topology); domain_set = null and allSpatial = false
    * if not called from ShadowFunctionType
-   * 
+   *
    * @param spatial_values
    * @param display_values
    * @param valueArrayLength
@@ -855,9 +855,9 @@ public abstract class ShadowTypeJ3D extends ShadowType {
    * @param swap
    * @param renderer
    * @param shadow_api
-   * 
+   *
    * @return
-   * 
+   *
    * @throws RemoteException
    * @throws VisADException
    */
@@ -879,7 +879,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   /**
    * assemble Flow components; Flow components are 'single', so no compositing
    * is required
-   * 
+   *
    * @param flow1_values
    * @param flow2_values
    * @param flowScale
@@ -891,7 +891,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
    * @param range_select
    * @param renderer
    * @param shadow_api
-   * 
+   *
    * @throws RemoteException
    * @throws VisADException
    */
@@ -906,17 +906,17 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param which
    * @param flow_values
    * @param flowScale
    * @param spatial_values
    * @param color_values
    * @param range_select
-   * 
+   *
    * @return
-   * 
+   *
    * @throws VisADException
    */
   public VisADGeometryArray[] makeFlow(int which, float[][] flow_values,
@@ -927,8 +927,8 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param which
    * @param flow_values
    * @param flowScale
@@ -940,9 +940,9 @@ public abstract class ShadowTypeJ3D extends ShadowType {
    * @param valueArrayLength
    * @param valueToMap
    * @param MapVector
-   * 
+   *
    * @return
-   * 
+   *
    * @throws VisADException
    */
   public VisADGeometryArray[] makeStreamline(int which, float[][] flow_values,
@@ -956,8 +956,8 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param valueArrayLength
    * @param valueToScalar
    * @param display_values
@@ -981,9 +981,9 @@ public abstract class ShadowTypeJ3D extends ShadowType {
    * @param domain_set
    * @param domain_units
    * @param dataCoordinateSystem
-   * 
+   *
    * @return
-   * 
+   *
    * @throws VisADException
    */
   public boolean makeContour(int valueArrayLength, int[] valueToScalar,
@@ -1056,7 +1056,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
                      constant_alpha, constant_color);
           addToGroup(segR_trans_group, array.expSegRight, styledMode,
                      constant_alpha, constant_color);
-        } 
+        }
         else {
           addToGroup(segL_trans_group, array.expSegLeft, mode,
                      constant_alpha, constant_color);
@@ -1097,16 +1097,16 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
 
   /**
-   * 
-   * 
+   *
+   *
    * @param text_values
    * @param text_control
    * @param spatial_values
    * @param color_values
    * @param range_select
-   * 
+   *
    * @return
-   * 
+   *
    * @throws VisADException
    */
   public VisADGeometryArray makeText(String[] text_values,
@@ -1119,7 +1119,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   /**
    * composite and transform color and Alpha DisplayRealType values from
    * display_values, and return as (Red, Green, Blue, Alpha)
-   * 
+   *
    * @param display_values
    * @param valueArrayLength
    * @param valueToScalar
@@ -1128,9 +1128,9 @@ public abstract class ShadowTypeJ3D extends ShadowType {
    * @param range_select
    * @param single_missing
    * @param shadow_api
-   * 
+   *
    * @return
-   * 
+   *
    * @throws RemoteException
    * @throws VisADException
    */
@@ -1147,16 +1147,16 @@ public abstract class ShadowTypeJ3D extends ShadowType {
    * return a composite of SelectRange DisplayRealType values from
    * display_values, as 0.0 for select and Double.Nan for no select (these
    * values can be added to other DisplayRealType values)
-   * 
+   *
    * @param display_values
    * @param domain_length
    * @param valueArrayLength
    * @param valueToScalar
    * @param display
    * @param shadow_api
-   * 
+   *
    * @return
-   * 
+   *
    * @throws VisADException
    */
   public boolean[][] assembleSelect(float[][] display_values,
@@ -1167,8 +1167,8 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param group
    * @param display_values
    * @param text_value
@@ -1178,9 +1178,9 @@ public abstract class ShadowTypeJ3D extends ShadowType {
    * @param default_values
    * @param inherited_values
    * @param renderer
-   * 
+   *
    * @return
-   * 
+   *
    * @throws RemoteException
    * @throws VisADException
    */
@@ -1199,7 +1199,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   /**
    * this is a work-around for the NullPointerException at
    * javax.media.j3d.Shape3DRetained.setLive(Shape3DRetained.java:448)
-   * 
+   *
    * @param obj
    */
   public void ensureNotEmpty(Object obj) {
@@ -1207,8 +1207,8 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param obj
    * @param display
    */
@@ -1246,8 +1246,8 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
   /**
    * Add the GeometryArray to the group
-   * 
-   * 
+   *
+   *
    * @param group
    *          Group
    * @param array
@@ -1258,9 +1258,9 @@ public abstract class ShadowTypeJ3D extends ShadowType {
    *          constant alpha value
    * @param constant_color
    *          constant color value
-   * 
+   *
    * @return true if successful
-   * 
+   *
    * @throws VisADException
    *           unable to add the array to the group
    */
@@ -1344,16 +1344,16 @@ public abstract class ShadowTypeJ3D extends ShadowType {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param group
    * @param array
    * @param mode
    * @param constant_alpha
    * @param constant_color
-   * 
+   *
    * @return
-   * 
+   *
    * @throws VisADException
    */
   public boolean addTextToGroup(Object group, VisADGeometryArray array,
@@ -1446,7 +1446,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
   /**
    * Do we allo constant color surfaces?
-   * 
+   *
    * @return false
    */
   public boolean allowConstantColorSurfaces() {
@@ -1455,7 +1455,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
 
   /**
    * Get a String representation of this object
-   * 
+   *
    * @return the String representation of this object
    */
   public String toString() {
@@ -1491,8 +1491,8 @@ class ProjectionControlListener implements ControlListener {
   double last_time;
 
   /**
-   * 
-   * 
+   *
+   *
    * @param p_cntrl
    * @param c_cntrl
    */
@@ -1513,10 +1513,10 @@ class ProjectionControlListener implements ControlListener {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param e
-   * 
+   *
    * @throws RemoteException
    * @throws VisADException
    */
@@ -1613,8 +1613,8 @@ class LabelTransform {
   float[] f_array;
 
   /**
-   * 
-   * 
+   *
+   *
    * @param trans
    * @param proj
    * @param label_array
@@ -1645,8 +1645,8 @@ class LabelTransform {
   }
 
   /**
-   * 
-   * 
+   *
+   *
    * @param first_scale
    * @param scale_a
    */

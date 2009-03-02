@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2008 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2009 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -172,11 +172,11 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     clearMaps();
   }
 
-  /** 
+  /**
    * construct a DisplayImpl collaborating with the given RemoteDisplay,
-   * and with the given DisplayRenderer 
+   * and with the given DisplayRenderer
    * @param rmtDpy RemoteDisplay to collaborate with
-   * @param renderer DisplayRenderer that controls aspects of the 
+   * @param renderer DisplayRenderer that controls aspects of the
    *                 display not specific to any particular Data
    * @throws VisADException a VisAD error occurred
    * @throws RemoteException an RMI error occurred
@@ -1551,19 +1551,19 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     if (mapslock == null) mapslock = new Object();
     synchronized (mapslock) {
       stop();
-  
+
       if (displayActivity != null) {
         displayActivity.destroy();
       }
-  
+
       // tell everybody we're going away
       notifyListeners(new DisplayEvent(this, DisplayEvent.DESTROYED));
-  
+
       // remove all listeners
       synchronized (ListenerVector) {
         ListenerVector.removeAllElements();
       }
-  
+
       try {
         removeAllReferences();
       } catch (RemoteException re) {
@@ -1571,7 +1571,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       } catch (VisADException ve) {
         thrownVE = ve;
       }
-  
+
       try {
         clearMaps();
       } catch (RemoteException re) {
@@ -1579,20 +1579,20 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       } catch (VisADException ve) {
         thrownVE = ve;
       }
-  
+
       AnimationControl control =
         (AnimationControl) getControl(AnimationControl.class);
       if (control != null) {
         control.stop();
       }
-  
+
       if (thrownVE != null) {
         throw thrownVE;
       }
       if (thrownRE != null) {
         throw thrownRE;
       }
-  
+
   // get rid of dangling references
   /* done in clearMaps()
       verify (RendererVector == null)
@@ -1927,7 +1927,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
             for (int i=0; i<links.length; i++) {
               if (MathType.findScalarType(links[i].getType(), st)) {
 /* WLH relax addMap() & clearMap() 17 Dec 2002
-                throw new DisplayException("DisplayImpl.addMap(): " + 
+                throw new DisplayException("DisplayImpl.addMap(): " +
                             "ScalarType may not occur in any DataReference");
 */
                 DataReference ref = links[i].getDataReference();
@@ -2033,7 +2033,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
    * @param map ScalarMap to remove
    * @throws VisADException a VisAD error occurred
    * @throws RemoteException an RMI error occurred
-   */ 
+   */
   public void removeMap(ScalarMap map)
          throws VisADException, RemoteException {
     removeMap(map, VisADEvent.LOCAL_SOURCE);
@@ -2045,7 +2045,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
    * @param remoteId remote source for collab, or VisADEvent.LOCAL_SOURCE
    * @throws VisADException a VisAD error occurred
    * @throws RemoteException an RMI error occurred
-   */ 
+   */
   public void removeMap(ScalarMap map, int remoteId)
          throws VisADException, RemoteException {
     if (displayRenderer == null) return;
@@ -2090,7 +2090,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
           // if real is not used by any other ScalarMap, remove it
           // and adjust ScalarIndex of all other ScalarMaps
           RealTypeVector.removeElement(real);
-  
+
           maps = MapVector.elements();
           while(maps.hasMoreElements()) {
             ScalarMap map2 = (ScalarMap) maps.nextElement();
@@ -2694,11 +2694,11 @@ System.out.println("initialize = " + initialize + " go = " + go +
     return getImage(false);
   }
 
-  /** 
+  /**
    * get a BufferedImage of this Display
    * @param sync if true, ensure that all linked Data have been
    *        transformed and rendered
-   * @return a captured image of this Display 
+   * @return a captured image of this Display
    */
   public BufferedImage getImage(boolean sync) {
     if (displayRenderer == null) return null;
@@ -3109,7 +3109,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
     /** the listener's display*/
     DisplayImpl display;
 
-    /** 
+    /**
      * Create a listener for the display
      */
     public ComponentChangedListener(DisplayImpl d) {
@@ -3145,7 +3145,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
         notifyListeners(
           new DisplayEvent(
             display, DisplayEvent.COMPONENT_RESIZED, d.width, d.height));
-      } 
+      }
       catch (VisADException ve) {
         System.err.println("Couldn't notify listeners of resize event");
       }

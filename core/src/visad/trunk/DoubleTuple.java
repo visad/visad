@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2008 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2009 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, 
 Tommy Jasmin and Jeff McWhirter.
 
@@ -39,7 +39,7 @@ import java.util.Arrays;
  * taking the hit that having lots and lots of Real objects around.
  *
  * @author MetApps Development Team
- * @version $Revision: 1.3 $ $Date: 2008-02-05 20:26:02 $
+ * @version $Revision: 1.4 $ $Date: 2009-03-02 23:35:41 $
  */
 public class DoubleTuple extends RealTuple {
 
