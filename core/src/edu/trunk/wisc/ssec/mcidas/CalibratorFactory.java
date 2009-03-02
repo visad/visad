@@ -4,7 +4,7 @@
 
 /*
 This source file is part of the edu.wisc.ssec.mcidas package and is
-Copyright (C) 1998 - 2008 by Tom Whittaker, Tommy Jasmin, Tom Rink,
+Copyright (C) 1998 - 2009 by Tom Whittaker, Tommy Jasmin, Tom Rink,
 Don Murray, James Kelly, Bill Hibbard, Dave Glowacki, Curtis Rueden
 and others.
  
@@ -30,7 +30,7 @@ package edu.wisc.ssec.mcidas;
  * Utility class for creating <code>Calibrator</code> instances.
  * 
  * @author Bruce Flynn, SSEC
- * @version $Id: CalibratorFactory.java,v 1.5 2008-06-25 14:45:40 tomw Exp $
+ * @version $Id: CalibratorFactory.java,v 1.6 2009-03-02 23:34:50 curtis Exp $
  */
 public final class CalibratorFactory {
 

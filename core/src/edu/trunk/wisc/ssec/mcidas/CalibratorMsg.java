@@ -4,7 +4,7 @@
 
 /*
 This source file is part of the edu.wisc.ssec.mcidas package and is
-Copyright (C) 1998 - 2008 by Tom Whittaker, Tommy Jasmin, Tom Rink,
+Copyright (C) 1998 - 2009 by Tom Whittaker, Tommy Jasmin, Tom Rink,
 Don Murray, James Kelly, Bill Hibbard, Dave Glowacki, Curtis Rueden
 and others.
  
@@ -68,7 +68,7 @@ package edu.wisc.ssec.mcidas;
  * 0.2312809974E-01-0.1179533087E+01</i>
  * </p>
  * @author Bruce Flynn, SSEC
- * @version $Id: CalibratorMsg.java,v 1.6 2008-08-11 18:16:41 tommyj Exp $
+ * @version $Id: CalibratorMsg.java,v 1.7 2009-03-02 23:34:50 curtis Exp $
  */
 public class CalibratorMsg implements Calibrator {
 

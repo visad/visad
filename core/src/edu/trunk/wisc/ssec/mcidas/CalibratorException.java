@@ -4,7 +4,7 @@
 
 /*
 This source file is part of the edu.wisc.ssec.mcidas package and is
-Copyright (C) 1998 - 2008 by Tom Whittaker, Tommy Jasmin, Tom Rink,
+Copyright (C) 1998 - 2009 by Tom Whittaker, Tommy Jasmin, Tom Rink,
 Don Murray, James Kelly, Bill Hibbard, Dave Glowacki, Curtis Rueden
 and others.
  
@@ -31,7 +31,7 @@ package edu.wisc.ssec.mcidas;
 /**
  * CalibratorException class is to handle exceptions when calibrating data.
  *
- * @version $Id: CalibratorException.java,v 1.3 2008-02-05 20:26:00 curtis Exp $
+ * @version $Id: CalibratorException.java,v 1.4 2009-03-02 23:34:50 curtis Exp $
  * @author Bruce Flynn, SSEC
  */
 public class CalibratorException extends McIDASException {
