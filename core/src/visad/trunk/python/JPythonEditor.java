@@ -96,10 +96,18 @@ public class JPythonEditor extends CodeEditor {
     super(filename);
     python = new RunJPython();
 
-    // add JPython files to file chooser dialog box
-    fileChooser.addChoosableFileFilter(
-      new ExtensionFileFilter("py", "JPython source code"));
+
   }
+
+  /** Create and initialize the the file chooser */
+  protected JFileChooser doMakeFileChooser() {
+      JFileChooser tmpFileChooser = super.doMakeFileChooser();
+      // add JPython files to file chooser dialog box
+      tmpFileChooser.addChoosableFileFilter(
+          new ExtensionFileFilter("py", "JPython source code"));
+      return tmpFileChooser;
+  }
+
 
   /** adjusts the line number of the given error to match the displayed text,
       and highlights that line of code to indicate the source of error */

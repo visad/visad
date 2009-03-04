@@ -46,7 +46,7 @@ public class TextEditor extends JScrollPane implements UndoableEditListener {
   protected JTextArea text;
 
   /** file chooser dialog box */
-  protected JFileChooser fileChooser;
+  private JFileChooser fileChooser;
 
   /** undo manager */
   protected UndoManager undo = new UndoManager();
@@ -84,9 +84,23 @@ public class TextEditor extends JScrollPane implements UndoableEditListener {
     addUndoableEditListener(this);
 
     // setup file chooser dialog box
-    fileChooser = new JFileChooser(System.getProperty("user.dir"));
-    fileChooser.addChoosableFileFilter(
-      new ExtensionFileFilter("txt", "Text files"));
+  }
+
+  /** Create and initialize the the file chooser */
+  protected JFileChooser doMakeFileChooser() {
+       JFileChooser tmpChooser = new JFileChooser(System.getProperty("user.dir"));
+       tmpChooser.addChoosableFileFilter(
+         new ExtensionFileFilter("txt", "Text files"));
+       return tmpChooser;
+  }
+
+
+  /** Create if needed and return the file chooser */
+  protected JFileChooser getFileChooser() {
+    if(fileChooser == null) {
+       fileChooser = doMakeFileChooser();
+    }
+    return fileChooser;
   }
 
   /** starts from scratch with a blank document */
@@ -138,13 +152,13 @@ public class TextEditor extends JScrollPane implements UndoableEditListener {
  
   /** pops up a dialog box for the user to select a file to open */
   public boolean openDialog() {
-    fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
-    if (fileChooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+    getFileChooser().setDialogType(JFileChooser.OPEN_DIALOG);
+    if (getFileChooser().showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
       // user has canceled request
       return false;
     }
     try {
-      openFile(fileChooser.getSelectedFile());
+      openFile(getFileChooser().getSelectedFile());
     }
     catch (IOException exc) {
       if (DEBUG) exc.printStackTrace();
@@ -155,13 +169,13 @@ public class TextEditor extends JScrollPane implements UndoableEditListener {
 
   /** pops up a dialog box for the user to select a file to save */
   public boolean saveDialog() {
-    fileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
-    if (fileChooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
+    getFileChooser().setDialogType(JFileChooser.SAVE_DIALOG);
+    if (getFileChooser().showSaveDialog(this) != JFileChooser.APPROVE_OPTION) {
       // user has canceled request
       return false;
     }
     try {
-      saveFile(fileChooser.getSelectedFile());
+      saveFile(getFileChooser().getSelectedFile());
     }
     catch (IOException exc) {
       if (DEBUG) exc.printStackTrace();
