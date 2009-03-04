@@ -26,10 +26,12 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.util.*;
-import java.rmi.*;
+import java.awt.Font;
 import java.awt.image.BufferedImage;
-import java.awt.*;
+import java.rmi.RemoteException;
+import java.util.Enumeration;
+import java.util.Vector;
+
 import visad.util.HersheyFont;
 
 /**
@@ -1661,6 +1663,8 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
               }
               // but don't change vector magnitude ??
               float ratio = (float) Math.sqrt(old_speed / new_speed);
+              // BMF 2009-03-04: flow values cannot be NaN
+              if (Float.isNaN(ratio)) ratio = 0f;
               for (int i = 0; i < 3; i++) {
                 if (ff_values[k][i] != null) {
                   ff_values[k][i][j] *= ratio;
