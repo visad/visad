@@ -3858,10 +3858,6 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
                   labelLines = array_s[2];
                 }
 
-
-                // FIXME: Is it appropriate to ignore exceptions for
-                // adjustments?
-
                 // make necessary adjustments
                 if (!fill && getAdjustProjectionSeam()) {
                   // do not do adjustments for
@@ -3870,13 +3866,10 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
                       if (array_s[j] != null) {
                       for (int k=0; k< array_s[j].length; k++) {
                         VisADGeometryArray arr = array_s[j][k];
-                        try {
-                          if (arr != null) {
+                        if (arr != null) {
                           arr = arr.adjustLongitude(renderer);
                           arr = arr.adjustSeam(renderer);
-                          }
-                        } catch (Exception e) {
-                          e.printStackTrace();
+                          arr = arr.removeMissing();
                         }
                         array_s[j][k] = arr;
                       }
