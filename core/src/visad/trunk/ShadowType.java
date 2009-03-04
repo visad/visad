@@ -3857,34 +3857,37 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
                 case 3:
                   labelLines = array_s[2];
                 }
+                boolean adjust = getAdjustProjectionSeam();
 
                 // make necessary adjustments
-                if (!fill && getAdjustProjectionSeam()) {
+                if (!fill) {
                   // do not do adjustments for
                   for (int j = 0; j < 4; j++) {
                     if (j != 2) { // don't adjust label fill lines
                       if (array_s[j] != null) {
-                      for (int k=0; k< array_s[j].length; k++) {
-                        VisADGeometryArray arr = array_s[j][k];
-                        if (arr != null) {
-                          arr = arr.adjustLongitude(renderer);
-                          arr = arr.adjustSeam(renderer);
-                          arr = arr.removeMissing();
+                        for (int k=0; k< array_s[j].length; k++) {
+                          VisADGeometryArray arr = array_s[j][k];
+                          if (arr != null) {
+                            if (adjust) {
+                              arr = arr.adjustLongitude(renderer);
+                              arr = arr.adjustSeam(renderer);
+                            }
+                            arr = arr.removeMissing();
+                          }
+                          array_s[j][k] = arr;
                         }
-                        array_s[j][k] = arr;
                       }
-                     }
                     }
                   }
 
-                  if (labelLines != null) {
+                  if (labelLines != null && adjust) {
                     for (int k = 0; k < (labelLines.length); k++) {
                       labelLines[k] = labelLines[k].adjustLongitude(renderer);
                       labelLines[k] = labelLines[k].adjustSeam(renderer);
                     }
                   }
 
-                  if (fillLines != null) {
+                  if (fillLines != null && adjust) {
                     if (fillLines[0] != null) {
                         fillLines[0] = fillLines[0].adjustLongitude(renderer);
                         fillLines[0] = fillLines[0].adjustSeam(renderer);
