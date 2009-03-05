@@ -74,7 +74,7 @@ public class ContourControl extends Control {
 
   private static double init_scale = Double.NaN;
   private static double default_init_scale = 0.40;
-  private boolean autoSizeLabels = false;
+  private boolean autoSizeLabels = true; // BMF 2009-03-05 change default to true
   private double labelSizeFactor = 1;
   private transient ZoomDoneListener zoom;
   private ProjectionControl pcntrl;

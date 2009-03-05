@@ -1540,7 +1540,8 @@ class ProjectionControlListener implements ControlListener {
             for (int ii = 0; ii < cnt; ii++) {
               for (int kk = 0; kk < LT_array[ii][0].length; kk++) {
                 for (int jj = 0; jj < LT_array[0].length; jj++)
-                  LT_array[ii][jj][kk].controlChanged(first_scale, scale_a);
+                  if (LT_array[ii][jj][kk] != null)
+                    LT_array[ii][jj][kk].controlChanged(first_scale, scale_a);
               }
             }
           }
@@ -1548,8 +1549,10 @@ class ProjectionControlListener implements ControlListener {
           if (LT_array != null) {
             for (int ii = 0; ii < cnt; ii++) {
               for (int kk = 0; kk < LT_array[ii][0].length; kk++) {
-                for (int jj = 0; jj < LT_array[0].length; jj++)
-                  LT_array[ii][jj][kk].controlChanged(first_scale, scale_a);
+                for (int jj = 0; jj < LT_array[0].length; jj++) {
+                  if (LT_array[ii][jj][kk] != null)
+                    LT_array[ii][jj][kk].controlChanged(first_scale, scale_a);
+                }
               }
             }
           }

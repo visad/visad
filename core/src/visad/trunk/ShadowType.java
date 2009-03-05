@@ -3794,7 +3794,6 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
             // anyContourCreated = true;
           } else if (spatialManifoldDimension == 2) {
             if (spatial_set != null) {
-              control.setAutoScaleLabels(true);
 
               float[] lowhibase = new float[3];
               boolean[] doStyle = { false };
