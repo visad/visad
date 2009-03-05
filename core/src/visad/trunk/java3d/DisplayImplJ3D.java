@@ -160,7 +160,6 @@ public class DisplayImplJ3D extends DisplayImpl {
   public static final boolean GEOMETRY_BY_REF;
   static {
     GEOMETRY_BY_REF = Boolean.parseBoolean(System.getProperty(PROP_GEOMETRY_BY_REF, "true"));
-    System.err.println("GEOMETRY_BY_REF:" + GEOMETRY_BY_REF);
   }
 
   /** this is used for APPLETFRAME */
