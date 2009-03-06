@@ -38,6 +38,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
+
+import javax.media.j3d.Canvas3D;
+import javax.media.j3d.VirtualUniverse;
+
 import ncsa.hdf.hdf5lib.H5;
 import visad.ConstantMap;
 import visad.Display;
@@ -173,6 +177,41 @@ public class Util
       return date;
     }
     catch (IOException exc) { return null; }
+  }
+  
+  /** 
+   * Print Java3D properties.
+   * @param str Where to print properties.
+   * @param canvas The Canvas3D to get properties from. If null Canvas3D
+   *  properties are skipped.
+   * 
+   * @see {@link #printJ3DProperties(Canvas3D)}
+   */
+  public static void printJ3DProperties(PrintStream str, Canvas3D canvas) {
+    Map map = VirtualUniverse.getProperties();
+    for (Object key : map.keySet()) {
+        str.println(String.format("%s=%s", key, map.get(key)));
+    }
+    
+    if (canvas != null) {
+      str.println("== Canvas3D properties ==");
+      map = canvas.queryProperties();
+      for (Object key : map.keySet()) {
+        str.println(String.format("%s=%s", key, map.get(key).toString()));
+      }
+    }
+  }
+  
+  /**
+   * Print Java3D global and Canvas3D properties to <code>System.err</code>.
+   * @param canvas The Canvas3D to get properties from. If null Canvas3D
+   *  properties are skipped.
+   * 
+   * @see {@link javax.media.j3d.VirtualUniverse#getProperties()}
+   * @see {@link javax.media.j3d.Canvas3D#queryProperties()}
+   */
+  public static void printJ3DProperties(Canvas3D canvas) {
+    printJ3DProperties(System.err, canvas);
   }
 
   /**
