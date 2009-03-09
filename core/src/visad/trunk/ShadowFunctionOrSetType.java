@@ -162,23 +162,6 @@ public abstract class ShadowFunctionOrSetType extends ShadowType {
   /** value_indices from parent */
   int[] inherited_values;
 
-
-  /**  Image ByReference flags
-  public static final String PROP_IMAGE_BY_REF = "visad.java3d.imageByRef";
-  public static final boolean byReference;
-  public static final boolean yUp;
-  static {
-    byReference = Boolean.parseBoolean(System.getProperty(PROP_IMAGE_BY_REF, "false"));
-    if (byReference) {
-      yUp = true;
-    } else {
-      yUp = false;
-    }
-    System.err.println("IMAGE_BY_REF:" + byReference);
-  }
-  **/
-
-
   /** this constructor is a bit of a kludge to get around
       single inheritance problems */
   public ShadowFunctionOrSetType(MathType t, DataDisplayLink link, ShadowType parent,
