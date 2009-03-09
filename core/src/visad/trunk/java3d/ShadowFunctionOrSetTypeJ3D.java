@@ -46,6 +46,9 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
 
   private Vector AccumulationVector = new Vector();
 
+  //public boolean byReference = true;
+  //public boolean yUp = true;
+
   public ShadowFunctionOrSetTypeJ3D(MathType t, DataDisplayLink link,
                                     ShadowType parent)
       throws VisADException, RemoteException {
@@ -458,8 +461,11 @@ System.out.println("Texture.RGBA = " + Texture.RGBA); // 6
                                       texture_width, texture_height);
     texture.setCapability(Texture.ALLOW_IMAGE_READ);
     ImageComponent2D image2d =
-      new ImageComponent2D(ImageComponent.FORMAT_RGBA, image);
+      new ImageComponent2D(ImageComponent.FORMAT_RGBA, image, byReference, yUp);
     image2d.setCapability(ImageComponent.ALLOW_IMAGE_READ);
+    if (byReference) {
+      image2d.setCapability(ImageComponent.ALLOW_IMAGE_WRITE);
+    }
     texture.setImage(0, image2d);
     //
     // from TextureLoader

@@ -133,6 +133,7 @@ import java.rmi.*;
 import java.text.*;
 import java.util.*;
 
+
 /**
    The ShadowFunctionOrSetType class is an abstract parent for
    classes that implement ShadowFunctionType or ShadowSetType.<P>
@@ -160,6 +161,23 @@ public abstract class ShadowFunctionOrSetType extends ShadowType {
 
   /** value_indices from parent */
   int[] inherited_values;
+
+
+  /**  Image ByReference flags
+  public static final String PROP_IMAGE_BY_REF = "visad.java3d.imageByRef";
+  public static final boolean byReference;
+  public static final boolean yUp;
+  static {
+    byReference = Boolean.parseBoolean(System.getProperty(PROP_IMAGE_BY_REF, "false"));
+    if (byReference) {
+      yUp = true;
+    } else {
+      yUp = false;
+    }
+    System.err.println("IMAGE_BY_REF:" + byReference);
+  }
+  **/
+
 
   /** this constructor is a bit of a kludge to get around
       single inheritance problems */
@@ -3252,7 +3270,8 @@ WLH 15 March 2000 */
                        int texture_width, int texture_height,
                        byte[][] color_values, boolean byRef)
                        throws VisADException {
-    if (byRef) {
+    //if (byRef) {
+    if (false) {
       if (data_width > texture_width || data_height > texture_height) {
         throw new VisADException(
           "Data dimensions cannot exceed texture dimensions");
@@ -3310,7 +3329,12 @@ WLH 15 March 2000 */
                                          color_values[2][k];
           a = (color_values[3][k] < 0) ? color_values[3][k] + 256 :
                                          color_values[3][k];
-          intData[m++] = ((a << 24) | (r << 16) | (g << 8) | b);
+          if (byReference) {
+            intData[m++] = ((a << 24) | (b << 16) | (g << 8) | r);
+          }
+          else {
+            intData[m++] = ((a << 24) | (r << 16) | (g << 8) | b);
+          }
           k++;
         }
         for (int i=data_width; i<texture_width; i++) {
@@ -3321,6 +3345,10 @@ WLH 15 March 2000 */
         for (int i=0; i<texture_width; i++) {
           intData[m++] = 0;
         }
+      }
+      if (byReference) {
+        image = new BufferedImage(texture_width, texture_height, BufferedImage.TYPE_4BYTE_ABGR);
+        image.setRGB(0,0,texture_width,texture_height,intData,0,texture_width);
       }
     }
     else { // (color_values.length == 3)
@@ -3376,6 +3404,9 @@ WLH 15 March 2000 */
           intData[m++] = 0;
         }
       }
+      //-TDR
+      //image = new BufferedImage(texture_width, texture_height, BufferedImage.TYPE_4BYTE_ABGR);
+      //image.setRGB(0,0,texture_width,texture_height,intData,0,texture_width);
 
       // WLH 2 Nov 2000
       if (!(db instanceof DataBufferInt)) {

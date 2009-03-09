@@ -616,6 +616,8 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         x_start_stop[k][0] = k*x_sub_len;
         x_start_stop[k][1] = lens[0] - 1;
 
+        System.out.println("  y    : "+lens[1]+",   x    : "+lens[0]);
+        System.out.println("n_y_sub: "+n_y_sub+", n_x_sub: "+n_x_sub);
         if (n_y_sub == 1 && n_x_sub == 1) {
           buildCurvedTexture(group, domain_set, dataUnits, domain_units, default_values, DomainComponents,
                              valueArrayLength, inherited_values, valueToScalar, mode, constant_alpha,
@@ -1086,7 +1088,8 @@ if (i == (len / 2)) {
                                                                                                                    
     for (int i=0; i<3; i++) {
       if (spatial_maps[i] != null) {
-        spatial_values[i] = spatial_maps[i].scaleValues(spatial_values[i]);
+        //-TDR spatial_values[i] = spatial_maps[i].scaleValues(spatial_values[i]);
+        spatial_values[i] = spatial_maps[i].scaleValues(spatial_values[i], false);
       }
     }
                                                                                                                    
@@ -1143,7 +1146,12 @@ if (i == (len / 2)) {
         float isfactor = is[i] / (data_width - 1.0f);
         float jsfactor = js[j] / (data_height - 1.0f);
         texCoords[mt++] = (ratiow - width) * isfactor + half_width;
-        texCoords[mt++] = 1.0f - (ratioh - height) * jsfactor - half_height;
+        if (yUp) { // TDR
+          texCoords[mt++] = (ratioh - height) * jsfactor + half_height;
+        }
+        else {
+          texCoords[mt++] = 1.0f - (ratioh - height) * jsfactor - half_height;
+        }
       }
     }
     VisADTriangleStripArray tarray = new VisADTriangleStripArray();
@@ -1155,7 +1163,7 @@ if (i == (len / 2)) {
     tarray.vertexCount = len;
     tarray.normals = new float[3 * len];
     tarray.coordinates = new float[3 * len];
-    tarray.colors = new byte[3 * len];
+    //tarray.colors = new byte[3 * len];
     tarray.texCoords = new float[2 * len];
                                                                                                                    
     // shuffle normals into tarray.normals, etc
@@ -1181,12 +1189,14 @@ if (i == (len / 2)) {
         tarray.normals[k+4] = normals[m+nwidth3+1];
         tarray.normals[k+5] = normals[m+nwidth3+2];
                                                                                                                    
+        /*
         tarray.colors[k] = colors[m];
         tarray.colors[k+1] = colors[m+1];
         tarray.colors[k+2] = colors[m+2];
         tarray.colors[k+3] = colors[m+nwidth3];
         tarray.colors[k+4] = colors[m+nwidth3+1];
         tarray.colors[k+5] = colors[m+nwidth3+2];
+        */
                                                                                                                    
         tarray.texCoords[kt] = texCoords[mt];
         tarray.texCoords[kt+1] = texCoords[mt+1];

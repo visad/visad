@@ -49,6 +49,21 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
   public static final int NESTED = 2;
   public static final int LEGAL = 1;
 
+  /**  Image ByReference flags **/
+  public static final String PROP_IMAGE_BY_REF = "visad.java3d.imageByRef";
+  public static final boolean byReference;
+  public static final boolean yUp;
+  static {
+    byReference = Boolean.parseBoolean(System.getProperty(PROP_IMAGE_BY_REF, "false"));
+    if (byReference) {
+      yUp = true;
+    } else {
+      yUp = false;
+    }
+    System.err.println("IMAGE_BY_REF:" + byReference);
+  }
+
+
   /** basic information about this ShadowType */
   MathType Type; // MathType being shadowed
   transient DataDisplayLink Link;
