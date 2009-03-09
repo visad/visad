@@ -23,6 +23,7 @@ import visad.ScalarMap;
 import visad.VisADException;
 import visad.bom.ImageRendererJ3D;
 import visad.java3d.DisplayImplJ3D;
+import visad.util.Util;
 
 /**
  * Simple test for <code>AnimationControl</code> and <code>ImageRendererJ3D</code>.
@@ -57,7 +58,8 @@ public class ImageAnimationTest extends JPanel {
     RealTupleType pxl = new RealTupleType(RealType.getRealType("x"), RealType.getRealType("y"));
     FunctionType pxlVal = new FunctionType(pxl, RealType.getRealType("val"));
     FunctionType timePxlVal = new FunctionType(RealType.Time, pxlVal);
-
+    System.err.println(timePxlVal.toString());
+    
     Field timeFld = new FieldImpl(timePxlVal, new Integer1DSet(RealType.Time, num));
     
     float[][] samples = makeSamples(size, num);
@@ -78,6 +80,7 @@ public class ImageAnimationTest extends JPanel {
     
     DisplayImpl display = new DisplayImplJ3D("image display");
     ImageRendererJ3D imgRend = new ImageRendererJ3D();
+    System.err.println("Renderer:"+imgRend.toString());
     display.addReferences(imgRend, ref);
 
     display.addMap(new ScalarMap(RealType.getRealType("x"), Display.XAxis));
@@ -105,6 +108,8 @@ public class ImageAnimationTest extends JPanel {
       System.err.println("USAGE: ImageAnimationTest <numImgs> <size>");
       System.exit(1);
     }
+    
+    Util.printJ3DProperties(null);
     
     JFrame frame = new JFrame("Image Animation Test");
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
