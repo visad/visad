@@ -27,6 +27,8 @@ MA 02111-1307, USA
 package visad.util;
 
 import com.sun.image.codec.jpeg.*;
+import com.sun.j3d.utils.universe.SimpleUniverse;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -193,12 +195,13 @@ public class Util
         str.println(String.format("%s=%s", key, map.get(key)));
     }
     
-    if (canvas != null) {
-      str.println("== Canvas3D properties ==");
-      map = canvas.queryProperties();
-      for (Object key : map.keySet()) {
-        str.println(String.format("%s=%s", key, map.get(key).toString()));
-      }
+    if (canvas == null) {
+      canvas = new Canvas3D(SimpleUniverse.getPreferredConfiguration());
+    }
+    str.println("== Canvas3D properties ==");
+    map = canvas.queryProperties();
+    for (Object key : map.keySet()) {
+      str.println(String.format("%s=%s", key, map.get(key).toString()));
     }
   }
   
