@@ -26,23 +26,34 @@ MA 02111-1307, USA
 
 package visad.util;
 
-import com.sun.image.codec.jpeg.*;
-import com.sun.j3d.utils.universe.SimpleUniverse;
-
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
-import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
+import java.util.Calendar;
+import java.util.Enumeration;
+import java.util.Map;
+import java.util.Vector;
 
 import javax.media.j3d.Canvas3D;
+import javax.media.j3d.Group;
+import javax.media.j3d.Node;
 import javax.media.j3d.VirtualUniverse;
+import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.filechooser.FileFilter;
 
 import ncsa.hdf.hdf5lib.H5;
 import visad.ConstantMap;
@@ -52,6 +63,11 @@ import visad.VisADException;
 import visad.data.bio.LociForm;
 import visad.data.mcidas.AreaForm;
 import visad.data.mcidas.MapForm;
+
+import com.sun.image.codec.jpeg.JPEGCodec;
+import com.sun.image.codec.jpeg.JPEGEncodeParam;
+import com.sun.image.codec.jpeg.JPEGImageEncoder;
+import com.sun.j3d.utils.universe.SimpleUniverse;
 
 /**
  * A hodge-podge of general utility methods.
@@ -215,6 +231,27 @@ public class Util
    */
   public static void printJ3DProperties(Canvas3D canvas) {
     printJ3DProperties(System.err, canvas);
+  }
+  
+  public static void printSceneGraph(Node node) {
+    if (node == null) return;
+    printSceneGraph(node, 0);
+  }
+  
+  private static void printSceneGraph(Node node, int lvl) {
+    StringBuffer buf = new StringBuffer();
+    for (int i=0; i<lvl; i++) {
+      buf.append("    ");
+    }
+    lvl++;
+    System.err.println(buf.toString() + node.toString());
+    if (node instanceof Group) {
+      Group group = (Group) node;
+      Enumeration children = group.getAllChildren();
+      while (children.hasMoreElements()) {
+        printSceneGraph((Node) children.nextElement(), lvl);
+      }
+    }
   }
 
   /**
