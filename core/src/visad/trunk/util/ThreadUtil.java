@@ -40,7 +40,7 @@ import java.util.List;
  */
 public class ThreadUtil
 {
-    private static int maxThreads = 2;
+    private static int maxThreads = -1;
 
     private List<VisADException>visadExceptions = new ArrayList<VisADException>();
     private List<RemoteException>remoteExceptions = new ArrayList<RemoteException>();
@@ -55,14 +55,24 @@ public class ThreadUtil
     private static Hashtable<Integer,Integer[]>  times = new Hashtable<Integer,Integer[]>(); 
 
     public ThreadUtil() {
-        if(maxThreads>1) {
-            maxThreads = 1;
-        } else {
-            maxThreads = 11;
+        if(maxThreads <=0) {
+            maxThreads = Runtime.getRuntime().availableProcessors();
         }
         myMaxThreads = maxThreads;
     }
 
+
+    public ThreadUtil(int maxThreads) {
+        myMaxThreads = maxThreads;
+    }
+
+    public static void setGlobalMaxThreads(int max) {
+        ThreadUtil.maxThreads = max;
+    }
+
+    public static void clearTimes() {
+        times = new Hashtable<Integer,Integer[]>(); 
+    }
 
 
     public void addRunnable(MyRunnable runnable) {
@@ -102,12 +112,42 @@ public class ThreadUtil
         checkErrors();
     }
 
+
+    public int getNumRunnables() {
+        return runnables.size();
+    }
+
+
+    public void runInParallel(int maxThreads) throws VisADException, RemoteException {
+        myMaxThreads = maxThreads;
+        runInParallel();
+    }
+
+    public void runSequentially() throws VisADException, RemoteException {
+        myMaxThreads = 1;
+        runInParallel();
+    }
+
+
+    public void runAllParallel() throws VisADException, RemoteException {
+        runInParallel(runnables.size());
+    }
+
+
+
+
+
     public void runInParallel() throws VisADException, RemoteException {
+        runInParallel(true);
+    }
+
+
+    public void runInParallel(boolean doAverage) throws VisADException, RemoteException {
         long t1 = System.currentTimeMillis();
         running = true;
         for(MyRunnable myRunnable: runnables) {
-            runnableStarted();
-            final MyRunnable theRunnable = myRunnable;
+            runnableStarted(); 
+           final MyRunnable theRunnable = myRunnable;
             Runnable runnable = new Runnable() {
                     public void run() {
                         try {
@@ -129,22 +169,23 @@ public class ThreadUtil
         }
         running = false;
 
-      long t2 = System.currentTimeMillis();
-      System.err.println("Time:" + (t2-t1) +" max threads:" +myMaxThreads);
-      Integer[]tuple  = times.get(new Integer(myMaxThreads));
-      if(tuple == null) {
-          times.put(new Integer(myMaxThreads), tuple = new Integer[]{0,0});
-      }
-      tuple[0] = new Integer(tuple[0].intValue()+1);
-      tuple[1] = new Integer(tuple[1].intValue()+(int)(t2-t1));
-      System.err.print("   times:");
-      for(Enumeration keys= times.keys();keys.hasMoreElements();) {
-          Integer maxThreads = (Integer) keys.nextElement();
-          Integer[]values = times.get(maxThreads);
-          System.err.print("  #:" + maxThreads + " avg:" + (int)(values[1].intValue()/(double)values[0].intValue()));
-      }
-      System.err.println("");
-
+        long t2 = System.currentTimeMillis();
+        //      System.err.println("Time:" + (t2-t1) +" max threads:" +myMaxThreads);
+        if(false && doAverage) {
+            Integer[]tuple  = times.get(new Integer(myMaxThreads));
+            if(tuple == null) {
+                times.put(new Integer(myMaxThreads), tuple = new Integer[]{0,0});
+            }
+            tuple[0] = new Integer(tuple[0].intValue()+1);
+            tuple[1] = new Integer(tuple[1].intValue()+(int)(t2-t1));
+            System.err.print("   times:");
+            for(Enumeration keys= times.keys();keys.hasMoreElements();) {
+                Integer maxThreads = (Integer) keys.nextElement();
+                Integer[]values = times.get(maxThreads);
+                System.err.print("  #:" + maxThreads + " avg:" + (int)(values[1].intValue()/(double)values[0].intValue()));
+            }
+            System.err.println("");
+        }
 
 
 
