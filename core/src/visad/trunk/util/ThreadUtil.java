@@ -54,6 +54,7 @@ public class ThreadUtil
     private int myMaxThreads;
     private static Hashtable<Integer,Integer[]>  times = new Hashtable<Integer,Integer[]>(); 
 
+
     public ThreadUtil() {
         if(maxThreads <=0) {
             maxThreads = Runtime.getRuntime().availableProcessors();
@@ -134,20 +135,25 @@ public class ThreadUtil
     }
 
 
-
-
-
     public void runInParallel() throws VisADException, RemoteException {
         runInParallel(true);
     }
 
 
     public void runInParallel(boolean doAverage) throws VisADException, RemoteException {
+        int max = Math.min(myMaxThreads, runnables.size());
+        int min = max;
+        ThreadPool pool;
+        try {
+            pool = new ThreadPool("thread util", min,  max);
+        } catch(Exception exc) {
+            throw new RuntimeException(exc);
+        }
         long t1 = System.currentTimeMillis();
         running = true;
         for(MyRunnable myRunnable: runnables) {
             runnableStarted(); 
-           final MyRunnable theRunnable = myRunnable;
+            final MyRunnable theRunnable = myRunnable;
             Runnable runnable = new Runnable() {
                     public void run() {
                         try {
@@ -159,14 +165,24 @@ public class ThreadUtil
                         }
                     }
                 };
-            Thread t= new Thread(runnable);
-            t.start();
-            waitOnThreads();
+            pool.queue(runnable);
         }
-        while(numThreadsRunning>0) {
-            try {Thread.currentThread().sleep(5);} catch (Throwable exc) {}
+
+        try {
+            pool.waitForTasks();
+            //            System.err.println ("waiting");
+            //            while(numThreadsRunning>0) {
+            //                try {Thread.currentThread().sleep(5);} catch (Throwable exc) {}
+            //                checkErrors();
+            //            }
             checkErrors();
+        } finally {
+            try {
+                pool.stopThreads();
+            } catch(Exception ignoreThis) {}
         }
+
+
         running = false;
 
         long t2 = System.currentTimeMillis();
