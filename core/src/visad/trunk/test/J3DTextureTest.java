@@ -150,6 +150,8 @@ public class J3DTextureTest extends Canvas3D {
 
     scene.addChild(swit);
     scene.compile();
+    
+    Util.printSceneGraph(scene);
   }
   
   private GeometryArray makeGeometryArray() {
@@ -234,7 +236,6 @@ public class J3DTextureTest extends Canvas3D {
     appearance.setTexture(texture);
     appearance.setCapability(Appearance.ALLOW_TEXTURE_READ);
 
-//    group.addChild(shape);
     BranchGroup branch = new BranchGroup();
     branch.setCapability(BranchGroup.ALLOW_DETACH);
     branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);

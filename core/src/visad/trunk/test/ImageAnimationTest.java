@@ -3,6 +3,7 @@ package visad.test;
 import java.awt.BorderLayout;
 import java.rmi.RemoteException;
 
+import javax.media.j3d.BranchGroup;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
@@ -23,6 +24,7 @@ import visad.ScalarMap;
 import visad.VisADException;
 import visad.bom.ImageRendererJ3D;
 import visad.java3d.DisplayImplJ3D;
+import visad.java3d.DisplayRendererJ3D;
 import visad.util.Util;
 
 /**
@@ -95,6 +97,15 @@ public class ImageAnimationTest extends JPanel {
     
     setLayout(new BorderLayout());
     add(display.getComponent());
+    
+    try {
+      Thread.sleep(1000); 
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+    
+    BranchGroup scene = ((DisplayRendererJ3D) imgRend.getDisplayRenderer()).getRoot();
+    Util.printSceneGraph(scene);
   }
 
   public static void main(String[] args) throws RemoteException, VisADException {
