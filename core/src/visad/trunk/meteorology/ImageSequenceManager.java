@@ -28,6 +28,7 @@ package visad.meteorology;
 
 import visad.*;
 import java.util.TreeMap;
+import java.util.List;
 import java.util.Collection;
 import java.rmi.RemoteException;
 
@@ -110,6 +111,16 @@ public class ImageSequenceManager extends Object
     {
         for (int i = 0; i < images.length; i++)
             imageMap.put(images[i].getStartTime(), images[i]);
+        makeNewSequence();
+        return sequence;
+    }
+
+
+    public ImageSequence addImagesToSequence(List<SingleBandedImage> images)
+        throws VisADException, RemoteException
+    {
+        for (int i = 0; i < images.size(); i++)
+            imageMap.put(images.get(i).getStartTime(), images.get(i));
         makeNewSequence();
         return sequence;
     }
