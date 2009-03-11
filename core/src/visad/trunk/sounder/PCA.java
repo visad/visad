@@ -26,6 +26,7 @@ MA 02111-1307, USA
 
 package visad.sounder;
 
+import java.lang.reflect.InvocationTargetException;
 import visad.*;
 import visad.matrix.*;
 import java.rmi.RemoteException;
@@ -42,7 +43,7 @@ public class PCA
   }
 
   public Spectrum compressReconstruct( Spectrum spectrum )
-         throws VisADException, RemoteException
+         throws VisADException, RemoteException,IllegalAccessException, InstantiationException, InvocationTargetException
   {
     Spectrum new_spectrum = (Spectrum) spectrum.clone();
     JamaMatrix tmp = uncompress(compress(spectrum));
@@ -51,7 +52,7 @@ public class PCA
   } 
 
   public JamaMatrix compress( Spectrum spectrum ) 
-         throws VisADException, RemoteException
+         throws VisADException, RemoteException, IllegalAccessException, InstantiationException, InvocationTargetException
   {
     JamaMatrix data_vector = new JamaMatrix(spectrum.getValues());
     JamaMatrix tmp_vector = data_vector.minus(mean_vector);
@@ -60,7 +61,7 @@ public class PCA
   }
 
   public JamaMatrix uncompress( JamaMatrix trans_data_vector )
-         throws VisADException
+         throws VisADException, IllegalAccessException, InstantiationException, InvocationTargetException
   {
      JamaMatrix r_data_vector =
        (eigenvectors.transpose()).times(trans_data_vector);
@@ -69,7 +70,7 @@ public class PCA
   }
 
   public static JamaMatrix makeCovarianceMatrix( double[][] data_vectors )
-         throws VisADException
+         throws VisADException, IllegalAccessException, InstantiationException, InvocationTargetException
   {
     int dim = data_vectors[0].length;
     int n_vectors = data_vectors.length;

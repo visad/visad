@@ -2,9 +2,10 @@
 // PCS.java
 //
 
-package visad.paoloa;
+package visad.paoloa.nesti;
 
 // import needed classes
+import java.lang.reflect.InvocationTargetException;
 import visad.*;
 import visad.java3d.DisplayImplJ3D;
 import visad.java3d.TwoDDisplayRendererJ3D;
@@ -183,8 +184,7 @@ public class PCSmatrix
 
 
   // type 'java visad.paoloa.PCS file.nc' to run this application
-  public static void main(String args[])
-         throws VisADException, RemoteException, IOException, ClassNotFoundException {
+  public static void main(String args[]) throws Exception {
     if (args.length < 1) {
 
       /* CTR: 29 September 1998 */
@@ -210,7 +210,7 @@ public class PCSmatrix
   }
 
   public PCSmatrix(String data_file, String evd_file, boolean make_evd)
-         throws VisADException, RemoteException, IOException, ClassNotFoundException {
+         throws VisADException, RemoteException, IOException, ClassNotFoundException, IllegalAccessException, InstantiationException, InvocationTargetException {
     // create a netCDF reader
     Plain plain = new Plain();
 
@@ -869,31 +869,42 @@ public class PCSmatrix
           bm_2[0] = bm;
           float[][] n_2 = new float[1][];
           n_2[0] = n;
-        
-          data_vector = new JamaMatrix(Set.floatToDouble(b_2));
-          noise_vector = new JamaMatrix(Set.floatToDouble(n_2));
-          mean_vector = new JamaMatrix(Set.floatToDouble(bm_2));
+
+          try {
+            data_vector = new JamaMatrix(Set.floatToDouble(b_2));
+            noise_vector = new JamaMatrix(Set.floatToDouble(n_2));
+            mean_vector = new JamaMatrix(Set.floatToDouble(bm_2));
+          } catch (Exception e) {
+            e.printStackTrace();
+            return;
+          }
           select_ll_ref.setData(ll_select[t]);
           last_t = t;
         }
 
-        if (n_eigen > 0 )
-        {
-          evectors_ne= evectors.getMatrix(0, n_eigen-1, 0, nchannels-1);
-          JamaMatrix tmp_vector = data_vector.minus(mean_vector);
-          trans_data_vector = evectors_ne.times(tmp_vector.transpose());
-       //-trans_noise_vector = evectors_ne.times(noise_vector.transpose());
-          r_data_vector =
-            (evectors_ne.transpose()).times(trans_data_vector);
-          r_data_vector = r_data_vector.plusEquals(mean_vector.transpose());
-       //-r_noise_vector = (evectors_ne.transpose()).times(trans_noise_vector);
-          tmp_vector = null;
-          evectors_ne = null;
-          trans_data_vector = null;
-       //-trans_noise_vector = null;
-        }
-        else {
-          r_data_vector = mean_vector.transpose();
+        JamaMatrix tmp_vector = null;
+        try {
+          if (n_eigen > 0 )
+          {
+            evectors_ne= evectors.getMatrix(0, n_eigen-1, 0, nchannels-1);
+            tmp_vector = data_vector.minus(mean_vector);
+            trans_data_vector = evectors_ne.times(tmp_vector.transpose());
+         //-trans_noise_vector = evectors_ne.times(noise_vector.transpose());
+            r_data_vector =
+              (evectors_ne.transpose()).times(trans_data_vector);
+            r_data_vector = r_data_vector.plusEquals(mean_vector.transpose());
+         //-r_noise_vector = (evectors_ne.transpose()).times(trans_noise_vector);
+            tmp_vector = null;
+            evectors_ne = null;
+            trans_data_vector = null;
+         //-trans_noise_vector = null;
+          }
+          else {
+            r_data_vector = mean_vector.transpose();
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+          return;
         }
 
         double[][] d_values = r_data_vector.getValues();
