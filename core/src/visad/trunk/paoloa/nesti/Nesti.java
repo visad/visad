@@ -1110,6 +1110,7 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
   }//- end: setupClient
 
 
+
   /** this make an image of one NAST-I channel, with a JTextField
       for channel selection, a LabeledRGBWidget for pixel colors
       and a spectrum display */
@@ -2197,6 +2198,10 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       }
     }
 
+    public void controlChanged(ScalarMapControlEvent evt) throws VisADException, RemoteException {
+      
+    }
+
     class CursorClick implements DisplayListener
     {
       RealTuple w_tuple;
@@ -2287,7 +2292,6 @@ System.out.println("nlines = " + nlines + " nelements = " + nelements);
       }
     }
   } //- end class ChannelImage
-
   private native void readProf_c( int i, int i2, float[] a, float[] b, int[] c, float[] d,
                                   float[] p, float[] t, float[] wv, float[] o );
 
