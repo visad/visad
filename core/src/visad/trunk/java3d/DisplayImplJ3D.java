@@ -162,6 +162,29 @@ public class DisplayImplJ3D extends DisplayImpl {
     GEOMETRY_BY_REF = Boolean.parseBoolean(System.getProperty(PROP_GEOMETRY_BY_REF, "true"));
   }
 
+  /**
+   * Property name for enabling the use of non-power of two textures.
+   * @see #TEXTURE_NPOT
+   */
+  public static final String PROP_TEXTURE_NPOT = "visad.java3d.textureNpot";
+
+  /**
+   * Indicates whether to allow non-power of two textures. This has been known
+   * to cause some issues with Apple 32bit Macs eventhough the Canvas3D
+   * properties indicate that NPOT is supported.
+   * @see javax.media.j3d.Canvas3D#queryProperties()
+   */
+  // FIXME:
+  // This works with the Java3D 1.5.2 example TextureImageNPOT but does not work
+  // with the VisAD library image rednering. On initial testing it behaves as if
+  // there may be threading issues.  This requires more investigation before we
+  // can enable this based on the Canvas3D properties.
+  public static final boolean TEXTURE_NPOT;
+  static {
+    TEXTURE_NPOT = Boolean.parseBoolean(System.getProperty(PROP_TEXTURE_NPOT, "false"));
+    System.err.println("TEXTURE_NPOT:"+TEXTURE_NPOT);
+  }
+
   /** this is used for APPLETFRAME */
   private DisplayAppletJ3D applet = null;
 

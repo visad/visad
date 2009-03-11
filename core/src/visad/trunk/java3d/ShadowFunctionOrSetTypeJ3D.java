@@ -166,21 +166,48 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
     return post;
   }
 
+  /**
+   * Get the possibly adjusted texture width.
+   * @param data_width The initial texture width.
+   * @return If <code>DisplayImplJ3D.TEXTURE_NPOT</code> then return
+   *  <code>data_width</code>, otherwise return the minimum power of two greater
+   *  than <code>data_width</code>.
+   * @see DisplayImplJ3D#TEXTURE_NPOT
+   */
   public int textureWidth(int data_width) {
+    if (DisplayImplJ3D.TEXTURE_NPOT) return data_width;
     // must be a power of 2 in Java3D
     int texture_width = 1;
     while (texture_width < data_width) texture_width *= 2;
     return texture_width;
   }
 
+  /**
+   * Get the possibly adjusted texture height.
+   * @param data_height The initial texture height.
+   * @return If <code>DisplayImplJ3D.TEXTURE_NPOT</code> then return
+   *  <code>data_height</code>, otherwise return the minimum power of two greater
+   *  than <code>data_height</code>.
+   * @see DisplayImplJ3D#TEXTURE_NPOT
+   */
   public int textureHeight(int data_height) {
+    if (DisplayImplJ3D.TEXTURE_NPOT) return data_height;
     // must be a power of 2 in Java3D
     int texture_height = 1;
     while (texture_height < data_height) texture_height *= 2;
     return texture_height;
   }
 
+  /**
+   * Get the possibly adjusted texture depth.
+   * @param data_depth The initial texture depth.
+   * @return If <code>DisplayImplJ3D.TEXTURE_NPOT</code> then return
+   *  <code>data_depth</code>, otherwise return the minimum power of two greater
+   *  than <code>data_depth</code>.
+   * @see DisplayImplJ3D#TEXTURE_NPOT
+   */
   public int textureDepth(int data_depth) {
+    if (DisplayImplJ3D.TEXTURE_NPOT) return data_depth;
     // must be a power of 2 in Java3D
     int texture_depth = 1;
     while (texture_depth < data_depth) texture_depth *= 2;
