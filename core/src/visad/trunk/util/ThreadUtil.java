@@ -366,5 +366,58 @@ public class ThreadUtil {
   }
 
 
+
+
+    public static final void doWork(int amt,int[]A) {
+        long x=0;
+        long y=0;
+        long work = ((long)amt)*2000000L;
+        /*
+        for(int j=0;j<amt;j++) {
+            for(int i=0;i<A.length;i++) {
+                A[i] = 0;
+            }
+            }*/
+        for(long i=0;i<work;i++) {
+            x++;
+        }
+    }
+
+
+    /**
+     * Main method for testing
+     *
+     * @param args  args
+     */
+    public static void main(String[] args) throws Exception {
+        int numberOfProcessors = Runtime.getRuntime().availableProcessors();
+        int myCnt = (args.length>0?new Integer(args[0]).intValue():2);
+        //        for(int j=0;j<1000;j++) {
+        for(myCnt=1;myCnt<20;myCnt+=1) {
+            visad.util.ThreadUtil threadUtil  = new visad.util.ThreadUtil();
+            final int amt = 2000;
+            //           final int cnt = (args.length>0?new Integer(args[0]).intValue():2);
+            final int cnt = myCnt;
+            final int [] A = new int[10000000];
+            for(int i=0;i<cnt;i++) {
+                threadUtil.addRunnable(new visad.util.ThreadUtil.MyRunnable() {
+                        public void run() throws Exception {
+                            doWork(amt/cnt,A);
+                        }
+                    });
+            }
+            long t1  = System.currentTimeMillis();
+            threadUtil.runInParallel(cnt);
+            //        threadUtil.runSequentially();
+            long t2  = System.currentTimeMillis();
+            long time = t2-t1;
+            //            System.err.println (cnt +" time:" + time);
+        }
+            //        }
+    }
+
+
+
+
 }
 
