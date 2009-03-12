@@ -3290,6 +3290,7 @@ WLH 15 March 2000 */
 
     BufferedImage image = null;
     if (color_values.length > 3) {
+      if (!byReference) {
       ColorModel colorModel = ColorModel.getRGBdefault();
       WritableRaster raster =
         colorModel.createCompatibleWritableRaster(texture_width, texture_height);
@@ -3312,12 +3313,7 @@ WLH 15 March 2000 */
                                          color_values[2][k];
           a = (color_values[3][k] < 0) ? color_values[3][k] + 256 :
                                          color_values[3][k];
-          if (byReference) {
-            intData[m++] = ((a << 24) | (b << 16) | (g << 8) | r);
-          }
-          else {
-            intData[m++] = ((a << 24) | (r << 16) | (g << 8) | b);
-          }
+          intData[m++] = ((a << 24) | (r << 16) | (g << 8) | b);
           k++;
         }
         for (int i=data_width; i<texture_width; i++) {
@@ -3329,10 +3325,69 @@ WLH 15 March 2000 */
           intData[m++] = 0;
         }
       }
+      }
+      else {
+      image = new BufferedImage(texture_width, texture_height, BufferedImage.TYPE_4BYTE_ABGR);
+      Raster raster = image.getRaster();
+      DataBuffer db = raster.getDataBuffer();
+      byte[] byteData = ((DataBufferByte)db).getData();
+      System.out.println("data dims: "+data_width+", "+data_height);
+
+      int k = 0;
+      int m = 0;
+      byte r, g, b, a;
+      for (int j=0; j<data_height; j++) {
+        for (int i=0; i<data_width; i++) {
+          r = color_values[0][k];
+          g = color_values[1][k];
+          b = color_values[2][k];
+          a = color_values[3][k];
+          /**
+          r = (color_values[0][k] < 0) ? color_values[0][k] + 256 :
+                                         color_values[0][k];
+          g = (color_values[1][k] < 0) ? color_values[1][k] + 256 :
+                                         color_values[1][k];
+          b = (color_values[2][k] < 0) ? color_values[2][k] + 256 :
+                                         color_values[2][k];
+          a = (color_values[3][k] < 0) ? color_values[3][k] + 256 :
+                                         color_values[3][k];
+          **/
+          /**
+          if (byReference) {
+            intData[m++] = ((a << 24) | (b << 16) | (g << 8) | r);
+          }
+          else {
+            intData[m++] = ((a << 24) | (r << 16) | (g << 8) | b);
+          }
+          **/
+          byteData[m++] = a;
+          byteData[m++] = b;
+          byteData[m++] = g;
+          byteData[m++] = r;
+          k++;
+        }
+        for (int i=data_width; i<texture_width; i++) {
+          byteData[m++] = 0;
+          byteData[m++] = 0;
+          byteData[m++] = 0;
+          byteData[m++] = 0;
+        }
+      }
+      for (int j=data_height; j<texture_height; j++) {
+        for (int i=0; i<texture_width; i++) {
+          byteData[m++] = 0;
+          byteData[m++] = 0;
+          byteData[m++] = 0;
+          byteData[m++] = 0;
+        }
+      }
+     }
+      /*
       if (byReference) {
         image = new BufferedImage(texture_width, texture_height, BufferedImage.TYPE_4BYTE_ABGR);
         image.setRGB(0,0,texture_width,texture_height,intData,0,texture_width);
       }
+      */
     }
     else { // (color_values.length == 3)
       ColorModel colorModel = ColorModel.getRGBdefault();
