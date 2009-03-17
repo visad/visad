@@ -26,6 +26,8 @@ MA 02111-1307, USA
 
 package visad;
 
+import java.util.Arrays;
+
 /**
  * SampledSet is the abstract superclass of GriddedSets, PolyCells and MultiCells.
  * SampledSet objects are intended to be immutable (but see {@link 
@@ -408,11 +410,19 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
           colors[j++] = color_values[2][i];
         }
       }
+      
+      // BMF 2009-03-17
+      // this addresses a issue where a 2D display is used without color
+      // mapping
+      else if (color_length == 0) {
+        colors = null;
+      }
       else {
         throw new SetException("SampledSet.setGeometryArray: " +
-                               "color_length must be 3 or 4, not " +
+                               "color_length must be 0, 3 or 4, not " +
                                color_length);
       }
+      
       array.colors = colors;
     }
   }

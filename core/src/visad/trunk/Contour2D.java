@@ -263,7 +263,7 @@ public class Contour2D {
       float[][][] grd_normals, byte[][] interval_colors, double scale_ratio,
       double label_size, byte[] labelColor, Gridded3DSet spatial_set)
       throws VisADException {
-
+    
     dash = fill ? false : dash;
     PlotDigits plot = new PlotDigits();
     int ir, ic;
@@ -290,6 +290,7 @@ public class Contour2D {
 
     // setup colors arrays
     int color_length = (auxValues != null) ? auxValues.length : 0;
+    int interval_length = (interval_colors.length > 0) ? interval_colors[0].length : 0;
     byte[][] auxLevels1 = null;
     byte[][] auxLevels2 = null;
     byte[][] auxLevels3 = null;
@@ -341,8 +342,9 @@ public class Contour2D {
       int[] indices = QuickSort.sort(myvals);
 
       // JDM: Now, change the order of the colors to reflect the new sort order
-      byte[][] tmpColors = new byte[interval_colors.length][interval_colors[0].length];
-      for (int colorIdx = 0; colorIdx < interval_colors[0].length; colorIdx++) {
+      // BMF 2009-03-17: don't assume there are interval colors
+      byte[][] tmpColors = new byte[interval_colors.length][interval_length];
+      for (int colorIdx = 0; colorIdx < interval_length; colorIdx++) {
         for (int rgbIdx = 0; rgbIdx < interval_colors.length; rgbIdx++) {
           tmpColors[rgbIdx][indices[colorIdx]] = interval_colors[rgbIdx][colorIdx];
         }
@@ -4382,7 +4384,7 @@ class ContourStrip {
     } catch (VisADException e) {
       System.out.println(e.getMessage());
     }
-
+    
     int clr_dim = 0;
     if (bb != null)
       clr_dim = bb.length;
@@ -4670,17 +4672,18 @@ class ContourStrip {
       }
 
       try {
-        VisADLineStripArray fillLineArray = new VisADLineStripArray();
-        fillLineArray.stripVertexCounts = new int[] {(n_skip/2)+1};
-        fillLineArray.vertexCount = (n_skip/2)+1;
-        fillLineArray.coordinates = fillLineCoords;
+      VisADLineStripArray fillLineArray = new VisADLineStripArray();
+      fillLineArray.stripVertexCounts = new int[] {(n_skip/2)+1};
+      fillLineArray.vertexCount = (n_skip/2)+1;
+      fillLineArray.coordinates = fillLineCoords;
+      if (fillLineColors.length > 0)
         fillLineArray.colors = fillLineColors;
-        if (isDashed) {
-          css.fillLinesStyled.add(fillLineArray);
-        }
-        else {
-          css.fillLines.add(fillLineArray);
-        }
+      if (isDashed) {
+        css.fillLinesStyled.add(fillLineArray);
+      }
+      else {
+        css.fillLines.add(fillLineArray);
+      }
       }
       catch (Exception e) {
         System.out.println(e.getMessage());
@@ -4715,7 +4718,9 @@ class ContourStrip {
         lineArray.stripVertexCounts = new int[] {(start_break/2)+1,(((totalPts*2-start_break)-n_skip)/2)+1};
         lineArray.vertexCount = lineArray.stripVertexCounts[0] + lineArray.stripVertexCounts[1];
         lineArray.coordinates = lineCoords;
-        lineArray.colors = lineColors;
+        if (lineColors.length > 0) {
+          lineArray.colors = lineColors;
+        }
         if (isDashed) {
           css.cntrLinesStyled.add(lineArray);
         }
@@ -4848,7 +4853,9 @@ class ContourStrip {
         lineArray.stripVertexCounts = new int[] {(totalPts)+1};
         lineArray.vertexCount = lineArray.stripVertexCounts[0];
         lineArray.coordinates = lineCoords;
-        lineArray.colors = lineColors;
+        if (lineColors.length > 0) {
+          lineArray.colors = lineColors;
+        }
         if (totalPts >= 2) {
           if (isDashed) {
             css.cntrLinesStyled.add(lineArray);
