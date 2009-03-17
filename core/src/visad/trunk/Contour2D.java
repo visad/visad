@@ -4101,9 +4101,10 @@ class ContourStripSet {
    *          Output location coords for labels.
    * @param dashed
    *          Flags indicating which levels to dash.
+   * @throws VisADException 
    */
   void getLineColorArrays(float[] vx, float[] vy, byte[][] colors,
-      byte[] labelColor, int lev_idx, boolean[] dashed) {
+      byte[] labelColor, int lev_idx, boolean[] dashed) throws VisADException {
 
     int n_strips = vecArray[lev_idx].size();
 
@@ -4130,9 +4131,10 @@ class ContourStripSet {
    * @param out_loc
    * @param dashFlags
    * @param contourDifficulty
+   * @throws VisADException 
    */
   void getLineColorArrays(float[] vx, float[] vy, byte[][] colors,
-      byte[] labelColor, boolean[] dashFlags) {
+      byte[] labelColor, boolean[] dashFlags) throws VisADException {
 
     makeContourStrips(vx, vy);
 
@@ -4350,9 +4352,10 @@ class ContourStrip {
    * @param out_vvL
    * @param out_colorsL
    * @param lbl_loc
+   * @throws VisADException 
    */
   void getLabeledLineColorArray(float[] vx, float[] vy, byte[][] colors,
-      byte[] labelColor) {
+      byte[] labelColor) throws VisADException {
 
     float[][] vv = getLineArray(vx, vy);
     byte[][] bb = getColorArray(colors);
@@ -4375,15 +4378,9 @@ class ContourStrip {
    * @param out_colorsL
    * @param lbl_loc
    */
-  private void processLineArrays(float[][] vv_grid, byte[][] bb, byte[] labelColor) {
+  private void processLineArrays(float[][] vv_grid, byte[][] bb, byte[] labelColor) throws VisADException {
 
-    float[][] vv = null;
-
-    try {
-      vv = css.spatial_set.gridToValue(vv_grid);
-    } catch (VisADException e) {
-      System.out.println(e.getMessage());
-    }
+    float[][] vv = css.spatial_set.gridToValue(vv_grid);
     
     int clr_dim = 0;
     if (bb != null)
@@ -4487,12 +4484,9 @@ class ContourStrip {
         // - at this label location (loc)
         float[][] norm = null;
         Gridded3DSet cg3d = (Gridded3DSet) css.spatial_set;
-        try {
-          norm = cg3d.getNormals(new float[][] { { vv_grid[0][loc] },
-              { vv_grid[1][loc] } });
-        } catch (VisADException e) {
-          System.out.println(e.getMessage());
-        }
+
+        norm = cg3d.getNormals(new float[][] { { vv_grid[0][loc] },
+            { vv_grid[1][loc] } });
 
         if (norm[2][0] < 0) {
           norm[0][0] = -norm[0][0];
@@ -4595,25 +4589,21 @@ class ContourStrip {
         }
       }
 
-      VisADLineArray label = null;
-      VisADLineArray labelAnchor = null;
-      try {
-        VisADLineArray labelA = new VisADLineArray();
-        VisADLineArray labelB = new VisADLineArray();
-        label = new VisADLineArray();
-        SampledSet.setGeometryArray(
-            labelA, new float[][] {lbl_dcoords[0], vy_tmp, lbl_dcoords[2]}, clr_dim, lbl_clr);
-        SampledSet.setGeometryArray(
-            labelB, new float[][] {vxB_tmp, lbl_dcoords[1], lbl_dcoords[2]}, clr_dim, lbl_clr);
-        SampledSet.setGeometryArray(
-            label, new float[][] {lbl_dcoords[0], lbl_dcoords[1], lbl_dcoords[2]}, clr_dim, lbl_clr);
-        labelAnchor = new VisADLineArray();
-        SampledSet.setGeometryArray(
-            labelAnchor, new float[][] {{vv[0][loc]}, {vv[1][loc]}, {vv[2][loc]}}, clr_dim, null);
-      }
-      catch (Exception e) {
-        System.out.println(e.getMessage());
-      }
+      VisADLineArray label = new VisADLineArray();;
+      VisADLineArray labelAnchor = new VisADLineArray();;
+      VisADLineArray labelA = new VisADLineArray();
+      VisADLineArray labelB = new VisADLineArray();
+      SampledSet.setGeometryArray(
+          labelA, new float[][] {lbl_dcoords[0], vy_tmp, lbl_dcoords[2]}, clr_dim, lbl_clr);
+      SampledSet.setGeometryArray(
+          labelB, new float[][] {vxB_tmp, lbl_dcoords[1], lbl_dcoords[2]}, clr_dim, lbl_clr);
+      SampledSet.setGeometryArray(
+          label, new float[][] {lbl_dcoords[0], lbl_dcoords[1], lbl_dcoords[2]}, clr_dim, lbl_clr);
+      SampledSet.setGeometryArray(
+          labelAnchor, new float[][] {{vv[0][loc]}, {vv[1][loc]}, {vv[2][loc]}}, clr_dim, null);
+
+
+
       /*-------- LABEL DONE -------------------*/
 
 
@@ -4671,7 +4661,6 @@ class ContourStrip {
          }
       }
 
-      try {
       VisADLineStripArray fillLineArray = new VisADLineStripArray();
       fillLineArray.stripVertexCounts = new int[] {(n_skip/2)+1};
       fillLineArray.vertexCount = (n_skip/2)+1;
@@ -4683,10 +4672,6 @@ class ContourStrip {
       }
       else {
         css.fillLines.add(fillLineArray);
-      }
-      }
-      catch (Exception e) {
-        System.out.println(e.getMessage());
       }
 
       //-- end label fill line;
@@ -4713,23 +4698,18 @@ class ContourStrip {
          }
       }
 
-      try {
-        VisADLineStripArray lineArray = new VisADLineStripArray();
-        lineArray.stripVertexCounts = new int[] {(start_break/2)+1,(((totalPts*2-start_break)-n_skip)/2)+1};
-        lineArray.vertexCount = lineArray.stripVertexCounts[0] + lineArray.stripVertexCounts[1];
-        lineArray.coordinates = lineCoords;
-        if (lineColors.length > 0) {
-          lineArray.colors = lineColors;
-        }
-        if (isDashed) {
-          css.cntrLinesStyled.add(lineArray);
-        }
-        else {
-          css.cntrLines.add(lineArray);
-        }
+      VisADLineStripArray lineArray = new VisADLineStripArray();
+      lineArray.stripVertexCounts = new int[] {(start_break/2)+1,(((totalPts*2-start_break)-n_skip)/2)+1};
+      lineArray.vertexCount = lineArray.stripVertexCounts[0] + lineArray.stripVertexCounts[1];
+      lineArray.coordinates = lineCoords;
+      if (lineColors.length > 0) {
+        lineArray.colors = lineColors;
       }
-      catch (Exception e) {
-        System.out.println(e.getMessage());
+      if (isDashed) {
+        css.cntrLinesStyled.add(lineArray);
+      }
+      else {
+        css.cntrLines.add(lineArray);
       }
 
       // --- end label gap code
@@ -4760,21 +4740,15 @@ class ContourStrip {
         }
       }
 
-      VisADLineArray expSegLeft = null;
-      VisADLineArray segLeftAnchor = null;
-      try {
-      expSegLeft = new VisADLineArray();
+      VisADLineArray expSegLeft = new VisADLineArray();
+      VisADLineArray segLeftAnchor = new VisADLineArray();
       SampledSet.setGeometryArray(expSegLeft,
         new float[][] { {vv[0][s_pos], vv[0][s_pos]+dx},
                         {vv[1][s_pos], vv[1][s_pos]+dy},
                         {vv[2][s_pos], vv[2][s_pos]+dz} }, clr_dim, segColors);
-      segLeftAnchor = new VisADLineArray();
       SampledSet.setGeometryArray(segLeftAnchor,
         new float[][] {{vv[0][s_pos]}, {vv[1][s_pos]}, {vv[2][s_pos]}}, clr_dim, null);
-      }
-      catch (Exception e) {
-        System.out.println(e.getMessage());
-      }
+
       float[] segLeftScaleInfo = new float[] {lbl_half, dd};
 
 
@@ -4801,22 +4775,16 @@ class ContourStrip {
           System.arraycopy(bb[cc], s_pos, segColors[cc], d_pos, cnt);
         }
       }
+      
+      VisADLineArray expSegRight = new VisADLineArray();
+      SampledSet.setGeometryArray(expSegRight,
+        new float[][] {{vv[0][stop_break], vv[0][stop_break]+dx},
+                       {vv[1][stop_break], vv[1][stop_break]+dy},
+                       {vv[2][stop_break], vv[2][stop_break]+dz}}, clr_dim, segColors);
+      VisADLineArray segRightAnchor = new VisADLineArray();
+      SampledSet.setGeometryArray(segRightAnchor,
+        new float[][] {{vv[0][stop_break]}, {vv[1][stop_break]}, {vv[2][stop_break]}}, clr_dim, null);
 
-      VisADLineArray expSegRight = null;
-      VisADLineArray segRightAnchor = null;
-      try {
-        expSegRight = new VisADLineArray();
-        SampledSet.setGeometryArray(expSegRight,
-          new float[][] {{vv[0][stop_break], vv[0][stop_break]+dx},
-                         {vv[1][stop_break], vv[1][stop_break]+dy},
-                         {vv[2][stop_break], vv[2][stop_break]+dz}}, clr_dim, segColors);
-        segRightAnchor = new VisADLineArray();
-        SampledSet.setGeometryArray(segRightAnchor,
-          new float[][] {{vv[0][stop_break]}, {vv[1][stop_break]}, {vv[2][stop_break]}}, clr_dim, null);
-      }
-      catch (Exception e) {
-        System.out.println(e.getMessage());
-      }
       float[] segRightScaleInfo = new float[] {lbl_half, dd};
 
       // ----- end expanding/contracting line segments
@@ -4848,25 +4816,20 @@ class ContourStrip {
          }
       }
 
-      try {
-        VisADLineStripArray lineArray = new VisADLineStripArray();
-        lineArray.stripVertexCounts = new int[] {(totalPts)+1};
-        lineArray.vertexCount = lineArray.stripVertexCounts[0];
-        lineArray.coordinates = lineCoords;
-        if (lineColors.length > 0) {
-          lineArray.colors = lineColors;
-        }
-        if (totalPts >= 2) {
-          if (isDashed) {
-            css.cntrLinesStyled.add(lineArray);
-          }
-          else {
-            css.cntrLines.add(lineArray);
-          }
-        }
+      VisADLineStripArray lineArray = new VisADLineStripArray();
+      lineArray.stripVertexCounts = new int[] {(totalPts)+1};
+      lineArray.vertexCount = lineArray.stripVertexCounts[0];
+      lineArray.coordinates = lineCoords;
+      if (lineColors.length > 0) {
+        lineArray.colors = lineColors;
       }
-      catch (Exception e) {
-        System.out.println(e.getMessage());
+      if (totalPts >= 2) {
+        if (isDashed) {
+          css.cntrLinesStyled.add(lineArray);
+        }
+        else {
+          css.cntrLines.add(lineArray);
+        }
       }
     }
   }
