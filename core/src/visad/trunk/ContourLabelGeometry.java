@@ -86,6 +86,16 @@ public class ContourLabelGeometry extends VisADGeometryArray
     return cntr;
   }
 
+  public ContourLabelGeometry removeMissing() {
+    ContourLabelGeometry cntr = new  ContourLabelGeometry((VisADLineArray)label.removeMissing(), labelAnchor,
+              (VisADLineArray)expSegLeft.removeMissing(),
+              segLeftAnchor, segLeftScaleInfo,
+              (VisADLineArray)expSegRight.removeMissing(),
+              segRightAnchor, segRightScaleInfo);
+    cntr.isStyled = isStyled;
+    return cntr;
+  }
+
   public Object clone() {
     return this;
   }
