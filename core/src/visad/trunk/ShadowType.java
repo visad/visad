@@ -3854,30 +3854,14 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
                   lowhibase[0], lowhibase[1], lowhibase[2], display_values[i],
                   color_values, swap, doStyle[0], fill, smap, scale,
                   label_size, f_array);
+
               // even though no contours were created, we at least tried
               // so have to return true.
               if (array_s == null) return anyContourCreated;
-
-              VisADGeometryArray[] uBasicLines = array_s[0];
-              VisADGeometryArray[] fillLines = array_s[1];
-              VisADGeometryArray[] labelLines = null;
-              VisADGeometryArray[] sBasicLines = null;
-
-              if (array_s != null) {
-                // set'em if you got em
-                switch (array_s.length) {
-                case 4:
-                  sBasicLines = array_s[3];
-                case 3:
-                  labelLines = array_s[2];
-                }
                 boolean adjust = getAdjustProjectionSeam();
-
                 // make necessary adjustments
                 if (!fill) {
-                  // do not do adjustments for
-                  for (int j = 0; j < 4; j++) {
-                    if (j != 2) { // don't adjust label fill lines
+                  for (int j = 0; j < array_s.length; j++) {
                       if (array_s[j] != null) {
                         for (int k=0; k< array_s[j].length; k++) {
                           VisADGeometryArray arr = array_s[j][k];
@@ -3891,27 +3875,22 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
                           array_s[j][k] = arr;
                         }
                       }
-                    }
-                  }
-
-                  if (labelLines != null && adjust) {
-                    for (int k = 0; k < (labelLines.length); k++) {
-                      labelLines[k] = labelLines[k].adjustLongitude(renderer);
-                      labelLines[k] = labelLines[k].adjustSeam(renderer);
-                    }
-                  }
-
-                  if (fillLines != null && adjust) {
-                    if (fillLines[0] != null) {
-                        fillLines[0] = fillLines[0].adjustLongitude(renderer);
-                        fillLines[0] = fillLines[0].adjustSeam(renderer);
-                    }
-                    if (fillLines[1] != null) {
-                        fillLines[1] = fillLines[1].adjustLongitude(renderer);
-                        fillLines[1] = fillLines[1].adjustSeam(renderer);
-                    }
                   }
                 }
+
+                VisADGeometryArray[] uBasicLines = array_s[0];
+                VisADGeometryArray[] fillLines = array_s[1];
+                VisADGeometryArray[] labelLines = null;
+                VisADGeometryArray[] sBasicLines = null;
+
+                if (array_s != null) {
+                  // set'em if you got em
+                  switch (array_s.length) {
+                  case 4:
+                    sBasicLines = array_s[3];
+                  case 3:
+                    labelLines = array_s[2];
+                  }
 
                 //if (array_s.length > 0 && uBasicLines.length > 0) {
                 if (array_s.length > 0) {
