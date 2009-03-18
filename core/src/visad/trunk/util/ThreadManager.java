@@ -39,15 +39,19 @@ import java.util.List;
 
 
 /**
- *
+ * This class provides support for running a collection of Runnables
+ * concurrently. It will collect and then throw any exceptions that
+ * are thrown. It uses the static maxThreads as the number of threads
+ * to run. The default is 1, resulting in sequential execution.
  */
-public class ThreadUtil {
+
+public class ThreadManager {
 
   /**           */
-  private String name = "TreadUtil";
+  private String name = "TreadManager";
 
   /**           */
-  private static int maxThreads = -1;
+  private static int maxThreads = 1;
 
   /**           */
   private List<VisADException> visadExceptions =
@@ -81,11 +85,13 @@ public class ThreadUtil {
                                                          Integer[]>();
 
 
+ public boolean debug = false;
+
   /**
    * 
    */
-  public ThreadUtil() {
-    this("ThreadUtil");
+  public ThreadManager() {
+    this("ThreadManager");
   }
 
   /**
@@ -93,7 +99,7 @@ public class ThreadUtil {
    *
    * @param name 
    */
-  public ThreadUtil(String theName) {
+  public ThreadManager(String theName) {
     this.name = theName;
     if (maxThreads <= 0) {
       maxThreads = Runtime.getRuntime().availableProcessors();
@@ -107,7 +113,7 @@ public class ThreadUtil {
    *
    * @param maxThreads 
    */
-  public ThreadUtil(int maxThreads) {
+  public ThreadManager(int maxThreads) {
     myMaxThreads = maxThreads;
   }
 
@@ -117,8 +123,14 @@ public class ThreadUtil {
    * @param max 
    */
   public static void setGlobalMaxThreads(int max) {
-    ThreadUtil.maxThreads = max;
+    ThreadManager.maxThreads = max;
   }
+
+
+    public void debug(String msg) {
+
+    }
+
 
   /**
    * 
@@ -268,7 +280,7 @@ public class ThreadUtil {
       Runnable runnable = new Runnable() {
         public void run() {
           try {
-              //            System.err.println ("start:" + tlbl);
+            //            System.err.println ("start:" + tlbl);
             theRunnable.run();
             //            System.err.println ("end:" + tlbl);
           }
@@ -284,7 +296,7 @@ public class ThreadUtil {
     }
 
     try {
-        //      System.err.println ("calling waitForTasks");
+      //      System.err.println ("calling waitForTasks");
       pool.waitForTasks();
       //      System.err.println ("after calling waitForTasks");
       //            System.err.println ("waiting");
@@ -307,8 +319,9 @@ public class ThreadUtil {
     running = false;
 
     long t2 = System.currentTimeMillis();
-    System.err.println(
-                       name + " time:" + (t2 - t1) + " max threads:" + myMaxThreads);
+    if(debug)
+        System.err.println(
+                           name + " time:" + (t2 - t1) + " max threads:" + myMaxThreads);
     if (doAverage && false) {
       Integer[] tuple = times.get(new Integer(myMaxThreads));
       if (tuple == null) {
@@ -394,21 +407,21 @@ public class ThreadUtil {
         int myCnt = (args.length>0?new Integer(args[0]).intValue():2);
         //        for(int j=0;j<1000;j++) {
         for(myCnt=1;myCnt<20;myCnt+=1) {
-            visad.util.ThreadUtil threadUtil  = new visad.util.ThreadUtil();
+            visad.util.ThreadManager threadManager  = new visad.util.ThreadManager();
             final int amt = 2000;
             //           final int cnt = (args.length>0?new Integer(args[0]).intValue():2);
             final int cnt = myCnt;
             final int [] A = new int[10000000];
             for(int i=0;i<cnt;i++) {
-                threadUtil.addRunnable(new visad.util.ThreadUtil.MyRunnable() {
+                threadManager.addRunnable(new visad.util.ThreadManager.MyRunnable() {
                         public void run() throws Exception {
                             doWork(amt/cnt,A);
                         }
                     });
             }
             long t1  = System.currentTimeMillis();
-            threadUtil.runInParallel(cnt);
-            //        threadUtil.runSequentially();
+            threadManager.runInParallel(cnt);
+            //        threadManager.runSequentially();
             long t2  = System.currentTimeMillis();
             long time = t2-t1;
             //            System.err.println (cnt +" time:" + time);
