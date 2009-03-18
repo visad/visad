@@ -77,6 +77,8 @@ waiting for other ActionImpls to run
   private class ThreadMinnow
     extends Thread
   {
+    boolean waitingOnThreadLock = false;
+    boolean active = false;
     private ThreadPool parent = null;
 
     public ThreadMinnow(ThreadPool p)
@@ -87,6 +89,7 @@ waiting for other ActionImpls to run
 
     public void run()
     {
+      active = true;
       while (true) {
         // try to find something to do...
         Runnable r = parent.getTask();
@@ -113,6 +116,7 @@ waiting for other ActionImpls to run
 
           // if we're supposed to stop, break out of the infinite loop
           if (terminateThread) {
+            active = false;
             return;
           }
 
@@ -121,14 +125,38 @@ waiting for other ActionImpls to run
           //   work to be done.  This is to ensure that all outstanding
           //   tasks are completed.
 
+          /**
+             jeffmc: If this thread gets to this point (after the terminate thread
+             but before the threadLock.wait() and then  this thread pauses while 
+             the main pool thread gets to the  point marked "jeffmc:starvation" in 
+             stopThreads then  starvation occurs
+          ***/
 
           // wait until there's work to be done
           try {
             synchronized (threadLock) {
+              if (terminateThread) {
+                 active = false;
+                 return;
+              }
+              waitingOnThreadLock   = true;
+              if (terminateThread) {
+                 active = false;
+                 return;
+              }
               threadLock.wait();
+              if (terminateThread) {
+                 active = false;
+                 return;
+              }
+              waitingOnThreadLock   = false;
             }
           } catch (InterruptedException e) {
             // ignore interrupts ...
+          }
+          if (terminateThread) {
+            active = false;
+            return;
           }
         }
       }
@@ -341,11 +369,13 @@ for (int i=0; i<n; i++) {
   {
     // give all the current tasks a chance to finish
     int timeout = tasks.size();
-
     // don't allow thread to wait for itself
     if (Thread.currentThread() instanceof ThreadMinnow) {
-      try { Thread.sleep(15000); } catch (InterruptedException ie) { }
-      return false;
+        //Only do this if the calling thread is one of this pool's threads
+       if(threads.contains(Thread.currentThread())) {
+         try { Thread.sleep(15000); } catch (InterruptedException ie) { }
+         return false;
+      }
     }
 
     while (tasks.size() > 0) {
@@ -361,7 +391,6 @@ for (int i=0; i<n; i++) {
         break;
       }
     }
-
     return (timeout > 0);
   }
 
@@ -382,10 +411,18 @@ for (int i=0; i<n; i++) {
       return;
     }
 
+    /******************************************************
+    jeffmc:starvation
+    If the minnow pauses at just the wrong time it will miss
+    the notifyAll an then go into its threadLock.wait()
+    and never gets the notify
+    *******************************************************/
+
     terminateThread = true;
     synchronized (threadLock) {
       threadLock.notifyAll();
     }
+
 
     Vector oldthreads;
     ListIterator i;
@@ -396,7 +433,18 @@ for (int i=0; i<n; i++) {
     }
 
     while (i.hasNext()) {
-      Thread t = (Thread )i.next();
+      ThreadMinnow t = (ThreadMinnow)i.next();
+      //This prevents the starvation scenario above
+      if(t.waitingOnThreadLock) {
+         synchronized (threadLock) {
+            threadLock.notifyAll();
+         }
+         //We don't have to join this thread because after it gets the notify
+         //it quits and is no longer active
+         continue;
+      }
+      if(!t.active) continue;
+
       while (true) {
         synchronized (oldthreads) {
           oldthreads.notifyAll();
