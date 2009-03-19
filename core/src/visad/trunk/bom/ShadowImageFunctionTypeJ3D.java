@@ -616,8 +616,8 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         x_start_stop[k][0] = k*x_sub_len;
         x_start_stop[k][1] = lens[0] - 1;
 
-        System.out.println("  y    : "+lens[1]+",   x    : "+lens[0]);
-        System.out.println("n_y_sub: "+n_y_sub+", n_x_sub: "+n_x_sub);
+        //System.out.println("  y    : "+lens[1]+",   x    : "+lens[0]);
+        //System.out.println("n_y_sub: "+n_y_sub+", n_x_sub: "+n_x_sub);
         if (n_y_sub == 1 && n_x_sub == 1) {
           buildCurvedTexture(group, domain_set, dataUnits, domain_units, default_values, DomainComponents,
                              valueArrayLength, inherited_values, valueToScalar, mode, constant_alpha,

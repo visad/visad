@@ -182,7 +182,7 @@ public class DisplayImplJ3D extends DisplayImpl {
   public static final boolean TEXTURE_NPOT;
   static {
     TEXTURE_NPOT = Boolean.parseBoolean(System.getProperty(PROP_TEXTURE_NPOT, "false"));
-    System.err.println("TEXTURE_NPOT:"+TEXTURE_NPOT);
+    //System.err.println("TEXTURE_NPOT:"+TEXTURE_NPOT);
   }
 
   /** this is used for APPLETFRAME */

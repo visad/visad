@@ -60,7 +60,7 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
     } else {
       yUp = false;
     }
-    System.err.println("IMAGE_BY_REF:" + byReference);
+    //System.err.println("IMAGE_BY_REF:" + byReference);
   }
 
 
