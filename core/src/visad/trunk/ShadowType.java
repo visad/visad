@@ -3959,8 +3959,11 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
                     // fill in contour lines in place of labels
                     shadow_api.addToGroup(group, fillLines[0], mode,
                         constant_alpha, constant_color);
-                    shadow_api.addToGroup(group, fillLines[1], styledMode,
-                        constant_alpha, constant_color);
+                    if (fillLines.length == 2) {  //- styled lines available
+                      shadow_api.addToGroup(group, fillLines[1], styledMode,
+                         constant_alpha, constant_color);
+                      fillLines[1] = null;
+                    }
                     fillLines[0] = null;
                     array_s[1] = null;
                   }
