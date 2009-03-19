@@ -1003,11 +1003,15 @@ public abstract class ShadowTypeJ3D extends ShadowType {
         dataCoordinateSystem);
   }
 
+  private Object MUTEX = new Object();
+
   public void addLabelsToGroup(Object group, VisADGeometryArray[] arrays,
       GraphicsModeControl mode, ContourControl control,
       ProjectionControl p_cntrl, int[] cnt_a, float constant_alpha,
       float[] constant_color) throws VisADException {
 
+      //Make this thread safe
+      synchronized(MUTEX) {
     int cnt = cnt_a[0];
 
     if (cnt == 0) {
@@ -1093,6 +1097,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     cnt++;
     projListener.cnt = cnt;
     cnt_a[0] = cnt;
+                               }
   }
 
 
