@@ -304,7 +304,7 @@ public class AddeURL implements Cloneable {
     }
     test = getValue(query, KEY_TRACE);
     if (test != null) {
-      setCompression(Integer.parseInt(test));
+      setTrace(Integer.parseInt(test));
     }
   }
 
