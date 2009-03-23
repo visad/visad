@@ -83,7 +83,6 @@ public class ImageAnimationTest extends JPanel {
     DisplayImpl display = new DisplayImplJ3D("image display");
     ImageRendererJ3D imgRend = new ImageRendererJ3D();
     System.err.println("Renderer:"+imgRend.toString());
-    display.addReferences(imgRend, ref);
 
     display.addMap(new ScalarMap(RealType.getRealType("x"), Display.XAxis));
     display.addMap(new ScalarMap(RealType.getRealType("y"), Display.YAxis));
@@ -94,6 +93,7 @@ public class ImageAnimationTest extends JPanel {
     AnimationControl aniCtrl = (AnimationControl) aniMap.getControl();
     aniCtrl.setStep(1000);
     aniCtrl.setOn(true);
+    display.addReferences(imgRend, ref);
     
     setLayout(new BorderLayout());
     add(display.getComponent());
