@@ -769,8 +769,7 @@ public class Irregular3DSet extends IrregularSet {
 
     } // end for (int jj=0; jj<npolygons; jj++)
 
-    VisADLineArray[][] arrays = new VisADLineArray[3][1];
-    arrays[0][0] = new VisADLineArray();
+    VisADLineArray lineArray = new VisADLineArray();
     float[][] coordinates = new float[3][numv];
     System.arraycopy(vx, 0, coordinates[0], 0, numv);
     System.arraycopy(vy, 0, coordinates[1], 0, numv);
@@ -796,10 +795,8 @@ public class Irregular3DSet extends IrregularSet {
 */
       color_levels = null;
     }
-    setGeometryArray(arrays[0][0], coordinates, 4, colors);
-    arrays[1][0] = null;
-    arrays[2][0] = null;
-    return arrays;
+    setGeometryArray(lineArray, coordinates, 4, colors);
+    return new VisADLineArray[][] {{lineArray}, null, null};
   }
 
   public VisADGeometryArray makeIsoSurface(float isolevel,
