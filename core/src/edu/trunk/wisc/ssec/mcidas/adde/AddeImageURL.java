@@ -208,6 +208,8 @@ public class AddeImageURL extends AddeDatasetURL {
   /** end time */
   private Date endDate = null;
 
+  /** time coordinate */
+  private String timeCoverage = "I";
 
   /** no arg constructor */
   public AddeImageURL() {}
@@ -547,6 +549,24 @@ public class AddeImageURL extends AddeDatasetURL {
 
 
   /**
+   * Set the time coverage
+   *
+   * @param value   the time coverage
+   */
+  public void setTimeCoverage(String value) {
+    timeCoverage = value;
+  }
+
+  /**
+   * Set the time coverage
+   *
+   * @return the time coverage
+   */
+  public String getTimeCoverage() {
+    return timeCoverage;
+  }
+
+  /**
    * Set the AUX keyword value
    *
    * @param value   the AUX keyword value (YES, NO or DEFAULT_VALUE)
@@ -603,7 +623,8 @@ public class AddeImageURL extends AddeDatasetURL {
       appendKeyValue(buf, KEY_AUX, getAuxValue());
       appendKeyValue(buf, KEY_DOC, getDocValue());
       if (getId() != null) appendKeyValue(buf, KEY_ID, getId());
-    } else {
+    }
+    else {
       appendKeyValue(buf, KEY_BAND, ALL);
     }
     appendDateOrPosString(buf);
@@ -624,19 +645,24 @@ public class AddeImageURL extends AddeDatasetURL {
         start = McIDASUtil.mcSecsToDayTime(getStartDate().getTime() / 1000l);
       int[] end = null;
       if (getEndDate() != null)
-        start = McIDASUtil.mcSecsToDayTime(getEndDate().getTime() / 1000l);
+        end = McIDASUtil.mcSecsToDayTime(getEndDate().getTime() / 1000l);
       StringBuffer day = new StringBuffer();
       StringBuffer time = new StringBuffer();
       if (start != null) {
         day.append("" + start[0]);
-        time.append("" + start[1]);
+        time.append(McIDASUtil.mcHmsToStr(start[1]));
       }
       day.append(" ");
       time.append(" ");
       if (end != null) {
         if (getRequestType().equals(REQ_IMAGEDIR)) day.append("" + end[0]);
-        time.append("" + end[1]);
+        time.append("" + McIDASUtil.mcHmsToStr(end[1]));
       }
+      else {
+        time.append(McIDASUtil.mcHmsToStr(start[1]));
+      }
+      time.append(" ");
+      time.append(getTimeCoverage());
       appendKeyValue(buf, KEY_DAY, day.toString().trim());
       appendKeyValue(buf, KEY_TIME, time.toString().trim());
     }
