@@ -3912,10 +3912,12 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
                     labelMode.setPolygonOffset(1f, false);
 
                     // make adjustment for basic lines
-                    for (VisADGeometryArray arr : uBasicLines) {
-                      if (arr == null)
-                        continue;
-                      shadow_api.adjustZ(arr.coordinates);
+                    if (uBasicLines != null) {
+                      for (VisADGeometryArray arr : uBasicLines) {
+                        if (arr == null)
+                          continue;
+                        shadow_api.adjustZ(arr.coordinates);
+                      }
                     }
                     // there may not be unstyled lines
                     if (sBasicLines != null) {
@@ -3928,11 +3930,13 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
                   }
 
                   // add unstyled lines
-                  for (VisADGeometryArray arr : uBasicLines) {
-                    if (arr == null)
-                      continue;
-                    shadow_api.addToGroup(group, arr, mode, constant_alpha,
-                        constant_color);
+                  if (uBasicLines != null) {
+                    for (VisADGeometryArray arr : uBasicLines) {
+                      if (arr == null)
+                        continue;
+                      shadow_api.addToGroup(group, arr, mode, constant_alpha,
+                          constant_color);
+                    }
                   }
                   array_s[0] = null;
                   uBasicLines = null;
