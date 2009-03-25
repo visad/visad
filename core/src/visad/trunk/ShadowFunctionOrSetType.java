@@ -3331,7 +3331,6 @@ WLH 15 March 2000 */
       Raster raster = image.getRaster();
       DataBuffer db = raster.getDataBuffer();
       byte[] byteData = ((DataBufferByte)db).getData();
-      System.out.println("data dims: "+data_width+", "+data_height);
 
       int k = 0;
       int m = 0;
@@ -3402,7 +3401,6 @@ WLH 15 March 2000 */
         image = new BufferedImage(colorModel, raster, false, null);
       }
       else {
-// System.out.println("byteData 3 1");
         image = new BufferedImage(texture_width, texture_height,
                                   BufferedImage.TYPE_INT_RGB);
         intData = new int[texture_width * texture_height];
@@ -3448,7 +3446,7 @@ WLH 15 March 2000 */
 
       // WLH 2 Nov 2000
       if (!(db instanceof DataBufferInt)) {
-// System.out.println("byteData 3 2");
+ System.out.println("byteData 3 2");
         image.setRGB(0, 0, texture_width, texture_height, intData, 0, texture_width);
 /*
         byte[] byteData = ((DataBufferByte)raster.getDataBuffer()).getData();
