@@ -46,9 +46,6 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
 
   private Vector AccumulationVector = new Vector();
 
-  //public boolean byReference = true;
-  //public boolean yUp = true;
-
   public ShadowFunctionOrSetTypeJ3D(MathType t, DataDisplayLink link,
                                     ShadowType parent)
       throws VisADException, RemoteException {
@@ -220,6 +217,33 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
         coordinates[i] = DisplayImplJ3D.BACK2D;
       }
     }
+  }
+
+  public int getImageComponentType(int buffImgType) {
+    if (buffImgType == BufferedImage.TYPE_4BYTE_ABGR) {
+      return ImageComponent2D.FORMAT_RGBA8;
+    }
+    else if (buffImgType == BufferedImage.TYPE_3BYTE_BGR) {
+      return ImageComponent2D.FORMAT_RGB8;
+    }
+    else if (buffImgType == BufferedImage.TYPE_BYTE_GRAY) {
+      return ImageComponent2D.FORMAT_CHANNEL8;
+    }
+    return ImageComponent2D.FORMAT_RGBA8;
+  }
+
+  public int getTextureType(int buffImgType) {
+    if (buffImgType == BufferedImage.TYPE_4BYTE_ABGR) {
+      return Texture2D.RGBA;
+    }
+    else if (buffImgType == BufferedImage.TYPE_3BYTE_BGR) {
+      return Texture2D.RGB;
+    }
+    else if (buffImgType == BufferedImage.TYPE_BYTE_GRAY) {
+      return Texture2D.INTENSITY;
+    //-return Texture2D.LUMINANCE; Not sure if this matters?
+    }
+    return Texture2D.RGBA;
   }
 
   public void setTexCoords(float[] texCoords, float ratiow, float ratioh) {
@@ -441,7 +465,14 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   public void textureToGroup(Object group, VisADGeometryArray array,
                             BufferedImage image, GraphicsModeControl mode,
                             float constant_alpha, float[] constant_color,
-                            int texture_width, int texture_height)
+                            int texture_width, int texture_height) throws VisADException {
+    textureToGroup(group, array, image, mode, constant_alpha, constant_color, texture_width, texture_height, null);
+  }
+
+  public void textureToGroup(Object group, VisADGeometryArray array,
+                            BufferedImage image, GraphicsModeControl mode,
+                            float constant_alpha, float[] constant_color,
+                            int texture_width, int texture_height, VisADImageNode imgNode)
          throws VisADException {
     GeometryArray geometry = display.makeGeometry(array);
     // System.out.println("texture geometry");
@@ -484,11 +515,11 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
 System.out.println("Texture.BASE_LEVEL = " + Texture.BASE_LEVEL); // 1
 System.out.println("Texture.RGBA = " + Texture.RGBA); // 6
 */
-    Texture2D texture = new Texture2D(Texture.BASE_LEVEL, Texture.RGBA,
+    Texture2D texture = new Texture2D(Texture.BASE_LEVEL, getTextureType(image.getType()),
                                       texture_width, texture_height);
     texture.setCapability(Texture.ALLOW_IMAGE_READ);
     ImageComponent2D image2d =
-      new ImageComponent2D(ImageComponent.FORMAT_RGBA, image, byReference, yUp);
+      new ImageComponent2D(getImageComponentType(image.getType()), image, byReference, yUp);
     image2d.setCapability(ImageComponent.ALLOW_IMAGE_READ);
     if (byReference) {
       image2d.setCapability(ImageComponent.ALLOW_IMAGE_WRITE);
@@ -529,6 +560,11 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     }
     else {
       ((Group) group).addChild(branch);
+    }
+
+    if (imgNode != null) {
+      imgNode.setImageComponent(image2d);
+      //-imgNode.setBranch((BranchGroup)group);
     }
   }
 
