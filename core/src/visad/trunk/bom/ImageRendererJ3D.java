@@ -306,7 +306,12 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
   public ShadowType makeShadowFunctionType(
          FunctionType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
-    return new ShadowImageFunctionTypeJ3D(type, link, parent);
+    if (ShadowType.byReference) {
+      return new ShadowImageByRefFunctionTypeJ3D(type, link, parent);
+    }
+    else {
+      return new ShadowImageFunctionTypeJ3D(type, link, parent);
+    }
   }
 
   /**
@@ -428,6 +433,7 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
       }
     }
     link.clearData();
+
     return branch;
   }
 
