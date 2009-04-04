@@ -109,6 +109,7 @@ public class TextAdapter {
   int[][] hdrColumns;
   int[][] values_to_index;
 
+  private Hashtable properties;
 
   private boolean onlyReadOneLine = false;
 
@@ -198,10 +199,17 @@ public class TextAdapter {
 
   public TextAdapter(InputStream inputStream, String delimiter, String map, String params,boolean onlyReadOneLine) 
                          throws IOException, VisADException {
+      this(inputStream, delimiter, map, params, null, onlyReadOneLine);
+  }
+
+  public TextAdapter(InputStream inputStream, String delimiter, String map, String params,Hashtable properties, boolean onlyReadOneLine) 
+                         throws IOException, VisADException {
     this.onlyReadOneLine = onlyReadOneLine;
     DELIM = delimiter;
+    this.properties = properties;
     readit(inputStream, map, params);
   }
+
 
 
   public static  String getDelimiter(String filename) {
@@ -440,6 +448,17 @@ public class TextAdapter {
         }
 
       }
+
+
+
+      if(properties!=null) {
+          for(int headerIdx=0;headerIdx<infos.length;headerIdx++) {
+              String value = (String)properties.get(infos[headerIdx].name+".value");
+              if(value!=null) infos[headerIdx].fixedValue = value;
+          } 
+      }
+
+
 
 
       if (debug) 
@@ -853,18 +872,20 @@ public class TextAdapter {
 
         int l = 0;   // token counter
         for (int i=0; i<nhdr; i++) {   // loop over the columns
-          String sa;
-          if(infos[i].fixedValue!=null) {
-            sa = infos[i].fixedValue;
-          }  else if (l >= st.length) {   // more params than tokens
-            sa = "";                    // need to have a missing value
-          } else {
-            sa = st[l++].trim();
-            int moreColumns = infos[i].colspan-1;
-            while (moreColumns>0) {
-                sa = sa + " " + st[l++].trim();
-                moreColumns--;
-            }
+          String sa=null;
+          if(sa == null) {
+              if(infos[i].fixedValue!=null) {
+                  sa = infos[i].fixedValue;
+              }  else if (l >= st.length) {   // more params than tokens
+                  sa = "";                    // need to have a missing value
+              } else {
+                  sa = st[l++].trim();
+                  int moreColumns = infos[i].colspan-1;
+                  while (moreColumns>0) {
+                      sa = sa + " " + st[l++].trim();
+                      moreColumns--;
+                  }
+              }
           }
 
           String sThisText;
