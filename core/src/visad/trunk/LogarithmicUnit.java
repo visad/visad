@@ -27,14 +27,6 @@
 package visad;
 
 import java.io.Serializable;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.Locale;
-import java.util.TimeZone;
 
 /**
  * A class that represents a scaled unit with an offset.
@@ -48,159 +40,98 @@ import java.util.TimeZone;
  * 
  *         Instances are immutable.
  */
-public final class OffsetUnit extends Unit implements Serializable {
+public final class LogarithmicUnit extends Unit implements Serializable {
 	private static final long		serialVersionUID	= 1L;
-
+	private static final Unit		ONE					= new DerivedUnit();
 	/**
-	 * The associated (unoffset) underlying unit.
-	 */
-	final Unit						underUnit;
-
-	/**
-	 * The offset for this unit (e.g. 273.15 for the celsius unit when the
-	 * kelvin unit is associated scaled unit).
-	 */
-	final double					offset;
-
-	/**
-	 * The date formatter.
+	 * The reference level.
 	 * 
 	 * @serial
 	 */
-	private static SimpleDateFormat	dateFormat;
-
+	private final Unit				reference;
 	/**
-	 * The arbitrary time origin.
+	 * The logarithmic base.
 	 * 
 	 * @serial
 	 */
-	private static double			offsetUnitOrigin;
+	private final double			base;
+	/**
+	 * The natural logarithm of the base (for computational efficiency).
+	 */
+	private final transient double	lnBase;
 
 	/**
-	 * The millisecond unit.
+	 * Constructs from a reference level and a logarithmic base. The identifier
+	 * will be empty.
+	 * 
+	 * @param base
+	 *            The logarithmic base. Must be 2, {@link Math#E}, or 10.
+	 * @param reference
+	 *            The reference level.
+	 * @throws IllegalArgumentException
+	 *             if {@code base} isn't one of the allowed values.
+	 * @throws NullPointerException
+	 *             if {@code reference} is {@code null}.
 	 */
-	private static Unit				millisecond;
-
-	static {
-		try {
-			dateFormat = (SimpleDateFormat) DateFormat.getDateInstance(
-					DateFormat.SHORT, Locale.US);
-			dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-			dateFormat.applyPattern("yyyy-MM-dd HH:mm:ss.SSS 'UTC'");
-			final Calendar calendar = new GregorianCalendar(TimeZone
-					.getTimeZone("UTC"));
-			calendar.clear();
-			calendar.set(2001, 0, 1, 0, 0, 0); // data.netcdf.units.UnitParser
-			offsetUnitOrigin = calendar.getTime().getTime();
-			millisecond = SI.second.scale(0.001).clone("ms");
-		}
-		catch (final Exception e) {
-			System.err
-					.println("OffsetUnit.<clinit>: Couldn't initialize class: "
-							+ e);
-			System.exit(1);
-		}
+	private LogarithmicUnit(final double base, final Unit reference) {
+		this(reference, base, "");
 	}
 
 	/**
-	 * Construct an offset, dimensionless unit. The identifier will be empty.
+	 * Constructs from a reference level, a logarithmic base, and an identifier.
 	 * 
-	 * @param offset
-	 *            The amount of offset.
-	 */
-	public OffsetUnit(final double offset) {
-		this(offset, "");
-	}
-
-	/**
-	 * Construct an offset, dimensionless unit with an identifier.
-	 * 
-	 * @param offset
-	 *            The amount of offset.
+	 * @param reference
+	 *            The reference level.
+	 * @param base
+	 *            The logarithmic base. Must be 2, {@link Math#E}, or 10.
 	 * @param identifier
 	 *            The name or abbreviation for the cloned unit. May be
 	 *            <code>null</code> or empty.
-	 * 
+	 * @throws IllegalArgumentException
+	 *             if {@code base} isn't one of the allowed values.
+	 * @throws NullPointerException
+	 *             if {@code reference} is {@code null}.
 	 */
-	public OffsetUnit(final double offset, final String identifier) {
-		super(identifier);
-		this.offset = offset;
-		underUnit = new ScaledUnit(1.0);
-	}
-
-	/**
-	 * Construct an offset unit from another unit. The identifier will be that
-	 * of the base unit if the offset is zero; otherwise, the identifier will be
-	 * <code>null</code>.
-	 * 
-	 * @param offset
-	 *            The amount of offset.
-	 * @param that
-	 *            The other unit.
-	 */
-	public OffsetUnit(final double offset, final Unit unit) {
-		this(offset, unit, null);
-	}
-
-	/**
-	 * Construct an offset unit from another unit and an identifier.
-	 * 
-	 * @param offset
-	 *            The amount of offset.
-	 * @param that
-	 *            The other unit.
-	 * @param identifier
-	 *            The name or abbreviation for the cloned unit. May be
-	 *            <code>null</code> or empty.
-	 */
-	public OffsetUnit(final double offset, final Unit unit,
+	private LogarithmicUnit(final Unit reference, final double base,
 			final String identifier) {
-		super(identifier != null
-				? identifier
-				: offset == 0
-						? unit.getIdentifier()
-						: null);
-		this.offset = offset;
-		underUnit = unit;
+		super(identifier);
+		if (reference == null) {
+			throw new NullPointerException("Null reference level");
+		}
+		if (base != 2 && base != Math.E && base != 10) {
+			throw new IllegalArgumentException("Invalid logarithmic base: "
+					+ base);
+		}
+		this.reference = reference;
+		this.base = base;
+		lnBase = base == Math.E
+				? 1
+				: Math.log(base);
+	}
+
+	static Unit getInstance(final double base, final Unit reference) {
+		return new LogarithmicUnit(base, reference);
 	}
 
 	/**
-	 * Returns an instance based on an offset and an underlying unit.
+	 * Indicates if this instance is dimensionless. Logarithmic units are
+	 * dimensionless by definition.
 	 * 
-	 * @param offset
-	 *            The offset.
-	 * @param unit
-	 *            The underlying unit.
-	 * @return An instance corresponding to the input.
-	 */
-	static Unit getInstance(final double offset, final Unit unit) {
-		return offset == 0
-				? unit
-				: new OffsetUnit(offset, unit);
-	}
-
-	/**
-	 * <p>
-	 * Indicates if this instance is dimensionless. A unit is dimensionless if
-	 * it is a measure of a dimensionless quantity like angle or concentration.
-	 * Examples of dimensionless units include radian, degree, steradian, and
-	 * "g/kg".
-	 * </p>
-	 * 
-	 * @return True if an only if this unit is dimensionless.
+	 * @return {@code true} always.
 	 */
 	@Override
 	public boolean isDimensionless() {
-		return underUnit.isDimensionless();
+		return true;
 	}
 
 	/**
 	 * Indicates if this instance is a unit of time.
 	 * 
-	 * @return <code>true</code> if and only if this instance is a unit of time.
+	 * @return {@code true} if and only if values in this unit are convertible
+	 *         with seconds.
 	 */
 	protected boolean isTime() {
-		return SI.second.isConvertible(underUnit);
+		return SI.second.isConvertible(reference);
 	}
 
 	/**
@@ -213,150 +144,181 @@ public final class OffsetUnit extends Unit implements Serializable {
 	 */
 	@Override
 	protected Unit protectedClone(final String identifier) {
-		return new OffsetUnit(0, this, identifier);
+		return new LogarithmicUnit(reference, base, identifier);
 	}
 
 	@Override
-	public Unit scale(final double amount) throws UnitException {
-		return OffsetUnit.getInstance(offset / amount, underUnit.scale(amount));
+	public Unit scale(final double scale) throws UnitException {
+		return ScaledUnit.getInstance(scale, this);
 	}
 
 	@Override
 	public Unit shift(final double offset) throws UnitException {
-		return OffsetUnit.getInstance(offset + this.offset, underUnit);
+		return OffsetUnit.getInstance(offset, this);
 	}
 
 	@Override
 	public Unit log(final double base) throws UnitException {
-		return LogarithmicUnit.getInstance(base, this);
+		throw new UnitException(
+				"Can't form logarithmic unit from logarithmic unit: " + this);
 	}
 
 	/**
-	 * Raises an offset unit to a power. Raising an offset unit to a power is
-	 * equivalent to first stripping-off the offset amount and then raising the
-	 * resulting non-offset unit to the power.
+	 * Raises this unit to a power. Only certain powers are meaningful.
 	 * 
 	 * @param power
-	 *            The power to raise this unit by.
-	 * @return A corresponding unit.
-	 * @throws UnitException
-	 *             if the underlying unit can't be raised to the given power.
+	 *            The power to raise this unit by. The only meaningful values
+	 *            are {@cocde 0} and {@code 1}.
+	 * @return The result of raising this unit to the given power.
+	 * @throws IllegalArgumentException
+	 *             if {@code power} isn't {@code 0} or {@code 1}.
 	 */
 	@Override
-	public Unit pow(final int power) throws UnitException {
-		return underUnit.pow(power);
+	public Unit pow(final int power) {
+		Unit result;
+		if (power == 0) {
+			result = ONE;
+		}
+		else if (power == 1) {
+			result = this;
+		}
+		else {
+			throw new IllegalArgumentException("Invalid power: " + power);
+		}
+		return result;
 	}
 
 	/**
-	 * Raises an offset unit to a power. Raising an offset unit to a power is
-	 * equivalent to first stripping-off the offset amount and then raising the
-	 * resulting non-offset unit to the power.
+	 * Raises this unit to a power. Only certain powers are meaningful.
 	 * 
 	 * @param power
-	 *            The power to raise this unit by.
-	 * @return A corresponding unit.
-	 * @throws UnitException
-	 *             if the underlying unit can't be raised to the given power.
+	 *            The power to raise this unit by. The only meaningful values
+	 *            are 0 and 1.
+	 * @return The result of raising this unit to the given power.
 	 */
 	@Override
-	public Unit pow(final double power) throws UnitException {
-		return underUnit.pow(power);
+	public Unit pow(final double power) {
+		if (power != 0 || power != 1) {
+			throw new IllegalArgumentException("Invalid power: " + power);
+		}
+		return pow((int) Math.round(power));
 	}
 
 	/**
-	 * Returns the N-th root of this unit. Taking the root of an offset unit is
-	 * equivalent to first stripping-off the offset amount and then taking the
-	 * root of the resulting non-offset unit.
+	 * Returns the N-th root of this unit. Only the 1st root is meaningful.
 	 * 
 	 * @param root
-	 *            The root to take (e.g. 2 means square root). May not be zero.
-	 * @return The unit corresponding to the <code>root</code>-th root of this
-	 *         unit.
+	 *            The root to take. Must be {@code 1}.
+	 * @return This instance.
 	 * @throws IllegalArgumentException
-	 *             The root value is zero or the resulting unit would have a
-	 *             non-integral unit dimension.
-	 * @throws UnitException
-	 *             if the underlying unit can't have the given root taken.
+	 *             if {@code root} isn't {@code 1}.
 	 */
 	@Override
-	public Unit root(final int root) throws IllegalArgumentException,
-			UnitException {
-		return underUnit.root(root);
+	public Unit root(final int root) throws IllegalArgumentException {
+		if (root != 1) {
+			throw new IllegalArgumentException("Invalid root: " + root);
+		}
+		return this;
 	}
 
 	/**
-	 * Return the definition of this unit.
+	 * Return the definition of this unit as a string.
 	 * 
-	 * @return The definition of this unit (e.g. "K @ 273.15" for degree
-	 *         celsius).
+	 * @return The definition of this unit (e.g., {@code "lg(re 0.001 W)"}) for
+	 *         a Bel unit with a milliwatt reference level.
 	 */
 	@Override
 	public String getDefinition() {
-		String definition;
-		String scaledString = underUnit.toString();
-
-		if (scaledString.indexOf(' ') != -1) {
-			scaledString = "(" + scaledString + ")";
+		final StringBuilder buf = new StringBuilder(40);
+		if (base == 2) {
+			buf.append("lb");
 		}
-		if (!isTime()) {
-			definition = scaledString + " @ " + offset;
+		else if (base == Math.E) {
+			buf.append("ln");
+		}
+		else if (base == 10) {
+			buf.append("lg");
 		}
 		else {
-			try {
-				definition = scaledString
-						+ " since "
-						+ dateFormat
-								.format(new Date((long) (millisecond.toThis(
-										offset, underUnit) + offsetUnitOrigin)));
-			}
-			catch (final UnitException e) {
-				definition = e.toString();
-			} // can't happen
+			throw new AssertionError("Invalid base: " + base);
 		}
-		return definition;
+		buf.append("(re ");
+		buf.append(reference.toString());
+		buf.append(")");
+		return buf.toString();
 	}
 
 	/**
-	 * Multiply an offset unit by another unit.
+	 * Multiply this unit by another unit. Only certain other units are
+	 * meaningful.
 	 * 
 	 * @param that
-	 *            The unit with which to multiply this unit.
+	 *            The unit with which to multiply this unit. Must be
+	 *            dimensionless.
 	 * @return A unit equal to this instance multiplied by the given unit.
-	 * @exception UnitException
-	 *                Can't multiply units.
+	 * @throws IllegalArgumentException
+	 *             if {@code that} isn't dimensionless.
+	 * @throws UnitException
+	 *             Can't multiply units.
 	 */
 	@Override
 	public Unit multiply(final Unit that) throws UnitException {
-		return that.multiply(underUnit);
+		if (!that.isDimensionless()) {
+			throw new IllegalArgumentException("Not dimensionless: " + that);
+		}
+		final Unit result;
+		if (that.equals(ONE)) {
+			result = this;
+		}
+		else if (that instanceof LogarithmicUnit) {
+			throw new UnitException("Can't multiply by: " + that);
+		}
+		else {
+			result = that.multiply(this);
+		}
+		return result;
 	}
 
 	/**
-	 * Divide an offset unit by another unit.
+	 * Divide this unit by another unit. Only certain other units are
+	 * meaningful.
 	 * 
 	 * @param that
-	 *            The unit to divide into this unit.
+	 *            The unit to divide into this unit. Must be dimensionless.
 	 * @return A unit equal to this instance divided by the given unit.
 	 * @exception UnitException
 	 *                Can't divide units.
 	 */
 	@Override
 	public Unit divide(final Unit that) throws UnitException {
-		return that.divideInto(underUnit);
+		if (!that.isDimensionless()) {
+			throw new IllegalArgumentException("Not dimensionless: " + that);
+		}
+		final Unit result;
+		if (that.equals(ONE)) {
+			result = this;
+		}
+		else if (that instanceof LogarithmicUnit) {
+			throw new UnitException("Can't divide by: " + that);
+		}
+		else {
+			result = that.divideInto(this);
+		}
+		return result;
 	}
 
 	/**
-	 * Divide an offset unit into another unit.
+	 * Divide this unit into another unit. This operation isn't meaningful.
 	 * 
 	 * @param that
 	 *            The unit to be divide by this unit.
-	 * @return The quotient of the two units.
-	 * @promise Neither unit has been modified.
+	 * @return Never
 	 * @throws UnitException
-	 *             Meaningless operation.
+	 *             if this method is called.
 	 */
 	@Override
 	protected Unit divideInto(final Unit that) throws UnitException {
-		return that.divide(underUnit);
+		throw new UnitException("Can't divide into: " + that);
 	}
 
 	/**
@@ -423,11 +385,9 @@ public final class OffsetUnit extends Unit implements Serializable {
 					: values;
 		}
 		else {
-			newValues = that.toThat(values, underUnit, copy);
+			newValues = that.toThat(values, reference, copy);
 			for (int i = 0; i < newValues.length; ++i) {
-				if (newValues[i] == newValues[i]) {
-					newValues[i] -= offset;
-				}
+				newValues[i] = Math.log(newValues[i]) / lnBase;
 			}
 		}
 		return newValues;
@@ -458,11 +418,9 @@ public final class OffsetUnit extends Unit implements Serializable {
 					: values;
 		}
 		else {
-			newValues = that.toThat(values, underUnit, copy);
+			newValues = that.toThat(values, reference, copy);
 			for (int i = 0; i < newValues.length; ++i) {
-				if (newValues[i] == newValues[i]) {
-					newValues[i] -= offset;
-				}
+				newValues[i] = (float) (Math.log(newValues[i]) / lnBase);
 			}
 		}
 		return newValues;
@@ -533,11 +491,9 @@ public final class OffsetUnit extends Unit implements Serializable {
 				: values;
 		if (!(equals(that) || that instanceof PromiscuousUnit)) {
 			for (int i = 0; i < newValues.length; ++i) {
-				if (newValues[i] == newValues[i]) {
-					newValues[i] += offset;
-				}
+				newValues[i] = Math.exp(newValues[i] * lnBase);
 			}
-			newValues = that.toThis(newValues, underUnit, copy);
+			newValues = that.toThis(newValues, reference, copy);
 		}
 		return newValues;
 	}
@@ -566,11 +522,9 @@ public final class OffsetUnit extends Unit implements Serializable {
 				: values;
 		if (!(equals(that) || that instanceof PromiscuousUnit)) {
 			for (int i = 0; i < newValues.length; ++i) {
-				if (newValues[i] == newValues[i]) {
-					newValues[i] += offset;
-				}
+				newValues[i] = (float) Math.exp(newValues[i] * lnBase);
 			}
-			newValues = that.toThis(newValues, underUnit, copy);
+			newValues = that.toThis(newValues, reference, copy);
 		}
 		return newValues;
 	}
@@ -588,7 +542,7 @@ public final class OffsetUnit extends Unit implements Serializable {
 	 */
 	@Override
 	public Unit getAbsoluteUnit() {
-		return underUnit.getAbsoluteUnit();
+		return reference.getAbsoluteUnit();
 	}
 
 	/**
@@ -604,30 +558,12 @@ public final class OffsetUnit extends Unit implements Serializable {
 	 */
 	@Override
 	public boolean isConvertible(final Unit unit) {
-		return underUnit.isConvertible(unit);
+		return reference.isConvertible(unit);
 	}
 
-	private static void myAssert(final boolean assertion) {
-		if (!assertion) {
+	private static void myAssert(final boolean bool) {
+		if (!bool) {
 			throw new AssertionError();
-		}
-	}
-
-	private static void myAssert(final Unit have, final Unit expect) {
-		if (!have.equals(expect)) {
-			throw new AssertionError(have.toString() + " != " + expect);
-		}
-	}
-
-	private static void myAssert(final double have, final double expect) {
-		if (have != expect) {
-			throw new AssertionError("" + have + " != " + expect);
-		}
-	}
-
-	private static void myAssert(final double[] have, final double[] expect) {
-		if (!Arrays.equals(have, expect)) {
-			throw new AssertionError("" + have + " != " + expect);
 		}
 	}
 
@@ -640,39 +576,44 @@ public final class OffsetUnit extends Unit implements Serializable {
 	 *                A problem occurred.
 	 */
 	public static void main(final String[] args) throws UnitException {
-		final BaseUnit degK = SI.kelvin;
-		final Unit degC = new OffsetUnit(273.15, degK);
-		final ScaledUnit degR = new ScaledUnit(1 / 1.8, degK);
-		final Unit degF = new OffsetUnit(459.67, degR);
-
-		myAssert(degC, degC);
-		myAssert(!degC.equals(degK));
-		myAssert(!degC.equals(degF));
-		myAssert(degC.isConvertible(degC));
-		myAssert(degC.isConvertible(degK));
-		myAssert(degC.isConvertible(degF));
-		myAssert(degF, degF);
-
-		myAssert(degF.toThis(0, degC), degC.toThat(0, degF));
-		myAssert(degC.toThis(32, degF), degF.toThat(32, degC));
-		myAssert(degC.toThis(degF.toThis(0, degC), degF), 0);
-		myAssert(degC.toThat(degF.toThat(32, degC), degF), 32);
-
-		double[] values = { 0, 100 };
-
-		myAssert(degF.toThis(values, degC), degC.toThat(values, degF));
-		myAssert(degC.toThis(degF.toThis(values, degC), degF), values);
-
-		values = new double[] { 32, 212 };
-
-		myAssert(degC.toThis(values, degF), degF.toThat(values, degC));
-
-		myAssert(degF.pow(2), degR.pow(2));
-		myAssert(degF.multiply(degC), degC.multiply(degF));
-		myAssert(degF.multiply(degC), degR.multiply(degK));
-		myAssert(degF.divide(degC), degR.divide(degK));
-		myAssert(degC.divide(degF), degK.divide(degR));
-
+		final BaseUnit meter = SI.meter;
+		final ScaledUnit micron = new ScaledUnit(1e-6, meter);
+		final Unit cubicMicron = micron.pow(3);
+		final LogarithmicUnit Bz = new LogarithmicUnit(10, cubicMicron);
+		myAssert(Bz.isDimensionless());
+		myAssert(Bz.equals(Bz));
+		myAssert(Bz.getAbsoluteUnit().equals(cubicMicron));
+		myAssert(!Bz.equals(cubicMicron));
+		myAssert(!Bz.equals(micron));
+		myAssert(!Bz.equals(meter));
+		try {
+			Bz.multiply(meter);
+			myAssert(false);
+		}
+		catch (final Exception e) {
+		}
+		try {
+			Bz.divide(meter);
+			myAssert(false);
+		}
+		catch (final Exception e) {
+		}
+		try {
+			Bz.pow(2);
+			myAssert(false);
+		}
+		catch (final Exception e) {
+		}
+		double value = Bz.toThat(0, Bz.getAbsoluteUnit());
+		myAssert(0.9 < value && value < 1.1);
+		value = Bz.toThat(1, Bz.getAbsoluteUnit());
+		myAssert(9 < value && value < 11);
+		value = Bz.toThis(1, Bz.getAbsoluteUnit());
+		myAssert(-0.1 < value && value < 0.1);
+		value = Bz.toThis(10, Bz.getAbsoluteUnit());
+		myAssert(0.9 < value && value < 1.1);
+		final String string = Bz.toString();
+		myAssert(string.equals("lg(re 9.999999999999999E-19 m3)"));
 		System.out.println("Done");
 	}
 
@@ -688,29 +629,29 @@ public final class OffsetUnit extends Unit implements Serializable {
 		if (this == unit) {
 			return true;
 		}
-		if (!(unit instanceof OffsetUnit)) {
+		if (!(unit instanceof LogarithmicUnit)) {
 			return false;
 		}
-		final OffsetUnit that = (OffsetUnit) unit;
-		return offset == that.offset && underUnit.equals(that.underUnit);
+		final LogarithmicUnit that = (LogarithmicUnit) unit;
+		return base == that.base && reference.equals(that.reference);
 	}
 
 	/**
 	 * Returns the hash code of this instance. {@link Object#hashCode()} should
 	 * be overridden whenever {@link Object#equals(Object)} is.
 	 * 
-	 * @return The hash code of this instance (includes the values).
+	 * @return The hash code of this instance.
 	 */
 	@Override
 	public int hashCode() {
 		if (hashCode == 0) {
-			hashCode = underUnit.hashCode() ^ Double.valueOf(offset).hashCode();
+			hashCode = reference.hashCode() ^ new Double(base).hashCode();
 		}
 		return hashCode;
 	}
 
 	@Override
 	public DerivedUnit getDerivedUnit() {
-		return underUnit.getDerivedUnit();
+		return reference.getDerivedUnit();
 	}
 }

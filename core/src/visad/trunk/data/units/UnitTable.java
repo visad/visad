@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: UnitTable.java,v 1.4 2006-01-20 22:20:07 curtis Exp $
+ * $Id: UnitTable.java,v 1.5 2009-04-20 19:26:23 steve Exp $
  */
 
 package visad.data.units;
@@ -103,7 +103,8 @@ UnitTable
      * Get a unit.
      *
      * @param name	The exact name of the unit to be retrieved.  If it is
-     *			the empty string, then the dimensionless, unity unit
+     *			the empty string, then the dimensionless, unity
+     *			unit
      *			will be returned.
      * @return		The unit of the matching entry or null if not found.
      * @require		<code>name</code> is non-null.
@@ -134,7 +135,8 @@ UnitTable
      * Get a unit by name.
      *
      * @param name	The name of the unit to be retrieved.  If it is
-     *			the empty string, then the dimensionless, unity unit
+     *			the empty string, then the dimensionless, unity
+     *			unit
      *			will be returned.
      * @return		The unit of the matching entry or null if not found.
      * @require		<code>name</code> is non-null.
@@ -150,7 +152,8 @@ UnitTable
      * Get a unit by symbol.
      *
      * @param symbol	The exact symbol of the unit to be retrieved.  If it is
-     *			the empty string, then the dimensionless, unity unit
+     *			the empty string, then the dimensionless, unity
+     *			unit
      *			will be returned.
      * @return		The unit of the matching entry or null if not found.
      * @require		<code>name</code> is non-null.

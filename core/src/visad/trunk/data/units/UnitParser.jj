@@ -36,13 +36,18 @@ PARSER_BEGIN(UnitParser)
     import java.io.ByteArrayInputStream;
     import java.io.InputStreamReader;
     import java.io.LineNumberReader;
-    import java.util.StringTokenizer;
+    import java.util.Calendar;
+    import java.util.TimeZone;
     import visad.DerivedUnit;
     import visad.SI;
-    import visad.ScaledUnit;
     import visad.Unit;
     import visad.UnitException;
 
+    /**
+     * A class for parsing string unit specifications.
+     *
+     * Instances are thread-compatible but not thread-safe.
+     */
     public class UnitParser
     {
         /**
@@ -64,18 +69,18 @@ PARSER_BEGIN(UnitParser)
         /**
          * The canonical time unit.
          */
-        protected static final Unit     second = SI.second;
-
-        /**
-         * Whether or not we're decoding a time unit.
-         */
-        protected boolean               isTime;
+        protected static final Unit     SECOND = SI.second;
 
         /**
          * The Julian day number of the (artificial) time origin.
          */
         protected static final long     julianDayOrigin = 
                                             UnitParser.julianDay(2001, 1, 1);
+                                            
+        /**
+         * The dimensionless unit one.
+         */
+        private static final Unit ONE = new DerivedUnit();
 
 
         /**
@@ -151,6 +156,35 @@ PARSER_BEGIN(UnitParser)
             return (julianDay(year, month, day) - julianDayOrigin) *
                 86400.0 + (hour*60 + minute - zone)*60 + second;
         }
+        
+        
+        private static void myAssert(UnitParser parser, final String spec,
+                Unit expect) throws UnitException, ParseException
+        {
+            if (!parser.parse(spec).equals(expect)) {
+                throw new AssertionError("Got \"" + spec + "; expected \"" +
+	                expect + "\"");
+            }
+            System.out.println(spec + " -> " + expect);
+        }
+        
+        
+        /**
+         * Parses a string unit specification.
+         *
+         * @param spec The unit specification.
+         * @return A {@link Unit} corresponding to {@code spec}.
+         * @throws NullPointerException if {@code spec} is {@code null}.
+         * @throws ParseException if a parsing error occurred.
+         * @throws UnitException if the string specifies an invalid unit
+         * operation.
+         */
+        public Unit parse(final String spec) throws ParseException,
+	        UnitException
+        {
+        	ReInit(new ByteArrayInputStream(spec.getBytes()));
+        	return unitSpec();
+        }
 
 
         /**
@@ -162,6 +196,56 @@ PARSER_BEGIN(UnitParser)
             UnitParser          parser = new UnitParser(System.in);
             LineNumberReader    lineInput = new LineNumberReader(
                                     new InputStreamReader(System.in));
+            Unit    s = unitsDB.get("s");
+            Unit    m = unitsDB.get("m");
+            Unit    kg = unitsDB.get("kg");
+            Unit    w = unitsDB.get("W");
+            Unit    epoch = s.shift(encodeTimestamp(1970, 1, 1, 0, 0, 0f, 0));
+
+            myAssert(parser, "m m", m.multiply(m));
+            myAssert(parser, "m.m", m.multiply(m));
+            myAssert(parser, "(m)(m)", m.pow(2));
+            myAssert(parser, "m/s/s", m.divide(s).divide(s));
+            myAssert(parser, "m2", m.pow(2));
+            myAssert(parser, "m2.s", m.pow(2).multiply(s));
+            myAssert(parser, "m2/s", m.pow(2).divide(s));
+            myAssert(parser, "m^2/s", m.pow(2).divide(s));
+            myAssert(parser, "m s @ 5", m.multiply(s).shift(5));
+            myAssert(parser, "m2 s @ 5", m.pow(2).multiply(s).shift(5));
+            myAssert(parser, "m2 s-1 @ 5", m.pow(2).divide(s).shift(5)); 
+            myAssert(parser, "m s from 5", m.multiply(s).shift(5));
+            myAssert(parser, "m s kg @ 5", m.multiply(s).multiply(kg).shift(5));
+            myAssert(parser, "s@19700101", epoch);
+            myAssert(parser, "s@19700101T000000", epoch);
+            myAssert(parser, "s@19700101T000000.00", epoch);
+            myAssert(parser, "s @ 1970-01-01T00:00:00.00", epoch);
+            myAssert(parser, "s @ 1970-01-01 00:00:00.00", epoch);
+            myAssert(parser, "s @ 1970-01-01T00:00:00.00 -12",
+	            s.shift(encodeTimestamp(1970, 1, 1, 12, 0, 0f, 0)));
+            myAssert(parser, "s @ 1970-01-01T00:00:00.00 -12",
+	            s.shift(encodeTimestamp(1970, 1, 1, 0, 0, 0f, -12*60)));
+            myAssert(parser, "lg(re: 1)", ONE.log(10));
+            myAssert(parser, "0.1 lg(re 1 mW)", w.scale(1e-3).log(10).scale(0.1));
+			myAssert(parser, "m", m);
+			myAssert(parser, "2 m s", m.multiply(s).scale(2));
+			myAssert(parser, "3.14 m.s", m.multiply(s).scale(3.14));
+			myAssert(parser, "1e9 (m)", m.scale(1e9));
+			myAssert(parser, "(m s)2", m.multiply(s).pow(2));
+			myAssert(parser, "m2.s-1", m.pow(2).divide(s));
+			myAssert(parser, "m2 s^-1", m.pow(2).divide(s));
+			myAssert(parser, "(m/s)2", m.divide(s).pow(2));
+			myAssert(parser, "m2/s-1", m.pow(2).divide(s.pow(-1)));
+			myAssert(parser, "m2/s^-1", m.pow(2).divide(s.pow(-1)));
+			myAssert(parser, ".5 m/(.25 s)2", m.scale(.5).divide(
+					s.scale(.25).pow(2)));
+			myAssert(parser, "m.m-1.m", m.multiply(m.pow(-1)).multiply(m));
+			myAssert(parser, "2.0 m 1/2 s-1*(m/s^1)^-1 (1e9 m-1)(1e9 s-1)-1.m/s", m
+					.scale(2).scale(1. / 2.).multiply(s.pow(-1)).multiply(
+							m.divide(s.pow(1)).pow(-1)).multiply(
+							m.pow(-1).scale(1e9)).multiply(
+							s.pow(-1).scale(1e9).pow(-1)).multiply(m)
+					.divide(s));
+			myAssert(parser, "m/km", m.divide(m.scale(1e3)));
 
             for (;;)
             {
@@ -196,166 +280,139 @@ PARSER_BEGIN(UnitParser)
 
 PARSER_END(UnitParser)
 
-TOKEN :
+TOKEN [IGNORE_CASE] :
 {
-        < #SIGN:        ["+","-"] >
-    |   < #DIGIT:       ["0"-"9"] >
-    |   < #INT:         (<DIGIT>)+ >
-    |   < INTEGER:      (<SIGN>)?<INT> >
-    |   < #EXP:         ["e","E"]<INTEGER> >
-    |   < #DECIMAL:     (<INTEGER>)?"."<INT>|<INTEGER>"."(<INT>)? >
-    |   < REAL:         <DECIMAL><EXP>|<INTEGER><EXP> >
-    |   < WHITESPACE:   (" " | "\t" | "\n" | "\r")+ >
-    |   < #SINCE:       ["S","s"]["I","i"]["N","n"]["C","c"]["E","e"] >
-    |   < #FROM:        ["F","f"]["R","r"]["O","o"]["M","m"] >
-    |   < SHIFT:        (<WHITESPACE>)?("@" | <SINCE> | <FROM>)(<WHITESPACE>)? >
-    |   < DIVIDE:       ((<WHITESPACE>)?("/" | ["P","p"]["E","e"]["R","r"]) (<WHITESPACE>)?) >
-    |   < #LETTER:      ["a"-"z","A"-"Z","_"] >
-    |   < NAME:         "%" | (<LETTER>)+ ((<INT>) (<LETTER>)+)* >
-    |   < #YEAR:        <INT> >
-    |   < #MONTH:       ("0")? ["1"-"9"] | "1" ["0"-"2"] >
-    |   < #DAY:         ("0")? ["1"-"9"] | ["1"-"2"]["0"-"9"] | "3" ["0","1"] >
-    |   < DATE:         <YEAR> "-" <MONTH> "-" <DAY> >
-    |   < #HOUR:        (["0"-"1"])? ["0"-"9"] | "2" ["0"-"3"] >
-    |   < #MINUTE:      (["0"-"5"])? ["0"-"9"] >
-    |   < #SECOND:      (<MINUTE> | "6""0") ("." (["0"-"9"])*)? >
-    |   < TIME:         (<SIGN>)? <HOUR> (":" <MINUTE> (":" <SECOND>)?)? >
+        < SP:       ([" ","\t","\n","\r"])+ >
+    |   < PLUS:     "+" >
+    |   < MINUS:    "-" >
+    |   < COLON:    ":" >
+    |   < UINT:     (["0"-"9"])+ >
+    |   <#SIGN:     <PLUS> | <MINUS> >
+    |   <#LETTER:   ["a"-"z","_"] >
+    |   < LPAREN:   "(" >
+    |   < RPAREN:   ")" >
+    |   < REAL_EXP: "e" (<SIGN>)? <UINT> >
+    |   < RAISE:    "^" >
+    |   < PERIOD:   "." >
+    |   < STAR:     "*" >
+    |   < DIVIDE:   "/" | (<SP>) "per" (<SP>) >
+    |   < SHIFT:    (<SP>)? "@" (<SP>)? | (<SP>) ("since" | "from") (<SP>) >
+    |   < SYMBOL:   ["'","\"","%"] >
+    |   < T:        "t" >
+    |   < NAME:     (<LETTER>)+ (<UINT> (<LETTER>)+)? >
+    |   < LB:       "lb(re" (":")? (<SP>)? >
+    |   < LN:       "ln(re" (":")? (<SP>)? >
+    |   < LG:       "lg(re" (":")? (<SP>)? >
+    |   < UTC:      "utc" | "gmt" | "zulu" >
 }
 
 
-Unit unitSpec() :
+Unit unitSpec() throws UnitException :
 {
-    Unit        unit = null;
-    double      origin = 0;
-    boolean     originSpecified = false;
-
-    isTime = false;
+    Unit    unit = ONE;
 }
 {
     [
-        unit=unitProductList()
-        {
-            isTime = Unit.canConvert(unit, second);
-        }
-        [
-            origin=shiftExpression()
-            {
-                originSpecified = true;
-            }
-        ]
+        unit=shiftExpr() 
     ]
     <EOF>
     {
-        try
-        {
-            if (unit == null)
-                unit = new DerivedUnit();       // dimensionless derived unit
-            if (originSpecified && isTime)
-                unit = unit.shift(unit.toThis(origin, second));
-            else if (origin != 0)
-                unit = unit.shift(origin);
-            return unit;
-        }
-        catch (UnitException e)
-        {
-            throw new ParseException("Invalid unit specification: " + 
-                e.getMessage());
-        }
+        return unit;
     }
 }
 
 
-Unit unitProductList() :
+Unit shiftExpr() throws UnitException :
 {
-    double      value;
-    Unit        unit1, unit2;
+	Unit        unit;
+    double      origin;
 }
 {
-    unit1=powerExpression()
-    (
-            [LOOKAHEAD(1) multiply()] unit2=powerExpression()
-            {
-                try
-                {
-                    unit1 = unit1.multiply(unit2);
-                }
-                catch (UnitException e)
-                {
-                    throw new ParseException("Couldn't multiply units");
-                }
+    unit=productExpr()
+    [
+        LOOKAHEAD(2)
+        <SHIFT>
+        {
+            if (Unit.canConvert(unit, SECOND)) {
+                origin=timeOriginExpr();
+                unit = unit.shift(unit.toThis(origin, SECOND));
             }
-        |
-            <DIVIDE> unit2=powerExpression()
+            else {
+                origin=number();
+	            if (origin != 0)
+	                unit = unit.shift(origin);
+            }
+        }
+    ]
+    {
+    	return unit;
+    }
+}
+
+
+Unit productExpr() throws UnitException :
+{
+    Unit        unit, unit2;
+}
+{
+    unit=powerExpr()
+    (
+            LOOKAHEAD(2)
+            <DIVIDE>
+            unit2 = powerExpr()
             {
-                try
-                {
-                    unit1 = unit1.divide(unit2);
-                }
-                catch (UnitException e)
-                {
-                    throw new ParseException("Couldn't divide units");
-                }
+                unit = unit.divide(unit2);
+            }
+        |       
+            [ <PERIOD> | <STAR> | <SP> ]
+            unit2=powerExpr() 
+            {
+                unit = unit.multiply(unit2);
             }
     )*
     {
-        return unit1;
+        return unit;
     }
 }
 
 
-void multiply() :
+Unit powerExpr() throws UnitException :
 {
+    Unit    unit;
+    int     exponent;
 }
 {
-    (
-            "."
-        |
-            "*"
-        |
-            <WHITESPACE>
-    )
+    unit=basicExpr()
+    [
+        [ <RAISE> ]
+        exponent=integer()
+        {
+            unit = unit.pow(exponent);
+        }
+    ]
+    {
+        return unit;
+    }
 }
 
 
-Unit powerExpression() :
+Unit basicExpr() throws UnitException :
 {
-    double      value;
-    Unit        unit;
-    Token       t;
+    Unit    unit;
+    double  number;
 }
 {
     (
-            value=numberExpression()
+            number = number()
             {
-                unit=new ScaledUnit(value);
+                unit =  ONE.scale(number);
             }
+        |                           
+            unit=unitIdentifier()
         |
-            (
-                    unit=nameExpression()
-                |
-                    "(" unit=unitProductList() ")"
-            )
-            [
-                LOOKAHEAD(1)
-                [
-                    "^"
-                ]
-                t=<INTEGER>
-                {
-                    try
-                    {
-                        // must use parseFloat in case we have "+00" which
-                        // causes parseInt to bomb
-                        unit = unit.pow((int) Float.parseFloat(t.image));
-                        //unit = unit.pow(Integer.parseInt(t.image));
-                    }
-                    catch (UnitException e)
-                    {
-                        throw new ParseException(
-                            "Couldn't raise unit to a power");
-                    }
-                }
-            ]
+            unit=logExpr()
+        |
+            <LPAREN> (<SP>)? unit=shiftExpr() (<SP>)? <RPAREN>
     )
     {
         return unit;
@@ -363,257 +420,330 @@ Unit powerExpression() :
 }
 
 
-Unit nameExpression() :
+Unit unitIdentifier() :
 {
-    Token       t;
-    Unit        unit;
+    Token   token;
+    Unit    unit;
 }
 {
-    t=<NAME>
+    (
+            token=<T>
+        |
+            token=<NAME>
+        |
+            token=<SYMBOL>
+    )
     {
-        unit = unitsDB.get(t.image);
+        unit = unitsDB.get(token.image);
         if (unit == null)
         {
             throw new NoSuchUnitException("Unit not in database");
         }
-    }
-    {
         return unit;
     }
 }
 
 
-double numberExpression() :
+Unit logExpr() throws UnitException :
 {
-    double      value;
-    Token       t;
+    double base;
+    Unit   ref;
 }
 {
     (
-            t=<INTEGER>
-            {
-                value = Integer.parseInt(t.image);
-            }
-            [
-                LOOKAHEAD(1)            // default algorithm is OK
-                "."
-                [
-                    LOOKAHEAD(1)        // default algorithm is OK
-                    t=<INTEGER>
-                    {
-                        value += new Double("." + t.image).doubleValue();
-                        if (value < 0)
-                            throw new ParseException(
-                                "negative sign follows decimal point");
-                    }
-                ]
-            ]
+            <LB> {base = 2;}
         |
-            "." t=<INTEGER>
-            {
-                value = new Double("." + t.image).doubleValue();
-                if (value < 0)
-                    throw new ParseException(
-                        "negative sign follows decimal point");
-            }
+            <LN> {base = Math.E;}
         |
-            t=<REAL>
-            {
-                // Double.parseDouble() *should* exist but doesn't (sigh).
-                value = new Double(t.image).doubleValue();
-            }
+            <LG> {base = 10;}
+    )
+    ref = productExpr() [<SP>] <RPAREN>
+    {
+        return ref.log(base);
+    }
+}
+
+
+double number() :
+{
+    double  number;
+}
+{
+    (
+            LOOKAHEAD(3)
+            number = real()
+        |
+            number = integer()
     )
     {
-        return value;
+        return number;
     }
 }
 
 
-double shiftExpression() :
+double real() :
 {
-    double      origin;
+    int    sign = 1;
+    double tenFactor = 1;
+    double udecimal;
 }
 {
-    <SHIFT>
+    [sign = sign()]
     (
-        LOOKAHEAD(3)
-            origin=timestampExpression()
-            {
-                if (!isTime)
-                    throw new ParseException("non-time unit with timestamp");
-                return origin;
-            }
+            LOOKAHEAD(2)
+            udecimal = unsignedDecimal()
+            [ tenFactor = tenFactor() ]
         |
-            origin=valueExpression()
-            {
-                return origin;
-            }
-    )
-}
-
-
-double valueExpression() :
-{
-    double      value;
-}
-{
-    (
-            value=numericalTerm()
-        |
-            "(" value=valueExpression() ")"
+            udecimal = unsignedInteger()
+            tenFactor = tenFactor()
     )
     {
-        return value;
+        return sign * udecimal * tenFactor;
     }
 }
 
 
-double numericalTerm() :
+int sign() :
+{}
 {
-    double      value1, value2;
-}
-{
-    value1=numberExpression()
-    (
-            value2=numberExpression()
-            {
-                value1 *= value2;
-            }
-        |
-            <DIVIDE> value2=numberExpression()
-            {
-                value1 /= value2;
-            }
-    )*
-    {
-        return value1;
-    }
+        <PLUS> { return 1; }
+    |
+        <MINUS> { return -1; }
 }
 
 
-double timestampExpression() :
+double unsignedDecimal() :
 {
-    double      value;
+    int     integer = 0;
+    Token   token;
+    double  fraction = 0;
 }
 {
     (
-            value=timestampTerm()
+            LOOKAHEAD(3)
+            [integer=unsignedInteger()]
+            <PERIOD>
+            token = <UINT>
+            {
+                fraction = Double.valueOf("." + token.image);
+            }
         |
-            "(" value=timestampExpression() ")"
+            integer=unsignedInteger()
+            <PERIOD>
     )
     {
-        return value;
+        return integer + fraction;
     }
 }
 
 
-double timestampTerm() :
+double tenFactor() :
 {
-    int         year = 0;
-    int         month = 0;
-    int         day = 0;
-    int         hour = 0;
-    int         minute = 0;
-    int         zone = 0;       // time zone in minutes
-    float       second = 0;
-    double      when = 0;
-    Token       t;
-    int         zoneHour;
-    int         zoneMinute;
+    Token  token;
 }
 {
-    t=<DATE>
+    token = <REAL_EXP>
     {
-        StringTokenizer dateSpec = new StringTokenizer(t.image, "-");
-
-        year = Integer.parseInt(dateSpec.nextToken());
-        month = Integer.parseInt(dateSpec.nextToken());
-        day = Integer.parseInt(dateSpec.nextToken());
+        return Double.valueOf("1" + token.image);
     }
+}
+
+
+int integer() :
+{
+    int     magnitude;
+    int     sign = 1;
+}
+{
+    [ sign = sign() ]
+    magnitude = unsignedInteger()
+    {
+        return sign * magnitude;
+    }
+}
+
+
+int unsignedInteger() :
+{
+    Token       token;
+}
+{
+    token=<UINT>
+    {
+        return Integer.valueOf(token.image);
+    }
+}
+
+
+/*
+ * See <http://www.cl.cam.ac.uk/~mgk25/iso-time.html> for a discussion of the
+ * relevant timestamp format or lookup "ISO 8601".
+ */
+double timeOriginExpr() :
+{
+    Calendar   calendar;
+}
+{
+    calendar = dateExpr()
     [
-        (
-                t=<NAME>
-                {
-                    if (!(t.image.equalsIgnoreCase("T")))
-                        throw new ParseException("invalid timestamp");
-                }
-            |
-                (<WHITESPACE>)?
-        )
-        (
-                t=<INTEGER>
-                {
-                    hour = Integer.parseInt(t.image);
-                }
-            |
-                t=<TIME>
-                {
-                    StringTokenizer     timeSpec =
-                        new StringTokenizer(t.image, ":");
-
-                    hour = Integer.parseInt(timeSpec.nextToken());
-                    minute = Integer.parseInt(timeSpec.nextToken());
-                    if (timeSpec.hasMoreTokens())
-                        second = new Float(timeSpec.nextToken()).floatValue();
-                }
-        )
+        LOOKAHEAD(2)
+        (<T> | <SP>)
+        clockExpr(calendar)
         [
-            (<WHITESPACE>)?
-            (
-                    t=<INTEGER>
-                    {
-                        zoneMinute = 0;
-
-                        zoneHour = (int)Float.parseFloat(t.image);
-
-                        if (zoneHour <= -100 || zoneHour >= 100)
-                        {
-                            zoneMinute = zoneHour % 100;
-                            zoneHour /= 100;
-                        }
-
-                        zone = zoneHour * 60 + zoneMinute;
-                    }
-                |
-                    t=<TIME>
-                    {
-                        StringTokenizer zoneSpec = 
-                            new StringTokenizer(t.image, ":");
-                        int     sign = t.image.startsWith("-") ? -1 : 1;
-
-                        // must use parseFloat in case we have "+00" which
-                        // causes parseInt to bomb
-                        zoneHour = (int) Float.parseFloat(zoneSpec.nextToken());
-                        zoneMinute = Integer.parseInt(zoneSpec.nextToken());
-
-                        zone = zoneHour*60 + zoneMinute*sign;
-                    }
-                | 
-                    t=<NAME>
-                    {
-                        if (!t.image.equals("UTC") && 
-                            !t.image.equals("GMT") &&
-                            !t.image.equals("ZULU") &&
-                            !t.image.equals("Z"))
-                        {
-                            throw new ParseException("invalid time zone");
-                        }
-                    }
-            )
+            LOOKAHEAD(2)
+            [<SP>]
+            zoneExpr(calendar)
         ]
     ]
     {
-        if (month < 1 || month > 12 ||
-            day < 1 || day > 31 ||
-            hour < 0 || hour > 23 ||
-            minute < 0 || minute > 59 ||
-            second < 0 || second > 61 ||
-            zone < -1440 || zone > 1440)
-        {
-            throw new ParseException("invalid timestamp");
-        }
+        return encodeTimestamp(calendar.get(Calendar.YEAR),
+	        calendar.get(Calendar.MONTH)+1, calendar.get(Calendar.DAY_OF_MONTH),
+	        calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE),
+	        (float)(calendar.get(Calendar.SECOND) + 
+            calendar.get(Calendar.MILLISECOND)/1e3),
+            calendar.get(Calendar.ZONE_OFFSET)/(1000*60));
+    }
+}
 
-        return UnitParser.encodeTimestamp(year, month, day,
-            hour, minute, second, zone);
+
+Calendar dateExpr() :
+{
+    int        sign = 1;
+    int        year;
+    int        month = 1;
+    int        day = 1;
+    boolean    packed = true;
+}
+{
+    [sign = sign() ]
+    year = unsignedInteger()
+    [
+        <MINUS>
+        month = unsignedInteger()
+        {
+            packed = false;
+        }
+        [
+            <MINUS>
+            day = unsignedInteger()
+        ]       
+    ]
+    {
+        if (packed) {
+            if (year >= 10000101) {
+                day = year % 100;
+                year /= 100;
+            }
+            if (year >= 100001) {
+                month = year % 100;
+                year /= 100;
+            }
+            if (sign < 0)
+                year = -year;
+        }
+        if (month < 1 || month > 12)
+            throw new ParseException("invalid month in timestamp");
+        if (day < 1 || day > 31)
+            throw new ParseException("invalid day in timestamp");
+        Calendar    calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        calendar.clear();
+        calendar.set(year, month-1, day);
+        return calendar;
+    }
+}
+
+
+Calendar clockExpr(Calendar calendar) :
+{
+    double     hour;
+    int        minute = 0;
+    double     seconds = 0;
+    boolean    packed = true;
+}
+{
+    (
+            LOOKAHEAD(2)
+            hour = unsignedDecimal()
+        |
+            hour = unsignedInteger()
+    )
+    [
+        <COLON>
+        minute = unsignedInteger()
+        {
+            packed = false;
+        }
+        [
+            <COLON>
+            (
+                    LOOKAHEAD(2)
+                    seconds = unsignedDecimal()
+                |
+                    seconds = unsignedInteger()
+            )
+        ]       
+    ]
+    {
+        if (packed) {
+            if (hour >= 100000) {
+                seconds = hour % 100;
+                hour /= 100;
+            }
+            if (hour >= 1000) {
+                minute = (int)(hour % 100);
+                hour /= 100;
+            }
+        }
+        if (hour < 0 || hour > 23)
+            throw new ParseException("invalid hour in timestamp");
+        if (minute < 0 || minute > 59)
+            throw new ParseException("invalid minute in timestamp");
+        if (seconds < 0 || seconds > 61)
+            throw new ParseException("invalid seconds in timestamp");
+        calendar.set(Calendar.HOUR_OF_DAY, (int)Math.round(hour));
+        calendar.set(Calendar.MINUTE, minute);
+        int s = (int)seconds;
+        calendar.set(Calendar.SECOND, s);
+        int ms = (int)((seconds - s) * 1000);
+        calendar.set(Calendar.MILLISECOND, ms);
+        return calendar;
+    }
+}
+
+Calendar zoneExpr(Calendar calendar) :
+{
+    int         sign = 1;
+    int         zoneHour;
+    int         zoneMinute = 0;
+    Token       token;
+    TimeZone    timeZone;
+}
+{
+    (
+            [sign=sign()]
+            zoneHour=unsignedInteger()
+            [[<COLON>] zoneMinute=unsignedInteger()]
+            {
+                if (zoneHour >= 100)
+                {
+                    zoneMinute += zoneHour % 100;
+                    zoneHour /= 100;
+                }
+                if (zoneHour > 23 || zoneMinute > 59)
+                {
+                    throw new ParseException("invalid time-zone in timestamp");
+                }
+                timeZone = TimeZone.getDefault();
+                timeZone.setRawOffset(sign*(zoneHour*60 + zoneMinute)*60*1000);
+            }
+        |
+            token = <NAME>
+            {
+                timeZone = TimeZone.getTimeZone(token.image);
+            }
+    )
+    {
+        calendar.setTimeZone(timeZone);
+        return calendar;
     }
 }
