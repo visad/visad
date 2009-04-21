@@ -163,7 +163,7 @@ PARSER_BEGIN(UnitParser)
         {
             if (!parser.parse(spec).equals(expect)) {
                 throw new AssertionError("Got \"" + spec + "; expected \"" +
-	                expect + "\"");
+                    expect + "\"");
             }
             System.out.println(spec + " -> " + expect);
         }
@@ -180,10 +180,10 @@ PARSER_BEGIN(UnitParser)
          * operation.
          */
         public Unit parse(final String spec) throws ParseException,
-	        UnitException
+            UnitException
         {
-        	ReInit(new ByteArrayInputStream(spec.getBytes()));
-        	return unitSpec();
+            ReInit(new ByteArrayInputStream(spec.getBytes()));
+            return unitSpec();
         }
 
 
@@ -221,31 +221,31 @@ PARSER_BEGIN(UnitParser)
             myAssert(parser, "s @ 1970-01-01T00:00:00.00", epoch);
             myAssert(parser, "s @ 1970-01-01 00:00:00.00", epoch);
             myAssert(parser, "s @ 1970-01-01T00:00:00.00 -12",
-	            s.shift(encodeTimestamp(1970, 1, 1, 12, 0, 0f, 0)));
+                s.shift(encodeTimestamp(1970, 1, 1, 12, 0, 0f, 0)));
             myAssert(parser, "s @ 1970-01-01T00:00:00.00 -12",
-	            s.shift(encodeTimestamp(1970, 1, 1, 0, 0, 0f, -12*60)));
+                s.shift(encodeTimestamp(1970, 1, 1, 0, 0, 0f, -12*60)));
             myAssert(parser, "lg(re: 1)", ONE.log(10));
             myAssert(parser, "0.1 lg(re 1 mW)", w.scale(1e-3).log(10).scale(0.1));
-			myAssert(parser, "m", m);
-			myAssert(parser, "2 m s", m.multiply(s).scale(2));
-			myAssert(parser, "3.14 m.s", m.multiply(s).scale(3.14));
-			myAssert(parser, "1e9 (m)", m.scale(1e9));
-			myAssert(parser, "(m s)2", m.multiply(s).pow(2));
-			myAssert(parser, "m2.s-1", m.pow(2).divide(s));
-			myAssert(parser, "m2 s^-1", m.pow(2).divide(s));
-			myAssert(parser, "(m/s)2", m.divide(s).pow(2));
-			myAssert(parser, "m2/s-1", m.pow(2).divide(s.pow(-1)));
-			myAssert(parser, "m2/s^-1", m.pow(2).divide(s.pow(-1)));
-			myAssert(parser, ".5 m/(.25 s)2", m.scale(.5).divide(
-					s.scale(.25).pow(2)));
-			myAssert(parser, "m.m-1.m", m.multiply(m.pow(-1)).multiply(m));
-			myAssert(parser, "2.0 m 1/2 s-1*(m/s^1)^-1 (1e9 m-1)(1e9 s-1)-1.m/s", m
-					.scale(2).scale(1. / 2.).multiply(s.pow(-1)).multiply(
-							m.divide(s.pow(1)).pow(-1)).multiply(
-							m.pow(-1).scale(1e9)).multiply(
-							s.pow(-1).scale(1e9).pow(-1)).multiply(m)
-					.divide(s));
-			myAssert(parser, "m/km", m.divide(m.scale(1e3)));
+            myAssert(parser, "m", m);
+            myAssert(parser, "2 m s", m.multiply(s).scale(2));
+            myAssert(parser, "3.14 m.s", m.multiply(s).scale(3.14));
+            myAssert(parser, "1e9 (m)", m.scale(1e9));
+            myAssert(parser, "(m s)2", m.multiply(s).pow(2));
+            myAssert(parser, "m2.s-1", m.pow(2).divide(s));
+            myAssert(parser, "m2 s^-1", m.pow(2).divide(s));
+            myAssert(parser, "(m/s)2", m.divide(s).pow(2));
+            myAssert(parser, "m2/s-1", m.pow(2).divide(s.pow(-1)));
+            myAssert(parser, "m2/s^-1", m.pow(2).divide(s.pow(-1)));
+            myAssert(parser, ".5 m/(.25 s)2", m.scale(.5).divide(
+                    s.scale(.25).pow(2)));
+            myAssert(parser, "m.m-1.m", m.multiply(m.pow(-1)).multiply(m));
+            myAssert(parser, "2.0 m 1/2 s-1*(m/s^1)^-1 (1e9 m-1)(1e9 s-1)-1.m/s", m
+                    .scale(2).scale(1. / 2.).multiply(s.pow(-1)).multiply(
+                            m.divide(s.pow(1)).pow(-1)).multiply(
+                            m.pow(-1).scale(1e9)).multiply(
+                            s.pow(-1).scale(1e9).pow(-1)).multiply(m)
+                    .divide(s));
+            myAssert(parser, "m/km", m.divide(m.scale(1e3)));
 
             for (;;)
             {
@@ -324,7 +324,7 @@ Unit unitSpec() throws UnitException :
 
 Unit shiftExpr() throws UnitException :
 {
-	Unit        unit;
+    Unit        unit;
     double      origin;
 }
 {
@@ -339,13 +339,13 @@ Unit shiftExpr() throws UnitException :
             }
             else {
                 origin=number();
-	            if (origin != 0)
-	                unit = unit.shift(origin);
+                if (origin != 0)
+                    unit = unit.shift(origin);
             }
         }
     ]
     {
-    	return unit;
+        return unit;
     }
 }
 
@@ -597,9 +597,9 @@ double timeOriginExpr() :
     ]
     {
         return encodeTimestamp(calendar.get(Calendar.YEAR),
-	        calendar.get(Calendar.MONTH)+1, calendar.get(Calendar.DAY_OF_MONTH),
-	        calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE),
-	        (float)(calendar.get(Calendar.SECOND) + 
+            calendar.get(Calendar.MONTH)+1, calendar.get(Calendar.DAY_OF_MONTH),
+            calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE),
+            (float)(calendar.get(Calendar.SECOND) + 
             calendar.get(Calendar.MILLISECOND)/1e3),
             calendar.get(Calendar.ZONE_OFFSET)/(1000*60));
     }

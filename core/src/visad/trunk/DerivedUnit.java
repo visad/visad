@@ -454,8 +454,8 @@ public final class DerivedUnit extends Unit implements Serializable {
 		myAssert(!speed.isConvertible(speed2));
 		myAssert(speed, speed2.sqrt());
 		myAssert(speed, speed2.root(2));
-		myAssert(speed.pow(Math.nextUp(2.0)), speed2);
-		myAssert(speed2.pow(1 / Math.nextUp(2.0)), speed);
+		myAssert(speed.pow(2.0 + Math.ulp(2.0)), speed2);
+		myAssert(speed2.pow(1 / (2.0 + Math.ulp(2.0))), speed);
 
 		myAssert(meter.divide(speed), second);
 		myAssert(speed.divide(meter), second.pow(-1));

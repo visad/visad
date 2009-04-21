@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: UnitsDB.java,v 1.2 2001-11-27 22:29:42 dglo Exp $
+ * $Id: UnitsDB.java,v 1.3 2009-04-21 20:15:10 steve Exp $
  */
 
 package visad.data.units;
@@ -24,45 +24,45 @@ UnitsDB
     /**
      * Adds a base unit.
      *
-     * @param baseUnit	The base unit to be added.
+     * @param baseUnit  The base unit to be added.
      * @throws java.lang.IllegalArgumentException
-     *			The base unit argument is invalid.
+     *          The base unit argument is invalid.
      */
     void
     put(BaseUnit unit)
-	throws IllegalArgumentException;
+    throws IllegalArgumentException;
 
 
     /**
      * Adds a name and a unit to the name table.
-     * @param name		The name to be added.
-     * @param unit		The unit to be added.
-     * @throws IllegalArgumentException	Different unit with the same name is
-     *					already in the table.
+     * @param name      The name to be added.
+     * @param unit      The unit to be added.
+     * @throws IllegalArgumentException Different unit with the same name is
+     *                  already in the table.
      */
     void
     putName(String name, Unit unit)
-	throws IllegalArgumentException;
+    throws IllegalArgumentException;
 
 
     /**
      * Adds a symbol and a unit to the symbol table.
-     * @param symbol		The symbol to be added.
-     * @param unit		The unit to be added.
-     * @throws IllegalArgumentException	Different unit with the same symbol is
-     *					already in the table.
+     * @param symbol        The symbol to be added.
+     * @param unit      The unit to be added.
+     * @throws IllegalArgumentException Different unit with the same symbol is
+     *                  already in the table.
      */
     void
     putSymbol(String symbol, Unit unit)
-	throws IllegalArgumentException;
+    throws IllegalArgumentException;
 
 
     /**
      * Get a unit.
      *
-     * @param name	The name of the unit to be retrieved from the database.
-     * @return		The matching unit entry in the database.
-     * @require		<code>name</code> shall be non-null.
+     * @param name  The name of the unit to be retrieved from the database.
+     * @return      The matching unit entry in the database.
+     * @require     <code>name</code> shall be non-null.
      */
     Unit
     get(String name);
