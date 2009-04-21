@@ -123,6 +123,14 @@ public final class ScaledUnit extends Unit implements Serializable {
         }
     }
 
+    public ScaledUnit(final double amount, final BaseUnit unit) {
+        this(amount, (Unit) unit);
+    }
+
+    public ScaledUnit(final double amount, final BaseUnit unit, final String id) {
+        this(amount, (Unit) unit, id);
+    }
+
     public ScaledUnit(final double amount, final DerivedUnit unit) {
         this(amount, (Unit) unit);
     }
