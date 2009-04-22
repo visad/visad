@@ -123,6 +123,7 @@ public class MetUnits {
     else if (in.equalsIgnoreCase("wp**"))  { out = "W/m^2/sr"; }
     else if (in.equalsIgnoreCase("mb"))  { out = "hPa"; }
     else if (in.equalsIgnoreCase("mbag"))  { out = "hPa"; }
+    else if (in.equalsIgnoreCase("dbz"))  { out = "dBz"; }
 
     // the following handle (rightly or wrongly) converting mass/area to length
     else if (in.equalsIgnoreCase("kg/m**2"))  { out = "mm"; }
