@@ -24,6 +24,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 
 
+
 package visad.bom;
 
 
@@ -980,7 +981,10 @@ public class SceneGraphRenderer {
         // Plot it's vertices
         VisADGeometryArray geometry = appearance.array;
         Color[] colours = getColours(appearance, monochrome);
-        float thickness = appearance.lineWidth / 2.0f;
+        float fsize = (geometry instanceof VisADPointArray)
+                      ? appearance.pointSize
+                      : appearance.lineWidth;
+        float thickness = fsize / 2.0f;
 
         plot(geometry, colours, thickness, graphics);
       }
@@ -1010,6 +1014,7 @@ public class SceneGraphRenderer {
     int rendered = -1;
     if (root instanceof Switch) {
       rendered = ((Switch)root).getWhichChild();
+      if (rendered == -1) return; // means it's not rendered? 
     }
     // Loop over each of the VisAD groups children
     for (int i = 0; i < numChildren; i++) {
@@ -1043,7 +1048,7 @@ public class SceneGraphRenderer {
         }
       }
       else {
-        //System.err.println ("Unknown scene graph node:" + child.getClass().getName());
+        // System.err.println ("Unknown scene graph node:" + child.getClass().getName());
       }
     }
   }
@@ -1063,17 +1068,17 @@ public class SceneGraphRenderer {
     // If the geometry stores it's colours ...
     if (geometry.colors != null) {
       // Get each individual colour
-      int numColors = geometry.colors.length;
+      int numColours = geometry.colors.length;
       int numCoords = geometry.coordinates.length;
       // Get the ratio of colors to points to distinguish RGB
       // from RGBA. This is a hack until I understand why some
       // LineArrays from a 2D display contain Alpha values
       int cr = 3;
-      if (numColors != numCoords) {
-        cr = numColors / (numColors - numCoords);
+      if (numColours != numCoords) {
+        cr = numColours / (numColours - numCoords);
       }
-      colours = new Color[numColors / cr];
-      for (int j = 0; j < numColors; j += cr) {
+      colours = new Color[numColours / cr];
+      for (int j = 0; j < numColours; j += cr) {
         float red = 0.0f;
         float green = 0.0f;
         float blue = 0.0f;
@@ -1310,18 +1315,17 @@ public class SceneGraphRenderer {
   private void plot(VisADPointArray pointArray, Color[] colours, float size,
                     Graphics2D graphics) {
     graphics.setColor(colours[0]);
-    graphics.setStroke(getStroke(size));
+    graphics.setStroke(getStroke(pixelWidth));
     float[] coordinates = pointArray.coordinates;
 
+    float hsize = 0.5f * size;
     // Loop over each point
     for (int i = 0; i < coordinates.length / 3; i++) {
       float normalX = coordinates[i * 3];
       float normalY = coordinates[i * 3 + 1];
-      float[][] vertices = {
-        {normalX, normalY}
-      };
-
-      drawShapeReprojected(vertices, colours[0], size, graphics);
+      //graphics.fillRect((int)normalX, (int)normalY, (int)size, (int)size);
+      graphics.fill(
+        new Rectangle2D.Float(normalX - hsize, normalY - hsize, size, size));
     }
   }
 
@@ -1596,10 +1600,26 @@ public class SceneGraphRenderer {
   private void plot(LineStripArray lineArray, Color[] colours,
                     float thickness, int lineStyle, Graphics2D graphics) {
 
+    // Temporary variables for retrieving coordinates
     int vertexCount = lineArray.getVertexCount();
     boolean hasAlpha = hasAlpha(lineArray);
+    boolean byRef = isByReference(lineArray);
+    int nCoords = 3 * vertexCount;
+    float[] coordinates = null;
+
+    // Get the coordinates
+    if (byRef) {
+      coordinates = lineArray.getCoordRefFloat();
+    }
+    else {
+      coordinates = new float[nCoords];
+      lineArray.getCoordinates(0, coordinates);
+    }
+
+    /*
     float[] coordinates = new float[vertexCount * 3];
     lineArray.getCoordinates(0, coordinates);
+    */
     coordinates = transformToScreen(coordinates);
 
     int numStrips = lineArray.getNumStrips();
@@ -1607,8 +1627,13 @@ public class SceneGraphRenderer {
     lineArray.getStripVertexCounts(vertexCounts);
 
     int base = 0;
+    int baseColor = 0;
 
     float[] colour = new float[4];
+    byte[] refColours = null;
+    int numRefColours = (hasAlpha)
+                        ? 4
+                        : 3;
     // If a colour was supplied, use it
     if (colours != null) {
       colour[0] = ((float)colours[0].getRed()) / 255.0f;
@@ -1617,7 +1642,11 @@ public class SceneGraphRenderer {
       colour[3] = ((float)colours[0].getAlpha()) / 255.0f;
     }
     else {
-      lineArray.getColor(0, colour);
+      // Get the color array if by ref
+      if (byRef) {
+        // DisplayImplJ3D stores ref as bytes
+        refColours = lineArray.getColorRefByte();
+      }
     }
     if (!hasAlpha || !useTransparency) {
       colour[3] = 1.0f;
@@ -1635,7 +1664,15 @@ public class SceneGraphRenderer {
 
       // Attempt to get the color from the geometry
       if (colours == null) {
-        lineArray.getColor(i, colour);
+        // Get the color array
+        if (refColours != null) {
+          for (int j = 0; j < numRefColours; j++) {
+            colour[j] = byteToFloat(refColours[baseColor + j]);
+          }
+        }
+        else {
+          lineArray.getColor(i, colour);
+        }
       }
       if (!useTransparency || !hasAlpha) {
         colour[3] = 1.0f;
@@ -1656,6 +1693,7 @@ public class SceneGraphRenderer {
         vertices, color, thickness, lineStyle, graphics,
         transformToScreenCoords);
       base += 3 * numCoords;
+      baseColor += numRefColours * numCoords;
     }
   }
 
@@ -1670,9 +1708,16 @@ public class SceneGraphRenderer {
    */
   private void plot(LineArray lineArray, Color[] colours, float thickness,
                     int lineStyle, Graphics2D graphics) {
+
     boolean hasAlpha = hasAlpha(lineArray);
-    // If a colour was supplied, use it
+    boolean byRef = isByReference(lineArray);
     float[] colour = new float[4];
+    byte[] refColours = null;
+    int numRefColours = (hasAlpha)
+                        ? 4
+                        : 3;
+    int baseColor = 0;
+    // If a colour was supplied, use it
     if (colours != null) {
       colour[0] = ((float)colours[0].getRed()) / 255.0f;
       colour[1] = ((float)colours[0].getGreen()) / 255.0f;
@@ -1680,7 +1725,17 @@ public class SceneGraphRenderer {
       colour[3] = ((float)colours[0].getAlpha()) / 255.0f;
     }
     else {
-      lineArray.getColor(0, colour);
+      //lineArray.getColor(0, colour);
+      if (byRef) {
+        // DisplayImplJ3D stores ref as bytes
+        refColours = lineArray.getColorRefByte();
+        for (int i = 0; i < numRefColours; i++) {
+          colour[i] = byteToFloat(refColours[i]);
+        }
+      }
+      else {
+        lineArray.getColor(0, colour);
+      }
     }
     if (!useTransparency || !hasAlpha) {
       colour[3] = 1.0f;
@@ -1707,9 +1762,24 @@ public class SceneGraphRenderer {
     graphics.setStroke(
       getStroke(thickness * .5f, getStrokeDash(lineStyle, pixelWidth)));
 
+    // Temporary variables for retrieving coordinates
     int vertexCount = lineArray.getVertexCount();
+    int nCoords = 3 * vertexCount;
+    float[] coordinates = null;
+
+    // Get the coordinates
+    if (byRef) {
+      coordinates = lineArray.getCoordRefFloat();
+    }
+    else {
+      coordinates = new float[nCoords];
+      lineArray.getCoordinates(0, coordinates);
+    }
+
+    /*
     float[] coordinates = new float[vertexCount * 3];
     lineArray.getCoordinates(0, coordinates);
+    */
     coordinates = transformToScreen(coordinates);
 
     Color lastColor = new Color(colour[0], colour[1], colour[2], colour[3]);
@@ -1717,7 +1787,15 @@ public class SceneGraphRenderer {
     graphics.setColor(lastColor);
     for (int j = 0; j < vertexCount; j += 2) {
       if (colours == null) {
-        lineArray.getColor(j, colour);
+        //lineArray.getColor(i, colour);
+        if (refColours != null) { // means we are BY_REFERENCE
+          for (int i = 0; i < numRefColours; i++) {
+            colour[i] = byteToFloat(refColours[baseColor + i]);
+          }
+        }
+        else {
+          lineArray.getColor(j, colour);
+        }
       }
       if (!useTransparency || !hasAlpha) {
         colour[3] = 1.0f;
@@ -1750,10 +1828,12 @@ public class SceneGraphRenderer {
       }
       linePath.moveTo(nX1, nY1);
       linePath.lineTo(nX2, nY2);
+      baseColor += numRefColours * 2;
     }
     // Translate them to device coordinates and plot
     if (!transformToScreenCoords) linePath.transform(viewPort);
     graphics.draw(linePath);
+
   }
 
   /**
@@ -1766,12 +1846,19 @@ public class SceneGraphRenderer {
    */
   private void plot(TriangleStripArray triangleArray, Color[] colours,
                     float thickness, Graphics2D graphics) {
+
     int vertexFormat = triangleArray.getVertexFormat();
     if ((vertexFormat & GeometryArray.TEXTURE_COORDINATE_2)
         == GeometryArray.TEXTURE_COORDINATE_2) {
       return;
     }
     boolean hasAlpha = hasAlpha(triangleArray);
+    boolean byRef = isByReference(triangleArray);
+    byte[] refColours = null;
+    int numRefColours = (hasAlpha)
+                        ? 4
+                        : 3;
+    int baseColor = 0;
     float[] colour = new float[4];
     if (colours != null) {
       colour[0] = ((float)colours[0].getRed()) / 255.0f;
@@ -1780,10 +1867,13 @@ public class SceneGraphRenderer {
       colour[3] = ((float)colours[0].getAlpha()) / 255.0f;
     }
     else {
-      triangleArray.getColor(0, colour);
-      if (!useTransparency || !hasAlpha) {
-        colour[3] = 1.0f;
+      if (byRef) {
+        // DisplayImplJ3D stores ref as bytes
+        refColours = triangleArray.getColorRefByte();
       }
+    }
+    if (!useTransparency || !hasAlpha) {
+      colour[3] = 1.0f;
     }
     // If monochrome
     if (monochrome) {
@@ -1792,11 +1882,19 @@ public class SceneGraphRenderer {
     }
 
     graphics.setStroke(getStroke(thickness));
-
+    // Temporary variables for retrieving coordinates
     int vertexCount = triangleArray.getVertexCount();
-    float[] coordinates = new float[vertexCount * 3];
+    int nCoords = 3 * vertexCount;
+    float[] coordinates = null;
 
-    triangleArray.getCoordinates(0, coordinates);
+    // Get the coordinates
+    if (byRef) {
+      coordinates = triangleArray.getCoordRefFloat();
+    }
+    else {
+      coordinates = new float[nCoords];
+      triangleArray.getCoordinates(0, coordinates);
+    }
     coordinates = transformToScreen(coordinates);
 
     int cCount = 0;
@@ -1812,7 +1910,15 @@ public class SceneGraphRenderer {
     for (int i = 0; i < numStrips; i++) {
       int numCoords = vertexCounts[i];
       if (colours == null) {
-        triangleArray.getColor(cCount++, colour);
+        //triangleArray.getColor(cCount++, colour);
+        if (refColours != null) { // means we are BY_REFERENCE
+          for (int j = 0; j < numRefColours; j++) {
+            colour[j] = byteToFloat(refColours[baseColor + j]);
+          }
+        }
+        else {
+          triangleArray.getColor(cCount++, colour);
+        }
       }
       if (!useTransparency || !hasAlpha) {
         colour[3] = 1.0f;
@@ -1848,8 +1954,9 @@ public class SceneGraphRenderer {
           triangle, color, graphics, transformToScreenCoords);
       }
       base += 3 * numCoords;
-
+      baseColor += numRefColours * numCoords;
     }
+
   }
 
   /**
@@ -1862,6 +1969,14 @@ public class SceneGraphRenderer {
    */
   private void plot(TriangleArray triangleArray, Color[] colours,
                     float thickness, Graphics2D graphics) {
+
+    boolean hasAlpha = hasAlpha(triangleArray);
+    boolean byRef = isByReference(triangleArray);
+    byte[] refColours = null;
+    int numRefColours = (hasAlpha)
+                        ? 4
+                        : 3;
+    int baseColor = 0;
     float[] colour = new float[4];
     if (colours != null) {
       colour[0] = ((float)colours[0].getRed()) / 255.0f;
@@ -1869,7 +1984,13 @@ public class SceneGraphRenderer {
       colour[2] = ((float)colours[0].getBlue()) / 255.0f;
       colour[3] = ((float)colours[0].getAlpha()) / 255.0f;
     }
-    boolean hasAlpha = hasAlpha(triangleArray);
+    else {
+      //triangleArray.getColor(0, colour);
+      if (byRef) {
+        // DisplayImplJ3D stores ref as bytes
+        refColours = triangleArray.getColorRefByte();
+      }
+    }
     if (!hasAlpha || !useTransparency) {
       colour[3] = 1.0f;
     }
@@ -1882,15 +2003,32 @@ public class SceneGraphRenderer {
 
     graphics.setStroke(getStroke(thickness));
 
+    // Temporary variables for retrieving coordinates
     int vertexCount = triangleArray.getVertexCount();
-    float[] coordinates = new float[vertexCount * 3];
+    int nCoords = 3 * vertexCount;
+    float[] coordinates = null;
 
-    triangleArray.getCoordinates(0, coordinates);
+    // Get the coordinates
+    if (byRef) {
+      coordinates = triangleArray.getCoordRefFloat();
+    }
+    else {
+      coordinates = new float[nCoords];
+      triangleArray.getCoordinates(0, coordinates);
+    }
+
     coordinates = transformToScreen(coordinates);
 
     for (int i = 0; i < 3 * vertexCount; i += 9) {
       if (colours == null) {
-        if (i < vertexCount * 3) {
+        //triangleArray.getColor(cCount++, colour);
+        if (refColours != null) { // means we are BY_REFERENCE
+          for (int j = 0; j < numRefColours; j++) {
+            colour[j] = byteToFloat(refColours[baseColor + j]);
+          }
+        }
+        else {
+          //if (i < vertexCount * 3) {  is this necessary?
           triangleArray.getColor(i / 3, colour);
         }
       }
@@ -1921,6 +2059,7 @@ public class SceneGraphRenderer {
       }
       fillShapeReprojected(
         vertices, color, graphics, transformToScreenCoords);
+      baseColor += 3 * numRefColours;
     }
   }
 
@@ -1934,13 +2073,25 @@ public class SceneGraphRenderer {
    */
   private void plot(QuadArray quadArray, Color[] colours, float thickness,
                     Graphics2D graphics) {
-    float[] colour = new float[4];
     boolean hasAlpha = hasAlpha(quadArray);
+    boolean byRef = isByReference(quadArray);
+    byte[] refColours = null;
+    int numRefColours = (hasAlpha)
+                        ? 4
+                        : 3;
+    int baseColor = 0;
+    float[] colour = new float[4];
     if (colours != null) {
       colour[0] = ((float)colours[0].getRed()) / 255.0f;
       colour[1] = ((float)colours[0].getGreen()) / 255.0f;
       colour[2] = ((float)colours[0].getBlue()) / 255.0f;
       colour[3] = ((float)colours[0].getAlpha()) / 255.0f;
+    }
+    else {
+      if (byRef) {
+        // DisplayImplJ3D stores ref as bytes
+        refColours = quadArray.getColorRefByte();
+      }
     }
     if (!useTransparency || !hasAlpha) {
       colour[3] = 1.0f;
@@ -1954,15 +2105,32 @@ public class SceneGraphRenderer {
 
     graphics.setStroke(getStroke(thickness));
 
+    // Temporary variables for retrieving coordinates
     int vertexCount = quadArray.getVertexCount();
-    float[] coordinates = new float[vertexCount * 3];
-    quadArray.getCoordinates(0, coordinates);
+    int nCoords = 3 * vertexCount;
+    float[] coordinates = null;
+
+    // Get the coordinates
+    if (byRef) {
+      coordinates = quadArray.getCoordRefFloat();
+    }
+    else {
+      coordinates = new float[nCoords];
+      quadArray.getCoordinates(0, coordinates);
+    }
     coordinates = transformToScreen(coordinates);
 
     //        System.err.println("quad:" + vertexCount);
     for (int i = 0; i < 3 * vertexCount; i += 12) {
       if (colours == null) {
-        if (i < vertexCount * 4) {
+        //triangleArray.getColor(cCount++, colour);
+        if (refColours != null) { // means we are BY_REFERENCE
+          for (int j = 0; j < numRefColours; j++) {
+            colour[j] = byteToFloat(refColours[baseColor + j]);
+          }
+        }
+        else {
+          //if (i < vertexCount * 4) {  is this necessary?
           quadArray.getColor(i / 4, colour);
         }
       }
@@ -1995,6 +2163,7 @@ public class SceneGraphRenderer {
       }
       fillShapeReprojected(
         vertices, color, graphics, transformToScreenCoords);
+      baseColor += 4 * numRefColours;
     }
   }
 
@@ -2009,15 +2178,18 @@ public class SceneGraphRenderer {
   private void plot(PointArray pointArray, Color[] colours, float size,
                     Graphics2D graphics) {
     boolean hasAlpha = hasAlpha(pointArray);
+    boolean byRef = isByReference(pointArray);
+    byte[] refColours = null;
+    int numRefColours = (hasAlpha)
+                        ? 4
+                        : 3;
+    int baseColor = 0;
     float[] colour = new float[4];
     if (colours != null) {
       colour[0] = ((float)colours[0].getRed()) / 255.0f;
       colour[1] = ((float)colours[0].getGreen()) / 255.0f;
       colour[2] = ((float)colours[0].getBlue()) / 255.0f;
       colour[3] = ((float)colours[0].getAlpha()) / 255.0f;
-    }
-    if (!useTransparency || !hasAlpha) {
-      colour[3] = 1.0f;
     }
     if (!hasAlpha || !useTransparency) {
       colour[3] = 1.0f;
@@ -2029,12 +2201,22 @@ public class SceneGraphRenderer {
       monochromatise(colour);
     }
 
-
-    graphics.setStroke(getStroke(size));
+    // Temporary variables for retrieving coordinates
     int vertexCount = pointArray.getVertexCount();
-    float[] coordinates = new float[vertexCount * 3];
-    pointArray.getCoordinates(0, coordinates);
+    int nCoords = 3 * vertexCount;
+    float[] coordinates = null;
+
+    // Get the coordinates
+    if (byRef) {
+      coordinates = pointArray.getCoordRefFloat();
+    }
+    else {
+      coordinates = new float[nCoords];
+      pointArray.getCoordinates(0, coordinates);
+    }
     coordinates = transformToScreen(coordinates);
+    graphics.setStroke(getStroke(size));
+    float hsize = 0.5f * size;
 
     // Loop over each point
     for (int i = 0; i < vertexCount; i++) {
@@ -2046,7 +2228,16 @@ public class SceneGraphRenderer {
         viewPort.transform(new float[] {x, y}, 0, vertices, 0, 1);
       }
       if (colours == null) {
-        pointArray.getColor(i, colour);
+        //pointArray.getColor(i, colour);
+        //triangleArray.getColor(cCount++, colour);
+        if (refColours != null) { // means we are BY_REFERENCE
+          for (int j = 0; j < numRefColours; j++) {
+            colour[j] = byteToFloat(refColours[i * numRefColours + j]);
+          }
+        }
+        else {
+          pointArray.getColor(i, colour);
+        }
       }
       if (!useTransparency || !hasAlpha) {
         colour[3] = 1.0f;
@@ -2058,9 +2249,12 @@ public class SceneGraphRenderer {
       }
       Color color = new Color(colour[0], colour[1], colour[2], colour[3]);
       graphics.setColor(color);
+      graphics.fill(new Rectangle2D.Float(x - hsize, y - hsize, size, size));
+      /*
       graphics.setStroke(getStroke(1));
       graphics.fillRect(
         (int)vertices[0], (int)vertices[1], (int)size, (int)size);
+        */
     }
   }
 
@@ -2073,6 +2267,20 @@ public class SceneGraphRenderer {
   private boolean hasAlpha(GeometryArray array) {
     int vertexFormat = array.getVertexFormat();
     if ((vertexFormat & GeometryArray.COLOR_4) == GeometryArray.COLOR_4) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Get whether this array uses BY_REFERENCE for it's coordinates and colors
+   * @param array the array to check
+   *
+   * @return true if vertexFormat has BY_REFERENCE
+   */
+  private boolean isByReference(GeometryArray array) {
+    int vertexFormat = array.getVertexFormat();
+    if ((vertexFormat & GeometryArray.BY_REFERENCE) != 0) {
       return true;
     }
     return false;
@@ -3009,3 +3217,4 @@ public class SceneGraphRenderer {
 
   }
 }
+
