@@ -226,6 +226,7 @@ public abstract class DisplayRendererJ3D
   public BufferedImage getImage() {
     if (not_destroyed == null) return null;
     BufferedImage image = null;
+    canvas.captureImage = null;
     while (image == null) {
       try {
         ProjectionControl proj = getDisplay().getProjectionControl();
