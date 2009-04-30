@@ -688,6 +688,8 @@ public final class OffsetUnit extends Unit implements Serializable {
         if (this == unit) {
             return true;
         }
+        if (offset == 0)
+            return underUnit.equals(unit);
         if (!(unit instanceof OffsetUnit)) {
             return false;
         }
@@ -704,7 +706,9 @@ public final class OffsetUnit extends Unit implements Serializable {
     @Override
     public int hashCode() {
         if (hashCode == 0) {
-            hashCode = underUnit.hashCode() ^ Double.valueOf(offset).hashCode();
+            hashCode = offset == 0
+                ? underUnit.hashCode()
+                : underUnit.hashCode() ^ Double.valueOf(offset).hashCode();
         }
         return hashCode;
     }

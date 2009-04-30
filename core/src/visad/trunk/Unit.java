@@ -1110,4 +1110,29 @@ public abstract class Unit implements Serializable {
      * @return The derived unit that underlies this unit.
      */
     public abstract DerivedUnit getDerivedUnit();
+    
+    private static void myAssert(boolean value) {
+        if (!value)
+            throw new AssertionError();
+    }
+
+    /**
+     * Test this class.
+     *
+     * @param args		Arguments (ignored).
+     * @exception UnitException	A problem occurred.
+     */
+    public static void main(String[] args) throws UnitException {
+        BaseUnit m = BaseUnit.addBaseUnit("length", "meter", "m");
+        Unit one = new DerivedUnit();
+        myAssert(m.equals(new ScaledUnit(1.0, m)));
+        myAssert(m.equals(new OffsetUnit(0.0, m)));
+        myAssert(one.equals(new ScaledUnit(1.0, one)));
+        myAssert(one.equals(new OffsetUnit(0.0, one)));
+        myAssert(new ScaledUnit(1.0, m).equals(new OffsetUnit(0.0, m)));
+        myAssert(new OffsetUnit(0.0, m).equals(new ScaledUnit(1.0, m)));
+        myAssert(new DerivedUnit(m).equals(m));
+        myAssert(m.equals(new DerivedUnit(m)));
+        System.out.println("Success");
+    }
 }

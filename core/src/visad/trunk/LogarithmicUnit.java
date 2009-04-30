@@ -645,7 +645,7 @@ public final class LogarithmicUnit extends Unit implements Serializable {
     @Override
     public int hashCode() {
         if (hashCode == 0) {
-            hashCode = reference.hashCode() ^ new Double(base).hashCode();
+            hashCode = reference.hashCode() ^ Double.valueOf(base).hashCode();
         }
         return hashCode;
     }

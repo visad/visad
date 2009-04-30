@@ -831,7 +831,7 @@ public final class BaseUnit extends Unit implements Serializable {
             return true;
         }
         if (!(unit instanceof BaseUnit)) {
-            return false;
+            return  derivedUnit.equals(unit);
         }
         final BaseUnit that = (BaseUnit) unit;
         return unitName.equals(that.unitName)

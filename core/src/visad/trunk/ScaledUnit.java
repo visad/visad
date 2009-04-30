@@ -694,6 +694,8 @@ public final class ScaledUnit extends Unit implements Serializable {
         if (this == unit) {
             return true;
         }
+        if (amount == 1)
+            return underUnit.equals(unit);
         if (!(unit instanceof ScaledUnit)) {
             return false;
         }
@@ -710,7 +712,9 @@ public final class ScaledUnit extends Unit implements Serializable {
     @Override
     public int hashCode() {
         if (hashCode == 0) {
-            hashCode = underUnit.hashCode() ^ new Double(amount).hashCode();
+            hashCode = amount == 1
+                ? underUnit.hashCode()
+                : underUnit.hashCode() ^ Double.valueOf(amount).hashCode();
         }
         return hashCode;
     }

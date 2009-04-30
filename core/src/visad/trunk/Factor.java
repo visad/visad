@@ -49,8 +49,7 @@ final class Factor
      */
     final BaseUnit      baseUnit;
 
-    private boolean hashCodeSet = false;
-    private int hashCode = 0;
+    private transient int hashCode = 0;
 
     /**
      * Construct a factor from a base unit and a power.
@@ -89,6 +88,8 @@ final class Factor
    *                          equals the unit.
    */
   public boolean equals (Object that) {
+    if (this == that)
+        return true;
     if (!(that instanceof Factor)) {
       return false;
     }
@@ -103,10 +104,9 @@ final class Factor
    */
   public int hashCode()
   {
-    if (!hashCodeSet)
+    if (hashCode == 0)
     {
-      hashCode ^= baseUnit.hashCode() ^ new Double(power).hashCode();
-      hashCodeSet = true;
+      hashCode = baseUnit.hashCode() ^ Integer.valueOf(power).hashCode();
     }
     return hashCode;
   }
