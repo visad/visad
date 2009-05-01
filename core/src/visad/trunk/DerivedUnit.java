@@ -1198,7 +1198,7 @@ public final class DerivedUnit extends Unit implements Serializable {
 			return true;
 		}
 		if (!(unit instanceof DerivedUnit)) {
-			return unit.equals(this);
+			return unit == null ? false : unit.equals(this);
 		}
 		final int n = factors.length;
 		if (n != ((DerivedUnit) unit).factors.length) {

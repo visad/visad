@@ -1131,6 +1131,8 @@ public abstract class Unit implements Serializable {
         myAssert(one.equals(new OffsetUnit(0.0, one)));
         myAssert(new ScaledUnit(1.0, m).equals(new OffsetUnit(0.0, m)));
         myAssert(new OffsetUnit(0.0, m).equals(new ScaledUnit(1.0, m)));
+        myAssert(!m.equals(null));
+        myAssert(!new DerivedUnit(m).equals(null));
         myAssert(new DerivedUnit(m).equals(m));
         myAssert(m.equals(new DerivedUnit(m)));
         System.out.println("Success");
