@@ -30,7 +30,7 @@ package edu.wisc.ssec.mcidas;
  * Utility class for creating <code>Calibrator</code> instances.
  * 
  * @author Bruce Flynn, SSEC
- * @version $Id: CalibratorFactory.java,v 1.6 2009-03-02 23:34:50 curtis Exp $
+ * @version $Id: CalibratorFactory.java,v 1.7 2009-05-06 18:45:53 rickk Exp $
  */
 public final class CalibratorFactory {
 
@@ -104,6 +104,12 @@ public final class CalibratorFactory {
 	    	  calibrator.setCalType(srcType);
 	    	  break;
 	    	  
+	      case Calibrator.SENSOR_GOES13_IMGR:
+	      case Calibrator.SENSOR_GOES13_SNDR:
+	    	  calibrator = new CalibratorGvarG13(id, cal);
+	    	  calibrator.setCalType(srcType);
+	    	  break;
+
 	      default:
 	        throw new CalibratorException(
 	            "Unknown or unimplemented sensor id: " + id
@@ -123,6 +129,8 @@ public final class CalibratorFactory {
    */
   public final static boolean hasCalibrator(int id) {
     switch (id) {
+      case Calibrator.SENSOR_GOES13_IMGR:
+      case Calibrator.SENSOR_GOES13_SNDR:
       case Calibrator.SENSOR_GOES12_IMGR:
       case Calibrator.SENSOR_GOES12_SNDR:
       case Calibrator.SENSOR_GOES10_IMGR:
