@@ -168,12 +168,12 @@ public final class RECTnav extends AREAnav
                 xlon = xlon + 360.;
                 if (xlon < -180.) xlon = Double.NaN;
             }
-            if (xlon > 180. && xlon != Double.NaN)
+            if (xlon > 180. && !Double.isNaN(xlon))
             {
                 xlon = xlon - 360.;
                 if (xlon > 180.) xlon = Double.NaN;
             }
-            if (xlat == Double.NaN || xlon == Double.NaN)
+            if (Double.isNaN(xlat) || Double.isNaN(xlon))
             {
                 latlon[indexLat][point] = Double.NaN;
                 latlon[indexLon][point] = Double.NaN;
@@ -221,6 +221,107 @@ public final class RECTnav extends AREAnav
             if (iwest == -1 && xlon < zslon) xlon = xlon +360.;
             linele[indexLine][point] = xrow - (xlat - zslat)/zdlat;
             linele[indexEle][point]  = xcol - (xlon - zslon)/(zdlon*iwest);
+
+        } // end point loop
+
+        // Return in 'File' coordinates
+        return imageCoordToAreaCoord(linele, linele);
+    }
+
+    /** converts from satellite coordinates to latitude/longitude
+     *
+     * @param  linele[][]  array of line/element pairs.  Where 
+     *                     linele[indexLine][] is a 'line' and 
+     *                     linele[indexEle][] is an element. These are in 
+     *                     'file' coordinates (not "image" coordinates.)
+     *
+     * @return latlon[][]  array of lat/long pairs. Output array is 
+     *                     latlon[indexLat][] of latitudes and 
+     *                     latlon[indexLon][] of longitudes.
+     *
+     */
+    public float[][] toLatLon(float[][] linele) 
+    {
+
+        float xldif;
+        float xedif;
+        float xlon;
+        float xlat;
+
+        int number = linele[0].length;
+        float[][] latlon = new float[2][number];
+
+        // Convert array to Image coordinates for computations
+        float[][] imglinele = areaCoordToImageCoord(linele);
+
+        for (int point=0; point < number; point++) 
+        {
+            xldif = (float) (xrow - imglinele[indexLine][point]);
+            xedif = (float) (iwest * (xcol - imglinele[indexEle][point]));
+            xlon = (float) (zslon + xedif*zdlon);
+            xlat = (float) (zslat + xldif*zdlat);
+            if  (xlat > 90.f || xlat < -90.f)
+            {
+                xlat = Float.NaN;
+            }
+            if (xlon < -180.f)
+            {
+                xlon = xlon + 360.f;
+                if (xlon < -180.f) xlon = Float.NaN;
+            }
+            if (xlon > 180.f && xlon != Float.NaN)
+            {
+                xlon = xlon - 360.f;
+                if (xlon > 180.f) xlon = Float.NaN;
+            }
+            if (Float.isNaN(xlat) || Float.isNaN(xlon))
+            {
+                latlon[indexLat][point] = Float.NaN;
+                latlon[indexLon][point] = Float.NaN;
+            }
+            else
+            {
+                latlon[indexLat][point] = xlat;
+                latlon[indexLon][point] = (iwest == 1) ? -xlon  : xlon;
+            }
+
+        } // end point for loop
+
+        return latlon;
+
+    }
+
+    /**
+     * toLinEle converts lat/long to satellite line/element
+     *
+     * @param  latlon[][] array of lat/long pairs. Where latlon[indexLat][]
+     *                    are latitudes and latlon[indexLon][] are longitudes.
+     *
+     * @return linele[][] array of line/element pairs.  Where
+     *                    linele[indexLine][] is a line and linele[indexEle][]
+     *                    is an element.  These are in 'file' coordinates
+     *                    (not "image" coordinates);
+     */
+    public float[][] toLinEle(float[][] latlon) 
+    {
+        float xlon;
+        float xlat;
+
+        int number = latlon[0].length;
+        float[][] linele = new float[2][number];
+
+        for (int point=0; point < number; point++) 
+        {
+
+            xlat = latlon[indexLat][point];
+
+            // transform to McIDAS (west positive longitude) coordinates
+            xlon = (iwest == 1) 
+                   ? -latlon[indexLon][point]
+                   : latlon[indexLon][point];
+            if (iwest == -1 && xlon < zslon) xlon = xlon +360.f;
+            linele[indexLine][point] = (float) (xrow - (xlat - zslat)/zdlat);
+            linele[indexEle][point]  = (float) (xcol - (xlon - zslon)/(zdlon*iwest));
 
         } // end point loop
 
