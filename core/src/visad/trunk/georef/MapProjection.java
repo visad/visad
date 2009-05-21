@@ -108,6 +108,21 @@ public abstract class MapProjection extends NavigatedCoordinateSystem
     return getLatLon(new double[][] { {rect.getCenterX()}, {rect.getCenterY()}});
   }
 
+  /**
+   * Get the X index
+   * @return the index
+   */
+  public int getXIndex() {
+     return isXYOrder() ? 0 : 1;
+  }
+
+  /**
+   * Get the Y index
+   * @return the index
+   */
+  public int getYIndex() {
+     return isXYOrder() ? 1 : 0;
+  }
 
 
   /**
