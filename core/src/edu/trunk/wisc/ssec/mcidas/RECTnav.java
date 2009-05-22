@@ -49,12 +49,12 @@ public final class RECTnav extends AREAnav
     double zslon;
     double zdlat;
     double zdlon;
-    double xlin;
-    double xele;
-    double xldif;
-    double xedif;
-    double xlat;
-    double xlon;
+    //double xlin;
+    //double xele;
+    //double xldif;
+    //double xedif;
+    //double xlat;
+    //double xlon;
 
     /**
      * Set up for the real math work.  Must pass in the int array
@@ -113,6 +113,7 @@ public final class RECTnav extends AREAnav
         iwest = (iparms[10] >= 0) ? 1 : -1;
         if (iwest == 1) isEastPositive = false;
 
+        /*  Don't know why this was ever here!
         xlin = 1;
         xele = 1;
         xldif = xrow - xlin;
@@ -123,8 +124,21 @@ public final class RECTnav extends AREAnav
         zslon = xlon;
         xrow = 1;
         xcol = 1;
+        */
 
+        if (xcol == 1) {
+            zslon=zslon-180.0*iwest;
+        }
 
+        /*
+        System.out.println("Center line = " + xrow + 
+                         "\nCenter elem = " + xcol +
+                         "\n       lat  = " + zslat +
+                         "\n       lon  = " + zslon +
+                         "\n     zdlat  = " + zdlat +
+                         "\n     zdlon  = " + zdlon +
+                         "\n     iwest  = " + iwest);
+        */
     }
 
     /** converts from satellite coordinates to latitude/longitude
@@ -146,6 +160,8 @@ public final class RECTnav extends AREAnav
         double xedif;
         double xlon;
         double xlat;
+        double xele;
+        double xlin;
 
         int number = linele[0].length;
         double[][] latlon = new double[2][number];
@@ -155,23 +171,37 @@ public final class RECTnav extends AREAnav
 
         for (int point=0; point < number; point++) 
         {
-            xldif = xrow - imglinele[indexLine][point];
-            xedif = iwest * (xcol - imglinele[indexEle][point]);
-            xlon = zslon + xedif*zdlon;
+            xlin = imglinele[indexLine][point];
+            xele = imglinele[indexEle][point];
+
+            xldif = xrow - xlin;
+            if (xcol == 1) {
+               xedif = iwest * (xele-xcol);
+               xlon = zslon + 180*iwest-xedif*zdlon;
+            } else {
+               xedif = iwest * (xcol-xele);
+               xlon = zslon + xedif*zdlon;
+            }
             xlat = zslat + xldif*zdlat;
             if  (xlat > 90. || xlat < -90.)
             {
                 xlat = Double.NaN;
             }
-            if (xlon < -180.)
-            {
-                xlon = xlon + 360.;
-                if (xlon < -180.) xlon = Double.NaN;
+            if (xlon > (zslon+180) ||
+                xlon < (zslon-180)) {
+                xlon = Double.NaN;
             }
-            if (xlon > 180. && !Double.isNaN(xlon))
-            {
-                xlon = xlon - 360.;
-                if (xlon > 180.) xlon = Double.NaN;
+            if (!Double.isNaN(xlon)) {
+                if (xlon < -180.)
+                {
+                    xlon = xlon + 360.;
+                    //if (xlon < -180.) xlon = Double.NaN;
+                }
+                if (xlon > 180)
+                {
+                    xlon = xlon - 360.;
+                    //if (xlon > 180.) xlon = Double.NaN;
+                }
             }
             if (Double.isNaN(xlat) || Double.isNaN(xlon))
             {
@@ -205,6 +235,8 @@ public final class RECTnav extends AREAnav
     {
         double xlon;
         double xlat;
+        double xlin;
+        double xele;
 
         int number = latlon[0].length;
         double[][] linele = new double[2][number];
@@ -218,15 +250,27 @@ public final class RECTnav extends AREAnav
             xlon = (iwest == 1) 
                    ? -latlon[indexLon][point]
                    : latlon[indexLon][point];
-            if (iwest == -1 && xlon < zslon) xlon = xlon +360.;
-            linele[indexLine][point] = xrow - (xlat - zslat)/zdlat;
-            linele[indexEle][point]  = xcol - (xlon - zslon)/(zdlon*iwest);
+            if (xlon > (zslon+180)) {
+                xlon = xlon-360;
+            } else if (xlon < zslon-180) {
+                xlon = xlon+360;
+            }
+            //if (iwest == -1 && xlon < zslon) xlon = xlon +360.;
+            xlin = xrow - (xlat - zslat)/zdlat;
+            if (xcol == 1) {
+                xele = xcol - (xlon - zslon-180*iwest)/(zdlon*iwest);
+            } else {
+                xele = xcol - (xlon - zslon)/(zdlon*iwest);
+            }
+            linele[indexLine][point] = xlin;
+            linele[indexEle][point]  = xele;
 
         } // end point loop
 
         // Return in 'File' coordinates
         return imageCoordToAreaCoord(linele, linele);
     }
+
 
     /** converts from satellite coordinates to latitude/longitude
      *
@@ -243,10 +287,12 @@ public final class RECTnav extends AREAnav
     public float[][] toLatLon(float[][] linele) 
     {
 
-        float xldif;
-        float xedif;
-        float xlon;
-        float xlat;
+        double xldif;
+        double xedif;
+        double xlon;
+        double xlat;
+        double xele;
+        double xlin;
 
         int number = linele[0].length;
         float[][] latlon = new float[2][number];
@@ -256,33 +302,47 @@ public final class RECTnav extends AREAnav
 
         for (int point=0; point < number; point++) 
         {
-            xldif = (float) (xrow - imglinele[indexLine][point]);
-            xedif = (float) (iwest * (xcol - imglinele[indexEle][point]));
-            xlon = (float) (zslon + xedif*zdlon);
-            xlat = (float) (zslat + xldif*zdlat);
-            if  (xlat > 90.f || xlat < -90.f)
-            {
-                xlat = Float.NaN;
+            xlin = imglinele[indexLine][point];
+            xele = imglinele[indexEle][point];
+
+            xldif = xrow - xlin;
+            if (xcol == 1) {
+               xedif = iwest * (xele-xcol);
+               xlon = zslon + 180*iwest-xedif*zdlon;
+            } else {
+               xedif = iwest * (xcol-xele);
+               xlon = zslon + xedif*zdlon;
             }
-            if (xlon < -180.f)
+            xlat = zslat + xldif*zdlat;
+            if  (xlat > 90. || xlat < -90.)
             {
-                xlon = xlon + 360.f;
-                if (xlon < -180.f) xlon = Float.NaN;
+                xlat = Double.NaN;
             }
-            if (xlon > 180.f && xlon != Float.NaN)
-            {
-                xlon = xlon - 360.f;
-                if (xlon > 180.f) xlon = Float.NaN;
+            if (xlon > (zslon+180) ||
+                xlon < (zslon-180)) {
+                xlon = Double.NaN;
             }
-            if (Float.isNaN(xlat) || Float.isNaN(xlon))
+            if (!Double.isNaN(xlon)) {
+                if (xlon < -180.)
+                {
+                    xlon = xlon + 360.;
+                    //if (xlon < -180.) xlon = Double.NaN;
+                }
+                if (xlon > 180)
+                {
+                    xlon = xlon - 360.;
+                    //if (xlon > 180.) xlon = Double.NaN;
+                }
+            }
+            if (Double.isNaN(xlat) || Double.isNaN(xlon))
             {
                 latlon[indexLat][point] = Float.NaN;
                 latlon[indexLon][point] = Float.NaN;
             }
             else
             {
-                latlon[indexLat][point] = xlat;
-                latlon[indexLon][point] = (iwest == 1) ? -xlon  : xlon;
+                latlon[indexLat][point] = (float) xlat;
+                latlon[indexLon][point] = (float) ((iwest == 1) ? -xlon  : xlon);
             }
 
         } // end point for loop
@@ -304,8 +364,10 @@ public final class RECTnav extends AREAnav
      */
     public float[][] toLinEle(float[][] latlon) 
     {
-        float xlon;
-        float xlat;
+        double xlon;
+        double xlat;
+        double xlin;
+        double xele;
 
         int number = latlon[0].length;
         float[][] linele = new float[2][number];
@@ -319,13 +381,25 @@ public final class RECTnav extends AREAnav
             xlon = (iwest == 1) 
                    ? -latlon[indexLon][point]
                    : latlon[indexLon][point];
-            if (iwest == -1 && xlon < zslon) xlon = xlon +360.f;
-            linele[indexLine][point] = (float) (xrow - (xlat - zslat)/zdlat);
-            linele[indexEle][point]  = (float) (xcol - (xlon - zslon)/(zdlon*iwest));
+            if (xlon > (zslon+180)) {
+                xlon = xlon-360;
+            } else if (xlon < zslon-180) {
+                xlon = xlon+360;
+            }
+            //if (iwest == -1 && xlon < zslon) xlon = xlon +360.;
+            xlin = xrow - (xlat - zslat)/zdlat;
+            if (xcol == 1) {
+                xele = xcol - (xlon - zslon-180*iwest)/(zdlon*iwest);
+            } else {
+                xele = xcol - (xlon - zslon)/(zdlon*iwest);
+            }
+            linele[indexLine][point] = (float) xlin;
+            linele[indexEle][point]  = (float) xele;
 
         } // end point loop
 
         // Return in 'File' coordinates
         return imageCoordToAreaCoord(linele, linele);
     }
+
 }
