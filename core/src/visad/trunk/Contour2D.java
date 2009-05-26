@@ -542,30 +542,6 @@ public class Contour2D {
       ctrLow = new short[nrm][ncm];
     }
 
-    // - estimate contour difficutly
-    // Trace.startTrace();
-    Trace.call1("Contour2d.calculating difficulty");
-    float left_diff = 0;
-    float rght_diff = 0;
-    float up_diff = 0;
-    float down_diff = 0;
-
-    int cnt_local_min_max = 0;
-    int skip = (int) ((Math.max(nr, nc) / 100 < 1) ? 1 : Math.max(nr, nc) / 100);
-    int test_skip = 2;
-    for (ir = test_skip; ir < nrm - test_skip; ir += skip) {
-      for (ic = test_skip; ic < ncm - test_skip; ic += skip) {
-        up_diff = g[ic * nr + (ir + test_skip)] - g[ic * nr + ir];
-        down_diff = g[ic * nr + ir] - g[ic * nr + (ir - test_skip)];
-        rght_diff = g[(ic + test_skip) * nr + ir] - g[ic * nr + ir];
-        left_diff = g[ic * nr + ir] - g[(ic - test_skip) * nr + ir];
-
-        if ((left_diff * rght_diff < 0) || (up_diff * down_diff < 0)) {
-          cnt_local_min_max++;
-        }
-      }
-    }
-
     ContourStripSet ctrSet = new ContourStripSet(nrm, myvals, swap,
         scale_ratio, label_size, nr, nc, spatial_set);
 
@@ -1357,8 +1333,8 @@ public class Contour2D {
     /** ------------------- Color Fill ------------------------- */
     if (fill) {
       fillGridBox(g, n_lines, vx, vy, xd, xdd, yd, ydd, nr, nrm, nc, ncm,
-          ctrLow, tri, tri_color, o_flags, myvals, color_bin, grd_normals,
-          tri_normals);
+          ctrLow, o_flags, myvals, color_bin, grd_normals,
+          tri, tri_color, tri_normals);
       // BMF 2006-10-04 do not return, ie. draw labels on filled contours
       // for now, just return because we don't need to do labels
       // return;
@@ -1404,9 +1380,9 @@ public class Contour2D {
    */
   private static void fillGridBox(float[] g, short[][] n_lines, float[] vx,
       float[] vy, float xd, float xdd, float yd, float ydd, int nr, int nrm,
-      int nc, int ncm, short[][] ctrLow, float[][] tri, byte[][] tri_color,
-      byte[][][] o_flags, float[] values, byte[][] color_bin,
-      float[][][] grd_normals, float[][] tri_normals) {
+      int nc, int ncm, short[][] ctrLow, byte[][][] o_flags,
+      float[] values, byte[][] color_bin, float[][][] grd_normals,
+      float[][] tri, byte[][] tri_color, float[][] tri_normals) {
     float xx, yy;
     int[] numv = new int[1];
     numv[0] = 0;
