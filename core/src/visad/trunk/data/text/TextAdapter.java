@@ -251,6 +251,7 @@ public class TextAdapter {
     // read the ASCII file, using commas as field separators
     // first line is a header line
 
+    List realTypes = new ArrayList();
     ff = null;
     field = null;
 
@@ -508,6 +509,12 @@ public class TextAdapter {
           if (u != null) System.out.println("####  Could not make RealType using specified Unit ("+hdrUnitString+") for parameter name: "+rtname);
           rt = RealType.getRealType(rtname);
         }
+
+        //Add the realType here because its possible that it can be GC'ed
+        //and removed from the global list of realtypes before we 
+        //get back to it. Then the MathType.stringToType(maps) below 
+        //will produce a realtype with no units
+        realTypes.add(rt);
 
         // get a compatible unit, if necessary
 
