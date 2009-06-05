@@ -108,7 +108,7 @@ public class UniverseBuilderJ3D extends Object {
       // view.attachViewPlatform(null);
       if (REMOVE_ALL_CANVAS3DS != null) {
         try {
-          REMOVE_ALL_CANVAS3DS.invoke(view, NIL_CLASS_ARRAY);
+          REMOVE_ALL_CANVAS3DS.invoke(view, (Object[])NIL_CLASS_ARRAY);
         }
         catch (Exception ex) {
             throw new RuntimeException("Assertion failure", ex);
@@ -118,7 +118,7 @@ public class UniverseBuilderJ3D extends Object {
       // Viewer.setViewingPlatform(null);
       if (REMOVE_ALL_LOCALES != null) {
         try {
-          REMOVE_ALL_LOCALES.invoke(universe, NIL_CLASS_ARRAY);
+          REMOVE_ALL_LOCALES.invoke(universe, (Object[])NIL_CLASS_ARRAY);
         }
         catch (Exception ex) {
             throw new RuntimeException("Assertion failure", ex);
