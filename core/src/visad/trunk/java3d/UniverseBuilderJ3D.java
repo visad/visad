@@ -53,6 +53,8 @@ public class UniverseBuilderJ3D extends Object {
       REMOVE_ALL_CANVAS3DS = method;
     }
 
+
+
     public UniverseBuilderJ3D(Canvas3D c) {
       canvas = c;
 
@@ -70,6 +72,9 @@ public class UniverseBuilderJ3D extends Object {
       view.addCanvas3D(c);
       view.setPhysicalBody(body);
       view.setPhysicalEnvironment(environment);
+      if(minimumFrameCycleTime!=0) {
+          view.setMinimumFrameCycleTime(minimumFrameCycleTime);
+      }
 
       // Create a branch group node for the view platform
       vpRoot = new BranchGroup();
@@ -96,6 +101,19 @@ public class UniverseBuilderJ3D extends Object {
       // The scene graph is now live!
       locale.addBranchGraph(vpRoot);
     }
+
+    private static long minimumFrameCycleTime=0;
+
+    /**
+     * This lets client code set the framecycletime on the View
+     *
+     * @param ms The frame cycle time in milliseconds
+    */
+    public static void setMinimumFrameCycleTime(long ms) {
+        minimumFrameCycleTime = ms;        
+    }
+
+
 
     public void addBranchGraph(BranchGroup bg) {
       if (locale != null) locale.addBranchGraph(bg);
