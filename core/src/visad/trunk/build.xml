@@ -3,7 +3,7 @@
 <project name="VisAD" default="init" basedir="..">
   <description>
 Build script for VisAD core packages
-$Id: build.xml,v 1.18 2009-03-20 14:14:31 brucef Exp $
+$Id: build.xml,v 1.19 2009-06-05 16:53:26 donm Exp $
 
     init             -- print ant configuration 
 
@@ -742,6 +742,7 @@ visad Xmx: ${max.mem}
             nodeprecatedlist="false"
             nodeprecated="false"
             breakiterator="yes"
+            windowtitle="VisAD 2.0 API"
             doctitle="VisAD Documentation">
 
       <packageset dir="${basedir}">
