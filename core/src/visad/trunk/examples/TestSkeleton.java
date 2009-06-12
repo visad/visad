@@ -22,6 +22,7 @@ MA 02111-1307, USA
 
 import java.rmi.RemoteException;
 
+import java.util.logging.Level;
 import visad.DataReference;
 import visad.DisplayImpl;
 import visad.LocalDisplay;
@@ -34,6 +35,7 @@ import visad.VisADException;
 import visad.util.ClientServer;
 import visad.util.CmdlineConsumer;
 import visad.util.CmdlineParser;
+import visad.util.Util;
 
 public abstract class TestSkeleton
   extends Thread
@@ -43,6 +45,7 @@ public abstract class TestSkeleton
   String hostName;
 
   private static final int maximumWaitTime = 60;
+  private int verbosity = 0;
 
   private CmdlineParser cmdline;
 
@@ -108,6 +111,11 @@ public abstract class TestSkeleton
       return 1;
     }
 
+    if (ch == 'v') {
+      verbosity++;
+      return 1;
+    }
+
     return 0;
   }      
 
@@ -127,7 +135,10 @@ public abstract class TestSkeleton
 
   public String keywordUsage() { return ""; }
 
-  public boolean finalizeArgs(String mainName) { return true; }
+  public boolean finalizeArgs(String mainName) {
+    Util.configureLogging(verbosity);
+    return true;
+  }
 
   boolean processArgs(String[] args) { return cmdline.processArgs(args); }
 
