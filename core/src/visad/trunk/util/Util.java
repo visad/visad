@@ -68,6 +68,12 @@ import com.sun.image.codec.jpeg.JPEGCodec;
 import com.sun.image.codec.jpeg.JPEGEncodeParam;
 import com.sun.image.codec.jpeg.JPEGImageEncoder;
 import com.sun.j3d.utils.universe.SimpleUniverse;
+import java.util.logging.Formatter;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 /**
  * A hodge-podge of general utility methods.
@@ -733,5 +739,58 @@ public class Util
     }
 
     return maps;
+  }
+
+  /**
+   * Configure basic logging for the visad package. In a production
+   * envirionment the prefered way to configure logging is using the
+   * logging.properties file. This is intended only as a convienience method
+   * for configuring console logging for the purposes of testing.
+   * 
+   * @param verbosity 0 is <code>Level.WARNING</code> and progresses to a
+   *  maximum of <code>Level.ALL</code>.
+   * @param pkg Name of the java package to configure logging for.
+   * @return The <code>Level</code> logging was set to.
+   */
+  public static Level configureLogging(int verbosity, String pkg) {
+    Level lvl = Level.WARNING;
+    switch (verbosity) {
+      case 1:
+        lvl = Level.INFO;
+        break;
+      case 2:
+        lvl = Level.FINE;
+        break;
+      case 3:
+        lvl = Level.FINER;
+        break;
+      case 4:
+        lvl = Level.FINEST;
+        break;
+      case 5:
+        lvl = Level.ALL;
+        break;
+      default:
+        lvl = Level.WARNING;
+    }
+    Logger logger = Logger.getLogger(pkg);
+    logger.setLevel(lvl);
+    logger.setUseParentHandlers(false);
+    Handler console = new ConsoleHandler();
+    console.setLevel(lvl);
+    console.setFormatter(new Formatter() {
+      public String format(LogRecord r) {
+        return String.format("[%s] %s\n", r.getLevel().getName(), r.getMessage());
+      }
+    });
+    logger.addHandler(console);
+    return lvl;
+  }
+
+  /**
+   * @see {@link #configureLogging(int, java.lang.String)}
+   */
+  public static Level configureLogging(int verbosity) {
+    return configureLogging(verbosity, "visad");
   }
 }
