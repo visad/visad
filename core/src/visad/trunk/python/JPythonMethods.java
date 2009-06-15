@@ -2348,6 +2348,55 @@ public abstract class JPythonMethods {
   }
 
 
+
+  /**
+  *
+  * get the minium and maximum values of the FlatField
+  *
+  * @param f the FlatField
+  *
+  * return double[2].  double[0] = min, double[1] = max
+  */
+
+  public static double[] getMinMax(FlatField f)
+       throws VisADException, RemoteException {
+
+    double [][] dv = f.getValues(false);
+    double [] minmax = new double[2];
+    minmax[0] = Double.MAX_VALUE;
+    minmax[1] = Double.MIN_VALUE;
+    for (int i=0; i<dv.length; i++) {
+      for (int k=0; k<dv[i].length; k++) {
+        if (dv[i][k] < minmax[0]) minmax[0] = dv[i][k];
+        if (dv[i][k] > minmax[1]) minmax[1] = dv[i][k];
+      }
+    }
+
+    return minmax;
+  }
+
+  /**
+  * re-scale the values in a FlatField using auto-scaling
+  *
+  * @param f the FlatField
+  * @param outlo the output low-range value
+  * @param outhi the output high range value
+  *
+  * Values of the original FlatField will be linearly
+  * scaled from their "min:max" to "outlo:outhi"
+  *
+  */
+  public static FlatField rescale(FlatField f, double outlo, double outhi)
+       throws VisADException, RemoteException {
+
+    double [] minmax = getMinMax(f);
+    return rescale(f,minmax[0], minmax[1], outlo, outhi);
+  }
+
+
+
+
+
   /**
   * re-scale the values in a FlatField
   *
