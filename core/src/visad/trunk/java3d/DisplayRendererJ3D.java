@@ -227,58 +227,60 @@ public abstract class DisplayRendererJ3D
     if (not_destroyed == null) return null;
     BufferedImage image = null;
     canvas.captureImage = null;
+    ProjectionControl proj = getDisplay().getProjectionControl();
+    double[] matrix= proj.getMatrix();
     while (image == null) {
       try {
-        ProjectionControl proj = getDisplay().getProjectionControl();
         synchronized (this) {
           canvas.setDoubleBufferEnable(false);
           canvas.captureFlag = true;
+          hasNotifyBeenCalled = false;
           if (canvas.getOffscreen()) {
-            hasNotifyBeenCalled = false;
-            try {
+              try {
               Method renderMethod =
                 Canvas3D.class.getMethod("renderOffScreenBuffer",
                                          new Class[] {});
               renderMethod.invoke(canvas, new Object[] {});
-/*
-              Method waitMethod =
-                Canvas3D.class.getMethod("waitForOffScreenRendering",
-                                         new Class[] {});
-              waitMethod.invoke(canvas, new Object[] {});
-*/
+              /*        Method waitMethod =
+                Canvas3D.class.getMethod("waitForOffScreenRendering", new Class[] {});
+                waitMethod.invoke(canvas, new Object[] {});*/
             }
-            catch (NoSuchMethodException e) {
-            }
-            catch (IllegalAccessException e) {
-            }
-            catch (InvocationTargetException e) {
-            }
-            // canvas.renderOffScreenBuffer();
+            catch (NoSuchMethodException e) {}
+            catch (IllegalAccessException e) {}
+            catch (InvocationTargetException e) {}
           }
           try {
-            proj.setMatrix(proj.getMatrix());
+              proj.setMatrix(matrix);
+          } catch (RemoteException e) { 
+              e.printStackTrace();
+          } catch (VisADException e) { 
+              e.printStackTrace();
           }
-          catch (RemoteException e) { }
-          catch (VisADException e) { }
           //Make sure the notify has not been called. There is the possbility that the above renderOffScreenBuffer call
           //gets completed before we get to this wait, resulting in a starvation lockup here because the canvas already 
           //notifies the display renderer and when we get to the wait nothing is going to notify this object.
-          if(!hasNotifyBeenCalled) {
+          image = canvas.captureImage;
+          if(image == null && !hasNotifyBeenCalled) {
               waitingOnImageCapture = true;
               wait();
               waitingOnImageCapture = false;
           } 
         }
-      }
-      catch(InterruptedException e) {
+      } catch(InterruptedException e) {
         // note notify generates a normal return from wait rather
         // than an Exception - control doesn't normally come here
         canvas.setDoubleBufferEnable(true); //- just in case
+        e.printStackTrace();
       }
-      image = canvas.captureImage;
-// if (image == null) System.out.println("image is null");
+      if(image==null) {
+          image = canvas.captureImage;
+      }
       canvas.captureImage = null;
       canvas.setDoubleBufferEnable(true);
+      if(image == null) {
+          //What do we do here?
+          //          break?;
+      }
     }
     return image;
   }
