@@ -43,6 +43,7 @@ import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.RandomAccessFile;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -322,12 +323,9 @@ public class AreaFile implements java.io.Serializable {
    * of McIDAS 'area' file format image data.  allows reading
    * either from a disk file, or a server via ADDE.
    *
-   * @param imageSource the file name, ADDE URL, or local file URL to read from
-   *
-   * @param source
+   * @param source the file name, ADDE URL, or local file URL to read from
    *
    * @exception AreaFileException if file cannot be opened
-   *
    */
 
   public AreaFile(String source) throws AreaFileException {
@@ -450,13 +448,13 @@ public class AreaFile implements java.io.Serializable {
    * @param source  the path to the file
    * @param startLine the starting image line
    * @param numLines the total number of lines to return
-   * @param lineMag the line magnification. Valid values are &lt;= -1. 
-   *                -1, 0, and 1 are all taken to be full line resolution, 
+   * @param lineMag the line magnification. Valid values are &lt;= -1.
+   *                -1, 0, and 1 are all taken to be full line resolution,
    *                -2 is every other line, -3 every third, etc...
    * @param startElem the starting image element
    * @param numEles the total number of elements to return
-   * @param eleMag the element magnification. Valid values are &lt;= -1. 
-   *               -1, 0, and 1 are all taken to be full element resolution, 
+   * @param eleMag the element magnification. Valid values are &lt;= -1.
+   *               -1, 0, and 1 are all taken to be full element resolution,
    *               -2 is every other element, -3 every third, etc...
    * @param band the 1-based band number for the subset, which must be present
    *             in the directory blocks band map or -1 for the first band
@@ -484,14 +482,12 @@ public class AreaFile implements java.io.Serializable {
     if (lineMag == 0) lineMag = 1;
 
     if (lineMag > 1 || eleMag > 1) {
-      throw new IllegalArgumentException(
-        "Magnifications greater that 1 are not currently supported");
+      throw new IllegalArgumentException("Magnifications greater that 1 are not currently supported");
 
     }
     else if (startLine + numLines * Math.abs(lineMag) > origNumLines ||
              startElem + numEles * Math.abs(eleMag) > origNumElements) {
-      throw new IllegalArgumentException(
-        "Arguments outside of file line/element counts");
+      throw new IllegalArgumentException("Arguments outside of file line/element counts");
     }
 
     int bandIdx = -1;
@@ -628,6 +624,7 @@ public class AreaFile implements java.io.Serializable {
       McIDASUtil.flip(dir, 57, 63);
       flipwords = true;
     }
+    System.out.println("flipwords = " + flipwords);
 
     areaDirectory = new AreaDirectory(dir);
 
@@ -956,8 +953,8 @@ public class AreaFile implements java.io.Serializable {
         for (int line = 0; line < inData[0].length; line++) {
           for (int elem = 0; elem < inData[0][0].length; elem++) {
             if (calibrator != null) {
-              outData[band_idx][line][elem] = 
-                calibrator.calibrate((float)inData[band_idx][line][elem], 
+              outData[band_idx][line][elem] =
+                calibrator.calibrate((float)inData[band_idx][line][elem],
                                      band_idx + 1, calType);
             }
             else {
@@ -974,9 +971,9 @@ public class AreaFile implements java.io.Serializable {
         for (int elem = 0; elem < inData[0][0].length; elem++) {
           if (!isRemote && calType != Calibrator.CAL_NONE &&
               calibrator != null) {
-              outData[0][line][elem] = 
-                 calibrator.calibrate((float)inData[0][line][elem], 
-                                      subset.bandNumber, calType);
+            outData[0][line][elem] =
+              calibrator.calibrate((float)inData[0][line][elem],
+                                   subset.bandNumber, calType);
           }
           else {
             outData[0][line][elem] = inData[0][line][elem];
@@ -1156,7 +1153,7 @@ public class AreaFile implements java.io.Serializable {
         try {
           // all 1- and 2-byte data are un-signed!
           if (dir[AD_DATAWIDTH] == 1) {
-            data[0][i][j] = ( (int)af.readByte()) & 0xff;
+            data[0][i][j] = ((int)af.readByte()) & 0xff;
 
           }
           else if (dir[AD_DATAWIDTH] == 2) {
@@ -1165,7 +1162,7 @@ public class AreaFile implements java.io.Serializable {
               data[0][i][j] = flipShort(shdata) & 0xffff;
             }
             else {
-              data[0][i][j] = ( (int)shdata) & 0xffff;
+              data[0][i][j] = ((int)shdata) & 0xffff;
             }
 
           }
@@ -1264,7 +1261,7 @@ public class AreaFile implements java.io.Serializable {
               // all 1- and 2-byte data are un-signed!
 
               if (dir[AD_DATAWIDTH] == 1) {
-                data[k][i][j] = ( (int)af.readByte()) & 0xff;
+                data[k][i][j] = ((int)af.readByte()) & 0xff;
                 position = position + 1;
               }
               else if (dir[AD_DATAWIDTH] == 2) {
@@ -1312,12 +1309,9 @@ public class AreaFile implements java.io.Serializable {
   } // end of areaReadData method
 
   /**
-   * selectively flip the bytes of words in nav block
+   * Selectively flip the bytes of words in nav block
    *
-   * @param array[] of nav parameters
-   *
-   * @param nav
-   *
+   * @param nav array of nav parameters
    */
   private void flipnav(int[] nav) {
 
@@ -1407,12 +1401,10 @@ public class AreaFile implements java.io.Serializable {
   public static void main(String[] args) throws Exception {
     if (args == null || args.length == 0) {
       System.out.println();
-      System.out.println(
-        "USAGE: AreaFile <URL or filepath> <show_vals>");
+      System.out.println("USAGE: AreaFile <URL or filepath> <show_vals>");
       System.out.println();
       System.exit(1);
     }
-
     AreaFile af = AreaFileFactory.getAreaFileInstance(args[0]);
 
     System.out.println(af);
@@ -1457,7 +1449,7 @@ public class AreaFile implements java.io.Serializable {
    *
    * @return  the input stream for the reading
    *
-   * @throws IOException 
+   * @throws IOException
    */
   private DataInputStream getInputStreamForData() throws IOException {
 
@@ -1530,5 +1522,141 @@ public class AreaFile implements java.io.Serializable {
            bytes[7] == 10;
   }
 
+  /**
+   * Close this instance.
+   */
+  public void close() {
+    if (af == null) return;
+    try {
+      af.close();
+    }
+    catch (IOException ioe) {
+    }
+  }
+
+  /**
+   * Save this AreaFile to the output location
+   * @param outputFile  path to the output file
+   *
+   * @throws AreaFileException  problem saving to the file
+   */
+  public void save(String outputFile) throws AreaFileException {
+    save(outputFile, false);
+  }
+
+  /**
+   * Save this AreaFile to the output location
+   * @param outputFile  path to the output file
+   * @param verbose   true to print out status messages
+   * @throws AreaFileException on any error writing the file
+   */
+  public void save(String outputFile, boolean verbose)
+          throws AreaFileException {
+
+    int[] dir = getDir();
+    if (dir == null) {
+      System.out.println("No AREA file directory!");
+      return;
+    }
+    if (verbose) {
+      System.out.println("Length of directory = " + dir.length);
+
+      for (int i = 0; i < dir.length; i++) {
+        System.out.println(" index " + i + " = " + dir[i]);
+      }
+    }
+
+    int[] nav = getNav();
+    if (nav == null) {
+      if (verbose) System.out.println("No navigation block!");
+    }
+    else {
+      if (verbose) System.out.println("Length of nav block = " + nav.length);
+    }
+
+    int[] cal = getCal();
+    if (cal == null) {
+      if (verbose) System.out.println("No calibration block!");
+    }
+    else {
+      if (verbose) System.out.println("Length of cal block = " + cal.length);
+    }
+
+    int[] aux = getAux();
+    if (aux == null) {
+      if (verbose) System.out.println("No aux block");
+    }
+    else {
+      if (verbose) System.out.println("Length of aux block = " + aux.length);
+    }
+
+    int NL = dir[8];
+    int NE = dir[9];
+
+    if (verbose)
+      System.out.println("Start reading data, num points=" + (NL * NE));
+
+    int[][] data;
+
+    data = getData(0, 0, NL, NE);
+
+    if (verbose) System.out.println("Finished reading data");
+
+    try {
+      RandomAccessFile raf = new RandomAccessFile(outputFile, "rw");
+
+      if (verbose) System.out.println("Dir to word 0");
+      raf.seek(0);
+      dir[0] = 0; // make sure this is zero!!
+      for (int i = 0; i < dir.length; i++)
+        raf.writeInt(dir[i]);
+
+      if (verbose) System.out.println("Nav to word " + dir[AD_NAVOFFSET]);
+      if (nav != null && dir[AD_NAVOFFSET] > 0) {
+        raf.seek(dir[AD_NAVOFFSET]);
+        for (int i = 0; i < nav.length; i++)
+          raf.writeInt(nav[i]);
+      }
+
+      if (verbose) System.out.println("Cal to word " + dir[AD_CALOFFSET]);
+      if (cal != null && dir[AD_NAVOFFSET] > 0) {
+        raf.seek(dir[AD_CALOFFSET]);
+        for (int i = 0; i < cal.length; i++)
+          raf.writeInt(cal[i]);
+      }
+
+      if (verbose) System.out.println("Aux to word " + dir[AD_AUXOFFSET]);
+      if (aux != null && dir[AD_NAVOFFSET] > 0) {
+        raf.seek(dir[AD_AUXOFFSET]);
+        for (int i = 0; i < aux.length; i++)
+          raf.writeInt(aux[i]);
+      }
+
+      if (verbose) System.out.println("Data to word " + dir[AD_DATAOFFSET]);
+      if (dir[AD_NAVOFFSET] > 0) {
+        raf.seek(dir[AD_DATAOFFSET]);
+        for (int i = 0; i < data.length; i++) {
+          for (int j = 0; j < data[i].length; j++) {
+            if (dir[AD_DATAWIDTH] == 1) {
+              raf.writeByte(data[i][j]);
+            }
+            else if (dir[AD_DATAWIDTH] == 2) {
+              raf.writeShort(data[i][j]);
+            }
+            else if (dir[AD_DATAWIDTH] == 4) {
+              raf.writeInt(data[i][j]);
+            }
+          }
+        }
+      }
+
+      raf.close();
+    }
+    catch (Exception we) {
+      throw new AreaFileException("Unable to save file " + we.getMessage());
+    }
+    if (verbose)
+      System.out.println("Completed. Data saved to: " + outputFile);
+  }
 }
 

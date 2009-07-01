@@ -40,7 +40,7 @@ import edu.wisc.ssec.mcidas.adde.AddeURLException;
  * constructors do not.
  *
  * <p>No instances of this class can be created.</p>
- * @version $Id: AreaFileFactory.java,v 1.7 2009-03-02 23:34:50 curtis Exp $
+ * @version $Id: AreaFileFactory.java,v 1.8 2009-07-01 12:51:04 donm Exp $
  * @author Bruce Flynn, SSEC
  */
 public final class AreaFileFactory {
@@ -50,32 +50,25 @@ public final class AreaFileFactory {
 
   /**
    * String to calibration int.
-   * @param calType calibration type string
+   * @param cal calibration type string
    *
-   * @param cal 
    * @return calibration type integer, Calibrator.CAL_NONE if unknown
    */
   public final static int calStrToInt(String cal) {
     int ret = Calibrator.CAL_NONE;
     String calType = cal.trim();
-    if (calType.equalsIgnoreCase("temp")) 
-      ret = Calibrator.CAL_TEMP;
-    else if (calType.equalsIgnoreCase("brit")) 
-      ret = Calibrator.CAL_BRIT;
-    else if (calType.equalsIgnoreCase("rad")) 
-      ret = Calibrator.CAL_RAD;
-    else if (calType.equalsIgnoreCase("raw")) 
-      ret = Calibrator.CAL_RAW;
-    else if (calType.equalsIgnoreCase("refl")) 
-      ret = Calibrator.CAL_ALB;
+    if (calType.equalsIgnoreCase("temp")) ret = Calibrator.CAL_TEMP;
+    else if (calType.equalsIgnoreCase("brit")) ret = Calibrator.CAL_BRIT;
+    else if (calType.equalsIgnoreCase("rad")) ret = Calibrator.CAL_RAD;
+    else if (calType.equalsIgnoreCase("raw")) ret = Calibrator.CAL_RAW;
+    else if (calType.equalsIgnoreCase("refl")) ret = Calibrator.CAL_ALB;
     return ret;
   }
 
   /**
    * Calibration int to string.
-   * @param calType calibration type
+   * @param cal calibration type
    *
-   * @param cal 
    * @return calibration type string, raw if unknown
    */
   public final static String calIntToStr(int cal) {
@@ -419,9 +412,9 @@ public final class AreaFileFactory {
    * @param band the 1-based band number for the subset, which must be present
    *             in the directory blocks band map or -1 for the first band
    *
-   * @return 
+   * @return
    *
-   * @throws AreaFileException 
+   * @throws AreaFileException
    */
   public final static AreaFile getAreaFileInstance(String fpath,
           int startLine, int numLines, int lineMag, int startElem,
@@ -429,6 +422,35 @@ public final class AreaFileFactory {
           throws AreaFileException {
     return new AreaFile(fpath, startLine, numLines, lineMag, startElem,
                         numEles, eleMag, band);
+  }
+
+  /**
+   * Copy an area file from one place to another
+   * @param source  source file or ADDE url
+   * @param outputFile  name of the output file
+   * @throws AreaFileException on any error constructing the instance.
+   * @throws AddeURLException If the source is a URL and the query string is
+   *  not formatted correctly.
+   */
+  public static void copyAreaFile(String source, String outputFile)
+          throws AddeURLException, AreaFileException {
+    copyAreaFile(source, outputFile, false);
+  }
+
+  /**
+   * Copy an area file from one place to another
+   * @param source  source file or ADDE url
+   * @param outputFile  name of the output file
+   * @param verbose  true to print out status messages
+   * @throws AreaFileException on any error constructing the instance.
+   * @throws AddeURLException If the source is a URL and the query string is
+   *  not formatted correctly.
+   */
+  public static void copyAreaFile(String source, String outputFile,
+                                  boolean verbose)
+          throws AddeURLException, AreaFileException {
+    AreaFile area = getAreaFileInstance(source);
+    area.save(outputFile, verbose);
   }
 }
 
