@@ -624,7 +624,6 @@ public class AreaFile implements java.io.Serializable {
       McIDASUtil.flip(dir, 57, 63);
       flipwords = true;
     }
-    System.out.println("flipwords = " + flipwords);
 
     areaDirectory = new AreaDirectory(dir);
 
