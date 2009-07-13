@@ -435,8 +435,8 @@ public class Gridded2DDoubleSet extends Gridded2DSet
   }
 
   // WLH 6 Dec 2001
-  private int gx = -1;
-  private int gy = -1;
+  //private int gx = -1;
+  //private int gy = -1;
 
   /** transform an array of values in R^DomainDimension to an array
       of non-integer grid coordinates */
@@ -456,15 +456,15 @@ public class Gridded2DDoubleSet extends Gridded2DSet
     double[][] grid = new double[ManifoldDimension][length];
 
     // (gx, gy) is the current grid box guess
-/* WLH 6 Dec 2001
     int gx = (LengthX-1)/2;
     int gy = (LengthY-1)/2;
-*/
+/* WLH 6 Dec 2001
     // use value from last call as first guess, if reasonable
     if (gx < 0 || gx >= LengthX || gy < 0 || gy >= LengthY) {
       gx = (LengthX-1)/2;
       gy = (LengthY-1)/2;
     }
+*/
 
     boolean lowertri = true;
     for (int i=0; i<length; i++) {

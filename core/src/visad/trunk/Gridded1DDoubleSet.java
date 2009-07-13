@@ -378,7 +378,7 @@ public class Gridded1DDoubleSet extends Gridded1DSet
   }
 
   // WLH 6 Dec 2001
-  private int ig = -1;
+  //private int ig = -1;
 
   /** transform an array of values in R^DomainDimension to an array
       of non-integer grid coordinates */
@@ -399,13 +399,13 @@ public class Gridded1DDoubleSet extends Gridded1DSet
     double[] samps = Samples[0];
     double[][] grid = new double[1][length];
 
-/* WLH 6 Dec 2001
     int ig = (LengthX - 1)/2;
-*/
+/* WLH 6 Dec 2001
     // use value from last call as first guess, if reasonable
     if (ig < 0 || ig >= LengthX) {
       ig = (LengthX - 1)/2;
     }
+*/
 
     for (int i=0; i<length; i++) {
       if (Double.isNaN(vals[i])) {

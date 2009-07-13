@@ -741,9 +741,9 @@ public class Gridded3DSet extends GriddedSet {
   }
 
   // WLH 6 Dec 2001
-  private int gx = -1;
-  private int gy = -1;
-  private int gz = -1;
+  //private int gx = -1;
+  //private int gy = -1;
+  //private int gz = -1;
 
   /**
    * transform an array of values in R^DomainDimension to an array of
@@ -769,10 +769,11 @@ public class Gridded3DSet extends GriddedSet {
     float[][] grid = new float[ManifoldDimension][length];
 
     // (gx, gy, gz) is the current grid box guess
-    /*
-     * WLH 6 Dec 2001 int gx = (LengthX-1)/2; int gy = (LengthY-1)/2; int gz =
-     * (LengthZ-1)/2;
-     */
+    int gx = (LengthX-1)/2; 
+    int gy = (LengthY-1)/2; 
+    int gz = (LengthZ-1)/2;
+
+    /* WLH 6 Dec 2001 
     // use value from last call as first guess, if reasonable
     if (gx < 0 || gx >= LengthX || gy < 0 || gy >= LengthY || gz < 0
         || gz >= LengthZ) {
@@ -780,6 +781,7 @@ public class Gridded3DSet extends GriddedSet {
       gy = (LengthY - 1) / 2;
       gz = (LengthZ - 1) / 2;
     }
+     */
 
     float[] A = new float[3];
     float[] B = new float[3];
