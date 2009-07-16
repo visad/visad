@@ -247,7 +247,10 @@ public class AREACoordinateSystem
     anav.setMag(1,1);
     lines = dir[8];
     elements = dir[9];
-    anav.setFlipLineCoordinates(dir[8]); // invert Y axis coordinates
+    // the following is done because VisAD's (0,0) coordinate is in
+    // the lower-left corner; whereas, AREA files are in the upper-left
+
+    anav.setFlipLineCoordinates(dir[8]-1); // invert Y axis coordinates
   }
 
 
