@@ -772,15 +772,16 @@ public class TextAdapter {
                 numDom == 2 && countDomain < 2) isRaster = true;
 
     int index;
+    int lineCnt = 0;
     while (true) {
-      String s = bis.readLine();
-      if (debug) System.out.println("read:"+s);
-      if (s == null) break;
-      if (!isText(s)) return;
-      if (isComment(s)) continue;
-      if((index=s.indexOf("="))>=0) {  // fixed value
-        String name  = s.substring(0,index).trim();
-        String value  = s.substring(index+1).trim();
+      String line = bis.readLine();
+      if (debug) System.out.println("read:"+line);
+      if (line == null) break;
+      if (!isText(line)) return;
+      if (isComment(line)) continue;
+      if((index=line.indexOf("="))>=0) {  // fixed value
+        String name  = line.substring(0,index).trim();
+        String value  = line.substring(index+1).trim();
         boolean foundIt = false;
         for(int paramIdx=0;paramIdx<infos.length;paramIdx++) {
             if(infos[paramIdx].isParam(name)) {
@@ -794,16 +795,16 @@ public class TextAdapter {
         }
         if(!foundIt) {
            throw new VisADException(
-                    "TextAdapter: Cannot find field with name:" +name +" from line:" + s);
+                    "TextAdapter: Cannot find field with name:" +name +" from line:" + line);
         }
         continue;
       }
 
       if (dataDelim == null) {
-        if (s.indexOf(BLANK) != -1) dataDelim = BLANK_DELIM; 
-        if (s.indexOf(COMMA) != -1) dataDelim = COMMA; 
-        if (s.indexOf(SEMICOLON) != -1) dataDelim = SEMICOLON; 
-        if (s.indexOf(TAB) != -1) dataDelim = TAB; 
+        if (line.indexOf(BLANK) != -1) dataDelim = BLANK_DELIM; 
+        if (line.indexOf(COMMA) != -1) dataDelim = COMMA; 
+        if (line.indexOf(SEMICOLON) != -1) dataDelim = SEMICOLON; 
+        if (line.indexOf(TAB) != -1) dataDelim = TAB; 
 
         if (debug) System.out.println("Using data delimiter = "+
                                        ((dataDelim == null) 
@@ -814,9 +815,10 @@ public class TextAdapter {
       
 
 
-      String[] st = s.split(dataDelim);
+      String[] st = line.split(dataDelim);
       int n = st.length;
       if (n < 1) continue; // something is wrong if this happens!
+      lineCnt++;
 
       double [] dValues = new double[numDom];
       double [] rValues = null;
@@ -994,7 +996,8 @@ public class TextAdapter {
         } catch(NullPointerException npe) {
             for(int i=0;i<tValues.length;i++) {
                 if(tValues[i] == null) {
-                    throw new IllegalArgumentException("An error occurred reading column number:" + (i+1));
+                    throw new IllegalArgumentException("An error occurred reading line number:" + lineCnt+" column number:" + (i+1)+"\n" +
+                                                       line);
                 }
             }
             throw npe;
