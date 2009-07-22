@@ -474,14 +474,16 @@ public class TextAdapter {
              hdrColumns[1][i]);
 
       Unit u = null;
+ 
       if (hdrUnitString != null && 
                 !hdrUnitString.trim().equalsIgnoreCase("null") ) {
+        hdrUnitString = hdrUnitString.trim();
         try {
-          u = visad.data.units.Parser.parse(hdrUnitString.trim());
+          u = visad.data.units.Parser.parse(hdrUnitString);
         } catch (Exception ue) {
           try {
-            u = visad.data.units.Parser.parse(
-                           hdrUnitString.trim().replace(' ','_'));
+              hdrUnitString = hdrUnitString.replace(' ','_');
+              u = visad.data.units.Parser.parse(hdrUnitString);
           } catch (Exception ue2) {
             System.out.println("Unit name problem:"+ue+" with: "+hdrUnitString);
             u = null;
