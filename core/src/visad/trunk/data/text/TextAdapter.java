@@ -111,8 +111,6 @@ public class TextAdapter {
 
   private Hashtable properties;
 
-  /** this maps the rtnames to the original unit string */
-  private Hashtable<String,String> namesToUnits = new Hashtable<String,String>();
 
   private boolean onlyReadOneLine = false;
 
@@ -489,6 +487,12 @@ public class TextAdapter {
             u = null;
           }
         }
+        if(u!=null) {
+            //We clone this unit so it has the original unit string, not the SI unit we get from the parser
+            try {
+                u = u.clone(hdrUnitString);
+            } catch(Exception ignoreThis) {}
+        }
       }
 
       if (debug) System.out.println("####   assigned Unit as u="+u);
@@ -503,11 +507,6 @@ public class TextAdapter {
         if (parenIndex < 0) parenIndex = rttemp.indexOf("{");
         if (parenIndex < 0) parenIndex = rttemp.indexOf(" ");
         String rtname = parenIndex < 0 ? rttemp.trim() : rttemp.substring(0,parenIndex);
-
-
-        if(u!=null) {
-            namesToUnits.put(rtname, hdrUnitString);
-        }
 
         RealType rt = RealType.getRealType(rtname, u, null, infos[i].isInterval);
 
@@ -1616,15 +1615,6 @@ public class TextAdapter {
             }
         }
         return value * southOrWest;
-    }
-
-    /**
-     * Return the hashtable that holds the real type names to original uit string
-     *
-     * @return names to units table
-     */
-    public Hashtable<String,String> getNamesToUnits() {
-        return namesToUnits;
     }
 
 
