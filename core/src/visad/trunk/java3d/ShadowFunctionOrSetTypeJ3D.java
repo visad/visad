@@ -27,13 +27,18 @@ MA 02111-1307, USA
 package visad.java3d;
 
 import visad.*;
+import visad.util.ThreadManager;
 
 import javax.media.j3d.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
+
 import java.rmi.*;
 
 import java.awt.image.*;
+
 
 /**
    The ShadowFunctionOrSetTypeJ3D is an abstract parent for
@@ -91,8 +96,8 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       value_array are inherited valueArray values;
       default_values are defaults for each display.DisplayRealTypeVector;
       return true if need post-process */
-  public boolean doTransform(Object group, Data data, float[] value_array,
-                             float[] default_values, DataRenderer renderer)
+  public boolean doTransform(Object group, Data data, final float[] value_array,
+                             final float[] default_values, final DataRenderer renderer)
          throws VisADException, RemoteException {
 
     boolean post = true; // FIXME what value for animation?
@@ -141,7 +146,10 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       
       addSwitch(group, swit, control, domainSet, renderer);
 
-      // render frames
+
+      /***
+          Old code:
+       // render frames
       for (int i=0; i<domainLength; i++) {
         BranchGroup node = (BranchGroup) swit.getChild(i);
         // not necessary, but perhaps if this is modified
@@ -153,6 +161,31 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
         // not necessary, but perhaps if this is modified
         // renderer.setLatLonIndices(lat_lon_indices);
       }
+      ****/
+
+      //jeffmc:First construct the branches
+      List<BranchGroup> branches = new ArrayList<BranchGroup>();
+      for (int i=0; i<domainLength; i++) {
+          BranchGroup node = (BranchGroup) swit.getChild(i);
+          BranchGroup branch = (BranchGroup) makeBranch();
+          branches.add(branch);
+      }
+
+      ThreadManager threadManager = new ThreadManager("animation rendering");
+      for (int i=0; i<domainLength; i++) {
+          final BranchGroup branch = (BranchGroup) branches.get(i);
+          final Data sample  = ((Field) data).getSample(i);
+          final BranchGroup node = (BranchGroup) swit.getChild(i);
+          threadManager.addRunnable(new ThreadManager.MyRunnable() {
+                  public void run()  throws Exception {
+                      recurseRange(branch, sample,
+                                   value_array, default_values, renderer);
+                      node.addChild(branch);          
+                  }
+              });
+      }
+
+      threadManager.runInParallel();
     } 
     else {
       ShadowFunctionOrSetType shadow = (ShadowFunctionOrSetType)adaptedShadowType;
