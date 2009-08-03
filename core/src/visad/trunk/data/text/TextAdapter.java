@@ -1021,6 +1021,10 @@ public class TextAdapter {
 
     int numSamples = rangeValues.size(); // # lines of data
 
+    if (numSamples == 0) {
+        throw new VisADException("No data available to read");
+    }
+
 // ***********************************************************
     if (debug) {
       try {
