@@ -2327,41 +2327,25 @@ public abstract class JPythonMethods {
     return f;
 
   }
-  /**
-  * Mask out values outside testing limits
-  *
-  * @param f  VisAD data object (FlatField) as source
-  * @param op  Comparison operator as string ('gt','le',...)
-  * @param v  Numeric operand for comparison
-  *
-  * @return a FlatField with values of either 0 (did not meet
-  * criterion) or 1 (met criteron).
-  *
-  * Example:  b = mask(a, 'gt', 100)
-  * if 'a' is an image, 'b' will be an image with values of
-  * 1 where 'a' was > 100, and zero elsewhere.
-  *
-  */
-  public static FlatField mask(FlatField f, String op, double v) 
-             throws VisADException, RemoteException {
-    return mask(f, op, new Real(v));
-  }
-
-
 
   /**
   *
   * get the minium and maximum values of the FlatField
   *
-  * @param f the FlatField
+  * @param f the FlatField (or FieldImpl - first sample used)
   *
   * return double[2].  double[0] = min, double[1] = max
   */
 
-  public static double[] getMinMax(FlatField f)
+  public static double[] getMinMax(FieldImpl f)
        throws VisADException, RemoteException {
 
-    double [][] dv = f.getValues(false);
+    double [][] dv;
+    if (f instanceof FlatField) {
+      dv = f.getValues(false);
+    } else {
+      dv = ((FlatField)f.getSample(0)).getValues(false);
+    }
     double [] minmax = new double[2];
     minmax[0] = Double.MAX_VALUE;
     minmax[1] = Double.MIN_VALUE;
@@ -2378,7 +2362,7 @@ public abstract class JPythonMethods {
   /**
   * re-scale the values in a FlatField using auto-scaling
   *
-  * @param f the FlatField
+  * @param f the FlatField (or FieldImpl -- first sample used)
   * @param outlo the output low-range value
   * @param outhi the output high range value
   *
@@ -2386,7 +2370,7 @@ public abstract class JPythonMethods {
   * scaled from their "min:max" to "outlo:outhi"
   *
   */
-  public static FlatField rescale(FlatField f, double outlo, double outhi)
+  public static FlatField rescale(FieldImpl f, double outlo, double outhi)
        throws VisADException, RemoteException {
 
     double [] minmax = getMinMax(f);
@@ -2410,13 +2394,27 @@ public abstract class JPythonMethods {
   * scaled from "inlo:inhi" to "outlo:outhi"
   * 
   * Values < inlo will be set to outlo; values > inhi set to outhi
+  *
+  * Values returned in a new FlatField
   */
 
-  public static FlatField rescale(FlatField f, 
+  public static FlatField rescale(FieldImpl f, 
     double inlo, double inhi, double outlo, double outhi)
              throws VisADException, RemoteException {
         
+    FlatField ff;
+    if (f instanceof FlatField) {
+      try {
+      ff = (FlatField)f.clone();
+      } catch (CloneNotSupportedException cns) {
+        throw new VisADException ("Cannot clone field object");
+      }
+     
+    } else {
+      ff = (FlatField)f.getSample(0);
+    }
     double [][] dv = f.getValues(false);
+
     double outrange = outhi - outlo;
     double inrange = inhi - inlo;
     for (int i=0; i<dv.length; i++) {
@@ -2427,8 +2425,37 @@ public abstract class JPythonMethods {
       }
     }
 
-    f.setSamples(dv);
-    return f;
+    ff.setSamples(dv);
+    return ff;
+  }
+
+  /**
+  * Mask out values outside testing limits
+  *
+  * @param f  VisAD data object (FlatField) as source
+  * @param op  Comparison operator as string ('gt','le',...)
+  * @param v  Numeric operand for comparison
+  *
+  * @return a FlatField with values of either 0 (did not meet
+  * criterion) or 1 (met criteron).
+  *
+  * Example:  b = mask(a, 'gt', 100)
+  * if 'a' is an image, 'b' will be an image with values of
+  * 1 where 'a' was > 100, and zero elsewhere.
+  *
+  */
+  public static FlatField mask(FieldImpl f, String op, double v) 
+             throws VisADException, RemoteException {
+    return mask(f, op, new Real(v));
+  }
+
+
+  public static FlatField mask(Data f, String op, Data v) 
+             throws VisADException, RemoteException {
+    if (! (f instanceof FieldImpl) ) {
+      throw new VisADException("Data must be a FieldImpl or FlatField");
+    }
+    return mask((FieldImpl)f, op, v);
   }
 
 
@@ -2451,9 +2478,14 @@ public abstract class JPythonMethods {
   * elsewhere.
   *
   */
-  public static FlatField mask(Data f, String op, Data v)
+  public static FlatField mask(FieldImpl f, String op, Data v)
              throws VisADException, RemoteException {
-    FlatField fv = (FlatField) f.subtract(v);
+    FlatField fv;
+    if (f instanceof FlatField) {
+      fv = (FlatField) f.subtract(v);
+    } else {
+      fv = (FlatField) (((FieldImpl)f).getSample(0)).subtract(v);
+    }
     double [][] dv = fv.getValues(false);
     int oper = -1;
     for (int i=0; i<ops.length; i++) {
