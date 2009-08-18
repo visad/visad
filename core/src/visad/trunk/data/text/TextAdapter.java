@@ -336,6 +336,7 @@ public class TextAdapter {
 
         // now parse items: unit=xxx miss=xxx interval=xxx error=xxx
 
+        // 0. Remove any spaces around the "=" signs
         // 1. tokenize on " "
         // 2. scan each token, retokenizing on "="
         // 3. if (has no "=") && (is first one) then treat as Unit
@@ -349,7 +350,12 @@ public class TextAdapter {
           infos[i].name = (name.substring(0,m)+name.substring(m2+1)).trim();
         }
 
+        // 0. Remove any spaces around the "=" signs
         String cl = name.substring(m+1,m2).trim();
+        cl = cl.replaceAll(" +=","=");
+        cl = cl.replaceAll("= +","=");
+
+
         String[] stcl = cl.split(BLANK_DELIM);
         int ncl = stcl.length;
 
@@ -510,6 +516,7 @@ public class TextAdapter {
 
         RealType rt = RealType.getRealType(rtname, u, null, infos[i].isInterval);
 
+        //        System.err.println("rtname:" + rtname + " " + rt);
         if (rt == null) {  // tried to re-use with different units
           if (debug) System.out.println("####   rt was returned as null");
           if (u != null) System.out.println("####  Could not make RealType using specified Unit ("+hdrUnitString+") for parameter name: "+rtname);
@@ -1521,6 +1528,19 @@ public class TextAdapter {
         }
 
 
+    }
+
+
+    /**
+     * Read in  the given file and return the processed data
+     *
+     * @param file The file to read in
+     * @return the data
+     */
+    public static Data processFile(String file) throws Exception {
+        TextAdapter ta = new TextAdapter(file);
+        System.out.println(ta.getData().getType());
+        return ta.getData();
     }
 
 
