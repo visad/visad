@@ -109,6 +109,11 @@ public class AddePointDataReader {
      */
     public static final int OB_ORDER = 1;
 
+    /**
+     * Maximum number of parameters - used as a sanity check
+     */
+    public static final int MAXNUMPARM = 402;  // number of parameters
+
     private int status=0;                      // read status
     //private URLConnection urlc;                // URL connection
     private String[] params;       // parameters returned from server
@@ -177,6 +182,10 @@ public class AddePointDataReader {
         {
             status = -1;
             throw new AddeException("No data found");
+        } else if (numParamBytes/4 > MAXNUMPARM)
+        {
+            status = -1;
+            throw new AddeException("Not an ADDE Point Data set");
         }
         else
         {
