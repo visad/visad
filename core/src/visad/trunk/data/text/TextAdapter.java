@@ -37,6 +37,8 @@ import visad.*;
 import visad.VisADException;
 import visad.data.in.ArithProg;
 
+import java.util.regex.*;
+
 
 /** this is an VisAD file adapter for comma-, tab- and blank-separated
   * ASCII text file data.  It will attempt to create a FlatField from
@@ -113,6 +115,9 @@ public class TextAdapter {
 
 
   private boolean onlyReadOneLine = false;
+
+
+  private Pattern skipPattern;
 
 
   /** Create a VisAD FlatField from a local Text (comma-, tab- or 
@@ -203,13 +208,53 @@ public class TextAdapter {
       this(inputStream, delimiter, map, params, null, onlyReadOneLine);
   }
 
+  /** Create a VisAD FlatField from a local Text (comma-, tab- or 
+    * blank-separated values) ASCII file
+    * @param inputStream The input stream to read from
+    * @param delimiter the delimiter
+    * @param map the VisAD "MathType" as a string defining the FlatField
+    * @param params the list of parameters used to define what columns
+    *  of the text file correspond to what MathType parameters.
+    * @param properties properties
+    * @param onlyReadOneLine If true then only read one line of data. This is used so client code can
+    * read the meta data.
+    * @exception IOException if there was a problem reading the file.
+    * @exception VisADException if an unexpected problem occurs.
+    */
+
   public TextAdapter(InputStream inputStream, String delimiter, String map, String params,Hashtable properties, boolean onlyReadOneLine) 
+                         throws IOException, VisADException {
+      this(inputStream, delimiter, map, params, properties, onlyReadOneLine, null);
+  }
+
+
+  /** Create a VisAD FlatField from a local Text (comma-, tab- or 
+    * blank-separated values) ASCII file
+    * @param inputStream The input stream to read from
+    * @param delimiter the delimiter
+    * @param map the VisAD "MathType" as a string defining the FlatField
+    * @param params the list of parameters used to define what columns
+    *  of the text file correspond to what MathType parameters.
+    * @param properties properties
+    * @param onlyReadOneLine If true then only read one line of data. This is used so client code can
+    * read the meta data.
+    * @param skipPatternString if non-null then skip any line that matches this pattern
+    * @exception IOException if there was a problem reading the file.
+    * @exception VisADException if an unexpected problem occurs.
+    */
+  public TextAdapter(InputStream inputStream, String delimiter, String map, String params,Hashtable properties, boolean onlyReadOneLine,String skipPatternString) 
                          throws IOException, VisADException {
     this.onlyReadOneLine = onlyReadOneLine;
     DELIM = delimiter;
     this.properties = properties;
+    if(skipPatternString!=null && skipPatternString.length()>0) {
+        skipPattern = Pattern.compile(skipPatternString);
+    }
     readit(inputStream, map, params);
   }
+
+
+
 
 
 
@@ -792,6 +837,7 @@ public class TextAdapter {
       if (line == null) break;
       if (!isText(line)) return;
       if (isComment(line)) continue;
+      if(skipPattern!=null && skipPattern.matcher(line).find()) continue;
       if((index=line.indexOf("="))>=0) {  // fixed value
         String name  = line.substring(0,index).trim();
         String value  = line.substring(index+1).trim();
