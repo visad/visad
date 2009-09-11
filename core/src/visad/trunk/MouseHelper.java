@@ -449,6 +449,7 @@ public class MouseHelper
   }
 
   protected void handleMouseDragged(MouseEvent event, int remoteId) {
+      MouseBehavior mouseBehavior = getMouseBehavior();
       boolean cursor = function[CURSOR_TRANSLATE] ||
                        function[CURSOR_ZOOM] ||
                        function[CURSOR_ROTATE];
@@ -466,6 +467,7 @@ public class MouseHelper
 
         if (matrix) {
           double[] t1 = null;
+          double[] t2 = null;
           if (function[ZOOM]) {
             // current_y -> scale
             double scale =
@@ -481,6 +483,8 @@ public class MouseHelper
             // System.out.println("transx = " + transx + " transy = " + transy);
             t1 = getMouseBehavior().make_translate(-transx, -transy);
           }
+
+          double [] myMatrix = tstart;
           if (function[ROTATE]) {
             if (getMode2D()) {
               double transx = xmul * (start_x - current_x);
@@ -488,35 +492,48 @@ public class MouseHelper
               t1 = getMouseBehavior().make_translate(-transx, -transy);
             }
             else {
-
               // don't do 3-D rotation in 2-D mode
               double angley =
                 - (current_x - start_x) * 100.0 / (double) d.width;
               double anglex =
                 - (current_y - start_y) * 100.0 / (double) d.height;
+              double[] transA         = { 0.0, 0.0, 0.0 };
+              double[] rotA           = { 0.0, 0.0, 0.0 };
+              double[] scaleA         = { 0.0, 0.0, 0.0 };
+              mouseBehavior.instance_unmake_matrix(rotA, scaleA, transA, myMatrix);
+
               if(display_renderer.getScaleRotation()) {
-                  double[] transA         = { 0.0, 0.0, 0.0 };
-                  double[] rotA           = { 0.0, 0.0, 0.0 };
-                  double[] scaleA         = { 0.0, 0.0, 0.0 };
-                  getMouseBehavior().instance_unmake_matrix(rotA, scaleA, transA, tstart);
                   angley = angley/scaleA[0];
                   anglex = anglex/scaleA[0];
               }
-              t1 = getMouseBehavior().make_matrix(anglex, angley,
+
+              if(display_renderer.getRotateAboutCenter()) {
+                  myMatrix = mouseBehavior.multiply_matrix(mouseBehavior.make_translate(-transA[0], -transA[1], -transA[2]), myMatrix);
+                  t2 = mouseBehavior.make_translate(transA[0], transA[1], transA[2]);
+              }
+
+              t1 = mouseBehavior.make_matrix(anglex, angley,
                 0.0, 1.0, 0.0, 0.0, 0.0);
             }
           }
+
+
           if (t1 != null) {
-            t1 = getMouseBehavior().multiply_matrix(t1, tstart);
+            t1 = mouseBehavior.multiply_matrix(t1, myMatrix);
+
+            if(t2!=null) {
+                t1 = mouseBehavior.multiply_matrix(t2,t1);
+            }
+
+
             try {
               getProjectionControl().setMatrix(t1);
-            }
-            catch (VisADException e) {
-            }
-            catch (RemoteException e) {
-            }
+            } catch (VisADException e) {}
+            catch (RemoteException e) {}
           }
+          return;
         } // end if (matrix)
+
 
 
         if (function[CURSOR_ZOOM]) {

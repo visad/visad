@@ -287,59 +287,67 @@ public class KeyboardBehaviorJ3D extends Behavior
     double transx = 0.0;
     double transy = 0.0;
     double scale = 1.0;
-    double anglez = 0.0;
-    double angley = 0.0;
     double anglex = 0.0;
+    double angley = 0.0;
+    double anglez = 0.0;
+
     double [] t1 = null;
     double [] tstart = proj.getMatrix();
 
+    double[] transA         = { 0.0, 0.0, 0.0 };
+    double[] rotA           = { 0.0, 0.0, 0.0 };
+    double[] scaleA         = { 0.0, 0.0, 0.0 };
+
+    MouseBehaviorJ3D.unmake_matrix(rotA,  scaleA,
+                                   transA,tstart);
+
     double rotateAngle = rotateAmount;
     if(displayRenderer.getScaleRotation()) {
-        double[] transA         = { 0.0, 0.0, 0.0 };
-        double[] rotA           = { 0.0, 0.0, 0.0 };
-        double[] scaleA         = { 0.0, 0.0, 0.0 };
-
-        MouseBehaviorJ3D.unmake_matrix(rotA,  scaleA,
-                                       transA,tstart);
     //Scale down the rotation angle when we are zoomed in
         rotateAngle = rotateAmount/scaleA[0];
     }
 
 
 
-
+    boolean wasRotate = false;
     switch (function) {
 
       case ROTATE_X_NEG:
         if (displayRenderer.getMode2D()) break;
+        wasRotate = true;
         anglex += rotateAngle;
         t1 = mouseBehavior.make_matrix(
                   anglex, angley, 0.0, 1.0, 0.0, 0.0, 0.0);
         break;
       case ROTATE_X_POS:
         if (displayRenderer.getMode2D()) break;
+        wasRotate = true;
         anglex -= rotateAngle;
         t1 = mouseBehavior.make_matrix(
                   anglex, angley, 0.0, 1.0, 0.0, 0.0, 0.0);
         break;
       case ROTATE_Y_POS:
         if (displayRenderer.getMode2D()) break;
+        wasRotate = true;
         angley += rotateAngle;
         t1 = mouseBehavior.make_matrix(
                   anglex, angley, 0.0, 1.0, 0.0, 0.0, 0.0);
         break;
       case ROTATE_Y_NEG:
         if (displayRenderer.getMode2D()) break;
+        wasRotate = true;
         angley -= rotateAngle;
         t1 = mouseBehavior.make_matrix(
                   anglex, angley, 0.0, 1.0, 0.0, 0.0, 0.0);
         break;
       case ROTATE_Z_POS:
+        wasRotate = true;
         anglez -= rotateAngle;
         t1 = mouseBehavior.make_matrix(
                   0.0, 0.0, anglez, 1.0, 0.0, 0.0, 0.0);
         break;
       case ROTATE_Z_NEG:
+        wasRotate = true;
         anglez += rotateAngle;
         t1 = mouseBehavior.make_matrix(
                   0.0, 0.0, anglez, 1.0, 0.0, 0.0, 0.0);
@@ -361,8 +369,8 @@ public class KeyboardBehaviorJ3D extends Behavior
         break;
       case TRANSLATE_RIGHT:
         transx += transAmount;
-        t1 = mouseBehavior.make_matrix(
-                  0.0, 0.0, 0.0, 1.0, transx, transy, 0.0);
+        t1 = mouseBehavior.make_matrix( 
+                 0.0, 0.0, 0.0, 1.0, transx, transy, 0.0);
         break;
       case ZOOM_IN:
         scale += scaleAmount;
@@ -383,13 +391,36 @@ public class KeyboardBehaviorJ3D extends Behavior
         break;
     }
 
+
+    //        t1 = mouseBehavior.make_matrix(
+    //                  0.0, 0.0, 0.0, 1.0, transx, transy, 0.0);
+
+
+    double[] t2 = null;
+
+
     if (t1 != null) {
-      t1 = mouseBehavior.multiply_matrix(t1, tstart);
-      try {
-        proj.setMatrix(t1);
-      } catch (VisADException e) {
-      } catch (RemoteException e) {
-      }
+
+        if(displayRenderer.getRotateAboutCenter() && wasRotate) {
+            t2 = mouseBehavior.make_translate(-transA[0], -transA[1], -transA[2]);
+            tstart = mouseBehavior.multiply_matrix(t2, tstart);
+            t2 = mouseBehavior.make_translate(transA[0], transA[1], transA[2]);
+        }
+
+
+        t1 = mouseBehavior.multiply_matrix(t1, tstart);
+
+
+        if(t2!=null) {
+            t1 = mouseBehavior.multiply_matrix(t2,t1);
+        }
+
+
+        try {
+            proj.setMatrix(t1);
+        } catch (VisADException e) {
+        } catch (RemoteException e) {
+        }
     }
     
   }

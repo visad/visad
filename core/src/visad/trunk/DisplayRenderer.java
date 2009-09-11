@@ -83,6 +83,9 @@ public abstract class DisplayRenderer
   /** Does the mouse and keyboard rotation scale the rotation angle by the zoom factor */
   private boolean scaleRotation = false;
 
+ /** when we rotate via the key or mouse do we rotate about the center of the xyz box */
+  private boolean rotateAboutCenter = false;
+
 
   /**
    * Construct a new <CODE>DisplayRenderer</CODE>.
@@ -908,6 +911,24 @@ public abstract class DisplayRenderer
 	return scaleRotation;
     }
 
+
+    /**
+       Set the RotateAboutCenter property.
+
+       @param value The new value for RotateAboutCenter
+    **/
+    public void setRotateAboutCenter (boolean value) {
+	rotateAboutCenter = value;
+    }
+
+    /**
+       Get the RotateAboutCenter property.
+
+       @return The RotateAboutCenter
+    **/
+    public boolean getRotateAboutCenter () {
+	return rotateAboutCenter;
+    }
 
 
 
