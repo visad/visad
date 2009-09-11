@@ -293,39 +293,54 @@ public class KeyboardBehaviorJ3D extends Behavior
     double [] t1 = null;
     double [] tstart = proj.getMatrix();
 
+    double rotateAngle = rotateAmount;
+    if(displayRenderer.getScaleRotation()) {
+        double[] transA         = { 0.0, 0.0, 0.0 };
+        double[] rotA           = { 0.0, 0.0, 0.0 };
+        double[] scaleA         = { 0.0, 0.0, 0.0 };
+
+        MouseBehaviorJ3D.unmake_matrix(rotA,  scaleA,
+                                       transA,tstart);
+    //Scale down the rotation angle when we are zoomed in
+        rotateAngle = rotateAmount/scaleA[0];
+    }
+
+
+
+
     switch (function) {
 
       case ROTATE_X_NEG:
         if (displayRenderer.getMode2D()) break;
-        anglex += rotateAmount;
+        anglex += rotateAngle;
         t1 = mouseBehavior.make_matrix(
                   anglex, angley, 0.0, 1.0, 0.0, 0.0, 0.0);
         break;
       case ROTATE_X_POS:
         if (displayRenderer.getMode2D()) break;
-        anglex -= rotateAmount;
+        anglex -= rotateAngle;
         t1 = mouseBehavior.make_matrix(
                   anglex, angley, 0.0, 1.0, 0.0, 0.0, 0.0);
         break;
       case ROTATE_Y_POS:
         if (displayRenderer.getMode2D()) break;
-        angley += rotateAmount;
+        angley += rotateAngle;
         t1 = mouseBehavior.make_matrix(
                   anglex, angley, 0.0, 1.0, 0.0, 0.0, 0.0);
         break;
       case ROTATE_Y_NEG:
         if (displayRenderer.getMode2D()) break;
-        angley -= rotateAmount;
+        angley -= rotateAngle;
         t1 = mouseBehavior.make_matrix(
                   anglex, angley, 0.0, 1.0, 0.0, 0.0, 0.0);
         break;
       case ROTATE_Z_POS:
-        anglez -= rotateAmount;
+        anglez -= rotateAngle;
         t1 = mouseBehavior.make_matrix(
                   0.0, 0.0, anglez, 1.0, 0.0, 0.0, 0.0);
         break;
       case ROTATE_Z_NEG:
-        anglez += rotateAmount;
+        anglez += rotateAngle;
         t1 = mouseBehavior.make_matrix(
                   0.0, 0.0, anglez, 1.0, 0.0, 0.0, 0.0);
         break;

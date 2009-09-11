@@ -43,6 +43,8 @@ public class MouseHelper
   implements RendererSourceListener
 {
 
+
+
   MouseBehavior behavior;
 
   /** DisplayRenderer for Display */
@@ -486,11 +488,20 @@ public class MouseHelper
               t1 = getMouseBehavior().make_translate(-transx, -transy);
             }
             else {
+
               // don't do 3-D rotation in 2-D mode
               double angley =
                 - (current_x - start_x) * 100.0 / (double) d.width;
               double anglex =
                 - (current_y - start_y) * 100.0 / (double) d.height;
+              if(display_renderer.getScaleRotation()) {
+                  double[] transA         = { 0.0, 0.0, 0.0 };
+                  double[] rotA           = { 0.0, 0.0, 0.0 };
+                  double[] scaleA         = { 0.0, 0.0, 0.0 };
+                  getMouseBehavior().instance_unmake_matrix(rotA, scaleA, transA, tstart);
+                  angley = angley/scaleA[0];
+                  anglex = anglex/scaleA[0];
+              }
               t1 = getMouseBehavior().make_matrix(anglex, angley,
                 0.0, 1.0, 0.0, 0.0, 0.0);
             }
@@ -849,4 +860,8 @@ public class MouseHelper
       }
     }
   }
+
+
+
+
 }

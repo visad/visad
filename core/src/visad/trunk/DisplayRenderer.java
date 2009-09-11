@@ -80,6 +80,10 @@ public abstract class DisplayRenderer
   /** Set to true to make please wait Strings visible on the display */
   private boolean waitMessageVisible = true;
 
+  /** Does the mouse and keyboard rotation scale the rotation angle by the zoom factor */
+  private boolean scaleRotation = false;
+
+
   /**
    * Construct a new <CODE>DisplayRenderer</CODE>.
    */
@@ -882,5 +886,29 @@ public abstract class DisplayRenderer
 
   public abstract int getTextureHeightMax()
          throws VisADException; 
+
+
+
+
+    /**
+       Set the ScaleRotation property.
+
+       @param value The new value for ScaleRotation
+    **/
+    public void setScaleRotation (boolean value) {
+	scaleRotation = value;
+    }
+
+    /**
+       Get the ScaleRotation property.
+
+       @return The ScaleRotation
+    **/
+    public boolean getScaleRotation () {
+	return scaleRotation;
+    }
+
+
+
 
 }
