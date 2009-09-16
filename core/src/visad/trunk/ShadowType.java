@@ -2219,9 +2219,15 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
   public static float[][] adjustFlowToEarth(int which, float[][] flow_values,
       float[][] spatial_values, float flowScale, DataRenderer renderer)
       throws VisADException {
+    return adjustFlowToEarth(which, flow_values, spatial_values, flowScale, renderer, false);
+  }
+
+  public static float[][] adjustFlowToEarth(int which, float[][] flow_values,
+      float[][] spatial_values, float flowScale, DataRenderer renderer, boolean force)
+      throws VisADException {
     // System.out.println("adjustFlowToEarth " + renderer.getDisplay().getName()
     // + " " + renderer.getRealVectorTypes(which)); // IDV
-    if (!(renderer.getRealVectorTypes(which) instanceof EarthVectorType)) {
+    if (!(renderer.getRealVectorTypes(which) instanceof EarthVectorType) && !force) {
       // only do this for EarthVectorType
       return flow_values;
     }
@@ -2231,7 +2237,7 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
     DisplayImpl display = null;
     boolean shouldAdjust = true;
     DataDisplayLink link = renderer.getLinks()[0];
-    if (link != null) {
+    if (link != null && !force) {
       display = link.getDisplay();
       if (display != null) {
 
