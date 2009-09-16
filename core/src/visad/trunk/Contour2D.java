@@ -568,14 +568,6 @@ public class Contour2D {
        + " naux=" + naux + " myvals.length=" + myvals.length);
 
    // compute contours
-   /** original
-   for (ir = 0; ir < nrm; ir++) {
-     int ir_plus1 = ir + 1;
-     xx = xdd * ir + 0.0f; // = ir
-     for (ic = 0; ic < ncm; ic++) {
-       int ic_plus1 = ic + 1;
-       yy = ydd * ic + 0.0f; // = ic
-    */
    for (ic = 0; ic < ncm; ic++) {
      int ic_plus1 = ic + 1;
      yy = ydd * ic + 0.0f; // = ic
