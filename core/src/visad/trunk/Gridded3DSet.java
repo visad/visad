@@ -30,15 +30,16 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.Vector;
 
-import visad.util.Trace;
+import java.util.logging.Logger;
 
 /**
  * Gridded3DSet represents a finite set of samples of R^3.
  * <P>
  */
 public class Gridded3DSet extends GriddedSet {
+
+  private static final Logger log = Logger.getLogger(Gridded3DSet.class.getName());
 
   int LengthX, LengthY, LengthZ;
 
@@ -436,19 +437,36 @@ public class Gridded3DSet extends GriddedSet {
   }
 
   /**
-   * transform an array of non-integer grid coordinates to an array of values in
-   * R^DomainDimension
+   * Transform an array of non-integer grid coordinates to an array of values
+   * in R^DomainDimension.
+   * @param grid Grid values, where dim1 is the grid coordinate dimension
+   *  and dim2 is the length of the grid.
+   * @return R^n coordinates where dim1 is DomainDimension and dim2 is the
+   *  length of the grid.
+   * @throws visad.VisADException
    */
   public float[][] gridToValue(float[][] grid) throws VisADException {
+    return gridToValue(grid, false);
+  }
+
+  /**
+   * Transform an array of non-integer grid coordinates to an array of values
+   * in R^DomainDimension.
+   * @param grid Grid values, where dim1 is the grid coordinate dimension
+   *  and dim2 is the length of the grid.
+   * @return R^n coordinates where dim1 is 1 and dim2 is gird_len*coord_dim.
+   * @throws visad.VisADException
+   */
+  public float[][] gridToValue(float[][] grid, boolean altFormat) throws VisADException {
     if (grid.length != ManifoldDimension) {
       throw new SetException("Gridded3DSet.gridToValue: grid dimension "
           + grid.length + " not equal to Manifold dimension "
           + ManifoldDimension);
     }
     if (ManifoldDimension == 3) {
-      return gridToValue3D(grid);
+      return altFormat ? gridToValue3DAlt(grid) : gridToValue3D(grid);
     } else if (ManifoldDimension == 2) {
-      return gridToValue2D(grid);
+      return altFormat ? gridToValue2DAlt(grid) : gridToValue2D(grid);
     } else {
       throw new SetException("Gridded3DSet.gridToValue: ManifoldDimension "
           + "must be 2 or 3");
@@ -516,6 +534,69 @@ public class Gridded3DSet extends GriddedSet {
       }
     }
     return value;
+  }
+
+  private float[][] gridToValue2DAlt(float[][] grid) throws VisADException {
+    if (Length > 1 && (Lengths[0] < 2 || Lengths[1] < 2)) {
+      throw new SetException("Gridded3DSet.gridToValue: requires all grid "
+          + "dimensions to be > 1");
+    }
+    // avoid any ArrayOutOfBounds exceptions by taking the shortest length
+    int gridLength = Math.min(grid[0].length, grid[1].length);
+    float[] value = new float[gridLength * 3];
+    for (int i = 0; i < gridLength; i++) {
+      // let gx and gy by the current grid values
+      float gx = grid[0][i];
+      float gy = grid[1][i];
+      if ((gx < -0.5) || (gy < -0.5) || (gx > LengthX - 0.5)
+          || (gy > LengthY - 0.5)) {
+        value[3*i] = value[3*i+1] = value[3*i+2] = Float.NaN;
+      } else if (Length == 1) {
+        value[3*i] = Samples[0][0];
+        value[3*i+1] = Samples[1][0];
+        value[3*i+2] = Samples[2][0];
+      } else {
+        // calculate closest integer variables
+        int igx = (int) gx;
+        int igy = (int) gy;
+        if (igx < 0)
+          igx = 0;
+        if (igx > LengthX - 2)
+          igx = LengthX - 2;
+        if (igy < 0)
+          igy = 0;
+        if (igy > LengthY - 2)
+          igy = LengthY - 2;
+
+        // set up conversion to 1D Samples array
+        int[][] s = { { LengthX * igy + igx, // (0, 0)
+            LengthX * (igy + 1) + igx }, // (0, 1)
+            { LengthX * igy + igx + 1, // (1, 0)
+                LengthX * (igy + 1) + igx + 1 } }; // (1, 1)
+        if (gx + gy - igx - igy - 1 <= 0) {
+          // point is in LOWER triangle
+          for (int j = 0; j < 3; j++) {
+            value[3*i+j] = Samples[j][s[0][0]] + (gx - igx)
+                * (Samples[j][s[1][0]] - Samples[j][s[0][0]]) + (gy - igy)
+                * (Samples[j][s[0][1]] - Samples[j][s[0][0]]);
+          }
+        } else {
+          // point is in UPPER triangle
+          for (int j = 0; j < 3; j++) {
+            value[3*i+j] = Samples[j][s[1][1]] + (1 + igx - gx)
+                * (Samples[j][s[0][1]] - Samples[j][s[1][1]]) + (1 + igy - gy)
+                * (Samples[j][s[1][0]] - Samples[j][s[1][1]]);
+          }
+        }
+        /*
+         * for (int j=0; j<3; j++) { if (value[i] != value[i]) {
+         * System.out.println("gridToValue2D: bad Samples j = " + j +
+         * " gx, gy = " + gx + " " + gy + " " + s[0][0] + " " + s[0][1] + " " +
+         * s[1][0] + " " + s[1][1]); } }
+         */
+      }
+    }
+    return new float[][]{value};
   }
 
   private float[][] gridToValue3D(float[][] grid) throws VisADException {
@@ -738,6 +819,228 @@ public class Gridded3DSet extends GriddedSet {
       }
     }
     return value;
+  }
+
+  private float[][] gridToValue3DAlt(float[][] grid) throws VisADException {
+    if (Length > 1 && (Lengths[0] < 2 || Lengths[1] < 2 || Lengths[2] < 2)) {
+      throw new SetException("Gridded3DSet.gridToValue: requires all grid "
+          + "dimensions to be > 1");
+    }
+    // avoid any ArrayOutOfBounds exceptions by taking the shortest length
+    int gridLength = Math.min(grid[0].length, grid[1].length);
+    gridLength = Math.min(gridLength, grid[2].length);
+    float[] value = new float[gridLength * 3];
+
+    float[] A = new float[3];
+    float[] B = new float[3];
+    float[] C = new float[3];
+    float[] D = new float[3];
+    float[] E = new float[3];
+    float[] F = new float[3];
+    float[] G = new float[3];
+    float[] H = new float[3];
+
+    for (int i = 0; i < value.length; i++) {
+      // let gx, gy, and gz be the current grid values
+      float gx = grid[0][i];
+      float gy = grid[1][i];
+      float gz = grid[2][i];
+      if ((gx < -0.5) || (gy < -0.5) || (gz < -0.5) || (gx > LengthX - 0.5)
+          || (gy > LengthY - 0.5) || (gz > LengthZ - 0.5)) {
+        value[3*i] = value[3*i+1] = value[3*i+2] = Float.NaN;
+      } else if (Length == 1) {
+        value[3*i] = Samples[0][0];
+        value[3*i+1] = Samples[1][0];
+        value[3*i+2] = Samples[2][0];
+      } else {
+        // calculate closest integer variables
+        int igx, igy, igz;
+        if (gx < 0)
+          igx = 0;
+        else if (gx > LengthX - 2)
+          igx = LengthX - 2;
+        else
+          igx = (int) gx;
+        if (gy < 0)
+          igy = 0;
+        else if (gy > LengthY - 2)
+          igy = LengthY - 2;
+        else
+          igy = (int) gy;
+        if (gz < 0)
+          igz = 0;
+        else if (gz > LengthZ - 2)
+          igz = LengthZ - 2;
+        else
+          igz = (int) gz;
+
+        // determine tetrahedralization type
+        boolean evencube = ((igx + igy + igz) % 2 == 0);
+
+        // calculate distances from integer grid point
+        float s, t, u;
+        if (evencube) {
+          s = gx - igx;
+          t = gy - igy;
+          u = gz - igz;
+        } else {
+          s = 1 + igx - gx;
+          t = 1 + igy - gy;
+          u = 1 + igz - gz;
+        }
+
+        // Define vertices of grid box
+        int zadd = LengthY * LengthX;
+        int base = igz * zadd + igy * LengthX + igx;
+        int ai = base + zadd; // 0, 0, 1
+        int bi = base + zadd + 1; // 1, 0, 1
+        int ci = base + zadd + LengthX + 1; // 1, 1, 1
+        int di = base + zadd + LengthX; // 0, 1, 1
+        int ei = base; // 0, 0, 0
+        int fi = base + 1; // 1, 0, 0
+        int gi = base + LengthX + 1; // 1, 1, 0
+        int hi = base + LengthX; // 0, 1, 0
+        if (evencube) {
+          A[0] = Samples[0][ai];
+          A[1] = Samples[1][ai];
+          A[2] = Samples[2][ai];
+          B[0] = Samples[0][bi];
+          B[1] = Samples[1][bi];
+          B[2] = Samples[2][bi];
+          C[0] = Samples[0][ci];
+          C[1] = Samples[1][ci];
+          C[2] = Samples[2][ci];
+          D[0] = Samples[0][di];
+          D[1] = Samples[1][di];
+          D[2] = Samples[2][di];
+          E[0] = Samples[0][ei];
+          E[1] = Samples[1][ei];
+          E[2] = Samples[2][ei];
+          F[0] = Samples[0][fi];
+          F[1] = Samples[1][fi];
+          F[2] = Samples[2][fi];
+          G[0] = Samples[0][gi];
+          G[1] = Samples[1][gi];
+          G[2] = Samples[2][gi];
+          H[0] = Samples[0][hi];
+          H[1] = Samples[1][hi];
+          H[2] = Samples[2][hi];
+        } else {
+          G[0] = Samples[0][ai];
+          G[1] = Samples[1][ai];
+          G[2] = Samples[2][ai];
+          H[0] = Samples[0][bi];
+          H[1] = Samples[1][bi];
+          H[2] = Samples[2][bi];
+          E[0] = Samples[0][ci];
+          E[1] = Samples[1][ci];
+          E[2] = Samples[2][ci];
+          F[0] = Samples[0][di];
+          F[1] = Samples[1][di];
+          F[2] = Samples[2][di];
+          C[0] = Samples[0][ei];
+          C[1] = Samples[1][ei];
+          C[2] = Samples[2][ei];
+          D[0] = Samples[0][fi];
+          D[1] = Samples[1][fi];
+          D[2] = Samples[2][fi];
+          A[0] = Samples[0][gi];
+          A[1] = Samples[1][gi];
+          A[2] = Samples[2][gi];
+          B[0] = Samples[0][hi];
+          B[1] = Samples[1][hi];
+          B[2] = Samples[2][hi];
+        }
+
+        // These tests determine which tetrahedron the point is in
+        boolean test1 = (1 - s - t - u >= 0);
+        boolean test2 = (s - t + u - 1 >= 0);
+        boolean test3 = (t - s + u - 1 >= 0);
+        boolean test4 = (s + t - u - 1 >= 0);
+
+        // These cases handle grid coordinates off the grid
+        // (Different tetrahedrons must be chosen accordingly)
+        if ((gx < 0) || (gx > LengthX - 1) || (gy < 0) || (gy > LengthY - 1)
+            || (gz < 0) || (gz > LengthZ - 1)) {
+          boolean OX, OY, OZ, MX, MY, MZ, LX, LY, LZ;
+          OX = OY = OZ = MX = MY = MZ = LX = LY = LZ = false;
+          if (igx == 0)
+            OX = true;
+          if (igy == 0)
+            OY = true;
+          if (igz == 0)
+            OZ = true;
+          if (igx == LengthX - 2)
+            LX = true;
+          if (igy == LengthY - 2)
+            LY = true;
+          if (igz == LengthZ - 2)
+            LZ = true;
+          if (!OX && !LX)
+            MX = true;
+          if (!OY && !LY)
+            MY = true;
+          if (!OZ && !LZ)
+            MZ = true;
+          test1 = test2 = test3 = test4 = false;
+          // 26 cases
+          if (evencube) {
+            if (!LX && !LY && !LZ)
+              test1 = true;
+            else if ((LX && OY && MZ) || (MX && OY && LZ) || (LX && MY && LZ)
+                || (LX && OY && LZ) || (MX && MY && LZ) || (LX && MY && MZ))
+              test2 = true;
+            else if ((OX && LY && MZ) || (OX && MY && LZ) || (MX && LY && LZ)
+                || (OX && LY && LZ) || (MX && LY && MZ))
+              test3 = true;
+            else if ((MX && LY && OZ) || (LX && MY && OZ) || (LX && LY && MZ)
+                || (LX && LY && OZ))
+              test4 = true;
+          } else {
+            if (!OX && !OY && !OZ)
+              test1 = true;
+            else if ((OX && MY && OZ) || (MX && LY && OZ) || (OX && LY && MZ)
+                || (OX && LY && OZ) || (MX && MY && OZ) || (OX && MY && MZ))
+              test2 = true;
+            else if ((LX && MY && OZ) || (MX && OY && OZ) || (LX && OY && MZ)
+                || (LX && OY && OZ) || (MX && OY && MZ))
+              test3 = true;
+            else if ((OX && OY && MZ) || (OX && MY && OZ) || (MX && OY && LZ)
+                || (OX && OY && LZ))
+              test4 = true;
+          }
+        }
+        if (test1) {
+          for (int j = 0; j < 3; j++) {
+            value[3*i+j] = E[j] + s * (F[j] - E[j]) + t * (H[j] - E[j]) + u
+                * (A[j] - E[j]);
+          }
+        } else if (test2) {
+          for (int j = 0; j < 3; j++) {
+            value[3*i+j] = B[j] + (1 - s) * (A[j] - B[j]) + t * (C[j] - B[j])
+                + (1 - u) * (F[j] - B[j]);
+          }
+        } else if (test3) {
+          for (int j = 0; j < 3; j++) {
+            value[3*i+j] = D[j] + s * (C[j] - D[j]) + (1 - t) * (A[j] - D[j])
+                + (1 - u) * (H[j] - D[j]);
+          }
+        } else if (test4) {
+          for (int j = 0; j < 3; j++) {
+            value[3*i+j] = G[j] + (1 - s) * (H[j] - G[j]) + (1 - t)
+                * (F[j] - G[j]) + u * (C[j] - G[j]);
+          }
+        } else {
+          for (int j = 0; j < 3; j++) {
+            value[3*i+j] = (H[j] + F[j] + A[j] - C[j]) / 2 + s
+                * (C[j] + F[j] - H[j] - A[j]) / 2 + t
+                * (C[j] - F[j] + H[j] - A[j]) / 2 + u
+                * (C[j] - F[j] - H[j] + A[j]) / 2;
+          }
+        }
+      }
+    }
+    return new float[][]{value};
   }
 
   // WLH 6 Dec 2001
@@ -2188,24 +2491,10 @@ public class Gridded3DSet extends GriddedSet {
     }
 
     if (fill) {
-
-      VisADTriangleArray triangles = new VisADTriangleArray();
-      triangles.normals = contour.triangleNormals[0];
-
-      // make sure there are some contours
-      if (contour.triangleCoords != null
-          && (contour.triangleCoords[0] != null && contour.triangleCoords[1] != null)) {
-        setGeometryArray(triangles, gridToValue(contour.triangleCoords), 4,
-            contour.triangleColors);
-      }
-
-      return new VisADGeometryArray[][] {
-          new VisADGeometryArray[] { triangles }, // triangles instead of lines
-          null, // no label fill lines
-          labelLines, // label array may be null
-          null // no expanding line segments
+      VisADTriangleStripArray tsa = contour.triStripBldr.compile(this);
+      return new VisADGeometryArray[][] { 
+          new VisADGeometryArray[] {tsa}, null, labelLines, null
       };
-
     }
 
     fillLines = new VisADLineStripArray[2];
