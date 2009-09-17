@@ -1354,8 +1354,8 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     texCoords = new float[8];
     float ratiow = ((float) data_width) / ((float) texture_width);
     float ratioh = ((float) data_height) / ((float) texture_height);
-    setTexCoords(texCoords, ratiow, ratioh);
-                                                                                                                       
+    setTexCoords(texCoords, ratiow, ratioh, yUp);
+
     normals = new float[12];
     float n0 = ((coordinates[3+2]-coordinates[0+2]) *
                 (coordinates[6+1]-coordinates[0+1])) -
@@ -1452,7 +1452,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
   }
 
 }
-
 
 class SwitchNotify extends Switch {
   VisADImageNode imgNode;
