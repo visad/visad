@@ -280,18 +280,38 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   }
 
   public void setTexCoords(float[] texCoords, float ratiow, float ratioh) {
-    // corner 0
-    texCoords[0] = 0.0f;
-    texCoords[1] = 1.0f;
-    // corner 1
-    texCoords[2] = ratiow;
-    texCoords[3] = 1.0f;
-    // corner 2
-    texCoords[4] = ratiow;
-    texCoords[5] = 1.0f - ratioh;
-    // corner 3
-    texCoords[6] = 0.0f;
-    texCoords[7] = 1.0f - ratioh;
+    setTexCoords(texCoords, ratiow, ratioh, false);
+  }
+
+  public void setTexCoords(float[] texCoords, float ratiow, float ratioh, boolean yUp) {
+    if (!yUp) { // the default
+      // corner 0
+      texCoords[0] = 0.0f;
+      texCoords[1] = 1.0f;
+      // corner 1
+      texCoords[2] = ratiow;
+      texCoords[3] = 1.0f;
+      // corner 2
+      texCoords[4] = ratiow;
+      texCoords[5] = 1.0f - ratioh;
+      // corner 3
+      texCoords[6] = 0.0f;
+      texCoords[7] = 1.0f - ratioh;
+    }
+    else {
+      // corner 0
+      texCoords[0] = 0.0f;
+      texCoords[1] = 0.0f;
+      // corner 1
+      texCoords[2] = 1.0f - ratiow;
+      texCoords[3] = 0.0f;
+      // corner 2
+      texCoords[4] = 1.0f - ratiow;
+      texCoords[5] = 1.0f - ratioh;
+      // corner 3
+      texCoords[6] = 0.0f;
+      texCoords[7] = 1.0f - ratioh;
+    }
   }
 
   public float[] setTex3DCoords(int length, int axis, float ratiow,
