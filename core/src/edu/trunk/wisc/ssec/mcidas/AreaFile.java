@@ -242,7 +242,7 @@ public class AreaFile implements java.io.Serializable {
   transient private DataInputStream af;
 
   /** status flag */
-  private int status = 0;
+//  private int status = 0;
 
   /** location of nav, cal, aux and data blocks */
   private int navLoc, calLoc, auxLoc, datLoc;
@@ -600,7 +600,6 @@ public class AreaFile implements java.io.Serializable {
         dir[i] = af.readInt();
       }
       catch (IOException e) {
-        status = -1;
         throw new AreaFileException("Error reading AreaFile directory:" + e);
       }
     }
@@ -670,7 +669,6 @@ public class AreaFile implements java.io.Serializable {
         af.skipBytes(skipByteCount);
       }
       catch (IOException e) {
-        status = -1;
         throw new AreaFileException("Error skipping AreaFile bytes: " + e);
       }
 
@@ -679,7 +677,6 @@ public class AreaFile implements java.io.Serializable {
           nav[i] = af.readInt();
         }
         catch (IOException e) {
-          status = -1;
           throw new AreaFileException("Error reading AreaFile navigation:" +
                                       e);
         }
@@ -701,7 +698,6 @@ public class AreaFile implements java.io.Serializable {
         af.skipBytes(skipByteCount);
       }
       catch (IOException e) {
-        status = -1;
         throw new AreaFileException("Error skipping AreaFile bytes: " + e);
       }
 
@@ -710,7 +706,6 @@ public class AreaFile implements java.io.Serializable {
           cal[i] = af.readInt();
         }
         catch (IOException e) {
-          status = -1;
           throw new AreaFileException("Error reading AreaFile calibration:" +
                                       e);
         }
@@ -729,7 +724,6 @@ public class AreaFile implements java.io.Serializable {
         af.skipBytes(skipByteCount);
       }
       catch (IOException e) {
-        status = -1;
         throw new AreaFileException("Error skipping AreaFile bytes: " + e);
       }
       for (i = 0; i < auxbytes / 4; i++) {
@@ -737,7 +731,6 @@ public class AreaFile implements java.io.Serializable {
           aux[i] = af.readInt();
         }
         catch (IOException e) {
-          status = -1;
           throw new AreaFileException("Error reading AreaFile aux block:" +
                                       e);
         }
@@ -747,7 +740,6 @@ public class AreaFile implements java.io.Serializable {
 
 
     // now return the Dir, as requested...
-    status = 1;
     return;
   }
 
@@ -866,27 +858,56 @@ public class AreaFile implements java.io.Serializable {
   }
 
   /**
-   * Read the AREA file and return the contents.
+   * Read the AREA data.
    *
-   * @return int array[band][lines][elements] - If the <code>AreaFile</code>
+   * @return int array[band][lines][element] - If the <code>AreaFile</code>
    * was created as a subset only the band and subset indicated are returned,
    * otherwise all bands are returned.
    *
    * @exception AreaFileException if there is a problem
    *
    */
-
   public int[][][] getData() throws AreaFileException {
+    data = new int[origNumBands][dir[AD_NUMLINES]][dir[AD_NUMELEMS]];
+    return getData(data);
+  }
+  
+  /**
+   * Read AREA file data by reference. After reading the internal
+   *  data array is will be a reference to the target array, so any changes made
+   *  to the target array will be reflected in the internal data array.
+   * 
+   * @param target Array to use as the destination of the data read. This array
+   *  must be appropriately dimensioned as [#bands][#lines][#elems].
+   * @return int array[band][lines][element] - If the <code>AreaFile</code>
+   * was created as a subset only the band and subset indicated are returned,
+   * otherwise all bands are returned.
+   * @throws IllegalArgumentException If the target array is not dimensioned 
+   *  according to the subset, if subsetted, or otherwise has dimensions other than
+   *  [bands][lines][elements].
+   * @throws AreaFileException If an error occurs while reading data. 
+   */
+  public int[][][] getData(int[][][] target) throws AreaFileException {
+    if (target == null ||
+        (isSubsetted() && target.length != 1 && target[0].length != subset.numLines
+            && target[0][0].length != subset.numEles)
+      || (target.length != origNumBands && target[0].length != dir[AD_NUMLINES]
+            && target[0][0].length != dir[AD_NUMELEMS])) {
+      throw new IllegalArgumentException("target array is not dimensioned correctly");
+    }
+    
     if (!hasReadData) {
       if (subset == null) {
-        readData();
+        readData(target);
       }
       else {
-        readData(
+        readData(target, 
           subset.lineNumber, subset.numLines, subset.lineMag,
           subset.eleNumber, subset.numEles, subset.eleMag, subset.bandNumber);
       }
     }
+    hasReadData = true;
+    data = target;
     return data;
   }
 
@@ -1030,7 +1051,8 @@ public class AreaFile implements java.io.Serializable {
                          int numEles, int bandNumber)
           throws AreaFileException {
 
-    if (!hasReadData) readData();
+    data = new int[1][numLines][numEles];
+    if (!hasReadData) readData(data);
     int[][] subset = new int[numLines][numEles];
     for (int i = 0; i < numLines; i++) {
       int ii = i + lineNumber;
@@ -1084,7 +1106,8 @@ public class AreaFile implements java.io.Serializable {
    *
    * @throws AreaFileException
    */
-  private void readData(int lineNumber, int numLines, int lineMag,
+  private void readData(int[][][] target, 
+                        int lineNumber, int numLines, int lineMag,
                         int eleNumber, int numEles, int eleMag,
                         int bandNumber)
           throws AreaFileException {
@@ -1121,7 +1144,6 @@ public class AreaFile implements java.io.Serializable {
     int nextReadSkip = readSkip + lineSkip;
     int nextElementSkip = bandSkip + elementSkip;
 
-    data = new int[1][numLines][numEles];
     short shdata;
     int intdata;
 
@@ -1143,35 +1165,32 @@ public class AreaFile implements java.io.Serializable {
       throw new AreaFileException("Error skipping to start of data");
     }
 
-    String calType = areaDirectory.getCalibrationType();
-    boolean isBrit = calType.equalsIgnoreCase("BRIT");
-
     for (int i = 0; i < numLines; i++) {
       for (int j = 0; j < numEles; j++) {
 
         try {
           // all 1- and 2-byte data are un-signed!
           if (dir[AD_DATAWIDTH] == 1) {
-            data[0][i][j] = ((int)af.readByte()) & 0xff;
+            target[0][i][j] = ((int)af.readByte()) & 0xff;
 
           }
           else if (dir[AD_DATAWIDTH] == 2) {
             shdata = af.readShort();
             if (flipwords) {
-              data[0][i][j] = flipShort(shdata) & 0xffff;
+              target[0][i][j] = flipShort(shdata) & 0xffff;
             }
             else {
-              data[0][i][j] = ((int)shdata) & 0xffff;
+              target[0][i][j] = ((int)shdata) & 0xffff;
             }
 
           }
           else if (dir[AD_DATAWIDTH] == 4) {
             intdata = af.readInt();
             if (flipwords) {
-              data[0][i][j] = flipInt(intdata);
+              target[0][i][j] = flipInt(intdata);
             }
             else {
-              data[0][i][j] = intdata;
+              target[0][i][j] = intdata;
             }
           }
 
@@ -1193,7 +1212,6 @@ public class AreaFile implements java.io.Serializable {
       }
 
     }
-    hasReadData = true;
   }
 
   /**
@@ -1201,7 +1219,7 @@ public class AreaFile implements java.io.Serializable {
    *
    * @throws AreaFileException
    */
-  private void readData() throws AreaFileException {
+  private void readData(int[][][] target) throws AreaFileException {
 
     int i, j, k;
     int numLines = dir[AD_NUMLINES], numEles = dir[AD_NUMELEMS];
@@ -1222,12 +1240,9 @@ public class AreaFile implements java.io.Serializable {
       throw new AreaFileException("Error getting input stream for data");
 
     }
-
-    data = new int[origNumBands][numLines][numEles];
+    
     short shdata;
     int intdata;
-    boolean isBrit =
-      areaDirectory.getCalibrationType().equalsIgnoreCase("BRIT");
 
     for (i = 0; i < numLines; i++) {
 
@@ -1241,7 +1256,7 @@ public class AreaFile implements java.io.Serializable {
       catch (IOException e) {
         for (j = 0; j < numEles; j++) {
           for (k = 0; k < origNumBands; k++) {
-            data[k][i][j] = 0;
+            target[k][i][j] = 0;
           }
         }
         break;
@@ -1252,7 +1267,7 @@ public class AreaFile implements java.io.Serializable {
         for (k = 0; k < origNumBands; k++) {
 
           if (j > lineDataLen) {
-            data[k][i][j] = 0;
+            target[k][i][j] = 0;
           }
           else {
 
@@ -1260,33 +1275,33 @@ public class AreaFile implements java.io.Serializable {
               // all 1- and 2-byte data are un-signed!
 
               if (dir[AD_DATAWIDTH] == 1) {
-                data[k][i][j] = ((int)af.readByte()) & 0xff;
+                target[k][i][j] = ((int)af.readByte()) & 0xff;
                 position = position + 1;
               }
               else if (dir[AD_DATAWIDTH] == 2) {
                 shdata = af.readShort();
                 if (flipwords) {
-                  data[k][i][j] = flipShort(shdata) & 0xffff;
+                  target[k][i][j] = flipShort(shdata) & 0xffff;
                 }
                 else {
-                  data[k][i][j] = ((int)shdata) & 0xffff;
+                  target[k][i][j] = ((int)shdata) & 0xffff;
                 }
                 position = position + 2;
               }
               else if (dir[AD_DATAWIDTH] == 4) {
                 intdata = af.readInt();
                 if (flipwords) {
-                  data[k][i][j] = flipInt(intdata);
+                  target[k][i][j] = flipInt(intdata);
                 }
                 else {
-                  data[k][i][j] = intdata;
+                  target[k][i][j] = intdata;
                 }
                 position = position + 4;
               }
 
             }
             catch (IOException e) {
-              data[k][i][j] = 0;
+              target[k][i][j] = 0;
             }
           }
         }
@@ -1489,7 +1504,6 @@ public class AreaFile implements java.io.Serializable {
 
         if (db instanceof DataBufferByte) {
           DataBufferByte dbb = (DataBufferByte)db;
-          int t = dbb.getNumBanks();
           byte[] udata = dbb.getData();
           ByteArrayInputStream newios = new ByteArrayInputStream(udata);
           return new DataInputStream(newios);
