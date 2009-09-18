@@ -3866,22 +3866,20 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
               if (array_s == null) return anyContourCreated;
                 boolean adjust = getAdjustProjectionSeam();
                 // make necessary adjustments
-                if (!fill) {
-                  for (int j = 0; j < array_s.length; j++) {
-                      if (array_s[j] != null) {
-                        for (int k=0; k< array_s[j].length; k++) {
-                          VisADGeometryArray arr = array_s[j][k];
-                          if (arr != null) {
-                            if (adjust) {
-                              arr = arr.adjustLongitude(renderer);
-                              arr = arr.adjustSeam(renderer);
-                            }
-                            arr = arr.removeMissing();
+                for (int j = 0; j < array_s.length; j++) {
+                   if (array_s[j] != null) {
+                      for (int k=0; k< array_s[j].length; k++) {
+                        VisADGeometryArray arr = array_s[j][k];
+                        if (arr != null) {
+                          if (adjust) {
+                            arr = arr.adjustLongitude(renderer);
+                            arr = arr.adjustSeam(renderer);
                           }
-                          array_s[j][k] = arr;
+                          arr = arr.removeMissing();
                         }
+                        array_s[j][k] = arr;
                       }
-                  }
+                   }
                 }
 
                 VisADGeometryArray[] uBasicLines = array_s[0];
