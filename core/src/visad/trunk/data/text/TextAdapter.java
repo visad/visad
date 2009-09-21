@@ -28,6 +28,7 @@ package visad.data.text;
 
 import java.io.IOException;
 import java.io.*;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import visad.Set;
 
@@ -119,6 +120,9 @@ public class TextAdapter {
 
   private Pattern skipPattern;
 
+  /**If this is defined then when processing each tuple pass the processor the tuple
+     and do not try to create the field */
+  private StreamProcessor streamProcessor;
 
   /** Create a VisAD FlatField from a local Text (comma-, tab- or 
     * blank-separated values) ASCII file
@@ -244,7 +248,31 @@ public class TextAdapter {
     */
   public TextAdapter(InputStream inputStream, String delimiter, String map, String params,Hashtable properties, boolean onlyReadOneLine,String skipPatternString) 
                          throws IOException, VisADException {
+      this(inputStream, delimiter,  map, params, properties, onlyReadOneLine, skipPatternString,null); 
+  }
+
+
+
+  /** Create a VisAD FlatField from a local Text (comma-, tab- or 
+    * blank-separated values) ASCII file
+    * @param inputStream The input stream to read from
+    * @param delimiter the delimiter
+    * @param map the VisAD "MathType" as a string defining the FlatField
+    * @param params the list of parameters used to define what columns
+    *  of the text file correspond to what MathType parameters.
+    * @param properties properties
+    * @param onlyReadOneLine If true then only read one line of data. This is used so client code can
+    * read the meta data.
+    * @param skipPatternString if non-null then skip any line that matches this pattern
+    * @param streamProcessor Optional processor of the Tuple stream for point obs
+    * @exception IOException if there was a problem reading the file.
+    * @exception VisADException if an unexpected problem occurs.
+    */
+
+   public TextAdapter(InputStream inputStream, String delimiter, String map, String params,Hashtable properties, boolean onlyReadOneLine,String skipPatternString,StreamProcessor streamProcessor) 
+                         throws IOException, VisADException {
     this.onlyReadOneLine = onlyReadOneLine;
+    this.streamProcessor = streamProcessor;
     DELIM = delimiter;
     this.properties = properties;
     if(skipPatternString!=null && skipPatternString.length()>0) {
@@ -512,8 +540,6 @@ public class TextAdapter {
       }
 
 
-
-
       if (debug) 
             System.out.println("hdr name = "+infos[i]+" units="+
              hdrUnitString+
@@ -567,6 +593,7 @@ public class TextAdapter {
           if (u != null) System.out.println("####  Could not make RealType using specified Unit ("+hdrUnitString+") for parameter name: "+rtname);
           rt = RealType.getRealType(rtname);
         }
+
 
         //Add the realType here because its possible that it can be GC'ed
         //and removed from the global list of realtypes before we 
@@ -878,7 +905,6 @@ public class TextAdapter {
       int n = st.length;
       if (n < 1) continue; // something is wrong if this happens!
       lineCnt++;
-
       double [] dValues = new double[numDom];
       double [] rValues = null;
       Data [] tValues = null;
@@ -1012,7 +1038,6 @@ public class TextAdapter {
                 tValues[values_to_index[1][i]] = 
                         new Text((TextType) thisMT, sThisText);
 
-
                 if (debug) System.out.println("tValues[" + 
                           values_to_index[1][i] + "] = " + 
                           tValues[values_to_index[1][i]]);
@@ -1044,9 +1069,12 @@ public class TextAdapter {
         }
       }
 
+
       if(tryToMakeTuple) {
         try {
-          if (tValues != null) tuple = new Tuple(tValues);
+            if (tValues != null) {
+                tuple = new Tuple(tValues);
+            }
         } catch (visad.TypeException te) {
           // do nothing: it means they are all reals
           // tuple = new RealTuple(tValues);
@@ -1063,15 +1091,20 @@ public class TextAdapter {
         }
       }
 
-      domainValues.add(dValues);
-      rangeValues.add(rValues);
-      if (tuple != null) tupleValues.add(tuple); 
+      if (streamProcessor!=null) {
+          if (tuple != null) streamProcessor.processTuple(tuple);
+      } else {
+          domainValues.add(dValues);
+          rangeValues.add(rValues);
+          if (tuple != null) tupleValues.add(tuple); 
+      }
       if (isRaster) numElements = rValues.length;
-
       if(onlyReadOneLine) break;
-
     }
 
+    if (streamProcessor!=null) {
+        return;
+    }
     int numSamples = rangeValues.size(); // # lines of data
 
     if (numSamples == 0) {
@@ -1214,7 +1247,6 @@ public class TextAdapter {
 
     } catch (FieldException fe) {
       field = new FieldImpl((FunctionType) mt, domain);
-
     } catch (UnitException fe) {
       System.out.println("####  Problem with Units; attempting to make Field anyway");
       field = new FieldImpl((FunctionType) mt, domain);
@@ -1390,7 +1422,18 @@ public class TextAdapter {
              }
           }
        }
-       dt = visad.DateTime.createDateTime(string, format, TimeZone.getTimeZone(tz));
+
+      String key = format+"__" + tz;
+      SimpleDateFormat sdf = (SimpleDateFormat) formats.get(key);
+      if(sdf == null) {
+          sdf = new SimpleDateFormat();
+          sdf.setTimeZone(TimeZone.getTimeZone(tz));
+          sdf.applyPattern(format);
+          formats.put(key,sdf);
+      }
+      Date d = sdf.parse(string);
+      dt = new DateTime(d);
+      //       dt = visad.DateTime.createDateTime(string, format, TimeZone.getTimeZone(tz));
     } catch (VisADException e) {}
     if (dt==null) {
       throw new java.text.ParseException("Couldn't parse visad.DateTime from \""
@@ -1399,6 +1442,10 @@ public class TextAdapter {
       return dt;
     }
   }
+
+
+  /**  A set of cached simpledateformats  */
+  private static Hashtable formats = new Hashtable();
 
   /** This list of DateFormatter-s will be checked when we are making a DateTime wiht a given format */
   private static List dateParsers;
@@ -1686,6 +1733,12 @@ public class TextAdapter {
         }
         return value * southOrWest;
     }
+
+
+    public interface StreamProcessor {
+        public void processTuple(Tuple tuple) throws VisADException ;
+    }
+
 
 
 
