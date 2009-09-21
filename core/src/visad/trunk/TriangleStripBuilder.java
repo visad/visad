@@ -112,7 +112,7 @@ class TriangleStripBuilder {
     this.curBoxNum = 0;
     this.colorDim = colorDim;
     this.mergePrevious = (mergePolicy & MERGE_PREVIOUS) == MERGE_PREVIOUS;
-    log.info("mergePolicy prev:" + mergePrevious);
+    log.finer("mergePolicy prev:" + mergePrevious);
 
     this.vertices = FloatTupleArray.Factory.newInstance(2, rows * cols * 4);
     this.normals = FloatTupleArray.Factory.newInstance(3, rows * cols * 4);
