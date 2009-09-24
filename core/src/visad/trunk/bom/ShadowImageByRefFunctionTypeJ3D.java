@@ -31,6 +31,7 @@ import visad.java3d.*;
 import visad.data.mcidas.BaseMapAdapter;
 import visad.data.mcidas.AreaAdapter;
 import visad.data.gif.GIFForm;
+import visad.util.Util;
 
 import javax.media.j3d.*;
 
@@ -53,12 +54,15 @@ import java.awt.image.*;
 public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
   private static final int MISSING1 = Byte.MIN_VALUE;      // least byte
+  private static VisADImageNode keepImgNode = null;
 
-  public VisADImageNode imgNode = new VisADImageNode();
+  public VisADImageNode imgNode = null;
+ 
   AnimationControlJ3D animControl = null;
 
   public static final String PROP_IMAGE_8BIT = "visad.java3d.8bit";
   private boolean GRAY = false;
+  private boolean reuse = false;
 
   public ShadowImageByRefFunctionTypeJ3D(MathType t, DataDisplayLink link,
                                 ShadowType parent)
@@ -75,6 +79,24 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
          throws VisADException, RemoteException {
 
     DataDisplayLink link = renderer.getLink();
+
+    if (group instanceof BranchGroup && ((BranchGroup) group).numChildren() > 0) {
+       Node g = ((BranchGroup) group).getChild(0);
+        // WLH 06 Feb 06 - support switch in a branch group.
+        if (g instanceof BranchGroup && ((BranchGroup) g).numChildren() > 0) {
+            g = ((BranchGroup) g).getChild(0);
+            reuse = true;
+        }
+     }
+
+     if (!reuse) {
+       imgNode = new VisADImageNode();
+       keepImgNode = imgNode;
+     } 
+     else {
+       imgNode = keepImgNode;
+     } 
+
 
 // System.out.println("start doTransform " + (System.currentTimeMillis() - link.start_time));
 
@@ -153,7 +175,9 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       numImages = len;
 
       Switch swit = new SwitchNotify(imgNode, len);  
-      addSwitch(group, swit, animControl, domain_set, renderer);
+      ((AVControlJ3D) animControl).addPair((Switch) swit, domain_set, renderer);
+      ((AVControlJ3D) animControl).init();
+
       adaptedShadowType = (ShadowFunctionOrSetType) adaptedShadowType.getRange();
       DomainComponents = adaptedShadowType.getDomainComponents();
       imgData = (FlatField) ((FieldImpl)data).getSample(0);
@@ -162,8 +186,13 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       imgData = (FlatField)data;
     }
 
-    BufferedImage[] images = new BufferedImage[numImages];
-    int[][] intData = new int[numImages][];
+    BufferedImage[] images = null;
+    if (!reuse) {
+      images = new BufferedImage[numImages];
+    } 
+    else {
+      images = imgNode.getImages();
+    }
 
     domain_set = imgData.getDomainSet();
     dataUnits = ((Function) imgData).getDomainUnits();
@@ -255,23 +284,20 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
     if (GRAY) color_length = 1;
 
-    if (color_length == 4) {
-      image = new BufferedImage(texture_width, texture_height,  BufferedImage.TYPE_4BYTE_ABGR);
+    if (!reuse) {
+      image = createImageByRef(texture_width, texture_height, color_length);
+      images[0] = image;
+    } 
+    else {
+      image = images[0];
     }
-    else if (color_length == 3) {
-      image = new BufferedImage(texture_width, texture_height, BufferedImage.TYPE_3BYTE_BGR);
-    }
-    else if (color_length == 1) {
-      image = new BufferedImage(texture_width, texture_height, BufferedImage.TYPE_BYTE_GRAY);
-    }
+
     java.awt.image.Raster raster = image.getRaster();
     DataBuffer db = raster.getDataBuffer();
     byteData = ((DataBufferByte)db).getData();
 
-    color_bytes = makeColorBytes(imgData, cmap, cmaps, constant_alpha, RangeComponents, color_length, domain_length, permute,
-                                 color_bytes, byteData, data_width, data_height, texture_width, texture_height);
-
-    images[0] = image;
+    makeColorBytes(imgData, cmap, cmaps, constant_alpha, RangeComponents, color_length, domain_length, permute,
+                   color_bytes, byteData, data_width, data_height, texture_width, texture_height);
 
 
     // check domain and determine whether it is square or curved texture
@@ -302,10 +328,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     float[] texCoords = null;
     float[] normals = null;
     byte[] colors = null;
-    data_width = 0;
-    data_height = 0;
-    texture_width = 1;
-    texture_height = 1;
     float[] coordinatesX = null;
     float[] texCoordsX = null;
     float[] normalsX = null;
@@ -378,6 +400,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
               double y0 = g00[1][0];
               double y1 = g11[1][0];
               Set dset = new Linear2DSet(x0, x1, lenx, y0, y1, leny);
+
               byte[][] color_bytesW = new byte[4][lenx*leny];
               int cnt = 0;
               for (k=0; k<leny; k++) {
@@ -388,6 +411,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                 }
                 cnt += lenx;
               }
+
               BranchGroup branch1 = new BranchGroup();
               branch1.setCapability(BranchGroup.ALLOW_DETACH);
               branch1.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
@@ -608,22 +632,19 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       texture_height = textureWidth(data_height);
 
       for (int k=1; k<numImages; k++) {
-        if (color_length == 4) {
-          image = new BufferedImage(texture_width, texture_height,  BufferedImage.TYPE_4BYTE_ABGR);
+        if (!reuse) {
+          image = createImageByRef(texture_width, texture_height, color_length);
+          images[k] = image;
         }
-        else if (color_length == 3) {
-          image = new BufferedImage(texture_width, texture_height, BufferedImage.TYPE_3BYTE_BGR);
+        else {
+          image = images[k];
         }
-        else if (color_length == 1) {
-          image = new BufferedImage(texture_width, texture_height, BufferedImage.TYPE_BYTE_GRAY);
-        }
-        images[k] = image;
         raster = image.getRaster();
         db = raster.getDataBuffer();
         byteData = ((DataBufferByte)db).getData();
-        color_bytes = makeColorBytes(((Field)data).getSample(k), 
-              cmap, cmaps, constant_alpha, RangeComponents, color_length, domain_length, permute,
-              color_bytes, byteData, data_width, data_height, texture_width, texture_height);
+        makeColorBytes(((Field)data).getSample(k), 
+                cmap, cmaps, constant_alpha, RangeComponents, color_length, domain_length, permute,
+                color_bytes, byteData, data_width, data_height, texture_width, texture_height);
       }
 
       imgNode.setImages(images);
@@ -633,11 +654,10 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     return false;
   }
 
-  public static byte[][] makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float constant_alpha,
+  public static void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float constant_alpha,
               ShadowRealType[] RangeComponents, int color_length, int domain_length, int[] permute, 
               byte[][] color_bytes, byte[] byteData, int data_width, int data_height, int texture_width, int texture_height)
       throws VisADException, RemoteException {
-      //-byte[][] color_bytes;
 
       if (cmap != null) {
         // build texture colors in color_bytes array
@@ -698,19 +718,33 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                 "cmap != null: looking up color values");
             }
             // avoid unpacking floats for ImageFlatFields
-            //TDR,color_bytes = new byte[4][domain_length];
-            color_bytes = getColorBytes(color_bytes, 4, domain_length);
             bytes[0] = cmap.scaleValues(bytes[0], table_scale);
             // fast lookup from byte values to color bytes
             byte[] bytes0 = bytes[0];
-            for (int i=0; i<domain_length; i++) {
-              int j = bytes0[i] & 0xff; // unsigned
-              // clip to table
-              int ndx = j < 0 ? 0 : (j > tblEnd ? tblEnd : j);
-              color_bytes[0][i] = itable[ndx][0];
-              color_bytes[1][i] = itable[ndx][1];
-              color_bytes[2][i] = itable[ndx][2];
-              color_bytes[3][i] = itable[ndx][3];
+
+            for (int y=0; y<data_height; y++) {
+              for (int x=0; x<data_width; x++) {
+                int i = x + y*data_width;
+                int k = x +y*texture_width;
+                k *= color_length;
+                int j = bytes0[i] & 0xff; // unsigned
+                // clip to table
+                int ndx = j < 0 ? 0 : (j > tblEnd ? tblEnd : j);
+                if (color_length == 4) {
+                  byteData[k] = itable[ndx][3];
+                  byteData[k+1] = itable[ndx][2];
+                  byteData[k+2] = itable[ndx][1];
+                  byteData[k+3] = itable[ndx][0];
+                }
+                if (color_length == 3) {
+                  byteData[k] = itable[ndx][2];
+                  byteData[k+1] = itable[ndx][1];
+                  byteData[k+2] = itable[ndx][0];
+                }
+                if (color_length == 1) {
+                  byteData[k] = itable[ndx][0];
+                }
+              }
             }
           }
           else if (bytes != null && bytes[0] != null && is_default_unit &&
@@ -743,15 +777,29 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
               }
             }
             // now do fast lookup from byte values to color bytes
-            //TDRcolor_bytes = new byte[4][domain_length];
-            color_bytes = getColorBytes(color_bytes, 4, domain_length);
             byte[] bytes0 = bytes[0];
-            for (int i=0; i<domain_length; i++) {
-              int ndx = ((int) bytes0[i]) - MISSING1;
-              color_bytes[0][i] = fast_table[ndx][0];
-              color_bytes[1][i] = fast_table[ndx][1];
-              color_bytes[2][i] = fast_table[ndx][2];
-              color_bytes[3][i] = fast_table[ndx][3];
+
+            for (int y=0; y<data_height; y++) {
+              for (int x=0; x<data_width; x++) {
+                int i = x + y*data_width;
+                int k = x +y*texture_width;
+                k *= color_length;
+                int ndx = ((int) bytes0[i]) - MISSING1;
+                if (color_length == 4) {
+                  byteData[k] = fast_table[ndx][3];
+                  byteData[k+1] = fast_table[ndx][2];
+                  byteData[k+2] = fast_table[ndx][1];
+                  byteData[k+3] = fast_table[ndx][0];
+                }
+                if (color_length == 3) {
+                  byteData[k] = fast_table[ndx][2];
+                  byteData[k+1] = fast_table[ndx][1];
+                  byteData[k+2] = fast_table[ndx][0];
+                }
+                if (color_length == 1) {
+                  byteData[k] = fast_table[ndx][0];
+                }
+              }
             }
             bytes = null; // take out the garbage
           }
@@ -764,33 +812,33 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
             // now do fast lookup from byte values to color bytes
             float[] values0 = values[0];
             int m = 0;
-          for (int y=0; y<data_height; y++) {
-            for (int x=0; x<data_width; x++) {
-              int i = x + y*data_width;
-              int k = x +y*texture_width;
-              k *= color_length;
+            for (int y=0; y<data_height; y++) {
+              for (int x=0; x<data_width; x++) {
+                int i = x + y*data_width;
+                int k = x +y*texture_width;
+                k *= color_length;
 
-              if (!Float.isNaN(values0[i])) { // not missing
-                int j = (int) (table_scale * values0[i]);
-                // clip to table
-                int ndx = j < 0 ? 0 : (j > tblEnd ? tblEnd : j);
-              if (color_length == 4) {
-                byteData[k] = itable[ndx][3];
-                byteData[k+1] = itable[ndx][2];
-                byteData[k+2] = itable[ndx][1];
-                byteData[k+3] = itable[ndx][0];
+                if (!Float.isNaN(values0[i])) { // not missing
+                  int j = (int) (table_scale * values0[i]);
+                  // clip to table
+                  int ndx = j < 0 ? 0 : (j > tblEnd ? tblEnd : j);
+                  if (color_length == 4) {
+                    byteData[k] = itable[ndx][3];
+                    byteData[k+1] = itable[ndx][2];
+                    byteData[k+2] = itable[ndx][1];
+                    byteData[k+3] = itable[ndx][0];
+                  }
+                  if (color_length == 3) {
+                    byteData[k] = itable[ndx][2];
+                    byteData[k+1] = itable[ndx][1];
+                    byteData[k+2] = itable[ndx][0];
+                  }
+                  if (color_length == 1) {
+                    byteData[k] = itable[ndx][0];
+                  }
+                }
               }
-              if (color_length == 3) {
-                byteData[k] = itable[ndx][2];
-                byteData[k+1] = itable[ndx][1];
-                byteData[k+2] = itable[ndx][0];
-              }
-              if (color_length == 1) {
-                byteData[k] = itable[ndx][0];
-              }
-              }
-             }
-           }
+            }
             values = null; // take out the garbage
           }
         }
@@ -799,6 +847,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           bytes = null; // take out the garbage
           float[][] values = ((Field) data).getFloats(false);
           values[0] = cmap.scaleValues(values[0]);
+          
           // call lookupValues which will use function since table == null
           float[][] color_values = control.lookupValues(values[0]);
           // combine color RGB components into bytes
@@ -812,33 +861,33 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
               int i = x + y*data_width;
               int k = x +y*texture_width;
               k *= color_length;
-            if (!Float.isNaN(values[0][i])) { // not missing
-              c = (int) (255.0 * color_values[0][i]);
-              r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-              c = (int) (255.0 * color_values[1][i]);
-              g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-              c = (int) (255.0 * color_values[2][i]);
-              b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-              if (color_length == 4) {
-                c = (int) (255.0 * color_values[3][i]);
-                a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-              }
-              if (color_length == 4) {
-                byteData[k] = (byte) a;
-                byteData[k+1] = (byte) b;
-                byteData[k+2] = (byte) g;
-                byteData[k+3] = (byte) r;
-              }
-              if (color_length == 3) {
-                byteData[k] = (byte) b;
-                byteData[k+1] = (byte) g;
-                byteData[k+2] = (byte) r;
-              }
-              if (color_length == 1) {
-                byteData[k] = (byte) b;
-              }
-            }
-            }
+              if (!Float.isNaN(values[0][i])) { // not missing
+                c = (int) (255.0 * color_values[0][i]);
+                r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+                c = (int) (255.0 * color_values[1][i]);
+                g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+                c = (int) (255.0 * color_values[2][i]);
+                b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+                if (color_length == 4) {
+                  c = (int) (255.0 * color_values[3][i]);
+                  a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+                }
+                if (color_length == 4) {
+                  byteData[k] = (byte) a;
+                  byteData[k+1] = (byte) b;
+                  byteData[k+2] = (byte) g;
+                  byteData[k+3] = (byte) r;
+                }
+                if (color_length == 3) {
+                  byteData[k] = (byte) b;
+                  byteData[k+1] = (byte) g;
+                  byteData[k+2] = (byte) r;
+                }
+                if (color_length == 1) {
+                  byteData[k] = (byte) b;
+                }
+               }
+             }
            }
           // take out the garbage
           values = null;
@@ -884,33 +933,33 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
               int k = x + y*texture_width;
               k *= color_length;
 
-            if (!Float.isNaN(values[0][i]) &&
-                !Float.isNaN(values[1][i]) &&
-                !Float.isNaN(values[2][i])) { // not missing
-              c = (int) (255.0 * values[0][i]);
-              r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-              c = (int) (255.0 * values[1][i]);
-              g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-              c = (int) (255.0 * values[2][i]);
-              b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+              if (!Float.isNaN(values[0][i]) &&
+                  !Float.isNaN(values[1][i]) &&
+                  !Float.isNaN(values[2][i])) { // not missing
+                c = (int) (255.0 * values[0][i]);
+                r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+                c = (int) (255.0 * values[1][i]);
+                g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+                c = (int) (255.0 * values[2][i]);
+                b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
 
-              if (color_length == 4) {
-                byteData[k] = (byte) a;
-                byteData[k+1] = (byte) b;
-                byteData[k+2] = (byte) g;
-                byteData[k+3] = (byte) r;
-              }
-              if (color_length == 3) {
-                byteData[k] = (byte) b;
-                byteData[k+1] = (byte) g;
-                byteData[k+2] = (byte) r;
-              }
-              if (color_length == 1) {
-                byteData[k] = (byte) b;
+                if (color_length == 4) {
+                  byteData[k] = (byte) a;
+                  byteData[k+1] = (byte) b;
+                  byteData[k+2] = (byte) g;
+                  byteData[k+3] = (byte) r;
+                }
+                if (color_length == 3) {
+                  byteData[k] = (byte) b;
+                  byteData[k+1] = (byte) g;
+                  byteData[k+2] = (byte) r;
+                }
+                if (color_length == 1) {
+                  byteData[k] = (byte) b;
+                }
               }
             }
-           }
-         }
+          }
           // take out the garbage
           values = null;
         }
@@ -918,15 +967,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       else {
         throw new BadMappingException("cmap == null and cmaps == null ??");
       }
-
-    return color_bytes;
-  }
-
-  public static byte[][] getColorBytes(byte[][] color_bytes, int color_length, int length) {
-    if (color_bytes == null) {
-      color_bytes = new byte[color_length][length];
-    }
-    return color_bytes;
   }
 
   public void buildCurvedTexture(Object group, Set domain_set, Unit[] dataUnits, Unit[] domain_units,
@@ -1218,18 +1258,17 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       tarray = (VisADTriangleStripArray) tarray.adjustLongitude(renderer);
       tarray = (VisADTriangleStripArray) tarray.adjustSeam(renderer);
     }
-// System.out.println("start createImage " + (System.currentTimeMillis() - link.start_time));
-    // create BufferedImage for texture from color_bytes
-    /**
-    BufferedImage image = createImage(data_width, data_height, texture_width,
-                                      texture_height, color_bytes);
-    **/
-                                                                                                                   
-// System.out.println("start textureToGroup " + (System.currentTimeMillis() - link.start_time));
                                                                                                                    
     // add texture as sub-node of group in scene graph
-    textureToGroup(group, tarray, image, mode, constant_alpha,
-                   constant_color, texture_width, texture_height, imgNode);
+    if (!reuse) {
+       textureToGroup(group, tarray, image, mode, constant_alpha,
+                      constant_color, texture_width, texture_height, imgNode);
+    }
+    else {
+      if (animControl == null) {
+        imgNode.setCurrent(0);
+      }
+    }
 // System.out.println("end curved texture " + (System.currentTimeMillis() - link.start_time));
   }
 
@@ -1355,7 +1394,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     float ratiow = ((float) data_width) / ((float) texture_width);
     float ratioh = ((float) data_height) / ((float) texture_height);
     setTexCoords(texCoords, ratiow, ratioh, yUp);
-
+                                                                                                                       
     normals = new float[12];
     float n0 = ((coordinates[3+2]-coordinates[0+2]) *
                 (coordinates[6+1]-coordinates[0+1])) -
@@ -1402,19 +1441,17 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     qarray.colors = colors;
     qarray.normals = normals;
                                                                                                                        
-// System.out.println("start createImage " + (System.currentTimeMillis() - link.start_time));
-                                                                                                                       
-    // create BufferedImage for texture from color_bytes
-    /**
-    BufferedImage image = createImage(data_width, data_height, texture_width,
-                                      texture_height, color_bytes);
-    **/
-                                                                                                                       
-// System.out.println("start textureToGroup " + (System.currentTimeMillis() - link.start_time));
-                                                                                                                       
     // add texture as sub-node of group in scene graph
-    textureToGroup(group, qarray, image, mode, constant_alpha,
-                   constant_color, texture_width, texture_height, imgNode);
+    if (!reuse) {
+      textureToGroup(group, qarray, image, mode, constant_alpha,
+                     constant_color, texture_width, texture_height, imgNode);
+    }
+    else {
+      if (animControl == null) {
+        imgNode.setCurrent(0);
+      }
+    }
+
                                                                                                                            
 // System.out.println("end texture map " + (System.currentTimeMillis() - link.start_time));
   }
@@ -1451,7 +1488,24 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 //    return image;
   }
 
+  public BufferedImage createImageByRef(int texture_width, int texture_height, int color_length) {
+    BufferedImage image = null;
+
+    if (color_length == 4) {
+      image = new BufferedImage(texture_width, texture_height,  BufferedImage.TYPE_4BYTE_ABGR);
+    }
+    else if (color_length == 3) {
+      image = new BufferedImage(texture_width, texture_height, BufferedImage.TYPE_3BYTE_BGR);
+    }
+    else if (color_length == 1) {
+      image = new BufferedImage(texture_width, texture_height, BufferedImage.TYPE_BYTE_GRAY);
+    }
+
+    return image;
+  }
+
 }
+
 
 class SwitchNotify extends Switch {
   VisADImageNode imgNode;
