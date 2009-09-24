@@ -31,6 +31,10 @@ public class VisADImageNode implements ImageComponent2D.Updater {
      this.numImages = images.length;
    }
 
+   public BufferedImage[] getImages() {
+     return this.images;
+   }
+
    public void setImageComponent(ImageComponent2D imageComp) {
      this.imageComp = imageComp;
    }
@@ -64,8 +68,7 @@ public class VisADImageNode implements ImageComponent2D.Updater {
    **/
 }
 
-//- another way to update an ImageComponent
-/***----------------------------------------
+/*** another way to update an ImageComponent  ------------------------------
 class AnimateBehavior extends Behavior {
   private WakeupCriterion wakeupC;
   int current = 0;
