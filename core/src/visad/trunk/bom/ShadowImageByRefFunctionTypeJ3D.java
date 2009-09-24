@@ -625,12 +625,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         throw new BadMappingException("must be texture map or curved texture map");
       }
 
-      lengths = ((GriddedSet) domain_set).getLengths();
-      data_width = lengths[0];
-      data_height = lengths[1];
-      texture_width = textureWidth(data_width);
-      texture_height = textureWidth(data_height);
-
       for (int k=1; k<numImages; k++) {
         if (!reuse) {
           image = createImageByRef(texture_width, texture_height, color_length);
@@ -642,8 +636,14 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         raster = image.getRaster();
         db = raster.getDataBuffer();
         byteData = ((DataBufferByte)db).getData();
-        makeColorBytes(((Field)data).getSample(k), 
-                cmap, cmaps, constant_alpha, RangeComponents, color_length, domain_length, permute,
+        FlatField ff = (FlatField) ((Field)data).getSample(k);
+        GriddedSet domSet = (GriddedSet) ff.getDomainSet();
+        int[] lens = domSet.getLengths(); 
+        /** check image size, if not equal to first image resample to first */
+        if (lens[0] != data_width || lens[1] != data_height) {
+          ff = (FlatField) ff.resample(imgData.getDomainSet(), Data.NEAREST_NEIGHBOR, Data.NO_ERRORS);
+        }
+        makeColorBytes(ff, cmap, cmaps, constant_alpha, RangeComponents, color_length, domain_length, permute, 
                 color_bytes, byteData, data_width, data_height, texture_width, texture_height);
       }
 
