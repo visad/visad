@@ -59,6 +59,7 @@ public class MetUnits {
   *         unknown
   */
   public static String makeSymbol(String commonSymbol) {
+    if (commonSymbol == null) return null;
     String in = commonSymbol.trim();
     String out = in;
     if      (in.equalsIgnoreCase("m"))    { out = "m"; }
@@ -119,6 +120,7 @@ public class MetUnits {
     else if (in.equalsIgnoreCase("k ft")) { out ="k ft"; }
     else if (in.equalsIgnoreCase("1/sr"))  { out = "sr-1"; }
     else if (in.equalsIgnoreCase("mw**"))  { out = "mW/m^2/sr/cm-1"; }
+    else if (in.equalsIgnoreCase("mwm2"))  { out = "mW/m^2/sr/cm-1"; }
     else if (in.equalsIgnoreCase("wm**"))  { out = "W/m^2/sr/micron"; }
     else if (in.equalsIgnoreCase("wp**"))  { out = "W/m^2/sr"; }
     else if (in.equalsIgnoreCase("mb"))  { out = "hPa"; }

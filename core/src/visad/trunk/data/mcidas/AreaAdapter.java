@@ -450,12 +450,15 @@ public class AreaAdapter {
     Unit calUnit = null;
     float calScale = 1.0f;
     try {
-        calUnit = visad.data.units.Parser.parse(
-            visad.jmet.MetUnits.makeSymbol(
-                areaDirectory.getCalibrationUnitName()));
-
-        calScale = (1.0f/areaDirectory.getCalibrationScaleFactor());
+        String unit = areaDirectory.getCalibrationUnitName();
+        if (unit != null) {
+            String unitName = visad.jmet.MetUnits.makeSymbol(
+                    areaDirectory.getCalibrationUnitName());
+            calUnit = visad.data.units.Parser.parse(unitName, true);
+            calScale = (1.0f/areaDirectory.getCalibrationScaleFactor());
+        }
     } catch (Exception e) {
+        //e.printStackTrace();
         calUnit = null;
     }
     String calType = areaDirectory.getCalibrationType();
