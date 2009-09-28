@@ -2,7 +2,7 @@
  * Copyright 1998, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: Parser.java,v 1.4 2009-09-25 16:47:50 donm Exp $
+ * $Id: Parser.java,v 1.5 2009-09-28 19:25:58 donm Exp $
  */
 
 package visad.data.units;
@@ -38,33 +38,6 @@ public class Parser {
      */
     public static Parser instance() {
         return parser;
-    }
-
-    /**
-     * Parse a string unit-specification.
-     * 
-     * @param spec
-     *            The string unit-specification.
-     * @param preserveSpec
-     *            If true, then preserve the input spec
-     * @precondition The specification is non-null.
-     * @exception ParseException
-     *                An error occurred while parsing the specification.
-     * @throws UnitException
-     *             if {@code spec} requires an unsupported operation.
-     */
-    public static synchronized Unit parse(final String spec, boolean preserveSpec)
-            throws ParseException, NoSuchUnitException {
-        Unit u = parse(spec);
-        if (u != null && preserveSpec) {
-             try {
-                 u = u.clone(spec);
-             } catch (UnitException ue) {
-                throw new ParseException(ue.getMessage());
-             }
-        }
-        return u;
-
     }
 
     /**
