@@ -303,14 +303,14 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       texCoords[0] = 0.0f;
       texCoords[1] = 0.0f;
       // corner 1
-      texCoords[2] = 1.0f - ratiow;
-      texCoords[3] = 0.0f;
+      texCoords[2] = 0.0f;
+      texCoords[3] = ratioh;
       // corner 2
-      texCoords[4] = 1.0f - ratiow;
-      texCoords[5] = 1.0f - ratioh;
+      texCoords[4] = ratiow;
+      texCoords[5] = ratioh;
       // corner 3
-      texCoords[6] = 0.0f;
-      texCoords[7] = 1.0f - ratioh;
+      texCoords[6] = ratiow;
+      texCoords[7] = 0.0f;
     }
   }
 
