@@ -28,6 +28,7 @@ package visad.data.mcidas;
 import java.io.IOException;
 import java.rmi.RemoteException;
 
+import visad.BaseUnit;
 import visad.CoordinateSystem;
 import visad.DateTime;
 import visad.FlatField;
@@ -38,6 +39,7 @@ import visad.RealTupleType;
 import visad.RealType;
 import visad.Set;
 import visad.Unit;
+import visad.UnitException;
 import visad.VisADException;
 import visad.meteorology.NavigatedImage;
 import visad.meteorology.SingleBandedImage;
@@ -454,7 +456,11 @@ public class AreaAdapter {
         if (unit != null) {
             String unitName = visad.jmet.MetUnits.makeSymbol(
                     areaDirectory.getCalibrationUnitName());
-            calUnit = visad.data.units.Parser.parse(unitName, true);
+            calUnit = visad.data.units.Parser.parse(unitName);
+            // can't clone BaseUnit
+            try {
+                calUnit = calUnit.clone(unitName);
+            } catch (UnitException ue) {}
             calScale = (1.0f/areaDirectory.getCalibrationScaleFactor());
         }
     } catch (Exception e) {
