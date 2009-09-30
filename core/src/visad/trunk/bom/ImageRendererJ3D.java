@@ -26,17 +26,47 @@ MA 02111-1307, USA
 
 package visad.bom;
 
-import visad.*;
-import visad.java3d.*;
-import visad.util.Delay;
-import visad.data.netcdf.Plain;
-
-import javax.media.j3d.*;
-
-import java.rmi.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.awt.event.*;
-import javax.swing.*;
+import java.rmi.RemoteException;
+
+import javax.media.j3d.BranchGroup;
+import javax.swing.BoxLayout;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+import visad.AnimationControl;
+import visad.BadMappingException;
+import visad.CoordinateSystem;
+import visad.Data;
+import visad.DataDisplayLink;
+import visad.DataReference;
+import visad.DataReferenceImpl;
+import visad.Display;
+import visad.DisplayException;
+import visad.DisplayImpl;
+import visad.DisplayRealType;
+import visad.Field;
+import visad.FieldImpl;
+import visad.FunctionType;
+import visad.Gridded1DDoubleSet;
+import visad.MathType;
+import visad.RealTupleType;
+import visad.RealType;
+import visad.ScalarMap;
+import visad.ScalarType;
+import visad.Set;
+import visad.ShadowType;
+import visad.VisADError;
+import visad.VisADException;
+import visad.data.netcdf.Plain;
+import visad.java3d.DefaultRendererJ3D;
+import visad.java3d.DisplayImplJ3D;
+import visad.java3d.ShadowTypeJ3D;
+import visad.java3d.VisADBranchGroup;
+import visad.util.Delay;
 
 /**
    ImageRendererJ3D is the VisAD class for fast loading of images
@@ -51,6 +81,19 @@ import javax.swing.*;
 */
 public class ImageRendererJ3D extends DefaultRendererJ3D {
 
+  // FOR DEVELOPMENT PURPOSES //////////////////////////////////
+  private static final int DEF_IMG_TYPE;
+  static {
+    String val = System.getProperty("visad.java3d.8bit", "false");
+    if (Boolean.parseBoolean(val)) {
+      DEF_IMG_TYPE = BufferedImage.TYPE_BYTE_GRAY;
+      System.err.println("WARN: 8bit enabled via system property");
+    } else {
+      DEF_IMG_TYPE = BufferedImage.TYPE_4BYTE_ABGR;
+    }
+  }
+  //////////////////////////////////////////////////////////////
+  
   // MathTypes that data must equalsExceptNames()
   private static MathType image_sequence_type, image_type;
   private static MathType image_sequence_type2, image_type2;
@@ -299,6 +342,8 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
   //    sampling.<P>
   private boolean reUseFrames = false;
 
+  private int suggestedBufImgType = DEF_IMG_TYPE;
+  
   private boolean setSetOnReUseFrames = true;
 
   // factory for ShadowFunctionType that defines unique behavior
@@ -330,6 +375,33 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
     reUseFrames = reuse;
   }
 
+  /**
+   * Suggest to the underlying shadow type the buffered image type
+   * to use.
+   * 
+   * <b>Experimental</b>: This may changed or removed in future releases.
+   */
+  public void suggestBufImageType(int imageType) {
+    switch (imageType) {
+    case BufferedImage.TYPE_3BYTE_BGR:
+    case BufferedImage.TYPE_4BYTE_ABGR:
+    case BufferedImage.TYPE_BYTE_GRAY:
+//    case BufferedImage.TYPE_USHORT_GRAY:
+      break;
+    default:
+      throw new IllegalArgumentException("unsupported image type");
+    }
+    this.suggestedBufImgType = imageType;
+  }
+  
+  /**
+   * Get the image type. 
+   * @return The buffered image type used to render the image.
+   */
+  int getSuggestedBufImageType() {
+    return suggestedBufImgType;
+  }
+  
   /**
    * Turn on the reusing of frames
    * @deprecated - use setReUseFrames(boolean reuse)

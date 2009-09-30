@@ -60,17 +60,13 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
  
   AnimationControlJ3D animControl = null;
 
-  public static final String PROP_IMAGE_8BIT = "visad.java3d.8bit";
-  private boolean GRAY = false;
   private boolean reuse = false;
 
   public ShadowImageByRefFunctionTypeJ3D(MathType t, DataDisplayLink link,
                                 ShadowType parent)
          throws VisADException, RemoteException {
     super(t, link, parent);
-    GRAY = Boolean.parseBoolean(System.getProperty(PROP_IMAGE_8BIT, "false"));
     System.out.println("Using experimental image byReference rendering");
-    if (GRAY) System.out.println("8 bit color");
   }
 
   // transform data into a depiction under group
@@ -250,7 +246,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     ScalarMap cmap  = null;
     ScalarMap[] cmaps = null;
     int[] permute = {-1, -1, -1};
-    int color_length = 3;
+    boolean hasAlpha = false;
     if (rangesize == 1) {
       Vector mvector = RangeComponents[0].getSelectedMapVector();
       if (mvector.size() != 1) {
@@ -258,10 +254,10 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       }
       cmap = (ScalarMap) mvector.elementAt(0);
       if (Display.RGB.equals(cmap.getDisplayScalar())) {
-        color_length = 3;
+        
       }
       else if (Display.RGBA.equals(cmap.getDisplayScalar())) {
-        color_length = 4;
+        hasAlpha = true;
       }
       else {
         throw new BadMappingException("image values must be mapped to RGB or RGBA");
@@ -306,11 +302,30 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     int data_height = lengths[1];
     int texture_width = textureWidth(data_width);
     int texture_height = textureHeight(data_height);
-
-    if (GRAY) color_length = 1;
-
+    
+    int color_length;
+    ImageRendererJ3D imgRenderer = (ImageRendererJ3D) renderer;
+    int imageType = imgRenderer.getSuggestedBufImageType();
+    if (imageType == BufferedImage.TYPE_4BYTE_ABGR) {
+      color_length = 4;
+      if (!hasAlpha) {
+        color_length = 3;
+        imageType = BufferedImage.TYPE_3BYTE_BGR;
+      }
+    } else if (imageType == BufferedImage.TYPE_3BYTE_BGR) {
+      color_length = 3;
+    } else if (imageType == BufferedImage.TYPE_USHORT_GRAY) {
+      color_length = 2;
+    } else if (imageType == BufferedImage.TYPE_BYTE_GRAY) {
+      color_length = 1;
+    } else {
+      // we shouldn't ever get here because the renderer validates the 
+      // imageType before we get it, but just in case...
+      throw new VisADException("renderer returned unsupported image type");
+    }
+    
     if (!reuse) {
-      image = createImageByRef(texture_width, texture_height, color_length);
+      image = createImageByRef(texture_width, texture_height, imageType);
       images[0] = image;
     } 
     else {
@@ -649,9 +664,10 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       else { // !isTextureMap && !curvedTexture
         throw new BadMappingException("must be texture map or curved texture map");
       }
+
       for (int k=1; k<numImages; k++) {
         if (!reuse) {
-          image = createImageByRef(texture_width, texture_height, color_length);
+          image = createImageByRef(texture_width, texture_height, imageType);
           images[k] = image;
         }
         else {
@@ -1481,20 +1497,8 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
   }
 
-  public BufferedImage createImageByRef(int texture_width, int texture_height, int color_length) {
-    BufferedImage image = null;
-
-    if (color_length == 4) {
-      image = new BufferedImage(texture_width, texture_height,  BufferedImage.TYPE_4BYTE_ABGR);
-    }
-    else if (color_length == 3) {
-      image = new BufferedImage(texture_width, texture_height, BufferedImage.TYPE_3BYTE_BGR);
-    }
-    else if (color_length == 1) {
-      image = new BufferedImage(texture_width, texture_height, BufferedImage.TYPE_BYTE_GRAY);
-    }
-
-    return image;
+  public BufferedImage createImageByRef(int texture_width, int texture_height, int imageType) {
+    return new BufferedImage(texture_width, texture_height, imageType);
   }
 
 }
@@ -1524,7 +1528,7 @@ class SwitchNotify extends Switch {
       if ( swit.getWhichChild() == Switch.CHILD_NONE) {
         swit.setWhichChild(0);
       }
-      imgNode.setCurrent(index);
-    }
+    imgNode.setCurrent(index);
   }
+}
 }
