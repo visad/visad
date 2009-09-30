@@ -298,7 +298,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       texCoords[6] = 0.0f;
       texCoords[7] = 1.0f - ratioh;
     }
-    else {
+    else {  // yUp = true, for imageByReference=true
       // corner 0
       texCoords[0] = 0.0f;
       texCoords[1] = 0.0f;
