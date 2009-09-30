@@ -90,7 +90,32 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
      }
 
      if (!reuse) {
+
+       BranchGroup branch = new BranchGroup();
+       branch.setCapability(BranchGroup.ALLOW_DETACH);
+       branch.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
+       branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+       branch.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
+       Switch swit = (Switch) makeSwitch();
+
        imgNode = new VisADImageNode();
+
+       BranchGroup bgImages = new BranchGroup();
+       branch.setCapability(BranchGroup.ALLOW_DETACH);
+       branch.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
+       branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+       branch.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
+
+       swit.addChild(bgImages);
+       swit.setWhichChild(0);
+
+       branch.addChild(swit);
+       ((Group)group).addChild(branch);
+
+       group = bgImages;
+
+       imgNode.setBranch((BranchGroup)group);
+       imgNode.setSwitch(swit);
        keepImgNode = imgNode;
      } 
      else {
@@ -624,7 +649,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       else { // !isTextureMap && !curvedTexture
         throw new BadMappingException("must be texture map or curved texture map");
       }
-
       for (int k=1; k<numImages; k++) {
         if (!reuse) {
           image = createImageByRef(texture_width, texture_height, color_length);
@@ -649,6 +673,9 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
       imgNode.setImages(images);
 
+    if (!reuse) {
+      imgNode.initialize();
+    }
 
     ensureNotEmpty(group);
     return false;
@@ -1452,40 +1479,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       }
     }
 
-                                                                                                                           
-// System.out.println("end texture map " + (System.currentTimeMillis() - link.start_time));
-  }
-
-  public BufferedImage createImage(int data_width, int data_height,
-                                   int texture_width, int texture_height,
-                                   byte[][] color_bytes) throws VisADException {
-    ShadowFunctionOrSetType adaptedShadowType =
-      (ShadowFunctionOrSetType) getAdaptedShadowType();
-    return adaptedShadowType.createImage(data_width, data_height,
-      texture_width, texture_height, color_bytes);
-//    BufferedImage image = null;
-//    ColorModel colorModel = ColorModel.getRGBdefault();
-//    WritableRaster raster = colorModel.createCompatibleWritableRaster(
-//      texture_width, texture_height);
-//    image = new BufferedImage(colorModel, raster, false, null);
-//    int[] intData = ((DataBufferInt)raster.getDataBuffer()).getData();
-//    int k = 0;
-//    int m = 0;
-//    int r, g, b, a;
-//    for (int j=0; j<data_height; j++) {
-//      for (int i=0; i<data_width; i++) {
-//        intData[m++] = color_ints[k++];
-//      }
-//      for (int i=data_width; i<texture_width; i++) {
-//        intData[m++] = 0;
-//      }
-//    }
-//    for (int j=data_height; j<texture_height; j++) {
-//      for (int i=0; i<texture_width; i++) {
-//        intData[m++] = 0;
-//      }
-//    }
-//    return image;
   }
 
   public BufferedImage createImageByRef(int texture_width, int texture_height, int color_length) {
@@ -1510,11 +1503,13 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 class SwitchNotify extends Switch {
   VisADImageNode imgNode;
   int numChildren;
+  Switch swit;
 
   SwitchNotify(VisADImageNode imgNode, int numChildren) {
     super();
     this.imgNode = imgNode;
     this.numChildren = numChildren;
+    this.swit = imgNode.getSwitch();
   }
 
   public int numChildren() {
@@ -1522,6 +1517,14 @@ class SwitchNotify extends Switch {
   }
 
   public void setWhichChild(int index) {
-    imgNode.setCurrent(index);
+    if (index == Switch.CHILD_NONE) {
+      swit.setWhichChild(Switch.CHILD_NONE);
+    }
+    else if (index >= 0) {
+      if ( swit.getWhichChild() == Switch.CHILD_NONE) {
+        swit.setWhichChild(0);
+      }
+      imgNode.setCurrent(index);
+    }
   }
 }
