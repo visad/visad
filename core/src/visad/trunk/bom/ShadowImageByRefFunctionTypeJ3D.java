@@ -54,13 +54,14 @@ import java.awt.image.*;
 public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
   private static final int MISSING1 = Byte.MIN_VALUE;      // least byte
-  private static VisADImageNode keepImgNode = null;
 
-  public VisADImageNode imgNode = null;
+  private VisADImageNode imgNode = null;
  
   AnimationControlJ3D animControl = null;
 
   private boolean reuse = false;
+
+  private boolean curvedSizeChanged = false;
 
   public ShadowImageByRefFunctionTypeJ3D(MathType t, DataDisplayLink link,
                                 ShadowType parent)
@@ -74,6 +75,8 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                              float[] default_values, DataRenderer renderer)
          throws VisADException, RemoteException {
 
+    BufferedImage[] images = null;
+
     DataDisplayLink link = renderer.getLink();
 
     if (group instanceof BranchGroup && ((BranchGroup) group).numChildren() > 0) {
@@ -85,6 +88,25 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         }
      }
 
+    DisplayImpl display = getDisplay();
+
+    int cMapCurveSize = (int)
+       default_values[display.getDisplayScalarIndex(Display.CurvedSize)];
+
+    int curved_size =
+       (cMapCurveSize > 0)
+          ? cMapCurveSize
+          : display.getGraphicsModeControl().getCurvedSize();
+
+  
+     imgNode = ((ImageRendererJ3D)renderer).getImageNode();
+     if (imgNode != null) {
+       curvedSizeChanged = (imgNode.getCurvedSize() != curved_size);
+       imgNode.setCurvedSize(curved_size);
+     }
+
+     if (reuse) images = imgNode.getImages();
+
      if (!reuse) {
 
        BranchGroup branch = new BranchGroup();
@@ -95,6 +117,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
        Switch swit = (Switch) makeSwitch();
 
        imgNode = new VisADImageNode();
+       imgNode.setCurvedSize(curved_size);
 
        BranchGroup bgImages = new BranchGroup();
        branch.setCapability(BranchGroup.ALLOW_DETACH);
@@ -112,10 +135,10 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
        imgNode.setBranch((BranchGroup)group);
        imgNode.setSwitch(swit);
-       keepImgNode = imgNode;
+       ((ImageRendererJ3D)renderer).setImageNode(imgNode);
      } 
      else {
-       imgNode = keepImgNode;
+       imgNode = ((ImageRendererJ3D)renderer).getImageNode();
      } 
 
 
@@ -131,9 +154,8 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     ShadowFunctionOrSetType adaptedShadowType =
          (ShadowFunctionOrSetType) getAdaptedShadowType();
 
-    DisplayImpl display = getDisplay();
     GraphicsModeControl mode = (GraphicsModeControl)
-      display.getGraphicsModeControl().clone();
+          display.getGraphicsModeControl().clone();
 
     // get 'shape' flags
     boolean anyContour = adaptedShadowType.getAnyContour();
@@ -207,12 +229,12 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       imgData = (FlatField)data;
     }
 
-    BufferedImage[] images = null;
+    //BufferedImage[] images = null;
     if (!reuse) {
       images = new BufferedImage[numImages];
     } 
     else {
-      images = imgNode.getImages();
+      //images = imgNode.getImages();
     }
 
     domain_set = imgData.getDomainSet();
@@ -323,7 +345,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       // imageType before we get it, but just in case...
       throw new VisADException("renderer returned unsupported image type");
     }
-    
+
     if (!reuse) {
       image = createImageByRef(texture_width, texture_height, imageType);
       images[0] = image;
@@ -350,12 +372,15 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                                domain_set.getDimension() == 2)) &&
                              (domain_set.getManifoldDimension() == 2);
 
+    /**
     int cMapCurveSize = (int)
        default_values[display.getDisplayScalarIndex(Display.CurvedSize)];
     int curved_size =  
        (cMapCurveSize > 0)
           ? cMapCurveSize
           : display.getGraphicsModeControl().getCurvedSize();
+    **/
+
     boolean curvedTexture = adaptedShadowType.getCurvedTexture() &&
                             !isTextureMap &&
                             curved_size > 0 &&

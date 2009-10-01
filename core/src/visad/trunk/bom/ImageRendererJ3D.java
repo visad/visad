@@ -66,6 +66,7 @@ import visad.java3d.DefaultRendererJ3D;
 import visad.java3d.DisplayImplJ3D;
 import visad.java3d.ShadowTypeJ3D;
 import visad.java3d.VisADBranchGroup;
+import visad.java3d.VisADImageNode;
 import visad.util.Delay;
 
 /**
@@ -346,6 +347,8 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
   
   private boolean setSetOnReUseFrames = true;
 
+  private VisADImageNode imagesNode = null;
+
   // factory for ShadowFunctionType that defines unique behavior
   // for ImageRendererJ3D
   public ShadowType makeShadowFunctionType(
@@ -400,6 +403,14 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
    */
   int getSuggestedBufImageType() {
     return suggestedBufImgType;
+  }
+
+  public void setImageNode(VisADImageNode node) {
+    this.imagesNode = node;
+  }
+
+  public VisADImageNode getImageNode() {
+    return this.imagesNode;
   }
   
   /**
