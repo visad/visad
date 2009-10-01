@@ -534,26 +534,22 @@ public class RealType extends ScalarType {
           break;
 
         case Data.POW:
-          if (thisUnit != null && (
-              thisUnit.equals(CommonUnit.promiscuous) ||
-              thisUnit.isConvertible(CommonUnit.dimensionless))) {
-            newUnit = thisUnit.getAbsoluteUnit();
+          if (thisUnit.equals(CommonUnit.dimensionless)) {
+              newUnit = CommonUnit.dimensionless;
           }
           else {
-            newUnit = null;
+	          newUnit = CommonUnit.promiscuous;
           }
           newName = getUniqueGenericName(names, newUnit);
           newType = getRealType(newName, newUnit, newAttrMask);
           break;
 
         case Data.INV_POW:
-          if (unit != null && (
-              unit.equals(CommonUnit.promiscuous) ||
-              unit.isConvertible(CommonUnit.dimensionless))) {
-            newUnit = unit.getAbsoluteUnit();
+          if (unit.equals(CommonUnit.dimensionless)) {
+              newUnit = CommonUnit.dimensionless;
           }
           else {
-            newUnit = null;
+	          newUnit = CommonUnit.promiscuous;
           }
           newName = getUniqueGenericName(names, newUnit);
           newType = getRealType(newName, newUnit, newAttrMask);
