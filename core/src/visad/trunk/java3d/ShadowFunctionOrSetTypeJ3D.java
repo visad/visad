@@ -519,13 +519,14 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
                             BufferedImage image, GraphicsModeControl mode,
                             float constant_alpha, float[] constant_color,
                             int texture_width, int texture_height) throws VisADException {
-    textureToGroup(group, array, image, mode, constant_alpha, constant_color, texture_width, texture_height, null);
+    textureToGroup(group, array, image, mode, constant_alpha, constant_color, texture_width, texture_height, false, false, null);
   }
 
   public void textureToGroup(Object group, VisADGeometryArray array,
                             BufferedImage image, GraphicsModeControl mode,
                             float constant_alpha, float[] constant_color,
-                            int texture_width, int texture_height, VisADImageNode imgNode)
+                            int texture_width, int texture_height, 
+                            boolean byReference, boolean yUp, VisADImageNode imgNode)
          throws VisADException {
     GeometryArray geometry = display.makeGeometry(array);
     // System.out.println("texture geometry");
@@ -617,7 +618,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
     if (imgNode != null) {
       imgNode.setImageComponent(image2d);
-      //-imgNode.setBranch((BranchGroup)group);
     }
   }
 
