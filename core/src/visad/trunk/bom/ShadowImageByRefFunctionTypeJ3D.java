@@ -93,6 +93,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     int cMapCurveSize = (int)
        default_values[display.getDisplayScalarIndex(Display.CurvedSize)];
 
+
     int curved_size =
        (cMapCurveSize > 0)
           ? cMapCurveSize
@@ -1253,6 +1254,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         float isfactor = is[i] / (data_width - 1.0f);
         float jsfactor = js[j] / (data_height - 1.0f);
         texCoords[mt++] = (ratiow - width) * isfactor + half_width;
+        boolean yUp = true; // imageByReference = true
         if (yUp) { // TDR
           texCoords[mt++] = (ratioh - height) * jsfactor + half_height;
         }
@@ -1330,7 +1332,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     // add texture as sub-node of group in scene graph
     if (!reuse) {
        textureToGroup(group, tarray, image, mode, constant_alpha,
-                      constant_color, texture_width, texture_height, imgNode);
+                      constant_color, texture_width, texture_height, true, true, imgNode);
     }
     else {
       if (animControl == null) {
@@ -1461,6 +1463,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     texCoords = new float[8];
     float ratiow = ((float) data_width) / ((float) texture_width);
     float ratioh = ((float) data_height) / ((float) texture_height);
+    boolean yUp = true;
     setTexCoords(texCoords, ratiow, ratioh, yUp);
                                                                                                                        
     normals = new float[12];
@@ -1512,7 +1515,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     // add texture as sub-node of group in scene graph
     if (!reuse) {
       textureToGroup(group, qarray, image, mode, constant_alpha,
-                     constant_color, texture_width, texture_height, imgNode);
+                     constant_color, texture_width, texture_height, true, true, imgNode);
     }
     else {
       if (animControl == null) {
