@@ -79,12 +79,21 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
     DataDisplayLink link = renderer.getLink();
 
+    // return if data is missing or no ScalarMaps
+    if (data.isMissing()) {
+      ((ImageRendererJ3D) renderer).markMissingVisADBranch();
+      return false;
+    }
+    if (getLevelOfDifficulty() == NOTHING_MAPPED) return false;
+
+
     if (group instanceof BranchGroup && ((BranchGroup) group).numChildren() > 0) {
        Node g = ((BranchGroup) group).getChild(0);
         // WLH 06 Feb 06 - support switch in a branch group.
         if (g instanceof BranchGroup && ((BranchGroup) g).numChildren() > 0) {
-            g = ((BranchGroup) g).getChild(0);
-            reuse = true;
+            ((BranchGroup)g).detach();
+            //g = ((BranchGroup) g).getChild(0);
+            //reuse = true;
         }
      }
 
@@ -93,7 +102,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     int cMapCurveSize = (int)
        default_values[display.getDisplayScalarIndex(Display.CurvedSize)];
 
-
     int curved_size =
        (cMapCurveSize > 0)
           ? cMapCurveSize
@@ -101,6 +109,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
   
      imgNode = ((ImageRendererJ3D)renderer).getImageNode();
+
      if (imgNode != null) {
        curvedSizeChanged = (imgNode.getCurvedSize() != curved_size);
        imgNode.setCurvedSize(curved_size);
@@ -121,36 +130,33 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
        imgNode.setCurvedSize(curved_size);
 
        BranchGroup bgImages = new BranchGroup();
-       branch.setCapability(BranchGroup.ALLOW_DETACH);
-       branch.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
-       branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
-       branch.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
+       bgImages.setCapability(BranchGroup.ALLOW_DETACH);
+       bgImages.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
+       bgImages.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+       bgImages.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
 
        swit.addChild(bgImages);
        swit.setWhichChild(0);
 
        branch.addChild(swit);
+       //((Group)group).addChild(branch);
+       //group = bgImages;
+
+       //imgNode.setBranch(bgImages);
+       imgNode.setBranch(branch);
+       imgNode.setSwitch(swit);
+       ((ImageRendererJ3D)renderer).setImageNode(imgNode);
+
+       imgNode.initialize();
+
        ((Group)group).addChild(branch);
 
        group = bgImages;
-
-       imgNode.setBranch((BranchGroup)group);
-       imgNode.setSwitch(swit);
-       ((ImageRendererJ3D)renderer).setImageNode(imgNode);
      } 
      else {
        imgNode = ((ImageRendererJ3D)renderer).getImageNode();
      } 
 
-
-// System.out.println("start doTransform " + (System.currentTimeMillis() - link.start_time));
-
-    // return if data is missing or no ScalarMaps
-    if (data.isMissing()) {
-      ((ImageRendererJ3D) renderer).markMissingVisADBranch();
-      return false;
-    }
-    if (getLevelOfDifficulty() == NOTHING_MAPPED) return false;
 
     ShadowFunctionOrSetType adaptedShadowType =
          (ShadowFunctionOrSetType) getAdaptedShadowType();
@@ -373,14 +379,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                                domain_set.getDimension() == 2)) &&
                              (domain_set.getManifoldDimension() == 2);
 
-    /**
-    int cMapCurveSize = (int)
-       default_values[display.getDisplayScalarIndex(Display.CurvedSize)];
-    int curved_size =  
-       (cMapCurveSize > 0)
-          ? cMapCurveSize
-          : display.getGraphicsModeControl().getCurvedSize();
-    **/
 
     boolean curvedTexture = adaptedShadowType.getCurvedTexture() &&
                             !isTextureMap &&
@@ -714,10 +712,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       }
 
       imgNode.setImages(images);
-
-    if (!reuse) {
-      imgNode.initialize();
-    }
 
     ensureNotEmpty(group);
     return false;
