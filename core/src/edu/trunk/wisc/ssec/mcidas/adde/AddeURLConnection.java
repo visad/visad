@@ -104,6 +104,8 @@ import HTTPClient.UncompressInputStream;
  *   linele=&lt;lin&gt; &lt;ele&gt; &lt;type&gt; line/element to center image on (imagedata only)
  *   place=&lt;placement&gt;         placement of lat/lon or linele points (center 
  *                               or upperleft (def=center)) (imagedata only)
+ *   track&lt;0&gt;               tell the ADDE server not to track for this
+ *
  *   pos=&lt;position&gt;            request an absolute or relative ADDE position 
  *                               number.  May use &lt;start&gt; &lt;end&gt;  Default
  *                               for &lt;end&gt; is 0 if start&lt;0, or =start otherwise.
@@ -897,6 +899,7 @@ public class AddeURLConnection extends URLConnection
         String timeString = "TIME=X X I";
         String lineleType = "A";
         String placement = "C";
+        String trackString = "TRACKING=0";
 
         StringTokenizer cmdTokens = new StringTokenizer(uCmd, "&");
         while (cmdTokens.hasMoreTokens())
@@ -1045,7 +1048,7 @@ public class AddeURLConnection extends URLConnection
                 }
             }
             else
-            if (lctestString.startsWith("tra"))       // trace keyword
+            if (lctestString.startsWith("trace"))       // trace keyword
             {
                 traceString = testString;
             }
@@ -1063,6 +1066,11 @@ public class AddeURLConnection extends URLConnection
             if (lctestString.startsWith("aux"))       // aux keyword
             {
                 auxString = testString;
+            }
+            else
+            if (lctestString.startsWith("track"))      // track keyword
+            {
+                trackString = testString;
             }
             else
             if (lctestString.startsWith("uni"))      // unit keyword
@@ -1125,6 +1133,8 @@ public class AddeURLConnection extends URLConnection
         buf.append(navString);
         buf.append(" ");
         buf.append(auxString);
+        buf.append(" ");
+        buf.append(trackString);
         buf.append(" ");
         buf.append(docString);
         buf.append(" ");
@@ -1425,6 +1435,7 @@ public class AddeURLConnection extends URLConnection
         String traceString = "TRACE=0";
         String bandString = "BAND=ALL X";
         String auxString = "AUX=YES";
+        String trackString = "TRACKING=0";
 
         StringTokenizer cmdTokens = new StringTokenizer(uCmd, "&");
         while (cmdTokens.hasMoreTokens())
@@ -1479,7 +1490,7 @@ public class AddeURLConnection extends URLConnection
             }
             // now get the rest of the keywords (but filter out non-needed)
             else
-            if (lctestString.startsWith("tra"))       // trace keyword
+            if (lctestString.startsWith("trace"))       // trace keyword
             {
                 traceString = testString;
             }
@@ -1487,6 +1498,11 @@ public class AddeURLConnection extends URLConnection
             if (lctestString.startsWith("aux"))       // aux keyword
             {
                 auxString = testString;
+            }
+            else
+            if (lctestString.startsWith("track"))       // track keyword
+            {
+                trackString = testString;
             }
             else
             if (lctestString.startsWith("ban"))      // band keyword
@@ -1518,6 +1534,8 @@ public class AddeURLConnection extends URLConnection
         buf.append(bandString);
         buf.append(" ");
         buf.append(auxString);
+        buf.append(" ");
+        buf.append(trackString);
 
         // now create case sensitive command string
         String posParams = 
