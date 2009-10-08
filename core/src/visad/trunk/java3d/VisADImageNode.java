@@ -27,9 +27,9 @@ public class VisADImageNode implements ImageComponent2D.Updater {
    BufferedImage buf_image = null;
    public int current_index = 0;
 
-   int curved_size = 0;
 
-   AnimateBehavior animate; 
+   AnimateBehavior animate = null; 
+
 
    public VisADImageNode() {
    }
@@ -54,8 +54,8 @@ public class VisADImageNode implements ImageComponent2D.Updater {
    }
 
    public void setCurrent(int idx) {
-     current_index = idx;
      /**
+     current_index = idx;
      if (imageComp != null) {
        imageComp.updateData(this, 0, 0, 0, 0);
      }
@@ -92,14 +92,6 @@ public class VisADImageNode implements ImageComponent2D.Updater {
 
    public BranchGroup getBranch() {
      return branch;
-   }
-
-   public int getCurvedSize() {
-     return curved_size;
-   }
-
-   public void setCurvedSize(int curved_size) {
-     this.curved_size = curved_size;
    }
 }
 

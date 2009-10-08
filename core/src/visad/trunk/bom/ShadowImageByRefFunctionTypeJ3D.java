@@ -60,14 +60,13 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
   AnimationControlJ3D animControl = null;
 
   private boolean reuse = false;
-
-  private boolean curvedSizeChanged = false;
+  private boolean reuseImages = false;
 
   public ShadowImageByRefFunctionTypeJ3D(MathType t, DataDisplayLink link,
                                 ShadowType parent)
          throws VisADException, RemoteException {
     super(t, link, parent);
-    System.out.println("Using experimental image byReference rendering");
+    System.out.println("Using Image byReference rendering");
   }
 
   // transform data into a depiction under group
@@ -91,9 +90,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
        Node g = ((BranchGroup) group).getChild(0);
         // WLH 06 Feb 06 - support switch in a branch group.
         if (g instanceof BranchGroup && ((BranchGroup) g).numChildren() > 0) {
-            ((BranchGroup)g).detach();
-            //g = ((BranchGroup) g).getChild(0);
-            //reuse = true;
+            reuseImages = true;
         }
      }
 
@@ -106,16 +103,12 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
        (cMapCurveSize > 0)
           ? cMapCurveSize
           : display.getGraphicsModeControl().getCurvedSize();
-
   
      imgNode = ((ImageRendererJ3D)renderer).getImageNode();
 
-     if (imgNode != null) {
-       curvedSizeChanged = (imgNode.getCurvedSize() != curved_size);
-       imgNode.setCurvedSize(curved_size);
+     if (reuseImages && (imgNode != null) ) {
+       images = imgNode.getImages();
      }
-
-     if (reuse) images = imgNode.getImages();
 
      if (!reuse) {
 
@@ -127,7 +120,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
        Switch swit = (Switch) makeSwitch();
 
        imgNode = new VisADImageNode();
-       imgNode.setCurvedSize(curved_size);
 
        BranchGroup bgImages = new BranchGroup();
        bgImages.setCapability(BranchGroup.ALLOW_DETACH);
@@ -139,17 +131,19 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
        swit.setWhichChild(0);
 
        branch.addChild(swit);
-       //((Group)group).addChild(branch);
-       //group = bgImages;
 
-       //imgNode.setBranch(bgImages);
        imgNode.setBranch(branch);
        imgNode.setSwitch(swit);
        ((ImageRendererJ3D)renderer).setImageNode(imgNode);
 
        imgNode.initialize();
 
-       ((Group)group).addChild(branch);
+       if ( ((BranchGroup) group).numChildren() > 0 ) {
+         ((BranchGroup)group).setChild(branch, 0);
+       }
+       else {
+         ((BranchGroup)group).addChild(branch);
+       }
 
        group = bgImages;
      } 
@@ -236,13 +230,15 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       imgData = (FlatField)data;
     }
 
-    //BufferedImage[] images = null;
-    if (!reuse) {
+    if (images != null) {
+      if (numImages != images.length) {
+        reuseImages = false;
+      }
+    }
+
+    if (!reuseImages || images == null) {
       images = new BufferedImage[numImages];
     } 
-    else {
-      //images = imgNode.getImages();
-    }
 
     domain_set = imgData.getDomainSet();
     dataUnits = ((Function) imgData).getDomainUnits();
@@ -353,7 +349,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       throw new VisADException("renderer returned unsupported image type");
     }
 
-    if (!reuse) {
+    if (!reuseImages) {
       image = createImageByRef(texture_width, texture_height, imageType);
       images[0] = image;
     } 
@@ -690,7 +686,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       }
 
       for (int k=1; k<numImages; k++) {
-        if (!reuse) {
+        if (!reuseImages) {
           image = createImageByRef(texture_width, texture_height, imageType);
           images[k] = image;
         }
@@ -702,8 +698,8 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         byteData = ((DataBufferByte)db).getData();
         FlatField ff = (FlatField) ((Field)data).getSample(k);
         GriddedSet domSet = (GriddedSet) ff.getDomainSet();
-        int[] lens = domSet.getLengths(); 
-        /** check image size, if not equal to first image resample to first */
+        int[] lens = domSet.getLengths();
+        // check image size, if not equal to first image resample to first
         if (lens[0] != data_width || lens[1] != data_height) {
           ff = (FlatField) ff.resample(imgData.getDomainSet(), Data.NEAREST_NEIGHBOR, Data.NO_ERRORS);
         }
@@ -1550,7 +1546,7 @@ class SwitchNotify extends Switch {
       if ( swit.getWhichChild() == Switch.CHILD_NONE) {
         swit.setWhichChild(0);
       }
-    imgNode.setCurrent(index);
+      imgNode.setCurrent(index);
+    }
   }
-}
 }
