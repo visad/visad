@@ -117,9 +117,15 @@ public class Gridded2DDoubleSet extends Gridded2DSet
     this(type, samples, lengthX, lengthY, coord_sys, units, errors, true);
   }
 
+  public Gridded2DDoubleSet(MathType type, double[][] samples, int lengthX, int lengthY,
+                      CoordinateSystem coord_sys, Unit[] units,
+                      ErrorEstimate[] errors, boolean copy) throws VisADException {
+    this(type, samples, lengthX, lengthY, coord_sys, units, errors, copy, true);
+  }
+
   public Gridded2DDoubleSet(MathType type, double[][] samples, int lengthX,
                             int lengthY, CoordinateSystem coord_sys, Unit[] units,
-                            ErrorEstimate[] errors, boolean copy)
+                            ErrorEstimate[] errors, boolean copy, boolean test)
                             throws VisADException {
     super(type, null, lengthX, lengthY, coord_sys, units, errors, copy);
     if (samples == null) {
@@ -153,6 +159,8 @@ public class Gridded2DDoubleSet extends Gridded2DSet
                    - (Samples[1][1]-Samples[1][0])
                     *(Samples[0][LengthX+1]-Samples[0][1]);
       Pos = (xpos > 0);
+
+      if (test) {
 
       // CICERO
       if (xpos == 0) {
@@ -201,6 +209,7 @@ public class Gridded2DDoubleSet extends Gridded2DSet
           }
         }
       }
+     } // end if (test)
     }
   }
 
