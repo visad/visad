@@ -487,22 +487,22 @@ public class DataCacheManager {
         size = ((byte[][])data).length * ((byte[][])data)[0].length;
       }
       else if (type == TYPE_FLOAT1D) {
-        size = ((float[])data).length;
+        size = 4*((float[])data).length;
       }
       else if (type == TYPE_FLOAT2D) {
-        size = ((float[][])data).length * ((float[][])data)[0].length;
+        size = 4*((float[][])data).length * ((float[][])data)[0].length;
       }
       else if (type == TYPE_DOUBLE1D) {
-        size = ((double[])data).length;
+          size = 8*((double[])data).length;
       }
       else if (type == TYPE_DOUBLE2D) {
-        size = ((double[][])data).length * ((double[][])data)[0].length;
+        size = 8*((double[][])data).length * ((double[][])data)[0].length;
       }
       else if (type == TYPE_INT1D) {
-        size = ((int[])data).length;
+        size = 4*((int[])data).length;
       }
       else if (type == TYPE_INT2D) {
-        size = ((int[][])data).length * ((int[][])data)[0].length;
+        size = 4*((int[][])data).length * ((int[][])data)[0].length;
       }
     }
 
