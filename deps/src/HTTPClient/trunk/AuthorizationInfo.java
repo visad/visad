@@ -1206,8 +1206,8 @@ public class AuthorizationInfo implements Cloneable
 	    try
 	    {
 		// ai.extra_info  = extra_info.clone();
-		ai.extra_info = extra_info.getClass().getMethod("clone", null).
-				invoke(extra_info, null);
+		ai.extra_info = extra_info.getClass().getMethod("clone", (Class[])null).
+				invoke(extra_info, (Object)null);
 	    }
 	    catch (Throwable t)
 		{ }
