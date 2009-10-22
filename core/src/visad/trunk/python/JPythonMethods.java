@@ -2250,7 +2250,7 @@ public abstract class JPythonMethods {
   * @param list is the int[] list of indecies into f to replace
   * @param v is the value to insert into f.
   */
-  public static FlatField replace(FlatField f, int[] list, Real v) 
+  public static FlatField replace(FieldImpl f, int[] list, Real v) 
              throws VisADException, RemoteException {
     return replace(f, list, v.getValue());
   }
@@ -2262,14 +2262,27 @@ public abstract class JPythonMethods {
   * @param list is the int[] list of indecies into f to replace
   * @param v is the value to insert into f.
   */
-  public static FlatField replace(FlatField f, int[] list, double v) 
+  public static FlatField replace(FieldImpl f, int[] list, double v) 
              throws VisADException, RemoteException {
-    double [][] dv = f.getValues(false);
+    FlatField ff;
+    if (f instanceof FlatField) {
+      try {
+      ff = (FlatField)f.clone();
+      } catch (CloneNotSupportedException cns) {
+        throw new VisADException ("Cannot clone field object");
+      }
+     
+    } else {
+      ff = (FlatField)f.getSample(0);
+    }
+    double [][] dv = ff.getValues(false);
+
     for (int i=0; i<list.length; i++) {
       dv[0][list[i]] = v;
     }
-    f.setSamples(dv);
-    return f;
+
+    ff.setSamples(dv);
+    return ff;
 
   }
 
@@ -2279,15 +2292,26 @@ public abstract class JPythonMethods {
   * @param f is the input FlatField
   * @param v is the value to insert into f.
   */
-  public static FlatField replaceMissing(FlatField f, double v) 
+  public static FlatField replaceMissing(FieldImpl f, double v) 
              throws VisADException, RemoteException {
-    double [][] dv = f.getValues(false);
+    FlatField ff;
+    if (f instanceof FlatField) {
+      try {
+      ff = (FlatField)f.clone();
+      } catch (CloneNotSupportedException cns) {
+        throw new VisADException ("Cannot clone field object");
+      }
+     
+    } else {
+      ff = (FlatField)f.getSample(0);
+    }
+    double [][] dv = ff.getValues(false);
     for (int i=0; i<dv[0].length; i++) {
       if (dv[0][i] != dv[0][i]) dv[0][i] = v;
     }
 
-    f.setSamples(dv);
-    return f;
+    ff.setSamples(dv);
+    return ff;
 
   }
 
@@ -2297,15 +2321,26 @@ public abstract class JPythonMethods {
   * @param f is the input FlatField
   * @param v is the value to insert into f.
   */
-  public static FlatField replace(FlatField f, double v) 
+  public static FlatField replace(FieldImpl f, double v) 
              throws VisADException, RemoteException {
-    double [][] dv = f.getValues(false);
+    FlatField ff;
+    if (f instanceof FlatField) {
+      try {
+      ff = (FlatField)f.clone();
+      } catch (CloneNotSupportedException cns) {
+        throw new VisADException ("Cannot clone field object");
+      }
+     
+    } else {
+      ff = (FlatField)f.getSample(0);
+    }
+    double [][] dv = ff.getValues(false);
     for (int i=0; i<dv[0].length; i++) {
       dv[0][i] = v;
     }
 
-    f.setSamples(dv);
-    return f;
+    ff.setSamples(dv);
+    return ff;
 
   }
 
@@ -2315,16 +2350,28 @@ public abstract class JPythonMethods {
   * @param f is the input FlatField
   * @param v is the value to insert into f.
   */
-  public static FlatField replace(FlatField f, Real v) 
+  public static FlatField replace(FieldImpl f, Real v) 
              throws VisADException, RemoteException {
-    double [][] dv = f.getValues(false);
+    FlatField ff;
+    if (f instanceof FlatField) {
+      try {
+      ff = (FlatField)f.clone();
+      } catch (CloneNotSupportedException cns) {
+        throw new VisADException ("Cannot clone field object");
+      }
+     
+    } else {
+      ff = (FlatField)f.getSample(0);
+    }
+    double [][] dv = ff.getValues(false);
+
     double vv = v.getValue();
     for (int i=0; i<dv[0].length; i++) {
       dv[0][i] = vv;
     }
 
-    f.setSamples(dv);
-    return f;
+    ff.setSamples(dv);
+    return ff;
 
   }
 
@@ -2384,7 +2431,7 @@ public abstract class JPythonMethods {
   /**
   * re-scale the values in a FlatField
   *
-  * @param f the FlatField
+  * @param f the FieldImpl or FlatField
   * @param inlo the input low-range value
   * @param inhi the input high-range value
   * @param outlo the output low-range value
@@ -2413,7 +2460,7 @@ public abstract class JPythonMethods {
     } else {
       ff = (FlatField)f.getSample(0);
     }
-    double [][] dv = f.getValues(false);
+    double [][] dv = ff.getValues(false);
 
     double outrange = outhi - outlo;
     double inrange = inhi - inlo;
@@ -2561,7 +2608,7 @@ public abstract class JPythonMethods {
   * 'a' where the values are > 100.
   *
   */
-  public static int[] find(FlatField f, String op, double v) 
+  public static int[] find(FieldImpl f, String op, double v) 
              throws VisADException, RemoteException {
     return find(f, op, new Real(v));
   }
@@ -2587,7 +2634,12 @@ public abstract class JPythonMethods {
   */
   public static int[] find(Data f, String op, Data v)
              throws VisADException, RemoteException {
-    FlatField fv = (FlatField) f.subtract(v);
+    FlatField fv;
+    if (f instanceof FlatField) {
+      fv = (FlatField) f.subtract(v);
+    } else {
+      fv = (FlatField) (((FieldImpl)f).getSample(0)).subtract(v);
+    }
     double [][] dv = fv.getValues(false);
     Vector z = new Vector();
     int oper = -1;
@@ -2663,6 +2715,19 @@ public abstract class JPythonMethods {
   public static double[][] getValues(Field data) 
              throws VisADException, RemoteException {
     return data.getValues();
+  }
+
+  /** sets the sample values into the Field 
+  *
+  * @param f is the Field to put the samples into
+  *
+  * @param vals  are the values for all range components in the Field
+  *
+  */
+  public static void setValues(Field f, double[][] vals) 
+             throws VisADException, RemoteException {
+    f.setSamples(vals);
+    return; 
   }
 
   /** combines fields
