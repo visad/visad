@@ -37,6 +37,8 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
 
+import java.awt.*;
+import javax.swing.*;
 
 
 /**
@@ -65,17 +67,13 @@ import java.util.List;
       DataCacheManager.getCacheManager().getDoubleArray2D(cacheId); 
 </pre>
 
-* The cachemanager will keep the data arrays in memory until the total size is greater than maxSize. Then it will serialize the data arrays in a least recently used manner until the totalSize less than the max size.
+* The cachemanager will keep the data arrays in memory until the total size is greater than getMaxSize(). Then it will serialize the data arrays in a least recently used manner until the totalSize less than the max size.
  */
 
-public class DataCacheManager {
+public class DataCacheManager  implements Runnable {
 
-  /**  a megabyte         */
-  private static final int MEG = 1000000;
 
-  /** The max size held in the cache        */
-  private int maxSize = MEG * 100;
-
+ private double memoryPercentage = 0.25;    
 
   /** the singleton */
   private static DataCacheManager cacheManager;
@@ -101,12 +99,22 @@ public class DataCacheManager {
   /** Total number of bytes in memory */
   private int totalSize = 0;
 
+  private boolean running = false;
+
+
 
   /**
    * ctor
    */
   private DataCacheManager() {
     baseTime = System.currentTimeMillis();
+    try {
+        //Start  the cache monitor in a thread
+        Thread t = new Thread(this);
+        t.start();
+    } catch(Exception exc) {
+        throw new RuntimeException(exc);
+    }
   }
 
 
@@ -121,6 +129,24 @@ public class DataCacheManager {
     }
     return cacheManager;
   }
+
+
+
+
+    public void run() {
+        if(running) return;
+        running= true;
+        try {
+            while(true) {
+                Thread.currentThread().sleep(5000);
+                checkCache();
+            }
+        } catch(Exception exc) {
+            System.err.println ("Error in DataCacheManager:");
+            exc.printStackTrace();
+        }
+        running =false;
+    }
 
 
   /**
@@ -217,7 +243,6 @@ public class DataCacheManager {
         ObjectInputStream ois = new ObjectInputStream(fis);
         info.setDataFromCache(data = ois.readObject());
         totalSize += info.getSize();
-        System.err.println("   done");
         ois.close();
         fis.close();
         checkCache();
@@ -258,6 +283,16 @@ public class DataCacheManager {
       info.remove();
     }
   }
+
+
+    public void flushAllCachedData() {
+      synchronized (MUTEX) {
+          for (CacheInfo info : getCacheInfos()) {
+              flushCachedData(info);
+          }
+          Runtime.getRuntime().gc();
+      }
+    }
 
 
   /**
@@ -308,17 +343,26 @@ public class DataCacheManager {
 
 
 
+  public  void setMemoryPercent(double percentage) {
+      memoryPercentage = percentage;
+      checkCache();
+  }
+
+  public int getMaxSize() {
+      return (int)(memoryPercentage*Runtime.getRuntime().maxMemory());
+  }
+
   /**
    *  Check if we are above the max size. If so then flush data from memory  until we are below the threshold
    */
     public  void checkCache() {
-      if (totalSize < maxSize) {
+      if (totalSize < getMaxSize()) {
           return;
       }
       synchronized (MUTEX) {
           for (CacheInfo info : getCacheInfos()) {
               flushCachedData(info);
-              if (totalSize <= maxSize) {
+              if (totalSize <= getMaxSize()) {
                   break;
         }
       }
@@ -328,20 +372,38 @@ public class DataCacheManager {
 
 
 
+
   /**
    * Print out the cache statistics 
    */
   public void printStats() {
+      System.err.println(getStats());
+  }
+
+
+  public String getStats() {
     synchronized (MUTEX) {
-      System.err.println("Cache total size:" + totalSize);
-      System.err.println(
-        "   entry size/in cache/data access/cache miss/last touched");
-      for (CacheInfo info : getCacheInfos()) {
-        System.err.println(
-          "   cache entry:" + info.getSize() + " " + (info.data != null) +
-          " " + info.dataAccessedCnt + " " + info.cacheMissedCnt + " " +
-          new Date(info.lastTime));
+        StringBuffer sb = new StringBuffer();
+        int mb =(int)( getMaxSize()/(double)1000000.0);
+        int total =(int)( totalSize/(double)1000000.0);
+        sb.append("Cache total size:" + total +" MB   max size:" + mb +" MB  (" + (100*memoryPercentage)+"% of max memory)");
+        sb.append("\n");
+        List<CacheInfo> infos= getCacheInfos();
+        if(infos.size()==0) {
+            sb.append("nothing in cache");
+            sb.append("\n");
+        } else {
+            sb.append("entry size/in cache/data access/cache miss/last touched");
+            sb.append("\n");
+            for (CacheInfo info : infos) {
+                sb.append(
+                                   "   cache entry:" + info.getSize() + "   " + (info.data != null) +
+                                   "   " + info.dataAccessedCnt + "   " + info.cacheMissedCnt + "   " +
+                                   new Date(info.lastTime));
+                sb.append("\n");
+            }
       }
+        return sb.toString();
     }
   }
 
