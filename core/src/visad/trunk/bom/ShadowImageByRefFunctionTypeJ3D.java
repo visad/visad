@@ -1042,7 +1042,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     float[] coordinates = null;
     float[] texCoords = null;
     float[] normals = null;
-    byte[] colors = null;
     int data_width = 0;
     int data_height = 0;
     int texture_width = 1;
@@ -1060,7 +1059,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
     data_width = lengths[0];
     data_height = lengths[1];
-    // texture sizes must be powers of two
+    // texture sizes must be powers of two on older graphics cards.
     texture_width = textureWidth(data_width);
     texture_height = textureHeight(data_height);
                                                                                                                    
@@ -1186,7 +1185,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                                                                                                                    
     for (int i=0; i<3; i++) {
       if (spatial_maps[i] != null) {
-        //-TDR spatial_values[i] = spatial_maps[i].scaleValues(spatial_values[i]);
         spatial_values[i] = spatial_maps[i].scaleValues(spatial_values[i], false);
       }
     }
@@ -1199,8 +1197,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     else {
       CoordinateSystem coord = spatial_tuple.getCoordinateSystem();
       spatial_values = coord.toReference(spatial_values);
-      // float[][] new_spatial_values = coord.toReference(spatial_values);
-      // for (int i=0; i<3; i++) spatial_values[i] = new_spatial_values[i];
                                                                                                                    
 // inside 'if (anyFlow) {}' in ShadowType.assembleSpatial()
       renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
@@ -1222,8 +1218,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     }
                                                                                                                    
     normals = Gridded3DSet.makeNormals(coordinates, nwidth, nheight);
-    colors = new byte[3 * nn];
-    for (int i=0; i<3*nn; i++) colors[i] = (byte) 127;
                                                                                                                    
     float ratiow = ((float) data_width) / ((float) texture_width);
     float ratioh = ((float) data_height) / ((float) texture_height);
@@ -1238,9 +1232,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     texCoords = new float[2 * nn];
     for (int j=0; j<nheight; j++) {
       for (int i=0; i<nwidth; i++) {
-        //texCoords[mt++] = ratiow * is[i] / (data_width - 1.0f);
-        //texCoords[mt++] = 1.0f - ratioh * js[j] / (data_height - 1.0f);
-        // WLH 27 Jan 2003
         float isfactor = is[i] / (data_width - 1.0f);
         float jsfactor = js[j] / (data_height - 1.0f);
         texCoords[mt++] = (ratiow - width) * isfactor + half_width;
@@ -1262,7 +1253,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     tarray.vertexCount = len;
     tarray.normals = new float[3 * len];
     tarray.coordinates = new float[3 * len];
-    //tarray.colors = new byte[3 * len];
     tarray.texCoords = new float[2 * len];
                                                                                                                    
     // shuffle normals into tarray.normals, etc
@@ -1287,7 +1277,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         tarray.normals[k+3] = normals[m+nwidth3];
         tarray.normals[k+4] = normals[m+nwidth3+1];
         tarray.normals[k+5] = normals[m+nwidth3+2];
-                                                                                                                   
+
         /*
         tarray.colors[k] = colors[m];
         tarray.colors[k+1] = colors[m+1];
@@ -1296,7 +1286,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         tarray.colors[k+4] = colors[m+nwidth3+1];
         tarray.colors[k+5] = colors[m+nwidth3+2];
         */
-                                                                                                                   
+
         tarray.texCoords[kt] = texCoords[mt];
         tarray.texCoords[kt+1] = texCoords[mt+1];
         tarray.texCoords[kt+2] = texCoords[mt+nwidth2];
@@ -1413,6 +1403,8 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                                    "ShadowFunctionOrSetType.doTransform");
       }
     } // end for (int i=0; i<DomainComponents.length; i++)
+
+
     // get spatial index not mapped from domain_set
     tuple_index[2] = 3 - (tuple_index[0] + tuple_index[1]);
     DisplayRealType real = (DisplayRealType)
@@ -1453,6 +1445,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     texCoords = new float[8];
     float ratiow = ((float) data_width) / ((float) texture_width);
     float ratioh = ((float) data_height) / ((float) texture_height);
+
     boolean yUp = true;
     setTexCoords(texCoords, ratiow, ratioh, yUp);
                                                                                                                        
