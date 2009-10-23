@@ -238,12 +238,16 @@ public class DataCacheManager  implements Runnable {
       info.dataAccessed();
       if (data != null) return data;
       try {
-        System.err.println("Cache: reading from disk:" + info.getSize());
+          long t1 = System.currentTimeMillis();
         FileInputStream fis = new FileInputStream(info.cacheFile);
-        ObjectInputStream ois = new ObjectInputStream(fis);
+        BufferedInputStream bis = new BufferedInputStream(fis,100000);
+        ObjectInputStream ois = new ObjectInputStream(bis);
         info.setDataFromCache(data = ois.readObject());
+        long t2 = System.currentTimeMillis();
+        System.err.println("Read " + info.getSize() +" from file in " + (t2-t1));
         totalSize += info.getSize();
         ois.close();
+        bis.close();
         fis.close();
         checkCache();
         info.cacheMissed();
@@ -309,9 +313,11 @@ public class DataCacheManager  implements Runnable {
 
       if (!info.cacheFileGood) {
         FileOutputStream fos = new FileOutputStream(info.cacheFile);
+        BufferedOutputStream bos = new BufferedOutputStream(fos,100000);
         ObjectOutputStream oos = new ObjectOutputStream(fos);
         oos.writeObject(info.data);
         oos.close();
+        bos.close();
         fos.close();
       }
       info.data = null;
