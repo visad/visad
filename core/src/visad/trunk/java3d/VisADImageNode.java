@@ -77,7 +77,8 @@ public class VisADImageNode implements ImageComponent2D.Updater {
 		 public  void run() {
 		     System.err.println ("doing look ahead");
 		     int lookAheadCnt = 0;
-		     for(int i=theIdx+1; i<tmpImages.length && lookAheadCnt<5&&lookAheadIndexBaseIndex == theIdx;i++) {
+                     int lookAheadNum = 1;
+		     for(int i=theIdx+1; i<tmpImages.length && lookAheadCnt<lookAheadNum&&lookAheadIndexBaseIndex == theIdx;i++) {
 			 System.err.println (" prepping image " + i);
 			 CachedBufferedByteImage image = (CachedBufferedByteImage)  tmpImages[i];
 			 image.getBytesFromCache();
@@ -85,7 +86,8 @@ public class VisADImageNode implements ImageComponent2D.Updater {
 		     }
 
 		     //Now loop around to the start of the array
-		     for(int i=0; i< theIdx && i<tmpImages.length && lookAheadCnt<5&lookAheadIndexBaseIndex == theIdx;i++) {			 System.err.println (" prepping image " + i);
+		     for(int i=0; i< theIdx && i<tmpImages.length && lookAheadCnt<lookAheadNum&lookAheadIndexBaseIndex == theIdx;i++) {	
+                         System.err.println (" prepping image " + i);
 			 CachedBufferedByteImage image = (CachedBufferedByteImage)  tmpImages[i];
 			 image.getBytesFromCache();
 			 lookAheadCnt++;
