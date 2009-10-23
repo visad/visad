@@ -1,5 +1,6 @@
 package visad.java3d;
 import visad.*;
+import visad.bom.CachedBufferedByteImage;
 
 import javax.media.j3d.ImageComponent2D;
 import javax.media.j3d.ImageComponent2D.Updater;
@@ -7,6 +8,7 @@ import javax.media.j3d.Behavior;
 import javax.media.j3d.BranchGroup;
 import javax.media.j3d.Switch;
 import javax.media.j3d.BoundingSphere;
+
 import javax.vecmath.Point3d;
 import java.awt.image.*;
 import java.awt.color.*;
@@ -53,6 +55,9 @@ public class VisADImageNode implements ImageComponent2D.Updater {
      }
    }
 
+
+   private int lookAheadIndexBaseIndex = 0;
+
    public void setCurrent(int idx) {
      /**
      current_index = idx;
@@ -63,6 +68,31 @@ public class VisADImageNode implements ImageComponent2D.Updater {
      if (animate != null) {
        animate.setCurrent(idx);
        animate.postId(777);
+     }
+     final BufferedImage[] tmpImages = images;
+     final int theIdx = idx;
+     if(lookAheadIndexBaseIndex!= idx && tmpImages!=null && tmpImages.length>0 && tmpImages[0] instanceof CachedBufferedByteImage) {
+	 lookAheadIndexBaseIndex = idx;
+	 Runnable r = new Runnable() {
+		 public  void run() {
+		     System.err.println ("doing look ahead");
+		     int lookAheadCnt = 0;
+		     for(int i=theIdx+1; i<tmpImages.length && lookAheadCnt<5&&lookAheadIndexBaseIndex == theIdx;i++) {
+			 System.err.println (" prepping image " + i);
+			 CachedBufferedByteImage image = (CachedBufferedByteImage)  tmpImages[i];
+			 image.getBytesFromCache();
+			 lookAheadCnt++;
+		     }
+
+		     //Now loop around to the start of the array
+		     for(int i=0; i< theIdx && i<tmpImages.length && lookAheadCnt<5&lookAheadIndexBaseIndex == theIdx;i++) {			 System.err.println (" prepping image " + i);
+			 CachedBufferedByteImage image = (CachedBufferedByteImage)  tmpImages[i];
+			 image.getBytesFromCache();
+			 lookAheadCnt++;
+		     }
+		 }};
+	 Thread t = new Thread(r);
+	 t.start();
      }
    }
 
