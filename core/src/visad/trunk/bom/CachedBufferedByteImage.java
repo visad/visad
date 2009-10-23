@@ -138,7 +138,7 @@ public class CachedBufferedByteImage extends BufferedImage {
      *
      * @return _more_
      */
-    private byte[] getBytes() {
+    public byte[] getBytesFromCache() {
         return DataCacheManager.getCacheManager().getByteArray1D(cacheId);
     }
 
@@ -188,7 +188,7 @@ public class CachedBufferedByteImage extends BufferedImage {
      * @return _more_
      */
     public WritableRaster getRaster() {
-        DataBuffer db = new DataBufferByte(getBytes(), dbSize, dbOffset);
+        DataBuffer db = new DataBufferByte(getBytesFromCache(), dbSize, dbOffset);
         WritableRaster newRaster =
             java.awt.image.Raster.createWritableRaster(getSampleModel(), db,
                 null);
