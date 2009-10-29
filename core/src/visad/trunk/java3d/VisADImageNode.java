@@ -1,6 +1,6 @@
 package visad.java3d;
 import visad.*;
-import visad.bom.CachedBufferedByteImage;
+import visad.data.CachedBufferedByteImage;
 
 import javax.media.j3d.ImageComponent2D;
 import javax.media.j3d.ImageComponent2D.Updater;
