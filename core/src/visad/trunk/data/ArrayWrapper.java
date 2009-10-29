@@ -19,14 +19,12 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: ArrayWrapper.java,v 1.1 2009-10-29 18:44:48 jeffmc Exp $
+$Id: ArrayWrapper.java,v 1.2 2009-10-29 20:35:20 jeffmc Exp $
 */
 
 package visad.data;
 
 
-
-import visad.DataCacheManager;
 
 
 /**
