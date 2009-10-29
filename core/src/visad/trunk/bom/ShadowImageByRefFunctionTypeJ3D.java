@@ -27,6 +27,7 @@ MA 02111-1307, USA
 package visad.bom;
 
 import visad.*;
+import visad.data.CachedBufferedByteImage;
 import visad.java3d.*;
 import visad.data.mcidas.BaseMapAdapter;
 import visad.data.mcidas.AreaAdapter;
@@ -34,6 +35,8 @@ import visad.data.gif.GIFForm;
 import visad.util.Util;
 
 import javax.media.j3d.*;
+
+import java.io.*;
 
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -321,7 +324,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
     byte[][] color_bytes = null;
     byte[] byteData = null;
-    BufferedImage image = null;
+    CachedBufferedByteImage image = null;
     int[] lengths = ((GriddedSet) domain_set).getLengths();
     int data_width = lengths[0];
     int data_height = lengths[1];
@@ -354,16 +357,16 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       images[0] = image;
     } 
     else {
-      image = images[0];
+	image = (CachedBufferedByteImage)images[0];
     }
 
     java.awt.image.Raster raster = image.getRaster();
     DataBuffer db = raster.getDataBuffer();
     byteData = ((DataBufferByte)db).getData();
-
     makeColorBytes(imgData, cmap, cmaps, constant_alpha, RangeComponents, color_length, domain_length, permute,
                    color_bytes, byteData, data_width, data_height, texture_width, texture_height);
 
+    image.bytesChanged(byteData);
 
     // check domain and determine whether it is square or curved texture
     if (!Domain.getAllSpatial() || Domain.getMultipleDisplayScalar()) {
@@ -691,7 +694,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           images[k] = image;
         }
         else {
-          image = images[k];
+          image = (CachedBufferedByteImage)images[k];
         }
         raster = image.getRaster();
         db = raster.getDataBuffer();
@@ -705,6 +708,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         }
         makeColorBytes(ff, cmap, cmaps, constant_alpha, RangeComponents, color_length, domain_length, permute, 
                 color_bytes, byteData, data_width, data_height, texture_width, texture_height);
+	image.bytesChanged(byteData);
       }
 
       imgNode.setImages(images);
@@ -1508,9 +1512,12 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
   }
 
-  public BufferedImage createImageByRef(int texture_width, int texture_height, int imageType) {
-    return new BufferedImage(texture_width, texture_height, imageType);
+  public CachedBufferedByteImage createImageByRef(final int texture_width, final int texture_height, final int imageType) {
+      System.err.println("w:" + texture_width +"  h:" + texture_height);
+      return new CachedBufferedByteImage(texture_width, texture_height, imageType);
   }
+
+
 
 }
 
