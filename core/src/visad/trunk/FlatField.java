@@ -1963,7 +1963,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
    * @throws VisADException if a {@link Set#getLength()} invocation on a range
    *                        set fails.
    */
-  private void nullRanges() throws VisADException {
+  protected void nullRanges() throws VisADException {
     synchronized (DoubleRange) {
       // DoubleRange = new double[TupleDimension][];
       for (int i=0; i<TupleDimension; i++) DoubleRange[i] = null; // WLH 12 Jan 2001
@@ -5655,7 +5655,8 @@ if (pr) System.out.println("value = " + new_values[0][0]);
           // DRM 3 Oct 2006 - we need to recreate this otherwise 
           // it's shared and it's mutable!
           clone.DoubleRange = new double[TupleDimension][];
-          clone.packValues(unpackValues(true), false);
+          double[][] values  = unpackValues(true);
+          clone.packValues(values, false);
         }
         catch (VisADException ex) {
           throw new RuntimeException(ex.toString());
