@@ -1,5 +1,5 @@
 /*
- * $Id: CachedFlatField.java,v 1.2 2009-10-30 13:56:12 jeffmc Exp $
+ * $Id: CachedFlatField.java,v 1.3 2009-11-07 06:16:15 jeffmc Exp $
  *
  * Copyright  1997-2004 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -32,7 +32,7 @@ import java.rmi.RemoteException;
  * This is a FloatField that caches to disk its float array.
  *
  * @author Unidata Development Team
- * @version $Revision: 1.2 $ $Date: 2009-10-30 13:56:12 $
+ * @version $Revision: 1.3 $ $Date: 2009-11-07 06:16:15 $
  */
 public class CachedFlatField extends FlatField {
 
@@ -214,7 +214,6 @@ public class CachedFlatField extends FlatField {
 
     public void finalize() throws Throwable {
         super.finalize();
-	msg("flatfield finalized");
         if(cacheId!=null) {
             DataCacheManager.getCacheManager().removeFromCache(cacheId);
         }
