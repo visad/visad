@@ -134,7 +134,8 @@ public class EarthLocationLite extends RealTuple implements EarthLocation {
       try {
         latlon = new LatLonTuple(lat, lon);
       } catch (Exception e) {  // shouldn't happen
-        latlon = this;
+	  latlon = this;
+	  throw new RuntimeException(e);      
       }
     }
     return (LatLonPoint) latlon;
