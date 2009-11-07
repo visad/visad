@@ -68,8 +68,9 @@ public class Irregular1DSet extends IrregularSet {
 
     // sort samples so that creation of a Gridded1DSet is possible
     float[][] sortedSamples = new float[1][Length];
+    float[][]mySamples = getMySamples();
     for (int i=0; i<Length; i++) {
-      sortedSamples[0][i] = Samples[0][i];
+      sortedSamples[0][i] = mySamples[0][i];
     }
     newToOld = QuickSort.sort(sortedSamples[0]);
     oldToNew = new int[Length];
@@ -141,7 +142,7 @@ public class Irregular1DSet extends IrregularSet {
   }
 
   public Object cloneButType(MathType type) throws VisADException {
-    return new Irregular1DSet(type, Samples, DomainCoordinateSystem,
+      return new Irregular1DSet(type, getMySamples(), DomainCoordinateSystem,
                              SetUnits, SetErrors);
   }
 

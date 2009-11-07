@@ -62,6 +62,15 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
     Hi = new float[DomainDimension];
   }
 
+
+  protected void setMySamples(float[][]samples) {
+      this.Samples = samples;
+  }
+
+  protected float[][] getMySamples() {
+      return Samples;
+  }
+
   void init_samples(float[][] samples) throws VisADException {
     init_samples(samples, true);
   }
@@ -86,11 +95,13 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
       }
     }
     // MEM
+    float[][]mySamples;
+
     if (copy) {
-      Samples = new float[DomainDimension][Length];
+        mySamples = new float[DomainDimension][Length];
     }
     else {
-      Samples = samples;
+      mySamples = samples;
     }
     for (int j=0; j<DomainDimension; j++) {
       if (samples[j].length != Length) {
@@ -100,7 +111,7 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
                                " doesn't match expected length " + Length);
       }
       float[] samplesJ = samples[j];
-      float[] SamplesJ = Samples[j];
+      float[] SamplesJ = mySamples[j];
       if (copy) {
         System.arraycopy(samplesJ, 0, SamplesJ, 0, Length);
       }
@@ -135,17 +146,20 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
                             Length, SetErrors[j].getUnit());
       }
     }
+    setMySamples(mySamples);
   }
 
   public void cram_missing(boolean[] range_select) {
-    int n = Math.min(range_select.length, Samples[0].length);
+    float[][]mySamples = getMySamples();
+    int n = Math.min(range_select.length, mySamples[0].length);
     for (int i=0; i<n; i++) {
-      if (!range_select[i]) Samples[0][i] = Float.NaN;
+      if (!range_select[i]) mySamples[0][i] = Float.NaN;
     }
+    setMySamples(mySamples);
   }
 
   void cram_samples(float[][] samples) {
-    Samples = samples;
+    setMySamples(samples);
   }
 
 
@@ -162,7 +176,8 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
      float constant = 4f;
      float pi_squared = (float) (Math.PI*Math.PI);
 
-     float[][] samples = (Samples != null) ? Samples : getSamples();
+     float[][]mySamples = getMySamples();
+     float[][] samples = (mySamples != null) ? mySamples : getSamples();
 
      for ( int ii = 0; ii < Length; ii++ )
      {
@@ -186,7 +201,7 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
   }
 
   public boolean isMissing() {
-    return (Samples == null);
+    return (getMySamples() == null);
   }
 
   /**
@@ -216,7 +231,8 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
    *                             false; otherwise, a copy of the sample array.
    */
   public float[][] getSamples(boolean copy) throws VisADException {
-    return copy ? Set.copyFloats(Samples) : Samples;
+    float[][]mySamples = getMySamples();
+    return copy ? Set.copyFloats(mySamples) : mySamples;
   }
 
   public DataShadow computeRanges(ShadowType type, DataShadow shadow)
@@ -452,10 +468,14 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
      * clients to modify the values and the clone() general contract forbids
      * cross-clone effects.
      */
-    if (clone.Samples != null) {
-        clone.Samples = new float[Samples.length][];
-        for (int i = 0; i < Samples.length; i++)
-            clone.Samples[i] = (float[])Samples[i].clone();
+    float[][]thatMySamples = clone.getMySamples();
+    float[][]mySamples = getMySamples();
+    if (thatMySamples != null) {
+        float[][]copy = new float[mySamples.length][];
+        for (int i = 0; i < mySamples.length; i++) {
+            copy[i] = (float[])mySamples[i].clone();
+        }
+        clone.setMySamples(copy);
     }
 
     return clone;

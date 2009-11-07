@@ -454,13 +454,14 @@ public class LinearNDSet extends GriddedSet
    * @throws  VisADException  problem creating samples.
    */
   public float[][] getSamples(boolean copy) throws VisADException {
-    if (Samples != null) {
-      return copy ? Set.copyFloats(Samples) : Samples;
+    float[][]mySamples = getMySamples();
+    if (mySamples != null) {
+      return copy ? Set.copyFloats(mySamples) : mySamples;
     }
     float[][] samples = makeSamples ();
     if (cacheSamples) {
-      Samples = samples;
-      return copy ? Set.copyFloats(Samples) : Samples;
+      setMySamples(samples);
+      return copy ? Set.copyFloats(samples) : samples;
     }
     return samples;
   }

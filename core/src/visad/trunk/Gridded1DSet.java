@@ -133,18 +133,19 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
     HiX = Hi[0];
     LengthX = Lengths[0];
 
-    if (Samples != null && Lengths[0] > 1) {
+    float[][]mySamples = getMySamples();
+    if (mySamples != null && Lengths[0] > 1) {
       // samples consistency test
       for (int i=0; i<Length; i++) {
-        if (Samples[0][i] != Samples[0][i]) {
+        if (mySamples[0][i] != mySamples[0][i]) {
           throw new SetException(
            "Gridded1DSet: samples values may not be missing");
         }
       }
-      Ascending = (Samples[0][LengthX-1] > Samples[0][0]);
+      Ascending = (mySamples[0][LengthX-1] > mySamples[0][0]);
       if (Ascending) {
         for (int i=1; i<LengthX; i++) {
-          if (Samples[0][i] < Samples[0][i-1]) {
+          if (mySamples[0][i] < mySamples[0][i-1]) {
             throw new SetException(
              "Gridded1DSet: samples do not form a valid grid ("+i+")");
           }
@@ -152,7 +153,7 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
       }
       else { // !Pos
         for (int i=1; i<LengthX; i++) {
-          if (Samples[0][i] > Samples[0][i-1]) {
+          if (mySamples[0][i] > mySamples[0][i-1]) {
             throw new SetException(
              "Gridded1DSet: samples do not form a valid grid ("+i+")");
           }
@@ -237,7 +238,8 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
   /** convert an array of 1-D indices to an array of values in R^DomainDimension */
   public float[][] indexToValue(int[] index) throws VisADException {
     int length = index.length;
-    if (Samples == null) {
+    float[][]mySamples = getMySamples();
+    if (mySamples == null) {
       // not used - over-ridden by Linear1DSet.indexToValue
       float[][] grid = new float[ManifoldDimension][length];
       for (int i=0; i<length; i++) {
@@ -254,7 +256,7 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
       float[][] values = new float[1][length];
       for (int i=0; i<length; i++) {
         if (0 <= index[i] && index[i] < Length) {
-          values[0][i] = Samples[0][index[i]];
+          values[0][i] = mySamples[0][index[i]];
         }
         else {
           values[0][i] = Float.NaN;
@@ -311,13 +313,14 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
     */
     int length = grid[0].length;
     float[][] value = new float[1][length];
+    float[][]mySamples = getMySamples();
     for (int i=0; i<length; i++) {
       // let g be the current grid coordinate
       float g = grid[0][i];
       if ( (g < -0.5) || (g > LengthX-0.5) ) {
         value[0][i] = Float.NaN;
       } else if (Length == 1) {  // just return the value if that's all we have
-        value[0][i] = Samples[0][0];
+        value[0][i] = mySamples[0][0];
       } else {
         // calculate closest integer variable
         int ig;
@@ -326,7 +329,7 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
         else ig = (int) g;
         float A = g - ig;  // distance variable
         // do the linear interpolation
-        value[0][i] = (1-A)*Samples[0][ig] + A*Samples[0][ig+1];
+        value[0][i] = (1-A)*mySamples[0][ig] + A*mySamples[0][ig+1];
       }
     }
     return value;
@@ -351,7 +354,8 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
     */
     float[] vals = value[0];
     int length = vals.length;
-    float[] samps = Samples[0];
+    float[][]mySamples = getMySamples();
+    float[] samps = mySamples[0];
     float[][] grid = new float[1][length];
 
 
@@ -412,7 +416,7 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
   }
 
   public Object cloneButType(MathType type) throws VisADException {
-    return new Gridded1DSet(type, Samples, Length, DomainCoordinateSystem,
+    return new Gridded1DSet(type, getMySamples(), Length, DomainCoordinateSystem,
                              SetUnits, SetErrors);
   }
 
@@ -503,7 +507,7 @@ public class Gridded1DSet extends GriddedSet implements Gridded1DSetIface {
     // Print out Samples information
     System.out.println("Samples ("+gSet1D.LengthX+"):");
     for (int i=0; i<gSet1D.LengthX; i++) {
-      System.out.println("#"+i+":\t"+gSet1D.Samples[0][i]);
+	System.out.println("#"+i+":\t"+gSet1D.getMySamples()[0][i]);
     }
 
     // Test gridToValue function

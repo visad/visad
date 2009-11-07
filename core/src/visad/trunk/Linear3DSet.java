@@ -418,13 +418,14 @@ public class Linear3DSet extends Gridded3DSet
     for (int i=0; i<n; i++) indices[i] = i;
     return indexToValue(indices);
     */
-    if (Samples != null) {
-      return copy ? Set.copyFloats(Samples) : Samples;
+    float[][]mySamples = getMySamples();
+    if (mySamples != null) {
+      return copy ? Set.copyFloats(mySamples) : mySamples;
     }
     float[][] samples = makeSamples ();
     if (cacheSamples) {
-      Samples = samples;
-      return copy ? Set.copyFloats(Samples) : Samples;
+      setMySamples(samples);
+      return copy ? Set.copyFloats(samples) : samples;
     }
     return samples;
   }
@@ -808,6 +809,7 @@ for (int j=0; j<nvertex; j++) {
 
     int t;
 
+    float[][]mySamples = getMySamples();
     // use these instead of samples
     float xo = sos[0];
     float xs = sos[1];
@@ -1436,12 +1438,12 @@ for (int j=0; j<nvertex; j++) {
               VY[0][nvet] = yo + ys * (cp + iy);
               VZ[0][nvet] = zo + zs * iz;
 /*
-              VX[0][nvet] = (float) cp * Samples[0][pt + ydim + 1] +
-                         (1.0f-cp) * Samples[0][pt + ydim];
-              VY[0][nvet] = (float) cp * Samples[1][pt + ydim + 1] +
-                         (1.0f-cp) * Samples[1][pt + ydim];
-              VZ[0][nvet] = (float) cp * Samples[2][pt + ydim + 1] +
-                         (1.0f-cp) * Samples[2][pt + ydim];
+              VX[0][nvet] = (float) cp * mySamples[0][pt + ydim + 1] +
+                         (1.0f-cp) * mySamples[0][pt + ydim];
+              VY[0][nvet] = (float) cp * mySamples[1][pt + ydim + 1] +
+                         (1.0f-cp) * mySamples[1][pt + ydim];
+              VZ[0][nvet] = (float) cp * mySamples[2][pt + ydim + 1] +
+                         (1.0f-cp) * mySamples[2][pt + ydim];
 */
 
               for (int j=0; j<naux; j++) {

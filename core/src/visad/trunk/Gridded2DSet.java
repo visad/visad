@@ -78,18 +78,19 @@ public class Gridded2DSet extends GriddedSet {
     HiY = Hi[1];
     LengthY = Lengths[1];
 
-    if (Samples != null && Lengths[0] > 1 && Lengths[1] > 1) {
+    float[][]mySamples = getMySamples();
+    if (mySamples != null && Lengths[0] > 1 && Lengths[1] > 1) {
 /* CICERO
-      Pos = ( (Samples[0][1]-Samples[0][0])
-               *(Samples[1][LengthX+1]-Samples[1][1])
-              - (Samples[1][1]-Samples[1][0])
-               *(Samples[0][LengthX+1]-Samples[0][1]) > 0);
+      Pos = ( (mySamples[0][1]-mySamples[0][0])
+               *(mySamples[1][LengthX+1]-mySamples[1][1])
+              - (mySamples[1][1]-mySamples[1][0])
+               *(mySamples[0][LengthX+1]-mySamples[0][1]) > 0);
 */
 // CICERO
-      float xpos = (Samples[0][1]-Samples[0][0])
-                    *(Samples[1][LengthX+1]-Samples[1][1])
-                   - (Samples[1][1]-Samples[1][0])
-                    *(Samples[0][LengthX+1]-Samples[0][1]);
+      float xpos = (mySamples[0][1]-mySamples[0][0])
+                    *(mySamples[1][LengthX+1]-mySamples[1][1])
+                   - (mySamples[1][1]-mySamples[1][0])
+                    *(mySamples[0][LengthX+1]-mySamples[0][1]);
       Pos = (xpos > 0);
 
       if (test) {
@@ -100,7 +101,7 @@ public class Gridded2DSet extends GriddedSet {
         }
 
         for (int i=0; i<Length; i++) {
-          if (Samples[0][i] != Samples[0][i]) {
+          if (mySamples[0][i] != mySamples[0][i]) {
             throw new SetException(
              "Gridded2DSet: samples value #" + i + " may not be missing");
           }
@@ -116,10 +117,10 @@ public class Gridded2DSet extends GriddedSet {
         for (int j=0; j<LengthY-1; j++) {
           for (int i=0; i<LengthX-1; i++) {
             for (int v=0; v<2; v++) {
-              v00[v] = Samples[v][j*LengthX+i];
-              v10[v] = Samples[v][j*LengthX+i+1];
-              v01[v] = Samples[v][(j+1)*LengthX+i];
-              v11[v] = Samples[v][(j+1)*LengthX+i+1];
+              v00[v] = mySamples[v][j*LengthX+i];
+              v10[v] = mySamples[v][j*LengthX+i+1];
+              v01[v] = mySamples[v][(j+1)*LengthX+i];
+              v11[v] = mySamples[v][(j+1)*LengthX+i+1];
             }
 /* CICERO
             if (  ( (v10[0]-v00[0])*(v11[1]-v10[1])
@@ -145,18 +146,18 @@ public class Gridded2DSet extends GriddedSet {
                 (w3 > 0 != Pos) || w3 == 0 ||
                 (w4 > 0 != Pos) || w4 == 0) {
 /*
-System.out.println("Samples[0][1] = " + Samples[0][1] +
-                   " Samples[0][0] = " + Samples[0][0] +
-                   " Samples[1][LengthX+1] = " + Samples[1][LengthX+1] +
-                   " Samples[1][1] = " + Samples[1][1]);
-System.out.println("Samples[1][1] = " + Samples[1][1] +
-                   " Samples[1][0] = " + Samples[1][0] +
-                   " Samples[0][LengthX+1] = " + Samples[0][LengthX+1] +
-                   " Samples[0][1] = " + Samples[0][1]);
-System.out.println("v00[]=Samples[]["+(j*LengthX+i)+"] " +
-                   "v10[]=Samples[]["+(j*LengthX+i+1)+"] " +
-                   "v01[]=Samples[]["+((j+1)*LengthX+i)+"] " +
-                   "v11[]=Samples[]["+((j+1)*LengthX+i+1)+"]");
+System.out.println("mySamples[0][1] = " + mySamples[0][1] +
+                   " mySamples[0][0] = " + mySamples[0][0] +
+                   " mySamples[1][LengthX+1] = " + mySamples[1][LengthX+1] +
+                   " mySamples[1][1] = " + mySamples[1][1]);
+System.out.println("mySamples[1][1] = " + mySamples[1][1] +
+                   " mySamples[1][0] = " + mySamples[1][0] +
+                   " mySamples[0][LengthX+1] = " + mySamples[0][LengthX+1] +
+                   " mySamples[0][1] = " + mySamples[0][1]);
+System.out.println("v00[]=mySamples[]["+(j*LengthX+i)+"] " +
+                   "v10[]=mySamples[]["+(j*LengthX+i+1)+"] " +
+                   "v01[]=mySamples[]["+((j+1)*LengthX+i)+"] " +
+                   "v11[]=mySamples[]["+((j+1)*LengthX+i+1)+"]");
 System.out.println("Pos = " + Pos);
 System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
                               - (v10[1]-v00[1])*(v11[0]-v10[0]) ) +
@@ -225,7 +226,8 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
   /** convert an array of 1-D indices to an array of values in R^DomainDimension */
   public float[][] indexToValue(int[] index) throws VisADException {
     int length = index.length;
-    if (Samples == null) {
+    float[][]mySamples = getMySamples();
+    if (mySamples == null) {
       // not used - over-ridden by Linear2DSet.indexToValue
       int indexX, indexY;
       float[][] grid = new float[ManifoldDimension][length];
@@ -248,8 +250,8 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
       float[][] values = new float[2][length];
       for (int i=0; i<length; i++) {
         if (0 <= index[i] && index[i] < Length) {
-          values[0][i] = Samples[0][index[i]];
-          values[1][i] = Samples[1][index[i]];
+          values[0][i] = mySamples[0][index[i]];
+          values[1][i] = mySamples[1][index[i]];
         }
         else {
           values[0][i] = Float.NaN;
@@ -304,6 +306,7 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
       throw new SetException("Gridded2DSet.gridToValue: requires all grid " +
                              "dimensions to be > 1");
     }
+    float[][]mySamples = getMySamples();
     // avoid any ArrayOutOfBounds exceptions by taking the shortest length
     int length = Math.min(grid[0].length, grid[1].length);
     float[][] value = new float[2][length];
@@ -315,8 +318,8 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
            (gx > LengthX-0.5) || (gy > LengthY-0.5) ) {
         value[0][i] = value[1][i] = Float.NaN;
       } else if (Length == 1) {
-        value[0][i] = Samples[0][0];
-        value[1][i] = Samples[1][0];
+        value[0][i] = mySamples[0][0];
+        value[1][i] = mySamples[1][0];
       } else {
         // calculate closest integer variables
         int igx = (int) gx;
@@ -334,17 +337,17 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
         if (gx+gy-igx-igy-1 <= 0) {
           // point is in LOWER triangle
           for (int j=0; j<2; j++) {
-            value[j][i] = Samples[j][s[0][0]]
-              + (gx-igx)*(Samples[j][s[1][0]]-Samples[j][s[0][0]])
-              + (gy-igy)*(Samples[j][s[0][1]]-Samples[j][s[0][0]]);
+            value[j][i] = mySamples[j][s[0][0]]
+              + (gx-igx)*(mySamples[j][s[1][0]]-mySamples[j][s[0][0]])
+              + (gy-igy)*(mySamples[j][s[0][1]]-mySamples[j][s[0][0]]);
           }
         }
         else {
           // point is in UPPER triangle
           for (int j=0; j<2; j++) {
-            value[j][i] = Samples[j][s[1][1]]
-              + (1+igx-gx)*(Samples[j][s[0][1]]-Samples[j][s[1][1]])
-              + (1+igy-gy)*(Samples[j][s[1][0]]-Samples[j][s[1][1]]);
+            value[j][i] = mySamples[j][s[1][1]]
+              + (1+igx-gx)*(mySamples[j][s[0][1]]-mySamples[j][s[1][1]])
+              + (1+igy-gy)*(mySamples[j][s[1][0]]-mySamples[j][s[1][1]]);
           }
         }
       }
@@ -359,6 +362,7 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
   /** transform an array of values in R^DomainDimension to an array
       of non-integer grid coordinates */
   public float[][] valueToGrid(float[][] value) throws VisADException {
+    float[][]mySamples = getMySamples();
     if (value.length < DomainDimension) {
       throw new SetException("Gridded2DSet.valueToGrid: value dimension " +
                              value.length + " not equal to Domain dimension " +
@@ -411,14 +415,14 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
       grid[0][i] = grid[1][i] = Float.NaN;
       for (int itnum=0; itnum<2*(LengthX+LengthY); itnum++) {
         // define the four vertices of the current grid box
-        float[] v0 = {Samples[0][gy*LengthX+gx],
-                       Samples[1][gy*LengthX+gx]};
-        float[] v1 = {Samples[0][gy*LengthX+gx+1],
-                       Samples[1][gy*LengthX+gx+1]};
-        float[] v2 = {Samples[0][(gy+1)*LengthX+gx],
-                       Samples[1][(gy+1)*LengthX+gx]};
-        float[] v3 = {Samples[0][(gy+1)*LengthX+gx+1],
-                       Samples[1][(gy+1)*LengthX+gx+1]};
+        float[] v0 = {mySamples[0][gy*LengthX+gx],
+                       mySamples[1][gy*LengthX+gx]};
+        float[] v1 = {mySamples[0][gy*LengthX+gx+1],
+                       mySamples[1][gy*LengthX+gx+1]};
+        float[] v2 = {mySamples[0][(gy+1)*LengthX+gx],
+                       mySamples[1][(gy+1)*LengthX+gx]};
+        float[] v3 = {mySamples[0][(gy+1)*LengthX+gx+1],
+                       mySamples[1][(gy+1)*LengthX+gx+1]};
 
         // Both cases use diagonal D-B and point distances P-B and P-D
         float[] bd = {v2[0]-v1[0], v2[1]-v1[1]};
@@ -542,12 +546,13 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
   }
 
   public Object cloneButType(MathType type) throws VisADException {
+    float[][]mySamples = getMySamples();
     if (ManifoldDimension == 2) {
-      return new Gridded2DSet(type, Samples, LengthX, LengthY,
+      return new Gridded2DSet(type, mySamples, LengthX, LengthY,
                               DomainCoordinateSystem, SetUnits, SetErrors);
     }
     else {
-      return new Gridded2DSet(type, Samples, LengthX,
+      return new Gridded2DSet(type, mySamples, LengthX,
                               DomainCoordinateSystem, SetUnits, SetErrors);
     }
   }
@@ -646,10 +651,11 @@ System.out.println("1st = " + ( (v10[0]-v00[0])*(v11[1]-v10[1])
     for (int i=0; i<wedge.length; i++) System.out.println(" " + wedge[i]);
 
 
+    float[][]thatMySamples = gSet2D.getMySamples();
     // print out Samples information
     System.out.println("Samples ("+gSet2D.LengthX+" x "+gSet2D.LengthY+"):");
     for (int i=0; i<gSet2D.LengthX*gSet2D.LengthY; i++) {
-      System.out.println("#"+i+":\t"+gSet2D.Samples[0][i]+", "+gSet2D.Samples[1][i]);
+      System.out.println("#"+i+":\t"+thatMySamples[0][i]+", "+thatMySamples[1][i]);
     }
 
     // Test gridToValue function

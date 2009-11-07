@@ -138,11 +138,12 @@ public class Irregular3DSet extends IrregularSet {
       R^DomainDimension */
   public float[][] indexToValue(int[] index) throws VisADException {
     float[][] value = new float[3][index.length];
+    float[][]mySamples = getMySamples();
     for (int i=0; i<index.length; i++) {
       if ( (index[i] >= 0) && (index[i] < Length) ) {
-        value[0][i] = Samples[0][index[i]];
-        value[1][i] = Samples[1][index[i]];
-        value[2][i] = Samples[2][index[i]];
+        value[0][i] = mySamples[0][index[i]];
+        value[1][i] = mySamples[1][index[i]];
+        value[2][i] = mySamples[2][index[i]];
       }
       else {
         value[0][i] = value[1][i] = value[2][i] = Float.NaN;
@@ -193,6 +194,7 @@ public class Irregular3DSet extends IrregularSet {
 // System.out.println("length = " + length + " Delan.Tri.length = " +
 //                    Delan.Tri.length);
 
+    float[][]mySamples = getMySamples();
     for (int i=0; i<length; i++) {
 
       // System.out.println("\nvalue["+i+"] = ("+value[0][i]+", "+value[1][i]+", "+value[2][i]+")");
@@ -208,18 +210,18 @@ public class Irregular3DSet extends IrregularSet {
         int t1 = Delan.Tri[curtri][1];
         int t2 = Delan.Tri[curtri][2];
         int t3 = Delan.Tri[curtri][3];
-        float Ax = Samples[0][t0];
-        float Ay = Samples[1][t0];
-        float Az = Samples[2][t0];
-        float Bx = Samples[0][t1];
-        float By = Samples[1][t1];
-        float Bz = Samples[2][t1];
-        float Cx = Samples[0][t2];
-        float Cy = Samples[1][t2];
-        float Cz = Samples[2][t2];
-        float Dx = Samples[0][t3];
-        float Dy = Samples[1][t3];
-        float Dz = Samples[2][t3];
+        float Ax = mySamples[0][t0];
+        float Ay = mySamples[1][t0];
+        float Az = mySamples[2][t0];
+        float Bx = mySamples[0][t1];
+        float By = mySamples[1][t1];
+        float Bz = mySamples[2][t1];
+        float Cx = mySamples[0][t2];
+        float Cy = mySamples[1][t2];
+        float Cz = mySamples[2][t2];
+        float Dx = mySamples[0][t3];
+        float Dy = mySamples[1][t3];
+        float Dz = mySamples[2][t3];
         float Px = value[0][i];
         float Py = value[1][i];
         float Pz = value[2][i];
@@ -392,6 +394,7 @@ public class Irregular3DSet extends IrregularSet {
                              value.length + " not equal to Domain dimension " +
                              DomainDimension);
     }
+    float[][]mySamples = getMySamples();
     int[] tri = valueToTri(value);
     int[] index = new int[tri.length];
     for (int i=0; i<tri.length; i++) {
@@ -412,18 +415,18 @@ public class Irregular3DSet extends IrregularSet {
         int t3 = Delan.Tri[t][3];
 
         // partial distances
-        float D00 = Samples[0][t0] - x;
-        float D01 = Samples[1][t0] - y;
-        float D02 = Samples[2][t0] - z;
-        float D10 = Samples[0][t1] - x;
-        float D11 = Samples[1][t1] - y;
-        float D12 = Samples[2][t1] - z;
-        float D20 = Samples[0][t2] - x;
-        float D21 = Samples[1][t2] - y;
-        float D22 = Samples[2][t2] - z;
-        float D30 = Samples[0][t3] - x;
-        float D31 = Samples[1][t3] - y;
-        float D32 = Samples[2][t3] - z;
+        float D00 = mySamples[0][t0] - x;
+        float D01 = mySamples[1][t0] - y;
+        float D02 = mySamples[2][t0] - z;
+        float D10 = mySamples[0][t1] - x;
+        float D11 = mySamples[1][t1] - y;
+        float D12 = mySamples[2][t1] - z;
+        float D20 = mySamples[0][t2] - x;
+        float D21 = mySamples[1][t2] - y;
+        float D22 = mySamples[2][t2] - z;
+        float D30 = mySamples[0][t3] - x;
+        float D31 = mySamples[1][t3] - y;
+        float D32 = mySamples[2][t3] - z;
 
         // distances squared
         float Dsq0 = D00*D00 + D01*D01 + D02*D02;
@@ -460,6 +463,7 @@ public class Irregular3DSet extends IrregularSet {
                             +" lengths don't match");
     }
     // System.out.println("value: "+value[0][0]+", "+value[1][0]+", "+value[2][0]);
+    float[][]mySamples = getMySamples();
     int[] tri = valueToTri(value);
     for (int i=0; i<tri.length; i++) {
       if (tri[i] < 0) {
@@ -487,18 +491,18 @@ public class Irregular3DSet extends IrregularSet {
         ival[3] = t3;
 
         // triangle vertices
-        float x0 = Samples[0][t0];
-        float y0 = Samples[1][t0];
-        float z0 = Samples[2][t0];
-        float x1 = Samples[0][t1];
-        float y1 = Samples[1][t1];
-        float z1 = Samples[2][t1];
-        float x2 = Samples[0][t2];
-        float y2 = Samples[1][t2];
-        float z2 = Samples[2][t2];
-        float x3 = Samples[0][t3];
-        float y3 = Samples[1][t3];
-        float z3 = Samples[2][t3];
+        float x0 = mySamples[0][t0];
+        float y0 = mySamples[1][t0];
+        float z0 = mySamples[2][t0];
+        float x1 = mySamples[0][t1];
+        float y1 = mySamples[1][t1];
+        float z1 = mySamples[2][t1];
+        float x2 = mySamples[0][t2];
+        float y2 = mySamples[1][t2];
+        float z2 = mySamples[2][t2];
+        float x3 = mySamples[0][t3];
+        float y3 = mySamples[1][t3];
+        float z3 = mySamples[2][t3];
 
         // perpendicular lines
         float C0x = (y3-y1)*(z2-z1) - (z3-z1)*(y2-y1);
@@ -1043,7 +1047,7 @@ public class Irregular3DSet extends IrregularSet {
       for (int i=0; i<fieldValues.length; i++) {
         System.out.println("  " + i + " -> " + fieldValues[i]);
       }
-      System.out.println(Delan.sampleString(Samples));
+      System.out.println(Delan.sampleString(getMySamples()));
     }
 
 
@@ -1067,6 +1071,7 @@ public class Irregular3DSet extends IrregularSet {
 
     int nvertex = 0;
     int npolygons = 0;
+    float[][]mySamples = getMySamples();
     for (int i=0; i<trilength; i++) {
       int v0 = Delan.Tri[i][0];
       int v1 = Delan.Tri[i][1];
@@ -1080,16 +1085,16 @@ public class Irregular3DSet extends IrregularSet {
 
       // compute tetrahedron signature
       // vector from v0 to v3
-      float vx = Samples[0][v3] - Samples[0][v0];
-      float vy = Samples[1][v3] - Samples[1][v0];
-      float vz = Samples[2][v3] - Samples[2][v0];
+      float vx = mySamples[0][v3] - mySamples[0][v0];
+      float vy = mySamples[1][v3] - mySamples[1][v0];
+      float vz = mySamples[2][v3] - mySamples[2][v0];
       // cross product (v2 - v0) x (v1 - v0)
-      float sx = Samples[0][v2] - Samples[0][v0];
-      float sy = Samples[1][v2] - Samples[1][v0];
-      float sz = Samples[2][v2] - Samples[2][v0];
-      float tx = Samples[0][v1] - Samples[0][v0];
-      float ty = Samples[1][v1] - Samples[1][v0];
-      float tz = Samples[2][v1] - Samples[2][v0];
+      float sx = mySamples[0][v2] - mySamples[0][v0];
+      float sy = mySamples[1][v2] - mySamples[1][v0];
+      float sz = mySamples[2][v2] - mySamples[2][v0];
+      float tx = mySamples[0][v1] - mySamples[0][v0];
+      float ty = mySamples[1][v1] - mySamples[1][v0];
+      float tz = mySamples[2][v1] - mySamples[2][v0];
       float cx = sy * tz - sz * ty;
       float cy = sz * tx - sx * tz;
       float cz = sx * ty - sy * tx;
@@ -1124,9 +1129,9 @@ public class Irregular3DSet extends IrregularSet {
           if (edgeInterp[0][e0] != edgeInterp[0][e0]) {
             float a = (isolevel - f1)/(f0 - f1);
             if (a < 0) a = -a;
-            edgeInterp[0][e0] = (float) a*Samples[0][v0] + (1-a)*Samples[0][v1];
-            edgeInterp[1][e0] = (float) a*Samples[1][v0] + (1-a)*Samples[1][v1];
-            edgeInterp[2][e0] = (float) a*Samples[2][v0] + (1-a)*Samples[2][v1];
+            edgeInterp[0][e0] = (float) a*mySamples[0][v0] + (1-a)*mySamples[0][v1];
+            edgeInterp[1][e0] = (float) a*mySamples[1][v0] + (1-a)*mySamples[1][v1];
+            edgeInterp[2][e0] = (float) a*mySamples[2][v0] + (1-a)*mySamples[2][v1];
             for (int j=0; j<naux; j++) {
               t = (int) ( a * ((auxValues[j][v0] < 0) ?
                     ((float) auxValues[j][v0]) + 256.0f :
@@ -1150,9 +1155,9 @@ public class Irregular3DSet extends IrregularSet {
           if (edgeInterp[0][e1] != edgeInterp[0][e1]) {
             float a = (isolevel - f2)/(f0 - f2);
             if (a < 0) a = -a;
-            edgeInterp[0][e1] = (float) a*Samples[0][v0] + (1-a)*Samples[0][v2];
-            edgeInterp[1][e1] = (float) a*Samples[1][v0] + (1-a)*Samples[1][v2];
-            edgeInterp[2][e1] = (float) a*Samples[2][v0] + (1-a)*Samples[2][v2];
+            edgeInterp[0][e1] = (float) a*mySamples[0][v0] + (1-a)*mySamples[0][v2];
+            edgeInterp[1][e1] = (float) a*mySamples[1][v0] + (1-a)*mySamples[1][v2];
+            edgeInterp[2][e1] = (float) a*mySamples[2][v0] + (1-a)*mySamples[2][v2];
             for (int j=0; j<naux; j++) {
               t = (int) ( a * ((auxValues[j][v0] < 0) ?
                     ((float) auxValues[j][v0]) + 256.0f :
@@ -1176,9 +1181,9 @@ public class Irregular3DSet extends IrregularSet {
           if (edgeInterp[0][e2] != edgeInterp[0][e2]) {
             float a = (isolevel - f3)/(f0 - f3);
             if (a < 0) a = -a;
-            edgeInterp[0][e2] = (float) a*Samples[0][v0] + (1-a)*Samples[0][v3];
-            edgeInterp[1][e2] = (float) a*Samples[1][v0] + (1-a)*Samples[1][v3];
-            edgeInterp[2][e2] = (float) a*Samples[2][v0] + (1-a)*Samples[2][v3];
+            edgeInterp[0][e2] = (float) a*mySamples[0][v0] + (1-a)*mySamples[0][v3];
+            edgeInterp[1][e2] = (float) a*mySamples[1][v0] + (1-a)*mySamples[1][v3];
+            edgeInterp[2][e2] = (float) a*mySamples[2][v0] + (1-a)*mySamples[2][v3];
             for (int j=0; j<naux; j++) {
               t = (int) ( a * ((auxValues[j][v0] < 0) ?
                     ((float) auxValues[j][v0]) + 256.0f :
@@ -1227,9 +1232,9 @@ public class Irregular3DSet extends IrregularSet {
           if (edgeInterp[0][e0] != edgeInterp[0][e0]) {
             float a = (isolevel - f1)/(f0 - f1);
             if (a < 0) a = -a;
-            edgeInterp[0][e0] = (float) a*Samples[0][v0] + (1-a)*Samples[0][v1];
-            edgeInterp[1][e0] = (float) a*Samples[1][v0] + (1-a)*Samples[1][v1];
-            edgeInterp[2][e0] = (float) a*Samples[2][v0] + (1-a)*Samples[2][v1];
+            edgeInterp[0][e0] = (float) a*mySamples[0][v0] + (1-a)*mySamples[0][v1];
+            edgeInterp[1][e0] = (float) a*mySamples[1][v0] + (1-a)*mySamples[1][v1];
+            edgeInterp[2][e0] = (float) a*mySamples[2][v0] + (1-a)*mySamples[2][v1];
             for (int j=0; j<naux; j++) {
               t = (int) ( a * ((auxValues[j][v0] < 0) ?
                     ((float) auxValues[j][v0]) + 256.0f :
@@ -1253,9 +1258,9 @@ public class Irregular3DSet extends IrregularSet {
           if (edgeInterp[0][e3] != edgeInterp[0][e3]) {
             float a = (isolevel - f2)/(f1 - f2);
             if (a < 0) a = -a;
-            edgeInterp[0][e3] = (float) a*Samples[0][v1] + (1-a)*Samples[0][v2];
-            edgeInterp[1][e3] = (float) a*Samples[1][v1] + (1-a)*Samples[1][v2];
-            edgeInterp[2][e3] = (float) a*Samples[2][v1] + (1-a)*Samples[2][v2];
+            edgeInterp[0][e3] = (float) a*mySamples[0][v1] + (1-a)*mySamples[0][v2];
+            edgeInterp[1][e3] = (float) a*mySamples[1][v1] + (1-a)*mySamples[1][v2];
+            edgeInterp[2][e3] = (float) a*mySamples[2][v1] + (1-a)*mySamples[2][v2];
             for (int j=0; j<naux; j++) {
               t = (int) ( a * ((auxValues[j][v1] < 0) ?
                     ((float) auxValues[j][v1]) + 256.0f :
@@ -1279,9 +1284,9 @@ public class Irregular3DSet extends IrregularSet {
           if (edgeInterp[0][e4] != edgeInterp[0][e4]) {
             float a = (isolevel - f3)/(f1 - f3);
             if (a < 0) a = -a;
-            edgeInterp[0][e4] = (float) a*Samples[0][v1] + (1-a)*Samples[0][v3];
-            edgeInterp[1][e4] = (float) a*Samples[1][v1] + (1-a)*Samples[1][v3];
-            edgeInterp[2][e4] = (float) a*Samples[2][v1] + (1-a)*Samples[2][v3];
+            edgeInterp[0][e4] = (float) a*mySamples[0][v1] + (1-a)*mySamples[0][v3];
+            edgeInterp[1][e4] = (float) a*mySamples[1][v1] + (1-a)*mySamples[1][v3];
+            edgeInterp[2][e4] = (float) a*mySamples[2][v1] + (1-a)*mySamples[2][v3];
             for (int j=0; j<naux; j++) {
               t = (int) ( a * ((auxValues[j][v1] < 0) ?
                     ((float) auxValues[j][v1]) + 256.0f :
@@ -1331,9 +1336,9 @@ public class Irregular3DSet extends IrregularSet {
           if (edgeInterp[0][e1] != edgeInterp[0][e1]) {
             float a = (isolevel - f2)/(f0 - f2);
             if (a < 0) a = -a;
-            edgeInterp[0][e1] = (float) a*Samples[0][v0] + (1-a)*Samples[0][v2];
-            edgeInterp[1][e1] = (float) a*Samples[1][v0] + (1-a)*Samples[1][v2];
-            edgeInterp[2][e1] = (float) a*Samples[2][v0] + (1-a)*Samples[2][v2];
+            edgeInterp[0][e1] = (float) a*mySamples[0][v0] + (1-a)*mySamples[0][v2];
+            edgeInterp[1][e1] = (float) a*mySamples[1][v0] + (1-a)*mySamples[1][v2];
+            edgeInterp[2][e1] = (float) a*mySamples[2][v0] + (1-a)*mySamples[2][v2];
             for (int j=0; j<naux; j++) {
               t = (int) ( a * ((auxValues[j][v0] < 0) ?
                     ((float) auxValues[j][v0]) + 256.0f :
@@ -1357,9 +1362,9 @@ public class Irregular3DSet extends IrregularSet {
           if (edgeInterp[0][e2] != edgeInterp[0][e2]) {
             float a = (isolevel - f3)/(f0 - f3);
             if (a < 0) a = -a;
-            edgeInterp[0][e2] = (float) a*Samples[0][v0] + (1-a)*Samples[0][v3];
-            edgeInterp[1][e2] = (float) a*Samples[1][v0] + (1-a)*Samples[1][v3];
-            edgeInterp[2][e2] = (float) a*Samples[2][v0] + (1-a)*Samples[2][v3];
+            edgeInterp[0][e2] = (float) a*mySamples[0][v0] + (1-a)*mySamples[0][v3];
+            edgeInterp[1][e2] = (float) a*mySamples[1][v0] + (1-a)*mySamples[1][v3];
+            edgeInterp[2][e2] = (float) a*mySamples[2][v0] + (1-a)*mySamples[2][v3];
             for (int j=0; j<naux; j++) {
               t = (int) ( a * ((auxValues[j][v0] < 0) ?
                     ((float) auxValues[j][v0]) + 256.0f :
@@ -1383,9 +1388,9 @@ public class Irregular3DSet extends IrregularSet {
           if (edgeInterp[0][e4] != edgeInterp[0][e4]) {
             float a = (isolevel - f3)/(f1 - f3);
             if (a < 0) a = -a;
-            edgeInterp[0][e4] = (float) a*Samples[0][v1] + (1-a)*Samples[0][v3];
-            edgeInterp[1][e4] = (float) a*Samples[1][v1] + (1-a)*Samples[1][v3];
-            edgeInterp[2][e4] = (float) a*Samples[2][v1] + (1-a)*Samples[2][v3];
+            edgeInterp[0][e4] = (float) a*mySamples[0][v1] + (1-a)*mySamples[0][v3];
+            edgeInterp[1][e4] = (float) a*mySamples[1][v1] + (1-a)*mySamples[1][v3];
+            edgeInterp[2][e4] = (float) a*mySamples[2][v1] + (1-a)*mySamples[2][v3];
             for (int j=0; j<naux; j++) {
               t = (int) ( a * ((auxValues[j][v1] < 0) ?
                     ((float) auxValues[j][v1]) + 256.0f :
@@ -1409,9 +1414,9 @@ public class Irregular3DSet extends IrregularSet {
           if (edgeInterp[0][e3] != edgeInterp[0][e3]) {
             float a = (isolevel - f2)/(f1 - f2);
             if (a < 0) a = -a;
-            edgeInterp[0][e3] = (float) a*Samples[0][v1] + (1-a)*Samples[0][v2];
-            edgeInterp[1][e3] = (float) a*Samples[1][v1] + (1-a)*Samples[1][v2];
-            edgeInterp[2][e3] = (float) a*Samples[2][v1] + (1-a)*Samples[2][v2];
+            edgeInterp[0][e3] = (float) a*mySamples[0][v1] + (1-a)*mySamples[0][v2];
+            edgeInterp[1][e3] = (float) a*mySamples[1][v1] + (1-a)*mySamples[1][v2];
+            edgeInterp[2][e3] = (float) a*mySamples[2][v1] + (1-a)*mySamples[2][v2];
             for (int j=0; j<naux; j++) {
               t = (int) ( a * ((auxValues[j][v1] < 0) ?
                     ((float) auxValues[j][v1]) + 256.0f :
@@ -1462,9 +1467,9 @@ public class Irregular3DSet extends IrregularSet {
           if (edgeInterp[0][e1] != edgeInterp[0][e1]) {
             float a = (isolevel - f2)/(f0 - f2);
             if (a < 0) a = -a;
-            edgeInterp[0][e1] = (float) a*Samples[0][v0] + (1-a)*Samples[0][v2];
-            edgeInterp[1][e1] = (float) a*Samples[1][v0] + (1-a)*Samples[1][v2];
-            edgeInterp[2][e1] = (float) a*Samples[2][v0] + (1-a)*Samples[2][v2];
+            edgeInterp[0][e1] = (float) a*mySamples[0][v0] + (1-a)*mySamples[0][v2];
+            edgeInterp[1][e1] = (float) a*mySamples[1][v0] + (1-a)*mySamples[1][v2];
+            edgeInterp[2][e1] = (float) a*mySamples[2][v0] + (1-a)*mySamples[2][v2];
             for (int j=0; j<naux; j++) {
               t = (int) ( a * ((auxValues[j][v0] < 0) ?
                     ((float) auxValues[j][v0]) + 256.0f :
@@ -1488,9 +1493,9 @@ public class Irregular3DSet extends IrregularSet {
           if (edgeInterp[0][e3] != edgeInterp[0][e3]) {
             float a = (isolevel - f2)/(f1 - f2);
             if (a < 0) a = -a;
-            edgeInterp[0][e3] = (float) a*Samples[0][v1] + (1-a)*Samples[0][v2];
-            edgeInterp[1][e3] = (float) a*Samples[1][v1] + (1-a)*Samples[1][v2];
-            edgeInterp[2][e3] = (float) a*Samples[2][v1] + (1-a)*Samples[2][v2];
+            edgeInterp[0][e3] = (float) a*mySamples[0][v1] + (1-a)*mySamples[0][v2];
+            edgeInterp[1][e3] = (float) a*mySamples[1][v1] + (1-a)*mySamples[1][v2];
+            edgeInterp[2][e3] = (float) a*mySamples[2][v1] + (1-a)*mySamples[2][v2];
             for (int j=0; j<naux; j++) {
               t = (int) ( a * ((auxValues[j][v1] < 0) ?
                     ((float) auxValues[j][v1]) + 256.0f :
@@ -1514,9 +1519,9 @@ public class Irregular3DSet extends IrregularSet {
           if (edgeInterp[0][e5] != edgeInterp[0][e5]) {
             float a = (isolevel - f3)/(f2 - f3);
             if (a < 0) a = -a;
-            edgeInterp[0][e5] = (float) a*Samples[0][v2] + (1-a)*Samples[0][v3];
-            edgeInterp[1][e5] = (float) a*Samples[1][v2] + (1-a)*Samples[1][v3];
-            edgeInterp[2][e5] = (float) a*Samples[2][v2] + (1-a)*Samples[2][v3];
+            edgeInterp[0][e5] = (float) a*mySamples[0][v2] + (1-a)*mySamples[0][v3];
+            edgeInterp[1][e5] = (float) a*mySamples[1][v2] + (1-a)*mySamples[1][v3];
+            edgeInterp[2][e5] = (float) a*mySamples[2][v2] + (1-a)*mySamples[2][v3];
             for (int j=0; j<naux; j++) {
               t = (int) ( a * ((auxValues[j][v2] < 0) ?
                     ((float) auxValues[j][v2]) + 256.0f :
@@ -1566,9 +1571,9 @@ public class Irregular3DSet extends IrregularSet {
           if (edgeInterp[0][e0] != edgeInterp[0][e0]) {
             float a = (isolevel - f1)/(f0 - f1);
             if (a < 0) a = -a;
-            edgeInterp[0][e0] = (float) a*Samples[0][v0] + (1-a)*Samples[0][v1];
-            edgeInterp[1][e0] = (float) a*Samples[1][v0] + (1-a)*Samples[1][v1];
-            edgeInterp[2][e0] = (float) a*Samples[2][v0] + (1-a)*Samples[2][v1];
+            edgeInterp[0][e0] = (float) a*mySamples[0][v0] + (1-a)*mySamples[0][v1];
+            edgeInterp[1][e0] = (float) a*mySamples[1][v0] + (1-a)*mySamples[1][v1];
+            edgeInterp[2][e0] = (float) a*mySamples[2][v0] + (1-a)*mySamples[2][v1];
             for (int j=0; j<naux; j++) {
               t = (int) ( a * ((auxValues[j][v0] < 0) ?
                     ((float) auxValues[j][v0]) + 256.0f :
@@ -1592,9 +1597,9 @@ public class Irregular3DSet extends IrregularSet {
           if (edgeInterp[0][e2] != edgeInterp[0][e2]) {
             float a = (isolevel - f3)/(f0 - f3);
             if (a < 0) a = -a;
-            edgeInterp[0][e2] = (float) a*Samples[0][v0] + (1-a)*Samples[0][v3];
-            edgeInterp[1][e2] = (float) a*Samples[1][v0] + (1-a)*Samples[1][v3];
-            edgeInterp[2][e2] = (float) a*Samples[2][v0] + (1-a)*Samples[2][v3];
+            edgeInterp[0][e2] = (float) a*mySamples[0][v0] + (1-a)*mySamples[0][v3];
+            edgeInterp[1][e2] = (float) a*mySamples[1][v0] + (1-a)*mySamples[1][v3];
+            edgeInterp[2][e2] = (float) a*mySamples[2][v0] + (1-a)*mySamples[2][v3];
             for (int j=0; j<naux; j++) {
               t = (int) ( a * ((auxValues[j][v0] < 0) ?
                     ((float) auxValues[j][v0]) + 256.0f :
@@ -1618,9 +1623,9 @@ public class Irregular3DSet extends IrregularSet {
           if (edgeInterp[0][e5] != edgeInterp[0][e5]) {
             float a = (isolevel - f3)/(f2 - f3);
             if (a < 0) a = -a;
-            edgeInterp[0][e5] = (float) a*Samples[0][v2] + (1-a)*Samples[0][v3];
-            edgeInterp[1][e5] = (float) a*Samples[1][v2] + (1-a)*Samples[1][v3];
-            edgeInterp[2][e5] = (float) a*Samples[2][v2] + (1-a)*Samples[2][v3];
+            edgeInterp[0][e5] = (float) a*mySamples[0][v2] + (1-a)*mySamples[0][v3];
+            edgeInterp[1][e5] = (float) a*mySamples[1][v2] + (1-a)*mySamples[1][v3];
+            edgeInterp[2][e5] = (float) a*mySamples[2][v2] + (1-a)*mySamples[2][v3];
             for (int j=0; j<naux; j++) {
               t = (int) ( a * ((auxValues[j][v2] < 0) ?
                     ((float) auxValues[j][v2]) + 256.0f :
@@ -1644,9 +1649,9 @@ public class Irregular3DSet extends IrregularSet {
           if (edgeInterp[0][e3] != edgeInterp[0][e3]) {
             float a = (isolevel - f2)/(f1 - f2);
             if (a < 0) a = -a;
-            edgeInterp[0][e3] = (float) a*Samples[0][v1] + (1-a)*Samples[0][v2];
-            edgeInterp[1][e3] = (float) a*Samples[1][v1] + (1-a)*Samples[1][v2];
-            edgeInterp[2][e3] = (float) a*Samples[2][v1] + (1-a)*Samples[2][v2];
+            edgeInterp[0][e3] = (float) a*mySamples[0][v1] + (1-a)*mySamples[0][v2];
+            edgeInterp[1][e3] = (float) a*mySamples[1][v1] + (1-a)*mySamples[1][v2];
+            edgeInterp[2][e3] = (float) a*mySamples[2][v1] + (1-a)*mySamples[2][v2];
             for (int j=0; j<naux; j++) {
               t = (int) ( a * ((auxValues[j][v1] < 0) ?
                     ((float) auxValues[j][v1]) + 256.0f :
@@ -1698,9 +1703,9 @@ public class Irregular3DSet extends IrregularSet {
           if (edgeInterp[0][e0] != edgeInterp[0][e0]) {
             float a = (isolevel - f1)/(f0 - f1);
             if (a < 0) a = -a;
-            edgeInterp[0][e0] = (float) a*Samples[0][v0] + (1-a)*Samples[0][v1];
-            edgeInterp[1][e0] = (float) a*Samples[1][v0] + (1-a)*Samples[1][v1];
-            edgeInterp[2][e0] = (float) a*Samples[2][v0] + (1-a)*Samples[2][v1];
+            edgeInterp[0][e0] = (float) a*mySamples[0][v0] + (1-a)*mySamples[0][v1];
+            edgeInterp[1][e0] = (float) a*mySamples[1][v0] + (1-a)*mySamples[1][v1];
+            edgeInterp[2][e0] = (float) a*mySamples[2][v0] + (1-a)*mySamples[2][v1];
             for (int j=0; j<naux; j++) {
               t = (int) ( a * ((auxValues[j][v0] < 0) ?
                     ((float) auxValues[j][v0]) + 256.0f :
@@ -1724,9 +1729,9 @@ public class Irregular3DSet extends IrregularSet {
           if (edgeInterp[0][e1] != edgeInterp[0][e1]) {
             float a = (isolevel - f2)/(f0 - f2);
             if (a < 0) a = -a;
-            edgeInterp[0][e1] = (float) a*Samples[0][v0] + (1-a)*Samples[0][v2];
-            edgeInterp[1][e1] = (float) a*Samples[1][v0] + (1-a)*Samples[1][v2];
-            edgeInterp[2][e1] = (float) a*Samples[2][v0] + (1-a)*Samples[2][v2];
+            edgeInterp[0][e1] = (float) a*mySamples[0][v0] + (1-a)*mySamples[0][v2];
+            edgeInterp[1][e1] = (float) a*mySamples[1][v0] + (1-a)*mySamples[1][v2];
+            edgeInterp[2][e1] = (float) a*mySamples[2][v0] + (1-a)*mySamples[2][v2];
             for (int j=0; j<naux; j++) {
               t = (int) ( a * ((auxValues[j][v0] < 0) ?
                     ((float) auxValues[j][v0]) + 256.0f :
@@ -1750,9 +1755,9 @@ public class Irregular3DSet extends IrregularSet {
           if (edgeInterp[0][e5] != edgeInterp[0][e5]) {
             float a = (isolevel - f3)/(f2 - f3);
             if (a < 0) a = -a;
-            edgeInterp[0][e5] = (float) a*Samples[0][v2] + (1-a)*Samples[0][v3];
-            edgeInterp[1][e5] = (float) a*Samples[1][v2] + (1-a)*Samples[1][v3];
-            edgeInterp[2][e5] = (float) a*Samples[2][v2] + (1-a)*Samples[2][v3];
+            edgeInterp[0][e5] = (float) a*mySamples[0][v2] + (1-a)*mySamples[0][v3];
+            edgeInterp[1][e5] = (float) a*mySamples[1][v2] + (1-a)*mySamples[1][v3];
+            edgeInterp[2][e5] = (float) a*mySamples[2][v2] + (1-a)*mySamples[2][v3];
             for (int j=0; j<naux; j++) {
               t = (int) ( a * ((auxValues[j][v2] < 0) ?
                     ((float) auxValues[j][v2]) + 256.0f :
@@ -1776,9 +1781,9 @@ public class Irregular3DSet extends IrregularSet {
           if (edgeInterp[0][e4] != edgeInterp[0][e4]) {
             float a = (isolevel - f3)/(f1 - f3);
             if (a < 0) a = -a;
-            edgeInterp[0][e4] = (float) a*Samples[0][v1] + (1-a)*Samples[0][v3];
-            edgeInterp[1][e4] = (float) a*Samples[1][v1] + (1-a)*Samples[1][v3];
-            edgeInterp[2][e4] = (float) a*Samples[2][v1] + (1-a)*Samples[2][v3];
+            edgeInterp[0][e4] = (float) a*mySamples[0][v1] + (1-a)*mySamples[0][v3];
+            edgeInterp[1][e4] = (float) a*mySamples[1][v1] + (1-a)*mySamples[1][v3];
+            edgeInterp[2][e4] = (float) a*mySamples[2][v1] + (1-a)*mySamples[2][v3];
             for (int j=0; j<naux; j++) {
               t = (int) ( a * ((auxValues[j][v1] < 0) ?
                     ((float) auxValues[j][v1]) + 256.0f :
@@ -1830,9 +1835,9 @@ public class Irregular3DSet extends IrregularSet {
           if (edgeInterp[0][e2] != edgeInterp[0][e2]) {
             float a = (isolevel - f3)/(f0 - f3);
             if (a < 0) a = -a;
-            edgeInterp[0][e2] = (float) a*Samples[0][v0] + (1-a)*Samples[0][v3];
-            edgeInterp[1][e2] = (float) a*Samples[1][v0] + (1-a)*Samples[1][v3];
-            edgeInterp[2][e2] = (float) a*Samples[2][v0] + (1-a)*Samples[2][v3];
+            edgeInterp[0][e2] = (float) a*mySamples[0][v0] + (1-a)*mySamples[0][v3];
+            edgeInterp[1][e2] = (float) a*mySamples[1][v0] + (1-a)*mySamples[1][v3];
+            edgeInterp[2][e2] = (float) a*mySamples[2][v0] + (1-a)*mySamples[2][v3];
             for (int j=0; j<naux; j++) {
               t = (int) ( a * ((auxValues[j][v0] < 0) ?
                     ((float) auxValues[j][v0]) + 256.0f :
@@ -1856,9 +1861,9 @@ public class Irregular3DSet extends IrregularSet {
           if (edgeInterp[0][e4] != edgeInterp[0][e4]) {
             float a = (isolevel - f3)/(f1 - f3);
             if (a < 0) a = -a;
-            edgeInterp[0][e4] = (float) a*Samples[0][v1] + (1-a)*Samples[0][v3];
-            edgeInterp[1][e4] = (float) a*Samples[1][v1] + (1-a)*Samples[1][v3];
-            edgeInterp[2][e4] = (float) a*Samples[2][v1] + (1-a)*Samples[2][v3];
+            edgeInterp[0][e4] = (float) a*mySamples[0][v1] + (1-a)*mySamples[0][v3];
+            edgeInterp[1][e4] = (float) a*mySamples[1][v1] + (1-a)*mySamples[1][v3];
+            edgeInterp[2][e4] = (float) a*mySamples[2][v1] + (1-a)*mySamples[2][v3];
             for (int j=0; j<naux; j++) {
               t = (int) ( a * ((auxValues[j][v1] < 0) ?
                     ((float) auxValues[j][v1]) + 256.0f :
@@ -1882,9 +1887,9 @@ public class Irregular3DSet extends IrregularSet {
           if (edgeInterp[0][e5] != edgeInterp[0][e5]) {
             float a = (isolevel - f3)/(f2 - f3);
             if (a < 0) a = -a;
-            edgeInterp[0][e5] = (float) a*Samples[0][v2] + (1-a)*Samples[0][v3];
-            edgeInterp[1][e5] = (float) a*Samples[1][v2] + (1-a)*Samples[1][v3];
-            edgeInterp[2][e5] = (float) a*Samples[2][v2] + (1-a)*Samples[2][v3];
+            edgeInterp[0][e5] = (float) a*mySamples[0][v2] + (1-a)*mySamples[0][v3];
+            edgeInterp[1][e5] = (float) a*mySamples[1][v2] + (1-a)*mySamples[1][v3];
+            edgeInterp[2][e5] = (float) a*mySamples[2][v2] + (1-a)*mySamples[2][v3];
             for (int j=0; j<naux; j++) {
               t = (int) ( a * ((auxValues[j][v2] < 0) ?
                     ((float) auxValues[j][v2]) + 256.0f :
@@ -2790,11 +2795,11 @@ System.out.println("strip[" + k + "] = (" + array.coordinates[i] + ", " +
 
   public Object cloneButType(MathType type) throws VisADException {
     if (ManifoldDimension == 1) {
-      return new Irregular3DSet(type, Samples, newToOld, oldToNew,
+	return new Irregular3DSet(type, getMySamples(), newToOld, oldToNew,
                             DomainCoordinateSystem, SetUnits, SetErrors);
     }
     else {
-      return new Irregular3DSet(type, Samples, DomainCoordinateSystem,
+	return new Irregular3DSet(type, getMySamples(), DomainCoordinateSystem,
                                 SetUnits, SetErrors, Delan);
     }
   }
@@ -2812,11 +2817,12 @@ System.out.println("strip[" + k + "] = (" + array.coordinates[i] + ", " +
     Irregular3DSet iSet3D = new Irregular3DSet(t_tuple, samp);
 
     // print out Samples information
+    float[][]mySamples = iSet3D.getMySamples();
     System.out.println("Samples:");
-    for (int i=0; i<iSet3D.Samples[0].length; i++) {
-      System.out.println("#"+i+":\t"+iSet3D.Samples[0][i]+", "
-                                    +iSet3D.Samples[1][i]+", "
-                                    +iSet3D.Samples[2][i]);
+    for (int i=0; i<mySamples[0].length; i++) {
+      System.out.println("#"+i+":\t"+mySamples[0][i]+", "
+                                    +mySamples[1][i]+", "
+                                    +mySamples[2][i]);
     }
     System.out.println(iSet3D.Delan.Tri.length
                      +" tetrahedrons in tetrahedralization.");

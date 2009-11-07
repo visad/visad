@@ -525,13 +525,14 @@ public class Linear1DSet extends Gridded1DSet
     for (int i=0; i<n; i++) indices[i] = i;
     return indexToValue(indices);
     */
-    if (Samples != null) {
-      return copy ? Set.copyFloats(Samples) : Samples;
+    float[][]mySamples = getMySamples();
+    if (mySamples != null) {
+      return copy ? Set.copyFloats(mySamples) : mySamples;
     }
     float[][] samples = makeSamples ();
     if (cacheSamples) {
-      Samples = samples;
-      return copy ? Set.copyFloats(Samples) : Samples;
+      setMySamples(samples);
+      return copy ? Set.copyFloats(samples) : samples;
     }
     return samples;
   }

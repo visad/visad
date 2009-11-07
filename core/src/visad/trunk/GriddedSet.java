@@ -72,7 +72,7 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
     super(type, lengths.length, coord_sys, units, errors);
     init_lengths(lengths);
     if (samples == null ) {
-      Samples = null;
+	setMySamples(null);
     }
     else {
       init_samples(samples, copy);
@@ -949,11 +949,12 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
       }
       // Sets are immutable, so no need for 'synchronized'
       float[][] samples = ((GriddedSet) set).getSamples(false);
-      if (Samples != null) {
+      float[][]mySamples = getMySamples();
+      if (mySamples != null) {
         for (j=0; j<DomainDimension; j++) {
           for (i=0; i<Length; i++) {
-            if (Samples[j][i] == Samples[j][i]
-                  ? Samples[j][i] != samples[j][i]
+            if (mySamples[j][i] == mySamples[j][i]
+                  ? mySamples[j][i] != samples[j][i]
                   : samples[j][i] == samples[j][i]) {
               addNotEqualsCache((Set) set);
               return false;
@@ -996,17 +997,18 @@ public class GriddedSet extends SampledSet implements GriddedSetIface {
       hashCode ^= DomainDimension ^ ManifoldDimension ^ Length;
       for (int j=0; j<ManifoldDimension; j++)
 	hashCode ^= Lengths[j];
-      if (Samples != null)
+      float[][]mySamples = getMySamples();
+      if (mySamples != null)
 	for (int j=0; j<DomainDimension; j++)
 	  for (int i=0; i<Length; i++)
-	    hashCode ^= Float.floatToIntBits(Samples[j][i]);
+	    hashCode ^= Float.floatToIntBits(mySamples[j][i]);
       hashCodeSet = true;
     }
     return hashCode;
   }
 
   public Object cloneButType(MathType type) throws VisADException {
-    return new GriddedSet(type, Samples, Lengths, DomainCoordinateSystem,
+    return new GriddedSet(type,     getMySamples(), Lengths, DomainCoordinateSystem,
                           SetUnits, SetErrors);
   }
 

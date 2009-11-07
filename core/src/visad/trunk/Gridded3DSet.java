@@ -92,9 +92,10 @@ public class Gridded3DSet extends GriddedSet {
     HiZ = Hi[2];
     LengthZ = Lengths[2];
 
-    if (Samples != null && Lengths[0] > 1 && Lengths[1] > 1 && Lengths[2] > 1) {
+    float[][]mySamples = getMySamples();
+    if (mySamples != null && Lengths[0] > 1 && Lengths[1] > 1 && Lengths[2] > 1) {
       for (int i = 0; i < Length; i++) {
-        if (Samples[0][i] != Samples[0][i]) {
+        if (mySamples[0][i] != mySamples[0][i]) {
           throw new SetException(
               "Gridded3DSet: samples values may not be missing");
         }
@@ -109,14 +110,14 @@ public class Gridded3DSet extends GriddedSet {
       float[] t011 = new float[3];
       float[] t111 = new float[3];
       for (int v = 0; v < 3; v++) {
-        t000[v] = Samples[v][0];
-        t100[v] = Samples[v][1];
-        t010[v] = Samples[v][LengthX];
-        t001[v] = Samples[v][LengthY * LengthX];
-        t110[v] = Samples[v][LengthX + 1];
-        t101[v] = Samples[v][LengthY * LengthX + 1];
-        t011[v] = Samples[v][(LengthY + 1) * LengthX];
-        t111[v] = Samples[v][(LengthY + 1) * LengthX + 1];
+        t000[v] = mySamples[v][0];
+        t100[v] = mySamples[v][1];
+        t010[v] = mySamples[v][LengthX];
+        t001[v] = mySamples[v][LengthY * LengthX];
+        t110[v] = mySamples[v][LengthX + 1];
+        t101[v] = mySamples[v][LengthY * LengthX + 1];
+        t011[v] = mySamples[v][(LengthY + 1) * LengthX];
+        t111[v] = mySamples[v][(LengthY + 1) * LengthX + 1];
       }
       /*
        * CICERO Pos = ( ( (t100[1]-t000[1])(t101[2]-t100[2]) -
@@ -155,14 +156,14 @@ public class Gridded3DSet extends GriddedSet {
               for (int v = 0; v < 3; v++) {
                 int zadd = LengthY * LengthX;
                 int base = k * zadd + j * LengthX + i;
-                v000[v] = Samples[v][base];
-                v100[v] = Samples[v][base + 1];
-                v010[v] = Samples[v][base + LengthX];
-                v001[v] = Samples[v][base + zadd];
-                v110[v] = Samples[v][base + LengthX + 1];
-                v101[v] = Samples[v][base + zadd + 1];
-                v011[v] = Samples[v][base + zadd + LengthX];
-                v111[v] = Samples[v][base + zadd + LengthX + 1];
+                v000[v] = mySamples[v][base];
+                v100[v] = mySamples[v][base + 1];
+                v010[v] = mySamples[v][base + LengthX];
+                v001[v] = mySamples[v][base + zadd];
+                v110[v] = mySamples[v][base + LengthX + 1];
+                v101[v] = mySamples[v][base + zadd + 1];
+                v011[v] = mySamples[v][base + zadd + LengthX];
+                v111[v] = mySamples[v][base + zadd + LengthX + 1];
               }
               /*
                * CICERO if ((( ( (v100[1]-v000[1])(v101[2]-v100[2]) // test 1 -
@@ -365,7 +366,8 @@ public class Gridded3DSet extends GriddedSet {
   @Override
   public float[][] indexToValue(int[] index) throws VisADException {
     int length = index.length;
-    if (Samples == null) {
+    float[][]mySamples = getMySamples();
+    if (mySamples == null) {
       // not used - over-ridden by Linear3DSet.indexToValue
       int indexX, indexY, indexZ;
       int k;
@@ -390,9 +392,9 @@ public class Gridded3DSet extends GriddedSet {
       float[][] values = new float[3][length];
       for (int i = 0; i < length; i++) {
         if (0 <= index[i] && index[i] < Length) {
-          values[0][i] = Samples[0][index[i]];
-          values[1][i] = Samples[1][index[i]];
-          values[2][i] = Samples[2][index[i]];
+          values[0][i] = mySamples[0][index[i]];
+          values[1][i] = mySamples[1][index[i]];
+          values[2][i] = mySamples[2][index[i]];
         } else {
           values[0][i] = Float.NaN;
           values[1][i] = Float.NaN;
@@ -481,6 +483,7 @@ public class Gridded3DSet extends GriddedSet {
     // avoid any ArrayOutOfBounds exceptions by taking the shortest length
     int length = Math.min(grid[0].length, grid[1].length);
     float[][] value = new float[3][length];
+    float[][]mySamples = getMySamples();
     for (int i = 0; i < length; i++) {
       // let gx and gy by the current grid values
       float gx = grid[0][i];
@@ -489,9 +492,9 @@ public class Gridded3DSet extends GriddedSet {
           || (gy > LengthY - 0.5)) {
         value[0][i] = value[1][i] = value[2][i] = Float.NaN;
       } else if (Length == 1) {
-        value[0][i] = Samples[0][0];
-        value[1][i] = Samples[1][0];
-        value[2][i] = Samples[2][0];
+        value[0][i] = mySamples[0][0];
+        value[1][i] = mySamples[1][0];
+        value[2][i] = mySamples[2][0];
       } else {
         // calculate closest integer variables
         int igx = (int) gx;
@@ -513,16 +516,16 @@ public class Gridded3DSet extends GriddedSet {
         if (gx + gy - igx - igy - 1 <= 0) {
           // point is in LOWER triangle
           for (int j = 0; j < 3; j++) {
-            value[j][i] = Samples[j][s[0][0]] + (gx - igx)
-                * (Samples[j][s[1][0]] - Samples[j][s[0][0]]) + (gy - igy)
-                * (Samples[j][s[0][1]] - Samples[j][s[0][0]]);
+            value[j][i] = mySamples[j][s[0][0]] + (gx - igx)
+                * (mySamples[j][s[1][0]] - mySamples[j][s[0][0]]) + (gy - igy)
+                * (mySamples[j][s[0][1]] - mySamples[j][s[0][0]]);
           }
         } else {
           // point is in UPPER triangle
           for (int j = 0; j < 3; j++) {
-            value[j][i] = Samples[j][s[1][1]] + (1 + igx - gx)
-                * (Samples[j][s[0][1]] - Samples[j][s[1][1]]) + (1 + igy - gy)
-                * (Samples[j][s[1][0]] - Samples[j][s[1][1]]);
+            value[j][i] = mySamples[j][s[1][1]] + (1 + igx - gx)
+                * (mySamples[j][s[0][1]] - mySamples[j][s[1][1]]) + (1 + igy - gy)
+                * (mySamples[j][s[1][0]] - mySamples[j][s[1][1]]);
           }
         }
         /*
@@ -544,6 +547,7 @@ public class Gridded3DSet extends GriddedSet {
     // avoid any ArrayOutOfBounds exceptions by taking the shortest length
     int gridLength = Math.min(grid[0].length, grid[1].length);
     float[] value = new float[gridLength * 3];
+    float[][]mySamples = getMySamples();
     for (int i = 0; i < gridLength; i++) {
       // let gx and gy by the current grid values
       float gx = grid[0][i];
@@ -552,9 +556,9 @@ public class Gridded3DSet extends GriddedSet {
           || (gy > LengthY - 0.5)) {
         value[3*i] = value[3*i+1] = value[3*i+2] = Float.NaN;
       } else if (Length == 1) {
-        value[3*i] = Samples[0][0];
-        value[3*i+1] = Samples[1][0];
-        value[3*i+2] = Samples[2][0];
+        value[3*i] = mySamples[0][0];
+        value[3*i+1] = mySamples[1][0];
+        value[3*i+2] = mySamples[2][0];
       } else {
         // calculate closest integer variables
         int igx = (int) gx;
@@ -576,21 +580,21 @@ public class Gridded3DSet extends GriddedSet {
         if (gx + gy - igx - igy - 1 <= 0) {
           // point is in LOWER triangle
           for (int j = 0; j < 3; j++) {
-            value[3*i+j] = Samples[j][s[0][0]] + (gx - igx)
-                * (Samples[j][s[1][0]] - Samples[j][s[0][0]]) + (gy - igy)
-                * (Samples[j][s[0][1]] - Samples[j][s[0][0]]);
+            value[3*i+j] = mySamples[j][s[0][0]] + (gx - igx)
+                * (mySamples[j][s[1][0]] - mySamples[j][s[0][0]]) + (gy - igy)
+                * (mySamples[j][s[0][1]] - mySamples[j][s[0][0]]);
           }
         } else {
           // point is in UPPER triangle
           for (int j = 0; j < 3; j++) {
-            value[3*i+j] = Samples[j][s[1][1]] + (1 + igx - gx)
-                * (Samples[j][s[0][1]] - Samples[j][s[1][1]]) + (1 + igy - gy)
-                * (Samples[j][s[1][0]] - Samples[j][s[1][1]]);
+            value[3*i+j] = mySamples[j][s[1][1]] + (1 + igx - gx)
+                * (mySamples[j][s[0][1]] - mySamples[j][s[1][1]]) + (1 + igy - gy)
+                * (mySamples[j][s[1][0]] - mySamples[j][s[1][1]]);
           }
         }
         /*
          * for (int j=0; j<3; j++) { if (value[i] != value[i]) {
-         * System.out.println("gridToValue2D: bad Samples j = " + j +
+         * System.out.println("gridToValue2D: bad mySamples j = " + j +
          * " gx, gy = " + gx + " " + gy + " " + s[0][0] + " " + s[0][1] + " " +
          * s[1][0] + " " + s[1][1]); } }
          */
@@ -604,6 +608,8 @@ public class Gridded3DSet extends GriddedSet {
       throw new SetException("Gridded3DSet.gridToValue: requires all grid "
           + "dimensions to be > 1");
     }
+    float[][]mySamples = getMySamples();
+
     // avoid any ArrayOutOfBounds exceptions by taking the shortest length
     int length = Math.min(grid[0].length, grid[1].length);
     length = Math.min(length, grid[2].length);
@@ -627,9 +633,9 @@ public class Gridded3DSet extends GriddedSet {
           || (gy > LengthY - 0.5) || (gz > LengthZ - 0.5)) {
         value[0][i] = value[1][i] = value[2][i] = Float.NaN;
       } else if (Length == 1) {
-        value[0][i] = Samples[0][0];
-        value[1][i] = Samples[1][0];
-        value[2][i] = Samples[2][0];
+        value[0][i] = mySamples[0][0];
+        value[1][i] = mySamples[1][0];
+        value[2][i] = mySamples[2][0];
       } else {
         // calculate closest integer variables
         int igx, igy, igz;
@@ -679,55 +685,55 @@ public class Gridded3DSet extends GriddedSet {
         int gi = base + LengthX + 1; // 1, 1, 0
         int hi = base + LengthX; // 0, 1, 0
         if (evencube) {
-          A[0] = Samples[0][ai];
-          A[1] = Samples[1][ai];
-          A[2] = Samples[2][ai];
-          B[0] = Samples[0][bi];
-          B[1] = Samples[1][bi];
-          B[2] = Samples[2][bi];
-          C[0] = Samples[0][ci];
-          C[1] = Samples[1][ci];
-          C[2] = Samples[2][ci];
-          D[0] = Samples[0][di];
-          D[1] = Samples[1][di];
-          D[2] = Samples[2][di];
-          E[0] = Samples[0][ei];
-          E[1] = Samples[1][ei];
-          E[2] = Samples[2][ei];
-          F[0] = Samples[0][fi];
-          F[1] = Samples[1][fi];
-          F[2] = Samples[2][fi];
-          G[0] = Samples[0][gi];
-          G[1] = Samples[1][gi];
-          G[2] = Samples[2][gi];
-          H[0] = Samples[0][hi];
-          H[1] = Samples[1][hi];
-          H[2] = Samples[2][hi];
+          A[0] = mySamples[0][ai];
+          A[1] = mySamples[1][ai];
+          A[2] = mySamples[2][ai];
+          B[0] = mySamples[0][bi];
+          B[1] = mySamples[1][bi];
+          B[2] = mySamples[2][bi];
+          C[0] = mySamples[0][ci];
+          C[1] = mySamples[1][ci];
+          C[2] = mySamples[2][ci];
+          D[0] = mySamples[0][di];
+          D[1] = mySamples[1][di];
+          D[2] = mySamples[2][di];
+          E[0] = mySamples[0][ei];
+          E[1] = mySamples[1][ei];
+          E[2] = mySamples[2][ei];
+          F[0] = mySamples[0][fi];
+          F[1] = mySamples[1][fi];
+          F[2] = mySamples[2][fi];
+          G[0] = mySamples[0][gi];
+          G[1] = mySamples[1][gi];
+          G[2] = mySamples[2][gi];
+          H[0] = mySamples[0][hi];
+          H[1] = mySamples[1][hi];
+          H[2] = mySamples[2][hi];
         } else {
-          G[0] = Samples[0][ai];
-          G[1] = Samples[1][ai];
-          G[2] = Samples[2][ai];
-          H[0] = Samples[0][bi];
-          H[1] = Samples[1][bi];
-          H[2] = Samples[2][bi];
-          E[0] = Samples[0][ci];
-          E[1] = Samples[1][ci];
-          E[2] = Samples[2][ci];
-          F[0] = Samples[0][di];
-          F[1] = Samples[1][di];
-          F[2] = Samples[2][di];
-          C[0] = Samples[0][ei];
-          C[1] = Samples[1][ei];
-          C[2] = Samples[2][ei];
-          D[0] = Samples[0][fi];
-          D[1] = Samples[1][fi];
-          D[2] = Samples[2][fi];
-          A[0] = Samples[0][gi];
-          A[1] = Samples[1][gi];
-          A[2] = Samples[2][gi];
-          B[0] = Samples[0][hi];
-          B[1] = Samples[1][hi];
-          B[2] = Samples[2][hi];
+          G[0] = mySamples[0][ai];
+          G[1] = mySamples[1][ai];
+          G[2] = mySamples[2][ai];
+          H[0] = mySamples[0][bi];
+          H[1] = mySamples[1][bi];
+          H[2] = mySamples[2][bi];
+          E[0] = mySamples[0][ci];
+          E[1] = mySamples[1][ci];
+          E[2] = mySamples[2][ci];
+          F[0] = mySamples[0][di];
+          F[1] = mySamples[1][di];
+          F[2] = mySamples[2][di];
+          C[0] = mySamples[0][ei];
+          C[1] = mySamples[1][ei];
+          C[2] = mySamples[2][ei];
+          D[0] = mySamples[0][fi];
+          D[1] = mySamples[1][fi];
+          D[2] = mySamples[2][fi];
+          A[0] = mySamples[0][gi];
+          A[1] = mySamples[1][gi];
+          A[2] = mySamples[2][gi];
+          B[0] = mySamples[0][hi];
+          B[1] = mySamples[1][hi];
+          B[2] = mySamples[2][hi];
         }
 
         // These tests determine which tetrahedron the point is in
@@ -826,6 +832,7 @@ public class Gridded3DSet extends GriddedSet {
       throw new SetException("Gridded3DSet.gridToValue: requires all grid "
           + "dimensions to be > 1");
     }
+    float[][]mySamples = getMySamples();
     // avoid any ArrayOutOfBounds exceptions by taking the shortest length
     int gridLength = Math.min(grid[0].length, grid[1].length);
     gridLength = Math.min(gridLength, grid[2].length);
@@ -849,9 +856,9 @@ public class Gridded3DSet extends GriddedSet {
           || (gy > LengthY - 0.5) || (gz > LengthZ - 0.5)) {
         value[3*i] = value[3*i+1] = value[3*i+2] = Float.NaN;
       } else if (Length == 1) {
-        value[3*i] = Samples[0][0];
-        value[3*i+1] = Samples[1][0];
-        value[3*i+2] = Samples[2][0];
+        value[3*i] = mySamples[0][0];
+        value[3*i+1] = mySamples[1][0];
+        value[3*i+2] = mySamples[2][0];
       } else {
         // calculate closest integer variables
         int igx, igy, igz;
@@ -901,55 +908,55 @@ public class Gridded3DSet extends GriddedSet {
         int gi = base + LengthX + 1; // 1, 1, 0
         int hi = base + LengthX; // 0, 1, 0
         if (evencube) {
-          A[0] = Samples[0][ai];
-          A[1] = Samples[1][ai];
-          A[2] = Samples[2][ai];
-          B[0] = Samples[0][bi];
-          B[1] = Samples[1][bi];
-          B[2] = Samples[2][bi];
-          C[0] = Samples[0][ci];
-          C[1] = Samples[1][ci];
-          C[2] = Samples[2][ci];
-          D[0] = Samples[0][di];
-          D[1] = Samples[1][di];
-          D[2] = Samples[2][di];
-          E[0] = Samples[0][ei];
-          E[1] = Samples[1][ei];
-          E[2] = Samples[2][ei];
-          F[0] = Samples[0][fi];
-          F[1] = Samples[1][fi];
-          F[2] = Samples[2][fi];
-          G[0] = Samples[0][gi];
-          G[1] = Samples[1][gi];
-          G[2] = Samples[2][gi];
-          H[0] = Samples[0][hi];
-          H[1] = Samples[1][hi];
-          H[2] = Samples[2][hi];
+          A[0] = mySamples[0][ai];
+          A[1] = mySamples[1][ai];
+          A[2] = mySamples[2][ai];
+          B[0] = mySamples[0][bi];
+          B[1] = mySamples[1][bi];
+          B[2] = mySamples[2][bi];
+          C[0] = mySamples[0][ci];
+          C[1] = mySamples[1][ci];
+          C[2] = mySamples[2][ci];
+          D[0] = mySamples[0][di];
+          D[1] = mySamples[1][di];
+          D[2] = mySamples[2][di];
+          E[0] = mySamples[0][ei];
+          E[1] = mySamples[1][ei];
+          E[2] = mySamples[2][ei];
+          F[0] = mySamples[0][fi];
+          F[1] = mySamples[1][fi];
+          F[2] = mySamples[2][fi];
+          G[0] = mySamples[0][gi];
+          G[1] = mySamples[1][gi];
+          G[2] = mySamples[2][gi];
+          H[0] = mySamples[0][hi];
+          H[1] = mySamples[1][hi];
+          H[2] = mySamples[2][hi];
         } else {
-          G[0] = Samples[0][ai];
-          G[1] = Samples[1][ai];
-          G[2] = Samples[2][ai];
-          H[0] = Samples[0][bi];
-          H[1] = Samples[1][bi];
-          H[2] = Samples[2][bi];
-          E[0] = Samples[0][ci];
-          E[1] = Samples[1][ci];
-          E[2] = Samples[2][ci];
-          F[0] = Samples[0][di];
-          F[1] = Samples[1][di];
-          F[2] = Samples[2][di];
-          C[0] = Samples[0][ei];
-          C[1] = Samples[1][ei];
-          C[2] = Samples[2][ei];
-          D[0] = Samples[0][fi];
-          D[1] = Samples[1][fi];
-          D[2] = Samples[2][fi];
-          A[0] = Samples[0][gi];
-          A[1] = Samples[1][gi];
-          A[2] = Samples[2][gi];
-          B[0] = Samples[0][hi];
-          B[1] = Samples[1][hi];
-          B[2] = Samples[2][hi];
+          G[0] = mySamples[0][ai];
+          G[1] = mySamples[1][ai];
+          G[2] = mySamples[2][ai];
+          H[0] = mySamples[0][bi];
+          H[1] = mySamples[1][bi];
+          H[2] = mySamples[2][bi];
+          E[0] = mySamples[0][ci];
+          E[1] = mySamples[1][ci];
+          E[2] = mySamples[2][ci];
+          F[0] = mySamples[0][di];
+          F[1] = mySamples[1][di];
+          F[2] = mySamples[2][di];
+          C[0] = mySamples[0][ei];
+          C[1] = mySamples[1][ei];
+          C[2] = mySamples[2][ei];
+          D[0] = mySamples[0][fi];
+          D[1] = mySamples[1][fi];
+          D[2] = mySamples[2][fi];
+          A[0] = mySamples[0][gi];
+          A[1] = mySamples[1][gi];
+          A[2] = mySamples[2][gi];
+          B[0] = mySamples[0][hi];
+          B[1] = mySamples[1][hi];
+          B[2] = mySamples[2][hi];
         }
 
         // These tests determine which tetrahedron the point is in
@@ -1054,6 +1061,7 @@ public class Gridded3DSet extends GriddedSet {
    */
   public float[][] valueToGrid(float[][] value) throws VisADException {
 
+    float[][]mySamples = getMySamples();
     if (value.length < DomainDimension) {
       throw new SetException("Gridded3DSet.valueToGrid: value dimension "
           + value.length + " not equal to Domain dimension " + DomainDimension);
@@ -1137,18 +1145,18 @@ public class Gridded3DSet extends GriddedSet {
       v_z = value[2][i];
       int ii = LengthX * LengthY * LengthZ - 1;
       int gii = (int) gz * LengthX * LengthY + gy * LengthX + gx;
-      float sx = Samples[0][gii];
-      float sy = Samples[1][gii];
-      float sz = Samples[2][gii];
+      float sx = mySamples[0][gii];
+      float sy = mySamples[1][gii];
+      float sz = mySamples[2][gii];
       if ((Math.sqrt((v_x - sx) * (v_x - sx)) > 0.4 * Math
-          .sqrt((Samples[0][0] - Samples[0][ii])
-              * (Samples[0][0] - Samples[0][ii])))
+          .sqrt((mySamples[0][0] - mySamples[0][ii])
+              * (mySamples[0][0] - mySamples[0][ii])))
           || (Math.sqrt((v_y - sy) * (v_y - sy)) > 0.4 * Math
-              .sqrt((Samples[1][0] - Samples[1][ii])
-                  * (Samples[1][0] - Samples[1][ii])))
+              .sqrt((mySamples[1][0] - mySamples[1][ii])
+                  * (mySamples[1][0] - mySamples[1][ii])))
           || (Math.sqrt((v_z - sz) * (v_z - sz)) > 0.4 * Math
-              .sqrt((Samples[2][0] - Samples[2][ii])
-                  * (Samples[2][0] - Samples[2][ii])))) {
+              .sqrt((mySamples[2][0] - mySamples[2][ii])
+                  * (mySamples[2][0] - mySamples[2][ii])))) {
         float[] ginit = getStartPoint(value[0][i], value[1][i], value[2][i]);
         gx = (int) ginit[0];
         gy = (int) ginit[1];
@@ -1172,55 +1180,55 @@ public class Gridded3DSet extends GriddedSet {
         int hi = base + LengthX; // 0, 1, 0
 
         if (evencube) {
-          A[0] = Samples[0][ai];
-          A[1] = Samples[1][ai];
-          A[2] = Samples[2][ai];
-          B[0] = Samples[0][bi];
-          B[1] = Samples[1][bi];
-          B[2] = Samples[2][bi];
-          C[0] = Samples[0][ci];
-          C[1] = Samples[1][ci];
-          C[2] = Samples[2][ci];
-          D[0] = Samples[0][di];
-          D[1] = Samples[1][di];
-          D[2] = Samples[2][di];
-          E[0] = Samples[0][ei];
-          E[1] = Samples[1][ei];
-          E[2] = Samples[2][ei];
-          F[0] = Samples[0][fi];
-          F[1] = Samples[1][fi];
-          F[2] = Samples[2][fi];
-          G[0] = Samples[0][gi];
-          G[1] = Samples[1][gi];
-          G[2] = Samples[2][gi];
-          H[0] = Samples[0][hi];
-          H[1] = Samples[1][hi];
-          H[2] = Samples[2][hi];
+          A[0] = mySamples[0][ai];
+          A[1] = mySamples[1][ai];
+          A[2] = mySamples[2][ai];
+          B[0] = mySamples[0][bi];
+          B[1] = mySamples[1][bi];
+          B[2] = mySamples[2][bi];
+          C[0] = mySamples[0][ci];
+          C[1] = mySamples[1][ci];
+          C[2] = mySamples[2][ci];
+          D[0] = mySamples[0][di];
+          D[1] = mySamples[1][di];
+          D[2] = mySamples[2][di];
+          E[0] = mySamples[0][ei];
+          E[1] = mySamples[1][ei];
+          E[2] = mySamples[2][ei];
+          F[0] = mySamples[0][fi];
+          F[1] = mySamples[1][fi];
+          F[2] = mySamples[2][fi];
+          G[0] = mySamples[0][gi];
+          G[1] = mySamples[1][gi];
+          G[2] = mySamples[2][gi];
+          H[0] = mySamples[0][hi];
+          H[1] = mySamples[1][hi];
+          H[2] = mySamples[2][hi];
         } else {
-          G[0] = Samples[0][ai];
-          G[1] = Samples[1][ai];
-          G[2] = Samples[2][ai];
-          H[0] = Samples[0][bi];
-          H[1] = Samples[1][bi];
-          H[2] = Samples[2][bi];
-          E[0] = Samples[0][ci];
-          E[1] = Samples[1][ci];
-          E[2] = Samples[2][ci];
-          F[0] = Samples[0][di];
-          F[1] = Samples[1][di];
-          F[2] = Samples[2][di];
-          C[0] = Samples[0][ei];
-          C[1] = Samples[1][ei];
-          C[2] = Samples[2][ei];
-          D[0] = Samples[0][fi];
-          D[1] = Samples[1][fi];
-          D[2] = Samples[2][fi];
-          A[0] = Samples[0][gi];
-          A[1] = Samples[1][gi];
-          A[2] = Samples[2][gi];
-          B[0] = Samples[0][hi];
-          B[1] = Samples[1][hi];
-          B[2] = Samples[2][hi];
+          G[0] = mySamples[0][ai];
+          G[1] = mySamples[1][ai];
+          G[2] = mySamples[2][ai];
+          H[0] = mySamples[0][bi];
+          H[1] = mySamples[1][bi];
+          H[2] = mySamples[2][bi];
+          E[0] = mySamples[0][ci];
+          E[1] = mySamples[1][ci];
+          E[2] = mySamples[2][ci];
+          F[0] = mySamples[0][di];
+          F[1] = mySamples[1][di];
+          F[2] = mySamples[2][di];
+          C[0] = mySamples[0][ei];
+          C[1] = mySamples[1][ei];
+          C[2] = mySamples[2][ei];
+          D[0] = mySamples[0][fi];
+          D[1] = mySamples[1][fi];
+          D[2] = mySamples[2][fi];
+          A[0] = mySamples[0][gi];
+          A[1] = mySamples[1][gi];
+          A[2] = mySamples[2][gi];
+          B[0] = mySamples[0][hi];
+          B[1] = mySamples[1][hi];
+          B[2] = mySamples[2][hi];
         }
 
         // Compute tests and go to a new box depending on results
@@ -2274,6 +2282,7 @@ public class Gridded3DSet extends GriddedSet {
   }
 
   public float[] getStartPoint(float x, float y, float z) {
+    float[][]mySamples = getMySamples();
     int factor = 4;
     int nx = LengthX / factor;
     int ny = LengthY / factor;
@@ -2287,9 +2296,9 @@ public class Gridded3DSet extends GriddedSet {
         for (int i = 0; i < nx; i++) {
           int idx = k * factor * (LengthX * LengthY) + j * factor * LengthX + i
               * factor;
-          dist = (Samples[0][idx] - x) * (Samples[0][idx] - x)
-              + (Samples[1][idx] - y) * (Samples[1][idx] - y)
-              + (Samples[2][idx] - z) * (Samples[2][idx] - z);
+          dist = (mySamples[0][idx] - x) * (mySamples[0][idx] - x)
+              + (mySamples[1][idx] - y) * (mySamples[1][idx] - y)
+              + (mySamples[2][idx] - z) * (mySamples[2][idx] - z);
           if (dist < min_dist) {
             min_dist = dist;
             gx = i * factor;
@@ -5458,14 +5467,15 @@ public class Gridded3DSet extends GriddedSet {
   }
 
   public Object cloneButType(MathType type) throws VisADException {
+    float[][]mySamples = getMySamples();
     if (ManifoldDimension == 3) {
-      return new Gridded3DSet(type, Samples, LengthX, LengthY, LengthZ,
+      return new Gridded3DSet(type, mySamples, LengthX, LengthY, LengthZ,
           DomainCoordinateSystem, SetUnits, SetErrors);
     } else if (ManifoldDimension == 2) {
-      return new Gridded3DSet(type, Samples, LengthX, LengthY,
+      return new Gridded3DSet(type, mySamples, LengthX, LengthY,
           DomainCoordinateSystem, SetUnits, SetErrors);
     } else {
-      return new Gridded3DSet(type, Samples, LengthX, DomainCoordinateSystem,
+      return new Gridded3DSet(type, mySamples, LengthX, DomainCoordinateSystem,
           SetUnits, SetErrors);
     }
   }
@@ -5562,12 +5572,14 @@ public class Gridded3DSet extends GriddedSet {
     for (int i = 0; i < wedge.length; i++)
       System.out.println(" " + wedge[i]);
 
+    float[][]thatMySamples = gSet3D.getMySamples();
+
     // print out Samples information
     System.out.println("Samples (" + gSet3D.LengthX + " x " + gSet3D.LengthY
         + " x " + gSet3D.LengthZ + "):");
     for (int i = 0; i < gSet3D.LengthX * gSet3D.LengthY * gSet3D.LengthZ; i++) {
-      System.out.println("#" + i + ":\t" + gSet3D.Samples[0][i] + ", "
-          + gSet3D.Samples[1][i] + ", " + gSet3D.Samples[2][i]);
+      System.out.println("#" + i + ":\t" + thatMySamples[0][i] + ", "
+          + thatMySamples[1][i] + ", " + thatMySamples[2][i]);
     }
 
     // Test gridToValue function

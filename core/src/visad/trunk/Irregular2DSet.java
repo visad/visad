@@ -209,10 +209,11 @@ public class Irregular2DSet extends IrregularSet {
   /** convert an array of 1-D indices to an array of values in R^DomainDimension */
   public float[][] indexToValue(int[] index) throws VisADException {
     float[][] value = new float[2][index.length];
+    float[][]mySamples = getMySamples();
     for (int i=0; i<index.length; i++) {
       if ( (index[i] >= 0) && (index[i] < Length) ) {
-        value[0][i] = Samples[0][index[i]];
-        value[1][i] = Samples[1][index[i]];
+        value[0][i] = mySamples[0][index[i]];
+        value[1][i] = mySamples[1][index[i]];
       }
       else {
         value[0][i] = value[1][i] = Float.NaN;
@@ -240,6 +241,7 @@ public class Irregular2DSet extends IrregularSet {
     }
     int[] tri = new int[length];
     int curtri = 0;
+    float[][]mySamples = getMySamples();
     for (int i=0; i<length; i++) {
       // Return -1 if iteration loop fails
       tri[i] = -1;
@@ -250,12 +252,12 @@ public class Irregular2DSet extends IrregularSet {
         int t0 = Delan.Tri[curtri][0];
         int t1 = Delan.Tri[curtri][1];
         int t2 = Delan.Tri[curtri][2];
-        float Ax = Samples[0][t0];
-        float Ay = Samples[1][t0];
-        float Bx = Samples[0][t1];
-        float By = Samples[1][t1];
-        float Cx = Samples[0][t2];
-        float Cy = Samples[1][t2];
+        float Ax = mySamples[0][t0];
+        float Ay = mySamples[1][t0];
+        float Bx = mySamples[0][t1];
+        float By = mySamples[1][t1];
+        float Cx = mySamples[0][t2];
+        float Cy = mySamples[1][t2];
         float Px = value[0][i];
         float Py = value[1][i];
 
@@ -332,6 +334,7 @@ public class Irregular2DSet extends IrregularSet {
                              value.length + " not equal to Domain dimension " +
                              DomainDimension);
     }
+    float[][]mySamples = getMySamples();
     int[] tri = valueToTri(value);
     int[] index = new int[tri.length];
     for (int i=0; i<tri.length; i++) {
@@ -350,12 +353,12 @@ public class Irregular2DSet extends IrregularSet {
         int t2 = Delan.Tri[t][2];
 
         // partial distances
-        float D00 = Samples[0][t0] - x;
-        float D01 = Samples[1][t0] - y;
-        float D10 = Samples[0][t1] - x;
-        float D11 = Samples[1][t1] - y;
-        float D20 = Samples[0][t2] - x;
-        float D21 = Samples[1][t2] - y;
+        float D00 = mySamples[0][t0] - x;
+        float D01 = mySamples[1][t0] - y;
+        float D10 = mySamples[0][t1] - x;
+        float D11 = mySamples[1][t1] - y;
+        float D20 = mySamples[0][t2] - x;
+        float D21 = mySamples[1][t2] - y;
 
         // distances squared
         float Dsq0 = D00*D00 + D01*D01;
@@ -388,6 +391,7 @@ public class Irregular2DSet extends IrregularSet {
       throw new SetException(
                        "Irregular2DSet.valueToInterp: lengths don't match");
     }
+    float[][]mySamples = getMySamples();
     int[] tri = valueToTri(value);
     for (int i=0; i<tri.length; i++) {
       if (tri[i] < 0) {
@@ -412,12 +416,12 @@ public class Irregular2DSet extends IrregularSet {
         ival[2] = t2;
 
         // triangle vertices
-        float x0 = Samples[0][t0];
-        float y0 = Samples[1][t0];
-        float x1 = Samples[0][t1];
-        float y1 = Samples[1][t1];
-        float x2 = Samples[0][t2];
-        float y2 = Samples[1][t2];
+        float x0 = mySamples[0][t0];
+        float y0 = mySamples[1][t0];
+        float x1 = mySamples[0][t1];
+        float y1 = mySamples[1][t1];
+        float x2 = mySamples[0][t2];
+        float y2 = mySamples[1][t2];
 
         // perpendicular lines
         float C0x = y2-y1;
@@ -444,11 +448,11 @@ public class Irregular2DSet extends IrregularSet {
 
   public Object cloneButType(MathType type) throws VisADException {
     if (ManifoldDimension == 1) {
-      return new Irregular2DSet(type, Samples, newToOld, oldToNew,
+	return new Irregular2DSet(type, getMySamples(), newToOld, oldToNew,
                             DomainCoordinateSystem, SetUnits, SetErrors);
     }
     else {
-      return new Irregular2DSet(type, Samples, DomainCoordinateSystem,
+	return new Irregular2DSet(type, getMySamples(), DomainCoordinateSystem,
                                 SetUnits, SetErrors, Delan);
     }
   }
@@ -463,11 +467,13 @@ public class Irregular2DSet extends IrregularSet {
     RealTupleType t_tuple = new RealTupleType(t_array);
     Irregular2DSet iSet2D = new Irregular2DSet(t_tuple, samp);
 
+   
     // print out Samples information
     System.out.println("Samples:");
-    for (int i=0; i<iSet2D.Samples[0].length; i++) {
-      System.out.println("#"+i+":\t"+iSet2D.Samples[0][i]
-                               +", "+iSet2D.Samples[1][i]);
+    float[][]mySamples = iSet2D.getMySamples();
+    for (int i=0; i<mySamples[0].length; i++) {
+      System.out.println("#"+i+":\t"+mySamples[0][i]
+                               +", "+mySamples[1][i]);
     }
     System.out.println();
 

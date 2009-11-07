@@ -109,10 +109,11 @@ public class IrregularSet extends SampledSet {
   /** convert an array of 1-D indices to an array of values in R^DomainDimension */
   public float[][] indexToValue(int[] index) throws VisADException {
     float[][] value = new float[DomainDimension][index.length];
+    float[][]mySamples = getMySamples();
     for (int i=0; i<index.length; i++) {
       if ( (index[i] >= 0) && (index[i] < Length) ) {
         for (int j=0; j<DomainDimension; j++) {
-          value[j][i] = Samples[j][index[i]];
+          value[j][i] = mySamples[j][index[i]];
         }
       }
       else {
@@ -221,10 +222,11 @@ public class IrregularSet extends SampledSet {
           ManifoldDimension != ((IrregularSet) set).getManifoldDimension() ||
           Length != ((IrregularSet) set).getLength()) return false;
       // Sets are immutable, so no need for 'synchronized'
+      float[][]mySamples = getMySamples();
       float[][] samples = ((IrregularSet) set).getSamples(false);
       for (j=0; j<DomainDimension; j++) {
         for (i=0; i<Length; i++) {
-          if (Samples[j][i] != samples[j][i]) {
+          if (mySamples[j][i] != samples[j][i]) {
             addNotEqualsCache((Set) set);
             return false;
           }
@@ -253,7 +255,7 @@ public class IrregularSet extends SampledSet {
   }
 
   public Object cloneButType(MathType type) throws VisADException {
-    return new IrregularSet(type, Samples, DomainCoordinateSystem,
+     return new IrregularSet(type, getMySamples(), DomainCoordinateSystem,
                           SetUnits, SetErrors, Delan);
   }
 
