@@ -107,11 +107,13 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           ? cMapCurveSize
           : display.getGraphicsModeControl().getCurvedSize();
   
+
      imgNode = ((ImageRendererJ3D)renderer).getImageNode();
 
      if (reuseImages && (imgNode != null) ) {
        images = imgNode.getImages();
      }
+
 
      if (!reuse) {
 
@@ -155,6 +157,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
      } 
 
 
+
     ShadowFunctionOrSetType adaptedShadowType =
          (ShadowFunctionOrSetType) getAdaptedShadowType();
 
@@ -191,6 +194,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         display_values[i][0] = value_array[i];
       }
     }
+
 
     Set domain_set = ((Field) data).getDomainSet();
     Unit[] dataUnits = null;
@@ -233,35 +237,35 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       imgData = (FlatField)data;
     }
 
-    if (images != null) {
-      if (numImages != images.length) {
-        reuseImages = false;
-      }
-    }
-
-    if (!reuseImages || images == null) {
-      images = new BufferedImage[numImages];
-    } 
 
     domain_set = imgData.getDomainSet();
     dataUnits = ((Function) imgData).getDomainUnits();
     dataCoordinateSystem =
       ((Function) imgData).getDomainCoordinateSystem();
 
-    float[][] domain_values = null;
-    double[][] domain_doubles = null;
-    ShadowRealTupleType Domain = adaptedShadowType.getDomain();
-    Unit[] domain_units = ((RealTupleType) Domain.getType()).getDefaultUnits();
-    int domain_length;
-    int domain_dimension;
-    try {
-      domain_length = domain_set.getLength();
-      domain_dimension = domain_set.getDimension();
-    }
-    catch (SetException e) {
-      return false;
+    int domain_length = domain_set.getLength();
+    int[] lengths = ((GriddedSet) domain_set).getLengths();
+    int data_width = lengths[0];
+    int data_height = lengths[1];
+    int texture_width = textureWidth(data_width);
+    int texture_height = textureHeight(data_height);
+
+    if (images != null) {
+      if ( (numImages != images.length) || 
+           (texture_width != images[0].getWidth()) || (texture_height != images[0].getHeight()) ) {
+        reuseImages = false;
+      }
     }
 
+    if (!reuseImages || images == null) {
+      images = new BufferedImage[numImages];
+    }
+
+    imgNode.setImages(images);
+
+
+    ShadowRealTupleType Domain = adaptedShadowType.getDomain();
+    Unit[] domain_units = ((RealTupleType) Domain.getType()).getDefaultUnits();
     float constant_alpha = Float.NaN;
     float[] constant_color = null;
 
@@ -325,12 +329,8 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     byte[][] color_bytes = null;
     byte[] byteData = null;
     CachedBufferedByteImage image = null;
-    int[] lengths = ((GriddedSet) domain_set).getLengths();
-    int data_width = lengths[0];
-    int data_height = lengths[1];
-    int texture_width = textureWidth(data_width);
-    int texture_height = textureHeight(data_height);
-    
+
+
     int color_length;
     ImageRendererJ3D imgRenderer = (ImageRendererJ3D) renderer;
     int imageType = imgRenderer.getSuggestedBufImageType();
@@ -352,6 +352,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       throw new VisADException("renderer returned unsupported image type");
     }
 
+
     if (!reuseImages) {
       image = createImageByRef(texture_width, texture_height, imageType);
       images[0] = image;
@@ -367,6 +368,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                    color_bytes, byteData, data_width, data_height, texture_width, texture_height);
 
     image.bytesChanged(byteData);
+
 
     // check domain and determine whether it is square or curved texture
     if (!Domain.getAllSpatial() || Domain.getMultipleDisplayScalar()) {
@@ -711,7 +713,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 	image.bytesChanged(byteData);
       }
 
-      imgNode.setImages(images);
+      //imgNode.setImages(images);
 
     ensureNotEmpty(group);
     return false;
@@ -1362,7 +1364,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     // get domain_set sizes
     data_width = X.getLength();
     data_height = Y.getLength();
-    // texture sizes must be powers of two
+    // texture sizes must be powers of two on older graphics cards
     texture_width = textureWidth(data_width);
     texture_height = textureHeight(data_height);
                                                                                                                        
@@ -1516,8 +1518,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       System.err.println("w:" + texture_width +"  h:" + texture_height);
       return new CachedBufferedByteImage(texture_width, texture_height, imageType);
   }
-
-
 
 }
 
