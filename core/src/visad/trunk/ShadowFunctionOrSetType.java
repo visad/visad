@@ -530,7 +530,7 @@ System.out.println("ShadowFunctionOrSetType.checkIndices 3:" +
                              ShadowType shadow_api)
          throws VisADException, RemoteException {
 
-    visad.util.Trace.msg(""+data.getType());
+    visad.util.Trace.msg("ShadowFunctionOrSetType:"+data.getType());
     // return if data is missing or no ScalarMaps
     if (data.isMissing()) return false;
     if (LevelOfDifficulty == NOTHING_MAPPED) return false;
