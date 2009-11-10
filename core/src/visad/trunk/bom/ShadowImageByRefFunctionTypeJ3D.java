@@ -713,8 +713,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 	image.bytesChanged(byteData);
       }
 
-      //imgNode.setImages(images);
-
     ensureNotEmpty(group);
     return false;
   }
@@ -1118,8 +1116,8 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                                                                                                                    
     // transform for any CoordinateSystem in data (Field) Domain
     ShadowRealTupleType domain_reference = Domain.getReference();
-                                                                                                                   
     ShadowRealType[] DC = DomainComponents;
+
     if (domain_reference != null &&
         domain_reference.getMappedDisplayScalar()) {
       RealTupleType ref = (RealTupleType) domain_reference.getType();
@@ -1194,7 +1192,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         spatial_values[i] = spatial_maps[i].scaleValues(spatial_values[i], false);
       }
     }
-                                                                                                                   
+
     if (spatial_tuple.equals(Display.DisplaySpatialCartesianTuple)) {
 // inside 'if (anyFlow) {}' in ShadowType.assembleSpatial()
       renderer.setEarthSpatialDisplay(null, spatial_tuple, display,
@@ -1283,15 +1281,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         tarray.normals[k+3] = normals[m+nwidth3];
         tarray.normals[k+4] = normals[m+nwidth3+1];
         tarray.normals[k+5] = normals[m+nwidth3+2];
-
-        /*
-        tarray.colors[k] = colors[m];
-        tarray.colors[k+1] = colors[m+1];
-        tarray.colors[k+2] = colors[m+2];
-        tarray.colors[k+3] = colors[m+nwidth3];
-        tarray.colors[k+4] = colors[m+nwidth3+1];
-        tarray.colors[k+5] = colors[m+nwidth3+2];
-        */
 
         tarray.texCoords[kt] = texCoords[mt];
         tarray.texCoords[kt+1] = texCoords[mt+1];
@@ -1515,7 +1504,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
   }
 
   public CachedBufferedByteImage createImageByRef(final int texture_width, final int texture_height, final int imageType) {
-      System.err.println("w:" + texture_width +"  h:" + texture_height);
       return new CachedBufferedByteImage(texture_width, texture_height, imageType);
   }
 
