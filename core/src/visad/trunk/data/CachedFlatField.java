@@ -1,5 +1,5 @@
 /*
- * $Id: CachedFlatField.java,v 1.3 2009-11-07 06:16:15 jeffmc Exp $
+ * $Id: CachedFlatField.java,v 1.4 2009-11-11 01:31:22 jeffmc Exp $
  *
  * Copyright  1997-2004 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -32,7 +32,7 @@ import java.rmi.RemoteException;
  * This is a FloatField that caches to disk its float array.
  *
  * @author Unidata Development Team
- * @version $Revision: 1.3 $ $Date: 2009-11-07 06:16:15 $
+ * @version $Revision: 1.4 $ $Date: 2009-11-11 01:31:22 $
  */
 public class CachedFlatField extends FlatField {
 
@@ -45,8 +45,6 @@ public class CachedFlatField extends FlatField {
     /** Mutex */
     transient protected Object MUTEX = new Object();
 
-    /** myParent */
-    private CachedFlatField myParent;
 
     /** The min/max ranges */
     DataRange[] ranges;
@@ -164,12 +162,12 @@ public class CachedFlatField extends FlatField {
         super(type, domainSet, rangeCoordSys, rangeCoordSysArray, rangeSets,
               units);
 
-
 	//For now lets ignore the copy vis-a-vis the parent cached flat field
-
+        msg("copy ctor:" + copy);
 	this.ranges       = that.ranges;
 	this.sampleRanges = that.sampleRanges;
-        float[][] myFloatValues = that.unpackFloats(copy);
+        //Force a copy
+        float[][] myFloatValues = that.unpackFloats(true);
         this.cacheId =  null;
 	init(myFloatValues);
     }
@@ -206,14 +204,11 @@ public class CachedFlatField extends FlatField {
     }
 
 
-    public CachedFlatField getParent() {
-        return myParent;
-    }
-
 
 
     public void finalize() throws Throwable {
         super.finalize();
+        System.err.println("CachedFlatField.finalize");
         if(cacheId!=null) {
             DataCacheManager.getCacheManager().removeFromCache(cacheId);
         }
@@ -413,8 +408,9 @@ public class CachedFlatField extends FlatField {
      * @param s message to print
      */
     protected void msg(String s) {
-	//	System.err.println(mycnt + " " + s);
+        //        System.err.println("ccf:"+ mycnt + ": " + s);
     }
+
 
     /**
      * Read data from cache
@@ -424,9 +420,6 @@ public class CachedFlatField extends FlatField {
      * @throws VisADException   problem reading data
      */
     private float[][] getMyValues() throws VisADException {
-        if (myParent != null) {
-            return myParent.getMyValues();
-        }
         if(inCache) {
 	    if(cacheId == null) {
 		return null;
@@ -552,7 +545,7 @@ public class CachedFlatField extends FlatField {
      * @throws VisADException On badness
      */
     public float[][] unpackFloats(boolean copy) throws VisADException {
-        //        msg("unpackFloats copy=" + copy);
+        msg("unpackFloats copy=" + copy);
         float[][] values = getMyValues();
         if (values == null) {
 	    //	    System.err.println(mycnt+" CCF.unpackFloats - values are still null");

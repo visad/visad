@@ -418,7 +418,13 @@ public class DataCacheManager  implements Runnable {
                                    "   " + info.dataAccessedCnt + "   " + info.cacheMissedCnt + "   " +
                                    new Date(info.lastTime));
                 sb.append("\n");
+                /*                sb.append("what:" + info.what);
+                sb.append("\n");
+                sb.append(info.where.substring(300));
+                sb.append("\n");
+                */
             }
+
       }
         return sb.toString();
     }
@@ -523,6 +529,10 @@ public class DataCacheManager  implements Runnable {
     /**           */
     private int cacheMissedCnt = 0;
 
+    private String where;
+
+   private String what;
+
     /**
      * 
      *
@@ -537,6 +547,8 @@ public class DataCacheManager  implements Runnable {
       this.cacheManager = cacheManager;
       this.type = type;
       cacheFile = new File(cacheManager.getCacheDir() + "/" + cacheId + ".dat");
+      this.what = data.toString();
+      where = ucar.unidata.util.LogUtil.getStackTrace();
       setData(data);
     }
 
@@ -576,6 +588,7 @@ public class DataCacheManager  implements Runnable {
       }
       else if (type == TYPE_FLOAT2D) {
         size = 4*((float[][])data).length * ((float[][])data)[0].length;
+        what = ((float[][])data)[0].toString();
       }
       else if (type == TYPE_SHORT1D) {
         size = 2*((short[])data).length;
