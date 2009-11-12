@@ -302,11 +302,9 @@ public abstract class Unit implements Serializable {
      * @see #isConvertible(Unit)
      */
     public static boolean canConvert(Unit unita, Unit unitb) {
-        if (CommonUnit.promiscuous.equals(unita)) {
-            unita = null;
-        }
-        if (CommonUnit.promiscuous.equals(unitb)) {
-            unitb = null;
+        if (CommonUnit.promiscuous.equals(unita) ||
+            CommonUnit.promiscuous.equals(unitb)) {
+            return true;
         }
         if (unita == null && unitb == null) {
             return true;
