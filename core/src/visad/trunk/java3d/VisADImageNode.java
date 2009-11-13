@@ -51,7 +51,7 @@ public class VisADImageNode implements ImageComponent2D.Updater {
 
    public void updateData(ImageComponent2D imageC2d, int x, int y, int lenx, int leny) {
      if (images != null) {
-       imageComp.set(images[current_index]);
+       //-imageComp.set(images[current_index]); // This should probably not be done in updateData
      }
    }
 
@@ -59,16 +59,19 @@ public class VisADImageNode implements ImageComponent2D.Updater {
    private int lookAheadIndexBaseIndex = 0;
 
    public void setCurrent(int idx) {
-     /**
      current_index = idx;
-     if (imageComp != null) {
-       imageComp.updateData(this, 0, 0, 0, 0);
+     if (imageComp != null && images != null) {
+       //-imageComp.updateData(this, 0, 0, 0, 0); // See note above
+       imageComp.set(images[current_index]);
      }
-     **/
+
+     /** use if stepping via a Behavior
      if (animate != null) {
        animate.setCurrent(idx);
        animate.postId(777);
      }
+     */
+
      final BufferedImage[] tmpImages = images;
      final int theIdx = idx;
      if(lookAheadIndexBaseIndex!= idx && tmpImages!=null && tmpImages.length>0 && tmpImages[0] instanceof CachedBufferedByteImage) {
@@ -97,6 +100,7 @@ public class VisADImageNode implements ImageComponent2D.Updater {
 	 t.start();
      }
    }
+
 
 /** use these with custom Behavior below **/
    public void initialize() {

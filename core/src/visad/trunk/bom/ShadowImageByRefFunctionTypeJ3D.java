@@ -141,7 +141,9 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
        imgNode.setSwitch(swit);
        ((ImageRendererJ3D)renderer).setImageNode(imgNode);
 
+       /** use if stepping via Behavior
        imgNode.initialize();
+       */
 
        if ( ((BranchGroup) group).numChildren() > 0 ) {
          ((BranchGroup)group).setChild(branch, 0);
@@ -1032,6 +1034,75 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       }
   }
 
+  public static boolean spatialLinear(float[][] spatial_values, int lenx, int leny) {
+    float del_x = Float.NaN;
+    float del_y = Float.NaN;
+    float area  = Float.NaN;
+
+    for (int j=2; j<leny-2; j++) {
+      for (int i=2; i<lenx-2; i++) {
+        int k = i + j*lenx;
+
+        float xa = spatial_values[0][k];
+        float ya = spatial_values[1][k];
+        float za = spatial_values[2][k];
+        float xb = spatial_values[0][k+1];
+        float yb = spatial_values[1][k+1];
+        float zb = spatial_values[2][k+1];
+        float xc = spatial_values[0][k+lenx];
+        float yc = spatial_values[1][k+lenx];
+        float zc = spatial_values[2][k+lenx];
+        float xd = spatial_values[0][k+lenx+1];
+        float yd = spatial_values[1][k+lenx+1];
+        float zd = spatial_values[2][k+lenx+1];
+
+        if ( Float.isNaN(xa) || Float.isNaN(ya) || Float.isNaN(za) ||
+             Float.isNaN(xb) || Float.isNaN(yb) || Float.isNaN(zb) ||
+             Float.isNaN(xc) || Float.isNaN(yc) || Float.isNaN(zc) ||
+             Float.isNaN(xd) || Float.isNaN(yd) || Float.isNaN(zd) ) {
+          continue;
+        }
+
+        float dx = (xb - xa);
+        float dy = (yb - ya);
+        float len = (float) Math.sqrt(dx*dx + dy*dy);
+       
+        float dx_c = (xc - xa);
+        float dy_c = (yc - ya);
+        float len_c = (float) Math.sqrt(dx_c*dx_c + dy_c*dy_c);
+
+        float dotx = (dx/len)*(dx_c/len_c);
+        float doty = (dy/len)*(dy_c/len_c);
+
+        float dot_mag = (float) Math.sqrt(dotx*dotx + doty*doty);
+        //- rectangular pixels
+        if (!Util.isApproximatelyEqual(dot_mag, 0.0, 0.05)) {
+          System.out.println("("+j+","+i+"), "+dot_mag);
+          return false;
+        }
+        //- aligned with Display.XAxis, Display.YAxis
+        if (!(Util.isApproximatelyEqual(dx, 0.0, 0.005) || Util.isApproximatelyEqual(dy, 0.0, 0.005))) {
+          System.out.println("not aligned: ("+j+","+i+"), "+dx+","+dy);
+          return false;
+        }
+
+        float ar = (dx*dy_c - dy*dx_c);
+
+        if (Float.isNaN(area)) {
+          area = ar;
+          continue;
+        }
+        //- pixels same size
+        if (!Util.isApproximatelyEqual(area, ar, 0.005)) {
+          System.out.println("("+j+","+i+"), area: "+area);
+          return false;
+        }
+        area = ar;
+      }
+    }
+    return true;
+  }
+
   public void buildCurvedTexture(Object group, Set domain_set, Unit[] dataUnits, Unit[] domain_units,
                                  float[] default_values, ShadowRealType[] DomainComponents,
                                  int valueArrayLength, int[] inherited_values, int[] valueToScalar,
@@ -1167,6 +1238,8 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                                    "ShadowImageFunctionTypeJ3D.doTransform");
       }
     } // end for (int i=0; i<DC.length; i++)
+
+
     // get spatial index not mapped from domain_set
     tuple_index[2] = 3 - (tuple_index[0] + tuple_index[1]);
     DisplayRealType real =
@@ -1181,6 +1254,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       }
     }
                                                                                                                    
+
     float[][] spatial_values = new float[3][];
     spatial_values[tuple_index[0]] = spline_domain[0];
     spatial_values[tuple_index[1]] = spline_domain[1];
@@ -1201,12 +1275,12 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     else {
       CoordinateSystem coord = spatial_tuple.getCoordinateSystem();
       spatial_values = coord.toReference(spatial_values);
-                                                                                                                   
+
 // inside 'if (anyFlow) {}' in ShadowType.assembleSpatial()
       renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
                spatial_value_indices, default_values, null);
     }
-                                                                                                                   
+
     // break from ShadowFunctionOrSetType
     coordinates = new float[3 * nn];
     k = 0;
