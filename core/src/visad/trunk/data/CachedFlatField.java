@@ -1,5 +1,5 @@
 /*
- * $Id: CachedFlatField.java,v 1.4 2009-11-11 01:31:22 jeffmc Exp $
+ * $Id: CachedFlatField.java,v 1.5 2009-11-13 00:52:09 jeffmc Exp $
  *
  * Copyright  1997-2004 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -32,7 +32,7 @@ import java.rmi.RemoteException;
  * This is a FloatField that caches to disk its float array.
  *
  * @author Unidata Development Team
- * @version $Revision: 1.4 $ $Date: 2009-11-11 01:31:22 $
+ * @version $Revision: 1.5 $ $Date: 2009-11-13 00:52:09 $
  */
 public class CachedFlatField extends FlatField {
 
@@ -136,7 +136,7 @@ public class CachedFlatField extends FlatField {
                            Set[] rangeSets, Unit[] units, float[][] floats)
             throws VisADException {
         super(type, domainSet, rangeCoordSys, null, rangeSets, units);
-        init(floats);
+        initCache(floats);
     }
 
     /**
@@ -163,13 +163,21 @@ public class CachedFlatField extends FlatField {
               units);
 
 	//For now lets ignore the copy vis-a-vis the parent cached flat field
-        msg("copy ctor:" + copy);
 	this.ranges       = that.ranges;
 	this.sampleRanges = that.sampleRanges;
-        //Force a copy
-        float[][] myFloatValues = that.unpackFloats(true);
         this.cacheId =  null;
-	init(myFloatValues);
+        this.inCache = false;
+
+        //Get the values from the cloned field if they had read their values
+        if(that.inCache) {
+            //            msg("CCF - cloned object is in cache");
+            float[][] myFloatValues = that.unpackFloats(true);
+            initCache(myFloatValues);
+        } else {
+            clearMissing();
+            //            msg("CCF - cloned object not in cache");
+        }
+
     }
 
 
@@ -241,21 +249,13 @@ public class CachedFlatField extends FlatField {
         if(inCache) {
             DataCacheManager.getCacheManager().updateData(cacheId, myFloatValues);
         } else {
-            init(myFloatValues);
+            initCache(myFloatValues);
         }
 
     }
 
 
 
-    /**
-     * Set the sample ranges
-     *
-     * @param sampleRanges the sample ranges
-     */
-    public void setSampleRanges(DataRange[] sampleRanges) {
-        this.sampleRanges = sampleRanges;
-    }
 
     static int cnt = 0;
     int mycnt = cnt++;
@@ -267,17 +267,52 @@ public class CachedFlatField extends FlatField {
      */
     public Object clone() {
 	try {
-	    msg("CCF.clone");
+            //	    msg("CCF.clone");
 	    CachedFlatField ccf = (CachedFlatField) super.clone();
 	    ccf.cacheId = null;
 	    float[][]newValues = ccf.unpackFloats(false);
 	    ccf.nullRanges();
-	    ccf.init(newValues);
+	    ccf.initCache(newValues);
 	    return ccf;
 	} catch(Exception exc) {
 	    exc.printStackTrace();
 	    throw new RuntimeException(exc);
 	}
+    }
+
+
+
+    /**
+     * init
+     *
+     * @param data data
+     *
+     * @throws VisADException initializing field
+     */
+    protected void initCache(float[][] data) throws VisADException {
+        if(data!=null) {
+            if(cacheId!=null) {
+                DataCacheManager.getCacheManager().updateData(cacheId, data);
+            } else {
+                cacheId = DataCacheManager.getCacheManager().addToCache(data);
+            }
+            inCache = true;
+        }
+        //Read the ranges when we first have data
+        if (ranges == null) {
+            getRanges(data);
+        }
+        clearMissing();
+    }
+
+
+    /**
+     * Set the sample ranges
+     *
+     * @param sampleRanges the sample ranges
+     */
+    public void setSampleRanges(DataRange[] sampleRanges) {
+        this.sampleRanges = sampleRanges;
     }
 
 
@@ -367,30 +402,6 @@ public class CachedFlatField extends FlatField {
 
 
 
-    /**
-     * init
-     *
-     * @param data data
-     *
-     * @throws VisADException initializing field
-     */
-    protected void init(float[][] data) throws VisADException {
-        if(data!=null) {
-            if(cacheId!=null) {
-                DataCacheManager.getCacheManager().updateData(cacheId, data);
-            } else {
-                cacheId = DataCacheManager.getCacheManager().addToCache(data);
-            }
-            inCache = true;
-        }
-        //Read the ranges when we first have data
-        if (ranges == null) {
-            getRanges(data);
-        }
-
-        clearMissing();
-    }
-
 
     /**
      * Used to provide a hook to derived classes to dynamically read in the data
@@ -398,7 +409,7 @@ public class CachedFlatField extends FlatField {
      * @return data
      */
     public float[][] readData() {
-        msg(" CachedFlatField.readData");
+        //        msg(" CachedFlatField.readData");
         return null;
     }
 
@@ -407,8 +418,8 @@ public class CachedFlatField extends FlatField {
      *
      * @param s message to print
      */
-    protected void msg(String s) {
-        //        System.err.println("ccf:"+ mycnt + ": " + s);
+    public void msg(String s) {
+        System.err.println("ccf:"+ mycnt + ": " + s);
     }
 
 
@@ -420,18 +431,21 @@ public class CachedFlatField extends FlatField {
      * @throws VisADException   problem reading data
      */
     private float[][] getMyValues() throws VisADException {
+        //        msg("CCF - getMyValues " + inCache);
         if(inCache) {
 	    if(cacheId == null) {
+                //                msg("CCF - WHoa, inCache=true but no cacheId");
 		return null;
 	    }
             return DataCacheManager.getCacheManager().getFloatArray2D(cacheId);
         }
+
         float[][] values = readData();
         if (values == null) {
-            msg("Floats still null after readData");
+            //            msg("Floats still null after readData");
             return null;
         }
-        init(values);
+        initCache(values);
         return values;
     }
 
@@ -545,9 +559,10 @@ public class CachedFlatField extends FlatField {
      * @throws VisADException On badness
      */
     public float[][] unpackFloats(boolean copy) throws VisADException {
-        msg("unpackFloats copy=" + copy);
+        //        msg("unpackFloats copy=" + copy);
         float[][] values = getMyValues();
         if (values == null) {
+            //            msg("unpackFloats gives null");
 	    //	    System.err.println(mycnt+" CCF.unpackFloats - values are still null");
 	    return super.unpackFloats(copy);
         }

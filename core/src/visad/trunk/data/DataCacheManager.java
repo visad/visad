@@ -412,9 +412,10 @@ public class DataCacheManager  implements Runnable {
         } else {
             sb.append("entry size/in cache/data access/cache miss/last touched");
             sb.append("\n");
+            int cnt = 0;
             for (CacheInfo info : infos) {
                 sb.append(
-                                   "   cache entry:" + info.getSize() + "   " + (info.data != null) +
+                          "   #" + (++cnt) +" cache entry:" + info.getSize() + "   " + (info.data != null) +
                                    "   " + info.dataAccessedCnt + "   " + info.cacheMissedCnt + "   " +
                                    new Date(info.lastTime));
                 sb.append("\n");
