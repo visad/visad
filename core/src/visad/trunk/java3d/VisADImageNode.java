@@ -105,7 +105,7 @@ public class VisADImageNode implements ImageComponent2D.Updater {
    }
 
    public void update(int index) {
-     if (images != null) {
+     if (images != null && imageComp != null) {
        imageComp.set(images[index]);
      }
    }
