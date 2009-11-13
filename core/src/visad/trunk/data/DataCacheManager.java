@@ -419,11 +419,12 @@ public class DataCacheManager  implements Runnable {
                                    "   " + info.dataAccessedCnt + "   " + info.cacheMissedCnt + "   " +
                                    new Date(info.lastTime));
                 sb.append("\n");
-                /*                sb.append("what:" + info.what);
+		/*
+		sb.append("what:" + info.what);
                 sb.append("\n");
                 sb.append(info.where.substring(300));
                 sb.append("\n");
-                */
+		*/
             }
 
       }

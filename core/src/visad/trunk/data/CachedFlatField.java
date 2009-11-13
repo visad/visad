@@ -1,5 +1,5 @@
 /*
- * $Id: CachedFlatField.java,v 1.5 2009-11-13 00:52:09 jeffmc Exp $
+ * $Id: CachedFlatField.java,v 1.6 2009-11-13 14:26:34 jeffmc Exp $
  *
  * Copyright  1997-2004 Unidata Program Center/University Corporation for
  * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
@@ -32,7 +32,7 @@ import java.rmi.RemoteException;
  * This is a FloatField that caches to disk its float array.
  *
  * @author Unidata Development Team
- * @version $Revision: 1.5 $ $Date: 2009-11-13 00:52:09 $
+ * @version $Revision: 1.6 $ $Date: 2009-11-13 14:26:34 $
  */
 public class CachedFlatField extends FlatField {
 
@@ -52,7 +52,7 @@ public class CachedFlatField extends FlatField {
     /** The min/max ranges */
     DataRange[] sampleRanges;
 
-
+    private  CachedFlatField parent;
 
     /**
      * Create a new CachedFlatField
@@ -171,9 +171,13 @@ public class CachedFlatField extends FlatField {
         //Get the values from the cloned field if they had read their values
         if(that.inCache) {
             //            msg("CCF - cloned object is in cache");
-            float[][] myFloatValues = that.unpackFloats(true);
-            initCache(myFloatValues);
+            float[][] values = that.unpackFloats(true);
+	    if(values == null) {
+		parent = that;
+	    }
+            initCache(values);
         } else {
+	    this.parent = that;
             clearMissing();
             //            msg("CCF - cloned object not in cache");
         }
@@ -440,7 +444,22 @@ public class CachedFlatField extends FlatField {
             return DataCacheManager.getCacheManager().getFloatArray2D(cacheId);
         }
 
-        float[][] values = readData();
+        float[][] values = null;
+
+	//If we don't have the values and we have a ccf that we were cloned from 
+	//then read the data from it and clear it out
+	if(parent!=null) {
+            values = parent.unpackFloats(true);
+	    parent = null;
+	}
+
+
+
+        if (values == null) {
+	    values = readData();
+	}
+
+
         if (values == null) {
             //            msg("Floats still null after readData");
             return null;
