@@ -34,7 +34,10 @@ import java.util.Arrays;
  * #getSamples(boolean)} for an exception).
  */
 public abstract class SampledSet extends SimpleSet implements SampledSetIface {
+  
+  private static int cacheSizeThreshold = -1;
 
+  private Object cacheId;
   float[][] Samples;
   float Low[], Hi[];
 
@@ -63,12 +66,39 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
   }
 
 
+    public void finalize()  throws Throwable {
+	if(cacheId!=null) {
+	    System.err.println ("sampled set finalize");
+	    visad.data.DataCacheManager.getCacheManager().removeFromCache(cacheId);
+	}
+        super.finalize();
+    }
+
+
+    public static void setCacheSizeThreshold(int threshold) {
+	cacheSizeThreshold = threshold;
+    }
+
+
   protected void setMySamples(float[][]samples) {
+      if(cacheSizeThreshold>=0 && samples!=null && samples.length>0 && samples[0].length>cacheSizeThreshold) {
+	  if(cacheId!=null) {
+                visad.data.DataCacheManager.getCacheManager().updateData(cacheId, samples);
+            } else {
+                cacheId = visad.data.DataCacheManager.getCacheManager().addToCache(samples);
+	  }
+	  //	  visad.data.DataCacheManager.getCacheManager().printStats();
+	  return;
+      }
       this.Samples = samples;
   }
 
+
   protected float[][] getMySamples() {
-      return Samples;
+    if(cacheId!=null) {
+        return visad.data.DataCacheManager.getCacheManager().getFloatArray2D(cacheId);
+    }
+    return Samples;
   }
 
   void init_samples(float[][] samples) throws VisADException {
