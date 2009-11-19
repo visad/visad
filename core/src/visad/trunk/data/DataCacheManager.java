@@ -560,7 +560,8 @@ public class DataCacheManager  implements Runnable {
       this.type = type;
       cacheFile = new File(cacheManager.getCacheDir() + "/" + cacheId + ".dat");
       this.what = data.toString();
-      where = ucar.unidata.util.LogUtil.getStackTrace();
+      where = "";
+      //      where = ucar.unidata.util.LogUtil.getStackTrace();
       setData(data);
     }
 
