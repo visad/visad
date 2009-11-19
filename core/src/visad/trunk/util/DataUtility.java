@@ -1633,4 +1633,50 @@ public class DataUtility {
 
       return result;
   }
+
+  /**
+   * Make a RealType with a unique name for the given unit
+   *
+   * @param name name of the RealType
+   * @param unit  the default unit
+   *
+   * @return  the RealType 
+   *
+   * @throws VisADException  problem creating the RealType
+   */
+  public static RealType getUniqueRealType(String name, Unit unit)
+        throws VisADException {
+    RealType type    = RealType.getRealType(name, unit);
+    if (type == null) {
+      String  newname = cleanName(name) + "[unit:" + ((unit == null)
+              ? "null"
+              : cleanName(unit.toString())) + "]";
+
+      type = RealType.getRealType(newname, unit);
+    }
+    if (type == null) {
+        throw new VisADException(
+            "couldn't create RealType with units compatible to "
+            + unit.toString());
+    }
+    return type;
+  }  
+
+  /**
+   * Make a valid VisAD RealType name from the string.  Remove
+   * spaces, "." and parens.
+   * @param name name to clean
+   * @return cleaned up name
+   */
+  public static String cleanName(String name) {
+    name = name.replace('.', '_');
+    name = name.replace(",","_");
+    name = name.replace(' ', '_');
+    name = name.replace('(', '[');
+    name = name.replace(')', ']');
+    while(name.indexOf("__")>=0) {
+      name = name.replace("__","_");
+    }
+    return name;
+  }
 }

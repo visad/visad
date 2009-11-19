@@ -31,6 +31,7 @@ import edu.wisc.ssec.mcidas.adde.*;
 import visad.*;
 import visad.data.units.*;
 import visad.jmet.MetUnits;
+import visad.util.DataUtility;
 import java.util.Vector;
 
 /**
@@ -45,6 +46,9 @@ public class PointDataAdapter {
   FieldImpl field = null;
   private boolean debug = false;
   private boolean useAliases = true;
+  private boolean makeUniqueNames = false;
+
+  private static final String TEXT_EXT = "[Text]";
 
   /**
    * Construct a PointDataAdapter using the adde request passed as a string.
@@ -70,10 +74,30 @@ public class PointDataAdapter {
    * @param  useAliases        - for quantities like Latitude, Longitude,etc
    *                             alias the RealTypes to the original McIDAS
    *                             variable name.
+   * @param  makeUniqueNames   - if true, make unique names to avoid null Types
    * @throws VisADException  bad request, no data available, VisAD error
    * @see #getData()
    */
   public PointDataAdapter(String addePointRequest, boolean useAliases)
+      throws VisADException
+  {
+      this(addePointRequest, useAliases, false);
+  }
+
+  /**
+   * Construct a PointDataAdapter using the adde request passed as a string.
+   * This will take the data returned from the request and turn it into
+   * VisAD Data objects that can be returned by the getData() call.
+   *
+   * @param  addePointRequest  - string representing the ADDE request
+   * @param  useAliases        - for quantities like Latitude, Longitude,etc
+   *                             alias the RealTypes to the original McIDAS
+   *                             variable name.
+   * @param  makeUniqueNames   - if true, make unique names to avoid null Types
+   * @throws VisADException  bad request, no data available, VisAD error
+   * @see #getData()
+   */
+  public PointDataAdapter(String addePointRequest, boolean useAliases, boolean makeUniqueNames)
       throws VisADException
   {
     try
@@ -81,6 +105,7 @@ public class PointDataAdapter {
       reader = new AddePointDataReader(addePointRequest);
       debug = addePointRequest.indexOf("debug=true") > 0;
       this.useAliases = useAliases;
+      this.makeUniqueNames = makeUniqueNames;
     }
     catch (AddeException excp)
     {
@@ -141,6 +166,13 @@ public class PointDataAdapter {
         noText = false;
         if (debug) {
           System.out.println(params[i] + " has units of CHAR");
+        }
+        TextType txtType = TextType.getTextType(params[i]);
+        if (txtType == null && makeUniqueNames) { // might be a RealType name
+          txtType = TextType.getTextType(params[i]+TEXT_EXT);
+        }
+        if (txtType == null) {
+          throw new VisADException("can't create TextType for " + params[i]);
         }
         types[i] = TextType.getTextType(params[i]);
         defaultUnits[i] = null;
@@ -328,7 +360,11 @@ public class PointDataAdapter {
       if (type == null) {
         System.err.println("Problem creating RealType with name " +
                         name + " and unit " + unit);
-        type = RealType.getRealTypeByName(name);
+        if (makeUniqueNames) {
+           type = DataUtility.getUniqueRealType(name, unit);
+        } else {
+           type = RealType.getRealTypeByName(name);
+        }
         if (type == null) {  // Still a problem
            throw new VisADException(
               "getQuantity(): Couldn't create RealType for " + name);
@@ -346,4 +382,5 @@ public class PointDataAdapter {
     }
     return type;
   }
+
 }
