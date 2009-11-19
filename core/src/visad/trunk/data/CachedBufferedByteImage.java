@@ -135,6 +135,11 @@ public class CachedBufferedByteImage extends BufferedImage {
 
 
 
+    public boolean inMemory() {
+	return  bytes.inMemory();
+    }
+
+
     /**
      * _more_
      *

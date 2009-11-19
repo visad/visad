@@ -231,6 +231,16 @@ public class DataCacheManager  implements Runnable {
     }
   }
 
+    public boolean inMemory(Object cacheId) {
+	synchronized (MUTEX) {
+	CacheInfo info =  cache.get(cacheId);
+	if(info == null)return false;
+	info.dataAccessed();
+	return (info.data!=null);
+	}
+    }
+
+
 
   /**
    * 

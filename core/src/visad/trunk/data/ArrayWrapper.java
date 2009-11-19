@@ -19,7 +19,7 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 
-$Id: ArrayWrapper.java,v 1.2 2009-10-29 20:35:20 jeffmc Exp $
+$Id: ArrayWrapper.java,v 1.3 2009-11-19 16:12:52 jeffmc Exp $
 */
 
 package visad.data;
@@ -150,6 +150,10 @@ public  class ArrayWrapper {
       cacheId = DataCacheManager.getCacheManager().addToCache(values);
   }
 
+
+    public boolean inMemory() {
+	return DataCacheManager.getCacheManager().inMemory(cacheId);
+    }
 
     public void updateData(Object newData) {
 	DataCacheManager.getCacheManager().updateData(cacheId, newData);
