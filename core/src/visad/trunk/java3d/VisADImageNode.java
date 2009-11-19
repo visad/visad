@@ -60,9 +60,40 @@ public class VisADImageNode implements ImageComponent2D.Updater {
 
    public void setCurrent(int idx) {
      current_index = idx;
-     if (imageComp != null && images != null) {
-       //-imageComp.updateData(this, 0, 0, 0, 0); // See note above
-       imageComp.set(images[current_index]);
+
+     //Have a local array here in case the images array changes in another thread
+     BufferedImage[] theImages = images;
+
+     if (imageComp != null && theImages != null && idx>=0 && idx< theImages.length) {
+      //-imageComp.updateData(this, 0, 0, 0, 0); // See note above
+
+       BufferedImage image = theImages[idx];
+       if(image == null) {
+	   //	   System.err.println ("Animate image is null for index:" + idx);
+       } else {
+	   imageComp.set(image);
+	   //Do the lookahead
+	   if(image instanceof CachedBufferedByteImage) {
+	       //Find the next image
+	       CachedBufferedByteImage nextImage = null;
+
+	       //If we are at the end of the loop then go to the beginning
+	       int nextIdx = idx+1;
+	       if(nextIdx>=theImages.length)
+		   nextIdx = 0;
+	       nextImage = (CachedBufferedByteImage)theImages[nextIdx];
+	       if(nextImage!=null && !nextImage.inMemory()) {
+		   final CachedBufferedByteImage imageToLoad = nextImage;
+		   Runnable r = new Runnable() {
+			   public  void run() {
+			       imageToLoad.getBytesFromCache();
+			   }
+		       };
+		   Thread t = new Thread(r);
+		   t.start();
+	       }
+	   }
+       }
      }
 
      /** use if stepping via a Behavior
@@ -72,33 +103,6 @@ public class VisADImageNode implements ImageComponent2D.Updater {
      }
      */
 
-     final BufferedImage[] tmpImages = images;
-     final int theIdx = idx;
-     if(lookAheadIndexBaseIndex!= idx && tmpImages!=null && tmpImages.length>0 && tmpImages[0] instanceof CachedBufferedByteImage) {
-	 lookAheadIndexBaseIndex = idx;
-	 Runnable r = new Runnable() {
-		 public  void run() {
-                     //		     System.err.println ("doing look ahead");
-		     int lookAheadCnt = 0;
-                     int lookAheadNum = 1;
-		     for(int i=theIdx+1; i<tmpImages.length && lookAheadCnt<lookAheadNum&&lookAheadIndexBaseIndex == theIdx;i++) {
-                         //			 System.err.println (" prepping image " + i);
-			 CachedBufferedByteImage image = (CachedBufferedByteImage)  tmpImages[i];
-			 image.getBytesFromCache();
-			 lookAheadCnt++;
-		     }
-
-		     //Now loop around to the start of the array
-                     for(int i=0; i< theIdx && i<tmpImages.length && lookAheadCnt<lookAheadNum&lookAheadIndexBaseIndex == theIdx;i++) {	
-                         //                         System.err.println (" prepping image " + i);
-			 CachedBufferedByteImage image = (CachedBufferedByteImage)  tmpImages[i];
-			 image.getBytesFromCache();
-			 lookAheadCnt++;
-		     }
-		 }};
-	 Thread t = new Thread(r);
-	 t.start();
-     }
    }
 
 
