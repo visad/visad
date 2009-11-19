@@ -154,7 +154,7 @@ public class PointDataAdapter {
     if (debug) System.out.println("Number of parameters = " + numParams);
     ScalarType[] types = new ScalarType[numParams];
     defaultUnits = new Unit[numParams];
-    Vector usedUnits = new Vector();
+    Vector<Unit> usedUnits = new Vector<Unit>();
     boolean noText = true;
     for (int i = 0; i < numParams; i++)
     {
@@ -167,14 +167,14 @@ public class PointDataAdapter {
         if (debug) {
           System.out.println(params[i] + " has units of CHAR");
         }
-        TextType txtType = TextType.getTextType(params[i]);
-        if (txtType == null && makeUniqueNames) { // might be a RealType name
-          txtType = TextType.getTextType(params[i]+TEXT_EXT);
+        TextType textType = TextType.getTextType(params[i]);
+        if (textType == null && makeUniqueNames) { // might be a RealType name
+          textType = TextType.getTextType(params[i]+TEXT_EXT);
         }
-        if (txtType == null) {
+        if (textType == null) {
           throw new VisADException("can't create TextType for " + params[i]);
         }
-        types[i] = TextType.getTextType(params[i]);
+        types[i] = textType;
         defaultUnits[i] = null;
       } 
       else
@@ -358,8 +358,8 @@ public class PointDataAdapter {
     } else {
       type = RealType.getRealType(name, unit);
       if (type == null) {
-        System.err.println("Problem creating RealType with name " +
-                        name + " and unit " + unit);
+        //System.err.println("Problem creating RealType with name " +
+        //                name + " and unit " + unit);
         if (makeUniqueNames) {
            type = DataUtility.getUniqueRealType(name, unit);
         } else {
@@ -369,7 +369,7 @@ public class PointDataAdapter {
            throw new VisADException(
               "getQuantity(): Couldn't create RealType for " + name);
         }
-        System.err.println("Using RealType with name " + name);
+        //System.err.println("Using RealType with name " + name);
       }
     }
     if (useAliases) {
