@@ -6,7 +6,7 @@
  * VisAD system for interactive analysis and visualization of numerical
  * data.  Copyright (C) 1996 - 2009 Bill Hibbard, Curtis Rueden, Tom
  * Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
- * Tommy Jasmin.
+ * Tommy Jasmin, Jeff McWhirter.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -213,11 +213,11 @@ public class DataCacheManager  implements Runnable {
    */
   public void updateData(Object cacheId, Object data) {
     synchronized (MUTEX) {
-	//	if(cacheId == null)
-	//	    return addToCache(data, findType(data));
-	CacheInfo info = cache.get(cacheId);
+        //      if(cacheId == null)
+        //          return addToCache(data, findType(data));
+        CacheInfo info = cache.get(cacheId);
 //      if(info==null) {
-//	  return addToCache(data);
+//        return addToCache(data);
 //      }
 
       int oldSize = info.data != null
@@ -232,12 +232,12 @@ public class DataCacheManager  implements Runnable {
   }
 
     public boolean inMemory(Object cacheId) {
-	synchronized (MUTEX) {
-	CacheInfo info =  cache.get(cacheId);
-	if(info == null)return false;
-	info.dataAccessed();
-	return (info.data!=null);
-	}
+        synchronized (MUTEX) {
+        CacheInfo info =  cache.get(cacheId);
+        if(info == null)return false;
+        info.dataAccessed();
+        return (info.data!=null);
+        }
     }
 
 
@@ -424,17 +424,20 @@ public class DataCacheManager  implements Runnable {
             sb.append("\n");
             int cnt = 0;
             for (CacheInfo info : infos) {
-                sb.append(
+                sb.append("   #" + (++cnt) +" ");
+                sb.append(info.toString());
+                /*
                           "   #" + (++cnt) +" cache entry:" + info.getSize() + "   " + (info.data != null) +
                                    "   " + info.dataAccessedCnt + "   " + info.cacheMissedCnt + "   " +
                                    new Date(info.lastTime));
+                */
                 sb.append("\n");
-		/*
-		sb.append("what:" + info.what);
+                /*
+                sb.append("what:" + info.what);
                 sb.append("\n");
                 sb.append(info.where.substring(300));
                 sb.append("\n");
-		*/
+                */
             }
 
       }
@@ -477,7 +480,7 @@ public class DataCacheManager  implements Runnable {
    *
    * @author IDV Development Team
    */
-  private static class CacheInfo implements Comparable {
+  private static class CacheInfo implements Comparable<CacheInfo> {
 
     /**  */
     private static final int TYPE_BYTE1D = 1;
@@ -623,15 +626,58 @@ public class DataCacheManager  implements Runnable {
       }
     }
 
+    /**
+     * Get a string representation of the type
+     *
+     * @param type  the type
+     * @return the string name of the type
+     */
+    public String getTypeName(int type) {
+      if (type == TYPE_BYTE1D) {
+        return "byte1d";
+      }
+      else if (type == TYPE_BYTE2D) {
+        return "byte2d";
+      }
+      else if (type == TYPE_FLOAT1D) {
+        return "float1d";
+      }
+      else if (type == TYPE_FLOAT2D) {
+        return "float2d";
+      }
+      else if (type == TYPE_SHORT1D) {
+        return "short1d";
+      }
+      else if (type == TYPE_SHORT2D) {
+        return "short2d";
+      }
+      else if (type == TYPE_DOUBLE1D) {
+        return "double1d";
+      }
+      else if (type == TYPE_DOUBLE2D) {
+        return "double2d";
+      }
+      else if (type == TYPE_INT1D) {
+        return "int1d";
+      }
+      else if (type == TYPE_INT2D) {
+        return "int2d";
+      }
+      return "unknown";
+    }
+
+    public String toString() {
+      return getTypeName(type) + ":" + getSize() + "   " + (data != null) + "   " + dataAccessedCnt + "   " + cacheMissedCnt + "   " + new Date(lastTime);
+    }
 
     /**
-     * 
+     * Compare this to another object
      *
      * @param o 
      *
-     * @return 
+     * @return  comparison
      */
-    public int compareTo(Object o) {
+    public int compareTo(CacheInfo o) {
       CacheInfo that = (CacheInfo)o;
       if (this.lastTime < that.lastTime) return -1;
       if (this.lastTime == that.lastTime) return 0;

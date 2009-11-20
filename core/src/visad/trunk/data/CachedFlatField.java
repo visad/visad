@@ -1,23 +1,27 @@
+//
+// CachedFlatField
+//
+
 /*
- * $Id: CachedFlatField.java,v 1.7 2009-11-13 23:28:34 jeffmc Exp $
+ * VisAD system for interactive analysis and visualization of numerical
+ * data.  Copyright (C) 1996 - 2009 Bill Hibbard, Curtis Rueden, Tom
+ * Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
+ * Tommy Jasmin, Jeff McWhirter.
  *
- * Copyright  1997-2004 Unidata Program Center/University Corporation for
- * Atmospheric Research, P.O. Box 3000, Boulder, CO 80307,
- * support@unidata.ucar.edu.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
  *
- * This library is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation; either version 2.1 of the License, or (at
- * your option) any later version.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
  *
- * This library is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser
- * General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this library; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, write to the Free
+ * Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
+ * MA 02111-1307, USA
  */
 
 
@@ -30,9 +34,6 @@ import java.rmi.RemoteException;
 
 /**
  * This is a FloatField that caches to disk its float array.
- *
- * @author Unidata Development Team
- * @version $Revision: 1.7 $ $Date: 2009-11-13 23:28:34 $
  */
 public class CachedFlatField extends FlatField {
 
@@ -162,9 +163,9 @@ public class CachedFlatField extends FlatField {
         super(type, domainSet, rangeCoordSys, rangeCoordSysArray, rangeSets,
               units);
 
-	//For now lets ignore the copy vis-a-vis the parent cached flat field
-	this.ranges       = that.ranges;
-	this.sampleRanges = that.sampleRanges;
+        //For now lets ignore the copy vis-a-vis the parent cached flat field
+        this.ranges       = that.ranges;
+        this.sampleRanges = that.sampleRanges;
         this.cacheId =  null;
         this.inCache = false;
 
@@ -172,12 +173,12 @@ public class CachedFlatField extends FlatField {
         if(that.inCache) {
             //            msg("CCF - cloned object is in cache");
             float[][] values = that.unpackFloats(true);
-	    if(values == null) {
-		parent = that;
-	    }
+            if(values == null) {
+                parent = that;
+            }
             initCache(values);
         } else {
-	    this.parent = that;
+            this.parent = that;
             clearMissing();
             //            msg("CCF - cloned object not in cache");
         }
@@ -270,18 +271,18 @@ public class CachedFlatField extends FlatField {
      * @return the clone
      */
     public Object clone() {
-	try {
-            //	    msg("CCF.clone");
-	    CachedFlatField ccf = (CachedFlatField) super.clone();
-	    ccf.cacheId = null;
-	    float[][]newValues = ccf.unpackFloats(false);
-	    ccf.nullRanges();
-	    ccf.initCache(newValues);
-	    return ccf;
-	} catch(Exception exc) {
-	    exc.printStackTrace();
-	    throw new RuntimeException(exc);
-	}
+        try {
+            //      msg("CCF.clone");
+            CachedFlatField ccf = (CachedFlatField) super.clone();
+            ccf.cacheId = null;
+            float[][]newValues = ccf.unpackFloats(false);
+            ccf.nullRanges();
+            ccf.initCache(newValues);
+            return ccf;
+        } catch(Exception exc) {
+            exc.printStackTrace();
+            throw new RuntimeException(exc);
+        }
     }
 
 
@@ -437,27 +438,27 @@ public class CachedFlatField extends FlatField {
     private float[][] getMyValues() throws VisADException {
         //        msg("CCF - getMyValues " + inCache);
         if(inCache) {
-	    if(cacheId == null) {
+            if(cacheId == null) {
                 //                msg("CCF - WHoa, inCache=true but no cacheId");
-		return null;
-	    }
+                return null;
+            }
             return DataCacheManager.getCacheManager().getFloatArray2D(cacheId);
         }
 
         float[][] values = null;
 
-	//If we don't have the values and we have a ccf that we were cloned from 
-	//then read the data from it and clear it out
-	if(parent!=null) {
+        //If we don't have the values and we have a ccf that we were cloned from 
+        //then read the data from it and clear it out
+        if(parent!=null) {
             values = parent.unpackFloats(true);
-	    parent = null;
-	}
+            parent = null;
+        }
 
 
 
         if (values == null) {
-	    values = readData();
-	}
+            values = readData();
+        }
 
 
         if (values == null) {
@@ -552,7 +553,7 @@ public class CachedFlatField extends FlatField {
     protected double[][] unpackValues(boolean copy) throws VisADException {
         float[][] values = unpackFloats(false);
         if (values == null) {
-	    msg ("unpackValues: ccf: values are null ");
+            msg ("unpackValues: ccf: values are null ");
             return null;
         }
         double[][] doubles = new double[values.length][];
@@ -582,8 +583,8 @@ public class CachedFlatField extends FlatField {
         float[][] values = getMyValues();
         if (values == null) {
             //            msg("unpackFloats gives null");
-	    //	    System.err.println(mycnt+" CCF.unpackFloats - values are still null");
-	    return super.unpackFloats(copy);
+            //      System.err.println(mycnt+" CCF.unpackFloats - values are still null");
+            return super.unpackFloats(copy);
         }
         float[][] result = null;
         result = new float[values.length][];
