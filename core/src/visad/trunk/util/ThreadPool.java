@@ -54,7 +54,8 @@ waiting for other ActionImpls to run
   private Object threadLock = new Object();
 
   // object used to signal task completion
-  private Object doneLock = new Object();
+  //jeffmc: 2009-11-24: now use tasks instead of doneLock
+  //  private Object doneLock = new Object();
 
   // 'true' if all threads should exit
   private boolean terminateThread = false;
@@ -109,9 +110,14 @@ waiting for other ActionImpls to run
             threadLock.notify();
           }
 
-          synchronized (doneLock) {
-            doneLock.notifyAll();
+	  //jeffmc:  2009-11-24:instead of notifying on doneLock we now notify on tasks
+	  //          synchronized (doneLock) {
+	  //            doneLock.notifyAll();
+	  //          }
+          synchronized (tasks) {
+            tasks.notifyAll();
           }
+
         } else {
 
           // if we're supposed to stop, break out of the infinite loop
@@ -378,10 +384,14 @@ for (int i=0; i<n; i++) {
       }
     }
 
-    while (tasks.size() > 0) {
+    
+    int numTasks;
+    while (true) {
       try {
-        synchronized (doneLock) {
-          doneLock.wait();
+        //jeffmc:  2009-11-24:  We used to do done doneLock.wait(); here but we now wait on the tasks to prevent starvation
+        synchronized (tasks) {
+	  if(tasks.size()==0) break;
+          tasks.wait();
         }
       } catch (InterruptedException e) {
         // ignore interrupts ...
