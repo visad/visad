@@ -23,8 +23,6 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 */
 
 
-
-
 package visad.bom;
 
 
@@ -384,6 +382,7 @@ public class SceneGraphRenderer {
    */
   public void plot(Graphics2D graphics, DisplayImpl display,
                    CoordinateSystem cs, int width, int height) {
+
     this.width = width;
     this.height = height;
 
@@ -1260,7 +1259,7 @@ public class SceneGraphRenderer {
   private void plot(GeometryArray geometryArray, Color[] colours,
                     float thickness, Texture texture, int lineStyle,
                     Graphics2D graphics) {
-    //System.err.println ("plot:" + geometryArray.getClass().getName());
+    // System.err.println("plot:" + geometryArray.getClass().getName());
     if (geometryArray instanceof LineArray) {
       LineArray lineArray = (LineArray)geometryArray;
       plot(lineArray, colours, thickness, lineStyle, graphics);
@@ -1661,39 +1660,51 @@ public class SceneGraphRenderer {
     // Loop over each chunk
     for (int i = 0; i < vertexCounts.length; i++) {
       int numCoords = vertexCounts[i];
+      //VisAD stores strips as one complete section so we have to draw each
+      //segment
+      for (int seg = 0; seg < numCoords - 1; seg++) {
+        float[][] vertices = new float[2][2];
+        for (int j = 0; j < 2; j++) {
+          vertices[0][j] = coordinates[base + j * 3];
+          vertices[1][j] = coordinates[base + j * 3 + 1];
+        }
 
-      // Attempt to get the color from the geometry
-      if (colours == null) {
-        // Get the color array
-        if (refColours != null) {
-          for (int j = 0; j < numRefColours; j++) {
-            colour[j] = byteToFloat(refColours[baseColor + j]);
+        // Attempt to get the color from the geometry
+        if (colours == null) {
+          // Get the color array
+          if (refColours != null) {
+            for (int j = 0; j < numRefColours; j++) {
+              colour[j] = byteToFloat(refColours[baseColor + j]);
+            }
+          }
+          else {
+            lineArray.getColor(seg, colour);
           }
         }
-        else {
-          lineArray.getColor(i, colour);
+        if (!useTransparency || !hasAlpha) {
+          colour[3] = 1.0f;
         }
-      }
-      if (!useTransparency || !hasAlpha) {
-        colour[3] = 1.0f;
-      }
-      // If monochrome
-      if (monochrome) {
-        // Set everything except white to black
-        monochromatise(colour);
-      }
-      Color color = new Color(colour[0], colour[1], colour[2], colour[3]);
+        // If monochrome
+        if (monochrome) {
+          // Set everything except white to black
+          monochromatise(colour);
+        }
+        Color color = new Color(colour[0], colour[1], colour[2], colour[3]);
+        //System.out.println("color = " + color);
 
-      float[][] vertices = new float[2][numCoords];
-      for (int j = 0; j < numCoords; j++) {
-        vertices[0][j] = coordinates[base + j * 3];
-        vertices[1][j] = coordinates[base + j * 3 + 1];
+        /*
+        float[][] vertices = new float[2][numCoords];
+        for (int j = 0; j < numCoords; j++) {
+          vertices[0][j] = coordinates[base + j * 3];
+          vertices[1][j] = coordinates[base + j * 3 + 1];
+        }
+        */
+        drawShapeReprojected(
+          vertices, color, thickness, lineStyle, graphics,
+          transformToScreenCoords);
+        base += 3;
+        baseColor += numRefColours;
       }
-      drawShapeReprojected(
-        vertices, color, thickness, lineStyle, graphics,
-        transformToScreenCoords);
-      base += 3 * numCoords;
-      baseColor += numRefColours * numCoords;
     }
   }
 
@@ -1814,6 +1825,7 @@ public class SceneGraphRenderer {
         graphics.setColor(lastColor);
         lastColor = color;
         if (!transformToScreenCoords) linePath.transform(viewPort);
+        linePath = clip(linePath);
         graphics.draw(linePath);
         linePath = new GeneralPath();
       }
@@ -1832,6 +1844,7 @@ public class SceneGraphRenderer {
     }
     // Translate them to device coordinates and plot
     if (!transformToScreenCoords) linePath.transform(viewPort);
+    linePath = clip(linePath);
     graphics.draw(linePath);
 
   }
