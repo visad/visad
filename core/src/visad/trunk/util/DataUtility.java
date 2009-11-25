@@ -1646,13 +1646,31 @@ public class DataUtility {
    */
   public static RealType getUniqueRealType(String name, Unit unit)
         throws VisADException {
-    RealType type    = RealType.getRealType(name, unit);
+      return getUniqueRealType(name, unit, null, 0);
+  }
+
+  /**
+   * Make a RealType with a unique name for the given unit
+   *
+   * @param name name of the RealType
+   * @param unit  the default unit
+   * @param set  the default set
+   * @param attrMask  the attribute mask
+   *
+   * @return  the RealType 
+   *
+   * @throws VisADException  problem creating the RealType
+   */
+  public static RealType getUniqueRealType(String name, Unit unit, 
+                                           Set set, int attrMask) 
+        throws VisADException {
+    RealType type    = RealType.getRealType(name, unit, set, attrMask);
     if (type == null) {
       String  newname = cleanName(name) + "[unit:" + ((unit == null)
               ? "null"
               : cleanName(unit.toString())) + "]";
 
-      type = RealType.getRealType(newname, unit);
+      type = RealType.getRealType(newname, unit, set, attrMask);
     }
     if (type == null) {
         throw new VisADException(
