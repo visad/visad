@@ -1644,8 +1644,7 @@ public class DataUtility {
    *
    * @throws VisADException  problem creating the RealType
    */
-  public static RealType getUniqueRealType(String name, Unit unit)
-        throws VisADException {
+  public static RealType getUniqueRealType(String name, Unit unit) {
       return getUniqueRealType(name, unit, null, 0);
   }
 
@@ -1657,25 +1656,17 @@ public class DataUtility {
    * @param set  the default set
    * @param attrMask  the attribute mask
    *
-   * @return  the RealType 
-   *
-   * @throws VisADException  problem creating the RealType
+   * @return  the RealType  or null if it still can't create a unique name
    */
   public static RealType getUniqueRealType(String name, Unit unit, 
-                                           Set set, int attrMask) 
-        throws VisADException {
+                                           Set set, int attrMask)  {
     RealType type    = RealType.getRealType(name, unit, set, attrMask);
     if (type == null) {
-      String  newname = cleanName(name) + "[unit:" + ((unit == null)
+      String  newname = cleanTypeName(name) + "[unit:" + ((unit == null)
               ? "null"
-              : cleanName(unit.toString())) + "]";
+              : cleanTypeName(unit.toString())) + "]";
 
       type = RealType.getRealType(newname, unit, set, attrMask);
-    }
-    if (type == null) {
-        throw new VisADException(
-            "couldn't create RealType with units compatible to "
-            + unit.toString());
     }
     return type;
   }  
@@ -1686,7 +1677,7 @@ public class DataUtility {
    * @param name name to clean
    * @return cleaned up name
    */
-  public static String cleanName(String name) {
+  public static String cleanTypeName(String name) {
     name = name.replace('.', '_');
     name = name.replace(",","_");
     name = name.replace(' ', '_');
