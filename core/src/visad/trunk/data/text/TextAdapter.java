@@ -354,6 +354,9 @@ public class TextAdapter {
         "TextAdapter: Invalid or missing MathType");
     }
 
+    List<String[]>nameChanges = new ArrayList<String[]>();
+
+
     if (debug) System.out.println("Specified MathType = "+maps);
 
     // but first, we need to get the column headers because they
@@ -390,6 +393,8 @@ public class TextAdapter {
 
     // pre-scan of the header names to seek out Units
     // since we cannot change a RealType once it's defined!!
+
+
 
     for (int i=0; i<nhdr; i++) {
       String name = sthdr[i].trim();
@@ -548,31 +553,31 @@ public class TextAdapter {
              " offset="+infos[i].offset+" pos="+hdrColumns[0][i]+":"+
              hdrColumns[1][i]);
 
-      Unit u = null;
+      Unit hdrUnit = null;
  
       if (hdrUnitString != null && 
                 !hdrUnitString.trim().equalsIgnoreCase("null") ) {
         hdrUnitString = hdrUnitString.trim();
         try {
-          u = visad.data.units.Parser.parse(hdrUnitString);
+	    hdrUnit = visad.data.units.Parser.parse(hdrUnitString);
         } catch (Exception ue) {
           try {
               hdrUnitString = hdrUnitString.replace(' ','_');
-              u = visad.data.units.Parser.parse(hdrUnitString);
+              hdrUnit = visad.data.units.Parser.parse(hdrUnitString);
           } catch (Exception ue2) {
             System.out.println("Unit name problem:"+ue+" with: "+hdrUnitString);
-            u = null;
+            hdrUnit = null;
           }
         }
-        if(u!=null) {
+        if(hdrUnit!=null) {
             //We clone this unit so it has the original unit string, not the SI unit we get from the parser
             try {
-                u = u.clone(hdrUnitString);
+                hdrUnit = hdrUnit.clone(hdrUnitString);
             } catch(Exception ignoreThis) {}
         }
       }
 
-      if (debug) System.out.println("####   assigned Unit as u="+u);
+      if (debug) System.out.println("####   assigned Unit as u="+hdrUnit);
 
 
       String rttemp = infos[i].name.trim();
@@ -585,13 +590,36 @@ public class TextAdapter {
         if (parenIndex < 0) parenIndex = rttemp.indexOf(" ");
         String rtname = parenIndex < 0 ? rttemp.trim() : rttemp.substring(0,parenIndex);
 
-        RealType rt = RealType.getRealType(rtname, u, null, infos[i].isInterval);
+        RealType rt = RealType.getRealType(rtname, hdrUnit, null, infos[i].isInterval);
 
         //        System.err.println("rtname:" + rtname + " " + rt);
         if (rt == null) {  // tried to re-use with different units
           if (debug) System.out.println("####   rt was returned as null");
-          if (u != null) System.out.println("####  Could not make RealType using specified Unit ("+hdrUnitString+") for parameter name: "+rtname);
+          if (debug && hdrUnit != null) 
+	      System.out.println("####  Could not make RealType using specified Unit ("+hdrUnitString+") for parameter name: "+rtname);
+
+	  //Make the realType with just the name
           rt = RealType.getRealType(rtname);
+
+	  //Check if the realtype unit works with the unit from the header
+	  if(rt.getDefaultUnit()!=null && hdrUnit!=null) {
+	      if(!Unit.canConvert(rt.getDefaultUnit(), hdrUnit)) {
+		  rt = null;
+	      } 
+	  }  else if(hdrUnit!=null) {
+	      rt = null;
+	  }
+	  
+	  //If the realtype is bad then we make a new one with the unitsuffix and add
+	  //a name change entry so later we change the mathtype string to have the new name
+	  if(rt == null) {
+	      String newName  =rtname+"_unitsuffix_" + hdrUnit;
+	      nameChanges.add(new String[]{rtname, newName});
+	      rt = RealType.getRealType(newName, hdrUnit, null, infos[i].isInterval);
+	      infos[i].name = newName;
+	      if(debug)
+		  System.out.println("made new realtype:" + rt + " unit:" + rt.getDefaultUnit());
+	  }
         }
 
 
@@ -611,20 +639,25 @@ public class TextAdapter {
         }
 
 
-        if (u == null) u = rt.getDefaultUnit();
-        if(debug) System.out.println("####  retrieve units from RealType = "+u);
+        if (hdrUnit == null) hdrUnit = rt.getDefaultUnit();
+        if(debug) System.out.println("####  retrieve units from RealType = "+hdrUnit);
       }
 
-      infos[i].unit = u;
+      infos[i].unit = hdrUnit;
+    }
+
+
+    for(String[] tuple: nameChanges) {
+	if(debug) System.err.println ("changing mathtype component from:" + tuple[0] +"  to:" + tuple[1]);
+	maps = maps.replaceAll("(,|\\() *" + tuple[0]+" *(,|\\))", "$1" + tuple[1]+"$2");
     }
 
     // get the MathType of the function
-
     MathType mt = null;
     try {
       mt = MathType.stringToType(maps);
     } catch (Exception mte) {
-      System.out.println("####  Exception: "+mte);
+	mte.printStackTrace();
       throw new VisADException("TextAdapter: MathType badly formed or missing: "+maps);
     }
 
@@ -652,6 +685,7 @@ public class TextAdapter {
         if (debug) System.out.println("dom "+i+" = "+domainNames[i]);
       }
 
+      //      debug =true;
       rngType = (TupleType) ((FunctionType)mt).getRange();
       numRng = rngType.getDimension();
       rangeNames = new String[numRng];
@@ -987,9 +1021,7 @@ public class TextAdapter {
           if (values_to_index[0][i] != -1) {
             dValues[values_to_index[0][i]] = getVal(sa, i);
           } else if (values_to_index[1][i] != -1) {
-
             thisMT = rngType.getComponent(values_to_index[1][i]);
-            
             if (thisMT instanceof TextType) {
 
               // if Text, then check for quoted string
@@ -1036,7 +1068,7 @@ public class TextAdapter {
               // now make the VisAD Data 
               try {
                 tValues[values_to_index[1][i]] = 
-                        new Text((TextType) thisMT, sThisText);
+                        new Text((TextType)thisMT, sThisText);
 
                 if (debug) System.out.println("tValues[" + 
                           values_to_index[1][i] + "] = " + 
@@ -1063,6 +1095,7 @@ public class TextAdapter {
 
               } catch (Exception e) {
                 System.out.println(" Exception converting " + thisMT + " " + e);
+		e.printStackTrace();
               }
             }
           }
@@ -1604,14 +1637,15 @@ public class TextAdapter {
         Unit    unit;
         double  missingValue = Double.NaN;
         String  missingString;
-        String  formatString;
-        String  tzString = "GMT";
+        String  formatString; 
+	String  tzString = "GMT";
         int     isInterval = 0;
         double  errorEstimate=0;
         double  scale=1.0;
         double  offset=0.0;
         String  fixedValue;
         int     colspan = 1;
+
 
         public boolean isParam(String param) {
             return name.equals(param)  || name.equals(param+"(Text)");
