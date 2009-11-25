@@ -1259,7 +1259,7 @@ public class SceneGraphRenderer {
   private void plot(GeometryArray geometryArray, Color[] colours,
                     float thickness, Texture texture, int lineStyle,
                     Graphics2D graphics) {
-    // System.err.println("plot:" + geometryArray.getClass().getName());
+    //System.err.println("plot:" + geometryArray.getClass().getName());
     if (geometryArray instanceof LineArray) {
       LineArray lineArray = (LineArray)geometryArray;
       plot(lineArray, colours, thickness, lineStyle, graphics);
@@ -1662,7 +1662,7 @@ public class SceneGraphRenderer {
       int numCoords = vertexCounts[i];
       //VisAD stores strips as one complete section so we have to draw each
       //segment
-      for (int seg = 0; seg < numCoords - 1; seg++) {
+      for (int seg = 0; seg < numCoords-1; seg++) {
         float[][] vertices = new float[2][2];
         for (int j = 0; j < 2; j++) {
           vertices[0][j] = coordinates[base + j * 3];
@@ -1705,6 +1705,9 @@ public class SceneGraphRenderer {
         base += 3;
         baseColor += numRefColours;
       }
+      // disconnect from the previous segment
+      base += 3;
+      baseColor += numRefColours;
     }
   }
 
