@@ -37,6 +37,7 @@ import java.net.URL;
 import visad.*;
 import visad.VisADException;
 import visad.data.in.ArithProg;
+import visad.util.DataUtility;
 
 import java.util.regex.*;
 
@@ -559,7 +560,7 @@ public class TextAdapter {
                 !hdrUnitString.trim().equalsIgnoreCase("null") ) {
         hdrUnitString = hdrUnitString.trim();
         try {
-	    hdrUnit = visad.data.units.Parser.parse(hdrUnitString);
+            hdrUnit = visad.data.units.Parser.parse(hdrUnitString);
         } catch (Exception ue) {
           try {
               hdrUnitString = hdrUnitString.replace(' ','_');
@@ -596,30 +597,32 @@ public class TextAdapter {
         if (rt == null) {  // tried to re-use with different units
           if (debug) System.out.println("####   rt was returned as null");
           if (debug && hdrUnit != null) 
-	      System.out.println("####  Could not make RealType using specified Unit ("+hdrUnitString+") for parameter name: "+rtname);
+              System.out.println("####  Could not make RealType using specified Unit ("+hdrUnitString+") for parameter name: "+rtname);
 
-	  //Make the realType with just the name
+          //Make the realType with just the name
           rt = RealType.getRealType(rtname);
 
-	  //Check if the realtype unit works with the unit from the header
-	  if(rt.getDefaultUnit()!=null && hdrUnit!=null) {
-	      if(!Unit.canConvert(rt.getDefaultUnit(), hdrUnit)) {
-		  rt = null;
-	      } 
-	  }  else if(hdrUnit!=null) {
-	      rt = null;
-	  }
-	  
-	  //If the realtype is bad then we make a new one with the unitsuffix and add
-	  //a name change entry so later we change the mathtype string to have the new name
-	  if(rt == null) {
-	      String newName  =rtname+"_unitsuffix_" + hdrUnit;
-	      nameChanges.add(new String[]{rtname, newName});
-	      rt = RealType.getRealType(newName, hdrUnit, null, infos[i].isInterval);
-	      infos[i].name = newName;
-	      if(debug)
-		  System.out.println("made new realtype:" + rt + " unit:" + rt.getDefaultUnit());
-	  }
+          //Check if the realtype unit works with the unit from the header
+          if(rt.getDefaultUnit()!=null && hdrUnit!=null) {
+              if(!Unit.canConvert(rt.getDefaultUnit(), hdrUnit)) {
+                  rt = null;
+              } 
+          }  else if(hdrUnit!=null) {
+              rt = null;
+          }
+          
+          //If the realtype is bad then we make a new one with the unitsuffix and add
+          //a name change entry so later we change the mathtype string to have the new name
+          if(rt == null) {
+            rt = DataUtility.getUniqueRealType(rtname,hdrUnit, null, infos[i].isInterval);
+            if (rt != null) {
+              String newName  = rt.getName();
+              nameChanges.add(new String[]{rtname, newName});
+              infos[i].name = newName;
+              if(debug)
+                      System.out.println("made new realtype:" + rt + " unit:" + rt.getDefaultUnit());
+            }
+          }
         }
 
 
@@ -648,8 +651,8 @@ public class TextAdapter {
 
 
     for(String[] tuple: nameChanges) {
-	if(debug) System.err.println ("changing mathtype component from:" + tuple[0] +"  to:" + tuple[1]);
-	maps = maps.replaceAll("(,|\\() *" + tuple[0]+" *(,|\\))", "$1" + tuple[1]+"$2");
+        if(debug) System.err.println ("changing mathtype component from:" + tuple[0] +"  to:" + tuple[1]);
+        maps = maps.replaceAll("(,|\\() *" + tuple[0]+" *(,|\\))", "$1" + tuple[1]+"$2");
     }
 
     // get the MathType of the function
@@ -657,7 +660,7 @@ public class TextAdapter {
     try {
       mt = MathType.stringToType(maps);
     } catch (Exception mte) {
-	mte.printStackTrace();
+        mte.printStackTrace();
       throw new VisADException("TextAdapter: MathType badly formed or missing: "+maps);
     }
 
@@ -1095,7 +1098,7 @@ public class TextAdapter {
 
               } catch (Exception e) {
                 System.out.println(" Exception converting " + thisMT + " " + e);
-		e.printStackTrace();
+                e.printStackTrace();
               }
             }
           }
@@ -1577,7 +1580,7 @@ public class TextAdapter {
    */
   private Set createAppropriate1DDomain(MathType type, int numSamples,
                                        ArrayList domValues)
-				         throws VisADException {
+                                         throws VisADException {
 
     if (0 == numSamples) {
       // Can't create a domain set with zero samples.
@@ -1638,7 +1641,7 @@ public class TextAdapter {
         double  missingValue = Double.NaN;
         String  missingString;
         String  formatString; 
-	String  tzString = "GMT";
+        String  tzString = "GMT";
         int     isInterval = 0;
         double  errorEstimate=0;
         double  scale=1.0;

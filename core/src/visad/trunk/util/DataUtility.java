@@ -1680,6 +1680,8 @@ public class DataUtility {
   public static String cleanTypeName(String name) {
     name = name.replace('.', '_');
     name = name.replace(",","_");
+    name = name.replace("-","_");  // so doesn't get confused with ->
+    name = name.replace("*","_");  // so it doesn't confuse regexes
     name = name.replace(' ', '_');
     name = name.replace('(', '[');
     name = name.replace(')', ']');
