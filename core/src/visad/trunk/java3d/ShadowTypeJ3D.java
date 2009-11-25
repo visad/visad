@@ -630,7 +630,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     Appearance appearance = null;
 
     if (mode.getCacheAppearances() && okToCache) {
-      cacheKey = mode.getSaveString() + "_" + constant_alpha + "_"
+	cacheKey = mode.getSaveString() + "_" + (constant_alpha==null?"null" :(constant_alpha.getTransparency()+"_" + constant_alpha.getTransparencyMode()))  + "_"
           + constant_color + "_" + new Boolean(doMaterial);
       appearance = (Appearance) appearanceCache.get(cacheKey);
       if (appearance != null) {
@@ -736,6 +736,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     }
     return appearance;
   }
+
 
   /*
    * public static Appearance staticMakeAppearance(GraphicsModeControl mode,
