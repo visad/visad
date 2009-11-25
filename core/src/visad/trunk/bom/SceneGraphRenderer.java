@@ -1825,7 +1825,7 @@ public class SceneGraphRenderer {
         graphics.setColor(lastColor);
         lastColor = color;
         if (!transformToScreenCoords) linePath.transform(viewPort);
-        linePath = clip(linePath);
+        //linePath = clip(linePath);
         graphics.draw(linePath);
         linePath = new GeneralPath();
       }
@@ -1844,7 +1844,7 @@ public class SceneGraphRenderer {
     }
     // Translate them to device coordinates and plot
     if (!transformToScreenCoords) linePath.transform(viewPort);
-    linePath = clip(linePath);
+    //linePath = clip(linePath);
     graphics.draw(linePath);
 
   }
@@ -2203,6 +2203,11 @@ public class SceneGraphRenderer {
       colour[1] = ((float)colours[0].getGreen()) / 255.0f;
       colour[2] = ((float)colours[0].getBlue()) / 255.0f;
       colour[3] = ((float)colours[0].getAlpha()) / 255.0f;
+    } else {
+      if (byRef) {
+        // DisplayImplJ3D stores ref as bytes
+        refColours = pointArray.getColorRefByte();
+      }
     }
     if (!hasAlpha || !useTransparency) {
       colour[3] = 1.0f;
