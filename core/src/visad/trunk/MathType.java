@@ -200,7 +200,6 @@ public abstract class MathType extends Object implements java.io.Serializable {
           t = tr.substring(lentr[0]);
         }
         if (!t.startsWith(")")) {
-          System.out.println(t);
           throw new TypeException("MathType.stringToType: badly formed string");
         }
         len[0] = lentup + 1;
@@ -235,6 +234,13 @@ public abstract class MathType extends Object implements java.io.Serializable {
               s0.equals("%") || s0.equals("+") ||
               s0.equals("/") || s0.equals(":") ||
               s0.equals("[") || s0.equals("]") || s0.equals("^"))) {
+/* possible new check
+        if (!(0 <= s0.compareTo("!") && s0.compareTo("~") <= 0) ||
+              s0.equals(")") ||
+              s0.equals("(") ||
+              s0.equals("-") ||
+              s0.equals(">")) {
+*/
           len[0] = i;
           break;
         }
