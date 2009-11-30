@@ -73,6 +73,22 @@ call stacks:
 public abstract class ActionImpl
        implements Action, Runnable {
 
+  /** 
+   * Property name for tracing actionimpl run calls
+   */
+  public static final String PROP_TRACE = "visad.action.trace";
+
+  /**
+   * Indicates whether we print out the trace from where an action is invoked and print its run  time
+   */
+  public static final boolean TRACE_ON;
+  static {
+      TRACE_ON = Boolean.parseBoolean(System.getProperty(PROP_TRACE, "false"));
+  }
+
+  private String stackTrace;
+
+
   /** thread pool and its lock */
   private transient static ThreadPool pool = null;
   private static Object poolLock = new Object();
@@ -319,6 +335,9 @@ public abstract class ActionImpl
     LinkVector.removeElement(link);
   }
 
+
+
+
   /**
    * invoked by a Thread from the ThreadPool whenever
    * there is a request for activity in this ActionImpl
@@ -361,7 +380,18 @@ public abstract class ActionImpl
           setTicks();
           if (checkTicks()) {
 // if (getName() != null) System.out.println("RUN " + getName());
+            long t1 = System.currentTimeMillis();
             doAction();
+            long t2 = System.currentTimeMillis();
+	    if((t2-t1)>10 && stackTrace!=null) {
+		System.out.println("Action:" + getClass().getName()+" time:" + (t2-t1));
+		String[] lines = stackTrace.split("\n");
+		for(int i=0;i<lines.length && i< 30;i++) {
+		    if(i>1) {
+			System.out.println(lines[i]);
+		    }
+		}
+	    }
           }
           // WLH 17 Dec 2001 - keep run_links off Thread stack
           synchronized (LinkVector) {
@@ -475,6 +505,9 @@ public abstract class ActionImpl
     requeue = true;
     if (pool == null) {
       startThreadPool();
+    }
+    if(TRACE_ON) {
+	stackTrace = visad.util.Util.getStackTrace();
     }
     pool.queue(this);
   }
