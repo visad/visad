@@ -26,10 +26,13 @@ MA 02111-1307, USA
 
 package visad;
 
+
 import java.util.*;
+
 import java.rmi.*;
 
 import visad.util.ThreadPool;
+
 
 /*
 Action - ThingReference event logic
@@ -70,50 +73,66 @@ call stacks:
  * ActionImpl is not Serializable and should not be copied
  * between JVMs.<P>
  */
-public abstract class ActionImpl
-       implements Action, Runnable {
+public abstract class ActionImpl implements Action, Runnable {
 
-  /** 
-   * Property name for tracing actionimpl run calls
-   */
-  public static final String PROP_TRACE = "visad.action.trace";
+
 
   /**
    * Indicates whether we print out the trace from where an action is invoked and print its run  time
    */
-  public static final boolean TRACE_ON;
-  static {
-      TRACE_ON = Boolean.parseBoolean(System.getProperty(PROP_TRACE, "false"));
-  }
+  public static final boolean TRACE_TIME =
+    Boolean.parseBoolean(System.getProperty("visad.action.tracetime",
+                                            "false"));
 
+  /**           */
+  public static final boolean TRACE_STACK =
+    Boolean.parseBoolean(System.getProperty("visad.action.tracestack",
+                                            "false"));
+
+
+  /**           */
   private String stackTrace;
 
 
   /** thread pool and its lock */
   private transient static ThreadPool pool = null;
+
+  /**           */
   private static Object poolLock = new Object();
 
+  /**           */
   private boolean enabled = true;
+
+  /**           */
   private Object lockEnabled = new Object();
 
+  /**           */
   private boolean peek = false;
 
+  /**           */
   private Thread currentActionThread = null;
 
   /** String name, used only for debugging */
   private String Name;
 
   // WLH 17 Dec 2001 - get it off Thread stack
+
+  /**           */
   private Enumeration run_links = null;
 
-  /** Vector of ReferenceActionLink-s;
-      ActionImpl is not Serializable, but mark as transient anyway */
+  /**
+   * Vector of ReferenceActionLink-s;
+   *   ActionImpl is not Serializable, but mark as transient anyway 
+   */
   private transient Vector LinkVector = new Vector();
 
-  /** counter used to give a unique id to each ReferenceActionLink
-      in LinkVector */
+  /**
+   * counter used to give a unique id to each ReferenceActionLink
+   *   in LinkVector 
+   */
   private long link_id;
 
+  /**           */
   private boolean requeue = false;
 
   /**
@@ -131,14 +150,14 @@ public abstract class ActionImpl
   }
 
   /** used internally to create the shared Action thread pool */
-  private static void startThreadPool()
-  {
+  private static void startThreadPool() {
     synchronized (poolLock) {
       if (pool == null) {
         // ...fill the pool; die if pool wasn't created
         try {
           pool = new ThreadPool("ActionThread");
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
           System.err.println(e.getClass().getName() + ": " + e.getMessage());
           System.exit(1);
         }
@@ -147,21 +166,30 @@ public abstract class ActionImpl
   }
 
 
- /** return the number of tasks in the threadpool queue 
-  * @return number of queued and active tasks
- */
-  public static int getTaskCount() 
-  {
-    if(pool == null) return 0;
+  /**
+   * return the number of tasks in the threadpool queue
+   * @return number of queued and active tasks
+   */
+  public static int getTaskCount() {
+    if (pool == null) return 0;
     return pool.getTaskCount();
+  }
+
+
+  /**
+   * 
+   */
+  public static void printPool() {
+    if (pool != null) {
+      pool.printPool();
+    }
   }
 
 
   /**
    * destroy all threads after they've drained the job queue
    */
-  public static void stopThreadPool()
-  {
+  public static void stopThreadPool() {
     if (pool != null) {
       pool.stopThreads();
       pool = null;
@@ -173,9 +201,7 @@ public abstract class ActionImpl
    * @param num - new maximum number of Threads in ThreadPool
    * @throws Exception - num is less than previous maximum
    */
-  public static void setThreadPoolMaximum(int num)
-        throws Exception
-  {
+  public static void setThreadPoolMaximum(int num) throws Exception {
     if (pool == null) {
       startThreadPool();
     }
@@ -189,10 +215,11 @@ public abstract class ActionImpl
     if (LinkVector == null) return;
     synchronized (LinkVector) {
       Enumeration links = LinkVector.elements();
-      while (links.hasMoreElements()) {
-        ReferenceActionLink link = (ReferenceActionLink) links.nextElement();
+      while(links.hasMoreElements()) {
+        ReferenceActionLink link = (ReferenceActionLink)links.nextElement();
         try {
-          link.getThingReference().removeThingChangedListener(link.getAction());
+          link.getThingReference().removeThingChangedListener(
+            link.getAction());
         }
         catch (RemoteException e) {
         }
@@ -221,15 +248,15 @@ public abstract class ActionImpl
   }
 
   /**
-   * call setTicks() for each linked ReferenceActionLink 
+   * call setTicks() for each linked ReferenceActionLink
    * which saves boolean flag indicating whether its incTick()
    * has been called since last setTicks()
    */
   private void setTicks() {
     synchronized (LinkVector) {
       Enumeration links = LinkVector.elements();
-      while (links.hasMoreElements()) {
-        ReferenceActionLink link = (ReferenceActionLink) links.nextElement();
+      while(links.hasMoreElements()) {
+        ReferenceActionLink link = (ReferenceActionLink)links.nextElement();
         link.setTicks();
       }
     }
@@ -243,8 +270,8 @@ public abstract class ActionImpl
     boolean doIt = false;
     synchronized (LinkVector) {
       Enumeration links = LinkVector.elements();
-      while (links.hasMoreElements()) {
-        ReferenceActionLink link = (ReferenceActionLink) links.nextElement();
+      while(links.hasMoreElements()) {
+        ReferenceActionLink link = (ReferenceActionLink)links.nextElement();
         doIt |= link.checkTicks();
       }
     }
@@ -259,8 +286,8 @@ public abstract class ActionImpl
   private void resetTicks() {
     synchronized (LinkVector) {
       Enumeration links = LinkVector.elements();
-      while (links.hasMoreElements()) {
-        ReferenceActionLink link = (ReferenceActionLink) links.nextElement();
+      while(links.hasMoreElements()) {
+        ReferenceActionLink link = (ReferenceActionLink)links.nextElement();
         link.resetTicks();
       }
     }
@@ -301,18 +328,18 @@ public abstract class ActionImpl
    * action.setEnabled(wasEnabled);
    * </CODE></PRE>
    * </BLOCKQUOTE>
-   * @param enable		The new "enabled" state for this action.
-   * @return			The previous "enabled" state of this action.
+   * @param enable              The new "enabled" state for this action.
+   * @return                    The previous "enabled" state of this action.
    */
   public boolean setEnabled(boolean enable) {
-    boolean	wasEnabled;
+    boolean wasEnabled;
     synchronized (lockEnabled) {
       wasEnabled = enabled;
       if (enable && !wasEnabled) {
-	enableAction();
+        enableAction();
       }
       else if (!enable && wasEnabled) {
-	disableAction();
+        disableAction();
       }
     }
     return wasEnabled;
@@ -321,6 +348,8 @@ public abstract class ActionImpl
   /**
    * return Thread currently active in run() method of this
    * ActionImpl, or null is run() is not active
+   *
+   * @return 
    */
   public Thread getCurrentActionThread() {
     return currentActionThread;
@@ -330,8 +359,7 @@ public abstract class ActionImpl
    * remove linked ReferenceActionLink
    * @param link - linked ReferenceActionLink to remove
    */
-  void handleRunDisconnectException(ReferenceActionLink link)
-  {
+  void handleRunDisconnectException(ReferenceActionLink link) {
     LinkVector.removeElement(link);
   }
 
@@ -356,19 +384,20 @@ public abstract class ActionImpl
           if (peek) {
             // WLH 17 Dec 2001 - keep run_links off Thread stack
             synchronized (LinkVector) {
-              run_links = ((Vector) LinkVector.clone()).elements();
+              run_links = ((Vector)LinkVector.clone()).elements();
             }
-            while (run_links.hasMoreElements()) {
+            while(run_links.hasMoreElements()) {
               ReferenceActionLink link =
-                (ReferenceActionLink) run_links.nextElement();
-  
+                (ReferenceActionLink)run_links.nextElement();
+
               try {
                 link.peekThingChangedEvent();
-              } catch (RemoteException re) {
+              }
+              catch (RemoteException re) {
                 if (!visad.collab.CollabUtil.isDisconnectException(re)) {
                   throw re;
                 }
-  
+
                 // remote side has died
                 handleRunDisconnectException(link);
               }
@@ -383,28 +412,35 @@ public abstract class ActionImpl
             long t1 = System.currentTimeMillis();
             doAction();
             long t2 = System.currentTimeMillis();
-	    if((t2-t1)>10 && stackTrace!=null) {
-		System.out.println("Action:" + getClass().getName()+" time:" + (t2-t1));
-		String[] lines = stackTrace.split("\n");
-		for(int i=0;i<lines.length && i< 30;i++) {
-		    if(i>1) {
-			System.out.println(lines[i]);
-		    }
-		}
-	    }
+            //If it took longer than 10 milliseconds then do the trace
+            if ((t2 - t1) > 10) {
+              if (TRACE_TIME) {
+                System.out.println(
+                  "Action:" + getClass().getName() + " time:" + (t2 - t1));
+              }
+              if (TRACE_STACK) {
+                String[] lines = stackTrace.split("\n");
+                for (int i = 0; i < lines.length && i < 30; i++) {
+                  if (i > 1) {
+                    System.out.println(lines[i]);
+                  }
+                }
+              }
+            }
           }
           // WLH 17 Dec 2001 - keep run_links off Thread stack
           synchronized (LinkVector) {
-            run_links = ((Vector) LinkVector.clone()).elements();
+            run_links = ((Vector)LinkVector.clone()).elements();
           }
-          while (run_links.hasMoreElements()) {
+          while(run_links.hasMoreElements()) {
             ReferenceActionLink link =
-              (ReferenceActionLink) run_links.nextElement();
+              (ReferenceActionLink)run_links.nextElement();
 
             ThingChangedEvent e;
             try {
               e = link.getThingChangedEvent();
-            } catch (RemoteException re) {
+            }
+            catch (RemoteException re) {
               if (!visad.collab.CollabUtil.isDisconnectException(re)) {
                 throw re;
               }
@@ -421,11 +457,11 @@ public abstract class ActionImpl
           run_links = null;
           resetTicks();
         }
-        catch(VisADException v) {
+        catch (VisADException v) {
           v.printStackTrace();
           throw new VisADError("Action.run: " + v.toString());
         }
-        catch(RemoteException v) {
+        catch (RemoteException v) {
           v.printStackTrace();
           throw new VisADError("Action.run: " + v.toString());
         }
@@ -455,11 +491,13 @@ public abstract class ActionImpl
    * a linked ThingReference has changed, requesting activity
    * in this ActionImpl
    * @param e ThingChangedEvent for change to ThingReference
+   *
+   * @return 
    * @throws VisADException a VisAD error occurred
    * @throws RemoteException an RMI error occurred
    */
   public boolean thingChanged(ThingChangedEvent e)
-         throws VisADException, RemoteException {
+          throws VisADException, RemoteException {
     long id = e.getId();
     ReferenceActionLink link = findLink(id);
 
@@ -481,7 +519,7 @@ public abstract class ActionImpl
    * @throws RemoteException an RMI error occurred
    */
   void addLink(ReferenceActionLink link)
-       throws VisADException, RemoteException {
+          throws VisADException, RemoteException {
     ThingReference ref = link.getThingReference();
     if (findReference(ref) != null) {
       throw new ReferenceException("Action.addLink: link to " +
@@ -506,8 +544,8 @@ public abstract class ActionImpl
     if (pool == null) {
       startThreadPool();
     }
-    if(TRACE_ON) {
-	stackTrace = visad.util.Util.getStackTrace();
+    if (TRACE_STACK) {
+      stackTrace = visad.util.Util.getStackTrace();
     }
     pool.queue(this);
   }
@@ -515,8 +553,7 @@ public abstract class ActionImpl
   /**
    * wait for all queued tasks in ThreadPool to finish
    */
-  public void waitForTasks()
-  {
+  public void waitForTasks() {
     if (pool != null) {
       pool.waitForTasks();
     }
@@ -532,17 +569,17 @@ public abstract class ActionImpl
    *                              <code>ref.acknowledgeThingChanged(this)</code>
    *                              .  This method invokes <code>
    *                              ref.addThingChangedListener(this, ...)</code>.
-   * @throws RemoteVisADException if the reference isn't a {@link 
+   * @throws RemoteVisADException if the reference isn't a {@link
    *                              ThingReferenceImpl}.
    * @throws ReferenceException   if the reference has already been added.
-   * @throws VisADException	  if a VisAD failure occurs.
-   * @throws RemoteException	  if a Java RMI failure occurs.
+   * @throws VisADException       if a VisAD failure occurs.
+   * @throws RemoteException      if a Java RMI failure occurs.
    * @see #thingChanged(ThingChangedEvent)
    * @see ThingReference#addThingChangedListener(ThingChangedListener, long)
    */
   public void addReference(ThingReference ref)
-      throws ReferenceException, RemoteVisADException, VisADException,
-	RemoteException {
+          throws ReferenceException, RemoteVisADException, VisADException,
+                 RemoteException {
     if (!(ref instanceof ThingReferenceImpl)) {
       throw new RemoteVisADException("ActionImpl.addReference: requires " +
                                      "ThingReferenceImpl");
@@ -562,11 +599,11 @@ public abstract class ActionImpl
    * @param ref RemoteThingReference being linked
    * @param action RemoteActionImpl adapting this ActionImpl
    * @throws ReferenceException   if the reference has already been added.
-   * @throws VisADException	  if a VisAD failure occurs.
-   * @throws RemoteException	  if a Java RMI failure occurs.
+   * @throws VisADException       if a VisAD failure occurs.
+   * @throws RemoteException      if a Java RMI failure occurs.
    */
   void adaptedAddReference(RemoteThingReference ref, Action action)
-       throws VisADException, RemoteException {
+          throws VisADException, RemoteException {
     if (findReference(ref) != null) {
       throw new ReferenceException("ActionImpl.adaptedAddReference: " +
                                    "link already exists");
@@ -581,15 +618,15 @@ public abstract class ActionImpl
    * <p>This implementation invokes {@link #findReference(ThingReference)}.</p>
    *
    * @param ref                   The reference to be removed.
-   * @throws RemoteVisADException if the reference isn't a {@link 
+   * @throws RemoteVisADException if the reference isn't a {@link
    *                              ThingReferenceImpl}.
-   * @throws ReferenceException   if the reference isn't a part of this 
+   * @throws ReferenceException   if the reference isn't a part of this
    *                              instance.
    * @throws VisADException       if a VisAD failure occurs.
    * @throws RemoteException      if a Java RMI failure occurs.
    */
   public void removeReference(ThingReference ref)
-         throws VisADException, RemoteException {
+          throws VisADException, RemoteException {
     ReferenceActionLink link = null;
     if (!(ref instanceof ThingReferenceImpl)) {
       throw new RemoteVisADException("ActionImpl.removeReference: requires " +
@@ -619,7 +656,7 @@ public abstract class ActionImpl
    * @throws RemoteException      if a Java RMI failure occurs.
    */
   void adaptedRemoveReference(RemoteThingReference ref)
-       throws VisADException, RemoteException {
+          throws VisADException, RemoteException {
     ReferenceActionLink link = null;
     if (LinkVector != null) {
       synchronized (LinkVector) {
@@ -635,22 +672,24 @@ public abstract class ActionImpl
     notifyAction();
   }
 
-  /** 
-    * delete all links to ThingReferences 
-    */
-  public void removeAllReferences()
-         throws VisADException, RemoteException {
+  /**
+   *  delete all links to ThingReferences
+   *
+   * @throws RemoteException 
+   * @throws VisADException 
+   */
+  public void removeAllReferences() throws VisADException, RemoteException {
     Vector cloneLink = null;
     if (LinkVector != null) {
       synchronized (LinkVector) {
-        cloneLink = (Vector) LinkVector.clone();
+        cloneLink = (Vector)LinkVector.clone();
         LinkVector.removeAllElements();
       }
     }
     if (cloneLink != null) {
       Enumeration links = cloneLink.elements();
-      while (links.hasMoreElements()) {
-        ReferenceActionLink link = (ReferenceActionLink) links.nextElement();
+      while(links.hasMoreElements()) {
+        ReferenceActionLink link = (ReferenceActionLink)links.nextElement();
         ThingReference ref = link.getThingReference();
         ref.removeThingChangedListener(link.getAction());
       }
@@ -666,20 +705,21 @@ public abstract class ActionImpl
    * @throws RemoteException      if a Java RMI failure occurs.
    */
   void removeLinks(ReferenceActionLink[] links)
-    throws VisADException, RemoteException {
+          throws VisADException, RemoteException {
     if (LinkVector != null) {
       synchronized (LinkVector) {
-        for (int i=0; i<links.length; i++) {
+        for (int i = 0; i < links.length; i++) {
           if (!LinkVector.removeElement(links[i])) links[i] = null;
         }
       }
     }
-    for (int i=0; i<links.length; i++) {
+    for (int i = 0; i < links.length; i++) {
       if (links[i] != null) {
         ThingReference ref = links[i].getThingReference();
         try {
           ref.removeThingChangedListener(links[i].getAction());
-        } catch (RemoteException re) {
+        }
+        catch (RemoteException re) {
           // don't throw exception if the other side has died
           if (!visad.collab.CollabUtil.isDisconnectException(re)) {
             throw re;
@@ -700,8 +740,8 @@ public abstract class ActionImpl
     if (LinkVector == null) return null;
     synchronized (LinkVector) {
       Enumeration links = LinkVector.elements();
-      while (links.hasMoreElements()) {
-        ReferenceActionLink link = (ReferenceActionLink) links.nextElement();
+      while(links.hasMoreElements()) {
+        ReferenceActionLink link = (ReferenceActionLink)links.nextElement();
         if (id == link.getId()) return link;
       }
     }
@@ -718,7 +758,7 @@ public abstract class ActionImpl
    * @throws VisADException     if the argument is <code>null</code>.
    */
   public ReferenceActionLink findReference(ThingReference ref)
-         throws VisADException {
+          throws VisADException {
     if (ref == null) {
       throw new ReferenceException("ActionImpl.findReference: " +
                                    "ThingReference cannot be null");
@@ -726,8 +766,8 @@ public abstract class ActionImpl
     if (LinkVector == null) return null;
     synchronized (LinkVector) {
       Enumeration links = LinkVector.elements();
-      while (links.hasMoreElements()) {
-        ReferenceActionLink link = (ReferenceActionLink) links.nextElement();
+      while(links.hasMoreElements()) {
+        ReferenceActionLink link = (ReferenceActionLink)links.nextElement();
         if (ref.equals(link.getThingReference())) return link;
       }
     }
@@ -738,12 +778,12 @@ public abstract class ActionImpl
    * @return Vector of linked ReferenceActionLinks
    */
   public Vector getLinks() {
-    return (Vector) LinkVector.clone();
+    return (Vector)LinkVector.clone();
   }
 
   /**
-    * @return String name of this Action
-    */
+   *  @return String name of this Action
+   */
   public String getName() {
     return Name;
   }
@@ -757,3 +797,4 @@ public abstract class ActionImpl
   }
 
 }
+
