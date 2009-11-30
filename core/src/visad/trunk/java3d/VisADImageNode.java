@@ -28,7 +28,7 @@ public class VisADImageNode implements ImageComponent2D.Updater {
    public ImageComponent2D imageComp;
    BufferedImage buf_image = null;
    public int current_index = 0;
-
+   private boolean doingPrefetch = false;
 
    AnimateBehavior animate = null; 
 
@@ -56,7 +56,6 @@ public class VisADImageNode implements ImageComponent2D.Updater {
    }
 
 
-   private int lookAheadIndexBaseIndex = 0;
 
    public void setCurrent(int idx) {
      current_index = idx;
@@ -64,29 +63,36 @@ public class VisADImageNode implements ImageComponent2D.Updater {
      //Have a local array here in case the images array changes in another thread
      BufferedImage[] theImages = images;
 
-     if (imageComp != null && theImages != null && idx>=0 && idx< theImages.length) {
+     ImageComponent2D theImageComp = imageComp;
+
+     if (theImageComp != null && theImages != null && idx>=0 && idx< theImages.length) {
       //-imageComp.updateData(this, 0, 0, 0, 0); // See note above
 
        BufferedImage image = theImages[idx];
        if(image == null) {
 	   //	   System.err.println ("Animate image is null for index:" + idx);
        } else {
-	   imageComp.set(image);
+	   theImageComp.set(image);
 	   //Do the lookahead
 	   if(image instanceof CachedBufferedByteImage) {
 	       //Find the next image
 	       CachedBufferedByteImage nextImage = null;
-
 	       //If we are at the end of the loop then go to the beginning
 	       int nextIdx = idx+1;
 	       if(nextIdx>=theImages.length)
 		   nextIdx = 0;
 	       nextImage = (CachedBufferedByteImage)theImages[nextIdx];
-	       if(nextImage!=null && !nextImage.inMemory()) {
+	       if(!doingPrefetch && nextImage!=null && !nextImage.inMemory()) {
 		   final CachedBufferedByteImage imageToLoad = nextImage;
 		   Runnable r = new Runnable() {
 			   public  void run() {
-			       imageToLoad.getBytesFromCache();
+                               doingPrefetch = true;
+                               try {
+                                   imageToLoad.getBytesFromCache();
+                               } finally {
+                                   doingPrefetch = false;
+                               }
+
 			   }
 		       };
 		   Thread t = new Thread(r);
