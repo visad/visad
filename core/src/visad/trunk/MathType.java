@@ -226,6 +226,7 @@ public abstract class MathType extends Object implements java.io.Serializable {
              (0 <= s0.compareTo("A") && s0.compareTo("Z") <= 0)) {
       for (int i=1; i<len[0]; i++) {
         s0 = s.substring(i, i+1);
+/* old check
         if (!((0 <= s0.compareTo("a") && s0.compareTo("z") <= 0) ||
               (0 <= s0.compareTo("A") && s0.compareTo("Z") <= 0) ||
               (0 <= s0.compareTo("0") && s0.compareTo("9") <= 0) ||
@@ -234,13 +235,20 @@ public abstract class MathType extends Object implements java.io.Serializable {
               s0.equals("%") || s0.equals("+") ||
               s0.equals("/") || s0.equals(":") ||
               s0.equals("[") || s0.equals("]") || s0.equals("^"))) {
-/* possible new check
+*/
+              // non-printable characters
         if (!(0 <= s0.compareTo("!") && s0.compareTo("~") <= 0) ||
+              // illegal ScalarType chars and MathType parsing delimiters
               s0.equals(")") ||
               s0.equals("(") ||
+              s0.equals(",") ||
               s0.equals("-") ||
-              s0.equals(">")) {
-*/
+              s0.equals(">") ||
+              // also eliminate regex chars
+              s0.equals(".") ||
+              s0.equals("*") ||
+              s0.equals("?") ||
+              s0.equals("|")) {
           len[0] = i;
           break;
         }
