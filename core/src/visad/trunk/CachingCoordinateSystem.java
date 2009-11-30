@@ -26,7 +26,13 @@ MA 02111-1307, USA
 
 package visad;
 
+
 import java.util.Arrays;
+
+import visad.util.Util;
+
+import visad.data.ArrayCache;
+
 
 /**
  * A wrapper class for CoordinateSystems that will cache the last
@@ -35,75 +41,73 @@ import java.util.Arrays;
  * methods were called, the previously calculated values are returned.
  *
  * @author Don Murray
- * @version $Revision: 1.8 $ $Date: 2009-11-30 14:47:10 $
+ * @version $Revision: 1.9 $ $Date: 2009-11-30 22:22:18 $
  */
 public class CachingCoordinateSystem extends CoordinateSystem {
 
+  /** The coordinate system I wrap */
   private CoordinateSystem myCS = null;
-  private double[][] toRefDInput = null;
-  private double[][] toRefDOutput = null;
-  private double[][] fromRefDInput = null;
-  private double[][] fromRefDOutput = null;
-  private float[][] toRefFInput = null;
-  private float[][] toRefFOutput = null;
-  private float[][] fromRefFInput = null;
-  private float[][] fromRefFOutput = null;
 
- public static boolean debug = false;
- public static boolean debugTime = false;
- public static boolean enabled = true;
+  /**  Does the actual caching         */
+  private ArrayCache arrayCache = new ArrayCache();
+
+  /** Show time to transform           */
+  public static boolean debugTime = true;
+
+  /**  counter to show which object this is         */
+  private static int cnt = 0;
+
+  /**  counter to show which object this is         */
+  private int mycnt = cnt++;
 
 
   /**
    * Construct a new CachingCoordinateSystem that wraps around the input.
    * @param cs CoordinateSystem to wrap
+   *
+   * @throws VisADException 
    */
-  public CachingCoordinateSystem(CoordinateSystem cs) 
-      throws VisADException {
+  public CachingCoordinateSystem(CoordinateSystem cs) throws VisADException {
     super(cs.getReference(), cs.getCoordinateSystemUnits());
     myCS = cs;
   }
 
+
   /**
    * Wrapper around the toReference method of the input CoordinateSystem.
    * If the inputs are the same as the last time this method was called,
    * the previously computed outputs will be returned, otherwise the
    * toReference method of the wrapped CS is called and it's output
    * is returned
-   * 
+   *
    * @param   inputs  values to transform
    * @return  transformed input values.
    * @throws  VisADException  when wrapped CS does
    */
-  public double[][] toReference(double[][] inputs) 
-       throws VisADException {
+  public double[][] toReference(double[][] inputs) throws VisADException {
     if (inputs == null) return inputs;
     long t1 = System.currentTimeMillis();
-    try {
-    if(!enabled)
-	return  myCS.toReference(inputs);
-
-    if (toRefDInput == null || toRefDInput.length != inputs.length
-        || toRefDInput[0].length != inputs[0].length)  {
-	toRefDInput = clone(inputs);
-       toRefDOutput = myCS.toReference(inputs);
-
-    } else {
-      for(int i = 0; i<inputs.length; i++) {
-        if (!Arrays.equals(inputs[i], toRefDInput[i])) {
-          toRefDOutput = myCS.toReference(inputs);
-          toRefDInput = clone(inputs);
-          break;
-        }
-      }
+    boolean hit = true;
+    String key = "toReferenceD";
+    double[][] output = arrayCache.get(key, inputs);
+    if (output == null) {
+      double[][] tmp = Util.clone(inputs);
+      output = myCS.toReference(inputs);
+      arrayCache.put(key, tmp, output);
+      hit = false;
     }
-    return (double[][]) toRefDOutput.clone();
-    } finally {
-	long t2 = System.currentTimeMillis();
-	if(debugTime)
-	    System.err.println ("CCS.toReference(double) time:" + (t2-t1));
-    }
+    debugTime(inputs[0].length, key +" hit?" + hit, t1,System.currentTimeMillis());
+    //    System.err.println (Util.getStackTrace());
+
+    return output;
   }
+
+    private void debugTime(int size, String msg, long t1, long t2) {
+        if(size>100 && debugTime && t1!=t2) {
+            System.err.println("CCS #" +cnt + " size:" + size+ " " +  msg+" time:" + (t2 - t1));
+        }
+    }
+
 
   /**
    * Wrapper around the fromReference method of the input CoordinateSystem.
@@ -111,58 +115,30 @@ public class CachingCoordinateSystem extends CoordinateSystem {
    * the previously computed outputs will be returned, otherwise the
    * fromReference method of the wrapped CS is called and it's output
    * is returned
-   * 
+   *
    * @param   inputs  values to transform
    * @return  transformed input values.
    * @throws  VisADException  when wrapped CS does
    */
-  public double[][] fromReference(double[][] inputs) 
-       throws VisADException {
+  public double[][] fromReference(double[][] inputs) throws VisADException {
     if (inputs == null) return inputs;
 
     long t1 = System.currentTimeMillis();
-    try {
-    if(!enabled)
-	return  myCS.fromReference(inputs);
+    boolean hit = true;
+    String key = "fromReferenceD";
+    double[][] output = arrayCache.get(key, inputs);
+    if (output == null) {
+      double[][] tmp = Util.clone(inputs);
+      output = myCS.fromReference(inputs);
+      arrayCache.put(key, tmp, output);
+      hit = false;
+    }
+    debugTime(inputs[0].length,key +" hit?" + hit, t1,System.currentTimeMillis());
+    return output;
 
-    if (fromRefDInput == null || fromRefDInput.length != inputs.length
-        || fromRefDInput[0].length != inputs[0].length)  {
-       fromRefDInput = clone(inputs);
-       fromRefDOutput = myCS.fromReference(inputs);
-    } else {
-      for(int i = 0; i<inputs.length; i++) {
-        if (!Arrays.equals(inputs[i], fromRefDInput[i])) {
-          fromRefDInput = clone(inputs);
-          fromRefDOutput = myCS.fromReference(inputs);
-          break;
-        }
-      }
-    }
-    return (double[][]) fromRefDOutput.clone();
-    } finally {
-	long t2 = System.currentTimeMillis();
-	if(debugTime)
-	    System.err.println ("CCS.fromReference(double) time:" + (t2-t1));
-    }
   }
 
 
-    private static float[][]clone(float[][]input) {
-	float[][] output = (float[][])input.clone();
-	for(int i=0;i<input.length;i++) {
-	    output[i] = (float[]) input[i].clone();
-	}
-	return output;
-    }
-
-
-    private static  double[][]clone(double[][]input) {
-	double[][] output = (double[][])input.clone();
-	for(int i=0;i<input.length;i++) {
-	    output[i] = (double[]) input[i].clone();
-	}
-	return output;
-    }
 
 
 
@@ -172,59 +148,30 @@ public class CachingCoordinateSystem extends CoordinateSystem {
    * the previously computed outputs will be returned, otherwise the
    * toReference method of the wrapped CS is called and it's output
    * is returned
-   * 
+   *
    * @param   inputs  values to transform
    * @return  transformed input values.
    * @throws  VisADException  when wrapped CS does
    */
-  public float[][] toReference(float[][] inputs) 
-
-       throws VisADException {
+  public float[][] toReference(float[][] inputs) throws VisADException {
     if (inputs == null) return inputs;
 
     long t1 = System.currentTimeMillis();
-    try {
-    if(!enabled)
-	return  myCS.toReference(inputs);
-
     boolean hit = true;
-    if(debug) {
-	System.err.println (this+" CCS.toReference:" + inputs[0].length);
-    }
-    if (toRefFInput == null || toRefFInput.length != inputs.length
-        || toRefFInput[0].length != inputs[0].length)  {
-	if(debug)  {
-	    System.err.println ("\ttotal miss");
-	    if(toRefFInput!=null) 
-		System.err.println ("\t\t" + toRefFInput.length + " " + toRefFInput[0].length);
-	}
-        hit = false;
-        toRefFInput = clone(inputs);
-        toRefFOutput = myCS.toReference(inputs);
-    } else {
-      for(int i = 0; i<inputs.length; i++) {
-        if (!Arrays.equals(inputs[i], toRefFInput[i])) {
-	    if(debug) 
-		System.err.println ("\tarrays not equal");
-	    hit = false;
-            toRefFInput = clone(inputs);
-            toRefFOutput = myCS.toReference(inputs);
-            break;
-        }
-      }
-    }
-    if(debug && hit) {
-	System.err.println ("\twas in cache");
-    }
-    return (float[][]) toRefFOutput.clone();
+    String key = "toReferenceF";
 
-    } finally {
-	long t2 = System.currentTimeMillis();
-	if(debugTime)
-	    System.err.println ("CCS.toReference(float) time:" + (t2-t1));
+    float[][] output = arrayCache.get(key, inputs);
+    if (output == null) {
+      float[][] tmp = Util.clone(inputs);
+      output = myCS.toReference(inputs);
+      arrayCache.put(key, tmp, output);
+      hit = false;
     }
 
+    debugTime(inputs[0].length,key +" hit?" + hit, t1,System.currentTimeMillis());
+    return output;
   }
+
 
   /**
    * Wrapper around the fromReference method of the input CoordinateSystem.
@@ -232,73 +179,37 @@ public class CachingCoordinateSystem extends CoordinateSystem {
    * the previously computed outputs will be returned, otherwise the
    * fromReference method of the wrapped CS is called and it's output
    * is returned
-   * 
+   *
    * @param   inputs  values to transform
    * @return  transformed input values.
    * @throws  VisADException  when wrapped CS does
    */
-  public float[][] fromReference(float[][] inputs) 
-       throws VisADException {
+  public float[][] fromReference(float[][] inputs) throws VisADException {
     if (inputs == null) return inputs;
-
     long t1 = System.currentTimeMillis();
-    try {
-    if(!enabled)
-	return  myCS.fromReference(inputs);
     boolean hit = true;
-    if(debug) {
-	System.err.println (this+" CCS.fromReference:" + inputs[0].length);
+    String key = "fromReferenceF";
+    float[][] output = arrayCache.get(key, inputs);
+    if (output == null) {
+      float[][] tmp = Util.clone(inputs);
+      output = myCS.fromReference(inputs);
+      arrayCache.put(key, tmp, output);
+      hit = false;
     }
-
-    if (fromRefFInput == null || fromRefFInput.length != inputs.length
-        || fromRefFInput[0].length != inputs[0].length)  {
-	if(debug)  {
-	    System.err.println ("\ttotal miss");
-	    if(fromRefFInput!=null) 
-		System.err.println ("\t\t" + fromRefFInput.length + " " + fromRefFInput[0].length);
-	}
-        hit = false;
-
-       fromRefFInput = clone(inputs);
-       //       fromRefFInput = (float[][]) inputs.clone();
-       fromRefFOutput = myCS.fromReference(inputs);
-    } else {
-      for(int i = 0; i<inputs.length; i++) {
-        if (!Arrays.equals(inputs[i], fromRefFInput[i])) {
-	    //          fromRefFInput = (float[][]) inputs.clone();
-          fromRefFInput = clone(inputs);
-          fromRefFOutput = myCS.fromReference(inputs);
-	    if(debug) 
-		System.err.println ("\tarrays not equal");
-	    hit = false;
-
-          break;
-        }
-      }
-    }
-    if(debug && hit) {
-	System.err.println ("\twas in cache");
-    }
-    return (float[][]) fromRefFOutput.clone();
-    } finally {
-	long t2 = System.currentTimeMillis();
-	if(debugTime)
-	    System.err.println ("CCS.fromReference(float) time:" + (t2-t1));
-    }
+    debugTime(inputs[0].length,key +" hit?" + hit, t1,System.currentTimeMillis());
+    return output;
   }
 
-  /** 
-   * Check for equality of CoordinateSystem objects 
+  /**
+   * Check for equality of CoordinateSystem objects
    * @param  obj  other object in question
    * @return  true if the object in question is a CachingCoordinateSystem
    *          and it's CS is equal this object's CS
    */
-  public boolean equals (Object obj) 
-  {
-      if (!(obj instanceof CachingCoordinateSystem))
-          return false;
-      CachingCoordinateSystem that = (CachingCoordinateSystem) obj;
-      return that.myCS.equals(myCS);
+  public boolean equals(Object obj) {
+    if (!(obj instanceof CachingCoordinateSystem)) return false;
+    CachingCoordinateSystem that = (CachingCoordinateSystem)obj;
+    return that.myCS.equals(myCS);
   }
 
   /**
@@ -306,7 +217,7 @@ public class CachingCoordinateSystem extends CoordinateSystem {
    * @return  cached CoordinateSystem
    */
   public CoordinateSystem getCachedCoordinateSystem() {
-      return myCS;
+    return myCS;
   }
 
   /**
@@ -314,7 +225,8 @@ public class CachingCoordinateSystem extends CoordinateSystem {
    * @return a descriptive String
    */
   public String toString() {
-      return "Cached CS: " + myCS.toString();
+    return "Cached CS: " + myCS.toString();
   }
 
 }
+
