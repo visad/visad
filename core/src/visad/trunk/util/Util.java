@@ -33,6 +33,7 @@ import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -793,4 +794,16 @@ public class Util
   public static Level configureLogging(int verbosity) {
     return configureLogging(verbosity, "visad");
   }
+
+
+   /**
+    * Utility method to return the stack trace
+    *
+    * @return The stack trace
+    */
+   public static String getStackTrace() {
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+       (new IllegalArgumentException("stack trace")).printStackTrace(new PrintStream(baos));
+       return baos.toString();
+   }
 }
