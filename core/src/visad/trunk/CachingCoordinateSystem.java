@@ -35,7 +35,7 @@ import java.util.Arrays;
  * methods were called, the previously calculated values are returned.
  *
  * @author Don Murray
- * @version $Revision: 1.7 $ $Date: 2009-03-02 23:35:41 $
+ * @version $Revision: 1.8 $ $Date: 2009-11-30 14:47:10 $
  */
 public class CachingCoordinateSystem extends CoordinateSystem {
 
@@ -48,6 +48,11 @@ public class CachingCoordinateSystem extends CoordinateSystem {
   private float[][] toRefFOutput = null;
   private float[][] fromRefFInput = null;
   private float[][] fromRefFOutput = null;
+
+ public static boolean debug = false;
+ public static boolean debugTime = false;
+ public static boolean enabled = true;
+
 
   /**
    * Construct a new CachingCoordinateSystem that wraps around the input.
@@ -73,20 +78,31 @@ public class CachingCoordinateSystem extends CoordinateSystem {
   public double[][] toReference(double[][] inputs) 
        throws VisADException {
     if (inputs == null) return inputs;
+    long t1 = System.currentTimeMillis();
+    try {
+    if(!enabled)
+	return  myCS.toReference(inputs);
+
     if (toRefDInput == null || toRefDInput.length != inputs.length
         || toRefDInput[0].length != inputs[0].length)  {
+	toRefDInput = clone(inputs);
        toRefDOutput = myCS.toReference(inputs);
-       toRefDInput = (double[][]) inputs.clone();
+
     } else {
       for(int i = 0; i<inputs.length; i++) {
         if (!Arrays.equals(inputs[i], toRefDInput[i])) {
           toRefDOutput = myCS.toReference(inputs);
-          toRefDInput = (double[][]) inputs.clone();
+          toRefDInput = clone(inputs);
           break;
         }
       }
     }
     return (double[][]) toRefDOutput.clone();
+    } finally {
+	long t2 = System.currentTimeMillis();
+	if(debugTime)
+	    System.err.println ("CCS.toReference(double) time:" + (t2-t1));
+    }
   }
 
   /**
@@ -103,21 +119,52 @@ public class CachingCoordinateSystem extends CoordinateSystem {
   public double[][] fromReference(double[][] inputs) 
        throws VisADException {
     if (inputs == null) return inputs;
+
+    long t1 = System.currentTimeMillis();
+    try {
+    if(!enabled)
+	return  myCS.fromReference(inputs);
+
     if (fromRefDInput == null || fromRefDInput.length != inputs.length
         || fromRefDInput[0].length != inputs[0].length)  {
+       fromRefDInput = clone(inputs);
        fromRefDOutput = myCS.fromReference(inputs);
-       fromRefDInput = (double[][]) inputs.clone();
     } else {
       for(int i = 0; i<inputs.length; i++) {
         if (!Arrays.equals(inputs[i], fromRefDInput[i])) {
+          fromRefDInput = clone(inputs);
           fromRefDOutput = myCS.fromReference(inputs);
-          fromRefDInput = (double[][]) inputs.clone();
           break;
         }
       }
     }
     return (double[][]) fromRefDOutput.clone();
+    } finally {
+	long t2 = System.currentTimeMillis();
+	if(debugTime)
+	    System.err.println ("CCS.fromReference(double) time:" + (t2-t1));
+    }
   }
+
+
+    private static float[][]clone(float[][]input) {
+	float[][] output = (float[][])input.clone();
+	for(int i=0;i<input.length;i++) {
+	    output[i] = (float[]) input[i].clone();
+	}
+	return output;
+    }
+
+
+    private static  double[][]clone(double[][]input) {
+	double[][] output = (double[][])input.clone();
+	for(int i=0;i<input.length;i++) {
+	    output[i] = (double[]) input[i].clone();
+	}
+	return output;
+    }
+
+
 
   /**
    * Wrapper around the toReference method of the input CoordinateSystem.
@@ -134,20 +181,49 @@ public class CachingCoordinateSystem extends CoordinateSystem {
 
        throws VisADException {
     if (inputs == null) return inputs;
+
+    long t1 = System.currentTimeMillis();
+    try {
+    if(!enabled)
+	return  myCS.toReference(inputs);
+
+    boolean hit = true;
+    if(debug) {
+	System.err.println (this+" CCS.toReference:" + inputs[0].length);
+    }
     if (toRefFInput == null || toRefFInput.length != inputs.length
         || toRefFInput[0].length != inputs[0].length)  {
-       toRefFOutput = myCS.toReference(inputs);
-       toRefFInput = (float[][]) inputs.clone();
+	if(debug)  {
+	    System.err.println ("\ttotal miss");
+	    if(toRefFInput!=null) 
+		System.err.println ("\t\t" + toRefFInput.length + " " + toRefFInput[0].length);
+	}
+        hit = false;
+        toRefFInput = clone(inputs);
+        toRefFOutput = myCS.toReference(inputs);
     } else {
       for(int i = 0; i<inputs.length; i++) {
         if (!Arrays.equals(inputs[i], toRefFInput[i])) {
-          toRefFOutput = myCS.toReference(inputs);
-          toRefFInput = (float[][]) inputs.clone();
-          break;
+	    if(debug) 
+		System.err.println ("\tarrays not equal");
+	    hit = false;
+            toRefFInput = clone(inputs);
+            toRefFOutput = myCS.toReference(inputs);
+            break;
         }
       }
     }
+    if(debug && hit) {
+	System.err.println ("\twas in cache");
+    }
     return (float[][]) toRefFOutput.clone();
+
+    } finally {
+	long t2 = System.currentTimeMillis();
+	if(debugTime)
+	    System.err.println ("CCS.toReference(float) time:" + (t2-t1));
+    }
+
   }
 
   /**
@@ -164,20 +240,51 @@ public class CachingCoordinateSystem extends CoordinateSystem {
   public float[][] fromReference(float[][] inputs) 
        throws VisADException {
     if (inputs == null) return inputs;
+
+    long t1 = System.currentTimeMillis();
+    try {
+    if(!enabled)
+	return  myCS.fromReference(inputs);
+    boolean hit = true;
+    if(debug) {
+	System.err.println (this+" CCS.fromReference:" + inputs[0].length);
+    }
+
     if (fromRefFInput == null || fromRefFInput.length != inputs.length
         || fromRefFInput[0].length != inputs[0].length)  {
+	if(debug)  {
+	    System.err.println ("\ttotal miss");
+	    if(fromRefFInput!=null) 
+		System.err.println ("\t\t" + fromRefFInput.length + " " + fromRefFInput[0].length);
+	}
+        hit = false;
+
+       fromRefFInput = clone(inputs);
+       //       fromRefFInput = (float[][]) inputs.clone();
        fromRefFOutput = myCS.fromReference(inputs);
-       fromRefFInput = (float[][]) inputs.clone();
     } else {
       for(int i = 0; i<inputs.length; i++) {
         if (!Arrays.equals(inputs[i], fromRefFInput[i])) {
+	    //          fromRefFInput = (float[][]) inputs.clone();
+          fromRefFInput = clone(inputs);
           fromRefFOutput = myCS.fromReference(inputs);
-          fromRefFInput = (float[][]) inputs.clone();
+	    if(debug) 
+		System.err.println ("\tarrays not equal");
+	    hit = false;
+
           break;
         }
       }
     }
+    if(debug && hit) {
+	System.err.println ("\twas in cache");
+    }
     return (float[][]) fromRefFOutput.clone();
+    } finally {
+	long t2 = System.currentTimeMillis();
+	if(debugTime)
+	    System.err.println ("CCS.fromReference(float) time:" + (t2-t1));
+    }
   }
 
   /** 
