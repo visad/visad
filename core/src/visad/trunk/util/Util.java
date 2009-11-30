@@ -26,12 +26,14 @@ MA 02111-1307, USA
 
 package visad.util;
 
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.image.BufferedImage;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -40,7 +42,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+
 import java.lang.reflect.InvocationTargetException;
+
 import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.Map;
@@ -50,6 +54,7 @@ import javax.media.j3d.Canvas3D;
 import javax.media.j3d.Group;
 import javax.media.j3d.Node;
 import javax.media.j3d.VirtualUniverse;
+
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JTextField;
@@ -57,10 +62,12 @@ import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileFilter;
 
 import ncsa.hdf.hdf5lib.H5;
+
 import visad.ConstantMap;
 import visad.Display;
 import visad.DisplayImpl;
 import visad.VisADException;
+
 import visad.data.bio.LociForm;
 import visad.data.mcidas.AreaForm;
 import visad.data.mcidas.MapForm;
@@ -69,6 +76,7 @@ import com.sun.image.codec.jpeg.JPEGCodec;
 import com.sun.image.codec.jpeg.JPEGEncodeParam;
 import com.sun.image.codec.jpeg.JPEGImageEncoder;
 import com.sun.j3d.utils.universe.SimpleUniverse;
+
 import java.util.logging.Formatter;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
@@ -76,11 +84,12 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
+
 /**
  * A hodge-podge of general utility methods.
  */
-public class Util
-{
+public class Util {
+
   /**
    * Determine whether two numbers are roughly the same.
    *
@@ -90,12 +99,13 @@ public class Util
    *
    * @return <TT>true</TT> if they're approximately equal.
    */
-  public static boolean isApproximatelyEqual(float a, float b, float epsilon)
-  {
+  public static boolean isApproximatelyEqual(float a, float b,
+                                             float epsilon) {
     // deal with NaNs first
     if (Float.isNaN(a)) {
       return Float.isNaN(b);
-    } else if (Float.isNaN(b)) {
+    }
+    else if (Float.isNaN(b)) {
       return false;
     }
 
@@ -105,7 +115,8 @@ public class Util
       }
 
       return false;
-    } else if (Float.isInfinite(b)) {
+    }
+    else if (Float.isInfinite(b)) {
       return false;
     }
 
@@ -130,8 +141,7 @@ public class Util
    *
    * @return <TT>true</TT> if they're approximately equal.
    */
-  public static boolean isApproximatelyEqual(float a, float b)
-  {
+  public static boolean isApproximatelyEqual(float a, float b) {
     return isApproximatelyEqual(a, b, 0.00001);
   }
 
@@ -145,12 +155,12 @@ public class Util
    * @return <TT>true</TT> if they're approximately equal.
    */
   public static boolean isApproximatelyEqual(double a, double b,
-                                             double epsilon)
-  {
+                                             double epsilon) {
     // deal with NaNs first
     if (Double.isNaN(a)) {
       return Double.isNaN(b);
-    } else if (Double.isNaN(b)) {
+    }
+    else if (Double.isNaN(b)) {
       return false;
     }
 
@@ -160,7 +170,8 @@ public class Util
       }
 
       return false;
-    } else if (Double.isInfinite(b)) {
+    }
+    else if (Double.isInfinite(b)) {
       return false;
     }
 
@@ -185,13 +196,14 @@ public class Util
    *
    * @return <TT>true</TT> if they're approximately equal.
    */
-  public static boolean isApproximatelyEqual(double a, double b)
-  {
+  public static boolean isApproximatelyEqual(double a, double b) {
     return isApproximatelyEqual(a, b, 0.000000001);
   }
 
   /**
    * Return a string representation of VisAD's build date and time.
+   *
+   * @return 
    */
   public static String getVersionDate() {
     try {
@@ -201,23 +213,25 @@ public class Util
       in.close();
       return date;
     }
-    catch (IOException exc) { return null; }
+    catch (IOException exc) {
+      return null;
+    }
   }
-  
-  /** 
+
+  /**
    * Print Java3D properties.
    * @param str Where to print properties.
    * @param canvas The Canvas3D to get properties from. If null Canvas3D
    *  properties are skipped.
-   * 
+   *
    * @see {@link #printJ3DProperties(Canvas3D)}
    */
   public static void printJ3DProperties(PrintStream str, Canvas3D canvas) {
     Map map = VirtualUniverse.getProperties();
     for (Object key : map.keySet()) {
-        str.println(String.format("%s=%s", key, map.get(key)));
+      str.println(String.format("%s=%s", key, map.get(key)));
     }
-    
+
     if (canvas == null) {
       canvas = new Canvas3D(SimpleUniverse.getPreferredConfiguration());
     }
@@ -227,42 +241,55 @@ public class Util
       str.println(String.format("%s=%s", key, map.get(key).toString()));
     }
   }
-  
+
   /**
    * Print Java3D global and Canvas3D properties to <code>System.err</code>.
    * @param canvas The Canvas3D to get properties from. If null Canvas3D
    *  properties are skipped.
-   * 
+   *
    * @see {@link javax.media.j3d.VirtualUniverse#getProperties()}
    * @see {@link javax.media.j3d.Canvas3D#queryProperties()}
    */
   public static void printJ3DProperties(Canvas3D canvas) {
     printJ3DProperties(System.err, canvas);
   }
-  
+
+  /**
+   * 
+   *
+   * @param node 
+   */
   public static void printSceneGraph(Node node) {
     if (node == null) return;
     printSceneGraph(node, 0);
   }
-  
+
+  /**
+   * 
+   *
+   * @param node 
+   * @param lvl 
+   */
   private static void printSceneGraph(Node node, int lvl) {
     StringBuffer buf = new StringBuffer();
-    for (int i=0; i<lvl; i++) {
+    for (int i = 0; i < lvl; i++) {
       buf.append("    ");
     }
     lvl++;
     System.err.println(buf.toString() + node.toString());
     if (node instanceof Group) {
-      Group group = (Group) node;
+      Group group = (Group)node;
       Enumeration children = group.getAllChildren();
-      while (children.hasMoreElements()) {
-        printSceneGraph((Node) children.nextElement(), lvl);
+      while(children.hasMoreElements()) {
+        printSceneGraph((Node)children.nextElement(), lvl);
       }
     }
   }
 
   /**
    * Return a string representation of the current date and time.
+   *
+   * @return 
    */
   public static String getTimestamp() {
     StringBuffer sb = new StringBuffer();
@@ -299,6 +326,8 @@ public class Util
 
   /**
    * Return a JFileChooser that recognizes supported VisAD file types.
+   *
+   * @return 
    */
   public static JFileChooser getVisADFileChooser() {
     JFileChooser dialog = new JFileChooser(System.getProperty("user.dir"));
@@ -310,18 +339,18 @@ public class Util
     filters.add(f2000);
 
     // ASCII text - text/TextForm
-    FileFilter text = new ExtensionFileFilter(
-      new String[] {"csv", "tsv","bsv","txt"}, "ASCII text");
+    FileFilter text = new ExtensionFileFilter(new String[] {"csv", "tsv",
+            "bsv", "txt"}, "ASCII text");
     filters.add(text);
 
     // DEM - gis/DemFamily
     FileFilter dem = new ExtensionFileFilter("dem",
-      "Digital Elevation Model");
+                                             "Digital Elevation Model");
     filters.add(dem);
 
     // FITS - fits/FitsForm
     FileFilter fits = new ExtensionFileFilter("fits",
-      "Flexible Image Transport System");
+                        "Flexible Image Transport System");
     filters.add(fits);
 
     // FlashPix - jai/JAIForm
@@ -332,24 +361,24 @@ public class Util
 
     // HDF-5 - hdf5/HDF5Form
     if (canDoHDF5()) {
-      FileFilter hdf5 = new ExtensionFileFilter(
-        new String[] {"hdf", "hdf5"}, "HDF-5");
+      FileFilter hdf5 = new ExtensionFileFilter(new String[] {"hdf", "hdf5"},
+                          "HDF-5");
       filters.add(hdf5);
     }
 
     // HDF-EOS - hdfeos/HdfeosForm
-    FileFilter hdfeos = new ExtensionFileFilter(
-      new String[] {"hdf", "hdfeos"}, "HDF-EOS");
+    FileFilter hdfeos = new ExtensionFileFilter(new String[] {"hdf",
+            "hdfeos"}, "HDF-EOS");
     filters.add(hdfeos);
 
     // McIDAS area - mcidas/AreaForm
-    FormFileFilter mcidasArea =
-      new FormFileFilter(new AreaForm(), "McIDAS area (AREA*, *area)");
+    FormFileFilter mcidasArea = new FormFileFilter(new AreaForm(),
+                                  "McIDAS area (AREA*, *area)");
     filters.add(mcidasArea);
 
     // McIDAS map - mcidas/MapForm
-    FormFileFilter mcidasMap =
-      new FormFileFilter(new MapForm(), "McIDAS map (OUTL*)");
+    FormFileFilter mcidasMap = new FormFileFilter(new MapForm(),
+                                 "McIDAS map (OUTL*)");
     filters.add(mcidasMap);
 
     // netCDF - netcdf/Plain
@@ -363,8 +392,8 @@ public class Util
     }
 
     // VisAD binary/serialized - visad/VisADForm
-    FileFilter visad = new ExtensionFileFilter(
-      "vad", "Binary or serialized VisAD");
+    FileFilter visad = new ExtensionFileFilter("vad",
+                         "Binary or serialized VisAD");
     filters.add(visad);
 
     // Vis5D - vis5d/Vis5DForm
@@ -373,7 +402,8 @@ public class Util
 
     // biology-related formats - LociForm
     FileFilter[] lociFilters = new LociForm().getReaderFilters();
-    for (int i=0; i<lociFilters.length; i++) filters.add(lociFilters[i]);
+    for (int i = 0; i < lociFilters.length; i++)
+      filters.add(lociFilters[i]);
 
     // sort and combine filters alphanumerically
     FileFilter[] ff = ComboFileFilter.sortFilters(filters);
@@ -383,7 +413,8 @@ public class Util
 
     // add filters to chooser
     dialog.addChoosableFileFilter(combo);
-    for (int i=0; i<ff.length; i++) dialog.addChoosableFileFilter(ff[i]);
+    for (int i = 0; i < ff.length; i++)
+      dialog.addChoosableFileFilter(ff[i]);
     dialog.setFileFilter(combo);
 
     return dialog;
@@ -391,6 +422,8 @@ public class Util
 
   /**
    * Limit the given text field to one line in height.
+   *
+   * @param field 
    */
   public static void adjustTextField(JTextField field) {
     Dimension msize = field.getMaximumSize();
@@ -401,6 +434,8 @@ public class Util
 
   /**
    * Limit the given combo box to one line in height.
+   *
+   * @param combo 
    */
   public static void adjustComboBox(JComboBox combo) {
     Dimension msize = combo.getMaximumSize();
@@ -411,6 +446,8 @@ public class Util
 
   /**
    * Center the given window on the screen.
+   *
+   * @param window 
    */
   public static void centerWindow(Window window) {
     Dimension s = Toolkit.getDefaultToolkit().getScreenSize();
@@ -425,6 +462,9 @@ public class Util
 
   /**
    * Center the given window within the specified parent window.
+   *
+   * @param parent 
+   * @param window 
    */
   public static void centerWindow(Window parent, Window window) {
     Point loc = parent.getLocation();
@@ -447,9 +487,12 @@ public class Util
       H5.J2C(0); // HDF-5 call initializes HDF-5 native library
       success = true;
     }
-    catch (NoClassDefFoundError err) { }
-    catch (UnsatisfiedLinkError err) { }
-    catch (Exception exc) { }
+    catch (NoClassDefFoundError err) {
+    }
+    catch (UnsatisfiedLinkError err) {
+    }
+    catch (Exception exc) {
+    }
     return success;
   }
 
@@ -512,14 +555,17 @@ public class Util
   public static boolean canDoJava3D(String version) {
     Class testClass = canDoClass("javax.vecmath.Point3d");
     boolean b = (testClass != null)
-                   ? (canDoClass("javax.media.j3d.SceneGraphObject") != null)
-                   : false;
+                ? (canDoClass("javax.media.j3d.SceneGraphObject") != null)
+                : false;
     if (b) {
       Package p = testClass.getPackage();
       if (p != null) {
         try {
           b = p.isCompatibleWith(version);
-        } catch (NumberFormatException nfe) { b = false; }
+        }
+        catch (NumberFormatException nfe) {
+          b = false;
+        }
       }
     }
     return b;
@@ -530,13 +576,13 @@ public class Util
    * @param classname  name of class to test
    * @return  the class or null if class can't be loaded.
    */
-  private static Class canDoClass(String classname)
-  {
+  private static Class canDoClass(String classname) {
     Class c = null;
     try {
       c = Class.forName(classname);
     }
-    catch (ClassNotFoundException exc) { }
+    catch (ClassNotFoundException exc) {
+    }
     return c;
   }
 
@@ -547,9 +593,8 @@ public class Util
    * @param filename the name of the file to write into
    *
    */
-  public static void captureDisplay(DisplayImpl display, String filename)
-  {
-      captureDisplay(display, filename, false);
+  public static void captureDisplay(DisplayImpl display, String filename) {
+    captureDisplay(display, filename, false);
   }
 
   /**
@@ -560,9 +605,8 @@ public class Util
    * @param sync ensure the display is "done" if true
    *
    */
-  public static void captureDisplay(DisplayImpl display,
-                                    String filename, boolean sync)
-  {
+  public static void captureDisplay(DisplayImpl display, String filename,
+                                    boolean sync) {
     final DisplayImpl disp = display;
     final File fn = new File(filename);
     final boolean wait = sync;
@@ -579,7 +623,7 @@ public class Util
           fout.close();
         }
         catch (Exception err) {
-          System.err.println("Error whilst saving JPEG: "+err);
+          System.err.println("Error whilst saving JPEG: " + err);
         }
       }
     };
@@ -589,6 +633,11 @@ public class Util
 
   /**
    * Tests whether two arrays are component-wise equal.
+   *
+   * @param o1 
+   * @param o2 
+   *
+   * @return 
    */
   public static boolean arraysEqual(Object[] o1, Object[] o2) {
     // test for null
@@ -599,11 +648,13 @@ public class Util
     if (o1.length != o2.length) return false;
 
     // test each component
-    for (int i=0; i<o1.length; i++) {
+    for (int i = 0; i < o1.length; i++) {
       //if (!o1[i].equals(o2[i])) return false;
       Object a1 = o1[i];
       Object a2 = o2[i];
-      if (!(a1==null ? a2==null : a1.equals(a2))) return false;
+      if (!(a1 == null
+            ? a2 == null
+            : a1.equals(a2))) return false;
     }
     return true;
   }
@@ -612,6 +663,8 @@ public class Util
   /**
    * Create a string representation of the given array
    *
+   *
+   * @param prefix 
    * @param array  array to print
    *
    * @return  array as a String
@@ -622,7 +675,7 @@ public class Util
     buf.append(": ");
     if (array == null) {
       buf.append(" null ");
-    } 
+    }
     else {
       for (int i = 0; i < array.length; i++) {
         buf.append("[");
@@ -649,7 +702,7 @@ public class Util
     buf.append(": ");
     if (array == null) {
       buf.append(" null ");
-    } 
+    }
     else {
       for (int i = 0; i < array.length; i++) {
         buf.append("[");
@@ -682,9 +735,8 @@ public class Util
    *                         any exception should be printed.
    * @param r Runnable object to execute using the event handling thread.
    */
-  public static void invoke(boolean wait,
-    boolean printStackTraces, Runnable r)
-  {
+  public static void invoke(boolean wait, boolean printStackTraces,
+                            Runnable r) {
     if (wait) {
       // use invokeAndWait
       if (Thread.currentThread().getName().startsWith("AWT-EventQueue")) {
@@ -720,22 +772,23 @@ public class Util
    * @return an array containing either 3 colors or, if the <tt>color</tt>
    *         parameter included an alpha component, a 4 element array
    *         with 3 colors and an @{link Display.Alpha alpha} component.
+   *
+   * @throws VisADException 
    */
   public static ConstantMap[] getColorMaps(Color color)
-    throws VisADException
-  {
+          throws VisADException {
     final int alpha = color.getAlpha();
 
-    ConstantMap[] maps = new ConstantMap[alpha == 255 ? 3 : 4];
+    ConstantMap[] maps = new ConstantMap[alpha == 255
+                                         ? 3
+                                         : 4];
 
-    maps[0] = new ConstantMap((float )color.getRed() / 255.0f,
-                              Display.Red);
-    maps[1] = new ConstantMap((float )color.getGreen() / 255.0f,
+    maps[0] = new ConstantMap((float)color.getRed() / 255.0f, Display.Red);
+    maps[1] = new ConstantMap((float)color.getGreen() / 255.0f,
                               Display.Green);
-    maps[2] = new ConstantMap((float )color.getBlue() / 255.0f,
-                              Display.Blue);
+    maps[2] = new ConstantMap((float)color.getBlue() / 255.0f, Display.Blue);
     if (alpha != 255) {
-      maps[3] = new ConstantMap((float )color.getAlpha() / 255f,
+      maps[3] = new ConstantMap((float)color.getAlpha() / 255f,
                                 Display.Alpha);
     }
 
@@ -747,7 +800,7 @@ public class Util
    * envirionment the prefered way to configure logging is using the
    * logging.properties file. This is intended only as a convienience method
    * for configuring console logging for the purposes of testing.
-   * 
+   *
    * @param verbosity 0 is <code>Level.WARNING</code> and progresses to a
    *  maximum of <code>Level.ALL</code>.
    * @param pkg Name of the java package to configure logging for.
@@ -781,7 +834,8 @@ public class Util
     console.setLevel(lvl);
     console.setFormatter(new Formatter() {
       public String format(LogRecord r) {
-        return String.format("[%s] %s\n", r.getLevel().getName(), r.getMessage());
+        return String.format(
+                 "[%s] %s\n", r.getLevel().getName(), r.getMessage());
       }
     });
     logger.addHandler(console);
@@ -790,20 +844,61 @@ public class Util
 
   /**
    * @see {@link #configureLogging(int, java.lang.String)}
+   *
+   * @param verbosity 
+   *
+   * @return 
    */
   public static Level configureLogging(int verbosity) {
     return configureLogging(verbosity, "visad");
   }
 
 
-   /**
-    * Utility method to return the stack trace
-    *
-    * @return The stack trace
-    */
-   public static String getStackTrace() {
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-       (new IllegalArgumentException("stack trace")).printStackTrace(new PrintStream(baos));
-       return baos.toString();
-   }
+  /**
+   * Utility method to return the stack trace
+   *
+   * @return The stack trace
+   */
+  public static String getStackTrace() {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    (new IllegalArgumentException("stack trace")).printStackTrace(
+      new PrintStream(baos));
+    return baos.toString();
+  }
+
+
+  /**
+   * do a deep clone 
+   *
+   * @param input  the array
+   *
+   * @return  cloned array
+   */
+  public static float[][] clone(float[][] input) {
+    float[][] output = (float[][])input.clone();
+    for (int i = 0; i < input.length; i++) {
+      output[i] = (float[])input[i].clone();
+    }
+    return output;
+  }
+
+
+  /**
+   * do a deep clone 
+   *
+   * @param input  the array
+   *
+   * @return  cloned array
+   */
+  public static double[][] clone(double[][] input) {
+    double[][] output = (double[][])input.clone();
+    for (int i = 0; i < input.length; i++) {
+      output[i] = (double[])input[i].clone();
+    }
+    return output;
+  }
+
+
+
 }
+
