@@ -39,9 +39,11 @@ import java.util.List;
  * taking the hit that having slots and lots of Real and Text objects around.
  *
  * @author MetApps Development Team
- * @version $Revision: 1.4 $ $Date: 2009-03-02 23:35:41 $
+ * @version $Revision: 1.5 $ $Date: 2009-12-01 03:39:21 $
  */
 public class DoubleStringTuple extends Tuple {
+
+  private Data[] prototypes; 
 
   /** The string values */
   String[] strings;
@@ -72,8 +74,14 @@ public class DoubleStringTuple extends Tuple {
    */
   public DoubleStringTuple(TupleType type, double[] doubles,
                            String[] strings, Unit[] units) {
+      this(type, null,doubles, strings, units);
+  }
+
+  public DoubleStringTuple(TupleType type, Data[] prototypes,double[] doubles,
+                           String[] strings, Unit[] units) {
     super(type);
     this.tt = type;
+    this.prototypes = prototypes;
     this.units = units;
     this.doubles = doubles;
     this.strings = strings;
@@ -89,6 +97,13 @@ public class DoubleStringTuple extends Tuple {
   }
 
 
+  /**
+   * Check if there is no Data in this Tuple.
+   * @return true if there is no data.
+   */
+  public boolean isMissing() {
+      return doubles == null && strings == null;
+  }
 
 
   /**
@@ -126,19 +141,17 @@ public class DoubleStringTuple extends Tuple {
    * @throws VisADException  unable to create TupleType
    */
   public Data getComponent(int i) throws VisADException, RemoteException {
+      //    System.err.println ("DoubleStringTuple.getComponent:" + i);
     if (components == null) {
-      components = new Data[size];
+	components = new Data[size];
     }
-
     if (0 <= i && i < getDimension()) {
       if (components[i] == null) {
-        components[i] = getComponentInner(i);
-
-        if (components[i] != null) {
-          ((DataImpl) components[i]).setParent(this);
-        }
+	  components[i] = getComponentInner(i);
+	  if (components[i] != null) {
+	      ((DataImpl) components[i]).setParent(this);
+	  }
       }
-
       return components[i];
     }
     else {
@@ -160,8 +173,12 @@ public class DoubleStringTuple extends Tuple {
    */
   private Data getComponentInner(int i)
           throws VisADException, RemoteException {
+      //      System.err.println ("get component:" + i +"  doubles:" + doubles.length);
     //System.err.println ("get component:" +tt.getComponent(i));
     if ((doubles != null) && (i < doubles.length)) {
+       if(prototypes!=null) {
+	   return ((Real)prototypes[i]).cloneButValue(doubles[i]);
+      }
       if ((units == null) || (units[i] == null)) {
         return new Real((RealType) tt.getComponent(i), doubles[i]);
       }
@@ -182,13 +199,13 @@ public class DoubleStringTuple extends Tuple {
    *
    * @return components
    */
-  public Data[] getComponents() {
+ public Data[] getComponents(boolean copy) {
     try {
+	//       System.err.println ("DoubleStringTuple.getComponents");
       //Create the array and populate it if needed
       if (components == null) {
-        components = new Data[size];
+	  components = new Data[size];
       }
-
       for (int i = 0; i < size; i++) {
         components[i] = getComponent(i);
       }

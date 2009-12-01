@@ -210,7 +210,7 @@ public class RealTuple
   public double[] getValues() {
     int n = getDimension();
     double[] values = new double[n];
-    Data[] tupleComps = getComponents();
+    Data[] tupleComps = getComponents(false);
     for (int i=0; i<n; i++) values[i] = ((Real) tupleComps[i]).getValue();
     return values;
   }
@@ -409,7 +409,7 @@ public class RealTuple
    */
   public String toString() {
     if (isMissing()) return "missing";
-    Data[] tupleComps = getComponents();
+    Data[] tupleComps = getComponents(false);
     String s = "(" + tupleComps[0];
     for (int i=1; i<getDimension(); i++) {
       s = s + ", " + tupleComps[i];

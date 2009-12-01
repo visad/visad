@@ -174,16 +174,15 @@ public class EarthLocationLite extends RealTuple implements EarthLocation {
    *
    * @return components
    */
-  public Data[] getComponents() {
+  public Data[] getComponents(boolean copy) {
     //Create the array and populate it if needed
     if (components == null) {
-      components = new Data[getDimension()];
+	Data []tmp = new Data[getDimension()];
+	tmp[0] = lat;
+	tmp[1] = lon;
+	tmp[2] = alt;
+	components = tmp;
     }
-
-    components[0] = lat;
-    components[1] = lon;
-    components[2] = alt;
-
     return components;
   }
 

@@ -186,7 +186,7 @@ public class Tuple extends DataImpl implements TupleIface {
    */
   public Real[] getRealComponents()
          throws VisADException, RemoteException {
-    if (getComponents() == null) return null;
+    if (getComponents(false) == null) return null;
     Vector reals = new Vector();
     for (int i=0; i<getDimension(); i++) {
       Data comp = getComponent(i);
@@ -216,11 +216,47 @@ public class Tuple extends DataImpl implements TupleIface {
    * @return                    The components of this instance or <code>
    *                            null</code>.
    */
-  public Data[] getComponents() {
-    return tupleComponents == null
-      ? (Data[])null
-      : (Data[])tupleComponents.clone();
+  public final  Data[] getComponents() {
+      return getComponents(true);
   }
+
+
+
+  /** 
+   * Returns the components that constitute this instance.  If this instance
+   * has no components, then <code>null</code> is returned.  IF copy==true a returned array
+   * may be modified without affecting the behavior of this instance. Else, the returned array is the
+   * actual  component array
+   * @param copy  if true then return a copy of the tuple array. Else retun the actual array
+   *
+   * @return                    The components of this instance or <code>
+   *                            null</code>.
+   */
+    public static int cloneCnt = 0;
+  public Data[] getComponents(boolean copy) {
+      if(!copy) return tupleComponents;
+      else if(tupleComponents == null)
+	  return null;
+      else {
+	  cloneCnt++;
+	  return (Data[])tupleComponents.clone();
+
+      }
+  }
+
+
+  /**
+   * Check if there is no Data in this Tuple.
+   * @return true if there is no data.
+   */
+  public  boolean isMissing() {
+      //jeffmc: 11-25-09: This method used to just call getComponents()==null which  resulted in a clone
+      //of the tuple array every time.
+      //      return (getComponents()== null);
+      //Instead pass in copy==false
+      return (getComponents(false)== null);
+  }
+
 
   /** 
    * Return number of components in this Tuple.
@@ -251,7 +287,7 @@ public class Tuple extends DataImpl implements TupleIface {
    * @throws TypeException        if the index is less than zero or greater than
    *                              <code>getDimension()-1</code>.
    */
-  public Data getComponent(int i) throws VisADException, RemoteException {
+  public  Data getComponent(int i) throws VisADException, RemoteException {
     if (isMissing()) {
       return ((TupleType) Type).getComponent(i).missingData();
     }
@@ -263,13 +299,6 @@ public class Tuple extends DataImpl implements TupleIface {
     }
   }
 
-  /**
-   * Check if there is no Data in this Tuple.
-   * @return true if there is no data.
-   */
-  public boolean isMissing() {
-    return (getComponents() == null);
-  }
 
 /*-  TDR May 1998
   public Data binary(Data data, int op, int sampling_mode, int error_mode)

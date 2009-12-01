@@ -39,9 +39,11 @@ import java.util.Arrays;
  * taking the hit that having lots and lots of Real objects around.
  *
  * @author MetApps Development Team
- * @version $Revision: 1.4 $ $Date: 2009-03-02 23:35:41 $
+ * @version $Revision: 1.5 $ $Date: 2009-12-01 03:39:21 $
  */
 public class DoubleTuple extends RealTuple {
+
+  private Data[] prototypes; 
 
   /** The numeric values */
   double[] doubles;
@@ -84,8 +86,13 @@ public class DoubleTuple extends RealTuple {
    * @param units The units for the reals (may be null)
    */
   public DoubleTuple(RealTupleType type, double[] doubles, Unit[] units) {
+      this(type, null, doubles, units);
+  }
+
+ public DoubleTuple(RealTupleType type, Data[]prototypes, double[] doubles, Unit[] units) {
     super(type);
     this.tt = type;
+    this.prototypes = prototypes;
     this.doubles = doubles;
     this.units = units;
 
@@ -107,8 +114,16 @@ public class DoubleTuple extends RealTuple {
           throws VisADException {
     RealType[] types = new RealType[num];
     Arrays.fill(types, RealType.Generic);
-
     return new RealTupleType(types);
+  }
+
+
+  /**
+   * Check if there is no Data in this Tuple.
+   * @return true if there is no data.
+   */
+  public boolean isMissing() {
+      return doubles == null;
   }
 
   /**
@@ -130,12 +145,10 @@ public class DoubleTuple extends RealTuple {
     if (0 <= i && i < getDimension()) {
       if (components[i] == null) {
         components[i] = getComponentInner(i);
-
         if (components[i] != null) {
           ((DataImpl) components[i]).setParent(this);
         }
       }
-
       return components[i];
     }
     else {
@@ -158,6 +171,9 @@ public class DoubleTuple extends RealTuple {
           throws VisADException, RemoteException {
     //System.err.println ("get component:" +tt.getComponent(i));
     if ((doubles != null)) {
+      if(prototypes!=null) {
+	    return ((Real) prototypes[i]).cloneButValue(doubles[i]);
+      }
       if ((units == null) || (units[i] == null)) {
         return new Real((RealType) tt.getComponent(i), doubles[i]);
       }
@@ -167,7 +183,6 @@ public class DoubleTuple extends RealTuple {
     }
 
     return null;
-
   }
 
 
@@ -176,21 +191,17 @@ public class DoubleTuple extends RealTuple {
    *
    * @return components
    */
-  public Data[] getComponents() {
+  public Data[] getComponents(boolean copy) {
     try {
       //Create the array and populate it if needed
       if (components == null) {
-        components = new Data[getDimension()];
+	  components = new Data[getDimension()];
       }
-
       for (int i = 0; i < getDimension(); i++) {
-        components[i] = getComponent(i);
+	  components[i] = getComponent(i);
       }
-
       return components;
     } catch (Exception exc) {
-      exc.printStackTrace();
-
       throw new IllegalStateException("Error making component array:"+exc);
     }
   }
