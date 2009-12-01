@@ -269,7 +269,6 @@ public class TextAdapter {
     * @exception IOException if there was a problem reading the file.
     * @exception VisADException if an unexpected problem occurs.
     */
-
    public TextAdapter(InputStream inputStream, String delimiter, String map, String params,Hashtable properties, boolean onlyReadOneLine,String skipPatternString,StreamProcessor streamProcessor) 
                          throws IOException, VisADException {
     this.onlyReadOneLine = onlyReadOneLine;
@@ -388,7 +387,6 @@ public class TextAdapter {
     for(int i=0;i<infos.length;i++) {
       infos[i] = new HeaderInfo();
     }
-    Real[] prototypeReals = new Real[nhdr];
     hdrColumns = new int[2][nhdr];
     int numHdrValues=0;
 
@@ -675,7 +673,7 @@ public class TextAdapter {
     int numDom = 0;
     int numRng = 0;
     RealTupleType domType;
-    TupleType rngType;
+    TupleType rangeType;
 
     if (mt instanceof FunctionType) {
       domType = ((FunctionType)mt).getDomain();
@@ -689,12 +687,12 @@ public class TextAdapter {
       }
 
       //      debug =true;
-      rngType = (TupleType) ((FunctionType)mt).getRange();
-      numRng = rngType.getDimension();
+      rangeType = (TupleType) ((FunctionType)mt).getRange();
+      numRng = rangeType.getDimension();
       rangeNames = new String[numRng];
       rangeSets = new Set[numRng];
       for (int i=0; i<numRng; i++) {
-        MathType comp = rngType.getComponent(i);
+        MathType comp = rangeType.getComponent(i);
         rangeNames[i] = (comp).toString().trim();
         if (debug) System.out.println("range "+i+" = "+rangeNames[i]);
         if (comp instanceof RealType) {
@@ -893,14 +891,14 @@ public class TextAdapter {
     if (countRange == 1 && numRng == 1 && 
                 numDom == 2 && countDomain < 2) isRaster = true;
 
+    Real[] prototypeReals = new Real[nhdr];
+    TupleType tupleType = null;
     int index;
     int lineCnt = 0;
     while (true) {
-      String line = bis.readLine();
+      String line = readLine(bis);
       if (debug) System.out.println("read:"+line);
       if (line == null) break;
-      if (!isText(line)) return;
-      if (isComment(line)) continue;
       if(skipPattern!=null && skipPattern.matcher(line).find()) continue;
       if((index=line.indexOf("="))>=0) {  // fixed value
         String name  = line.substring(0,index).trim();
@@ -923,6 +921,7 @@ public class TextAdapter {
         continue;
       }
 
+
       if (dataDelim == null) {
         if (line.indexOf(BLANK) != -1) dataDelim = BLANK_DELIM; 
         if (line.indexOf(COMMA) != -1) dataDelim = COMMA; 
@@ -935,26 +934,28 @@ public class TextAdapter {
                                            : dataDelim  + " (" + (dataDelim.getBytes())[0] +")"));
       }
 
-      
-
-
-      String[] st = line.split(dataDelim);
-      int n = st.length;
+      String[] tokens = line.split(dataDelim);
+      int n = tokens.length;
       if (n < 1) continue; // something is wrong if this happens!
       lineCnt++;
-      double [] dValues = new double[numDom];
+      double [] dValues = null;
       double [] rValues = null;
-      Data [] tValues = null;
+      Data [] dataArray= null;
+
+
+      if (streamProcessor==null) {
+	  dValues = new double[numDom];
+      }
+
 
       if (isRaster) {
-
         if (debug) System.out.println("probably a raster...");
         boolean gotFirst = false;
         int rvaluePointer = 0;
         int irange = 0;
         for (int i=0; i<n; i++) {
 
-          String sa = st[i];
+          String sa = tokens[i];
           
           if (i >= nhdr) {  // are we past where domain would be found?
 
@@ -991,42 +992,42 @@ public class TextAdapter {
         }
          
       } else {  // is probably NOT a raster
-
-        tValues = new Data[numRng];
-      
+        dataArray = new Data[numRng];
         if (debug) System.out.println("probably not a raster...");
-        rValues = new double[numRng];
-        double thisDouble; 
+	if (streamProcessor==null) {
+	    rValues = new double[numRng];
+	}
         MathType thisMT;
         if (n > nhdr) n = nhdr; // in case the # tokens > # parameters
         n +=numHdrValues;
 
-        int l = 0;   // token counter
+        int tokenIdx = 0;   // token counter
+
+
         for (int i=0; i<nhdr; i++) {   // loop over the columns
           String sa=null;
-          if(sa == null) {
-              if(infos[i].fixedValue!=null) {
-                  sa = infos[i].fixedValue;
-              }  else if (l >= st.length) {   // more params than tokens
-                  sa = "";                    // need to have a missing value
-              } else {
-                  sa = st[l++].trim();
-                  int moreColumns = infos[i].colspan-1;
-                  while (moreColumns>0) {
-                      sa = sa + " " + st[l++].trim();
-                      moreColumns--;
-                  }
-              }
+	  if(infos[i].fixedValue!=null) {
+	      sa = infos[i].fixedValue;
+	  }  else if (tokenIdx >= tokens.length) {   // more params than tokens
+	      sa = "";                    // need to have a missing value
+	  } else {
+	      sa = tokens[tokenIdx++].trim();
+	      int moreColumns = infos[i].colspan-1;
+	      while (moreColumns>0) {
+		  sa = sa + " " + tokens[tokenIdx++].trim();
+		  moreColumns--;
+	      }
           }
 
           String sThisText;
 
           if (values_to_index[0][i] != -1) {
-            dValues[values_to_index[0][i]] = getVal(sa, i);
+	      if(dValues!=null)
+		  dValues[values_to_index[0][i]] = getVal(sa, i);
           } else if (values_to_index[1][i] != -1) {
-            thisMT = rngType.getComponent(values_to_index[1][i]);
+            int tupleIndex = values_to_index[1][i];
+            thisMT = rangeType.getComponent(tupleIndex);
             if (thisMT instanceof TextType) {
-
               // if Text, then check for quoted string
               if (sa.startsWith("\"")) {
                 if (sa.endsWith("\"")) {  // if single token ends with quote
@@ -1038,16 +1039,16 @@ public class TextAdapter {
                     String delim = 
                         dataDelim.equals(BLANK_DELIM) ? BLANK : dataDelim;
                     String sa2="";
-                    for (int q=l; q < st.length; q++) {
-                        String  saTmp = st[q];
+                    for (int q=tokenIdx; q < tokens.length; q++) {
+                        String  saTmp = tokens[q];
                         // find next token that has a " in it
                         int pos = saTmp.indexOf("\"");
-                        l++;
+                        tokenIdx++;
                         if (pos < 0) {  // no dataDelim
                             sa2 = sa2+delim+saTmp;
                         } else {
                             sa2 = sa2+saTmp.substring(0,pos);
-                            //st[l] = saTmp.substring(pos+1);
+                            //tokens[tokenIdx] = saTmp.substring(pos+1);
                             break;
                         }
                     }
@@ -1070,31 +1071,32 @@ public class TextAdapter {
 
               // now make the VisAD Data 
               try {
-                tValues[values_to_index[1][i]] = 
+                dataArray[tupleIndex] = 
                         new Text((TextType)thisMT, sThisText);
 
-                if (debug) System.out.println("tValues[" + 
-                          values_to_index[1][i] + "] = " + 
-                          tValues[values_to_index[1][i]]);
+                if (debug) System.out.println("dataArray[" + 
+                          tupleIndex + "] = " + 
+                          dataArray[tupleIndex]);
               } catch (Exception e) {
                 System.out.println(" Exception converting " + 
                                        thisMT + " to TextType " + e);
               }
-
-              
             // if not Text, then treat as numeric
             } else {
+		//              if(true) continue;
               double value = getVal(sa,i);
-              rValues[values_to_index[1][i]] = value;
+
+	      if(rValues!=null)
+		  rValues[tupleIndex] = value;
               try {
                   if(prototypeReals[i]==null) {
-                      prototypeReals[i] =    new Real((RealType) thisMT, getVal(sa,i), infos[i].unit);
+                      prototypeReals[i] =    new Real((RealType) thisMT, value, infos[i].unit);
                   }
-                  tValues[values_to_index[1][i]] = 
+                  dataArray[tupleIndex] = 
                       prototypeReals[i].cloneButValue(value);
-                  if(debug)System.out.println("tValues[" + 
-                    values_to_index[1][i] + "] = " + 
-                    tValues[values_to_index[1][i]]);
+                  if(debug)System.out.println("dataArray[" + 
+                    tupleIndex + "] = " + 
+                    dataArray[tupleIndex]);
 
               } catch (Exception e) {
                 System.out.println(" Exception converting " + thisMT + " " + e);
@@ -1105,20 +1107,28 @@ public class TextAdapter {
         }
       }
 
-
       if(tryToMakeTuple) {
         try {
-            if (tValues != null) {
-                tuple = new Tuple(tValues);
+            if (dataArray != null) {
+		if (streamProcessor!=null) {
+		    streamProcessor.processValues(dataArray);
+		} else {
+		    if(tupleType == null) {
+			tuple = new Tuple(dataArray);
+			tupleType = (TupleType)tuple.getType();
+		    } else {
+			tuple = new Tuple(tupleType, dataArray, false, false);
+		    }
+		}
             }
         } catch (visad.TypeException te) {
           // do nothing: it means they are all reals
-          // tuple = new RealTuple(tValues);
+          // tuple = new RealTuple(dataArray);
           tuple = null;
           tryToMakeTuple = false; 
         } catch(NullPointerException npe) {
-            for(int i=0;i<tValues.length;i++) {
-                if(tValues[i] == null) {
+            for(int i=0;i<dataArray.length;i++) {
+                if(dataArray[i] == null) {
                     throw new IllegalArgumentException("An error occurred reading line number:" + lineCnt+" column number:" + (i+1)+"\n" +
                                                        line);
                 }
@@ -1127,18 +1137,22 @@ public class TextAdapter {
         }
       }
 
-      if (streamProcessor!=null) {
-          if (tuple != null) streamProcessor.processTuple(tuple);
-      } else {
-          domainValues.add(dValues);
-          rangeValues.add(rValues);
-          if (tuple != null) tupleValues.add(tuple); 
+
+      if (streamProcessor==null) {
+	  if(dValues!=null)
+	      domainValues.add(dValues);
+	  if(rValues!=null)
+	      rangeValues.add(rValues);
+          if (tuple != null) 
+	      tupleValues.add(tuple); 
       }
       if (isRaster) numElements = rValues.length;
       if(onlyReadOneLine) break;
     }
 
+
     if (streamProcessor!=null) {
+	bis.close();
         return;
     }
     int numSamples = rangeValues.size(); // # lines of data
@@ -1277,6 +1291,7 @@ public class TextAdapter {
     }
 
 
+
     try {
       ff = new FlatField((FunctionType) mt, domain, 
                                 null, null, rangeSets, rangeUnits);
@@ -1328,6 +1343,8 @@ public class TextAdapter {
         }
       }
     }
+
+
 
 // set samples
     if (debug) System.out.println("about to field.setSamples");
@@ -1505,12 +1522,13 @@ public class TextAdapter {
 
   double getVal(String s, int k) {
     int i = values_to_index[2][k];
-    if (i < 0 || s == null || s.length()<1 || s.equals(infos[i].missingString)) {
+    if (i < 0 || s == null || s.length()<1 || (infos[i].missingString!=null && s.equals(infos[i].missingString))) {
       return Double.NaN;
     }
+    HeaderInfo info  = infos[i];
 
     // try parsing as a double first
-    if (infos[i].formatString == null) {
+    if (info.formatString == null) {
       // no format provided : parse as a double
       try {
         double v;
@@ -1519,17 +1537,17 @@ public class TextAdapter {
         } catch (java.lang.NumberFormatException nfe1) {
             //If units are degrees then try to decode this as a lat/lon
             // We should probably not rely on throwing an exception to handle this but...
-            if(infos[i].unit !=null && Unit.canConvert(infos[i].unit, visad.CommonUnit.degree)) {
+            if(info.unit !=null && Unit.canConvert(info.unit, visad.CommonUnit.degree)) {
                 v=decodeLatLon(s);
             } else {
                 throw nfe1;
             }
             if(v!=v) throw new java.lang.NumberFormatException(s);
         }
-        if (v == infos[i].missingValue) {
+        if (v == info.missingValue) {
           return Double.NaN;
         }
-        v = v * infos[i].scale + infos[i].offset;
+        v = v * info.scale + info.offset;
         return v;
       } catch (java.lang.NumberFormatException ne) {
         System.out.println("Invalid number format for "+s);
@@ -1538,7 +1556,7 @@ public class TextAdapter {
       // a format was specified: only support DateTime format 
       // so try to parse as a DateTime
       try{
-        visad.DateTime dt = makeDateTimeFromString(s, infos[i].formatString, infos[i].tzString);
+        visad.DateTime dt = makeDateTimeFromString(s, info.formatString, info.tzString);
         return dt.getReal().getValue();
       } catch (java.text.ParseException pe) {
         System.out.println("Invalid number/time format for "+s);
@@ -1648,7 +1666,7 @@ public class TextAdapter {
         double  offset=0.0;
         String  fixedValue;
         int     colspan = 1;
-
+	boolean isText = false;
 
         public boolean isParam(String param) {
             return name.equals(param)  || name.equals(param+"(Text)");
@@ -1773,7 +1791,7 @@ public class TextAdapter {
 
 
     public interface StreamProcessor {
-        public void processTuple(Tuple tuple) throws VisADException ;
+        public void processValues(Data[] tuple) throws VisADException ;
     }
 
 
