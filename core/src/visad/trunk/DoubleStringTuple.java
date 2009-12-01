@@ -39,7 +39,7 @@ import java.util.List;
  * taking the hit that having slots and lots of Real and Text objects around.
  *
  * @author MetApps Development Team
- * @version $Revision: 1.5 $ $Date: 2009-12-01 03:39:21 $
+ * @version $Revision: 1.6 $ $Date: 2009-12-01 14:59:41 $
  */
 public class DoubleStringTuple extends Tuple {
 
@@ -118,7 +118,7 @@ public class DoubleStringTuple extends Tuple {
    * @throws VisADException  unable to create TupleType
    */
   public static TupleType makeTupleType(List numericTypes, List stringTypes)
-          throws VisADException, RemoteException {
+          throws VisADException {
     List allTypes = new ArrayList();
     allTypes.addAll(numericTypes);
     allTypes.addAll(stringTypes);
