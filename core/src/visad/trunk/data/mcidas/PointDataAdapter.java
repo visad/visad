@@ -33,6 +33,8 @@ import visad.data.units.*;
 import visad.jmet.MetUnits;
 import visad.util.DataUtility;
 import java.util.Vector;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * A class for adapting the results of an ADDE point data request into a 
@@ -156,6 +158,10 @@ public class PointDataAdapter {
     defaultUnits = new Unit[numParams];
     Vector<Unit> usedUnits = new Vector<Unit>();
     boolean noText = true;
+    int numDouble = 0;
+    int numString = 0;
+    List<RealType> realTypes = new ArrayList<RealType>();
+    List<TextType> textTypes = new ArrayList<TextType>();
     for (int i = 0; i < numParams; i++)
     {
       // get the name
@@ -164,6 +170,7 @@ public class PointDataAdapter {
       if (units[i].equalsIgnoreCase("CHAR"))
       {
         noText = false;
+        numString++;
         if (debug) {
           System.out.println(params[i] + " has units of CHAR");
         }
@@ -174,6 +181,7 @@ public class PointDataAdapter {
         if (textType == null) {
           throw new VisADException("can't create TextType for " + params[i]);
         }
+        textTypes.add(textType);
         types[i] = textType;
         defaultUnits[i] = null;
       } 
@@ -200,7 +208,9 @@ public class PointDataAdapter {
           System.out.println(params[i] + " has units " + unit);
           System.out.println("scaling factor = " + scalingFactors[i]);
         }
+        numDouble++;
         types[i] = getQuantity(params[i], unit);
+        realTypes.add((RealType) types[i]);
       }
     }
 
@@ -215,7 +225,8 @@ public class PointDataAdapter {
     }
     else // all Texts or mixture of Text and Reals
     {
-      rangeType = new TupleType(types);
+      //rangeType = new TupleType(types);
+      rangeType = DoubleStringTuple.makeTupleType(realTypes, textTypes);
     }
 
     // make the field
@@ -233,20 +244,27 @@ public class PointDataAdapter {
     // now, fill in the data
     Scalar[]   firstTuple   = null;   // use this for saving memory/time
     Unit[] actualUnits = null;
+    Real[] protos = new Real[numDouble];
     for (int i = 0; i < numObs; i++)
     {
-      Scalar[] scalars = (noText == true) ? new Real[numParams]
-                                          : new Scalar[numParams];
+     // Scalar[] scalars = (noText == true) ? new Real[numParams]
+      //                                    : new Scalar[numParams];
+      double[] values = new double[numDouble];
+      String[] strings = new String[numString];
+      int stringIdx = 0;
+      int doubleIdx = 0;
       for (int j = 0; j < numParams; j++)
       {
         if (types[j] instanceof TextType) {
-          try
-          {
-            scalars[j] = 
-                new Text( (TextType) types[j], 
-                         McIDASUtil.intBitsToString(data[i][j]));
-          }
-          catch (VisADException ex) {;} // shouldn't happen
+          //try
+          //{
+            String text = McIDASUtil.intBitsToString(data[i][j]);
+            strings[stringIdx++] = text;
+            //scalars[j] = 
+            //    new Text( (TextType) types[j], text);
+            
+          //}
+          //catch (VisADException ex) {;} // shouldn't happen
         } 
         else
         {
@@ -255,20 +273,23 @@ public class PointDataAdapter {
                   ? Double.NaN
                   : data[i][j]/Math.pow(10.0, 
                       (double) scalingFactors[j] );
+            values[doubleIdx] = value;
             if (firstTuple == null) { //
               try
               {
-                scalars[j] =
+                protos[doubleIdx] =
                   new Real(
                       (RealType) types[j], value, defaultUnits[j]);
               } catch (VisADException excp) {  // units problem
-                scalars[j] = new Real((RealType) types[j], value);
+                protos[doubleIdx] = new Real((RealType) types[j], value);
   
               }
-              usedUnits.add(((Real) scalars[j]).getUnit());
-            } else {
-                scalars[j] = ((Real) firstTuple[j]).cloneButValue(value);
-            }
+              usedUnits.add(((Real) protos[doubleIdx]).getUnit());
+            } 
+            doubleIdx++;
+            //else {
+            //  scalars[j] = ((Real) firstTuple[j]).cloneButValue(value);
+            //
         }
       }
       if (noText && actualUnits == null) {
@@ -278,16 +299,20 @@ public class PointDataAdapter {
       try
       {
         Data sample = (noText == true)
-                               ? new RealTuple(
-                                   (RealTupleType)rangeType, (Real[]) scalars, null, actualUnits, false)
-                               : new Tuple(rangeType, scalars, false, false);
+                               //? new RealTuple(
+                               //    (RealTupleType)rangeType, (Real[]) scalars, null, actualUnits, false)
+                               //: new Tuple(rangeType, scalars, false, false);
+                               ? new DoubleTuple(
+                                   (RealTupleType)rangeType, protos, values, actualUnits)
+                               : new DoubleStringTuple(rangeType, protos, values, strings, actualUnits);
         field.setSample(i, sample, false, (i==0));  // don't make copy, don't check type after first
       }
       catch (VisADException e) {e.printStackTrace();} 
       catch (java.rmi.RemoteException e) {;}
       if (firstTuple == null) 
       {
-        firstTuple = scalars;
+        //firstTuple = scalars;
+        firstTuple = protos;
       }
     }
     if (debug) {
