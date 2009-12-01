@@ -82,12 +82,12 @@ public abstract class ActionImpl implements Action, Runnable {
    */
   public static final boolean TRACE_TIME =
     Boolean.parseBoolean(System.getProperty("visad.actionimpl.tracetime",
-                                            "true"));
+                                            "false"));
 
   /**           */
   public static final boolean TRACE_STACK =
     Boolean.parseBoolean(System.getProperty("visad.actionimpl.tracestack",
-                                            "true"));
+                                            "false"));
 
 
   /**           */
