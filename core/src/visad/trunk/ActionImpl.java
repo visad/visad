@@ -81,13 +81,13 @@ public abstract class ActionImpl implements Action, Runnable {
    * Indicates whether we print out the trace from where an action is invoked and print its run  time
    */
   public static final boolean TRACE_TIME =
-    Boolean.parseBoolean(System.getProperty("visad.action.tracetime",
-                                            "false"));
+    Boolean.parseBoolean(System.getProperty("visad.actionimpl.tracetime",
+                                            "true"));
 
   /**           */
   public static final boolean TRACE_STACK =
-    Boolean.parseBoolean(System.getProperty("visad.action.tracestack",
-                                            "false"));
+    Boolean.parseBoolean(System.getProperty("visad.actionimpl.tracestack",
+                                            "true"));
 
 
   /**           */
