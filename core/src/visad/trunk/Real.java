@@ -125,7 +125,7 @@ public class Real
    *                            <code>Double.NaN</code>.
    */
   public Real(RealType type, double value) {
-    this(type, value, type.getDefaultUnit(), null, true);
+    this(type, value, type.getDefaultUnit(), null, false);
   }
 
   /**
@@ -135,7 +135,7 @@ public class Real
    * @param type                The type of the Real.
    */
   public Real(RealType type) {
-    this(type, Double.NaN, type.getDefaultUnit(), null, true);
+    this(type, Double.NaN, type.getDefaultUnit(), null, false);
   }
 
   /**
@@ -152,7 +152,7 @@ public class Real
   public Real(double value, double error) {
     this(RealType.Generic, value, RealType.Generic.getDefaultUnit(),
          new ErrorEstimate(value, Math.abs(error), RealType.Generic.getDefaultUnit()),
-         true);
+         false);
   }
 
   /**
@@ -165,13 +165,20 @@ public class Real
    */
   public Real(double value) {
     this(RealType.Generic, value, RealType.Generic.getDefaultUnit(),
-         new ErrorEstimate(value, 0.0, RealType.Generic.getDefaultUnit()), true);
+         new ErrorEstimate(value, 0.0, RealType.Generic.getDefaultUnit()), false);
   }
 
   /** trusted constructor for other constructors */
-  private Real(RealType type, double value, Unit u, ErrorEstimate error,
-               boolean b) {
+  protected Real(RealType type, double value, Unit u, ErrorEstimate error,
+               boolean checkUnit) {
     super(type);
+    if(u !=null && checkUnit && !Unit.canConvert(u, type.getDefaultUnit())) {
+	throw new IllegalArgumentException("Real: Unit \"" + u +
+                              "\" must be convertable" +
+                              " with Type default Unit \"" +
+                              type.getDefaultUnit() + "\"");
+    }
+
     unit = u != null && type.isInterval() ? u.getAbsoluteUnit() : u;
     Value = value;
     Error = Double.isNaN(value) ? null : error;

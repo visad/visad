@@ -87,7 +87,7 @@ DateTime
     {
         super( RealType.Time,
                real.getValue(CommonUnit.secondsSinceTheEpoch),
-               CommonUnit.secondsSinceTheEpoch);
+               CommonUnit.secondsSinceTheEpoch,null);
 
         //We create and set the utcCalendar when we need it
         // set up in terms of java date
@@ -107,7 +107,7 @@ DateTime
     {
         super(RealType.Time,
               seconds,
-              CommonUnit.secondsSinceTheEpoch,null);
+              CommonUnit.secondsSinceTheEpoch,null, false);
         //        this(seconds, CommonUnit.secondsSinceTheEpoch);
     }
 
@@ -135,7 +135,7 @@ DateTime
 	//Just go directly to the super with the Date value
         super( RealType.Time,
 	       date.getTime()/1000.,
-               CommonUnit.secondsSinceTheEpoch, null);
+               CommonUnit.secondsSinceTheEpoch, null, false);
     }
 
     /**
