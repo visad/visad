@@ -35,9 +35,12 @@ import visad.util.Util;
 
 /**
  * This class is used by the CachingCoordinateSystem to do the actual caching mapping one array to another one
- * @version $Revision: 1.1 $ $Date: 2009-11-30 22:21:47 $
+ * @version $Revision: 1.2 $ $Date: 2009-12-01 19:42:01 $
  */
 public class ArrayCache {
+
+
+
 
   /** Do we cache */
   private boolean enabled =
@@ -58,13 +61,14 @@ public class ArrayCache {
 
   /** holds float arrays */
   private Hashtable<Object, float[][][]> floatMap = new Hashtable<Object,
-                                                      float[][][]>();
+      float[][][]>();
 
   /** holds double arrays */
   private Hashtable<Object, double[][][]> doubleMap = new Hashtable<Object,
-                                                        double[][][]>();
+      double[][][]>();
 
 
+  private Hashtable<String,Integer>  misses = new Hashtable<String,Integer>();
 
 
   /**
@@ -94,48 +98,32 @@ public class ArrayCache {
    *
    * @return
    */
-  public synchronized float[][] get(String key, float[][] input) {
-    if (!enabled || input==null) return null;
+  public synchronized FloatResult get(String key, float[][] input) {
+    if (!shouldHandle(input)) {
+        return new FloatResult(false);
+    }
     key = getKey(key, input[0].length);
     float[][][] pair = floatMap.get(key);
-    if (input == null || pair == null) {
-      return null;
+    if (pair == null) {
+      return handleCacheMiss(key, input);
     }
+
+
     float[][] lastInput = pair[0];
     float[][] lastOutput = pair[1];
     if (lastInput.length != input.length) return null;
     for (int i = 0; i < input.length; i++) {
       if (!Arrays.equals(input[i], lastInput[i])) {
-        return null;
+          return handleCacheMiss(key, input);
       }
     }
+    misses.remove(key);
     //?? should we clone the output
-    return lastOutput;
+    return new FloatResult(lastOutput);
   }
 
 
-  /**
-   * Put the converted value for the specified key and input pairs
-   *
-   * @param key The key
-   * @param input  The input array
-   * @param output  The array to store
-   */
-  public synchronized void put(String key, float[][] input, float[][] output) {
-    if (!enabled || input==null) return;
-    if (input[0].length <= lowerThreshold) return;
-    if (input[0].length > upperThreshold) return;
-    key = getKey(key, input[0].length);
 
-    if(floatMap.size()>5) 
-        floatMap = new Hashtable<Object,
-            float[][][]>();
-
-    floatMap.put(key, new float[][][] {
-      (float[][])Util.clone(input), (float[][])Util.clone(output)
-    });
-
-  }
 
 
   /**
@@ -146,21 +134,83 @@ public class ArrayCache {
    *
    * @return
    */
-  public synchronized  double[][] get(String key, double[][] input) {
-    if (!enabled || input==null) return null;
+  public synchronized  DoubleResult get(String key, double[][] input) {
+      if (!shouldHandle(input)) {
+         return new DoubleResult(false);
+    }
     key = getKey(key, input[0].length);
     double[][][] pair = doubleMap.get(key);
-    if (input == null || pair == null) return null;
+    if (pair == null) {
+        return handleCacheMiss(key, input);
+    }        
+
     double[][] lastInput = pair[0];
     double[][] lastOutput = pair[1];
     if (lastInput.length != input.length) return null;
     for (int i = 0; i < input.length; i++) {
-      if (!Arrays.equals(input[i], lastInput[i])) {
-        return null;
+       if (!Arrays.equals(input[i], lastInput[i])) {
+         return handleCacheMiss(key, input);
       }
     }
-    return lastOutput;
+    misses.remove(key);
+    return new DoubleResult(lastOutput);
   }
+
+
+
+  private DoubleResult handleCacheMiss(String key, double[][]input) {
+        Integer numMisses = misses.get(key);
+        if(numMisses==null) {
+            misses.put(key, numMisses = new Integer(1));
+        } else {
+            misses.put(key, new Integer(numMisses.intValue()+1));
+        }
+        if(numMisses.intValue()>3) {
+            doubleMap.remove(key);
+        }
+
+        return new DoubleResult(numMisses.intValue()<=1);
+  }
+
+
+  private FloatResult handleCacheMiss(String key, float[][]input) {
+        Integer numMisses = misses.get(key);
+        if(numMisses==null) {
+            misses.put(key, numMisses = new Integer(1));
+        } else {
+            misses.put(key, new Integer(numMisses.intValue()+1));
+        }
+        if(numMisses.intValue()>3) {
+            floatMap.remove(key);
+        }
+        return new FloatResult(numMisses.intValue()<=1);
+  }
+
+
+
+
+
+    private boolean shouldHandle(double[][]input) {
+        if(input == null) return false;
+        if(input.length==0) return false;
+        if(input[0]==null) return false;
+        if(!enabled) return false;
+        if (input[0].length <= lowerThreshold) return false;
+        if (input[0].length > upperThreshold) return false;
+        return true;
+    }
+
+
+    private boolean shouldHandle(float[][]input) {
+        if(input == null) return false;
+        if(input.length==0) return false;
+        if(input[0]==null) return false;
+        if(!enabled) return false;
+        if (input[0].length <= lowerThreshold) return false;
+        if (input[0].length > upperThreshold) return false;
+        return true;
+    }
+
 
 
   /**
@@ -168,22 +218,104 @@ public class ArrayCache {
    *
    * @param key The key
    * @param input  The input array
-   * @param output  The array to store
+   * @param results  The array to store
    */
-  public synchronized void put(String key, double[][] input, double[][] output) {
-    if (!enabled || input==null) return;
-    if (input[0].length <= lowerThreshold) return;
-    if (input[0].length > upperThreshold) return;
+  public synchronized void put(String key, double[][] input, DoubleResult results) {
+    if(!shouldHandle(input)) return;
+    if(!results.shouldCache || results.values==null) return;
+
 
     key = getKey(key, input[0].length);
     if(doubleMap.size()>4) 
         doubleMap = new Hashtable<Object,
             double[][][]>();
     doubleMap.put(key, new double[][][] {
-      (double[][])Util.clone(input), (double[][])Util.clone(output)
+      (double[][])Util.clone(input), (double[][])Util.clone(results.values)
     });
 
   }
+
+
+
+
+  /**
+   * Put the converted value for the specified key and input pairs
+   *
+   * @param key The key
+   * @param input  The input array
+   * @param results  The array to store
+   */
+  public synchronized void put(String key, float[][] input, FloatResult results) {
+    if(!shouldHandle(input)) return;
+    if(!results.shouldCache || results.values==null) return;
+    key = getKey(key, input[0].length);
+    if(floatMap.size()>4) 
+        floatMap = new Hashtable<Object,
+            float[][][]>();
+    floatMap.put(key, new float[][][] {
+      (float[][])Util.clone(input), (float[][])Util.clone(results.values)
+    });
+
+  }
+
+
+
+    public static class DoubleResult {
+        public boolean shouldCache = true;
+        public double[][]values;
+
+        public DoubleResult() {
+            shouldCache = false;
+            values = null;
+        }
+
+        public DoubleResult(boolean shouldCache) {
+            this.shouldCache = shouldCache;
+        }
+
+        public DoubleResult(double[][]values) {
+            this.values = values;
+            this.shouldCache = true;
+        }
+
+
+        public double[][]cloneForCache(double[][]a) {
+            if(!shouldCache) return null;
+            return Util.clone(a);
+        }
+
+    }
+
+
+
+    public static class FloatResult {
+        public boolean shouldCache = true;
+        public float[][]values;
+
+        public FloatResult() {
+            shouldCache = false;
+            values = null;
+        }
+
+        public FloatResult(boolean shouldCache) {
+            this.shouldCache = shouldCache;
+        }
+
+        public FloatResult(float[][]values) {
+            this.values = values;
+            this.shouldCache = true;
+        }
+
+        public float[][]cloneForCache(float[][]a) {
+            if(!shouldCache) return null;
+            return Util.clone(a);
+        }
+
+
+    }
+
+
+
 
 }
 

@@ -41,7 +41,7 @@ import visad.data.ArrayCache;
  * methods were called, the previously calculated values are returned.
  *
  * @author Don Murray
- * @version $Revision: 1.9 $ $Date: 2009-11-30 22:22:18 $
+ * @version $Revision: 1.10 $ $Date: 2009-12-01 19:42:01 $
  */
 public class CachingCoordinateSystem extends CoordinateSystem {
 
@@ -52,7 +52,9 @@ public class CachingCoordinateSystem extends CoordinateSystem {
   private ArrayCache arrayCache = new ArrayCache();
 
   /** Show time to transform           */
-  public static boolean debugTime = true;
+  public static boolean debugTime = 
+    Boolean.parseBoolean(System.getProperty("visad.cachingcoordinatesystem.debugtime",
+                                            "false"));
 
   /**  counter to show which object this is         */
   private static int cnt = 0;
@@ -89,17 +91,17 @@ public class CachingCoordinateSystem extends CoordinateSystem {
     long t1 = System.currentTimeMillis();
     boolean hit = true;
     String key = "toReferenceD";
-    double[][] output = arrayCache.get(key, inputs);
-    if (output == null) {
-      double[][] tmp = Util.clone(inputs);
-      output = myCS.toReference(inputs);
-      arrayCache.put(key, tmp, output);
+    ArrayCache.DoubleResult results = arrayCache.get(key, inputs);    
+    if (results.values == null) {
+      double[][] tmp = results.cloneForCache(inputs);
+      results.values = myCS.toReference(inputs);
+      arrayCache.put(key, tmp, results);
       hit = false;
     }
     debugTime(inputs[0].length, key +" hit?" + hit, t1,System.currentTimeMillis());
     //    System.err.println (Util.getStackTrace());
 
-    return output;
+    return results.values;
   }
 
     private void debugTime(int size, String msg, long t1, long t2) {
@@ -126,15 +128,15 @@ public class CachingCoordinateSystem extends CoordinateSystem {
     long t1 = System.currentTimeMillis();
     boolean hit = true;
     String key = "fromReferenceD";
-    double[][] output = arrayCache.get(key, inputs);
-    if (output == null) {
-      double[][] tmp = Util.clone(inputs);
-      output = myCS.fromReference(inputs);
-      arrayCache.put(key, tmp, output);
+    ArrayCache.DoubleResult results = arrayCache.get(key, inputs);
+    if (results.values == null) {
+      double[][] tmp = results.cloneForCache(inputs);
+      results.values = myCS.fromReference(inputs);
+      arrayCache.put(key, tmp, results);
       hit = false;
     }
     debugTime(inputs[0].length,key +" hit?" + hit, t1,System.currentTimeMillis());
-    return output;
+    return results.values;
 
   }
 
@@ -160,16 +162,16 @@ public class CachingCoordinateSystem extends CoordinateSystem {
     boolean hit = true;
     String key = "toReferenceF";
 
-    float[][] output = arrayCache.get(key, inputs);
-    if (output == null) {
-      float[][] tmp = Util.clone(inputs);
-      output = myCS.toReference(inputs);
-      arrayCache.put(key, tmp, output);
+    ArrayCache.FloatResult results = arrayCache.get(key, inputs);
+    if (results.values == null) {
+      float[][] tmp = results.cloneForCache(inputs);
+      results.values = myCS.toReference(inputs);
+      arrayCache.put(key, tmp, results);
       hit = false;
     }
 
     debugTime(inputs[0].length,key +" hit?" + hit, t1,System.currentTimeMillis());
-    return output;
+    return results.values;
   }
 
 
@@ -189,15 +191,15 @@ public class CachingCoordinateSystem extends CoordinateSystem {
     long t1 = System.currentTimeMillis();
     boolean hit = true;
     String key = "fromReferenceF";
-    float[][] output = arrayCache.get(key, inputs);
-    if (output == null) {
-      float[][] tmp = Util.clone(inputs);
-      output = myCS.fromReference(inputs);
-      arrayCache.put(key, tmp, output);
+    ArrayCache.FloatResult results = arrayCache.get(key, inputs);
+    if (results.values==null) {
+      float[][] tmp = results.cloneForCache(inputs);
+      results.values = myCS.fromReference(inputs);
+      arrayCache.put(key, tmp, results);
       hit = false;
     }
     debugTime(inputs[0].length,key +" hit?" + hit, t1,System.currentTimeMillis());
-    return output;
+    return results.values;
   }
 
   /**
