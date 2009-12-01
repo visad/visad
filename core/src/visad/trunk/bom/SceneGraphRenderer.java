@@ -1615,10 +1615,6 @@ public class SceneGraphRenderer {
       lineArray.getCoordinates(0, coordinates);
     }
 
-    /*
-    float[] coordinates = new float[vertexCount * 3];
-    lineArray.getCoordinates(0, coordinates);
-    */
     coordinates = transformToScreen(coordinates);
 
     int numStrips = lineArray.getNumStrips();
@@ -1645,6 +1641,12 @@ public class SceneGraphRenderer {
       if (byRef) {
         // DisplayImplJ3D stores ref as bytes
         refColours = lineArray.getColorRefByte();
+        for (int i = 0; i < numRefColours; i++) {
+          colour[i] = byteToFloat(refColours[i]);
+        }
+      }
+      else {
+        lineArray.getColor(0, colour);
       }
     }
     if (!hasAlpha || !useTransparency) {
@@ -1656,19 +1658,19 @@ public class SceneGraphRenderer {
       // Set everything except white to black
       monochromatise(colour);
     }
+    graphics.setStroke(
+      getStroke(thickness, getStrokeDash(lineStyle, pixelWidth)));
+
+    Color lastColor = new Color(colour[0], colour[1], colour[2], colour[3]);
 
     // Loop over each chunk
     for (int i = 0; i < vertexCounts.length; i++) {
       int numCoords = vertexCounts[i];
+      linePath = new GeneralPath();
+      graphics.setColor(lastColor);
       //VisAD stores strips as one complete section so we have to draw each
       //segment
       for (int seg = 0; seg < numCoords-1; seg++) {
-        float[][] vertices = new float[2][2];
-        for (int j = 0; j < 2; j++) {
-          vertices[0][j] = coordinates[base + j * 3];
-          vertices[1][j] = coordinates[base + j * 3 + 1];
-        }
-
         // Attempt to get the color from the geometry
         if (colours == null) {
           // Get the color array
@@ -1678,7 +1680,7 @@ public class SceneGraphRenderer {
             }
           }
           else {
-            lineArray.getColor(seg, colour);
+            lineArray.getColor(base, colour);
           }
         }
         if (!useTransparency || !hasAlpha) {
@@ -1690,22 +1692,34 @@ public class SceneGraphRenderer {
           monochromatise(colour);
         }
         Color color = new Color(colour[0], colour[1], colour[2], colour[3]);
-        //System.out.println("color = " + color);
-
-        /*
-        float[][] vertices = new float[2][numCoords];
-        for (int j = 0; j < numCoords; j++) {
-          vertices[0][j] = coordinates[base + j * 3];
-          vertices[1][j] = coordinates[base + j * 3 + 1];
+        // Draw lines of one colour in a sigle GeneralPath
+        // This makes the resulting image MUCH more slick
+        // when plotting many small lines (eg. observations)
+        if (!color.equals(lastColor)) {
+          graphics.setColor(lastColor);
+          lastColor = color;
+          if (!transformToScreenCoords) linePath.transform(viewPort);
+          //linePath = clip(linePath);
+          graphics.draw(linePath);
+          linePath = new GeneralPath();
         }
-        */
-        drawShapeReprojected(
-          vertices, color, thickness, lineStyle, graphics,
-          transformToScreenCoords);
+
+        // Get the (normalised) display coordinates
+        float nX1 = coordinates[base];
+        float nY1 = coordinates[base + 1];
+        float nX2 = coordinates[base + 3];
+        float nY2 = coordinates[base + 4];
+        if (visible(nX1, nY1, nX2, nY2, graphics, transformToScreenCoords)) {
+          linePath.moveTo(nX1, nY1);
+          linePath.lineTo(nX2, nY2);
+        }
         base += 3;
         baseColor += numRefColours;
       }
-      // disconnect from the previous segment
+      // Translate them to device coordinates and plot
+      if (!transformToScreenCoords) linePath.transform(viewPort);
+      //linePath = clip(linePath);
+      graphics.draw(linePath);
       base += 3;
       baseColor += numRefColours;
     }
@@ -1773,8 +1787,10 @@ public class SceneGraphRenderer {
         graphics.setStroke(getStroke(thickness * .5f));
     }
     */
+    //graphics.setStroke(
+    //  getStroke(thickness * .5f, getStrokeDash(lineStyle, pixelWidth)));
     graphics.setStroke(
-      getStroke(thickness * .5f, getStrokeDash(lineStyle, pixelWidth)));
+      getStroke(thickness, getStrokeDash(lineStyle, pixelWidth)));
 
     // Temporary variables for retrieving coordinates
     int vertexCount = lineArray.getVertexCount();
