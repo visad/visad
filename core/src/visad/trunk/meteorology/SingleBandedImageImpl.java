@@ -494,4 +494,15 @@ public class SingleBandedImageImpl
 
         return result;
     }
+
+
+
+    /**
+     * for effeciency provide access to the uncopied floats
+     */
+    public float[][] getImageData() throws VisADException {
+	return unpackFloats(false);
+    }
+
+
 }
