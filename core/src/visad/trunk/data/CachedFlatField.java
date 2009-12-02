@@ -263,7 +263,7 @@ public class CachedFlatField extends FlatField {
 
 
     static int cnt = 0;
-    int mycnt = cnt++;
+    public final int mycnt = cnt++;
 
     /**
      * Override method so we clear the caches on the cloned object
@@ -451,9 +451,9 @@ public class CachedFlatField extends FlatField {
         //then read the data from it and clear it out
         if(parent!=null) {
             values = parent.unpackFloats(true);
+            readValuesFromParent(parent);
             parent = null;
         }
-
 
 
         if (values == null) {
@@ -468,6 +468,16 @@ public class CachedFlatField extends FlatField {
         initCache(values);
         return values;
     }
+
+
+    /**
+     * This gets called to notify derived classes that we jus got the data from the parent ccf
+     *
+     * @param parent The parent CCF we read data from
+     */
+    protected void readValuesFromParent(CachedFlatField parent) throws VisADException {
+    }
+
 
 
     /**
