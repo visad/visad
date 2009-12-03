@@ -170,7 +170,7 @@ public class CachedFlatField extends FlatField {
         this.inCache = false;
 
         //Get the values from the cloned field if they had read their values
-        if(that.inCache) {
+        if(that.haveData()) {
             //            msg("CCF - cloned object is in cache");
             float[][] values = that.unpackFloats(true);
             if(values == null) {
@@ -468,6 +468,12 @@ public class CachedFlatField extends FlatField {
         initCache(values);
         return values;
     }
+
+
+    public boolean haveData() {
+        return inCache;
+    }
+
 
 
     /**
