@@ -2166,10 +2166,17 @@ System.out.println("checkClose: distance = " + distance);
       x[1] = o_y + dot * d_y;
       x[2] = o_z + dot * d_z;
     }
+
+    //
+    //jeffmc: new call so a derived class can constrain the position of the drag point
+    //
+    constrainDragPoint(x);
+
     //
     // TO_DO
     // might estimate errors from pixel resolution on screen
     //
+
     try {
       float[] xx = {x[0], x[1], x[2]};
       if (tuple != null) {
@@ -2193,6 +2200,7 @@ System.out.println("checkClose: distance = " + distance);
         }
         throw re;
       }
+
 
       if (type instanceof RealType) {
         addPoint(xx);
@@ -2227,6 +2235,7 @@ System.out.println("checkClose: distance = " + distance);
         link.clearData();
       }
       else if (type instanceof RealTupleType) {
+
         addPoint(xx);
         int n = ((RealTuple) data).getDimension();
         Real[] reals = new Real[n];
@@ -2433,6 +2442,14 @@ System.out.println("checkClose: distance = " + distance);
       e.printStackTrace();
     }
   }
+
+  /**
+   * jeffmc: new method that provides a hook so derived classes can easily constrain the position of a drag point
+   *
+   * @param dragPoint The position of the drag point
+   */
+  public void constrainDragPoint(float[]dragPoint) {}
+
 
   /**
    * add point for temporary rendering; intended to be
