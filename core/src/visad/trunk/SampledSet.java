@@ -26,87 +26,181 @@ MA 02111-1307, USA
 
 package visad;
 
+
 import java.util.Arrays;
+
 
 /**
  * SampledSet is the abstract superclass of GriddedSets, PolyCells and MultiCells.
- * SampledSet objects are intended to be immutable (but see {@link 
+ * SampledSet objects are intended to be immutable (but see {@link
  * #getSamples(boolean)} for an exception).
  */
 public abstract class SampledSet extends SimpleSet implements SampledSetIface {
-  
+
+  /**           */
+  static int cnt = 0;
+
+  /**           */
+  int mycnt = cnt++;
+
+  /**           */
   private static int cacheSizeThreshold = -1;
 
+
+
+
+  /**           */
   private Object cacheId;
+
+  /**           */
   float[][] Samples;
+
+  /**           */
   float Low[], Hi[];
 
-  public SampledSet(MathType type, int manifold_dimension) throws VisADException {
+  /**
+   * 
+   *
+   * @param type 
+   * @param manifold_dimension 
+   *
+   * @throws VisADException 
+   */
+  public SampledSet(MathType type, int manifold_dimension)
+          throws VisADException {
     super(type, manifold_dimension);
   }
 
+  /**
+   * 
+   *
+   * @param type 
+   * @param manifold_dimension 
+   * @param coord_sys 
+   * @param units 
+   * @param errors 
+   *
+   * @throws VisADException 
+   */
   public SampledSet(MathType type, int manifold_dimension,
-                   CoordinateSystem coord_sys, Unit[] units,
-                   ErrorEstimate[] errors)
-         throws VisADException {
+                    CoordinateSystem coord_sys, Unit[] units,
+                    ErrorEstimate[] errors)
+          throws VisADException {
     super(type, manifold_dimension, coord_sys, units, errors);
     Low = new float[DomainDimension];
     Hi = new float[DomainDimension];
   }
 
+  /**
+   * 
+   *
+   * @param type 
+   *
+   * @throws VisADException 
+   */
   public SampledSet(MathType type) throws VisADException {
     this(type, null, null, null);
   }
 
+  /**
+   * 
+   *
+   * @param type 
+   * @param coord_sys 
+   * @param units 
+   * @param errors 
+   *
+   * @throws VisADException 
+   */
   public SampledSet(MathType type, CoordinateSystem coord_sys, Unit[] units,
-                   ErrorEstimate[] errors) throws VisADException {
+                    ErrorEstimate[] errors)
+          throws VisADException {
     super(type, coord_sys, units, errors);
     Low = new float[DomainDimension];
     Hi = new float[DomainDimension];
   }
 
 
-    public void finalize()  throws Throwable {
-        if(cacheId!=null) {
-            // System.err.println ("sampled set finalize");
-            visad.data.DataCacheManager.getCacheManager().removeFromCache(cacheId);
-        }
-        super.finalize();
+  /**
+   * 
+   *
+   * @throws Throwable 
+   */
+  public void finalize() throws Throwable {
+    if (cacheId != null) {
+      // System.err.println ("sampled set finalize");
+      visad.data.DataCacheManager.getCacheManager().removeFromCache(cacheId);
     }
-
-
-    public static void setCacheSizeThreshold(int threshold) {
-        cacheSizeThreshold = threshold;
-    }
-
-
-  protected void setMySamples(float[][]samples) {
-      if(cacheSizeThreshold>=0 && samples!=null && samples.length>0 && samples[0].length>cacheSizeThreshold) {
-          if(cacheId!=null) {
-                visad.data.DataCacheManager.getCacheManager().updateData(cacheId, samples);
-            } else {
-                cacheId = visad.data.DataCacheManager.getCacheManager().addToCache(samples);
-          }
-          //      visad.data.DataCacheManager.getCacheManager().printStats();
-          return;
-      }
-      this.Samples = samples;
+    super.finalize();
   }
 
 
+  /**
+   * 
+   *
+   * @param threshold 
+   */
+  public static void setCacheSizeThreshold(int threshold) {
+    cacheSizeThreshold = threshold;
+  }
+
+
+  /**
+   * 
+   *
+   * @param samples 
+   */
+  protected void setMySamples(float[][] samples) {
+    if (cacheSizeThreshold >= 0 && samples != null && samples.length > 0 &&
+        samples[0].length > cacheSizeThreshold) {
+      if (cacheId != null) {
+        visad.data.DataCacheManager.getCacheManager().updateData(
+          cacheId, samples);
+      }
+      else {
+        cacheId =
+          visad.data.DataCacheManager.getCacheManager().addToCache(samples);
+      }
+      //      visad.data.DataCacheManager.getCacheManager().printStats();
+      return;
+    }
+    this.Samples = samples;
+  }
+
+
+  /**
+   * 
+   *
+   * @return 
+   */
   protected float[][] getMySamples() {
-    if(cacheId!=null) {
-        return visad.data.DataCacheManager.getCacheManager().getFloatArray2D(cacheId);
+    if (cacheId != null) {
+      return visad.data.DataCacheManager.getCacheManager().getFloatArray2D(
+               cacheId);
     }
     return Samples;
   }
 
+  /**
+   * 
+   *
+   * @param samples 
+   *
+   * @throws VisADException 
+   */
   void init_samples(float[][] samples) throws VisADException {
     init_samples(samples, true);
   }
 
-  void init_samples(float[][] samples, boolean copy)
-       throws VisADException {
+  /**
+   * 
+   *
+   * @param samples 
+   * @param copy 
+   *
+   * @throws VisADException 
+   */
+  void init_samples(float[][] samples, boolean copy) throws VisADException {
     if (samples.length != DomainDimension) {
       throw new SetException("SampledSet.init_samples: " +
                              "sample dimension " + samples.length +
@@ -125,19 +219,18 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
       }
     }
     // MEM
-    float[][]mySamples;
+    float[][] mySamples;
 
     if (copy) {
-        mySamples = new float[DomainDimension][Length];
+      mySamples = new float[DomainDimension][Length];
     }
     else {
       mySamples = samples;
     }
-    for (int j=0; j<DomainDimension; j++) {
+    for (int j = 0; j < DomainDimension; j++) {
       if (samples[j].length != Length) {
-        throw new SetException("SampledSet.init_samples: " +
-                               "sample#" + j + " length " +
-                               samples[j].length +
+        throw new SetException("SampledSet.init_samples: " + "sample#" + j +
+                               " length " + samples[j].length +
                                " doesn't match expected length " + Length);
       }
       float[] samplesJ = samples[j];
@@ -148,7 +241,7 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
       Low[j] = Float.POSITIVE_INFINITY;
       Hi[j] = Float.NEGATIVE_INFINITY;
       float sum = 0.0f;
-      for (int i=0; i<Length; i++) {
+      for (int i = 0; i < Length; i++) {
 /* WLH 4 May 99
         if (SamplesJ[i] != SamplesJ[i]) {
           throw new SetException(
@@ -170,66 +263,87 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
         }
         sum += SamplesJ[i];
       }
-      if (SetErrors[j] != null ) {
-        SetErrors[j] =
-          new ErrorEstimate(SetErrors[j].getErrorValue(), sum / Length,
-                            Length, SetErrors[j].getUnit());
+      if (SetErrors[j] != null) {
+        SetErrors[j] = new ErrorEstimate(SetErrors[j].getErrorValue(),
+                                         sum / Length, Length,
+                                         SetErrors[j].getUnit());
       }
     }
     setMySamples(mySamples);
   }
 
+  /**
+   * 
+   *
+   * @param range_select 
+   */
   public void cram_missing(boolean[] range_select) {
-    float[][]mySamples = getMySamples();
+    float[][] mySamples = getMySamples();
     int n = Math.min(range_select.length, mySamples[0].length);
-    for (int i=0; i<n; i++) {
+    for (int i = 0; i < n; i++) {
       if (!range_select[i]) mySamples[0][i] = Float.NaN;
     }
     setMySamples(mySamples);
   }
 
+  /**
+   * 
+   *
+   * @param samples 
+   */
   void cram_samples(float[][] samples) {
     setMySamples(samples);
   }
 
 
-  public void getNeighbors( int[][] neighbors, float[][] weights )
-              throws VisADException
-  {
-     getNeighbors( neighbors );
+  /**
+   * 
+   *
+   * @param neighbors 
+   * @param weights 
+   *
+   * @throws VisADException 
+   */
+  public void getNeighbors(int[][] neighbors, float[][] weights)
+          throws VisADException {
+    getNeighbors(neighbors);
 
-     int n_points;
-     float distance;
-     float distance_squared;
-     float diff;
-     float lambda_squared;
-     float constant = 4f;
-     float pi_squared = (float) (Math.PI*Math.PI);
+    int n_points;
+    float distance;
+    float distance_squared;
+    float diff;
+    float lambda_squared;
+    float constant = 4f;
+    float pi_squared = (float)(Math.PI * Math.PI);
 
-     float[][]mySamples = getMySamples();
-     float[][] samples = (mySamples != null) ? mySamples : getSamples();
+    float[][] mySamples = getMySamples();
+    float[][] samples = (mySamples != null)
+                        ? mySamples
+                        : getSamples();
 
-     for ( int ii = 0; ii < Length; ii++ )
-     {
-        n_points = neighbors[ii].length;
-        weights[ii] = new float[ n_points ];
+    for (int ii = 0; ii < Length; ii++) {
+      n_points = neighbors[ii].length;
+      weights[ii] = new float[n_points];
 
-        for ( int kk = 0; kk < n_points; kk++ )
-        {
-          distance_squared = 0f;
-          for ( int tt = 0; tt < DomainDimension; tt++ )
-          {
-            diff =  samples[tt][ii] - samples[tt][ neighbors[ii][kk] ];
-            distance_squared += diff*diff;
-          }
-          lambda_squared = ( distance_squared*constant )/pi_squared;
-
-          weights[ii][kk] =
-            (float) Math.exp( (double)(-1f*(distance_squared/lambda_squared)) );
+      for (int kk = 0; kk < n_points; kk++) {
+        distance_squared = 0f;
+        for (int tt = 0; tt < DomainDimension; tt++) {
+          diff = samples[tt][ii] - samples[tt][neighbors[ii][kk]];
+          distance_squared += diff * diff;
         }
-     }
+        lambda_squared = (distance_squared * constant) / pi_squared;
+
+        weights[ii][kk] = (float)Math.exp((double)(-1f *
+                (distance_squared / lambda_squared)));
+      }
+    }
   }
 
+  /**
+   * 
+   *
+   * @return 
+   */
   public boolean isMissing() {
     return (getMySamples() == null);
   }
@@ -243,6 +357,8 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
    *
    * @return                     A copy of the sample array.
    * @see #getSamples(boolean)
+   *
+   * @throws VisADException 
    */
   public float[][] getSamples() throws VisADException {
     return getSamples(true);
@@ -251,41 +367,68 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
   /**
    * <p>Returns the samples of this instance or a copy of the samples.</p>
    *
-   * <p>Note that, if the actual sample array is returned, then it is possible 
-   * to modify the values of this instance -- breaking the immutability aspect 
+   * <p>Note that, if the actual sample array is returned, then it is possible
+   * to modify the values of this instance -- breaking the immutability aspect
    * of this class.  Don't do this unless you enjoy debugging.</p>
    *
-   * @param copy                 Whether or not a copy of the sample array 
+   * @param copy                 Whether or not a copy of the sample array
    *                             should be returned.
    * @return                     The sample array is <code>copy</code> is <code>
    *                             false; otherwise, a copy of the sample array.
+   *
+   * @throws VisADException 
    */
   public float[][] getSamples(boolean copy) throws VisADException {
-    float[][]mySamples = getMySamples();
-    return copy ? Set.copyFloats(mySamples) : mySamples;
+    float[][] mySamples = getMySamples();
+    return copy
+           ? Set.copyFloats(mySamples)
+           : mySamples;
   }
 
+  /**
+   * 
+   *
+   * @param type 
+   * @param shadow 
+   *
+   * @return 
+   *
+   * @throws VisADException 
+   */
   public DataShadow computeRanges(ShadowType type, DataShadow shadow)
-         throws VisADException {
+          throws VisADException {
     int n = getDimension();
     double[][] ranges = new double[2][n];
     return computeRanges(type, shadow, ranges, false);
   }
 
+  /**
+   * 
+   *
+   * @param type 
+   * @param shadow 
+   * @param ranges 
+   * @param domain 
+   *
+   * @return 
+   *
+   * @throws VisADException 
+   */
   public DataShadow computeRanges(ShadowType type, DataShadow shadow,
                                   double[][] ranges, boolean domain)
-         throws VisADException {
+          throws VisADException {
     if (isMissing()) return shadow;
     setAnimationSampling(type, shadow, domain);
 
     int[] indices = new int[DomainDimension];
-    for (int i=0; i<DomainDimension; i++) {
+    for (int i = 0; i < DomainDimension; i++) {
       ShadowRealType real = null;
       if (type instanceof ShadowSetType) {
-        real = (ShadowRealType) ((ShadowSetType) type).getDomain().getComponent(i);
+        real =
+          (ShadowRealType)((ShadowSetType)type).getDomain().getComponent(i);
       }
-      else if(type instanceof ShadowRealTupleType) {
-        real = (ShadowRealType) ((ShadowRealTupleType) type).getComponent(i);
+      else if (type instanceof ShadowRealTupleType) {
+        real = (ShadowRealType)((ShadowRealTupleType)type).getComponent(i);
       }
       else {
         throw new TypeException("SampledSet.computeRanges: bad ShadowType " +
@@ -294,13 +437,12 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
       indices[i] = real.getIndex();
     }
 
-    for (int i=0; i<DomainDimension; i++) {
+    for (int i = 0; i < DomainDimension; i++) {
       int k = indices[i];
       double min = Low[i];
       double max = Hi[i];
-      Unit dunit =
-        ((RealType) ((SetType) Type).getDomain().getComponent(i)).
-          getDefaultUnit();
+      Unit dunit = ((RealType)((SetType)Type).getDomain().getComponent(
+                     i)).getDefaultUnit();
       if (dunit != null && !dunit.equals(SetUnits[i])) {
         min = dunit.toThis(min, SetUnits[i]);
         max = dunit.toThis(max, SetUnits[i]);
@@ -318,31 +460,39 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
     /* WLH 1 March 98 - moved from FieldImpl and FlatField computeRanges */
     ShadowRealTupleType domain_type = null;
     if (type instanceof ShadowRealTupleType) {
-      domain_type = (ShadowRealTupleType) type;
+      domain_type = (ShadowRealTupleType)type;
     }
     else if (type instanceof ShadowSetType) {
-      domain_type = ((ShadowSetType) type).getDomain();
+      domain_type = ((ShadowSetType)type).getDomain();
     }
     if (domain_type != null && ranges != null) {
       ShadowRealTupleType shad_ref = domain_type.getReference();
       if (shad_ref != null) {
         // computeRanges for Reference (relative to domain) RealTypes
-                                 // WLH 20 Nov 2001
-        shadow =
-          computeReferenceRanges(domain_type, DomainCoordinateSystem,
-                                 ((SetType) Type).getDomain().getDefaultUnits(),
-                                 shadow, shad_ref, ranges);
-                                 // SetUnits, shadow, shad_ref, ranges);
+        // WLH 20 Nov 2001
+        shadow = computeReferenceRanges(
+          domain_type, DomainCoordinateSystem,
+          ((SetType)Type).getDomain().getDefaultUnits(), shadow, shad_ref,
+          ranges);
+        // SetUnits, shadow, shad_ref, ranges);
       }
     }
 
     return shadow;
   }
 
-  /** create a 1-D GeometryArray from this Set and color_values;
-      only used by Irregular3DSet and Gridded3DSet */
+  /**
+   * create a 1-D GeometryArray from this Set and color_values;
+   *   only used by Irregular3DSet and Gridded3DSet 
+   *
+   * @param color_values 
+   *
+   * @return 
+   *
+   * @throws VisADException 
+   */
   public VisADGeometryArray make1DGeometry(byte[][] color_values)
-         throws VisADException {
+          throws VisADException {
     if (DomainDimension != 3) {
       throw new SetException("SampledSet.make1DGeometry: " +
                              "DomainDimension must be 3, not " +
@@ -362,23 +512,31 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
     }
     else {
       array = new VisADLineStripArray();
-      ((VisADLineStripArray) array).stripVertexCounts = new int[1];
-      ((VisADLineStripArray) array).stripVertexCounts[0] = Length;
+      ((VisADLineStripArray)array).stripVertexCounts = new int[1];
+      ((VisADLineStripArray)array).stripVertexCounts[0] = Length;
     }
     // set coordinates and colors
     setGeometryArray(array, 4, color_values);
     return array;
   }
 
-  /** create a 3-D GeometryArray from this Set and color_values;
-      NOTE - this version only makes points;
-      NOTE - when textures are supported by Java3D the Gridded3DSet
-      implementation of make3DGeometry should use Texture3D, and
-      the Irregular3DSet implementation should resample to a
-      Gridded3DSet and use Texture3D;
-      only used by Irregular3DSet and Gridded3DSet */
+  /**
+   * create a 3-D GeometryArray from this Set and color_values;
+   *   NOTE - this version only makes points;
+   *   NOTE - when textures are supported by Java3D the Gridded3DSet
+   *   implementation of make3DGeometry should use Texture3D, and
+   *   the Irregular3DSet implementation should resample to a
+   *   Gridded3DSet and use Texture3D;
+   *   only used by Irregular3DSet and Gridded3DSet 
+   *
+   * @param color_values 
+   *
+   * @return 
+   *
+   * @throws VisADException 
+   */
   public VisADGeometryArray[] make3DGeometry(byte[][] color_values)
-         throws VisADException {
+          throws VisADException {
     if (ManifoldDimension != 3) {
       throw new SetException("SampledSet.make3DGeometry: " +
                              "ManifoldDimension must be 3, not " +
@@ -388,10 +546,18 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
     return new VisADGeometryArray[] {array, array, array};
   }
 
-  /** create a PointArray from this Set and color_values;
-      can be applied to  ManifoldDimension = 1, 2 or 3 */
+  /**
+   * create a PointArray from this Set and color_values;
+   *   can be applied to  ManifoldDimension = 1, 2 or 3 
+   *
+   * @param color_values 
+   *
+   * @return 
+   *
+   * @throws VisADException 
+   */
   public VisADGeometryArray makePointGeometry(byte[][] color_values)
-         throws VisADException {
+          throws VisADException {
     if (DomainDimension != 3) {
       throw new SetException("SampledSet.makePointGeometry: " +
                              "DomainDimension must be 3, not " +
@@ -403,22 +569,42 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
     return array;
   }
 
-  /** copy and transpose Samples (from this Set( and color_values
-      into array; if color_length == 3 don't use color_values[3] */
+  /**
+   * copy and transpose Samples (from this Set( and color_values
+   *   into array; if color_length == 3 don't use color_values[3] 
+   *
+   * @param array 
+   * @param color_length 
+   * @param color_values 
+   *
+   * @throws VisADException 
+   */
   public void setGeometryArray(VisADGeometryArray array, int color_length,
-                        byte[][] color_values) throws VisADException {
+                               byte[][] color_values)
+          throws VisADException {
     setGeometryArray(array, getSamples(false), color_length, color_values);
   }
 
-  /** copy and transpose samples and color_values into array;
-      if color_length == 3 don't use color_values[3] */
-  public static void setGeometryArray(VisADGeometryArray array, float[][] samples,
-                               int color_length, byte[][] color_values)
-       throws VisADException {
+  /**
+   * copy and transpose samples and color_values into array;
+   *   if color_length == 3 don't use color_values[3] 
+   *
+   * @param array 
+   * @param samples 
+   * @param color_length 
+   * @param color_values 
+   *
+   * @throws VisADException 
+   */
+  public static void setGeometryArray(VisADGeometryArray array,
+                                      float[][] samples, int color_length,
+                                      byte[][] color_values)
+          throws VisADException {
     if (samples == null) {
       throw new SetException("SampledSet.setGeometryArray: " +
                              "Null samples array");
-    } else if (samples.length != 3) {
+    }
+    else if (samples.length != 3) {
       throw new SetException("SampledSet.setGeometryArray: " +
                              "Expected 3 dimensions in samples array, not " +
                              samples.length);
@@ -428,7 +614,7 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
     // MEM
     float[] coordinates = new float[3 * len];
     int j = 0;
-    for (int i=0; i<len; i++) {
+    for (int i = 0; i < len; i++) {
       coordinates[j++] = samples[0][i];
       coordinates[j++] = samples[1][i];
       coordinates[j++] = samples[2][i];
@@ -441,7 +627,7 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
       byte[] colors = new byte[color_length * len];
       j = 0;
       if (color_length == 4) {
-        for (int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
           colors[j++] = color_values[0][i];
           colors[j++] = color_values[1][i];
           colors[j++] = color_values[2][i];
@@ -450,13 +636,13 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
         }
       }
       else if (color_length == 3) {
-        for (int i=0; i<len; i++) {
+        for (int i = 0; i < len; i++) {
           colors[j++] = color_values[0][i];
           colors[j++] = color_values[1][i];
           colors[j++] = color_values[2][i];
         }
       }
-      
+
       // BMF 2009-03-17
       // this addresses a issue where a 2D display is used without color
       // mapping
@@ -468,23 +654,35 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
                                "color_length must be 0, 3 or 4, not " +
                                color_length);
       }
-      
+
       array.colors = colors;
     }
   }
 
+  /**
+   * 
+   *
+   * @return 
+   */
   public float[] getLow() {
     float[] low = new float[Low.length];
-    for (int i=0; i<Low.length; i++) low[i] = Low[i];
+    for (int i = 0; i < Low.length; i++)
+      low[i] = Low[i];
     return low;
   }
 
+  /**
+   * 
+   *
+   * @return 
+   */
   public float[] getHi() {
     float[] hi = new float[Hi.length];
-    for (int i=0; i<Hi.length; i++) hi[i] = Hi[i];
+    for (int i = 0; i < Hi.length; i++)
+      hi[i] = Hi[i];
     return hi;
   }
-  
+
   /**
    * Clones this instance.
    *
@@ -492,22 +690,19 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
    */
   public Object clone() {
     SampledSet clone = (SampledSet)super.clone();
-    
+    if (clone.cacheId != null) {
+      clone.cacheId = null;
+    }
+
     /*
      * The array of sample values is cloned because getSamples(false) allows
      * clients to modify the values and the clone() general contract forbids
      * cross-clone effects.
      */
-    float[][]thatMySamples = clone.getMySamples();
-    float[][]mySamples = getMySamples();
-    if (thatMySamples != null) {
-        float[][]copy = new float[mySamples.length][];
-        for (int i = 0; i < mySamples.length; i++) {
-            copy[i] = (float[])mySamples[i].clone();
-        }
-        clone.setMySamples(copy);
+    float[][] mySamples = getMySamples();
+    if (mySamples != null) {
+      clone.setMySamples(visad.util.Util.clone(mySamples));
     }
-
     return clone;
   }
 }
