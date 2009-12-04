@@ -258,7 +258,7 @@ public class ImageFlatField extends FlatField {
     int n = domainType.getDimension();
     double[][] ranges = new double[2][n];
     // DomainSet.computeRanges handles Reference
-    shadow = DomainSet.computeRanges(domainType, shadow, ranges, true);
+    shadow = getDomainSet().computeRanges(domainType, shadow, ranges, true);
     ShadowRealTupleType shadRef;
     // skip range if no range components are mapped
     int[] indices = ((ShadowFunctionType) type).getRangeDisplayIndices();

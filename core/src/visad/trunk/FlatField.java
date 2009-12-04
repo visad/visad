@@ -646,10 +646,10 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
       copy argument included for consistency with Field, but ignored */
   public void setSamples(Data[] range, boolean copy)
          throws VisADException, RemoteException {
-    if (range == null || range.length != Length) {
+    if (range == null || range.length != getLength()) {
       throw new FieldException("setSamples: bad Data[] length");
     }
-    for (int i=0; i<Length; i++) {
+    for (int i=0; i<getLength(); i++) {
       setSample(i, range[i]);
     }
   }
@@ -705,7 +705,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     }
 
     for (int i=0; i<TupleDimension; i++) {
-      if (range[i].length != Length) {
+      if (range[i].length != getLength()) {
         throw new FieldException("setSamples: bad array length");
       }
     }
@@ -742,7 +742,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     }
 
     for (int i=0; i<TupleDimension; i++) {
-      if (range[i].length + start > Length) {
+      if (range[i].length + start > getLength()) {
         throw new FieldException("setSamples: bad array length");
       }
     }
@@ -762,15 +762,15 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
         switch (RangeMode[i]) {
           case DOUBLE:
             if (DoubleRange[i] == null) {
-              DoubleRange[i] = new double[Length];
+              DoubleRange[i] = new double[getLength()];
             }
             double[] DoubleRangeI = DoubleRange[i];
             System.arraycopy(rangeI, 0, DoubleRangeI, start, length);
             break;
           case FLOAT:
             if (FloatRange[i] == null) {
-              FloatRange[i] = new float[Length];
-              for (int j=0; j<Length; j++) FloatRange[i][j] = Float.NaN;
+              FloatRange[i] = new float[getLength()];
+              for (int j=0; j<getLength(); j++) FloatRange[i][j] = Float.NaN;
             }
             float[] FloatRangeI = FloatRange[i];
             for (int j=0; j<length; j++) FloatRangeI[start + j] = (float) rangeI[j];
@@ -778,8 +778,8 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
           case BYTE:
             index = RangeSet[i].valueToIndex(Set.doubleToFloat(range1));
             if (ByteRange[i] == null) {
-              ByteRange[i] = new byte[Length];
-              for (int j=0; j<Length; j++) ByteRange[i][j] = (byte) MISSING1;
+              ByteRange[i] = new byte[getLength()];
+              for (int j=0; j<getLength(); j++) ByteRange[i][j] = (byte) MISSING1;
             }
             byte[] ByteRangeI = ByteRange[i];
             for (int j=0; j<length; j++) {
@@ -789,8 +789,8 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
           case SHORT:
             index = RangeSet[i].valueToIndex(Set.doubleToFloat(range1));
             if (ShortRange[i] == null) {
-              ShortRange[i] = new short[Length];
-              for (int j=0; j<Length; j++) ShortRange[i][j] = (short) MISSING2;
+              ShortRange[i] = new short[getLength()];
+              for (int j=0; j<getLength(); j++) ShortRange[i][j] = (short) MISSING2;
             }
             short[] ShortRangeI = ShortRange[i];
             for (int j=0; j<length; j++) {
@@ -800,8 +800,8 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
           case INT:
             index = RangeSet[i].valueToIndex(Set.doubleToFloat(range1));
             if (IntRange[i] == null) {
-              IntRange[i] = new int[Length];
-              for (int j=0; j<Length; j++) IntRange[i][j] = (int) MISSING4;
+              IntRange[i] = new int[getLength()];
+              for (int j=0; j<getLength(); j++) IntRange[i][j] = (int) MISSING4;
             }
             int[] IntRangeI = IntRange[i];
             for (int j=0; j<length; j++) {
@@ -831,7 +831,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     if(range.length != TupleDimension ) {
       throw new FieldException("FlatField.setSamples: bad tuple length");
     }
-    if ( length > Length ) {
+    if ( length > getLength() ) {
       throw new FieldException("setSamples: indices array too long");
     }
     for (int i=0; i<TupleDimension; i++) {
@@ -856,7 +856,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
         switch (RangeMode[i]) {
           case DOUBLE:
             if (DoubleRange[i] == null) {
-              DoubleRange[i] = new double[Length];
+              DoubleRange[i] = new double[getLength()];
             }
             double[] DoubleRangeI = DoubleRange[i];
             for (int j = 0; j < length; j++) {
@@ -865,8 +865,8 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
             break;
           case FLOAT:
             if (FloatRange[i] == null) {
-              FloatRange[i] = new float[Length];
-              for (int j=0; j<Length; j++) FloatRange[i][j] = Float.NaN;
+              FloatRange[i] = new float[getLength()];
+              for (int j=0; j<getLength(); j++) FloatRange[i][j] = Float.NaN;
             }
             float[] FloatRangeI = FloatRange[i];
             for (int j=0; j<length; j++) FloatRangeI[indices[j]] = (float) rangeI[j];
@@ -874,8 +874,8 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
           case BYTE:
             index = RangeSet[i].valueToIndex(Set.doubleToFloat(range1));
             if (ByteRange[i] == null) {
-              ByteRange[i] = new byte[Length];
-              for (int j=0; j<Length; j++) ByteRange[i][j] = (byte) MISSING1;
+              ByteRange[i] = new byte[getLength()];
+              for (int j=0; j<getLength(); j++) ByteRange[i][j] = (byte) MISSING1;
             }
             byte[] ByteRangeI = ByteRange[i];
             for (int j=0; j<length; j++) {
@@ -885,8 +885,8 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
           case SHORT:
             index = RangeSet[i].valueToIndex(Set.doubleToFloat(range1));
             if (ShortRange[i] == null) {
-              ShortRange[i] = new short[Length];
-              for (int j=0; j<Length; j++) ShortRange[i][j] = (short) MISSING2;
+              ShortRange[i] = new short[getLength()];
+              for (int j=0; j<getLength(); j++) ShortRange[i][j] = (short) MISSING2;
             }
             short[] ShortRangeI = ShortRange[i];
             for (int j=0; j<length; j++) {
@@ -896,8 +896,8 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
           case INT:
             index = RangeSet[i].valueToIndex(Set.doubleToFloat(range1));
             if (IntRange[i] == null) {
-              IntRange[i] = new int[Length];
-              for (int j=0; j<Length; j++) IntRange[i][j] = (int) MISSING4;
+              IntRange[i] = new int[getLength()];
+              for (int j=0; j<getLength(); j++) IntRange[i][j] = (int) MISSING4;
             }
             int[] IntRangeI = IntRange[i];
             for (int j=0; j<length; j++) {
@@ -927,7 +927,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     }
 
     for (int i=0; i<TupleDimension; i++) {
-      if (range[i].length != Length) {
+      if (range[i].length != getLength()) {
         throw new FieldException("setSamples: bad array length");
       }
     }
@@ -959,41 +959,41 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
         switch (RangeMode[i]) {
           case DOUBLE:
             if (copy) {
-              DoubleRange[i] = new double[Length];
+              DoubleRange[i] = new double[getLength()];
               double[] DoubleRangeI = DoubleRange[i];
-              System.arraycopy(rangeI, 0, DoubleRangeI, 0, Length);
-              // for (int j=0; j<Length; j++) DoubleRangeI[j] = rangeI[j];
+              System.arraycopy(rangeI, 0, DoubleRangeI, 0, getLength());
+              // for (int j=0; j<getLength(); j++) DoubleRangeI[j] = rangeI[j];
             }
             else {
               DoubleRange[i] = rangeI;
             }
             break;
           case FLOAT:
-            FloatRange[i] = new float[Length];
+            FloatRange[i] = new float[getLength()];
             float[] FloatRangeI = FloatRange[i];
-            for (int j=0; j<Length; j++) FloatRangeI[j] = (float) rangeI[j];
+            for (int j=0; j<getLength(); j++) FloatRangeI[j] = (float) rangeI[j];
             break;
           case BYTE:
             index = RangeSet[i].valueToIndex(Set.doubleToFloat(range1));
-            ByteRange[i] = new byte[Length];
+            ByteRange[i] = new byte[getLength()];
             byte[] ByteRangeI = ByteRange[i];
-            for (int j=0; j<Length; j++) {
+            for (int j=0; j<getLength(); j++) {
               ByteRangeI[j] = (byte) (index[j] + MISSING1 + 1);
             }
             break;
           case SHORT:
             index = RangeSet[i].valueToIndex(Set.doubleToFloat(range1));
-            ShortRange[i] = new short[Length];
+            ShortRange[i] = new short[getLength()];
             short[] ShortRangeI = ShortRange[i];
-            for (int j=0; j<Length; j++) {
+            for (int j=0; j<getLength(); j++) {
               ShortRangeI[j] = (short) (index[j] + MISSING2 + 1);
             }
             break;
           case INT:
             index = RangeSet[i].valueToIndex(Set.doubleToFloat(range1));
-            IntRange[i] = new int[Length];
+            IntRange[i] = new int[getLength()];
             int[] IntRangeI = IntRange[i];
-            for (int j=0; j<Length; j++) {
+            for (int j=0; j<getLength(); j++) {
               IntRangeI[j] = index[j] + MISSING4 + 1;
             }
             break;
@@ -1024,16 +1024,16 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
         range1[0] = rangeI;
         switch (RangeMode[i]) {
           case DOUBLE:
-            DoubleRange[i] = new double[Length];
+            DoubleRange[i] = new double[getLength()];
             double[] DoubleRangeI = DoubleRange[i];
-            for (int j=0; j<Length; j++) DoubleRangeI[j] = rangeI[j];
+            for (int j=0; j<getLength(); j++) DoubleRangeI[j] = rangeI[j];
             break;
           case FLOAT:
             if (copy) {
-              FloatRange[i] = new float[Length];
+              FloatRange[i] = new float[getLength()];
               float[] FloatRangeI = FloatRange[i];
-              System.arraycopy(rangeI, 0, FloatRangeI, 0, Length);
-              // for (int j=0; j<Length; j++) FloatRangeI[j] = (float) rangeI[j];
+              System.arraycopy(rangeI, 0, FloatRangeI, 0, getLength());
+              // for (int j=0; j<getLength(); j++) FloatRangeI[j] = (float) rangeI[j];
             }
             else {
               FloatRange[i] = rangeI;
@@ -1041,26 +1041,26 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
             break;
           case BYTE:
             index = RangeSet[i].valueToIndex(range1);
-            ByteRange[i] = new byte[Length];
+            ByteRange[i] = new byte[getLength()];
             byte[] ByteRangeI = ByteRange[i];
             int offset = MISSING1+1;
-            for (int j=0; j<Length; j++) {
+            for (int j=0; j<getLength(); j++) {
               ByteRangeI[j] = (byte) (index[j] + offset);
             }
             break;
           case SHORT:
             index = RangeSet[i].valueToIndex(range1);
-            ShortRange[i] = new short[Length];
+            ShortRange[i] = new short[getLength()];
             short[] ShortRangeI = ShortRange[i];
-            for (int j=0; j<Length; j++) {
+            for (int j=0; j<getLength(); j++) {
               ShortRangeI[j] = (short) (index[j] + MISSING2 + 1);
             }
             break;
           case INT:
             index = RangeSet[i].valueToIndex(range1);
-            IntRange[i] = new int[Length];
+            IntRange[i] = new int[getLength()];
             int[] IntRangeI = IntRange[i];
-            for (int j=0; j<Length; j++) {
+            for (int j=0; j<getLength(); j++) {
               IntRangeI[j] = index[j] + MISSING4 + 1;
             }
             break;
@@ -1099,9 +1099,9 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
         double[][] range;
         synchronized (DoubleRange) {
             if (isMissing()) {
-                range = new double[TupleDimension][Length];
+                range = new double[TupleDimension][getLength()];
                 for (int i=0; i<TupleDimension; i++) {
-                    for (int j=0; j<Length; j++) {
+                    for (int j=0; j<getLength(); j++) {
                         range[i][j] = Double.NaN;
                     }
                 }
@@ -1116,46 +1116,46 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
                 switch (RangeMode[i]) {
                 case DOUBLE:
                     if (copy) {
-                        range[i] = new double[Length];
+                        range[i] = new double[getLength()];
                         rangeI = range[i];
                         double[] DoubleRangeI = DoubleRange[i];
-                        System.arraycopy(DoubleRangeI, 0, rangeI, 0, Length);
-                        // for (int j=0; j<Length; j++) rangeI[j] = DoubleRangeI[j];
+                        System.arraycopy(DoubleRangeI, 0, rangeI, 0, getLength());
+                        // for (int j=0; j<getLength(); j++) rangeI[j] = DoubleRangeI[j];
                     }
                     else {
                         range[i] = DoubleRange[i];
                     }
                     break;
                 case FLOAT:
-                    range[i] = new double[Length];
+                    range[i] = new double[getLength()];
                     rangeI = range[i];
                     float[] FloatRangeI = FloatRange[i];
-                    for (int j=0; j<Length; j++) {
+                    for (int j=0; j<getLength(); j++) {
                         rangeI[j] = (double) FloatRangeI[j];
                     }
                     break;
                 case BYTE:
-                    index = new int[Length];
+                    index = new int[getLength()];
                     byte[] ByteRangeI = ByteRange[i];
-                    for (int j=0; j<Length; j++) {
+                    for (int j=0; j<getLength(); j++) {
                         index[j] = ((int) ByteRangeI[j]) - MISSING1 - 1;
                     }
                     range0 = Set.floatToDouble(RangeSet[i].indexToValue(index));
                     range[i] = range0[0];
                     break;
                 case SHORT:
-                    index = new int[Length];
+                    index = new int[getLength()];
                     short[] ShortRangeI = ShortRange[i];
-                    for (int j=0; j<Length; j++) {
+                    for (int j=0; j<getLength(); j++) {
                         index[j] = ((int) ShortRangeI[j]) - MISSING2 - 1;
                     }
                     range0 = Set.floatToDouble(RangeSet[i].indexToValue(index));
                     range[i] = range0[0];
                     break;
                 case INT:
-                    index = new int[Length];
+                    index = new int[getLength()];
                     int[] IntRangeI = IntRange[i];
-                    for (int j=0; j<Length; j++) {
+                    for (int j=0; j<getLength(); j++) {
                         index[j] = ((int) IntRangeI[j]) - MISSING4 - 1;
                     }
                     range0 = Set.floatToDouble(RangeSet[i].indexToValue(index));
@@ -1182,9 +1182,9 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     float[][] range;
     synchronized (DoubleRange) {
       if (isMissing()) {
-        range = new float[TupleDimension][Length];
+        range = new float[TupleDimension][getLength()];
         for (int i=0; i<TupleDimension; i++) {
-          for (int j=0; j<Length; j++) {
+          for (int j=0; j<getLength(); j++) {
             range[i][j] = Float.NaN;
           }
         }
@@ -1198,43 +1198,43 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
       for (int i=0; i<TupleDimension; i++) {
         switch (RangeMode[i]) {
           case DOUBLE:
-            range[i] = new float[Length];
+            range[i] = new float[getLength()];
             rangeI = range[i];
             double[] DoubleRangeI = DoubleRange[i];
-            for (int j=0; j<Length; j++) {
+            for (int j=0; j<getLength(); j++) {
               rangeI[j] = (float) DoubleRangeI[j];
             }
             break;
           case FLOAT:
             if (copy) {
-              range[i] = new float[Length];
-              System.arraycopy (FloatRange[i], 0, range[i], 0, Length);
+              range[i] = new float[getLength()];
+              System.arraycopy (FloatRange[i], 0, range[i], 0, getLength());
             }  else {
               range[i] = FloatRange[i];
             }
             break;
           case BYTE:
-              index = new int[Length];
+              index = new int[getLength()];
               byte[] ByteRangeI = ByteRange[i];
-              for (int j=0; j<Length; j++) {
+              for (int j=0; j<getLength(); j++) {
                   index[j] = ((int) ByteRangeI[j]) - MISSING1 - 1;
               }
               range0 = RangeSet[i].indexToValue(index);
               range[i] = range0[0];
               break;
           case SHORT:
-            index = new int[Length];
+            index = new int[getLength()];
             short[] ShortRangeI = ShortRange[i];
-            for (int j=0; j<Length; j++) {
+            for (int j=0; j<getLength(); j++) {
               index[j] = ((int) ShortRangeI[j]) - MISSING2 - 1;
             }
             range0 = RangeSet[i].indexToValue(index);
             range[i] = range0[0];
             break;
           case INT:
-            index = new int[Length];
+            index = new int[getLength()];
             int[] IntRangeI = IntRange[i];
-            for (int j=0; j<Length; j++) {
+            for (int j=0; j<getLength(); j++) {
               index[j] = ((int) IntRangeI[j]) - MISSING4 - 1;
             }
             range0 = RangeSet[i].indexToValue(index);
@@ -1273,8 +1273,8 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     double[] range = null;
     synchronized (DoubleRange) {
       if (isMissing()) {
-        range = new double[Length];
-        for (int j=0; j<Length; j++) {
+        range = new double[getLength()];
+        for (int j=0; j<getLength(); j++) {
           range[j] = Double.NaN;
         }
         return range;
@@ -1286,41 +1286,41 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
         switch (RangeMode[comp]) {
           case DOUBLE:
             if (copy) {
-              range = new double[Length];
-              System.arraycopy (DoubleRange[comp], 0, range, 0, Length);
+              range = new double[getLength()];
+              System.arraycopy (DoubleRange[comp], 0, range, 0, getLength());
             }  else {
               range = DoubleRange[comp];
             }
             break;
           case FLOAT:
-            range = new double[Length];
+            range = new double[getLength()];
             float[] FloatRangeI = FloatRange[comp];
-            for (int j=0; j<Length; j++) {
+            for (int j=0; j<getLength(); j++) {
               range[j] = (double) FloatRangeI[j];
             }
             break;
           case BYTE:
-            index = new int[Length];
+            index = new int[getLength()];
             byte[] ByteRangeI = ByteRange[comp];
-            for (int j=0; j<Length; j++) {
+            for (int j=0; j<getLength(); j++) {
               index[j] = ((int) ByteRangeI[j]) - MISSING1 - 1;
             }
             range0 = Set.floatToDouble(RangeSet[comp].indexToValue(index));
             range = range0[0];
             break;
           case SHORT:
-            index = new int[Length];
+            index = new int[getLength()];
             short[] ShortRangeI = ShortRange[comp];
-            for (int j=0; j<Length; j++) {
+            for (int j=0; j<getLength(); j++) {
               index[j] = ((int) ShortRangeI[j]) - MISSING2 - 1;
             }
             range0 = Set.floatToDouble(RangeSet[comp].indexToValue(index));
             range = range0[0];
             break;
           case INT:
-            index = new int[Length];
+            index = new int[getLength()];
             int[] IntRangeI = IntRange[comp];
-            for (int j=0; j<Length; j++) {
+            for (int j=0; j<getLength(); j++) {
               index[j] = ((int) IntRangeI[j]) - MISSING4 - 1;
             }
             range0 = Set.floatToDouble(RangeSet[comp].indexToValue(index));
@@ -1359,8 +1359,8 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     float[] range = null;
     synchronized (FloatRange) {
       if (isMissing()) {
-        range = new float[Length];
-        for (int j=0; j<Length; j++) {
+        range = new float[getLength()];
+        for (int j=0; j<getLength(); j++) {
           range[j] = Float.NaN;
         }
         return range;
@@ -1371,42 +1371,42 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
       for (int i=0; i<TupleDimension; i++) {
         switch (RangeMode[comp]) {
           case DOUBLE:
-            range = new float[Length];
+            range = new float[getLength()];
             double[] DoubleRangeI = DoubleRange[comp];
-            for (int j=0; j<Length; j++) {
+            for (int j=0; j<getLength(); j++) {
               range[j] = (float) DoubleRangeI[j];
             }
             break;
           case FLOAT:
             if (copy) {
-              range = new float[Length];
-              System.arraycopy (FloatRange[comp], 0, range, 0, Length);
+              range = new float[getLength()];
+              System.arraycopy (FloatRange[comp], 0, range, 0, getLength());
             }  else {
               range = FloatRange[comp];
             }
             break;
           case BYTE:
-            index = new int[Length];
+            index = new int[getLength()];
             byte[] ByteRangeI = ByteRange[comp];
-            for (int j=0; j<Length; j++) {
+            for (int j=0; j<getLength(); j++) {
               index[j] = ((int) ByteRangeI[j]) - MISSING1 - 1;
             }
             range0 = RangeSet[comp].indexToValue(index);
             range = range0[0];
             break;
           case SHORT:
-            index = new int[Length];
+            index = new int[getLength()];
             short[] ShortRangeI = ShortRange[comp];
-            for (int j=0; j<Length; j++) {
+            for (int j=0; j<getLength(); j++) {
               index[j] = ((int) ShortRangeI[j]) - MISSING2 - 1;
             }
             range0 = RangeSet[comp].indexToValue(index);
             range = range0[0];
             break;
           case INT:
-            index = new int[Length];
+            index = new int[getLength()];
             int[] IntRangeI = IntRange[comp];
-            for (int j=0; j<Length; j++) {
+            for (int j=0; j<getLength(); j++) {
               index[j] = ((int) IntRangeI[j]) - MISSING4 - 1;
             }
             range0 = RangeSet[comp].indexToValue(index);
@@ -1669,7 +1669,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
   public Data getSample(int index)
          throws VisADException, RemoteException {
     int[] inds;
-    if (isMissing() || index < 0 || index >= Length) {
+    if (isMissing() || index < 0 || index >= getLength()) {
       return ((FunctionType) Type).getRange().missingData();
     }
     double[][] range = new double[TupleDimension][1];
@@ -1793,7 +1793,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
 
     double[][] values;
     int[] indices;
-    if (DomainSet == null) {
+    if (getDomainSet() == null) {
       throw new FieldException("Field.setSample: DomainSet undefined");
     }
     if (range != null &&
@@ -1803,7 +1803,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
                               " does not match expected type " +
                               ((FunctionType) Type).getRange());
     }
-    if (index < 0 || index >= Length) return;
+    if (index < 0 || index >= getLength()) return;
 
     // disect range into doubles
     double[] vals = new double[TupleDimension];
@@ -1893,8 +1893,8 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
         switch (RangeMode[i]) {
           case DOUBLE:
             if (DoubleRange[i] == null) {
-              DoubleRange[i] = new double[Length];
-              for (int j=0; j<Length; j++) DoubleRange[i][j] = Double.NaN;
+              DoubleRange[i] = new double[getLength()];
+              for (int j=0; j<getLength(); j++) DoubleRange[i][j] = Double.NaN;
             }
             // test for missing
             incs[i] -= (DoubleRange[i][index] != DoubleRange[i][index]) ? 0 : 1;
@@ -1902,8 +1902,8 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
             break;
           case FLOAT:
             if (FloatRange[i] == null) {
-              FloatRange[i] = new float[Length];
-              for (int j=0; j<Length; j++) FloatRange[i][j] = Float.NaN;
+              FloatRange[i] = new float[getLength()];
+              for (int j=0; j<getLength(); j++) FloatRange[i][j] = Float.NaN;
             }
             // test for missing
             incs[i] -= (FloatRange[i][index] != FloatRange[i][index]) ? 0 : 1;
@@ -1914,8 +1914,8 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
             values[0][0] = vals[i];
             indices = RangeSet[i].valueToIndex(Set.doubleToFloat(values));
             if (ByteRange[i] == null) {
-              ByteRange[i] = new byte[Length];
-              for (int j=0; j<Length; j++) ByteRange[i][j] = (byte) MISSING1;
+              ByteRange[i] = new byte[getLength()];
+              for (int j=0; j<getLength(); j++) ByteRange[i][j] = (byte) MISSING1;
             }
             incs[i] -= (ByteRange[i][index] == (byte) MISSING1) ? 0 : 1;
             ByteRange[i][index] = (byte) (indices[0] + MISSING1 + 1);
@@ -1925,8 +1925,8 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
             values[0][0] = vals[i];
             indices = RangeSet[i].valueToIndex(Set.doubleToFloat(values));
             if (ShortRange[i] == null) {
-              ShortRange[i] = new short[Length];
-              for (int j=0; j<Length; j++) ShortRange[i][j] = (short) MISSING2;
+              ShortRange[i] = new short[getLength()];
+              for (int j=0; j<getLength(); j++) ShortRange[i][j] = (short) MISSING2;
             }
             incs[i] -= (ShortRange[i][index] == (short) MISSING2) ? 0 : 1;
             ShortRange[i][index] = (short) (indices[0] + MISSING2 + 1);
@@ -1936,8 +1936,8 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
             values[0][0] = vals[i];
             indices = RangeSet[i].valueToIndex(Set.doubleToFloat(values));
             if (IntRange[i] == null) {
-              IntRange[i] = new int[Length];
-              for (int j=0; j<Length; j++) IntRange[i][j] = MISSING4;
+              IntRange[i] = new int[getLength()];
+              for (int j=0; j<getLength(); j++) IntRange[i][j] = MISSING4;
             }
             incs[i] -= (IntRange[i][index] == (int) MISSING4) ? 0 : 1;
             IntRange[i][index] = indices[0] + MISSING4 + 1;
@@ -2085,7 +2085,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
       if (isMissing() || data.isMissing()) return new_type.missingData();
 
       // resample data if needed
-      data = ((FlatField) data).resample(DomainSet, sampling_mode, error_mode);
+      data = ((FlatField) data).resample(getDomainSet(), sampling_mode, error_mode);
 
       // get values from two FlatField's
       double[][] thatValuesD = null;
@@ -2314,14 +2314,14 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
                   if (thisValuesD != null) {
                       double[]thisValuesLineD = thisValuesD[j];
                       double[]thatValuesLineD = thatValuesD[j];
-                      for (int i=0; i<Length; i++) {
+                      for (int i=0; i<getLength(); i++) {
                           thisValuesLineD[i] += thatValuesLineD[i];
                       }
                   }
                   if (thisValuesF != null) {
                       float[]thisValuesLineF = thisValuesF[j];
                       float[]thatValuesLineF = thatValuesF[j];
-                      for (int i=0; i<Length; i++) {
+                      for (int i=0; i<getLength(); i++) {
                           thisValuesLineF[i] += thatValuesLineF[i];
                       }
                   }
@@ -2329,34 +2329,34 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
                 break;
               case SUBTRACT:
                   if (thisValuesD != null)
-                      for (int i=0; i<Length; i++) 
+                      for (int i=0; i<getLength(); i++) 
                           thisValuesD[j][i] -= thatValuesD[j][i];
                   if (thisValuesF != null)
-                      for (int i=0; i<Length; i++) 
+                      for (int i=0; i<getLength(); i++) 
                           thisValuesF[j][i] -= thatValuesF[j][i];
                 break;
               case INV_SUBTRACT:
                   if (thisValuesD != null)
-                      for (int i=0; i<Length; i++) 
+                      for (int i=0; i<getLength(); i++) 
                           thisValuesD[j][i] = thatValuesD[j][i] - thisValuesD[j][i];
                   if (thisValuesF != null)
-                      for (int i=0; i<Length; i++) 
+                      for (int i=0; i<getLength(); i++) 
                           thisValuesF[j][i] = thatValuesF[j][i] - thisValuesF[j][i];
                 break;
               case MAX:
                   if (thisValuesD != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesD[j][i] = Math.max(thisValuesD[j][i], thatValuesD[j][i]);
                   if (thisValuesF != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesF[j][i] = Math.max(thisValuesF[j][i], thatValuesF[j][i]);
                 break;
               case MIN:
                   if (thisValuesD != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesD[j][i] = Math.min (thisValuesD[j][i], thatValuesD[j][i]);
                   if (thisValuesF != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesF[j][i] = Math.min (thisValuesF[j][i], thatValuesF[j][i]);
                 break;
             }
@@ -2418,26 +2418,26 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
             switch(op) {
               case MULTIPLY:
                   if (thisValuesD != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesD[j][i] *= thatValuesD[j][i];
                   if (thisValuesF != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesF[j][i] *= thatValuesF[j][i];
                 break;
               case DIVIDE:
                   if (thisValuesD != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesD[j][i] /= thatValuesD[j][i];
                   if (thisValuesF != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesF[j][i] /= thatValuesF[j][i];
                 break;
               case INV_DIVIDE:
                   if (thisValuesD != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesD[j][i] = thatValuesD[j][i] / thisValuesD[j][i];
                   if (thisValuesF != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesF[j][i] = thatValuesF[j][i] / thisValuesF[j][i];
                 break;
             }
@@ -2476,10 +2476,10 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
               outUnits[j] = null;
             }
             if (thisValuesD != null)
-                for (int i=0; i<Length; i++)
+                for (int i=0; i<getLength(); i++)
                     thisValuesD[j][i] = (double)(Math.pow(thisValuesD[j][i], thatValuesD[j][i]));
             if (thisValuesF != null)
-                for (int i=0; i<Length; i++)
+                for (int i=0; i<getLength(); i++)
                     thisValuesF[j][i] = (float)(Math.pow(thisValuesF[j][i], thatValuesF[j][i]));
           }
           break;
@@ -2516,10 +2516,10 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
               outUnits[j] = null;
             }
             if (thisValuesD != null)
-                for (int i=0; i<Length; i++)
+                for (int i=0; i<getLength(); i++)
                     thisValuesD[j][i] = (double)(Math.pow(thatValuesD[j][i], thisValuesD[j][i]));
             if (thisValuesF != null)
-                for (int i=0; i<Length; i++)
+                for (int i=0; i<getLength(); i++)
                     thisValuesF[j][i] = (float)(Math.pow(thatValuesF[j][i], thisValuesF[j][i]));
           }
           break;
@@ -2551,56 +2551,56 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
             switch(op) {
               case ATAN2:
                   if (thisValuesD != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesD[j][i] = (double)(Math.atan2(thisValuesD[j][i], thatValuesD[j][i]));
                   if (thisValuesF != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesF[j][i] = (float)(Math.atan2(thisValuesF[j][i], thatValuesF[j][i]));
                   outUnits[j] = CommonUnit.radian;
                   break;
               case ATAN2_DEGREES:
                   if (thisValuesD != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesD[j][i] = (double)(Data.RADIANS_TO_DEGREES * Math.atan2(thisValuesD[j][i], thatValuesD[j][i]));
                   if (thisValuesF != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesF[j][i] = (float)(Data.RADIANS_TO_DEGREES * Math.atan2(thisValuesF[j][i], thatValuesF[j][i]));
                 outUnits[j] = CommonUnit.degree;
                 break;
               case INV_ATAN2:
                   if (thisValuesD != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesD[j][i] = (double)(Math.atan2(thatValuesD[j][i], thisValuesD[j][i]));
                   if (thisValuesF != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesF[j][i] = (float)(Math.atan2(thatValuesF[j][i], thisValuesF[j][i]));
                   outUnits[j] = CommonUnit.radian;
                 break;
               case INV_ATAN2_DEGREES:
                   if (thisValuesD != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesD[j][i] = (double)(Data.RADIANS_TO_DEGREES * Math.atan2(thatValuesD[j][i], thisValuesD[j][i]));
                   if (thisValuesF != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesF[j][i] = (float)(Data.RADIANS_TO_DEGREES * Math.atan2(thatValuesF[j][i], thisValuesF[j][i]));
 
                   outUnits[j] = CommonUnit.degree;
                   break;
               case REMAINDER:
                   if (thisValuesD != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesD[j][i] %= thatValuesD[j][i];
                   if (thisValuesF != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesF[j][i] %= thatValuesF[j][i];
                 outUnits[j] = thisUnits[j];
                 break;
               case INV_REMAINDER:
                   if (thisValuesD != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesD[j][i] = thatValuesD[j][i] % thisValuesD[j][i];
                   if (thisValuesF != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesF[j][i] = thatValuesF[j][i] % thisValuesF[j][i];
                 outUnits[j] = thatUnits[j];
                 break;
@@ -2835,42 +2835,42 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
               switch (op) {
               case ADD:
                   if (thisValuesD != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesD[j][i] += thatValues[j];
                   if (thisValuesF != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesF[j][i] += thatValues[j];
                   break;
               case SUBTRACT:
                   if (thisValuesD != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesD[j][i] -= thatValues[j];
                   if (thisValuesF != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesF[j][i] -= thatValues[j];
                   break;
               case INV_SUBTRACT:
                   if (thisValuesD != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesD[j][i] = (double)(thatValues[j] - thisValuesD[j][i]);
                   if (thisValuesF != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesF[j][i] = (float)(thatValues[j] - thisValuesF[j][i]);
                   break;
               case MAX:
                   if (thisValuesD != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesD[j][i] = (double)(Math.max(thisValuesD[j][i], thatValues[j]));
                   if (thisValuesF != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesF[j][i] = (float)(Math.max(thisValuesF[j][i], thatValues[j]));
                   break;
               case MIN:
                   if (thisValuesD != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesD[j][i] = (double)(Math.min(thisValuesD[j][i], thatValues[j]));
                   if (thisValuesF != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesF[j][i] = (float)(Math.min(thisValuesF[j][i], thatValues[j]));
                   break;
               }
@@ -2926,26 +2926,26 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
               switch(op) {
               case MULTIPLY:
                   if (thisValuesD != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesD[j][i] *= thatValues[j];
                   if (thisValuesF != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesF[j][i] *= thatValues[j];
                   break;
               case DIVIDE:
                   if (thisValuesD != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesD[j][i] /= thatValues[j];
                   if (thisValuesF != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesF[j][i] /= thatValues[j];
                   break;
               case INV_DIVIDE:
                   if (thisValuesD != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesD[j][i] = (double)(thatValues[j] / thisValuesD[j][i]);
                   if (thisValuesF != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesF[j][i] = (float)(thatValues[j] / thisValuesF[j][i]);
                   break;
               }
@@ -2979,10 +2979,10 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
                   outUnits[j] = null;
               }
               if (thisValuesD != null)
-                  for (int i=0; i<Length; i++)
+                  for (int i=0; i<getLength(); i++)
                       thisValuesD[j][i] = (double)(Math.pow(thisValuesD[j][i], thatValues[j]));
               if (thisValuesF != null)
-                  for (int i=0; i<Length; i++)
+                  for (int i=0; i<getLength(); i++)
                       thisValuesF[j][i] = (float)(Math.pow(thisValuesF[j][i], thatValues[j]));
           }
           break;
@@ -3014,10 +3014,10 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
                   outUnits[j] = null;
               }
               if (thisValuesD != null)
-                  for (int i=0; i<Length; i++)
+                  for (int i=0; i<getLength(); i++)
                       thisValuesD[j][i] = (double)(Math.pow(thatValues[j], thisValuesD[j][i]));
               if (thisValuesF != null)
-                  for (int i=0; i<Length; i++)
+                  for (int i=0; i<getLength(); i++)
                       thisValuesF[j][i] = (float)(Math.pow(thatValues[j], thisValuesF[j][i]));
           }
           break;
@@ -3046,59 +3046,59 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
               switch(op) {
               case ATAN2:
                   if (thisValuesD != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesD[j][i] = (double)(Math.atan2(thisValuesD[j][i], thatValues[j]));
                   if (thisValuesF != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesF[j][i] = (float)(Math.atan2(thisValuesF[j][i], thatValues[j]));
                   outUnits[j] = CommonUnit.radian;
                   break;
               case ATAN2_DEGREES:
                   if (thisValuesD != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesD[j][i] = (double)(Data.RADIANS_TO_DEGREES * 
                                                        Math.atan2(thisValuesD[j][i], thatValues[j]));
                   if (thisValuesF != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesF[j][i] = (float)(Data.RADIANS_TO_DEGREES * 
                                                        Math.atan2(thisValuesF[j][i], thatValues[j]));
                   outUnits[j] = CommonUnit.degree;
                   break;
               case INV_ATAN2:
                   if (thisValuesD != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesD[j][i] = (double)(Math.atan2(thatValues[j], thisValuesD[j][i]));
                   if (thisValuesF != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesF[j][i] = (float)(Math.atan2(thatValues[j], thisValuesF[j][i]));
                   outUnits[j] = CommonUnit.radian;
                   break;
               case INV_ATAN2_DEGREES:
                   if (thisValuesD != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesD[j][i] = (double)(Data.RADIANS_TO_DEGREES * 
                                                        Math.atan2(thatValues[j], thisValuesD[j][i]));
                   if (thisValuesF != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesF[j][i] = (float)(Data.RADIANS_TO_DEGREES * 
                                                        Math.atan2(thatValues[j], thisValuesF[j][i]));
                   outUnits[j] = CommonUnit.degree;
                   break;
               case REMAINDER:
                   if (thisValuesD != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesD[j][i] %= thatValues[j];
                   if (thisValuesF != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesF[j][i] %= thatValues[j];
                   outUnits[j] = thisUnits[j];
                   break;
               case INV_REMAINDER:
                   if (thisValuesD != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesD[j][i] = (double)(thatValues[j] % thisValuesD[j][i]);
                   if (thisValuesF != null)
-                      for (int i=0; i<Length; i++)
+                      for (int i=0; i<getLength(); i++)
                           thisValuesF[j][i] = (float)(thatValues[j] % thisValuesF[j][i]);
                   outUnits[j] = thatUnits[j];
                   break;
@@ -3210,13 +3210,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
             for (j=0; j<TupleDimension; j++) {
                 if (valuesD != null) {
                     valuesDJ = valuesD[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesDJ[i] = Math.abs(valuesDJ[i]);
                     }
                 }
                 if (valuesF != null) {
                     valuesFJ = valuesF[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesFJ[i] = Math.abs(valuesFJ[i]);
                     }
                 }
@@ -3227,13 +3227,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
             for (j=0; j<TupleDimension; j++) {
                 if (valuesD != null) {
                     valuesDJ = valuesD[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesDJ[i] = (double)(Math.acos(valuesDJ[i]));
                     }
                 }
                 if (valuesF != null) {
                     valuesFJ = valuesF[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesFJ[i] = (float)(Math.acos(valuesFJ[i]));
                     }
                 }
@@ -3245,13 +3245,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
             for (j=0; j<TupleDimension; j++) {
                 if (valuesD != null) {
                     valuesDJ = valuesD[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesDJ[i] = (double)(Data.RADIANS_TO_DEGREES * Math.acos(valuesDJ[i]));
                     }
                 }
                 if (valuesF != null) {
                     valuesFJ = valuesF[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesFJ[i] = (float)(Data.RADIANS_TO_DEGREES * Math.acos(valuesFJ[i]));
                     }
                 }
@@ -3263,13 +3263,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
             for (j=0; j<TupleDimension; j++) {
                 if (valuesD != null) {
                     valuesDJ = valuesD[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesDJ[i] = (double)(Math.asin(valuesDJ[i]));
                     }
                 }
                 if (valuesF != null) {
                     valuesFJ = valuesF[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesFJ[i] = (float)(Math.asin(valuesFJ[i]));
                     }
                 }
@@ -3281,13 +3281,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
             for (j=0; j<TupleDimension; j++) {
                 if (valuesD != null) {
                     valuesDJ = valuesD[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesDJ[i] = (double)(Data.RADIANS_TO_DEGREES * Math.asin(valuesDJ[i]));
                     }
                 }
                 if (valuesF != null) {
                     valuesFJ = valuesF[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesFJ[i] = (float)(Data.RADIANS_TO_DEGREES * Math.asin(valuesFJ[i]));
                     }
                 }
@@ -3299,13 +3299,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
             for (j=0; j<TupleDimension; j++) {
                 if (valuesD != null) {
                     valuesDJ = valuesD[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesDJ[i] = (double)(Math.atan(valuesDJ[i]));
                     }
                 }
                 if (valuesF != null) {
                     valuesFJ = valuesF[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesFJ[i] = (float)(Math.atan(valuesFJ[i]));
                     }
                 }
@@ -3317,13 +3317,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
             for (j=0; j<TupleDimension; j++) {
                 if (valuesD != null) {
                     valuesDJ = valuesD[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesDJ[i] = (double)(Data.RADIANS_TO_DEGREES * Math.atan(valuesDJ[i]));
                     }
                 }
                 if (valuesF != null) {
                     valuesFJ = valuesF[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesFJ[i] = (float)(Data.RADIANS_TO_DEGREES * Math.atan(valuesFJ[i]));
                     }
                 }
@@ -3334,13 +3334,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
             for (j=0; j<TupleDimension; j++) {
                 if (valuesD != null) {
                     valuesDJ = valuesD[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesDJ[i] = (double)(Math.ceil(valuesDJ[i]));
                     }
                 }
                 if (valuesF != null) {
                     valuesFJ = valuesF[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesFJ[i] = (float)(Math.ceil(valuesFJ[i]));
                     }
                 }
@@ -3354,13 +3354,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
                 if (CommonUnit.degree.equals(units_in[j])) {
                     if (valuesD != null) {
                         valuesDJ = valuesD[j];
-                        for (i=0; i<Length; i++) {
+                        for (i=0; i<getLength(); i++) {
                             valuesDJ[i] = (double)(Math.cos(Data.DEGREES_TO_RADIANS * valuesDJ[i]));
                         }
                     }
                     if (valuesF != null) {
                         valuesFJ = valuesF[j];
-                        for (i=0; i<Length; i++) {
+                        for (i=0; i<getLength(); i++) {
                             valuesFJ[i] = (float)(Math.cos(Data.DEGREES_TO_RADIANS * valuesFJ[i]));
                         }
                     }
@@ -3369,13 +3369,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
                 else {
                     if (valuesD != null) {
                         valuesDJ = valuesD[j];
-                        for (i=0; i<Length; i++) {
+                        for (i=0; i<getLength(); i++) {
                             valuesDJ[i] = (double)(Math.cos(valuesDJ[i]));
                         }
                     }
                     if (valuesF != null) {
                         valuesFJ = valuesF[j];
-                        for (i=0; i<Length; i++) {
+                        for (i=0; i<getLength(); i++) {
                             valuesFJ[i] = (float)(Math.cos(valuesFJ[i]));
                         }
                     }
@@ -3391,13 +3391,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
                 if (CommonUnit.radian.equals(units_in[j])) {
                     if (valuesD != null) {
                         valuesDJ = valuesD[j];
-                        for (i=0; i<Length; i++) {
+                        for (i=0; i<getLength(); i++) {
                             valuesDJ[i] = (double)(Math.cos(valuesDJ[i]));
                         }
                     }
                     if (valuesF != null) {
                         valuesFJ = valuesF[j];
-                        for (i=0; i<Length; i++) {
+                        for (i=0; i<getLength(); i++) {
                             valuesFJ[i] = (float)(Math.cos(valuesFJ[i]));
                         }
                     }
@@ -3406,13 +3406,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
                 else {
                     if (valuesD != null) {
                         valuesDJ = valuesD[j];
-                        for (i=0; i<Length; i++) {
+                        for (i=0; i<getLength(); i++) {
                             valuesDJ[i] = (double)(Math.cos(Data.DEGREES_TO_RADIANS * valuesDJ[i]));
                         }
                     }
                     if (valuesF != null) {
                         valuesFJ = valuesF[j];
-                        for (i=0; i<Length; i++) {
+                        for (i=0; i<getLength(); i++) {
                             valuesFJ[i] = (float)(Math.cos(Data.DEGREES_TO_RADIANS * valuesFJ[i]));
                         }
                     }
@@ -3426,13 +3426,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
             for (j=0; j<TupleDimension; j++) {
                 if (valuesD != null) {
                     valuesDJ = valuesD[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesDJ[i] = (double)(Math.exp(valuesDJ[i]));
                     }
                 }
                 if (valuesF != null) {
                     valuesFJ = valuesF[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesFJ[i] = (float)(Math.exp(valuesFJ[i]));
                     }
                 }
@@ -3445,13 +3445,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
             for (j=0; j<TupleDimension; j++) {
                 if (valuesD != null) {
                     valuesDJ = valuesD[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesDJ[i] = (double)(Math.floor(valuesDJ[i]));
                     }
                 }
                 if (valuesF != null) {
                     valuesFJ = valuesF[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesFJ[i] = (float)(Math.floor(valuesFJ[i]));
                     }
                 }
@@ -3463,13 +3463,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
             for (j=0; j<TupleDimension; j++) {
                 if (valuesD != null) {
                     valuesDJ = valuesD[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesDJ[i] = (double)(Math.log(valuesDJ[i]));
                     }
                 }
                 if (valuesF != null) {
                     valuesFJ = valuesF[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesFJ[i] = (float)(Math.log(valuesFJ[i]));
                     }
                 }
@@ -3482,13 +3482,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
             for (j=0; j<TupleDimension; j++) {
                 if (valuesD != null) {
                     valuesDJ = valuesD[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesDJ[i] = (double)(Math.rint(valuesDJ[i]));
                     }
                 }
                 if (valuesF != null) {
                     valuesFJ = valuesF[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesFJ[i] = (float)(Math.rint(valuesFJ[i]));
                     }
                 }
@@ -3500,13 +3500,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
             for (j=0; j<TupleDimension; j++) {
                 if (valuesD != null) {
                     valuesDJ = valuesD[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesDJ[i] = Math.round(valuesDJ[i]);
                     }
                 }
                 if (valuesF != null) {
                     valuesFJ = valuesF[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesFJ[i] = Math.round(valuesFJ[i]);
                     }
                 }
@@ -3519,13 +3519,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
                 if (CommonUnit.degree.equals(units_in[j])) {
                     if (valuesD != null) {
                         valuesDJ = valuesD[j];
-                        for (i=0; i<Length; i++) {
+                        for (i=0; i<getLength(); i++) {
                             valuesDJ[i] = (double)(Math.sin(Data.DEGREES_TO_RADIANS * valuesDJ[i]));
                         }
                     }
                     if (valuesF != null) {
                         valuesFJ = valuesF[j];
-                        for (i=0; i<Length; i++) {
+                        for (i=0; i<getLength(); i++) {
                             valuesFJ[i] = (float)(Math.sin(Data.DEGREES_TO_RADIANS * valuesFJ[i]));
                         }
                     }
@@ -3534,13 +3534,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
                 else {
                     if (valuesD != null) {
                         valuesDJ = valuesD[j];
-                        for (i=0; i<Length; i++) {
+                        for (i=0; i<getLength(); i++) {
                             valuesDJ[i] = (double)(Math.sin(valuesDJ[i]));
                         }
                     }
                     if (valuesF != null) {
                         valuesFJ = valuesF[j];
-                        for (i=0; i<Length; i++) {
+                        for (i=0; i<getLength(); i++) {
                             valuesFJ[i] = (float)(Math.sin(valuesFJ[i]));
                         }
                     }
@@ -3556,13 +3556,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
                 if (CommonUnit.radian.equals(units_in[j])) {
                     if (valuesD != null) {
                         valuesDJ = valuesD[j];
-                        for (i=0; i<Length; i++) {
+                        for (i=0; i<getLength(); i++) {
                             valuesDJ[i] = (double)(Math.sin(valuesDJ[i]));
                         }
                     }
                     if (valuesF != null) {
                         valuesFJ = valuesF[j];
-                        for (i=0; i<Length; i++) {
+                        for (i=0; i<getLength(); i++) {
                             valuesFJ[i] = (float)(Math.sin(valuesFJ[i]));
                         }
                     }
@@ -3571,13 +3571,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
                 else {
                     if (valuesD != null) {
                         valuesDJ = valuesD[j];
-                        for (i=0; i<Length; i++) {
+                        for (i=0; i<getLength(); i++) {
                             valuesDJ[i] = (double)(Math.sin(Data.DEGREES_TO_RADIANS * valuesDJ[i]));
                         }
                     }
                     if (valuesF != null) {
                         valuesFJ = valuesF[j];
-                        for (i=0; i<Length; i++) {
+                        for (i=0; i<getLength(); i++) {
                             valuesFJ[i] = (float)(Math.sin(Data.DEGREES_TO_RADIANS * valuesFJ[i]));
                         }
                     }
@@ -3591,13 +3591,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
             for (j=0; j<TupleDimension; j++) {
                 if (valuesD != null) {
                     valuesDJ = valuesD[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesDJ[i] = (double)(Math.sqrt(valuesDJ[i]));
                     }
                 }
                 if (valuesF != null) {
                     valuesFJ = valuesF[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesFJ[i] = (float)(Math.sqrt(valuesFJ[i]));
                     }
                 }
@@ -3626,13 +3626,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
                 if (CommonUnit.degree.equals(units_in[j])) {
                     if (valuesD != null) {
                         valuesDJ = valuesD[j];
-                        for (i=0; i<Length; i++) {
+                        for (i=0; i<getLength(); i++) {
                             valuesDJ[i] = (double)(Math.tan(Data.DEGREES_TO_RADIANS * valuesDJ[i]));
                         }
                     }
                     if (valuesF != null) {
                         valuesFJ = valuesF[j];
-                        for (i=0; i<Length; i++) {
+                        for (i=0; i<getLength(); i++) {
                             valuesFJ[i] = (float)(Math.tan(Data.DEGREES_TO_RADIANS * valuesFJ[i]));
                         }
                     }
@@ -3641,13 +3641,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
                 else {
                     if (valuesD != null) {
                         valuesDJ = valuesD[j];
-                        for (i=0; i<Length; i++) {
+                        for (i=0; i<getLength(); i++) {
                             valuesDJ[i] = (double)(Math.tan(valuesDJ[i]));
                         }
                     }
                     if (valuesF != null) {
                         valuesFJ = valuesF[j];
-                        for (i=0; i<Length; i++) {
+                        for (i=0; i<getLength(); i++) {
                             valuesFJ[i] = (float)(Math.tan(valuesFJ[i]));
                         }
                     }
@@ -3662,13 +3662,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
                 if (CommonUnit.radian.equals(units_in[j])) {
                     if (valuesD != null) {
                         valuesDJ = valuesD[j];
-                        for (i=0; i<Length; i++) {
+                        for (i=0; i<getLength(); i++) {
                             valuesDJ[i] = (double)(Math.tan(valuesDJ[i]));
                         }
                     }
                     if (valuesF != null) {
                         valuesFJ = valuesF[j];
-                        for (i=0; i<Length; i++) {
+                        for (i=0; i<getLength(); i++) {
                             valuesFJ[i] = (float)(Math.tan(valuesFJ[i]));
                         }
                     }
@@ -3677,13 +3677,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
                 else {
                     if (valuesD != null) {
                         valuesDJ = valuesD[j];
-                        for (i=0; i<Length; i++) {
+                        for (i=0; i<getLength(); i++) {
                             valuesDJ[i] = (double)(Math.tan(Data.DEGREES_TO_RADIANS * valuesDJ[i]));
                         }
                     }
                     if (valuesF != null) {
                         valuesFJ = valuesF[j];
-                        for (i=0; i<Length; i++) {
+                        for (i=0; i<getLength(); i++) {
                             valuesFJ[i] = (float)(Math.tan(Data.DEGREES_TO_RADIANS * valuesFJ[i]));
                         }
                     }
@@ -3697,13 +3697,13 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
             for (j=0; j<TupleDimension; j++) {
                 if (valuesD != null) {
                     valuesDJ = valuesD[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesDJ[i] = -valuesDJ[i];
                     }
                 }
                 if (valuesF != null) {
                     valuesFJ = valuesF[j];
-                    for (i=0; i<Length; i++) {
+                    for (i=0; i<getLength(); i++) {
                         valuesFJ[i] = -valuesFJ[i];
                     }
                 }
@@ -4286,7 +4286,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
         neighbors = new int[n_samples][];
         weights = new float[n_samples][];
 
-        ((SimpleSet)DomainSet).valueToInterp( evalSamples, neighbors, weights );
+        ((SimpleSet)domainSet).valueToInterp( evalSamples, neighbors, weights );
 
         n_points = neighbors[0].length;
         new_neighbors = new int[n_samples][ n_points ];
@@ -4517,20 +4517,21 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
      * you make changes to this method, make the corresponding changes
      * in resampleDouble.
      */
+    Set domainSet = getDomainSet();
 
     visad.util.Trace.call1("FlatField.resample");
-    if (DomainSet.equals(set)) {
+    if (domainSet.equals(set)) {
       // nothing to do
       visad.util.Trace.call2("FlatField.resample", "sampling set==domain set");
       return this;
     }
 
-    int dim = DomainSet.getDimension();
+    int dim = domainSet.getDimension();
     if (dim != set.getDimension()) {
       throw new SetException("FlatField.resample: bad Set Dimension");
     }
 
-    if (DomainSet instanceof GriddedDoubleSet) {
+    if (domainSet instanceof GriddedDoubleSet) {
       return resampleDouble(set, sampling_mode, error_mode);
     }
 
@@ -4585,7 +4586,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
       vals = CoordinateSystem.transformCoordinates(
                       ((FunctionType) Type).getDomain(), 
                       getDomainCoordinateSystem(),
-                      DomainUnits, errors_out,
+                      getDomainUnits(), errors_out,
                       ((SetType) set.getType()).getDomain(), coord_sys,
                       units, errors, vals, false);
     } catch (UnitException ue) {
@@ -4625,14 +4626,14 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
     float[] new_valuesJ;
     float[] valuesJ;
 
-    if (sampling_mode == WEIGHTED_AVERAGE && DomainSet instanceof SimpleSet) {
+    if (sampling_mode == WEIGHTED_AVERAGE && domainSet instanceof SimpleSet) {
       // resample by interpolation
       int[][] indices = new int[length][];
       float[][] coefs = new float[length][];
-      ((SimpleSet) DomainSet).valueToInterp(vals, indices, coefs);
+      ((SimpleSet) domainSet).valueToInterp(vals, indices, coefs);
 
 /* DEBUG
-// System.out.println("DomainSet = " + DomainSet);
+// System.out.println("DomainSet = " + domainSet);
 // System.out.println("set = " + set);
 
 // for (i=0; i<length; i++) {
@@ -4644,7 +4645,7 @@ for (i=0; i<ii; i++) {
   if (indices[i] != null && coefs[i] != null) {
     pr = true;
     if (i == 0) {
-      System.out.println("DomainSet = " + DomainSet);
+      System.out.println("DomainSet = " + domainSet);
       System.out.println("set = " + set);
     }
     System.out.println("vals[0][" + i + "] = " + vals[0][i] +
@@ -4707,7 +4708,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
       if (sampling_errors) {
         int[][] error_indices = new int[2 * dim][];
         float[][] error_coefs = new float[2 * dim][];
-        ((SimpleSet) DomainSet).valueToInterp(error_values, error_indices,
+        ((SimpleSet) domainSet).valueToInterp(error_values, error_indices,
                                               error_coefs);
 
         for (j=0; j<TupleDimension; j++) {
@@ -4736,9 +4737,9 @@ if (pr) System.out.println("value = " + new_values[0][0]);
     }
     else { // NEAREST_NEIGHBOR or set is not SimpleSet
       // simple resampling
-      int[] indices = DomainSet.valueToIndex(vals);
+      int[] indices = domainSet.valueToIndex(vals);
 /* DEBUG
-// System.out.println("DomainSet = " + DomainSet);
+// System.out.println("DomainSet = " + domainSet);
 // System.out.println("set = " + set);
 
 // for (i=0; i<length; i++) {
@@ -4750,7 +4751,7 @@ for (i=0; i<ii; i++) {
   if (indices[i] >= 0) {
     pr = true;
     if (i == 0) {
-      System.out.println("DomainSet = " + DomainSet);
+      System.out.println("DomainSet = " + domainSet);
       System.out.println("set = " + set);
     }
     System.out.println("NEAREST_NEIGHBOR indices[" + i + "] = " + indices[i]);
@@ -4788,7 +4789,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
 */
 
       if (sampling_errors) {
-        int[] error_indices = DomainSet.valueToIndex(error_values);
+        int[] error_indices = domainSet.valueToIndex(error_values);
         for (j=0; j<TupleDimension; j++) {
           for (i=0; i<dim; i++) {
             float a = (float) ((error_indices[2*i] >= 0) ?
@@ -4839,7 +4840,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
       if (Range instanceof RealVectorType) {
         new_values = ((RealVectorType) Range).transformVectors(
                       ((FunctionType) Type).getDomain(),
-                      getDomainCoordinateSystem(), DomainUnits, errors_out,
+                      getDomainCoordinateSystem(), getDomainUnits(), errors_out,
                       ((SetType) set.getType()).getDomain(),
                       coord_sys, units, RangeCoordinateSystem,
                       range_errors_in, range_errors_out,
@@ -4863,7 +4864,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
             ErrorEstimate[] comp_errors_out = comp_errors_in;
             comp_vals = ((RealVectorType) comp_type).transformVectors(
                         ((FunctionType) Type).getDomain(),
-                        getDomainCoordinateSystem(), DomainUnits, errors_out,
+                        getDomainCoordinateSystem(), getDomainUnits(), errors_out,
                         ((SetType) set.getType()).getDomain(), coord_sys, units,
                         RangeCoordinateSystems[j],
                         comp_errors_in, comp_errors_out,
@@ -4915,19 +4916,20 @@ if (pr) System.out.println("value = " + new_values[0][0]);
      * you make changes to this method, make the corresponding changes
      * in resample if necessary.
      */
+    Set domainSet = getDomainSet();
     visad.util.Trace.call1("FlatField.resample");
-    if (DomainSet.equals(set)) {
+    if (domainSet.equals(set)) {
       // nothing to do
       visad.util.Trace.call2("FlatField.resample", "sampling set==domain set");
       return this;
     }
 
-    int dim = DomainSet.getDimension();
+    int dim = domainSet.getDimension();
     if (dim != set.getDimension()) {
       throw new SetException("FlatField.resample: bad Set Dimension");
     }
 
-    if (!(DomainSet instanceof GriddedDoubleSet)) {
+    if (!(domainSet instanceof GriddedDoubleSet)) {
       return resample(set, sampling_mode, error_mode);
     }
 
@@ -4982,7 +4984,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
       vals = CoordinateSystem.transformCoordinates(
                       ((FunctionType) Type).getDomain(), 
                       getDomainCoordinateSystem(),
-                      DomainUnits, errors_out,
+                      getDomainUnits(), errors_out,
                       ((SetType) set.getType()).getDomain(), coord_sys,
                       units, errors, vals, false);
     } catch (UnitException ue) {
@@ -5025,10 +5027,10 @@ if (pr) System.out.println("value = " + new_values[0][0]);
       // resample by interpolation
       int[][] indices = new int[length][];
       double[][] coefs = new double[length][];
-      ((GriddedDoubleSet) DomainSet).doubleToInterp(vals, indices, coefs);
+      ((GriddedDoubleSet) domainSet).doubleToInterp(vals, indices, coefs);
 
 /* DEBUG
-// System.out.println("DomainSet = " + DomainSet);
+// System.out.println("DomainSet = " + domainSet);
 // System.out.println("set = " + set);
 
 // for (i=0; i<length; i++) {
@@ -5040,7 +5042,7 @@ for (i=0; i<ii; i++) {
   if (indices[i] != null && coefs[i] != null) {
     pr = true;
     if (i == 0) {
-      System.out.println("DomainSet = " + DomainSet);
+      System.out.println("DomainSet = " + domainSet);
       System.out.println("set = " + set);
     }
     System.out.println("vals[0][" + i + "] = " + vals[0][i] +
@@ -5103,7 +5105,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
       if (sampling_errors) {
         int[][] error_indices = new int[2 * dim][];
         double[][] error_coefs = new double[2 * dim][];
-        ((GriddedDoubleSet) DomainSet).doubleToInterp(error_values, error_indices,
+        ((GriddedDoubleSet) domainSet).doubleToInterp(error_values, error_indices,
                                               error_coefs);
 
         for (j=0; j<TupleDimension; j++) {
@@ -5132,9 +5134,9 @@ if (pr) System.out.println("value = " + new_values[0][0]);
     }
     else { // NEAREST_NEIGHBOR or set is not SimpleSet
       // simple resampling
-      int[] indices = DomainSet.doubleToIndex(vals);
+      int[] indices = domainSet.doubleToIndex(vals);
 /* DEBUG
-// System.out.println("DomainSet = " + DomainSet);
+// System.out.println("DomainSet = " + domainSet);
 // System.out.println("set = " + set);
 
 // for (i=0; i<length; i++) {
@@ -5146,7 +5148,7 @@ for (i=0; i<ii; i++) {
   if (indices[i] >= 0) {
     pr = true;
     if (i == 0) {
-      System.out.println("DomainSet = " + DomainSet);
+      System.out.println("DomainSet = " + domainSet);
       System.out.println("set = " + set);
     }
     System.out.println("NEAREST_NEIGHBOR indices[" + i + "] = " + indices[i]);
@@ -5184,7 +5186,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
 */
 
       if (sampling_errors) {
-        int[] error_indices = DomainSet.doubleToIndex(error_values);
+        int[] error_indices = domainSet.doubleToIndex(error_values);
         for (j=0; j<TupleDimension; j++) {
           for (i=0; i<dim; i++) {
             float a = (float) ((error_indices[2*i] >= 0) ?
@@ -5235,7 +5237,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
       if (Range instanceof RealVectorType) {
         new_values = ((RealVectorType) Range).transformVectors(
                       ((FunctionType) Type).getDomain(),
-                      getDomainCoordinateSystem(), DomainUnits, errors_out,
+                      getDomainCoordinateSystem(), getDomainUnits(), errors_out,
                       ((SetType) set.getType()).getDomain(),
                       coord_sys, units, RangeCoordinateSystem,
                       range_errors_in, range_errors_out,
@@ -5259,7 +5261,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
             ErrorEstimate[] comp_errors_out = comp_errors_in;
             comp_vals = ((RealVectorType) comp_type).transformVectors(
                         ((FunctionType) Type).getDomain(),
-                        getDomainCoordinateSystem(), DomainUnits, errors_out,
+                        getDomainCoordinateSystem(), getDomainUnits(), errors_out,
                         ((SetType) set.getType()).getDomain(), coord_sys, units,
                         RangeCoordinateSystems[j],
                         comp_errors_in, comp_errors_out,
@@ -5292,9 +5294,9 @@ if (pr) System.out.println("value = " + new_values[0][0]);
 
   /** convert this FlatField to a (non-Flat) FieldImpl */
   public Field convertToField() throws VisADException, RemoteException {
-    Field new_field = new FieldImpl((FunctionType) Type, DomainSet);
+    Field new_field = new FieldImpl((FunctionType) Type, getDomainSet());
     if (isMissing()) return new_field;
-    for (int i=0; i<Length; i++) {
+    for (int i=0; i<getLength(); i++) {
       new_field.setSample(i, getSample(i));
     }
     return new_field;
@@ -5308,7 +5310,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
     int n = domain_type.getDimension();
     double[][] ranges = new double[2][n];
     // DomainSet.computeRanges handles Reference
-    shadow = DomainSet.computeRanges(domain_type, shadow, ranges, true);
+    shadow = getDomainSet().computeRanges(domain_type, shadow, ranges, true);
     ShadowRealTupleType shad_ref;
     // skip range if no range components are mapped
     int[] indices = ((ShadowFunctionType) type).getRangeDisplayIndices();
@@ -5353,7 +5355,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
         double max = -Double.MAX_VALUE;
 
         if (valuesDI!=null) {
-            for (int j=0; j<Length; j++) {
+            for (int j=0; j<getLength(); j++) {
                 if (valuesDI[j] == valuesDI[j]) {
                     min = Math.min(min, valuesDI[j]);
                     max = Math.max(max, valuesDI[j]);
@@ -5362,7 +5364,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
         }
 
         if (valuesFI!=null) {
-            for (int j=0; j<Length; j++) {
+            for (int j=0; j<getLength(); j++) {
                 if (valuesFI[j] == valuesFI[j]) {
                     min = Math.min(min, valuesFI[j]);
                     max = Math.max(max, valuesFI[j]);
@@ -5438,11 +5440,11 @@ if (pr) System.out.println("value = " + new_values[0][0]);
          throws VisADException, RemoteException {
     if (isMissing() || error == null || error.isMissing()) return this;
     FlatField field =
-      new FlatField((FunctionType) Type, DomainSet, RangeCoordinateSystem,
+      new FlatField((FunctionType) Type, getDomainSet(), RangeCoordinateSystem,
                     RangeCoordinateSystems, RangeSet, RangeUnits);
     if (isMissing()) return field;
     FlatField new_error = (FlatField)
-      ((FlatField) error).resample(DomainSet, NEAREST_NEIGHBOR, NO_ERRORS);
+      ((FlatField) error).resample(getDomainSet(), NEAREST_NEIGHBOR, NO_ERRORS);
 
     //TODO: check for float vs. double
     double[][] values = unpackValues();
@@ -5490,7 +5492,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
       sets[i] = new DoubleSet(set_type);
     }
     FlatField field =
-      new FlatField((FunctionType) Type, DomainSet, RangeCoordinateSystem,
+      new FlatField((FunctionType) Type, getDomainSet(), RangeCoordinateSystem,
                     RangeCoordinateSystems, sets, units);
     double[][] values = unpackValues();
     field.packValues(values, false);
@@ -5530,7 +5532,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
 /* WLH 3 April 2003
     FlatField field =
       new FlatField((FunctionType) N_type, 
-                    DomainSet, 
+                    getDomainSet(), 
                     RangeCoordinateSystem,
                     RangeCoordinateSystems, 
                     sets, 
@@ -5539,10 +5541,10 @@ if (pr) System.out.println("value = " + new_values[0][0]);
     RealTupleType d_type = ((FunctionType)N_type).getDomain();
     Set new_set = null;
     if (!d_type.equals( ((FunctionType) getType()).getDomain() )) {
-      new_set = (Set) DomainSet.cloneButType(d_type);
+      new_set = (Set) getDomainSet().cloneButType(d_type);
     }
     else {
-      new_set = DomainSet;
+      new_set = getDomainSet();
     }
     FlatField field =
       new FlatField((FunctionType) N_type,
@@ -5592,16 +5594,16 @@ if (pr) System.out.println("value = " + new_values[0][0]);
     }
 /* WLH 3 April 2003
     FlatField field =
-      new FlatField((FunctionType) N_type, DomainSet, RangeCoordinateSystem,
+      new FlatField((FunctionType) N_type, getDomainSet(), RangeCoordinateSystem,
                     RangeCoordinateSystems, sets, units);
 */
     RealTupleType d_type = ((FunctionType)N_type).getDomain();
     Set new_set = null;
     if (!d_type.equals( ((FunctionType) getType()).getDomain() )) {
-      new_set = (Set) DomainSet.cloneButType(d_type);
+      new_set = (Set) getDomainSet().cloneButType(d_type);
     }
     else {
-      new_set = DomainSet;
+      new_set = getDomainSet();
     }
     FlatField field = 
       new FlatField((FunctionType) N_type, new_set, RangeCoordinateSystem,
@@ -5622,7 +5624,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
 
   /** clone metadata but return missing values */
   private FlatField cloneMissing() throws VisADException {
-    return new FlatField((FunctionType) Type, DomainSet, RangeCoordinateSystem,
+    return new FlatField((FunctionType) Type, getDomainSet(), RangeCoordinateSystem,
                          RangeCoordinateSystems, RangeSet, RangeUnits);
   }
 
@@ -5678,20 +5680,20 @@ if (pr) System.out.println("value = " + new_values[0][0]);
     StringBuffer s = new StringBuffer("");
     int ncolumns = 8 / TupleDimension;
     if (ncolumns < 1) ncolumns = 1;
-    if (DomainSet instanceof GriddedSet) {
-        // && ((GriddedSet) DomainSet).ManifoldDimension == 2) {
-      rowlength = ((GriddedSet) DomainSet).getLength(0);
+    if (getDomainSet() instanceof GriddedSet) {
+        // && ((GriddedSet) getDomainSet()).ManifoldDimension == 2) {
+      rowlength = ((GriddedSet) getDomainSet()).getLength(0);
     }
     else {
-      rowlength = Length;
+      rowlength = getLength();
     }
     RealTupleType range = ((FunctionType) Type).getFlatRange();
     RealType[] types = range.getRealComponents();
     double[][] values = unpackValues();
     int rl = rowlength;
     int i = 0;
-    while (i<Length) {
-      int nc = Math.min(rl, Math.min(ncolumns, Length-i));
+    while (i<getLength()) {
+      int nc = Math.min(rl, Math.min(ncolumns, getLength()-i));
       int ip = i + nc;
       for (int k=i; k<ip; k++) {
         if (k > i) s.append(", ");
@@ -5739,7 +5741,7 @@ if (pr) System.out.println("value = " + new_values[0][0]);
         rl = rowlength;
         s.append("\n");
       }
-    } // end while (i<Length)
+    } // end while (i<getLength())
     return s.toString();
   }
 
@@ -5760,8 +5762,8 @@ if (pr) System.out.println("value = " + new_values[0][0]);
   public String longString(String pre) throws VisADException {
     String t = pre + "FlatField\n" + pre + "  Type: " +
                Type.toString() + "\n";
-    if (DomainSet != null) {
-      t = t + pre + "  DomainSet:\n" + DomainSet.longString(pre + "    ");
+    if (getDomainSet() != null) {
+      t = t + pre + "  DomainSet:\n" + getDomainSet().longString(pre + "    ");
     }
     else {
       t = t + pre + "  DomainSet: undefined\n";
