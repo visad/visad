@@ -28,6 +28,7 @@ package visad.data;
 
 
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.Hashtable;
 
 import visad.util.Util;
@@ -35,40 +36,37 @@ import visad.util.Util;
 
 /**
  * This class is used by the CachingCoordinateSystem to do the actual caching mapping one array to another one
- * @version $Revision: 1.2 $ $Date: 2009-12-01 19:42:01 $
+ * @version $Revision: 1.3 $ $Date: 2009-12-07 12:22:04 $
  */
 public class ArrayCache {
 
-
-
-
   /** Do we cache */
   private boolean enabled =
-    Boolean.parseBoolean(System.getProperty("visad.arraycache.enabled",
+    Boolean.parseBoolean(System.getProperty("visad.data.arraycache.enabled",
                                             "true"));
 
   /** lower size threshold */
   private int lowerThreshold =
-    Integer.parseInt(System.getProperty("visad.arraycache.lowerthreshold",
+    Integer.parseInt(System.getProperty("visad.data.arraycache.lowerthreshold",
                                         "1000"));
 
 
   /** upper size threshold */
   private int upperThreshold =
-    Integer.parseInt(System.getProperty("visad.arraycache.upperthreshold",
+    Integer.parseInt(System.getProperty("visad.data.arraycache.upperthreshold",
                                         "1000000"));
 
 
-  /** holds float arrays */
-  private Hashtable<Object, float[][][]> floatMap = new Hashtable<Object,
-      float[][][]>();
+  private boolean useDataCacheManager = 
+      Boolean.parseBoolean(System.getProperty("visad.data.arraycache.usedatacachemanager",
+                                              "false"));
 
-  /** holds double arrays */
-  private Hashtable<Object, double[][][]> doubleMap = new Hashtable<Object,
-      double[][][]>();
 
 
   private Hashtable<String,Integer>  misses = new Hashtable<String,Integer>();
+
+
+
 
 
   /**
@@ -98,16 +96,20 @@ public class ArrayCache {
    *
    * @return
    */
-  public synchronized FloatResult get(String key, float[][] input) {
+  public FloatResult get(String key, float[][] input) {
     if (!shouldHandle(input)) {
         return new FloatResult(false);
     }
+    return getInner(key, input);
+  }
+
+
+   private synchronized FloatResult getInner(String key, float[][] input) {
     key = getKey(key, input[0].length);
-    float[][][] pair = floatMap.get(key);
+    float[][][] pair = getFloatValue(key);
     if (pair == null) {
       return handleCacheMiss(key, input);
     }
-
 
     float[][] lastInput = pair[0];
     float[][] lastOutput = pair[1];
@@ -134,12 +136,19 @@ public class ArrayCache {
    *
    * @return
    */
-  public synchronized  DoubleResult get(String key, double[][] input) {
+  public DoubleResult get(String key, double[][] input) {
       if (!shouldHandle(input)) {
          return new DoubleResult(false);
     }
+      return getInner(key, input);
+  }
+
+
+
+ private synchronized  DoubleResult getInner(String key, double[][] input) {
+
     key = getKey(key, input[0].length);
-    double[][][] pair = doubleMap.get(key);
+    double[][][] pair = getDoubleValue(key);
     if (pair == null) {
         return handleCacheMiss(key, input);
     }        
@@ -166,9 +175,8 @@ public class ArrayCache {
             misses.put(key, new Integer(numMisses.intValue()+1));
         }
         if(numMisses.intValue()>3) {
-            doubleMap.remove(key);
+            removeValue(key);
         }
-
         return new DoubleResult(numMisses.intValue()<=1);
   }
 
@@ -181,7 +189,7 @@ public class ArrayCache {
             misses.put(key, new Integer(numMisses.intValue()+1));
         }
         if(numMisses.intValue()>3) {
-            floatMap.remove(key);
+            removeValue(key);
         }
         return new FloatResult(numMisses.intValue()<=1);
   }
@@ -199,6 +207,7 @@ public class ArrayCache {
         if (input[0].length > upperThreshold) return false;
         return true;
     }
+
 
 
     private boolean shouldHandle(float[][]input) {
@@ -220,17 +229,18 @@ public class ArrayCache {
    * @param input  The input array
    * @param results  The array to store
    */
-  public synchronized void put(String key, double[][] input, DoubleResult results) {
+  public void put(String key, double[][] input, DoubleResult results) {
     if(!shouldHandle(input)) return;
+    putInner(key, input, results);
+  }
+
+
+  private synchronized void putInner(String key, double[][] input, DoubleResult results) {
     if(!results.shouldCache || results.values==null) return;
-
-
     key = getKey(key, input[0].length);
-    if(doubleMap.size()>4) 
-        doubleMap = new Hashtable<Object,
-            double[][][]>();
-    doubleMap.put(key, new double[][][] {
-      (double[][])Util.clone(input), (double[][])Util.clone(results.values)
+    storeValue(key,
+             new double[][][] {
+                 (double[][])Util.clone(input), (double[][])Util.clone(results.values)
     });
 
   }
@@ -245,18 +255,106 @@ public class ArrayCache {
    * @param input  The input array
    * @param results  The array to store
    */
-  public synchronized void put(String key, float[][] input, FloatResult results) {
+  public  void put(String key, float[][] input, FloatResult results) {
     if(!shouldHandle(input)) return;
+    putInner(key, input, results);
+  }
+
+  private synchronized void putInner(String key, float[][] input, FloatResult results) {
     if(!results.shouldCache || results.values==null) return;
     key = getKey(key, input[0].length);
-    if(floatMap.size()>4) 
-        floatMap = new Hashtable<Object,
-            float[][][]>();
-    floatMap.put(key, new float[][][] {
+    storeValue(key, new float[][][] {
       (float[][])Util.clone(input), (float[][])Util.clone(results.values)
     });
 
   }
+
+
+
+
+
+    /** holds float arrays or DataCacheManager ids */
+    private Hashtable<Object, Object> map = new Hashtable<Object, Object>();
+
+    private void storeValue(String key, double[][][]value) {
+        checkCache();
+        Object object = value;
+        if(useDataCacheManager) {
+            removeValue(key);
+            object = DataCacheManager.getCacheManager().addToCache("ArrayCache", value, true);
+        }
+        map.put(key, object);
+    }
+
+    private void storeValue(String key, float[][][]value) {
+        checkCache();
+        Object object = value;
+        if(useDataCacheManager) {
+            removeValue(key);
+            object = DataCacheManager.getCacheManager().addToCache("ArrayCache", value, true);
+        }
+        map.put(key, object);
+    }
+
+    public void finalize() throws Throwable {
+        super.finalize();
+        if(useDataCacheManager) {
+            System.err.println ("arraycache finalize");
+            clearCache();
+        }
+    }
+
+
+    private void checkCache() {
+        if(map.size()>4) {
+            clearCache();
+        }
+    }
+
+    private void removeValue(Object key) {
+        Object object  = map.get(key);
+        if(object!=null) {
+            if(useDataCacheManager)
+                DataCacheManager.getCacheManager().removeFromCache(object);
+            map.remove(key);
+        }
+    }
+
+    private void clearCache() {
+        for(Enumeration keys= map.keys();keys.hasMoreElements(); ) {
+            Object key= keys.nextElement();
+            Object object  = map.get(key);
+            if(useDataCacheManager) {
+                DataCacheManager.getCacheManager().removeFromCache(object);
+            }
+        }
+        map = new Hashtable<Object, Object>();
+    }
+
+
+    private double[][][] getDoubleValue(String key) {
+        Object object = map.get(key);
+        if(object==null) {
+            return null;
+        }
+        if(useDataCacheManager)
+            return DataCacheManager.getCacheManager().getDoubleArray3D(object);
+        return (double[][][])object;
+    }
+
+    private float[][][] getFloatValue(String key) {
+        Object object = map.get(key);
+        if(object==null) {
+            return null;
+        }
+        if(useDataCacheManager)
+            return DataCacheManager.getCacheManager().getFloatArray3D(object);
+        return (float[][][])object;
+    }
+
+
+
+
 
 
 
@@ -284,7 +382,12 @@ public class ArrayCache {
             return Util.clone(a);
         }
 
+        public boolean getShouldCache() {
+            return shouldCache;
+        }
+
     }
+
 
 
 
@@ -311,8 +414,14 @@ public class ArrayCache {
             return Util.clone(a);
         }
 
+        public boolean getShouldCache() {
+            return shouldCache;
+        }
 
     }
+
+
+
 
 
 
