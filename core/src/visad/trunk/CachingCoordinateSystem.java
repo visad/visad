@@ -41,7 +41,7 @@ import visad.data.ArrayCache;
  * methods were called, the previously calculated values are returned.
  *
  * @author Don Murray
- * @version $Revision: 1.10 $ $Date: 2009-12-01 19:42:01 $
+ * @version $Revision: 1.11 $ $Date: 2009-12-07 12:16:19 $
  */
 public class CachingCoordinateSystem extends CoordinateSystem {
 
@@ -98,7 +98,8 @@ public class CachingCoordinateSystem extends CoordinateSystem {
       arrayCache.put(key, tmp, results);
       hit = false;
     }
-    debugTime(inputs[0].length, key +" hit?" + hit, t1,System.currentTimeMillis());
+    if(debugTime  && results.getShouldCache())
+        debugTime(inputs[0].length, key +" hit?" + hit, t1,System.currentTimeMillis());
     //    System.err.println (Util.getStackTrace());
 
     return results.values;
@@ -135,7 +136,8 @@ public class CachingCoordinateSystem extends CoordinateSystem {
       arrayCache.put(key, tmp, results);
       hit = false;
     }
-    debugTime(inputs[0].length,key +" hit?" + hit, t1,System.currentTimeMillis());
+    if(debugTime  && results.getShouldCache())
+        debugTime(inputs[0].length,key +" hit?" + hit, t1,System.currentTimeMillis());
     return results.values;
 
   }
@@ -170,7 +172,8 @@ public class CachingCoordinateSystem extends CoordinateSystem {
       hit = false;
     }
 
-    debugTime(inputs[0].length,key +" hit?" + hit, t1,System.currentTimeMillis());
+    if(debugTime  && results.getShouldCache())
+        debugTime(inputs[0].length,key +" hit?" + hit, t1,System.currentTimeMillis());
     return results.values;
   }
 
@@ -198,7 +201,8 @@ public class CachingCoordinateSystem extends CoordinateSystem {
       arrayCache.put(key, tmp, results);
       hit = false;
     }
-    debugTime(inputs[0].length,key +" hit?" + hit, t1,System.currentTimeMillis());
+    if(debugTime  && results.getShouldCache())
+        debugTime(inputs[0].length,key +" hit?" + hit, t1,System.currentTimeMillis());
     return results.values;
   }
 
