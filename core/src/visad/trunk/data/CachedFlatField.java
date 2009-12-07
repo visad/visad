@@ -299,7 +299,7 @@ public class CachedFlatField extends FlatField {
             if(cacheId!=null) {
                 DataCacheManager.getCacheManager().updateData(cacheId, data);
             } else {
-                cacheId = DataCacheManager.getCacheManager().addToCache(data);
+                cacheId = DataCacheManager.getCacheManager().addToCache(getClass().getSimpleName(), data);
             }
             inCache = true;
         }
