@@ -191,9 +191,10 @@ public class DataCacheManager  implements Runnable {
    *
    * @return the unique id
    */
-  private Object addToCache(Object data, int type) {
+    private Object addToCache(String what, Object data, int type, boolean removeIfNeeded) {
     synchronized (MUTEX) {
-      CacheInfo info = new CacheInfo(this, getId(), data, type);
+        CacheInfo info = new CacheInfo(this, getId(), data, type, removeIfNeeded);
+      if(what!=null) info.what = what;
       cache.put(info.getId(), info);
       totalSize += info.getSize();
       checkCache();
@@ -254,8 +255,8 @@ public class DataCacheManager  implements Runnable {
     Object data = null;
     synchronized (MUTEX) {
       info = cache.get(cacheId);
-      data = info.data;
       if (info == null) return null;
+      data = info.data;
       info.dataAccessed();
       if (data != null) return data;
       try {
@@ -265,7 +266,7 @@ public class DataCacheManager  implements Runnable {
         ObjectInputStream ois = new ObjectInputStream(bis);
         info.setDataFromCache(data = ois.readObject());
         long t2 = System.currentTimeMillis();
-        System.err.println("Read " + info.getSize() +" from file in " + (t2-t1));
+        System.err.println("Read " + info.getSize() +" bytes from file in " + (t2-t1) +" ms");
         totalSize += info.getSize();
         ois.close();
         bis.close();
@@ -296,18 +297,24 @@ public class DataCacheManager  implements Runnable {
    */
   public void removeFromCache(Object cacheId) {
     synchronized (MUTEX) {
-      CacheInfo info = cache.get(cacheId);
-      if (info == null) {
-        return;
-      }
-      if (info.data != null) {
-        info.data = null;
-        totalSize -= info.getSize();
-      }
-      cache.remove(cacheId);
-      info.remove();
+        removeFromCache(cache.get(cacheId));
     }
   }
+
+
+    private  void removeFromCache(CacheInfo info) {
+        if (info == null) {
+            return;
+        }
+        synchronized (MUTEX) {
+            if (info.data != null) {
+                info.data = null;
+                totalSize -= info.getSize();
+            }
+            cache.remove(info.id);
+            info.remove();
+        }
+    }
 
 
     public void flushAllCachedData() {
@@ -328,9 +335,17 @@ public class DataCacheManager  implements Runnable {
    */
   private void flushCachedData(CacheInfo info) {
     try {
+      if (info.removeIfNeeded) {
+          removeFromCache(info);
+          return;
+      }
+
+
       if (info.data == null) {
         return;
       }
+
+
 
       if (!info.cacheFileGood) {
         FileOutputStream fos = new FileOutputStream(info.cacheFile);
@@ -383,18 +398,30 @@ public class DataCacheManager  implements Runnable {
    *  Check if we are above the max size. If so then flush data from memory  until we are below the threshold
    */
     public  void checkCache() {
-      if (totalSize < getMaxSize()) {
-          return;
-      }
-      synchronized (MUTEX) {
-          for (CacheInfo info : getCacheInfos()) {
-              flushCachedData(info);
-              if (totalSize <= getMaxSize()) {
-                  break;
+        if (totalSize < getMaxSize()) {
+            return;
         }
-      }
+        synchronized (MUTEX) {
+            //First do the volatile ones
+            for (CacheInfo info : getCacheInfos()) {
+                if(info.removeIfNeeded) {
+                    flushCachedData(info);
+                    if (totalSize <= getMaxSize()) {
+                        break;
+                    }
+                }
+            }
+
+            if (totalSize <= getMaxSize()) {
+                for (CacheInfo info : getCacheInfos()) {
+                    flushCachedData(info);
+                    if (totalSize <= getMaxSize()) {
+                        break;
+                    }
+                }
+            }
+        }
     }
-  }
 
 
 
@@ -432,6 +459,7 @@ public class DataCacheManager  implements Runnable {
                                    new Date(info.lastTime));
                 */
                 sb.append("\n");
+
                 /*
                 sb.append("what:" + info.what);
                 sb.append("\n");
@@ -483,38 +511,6 @@ public class DataCacheManager  implements Runnable {
   private static class CacheInfo implements Comparable<CacheInfo> {
 
     /**  */
-    private static final int TYPE_BYTE1D = 1;
-
-    /**  */
-    private static final int TYPE_BYTE2D = 2;
-
-    /**  */
-    private static final int TYPE_FLOAT1D = 3;
-
-    /**           */
-    private static final int TYPE_FLOAT2D = 4;
-
-    /**           */
-    private static final int TYPE_DOUBLE1D = 5;
-
-    /**           */
-    private static final int TYPE_DOUBLE2D = 6;
-
-    /**           */
-    private static final int TYPE_INT1D = 7;
-
-    /**           */
-    private static final int TYPE_INT2D = 8;
-
-    /**  */
-    private static final int TYPE_SHORT1D = 9;
-
-    /**  */
-    private static final int TYPE_SHORT2D = 10;
-
-
-
-    /**  */
     private DataCacheManager cacheManager;
 
     /**  */
@@ -546,7 +542,10 @@ public class DataCacheManager  implements Runnable {
 
     private String where;
 
-   private String what;
+    private String what;
+
+    private boolean removeIfNeeded = false;
+
 
     /**
      * 
@@ -557,10 +556,11 @@ public class DataCacheManager  implements Runnable {
      * @param type 
      */
     public CacheInfo(DataCacheManager cacheManager, Object cacheId, Object data,
-                     int type) {
+                     int type, boolean removeIfNeeded) {
       this.id = cacheId;
       this.cacheManager = cacheManager;
       this.type = type;
+      this.removeIfNeeded = removeIfNeeded;
       cacheFile = new File(cacheManager.getCacheDir() + "/" + cacheId + ".dat");
       this.what = data.toString();
       where = "";
@@ -593,37 +593,7 @@ public class DataCacheManager  implements Runnable {
       lastTime = System.currentTimeMillis();
       this.data = data;
       cacheFileGood = false;
-      if (type == TYPE_BYTE1D) {
-        size = ((byte[])data).length;
-      }
-      else if (type == TYPE_BYTE2D) {
-        size = ((byte[][])data).length * ((byte[][])data)[0].length;
-      }
-      else if (type == TYPE_FLOAT1D) {
-        size = 4*((float[])data).length;
-      }
-      else if (type == TYPE_FLOAT2D) {
-        size = 4*((float[][])data).length * ((float[][])data)[0].length;
-        what = ((float[][])data)[0].toString();
-      }
-      else if (type == TYPE_SHORT1D) {
-        size = 2*((short[])data).length;
-      }
-      else if (type == TYPE_SHORT2D) {
-        size = 2*((short[][])data).length * ((short[][])data)[0].length;
-      }
-      else if (type == TYPE_DOUBLE1D) {
-          size = 8*((double[])data).length;
-      }
-      else if (type == TYPE_DOUBLE2D) {
-        size = 8*((double[][])data).length * ((double[][])data)[0].length;
-      }
-      else if (type == TYPE_INT1D) {
-        size = 4*((int[])data).length;
-      }
-      else if (type == TYPE_INT2D) {
-        size = 4*((int[][])data).length * ((int[][])data)[0].length;
-      }
+      size = getArraySize(type, data);
     }
 
     /**
@@ -633,41 +603,11 @@ public class DataCacheManager  implements Runnable {
      * @return the string name of the type
      */
     public String getTypeName(int type) {
-      if (type == TYPE_BYTE1D) {
-        return "byte1d";
-      }
-      else if (type == TYPE_BYTE2D) {
-        return "byte2d";
-      }
-      else if (type == TYPE_FLOAT1D) {
-        return "float1d";
-      }
-      else if (type == TYPE_FLOAT2D) {
-        return "float2d";
-      }
-      else if (type == TYPE_SHORT1D) {
-        return "short1d";
-      }
-      else if (type == TYPE_SHORT2D) {
-        return "short2d";
-      }
-      else if (type == TYPE_DOUBLE1D) {
-        return "double1d";
-      }
-      else if (type == TYPE_DOUBLE2D) {
-        return "double2d";
-      }
-      else if (type == TYPE_INT1D) {
-        return "int1d";
-      }
-      else if (type == TYPE_INT2D) {
-        return "int2d";
-      }
-      return "unknown";
+        return getNameForType(type);
     }
 
     public String toString() {
-      return getTypeName(type) + ":" + getSize() + "   " + (data != null) + "   " + dataAccessedCnt + "   " + cacheMissedCnt + "   " + new Date(lastTime);
+        return what+"   " + getTypeName(type) + ":" + getSize() + "   " + (data != null) + "   " + dataAccessedCnt + "   " + cacheMissedCnt + "   " + new Date(lastTime);
     }
 
     /**
@@ -700,7 +640,8 @@ public class DataCacheManager  implements Runnable {
      * 
      */
     private void remove() {
-      cacheFile.delete();
+        if(cacheFile!=null)
+            cacheFile.delete();
     }
 
     /**
@@ -721,86 +662,40 @@ public class DataCacheManager  implements Runnable {
     public Object getId() {
       return id;
     }
-
-
   }
 
 
-
-
-
+/********
+  Begin generated access methods
+*****/
+private static final int TYPE_DOUBLE1D = 0;
+private static final int TYPE_FLOAT1D = 1;
+private static final int TYPE_INT1D = 2;
+private static final int TYPE_SHORT1D = 3;
+private static final int TYPE_BYTE1D = 4;
+private static final int TYPE_DOUBLE2D = 5;
+private static final int TYPE_FLOAT2D = 6;
+private static final int TYPE_INT2D = 7;
+private static final int TYPE_SHORT2D = 8;
+private static final int TYPE_BYTE2D = 9;
+private static final int TYPE_DOUBLE3D = 10;
+private static final int TYPE_FLOAT3D = 11;
+private static final int TYPE_INT3D = 12;
+private static final int TYPE_SHORT3D = 13;
+private static final int TYPE_BYTE3D = 14;
 
 
 
   /**
-   * add the data to the cache
+   * get the value from the cache
    *
-   * @param values the values to add
+   * @param cacheId  the cache id
    *
-   * @return the cache id
+   * @return  the value
    */
-  public Object addToCache(byte[] values) {
-    return addToCache(values, CacheInfo.TYPE_BYTE1D);
-  }
-
-  /**
-   * add the data to the cache
-   *
-   * @param values the values to add
-   *
-   * @return the cache id
-   */
-  public Object addToCache(byte[][] values) {
-    return addToCache(values, CacheInfo.TYPE_BYTE2D);
-  }
-
-
-  /**
-   * add the data to the cache
-   *
-   * @param values the values to add
-   *
-   * @return the cache id
-   */
-  public Object addToCache(float[] values) {
-    return addToCache(values, CacheInfo.TYPE_FLOAT1D);
-  }
-
-  /**
-   * add the data to the cache
-   *
-   * @param values the values to add
-   *
-   * @return the cache id
-   */
-  public Object addToCache(float[][] values) {
-    return addToCache(values, CacheInfo.TYPE_FLOAT2D);
-  }
-
-
-  /**
-   * add the data to the cache
-   *
-   * @param values the values to add
-   *
-   * @return the cache id
-   */
-  public Object addToCache(short[] values) {
-    return addToCache(values, CacheInfo.TYPE_SHORT1D);
-  }
-
-  /**
-   * add the data to the cache
-   *
-   * @param values the values to add
-   *
-   * @return the cache id
-   */
-  public Object addToCache(short[][] values) {
-    return addToCache(values, CacheInfo.TYPE_SHORT2D);
-  }
-
-
+    public double[] getDoubleArray1D(Object cacheId) {
+        return (double[])getData(cacheId);
+    }
 
   /**
    * add the data to the cache
@@ -810,8 +705,48 @@ public class DataCacheManager  implements Runnable {
    * @return the cache id
    */
   public Object addToCache(double[] values) {
-    return addToCache(values, CacheInfo.TYPE_DOUBLE1D);
+    return addToCache(null, values, TYPE_DOUBLE1D, false);
   }
+
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, double[] values) {
+      return addToCache(what, values, TYPE_DOUBLE1D, false);
+  }
+  
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   * @param removeIfNeeded If true then this data will not be written to disk and will be removed from the cache
+   * when the cache is exceeding memory limits
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, double[] values, boolean removeIfNeeded) {
+    return addToCache(what, values, TYPE_DOUBLE1D, removeIfNeeded);
+  }
+
+
+
+
+  /**
+   * get the value from the cache
+   *
+   * @param cacheId  the cache id
+   *
+   * @return  the value
+   */
+    public float[] getFloatArray1D(Object cacheId) {
+        return (float[])getData(cacheId);
+    }
 
   /**
    * add the data to the cache
@@ -820,11 +755,49 @@ public class DataCacheManager  implements Runnable {
    *
    * @return the cache id
    */
-  public Object addToCache(double[][] values) {
-    return addToCache(values, CacheInfo.TYPE_DOUBLE2D);
+  public Object addToCache(float[] values) {
+    return addToCache(null, values, TYPE_FLOAT1D, false);
+  }
+
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, float[] values) {
+      return addToCache(what, values, TYPE_FLOAT1D, false);
+  }
+  
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   * @param removeIfNeeded If true then this data will not be written to disk and will be removed from the cache
+   * when the cache is exceeding memory limits
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, float[] values, boolean removeIfNeeded) {
+    return addToCache(what, values, TYPE_FLOAT1D, removeIfNeeded);
   }
 
 
+
+
+  /**
+   * get the value from the cache
+   *
+   * @param cacheId  the cache id
+   *
+   * @return  the value
+   */
+    public int[] getIntArray1D(Object cacheId) {
+        return (int[])getData(cacheId);
+    }
 
   /**
    * add the data to the cache
@@ -834,8 +807,252 @@ public class DataCacheManager  implements Runnable {
    * @return the cache id
    */
   public Object addToCache(int[] values) {
-    return addToCache(values, CacheInfo.TYPE_INT1D);
+    return addToCache(null, values, TYPE_INT1D, false);
   }
+
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, int[] values) {
+      return addToCache(what, values, TYPE_INT1D, false);
+  }
+  
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   * @param removeIfNeeded If true then this data will not be written to disk and will be removed from the cache
+   * when the cache is exceeding memory limits
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, int[] values, boolean removeIfNeeded) {
+    return addToCache(what, values, TYPE_INT1D, removeIfNeeded);
+  }
+
+
+
+
+  /**
+   * get the value from the cache
+   *
+   * @param cacheId  the cache id
+   *
+   * @return  the value
+   */
+    public short[] getShortArray1D(Object cacheId) {
+        return (short[])getData(cacheId);
+    }
+
+  /**
+   * add the data to the cache
+   *
+   * @param values the values to add
+   *
+   * @return the cache id
+   */
+  public Object addToCache(short[] values) {
+    return addToCache(null, values, TYPE_SHORT1D, false);
+  }
+
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, short[] values) {
+      return addToCache(what, values, TYPE_SHORT1D, false);
+  }
+  
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   * @param removeIfNeeded If true then this data will not be written to disk and will be removed from the cache
+   * when the cache is exceeding memory limits
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, short[] values, boolean removeIfNeeded) {
+    return addToCache(what, values, TYPE_SHORT1D, removeIfNeeded);
+  }
+
+
+
+
+  /**
+   * get the value from the cache
+   *
+   * @param cacheId  the cache id
+   *
+   * @return  the value
+   */
+    public byte[] getByteArray1D(Object cacheId) {
+        return (byte[])getData(cacheId);
+    }
+
+  /**
+   * add the data to the cache
+   *
+   * @param values the values to add
+   *
+   * @return the cache id
+   */
+  public Object addToCache(byte[] values) {
+    return addToCache(null, values, TYPE_BYTE1D, false);
+  }
+
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, byte[] values) {
+      return addToCache(what, values, TYPE_BYTE1D, false);
+  }
+  
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   * @param removeIfNeeded If true then this data will not be written to disk and will be removed from the cache
+   * when the cache is exceeding memory limits
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, byte[] values, boolean removeIfNeeded) {
+    return addToCache(what, values, TYPE_BYTE1D, removeIfNeeded);
+  }
+
+
+
+
+  /**
+   * get the value from the cache
+   *
+   * @param cacheId  the cache id
+   *
+   * @return  the value
+   */
+    public double[][] getDoubleArray2D(Object cacheId) {
+        return (double[][])getData(cacheId);
+    }
+
+  /**
+   * add the data to the cache
+   *
+   * @param values the values to add
+   *
+   * @return the cache id
+   */
+  public Object addToCache(double[][] values) {
+    return addToCache(null, values, TYPE_DOUBLE2D, false);
+  }
+
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, double[][] values) {
+      return addToCache(what, values, TYPE_DOUBLE2D, false);
+  }
+  
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   * @param removeIfNeeded If true then this data will not be written to disk and will be removed from the cache
+   * when the cache is exceeding memory limits
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, double[][] values, boolean removeIfNeeded) {
+    return addToCache(what, values, TYPE_DOUBLE2D, removeIfNeeded);
+  }
+
+
+
+
+  /**
+   * get the value from the cache
+   *
+   * @param cacheId  the cache id
+   *
+   * @return  the value
+   */
+    public float[][] getFloatArray2D(Object cacheId) {
+        return (float[][])getData(cacheId);
+    }
+
+  /**
+   * add the data to the cache
+   *
+   * @param values the values to add
+   *
+   * @return the cache id
+   */
+  public Object addToCache(float[][] values) {
+    return addToCache(null, values, TYPE_FLOAT2D, false);
+  }
+
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, float[][] values) {
+      return addToCache(what, values, TYPE_FLOAT2D, false);
+  }
+  
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   * @param removeIfNeeded If true then this data will not be written to disk and will be removed from the cache
+   * when the cache is exceeding memory limits
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, float[][] values, boolean removeIfNeeded) {
+    return addToCache(what, values, TYPE_FLOAT2D, removeIfNeeded);
+  }
+
+
+
+
+  /**
+   * get the value from the cache
+   *
+   * @param cacheId  the cache id
+   *
+   * @return  the value
+   */
+    public int[][] getIntArray2D(Object cacheId) {
+        return (int[][])getData(cacheId);
+    }
 
   /**
    * add the data to the cache
@@ -845,131 +1062,525 @@ public class DataCacheManager  implements Runnable {
    * @return the cache id
    */
   public Object addToCache(int[][] values) {
-    return addToCache(values, CacheInfo.TYPE_INT2D);
+    return addToCache(null, values, TYPE_INT2D, false);
+  }
+
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, int[][] values) {
+      return addToCache(what, values, TYPE_INT2D, false);
+  }
+  
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   * @param removeIfNeeded If true then this data will not be written to disk and will be removed from the cache
+   * when the cache is exceeding memory limits
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, int[][] values, boolean removeIfNeeded) {
+    return addToCache(what, values, TYPE_INT2D, removeIfNeeded);
   }
 
 
 
+
   /**
-   * get the value 
+   * get the value from the cache
    *
    * @param cacheId  the cache id
    *
    * @return  the value
    */
-  public byte[] getByteArray1D(Object cacheId) {
-    return (byte[])getData(cacheId);
+    public short[][] getShortArray2D(Object cacheId) {
+        return (short[][])getData(cacheId);
+    }
+
+  /**
+   * add the data to the cache
+   *
+   * @param values the values to add
+   *
+   * @return the cache id
+   */
+  public Object addToCache(short[][] values) {
+    return addToCache(null, values, TYPE_SHORT2D, false);
+  }
+
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, short[][] values) {
+      return addToCache(what, values, TYPE_SHORT2D, false);
+  }
+  
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   * @param removeIfNeeded If true then this data will not be written to disk and will be removed from the cache
+   * when the cache is exceeding memory limits
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, short[][] values, boolean removeIfNeeded) {
+    return addToCache(what, values, TYPE_SHORT2D, removeIfNeeded);
   }
 
 
+
+
   /**
-   * get the value 
+   * get the value from the cache
    *
    * @param cacheId  the cache id
    *
    * @return  the value
    */
-  public byte[][] getByteArray2D(Object cacheId) {
-    return (byte[][])getData(cacheId);
+    public byte[][] getByteArray2D(Object cacheId) {
+        return (byte[][])getData(cacheId);
+    }
+
+  /**
+   * add the data to the cache
+   *
+   * @param values the values to add
+   *
+   * @return the cache id
+   */
+  public Object addToCache(byte[][] values) {
+    return addToCache(null, values, TYPE_BYTE2D, false);
+  }
+
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, byte[][] values) {
+      return addToCache(what, values, TYPE_BYTE2D, false);
+  }
+  
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   * @param removeIfNeeded If true then this data will not be written to disk and will be removed from the cache
+   * when the cache is exceeding memory limits
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, byte[][] values, boolean removeIfNeeded) {
+    return addToCache(what, values, TYPE_BYTE2D, removeIfNeeded);
   }
 
 
 
+
   /**
-   * get the value 
+   * get the value from the cache
    *
    * @param cacheId  the cache id
    *
    * @return  the value
    */
-  public float[] getFloatArray1D(Object cacheId) {
-    return (float[])getData(cacheId);
+    public double[][][] getDoubleArray3D(Object cacheId) {
+        return (double[][][])getData(cacheId);
+    }
+
+  /**
+   * add the data to the cache
+   *
+   * @param values the values to add
+   *
+   * @return the cache id
+   */
+  public Object addToCache(double[][][] values) {
+    return addToCache(null, values, TYPE_DOUBLE3D, false);
+  }
+
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, double[][][] values) {
+      return addToCache(what, values, TYPE_DOUBLE3D, false);
+  }
+  
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   * @param removeIfNeeded If true then this data will not be written to disk and will be removed from the cache
+   * when the cache is exceeding memory limits
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, double[][][] values, boolean removeIfNeeded) {
+    return addToCache(what, values, TYPE_DOUBLE3D, removeIfNeeded);
   }
 
 
+
+
   /**
-   * get the value 
+   * get the value from the cache
    *
    * @param cacheId  the cache id
    *
    * @return  the value
    */
-  public float[][] getFloatArray2D(Object cacheId) {
-    return (float[][])getData(cacheId);
+    public float[][][] getFloatArray3D(Object cacheId) {
+        return (float[][][])getData(cacheId);
+    }
+
+  /**
+   * add the data to the cache
+   *
+   * @param values the values to add
+   *
+   * @return the cache id
+   */
+  public Object addToCache(float[][][] values) {
+    return addToCache(null, values, TYPE_FLOAT3D, false);
+  }
+
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, float[][][] values) {
+      return addToCache(what, values, TYPE_FLOAT3D, false);
+  }
+  
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   * @param removeIfNeeded If true then this data will not be written to disk and will be removed from the cache
+   * when the cache is exceeding memory limits
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, float[][][] values, boolean removeIfNeeded) {
+    return addToCache(what, values, TYPE_FLOAT3D, removeIfNeeded);
   }
 
 
+
+
   /**
-   * get the value 
+   * get the value from the cache
    *
    * @param cacheId  the cache id
    *
    * @return  the value
    */
-  public short[] getShortArray1D(Object cacheId) {
-    return (short[])getData(cacheId);
+    public int[][][] getIntArray3D(Object cacheId) {
+        return (int[][][])getData(cacheId);
+    }
+
+  /**
+   * add the data to the cache
+   *
+   * @param values the values to add
+   *
+   * @return the cache id
+   */
+  public Object addToCache(int[][][] values) {
+    return addToCache(null, values, TYPE_INT3D, false);
+  }
+
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, int[][][] values) {
+      return addToCache(what, values, TYPE_INT3D, false);
+  }
+  
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   * @param removeIfNeeded If true then this data will not be written to disk and will be removed from the cache
+   * when the cache is exceeding memory limits
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, int[][][] values, boolean removeIfNeeded) {
+    return addToCache(what, values, TYPE_INT3D, removeIfNeeded);
   }
 
 
+
+
   /**
-   * get the value 
+   * get the value from the cache
    *
    * @param cacheId  the cache id
    *
    * @return  the value
    */
-  public short[][] getShortArray2D(Object cacheId) {
-    return (short[][])getData(cacheId);
+    public short[][][] getShortArray3D(Object cacheId) {
+        return (short[][][])getData(cacheId);
+    }
+
+  /**
+   * add the data to the cache
+   *
+   * @param values the values to add
+   *
+   * @return the cache id
+   */
+  public Object addToCache(short[][][] values) {
+    return addToCache(null, values, TYPE_SHORT3D, false);
+  }
+
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, short[][][] values) {
+      return addToCache(what, values, TYPE_SHORT3D, false);
+  }
+  
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   * @param removeIfNeeded If true then this data will not be written to disk and will be removed from the cache
+   * when the cache is exceeding memory limits
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, short[][][] values, boolean removeIfNeeded) {
+    return addToCache(what, values, TYPE_SHORT3D, removeIfNeeded);
   }
 
 
+
+
   /**
-   * get the value 
+   * get the value from the cache
    *
    * @param cacheId  the cache id
    *
    * @return  the value
    */
-  public double[] getDoubleArray1D(Object cacheId) {
-    return (double[])getData(cacheId);
-  }
-
-
-  /**
-   * get the value 
-   *
-   * @param cacheId  the cache id
-   *
-   * @return  the value
-   */
-  public double[][] getDoubleArray2D(Object cacheId) {
-    return (double[][])getData(cacheId);
-  }
+    public byte[][][] getByteArray3D(Object cacheId) {
+        return (byte[][][])getData(cacheId);
+    }
 
   /**
-   * get the value 
+   * add the data to the cache
    *
-   * @param cacheId  the cache id
+   * @param values the values to add
    *
-   * @return  the value
+   * @return the cache id
    */
-  public int[] getIntArray1D(Object cacheId) {
-    return (int[])getData(cacheId);
+  public Object addToCache(byte[][][] values) {
+    return addToCache(null, values, TYPE_BYTE3D, false);
   }
-
 
   /**
-   * get the value 
+   * add the data to the cache
    *
-   * @param cacheId  the cache id
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
    *
-   * @return  the value
+   * @return the cache id
    */
-  public int[][] getIntArray2D(Object cacheId) {
-    return (int[][])getData(cacheId);
+  public Object addToCache(String what, byte[][][] values) {
+      return addToCache(what, values, TYPE_BYTE3D, false);
+  }
+  
+  /**
+   * add the data to the cache
+   *
+   * @param what the name of the item. used for tracking cache behavior
+   * @param values the values to add
+   * @param removeIfNeeded If true then this data will not be written to disk and will be removed from the cache
+   * when the cache is exceeding memory limits
+   *
+   * @return the cache id
+   */
+  public Object addToCache(String what, byte[][][] values, boolean removeIfNeeded) {
+    return addToCache(what, values, TYPE_BYTE3D, removeIfNeeded);
   }
 
 
+
+/** Get the size of the array **/
+private static int getArraySize(int type, Object values) {
+
+   if (type == TYPE_DOUBLE1D) {
+        double[] data= (double[]) values;
+        
+        return 8*data.length;
+
+   }
+
+   if (type == TYPE_FLOAT1D) {
+        float[] data= (float[]) values;
+        
+        return 4*data.length;
+
+   }
+
+   if (type == TYPE_INT1D) {
+        int[] data= (int[]) values;
+        
+        return 4*data.length;
+
+   }
+
+   if (type == TYPE_SHORT1D) {
+        short[] data= (short[]) values;
+        
+        return 2*data.length;
+
+   }
+
+   if (type == TYPE_BYTE1D) {
+        byte[] data= (byte[]) values;
+        
+        return 1*data.length;
+
+   }
+
+   if (type == TYPE_DOUBLE2D) {
+        double[][] data= (double[][]) values;
+        if (data[0]==null) return 0;
+        return 8*data.length * data[0].length;
+
+   }
+
+   if (type == TYPE_FLOAT2D) {
+        float[][] data= (float[][]) values;
+        if (data[0]==null) return 0;
+        return 4*data.length * data[0].length;
+
+   }
+
+   if (type == TYPE_INT2D) {
+        int[][] data= (int[][]) values;
+        if (data[0]==null) return 0;
+        return 4*data.length * data[0].length;
+
+   }
+
+   if (type == TYPE_SHORT2D) {
+        short[][] data= (short[][]) values;
+        if (data[0]==null) return 0;
+        return 2*data.length * data[0].length;
+
+   }
+
+   if (type == TYPE_BYTE2D) {
+        byte[][] data= (byte[][]) values;
+        if (data[0]==null) return 0;
+        return 1*data.length * data[0].length;
+
+   }
+
+   if (type == TYPE_DOUBLE3D) {
+        double[][][] data= (double[][][]) values;
+        if (data[0]==null) return 0; if(data[0][0]==null) return 0;
+        return 8*data.length * data[0].length*data[0][0].length;
+
+   }
+
+   if (type == TYPE_FLOAT3D) {
+        float[][][] data= (float[][][]) values;
+        if (data[0]==null) return 0; if(data[0][0]==null) return 0;
+        return 4*data.length * data[0].length*data[0][0].length;
+
+   }
+
+   if (type == TYPE_INT3D) {
+        int[][][] data= (int[][][]) values;
+        if (data[0]==null) return 0; if(data[0][0]==null) return 0;
+        return 4*data.length * data[0].length*data[0][0].length;
+
+   }
+
+   if (type == TYPE_SHORT3D) {
+        short[][][] data= (short[][][]) values;
+        if (data[0]==null) return 0; if(data[0][0]==null) return 0;
+        return 2*data.length * data[0].length*data[0][0].length;
+
+   }
+
+   if (type == TYPE_BYTE3D) {
+        byte[][][] data= (byte[][][]) values;
+        if (data[0]==null) return 0; if(data[0][0]==null) return 0;
+        return 1*data.length * data[0].length*data[0][0].length;
+
+   }
+
+   throw new IllegalArgumentException("Unknown type:" + type);
+}
+
+
+/** Get the name of the type **/
+private static String getNameForType(int type) {
+    if (type == TYPE_DOUBLE1D) {return "double1d";}
+    if (type == TYPE_FLOAT1D) {return "float1d";}
+    if (type == TYPE_INT1D) {return "int1d";}
+    if (type == TYPE_SHORT1D) {return "short1d";}
+    if (type == TYPE_BYTE1D) {return "byte1d";}
+    if (type == TYPE_DOUBLE2D) {return "double2d";}
+    if (type == TYPE_FLOAT2D) {return "float2d";}
+    if (type == TYPE_INT2D) {return "int2d";}
+    if (type == TYPE_SHORT2D) {return "short2d";}
+    if (type == TYPE_BYTE2D) {return "byte2d";}
+    if (type == TYPE_DOUBLE3D) {return "double3d";}
+    if (type == TYPE_FLOAT3D) {return "float3d";}
+    if (type == TYPE_INT3D) {return "int3d";}
+    if (type == TYPE_SHORT3D) {return "short3d";}
+    if (type == TYPE_BYTE3D) {return "byte3d";}
+ return "unknown type";
+}
 
 
 }
