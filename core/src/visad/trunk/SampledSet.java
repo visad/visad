@@ -159,7 +159,7 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
       }
       else {
         cacheId =
-          visad.data.DataCacheManager.getCacheManager().addToCache(samples);
+            visad.data.DataCacheManager.getCacheManager().addToCache(getClass().getSimpleName(), samples);
       }
       //      visad.data.DataCacheManager.getCacheManager().printStats();
       return;
