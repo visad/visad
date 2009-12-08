@@ -132,6 +132,8 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       return false;
     }
 
+    //    System.err.println ("domain_length:" + domain_length);
+
     // ShadowRealTypes of Domain
     ShadowRealType[] DomainComponents = adaptedShadowType.getDomainComponents();
 

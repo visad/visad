@@ -69,7 +69,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                                 ShadowType parent)
          throws VisADException, RemoteException {
     super(t, link, parent);
-    System.out.println("Using Image byReference rendering");
+    //    System.out.println("Using Image byReference rendering");
   }
 
   // transform data into a depiction under group
