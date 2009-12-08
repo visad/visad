@@ -36,7 +36,7 @@ import visad.util.Util;
 
 /**
  * This class is used by the CachingCoordinateSystem to do the actual caching mapping one array to another one
- * @version $Revision: 1.3 $ $Date: 2009-12-07 12:22:04 $
+ * @version $Revision: 1.4 $ $Date: 2009-12-08 23:36:08 $
  */
 public class ArrayCache {
 
@@ -299,7 +299,7 @@ public class ArrayCache {
     public void finalize() throws Throwable {
         super.finalize();
         if(useDataCacheManager) {
-            System.err.println ("arraycache finalize");
+            //            System.err.println ("arraycache finalize");
             clearCache();
         }
     }
