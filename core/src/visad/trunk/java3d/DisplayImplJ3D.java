@@ -741,6 +741,10 @@ public class DisplayImplJ3D extends DisplayImpl {
     if (apiValue == OFFSCREEN) {
       destroyUniverse();
     }
+    MouseBehavior mouse =  getMouseBehavior();
+    if(mouse!=null && mouse instanceof MouseBehaviorJ3D) {
+        ((MouseBehaviorJ3D) mouse).destroy();
+    }
     super.destroy();
     applet = null;
     projection = null;
