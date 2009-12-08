@@ -626,6 +626,7 @@ public class AddeImageURL extends AddeDatasetURL {
     }
     else {
       appendKeyValue(buf, KEY_BAND, ALL);
+      if (getId() != null) appendKeyValue(buf, KEY_ID, getId());
     }
     appendDateOrPosString(buf);
     return buf.toString();
