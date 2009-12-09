@@ -622,12 +622,12 @@ public class AddeImageURL extends AddeDatasetURL {
       appendKeyValue(buf, KEY_NAV, getNavType());
       appendKeyValue(buf, KEY_AUX, getAuxValue());
       appendKeyValue(buf, KEY_DOC, getDocValue());
-      if (getId() != null) appendKeyValue(buf, KEY_ID, getId());
     }
     else {
       appendKeyValue(buf, KEY_BAND, ALL);
-      if (getId() != null) appendKeyValue(buf, KEY_ID, getId());
     }
+    // add in for the radar queries
+    if (getId() != null) appendKeyValue(buf, KEY_ID, getId());
     appendDateOrPosString(buf);
     return buf.toString();
   }
