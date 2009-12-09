@@ -225,17 +225,11 @@ public class PointDataAdapter {
     }
     else // all Texts or mixture of Text and Reals
     {
-      //rangeType = new TupleType(types);
       rangeType = DoubleStringTuple.makeTupleType(realTypes, textTypes);
     }
 
     // make the field
     FunctionType functionType = new FunctionType(domainType, rangeType);
-    /*
-    field = (noText) 
-            ? new FlatField(functionType, domain)
-            : new FieldImpl(functionType, domain); 
-            */
     field = new FieldImpl(functionType, domain);
 
 
@@ -244,11 +238,9 @@ public class PointDataAdapter {
     // now, fill in the data
     Scalar[]   firstTuple   = null;   // use this for saving memory/time
     Unit[] actualUnits = null;
-    Real[] protos = new Real[numDouble];
+    Real[] protos = (numDouble > 0) ? new Real[numDouble] : null;
     for (int i = 0; i < numObs; i++)
     {
-     // Scalar[] scalars = (noText == true) ? new Real[numParams]
-      //                                    : new Scalar[numParams];
       double[] values = new double[numDouble];
       String[] strings = new String[numString];
       int stringIdx = 0;
@@ -256,25 +248,17 @@ public class PointDataAdapter {
       for (int j = 0; j < numParams; j++)
       {
         if (types[j] instanceof TextType) {
-          //try
-          //{
             String text = McIDASUtil.intBitsToString(data[i][j]);
             strings[stringIdx++] = text;
-            //scalars[j] = 
-            //    new Text( (TextType) types[j], text);
-            
-          //}
-          //catch (VisADException ex) {;} // shouldn't happen
         } 
         else
         {
             double value =
                 data[i][j] == McIDASUtil.MCMISSING
                   ? Double.NaN
-                  : data[i][j]/Math.pow(10.0, 
-                      (double) scalingFactors[j] );
+                  : data[i][j]/Math.pow(10.0, (double) scalingFactors[j] );
             values[doubleIdx] = value;
-            if (firstTuple == null) { //
+            if (firstTuple == null) { // create the prototypes
               try
               {
                 protos[doubleIdx] =
@@ -287,31 +271,30 @@ public class PointDataAdapter {
               usedUnits.add(((Real) protos[doubleIdx]).getUnit());
             } 
             doubleIdx++;
-            //else {
-            //  scalars[j] = ((Real) firstTuple[j]).cloneButValue(value);
-            //
         }
       }
-      if (noText && actualUnits == null) {
+      if (actualUnits == null && !usedUnits.isEmpty()) {
         actualUnits = new Unit[usedUnits.size()];
-        for (int k = 0; k < usedUnits.size(); k++) actualUnits[k] = (Unit) usedUnits.get(k);
+        for (int k = 0; k < usedUnits.size(); k++) {
+          actualUnits[k] = (Unit) usedUnits.get(k);
+        }
       }
       try
       {
-        Data sample = (noText == true)
-                               //? new RealTuple(
-                               //    (RealTupleType)rangeType, (Real[]) scalars, null, actualUnits, false)
-                               //: new Tuple(rangeType, scalars, false, false);
-                               ? new DoubleTuple(
-                                   (RealTupleType)rangeType, protos, values, actualUnits)
-                               : new DoubleStringTuple(rangeType, protos, values, strings, actualUnits);
-        field.setSample(i, sample, false, (i==0));  // don't make copy, don't check type after first
+        Data sample = 
+          (noText == true)
+             ? new DoubleTuple(
+                 (RealTupleType)rangeType, protos, values, actualUnits)
+             : new DoubleStringTuple(
+                 rangeType, protos, values, strings, actualUnits);
+
+        field.setSample(i, sample, false, (i==0)); // don't make copy, don't 
+                                                   // check type after first
       }
       catch (VisADException e) {e.printStackTrace();} 
       catch (java.rmi.RemoteException e) {;}
       if (firstTuple == null) 
       {
-        //firstTuple = scalars;
         firstTuple = protos;
       }
     }
