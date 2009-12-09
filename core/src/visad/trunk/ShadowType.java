@@ -51,6 +51,9 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
 
   /**  Image ByReference flags **/
   public static final String PROP_IMAGE_BY_REF = "visad.java3d.imageByRef";
+
+  /** Property to create a texture for a single value color filled contour */
+  public static final String PROP_CONTOURFILL_SINGLE_VALUE_AS_TEXTURE = "visad.contourFillSingleValueAsTexture";
   public static final boolean byReference;
   public static final boolean yUp;
   static {
@@ -3727,6 +3730,7 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
     if (spatialTuple != null)
       coord_sys = spatialTuple.getCoordinateSystem();
     domain_reference = Domain.getReference();
+    boolean singleValueAsTexture = Boolean.parseBoolean(System.getProperty(PROP_CONTOURFILL_SINGLE_VALUE_AS_TEXTURE, "false"));
 
     for (int i = 0; i < valueArrayLength; i++) {
       int displayScalarIndex = valueToScalar[i];
@@ -3853,13 +3857,36 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
                   }
                 }
               }
+              float maxValue = Float.NEGATIVE_INFINITY;
+              float minValue = Float.POSITIVE_INFINITY;
+              boolean haveSingleValue = false;
+              // if the singleValueAsTexture is true, loop over the values
+              visad.util.Trace.call1("ShadowType:isSingleValue");
+              if (fill && singleValueAsTexture) {
+                int dlen = display_values[i].length;
+                for (int j = 0; j < dlen; j++) {
+                  if (display_values[i][j] > maxValue)
+                    maxValue = display_values[i][j];
+                  if (display_values[i][j] < minValue)
+                    minValue = display_values[i][j];
+                }
+                haveSingleValue = (maxValue != Float.NEGATIVE_INFINITY &&
+                               minValue !=Float.POSITIVE_INFINITY &&
+                               maxValue == minValue);
+              }
+              visad.util.Trace.call2("ShadowType:isSingleValue");
+              // if we are filling and we have a single value, don't try
+              // to contour and return false;
+              if (haveSingleValue && singleValueAsTexture) return false;
 
               float[][][] f_array = new float[1][][];
 
+              visad.util.Trace.call1("ShadowType:makeIsoLines");
               VisADGeometryArray[][] array_s = spatial_set.makeIsoLines(levs,
                   lowhibase[0], lowhibase[1], lowhibase[2], display_values[i],
                   color_values, swap, doStyle[0], fill, smap, scale,
                   label_size, f_array);
+              visad.util.Trace.call2("ShadowType:makeIsoLines");
 
               // even though no contours were created, we at least tried
               // so have to return true.
