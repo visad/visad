@@ -736,7 +736,10 @@ public class DisplayImplJ3D extends DisplayImpl {
     universe = null;
   }
 
+
   public void destroy() throws VisADException, RemoteException {
+    if(isDestroyed())return;
+
     ((DisplayRendererJ3D) getDisplayRenderer()).destroy();
     if (apiValue == OFFSCREEN) {
       destroyUniverse();
