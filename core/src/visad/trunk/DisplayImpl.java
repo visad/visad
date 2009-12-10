@@ -26,7 +26,9 @@ MA 02111-1307, USA
 
 package visad;
 
+
 import java.rmi.*;
+
 import java.util.*;
 
 import java.awt.*;
@@ -38,6 +40,7 @@ import javax.swing.*;
 
 import visad.browser.Convert;
 import visad.browser.Divider;
+
 import visad.util.*;
 
 import visad.collab.ControlMonitorEvent;
@@ -46,6 +49,7 @@ import visad.collab.DisplayMonitorImpl;
 import visad.collab.DisplaySync;
 import visad.collab.DisplaySyncImpl;
 import visad.collab.MonitorEvent;
+
 
 /**
    DisplayImpl is the abstract VisAD superclass for display
@@ -57,65 +61,87 @@ import visad.collab.MonitorEvent;
 public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
   /** instance variables */
-  /** a Vector of ScalarMap objects;
-      does not include ConstantMap objects */
+
+  /**
+   * a Vector of ScalarMap objects;
+   *   does not include ConstantMap objects 
+   */
   private Vector MapVector = new Vector();
 
   /** a Vector of ConstantMap objects */
   private Vector ConstantMapVector = new Vector();
 
-  /** a Vector of RealType (and TextType) objects occuring
-      in MapVector */
+  /**
+   * a Vector of RealType (and TextType) objects occuring
+   *   in MapVector 
+   */
   private Vector RealTypeVector = new Vector();
 
   /** a Vector of DisplayRealType objects occuring in MapVector */
   private Vector DisplayRealTypeVector = new Vector();
 
-  /** list of Control objects linked to ScalarMap objects in MapVector;
-      the Control objects may be linked to UI widgets, or just computed */
+  /**
+   * list of Control objects linked to ScalarMap objects in MapVector;
+   *   the Control objects may be linked to UI widgets, or just computed 
+   */
   private Vector ControlVector = new Vector();
 
   /** ordered list of DataRenderer objects that render Data objects */
   private Vector RendererVector = new Vector();
 
-  /** list of objects interested in learning when DataRenderers
-      are deleted from this Display */
+  /**
+   * list of objects interested in learning when DataRenderers
+   *   are deleted from this Display 
+   */
   private Vector RendererSourceListeners = new Vector();
 
-  /** list of objects interested in learning when Data objects
-      are deleted from this Display */
+  /**
+   * list of objects interested in learning when Data objects
+   *   are deleted from this Display 
+   */
   private Vector RmtSrcListeners = new Vector();
 
-  /** list of objects interested in receiving messages
-      from this Display */
+  /**
+   * list of objects interested in receiving messages
+   *   from this Display 
+   */
   private Vector MessageListeners = new Vector();
 
   /** DisplayRenderer object for background and metadata rendering */
   private DisplayRenderer displayRenderer;
 
-  /** Component where data depictions are rendered;
-      must be set by concrete subclass constructor;
-      may be null for off-screen displays */
+  /**
+   * Component where data depictions are rendered;
+   *   must be set by concrete subclass constructor;
+   *   may be null for off-screen displays 
+   */
   Component component;
 
+  /**           */
   private ComponentChangedListener componentListener = null;
 
-  /** set to indicate need to compute ranges of RealType-s
-      and sampling for Animation */
+  /**
+   * set to indicate need to compute ranges of RealType-s
+   *   and sampling for Animation 
+   */
   private boolean initialize = true;
 
-  /** set to indicate that ranges should be auto-scaled
-      every time data are displayed */
+  /**
+   * set to indicate that ranges should be auto-scaled
+   *   every time data are displayed 
+   */
   private boolean always_initialize = false;
 
   /** set to re-display all linked Data */
   private boolean redisplay_all = false;
 
 
-  /** length of ValueArray of distinct DisplayRealType values;
-      one per Single DisplayRealType that occurs in a ScalarMap,
-      plus one per ScalarMap per non-Single DisplayRealType;
-      ScalarMap.valueIndex is an index into ValueArray */
+  /**
+   * length of ValueArray of distinct DisplayRealType values;
+   *   one per Single DisplayRealType that occurs in a ScalarMap,
+   *   plus one per ScalarMap per non-Single DisplayRealType;
+   *   ScalarMap.valueIndex is an index into ValueArray 
+   */
   private int valueArrayLength;
 
   /** mapping from ValueArray to DisplayScalar */
@@ -127,20 +153,34 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   /** Vector of DisplayListeners */
   private final transient Vector ListenerVector = new Vector();
 
+  /**           */
   private Object mapslock = new Object();
 
   // WLH 16 March 99
+
+  /**           */
   private MouseBehavior mouse = null;
 
   // objects which monitor and synchronize with remote displays
+
+  /**           */
   private transient DisplayMonitor displayMonitor = null;
+
+  /**           */
   private transient DisplaySync displaySync = null;
 
   // activity monitor
+
+  /**           */
   private transient DisplayActivity displayActivity = null;
 
   // Support for printing
+
+  /**           */
   private Printable printer;
+
+  /** has this display been destroyed           */
+  private boolean destroyed = false;
 
   /**
    * construct a DisplayImpl with given name and DisplayRenderer
@@ -151,10 +191,10 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    * @throws RemoteException an RMI error occurred
    */
   public DisplayImpl(String name, DisplayRenderer renderer)
-         throws VisADException, RemoteException {
+          throws VisADException, RemoteException {
     super(name);
     // put system intrinsic DisplayRealType-s in DisplayRealTypeVector
-    for (int i=0; i<DisplayRealArray.length; i++) {
+    for (int i = 0; i < DisplayRealArray.length; i++) {
       DisplayRealTypeVector.addElement(DisplayRealArray[i]);
     }
 
@@ -163,7 +203,8 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
     if (renderer != null) {
       displayRenderer = renderer;
-    } else {
+    }
+    else {
       displayRenderer = getDefaultDisplayRenderer();
     }
     displayRenderer.setDisplay(this);
@@ -182,7 +223,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    * @throws RemoteException an RMI error occurred
    */
   public DisplayImpl(RemoteDisplay rmtDpy, DisplayRenderer renderer)
-         throws VisADException, RemoteException {
+          throws VisADException, RemoteException {
     // this(rmtDpy, renderer, false);
 
 
@@ -193,7 +234,8 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     Class rmtClass;
     try {
       rmtClass = Class.forName(className);
-    } catch (ClassNotFoundException cnfe) {
+    }
+    catch (ClassNotFoundException cnfe) {
       throw new DisplayException("Cannot find remote display class " +
                                  className);
     }
@@ -206,7 +248,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     }
 
     // put system intrinsic DisplayRealType-s in DisplayRealTypeVector
-    for (int i=0; i<DisplayRealArray.length; i++) {
+    for (int i = 0; i < DisplayRealArray.length; i++) {
       DisplayRealTypeVector.addElement(DisplayRealArray[i]);
     }
 
@@ -215,12 +257,14 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
     if (renderer != null) {
       displayRenderer = renderer;
-    } else {
+    }
+    else {
       try {
         String name = rmtDpy.getDisplayRendererClassName();
         Object obj = Class.forName(name).newInstance();
-        displayRenderer = (DisplayRenderer )obj;
-      } catch (Exception e) {
+        displayRenderer = (DisplayRenderer)obj;
+      }
+      catch (Exception e) {
         displayRenderer = getDefaultDisplayRenderer();
       }
     }
@@ -231,28 +275,37 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   }
 
   // suck in any remote ScalarMaps
-  void copyScalarMaps(RemoteDisplay rmtDpy)
-  {
+
+  /**
+   * 
+   *
+   * @param rmtDpy 
+   */
+  void copyScalarMaps(RemoteDisplay rmtDpy) {
     Vector m;
     try {
       m = rmtDpy.getMapVector();
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       System.err.println("Couldn't copy ScalarMaps");
       return;
     }
 
     Enumeration me = m.elements();
-    while (me.hasMoreElements()) {
-      ScalarMap sm = (ScalarMap )me.nextElement();
+    while(me.hasMoreElements()) {
+      ScalarMap sm = (ScalarMap)me.nextElement();
       try {
-        addMap((ScalarMap )sm.clone());
-      } catch (DisplayException de) {
+        addMap((ScalarMap)sm.clone());
+      }
+      catch (DisplayException de) {
         try {
           addMap(new ScalarMap(sm.getScalar(), sm.getDisplayScalar()));
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
           System.err.println("Couldn't copy remote ScalarMap " + sm);
         }
-      } catch (Exception e) {
+      }
+      catch (Exception e) {
         e.printStackTrace();
       }
     }
@@ -262,28 +315,31 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    * copy ConstantMaps from RemoteDisplay to this
    * @param rmtDpy RemoteDisplay to get ConstantMaps from
    */
-  void copyConstantMaps(RemoteDisplay rmtDpy)
-  {
+  void copyConstantMaps(RemoteDisplay rmtDpy) {
     Vector c;
     try {
       c = rmtDpy.getConstantMapVector();
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       System.err.println("Couldn't copy ConstantMaps");
       return;
     }
 
     Enumeration ce = c.elements();
-    while (ce.hasMoreElements()) {
-      ConstantMap cm = (ConstantMap )ce.nextElement();
+    while(ce.hasMoreElements()) {
+      ConstantMap cm = (ConstantMap)ce.nextElement();
       try {
-        addMap((ConstantMap )cm.clone());
-      } catch (DisplayException de) {
+        addMap((ConstantMap)cm.clone());
+      }
+      catch (DisplayException de) {
         try {
           addMap(new ConstantMap(cm.getConstant(), cm.getDisplayScalar()));
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
           System.err.println("Couldn't copy remote ConstantMap " + cm);
         }
-      } catch (Exception e) {
+      }
+      catch (Exception e) {
         e.printStackTrace();
       }
     }
@@ -293,18 +349,20 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    * copy GraphicsModeControl settings from RemoteDisplay to this
    * @param rmtDpy RemoteDisplay to get GraphicsModeControl settings from
    */
-  void copyGraphicsModeControl(RemoteDisplay rmtDpy)
-  {
+  void copyGraphicsModeControl(RemoteDisplay rmtDpy) {
     GraphicsModeControl rc;
     try {
       getGraphicsModeControl().syncControl(rmtDpy.getGraphicsModeControl());
-    } catch (UnmarshalException ue) {
+    }
+    catch (UnmarshalException ue) {
       System.err.println("Couldn't copy remote GraphicsModeControl");
       return;
-    } catch (java.rmi.ConnectException ce) {
+    }
+    catch (java.rmi.ConnectException ce) {
       System.err.println("Couldn't copy remote GraphicsModeControl");
       return;
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       e.printStackTrace();
       return;
     }
@@ -318,19 +376,22 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    *                  DataReference from rmtDpy that has the same
    *                  name as a DataReference in localRefs
    */
-  private void copyRefLinks(RemoteDisplay rmtDpy, DataReference[] localRefs)
-  {
+  private void copyRefLinks(RemoteDisplay rmtDpy, DataReference[] localRefs) {
+
     Vector ml;
     if (rmtDpy == null) return;
     try {
       ml = rmtDpy.getReferenceLinks();
-    } catch (UnmarshalException ue) {
+    }
+    catch (UnmarshalException ue) {
       System.err.println("Couldn't copy remote DataReferences");
       return;
-    } catch (java.rmi.ConnectException ce) {
+    }
+    catch (java.rmi.ConnectException ce) {
       System.err.println("Couldn't copy remote DataReferences");
       return;
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       e.printStackTrace();
       return;
     }
@@ -338,14 +399,17 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     String[] refNames;
     if (localRefs == null) {
       refNames = null;
-    } else {
+    }
+    else {
       refNames = new String[localRefs.length];
       for (int i = 0; i < refNames.length; i++) {
         try {
           refNames[i] = localRefs[i].getName();
-        } catch (VisADException ve) {
+        }
+        catch (VisADException ve) {
           refNames[i] = null;
-        } catch (RemoteException re) {
+        }
+        catch (RemoteException re) {
           refNames[i] = null;
         }
       }
@@ -357,14 +421,15 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       DataRenderer dr = displayRenderer.makeDefaultRenderer();
       String defaultClass = dr.getClass().getName();
 
-      while (mle.hasMoreElements()) {
-        RemoteReferenceLink link = (RemoteReferenceLink )mle.nextElement();
+      while(mle.hasMoreElements()) {
+        RemoteReferenceLink link = (RemoteReferenceLink)mle.nextElement();
 
         // get reference to Data object
         RemoteDataReference ref;
         try {
           ref = link.getReference();
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
           System.err.println("Couldn't copy remote DataReference");
           ref = null;
         }
@@ -373,10 +438,12 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
           String rName;
           try {
             rName = ref.getName();
-          } catch (VisADException ve) {
+          }
+          catch (VisADException ve) {
             System.err.println("Couldn't get DataReference name");
             rName = null;
-          } catch (RemoteException re) {
+          }
+          catch (RemoteException re) {
             System.err.println("Couldn't get remote DataReference name");
             rName = null;
           }
@@ -401,12 +468,13 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
             if (len > 0) {
               cm = new ConstantMap[len];
               for (int i = 0; i < len; i++) {
-                cm[i] = (ConstantMap )v.elementAt(i);
+                cm[i] = (ConstantMap)v.elementAt(i);
               }
             }
-          } catch (Exception e) {
-            System.err.println("Couldn't copy ConstantMaps" +
-                               " for remote DataReference");
+          }
+          catch (Exception e) {
+            System.err.println(
+              "Couldn't copy ConstantMaps" + " for remote DataReference");
           }
 
           // get proper DataRenderer
@@ -415,13 +483,16 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
             String newClass = link.getRendererClassName();
             if (newClass.equals(defaultClass)) {
               renderer = null;
-            } else {
-              Object obj = Class.forName(newClass).newInstance();
-              renderer = (DataRenderer )obj;
             }
-          } catch (Exception e) {
-            System.err.println("Couldn't copy remote DataRenderer name" +
-                               "; using " + defaultClass);
+            else {
+              Object obj = Class.forName(newClass).newInstance();
+              renderer = (DataRenderer)obj;
+            }
+          }
+          catch (Exception e) {
+            System.err.println(
+              "Couldn't copy remote DataRenderer name" + "; using " +
+              defaultClass);
             renderer = null;
           }
 
@@ -432,24 +503,29 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
             // if this reference uses the default renderer...
             if (renderer == null) {
               rd.addReference(ref, cm);
-            } else {
+            }
+            else {
               rd.addReferences(renderer, ref, cm);
             }
-          } catch (Exception e) {
+          }
+          catch (Exception e) {
             System.err.println("Couldn't add remote DataReference " + ref);
           }
         }
       }
     }
+
   }
 
   /**
    * copy Data from RemoteDisplay to this
    * @param rmtDpy RemoteDisplay to get Data from
+   *
+   * @throws RemoteException 
+   * @throws VisADException 
    */
   protected void syncRemoteData(RemoteDisplay rmtDpy)
-    throws VisADException, RemoteException
-  {
+          throws VisADException, RemoteException {
     copyScalarMaps(rmtDpy);
     copyConstantMaps(rmtDpy);
     copyGraphicsModeControl(rmtDpy);
@@ -465,17 +541,21 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   }
 
   // get current state of all controls from remote display(s)
-  private void initializeControls()
-  {
+
+  /**
+   * 
+   */
+  private void initializeControls() {
     ListIterator iter = ControlVector.listIterator();
-    while (iter.hasNext()) {
+    while(iter.hasNext()) {
       try {
-        Control ctl = (Control )iter.next();
+        Control ctl = (Control)iter.next();
         ControlMonitorEvent evt;
         evt = new ControlMonitorEvent(MonitorEvent.CONTROL_INIT_REQUESTED,
-                                      (Control )ctl.clone());
+                                      (Control)ctl.clone());
         displayMonitor.notifyListeners(evt);
-      } catch (Exception e) {
+      }
+      catch (Exception e) {
         e.printStackTrace();
       }
     }
@@ -496,7 +576,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    * @throws RemoteException    if a Java RMI failure occurs.
    */
   public void notifyListeners(int id, int x, int y)
-         throws VisADException, RemoteException {
+          throws VisADException, RemoteException {
     notifyListeners(null, id, x, y);
     //    notifyListeners(new DisplayEvent(this, id, x, y));
   }
@@ -510,12 +590,12 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    * @throws RemoteException    if a Java RMI failure occurs.
    */
   public void notifyListeners(DisplayEvent evt)
-         throws VisADException, RemoteException {
+          throws VisADException, RemoteException {
 
     synchronized (eventStatus) {
-      if (!eventStatus[evt.getId()]) return;  // ignore disabled events
+      if (!eventStatus[evt.getId()]) return; // ignore disabled events
     }
-    notifyListeners(evt,0,0,0);
+    notifyListeners(evt, 0, 0, 0);
   }
 
 
@@ -527,41 +607,49 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    *
    * @param evt                 The {@link DisplayEvent} to be passed to the
    *                            {@link DisplayListener}s. If this is null then construct the
-                                event from the other parameters
+   *                             event from the other parameters
    * @param  id  type of DisplayEvent that is to be sent
    * @param  x  the horizontal x coordinate for the mouse location in
    *            the display component
    * @param  y  the vertical y coordinate for the mouse location in
    *            the display component
    */
-  private void notifyListeners(final DisplayEvent evt, final int id, final int x, final int y) {
+  private void notifyListeners(final DisplayEvent evt, final int id,
+                               final int x, final int y) {
     Runnable runnable = new Runnable() {
       public void run() {
         try {
           DisplayEvent displayEvent = evt;
-          if (displayEvent==null) {
+          if (displayEvent == null) {
             displayEvent = new DisplayEvent(DisplayImpl.this, id, x, y);
           }
-          for (Enumeration listeners = ((Vector)ListenerVector.clone()).elements(); listeners.hasMoreElements(); ) {
-            DisplayListener listener = (DisplayListener) listeners.nextElement();
+          for (Enumeration listeners =
+                  ((Vector)ListenerVector.clone()).elements();
+                  listeners.hasMoreElements(); ) {
+            DisplayListener listener =
+              (DisplayListener)listeners.nextElement();
             if (listener instanceof Remote) {
               if (rd == null) {
                 rd = new RemoteDisplayImpl(DisplayImpl.this);
               }
               listener.displayChanged(displayEvent.cloneButDisplay(rd));
-            } else {
-              listener.displayChanged(displayEvent.cloneButDisplay(DisplayImpl.this));
+            }
+            else {
+              listener.displayChanged(
+                displayEvent.cloneButDisplay(DisplayImpl.this));
             }
           }
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
           e.printStackTrace();
         }
       }
     };
 
-    if(SwingUtilities.isEventDispatchThread()) {
+    if (SwingUtilities.isEventDispatchThread()) {
       runnable.run();
-    } else {
+    }
+    else {
       SwingUtilities.invokeLater(runnable);
     }
   }
@@ -687,7 +775,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     int width = img.getWidth();
     int height = img.getHeight();
     int type = img.getType();
-    int[] pixels = new int[width*height];
+    int[] pixels = new int[width * height];
     img.getRGB(0, 0, width, height, pixels, 0, width);
 
     // encode pixels with RLE
@@ -695,8 +783,8 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
     synchronized (Slaves) {
       // send encoded pixels to each slave
-      for (int i=0; i<Slaves.size(); i++) {
-        RemoteSlaveDisplay d = (RemoteSlaveDisplay) Slaves.elementAt(i);
+      for (int i = 0; i < Slaves.size(); i++) {
+        RemoteSlaveDisplay d = (RemoteSlaveDisplay)Slaves.elementAt(i);
         try {
           d.sendImage(encoded, width, height, type);
         }
@@ -704,7 +792,8 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
           // remote slave client has died; remove it from list
           Slaves.remove(i--);
         }
-        catch (RemoteException exc) { }
+        catch (RemoteException exc) {
+        }
       }
     }
   }
@@ -716,8 +805,8 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   public void updateSlaves(String message) {
     synchronized (Slaves) {
       // send message to each slave
-      for (int i=0; i<Slaves.size(); i++) {
-        RemoteSlaveDisplay d = (RemoteSlaveDisplay) Slaves.elementAt(i);
+      for (int i = 0; i < Slaves.size(); i++) {
+        RemoteSlaveDisplay d = (RemoteSlaveDisplay)Slaves.elementAt(i);
         try {
           d.sendMessage(message);
         }
@@ -725,7 +814,8 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
           // remote slave client has died; remove it from list
           Slaves.remove(i--);
         }
-        catch (RemoteException exc) { }
+        catch (RemoteException exc) {
+        }
       }
     }
   }
@@ -735,31 +825,31 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
   /** Enabled status flag for each DisplayEvent type. */
   private final boolean[] eventStatus = {
-    true,  // (not used)
-    true,  // MOUSE_PRESSED
-    true,  // FRAME_DONE
-    true,  // TRANSFORM_DONE
-    true,  // MOUSE_PRESSED_LEFT
-    true,  // MOUSE_PRESSED_CENTER
-    true,  // MOUSE_PRESSED_RIGHT
-    true,  // MOUSE_RELEASED
-    true,  // MOUSE_RELEASED_LEFT
-    true,  // MOUSE_RELEASED_CENTER
-    true,  // MOUSE_RELEASED_RIGHT
-    true,  // MAP_ADDED
-    true,  // MAPS_CLEARED
-    true,  // REFERENCE_ADDED
-    true,  // REFERENCE_REMOVED
-    true,  // DESTROYED
-    true,  // KEY_PRESSED
-    true,  // KEY_RELEASED
+    true, // (not used)
+    true, // MOUSE_PRESSED
+    true, // FRAME_DONE
+    true, // TRANSFORM_DONE
+    true, // MOUSE_PRESSED_LEFT
+    true, // MOUSE_PRESSED_CENTER
+    true, // MOUSE_PRESSED_RIGHT
+    true, // MOUSE_RELEASED
+    true, // MOUSE_RELEASED_LEFT
+    true, // MOUSE_RELEASED_CENTER
+    true, // MOUSE_RELEASED_RIGHT
+    true, // MAP_ADDED
+    true, // MAPS_CLEARED
+    true, // REFERENCE_ADDED
+    true, // REFERENCE_REMOVED
+    true, // DESTROYED
+    true, // KEY_PRESSED
+    true, // KEY_RELEASED
     false, // MOUSE_DRAGGED
     false, // MOUSE_ENTERED
     false, // MOUSE_EXITED
     false, // MOUSE_MOVED
     false, // WAIT_ON
     false, // WAIT_OFF
-    true,  // MAP_REMOVED
+    true, // MAP_REMOVED
     false, // COMPONENT_RESIZED
   };
 
@@ -799,7 +889,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
     if (id < 1 || id >= eventStatus.length) return;
 
-    synchronized(eventStatus) {
+    synchronized (eventStatus) {
       eventStatus[id] = true;
     }
   }
@@ -840,7 +930,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
     if (id < 1 || id >= eventStatus.length) return;
 
-    synchronized(eventStatus) {
+    synchronized (eventStatus) {
       eventStatus[id] = false;
     }
   }
@@ -856,8 +946,8 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       return false;
     }
     else {
-      synchronized(eventStatus) {
-	return eventStatus[id];
+      synchronized (eventStatus) {
+        return eventStatus[id];
       }
     }
   }
@@ -876,13 +966,13 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    *                            data reference to the remote display.
    */
   public void addReference(ThingReference ref)
-         throws VisADException, RemoteException {
+          throws VisADException, RemoteException {
     if (!(ref instanceof DataReference)) {
       throw new ReferenceException("DisplayImpl.addReference: ref " +
                                    "must be DataReference");
     }
     if (displayRenderer == null) return;
-    addReference((DataReference) ref, null);
+    addReference((DataReference)ref, null);
   }
 
   /**
@@ -900,14 +990,13 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    * @see visad.DisplayImpl#addReference(visad.ThingReference)
    */
   public void replaceReference(RemoteDisplay rDpy, ThingReference ref)
-    throws VisADException, RemoteException
-  {
+          throws VisADException, RemoteException {
     if (!(ref instanceof DataReference)) {
       throw new ReferenceException("DisplayImpl.replaceReference: ref " +
                                    "must be DataReference");
     }
     if (displayRenderer == null) return;
-    replaceReference(rDpy, (DataReference )ref, null);
+    replaceReference(rDpy, (DataReference)ref, null);
   }
 
   /**
@@ -920,9 +1009,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    * @exception RemoteException If a link could not be made
    *                            within the remote display.
    */
-  void addLink(DataDisplayLink link)
-        throws VisADException, RemoteException
-  {
+  void addLink(DataDisplayLink link) throws VisADException, RemoteException {
     if (displayRenderer == null) return;
     addLink(link, true);
   }
@@ -940,16 +1027,14 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    *                            within the remote display.
    */
   private void addLink(DataDisplayLink link, boolean syncRemote)
-        throws VisADException, RemoteException
-  {
+          throws VisADException, RemoteException {
     if (displayRenderer == null) return;
 // System.out.println("addLink " + getName() + " " +
 //                    link.getData().getType()); // IDV
-    super.addLink((ReferenceActionLink )link);
+    super.addLink((ReferenceActionLink)link);
     if (syncRemote) {
-      notifyListeners(new DisplayReferenceEvent(this,
-                                                DisplayEvent.REFERENCE_ADDED,
-                                                link));
+      notifyListeners(
+        new DisplayReferenceEvent(this, DisplayEvent.REFERENCE_ADDED, link));
     }
   }
 
@@ -971,8 +1056,8 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    *
    * @see <a href="http://www.ssec.wisc.edu/~billh/guide.html#6.1">Section 6.1 of the Developer's Guide</a>
    */
-  public void addReference(DataReference ref,
-         ConstantMap[] constant_maps) throws VisADException, RemoteException {
+  public void addReference(DataReference ref, ConstantMap[] constant_maps)
+          throws VisADException, RemoteException {
     if (!(ref instanceof DataReferenceImpl)) {
       throw new RemoteVisADException("DisplayImpl.addReference: requires " +
                                      "DataReferenceImpl");
@@ -982,8 +1067,8 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       throw new TypeException("DisplayImpl.addReference: link already exists");
     }
     DataRenderer renderer = displayRenderer.makeDefaultRenderer();
-    DataDisplayLink[] links = {new DataDisplayLink(ref, this, this, constant_maps,
-                                                   renderer, getLinkId())};
+    DataDisplayLink[] links = {new DataDisplayLink(ref, this, this,
+                                constant_maps, renderer, getLinkId())};
     addLink(links[0]);
     renderer.setLinks(links, this);
     synchronized (mapslock) {
@@ -1014,23 +1099,27 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    */
   public void replaceReference(RemoteDisplay rDpy, DataReference ref,
                                ConstantMap[] constant_maps)
-    throws VisADException, RemoteException
-  {
+          throws VisADException, RemoteException {
     if (displayRenderer == null) return;
-    replaceReferences(rDpy, null, new DataReference[] {ref},
-                      new ConstantMap[][] {constant_maps});
+    replaceReferences(
+      rDpy, null, new DataReference[] {ref}, new ConstantMap[][] {
+      constant_maps
+    });
   }
 
-  /** decide whether an autoscale is needed */
+  /**
+   * decide whether an autoscale is needed 
+   *
+   * @return 
+   */
   private boolean computeInitialize() {
     boolean init = false;
     for (Iterator iter = ((java.util.List)MapVector.clone()).iterator();
-        !init && iter.hasNext();
-        init |= ((ScalarMap)iter.next()).doInitialize()) {
-    }
+            !init && iter.hasNext();
+            init |= ((ScalarMap)iter.next()).doInitialize()) {}
     if (!init) {
       AnimationControl control =
-        (AnimationControl) getControl(AnimationControl.class);
+        (AnimationControl)getControl(AnimationControl.class);
       if (control != null) {
         init |= (control.getSet() == null && control.getComputeSet());
       }
@@ -1057,15 +1146,16 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    * @see <a href="http://www.ssec.wisc.edu/~billh/guide.html#6.1">Section 6.1 of the Developer's Guide</a>
    */
   void adaptedAddReference(RemoteDataReference ref, RemoteDisplay display,
-       ConstantMap[] constant_maps) throws VisADException, RemoteException {
+                           ConstantMap[] constant_maps)
+          throws VisADException, RemoteException {
     if (findReference(ref) != null) {
       throw new TypeException("DisplayImpl.adaptedAddReference: " +
                               "link already exists");
     }
     if (displayRenderer == null) return;
     DataRenderer renderer = displayRenderer.makeDefaultRenderer();
-    DataDisplayLink[] links = {new DataDisplayLink(ref, this, display, constant_maps,
-                                                   renderer, getLinkId())};
+    DataDisplayLink[] links = {new DataDisplayLink(ref, this, display,
+                                constant_maps, renderer, getLinkId())};
     addLink(links[0]);
     renderer.setLinks(links, this);
     synchronized (mapslock) {
@@ -1097,7 +1187,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    * @see <a href="http://www.ssec.wisc.edu/~billh/guide.html#6.1">Section 6.1 of the Developer's Guide</a>
    */
   public void addReferences(DataRenderer renderer, DataReference ref)
-         throws VisADException, RemoteException {
+          throws VisADException, RemoteException {
     addReferences(renderer, new DataReference[] {ref}, null);
   }
 
@@ -1119,8 +1209,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    */
   public void replaceReferences(RemoteDisplay rDpy, DataRenderer renderer,
                                 DataReference ref)
-    throws VisADException, RemoteException
-  {
+          throws VisADException, RemoteException {
     replaceReferences(rDpy, renderer, new DataReference[] {ref}, null);
   }
 
@@ -1146,9 +1235,10 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    */
   public void addReferences(DataRenderer renderer, DataReference ref,
                             ConstantMap[] constant_maps)
-         throws VisADException, RemoteException {
-    addReferences(renderer, new DataReference[] {ref},
-                  new ConstantMap[][] {constant_maps});
+          throws VisADException, RemoteException {
+    addReferences(renderer, new DataReference[] {ref}, new ConstantMap[][] {
+      constant_maps
+    });
   }
 
   /**
@@ -1170,11 +1260,13 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    * @see visad.DisplayImpl#addReferences(visad.DataRenderer, visad.DataReference, visad.ConstantMap[])
    */
   public void replaceReferences(RemoteDisplay rDpy, DataRenderer renderer,
-                                DataReference ref, ConstantMap[] constant_maps)
-    throws VisADException, RemoteException
-  {
-    replaceReferences(rDpy, renderer, new DataReference[] {ref},
-                      new ConstantMap[][] {constant_maps});
+                                DataReference ref,
+                                ConstantMap[] constant_maps)
+          throws VisADException, RemoteException {
+    replaceReferences(
+      rDpy, renderer, new DataReference[] {ref}, new ConstantMap[][] {
+      constant_maps
+    });
   }
 
   /**
@@ -1196,7 +1288,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    * @see <a href="http://www.ssec.wisc.edu/~billh/guide.html#6.1">Section 6.1 of the Developer's Guide</a>
    */
   public void addReferences(DataRenderer renderer, DataReference[] refs)
-         throws VisADException, RemoteException {
+          throws VisADException, RemoteException {
     addReferences(renderer, refs, null);
   }
 
@@ -1216,8 +1308,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    */
   public void replaceReferences(RemoteDisplay rDpy, DataRenderer renderer,
                                 DataReference[] refs)
-    throws VisADException, RemoteException
-  {
+          throws VisADException, RemoteException {
     replaceReferences(rDpy, renderer, refs, null);
   }
 
@@ -1244,7 +1335,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    */
   public void addReferences(DataRenderer renderer, DataReference[] refs,
                             ConstantMap[][] constant_maps)
-         throws VisADException, RemoteException {
+          throws VisADException, RemoteException {
     addReferences(renderer, refs, constant_maps, true);
   }
 
@@ -1274,7 +1365,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   private void addReferences(DataRenderer renderer, DataReference[] refs,
                              ConstantMap[][] constant_maps,
                              boolean syncRemote)
-         throws VisADException, RemoteException {
+          throws VisADException, RemoteException {
     if (displayRenderer == null) return;
     // N.B. This method is called by all replaceReference() methods
     if (refs.length < 1) {
@@ -1290,7 +1381,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
                                  "DataRenderer class");
     }
     DataDisplayLink[] links = new DataDisplayLink[refs.length];
-    for (int i=0; i< refs.length; i++) {
+    for (int i = 0; i < refs.length; i++) {
       if (!(refs[i] instanceof DataReferenceImpl)) {
         throw new RemoteVisADException("DisplayImpl.addReferences: requires " +
                                        "DataReferenceImpl");
@@ -1299,8 +1390,8 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
         throw new TypeException("DisplayImpl.addReferences: link already exists");
       }
       if (constant_maps == null) {
-        links[i] = new DataDisplayLink(refs[i], this, this, null,
-                                       renderer, getLinkId());
+        links[i] = new DataDisplayLink(refs[i], this, this, null, renderer,
+                                       getLinkId());
       }
       else {
         links[i] = new DataDisplayLink(refs[i], this, this, constant_maps[i],
@@ -1338,8 +1429,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   public void replaceReferences(RemoteDisplay rDpy, DataRenderer renderer,
                                 DataReference[] refs,
                                 ConstantMap[][] constant_maps)
-    throws VisADException, RemoteException
-  {
+          throws VisADException, RemoteException {
     if (displayRenderer == null) return;
     if (renderer == null) {
       renderer = displayRenderer.makeDefaultRenderer();
@@ -1372,8 +1462,9 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    * @see <a href="http://www.ssec.wisc.edu/~billh/guide.html#6.1">Section 6.1 of the Developer's Guide</a>
    */
   void adaptedAddReferences(DataRenderer renderer, DataReference[] refs,
-       RemoteDisplay display, ConstantMap[][] constant_maps)
-       throws VisADException, RemoteException {
+                            RemoteDisplay display,
+                            ConstantMap[][] constant_maps)
+          throws VisADException, RemoteException {
     if (displayRenderer == null) return;
     if (refs.length < 1) {
       throw new DisplayException("DisplayImpl.addReferences: must have at " +
@@ -1388,19 +1479,20 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
                                  "DataRenderer class");
     }
     DataDisplayLink[] links = new DataDisplayLink[refs.length];
-    for (int i=0; i< refs.length; i++) {
+    for (int i = 0; i < refs.length; i++) {
       if (findReference(refs[i]) != null) {
         throw new TypeException("DisplayImpl.addReferences: link already exists");
       }
       if (refs[i] instanceof DataReferenceImpl) {
         // refs[i] is local
         if (constant_maps == null) {
-          links[i] = new DataDisplayLink(refs[i], this, this, null,
-                                         renderer, getLinkId());
+          links[i] = new DataDisplayLink(refs[i], this, this, null, renderer,
+                                         getLinkId());
         }
         else {
-          links[i] = new DataDisplayLink(refs[i], this, this, constant_maps[i],
-                                         renderer, getLinkId());
+          links[i] = new DataDisplayLink(refs[i], this, this,
+                                         constant_maps[i], renderer,
+                                         getLinkId());
         }
       }
       else {
@@ -1410,8 +1502,9 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
                                          renderer, getLinkId());
         }
         else {
-          links[i] = new DataDisplayLink(refs[i], this, display, constant_maps[i],
-                                         renderer, getLinkId());
+          links[i] = new DataDisplayLink(refs[i], this, display,
+                                         constant_maps[i], renderer,
+                                         getLinkId());
         }
       }
       addLink(links[i]);
@@ -1436,12 +1529,12 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    * @throws RemoteException an RMI error occurred
    */
   public void removeReference(ThingReference ref)
-         throws VisADException, RemoteException {
+          throws VisADException, RemoteException {
     if (!(ref instanceof DataReferenceImpl)) {
       throw new RemoteVisADException("ActionImpl.removeReference: requires " +
                                      "DataReferenceImpl");
     }
-    adaptedDisplayRemoveReference((DataReference) ref);
+    adaptedDisplayRemoveReference((DataReference)ref);
   }
 
   /**
@@ -1451,8 +1544,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    * @throws RemoteException an RMI error occurred
    */
   void removeLinks(DataDisplayLink[] links)
-    throws RemoteException, VisADException
-  {
+          throws RemoteException, VisADException {
     if (displayRenderer == null) return;
     for (int i = links.length - 1; i >= 0; i--) {
       if (links[i] != null) {
@@ -1474,9 +1566,9 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    * @throws RemoteException an RMI error occurred
    */
   void adaptedDisplayRemoveReference(DataReference ref)
-       throws VisADException, RemoteException {
+          throws VisADException, RemoteException {
     if (displayRenderer == null) return;
-    DataDisplayLink link = (DataDisplayLink) findReference(ref);
+    DataDisplayLink link = (DataDisplayLink)findReference(ref);
     // don't throw an Exception if link is null: users may try to
     // remove all DataReferences added by a call to addReferences
     if (link == null) return;
@@ -1495,16 +1587,15 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    * @throws VisADException a VisAD error occurred
    * @throws RemoteException an RMI error occurred
    */
-  public void removeAllReferences()
-         throws VisADException, RemoteException {
+  public void removeAllReferences() throws VisADException, RemoteException {
 
     if (displayRenderer == null) return;
-    Vector temp = (Vector) RendererVector.clone();
+    Vector temp = (Vector)RendererVector.clone();
 
     synchronized (mapslock) {
       Iterator renderers = temp.iterator();
-      while (renderers.hasNext()) {
-        DataRenderer renderer = (DataRenderer) renderers.next();
+      while(renderers.hasNext()) {
+        DataRenderer renderer = (DataRenderer)renderers.next();
         renderer.clearAVControls();
         DataDisplayLink[] links = renderer.getLinks();
         renderers.remove();
@@ -1538,6 +1629,15 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   }
 
   /**
+   * has this display been destroyed
+   *
+   * @return  has this display been destroyed
+   */
+  public boolean isDestroyed() {
+    return destroyed;
+  }
+
+  /**
    * destroy this display: clear all references to objects
    * (so they can be garbage collected), stop all Threads
    * and remove all links
@@ -1545,6 +1645,8 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    * @throws RemoteException an RMI error occurred
    */
   public void destroy() throws VisADException, RemoteException {
+    if (destroyed) return;
+    destroyed = true;
     VisADException thrownVE = null;
     RemoteException thrownRE = null;
 
@@ -1566,22 +1668,26 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
       try {
         removeAllReferences();
-      } catch (RemoteException re) {
+      }
+      catch (RemoteException re) {
         thrownRE = re;
-      } catch (VisADException ve) {
+      }
+      catch (VisADException ve) {
         thrownVE = ve;
       }
 
       try {
         clearMaps();
-      } catch (RemoteException re) {
+      }
+      catch (RemoteException re) {
         thrownRE = re;
-      } catch (VisADException ve) {
+      }
+      catch (VisADException ve) {
         thrownVE = ve;
       }
 
       AnimationControl control =
-        (AnimationControl) getControl(AnimationControl.class);
+        (AnimationControl)getControl(AnimationControl.class);
       if (control != null) {
         control.stop();
       }
@@ -1593,13 +1699,13 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
         throw thrownRE;
       }
 
-  // get rid of dangling references
-  /* done in clearMaps()
-      verify (RendererVector == null)
-      MapVector.removeAllElements();
-      ConstantMapVector.removeAllElements();
-      RealTypeVector.removeAllElements();
-  */
+      // get rid of dangling references
+      /* done in clearMaps()
+          verify (RendererVector == null)
+          MapVector.removeAllElements();
+          ConstantMapVector.removeAllElements();
+          RealTypeVector.removeAllElements();
+      */
       DisplayRealTypeVector.removeAllElements();
       ControlVector.removeAllElements();
       RendererSourceListeners.removeAllElements();
@@ -1608,8 +1714,8 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
       ListenerVector.removeAllElements();
       Slaves.removeAllElements();
       displayRenderer = null; // this disables most DisplayImpl methods
-      if(component!=null) {
-         component.removeComponentListener(componentListener);
+      if (component != null) {
+        component.removeComponentListener(componentListener);
       }
       componentListener = null;
       component = null;
@@ -1631,6 +1737,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    * @throws RemoteException an RMI error occurred
    */
   public void doAction() throws VisADException, RemoteException {
+
     if (displayRenderer == null) return;
     if (mapslock == null) return;
     // put a try/finally block around the setWaitFlag(true), so that we unset
@@ -1646,31 +1753,32 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
         }
         // set tickFlag-s in changed Control-s
         // clone MapVector to avoid need for synchronized access
-        Vector tmap = (Vector) MapVector.clone();
+        Vector tmap = (Vector)MapVector.clone();
         Enumeration maps = tmap.elements();
-        while (maps.hasMoreElements()) {
-          ScalarMap map = (ScalarMap) maps.nextElement();
+        while(maps.hasMoreElements()) {
+          ScalarMap map = (ScalarMap)maps.nextElement();
           map.setTicks();
         }
 
         // set ScalarMap.valueIndex-s and valueArrayLength
         int n = getDisplayScalarCount();
         int[] scalarToValue = new int[n];
-        for (int i=0; i<n; i++) scalarToValue[i] = -1;
+        for (int i = 0; i < n; i++)
+          scalarToValue[i] = -1;
         valueArrayLength = 0;
         maps = tmap.elements();
-        while (maps.hasMoreElements()) {
-          ScalarMap map = ((ScalarMap) maps.nextElement());
+        while(maps.hasMoreElements()) {
+          ScalarMap map = ((ScalarMap)maps.nextElement());
           DisplayRealType dreal = map.getDisplayScalar();
-            map.setValueIndex(valueArrayLength);
-            valueArrayLength++;
+          map.setValueIndex(valueArrayLength);
+          valueArrayLength++;
         }
 
         // set valueToScalar and valueToMap arrays
         valueToScalar = new int[valueArrayLength];
         valueToMap = new int[valueArrayLength];
-        for (int i=0; i<tmap.size(); i++) {
-          ScalarMap map = (ScalarMap) tmap.elementAt(i);
+        for (int i = 0; i < tmap.size(); i++) {
+          ScalarMap map = (ScalarMap)tmap.elementAt(i);
           DisplayRealType dreal = map.getDisplayScalar();
           valueToScalar[map.getValueIndex()] = getDisplayScalarIndex(dreal);
           valueToMap[map.getValueIndex()] = i;
@@ -1679,13 +1787,13 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
         // invoke each DataRenderer (to prepare associated Data objects
         // for transformation)
         // clone RendererVector to avoid need for synchronized access
-        Vector temp = ((Vector) RendererVector.clone());
+        Vector temp = ((Vector)RendererVector.clone());
         Enumeration renderers = temp.elements();
         boolean go = false;
         if (initialize) {
           renderers = temp.elements();
-          while (!go && renderers.hasMoreElements()) {
-            DataRenderer renderer = (DataRenderer) renderers.nextElement();
+          while(!go && renderers.hasMoreElements()) {
+            DataRenderer renderer = (DataRenderer)renderers.nextElement();
             go |= renderer.checkAction();
           }
         }
@@ -1706,8 +1814,8 @@ System.out.println("initialize = " + initialize + " go = " + go +
           // WLH 10 May 2001
           boolean anyBadMap = false;
           maps = tmap.elements();
-          while (maps.hasMoreElements()) {
-            ScalarMap map = ((ScalarMap) maps.nextElement());
+          while(maps.hasMoreElements()) {
+            ScalarMap map = ((ScalarMap)maps.nextElement());
             if (map.badRange()) {
               anyBadMap = true;
               // System.out.println("badRange " + map);
@@ -1716,8 +1824,8 @@ System.out.println("initialize = " + initialize + " go = " + go +
 
           renderers = temp.elements();
           boolean badScale = false;
-          while (renderers.hasMoreElements()) {
-            DataRenderer renderer = (DataRenderer) renderers.nextElement();
+          while(renderers.hasMoreElements()) {
+            DataRenderer renderer = (DataRenderer)renderers.nextElement();
             boolean badthis = renderer.getBadScale(anyBadMap);
             badScale |= badthis;
 /*
@@ -1741,10 +1849,10 @@ System.out.println("initialize = " + initialize + " go = " + go +
 // int i = 0;
           boolean any_exceptions = false;
           renderers = temp.elements();
-          while (renderers.hasMoreElements()) {
+          while(renderers.hasMoreElements()) {
 // System.out.println("DisplayImpl invoke renderer.doAction " + i);
 // i++;
-            DataRenderer renderer = (DataRenderer) renderers.nextElement();
+            DataRenderer renderer = (DataRenderer)renderers.nextElement();
 
             boolean this_transform = renderer.doAction();
             transform_done |= this_transform;
@@ -1760,16 +1868,16 @@ System.out.println("initialize = " + initialize + " go = " + go +
           if (transform_done) {
 // System.out.println(getName() + " invoked " + i + " renderers");
             AnimationControl control =
-              (AnimationControl) getControl(AnimationControl.class);
+              (AnimationControl)getControl(AnimationControl.class);
             if (control != null) {
               control.init();
             }
             synchronized (ControlVector) {
               Enumeration controls = ControlVector.elements();
               while(controls.hasMoreElements()) {
-                Control cont = (Control) controls.nextElement();
+                Control cont = (Control)controls.nextElement();
                 if (ValueControl.class.isInstance(cont)) {
-                  ((ValueControl) cont).init();
+                  ((ValueControl)cont).init();
                 }
               }
             }
@@ -1784,14 +1892,16 @@ System.out.println("initialize = " + initialize + " go = " + go +
         // clear tickFlag-s in Control-s
         maps = tmap.elements();
         while(maps.hasMoreElements()) {
-          ScalarMap map = (ScalarMap) maps.nextElement();
+          ScalarMap map = (ScalarMap)maps.nextElement();
           map.resetTicks();
         }
       } // end synchronized (mapslock)
-    } finally {
+    }
+    finally {
 // System.out.println("DisplayImpl call setWaitFlag(false)");
       if (displayRenderer != null) displayRenderer.setWaitFlag(false);
     }
+
   }
 
   /**
@@ -1809,11 +1919,11 @@ System.out.println("initialize = " + initialize + " go = " + go +
   /**
    * Returns a clone of the list of DataRenderer-s.  A clone is returned
    * to avoid concurrent access problems by the Display thread.
-   * @return			A clone of the list of DataRenderer-s.
+   * @return                    A clone of the list of DataRenderer-s.
    * @see #getRenderers()
    */
   public Vector getRendererVector() {
-    return (Vector) RendererVector.clone();
+    return (Vector)RendererVector.clone();
   }
 
   /**
@@ -1830,7 +1940,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
    * @return the indexed DisplayRealType
    */
   public DisplayRealType getDisplayScalar(int index) {
-    return (DisplayRealType) DisplayRealTypeVector.elementAt(index);
+    return (DisplayRealType)DisplayRealTypeVector.elementAt(index);
   }
 
   /**
@@ -1844,10 +1954,9 @@ System.out.println("initialize = " + initialize + " go = " + go +
       DisplayTupleType tuple = dreal.getTuple();
       if (tuple != null) {
         int n = tuple.getDimension();
-        for (int i=0; i<n; i++) {
+        for (int i = 0; i < n; i++) {
           try {
-            DisplayRealType ereal =
-              (DisplayRealType) tuple.getComponent(i);
+            DisplayRealType ereal = (DisplayRealType)tuple.getComponent(i);
             int eindex = DisplayRealTypeVector.indexOf(ereal);
             if (eindex < 0) {
               DisplayRealTypeVector.addElement(ereal);
@@ -1880,7 +1989,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
    * @return the indexed ScalarType
    */
   public ScalarType getScalar(int index) {
-    return (ScalarType) RealTypeVector.elementAt(index);
+    return (ScalarType)RealTypeVector.elementAt(index);
   }
 
   /**
@@ -1899,8 +2008,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
    * @throws VisADException a VisAD error occurred
    * @throws RemoteException an RMI error occurred
    */
-  public void addMap(ScalarMap map)
-         throws VisADException, RemoteException {
+  public void addMap(ScalarMap map) throws VisADException, RemoteException {
     addMap(map, VisADEvent.LOCAL_SOURCE);
   }
 
@@ -1912,19 +2020,20 @@ System.out.println("initialize = " + initialize + " go = " + go +
    * @throws RemoteException an RMI error occurred
    */
   public void addMap(ScalarMap map, int remoteId)
-         throws VisADException, RemoteException {
+          throws VisADException, RemoteException {
+
     if (displayRenderer == null) return;
     synchronized (mapslock) {
       int index;
       if (!RendererVector.isEmpty()) {
         ScalarType st = map.getScalar();
         if (st != null) {
-          Vector temp = (Vector) RendererVector.clone();
+          Vector temp = (Vector)RendererVector.clone();
           Iterator renderers = temp.iterator();
-          while (renderers.hasNext()) {
-            DataRenderer renderer = (DataRenderer) renderers.next();
+          while(renderers.hasNext()) {
+            DataRenderer renderer = (DataRenderer)renderers.next();
             DataDisplayLink[] links = renderer.getLinks();
-            for (int i=0; i<links.length; i++) {
+            for (int i = 0; i < links.length; i++) {
               if (MathType.findScalarType(links[i].getType(), st)) {
 /* WLH relax addMap() & clearMap() 17 Dec 2002
                 throw new DisplayException("DisplayImpl.addMap(): " +
@@ -1940,7 +2049,8 @@ System.out.println("initialize = " + initialize + " go = " + go +
       DisplayRealType type = map.getDisplayScalar();
       if (!displayRenderer.legalDisplayScalar(type)) {
         throw new BadMappingException("DisplayImpl.addMap: " +
-              map.getDisplayScalar() + " illegal for this DisplayRenderer");
+                                      map.getDisplayScalar() +
+                                      " illegal for this DisplayRenderer");
       }
       if ((Display.LineWidth.equals(type) ||
            Display.PointSize.equals(type) ||
@@ -1956,11 +2066,11 @@ System.out.println("initialize = " + initialize + " go = " + go +
            Display.AdjustProjectionSeam.equals(type) ||
            Display.Texture3DMode.equals(type) ||
            Display.CacheAppearances.equals(type) ||
-           Display.MergeGeometries.equals(type)) &&
-          !(map instanceof ConstantMap))
-      {
+           Display.MergeGeometries.equals(type)) && !(map
+           instanceof ConstantMap)) {
         throw new BadMappingException("DisplayImpl.addMap: " +
-              map.getDisplayScalar() + " for ConstantMap only");
+                                      map.getDisplayScalar() +
+                                      " for ConstantMap only");
       }
 // System.out.println("addMap " + getName() + " " + map.getScalar() +
 //                    " -> " + map.getDisplayScalar()); // IDV
@@ -1970,10 +2080,10 @@ System.out.println("initialize = " + initialize + " go = " + go +
         synchronized (ConstantMapVector) {
           Enumeration maps = ConstantMapVector.elements();
           while(maps.hasMoreElements()) {
-            ConstantMap map2 = (ConstantMap) maps.nextElement();
+            ConstantMap map2 = (ConstantMap)maps.nextElement();
             if (map2.getDisplayScalar().equals(map.getDisplayScalar())) {
               throw new BadMappingException("Display.addMap: two ConstantMaps " +
-                                "have the same DisplayScalar");
+                                            "have the same DisplayScalar");
             }
           }
           ConstantMapVector.addElement(map);
@@ -1989,12 +2099,12 @@ System.out.println("initialize = " + initialize + " go = " + go +
         synchronized (MapVector) {
           Enumeration maps = MapVector.elements();
           while(maps.hasMoreElements()) {
-            ScalarMap map2 = (ScalarMap) maps.nextElement();
+            ScalarMap map2 = (ScalarMap)maps.nextElement();
             if (real.equals(map2.getScalar()) &&
                 dreal.equals(map2.getDisplayScalar()) &&
                 !dreal.equals(Display.Shape)) {
               throw new BadMappingException("Display.addMap: two ScalarMaps " +
-                                     "with the same RealType & DisplayRealType");
+                      "with the same RealType & DisplayRealType");
             }
             if (dreal.equals(Display.Animation) &&
                 map2.getDisplayScalar().equals(Display.Animation)) {
@@ -2020,12 +2130,13 @@ System.out.println("initialize = " + initialize + " go = " + go +
         }
       } // end !(map instanceof ConstantMap)
       addDisplayScalar(map);
-      notifyListeners(new DisplayMapEvent(this, DisplayEvent.MAP_ADDED, map,
-                                          remoteId));
+      notifyListeners(
+        new DisplayMapEvent(this, DisplayEvent.MAP_ADDED, map, remoteId));
 
       // make sure we monitor all changes to this ScalarMap
       map.addScalarMapListener(displayMonitor);
     }
+
   }
 
   /**
@@ -2035,7 +2146,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
    * @throws RemoteException an RMI error occurred
    */
   public void removeMap(ScalarMap map)
-         throws VisADException, RemoteException {
+          throws VisADException, RemoteException {
     removeMap(map, VisADEvent.LOCAL_SOURCE);
   }
 
@@ -2047,15 +2158,16 @@ System.out.println("initialize = " + initialize + " go = " + go +
    * @throws RemoteException an RMI error occurred
    */
   public void removeMap(ScalarMap map, int remoteId)
-         throws VisADException, RemoteException {
+          throws VisADException, RemoteException {
+
     if (displayRenderer == null) return;
 // System.out.println("removeMap " + getName() + " " + map.getScalar() +
 //                    " -> " + map.getDisplayScalar()); // IDV
     synchronized (mapslock) {
       // can have multiple equals() maps to Shape, so test for ==
       int index = MapVector.indexOf(map);
-      while (index >=0 && map != MapVector.elementAt(index)) {
-        index = MapVector.indexOf(map, index+1);
+      while(index >= 0 && map != MapVector.elementAt(index)) {
+        index = MapVector.indexOf(map, index + 1);
       }
       if (index < 0) {
         throw new BadMappingException("Display.removeMap: " + map + " not " +
@@ -2065,16 +2177,16 @@ System.out.println("initialize = " + initialize + " go = " + go +
       //Remove the control from the ControlVector
       Control control = map.getControl();
       synchronized (ControlVector) {
-          if(control!=null && ControlVector.contains(control)) {
-              ControlVector.remove(control);
-              control.removeControlListener((ControlListener )displayMonitor);
-              control.setInstanceNumber(-1);
-              control.setIndex(-1);
-              for(int i=0;i<ControlVector.size();i++) {
-                  Control ctl = (Control) ControlVector.get(i);
-                  ctl.setIndex(i);
-              }
+        if (control != null && ControlVector.contains(control)) {
+          ControlVector.remove(control);
+          control.removeControlListener((ControlListener)displayMonitor);
+          control.setInstanceNumber(-1);
+          control.setIndex(-1);
+          for (int i = 0; i < ControlVector.size(); i++) {
+            Control ctl = (Control)ControlVector.get(i);
+            ctl.setIndex(i);
           }
+        }
       }
 
       MapVector.removeElementAt(index);
@@ -2083,7 +2195,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
         Enumeration maps = MapVector.elements();
         boolean any = false;
         while(maps.hasMoreElements()) {
-          ScalarMap map2 = (ScalarMap) maps.nextElement();
+          ScalarMap map2 = (ScalarMap)maps.nextElement();
           if (real.equals(map2.getScalar())) any = true;
         }
         if (!any) {
@@ -2093,7 +2205,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
 
           maps = MapVector.elements();
           while(maps.hasMoreElements()) {
-            ScalarMap map2 = (ScalarMap) maps.nextElement();
+            ScalarMap map2 = (ScalarMap)maps.nextElement();
             ScalarType real2 = map2.getScalar();
             int index2 = RealTypeVector.indexOf(real2);
             if (index2 < 0) {
@@ -2114,12 +2226,12 @@ System.out.println("initialize = " + initialize + " go = " + go +
         if (!RendererVector.isEmpty()) {
           ScalarType st = map.getScalar();
           if (st != null) { // not necessary for !(map instanceof ConstantMap)
-            Vector temp = (Vector) RendererVector.clone();
+            Vector temp = (Vector)RendererVector.clone();
             Iterator renderers = temp.iterator();
-            while (renderers.hasNext()) {
-              DataRenderer renderer = (DataRenderer) renderers.next();
+            while(renderers.hasNext()) {
+              DataRenderer renderer = (DataRenderer)renderers.next();
               DataDisplayLink[] links = renderer.getLinks();
-              for (int i=0; i<links.length; i++) {
+              for (int i = 0; i < links.length; i++) {
                 if (MathType.findScalarType(links[i].getType(), st)) {
                   DataReference ref = links[i].getDataReference();
                   if (ref != null) ref.incTick();
@@ -2135,7 +2247,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
 
           Enumeration maps = MapVector.elements();
           while(maps.hasMoreElements()) {
-            ScalarMap map2 = (ScalarMap) maps.nextElement();
+            ScalarMap map2 = (ScalarMap)maps.nextElement();
             AxisScale axisScale = map2.getAxisScale();
             if (axisScale != null) {
               displayRenderer.clearScale(axisScale);
@@ -2144,7 +2256,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
           }
           maps = MapVector.elements();
           while(maps.hasMoreElements()) {
-            ScalarMap map2 = (ScalarMap) maps.nextElement();
+            ScalarMap map2 = (ScalarMap)maps.nextElement();
             AxisScale axisScale = map2.getAxisScale();
             if (axisScale != null) {
               map2.makeScale();
@@ -2155,10 +2267,11 @@ System.out.println("initialize = " + initialize + " go = " + go +
         }
         needWidgetRefresh = true;
       } // end !(map instanceof ConstantMap)
-      notifyListeners(new DisplayMapEvent(this, DisplayEvent.MAP_REMOVED, map,
-                                          remoteId));
+      notifyListeners(
+        new DisplayMapEvent(this, DisplayEvent.MAP_REMOVED, map, remoteId));
       map.nullDisplay(); // ??
     } // end synchronized (mapslock)
+
   }
 
   /**
@@ -2174,10 +2287,9 @@ System.out.println("initialize = " + initialize + " go = " + go +
       DisplayTupleType tuple = dreal.getTuple();
       if (tuple != null) {
         int n = tuple.getDimension();
-        for (int i=0; i<n; i++) {
+        for (int i = 0; i < n; i++) {
           try {
-            DisplayRealType ereal =
-              (DisplayRealType) tuple.getComponent(i);
+            DisplayRealType ereal = (DisplayRealType)tuple.getComponent(i);
             int eindex = DisplayRealTypeVector.indexOf(ereal);
             if (eindex < 0) {
               DisplayRealTypeVector.addElement(ereal);
@@ -2218,7 +2330,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
       synchronized (MapVector) {
         maps = MapVector.elements();
         while(maps.hasMoreElements()) {
-          ScalarMap map = (ScalarMap) maps.nextElement();
+          ScalarMap map = (ScalarMap)maps.nextElement();
           map.nullDisplay();
           map.removeScalarMapListener(displayMonitor);
         }
@@ -2228,7 +2340,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
       synchronized (ConstantMapVector) {
         maps = ConstantMapVector.elements();
         while(maps.hasMoreElements()) {
-          ConstantMap map = (ConstantMap) maps.nextElement();
+          ConstantMap map = (ConstantMap)maps.nextElement();
           map.nullDisplay();
           map.removeScalarMapListener(displayMonitor);
         }
@@ -2239,18 +2351,18 @@ System.out.println("initialize = " + initialize + " go = " + go +
         // clear Control-s associated with this Display
         maps = ControlVector.elements();
         while(maps.hasMoreElements()) {
-          Control ctl = (Control )maps.nextElement();
-          ctl.removeControlListener((ControlListener )displayMonitor);
+          Control ctl = (Control)maps.nextElement();
+          ctl.removeControlListener((ControlListener)displayMonitor);
           ctl.setInstanceNumber(-1);
         }
         ControlVector.removeAllElements();
         // one each GraphicsModeControl and ProjectionControl always exists
-        Control control = (Control) getGraphicsModeControl();
+        Control control = (Control)getGraphicsModeControl();
         if (control != null) addControl(control);
-        control = (Control) getProjectionControl();
+        control = (Control)getProjectionControl();
         if (control != null) addControl(control);
         // don't forget RendererControl
-        control = (Control) displayRenderer.getRendererControl();
+        control = (Control)displayRenderer.getRendererControl();
         if (control != null) addControl(control);
       }
       // clear RealType-s from RealTypeVector
@@ -2260,7 +2372,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
         // clear DisplayRealType-s from DisplayRealTypeVector
         DisplayRealTypeVector.removeAllElements();
         // put system intrinsic DisplayRealType-s in DisplayRealTypeVector
-        for (int i=0; i<DisplayRealArray.length; i++) {
+        for (int i = 0; i < DisplayRealArray.length; i++) {
           DisplayRealTypeVector.addElement(DisplayRealArray[i]);
         }
       }
@@ -2276,14 +2388,14 @@ System.out.println("initialize = " + initialize + " go = " + go +
    *         (doesn't include ConstantMaps)
    */
   public Vector getMapVector() {
-    return (Vector) MapVector.clone();
+    return (Vector)MapVector.clone();
   }
 
   /**
    * @return clone of Vector of ConstantMaps linked to this DisplayImpl
    */
   public Vector getConstantMapVector() {
-    return (Vector) ConstantMapVector.clone();
+    return (Vector)ConstantMapVector.clone();
   }
 
   /**
@@ -2294,13 +2406,12 @@ System.out.println("initialize = " + initialize + " go = " + go +
    *
    * @return Instance number (<CODE>-1</CODE> if not found.)
    */
-  private int getInstanceNumber(Control ctl)
-  {
+  private int getInstanceNumber(Control ctl) {
     Class ctlClass = ctl.getClass();
     int num = 0;
     Enumeration en = ControlVector.elements();
-    while (en.hasMoreElements()) {
-      Control c = (Control )en.nextElement();
+    while(en.hasMoreElements()) {
+      Control c = (Control)en.nextElement();
       if (ctlClass.isInstance(c)) {
         if (ctl == c) {
           return num;
@@ -2325,9 +2436,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
    *         otherwise, returns the ID.
    * @throws RemoteException an RMI error occurred
    */
-  public int getConnectionID(RemoteDisplay rmtDpy)
-    throws RemoteException
-  {
+  public int getConnectionID(RemoteDisplay rmtDpy) throws RemoteException {
     if (displayMonitor == null) return DisplayMonitor.UNKNOWN_LISTENER_ID;
     return displayMonitor.getConnectionID(rmtDpy);
   }
@@ -2342,7 +2451,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
       ControlVector.addElement(control);
       control.setIndex(ControlVector.indexOf(control));
       control.setInstanceNumber(getInstanceNumber(control));
-      control.addControlListener((ControlListener )displayMonitor);
+      control.addControlListener((ControlListener)displayMonitor);
     }
   }
 
@@ -2353,7 +2462,9 @@ System.out.println("initialize = " + initialize + " go = " + go +
    * @param c sub-Class of Control to search for
    * @return linked Control with Class c, or null
    */
-  public Control getControl(Class c) { return getControl(c, 0); }
+  public Control getControl(Class c) {
+    return getControl(c, 0);
+  }
 
   /**
    * get ordinal instance of linked Control object of the
@@ -2386,9 +2497,14 @@ System.out.println("initialize = " + initialize + " go = " + go +
    *  <CODE>Control</CODE> matching the specified <CODE>Class</CODE>,
    *  or <CODE>null</CODE> if no <CODE>Control</CODE> matching the
    *  criteria is found.
+   *
+   * @param ctlClass 
+   * @param v 
+   * @param inst 
+   *
+   * @return 
    */
-  private Control getControls(Class ctlClass, Vector v, int inst)
-  {
+  private Control getControls(Class ctlClass, Vector v, int inst) {
     if (displayRenderer == null) return null;
     if (ctlClass == null) {
       return null;
@@ -2405,11 +2521,12 @@ System.out.println("initialize = " + initialize + " go = " + go +
       synchronized (ControlVector) {
         Enumeration en = ControlVector.elements();
         while(en.hasMoreElements()) {
-          Control c = (Control )en.nextElement();
+          Control c = (Control)en.nextElement();
           if (ctlClass.isInstance(c)) {
             if (v != null) {
               v.addElement(c);
-            } else if (c.getInstanceNumber() == inst) {
+            }
+            else if (c.getInstanceNumber() == inst) {
               return c;
             }
           }
@@ -2423,14 +2540,16 @@ System.out.println("initialize = " + initialize + " go = " + go +
   /**
    * @return the total number of controls used by this display
    */
-  public int getNumberOfControls() { return ControlVector.size(); }
+  public int getNumberOfControls() {
+    return ControlVector.size();
+  }
 
   /**
    * @return clone of Vector of Controls linked to this DisplayImpl
    * @deprecated - DisplayImpl shouldn't expose itself at this level
    */
   public Vector getControlVector() {
-    return (Vector) ControlVector.clone();
+    return (Vector)ControlVector.clone();
   }
 
   /** whether the Control widget panel needs to be reconstructed */
@@ -2453,7 +2572,8 @@ System.out.println("initialize = " + initialize + " go = " + go +
           widgetPanel = new JPanel();
           widgetPanel.setLayout(new BoxLayout(widgetPanel, BoxLayout.Y_AXIS));
         }
-        else widgetPanel.removeAll();
+        else
+          widgetPanel.removeAll();
 
         if (getLinks().size() > 0) {
           // GraphicsModeControl widget
@@ -2461,8 +2581,8 @@ System.out.println("initialize = " + initialize + " go = " + go +
           addToWidgetPanel(gmcw, false);
         }
 
-        for (int i=0; i<MapVector.size(); i++) {
-          ScalarMap sm = (ScalarMap) MapVector.elementAt(i);
+        for (int i = 0; i < MapVector.size(); i++) {
+          ScalarMap sm = (ScalarMap)MapVector.elementAt(i);
 
           DisplayRealType drt = sm.getDisplayScalar();
           try {
@@ -2476,7 +2596,8 @@ System.out.println("initialize = " + initialize + " go = " + go +
               addToWidgetPanel(rw, true);
             }
           }
-          catch (VisADException exc) { }
+          catch (VisADException exc) {
+          }
           try {
             if (drt.equals(Display.RGB) || drt.equals(Display.RGBA)) {
               // ColorControl widget
@@ -2484,8 +2605,10 @@ System.out.println("initialize = " + initialize + " go = " + go +
                 LabeledColorWidget lw = new LabeledColorWidget(sm);
                 addToWidgetPanel(lw, true);
               }
-              catch (VisADException exc) { }
-              catch (RemoteException exc) { }
+              catch (VisADException exc) {
+              }
+              catch (RemoteException exc) {
+              }
             }
             else if (drt.equals(Display.SelectValue)) {
               // ValueControl widget
@@ -2509,8 +2632,10 @@ System.out.println("initialize = " + initialize + " go = " + go +
               addToWidgetPanel(aw, true);
             }
           }
-          catch (VisADException exc) { }
-          catch (RemoteException exc) { }
+          catch (VisADException exc) {
+          }
+          catch (RemoteException exc) {
+          }
         }
       }
       needWidgetRefresh = false;
@@ -2518,7 +2643,12 @@ System.out.println("initialize = " + initialize + " go = " + go +
     return widgetPanel;
   }
 
-  /** add a component to the widget panel */
+  /**
+   * add a component to the widget panel 
+   *
+   * @param c 
+   * @param divide 
+   */
   private void addToWidgetPanel(Component c, boolean divide) {
     if (displayRenderer == null) return;
     if (divide) widgetPanel.add(new Divider());
@@ -2595,12 +2725,11 @@ System.out.println("initialize = " + initialize + " go = " + go +
    * Returns the list of DataRenderer-s.  NOTE: The actual list is returned
    * rather than a copy.  If a copy is desired, then use
    * <code>getRendererVector()</code>.
-   * @return			The list of DataRenderer-s.
+   * @return                    The list of DataRenderer-s.
    * @see #getRendererVector()
    */
-  public Vector getRenderers()
-  {
-    return (Vector )RendererVector.clone();
+  public Vector getRenderers() {
+    return (Vector)RendererVector.clone();
   }
 
   /**
@@ -2610,9 +2739,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
    *                               OFFSCREEN, TRANSFORM_ONLY)
    * @throws  VisADException
    */
-  public int getAPI()
-	throws VisADException
-  {
+  public int getAPI() throws VisADException {
     throw new VisADException("No API specified");
   }
 
@@ -2620,8 +2747,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
    * @return the <CODE>DisplayMonitor</CODE> associated with this
    * <CODE>Display</CODE>.
    */
-  public DisplayMonitor getDisplayMonitor()
-  {
+  public DisplayMonitor getDisplayMonitor() {
     return displayMonitor;
   }
 
@@ -2629,8 +2755,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
    * @return the <CODE>DisplaySync</CODE> associated with this
    * <CODE>Display</CODE>.
    */
-  public DisplaySync getDisplaySync()
-  {
+  public DisplaySync getDisplaySync() {
     return displaySync;
   }
 
@@ -2658,11 +2783,15 @@ System.out.println("initialize = " + initialize + " go = " + go +
    * @param transx translation along x axis
    * @param transy translation along y axis
    * @param transz translation along z axis
+   *
+   * @return 
    */
   public double[] make_matrix(double rotx, double roty, double rotz,
-         double scale, double transx, double transy, double transz) {
+                              double scale, double transx, double transy,
+                              double transz) {
     if (mouse != null) {
-      return mouse.make_matrix(rotx, roty, rotz, scale, transx, transy, transz);
+      return mouse.make_matrix(
+               rotx, roty, rotz, scale, transx, transy, transz);
     }
     else {
       return null;
@@ -2729,26 +2858,36 @@ System.out.println("initialize = " + initialize + " go = " + go +
     String s = pre + "Display\n";
     Enumeration maps = MapVector.elements();
     while(maps.hasMoreElements()) {
-      ScalarMap map = (ScalarMap) maps.nextElement();
+      ScalarMap map = (ScalarMap)maps.nextElement();
       s = s + map.toString(pre + "    ");
     }
     maps = ConstantMapVector.elements();
     while(maps.hasMoreElements()) {
-      ConstantMap map = (ConstantMap) maps.nextElement();
+      ConstantMap map = (ConstantMap)maps.nextElement();
       s = s + map.toString(pre + "    ");
     }
     return s;
   }
 
+  /**
+   * 
+   *
+   * @throws Throwable 
+   */
   protected void finalize() throws Throwable {
-    destroy();
+    if (!destroyed) destroy();
   }
 
-  /** Class used to ensure that all linked Data have been
-      transformed and rendered, used by getImage() */
+  /**
+   * Class used to ensure that all linked Data have been
+   *   transformed and rendered, used by getImage() 
+   */
   public class Syncher extends Object implements DisplayListener {
 
+    /**           */
     private ProjectionControl control;
+
+    /**           */
     int count;
 
     /**
@@ -2767,7 +2906,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
           this.wait();
         }
       }
-      catch(InterruptedException e) {
+      catch (InterruptedException e) {
       }
       display.removeDisplayListener(this);
     }
@@ -2775,9 +2914,12 @@ System.out.println("initialize = " + initialize + " go = " + go +
     /**
      * process DisplayEvent
      * @param e DisplayEvent to process
+     *
+     * @throws RemoteException 
+     * @throws VisADException 
      */
     public void displayChanged(DisplayEvent e)
-           throws VisADException, RemoteException {
+            throws VisADException, RemoteException {
       if (e.getId() == DisplayEvent.TRANSFORM_DONE) {
         count = 2;
         control.setMatrix(control.getMatrix());
@@ -2816,27 +2958,20 @@ System.out.println("initialize = " + initialize + " go = " + go +
    *
    * @return printable object
    */
-  public Printable getPrintable()
-  {
-    if (printer == null)
-      printer =
-        new Printable() {
-          public int print(Graphics g, PageFormat pf, int pi)
-             throws PrinterException
-          {
-            if (pi >= 1)
-            {
-               return Printable.NO_SUCH_PAGE;
-            }
-            BufferedImage image = DisplayImpl.this.getImage();
-            g.drawImage(
-                image,
-                (int) pf.getImageableX(),
-                (int) pf.getImageableY(),
-                DisplayImpl.this.component);
-            return Printable.PAGE_EXISTS;
-          }
-        };
+  public Printable getPrintable() {
+    if (printer == null) printer = new Printable() {
+      public int print(Graphics g, PageFormat pf, int pi)
+              throws PrinterException {
+        if (pi >= 1) {
+          return Printable.NO_SUCH_PAGE;
+        }
+        BufferedImage image = DisplayImpl.this.getImage();
+        g.drawImage(
+          image, (int)pf.getImageableX(), (int)pf.getImageableY(),
+          DisplayImpl.this.component);
+        return Printable.PAGE_EXISTS;
+      }
+    };
     return printer;
   }
 
@@ -2844,13 +2979,12 @@ System.out.println("initialize = " + initialize + " go = " + go +
    * handle DisconnectException for the given ReferenceActionLink
    * @param raLink ReferenceActionLink with DisconnectException
    */
-  void handleRunDisconnectException(ReferenceActionLink raLink)
-  {
+  void handleRunDisconnectException(ReferenceActionLink raLink) {
     if (!(raLink instanceof DataDisplayLink)) {
       return;
     }
 
-    DataDisplayLink link = (DataDisplayLink )raLink;
+    DataDisplayLink link = (DataDisplayLink)raLink;
   }
 
   /**
@@ -2858,13 +2992,14 @@ System.out.println("initialize = " + initialize + " go = " + go +
    * @param renderer DataRenderer with failure
    * @param link DataDisplayLink with failure
    */
-  public void connectionFailed(DataRenderer renderer, DataDisplayLink link)
-  {
+  public void connectionFailed(DataRenderer renderer, DataDisplayLink link) {
     try {
-      removeLinks(new DataDisplayLink[] { link });
-    } catch (VisADException ve) {
+      removeLinks(new DataDisplayLink[] {link});
+    }
+    catch (VisADException ve) {
       ve.printStackTrace();
-    } catch (RemoteException re) {
+    }
+    catch (RemoteException re) {
       re.printStackTrace();
     }
 
@@ -2876,8 +3011,8 @@ System.out.println("initialize = " + initialize + " go = " + go +
     }
 
     Enumeration en = RmtSrcListeners.elements();
-    while (en.hasMoreElements()) {
-      RemoteSourceListener l = (RemoteSourceListener )en.nextElement();
+    while(en.hasMoreElements()) {
+      RemoteSourceListener l = (RemoteSourceListener)en.nextElement();
       l.dataSourceLost(link.getName());
     }
   }
@@ -2887,8 +3022,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
    *
    * @param listener Object to add.
    */
-  public void addRendererSourceListener(RendererSourceListener listener)
-  {
+  public void addRendererSourceListener(RendererSourceListener listener) {
     RendererSourceListeners.addElement(listener);
   }
 
@@ -2897,8 +3031,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
    *
    * @param listener Object to remove.
    */
-  public void removeRendererSourceListener(RendererSourceListener listener)
-  {
+  public void removeRendererSourceListener(RendererSourceListener listener) {
     RendererSourceListeners.removeElement(listener);
   }
 
@@ -2907,29 +3040,30 @@ System.out.println("initialize = " + initialize + " go = " + go +
    *
    * @param renderer Renderer to delete
    */
-  private void deleteRenderer(DataRenderer renderer)
-  {
+  private void deleteRenderer(DataRenderer renderer) {
     RendererVector.removeElement(renderer);
 
     Enumeration en = RendererSourceListeners.elements();
-    while (en.hasMoreElements()) {
-      ((RendererSourceListener )en.nextElement()).rendererDeleted(renderer);
+    while(en.hasMoreElements()) {
+      ((RendererSourceListener)en.nextElement()).rendererDeleted(renderer);
     }
   }
 
   /**
    * @deprecated
+   *
+   * @param listener 
    */
-  public void addDataSourceListener(RemoteSourceListener listener)
-  {
+  public void addDataSourceListener(RemoteSourceListener listener) {
     addRemoteSourceListener(listener);
   }
 
   /**
    * @deprecated
+   *
+   * @param listener 
    */
-  public void removeDataSourceListener(RemoteSourceListener listener)
-  {
+  public void removeDataSourceListener(RemoteSourceListener listener) {
     removeRemoteSourceListener(listener);
   }
 
@@ -2939,8 +3073,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
    *
    * @param listener Object to send change notifications.
    */
-  public void addRemoteSourceListener(RemoteSourceListener listener)
-  {
+  public void addRemoteSourceListener(RemoteSourceListener listener) {
     RmtSrcListeners.addElement(listener);
   }
 
@@ -2949,8 +3082,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
    *
    * @param listener Object to be removed.
    */
-  public void removeRemoteSourceListener(RemoteSourceListener listener)
-  {
+  public void removeRemoteSourceListener(RemoteSourceListener listener) {
     RmtSrcListeners.removeElement(listener);
   }
 
@@ -2963,11 +3095,10 @@ System.out.println("initialize = " + initialize + " go = " + go +
    *
    * @param id ID of lost connection.
    */
-  public void lostCollabConnection(int id)
-  {
+  public void lostCollabConnection(int id) {
     Enumeration en = RmtSrcListeners.elements();
-    while (en.hasMoreElements()) {
-      ((RemoteSourceListener )en.nextElement()).collabSourceLost(id);
+    while(en.hasMoreElements()) {
+      ((RemoteSourceListener)en.nextElement()).collabSourceLost(id);
     }
   }
 
@@ -2976,8 +3107,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
    *
    * @param listener New message receiver.
    */
-  public void addMessageListener(MessageListener listener)
-  {
+  public void addMessageListener(MessageListener listener) {
     MessageListeners.addElement(listener);
   }
 
@@ -2986,8 +3116,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
    *
    * @param listener Object to remove.
    */
-  public void removeMessageListener(MessageListener listener)
-  {
+  public void removeMessageListener(MessageListener listener) {
     MessageListeners.removeElement(listener);
   }
 
@@ -2995,21 +3124,23 @@ System.out.println("initialize = " + initialize + " go = " + go +
    * Send a message to all </tt>MessageListener</tt>s.
    *
    * @param msg Message being sent.
+   *
+   * @throws RemoteException 
    */
-  public void sendMessage(MessageEvent msg)
-    throws RemoteException
-  {
+  public void sendMessage(MessageEvent msg) throws RemoteException {
     RemoteException exception = null;
     Enumeration en = MessageListeners.elements();
-    while (en.hasMoreElements()) {
-      MessageListener l = (MessageListener )en.nextElement();
+    while(en.hasMoreElements()) {
+      MessageListener l = (MessageListener)en.nextElement();
       try {
         l.receiveMessage(msg);
-      } catch (RemoteException re) {
+      }
+      catch (RemoteException re) {
         if (visad.collab.CollabUtil.isDisconnectException(re)) {
           // remote side disconnected; forget about it
           MessageListeners.removeElement(l);
-        } else {
+        }
+        else {
           // save this exception for later
           exception = re;
         }
@@ -3030,22 +3161,22 @@ System.out.println("initialize = " + initialize + " go = " + go +
    * @throws RemoteException an RMI error occurred
    */
   void setAspectCartesian(double[] aspect)
-       throws VisADException, RemoteException {
+          throws VisADException, RemoteException {
     if (displayRenderer == null) return;
     if (mapslock == null) return;
     synchronized (mapslock) {
       // clone MapVector to avoid need for synchronized access
-      Vector tmap = (Vector) MapVector.clone();
+      Vector tmap = (Vector)MapVector.clone();
       Enumeration maps = tmap.elements();
-      while (maps.hasMoreElements()) {
-        ScalarMap map = (ScalarMap) maps.nextElement();
+      while(maps.hasMoreElements()) {
+        ScalarMap map = (ScalarMap)maps.nextElement();
         map.setAspectCartesian(aspect);
       }
 
-      tmap = (Vector) ConstantMapVector.clone();
+      tmap = (Vector)ConstantMapVector.clone();
       maps = tmap.elements();
-      while (maps.hasMoreElements()) {
-        ConstantMap map = (ConstantMap) maps.nextElement();
+      while(maps.hasMoreElements()) {
+        ConstantMap map = (ConstantMap)maps.nextElement();
         map.setAspectCartesian(aspect);
       }
 
@@ -3064,9 +3195,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
    *
    * @throws VisADException If the handler couldn't be added.
    */
-  public void addActivityHandler(ActivityHandler ah)
-    throws VisADException
-  {
+  public void addActivityHandler(ActivityHandler ah) throws VisADException {
     if (displayRenderer == null) return;
     if (displayActivity == null) {
       displayActivity = new DisplayActivity(this);
@@ -3083,8 +3212,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
    * @throws VisADException If the handler couldn't be removed.
    */
   public void removeActivityHandler(ActivityHandler ah)
-    throws VisADException
-  {
+          throws VisADException {
     if (displayRenderer == null) return;
     if (displayActivity == null) {
       displayActivity = new DisplayActivity(this);
@@ -3096,8 +3224,7 @@ System.out.println("initialize = " + initialize + " go = " + go +
   /**
    * Indicate to activity monitor that the Display is busy.
    */
-  public void updateBusyStatus()
-  {
+  public void updateBusyStatus() {
     if (displayActivity != null) {
       displayActivity.updateBusyStatus();
     }
@@ -3106,14 +3233,16 @@ System.out.println("initialize = " + initialize + " go = " + go +
   /** Class for listening to component events */
   private class ComponentChangedListener extends ComponentAdapter {
 
-    /** the listener's display*/
+    /** the listener's display */
     DisplayImpl display;
 
     /**
      * Create a listener for the display
+     *
+     * @param d 
      */
     public ComponentChangedListener(DisplayImpl d) {
-        display = d;
+      display = d;
     }
 
     /**
@@ -3143,16 +3272,18 @@ System.out.println("initialize = " + initialize + " go = " + go +
       Dimension d = component.getSize();
       try {
         notifyListeners(
-          new DisplayEvent(
-            display, DisplayEvent.COMPONENT_RESIZED, d.width, d.height));
+          new DisplayEvent(display, DisplayEvent.COMPONENT_RESIZED, d.width,
+                           d.height));
       }
       catch (VisADException ve) {
         System.err.println("Couldn't notify listeners of resize event");
       }
       catch (RemoteException re) {
-        System.err.println("Couldn't notify listeners of remote resize event");
+        System.err.println(
+          "Couldn't notify listeners of remote resize event");
       }
     }
 
   }
 }
+
