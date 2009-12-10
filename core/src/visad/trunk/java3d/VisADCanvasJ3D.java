@@ -26,12 +26,14 @@ MA 02111-1307, USA
 
 package visad.java3d;
 
+
 import visad.*;
 
 import javax.media.j3d.*;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+
 import java.rmi.RemoteException;
 
 import javax.swing.BoxLayout;
@@ -44,34 +46,63 @@ import java.awt.event.WindowEvent;
 
 import com.sun.j3d.utils.universe.SimpleUniverse;
 
+
 /**
    VisADCanvasJ3D is the VisAD extension of Canvas3D
 */
 public class VisADCanvasJ3D extends Canvas3D {
 
+  /**           */
   private DisplayRendererJ3D displayRenderer;
+
+  /**           */
   private DisplayImplJ3D display;
+
+  /**           */
   private Component component;
+
+  /**           */
   Dimension prefSize = new Dimension(0, 0);
 
+  /**           */
   boolean captureFlag = false;
+
+  /**           */
   BufferedImage captureImage = null;
 
   // size of image for off screen rendering
+
+  /**           */
   private int width;
+
+  /**           */
   private int height;
 
+  /**           */
   private static int textureWidthMax = 0;
+
+  /**           */
   private static int textureHeightMax = 0;
 
-  private final static int textureWidthMaxDefault  = 1024;
+  /**           */
+  private final static int textureWidthMaxDefault = 1024;
+
+  /**           */
   private final static int textureHeightMaxDefault = 1024;
 
+  /**           */
   private boolean offscreen = false;
 
+  /**           */
   private static GraphicsConfiguration defaultConfig = null;
 
+  /**           */
   private GraphicsConfiguration myConfig = null;
+
+  /** tracks whether stop has been called           */
+  private boolean stopCalled = false;
+
+
 
   /**
    * Make the graphics configuration
@@ -107,9 +138,13 @@ public class VisADCanvasJ3D extends Canvas3D {
     String prop = null;
     try {
       prop = System.getProperty("textureWidthMax");
-    } 
-    catch (Exception exp) {prop = null;}
-    textureWidthMax = (prop == null) ? textureWidthMax : Integer.parseInt(prop); 
+    }
+    catch (Exception exp) {
+      prop = null;
+    }
+    textureWidthMax = (prop == null)
+                      ? textureWidthMax
+                      : Integer.parseInt(prop);
 
     // no user defined values, so query Java3D, or set to defaults
     if ((textureHeightMax == 0) && (textureWidthMax == 0)) {
@@ -117,23 +152,27 @@ public class VisADCanvasJ3D extends Canvas3D {
       Integer hProp = null;
       Canvas3D cnvs = new Canvas3D(myConfig);
       try {
-        java.lang.reflect.Method method = cnvs.getClass().getMethod("queryProperties", (Class[]) null); 
-        java.util.Map propertiesMap = (java.util.Map) method.invoke(cnvs, (Object[]) null);
-        wProp = (Integer) propertiesMap.get("textureWidthMax");
-        hProp = (Integer) propertiesMap.get("textureHeightMax");
+        java.lang.reflect.Method method =
+          cnvs.getClass().getMethod("queryProperties", (Class[])null);
+        java.util.Map propertiesMap = (java.util.Map)method.invoke(cnvs,
+                                        (Object[])null);
+        wProp = (Integer)propertiesMap.get("textureWidthMax");
+        hProp = (Integer)propertiesMap.get("textureHeightMax");
       }
       catch (Exception exc) {
       }
-                                                                                                                                  
+
       if ((wProp == null) || (hProp == null)) {
-        textureWidthMax  = textureWidthMaxDefault;
+        textureWidthMax = textureWidthMaxDefault;
         textureHeightMax = textureHeightMaxDefault;
-        System.out.println("This version of Java3D can't query \"textureWidthMax/textureHeightMax\"\n"+
-          "so they are being assigned the default values: \n"+
-          "textureWidthMax:  "+textureWidthMaxDefault+"\n"+
-          "textureHeightMax:  "+textureHeightMaxDefault);
-        System.out.println("If images render as a 'grey-box', try setting these parameters\n"+
-          "to a lower value, eg. 512, with '-DtextureWidthMax=512'\n"+
+        System.out.println(
+          "This version of Java3D can't query \"textureWidthMax/textureHeightMax\"\n" +
+          "so they are being assigned the default values: \n" +
+          "textureWidthMax:  " + textureWidthMaxDefault + "\n" +
+          "textureHeightMax:  " + textureHeightMaxDefault);
+        System.out.println(
+          "If images render as a 'grey-box', try setting these parameters\n" +
+          "to a lower value, eg. 512, with '-DtextureWidthMax=512'\n" +
           "Otherwise check your graphics environment specifications");
       }
       else {
@@ -157,7 +196,7 @@ public class VisADCanvasJ3D extends Canvas3D {
    * @param renderer  the renderer for this canvas
    */
   public VisADCanvasJ3D(DisplayRendererJ3D renderer) {
-      this(renderer, null);
+    this(renderer, null);
   }
 
   /**
@@ -167,13 +206,19 @@ public class VisADCanvasJ3D extends Canvas3D {
    *                a default configuration is used)
    */
   public VisADCanvasJ3D(DisplayRendererJ3D renderer,
-                 GraphicsConfiguration config) {
-    super(config == null ? defaultConfig = (defaultConfig == null ? makeConfig(false) : defaultConfig) : config);
-    myConfig = (config == null) ? defaultConfig : config;
+                        GraphicsConfiguration config) {
+    super(config == null
+          ? defaultConfig = (defaultConfig == null
+                             ? makeConfig(false)
+                             : defaultConfig)
+          : config);
+    myConfig = (config == null)
+               ? defaultConfig
+               : config;
 
     setTextureProperties();
     displayRenderer = renderer;
-    display = (DisplayImplJ3D) renderer.getDisplay();
+    display = (DisplayImplJ3D)renderer.getDisplay();
     component = null;
   }
 
@@ -185,6 +230,7 @@ public class VisADCanvasJ3D extends Canvas3D {
     component = c;
   }
 
+  /**           */
   private static final double METER_RATIO = (0.0254 / 90.0); // from Java3D docs
 
   /**
@@ -192,33 +238,38 @@ public class VisADCanvasJ3D extends Canvas3D {
    * @param renderer   renderer to use
    * @param w          width of canvas
    * @param h          height of canvas
+   *
+   * @throws VisADException 
    */
   public VisADCanvasJ3D(DisplayRendererJ3D renderer, int w, int h)
-      throws VisADException {
+          throws VisADException {
 
 // to disable off screen rendering (if you have lower than Java3D
 // version 1.2.1 installed), uncomment out the following six lines (the
 // super and throw statements)
+
     /**
-    super(defaultConfig);
-    throw new VisADException("\n\nFor off screen rendering in Java3D\n" +
-           "please edit visad/java3d/VisADCanvasJ3D.java as follows:\n" +
-           "remove or comment-out \"super(defaultConfig);\" and the\n" +
-           "  throw statement for this Exception,\n" +
-           "and un-comment the body of this constructor\n");
-    **/
+     * super(defaultConfig);
+     * throw new VisADException("\n\nFor off screen rendering in Java3D\n" +
+     *      "please edit visad/java3d/VisADCanvasJ3D.java as follows:\n" +
+     *      "remove or comment-out \"super(defaultConfig);\" and the\n" +
+     *      "  throw statement for this Exception,\n" +
+     *      "and un-comment the body of this constructor\n");
+     */
 // AND comment out the rest of this constructor,
-    super(defaultConfig = (defaultConfig == null ? makeConfig(true) : defaultConfig), true);
+    super(defaultConfig = (defaultConfig == null
+                           ? makeConfig(true)
+                           : defaultConfig), true);
     myConfig = defaultConfig;
     setTextureProperties();
     displayRenderer = renderer;
-    display = (DisplayImplJ3D) renderer.getDisplay();
+    display = (DisplayImplJ3D)renderer.getDisplay();
     component = null;
     offscreen = true;
     width = w;
     height = h;
-    BufferedImage image =
-      new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+    BufferedImage image = new BufferedImage(width, height,
+                                            BufferedImage.TYPE_INT_RGB);
     ImageComponent2D image2d =
       new ImageComponent2D(ImageComponent2D.FORMAT_RGB, image);
     setOffScreenBuffer(image2d);
@@ -237,7 +288,7 @@ public class VisADCanvasJ3D extends Canvas3D {
    */
   void setDisplay() {
     if (display == null) {
-      display = (DisplayImplJ3D) displayRenderer.getDisplay();
+      display = (DisplayImplJ3D)displayRenderer.getDisplay();
     }
   }
 
@@ -271,13 +322,13 @@ public class VisADCanvasJ3D extends Canvas3D {
 
       int width = getSize().width;
       int height = getSize().height;
-      GraphicsContext3D  ctx = getGraphicsContext3D();
+      GraphicsContext3D ctx = getGraphicsContext3D();
       Raster ras = new Raster();
       ras.setType(Raster.RASTER_COLOR);
       ras.setSize(width, height);
       ras.setOffset(0, 0);
-      BufferedImage image =
-        new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+      BufferedImage image = new BufferedImage(width, height,
+                              BufferedImage.TYPE_INT_RGB);
       ImageComponent2D image2d =
         new ImageComponent2D(ImageComponent2D.FORMAT_RGB, image);
       ras.setImage(image2d);
@@ -301,12 +352,14 @@ public class VisADCanvasJ3D extends Canvas3D {
             //Check if the display is null. We get this when doing off screen
             //image capture from the IDV
             DisplayImplJ3D tmpDisplay = display;
-            if(tmpDisplay!=null) {
-                tmpDisplay.notifyListeners(DisplayEvent.FRAME_DONE, 0, 0);
+            if (tmpDisplay != null) {
+              tmpDisplay.notifyListeners(DisplayEvent.FRAME_DONE, 0, 0);
             }
           }
-          catch (VisADException e) {}
-          catch (RemoteException e) {}
+          catch (VisADException e) {
+          }
+          catch (RemoteException e) {
+          }
         }
       };
       Thread t = new Thread(notify);
@@ -316,8 +369,10 @@ public class VisADCanvasJ3D extends Canvas3D {
       try {
         display.notifyListeners(DisplayEvent.FRAME_DONE, 0, 0);
       }
-      catch (VisADException e) {}
-      catch (RemoteException e) {}
+      catch (VisADException e) {
+      }
+      catch (RemoteException e) {
+      }
     }
   }
 
@@ -355,9 +410,14 @@ public class VisADCanvasJ3D extends Canvas3D {
 
   /**
    * Method to test this class
+   *
+   * @param args 
+   *
+   * @throws RemoteException 
+   * @throws VisADException 
    */
   public static void main(String[] args)
-         throws RemoteException, VisADException {
+          throws RemoteException, VisADException {
     DisplayImplJ3D display = new DisplayImplJ3D("offscreen", 300, 300);
 
     RealType[] types = {RealType.Latitude, RealType.Longitude};
@@ -380,9 +440,11 @@ public class VisADCanvasJ3D extends Canvas3D {
     ref_imaget1.setData(imaget1);
     display.addReference(ref_imaget1, null);
 
-    JFrame jframe1  = new JFrame("test off screen");
+    JFrame jframe1 = new JFrame("test off screen");
     jframe1.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {System.exit(0);}
+      public void windowClosing(WindowEvent e) {
+        System.exit(0);
+      }
     });
 
     JPanel panel1 = new JPanel();
@@ -394,7 +456,7 @@ public class VisADCanvasJ3D extends Canvas3D {
     jframe1.setSize(300, 300);
     jframe1.setVisible(true);
 
-    while (true) {
+    while(true) {
       Graphics gp = panel1.getGraphics();
       BufferedImage image = display.getImage();
       gp.drawImage(image, 0, 0, panel1);
@@ -409,21 +471,37 @@ public class VisADCanvasJ3D extends Canvas3D {
 
   }
 
+
+
   /**
    * Stop the applet
    */
   public void stop() {
-    if(!offscreen) {
+    //If we have already been called then return
+    if (stopCalled) {
+      return;
+    }
+    stopCalled = true;
+
+    if (!offscreen) {
       stopRenderer();
     }
     display = null;
     displayRenderer = null;
-    if(component!=null) {
-      if (component instanceof DisplayPanelJ3D) {
-        ((DisplayPanelJ3D) component).destroy();
+    if (component != null) {
+      try {
+        if (component instanceof DisplayPanelJ3D) {
+          ((DisplayPanelJ3D)component).destroy();
+        }
+        else if (component instanceof DisplayAppletJ3D) {
+          ((DisplayAppletJ3D)component).destroy();
+        }
       }
-      else if (component instanceof DisplayAppletJ3D) {
-        ((DisplayAppletJ3D) component).destroy();
+      catch (Exception exc) {
+        //jeffmc: we kept getting these exceptions so for now
+        //just print out the error cond continue on
+        System.err.println("Error destroying java3d component");
+        exc.printStackTrace();
       }
       component = null; // WLH 17 Dec 2001
     }
