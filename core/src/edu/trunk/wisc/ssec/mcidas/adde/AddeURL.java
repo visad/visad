@@ -568,7 +568,7 @@ public class AddeURL implements Cloneable {
    *
    * @param type  the string type
    */
-  private void setCompressionFromString(String type) {
+  public void setCompressionFromString(String type) {
     if (type.equals("gzip") || type.equals("112")) {
       setCompression(112);
     }
