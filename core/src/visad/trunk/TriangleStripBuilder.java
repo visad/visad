@@ -58,7 +58,8 @@ class TriangleStripBuilder {
    * only merge previous. The algorithm for merging in the current grid box does
    * not work properly.
    */
-  public static final int DEF_MERGE_POLICY = MERGE_PREVIOUS;
+  //TDR public static final int DEF_MERGE_POLICY = MERGE_PREVIOUS;
+  public static final int DEF_MERGE_POLICY = MERGE_NONE;
   /** Vertices for the entire grid. */
   private final FloatTupleArray vertices;
   /** Normals corresponding to the vertices for the entire grid. */
