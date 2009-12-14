@@ -150,6 +150,10 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
        }
        else {
          ((BranchGroup)group).addChild(branch);
+         // make sure group is live.  group not empty (above addChild)
+         if (group instanceof BranchGroup) {
+           ((ImageRendererJ3D) renderer).setBranchEarly((BranchGroup) group);
+         }
        }
 
        group = bgImages;
