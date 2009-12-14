@@ -2273,15 +2273,15 @@ public abstract class JPythonMethods {
       }
      
     } else {
-      ff = (FlatField)f.getSample(0);
+      ff = (FlatField)((FlatField)f.getSample(0)).clone();
     }
-    double [][] dv = ff.getValues(false);
+    float [][] dv = ff.getFloats(false);
 
     for (int i=0; i<list.length; i++) {
-      dv[0][list[i]] = v;
+      dv[0][list[i]] = (float)v;
     }
 
-    ff.setSamples(dv);
+    ff.setSamples(dv,false);
     return ff;
 
   }
@@ -2303,14 +2303,14 @@ public abstract class JPythonMethods {
       }
      
     } else {
-      ff = (FlatField)f.getSample(0);
+      ff = (FlatField)((FlatField)f.getSample(0)).clone();
     }
-    double [][] dv = ff.getValues(false);
+    float [][] dv = ff.getFloats(false);
     for (int i=0; i<dv[0].length; i++) {
-      if (dv[0][i] != dv[0][i]) dv[0][i] = v;
+      if (dv[0][i] != dv[0][i]) dv[0][i] = (float)v;
     }
 
-    ff.setSamples(dv);
+    ff.setSamples(dv,false);
     return ff;
 
   }
@@ -2332,14 +2332,14 @@ public abstract class JPythonMethods {
       }
      
     } else {
-      ff = (FlatField)f.getSample(0);
+      ff = (FlatField)((FlatField)f.getSample(0)).clone();
     }
-    double [][] dv = ff.getValues(false);
+    float [][] dv = ff.getFloats(false);
     for (int i=0; i<dv[0].length; i++) {
-      dv[0][i] = v;
+      dv[0][i] = (float)v;
     }
 
-    ff.setSamples(dv);
+    ff.setSamples(dv,false);
     return ff;
 
   }
@@ -2361,16 +2361,16 @@ public abstract class JPythonMethods {
       }
      
     } else {
-      ff = (FlatField)f.getSample(0);
+      ff = (FlatField)((FlatField)f.getSample(0)).clone();
     }
-    double [][] dv = ff.getValues(false);
+    float [][] dv = ff.getFloats(false);
 
-    double vv = v.getValue();
+    float vv = (float)(v.getValue());
     for (int i=0; i<dv[0].length; i++) {
       dv[0][i] = vv;
     }
 
-    ff.setSamples(dv);
+    ff.setSamples(dv,false);
     return ff;
 
   }
@@ -2387,11 +2387,11 @@ public abstract class JPythonMethods {
   public static double[] getMinMax(FieldImpl f)
        throws VisADException, RemoteException {
 
-    double [][] dv;
+    float [][] dv;
     if (f instanceof FlatField) {
-      dv = f.getValues(false);
+      dv = f.getFloats(false);
     } else {
-      dv = ((FlatField)f.getSample(0)).getValues(false);
+      dv = ((FlatField)f.getSample(0)).getFloats(false);
     }
     double [] minmax = new double[2];
     minmax[0] = Double.MAX_VALUE;
@@ -2458,21 +2458,21 @@ public abstract class JPythonMethods {
       }
      
     } else {
-      ff = (FlatField)f.getSample(0);
+      ff = (FlatField)((FlatField)f.getSample(0)).clone();
     }
-    double [][] dv = ff.getValues(false);
+    float [][] dv = ff.getFloats(false);
 
     double outrange = outhi - outlo;
     double inrange = inhi - inlo;
     for (int i=0; i<dv.length; i++) {
       for (int k=0; k<dv[i].length; k++) {
-        dv[i][k] = outlo + outrange * (dv[i][k] - inlo)/inrange;
-        if (dv[i][k] < outlo) dv[i][k] = outlo;
-        if (dv[i][k] > outhi) dv[i][k] = outhi;
+        dv[i][k] = (float)(outlo + outrange * (dv[i][k] - inlo)/inrange);
+        if (dv[i][k] < outlo) dv[i][k] = (float)outlo;
+        if (dv[i][k] > outhi) dv[i][k] = (float)outhi;
       }
     }
 
-    ff.setSamples(dv);
+    ff.setSamples(dv,false);
     return ff;
   }
 
@@ -2533,7 +2533,7 @@ public abstract class JPythonMethods {
     } else {
       fv = (FlatField) (((FieldImpl)f).getSample(0)).subtract(v);
     }
-    double [][] dv = fv.getValues(false);
+    float [][] dv = fv.getFloats(false);
     int oper = -1;
     for (int i=0; i<ops.length; i++) {
       if (ops[i].equalsIgnoreCase(op)) oper = i;
@@ -2543,51 +2543,51 @@ public abstract class JPythonMethods {
     for (int i=0; i<dv.length; i++) {
       for (int k=0; k<dv[i].length; k++) {
         if (oper == 0) {
-          if (dv[i][k] > 0.0) {
-            dv[i][k] = 1.0;
+          if (dv[i][k] > 0.0f) {
+            dv[i][k] = 1.0f;
           } else {
-            dv[i][k] = 0.0;
+            dv[i][k] = 0.0f;
           }
         } else if (oper == 1) {
-          if (dv[i][k] >= 0.0) {
-            dv[i][k] = 1.0;
+          if (dv[i][k] >= 0.0f) {
+            dv[i][k] = 1.0f;
           } else {
-            dv[i][k] = 0.0;
+            dv[i][k] = 0.0f;
           }
         } else if (oper == 2) {
-          if (dv[i][k] < 0.0) {
-            dv[i][k] = 1.0;
+          if (dv[i][k] < 0.0f) {
+            dv[i][k] = 1.0f;
           } else {
-            dv[i][k] = 0.0;
+            dv[i][k] = 0.0f;
           }
         } else if (oper == 3) {
-          if (dv[i][k] <= 0.0) {
-            dv[i][k] = 1.0;
+          if (dv[i][k] <= 0.0f) {
+            dv[i][k] = 1.0f;
           } else {
-            dv[i][k] = 0.0;
+            dv[i][k] = 0.0f;
           }
         } else if (oper == 4) {
-          if (dv[i][k] == 0.0) {
-            dv[i][k] = 1.0;
+          if (dv[i][k] == 0.0f) {
+            dv[i][k] = 1.0f;
           } else {
-            dv[i][k] = 0.0;
+            dv[i][k] = 0.0f;
           }
         } else if (oper == 5) {
-          if (dv[i][k] != 0.0) {
-            dv[i][k] = 1.0;
+          if (dv[i][k] != 0.0f) {
+            dv[i][k] = 1.0f;
           } else {
-            dv[i][k] = 0.0;
+            dv[i][k] = 0.0f;
           }
         } else {
-          if (dv[i][k] != 0.0) {
-            dv[i][k] = 1.0;
+          if (dv[i][k] != 0.0f) {
+            dv[i][k] = 1.0f;
           } else {
-            dv[i][k] = 0.0;
+            dv[i][k] = 0.0f;
           }
         }
       }
     }
-    fv.setSamples(dv);
+    fv.setSamples(dv,false);
     return fv;
 
   }
@@ -2640,7 +2640,7 @@ public abstract class JPythonMethods {
     } else {
       fv = (FlatField) (((FieldImpl)f).getSample(0)).subtract(v);
     }
-    double [][] dv = fv.getValues(false);
+    float [][] dv = fv.getFloats(false);
     Vector z = new Vector();
     int oper = -1;
     for (int i=0; i<ops.length; i++) {
@@ -2653,19 +2653,19 @@ public abstract class JPythonMethods {
       for (int k=0; k<dv[i].length; k++) {
 
         if (oper == 0) {
-            if (dv[i][k] > 0.0) z.addElement(new Integer(k));
+            if (dv[i][k] > 0.0f) z.addElement(new Integer(k));
         } else if (oper == 1) {
-            if (dv[i][k] >= 0.0) z.addElement(new Integer(k));
+            if (dv[i][k] >= 0.0f) z.addElement(new Integer(k));
         } else if (oper == 2) {
-            if (dv[i][k] < 0.0) z.addElement(new Integer(k));
+            if (dv[i][k] < 0.0f) z.addElement(new Integer(k));
         } else if (oper == 3) {
-            if (dv[i][k] <= 0.0) z.addElement(new Integer(k));
+            if (dv[i][k] <= 0.0f) z.addElement(new Integer(k));
         } else if (oper == 4) {
-            if (dv[i][k] == 0.0) z.addElement(new Integer(k));
+            if (dv[i][k] == 0.0f) z.addElement(new Integer(k));
         } else if (oper == 5) {
-            if (dv[i][k] != 0.0) z.addElement(new Integer(k));
+            if (dv[i][k] != 0.0f) z.addElement(new Integer(k));
         } else {
-            if (dv[i][k] != 0.0) z.addElement(new Integer(k));
+            if (dv[i][k] != 0.0f) z.addElement(new Integer(k));
         }
       }
     }
