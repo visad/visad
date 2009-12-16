@@ -696,9 +696,9 @@ public abstract class FlowControl extends Control {
         base_size = flowControl.getFlowScale();
       }
       else {
-        float cscale = (float) (base_scale / scale[0]);
+        float cscale = (float) (base_scale / scale[2]);
         float ratio = cscale / last_cscale;
-        if (ratio < 0.95f || 1.05f < ratio) {
+        if (ratio < 0.95f || 1.05f < ratio) { // 5% change
           last_cscale = cscale;
           flowControl.setFlowScale((float) base_size * cscale);
         }
