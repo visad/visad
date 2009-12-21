@@ -451,21 +451,21 @@ public class AreaAdapter {
     // If we have calibration units, might as well use them.
     Unit calUnit = null;
     float calScale = 1.0f;
-    try {
-        String unit = areaDirectory.getCalibrationUnitName();
-        if (unit != null) {
+    String unit = areaDirectory.getCalibrationUnitName();
+    if (unit != null) {
+        try {
             String unitName = visad.jmet.MetUnits.makeSymbol(
                     areaDirectory.getCalibrationUnitName());
             calUnit = visad.data.units.Parser.parse(unitName);
             // can't clone BaseUnit
             try {
                 calUnit = calUnit.clone(unitName);
-            } catch (UnitException ue) {}
-            calScale = (1.0f/areaDirectory.getCalibrationScaleFactor());
+            } catch (UnitException ue) {} // catch can't clone base unit
+        } catch (Exception e) {  // bad unit name
+           //e.printStackTrace();
+           calUnit = null;
         }
-    } catch (Exception e) {
-        //e.printStackTrace();
-        calUnit = null;
+        calScale = (1.0f/areaDirectory.getCalibrationScaleFactor());
     }
     String calType = areaDirectory.getCalibrationType();
 
