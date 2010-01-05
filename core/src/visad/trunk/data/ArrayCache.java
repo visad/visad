@@ -36,7 +36,7 @@ import visad.util.Util;
 
 /**
  * This class is used by the CachingCoordinateSystem to do the actual caching mapping one array to another one
- * @version $Revision: 1.4 $ $Date: 2009-12-08 23:36:08 $
+ * @version $Revision: 1.5 $ $Date: 2010-01-05 21:02:43 $
  */
 public class ArrayCache {
 
@@ -121,7 +121,7 @@ public class ArrayCache {
     }
     misses.remove(key);
     //?? should we clone the output
-    return new FloatResult(lastOutput);
+    return new FloatResult(Util.clone(lastOutput));
   }
 
 
@@ -162,7 +162,7 @@ public class ArrayCache {
       }
     }
     misses.remove(key);
-    return new DoubleResult(lastOutput);
+    return new DoubleResult(Util.clone(lastOutput));
   }
 
 
