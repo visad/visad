@@ -1051,8 +1051,11 @@ public class AreaFile implements java.io.Serializable {
                          int numEles, int bandNumber)
           throws AreaFileException {
 
-    data = new int[1][numLines][numEles];
-    if (!hasReadData) readData(data);
+    //data = new int[1][numLines][numEles];
+    if (!hasReadData) {
+      data = new int[origNumBands][dir[AD_NUMLINES]][dir[AD_NUMELEMS]];
+      readData(data);
+    }
     int[][] subset = new int[numLines][numEles];
     for (int i = 0; i < numLines; i++) {
       int ii = i + lineNumber;
