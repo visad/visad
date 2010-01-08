@@ -77,9 +77,33 @@ EmpiricalCoordinateSystem
   EmpiricalCoordinateSystem(GriddedSet world, GriddedSet reference)
     throws VisADException
   {
+    this(world, reference, true, true);
+  }
+
+  /**
+   * Constructs from two GriddedSet-s.  The dimensionality (i.e. rank and
+   * lengths) of the two sets must be identical.  The RealTupleType of the
+   * reference will be that of the reference set.  The units of the world
+   * coordinates will be the actual units of the world set.
+   * @param world               A set of world coordinates.
+   *                            <code>world.getLengths()</code> shall equal
+   *                            <code>reference.getLengths()</code>.  Determines
+   *                            the default units of world coordinates:
+   *                            the default units will be those of <code>
+   *                            world.getSetUnits()</code>.
+   * @param reference           A set of reference coordinates.  Determines
+   *                            the reference RealTupleType.
+   * @param copy                copy samples if clone is made
+   * @param check               check whether samples form a valid grid
+   * @throws VisADException     Couldn't create necessary VisAD object.
+   */
+  public
+  EmpiricalCoordinateSystem(GriddedSet world, GriddedSet reference, boolean copy, boolean check)
+    throws VisADException
+  {
     super(((SetType)reference.getType()).getDomain(), world.getSetUnits());
-    worldCS = new GridCoordinateSystem(ensureNoCoordinateSystem(world));
-    referenceCS = new GridCoordinateSystem(ensureNoCoordinateSystem(reference));
+    worldCS = new GridCoordinateSystem(ensureNoCoordinateSystem(world, copy, check));
+    referenceCS = new GridCoordinateSystem(ensureNoCoordinateSystem(reference, copy, check));
   }
 
   /**
@@ -92,6 +116,21 @@ EmpiricalCoordinateSystem
    */
   protected static GriddedSet
   ensureNoCoordinateSystem(GriddedSet griddedSet)
+    throws VisADException
+  {
+      return ensureNoCoordinateSystem(griddedSet, true, true);
+  }
+
+  /**
+   * Ensures that a GriddedSet doesn't have a default CoordinateSystem.
+   *
+   * @param griddedSet          The GriddedSet to not have a CoordinateSystem.
+   * @return                    The GriddedSet without a CoordinateSystem.
+   *                            May be the original GriddedSet.
+   * @throws VisADException     Couldn't create necessary VisAD object.
+   */
+  protected static GriddedSet
+  ensureNoCoordinateSystem(GriddedSet griddedSet, boolean copy, boolean check)
     throws VisADException
   {
     if (griddedSet.getCoordinateSystem() != null)
@@ -112,7 +151,8 @@ EmpiricalCoordinateSystem
           griddedSet.getLengths(),
           (CoordinateSystem)null,
           griddedSet.getSetUnits(),
-          griddedSet.getSetErrors());
+          griddedSet.getSetErrors(),
+          copy, check);
     }
     return griddedSet;
   }
