@@ -382,6 +382,7 @@ public class AddeURLConnection extends URLConnection
 
     if (!path.startsWith("image") && 
         (!path.startsWith("dataset")) &&
+        (!path.startsWith("dsinfo")) &&
         (!path.startsWith("text")) &&
         (!path.startsWith("wxtext")) &&
         (!path.startsWith("obtext")) &&
