@@ -381,7 +381,7 @@ public class AddeURLConnection extends URLConnection
     if (debug) System.out.println("file from URL: " + url.getFile());
 
     if (!path.startsWith("image") && 
-        (!path.startsWith("datasetinfo")) &&
+        (!path.startsWith("dataset")) &&
         (!path.startsWith("text")) &&
         (!path.startsWith("wxtext")) &&
         (!path.startsWith("obtext")) &&
@@ -401,7 +401,9 @@ public class AddeURLConnection extends URLConnection
         svc = "adir".getBytes();
         reqType = ADIR;
     }
-    else if (path.startsWith("datasetinfo") || path.equals(AddeURL.REQ_LWPR))
+    else if (path.startsWith("dataset") || 
+             path.startsWith("dsinfo") ||
+             path.equals(AddeURL.REQ_LWPR))
     {
         svc = "lwpr".getBytes();
         reqType = LWPR;
