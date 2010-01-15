@@ -526,7 +526,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
                             BufferedImage image, GraphicsModeControl mode,
                             float constant_alpha, float[] constant_color,
                             int texture_width, int texture_height, 
-                            boolean byReference, boolean yUp, VisADImageNode imgNode)
+                            boolean byReference, boolean yUp, VisADImageTile tile)
          throws VisADException {
     GeometryArray geometry = display.makeGeometry(array);
     // System.out.println("texture geometry");
@@ -579,6 +579,7 @@ System.out.println("Texture.RGBA = " + Texture.RGBA); // 6
       image2d.setCapability(ImageComponent.ALLOW_IMAGE_WRITE);
     }
     texture.setImage(0, image2d);
+
     //
     // from TextureLoader
     // TextureLoader uses 3 for both setMinFilter and setMagFilter
@@ -616,8 +617,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
       ((Group) group).addChild(branch);
     }
 
-    if (imgNode != null) {
-      imgNode.setImageComponent(image2d);
+    if (tile != null) {
+      tile.setImageComponent(image2d);
     }
   }
 
