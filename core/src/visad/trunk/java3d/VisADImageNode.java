@@ -13,93 +13,70 @@ import javax.vecmath.Point3d;
 import java.awt.image.*;
 import java.awt.color.*;
 import java.util.Enumeration;
+import java.util.ArrayList;
+import java.util.Iterator;
 import javax.media.j3d.WakeupCriterion;
 import javax.media.j3d.WakeupOnElapsedFrames;
 import javax.media.j3d.WakeupOnElapsedTime;
 import javax.media.j3d.WakeupOnBehaviorPost;
 
 
-public class VisADImageNode implements ImageComponent2D.Updater {
+public class VisADImageNode {
 
-   BufferedImage[] images;
-   int numImages;
+   VisADImageTile[] images;
+   public ArrayList<VisADImageTile> imageTiles = new ArrayList<VisADImageTile>(); 
+   public int numChildren = 0;
    public BranchGroup branch;
    Switch swit;
-   public ImageComponent2D imageComp;
-   BufferedImage buf_image = null;
    public int current_index = 0;
-   private boolean doingPrefetch = false;
+
+   public int numImages;
+   public int data_width;
+   public int data_height;
 
    AnimateBehavior animate = null; 
-
 
    public VisADImageNode() {
    }
 
-   public void setImages(BufferedImage[] images) {
-     this.images = images;
-     this.numImages = images.length;
+   public VisADImageNode(BranchGroup branch, Switch swit) {
+     this.branch = branch;
+     this.swit = swit;
    }
 
-   public BufferedImage[] getImages() {
-     return this.images;
+   public void addTile(VisADImageTile tile) {
+    imageTiles.add(tile);
+    numChildren++;
    }
 
-   public void setImageComponent(ImageComponent2D imageComp) {
-     this.imageComp = imageComp;
+   public VisADImageTile getTile(int index) {
+     return imageTiles.get(index);
    }
 
+   public Iterator getTileIterator() {
+     return imageTiles.iterator();
+   }
+
+   public int getNumTiles() {
+     return numChildren;
+   }
+
+   /**
+   //- for implementing Updater
    public void updateData(ImageComponent2D imageC2d, int x, int y, int lenx, int leny) {
      if (images != null) {
        //-imageComp.set(images[current_index]); // This should probably not be done in updateData
      }
    }
-
+   **/
 
 
    public void setCurrent(int idx) {
      current_index = idx;
 
-     //Have a local array here in case the images array changes in another thread
-     BufferedImage[] theImages = images;
-
-     ImageComponent2D theImageComp = imageComp;
-
-     if (theImageComp != null && theImages != null && idx>=0 && idx< theImages.length) {
-      //-imageComp.updateData(this, 0, 0, 0, 0); // See note above
-
-       BufferedImage image = theImages[idx];
-       if(image == null) {
-	   //	   System.err.println ("Animate image is null for index:" + idx);
-       } else {
-	   theImageComp.set(image);
-	   //Do the lookahead
-	   if(image instanceof CachedBufferedByteImage) {
-	       //Find the next image
-	       CachedBufferedByteImage nextImage = null;
-	       //If we are at the end of the loop then go to the beginning
-	       int nextIdx = idx+1;
-	       if(nextIdx>=theImages.length)
-		   nextIdx = 0;
-	       nextImage = (CachedBufferedByteImage)theImages[nextIdx];
-	       if(!doingPrefetch && nextImage!=null && !nextImage.inMemory()) {
-		   final CachedBufferedByteImage imageToLoad = nextImage;
-		   Runnable r = new Runnable() {
-			   public  void run() {
-                               doingPrefetch = true;
-                               try {
-                                   imageToLoad.getBytesFromCache();
-                               } finally {
-                                   doingPrefetch = false;
-                               }
-
-			   }
-		       };
-		   Thread t = new Thread(r);
-		   t.start();
-	       }
-	   }
-       }
+     //images[i].setCurrent(idx);
+     for (int i=0; i<numChildren; i++) {
+       imageTiles.get(i).setCurrent(idx);
      }
 
      /** use if stepping via a Behavior
@@ -119,9 +96,12 @@ public class VisADImageNode implements ImageComponent2D.Updater {
    }
 
    public void update(int index) {
+     // need to iterate over children (tiles)
+     /**
      if (images != null && imageComp != null) {
        imageComp.set(images[index]);
      }
+     **/
    }
 
    public void setBranch(BranchGroup branch) {
