@@ -997,7 +997,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                                  DataRenderer renderer, ShadowFunctionOrSetType adaptedShadowType,
                                  int[] start, int lenX, int lenY, float[][] samples, int bigX, int bigY,
                                  VisADImageTile tile)
-                                 //BufferedImage image)
          throws VisADException, DisplayException {
 // System.out.println("start curved texture " + (System.currentTimeMillis() - link.start_time));
     float[] coordinates = null;
@@ -1284,7 +1283,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                                  GraphicsModeControl mode, float constant_alpha,
                                  float[] value_array, float[] constant_color, DisplayImpl display,
                                  VisADImageTile tile)
-                                 //BufferedImage image)
          throws VisADException, DisplayException {
 
     float[] coordinates = null;
