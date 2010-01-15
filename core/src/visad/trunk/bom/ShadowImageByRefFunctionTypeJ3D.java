@@ -41,6 +41,8 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Vector;
+import java.util.Iterator;
+import java.util.ArrayList;
 import java.rmi.*;
 
 import java.net.URL;
@@ -59,6 +61,10 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
   private static final int MISSING1 = Byte.MIN_VALUE;      // least byte
 
   private VisADImageNode imgNode = null;
+  private VisADImageNode prevImgNode = null;
+  private int prevDataWidth = -1;
+  private int prevDataHeight = -1;
+  private int prevNumImages = -1;
  
   AnimationControlJ3D animControl = null;
 
@@ -77,8 +83,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                              float[] default_values, DataRenderer renderer)
          throws VisADException, RemoteException {
 
-    BufferedImage[] images = null;
-
     DataDisplayLink link = renderer.getLink();
 
     // return if data is missing or no ScalarMaps
@@ -95,7 +99,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         if (g instanceof BranchGroup && ((BranchGroup) g).numChildren() > 0) {
             reuseImages = true;
         }
-     }
+    }
 
     DisplayImpl display = getDisplay();
 
@@ -108,12 +112,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           : display.getGraphicsModeControl().getCurvedSize();
   
 
-     imgNode = ((ImageRendererJ3D)renderer).getImageNode();
-
-     if (reuseImages && (imgNode != null) ) {
-       images = imgNode.getImages();
-     }
-
+     prevImgNode = ((ImageRendererJ3D)renderer).getImageNode();
 
      if (!reuse) {
 
@@ -137,12 +136,13 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
        branch.addChild(swit);
 
+       //-?imgNode = new VisADImageNode(branch, swit);
        imgNode.setBranch(branch);
        imgNode.setSwitch(swit);
        ((ImageRendererJ3D)renderer).setImageNode(imgNode);
 
        /** use if stepping via Behavior
-       imgNode.initialize();
+         imgNode.initialize();
        */
 
        if ( ((BranchGroup) group).numChildren() > 0 ) {
@@ -161,7 +161,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
      else {
        imgNode = ((ImageRendererJ3D)renderer).getImageNode();
      } 
-
 
 
     ShadowFunctionOrSetType adaptedShadowType =
@@ -206,7 +205,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     Unit[] dataUnits = null;
     CoordinateSystem dataCoordinateSystem = null;
     int numImages = 1;
-    FlatField imgData = null;
+    FlatField imgFlatField = null;
 
     ShadowRealType[] DomainComponents = adaptedShadowType.getDomainComponents();
 
@@ -237,43 +236,66 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
       adaptedShadowType = (ShadowFunctionOrSetType) adaptedShadowType.getRange();
       DomainComponents = adaptedShadowType.getDomainComponents();
-      imgData = (FlatField) ((FieldImpl)data).getSample(0);
+      imgFlatField = (FlatField) ((FieldImpl)data).getSample(0);
     }
     else {
-      imgData = (FlatField)data;
+      imgFlatField = (FlatField)data;
     }
 
 
-    domain_set = imgData.getDomainSet();
-    dataUnits = ((Function) imgData).getDomainUnits();
+    domain_set = imgFlatField.getDomainSet();
+    dataUnits = ((Function) imgFlatField).getDomainUnits();
     dataCoordinateSystem =
-      ((Function) imgData).getDomainCoordinateSystem();
+      ((Function) imgFlatField).getDomainCoordinateSystem();
 
     int domain_length = domain_set.getLength();
     int[] lengths = ((GriddedSet) domain_set).getLengths();
     int data_width = lengths[0];
     int data_height = lengths[1];
+
+    imgNode.numImages = numImages;
+    imgNode.data_width = data_width;
+    imgNode.data_height = data_height;
+
+    int texture_width_max = link.getDisplay().getDisplayRenderer().getTextureWidthMax();
+    int texture_height_max = link.getDisplay().getDisplayRenderer().getTextureWidthMax();
+
+    Mosaic mosaic = new Mosaic(data_height, texture_height_max, data_width, texture_width_max);
+
     int texture_width = textureWidth(data_width);
     int texture_height = textureHeight(data_height);
 
-    if (images != null) {
-      if ( (numImages != images.length) || 
-           (texture_width != images[0].getWidth()) || (texture_height != images[0].getHeight()) ) {
+
+    if (reuseImages) {
+      if (prevImgNode.numImages != numImages || 
+          prevImgNode.data_width != data_width || prevImgNode.data_height != data_height) {
         reuseImages = false;
       }
     }
 
-    if (!reuseImages || images == null) {
-      images = new BufferedImage[numImages];
+    if (reuseImages) {
+      imgNode.numChildren = prevImgNode.numChildren;
+      imgNode.imageTiles = prevImgNode.imageTiles;
+    }
+    else {
+      for (Iterator iter = mosaic.iterator(); iter.hasNext();) {
+        Tile tile = (Tile) iter.next();
+        imgNode.addTile(new VisADImageTile(numImages, tile.height, tile.y_start, tile.width, tile.x_start));
+      }
     }
 
-    imgNode.setImages(images);
+    prevImgNode = imgNode;
 
 
     ShadowRealTupleType Domain = adaptedShadowType.getDomain();
     Unit[] domain_units = ((RealTupleType) Domain.getType()).getDefaultUnits();
     float constant_alpha = Float.NaN;
     float[] constant_color = null;
+
+    // check that domain is only spatial
+    if (!Domain.getAllSpatial() || Domain.getMultipleDisplayScalar()) {
+      throw new BadMappingException("domain must be only spatial");
+    }
 
     // check that range is single RealType mapped to RGB only
     ShadowRealType[] RangeComponents = adaptedShadowType.getRangeComponents();
@@ -331,12 +353,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
     constant_alpha =
         default_values[display.getDisplayScalarIndex(Display.Alpha)];
-
-    byte[][] color_bytes = null;
-    byte[] byteData = null;
-    CachedBufferedByteImage image = null;
-
-
     int color_length;
     ImageRendererJ3D imgRenderer = (ImageRendererJ3D) renderer;
     int imageType = imgRenderer.getSuggestedBufImageType();
@@ -359,27 +375,41 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     }
 
 
-    if (!reuseImages) {
-      image = createImageByRef(texture_width, texture_height, imageType);
-      images[0] = image;
-    } 
-    else {
-	image = (CachedBufferedByteImage)images[0];
+    byte[][] color_bytes = null;
+    byte[] byteData = null;
+    CachedBufferedByteImage image = null;
+    
+    for (Iterator iter = imgNode.getTileIterator(); iter.hasNext();) {
+       VisADImageTile tile = (VisADImageTile) iter.next();
+
+       int tile_width = tile.width;
+       int tile_height = tile.height;
+       int xStart = tile.xStart;
+       int yStart = tile.yStart;
+       texture_width = textureWidth(tile_width);
+       texture_height = textureHeight(tile_height);
+
+       if (!reuseImages) {
+         image = createImageByRef(texture_width, texture_height, imageType);
+         tile.setImage(0, image);
+       }
+       else {
+         image = (CachedBufferedByteImage) tile.getImage(0);
+       }
+
+       java.awt.image.Raster raster = image.getRaster();
+       DataBuffer db = raster.getDataBuffer();
+       byteData = ((DataBufferByte)db).getData();
+
+       makeColorBytes(imgFlatField, cmap, cmaps, constant_alpha, RangeComponents, color_length, domain_length, permute,
+                      color_bytes, byteData, 
+                      data_width, data_height, tile_width, tile_height, xStart, yStart, texture_width, texture_height);
+
+       image.bytesChanged(byteData);
     }
-
-    java.awt.image.Raster raster = image.getRaster();
-    DataBuffer db = raster.getDataBuffer();
-    byteData = ((DataBufferByte)db).getData();
-    makeColorBytes(imgData, cmap, cmaps, constant_alpha, RangeComponents, color_length, domain_length, permute,
-                   color_bytes, byteData, data_width, data_height, texture_width, texture_height);
-
-    image.bytesChanged(byteData);
 
 
     // check domain and determine whether it is square or curved texture
-    if (!Domain.getAllSpatial() || Domain.getMultipleDisplayScalar()) {
-      throw new BadMappingException("domain must be only spatial");
-    }
     boolean isTextureMap = adaptedShadowType.getIsTextureMap() &&
                              (domain_set instanceof Linear2DSet ||
                               (domain_set instanceof LinearNDSet &&
@@ -410,46 +440,14 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
     if (color_length == 4) constant_alpha = Float.NaN; // WLH 6 May 2003
 
-    if (isTextureMap) {
+    if (isTextureMap) { // linear texture
 
-        int[] lens = ((GriddedSet)domain_set).getLengths();
-        int limit = link.getDisplay().getDisplayRenderer().getTextureWidthMax();
+        if (imgNode.getNumTiles() == 1) {
+          VisADImageTile tile = imgNode.getTile(0);
 
-        int y_sub_len = lens[1];
-        int n_y_sub   = 1;
-        while( y_sub_len >= limit ) {
-           y_sub_len /= 2;
-           n_y_sub *= 2;
-        }
-        int[][] y_start_stop = new int[n_y_sub][2];
-        for (int k = 0; k < n_y_sub-1; k++) {
-           y_start_stop[k][0] = k*y_sub_len;
-           y_start_stop[k][1] = (k+1)*y_sub_len - 1;
-        }
-        int k = n_y_sub-1;
-        y_start_stop[k][0] = k*y_sub_len;
-        y_start_stop[k][1] = lens[1] - 1;
-
-        int x_sub_len = lens[0];
-        int n_x_sub   = 1;
-        while( x_sub_len >= limit ) {
-          x_sub_len /= 2;
-          n_x_sub *= 2;
-        }
-        int[][] x_start_stop = new int[n_x_sub][2];
-        for (k = 0; k < n_x_sub-1; k++) {
-           x_start_stop[k][0] = k*x_sub_len;
-           x_start_stop[k][1] = (k+1)*x_sub_len - 1;
-        }
-        k = n_x_sub-1;
-        x_start_stop[k][0] = k*x_sub_len;
-        x_start_stop[k][1] = lens[0] - 1;
-
-
-        if (n_y_sub == 1 && n_x_sub == 1) {
           buildLinearTexture(group, domain_set, dataUnits, domain_units, default_values, DomainComponents,
                              valueArrayLength, inherited_values, valueToScalar, mode, constant_alpha, 
-                             value_array, constant_color, color_bytes, display, image);
+                             value_array, constant_color, display, tile);
         }
         else {
           BranchGroup branch = new BranchGroup();
@@ -458,42 +456,32 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
           branch.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
 
-          int start   = 0;
-          int i_total = 0;
-          for (int i=0; i<n_y_sub; i++) {
-            int leny = y_start_stop[i][1] - y_start_stop[i][0] + 1;
-            for (int j=0; j<n_x_sub; j++) {
-              int lenx = x_start_stop[j][1] - x_start_stop[j][0] + 1;
-              float[][] g00 = ((GriddedSet)domain_set).gridToValue(new float[][] {{x_start_stop[j][0]}, {y_start_stop[i][0]}});
-              float[][] g11 = ((GriddedSet)domain_set).gridToValue(new float[][] {{x_start_stop[j][1]}, {y_start_stop[i][1]}});
+          for (Iterator iter = imgNode.getTileIterator(); iter.hasNext();) {
+             VisADImageTile tile = (VisADImageTile) iter.next();
+
+              float[][] g00 =
+                ((GriddedSet)domain_set).gridToValue(
+                   new float[][] {{tile.xStart}, {tile.yStart}});
+              float[][] g11 =
+                ((GriddedSet)domain_set).gridToValue(
+                   new float[][] {{tile.xStart+tile.width-1}, {tile.yStart+tile.height-1}});
+
               double x0 = g00[0][0];
               double x1 = g11[0][0];
               double y0 = g00[1][0];
               double y1 = g11[1][0];
-              Set dset = new Linear2DSet(x0, x1, lenx, y0, y1, leny);
-
-              byte[][] color_bytesW = new byte[4][lenx*leny];
-              int cnt = 0;
-              for (k=0; k<leny; k++) {
-                start = x_start_stop[j][0] + i_total*lens[0] + k*lens[0];
-                for (int c=0; c<4; c++) {
-                  System.arraycopy(color_bytes[c], start,
-                    color_bytesW[c], cnt, lenx);
-                }
-                cnt += lenx;
-              }
+              Set dset = new Linear2DSet(x0, x1, tile.width, y0, y1, tile.height);
 
               BranchGroup branch1 = new BranchGroup();
               branch1.setCapability(BranchGroup.ALLOW_DETACH);
               branch1.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
               branch1.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
               branch1.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
+
               buildLinearTexture(branch1, dset, dataUnits, domain_units, default_values, DomainComponents,
                                  valueArrayLength, inherited_values, valueToScalar, mode, constant_alpha, 
-                                 value_array, constant_color, color_bytesW, display, null);
+                                 value_array, constant_color, display, tile);
               branch.addChild(branch1);
-            }
-            i_total += leny;
           }
           // group: top level
           if (((Group) group).numChildren() > 0) {
@@ -507,216 +495,96 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       else if (curvedTexture) {
 
         int[] lens = ((GriddedSet)domain_set).getLengths();
+        int[] domain_lens = lens;
 
-        int limit = link.getDisplay().getDisplayRenderer().getTextureWidthMax();
-
-        int y_sub_len = lens[1];
-        int n_y_sub   = 1;
-        while( y_sub_len >= limit ) {
-          y_sub_len /= 2;
-          n_y_sub *= 2;
-        }
-        int[][] y_start_stop = new int[n_y_sub][2];
-        for (int k = 0; k < n_y_sub-1; k++) {
-          y_start_stop[k][0] = k*y_sub_len;
-          y_start_stop[k][1] = (k+1)*y_sub_len - 1;
-        }
-        int k = n_y_sub-1;
-        y_start_stop[k][0] = k*y_sub_len;
-        y_start_stop[k][1] = lens[1] - 1;
-       
-
-        int x_sub_len = lens[0];
-        int n_x_sub   = 1;
-        while( x_sub_len >= limit ) {
-          x_sub_len /= 2;
-          n_x_sub *= 2;
-        }
-        int[][] x_start_stop = new int[n_x_sub][2];
-        for (k = 0; k < n_x_sub-1; k++) {
-          x_start_stop[k][0] = k*x_sub_len;
-          x_start_stop[k][1] = (k+1)*x_sub_len - 1;
-        }
-        k = n_x_sub-1;
-        x_start_stop[k][0] = k*x_sub_len;
-        x_start_stop[k][1] = lens[0] - 1;
-
-        if (n_y_sub == 1 && n_x_sub == 1) {
+        if (imgNode.getNumTiles() == 1) {
+          VisADImageTile tile = imgNode.getTile(0);
           buildCurvedTexture(group, domain_set, dataUnits, domain_units, default_values, DomainComponents,
                              valueArrayLength, inherited_values, valueToScalar, mode, constant_alpha,
-                             value_array, constant_color, color_bytes, display, curved_size, Domain,
-                             dataCoordinateSystem, renderer, adaptedShadowType, new int[] {0,
-                              0}, lens[0], lens[1], null, lens[0], lens[1], image);
+                             value_array, constant_color, display, curved_size, Domain,
+                             dataCoordinateSystem, renderer, adaptedShadowType, new int[] {0,0},
+                             domain_lens[0], domain_lens[1], null, domain_lens[0], domain_lens[1], tile);
         }
-        else 
+        else
         {
-        float[][] samples = ((GriddedSet)domain_set).getSamples(false);
+          float[][] samples = ((GriddedSet)domain_set).getSamples(false);
 
-        BranchGroup branch = new BranchGroup();
-        branch.setCapability(BranchGroup.ALLOW_DETACH);
-        branch.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
-        branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
-        branch.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
+          BranchGroup branch = new BranchGroup();
+          branch.setCapability(BranchGroup.ALLOW_DETACH);
+          branch.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
+          branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+          branch.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
 
 
-        int start   = 0;
-        int i_total = 0;
-        for (int i=0; i<n_y_sub; i++) {
-          int leny = y_start_stop[i][1] - y_start_stop[i][0] + 1;
-          for (int j=0; j<n_x_sub; j++) {
-            int lenx = x_start_stop[j][1] - x_start_stop[j][0] + 1;
-       
-            if (j > 0) {  // vertical stitch
-              float[][] samplesC = new float[2][4*leny];
-              byte[][] color_bytesC  = new byte[4][4*leny];
-              int cntv = 0;
-              int startv = x_start_stop[j][0] + i_total*lens[0];
-              for (int iv=0; iv < leny; iv++) {
-                samplesC[0][cntv] = samples[0][startv-2];
-		samplesC[0][cntv+1] = samples[0][startv-1];
-                samplesC[0][cntv+2] = samples[0][startv];
-                samplesC[0][cntv+3] = samples[0][startv+1];
-                samplesC[1][cntv] = samples[1][startv-2];
-                samplesC[1][cntv+1] = samples[1][startv-1];
-                samplesC[1][cntv+2] = samples[1][startv];
-                samplesC[1][cntv+3] = samples[1][startv+1];
-                for (int c=0; c<4; c++) {
-                  color_bytesC[c][cntv] = color_bytes[c][startv-2];
-                  color_bytesC[c][cntv+1] = color_bytes[c][startv-1];
-                  color_bytesC[c][cntv+2] = color_bytes[c][startv];
-                  color_bytesC[c][cntv+3] = color_bytes[c][startv+1];
-                }
-                cntv += 4;
-                startv += lens[0];
-              }
-              Gridded2DSet gsetv  = new Gridded2DSet(domain_set.getType(), samplesC, 4, leny);
-              BranchGroup branchv = new BranchGroup();
-              branchv.setCapability(BranchGroup.ALLOW_DETACH);
-              branchv.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
-              branchv.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
-              branchv.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
-              buildCurvedTexture(branchv, gsetv, dataUnits, domain_units, default_values, DomainComponents,
-                                 valueArrayLength, inherited_values, valueToScalar, mode, constant_alpha,
-                                 value_array, constant_color, color_bytesC, display, curved_size, Domain,
-                                 dataCoordinateSystem, renderer, adaptedShadowType, new int[] {x_start_stop[j][0],
-                               y_start_stop[i][0]}, lenx, leny, samples, lens[0], lens[1], null);
-              branch.addChild(branchv);
-            }
-            if (i > 0) {  // horz stitch
-              float[][] samplesC = new float[2][4*lenx];
-              byte[][] color_bytesC = new byte[4][4*lenx];
-              int starth = x_start_stop[j][0] + i_total*lens[0];
-              int cnth = 0;
-              System.arraycopy(samples[0], starth-2*lens[0], samplesC[0], cnth, lenx);
-              System.arraycopy(samples[1], starth-2*lens[0], samplesC[1], cnth, lenx);
-              cnth += lenx;
-              System.arraycopy(samples[0], starth-1*lens[0], samplesC[0], cnth, lenx);
-              System.arraycopy(samples[1], starth-1*lens[0], samplesC[1], cnth, lenx);
-              cnth += lenx;
-              System.arraycopy(samples[0], starth, samplesC[0], cnth, lenx);
-              System.arraycopy(samples[1], starth, samplesC[1], cnth, lenx);
-              cnth += lenx;
-              System.arraycopy(samples[0], starth+1*lens[0], samplesC[0], cnth, lenx);
-              System.arraycopy(samples[1], starth+1*lens[0], samplesC[1], cnth, lenx);
+          for (Iterator iter = imgNode.getTileIterator(); iter.hasNext();) {
+             VisADImageTile tile = (VisADImageTile) iter.next();
+ 
+             BranchGroup branch1 = new BranchGroup();
+             branch1.setCapability(BranchGroup.ALLOW_DETACH);
+             branch1.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
+             branch1.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+             branch1.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
 
-              cnth = 0;
-              for (int c=0; c<4; c++) {
-                System.arraycopy(color_bytes[c], starth-2*lens[0],
-                  color_bytesC[c], cnth, lenx);
-              }
-              cnth += lenx;
-              for (int c=0; c<4; c++) {
-                System.arraycopy(color_bytes[c], starth-1*lens[0],
-                  color_bytesC[c], cnth, lenx);
-              }
-              cnth += lenx;
-              for (int c=0; c<4; c++) {
-                System.arraycopy(color_bytes[c], starth,
-                  color_bytesC[c], cnth, lenx);
-              }
-              cnth += lenx;
-              for (int c=0; c<4; c++) {
-                System.arraycopy(color_bytes[c], starth+1*lens[0],
-                  color_bytesC[c], cnth, lenx);
-              }
+             buildCurvedTexture(branch1, null, dataUnits, domain_units, default_values, DomainComponents,
+                                valueArrayLength, inherited_values, valueToScalar, mode, constant_alpha,
+                                value_array, constant_color, display, curved_size, Domain,
+                                dataCoordinateSystem, renderer, adaptedShadowType, 
+                                new int[] {tile.xStart,tile.yStart}, tile.width, tile.height,
+                                samples, domain_lens[0], domain_lens[1], tile);
 
-              Gridded2DSet gseth  = new Gridded2DSet(domain_set.getType(), samplesC, lenx, 4);
-              BranchGroup branchh = new BranchGroup();
-              branchh.setCapability(BranchGroup.ALLOW_DETACH);
-              branchh.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
-              branchh.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
-              branchh.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
-              buildCurvedTexture(branchh, gseth, dataUnits, domain_units, default_values, DomainComponents,
-                                 valueArrayLength, inherited_values, valueToScalar, mode, constant_alpha,
-                                 value_array, constant_color, color_bytesC, display, curved_size, Domain,
-                                 dataCoordinateSystem, renderer, adaptedShadowType, new int[] {x_start_stop[j][0],
-                               y_start_stop[i][0]}, lenx, leny, samples, lens[0], lens[1], null);
-              branch.addChild(branchh);
-            }
-            //- tile piece
-            byte[][] color_bytesW  = new byte[4][lenx*leny];
-            int cnt = 0;
-            for (k=0; k<leny; k++) {
-              start = x_start_stop[j][0] + i_total*lens[0] + k*lens[0];
-              for (int c=0; c<4; c++) {
-                System.arraycopy(color_bytes[c], start,
-                  color_bytesW[c], cnt, lenx);
-              }
-              cnt += lenx;
-            }
-            Gridded2DSet gset1 = null;
-            BranchGroup branch1 = new BranchGroup();
-            branch1.setCapability(BranchGroup.ALLOW_DETACH);
-            branch1.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
-            branch1.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
-            branch1.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
-            buildCurvedTexture(branch1, gset1, dataUnits, domain_units, default_values, DomainComponents,
-                               valueArrayLength, inherited_values, valueToScalar, mode, constant_alpha,
-                               value_array, constant_color, color_bytesW, display, curved_size, Domain,
-                               dataCoordinateSystem, renderer, adaptedShadowType, new int[] {x_start_stop[j][0], 
-                               y_start_stop[i][0]}, lenx, leny, samples, lens[0], lens[1], null);
-            branch.addChild(branch1);
+             branch.addChild(branch1);
+           }
+
+          // group: top level
+          if (((Group) group).numChildren() > 0) {
+            ((Group) group).setChild(branch, 0);
           }
-          i_total += leny;
+          else {
+            ((Group) group).addChild(branch);
+          }
         }
-        color_bytes = null;
-
-        // group: top level
-        if (((Group) group).numChildren() > 0) {
-          ((Group) group).setChild(branch, 0);
-        }
-        else {
-          ((Group) group).addChild(branch);
-        }
-
-        }
-
       } // end if (curvedTexture)
       else { // !isTextureMap && !curvedTexture
         throw new BadMappingException("must be texture map or curved texture map");
       }
 
+
+
       for (int k=1; k<numImages; k++) {
-        if (!reuseImages) {
-          image = createImageByRef(texture_width, texture_height, imageType);
-          images[k] = image;
-        }
-        else {
-          image = (CachedBufferedByteImage)images[k];
-        }
-        raster = image.getRaster();
-        db = raster.getDataBuffer();
-        byteData = ((DataBufferByte)db).getData();
         FlatField ff = (FlatField) ((Field)data).getSample(k);
         GriddedSet domSet = (GriddedSet) ff.getDomainSet();
         int[] lens = domSet.getLengths();
         // check image size, if not equal to first image resample to first
         if (lens[0] != data_width || lens[1] != data_height) {
-          ff = (FlatField) ff.resample(imgData.getDomainSet(), Data.NEAREST_NEIGHBOR, Data.NO_ERRORS);
+          ff = (FlatField) ff.resample(imgFlatField.getDomainSet(), Data.NEAREST_NEIGHBOR, Data.NO_ERRORS);
         }
-        makeColorBytes(ff, cmap, cmaps, constant_alpha, RangeComponents, color_length, domain_length, permute, 
-                color_bytes, byteData, data_width, data_height, texture_width, texture_height);
-	image.bytesChanged(byteData);
+
+        for (Iterator iter = imgNode.getTileIterator(); iter.hasNext();) {
+          VisADImageTile tile = (VisADImageTile) iter.next();
+
+          int tile_width = tile.width;
+          int tile_height = tile.height;
+          int xStart = tile.xStart;
+          int yStart = tile.yStart;
+          texture_width = textureWidth(tile_width);
+          texture_height = textureHeight(tile_height);
+
+
+          if (!reuseImages) {
+            image = createImageByRef(texture_width, texture_height, imageType);
+            tile.setImage(k, image);
+          }
+          else {
+            image = (CachedBufferedByteImage) tile.getImage(k);
+          }
+          java.awt.image.Raster raster = image.getRaster();
+          DataBuffer db = raster.getDataBuffer();
+          byteData = ((DataBufferByte)db).getData();
+          makeColorBytes(ff, cmap, cmaps, constant_alpha, RangeComponents, color_length, domain_length, permute, 
+                  color_bytes, byteData, 
+                  data_width, data_height, tile_width, tile_height, xStart, yStart, texture_width, texture_height);
+          image.bytesChanged(byteData);
+        }
       }
 
     ensureNotEmpty(group);
@@ -724,8 +592,10 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
   }
 
   public static void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float constant_alpha,
-              ShadowRealType[] RangeComponents, int color_length, int domain_length, int[] permute, 
-              byte[][] color_bytes, byte[] byteData, int data_width, int data_height, int texture_width, int texture_height)
+              ShadowRealType[] RangeComponents, int color_length, int domain_length, int[] permute,
+              byte[][] color_bytes, byte[] byteData,
+              int data_width, int data_height, int tile_width, int tile_height, int xStart, int yStart,
+              int texture_width, int texture_height)
       throws VisADException, RemoteException {
 
       if (cmap != null) {
@@ -791,9 +661,10 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
             // fast lookup from byte values to color bytes
             byte[] bytes0 = bytes[0];
 
-            for (int y=0; y<data_height; y++) {
-              for (int x=0; x<data_width; x++) {
-                int i = x + y*data_width;
+            for (int y=0; y<tile_height; y++) {
+              for (int x=0; x<tile_width; x++) {
+                //int i = x + y*data_width;
+                int i = (x+xStart) + (y+yStart)*data_width;
                 int k = x +y*texture_width;
                 k *= color_length;
                 int j = bytes0[i] & 0xff; // unsigned
@@ -815,6 +686,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                 }
               }
             }
+
           }
           else if (bytes != null && bytes[0] != null && is_default_unit &&
               rset != null && rset instanceof Linear1DSet) {
@@ -848,9 +720,10 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
             // now do fast lookup from byte values to color bytes
             byte[] bytes0 = bytes[0];
 
-            for (int y=0; y<data_height; y++) {
-              for (int x=0; x<data_width; x++) {
-                int i = x + y*data_width;
+            for (int y=0; y<tile_height; y++) {
+              for (int x=0; x<tile_width; x++) {
+                //int i = x + y*data_width;
+                int i = (x+xStart) + (y+yStart)*data_width;
                 int k = x +y*texture_width;
                 k *= color_length;
                 int ndx = ((int) bytes0[i]) - MISSING1;
@@ -871,6 +744,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
               }
             }
             bytes = null; // take out the garbage
+
           }
           else {
             // medium speed way to build texture colors
@@ -881,9 +755,12 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
             // now do fast lookup from byte values to color bytes
             float[] values0 = values[0];
             int m = 0;
-            for (int y=0; y<data_height; y++) {
-              for (int x=0; x<data_width; x++) {
-                int i = x + y*data_width;
+            //for (int y=0; y<data_height; y++) {
+            //  for (int x=0; x<data_width; x++) {
+            for (int y=0; y<tile_height; y++) {
+              for (int x=0; x<tile_width; x++) {
+                //int i = x + y*data_width;
+                int i = (x+xStart) + (y+yStart)*data_width;
                 int k = x +y*texture_width;
                 k *= color_length;
 
@@ -909,6 +786,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
               }
             }
             values = null; // take out the garbage
+
           }
         }
         else { // if (table == null)
@@ -916,18 +794,19 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           bytes = null; // take out the garbage
           float[][] values = ((Field) data).getFloats(false);
           values[0] = cmap.scaleValues(values[0]);
-          
           // call lookupValues which will use function since table == null
           float[][] color_values = control.lookupValues(values[0]);
+
           // combine color RGB components into bytes
           // int r, g, b, a = 255;
           int r, g, b;
           int c = (int) (255.0 * (1.0f - constant_alpha));
           int a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
           int m = 0;
-          for (int y=0; y<data_height; y++) {
-            for (int x=0; x<data_width; x++) {
-              int i = x + y*data_width;
+          for (int y=0; y<tile_height; y++) {
+            for (int x=0; x<tile_width; x++) {
+              //int i = x + y*data_width;
+              int i = (x+xStart) + (y+yStart)*data_width;
               int k = x +y*texture_width;
               k *= color_length;
               if (!Float.isNaN(values[0][i])) { // not missing
@@ -961,6 +840,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           // take out the garbage
           values = null;
           color_values = null;
+
         }
       }
       else if (cmaps != null) {
@@ -996,9 +876,10 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           int c = (int) (255.0 * (1.0f - constant_alpha));
           int a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
           int m = 0;
-          for (int y=0; y<data_height; y++) {
-            for (int x=0; x<data_width; x++) {
-              int i = x + y*data_width;
+          for (int y=0; y<tile_height; y++) {
+            for (int x=0; x<tile_width; x++) {
+              //int i = x + y*data_width;
+              int i = (x+xStart) + (y+yStart)*data_width;
               int k = x + y*texture_width;
               k *= color_length;
 
@@ -1111,11 +992,12 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                                  float[] default_values, ShadowRealType[] DomainComponents,
                                  int valueArrayLength, int[] inherited_values, int[] valueToScalar,
                                  GraphicsModeControl mode, float constant_alpha, float[] value_array, 
-                                 float[] constant_color, byte[][] color_bytes, DisplayImpl display,
+                                 float[] constant_color, DisplayImpl display,
                                  int curved_size, ShadowRealTupleType Domain, CoordinateSystem dataCoordinateSystem,
                                  DataRenderer renderer, ShadowFunctionOrSetType adaptedShadowType,
                                  int[] start, int lenX, int lenY, float[][] samples, int bigX, int bigY,
-                                 BufferedImage image)
+                                 VisADImageTile tile)
+                                 //BufferedImage image)
          throws VisADException, DisplayException {
 // System.out.println("start curved texture " + (System.currentTimeMillis() - link.start_time));
     float[] coordinates = null;
@@ -1384,8 +1266,9 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                                                                                                                    
     // add texture as sub-node of group in scene graph
     if (!reuse) {
+       BufferedImage image = tile.getImage(0);
        textureToGroup(group, tarray, image, mode, constant_alpha,
-                      constant_color, texture_width, texture_height, true, true, imgNode);
+                      constant_color, texture_width, texture_height, true, true, tile);
     }
     else {
       if (animControl == null) {
@@ -1399,8 +1282,9 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                                  float[] default_values, ShadowRealType[] DomainComponents,
                                  int valueArrayLength, int[] inherited_values, int[] valueToScalar,
                                  GraphicsModeControl mode, float constant_alpha,
-                                 float[] value_array, float[] constant_color, byte[][] color_bytes, DisplayImpl display,
-                                 BufferedImage image)
+                                 float[] value_array, float[] constant_color, DisplayImpl display,
+                                 VisADImageTile tile)
+                                 //BufferedImage image)
          throws VisADException, DisplayException {
 
     float[] coordinates = null;
@@ -1570,8 +1454,9 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                                                                                                                        
     // add texture as sub-node of group in scene graph
     if (!reuse) {
+      BufferedImage image = tile.getImage(0);
       textureToGroup(group, qarray, image, mode, constant_alpha,
-                     constant_color, texture_width, texture_height, true, true, imgNode);
+                     constant_color, texture_width, texture_height, true, true, tile);
     }
     else {
       if (animControl == null) {
@@ -1615,4 +1500,83 @@ class SwitchNotify extends Switch {
       imgNode.setCurrent(index);
     }
   }
+}
+
+
+class Mosaic {
+
+  Tile[][] tiles;
+  ArrayList<Tile>  tileList = new ArrayList<Tile>();
+
+  int n_x_sub = 1;
+  int n_y_sub = 1;
+
+
+  Mosaic(int lenY, int limitY, int lenX, int limitX) {
+
+    int y_sub_len = lenY;
+    while( y_sub_len > limitY ) {
+       y_sub_len /= 2;
+       n_y_sub *= 2;
+    }
+
+    int[][] y_start_stop = new int[n_y_sub][2];
+    for (int k = 0; k < n_y_sub-1; k++) {
+       y_start_stop[k][0] = k*y_sub_len;
+       // +1: tiles overlap to fill texture gap
+       y_start_stop[k][1] = ((k+1)*y_sub_len - 1) + 1;
+    }
+    int k = n_y_sub-1;
+    y_start_stop[k][0] = k*y_sub_len;
+    y_start_stop[k][1] = lenY - 1;
+
+    int x_sub_len = lenX;
+    while( x_sub_len > limitX ) {
+       x_sub_len /= 2;
+       n_x_sub *= 2; 
+    }
+    int[][] x_start_stop = new int[n_x_sub][2];
+    for (k = 0; k < n_x_sub-1; k++) {
+      x_start_stop[k][0] = k*x_sub_len;
+      // +1: tiles overlap to fill texture gap
+      x_start_stop[k][1] = ((k+1)*x_sub_len - 1) + 1;
+    }
+    k = n_x_sub-1; 
+    x_start_stop[k][0] = k*x_sub_len;
+    x_start_stop[k][1] = lenX - 1;
+
+    tiles = new Tile[n_y_sub][n_x_sub];
+
+    for (int j=0; j<n_y_sub; j++) {
+      for (int i=0; i<n_x_sub; i++) {
+         tiles[j][i] =
+           new Tile(y_start_stop[j][0], y_start_stop[j][1], x_start_stop[i][0], x_start_stop[i][1]);
+         tileList.add(tiles[j][i]);
+      }
+    }
+  }
+
+  Iterator iterator() {
+    return tileList.iterator();
+  }
+}
+
+class Tile {
+   int y_start;
+   int x_start;
+   int y_stop;
+   int x_stop;
+ 
+   int height;
+   int width;
+
+   Tile(int y_start, int y_stop, int x_start, int x_stop) {
+     this.y_start = y_start;
+     this.y_stop = y_stop;
+     this.x_start = x_start;
+     this.x_stop = x_stop;
+     
+     height = y_stop - y_start + 1;
+     width = x_stop - x_start + 1;
+   }
 }
