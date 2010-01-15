@@ -25,6 +25,7 @@ public class VisADImageTile implements ImageComponent2D.Updater {
    int numImages;
    public ImageComponent2D imageComp;
    public int current_index = 0;
+   private boolean doingPrefetch = false;
    
    public int height;
    public int width;
@@ -77,37 +78,45 @@ public class VisADImageTile implements ImageComponent2D.Updater {
      //Have a local array here in case the images array changes in another thread
      BufferedImage[] theImages = images;
 
-     if (imageComp != null && theImages != null && idx>=0 && idx< theImages.length) {
+     ImageComponent2D theImageComp = imageComp;
+
+     if (theImageComp != null && theImages != null && idx>=0 && idx< theImages.length) {
       //-imageComp.updateData(this, 0, 0, 0, 0); // See note above
 
        BufferedImage image = theImages[idx];
        if(image == null) {
-	   //	   System.err.println ("Animate image is null for index:" + idx);
+           //      System.err.println ("Animate image is null for index:" + idx);
        } else {
-	   imageComp.set(image);
-	   //Do the lookahead
-	   if(image instanceof CachedBufferedByteImage) {
-	       //Find the next image
-	       CachedBufferedByteImage nextImage = null;
+           theImageComp.set(image);
+           //Do the lookahead
+           if(image instanceof CachedBufferedByteImage) {
+               //Find the next image
+               CachedBufferedByteImage nextImage = null;
+               //If we are at the end of the loop then go to the beginning
+               int nextIdx = idx+1;
+               if(nextIdx>=theImages.length)
+                   nextIdx = 0;
+               nextImage = (CachedBufferedByteImage)theImages[nextIdx];
+               if(!doingPrefetch && nextImage!=null && !nextImage.inMemory()) {
+                   final CachedBufferedByteImage imageToLoad = nextImage;
+                   Runnable r = new Runnable() {
+                           public  void run() {
+                               doingPrefetch = true;
+                               try {
+                                   imageToLoad.getBytesFromCache();
+                               } finally {
+                                   doingPrefetch = false;
+                               }
 
-	       //If we are at the end of the loop then go to the beginning
-	       int nextIdx = idx+1;
-	       if(nextIdx>=theImages.length)
-		   nextIdx = 0;
-	       nextImage = (CachedBufferedByteImage)theImages[nextIdx];
-	       if(nextImage!=null && !nextImage.inMemory()) {
-		   final CachedBufferedByteImage imageToLoad = nextImage;
-		   Runnable r = new Runnable() {
-			   public  void run() {
-			       imageToLoad.getBytesFromCache();
-			   }
-		       };
-		   Thread t = new Thread(r);
-		   t.start();
-	       }
-	   }
+                           }
+                       };
+                   Thread t = new Thread(r);
+                   t.start();
+               }
+           }
        }
      }
+
      /** use if stepping via a Behavior
      if (animate != null) {
        animate.setCurrent(idx);
