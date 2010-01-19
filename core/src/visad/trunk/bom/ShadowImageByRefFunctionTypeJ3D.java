@@ -75,7 +75,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                                 ShadowType parent)
          throws VisADException, RemoteException {
     super(t, link, parent);
-    //    System.out.println("Using Image byReference rendering");
+        // System.out.println("Using Image byReference rendering");
   }
 
   // transform data into a depiction under group
@@ -1523,6 +1523,10 @@ class Mosaic {
        y_start_stop[k][0] = k*y_sub_len;
        // +1: tiles overlap to fill texture gap
        y_start_stop[k][1] = ((k+1)*y_sub_len - 1) + 1;
+       // check that we don't exceed limit
+       if ( ((y_start_stop[k][1]-y_start_stop[k][0])+1) > limitY) {
+         y_start_stop[k][1] -= 1; //too big, take away gap fill
+       }
     }
     int k = n_y_sub-1;
     y_start_stop[k][0] = k*y_sub_len;
@@ -1538,6 +1542,10 @@ class Mosaic {
       x_start_stop[k][0] = k*x_sub_len;
       // +1: tiles overlap to fill texture gap
       x_start_stop[k][1] = ((k+1)*x_sub_len - 1) + 1;
+      // check that we don't exceed limit
+      if ( ((x_start_stop[k][1]-x_start_stop[k][0])+1) > limitX) {
+        x_start_stop[k][1] -= 1; //too big, take away gap fill
+      }
     }
     k = n_x_sub-1; 
     x_start_stop[k][0] = k*x_sub_len;
