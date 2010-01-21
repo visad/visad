@@ -2223,6 +2223,7 @@ public class Contour2D {
          }
        break;
      }
+
      triStripBldr.addVerticies(cc, tri, normals, color,
           first_strp_side, first_tri_orient, last_strp_side, last_tri_orient);
    }
@@ -2324,6 +2325,7 @@ public class Contour2D {
          last_strp_side = strp_sides[3];
          addCorner(xx, yy, xd, yd, nc, nr, cornersToAdd[0], grd_normals, closed, 0, tri, normals);
          addCorner(xx, yy, xd, yd, nc, nr, cornersToAdd[1], grd_normals, closed, 5, tri, normals);
+
          triStripBldr.addVerticies(cc, tri, normals, color,
               first_strp_side, first_tri_orient, last_strp_side, last_tri_orient);
        }
@@ -2459,15 +2461,15 @@ public class Contour2D {
              if (same_side == 0) {
                if (strp_sides[3] == 3) {
                  oppCorners = new byte[] {3,2};
-                 first_tri_orient = 1;
-                 last_tri_orient = -1;
+                 first_tri_orient = -1;
+                 last_tri_orient = 1;
                  first_strp_side = 0;
                  last_strp_side = 2;
                }
                else if (strp_sides[3] == 1) {
                  oppCorners = new byte[] {2,3};
-                 first_tri_orient = -1;
-                 last_tri_orient = 1;
+                 first_tri_orient = 1;
+                 last_tri_orient = -1;
                  first_strp_side = 0;
                  last_strp_side = 2;
                }
@@ -2883,24 +2885,24 @@ public class Contour2D {
        tri = new float[2][7];
        normals = new float[3][7];
        if (which_corner[0] == 1) {
-           tri[0][0] = edge_points[0][0];
-           tri[1][0] = edge_points[1][0];
-           tri[0][1] = edge_points[0][6];
-           tri[1][1] = edge_points[1][6];
-           tri[0][2] = edge_points[0][1];
-           tri[1][2] = edge_points[1][1];
-           tri[0][3] = edge_points[0][5];
-           tri[1][3] = edge_points[1][5];
-           tri[0][4] = edge_points[0][2];
-           tri[1][4] = edge_points[1][2];
-           tri[0][5] = edge_points[0][4];
-           tri[1][5] = edge_points[1][4];
+           tri[0][0] = edge_points[0][6];
+           tri[1][0] = edge_points[1][6];
+           tri[0][1] = edge_points[0][0];
+           tri[1][1] = edge_points[1][0];
+           tri[0][2] = edge_points[0][5];
+           tri[1][2] = edge_points[1][5];
+           tri[0][3] = edge_points[0][1];
+           tri[1][3] = edge_points[1][1];
+           tri[0][4] = edge_points[0][4];
+           tri[1][4] = edge_points[1][4];
+           tri[0][5] = edge_points[0][2];
+           tri[1][5] = edge_points[1][2];
            tri[0][6] = edge_points[0][3];
            tri[1][6] = edge_points[1][3];
            first_strp_side = 3;
            last_strp_side = 1;
-           first_tri_orient = -1;
-           last_tri_orient = -1;
+           first_tri_orient = 1;
+           last_tri_orient = 1;
         }
         else if (which_corner[0] == 2) {
            tri[0][0] = edge_points[0][6];
@@ -2923,24 +2925,24 @@ public class Contour2D {
            last_tri_orient = 1;
          }
          else if (which_corner[0] == 7) {
-           tri[0][0] = edge_points[0][6];
-           tri[1][0] = edge_points[1][6];
-           tri[0][1] = edge_points[0][7];
-           tri[1][1] = edge_points[1][7];
-           tri[0][2] = edge_points[0][5];
-           tri[1][2] = edge_points[1][5];
-           tri[0][3] = edge_points[0][0];
-           tri[1][3] = edge_points[1][0];
-           tri[0][4] = edge_points[0][4];
-           tri[1][4] = edge_points[1][4];
-           tri[0][5] = edge_points[0][1];
-           tri[1][5] = edge_points[1][1];
+           tri[0][0] = edge_points[0][7];
+           tri[1][0] = edge_points[1][7];
+           tri[0][1] = edge_points[0][6];
+           tri[1][1] = edge_points[1][6];
+           tri[0][2] = edge_points[0][0];
+           tri[1][2] = edge_points[1][0];
+           tri[0][3] = edge_points[0][5];
+           tri[1][3] = edge_points[1][5];
+           tri[0][4] = edge_points[0][1];
+           tri[1][4] = edge_points[1][1];
+           tri[0][5] = edge_points[0][4];
+           tri[1][5] = edge_points[1][4];
            tri[0][6] = edge_points[0][2];
            tri[1][6] = edge_points[1][2];
            first_strp_side = 3;
            last_strp_side = 1;
-           first_tri_orient = 1;
-           last_tri_orient = 1;
+           first_tri_orient = -1;
+           last_tri_orient = -1;
          }
          else if (which_corner[0] == 4) {
            tri[0][0] = edge_points[0][7];
@@ -2962,6 +2964,7 @@ public class Contour2D {
            first_tri_orient = -1;
            last_tri_orient = -1;
          }
+
          interpNormals(tri[0], tri[1], xx, yy, nc, nr, xd, yd, grd_normals, normals);
          triStripBldr.addVerticies(cntr_clr, tri, normals, cntr_color,
                  first_strp_side, first_tri_orient, last_strp_side, last_tri_orient);
@@ -3006,6 +3009,7 @@ public class Contour2D {
            first_tri_orient = 1;
            last_tri_orient = -1;
        }
+
        interpNormals(tri[0], tri[1], xx, yy, nc, nr, xd, yd, grd_normals, normals);
        triStripBldr.addVerticies(cntr_clr, tri, normals, cntr_color,
             first_strp_side, first_tri_orient, last_strp_side, last_tri_orient);
@@ -3125,14 +3129,14 @@ public class Contour2D {
        return;
      cx = xx + xd;
      cy = yy + yd;
-     vidx_0 = 1;
+     vidx_0 = 2;
      vidx_1 = 0;
-     crn    = 2;
+     crn    = 1;
      normals[0][crn] = grd_normals[nc + 1][nr + 1][0];
      normals[1][crn] = grd_normals[nc + 1][nr + 1][1];
      normals[2][crn] = grd_normals[nc + 1][nr + 1][2];
-     first_tri_orient = 1;
-     last_tri_orient = 1;
+     first_tri_orient = -1;
+     last_tri_orient = -1;
      first_strp_side = 2;
      last_strp_side = 1;
      break;
@@ -3301,7 +3305,7 @@ public class Contour2D {
      first_tri_orient = -1;
      last_tri_orient = -1;
      first_strp_side = 3;
-     last_strp_side = 1;
+     last_strp_side = 2;
      break;
    case 7:
      closed[0] = closed[0] | 7;
@@ -3631,6 +3635,29 @@ public class Contour2D {
      strpnrmls[0][strpIdx] = grd_normals[nc + j][nr + i][0];
      strpnrmls[1][strpIdx] = grd_normals[nc + j][nr + i][1];
      strpnrmls[2][strpIdx] = grd_normals[nc + j][nr + i][2];
+ }
+
+ public static int[] getTriOrientation(float[][] verts) {
+   /* note:  doesn't deal with cross-product == 0 */
+   int len = verts[0].length;
+   float xa  = verts[0][1] - verts[0][0];
+   float ya  = verts[1][1] - verts[1][0];
+   float xb  = verts[0][2] - verts[0][0];
+   float yb  = verts[1][2] - verts[1][0];
+  
+   float first = xa*yb - xb*ya;
+
+   xa  = verts[0][len-2] - verts[0][len-3];
+   ya  = verts[1][len-2] - verts[1][len-3];
+   xb  = verts[0][len-1] - verts[0][len-3];
+   yb  = verts[1][len-1] - verts[1][len-3];
+   
+   float last = xa*yb - xb*ya;
+
+   int firstOrient = (first < 0) ? CLOCKWISE : CNTRCLOCKWISE;
+   int lastOrient = (last < 0) ? CLOCKWISE : CNTRCLOCKWISE;
+   
+   return new int[] {firstOrient, lastOrient};
  }
 
 
