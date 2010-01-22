@@ -663,7 +663,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
             for (int y=0; y<tile_height; y++) {
               for (int x=0; x<tile_width; x++) {
-                //int i = x + y*data_width;
                 int i = (x+xStart) + (y+yStart)*data_width;
                 int k = x +y*texture_width;
                 k *= color_length;
@@ -722,7 +721,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
             for (int y=0; y<tile_height; y++) {
               for (int x=0; x<tile_width; x++) {
-                //int i = x + y*data_width;
                 int i = (x+xStart) + (y+yStart)*data_width;
                 int k = x +y*texture_width;
                 k *= color_length;
@@ -755,11 +753,8 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
             // now do fast lookup from byte values to color bytes
             float[] values0 = values[0];
             int m = 0;
-            //for (int y=0; y<data_height; y++) {
-            //  for (int x=0; x<data_width; x++) {
             for (int y=0; y<tile_height; y++) {
               for (int x=0; x<tile_width; x++) {
-                //int i = x + y*data_width;
                 int i = (x+xStart) + (y+yStart)*data_width;
                 int k = x +y*texture_width;
                 k *= color_length;
@@ -805,7 +800,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           int m = 0;
           for (int y=0; y<tile_height; y++) {
             for (int x=0; x<tile_width; x++) {
-              //int i = x + y*data_width;
               int i = (x+xStart) + (y+yStart)*data_width;
               int k = x +y*texture_width;
               k *= color_length;
@@ -878,7 +872,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           int m = 0;
           for (int y=0; y<tile_height; y++) {
             for (int x=0; x<tile_width; x++) {
-              //int i = x + y*data_width;
               int i = (x+xStart) + (y+yStart)*data_width;
               int k = x + y*texture_width;
               k *= color_length;
