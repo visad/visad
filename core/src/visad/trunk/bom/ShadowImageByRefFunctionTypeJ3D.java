@@ -75,7 +75,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                                 ShadowType parent)
          throws VisADException, RemoteException {
     super(t, link, parent);
-        // System.out.println("Using Image byReference rendering");
+         System.out.println("Using Image byReference rendering");
   }
 
   // transform data into a depiction under group
@@ -114,6 +114,8 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
      prevImgNode = ((ImageRendererJ3D)renderer).getImageNode();
 
+     BranchGroup bgImages = null;
+
      if (!reuse) {
 
        BranchGroup branch = new BranchGroup();
@@ -125,7 +127,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
        imgNode = new VisADImageNode();
 
-       BranchGroup bgImages = new BranchGroup();
+       bgImages = new BranchGroup();
        bgImages.setCapability(BranchGroup.ALLOW_DETACH);
        bgImages.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
        bgImages.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
@@ -150,13 +152,14 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
        }
        else {
          ((BranchGroup)group).addChild(branch);
+         /*
          // make sure group is live.  group not empty (above addChild)
          if (group instanceof BranchGroup) {
            ((ImageRendererJ3D) renderer).setBranchEarly((BranchGroup) group);
          }
+         */
        }
 
-       group = bgImages;
      } 
      else {
        imgNode = ((ImageRendererJ3D)renderer).getImageNode();
@@ -377,7 +380,8 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
     byte[][] color_bytes = null;
     byte[] byteData = null;
-    CachedBufferedByteImage image = null;
+    //CachedBufferedByteImage image = null;
+    BufferedImage image = null;
     
     for (Iterator iter = imgNode.getTileIterator(); iter.hasNext();) {
        VisADImageTile tile = (VisADImageTile) iter.next();
@@ -394,7 +398,8 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
          tile.setImage(0, image);
        }
        else {
-         image = (CachedBufferedByteImage) tile.getImage(0);
+         //image = (CachedBufferedByteImage) tile.getImage(0);
+         image = (BufferedImage) tile.getImage(0);
        }
 
        java.awt.image.Raster raster = image.getRaster();
@@ -405,7 +410,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                       color_bytes, byteData, 
                       data_width, data_height, tile_width, tile_height, xStart, yStart, texture_width, texture_height);
 
-       image.bytesChanged(byteData);
+       //image.bytesChanged(byteData);
     }
 
 
@@ -445,7 +450,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         if (imgNode.getNumTiles() == 1) {
           VisADImageTile tile = imgNode.getTile(0);
 
-          buildLinearTexture(group, domain_set, dataUnits, domain_units, default_values, DomainComponents,
+          buildLinearTexture(bgImages, domain_set, dataUnits, domain_units, default_values, DomainComponents,
                              valueArrayLength, inherited_values, valueToScalar, mode, constant_alpha, 
                              value_array, constant_color, display, tile);
         }
@@ -484,11 +489,11 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
               branch.addChild(branch1);
           }
           // group: top level
-          if (((Group) group).numChildren() > 0) {
-            ((Group) group).setChild(branch, 0);
+          if (((Group) bgImages).numChildren() > 0) {
+            ((Group) bgImages).setChild(branch, 0);
           }
           else {
-            ((Group) group).addChild(branch);
+            ((Group) bgImages).addChild(branch);
           }
         }
       } // end if (isTextureMap)
@@ -499,7 +504,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
         if (imgNode.getNumTiles() == 1) {
           VisADImageTile tile = imgNode.getTile(0);
-          buildCurvedTexture(group, domain_set, dataUnits, domain_units, default_values, DomainComponents,
+          buildCurvedTexture(bgImages, domain_set, dataUnits, domain_units, default_values, DomainComponents,
                              valueArrayLength, inherited_values, valueToScalar, mode, constant_alpha,
                              value_array, constant_color, display, curved_size, Domain,
                              dataCoordinateSystem, renderer, adaptedShadowType, new int[] {0,0},
@@ -536,11 +541,11 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
            }
 
           // group: top level
-          if (((Group) group).numChildren() > 0) {
-            ((Group) group).setChild(branch, 0);
+          if (((Group) bgImages).numChildren() > 0) {
+            ((Group) bgImages).setChild(branch, 0);
           }
           else {
-            ((Group) group).addChild(branch);
+            ((Group) bgImages).addChild(branch);
           }
         }
       } // end if (curvedTexture)
@@ -548,6 +553,11 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         throw new BadMappingException("must be texture map or curved texture map");
       }
 
+
+      // make sure group is live.  group not empty (above addChild)
+      if (group instanceof BranchGroup) {
+        ((ImageRendererJ3D) renderer).setBranchEarly((BranchGroup) group);
+      }
 
 
       for (int k=1; k<numImages; k++) {
@@ -575,7 +585,8 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
             tile.setImage(k, image);
           }
           else {
-            image = (CachedBufferedByteImage) tile.getImage(k);
+            //image = (CachedBufferedByteImage) tile.getImage(k);
+            image = (BufferedImage) tile.getImage(k);
           }
           java.awt.image.Raster raster = image.getRaster();
           DataBuffer db = raster.getDataBuffer();
@@ -583,11 +594,11 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           makeColorBytes(ff, cmap, cmaps, constant_alpha, RangeComponents, color_length, domain_length, permute, 
                   color_bytes, byteData, 
                   data_width, data_height, tile_width, tile_height, xStart, yStart, texture_width, texture_height);
-          image.bytesChanged(byteData);
+          //image.bytesChanged(byteData);
         }
       }
 
-    ensureNotEmpty(group);
+    ensureNotEmpty(bgImages);
     return false;
   }
 
@@ -1457,8 +1468,9 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
   }
 
-  public CachedBufferedByteImage createImageByRef(final int texture_width, final int texture_height, final int imageType) {
-      return new CachedBufferedByteImage(texture_width, texture_height, imageType);
+  //public CachedBufferedByteImage createImageByRef(final int texture_width, final int texture_height, final int imageType) {
+  public BufferedImage createImageByRef(final int texture_width, final int texture_height, final int imageType) {
+      return new BufferedImage(texture_width, texture_height, imageType);
   }
 
 }
@@ -1502,47 +1514,47 @@ class Mosaic {
   int n_x_sub = 1;
   int n_y_sub = 1;
 
-
   Mosaic(int lenY, int limitY, int lenX, int limitX) {
 
-    int y_sub_len = lenY;
-    while( y_sub_len > limitY ) {
-       y_sub_len /= 2;
-       n_y_sub *= 2;
-    }
+    int y_sub_len = limitY;
+    n_y_sub = lenY/y_sub_len;
+    if (n_y_sub == 0) n_y_sub++;
+    if ((lenY - n_y_sub*y_sub_len) > 4) n_y_sub += 1;
 
     int[][] y_start_stop = new int[n_y_sub][2];
     for (int k = 0; k < n_y_sub-1; k++) {
-       y_start_stop[k][0] = k*y_sub_len;
+       y_start_stop[k][0] = k*y_sub_len - k;
        // +1: tiles overlap to fill texture gap
-       y_start_stop[k][1] = ((k+1)*y_sub_len - 1) + 1;
+       // y_start_stop[k][1] = ((k+1)*y_sub_len - 1) + 1;
+       y_start_stop[k][1] = ((k+1)*y_sub_len - 1) - k;
        // check that we don't exceed limit
        if ( ((y_start_stop[k][1]-y_start_stop[k][0])+1) > limitY) {
          y_start_stop[k][1] -= 1; //too big, take away gap fill
        }
     }
     int k = n_y_sub-1;
-    y_start_stop[k][0] = k*y_sub_len;
-    y_start_stop[k][1] = lenY - 1;
+    y_start_stop[k][0] = k*y_sub_len - k;
+    y_start_stop[k][1] = lenY - 1 - k;
 
-    int x_sub_len = lenX;
-    while( x_sub_len > limitX ) {
-       x_sub_len /= 2;
-       n_x_sub *= 2; 
-    }
+    int x_sub_len = limitX;
+    n_x_sub = lenX/x_sub_len;
+    if (n_x_sub == 0) n_x_sub++;
+    if ((lenX - n_x_sub*x_sub_len) > 4) n_x_sub += 1;
+
     int[][] x_start_stop = new int[n_x_sub][2];
     for (k = 0; k < n_x_sub-1; k++) {
-      x_start_stop[k][0] = k*x_sub_len;
+      x_start_stop[k][0] = k*x_sub_len - k;
       // +1: tiles overlap to fill texture gap
-      x_start_stop[k][1] = ((k+1)*x_sub_len - 1) + 1;
+      // x_start_stop[k][1] = ((k+1)*x_sub_len - 1) + 1;
+      x_start_stop[k][1] = ((k+1)*x_sub_len - 1) - k;
       // check that we don't exceed limit
       if ( ((x_start_stop[k][1]-x_start_stop[k][0])+1) > limitX) {
         x_start_stop[k][1] -= 1; //too big, take away gap fill
       }
     }
     k = n_x_sub-1; 
-    x_start_stop[k][0] = k*x_sub_len;
-    x_start_stop[k][1] = lenX - 1;
+    x_start_stop[k][0] = k*x_sub_len - k;
+    x_start_stop[k][1] = lenX - 1 - k;
 
     tiles = new Tile[n_y_sub][n_x_sub];
 
