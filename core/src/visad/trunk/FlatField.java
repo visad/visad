@@ -4196,7 +4196,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
 
         //- get neigbors and separation along this axis   -*
         neighbors = domainSet.getNeighbors( m_index );
-        step = (float) (((LinearSet)domainSet).getLinear1DComponent(kk)).getStep();
+        step = (float) (((LinearSet)domainSet).getLinear1DComponent(m_index)).getStep();
 
         //- compute derivative for each sample and each range component   -*
         for ( ii = 0; ii < n_samples; ii++ )
