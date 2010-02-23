@@ -94,12 +94,7 @@ public class Gridded3DSet extends GriddedSet {
 
     float[][]mySamples = getMySamples();
     if (mySamples != null && Lengths[0] > 1 && Lengths[1] > 1 && Lengths[2] > 1) {
-      for (int i = 0; i < Length; i++) {
-        if (mySamples[0][i] != mySamples[0][i]) {
-          throw new SetException(
-              "Gridded3DSet: samples values may not be missing");
-        }
-      }
+
       // Samples consistency test
       float[] t000 = new float[3];
       float[] t100 = new float[3];
@@ -140,6 +135,14 @@ public class Gridded3DSet extends GriddedSet {
           throw new SetException(
               "Gridded3DSet: samples do not form a valid grid");
         }
+
+        for (int i = 0; i < Length; i++) {
+          if (mySamples[0][i] != mySamples[0][i]) {
+            throw new SetException(
+                "Gridded3DSet: samples values may not be missing");
+          }
+        }
+
 
         float[] v000 = new float[3];
         float[] v100 = new float[3];
