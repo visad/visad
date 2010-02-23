@@ -667,6 +667,14 @@ public class TextAdapter {
       new visad.jmet.DumpType().dumpMathType(mt,System.out);
     }
 
+
+    //Note,  we need to have a reference to the realTypes list somewhere
+    //after the above call to stringToType so that the list doesn't get gc'ed
+    //and the realtypes it contains don't get gc'ed
+    if(realTypes.size()==0) {
+    }
+
+
     // now get the names of the domain variables and range variables.
     String[] domainNames = null;
     String[] rangeNames = null;
