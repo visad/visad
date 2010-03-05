@@ -251,7 +251,7 @@ public class CachedFlatField extends FlatField {
             }
         }
         setRangeErrors(errors);
-        clearCachedRange();
+        this.getRanges(values);
         if(inCache) {
             DataCacheManager.getCacheManager().updateData(cacheId, myFloatValues);
         } else {

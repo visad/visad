@@ -44,6 +44,10 @@ public class MetUnits {
         du.putSymbol("hPa", hpa);
         du.putSymbol("MB", hpa);
         du.putSymbol("mb", hpa);
+        Unit pvu = Parser.parse("10-6 m2 s-1K kg-1");
+        pvu = pvu.clone("PVU");
+        du.putSymbol("PVU",pvu);
+        du.putSymbol("pvu",pvu);
     } catch (Exception e) {
         System.err.println("Unable to update UnitsDB");
     }
