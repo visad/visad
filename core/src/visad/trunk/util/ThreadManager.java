@@ -359,6 +359,20 @@ public class ThreadManager {
 
 
   /**
+   * Return the list of any exceptions that were thrown when running the threads
+   * 
+   * @return The exceptions that were thrown
+   */
+  public List<Exception> getExceptions() {
+      List<Exception> exceptions = new ArrayList<Exception>();
+      exceptions.addAll(visadExceptions);
+      exceptions.addAll(remoteExceptions);
+      exceptions.addAll(runtimeExceptions);
+      return exceptions;
+   } 
+
+
+  /**
    * MyRunnable 
    */
   public interface MyRunnable {
