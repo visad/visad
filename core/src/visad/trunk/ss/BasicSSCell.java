@@ -26,7 +26,7 @@ MA 02111-1307, USA
 
 package visad.ss;
 
-import com.sun.image.codec.jpeg.*;
+import javax.imageio.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -1939,11 +1939,16 @@ public class BasicSSCell extends JPanel
     BufferedImage image =
       IsSlave ? RemoteVSlave.getImage() : VDisplay.getImage();
     try {
-      JPEGEncodeParam param = JPEGCodec.getDefaultJPEGEncodeParam(image);
-      param.setQuality(1.0f, true);
+      Iterator<ImageWriter> iter = ImageIO.getImageWritersByFormatName("jpeg");
+      ImageWriter writer = iter.next();
+      ImageWriteParam param = writer.getDefaultWriteParam();
+      param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+      param.setCompressionQuality(1.0f);
       FileOutputStream fout = new FileOutputStream(f);
-      JPEGImageEncoder encoder = JPEGCodec.createJPEGEncoder(fout);
-      encoder.encode(image, param);
+      writer.setOutput(fout);
+      IIOImage iio = new IIOImage(image, null, null);
+      writer.write(null, iio, param);
+      ImageIO.write(image, "image/jpeg", fout);
       fout.close();
     }
     catch (NoClassDefFoundError err) {

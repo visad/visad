@@ -35,7 +35,7 @@ import java.awt.geom.AffineTransform;
 import java.rmi.*;
 import java.util.*;
 import java.io.*;
-import com.sun.image.codec.jpeg.*;
+import javax.imageio.*;
 
 
 import visad.util.Util;
@@ -311,12 +311,7 @@ public abstract class DisplayRendererJ2D
       for (int i=0; i<2; i++) {
         try {
           ByteArrayOutputStream bout = new ByteArrayOutputStream();
-          // FileOutputStream bout = new FileOutputStream("junk");
-          JPEGEncodeParam jepar =
-            JPEGCodec.getDefaultJPEGEncodeParam(image);
-          jepar.setQuality( 1.0f, true);
-          JPEGImageEncoder jpege = JPEGCodec.createJPEGEncoder(bout);
-          jpege.encode(image, jepar);
+          ImageIO.write(image, "image/jpeg", bout);
           bout.flush();
           bout.close();
         }

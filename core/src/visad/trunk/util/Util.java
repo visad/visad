@@ -47,9 +47,14 @@ import java.lang.reflect.InvocationTargetException;
 
 import java.util.Calendar;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
 
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
 import javax.media.j3d.Canvas3D;
 import javax.media.j3d.Group;
 import javax.media.j3d.Node;
@@ -72,9 +77,7 @@ import visad.data.bio.LociForm;
 import visad.data.mcidas.AreaForm;
 import visad.data.mcidas.MapForm;
 
-import com.sun.image.codec.jpeg.JPEGCodec;
-import com.sun.image.codec.jpeg.JPEGEncodeParam;
-import com.sun.image.codec.jpeg.JPEGImageEncoder;
+
 import com.sun.j3d.utils.universe.SimpleUniverse;
 
 import java.util.logging.Formatter;
@@ -505,11 +508,12 @@ public class Util {
   }
 
   /**
-   * Test whether JPEG codec (com.sun.image.codec.jpeg) is present in this JVM.
+   * Test whether <code>javax.imageio</code> can write JPEGs.
    * @return true if found, otherwise false
    */
   public static boolean canDoJPEG() {
-    return canDoClass("com.sun.image.codec.jpeg.JPEGCodec") != null;
+	Iterator<ImageWriter> iter = ImageIO.getImageWritersByFormatName("jpeg");
+    return iter.hasNext();
   }
 
   /**
@@ -615,11 +619,15 @@ public class Util {
       public void run() {
         BufferedImage image = disp.getImage(wait);
         try {
-          JPEGEncodeParam param = JPEGCodec.getDefaultJPEGEncodeParam(image);
-          param.setQuality(1.0f, true);
-          FileOutputStream fout = new FileOutputStream(fn);
-          JPEGImageEncoder encoder = JPEGCodec.createJPEGEncoder(fout);
-          encoder.encode(image, param);
+            Iterator<ImageWriter> iter = ImageIO.getImageWritersByFormatName("jpeg");
+            ImageWriter writer = iter.next();
+            ImageWriteParam param = writer.getDefaultWriteParam();
+            param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+            param.setCompressionQuality(1.0f);
+            FileOutputStream fout = new FileOutputStream(fn);
+            writer.setOutput(fout);
+            IIOImage iio = new IIOImage(image, null, null);
+            writer.write(null, iio, param);
           fout.close();
         }
         catch (Exception err) {
