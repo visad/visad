@@ -1535,6 +1535,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
                                      "DataReferenceImpl");
     }
     adaptedDisplayRemoveReference((DataReference)ref);
+    notifyListeners(new DisplayEvent(this, DisplayEvent.REFERENCE_REMOVED));
   }
 
   /**
@@ -1583,7 +1584,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
   }
 
   /**
-   * remove all links to DataReferences
+   * remove all links to DataReferences.
    * @throws VisADException a VisAD error occurred
    * @throws RemoteException an RMI error occurred
    */
@@ -1606,6 +1607,8 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
 
       initialize = true;
 // printStack("removeAllReferences");
+      
+      notifyListeners(new DisplayEvent(this, DisplayEvent.REFERENCE_REMOVED));
     }
   }
 
