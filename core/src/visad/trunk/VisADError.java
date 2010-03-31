@@ -34,6 +34,8 @@ public class VisADError extends Error {
 
   public VisADError() { super(); }
   public VisADError(String s) { super(s); }
+  public VisADError(Throwable t) { super(t); }
+  public VisADError(String s, Throwable t) { super(s, t); }
 
 }
 
