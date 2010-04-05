@@ -26,11 +26,26 @@ MA 02111-1307, USA
 
 package visad.java3d;
 
-import visad.*;
-import visad.browser.Convert;
-
-import java.rmi.*;
+import java.rmi.RemoteException;
+import java.util.Enumeration;
 import java.util.StringTokenizer;
+
+import javax.media.j3d.Behavior;
+import javax.media.j3d.BranchGroup;
+import javax.media.j3d.WakeupOnElapsedTime;
+
+import visad.AnimationControl;
+import visad.AnimationSetControl;
+import visad.Control;
+import visad.DataDisplayLink;
+import visad.DataRenderer;
+import visad.DisplayException;
+import visad.RealType;
+import visad.Set;
+import visad.ToggleControl;
+import visad.VisADError;
+import visad.VisADException;
+import visad.browser.Convert;
 
 /**
    AnimationControlJ3D is the VisAD class for controlling Animation
@@ -39,103 +54,62 @@ import java.util.StringTokenizer;
    WLH - manipulate a list of Switch nodes in scene graph.<P>
 */
 public class AnimationControlJ3D extends AVControlJ3D
-       implements Runnable, AnimationControl {
+       implements AnimationControl {
 
+  private static final long serialVersionUID = 7763197458917167330L;
+  private static final long DEFAULT_DWELL = 500;
   protected int current = 0;//DML: made protected so subclass can use it.
   private boolean direction; // true = forward
   private long step; // time in milliseconds between animation steps
-  private long[] stepValues = {500}; // times in milliseconds between animation steps
+  private long[] stepValues; // times in milliseconds between animation steps
   private transient AnimationSetControl animationSet;
   private ToggleControl animate;
   private RealType real;
   private boolean computeSet = true;
 
-  /** AnimationControlJ3D is Serializable, mark as transient */
-  private transient Thread animationThread;
+  /** Behavior for initiating time stepping. */
+  private transient Behavior steppingBehaviour;
 
   public AnimationControlJ3D(DisplayImplJ3D d, RealType r) {
     super(d);
     real = r;
     current = 0;
     direction = true;
-    step = 500;
-    stepValues = new long[] {step};
+    step = DEFAULT_DWELL;
+    stepValues = new long[] { step };
     animationSet = new AnimationSetControl(d, this);
     // initialize the stepValues array
-    try
-    {
-        Set set = animationSet.getSet();
-        if (set != null) stepValues = new long[set.getLength()];
+    try {
+      Set set = animationSet.getSet();
+      if (set != null)
+        stepValues = new long[set.getLength()];
+    } catch (VisADException v) {
     }
-    catch (VisADException v) {;}
-    for (int i = 0; i<stepValues.length; i++)
-    {
-        stepValues[i] = step;
+    for (int i = 0; i < stepValues.length; i++) {
+      stepValues[i] = step;
     }
     d.addControl(animationSet);
     animate = new ToggleControl(d, this);
     d.addControl(animate);
     try {
       animate.setOn(false);
+    } catch (VisADException v) {
+    } catch (RemoteException v) {
     }
-    catch (VisADException v) {
-    }
-    catch (RemoteException v) {
-    }
-    if (d != null) {
-      animationThread = new Thread(this);
-      animationThread.start();
-    }
+
+    // add stepping behavior near the root of the scene graph
+    steppingBehaviour = new TakeStepBehavior();
+    BranchGroup bg = new BranchGroup();
+    bg.addChild(steppingBehaviour);
+    DisplayRendererJ3D rend = (DisplayRendererJ3D) d.getDisplayRenderer();
+    BranchGroup root = rend.getRoot();
+    root.addChild(bg);
   }
 
   AnimationControlJ3D() {
     this(null, null);
   }
-
-  public void nullControl() {
-    stop();
-    super.nullControl();
-  }
-
-  public void stop() {
-    animationThread = null;
-  }
-
-  public void run() {
-    Thread me = Thread.currentThread();
-    while (animationThread == me) {
-      try {
-        if (animate != null && animate.getOn()) {
-          takeStep();
-        }
-      }
-      catch (VisADException v) {
-        v.printStackTrace();
-        throw new VisADError("AnimationControlJ3D.run: " + v.toString());
-      }
-      catch (RemoteException v) {
-        v.printStackTrace();
-        throw new VisADError("AnimationControlJ3D.run: " + v.toString());
-      }
-      try {
-        synchronized (this) {
-          if (0 <= current && current < stepValues.length) {
-            wait(stepValues[current]);
-          }
-          else {
-            wait(500);
-          }
-        }
-      }
-      catch(InterruptedException e) {
-        // control doesn't normally come here
-      }
-    } // end while (animationThread == me)
-    animationSet = null;
-    animate = null;
-    real = null;
-  }
-
+  
   public int getCurrent() {
     return current;
   }
@@ -213,7 +187,7 @@ public class AnimationControlJ3D extends AVControlJ3D
   {
       return stepValues;
   }
-
+  
   /**
    * set the dwell time for all steps
    *
@@ -623,5 +597,64 @@ public class AnimationControlJ3D extends AVControlJ3D
   public boolean getComputeSet() {
     return computeSet;
   }
+  
+  /**
+   * Java3D <code>Behavior</code> which initiates animation stepping based on
+   * elapsed time.
+   */
+  private class TakeStepBehavior extends Behavior {
 
+    public TakeStepBehavior() {
+    }
+
+    public void initialize() {
+      updateDwell();
+    }
+
+    /**
+     * Unconditionally attempt to take the next step.
+     */
+    public void processStimulus(Enumeration criteria) {
+      try {
+        if (animate != null && animate.getOn()) {
+          takeStep();
+        }
+      } catch (VisADException v) {
+        throw new VisADError("Unable to take animation step", v);
+      } catch (RemoteException v) {
+        throw new VisADError("Unable to take animation step", v);
+      }
+      updateDwell();
+    }
+
+    /**
+     * Set the wake up criteria for the current step value (dwell).
+     */
+    public void updateDwell() {
+      // set the wake up criteria with the dwell for the current step
+      if (0 <= current && current < stepValues.length) {
+        wakeupOn(new WakeupOnElapsedTime(stepValues[current]));
+      } else {
+        wakeupOn(new WakeupOnElapsedTime(DEFAULT_DWELL));
+      }
+
+    }
+  }
+
+  /**
+   * Stop animating.
+   */
+  @Override
+  public void stop() {
+    steppingBehaviour.setEnable(false);
+  }
+
+  /**
+   * Start animating.
+   */
+  @Override
+  public void run() {
+    steppingBehaviour.setEnable(true);
+  }
+  
 }
