@@ -60,8 +60,8 @@ public class AnimationControlJ3D extends AVControlJ3D
   private static final long DEFAULT_DWELL = 500;
   protected int current = 0;//DML: made protected so subclass can use it.
   private boolean direction; // true = forward
-  private long step; // time in milliseconds between animation steps
-  private long[] stepValues; // times in milliseconds between animation steps
+  private long step = DEFAULT_DWELL; // time in milliseconds between animation steps
+  private WakeupOnElapsedTime[] stepValues; // times in milliseconds between animation steps
   private transient AnimationSetControl animationSet;
   private ToggleControl animate;
   private RealType real;
@@ -75,18 +75,19 @@ public class AnimationControlJ3D extends AVControlJ3D
     real = r;
     current = 0;
     direction = true;
-    step = DEFAULT_DWELL;
-    stepValues = new long[] { step };
     animationSet = new AnimationSetControl(d, this);
     // initialize the stepValues array
+    stepValues = new WakeupOnElapsedTime[]{
+        new WakeupOnElapsedTime(DEFAULT_DWELL)
+    };
     try {
       Set set = animationSet.getSet();
       if (set != null)
-        stepValues = new long[set.getLength()];
+        stepValues = new WakeupOnElapsedTime[set.getLength()];
     } catch (VisADException v) {
     }
     for (int i = 0; i < stepValues.length; i++) {
-      stepValues[i] = step;
+      stepValues[i] = new WakeupOnElapsedTime(DEFAULT_DWELL);
     }
     d.addControl(animationSet);
     animate = new ToggleControl(d, this);
@@ -176,8 +177,8 @@ public class AnimationControlJ3D extends AVControlJ3D
    */
   public long getStep() {
     if (stepValues == null || current < 0 ||
-        stepValues.length <= current) return 500;
-    else return stepValues[current];
+        stepValues.length <= current) return DEFAULT_DWELL;
+    else return stepValues[current].getElapsedFrameTime();
   }
 
   /**
@@ -185,7 +186,11 @@ public class AnimationControlJ3D extends AVControlJ3D
    */
   public long[] getSteps()
   {
-      return stepValues;
+    long[] steps = new long[stepValues.length];
+    for (int i=0; i<steps.length; i++) {
+      steps[i] = stepValues[i].getElapsedFrameTime();
+    }
+    return steps;
   }
   
   /**
@@ -205,7 +210,7 @@ public class AnimationControlJ3D extends AVControlJ3D
     step = st;
     for (int i=0; i < stepValues.length; i++)
     {
-        stepValues[i] = st;
+        stepValues[i] = new WakeupOnElapsedTime(st);
     }
     // WLH 5 May 2000
     // changeControl(true);
@@ -229,9 +234,9 @@ public class AnimationControlJ3D extends AVControlJ3D
     // verify that the values are valid
     for (int i = 0; i < stepValues.length; i++)
     {
-        stepValues[i] =
-          (i < steps.length) ? steps[i] : steps[steps.length-1];
-        if (stepValues[i] <= 0)
+        long step = (i < steps.length) ? steps[i] : steps[steps.length-1];
+        stepValues[i] = new WakeupOnElapsedTime(step);
+        if (step <= 0)
             throw new DisplayException("AnimationControlJ3D.setSteps: " +
                                  "step " + i + " must be > 0");
     }
@@ -294,13 +299,13 @@ public class AnimationControlJ3D extends AVControlJ3D
       setSet(s, false);
       // have to do this if animationSet == null
       if (s == null) {
-        stepValues = new long[] {step};
+        stepValues = new WakeupOnElapsedTime[]{new WakeupOnElapsedTime(DEFAULT_DWELL)};
         current = 0;
       } else if (s.getLength() != stepValues.length) {
-        stepValues = new long[s.getLength()];
+        stepValues = new WakeupOnElapsedTime[s.getLength()];
         for (int i = 0; i < stepValues.length; i++)
         {
-          stepValues[i] = step;
+          stepValues[i] = new WakeupOnElapsedTime(step);
         }
       }
     }
@@ -320,13 +325,13 @@ public class AnimationControlJ3D extends AVControlJ3D
          throws VisADException, RemoteException {
     if (animationSet != null) {
       if (s == null) {
-          stepValues = new long[] {step};
+          stepValues = new WakeupOnElapsedTime[]{new WakeupOnElapsedTime(DEFAULT_DWELL)};
           current = 0;
       } else if (s.getLength() != stepValues.length) {
-          stepValues = new long[s.getLength()];
+          stepValues = new WakeupOnElapsedTime[s.getLength()];
           for (int i = 0; i < stepValues.length; i++)
           {
-              stepValues[i] = step;
+              stepValues[i] = new WakeupOnElapsedTime(step);
           }
       }
       animationSet.setSet(s, noChange);
@@ -425,11 +430,13 @@ public class AnimationControlJ3D extends AVControlJ3D
     if (stepValues == null) {
       numSteps = 1;
       steps = new long[1];
-      steps[0] = 500;
+      steps[0] = DEFAULT_DWELL;
     }
     else {
       numSteps = stepValues.length;
-      steps = stepValues;
+      steps = new long[numSteps];
+      for (int i = 0; i < numSteps; i++)
+        steps[i] = stepValues[i].getElapsedFrameTime();
     }
     StringBuffer sb = new StringBuffer(35 + 12 * numSteps);
     sb.append(animate != null && animate.getOn());
@@ -607,6 +614,7 @@ public class AnimationControlJ3D extends AVControlJ3D
     public TakeStepBehavior() {
     }
 
+    // initialize dwell when added to universe
     public void initialize() {
       updateDwell();
     }
@@ -633,7 +641,7 @@ public class AnimationControlJ3D extends AVControlJ3D
     public void updateDwell() {
       // set the wake up criteria with the dwell for the current step
       if (0 <= current && current < stepValues.length) {
-        wakeupOn(new WakeupOnElapsedTime(stepValues[current]));
+        wakeupOn(stepValues[current]);
       } else {
         wakeupOn(new WakeupOnElapsedTime(DEFAULT_DWELL));
       }
