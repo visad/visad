@@ -350,18 +350,18 @@ public class ShapeControl extends Control {
            throws VisADException, RemoteException {
       double[] matrix = pcontrol.getMatrix();
       double[] rot = new double[3];
-      double[] scale = new double[1];
+      double[] scale = new double[3];
       double[] trans = new double[3];
       mouse.instance_unmake_matrix(rot, scale, trans, matrix);
 
       if (pfirst) {
         pfirst = false;
-        base_scale = scale[0];
+        base_scale = scale[2];
         last_cscale = 1.0f;
         base_size = shapeControl.getScale();
       }
       else {
-        float cscale = (float) (base_scale / scale[0]);
+        float cscale = (float) (base_scale / scale[2]);
         float ratio = cscale / last_cscale;
         if (ratio < 0.95f || 1.05f < ratio) {
           last_cscale = cscale;
