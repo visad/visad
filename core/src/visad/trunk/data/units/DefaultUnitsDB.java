@@ -2,7 +2,7 @@
  * Copyright 1999, University Corporation for Atmospheric Research
  * See file LICENSE for copying and redistribution conditions.
  *
- * $Id: DefaultUnitsDB.java,v 1.8 2009-04-21 20:15:10 steve Exp $
+ * $Id: DefaultUnitsDB.java,v 1.9 2010-05-19 12:29:03 donm Exp $
  */
 
 package visad.data.units;
@@ -28,7 +28,16 @@ public final class DefaultUnitsDB extends UnitTable {
     /**
      * The singleton instance of this class.
      */
-    private static DefaultUnitsDB   db;
+    private static final DefaultUnitsDB   db;
+    
+    static {
+        try {
+		    db = new DefaultUnitsDB();
+        }
+        catch (UnitException e) {
+            throw (ExceptionInInitializerError) new ExceptionInInitializerError().initCause(e);
+        }
+    }
 
     /**
      * The unit prefix names in order of lexicographic length:
@@ -842,6 +851,8 @@ public final class DefaultUnitsDB extends UnitTable {
         ps("gp", "geopotential");
         px("dynamic", "geopotential");
         ps("gpm", get("geopotential").multiply(get("meter")));
+        // Potential vorticity unit:
+        ps("PVU", get("m").pow(2).divide(get("s")).multiply(get("K")).divide(get("kg")).scale(1e-6));
     }
 
     /**
@@ -855,13 +866,6 @@ public final class DefaultUnitsDB extends UnitTable {
      *             inconsistancy.
      */
     public static UnitsDB instance() throws UnitException {
-        if (db == null) {
-            synchronized (DefaultUnitsDB.class) {
-                if (db == null) {
-                    db = new DefaultUnitsDB();
-                }
-            }
-        }
         return db;
     }
 
