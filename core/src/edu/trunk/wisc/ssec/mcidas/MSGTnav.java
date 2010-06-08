@@ -429,8 +429,8 @@ public final class MSGTnav extends AREAnav
             xlin = xlin * 3.0 - 2.0;
             xele = xele * 3.0 - 2.0;
 
-            linele[indexLine][point] = 11136.0 - xlin + 1.0;
-            linele[indexEle][point] = 11136.0 - xele + 1.0;
+            linele[indexLine][point] = (float)(11136.0 - xlin + 1.0);
+            linele[indexEle][point] = (float)(11136.0 - xele + 1.0);
 
           }  // end calculations
 
