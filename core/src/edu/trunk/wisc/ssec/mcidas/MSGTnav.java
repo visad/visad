@@ -125,13 +125,13 @@ public final class MSGTnav extends AREAnav
                 Double.isNaN(imglinele[indexEle][point])) {
                 continue;
             }
-            //xlin = 3712. - (imglinele[indexLine][point] -2)/3.0;
-            //xele = 3712. - (imglinele[indexEle][point] -2)/3.0;
+
             xlin = 11136.0 - imglinele[indexLine][point] + 1.0;
             xele = 11136.0 - imglinele[indexEle][point] + 1.0;
 
             xlin = (xlin + 2.0) / 3.0;
             xele = (xele + 2.0) / 3.0;
+
 
             xr = xele - (COFF/10.);
             yr = xlin - (LOFF/10.);
@@ -244,27 +244,13 @@ public final class MSGTnav extends AREAnav
             py = py*crd;
             xr = px/deltax;
             yr = py/deltay;
-            xele = (COFF/10.) - xr;
-            xlin = (LOFF/10.) - yr;
+            xele = (COFF/10.) + xr;
+            xlin = (LOFF/10.) + yr;
 
             xlin = xlin * 3.0 - 2.0;
             xele = xele * 3.0 - 2.0;
-
             linele[indexLine][point] = 11136.0 - xlin + 1.0;
             linele[indexEle][point] = 11136.0 - xele + 1.0;
-
-            //
-            //xlin = 3713.0 - xlin;
-            //xele = 3713.0 - xele;
-            //xlin = 3. * 3712 - 3. * (xlin - 2);
-            //xele = 3. * 3712 - 3. * (xele - 2);
-
-            // original code follows...used to round the values...
-            //xlin = 3. * 3712 - (3. * (xlin - 2) - 1.5);
-            //xele = 3. * 3712 - (3. * (xele - 2) - 1.5);
-
-            //linele[indexLine][point] = xlin - 1;
-            //linele[indexEle][point] = xele - 1;
 
           }  // end calculations
 
@@ -423,12 +409,11 @@ public final class MSGTnav extends AREAnav
             py = py*crd;
             xr = px/deltax;
             yr = py/deltay;
-            xele = (COFF/10.) - xr;
-            xlin = (LOFF/10.) - yr;
+            xele = (COFF/10.) + xr;
+            xlin = (LOFF/10.) + yr;
 
             xlin = xlin * 3.0 - 2.0;
             xele = xele * 3.0 - 2.0;
-
             linele[indexLine][point] = (float)(11136.0 - xlin + 1.0);
             linele[indexEle][point] = (float)(11136.0 - xele + 1.0);
 
