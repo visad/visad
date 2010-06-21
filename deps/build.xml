@@ -176,17 +176,18 @@
 	</target>
 
 
-	<target name="build" depends="HTTPClient, Jama, ucar, gnu, dods, ncsa, nom, loci"/> 
+	<target name="build" depends="HTTPClient, Jama, ucar, gnu, dods, ncsa, nom, loci"
+            description="build all dependencies"/> 
 
 
-	<target name="clean">
+	<target name="clean" description="remove all generated class and jar files">
 		<delete includeemptydirs="true" failonerror="false">
 			<fileset dir="${build.dir}" includes="**/*"/>
 		</delete>
 		<delete file="${deps.jar}" failonerror="false"/>
 	</target>
 
-	<target name="jar" depends="build">
+	<target name="jar" depends="build" description="jar dependencies">
 		<jar destfile="${deps.jar}" basedir="${build.dir}"/>
 	</target>
 

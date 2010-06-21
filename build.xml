@@ -7,37 +7,39 @@
     <property name="examples.jarfile" location="${basedir}/visad_examples.jar" />
     <property name="docs.jarfile" location="${basedir}/visad_doc.jar" />
 
-    <target name="build" depends="build.visad, jar.visad, build.examples"/>
+    <target name="build" depends="build.visad, jar.visad, build.examples"
+            description="build and jar the core, and build the examples"/>
 
-    <target name="build.visad">
+    <target name="build.visad" description="build the core">
         <ant dir="${basedir}/core" target="clean"/>
         <ant dir="${basedir}/core" target="build"/>
     </target>
 
-    <target name="jar.visad">
+    <target name="jar.visad" description="jar the core">
         <ant dir="${basedir}/core" target="jar"/>
     </target>
 
-    <target name="build.examples">
+    <target name="build.examples" description="build the examples">
 		<ant dir="${basedir}/examples" target="clean"/>
         <ant dir="${basedir}/examples" target="build"/>
     </target>
 
-    <target name="jar.examples">
+    <target name="jar.examples" description="jar the examples">
         <ant dir="${basedir}/examples" target="jar"/>
     </target> 
   
-    <target name="build.javadoc">
+    <target name="build.javadoc" description="build the javadoc">
         <ant dir="${basedir}/core" target="javadoc"/>
     </target>
     
-    <target name="jar.javadoc">
+    <target name="jar.javadoc" description="jar the javadoc">
 		<ant dir="${basedir}/core" target="jar.javadoc"/>
     </target>
 
-    <target name="dist" depends="clean, build.visad, jar.visad, build.examples, jar.examples, build.javadoc, jar.javadoc"/>
+    <target name="dist" depends="clean, build.visad, jar.visad, build.examples, jar.examples, build.javadoc, jar.javadoc"
+            description="make the VisAD distribution including project jar file with dependencies and jars for examples and docs"/>
 
-	<target name="clean">
+	<target name="clean" description="remove project jar files">
 		<delete file="${visad.jarfile}"/>
 		<delete file="${examples.jarfile}"/>
 		<delete file="${docs.jarfile}"/>

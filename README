@@ -1,0 +1,71 @@
+
+Repository Layout
+=================
+
+:core: Everything in the visad.* and edu.ssec.wisc.mcidas.* namespace.
+:deps: Third party dependencies
+:examples: VisAD examples with the default namespace (no java package).
+
+|-- core 
+|   |-- build
+|   |-- lib
+|   `-- src
+|       |-- edu
+|       `-- visad
+|
+|-- deps
+|   |-- build
+|   `-- src
+|       |-- HTTPClient
+|       |-- Jama
+|       |-- dods
+|       |-- gnu
+|       |-- loci
+|       |-- ncsa
+|       |-- nom
+|       `-- ucar
+|
+`-- examples
+    |-- build
+    |-- lib
+    `-- src
+
+Building
+========
+There are 4 main build files (the old visad/build.xml has been removed).
+The main build file `./build.xml` can be used to build the sub-projects
+and create the man VisAD distribution files. Each sub-project also has 
+it's own build file that can be used to perform basic build/clean/jar
+operations for just that project.
+
+You can use `ant -p` to display build script target descriptions
+for each ant file for more information.
+
+Building the Distribution
+-------------------------
+Check out https://svn.ssec.wisc.edu/repos/visad
+Run `ant dist`
+
+Building the Core
+----------------------
+You can either work from the entire SVN tree (https://svn.ssec.wisc.edu/repos/visad/trunk)
+or check out only the core (https://svn.ssec.wisc.edu/repos/visad/trunk/core).
+
+From your working copy you can simply run any of the commands listed by `ant -p`.
+
+If you jar the core it will extract `lib/visaddeps.jar` and include the class files
+in the generated visad.jar.
+
+Building the Examples
+---------------------
+You can either work from the entire SVN tree (https://svn.ssec.wisc.edu/repos/visad/trunk)
+or check out only the core (https://svn.ssec.wisc.edu/repos/visad/trunk/).
+
+The examples project build file check to see if VisAD is available as either a jar file
+in the exmples project lib directory or in ../core (assuming you checked out all of 
+visad/trunk). If it cannot find VisAD it attempts to call ../core/build.xml to build
+it before compiling the examples.  If you have VisAD in another location you can compile
+the examples as follows::
+
+    ant -Dvisad.dir=<YOUR VISAD DIR> build
+

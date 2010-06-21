@@ -4,6 +4,7 @@
   
 	<!-- directory settings -->
 	<property name="src.dir" location="${basedir}/src"/>
+    <property name="lib.dir" location="${basedir}/lib"/>
 	<property name="build.dir" location="${basedir}/build"/>
     <property name="visad.dir" location="${basedir}/../core"/>
     
@@ -18,7 +19,22 @@
 	<property name="fail.flag" value="true"/>
 	<property name="max.mem" value="512M"/>
 
-    <target name="build">
+    <!-- shared classpath -->
+    <path id="project.classpath">
+        <fileset dir="${lib.dir}">
+            <include name="*.jar"/>
+        </fileset>
+        <pathelement path="${build.dir}"/>
+        <pathelement path="${visad.jarfile}"/>
+    </path>
+
+    <target name="visad.present.test">
+        <available classname="visad.Data" 
+                classpathref="project.classpath" property="visad.present"/>
+    </target>
+
+    <target name="build" depends="jar.visad" 
+            description="build examples (may also build/jar core)">
          <mkdir dir="${build.dir}/examples"/>
          <javac srcdir="${src.dir}"
                destdir="${build.dir}"
@@ -26,20 +42,23 @@
                target="${target.ver}"
                debug="${debug.flag}"
                deprecation="${deprecation.flag}">
-            <classpath>
-                <pathelement location="${visad.jarfile}"/>
-            </classpath>
+            <classpath refid="project.classpath"/>
         </javac>
     </target>
 
-	<target name="clean">
+    <target name="jar.visad" depends="visad.present.test" unless="visad.present">
+        <ant dir="${visad.dir}" inheritAll="false" target="build"/>
+        <ant dir="${visad.dir}" inheritAll="false" target="jar"/>
+    </target>
+
+	<target name="clean" description="delete eamples class files">
 		<delete includeemptydirs="true" failonerror="false">
 			<fileset dir="${build.dir}" includes="**/*"/>
 		</delete>
         <delete file="${examples.jarfile}" failonerror="false"/>
 	</target>
 
-	<target name="jar" depends="build">
+	<target name="jar" depends="build" description="build, jar examples">
 		<jar destfile="${examples.jarfile}" basedir="${build.dir}"/>
         <jar destfile="${examples.jarfile}" basedir="${src.dir}"
             update="true" includes="*.java, display_test.c"/>
