@@ -144,6 +144,11 @@
     </tstamp>
     <echo message="${date.value}" file="${build.dir}/${date.file}"/>
 	<unzip src="${deps.jarfile}" dest="${build.dir}"/>
+    <copy todir="${build.dir}">
+        <fileset dir="${src.dir}">
+            <include name="**/*.gif"/>
+        </fileset>
+    </copy>
     <jar destfile="${visad.jarfile}" 
          basedir="${build.dir}"
          filesonly="true">
