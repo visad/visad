@@ -188,6 +188,11 @@
 	</target>
 
 	<target name="jar" depends="build" description="jar dependencies">
+        <copy todir="build">
+            <fileset dir="${src.dir}">
+                <include name="loci/formats/*.txt"/>
+            </fileset>
+        </copy>
 		<jar destfile="${deps.jar}" basedir="${build.dir}"/>
 	</target>
 
