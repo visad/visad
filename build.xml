@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+
+<project name="VisAD Distribution">
+
+    <!-- Overrides values in child build files -->
+    <property name="visad.jarfile" location="${basedir}/visad.jar" />
+    <property name="examples.jarfile" location="${basedir}/visad_examples.jar" />
+    <property name="docs.jarfile" location="${basedir}/visad_doc.jar" />
+
+    <target name="build" depends="build.visad, jar.visad, build.examples"/>
+
+    <target name="build.visad">
+        <ant dir="${basedir}/core" target="clean"/>
+        <ant dir="${basedir}/core" target="build"/>
+    </target>
+
+    <target name="jar.visad">
+        <ant dir="${basedir}/core" target="jar"/>
+    </target>
+
+    <target name="build.examples">
+		<ant dir="${basedir}/examples" target="clean"/>
+        <ant dir="${basedir}/examples" target="build"/>
+    </target>
+
+    <target name="jar.examples">
+        <ant dir="${basedir}/examples" target="jar"/>
+    </target> 
+  
+    <target name="build.javadoc">
+        <ant dir="${basedir}/core" target="javadoc"/>
+    </target>
+    
+    <target name="jar.javadoc">
+		<ant dir="${basedir}/core" target="jar.javadoc"/>
+    </target>
+
+    <target name="dist" depends="clean, build.visad, jar.visad, build.examples, jar.examples, build.javadoc, jar.javadoc"/>
+
+	<target name="clean">
+		<delete file="${visad.jarfile}"/>
+		<delete file="${examples.jarfile}"/>
+		<delete file="${docs.jarfile}"/>
+	</target>
+	
+</project>

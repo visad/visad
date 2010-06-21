@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+
+<project name="VisAD Examples">
+  
+	<!-- directory settings -->
+	<property name="src.dir" location="${basedir}/src"/>
+	<property name="build.dir" location="${basedir}/build"/>
+    <property name="visad.dir" location="${basedir}/../core"/>
+    
+    <property name="examples.jarfile" location="${basedir}/visad_examples.jar"/>
+    <property name="visad.jarfile" location="${visad.dir}/visad.jar"/>
+
+	<!-- compiler options -->
+	<property name="source.ver" value="1.5"/>
+	<property name="target.ver" value="1.5"/>
+	<property name="debug.flag" value="true"/>
+	<property name="deprecation.flag" value="off"/>
+	<property name="fail.flag" value="true"/>
+	<property name="max.mem" value="512M"/>
+
+    <target name="build">
+         <mkdir dir="${build.dir}/examples"/>
+         <javac srcdir="${src.dir}"
+               destdir="${build.dir}"
+               source="${source.ver}" 
+               target="${target.ver}"
+               debug="${debug.flag}"
+               deprecation="${deprecation.flag}">
+            <classpath>
+                <pathelement location="${visad.jarfile}"/>
+            </classpath>
+        </javac>
+    </target>
+
+	<target name="clean">
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${build.dir}" includes="**/*"/>
+		</delete>
+        <delete file="${examples.jarfile}" failonerror="false"/>
+	</target>
+
+	<target name="jar" depends="build">
+		<jar destfile="${examples.jarfile}" basedir="${build.dir}"/>
+        <jar destfile="${examples.jarfile}" basedir="${src.dir}"
+            update="true" includes="*.java, display_test.c"/>
+	</target>
+
+</project>

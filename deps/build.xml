@@ -1,0 +1,193 @@
+<?xml version="1.0"?>
+
+<project name="VisAD Dependencies">
+  
+	<patternset id="visad.examples.package">
+	  <include name="visad/examples/*"/>
+	</patternset>
+
+	<!-- directory settings -->
+	<property name="doc.dir" location="${basedir}/doc"/>
+	<property name="src.dir" location="${basedir}/src"/>
+	<property name="build.dir" location="${basedir}/build"/>
+
+	<property name="deps.jar" location="${basedir}/visaddeps.jar"/>
+
+	<!-- compiler options -->
+	<property name="source.ver" value="1.5"/>
+	<property name="target.ver" value="1.5"/>
+	<property name="debug.flag" value="true"/>
+	<property name="deprecation.flag" value="off"/>
+	<property name="fail.flag" value="true"/>
+	<property name="max.mem" value="512M"/>
+
+
+	<patternset id="Jama.package">
+		<include name="Jama/**/*"/>
+	</patternset>
+
+	<patternset id="ucar.package">
+		<include name="ucar/multiarray/*"/>
+		<include name="ucar/util/*"/>
+		<include name="ucar/netcdf/*"/>
+		<include name="ucar/tests/*"/>  
+	</patternset>
+
+	<patternset id="dods.package">
+		<include name="dods/dap/*"/>
+		<include name="dods/dap/parser/*"/>
+		<include name="dods/dap/Server/*"/>
+		<include name="dods/util/*"/>    
+	</patternset>
+
+	<patternset id="gnu.package">
+		<include name="gnu/regexp/*"/>    
+	</patternset>
+
+	<patternset id="loci.package">
+	  <include name="loci/formats/*"/>
+	  <include name="loci/formats/codec/*"/>
+	  <include name="loci/formats/gui/*"/>
+	  <include name="loci/formats/in/*"/>
+	  <include name="loci/formats/out/*"/>
+	</patternset>
+
+	<patternset id="nom.package">
+	  <include name="nom/tam/fits/*"/>
+	  <include name="nom/tam/util/*"/>
+	  <include name="nom/tam/test/*"/>    
+	</patternset>    
+
+	<patternset id="edu.package">
+	  <include name="edu/wisc/ssec/mcidas/*"/>
+	  <include name="edu/wisc/ssec/mcidas/adde/*"/>    
+	</patternset>
+
+	<patternset id="ncsa.package">
+	  <include name="ncsa/hdf/hdf5lib/exceptions/*"/>
+	  <include name="ncsa/hdf/hdf5lib/*"/>
+	</patternset>
+
+
+	<target name="dods" depends="ucar, gnu" >
+	  <javac sourcepath=""
+	         srcdir="${src.dir}" 
+	         destdir="${build.dir}"
+	         source="${source.ver}" 
+	         target="${target.ver}"
+	         debug="${debug.flag}"
+	         deprecation="${deprecation.flag}">
+	    <patternset refid="dods.package"/>
+	  </javac>
+	</target>
+
+
+	<target name="loci"  >
+	  <javac sourcepath=""
+	         srcdir="${src.dir}" 
+	         destdir="${build.dir}"
+	         source="${source.ver}" 
+	         target="${target.ver}"
+	         debug="${debug.flag}"
+	         deprecation="${deprecation.flag}">
+	    <patternset refid="loci.package"/>
+	  </javac>
+	</target>
+
+
+	<target name="HTTPClient"  >
+	  <javac sourcepath=""
+	         srcdir="${src.dir}" 
+	         destdir="${build.dir}"
+	         source="${source.ver}" 
+	         target="${target.ver}"
+	         debug="${debug.flag}"
+	         deprecation="${deprecation.flag}">
+	    <include name="HTTPClient/*.java"/>
+	  </javac>
+	</target>
+
+
+	<target name="Jama" >
+	  <javac srcdir="${src.dir}" 
+	         destdir="${build.dir}"
+	         source="${source.ver}" 
+	         target="${target.ver}"
+	         debug="${debug.flag}"
+	         deprecation="${deprecation.flag}">
+	    <patternset refid="Jama.package"/>
+	  </javac>
+	</target>
+
+
+	<target name="gnu"  >
+	  <javac sourcepath=""
+	         srcdir="${src.dir}" 
+	         destdir="${build.dir}"
+	         source="${source.ver}" 
+	         target="${target.ver}"
+	         debug="${debug.flag}"
+	         deprecation="${deprecation.flag}">
+	    <patternset refid="gnu.package"/>
+	  </javac>
+	</target>
+
+
+	<target name="ncsa"  >
+	  <javac sourcepath=""
+	         srcdir="${src.dir}" 
+	         destdir="${build.dir}"
+	         source="${source.ver}" 
+	         target="${target.ver}"
+	         debug="${debug.flag}"
+	         deprecation="${deprecation.flag}">
+	    <patternset refid="ncsa.package"/>
+	  </javac>
+	</target>
+
+
+	<target name="nom"  >
+	  <javac sourcepath=""
+	         srcdir="${src.dir}" 
+	         source="${source.ver}" 
+	         destdir="${build.dir}"
+	         target="${target.ver}"
+	         debug="${debug.flag}"
+	         deprecation="${deprecation.flag}">
+	    <patternset refid="nom.package"/>
+	  </javac>
+	</target>
+
+
+	<target name="ucar" depends="HTTPClient">
+	  <javac sourcepath=""
+	         srcdir="${src.dir}" 
+	         destdir="${build.dir}"
+	         source="${source.ver}" 
+	         target="${target.ver}"
+	         debug="${debug.flag}"
+	         deprecation="${deprecation.flag}">
+	    <patternset refid="ucar.package"/>
+	  </javac>
+	  <rmic base="${basedir}" verify="true">
+	    <include name="ucar/netcdf/*Remote*Impl.class"/>
+	    <include name="ucar/netcdf/NetcdfServer*.class"/>
+	  </rmic>
+	</target>
+
+
+	<target name="build" depends="HTTPClient, Jama, ucar, gnu, dods, ncsa, nom, loci"/> 
+
+
+	<target name="clean">
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${build.dir}" includes="**/*"/>
+		</delete>
+		<delete file="${deps.jar}" failonerror="false"/>
+	</target>
+
+	<target name="jar" depends="build">
+		<jar destfile="${deps.jar}" basedir="${build.dir}"/>
+	</target>
+
+</project>

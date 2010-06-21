@@ -1,0 +1,238 @@
+<?xml version="1.0"?>
+
+<project name="VisAD Core">
+  
+  <patternset id="visad.examples.package">
+    <include name="visad/examples/*"/>
+  </patternset>
+
+  <!-- directory settings -->
+  <property name="dist.dir" location="${basedir}"/>
+  <property name="src.dir" location="${basedir}/src"/>
+  <property name="build.dir" location="${basedir}/build"/>
+  <property name="javadoc.dir" location="${build.dir}/javadoc"/>
+  <property name="lib.dir" location="${basedir}/lib"/>
+  <property name="deps.src.dir" location="${basedir}/../deps/src"/>
+
+  <!-- javadoc options -->
+  <property name="doc.level" value="protected"/>
+  <!-- To overcome cmd.exe command line length limitation -->
+  <property name="doc.use.file" value="yes"/>
+
+  <!-- filenames -->
+  <property name="deps.jarfile" location="${lib.dir}/visaddeps.jar"/>
+  <property name="visad.jarfile" location="${dist.dir}/visad.jar" />
+  <property name="visad.src.jarfile" location="${dist.dir}/visad_src.jar"/>
+  <property name="examples.jarfile" location="${dist.dir}/visad_examples.jar" />
+  <property name="docs.jarfile" location="${dist.dir}/visad_doc.jar" />
+  <property name="date.file" value="DATE"/>
+
+  <!-- compiler options -->
+  <property name="source.ver" value="1.5"/>
+  <property name="target.ver" value="1.5"/>
+  <property name="debug.flag" value="true"/>
+  <property name="deprecation.flag" value="off"/>
+  <property name="fail.flag" value="true"/>
+  <property name="max.mem" value="512M"/>
+
+  <patternset id="core.package">
+    <include name="edu/wisc/ssec/mcidas/**/*"/>
+    <include name="visad/*"/>
+    <include name="visad/bom/*"/>
+    <include name="visad/browser/*"/>
+    <include name="visad/collab/*"/>
+    <include name="visad/data/*"/>
+    <include name="visad/data/avi/*"/>
+    <include name="visad/data/bio/*"/>
+    <include name="visad/data/gif/*"/>
+    <include name="visad/data/jai/*"/>
+    <include name="visad/data/mcidas/*"/>
+    <include name="visad/data/netcdf/*"/>
+    <include name="visad/data/qt/*"/>
+    <include name="visad/data/tiff/*"/>
+    <include name="visad/data/units/*"/>
+    <include name="visad/data/visad/*"/>
+    <include name="visad/data/visad/object/*"/>
+    <include name="visad/data/in/*"/>
+    <include name="visad/data/dods/*"/>
+    <include name="visad/data/netcdf/units/*"/>
+    <include name="visad/data/netcdf/in/*"/>
+    <include name="visad/data/netcdf/out/*"/>
+    <include name="visad/data/fits/*"/>
+    <include name="visad/data/vis5d/*"/>
+    <include name="visad/data/biorad/*"/>
+    <include name="visad/data/gis/*"/>
+    <include name="visad/data/text/*"/>
+    <include name="visad/data/hdfeos/*"/>
+    <include name="visad/data/hdfeos/hdfeosc/*"/>
+    <include name="visad/data/hdf5/hdf5objects/*"/>
+    <include name="visad/data/hdf5/*"/>
+  	<include name="visad/data/hrit/*"/>
+    <include name="visad/data/amanda/*"/>
+    <include name="visad/util/*"/>
+    <include name="visad/java2d/*"/>
+    <include name="visad/java3d/*"/>
+    <include name="visad/cluster/*"/>
+    <include name="visad/python/*"/>
+    <include name="visad/matrix/*"/>
+    <include name="visad/math/*"/>
+    <include name="visad/formula/*"/>
+    <include name="visad/ss/*"/>
+    <include name="visad/jmet/*"/>
+    <include name="visad/paoloa/*"/>
+    <include name="visad/paoloa/spline/*"/>
+    <include name="visad/aune/*"/>
+    <include name="visad/benjamin/*"/>
+    <include name="visad/rabin/*"/>
+    <include name="visad/aeri/*"/>
+    <include name="visad/georef/*"/>
+    <include name="visad/meteorology/*"/>
+    <include name="visad/install/*"/>
+  </patternset>
+
+
+  <!-- shared classpath -->
+  <path id="project.classpath">
+    <fileset dir="${lib.dir}">
+      <include name="*.jar"/>
+    </fileset>
+    <pathelement path="${build.dir}"/>
+  </path>
+
+
+  <!-- compile visad/examples folder -->
+  <target name="build.examples">
+	<mkdir dir="${build.dir}/examples"/>
+    <javac srcdir="${src.dir}/visad/examples"
+           destdir="${build.dir}/examples"
+           source="${source.ver}" 
+           target="${target.ver}"
+           debug="${debug.flag}"
+           deprecation="${deprecation.flag}">
+      <classpath refid="project.classpath"/>
+    </javac>
+  </target>
+
+
+  <target name="build">
+    <javac sourcepath=""
+           srcdir="${src.dir}"
+           destdir="${build.dir}"
+           source="${source.ver}" 
+           target="${target.ver}" 
+           failonerror="${fail.flag}"
+           debug="${debug.flag}" 
+           deprecation="${deprecation.flag}"
+           memoryMaximumSize="${max.mem}"
+           fork="true">
+      <classpath refid="project.classpath"/>
+      <patternset refid="core.package"/>
+    </javac>
+
+    <!-- generate RMI stubs -->
+    <rmic base="${build.dir}">
+      <include name="visad/**/*Remote*Impl.class"/>
+      <classpath refid="project.classpath"/>
+    </rmic>
+  </target>
+
+
+  <target name="jar">
+	<delete file="${visad.jarfile}" failonerror="false"/>
+    <tstamp>
+      <format property="date.value" pattern="EEE MMM dd HH:mm:ss zzz yyyy"/>
+    </tstamp>
+    <echo message="${date.value}" file="${build.dir}/${date.file}"/>
+	<unzip src="${deps.jarfile}" dest="${build.dir}"/>
+    <jar destfile="${visad.jarfile}" 
+         basedir="${build.dir}"
+         filesonly="true">
+      <manifest>
+        <attribute name="Main-Class" value="visad.ss.SpreadSheet"/>
+      </manifest>
+    </jar>
+  </target>
+
+
+  <target name="jar.examples">
+	<delete file="${examples.jarfile}" failonerror="false"/>
+    <jar destfile="${examples.jarfile}" basedir="${build.dir}/examples"
+        includes="*.class"/>
+    <jar destfile="${examples.jarfile}" basedir="${src.dir}/visad/examples"
+        update="true" includes="*.java, display_test.c"/>
+  </target>
+
+
+	<target name="clean">
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${build.dir}" includes="**/*"/>
+		</delete>
+	</target>
+	
+	<target name="javadoc">
+		<mkdir dir="${javadoc.dir}"/>
+		<delete includeemptydirs="true" failonerror="false">
+			<fileset dir="${javadoc.dir}" includes="**/*"/>
+		</delete>
+	    <javadoc destdir="${javadoc.dir}"
+	            source="${source.ver}"
+	            access="${doc.level}"
+	            use="true"
+	            notree="false"
+	            nonavbar="false"
+	            noindex="false"
+	            splitindex="true"
+	            author="true"
+	            version="true"
+	            nodeprecatedlist="false"
+	            nodeprecated="false"
+	            breakiterator="yes"
+	            windowtitle="VisAD 2.0 API"
+	            doctitle="VisAD Documentation">
+
+	      <packageset dir="${src.dir}">
+	        <include name="visad/**"/>
+	        <include name="edu/wisc/ssec/mcidas/**"/>
+		  </packageset>
+		  <packageset dir="${deps.src.dir}">
+		    <include name="Jama/**/*"/>
+		    <include name="HTTPClient/*"/>
+		    <include name="ucar/multiarray/*"/>
+		    <include name="ucar/util/*"/>
+		    <include name="ucar/netcdf/*"/>
+		    <include name="ucar/tests/*"/>  
+		    <include name="dods/dap/*"/>
+		    <include name="dods/dap/parser/*"/>
+		    <include name="dods/dap/Server/*"/>
+		    <include name="dods/util/*"/>    
+		    <include name="gnu/regexp/*"/>    
+		    <include name="loci/formats/*"/>
+		    <include name="loci/formats/codec/*"/>
+		    <include name="loci/formats/gui/*"/>
+		    <include name="loci/formats/in/*"/>
+		    <include name="loci/formats/out/*"/>
+		    <include name="nom/tam/fits/*"/>
+		    <include name="nom/tam/util/*"/>
+		    <include name="nom/tam/test/*"/>    
+		    <include name="edu/wisc/ssec/mcidas/*"/>
+		    <include name="edu/wisc/ssec/mcidas/adde/*"/>    
+		    <include name="ncsa/hdf/hdf5lib/exceptions/*"/>
+		    <include name="ncsa/hdf/hdf5lib/*"/>
+	      </packageset>
+
+	      <link href="http://download.java.net/media/java3d/javadoc/1.5.0" />
+	      <link href="http://java.sun.com/j2se/1.5.0/docs/api" />
+	      <link href="http://logging.apache.org/log4j/docs/api" />
+
+	      <arg value="-J-Xmx512m"/>
+
+	      <classpath refid="project.classpath"/>
+	    </javadoc>
+  	</target>
+
+  <target name="jar.javadoc">
+    <delete file="${docs.jarfile}"/>
+    <jar destfile="${docs.jarfile}" basedir="${javadoc.dir}"/>
+  </target>	
+
+</project>
