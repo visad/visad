@@ -105,6 +105,9 @@
 
     <target name="build" description="compile source files in place">
 		<javac srcdir="." memoryMaximumSize="512M" fork="true" debug="on"/>
+        <rmic classpath="." base=".">
+            <include name="visad/**/*Remote*Impl.class" />
+        </rmic>
     	<javac srcdir="./examples" classpath="." debug="on"/>
     </target>
 
