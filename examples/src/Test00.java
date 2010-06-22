@@ -127,8 +127,7 @@ public class Test00
         double vir = dr1.getDirectAxisValue(ir_radiance);
         double vvis = dr1.getDirectAxisValue(vis_radiance);
         double vc = dr1.getDirectAxisValue(count);
-        System.out.println("ir_radiance = " + vir + " count = " + vc +
-                           " vis_radiance = " + vvis);
+        //System.out.println("ir_radiance = " + vir + " count = " + vc + " vis_radiance = " + vvis);
 
         java.util.Vector csv = dr1.getCursorStringVectorUnconditional();
         for (int i=0; i<csv.size(); i++) {

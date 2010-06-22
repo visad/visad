@@ -139,8 +139,8 @@ public class Test35
       }
       int[] screen1 = mb.getScreenCoords(position1);
       int[] screen2 = mb.getScreenCoords(position2);
-      System.out.println("screen1 = (" + screen1[0] + ", " + screen1[1] +")");
-      System.out.println("screen2 = (" + screen2[0] + ", " + screen2[1] +")");
+      //System.out.println("screen1 = (" + screen1[0] + ", " + screen1[1] +")");
+      //System.out.println("screen2 = (" + screen2[0] + ", " + screen2[1] +")");
     }
   }
 

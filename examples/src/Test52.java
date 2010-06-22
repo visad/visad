@@ -108,7 +108,7 @@ public class Test52
       }
       catch (InterruptedException e) {
       }
-      System.out.println("delay");
+      System.out.println("delay & redraw");
     }
   }
 
