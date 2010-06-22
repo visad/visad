@@ -1,34 +1,36 @@
 
 Repository Layout
 =================
-
-:core: Everything in the visad.* and edu.ssec.wisc.mcidas.* namespace.
+:core: Everything in the `visad.*` and `edu.ssec.wisc.mcidas.*` namespace.
 :deps: Third party dependencies
 :examples: VisAD examples with the default namespace (no java package).
 
-|-- core 
-|   |-- build
-|   |-- lib
-|   `-- src
-|       |-- edu
-|       `-- visad
-|
-|-- deps
-|   |-- build
-|   `-- src
-|       |-- HTTPClient
-|       |-- Jama
-|       |-- dods
-|       |-- gnu
-|       |-- loci
-|       |-- ncsa
-|       |-- nom
-|       `-- ucar
-|
-`-- examples
-    |-- build
-    |-- lib
-    `-- src
+::
+
+	|-- core 
+	|   |-- build
+	|   |-- lib
+	|   `-- src
+	|       |-- edu/...
+	|       `-- visad/...
+	|
+	|-- deps
+	|   |-- build
+	|   `-- src
+	|       |-- HTTPClient/...
+	|       |-- Jama/...
+	|       |-- dods/...
+	|       |-- gnu/...
+	|       |-- loci/...
+	|       |-- ncsa/...
+	|       |-- nom/...
+	|       `-- ucar/...
+	|
+	`-- examples
+	    |-- build
+	    |-- lib
+	    `-- src
+
 
 Building
 ========
@@ -69,3 +71,55 @@ the examples as follows::
 
     ant -Dvisad.dir=<YOUR VISAD DIR> build
 
+
+VisAD and Eclipse
+=================
+:Eclipse: http://www.eclipse.org
+
+First, download and install Eclipse. These instructions assume you will be using
+Eclipse >= v3.2. There are multiple flavors of Eclipse that can add varying
+amounts of bloat. I recommend you keep it simple and stick to "Eclipse IDE for 
+Java Developers."  
+
+:Note: These instructions were written from a Mac, so you may have to adjust 
+       slightly for your platform.
+
+Install Subclipse
+-----------------
+Unfortunately, at this time Eclipse does not by default come with SVN 
+capabilities, so you have to install the Subclipse SVN Plugin 
+(http://subclipse.tigris.org). 
+
+	* Open Eclipse
+	* Select a workspace (where all your project will be saved)
+	* Start the `Install New Software` wizard. (`Help > Install New Software`)
+	* Put this URL in the `Work with` box: http://subclipse.tigris.org/update_1.6.x
+	  and click `Add`.
+	* Give your new software update site a name and click `OK`.
+	* Check all boxes in the software list and click `Next`.
+	* Complete the install process by reviewing the install details, accepting
+	  the license, and restarting Eclipse.
+	
+	* Ensure you have a valid SVN client selected
+		- Open the preferences and select `Team > SVN`
+		- Under `SVN Interface` select `SVNKit` and click `OK`
+
+Create and Checkout Projects
+----------------------------
+
+	* From the menubar select `File > New > Other`
+	* In the new dialog select `SVN > Check Projects from SVN` and click `Next`
+	* Select `Create a new repository location` and click next.
+	* Enter https://svn.ssec.wisc.edu/repos/visad as the url (http*s* not http),
+	  and click `Next`
+	* Select `trunk > core` and click `Finish`
+	
+	* (optional) Do the same for `deps` and `examples` if desired.
+
+Building from Eclipse
+---------------------
+
+	* From the menubar select `Window > Show View > Ant`
+	* In the `Ant` view tab, right-click and select `Add Buildfiles`
+	* Select the build file for each sub-project created above and click `OK`
+	* In the `Ant` view tab, expand a project and select the build target to run
