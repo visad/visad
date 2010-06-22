@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+    <classpathentry excluding="dods/clients/importwizard/|dods/clients/importwizard/DatasetList/|dods/clients/importwizard/ECHO/|dods/clients/importwizard/GCMD/|dods/clients/importwizard/TMAP/convert/|dods/clients/importwizard/TMAP/map/|dods/clients/importwizard/TMAP/map2/|dods/clients/matlab/|dods/dap/functions/|dods/dap/test/|dods/servers/agg/|dods/servers/ascii/|dods/servers/netcdf/|dods/servers/sql/|dods/servers/test/|dods/servers/www/|dods/servlet/|dods/servlet/jake/|dods/util/geturl/|dods/util/geturl/gui/|dods/util/gui/|gnu/regexp/util/" kind="src" path="deps/src"/>
+	<classpathentry kind="src" path="core/src"/>
+	<classpathentry kind="src" path="examples/src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
+	<classpathentry kind="output" path="build"/>
+</classpath>
