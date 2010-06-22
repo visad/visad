@@ -2,16 +2,16 @@
 
 <project name="VisAD Distribution">
 
-    <property name="lib.dir" location="${basedir}/lib"/>
+    <property name="type.lib.dir" location="${basedir}/lib"/>
 
-    <!-- Overrides values in child build files -->
+	<!-- overrides locations in sub-projects -->
     <property name="visad.jarfile" location="${basedir}/visad.jar" />
     <property name="examples.jarfile" location="${basedir}/visad_examples.jar" />
     <property name="docs.jarfile" location="${basedir}/visad_doc.jar" />
     <property name="source.jarfile" location="${basedir}/visad_src.jar" />
 
     <path id="build.classpath">
-        <fileset dir="${lib.dir}">
+        <fileset dir="${type.lib.dir}">
             <include name="*.jar"/>
         </fileset>
     </path>
@@ -20,33 +20,27 @@
             description="build and jar the core, and build the examples"/>
 
     <target name="build.visad" description="build the core">
-        <ant dir="${basedir}/core" inheritAll="false" target="clean"/>
-        <ant dir="${basedir}/core" inheritAll="false" target="build"/>
+        <ant dir="${basedir}/core" target="build"/>
     </target>
 
     <target name="jar.visad" description="jar the core">
-        <ant dir="${basedir}/core" inheritAll="false" target="jar"/>
-        <copy file="${basedir}/core/visad.jar" tofile="${visad.jarfile}"/>
+        <ant dir="${basedir}/core" target="jar"/>
     </target>
 
     <target name="build.examples" description="build the examples">
-        <ant dir="${basedir}/examples" inheritAll="false" target="clean"/>
-        <ant dir="${basedir}/examples" inheritAll="false" target="build"/>
+        <ant dir="${basedir}/examples" target="build"/>
     </target>
 
     <target name="jar.examples" description="jar the examples">
-        <ant dir="${basedir}/examples" inheritAll="false" target="jar"/>
-        <copy file="${basedir}/examples/visad_examples.jar" tofile="${examples.jarfile}"/>
+        <ant dir="${basedir}/examples" target="jar"/>
     </target> 
   
     <target name="build.javadoc" description="build the javadoc">
-        <ant dir="${basedir}/core" inheritAll="false" target="clean"/>
-        <ant dir="${basedir}/core" inheritAll="false" target="javadoc"/>
+        <ant dir="${basedir}/core" target="javadoc"/>
     </target>
     
     <target name="jar.javadoc" description="jar the javadoc">
-		<ant dir="${basedir}/core" inheritAll="false" target="jar.javadoc"/>
-        <copy file="${basedir}/core/visad_doc.jar" tofile="${docs.jarfile}"/>
+		<ant dir="${basedir}/core" target="jar.javadoc"/>
     </target>
 
     <target name="dist.revision">
@@ -54,17 +48,17 @@
         <svn>
             <info target="${basedir}"/>
         </svn> 
-        <echo>SVN Revision ${svn.info.rev}</echo>
+        <echo>SVN Revision For MANIFEST ${svn.info.rev}</echo>
     </target>
 
     <target name="dist" depends="clean,
                                  build.visad, 
-                                 jar.visad, 
-                                 build.examples, 
-                                 jar.examples, 
-                                 build.javadoc, 
-                                 jar.javadoc, 
-                                 jar.source,
+    							 jar.visad,
+                                 build.examples,
+    							 jar.examples,
+    							 clean,
+                                 build.javadoc,
+    							 jar.javadoc,
                                  dist.revision"
             description="make the VisAD distribution including project jar file with dependencies and jars for examples and docs">
 
@@ -78,14 +72,81 @@
     </target>
 
     <target name="jar.source" description="jar source for all sub-projects">
-        <zip destfile="${source.jarfile}" filesonly="true">
-            <fileset dir="${basedir}/core/src"/>
-            <fileset dir="${basedir}/deps/src"/>
-            <fileset dir="${basedir}/examples/src"/>
-        </zip>
+    	<mkdir dir="${basedir}/build/examples"/>
+    	<copy todir="${basedir}/build/examples">
+    		<fileset dir="${basedir}/examples/src/" includes="**/*.java"/>
+    	</copy>
+    	<patternset id="deps.packages">
+    		<include name="HTTPClient/**/*"/>
+    		<include name="Jama/**/*"/>
+    		<include name="ucar/multiarray/*"/>
+    		<include name="ucar/util/*"/>
+    		<include name="ucar/netcdf/*"/>
+    		<include name="ucar/tests/*"/>
+    		<include name="dods/dap/*"/>
+    		<include name="dods/dap/parser/*"/>
+    		<include name="dods/dap/Server/*"/>
+    		<include name="dods/util/*"/>
+    		<include name="gnu/regexp/*"/>
+    		<include name="loci/formats/*"/>
+    		<include name="loci/formats/codec/*"/>
+    		<include name="loci/formats/gui/*"/>
+    		<include name="loci/formats/in/*"/>
+    		<include name="loci/formats/out/*"/>
+    		<include name="nom/tam/fits/*"/>
+    		<include name="nom/tam/util/*"/>
+    		<include name="nom/tam/test/*"/>
+    		<include name="ncsa/hdf/hdf5lib/exceptions/*"/>
+    		<include name="ncsa/hdf/hdf5lib/*"/>
+    	</patternset>
+    	<echo file="${basedir}/build/build.xml">
+    		<![CDATA[
+<project name="VisAD Source" default="help">
+
+    <target name="build" description="compile source files in place">
+		<javac srcdir="." memoryMaximumSize="512M" fork="true" debug="on"/>
+    	<javac srcdir="./examples" classpath="." debug="on"/>
     </target>
 
-	<target name="clean" description="remove project jar files">
+   	<target name="jar" description="create jar of core and dependencies">
+    	<jar destfile="visad.jar">
+    		<fileset dir=".">
+    			<exclude name="examples/**/*"/>
+    			<include name="**/*.class"/>
+    			<include name="**/*.jhf"/>
+    			<include name="**/*.gif"/>
+    			<include name="loci/**/*.txt"/>
+    		</fileset>
+    	</jar>
+    </target>
+    
+    <target name="help">
+    	<echo>
+Build and jar VisAD:
+    ant build jar
+    		
+Run Examples:
+    java -cp visad.jar:examples DisplayTest
+    	</echo>
+    </target>
+</project>
+    		]]>
+    	</echo>
+        <jar destfile="${source.jarfile}">
+            <fileset dir="${basedir}/core/src">
+        		<include name="edu/wisc/ssec/mcidas/*"/>
+        		<include name="edu/wisc/ssec/mcidas/adde/*.java"/>
+            	<include name="visad/**/*"/>
+            </fileset>
+            <fileset dir="${basedir}/deps/src">
+            	<patternset refid="deps.packages"/>
+            </fileset>
+        	<fileset dir="${basedir}/build" includes="examples/**,build.xml"/>
+        </jar>
+    	<delete dir="${basedir}/build" />
+    </target>
+
+	<target name="clean" description="remove project jar files and contents of build dir">
 		<delete file="${visad.jarfile}"/>
 		<delete file="${examples.jarfile}"/>
 		<delete file="${docs.jarfile}"/>
