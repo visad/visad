@@ -10,6 +10,7 @@
     
     <property name="examples.jarfile" location="${basedir}/visad_examples.jar"/>
     <property name="visad.jarfile" location="${visad.dir}/visad.jar"/>
+    <property name="visad.class.dir" location="${visad.dir}/build"/>
 
 	<!-- compiler options -->
 	<property name="source.ver" value="1.5"/>
@@ -24,7 +25,7 @@
         <fileset dir="${lib.dir}">
             <include name="*.jar"/>
         </fileset>
-        <pathelement path="${build.dir}"/>
+        <pathelement path="${visad.class.dir}"/>
         <pathelement path="${visad.jarfile}"/>
     </path>
 
