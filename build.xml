@@ -103,7 +103,7 @@
     		<![CDATA[
 <project name="VisAD Source" default="help">
 
-    <target name="build" description="compile source files in place">
+    <target name="build" description="compile VisAD, deps, and example files in place">
 		<javac srcdir="." memoryMaximumSize="512M" fork="true" debug="on"/>
         <rmic classpath="." base=".">
             <include name="visad/**/*Remote*Impl.class" />
@@ -122,10 +122,21 @@
     		</fileset>
     	</jar>
     </target>
+
+    <target name="clean" description="remove class files">
+        <delete>
+            <fileset dir=".">
+                <include name="**/*.class"/>
+                <include name="visad.jar"/>
+            </fileset>
+        </delete>
+    </target>
     
-    <target name="help">
+    <target name="help" description="print help">
     	<echo>
-Build and jar VisAD:
+Examples are in ./examples
+
+Build and jar VisAD, VisAD RMI, and dependencies:
     ant build jar
     		
 Run Examples:
