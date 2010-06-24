@@ -31,8 +31,10 @@ import java.util.Enumeration;
 import java.util.StringTokenizer;
 
 import javax.media.j3d.Behavior;
+import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.BranchGroup;
 import javax.media.j3d.WakeupOnElapsedTime;
+import javax.vecmath.Point3d;
 
 import visad.AnimationControl;
 import visad.AnimationSetControl;
@@ -612,6 +614,7 @@ public class AnimationControlJ3D extends AVControlJ3D
   private class TakeStepBehavior extends Behavior {
 
     public TakeStepBehavior() {
+      setSchedulingBounds(new BoundingSphere(new Point3d(0,0,0), 10000000));
     }
 
     // initialize dwell when added to universe
