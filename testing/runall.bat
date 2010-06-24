@@ -1,10 +1,11 @@
 @echo Run all VisAD Tests
-@set JAVA=c:\jdk1.5.0\jre
-@set path=%JAVA%\bin;%path%
+@set JAVA=c:\jdk1.5.0
+@set path=%JAVA%\jre\bin;%JAVA%\bin;%path%
 @set CLASSPATH=..\visad_examples.jar;..\visad.jar;.\
 @echo Starting rmiregistry
 @start rmiregistry
 
+@pause
 @echo test of VisADCanvasJ3D
 @java visad.java3d.VisADCanvasJ3D
 
@@ -175,7 +176,7 @@
 @echo commands; in each display drag both points and the V-shaped
 @echo line and verify that they move in both displays; then shut
 @echo kown both the '14' and '15' commands
-@java DisplayTest 15
+@java DisplayTest 15 legato
 @echo.
 @echo java DisplayTest 16
 @echo.
@@ -433,7 +434,7 @@
 @echo commands; in each display drag both points and the V-shaped
 @echo line and verify that they move in both displays; then shut
 @echo down both the '55' and '56' commands
-@java DisplayTest 56 volante
+@java DisplayTest 56 legato
 @echo.
 @echo java DisplayTest 57
 @echo.
@@ -493,7 +494,7 @@
 @echo click left mouse button and drag in new window, and verify
 @echo cone rotates in both displays; click and drag center mouse
 @echo button and verify cursor coordinates in both displays
-@java DisplayTest 64 volante
+@java DisplayTest 64 legato
 @echo.
 @echo java DisplayTest 63 -2d
 @echo.
@@ -508,7 +509,7 @@
 @echo Click left mouse button and drag in new window, and verify
 @echo cone rotates in both displays; click and drag center mouse
 @echo button and verify cursor coordinates in both displays
-@java DisplayTest 64 volante
+@java DisplayTest 64 legato
 @echo.
 @echo java DisplayTest 65
 @echo.
