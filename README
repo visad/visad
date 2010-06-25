@@ -36,8 +36,8 @@ Building
 ========
 There are 4 main build files (the old visad/build.xml has been removed).
 The main build file `./build.xml` can be used to build the sub-projects
-and create the man VisAD distribution files. Each sub-project also has 
-it's own build file that can be used to perform basic build/clean/jar
+and create the main VisAD distribution files. Each sub-project also has 
+its own build file that can be used to perform basic build/clean/jar
 operations for just that project.
 
 You can use `ant -p` to display build script target descriptions
