@@ -1,3 +1,0 @@
-C---SHALXY DIMENSIONS
-      PARAMETER (NX=59,NY=49)
-      parameter (nxymax=max(nx,ny))

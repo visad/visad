@@ -38,7 +38,7 @@ and run the appropriate `java ...` command.
 Note that the applications in `visad/paoloa` require data files
 available from::
 
-  ftp://ftp.ssec.wisc.edu/pub/visad-2.0/paoloa-files.tar.Z
+  ftp://ftp.ssec.wisc.edu/pub/visad/paoloa-files.tar.Z
 
 
 Building Native Code for the HDF-EOS and HDF-5 File Adapters

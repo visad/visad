@@ -10,6 +10,8 @@
     <property name="docs.jarfile" location="${basedir}/visad_doc.jar" />
     <property name="source.jarfile" location="${basedir}/visad_src.jar" />
 
+    <property name="native.jarfile" location="${basedir}/visad_native.jar" />
+
     <path id="build.classpath">
         <fileset dir="${type.lib.dir}">
             <include name="*.jar"/>
@@ -41,6 +43,20 @@
     
     <target name="jar.javadoc" description="jar the javadoc">
 		<ant dir="${basedir}/core" target="jar.javadoc"/>
+    </target>
+
+    <target name="jar.native" description="jar the native code">
+        <typedef resource="org/tigris/subversion/svnant/svnantlib.xml" classpathref="build.classpath" />
+        <svn>
+            <info target="${basedir}/native"/>
+        </svn>
+        <echo>Native revision: ${svn.info.rev}</echo>
+        <jar basedir="${basedir}/native" destfile="${native.jarfile}">
+            <manifest>
+                <attribute name="Built-By" value="${user.name}"/>
+                <attribute name="Revision" value="${svn.info.rev}"/>
+            </manifest>
+        </jar>
     </target>
 
     <target name="dist.revision">
@@ -165,6 +181,10 @@ Run Examples:
 		<delete file="${examples.jarfile}"/>
 		<delete file="${docs.jarfile}"/>
         <delete file="${source.jarfile}"/>
+        <delete file="${native.jarfile}"/>
+        <ant dir="${basedir}/core" target="clean"/>
+        <ant dir="${basedir}/examples" target="clean"/>
+        <ant dir="${basedir}/deps" target="clean"/>
 	</target>
 	
 </project>
