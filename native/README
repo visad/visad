@@ -2,6 +2,12 @@
 VisAD
 =====
 
+Getting Native Code
+===================
+The VisAD native code can be obtained from:
+
+    ftp://ftp.ssec.wisc.edu/pub/visad/visad_native.jar
+
 
 Building Native Code for Applications
 =====================================
