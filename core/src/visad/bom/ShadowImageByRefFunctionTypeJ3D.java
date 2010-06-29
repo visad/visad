@@ -1156,6 +1156,11 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       }
     }
 
+
+    boolean useLinearTexture = false;
+    double[] scale = null;
+    double[] offset = null;
+
     if (spatial_tuple.equals(Display.DisplaySpatialCartesianTuple)) {
 // inside 'if (anyFlow) {}' in ShadowType.assembleSpatial()
       renderer.setEarthSpatialDisplay(null, spatial_tuple, display,
@@ -1163,13 +1168,125 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     }
     else {
       CoordinateSystem coord = spatial_tuple.getCoordinateSystem();
-      spatial_values = coord.toReference(spatial_values);
+
+      if (coord instanceof CachingCoordinateSystem) {
+        coord = ((CachingCoordinateSystem)coord).getCachedCoordinateSystem();
+      }
+      if (coord instanceof InverseLinearScaledCS) {
+        InverseLinearScaledCS invCS = (InverseLinearScaledCS)coord;
+        useLinearTexture = (invCS.getCoordinateSystem() == dataCoordinateSystem);
+        System.out.println("InverseLinearScaledCS");
+        System.out.println(invCS.getCoordinateSystem());
+        System.out.println(dataCoordinateSystem);
+        System.out.println(useLinearTexture);
+        scale = invCS.getScale();
+        offset = invCS.getOffset();
+      }
+
+      if (!useLinearTexture) {
+        spatial_values = coord.toReference(spatial_values);
+      }
 
 // inside 'if (anyFlow) {}' in ShadowType.assembleSpatial()
       renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
                spatial_value_indices, default_values, null);
     }
 
+    if (useLinearTexture) {
+      System.out.println("useLinearTexture: "+useLinearTexture);
+      float scaleX = (float) scale[0];
+      float scaleY = (float) scale[1];
+      float offsetX = (float) offset[0];
+      float offsetY = (float) offset[1];
+
+      float[][] xyCoords = getBounds(domain_set, data_width, data_height,
+                              //  data_width/2, data_width/2, data_height/2, data_height/2);
+                                  scaleX, offsetX, scaleY, offsetY);
+
+      // create VisADQuadArray that texture is mapped onto
+      coordinates = new float[12];
+      // corner 0 (-1,1)
+      coordinates[tuple_index[0]] = xyCoords[0][0];
+      coordinates[tuple_index[1]] = xyCoords[1][0];
+      coordinates[tuple_index[2]] = value2;
+      // corner 1 (-1,-1)
+      coordinates[3+tuple_index[0]] = xyCoords[0][1];
+      coordinates[3+tuple_index[1]] = xyCoords[1][1];
+      coordinates[3 + tuple_index[2]] = value2;
+      // corner 2 (1, -1)
+      coordinates[6+tuple_index[0]] = xyCoords[0][2];
+      coordinates[6+tuple_index[1]] = xyCoords[1][2];
+      coordinates[6 + tuple_index[2]] = value2;
+      // corner 3 (1,1)
+      coordinates[9+tuple_index[0]] = xyCoords[0][3];
+      coordinates[9+tuple_index[1]] = xyCoords[1][3];
+      coordinates[9 + tuple_index[2]] = value2;
+
+
+      // move image back in Java3D 2-D mode
+      adjustZ(coordinates);
+
+      texCoords = new float[8];
+      float ratiow = ((float) data_width) / ((float) texture_width);
+      float ratioh = ((float) data_height) / ((float) texture_height);
+
+      boolean yUp = true;
+      setTexCoords(texCoords, ratiow, ratioh, yUp);
+
+      normals = new float[12];
+      float n0 = ((coordinates[3+2]-coordinates[0+2]) *
+                  (coordinates[6+1]-coordinates[0+1])) -
+                 ((coordinates[3+1]-coordinates[0+1]) *
+                  (coordinates[6+2]-coordinates[0+2]));
+      float n1 = ((coordinates[3+0]-coordinates[0+0]) *
+                  (coordinates[6+2]-coordinates[0+2])) -
+                 ((coordinates[3+2]-coordinates[0+2]) *
+                  (coordinates[6+0]-coordinates[0+0]));
+      float n2 = ((coordinates[3+1]-coordinates[0+1]) *
+                  (coordinates[6+0]-coordinates[0+0])) -
+                 ((coordinates[3+0]-coordinates[0+0]) *
+                  (coordinates[6+1]-coordinates[0+1]));
+      float nlen = (float) Math.sqrt(n0 *  n0 + n1 * n1 + n2 * n2);
+      n0 = n0 / nlen;
+      n1 = n1 / nlen;
+      n2 = n2 / nlen;
+
+      // corner 0
+      normals[0] = n0;
+      normals[1] = n1;
+      normals[2] = n2;
+      // corner 1
+      normals[3] = n0;
+      normals[4] = n1;
+      normals[5] = n2;
+      // corner 2
+      normals[6] = n0;
+      normals[7] = n1;
+      normals[8] = n2;
+      // corner 3
+      normals[9] = n0;
+      normals[10] = n1;
+      normals[11] = n2;
+
+      VisADQuadArray qarray = new VisADQuadArray();
+      qarray.vertexCount = 4;
+      qarray.coordinates = coordinates;
+      qarray.texCoords = texCoords;
+      qarray.normals = normals;
+
+      if (!reuse) {
+         BufferedImage image = tile.getImage(0);
+         textureToGroup(group, qarray, image, mode, constant_alpha,
+                        constant_color, texture_width, texture_height, true, true, tile);
+      }
+      else {
+        if (animControl == null) {
+          imgNode.setCurrent(0);
+        }
+      }
+
+    }
+    else {
     // break from ShadowFunctionOrSetType
     coordinates = new float[3 * nn];
     k = 0;
@@ -1278,6 +1395,8 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         imgNode.setCurrent(0);
       }
     }
+
+   }
 // System.out.println("end curved texture " + (System.currentTimeMillis() - link.start_time));
   }
 
@@ -1471,6 +1590,41 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
   //public CachedBufferedByteImage createImageByRef(final int texture_width, final int texture_height, final int imageType) {
   public BufferedImage createImageByRef(final int texture_width, final int texture_height, final int imageType) {
       return new BufferedImage(texture_width, texture_height, imageType);
+  }
+
+  public static float[][] getBounds(Set domain_set, float data_width, float data_height,
+           float scaleX, float offsetX, float scaleY, float offsetY)
+      throws VisADException
+  {
+    float[][] xyCoords = new float[2][4];
+
+    float[][] coords0 = ((GriddedSet)domain_set).gridToValue(new float[][] {{0f},{0f}});
+    float[][] coords1 = ((GriddedSet)domain_set).gridToValue(new float[][] {{0f},{(float)(data_height-1)}});
+    float[][] coords2 = ((GriddedSet)domain_set).gridToValue(new float[][] {{(data_width-1f)},{(data_height-1f)}});
+    float[][] coords3 = ((GriddedSet)domain_set).gridToValue(new float[][] {{(data_width-1f)},{0f}});
+
+    float x0 = coords0[0][0];
+    float y0 = coords0[1][0];
+    float x1 = coords1[0][0];
+    float y1 = coords1[1][0];
+    float x2 = coords2[0][0];
+    float y2 = coords2[1][0];
+    float x3 = coords3[0][0];
+    float y3 = coords3[1][0];
+
+    xyCoords[0][0] = (x0 - offsetX)/scaleX;
+    xyCoords[1][0] = (y0 - offsetY)/scaleY;
+
+    xyCoords[0][1] = (x1 - offsetX)/scaleX;
+    xyCoords[1][1] = (y1 - offsetY)/scaleY;
+
+    xyCoords[0][2] = (x2 - offsetX)/scaleX;
+    xyCoords[1][2] = (y2 - offsetY)/scaleY;
+
+    xyCoords[0][3] = (x3 - offsetX)/scaleX;
+    xyCoords[1][3] = (y3 - offsetY)/scaleY;
+
+    return xyCoords;
   }
 
 }
