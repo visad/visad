@@ -1023,56 +1023,10 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
     data_width = lengths[0];
     data_height = lengths[1];
+
     // texture sizes must be powers of two on older graphics cards.
     texture_width = textureWidth(data_width);
     texture_height = textureHeight(data_height);
-                                                                                                                   
-    // compute size of triangle array to mapped texture onto
-    int size = (data_width + data_height) / 2;
-    curved_size = Math.max(2, Math.min(curved_size, size / 32));
-                                                                                                                   
-    int nwidth = 2 + (data_width - 1) / curved_size;
-    int nheight = 2 + (data_height - 1) / curved_size;
-                                                                                                                   
-    // compute locations of triangle vertices in texture
-    int nn = nwidth * nheight;
-    int[] is = new int[nwidth];
-    int[] js = new int[nheight];
-    for (int i=0; i<nwidth; i++) {
-      is[i] = Math.min(i * curved_size, data_width - 1);
-    }
-    for (int j=0; j<nheight; j++) {
-      js[j] = Math.min(j * curved_size, data_height - 1);
-    }
-                                                                                                                   
-    // get spatial coordinates at triangle vertices
-    int[] indices = new int[nn];
-    int k=0;
-    for (int j=0; j<nheight; j++) {
-      for (int i=0; i<nwidth; i++) {
-        indices[k] = is[i] + data_width * js[j];
-        k++;
-      }
-    }
-    float[][] spline_domain = null;
-    if (domain_set == null) {
-      for (int kk = 0; kk < indices.length; kk++) {
-        int x = indices[kk] % lenX;
-        int y = indices[kk] / lenX;
-        indices[kk] = (start[0] + x) + (start[1] + y)*bigX;
-      }
-      spline_domain = new float[2][indices.length];
-      for (int kk=0; kk<indices.length; kk++) {
-        spline_domain[0][kk] = samples[0][indices[kk]];
-        spline_domain[1][kk] = samples[1][indices[kk]];
-      }
-    }
-    else {
-      spline_domain = domain_set.indexToValue(indices);
-    }
-
-    spline_domain =
-        Unit.convertTuple(spline_domain, dataUnits, domain_units, false);
                                                                                                                    
     // transform for any CoordinateSystem in data (Field) Domain
     ShadowRealTupleType domain_reference = Domain.getReference();
@@ -1085,11 +1039,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                   ref.getDefaultUnits(), (RealTupleType) Domain.getType(),
                   new CoordinateSystem[] {dataCoordinateSystem},
                   domain_units);
-      spline_domain =
-        CoordinateSystem.transformCoordinates(
-          ref, null, ref.getDefaultUnits(), null,
-          (RealTupleType) Domain.getType(), dataCoordinateSystem,
-          domain_units, null, spline_domain);
+
       // ShadowRealTypes of DomainReference
       DC = adaptedShadowType.getDomainReferenceComponents();
     }
@@ -1143,23 +1093,10 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       }
     }
                                                                                                                    
-
-    float[][] spatial_values = new float[3][];
-    spatial_values[tuple_index[0]] = spline_domain[0];
-    spatial_values[tuple_index[1]] = spline_domain[1];
-    spatial_values[tuple_index[2]] = new float[nn];
-    for (int i=0; i<nn; i++) spatial_values[tuple_index[2]][i] = value2;
-                                                                                                                   
-    for (int i=0; i<3; i++) {
-      if (spatial_maps[i] != null) {
-        spatial_values[i] = spatial_maps[i].scaleValues(spatial_values[i], false);
-      }
-    }
-
-
     boolean useLinearTexture = false;
     double[] scale = null;
     double[] offset = null;
+    CoordinateSystem coord = null;
 
     if (spatial_tuple.equals(Display.DisplaySpatialCartesianTuple)) {
 // inside 'if (anyFlow) {}' in ShadowType.assembleSpatial()
@@ -1167,24 +1104,20 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                spatial_value_indices, default_values, null);
     }
     else {
-      CoordinateSystem coord = spatial_tuple.getCoordinateSystem();
+      coord = spatial_tuple.getCoordinateSystem();
 
       if (coord instanceof CachingCoordinateSystem) {
         coord = ((CachingCoordinateSystem)coord).getCachedCoordinateSystem();
       }
+
       if (coord instanceof InverseLinearScaledCS) {
         InverseLinearScaledCS invCS = (InverseLinearScaledCS)coord;
         useLinearTexture = (invCS.getCoordinateSystem() == dataCoordinateSystem);
         System.out.println("InverseLinearScaledCS");
-        System.out.println(invCS.getCoordinateSystem());
-        System.out.println(dataCoordinateSystem);
-        System.out.println(useLinearTexture);
+        System.out.println("DisplayCS:  "+invCS.getCoordinateSystem());
+        System.out.println("DataCS:  "+dataCoordinateSystem);
         scale = invCS.getScale();
         offset = invCS.getOffset();
-      }
-
-      if (!useLinearTexture) {
-        spatial_values = coord.toReference(spatial_values);
       }
 
 // inside 'if (anyFlow) {}' in ShadowType.assembleSpatial()
@@ -1192,16 +1125,15 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                spatial_value_indices, default_values, null);
     }
 
+    System.out.println("useLinearTexture: "+useLinearTexture);
     if (useLinearTexture) {
-      System.out.println("useLinearTexture: "+useLinearTexture);
       float scaleX = (float) scale[0];
       float scaleY = (float) scale[1];
       float offsetX = (float) offset[0];
       float offsetY = (float) offset[1];
 
       float[][] xyCoords = getBounds(domain_set, data_width, data_height,
-                              //  data_width/2, data_width/2, data_height/2, data_height/2);
-                                  scaleX, offsetX, scaleY, offsetY);
+                                     scaleX, offsetX, scaleY, offsetY);
 
       // create VisADQuadArray that texture is mapped onto
       coordinates = new float[12];
@@ -1287,6 +1219,85 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
     }
     else {
+      // compute size of triangle array to map texture onto
+      int size = (data_width + data_height) / 2;
+      curved_size = Math.max(2, Math.min(curved_size, size / 32));
+
+      int nwidth = 2 + (data_width - 1) / curved_size;
+      int nheight = 2 + (data_height - 1) / curved_size;
+
+      // compute locations of triangle vertices in texture
+      int nn = nwidth * nheight;
+      int[] is = new int[nwidth];
+      int[] js = new int[nheight];
+
+      for (int i=0; i<nwidth; i++) {
+        is[i] = Math.min(i * curved_size, data_width - 1);
+      }
+      for (int j=0; j<nheight; j++) {
+        js[j] = Math.min(j * curved_size, data_height - 1);
+      }
+
+      // get spatial coordinates at triangle vertices
+      int[] indices = new int[nn];
+      int k=0;
+      for (int j=0; j<nheight; j++) {
+        for (int i=0; i<nwidth; i++) {
+          indices[k] = is[i] + data_width * js[j];
+          k++;
+        }
+      }
+      float[][] spline_domain = null;
+      if (domain_set == null) {
+        for (int kk = 0; kk < indices.length; kk++) {
+          int x = indices[kk] % lenX;
+          int y = indices[kk] / lenX;
+          indices[kk] = (start[0] + x) + (start[1] + y)*bigX;
+        }
+        spline_domain = new float[2][indices.length];
+        for (int kk=0; kk<indices.length; kk++) {
+          spline_domain[0][kk] = samples[0][indices[kk]];
+          spline_domain[1][kk] = samples[1][indices[kk]];
+        }
+      }
+      else {
+        spline_domain = domain_set.indexToValue(indices);
+      }
+
+      spline_domain =
+          Unit.convertTuple(spline_domain, dataUnits, domain_units, false);
+
+
+       if (domain_reference != null
+             && domain_reference.getMappedDisplayScalar()) {
+           RealTupleType ref = (RealTupleType) domain_reference.getType();
+
+            spline_domain =
+                   CoordinateSystem.transformCoordinates(
+                   ref, null, ref.getDefaultUnits(), null,
+                   (RealTupleType) Domain.getType(), dataCoordinateSystem,
+                   domain_units, null, spline_domain);
+       }
+
+
+
+       float[][] spatial_values = new float[3][];
+       spatial_values[tuple_index[0]] = spline_domain[0];
+       spatial_values[tuple_index[1]] = spline_domain[1];
+       spatial_values[tuple_index[2]] = new float[nn];            
+       Arrays.fill(spatial_values[tuple_index[2]], value2);
+            
+       for (int i = 0; i < 3; i++) {                
+          if (spatial_maps[i] != null) {
+             spatial_values[i] = spatial_maps[i].scaleValues(spatial_values[i], false);
+          }
+       }
+
+       if (!spatial_tuple.equals(Display.DisplaySpatialCartesianTuple)) {
+          spatial_values = coord.toReference(spatial_values);
+       }
+
+
     // break from ShadowFunctionOrSetType
     coordinates = new float[3 * nn];
     k = 0;
@@ -1328,11 +1339,13 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         }
       }
     }
+
     VisADTriangleStripArray tarray = new VisADTriangleStripArray();
     tarray.stripVertexCounts = new int[nheight - 1];
     for (int i=0; i<nheight - 1; i++) {
       tarray.stripVertexCounts[i] = 2 * nwidth;
     }
+
     int len = (nheight - 1) * (2 * nwidth);
     tarray.vertexCount = len;
     tarray.normals = new float[3 * len];
