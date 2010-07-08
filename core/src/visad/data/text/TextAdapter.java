@@ -315,7 +315,7 @@ public class TextAdapter {
         if (line == null) return null;
         if (!isText(line)) return null;
         if (isComment(line)) continue;
-        return line;
+        return line.trim();
       }
     }
 
@@ -940,6 +940,12 @@ public class TextAdapter {
                                        ((dataDelim == null) 
                                            ? "null" 
                                            : dataDelim  + " (" + (dataDelim.getBytes())[0] +")"));
+      }
+      // squeeze out extra blank spaces
+      if (dataDelim.equals(BLANK) || dataDelim.equals(BLANK_DELIM)) {
+    	  //System.out.println("line before squeeze: " + line);
+          line = line.replaceAll("\\s++", " ").trim();
+    	  //System.out.println("line after squeeze: " + line);
       }
 
       String[] tokens = line.split(dataDelim);
