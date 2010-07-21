@@ -1707,7 +1707,7 @@ public abstract class JPythonMethods {
     return field;
   }
 
-  private static int[] getValuesLengths(float[][] values)
+  public static int[] getValuesLengths(float[][] values)
           throws VisADException {
     if (values == null) {
       throw new VisADException("bad values");
