@@ -27,34 +27,6 @@ public class UniverseBuilderJ3D extends Object {
     private BranchGroup vpRoot;
     private ViewPlatform vp;
 
-    /**
-     * The {@link VirtualUniverse} method that releases all allocated resources.
-     * This method has been available since Java 3D 1.2.
-     */
-    private static final Method  REMOVE_ALL_LOCALES;
-    private static final Method  REMOVE_ALL_CANVAS3DS;
-    private static final Class[] NIL_CLASS_ARRAY;
-
-    static {
-      NIL_CLASS_ARRAY = new Class[0];
-      Method method = null;
-      try {
-        method = Class.forName("javax.media.j3d.VirtualUniverse")
-          .getMethod("removeAllLocales", NIL_CLASS_ARRAY);
-      }
-      catch (Exception ex) {      }
-      REMOVE_ALL_LOCALES = method;
-      method = null;
-      try {
-        method = Class.forName("javax.media.j3d.View")
-          .getMethod("removeAllCanvas3Ds", NIL_CLASS_ARRAY);
-      }
-      catch (Exception ex) {      }
-      REMOVE_ALL_CANVAS3DS = method;
-    }
-
-
-
     public UniverseBuilderJ3D(Canvas3D c) {
       canvas = c;
 
@@ -119,31 +91,27 @@ public class UniverseBuilderJ3D extends Object {
       if (locale != null) locale.addBranchGraph(bg);
     }
 
+    /**
+     * Clean up resources according to 
+     * http://wiki.java.net/bin/view/Javadesktop/Java3DApplicationDevelopment#Releasing_Canvas3D_View_and_Virt
+     */
     public void destroy() {
-      view.removeCanvas3D(canvas);
-      // according to Kelvin Chung, 26 Apr 2000, this should work
-      // but it throws a NullPointerException
-      // view.attachViewPlatform(null);
-      if (REMOVE_ALL_CANVAS3DS != null) {
-        try {
-          REMOVE_ALL_CANVAS3DS.invoke(view, (Object[])NIL_CLASS_ARRAY);
-        }
-        catch (Exception ex) {
-            throw new RuntimeException("Assertion failure", ex);
-        }
+    	
+      // clean up resources in a way compatible back to Java3D 1.2
+      for (int idx = 0; idx < view.numCanvas3Ds(); idx++) {
+    	Canvas3D cvs = view.getCanvas3D(idx);
+    	if (cvs.isOffScreen()) {
+    		cvs.setOffScreenBuffer(null);
+    	}
+        view.removeCanvas3D(cvs);
       }
-      // in Java3D 1.3.1
-      // Viewer.setViewingPlatform(null);
-      if (REMOVE_ALL_LOCALES != null) {
-        try {
-          REMOVE_ALL_LOCALES.invoke(universe, (Object[])NIL_CLASS_ARRAY);
-        }
-        catch (Exception ex) {
-            throw new RuntimeException("Assertion failure", ex);
-        }
+      try {
+        view.attachViewPlatform(null);
+      } catch (RuntimeException why) {
+    	// Apparently this might throw a NPE.
+    	// Ignore because we're just trying to conform to best practice.  
       }
-      // in Java3D 1.3.1
-      // Viewer.clearViewerMap();
+      universe.removeAllLocales();
 
       canvas = null;
       universe = null;
