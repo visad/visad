@@ -50,5 +50,5 @@ public interface InverseLinearScaledCS {
    *  The CoordinateSystem being inverted
    *
    */
-  public CoordinateSystem getCoordinateSystem();
+  public CoordinateSystem getInvertedCoordinateSystem();
 }
