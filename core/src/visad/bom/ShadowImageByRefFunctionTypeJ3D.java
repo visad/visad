@@ -1112,7 +1112,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
       if (coord instanceof InverseLinearScaledCS) {
         InverseLinearScaledCS invCS = (InverseLinearScaledCS)coord;
-        useLinearTexture = (invCS.getCoordinateSystem() == dataCoordinateSystem);
+        useLinearTexture = (invCS.getInvertedCoordinateSystem() == dataCoordinateSystem);
         System.out.println("InverseLinearScaledCS");
         System.out.println("DisplayCS:  "+invCS.getCoordinateSystem());
         System.out.println("DataCS:  "+dataCoordinateSystem);
