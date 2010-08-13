@@ -519,6 +519,7 @@ public abstract class DisplayRendererJ3D
     canvas = c;
     // Create the root of the branch graph
     root = new BranchGroup();
+    root.setName("Root");
     root.setCapability(BranchGroup.ALLOW_DETACH);
     root.setCapability(Group.ALLOW_CHILDREN_READ);
     root.setCapability(Group.ALLOW_CHILDREN_WRITE);
@@ -530,6 +531,7 @@ public abstract class DisplayRendererJ3D
 
     // create background
     background = new Background();
+    background.setName("Background");
     background.setCapability(Background.ALLOW_COLOR_WRITE);
     background.setCapability(Background.ALLOW_COLOR_READ);
     float[] ctlBg = getRendererControl().getBackgroundColor();
@@ -558,6 +560,7 @@ public abstract class DisplayRendererJ3D
 
     // WLH 10 March 2000
     non_direct = new OrderedGroup();
+    non_direct.setName("NonDirect");
     non_direct.setCapability(Group.ALLOW_CHILDREN_READ);
     non_direct.setCapability(Group.ALLOW_CHILDREN_WRITE);
     non_direct.setCapability(Group.ALLOW_CHILDREN_EXTEND);
@@ -565,6 +568,7 @@ public abstract class DisplayRendererJ3D
     trans.addChild(non_direct);
 
     cursor_trans = new TransformGroup();
+    cursor_trans.setName("CursorTrans");
     cursor_trans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
     cursor_trans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
     cursor_trans.setCapability(Group.ALLOW_CHILDREN_READ);
@@ -572,14 +576,17 @@ public abstract class DisplayRendererJ3D
     cursor_trans.setCapability(Group.ALLOW_CHILDREN_EXTEND);
     trans.addChild(cursor_trans);
     cursor_switch = new Switch();
+    cursor_switch.setName("CursorSwitch");
     cursor_switch.setCapability(Switch.ALLOW_SWITCH_READ);
     cursor_switch.setCapability(Switch.ALLOW_SWITCH_WRITE);
     cursor_switch.setCapability(Group.ALLOW_CHILDREN_READ);
     cursor_trans.addChild(cursor_switch);
     cursor_on = new BranchGroup();
+    cursor_on.setName("CursorOn");
     cursor_on.setCapability(Group.ALLOW_CHILDREN_READ);
     cursor_on.setCapability(Group.ALLOW_CHILDREN_WRITE);
     cursor_off = new BranchGroup();
+    cursor_off.setName("CursorOff");
     cursor_off.setCapability(Group.ALLOW_CHILDREN_READ);
     cursor_switch.addChild(cursor_off);
     cursor_switch.addChild(cursor_on);
@@ -587,14 +594,17 @@ public abstract class DisplayRendererJ3D
     cursorOn = false;
 
     box_switch = new Switch();
+    box_switch.setName("BoxSwitch");
     box_switch.setCapability(Switch.ALLOW_SWITCH_READ);
     box_switch.setCapability(Switch.ALLOW_SWITCH_WRITE);
     box_switch.setCapability(Group.ALLOW_CHILDREN_READ);
     trans.addChild(box_switch);
     box_on = new BranchGroup();
+    box_on.setName("BoxOn");
     box_on.setCapability(Group.ALLOW_CHILDREN_READ);
     box_on.setCapability(Group.ALLOW_CHILDREN_WRITE);
     box_off = new BranchGroup();
+    box_off.setName("BoxOff");
     box_off.setCapability(Group.ALLOW_CHILDREN_READ);
     box_switch.addChild(box_off);
     box_switch.addChild(box_on);
@@ -605,15 +615,18 @@ public abstract class DisplayRendererJ3D
     }
 
     scale_switch = new Switch();
+    scale_switch.setName("ScaleSwitch");
     scale_switch.setCapability(Switch.ALLOW_SWITCH_READ);
     scale_switch.setCapability(Switch.ALLOW_SWITCH_WRITE);
     scale_switch.setCapability(Group.ALLOW_CHILDREN_READ);
     trans.addChild(scale_switch);
     scale_on = new BranchGroup();
+    scale_on.setName("ScaleOn");
     scale_on.setCapability(Group.ALLOW_CHILDREN_READ);
     scale_on.setCapability(Group.ALLOW_CHILDREN_WRITE);
     scale_on.setCapability(Group.ALLOW_CHILDREN_EXTEND);
     scale_off = new BranchGroup();
+    scale_off.setName("ScaleOff");
     scale_off.setCapability(Group.ALLOW_CHILDREN_READ);
     scale_switch.addChild(scale_off);
     scale_switch.addChild(scale_on);
@@ -654,6 +667,7 @@ public abstract class DisplayRendererJ3D
       modelClipSetInfluencingBounds.invoke(modelClip, new Object[] {bound3});
       background.setApplicationBounds(bound2);
       modelClipAddScope.invoke(modelClip, new Object[] {non_direct});
+      ((Node) modelClip).setName("ModelClip");
       trans.addChild((Node) modelClip);
     }
     catch (ClassNotFoundException e) {
@@ -1378,6 +1392,7 @@ public abstract class DisplayRendererJ3D
     if (not_destroyed == null) return;
     if (trans == null) {
       trans = new TransformGroup();
+      trans.setName("Trans");
       trans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
       trans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
       trans.setCapability(Group.ALLOW_CHILDREN_READ);
@@ -1388,6 +1403,7 @@ public abstract class DisplayRendererJ3D
       trans.setTransform(t);
       if (locked_trans == null && root != null) {
         locked_trans = new TransformGroup();
+        locked_trans.setName("LockedTrans");
         locked_trans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
         locked_trans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
         locked_trans.setCapability(Group.ALLOW_CHILDREN_READ);
@@ -1395,12 +1411,14 @@ public abstract class DisplayRendererJ3D
         locked_trans.setCapability(Group.ALLOW_CHILDREN_EXTEND);
         locked_trans.setTransform(t);
         screen_locked = new OrderedGroup();
+        screen_locked.setName("ScreenLocked");
         screen_locked.setCapability(Group.ALLOW_CHILDREN_READ);
         screen_locked.setCapability(Group.ALLOW_CHILDREN_WRITE);
         screen_locked.setCapability(Group.ALLOW_CHILDREN_EXTEND);
         screen_locked.setCapability(Node.ENABLE_PICK_REPORTING);
         locked_trans.addChild(screen_locked);
         BranchGroup bgroup = new BranchGroup();
+        bgroup.setName("LockedGroup");
         bgroup.setCapability(Group.ALLOW_CHILDREN_READ);
         bgroup.setCapability(Group.ALLOW_CHILDREN_WRITE);
         bgroup.setCapability(Group.ALLOW_CHILDREN_EXTEND);
