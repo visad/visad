@@ -12,6 +12,7 @@ import java.util.Enumeration;
 
 import javax.media.j3d.Bounds;
 import javax.media.j3d.BranchGroup;
+import javax.media.j3d.Canvas3D;
 import javax.media.j3d.Geometry;
 import javax.media.j3d.GeometryArray;
 import javax.media.j3d.Group;
@@ -22,7 +23,9 @@ import javax.media.j3d.Switch;
 import javax.media.j3d.Text3D;
 import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
+import javax.media.j3d.View;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -36,40 +39,58 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeSelectionModel;
 
+import visad.java3d.DisplayRendererJ3D;
+
 public class SceneGraphInspector extends JPanel implements TreeSelectionListener {
 
-  public static void show(Group group) {
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
+
+  public static void show(DisplayRendererJ3D renderer) {
     
     JFrame frame = new JFrame("VisAD SceneGraph Inspector");
     frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-    frame.add(new SceneGraphInspector(group));
+    frame.add(new SceneGraphInspector(renderer));
     frame.setSize(800, 480);
     frame.setVisible(true);
     
   }
   
-  private static String makeName(Node node) {
-    String name = node.getName();
-    if (name == null || name.length() == 0) {
-      name = node.getClass().getSimpleName() + "@" + node.hashCode();
+  private static String makeName(Object obj) {
+    String name = obj.getClass().getSimpleName();
+
+    if (obj instanceof Node) {
+      Node node = (Node) obj;
+      if (node.getName() != null && node.getName().length() > 0)
+        name = node.getName(); 
+    } else if (obj instanceof String) {
+      return (String) obj;
     }
-    return name;
+      
+    return name + "@" + obj.hashCode();
   }
 
-  class J3DTreeNode extends DefaultMutableTreeNode {
+  class MyNode<T> extends DefaultMutableTreeNode {
     
-    private Node node;
+    private static final long serialVersionUID = 1L;
+    private T node;
     
-    public J3DTreeNode(Node node) {
+    public MyNode(T node) {
       this.node = node;
     }
     
-    public Node getNode() {
+    public T getNode() {
       return node;
     }
     
-    public String toString() {
+    public String getName() {
       return makeName(node);
+    }
+    
+    public String toString() {
+      return getName();
     }
     
   }
@@ -77,15 +98,22 @@ public class SceneGraphInspector extends JPanel implements TreeSelectionListener
   private JTree tree;
   private JPanel cards;
   
-  public SceneGraphInspector(Group group) {
+  public SceneGraphInspector(DisplayRendererJ3D renderer) {
     
     cards = new JPanel();
     cards.setLayout(new CardLayout());
     
-    J3DTreeNode top = new J3DTreeNode(group);
+    MyNode<String> top = new MyNode<String>("ROOT");
 
-    createNodes(top);
+    View view = renderer.getView();
+    MyNode<View> viewNode = new MyNode<View>(view);
+    createViewNodes(viewNode);
+    top.add(viewNode);
     
+    MyNode<Node> scene = new MyNode<Node>(renderer.getRoot());
+    createSceneNodes(scene);
+    top.add(scene);
+  
     tree = new JTree(top);
     tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
     tree.addTreeSelectionListener(this);
@@ -108,21 +136,141 @@ public class SceneGraphInspector extends JPanel implements TreeSelectionListener
     }
   }
   
-  private void createNodes(J3DTreeNode top) {
+  private void createViewNodes(MyNode<View> viewNode) {
     
-    Node node = top.getNode();
-
-    cards.add(makeNodeComponent(node), makeName(node));
+    cards.add(makeViewComponent(viewNode.getNode()), viewNode.getName());
+    Enumeration<Canvas3D> canvases = viewNode.getNode().getAllCanvas3Ds();
+    while (canvases.hasMoreElements()) {
+      Canvas3D canvas = canvases.nextElement();
+      MyNode<Canvas3D> canvasNode = new MyNode<Canvas3D>(canvas);
+      viewNode.add(canvasNode);
+      cards.add(makeCanvasComponent(canvas), canvasNode.getName());
+    }
+  }
+  
+  private void createSceneNodes(MyNode<Node> scene) {
+    
+    Node node = scene.getNode();
+    cards.add(makeNodeComponent(node), scene.getName());
     if (node instanceof Group) {
       Group group = (Group) node;
       Enumeration<Node> children = group.getAllChildren();
       while (children.hasMoreElements()) {
-        J3DTreeNode tnode = new J3DTreeNode(children.nextElement());
-        top.add(tnode);
-        createNodes(tnode);
+        MyNode<Node> tnode = new MyNode<Node>(children.nextElement());
+        scene.add(tnode);
+        createSceneNodes(tnode);
       }
     }
     
+  }
+  
+  private JPanel makeViewComponent(final View view) {
+    
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.add(new JLabel("Class: " + view.getClass().getName()));
+    panel.add(new JLabel("AntiAliasing: " + view.getSceneAntialiasingEnable()));
+    int x = view.getViewPolicy();
+    panel.add(new JLabel("ViewPolicy: " + (x == View.HMD_VIEW ? "HMD_VIEW" : "SCREEN_VIEW")));
+    String visPolicy = "";
+    switch (view.getVisibilityPolicy()) {
+    case View.VISIBILITY_DRAW_ALL: 
+      visPolicy = "VISIBILITY_DRAW_ALL";
+      break;
+    case View.VISIBILITY_DRAW_INVISIBLE:
+      visPolicy = "VISIBILITY_DRAW_INVISIBLE";
+      break;
+    case View.VISIBILITY_DRAW_VISIBLE:
+      visPolicy = "VISIBILITY_DRAW_VISIBLE";
+      break;
+    }
+    panel.add(new JLabel("VisibilityPolicy: " + visPolicy));
+    panel.add(new JLabel("FrameNumber: " + view.getFrameNumber()));
+    panel.add(new JLabel("ViewRunning: " + view.isViewRunning()));
+    panel.add(new JLabel("BehaviorSchedulerRunning: " + view.isBehaviorSchedulerRunning()));
+    
+    final JButton startView = new JButton("Start View");
+    startView.setEnabled(!view.isViewRunning());
+    final JButton stopView = new JButton("Stop View");
+    startView.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent evt) {
+        view.startView();
+        startView.setEnabled(!view.isViewRunning());
+        stopView.setEnabled(view.isViewRunning());
+      }
+    });
+    stopView.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent evt) {
+        view.stopView();
+        startView.setEnabled(!view.isViewRunning());
+        stopView.setEnabled(view.isViewRunning());
+      }
+    });
+    JPanel subPanel = new JPanel();
+    subPanel.add(startView);
+    subPanel.add(stopView);
+    panel.add(subPanel);
+    
+    final JButton startBehav = new JButton("Start BehaviorScheduler");
+    startView.setEnabled(!view.isViewRunning());
+    final JButton stopBehav = new JButton("Stop BehaviorScheduler");
+    startView.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent evt) {
+        view.startBehaviorScheduler();
+        stopBehav.setEnabled(!view.isViewRunning());
+        startBehav.setEnabled(view.isViewRunning());
+      }
+    });
+    stopView.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent evt) {
+        view.stopBehaviorScheduler();
+        stopBehav.setEnabled(!view.isViewRunning());
+        startBehav.setEnabled(view.isViewRunning());
+      }
+    });
+    subPanel = new JPanel();
+    subPanel.add(startView);
+    subPanel.add(stopView);
+    panel.add(subPanel);
+    
+    return panel;
+  }
+  
+  private JPanel makeCanvasComponent(final Canvas3D canvas) {
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    panel.add(new JLabel("Class: " + canvas.getClass().getName()));
+    panel.add(new JLabel("Name: " + canvas.getName()));
+   
+    panel.add(new JLabel("DoubleBufferEnabled: " + canvas.getDoubleBufferEnable()));
+    panel.add(new JLabel("Height: " + canvas.getHeight()));
+    panel.add(new JLabel("Width: " + canvas.getWidth()));
+    panel.add(new JLabel("IgnoreRepaint: " + canvas.getIgnoreRepaint()));
+    panel.add(new JLabel("MousePosition: " + canvas.getMousePosition()));
+   
+    final JButton startRend = new JButton("Start Renderer");
+    startRend.setEnabled(!canvas.isRendererRunning());
+    final JButton stopRend = new JButton("Stop Renderer");
+    startRend.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent evt) {
+        canvas.startRenderer();
+        startRend.setEnabled(!canvas.isRendererRunning());
+        stopRend.setEnabled(canvas.isRendererRunning());
+      }
+    });
+    stopRend.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent evt) {
+        canvas.stopRenderer();
+        startRend.setEnabled(!canvas.isRendererRunning());
+        stopRend.setEnabled(canvas.isRendererRunning());
+      }
+    });
+    JPanel subPanel = new JPanel();
+    subPanel.add(startRend);
+    subPanel.add(stopRend);
+    panel.add(subPanel);
+    
+    return panel;
   }
   
   private JPanel makeNodeComponent(final Node node) {
@@ -132,6 +280,7 @@ public class SceneGraphInspector extends JPanel implements TreeSelectionListener
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
     
     panel.add(new JLabel("Name: " + makeName(node)));
+    panel.add(new JLabel("Class: " + node.getClass().getName()));
     panel.add(new JLabel("Live: " + node.isLive()));
     panel.add(new JLabel("Compiled: " + node.isCompiled()));
     panel.add(new JLabel("UserData: " + node.getUserData()));
@@ -225,10 +374,10 @@ public class SceneGraphInspector extends JPanel implements TreeSelectionListener
   @Override
   public void valueChanged(TreeSelectionEvent evt) {
     
-    J3DTreeNode tnode = (J3DTreeNode) evt.getPath().getLastPathComponent();
-    Node node = tnode.getNode();
-    CardLayout cl = (CardLayout)(cards.getLayout());
-    cl.show(cards, makeName(node));
+    MyNode tnode = (MyNode) evt.getPath().getLastPathComponent();
+    Object node = tnode.getNode();
+    CardLayout cl = (CardLayout) cards.getLayout();
+    cl.show(cards, tnode.getName());
   }
   
 }
