@@ -28,7 +28,6 @@ package visad.data.mcidas;
 import java.io.IOException;
 import java.rmi.RemoteException;
 
-import visad.BaseUnit;
 import visad.CoordinateSystem;
 import visad.DateTime;
 import visad.FlatField;
@@ -388,6 +387,8 @@ public class AreaAdapter {
       
     } catch (McIDASException afe) {
          throw new VisADException("Problem with McIDAS AREA file: " + afe);
+    } finally {
+    	af.close();
     }
   }
 
@@ -545,7 +546,7 @@ public class AreaAdapter {
                           rangeSets,
                           rangeUnits);
 
-    // scine we are returning a SingleBandedImage in the getData 
+    // since we are returning a SingleBandedImage in the getData 
     // and getImage calls anyway, we might as well create the
     // SingleBandedImage here.  We haven't setSamples so this shouldn't
     // be expensive.
