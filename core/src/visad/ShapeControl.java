@@ -356,12 +356,12 @@ public class ShapeControl extends Control {
 
       if (pfirst) {
         pfirst = false;
-        base_scale = scale[2];
+        base_scale = scale[0];
         last_cscale = 1.0f;
         base_size = shapeControl.getScale();
       }
       else {
-        float cscale = (float) (base_scale / scale[2]);
+        float cscale = (float) (base_scale / scale[0]);
         float ratio = cscale / last_cscale;
         if (ratio < 0.95f || 1.05f < ratio) {
           last_cscale = cscale;
