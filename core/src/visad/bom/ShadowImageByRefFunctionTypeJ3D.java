@@ -1305,7 +1305,10 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                                                                                                                    
     boolean spatial_all_select = true;
     for (int i=0; i<3*nn; i++) {
-      if (coordinates[i] != coordinates[i]) spatial_all_select = false;
+      if (Float.isNaN(coordinates[i])) {
+        spatial_all_select = false;
+        break;
+      }
     }
                                                                                                                    
     normals = Gridded3DSet.makeNormals(coordinates, nwidth, nheight);
