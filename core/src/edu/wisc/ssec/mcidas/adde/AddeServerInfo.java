@@ -326,10 +326,17 @@ public class AddeServerInfo extends Object {
   */
   public String[] getDatasetList() {
     int num = groups.size();
+    boolean autoUpcase = Boolean.getBoolean("adde.auto-upcase");
+    boolean match;
     for (int i=0; i<num; i++) {
       Vector v = (Vector)groups.elementAt(i);
       String g = (String)v.elementAt(0);
-      if (g.equalsIgnoreCase(selectedGroup)) {
+      if (autoUpcase) {
+        match = g.equalsIgnoreCase(selectedGroup);
+      } else {
+        match = g.equals(selectedGroup);
+      }
+      if (match) {
         Vector ds = (Vector)v.elementAt(1);
         int numds = ds.size();
         String[] sdl = new String[numds];
@@ -353,11 +360,18 @@ public class AddeServerInfo extends Object {
   *
   */
   public String[] getDatasetListDescriptions() {
+    boolean autoUpcase = Boolean.getBoolean("adde.auto-upcase");
+    boolean match;
     int num = groups.size();
     for (int i=0; i<num; i++) {
       Vector v = (Vector)groups.elementAt(i);
       String g = (String)v.elementAt(0);
-      if (g.equalsIgnoreCase(selectedGroup)) {
+      if (autoUpcase) {
+          match = g.equalsIgnoreCase(selectedGroup);
+        } else {
+          match = g.equals(selectedGroup);
+        }
+      if (match) {
         Vector dsd = (Vector)v.elementAt(2);
         int numdsd = dsd.size();
         String[] sdld = new String[numdsd];
