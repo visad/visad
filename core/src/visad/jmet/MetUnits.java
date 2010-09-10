@@ -97,6 +97,10 @@ public class MetUnits {
     else if (in.equalsIgnoreCase("degree e")) { out = "degrees_east"; }
     else if (in.equalsIgnoreCase("degree k")) { out = "K"; }
     else if (in.equalsIgnoreCase("degrees k")) { out = "K"; }
+    else if (in.equalsIgnoreCase("degree c")) { out = "Celsius"; }
+    else if (in.equalsIgnoreCase("degrees c")) { out = "Celsius"; }
+    else if (in.equalsIgnoreCase("degree f")) { out = "Fahrenheit"; }
+    else if (in.equalsIgnoreCase("degrees f")) { out = "Fahrenheit"; }
     else if (in.equalsIgnoreCase("gp m")) { out = "gpm"; }
     else if (in.equalsIgnoreCase("gp_m")) { out = "gpm"; }
     else if (in.equalsIgnoreCase("kg"))  { out = "kg"; }  // handle Kg
