@@ -62,6 +62,29 @@ public abstract class DisplayRendererJ3D
   implements RendererSourceListener
 {
 
+  private static final boolean HAVE_SGE_SET_NAME;
+  static {
+    boolean b = false;
+    try {
+       SceneGraphObject.class.getDeclaredMethod("getName", new Class[]{String.class});
+       b = true;
+    } catch (SecurityException e) {
+    } catch (NoSuchMethodException e) {
+    }
+    HAVE_SGE_SET_NAME = b;
+  }
+  
+  /**
+   * Set the name of a <code>SceneGraphObject</code>.  If <code>SceneGraphObject</code>
+   * does not have a <code>setName</code> (J3D pre v1.4) this is a no-op.
+   * @param name
+   */
+  public static void setSceneGraphObjectName(SceneGraphObject obj, String name) {
+    if (HAVE_SGE_SET_NAME) {
+      obj.setName(name);
+    }
+  }
+  
   private Object not_destroyed = new Object();
 
   // for screen locked
@@ -519,7 +542,7 @@ public abstract class DisplayRendererJ3D
     canvas = c;
     // Create the root of the branch graph
     root = new BranchGroup();
-    root.setName("Root");
+    setSceneGraphObjectName(root, "Root");
     root.setCapability(BranchGroup.ALLOW_DETACH);
     root.setCapability(Group.ALLOW_CHILDREN_READ);
     root.setCapability(Group.ALLOW_CHILDREN_WRITE);
@@ -531,7 +554,7 @@ public abstract class DisplayRendererJ3D
 
     // create background
     background = new Background();
-    background.setName("Background");
+    setSceneGraphObjectName(background, "Background");
     background.setCapability(Background.ALLOW_COLOR_WRITE);
     background.setCapability(Background.ALLOW_COLOR_READ);
     float[] ctlBg = getRendererControl().getBackgroundColor();
@@ -560,7 +583,7 @@ public abstract class DisplayRendererJ3D
 
     // WLH 10 March 2000
     non_direct = new OrderedGroup();
-    non_direct.setName("NonDirect");
+    setSceneGraphObjectName(non_direct, "NonDirect");
     non_direct.setCapability(Group.ALLOW_CHILDREN_READ);
     non_direct.setCapability(Group.ALLOW_CHILDREN_WRITE);
     non_direct.setCapability(Group.ALLOW_CHILDREN_EXTEND);
@@ -568,7 +591,7 @@ public abstract class DisplayRendererJ3D
     trans.addChild(non_direct);
 
     cursor_trans = new TransformGroup();
-    cursor_trans.setName("CursorTrans");
+    setSceneGraphObjectName(cursor_trans, "CursorTrans");
     cursor_trans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
     cursor_trans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
     cursor_trans.setCapability(Group.ALLOW_CHILDREN_READ);
@@ -576,17 +599,17 @@ public abstract class DisplayRendererJ3D
     cursor_trans.setCapability(Group.ALLOW_CHILDREN_EXTEND);
     trans.addChild(cursor_trans);
     cursor_switch = new Switch();
-    cursor_switch.setName("CursorSwitch");
+    setSceneGraphObjectName(cursor_switch, "CursorSwitch");
     cursor_switch.setCapability(Switch.ALLOW_SWITCH_READ);
     cursor_switch.setCapability(Switch.ALLOW_SWITCH_WRITE);
     cursor_switch.setCapability(Group.ALLOW_CHILDREN_READ);
     cursor_trans.addChild(cursor_switch);
     cursor_on = new BranchGroup();
-    cursor_on.setName("CursorOn");
+    setSceneGraphObjectName(cursor_on, "CursorOn");
     cursor_on.setCapability(Group.ALLOW_CHILDREN_READ);
     cursor_on.setCapability(Group.ALLOW_CHILDREN_WRITE);
     cursor_off = new BranchGroup();
-    cursor_off.setName("CursorOff");
+    setSceneGraphObjectName(cursor_off, "CursorOff");
     cursor_off.setCapability(Group.ALLOW_CHILDREN_READ);
     cursor_switch.addChild(cursor_off);
     cursor_switch.addChild(cursor_on);
@@ -594,17 +617,17 @@ public abstract class DisplayRendererJ3D
     cursorOn = false;
 
     box_switch = new Switch();
-    box_switch.setName("BoxSwitch");
+    setSceneGraphObjectName(box_switch, "BoxSwitch");
     box_switch.setCapability(Switch.ALLOW_SWITCH_READ);
     box_switch.setCapability(Switch.ALLOW_SWITCH_WRITE);
     box_switch.setCapability(Group.ALLOW_CHILDREN_READ);
     trans.addChild(box_switch);
     box_on = new BranchGroup();
-    box_on.setName("BoxOn");
+    setSceneGraphObjectName(box_on, "BoxOn");
     box_on.setCapability(Group.ALLOW_CHILDREN_READ);
     box_on.setCapability(Group.ALLOW_CHILDREN_WRITE);
     box_off = new BranchGroup();
-    box_off.setName("BoxOff");
+    setSceneGraphObjectName(box_off, "BoxOff");
     box_off.setCapability(Group.ALLOW_CHILDREN_READ);
     box_switch.addChild(box_off);
     box_switch.addChild(box_on);
@@ -615,18 +638,18 @@ public abstract class DisplayRendererJ3D
     }
 
     scale_switch = new Switch();
-    scale_switch.setName("ScaleSwitch");
+    setSceneGraphObjectName(scale_switch, "ScaleSwitch");
     scale_switch.setCapability(Switch.ALLOW_SWITCH_READ);
     scale_switch.setCapability(Switch.ALLOW_SWITCH_WRITE);
     scale_switch.setCapability(Group.ALLOW_CHILDREN_READ);
     trans.addChild(scale_switch);
     scale_on = new BranchGroup();
-    scale_on.setName("ScaleOn");
+    setSceneGraphObjectName(scale_on, "ScaleOn");
     scale_on.setCapability(Group.ALLOW_CHILDREN_READ);
     scale_on.setCapability(Group.ALLOW_CHILDREN_WRITE);
     scale_on.setCapability(Group.ALLOW_CHILDREN_EXTEND);
     scale_off = new BranchGroup();
-    scale_off.setName("ScaleOff");
+    setSceneGraphObjectName(scale_off, "ScaleOff");
     scale_off.setCapability(Group.ALLOW_CHILDREN_READ);
     scale_switch.addChild(scale_off);
     scale_switch.addChild(scale_on);
@@ -667,7 +690,7 @@ public abstract class DisplayRendererJ3D
       modelClipSetInfluencingBounds.invoke(modelClip, new Object[] {bound3});
       background.setApplicationBounds(bound2);
       modelClipAddScope.invoke(modelClip, new Object[] {non_direct});
-      ((Node) modelClip).setName("ModelClip");
+      setSceneGraphObjectName(((Node) modelClip), "ModelClip");
       trans.addChild((Node) modelClip);
     }
     catch (ClassNotFoundException e) {
@@ -1392,7 +1415,7 @@ public abstract class DisplayRendererJ3D
     if (not_destroyed == null) return;
     if (trans == null) {
       trans = new TransformGroup();
-      trans.setName("Trans");
+      setSceneGraphObjectName(trans, "Trans");
       trans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
       trans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
       trans.setCapability(Group.ALLOW_CHILDREN_READ);
@@ -1403,7 +1426,7 @@ public abstract class DisplayRendererJ3D
       trans.setTransform(t);
       if (locked_trans == null && root != null) {
         locked_trans = new TransformGroup();
-        locked_trans.setName("LockedTrans");
+        setSceneGraphObjectName(locked_trans, "LockedTrans");
         locked_trans.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
         locked_trans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
         locked_trans.setCapability(Group.ALLOW_CHILDREN_READ);
@@ -1411,14 +1434,14 @@ public abstract class DisplayRendererJ3D
         locked_trans.setCapability(Group.ALLOW_CHILDREN_EXTEND);
         locked_trans.setTransform(t);
         screen_locked = new OrderedGroup();
-        screen_locked.setName("ScreenLocked");
+        setSceneGraphObjectName(screen_locked, "ScreenLocked");
         screen_locked.setCapability(Group.ALLOW_CHILDREN_READ);
         screen_locked.setCapability(Group.ALLOW_CHILDREN_WRITE);
         screen_locked.setCapability(Group.ALLOW_CHILDREN_EXTEND);
         screen_locked.setCapability(Node.ENABLE_PICK_REPORTING);
         locked_trans.addChild(screen_locked);
         BranchGroup bgroup = new BranchGroup();
-        bgroup.setName("LockedGroup");
+        setSceneGraphObjectName(bgroup, "LockedGroup");
         bgroup.setCapability(Group.ALLOW_CHILDREN_READ);
         bgroup.setCapability(Group.ALLOW_CHILDREN_WRITE);
         bgroup.setCapability(Group.ALLOW_CHILDREN_EXTEND);
