@@ -364,7 +364,7 @@ public class HRITCoordinateSystem
       }
     }
 
-    // compute typical spacing btween points
+    // compute typical spacing between points
     float[] norm = new float[len-1];
     int k = 0;
     // WLH 2 March 2000
@@ -373,9 +373,7 @@ public class HRITCoordinateSystem
       float n = (float) Math.sqrt(
         (val[0][i] - val[0][i+1]) * (val[0][i] - val[0][i+1]) +
         (val[1][i] - val[1][i+1]) * (val[1][i] - val[1][i+1]) );
-      if (n == n) {
         norm[k++] = n;
-      }
     }
     // WLH 2 March 2000
     if (k < 3) return null;
@@ -539,7 +537,7 @@ public class HRITCoordinateSystem
       }
     }
 
-    // compute typical spacing btween points
+    // compute typical spacing between points
     float[] norm = new float[len-1];
     int k = 0;
     // WLH 2 March 2000
@@ -548,9 +546,7 @@ public class HRITCoordinateSystem
       float n = (float) Math.sqrt(
         (val[0][i] - val[0][i+1]) * (val[0][i] - val[0][i+1]) +
         (val[1][i] - val[1][i+1]) * (val[1][i] - val[1][i+1]) );
-      if (n == n) {
         norm[k++] = n;
-      }
     }
     // WLH 2 March 2000
     if (k < 3) return null;
