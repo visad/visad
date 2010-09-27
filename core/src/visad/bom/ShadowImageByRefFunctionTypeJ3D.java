@@ -343,7 +343,10 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         else if (Display.Blue.equals(cmaps[i].getDisplayScalar())) {
           permute[2] = i;
         }
-        else {
+        else if (Display.RGB.equals(cmaps[i].getDisplayScalar())) { //Inserted by Ghansham for Mapping all the three scalarMaps to Display.RGB (starts here) 
+                permute[i] = i;
+        }
+        else {               ////Inserted by Ghansham for Mapping all the three scalarMaps to Display.RGB(ends here)
           throw new BadMappingException("image values must be mapped to Red, " +
                                           "Green or Blue only");
         }
@@ -352,6 +355,24 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         throw new BadMappingException("image values must be mapped to Red, " +
                                       "Green and Blue");
       }
+      //Inserted by Ghansham for Checking that all should be mapped to Display.RGB or not even a single one should be mapped to Display.RGB(starts here)
+        //This is to check if there is a single Display.RGB ScalarMap
+        int indx = -1;
+        for (int i = 0; i < 3; i++) {
+                if (cmaps[i].getDisplayScalar().equals(Display.RGB)) {
+                        indx = i;
+                        break;
+                }
+        }
+
+        if (indx != -1){        //if there is a even a single Display.RGB ScalarMap, others must also Display.RGB only
+                for (int i = 0; i < 3; i++) {
+                        if (i !=indx && !(cmaps[i].getDisplayScalar().equals(Display.RGB))) {
+                                throw new BadMappingException("image values must be mapped to (Red, Green, Blue) or (RGB,RGB,RGB) only");
+                        }
+                }
+        }
+        //Inserted by Ghansham for Checking that all should be mapped to Display.RGB or not even a single one should be mapped to Display.RGB(Ends here)        
     }
 
     constant_alpha =
@@ -860,12 +881,49 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
               "cmaps != null: grab bytes directly");
           }
           color_bytes = new byte[4][];
-          color_bytes[0] =
-            cmaps[permute[0]].scaleValues(bytes[permute[0]], 255);
-          color_bytes[1] =
-            cmaps[permute[1]].scaleValues(bytes[permute[1]], 255);
-          color_bytes[2] =
-            cmaps[permute[2]].scaleValues(bytes[permute[2]], 255);
+          //Inserted by Ghansham starts here
+          if  (cmaps[0].getDisplayScalar() == Display.RGB && cmaps[1].getDisplayScalar() == Display.RGB && cmaps[2].getDisplayScalar() == Display.RGB) {
+                int map_indx = 0;
+                int r, g, b, c;
+                for (map_indx = 0; map_indx < cmaps.length; map_indx++) {
+                        BaseColorControl basecolorcontrol = (BaseColorControl)cmaps[map_indx].getControl();
+                        float color_table[][] = basecolorcontrol.getTable();
+                        int itable[][] = new int[color_table[0].length][3];
+                        int table_indx;
+                        for (table_indx = 0; table_indx < itable.length; table_indx++) {
+                                c = (int) (255.0 * color_table[0][table_indx]);
+                                r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+                                c = (int) (255.0 * color_table[1][table_indx]);
+                                g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+                                c = (int) (255.0 * color_table[2][table_indx]);
+                                b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+                                itable[table_indx][0] = (byte) r;
+                                itable[table_indx][1] = (byte) g;
+                                itable[table_indx][2] = (byte) b;
+                        }
+                        int table_length = color_table[0].length;
+                        int color_indx = permute[map_indx];
+                        //Memory Leak.  overwritting bytes.  it can be avoided if required.  'scaleValues' needs signature with copy=false
+                        byte bytes1[] = cmaps[color_indx].scaleValues(bytes[color_indx], table_length);
+                        int domainLength =  bytes1.length;
+                        int tblEnd = table_length - 1;
+                        color_bytes[map_indx] = new byte[domain_length];
+                        int data_indx;
+
+                        for (data_indx = 0; data_indx < domainLength; data_indx++) {
+                                int j = bytes1[data_indx] & 0xff; // unsigned
+                                // clip to table
+                                int ndx = j < 0 ? 0 : (j > tblEnd ? tblEnd : j);
+                                color_bytes[map_indx][data_indx] = (byte)itable[ndx][map_indx];
+                        }                        itable = null; //Taking out the garbage
+                        bytes1 = null; //Taking out the garbage
+                }
+          } else { //Inserted by Ghansham (Ends here)
+
+          color_bytes[0] = cmaps[permute[0]].scaleValues(bytes[permute[0]], 255);
+          color_bytes[1] = cmaps[permute[1]].scaleValues(bytes[permute[1]], 255);
+          color_bytes[2] = cmaps[permute[2]].scaleValues(bytes[permute[2]], 255);
+          }
           int c = (int) (255.0 * (1.0f - constant_alpha));
           color_bytes[3] = new byte[domain_length];
           Arrays.fill(color_bytes[3], (byte) c);
@@ -881,6 +939,32 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           int c = (int) (255.0 * (1.0f - constant_alpha));
           int a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
           int m = 0;
+          int threeD_itable[][][] = new int[3][][];
+          boolean isRGBRGBRGB = ((cmaps[0].getDisplayScalar() == Display.RGB) && (cmaps[1].getDisplayScalar() == Display.RGB) && (cmaps[2].getDisplayScalar() == Display.RGB));
+          int tableEnd = 0;
+
+          if  (isRGBRGBRGB) { //Inserted by Ghansham (starts here)
+                int map_indx;
+                for (map_indx = 0; map_indx < cmaps.length; map_indx++) {
+                        BaseColorControl basecolorcontrol = (BaseColorControl)cmaps[permute[map_indx]].getControl();
+                        float color_table[][] = basecolorcontrol.getTable();
+                        threeD_itable[map_indx] = new int[color_table[0].length][3];
+                        int table_indx;
+                        for(table_indx = 0; table_indx < threeD_itable[map_indx].length; table_indx++) {
+                                c = (int) (255.0 * color_table[0][table_indx]);
+                                r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+                                c = (int) (255.0 * color_table[1][table_indx]);
+                                g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+                                c = (int) (255.0 * color_table[2][table_indx]);
+                                b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+                                threeD_itable[map_indx][table_indx][0] = (byte) r;
+                                threeD_itable[map_indx][table_indx][1] = (byte) g;
+                                threeD_itable[map_indx][table_indx][2] = (byte) b;
+                        }
+                }
+                tableEnd = threeD_itable[0].length - 1;
+          } //Inserted by Ghansham (ends here)
+
           for (int y=0; y<tile_height; y++) {
             for (int x=0; x<tile_width; x++) {
               int i = (x+xStart) + (y+yStart)*data_width;
@@ -890,12 +974,25 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
               if (!Float.isNaN(values[0][i]) &&
                   !Float.isNaN(values[1][i]) &&
                   !Float.isNaN(values[2][i])) { // not missing
+                if (isRGBRGBRGB) { //Inserted by Ghansham (start here)
+                        int indx = (int)((float)tableEnd * values[0][i]);
+                        indx = (indx < 0) ? 0 : ((indx > tableEnd) ? tableEnd : indx);
+                        r = (byte)threeD_itable[0][indx][0];
+                        indx = (int)((float)tableEnd * values[1][i]);
+                        indx = (indx < 0) ? 0 : ((indx > tableEnd) ? tableEnd : indx);
+                        g = (byte)threeD_itable[1][indx][1];
+                        indx = (int)((float)tableEnd * values[2][i]);
+                        indx = (indx < 0) ? 0 : ((indx > tableEnd) ? tableEnd : indx);
+                        b = (byte)threeD_itable[2][indx][2];
+                } else { //Inserted by Ghansham (ends here)
+
                 c = (int) (255.0 * values[0][i]);
                 r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
                 c = (int) (255.0 * values[1][i]);
                 g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
                 c = (int) (255.0 * values[2][i]);
                 b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+                }
 
                 if (color_length == 4) {
                   byteData[k] = (byte) a;
@@ -915,6 +1012,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
             }
           }
           // take out the garbage
+          threeD_itable = null;
           values = null;
         }
       }
