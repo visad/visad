@@ -172,6 +172,11 @@ public class ScalarMap extends Object
     isManual = false;
   }
 
+  /** disable auto-scaling for this ScalarMap */
+  public void disableAutoScale() {
+    isManual = true;
+  }
+
   /** determine whether this ScalarMap is auto-scaled */
   public boolean isAutoScale() {
     return !isManual;
