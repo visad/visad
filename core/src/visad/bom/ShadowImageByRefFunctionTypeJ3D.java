@@ -426,6 +426,9 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
        java.awt.image.Raster raster = image.getRaster();
        DataBuffer db = raster.getDataBuffer();
        byteData = ((DataBufferByte)db).getData();
+       
+       //- re-initialize, in case reused
+       Arrays.fill(byteData, (byte) 0);
 
        makeColorBytes(imgFlatField, cmap, cmaps, constant_alpha, RangeComponents, color_length, domain_length, permute,
                       color_bytes, byteData, 
@@ -612,6 +615,10 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           java.awt.image.Raster raster = image.getRaster();
           DataBuffer db = raster.getDataBuffer();
           byteData = ((DataBufferByte)db).getData();
+          
+          //- reinitialize, in case reused
+          Arrays.fill(byteData, (byte) 0);
+
           makeColorBytes(ff, cmap, cmaps, constant_alpha, RangeComponents, color_length, domain_length, permute, 
                   color_bytes, byteData, 
                   data_width, data_height, tile_width, tile_height, xStart, yStart, texture_width, texture_height);
