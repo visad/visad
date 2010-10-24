@@ -388,7 +388,9 @@ public class AreaAdapter {
     } catch (McIDASException afe) {
          throw new VisADException("Problem with McIDAS AREA file: " + afe);
     } finally {
-    	af.close();
+      if (af != null) {
+        af.close();
+      }
     }
   }
 
