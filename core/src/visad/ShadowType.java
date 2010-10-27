@@ -1646,8 +1646,24 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
       }
     }
     // System.out.println("spatial_flow = " + spatial_flow);
+    boolean[] spatial_flows = new boolean[] {spatial_flow,spatial_flow};
 
     if (spatial_flow) {
+      for (int i = 0; i < valueArrayLength; i++) {
+        if (display_values[i] != null) {
+          int displayScalarIndex = valueToScalar[i];
+          DisplayRealType real = display.getDisplayScalar(displayScalarIndex);
+          DisplayTupleType tuple = real.getTuple();
+           if (tuple != null) {
+              if (tuple.equals(Display.DisplayFlow1SphericalTuple) ||
+                  tuple.equals(Display.DisplayFlow2SphericalTuple)) {
+            	  int index =  tuple.equals(Display.DisplayFlow1SphericalTuple) ? 0 : 1;
+              	  spatial_flows[index] = false;
+                  display_values[i] = null; 
+              }
+           }
+        }
+      }
 
       // adjust flow for spatial setRange scaling
       double max_range = -1.0;
@@ -1666,7 +1682,7 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
         }
       }
       for (int k = 0; k < 2; k++) {
-        if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType)) {
+        if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType) && spatial_flows[k]) {
           if (ff_values[k][0] != null || ff_values[k][1] != null
               || ff_values[k][2] != null) {
             for (int j = 0; j < len; j++) {
@@ -1719,7 +1735,7 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
 
           // compute and transform 'end points' of flow vectors
           for (int k = 0; k < 2; k++) {
-            if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType)) {
+            if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType) && spatial_flows[k]) {
               if (flen[k] > 0) {
                 vector_ends[k] = new float[3][len];
                 for (int i = 0; i < 3; i++) {
@@ -1763,7 +1779,7 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
         if (anyFlow) {
           // subtract transformed spatial_values from transformed flow vectors
           for (int k = 0; k < 2; k++) {
-            if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType)) {
+            if (!(renderer.getRealVectorTypes(k) instanceof EarthVectorType) && spatial_flows[k]) {
               if (flen[k] > 0) {
                 for (int i = 0; i < 3; i++) {
                   for (int j = 0; j < len; j++) {
@@ -2102,7 +2118,10 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
             int flow_index = real.getTupleIndex();
             ff_values[k][flow_index] = display_values[i];
             flen[k] = Math.max(flen[k], display_values[i].length);
-            display_values[i] = null; // MEM_WLH 27 March 99
+            // if not DisplayFlow*SphericalTuple, null out values
+            if (actual_tuple[k].equals(flow_tuple[k])) {
+              display_values[i] = null; // MEM_WLH 27 March 99
+            }
             /*
              * WLH 15 April 2000 maps[k][flow_index] = map;
              */
@@ -2230,10 +2249,11 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
       throws VisADException {
     // System.out.println("adjustFlowToEarth " + renderer.getDisplay().getName()
     // + " " + renderer.getRealVectorTypes(which)); // IDV
-    if (!(renderer.getRealVectorTypes(which) instanceof EarthVectorType) && !force) {
+	// Move this down into the check for shouldAdjust
+    //if (!(renderer.getRealVectorTypes(which) instanceof EarthVectorType) && !force) {
       // only do this for EarthVectorType
-      return flow_values;
-    }
+    //  return flow_values;
+    //}
 
 
     FlowControl fcontrol = null;
@@ -2254,6 +2274,25 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
               "adjustFlowToEarth: Unable to get FlowControl");
         }
         shouldAdjust = fcontrol.getAdjustFlowToEarth();
+        // add one more check
+        Vector maps = link.getSelectedMapVector();
+        boolean haveSpeedDir = false;
+        for (int i = 0; i < maps.size(); i++) {
+        	ScalarMap map = (ScalarMap) maps.get(i);
+        	DisplayRealType displayType = map.getDisplayScalar();
+        	if ((which == 0 && (displayType.equals(Display.Flow1Azimuth) ||
+        	                    displayType.equals(Display.Flow1Radial)  ||
+        	                    displayType.equals(Display.Flow1Elevation)))  ||
+        	    (which == 1 && (displayType.equals(Display.Flow2Azimuth)  ||
+        	                    displayType.equals(Display.Flow2Radial)  ||
+        	                    displayType.equals(Display.Flow2Elevation)))) {
+        		haveSpeedDir = true;
+        		break;
+        	}
+        }
+        if (!(renderer.getRealVectorTypes(which) instanceof EarthVectorType) && !haveSpeedDir ) {
+        	shouldAdjust = false;
+        }
       }
     }
     if (!shouldAdjust)
