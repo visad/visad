@@ -382,6 +382,29 @@ public class TextAdapter {
     }
 
     String[] sthdr = hdr.split(hdrDelim);
+    // since blanks separate the metadata, if we have a blank 
+    // delimiter, we run into problems.  Loop through the header and
+    // put humpty dumpty back together again
+    if (hdrDelim.equals(BLANK_DELIM) || hdrDelim.equals(BLANK)) {
+        List<String> chunks = new ArrayList<String>();
+        for (int i = 0; i < sthdr.length; i++) {
+            String subchunk = sthdr[i].trim();
+            int m = subchunk.indexOf("[");
+            if (m == -1) {
+                chunks.add(subchunk);
+                continue;
+            }
+            // have "[", find "]"
+            int m2 = subchunk.indexOf("]");
+            while (m2 < 0 && i < sthdr.length) {
+               i++;
+               subchunk += " " +sthdr[i].trim();
+               m2 = subchunk.indexOf("]");
+            }
+            chunks.add(subchunk);
+        }
+        sthdr = (String[]) chunks.toArray(new String[chunks.size()]);
+    }
     int nhdr = sthdr.length;
     infos    = new HeaderInfo[nhdr];
     for(int i=0;i<infos.length;i++) {
