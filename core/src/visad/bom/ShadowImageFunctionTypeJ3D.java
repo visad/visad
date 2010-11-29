@@ -1148,6 +1148,7 @@ if (i == (len / 2)) {
         float isfactor = is[i] / (data_width - 1.0f);
         float jsfactor = js[j] / (data_height - 1.0f);
         texCoords[mt++] = (ratiow - width) * isfactor + half_width;
+        boolean yUp = false; // TDR, force to false
         if (yUp) { // TDR
           texCoords[mt++] = (ratioh - height) * jsfactor + half_height;
         }
