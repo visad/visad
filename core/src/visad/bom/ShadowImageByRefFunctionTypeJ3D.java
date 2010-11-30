@@ -71,11 +71,22 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
   private boolean reuse = false;
   private boolean reuseImages = false;
 
-  public ShadowImageByRefFunctionTypeJ3D(MathType t, DataDisplayLink link,
-                                ShadowType parent)
+  int[] inherited_values = null;
+  ShadowFunctionOrSetType adaptedShadowType = null;
+  int levelOfDifficulty = -1;
+
+  public ShadowImageByRefFunctionTypeJ3D(MathType t, DataDisplayLink link, ShadowType parent) 
          throws VisADException, RemoteException {
     super(t, link, parent);
-    //System.out.println("Using Image byReference rendering");
+  }
+
+  public ShadowImageByRefFunctionTypeJ3D(MathType t, DataDisplayLink link, ShadowType parent,
+                  int[] inherited_values, ShadowFunctionOrSetType adaptedShadowType, int levelOfDifficulty)
+         throws VisADException, RemoteException {
+    super(t, link, parent);
+    this.inherited_values  = inherited_values;
+    this.adaptedShadowType = adaptedShadowType;
+    this.levelOfDifficulty = levelOfDifficulty;
   }
 
   // transform data into a depiction under group
@@ -90,7 +101,12 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       ((ImageRendererJ3D) renderer).markMissingVisADBranch();
       return false;
     }
-    if (getLevelOfDifficulty() == NOTHING_MAPPED) return false;
+
+    if (levelOfDifficulty == -1) {
+      levelOfDifficulty = getLevelOfDifficulty();
+    }
+
+    if (levelOfDifficulty == NOTHING_MAPPED) return false;
 
 
     if (group instanceof BranchGroup && ((BranchGroup) group).numChildren() > 0) {
@@ -166,8 +182,9 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
      } 
 
 
-    ShadowFunctionOrSetType adaptedShadowType =
-         (ShadowFunctionOrSetType) getAdaptedShadowType();
+    if (adaptedShadowType == null) {
+      adaptedShadowType = (ShadowFunctionOrSetType) getAdaptedShadowType();
+    }
 
     GraphicsModeControl mode = (GraphicsModeControl)
           display.getGraphicsModeControl().clone();
@@ -194,7 +211,9 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     // array to hold values for various mappings
     float[][] display_values = new float[valueArrayLength][];
 
-    int[] inherited_values = adaptedShadowType.getInheritedValues();
+    if (inherited_values == null) {
+      inherited_values = adaptedShadowType.getInheritedValues();
+    }
 
     for (int i=0; i<valueArrayLength; i++) {
       if (inherited_values[i] > 0) {

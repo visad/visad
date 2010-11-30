@@ -40,6 +40,8 @@ import javax.swing.JPanel;
 import visad.AnimationControl;
 import visad.BadMappingException;
 import visad.CoordinateSystem;
+import visad.CachingCoordinateSystem;
+import visad.InverseLinearScaledCS;
 import visad.Data;
 import visad.DataDisplayLink;
 import visad.DataReference;
@@ -48,8 +50,10 @@ import visad.Display;
 import visad.DisplayException;
 import visad.DisplayImpl;
 import visad.DisplayRealType;
+import visad.DisplayTupleType;
 import visad.Field;
 import visad.FieldImpl;
+import visad.FlatField;
 import visad.FunctionType;
 import visad.Gridded1DDoubleSet;
 import visad.MathType;
@@ -59,6 +63,9 @@ import visad.ScalarMap;
 import visad.ScalarType;
 import visad.Set;
 import visad.ShadowType;
+import visad.ShadowRealType;
+import visad.ShadowRealTupleType;
+import visad.ShadowFunctionOrSetType;
 import visad.VisADError;
 import visad.VisADException;
 import visad.data.netcdf.Plain;
@@ -349,17 +356,65 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
 
   private VisADImageNode imagesNode = null;
 
+  private boolean lastByRef = false;
+
+
+  public static boolean isByRefUsable(DataDisplayLink link, ShadowType shadow) throws VisADException, RemoteException {
+      ShadowFunctionOrSetType shadowType = (ShadowFunctionOrSetType) shadow.getAdaptedShadowType();
+  
+      CoordinateSystem dataCoordinateSystem = null;
+
+      FieldImpl field = (FieldImpl) link.getData();
+      if (!(field instanceof FlatField)) {
+        shadowType = (ShadowFunctionOrSetType) shadowType.getRange();
+        FlatField fltField = (FlatField) field.getSample(0);
+        dataCoordinateSystem = fltField.getDomainCoordinateSystem();
+      }
+      else {
+        dataCoordinateSystem = ((FlatField)field).getDomainCoordinateSystem();
+        return true;
+      }
+
+      ShadowRealType[] DomainComponents = shadowType.getDomainComponents();
+      ShadowRealTupleType Domain = shadowType.getDomain();
+      ShadowRealTupleType domain_reference = Domain.getReference();
+      ShadowRealType[] DC = DomainComponents;
+
+      if (domain_reference != null &&
+        domain_reference.getMappedDisplayScalar()) {
+        DC = shadowType.getDomainReferenceComponents();
+      }
+
+      DisplayTupleType spatial_tuple = null;
+      for (int i=0; i<DC.length; i++) {
+        java.util.Enumeration maps =
+          DC[i].getSelectedMapVector().elements();
+        ScalarMap map = (ScalarMap) maps.nextElement();
+        DisplayRealType real = map.getDisplayScalar();
+        spatial_tuple = real.getTuple();
+      }
+
+      CoordinateSystem coord = spatial_tuple.getCoordinateSystem();
+
+      if (coord instanceof CachingCoordinateSystem) {
+        coord = ((CachingCoordinateSystem)coord).getCachedCoordinateSystem();
+      }
+
+      boolean useLinearTexture = false;
+      if (coord instanceof InverseLinearScaledCS) {
+        InverseLinearScaledCS invCS = (InverseLinearScaledCS)coord;
+        useLinearTexture = (invCS.getInvertedCoordinateSystem()).equals(dataCoordinateSystem);
+      }
+    
+      return useLinearTexture;
+  }
+
   // factory for ShadowFunctionType that defines unique behavior
   // for ImageRendererJ3D
   public ShadowType makeShadowFunctionType(
          FunctionType type, DataDisplayLink link, ShadowType parent)
          throws VisADException, RemoteException {
-    if (ShadowType.byReference) {
-      return new ShadowImageByRefFunctionTypeJ3D(type, link, parent);
-    }
-    else {
-      return new ShadowImageFunctionTypeJ3D(type, link, parent);
-    }
+    return new ShadowImageFunctionTypeJ3D(type, link, parent);
   }
 
   /**
@@ -451,14 +506,6 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
   // end of logic to allow ShadowImageFunctionTypeJ3D to 'mark' missing frames
 
   public BranchGroup doTransform() throws VisADException, RemoteException {
-    BranchGroup branch = getBranch();
-    if (branch == null) {
-      branch = new BranchGroup();
-      branch.setCapability(BranchGroup.ALLOW_DETACH);
-      branch.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
-      branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
-      branch.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
-    }
 
     DataDisplayLink[] Links = getLinks();
     if (Links == null || Links.length == 0) {
@@ -467,6 +514,28 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
 
     DataDisplayLink link = Links[0];
     ShadowTypeJ3D type = (ShadowTypeJ3D) link.getShadow();
+    boolean doByRef = false;
+    if (isByRefUsable(link, type) && ShadowType.byReference) {
+      doByRef = true;
+      type = new ShadowImageByRefFunctionTypeJ3D(link.getData().getType(), link, null, 
+                     ((ShadowFunctionOrSetType)type.getAdaptedShadowType()).getInheritedValues(),
+                          (ShadowFunctionOrSetType)type.getAdaptedShadowType(), type.getLevelOfDifficulty());
+    }
+
+    BranchGroup branch = null;
+    if ((lastByRef && doByRef) || (!lastByRef && !doByRef)) { 
+      branch = getBranch();
+    }
+    lastByRef = doByRef;
+
+    if (branch == null) {
+      branch = new BranchGroup();
+      branch.setCapability(BranchGroup.ALLOW_DETACH);
+      branch.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
+      branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+      branch.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
+    }
+
 
     // initialize valueArray to missing
     int valueArrayLength = getDisplay().getValueArrayLength();
