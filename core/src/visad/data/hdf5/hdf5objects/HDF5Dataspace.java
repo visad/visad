@@ -174,7 +174,14 @@ public class HDF5Dataspace extends HDF5Object
 		for (int i=0; i<rank; i++)
 			block[i] = 1;
 
-		H5.H5Sselect_hyperslab(id, HDF5Constants.H5S_SELECT_SET, start,stride, count, block);
+		try {
+			H5.H5Sselect_hyperslab(id, HDF5Constants.H5S_SELECT_SET, start,stride, count, block);
+		}
+		catch (HDF5Exception exc) {
+			HDF5LibraryException e = new HDF5LibraryException();
+			e.initCause(exc);
+			throw e;
+		}
 	}
 
 
