@@ -867,6 +867,10 @@ public class SpreadSheet extends GUIFrame implements AdjustmentListener,
       // layout menu toolbar icon
       addToolbarButton("tile", "Tile cells", "tileCells", true, Toolbar);
       Toolbar.add(Box.createHorizontalGlue());
+
+      // HACK - limit toolbar height
+      Toolbar.setMaximumSize(new Dimension(Toolbar.getMaximumSize().width,
+        Toolbar.getPreferredSize().height));
     }
 
     // set up formula bar
