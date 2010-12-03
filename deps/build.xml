@@ -69,7 +69,7 @@
 	</patternset>
 
 
-	<target name="dods" depends="ucar, gnu" >
+	<target name="dods" depends="init, ucar, gnu" >
 	  <javac sourcepath=""
 	         srcdir="${src.dir}" 
 	         destdir="${build.dir}"
@@ -82,7 +82,7 @@
 	</target>
 
 
-	<target name="loci"  >
+	<target name="loci" depends="init" >
 	  <javac sourcepath=""
 	         srcdir="${src.dir}" 
 	         destdir="${build.dir}"
@@ -95,7 +95,7 @@
 	</target>
 
 
-	<target name="HTTPClient"  >
+	<target name="HTTPClient" depends="init" >
 	  <javac sourcepath=""
 	         srcdir="${src.dir}" 
 	         destdir="${build.dir}"
@@ -108,7 +108,7 @@
 	</target>
 
 
-	<target name="Jama" >
+	<target name="Jama" depends="init" >
 	  <javac srcdir="${src.dir}" 
 	         destdir="${build.dir}"
 	         source="${source.ver}" 
@@ -120,7 +120,7 @@
 	</target>
 
 
-	<target name="gnu"  >
+	<target name="gnu" depends="init" >
 	  <javac sourcepath=""
 	         srcdir="${src.dir}" 
 	         destdir="${build.dir}"
@@ -133,7 +133,7 @@
 	</target>
 
 
-	<target name="ncsa"  >
+	<target name="ncsa" depends="init" >
 	  <javac sourcepath=""
 	         srcdir="${src.dir}" 
 	         destdir="${build.dir}"
@@ -146,7 +146,7 @@
 	</target>
 
 
-	<target name="nom"  >
+	<target name="nom" depends="init" >
 	  <javac sourcepath=""
 	         srcdir="${src.dir}" 
 	         source="${source.ver}" 
@@ -159,7 +159,7 @@
 	</target>
 
 
-	<target name="ucar" depends="HTTPClient">
+	<target name="ucar" depends="init, HTTPClient">
 	  <javac sourcepath=""
 	         srcdir="${src.dir}" 
 	         destdir="${build.dir}"
@@ -178,6 +178,10 @@
 
 	<target name="build" depends="HTTPClient, Jama, ucar, gnu, dods, ncsa, nom, loci"
             description="build all dependencies"/> 
+
+	<target name="init">
+		<mkdir dir="${build.dir}"/>
+	</target>
 
 
 	<target name="clean" description="remove all generated class and jar files">

@@ -94,6 +94,7 @@
 	</path>
 
 	<target name="build">
+	  <mkdir dir="${build.dir}"/>
 		<javac sourcepath="" srcdir="${src.dir}" destdir="${build.dir}"
 			source="${source.ver}" target="${target.ver}" failonerror="${fail.flag}"
 			debug="${debug.flag}" deprecation="${deprecation.flag}"
