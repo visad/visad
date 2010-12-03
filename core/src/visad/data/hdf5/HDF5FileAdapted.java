@@ -96,19 +96,17 @@ public class HDF5FileAdapted extends HDF5File
 		for ( int i = 0; i < nelems; i++) {
 			H5.H5Gget_obj_info_idx(pid, gname, i, oName, oType );
 
-			switch (oType[0]) {
-				case HDF5Constants.H5G_GROUP:
-					g = new HDF5GroupAdapted(pid,  "/"+oName[0]);
-					datas.add(g);
-					break;
-				case HDF5Constants.H5G_DATASET:
-					d = new HDF5DatasetAdapted(pid, "/"+oName[0]);
-					datas.add(d);
-					break;
-				default:
-					// do not know what to do with other objects in visad
-					break;
-			} // switch (oType[0]) {
+			if (oType[0] == HDF5Constants.H5G_GROUP) {
+				g = new HDF5GroupAdapted(pid,  "/"+oName[0]);
+				datas.add(g);
+			}
+			else if (oType[0] == HDF5Constants.H5G_DATASET) {
+				d = new HDF5DatasetAdapted(pid, "/"+oName[0]);
+				datas.add(d);
+			}
+			else {
+				// do not know what to do with other objects in visad
+			} // end of switch (oType[0])
 			oName[0] = null;
 			oType[0] = -1;
 		} // for ( i = 0; i < nelems; i++) {

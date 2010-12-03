@@ -169,36 +169,33 @@ public class HDF5Datatype extends HDF5Object
 		int class_t = H5.H5Tget_class(id);
 		int class_s = H5.H5Tget_size(id);
 
-		switch (class_t)
-		{
-			case HDF5Constants.H5T_INTEGER:
-				if (class_s == 1) {
-					data = new byte[size];
-				}
-				else if (class_s == 2) {
-					data = new short[size];
-				}
-				else if (class_s == 4) {
-					data = new int[size];
-				}
-				else if (class_s == 8) {
-					data = new long[size];
-				}
-				break;
-			case HDF5Constants.H5T_FLOAT:
-				if (class_s == 4) {
-					data = new float[size];
-				}
-				else if (class_s == 8) {
-					data = new double[size];
-				}
-				break;
-			case HDF5Constants.H5T_STRING:
-				data = new String[size];
-				break;
-			case HDF5Constants.H5T_COMPOUND:
-				break;
+		if (class_t == HDF5Constants.H5T_INTEGER) {
+			if (class_s == 1) {
+				data = new byte[size];
+			}
+			else if (class_s == 2) {
+				data = new short[size];
+			}
+			else if (class_s == 4) {
+				data = new int[size];
+			}
+			else if (class_s == 8) {
+				data = new long[size];
+			}
 		}
+		else if (class_t == HDF5Constants.H5T_FLOAT) {
+			if (class_s == 4) {
+				data = new float[size];
+			}
+			else if (class_s == 8) {
+				data = new double[size];
+			}
+		}
+		else if (class_t == HDF5Constants.H5T_STRING) {
+			data = new String[size];
+		}
+		else if (class_t == HDF5Constants.H5T_COMPOUND) {
+		} // end of switch (class_t)
 
 		return data;
 	}

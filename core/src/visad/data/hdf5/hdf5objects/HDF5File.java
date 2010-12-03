@@ -174,41 +174,38 @@ public class HDF5File extends HDF5Object
 				continue;
 			}
 
-			switch (oType[0]) {
-				case HDF5Constants.H5G_GROUP:
-					g = new HDF5Group(pid,  pPath+oName[0]);
-					g.setParent(pObject);
-					pObject.addMember(g);
-					node = new HDF5TreeNode(g);
-					pnode.add( node );
-					int pgroup = -1;
-					try {
-						pgroup = H5.H5Gopen(pid,gname);
-					} catch (HDF5Exception ex) {
-						System.err.println("HDF5File.depth_first(): H5Gopen() Failed, "+ex);
-						break;
-					}
- 					depth_first(pgroup, oName[0], node);
-					break;
-				case HDF5Constants.H5G_DATASET:
-					d = new HDF5Dataset(pid, pPath+oName[0]);
-					pObject.addMember(d);
-					node = new HDF5TreeNode(d);
-					pnode.add( node );
-					break;
-				case HDF5Constants.H5G_TYPE:
-					t = new HDF5Datatype(pid, pPath+oName[0]);
-					pObject.addMember(t);
-					node = new HDF5TreeNode(t);
-					pnode.add( node );
-					break;
-				default:
-					o = new HDF5Object(pPath+oName[0]);
-					pObject.addMember(o);
-					node = new HDF5TreeNode(o);
-					pnode.add( node );
-					break;
-			} // switch (oType[0]) {
+			if (oType[0] == HDF5Constants.H5G_GROUP) {
+				g = new HDF5Group(pid,  pPath+oName[0]);
+				g.setParent(pObject);
+				pObject.addMember(g);
+				node = new HDF5TreeNode(g);
+				pnode.add( node );
+				int pgroup = -1;
+				try {
+					pgroup = H5.H5Gopen(pid,gname);
+					depth_first(pgroup, oName[0], node);
+				} catch (HDF5Exception ex) {
+					System.err.println("HDF5File.depth_first(): H5Gopen() Failed, "+ex);
+				}
+			}
+			else if (oType[0] == HDF5Constants.H5G_DATASET) {
+				d = new HDF5Dataset(pid, pPath+oName[0]);
+				pObject.addMember(d);
+				node = new HDF5TreeNode(d);
+				pnode.add( node );
+			}
+			else if (oType[0] == HDF5Constants.H5G_TYPE) {
+				t = new HDF5Datatype(pid, pPath+oName[0]);
+				pObject.addMember(t);
+				node = new HDF5TreeNode(t);
+				pnode.add( node );
+			}
+			else {
+				o = new HDF5Object(pPath+oName[0]);
+				pObject.addMember(o);
+				node = new HDF5TreeNode(o);
+				pnode.add( node );
+			} // end of switch (oType[0])
 			oName[0] = null;
 			oType[0] = -1;
 		} // for ( i = 0; i < nelems; i++) {

@@ -301,55 +301,52 @@ public class HDF5Dataset extends HDF5Object
 			member_tid = H5.H5Tget_member_type(tid, i);
 			member_class_t = H5.H5Tget_class(member_tid);
 			member_class_s = H5.H5Tget_size(member_tid);
-		   	read_tid = H5.H5Tcreate(HDF5Constants.H5T_COMPOUND,member_class_s);
+	   	read_tid = H5.H5Tcreate(HDF5Constants.H5T_COMPOUND,member_class_s);
 
-		  	switch (member_class_t)
-		  	{
-		  		case HDF5Constants.H5T_INTEGER:
-					member_sign = H5.H5Tget_sign(member_tid);
-		  			if (member_class_s == 1) {
-		  				byte[] bdata = new byte[size];
-						H5.H5Tinsert(read_tid, member_name, 0, H5.J2C(HDF5CDataTypes.JH5T_NATIVE_INT8));
-						H5.H5Dread(id, read_tid, mspace, fspace, p, bdata);
-						member_data = bdata;
-		  			}
-		  			else if (member_class_s == 2) {
-		  				short[] sdata = new short[size];
-						H5.H5Tinsert(read_tid, member_name, 0, H5.J2C(HDF5CDataTypes.JH5T_NATIVE_INT16));
-						H5.H5Dread(id, read_tid, mspace, fspace, p, sdata);
-						member_data = sdata;
-		  			}
-		  			else if (member_class_s == 4) {
-		  				int[] idata = new int[size];
-						H5.H5Tinsert(read_tid, member_name, 0, H5.J2C(HDF5CDataTypes.JH5T_NATIVE_INT32));
-						H5.H5Dread(id, read_tid, mspace, fspace, p, idata);
-						member_data = idata;
-		  			}
-		  			else if (member_class_s == 8) {
-		  				long[] ldata = new long[size];
-						H5.H5Tinsert(read_tid, member_name, 0, H5.J2C(HDF5CDataTypes.JH5T_NATIVE_INT64));
-						H5.H5Dread(id, read_tid, mspace, fspace, p, ldata);
-						member_data = ldata;
-		  			}
-		  			break;
-		  		case HDF5Constants.H5T_FLOAT:
-		  			if (member_class_s == 4) {
-		  				float[] fdata = new float[size];
-						H5.H5Tinsert(read_tid, member_name, 0, H5.J2C(HDF5CDataTypes.JH5T_NATIVE_FLOAT));
-						H5.H5Dread(id, read_tid, mspace, fspace, p, fdata);
-						member_data = fdata;
-		  			}
-		  			else if (member_class_s == 8) {
-		  				double[] ddata = new double[size];
-						H5.H5Tinsert(read_tid, member_name, 0, H5.J2C(HDF5CDataTypes.JH5T_NATIVE_DOUBLE));
-						H5.H5Dread(id, read_tid, mspace, fspace, p, ddata);
-						member_data = ddata;
-		  			}
-		  			break;
-				default:
-					member_data = null;
-					break;
-		  	}  // end of switch (member_class_t)
+			if (member_class_t == HDF5Constants.H5T_INTEGER) {
+				member_sign = H5.H5Tget_sign(member_tid);
+	  		if (member_class_s == 1) {
+	  			byte[] bdata = new byte[size];
+					H5.H5Tinsert(read_tid, member_name, 0, H5.J2C(HDF5CDataTypes.JH5T_NATIVE_INT8));
+					H5.H5Dread(id, read_tid, mspace, fspace, p, bdata);
+					member_data = bdata;
+	  		}
+	  		else if (member_class_s == 2) {
+	  			short[] sdata = new short[size];
+					H5.H5Tinsert(read_tid, member_name, 0, H5.J2C(HDF5CDataTypes.JH5T_NATIVE_INT16));
+					H5.H5Dread(id, read_tid, mspace, fspace, p, sdata);
+					member_data = sdata;
+	  		}
+	  		else if (member_class_s == 4) {
+	  			int[] idata = new int[size];
+					H5.H5Tinsert(read_tid, member_name, 0, H5.J2C(HDF5CDataTypes.JH5T_NATIVE_INT32));
+					H5.H5Dread(id, read_tid, mspace, fspace, p, idata);
+					member_data = idata;
+	  		}
+	  		else if (member_class_s == 8) {
+	  			long[] ldata = new long[size];
+					H5.H5Tinsert(read_tid, member_name, 0, H5.J2C(HDF5CDataTypes.JH5T_NATIVE_INT64));
+					H5.H5Dread(id, read_tid, mspace, fspace, p, ldata);
+					member_data = ldata;
+	  		}
+			}
+			else if (member_class_t == HDF5Constants.H5T_FLOAT) {
+  			if (member_class_s == 4) {
+  				float[] fdata = new float[size];
+					H5.H5Tinsert(read_tid, member_name, 0, H5.J2C(HDF5CDataTypes.JH5T_NATIVE_FLOAT));
+					H5.H5Dread(id, read_tid, mspace, fspace, p, fdata);
+					member_data = fdata;
+  			}
+  			else if (member_class_s == 8) {
+  				double[] ddata = new double[size];
+					H5.H5Tinsert(read_tid, member_name, 0, H5.J2C(HDF5CDataTypes.JH5T_NATIVE_DOUBLE));
+					H5.H5Dread(id, read_tid, mspace, fspace, p, ddata);
+					member_data = ddata;
+  			}
+			}
+			else {
+				member_data = null;
+	  	} // end of switch (member_class_t)
 
 			if (member_data != null)
 			{
@@ -360,7 +357,7 @@ public class HDF5Dataset extends HDF5Object
 		  			theData.add(member_data);
 			}
 
-	  	} // end of for (int i=0; i<num_members; i++)
+  	} // end of for (int i=0; i<num_members; i++)
 
 		return theData;
 	}

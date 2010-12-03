@@ -102,20 +102,18 @@ public class HDF5GroupAdapted
 		for ( int i = 0; i < nelems; i++) {
 			H5.H5Gget_obj_info_idx(pid, gname, i, oName, oType );
 
-			switch (oType[0]) {
-				case HDF5Constants.H5G_GROUP:
-					pgroup = H5.H5Gopen(pid,gname);
-					g = new HDF5GroupAdapted(pgroup, name+"/"+oName[0]);
-					addMember(g);
-					break;
-				case HDF5Constants.H5G_DATASET:
-					d = new HDF5DatasetAdapted(pid, name+"/"+oName[0]);
-					addMember(d);
-					break;
-				default:
-					// do not know what to do with other objects in visad
-					break;
-			} // switch (oType[0]) {
+			if (oType[0] == HDF5Constants.H5G_GROUP) {
+				pgroup = H5.H5Gopen(pid,gname);
+				g = new HDF5GroupAdapted(pgroup, name+"/"+oName[0]);
+				addMember(g);
+			}
+			else if (oType[0] == HDF5Constants.H5G_DATASET) {
+				d = new HDF5DatasetAdapted(pid, name+"/"+oName[0]);
+				addMember(d);
+			}
+			else {
+				// do not know what to do with other objects in visad
+			} // end of switch (oType[0])
 			oName[0] = null;
 			oType[0] = -1;
 		} // for ( i = 0; i < nelems; i++) {
