@@ -22,6 +22,7 @@
             description="build and jar the core, and build the examples"/>
 
     <target name="build.visad" description="build the core">
+        <mkdir dir="${basedir}/core/build"/>
         <ant dir="${basedir}/core" target="build"/>
     </target>
 
@@ -30,6 +31,7 @@
     </target>
 
     <target name="build.examples" description="build the examples">
+        <mkdir dir="${basedir}/examples/build"/>
         <ant dir="${basedir}/examples" target="build"/>
     </target>
 

@@ -53,9 +53,7 @@
     </target>
 
 	<target name="clean" description="delete eamples class files">
-		<delete includeemptydirs="true" failonerror="false">
-			<fileset dir="${build.dir}" includes="**/*"/>
-		</delete>
+		<delete dir="${build.dir}"/>
         <delete file="${examples.jarfile}" failonerror="false"/>
 	</target>
 
