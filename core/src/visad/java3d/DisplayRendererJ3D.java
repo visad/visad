@@ -62,29 +62,16 @@ public abstract class DisplayRendererJ3D
   implements RendererSourceListener
 {
 
-  private static final boolean HAVE_SGE_SET_NAME;
-  static {
-    boolean b = false;
-    try {
-       SceneGraphObject.class.getDeclaredMethod("getName", new Class[]{String.class});
-       b = true;
-    } catch (SecurityException e) {
-    } catch (NoSuchMethodException e) {
-    }
-    HAVE_SGE_SET_NAME = b;
-  }
-  
   /**
-   * Set the name of a <code>SceneGraphObject</code>.  If <code>SceneGraphObject</code>
-   * does not have a <code>setName</code> (J3D pre v1.4) this is a no-op.
+   * Set the name of a <code>SceneGraphObject</code>.
+   * If <code>SceneGraphObject</code> does not have a <code>setName</code>
+   * (J3D pre v1.4) this is a no-op.
    * @param name
    */
   public static void setSceneGraphObjectName(SceneGraphObject obj, String name) {
-    if (HAVE_SGE_SET_NAME) {
-      obj.setName(name);
-    }
+    Util.setName(obj, name);
   }
-  
+
   private Object not_destroyed = new Object();
 
   // for screen locked

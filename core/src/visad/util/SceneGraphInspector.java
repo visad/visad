@@ -63,9 +63,12 @@ public class SceneGraphInspector extends JPanel implements TreeSelectionListener
 
     if (obj instanceof Node) {
       Node node = (Node) obj;
-      if (node.getName() != null && node.getName().length() > 0)
-        name = node.getName(); 
-    } else if (obj instanceof String) {
+      String nodeName = Util.getName(node);
+      if (nodeName != null && nodeName.length() > 0) {
+        name = nodeName;
+      }
+    }
+    else if (obj instanceof String) {
       return (String) obj;
     }
       

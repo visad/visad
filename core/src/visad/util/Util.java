@@ -26,7 +26,6 @@ MA 02111-1307, USA
 
 package visad.util;
 
-
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -44,9 +43,11 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import java.util.Calendar;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
@@ -58,6 +59,7 @@ import javax.imageio.ImageWriter;
 import javax.media.j3d.Canvas3D;
 import javax.media.j3d.Group;
 import javax.media.j3d.Node;
+import javax.media.j3d.SceneGraphObject;
 import javax.media.j3d.VirtualUniverse;
 
 import javax.swing.JComboBox;
@@ -289,6 +291,71 @@ public class Util {
     }
   }
 
+  // Map<SceneGraphObject, String>
+  //private static final Map SGO_NAMES = new HashMap();
+  private static final Method SGO_GET_NAME;
+  private static final Method SGO_SET_NAME;
+  static {
+    Method sgoGetName = null, sgoSetName = null;
+    try {
+      sgoGetName = SceneGraphObject.class.getDeclaredMethod("getName",
+        new Class[] {String.class});
+      sgoSetName = SceneGraphObject.class.getDeclaredMethod("setName",
+        new Class[0]);
+    }
+    catch (SecurityException e) {
+    }
+    catch (NoSuchMethodException e) {
+    }
+    SGO_GET_NAME = sgoGetName;
+    SGO_SET_NAME = sgoSetName;
+  }
+
+  /**
+   * Gets the name of the given {@link SceneGraphObject}.
+   *
+   * This method exists to avoid a compile-time
+   * dependency on Java3D 1.4+.
+   */
+  public static String getName(SceneGraphObject obj) {
+    if (SGO_GET_NAME != null) {
+      try {
+        return (String) SGO_GET_NAME.invoke(new Object[] {obj});
+      }
+      catch (IllegalAccessException exc) {
+      }
+      catch (InvocationTargetException exc) {
+      }
+    }
+    else {
+      // no SceneGraphObject.getName method; retrieve name from Map instead
+      //return (String) SGO_NAMES.get(obj);
+    }
+    return null;
+  }
+
+  /**
+   * Sets the name of the given {@link SceneGraphObject}.
+   *
+   * This method exists to avoid a compile-time
+   * dependency on Java3D 1.4+.
+   */
+  public static void setName(SceneGraphObject obj, String name) {
+    if (SGO_SET_NAME != null) {
+      try {
+        SGO_SET_NAME.invoke(new Object[] {obj, name});
+      }
+      catch (IllegalAccessException exc) {
+      }
+      catch (InvocationTargetException exc) {
+      }
+    }
+    else {
+      // no SceneGraphObject.setName method; save name to Map instead
+      //SGO_NAMES.put(obj, name);
+    }
+  }
+
   /**
    * Return a string representation of the current date and time.
    *
@@ -512,7 +579,7 @@ public class Util {
    * @return true if found, otherwise false
    */
   public static boolean canDoJPEG() {
-	Iterator<ImageWriter> iter = ImageIO.getImageWritersByFormatName("jpeg");
+    Iterator<ImageWriter> iter = ImageIO.getImageWritersByFormatName("jpeg");
     return iter.hasNext();
   }
 
