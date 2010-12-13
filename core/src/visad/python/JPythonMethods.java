@@ -2409,15 +2409,20 @@ public abstract class JPythonMethods {
   /**
   * re-scale the values in a FlatField using auto-scaling
   *
-  * @param f the FlatField (or FieldImpl -- first sample used)
+  * @param f the FlatField (or FieldImpl -- all samples used if one dim)
   * @param outlo the output low-range value
   * @param outhi the output high range value
   *
   * Values of the original FlatField will be linearly
   * scaled from their "min:max" to "outlo:outhi"
   *
+  * If input FieldImpl is a sequence, then all items in sequence are done
+  * but the "min" and "max" are taken from the first sequence item only!
+  *
+  * return new FieldImpl
+  *
   */
-  public static FlatField rescale(FieldImpl f, double outlo, double outhi)
+  public static FieldImpl rescale(FieldImpl f, double outlo, double outhi)
        throws VisADException, RemoteException {
 
     double [] minmax = getMinMax(f);
@@ -2442,14 +2447,19 @@ public abstract class JPythonMethods {
   * 
   * Values < inlo will be set to outlo; values > inhi set to outhi
   *
-  * Values returned in a new FlatField
+  * If input FieldImpl is a sequence, then all items in sequence are done
+  *
+  * Values returned in a new FieldImpl
   */
 
-  public static FlatField rescale(FieldImpl f, 
+  public static FieldImpl rescale(FieldImpl f, 
     double inlo, double inhi, double outlo, double outhi)
              throws VisADException, RemoteException {
         
-    FlatField ff;
+    FlatField ff = null;
+    FieldImpl fi = null;
+    boolean isFI = false;
+    int numItems = 1;
     if (f instanceof FlatField) {
       try {
       ff = (FlatField)f.clone();
@@ -2458,22 +2468,45 @@ public abstract class JPythonMethods {
       }
      
     } else {
-      ff = (FlatField)((FlatField)f.getSample(0)).clone();
-    }
-    float [][] dv = ff.getFloats(false);
-
-    double outrange = outhi - outlo;
-    double inrange = inhi - inlo;
-    for (int i=0; i<dv.length; i++) {
-      for (int k=0; k<dv[i].length; k++) {
-        dv[i][k] = (float)(outlo + outrange * (dv[i][k] - inlo)/inrange);
-        if (dv[i][k] < outlo) dv[i][k] = (float)outlo;
-        if (dv[i][k] > outhi) dv[i][k] = (float)outhi;
+      isFI = true;
+      try {
+        fi = (FieldImpl)f.clone();
+        numItems = getDomainSizes(fi)[0];
+      } catch (CloneNotSupportedException cnsfi) {
+        throw new VisADException ("Cannot clone FieldImpl object");
       }
     }
 
-    ff.setSamples(dv,false);
-    return ff;
+    float [][] dv;
+    for (int m=0; m<numItems; m++) {
+      if (isFI) {
+        dv = ( (FlatField)(fi.getSample(m))).getFloats(false);
+      } else {
+        dv = ff.getFloats(false);
+      }
+
+      double outrange = outhi - outlo;
+      double inrange = inhi - inlo;
+      for (int i=0; i<dv.length; i++) {
+        for (int k=0; k<dv[i].length; k++) {
+          dv[i][k] = (float)(outlo + outrange * (dv[i][k] - inlo)/inrange);
+          if (dv[i][k] < outlo) dv[i][k] = (float)outlo;
+          if (dv[i][k] > outhi) dv[i][k] = (float)outhi;
+        }
+      }
+
+      if (isFI) {
+        ( (FlatField)(fi.getSample(m))).setSamples(dv,false);
+      } else {
+        ff.setSamples(dv,false);
+      }
+    }
+
+    if (isFI) {
+      return fi;
+    } else {
+      return (FieldImpl)ff;
+    }
   }
 
   /**
