@@ -2467,7 +2467,7 @@ public abstract class JPythonMethods {
         throw new VisADException ("Cannot clone field object");
       }
      
-    } else {
+    } else if (domainDimension(f) == 1) {
       isFI = true;
       try {
         fi = (FieldImpl)f.clone();
@@ -2475,6 +2475,8 @@ public abstract class JPythonMethods {
       } catch (CloneNotSupportedException cnsfi) {
         throw new VisADException ("Cannot clone FieldImpl object");
       }
+    } else {
+      throw new VisADException("Cannot rescale the data - unknown structure");
     }
 
     float [][] dv;
@@ -2516,7 +2518,7 @@ public abstract class JPythonMethods {
   * @param op  Comparison operator as string ('gt','le',...)
   * @param v  Numeric operand for comparison
   *
-  * @return a FlatField with values of either 0 (did not meet
+  * @return a FieldImpl with values of either 0 (did not meet
   * criterion) or 1 (met criteron).
   *
   * Example:  b = mask(a, 'gt', 100)
@@ -2524,13 +2526,13 @@ public abstract class JPythonMethods {
   * 1 where 'a' was > 100, and zero elsewhere.
   *
   */
-  public static FlatField mask(FieldImpl f, String op, double v) 
+  public static FieldImpl mask(FieldImpl f, String op, double v) 
              throws VisADException, RemoteException {
     return mask(f, op, new Real(v));
   }
 
 
-  public static FlatField mask(Data f, String op, Data v) 
+  public static FieldImpl mask(Data f, String op, Data v) 
              throws VisADException, RemoteException {
     if (! (f instanceof FieldImpl) ) {
       throw new VisADException("Data must be a FieldImpl or FlatField");
@@ -2549,7 +2551,7 @@ public abstract class JPythonMethods {
   * If the value of 'v' is a Field, then it will be resampled
   * to the domain of 'f' is possible before the comparison.
   *
-  * @return a FlatField with values of either 0 (did not meet
+  * @return a FieldImpl with values of either 0 (did not meet
   * criterion) or 1 (met criteron).
   *
   * Example:  b = mask(a, 'gt', c)
@@ -2558,70 +2560,104 @@ public abstract class JPythonMethods {
   * elsewhere.
   *
   */
-  public static FlatField mask(FieldImpl f, String op, Data v)
+  public static FieldImpl mask(FieldImpl f, String op, Data v)
              throws VisADException, RemoteException {
-    FlatField fv;
+    FlatField ff = null;
+    FieldImpl fi = null;
+    boolean isFI = false;
+    int numItems = 1;
     if (f instanceof FlatField) {
-      fv = (FlatField) f.subtract(v);
+      numItems = 1;
+     
+    } else if (domainDimension(f) == 1) {
+      isFI = true;
+      try {
+        fi = (FieldImpl)f.clone();
+        numItems = getDomainSizes(fi)[0];
+      } catch (CloneNotSupportedException cnsfi) {
+        throw new VisADException ("Cannot clone FieldImpl object");
+      }
     } else {
-      fv = (FlatField) (((FieldImpl)f).getSample(0)).subtract(v);
+      throw new VisADException("Cannot rescale the data - unknown structure");
     }
-    float [][] dv = fv.getFloats(false);
+
     int oper = -1;
     for (int i=0; i<ops.length; i++) {
       if (ops[i].equalsIgnoreCase(op)) oper = i;
       if (ops_sym[i].equalsIgnoreCase(op)) oper = i;
     }
     if (oper < 0) throw new VisADException("Invalid operator: "+op);
-    for (int i=0; i<dv.length; i++) {
-      for (int k=0; k<dv[i].length; k++) {
-        if (oper == 0) {
-          if (dv[i][k] > 0.0f) {
-            dv[i][k] = 1.0f;
+    float[][] dv;
+
+    for (int m=0; m<numItems; m++) {
+      if (isFI) {
+        ff =  (FlatField)((fi.getSample(m)).subtract(v));
+      } else {
+        ff = (FlatField) f.subtract(v);
+      }
+
+      dv = ff.getFloats(false);
+
+      for (int i=0; i<dv.length; i++) {
+        for (int k=0; k<dv[i].length; k++) {
+          if (oper == 0) {
+            if (dv[i][k] > 0.0f) {
+              dv[i][k] = 1.0f;
+            } else {
+              dv[i][k] = 0.0f;
+            }
+          } else if (oper == 1) {
+            if (dv[i][k] >= 0.0f) {
+              dv[i][k] = 1.0f;
+            } else {
+              dv[i][k] = 0.0f;
+            }
+          } else if (oper == 2) {
+            if (dv[i][k] < 0.0f) {
+              dv[i][k] = 1.0f;
+            } else {
+              dv[i][k] = 0.0f;
+            }
+          } else if (oper == 3) {
+            if (dv[i][k] <= 0.0f) {
+              dv[i][k] = 1.0f;
+            } else {
+              dv[i][k] = 0.0f;
+            }
+          } else if (oper == 4) {
+            if (dv[i][k] == 0.0f) {
+              dv[i][k] = 1.0f;
+            } else {
+              dv[i][k] = 0.0f;
+            }
+          } else if (oper == 5) {
+            if (dv[i][k] != 0.0f) {
+              dv[i][k] = 1.0f;
+            } else {
+              dv[i][k] = 0.0f;
+            }
           } else {
-            dv[i][k] = 0.0f;
-          }
-        } else if (oper == 1) {
-          if (dv[i][k] >= 0.0f) {
-            dv[i][k] = 1.0f;
-          } else {
-            dv[i][k] = 0.0f;
-          }
-        } else if (oper == 2) {
-          if (dv[i][k] < 0.0f) {
-            dv[i][k] = 1.0f;
-          } else {
-            dv[i][k] = 0.0f;
-          }
-        } else if (oper == 3) {
-          if (dv[i][k] <= 0.0f) {
-            dv[i][k] = 1.0f;
-          } else {
-            dv[i][k] = 0.0f;
-          }
-        } else if (oper == 4) {
-          if (dv[i][k] == 0.0f) {
-            dv[i][k] = 1.0f;
-          } else {
-            dv[i][k] = 0.0f;
-          }
-        } else if (oper == 5) {
-          if (dv[i][k] != 0.0f) {
-            dv[i][k] = 1.0f;
-          } else {
-            dv[i][k] = 0.0f;
-          }
-        } else {
-          if (dv[i][k] != 0.0f) {
-            dv[i][k] = 1.0f;
-          } else {
-            dv[i][k] = 0.0f;
+            if (dv[i][k] != 0.0f) {
+              dv[i][k] = 1.0f;
+            } else {
+              dv[i][k] = 0.0f;
+            }
           }
         }
       }
+
+      if (isFI) {
+        ( (FlatField)(fi.getSample(m))).setSamples(dv,false);
+      } else {
+        ff.setSamples(dv,false);
+      }
     }
-    fv.setSamples(dv,false);
-    return fv;
+
+    if (isFI) {
+      return fi;
+    } else {
+      return (FieldImpl)ff;
+    }
 
   }
 
