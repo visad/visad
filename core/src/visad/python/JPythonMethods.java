@@ -2376,48 +2376,73 @@ public abstract class JPythonMethods {
   }
 
   /**
+  * Find the minium and maximum values of the FlatField or
+  * a sequence within a FieldImpl.  
   *
-  * get the minium and maximum values of the FlatField
-  *
-  * @param f the FlatField (or FieldImpl - first sample used)
+  * @param f the FlatField (or FieldImpl - for a sequence)
   *
   * return double[2].  double[0] = min, double[1] = max
+  *   if the fields are all missing, then return min = max = Double.NaN
   */
 
   public static double[] getMinMax(FieldImpl f)
        throws VisADException, RemoteException {
 
-    float [][] dv;
+    boolean isFI = false;
+    int numItems;
     if (f instanceof FlatField) {
-      dv = f.getFloats(false);
+      numItems = 1;
+     
+    } else if (domainDimension(f) == 1) {
+      isFI = true;
+      numItems = getDomainSizes(f)[0];
+
     } else {
-      dv = ((FlatField)f.getSample(0)).getFloats(false);
+      throw new VisADException("Cannot rescale the data - unknown structure");
     }
+
     double [] minmax = new double[2];
-    minmax[0] = Double.MAX_VALUE;
-    minmax[1] = Double.MIN_VALUE;
-    for (int i=0; i<dv.length; i++) {
-      for (int k=0; k<dv[i].length; k++) {
-        if (dv[i][k] < minmax[0]) minmax[0] = dv[i][k];
-        if (dv[i][k] > minmax[1]) minmax[1] = dv[i][k];
+    minmax[0] = Double.POSITIVE_INFINITY;
+    minmax[1] = Double.NEGATIVE_INFINITY;
+    float[][] dv;
+
+    for (int m=0; m<numItems; m++) {
+      if (isFI) {
+        dv = ( (FlatField)(f.getSample(m))).getFloats(false);
+      } else {
+        dv = f.getFloats(false);
       }
+
+      for (int i=0; i<dv.length; i++) {
+        for (int k=0; k<dv[i].length; k++) {
+          if (dv[i][k] < minmax[0]) minmax[0] = dv[i][k];
+          if (dv[i][k] > minmax[1]) minmax[1] = dv[i][k];
+        }
+      }
+    }
+
+    // if fields were all NaN, return NaN's as well....
+
+    if (minmax[0] > minmax[1]) {
+      minmax[0] = Double.NaN;
+      minmax[1] = Double.NaN;
     }
 
     return minmax;
   }
 
   /**
-  * re-scale the values in a FlatField using auto-scaling
+  * Re-scale the values in a FieldImpl using auto-scaling
   *
-  * @param f the FlatField (or FieldImpl -- all samples used if one dim)
+  * @param f the FlatField (or FieldImpl sequence)
   * @param outlo the output low-range value
   * @param outhi the output high range value
   *
-  * Values of the original FlatField will be linearly
-  * scaled from their "min:max" to "outlo:outhi"
+  * Values of the original field will be linearly
+  *    scaled from their "min:max" to "outlo:outhi"
   *
   * If input FieldImpl is a sequence, then all items in sequence are done
-  * but the "min" and "max" are taken from the first sequence item only!
+  * but the "min" and "max" are computed from all members of the sequence! 
   *
   * return new FieldImpl
   *
@@ -2434,7 +2459,7 @@ public abstract class JPythonMethods {
 
 
   /**
-  * re-scale the values in a FlatField
+  * Re-scale the values in a FieldIimpl
   *
   * @param f the FieldImpl or FlatField
   * @param inlo the input low-range value
@@ -2442,8 +2467,8 @@ public abstract class JPythonMethods {
   * @param outlo the output low-range value
   * @param outhi the output high range value
   *
-  * Values of the original FlatField will be linearly
-  * scaled from "inlo:inhi" to "outlo:outhi"
+  * Values of the original field will be linearly
+  *    scaled from "inlo:inhi" to "outlo:outhi"
   * 
   * Values < inlo will be set to outlo; values > inhi set to outhi
   *
@@ -2512,9 +2537,9 @@ public abstract class JPythonMethods {
   }
 
   /**
-  * Mask out values outside testing limits
+  * Mask out values outside testing limits in a FieldImpl
   *
-  * @param f  VisAD data object (FlatField) as source
+  * @param f  VisAD data object (FlatField or FieldImpl) as source
   * @param op  Comparison operator as string ('gt','le',...)
   * @param v  Numeric operand for comparison
   *
@@ -2542,9 +2567,9 @@ public abstract class JPythonMethods {
 
 
   /**
-  * Mask out values outside testing limits
+  * Mask out values outside testing limits in a FieldImpl
   *
-  * @param f  VisAD data object (usually FlatField) as source
+  * @param f  VisAD data object (FlatField or FieldImpl) as source
   * @param op  Comparison operator as string ('gt','le',...)
   * @param v  VisAd operand for comparison.
   *
@@ -2565,7 +2590,7 @@ public abstract class JPythonMethods {
     FlatField ff = null;
     FieldImpl fi = null;
     boolean isFI = false;
-    int numItems = 1;
+    int numItems;
     if (f instanceof FlatField) {
       numItems = 1;
      
