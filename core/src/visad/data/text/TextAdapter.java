@@ -372,14 +372,22 @@ public class TextAdapter {
 
     String hdrDelim = DELIM;
     if (DELIM == null) {
-      if (hdr.indexOf(BLANK) != -1) hdrDelim = BLANK_DELIM; 
       if (hdr.indexOf(COMMA) != -1) hdrDelim = COMMA; 
       if (hdr.indexOf(SEMICOLON) != -1) hdrDelim = SEMICOLON; 
       if (hdr.indexOf(TAB) != -1) hdrDelim = TAB; 
+      if (hdr.indexOf(BLANK) != -1) hdrDelim = BLANK_DELIM; 
 
       if (debug) System.out.println("Using header delimiter = "+ hdrDelim + "("+
                                      (hdrDelim.getBytes())[0] + ")");
     }
+    
+    // squeeze out extra blank spaces
+    if (hdrDelim.equals(BLANK) || hdrDelim.equals(BLANK_DELIM)) {
+  	  //System.out.println("line before squeeze: " + line);
+        hdr = hdr.replaceAll("\\s++", " ").trim();
+  	  //System.out.println("line after squeeze: " + line);
+    }
+
 
     String[] sthdr = hdr.split(hdrDelim);
     // since blanks separate the metadata, if we have a blank 
