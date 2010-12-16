@@ -372,10 +372,10 @@ public class TextAdapter {
 
     String hdrDelim = DELIM;
     if (DELIM == null) {
+      if (hdr.indexOf(BLANK) != -1) hdrDelim = BLANK_DELIM; 
       if (hdr.indexOf(COMMA) != -1) hdrDelim = COMMA; 
       if (hdr.indexOf(SEMICOLON) != -1) hdrDelim = SEMICOLON; 
       if (hdr.indexOf(TAB) != -1) hdrDelim = TAB; 
-      if (hdr.indexOf(BLANK) != -1) hdrDelim = BLANK_DELIM; 
 
       if (debug) System.out.println("Using header delimiter = "+ hdrDelim + "("+
                                      (hdrDelim.getBytes())[0] + ")");
