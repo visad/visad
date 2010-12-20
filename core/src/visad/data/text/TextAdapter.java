@@ -1071,6 +1071,7 @@ public class TextAdapter {
 		  dValues[values_to_index[0][i]] = getVal(sa, i);
           } else if (values_to_index[1][i] != -1) {
             int tupleIndex = values_to_index[1][i];
+            int infosIndex = values_to_index[2][i];
             thisMT = rangeType.getComponent(tupleIndex);
             if (thisMT instanceof TextType) {
               // if Text, then check for quoted string
@@ -1135,7 +1136,7 @@ public class TextAdapter {
 		  rValues[tupleIndex] = value;
               try {
                   if(prototypeReals[i]==null) {
-                      prototypeReals[i] =    new Real((RealType) thisMT, value, infos[i].unit);
+                      prototypeReals[i] =    new Real((RealType) thisMT, value, infos[infosIndex].unit);
                   }
                   dataArray[tupleIndex] = 
                       prototypeReals[i].cloneButValue(value);
