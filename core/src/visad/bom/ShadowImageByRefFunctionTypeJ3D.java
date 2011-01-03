@@ -1252,8 +1252,46 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       float offsetX = (float) offset[0];
       float offsetY = (float) offset[1];
 
-      float[][] xyCoords = getBounds(domain_set, data_width, data_height,
-                                     scaleX, offsetX, scaleY, offsetY);
+      float[][] xyCoords = null;
+      if (domain_set != null) {
+           xyCoords = getBounds(domain_set, data_width, data_height, scaleX, offsetX, scaleY, offsetY);
+      } else {
+                //If there is tiling in linear texture domain set is coming null if number of tiles is greater than 1
+                //Code inserted by Ghansham (starts here)
+                int indx0 = (start[0] ) + (start[1])*bigX;
+                int indx1 = (start[0]) + (start[1] + lenY-1)*bigX;
+                int indx2 = (start[0] + lenX -1) + (start[1] + lenY - 1)*bigX;
+                int indx3 = (start[0] + lenX -1 ) + (start[1])*bigX;
+
+                float x0 = samples[0][indx0];
+                float y0 = samples[1][indx0];
+                float x1 = samples[0][indx1];
+                float y1 = samples[1][indx1];
+                float x2 = samples[0][indx2];
+                float y2 = samples[1][indx2];
+                float x3 = samples[0][indx3];
+                float y3 = samples[1][indx3];
+                System.err.println("x0:"+ x0 + " y0:"+  y0);
+                System.err.println("x1:"+ x1 + " y1:"+  y1);
+                System.err.println("x2:"+ x2 + " y2:"+  y2);
+                System.err.println("x3:"+ x3 + " y3:"+  y3);
+
+
+                xyCoords = new float[2][4];
+                xyCoords[0][0] = (x0 - offsetX)/scaleX;
+                xyCoords[1][0] = (y0 - offsetY)/scaleY;
+
+                xyCoords[0][1] = (x1 - offsetX)/scaleX;
+                xyCoords[1][1] = (y1 - offsetY)/scaleY;
+
+                xyCoords[0][2] = (x2 - offsetX)/scaleX;
+                xyCoords[1][2] = (y2 - offsetY)/scaleY;
+
+                xyCoords[0][3] = (x3 - offsetX)/scaleX;
+                xyCoords[1][3] = (y3 - offsetY)/scaleY;
+                //Code inserted by Ghansham (Ends here)
+      }
+
 
       // create VisADQuadArray that texture is mapped onto
       coordinates = new float[12];
