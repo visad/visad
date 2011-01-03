@@ -989,9 +989,11 @@ if (i == (len / 2)) {
     // get spatial coordinates at triangle vertices
     int[] indices = new int[nn];
     int k=0;
+    int col_factor;
     for (int j=0; j<nheight; j++) {
+      col_factor = data_width * js[j];
       for (int i=0; i<nwidth; i++) {
-        indices[k] = is[i] + data_width * js[j];
+        indices[k] = is[i] + col_factor;
         k++;
       }
     }
@@ -1141,27 +1143,24 @@ if (i == (len / 2)) {
     int mt = 0;
     texCoords = new float[2 * nn];
     for (int j=0; j<nheight; j++) {
+      float jsfactor = js[j] / (data_height - 1.0f);
       for (int i=0; i<nwidth; i++) {
         //texCoords[mt++] = ratiow * is[i] / (data_width - 1.0f);
         //texCoords[mt++] = 1.0f - ratioh * js[j] / (data_height - 1.0f);
         // WLH 27 Jan 2003
         float isfactor = is[i] / (data_width - 1.0f);
-        float jsfactor = js[j] / (data_height - 1.0f);
         texCoords[mt++] = (ratiow - width) * isfactor + half_width;
-        boolean yUp = false; // TDR, force to false
-        if (yUp) { // TDR
-          texCoords[mt++] = (ratioh - height) * jsfactor + half_height;
-        }
-        else {
-          texCoords[mt++] = 1.0f - (ratioh - height) * jsfactor - half_height;
-        }
+        /* yUp = true
+        texCoords[mt++] = (ratioh - height) * jsfactor + half_height;
+        */
+        // yUp = false;
+        texCoords[mt++] = 1.0f - (ratioh - height) * jsfactor - half_height;
       }
     }
     VisADTriangleStripArray tarray = new VisADTriangleStripArray();
     tarray.stripVertexCounts = new int[nheight - 1];
-    for (int i=0; i<nheight - 1; i++) {
-      tarray.stripVertexCounts[i] = 2 * nwidth;
-    }
+    java.util.Arrays.fill(tarray.stripVertexCounts, 2 * nwidth);
+
     int len = (nheight - 1) * (2 * nwidth);
     tarray.vertexCount = len;
     tarray.normals = new float[3 * len];
