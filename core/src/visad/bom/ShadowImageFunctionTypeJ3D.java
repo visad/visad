@@ -66,7 +66,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
     DataDisplayLink link = renderer.getLink();
 
-// System.out.println("start doTransform " + (System.currentTimeMillis() - link.start_time));
+    //System.out.println("start doTransform " + (System.currentTimeMillis() - link.start_time));
 
     // return if data is missing or no ScalarMaps
     if (data.isMissing()) {
@@ -191,20 +191,39 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           }
           else if (Display.Blue.equals(cmaps[i].getDisplayScalar())) {
             permute[2] = i;
-          }
-          else {
+          } else if (Display.RGB.equals(cmaps[i].getDisplayScalar())) {	//Inserted by Ghansham for Mapping all the three scalarMaps to Display.RGB (starts here) 
+		permute[i] = i;
+          }else {		////Inserted by Ghansham for Mapping all the three scalarMaps to Display.RGB(ends here)
             throw new BadMappingException("image values must be mapped to Red, " +
                                           "Green or Blue only");
           }
         }
         if (permute[0] < 0 || permute[1] < 0 || permute[2] < 0) {
-          throw new BadMappingException("image values must be mapped to Red, " +
-                                        "Green and Blue");
-        }
+          throw new BadMappingException("image values must be mapped to Red, Green and Blue");
+        } 
+
+	//Inserted by Ghansham for Checking that all should be mapped to Display.RGB or not even a single one should be mapped to Display.RGB(starts here)
+	//This is to check if there is a single Display.RGB ScalarMap
+	int indx = -1;
+	for (int i = 0; i < 3; i++) {
+		if (cmaps[i].getDisplayScalar().equals(Display.RGB)) {
+			indx = i;
+			break;
+		} 
+	}
+
+	if (indx != -1){	//if there is a even a single Display.RGB ScalarMap, others must also Display.RGB only
+		for (int i = 0; i < 3; i++) { 
+			if (i !=indx && !(cmaps[i].getDisplayScalar().equals(Display.RGB))) {
+          			throw new BadMappingException("image values must be mapped to (Red, Green, Blue) or (RGB,RGB,RGB) only");
+			}
+		}
+	}
+	//Inserted by Ghansham for Checking that all should be mapped to Display.RGB or not even a single one should be mapped to Display.RGB(Ends here)
       }
 
-      constant_alpha =
-        default_values[display.getDisplayScalarIndex(Display.Alpha)];
+
+      constant_alpha = default_values[display.getDisplayScalarIndex(Display.Alpha)];
 
       byte[][] color_bytes;
       if (cmap != null) {
@@ -394,12 +413,47 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
               "cmaps != null: grab bytes directly");
           }
           color_bytes = new byte[4][];
-          color_bytes[0] =
-            cmaps[permute[0]].scaleValues(bytes[permute[0]], 255);
-          color_bytes[1] =
-            cmaps[permute[1]].scaleValues(bytes[permute[1]], 255);
-          color_bytes[2] =
-            cmaps[permute[2]].scaleValues(bytes[permute[2]], 255);
+	  if  (cmaps[0].getDisplayScalar() == Display.RGB && cmaps[1].getDisplayScalar() == Display.RGB && cmaps[2].getDisplayScalar() == Display.RGB) { //Inserted by Ghansham (starts here)
+		int map_indx = 0;			
+		int r, g, b, c;
+		for (map_indx = 0; map_indx < cmaps.length; map_indx++) {
+			BaseColorControl basecolorcontrol = (BaseColorControl)cmaps[map_indx].getControl();
+			float color_table[][] = basecolorcontrol.getTable();
+			int itable[][] = new int[color_table[0].length][3];
+			int table_indx;
+			for (table_indx = 0; table_indx < itable.length; table_indx++) {
+				c = (int) (255.0 * color_table[0][table_indx]);
+            			r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+            			c = (int) (255.0 * color_table[1][table_indx]);
+            			g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+            			c = (int) (255.0 * color_table[2][table_indx]);
+            			b = (c < 0) ? 0 : ((c > 255) ? 255 : c);	
+				itable[table_indx][0] = (byte) r;
+            			itable[table_indx][1] = (byte) g;
+            			itable[table_indx][2] = (byte) b;
+			}
+			int table_length = color_table[0].length;
+			int color_indx = permute[map_indx];
+			byte bytes1[] = cmaps[color_indx].scaleValues(bytes[color_indx], table_length); //Memory Leak. overwritting bytes. it can be avoided if required. ScaleValues function does not have a signature of scaleValues(byte [], factor, boolean). its required, if need to save memory.
+			int domainLength =  bytes1.length;
+			int tblEnd = table_length - 1;
+			color_bytes[map_indx] = new byte[domain_length];
+			int data_indx;
+			
+			for (data_indx = 0; data_indx < domainLength; data_indx++) {
+				int j = bytes1[data_indx] & 0xff; // unsigned
+              			// clip to table
+              			int ndx = j < 0 ? 0 : (j > tblEnd ? tblEnd : j);
+                                color_bytes[map_indx][data_indx] = (byte)itable[ndx][map_indx];
+			}
+			itable = null; //Taking out the garbage
+			bytes1 = null; //Taking out the garbage
+		}
+          }else { //Inserted by Ghansham (Ends here)
+		color_bytes[0] = cmaps[permute[0]].scaleValues(bytes[permute[0]], 255);
+          	color_bytes[1] = cmaps[permute[1]].scaleValues(bytes[permute[1]], 255);
+          	color_bytes[2] = cmaps[permute[2]].scaleValues(bytes[permute[2]], 255);
+	  }
           int c = (int) (255.0 * (1.0f - constant_alpha));
           color_bytes[3] = new byte[domain_length];
           Arrays.fill(color_bytes[3], (byte) c);
@@ -415,22 +469,48 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
           int c = (int) (255.0 * (1.0f - constant_alpha));
           int a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
           color_bytes = new byte[4][domain_length];
-          for (int i=0; i<domain_length; i++) {
-            if (values[0][i] == values[0][i] &&
-                values[1][i] == values[1][i] &&
-                values[2][i] == values[2][i]) { // not missing
-              c = (int) (255.0 * values[0][i]);
-              r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-              c = (int) (255.0 * values[1][i]);
-              g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-              c = (int) (255.0 * values[2][i]);
-              b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-              color_bytes[0][i] = (byte) r;
-              color_bytes[1][i] = (byte) g;
-              color_bytes[2][i] = (byte) b;
-              color_bytes[3][i] = (byte) a;
-            }
-          }
+	 if  (cmaps[0].getDisplayScalar() == Display.RGB && cmaps[1].getDisplayScalar() == Display.RGB && cmaps[2].getDisplayScalar() == Display.RGB) { //Inserted by Ghansham (starts here)
+		int map_indx;
+		for (map_indx = 0; map_indx < cmaps.length; map_indx++) {
+			BaseColorControl basecolorcontrol = (BaseColorControl)cmaps[map_indx].getControl();
+                        float color_table[][] = basecolorcontrol.getTable();
+                        int itable[][] = new int[color_table[0].length][3];
+                        int table_indx;
+			for(table_indx = 0; table_indx < itable.length; table_indx++) {
+				c = (int) (255.0 * color_table[0][table_indx]);
+            			r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+            			c = (int) (255.0 * color_table[1][table_indx]);
+            			g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+            			c = (int) (255.0 * color_table[2][table_indx]);
+            			b = (c < 0) ? 0 : ((c > 255) ? 255 : c);	
+				itable[table_indx][0] = (byte) r;
+            			itable[table_indx][1] = (byte) g;
+            			itable[table_indx][2] = (byte) b;
+                        }
+			int tableEnd = color_table[0].length - 1;
+                        for(int data_indx = 0; data_indx < domain_length; data_indx++) {
+                        	int indx = (int)((float)tableEnd * values[map_indx][data_indx]);
+                                color_bytes[map_indx][data_indx] = (byte)itable[indx][map_indx];
+                        }
+			itable = null;	//Take out the garbage
+		}
+		Arrays.fill(color_bytes[3], (byte)a);	
+	 } else {  //Inserted by Ghansham (ends here)
+          	for (int i=0; i<domain_length; i++) {
+	            	if (values[0][i] == values[0][i] && values[1][i] == values[1][i] && values[2][i] == values[2][i]) { // not missing
+		              	c = (int) (255.0 * values[0][i]);
+              			r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+              			c = (int) (255.0 * values[1][i]);
+              			g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+              			c = (int) (255.0 * values[2][i]);
+              			b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+              			color_bytes[0][i] = (byte) r;
+              			color_bytes[1][i] = (byte) g;
+              			color_bytes[2][i] = (byte) b;
+              			color_bytes[3][i] = (byte) a;
+            		}
+          	}
+	}
           // take out the garbage
           values = null;
         }
@@ -586,6 +666,7 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         int[] lens = ((GriddedSet)domain_set).getLengths();
 
         int limit = link.getDisplay().getDisplayRenderer().getTextureWidthMax();
+	//System.err.println("Texture Limit:" + limit);
 
         int y_sub_len = lens[1];
         int n_y_sub   = 1;
@@ -942,7 +1023,7 @@ if (i == (len / 2)) {
                                  DataRenderer renderer, ShadowFunctionOrSetType adaptedShadowType,
                                  int[] start, int lenX, int lenY, float[][] samples, int bigX, int bigY)
          throws VisADException, DisplayException {
-// System.out.println("start curved texture " + (System.currentTimeMillis() - link.start_time));
+ //System.out.println("start curved texture " + System.currentTimeMillis());
     float[] coordinates = null;
     float[] texCoords = null;
     float[] normals = null;
@@ -989,11 +1070,9 @@ if (i == (len / 2)) {
     // get spatial coordinates at triangle vertices
     int[] indices = new int[nn];
     int k=0;
-    int col_factor;
     for (int j=0; j<nheight; j++) {
-      col_factor = data_width * js[j];
       for (int i=0; i<nwidth; i++) {
-        indices[k] = is[i] + col_factor;
+        indices[k] = is[i] + data_width * js[j];
         k++;
       }
     }
@@ -1088,7 +1167,7 @@ if (i == (len / 2)) {
     spatial_values[tuple_index[0]] = spline_domain[0];
     spatial_values[tuple_index[1]] = spline_domain[1];
     spatial_values[tuple_index[2]] = new float[nn];
-    for (int i=0; i<nn; i++) spatial_values[tuple_index[2]][i] = value2;
+    java.util.Arrays.fill(spatial_values[tuple_index[2]], value2);
                                                                                                                    
     for (int i=0; i<3; i++) {
       if (spatial_maps[i] != null) {
@@ -1096,7 +1175,7 @@ if (i == (len / 2)) {
         spatial_values[i] = spatial_maps[i].scaleValues(spatial_values[i], false);
       }
     }
-                                                                                                                   
+                             	//System.err.println("Spatial Values:" + spatial_values[0].length);                                                                                     
     if (spatial_tuple.equals(Display.DisplaySpatialCartesianTuple)) {
 // inside 'if (anyFlow) {}' in ShadowType.assembleSpatial()
       renderer.setEarthSpatialDisplay(null, spatial_tuple, display,
@@ -1124,7 +1203,10 @@ if (i == (len / 2)) {
                                                                                                                    
     boolean spatial_all_select = true;
     for (int i=0; i<3*nn; i++) {
-      if (coordinates[i] != coordinates[i]) spatial_all_select = false;
+      if (coordinates[i] != coordinates[i]) { 
+	spatial_all_select = false;
+	break;
+      }
     }
                                                                                                                    
     normals = Gridded3DSet.makeNormals(coordinates, nwidth, nheight);
@@ -1159,8 +1241,9 @@ if (i == (len / 2)) {
     }
     VisADTriangleStripArray tarray = new VisADTriangleStripArray();
     tarray.stripVertexCounts = new int[nheight - 1];
-    java.util.Arrays.fill(tarray.stripVertexCounts, 2 * nwidth);
-
+    for (int i=0; i<nheight - 1; i++) {
+      tarray.stripVertexCounts[i] = 2 * nwidth;
+    }
     int len = (nheight - 1) * (2 * nwidth);
     tarray.vertexCount = len;
     tarray.normals = new float[3 * len];
