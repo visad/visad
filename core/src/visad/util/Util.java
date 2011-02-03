@@ -299,9 +299,9 @@ public class Util {
     Method sgoGetName = null, sgoSetName = null;
     try {
       sgoGetName = SceneGraphObject.class.getDeclaredMethod("getName",
-        new Class[] {String.class});
-      sgoSetName = SceneGraphObject.class.getDeclaredMethod("setName",
         new Class[0]);
+      sgoSetName = SceneGraphObject.class.getDeclaredMethod("setName",
+        new Class[] {String.class});
     }
     catch (SecurityException e) {
     }
