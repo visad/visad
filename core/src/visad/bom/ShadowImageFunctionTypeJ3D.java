@@ -1167,7 +1167,7 @@ if (i == (len / 2)) {
     spatial_values[tuple_index[0]] = spline_domain[0];
     spatial_values[tuple_index[1]] = spline_domain[1];
     spatial_values[tuple_index[2]] = new float[nn];
-    java.util.Arrays.fill(spatial_values[tuple_index[2]], value2);
+    Arrays.fill(spatial_values[tuple_index[2]], value2);
                                                                                                                    
     for (int i=0; i<3; i++) {
       if (spatial_maps[i] != null) {
@@ -1211,7 +1211,7 @@ if (i == (len / 2)) {
                                                                                                                    
     normals = Gridded3DSet.makeNormals(coordinates, nwidth, nheight);
     colors = new byte[3 * nn];
-    for (int i=0; i<3*nn; i++) colors[i] = (byte) 127;
+    Arrays.fill(colors, (byte) 127);
                                                                                                                    
     float ratiow = ((float) data_width) / ((float) texture_width);
     float ratioh = ((float) data_height) / ((float) texture_height);
@@ -1241,9 +1241,7 @@ if (i == (len / 2)) {
     }
     VisADTriangleStripArray tarray = new VisADTriangleStripArray();
     tarray.stripVertexCounts = new int[nheight - 1];
-    for (int i=0; i<nheight - 1; i++) {
-      tarray.stripVertexCounts[i] = 2 * nwidth;
-    }
+    Arrays.fill(tarray.stripVertexCounts, 2*nwidth);
     int len = (nheight - 1) * (2 * nwidth);
     tarray.vertexCount = len;
     tarray.normals = new float[3 * len];
