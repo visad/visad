@@ -343,7 +343,7 @@ public class Util {
   public static void setName(SceneGraphObject obj, String name) {
     if (SGO_SET_NAME != null) {
       try {
-        SGO_SET_NAME.invoke(new Object[] {obj, name});
+        SGO_SET_NAME.invoke(obj, name);
       }
       catch (IllegalAccessException exc) {
       }
