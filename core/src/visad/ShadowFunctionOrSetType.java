@@ -2004,9 +2004,7 @@ System.out.println("replicate alpha = " + v + " " + constant_alpha +
           // because of lighting
           byte[][] c = new byte[color_values.length][domain_length];
           for (int i=0; i<color_values.length; i++) {
-            for (int j=0; j<domain_length; j++) {
-              c[i][j] = color_values[i][0];
-            }
+            java.util.Arrays.fill(c[i], color_values[i][0]);
           }
           color_values = c;
         }
