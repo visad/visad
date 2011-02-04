@@ -61,10 +61,11 @@ public class BarGraph {
 
   /**
    * Constructs a 2D bar graph.
-   * @param height Height of each bar
+   * @param heights Height of each bar
    * @param spacing Spacing between bars (at least 0, and less than 1)
    * @param colors Color of each bar
    */
+  
   public static FlatField makeBarGraph2D(float[] heights, float spacing,
     Color[] colors) throws VisADException, RemoteException
   {
@@ -74,10 +75,11 @@ public class BarGraph {
   /**
    * Constructs a 2D bar graph.
    * @param type MathType to use, of the form ((X, Y) -&gt; (R, G, B))
-   * @param height Height of each bar
+   * @param heights Height of each bar
    * @param spacing Spacing between bars (at least 0, and less than 1)
    * @param colors Color of each bar
    */
+  
   public static FlatField makeBarGraph2D(FunctionType type, float[] heights,
     float spacing, Color[] colors) throws VisADException, RemoteException
   {
@@ -160,10 +162,11 @@ public class BarGraph {
 
   /**
    * Constructs a 3D bar graph.
-   * @param height Height of each bar (dimensioned cols X rows)
+   * @param heights Height of each bar (dimensioned cols X rows)
    * @param spacing Spacing between bars (at least 0, and less than 1)
    * @param colors Color of each bar (dimensioned cols X rows)
    */
+  
   public static FlatField makeBarGraph3D(float[][] heights, float spacing,
     Color[][] colors) throws VisADException, RemoteException
   {
@@ -173,10 +176,11 @@ public class BarGraph {
   /**
    * Constructs a 3D bar graph.
    * @param type MathType to use, of the form ((X, Y, Z) -&gt; (R, G, B))
-   * @param height Height of each bar (dimensioned cols X rows)
+   * @param heights Height of each bar (dimensioned cols X rows)
    * @param spacing Spacing between bars (at least 0, and less than 1)
    * @param colors Color of each bar (dimensioned cols X rows)
    */
+  
   public static FlatField makeBarGraph3D(FunctionType type, float[][] heights,
     float spacing, Color[][] colors) throws VisADException, RemoteException
   {
