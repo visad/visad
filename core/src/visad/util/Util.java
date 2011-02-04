@@ -320,7 +320,7 @@ public class Util {
   public static String getName(SceneGraphObject obj) {
     if (SGO_GET_NAME != null) {
       try {
-        return (String) SGO_GET_NAME.invoke(new Object[] {obj});
+        return (String) SGO_GET_NAME.invoke(obj);
       }
       catch (IllegalAccessException exc) {
       }
