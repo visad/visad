@@ -47,7 +47,6 @@ import java.lang.reflect.Method;
 
 import java.util.Calendar;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
@@ -78,7 +77,6 @@ import visad.VisADException;
 import visad.data.bio.LociForm;
 import visad.data.mcidas.AreaForm;
 import visad.data.mcidas.MapForm;
-
 
 import com.sun.j3d.utils.universe.SimpleUniverse;
 
@@ -973,7 +971,46 @@ public class Util {
     return output;
   }
 
+	/**
+	 * Converts an (unsigned) byte to an unsigned int. 
+	 * Since Java doesn't have an unsigned
+	 * byte type, this requires some foolery.
+	 * This solution based on information and code from
+	 * http://www.rgagnon.com/javadetails/java-0026.html
+	 * @param s The unsigned short to convert
+	 * @return the unsigned int equivalent
+	 */
+	
+	public static int unsignedShortToInt(short s) {
+		return (int) s & 0xFFFF;
+	}
 
+	/**
+	 * Converts an (unsigned) byte to an unsigned int. 
+	 * Since Java doesn't have an unsigned
+	 * byte type, this requires some foolery.
+	 * This solution based on information and code from
+	 * http://www.rgagnon.com/javadetails/java-0026.html
+	 * @param b The unsigned byte to convert
+	 * @return the unsigned int equivalent
+	 */
+	
+	public static int unsignedByteToInt(byte b) {
+		return (int) b & 0xFF;
+	}
+	
+	/**
+	 * Converts an (unsigned) byte to an unsigned long.
+	 * Since Java doesn't have an unsigned
+	 * byte type, this requires some foolery.
+	 * This solution based on information and code from
+	 * http://www.rgagnon.com/javadetails/java-0026.html
+	 * @param b The unsigned byte to convert
+	 * @return the unsigned long equivalent
+	 */
+	public static long unsignedByteToLong(byte b) {
+		return (long) b & 0xFF;
+	}
 
 }
 

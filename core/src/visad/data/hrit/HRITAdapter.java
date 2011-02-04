@@ -45,6 +45,8 @@ import visad.RealType;
 import visad.Unit;
 import visad.VisADException;
 
+import visad.util.Util;
+
 /** 
  * This is an adapter for HRIT format data files 
  * At present, it will only work on MSG2 data, but with 
@@ -196,15 +198,15 @@ public class HRITAdapter {
 			  // System.out.println("Header type: " + unsignedByteToInt(headerType[0]));
 			  // System.out.println("Length of this header: " + headerSize);
 			  // for image structure headers, pull out image size
-			  if (unsignedByteToInt(headerType[0]) == HEADER_TYPE_IMAGE_STRUCTURE) {
+			  if (Util.unsignedByteToInt(headerType[0]) == HEADER_TYPE_IMAGE_STRUCTURE) {
 				  imageSegmentLines[i] = bytesToShort(header, 3);
 				  imageSegmentElements[i] = bytesToShort(header, 1);
-				  imageBitsPerPixel[i] = unsignedByteToInt(header[0]);
+				  imageBitsPerPixel[i] = Util.unsignedByteToInt(header[0]);
 				  // System.out.println("Image bits per pixel: " + imageBitsPerPixel[i]);
 				  // System.out.println("Image #Lines: " + imageSegmentLines[i] + ", #Elements: " + imageSegmentElements[i]);
 			  }
 			  // for navigation headers, print relevant data
-			  if (unsignedByteToInt(headerType[0]) == HEADER_TYPE_IMAGE_NAVIGATION) {
+			  if (Util.unsignedByteToInt(headerType[0]) == HEADER_TYPE_IMAGE_NAVIGATION) {
 				  String projectionName = new String(header, 0, 32);
 				  projectionName = projectionName.trim();
 				  columnScalingFactor = bytesToInt(header, 32);
@@ -319,7 +321,7 @@ public class HRITAdapter {
 						  } else {
 							  fis.read(sampleOneByte);
 							  samples[b][j + (imageSegmentElements[i] * l) ] = 
-								  (float) (unsignedByteToInt(sampleOneByte[0]));
+								  (float) (Util.unsignedByteToInt(sampleOneByte[0]));
 						  }
 					  }
 				  }
@@ -621,14 +623,14 @@ public class HRITAdapter {
    */
   public static long bytesToLong(byte[] data, int offset) {
           long l = 0;
-          l += unsignedByteToLong(data[offset + 0]) << 56;
-          l += unsignedByteToLong(data[offset + 1]) << 48;
-          l += unsignedByteToLong(data[offset + 2]) << 40;
-          l += unsignedByteToLong(data[offset + 3]) << 32;
-          l += unsignedByteToLong(data[offset + 4]) << 24;
-          l += unsignedByteToLong(data[offset + 5]) << 16;
-          l += unsignedByteToLong(data[offset + 6]) << 8;
-          l += unsignedByteToLong(data[offset + 7]);
+          l += Util.unsignedByteToLong(data[offset + 0]) << 56;
+          l += Util.unsignedByteToLong(data[offset + 1]) << 48;
+          l += Util.unsignedByteToLong(data[offset + 2]) << 40;
+          l += Util.unsignedByteToLong(data[offset + 3]) << 32;
+          l += Util.unsignedByteToLong(data[offset + 4]) << 24;
+          l += Util.unsignedByteToLong(data[offset + 5]) << 16;
+          l += Util.unsignedByteToLong(data[offset + 6]) << 8;
+          l += Util.unsignedByteToLong(data[offset + 7]);
           return l;
   }
 
@@ -640,10 +642,10 @@ public class HRITAdapter {
    */
   public static int bytesToInt(byte[] data, int offset) {
           int i = 0;
-          i += unsignedByteToInt(data[offset]) << 24;
-          i += unsignedByteToInt(data[offset + 1]) << 16;
-          i += unsignedByteToInt(data[offset + 2]) << 8;
-          i += unsignedByteToInt(data[offset + 3]);
+          i += Util.unsignedByteToInt(data[offset]) << 24;
+          i += Util.unsignedByteToInt(data[offset + 1]) << 16;
+          i += Util.unsignedByteToInt(data[offset + 2]) << 8;
+          i += Util.unsignedByteToInt(data[offset + 3]);
           return i;
   }
 
@@ -655,35 +657,9 @@ public class HRITAdapter {
    */
   public static int bytesToShort(byte[] data, int offset) {
           int i = 0;
-          i += unsignedByteToInt(data[offset]) << 8;
-          i += unsignedByteToInt(data[offset + 1]);
+          i += Util.unsignedByteToInt(data[offset]) << 8;
+          i += Util.unsignedByteToInt(data[offset + 1]);
           return i;
-  }
-
-  /**
-   * Converts an (unsigned) byte to an unsigned int.
-   * Since Java doesn't have an unsigned
-   * byte type, this requires some foolery.
-   * This solution based on information and code from
-   * http://www.rgagnon.com/javadetails/java-0026.html
-   * @param b The unsigned byte to convert
-   * @return the unsigned int equivalent
-   */
-  public static int unsignedByteToInt(byte b) {
-          return (int) b & 0xFF;
-  }
-  
-  /**
-   * Converts an (unsigned) byte to an unsigned long.
-   * Since Java doesn't have an unsigned
-   * byte type, this requires some foolery.
-   * This solution based on information and code from
-   * http://www.rgagnon.com/javadetails/java-0026.html
-   * @param b The unsigned byte to convert
-   * @return the unsigned long equivalent
-   */
-  public static long unsignedByteToLong(byte b) {
-      return (long) b & 0xFF;
   }
   
   /**
