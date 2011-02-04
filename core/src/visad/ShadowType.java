@@ -1581,9 +1581,7 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
             .getDisplayScalarIndex(((DisplayRealType) spatial_tuple
                 .getComponent(i)));
         float default_value = default_values[default_index];
-        for (int j = 0; j < len; j++) {
-          spatial_values[i][j] = default_value;
-        }
+        java.util.Arrays.fill(spatial_values[i], default_value);
         missing_checked[i] = true;
       } else if (spatial_values[i].length == 1) {
         // check solitary spatial value array for missing
