@@ -119,6 +119,7 @@
 		<unzip src="${deps.jarfile}" dest="${build.dir}" />
 		<copy todir="${build.dir}">
 			<fileset dir="${src.dir}">
+				<include name="**/*.py" />
 				<include name="visad/util/*.jhf" />
 				<include name="visad/ss/*.gif" />
 				<include name="DATE" />
