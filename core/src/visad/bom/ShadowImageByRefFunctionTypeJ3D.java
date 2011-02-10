@@ -605,10 +605,11 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
       for (int k=1; k<numImages; k++) {
         FlatField ff = (FlatField) ((Field)data).getSample(k);
+        CoordinateSystem dcs = ff.getDomainCoordinateSystem();
         GriddedSet domSet = (GriddedSet) ff.getDomainSet();
         int[] lens = domSet.getLengths();
-        // check image size, if not equal to first image resample to first
-        if (lens[0] != data_width || lens[1] != data_height) {
+        // if image dimensions, or dataCoordinateSystem not equal to first image, resample to first
+        if ( (lens[0] != data_width || lens[1] != data_height) || !(dcs.equals(dataCoordinateSystem)) ) {
           ff = (FlatField) ff.resample(imgFlatField.getDomainSet(), Data.NEAREST_NEIGHBOR, Data.NO_ERRORS);
         }
 
@@ -1388,7 +1389,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       int nn = nwidth * nheight;
       int[] is = new int[nwidth];
       int[] js = new int[nheight];
-
       for (int i=0; i<nwidth; i++) {
         is[i] = Math.min(i * curved_size, data_width - 1);
       }
@@ -1397,30 +1397,35 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       }
 
       // get spatial coordinates at triangle vertices
-      int[] indices = new int[nn];
-      int k=0;
-      int col_factor;
-      for (int j=0; j<nheight; j++) {
-        col_factor = data_width * js[j];
-        for (int i=0; i<nwidth; i++) {
-          indices[k] = is[i] + col_factor;
-          k++;
-        }
-      }
+      int k = 0;
       float[][] spline_domain = null;
       if (domain_set == null) {
-        for (int kk = 0; kk < indices.length; kk++) {
-          int x = indices[kk] % lenX;
-          int y = indices[kk] / lenX;
-          indices[kk] = (start[0] + x) + (start[1] + y)*bigX;
-        }
-        spline_domain = new float[2][indices.length];
-        for (int kk=0; kk<indices.length; kk++) {
-          spline_domain[0][kk] = samples[0][indices[kk]];
-          spline_domain[1][kk] = samples[1][indices[kk]];
+	//Ghansham: We generate the indices for the samples directly from 'is' and 'js' array
+	spline_domain = new float[2][nn];
+	int kk = 0;
+	int ndx = 0;
+	int col_factor = 0;
+	for (int j = 0; j < nheight; j++) {
+            col_factor = (start[1] + js[j]) * bigX;
+            for (int i = 0; i < nwidth; i++) {
+                ndx = (start[0] + is[i]) + col_factor;
+		spline_domain[0][kk] = samples[0][ndx];
+		spline_domain[1][kk] = samples[1][ndx];
+                kk++;
+            }
         }
       }
       else {
+	int[] indices = new int[nn]; //Ghansham:Calculate indices only if there is a single tile in the full image
+      	k=0;
+	int col_factor;
+      	for (int j=0; j<nheight; j++) {
+        	col_factor = data_width * js[j];
+        	for (int i=0; i<nwidth; i++) {
+          		indices[k] = is[i] + col_factor;
+          		k++;
+        	} 
+      	}
         spline_domain = domain_set.indexToValue(indices);
       }
 
