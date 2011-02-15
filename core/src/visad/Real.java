@@ -254,12 +254,19 @@ public class Real
     return 0;
   }
 
+  // The following methods were removed to allow use of Jythong
+  // versions beyond 2.2.  The issue was that for overloaded methods
+  // the newer Jython interpreters might select the wrong method
+  // if another one passed in a Class that had a __float__() or
+  // other "casting" signature.
+
   /**
   * Methods to convert types for Jython
   *
   * @return this Real as a float, long, or int
   *
   */
+  /*
   public double __float__() {
     return Value;
   }
@@ -271,6 +278,7 @@ public class Real
   public int __int__() {
     return (int) Value;
   }
+  */
 
   /** get double value converted to unit_out */
   /**
