@@ -2482,11 +2482,13 @@ public class Gridded3DSet extends GriddedSet {
 
     // BMF 2006-10-10 get label color from control for Contour2D.contour(...)
     ContourControl ctrl = (ContourControl) smap[1].getControl();
+    boolean labelAlign = ctrl.getAlignLabels();
     byte[] labelColor = ctrl.getLabelColor();
+    java.awt.Font labelFont = ctrl.getLabelFont();
 
     Contour2D.ContourOutput contour = Contour2D.contour(g, nr, nc, intervals,
         lowlimit, highlimit, base, dash, color_values, swap, fill, grd_normals,
-        interval_colors, scale_ratio, label_size, labelColor, this);
+        interval_colors, scale_ratio, label_size, labelAlign, labelColor, labelFont, this);
     if (contour == null) return null;
 
 

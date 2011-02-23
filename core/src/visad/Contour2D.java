@@ -28,11 +28,15 @@ MA 02111-1307, USA
 package visad;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import visad.util.Trace;
+import visad.util.HersheyFont;
+import java.awt.Font;
+import java.text.DecimalFormat;
 
 /**
 * Contour2D is a class equipped with a 2-D contouring function.
@@ -192,7 +196,8 @@ public class Contour2D {
      boolean[] swap, boolean fill, float[][] tri, byte[][] tri_color,
      float[][][] grd_normals, float[][] tri_normals, byte[][] interval_colors,
      float[][][][] lbl_vv, byte[][][][] lbl_cc, float[][][] lbl_loc,
-     double scale_ratio, double label_size, byte[] labelColor,
+     double scale_ratio, double label_size, boolean labelAlign, byte[] labelColor,
+     Font labelFont,
      Gridded3DSet spatial_set) throws VisADException {
    boolean[] dashes = { false };
    float[] intervals = intervalToLevels(interval, lowlimit, highlimit, base,
@@ -201,7 +206,7 @@ public class Contour2D {
 
    contour(g, nr, nc, intervals, lowlimit, highlimit, base, dash, auxValues,
        swap, fill, grd_normals, interval_colors, scale_ratio, label_size,
-       labelColor, spatial_set);
+       labelAlign, labelColor, labelFont, spatial_set);
  }
 
  /**
@@ -280,7 +285,8 @@ public class Contour2D {
      float[] values, float lowlimit, float highlimit, float base,
      boolean dash, byte[][] auxValues, boolean[] swap, boolean fill,
      float[][][] grd_normals, byte[][] interval_colors, double scale_ratio,
-     double label_size, byte[] labelColor, Gridded3DSet spatial_set)
+     double label_size, boolean labelAlign, byte[] labelColor, 
+     Font labelFont, Gridded3DSet spatial_set)
      throws VisADException {
 
    dash = fill ? false : dash;
@@ -1373,7 +1379,7 @@ public class Contour2D {
    // ---TDR, build Contour Strips
 
    Trace.call1("Contour2d.getLineColorArrays");
-   ctrSet.getLineColorArrays(vx, vy, auxLevels, labelColor, dashFlags);
+   ctrSet.getLineColorArrays(vx, vy, auxLevels, labelColor, labelFont, labelAlign, dashFlags);
    Trace.call2("Contour2d.getLineColorArrays");
 
    return new ContourOutput(vx1, vy1, vz1, auxLevels1, // basic lines
@@ -4456,6 +4462,8 @@ class ContourStripSet {
  ArrayList<VisADLineStripArray> cntrLines = new ArrayList<VisADLineStripArray>();
  ArrayList<VisADLineStripArray> cntrLinesStyled = new ArrayList<VisADLineStripArray>();
 
+ double labelScale;
+
  /**
   *
   *
@@ -4482,6 +4490,7 @@ class ContourStripSet {
    plot_s = new PlotDigits[n_levs];
    plot_min_max = new float[n_levs][2];
    float fac = (float) ((0.15 * (1.0 / scale_ratio)) * label_size);
+   labelScale = ((0.062 * (1.0 / scale_ratio)) * label_size);
    this.nr = nr;
    this.nc = nc;
    this.swap = swap;
@@ -4682,14 +4691,14 @@ class ContourStripSet {
   * @throws VisADException
   */
  void getLineColorArrays(float[] vx, float[] vy, byte[][] colors,
-     byte[] labelColor, int lev_idx, boolean[] dashed) throws VisADException {
+     byte[] labelColor, Font labelFont, boolean labelAlign, int lev_idx, boolean[] dashed) throws VisADException {
 
    int n_strips = vecArray[lev_idx].size();
 
    for (int kk = 0; kk < n_strips; kk++) {
      ContourStrip cs = vecArray[lev_idx].get(kk);
      cs.isDashed = dashed[lev_idx];
-     cs.getLabeledLineColorArray(vx, vy, colors, labelColor);
+     cs.getLabeledLineColorArray(vx, vy, colors, labelColor, labelFont, labelAlign);
    }
 
  }
@@ -4712,13 +4721,13 @@ class ContourStripSet {
   * @throws VisADException
   */
  void getLineColorArrays(float[] vx, float[] vy, byte[][] colors,
-     byte[] labelColor, boolean[] dashFlags) throws VisADException {
+     byte[] labelColor, Font labelFont, boolean labelAlign, boolean[] dashFlags) throws VisADException {
 
    makeContourStrips(vx, vy);
 
    // set the line and color arrays for each level
    for (int kk = 0; kk < n_levs; kk++) {
-     getLineColorArrays(vx, vy, colors, labelColor, kk, dashFlags);
+     getLineColorArrays(vx, vy, colors, labelColor, labelFont, labelAlign, kk, dashFlags);
    }
 
  }
@@ -4847,8 +4856,6 @@ class ContourStrip {
  /**           */
  ContourStripSet css;
 
- /**           */
- float lbl_half;
 
  /**
   *
@@ -4868,8 +4875,6 @@ class ContourStrip {
    idxs.addFirst(idx0, idx1);
 
    this.css = css;
-   this.lbl_half = (css.plot_min_max[lev_idx][1] - css.plot_min_max[lev_idx][0]) / 2;
-   this.lbl_half += this.lbl_half * 0.30;
  }
 
  /**
@@ -4933,12 +4938,12 @@ class ContourStrip {
   * @throws VisADException
   */
  void getLabeledLineColorArray(float[] vx, float[] vy, byte[][] colors,
-     byte[] labelColor) throws VisADException {
+     byte[] labelColor, Font labelFont, boolean labelAlign) throws VisADException {
 
    float[][] vv = getLineArray(vx, vy);
    byte[][] bb = getColorArray(colors);
 
-   processLineArrays(vv, bb, labelColor);
+   processLineArrays(vv, bb, labelColor, labelFont, labelAlign);
  }
 
  /*/
@@ -4956,7 +4961,7 @@ class ContourStrip {
   * @param out_colorsL
   * @param lbl_loc
   */
- private void processLineArrays(float[][] vv_grid, byte[][] bb, byte[] labelColor) throws VisADException {
+ private void processLineArrays(float[][] vv_grid, byte[][] bb, byte[] labelColor, Font labelFont, boolean labelAlign) throws VisADException {
 
    float[][] vv = css.spatial_set.gridToValue(vv_grid);
 
@@ -4968,6 +4973,16 @@ class ContourStrip {
    int loc = 0;
    int pos = 0;
 
+   VisADGeometryArray label = null;
+
+   DecimalFormat numFormat = new DecimalFormat();
+   numFormat.setMaximumFractionDigits(1);
+   numFormat.setGroupingUsed(false);
+   String numStr = numFormat.format((double) css.levels[lev_idx]);
+
+   float lbl_half = 0.1f;
+
+
    if ((totalPts > LBL_ALGM_THRESHHOLD && ((lev_idx & 1) == 1))
        || css.n_levs == 1) {
      isLabeled = true;
@@ -4977,6 +4992,72 @@ class ContourStrip {
      boolean found = false;
      float ctr_dist;
      pos = loc;
+
+
+     // - get a unit vector parallel to the contour line at the label
+     // - position.
+     float del_x;
+     float del_y;
+     float del_z;
+     del_z = vv[2][stop_break] - vv[2][start_break];
+     del_y = vv[1][stop_break] - vv[1][start_break];
+     del_x = vv[0][stop_break] - vv[0][start_break];
+     float mag = (float) Math.sqrt(del_y * del_y + del_x * del_x + del_z * del_z);
+     float[] ctr_u = new float[] { del_x / mag, del_y / mag, del_z / mag };
+
+     if (ctr_u[0] < 0) {
+        ctr_u[0] = -ctr_u[0];
+        ctr_u[1] = -ctr_u[1];
+        ctr_u[2] = -ctr_u[2];
+     }
+
+     float ctr_u_dot_lbl = ctr_u[0]*1f + ctr_u[1]*0f + ctr_u[2]*0f;
+
+     if (labelFont != null) {
+       label = PlotText.render_font(numStr, labelFont, new double[] {vv[0][loc], vv[1][loc], vv[2][loc]},
+                 new double[] {1.0, 0.0, 0.0}, new double[] {0.0, 1.0, 0.0},
+                 TextControl.Justification.CENTER, TextControl.Justification.CENTER, 0.0, css.labelScale, null);
+     }
+     else {
+       label = PlotText.render_font(numStr, new HersheyFont("timesr"), new double[] {vv[0][loc], vv[1][loc], vv[2][loc]},
+                 new double[] {1.0, 0.0, 0.0}, new double[] {0.0, 1.0, 0.0},
+                 TextControl.Justification.CENTER, TextControl.Justification.CENTER, 0.0, css.labelScale, null);
+     }
+     float x_min = Float.MAX_VALUE;
+     float x_max = -Float.MAX_VALUE;
+     float y_min = Float.MAX_VALUE;
+     float y_max = -Float.MAX_VALUE;
+     float z_min = Float.MAX_VALUE;
+     float z_max = -Float.MAX_VALUE;
+
+     for (int k=0; k<label.vertexCount; k++) {
+        int i = 3*k;
+        float x = label.coordinates[i];
+        float y = label.coordinates[i+1];
+        float z = label.coordinates[i+2];
+        if (x > x_max) x_max = x;
+        if (y > y_max) y_max = y;
+        if (z > z_max) z_max = z;
+        if (x < x_min) x_min = x;
+        if (y < y_min) y_min = y;
+        if (z < z_min) z_min = z;
+     }
+
+
+     if (labelAlign) {
+       lbl_half = (x_max - x_min)/2;
+     }
+     else {
+       if (ctr_u_dot_lbl > 0.3) {
+         lbl_half = (x_max-x_min)/2;
+       }
+       else {
+         lbl_half = (y_max-y_min)/2;
+       }
+     }
+ 
+     lbl_half += lbl_half*0.08;
+    
 
      // - compute distance between label location (loc) and points
      // - on each side, when greater than lbl_half - stop. This
@@ -5039,50 +5120,41 @@ class ContourStrip {
      // - get the label vertices from the PlotDigits object for
      // - the isopleth value of the ContourStrip. 'B' arrays are
      // - for the flipped orientation.
-     float[] vx_tmp = new float[plot.NumVerts];
-     float[] vy_tmp = new float[plot.NumVerts];
-     System.arraycopy(plot.Vx, 0, vx_tmp, 0, plot.NumVerts);
-     System.arraycopy(plot.Vy, 0, vy_tmp, 0, plot.NumVerts);
-     float[] vxB_tmp = new float[plot.NumVerts];
-     float[] vyB_tmp = new float[plot.NumVerts];
-     System.arraycopy(plot.VxB, 0, vxB_tmp, 0, plot.NumVerts);
-     System.arraycopy(plot.VyB, 0, vyB_tmp, 0, plot.NumVerts);
+     float[] ctr_u = null;
+     float[] norm_x_ctr = null;
 
-     byte[][] lbl_clr = null;
-     if (bb != null) {
-       lbl_clr = new byte[clr_dim][plot.NumVerts];
+     // - get a unit vector perpendicular to display coordinate grid
+     // - at this label location (loc)
+     float[][] norm = null;
+     Gridded3DSet cg3d = (Gridded3DSet) css.spatial_set;
+
+     norm = cg3d.getNormals(new float[][] { { vv_grid[0][loc] },
+          { vv_grid[1][loc] } });
+
+     if (norm[2][0] < 0) {
+       norm[0][0] = -norm[0][0];
+       norm[1][0] = -norm[1][0];
+       norm[2][0] = -norm[2][0];
      }
 
-     // - Align labels with contour lines if rotate = true
-     // ------------------------------------------------------
-     boolean rotate = true;
-     float[][] lbl_dcoords = null;
-     if (rotate) {
-       // - get a unit vector perpendicular to display coordinate grid
-       // - at this label location (loc)
-       float[][] norm = null;
-       Gridded3DSet cg3d = (Gridded3DSet) css.spatial_set;
+     float[] labelBase = null;
+     float[] labelUp = null;
 
-       norm = cg3d.getNormals(new float[][] { { vv_grid[0][loc] },
-           { vv_grid[1][loc] } });
-
-       if (norm[2][0] < 0) {
-         norm[0][0] = -norm[0][0];
-         norm[1][0] = -norm[1][0];
-         norm[2][0] = -norm[2][0];
-       }
-
+     if (labelAlign) { //- align labels with contours
        // - get a unit vector parallel to the contour line at the label
        // - position.
        float del_x;
        float del_y;
        float del_z;
+
        del_z = vv[2][stop_break] - vv[2][start_break];
        del_y = vv[1][stop_break] - vv[1][start_break];
        del_x = vv[0][stop_break] - vv[0][start_break];
+
        float mag = (float) Math.sqrt(del_y * del_y + del_x * del_x + del_z
            * del_z);
-       float[] ctr_u = new float[] { del_x / mag, del_y / mag, del_z / mag };
+
+       ctr_u = new float[] { del_x / mag, del_y / mag, del_z / mag };
 
        if (ctr_u[0] < 0) {
          ctr_u[0] = -ctr_u[0];
@@ -5093,7 +5165,7 @@ class ContourStrip {
        // - get a vector perpendicular to contour line, and in the local
        // - tangent plane. norm_x_ctr: cross-product of local norm and
        // - unit vector parallel to contour line at label location.
-       float[] norm_x_ctr = new float[] {
+       norm_x_ctr = new float[] {
            norm[1][0] * ctr_u[2] - norm[2][0] * ctr_u[1],
            -(norm[0][0] * ctr_u[2] - norm[2][0] * ctr_u[0]),
            norm[0][0] * ctr_u[1] - norm[1][0] * ctr_u[0] };
@@ -5120,67 +5192,86 @@ class ContourStrip {
          }
        }
 
-       // - align labels with contour lines at label location,
-       // - lbl_dcoords are the result of the rotation.
-       lbl_dcoords = new float[3][plot.NumVerts];
-       for (int kk = 0; kk < plot.NumVerts; kk++) {
-         lbl_dcoords[0][kk] = vx_tmp[kk] * ctr_u[0] + vyB_tmp[kk]
-             * norm_x_ctr[0];
-         lbl_dcoords[1][kk] = vx_tmp[kk] * ctr_u[1] + vyB_tmp[kk]
-             * norm_x_ctr[1];
-         lbl_dcoords[2][kk] = vx_tmp[kk] * ctr_u[2] + vyB_tmp[kk]
-             * norm_x_ctr[2];
-       }
-       // - translate rotated label to plot location (loc)
-       for (int kk = 0; kk < plot.NumVerts; kk++) {
-         lbl_dcoords[0][kk] += vv[0][loc];
-         lbl_dcoords[1][kk] += vv[1][loc];
-         lbl_dcoords[2][kk] += vv[2][loc];
-       }
-
+       labelBase = ctr_u;
+       labelUp = norm_x_ctr;
      }
-     // -- end label alignment
+     else {
+       float a = norm[0][0];
+       float b = norm[1][0];
+       float c = norm[2][0];
+      
+       if ( visad.util.Util.isApproximatelyEqual(a, 0) && visad.util.Util.isApproximatelyEqual(b, 0)) {
+         labelBase = new float[] {1,0,0};
+         labelUp = new float[] {0,1,0};
+       }
+       else {
+         float D = -(a*vv[0][loc] + b*vv[1][loc] + c*vv[2][loc]);
+         float K = -D - c*vv[2][loc];
+
+         float xLine = vv[0][loc] + 0.5f;
+         float yLine = (K - a * xLine)/b;
+
+         float delX = xLine - vv[0][loc];
+         float delY = yLine - vv[1][loc];
+       
+         float mag = (float) Math.sqrt(delX*delX + delY*delY);
+
+         float[] uLine = new float[] {delX/mag, delY/mag, 0};
+
+         float[] norm_x_uLine = new float[] { 
+            (b*uLine[2] - c*uLine[1]),
+           -(a*uLine[2] - c*uLine[0]),
+            (a*uLine[1] - b*uLine[0])};
+
+         if (norm_x_uLine[2] < 0 )  {
+            norm_x_uLine[2] = 1f;
+            norm_x_uLine[1] = -norm_x_uLine[1];
+            norm_x_uLine[0] = -norm_x_uLine[0];
+         }
+
+         labelBase = uLine;
+         labelUp = norm_x_uLine;
+       }
+     }
 
      // -- translate to label plot location --------------
-     for (int kk = 0; kk < plot.NumVerts; kk++) {
-       vx_tmp[kk] += vv[0][loc];
-       vy_tmp[kk] += vv[1][loc];
-       vxB_tmp[kk] += vv[0][loc];
-       vyB_tmp[kk] += vv[1][loc];
+
+     if (labelFont != null) {
+       label = PlotText.render_font(numStr, labelFont, new double[] {vv[0][loc], vv[1][loc], vv[2][loc]}, 
+                 new double[] {labelBase[0], labelBase[1], labelBase[2]}, new double[] {labelUp[0], labelUp[1], labelUp[2]},
+                 TextControl.Justification.CENTER, TextControl.Justification.CENTER, 0.0, css.labelScale, null);
      }
-     // -- assign color to contour labels --------------
+     else {
+       label = PlotText.render_font(numStr, new HersheyFont("timesr"), new double[] {vv[0][loc], vv[1][loc], vv[2][loc]}, 
+                 new double[] {labelBase[0], labelBase[1], labelBase[2]}, new double[] {labelUp[0], labelUp[1], labelUp[2]},
+                 TextControl.Justification.CENTER, TextControl.Justification.CENTER, 0.0, css.labelScale, null);
+     }
+
+     // no lighting/shading for labels
+     label.normals = null;
+   
+     byte[] lblClr = new byte[clr_dim*label.vertexCount];
      if (labelColor != null) {
-       for (int kk = 0; kk < plot.NumVerts; kk++) {
-         lbl_clr[0][kk] = labelColor[0];
-         lbl_clr[1][kk] = labelColor[1];
-         lbl_clr[2][kk] = labelColor[2];
-         if (clr_dim == 4)
-           lbl_clr[3][kk] = labelColor[3];
+       for (int kk=0; kk<label.vertexCount; kk++) {
+         lblClr[kk*clr_dim] = labelColor[0];
+         lblClr[kk*clr_dim+1] = labelColor[1];
+         lblClr[kk*clr_dim+2] = labelColor[2];
+         if (clr_dim == 4) lblClr[kk*clr_dim+3] = labelColor[3];
        }
      } else if (bb != null) {
-       for (int kk = 0; kk < plot.NumVerts; kk++) {
-         lbl_clr[0][kk] = bb[0][loc];
-         lbl_clr[1][kk] = bb[1][loc];
-         lbl_clr[2][kk] = bb[2][loc];
-         if (clr_dim == 4)
-           lbl_clr[3][kk] = bb[3][loc];
+       for (int kk=0; kk<label.vertexCount; kk++) {
+         lblClr[kk*clr_dim] = bb[0][loc];
+         lblClr[kk*clr_dim+1] = bb[1][loc];
+         lblClr[kk*clr_dim+2] = bb[2][loc];
+         if (clr_dim == 4) lblClr[kk*clr_dim+3] = bb[3][loc];
        }
      }
+     label.colors = lblClr;
 
-     VisADLineArray label = new VisADLineArray();;
-     VisADLineArray labelAnchor = new VisADLineArray();;
-     VisADLineArray labelA = new VisADLineArray();
-     VisADLineArray labelB = new VisADLineArray();
-     SampledSet.setGeometryArray(
-         labelA, new float[][] {lbl_dcoords[0], vy_tmp, lbl_dcoords[2]}, clr_dim, lbl_clr);
-     SampledSet.setGeometryArray(
-         labelB, new float[][] {vxB_tmp, lbl_dcoords[1], lbl_dcoords[2]}, clr_dim, lbl_clr);
-     SampledSet.setGeometryArray(
-         label, new float[][] {lbl_dcoords[0], lbl_dcoords[1], lbl_dcoords[2]}, clr_dim, lbl_clr);
+     VisADLineArray labelAnchor = new VisADLineArray();
+
      SampledSet.setGeometryArray(
          labelAnchor, new float[][] {{vv[0][loc]}, {vv[1][loc]}, {vv[2][loc]}}, clr_dim, null);
-
-
 
      /*-------- LABEL DONE -------------------*/
 
@@ -5372,7 +5463,8 @@ class ContourStrip {
                                  expSegRight, segRightAnchor, segRightScaleInfo);
      ctrLabel.isStyled = isDashed;
      css.labels.add(ctrLabel);
-   } else { // no label
+   } 
+   else { // no label
      float[] lineCoords = new float[3*(totalPts+1)];
      byte[] lineColors = new byte[clr_dim*(totalPts+1)];
 

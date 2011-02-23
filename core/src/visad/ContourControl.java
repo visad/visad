@@ -32,6 +32,8 @@ import java.util.StringTokenizer;
 import visad.browser.Convert;
 import visad.util.Util;
 
+import java.awt.Font;
+
 /**
    ContourControl is the VisAD class for controlling IsoContour display scalars.<P>
 */
@@ -75,6 +77,7 @@ public class ContourControl extends Control {
   private static double init_scale = Double.NaN;
   private static double default_init_scale = 0.40;
   private boolean autoSizeLabels = true; // BMF 2009-03-05 change default to true
+  private boolean alignLabels = true;
   private double labelSizeFactor = 1;
   private transient ZoomDoneListener zoom;
   private ProjectionControl pcntrl;
@@ -84,6 +87,10 @@ public class ContourControl extends Control {
   // label color defaults to white
   private byte[] labelColor = null;
   private boolean colorSet = false;
+
+  private Font labelFont = null;
+  //private Font labelFont = new java.awt.Font("Dialog", java.awt.Font.PLAIN, 14);
+
   
   /**
    * Construct a new ContourControl for the display
@@ -625,6 +632,16 @@ public class ContourControl extends Control {
   public boolean getAutoSizeLabels() {
     return autoSizeLabels;
   }
+
+  public void setAlignLabels(boolean flag) {
+    synchronized(this) {
+      alignLabels = flag;
+    }
+  }
+
+  public boolean getAlignLabels() {
+    return alignLabels;
+  }
   
   //BMF 2006-10-04
   /** 
@@ -658,6 +675,14 @@ public class ContourControl extends Control {
    */
   public byte[] getLabelColor() {
     return labelColor;
+  }
+
+  public void setLabelFont(Font font) {
+    labelFont = font;
+  }
+
+  public Font getLabelFont() {
+    return labelFont;
   }
 
   /**
@@ -881,6 +906,12 @@ public class ContourControl extends Control {
           changed = true;
           labelSizeFactor = cc.labelSizeFactor;
         }
+
+        if (alignLabels != cc.alignLabels) {
+          changed = true;
+          alignLabels = cc.alignLabels;
+        }
+
       }
     }
 
@@ -1002,6 +1033,11 @@ public class ContourControl extends Control {
         if (autoSizeLabels != cc.autoSizeLabels) {
           return false;
         }
+
+        if (alignLabels != cc.alignLabels) {
+          return false;
+        }
+
         if (!Util.isApproximatelyEqual(labelSizeFactor, cc.labelSizeFactor)) {
           return false;
         }

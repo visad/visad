@@ -35,7 +35,7 @@ import java.util.*;
 public class ContourLabelGeometry extends VisADGeometryArray
        implements Cloneable {
 
-  public VisADLineArray label;
+  public VisADGeometryArray label;
   public VisADLineArray labelAnchor;
   public VisADLineArray expSegLeft;
   public VisADLineArray segLeftAnchor;
@@ -46,7 +46,7 @@ public class ContourLabelGeometry extends VisADGeometryArray
 
   public boolean isStyled = false;
 
-  public ContourLabelGeometry(VisADLineArray label, VisADLineArray labelAnchor,
+  public ContourLabelGeometry(VisADGeometryArray label, VisADLineArray labelAnchor,
                     VisADLineArray expSegLeft, VisADLineArray segLeftAnchor, float[] segLeftScaleInfo,
                     VisADLineArray expSegRight, VisADLineArray segRightAnchor, float[] segRightScaleInfo) {
     this.label = label;
@@ -65,7 +65,7 @@ public class ContourLabelGeometry extends VisADGeometryArray
       this default implementation does nothing */
   public ContourLabelGeometry adjustSeam(DataRenderer renderer)
          throws VisADException {
-    ContourLabelGeometry cntr = new ContourLabelGeometry((VisADLineArray)label.adjustSeam(renderer), labelAnchor,
+    ContourLabelGeometry cntr = new ContourLabelGeometry(label.adjustSeam(renderer), labelAnchor,
             (VisADLineArray)expSegLeft.adjustSeam(renderer), segLeftAnchor, segLeftScaleInfo,
             (VisADLineArray)expSegRight.adjustSeam(renderer), segRightAnchor, segRightScaleInfo);
     cntr.isStyled = isStyled;
@@ -77,7 +77,7 @@ public class ContourLabelGeometry extends VisADGeometryArray
       default implementation: rotate if necessary, then return points */
   public ContourLabelGeometry adjustLongitude(DataRenderer renderer)
          throws VisADException {
-    ContourLabelGeometry cntr = new  ContourLabelGeometry((VisADLineArray)label.adjustLongitude(renderer), labelAnchor,
+    ContourLabelGeometry cntr = new  ContourLabelGeometry(label.adjustLongitude(renderer), labelAnchor,
               (VisADLineArray)expSegLeft.adjustLongitude(renderer),
               segLeftAnchor, segLeftScaleInfo,
               (VisADLineArray)expSegRight.adjustLongitude(renderer),
@@ -87,7 +87,7 @@ public class ContourLabelGeometry extends VisADGeometryArray
   }
 
   public ContourLabelGeometry removeMissing() {
-    ContourLabelGeometry cntr = new  ContourLabelGeometry((VisADLineArray)label.removeMissing(), labelAnchor,
+    ContourLabelGeometry cntr = new  ContourLabelGeometry(label.removeMissing(), labelAnchor,
               (VisADLineArray)expSegLeft.removeMissing(),
               segLeftAnchor, segLeftScaleInfo,
               (VisADLineArray)expSegRight.removeMissing(),
