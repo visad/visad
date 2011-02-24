@@ -88,7 +88,7 @@ public class ContourControl extends Control {
   private byte[] labelColor = null;
   private boolean colorSet = false;
 
-  private Font labelFont = null;
+  private Object labelFont = null;
   //private Font labelFont = new java.awt.Font("Dialog", java.awt.Font.PLAIN, 14);
 
   
@@ -677,11 +677,11 @@ public class ContourControl extends Control {
     return labelColor;
   }
 
-  public void setLabelFont(Font font) {
+  public void setLabelFont(Object font) {
     labelFont = font;
   }
 
-  public Font getLabelFont() {
+  public Object getLabelFont() {
     return labelFont;
   }
 

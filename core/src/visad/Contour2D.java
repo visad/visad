@@ -197,7 +197,7 @@ public class Contour2D {
      float[][][] grd_normals, float[][] tri_normals, byte[][] interval_colors,
      float[][][][] lbl_vv, byte[][][][] lbl_cc, float[][][] lbl_loc,
      double scale_ratio, double label_size, boolean labelAlign, byte[] labelColor,
-     Font labelFont,
+     Object labelFont,
      Gridded3DSet spatial_set) throws VisADException {
    boolean[] dashes = { false };
    float[] intervals = intervalToLevels(interval, lowlimit, highlimit, base,
@@ -286,7 +286,7 @@ public class Contour2D {
      boolean dash, byte[][] auxValues, boolean[] swap, boolean fill,
      float[][][] grd_normals, byte[][] interval_colors, double scale_ratio,
      double label_size, boolean labelAlign, byte[] labelColor, 
-     Font labelFont, Gridded3DSet spatial_set)
+     Object labelFont, Gridded3DSet spatial_set)
      throws VisADException {
 
    dash = fill ? false : dash;
@@ -4691,7 +4691,7 @@ class ContourStripSet {
   * @throws VisADException
   */
  void getLineColorArrays(float[] vx, float[] vy, byte[][] colors,
-     byte[] labelColor, Font labelFont, boolean labelAlign, int lev_idx, boolean[] dashed) throws VisADException {
+     byte[] labelColor, Object labelFont, boolean labelAlign, int lev_idx, boolean[] dashed) throws VisADException {
 
    int n_strips = vecArray[lev_idx].size();
 
@@ -4721,7 +4721,7 @@ class ContourStripSet {
   * @throws VisADException
   */
  void getLineColorArrays(float[] vx, float[] vy, byte[][] colors,
-     byte[] labelColor, Font labelFont, boolean labelAlign, boolean[] dashFlags) throws VisADException {
+     byte[] labelColor, Object labelFont, boolean labelAlign, boolean[] dashFlags) throws VisADException {
 
    makeContourStrips(vx, vy);
 
@@ -4938,7 +4938,7 @@ class ContourStrip {
   * @throws VisADException
   */
  void getLabeledLineColorArray(float[] vx, float[] vy, byte[][] colors,
-     byte[] labelColor, Font labelFont, boolean labelAlign) throws VisADException {
+     byte[] labelColor, Object labelFont, boolean labelAlign) throws VisADException {
 
    float[][] vv = getLineArray(vx, vy);
    byte[][] bb = getColorArray(colors);
@@ -4961,7 +4961,7 @@ class ContourStrip {
   * @param out_colorsL
   * @param lbl_loc
   */
- private void processLineArrays(float[][] vv_grid, byte[][] bb, byte[] labelColor, Font labelFont, boolean labelAlign) throws VisADException {
+ private void processLineArrays(float[][] vv_grid, byte[][] bb, byte[] labelColor, Object labelFont, boolean labelAlign) throws VisADException {
 
    float[][] vv = css.spatial_set.gridToValue(vv_grid);
 
@@ -5013,8 +5013,18 @@ class ContourStrip {
 
      float ctr_u_dot_lbl = ctr_u[0]*1f + ctr_u[1]*0f + ctr_u[2]*0f;
 
-     if (labelFont != null) {
-       label = PlotText.render_font(numStr, labelFont, new double[] {vv[0][loc], vv[1][loc], vv[2][loc]},
+     if (labelFont instanceof Font) {
+       label = PlotText.render_font(numStr, (Font) labelFont, new double[] {vv[0][loc], vv[1][loc], vv[2][loc]},
+                 new double[] {1.0, 0.0, 0.0}, new double[] {0.0, 1.0, 0.0},
+                 TextControl.Justification.CENTER, TextControl.Justification.CENTER, 0.0, css.labelScale, null);
+     }
+     else if (labelFont instanceof HersheyFont) {
+       label = PlotText.render_font(numStr, (HersheyFont) labelFont, new double[] {vv[0][loc], vv[1][loc], vv[2][loc]},
+                 new double[] {1.0, 0.0, 0.0}, new double[] {0.0, 1.0, 0.0},
+                 TextControl.Justification.CENTER, TextControl.Justification.CENTER, 0.0, css.labelScale, null);
+     }
+     else if (labelFont == null) {
+       label = PlotText.render_font(numStr, new HersheyFont("timesr"), new double[] {vv[0][loc], vv[1][loc], vv[2][loc]},
                  new double[] {1.0, 0.0, 0.0}, new double[] {0.0, 1.0, 0.0},
                  TextControl.Justification.CENTER, TextControl.Justification.CENTER, 0.0, css.labelScale, null);
      }
@@ -5023,6 +5033,7 @@ class ContourStrip {
                  new double[] {1.0, 0.0, 0.0}, new double[] {0.0, 1.0, 0.0},
                  TextControl.Justification.CENTER, TextControl.Justification.CENTER, 0.0, css.labelScale, null);
      }
+
      float x_min = Float.MAX_VALUE;
      float x_max = -Float.MAX_VALUE;
      float y_min = Float.MAX_VALUE;
@@ -5236,8 +5247,18 @@ class ContourStrip {
 
      // -- translate to label plot location --------------
 
-     if (labelFont != null) {
-       label = PlotText.render_font(numStr, labelFont, new double[] {vv[0][loc], vv[1][loc], vv[2][loc]}, 
+     if (labelFont instanceof Font) {
+       label = PlotText.render_font(numStr, (Font) labelFont, new double[] {vv[0][loc], vv[1][loc], vv[2][loc]}, 
+                 new double[] {labelBase[0], labelBase[1], labelBase[2]}, new double[] {labelUp[0], labelUp[1], labelUp[2]},
+                 TextControl.Justification.CENTER, TextControl.Justification.CENTER, 0.0, css.labelScale, null);
+     }
+     else if (labelFont instanceof HersheyFont) {
+       label = PlotText.render_font(numStr, (HersheyFont) labelFont, new double[] {vv[0][loc], vv[1][loc], vv[2][loc]}, 
+                 new double[] {labelBase[0], labelBase[1], labelBase[2]}, new double[] {labelUp[0], labelUp[1], labelUp[2]},
+                 TextControl.Justification.CENTER, TextControl.Justification.CENTER, 0.0, css.labelScale, null);
+     }
+     else if (labelFont == null) {
+       label = PlotText.render_font(numStr, new HersheyFont("timesr"), new double[] {vv[0][loc], vv[1][loc], vv[2][loc]}, 
                  new double[] {labelBase[0], labelBase[1], labelBase[2]}, new double[] {labelUp[0], labelUp[1], labelUp[2]},
                  TextControl.Justification.CENTER, TextControl.Justification.CENTER, 0.0, css.labelScale, null);
      }

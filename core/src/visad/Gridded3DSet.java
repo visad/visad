@@ -2484,7 +2484,7 @@ public class Gridded3DSet extends GriddedSet {
     ContourControl ctrl = (ContourControl) smap[1].getControl();
     boolean labelAlign = ctrl.getAlignLabels();
     byte[] labelColor = ctrl.getLabelColor();
-    java.awt.Font labelFont = ctrl.getLabelFont();
+    Object labelFont = ctrl.getLabelFont();
 
     Contour2D.ContourOutput contour = Contour2D.contour(g, nr, nc, intervals,
         lowlimit, highlimit, base, dash, color_values, swap, fill, grd_normals,
