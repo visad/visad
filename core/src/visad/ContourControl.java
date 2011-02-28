@@ -633,6 +633,12 @@ public class ContourControl extends Control {
     return autoSizeLabels;
   }
 
+  /**
+   * Set the contour label alignment policy
+   * @param flag true: labels follow the contour line, false: labels are horizontal, default: true
+   * @throws VisADException
+   * @throws RemoteException
+   */
   public void setAlignLabels(boolean flag) throws RemoteException, VisADException {
     synchronized(this) {
       alignLabels = flag;
@@ -678,6 +684,15 @@ public class ContourControl extends Control {
     return labelColor;
   }
 
+  /**
+   * Set the contour label Font
+   * @param font can be java.awt.Font or visad.util.HersheyFont.  The former are rendered as
+   *             filled polygons which can exhibit co-planar artifacts, the latter as lines
+   *             which will always be visible, front or back, on co-planar surfaces.  Can be
+   *             <code>null</code>, the default,  which results in the Times Roman HersheyFont. 
+   * @throws VisADException
+   * @throws RemoteException
+   */
   public void setLabelFont(Object font) throws RemoteException, VisADException {
     synchronized(this) {
       labelFont = font;
