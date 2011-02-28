@@ -89,7 +89,7 @@ public class ContourControl extends Control {
   private boolean colorSet = false;
 
   private Object labelFont = null;
-  //private Font labelFont = new java.awt.Font("Dialog", java.awt.Font.PLAIN, 14);
+  //private Object labelFont = new java.awt.Font("Dialog", java.awt.Font.PLAIN, 14);
 
   
   /**
@@ -633,10 +633,11 @@ public class ContourControl extends Control {
     return autoSizeLabels;
   }
 
-  public void setAlignLabels(boolean flag) {
+  public void setAlignLabels(boolean flag) throws RemoteException, VisADException {
     synchronized(this) {
       alignLabels = flag;
     }
+    changeControl(true);
   }
 
   public boolean getAlignLabels() {
@@ -677,8 +678,11 @@ public class ContourControl extends Control {
     return labelColor;
   }
 
-  public void setLabelFont(Object font) {
-    labelFont = font;
+  public void setLabelFont(Object font) throws RemoteException, VisADException {
+    synchronized(this) {
+      labelFont = font;
+    }
+    changeControl(true);
   }
 
   public Object getLabelFont() {
@@ -912,6 +916,11 @@ public class ContourControl extends Control {
           alignLabels = cc.alignLabels;
         }
 
+        if (labelFont != cc.labelFont) {
+          changed = true;
+          labelFont = cc.labelFont;
+        }
+
       }
     }
 
@@ -1035,6 +1044,10 @@ public class ContourControl extends Control {
         }
 
         if (alignLabels != cc.alignLabels) {
+          return false;
+        }
+
+        if (labelFont != cc.labelFont) {
           return false;
         }
 
