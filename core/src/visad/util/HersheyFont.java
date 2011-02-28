@@ -181,6 +181,26 @@ public class HersheyFont {
       }
       return;
    }
+   
+   /**
+    * See if o is equal to this
+    * @return true if they have the same name
+    */
+   public boolean equals(Object o) {
+	   if (!(o instanceof HersheyFont)) {
+		   return false;
+	   }
+	   HersheyFont that = (HersheyFont) o;
+	   return this.name.equals(that.name);
+   }
+   
+   /**
+    * Get the hashcode
+    * @return the hashcode
+    */
+   public int hasCode() {
+	   return name.hashCode();
+   }
 
 
    /** get the maximum number of points (segments) allowed

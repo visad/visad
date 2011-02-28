@@ -712,7 +712,7 @@ public class TextControlWidget extends javax.swing.JPanel {
     return nameArray;
   }
 
-  private String[] getHersheyFontNames() {
+  public static String[] getHersheyFontNames() {
     String[] fontNames = null;
     URL url = HersheyFont.class.
       getResource("futural.jhf");
