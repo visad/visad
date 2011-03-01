@@ -4999,9 +4999,9 @@ class ContourStrip {
      float del_x;
      float del_y;
      float del_z;
-     del_z = vv[2][stop_break] - vv[2][start_break];
-     del_y = vv[1][stop_break] - vv[1][start_break];
-     del_x = vv[0][stop_break] - vv[0][start_break];
+     del_z = vv[2][pos+1] - vv[2][pos-1];
+     del_y = vv[1][pos+1] - vv[1][pos-1];
+     del_x = vv[0][pos+1] - vv[0][pos-1];
      float mag = (float) Math.sqrt(del_y * del_y + del_x * del_x + del_z * del_z);
      float[] ctr_u = new float[] { del_x / mag, del_y / mag, del_z / mag };
 
@@ -5059,11 +5059,11 @@ class ContourStrip {
        lbl_half = (x_max - x_min)/2;
      }
      else {
-       if (ctr_u_dot_lbl > 0.3) {
+       if (ctr_u_dot_lbl > 0.5) {
          lbl_half = (x_max-x_min)/2;
        }
        else {
-         lbl_half = (y_max-y_min)/2;
+         lbl_half = (y_max-y_min);
        }
      }
  
