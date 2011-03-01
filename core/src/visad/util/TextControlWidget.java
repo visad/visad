@@ -721,7 +721,13 @@ public class TextControlWidget extends javax.swing.JPanel {
     //System.out.println(url.getProtocol());
     if (protocol.equals("file")) {
       // We are running from the file system (i.e., visad has beeen extracted)
-      File f = new File(url.getFile());
+      String file;
+      try {
+        file = URLDecoder.decode(url.getFile(),"UTF-8");
+      } catch (UnsupportedEncodingException uee) { // shouldn't happen
+        file = url.getFile();
+      }
+      File f = new File(file);
       f = f.getParentFile();
       FilenameFilter filter = new FilenameFilter() {
           public boolean accept(File dir, String name) {
