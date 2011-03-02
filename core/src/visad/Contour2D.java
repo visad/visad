@@ -4212,8 +4212,7 @@ class ContourQuad {
    int idx0 = sub_grid[iy][ix];
    int idx1 = idx0 + 1;
 
-   ContourStrip c_strp = new ContourStrip(200, lev_idx, idx0, idx1,
-       css.plot_s[lev_idx], css);
+   ContourStrip c_strp = new ContourStrip(200, lev_idx, idx0, idx1, css);
 
    int idxA = idx0;
    int idxB = idx0;
@@ -4438,12 +4437,6 @@ class ContourStripSet {
  List<ContourStrip> vec;
 
  /**           */
- PlotDigits[] plot_s;
-
- /**           */
- float[][] plot_min_max;
-
- /**           */
  boolean[] swap;
 
  /**           */
@@ -4487,8 +4480,6 @@ class ContourStripSet {
    n_levs = levels.length;
    labelIndexes = new int[n_levs][];
    vecArray = new List[n_levs];
-   plot_s = new PlotDigits[n_levs];
-   plot_min_max = new float[n_levs][2];
    float fac = (float) ((0.15 * (1.0 / scale_ratio)) * label_size);
    labelScale = ((0.062 * (1.0 / scale_ratio)) * label_size);
    this.nr = nr;
@@ -4498,68 +4489,6 @@ class ContourStripSet {
 
    for (int kk = 0; kk < n_levs; kk++) {
      vecArray[kk] = new ArrayList<ContourStrip>();
-     PlotDigits plot = new PlotDigits();
-     plot.Number = levels[kk];
-     plot.plotdigits(levels[kk], 0f, 0f, fac * 1, fac * 1, 400, new boolean[] {
-         false, false, false });
-
-     float[][] tmp = new float[2][];
-     tmp[0] = plot.Vx;
-     tmp[1] = plot.Vy;
-     plot.Vx = tmp[1];
-     plot.Vy = tmp[0];
-     tmp[0] = plot.VxB;
-     tmp[1] = plot.VyB;
-     plot.VxB = tmp[1];
-     plot.VyB = tmp[0];
-
-     float vx_min = Float.MAX_VALUE;
-     float vy_min = Float.MAX_VALUE;
-     float vx_max = -Float.MAX_VALUE;
-     float vy_max = -Float.MAX_VALUE;
-     float vxB_min = Float.MAX_VALUE;
-     float vyB_min = Float.MAX_VALUE;
-     float vxB_max = -Float.MAX_VALUE;
-     float vyB_max = -Float.MAX_VALUE;
-     for (int ii = 0; ii < plot.NumVerts; ii++) {
-       if (plot.Vx[ii] < vx_min)
-         vx_min = plot.Vx[ii];
-       if (plot.Vy[ii] < vy_min)
-         vy_min = plot.Vy[ii];
-       if (plot.Vx[ii] > vx_max)
-         vx_max = plot.Vx[ii];
-       if (plot.Vy[ii] > vy_max)
-         vy_max = plot.Vy[ii];
-       if (plot.VxB[ii] < vxB_min)
-         vxB_min = plot.VxB[ii];
-       if (plot.VyB[ii] < vyB_min)
-         vyB_min = plot.VyB[ii];
-       if (plot.VxB[ii] > vxB_max)
-         vxB_max = plot.VxB[ii];
-       if (plot.VyB[ii] > vyB_max)
-         vyB_max = plot.VyB[ii];
-     }
-     float t_x = (vx_max - vx_min) / 2 + vx_min;
-     float t_y = (vy_max - vy_min) / 2 + vy_min;
-     float t_xB = (vxB_max - vxB_min) / 2 + vxB_min;
-     float t_yB = (vyB_max - vyB_min) / 2 + vyB_min;
-
-     for (int ii = 0; ii < plot.NumVerts; ii++) {
-       plot.Vx[ii] -= t_x;
-       plot.Vy[ii] -= t_y;
-       plot.VxB[ii] -= t_xB;
-       plot.VyB[ii] -= t_yB;
-     }
-     plot_s[kk] = plot;
-     if (swap[0] == false) {
-       plot_min_max[kk][0] = vy_min;
-       plot_min_max[kk][1] = vy_max;
-     } else {
-       plot_min_max[kk][0] = vx_min;
-       plot_min_max[kk][1] = vx_max;
-     }
-     plot_min_max[kk][0] = vx_min;
-     plot_min_max[kk][1] = vx_max;
    }
 
    qSet = new ContourQuadSet[n_levs];
@@ -4632,8 +4561,7 @@ class ContourStripSet {
    int n_strip = vec.size();
 
    if (n_strip == 0) {
-     ContourStrip c_strp = new ContourStrip(mxsize, lev_idx, idx0, idx1,
-         plot_s[lev_idx], this);
+     ContourStrip c_strp = new ContourStrip(mxsize, lev_idx, idx0, idx1, this);
      vec.add(c_strp);
    } else {
      int[] found_array = new int[3];
@@ -4646,8 +4574,7 @@ class ContourStripSet {
        }
      }
      if (found == 3) {
-       ContourStrip c_strp = new ContourStrip(mxsize, lev_idx, idx0, idx1,
-           plot_s[lev_idx], this);
+       ContourStrip c_strp = new ContourStrip(mxsize, lev_idx, idx0, idx1, this);
        vec.add(c_strp);
 
      } else if (found == 2) {
@@ -4657,8 +4584,7 @@ class ContourStripSet {
        vec.remove(found_array[1]);
 
      } else if (found == 0) {
-       ContourStrip c_strp = new ContourStrip(mxsize, lev_idx, idx0, idx1,
-           plot_s[lev_idx], this);
+       ContourStrip c_strp = new ContourStrip(mxsize, lev_idx, idx0, idx1, this);
        vec.add(c_strp);
      }
    }
@@ -4867,8 +4793,7 @@ class ContourStrip {
   * @param plot
   * @param css
   */
- ContourStrip(int mxsize, int lev_idx, int idx0, int idx1, PlotDigits plot,
-     ContourStripSet css) {
+ ContourStrip(int mxsize, int lev_idx, int idx0, int idx1, ContourStripSet css) {
    this.lev_idx = lev_idx;
    this.plot = plot;
 
@@ -5128,9 +5053,6 @@ class ContourStrip {
    {
 
      /*-------LABEL START --------------------*/
-     // - get the label vertices from the PlotDigits object for
-     // - the isopleth value of the ContourStrip. 'B' arrays are
-     // - for the flipped orientation.
      float[] ctr_u = null;
      float[] norm_x_ctr = null;
 
