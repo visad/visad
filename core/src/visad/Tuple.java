@@ -333,7 +333,7 @@ public class Tuple extends DataImpl implements TupleIface {
       for (int j=0; j<dim; j++) {
         /* BINARY - TDR June 2, 1998 */
         m_type = ((TupleType)new_type).getComponent(j);
-        System.out.println("m_type = " + m_type);
+        //System.out.println("m_type = " + m_type);
         /* end  */
         datums[j] = getComponent(j).binary(((Tuple) data).getComponent(j), op,
                                               m_type, sampling_mode, error_mode);
