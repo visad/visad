@@ -5192,7 +5192,7 @@ class ContourStrip {
 
      // no lighting/shading for labels
      label.normals = null;
-   
+
      byte[] lblClr = new byte[clr_dim*label.vertexCount];
      if (labelColor != null) {
        for (int kk=0; kk<label.vertexCount; kk++) {
@@ -5201,6 +5201,7 @@ class ContourStrip {
          lblClr[kk*clr_dim+2] = labelColor[2];
          if (clr_dim == 4) lblClr[kk*clr_dim+3] = labelColor[3];
        }
+       label.colors = lblClr;
      } else if (bb != null) {
        for (int kk=0; kk<label.vertexCount; kk++) {
          lblClr[kk*clr_dim] = bb[0][loc];
@@ -5208,8 +5209,11 @@ class ContourStrip {
          lblClr[kk*clr_dim+2] = bb[2][loc];
          if (clr_dim == 4) lblClr[kk*clr_dim+3] = bb[3][loc];
        }
+       label.colors = lblClr;
      }
-     label.colors = lblClr;
+     else {
+       label.colors = null;
+     }
 
      VisADLineArray labelAnchor = new VisADLineArray();
 
