@@ -2395,7 +2395,7 @@ public abstract class JPythonMethods {
      
     } else if (domainDimension(f) == 1) {
       isFI = true;
-      numItems = getDomainSizes(f)[0];
+      numItems = getDomainSet(f).getLength();
 
     } else {
       throw new VisADException("Cannot rescale the data - unknown structure");
@@ -2496,7 +2496,7 @@ public abstract class JPythonMethods {
       isFI = true;
       try {
         fi = (FieldImpl)f.clone();
-        numItems = getDomainSizes(fi)[0];
+        numItems = getDomainSet(f).getLength();
       } catch (CloneNotSupportedException cnsfi) {
         throw new VisADException ("Cannot clone FieldImpl object");
       }
