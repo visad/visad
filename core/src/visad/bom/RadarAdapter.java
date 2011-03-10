@@ -5,7 +5,7 @@
 
 /*
 This sofware is part of the Australian Integrated Forecast System (AIFS)
-Copyright (C) 1999 Bureau of Meteorology
+Copyright (C) 2011 Bureau of Meteorology
 */
 
 package visad.bom;
