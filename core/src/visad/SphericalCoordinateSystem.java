@@ -144,6 +144,35 @@ public class SphericalCoordinateSystem extends CoordinateSystem {
     return value;
   }
 
+  public static float[] getNormal(float[] xyz) throws VisADException {
+    CoordinateSystem cs = Display.DisplaySphericalCoordSys; 
+    float[][] llrA = cs.fromReference(new float[][] {{xyz[0]}, {xyz[1]}, {xyz[2]}});
+    float[][] llrB = new float[][] {{llrA[0][0]}, {llrA[1][0]}, {llrA[2][0] + 1f}};
+    float[][] xyzB = cs.toReference(llrB);
+
+    float delX = xyzB[0][0] - xyz[0];
+    float delY = xyzB[1][0] - xyz[1];
+    float delZ = xyzB[2][0] - xyz[2];
+
+    float mag = (float) Math.sqrt(delX*delX+delY*delY+delZ*delZ);
+    return new float[] {delX/mag, delY/mag, delZ/mag};
+  }
+
+  public static float[] getUnitI(float[] xyz) throws VisADException {
+    CoordinateSystem cs = Display.DisplaySphericalCoordSys;
+    float[][] llrA = cs.fromReference(new float[][] {{xyz[0]}, {xyz[1]}, {xyz[2]}});
+    float[][] llrB = new float[][] {{llrA[0][0]}, {llrA[1][0] + 0.05f}, {llrA[2][0]}};
+    float[][] xyzB = cs.toReference(llrB);
+
+    float delX = xyzB[0][0] - xyz[0];
+    float delY = xyzB[1][0] - xyz[1];
+    float delZ = xyzB[2][0] - xyz[2];
+
+    float mag = (float) Math.sqrt(delX*delX+delY*delY+delZ*delZ);
+    return new float[] {delX/mag, delY/mag, delZ/mag};
+  }
+
+
   public boolean equals(Object cs) {
     return (cs instanceof SphericalCoordinateSystem);
   }
