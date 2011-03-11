@@ -543,7 +543,7 @@ public class Irregular3DSet extends IrregularSet {
                   boolean[] swap, boolean dash,
                   boolean fill, ScalarMap[] smap,
                   double scale_ratio, double label_size,
-                  float[][][] f_array) throws VisADException {
+                  boolean sphericalDisplayCS) throws VisADException {
     if (ManifoldDimension != 2) {
       throw new DisplayException("Irregular3DSet.makeIsoLines: " +
                                  "ManifoldDimension must be 2, not " +

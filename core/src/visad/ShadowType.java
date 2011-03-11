@@ -3764,8 +3764,12 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
 
     ShadowRealTupleType domain_reference = null;
     CoordinateSystem coord_sys = null;
+    boolean sphericalDisplayCS = false;
     if (spatialTuple != null)
       coord_sys = spatialTuple.getCoordinateSystem();
+    if (coord_sys != null) {
+      sphericalDisplayCS = coord_sys instanceof SphericalCoordinateSystem;
+    }
     domain_reference = Domain.getReference();
     boolean singleValueAsTexture = Boolean.parseBoolean(System.getProperty(PROP_CONTOURFILL_SINGLE_VALUE_AS_TEXTURE, "false"));
 
@@ -3916,13 +3920,11 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
               // to contour and return false;
               if (haveSingleValue && singleValueAsTexture) return false;
 
-              float[][][] f_array = new float[1][][];
-
               visad.util.Trace.call1("ShadowType:makeIsoLines");
               VisADGeometryArray[][] array_s = spatial_set.makeIsoLines(levs,
                   lowhibase[0], lowhibase[1], lowhibase[2], display_values[i],
                   color_values, swap, doStyle[0], fill, smap, scale,
-                  label_size, f_array);
+                  label_size, sphericalDisplayCS);
               visad.util.Trace.call2("ShadowType:makeIsoLines");
 
               // even though no contours were created, we at least tried

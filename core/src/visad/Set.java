@@ -480,8 +480,8 @@ public abstract class Set extends DataImpl implements SetIface {
                   float[] fieldValues, byte[][] color_values,
                   boolean[] swap, boolean dash,
                   boolean fill, ScalarMap[] smap,
-                  double scale_ratio, double label_size,
-                  float[][][] f_array) throws VisADException {
+                  double scale_ratio, double label_size, boolean sphericalDisplayCS
+                  ) throws VisADException {
     throw new SetException("Set.makeIsoLines: not valid for this Set");
   }
 

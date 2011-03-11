@@ -190,7 +190,7 @@ public interface SetIface
       ScalarMap[] smap,
       double scale_ratio,
       double label_size,
-      float[][][] f_array)
+      boolean sphericalDisplayCS)
     throws VisADException;
 
   VisADGeometryArray makeIsoSurface(

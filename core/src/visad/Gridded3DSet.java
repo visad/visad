@@ -2374,7 +2374,7 @@ public class Gridded3DSet extends GriddedSet {
   public VisADGeometryArray[][] makeIsoLines(float[] intervals, float lowlimit,
       float highlimit, float base, float[] fieldValues, byte[][] color_values,
       boolean[] swap, boolean dash, boolean fill, ScalarMap[] smap,
-      double scale, double label_size, float[][][] f_array)
+      double scale, double label_size, boolean sphericalDisplayCS)
       throws VisADException {
 
     
@@ -2488,7 +2488,7 @@ public class Gridded3DSet extends GriddedSet {
 
     Contour2D.ContourOutput contour = Contour2D.contour(g, nr, nc, intervals,
         lowlimit, highlimit, base, dash, color_values, swap, fill, grd_normals,
-        interval_colors, scale_ratio, label_size, labelAlign, labelColor, labelFont, this);
+        interval_colors, scale_ratio, label_size, labelAlign, labelColor, labelFont, sphericalDisplayCS, this);
     if (contour == null) return null;
 
 

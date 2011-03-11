@@ -197,7 +197,7 @@ public class Contour2D {
      float[][][] grd_normals, float[][] tri_normals, byte[][] interval_colors,
      float[][][][] lbl_vv, byte[][][][] lbl_cc, float[][][] lbl_loc,
      double scale_ratio, double label_size, boolean labelAlign, byte[] labelColor,
-     Object labelFont,
+     Object labelFont, boolean sphericalDisplayCS,
      Gridded3DSet spatial_set) throws VisADException {
    boolean[] dashes = { false };
    float[] intervals = intervalToLevels(interval, lowlimit, highlimit, base,
@@ -206,7 +206,7 @@ public class Contour2D {
 
    contour(g, nr, nc, intervals, lowlimit, highlimit, base, dash, auxValues,
        swap, fill, grd_normals, interval_colors, scale_ratio, label_size,
-       labelAlign, labelColor, labelFont, spatial_set);
+       labelAlign, labelColor, labelFont, sphericalDisplayCS, spatial_set);
  }
 
  /**
@@ -286,7 +286,7 @@ public class Contour2D {
      boolean dash, byte[][] auxValues, boolean[] swap, boolean fill,
      float[][][] grd_normals, byte[][] interval_colors, double scale_ratio,
      double label_size, boolean labelAlign, byte[] labelColor, 
-     Object labelFont, Gridded3DSet spatial_set)
+     Object labelFont, boolean sphericalDisplayCS, Gridded3DSet spatial_set)
      throws VisADException {
 
    dash = fill ? false : dash;
@@ -1379,7 +1379,7 @@ public class Contour2D {
    // ---TDR, build Contour Strips
 
    Trace.call1("Contour2d.getLineColorArrays");
-   ctrSet.getLineColorArrays(vx, vy, auxLevels, labelColor, labelFont, labelAlign, dashFlags);
+   ctrSet.getLineColorArrays(vx, vy, auxLevels, labelColor, labelFont, labelAlign, sphericalDisplayCS, dashFlags);
    Trace.call2("Contour2d.getLineColorArrays");
 
    return new ContourOutput(vx1, vy1, vz1, auxLevels1, // basic lines
@@ -4617,14 +4617,14 @@ class ContourStripSet {
   * @throws VisADException
   */
  void getLineColorArrays(float[] vx, float[] vy, byte[][] colors,
-     byte[] labelColor, Object labelFont, boolean labelAlign, int lev_idx, boolean[] dashed) throws VisADException {
+     byte[] labelColor, Object labelFont, boolean labelAlign, boolean sphericalDisplayCS, int lev_idx, boolean[] dashed) throws VisADException {
 
    int n_strips = vecArray[lev_idx].size();
 
    for (int kk = 0; kk < n_strips; kk++) {
      ContourStrip cs = vecArray[lev_idx].get(kk);
      cs.isDashed = dashed[lev_idx];
-     cs.getLabeledLineColorArray(vx, vy, colors, labelColor, labelFont, labelAlign);
+     cs.getLabeledLineColorArray(vx, vy, colors, labelColor, labelFont, labelAlign, sphericalDisplayCS);
    }
 
  }
@@ -4647,13 +4647,13 @@ class ContourStripSet {
   * @throws VisADException
   */
  void getLineColorArrays(float[] vx, float[] vy, byte[][] colors,
-     byte[] labelColor, Object labelFont, boolean labelAlign, boolean[] dashFlags) throws VisADException {
+     byte[] labelColor, Object labelFont, boolean labelAlign, boolean sphericalDisplayCS, boolean[] dashFlags) throws VisADException {
 
    makeContourStrips(vx, vy);
 
    // set the line and color arrays for each level
    for (int kk = 0; kk < n_levs; kk++) {
-     getLineColorArrays(vx, vy, colors, labelColor, labelFont, labelAlign, kk, dashFlags);
+     getLineColorArrays(vx, vy, colors, labelColor, labelFont, labelAlign, sphericalDisplayCS, kk, dashFlags);
    }
 
  }
@@ -4863,12 +4863,12 @@ class ContourStrip {
   * @throws VisADException
   */
  void getLabeledLineColorArray(float[] vx, float[] vy, byte[][] colors,
-     byte[] labelColor, Object labelFont, boolean labelAlign) throws VisADException {
+     byte[] labelColor, Object labelFont, boolean labelAlign, boolean sphericalDisplayCS) throws VisADException {
 
    float[][] vv = getLineArray(vx, vy);
    byte[][] bb = getColorArray(colors);
 
-   processLineArrays(vv, bb, labelColor, labelFont, labelAlign);
+   processLineArrays(vv, bb, labelColor, labelFont, labelAlign, sphericalDisplayCS);
  }
 
  /*/
@@ -4886,7 +4886,7 @@ class ContourStrip {
   * @param out_colorsL
   * @param lbl_loc
   */
- private void processLineArrays(float[][] vv_grid, byte[][] bb, byte[] labelColor, Object labelFont, boolean labelAlign) throws VisADException {
+ private void processLineArrays(float[][] vv_grid, byte[][] bb, byte[] labelColor, Object labelFont, boolean labelAlign, boolean sphericalDisplayCS) throws VisADException {
 
    float[][] vv = css.spatial_set.gridToValue(vv_grid);
 
@@ -5064,11 +5064,13 @@ class ContourStrip {
      norm = cg3d.getNormals(new float[][] { { vv_grid[0][loc] },
           { vv_grid[1][loc] } });
 
+   /*test
      if (norm[2][0] < 0) {
        norm[0][0] = -norm[0][0];
        norm[1][0] = -norm[1][0];
        norm[2][0] = -norm[2][0];
      }
+    */
 
      float[] labelBase = null;
      float[] labelUp = null;
@@ -5095,6 +5097,26 @@ class ContourStrip {
          ctr_u[2] = -ctr_u[2];
        }
 
+       if (sphericalDisplayCS) {
+         float[] newNorm = SphericalCoordinateSystem.getNormal(
+               new float[] {vv[0][pos], vv[1][pos], vv[2][pos]});
+
+         norm[0][0] = newNorm[0];
+         norm[1][0] = newNorm[1];
+         norm[2][0] = newNorm[2];
+
+         float[] unitI = SphericalCoordinateSystem.getUnitI(
+              new float[] {vv[0][pos], vv[1][pos], vv[2][pos]});
+
+         float ctr_u_dot_unitI = ctr_u[0]*unitI[0] + ctr_u[1]*unitI[1] + ctr_u[2]*unitI[2];
+         if (ctr_u_dot_unitI < 0) {
+            ctr_u[0] = -ctr_u[0];
+            ctr_u[1] = -ctr_u[1];
+            ctr_u[2] = -ctr_u[2];
+         }
+       }
+
+
        // - get a vector perpendicular to contour line, and in the local
        // - tangent plane. norm_x_ctr: cross-product of local norm and
        // - unit vector parallel to contour line at label location.
@@ -5111,17 +5133,20 @@ class ContourStrip {
        norm_x_ctr[1] = norm_x_ctr[1] / mag;
        norm_x_ctr[2] = norm_x_ctr[2] / mag;
 
-       if (Math.abs((double) norm[2][0]) <= 0.00001) {
-         if (norm_x_ctr[2] < 0) {
-           norm_x_ctr[0] = -norm_x_ctr[0];
-           norm_x_ctr[1] = -norm_x_ctr[1];
-           norm_x_ctr[2] = -norm_x_ctr[2];
-         }
-       } else {
-         if (norm_x_ctr[1] < 0) {
-           norm_x_ctr[0] = -norm_x_ctr[0];
-           norm_x_ctr[1] = -norm_x_ctr[1];
-           norm_x_ctr[2] = -norm_x_ctr[2];
+       if (!sphericalDisplayCS) {
+         if (Math.abs((double) norm[2][0]) <= 0.00001) {
+           if (norm_x_ctr[2] < 0) {
+             norm_x_ctr[0] = -norm_x_ctr[0];
+             norm_x_ctr[1] = -norm_x_ctr[1];
+             norm_x_ctr[2] = -norm_x_ctr[2];
+           }
+         } 
+         else {
+           if (norm_x_ctr[1] < 0) {
+             norm_x_ctr[0] = -norm_x_ctr[0];
+             norm_x_ctr[1] = -norm_x_ctr[1];
+             norm_x_ctr[2] = -norm_x_ctr[2];
+           }
          }
        }
 
@@ -5132,6 +5157,20 @@ class ContourStrip {
        float a = norm[0][0];
        float b = norm[1][0];
        float c = norm[2][0];
+
+       float[] unitI = null;
+
+       if (sphericalDisplayCS) {
+         float[] newNorm = SphericalCoordinateSystem.getNormal(
+              new float[] {vv[0][pos], vv[1][pos], vv[2][pos]});
+
+         unitI = SphericalCoordinateSystem.getUnitI(
+              new float[] {vv[0][pos], vv[1][pos], vv[2][pos]}); 
+
+         a = newNorm[0];
+         b = newNorm[1];
+         c = newNorm[2];
+       }
       
        if ( visad.util.Util.isApproximatelyEqual(a, 0) && visad.util.Util.isApproximatelyEqual(b, 0)) {
          labelBase = new float[] {1,0,0};
@@ -5149,7 +5188,14 @@ class ContourStrip {
        
          float mag = (float) Math.sqrt(delX*delX + delY*delY);
 
-         float[] uLine = new float[] {delX/mag, delY/mag, 0};
+         float[] uLine = null;
+
+         if (sphericalDisplayCS) {
+           uLine = new float[] {unitI[0], unitI[1], unitI[2]};
+         }
+         else {
+           uLine = new float[] {delX/mag, delY/mag, 0};
+         }
 
          float[] norm_x_uLine = new float[] { 
             (b*uLine[2] - c*uLine[1]),
@@ -5164,6 +5210,23 @@ class ContourStrip {
 
          labelBase = uLine;
          labelUp = norm_x_uLine;
+
+         if (sphericalDisplayCS) {
+           /*
+           if (labelUp[2] < 0) {
+             labelUp[0] = -labelUp[0];
+             labelUp[1] = -labelUp[1];
+             labelUp[2] = -labelUp[2];
+           }
+           if (b > 0) {
+             if (labelBase[0] > 0) {
+               labelBase[0] = -labelBase[0];
+               labelBase[1] = -labelBase[1];
+               labelBase[2] = -labelBase[2];
+             }
+           }
+           */
+         }
        }
      }
 
@@ -5193,27 +5256,28 @@ class ContourStrip {
      // no lighting/shading for labels
      label.normals = null;
 
-     byte[] lblClr = new byte[clr_dim*label.vertexCount];
+     // set the color arrays for label, can be null
+     byte[] lblClr = null;
      if (labelColor != null) {
+       int clrDim = labelColor.length;
+       lblClr = new byte[clrDim*label.vertexCount];
        for (int kk=0; kk<label.vertexCount; kk++) {
-         lblClr[kk*clr_dim] = labelColor[0];
-         lblClr[kk*clr_dim+1] = labelColor[1];
-         lblClr[kk*clr_dim+2] = labelColor[2];
-         if (clr_dim == 4) lblClr[kk*clr_dim+3] = labelColor[3];
+         lblClr[kk*clrDim] = labelColor[0];
+         lblClr[kk*clrDim+1] = labelColor[1];
+         lblClr[kk*clrDim+2] = labelColor[2];
+         if (clrDim == 4) lblClr[kk*clrDim+3] = labelColor[3];
        }
-       label.colors = lblClr;
-     } else if (bb != null) {
+     } 
+     else if (bb != null) {
+       lblClr = new byte[clr_dim*label.vertexCount];
        for (int kk=0; kk<label.vertexCount; kk++) {
          lblClr[kk*clr_dim] = bb[0][loc];
          lblClr[kk*clr_dim+1] = bb[1][loc];
          lblClr[kk*clr_dim+2] = bb[2][loc];
          if (clr_dim == 4) lblClr[kk*clr_dim+3] = bb[3][loc];
        }
-       label.colors = lblClr;
      }
-     else {
-       label.colors = null;
-     }
+     label.colors = lblClr;
 
      VisADLineArray labelAnchor = new VisADLineArray();
 

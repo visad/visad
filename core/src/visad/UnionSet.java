@@ -464,7 +464,7 @@ public class UnionSet extends SampledSet {
                   boolean[] swap, boolean dash,
                   boolean fill, ScalarMap[] smap,
                   double scale_ratio, double label_size,
-                  float[][][] f_array) throws VisADException {
+                  boolean sphericalDisplayCS) throws VisADException {
     if (DomainDimension != 3) {
       throw new DisplayException("UnionSet.makeIsoLines: " +
                                  "DomainDimension must be 3, not " +
@@ -478,7 +478,6 @@ public class UnionSet extends SampledSet {
     int n = Sets.length;
     int dim = color_values.length;
     VisADLineArray[][][] arrays = new VisADLineArray[n][][];
-    float[][][][] f_arrays = new float[n][1][][];
     int kbase = 0;
     for (int i=0; i<n; i++) {
       int len = Sets[i].Length;
@@ -491,7 +490,7 @@ public class UnionSet extends SampledSet {
       arrays[i] =
         (VisADLineArray[][]) Sets[i].makeIsoLines(intervals, low, hi, base,
                                                   f, c, swap, dash, fill, smap,
-                                                  scale_ratio, label_size, f_arrays[i]);
+                                                  scale_ratio, label_size, sphericalDisplayCS);
       kbase += len;
     }
     VisADLineArray[][] arrays2 = new VisADLineArray[4][];
@@ -514,17 +513,6 @@ public class UnionSet extends SampledSet {
         for (int j2=0; j2<arrays[i][j].length; j2++) {
           arrays2[j][cnt++] = arrays[i][j][j2];
         }
-      }
-    }
-    int cnt = 0;
-    for (int i=0; i<n; i++) {
-      cnt += f_arrays[i][0].length;
-    }
-    f_array[0] = new float[cnt][];
-    cnt = 0;
-    for (int i=0; i<n; i++) {
-      for (int j=0; j< f_arrays[i][0].length; j++) {
-        f_array[0][cnt++] = f_arrays[i][0][j];
       }
     }
     return arrays2;
