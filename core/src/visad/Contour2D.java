@@ -5211,22 +5211,6 @@ class ContourStrip {
          labelBase = uLine;
          labelUp = norm_x_uLine;
 
-         if (sphericalDisplayCS) {
-           /*
-           if (labelUp[2] < 0) {
-             labelUp[0] = -labelUp[0];
-             labelUp[1] = -labelUp[1];
-             labelUp[2] = -labelUp[2];
-           }
-           if (b > 0) {
-             if (labelBase[0] > 0) {
-               labelBase[0] = -labelBase[0];
-               labelBase[1] = -labelBase[1];
-               labelBase[2] = -labelBase[2];
-             }
-           }
-           */
-         }
        }
      }
 
