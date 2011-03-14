@@ -490,6 +490,8 @@ public class ShadowImageFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 			int tableEnd = color_table[0].length - 1;
                         for(int data_indx = 0; data_indx < domain_length; data_indx++) {
                         	int indx = (int)((float)tableEnd * values[map_indx][data_indx]);
+                                // clip to table
+                                indx = indx < 0 ? 0 : (indx > tableEnd ? tableEnd : indx);
                                 color_bytes[map_indx][data_indx] = (byte)itable[indx][map_indx];
                         }
 			itable = null;	//Take out the garbage
