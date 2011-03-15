@@ -33,6 +33,7 @@ import visad.data.mcidas.BaseMapAdapter;
 import visad.data.mcidas.AreaAdapter;
 import visad.data.gif.GIFForm;
 import visad.util.Util;
+import visad.util.ThreadManager;
 
 import javax.media.j3d.*;
 
@@ -739,8 +740,11 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
                                         for (int x=0; x<tile_width; x++) {
                                                 int i = x + image_col_factor;
                                                 int j = bytes0[i] & 0xff; // unsigned
+                                                k = x + y*texture_width;
+                                                k *= color_length;
                                                 // clip to table
                                                 int ndx = j < 0 ? 0 : (j > tblEnd ? tblEnd : j);
+
                                                 if (color_length == 4) {
                                                         byteData[k] = itable[ndx][3];
                                                         byteData[k+1] = itable[ndx][2];
@@ -755,7 +759,6 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
                                                 if (color_length == 1) {
                                                         byteData[k] = itable[ndx][0];
                                                 }
-                                                k += color_length;
                                         }
                                 }
                         } else if (scaled_Bytes != null && scaled_Bytes[0] != null && is_default_unit && rset != null && rset instanceof Linear1DSet) {
@@ -798,6 +801,9 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
                                         for (int x=0; x<tile_width; x++) {
                                                 int i = x + image_col_factor;
                                                 int ndx = ((int) bytes0[i]) - MISSING1;
+                                                k = x + y*texture_width;
+                                                k *= color_length;
+
                                                 if (color_length == 4) {
                                                         byteData[k] = itable[ndx][3];
                                                         byteData[k+1] = itable[ndx][2];
@@ -812,7 +818,6 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
                                                 if (color_length == 1) {
                                                         byteData[k] = itable[ndx][0];
                                                 }
-                                                k += color_length;
                                         }
                                 }
                         } else {
@@ -829,6 +834,8 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
                                         int image_col_factor =  (y+yStart)*data_width + xStart;
                                         for (int x=0; x<tile_width; x++) {
                                                 int i = x + image_col_factor;
+                                                k = x + y*texture_width;
+                                                k *= color_length;
 
                                                 if (!Float.isNaN(values0[i])) { // not missing
                                                         int j = (int) (table_scale * values0[i]);
@@ -849,7 +856,6 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
                                                                 byteData[k] = itable[ndx][0];
                                                         }
                                                 }
-                                                k += color_length;
                                         }
                                 }
                         }
@@ -874,6 +880,8 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
                                 int image_col_factor = (y+yStart)*data_width + xStart;
                                 for (int x=0; x<tile_width; x++) {
                                         int i = x + image_col_factor;
+                                        k = x + y*texture_width;
+                                        k *= color_length;
 
                                         if (!Float.isNaN(scaled_Floats[0][i])) { // not missing
                                                 c = (int) (255.0 * color_values[0][i]);
@@ -901,7 +909,6 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
                                                         byteData[k] = (byte) b;
                                                 }
                                         }
-                                        k += color_length;
                                 }
                         }
                 }
@@ -980,6 +987,37 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
                         if (first_time) {
                                 float[][] values = ((Field) data).getFloats(false);
                                 scaled_Floats = new float[3][];
+
+                                /** Multi Threading
+                                final ScalarMap cmap0 = cmaps[permute[0]];
+                                final float[] values0 = values[permute[0]];
+                                ThreadManager threadManager = new ThreadManager(java.lang.Runtime.getRuntime().availableProcessors());
+                                threadManager.addRunnable(new ThreadManager.MyRunnable() {
+                                        public void run() throws Exception {
+                                          scaled_Floats[0] = cmap0.scaleValues(values0);
+                                        }
+                                   });
+
+                                final ScalarMap cmap1 = cmaps[permute[1]];
+                                final float[] values1 = values[permute[1]];
+                                threadManager.addRunnable(new ThreadManager.MyRunnable() {
+                                        public void run() throws Exception {
+                                          scaled_Floats[1] = cmap1.scaleValues(values1);
+                                        }
+                                   });
+
+                                final ScalarMap cmap2 = cmaps[permute[2]];
+                                final float[] values2 = values[permute[2]];
+                                threadManager.addRunnable(new ThreadManager.MyRunnable() {
+                                        public void run() throws Exception {
+                                          scaled_Floats[2] = cmap2.scaleValues(values2);
+                                        }
+                                   });
+
+                                long time1 = System.currentTimeMillis();
+                                threadManager.runInParallel();
+                                long time2 = System.currentTimeMillis();
+                                */
                                 scaled_Floats[0] = cmaps[permute[0]].scaleValues(values[permute[0]]);
                                 scaled_Floats[1] = cmaps[permute[1]].scaleValues(values[permute[1]]);
                                 scaled_Floats[2] = cmaps[permute[2]].scaleValues(values[permute[2]]);
@@ -997,6 +1035,8 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
                                 int image_col_factor = (y+yStart)*data_width + xStart;
                                 for (int x=0; x<tile_width; x++) {
                                         int i = x + image_col_factor;
+                                        k = x + y*texture_width;
+                                        k *= color_length;
 
                                         if (!Float.isNaN(scaled_Floats[0][i]) && !Float.isNaN(scaled_Floats[1][i]) && !Float.isNaN(scaled_Floats[2][i])) { // not missing
                                                 if (isRGBRGBRGB) { //Inserted by Ghansham (start here)
@@ -1033,7 +1073,6 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
                                                         byteData[k] = (byte) b;
                                                 }
                                         }
-                                        k += color_length;
                                 }
                         }
                 }
