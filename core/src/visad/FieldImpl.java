@@ -3526,7 +3526,11 @@ public class FieldImpl extends FunctionImpl implements Field {
    */
   public void __setitem__(int index, Data data)
          throws VisADException, RemoteException {
-    setSample(index, data);
+    if (data instanceof Real && ( (Real)data).getUnit() == null) {
+      __setitem__(index, ( (Real)data).getValue());
+    } else {
+      setSample(index, data);
+    }
   }
 
   /**
@@ -3549,10 +3553,10 @@ public class FieldImpl extends FunctionImpl implements Field {
     if (real != null) {
       Real r = new Real(real, data);
       if (tuple) {
-        __setitem__(index, new RealTuple(new Real[] {r}));
+        setSample(index, new RealTuple(new Real[] {r}));
       }
       else {
-        __setitem__(index, r);
+        setSample(index, r);
       }
     }
     else {
