@@ -1154,7 +1154,7 @@ public class SceneGraphRenderer {
   private float getLineThickness(Appearance appearance) {
     float thickness = 0.0f;
     LineAttributes lineAttr = appearance.getLineAttributes();
-    if (lineAttr.getCapability(LineAttributes.ALLOW_WIDTH_READ)) {
+    if (lineAttr != null && lineAttr.getCapability(LineAttributes.ALLOW_WIDTH_READ)) {
       thickness = lineAttr.getLineWidth();
     }
 
@@ -1171,7 +1171,7 @@ public class SceneGraphRenderer {
   private int getLineStyle(Appearance appearance) {
     LineAttributes lineAttr = appearance.getLineAttributes();
     int lineStyle = LineAttributes.PATTERN_SOLID;
-    if (lineAttr.getCapability(LineAttributes.ALLOW_PATTERN_READ)) {
+    if (lineAttr != null && lineAttr.getCapability(LineAttributes.ALLOW_PATTERN_READ)) {
       lineStyle = lineAttr.getLinePattern();
     }
 
