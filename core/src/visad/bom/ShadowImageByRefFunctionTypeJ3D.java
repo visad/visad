@@ -525,8 +525,10 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
         if (imgNode.getNumTiles() == 1) {
           VisADImageTile tile = imgNode.getTile(0);
-                makeColorBytesDriver(imgFlatField, cmap, cmaps, constant_alpha, RangeComponents, color_length, domain_length, permute,
-                      color_bytes, data_width, data_height, imageType, tile,  0);
+
+          makeColorBytesDriver(imgFlatField, cmap, cmaps, constant_alpha, RangeComponents, color_length, domain_length, permute,
+                               color_bytes, data_width, data_height, imageType, tile,  0);
+
           buildCurvedTexture(bgImages, domain_set, dataUnits, domain_units, default_values, DomainComponents,
                              valueArrayLength, inherited_values, valueToScalar, mode, constant_alpha,
                              value_array, constant_color, display, curved_size, Domain,
@@ -546,9 +548,12 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
           for (Iterator iter = imgNode.getTileIterator(); iter.hasNext();) {
              VisADImageTile tile = (VisADImageTile) iter.next();
-                makeColorBytesDriver(imgFlatField, cmap, cmaps, constant_alpha, RangeComponents, color_length, domain_length, permute,
-                      color_bytes, data_width, data_height, imageType, tile, 0);
-                first_time = false; //Ghansham: setting 'first_time' variable false after the first tile has been generated
+
+             makeColorBytesDriver(imgFlatField, cmap, cmaps, constant_alpha, RangeComponents, color_length, domain_length, permute,
+                                  color_bytes, data_width, data_height, imageType, tile, 0);
+
+             first_time = false; //Ghansham: setting 'first_time' variable false after the first tile has been generated
+
              BranchGroup branch1 = new BranchGroup();
              branch1.setCapability(BranchGroup.ALLOW_DETACH);
              branch1.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
@@ -1642,16 +1647,20 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
     coordinates[tuple_index[1]] = limits[1][0];
     coordinates[tuple_index[2]] = value2;
     // corner 1
-    coordinates[3 + tuple_index[0]] = limits[0][1];
-    coordinates[3 + tuple_index[1]] = limits[1][0];
+    //coordinates[3 + tuple_index[0]] = limits[0][1];
+    //coordinates[3 + tuple_index[1]] = limits[1][0];
+    coordinates[3 + tuple_index[0]] = limits[0][0];
+    coordinates[3 + tuple_index[1]] = limits[1][1];
     coordinates[3 + tuple_index[2]] = value2;
     // corner 2
     coordinates[6 + tuple_index[0]] = limits[0][1];
     coordinates[6 + tuple_index[1]] = limits[1][1];
     coordinates[6 + tuple_index[2]] = value2;
     // corner 3
-    coordinates[9 + tuple_index[0]] = limits[0][0];
-    coordinates[9 + tuple_index[1]] = limits[1][1];
+    //coordinates[9 + tuple_index[0]] = limits[0][0];
+    //coordinates[9 + tuple_index[1]] = limits[1][1];
+    coordinates[9 + tuple_index[0]] = limits[0][1];
+    coordinates[9 + tuple_index[1]] = limits[1][0];
     coordinates[9 + tuple_index[2]] = value2;
                                                                                                                        
     // move image back in Java3D 2-D mode
