@@ -73,6 +73,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
   private byte[][] itable; //For single band
   private byte[][][] threeD_itable; //for multiband
+  private byte[][] fast_table;
 
   private float[][] color_values; //special case
   private boolean first_time; //This variable indicates the first tile of the image.
@@ -785,15 +786,14 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
                                         float add = (float) (table_scale * (offset + scale * first));
 
                                         // build table for fast color lookup
-                                        itable = null;
-                                        itable = new byte[256][];
+                                        fast_table = new byte[256][];
                                         for (int j=0; j<256; j++) {
                                                 int index = j - 1;
                                                 if (index >= 0) { // not missing
                                                         int k = (int) (add + mult * index);
                                                         // clip to table
                                                         int ndx = k < 0 ? 0 : (k > tblEnd ? tblEnd : k);
-                                                        itable[j] = itable[ndx];
+                                                        fast_table[j] = itable[ndx];
                                                 }
                                         }
                                 }
@@ -810,18 +810,18 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
                                                 k *= color_length;
 
                                                 if (color_length == 4) {
-                                                        byteData[k] = itable[ndx][3];
-                                                        byteData[k+1] = itable[ndx][2];
-                                                        byteData[k+2] = itable[ndx][1];
-                                                        byteData[k+3] = itable[ndx][0];
+                                                        byteData[k] = fast_table[ndx][3];
+                                                        byteData[k+1] = fast_table[ndx][2];
+                                                        byteData[k+2] = fast_table[ndx][1];
+                                                        byteData[k+3] = fast_table[ndx][0];
                                                 }
                                                 if (color_length == 3) {
-                                                        byteData[k] = itable[ndx][2];
-                                                        byteData[k+1] = itable[ndx][1];
-                                                        byteData[k+2] = itable[ndx][0];
+                                                        byteData[k] = fast_table[ndx][2];
+                                                        byteData[k+1] = fast_table[ndx][1];
+                                                        byteData[k+2] = fast_table[ndx][0];
                                                 }
                                                 if (color_length == 1) {
-                                                        byteData[k] = itable[ndx][0];
+                                                        byteData[k] = fast_table[ndx][0];
                                                 }
                                         }
                                 }
