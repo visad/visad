@@ -624,6 +624,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       itable = null; //For single band
       threeD_itable = null; //for multiband
       color_values = null; //special case
+      fast_table = null;
 
     ensureNotEmpty(bgImages);
     return false;
