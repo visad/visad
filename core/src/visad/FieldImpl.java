@@ -1589,9 +1589,14 @@ public class FieldImpl extends FunctionImpl implements Field {
         real = (Real)
           ((TupleIface) getSample(ii)).getComponent( component );
         value = real.getValue();
-        unit = real.getUnit();
 
-        values[0][ii] = new_unit[0].toThis( value, unit );
+        if (new_unit[0] != null) {
+          unit = real.getUnit();
+          values[0][ii] = new_unit[0].toThis( value, unit );
+        }
+        else {
+          values[0][ii] = value;
+        }
       }
 
       ((FlatField)new_field).setSamples( values, false );
