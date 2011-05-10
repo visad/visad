@@ -224,31 +224,37 @@ public class Real
   }
 
   public int __gt__(Real other) throws VisADException, RemoteException {
+    if (other == null) return 0;
     double d = ((Real) subtract(other)).getValue();
     if (d > 0.0) return 1;
     return 0;
   }
   public int __lt__(Real other) throws VisADException, RemoteException {
+    if (other == null) return 0;
     double d = ((Real) subtract(other)).getValue();
     if (d < 0.0) return 1;
     return 0;
   }
   public int __ge__(Real other) throws VisADException, RemoteException {
+    if (other == null) return 0;
     double d = ((Real) subtract(other)).getValue();
     if (d >= 0.0) return 1;
     return 0;
   }
   public int __le__(Real other) throws VisADException, RemoteException {
+    if (other == null) return 0;
     double d = ((Real) subtract(other)).getValue();
     if (d <= 0.0) return 1;
     return 0;
   }
   public int __eq__(Real other) throws VisADException, RemoteException {
+    if (other == null) return 0;
     double d = ((Real) subtract(other)).getValue();
     if (d == 0.0) return 1;
     return 0;
   }
   public int __ne__(Real other) throws VisADException, RemoteException {
+    if (other == null) return 1;
     double d = ((Real) subtract(other)).getValue();
     if (d != 0.0) return 1;
     return 0;
