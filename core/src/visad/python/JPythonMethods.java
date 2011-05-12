@@ -3123,6 +3123,13 @@ public abstract class JPythonMethods {
       visad.jmet.DumpType.dumpDataType(d);
   }
 
+  /** helper method for the dump(Data|Math)Type() methods
+  *   this will list both the MathType and DataType information
+  *   to a ByteArrayOutputStream which is returned.
+  *
+  * @param d is the Data object
+  *
+  */
   public static ByteArrayOutputStream sdumpTypes(Data d) 
              throws VisADException, RemoteException {
       MathType t = d.getType();
@@ -3134,6 +3141,8 @@ public abstract class JPythonMethods {
 
   /** helper method for dumpMathType() only
   * This just dumps out the MathType of the Data object.
+  * @param d is the Data object
+  *
   */
   public static void dumpType(Data d) 
              throws VisADException, RemoteException {
@@ -3141,6 +3150,13 @@ public abstract class JPythonMethods {
       visad.jmet.DumpType.dumpMathType(t);
   }
 
+  /** helper method for dumpMathType() only
+  * This just dumps out the MathType of the Data object into
+  * a ByteArrayOutputStream which is returned.
+  * @param d is the Data object
+  *
+  *
+  */
   public static ByteArrayOutputStream sdumpType(Data d) 
              throws VisADException, RemoteException {
       ByteArrayOutputStream bos = new ByteArrayOutputStream();
