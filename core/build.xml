@@ -33,6 +33,7 @@
 		<include name="edu/wisc/ssec/mcidas/**/*" />
 		<include name="visad/*" />
 		<include name="visad/bom/*" />
+		<include name="visad/bom/annotations/*" />
 		<include name="visad/browser/*" />
 		<include name="visad/collab/*" />
 		<include name="visad/data/*" />
