@@ -36,6 +36,7 @@ import java.util.Vector;
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
+import java.io.ByteArrayOutputStream;
 import java.lang.Math;
 
 import visad.*;
@@ -3122,6 +3123,15 @@ public abstract class JPythonMethods {
       visad.jmet.DumpType.dumpDataType(d);
   }
 
+  public static ByteArrayOutputStream sdumpTypes(Data d) 
+             throws VisADException, RemoteException {
+      MathType t = d.getType();
+      ByteArrayOutputStream bos = new ByteArrayOutputStream();
+      visad.jmet.DumpType.dumpMathType(t,bos);
+      visad.jmet.DumpType.dumpDataType(d,bos);
+      return bos;
+  }
+
   /** helper method for dumpMathType() only
   * This just dumps out the MathType of the Data object.
   */
@@ -3129,6 +3139,14 @@ public abstract class JPythonMethods {
              throws VisADException, RemoteException {
       MathType t = d.getType();
       visad.jmet.DumpType.dumpMathType(t);
+  }
+
+  public static ByteArrayOutputStream sdumpType(Data d) 
+             throws VisADException, RemoteException {
+      ByteArrayOutputStream bos = new ByteArrayOutputStream();
+      MathType t = d.getType();
+      visad.jmet.DumpType.dumpMathType(t,bos);
+      return bos;
   }
 
   public static 
