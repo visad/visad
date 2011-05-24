@@ -1217,7 +1217,7 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
       renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
                spatial_value_indices, default_values, null);
     }
-
+  
     if (useLinearTexture) {
       float scaleX = (float) scale[0];
       float scaleY = (float) scale[1];
@@ -1231,9 +1231,9 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
                 //If there is tiling in linear texture domain set is coming null if number of tiles is greater than 1
                 //Code inserted by Ghansham (starts here)
                 int indx0 = (start[0] ) + (start[1])*bigX;
-                int indx1 = (start[0]) + (start[1] + lenY-1)*bigX;
+                int indx1 = (start[0] + lenX -1 ) + (start[1])*bigX;
                 int indx2 = (start[0] + lenX -1) + (start[1] + lenY - 1)*bigX;
-                int indx3 = (start[0] + lenX -1 ) + (start[1])*bigX;
+                int indx3 = (start[0]) + (start[1] + lenY-1)*bigX;
 
                 float x0 = samples[0][indx0];
                 float y0 = samples[1][indx0];
@@ -1262,33 +1262,43 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
 
       // create VisADQuadArray that texture is mapped onto
       coordinates = new float[12];
-      // corner 0 (-1,1)
-      coordinates[tuple_index[0]] = xyCoords[0][0];
-      coordinates[tuple_index[1]] = xyCoords[1][0];
-      coordinates[tuple_index[2]] = value2;
-      // corner 1 (-1,-1)
-      coordinates[3+tuple_index[0]] = xyCoords[0][1];
-      coordinates[3+tuple_index[1]] = xyCoords[1][1];
-      coordinates[3 + tuple_index[2]] = value2;
-      // corner 2 (1, -1)
-      coordinates[6+tuple_index[0]] = xyCoords[0][2];
-      coordinates[6+tuple_index[1]] = xyCoords[1][2];
-      coordinates[6 + tuple_index[2]] = value2;
-      // corner 3 (1,1)
-      coordinates[9+tuple_index[0]] = xyCoords[0][3];
-      coordinates[9+tuple_index[1]] = xyCoords[1][3];
-      coordinates[9 + tuple_index[2]] = value2;
 
+      coordinates[0] = xyCoords[0][0];
+      coordinates[1] = xyCoords[1][0];
+      coordinates[2] = value2;
+
+      coordinates[3] = xyCoords[0][1];
+      coordinates[4] = xyCoords[1][1];
+      coordinates[5] = value2;
+
+      coordinates[6] = xyCoords[0][2];
+      coordinates[7] = xyCoords[1][2];
+      coordinates[8] = value2;
+
+      coordinates[9] = xyCoords[0][3];
+      coordinates[10] = xyCoords[1][3];
+      coordinates[11] = value2;
 
       // move image back in Java3D 2-D mode
       adjustZ(coordinates);
 
-      texCoords = new float[8];
       float ratiow = ((float) data_width) / ((float) texture_width);
       float ratioh = ((float) data_height) / ((float) texture_height);
 
-      boolean yUp = true;
-      setTexCoords(texCoords, ratiow, ratioh, yUp);
+      texCoords = new float[8];
+      // corner 0
+      texCoords[0] = 0.0f;
+      texCoords[1] = 0.0f;
+      // corner 1
+      texCoords[2] = ratiow;
+      texCoords[3] = 0.0f;
+      // corner 2
+      texCoords[4] = ratiow;
+      texCoords[5] = ratioh;
+      // corner 3
+      texCoords[6] = 0.0f;
+      texCoords[7] = ratioh;
+
 
       normals = new float[12];
       float n0 = ((coordinates[3+2]-coordinates[0+2]) *
@@ -1746,9 +1756,9 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
     float[][] xyCoords = new float[2][4];
 
     float[][] coords0 = ((GriddedSet)domain_set).gridToValue(new float[][] {{0f},{0f}});
-    float[][] coords1 = ((GriddedSet)domain_set).gridToValue(new float[][] {{0f},{(float)(data_height-1)}});
+    float[][] coords1 = ((GriddedSet)domain_set).gridToValue(new float[][] {{(data_width-1f)},{0f}});
     float[][] coords2 = ((GriddedSet)domain_set).gridToValue(new float[][] {{(data_width-1f)},{(data_height-1f)}});
-    float[][] coords3 = ((GriddedSet)domain_set).gridToValue(new float[][] {{(data_width-1f)},{0f}});
+    float[][] coords3 = ((GriddedSet)domain_set).gridToValue(new float[][] {{0f},{(float)(data_height-1)}});
 
     float x0 = coords0[0][0];
     float y0 = coords0[1][0];
@@ -1770,6 +1780,7 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
 
     xyCoords[0][3] = (x3 - offsetX)/scaleX;
     xyCoords[1][3] = (y3 - offsetY)/scaleY;
+
 
     return xyCoords;
   }
