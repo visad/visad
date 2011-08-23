@@ -30,14 +30,16 @@ import java.awt.Font;
 import java.awt.Dimension;
 import java.awt.event.*;
 import java.lang.reflect.InvocationTargetException;
-import java.rmi.RemoteException;
-import java.util.Hashtable;
-import java.util.Vector;
-import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.ByteArrayOutputStream;
-import java.lang.Math;
+import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.TreeSet;
+
+import javax.swing.*;
 
 import visad.*;
 import visad.math.*;
@@ -49,7 +51,7 @@ import ucar.netcdf.NetcdfFile;
 import visad.data.netcdf.QuantityDBManager;
 import visad.data.netcdf.in.DefaultView;
 import visad.data.netcdf.in.NetcdfAdapter;
-import java.util.TreeSet;
+
 
 /**
  * A collection of methods for working with VisAD, callable from the
@@ -57,27 +59,39 @@ import java.util.TreeSet;
  */
 public abstract class JPythonMethods {
 
+  /** TODO */
   private static final String DEFAULT_NAME = "Jython";
 
+  /** TODO */
   private static final String ID = JPythonMethods.class.getName();
 
+  /** TODO */
   private static DefaultFamily form = new DefaultFamily(ID);
 
+  /** TODO */
   private static final String[] ops = {"gt","ge","lt","le","eq","ne","ne"};
+  
+  /** TODO */
   private static final String[] ops_sym = {">",">=","<","<=","==","!=","<>"};
+
+  /** Make a Hashtable available for everyone */
+  public static Hashtable JyVars = new Hashtable();
+
+  /** TODO */
+  private static Hashtable<String, JFrame> frames = new Hashtable<String, JFrame>();
 
   /**
    * Reads in data from the given location (filename or URL).
+   * 
+   * @param location 
+   * 
+   * @return 
+   * 
+   * @throws VisADException 
    */
   public static DataImpl load(String location) throws VisADException {
     return form.open(location);
   }
-
-  /** Make a Hashtable available for everyone
-  */
-  public static Hashtable JyVars = new Hashtable();
-
-  private static Hashtable frames = new Hashtable();
 
   /**
    * Displays the given data onscreen.
@@ -88,19 +102,35 @@ public abstract class JPythonMethods {
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
-  public static void plot(float[] data)
+  public static void plot(final float[] data)
     throws VisADException, RemoteException
   {
     plot(null, field(data), false, 1.0, 1.0, 1.0);
   }
 
-  public static void plot(float[][] data)
+  /**
+   * 
+   * @param   data            VisAD data object to plot; may also be
+   *                          a float[] or float[][]
+   * 
+   * @throws VisADException
+   * @throws RemoteException
+   */
+  public static void plot(final float[][] data)
     throws VisADException, RemoteException
   {
     plot(null, field(data), false, 1.0, 1.0, 1.0);
   }
 
-  public static void plot(DataImpl data)
+  /**
+   * 
+   * @param   data            VisAD data object to plot; may also be
+   *                          a float[] or float[][]
+   * 
+   * @throws VisADException
+   * @throws RemoteException
+   */
+  public static void plot(final DataImpl data)
     throws VisADException, RemoteException
   {
     plot(null, data, false, 1.0, 1.0, 1.0);
@@ -116,17 +146,37 @@ public abstract class JPythonMethods {
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
-  public static void plot(float[] data, ScalarMap[] maps)
+  public static void plot(final float[] data, final ScalarMap[] maps)
     throws VisADException, RemoteException {
     plot(null, field(data), false, 1.0, 1.0, 1.0, maps);
   }
 
-  public static void plot(float[][] data, ScalarMap[] maps)
+  /**
+   * 
+   * 
+   * @param   data            VisAD data object to plot; may also be
+   *                          a float[] or float[][]
+   * @param   maps            ScalarMaps for display
+   * 
+   * @throws  VisADException
+   * @throws  RemoteException
+   */
+  public static void plot(final float[][] data, final ScalarMap[] maps)
     throws VisADException, RemoteException {
     plot(null, field(data), false, 1.0, 1.0, 1.0, maps);
   }
 
-  public static void plot(DataImpl data, ScalarMap[] maps)
+  /**
+   * 
+   * 
+   * @param   data            VisAD data object to plot; may also be
+   *                          a float[] or float[][]
+   * @param   maps            ScalarMaps for display
+   * 
+   * @throws  VisADException
+   * @throws  RemoteException
+   */
+  public static void plot(final DataImpl data, final ScalarMap[] maps)
     throws VisADException, RemoteException {
     plot(null, data, false, 1.0, 1.0, 1.0, maps);
   }
@@ -147,42 +197,82 @@ public abstract class JPythonMethods {
   {
     plot(null, field(data), editMaps, 1.0, 1.0, 1.0);
   }
-  
-  public static void plot(float[][] data, boolean editMaps)
+
+  /**
+   * 
+   * 
+   * @param   data            VisAD data object to plot; may also be
+   *                          a float[] or float[][]
+   * @param   editMaps        whether to initially display edit mappings dialog
+   * 
+   * @throws VisADException
+   * @throws RemoteException
+   */
+  public static void plot(final float[][] data, final boolean editMaps)
     throws VisADException, RemoteException
   {
     plot(null, field(data), editMaps, 1.0, 1.0, 1.0);
   }
-  
-  public static void plot(DataImpl data, boolean editMaps)
+
+  /**
+   * 
+   * 
+   * @param   data            VisAD data object to plot; may also be
+   *                          a float[] or float[][]
+   * @param   editMaps        whether to initially display edit mappings dialog
+   * 
+   * @throws VisADException
+   * @throws RemoteException
+   */
+  public static void plot(final DataImpl data, final boolean editMaps)
     throws VisADException, RemoteException
   {
     plot(null, data, editMaps, 1.0, 1.0, 1.0);
   }
-  
+
   /**
    * Displays the given data onscreen.
    *
    * @param   name            name of display in which to plot data
    * @param   data            VisAD data object to plot; may also be
    *                          a float[] or float[][]
-   *
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
-  public static void plot(String name, float[] data)
+  public static void plot(final String name, final float[] data)
     throws VisADException, RemoteException
   {
     plot(name, field(data), false, 1.0, 1.0, 1.0);
   }
 
-  public static void plot(String name, float[][] data)
+  /**
+   * 
+   * 
+   * @param   name            name of display in which to plot data
+   * @param   data            VisAD data object to plot; may also be
+   *                          a float[] or float[][]
+   * 
+   * @throws VisADException
+   * @throws RemoteException
+   */
+public static void plot(final String name, final float[][] data)
     throws VisADException, RemoteException
   {
     plot(name, field(data), false, 1.0, 1.0, 1.0);
   }
 
-  public static void plot(String name, DataImpl data)
+  /**
+   * 
+   * 
+   * @param   name            name of display in which to plot data
+   * @param   data            VisAD data object to plot; may also be
+   *                          a float[] or float[][]
+   * 
+   * @throws VisADException
+   * @throws RemoteException
+   */
+  public static void plot(final String name, final DataImpl data)
     throws VisADException, RemoteException
   {
     plot(name, data, false, 1.0, 1.0, 1.0);
@@ -199,19 +289,41 @@ public abstract class JPythonMethods {
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
-  public static void plot(String name, float[] data, ScalarMap[] maps)
+  public static void plot(final String name, final float[] data, final ScalarMap[] maps)
     throws VisADException, RemoteException
   {
     plot(name, field(data), false, 1.0, 1.0, 1.0, maps);
   }
 
-  public static void plot(String name, float[][] data, ScalarMap[] maps)
+  /**
+   * 
+   * 
+   * @param   name            name of display in which to plot data
+   * @param   data            VisAD data object to plot; may also be
+   *                          a float[] or float[][]
+   * @param   maps            ScalarMaps for display
+   * 
+   * @throws VisADException
+   * @throws RemoteException
+   */
+  public static void plot(final String name, final float[][] data, final ScalarMap[] maps)
     throws VisADException, RemoteException
   {
     plot(name, field(data), false, 1.0, 1.0, 1.0, maps);
   }
 
-  public static void plot(String name, DataImpl data, ScalarMap[] maps)
+  /**
+   * 
+   * 
+   * @param   name            name of display in which to plot data
+   * @param   data            VisAD data object to plot; may also be
+   *                          a float[] or float[][]
+   * @param   maps            ScalarMaps for display
+   * 
+   * @throws VisADException
+   * @throws RemoteException
+   */
+  public static void plot(final String name, final DataImpl data, final ScalarMap[] maps)
     throws VisADException, RemoteException
   {
     plot(name, data, false, 1.0, 1.0, 1.0, maps);
@@ -235,13 +347,35 @@ public abstract class JPythonMethods {
     plot(name, field(data), editMaps, 1.0, 1.0, 1.0);
   }
 
-  public static void plot(String name, float[][] data, boolean editMaps)
+  /**
+   * 
+   * 
+   * @param   name            name of display in which to plot data
+   * @param   data            VisAD data object to plot; may also be
+   *                          a float[] or float[][]
+   * @param   editMaps        whether to initially display edit mappings dialog
+   * 
+   * @throws VisADException
+   * @throws RemoteException
+   */
+  public static void plot(final String name, final float[][] data, final boolean editMaps)
     throws VisADException, RemoteException
   {
     plot(name, field(data), editMaps, 1.0, 1.0, 1.0);
   }
 
-  public static void plot(String name, DataImpl data, boolean editMaps)
+  /**
+   * 
+   * 
+   * @param   name            name of display in which to plot data
+   * @param   data            VisAD data object to plot; may also be
+   *                          a float[] or float[][]
+   * @param   editMaps        whether to initially display edit mappings dialog
+   * 
+   * @throws VisADException
+   * @throws RemoteException
+   */
+  public static void plot(final String name, final DataImpl data, final boolean editMaps)
     throws VisADException, RemoteException
   {
     plot(name, data, editMaps, 1.0, 1.0, 1.0);
@@ -249,7 +383,7 @@ public abstract class JPythonMethods {
 
   /**
    * Displays the given data onscreen, using given color default.
-   *
+   * 
    * @param   data            VisAD data object to plot; may also be
    *                          a float[] or float[][]
    * @param   red             red component of default color to use if there
@@ -257,22 +391,50 @@ public abstract class JPythonMethods {
    *                          color component values between 0.0 and 1.0
    * @param   green           green component of default color
    * @param   blue            blue component of default color
-   *
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
-  public static void plot(float[] data, double red, double green, double blue)
+  public static void plot(final float[] data, final double red, final double green, final double blue)
     throws VisADException, RemoteException
   {
     plot(null, field(data), false, red, green, blue);
   }
 
-  public static void plot(float[][] data, double red, double green, double blue)
+  /**
+   * 
+   * 
+   * @param   data            VisAD data object to plot; may also be
+   *                          a float[] or float[][]
+   * @param   red             red component of default color to use if there
+   *                          are no color mappings from data's RealTypes;
+   *                          color component values between 0.0 and 1.0
+   * @param   green           green component of default color
+   * @param   blue            blue component of default color
+   * 
+   * @throws VisADException
+   * @throws RemoteException
+   */
+  public static void plot(final float[][] data, final double red, final double green, final double blue)
     throws VisADException, RemoteException
   {
     plot(null, field(data), false, red, green, blue);
   }
 
+  /**
+   * 
+   * 
+   * @param   data            VisAD data object to plot; may also be
+   *                          a float[] or float[][]
+   * @param   red             red component of default color to use if there
+   *                          are no color mappings from data's RealTypes;
+   *                          color component values between 0.0 and 1.0
+   * @param   green           green component of default color
+   * @param   blue            blue component of default color
+   * 
+   * @throws VisADException
+   * @throws RemoteException
+   */
   public static void plot(DataImpl data, double red, double green, double blue)
     throws VisADException, RemoteException
   {
@@ -297,46 +459,94 @@ public abstract class JPythonMethods {
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
-  public static void plot(String namxe, float[] data,
+  public static void plot(String name, float[] data,
     boolean editMaps, double red, double green, double blue)
     throws VisADException, RemoteException {
-       plot(namxe, field(data), editMaps,red, green, blue, null);
+       plot(name, field(data), editMaps,red, green, blue, null);
   }
 
-  public static void plot(String namxe, float[][] data,
+  /**
+   * 
+   * 
+   * @param   name            name of display in which to plot data
+   * @param   data            VisAD data object to plot; may also be
+   *                          a float[] or float[][]
+   * @param   editMaps        whether to initially display edit mappings dialog
+   * @param   red             red component of default color to use if there
+   *                          are no color mappings from data's RealTypes;
+   *                          color component values between 0.0 and 1.0
+   * @param   green           green component of default color
+   * @param   blue            blue component of default color
+   * 
+   * @throws VisADException
+   * @throws RemoteException
+   */
+  public static void plot(String name, float[][] data,
     boolean editMaps, double red, double green, double blue)
     throws VisADException, RemoteException {
-       plot(namxe, field(data), editMaps,red, green, blue, null);
+       plot(name, field(data), editMaps,red, green, blue, null);
   }
 
-  public static void plot(String namxe, DataImpl data,
+  /**
+   * 
+   * 
+   * @param   name            name of display in which to plot data
+   * @param   data            VisAD data object to plot; may also be
+   *                          a float[] or float[][]
+   * @param   editMaps        whether to initially display edit mappings dialog
+   * @param   red             red component of default color to use if there
+   *                          are no color mappings from data's RealTypes;
+   *                          color component values between 0.0 and 1.0
+   * @param   green           green component of default color
+   * @param   blue            blue component of default color
+   * 
+   * @throws VisADException
+   * @throws RemoteException
+   */
+  public static void plot(String name, DataImpl data,
     boolean editMaps, double red, double green, double blue)
     throws VisADException, RemoteException {
-       plot(namxe, data, editMaps,red, green, blue, null);
+       plot(name, data, editMaps,red, green, blue, null);
   }
 
-
-
-  public static void plot(String namxe, DataImpl data,
+  /**
+   * 
+   * 
+   * @param   name            name of display in which to plot data
+   * @param   data            VisAD data object to plot; may also be
+   *                          a float[] or float[][]
+   * @param   editMaps        whether to initially display edit mappings dialog
+   * @param   red             red component of default color to use if there
+   *                          are no color mappings from data's RealTypes;
+   *                          color component values between 0.0 and 1.0
+   * @param   green           green component of default color
+   * @param   blue            blue component of default color
+   * @param   maps            ScalarMaps for display
+   * 
+   * @throws VisADException
+   * @throws RemoteException
+   */
+  public static void plot(String name, DataImpl data,
     boolean editMaps, double red, double green, double blue, ScalarMap[] maps)
     throws VisADException, RemoteException
   {
 
-    if (data == null) throw new VisADException("Data cannot be null");
-    if (namxe == null) namxe = DEFAULT_NAME;
-    final String name = namxe;
+    if (data == null) {
+      throw new VisADException("Data cannot be null");
+    }
+    final String title = (name == null) ? DEFAULT_NAME : name;
     BasicSSCell display;
 
     synchronized (frames) {
-      display = BasicSSCell.getSSCellByName(name);
+      display = BasicSSCell.getSSCellByName(title);
       JFrame frame;
       if (display == null) {
-        display = new FancySSCell(name);
+        display = new FancySSCell(title);
         display.setDimension(BasicSSCell.JAVA3D_3D);
         //display.setDimension(BasicSSCell.JAVA2D_2D);
         display.setPreferredSize(new Dimension(256, 256));
-        frame = new JFrame("VisAD Display Plot (" + name + ")");
-        frames.put(name, frame);
+        frame = new JFrame("VisAD Display Plot (" + title + ")");
+        frames.put(title, frame);
         JPanel pane = new JPanel();
         pane.setLayout(new BoxLayout(pane, BoxLayout.Y_AXIS));
         frame.setContentPane(pane);
@@ -375,7 +585,7 @@ public abstract class JPythonMethods {
         });
         close.addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent e) {
-            try { fdisp.smartClear(); clearplot(name);}
+            try { fdisp.smartClear(); clearplot(title);}
             catch (Exception ec) {;}
           }
         });
@@ -390,7 +600,7 @@ public abstract class JPythonMethods {
         frame.pack();
       }
       else {
-        frame = (JFrame) frames.get(name);
+        frame = (JFrame) frames.get(title);
       }
       frame.setVisible(true);
       frame.toFront();
@@ -423,13 +633,14 @@ public abstract class JPythonMethods {
    * @throws  VisADException  part of data and display APIs, shouldn't occur
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
-  public static void clearplot(String name)
+  public static void clearplot(final String name)
     throws VisADException, RemoteException
   {
-    if (name == null) name = DEFAULT_NAME;
-    BasicSSCell display = BasicSSCell.getSSCellByName(name);
+//    if (name == null) name = DEFAULT_NAME;
+    final String title = (name == null) ? DEFAULT_NAME : name;
+    BasicSSCell display = BasicSSCell.getSSCellByName(title);
     if (display != null) {
-      JFrame frame = (JFrame) frames.get(name);
+      JFrame frame = (JFrame)frames.get(title);
       display.clearCell();
       display.clearMaps();
       frame.setVisible(false);
@@ -440,20 +651,31 @@ public abstract class JPythonMethods {
     }
   }
 
-  /** save the Data in a netcdf file
-  *
-  */
+  /** 
+   * Save the Data in a netcdf file
+   * 
+   * @param fn 
+   * @param d 
+   * 
+   * @throws VisADException 
+   * @throws RemoteException 
+   * @throws IOException 
+   */
   public static void saveNetcdf(String fn, Data d) 
                  throws VisADException, RemoteException, IOException {
-    new Plain().save(fn,d,false);
+    new Plain().save(fn, d, false);
   }
 
-  /** save the display genreated by a quick graph or showDisplay
-  *
-  * @param disp is the DisplayImpl to save
-  * @param filename is the name of the JPG file to write
-  *
-  */
+  /** 
+   * Save the display genreated by a quick graph or showDisplay
+   * 
+   * @param disp is the DisplayImpl to save
+   * @param filename is the name of the JPG file to write
+   * 
+   * @throws VisADException 
+   * @throws RemoteException 
+   * @throws IOException 
+   */
   public static void saveplot(DisplayImpl disp, String filename) 
                  throws VisADException, RemoteException, IOException {
     visad.util.Util.captureDisplay(disp, filename);
@@ -461,9 +683,12 @@ public abstract class JPythonMethods {
 
   /**
    * save the onscreen data display generated by plot()
-   *
+   * 
+   * @param filename Name of the file to save display into.
+   * 
    * @throws  VisADException  part of data and display APIs, shouldn't occur
    * @throws  RemoteException part of data and display APIs, shouldn't occur
+   * @throws IOException 
    */
   public static void saveplot(String filename) 
                  throws VisADException, RemoteException, IOException {
@@ -503,11 +728,13 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise absolute value of data
+   * Return point-wise absolute value of data
    * name changed 1/11/02 to avoid conflicts with Jython built-in
    *
    * @param   data            VisAD data object
-   *
+   * 
+   * @return Point-wise absolute value of the given data object.
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
@@ -517,34 +744,49 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise absolute value of data
+   * Return point-wise absolute value of data
    *
    * @param   data            VisAD data object
+   * 
+   * @return Point-wise absolute value of the given data object.
    *
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
+   * 
+   * @deprecated Consider using {@link #abs_data(Data)} instead.
    */
+  @Deprecated
   public static Data abs(Data data) 
            throws VisADException, RemoteException {
     return data.abs();
   }
   
   /**
-   * return absolute value of value
-   *
+   * Return absolute value of value
+   * 
    * @param   value     value
-   *
+   * 
+   * @return Absolute value of {@code value}.
+   * 
+   * @deprecated Consider using Jython's builtin function or 
+   * {@link Math#abs(double)}.
    */
+  @Deprecated
   public static double abs(double value) {
     return Math.abs(value);
   }
 
   /**
    * return absolute value of value
-   *
+   * 
    * @param   value     value
-   *
+   * 
+   * @return Absolute value of {@code value}.
+   * 
+   * @deprecated Consider using Jython's builtin function or 
+   * {@link Math#abs(int)}.
    */
+  @Deprecated
   public static int abs(int value) {
     return Math.abs(value);
   }
@@ -553,14 +795,19 @@ public abstract class JPythonMethods {
    * return absolute value of value
    *
    * @param   value     value
-   *
+   * 
+   * @return Absolute value of {@code value}.
+   * 
+   * @deprecated Consider using Jython's builtin function or 
+   * {@link Math#abs(long)}.
    */
+  @Deprecated
   public static long abs(long value) {
     return Math.abs(value);
   }
 
   /**
-   * return pointwise arccos value of data, in radians
+   * Return point-wise arccosine value of {@code data}, in radians.
    *
    * @param   data            VisAD data object
    *
@@ -572,7 +819,7 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise arccos value of data, in degrees
+   * return point-wise arccosine value of data, in degrees.
    *
    * @param   data            VisAD data object
    *
@@ -584,7 +831,7 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise arcsin value of data, in radians
+   * return point-wise arcsine value of {@code data}, in radians
    *
    * @param   data            VisAD data object
    *
@@ -596,7 +843,7 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise arcsin value of data, in degrees
+   * return point-wise arcsine value of {@code data}, in degrees.
    *
    * @param   data            VisAD data object
    *
@@ -608,10 +855,12 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise arctan value of data, in radians
-   *
+   * return point-wise arctangent value of {@code data}, in radians.
+   * 
    * @param   data            VisAD data object
-   *
+   * 
+   * @return Point-wise arctangent of {@code data}, as radians.
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
@@ -620,10 +869,12 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise arctan value of data, in degrees
+   * return point-wise arctangent value of {@code data}, in degrees.
    *
    * @param   data            VisAD data object
-   *
+   * 
+   * @return 
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
@@ -632,10 +883,12 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise ceil value of data (smallest integer not less than)
+   * return point-wise ceil value of {@code data} (smallest integer not less than).
    *
    * @param   data            VisAD data object
-   *
+   * 
+   * @return Point-wise ceiling value of {@code data}.
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
@@ -644,12 +897,14 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise cos value of data, assuming input values are in radians
-   * unless they have units convertable with radians, in which case those
-   * units are converted to radians
+   * return point-wise cosine value of {@code data}, assuming input values are 
+   * in radians unless they have units convertable with radians, in which case 
+   * those units are converted to radians
    *
    * @param   data            VisAD data object
-   *
+   * 
+   * @return Point-wise cosine value of {@code data} as radians.
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
@@ -658,12 +913,14 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise cos value of data, assuming input values are in degrees
+   * return point-wise cosine value of data, assuming input values are in degrees
    * unless they have units convertable with degrees, in which case those
    * units are converted to degrees
    *
    * @param   data            VisAD data object
-   *
+   * 
+   * @return Point-wise cosine value of {@code data} as degrees.
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
@@ -672,10 +929,12 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise exp value of data
+   * return point-wise exp value of {@code data}.
    *
    * @param   data            VisAD data object
-   *
+   * 
+   * @return Point-wise exp value of {@code data}.
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
@@ -684,10 +943,12 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise floor value of data (largest integer not greater than)
+   * return point-wise floor value of data (largest integer not greater than)
    *
    * @param   data            VisAD data object
-   *
+   * 
+   * @return 
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
@@ -696,10 +957,12 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise log value of data
+   * return point-wise log value of data
    *
    * @param   data            VisAD data object
-   *
+   * 
+   * @return 
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
@@ -708,7 +971,7 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise rint value of data (closest integer)
+   * return point-wise rint value of data (closest integer)
    *
    * @param   data            VisAD data object
    *
@@ -720,10 +983,12 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise round value of data (closest integer)
+   * return point-wise round value of {@code data} (closest integer).
    *
    * @param   data            VisAD data object
-   *
+   * 
+   * @return Point-wise rounding of {@code data}.
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
@@ -732,34 +997,41 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return round value of data (closest integer)
+   * Return rounded value of {@code value} (closest integer).
    *
-   * @param   value value 
-   *
+   * @param   value  value 
+   * @param   digits Length of the fractional part of the result.
+   * 
+   * @return Rounded {@code value}.
    */
   public static double round(double value, int digits) {
     boolean neg = value < 0;
     double multiple = Math.pow(10., digits);
-    if (neg)
+    if (neg) {
         value = -value;
-    double tmp = Math.floor(value*multiple+0.5);
-    if (neg)
+    }
+    double tmp = Math.floor(value * multiple + 0.5);
+    if (neg) {
         tmp = -tmp;
-    return (tmp/multiple);
+    }
+    return (tmp / multiple);
   }
 
   /**
-   * return round value of data (closest integer)
-   *
-   * @param   value value 
-   *
+   * Return round value of {@code value} (closest integer).
+   * 
+   * @param   value Value to round to closest integer. 
+   * 
+   * @return Closest integer to {@code value}.
+   * 
+   * @see #round(double, int)
    */
   public static double round(double value) {
-    return round(value,0);
+    return round(value, 0);
   }
 
   /**
-   * return pointwise sin value of data, assuming input values are in radians
+   * return point-wise sine value of data, assuming input values are in radians
    * unless they have units convertable with radians, in which case those
    * units are converted to radians
    *
@@ -773,7 +1045,7 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise sin value of data, assuming input values are in degrees
+   * return point-wise sine value of data, assuming input values are in degrees
    * unless they have units convertable with degrees, in which case those
    * units are converted to degrees
    *
@@ -787,10 +1059,12 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise square root value of data
+   * return point-wise square root value of data
    *
    * @param   data            VisAD data object
-   *
+   * 
+   * @return Point-wise square root of {@code data}.
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
@@ -799,11 +1073,13 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise tan value of data, assuming input values are in radians
+   * return point-wise tan value of data, assuming input values are in radians
    * unless they have units convertable with radians, in which case those
    * units are converted to radians
    *
    * @param   data            VisAD data object
+   * 
+   * @return Point-wise tangent of {@code data}, as radians.
    *
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
@@ -813,11 +1089,13 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise tan value of data, assuming input values are in degrees
+   * return point-wise tangent value of data, assuming input values are in degrees
    * unless they have units convertable with degrees, in which case those
    * units are converted to degrees
    *
    * @param   data            VisAD data object
+   * 
+   * @return Point-wise tangent of {@code data}, as degrees.
    *
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
@@ -827,12 +1105,15 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise arc tangent value of data1 / data2 over 
+   * return point-wise arc tangent value of data1 / data2 over 
    * full (-pi, pi) range, returned in radians.
    * 
    * @param   data1           VisAD data object
    * @param   data2           VisAD data object
-   *
+   * 
+   * @return Point-wise arctangent value of {@code data1 / data2} over full
+   * {@code (-pi, pi)} range, as radians.
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
@@ -842,12 +1123,15 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise arc tangent value of data1 / data2 over 
+   * return point-wise arc tangent value of data1 / data2 over 
    * full (-pi, pi) range, returned in degrees.
    *
    * @param   data1           VisAD data object
    * @param   data2           VisAD data object
-   *
+   * 
+   * @return Point-wise arctangent value of {@code data1 / data2} over full
+   * {@code (-pi, pi)} range, as degrees.
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
@@ -857,12 +1141,15 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise arc tangent value of data1 / data2 over 
+   * Return point-wise arc tangent value of data1 / data2 over 
    * full (-pi, pi) range, returned in radians.
    *
    * @param   data1           VisAD data object
    * @param   data2           double value
-   *
+   * 
+   * @return Point-wise arctangent value of {@code data1 / data2} over full
+   * {@code (-pi, pi)} range, as radians.
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
@@ -872,12 +1159,15 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise arc tangent value of data1 / data2 over 
+   * Return point-wise arc tangent value of data1 / data2 over 
    * full (-pi, pi) range, returned in degrees.
    *
    * @param   data1           VisAD data object
    * @param   data2           double value
-   *
+   * 
+   * @return Point-wise arctangent value of {@code data1 / data2} over full
+   * {@code (-pi, pi)} range, as degrees.
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
@@ -888,12 +1178,14 @@ public abstract class JPythonMethods {
 
 
   /**
-   * return pointwise maximum value of data1 and data2
+   * Return point-wise maximum value of data1 and data2.
    * name changed 1/11/02 to avoid conflicts with Jython built-in
    *
    * @param   data1           VisAD data object
    * @param   data2           VisAD data object
-   *
+   * 
+   * @return Point-wise maximum value of {@code data1} and {@code data2}.
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
@@ -903,12 +1195,14 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise aximum value of data1 and data2 
+   * Return point-wise maximum value of data1 and data2. 
    * name changed 1/11/02 to avoid conflicts with Jython built-in
    *
    * @param   data1           VisAD data object
    * @param   data2           double value
-   *
+   * 
+   * @return Point-wise maximum value of {@code data1} and {@code data2}.
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
@@ -918,12 +1212,14 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise maximum value of data1 and data2
+   * Return point-wise maximum value of data1 and data2.
    * name changed 1/11/02 to avoid conflicts with Jython built-in
    *
    * @param   data1           double value
    * @param   data2           VisAD data object
-   *
+   * 
+   * @return Point-wise maximum value of {@code data1} and {@code data2}.
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
@@ -933,12 +1229,14 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise minimum value of data1 and data2 
+   * return point-wise minimum value of data1 and data2 
    * name changed 1/11/02 to avoid conflicts with Jython built-in
    *
    * @param   data1           VisAD data object
    * @param   data2           VisAD data object
-   *
+   * 
+   * @return Point-wise minimum value of {@code data1} and {@code data2}.
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
@@ -948,12 +1246,14 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise minimum value of data1 and data2 
+   * return point-wise minimum value of data1 and data2 
    * name changed 1/11/02 to avoid conflicts with Jython built-in
    *
    * @param   data1           VisAD data object
    * @param   data2           double value
-   *
+   * 
+   * @return Point-wise minimum value of {@code data1} and {@code data2}.
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
@@ -963,12 +1263,14 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise minimum value of data1 and data2
+   * Return point-wise minimum value of {@code data1} and {@code data2}.
    * name changed 1/11/02 to avoid conflicts with Jython built-in
    *
    * @param   data1           double value
    * @param   data2           VisAD data object
-   *
+   * 
+   * @return Point-wise minimum value of {@code data1} and {@code data2}.
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
@@ -978,11 +1280,13 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise arc tangent value of data1 / data2 over 
+   * Return point-wise arctangent value of data1 / data2 over 
    * full (-pi, pi) range, returned in radians.
    *
    * @param   data1           double value
    * @param   data2           VisAD data object
+   * 
+   * @return 
    *
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
@@ -993,12 +1297,15 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return pointwise arc tangent value of data1 / data2 over 
+   * Return point-wise arctangent value of data1 / data2 over 
    * full (-pi, pi) range, returned in degrees.
    *
    * @param   data1           double value
    * @param   data2           VisAD data object
-   *
+   * 
+   * @return Point-wise arctangent of {@code data1 / data2} over full 
+   * {@code (-pi, pi)} range, as degrees.
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
    */
@@ -1008,12 +1315,14 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return forward Fourier transform of field, which should have
-   * either a 1-D or 2-D gridded domain; uses fft when domain size
+   * return forward Fourier transform of {@code field}, which should have
+   * either a 1-D or 2-D gridded domain; uses FFT when domain size
    * is a power of two; returns real and imaginary parts
    *
    * @param   field           VisAD Field data object
-   *
+   * 
+   * @return forward Fourier transform of {@code field}.
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote field
    */
@@ -1028,7 +1337,9 @@ public abstract class JPythonMethods {
    * is a power of two; returns real and imaginary parts
    * 
    * @param   field           VisAD Field data object
-   *
+   * 
+   * @return 
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote field
    */
@@ -1043,7 +1354,9 @@ public abstract class JPythonMethods {
    * 
    * @param   data1           VisAD FlatField data object
    * @param   data2           VisAD FlatField data object
-   *
+   * 
+   * @return 
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    * @throws  IllegalAccessException Jama not installed
@@ -1065,7 +1378,9 @@ public abstract class JPythonMethods {
    *
    * @param   data1           VisAD FlatField data object
    * @param   data2           VisAD FlatField data object
-   *
+   * 
+   * @return 
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    * @throws  IllegalAccessException Jama not installed
@@ -1085,7 +1400,9 @@ public abstract class JPythonMethods {
    * 1-D or 2-D gridded domain
    * 
    * @param   data            VisAD FlatField data object
-   *
+   * 
+   * @return 
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    * @throws  IllegalAccessException Jama not installed
@@ -1104,7 +1421,9 @@ public abstract class JPythonMethods {
    * 1-D or 2-D gridded domain
    *
    * @param   data            VisAD FlatField data object
-   *
+   * 
+   * @return 
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    * @throws  IllegalAccessException Jama not installed
@@ -1123,7 +1442,9 @@ public abstract class JPythonMethods {
    * 1-D or 2-D gridded domain
    *
    * @param   data            VisAD FlatField data object
-   *
+   * 
+   * @return 
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    * @throws  IllegalAccessException Jama not installed
@@ -1142,7 +1463,9 @@ public abstract class JPythonMethods {
    * should have either a 1-D or 2-D gridded domain
    *
    * @param   data            VisAD FlatField data object
-   *
+   * 
+   * @return 
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    * @throws  IllegalAccessException Jama not installed
@@ -1161,7 +1484,9 @@ public abstract class JPythonMethods {
    * should have either a 1-D or 2-D gridded domain
    * 
    * @param   data            VisAD FlatField data object
-   *
+   * 
+   * @return 
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    * @throws  IllegalAccessException Jama not installed
@@ -1180,7 +1505,9 @@ public abstract class JPythonMethods {
    * should have either a 1-D or 2-D gridded domain
    * 
    * @param   data            VisAD FlatField data object
-   *
+   * 
+   * @return 
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    * @throws  IllegalAccessException Jama not installed
@@ -1199,7 +1526,9 @@ public abstract class JPythonMethods {
    * elements), which should have either a 1-D or 2-D gridded domain
    * 
    * @param   data            VisAD FlatField data object
-   *
+   * 
+   * @return 
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    * @throws  IllegalAccessException Jama not installed
@@ -1218,7 +1547,9 @@ public abstract class JPythonMethods {
    * should have either a 1-D or 2-D gridded domain
    * 
    * @param   data            VisAD FlatField data object
-   *
+   * 
+   * @return 
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    * @throws  IllegalAccessException Jama not installed
@@ -1237,7 +1568,9 @@ public abstract class JPythonMethods {
    * value), which should have either a 1-D or 2-D gridded domain
    *
    * @param   data            VisAD FlatField data object
-   *
+   * 
+   * @return 
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    * @throws  IllegalAccessException Jama not installed
@@ -1256,7 +1589,9 @@ public abstract class JPythonMethods {
    * which should have either a 1-D or 2-D gridded domain
    * 
    * @param   data            VisAD FlatField data object
-   *
+   * 
+   * @return 
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    * @throws  IllegalAccessException Jama not installed
@@ -1276,7 +1611,9 @@ public abstract class JPythonMethods {
    * data should have either a 1-D or 2-D gridded domain
    * 
    * @param   data            VisAD FlatField data object
-   *
+   * 
+   * @return 
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    * @throws  IllegalAccessException Jama not installed
@@ -1297,7 +1634,9 @@ public abstract class JPythonMethods {
    * data should have either a 1-D or 2-D gridded domain
    * 
    * @param   data            VisAD FlatField data object
-   *
+   * 
+   * @return 
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    * @throws  IllegalAccessException Jama not installed
@@ -1318,7 +1657,9 @@ public abstract class JPythonMethods {
    * data should have either a 1-D or 2-D gridded domain
    * 
    * @param   data            VisAD FlatField data object
-   *
+   * 
+   * @return 
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    * @throws  IllegalAccessException Jama not installed
@@ -1338,7 +1679,9 @@ public abstract class JPythonMethods {
    * data should have either a 1-D or 2-D gridded domain
    * 
    * @param   data            VisAD FlatField data object
-   *
+   * 
+   * @return 
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    * @throws  IllegalAccessException Jama not installed
@@ -1358,7 +1701,9 @@ public abstract class JPythonMethods {
    * data should have either a 1-D or 2-D gridded domain
    * 
    * @param   data            VisAD FlatField data object
-   *
+   * 
+   * @return 
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    * @throws  IllegalAccessException Jama not installed
@@ -1380,7 +1725,9 @@ public abstract class JPythonMethods {
    *                          are analyzed in histogram
    * @param   set             VisAD Set data object that defines dimension
    *                          and bin sampling for histogram
-   *
+   * 
+   * @return 
+   * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote field
    */
@@ -1390,7 +1737,7 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return histogram of range values of field selected by ranges array,
+   * Return histogram of range values of field selected by ranges array,
    * with dimension = ranges.length, and 64 equally spaced bins in each
    * dimension
    * 
@@ -1399,6 +1746,8 @@ public abstract class JPythonMethods {
    * @param   ranges          int[] array whose elements are indices of into
    *                          the range Tuple of field, selecting range
    *                          components as dimensions of the histogram
+   * 
+   * @return 
    * 
    * @throws  VisADException  invalid data 
    * @throws  RemoteException unable to access remote field
@@ -1415,7 +1764,7 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return histogram of range values of field selected by ranges array,
+   * Return histogram of range values of field selected by ranges array,
    * with dimension = ranges.length, and with number of equally spaced bins
    * in each dimension determined by sizes array
    * 
@@ -1426,6 +1775,8 @@ public abstract class JPythonMethods {
    *                          components as dimensions of the histogram
    * @param   sizes           int[] array whose elements are numbers of
    *                          equally spaced bins for each dimension
+   * 
+   * @return 
    * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote field
@@ -1507,46 +1858,52 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return a VisAD FlatField with default 1-D domain and with range
+   * Return a VisAD FlatField with default 1-D domain and with range
    * values given by values array
    *
    * @param   values          float[] array defining range values of field
-   *
+   * 
+   * @return 
+   * 
    * @throws  VisADException  unable to construct field
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
-  public static FlatField field(float[] values)
+  public static FlatField field(final float[] values)
          throws VisADException, RemoteException {
     return field("value", values);
   }
 
   /**
-   * return a VisAD FlatField with default 1-D domain, with range values
+   * Return a VisAD FlatField with default 1-D domain, with range values
    * given by values array, and with given range RealType name
    *
    * @param   name            String defining range RealType name
    * @param   values          float[] array defining range values of field
-   *
+   * 
+   * @return 
+   * 
    * @throws  VisADException  unable to construct field
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
-  public static FlatField field(String name, float[] values)
+  public static FlatField field(final String name, final float[] values)
          throws VisADException, RemoteException {
     return field("domain", name, values);
   }
 
   /**
-   * return a VisAD FlatField with default 1-D domain, with range values
+   * Return a VisAD FlatField with default 1-D domain, with range values
    * given by values array, and with given range RealType name
    *
    * @param   dom0            String defining domain RealType name
    * @param   name            String defining range RealType name
    * @param   values          float[] array defining range values of field
-   *
+   * 
+   * @return 
+   * 
    * @throws  VisADException  unable to construct field
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
-  public static FlatField field(String dom0, String name, float[] values)
+  public static FlatField field(final String dom0, final String name, final float[] values)
          throws VisADException, RemoteException {
     if (values == null || values.length == 0) {
       throw new VisADException("bad values");
@@ -1556,13 +1913,15 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return a VisAD FlatField with given 1-D domain set, with range
+   * Return a VisAD FlatField with given 1-D domain set, with range
    * values given by values array, and with given range RealType name
    *
    * @param   set             VisAD Set defining 1-D domain
    * @param   name            String defining range RealType name 
    * @param   values          float[] array defining range values of field
    * 
+   * @return 
+   *  
    * @throws  VisADException  unable to construct field
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
@@ -1599,43 +1958,49 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * return a VisAD FlatField with default 2-D domain and with range
+   * Return a VisAD FlatField with default 2-D domain and with range
    * values given by values array
    *
    * @param   values          float[][] array defining range values of field
-   *
+   * 
+   * @return 
+   * 
    * @throws  VisADException  unable to construct field
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
-  public static FlatField field(float[][] values)
+  public static FlatField field(final float[][] values)
          throws VisADException, RemoteException {
     return field("value", values);
   }
 
   /**
-   * return a VisAD FlatField with default 2-D domain, with range values
+   * Return a VisAD FlatField with default 2-D domain, with range values
    * given by values array, and with given range RealType name
    *
    * @param   name            String defining range RealType name
    * @param   values          float[][] array defining range values of field
-   *
+   * 
+   * @return 
+   * 
    * @throws  VisADException  unable to construct field
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
-  public static FlatField field(String name, float[][] values)
+  public static FlatField field(final String name, final float[][] values)
          throws VisADException, RemoteException {
     return field("ImageLine", "ImageElement", name, values);
   }
 
   /**
-   * return a VisAD FlatField with named default 2-D domain, with range values
+   * Return a VisAD FlatField with named default 2-D domain, with range values
    * given by values array and with given range RealType name
-   *
+   * 
    * @param   dom0            String defines first domain component
    * @param   dom1            String defines second domain component
-   * @param   name            String defining range RealType name
+   * @param   rng             String defining range RealType name
    * @param   values          float[][] array defining range values of field
-   *
+   * 
+   * @return 
+   * 
    * @throws  VisADException  unable to construct field
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
@@ -1659,6 +2024,8 @@ public abstract class JPythonMethods {
    * @param   set             VisAD Set defining 2-D domain 
    * @param   name            String defining range RealType name 
    * @param   values          float[][] array defining range values of field
+   * 
+   * @return 
    * 
    * @throws  VisADException  unable to construct field
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -1708,7 +2075,16 @@ public abstract class JPythonMethods {
     return field;
   }
 
-  public static int[] getValuesLengths(float[][] values)
+  /**
+   * 
+   * 
+   * @param values
+   * 
+   * @return
+   * 
+   * @throws VisADException
+   */
+  public static int[] getValuesLengths(final float[][] values)
           throws VisADException {
     if (values == null) {
       throw new VisADException("bad values");
@@ -1730,52 +2106,63 @@ public abstract class JPythonMethods {
     return new int[] {values_len, min, max};
   }
 
-
   /**
-   * get the number of domain components of the Data object
+   * Get the number of domain components from a given Data object.
    * 
-   * @param   Data            VisAD Data object
-   * @return the number of domain components
-
-   * @throws  VisADException  unable to construct field
-   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   * @param   data            VisAD Data object
+   * 
+   * @return                  Number of domain components
+   * 
+   * @throws  VisADException  Unable to construct field
+   * @throws  RemoteException Part of data and display APIs, shouldn't occur
    */
   public static int getDomainDimension(Data data)
                   throws VisADException, RemoteException {
-     return (domainDimension(data));
+     return domainDimension(data);
   }
 
-  public static int domainDimension (Data data) 
+  /**
+   * 
+   * 
+   * @param data
+   * 
+   * @return 
+   * 
+   * @throws VisADException
+   * @throws RemoteException
+   */
+  public static int domainDimension (final Data data) 
                   throws VisADException, RemoteException {
     return (int) ((RealTupleType)
         ((FunctionType)data.getType()).getDomain()).getDimension();
   }
 
-
   /**
-   * get the number of range components of the Data object
+   * Get the number of range components from a given Data object.
    * 
-   * @param   Data            VisAD Data object
-   * @return the number of range components
-
-   * @throws  VisADException  unable to construct field
-   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   * @param  data            VisAD Data object
+   * 
+   * @return                 Number of range components.
+   * 
+   * @throws VisADException  unable to construct field
+   * @throws RemoteException part of data and display APIs, shouldn't occur
    */
-  public static int getRangeDimension(Data data)
+  public static int getRangeDimension(final Data data)
                   throws VisADException, RemoteException {
-     return (rangeDimension(data));
+     return rangeDimension(data);
   }
 
   /**
    * get the number of range components of the Data object
    * 
-   * @param   Data            VisAD Data object
-   * @return the number of range components
+   * @param  data            VisAD Data object
+   * 
+   * @return                 Number of range components
    *
-   * @throws  VisADException  unable to construct field
-   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   * @throws VisADException  unable to construct field
+   * @throws RemoteException part of data and display APIs, shouldn't occur
    */
-  public static int rangeDimension (Data data) 
+  public static int rangeDimension(final Data data) 
                   throws VisADException, RemoteException {
     int nr = 1;
     if ( data instanceof FlatField) {
@@ -1785,62 +2172,64 @@ public abstract class JPythonMethods {
   }
 
 
-  /** get the domain Type for the field
-  *
-  * @param data is the field to get the domain Type for
-  *
-  * @return the domain
-  *
-  * @throws  VisADException  unable to construct field
-  * @throws  RemoteException part of data and display APIs, shouldn't occur
-  */
+  /** 
+   * Get the domain Type for the field
+   * 
+   * @param  data is the field to get the domain Type for
+   * 
+   * @return the domain
+   * 
+   * @throws  VisADException  unable to construct field
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
   public static RealTupleType getDomainType(Data data)
                   throws VisADException, RemoteException {
-     return (domainType(data));
+     return domainType(data);
   }
 
-  /** get the domain Type for the field
-  *
-  * @param data is the field to get the domain Type for
-  *
-  * @return the domain
-  *
-  * @throws  VisADException  unable to construct field
-  * @throws  RemoteException part of data and display APIs, shouldn't occur
-  */
+  /** 
+   * Get the domain Type for the field
+   * 
+   * @param data is the field to get the domain Type for
+   * 
+   * @return the domain
+   * 
+   * @throws  VisADException  unable to construct field
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
   public static RealTupleType domainType(Data data) 
                   throws VisADException, RemoteException {
     return (RealTupleType) ((FunctionType)data.getType()).getDomain();
-  
   }
 
-
-  /** get the domain Type for the FunctionType
-  *
-  * @param type is the FunctionType
-  *
-  * @return the domain type
-  *
-  * @throws  VisADException  unable to construct field
-  * @throws  RemoteException part of data and display APIs, shouldn't occur
-  */
+  /** 
+   * Get the domain Type for the FunctionType
+   * 
+   * @param type is the FunctionType
+   * 
+   * @return the domain type
+   * 
+   * @throws  VisADException  unable to construct field
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
   public static RealTupleType getDomainType(FunctionType type)
                   throws VisADException, RemoteException {
-     return (type.getDomain());
+     return type.getDomain();
   }
 
-  /** get the range Type for the field
-  *
-  * @param data is the field to get the range Type for
-  *
-  * @return the range
-  *
-  * @throws  VisADException  unable to construct field
-  * @throws  RemoteException part of data and display APIs, shouldn't occur
-  */
+  /** 
+   * Get the range Type for the field
+   *
+   * @param data is the field to get the range Type for
+   *
+   * @return the range
+   *
+   * @throws  VisADException  unable to construct field
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
   public static MathType getRangeType(Data data)
                   throws VisADException, RemoteException {
-     return (rangeType(data));
+     return rangeType(data);
   }
 
   /** get the range Type for the field
@@ -1869,16 +2258,16 @@ public abstract class JPythonMethods {
   */
   public static MathType getRangeType(FunctionType type)
                   throws VisADException, RemoteException {
-     return (type.getRange());
+     return type.getRange();
   }
 
   /**
-   * get the name of the given component of the domain RealType.
+   * Get the name of the given component of the domain RealType.
    * 
-   * @param   Data            VisAD Data object
+   * @param   data            VisAD Data object
    * @param   comp            the domain component index (0...)
    * 
-   * @return the name of the RealType
+   * @return Name of the RealType
    *
    * @throws  VisADException  unable to construct field
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -1891,9 +2280,9 @@ public abstract class JPythonMethods {
   }
 
   /**
-   * get the name of the given component of the range RealType.
+   * Get the name of the given component of the range RealType.
    * 
-   * @param   Data            VisAD Data object
+   * @param   data            VisAD Data object
    * @param   comp            the component index (0...)
    * 
    * @return the name of the RealType
@@ -1910,89 +2299,109 @@ public abstract class JPythonMethods {
     return dt;
   }
 
-
   /**
    * get a VisAD Unit from the name given
    * 
    * @param   name            name of unit desired (degC, etc)
    * 
    * @return the Unit corresponding to the name
+   * 
+   * @throws visad.data.units.NoSuchUnitException 
+   * @throws visad.data.units.ParseException 
    *
    */
-  public static Unit makeUnit(String name) 
+  public static Unit makeUnit(final String name) 
          throws visad.data.units.NoSuchUnitException,
          visad.data.units.ParseException {
-    return (visad.data.units.Parser.parse(name));
+    return visad.data.units.Parser.parse(name);
   }
 
-  /** make an Integer1DSet of given length
-  *
-  * @param length is the desired length of the 1D Integer Set
-  *
-  * @return the Integer1DSet
-  */
-  public static Integer1DSet makeDomain (int length) 
+  /** 
+   * Make an Integer1DSet of given length
+   * 
+   * @param length is the desired length of the 1D Integer Set
+   * 
+   * @return the Integer1DSet
+   * 
+   * @throws VisADException 
+   */
+  public static Integer1DSet makeDomain(final int length) 
                        throws VisADException {
     return new Integer1DSet(length);
   }
 
-  /** make an Integer1DSet of given length and MathType
-  *
-  * @param type is the MathType of the Set
-  * @param length is the desired length of the 1D Integer Set
-  *
-  * @return the Integer1DSet
-  */
-  public static Integer1DSet makeDomain (MathType type, int length) 
+  /** 
+   * Make an Integer1DSet of given length and MathType
+   * 
+   * @param type is the MathType of the Set
+   * @param length is the desired length of the 1D Integer Set
+   * 
+   * @return the Integer1DSet
+   * 
+   * @throws VisADException 
+   */
+  public static Integer1DSet makeDomain(final MathType type, final int length) 
                        throws VisADException {
     return new Integer1DSet(type, length);
   }
-  /** make an Integer1DSet of given length and make a MathType 
-  *
-  * @param name is the MathType name to use to create the MathType
-  * @param length is the desired length of the 1D Integer Set
-  *
-  * @return the Integer1DSet
+
+  /** 
+   * Make an Integer1DSet of given length and make a MathType 
+   * 
+   * @param name is the MathType name to use to create the MathType
+   * @param length is the desired length of the 1D Integer Set
+   * 
+   * @return the Integer1DSet
+   * 
+   * @throws VisADException 
   */
-  public static Integer1DSet makeDomain (String name, int length) 
+  public static Integer1DSet makeDomain(final String name, final int length) 
                        throws VisADException {
     return new Integer1DSet(RealType.getRealType(name), length);
   }
 
-  /** make an Integer2DSet of given lengths
-  *
-  * @param lengthX is the desired length of the 2D Integer Set x
-  * @param lengthY is the desired length of the 2D Integer Set y
-  *
-  * @return the Integer2DSet
-  */
-  public static Integer2DSet makeDomain (int lengthX, int lengthY) 
+  /** 
+   * Make an Integer2DSet of given lengths.
+   * 
+   * @param lengthX is the desired length of the 2D Integer Set x
+   * @param lengthY is the desired length of the 2D Integer Set y
+   * 
+   * @return the Integer2DSet
+   * @throws VisADException 
+   */
+  public static Integer2DSet makeDomain(final int lengthX, final int lengthY) 
                        throws VisADException {
     return new Integer2DSet(lengthX, lengthY);
   }
 
-  /** make an Integer2DSet of given lengths
-  *
-  * @param type is the MathType of the Set
-  * @param lengthX is the desired length of the 2D Integer Set x
-  * @param lengthY is the desired length of the 2D Integer Set y
-  *
-  * @return the Integer2DSet
-  */
-  public static Integer2DSet makeDomain 
-                      (MathType type, int lengthX, int lengthY) 
+  /** 
+   * Make an Integer2DSet of given lengths
+   * 
+   * @param type is the MathType of the Set
+   * @param lengthX is the desired length of the 2D Integer Set x
+   * @param lengthY is the desired length of the 2D Integer Set y
+   * 
+   * @return the Integer2DSet
+   * 
+   * @throws VisADException 
+   */
+  public static Integer2DSet makeDomain(MathType type, int lengthX, int lengthY) 
                        throws VisADException {
     return new Integer2DSet(type, lengthX, lengthY);
   }
 
-  /** make an Integer2DSet of given lengths
-  *
-  * @param name is the MathType name to use to create the MathType 
-  * (should be in the form:  "(xx,yy)" )
-  * @param lengthX is the desired length of the 2D Integer Set x
-  * @param lengthY is the desired length of the 2D Integer Set y
-  *
-  * @return the Integer2DSet
+  /** 
+   * Make an Integer2DSet of given lengths.
+   * 
+   * @param name is the MathType name to use to create the MathType 
+   * (should be in the form:  "(xx,yy)" )
+   * @param lengthX is the desired length of the 2D Integer Set x
+   * @param lengthY is the desired length of the 2D Integer Set y
+   * 
+   * @return the Integer2DSet
+   * 
+   * @throws VisADException 
+   * @throws RemoteException 
   */
   public static Integer2DSet makeDomain 
                       (String name, int lengthX, int lengthY) 
@@ -2000,48 +2409,53 @@ public abstract class JPythonMethods {
     return new Integer2DSet((RealTupleType) makeType(name), lengthX, lengthY);
   }
 
-
-  /** create a Linear1DSet for domain samples
-  *
-  * @param first is the first value in the linear set
-  * @param last is the last value in the linear set
-  * @param length is the number of values in the set
-  *
-  * @return the created visad.Linear1DSet
-  *
-  */
+  /** 
+   * Create a Linear1DSet for domain samples
+   * 
+   * @param first is the first value in the linear set
+   * @param last is the last value in the linear set
+   * @param length is the number of values in the set
+   * 
+   * @return the created visad.Linear1DSet
+   * 
+   * @throws VisADException 
+   */
   public static Linear1DSet makeDomain 
                        (double first, double last, int length) 
                        throws VisADException {
     return new Linear1DSet(first, last, length );
   }
 
-  /** create a Linear1DSet for domain samples
-  *
-  * @param type is the VisAD MathType of this set
-  * @param first is the first value in the linear set
-  * @param last is the last value in the linear set
-  * @param length is the number of values in the set
-  *
-  * @return the created visad.Linear1DSet
-  *
-  */
+  /**
+   * Create a Linear1DSet for domain samples
+   * 
+   * @param type is the VisAD MathType of this set
+   * @param first is the first value in the linear set
+   * @param last is the last value in the linear set
+   * @param length is the number of values in the set
+   * 
+   * @return the created visad.Linear1DSet
+   * 
+   * @throws VisADException 
+   */
   public static Linear1DSet makeDomain
            (MathType type, double first, double last, int length) 
            throws VisADException {
     return new Linear1DSet(type, first, last, length);
   }
 
-  /** create a Linear1DSet for domain samples
-  *
-  * @param name is the name of the VisAD MathType of this set
-  * @param first is the first value in the linear set
-  * @param last is the last value in the linear set
-  * @param length is the number of values in the set
-  *
-  * @return the created visad.Linear1DSet
-  *
-  */
+  /**
+   * Create a Linear1DSet for domain samples
+   * 
+   * @param name is the name of the VisAD MathType of this set
+   * @param first is the first value in the linear set
+   * @param last is the last value in the linear set
+   * @param length is the number of values in the set
+   * 
+   * @return the created visad.Linear1DSet
+   * 
+   * @throws VisADException 
+   */
   public static Linear1DSet makeDomain
            (String name, double first, double last, int length) 
            throws VisADException {
@@ -2059,19 +2473,20 @@ public abstract class JPythonMethods {
   }
   */
 
-
-  /** create a Linear2DSet for domain samples
-  *
-  * @param first1 is the first value in the linear set's 1st dimension
-  * @param last1 is the last value in the linear set's 1st dimension
-  * @param length1 is the number of values in the set's 1st dimension
-  * @param first2 is the first value in the linear set's 2nd dimension
-  * @param last2 is the last value in the linear set's 2nd dimension
-  * @param length2 is the number of values in the set's 2nd dimension
-  *
-  * @return the created visad.Linear2DSet
-  *
-  */
+  /** 
+   * Create a Linear2DSet for domain samples
+   * 
+   * @param first1 is the first value in the linear set's 1st dimension
+   * @param last1 is the last value in the linear set's 1st dimension
+   * @param length1 is the number of values in the set's 1st dimension
+   * @param first2 is the first value in the linear set's 2nd dimension
+   * @param last2 is the last value in the linear set's 2nd dimension
+   * @param length2 is the number of values in the set's 2nd dimension
+   * 
+   * @return the created visad.Linear2DSet
+   * 
+   * @throws VisADException 
+   */
   public static Linear2DSet makeDomain
                     (double first1, double last1, int length1,
                      double first2, double last2, int length2) 
@@ -2080,19 +2495,21 @@ public abstract class JPythonMethods {
                             first2, last2, length2);
   }
 
-  /** create a Linear2DSet for domain samples
-  *
-  * @param type is the VisAD MathType of this set
-  * @param first1 is the first value in the linear set's 1st dimension
-  * @param last1 is the last value in the linear set's 1st dimension
-  * @param length1 is the number of values in the set's 1st dimension
-  * @param first2 is the first value in the linear set's 2nd dimension
-  * @param last2 is the last value in the linear set's 2nd dimension
-  * @param length2 is the number of values in the set's 2nd dimension
-  *
-  * @return the created visad.Linear2DSet
-  *
-  */
+  /** 
+   * Create a Linear2DSet for domain samples
+   * 
+   * @param type is the VisAD MathType of this set
+   * @param first1 is the first value in the linear set's 1st dimension
+   * @param last1 is the last value in the linear set's 1st dimension
+   * @param length1 is the number of values in the set's 1st dimension
+   * @param first2 is the first value in the linear set's 2nd dimension
+   * @param last2 is the last value in the linear set's 2nd dimension
+   * @param length2 is the number of values in the set's 2nd dimension
+   * 
+   * @return the created visad.Linear2DSet
+   * 
+   * @throws VisADException 
+   */
   public static Linear2DSet makeDomain (MathType type, 
                          double first1, double last1, int length1, 
                          double first2, double last2, int length2) 
@@ -2101,19 +2518,21 @@ public abstract class JPythonMethods {
                                   first2, last2, length2);
   }
 
-  /** create a Linear2DSet for domain samples
-  *
-  * @param name is the name of the VisAD MathType of this set
-  * @param first1 is the first value in the linear set's 1st dimension
-  * @param last1 is the last value in the linear set's 1st dimension
-  * @param length1 is the number of values in the set's 1st dimension
-  * @param first2 is the first value in the linear set's 2nd dimension
-  * @param last2 is the last value in the linear set's 2nd dimension
-  * @param length2 is the number of values in the set's 2nd dimension
-  *
-  * @return the created visad.Linear2DSet
-  *
-  */
+  /** 
+   * Create a Linear2DSet for domain samples
+   * 
+   * @param name is the name of the VisAD MathType of this set
+   * @param first1 is the first value in the linear set's 1st dimension
+   * @param last1 is the last value in the linear set's 1st dimension
+   * @param length1 is the number of values in the set's 1st dimension
+   * @param first2 is the first value in the linear set's 2nd dimension
+   * @param last2 is the last value in the linear set's 2nd dimension
+   * @param length2 is the number of values in the set's 2nd dimension
+   * 
+   * @return the created visad.Linear2DSet
+   * 
+   * @throws VisADException 
+   */
   public static Linear2DSet makeDomain (String name, 
                          double first1, double last1, int length1, 
                          double first2, double last2, int length2) 
@@ -2124,20 +2543,22 @@ public abstract class JPythonMethods {
                                   first2, last2, length2);
   }
 
-  /** create a Linear3DSet for domain samples
-  *
-  * @param first1 is the first value in the linear set's 1st dimension
-  * @param last1 is the last value in the linear set's 1st dimension
-  * @param length1 is the number of values in the set's 1st dimension
-  * @param first2 is the first value in the linear set's 2nd dimension
-  * @param last2 is the last value in the linear set's 2nd dimension
-  * @param length2 is the number of values in the set's 2nd dimension
-  * @param first3 is the first value in the linear set's 3rd dimension
-  * @param last3 is the last value in the linear set's 3rd dimension
-  * @param length3 is the number of values in the set's 3rd dimension
-  * @return the created visad.Linear3DSet
-  *
-  */
+  /** 
+   * Create a Linear3DSet for domain samples
+   * 
+   * @param first1 is the first value in the linear set's 1st dimension
+   * @param last1 is the last value in the linear set's 1st dimension
+   * @param length1 is the number of values in the set's 1st dimension
+   * @param first2 is the first value in the linear set's 2nd dimension
+   * @param last2 is the last value in the linear set's 2nd dimension
+   * @param length2 is the number of values in the set's 2nd dimension
+   * @param first3 is the first value in the linear set's 3rd dimension
+   * @param last3 is the last value in the linear set's 3rd dimension
+   * @param length3 is the number of values in the set's 3rd dimension
+   * @return the created visad.Linear3DSet
+   * 
+   * @throws VisADException 
+   */
   public static Linear3DSet makeDomain 
                     (double first1, double last1, int length1,
                      double first2, double last2, int length2,
@@ -2148,21 +2569,23 @@ public abstract class JPythonMethods {
                             first3, last3, length3);
   }
 
-  /** create a Linear3DSet for domain samples
-  *
-  * @param type is the VisAD MathType of this set
-  * @param first1 is the first value in the linear set's 1st dimension
-  * @param last1 is the last value in the linear set's 1st dimension
-  * @param length1 is the number of values in the set's 1st dimension
-  * @param first2 is the first value in the linear set's 2nd dimension
-  * @param last2 is the last value in the linear set's 2nd dimension
-  * @param length2 is the number of values in the set's 2nd dimension
-  * @param first3 is the first value in the linear set's 3rd dimension
-  * @param last3 is the last value in the linear set's 3rd dimension
-  * @param length3 is the number of values in the set's 3rd dimension
-  * @return the created visad.Linear3DSet
-  *
-  */
+  /**
+   * Create a Linear3DSet for domain samples
+   * 
+   * @param type is the VisAD MathType of this set
+   * @param first1 is the first value in the linear set's 1st dimension
+   * @param last1 is the last value in the linear set's 1st dimension
+   * @param length1 is the number of values in the set's 1st dimension
+   * @param first2 is the first value in the linear set's 2nd dimension
+   * @param last2 is the last value in the linear set's 2nd dimension
+   * @param length2 is the number of values in the set's 2nd dimension
+   * @param first3 is the first value in the linear set's 3rd dimension
+   * @param last3 is the last value in the linear set's 3rd dimension
+   * @param length3 is the number of values in the set's 3rd dimension
+   * @return the created visad.Linear3DSet
+   * 
+   * @throws VisADException 
+   */
   public static Linear3DSet makeDomain (MathType type, 
                          double first1, double last1, int length1, 
                          double first2, double last2, int length2,
@@ -2174,21 +2597,24 @@ public abstract class JPythonMethods {
                                   first3, last3, length3);
   }
 
-  /** create a Linear3DSet for domain samples
-  *
-  * @param name is the name of the VisAD MathType of this set
-  * @param first1 is the first value in the linear set's 1st dimension
-  * @param last1 is the last value in the linear set's 1st dimension
-  * @param length1 is the number of values in the set's 1st dimension
-  * @param first2 is the first value in the linear set's 2nd dimension
-  * @param last2 is the last value in the linear set's 2nd dimension
-  * @param length2 is the number of values in the set's 2nd dimension
-  * @param first3 is the first value in the linear set's 3rd dimension
-  * @param last3 is the last value in the linear set's 3rd dimension
-  * @param length3 is the number of values in the set's 3rd dimension
-  * @return the created visad.Linear3DSet
-  *
-  */
+  /**
+   * Create a Linear3DSet for domain samples
+   * 
+   * @param name is the name of the VisAD MathType of this set
+   * @param first1 is the first value in the linear set's 1st dimension
+   * @param last1 is the last value in the linear set's 1st dimension
+   * @param length1 is the number of values in the set's 1st dimension
+   * @param first2 is the first value in the linear set's 2nd dimension
+   * @param last2 is the last value in the linear set's 2nd dimension
+   * @param length2 is the number of values in the set's 2nd dimension
+   * @param first3 is the first value in the linear set's 3rd dimension
+   * @param last3 is the last value in the linear set's 3rd dimension
+   * @param length3 is the number of values in the set's 3rd dimension
+   * @return the created visad.Linear3DSet
+   * 
+   * @throws RemoteException
+   * @throws VisADException 
+   */
   public static Linear3DSet makeDomain (String name,
                          double first1, double last1, int length1, 
                          double first2, double last2, int length2,
@@ -2201,55 +2627,62 @@ public abstract class JPythonMethods {
                                   first3, last3, length3);
   }
 
-  /** return the sampling set for the domain of the Data object
-  *
-  * @param data is the VisAD data object
-  *
-  * @return the sampling Set
-  *
-  * @throws  VisADException  unable to construct field
-  * @throws  RemoteException part of data and display APIs, shouldn't occur
-  */
+  /** 
+   * Return the sampling set for the domain of the Data object
+   * 
+   * @param data is the VisAD data object
+   * 
+   * @return the sampling Set
+   * 
+   * @throws  VisADException  unable to construct field
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
   public static Set getDomainSet(Data data) 
              throws VisADException, RemoteException {
     return (Set) ((Field)data).getDomainSet();
   }
 
-  /** return the sampling set for the domain of the Data object
-  *
-  * @param data is the VisAD data object
-  *
-  * @return the sampling Set
-  *
-  * @throws  VisADException  unable to construct field
-  * @throws  RemoteException part of data and display APIs, shouldn't occur
-  */
+  /** 
+   * Return the sampling set for the domain of the Data object
+   * 
+   * @param data is the VisAD data object
+   * 
+   * @return the sampling Set
+   * 
+   * @throws  VisADException  unable to construct field
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
   public static Set getDomain(Data data) 
              throws VisADException, RemoteException {
     return (Set) ((Field)data).getDomainSet();
   }
 
-  /** return the lengths of the components of the sampling set 
-  *
-  * @param data is the VisAD data object
-  *
-  * @return an int[] of the lengths
-  *
-  * @throws  VisADException  unable to construct field
-  * @throws  RemoteException part of data and display APIs, shouldn't occur
-  */
+  /**
+   * Return the lengths of the components of the sampling set 
+   * 
+   * @param data is the VisAD data object
+   * 
+   * @return an int[] of the lengths
+   * 
+   * @throws  VisADException  unable to construct field
+   * @throws  RemoteException part of data and display APIs, shouldn't occur
+   */
   public static int[] getDomainSizes(Data data)
              throws VisADException, RemoteException {
     return ((GriddedSet) ((Field)data).getDomainSet()).getLengths();
   }
 
-
   /**
   * Replaces specified values in a FlatField with the constant given
-  *
+  * 
   * @param f is the input FlatField
   * @param list is the int[] list of indecies into f to replace
   * @param v is the value to insert into f.
+  * 
+  * @return 
+  * 
+  * @throws RemoteException 
+  * @throws VisADException 
   */
   public static FlatField replace(FieldImpl f, int[] list, Real v) 
              throws VisADException, RemoteException {
@@ -2262,6 +2695,9 @@ public abstract class JPythonMethods {
   * @param f is the input FlatField
   * @param list is the int[] list of indecies into f to replace
   * @param v is the value to insert into f.
+   * @return 
+   * @throws VisADException 
+   * @throws RemoteException 
   */
   public static FlatField replace(FieldImpl f, int[] list, double v) 
              throws VisADException, RemoteException {
@@ -2292,6 +2728,9 @@ public abstract class JPythonMethods {
   *
   * @param f is the input FlatField
   * @param v is the value to insert into f.
+   * @return 
+   * @throws VisADException 
+   * @throws RemoteException 
   */
   public static FlatField replaceMissing(FieldImpl f, double v) 
              throws VisADException, RemoteException {
@@ -2321,6 +2760,9 @@ public abstract class JPythonMethods {
   *
   * @param f is the input FlatField
   * @param v is the value to insert into f.
+   * @return 
+   * @throws VisADException 
+   * @throws RemoteException 
   */
   public static FlatField replace(FieldImpl f, double v) 
              throws VisADException, RemoteException {
@@ -2384,6 +2826,9 @@ public abstract class JPythonMethods {
   *
   * return double[2].  double[0] = min, double[1] = max
   *   if the fields are all missing, then return min = max = Double.NaN
+   * @return 
+   * @throws VisADException 
+   * @throws RemoteException 
   */
 
   public static double[] getMinMax(FieldImpl f)
@@ -2446,18 +2891,16 @@ public abstract class JPythonMethods {
   * but the "min" and "max" are computed from all members of the sequence! 
   *
   * return new FieldImpl
+   * @return 
+   * @throws VisADException 
+   * @throws RemoteException 
   *
   */
   public static FieldImpl rescale(FieldImpl f, double outlo, double outhi)
        throws VisADException, RemoteException {
-
     double [] minmax = getMinMax(f);
     return rescale(f,minmax[0], minmax[1], outlo, outhi);
   }
-
-
-
-
 
   /**
   * Re-scale the values in a FieldIimpl
@@ -2476,6 +2919,9 @@ public abstract class JPythonMethods {
   * If input FieldImpl is a sequence, then all items in sequence are done
   *
   * Values returned in a new FieldImpl
+   * @return 
+   * @throws VisADException 
+   * @throws RemoteException 
   */
 
   public static FieldImpl rescale(FieldImpl f, 
@@ -2550,6 +2996,8 @@ public abstract class JPythonMethods {
   * Example:  b = mask(a, 'gt', 100)
   * if 'a' is an image, 'b' will be an image with values of
   * 1 where 'a' was > 100, and zero elsewhere.
+   * @throws VisADException 
+   * @throws RemoteException 
   *
   */
   public static FieldImpl mask(FieldImpl f, String op, double v) 
@@ -2558,6 +3006,16 @@ public abstract class JPythonMethods {
   }
 
 
+  /**
+   * 
+   * 
+   * @param f
+   * @param op
+   * @param v
+   * @return
+   * @throws VisADException
+   * @throws RemoteException
+   */
   public static FieldImpl mask(Data f, String op, Data v) 
              throws VisADException, RemoteException {
     if (! (f instanceof FieldImpl) ) {
@@ -2584,6 +3042,8 @@ public abstract class JPythonMethods {
   * if 'a' is an image, 'b' will be an image with values of
   * 1 where 'a' was > the corresponding value of 'c', and zero 
   * elsewhere.
+   * @throws VisADException 
+   * @throws RemoteException 
   *
   */
   public static FieldImpl mask(FieldImpl f, String op, Data v)
@@ -2684,9 +3144,7 @@ public abstract class JPythonMethods {
     } else {
       return (FieldImpl)ff;
     }
-
   }
-
 
   /**
   * Get a list of points where a comparison is true.
@@ -2701,6 +3159,8 @@ public abstract class JPythonMethods {
   * Example:  b = find(a, 'gt', 100)
   * if 'a' is an image, 'b' will be a list of indecies in
   * 'a' where the values are > 100.
+   * @throws VisADException 
+   * @throws RemoteException 
   *
   */
   public static int[] find(FieldImpl f, String op, double v) 
@@ -2725,6 +3185,8 @@ public abstract class JPythonMethods {
   * if 'a' is an image, 'b' will be a list of indecies in
   * 'a' where the values are greater than the corresponding
   * values of 'c'.
+   * @throws VisADException 
+   * @throws RemoteException 
   *
   */
   public static int[] find(Data f, String op, Data v)
@@ -2736,7 +3198,8 @@ public abstract class JPythonMethods {
       fv = (FlatField) (((FieldImpl)f).getSample(0)).subtract(v);
     }
     float [][] dv = fv.getFloats(false);
-    Vector z = new Vector();
+//    Vector z = new Vector();
+    List<Integer> zz = new ArrayList<Integer>(fv.getLength());
     int oper = -1;
     for (int i=0; i<ops.length; i++) {
       if (ops[i].equalsIgnoreCase(op)) oper = i;
@@ -2747,28 +3210,43 @@ public abstract class JPythonMethods {
     for (int i=0; i<1; i++) {
       for (int k=0; k<dv[i].length; k++) {
 
+//        if (oper == 0) {
+//            if (dv[i][k] > 0.0f) z.addElement(new Integer(k));
+//        } else if (oper == 1) {
+//            if (dv[i][k] >= 0.0f) z.addElement(new Integer(k));
+//        } else if (oper == 2) {
+//            if (dv[i][k] < 0.0f) z.addElement(new Integer(k));
+//        } else if (oper == 3) {
+//            if (dv[i][k] <= 0.0f) z.addElement(new Integer(k));
+//        } else if (oper == 4) {
+//            if (dv[i][k] == 0.0f) z.addElement(new Integer(k));
+//        } else if (oper == 5) {
+//            if (dv[i][k] != 0.0f) z.addElement(new Integer(k));
+//        } else {
+//            if (dv[i][k] != 0.0f) z.addElement(new Integer(k));
+//        }
         if (oper == 0) {
-            if (dv[i][k] > 0.0f) z.addElement(new Integer(k));
+          if (dv[i][k] > 0.0f) zz.add(Integer.valueOf(k));
         } else if (oper == 1) {
-            if (dv[i][k] >= 0.0f) z.addElement(new Integer(k));
+          if (dv[i][k] >= 0.0f) zz.add(Integer.valueOf(k));
         } else if (oper == 2) {
-            if (dv[i][k] < 0.0f) z.addElement(new Integer(k));
+          if (dv[i][k] < 0.0f) zz.add(Integer.valueOf(k));
         } else if (oper == 3) {
-            if (dv[i][k] <= 0.0f) z.addElement(new Integer(k));
+          if (dv[i][k] <= 0.0f) zz.add(Integer.valueOf(k));
         } else if (oper == 4) {
-            if (dv[i][k] == 0.0f) z.addElement(new Integer(k));
+          if (dv[i][k] == 0.0f) zz.add(Integer.valueOf(k));
         } else if (oper == 5) {
-            if (dv[i][k] != 0.0f) z.addElement(new Integer(k));
+          if (dv[i][k] != 0.0f) zz.add(Integer.valueOf(k));
         } else {
-            if (dv[i][k] != 0.0f) z.addElement(new Integer(k));
+          if (dv[i][k] != 0.0f) zz.add(Integer.valueOf(k));
         }
       }
     }
 
-    int m = z.size();
-    int [] rv = new int[m];
+    int m = zz.size();
+    int[] rv = new int[m];
     for (int i=0; i<m; i++) {
-      rv[i] = ((Integer)z.elementAt(i)).intValue();
+      rv[i] = zz.get(i).intValue();
     }
     return rv;
   }
@@ -2782,6 +3260,8 @@ public abstract class JPythonMethods {
   *   to data's original
   *
   * @return the new Field
+   * @throws VisADException 
+   * @throws RemoteException 
   *
   */
   public static Field resample(Field data, Set s) 
@@ -2805,6 +3285,8 @@ public abstract class JPythonMethods {
   * @param data is the Field from which to get the numeric values
   *
   * @return values for all range components in the Field
+   * @throws VisADException 
+   * @throws RemoteException 
   *
   */
   public static double[][] getValues(Field data) 
@@ -2812,100 +3294,113 @@ public abstract class JPythonMethods {
     return data.getValues();
   }
 
-  /** sets the sample values into the Field 
-  *
-  * @param f is the Field to put the samples into
-  *
-  * @param vals  are the values for all range components in the Field
-  *
-  */
+  /** 
+   * Sets the sample values into the Field 
+   *
+   * @param f     is the Field to put the samples into
+   * @param vals  are the values for all range components in the Field
+   * @throws VisADException 
+   * @throws RemoteException 
+   */
   public static void setValues(Field f, double[][] vals) 
              throws VisADException, RemoteException {
     f.setSamples(vals);
     return; 
   }
 
-  /** combines fields
-  *
-  * @param fields[] array of fields
-  *
-  * @return the new Field
-  */
-
+  /** 
+   * combines fields
+   *
+   * @param fields array of fields
+   *
+   * @return the new Field
+   * @throws VisADException 
+   * @throws RemoteException 
+   */
   public static Field combine(Field[] fields)
              throws VisADException, RemoteException {
     return (FieldImpl.combine(fields) );
 
   }
 
-  /** extracts a component of the Field
-  *
-  * @param data the field with multiple range componenents
-  * @param t the MathType of the field to extract
-  *
-  * @return the new Field
-  *
-  */
+  /** 
+   * Extracts a component of the Field
+   *
+   * @param data the field with multiple range componenents
+   * @param t the MathType of the field to extract
+   *
+   * @return the new Field
+   * @throws VisADException 
+   * @throws RemoteException 
+   */
   public static Field extract(Field data, MathType t) 
              throws VisADException, RemoteException {
     return ((FieldImpl)data).extract(t);
-
   }
 
-  /** extracts a component of the Field
-  *
-  * @param data the field with multiple range componenents
-  * @param s the name of the components to extract
-  *
-  * @return the new Field
-  *
-  */
+  /** 
+   * Extracts a component of the Field
+   *
+   * @param data the field with multiple range componenents
+   * @param s the name of the components to extract
+   *
+   * @return the new Field
+   * @throws VisADException 
+   * @throws RemoteException 
+   */
   public static Field extract(Field data, String s) 
              throws VisADException, RemoteException {
     return ((FieldImpl)data).extract(s);
-
   }
 
-  /** extracts a component of the Field
-  *
-  * @param data the field with multiple range componenents
-  * @param comp the index of the component to extract
-  *
-  * @return the new Field
-  *
-  */
+  /** 
+   * Extracts a component of the Field
+   *
+   * @param data the field with multiple range componenents
+   * @param comp the index of the component to extract
+   *
+   * @return the new Field
+   * @throws VisADException 
+   * @throws RemoteException 
+   */
   public static Field extract(Field data, int comp) 
              throws VisADException, RemoteException {
     return ((FieldImpl)data).extract(comp);
-
   }
 
-  /** factors out the given MathType from the domain of
-  * the data object.  For example, if the data has a
-  * MathType:  (Line, Element)->(value)
-  * then factoring out Element, creates a new data
-  * object with a MathType:  Element->(Line->(value))
-  *
-  * @parameter data is the Field Data object
-  * @param factor is the domain component Type to factor out
-  *
-  * @return the new Field
-  *
-  */
+  /** 
+   * Factors out the given MathType from the domain of the data object. 
+   * <p>For example, if the data has a
+   * {@code MathType: (Line, Element)->(value)}
+   * then factoring out {@code Element} creates a new data
+   * object with a {@code MathType: Element->(Line->(value))}</p>
+   *
+   * @param data   is the Field Data object
+   * @param factor is the domain component Type to factor out
+   *
+   * @return the new Field
+   * @throws VisADException 
+   * @throws RemoteException 
+   */
   public static Field domainFactor(Field data, RealType factor) 
              throws VisADException, RemoteException {
     return ((FieldImpl)data).domainFactor(factor);
   }
 
 
-  /** factors out the given domain component (by index)
-  * and creates a new data object.  See above.
-  *
-  * @parameter data is the Field Data object
-  * @parameter comp is the domain component index
-  *
-  * @return the new Field
-  */
+  /** 
+   * Factors out the given domain component (by index) and creates a new 
+   * data object.
+   * 
+   * @param data is the Field Data object
+   * @param comp is the domain component index
+   * 
+   * @return the new Field
+   * @throws VisADException 
+   * @throws RemoteException 
+   * 
+   * @see #domainFactor(Field, RealType)
+   */
   public static Field domainFactor(Field data, int comp) 
              throws VisADException, RemoteException {
 
@@ -2916,50 +3411,62 @@ public abstract class JPythonMethods {
     return ((FieldImpl)data).domainFactor(mt);
   }
 
-  /** creates a VisAD Data by evaluating the Field at the
-  * point given in the domain.
-  *
-  * @param data is the field
-  * @param domain is the Real domain where the field should be evaluated
-  *
-  */
-
+  /** 
+   * Creates a VisAD Data by evaluating the Field at the point given in the 
+   * domain.
+   * 
+   * @param data is the field
+   * @param domain is the Real domain where the field should be evaluated
+   * @return 
+   * @throws VisADException 
+   * @throws RemoteException 
+   */
   public static Data evaluate(Field data, Real domain) 
              throws VisADException, RemoteException {
-    return( data.evaluate(domain) );
+    return data.evaluate(domain);
   }
 
+  /**
+   * 
+   * 
+   * @param data
+   * @param domain
+   * @return
+   * @throws VisADException
+   * @throws RemoteException
+   */
   public static Data evaluate(Field data, double domain) 
              throws VisADException, RemoteException {
-    return( data.evaluate(new Real(domain) ) );
+    return data.evaluate(new Real(domain));
   }
 
-
-  /** creates a VisAD MathType from the given string
-  *
-  * @param s is the string describing the names in
-  * the form:  (x,y)->(a)  for a Field.
-  *
-  * Forms allowed:
-  * "Foo" will make and return a RealType
-  * "(Foo)" makes a RealType and returns a RealTupleType
-  * "Foo,Bar" will make two RealTypes and return a RealTupleType
-  * "(Foo,Bar)" does the same thing
-  * "(Foo,Bar)->val" makes 3 RealTypes and returns a FunctionType
-  * (use getDomainType(type) and getRangeType(type) to get the parts
-  *
-  * @return the MathType
-  *
-  */
+  /**
+   * Creates a VisAD MathType from the given string
+   *
+   * @param s is the string describing the names in
+   * the form: {@code (x,y)->(a)}  for a Field.
+   *
+   * <p>Forms allowed:<ul>
+   * <li>{@literal "Foo"} will make and return a RealType</li>
+   * <li>{@literal "(Foo)"} makes a RealType and returns a RealTupleType</li>
+   * <li>{@literal "Foo,Bar"} will make two RealTypes and return a RealTupleType</li>
+   * <li>{@literal "(Foo,Bar)"} does the same thing</li>
+   * <li>{@code "(Foo,Bar)->val"} makes 3 RealTypes and returns a FunctionType
+   * (use getDomainType(type) and getRangeType(type) to get the parts</li>
+   * </ul></p>
+   *
+   * @return the MathType
+   * @throws VisADException 
+   * @throws RemoteException 
+   */
   public static MathType makeType(String s) 
              throws VisADException, RemoteException {
     String ss = s.trim();
 
-    if ((ss.indexOf(",") != -1 || ss.indexOf(">") != -1 ) && 
+    if ((ss.indexOf(',') != -1 || ss.indexOf('>') != -1 ) && 
                  (!ss.startsWith("(") || !ss.endsWith(")") ) ) {
       ss = "(" + s.trim() + ")";
     }
-
     return MathType.stringToType(ss);
   }
 
@@ -2970,6 +3477,8 @@ public abstract class JPythonMethods {
   * @param c is a CoordinateSystem
   *
   * @return RealTupleType of the input RealTypes and CoordinateSystem
+   * @throws VisADException 
+   * @throws RemoteException 
   */
   public static RealTupleType makeType(String[] s, CoordinateSystem c) 
              throws VisADException, RemoteException {
@@ -2977,102 +3486,131 @@ public abstract class JPythonMethods {
     for (int i=0; i< s.length; i++) {
       rt[i] = visad.RealType.getRealType(s[i]);
     }
-
     return new visad.RealTupleType(rt, c, null);
   }
 
-
-  /** make or get the RealType corresponding to the name; if
-  * none exists, make one and return it.
-  *
-  * @param name is the name of the RealType type.
-  *
-  */
+  /** 
+   * Make or get the RealType corresponding to the name; if none exists, 
+   * make one and return it.
+   * 
+   * @param name is the name of the RealType type.
+   * @return 
+   */
   public static RealType makeRealType(String name) {
     return (visad.RealType.getRealType(name));
   }
 
+  /**
+   * TODO
+   * 
+   * @param name
+   * 
+   * @return
+   */
   public static RealType getRealType(String name) {
     return (visad.RealType.getRealType(name));
   }
 
-  /** make or get the RealType corresponding to the name; if
-  * none exists, make one and return it.
-  *
-  * @param name is the name of the RealType type.
-  * @param unit is the new Unit to associate with this (must
-  * be compatible with any existing Unit)
-  *
-  */
-  public static RealType makeRealType(String name, Unit u) {
-    return (visad.RealType.getRealType(name, u));
+  /** 
+   * Make or get the RealType corresponding to the name; if none exists, make
+   * one and return it.
+   * 
+   * @param name is the name of the RealType type.
+   * @param unit is the new Unit to associate with this (must
+   * be compatible with any existing Unit)
+   * @return 
+   */
+  public static RealType makeRealType(String name, Unit unit) {
+    return (visad.RealType.getRealType(name, unit));
   }
 
-  public static RealType getRealType(String name, Unit u) {
-    return (visad.RealType.getRealType(name, u));
+  /**
+   * 
+   * 
+   * @param name
+   * @param unit
+   * @return
+   */
+  public static RealType getRealType(String name, Unit unit) {
+    return (visad.RealType.getRealType(name, unit));
   }
 
-
-  /** get the MathType of the named VisAD data object
-  *
-  * @param data is the VisAD Data object
-  *
-  */
+  /** 
+   * Get the MathType of the named VisAD data object
+   * 
+   * @param data is the VisAD Data object
+   * @return 
+   * @throws VisADException 
+   * @throws RemoteException 
+   */
   public static MathType getType(Data data) 
              throws VisADException, RemoteException {
     return (data.getType());
   }
 
-  /** Turn on/off the axes labels & scales on a Display
-  *
-  * @param d the DisplayImpl to address
-  * @param onoff whether to turn the axes labels on (true)
-  *
-  */
+  /** 
+   * Turn on/off the axes labels & scales on a Display
+   * 
+   * @param d the DisplayImpl to address
+   * @param on whether to turn the axes labels on (true)
+   * @throws VisADException 
+   * @throws RemoteException 
+   */
   public static void showAxesScales(DisplayImpl d, boolean on)
              throws VisADException, RemoteException {
-             d.getGraphicsModeControl().setScaleEnable(on);
+    d.getGraphicsModeControl().setScaleEnable(on);
   }
 
-  /** Set the Label to be used for the axes
-  *
-  * @param sm the array of ScalarMaps
-  * @param labels the array of strings to use for labels
-  */
+  /** 
+   * Set the Label to be used for the axes
+   *
+   * @param sm the array of ScalarMaps
+   * @param labels the array of strings to use for labels
+   * @throws VisADException 
+   * @throws RemoteException 
+   */
   public static void setAxesScalesLabel(ScalarMap [] sm, String[] labels)
              throws VisADException, RemoteException {
-
       if (sm.length != labels.length) {
         throw new VisADException("number of ScalarMaps must match number of labels");
       }
       for (int i=0; i<sm.length; i++) {
         AxisScale scale = sm[i].getAxisScale();
         if (scale != null) {
-          scale.setLabel(labels[i]);
+//          scale.setLabel(labels[i]);
+          scale.setTitle(labels[i]);
         }
       }
-
    }
 
-
-  /** Set the font to be used for the axes labels and scales
-  *
-  * @param sm the array of ScalarMaps
-  * @param f the java.awt.Font to use
-  */
+  /** 
+   * Set the font to be used for the axes labels and scales
+   * 
+   * @param sm the array of ScalarMaps
+   * @param f the java.awt.Font to use
+   * @throws VisADException 
+   * @throws RemoteException 
+   */
   public static void setAxesScalesFont(ScalarMap [] sm, Font f) 
              throws VisADException, RemoteException {
-
       for (int i=0; i<sm.length; i++) {
         AxisScale scale = sm[i].getAxisScale();
         if (scale != null) {
           scale.setFont(f);
         }
       }
-     
-   } 
+   }
 
-   public static UnionSet makePairedLines(MathType mt, double[][] points) 
+   /**
+   * 
+   * 
+   * @param mt
+   * @param points
+   * @return
+   * @throws VisADException
+   * @throws RemoteException
+   */
+  public static UnionSet makePairedLines(MathType mt, double[][] points) 
              throws VisADException, RemoteException {
      int dim = points.length;
      int len = points[0].length;
@@ -3103,17 +3641,17 @@ public abstract class JPythonMethods {
        }
        us = new UnionSet(gs3);
      }
-
      return us;
    }
-  
-  /** helper method for the dump(Data|Math)Type() methods
-  *   this will list both the MathType and DataType information
-  *   to stdout.
-  *
-  * @param d is the Data object
-  *
-  */
+
+  /** 
+   * Helper method for the dump(Data|Math)Type() methods. This will list both 
+   * the MathType and DataType information to stdout.
+   * 
+   * @param d is the Data object
+   * @throws VisADException 
+   * @throws RemoteException 
+   */
   public static void dumpTypes(Data d) 
              throws VisADException, RemoteException {
       MathType t = d.getType();
@@ -3128,6 +3666,9 @@ public abstract class JPythonMethods {
   *   to a ByteArrayOutputStream which is returned.
   *
   * @param d is the Data object
+   * @return 
+   * @throws VisADException 
+   * @throws RemoteException 
   *
   */
   public static ByteArrayOutputStream sdumpTypes(Data d) 
@@ -3142,6 +3683,8 @@ public abstract class JPythonMethods {
   /** helper method for dumpMathType() only
   * This just dumps out the MathType of the Data object.
   * @param d is the Data object
+   * @throws VisADException 
+   * @throws RemoteException 
   *
   */
   public static void dumpType(Data d) 
@@ -3154,6 +3697,9 @@ public abstract class JPythonMethods {
   * This just dumps out the MathType of the Data object into
   * a ByteArrayOutputStream which is returned.
   * @param d is the Data object
+   * @return 
+   * @throws VisADException 
+   * @throws RemoteException 
   *
   *
   */
@@ -3165,27 +3711,51 @@ public abstract class JPythonMethods {
       return bos;
   }
 
+  /**
+   * 
+   * 
+   * @param request
+   * @return
+   * @throws VisADException
+   * @throws RemoteException
+   */
   public static 
        visad.data.mcidas.PointDataAdapter getPointDataAdapter(String request) 
              throws VisADException, RemoteException {
        return (new visad.data.mcidas.PointDataAdapter(request));
   }
 
-  /** helper method to read netcdf files with possible factor
-  */
-
+  /** 
+   * Helper method to read netcdf files with possible factor
+   * 
+   * @param filename 
+   * 
+   * @return 
+   * @throws VisADException 
+   * @throws RemoteException 
+   * @throws IOException 
+   */
   public static Data getNetcdfData(String filename) 
              throws VisADException, RemoteException, IOException {
     return getNetcdfData(filename, null);
   }
 
+  /**
+   * 
+   * 
+   * @param filename
+   * @param factor
+   * @return 
+   * @throws VisADException
+   * @throws RemoteException
+   * @throws IOException
+   */
   public static Data getNetcdfData(String filename, String factor) 
              throws VisADException, RemoteException, IOException {
-
     NetcdfFile nf = new NetcdfFile(filename, true);
     DefaultView dv = new DefaultView(nf,QuantityDBManager.instance(),true);
     if (factor != null) {
-      TreeSet ts = new TreeSet();
+      TreeSet<String> ts = new TreeSet<String>();
       ts.add(factor);
       dv.setOuterDimensionNameSet(ts);
     }
@@ -3193,18 +3763,19 @@ public abstract class JPythonMethods {
     return na.getData();
   }
 
-  /** helper method for visad.ScalarMap.getScale
-  */
-
+  /**
+   * Helper method for {@link visad.ScalarMap#getScale(double[], double[], double[])}.
+   * 
+   * @param smap 
+   * 
+   * @return 
+   */
   public static double[][] getScale(ScalarMap smap) {
     double[] so      = new double[2];
     double[] data    = new double[2];
     double[] display = new double[2];
-
     smap.getScale(so, data, display);
-
     return new double[][] {so, data, display};
   }
-
 }
 
