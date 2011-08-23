@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2011 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2009 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -541,10 +541,12 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       // c_alpha = new TransparencyAttributes(mode.getTransparencyMode(),
       c_alpha = new TransparencyAttributes(TransparencyAttributes.BLENDED,
                                            constant_alpha);
+	c_alpha.setCapability(TransparencyAttributes.ALLOW_VALUE_WRITE); //REUSE GEOMETRY/COLORBYTE REQUIREMENT
     }
     else {
       c_alpha = new TransparencyAttributes();
       c_alpha.setTransparencyMode(TransparencyAttributes.BLENDED);
+	c_alpha.setCapability(TransparencyAttributes.ALLOW_VALUE_WRITE); //REUSE GEOMETRY/COLORBYTE REQUIREMENT
     }
     ColoringAttributes c_color = null;
     if (constant_color != null && constant_color.length == 3) {
@@ -553,6 +555,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
     }
     Appearance appearance =
       makeAppearance(mode, c_alpha, null, geometry, false);
+    appearance.setCapability(Appearance.ALLOW_TRANSPARENCY_ATTRIBUTES_WRITE); //REUSE GEOMETRY/COLORBYTE REQUIREMENT
     // create TextureAttributes
     TextureAttributes texture_attributes = new TextureAttributes();
 
@@ -600,9 +603,11 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     //
     Shape3D shape = new Shape3D(geometry, appearance);
     shape.setCapability(Shape3D.ALLOW_GEOMETRY_READ);
+    shape.setCapability(Shape3D.ALLOW_GEOMETRY_WRITE);	//REUSE GEOMETRY/COLORBYTE REQUIREMENT
     shape.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
     appearance.setTexture(texture);
     appearance.setCapability(Appearance.ALLOW_TEXTURE_READ);
+    appearance.setCapability(Appearance.ALLOW_TEXTURE_WRITE);  //REUSE GEOMETRY/COLORBYTE REQUIREMENT
 
     // WLH 6 April 2000
     // ((Group) group).addChild(shape);

@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2011 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2009 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -91,6 +91,16 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
 
   // FOR DEVELOPMENT PURPOSES //////////////////////////////////
   private static final int DEF_IMG_TYPE;
+
+  //GEOMETRY/COLORBYTE REUSE LOGIC VARIABLES (STARTS HERE)
+  private int last_curve_size = -1;
+  private float last_zaxis_value = Float.NaN;
+  private float last_alpha_value = Float.NaN;
+  private long last_data_hash_code = -1;
+  //GEOMETRY/COLORBYTE REUSE LOGIC VARIABLES (ENDS HERE)
+
+
+
   static {
     String val = System.getProperty("visad.java3d.8bit", "false");
     if (Boolean.parseBoolean(val)) {
@@ -572,9 +582,17 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
       link.time_flag = false;
       vbranch = null;
       // transform data into a depiction under branch
+	long t1 = System.currentTimeMillis();
       try {
-        type.doTransform(branch, data, valueArray,
+	if (type instanceof ShadowImageByRefFunctionTypeJ3D) { //GEOMETRY/COLORBYTE REUSE LOGIC Only for ByRef for Time being
+		if (checkAction()) { //This generally decides whether at all retransformation is required or not.
+	        	type.doTransform(branch, data, valueArray,
+                         	link.getDefaultValues(), this);
+		}
+	} else {	//Not byRef (ShadowImageFunctionTypeJ3D)
+		type.doTransform(branch, data, valueArray,
                          link.getDefaultValues(), this);
+	}
       } catch (RemoteException re) {
         if (visad.collab.CollabUtil.isDisconnectException(re)) {
           getDisplay().connectionFailed(this, link);
@@ -583,6 +601,8 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
         }
         throw re;
       }
+	long t2 = System.currentTimeMillis();
+	//System.err.println("Time taken:" + (t2-t1));
     }
     link.clearData();
 
@@ -745,6 +765,40 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
     renderer.setReUseFrames(true);
     image_ref.setData(new_image_sequence);
   }
+
+
+//GEOMETRY/COLORBYTE REUSE UTILITY METHODS (STARTS HERE)
+  public int getLastCurveSize() {
+	return last_curve_size;
+  }
+
+  public void setLastCurveSize(int csize) {
+	last_curve_size = csize;
+  }
+
+  public float getLastZAxisValue() {
+	return last_zaxis_value;
+  }
+  public void setLastZAxisValue(float zaxis_value) {
+	  last_zaxis_value = zaxis_value;
+  }
+
+  public float getLastAlphaValue() {
+	return last_alpha_value;
+  }
+
+  public void setLastAlphaValue(float alpha) {
+        last_alpha_value = alpha;
+  }
+
+  public long getLastDataHashCode() {
+	return last_data_hash_code;
+  } 
+
+  public void setLastDataHashCode(long lastdata_hashcode) {
+	last_data_hash_code = lastdata_hashcode;
+  }
+//GEOMETRY/COLORBYTE REUSE UTILITY METHODS (ENDS HERE)
 
 }
 
