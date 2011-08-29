@@ -544,6 +544,10 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
       branch.setCapability(BranchGroup.ALLOW_CHILDREN_EXTEND);
       branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
       branch.setCapability(BranchGroup.ALLOW_CHILDREN_WRITE);
+      last_curve_size = -1;
+      last_zaxis_value = Float.NaN;
+      last_alpha_value = Float.NaN;
+      last_data_hash_code = -1; 
     }
 
 
