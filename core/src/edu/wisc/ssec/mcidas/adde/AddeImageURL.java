@@ -666,6 +666,9 @@ public class AddeImageURL extends AddeDatasetURL {
       time.append(getTimeCoverage());
       appendKeyValue(buf, KEY_DAY, day.toString().trim());
       appendKeyValue(buf, KEY_TIME, time.toString().trim());
+      if (getRequestType().equals(REQ_IMAGEDIR)) {
+    	  appendKeyValue(buf, KEY_POS, "ALL");
+      }
     }
   }
 }
