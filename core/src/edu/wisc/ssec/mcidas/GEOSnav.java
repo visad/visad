@@ -27,10 +27,8 @@ MA 02111-1307, USA
 package edu.wisc.ssec.mcidas;
 
 /*
-This code ported from the original McIDAS code which contains this notice:
-C Copyright(c) 2006, Space Science and Engineering Center, UW-Madison
-C Refer to "McIDAS Software Acquisition and Distribution Policies"
-C in the file  mcidas/data/license.txt
+This code translated to Java from the original McIDAS module: nvxgeos.dlm.
+The following notice is included in that code:
 
 C****************************************************************
 C AUTHOR      : Oscar Alonso Lasheras
