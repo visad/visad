@@ -719,9 +719,9 @@ public abstract class AREAnav
   }
 
   /**
-   * Convert arrays of floats to doubles
-   * @param value  arrays of floats
-   * @return value converted to arrays of doubles
+   * Convert arrays of doubles to floats
+   * @param value  arrays of doubles
+   * @return value converted to arrays of floats
    */
   public static float[][] doubleToFloat(double[][] value) {
     if (value == null) return null;
