@@ -4,7 +4,7 @@
 
 /*
 This source file is part of the edu.wisc.ssec.mcidas package and is
-Copyright (C) 1998 - 2011 by Tom Whittaker, Tommy Jasmin, Tom Rink,
+Copyright (C) 1998 - 2009 by Tom Whittaker, Tommy Jasmin, Tom Rink,
 Don Murray, James Kelly, Bill Hibbard, Dave Glowacki, Curtis Rueden
 and others.
  
@@ -122,6 +122,8 @@ public final class MERCnav extends AREAnav
             else
             {
                 latlon[indexLat][point] = xlat;
+                if (xlon > 180.) xlon = xlon - 360.;
+                if (xlon < -180.) xlon = xlon + 360.;
                 latlon[indexLon][point] = (iwest == 1) ? -xlon  : xlon;
             }
         } // end point for loop
@@ -225,6 +227,8 @@ public final class MERCnav extends AREAnav
             else
             {
                 latlon[indexLat][point] = (float) xlat;
+                if (xlon > 180.f) xlon = xlon - 360.f;
+                if (xlon < -180.f) xlon = xlon + 360.f;
                 latlon[indexLon][point] = (float) ((iwest == 1) ? -xlon  : xlon);
             }
         } // end point for loop
