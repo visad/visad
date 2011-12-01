@@ -4243,7 +4243,7 @@ class ContourQuad {
 		int idx0 = sub_grid[iy][ix];
 		int idx1 = idx0 + 1;
 
-		ContourStrip c_strp = new ContourStrip(200, lev_idx, idx0, idx1, css);
+		ContourStrip c_strp = new ContourStrip(lev_idx, idx0, idx1, css);
 
 		int idxA = idx0;
 		int idxB = idx0;
@@ -4443,9 +4443,6 @@ class ContourStripSet {
 	static final int DISABLE_DASH_VALUE = -1;
 
 	/**           */
-	int mxsize;
-
-	/**           */
 	float[] levels;
 
 	int[][] labelIndexes;
@@ -4508,7 +4505,6 @@ class ContourStripSet {
 			double scale_ratio, double label_size, int nr, int nc,
 			Gridded3DSet spatial_set) throws VisADException {
 
-		this.mxsize = 40 * size;
 		this.levels = levels;
 		n_levs = levels.length;
 		labelIndexes = new int[n_levs][];
@@ -4594,7 +4590,7 @@ class ContourStripSet {
 		int n_strip = vec.size();
 
 		if (n_strip == 0) {
-			ContourStrip c_strp = new ContourStrip(mxsize, lev_idx, idx0, idx1,
+			ContourStrip c_strp = new ContourStrip(lev_idx, idx0, idx1,
 					this);
 			vec.add(c_strp);
 		} else {
@@ -4608,7 +4604,7 @@ class ContourStripSet {
 				}
 			}
 			if (found == 3) {
-				ContourStrip c_strp = new ContourStrip(mxsize, lev_idx, idx0,
+				ContourStrip c_strp = new ContourStrip(lev_idx, idx0,
 						idx1, this);
 				vec.add(c_strp);
 
@@ -4619,7 +4615,7 @@ class ContourStripSet {
 				vec.remove(found_array[1]);
 
 			} else if (found == 0) {
-				ContourStrip c_strp = new ContourStrip(mxsize, lev_idx, idx0,
+				ContourStrip c_strp = new ContourStrip(lev_idx, idx0,
 						idx1, this);
 				vec.add(c_strp);
 			}
@@ -4834,7 +4830,6 @@ class ContourStrip {
 
 	/**
 	 * 
-	 * @param mxsize
 	 * @param lev_idx
 	 * @param idx0
 	 * @param idx1
@@ -4842,7 +4837,7 @@ class ContourStrip {
 	 * @param css
 	 */
 	
-	ContourStrip(int mxsize, int lev_idx, int idx0, int idx1,
+	ContourStrip(int lev_idx, int idx0, int idx1,
 			ContourStripSet css) {
 		this.lev_idx = lev_idx;
 
