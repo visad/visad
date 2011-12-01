@@ -112,7 +112,6 @@ public class Contour2D {
 	 *            array to put contour line vertices (x value)
 	 * @param vy1
 	 *            array to put contour line vertices (y value)
-	 * @param vz1
 	 * @param maxv1
 	 *            size of vx1, vy1 arrays
 	 * @param numv1
@@ -178,7 +177,7 @@ public class Contour2D {
 	
 	public static void contour(float g[], int nr, int nc, float interval,
 			float lowlimit, float highlimit, float base, float vx1[][],
-			float vy1[][], float[][] vz1, int maxv1, int[] numv1,
+			float vy1[][], int maxv1, int[] numv1,
 			float vx2[][], float vy2[][], float[][] vz2, int maxv2,
 			int[] numv2, float vx3[][], float vy3[][], float[][] vz3,
 			int maxv3, int[] numv3, float vx4[][], float vy4[][],
@@ -326,16 +325,12 @@ public class Contour2D {
 		float[] vy = new float[maxsize];
 		float[] vx1 = new float[maxv1];
 		float[] vy1 = new float[maxv1];
-		float[] vz1 = new float[maxv1];
 		float[] vx2 = new float[maxv2];
 		float[] vy2 = new float[maxv2];
-		float[] vz2 = new float[maxv2];
 		float[] vx3 = new float[maxv3];
 		float[] vy3 = new float[maxv3];
-		float[] vz3 = new float[maxv3];
 		float[] vx4 = new float[maxv4];
 		float[] vy4 = new float[maxv4];
-		float[] vz4 = new float[maxv4];
 
 		float[][] tri = new float[2][];
 		float[][] tri_normals = new float[1][];
@@ -524,10 +519,6 @@ public class Contour2D {
 
 		// allocate mark array
 		char[] mark = new char[nr * nc];
-
-		// initialize mark array to zeros
-		for (int i = 0; i < nr * nc; i++)
-			mark[i] = 0;
 
 		// set top and bottom rows to 1
 		float max_g = -Float.MAX_VALUE;
@@ -1425,10 +1416,10 @@ public class Contour2D {
 				labelAlign, sphericalDisplayCS, dashFlags);
 		Trace.call2("Contour2d.getLineColorArrays");
 
-		return new ContourOutput(vx1, vy1, vz1, auxLevels1, // basic lines
-				vx2, vy2, vz2, auxLevels2, // fill lines
-				vx3, vy3, vz3, auxLevels3, // label lines
-				vx4, vy4, vz4, // expanding lines
+		return new ContourOutput(vx1, vy1, auxLevels1, // basic lines
+				vx2, vy2, auxLevels2, // fill lines
+				vx3, vy3, auxLevels3, // label lines
+				vx4, vy4, // expanding lines
 				tri, tri_color, tri_normals, ctrSet, triStripBldr);
 	}
 
@@ -3716,22 +3707,18 @@ public class Contour2D {
 
 		final float[] linesXCoords;
 		final float[] linesYCoords;
-		final float[] linesZCoords;
 		final byte[][] linesColors;
 
 		final float[] fillXCoords;
 		final float[] fillYCoords;
-		final float[] fillZCoords;
 		final byte[][] fillColors;
 
 		final float[] labelXCoords;
 		final float[] labelYCoords;
-		final float[] labelZCoords;
 		final byte[][] labelColors;
 
 		final float[] expLineXCoords;
 		final float[] expLineYCoords;
-		final float[] expLineZCoords;
 
 		final float[][] triangleCoords;
 		final byte[][] triangleColors;
@@ -3740,27 +3727,23 @@ public class Contour2D {
 		public final ContourStripSet stripSet;
 		public final TriangleStripBuilder triStripBldr;
 
-		ContourOutput(float[] linesX, float[] linesY, float[] linesZ,
-				byte[][] linesClr, float[] fillX, float[] fillY, float[] fillZ,
-				byte[][] fillClr, float[] lblX, float[] lblY, float[] lblZ,
-				byte[][] lblClr, float[] expX, float[] expY, float[] expZ,
+		ContourOutput(float[] linesX, float[] linesY,
+				byte[][] linesClr, float[] fillX, float[] fillY,
+				byte[][] fillClr, float[] lblX, float[] lblY,
+				byte[][] lblClr, float[] expX, float[] expY,
 				float[][] tri, byte[][] triClr, float[][] triNorm,
 				ContourStripSet set, TriangleStripBuilder tsb) {
 			linesXCoords = linesX;
 			linesYCoords = linesY;
-			linesZCoords = linesZ;
 			linesColors = linesClr;
 			fillXCoords = fillX;
 			fillYCoords = fillY;
-			fillZCoords = fillZ;
 			fillColors = fillClr;
 			labelXCoords = lblX;
 			labelYCoords = lblY;
-			labelZCoords = lblZ;
 			labelColors = lblClr;
 			expLineXCoords = expX;
 			expLineYCoords = expY;
-			expLineZCoords = expZ;
 			triangleCoords = tri;
 			triangleColors = triClr;
 			triangleNormals = triNorm;
