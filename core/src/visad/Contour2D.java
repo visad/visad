@@ -557,7 +557,7 @@ public class Contour2D {
 			ctrLow = new short[nrm][ncm];
 		}
 
-		ContourStripSet ctrSet = new ContourStripSet(nrm, myvals, swap,
+		ContourStripSet ctrSet = new ContourStripSet(myvals, swap,
 				scale_ratio, label_size, nr, nc, spatial_set);
 
 		visad.util.Trace.call1("Contour2d.loop", " nrm=" + nrm + " ncm=" + ncm
@@ -1438,13 +1438,11 @@ public class Contour2D {
 	 * @param nc
 	 * @param ncm
 	 * @param ctrLow
-	 * @param tri
-	 * @param tri_color
 	 * @param o_flags
 	 * @param values
 	 * @param color_bin
 	 * @param grd_normals
-	 * @param tri_normals
+	 * @param triStripBldr
 	 */
 	
 	private static void fillGridBox(float[] g, short[][] n_lines, float[] vx,
@@ -1492,16 +1490,12 @@ public class Contour2D {
 	 * @param nc
 	 * @param nr
 	 * @param ctrLow
-	 * @param tri
-	 * @param t_idx
-	 * @param tri_color
 	 * @param numv
 	 * @param o_flags
 	 * @param values
 	 * @param color_bin
 	 * @param grd_normals
-	 * @param n_idx
-	 * @param tri_normals_a
+	 * @param triStripBldr
 	 */
 	
 	private static void fillGridBox(float[] corners, int numc, float[] vx,
@@ -2077,16 +2071,13 @@ public class Contour2D {
 	 * @param vv2
 	 * @param vv1_last
 	 * @param vv2_last
-	 * @param tri
-	 * @param cnt_tri
-	 * @param t_idx
-	 * @param tri_color
+	 * @param kase
 	 * @param color_bin
 	 * @param cc
 	 * @param color_length
 	 * @param grd_normals
-	 * @param n_idx
-	 * @param tri_normals
+	 * @param same_side_idx
+	 * @param triStripBldr
 	 */
 	
 	private static void fillToLast(float xx, float yy, float xd, float yd,
@@ -2570,17 +2561,13 @@ public class Contour2D {
 	 * @param nc
 	 * @param nr
 	 * @param crnr_color
+	 * @param crnrLevelIdx
 	 * @param crnr_out
-	 * @param tri
-	 * @param t_idx
 	 * @param color_bin
-	 * @param tri_color
 	 * @param color_length
 	 * @param grd_normals
-	 * @param n_idx
-	 * @param tri_normals
 	 * @param closed
-	 * @param cnt_tri
+	 * @param triStripBldr
 	 */
 	
 	private static void fillCaseSix(float xx, float yy, float xd, float yd,
@@ -3074,14 +3061,11 @@ public class Contour2D {
 	 * @param nc
 	 * @param nr
 	 * @param crnr_color
+	 * @param crnrLevelIdx
 	 * @param crnr_out
-	 * @param tri
-	 * @param t_idx
-	 * @param tri_color
 	 * @param grd_normals
-	 * @param n_idx
-	 * @param tri_normals
 	 * @param closed
+	 * @param triStripBldr
 	 */
 
 	private static void fillToNearCorner(float xx, float yy, float xd,
@@ -3220,21 +3204,17 @@ public class Contour2D {
 	 * @param yd
 	 * @param v_idx
 	 * @param o_flag
-	 * @param cnt
 	 * @param dir
 	 * @param vx
 	 * @param vy
 	 * @param nc
 	 * @param nr
 	 * @param crnr_color
+	 * @param crnrLevelIdx
 	 * @param crnr_out
-	 * @param tri
-	 * @param t_idx
-	 * @param tri_color
 	 * @param grd_normals
-	 * @param n_idx
-	 * @param tri_normals
 	 * @param closed
+	 * @param triStripBldr
 	 */
 	
 	private static void fillToOppCorner(float xx, float yy, float xd, float yd,
@@ -3440,14 +3420,11 @@ public class Contour2D {
 	 * @param nc
 	 * @param nr
 	 * @param crnr_color
+	 * @param crnrLevelIdx
 	 * @param crnr_out
-	 * @param tri
-	 * @param t_idx
-	 * @param tri_color
 	 * @param grd_normals
-	 * @param n_idx
-	 * @param tri_normals
 	 * @param closed
+	 * @param triStripBldr
 	 */
 
 	private static void fillToSide(float xx, float yy, float xd, float yd,
@@ -3721,7 +3698,6 @@ public class Contour2D {
 		final float[] expLineYCoords;
 
 		final float[][] triangleCoords;
-		final byte[][] triangleColors;
 		final float[][] triangleNormals;
 
 		public final ContourStripSet stripSet;
@@ -3745,7 +3721,6 @@ public class Contour2D {
 			expLineXCoords = expX;
 			expLineYCoords = expY;
 			triangleCoords = tri;
-			triangleColors = triClr;
 			triangleNormals = triNorm;
 			stripSet = set;
 			triStripBldr = tsb;
@@ -4488,7 +4463,6 @@ class ContourStripSet {
 
 	/**
 	 * 
-	 * @param size
 	 * @param levels
 	 * @param swap
 	 * @param scale_ratio
@@ -4501,7 +4475,7 @@ class ContourStripSet {
 	 * @throws VisADException
 	 */
 
-	ContourStripSet(int size, float[] levels, boolean[] swap,
+	ContourStripSet(float[] levels, boolean[] swap,
 			double scale_ratio, double label_size, int nr, int nc,
 			Gridded3DSet spatial_set) throws VisADException {
 
