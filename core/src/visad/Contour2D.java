@@ -43,8 +43,6 @@ import java.text.DecimalFormat;
 
 public class Contour2D {
 
-	// Applet variables
-
 	/**           */
 	protected Contour2D con;
 
@@ -61,7 +59,7 @@ public class Contour2D {
 	protected int[] num1, num2, num3, num4;
 
 	/**           */
-	protected float[][] vx1, vy1, vx2, vy2, vx3, vy3, vx4, vy4;
+	protected float[][] vx1, vy1;
 
 	/**           */
 	public static final int DIFFICULTY_THRESHOLD = 600000;
@@ -112,54 +110,14 @@ public class Contour2D {
 	 *            array to put contour line vertices (x value)
 	 * @param vy1
 	 *            array to put contour line vertices (y value)
-	 * @param maxv1
-	 *            size of vx1, vy1 arrays
 	 * @param numv1
 	 *            pointer to int to return number of vertices in vx1,vy1
-	 * @param vx2
-	 *            array to put 'hidden' contour line vertices (x value)
-	 * @param vy2
-	 *            array to put 'hidden' contour line vertices (y value)
-	 * @param vz2
-	 * @param maxv2
-	 *            size of vx2, vy2 arrays
-	 * @param numv2
-	 *            pointer to int to return number of vertices in vx2,vy2
-	 * @param vx3
-	 *            array to put contour label vertices (x value)
-	 * @param vy3
-	 *            array to put contour label vertices (y value)
-	 * @param vz3
-	 * @param maxv3
-	 *            size of vx3, vy3 arrays
-	 * @param numv3
-	 *            pointer to int to return number of vertices in vx3,vy3
-	 * @param vx4
-	 *            array to put contour label vertices, inverted (x value)
-	 * @param vy4
-	 *            array to put contour label vertices, inverted (y value) <br>
-	 *            ** see note for VxB and VyB in PlotDigits.java
-	 * @param vz4
-	 * @param maxv4
-	 *            size of vx4, vy4 arrays
-	 * @param numv4
-	 *            pointer to int to return number of vertices in vx4,vy4
 	 * @param auxValues
 	 *            colors corresponding to grid points
-	 * @param auxLevels1
-	 *            colors corresponding to interpolated points for basic lines
-	 * @param auxLevels2
-	 *            colors corresponding to interpolated points for fill lines
-	 * @param auxLevels3
-	 *            colors corresponding to interpolated points for expanding
-	 *            label lines
 	 * @param swap
 	 * @param fill
 	 *            true if filling contours
-	 * @param tri
-	 * @param tri_color
 	 * @param grd_normals
-	 * @param tri_normals
 	 * @param interval_colors
 	 * @param lbl_vv
 	 *            values for label line segments
@@ -177,14 +135,8 @@ public class Contour2D {
 	
 	public static void contour(float g[], int nr, int nc, float interval,
 			float lowlimit, float highlimit, float base, float vx1[][],
-			float vy1[][], int maxv1, int[] numv1,
-			float vx2[][], float vy2[][], float[][] vz2, int maxv2,
-			int[] numv2, float vx3[][], float vy3[][], float[][] vz3,
-			int maxv3, int[] numv3, float vx4[][], float vy4[][],
-			float[][] vz4, int maxv4, int[] numv4, byte[][] auxValues,
-			byte[][] auxLevels1, byte[][] auxLevels2, byte[][] auxLevels3,
-			boolean[] swap, boolean fill, float[][] tri, byte[][] tri_color,
-			float[][][] grd_normals, float[][] tri_normals,
+			float vy1[][], int[] numv1, byte[][] auxValues,
+			boolean[] swap, boolean fill, float[][][] grd_normals,
 			byte[][] interval_colors, float[][][][] lbl_vv,
 			byte[][][][] lbl_cc, float[][][] lbl_loc, double scale_ratio,
 			double label_size, boolean labelAlign, byte[] labelColor,
@@ -284,14 +236,12 @@ public class Contour2D {
 			Gridded3DSet spatial_set) throws VisADException {
 
 		dash = fill ? false : dash;
-		PlotDigits plot = new PlotDigits();
 		int ir, ic;
 		int nrm, ncm;
 		int numc, il;
 		int lr, lc, lc2, lrr, lr2, lcc;
 		float xd, yd, xx, yy;
 		float xdd, ydd;
-		// float clow, chi;
 		float gg;
 
 		// these are just estimates
@@ -300,41 +250,14 @@ public class Contour2D {
 		int est = (int) (dest * Math.sqrt(dest));
 		if (est < 1000)
 			est = 1000;
-		int maxv2 = est;
-		int maxv1 = 2 * 2 * maxv2;
-		// maxv3 and maxv4 should be equal
-		int maxv3 = est;
-		int maxv4 = maxv3;
-		int maxsize = maxv1 + maxv2;
+		int maxsize = (2 * 2 * est) + est;
 
 		// setup colors arrays
-		int color_length = (auxValues != null) ? auxValues.length : 0;
-		int interval_length = (interval_colors.length > 0) ? interval_colors[0].length
-				: 0;
-		byte[][] auxLevels1 = null;
-		byte[][] auxLevels2 = null;
-		byte[][] auxLevels3 = null;
-		if (color_length > 0) {
-			auxLevels1 = new byte[color_length][maxv1];
-			auxLevels2 = new byte[color_length][maxv2];
-			auxLevels3 = new byte[color_length][maxv3];
-		}
+		int interval_length = (interval_colors.length > 0) ? interval_colors[0].length : 0;
 
 		// setup display coordinate arrays
 		float[] vx = new float[maxsize];
 		float[] vy = new float[maxsize];
-		float[] vx1 = new float[maxv1];
-		float[] vy1 = new float[maxv1];
-		float[] vx2 = new float[maxv2];
-		float[] vy2 = new float[maxv2];
-		float[] vx3 = new float[maxv3];
-		float[] vy3 = new float[maxv3];
-		float[] vx4 = new float[maxv4];
-		float[] vy4 = new float[maxv4];
-
-		float[][] tri = new float[2][];
-		float[][] tri_normals = new float[1][];
-		byte[][] tri_color = new byte[color_length][];
 
 		int numv;
 
@@ -436,12 +359,6 @@ public class Contour2D {
 		byte[] auxc = null;
 		byte[] auxd = null;
 		if (naux > 0) {
-			if (auxLevels1 == null || auxLevels1.length != naux
-					|| auxLevels2 == null || auxLevels2.length != naux
-					|| auxLevels3 == null || auxLevels3.length != naux) {
-				throw new SetException("Contour2D.contour: "
-						+ "auxLevels length doesn't match");
-			}
 			for (int i = 0; i < naux; i++) {
 				if (auxValues[i].length != g.length) {
 					throw new SetException("Contour2D.contour: "
@@ -453,16 +370,7 @@ public class Contour2D {
 			auxc = new byte[naux];
 			auxd = new byte[naux];
 			auxLevels = new byte[naux][maxsize];
-		} else {
-			if (auxLevels1 != null || auxLevels2 != null || auxLevels3 != null) {
-				throw new SetException("Contour2D.contour: "
-						+ "auxValues null but auxLevels not null");
-			}
 		}
-
-		// initialize vertex counts
-		int[] numv3 = new int[] { 0 };
-		int[] numv4 = new int[] { 0 };
 
 		if (values == null)
 			return null; // WLH 24 Aug 99
@@ -829,59 +737,6 @@ public class Contour2D {
 								}
 							}
 						}
-
-						if (numv4[0] + 1000 >= maxv4) {
-							// allocate more space
-							maxv4 = 2 * (numv4[0] + 1000);
-							float[][] tx = new float[][] { vx4 };
-							float[][] ty = new float[][] { vy4 };
-							vx4 = new float[maxv4];
-							vy4 = new float[maxv4];
-							System.arraycopy(tx[0], 0, vx4, 0, numv4[0]);
-							System.arraycopy(ty[0], 0, vy4, 0, numv4[0]);
-							tx = null;
-							ty = null;
-						}
-
-						if (numv3[0] + 1000 >= maxv3) {
-							// allocate more space
-							maxv3 = 2 * (numv3[0] + 1000);
-							float[][] tx = new float[][] { vx3 };
-							float[][] ty = new float[][] { vy3 };
-							vx3 = new float[maxv3];
-							vy3 = new float[maxv3];
-							System.arraycopy(tx[0], 0, vx3, 0, numv3[0]);
-							System.arraycopy(ty[0], 0, vy3, 0, numv3[0]);
-							tx = null;
-							ty = null;
-							if (naux > 0) {
-								byte[][] ta = auxLevels3;
-								for (int i = 0; i < naux; i++) {
-									// byte[] taa = auxLevels3[i];
-									auxLevels3[i] = new byte[maxv3];
-									System.arraycopy(ta[i], 0, auxLevels3[i],
-											0, numv3[0]);
-								}
-								ta = null;
-							}
-						}
-
-						/*
-						 * plot.plotdigits( value, xk, yk, xm, ym, maxsize,
-						 * swap); System.arraycopy(plot.Vx, 0, vx3[0], numv3[0],
-						 * plot.NumVerts); System.arraycopy(plot.Vy, 0, vy3[0],
-						 * numv3[0], plot.NumVerts); if (naux > 0) { for (int
-						 * i=0; i<naux; i++) { for (int j=numv3[0];
-						 * j<numv3[0]+plot.NumVerts; j++) { auxLevels3[i][j] =
-						 * auxa[i]; } } }
-						 */
-						numv3[0] += plot.NumVerts;
-						/*
-						 * System.arraycopy(plot.VxB, 0, vx4[0], numv4[0],
-						 * plot.NumVerts); System.arraycopy(plot.VyB, 0, vy4[0],
-						 * numv4[0], plot.NumVerts);
-						 */
-						numv4[0] += plot.NumVerts;
 					}
 
 					float gba, gca, gdb, gdc;
@@ -1416,11 +1271,7 @@ public class Contour2D {
 				labelAlign, sphericalDisplayCS, dashFlags);
 		Trace.call2("Contour2d.getLineColorArrays");
 
-		return new ContourOutput(vx1, vy1, auxLevels1, // basic lines
-				vx2, vy2, auxLevels2, // fill lines
-				vx3, vy3, auxLevels3, // label lines
-				vx4, vy4, // expanding lines
-				tri, tri_color, tri_normals, ctrSet, triStripBldr);
+		return new ContourOutput(ctrSet, triStripBldr);
 	}
 
 	/**
@@ -3682,46 +3533,10 @@ public class Contour2D {
 
 	static final class ContourOutput {
 
-		final float[] linesXCoords;
-		final float[] linesYCoords;
-		final byte[][] linesColors;
-
-		final float[] fillXCoords;
-		final float[] fillYCoords;
-		final byte[][] fillColors;
-
-		final float[] labelXCoords;
-		final float[] labelYCoords;
-		final byte[][] labelColors;
-
-		final float[] expLineXCoords;
-		final float[] expLineYCoords;
-
-		final float[][] triangleCoords;
-		final float[][] triangleNormals;
-
 		public final ContourStripSet stripSet;
 		public final TriangleStripBuilder triStripBldr;
 
-		ContourOutput(float[] linesX, float[] linesY,
-				byte[][] linesClr, float[] fillX, float[] fillY,
-				byte[][] fillClr, float[] lblX, float[] lblY,
-				byte[][] lblClr, float[] expX, float[] expY,
-				float[][] tri, byte[][] triClr, float[][] triNorm,
-				ContourStripSet set, TriangleStripBuilder tsb) {
-			linesXCoords = linesX;
-			linesYCoords = linesY;
-			linesColors = linesClr;
-			fillXCoords = fillX;
-			fillYCoords = fillY;
-			fillColors = fillClr;
-			labelXCoords = lblX;
-			labelYCoords = lblY;
-			labelColors = lblClr;
-			expLineXCoords = expX;
-			expLineYCoords = expY;
-			triangleCoords = tri;
-			triangleNormals = triNorm;
+		ContourOutput(ContourStripSet set, TriangleStripBuilder tsb) {
 			stripSet = set;
 			triStripBldr = tsb;
 		}
