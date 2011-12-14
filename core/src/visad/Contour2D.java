@@ -4647,6 +4647,12 @@ class ContourStrip {
 	
 	boolean addPair(float[] vx, float[] vy, int idx0, int idx1) {
 
+		// test for closed strip, bail out early if found
+		if ((idxs.numIndices > 2) && 
+			(vx[idxs.first.idx0] == vx[idxs.last.idx1]) && (vy[idxs.first.idx0] == vy[idxs.last.idx1])) {
+		     return false;
+		} 
+		   
 		float vx0 = vx[idx0];
 		float vy0 = vy[idx0];
 		float vx1 = vx[idx1];
