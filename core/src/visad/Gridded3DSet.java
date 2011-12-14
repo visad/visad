@@ -27,19 +27,16 @@ MA 02111-1307, USA
 package visad;
 
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.List;
-
-import java.util.logging.Logger;
 
 /**
  * Gridded3DSet represents a finite set of samples of R^3.
  * <P>
  */
+
 public class Gridded3DSet extends GriddedSet {
 
-  private static final Logger log = Logger.getLogger(Gridded3DSet.class.getName());
+  private static final long serialVersionUID = 1L;
 
   int LengthX, LengthY, LengthZ;
 
@@ -2314,56 +2311,6 @@ public class Gridded3DSet extends GriddedSet {
     return new float[] { gx, gy, gz };
   }
 
-  /**
-   * Make the <code>VisADLineStripArray</code>s for the basic lines.
-   * 
-   * @param o
-   *          Output from <code>Contour2D.contour</code>.
-   * @param lvlCnt
-   *          Number of levels.
-   * @return Unstyled lines at index 0, styled at index 1. Never null, but may
-   *         be empty.
-   * @throws VisADException
-   */
-  private VisADLineStripArray[][] makeBasicLineStripArrays(
-      Contour2D.ContourOutput o) throws VisADException {
-
-    List<VisADLineStripArray> styled = new ArrayList<VisADLineStripArray>();
-    List<VisADLineStripArray> unstyled = new ArrayList<VisADLineStripArray>();
-    List<float[][][]> lvlGrids = null;
-    List<byte[][][]> lvlColors = null;
-
-    for (int lvlIdx = 0; lvlIdx < o.getIntervalCount(); lvlIdx++) {
-      lvlGrids = o.getLineStripCoordinates(lvlIdx);
-      lvlColors = o.getLineStripColors(lvlIdx);
-      boolean styleFlag = o.isLineStyled(lvlIdx);
-      for (int gridIdx = 0; gridIdx < lvlGrids.size(); gridIdx++) {
-
-        byte[][][] colors = lvlColors.get(gridIdx);
-        float[][][] grid = lvlGrids.get(gridIdx);
-
-        // strip parts
-        for (int ii = 0; ii < grid.length; ii++) {
-          VisADLineStripArray arr = new VisADLineStripArray();
-          arr.stripVertexCounts = new int[] { grid[ii][0].length };
-          assert arr.stripVertexCounts[0] >= 2 : "Vertex count < 2";
-          
-          setGeometryArray(arr, gridToValue(grid[ii]), colors[ii].length, colors[ii]);
-          
-          if (styleFlag) {
-            styled.add(arr);
-          } else {
-            unstyled.add(arr);
-          }
-        }
-      }
-    }
-
-    return new VisADLineStripArray[][] {
-        unstyled.toArray(new VisADLineStripArray[0]),
-        styled.toArray(new VisADLineStripArray[0]) };
-  }
-
   /*
    * (non-Javadoc)
    * 
@@ -2371,6 +2318,7 @@ public class Gridded3DSet extends GriddedSet {
    * byte[][], boolean[], boolean, boolean, visad.ScalarMap[], double, double,
    * float[][][])
    */
+  
   public VisADGeometryArray[][] makeIsoLines(float[] intervals, float lowlimit,
       float highlimit, float base, float[] fieldValues, byte[][] color_values,
       boolean[] swap, boolean dash, boolean fill, ScalarMap[] smap,
