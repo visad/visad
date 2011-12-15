@@ -4379,8 +4379,7 @@ class ContourStripSet {
 		int n_strip = vec.size();
 
 		if (n_strip == 0) {
-			ContourStrip c_strp = new ContourStrip(lev_idx, idx0, idx1,
-					this);
+			ContourStrip c_strp = new ContourStrip(lev_idx, idx0, idx1, this);
 			vec.add(c_strp);
 		} else {
 			int[] found_array = new int[3];
@@ -4390,6 +4389,8 @@ class ContourStripSet {
 				if (c_strp.addPair(vx, vy, idx0, idx1)) {
 					found_array[found] = kk;
 					found++;
+					// exit loop if we hit threshold value
+					if (found == 3) break;
 				}
 			}
 			if (found == 3) {
