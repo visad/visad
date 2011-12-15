@@ -188,7 +188,7 @@ public interface SetIface
       boolean dash,
       boolean fill,
       ScalarMap[] smap,
-      double scale_ratio,
+      double[] scale,
       double label_size,
       boolean sphericalDisplayCS)
     throws VisADException;

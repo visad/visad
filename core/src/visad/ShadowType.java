@@ -2288,11 +2288,14 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
         		break;
         	}
         }
+        System.out.println("haveSpeedDir: "+haveSpeedDir);
+        System.out.println("EarthVectorType: "+(renderer.getRealVectorTypes(which) instanceof EarthVectorType));
         if (!(renderer.getRealVectorTypes(which) instanceof EarthVectorType) && !haveSpeedDir ) {
         	shouldAdjust = false;
         }
       }
     }
+    System.out.println("shouldAdjust: "+shouldAdjust);
     if (!shouldAdjust)
       return flow_values;
 
@@ -3721,11 +3724,11 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
 
     double[] matrix = p_cntrl.getMatrix();
     double scale = Double.NaN;
+    double[] scale_a = new double[3];
     MouseBehavior mouse = display.getMouseBehavior();
     if (mouse != null) {
       double[] rot_a = new double[3];
       double[] trans_a = new double[3];
-      double[] scale_a = new double[1];
       mouse.instance_unmake_matrix(rot_a, scale_a, trans_a, matrix);
       scale = scale_a[0];
     }
@@ -3923,7 +3926,7 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
               visad.util.Trace.call1("ShadowType:makeIsoLines");
               VisADGeometryArray[][] array_s = spatial_set.makeIsoLines(levs,
                   lowhibase[0], lowhibase[1], lowhibase[2], display_values[i],
-                  color_values, swap, doStyle[0], fill, smap, scale,
+                  color_values, swap, doStyle[0], fill, smap, scale_a,
                   label_size, sphericalDisplayCS);
               visad.util.Trace.call2("ShadowType:makeIsoLines");
 

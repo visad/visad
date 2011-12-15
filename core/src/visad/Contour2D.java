@@ -138,7 +138,7 @@ public class Contour2D {
 			float vy1[][], int[] numv1, byte[][] auxValues,
 			boolean[] swap, boolean fill, float[][][] grd_normals,
 			byte[][] interval_colors, float[][][][] lbl_vv,
-			byte[][][][] lbl_cc, float[][][] lbl_loc, double scale_ratio,
+			byte[][][][] lbl_cc, float[][][] lbl_loc, double[] scale, double scale_ratio,
 			double label_size, boolean labelAlign, byte[] labelColor,
 			Object labelFont, boolean sphericalDisplayCS,
 			Gridded3DSet spatial_set) throws VisADException {
@@ -148,7 +148,7 @@ public class Contour2D {
 		boolean dash = dashes[0];
 
 		contour(g, nr, nc, intervals, lowlimit, highlimit, base, dash,
-				auxValues, swap, fill, grd_normals, interval_colors,
+				auxValues, swap, fill, grd_normals, interval_colors, scale,
 				scale_ratio, label_size, labelAlign, labelColor, labelFont,
 				sphericalDisplayCS, spatial_set);
 	}
@@ -230,7 +230,7 @@ public class Contour2D {
 	public static ContourOutput contour(float g[], int nr, int nc,
 			float[] values, float lowlimit, float highlimit, float base,
 			boolean dash, byte[][] auxValues, boolean[] swap, boolean fill,
-			float[][][] grd_normals, byte[][] interval_colors,
+			float[][][] grd_normals, byte[][] interval_colors, double[] scale,
 			double scale_ratio, double label_size, boolean labelAlign,
 			byte[] labelColor, Object labelFont, boolean sphericalDisplayCS,
 			Gridded3DSet spatial_set) throws VisADException {
