@@ -66,6 +66,10 @@ public class ArcAsciiGridAdapter {
   /** Key for the resolution of the grid */
   private static final String CELLSIZE = "CELLSIZE";
 
+  private static final String XCELLSIZE = "XCELLSIZE";
+
+  private static final String YCELLSIZE = "YCELLSIZE";
+
   /** Alternate key for the missing data value */
   private static final String NODATA = "NODATA";
 
@@ -76,7 +80,7 @@ public class ArcAsciiGridAdapter {
   private static final String[] KNOWN_KEYS = { XLLCORNER, YLLCORNER,
                                                XLLCENTER, YLLCENTER,
                                                NCOLS,     NROWS,
-                                               CELLSIZE, NODATA, NODATA_VALUE };
+                                               CELLSIZE, XCELLSIZE, YCELLSIZE, NODATA, NODATA_VALUE };
 
   /** Default spatial type */
   public static final RealTupleType DEFAULT_SPATIAL_TYPE =
@@ -112,8 +116,11 @@ public class ArcAsciiGridAdapter {
   /** Maximum value */
   private float maximumValue = Float.MIN_VALUE;
   
-  /** Size of the grid cell */
-  private float cellSize;
+  /** Size of the grid cell along x axis*/
+  private float cellSizeX;
+
+  /** Size of the grid cell along y axis*/
+  private float cellSizeY;
   
   /** lower left corner X position */
   private float xllCorner;
@@ -408,13 +415,22 @@ public class ArcAsciiGridAdapter {
   }
 
   private boolean checkHeader() {
+    boolean hasCellSize = headerTable.containsKey(CELLSIZE);
+    if (!hasCellSize) {
+        hasCellSize = headerTable.containsKey(XCELLSIZE) && headerTable.containsKey(YCELLSIZE);
+    }      
     if (!(headerTable.containsKey(NCOLS) &&
           headerTable.containsKey(NROWS) &&
-          headerTable.containsKey(CELLSIZE))
+          hasCellSize)
        ) return false;
     numRows = ((Float)headerTable.get(NROWS)).intValue();
     numColumns = ((Float)headerTable.get(NCOLS)).intValue();
-    cellSize = ((Float)headerTable.get(CELLSIZE)).floatValue();
+    if(headerTable.containsKey(CELLSIZE)) {
+        cellSizeY = cellSizeX = ((Float)headerTable.get(CELLSIZE)).floatValue();
+    } else {
+        cellSizeX = ((Float)headerTable.get(XCELLSIZE)).floatValue();
+        cellSizeY = ((Float)headerTable.get(YCELLSIZE)).floatValue();
+    }
     if (headerTable.containsKey(NODATA)) {
        missingData = ((Float)headerTable.get(NODATA)).floatValue();
     } else if (headerTable.containsKey(NODATA_VALUE)) {
@@ -429,9 +445,9 @@ public class ArcAsciiGridAdapter {
     } else if (headerTable.containsKey(XLLCENTER) &&
                headerTable.containsKey(YLLCENTER)) {
       xllCorner = 
-        ((Float)headerTable.get(XLLCENTER)).floatValue() - cellSize/2;
+        ((Float)headerTable.get(XLLCENTER)).floatValue() - cellSizeX/2;
       yllCorner = 
-        ((Float)headerTable.get(YLLCENTER)).floatValue() - cellSize/2;
+        ((Float)headerTable.get(YLLCENTER)).floatValue() - cellSizeY/2;
     } else {
       return false;
     }
@@ -447,8 +463,8 @@ public class ArcAsciiGridAdapter {
     if (!readHeader) readHeader();
     Linear2DSet spatialSet =
       new Linear2DSet(spatialType, 
-                      xllCorner, xllCorner+(cellSize*(numColumns-1)), numColumns,
-                      yllCorner+(cellSize*(numRows-1)), yllCorner, numRows,
+                      xllCorner, xllCorner+(cellSizeX*(numColumns-1)), numColumns,
+                      yllCorner+(cellSizeY*(numRows-1)), yllCorner, numRows,
                       (CoordinateSystem) null,
                       (Unit[]) null,
                       (ErrorEstimate[]) null,
@@ -574,9 +590,26 @@ public class ArcAsciiGridAdapter {
   /**
    * Get the cell size of this grid
    * @return cell size
+   * @deprecated Use getCellSizeX and getCellSizeY
    */
   public float getCellSize() {
-    return cellSize;
+    return cellSizeX;
+  }
+
+  /**
+   * Get the cell size of this grid
+   * @return cell size
+   */
+  public float getCellSizeX() {
+    return cellSizeX;
+  }
+
+  /**
+   * Get the cell size of this grid
+   * @return cell size
+   */
+  public float getCellSizeY() {
+    return cellSizeY;
   }
 
   /**
@@ -660,7 +693,7 @@ public class ArcAsciiGridAdapter {
    */
   public Rectangle2D getBounds() {
     return new Rectangle2D.Float(xllCorner, yllCorner, 
-                                 cellSize*numColumns, cellSize*numRows);
+                                 cellSizeX*numColumns, cellSizeY*numRows);
   }
 
   /**
@@ -672,8 +705,10 @@ public class ArcAsciiGridAdapter {
     buf.append("File: ");
     buf.append(filename);
     buf.append("\n");
-    buf.append("Cell size ");
-    buf.append(getCellSize());
+    buf.append("Cell size X");
+    buf.append(getCellSizeX());
+    buf.append("Cell size Y");
+    buf.append(getCellSizeY());
     buf.append("\n");
     buf.append("Missing value: ");
     buf.append(getNoDataValue());
@@ -683,9 +718,9 @@ public class ArcAsciiGridAdapter {
     buf.append(" y=");
     buf.append(getYLLCorner());
     buf.append(" width=");
-    buf.append(getCellSize()*getColumns());
+    buf.append(getCellSizeX()*getColumns());
     buf.append(" height=");
-    buf.append(getCellSize()*getRows());
+    buf.append(getCellSizeY()*getRows());
     buf.append("\nData type: " );
     try {
       buf.append(new FunctionType(getSpatialType(), getDataType()));
