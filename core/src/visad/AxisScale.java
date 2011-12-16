@@ -73,6 +73,8 @@ public class AxisScale implements java.io.Serializable
   private int axisOrdinal = -1;
   private String myTitle;
   private Hashtable labelTable;
+  private double[] majorTicks = null;
+  private double[] minorTicks = null;
   private double majorTickSpacing = 0.0;
   private double minorTickSpacing = 0.0;
   private double tickBase = 0.0;
@@ -661,16 +663,24 @@ public class AxisScale implements java.io.Serializable
       }
       // now tens = interval between major tick marks (majorTickSpacing)
       //System.out.println("computed ticks " + majorTickSpacing);
+
+      //double[] hilo = computeTicks(max, min, tickBase, majorTickSpacing);
+      double[] hilo;
+      if (majorTicks == null) {
+        hilo = computeTicks(max, min, tickBase, majorTickSpacing);
+      } else {
+    	hilo = computeTicks(max,min,majorTicks);
+      }
   
-      double[] hilo = computeTicks(max, min, tickBase, majorTickSpacing);
       // firstValue is the first Tick mark value
-      double firstValue = hilo[0];
-      double botval = hilo[0];
-      double topval = hilo[hilo.length-1];
+      //double firstValue = hilo[0];
+      //double botval = hilo[0];
+      //double topval = hilo[hilo.length-1];
   
       // draw major tick marks
       VisADLineArray majorTickArray = new VisADLineArray();
-      int nticks = (int) ((topval-botval)/majorTickSpacing) + 1;
+      //int nticks = (int) ((topval-botval)/majorTickSpacing) + 1;
+      int nticks = hilo.length;
       float[] majorCoordinates = new float[6 * nticks];
       double[] tickup = up;
       if (getTickOrientation() != PRIMARY)
@@ -690,7 +700,8 @@ public class AxisScale implements java.io.Serializable
       if (ticksVisible) {
         for (int j = 0; j< nticks; j++) //Change DRM 21-Feb-2001
         {
-          double value = firstValue + (j * majorTickSpacing);
+          //double value = firstValue + (j * majorTickSpacing);
+          double value = hilo[j];
           double a = (value - min) / (max - min);
           for (int i=0; i<3; i++) {
             if ((k + 3 + i) < majorCoordinates.length) {
@@ -730,7 +741,8 @@ public class AxisScale implements java.io.Serializable
         }
         for (int j = 0; j< nticks; j++) //Change DRM 21-Feb-2001
         {
-          double value = firstValue + (j * majorTickSpacing);
+          //double value = firstValue + (j * majorTickSpacing);
+          double value = hilo[j];
           double a = (value - min) / (max - min);
           for (int i=0; i<3; i++) {
             if ((k + 3 + i) < gridCoordinates.length) {
@@ -749,15 +761,22 @@ public class AxisScale implements java.io.Serializable
       }
   
       // create an array for the minor ticks
-      if (getMinorTickSpacing() > 0 && ticksVisible)  
+      if ((getMinorTickSpacing() > 0 || minorTicks != null) && ticksVisible)  
       {
-        hilo = computeTicks(max, min, tickBase, minorTickSpacing);
+        //hilo = computeTicks(max, min, tickBase, minorTickSpacing);
+        double[] minorTicksToDraw;
+    	if (minorTicks == null) {
+    	  minorTicksToDraw = computeTicks(max, min, tickBase, minorTickSpacing);
+    	} else {
+          minorTicksToDraw = computeTicks(max, min, minorTicks);
+    	}
         // now lower * minorTickSpacing = value of lowest tick mark, and
         // upper * minorTickSpacing = values of highest tick mark
   
         VisADLineArray minorTickArray = new VisADLineArray();
         // Change DRM 21-Feb-2001
-        nticks = (int) ((hilo[hilo.length-1]-hilo[0])/minorTickSpacing) + 1;
+        //nticks = (int) ((hilo[hilo.length-1]-hilo[0])/minorTickSpacing) + 1;
+        nticks = minorTicksToDraw.length;
         float[] minorCoordinates = new float[6 * nticks];
   
         // draw tick marks
@@ -765,7 +784,8 @@ public class AxisScale implements java.io.Serializable
         //for (long j=lower; j<=upper; j++) {  // Change DRM 21-Feb-2001
         for (int j = 0; j < nticks; j++)
         {
-          double val = hilo[0] + (j * minorTickSpacing);
+          //double val = hilo[0] + (j * minorTickSpacing);
+          double val = minorTicksToDraw[j];
           double a = (val - min) / (max - min);
           for (int i=0; i<3; i++) {
             if ((k + 3 + i) < minorCoordinates.length) {
@@ -807,10 +827,11 @@ public class AxisScale implements java.io.Serializable
   
       // Draw the labels.  If user hasn't defined their own, make defaults.
       if (!userLabels) {
-        createStandardLabels(topval, botval, botval, 
-                             (labelAllTicks == false)
-                                ?(topval - botval):majorTickSpacing, 
-                             false);
+        //createStandardLabels(topval, botval, botval, 
+        //                     (labelAllTicks == false)
+        //                        ?(topval - botval):majorTickSpacing, 
+        //                     false);
+    	createLabels(hilo, false);
       }
   
       double dist = 1.0 + TICKSIZE;   // dist from the line in the up direction;
@@ -1079,6 +1100,36 @@ public class AxisScale implements java.io.Serializable
   }
 
   /**
+   * Set major tick marks.  Tick marks will be placed at the values on 
+   * the axis.
+   * @param values  the tick values
+   */
+  public void setMajorTicks(double[] majorTicks)
+  {
+    this.majorTicks = majorTicks;
+    autoComputeTicks = false;
+    try {
+      scalarMap.makeScale();  // update the display
+    }
+    catch (VisADException ve) {;}
+  }
+
+  /**
+   * Set minor tick marks.  Tick marks will be placed at the values on 
+   * the axis.
+   * @param values  the tick values
+   */
+  public void setMinorTicks(double[] minorTicks)
+  {
+    this.minorTicks = minorTicks;
+    autoComputeTicks = false;
+    try {
+      scalarMap.makeScale();  // update the display
+    }
+    catch (VisADException ve) {;}
+  }
+
+  /**
    * This method returns the major tick spacing.  The number that is returned
    * represents the distance, measured in values, between each major tick mark.
    *
@@ -1178,6 +1229,33 @@ public class AxisScale implements java.io.Serializable
             labelTable.put(new Double(values[i]), createLabelString(values[i]));
           }
         }
+    }
+    if (byuser) {
+      try {
+        userLabels = true;
+        scalarMap.makeScale();  // update the display
+      }
+      catch (VisADException ve) {;}
+    }
+  }
+
+  /**
+   * private copy to allow program to create table, but not remake scale
+   */
+  private void createLabels(double[] values, boolean byuser)
+  {
+    synchronized(labelTable) {
+       labelTable.clear();
+       if (values != null) {
+    	 if (getLabelAllTicks()) {
+            for (int i = 0; i < values.length; i++) {
+              labelTable.put(new Double(values[i]), createLabelString(values[i]));
+            }
+         } else{
+            labelTable.put(new Double(values[0]), createLabelString(values[0]));
+            labelTable.put(new Double(values[values.length-1]), createLabelString(values[values.length-1]));
+         }
+       }
     }
     if (byuser) {
       try {
@@ -1587,6 +1665,27 @@ public class AxisScale implements java.io.Serializable
       vals[i] = base + (nlo + i) * interval;
     }
 
+    return vals;
+  }
+
+  /** compute the tick mark values that are between max and min */
+  private double[] computeTicks(double max, double min,
+                                double[] ticks)
+  {
+    double[] vals = new double[ticks.length];
+    Arrays.sort(ticks);
+    int numTicks = 0;
+    for (int i = 0; i < ticks.length; i++) {
+      double tick = ticks[i];
+      if (tick <= max && tick >= min) { 
+        vals[numTicks++] = tick;
+      }
+    }
+    if (numTicks < ticks.length) {
+       double[] newVals = new double[numTicks];
+       System.arraycopy(vals,0,newVals,0,numTicks);
+       return newVals;
+    }
     return vals;
   }
 
