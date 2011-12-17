@@ -4477,7 +4477,7 @@ class ContourStripSet {
 			byte[] labelColor, Object labelFont, boolean labelAlign,
 			boolean sphericalDisplayCS, boolean[] dashFlags)
 			throws VisADException {
-
+              
 		makeContourStrips(vx, vy);
 
 		// set the line and color arrays for each level
@@ -4578,7 +4578,8 @@ class ContourStripSet {
 	boolean isLabeled(int lvl) {
 		return vecArray[lvl].get(0).isLabeled();
 	}
-}
+
+} //--------  ContourStripSet -------------------
 
 /**
  * ContourStrip is used internally by Contour2D to track the indexes associated
@@ -5683,7 +5684,8 @@ class ContourStrip {
 				+ idxs.first.idx1 + "), (" + idxs.last.idx0 + ","
 				+ idxs.first.idx1 + ")>";
 	}
-}
+
+} //---------  ContourStrip ------------------/ 
 
 /**
  * A double ended list for pairs of integers implemented as a doubly linked
