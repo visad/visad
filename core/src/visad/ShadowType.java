@@ -2288,14 +2288,11 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
         		break;
         	}
         }
-        System.out.println("haveSpeedDir: "+haveSpeedDir);
-        System.out.println("EarthVectorType: "+(renderer.getRealVectorTypes(which) instanceof EarthVectorType));
         if (!(renderer.getRealVectorTypes(which) instanceof EarthVectorType) && !haveSpeedDir ) {
         	shouldAdjust = false;
         }
       }
     }
-    System.out.println("shouldAdjust: "+shouldAdjust);
     if (!shouldAdjust)
       return flow_values;
 
