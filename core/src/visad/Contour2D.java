@@ -541,9 +541,17 @@ public class Contour2D {
 				//
 				// ------------------------------
 				ga = g[ic_times_nr + ir];
+       			if (Float.isNaN(ga))
+         			continue;
 				gb = g[ic_times_nr + ir_plus1];
+       			if (Float.isNaN(gb))
+         			continue;
 				gc = g[ic_plus1_times_nr + ir];
+       			if (Float.isNaN(gc))
+         			continue;
 				gd = g[ic_plus1_times_nr + ir_plus1];
+       			if (Float.isNaN(gd))
+         			continue;
 
 				/*
 				 * DRM move outside the loop byte[] auxa = null; byte[] auxb =
@@ -1314,9 +1322,21 @@ public class Contour2D {
 
 				// get 4 corner values, skip box if any are missing
 				ga = (g[(ic) * nr + (ir)]);
+       			// test for missing
+       			if (Float.isNaN(ga))
+         			continue;
 				gb = (g[(ic) * nr + (ir + 1)]);
+       			// test for missing
+       			if (Float.isNaN(gb))
+         			continue;
 				gc = (g[(ic + 1) * nr + (ir)]);
+       			// test for missing
+       			if (Float.isNaN(gc))
+         			continue;
 				gd = (g[(ic + 1) * nr + (ir + 1)]);
+       			// test for missing
+       			if (Float.isNaN(gd ))
+         			continue;
 
 				numv[0] += n_lines[ir][ic] * 2;
 
