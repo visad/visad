@@ -1704,8 +1704,6 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
        float[][] spatial_values = new float[3][];
        spatial_values[tuple_index[0]] = spline_domain[0];
        spatial_values[tuple_index[1]] = spline_domain[1];
-       /*spatial_values[tuple_index[2]] = new float[nn];            
-       Arrays.fill(spatial_values[tuple_index[2]], value2);*/
        for (int i = 0; i < 3; i++) {                
           if (spatial_maps[i] != null) {
              spatial_values[i] = spatial_maps[i].scaleValues(spatial_values[i], false);
@@ -1716,18 +1714,28 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
           spatial_values = coord.toReference(spatial_values);
        }
 
+      boolean isSpherical = spatial_tuple.equals(Display.DisplaySpatialSphericalTuple);
+      boolean spatial_all_select = true;
 
-    boolean spatial_all_select = true;
-	if (Float.isNaN(value2)) {
-		spatial_all_select = false;
-	} else {
-    		for (int i=0; i<nn; i++) {
-			if (!Float.isNaN(spatial_values[0][i]) || !Float.isNaN(spatial_values[1][i])) {// || !Float.isNaN(spatial_values[2][i])) {
-				spatial_all_select = false;
-				break;
-			}
-    		}
-	}
+       if (isSpherical) {
+            for (int i=0; i<nn; i++) {
+               if (Float.isNaN(spatial_values[0][i]) || Float.isNaN(spatial_values[1][i]) || Float.isNaN(spatial_values[2][i])) {
+                      spatial_all_select = false;
+                      break;
+               }
+            }
+       } else {
+            if (Float.isNaN(value2)) {
+                 spatial_all_select = false;
+            } else {
+                 for (int i=0; i<nn; i++) {
+                      if (Float.isNaN(spatial_values[0][i]) || Float.isNaN(spatial_values[1][i])) {
+                          spatial_all_select = false;
+                          break;
+                      }
+                 }
+           }
+       } 
 
                                                                                                                    
     VisADTriangleStripArray tarray = new VisADTriangleStripArray();
