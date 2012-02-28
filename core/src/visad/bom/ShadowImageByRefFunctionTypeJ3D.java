@@ -255,6 +255,10 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         float last_alpha_value = imgRenderer.getLastAlphaValue();
         long last_data_hash_code = imgRenderer.getLastDataHashCode();
         long current_data_hash_code = data.hashCode();
+	
+	boolean last_adjust_projection_seam = imgRenderer.getLastAdjustProjectionSeam(); //27FEB2012: Projection Seam Change Bug Fix
+	boolean current_adjust_projection_seam = adaptedShadowType.getAdjustProjectionSeam(); //27FEB2012: Projection Seam Change Bug Fix
+	
 	Object map_ticks_z_value[] = findSpatialMapTicksAndCurrZValue(MyAdaptedShadowType, display, default_values, value_array, valueToScalar, imgRenderer, link, valueArrayLength);
 	if (null == map_ticks_z_value) {
 		return;
@@ -276,7 +280,8 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                         boolean curve_texture_value_change = (last_curve_size != curved_size);
                         boolean alpha_changed = (Float.compare(constant_alpha, last_alpha_value) != 0);
                         boolean radiancemap_colcontrol_check_ticks = findRadianceMapColorControlCheckTicks(cmap, cmaps, imgRenderer, link);
-                        if  (spatial_maps_check_ticks ||  zaxis_value_changed || curve_texture_value_change) { //change in geometry
+			boolean projection_seam_changed = (current_adjust_projection_seam != last_adjust_projection_seam); //27FEB2012: Projection Seam Change Bug Fix
+                        if  (spatial_maps_check_ticks ||  zaxis_value_changed || curve_texture_value_change || projection_seam_changed) { //change in geometry 27FEB2012: Projection Seam Change Bug Fix
                                 regen_geom = true;
                         } else if (alpha_changed) { //change in alpha value
                                 apply_alpha = true;
@@ -290,6 +295,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         imgRenderer.setLastCurveSize(curved_size);
         imgRenderer.setLastZAxisValue(current_zaxis_value);
         imgRenderer.setLastAlphaValue(constant_alpha);
+	imgRenderer.setLastAdjustProjectionSeam(current_adjust_projection_seam); //27FEB2012: Projection Seam Change Bug Fix
         imgRenderer.setLastDataHashCode(current_data_hash_code);
     }
     //REUSE GEOMETRY/COLORBYTE UTILITY METHODS (ENDS HERE)
@@ -481,6 +487,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         System.err.println("Apply Alpha:" + apply_alpha);
 	System.err.println("ReuseImages:" + reuseImages);
         */
+        
 	//REUSE GEOMETRY/COLORBYTE LOGIC (ENDS HERE)
      	prevImgNode = ((ImageRendererJ3D)renderer).getImageNode();
 

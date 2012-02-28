@@ -97,6 +97,7 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
   private float last_zaxis_value = Float.NaN;
   private float last_alpha_value = Float.NaN;
   private long last_data_hash_code = -1;
+  private boolean adjust_projection_seam = false; //27FEB2012: Projection Seam Change Bug Fix
   //GEOMETRY/COLORBYTE REUSE LOGIC VARIABLES (ENDS HERE)
 
 
@@ -548,6 +549,7 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
       last_zaxis_value = Float.NaN;
       last_alpha_value = Float.NaN;
       last_data_hash_code = -1; 
+      adjust_projection_seam = false; //27FEB2012: Projection Seam Change Bug Fix
     }
 
 
@@ -802,6 +804,18 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
   public void setLastDataHashCode(long lastdata_hashcode) {
 	last_data_hash_code = lastdata_hashcode;
   }
+
+  //27FEB2012: Projection Seam Change Bug Fix (starts here)
+  public boolean getLastAdjustProjectionSeam() {
+        return adjust_projection_seam;
+  }
+
+  public void setLastAdjustProjectionSeam(boolean adjust) {
+         adjust_projection_seam = adjust;
+  }
+  //27FEB2012: Projection Seam Change Bug Fix (ends here)
+
+
 //GEOMETRY/COLORBYTE REUSE UTILITY METHODS (ENDS HERE)
 
 }
