@@ -2983,6 +2983,82 @@ public static void plot(final String name, final float[][] data)
     }
   }
 
+  /** construct a Field containing the computed area
+  *   of each data point
+  * @param f VisAD data object (FlatField or FieldImpl) as source
+  * 
+  * @return FlatField of the computed areas
+  *
+  */
+  public static FlatField computeArea(FieldImpl f)
+        throws VisADException, RemoteException {
+    FlatField ff = null;
+    CoordinateSystem cs = null;
+    Set ds = null;
+    if (f instanceof FlatField) {
+      ds = ((FlatField)f).getDomainSet();
+    } else {
+      ds = ( (FlatField)(f.getSample(0))).getDomainSet();
+    }
+    cs = ds.getCoordinateSystem();
+
+    float[][] xes;
+    float[][] yes;
+    if (ds instanceof Linear2DSet) {
+      xes = ((Linear2DSet)ds).getX().getSamples(false);
+      yes = ((Linear2DSet)ds).getY().getSamples(false);
+    } else {
+      throw new VisADException("Set type wrong:"+ds.toString());
+    }
+
+    int nx = xes[0].length;
+    int ny = yes[0].length;
+
+    float[][] area = new float[1][nx * ny];
+    float[][] lats = new float[nx][ny];
+    float[][] lons = new float[nx][ny];
+
+    double[][] xy = new double[2][1];
+    double[][] latlon = new double[2][1];
+    for (int i=0; i<nx; i++) {
+      for (int j=0; j<ny; j++) {
+        xy[0][0] = xes[0][i];
+        xy[1][0] = yes[0][j];
+        latlon = cs.toReference(xy);
+        lats[i][j] = (float)latlon[0][0];
+        lons[i][j] = (float)latlon[1][0];
+      }
+    }
+
+    int k = 0;
+    for (int i=1; i<nx-1; i++) {
+      for (int j=1; j<ny-1; j++) {
+        k = i + nx*j;
+        area[0][k] = lats[i][j];
+
+        area[0][k] = (float) Math.abs(111.1 * (lats[i][j-1] - lats[i][j+1]) / 2.0 * 111.1 * Math.cos(lats[i][j]*.0174533) * (lons[i+1][j] - lons[i-1][j])/2.0);
+        //area[0][k] = (float) Math.abs(6370.*6370.*Math.sin(lons[i][j])*(lons[i+1][j] - lons[i-1][j])/2.*.0174533*(lats[i][j-1] - lats[i][j+1])/2.*.0174533);
+
+        //area[0][k] = (float) Math.abs(6370.*6370. *( Math.sin(lats[i][j-1]*.0174533) - Math.sin(lats[i][j+1]*.0174533)) * (lons[i+1][j] - lons[i-1][j])/2.*.0174533);
+         
+
+
+      }
+    }
+
+    MathType domain = ((SetType) ds.getType()).getDomain();
+    Unit u = null;
+    try {
+      u = visad.data.units.Parser.parse("km2");
+    } catch (Exception e) { }
+
+    RealType range = makeRealType("area",u);
+    FunctionType ftype = new FunctionType(domain, range);
+    FlatField field = new FlatField(ftype, ds);
+    field.setSamples(area,false);
+    return field;
+  }
+
   /**
   * Mask out values outside testing limits in a FieldImpl
   *
@@ -3671,7 +3747,7 @@ public static void plot(final String name, final float[][] data)
    * @throws RemoteException 
   *
   */
-  public static ByteArrayOutputStream sdumpTypes(Data d) 
+  public static ByteArrayOutputStream whatTypes(Data d) 
              throws VisADException, RemoteException {
       MathType t = d.getType();
       ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -3696,6 +3772,7 @@ public static void plot(final String name, final float[][] data)
   /** helper method for dumpMathType() only
   * This just dumps out the MathType of the Data object into
   * a ByteArrayOutputStream which is returned.
+  *
   * @param d is the Data object
    * @return 
    * @throws VisADException 
@@ -3703,7 +3780,7 @@ public static void plot(final String name, final float[][] data)
   *
   *
   */
-  public static ByteArrayOutputStream sdumpType(Data d) 
+  public static ByteArrayOutputStream whatType(Data d) 
              throws VisADException, RemoteException {
       ByteArrayOutputStream bos = new ByteArrayOutputStream();
       MathType t = d.getType();
