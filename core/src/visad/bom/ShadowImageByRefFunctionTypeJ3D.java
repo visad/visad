@@ -194,10 +194,13 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
   }
   /*This method just applies the texture on the already generated geometry.
     This is used when only colorbytes are generated and geometry is reused. 
-    This does away with buildTexture(Linear/Curve) when geometrt is reused */
+    This does away with buildTexture(Linear/Curve) when geometry is reused */
   private void applyTexture(Shape3D shape, VisADImageTile tile, boolean apply_alpha, float constant_alpha) {
         Appearance app = shape.getAppearance();
 	if (regen_colbytes) {
+                if (animControl == null) {
+                    imgNode.setCurrent(0);
+                }
 		//For getting LOD Image (starts here)
 	        /*BufferedImage base_image = tile.getImage(0);
 		int width = base_image.getWidth();
