@@ -2990,25 +2990,28 @@ public static void plot(final String name, final float[][] data)
   * @return FlatField of the computed areas
   *
   */
-  public static FlatField computeArea(FieldImpl f)
+  public static FlatField createAreaField(FieldImpl f)
         throws VisADException, RemoteException {
-    FlatField ff = null;
-    CoordinateSystem cs = null;
+
     Set ds = null;
     if (f instanceof FlatField) {
       ds = ((FlatField)f).getDomainSet();
     } else {
       ds = ( (FlatField)(f.getSample(0))).getDomainSet();
     }
-    cs = ds.getCoordinateSystem();
+    CoordinateSystem cs;
 
     float[][] xes;
     float[][] yes;
     if (ds instanceof Linear2DSet) {
       xes = ((Linear2DSet)ds).getX().getSamples(false);
       yes = ((Linear2DSet)ds).getY().getSamples(false);
+      cs = ds.getCoordinateSystem();
     } else {
-      throw new VisADException("Set type wrong:"+ds.toString());
+      xes = ((Linear3DSet)ds).getX().getSamples(false);
+      yes = ((Linear3DSet)ds).getY().getSamples(false);
+      cs = ((CartesianProductCoordinateSystem)ds.getCoordinateSystem()).getCoordinateSystems()[0];
+      throw new VisADException("Must use 2D data to compute area...");
     }
 
     int nx = xes[0].length;
@@ -3020,43 +3023,106 @@ public static void plot(final String name, final float[][] data)
 
     double[][] xy = new double[2][1];
     double[][] latlon = new double[2][1];
-    for (int i=0; i<nx; i++) {
-      for (int j=0; j<ny; j++) {
-        xy[0][0] = xes[0][i];
-        xy[1][0] = yes[0][j];
+    for (int x=0; x<nx; x++) {
+      for (int y=0; y<ny; y++) {
+        xy[0][0] = xes[0][x];
+        xy[1][0] = yes[0][y];
         latlon = cs.toReference(xy);
-        lats[i][j] = (float)latlon[0][0];
-        lons[i][j] = (float)latlon[1][0];
+        lats[x][y] = (float)latlon[0][0];
+        lons[x][y] = (float)latlon[1][0];
       }
     }
 
     int k = 0;
-    for (int i=1; i<nx-1; i++) {
-      for (int j=1; j<ny-1; j++) {
-        k = i + nx*j;
-        area[0][k] = lats[i][j];
+    for (int x=1; x<nx-1; x++) {
+      for (int y=1; y<ny-1; y++) {
+        k = x + nx*y;
+        area[0][k] = lats[x][y];
 
-        area[0][k] = (float) Math.abs(111.1 * (lats[i][j-1] - lats[i][j+1]) / 2.0 * 111.1 * Math.cos(lats[i][j]*.0174533) * (lons[i+1][j] - lons[i-1][j])/2.0);
-        //area[0][k] = (float) Math.abs(6370.*6370.*Math.sin(lons[i][j])*(lons[i+1][j] - lons[i-1][j])/2.*.0174533*(lats[i][j-1] - lats[i][j+1])/2.*.0174533);
-
-        //area[0][k] = (float) Math.abs(6370.*6370. *( Math.sin(lats[i][j-1]*.0174533) - Math.sin(lats[i][j+1]*.0174533)) * (lons[i+1][j] - lons[i-1][j])/2.*.0174533);
-         
-
+        // a = cos(lat)*(dlon) * (dlat) * 111.1^2  (km per degree of lat)
+        // dlat and dlon are over 2 points...so 111.1/2 * 111.1/2 = 3085.8025
+        
+        area[0][k] = (float) Math.abs(3085.8025 * (lats[x][y-1] - lats[x][y+1]) * Math.cos(lats[x][y]*.01745329252) * (lons[x+1][y] - lons[x-1][y]));
 
       }
     }
 
+    // now fix up the edges
+    k = nx*(ny-1);
+    for (int x=0; x<nx; x++) {
+      area[0][x] = area[0][x+nx];
+      area[0][x+k] = area[0][x+k-nx];
+    }
+    for (int y=0; y<ny; y++) {
+      k = nx*y;
+      area[0][k] = area[0][k+1];
+      area[0][k+nx-1] = area[0][k+nx-2];
+    }
+
+    // Now create the VisAD FlatField...
     MathType domain = ((SetType) ds.getType()).getDomain();
     Unit u = null;
-    try {
-      u = visad.data.units.Parser.parse("km2");
-    } catch (Exception e) { }
+    try { u = makeUnit("km2"); } 
+    catch (Exception e) { }
 
     RealType range = makeRealType("area",u);
     FunctionType ftype = new FunctionType(domain, range);
     FlatField field = new FlatField(ftype, ds);
     field.setSamples(area,false);
+    lats = null;
+    lons = null;
     return field;
+  }
+
+  /** Sum up the values of each point named in the list (see
+  *   "createAreaField" method)
+  *
+  * @param f VisAD FlatField containing the values to be summed at each point
+  * @param list an array of points to be used to sum up the values
+  *    (see the "find" method)
+  * 
+  * @return the summation of the data values defined in the list
+  *
+  */
+  public static double computeSum(FlatField f, int[] list) 
+             throws VisADException, RemoteException {
+    float [][] dv = f.getFloats(false);
+
+    double sum = 0.0;
+    for (int i=0; i<list.length; i++) {
+      if (!Float.isNaN(dv[0][list[i]])) sum = sum + dv[0][list[i]];
+    }
+    return sum;
+  }
+
+  /** Compute the average of each point named in the list (see
+  *   "createArea" method)
+  *
+  * @param f VisAD FlatField containing the values to be averaged at each point
+  * @param list an array of points to be used to compute the average values
+  *    (see the "find" method)
+  * 
+  * @return the average of the data values defined in the list
+  *
+  */
+  public static double computeAverage(FlatField f, int[] list) 
+             throws VisADException, RemoteException {
+    float [][] dv = f.getFloats(false);
+
+    double sum = 0.0;
+    double count =0.0;
+    for (int i=0; i<list.length; i++) {
+      if (!Float.isNaN(dv[0][list[i]])) {
+        sum = sum + dv[0][list[i]];
+        count = count + 1;
+      }
+    }
+
+    if (count > 0.0) {
+      return (sum/count);
+    } else {
+      return Double.NaN;
+    }
   }
 
   /**
