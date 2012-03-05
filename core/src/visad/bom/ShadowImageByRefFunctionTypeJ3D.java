@@ -198,31 +198,11 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
   private void applyTexture(Shape3D shape, VisADImageTile tile, boolean apply_alpha, float constant_alpha) {
         Appearance app = shape.getAppearance();
 	if (regen_colbytes) {
-                if (animControl == null) {
-                    imgNode.setCurrent(0);
-                }
-		//For getting LOD Image (starts here)
-	        /*BufferedImage base_image = tile.getImage(0);
-		int width = base_image.getWidth();
-	        int height = base_image.getHeight();*/
-		ImageComponent2D img2D = (ImageComponent2D) app.getTexture().getImage(0);
-		/*BufferedImage bimg = img2D.getImage();
-		int img_width = bimg.getWidth();
-		int img_height = bimg.getHeight();
-		if (img_width != width || img_height != height) {
-			float factor = (width>height) ? ((float)width/(float)img_width):((float)height/(float)img_height);
-			java.awt.geom.AffineTransform at = new java.awt.geom.AffineTransform();
-                	at.scale(1/factor, 1/factor);
-        	        java.awt.image.AffineTransformOp atop = new java.awt.image.AffineTransformOp(at, java.awt.image.AffineTransformOp.TYPE_BILINEAR);
-			BufferedImage scaled_image = atop.filter(base_image, null);
-			img2D.set(scaled_image);
-		} else {*/
-			img2D.set(tile.getImage(0));
-		//}
-		//For getting LOD Image(ends here)
+              if (animControl == null) {
+                  imgNode.setCurrent(0);
+              }
 	}
 
-        //((ImageComponent2D) app.getTexture().getImage(0)).set(tile.getImage(0));
         if (apply_alpha) {
             TransparencyAttributes transp_attribs = app.getTransparencyAttributes();
             if (null == transp_attribs) {
@@ -235,7 +215,9 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                 transp_attribs.setTransparency(constant_alpha);
             }
         }
-    }
+  }
+
+
     /* This is the real nasty logic that decides following things:
 	1. Regenerate gometry
 	2. Regenerate ColorBytes
