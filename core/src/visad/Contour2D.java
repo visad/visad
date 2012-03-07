@@ -4777,8 +4777,7 @@ class ContourStrip {
 
 		float lbl_half = 0.1f;
 
-		if ((totalPts > LBL_ALGM_THRESHHOLD && ((lev_idx & 1) == 1))
-				|| css.n_levs == 1) {
+		if (totalPts > LBL_ALGM_THRESHHOLD && (((lev_idx & 1) == 1) || css.n_levs == 1)) {
 			isLabeled = true;
 			loc = (vv[0].length) / 2; // - start at half-way pt.
 			int n_pairs_b = 1;
