@@ -94,6 +94,13 @@
 		<pathelement path="${build.dir}" />
 	</path>
 
+    <path id="build.classpath">
+        <fileset dir="${type.lib.dir}">
+            <include name="*.jar"/>
+        </fileset>
+    </path>
+
+
 	<target name="build">
 	  <mkdir dir="${build.dir}"/>
 		<javac sourcepath="" srcdir="${src.dir}" destdir="${build.dir}"
@@ -116,7 +123,12 @@
 		<tstamp>
 			<format property="date.value" pattern="EEE MMM dd HH:mm:ss zzz yyyy" />
 		</tstamp>
-		<echo message="${date.value}" file="${build.dir}/${date.file}" />
+
+    <typedef resource="org/tigris/subversion/svnant/svnantlib.xml" classpathref="build.classpath" />
+    <svn>
+       <info target="${basedir}"/>
+    </svn> 
+		<echo message="${date.value}  Rev:${svn.info.rev}" file="${build.dir}/${date.file}" />
 		<unzip src="${deps.jarfile}" dest="${build.dir}" />
 		<copy todir="${build.dir}">
 			<fileset dir="${src.dir}">
