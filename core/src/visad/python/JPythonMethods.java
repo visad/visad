@@ -3201,7 +3201,7 @@ public static void plot(final String name, final float[][] data)
       isFI = true;
       try {
         fi = (FieldImpl)f.clone();
-        numItems = getDomainSizes(fi)[0];
+        numItems = getDomain(fi).getLength();
       } catch (CloneNotSupportedException cnsfi) {
         throw new VisADException ("Cannot clone FieldImpl object");
       }
