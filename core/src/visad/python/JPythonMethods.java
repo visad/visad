@@ -3400,6 +3400,7 @@ public static void plot(final String name, final float[][] data)
       }
 
       field.setSamples(dv,false);
+
       if (isFI) {
         fi.setSample(m, field);
       }
@@ -3411,6 +3412,104 @@ public static void plot(final String name, final float[][] data)
       return (FieldImpl)field;
     }
   }
+
+  /**
+  * Mask out values outside the given range
+  *
+  * @param f  VisAD data object (FlatField or FieldImpl) as source
+  * @param vmin The lower limit of the range
+  * @param vmax  The upper limit of the range
+  * @param useNaN  Set to true to use NaN as the "outside the range" value; otherwise, use zero.
+  *
+  * The range is exclusive; that is vmin < values < vmax 
+  *
+  * @return a FieldImpl with values of either 0 (or NaN, meaning: did not meet
+  * criterion) or 1 (met criteron).
+  *
+  * Example:  b = maskWithinRange(a, 100, 200, true)
+  * if 'a' is an image, 'b' will be an image with values of
+  * 1 where values in 'a' were between 'vmin' and 'vmax' and zero (or NaN)
+  * elsewhere.
+  *
+  * @throws VisADException 
+  * @throws RemoteException 
+  *
+  */
+  public static FieldImpl maskWithinRange(FieldImpl f, double vmin, double vmax, boolean useNaN)
+             throws VisADException, RemoteException {
+
+    FieldImpl fi = null;
+    boolean isFI = false;
+    int numItems;
+    Set ds = null;
+    float fail = 0.0f;
+    if (useNaN) fail = Float.NaN;
+
+    if (f instanceof FlatField) {
+      numItems = 1;
+      ds = ((FlatField)f).getDomainSet();
+     
+    } else if (domainDimension(f) == 1) {
+      isFI = true;
+      numItems = getDomain(f).getLength();
+      ds = ( (FlatField)(f.getSample(0))).getDomainSet();
+
+    } else {
+      throw new VisADException("Cannot rescale the data - unknown structure");
+    }
+
+    MathType domain = ((SetType) ds.getType()).getDomain();
+    Unit u = null;
+    try { u = makeUnit(""); } 
+    catch (Exception e) { }
+
+    RealType range = makeRealType("mask",u);
+    FunctionType ftype = new FunctionType(domain, range);
+    FlatField field = new FlatField(ftype, ds);
+
+    if (isFI) {
+      Set dsfi = f.getDomainSet();
+      MathType dsdom = ((SetType) f.getDomainSet().getType()).getDomain();
+      FunctionType dsft = new FunctionType(dsdom, ftype);
+      fi = new FieldImpl(dsft, dsfi);
+    }
+    
+    float[][] dv;
+
+    for (int m=0; m<numItems; m++) {
+      
+      if (isFI) {
+        dv = ((FlatField)(f.getSample(m))).getFloats(true);
+
+      } else {
+        dv = ((FlatField)f).getFloats(true);
+      }
+
+      // get copy of values for comparison...will replace with results.
+
+      for (int i=0; i<dv.length; i++) {
+        for (int k=0; k<dv[i].length; k++) {
+          if (dv[i][k] > vmin && dv[i][k] < vmax) {
+            dv[i][k] = 1.0f;
+          } else {
+            dv[i][k] = fail;
+          }
+        }
+      }
+
+      field.setSamples(dv,false);
+      if (isFI) {
+        fi.setSample(m, field);
+      }
+    }
+
+    if (isFI) {
+      return fi;
+    } else {
+      return (FieldImpl)field;
+    }
+  }
+
 
   /**
   * Get a list of points where a comparison is true.
@@ -3433,6 +3532,7 @@ public static void plot(final String name, final float[][] data)
              throws VisADException, RemoteException {
     return find(f, op, new Real(v));
   }
+
 
   /**
   * Get a list of points where a comparison is true.
@@ -3464,7 +3564,6 @@ public static void plot(final String name, final float[][] data)
       fv = (FlatField) (((FieldImpl)f).getSample(0)).subtract(v);
     }
     float [][] dv = fv.getFloats(false);
-//    Vector z = new Vector();
     List<Integer> zz = new ArrayList<Integer>(fv.getLength());
     int oper = -1;
     for (int i=0; i<ops.length; i++) {
@@ -3476,21 +3575,6 @@ public static void plot(final String name, final float[][] data)
     for (int i=0; i<1; i++) {
       for (int k=0; k<dv[i].length; k++) {
 
-//        if (oper == 0) {
-//            if (dv[i][k] > 0.0f) z.addElement(new Integer(k));
-//        } else if (oper == 1) {
-//            if (dv[i][k] >= 0.0f) z.addElement(new Integer(k));
-//        } else if (oper == 2) {
-//            if (dv[i][k] < 0.0f) z.addElement(new Integer(k));
-//        } else if (oper == 3) {
-//            if (dv[i][k] <= 0.0f) z.addElement(new Integer(k));
-//        } else if (oper == 4) {
-//            if (dv[i][k] == 0.0f) z.addElement(new Integer(k));
-//        } else if (oper == 5) {
-//            if (dv[i][k] != 0.0f) z.addElement(new Integer(k));
-//        } else {
-//            if (dv[i][k] != 0.0f) z.addElement(new Integer(k));
-//        }
         if (oper == 0) {
           if (dv[i][k] > 0.0f) zz.add(Integer.valueOf(k));
         } else if (oper == 1) {
@@ -3506,6 +3590,48 @@ public static void plot(final String name, final float[][] data)
         } else {
           if (dv[i][k] != 0.0f) zz.add(Integer.valueOf(k));
         }
+      }
+    }
+
+    int m = zz.size();
+    int[] rv = new int[m];
+    for (int i=0; i<m; i++) {
+      rv[i] = zz.get(i).intValue();
+    }
+    return rv;
+  }
+
+  /**
+  * Get a list of points where values fall within the given range
+  *
+  * @param f  VisAD data object (usually FlatField) as source
+  * @param vmin The minimum value for the range
+  * @param vmax  The maximum value for the range
+  *
+  * @return an int[] containing the sampling indecies where
+  * the values fall within the range ( vmin < value < vmax )
+  *
+  * Example:  b = findWithinRange(a, 100, 200)
+  * if 'a' is an image, 'b' will be a list of indecies in
+  * 'a' where the values are greater than 'vmin' and less than 'vmax'
+  *
+  * @throws VisADException 
+  * @throws RemoteException 
+  *
+  */
+  public static int[] findWithinRange(FieldImpl f, double vmin, double vmax)
+             throws VisADException, RemoteException {
+    float[][] dv;
+    if (f instanceof FlatField) {
+      dv = ((FlatField)f).getFloats(false);
+    } else {
+      dv = ((FlatField)(f.getSample(0))).getFloats(false);
+    }
+    List<Integer> zz = new ArrayList<Integer>(dv[0].length);
+
+    for (int i=0; i<1; i++) {
+      for (int k=0; k<dv[i].length; k++) {
+        if (dv[i][k] > vmin && dv[i][k] < vmax) zz.add(Integer.valueOf(k));
       }
     }
 
