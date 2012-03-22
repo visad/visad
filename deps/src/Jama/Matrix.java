@@ -556,6 +556,13 @@ public class Matrix implements Cloneable, java.io.Serializable {
       }
       return X;
    }
+   public Matrix __add__(Matrix B) {
+     return plus(B);
+   }
+
+   public Matrix __radd__(Matrix B) {
+     return plus(B);
+   }
 
    /** A = A + B
    @param B    another matrix
@@ -588,6 +595,13 @@ public class Matrix implements Cloneable, java.io.Serializable {
       }
       return X;
    }
+   public Matrix __sub__(Matrix B) {
+     return minus(B);
+   }
+   public Matrix __rsub__(Matrix B) {
+     return B.minus(this);
+   }
+
 
    /** A = A - B
    @param B    another matrix
@@ -620,6 +634,13 @@ public class Matrix implements Cloneable, java.io.Serializable {
       }
       return X;
    }
+   public Matrix __mul__(Matrix B) {
+     return arrayTimes(B);
+   }
+   public Matrix __rmul__(Matrix B) {
+     return arrayTimes(B);
+   }
+
 
    /** Element-by-element multiplication in place, A = A.*B
    @param B    another matrix
@@ -652,6 +673,10 @@ public class Matrix implements Cloneable, java.io.Serializable {
       }
       return X;
    }
+   public Matrix __div__(Matrix B) {
+     return arrayRightDivide(B);
+   }
+
 
    /** Element-by-element right division in place, A = A./B
    @param B    another matrix
@@ -684,6 +709,10 @@ public class Matrix implements Cloneable, java.io.Serializable {
       }
       return X;
    }
+   public Matrix __rdiv__(Matrix B) {
+     return arrayLeftDivide(B);
+   }
+
 
    /** Element-by-element left division in place, A = A.\B
    @param B    another matrix
@@ -714,6 +743,10 @@ public class Matrix implements Cloneable, java.io.Serializable {
          }
       }
       return X;
+   }
+
+   public Matrix __mul__(double s) {
+     return times(s);
    }
 
    /** Multiply a matrix by a scalar in place, A = s*A
@@ -757,6 +790,26 @@ public class Matrix implements Cloneable, java.io.Serializable {
          }
       }
       return X;
+   }
+
+   /** Raise matrix elements to a power, C = A^s
+   @param s    scalar
+   @return     A ^ s 
+   */
+
+   public Matrix power (double s) {
+      Matrix X = new Matrix(m,n);
+      double[][] C = X.getArray();
+      for (int i = 0; i < m; i++) {
+         for (int j = 0; j < n; j++) {
+            C[i][j] = Math.pow(A[i][j],s);
+         }
+      }
+      return X;
+   }
+
+   public Matrix __pow__(double s) {
+     return power(s);
    }
 
    /** LU Decomposition
