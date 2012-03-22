@@ -540,7 +540,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     CoordinateSystem dataCoordinateSystem = null;
 
 
-    if (numImages > 1) {
+    if (animControl != null) {
 	Switch swit = new SwitchNotify(imgNode, numImages);  
       	((AVControlJ3D) animControl).addPair((Switch) swit, domain_set, renderer);
       	((AVControlJ3D) animControl).init();
