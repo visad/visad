@@ -1415,7 +1415,11 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
     int texture_height = 1;
 
     int[] lengths = null;
-                                                                                                                     
+
+    if (dataCoordinateSystem instanceof CachingCoordinateSystem) {
+        dataCoordinateSystem = ((CachingCoordinateSystem)dataCoordinateSystem).getCachedCoordinateSystem();
+    }
+
     // get domain_set sizes
     if (domain_set != null) {
       lengths = ((GriddedSet) domain_set).getLengths();
