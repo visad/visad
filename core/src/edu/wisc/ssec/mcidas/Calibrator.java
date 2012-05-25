@@ -35,7 +35,15 @@ package edu.wisc.ssec.mcidas;
 
 public interface Calibrator {
 
-  public static final int CAL_NONE = -1;
+  /**
+	 * @author tommyj
+	 *
+	 */
+	public class CalibratorFY2 {
+
+	}
+
+public static final int CAL_NONE = -1;
   public static final int CAL_MIN  = 1;
   public static final int CAL_RAW  = 1;
   public static final int CAL_RAD  = 2;
@@ -44,6 +52,16 @@ public interface Calibrator {
   public static final int CAL_BRIT = 5;
   public static final int CAL_MAX  = 5;
 
+  /** FY-2D */
+  public static final int SENSOR_FY2D = 36;
+  /** FY-2E */
+  public static final int SENSOR_FY2E = 37;
+  /** FY-2F */
+  public static final int SENSOR_FY2F = 38;
+  /** FY-2G */
+  public static final int SENSOR_FY2G = 39;
+  /** FY-2H */
+  public static final int SENSOR_FY2H = 40;
   /** Meteosat Second Generation imager. */
   public static final int SENSOR_MSG_IMGR = 51;
   /** GOES 8 imager. */
