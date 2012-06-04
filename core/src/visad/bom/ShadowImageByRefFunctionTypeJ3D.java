@@ -1697,21 +1697,27 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
                    domain_units, null, spline_domain);
        }
 
+       boolean isSpherical = spatial_tuple.equals(Display.DisplaySpatialSphericalTuple);
        float[][] spatial_values = new float[3][];
        spatial_values[tuple_index[0]] = spline_domain[0];
        spatial_values[tuple_index[1]] = spline_domain[1];
-       for (int i = 0; i < 3; i++) {                
+
+       if (isSpherical) { //02JUN2012: allocate array for 3rd dimension if it is spherical coordsys
+               spatial_values[tuple_index[2]] = new float[nn];
+               java.util.Arrays.fill(spatial_values[tuple_index[2]], value2);
+       }
+       for (int i = 0; i < 3; i++) {
           if (spatial_maps[i] != null) {
              spatial_values[i] = spatial_maps[i].scaleValues(spatial_values[i], false);
           }
        }
 
+
        if (!spatial_tuple.equals(Display.DisplaySpatialCartesianTuple)) {
           spatial_values = coord.toReference(spatial_values);
        }
 
-      boolean isSpherical = spatial_tuple.equals(Display.DisplaySpatialSphericalTuple);
-      boolean spatial_all_select = true;
+       boolean spatial_all_select = true;
 
        if (isSpherical) {
             for (int i=0; i<nn; i++) {
@@ -1725,13 +1731,14 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
                  spatial_all_select = false;
             } else {
                  for (int i=0; i<nn; i++) {
-                      if (Float.isNaN(spatial_values[0][i]) || Float.isNaN(spatial_values[1][i])) {
+                      if (Float.isNaN(spatial_values[tuple_index[0]][i]) || Float.isNaN(spatial_values[tuple_index[1]][i])) { //02JUN2012:Use tuple_index than 0,1
                           spatial_all_select = false;
                           break;
                       }
                  }
            }
-       } 
+       }
+
 
                                                                                                                    
     VisADTriangleStripArray tarray = new VisADTriangleStripArray();
@@ -1761,10 +1768,10 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
 	
 		tarray.coordinates[k++] = spatial_values[0][m];
 		tarray.coordinates[k++] = spatial_values[1][m];
-		tarray.coordinates[k++] =  value2;
+		tarray.coordinates[k++] = isSpherical? spatial_values[2][m] :value2; //02JUN2012: Set coords from spatial values if spherical coordsys
 		tarray.coordinates[k++] = spatial_values[0][m+nwidth];
 		tarray.coordinates[k++] = spatial_values[1][m+nwidth];
-		tarray.coordinates[k++] = value2;
+		tarray.coordinates[k++] = isSpherical? spatial_values[1][m+nwidth] : value2; //02JUN2012: Set coords from spatial values if spherical coordsys
 
 
 		x_coord = (0.5f + is[i])/texture_width;
