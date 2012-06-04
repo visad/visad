@@ -1771,7 +1771,7 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
 		tarray.coordinates[k++] = isSpherical? spatial_values[2][m] :value2; //02JUN2012: Set coords from spatial values if spherical coordsys
 		tarray.coordinates[k++] = spatial_values[0][m+nwidth];
 		tarray.coordinates[k++] = spatial_values[1][m+nwidth];
-		tarray.coordinates[k++] = isSpherical? spatial_values[1][m+nwidth] : value2; //02JUN2012: Set coords from spatial values if spherical coordsys
+		tarray.coordinates[k++] = isSpherical? spatial_values[2][m+nwidth] : value2; //02JUN2012: Set coords from spatial values if spherical coordsys
 
 
 		x_coord = (0.5f + is[i])/texture_width;
