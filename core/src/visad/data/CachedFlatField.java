@@ -163,7 +163,6 @@ public class CachedFlatField extends FlatField {
         super(type, domainSet, rangeCoordSys, rangeCoordSysArray, rangeSets,
               units);
 
-        //For now lets ignore the copy vis-a-vis the parent cached flat field
         this.ranges       = that.ranges;
         this.sampleRanges = that.sampleRanges;
         this.cacheId =  null;
@@ -172,7 +171,10 @@ public class CachedFlatField extends FlatField {
         //Get the values from the cloned field if they had read their values
         if(that.haveData()) {
             //            msg("CCF - cloned object is in cache");
-            float[][] values = that.unpackFloats(true);
+            // We used to ignore the copy flag - if this causes problems, 
+            // change back to true 
+            //float[][] values = that.unpackFloats(true);
+            float[][] values = that.unpackFloats(copy);
             if(values == null) {
                 parent = that;
             }
