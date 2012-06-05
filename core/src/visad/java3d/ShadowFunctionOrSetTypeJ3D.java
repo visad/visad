@@ -518,6 +518,13 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   public void textureToGroup(Object group, VisADGeometryArray array,
                             BufferedImage image, GraphicsModeControl mode,
                             float constant_alpha, float[] constant_color,
+                            int texture_width, int texture_height, boolean byReference, boolean yUp, VisADImageTile tile) throws VisADException {
+    textureToGroup(group, array, image, mode, constant_alpha, constant_color, texture_width, texture_height, byReference, yUp, tile, false);
+  }
+
+  public void textureToGroup(Object group, VisADGeometryArray array,
+                            BufferedImage image, GraphicsModeControl mode,
+                            float constant_alpha, float[] constant_color,
                             int texture_width, int texture_height) throws VisADException {
     textureToGroup(group, array, image, mode, constant_alpha, constant_color, texture_width, texture_height, false, false, null, false);
   }
