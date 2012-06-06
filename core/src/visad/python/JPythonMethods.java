@@ -3015,6 +3015,153 @@ public static void plot(final String name, final float[][] data)
     }
   }
 
+  /**
+   * Convert the domain to the reference earth located points.
+   * If the domain is not in lat/lon order then reset the order so
+   * that result[0] is the latitudes, result[1] is the longitudes
+   *
+   * @author Don Murray
+   *
+   * @param domain  the domain set
+   * @param index is the (optional) array of indecies to get points at
+   *
+   * @return  the lat/lon/(alt) points
+   *
+   * @throws VisADException  problem converting points
+   */
+  public static float[][] getLatLons(GriddedSet domain, int[] index)
+          throws VisADException {
+      boolean   isLatLon = isLatLonOrder(domain);
+      float[][] values   = getEarthLocationPoints(domain);
+      if ( !isLatLon) {
+          float[] tmp = values[0];
+          values[0] = values[1];
+          values[1] = tmp;
+      }
+
+      if (index == null) return values;
+
+      float vals[][] = new float[2][index.length];
+      for (int i=0; i<index.length; i++) {
+        vals[0][i] = values[0][index[i]];
+        vals[1][i] = values[1][index[i]];
+      }
+      return vals;
+  }
+
+  /**
+   * Convert the domain to the reference earth located points.
+   * If the domain is not in lat/lon order then reset the order so
+   * that result[0] is the latitudes, result[1] is the longitudes
+   *
+   * @author Don Murray
+   *
+   * @param domain  the domain set
+   *
+   * @return  the lat/lon/(alt) points
+   *
+   * @throws VisADException  problem converting points
+   */
+  public static float[][] getLatLons(GriddedSet domain)
+         throws VisADException {
+     return getLatLons(domain, null);
+  }
+
+  /**
+   * Convert the domain to the reference earth located points.
+   * If the domain is not in lat/lon order then reset the order so
+   * that result[0] is the latitudes, result[1] is the longitudes
+   *
+   * @author Tom Whittaker
+   *
+   * @param domain  the domain set
+   *
+   * @return  the lat/lon/(alt) points
+   *
+   * @throws VisADException  problem converting points
+   */
+  public static float[][][] getLatLons2D(GriddedSet domain) 
+         throws VisADException {
+    int[] nxy = domain.getLengths();
+    int nx = nxy[0];
+    int ny = nxy[1];
+    float[][] latlon;
+    try {
+      latlon = getLatLons(domain);
+    } catch (VisADException noll) {
+      return null;
+    }
+
+    float[][][] vals = new float[2][nx][ny];
+    int k = 0;
+    for (int x=1; x<nx-1; x++) {
+      for (int y=1; y<ny-1; y++) {
+        k = x + nx*y;
+        vals[0][x][y] = latlon[0][k];
+        vals[1][x][y] = latlon[1][k];
+      }
+    }
+    return vals;
+
+  }
+
+  /**
+   * Convert the domain to the reference earth located points
+   *
+   * @param domain  the domain set
+   *
+   * @return  the lat/lon/(alt) points
+   *
+   * @throws VisADException  problem converting points
+   *
+   * @author Don Murray
+   */
+  public static float[][] getEarthLocationPoints(GriddedSet domain)
+          throws VisADException {
+      CoordinateSystem cs = domain.getCoordinateSystem();
+      if (cs == null) {
+          return domain.getSamples();
+      }
+      RealTupleType refType  = cs.getReference();
+      Unit[]        refUnits = cs.getReferenceUnits();
+      float[][]     points   = CoordinateSystem.transformCoordinates(refType,
+                             null, refUnits, null,
+                             ((SetType) domain.getType()).getDomain(), cs,
+                             domain.getSetUnits(), domain.getSetErrors(),
+                             domain.getSamples(), false);
+      return points;
+  }
+
+  /**
+   * Check to see if this is a navigated domain (can be converted to
+   * lat/lon)
+   *
+   * @param spatialSet   spatial domain of the grid
+   *
+   * @return  true if the domain of the grid is in or has a reference to
+   *               Latitude/Longitude
+   *
+   * @throws VisADException   can't get at VisAD objects
+   *
+   * @author Don Murray
+   */
+
+  public static boolean isLatLonOrder(SampledSet spatialSet)
+          throws VisADException {
+      RealTupleType spatialType =
+          ((SetType) spatialSet.getType()).getDomain();
+      RealTupleType spatialReferenceType =
+          (spatialSet.getCoordinateSystem() != null)
+          ? spatialSet.getCoordinateSystem().getReference()
+          : null;
+      return (spatialType.equals(RealTupleType.LatitudeLongitudeTuple)
+              || spatialType.equals(RealTupleType.LatitudeLongitudeAltitude) 
+              || ((spatialReferenceType != null) && 
+                  (spatialReferenceType.equals(RealTupleType.LatitudeLongitudeTuple) 
+              || spatialReferenceType.equals(RealTupleType.LatitudeLongitudeAltitude))));
+  }
+
+
   /** construct a Field containing the computed area
   *   of each data point
   * @param f VisAD data object (FlatField or FieldImpl) as source
@@ -3025,57 +3172,41 @@ public static void plot(final String name, final float[][] data)
   public static FlatField createAreaField(FieldImpl f)
         throws VisADException, RemoteException {
 
-    Set ds = null;
+    GriddedSet ds = null;
     if (f instanceof FlatField) {
-      ds = ((FlatField)f).getDomainSet();
+      ds = (GriddedSet)((FlatField)f).getDomainSet();
     } else {
-      ds = ( (FlatField)(f.getSample(0))).getDomainSet();
-    }
-    CoordinateSystem cs;
-
-    float[][] xes;
-    float[][] yes;
-    if (ds instanceof Linear2DSet) {
-      xes = ((Linear2DSet)ds).getX().getSamples(false);
-      yes = ((Linear2DSet)ds).getY().getSamples(false);
-      cs = ds.getCoordinateSystem();
-    } else {
-      xes = ((Linear3DSet)ds).getX().getSamples(false);
-      yes = ((Linear3DSet)ds).getY().getSamples(false);
-      cs = ((CartesianProductCoordinateSystem)ds.getCoordinateSystem()).getCoordinateSystems()[0];
-      throw new VisADException("Must use 2D data to compute area...");
+      ds = (GriddedSet)( (FlatField)(f.getSample(0))).getDomainSet();
     }
 
-    int nx = xes[0].length;
-    int ny = yes[0].length;
+    int[] nxy = ds.getLengths();
+    int nx = nxy[0];
+    int ny = nxy[1];
+
+    float[][] latlon;
+    try {
+      latlon = getLatLons(ds);
+    } catch (VisADException noll) {
+      return null;
+    }
+
 
     float[][] area = new float[1][nx * ny];
-    float[][] lats = new float[nx][ny];
-    float[][] lons = new float[nx][ny];
-
-    double[][] xy = new double[2][1];
-    double[][] latlon = new double[2][1];
-    for (int x=0; x<nx; x++) {
-      for (int y=0; y<ny; y++) {
-        xy[0][0] = xes[0][x];
-        xy[1][0] = yes[0][y];
-        latlon = cs.toReference(xy);
-        lats[x][y] = (float)latlon[0][0];
-        lons[x][y] = (float)latlon[1][0];
-      }
-    }
 
     int k = 0;
     for (int x=1; x<nx-1; x++) {
       for (int y=1; y<ny-1; y++) {
         k = x + nx*y;
-        area[0][k] = lats[x][y];
 
         // a = cos(lat)*(dlon) * (dlat) * 111.1^2  (km per degree of lat)
         // dlat and dlon are over 2 points...so 111.1/2 * 111.1/2 = 3085.8025
         
-        area[0][k] = (float) Math.abs(3085.8025 * (lats[x][y-1] - lats[x][y+1]) * Math.cos(lats[x][y]*.01745329252) * (lons[x+1][y] - lons[x-1][y]));
+        //area[0][k] = (float) Math.abs(3085.8025 * (lats[x][y-1] - lats[x][y+1]) * Math.cos(lats[x][y]*.01745329252) * (lons[x+1][y] - lons[x-1][y]));
 
+        area[0][k] = (float) Math.abs(3085.8025 * 
+          (latlon[0][k-nx] - latlon[0][k+nx]) * 
+          Math.cos(latlon[0][k]*.01745329252) * 
+          (latlon[1][k+1] - latlon[1][k-1]));
       }
     }
 
@@ -3101,8 +3232,7 @@ public static void plot(final String name, final float[][] data)
     FunctionType ftype = new FunctionType(domain, range);
     FlatField field = new FlatField(ftype, ds);
     field.setSamples(area,false);
-    lats = null;
-    lons = null;
+    latlon = null;
     return field;
   }
 
@@ -3113,11 +3243,15 @@ public static void plot(final String name, final float[][] data)
   * @param list an array of points to be used to sum up the values
   *    (see the "find" method)
   * 
-  * @return the summation of the data values defined in the list
+  * @return the summation of the data values defined in the list or -1
+  * if unable to compute.
   *
   */
   public static double computeSum(FlatField f, int[] list) 
              throws VisADException, RemoteException {
+
+    if (f == null) return Double.NaN;
+
     float [][] dv = f.getFloats(false);
 
     double sum = 0.0;
@@ -3139,6 +3273,9 @@ public static void plot(final String name, final float[][] data)
   */
   public static double computeAverage(FlatField f, int[] list) 
              throws VisADException, RemoteException {
+
+    if (f == null) return Double.NaN;
+
     float [][] dv = f.getFloats(false);
 
     double sum = 0.0;
