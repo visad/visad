@@ -26,25 +26,19 @@ MA 02111-1307, USA
 
 package edu.wisc.ssec.mcidas;
 
-import edu.wisc.ssec.mcidas.adde.AddeURLConnection;
-import java.applet.Applet;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
-import java.io.EOFException;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.text.FieldPosition;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import edu.wisc.ssec.mcidas.adde.AddeURLConnection;
 
 /** 
  * AreaDirectoryList interface for McIDAS 'area' file format image data.
@@ -141,7 +135,7 @@ public class AreaDirectoryList
    * creates an AreaDirectory object that allows reading
    * of the directory of McIDAS 'area' files from a URL
    *
-   * @param URL - the URL to go after
+   * @param url - the URL to go after
    *
    * @exception AreaFileException if file cannot be opened
    *

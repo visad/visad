@@ -40,9 +40,6 @@ import edu.wisc.ssec.mcidas.AncillaryData;
  * @author Tommy Jasmin, SSEC
  */
 
-
-
-
 public class CalibratorGvarG13 extends CalibratorGvar {
 
   // the following static init block sets the class temp/rad constants
@@ -92,7 +89,7 @@ public class CalibratorGvarG13 extends CalibratorGvar {
    *
    * @param dis         data input stream
    * @param ad          AncillaryData object
-   * @param calBlock    calibration parameters array
+   * @param cb		    calibration parameters array
    *
    */
 

@@ -67,9 +67,8 @@ public final class McIDASUtil {
    * Converts a double latitude/longitude to a packed integer (SIGN DDD MM SS)
    * Java version of McIDAS <code>ilalo</code> function.
    *
-   * @param value  double value of lat/lon
+   * @param dvalue  double value of lat/lon
    *
-   * @param dvalue 
    * @return  packed integer representation of value
    */
   public static int doubleLatLonToInteger(double dvalue) {
@@ -102,9 +101,8 @@ public final class McIDASUtil {
    * packed integer (SIGN DDD/HH MM SS). Java replacements of McIDAS
    * <code>ilalo</code> and <code>m0itime</code> functions.
    *
-   * @param value  double value of lat/lon or time
+   * @param dvalue  double value of lat/lon or time
    *
-   * @param dvalue 
    * @return  packed integer representation of value
    */
   public static int mcDoubleToPackedInteger(double dvalue) {
@@ -352,9 +350,7 @@ public final class McIDASUtil {
   /**
    * Flip the bytes of an integer array.  Java version of 'm0swbyt4'.
    *
-   * @param array[] array of integers to be flipped
-   *
-   * @param array 
+   * @param array array of integers to be flipped
    * @param first starting element of the array
    * @param last last element of array to flip
    *
@@ -372,11 +368,8 @@ public final class McIDASUtil {
    * convert four consequtive bytes into a (signed) int. This
    * is useful in dealing with McIDAS data files.
    *
-   * @param byte[] array of 4 bytes
-   *
-   * @param b 
+   * @param b	 array of 4 bytes
    * @param off is the offset into the byte array
-   *
    *
    * @return 
    */
@@ -389,15 +382,12 @@ public final class McIDASUtil {
   }
 
   /**
-   * convert consequtive bytes into a (signed) int array. This
+   * convert consecutive bytes into a (signed) int array. This
    * is useful in dealing with McIDAS data files.
    *
-   * @param byte[] array of bytes
-   *
-   * @param b 
+   * @param b array of bytes
    * @param off is the offset into the byte array
    * @param num number of integers to create
-   *
    *
    * @return 
    */

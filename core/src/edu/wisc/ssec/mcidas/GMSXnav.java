@@ -49,8 +49,6 @@ public class GMSXnav extends AREAnav
 {
 
   private byte bParms[] = new byte[3200];
-  private int navType = 0;
-  private float subLat;
   private float subLon;
   private float [] resLin = new float[4];
   private float [] resEle = new float[4];
@@ -61,7 +59,6 @@ public class GMSXnav extends AREAnav
   private float [] relem = new float[4];
   private float [] vmis = new float[3];
   private float [][] elmis = new float[3][3];
-  private double lineOffset;
   private double dtims = 0.0d;
   private double dspin = 0.0d;
   private double sitagt = 0.0d;
@@ -80,7 +77,6 @@ public class GMSXnav extends AREAnav
   private static final double dpai = Math.PI * 2.0d;
   private static final double ea = 6378136.0d;
   private static final double ef = 1.0d / 298.257d;
-
 
   /**
    *
@@ -130,7 +126,7 @@ public class GMSXnav extends AREAnav
    *
    * toLinEle converts lat/lon to satellite line/element
    *
-   * @param array of lat/long pairs. Where latlon[indexLat][]
+   * @param latlon	array of lat/long pairs. Where latlon[indexLat][]
    * are latitudes and latlon[indexLon][] are longitudes.
    *
    * @return linele[][] array of line/element pairs.  Where
@@ -234,7 +230,7 @@ public class GMSXnav extends AREAnav
    *
    * toLatLon converts satellite line/element to lat/lon
    *
-   * @param linele[][] array of line/element pairs.  Where
+   * @param linele	 array of line/element pairs.  Where
    * linele[indexLine][] is a line and linele[indexEle][] is an element.       
    *
    * @return array of lat/lon pairs. Where latlon[indexLat][]
@@ -475,7 +471,6 @@ public class GMSXnav extends AREAnav
     elmis[1][2] = (float) sv0100(4, 10, b, 102);
     elmis[2][2] = (float) sv0100(4,  7, b, 106);
     subLon = (float) sv0100(6,  6, b, 198);
-    subLat = (float) sv0100(6,  6, b, 204);
 
     for (i = 0; i < 10; i++) {
       // long form

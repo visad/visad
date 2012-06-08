@@ -94,7 +94,7 @@ public final class MSATnav extends AREAnav
 
     /** converts from satellite coordinates to latitude/longitude
      *
-     * @param  linele[][]  array of line/element pairs.  Where 
+     * @param  linele	  array of line/element pairs.  Where 
      *                     linele[indexLine][] is a 'line' and 
      *                     linele[indexEle][] is an element. These are in 
      *                     'file' coordinates (not "image" coordinates.)
@@ -108,9 +108,8 @@ public final class MSATnav extends AREAnav
     {
 
         double xele, xlin;
-        double ylat, ylon;
         double xele2, xlin2;
-        double xfi, xla, z;
+        double xfi, xla;
         double x, y;
         double xr, yr;
         double tanx, tany;
@@ -168,14 +167,6 @@ public final class MSATnav extends AREAnav
                 
                 // change longitude for correct subpoint
                 xla = xla + sublon;
-    
-                // see if we have to convert to x, y, z
-                if (itype == 1) 
-                {
-                    ylat = xfi;
-                    ylon = xla;
-                    // NLLXYZ(YLAT,YLON,XFI,XLA,Z)
-                }
 
                 //  put longitude into East Positive (form)
                 if (isEastPositive) xla = -xla;
@@ -192,7 +183,7 @@ public final class MSATnav extends AREAnav
     /**
      * toLinEle converts lat/long to satellite line/element
      *
-     * @param  latlon[][] array of lat/long pairs. Where latlon[indexLat][]
+     * @param  latlon	 array of lat/long pairs. Where latlon[indexLat][]
      *                    are latitudes and latlon[indexLon][] are longitudes.
      *
      * @return linele[][] array of line/element pairs.  Where
@@ -202,9 +193,8 @@ public final class MSATnav extends AREAnav
      */
     public double[][] toLinEle(double[][] latlon) 
     {
-        double x, y, z;
+        double y;
         double x1, y1;
-        double xlat, xlon;
         double xfi, xla;
         double rom;
         double r1, r2;
@@ -232,7 +222,6 @@ public final class MSATnav extends AREAnav
             // if in cartesian coords, transform to lat/lon
             if (itype == 1)
             {
-                x = latlon[indexLat][point];
                 y = latlon[indexLon][point];
                 // NXYZLL(x,y,z,zlat,zlon);
                 y1 = -y1;
@@ -291,7 +280,7 @@ public final class MSATnav extends AREAnav
 
     /** converts from satellite coordinates to latitude/longitude
      *
-     * @param  linele[][]  array of line/element pairs.  Where 
+     * @param  linele	  array of line/element pairs.  Where 
      *                     linele[indexLine][] is a 'line' and 
      *                     linele[indexEle][] is an element. These are in 
      *                     'file' coordinates (not "image" coordinates.)
@@ -305,9 +294,8 @@ public final class MSATnav extends AREAnav
     {
 
         double xele, xlin;
-        double ylat, ylon;
         double xele2, xlin2;
-        double xfi, xla, z;
+        double xfi, xla;
         double x, y;
         double xr, yr;
         double tanx, tany;
@@ -365,14 +353,6 @@ public final class MSATnav extends AREAnav
                 
                 // change longitude for correct subpoint
                 xla = xla + sublon;
-    
-                // see if we have to convert to x, y, z
-                if (itype == 1) 
-                {
-                    ylat = xfi;
-                    ylon = xla;
-                    // NLLXYZ(YLAT,YLON,XFI,XLA,Z)
-                }
 
                 //  put longitude into East Positive (form)
                 if (isEastPositive) xla = -xla;
@@ -389,7 +369,7 @@ public final class MSATnav extends AREAnav
     /**
      * toLinEle converts lat/long to satellite line/element
      *
-     * @param  latlon[][] array of lat/long pairs. Where latlon[indexLat][]
+     * @param  latlon	 array of lat/long pairs. Where latlon[indexLat][]
      *                    are latitudes and latlon[indexLon][] are longitudes.
      *
      * @return linele[][] array of line/element pairs.  Where
@@ -399,9 +379,8 @@ public final class MSATnav extends AREAnav
      */
     public float[][] toLinEle(float[][] latlon) 
     {
-        double x, y, z;
+        double y;
         double x1, y1;
-        double xlat, xlon;
         double xfi, xla;
         double rom;
         double r1, r2;
@@ -429,7 +408,6 @@ public final class MSATnav extends AREAnav
             // if in cartesian coords, transform to lat/lon
             if (itype == 1)
             {
-                x = latlon[indexLat][point];
                 y = latlon[indexLon][point];
                 // NXYZLL(x,y,z,zlat,zlon);
                 y1 = -y1;

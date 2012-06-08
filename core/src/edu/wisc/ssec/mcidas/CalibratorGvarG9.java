@@ -28,7 +28,6 @@ package edu.wisc.ssec.mcidas;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.lang.String;
 
 /**
  * CalibratorGvarG9 creates a Calibrator object designed specifically
@@ -162,7 +161,7 @@ public class CalibratorGvarG9 extends CalibratorGvar {
    *
    * @param dis         data input stream
    * @param ad          AncillaryData object
-   * @param calBlock    calibration parameters array
+   * @param cb    calibration parameters array
    *
    */
 

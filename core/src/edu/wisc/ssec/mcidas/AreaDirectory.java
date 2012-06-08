@@ -408,7 +408,7 @@ public class AreaDirectory implements java.io.Serializable
    * element is a pair of String values: first, the code value and
    * second the descriptive name.
    *
-   * @param the list of calibration parameters
+   * @param v	the list of calibration parameters
    */
    public void setCalInfo(Vector[] v) {
      calInfo = v;
@@ -489,7 +489,7 @@ public class AreaDirectory implements java.io.Serializable
 
   /** set Latitude at center of image
   *
-  * @param value of latitude at center point of image
+  * @param lat	value of latitude at center point of image
   */
   public void setCenterLatitude(double lat) {
     centerLatitude = lat;
@@ -505,7 +505,7 @@ public class AreaDirectory implements java.io.Serializable
 
   /** set Longitude at center of image
   *
-  * @param value of Longitude at center point of image
+  * @param lon	value of Longitude at center point of image
   */
   public void setCenterLongitude(double lon) {
     centerLongitude = lon;
@@ -521,9 +521,9 @@ public class AreaDirectory implements java.io.Serializable
   }
 
   /** set Latitude-wise resolution at center of image
-  *
-  * @param value of latitude-wise resolution at center point of image
-  */
+   *
+   * @param res	value of latitude-wise resolution at center point of image
+   */
   public void setCenterLatitudeResolution(double res) {
     centerLatitudeResolution = res;
   }
@@ -538,9 +538,9 @@ public class AreaDirectory implements java.io.Serializable
   }
 
   /** set Longitude-wise resolution at center of image
-  *
-  * @param value of Longitude-wise resolution at center point of image
-  */
+   *
+   * @param res	value of Longitude-wise resolution at center point of image
+   */
   public void setCenterLongitudeResolution(double res) {
     centerLongitudeResolution = res;
   }

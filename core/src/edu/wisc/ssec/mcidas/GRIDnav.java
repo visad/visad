@@ -199,7 +199,7 @@ public class GRIDnav
   /** 
    * converts from grid coordinates (x,y) or (col, row) to latitude/longitude
    *
-   * @param  rowcol[][]  array of row/col pairs.  Where 
+   * @param  rowcol		  array of row/col pairs.  Where 
    *                     rowcol[indexRow][] is a row and 
    *                     rowcol[indexCol][] is a column. 
    *
@@ -284,7 +284,7 @@ public class GRIDnav
   /**
    * toRowCol converts latitude/longitude to grid row/col
    *
-   * @param  latlon[][] array of lat/long pairs. Where latlon[indexLat][]
+   * @param  latlon	 array of lat/long pairs. Where latlon[indexLat][]
    *                    are latitudes and latlon[indexLon][] are longitudes.
    *
    * @return rowcol[][] array of row/col pairs.  Where

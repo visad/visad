@@ -161,7 +161,7 @@ public class CalibratorGvarG10 extends CalibratorGvar {
    *
    * @param dis         data input stream
    * @param ad          AncillaryData object
-   * @param calBlock    calibration parameters array
+   * @param cb		    calibration parameters array
    *
    */
 

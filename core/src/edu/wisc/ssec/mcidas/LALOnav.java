@@ -25,9 +25,9 @@ MA 02111-1307, USA
 */
 
 package edu.wisc.ssec.mcidas;
+
 import java.lang.Float;
 import java.lang.Double;
-import java.lang.Math;
 import visad.Gridded2DSet;
 
 /**
@@ -165,7 +165,7 @@ public final class LALOnav extends AREAnav
 
     /** converts from satellite coordinates to latitude/longitude
      *
-     * @param  linele[][]  array of line/element pairs.  Where 
+     * @param  linele	  array of line/element pairs.  Where 
      *                     linele[indexLine][] is a 'line' and 
      *                     linele[indexEle][] is an element. These are in 
      *                     'file' coordinates (not "image" coordinates.)

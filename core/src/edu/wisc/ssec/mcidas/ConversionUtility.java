@@ -204,9 +204,9 @@ public class ConversionUtility
   /**
    * swap the bytes of an integer array
    *
-   * @param array[] array of integers to be flipped
-   * @param first starting element of the array
-   * @param last last element of array to flip
+   * @param array	 array of integers to be flipped
+   * @param first 	starting element of the array
+   * @param last 	last element of array to flip
    *
    */
 

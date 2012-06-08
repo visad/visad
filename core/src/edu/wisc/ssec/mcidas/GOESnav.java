@@ -300,7 +300,7 @@ public final class GOESnav extends AREAnav
 
     /** converts from satellite coordinates to latitude/longitude
      *
-     * @param  linele[][]  array of line/element pairs.  Where 
+     * @param  linele	  array of line/element pairs.  Where 
      *                     linele[indexLine][] is a 'line' and 
      *                     linele[indexEle][] is an element. These are in 
      *                     'file' coordinates (not "image" coordinates.)
@@ -529,7 +529,7 @@ public final class GOESnav extends AREAnav
     /**
      * toLinEle converts lat/long to satellite line/element
      *
-     * @param  latlon[][] array of lat/long pairs. Where latlon[indexLat][]
+     * @param  latlon	 array of lat/long pairs. Where latlon[indexLat][]
      *                    are latitudes and latlon[indexLon][] are longitudes.
      *
      * @return linele[][] array of line/element pairs.  Where
@@ -542,10 +542,8 @@ public final class GOESnav extends AREAnav
 
         double xpar;
         double ypar;
-        double zpar;
         double xlin;
         double xele;
-        double xdum;
         double x1;
         double y1;
         double samtim;
@@ -555,7 +553,6 @@ public final class GOESnav extends AREAnav
         double y;
         double z;
         double xht;
-        double parlin;
         double vcste1;
         double vcste2;
         double vcste3;
@@ -602,7 +599,6 @@ public final class GOESnav extends AREAnav
                 x1 = xyz[0];
                 y1 = xyz[1];
                 z = xyz[2];
-                xdum = 0.0;
                 samtim = time1;
 
                 for (int i = 0; i < 2; i++)
@@ -633,7 +629,6 @@ public final class GOESnav extends AREAnav
                     umv = Math.atan2(x3,Math.sqrt(rfact - Math.pow(x3,2))) - 
                             roasin;
                     xlin = piclin - umv/radlin;
-                    parlin = (double) (xlin - 1.0)/numsen;
                     if (i == 0)
                     {
                         samtim = time2;

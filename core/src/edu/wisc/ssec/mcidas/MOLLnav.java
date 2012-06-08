@@ -42,8 +42,6 @@ public final class MOLLnav extends AREAnav
 
     private boolean isEastPositive = true;
 
-    private final double EARTH_RADIUS=6378.155; // earth equatorial radius (km)
-
     private double drad;
     private double decc;
     private double[] tlat = new double[101];
@@ -52,7 +50,7 @@ public final class MOLLnav extends AREAnav
     private double[] lattbl = new double[91];
 
     private double xrow, xcol, rpix, xqlon;
-    private int itype, ihem, iwest, icord;
+    private int itype, iwest, icord;
     private double asq = 40683833.48;
     private double bsq = 40410330.18;
     private double ab = 40546851.22;
@@ -213,7 +211,7 @@ public final class MOLLnav extends AREAnav
     /** 
      * Converts from satellite coordinates to latitude/longitude
      *
-     * @param  linele[][]  array of line/element pairs.  Where 
+     * @param  linele	  array of line/element pairs.  Where 
      *                     linele[indexLine][] is a 'line' and 
      *                     linele[indexEle][] is an element. These are in 
      *                     'file' coordinates (not "image" coordinates.)
@@ -231,7 +229,7 @@ public final class MOLLnav extends AREAnav
         double w;
         double xlat, xlon;
         double ylat, ylon;
-        double snlt, cslt, snln, csln, r, tnlt, z;
+        double snlt, cslt, snln, csln, r, tnlt;
 
         int number = linele[0].length;
         double[][] latlon = new double[2][number];
@@ -292,7 +290,6 @@ public final class MOLLnav extends AREAnav
                        r = ab*Math.sqrt((1.0+tnlt)/(bsq+asq*tnlt));
                        xlat = r*cslt*csln;
                        xlon = r*cslt*snln;
-                       z = r*snlt;
                     }
                 }
             }
@@ -310,7 +307,7 @@ public final class MOLLnav extends AREAnav
     /**
      * toLinEle converts lat/long to satellite line/element
      *
-     * @param  latlon[][] array of lat/long pairs. Where latlon[indexLat][]
+     * @param  latlon	 array of lat/long pairs. Where latlon[indexLat][]
      *                    are latitudes and latlon[indexLon][] are longitudes.
      *
      * @return linele[][] array of line/element pairs.  Where
@@ -320,7 +317,6 @@ public final class MOLLnav extends AREAnav
      */
     public double[][] toLinEle(double[][] latlon) 
     {
-        double x, y, z;
         double xlin, xele;
         double xlat, xlon;
         double flat, t, t2, w, diff_lon, xedif;
@@ -346,13 +342,6 @@ public final class MOLLnav extends AREAnav
               xlin = Double.NaN;
             }
             else {
-              // if in cartesian coords, transform to lat/lon
-              if (itype == 1)
-              {
-                  x = xlat;
-                  y = xlon;
-                  // CALL CARTLL(X,Y,Z,XLAT,XLON)
-              }
   
               isign = -1;
               if (xlat < 0.0) isign = 1;
@@ -396,7 +385,7 @@ public final class MOLLnav extends AREAnav
     /** 
      * Converts from satellite coordinates to latitude/longitude
      *
-     * @param  linele[][]  array of line/element pairs.  Where 
+     * @param  linele	  array of line/element pairs.  Where 
      *                     linele[indexLine][] is a 'line' and 
      *                     linele[indexEle][] is an element. These are in 
      *                     'file' coordinates (not "image" coordinates.)
@@ -414,7 +403,7 @@ public final class MOLLnav extends AREAnav
         double w;
         double xlat, xlon;
         double ylat, ylon;
-        double snlt, cslt, snln, csln, r, tnlt, z;
+        double snlt, cslt, snln, csln, r, tnlt;
 
         int number = linele[0].length;
         float[][] latlon = new float[2][number];
@@ -475,7 +464,6 @@ public final class MOLLnav extends AREAnav
                        r = ab*Math.sqrt((1.0+tnlt)/(bsq+asq*tnlt));
                        xlat = r*cslt*csln;
                        xlon = r*cslt*snln;
-                       z = r*snlt;
                     }
                 }
             }
@@ -493,7 +481,7 @@ public final class MOLLnav extends AREAnav
     /**
      * toLinEle converts lat/long to satellite line/element
      *
-     * @param  latlon[][] array of lat/long pairs. Where latlon[indexLat][]
+     * @param  latlon	 array of lat/long pairs. Where latlon[indexLat][]
      *                    are latitudes and latlon[indexLon][] are longitudes.
      *
      * @return linele[][] array of line/element pairs.  Where
@@ -503,7 +491,6 @@ public final class MOLLnav extends AREAnav
      */
     public float[][] toLinEle(float[][] latlon) 
     {
-        double x, y, z;
         double xlin, xele;
         double xlat, xlon;
         double flat, t, t2, w, diff_lon, xedif;
@@ -529,13 +516,6 @@ public final class MOLLnav extends AREAnav
               xlin = Double.NaN;
             }
             else {
-              // if in cartesian coords, transform to lat/lon
-              if (itype == 1)
-              {
-                  x = xlat;
-                  y = xlon;
-                  // CALL CARTLL(X,Y,Z,XLAT,XLON)
-              }
   
               isign = -1;
               if (xlat < 0.0) isign = 1;

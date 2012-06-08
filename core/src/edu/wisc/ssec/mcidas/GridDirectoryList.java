@@ -31,9 +31,7 @@ import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
-
 
 /** 
  * GridDirectoryList interface for McIDAS 'grids'.
@@ -107,7 +105,7 @@ public class GridDirectoryList
    * creates an GridDirectory object that allows reading
    * of the directory of McIDAS 'grid' files from a URL
    *
-   * @param URL - the URL to go after
+   * @param url - the URL to go after
    *
    * @exception McIDASException if file cannot be opened
    *

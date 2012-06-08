@@ -39,8 +39,6 @@ package edu.wisc.ssec.mcidas;
 public final class RECTnav extends AREAnav 
 {
 
-    private boolean isEastPositive = true;
-
     int itype;
     int iwest;
     double xrow;
@@ -49,12 +47,6 @@ public final class RECTnav extends AREAnav
     double zslon;
     double zdlat;
     double zdlon;
-    //double xlin;
-    //double xele;
-    //double xldif;
-    //double xedif;
-    //double xlat;
-    //double xlon;
 
     /**
      * Set up for the real math work.  Must pass in the int array
@@ -104,46 +96,21 @@ public final class RECTnav extends AREAnav
 
         int ipowrad = iparms[15];
         if (ipowrad == 0) ipowrad = 3;
-        double drad = iparms[7]/Math.pow(10.,ipowrad);
 
         int ipowecc = iparms[16];
         if (ipowecc == 0) ipowecc = 6;
-        double decc = iparms[8]/Math.pow(10.,ipowecc);
 
         iwest = (iparms[10] >= 0) ? 1 : -1;
-        if (iwest == 1) isEastPositive = false;
-
-        /*  Don't know why this was ever here!
-        xlin = 1;
-        xele = 1;
-        xldif = xrow - xlin;
-        xedif = iwest*(xcol - xele);
-        xlon = zslon + xedif*zdlon;
-        xlat = zslat + xldif*zdlat;
-        zslat = xlat;
-        zslon = xlon;
-        xrow = 1;
-        xcol = 1;
-        */
 
         if (xcol == 1) {
             zslon=zslon-180.0*iwest;
         }
-
-        /*
-        System.out.println("Center line = " + xrow + 
-                         "\nCenter elem = " + xcol +
-                         "\n       lat  = " + zslat +
-                         "\n       lon  = " + zslon +
-                         "\n     zdlat  = " + zdlat +
-                         "\n     zdlon  = " + zdlon +
-                         "\n     iwest  = " + iwest);
-        */
+        
     }
 
     /** converts from satellite coordinates to latitude/longitude
      *
-     * @param  linele[][]  array of line/element pairs.  Where 
+     * @param  linele	  array of line/element pairs.  Where 
      *                     linele[indexLine][] is a 'line' and 
      *                     linele[indexEle][] is an element. These are in 
      *                     'file' coordinates (not "image" coordinates.)
@@ -223,7 +190,7 @@ public final class RECTnav extends AREAnav
     /**
      * toLinEle converts lat/long to satellite line/element
      *
-     * @param  latlon[][] array of lat/long pairs. Where latlon[indexLat][]
+     * @param  latlon	 array of lat/long pairs. Where latlon[indexLat][]
      *                    are latitudes and latlon[indexLon][] are longitudes.
      *
      * @return linele[][] array of line/element pairs.  Where
@@ -274,7 +241,7 @@ public final class RECTnav extends AREAnav
 
     /** converts from satellite coordinates to latitude/longitude
      *
-     * @param  linele[][]  array of line/element pairs.  Where 
+     * @param  linele	  array of line/element pairs.  Where 
      *                     linele[indexLine][] is a 'line' and 
      *                     linele[indexEle][] is an element. These are in 
      *                     'file' coordinates (not "image" coordinates.)
@@ -354,7 +321,7 @@ public final class RECTnav extends AREAnav
     /**
      * toLinEle converts lat/long to satellite line/element
      *
-     * @param  latlon[][] array of lat/long pairs. Where latlon[indexLat][]
+     * @param  latlon	 array of lat/long pairs. Where latlon[indexLat][]
      *                    are latitudes and latlon[indexLon][] are longitudes.
      *
      * @return linele[][] array of line/element pairs.  Where

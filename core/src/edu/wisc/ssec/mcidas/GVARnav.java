@@ -26,8 +26,6 @@ MA 02111-1307, USA
 
 package edu.wisc.ssec.mcidas;
 
-import java.util.*;
-
 /**
  * The GVARnav class creates the ability to navigate GVAR
  * image data.  It is a math copy of the McIDAS nvxgvar.dlm
@@ -684,7 +682,7 @@ public class GVARnav extends AREAnav
 
   /** converts from satellite coordinates to latitude/longitude
    *
-   * @param  linele[][]  array of line/element pairs.  Where 
+   * @param  linele		  array of line/element pairs.  Where 
    *                     linele[indexLine][] is a 'line' and 
    *                     linele[indexEle][] is an element. These are in 
    *                     'file' coordinates (not "image" coordinates.)
@@ -697,8 +695,7 @@ public class GVARnav extends AREAnav
   public double[][] toLatLon(double[][] linele) { 
 
     double rl, rp;
-    double ylat, ylon;
-    double rlat, rlon, gam, alf;
+    double rlat, rlon;
     int number = linele[0].length;
 
     // alpha = elevation angle (rad)
@@ -815,8 +812,6 @@ public class GVARnav extends AREAnav
 
        //  see if we have to convert to x y z coordinates
       if (itype == 2) {
-        ylat = (double) rlat;
-        ylon = (double) rlon;
         // llcart(ylat,ylon,xlat,xlon,z);
       } else {
         latlon[indexLat][point] = rlat;
@@ -831,7 +826,7 @@ public class GVARnav extends AREAnav
 
   /** converts from satellite coordinates to latitude/longitude
    *
-   * @param  linele[][]  array of line/element pairs.  Where 
+   * @param  linele		  array of line/element pairs.  Where 
    *                     linele[indexLine][] is a 'line' and 
    *                     linele[indexEle][] is an element. These are in 
    *                     'file' coordinates (not "image" coordinates.)
@@ -844,8 +839,7 @@ public class GVARnav extends AREAnav
   public float[][] toLatLon(float[][] linele) { 
 
     double rl, rp;
-    double ylat, ylon;
-    double rlat, rlon, gam, alf;
+    double rlat, rlon;
     int number = linele[0].length;
 
     // alpha = elevation angle (rad)
@@ -962,8 +956,6 @@ public class GVARnav extends AREAnav
 
        //  see if we have to convert to x y z coordinates
       if (itype == 2) {
-        ylat = (double) rlat;
-        ylon = (double) rlon;
         // llcart(ylat,ylon,xlat,xlon,z);
       } else {
         latlon[indexLat][point] = (float) rlat;
@@ -980,7 +972,7 @@ public class GVARnav extends AREAnav
   /**
    * toLinEle converts lat/long to satellite line/element
    *
-   * @param  latlon[][]  array of lat/long pairs. Where latlon[indexLat][]
+   * @param  latlon		  array of lat/long pairs. Where latlon[indexLat][]
    *                     are latitudes and latlon[indexLon][] are longitudes.
    *
    * @return linele[][]  array of line/element pairs.  Where
@@ -990,7 +982,6 @@ public class GVARnav extends AREAnav
    */
   public double[][] toLinEle(double[][] latlon) {
 
-    double x, y;
     double tmplin, tmpele;
     double sing, slat, w1, w2, ff, doff, alpha1;
     double rlat, rlon, gam, alf;
@@ -1005,13 +996,6 @@ public class GVARnav extends AREAnav
     doff = scnmax[instr-1] - ewnom[instr - 1];
 
     for (int point=0; point<number; point++) {
-
-     // if in cartesian coords, transform to lat/lon
-      if (itype == 2){
-        x = latlon[indexLat][point];
-        y = latlon[indexLon][point];
-        // cartll(x,y,z,zlat,zlon);
-      }
 
       if (Math.abs(latlon[indexLat][point]) > 90.) {
         linele[indexLine][point] = Double.NaN;
@@ -1109,7 +1093,7 @@ public class GVARnav extends AREAnav
   /**
    * toLinEle converts lat/long to satellite line/element
    *
-   * @param  latlon[][]  array of lat/long pairs. Where latlon[indexLat][]
+   * @param  latlon		  array of lat/long pairs. Where latlon[indexLat][]
    *                     are latitudes and latlon[indexLon][] are longitudes.
    *
    * @return linele[][]  array of line/element pairs.  Where
@@ -1119,7 +1103,6 @@ public class GVARnav extends AREAnav
    */
   public float[][] toLinEle(float[][] latlon) {
 
-    double x, y;
     double tmplin, tmpele;
     double sing, slat, w1, w2, ff, doff, alpha1;
     double rlat, rlon, gam, alf;
@@ -1134,13 +1117,6 @@ public class GVARnav extends AREAnav
     doff = scnmax[instr-1] - ewnom[instr - 1];
 
     for (int point=0; point<number; point++) {
-
-     // if in cartesian coords, transform to lat/lon
-      if (itype == 2){
-        x = latlon[indexLat][point];
-        y = latlon[indexLon][point];
-        // cartll(x,y,z,zlat,zlon);
-      }
 
       if (Math.abs(latlon[indexLat][point]) > 90.) {
         linele[indexLine][point] = Float.NaN;

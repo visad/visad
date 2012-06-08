@@ -180,7 +180,7 @@ public abstract class AREAnav
 
     /** converts from satellite coordinates to latitude/longitude
      *
-     * @param  linele[][]  array of line/element pairs.  Where 
+     * @param  linele	  array of line/element pairs.  Where 
      *                     linele[indexLine][] is a 'line' and 
      *                     linele[indexEle][] is an element. These are in 
      *                     'file' coordinates (not "image" coordinates.)
@@ -195,7 +195,7 @@ public abstract class AREAnav
     /**
      * toLinEle converts lat/long to satellite line/element
      *
-     * @param  latlon[][] array of lat/long pairs. Where latlon[indexLat][]
+     * @param  latlon	 array of lat/long pairs. Where latlon[indexLat][]
      *                    are latitudes and latlon[indexLon][] are longitudes.
      *
      * @return linele[][] array of line/element pairs.  Where
@@ -211,7 +211,7 @@ public abstract class AREAnav
      * Subclasses should implement a real float version for better
      * performance.
      *
-     * @param  linele[][]  array of line/element pairs.  Where 
+     * @param  linele	  array of line/element pairs.  Where 
      *                     linele[indexLine][] is a 'line' and 
      *                     linele[indexEle][] is an element. These are in 
      *                     'file' coordinates (not "image" coordinates.)
@@ -232,7 +232,7 @@ public abstract class AREAnav
      * Subclasses should implement a real float version for better
      * performance.
      *
-     * @param  latlon[][] array of lat/long pairs. Where latlon[indexLat][]
+     * @param  latlon	 array of lat/long pairs. Where latlon[indexLat][]
      *                    are latitudes and latlon[indexLon][] are longitudes.
      *
      * @return linele[][] array of line/element pairs.  Where
@@ -292,7 +292,7 @@ public abstract class AREAnav
      * @param  magLine   is the (line) magnification factor that might have
      *                   been used when the image was displayed.
      *
-     * @param  magElment is the (element) magnification factor
+     * @param  magElement is the (element) magnification factor
      *                   that might have been used when the image was displayed.
      *
      */
@@ -308,7 +308,7 @@ public abstract class AREAnav
      * @param  magLine   is the (line) magnification factor that might have
      *                   been used when the image was displayed.
      *
-     * @param  magElment is the (element) magnification factor
+     * @param  magElement is the (element) magnification factor
      *                   that might have been used when the image was displayed.
      *
      */
