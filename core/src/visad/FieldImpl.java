@@ -1996,7 +1996,7 @@ public class FieldImpl extends FunctionImpl implements Field {
    * CoordinateSystem</code>-s the new domain will have
    * a <code>CartesianProductCoordinateSystem</code> of 
    * Set-s CoordinateSystems
-   * @param cs  CoordinateSystem to use for the new domain set
+   * 
    * @throws VisADException  unable to collapse domains
    * @throws RemoteException  unable to collapse domains of remote data
    */

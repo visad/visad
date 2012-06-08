@@ -1,6 +1,3 @@
-//
-// OffsetUnit.java
-//
 
 /*
  VisAD system for interactive analysis and visualization of numerical
@@ -433,9 +430,6 @@ public final class LogarithmicUnit extends Unit implements Serializable {
      *            The values to be converted in units of this unit.
      * @param that
      *            The unit to which to convert the values.
-     * @param copy
-     *            if false and <code>that</code> equals this, return a
-     *            <code>values</code>, else return a new array
      * @return The converted values.
      * @require The units are convertible.
      * @promise Neither unit has been modified.

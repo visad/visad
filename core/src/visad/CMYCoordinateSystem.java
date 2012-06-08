@@ -33,6 +33,7 @@ package visad;
 */
 public class CMYCoordinateSystem extends CoordinateSystem {
 
+  private static final long serialVersionUID = 1L;
   private static Unit[] coordinate_system_units = {null, null, null};
 
   /**
@@ -59,7 +60,7 @@ public class CMYCoordinateSystem extends CoordinateSystem {
    *  double[][] arrays rather than RealTuple[] arrays; the array
    *  organization is double[tuple_dimension][number_of_tuples];
    *  can modify and return argument array.
-   *  @param  value  array of values assumed to be in coordinateSystem
+   *  @param  tuples  array of values assumed to be in coordinateSystem
    *                 units. Input array is not guaranteed to be immutable
    *                 and could be used for return.
    *  @return array of double values in reference coordinates and Unit-s.
@@ -86,7 +87,7 @@ public class CMYCoordinateSystem extends CoordinateSystem {
    *  double[][] arrays rather than RealTuple[] arrays; the array
    *  organization is double[tuple_dimension][number_of_tuples];
    *  can modify and return argument array.
-   *  @param  value  array of values assumed to be in reference
+   *  @param  tuples  array of values assumed to be in reference
    *                 Unit-s. Input array is not guaranteed to be immutable
    *                 and could be used for return.
    *  @return array of double values in CoordinateSystem Unit-s.
@@ -113,7 +114,7 @@ public class CMYCoordinateSystem extends CoordinateSystem {
    *  float[][] arrays rather than RealTuple[] arrays; the array
    *  organization is float[tuple_dimension][number_of_tuples];
    *  can modify and return argument array.
-   *  @param  value  array of values assumed to be in coordinateSystem
+   *  @param  tuples  array of values assumed to be in coordinateSystem
    *                 units. Input array is not guaranteed to be immutable
    *                 and could be used for return.
    *  @return array of float values in reference coordinates and Unit-s.
@@ -140,7 +141,7 @@ public class CMYCoordinateSystem extends CoordinateSystem {
    *  float[][] arrays rather than RealTuple[] arrays; the array
    *  organization is float[tuple_dimension][number_of_tuples];
    *  can modify and return argument array.
-   *  @param  value  array of values assumed to be in reference
+   *  @param  tuples  array of values assumed to be in reference
    *                 Unit-s. Input array is not guaranteed to be immutable
    *                 and could be used for return.
    *  @return array of float values in CoordinateSystem Unit-s.

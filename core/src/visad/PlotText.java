@@ -310,11 +310,6 @@ public class PlotText extends Object {
    * <li> TextControl.Justification.CENTER - Centered text
    * <li> TextControl.Justification.RIGHT - Right justified text
    * </ul>
-   * @param  verticalJustification is one of:<ul>
-   * <li> TextControl.Justification.TOP - Top justified text
-   * <li> TextControl.Justification.CENTER - Centered text
-   * <li> TextControl.Justification.BOTTOM - Bottom justified text (normal)
-   * </ul>
    * @param characRotation is the angle (in degrees) at which each character
    * in str is rotated with respect to the base line of the text.  A positive
    * value rotates the characters clockwise; a negative value

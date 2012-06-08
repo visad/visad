@@ -1251,7 +1251,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
   /**
    * Unpack one range component, makes a copy.
    *
-   * @param component index
+   * @param comp	component index
    *
    * @return  array of the values
    * @throws VisADException  bad range mode
@@ -1263,7 +1263,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
   /**
    * Unpack one range component.
    *
-   * @param component index
+   * @param comp	component index
    * @param copy  true to make a copy
    *
    * @return  array of the values
@@ -1281,7 +1281,6 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
       }
       int[] index;
       double[][] range0;
-      double[] rangeI;
       for (int i=0; i<TupleDimension; i++) {
         switch (RangeMode[comp]) {
           case DOUBLE:
@@ -1337,7 +1336,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
   /**
    * Unpack one range component, makes a copy.
    *
-   * @param component index
+   * @param comp	component index
    *
    * @return  array of the values
    * @throws VisADException  bad range mode
@@ -1349,7 +1348,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
   /**
    * Unpack one range component.
    *
-   * @param component index
+   * @param comp	component index
    * @param copy  true to make a copy
    *
    * @return  array of the values
@@ -1367,7 +1366,6 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
       }
       int[] index;
       float[][] range0;
-      float[] rangeI;
       for (int i=0; i<TupleDimension; i++) {
         switch (RangeMode[comp]) {
           case DOUBLE:
@@ -1781,7 +1779,6 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
    * Set the range value at the index-th sample 
    * @param  index   index to set
    * @param  range   range value to set
-   * @param  copy    flag to copy values - meaningless for FlatField
    * @throws VisADException     if range's MathType is incompatible or
    *                            some other error.
    * @throws RemoteException    if the Remote object couldn't be created.

@@ -609,7 +609,7 @@ public abstract class Set extends DataImpl implements SetIface {
    *
    * <p>This implementation always throws an {@link UnimplementedException}.</p>
    *
-   * @param manifoldIndex           The index of the manifold dimension along
+   * @param dimension	           The index of the manifold dimension along
    *                                which to return the neighboring points.
    * @throws ArrayIndexOutOfBoundsException
    *                                if <code>manifoldIndex < 0 || 
@@ -618,7 +618,7 @@ public abstract class Set extends DataImpl implements SetIface {
    * @throws VisADException         if a VisAD failure occurs.
    * @see #getManifoldDimension()
    */
-  public int[][] getNeighbors( int dimension )
+  public int[][] getNeighbors(int dimension)
                  throws VisADException
   {
     throw new UnimplementedException("Set: getNeighbors()");

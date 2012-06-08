@@ -484,7 +484,7 @@ public class ProductSet extends SampledSet {
 
   /**
    * Returns the hash code of this instance.
-   * @param		The hash code of this instance.
+   * @return		The hash code of this instance.
    */
   public int hashCode() {
     if (!hashCodeSet)

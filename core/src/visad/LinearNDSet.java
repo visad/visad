@@ -46,7 +46,7 @@ public class LinearNDSet extends GriddedSet
    * type.
    * @param type     MathType for this LinearNDSet.  Must be consistent
    *                 with MathType-s of sets.
-   * @param sets     Linear1DSets that make up this LinearNDSet.
+   * @param l	     Linear1DSets that make up this LinearNDSet.
    * @throws VisADException problem creating VisAD objects.
    */
   public LinearNDSet(MathType type, Linear1DSet[] l) throws VisADException {
@@ -140,7 +140,7 @@ public class LinearNDSet extends GriddedSet
    * for type, or may be null; errors may be null 
    * @param type     MathType for this LinearNDSet.  Must be consistent
    *                 with MathType-s of sets.
-   * @param sets     Linear1DSets that make up this LinearNDSet.
+   * @param l	     Linear1DSets that make up this LinearNDSet.
    * @param coord_sys  CoordinateSystem for this set.  May be null, but
    *                   if not, must be consistent with <code>type</code>.
    * @param units      Unit-s for the values in <code>sets</code>.  May
@@ -161,7 +161,7 @@ public class LinearNDSet extends GriddedSet
    * for type, or may be null; errors may be null 
    * @param type     MathType for this LinearNDSet.  Must be consistent
    *                 with MathType-s of sets.
-   * @param sets     Linear1DSets that make up this LinearNDSet.
+   * @param l	     Linear1DSets that make up this LinearNDSet.
    * @param coord_sys  CoordinateSystem for this set.  May be null, but
    *                   if not, must be consistent with <code>type</code>.
    * @param units      Unit-s for the values in <code>sets</code>.  May

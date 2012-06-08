@@ -41,6 +41,8 @@ import java.text.*;
  */
 public class AxisScale implements java.io.Serializable
 {
+
+  private static final long serialVersionUID = 1L;
   /** X_AXIS identifier */
   public static final int X_AXIS = 0;
   /** Y_AXIS identifier */
@@ -1102,7 +1104,7 @@ public class AxisScale implements java.io.Serializable
   /**
    * Set major tick marks.  Tick marks will be placed at the values on 
    * the axis.
-   * @param values  the tick values
+   * @param majorTicks  the tick values
    */
   public void setMajorTicks(double[] majorTicks)
   {
@@ -1117,7 +1119,7 @@ public class AxisScale implements java.io.Serializable
   /**
    * Set minor tick marks.  Tick marks will be placed at the values on 
    * the axis.
-   * @param values  the tick values
+   * @param minorTicks  the tick values
    */
   public void setMinorTicks(double[] minorTicks)
   {
@@ -1178,7 +1180,7 @@ public class AxisScale implements java.io.Serializable
   /**
    * Allow the AxisScale to automatically compute the desired majorTickSpacing
    * based on the range of the ScalarMap.
-   * @param true  have majorTickSpacing automatically computed.
+   * @param b  if true, have majorTickSpacing automatically computed.
    */
   public void setAutoComputeTicks(boolean b)
   {
@@ -1520,7 +1522,7 @@ public class AxisScale implements java.io.Serializable
 
   /**
    * Set the visibility of the AxisScale
-   * @param visibile  true to display the AxisScale
+   * @param visible  true to display the AxisScale
    */
   public void setVisible(boolean visible) {
     boolean oldVisibility = visibility;
@@ -1547,7 +1549,7 @@ public class AxisScale implements java.io.Serializable
   /**
    * Set the visibility of the grid lines; Grid lines are placed
    * at major tick marks.
-   * @param visibile  true to display the grid lines
+   * @param show  true to display the grid lines
    */
   public void setGridLinesVisible(boolean show) {
     boolean oldShow = gridLinesVisible;
@@ -1569,7 +1571,7 @@ public class AxisScale implements java.io.Serializable
 
   /**
    * Set whether both sides are labeled.
-   * @param visibile  true to label both sides
+   * @param both  true to label both sides
    */
   public void setLabelBothSides(boolean both) {
     boolean oldBoth = labelBothSides;
@@ -1592,7 +1594,7 @@ public class AxisScale implements java.io.Serializable
 
   /**
    * Set whether ticks are visible
-   * @param visibile  true to show ticks
+   * @param visible  true to show ticks
    */
   public void setTicksVisible(boolean visible) {
     boolean oldValue = ticksVisible;
@@ -1606,7 +1608,7 @@ public class AxisScale implements java.io.Serializable
 
   /**
    * See if ticks are visible
-   * @return true if labelling is on both sides
+   * @return true if labeling is on both sides
    */
   public boolean getTicksVisible() {
     return ticksVisible;

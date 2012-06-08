@@ -33,6 +33,7 @@ import java.rmi.*;
 */
 public class SingletonSet extends SampledSet {
 
+  private static final long serialVersionUID = 1L;
   private RealTuple data;
   
   private static final int[] nilNeighbors = {};
@@ -324,7 +325,7 @@ public class SingletonSet extends SampledSet {
 
   /**
    * Returns the hash code of this instance.
-   * @param		The hash code of this instance.
+   * @return		The hash code of this instance.
    */
   public int hashCode() {
     if (!hashCodeSet)

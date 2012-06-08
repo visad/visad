@@ -76,7 +76,7 @@ public interface KeyboardBehavior {
   /**
    *  Process a key event.  Determines whether a meaningful key was pressed.
    *  place.
-   *  @param  even  KeyEvent stimulus
+   *  @param  event  KeyEvent stimulus
    */
   void processKeyEvent(KeyEvent event);
 

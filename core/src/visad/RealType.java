@@ -34,6 +34,7 @@ import java.rmi.*;
 */
 public class RealType extends ScalarType {
 
+  private static final long serialVersionUID = 1L;
   private Unit DefaultUnit; // default Unit of RealType
 
   /** if not null, this sampling is used as a default when this type
@@ -822,7 +823,7 @@ public class RealType extends ScalarType {
    * might not equal it.
    *
    * @param name                    The name for the RealType.
-   * @param unit                    The unit for the RealType.
+   * @param u	                    The unit for the RealType.
    * @return                        A RealType corresponding to the input
    *                                arguments or <code>null</code>.
    * @throws NullPointerException   if the name is <code>null</code>.
@@ -942,7 +943,7 @@ public class RealType extends ScalarType {
    * convertible with the unit argument but might not equal it.
    *
    * @param name                    The name for the RealType.
-   * @param unit                    The unit for the RealType.
+   * @param u	                    The unit for the RealType.
    * @param set                     The representational set for the RealType.
    * @return                        A RealType corresponding to the input
    *                                arguments or <code>null</code>.
@@ -1006,7 +1007,7 @@ public class RealType extends ScalarType {
    * will be convertible with the unit argument but might not equal it.
    *
    * @param name                    The name for the RealType.
-   * @param unit                    The unit for the RealType.
+   * @param u	                    The unit for the RealType.
    * @param attrMask                The attribute mask for the RealType.
    * @return                        A RealType corresponding to the input
    *                                arguments or <code>null</code>.
@@ -1065,7 +1066,7 @@ public class RealType extends ScalarType {
    * will be convertible with the unit argument but might not equal it.
    *
    * @param name                    The name for the RealType.
-   * @param unit                    The unit for the RealType.
+   * @param u	                    The unit for the RealType.
    * @param set                     The representational set for the RealType.
    * @param attrMask                The attribute mask for the RealType.
    * @return                        A RealType corresponding to the input

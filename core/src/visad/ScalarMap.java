@@ -245,7 +245,7 @@ public class ScalarMap extends Object
 
   /**
    * Set the name being used on the axis scale.
-   * @param new name for the scalar.
+   * @param name	new name for the scalar.
    * @see  AxisScale#setTitle(String name)
    */
   public void setScalarName(String name) {
@@ -568,7 +568,7 @@ System.out.println(Scalar + " -> " + DisplayScalar + "  check  tickFlag = " +
    *  the display scale .
    *  @param  low         lower range value (see notes above)
    *  @param  hi          upper range value (see notes above)
-   *  @param  remoteID    id of remote scale
+   *  @param  remoteId    id of remote scale
    *  @throws  VisADException   VisAD error
    *  @throws  RemoteException  Java RMI error
    */
@@ -1143,7 +1143,7 @@ if (overrideUnit != null) {
    *  linear scaling (if applicable) the display_values array
    *  (DisplayRealType values); this is useful for direct
    *  manipulation and cursor labels 
-   * @param  display values
+   * @param  values	display values
    * @return data values
    */
   public float[] inverseScaleValues(float[] values) {
@@ -1154,7 +1154,7 @@ if (overrideUnit != null) {
    *  linear scaling (if applicable) the display_values array
    *  (DisplayRealType values); this is useful for direct
    *  manipulation and cursor labels 
-   * @param  display values
+   * @param  values	display values
    * @param  newArray  false to transform in place
    * @return data values
    */

@@ -47,8 +47,8 @@ public interface RealIface
   /**
    * Returns the numeric value in a particular unit.
    *
-   * @param unit	The desired unit for the numeric value.  Must be
-   *			convertible with {@link #getUnit()}.
+   * @param unit_out	The desired unit for the numeric value.  Must be
+   *				convertible with {@link #getUnit()}.
    * @return		The numeric value in the given unit.
    */
   double getValue(Unit unit_out)

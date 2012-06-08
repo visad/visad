@@ -95,7 +95,7 @@ public class DataReferenceImpl extends ThingReferenceImpl
 
   /**
    * Indicates whether or not this instance is equal to an object
-   * @param o the object in question.
+   * @param obj the object in question.
    * @return <code>true</code> if and only if this instance equals o.
    */
   public boolean equals(Object obj) {

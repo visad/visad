@@ -32,13 +32,12 @@ import java.util.StringTokenizer;
 import visad.browser.Convert;
 import visad.util.Util;
 
-import java.awt.Font;
-
 /**
    ContourControl is the VisAD class for controlling IsoContour display scalars.<P>
 */
 public class ContourControl extends Control {
 
+  private static final long serialVersionUID = 1L;
   private boolean mainContours;
   // for 3-D mainContours
   private float surfaceValue;
@@ -480,7 +479,7 @@ public class ContourControl extends Control {
    *        lowhibase[0]  used to return low limit
    *        lowhibase[1]  used to return high limit
    *        lowhibase[2]  used to return base
-   * @param dashed      must be dimensioned boolean[1], where
+   * @param dashes      must be dimensioned boolean[1], where
    *        dashed[0]     used to return dash enable
    * @return float[] array of levels for contour curves
    */

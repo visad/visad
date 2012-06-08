@@ -135,7 +135,7 @@ public final class OffsetUnit extends Unit implements Serializable {
      * 
      * @param offset
      *            The amount of offset.
-     * @param that
+     * @param unit
      *            The other unit.
      */
     public OffsetUnit(final double offset, final Unit unit) {
@@ -147,7 +147,7 @@ public final class OffsetUnit extends Unit implements Serializable {
      * 
      * @param offset
      *            The amount of offset.
-     * @param that
+     * @param unit
      *            The other unit.
      * @param identifier
      *            The name or abbreviation for the cloned unit. May be
@@ -475,9 +475,6 @@ public final class OffsetUnit extends Unit implements Serializable {
      *            The values to be converted in units of this unit.
      * @param that
      *            The unit to which to convert the values.
-     * @param copy
-     *            if false and <code>that</code> equals this, return a
-     *            <code>values</code>, else return a new array
      * @return The converted values.
      * @require The units are convertible.
      * @promise Neither unit has been modified.

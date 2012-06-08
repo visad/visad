@@ -50,9 +50,13 @@ DateTime
     extends     Real
 {
 
-    /** This is around so we can use a different date formatter */
-    private static Class dateFormatClass;
+    /**
+	 * default for serializable classes
+	 */
+	private static final long serialVersionUID = 1L;
 
+	/** This is around so we can use a different date formatter */
+    private static Class dateFormatClass;
 
     /**
      * Default Time Format Pattern (yyyy-MM-dd HH:mm:ss)
@@ -486,7 +490,7 @@ DateTime
      * Create a DateTime object from a string specification using the
      * supplied pattern and timezone.
      * @param  dateString     date string specification
-     * @param  formatPattern  format string
+     * @param  format		  format string
      * @param  timezone       TimeZone to use
      *
      * @throws  VisADException  formatting problem

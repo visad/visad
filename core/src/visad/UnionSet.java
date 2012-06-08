@@ -40,6 +40,7 @@ package visad;
  */
 public class UnionSet extends SampledSet {
 
+  private static final long serialVersionUID = 1L;
   SampledSet[] Sets;
 
   /**
@@ -845,7 +846,7 @@ System.out.println("set_num[" + j + "] = " + set_num[j] +
 
   /**
    * Returns the hash code of this instance.
-   * @param		The hash code of this instance.
+   * @return		The hash code of this instance.
    */
   public int hashCode() {
     if (!hashCodeSet)

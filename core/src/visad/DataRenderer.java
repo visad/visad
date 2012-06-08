@@ -29,7 +29,6 @@ package visad;
 import java.util.*;
 import java.rmi.*;
 
-
 /**
    DataRenderer is the VisAD abstract super-class for graphics rendering
    algorithms.  These transform Data objects into 3-D (or 2-D)
@@ -155,7 +154,7 @@ public abstract class DataRenderer extends Object implements Cloneable {
   /**
    * set DataDisplayLinks for linked Data, and set associated DisplayImpl
    * @param links array of DataDisplayLinks to set
-   * @param associated DisplayImpl to set
+   * @param d associated DisplayImpl to set
    * @throws VisADException a VisAD error occurred
    */
   public abstract void setLinks(DataDisplayLink[] links, DisplayImpl d)

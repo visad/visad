@@ -43,7 +43,7 @@ public class Gridded1DDoubleSet extends Gridded1DSet
   /**
    * A canonicalizing cache of previously-created instances.  Because instances
    * are immutable, a cache can be used to reduce memory usage by ensuring
-   * that each instance is truely unique.  By implementing the cache using a
+   * that each instance is truly unique.  By implementing the cache using a
    * {@link WeakHashMap}, this can be accomplished without the technique itself
    * adversely affecting memory usage.
    */
@@ -154,7 +154,7 @@ public class Gridded1DDoubleSet extends Gridded1DSet
    *                            increasing or decreasing).  May be
    *                            <code>null</code>.  The array is not copied, so
    *                            either don't modify it or clone it first.
-   * @param coord_sys           The coordinate system for this, particular, set.
+   * @param coordSys           The coordinate system for this, particular, set.
    *                            Must be compatible with the default coordinate
    *                            system.  May be <code>null</code>.
    * @param unit                The unit for the samples.  Must be compatible
