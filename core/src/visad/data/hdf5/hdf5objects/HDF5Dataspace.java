@@ -158,7 +158,6 @@ public class HDF5Dataspace extends HDF5Object
 	}
 
 	/** select count[] points starting at start[] with stride[]
-	 *  @param sid the space id.
 	 *  @param start the starting points.
 	 *  @param stride the stride
 	 *  @param count the number of points.

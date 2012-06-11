@@ -48,7 +48,7 @@ public class BaseMapAdapter {
   private int latMax=900000, latMin=-900000;
   private int lonMax=1800000, lonMin=-1800000;
   private int segmentPointer = 0;  // index into array of segments
-  private int numEles=0, numLines=0;
+  private int numEles=0;
   private CoordinateSystem cs=null;
   private DataInputStream din;
   private MathType coordMathType;
@@ -218,7 +218,6 @@ public class BaseMapAdapter {
       coordMathType = domainSet.getType();
       cs = domainSet.getCoordinateSystem();
       numEles = ((Linear2DSet) domainSet).getX().getLength();
-      numLines = ((Linear2DSet) domainSet).getY().getLength();
 
       xfirst = (int) ((Linear2DSet) domainSet).getX().getFirst();
       xlast = (int) ((Linear2DSet) domainSet).getX().getLast();
@@ -244,7 +243,7 @@ public class BaseMapAdapter {
    * be used to transform points from latitude/longitude
    * into element,line.
    *
-   * @param CoordinateSystem is that
+   * @param cs is that
    * @param numEles is number of elements (x)
    * @param numLines is number of lines (y)
    * @param domain is the desired domain (ordered element, line)
@@ -256,7 +255,6 @@ public class BaseMapAdapter {
                           throws VisADException {
 
     this.numEles = numEles;
-    this.numLines = numLines;
     this.cs = cs;
     coordMathType = domain;
     xlast = numEles - 1;
@@ -492,7 +490,6 @@ public class BaseMapAdapter {
 
     UnionSet maplines=null;
     Gridded2DSet gs;
-    RealType x,y;
 
     int st=1;
     float[][] lalo, linele, llout;

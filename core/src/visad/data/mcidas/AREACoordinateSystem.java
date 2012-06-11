@@ -46,6 +46,7 @@ public class AREACoordinateSystem
     extends visad.georef.MapProjection
 {
 
+  private static final long serialVersionUID = 1L;
   protected AREAnav anav = null;
   private int lines;
   private int elements;
@@ -63,7 +64,7 @@ public class AREACoordinateSystem
     * This routine uses a flipped Y axis (first line of
     * the image file is number 0)
     *
-    * @param df is the associated AreaFile 
+    * @param af is the associated AreaFile 
     *
     */
   public AREACoordinateSystem(AreaFile af) 
@@ -78,9 +79,9 @@ public class AREACoordinateSystem
     * This routine uses a flipped Y axis (first line of
     * the image file is number 0)
     *
-    * @param reference the CoordinateSystem reference (must be equivalent
-    *                  to RealTupleType.LatitudeLongitudeTuple)
-    * @param df is the associated AreaFile 
+    * @param ref	 the CoordinateSystem reference (must be equivalent
+    *                to RealTupleType.LatitudeLongitudeTuple)
+    * @param af is the associated AreaFile 
     *
     */
   public AREACoordinateSystem(RealTupleType ref, AreaFile af) 
@@ -95,8 +96,8 @@ public class AREACoordinateSystem
     * This routine uses a flipped Y axis (first line of
     * the image file is number 0)
     *
-    * @param dir[] is the AREA file directory block
-    * @param nav[] is the AREA file navigation block
+    * @param dir is the AREA file directory block
+    * @param nav is the AREA file navigation block
     *
     */
   public AREACoordinateSystem(int[] dir, int[] nav) throws VisADException {
@@ -109,9 +110,9 @@ public class AREACoordinateSystem
     * This routine uses a flipped Y axis (first line of
     * the image file is number 0)
     *
-    * @param dir[] is the AREA file directory block
-    * @param nav[] is the AREA file navigation block
-    * @param aux[] is the AREA file auxillary block
+    * @param dir is the AREA file directory block
+    * @param nav is the AREA file navigation block
+    * @param aux is the AREA file auxillary block
     *
     */
   public AREACoordinateSystem(int[] dir, int[] nav, int[] aux) 
@@ -125,9 +126,9 @@ public class AREACoordinateSystem
     * This routine uses a flipped Y axis (first line of
     * the image file is number 0)
     *
-    * @param dir[] is the AREA file directory block
-    * @param nav[] is the AREA file navigation block
-    * @param aux[] is the AREA file auxillary block
+    * @param dir is the AREA file directory block
+    * @param nav is the AREA file navigation block
+    * @param aux is the AREA file auxillary block
     * @param useSpline  use a spline approximation for speed
     *
     */
@@ -144,8 +145,8 @@ public class AREACoordinateSystem
     *
     * @param reference the CoordinateSystem reference (must be equivalent
     *                  to RealTupleType.LatitudeLongitudeTuple)
-    * @param dir[] is the AREA file directory block
-    * @param nav[] is the AREA file navigation block
+    * @param dir is the AREA file directory block
+    * @param nav is the AREA file navigation block
     *
     */
   public AREACoordinateSystem(RealTupleType reference, int[] dir,
@@ -163,9 +164,9 @@ public class AREACoordinateSystem
     *
     * @param reference the CoordinateSystem reference (must be equivalent
     *                  to RealTupleType.LatitudeLongitudeTuple)
-    * @param dir[] is the AREA file directory block
-    * @param nav[] is the AREA file navigation block
-    * @param aux[] is the AREA file auxillary block
+    * @param dir is the AREA file directory block
+    * @param nav is the AREA file navigation block
+    * @param aux is the AREA file auxillary block
     *
     */
 
@@ -192,9 +193,9 @@ public class AREACoordinateSystem
     *
     * @param reference the CoordinateSystem reference (must be equivalent
     *                  to RealTupleType.LatitudeLongitudeTuple)
-    * @param dir[] is the AREA file directory block
-    * @param nav[] is the AREA file navigation block
-    * @param aux[] is the AREA file auxillary block
+    * @param dir is the AREA file directory block
+    * @param nav is the AREA file navigation block
+    * @param aux is the AREA file auxillary block
     * @param useSpline  use a spline approximation for speed
     *
     */
@@ -223,11 +224,12 @@ public class AREACoordinateSystem
    * This used to be in the constructor is snow its own method to enable 
    * derived classes to lazily create the areanav
    *
-   * @param dir[] is the AREA file directory block
-   * @param nav[] is the AREA file navigation block
-   * @param aux[] is the AREA file auxillary block
+   * @param dir is the AREA file directory block
+   * @param nav is the AREA file navigation block
+   * @param aux is the AREA file auxillary block
    * @param useSpline  use a spline approximation for speed
    */
+  
   protected void init(int[]dir, int[] nav, int[] aux, boolean useSpline) throws VisADException {
     try {
         anav = AREAnav.makeAreaNav(nav, aux);
@@ -672,7 +674,7 @@ public class AREACoordinateSystem
       }
     }
 
-    // compute typical spacing btween points
+    // compute typical spacing between points
     float[] norm = new float[len-1];
     int k = 0;
     // WLH 2 March 2000

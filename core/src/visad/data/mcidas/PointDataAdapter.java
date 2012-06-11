@@ -76,7 +76,6 @@ public class PointDataAdapter {
    * @param  useAliases        - for quantities like Latitude, Longitude,etc
    *                             alias the RealTypes to the original McIDAS
    *                             variable name.
-   * @param  makeUniqueNames   - if true, make unique names to avoid null Types
    * @throws VisADException  bad request, no data available, VisAD error
    * @see #getData()
    */

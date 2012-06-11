@@ -119,9 +119,9 @@ public abstract class FloatVectorAdapter
     /**
      * Returns the numeric values of a compatible DODS primitive vector.
      *
-     * @param vec		A DODS primitive vector that is compatible with
-     *				the primitive vector used to construct this
-     *				instance.
+     * @param vector	A DODS primitive vector that is compatible with
+     *					the primitive vector used to construct this
+     *					instance.
      * @param copy		If true, then a copy is returned.
      * @return			The numeric values of the primitive vector.
      */

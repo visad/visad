@@ -23,9 +23,6 @@ MA 02111-1307, USA
 
 package visad.data;
 
-
-
-
 /**
  */
 public  class ArrayWrapper {
@@ -164,8 +161,6 @@ public  class ArrayWrapper {
   /**
    * get the value 
    *
-   * @param cacheId  the cache id
-   *
    * @return  the value
    */
   public byte[] getByteArray1D() {
@@ -176,8 +171,6 @@ public  class ArrayWrapper {
   /**
    * get the value 
    *
-   * @param cacheId  the cache id
-   *
    * @return  the value
    */
   public byte[][] getByteArray2D() {
@@ -185,13 +178,8 @@ public  class ArrayWrapper {
   }
 
 
-
-
-
   /**
    * get the value 
-   *
-   * @param cacheId  the cache id
    *
    * @return  the value
    */
@@ -203,8 +191,6 @@ public  class ArrayWrapper {
   /**
    * get the value 
    *
-   * @param cacheId  the cache id
-   *
    * @return  the value
    */
   public short[][] getShortArray2D() {
@@ -212,12 +198,8 @@ public  class ArrayWrapper {
   }
 
 
-
-
   /**
    * get the value 
-   *
-   * @param cacheId  the cache id
    *
    * @return  the value
    */
@@ -229,8 +211,6 @@ public  class ArrayWrapper {
   /**
    * get the value 
    *
-   * @param cacheId  the cache id
-   *
    * @return  the value
    */
   public int[][] getIntArray2D() {
@@ -238,12 +218,8 @@ public  class ArrayWrapper {
   }
 
 
-
-
   /**
    * get the value 
-   *
-   * @param cacheId  the cache id
    *
    * @return  the value
    */
@@ -255,8 +231,6 @@ public  class ArrayWrapper {
   /**
    * get the value 
    *
-   * @param cacheId  the cache id
-   *
    * @return  the value
    */
   public float[][] getFloatArray2D() {
@@ -264,12 +238,8 @@ public  class ArrayWrapper {
   }
 
 
-
-
   /**
    * get the value 
-   *
-   * @param cacheId  the cache id
    *
    * @return  the value
    */
@@ -280,8 +250,6 @@ public  class ArrayWrapper {
 
   /**
    * get the value 
-   *
-   * @param cacheId  the cache id
    *
    * @return  the value
    */

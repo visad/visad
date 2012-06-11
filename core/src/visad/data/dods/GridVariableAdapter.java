@@ -43,25 +43,6 @@ public class GridVariableAdapter
     private FunctionType		funcType;
     private boolean			isFlat;
     private GridVariableMapAdapter[]	domainAdapters;	// VisAD order
-    private static RealTupleType	latLonType;
-    private static RealTupleType	lonLatType;
-
-    static
-    {
-	try
-	{
-	    latLonType =
-		new RealTupleType(RealType.Latitude, RealType.Longitude);
-	    lonLatType =
-		new RealTupleType(RealType.Longitude, RealType.Latitude);
-	}
-	catch (Exception e)
-	{
-	    throw new VisADError(
-		"visad.data.dods.GridVariableAdapter.<clinit>: " +
-		"Couldn't initialize class: " + e);
-	}
-    }
 
     private GridVariableAdapter(
 	    GridVariableMapAdapter[] domainAdapters,
@@ -93,7 +74,6 @@ public class GridVariableAdapter
 	throws VisADException, RemoteException
     {
 	ArrayVariableAdapter		arrayAdapter;
-	MathType			domainType;
 	GridVariableMapAdapter[]	domainAdapters;
 	try
 	{
@@ -104,8 +84,6 @@ public class GridVariableAdapter
 	    for (int i = 1; i <= rank; ++i)
 	    {
 		array = (DArray)grid.getVar(i);
-		BaseType	template =
-		    array.getPrimitiveVector().getTemplate();
 		domainAdapters[rank-i] =	// reverse dimensions
 		    factory.gridVariableMapAdapter(array, das);
 	    }
@@ -148,7 +126,7 @@ public class GridVariableAdapter
      * Returns the VisAD {@link DataImpl} corresponding to a DODS {@link 
      * DGrid}.
      *
-     * @param var		The DODS variable to have the corresponding
+     * @param grid	The DODS variable to have the corresponding
      *				VisAD data object returned.  The variable
      *				must be compatible with the variable used to
      *				construct this instance.

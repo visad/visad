@@ -75,9 +75,9 @@ public class AreaForm extends Form implements FormFileInformer {
   }
 
   /** there is no unique way to identify an AREA file by
-    * examning the contents of the first block of data values
+    * examining the contents of the first block of data values
     *
-    * @param block[] is an array of ? length from the beginning
+    * @param block is an array of ? length from the beginning
     * of the file in question.
     *
     */
@@ -134,7 +134,7 @@ public class AreaForm extends Form implements FormFileInformer {
   /** read the area file from a URL,  and return the Area file
     * as a DataImpl object (a FlatField).
     *
-    * @param path is the fully-formed URL
+    * @param url is the fully-formed URL
     *
     */
   public synchronized DataImpl open(URL url)

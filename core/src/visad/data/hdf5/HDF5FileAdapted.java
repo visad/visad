@@ -47,7 +47,7 @@ public class HDF5FileAdapted extends HDF5File
 	/** Creates a new HDF5 file.
 	 *  @param filename The name of the HDF5 file.
 	 *  @param flags File access flags.
-	 *  @param create_i File creation property list identifier.
+	 *  @param create_id File creation property list identifier.
 	 *  @param access_id File access property list identifier.
 	 */
 	public HDF5FileAdapted(String filename, int flags, int create_id, int access_id)

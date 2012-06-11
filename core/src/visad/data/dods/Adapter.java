@@ -202,14 +202,14 @@ public abstract class Adapter
      *
      * @param das		The DODS DAS in which information on the name
      *				is embedded.
-     * @param baseType		The name to lookup in the DAS.
+     * @param name		The name to lookup in the DAS.
      * @return			The attribute table corresponding to the
      *				name.  Will be <code>null</code> if no such
      *				table exists.
      */
     protected static AttributeTable attributeTable(DAS das, String name)
     {
-	return das.getAttributeTable(name);
+	  return das.getAttributeTable(name);
     }
 
     /**

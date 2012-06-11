@@ -96,7 +96,7 @@ public final class ScaleAndOffsetUnpacker
     /**
      * Process a value.
      *
-     * @param			The value to be processed.
+     * @param value		The value to be processed.
      * @return			The value with the construction offset added to
      *				it.
      */
@@ -108,7 +108,7 @@ public final class ScaleAndOffsetUnpacker
     /**
      * Process a value.
      *
-     * @param			The value to be processed.
+     * @param value		The value to be processed.
      * @return			The value with the construction offset added to
      *				it.
      */
@@ -120,7 +120,7 @@ public final class ScaleAndOffsetUnpacker
     /**
      * Process values.
      *
-     * @param			The values to be processed.
+     * @param values	The values to be processed.
      * @return			The values with the construction offset added to
      *				them.  The same array is returned.
      */
@@ -134,7 +134,7 @@ public final class ScaleAndOffsetUnpacker
     /**
      * Process values.
      *
-     * @param			The values to be processed.
+     * @param values	The values to be processed.
      * @return			The values with the construction offset added to
      *				them.  The same array is returned.
      */
@@ -148,7 +148,7 @@ public final class ScaleAndOffsetUnpacker
     /**
      * Indicates if this instance is semantically identical to another object.
      *
-     * @param			The other object.
+     * @param obj		The other object.
      * @return			<code>true</code> if and only if this instance
      *				is semantically identical to the other object.
      */

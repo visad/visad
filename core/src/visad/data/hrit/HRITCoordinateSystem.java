@@ -74,10 +74,8 @@ public class HRITCoordinateSystem
     * This routine uses a flipped Y axis (first line of
     * the image file is number 0)
     *
-    * @param reference the CoordinateSystem reference (must be equivalent
-    *                  to RealTupleType.LatitudeLongitudeTuple)
-    * @param dir[] is the AREA file directory block
-    * @param nav[] is the navigation block
+    * @param iparms init params?
+    * @param dir is the AREA file directory block
     * @param useSpline  use a spline approximation for speed
     *
     */
@@ -103,9 +101,8 @@ public class HRITCoordinateSystem
    * This used to be in the constructor is snow its own method to enable 
    * derived classes to lazily create the areanav
    *
-   * @param dir[] is the AREA file directory block
-   * @param nav[] is the AREA file navigation block
-   * @param aux[] is the AREA file auxillary block
+   * @param iparms init params?
+   * @param dir is the AREA file directory block
    * @param useSpline  use a spline approximation for speed
    */
   protected void init(int[]iparms, int[]dir, boolean useSpline) throws VisADException {

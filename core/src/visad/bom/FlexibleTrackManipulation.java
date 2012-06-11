@@ -36,7 +36,6 @@ import java.util.Vector;
 import java.util.Enumeration;
 import java.rmi.*;
 
-
 /**
    FlexibleTrackManipulation is the VisAD class for
    manipulation of flexible storm tracks (not straight lines)
@@ -51,7 +50,6 @@ public class FlexibleTrackManipulation extends Object {
   private int which_time = -1;
 
   private Set time_set = null;
-  private double[] times;
 
   private float[] lats;
   private float[] lons;
@@ -126,24 +124,27 @@ public class FlexibleTrackManipulation extends Object {
    *
    * @author 30/07/2001 modified by abcd
    *
-   * @param DataReferenceImpl tr - The visad data for the cyclone track
+   * @param tr A DataReferenceImpl, The visad data for the cyclone track
    *	tr.getData() should have MathType: *    (Time -> tuple))
    *	where tuple is flat [e.g., (Latitude, Longitude, shape_index)]
    *	and must include RealTypes Latitude and Longitude plus
    *	a RealType mapped to Shape in the DisplayImpl d;
    *	Time may or may not be mapped to Animation
    *
-   * @param DisplayImplJ3D d - The Display to add the FTM to
+   * @param d A DisplayImplJ3D, - The Display to add the FTM to
    *
-   * @param ScalarMap shape_map1, shape_map2 - two ScalarMaps of RealTypes
+   * @param shape_map1 First ScalarMap of RealTypes
    *	in tr.getData()
    *
-   * @param boolean need_monitor - Need to monitor tr to maintain external
+   * @param shape_map2 Second ScalarMap of RealTypes
+   *	in tr.getData()
+   *
+   * @param need_monitor - Need to monitor tr to maintain external
    *	changes to it.
    *
-   * @param float size - storm symbol size
+   * @param size - storm symbol size
    *
-   * @param VisADGeometryArray[][] ga - two arrays of geometry objects
+   * @param ga A VisADGeometryArray[][] - two arrays of geometry objects
    *	which represent the cyclone symbols in the order:
    *	none, low, depresion1, depresion2, s-cyclone1, s-cyclone2,
    *	n-cyclone1, n-cyclone2.
@@ -151,7 +152,7 @@ public class FlexibleTrackManipulation extends Object {
    *    The geometry can be built with makeStormShapes() or an application
    *	defined method.
    *
-   * @param float shapeColour[3] - colour of symbols
+   * @param shapeColour - colour of symbols
    *
    * TODO: Have a setCycloneGeometry(VisADGeometryArray[][] ga) method
    */
@@ -443,11 +444,12 @@ public class FlexibleTrackManipulation extends Object {
    * Create the geometry array which contains the shapes for the
    * cyclone symbols.
    *
-   * @param int nv - The number of vertices?
+   * @param nv - The number of vertices?
    *
-   * @param float size - The size of all the symbols, apparently relative
+   * @param size - The size of all the symbols, apparently relative
    *	to the size of the window
    */
+  
   public static VisADGeometryArray[][] makeStormShapes(int nv, float size)
          throws VisADException {
     VisADLineArray circle = new VisADLineArray();

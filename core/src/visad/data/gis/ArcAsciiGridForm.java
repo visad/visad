@@ -32,7 +32,6 @@ import java.io.IOException;
 import java.rmi.RemoteException;
 import java.net.URL;
 
-
 /**
  * ArcAsciiGridForm is the ARC/INFO ASCIIGRID data format adapter for
  * serialized visad.Data objects.
@@ -123,7 +122,7 @@ public class ArcAsciiGridForm extends Form implements FormFileInformer {
 
   /**
    * Open the file specified by the URL
-   * @param  id   URL of the remote map file
+   * @param  url   URL of the remote map file
    * @return a Data object representing the map lines. 
    */
   public synchronized DataImpl open(URL url)

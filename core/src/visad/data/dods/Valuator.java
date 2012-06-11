@@ -134,7 +134,7 @@ public abstract class Valuator
     /**
      * Processes a value.
      *
-     * @param value		The value to be processed.
+     * @param values		The values to be processed.
      */
     public float[] process(float[] values)
     {
@@ -144,7 +144,7 @@ public abstract class Valuator
     /**
      * Processes values.
      *
-     * @param values		The values to be processed.
+     * @param value		The value to be processed.
      */
     public double process(double value)
     {

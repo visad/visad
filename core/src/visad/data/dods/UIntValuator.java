@@ -71,7 +71,7 @@ public abstract class UIntValuator
     /**
      * Processes a value.
      *
-     * @param value		The packed value to be processed.
+     * @param values		The packed values to be processed.
      */
     public float[] process(float[] values)
     {
@@ -84,7 +84,7 @@ public abstract class UIntValuator
     /**
      * Processes values.
      *
-     * @param values		The packed values to be processed.
+     * @param value		The packed value to be processed.
      */
     public double process(double value)
     {

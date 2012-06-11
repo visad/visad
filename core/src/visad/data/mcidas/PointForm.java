@@ -65,7 +65,7 @@ public class PointForm extends Form implements FormFileInformer {
   /** there is no unique way to identify these data by
     * examning the contents of the first block of data values
     *
-    * @param block[] is an array of ? length from the beginning
+    * @param block is an array of ? length from the beginning
     * of the file in question.
     *
     */
@@ -104,7 +104,7 @@ public class PointForm extends Form implements FormFileInformer {
   /** read the point file from a URL,  and return the point data
     * as a DataImpl object (a FlatField).
     *
-    * @param path is the fully-formed URL
+    * @param url is the fully-formed URL
     *
     */
   public synchronized DataImpl open(URL url)
@@ -117,7 +117,7 @@ public class PointForm extends Form implements FormFileInformer {
 
   /** cannot read the point file locally.
     *
-    * @param path is the local filename
+    * @param filename is the local filename
     *
     */
   public synchronized DataImpl open(String filename)

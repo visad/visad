@@ -59,6 +59,9 @@ import ncsa.hdf.hdf5lib.exceptions.*;
 
 public class HDF5Datatype extends HDF5Object
 {
+
+	private static final long serialVersionUID = 1L;
+
 	/** Construct an HDF5Datatype*/
 	public HDF5Datatype ()
 	{
@@ -201,7 +204,7 @@ public class HDF5Datatype extends HDF5Object
 	}
 
 	/** Gets the string representation of the data type
-	 *  @param the type of the data.
+	 *  @param data_type the type of the data.
 	 *  @return the string of the data type
 	 */
 	public static String getDatatype(int data_type)

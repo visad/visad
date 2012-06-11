@@ -112,7 +112,7 @@ public class UsgsDemForm extends Form implements FormFileInformer {
 
   /**
    * Open the file specified by the URL
-   * @param  id   URL of the remote map file
+   * @param  url   URL of the remote map file
    * @return a Data object representing the map lines. 
    */
   public synchronized DataImpl open(URL url)

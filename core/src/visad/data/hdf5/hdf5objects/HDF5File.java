@@ -48,10 +48,13 @@ import ncsa.hdf.hdf5lib.exceptions.HDF5Exception;
 
 public class HDF5File extends HDF5Object
 {
+
+	private static final long serialVersionUID = 1L;
+
 	/** Creates a new HDF5 file.
 	 *  @param filename The name of the HDF5 file.
 	 *  @param flags File access flags.
-	 *  @param create_i File creation property list identifier.
+	 *  @param create_id File creation property list identifier.
 	 *  @param access_id File access property list identifier.
 	 */
 	public HDF5File(String filename, int flags, int create_id, int access_id)

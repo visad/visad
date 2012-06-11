@@ -335,10 +335,10 @@ public abstract class VectorAdapter
      *
      * @param vector		A DODS primitive vector whose data values are
      *				to be used to set the range of the VisAD field.
-     * @param field		A VisAD field to have its range values set.
      * @throws VisADException	The vector has the wrong DODS type.
      * @throws RemoteException	Java RMI failure.
      */
+    
     public GriddedSet griddedSet(PrimitiveVector vector)
 	throws VisADException, RemoteException
     {

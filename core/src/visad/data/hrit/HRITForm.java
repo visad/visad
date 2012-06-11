@@ -70,7 +70,7 @@ public class HRITForm extends Form implements FormFileInformer {
    * examining the contents of the first block of data values.
    * Presently unimplemented.
    *
-   * @param block[] is an array of ? length from the beginning
+   * @param block is an array of ? length from the beginning
    * of the file in question.
    *
    */
@@ -128,7 +128,7 @@ public class HRITForm extends Form implements FormFileInformer {
   /** read the HRIT file from a URL, and return the HRIT file
     * as a DataImpl object (a FlatField).
     *
-    * @param path is the fully-formed URL
+    * @param url is the fully-formed URL
     *
     */
   public synchronized DataImpl open(URL url)

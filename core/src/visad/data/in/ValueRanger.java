@@ -163,7 +163,7 @@ public class ValueRanger
     /**
      * Ranges a value.
      *
-     * @param values		The values to be processed.
+     * @param value		The values to be processed.
      * @return			The original value if it lay within the valid
      *				range; otherwise Double.NaN.
      */
@@ -178,7 +178,7 @@ public class ValueRanger
     /**
      * Ranges values.
      *
-     * @param value		The value to be processed.
+     * @param values	The value to be processed.
      * @return			The original array with values that fall outside
      *				the valid range replaced with Float.NaN.
      */
@@ -214,7 +214,7 @@ public class ValueRanger
     /**
      * Indicates if this instance is semantically identical to another object.
      *
-     * @param			The other object.
+     * @param obj		The other object.
      * @return			<code>true</code> if and only if this instance
      *				is semantically identical to the other object.
      */

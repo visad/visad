@@ -99,7 +99,7 @@ public class ListVariableAdapter
      * Returns the VisAD {@link DataImpl} corresponding to a DODS {@link 
      * DList}.
      *
-     * @param var		The DODS variable to have the corresponding
+     * @param list	The DODS variable to have the corresponding
      *				VisAD data object returned.  The variable
      *				must be compatible with the variable used to
      *				construct this instance.

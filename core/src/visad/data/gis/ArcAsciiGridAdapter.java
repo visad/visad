@@ -100,21 +100,12 @@ public class ArcAsciiGridAdapter {
 
   /** A BufferedReader used to read from ASCIIGRID files */
   private BufferedReader in;
-
-  /** Marker to keep track of position within a record */
-  private int pos;
   
   /** Number of rows of profiles in the ASCIIGRID */
   private int numRows;
   
   /** Number of columns in the ASCIIGRID */
   private int numColumns;
-
-  /** Minimum value */
-  private float minimumValue = Float.MAX_VALUE;
-  
-  /** Maximum value */
-  private float maximumValue = Float.MIN_VALUE;
   
   /** Size of the grid cell along x axis*/
   private float cellSizeX;
@@ -231,9 +222,10 @@ public class ArcAsciiGridAdapter {
    * 
    * @param filename  name of file to read
    * @param dataName  name for the data
-   * @param dataSpec  valid Unit specification
+   * @param unitSpec  valid Unit specification
    * @throws VisADException if unit is incompatible, or problem with file
    */
+  
   public ArcAsciiGridAdapter(String filename, String dataName, String unitSpec)
       throws VisADException {
     this(filename, RealType.getRealType(dataName, makeUnit(unitSpec)),
@@ -531,7 +523,7 @@ public class ArcAsciiGridAdapter {
    * Get the ASCIIGRID as a VisAD data object with the specified spatial domain
    * and range.
    * @param spatialType  type for spatial domain
-   * @param rangeType   type for range
+   * @param dataType   type for range
    * @return a FlatField of type ((spatialType) -> dataType)
    */
   public FieldImpl getData(RealTupleType spatialType, RealType dataType) 
