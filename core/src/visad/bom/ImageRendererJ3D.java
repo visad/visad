@@ -371,53 +371,86 @@ public class ImageRendererJ3D extends DefaultRendererJ3D {
 
 
   public static boolean isByRefUsable(DataDisplayLink link, ShadowType shadow) throws VisADException, RemoteException {
-      ShadowFunctionOrSetType shadowType = (ShadowFunctionOrSetType) shadow.getAdaptedShadowType();
-  
-      CoordinateSystem dataCoordinateSystem = null;
+        ShadowFunctionOrSetType shadowType = (ShadowFunctionOrSetType) shadow.getAdaptedShadowType();
+        CoordinateSystem dataCoordinateSystem = null;
+        FlatField fltField = null;
+        int num_images = 1;
+        FieldImpl field = (FieldImpl) link.getData();
+        if (!(field instanceof FlatField)) {
+                num_images = field.getDomainSet().getLength();
+                if (1 == num_images) { //If there is a single image in the animation dont do anything, simply return true
+                        return true;
+                }
+                shadowType = (ShadowFunctionOrSetType) shadowType.getRange();
+                fltField = (FlatField) field.getSample(0);
+                dataCoordinateSystem = fltField.getDomainCoordinateSystem();
+        } else {
+                dataCoordinateSystem = ((FlatField)field).getDomainCoordinateSystem();
+                return true;
+        }
 
-      FieldImpl field = (FieldImpl) link.getData();
-      if (!(field instanceof FlatField)) {
-        shadowType = (ShadowFunctionOrSetType) shadowType.getRange();
-        FlatField fltField = (FlatField) field.getSample(0);
-        dataCoordinateSystem = fltField.getDomainCoordinateSystem();
-      }
-      else {
-        dataCoordinateSystem = ((FlatField)field).getDomainCoordinateSystem();
-        return true;
-      }
+        // cs might be cached
+        if (dataCoordinateSystem instanceof CachingCoordinateSystem) {
+                dataCoordinateSystem = ((CachingCoordinateSystem) dataCoordinateSystem).getCachedCoordinateSystem();
+        }
 
-      ShadowRealType[] DomainComponents = shadowType.getDomainComponents();
-      ShadowRealTupleType Domain = shadowType.getDomain();
-      ShadowRealTupleType domain_reference = Domain.getReference();
-      ShadowRealType[] DC = DomainComponents;
+        ShadowRealType[] DomainComponents = shadowType.getDomainComponents();
+        ShadowRealTupleType Domain = shadowType.getDomain();
+        ShadowRealTupleType domain_reference = Domain.getReference();
+        ShadowRealType[] DC = DomainComponents;
 
-      if (domain_reference != null &&
-        domain_reference.getMappedDisplayScalar()) {
-        DC = shadowType.getDomainReferenceComponents();
-      }
+        if (domain_reference != null &&
+                domain_reference.getMappedDisplayScalar()) {
+                DC = shadowType.getDomainReferenceComponents();
+        }
 
-      DisplayTupleType spatial_tuple = null;
-      for (int i=0; i<DC.length; i++) {
-        java.util.Enumeration maps =
-          DC[i].getSelectedMapVector().elements();
-        ScalarMap map = (ScalarMap) maps.nextElement();
-        DisplayRealType real = map.getDisplayScalar();
-        spatial_tuple = real.getTuple();
-      }
+        DisplayTupleType spatial_tuple = null;
+        for (int i=0; i<DC.length; i++) {
+                java.util.Enumeration maps = DC[i].getSelectedMapVector().elements();
+                ScalarMap map = (ScalarMap) maps.nextElement();
+                DisplayRealType real = map.getDisplayScalar();
+                spatial_tuple = real.getTuple();
+        }
 
-      CoordinateSystem coord = spatial_tuple.getCoordinateSystem();
+        CoordinateSystem coord = spatial_tuple.getCoordinateSystem();
 
-      if (coord instanceof CachingCoordinateSystem) {
-        coord = ((CachingCoordinateSystem)coord).getCachedCoordinateSystem();
-      }
+        if (coord instanceof CachingCoordinateSystem) {
+                coord = ((CachingCoordinateSystem)coord).getCachedCoordinateSystem();
+        }
 
-      boolean useLinearTexture = false;
-      if (coord instanceof InverseLinearScaledCS) {
-        InverseLinearScaledCS invCS = (InverseLinearScaledCS)coord;
-        useLinearTexture = (invCS.getInvertedCoordinateSystem()).equals(dataCoordinateSystem);
-      }
-    
-      return useLinearTexture;
+        boolean useLinearTexture = false;
+        if (coord instanceof InverseLinearScaledCS) {
+                InverseLinearScaledCS invCS = (InverseLinearScaledCS)coord;
+                useLinearTexture = (invCS.getInvertedCoordinateSystem()).equals(dataCoordinateSystem);
+        }
+
+        /** if useLinearTexture is true at this point, it's true for the first image of a sequence with numimages > 1.  We'll
+            have to assume that byRef will apply until below is resolved.
+         */
+
+        /** more consideration/work needed here.  CoordinateSystems might be equal even if they aren't the same transform (i,j) -> (lon,lat)
+        if (!useLinearTexture) { //If DisplayCoordinateSystem != DataCoordinateSystem
+                if (num_images > 1) { //Its an animation
+                        int lengths[] = ((visad.GriddedSet) fltField.getDomainSet()).getLengths();
+                        int data_width = lengths[0];
+                        int data_height = lengths[1];
+                        for (int i = 1; i < num_images; i++) {//Playing safe: go down the full sequence to find if the full set is Geostaionary or NOT
+                                FlatField ff = (FlatField) field.getSample(i); //Quicker Approach would be to just compare only the first two images in the sequence. But that may not be safe.
+                                CoordinateSystem dcs = ff.getDomainCoordinateSystem();
+                                // dcs might be cached
+                                if (dcs instanceof CachingCoordinateSystem) {
+                                        dcs = ((CachingCoordinateSystem) dcs).getCachedCoordinateSystem();
+                                }
+                                int[] lens = ((visad.GriddedSet) ff.getDomainSet()).getLengths();
+                                if (lens[0] != data_width || lens[1] != data_height || ( (dcs != null) && (dataCoordinateSystem != null) && !dcs.equals(dataCoordinateSystem))) {
+                                        useLinearTexture = false;
+                                        break;
+                                }
+                        }
+                }
+        }
+        */
+        return useLinearTexture;
   }
 
   // factory for ShadowFunctionType that defines unique behavior

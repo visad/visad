@@ -273,8 +273,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       return Texture2D.RGB;
     }
     else if (buffImgType == BufferedImage.TYPE_BYTE_GRAY) {
-      return Texture2D.INTENSITY;
-    //-return Texture2D.LUMINANCE; Not sure if this matters?
+      return Texture2D.LUMINANCE;
     }
     return Texture2D.RGBA;
   }
@@ -545,15 +544,14 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       c_alpha = null;
     }
     else if (constant_alpha == constant_alpha) {
-      // c_alpha = new TransparencyAttributes(mode.getTransparencyMode(),
       c_alpha = new TransparencyAttributes(TransparencyAttributes.BLENDED,
-                                           constant_alpha);
-	c_alpha.setCapability(TransparencyAttributes.ALLOW_VALUE_WRITE); //REUSE GEOMETRY/COLORBYTE REQUIREMENT
+                                (image.getType() == BufferedImage.TYPE_BYTE_GRAY)? (1.0f - constant_alpha): constant_alpha);
+      c_alpha.setCapability(TransparencyAttributes.ALLOW_VALUE_WRITE); //REUSE GEOMETRY/COLORBYTE REQUIREMENT
     }
     else {
       c_alpha = new TransparencyAttributes();
       c_alpha.setTransparencyMode(TransparencyAttributes.BLENDED);
-	c_alpha.setCapability(TransparencyAttributes.ALLOW_VALUE_WRITE); //REUSE GEOMETRY/COLORBYTE REQUIREMENT
+      c_alpha.setCapability(TransparencyAttributes.ALLOW_VALUE_WRITE); //REUSE GEOMETRY/COLORBYTE REQUIREMENT
     }
     ColoringAttributes c_color = null;
     if (constant_color != null && constant_color.length == 3) {

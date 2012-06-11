@@ -194,29 +194,60 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
   }
   /*This method just applies the texture on the already generated geometry.
     This is used when only colorbytes are generated and geometry is reused. 
-    This does away with buildTexture(Linear/Curve) when geometry is reused */
+    This does away with buildTexture(Linear/Curve) when geometrt is reused */
+  //GHANSHAM: 01MAR2012 GreyScale Texture (starts here)
+  //Change in applyTexture method. Remove most of the commented stuf. As it is not required.
+  //If the imageType in the new Image is not the same as that in the texture, we will have to recreate the ImageComponent2D and Texture2D
+  //THIS HAPPENS when a single band GreyScale Image (GreyScale LUT applied) gets converted Color image(Colored LUT applied) and vice versa
+  //While applying alpha, if constant_alpha=1.0 we have to nullify transparency_attributes of the current texture 
+  //(Idea lent from textureToGroup function in visad.java3d.ShadowFunctionOrSetTypeJ3D)
+  //If imagetype is GreyScale, the alpha value set is (1-constant_alpha) and not constant_alpha 
+  //(Idea taken from makeColorBytes function for RGBA images where alpha is calculated as c=  (int) (255.0 * (1.0f - constant_alpha)); (See below in makeColorBytes)
   private void applyTexture(Shape3D shape, VisADImageTile tile, boolean apply_alpha, float constant_alpha) {
         Appearance app = shape.getAppearance();
+	BufferedImage new_image = (BufferedImage) tile.getImage(0);
+        int new_image_type = new_image.getType();
 	if (regen_colbytes) {
-              if (animControl == null) {
-                  imgNode.setCurrent(0);
-              }
+		Texture2D current_texture = (Texture2D) app.getTexture();
+                ImageComponent2D img2D = (ImageComponent2D) current_texture.getImage(0);
+                BufferedImage current_image = img2D.getImage();
+                if (new_image_type != current_image.getType()) { //In case the LUT Table has changed, the Texture and ImageComponent2D will change
+                        Texture2D texture = new Texture2D(Texture.BASE_LEVEL, getTextureType(new_image_type), current_texture.getWidth(), current_texture.getHeight());
+                        ImageComponent2D image2d = new ImageComponent2D(getImageComponentType(new_image_type), new_image, true, true);
+                        image2d.setCapability(ImageComponent.ALLOW_IMAGE_WRITE);
+                        texture.setImage(0, image2d);
+                        texture.setMinFilter(Texture.BASE_LEVEL_POINT);
+                        texture.setMagFilter(Texture.BASE_LEVEL_POINT);
+                        tile.setImageComponent(image2d);
+                        TextureAttributes texture_attributes = app.getTextureAttributes();
+                        texture.setEnable(true);
+                        app.setTexture(texture);
+                } else {
+			if (animControl == null) {
+                                imgNode.setCurrent(0);
+                        }
+		}
 	}
 
+	
         if (apply_alpha) {
             TransparencyAttributes transp_attribs = app.getTransparencyAttributes();
-            if (null == transp_attribs) {
-                transp_attribs = new TransparencyAttributes();
-                transp_attribs.setTransparencyMode(TransparencyAttributes.BLENDED);
-                transp_attribs.setTransparency(constant_alpha);
-                transp_attribs.setCapability(TransparencyAttributes.ALLOW_VALUE_WRITE);
-                app.setTransparencyAttributes(transp_attribs);
-            } else {
-                transp_attribs.setTransparency(constant_alpha);
-            }
-        }
-  }
+		if (constant_alpha == 1.0) { //If constant_alpha=1.0, nullify the transparency_attributes
+                        app.setTransparencyAttributes(null); //Idea taken fromtextureToGroup function in visad.java3d.ShadowFunctionOrSetTypeJ3D
+                } else {
 
+            		if (null == transp_attribs) {
+                		transp_attribs = new TransparencyAttributes();
+                		transp_attribs.setTransparencyMode(TransparencyAttributes.BLENDED);
+                		transp_attribs.setTransparency(constant_alpha);
+                		transp_attribs.setCapability(TransparencyAttributes.ALLOW_VALUE_WRITE);
+                		app.setTransparencyAttributes(transp_attribs);
+            		} 
+			//Set transparency value = (1.0f - constant_alpha) for GreyScale textures and constant_alpha for Colored textures
+			transp_attribs.setTransparency((new_image_type == BufferedImage.TYPE_BYTE_GRAY)? (1.0f - constant_alpha): constant_alpha);
+		}
+        }
+    }
 
     /* This is the real nasty logic that decides following things:
 	1. Regenerate gometry
@@ -226,10 +257,16 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 	It also takes out the terminal ShadowType required in case of animations
     */
 	//GHANSHAM:30AUG2011 Changed the signaure of initRegenFlags.. passing the ShadowFunctionOrSetType, constant_lapha, cmap and cmaps
-  private void initRegenFlags(ImageRendererJ3D imgRenderer, ShadowFunctionOrSetType MyAdaptedShadowType, 
+	/*private void initRegenFlags(ImageRendererJ3D imgRenderer, ShadowFunctionOrSetType MyAdaptedShadowType,
+                        float constant_alpha, ScalarMap cmap, ScalarMap cmaps[], Data data, DisplayImpl display,
+                        float default_values[], float[] value_array, int []valueToScalar, int valueArrayLength,
+                        DataDisplayLink link, int curved_size) throws BadMappingException, VisADException {*/
+	 //GHANSHAM: 01MAR2012 GreyScale Texture 
+	 //Modified signature of initRegenFlags. Added hasAlpha boolean variable. This variable signifies if alpha channel is present or not.
+ 	 private void initRegenFlags(ImageRendererJ3D imgRenderer, ShadowFunctionOrSetType MyAdaptedShadowType, 
 			float constant_alpha, ScalarMap cmap, ScalarMap cmaps[], Data data, DisplayImpl display, 
 			float default_values[], float[] value_array, int []valueToScalar, int valueArrayLength, 
-			DataDisplayLink link, int curved_size) throws BadMappingException, VisADException {
+			DataDisplayLink link, int curved_size, boolean hasAlpha) throws BadMappingException, VisADException {
 	
 	/*The nasty logic starts from here
 		Retrieves the curve size, zaxis value, alpha, ff hashcode  value from Renderer class.
@@ -266,7 +303,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                         boolean alpha_changed = (Float.compare(constant_alpha, last_alpha_value) != 0);
                         boolean radiancemap_colcontrol_check_ticks = findRadianceMapColorControlCheckTicks(cmap, cmaps, imgRenderer, link);
 			boolean projection_seam_changed = (current_adjust_projection_seam != last_adjust_projection_seam); //27FEB2012: Projection Seam Change Bug Fix
-                        if  (spatial_maps_check_ticks ||  zaxis_value_changed || curve_texture_value_change || projection_seam_changed) { //change in geometry 27FEB2012: Projection Seam Change Bug Fix
+                        /*if  (spatial_maps_check_ticks ||  zaxis_value_changed || curve_texture_value_change || projection_seam_changed) { //change in geometry 27FEB2012: Projection Seam Change Bug Fix
                                 regen_geom = true;
                         } else if (alpha_changed) { //change in alpha value
                                 apply_alpha = true;
@@ -274,7 +311,25 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                                 regen_colbytes = true;
                         } else { //Assuming that ff.setSamples() has been called.
                                 regen_colbytes = true;
-                        }
+                        }*/
+			//GHANSHAM: 01MAR2012 Some change is the reuse decision logic. Use of hasAlpha variable. (starts here)
+			if  (spatial_maps_check_ticks ||  zaxis_value_changed || curve_texture_value_change || projection_seam_changed) { //change in geometry 27FEB2012: Projection Seam Change Bug Fix
+                                regen_geom = true;
+                        } else {
+				if (hasAlpha) {  //For single band image mapped to Display.RGBA, we have to set both apply_alpha and regen_colbytes to true. No way to find that only fourth component of LUT has changed.
+                                        apply_alpha = true;
+                                        regen_colbytes = true;
+                                } else {
+					if (alpha_changed) { //change in alpha value
+                                                apply_alpha = true;
+                                        } else if (radiancemap_colcontrol_check_ticks) { //change in Radiance ScalarMaps or ColorTable
+                                                regen_colbytes = true;
+                                        } else { //Assuming that ff.setSamples() has been called.
+                                                regen_colbytes = true;
+                                        }
+				}
+			}
+			//GHANSHAM: 01MAR2012 Some change is the reuse decision logic. Use of hasAlpha variable. (ends here)
                 }
         }
         imgRenderer.setLastCurveSize(curved_size);
@@ -454,12 +509,32 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     	}
     	if (color_length == 4) constant_alpha = Float.NaN; // WLH 6 May 2003
 
+	//GHANSHAM: 01MAR2012 GreyScale Texture Support (starts here)
+	if (null != cmap) {
+                BaseColorControl bcc = (BaseColorControl) cmap.getControl();
+                float[][] color_table = bcc.getTable();
+                if (null != color_table) {
+                        if (isColorTableGrey(color_table)) {
+                                imageType = BufferedImage.TYPE_BYTE_GRAY;
+                                color_length = 1;
+                                if (hasAlpha) { //In case alpha channel is present
+                                        constant_alpha = color_table[3][0];
+                                }
+                        }
+                }
+        }
+	//GHANSHAM: 01MAR2012 GreyScale Texture Support (ends here)
+
+
 
 	//REUSE GEOMETRY/COLORBYTE LOGIC (STARTS HERE)
 	regen_colbytes = false;
   	regen_geom = false;
   	apply_alpha = false; 
-	initRegenFlags((ImageRendererJ3D)renderer, adaptedShadowType, constant_alpha, cmap, cmaps, data, display, default_values, value_array, valueToScalar, valueArrayLength, link, curved_size);
+	//initRegenFlags((ImageRendererJ3D)renderer, adaptedShadowType, constant_alpha, cmap, cmaps, data, display, default_values, value_array, valueToScalar, valueArrayLength, link, curved_size);
+	//GHANSHAM: 01MAR2012 GreyScale Texture Support
+	//Changed signature of initRegenFlags, passed hasAlpha variable
+	initRegenFlags((ImageRendererJ3D)renderer, adaptedShadowType, constant_alpha, cmap, cmaps, data, display, default_values, value_array, valueToScalar, valueArrayLength, link, curved_size, hasAlpha);
 	if(!reuseImages) {
 		regen_geom = true;
 		regen_colbytes = true;
@@ -540,7 +615,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
     CoordinateSystem dataCoordinateSystem = null;
 
 
-    if (animControl != null) {
+    if (null != animControl) {
 	Switch swit = new SwitchNotify(imgNode, numImages);  
       	((AVControlJ3D) animControl).addPair((Switch) swit, domain_set, renderer);
       	((AVControlJ3D) animControl).init();
@@ -860,6 +935,29 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
       return false;
   }
 
+//GHANSHAM: 01MAR2012 GreyScale Texture New Function
+//This function decides whether colortable is grey scale or not
+//It also ensures that alpha value is constant for an RGBA ColorTable float[4][]
+private boolean isColorTableGrey(float[][] color_table) {
+        boolean rgb_same = true;
+        for (int i = 0; i < color_table[0].length; i++) {
+                if (color_table[0][i] != color_table[1][i] || color_table[1][i] != color_table[2][i]) {
+                        rgb_same = false;
+                        break;
+                }
+        }
+        boolean alpha_same = true;
+        if (4 == color_table.length) {  //check alpha value is constant through out the look up table
+                float first_alpha = color_table[3][0];
+                for (int i =1; i < color_table[3].length; i++) {
+                        if (first_alpha != color_table[3][i]) {
+                                alpha_same = false;
+                                break;
+                        }
+                }
+        }
+        return (rgb_same && alpha_same);
+}
 
 // This function calls makeColorBytes function (Ghansham)
 public void makeColorBytesDriver(Data imgFlatField, ScalarMap cmap, ScalarMap[] cmaps, float constant_alpha,
@@ -881,6 +979,15 @@ public void makeColorBytesDriver(Data imgFlatField, ScalarMap cmap, ScalarMap[] 
        } else {
          //image = (CachedBufferedByteImage) tile.getImage(0);
          image = (BufferedImage) tile.getImage(image_index);
+	 //GHANSHAM: 01MAR2012 GreyScale Texture (starts here) 
+	//If the incoming ImageType is not the same as the existing imageType, we will have to recreate the image.
+	//THIS HAPPENS when a single band GreyScale Image (GreyScale LUT applied) gets converted Color image(Colored LUT applied) and vice versa
+	 if (image.getType() != imageType) {
+                        image = createImageByRef(texture_width, texture_height, imageType);
+                        tile.setImage(image_index, image);
+         }
+	//GHANSHAM: 01MAR2012 GreyScale Texture (ends here)
+
        }
 
        java.awt.image.Raster raster = image.getRaster();
@@ -1419,7 +1526,7 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
     if (dataCoordinateSystem instanceof CachingCoordinateSystem) {
         dataCoordinateSystem = ((CachingCoordinateSystem)dataCoordinateSystem).getCachedCoordinateSystem();
     }
-
+                                                                                                                     
     // get domain_set sizes
     if (domain_set != null) {
       lengths = ((GriddedSet) domain_set).getLengths();
@@ -1572,21 +1679,21 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
       // create VisADQuadArray that texture is mapped onto
       coordinates = new float[12];
       // corner 0 (-1,1)
-      coordinates[tuple_index[0]] = xyCoords[0][0];
-      coordinates[tuple_index[1]] = xyCoords[1][0];
-      coordinates[tuple_index[2]] = value2;
+      coordinates[0] = xyCoords[0][0];
+      coordinates[1] = xyCoords[1][0];
+      coordinates[2] = value2;
       // corner 1 (-1,-1)
-      coordinates[3+tuple_index[0]] = xyCoords[0][1];
-      coordinates[3+tuple_index[1]] = xyCoords[1][1];
-      coordinates[3 + tuple_index[2]] = value2;
+      coordinates[3] = xyCoords[0][1];
+      coordinates[4] = xyCoords[1][1];
+      coordinates[5] = value2;
       // corner 2 (1, -1)
-      coordinates[6+tuple_index[0]] = xyCoords[0][2];
-      coordinates[6+tuple_index[1]] = xyCoords[1][2];
-      coordinates[6 + tuple_index[2]] = value2;
+      coordinates[6] = xyCoords[0][2];
+      coordinates[7] = xyCoords[1][2];
+      coordinates[8] = value2;
       // corner 3 (1,1)
-      coordinates[9+tuple_index[0]] = xyCoords[0][3];
-      coordinates[9+tuple_index[1]] = xyCoords[1][3];
-      coordinates[9 + tuple_index[2]] = value2;
+      coordinates[9] = xyCoords[0][3];
+      coordinates[10] = xyCoords[1][3];
+      coordinates[11] = value2;
 
       // move image back in Java3D 2-D mode
       adjustZ(coordinates);
@@ -1768,7 +1875,7 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
 	
 		tarray.coordinates[k++] = spatial_values[0][m];
 		tarray.coordinates[k++] = spatial_values[1][m];
-		tarray.coordinates[k++] = isSpherical? spatial_values[2][m] :value2; //02JUN2012: Set coords from spatial values if spherical coordsys
+		tarray.coordinates[k++] = isSpherical? spatial_values[2][m] :value2; //02JUN2012: Set coords from spatial values if spherical coordsys 
 		tarray.coordinates[k++] = spatial_values[0][m+nwidth];
 		tarray.coordinates[k++] = spatial_values[1][m+nwidth];
 		tarray.coordinates[k++] = isSpherical? spatial_values[2][m+nwidth] : value2; //02JUN2012: Set coords from spatial values if spherical coordsys
@@ -1831,7 +1938,6 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
 
    }
 	tuple_index = null;
-// System.out.println("end curved texture " + (System.currentTimeMillis() - link.start_time));
   }
 
   public void buildLinearTexture(Object group, Set domain_set, Unit[] dataUnits, Unit[] domain_units,
