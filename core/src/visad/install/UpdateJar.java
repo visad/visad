@@ -37,8 +37,11 @@ public class UpdateJar
 {
   private static final String CLASSPATH_PROPERTY = "java.class.path";
 
+  // XXX TJJ where does the distribution live as of 2012?
+  // I doubt this app is still used, but if so, it should at
+  // least get the correct, current, production .jar!
   private static final String VISAD_JAR_URL =
-    "http://www.ssec.wisc.edu/~dglo/visad.jar";
+    "ftp://ftp.ssec.wisc.edu/pub/visad-2.0/visad.jar";
 
   private File installJar;
   private URL jarURL;
@@ -92,11 +95,9 @@ public class UpdateJar
 
     File dir = installJar;
 
-    String baseName = null;
     if (thisLen > suffixLen) {
       String suffix = args[thisArg].substring(thisLen - suffixLen, thisLen);
       if (suffix.toLowerCase().equals(".jar")) {
-        baseName = installJar.getName();
         dir = new File(installJar.getParent());
       }
     }
