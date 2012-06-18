@@ -32,7 +32,10 @@ public class
 UnitTable
     implements  UnitsDB, java.io.Serializable
 {
-    /**
+
+	private static final long serialVersionUID = 1L;
+
+	/**
      * Name-to-unit map.
      * @serial
      */
@@ -168,7 +171,7 @@ UnitTable
     /**
      * Adds a base unit.
      *
-     * @param baseUnit  The base unit to be added.
+     * @param unit  The base unit to be added.
      * @throws IllegalArgumentException
      *          The base unit argument is invalid.
      */

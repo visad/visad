@@ -144,7 +144,7 @@ public class Vis5DTopoForm extends Form implements FormFileInformer {
    * Returns a VisAD data object corresponding to an input stream for
    * a Vis5DTopography file.
    *
-   * @param spec              Specification of the existing Vis5D topo file.
+   * @param in              Input stream
    * @return                  A VisAD data object corresponding to the Vis5D
    *                          topo file.
    * @throws BadFormException if not a Vis5D topo file.

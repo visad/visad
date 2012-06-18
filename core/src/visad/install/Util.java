@@ -71,7 +71,7 @@ public class Util
    * <tt>/bar</tt> will contain <tt>/bar/a</tt> and <tt>/bar/b</tt>.
    * Note that <tt>foo</tt> itself is not copied.
    *
-   * @param progess if non-null, this progress monitor is updated
+   * @param progress if non-null, this progress monitor is updated
    *                with the name of each file as it is copied.
    * @param source source directory
    * @param target directory
@@ -158,7 +158,7 @@ public class Util
    * If <i>target</i> is a directory, the file will be copied
    * into that directory.
    *
-   * @param progess if non-null, this progress monitor is updated
+   * @param progress if non-null, this progress monitor is updated
    *                with the name of each file as it is copied.
    * @param source source directory
    * @param target target file/directory

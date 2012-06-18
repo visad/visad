@@ -63,11 +63,10 @@ Plain
         this(QuantityDBManager.instance(), false);
     }
 
-
     /**
      * Constructs a netCDF data form that converts
      *
-     * @param db                        The quantity database.
+     * @param charToText                The char to Text flag
      */
     public
     Plain(boolean charToText)

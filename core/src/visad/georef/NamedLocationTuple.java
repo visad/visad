@@ -75,8 +75,8 @@ public class NamedLocationTuple extends Tuple
      * Construct an NamedLocationTuple from a Text and Reals of Latitude,
      * Longitude, and Altitude.
      *
-     * @param  identifier   Text representing the identifier
-     *                      (must be of type NamedLocation.IDENTIFIER_TYPE)
+     * @param  id	   Text representing the identifier
+     *                 (must be of type NamedLocation.IDENTIFIER_TYPE)
      * @param  lat   Real representing the latitude
      * @param  lon   Real representing the longitude
      * @param  alt   Real representing the altitude

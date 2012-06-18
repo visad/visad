@@ -22,7 +22,7 @@ VirtualFlatField
     /**
      * Constructs from a function type, domain set, and range tuple.
      *
-     * @param type		The MathType of the FlatField.
+     * @param functionType	The MathType of the FlatField.
      * @param domainSet		The domain sampling set of the FlatField.
      * @param rangeTuple	The range of the FlatField.
      */

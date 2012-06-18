@@ -37,7 +37,9 @@ import java.awt.geom.Rectangle2D;
  */
 public class TrivialMapProjection extends MapProjection
 {
-    private float x, y, width, height;
+
+	private static final long serialVersionUID = 1L;
+	private float x, y, width, height;
 
     /**
      * Create a MapProjection that just returns the input tuple.
@@ -70,7 +72,8 @@ public class TrivialMapProjection extends MapProjection
     /**
      * Create a MapProjection that just returns the input tuple.
      *
-     * @param  reference  reference RealTupleType
+     * @param  type  reference RealTupleType
+     * @param  bounds  rectangle bounds
      *
      * @throws VisADException  reference does not contain Latitude/Longitude
      *                         or couldn't create the necessary VisAD object
@@ -158,7 +161,7 @@ public class TrivialMapProjection extends MapProjection
      * The two objects are equal if they are the same object or if they
      * are both TrivialMapProjection and have the same dimension.
      *
-     * @param  cs  Object in question
+     * @param  o  Object in question
      * @return  true if they are considered equal, otherwise false.
      */
     public boolean equals(Object o) {

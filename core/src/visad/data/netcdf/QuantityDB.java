@@ -20,7 +20,6 @@ import visad.data.units.NoSuchUnitException;
 import visad.data.units.ParseException;
 import visad.data.units.Parser;
 
-
 /**
  * Provides support for a database of quantities.
  *
@@ -94,7 +93,7 @@ QuantityDB
      * necessary, it creates the quantity and adds it to the database.
      *
      * @param name		The name of the quantity.
-     * @param unit		The unit of the quantity.
+     * @param unitSpec	The unit of the quantity.
      * @return			The quantity in the database that matches
      *				<code>name</code> and <code>unit</code>.  Note 
      *				that RETURN_VALUE<code>.getName().equals(name)

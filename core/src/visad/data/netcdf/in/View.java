@@ -130,7 +130,7 @@ public abstract class View
      * on the netCDF dataset.
      *
      * @param netcdf            The netCDF dataset.
-     * @param quantityDB        A quantity database to be used to map netCDF
+     * @param db		        A quantity database to be used to map netCDF
      *                          variables to VisAD {@link Quantity}s.
      * @return                  A view of the dataset.
      */
@@ -144,7 +144,7 @@ public abstract class View
      * on the netCDF dataset.
      *
      * @param netcdf            The netCDF dataset.
-     * @param quantityDB        A quantity database to be used to map netCDF
+     * @param db		        A quantity database to be used to map netCDF
      *                          variables to VisAD {@link Quantity}s.
      * @param charToText        Specifies whether the View should map char
      *                          variables to VisAD Text objects
@@ -265,7 +265,7 @@ public abstract class View
     /**
      * Indicates if the given netCDF variable is numeric.
      *
-     * @param name                   The netCDF variable.
+     * @param var                    The netCDF variable.
      * @return                       <code>true</code> if and only if the
      *                               variable is numeric.
      * @throws NullPointerException  if the argument is <code>null</code>.
@@ -279,7 +279,7 @@ public abstract class View
      * Indicates if a netCDF dimension represents longitude.  This method uses
      * {@link #getRealType(Variable)} and {@link #isLongitude(RealType)}.
      *
-     * @param dim               A netCDF dimension.
+     * @param var               A netCDF dimension.
      * @return                  <code>true</code> if an only if <code>dim</code>
      *                          represents longitude.
      * @throws VisADException   Couldn't create necessary VisAD object.
@@ -689,8 +689,6 @@ public abstract class View
      * <p>This implementation uses {@link getAttributeString(Variable, String)}.
      * </p>
      *
-     * @param var               A netCDF variable or <code>null</code> to 
-     *                          indicate a global attribute.
      * @param name              The name of the attribute.
      * @return                  The string value of the attribute or
      *                          <code>null</code>.
@@ -986,7 +984,7 @@ public abstract class View
     * <code>ts.add("myParameter");</code>
     * <code>view.setOuterDimensionNameSet(ts);</code>
     *
-    * @param fn    A Set containing the names (as Strings) of
+    * @param nameSet    A Set containing the names (as Strings) of
     * the dimensions to factor out.
     *
     */

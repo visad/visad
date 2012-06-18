@@ -24,7 +24,7 @@ UnitsDB
     /**
      * Adds a base unit.
      *
-     * @param baseUnit  The base unit to be added.
+     * @param unit  The base unit to be added.
      * @throws java.lang.IllegalArgumentException
      *          The base unit argument is invalid.
      */

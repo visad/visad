@@ -47,9 +47,6 @@ import visad.data.units.Parser;
  */
 public class Vis5DVerticalSystem
 {
-  private final int vert_sys;
-  private int n_levels;
-  private double[] vert_args;
   private static int counter = 0;
 
   /** Unit used for the vertical system */
@@ -79,9 +76,6 @@ public class Vis5DVerticalSystem
                               double[] vert_args)
          throws VisADException
   {
-    this.vert_sys = vert_sys;
-    this.vert_args = vert_args;
-    this.n_levels = n_levels;
 
     switch ( vert_sys )
     {
@@ -294,7 +288,7 @@ public class Vis5DVerticalSystem
      *
      * (H is in km in this formula, but input value is meters)
      * </pre>
-     * @param  altitude value to convert
+     * @param  alt	 value to convert
      * @return  corresponding pressure value
      */
     public static double altitudeToPressure(double alt) {

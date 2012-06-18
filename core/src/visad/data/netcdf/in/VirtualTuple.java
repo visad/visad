@@ -265,7 +265,7 @@ VirtualTuple
     /**
      * Returns the factory used to create VisAD data objects.
      *
-     * @param factory		The factory for creating VisAD data objects.
+     * @return factory		The factory for creating VisAD data objects.
      */
     public DataFactory getDataFactory()
     {

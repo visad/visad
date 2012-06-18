@@ -227,7 +227,7 @@ public class ProgressMonitor
   /**
    * Set new progress phase text.
    *
-   * @param detail progress phase text
+   * @param phase	 progress phase text
    */
   public final void setPhase(String phase)
   {
