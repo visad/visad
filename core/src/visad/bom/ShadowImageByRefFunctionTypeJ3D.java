@@ -212,7 +212,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                 ImageComponent2D img2D = (ImageComponent2D) current_texture.getImage(0);
                 BufferedImage current_image = img2D.getImage();
                 if (new_image_type != current_image.getType()) { //In case the LUT Table has changed, the Texture and ImageComponent2D will change
-                        Texture2D texture = new Texture2D(Texture.BASE_LEVEL, getTextureType(new_image_type), current_texture.getWidth(), current_texture.getHeight());
+                        Texture2D texture = new Texture2D(Texture.BASE_LEVEL, getTextureType(new_image_type), current_image.getWidth(), current_image.getHeight());
                         ImageComponent2D image2d = new ImageComponent2D(getImageComponentType(new_image_type), new_image, true, true);
                         image2d.setCapability(ImageComponent.ALLOW_IMAGE_WRITE);
                         texture.setImage(0, image2d);
