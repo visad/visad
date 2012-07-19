@@ -2415,6 +2415,16 @@ public class Gridded3DSet extends GriddedSet {
         default_intervals = intervals;
       }
       float[] display_intervals = smap[0].scaleValues(default_intervals);
+      //TDR, 7-19-12: invert display intervals for inverted range 
+      double[] rng = smap[0].getRange();
+      float[] display_intervals_for_invert_range = new float[display_intervals.length];
+      if (rng[0] > rng[1]) {  // - inverted
+        for (int q=0; q<display_intervals.length-1; q++) {
+           display_intervals_for_invert_range[q] = display_intervals[q+1];
+        }
+        display_intervals_for_invert_range[display_intervals.length-1] = display_intervals[display_intervals.length-1];
+        display_intervals = display_intervals_for_invert_range;
+      }
       BaseColorControl color_control = (BaseColorControl) smap[0].getControl();
       float[][] temp = null;
       try {
