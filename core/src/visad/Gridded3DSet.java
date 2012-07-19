@@ -1148,15 +1148,9 @@ public class Gridded3DSet extends GriddedSet {
       float sx = mySamples[0][gii];
       float sy = mySamples[1][gii];
       float sz = mySamples[2][gii];
-      if ((Math.sqrt((v_x - sx) * (v_x - sx)) > 0.4 * Math
-          .sqrt((mySamples[0][0] - mySamples[0][ii])
-              * (mySamples[0][0] - mySamples[0][ii])))
-          || (Math.sqrt((v_y - sy) * (v_y - sy)) > 0.4 * Math
-              .sqrt((mySamples[1][0] - mySamples[1][ii])
-                  * (mySamples[1][0] - mySamples[1][ii])))
-          || (Math.sqrt((v_z - sz) * (v_z - sz)) > 0.4 * Math
-              .sqrt((mySamples[2][0] - mySamples[2][ii])
-                  * (mySamples[2][0] - mySamples[2][ii])))) {
+      if ((v_x-sx) > 0.4 *Math.abs(mySamples[0][0] - mySamples[0][ii]) ||
+          (v_y-sy) > 0.4 *Math.abs(mySamples[1][0] - mySamples[1][ii]) ||
+          (v_z-sz) > 0.4 *Math.abs(mySamples[2][0] - mySamples[2][ii])) {
         float[] ginit = getStartPoint(value[0][i], value[1][i], value[2][i]);
         gx = (int) ginit[0];
         gy = (int) ginit[1];
