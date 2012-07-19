@@ -219,7 +219,14 @@ public class LambertAzimuthalEqualArea extends CoordinateSystem {
   }
 
   public boolean equals(Object cs) {
-    return ( cs instanceof LambertAzimuthalEqualArea );
+    if (cs instanceof LambertAzimuthalEqualArea) {
+       LambertAzimuthalEqualArea that = (LambertAzimuthalEqualArea) cs;
+       if ((this.R == that.R) && (this.lon_center == that.lon_center) && (this.lat_center == that.lat_center) && 
+           (this.false_easting == that.false_easting) && (this.false_northing == that.false_northing) ) {
+          return true;
+       }
+    }
+    return false;
   }
 
 
