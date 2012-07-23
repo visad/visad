@@ -26,31 +26,72 @@ MA 02111-1307, USA
 
 package visad.bom;
 
-import visad.*;
-import visad.data.CachedBufferedByteImage;
-import visad.java3d.*;
-import visad.data.mcidas.BaseMapAdapter;
-import visad.data.mcidas.AreaAdapter;
-import visad.data.gif.GIFForm;
-import visad.util.Util;
-
-import javax.media.j3d.*;
-
-import java.io.*;
-
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.Vector;
-import java.util.Iterator;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferByte;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
-import java.rmi.*;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.Vector;
 
-import java.net.URL;
+import javax.media.j3d.Appearance;
+import javax.media.j3d.BranchGroup;
+import javax.media.j3d.Group;
+import javax.media.j3d.ImageComponent;
+import javax.media.j3d.ImageComponent2D;
+import javax.media.j3d.Node;
+import javax.media.j3d.Shape3D;
+import javax.media.j3d.Switch;
+import javax.media.j3d.Texture;
+import javax.media.j3d.Texture2D;
+import javax.media.j3d.TextureAttributes;
+import javax.media.j3d.TransparencyAttributes;
 
-import java.awt.event.*;
-import javax.swing.*;
-import java.awt.color.*;
-import java.awt.image.*;
+import visad.BadMappingException;
+import visad.BaseColorControl;
+import visad.CachingCoordinateSystem;
+import visad.CoordinateSystem;
+import visad.Data;
+import visad.DataDisplayLink;
+import visad.DataRenderer;
+import visad.Display;
+import visad.DisplayException;
+import visad.DisplayImpl;
+import visad.DisplayRealType;
+import visad.DisplayTupleType;
+import visad.Field;
+import visad.FieldImpl;
+import visad.FlatField;
+import visad.Function;
+import visad.GraphicsModeControl;
+import visad.Gridded2DSet;
+import visad.GriddedSet;
+import visad.ImageFlatField;
+import visad.Integer1DSet;
+import visad.InverseLinearScaledCS;
+import visad.Linear1DSet;
+import visad.Linear2DSet;
+import visad.LinearNDSet;
+import visad.MathType;
+import visad.RealTupleType;
+import visad.RealType;
+import visad.ScalarMap;
+import visad.Set;
+import visad.ShadowFunctionOrSetType;
+import visad.ShadowRealTupleType;
+import visad.ShadowRealType;
+import visad.ShadowType;
+import visad.Unit;
+import visad.VisADException;
+import visad.VisADQuadArray;
+import visad.VisADTriangleStripArray;
+import visad.java3d.AVControlJ3D;
+import visad.java3d.AnimationControlJ3D;
+import visad.java3d.DisplayImplJ3D;
+import visad.java3d.ShadowFunctionTypeJ3D;
+import visad.java3d.VisADImageNode;
+import visad.java3d.VisADImageTile;
 
 /**
    The ShadowImageFunctionTypeJ3D class shadows the FunctionType class for
@@ -58,13 +99,11 @@ import java.awt.image.*;
 */
 public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
+  private static final long serialVersionUID = 1L;
   private static final int MISSING1 = Byte.MIN_VALUE;      // least byte
 
   private VisADImageNode imgNode = null;
   private VisADImageNode prevImgNode = null;
-  private int prevDataWidth = -1;
-  private int prevDataHeight = -1;
-  private int prevNumImages = -1;
 
   //- Ghansham (New variables introduced to preserve scaled values and colorTables)
   private byte scaled_Bytes[][];  //scaled byte values 
@@ -81,7 +120,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
   AnimationControlJ3D animControl = null;
 
-  private boolean reuse = false;
   private boolean reuseImages = false;
 
   int[] inherited_values = null;
@@ -692,7 +730,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         }
 
     first_time =true; //Ghansham: this variable just indicates to makeColorBytes whether it's the first tile of the image
-    boolean branch_added = false;
     if (isTextureMap) { // linear texture
 
         if (imgNode.getNumTiles() == 1) {
@@ -1004,388 +1041,387 @@ public void makeColorBytesDriver(Data imgFlatField, ScalarMap cmap, ScalarMap[] 
  uses scaled values and color table to generate colorbytes for respective tile. Just see the first_time variable use. That is the only difference between
  this function and earlier function makeColorBytes(). Some new class variables have been introduced to preserve scaled values and colortable.
  They are made null after all the tiles for a single image has been generated. At the end of doTransform(), they are made null.
-*/
+ */
 public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float constant_alpha,
-              ShadowRealType[] RangeComponents, int color_length, int domain_length, int[] permute,
-              byte[] byteData, int data_width, int data_height, int tile_width, int tile_height, int xStart, int yStart,
-              int texture_width, int texture_height)
-                throws VisADException, RemoteException {
-        if (cmap != null) {
-                BaseColorControl control = (BaseColorControl) cmap.getControl();
-                float[][] table = control.getTable();
-                Set rset = null;
-                boolean is_default_unit = false;
+		ShadowRealType[] RangeComponents, int color_length, int domain_length, int[] permute,
+		byte[] byteData, int data_width, int data_height, int tile_width, int tile_height, int xStart, int yStart,
+		int texture_width, int texture_height)
+throws VisADException, RemoteException {
+	if (cmap != null) {
+		BaseColorControl control = (BaseColorControl) cmap.getControl();
+		float[][] table = control.getTable();
+		Set rset = null;
+		boolean is_default_unit = false;
 
-                if (data instanceof FlatField) {
-                        // for fast byte color lookup, need:
-                        // 1. range data values are packed in bytes
-                        //bytes = ((FlatField) data).grabBytes();
-                        if (first_time) {
-                                scaled_Bytes = ((FlatField) data).grabBytes();
-                        }
-                        // 2. range set is Linear1DSet
-                        Set[] rsets = ((FlatField) data). getRangeSets();
-                        if (rsets != null) rset = rsets[0];
-                        // 3. data Unit equals default Unit
-                        RealType rtype = (RealType) RangeComponents[0].getType();
-                        Unit def_unit = rtype.getDefaultUnit();
-                        if (def_unit == null) {
-                                is_default_unit = true;
-                        } else {
-                                Unit[][] data_units = ((FlatField) data).getRangeUnits();
-                                Unit data_unit = (data_units == null) ? null : data_units[0][0];
-                                is_default_unit = def_unit.equals(data_unit);
-                        }
-                }
-                if (table != null) {
-                        // combine color table RGB components into ints
-                        if (first_time) {
-                                itable = new byte[table[0].length][4];
-                                // int r, g, b, a = 255;
-                                int r, g, b;
-                                int c = (int) (255.0 * (1.0f - constant_alpha));
-                                int a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-                                for (int j=0; j<table[0].length; j++) {
-                                        c = (int) (255.0 * table[0][j]);
-                                        r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-                                        c = (int) (255.0 * table[1][j]);
-                                        g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-                                        c = (int) (255.0 * table[2][j]);
-                                        b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-                                        if (color_length == 4) {
-                                                c = (int) (255.0 * table[3][j]);
-                                                a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-                                        }
-                                        itable[j][0] = (byte) r;
-                                        itable[j][1] = (byte) g;
-                                        itable[j][2] = (byte) b;
-                                        itable[j][3] = (byte) a;
-                                }
-                        }
-                        int tblEnd = table[0].length - 1;
-                        // get scale for color table
-                        int table_scale = table[0].length;
-                        if (data instanceof ImageFlatField && scaled_Bytes != null && is_default_unit) {
-                                if (ImageFlatField.DEBUG) {
-                                        System.err.println("ShadowImageFunctionTypeJ3D.doTransform: " + "cmap != null: looking up color values");
-                                }
-                                // avoid unpacking floats for ImageFlatFields
-                                if (first_time) {
-                                       	scaled_Bytes[0]= cmap.scaleValues(scaled_Bytes[0], table_scale); 
-                                }
-                                // fast lookup from byte values to color bytes
-                                byte[] bytes0 = scaled_Bytes[0];
+		if (data instanceof FlatField) {
+			// for fast byte color lookup, need:
+				// 1. range data values are packed in bytes
+			//bytes = ((FlatField) data).grabBytes();
+			if (first_time) {
+				scaled_Bytes = ((FlatField) data).grabBytes();
+			}
+			// 2. range set is Linear1DSet
+			Set[] rsets = ((FlatField) data). getRangeSets();
+			if (rsets != null) rset = rsets[0];
+			// 3. data Unit equals default Unit
+			RealType rtype = (RealType) RangeComponents[0].getType();
+			Unit def_unit = rtype.getDefaultUnit();
+			if (def_unit == null) {
+				is_default_unit = true;
+			} else {
+				Unit[][] data_units = ((FlatField) data).getRangeUnits();
+				Unit data_unit = (data_units == null) ? null : data_units[0][0];
+				is_default_unit = def_unit.equals(data_unit);
+			}
+		}
+		if (table != null) {
+			// combine color table RGB components into ints
+			if (first_time) {
+				itable = new byte[table[0].length][4];
+				// int r, g, b, a = 255;
+				int r, g, b;
+				int c = (int) (255.0 * (1.0f - constant_alpha));
+				int a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+				for (int j=0; j<table[0].length; j++) {
+					c = (int) (255.0 * table[0][j]);
+					r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+					c = (int) (255.0 * table[1][j]);
+					g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+					c = (int) (255.0 * table[2][j]);
+					b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+					if (color_length == 4) {
+						c = (int) (255.0 * table[3][j]);
+						a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+					}
+					itable[j][0] = (byte) r;
+					itable[j][1] = (byte) g;
+					itable[j][2] = (byte) b;
+					itable[j][3] = (byte) a;
+				}
+			}
+			int tblEnd = table[0].length - 1;
+			// get scale for color table
+			int table_scale = table[0].length;
+			if (data instanceof ImageFlatField && scaled_Bytes != null && is_default_unit) {
+				if (ImageFlatField.DEBUG) {
+					System.err.println("ShadowImageFunctionTypeJ3D.doTransform: " + "cmap != null: looking up color values");
+				}
+				// avoid unpacking floats for ImageFlatFields
+				if (first_time) {
+					scaled_Bytes[0]= cmap.scaleValues(scaled_Bytes[0], table_scale); 
+				}
+				// fast lookup from byte values to color bytes
+				byte[] bytes0 = scaled_Bytes[0];
 
-                                int k =0;
+				int k =0;
 				int color_length_times_texture_width = texture_width*color_length;
-                                for (int y=0; y<tile_height; y++) {
-                                        int image_col_factor = (y+yStart)*data_width + xStart;
+				for (int y=0; y<tile_height; y++) {
+					int image_col_factor = (y+yStart)*data_width + xStart;
 					k= y*color_length_times_texture_width;
-                                        for (int x=0; x<tile_width; x++) {
-                                                int i = x + image_col_factor;
-                                                int j = bytes0[i] & 0xff; // unsigned
-                                                // clip to table
-       	                                        int ndx = j < 0 ? 0 : (j > tblEnd ? tblEnd : j);
-               	                                if (color_length == 4) {
-                       	                                byteData[k] = itable[ndx][3];
-                               	                        byteData[k+1] = itable[ndx][2];
-                                       	                byteData[k+2] = itable[ndx][1];
-                                               	        byteData[k+3] = itable[ndx][0];
-                                                }
-       	                                        if (color_length == 3) {
-               	                                        byteData[k] = itable[ndx][2];
-                       	                                byteData[k+1] = itable[ndx][1];
-                               	                        byteData[k+2] = itable[ndx][0];
-                                       	        }
-                                               	if (color_length == 1) {
-                                                       	byteData[k] = itable[ndx][0];
-                                                }
-                                                k += color_length;
-                                        }
-                                }
-                        } else if (scaled_Bytes != null && scaled_Bytes[0] != null && is_default_unit && rset != null && rset instanceof Linear1DSet) {
-                                // fast since FlatField with bytes, data Unit equals default
-                                // Unit and range set is Linear1DSet
-                                // get "scale and offset" for Linear1DSet
-                                if (first_time) {
-                                        double first = ((Linear1DSet) rset).getFirst();
-                                        double step = ((Linear1DSet) rset).getStep();
-                                        // get scale and offset for ScalarMap
-                                        double[] so = new double[2];
-                                        double[] da = new double[2];
-                                        double[] di = new double[2];
-                                        cmap.getScale(so, da, di);
-                                        double scale = so[0];
-                                        double offset = so[1];
-                                        // combine scales and offsets for Set, ScalarMap and color table
-                                        float mult = (float) (table_scale * scale * step);
-                                        float add = (float) (table_scale * (offset + scale * first));
+					for (int x=0; x<tile_width; x++) {
+						int i = x + image_col_factor;
+						int j = bytes0[i] & 0xff; // unsigned
+						// clip to table
+						int ndx = j < 0 ? 0 : (j > tblEnd ? tblEnd : j);
+						if (color_length == 4) {
+							byteData[k] = itable[ndx][3];
+							byteData[k+1] = itable[ndx][2];
+							byteData[k+2] = itable[ndx][1];
+							byteData[k+3] = itable[ndx][0];
+						}
+						if (color_length == 3) {
+							byteData[k] = itable[ndx][2];
+							byteData[k+1] = itable[ndx][1];
+							byteData[k+2] = itable[ndx][0];
+						}
+						if (color_length == 1) {
+							byteData[k] = itable[ndx][0];
+						}
+						k += color_length;
+					}
+				}
+			} else if (scaled_Bytes != null && scaled_Bytes[0] != null && is_default_unit && rset != null && rset instanceof Linear1DSet) {
+				// fast since FlatField with bytes, data Unit equals default
+				// Unit and range set is Linear1DSet
+				// get "scale and offset" for Linear1DSet
+				if (first_time) {
+					double first = ((Linear1DSet) rset).getFirst();
+					double step = ((Linear1DSet) rset).getStep();
+					// get scale and offset for ScalarMap
+					double[] so = new double[2];
+					double[] da = new double[2];
+					double[] di = new double[2];
+					cmap.getScale(so, da, di);
+					double scale = so[0];
+					double offset = so[1];
+					// combine scales and offsets for Set, ScalarMap and color table
+					float mult = (float) (table_scale * scale * step);
+					float add = (float) (table_scale * (offset + scale * first));
 
-                                        // build table for fast color lookup
-                                        fast_table = new byte[256][];
-                                        for (int j=0; j<256; j++) {
-                                                int index = j - 1;
-                                                if (index >= 0) { // not missing
-                                                        int k = (int) (add + mult * index);
-                                                        // clip to table
-                                                        int ndx = k < 0 ? 0 : (k > tblEnd ? tblEnd : k);
-                                                        fast_table[j] = itable[ndx];
-                                                }
-                                        }
-                                }
-                                // now do fast lookup from byte values to color bytes
-                                byte[] bytes0 = scaled_Bytes[0];
+					// build table for fast color lookup
+					fast_table = new byte[256][];
+					for (int j=0; j<256; j++) {
+						int index = j - 1;
+						if (index >= 0) { // not missing
+							int k = (int) (add + mult * index);
+							// clip to table
+							int ndx = k < 0 ? 0 : (k > tblEnd ? tblEnd : k);
+							fast_table[j] = itable[ndx];
+						}
+					}
+				}
+				// now do fast lookup from byte values to color bytes
+				byte[] bytes0 = scaled_Bytes[0];
 
-                                int k = 0;
+				int k = 0;
 				int color_length_times_texture_width = texture_width*color_length;
-                                for (int y=0; y<tile_height; y++) {
-                                        int image_col_factor = (y+yStart)*data_width + xStart;
+				for (int y=0; y<tile_height; y++) {
+					int image_col_factor = (y+yStart)*data_width + xStart;
 					k = y*color_length_times_texture_width;
-                                        for (int x=0; x<tile_width; x++) {
-                                                int i = x + image_col_factor;
-                                                int ndx = ((int) bytes0[i]) - MISSING1;
-                                                if (color_length == 4) {
-                                                        byteData[k] = itable[ndx][3];
-                                                        byteData[k+1] = itable[ndx][2];
-                                                        byteData[k+2] = itable[ndx][1];
-                                                        byteData[k+3] = itable[ndx][0];
-                                                }
-                                                if (color_length == 3) {
-                                                        byteData[k] = itable[ndx][2];
-                                                        byteData[k+1] = itable[ndx][1];
-                                                        byteData[k+2] = itable[ndx][0];
-                                                }
-                                                if (color_length == 1) {
-                                                        byteData[k] = itable[ndx][0];
-                                                }
+					for (int x=0; x<tile_width; x++) {
+						int i = x + image_col_factor;
+						int ndx = ((int) bytes0[i]) - MISSING1;
+						if (color_length == 4) {
+							byteData[k] = itable[ndx][3];
+							byteData[k+1] = itable[ndx][2];
+							byteData[k+2] = itable[ndx][1];
+							byteData[k+3] = itable[ndx][0];
+						}
+						if (color_length == 3) {
+							byteData[k] = itable[ndx][2];
+							byteData[k+1] = itable[ndx][1];
+							byteData[k+2] = itable[ndx][0];
+						}
+						if (color_length == 1) {
+							byteData[k] = itable[ndx][0];
+						}
 						k+=color_length;
-                                        }
-                                }
-                        } else {
-                                // medium speed way to build texture colors
-                                if (first_time) {
-                                        scaled_Bytes = null;
-                                        scaled_Floats = ((Field) data).getFloats(false);
+					}
+				}
+			} else {
+				// medium speed way to build texture colors
+				if (first_time) {
+					scaled_Bytes = null;
+					scaled_Floats = ((Field) data).getFloats(false);
 					//GHANSHAM:30AUG2011 If rset can be used to create a lookup for range values, create them
 					if (rset instanceof Integer1DSet) {
 						rset_scalarmap_lookup = new float[1][rset.getLength()];
-        					for (int i = 0; i < rset_scalarmap_lookup[0].length; i++) {
-                					rset_scalarmap_lookup[0][i] = i;
-        					}
+						for (int i = 0; i < rset_scalarmap_lookup[0].length; i++) {
+							rset_scalarmap_lookup[0][i] = i;
+						}
 						rset_scalarmap_lookup[0] = cmap.scaleValues(rset_scalarmap_lookup[0], false);
 					} else {
-                                        	scaled_Floats[0] = cmap.scaleValues(scaled_Floats[0]);
+						scaled_Floats[0] = cmap.scaleValues(scaled_Floats[0]);
 					}
-                                }
-                                // now do fast lookup from byte values to color bytes
-                                float[] values0 = scaled_Floats[0];
-                                int k = 0;
+				}
+				// now do fast lookup from byte values to color bytes
+				float[] values0 = scaled_Floats[0];
+				int k = 0;
 				int color_length_times_texture_width = texture_width*color_length;
 				int image_col_offset = yStart*data_width + xStart;
 				int image_col_factor = 0;
-                                for (int y=0; y<tile_height; y++) {
+				for (int y=0; y<tile_height; y++) {
 					image_col_factor = y*data_width+image_col_offset;
 					k = y*color_length_times_texture_width;
-                                        for (int x=0; x<tile_width; x++) {
-                                                int i = x + image_col_factor;
-                                                if (!Float.isNaN(values0[i])) { // not missing
+					for (int x=0; x<tile_width; x++) {
+						int i = x + image_col_factor;
+						if (!Float.isNaN(values0[i])) { // not missing
 							int j = 0;
-							//GHANSHAM:30AUG2011 Use the rset lookup to find scaled Range Values
-							if (null != rset_scalarmap_lookup && null != rset_scalarmap_lookup[0]) {
-								j = (int) (table_scale*rset_scalarmap_lookup[0][(int)values0[i]]);
-							} else {
-								j = (int) (table_scale*values0[i]);
-							}
-                                	                // clip to table
-                        	                        int ndx = j < 0 ? 0 : (j > tblEnd ? tblEnd : j);
-                	                                if (color_length == 4) {
-        	                                       		byteData[k] = itable[ndx][3];
-	                                                        byteData[k+1] = itable[ndx][2];
-                                                               	byteData[k+2] = itable[ndx][1];
-                                                                byteData[k+3] = itable[ndx][0];
-                                                	}
-                                        	        if (color_length == 3) {
-                                	                        byteData[k] = itable[ndx][2];
-                        	                                byteData[k+1] = itable[ndx][1];
-                	                                        byteData[k+2] = itable[ndx][0];
-        	                                        }
-	                                                if (color_length == 1) {
-                                                             	byteData[k] = itable[ndx][0];
-                                                        }
-                                                }
+						//GHANSHAM:30AUG2011 Use the rset lookup to find scaled Range Values
+						if (null != rset_scalarmap_lookup && null != rset_scalarmap_lookup[0]) {
+							j = (int) (table_scale*rset_scalarmap_lookup[0][(int)values0[i]]);
+						} else {
+							j = (int) (table_scale*values0[i]);
+						}
+						// clip to table
+						int ndx = j < 0 ? 0 : (j > tblEnd ? tblEnd : j);
+						if (color_length == 4) {
+							byteData[k] = itable[ndx][3];
+							byteData[k+1] = itable[ndx][2];
+							byteData[k+2] = itable[ndx][1];
+							byteData[k+3] = itable[ndx][0];
+						}
+						if (color_length == 3) {
+							byteData[k] = itable[ndx][2];
+							byteData[k+1] = itable[ndx][1];
+							byteData[k+2] = itable[ndx][0];
+						}
+						if (color_length == 1) {
+							byteData[k] = itable[ndx][0];
+						}
+						}
 						k+=color_length;
-                                        }
-                                }
-                        }
-                } else { // if (table == null)
-                        // slower, more general way to build texture colors
-                        if (first_time) {
-                                // call lookupValues which will use function since table == null
-                                scaled_Bytes = null;
-                                itable = null;
-                                scaled_Floats = ((Field) data).getFloats(false);
-                                scaled_Floats[0] = cmap.scaleValues(scaled_Floats[0]);
-                                color_values = control.lookupValues(scaled_Floats[0]);
-                        }
+					}
+				}
+			}
+		} else { // if (table == null)
+			// slower, more general way to build texture colors
+			if (first_time) {
+				// call lookupValues which will use function since table == null
+				scaled_Bytes = null;
+				itable = null;
+				scaled_Floats = ((Field) data).getFloats(false);
+				scaled_Floats[0] = cmap.scaleValues(scaled_Floats[0]);
+				color_values = control.lookupValues(scaled_Floats[0]);
+			}
 
-                        // combine color RGB components into bytes
-                        // int r, g, b, a = 255;
-                        int r, g, b;
-                        int c = (int) (255.0 * (1.0f - constant_alpha));
-                        int a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-                        int k = 0;
+			// combine color RGB components into bytes
+			// int r, g, b, a = 255;
+			int r, g, b;
+			int c = (int) (255.0 * (1.0f - constant_alpha));
+			int a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+			int k = 0;
 			int color_length_times_texture_width = texture_width*color_length;
 			int image_col_offset = yStart*data_width + xStart;
 			int image_col_factor = 0;
-                        for (int y=0; y<tile_height; y++) {
+			for (int y=0; y<tile_height; y++) {
 				image_col_factor = y*data_width+image_col_offset;
 				k = y*color_length_times_texture_width;
-                                for (int x=0; x<tile_width; x++) {
-                                        int i = x + image_col_factor;
-                                        if (!Float.isNaN(scaled_Floats[0][i])) { // not missing
-                                               	c = (int) (255.0 * color_values[0][i]);
-                                                r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-       	                                        c = (int) (255.0 * color_values[1][i]);
-               	                                g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-                       	                        c = (int) (255.0 * color_values[2][i]);
-                               	                b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-                                       	        if (color_length == 4) {
-                                               	        c = (int) (255.0 * color_values[3][i]);
-                                                       	a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-                                                }
-       	                                        if (color_length == 4) {
-               	                                        byteData[k] = (byte) a;
-                       	                                byteData[k+1] = (byte) b;
-                               	                        byteData[k+2] = (byte) g;
-                                       	                byteData[k+3] = (byte) r;
-                                               	}
-                                                if (color_length == 3) {
-       	                                                byteData[k] = (byte) b;
-               	                                        byteData[k+1] = (byte) g;
-                       	                                byteData[k+2] = (byte) r;
-                               	                }
-                                       	        if (color_length == 1) {
-                                               	        byteData[k] = (byte) b;
-                                               	}	
-                                        }
+				for (int x=0; x<tile_width; x++) {
+					int i = x + image_col_factor;
+					if (!Float.isNaN(scaled_Floats[0][i])) { // not missing
+						c = (int) (255.0 * color_values[0][i]);
+					r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+					c = (int) (255.0 * color_values[1][i]);
+					g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+					c = (int) (255.0 * color_values[2][i]);
+					b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+					if (color_length == 4) {
+						c = (int) (255.0 * color_values[3][i]);
+						a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+					}
+					if (color_length == 4) {
+						byteData[k] = (byte) a;
+						byteData[k+1] = (byte) b;
+						byteData[k+2] = (byte) g;
+						byteData[k+3] = (byte) r;
+					}
+					if (color_length == 3) {
+						byteData[k] = (byte) b;
+						byteData[k+1] = (byte) g;
+						byteData[k+2] = (byte) r;
+					}
+					if (color_length == 1) {
+						byteData[k] = (byte) b;
+					}	
+					}
 					k+=color_length;
-                                }
-                        }
-                }
-        } else if (cmaps != null) {
+				}
+			}
+		}
+	} else if (cmaps != null) {
 		Set rsets[] = null;
-                if (data instanceof ImageFlatField) {
-                        if (first_time) {
-                                scaled_Bytes = ((FlatField) data).grabBytes();
-                        }
-                }
+		if (data instanceof ImageFlatField) {
+			if (first_time) {
+				scaled_Bytes = ((FlatField) data).grabBytes();
+			}
+		}
 		//GHANSHAM:30AUG2011 Extract rsets from RGB FlatField
 		if (data instanceof FlatField) {
-                        rsets = ((FlatField) data). getRangeSets();
+			rsets = ((FlatField) data). getRangeSets();
 		}
 
 
-                boolean isRGBRGBRGB = ((cmaps[0].getDisplayScalar() == Display.RGB) && (cmaps[1].getDisplayScalar() == Display.RGB) && (cmaps[2].getDisplayScalar() == Display.RGB));
+		boolean isRGBRGBRGB = ((cmaps[0].getDisplayScalar() == Display.RGB) && (cmaps[1].getDisplayScalar() == Display.RGB) && (cmaps[2].getDisplayScalar() == Display.RGB));
 
-                int r, g, b, c;
-                int tableEnd = 0;
-                if (first_time) {
-                        if  (isRGBRGBRGB) { //Inserted by Ghansham (starts here)
-                                int map_indx;
-                                threeD_itable = new byte[cmaps.length][][];
-                                for (map_indx = 0; map_indx < cmaps.length; map_indx++) {
-                                        BaseColorControl basecolorcontrol = (BaseColorControl)cmaps[map_indx].getControl();
-                                        float color_table[][] = basecolorcontrol.getTable();
-                                        threeD_itable[map_indx] = new byte[color_table[0].length][3];
-                                        int table_indx;
-                                        for(table_indx = 0; table_indx < threeD_itable[map_indx].length; table_indx++) {
-                                                c = (int) (255.0 * color_table[0][table_indx]);
-                                                r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-                                                c = (int) (255.0 * color_table[1][table_indx]);
-                                                g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-                                                c = (int) (255.0 * color_table[2][table_indx]);
-                                                b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-                                                threeD_itable[map_indx][table_indx][0] = (byte) r;
-                                                threeD_itable[map_indx][table_indx][1] = (byte) g;
-                                                threeD_itable[map_indx][table_indx][2] = (byte) b;
-                                        }
-                                }
-                        }
-                }
+		int r, g, b, c;
+		int tableEnd = 0;
+		if (first_time) {
+			if  (isRGBRGBRGB) { //Inserted by Ghansham (starts here)
+				int map_indx;
+				threeD_itable = new byte[cmaps.length][][];
+				for (map_indx = 0; map_indx < cmaps.length; map_indx++) {
+					BaseColorControl basecolorcontrol = (BaseColorControl)cmaps[map_indx].getControl();
+					float color_table[][] = basecolorcontrol.getTable();
+					threeD_itable[map_indx] = new byte[color_table[0].length][3];
+					int table_indx;
+					for(table_indx = 0; table_indx < threeD_itable[map_indx].length; table_indx++) {
+						c = (int) (255.0 * color_table[0][table_indx]);
+						r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+						c = (int) (255.0 * color_table[1][table_indx]);
+						g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+						c = (int) (255.0 * color_table[2][table_indx]);
+						b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+						threeD_itable[map_indx][table_indx][0] = (byte) r;
+						threeD_itable[map_indx][table_indx][1] = (byte) g;
+						threeD_itable[map_indx][table_indx][2] = (byte) b;
+					}
+				}
+			}
+		}
 
-                if (scaled_Bytes != null) {
-                        // grab bytes directly from ImageFlatField
-                        if (ImageFlatField.DEBUG) {
-                                System.err.println("ShadowImageFunctionTypeJ3D.doTransform: " + "cmaps != null: grab bytes directly");
-                        }
-                        //Inserted by Ghansham starts here
+		if (scaled_Bytes != null) {
+			// grab bytes directly from ImageFlatField
+			if (ImageFlatField.DEBUG) {
+				System.err.println("ShadowImageFunctionTypeJ3D.doTransform: " + "cmaps != null: grab bytes directly");
+			}
+			//Inserted by Ghansham starts here
 			//IFF:Assume that FlatField is of type (element,line)->(R,G,B) with (Display.RGB,Display.RGB,Display.RGB) as mapping
-                        if  (cmaps[0].getDisplayScalar() == Display.RGB && cmaps[1].getDisplayScalar() == Display.RGB && cmaps[2].getDisplayScalar() == Display.RGB) {
-                                int map_indx = 0;
-                                for (map_indx = 0; map_indx < cmaps.length; map_indx++) {
-                                        int table_length = threeD_itable[0].length;
-                                        int color_indx = permute[map_indx];
-                                        if (first_time) {
-                                                scaled_Bytes[color_indx] = cmaps[color_indx].scaleValues(scaled_Bytes[color_indx], table_length);
-                                        }
-                                        int domainLength =  scaled_Bytes[color_indx].length;
-                                        int tblEnd = table_length - 1;
-                                        int data_indx = 0;
-                                        int texture_index = 0;
+			if  (cmaps[0].getDisplayScalar() == Display.RGB && cmaps[1].getDisplayScalar() == Display.RGB && cmaps[2].getDisplayScalar() == Display.RGB) {
+				int map_indx = 0;
+				for (map_indx = 0; map_indx < cmaps.length; map_indx++) {
+					int table_length = threeD_itable[0].length;
+					int color_indx = permute[map_indx];
+					if (first_time) {
+						scaled_Bytes[color_indx] = cmaps[color_indx].scaleValues(scaled_Bytes[color_indx], table_length);
+					}
+					int domainLength =  scaled_Bytes[color_indx].length;
+					int tblEnd = table_length - 1;
+					int data_indx = 0;
+					int texture_index = 0;
 
 					int image_col_offset = yStart*data_width + xStart;
-                                	int image_col_factor = 0;
+					int image_col_factor = 0;
 					for (int y=0; y<tile_height; y++) { 
 						image_col_factor = y*data_width + image_col_offset;
-                                                for (int x=0; x<tile_width; x++) {
-                                                        data_indx = x + image_col_factor;
-                                                        texture_index = x + y*texture_width;
-                                                        texture_index *= color_length;
-                                                        int j = scaled_Bytes[color_indx][data_indx] & 0xff; // unsigned
-                                                        // clip to table
-                                                        int ndx = j < 0 ? 0 : (j > tblEnd ? tblEnd : j);
-                                                        byteData[texture_index+(color_length-color_indx-1)]=threeD_itable[map_indx][ndx][map_indx]; //Check if this logic works well
-                                                }
-                                        }
-
-                                 }
-                        } else { //Inserted by Ghansham (Ends here)
-				int data_indx = 0;
-                                int texture_index = 0;
-				int offset=0;
-				c = 0;
-				if (color_length == 4) {
-					c = (int) (255.0 * (1.0f - constant_alpha));
-				}
-				//IFF:with (Red,Green,Blue) or (Red,Green,Blue,Alpha) as mapping
-				int color_length_times_texture_width = color_length*texture_width;
-				int image_col_offset = yStart*data_width + xStart;
-                                int image_col_factor = 0;
-                                for (int y=0; y<tile_height; y++) {
-					image_col_factor = y*data_width + image_col_offset;
-					texture_index = y*color_length_times_texture_width;
-                                        for (int x=0; x<tile_width; x++) {
-                                                data_indx = x + image_col_factor;
-						if (color_length == 4) {
-	                                                byteData[texture_index] =   (byte)c; //a
-	                                                byteData[texture_index+1] = scaled_Bytes[2][data_indx]; //b
-        	                                        byteData[texture_index+2] = scaled_Bytes[1][data_indx]; //g
-                	                                byteData[texture_index+3] = scaled_Bytes[0][data_indx]; //r
-
-						} else {
-	                                                byteData[texture_index] = scaled_Bytes[2][data_indx]; //b
-        	                                        byteData[texture_index+1] = scaled_Bytes[1][data_indx]; //g
-                	                                byteData[texture_index+2] = scaled_Bytes[0][data_indx]; //r
+						for (int x=0; x<tile_width; x++) {
+							data_indx = x + image_col_factor;
+							texture_index = x + y*texture_width;
+							texture_index *= color_length;
+							int j = scaled_Bytes[color_indx][data_indx] & 0xff; // unsigned
+							// clip to table
+							int ndx = j < 0 ? 0 : (j > tblEnd ? tblEnd : j);
+							byteData[texture_index+(color_length-color_indx-1)]=threeD_itable[map_indx][ndx][map_indx]; //Check if this logic works well
 						}
-						texture_index += color_length;
-                                        }
-                                }
+					}
 
-                        }
-                } else {
-                        if (first_time) {
-                                float[][] values = ((Field) data).getFloats(false);
-                                scaled_Floats = new float[3][];
+				}
+			} else { //Inserted by Ghansham (Ends here)
+			int data_indx = 0;
+			int texture_index = 0;
+			c = 0;
+			if (color_length == 4) {
+				c = (int) (255.0 * (1.0f - constant_alpha));
+			}
+			//IFF:with (Red,Green,Blue) or (Red,Green,Blue,Alpha) as mapping
+			int color_length_times_texture_width = color_length*texture_width;
+			int image_col_offset = yStart*data_width + xStart;
+			int image_col_factor = 0;
+			for (int y=0; y<tile_height; y++) {
+				image_col_factor = y*data_width + image_col_offset;
+				texture_index = y*color_length_times_texture_width;
+				for (int x=0; x<tile_width; x++) {
+					data_indx = x + image_col_factor;
+					if (color_length == 4) {
+						byteData[texture_index] =   (byte)c; //a
+						byteData[texture_index+1] = scaled_Bytes[2][data_indx]; //b
+						byteData[texture_index+2] = scaled_Bytes[1][data_indx]; //g
+						byteData[texture_index+3] = scaled_Bytes[0][data_indx]; //r
+
+					} else {
+						byteData[texture_index] = scaled_Bytes[2][data_indx]; //b
+						byteData[texture_index+1] = scaled_Bytes[1][data_indx]; //g
+						byteData[texture_index+2] = scaled_Bytes[0][data_indx]; //r
+					}
+					texture_index += color_length;
+				}
+			}
+
+			}
+		} else {
+			if (first_time) {
+				float[][] values = ((Field) data).getFloats(false);
+				scaled_Floats = new float[3][];
 				for (int i = 0; i < scaled_Floats.length; i++) {
 					//GHANSHAM:30AUG2011 Use the rset lookup to find scaled Range Values	
 					if (rsets != null) {
@@ -1395,9 +1431,9 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
 							}
 							rset_scalarmap_lookup[i] = new float[rsets[permute[i]].getLength()];
 							for (int j = 0; j < rset_scalarmap_lookup[i].length; j++) {
-                                                        	rset_scalarmap_lookup[i][j] = j;
-                                                	}
-                                                	rset_scalarmap_lookup[i] = cmaps[permute[i]].scaleValues(rset_scalarmap_lookup[i], false);
+								rset_scalarmap_lookup[i][j] = j;
+							}
+							rset_scalarmap_lookup[i] = cmaps[permute[i]].scaleValues(rset_scalarmap_lookup[i], false);
 							scaled_Floats[i] = values[permute[i]];
 						} else {
 							scaled_Floats[i] = cmaps[permute[i]].scaleValues(values[permute[i]]);
@@ -1406,101 +1442,101 @@ public void makeColorBytes(Data data, ScalarMap cmap, ScalarMap[] cmaps, float c
 						scaled_Floats[i] = cmaps[permute[i]].scaleValues(values[permute[i]]);
 					}
 				}
-                        }
-                        c = (int) (255.0 * (1.0f - constant_alpha));
-                        int a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-                        int m = 0;
+			}
+			c = (int) (255.0 * (1.0f - constant_alpha));
+			int a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+			int m = 0;
 			//GHANSHAM:30AUG2011 Create tableLengths for each of the tables separately rather than single table_length. More safe
 			int RGB_tableEnd[] = null;;
-                        if  (isRGBRGBRGB) {
+			if  (isRGBRGBRGB) {
 				RGB_tableEnd = new int[threeD_itable.length];
 				for (int indx = 0; indx < threeD_itable.length; indx++) {
 					RGB_tableEnd[indx]= threeD_itable[indx].length - 1;
 				}
-                        }
-                        int k = 0;
+			}
+			int k = 0;
 			int color_length_times_texture_width = color_length*texture_width;
 			int image_col_offset = yStart*data_width + xStart;
-                        int image_col_factor = 0;
-                        for (int y=0; y<tile_height; y++) {
+			int image_col_factor = 0;
+			for (int y=0; y<tile_height; y++) {
 				image_col_factor = y*data_width + image_col_offset;
 				k = y*color_length_times_texture_width;
-                                for (int x=0; x<tile_width; x++) {
-                                        int i = x + image_col_factor;
-                                        if (!Float.isNaN(scaled_Floats[0][i]) && !Float.isNaN(scaled_Floats[1][i]) && !Float.isNaN(scaled_Floats[2][i])) { // not missing
+				for (int x=0; x<tile_width; x++) {
+					int i = x + image_col_factor;
+					if (!Float.isNaN(scaled_Floats[0][i]) && !Float.isNaN(scaled_Floats[1][i]) && !Float.isNaN(scaled_Floats[2][i])) { // not missing
 						r=0;g=0;b=0;
-                                                if (isRGBRGBRGB) { //Inserted by Ghansham (start here)
-							int indx = -1;
-							//GHANSHAM:30AUG2011 Use the rset_scalarmap lookup to find scaled Range Values
-							if (rset_scalarmap_lookup != null && rset_scalarmap_lookup[0] != null) {
-								indx = (int)(RGB_tableEnd[0] * rset_scalarmap_lookup[0][(int)scaled_Floats[0][i]]);
-							} else{
-								indx = (int)(RGB_tableEnd[0] * scaled_Floats[0][i]);
-							}
-							indx = (indx < 0) ? 0 : ((indx > RGB_tableEnd[0]) ? RGB_tableEnd[0] : indx);
-							r = threeD_itable[0][indx][0];
-							//GHANSHAM:30AUG2011 Use the rset_scalarmap lookup to find scaled Range Values
-							if (rset_scalarmap_lookup != null && rset_scalarmap_lookup[1] != null) {
-								indx = (int)(RGB_tableEnd[1] * rset_scalarmap_lookup[1][(int)scaled_Floats[1][i]]);
-                                                        } else{
-								indx = (int)(RGB_tableEnd[1] * scaled_Floats[1][i]);
-							}
-                                                        indx = (indx < 0) ? 0 : ((indx > RGB_tableEnd[1]) ? RGB_tableEnd[1] : indx);
-                                                        g = threeD_itable[1][indx][1];
-							//GHANSHAM:30AUG2011 Use the rset_scalarmap lookup to find scaled Range Values
-							if (rset_scalarmap_lookup != null && rset_scalarmap_lookup[2] != null) {
-								indx = (int)(RGB_tableEnd[2] * rset_scalarmap_lookup[2][(int)scaled_Floats[2][i]]);
-                                                        } else {
-								indx = (int)(RGB_tableEnd[2] * scaled_Floats[2][i]);
-							}
+						if (isRGBRGBRGB) { //Inserted by Ghansham (start here)
+						int indx = -1;
+						//GHANSHAM:30AUG2011 Use the rset_scalarmap lookup to find scaled Range Values
+						if (rset_scalarmap_lookup != null && rset_scalarmap_lookup[0] != null) {
+							indx = (int)(RGB_tableEnd[0] * rset_scalarmap_lookup[0][(int)scaled_Floats[0][i]]);
+						} else{
+							indx = (int)(RGB_tableEnd[0] * scaled_Floats[0][i]);
+						}
+						indx = (indx < 0) ? 0 : ((indx > RGB_tableEnd[0]) ? RGB_tableEnd[0] : indx);
+						r = threeD_itable[0][indx][0];
+						//GHANSHAM:30AUG2011 Use the rset_scalarmap lookup to find scaled Range Values
+						if (rset_scalarmap_lookup != null && rset_scalarmap_lookup[1] != null) {
+							indx = (int)(RGB_tableEnd[1] * rset_scalarmap_lookup[1][(int)scaled_Floats[1][i]]);
+						} else{
+							indx = (int)(RGB_tableEnd[1] * scaled_Floats[1][i]);
+						}
+						indx = (indx < 0) ? 0 : ((indx > RGB_tableEnd[1]) ? RGB_tableEnd[1] : indx);
+						g = threeD_itable[1][indx][1];
+						//GHANSHAM:30AUG2011 Use the rset_scalarmap lookup to find scaled Range Values
+						if (rset_scalarmap_lookup != null && rset_scalarmap_lookup[2] != null) {
+							indx = (int)(RGB_tableEnd[2] * rset_scalarmap_lookup[2][(int)scaled_Floats[2][i]]);
+						} else {
+							indx = (int)(RGB_tableEnd[2] * scaled_Floats[2][i]);
+						}
 
-                                                        indx = (indx < 0) ? 0 : ((indx > RGB_tableEnd[2]) ? RGB_tableEnd[2] : indx);
-                                                        b = threeD_itable[2][indx][2];
-                                                } else { //Inserted by Ghansham (ends here)
+						indx = (indx < 0) ? 0 : ((indx > RGB_tableEnd[2]) ? RGB_tableEnd[2] : indx);
+						b = threeD_itable[2][indx][2];
+						} else { //Inserted by Ghansham (ends here)
 							//GHANSHAM:30AUG2011 Use the rset_scalarmap lookup to find scaled Range Values
 							if (rset_scalarmap_lookup != null && rset_scalarmap_lookup[0] != null) {
-                                                                c=(int) (255.0 * rset_scalarmap_lookup[0][(int)scaled_Floats[0][i]]);
+								c=(int) (255.0 * rset_scalarmap_lookup[0][(int)scaled_Floats[0][i]]);
 							} else {
-	                                                        c = (int) (255.0 * scaled_Floats[0][i]);
+								c = (int) (255.0 * scaled_Floats[0][i]);
 							}
-                                                        r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+							r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
 							//GHANSHAM:30AUG2011 Use the rset_scalarmap lookup to find scaled Range Values
 							if (rset_scalarmap_lookup != null && rset_scalarmap_lookup[1] != null) {
-                                                                c=(int) (255.0 * rset_scalarmap_lookup[1][(int)scaled_Floats[1][i]]);
-                                                        } else {
-                                                        	c = (int) (255.0 * scaled_Floats[1][i]);
+								c=(int) (255.0 * rset_scalarmap_lookup[1][(int)scaled_Floats[1][i]]);
+							} else {
+								c = (int) (255.0 * scaled_Floats[1][i]);
 							}
-                                                        g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+							g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
 							//GHANSHAM:30AUG2011 Use the rset_scalarmap lookup to find scaled Range Values
 							if (rset_scalarmap_lookup != null && rset_scalarmap_lookup[2] != null) {
-                                                                c=(int) (255.0 * rset_scalarmap_lookup[2][(int)scaled_Floats[2][i]]);
-                                                        } else {
-                                                        	c = (int) (255.0 * scaled_Floats[2][i]);
+								c=(int) (255.0 * rset_scalarmap_lookup[2][(int)scaled_Floats[2][i]]);
+							} else {
+								c = (int) (255.0 * scaled_Floats[2][i]);
 							}
-                                                        b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-                                                }
-                                                if (color_length == 4) {
-                                                        byteData[k] = (byte) a;
-                                                        byteData[k+1] = (byte) b;
-                                                        byteData[k+2] = (byte) g;
-                                                        byteData[k+3] = (byte) r;
-                                                } if (color_length == 3) {
-                                                        byteData[k] = (byte) b;
-                                                        byteData[k+1] = (byte) g;
-                                                        byteData[k+2] = (byte) r;
-                                                }
-                                                if (color_length == 1) {
-                                                        byteData[k] = (byte) b;
-                                                }
-                                        }
+							b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+						}
+						if (color_length == 4) {
+							byteData[k] = (byte) a;
+							byteData[k+1] = (byte) b;
+							byteData[k+2] = (byte) g;
+							byteData[k+3] = (byte) r;
+						} if (color_length == 3) {
+							byteData[k] = (byte) b;
+							byteData[k+1] = (byte) g;
+							byteData[k+2] = (byte) r;
+						}
+						if (color_length == 1) {
+							byteData[k] = (byte) b;
+						}
+					}
 					k+=color_length;
-                                }
-                        }
+				}
+			}
 			RGB_tableEnd = null;
-                }
-        } else {
-                throw new BadMappingException("cmap == null and cmaps == null ??");
-        }
+		}
+	} else {
+		throw new BadMappingException("cmap == null and cmaps == null ??");
+	}
 }
 
 
