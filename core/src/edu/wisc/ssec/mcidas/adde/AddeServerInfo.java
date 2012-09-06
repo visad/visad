@@ -26,23 +26,28 @@ MA 02111-1307, USA
 
 package edu.wisc.ssec.mcidas.adde;
 
-import java.*;
-import java.lang.*;
-import java.util.*;
-import java.text.*;
+import java.text.FieldPosition;
+import java.text.SimpleDateFormat;
 
-import edu.wisc.ssec.mcidas.*;
-import edu.wisc.ssec.mcidas.adde.*;
+import java.util.StringTokenizer;
+import java.util.TimeZone;
+import java.util.Vector;
+
 import edu.wisc.ssec.mcidas.adde.ReadTextFile;
 import edu.wisc.ssec.mcidas.AreaDirectoryList;
 import edu.wisc.ssec.mcidas.AreaDirectory;
 import edu.wisc.ssec.mcidas.McIDASException;
 
-/** All things related to ADDE servers, groups and datasets
+/** 
+ * All things related to ADDE servers, groups and datasets
+ * Certain requests are dependent on appropriate prior requests.
+ * E.g., must set server, then group, before you can request
+ * File Format.
  *
  * @author  tomw
- * @version 0.1
+ * @version 0.2
  */
+
 public class AddeServerInfo extends Object {
   
   private String[] serverList;
@@ -53,15 +58,12 @@ public class AddeServerInfo extends Object {
   private String[] bandNames;
   private boolean hasBandNames = false;
 
-  private String[] groupsList;
   private String selectedGroup = null;
   private boolean hasGroup = false;
 
-  private String[] datasetsList;
   private String selectedDataset = null;
   private boolean hasDataset = false;
   private AreaDirectory [][]dirs;
-  private String[] dirsTimes;
 
   private Vector table, groups;
   private String status="OK";
@@ -69,38 +71,47 @@ public class AddeServerInfo extends Object {
   private String userproj = null;
   private String DATEFORMAT = "yyyy-MM-dd / HH:mm:ss";
   
-  private boolean debug = false;
-  private boolean priv = false;
+  private boolean debug = true;
 
   private boolean isArchive = false;
   private String archiveDate = null;
 
- /** Creates new AddeServerInfo. This collects information about
- * ADDE server(s) -- their groups, datasets, and date-times (right
- * now only image date-time implemented).  This is a helper class
- * for anything else that needs to get these information.
- * 
- * The candidate list of ADDE servers should be obtained from a
- * yet-to-be-identified "well-known list", and made available
- * in this class.
- */
+  /** 
+   * Creates new AddeServerInfo. This collects information about
+   * ADDE server(s) -- their groups, datasets, and date-times (right
+   * now only image date-time implemented).  This is a helper class
+   * for anything else that needs to get these information.
+   * 
+   * The candidate list of ADDE servers should be obtained from a
+   * yet-to-be-identified "well-known list", and made available
+   * in this class.
+   */
+  
   public AddeServerInfo() {
     // go find the list of well-known servers ?
     this(null);
   }
     
-  /** The non-default parameter is a list of of ADDE servers
-  *
-  * @param l a list of ADDE servers that can be used in lieu
-  * of automatically obtaining it.
-  *
-  */
+  /** 
+   * The non-default parameter is a list of of ADDE servers
+   *
+   * @param l a list of ADDE servers that can be used in lieu
+   * of automatically obtaining it.
+   *
+   */
+  
   public AddeServerInfo(String[] l) {
     // well known list of ADDE servers
+	// XXX TJJ - I don't like this and would prefer to force a valid
+	// server name into the constructor, and fail all requests otherwise
     String[] list = l;
     if (list == null) {
-      list = new String[] {"adde.unidata.ucar.edu","suomi.ssec.wisc.edu",
-      "motherlode.ucar.edu","uwamrc.ssec.wisc.edu"};
+      list = new String[] {
+    		  "adde.unidata.ucar.edu",
+    		  "peter.ssec.wisc.edu",
+    		  "motherlode.ucar.edu",
+    		  "uwamrc.ssec.wisc.edu"
+    		 };
     }
     serverList = new String[list.length];
     for (int i=0; i<list.length; i++) {
@@ -109,10 +120,12 @@ public class AddeServerInfo extends Object {
     hasServers = true;
   }
     
-  /** get a list of servers
-  *
-  * @return names of server hosts
-  */
+  /** 
+   * get a list of servers
+   *
+   * @return names of server hosts
+   */
+  
   public String[] getServerList() {
     if (hasServers) {
       return serverList;
@@ -121,34 +134,36 @@ public class AddeServerInfo extends Object {
     }
   }
 
-
-  /** get name of the server that has been selected and for
-  *  which all group and dataset info is currently valid for
-  *
-  * @return name of server host
-  */
+  /** 
+   * get name of the server that has been selected and for
+   *  which all group and dataset info is currently valid for
+   *
+   * @return name of server host
+   */
+  
   public String getSelectedServer() {
     return selectedServer;
   }
 
-  /** define which server to select, and the type of ADDE data group
-  * (image, point, grid, text) to get group and descriptor info for
-  *
-  * This is the workhorse of the code.
-  *
-  * @param s the name of the ADDE server to be selected
-  * @param type the type of data to select.
-  *
-  * @return status code: 0=ok, -1=invalid accounting, -2=didn't get metadata
-  *
-  */
+  /** 
+   * define which server to select, and the type of ADDE data group
+   * (image, point, grid, text) to get group and descriptor info for
+   *
+   * This is the workhorse of the code.
+   *
+   * @param s the name of the ADDE server to be selected
+   * @param type the type of data to select.
+   *
+   * @return status code: 0=ok, -1=invalid accounting, -2=didn't get metadata
+   *
+   */
+  
   public int setSelectedServer(String s, String type) {
     selectedServer = s.trim();
     int istatus = 0;
     dataType = type.trim();
     groups = new Vector();
     status = "Failed to get PUBLIC.SRV file from from server "+s+".";
-    priv = false;
 
     try {
       // go get the modified PUBLIC.SRV file from the server...
@@ -181,7 +196,6 @@ public class AddeServerInfo extends Object {
         }
 
         if (debug) System.out.println("2ndReq:"+req);
-        priv = true;
         rtf = new ReadTextFile(req);
         if (debug) System.out.println("Status from 2ndRTF="+rtf.getStatus());
 
@@ -203,6 +217,7 @@ public class AddeServerInfo extends Object {
         int indexType = -1;
         int indexN1 = -1;
         int indexN2 = -1;
+        int indexK = -1;
         int indexC = -1;
 
         // number of items in the record
@@ -217,6 +232,7 @@ public class AddeServerInfo extends Object {
           if (tok[j].equalsIgnoreCase("type")) indexType = j;
           if (tok[j].equalsIgnoreCase("N1")) indexN1 = j;
           if (tok[j].equalsIgnoreCase("N2")) indexN2 = j;
+          if (tok[j].equalsIgnoreCase("K")) indexK = j;
           if (tok[j].equalsIgnoreCase("C")) indexC = j;
         }
 
@@ -248,6 +264,10 @@ public class AddeServerInfo extends Object {
             v.addElement(val[indexN2]);
             v = (Vector)vg.elementAt(2);
             v.addElement(val[indexC]);
+            if (vg.size() >= 4) {
+            	v = (Vector)vg.elementAt(3);
+            	v.addElement(val[indexK]);
+            }
           }
         }
 
@@ -259,8 +279,14 @@ public class AddeServerInfo extends Object {
           v2.addElement(val[indexN2]);
           Vector v3 = new Vector();
           v3.addElement(val[indexC]);
+          Vector v4 = null;
+          if (indexK > 0) {
+        	  v4 = new Vector();
+        	  v4.addElement(val[indexK]); 
+          }
           v.addElement(v2);
           v.addElement(v3);
+          if (v4 != null) v.addElement(v4);
           groups.addElement(v);
         }
       }
@@ -300,30 +326,33 @@ public class AddeServerInfo extends Object {
     return istatus;
   }
   
-  /** get a list of all groups valid for this server
-  *
-  * @return array of group ids
-  */
+  /** 
+   * get a list of all groups valid for this server
+   *
+   * @return array of group ids
+   */
+  
   public String[] getGroupList() {
-    // if private, return no group list...
-    if (priv) return null;
 
     int num = groups.size();
     String[] sg = new String[num];
-    for (int i=0; i<num; i++) {
-      Vector v = (Vector)groups.elementAt(i);
-      sg[i] = (String)v.elementAt(0);
+    for (int i=0; i < num; i++) {
+      Vector v = (Vector) groups.elementAt(i);
+      sg[i] = (String) v.elementAt(0);
     }
-    status = "List of groups on server "+selectedServer+" obtained.";
+    status = "List of groups on server " + selectedServer + " obtained.";
     return sg;
+    
   }
     
-  /** get a list of all datasets valid for this server and
-  * the designated group. 
-  *
-  * @return array of dataset tags
-  *
-  */
+  /** 
+   * get a list of all datasets valid for this server and
+   * the designated group. 
+   *
+   * @return array of dataset tags
+   *
+   */
+  
   public String[] getDatasetList() {
     int num = groups.size();
     boolean autoUpcase = Boolean.getBoolean("adde.auto-upcase");
@@ -353,12 +382,14 @@ public class AddeServerInfo extends Object {
     return null;
   }
   
-  /** get a list of all dataset descriptions for this server and
-  * the designated group 
-  *
-  * @return array of dataset descriptors
-  *
-  */
+  /** 
+   * get a list of all dataset descriptions for this server and
+   * the designated group 
+   *
+   * @return array of dataset descriptors
+   *
+   */
+  
   public String[] getDatasetListDescriptions() {
     boolean autoUpcase = Boolean.getBoolean("adde.auto-upcase");
     boolean match;
@@ -388,17 +419,18 @@ public class AddeServerInfo extends Object {
     return null;
   }
   
-  /** get the valid date-time list for the selected server/group/dataset.
-  * Note that you must 'setSelectedGroup()' and 'setSelectedDataset()'
-  * prior to using this method.
-  *
-  * [Also, Don Murray at Unidata wrote the original - thanks!]
-  *
-  * @return list of date-times ("yy-MM-dd / hh:mm:ss" format)
-  * or the string "No data available"
-  *
-  *
-  */
+  /** 
+   * get the valid date-time list for the selected server/group/dataset.
+   * Note that you must 'setSelectedGroup()' and 'setSelectedDataset()'
+   * prior to using this method.
+   *
+   * [Also, Don Murray at Unidata wrote the original - thanks!]
+   *
+   * @return list of date-times ("yy-MM-dd / hh:mm:ss" format)
+   * or the string "No data available"
+   *
+   */
+  
   public String[] getDateTimeList() {
     status = "Trying to get date-times for "+selectedGroup+
                                     " from server "+selectedServer;
@@ -438,32 +470,76 @@ public class AddeServerInfo extends Object {
               new StringBuffer(), 
               new FieldPosition(0)).toString();
       }
-      dirsTimes = times;
     }
     catch (McIDASException e) {status = "Error getting times";}
     return times;
   }
   
-  /** get the sorted list of AreaDirectory objects
+  /** 
+   * Get the File Format (AREA, TEXT, NEXR, etc.) for the
+   * currently selected group.
+   *
+   * @return file format for currently selected group
    *
    */
+  
+   public String getFileFormat() {
+     int num = groups.size();
+     boolean autoUpcase = Boolean.getBoolean("adde.auto-upcase");
+     boolean match;
+     for (int i=0; i<num; i++) {
+       Vector v = (Vector) groups.elementAt(i);
+       String g = (String) v.elementAt(0);
+       if (autoUpcase) {
+         match = g.equalsIgnoreCase(selectedGroup);
+       } else {
+         match = g.equals(selectedGroup);
+       }
+       if (match) {
+    	   System.out.println("VECTOR SIZE: " + v.size());
+    	   if (v.size() >= 4) {
+    		   Vector ffv = (Vector) v.elementAt(3);
+    		   String ff = (String) ffv.elementAt(0);
+    		   if (ff != null) {
+    			   status = "File Format for server " + selectedServer +
+    			   " and group " + selectedGroup + " obtained.";
+    			   return ff;
+    		   }
+    	   }
+       }
+     }
+     status = "File Format for server "+selectedServer+
+                             " and group "+selectedGroup+" not found.";
+     return null;
+   }
+   
+  /** 
+   * get the sorted list of AreaDirectory objects
+   * 
+   * @return list of directories
+   */
+   
   public AreaDirectory[][] getAreaDirectories() {
     return dirs;
   }
   
-  /** identify the selected group
-  *
-  * @param g the name of the group to select
-  */
+  /** 
+   * identify the selected group
+   *
+   * @param g the name of the group to select
+   */
+  
   public void setSelectedGroup(String g) {
     selectedGroup = g;
     hasGroup = true;
   }
   
-  /** identify the selected dataset
-  *
-  * @param d the name of the dataset/descr to select
-  */
+  /** 
+   * identify the selected dataset
+   *
+   * @param d the name of the dataset/descr to select
+   */
+  
   public void setSelectedDataset(String d) {
     selectedDataset = d;
     hasDataset = true;
@@ -485,11 +561,12 @@ public class AddeServerInfo extends Object {
     return archiveDate;
   }
   
-  /** return the bandNames text
-  *
-  * @return array of text of the SATBAND data fetched from selectedServer
-  *
-  */
+  /** 
+   * return the bandNames text
+   *
+   * @return array of text of the SATBAND data fetched from selectedServer
+   *
+   */
 
   public String[] getBandNames() {
     if (hasBandNames) {
@@ -500,70 +577,81 @@ public class AddeServerInfo extends Object {
   }
 
   /**
-  */
+   * Not used??
+   */
+  
   public String getRequestString(int reqestType) {
     return null;
     // requestType  = static ints IMAGE, DIR, etc
   }
   
-  /** set the userID and proj number if required for transactions,
-  * as required by servers that use accounting.
-  *
-  * @param up the user/project number request string in 
-  * the form "user=tom&proj=1234"
-  *
-  *
-  */
+  /** 
+   * set the userID and proj number if required for transactions,
+   * as required by servers that use accounting.
+   *
+   * @param up the user/project number request string in 
+   * the form "user=tom&proj=1234"
+   *
+   */
+  
   public void setUserIDandProjString(String up) {
     userproj = up;
     return;
   }
 
-
-  /** get the status of the last request
-  *
-  * @return words describing last transaction
-  */
+  /** 
+   * get the status of the last request
+   *
+   * @return words describing last transaction
+   */
+  
   public String getStatus() {
     return status;
   }
 
-
-  /** for testing purposes.  Hope Unidata doesn't mind...
-  */
+  /** 
+   * For testing purposes. Edit server, and run the class as if it
+   * were an application.
+   */
+  
   public static void main(String[] args) {
+	  
+	System.out.println("AddeServerInfo unit test begin...");
     AddeServerInfo asi = new AddeServerInfo();
-    //asi.setUserIDandProjString("user=tomw&proj=8035");
-    //asi.setSelectedServer("eastl.ssec.wisc.edu", "image");
-    int sstat = asi.setSelectedServer("suomi.ssec.wisc.edu", "image");
-    //asi.setSelectedServer("adde.unidata.ucar.edu", "image");
+    
+    // NOTE!
+    // if you are testing this class, edit below with your server info!
+    asi.setUserIDandProjString("user=SOSE&proj=1250");
+    int sstat = asi.setSelectedServer("noaaport.ssec.wisc.edu", "image");
 
-    System.out.println("Status = "+asi.getStatus()+"  code="+sstat);
+    System.out.println("Status = " + asi.getStatus() + " code=" + sstat);
     String[] a = asi.getGroupList();
-    System.out.println("Status = "+asi.getStatus());
-    for (int i=0; i<a.length; i++) {
-      System.out.println("group = "+a[i]);
+    System.out.println("Status = " + asi.getStatus());
+    for (int i=0; i < a.length; i++) {
+      System.out.println("group = " + a[i]);
       // set the selected group
       asi.setSelectedGroup(a[i]);
-      String[]b = asi.getDatasetList();
-      String[]c = asi.getDatasetListDescriptions();
+      System.out.println(" File Format: " + asi.getFileFormat());
+      String[] b = asi.getDatasetList();
+      String[] c = asi.getDatasetListDescriptions();
 
-      for (int k=0; k<b.length; k++) {
-        System.out.println("    "+b[k]+" == "+c[k]);
+      for (int k=0; k < b.length; k++) {
+    	// datasets and their descriptions  
+        System.out.println("    " + b[k] + " == " + c[k]);
 
         if (i==0 && k==0) {
           // set the selected Dataset, and fetch its date-time info
           asi.setSelectedDataset(b[k]);
           String[] dt = asi.getDateTimeList();
-          for (int m=0; m<dt.length; m++) {
-            System.out.println("DateTime = "+dt[m]);
+          for (int m=0; m < dt.length; m++) {
+            System.out.println("DateTime = " + dt[m]);
           }
         }
       }
       
     }
    
-    System.out.println("Status = "+asi.getStatus());
+    System.out.println("Status = " + asi.getStatus());
     
   }
 
