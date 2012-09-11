@@ -978,6 +978,7 @@ public class AxisScale implements java.io.Serializable
       scaleArray = VisADLineArray.merge(arrays);
   
       // merge the label arrays
+      labelArray = new VisADTriangleArray();
       if ( !(labelArrayVector.isEmpty()) )
       {
         VisADTriangleArray[] labelArrays =
@@ -1304,10 +1305,12 @@ public class AxisScale implements java.io.Serializable
   {
     Object oldFont = labelFont;
     labelFont = font;
-    //if ((labelFont == null && oldFont != null) || !labelFont.equals(oldFont))
+    //if ((labelFont == null && oldFont != null) || (labelFont != null && !labelFont.equals(oldFont)))
     if (labelFont != null && !labelFont.equals(oldFont))
     {
-      if (labelFont instanceof java.awt.Font) labelSize = ((Font) labelFont).getSize();
+      if (labelFont != null && labelFont instanceof java.awt.Font) {
+    	labelSize = ((Font) labelFont).getSize();
+      }
       try {
         scalarMap.makeScale();  // update the display
       }
@@ -1323,7 +1326,7 @@ public class AxisScale implements java.io.Serializable
   {
     Object oldFont = labelFont;
     labelFont = font;
-    //if ((labelFont == null && oldFont != null) || !labelFont.equals(oldFont))
+    //if ((labelFont == null && oldFont != null) || (labelFont != null && !labelFont.equals(oldFont)))
     if (labelFont != null && !labelFont.equals(oldFont))
     {
       labelSize = 12;
