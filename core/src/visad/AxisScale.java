@@ -1305,8 +1305,9 @@ public class AxisScale implements java.io.Serializable
   {
     Object oldFont = labelFont;
     labelFont = font;
-    //if ((labelFont == null && oldFont != null) || (labelFont != null && !labelFont.equals(oldFont)))
-    if (labelFont != null && !labelFont.equals(oldFont))
+    if ((labelFont == null && oldFont != null) || 
+    	(labelFont != null && !labelFont.equals(oldFont)))
+    //if (labelFont != null && !labelFont.equals(oldFont))
     {
       if (labelFont != null && labelFont instanceof java.awt.Font) {
     	labelSize = ((Font) labelFont).getSize();
@@ -1326,8 +1327,9 @@ public class AxisScale implements java.io.Serializable
   {
     Object oldFont = labelFont;
     labelFont = font;
-    //if ((labelFont == null && oldFont != null) || (labelFont != null && !labelFont.equals(oldFont)))
-    if (labelFont != null && !labelFont.equals(oldFont))
+    if ((labelFont == null && oldFont != null) || 
+    	(labelFont != null && !labelFont.equals(oldFont)))
+    //if (labelFont != null && !labelFont.equals(oldFont))
     {
       labelSize = 12;
       try {
