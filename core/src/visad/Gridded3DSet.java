@@ -2454,12 +2454,13 @@ public class Gridded3DSet extends GriddedSet {
     boolean labelAlign = ctrl.getAlignLabels();
     byte[] labelColor = ctrl.getLabelColor();
     Object labelFont = ctrl.getLabelFont();
+    int labelFreq = ctrl.getLabelFreq();
 
     Contour2D.ContourOutput contour = Contour2D.contour(g, nr, nc, intervals,
         lowlimit, highlimit, base, dash, color_values, swap, fill, grd_normals,
-        interval_colors, scale, scale_ratio, label_size, labelAlign, labelColor, labelFont, sphericalDisplayCS, this);
+        interval_colors, scale, scale_ratio, labelFreq,
+        label_size, labelAlign, labelColor, labelFont, sphericalDisplayCS, this);
     if (contour == null) return null;
-
 
     VisADGeometryArray[][] basicLines = null;
     VisADGeometryArray[] fillLines = null;

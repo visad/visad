@@ -139,7 +139,7 @@ public class Contour2D {
 			boolean[] swap, boolean fill, float[][][] grd_normals,
 			byte[][] interval_colors, float[][][][] lbl_vv,
 			byte[][][][] lbl_cc, float[][][] lbl_loc, double[] scale, double scale_ratio,
-			double label_size, boolean labelAlign, byte[] labelColor,
+			int label_freq, double label_size, boolean labelAlign, byte[] labelColor,
 			Object labelFont, boolean sphericalDisplayCS,
 			Gridded3DSet spatial_set) throws VisADException {
 		boolean[] dashes = { false };
@@ -149,7 +149,7 @@ public class Contour2D {
 
 		contour(g, nr, nc, intervals, lowlimit, highlimit, base, dash,
 				auxValues, swap, fill, grd_normals, interval_colors, scale,
-				scale_ratio, label_size, labelAlign, labelColor, labelFont,
+				scale_ratio, label_freq, label_size, labelAlign, labelColor, labelFont,
 				sphericalDisplayCS, spatial_set);
 	}
 
@@ -231,7 +231,7 @@ public class Contour2D {
 			float[] values, float lowlimit, float highlimit, float base,
 			boolean dash, byte[][] auxValues, boolean[] swap, boolean fill,
 			float[][][] grd_normals, byte[][] interval_colors, double[] scale,
-			double scale_ratio, double label_size, boolean labelAlign,
+			double scale_ratio, int label_freq, double label_size, boolean labelAlign,
 			byte[] labelColor, Object labelFont, boolean sphericalDisplayCS,
 			Gridded3DSet spatial_set) throws VisADException {
 
@@ -466,7 +466,7 @@ public class Contour2D {
 		}
 
 		ContourStripSet ctrSet = new ContourStripSet(myvals, swap,
-				scale_ratio, label_size, nr, nc, spatial_set);
+				scale_ratio, label_freq, label_size, nr, nc, spatial_set);
 
 		visad.util.Trace.call1("Contour2d.loop", " nrm=" + nrm + " ncm=" + ncm
 				+ " naux=" + naux + " myvals.length=" + myvals.length);
@@ -4256,6 +4256,8 @@ class ContourStripSet {
 	float[] levels;
 
 	int[][] labelIndexes;
+	
+	int labelFreq = ContourControl.LABEL_FREQ_LO;
 
 	/**           */
 	int n_levs;
@@ -4310,13 +4312,14 @@ class ContourStripSet {
 	 * @throws VisADException
 	 */
 
-	ContourStripSet(float[] levels, boolean[] swap,
-			double scale_ratio, double label_size, int nr, int nc,
+	ContourStripSet(float[] levels, boolean[] swap, double scale_ratio,
+			int label_freq, double label_size, int nr, int nc,
 			Gridded3DSet spatial_set) throws VisADException {
 
 		this.levels = levels;
 		n_levs = levels.length;
 		labelIndexes = new int[n_levs][];
+		labelFreq = label_freq;
 		vecArray = new List[n_levs];
 		labelScale = ((0.062 * (1.0 / scale_ratio)) * label_size);
 		this.nr = nr;
@@ -4655,6 +4658,7 @@ class ContourStrip {
 		idxs.addFirst(idx0, idx1);
 
 		this.css = css;
+		numLabels = css.labelFreq;
 	}
 
 	/**
@@ -4730,8 +4734,74 @@ class ContourStrip {
 		float[][] vv = getLineArray(vx, vy);
 		byte[][] bb = getColorArray(colors);
 
-		processLineArrays(vv, bb, labelColor, labelFont, labelAlign,
-				sphericalDisplayCS);
+		// break up each line into chunks according to label frequency
+		int linArrDim = vv.length;
+		int colArrDim = bb.length;
+		int linArrLen = vv[0].length;
+		
+		int labelRepeat = linArrLen;
+		// Below heuristic can be tweaked if desired.  Just provides a
+		// label freq 1 to 9 mapping to point count for repeating the label
+		switch (numLabels) {
+			case 1:
+				labelRepeat = linArrLen;
+				break;
+			case 3:
+				labelRepeat = 200;
+				break;
+			case 5:
+				labelRepeat = 150;
+				break;
+			case 7:
+				labelRepeat = 100;
+				break;
+			case 9:
+				labelRepeat = 50;
+				break;
+			default: 
+				labelRepeat = linArrLen;
+				break;
+		}
+		int labelCount = linArrLen / labelRepeat;
+		int labelRemain = linArrLen % labelRepeat;
+		int labelsDone = 0;
+		
+		for (int i = 0; i < labelCount; i++) {
+			float[][] vvTmp = new float[linArrDim][labelRepeat];
+			byte[][] bbTmp = new byte[colArrDim][labelRepeat];
+			for (int j = 0; j < linArrDim; j++) {
+				for (int k = 0; k < labelRepeat; k++) {
+					vvTmp[j][k] = vv[j][(i * labelRepeat) + k];
+				}
+			}
+			for (int j = 0; j < colArrDim; j++) {
+				for (int k = 0; k < labelRepeat; k++) {
+					bbTmp[j][k] = bb[j][(i * labelRepeat) + k];
+				}
+			}
+
+			processLineArrays(vvTmp, bbTmp, labelColor, labelFont, labelAlign,
+					sphericalDisplayCS);
+			labelsDone++;
+		}
+		
+		if (labelRemain > 0) {
+			float[][] vvTmp = new float[linArrDim][labelRemain];
+			byte[][] bbTmp = new byte[colArrDim][labelRemain];
+			for (int j = 0; j < linArrDim; j++) {
+				for (int k = 0; k < labelRemain; k++) {
+					vvTmp[j][k] = vv[j][(labelsDone * labelRepeat) + k];
+				}
+			}
+			for (int j = 0; j < colArrDim; j++) {
+				for (int k = 0; k < labelRemain; k++) {
+					bbTmp[j][k] = bb[j][(labelsDone * labelRepeat) + k];
+				}
+			}
+			processLineArrays(vvTmp, bbTmp, labelColor, labelFont, labelAlign,
+					sphericalDisplayCS);
+		}
+		
 	}
 
 	/**
