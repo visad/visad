@@ -33,11 +33,19 @@ import visad.browser.Convert;
 import visad.util.Util;
 
 /**
-   ContourControl is the VisAD class for controlling IsoContour display scalars.<P>
-*/
+ * ContourControl is the VisAD class for controlling IsoContour display scalars.
+ */
+
 public class ContourControl extends Control {
 
   private static final long serialVersionUID = 1L;
+  
+  // number below is from GUI control, it is approximately
+  // how many times a contour line will (attempt to) be labeled
+  public static final int LABEL_FREQ_LO = 1;
+  public static final int LABEL_FREQ_MED = 5;
+  public static final int LABEL_FREQ_HI = 9;
+  
   private boolean mainContours;
   // for 3-D mainContours
   private float surfaceValue;
@@ -48,6 +56,7 @@ public class ContourControl extends Control {
   private float hiLimit;
   private float base;
   private boolean labels;
+  private int labelFreq = LABEL_FREQ_LO;
 
   private boolean public_set = false; // application called setLevels()
 
@@ -692,6 +701,7 @@ public class ContourControl extends Control {
    * @throws VisADException
    * @throws RemoteException
    */
+  
   public void setLabelFont(Object font) throws RemoteException, VisADException {
     synchronized(this) {
       labelFont = font;
@@ -699,22 +709,56 @@ public class ContourControl extends Control {
     changeControl(true);
   }
 
+  /**
+   * Get contour label font
+   * @return label font
+   */
+  
   public Object getLabelFont() {
     return labelFont;
   }
 
+  /**
+   * set label frequency 
+   * @param freq  how many labels to attempt per line
+   * @throws VisADException  a VisAD error occurred
+   * @throws RemoteException  an RMI error occurred
+   */
+  
+  public void setLabelFreq(int freq)
+  throws VisADException, RemoteException {
+	  synchronized (this) {
+		  // bounds check the setter value, if out of range set to default
+		  if ((labelFreq < LABEL_FREQ_LO) || (labelFreq > LABEL_FREQ_HI)) {
+			  labelFreq = LABEL_FREQ_LO;
+		  } else {
+			  labelFreq = freq;
+		  }
+	  }
+	  changeControl(true);
+  }
+
+  /**
+   * @return label frequency (number per line)
+   */
+  
+  public int getLabelFreq() {
+    return labelFreq;
+  }
+  
   /**
    * set size for label auto-size
    * @param factor  new size for label auto-size
    * @throws VisADException  a VisAD error occurred
    * @throws RemoteException  an RMI error occurred
    */
+  
   public void setLabelSize(double factor)
-         throws VisADException, RemoteException {
-    synchronized(this) {
-      labelSizeFactor *= factor;
-    }
-    changeControl(true);
+  throws VisADException, RemoteException {
+	  synchronized (this) {
+		  labelSizeFactor *= factor;
+	  }
+	  changeControl(true);
   }
 
   /**
@@ -723,7 +767,6 @@ public class ContourControl extends Control {
   public double getLabelSize() {
     return labelSizeFactor;
   }
-  
   
   /**
    * Get the line style for lines that are styled.
