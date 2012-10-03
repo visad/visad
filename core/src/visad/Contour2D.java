@@ -4740,11 +4740,16 @@ class ContourStrip {
 
 		float[][] vv = getLineArray(vx, vy);
 		byte[][] bb = getColorArray(colors);
+                boolean hasColors = (bb != null);
+                int colArrDim = 3;
 
 		// break up each line into chunks according to label frequency
 		int linArrDim = vv.length;
-		int colArrDim = bb.length;
 		int linArrLen = vv[0].length;
+           
+                if (hasColors) {
+		   colArrDim = bb.length;
+                }
 		
 		int labelRepeat = linArrLen;
 		// Below heuristic can be tweaked if desired.  Just provides a
@@ -4775,17 +4780,21 @@ class ContourStrip {
 		
 		for (int i = 0; i < labelCount; i++) {
 			float[][] vvTmp = new float[linArrDim][labelRepeat];
-			byte[][] bbTmp = new byte[colArrDim][labelRepeat];
 			for (int j = 0; j < linArrDim; j++) {
 				for (int k = 0; k < labelRepeat; k++) {
 					vvTmp[j][k] = vv[j][(i * labelRepeat) + k];
 				}
 			}
-			for (int j = 0; j < colArrDim; j++) {
+             
+                        byte[][] bbTmp = null;
+                        if (hasColors) {
+			   bbTmp = new byte[colArrDim][labelRepeat];
+	                   for (int j = 0; j < colArrDim; j++) {
 				for (int k = 0; k < labelRepeat; k++) {
 					bbTmp[j][k] = bb[j][(i * labelRepeat) + k];
 				}
-			}
+		           }
+                        }
 
 			processLineArrays(vvTmp, bbTmp, labelColor, labelFont, labelAlign,
 					sphericalDisplayCS);
@@ -4794,21 +4803,25 @@ class ContourStrip {
 		
 		if (labelRemain > 0) {
 			float[][] vvTmp = new float[linArrDim][labelRemain];
-			byte[][] bbTmp = new byte[colArrDim][labelRemain];
 			for (int j = 0; j < linArrDim; j++) {
 				for (int k = 0; k < labelRemain; k++) {
 					vvTmp[j][k] = vv[j][(labelsDone * labelRepeat) + k];
 				}
 			}
-			for (int j = 0; j < colArrDim; j++) {
+
+                        byte[][] bbTmp = null;
+                        if (hasColors) {
+			   bbTmp = new byte[colArrDim][labelRemain];
+	                   for (int j = 0; j < colArrDim; j++) {
 				for (int k = 0; k < labelRemain; k++) {
 					bbTmp[j][k] = bb[j][(labelsDone * labelRepeat) + k];
 				}
-			}
+                           }
+                        }
+
 			processLineArrays(vvTmp, bbTmp, labelColor, labelFont, labelAlign,
 					sphericalDisplayCS);
 		}
-		
 	}
 
 	/**
