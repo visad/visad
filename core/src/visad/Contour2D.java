@@ -4678,6 +4678,8 @@ class ContourStrip {
 			(vx[idxs.first.idx0] == vx[idxs.last.idx1]) && (vy[idxs.first.idx0] == vy[idxs.last.idx1])) {
 		     return false;
 		} 
+ 
+                float delta = 0.001f;
 		   
 		float vx0 = vx[idx0];
 		float vy0 = vy[idx0];
@@ -4686,30 +4688,35 @@ class ContourStrip {
 
 		float vx_s = vx[idxs.first.idx0];
 		float vy_s = vy[idxs.first.idx0];
-		float dist = (vx0 - vx_s) * (vx0 - vx_s) + (vy0 - vy_s) * (vy0 - vy_s);
 
-		if (dist <= 0.00001) {
+                float delx = vx0 - vx_s;
+                float dely = vy0 - vy_s;
+                if ((delx > -delta && delx < delta) && (dely > -delta && dely < delta)) {
 			idxs.addFirst(idx1, idx0);
 			return true;
 		}
-		dist = (vx1 - vx_s) * (vx1 - vx_s) + (vy1 - vy_s) * (vy1 - vy_s);
-		if (dist <= 0.00001) {
+                delx = vx1 - vx_s;
+                dely = vy1 - vy_s;
+                if ((delx > -delta && delx < delta) && (dely > -delta && dely < delta)) {
 			idxs.addFirst(idx0, idx1);
 			return true;
 		}
 
 		vx_s = vx[idxs.last.idx1];
 		vy_s = vy[idxs.last.idx1];
-		dist = (vx0 - vx_s) * (vx0 - vx_s) + (vy0 - vy_s) * (vy0 - vy_s);
-		if (dist <= 0.00001) {
+                delx = vx0 - vx_s;
+                dely = vy0 - vy_s;
+                if ((delx > -delta && delx < delta) && (dely > -delta && dely < delta)) {
 			idxs.addLast(idx0, idx1);
 			return true;
 		}
-		dist = (vx1 - vx_s) * (vx1 - vx_s) + (vy1 - vy_s) * (vy1 - vy_s);
-		if (dist <= 0.00001) {
+                delx = vx1 - vx_s;
+                dely = vy1 - vy_s;
+                if ((delx > -delta && delx < delta) && (dely > -delta && dely < delta)) {
 			idxs.addLast(idx1, idx0);
 			return true;
 		}
+
 		return false;
 	}
 
