@@ -253,6 +253,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                         Texture2D texture = new Texture2D(Texture.BASE_LEVEL, getTextureType(new_image_type), current_image.getWidth(), current_image.getHeight());
                         ImageComponent2D image2d = new ImageComponent2D(getImageComponentType(new_image_type), new_image, true, true);
                         image2d.setCapability(ImageComponent.ALLOW_IMAGE_WRITE);
+                        image2d.setCapability(ImageComponent.ALLOW_IMAGE_READ);
                         texture.setImage(0, image2d);
                         texture.setMinFilter(Texture.BASE_LEVEL_POINT);
                         texture.setMagFilter(Texture.BASE_LEVEL_POINT);
