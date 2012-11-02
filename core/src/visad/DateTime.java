@@ -45,7 +45,7 @@ import java.text.FieldPosition;
  * @see java.lang.System#currentTimeMillis()
  *
  */
-public final class
+public class
 DateTime
     extends     Real
 {
