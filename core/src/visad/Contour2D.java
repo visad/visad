@@ -4436,6 +4436,8 @@ class ContourStripSet {
 	}
 
 	/**
+         * Iterates over list of ContourStrips for each contour level index.
+         *
 	 * 
 	 * @param vx
 	 *            Grid coordinate values.
@@ -4462,7 +4464,7 @@ class ContourStripSet {
 	 * @throws VisADException
 	 */
 	
-	void getLineColorArrays(float[] vx, float[] vy, byte[][] colors,
+	void getLineColorArraysAtCntrLevel(float[] vx, float[] vy, byte[][] colors,
 			byte[] labelColor, Object labelFont, boolean labelAlign,
 			boolean sphericalDisplayCS, int lev_idx, boolean[] dashed)
 			throws VisADException {
@@ -4479,6 +4481,8 @@ class ContourStripSet {
 	}
 
 	/**
+         * Called just after the grid walking is complete.
+         *
 	 * @param vx
 	 * @param vy
 	 * @param colors
@@ -4505,7 +4509,7 @@ class ContourStripSet {
 
 		// set the line and color arrays for each level
 		for (int kk = 0; kk < n_levs; kk++) {
-			getLineColorArrays(vx, vy, colors, labelColor, labelFont,
+			getLineColorArraysAtCntrLevel(vx, vy, colors, labelColor, labelFont,
 					labelAlign, sphericalDisplayCS, kk, dashFlags);
 		}
 
