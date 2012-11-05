@@ -5528,6 +5528,38 @@ class ContourStrip {
 		return new float[][] { vvx, vvy };
 	}
 
+        /**
+         * Get a line array using this instances cached indexes from start to stop (0-based, inclusive).
+         * 
+         * @param vx
+         *            X values to apply cached indexes to.
+         * @param vy
+         *            Y values to apply cached indexes to.
+         * @param start
+         *            start pair index.
+         * @param stop
+         *            stop pair index.
+         * @see {@link VisADLineArray}
+         *
+         * @return
+         */
+        float[][] getLineArray(float[] vx, float[] vy, int start, int stop) {
+                if (vx == null || vy == null) {
+                        return null;
+                }
+                int[] idx_array = idxs.toArray(start, stop);
+
+                float[] vvx = new float[idx_array.length];
+                float[] vvy = new float[vvx.length];
+
+                for (int ii = 0; ii < idx_array.length; ii++) {
+                        vvx[ii] = vx[idx_array[ii]];
+                        vvy[ii] = vy[idx_array[ii]];
+                }
+                return new float[][] { vvx, vvy };
+        }
+
+
 	/**
 	 * Get line strip arrays for this strip.
 	 * 
@@ -5625,6 +5657,31 @@ class ContourStrip {
 		}
 		return new_colors;
 	}
+
+        /**
+         * Get the array of colors corresponding to cached indexes from start pair to stop pair (0-based, inclusive).
+         * 
+         * @param colors
+         *            Line array formatted colors where the first dimension is the
+         *            color dimension and the second the color values.
+         * @see {@link VisADLineArray}
+         * @return Array of colors in line array format.
+         */
+        byte[][] getColorArray(byte[][] colors, int start, int stop) {
+                if (colors == null)
+                        return null;
+                int clr_dim = colors.length;
+                int[] idx_array = idxs.toArray(start, stop);
+                byte[][] new_colors = new byte[clr_dim][idx_array.length];
+
+                for (int ii = 0; ii < idx_array.length; ii++) {
+                        for (int cc = 0; cc < clr_dim; cc++) {
+                                new_colors[cc][ii] = colors[cc][idx_array[ii]];
+                        }
+                }
+                return new_colors;
+        }
+
 
 	/**
 	 * Get the array of colors corresponding to cached indexes.
@@ -5926,4 +5983,28 @@ class IndexPairList {
 		}
 		return idxs;
 	}
+
+        /**
+         * Return array of this list's indices from start pair to stop pair index (0-based and inclusive). 
+         *
+         * @param start index of first pair.
+         * @param stop index of last pair.
+         * 
+         * @return array of length num of pairs (inclusive) times two.
+         */
+        int[] toArray(int start, int stop) {
+                int[] idxs = new int[(stop - start + 1)*2];
+                int pairIdx = 0;
+                Node n = first;
+                int cnt = 0;
+                while (pairIdx <= stop) {
+                     if (pairIdx >= start) {
+                        idxs[cnt++] = n.idx0;
+                        idxs[cnt++] = n.idx1;
+                     }
+                     n = n.next;
+                     pairIdx += 1;
+                }
+                return idxs;
+        }
 }
