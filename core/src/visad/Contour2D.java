@@ -4742,22 +4742,15 @@ class ContourStrip {
 			byte[] labelColor, Object labelFont, boolean labelAlign,
 			boolean sphericalDisplayCS) throws VisADException {
 
-		float[][] vv = getLineArray(vx, vy);
-		byte[][] bb = getColorArray(colors);
-                boolean hasColors = (bb != null);
-                int colArrDim = 3;
+                boolean hasColors = (colors != null);
 
-		// break up each line into chunks according to label frequency
-		int linArrDim = vv.length;
-		int linArrLen = vv[0].length;
+		int linArrLen = idxs.getNumIndices();
            
-                if (hasColors) {
-		   colArrDim = bb.length;
-                }
-		
-		int labelRepeat = linArrLen;
+		// break up each line into chunks according to label frequency
 		// Below heuristic can be tweaked if desired.  Just provides a
 		// label freq 1 to 9 mapping to point count for repeating the label
+
+                int labelRepeat = linArrLen;
 		switch (numLabels) {
 			case 1:
 				labelRepeat = linArrLen;
@@ -4781,23 +4774,16 @@ class ContourStrip {
 		int labelCount = linArrLen / labelRepeat;
 		int labelRemain = linArrLen % labelRepeat;
 		int labelsDone = 0;
-		
+
 		for (int i = 0; i < labelCount; i++) {
-			float[][] vvTmp = new float[linArrDim][labelRepeat];
-			for (int j = 0; j < linArrDim; j++) {
-				for (int k = 0; k < labelRepeat; k++) {
-					vvTmp[j][k] = vv[j][(i * labelRepeat) + k];
-				}
-			}
-             
+
+                        int start = i*labelRepeat/2;
+                        int stop = start + labelRepeat/2 - 1;
+
+                        float[][] vvTmp = getLineArray(vx, vy, start, stop);
                         byte[][] bbTmp = null;
                         if (hasColors) {
-			   bbTmp = new byte[colArrDim][labelRepeat];
-	                   for (int j = 0; j < colArrDim; j++) {
-				for (int k = 0; k < labelRepeat; k++) {
-					bbTmp[j][k] = bb[j][(i * labelRepeat) + k];
-				}
-		           }
+                           bbTmp = getColorArray(colors, start, stop);
                         }
 
 			processLineArrays(vvTmp, bbTmp, labelColor, labelFont, labelAlign,
@@ -4806,21 +4792,14 @@ class ContourStrip {
 		}
 		
 		if (labelRemain > 0) {
-			float[][] vvTmp = new float[linArrDim][labelRemain];
-			for (int j = 0; j < linArrDim; j++) {
-				for (int k = 0; k < labelRemain; k++) {
-					vvTmp[j][k] = vv[j][(labelsDone * labelRepeat) + k];
-				}
-			}
 
+                        int start = labelsDone*labelRepeat/2;
+                        int stop = start + labelRemain/2 - 1;
+
+                        float[][] vvTmp = getLineArray(vx, vy, start, stop);
                         byte[][] bbTmp = null;
                         if (hasColors) {
-			   bbTmp = new byte[colArrDim][labelRemain];
-	                   for (int j = 0; j < colArrDim; j++) {
-				for (int k = 0; k < labelRemain; k++) {
-					bbTmp[j][k] = bb[j][(labelsDone * labelRepeat) + k];
-				}
-                           }
+                           bbTmp = getColorArray(colors, start, stop);
                         }
 
 			processLineArrays(vvTmp, bbTmp, labelColor, labelFont, labelAlign,
@@ -5965,6 +5944,10 @@ class IndexPairList {
 		numIndices = 0;
 	}
 
+        int getNumIndices() {
+              return numIndices;
+        }
+
 	/**
 	 * Return array of this lists indices. Each nodes idx0 precedes it's idx1
 	 * with a total array length of <code>numIndices</code>.
@@ -5997,7 +5980,7 @@ class IndexPairList {
                 int pairIdx = 0;
                 Node n = first;
                 int cnt = 0;
-                while (pairIdx <= stop) {
+                while (pairIdx <= stop && n != null) {
                      if (pairIdx >= start) {
                         idxs[cnt++] = n.idx0;
                         idxs[cnt++] = n.idx1;
