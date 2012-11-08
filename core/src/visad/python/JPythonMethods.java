@@ -69,10 +69,10 @@ public abstract class JPythonMethods {
   private static DefaultFamily form = new DefaultFamily(ID);
 
   /** TODO */
-  private static final String[] ops = {"gt","ge","lt","le","eq","ne","ne"};
+  private static final String[] ops = {"gt","ge","lt","le","eq","ne","ne","ge","le"};
   
   /** TODO */
-  private static final String[] ops_sym = {">",">=","<","<=","==","!=","<>"};
+  private static final String[] ops_sym = {">",">=","<","<=","==","!=","<>","=>","=<"};
 
   /** Make a Hashtable available for everyone */
   public static Hashtable JyVars = new Hashtable();
@@ -3190,7 +3190,6 @@ public static void plot(final String name, final float[][] data)
       return null;
     }
 
-
     float[][] area = new float[1][nx * ny];
 
     int k = 0;
@@ -3496,7 +3495,7 @@ public static void plot(final String name, final float[][] data)
             } else {
               dv[i][k] = fail;
             }
-          } else if (oper == 1) {
+          } else if (oper == 1 || oper == 7) {
             if (dv[i][k] >= vv) {
               dv[i][k] = 1.0f;
             } else {
@@ -3508,7 +3507,7 @@ public static void plot(final String name, final float[][] data)
             } else {
               dv[i][k] = fail;
             }
-          } else if (oper == 3) {
+          } else if (oper == 3 || oper == 8) {
             if (dv[i][k] <= vv) {
               dv[i][k] = 1.0f;
             } else {
@@ -3520,13 +3519,7 @@ public static void plot(final String name, final float[][] data)
             } else {
               dv[i][k] = fail;
             }
-          } else if (oper == 5) {
-            if (dv[i][k] != vv) {
-              dv[i][k] = 1.0f;
-            } else {
-              dv[i][k] = fail;
-            }
-          } else {
+          } else {  // only 5 or 6 are left
             if (dv[i][k] != vv) {
               dv[i][k] = 1.0f;
             } else {
@@ -3551,14 +3544,16 @@ public static void plot(final String name, final float[][] data)
   }
 
   /**
-  * Mask out values outside the given range
+  * Mask out with 1.0's those values inside the given range;  set
+  *  values outside the range with zero or NaN.
   *
   * @param f  VisAD data object (FlatField or FieldImpl) as source
   * @param vmin The lower limit of the range
   * @param vmax  The upper limit of the range
   * @param useNaN  Set to true to use NaN as the "outside the range" value; otherwise, use zero.
   *
-  * The range is exclusive; that is vmin < values < vmax 
+  * The range is exclusive; that is if vmin < values < vmax then 1.0
+  * is returned.
   *
   * @return a FieldImpl with values of either 0 (or NaN, meaning: did not meet
   * criterion) or 1 (met criteron).
@@ -3572,8 +3567,53 @@ public static void plot(final String name, final float[][] data)
   * @throws RemoteException 
   *
   */
-  public static FieldImpl maskWithinRange(FieldImpl f, double vmin, double vmax, boolean useNaN)
-             throws VisADException, RemoteException {
+  public static FieldImpl maskWithinRange(FieldImpl f, double vmin, double vmax, boolean useNaN) throws VisADException, RemoteException {
+    return maskRange(f, vmin, vmax, useNaN, true);
+  }
+
+  /**
+  * Mask out with 1.0's those values outside the given range;
+  *  otherwise, set the values to zero or NaN.
+  *
+  * @param f  VisAD data object (FlatField or FieldImpl) as source
+  * @param vmin The lower limit of the range
+  * @param vmax  The upper limit of the range
+  * @param useNaN  Set to true to use NaN as the "not outside the range" value; otherwise, use zero.
+  *
+  * The range is exclusive; that is for values < vmin or values > vmax,
+  * the returned value will be 1.0.
+  *
+  * @return a FieldImpl with values of either 0 (or NaN, meaning: did not meet
+  * criterion) or 1 (met criteron).
+  *
+  * Example:  b = maskOutsideRange(a, 100, 200, true)
+  * if 'a' is an image, 'b' will be an image with values of
+  * 1 where values in 'a' were less than 'vmin' or greater than 'vmax' 
+  * and zero (or NaN) elsewhere.
+  *
+  * @throws VisADException 
+  * @throws RemoteException 
+  *
+  */
+
+  public static FieldImpl maskOutsideRange(FieldImpl f, double vmin, double vmax, boolean useNaN) throws VisADException, RemoteException {
+    return maskRange(f, vmin, vmax, useNaN, false);
+  }
+
+  /**  
+  *  mask range (within or not within)
+  *
+  * @param f  VisAD data object (FlatField or FieldImpl) as source
+  * @param vmin The lower limit of the range
+  * @param vmax  The upper limit of the range
+  * @param useNaN  Set to true to use NaN as the non-mask value; otherwise, use zero.
+  * @param doWithin  Set to true to do "within range", or false for "outside range"
+  *
+  * @return a FieldImpl with values of either 0 (or NaN, meaning: did not meet
+  * criterion) or 1 (met criteron).
+  *
+  */
+  private static FieldImpl maskRange(FieldImpl f, double vmin, double vmax, boolean useNaN, boolean doWithin) throws VisADException, RemoteException {
 
     FieldImpl fi = null;
     boolean isFI = false;
@@ -3626,10 +3666,19 @@ public static void plot(final String name, final float[][] data)
 
       for (int i=0; i<dv.length; i++) {
         for (int k=0; k<dv[i].length; k++) {
-          if (dv[i][k] > vmin && dv[i][k] < vmax) {
-            dv[i][k] = 1.0f;
+          if (doWithin) {
+            if (dv[i][k] > vmin && dv[i][k] < vmax) {
+              dv[i][k] = 1.0f;
+            } else {
+              dv[i][k] = fail;
+            }
+
           } else {
-            dv[i][k] = fail;
+            if (dv[i][k] < vmin || dv[i][k] > vmax) {
+              dv[i][k] = 1.0f;
+            } else {
+              dv[i][k] = fail;
+            }
           }
         }
       }
@@ -3714,17 +3763,15 @@ public static void plot(final String name, final float[][] data)
 
         if (oper == 0) {
           if (dv[i][k] > 0.0f) zz.add(Integer.valueOf(k));
-        } else if (oper == 1) {
+        } else if (oper == 1 || oper == 7) {
           if (dv[i][k] >= 0.0f) zz.add(Integer.valueOf(k));
         } else if (oper == 2) {
           if (dv[i][k] < 0.0f) zz.add(Integer.valueOf(k));
-        } else if (oper == 3) {
+        } else if (oper == 3 || oper == 8) {
           if (dv[i][k] <= 0.0f) zz.add(Integer.valueOf(k));
         } else if (oper == 4) {
           if (dv[i][k] == 0.0f) zz.add(Integer.valueOf(k));
-        } else if (oper == 5) {
-          if (dv[i][k] != 0.0f) zz.add(Integer.valueOf(k));
-        } else {
+        } else {  // only 5,6 are left
           if (dv[i][k] != 0.0f) zz.add(Integer.valueOf(k));
         }
       }
