@@ -4398,6 +4398,13 @@ class ContourStripSet {
 	 */
 	
 	void add(float[] vx, float[] vy, int idx0, int idx1, int lev_idx) {
+                float delx = vx[idx1] - vx[idx0];
+                float dely = vy[idx1] - vy[idx0];
+                // skip really small segments
+                if ((delx <= 0.0001 && delx >= -0.0001) && (dely <= 0.0001 && dely >= -0.0001)) {
+                    return;
+                }
+
 		vec = vecArray[lev_idx];
 		int n_strip = vec.size();
 
