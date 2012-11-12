@@ -1238,16 +1238,10 @@ public class Contour2D {
 					 */
 
 					if (ii == 6) { // - add last two pairs
-						ctrSet
-								.add(vx, vy, numv - 4, numv - 3, low + il, ir,
-										ic);
-						ctrSet
-								.add(vx, vy, numv - 2, numv - 1, low + il, ir,
-										ic);
+                                                ctrSet.add(vx, vy, numv - 4, numv - 3, low + il);
+                                                ctrSet.add(vx, vy, numv - 2, numv - 1, low + il);
 					} else {
-						ctrSet
-								.add(vx, vy, numv - 2, numv - 1, low + il, ir,
-										ic);
+                                                ctrSet.add(vx, vy, numv - 2, numv - 1, low + il);
 					}
 
 				} // for il -- NOTE: gg incremented in for statement
@@ -4277,6 +4271,11 @@ class ContourStripSet {
 	/**           */
 	List<ContourStrip> vec;
 
+        /** Closed strips by level. */
+	List<ContourStrip>[] closedStripArray;
+
+        List<ContourStrip> closedStripList;
+
 	/**           */
 	boolean[] swap;
 
@@ -4321,6 +4320,7 @@ class ContourStripSet {
 		labelIndexes = new int[n_levs][];
 		labelFreq = label_freq;
 		vecArray = new List[n_levs];
+                closedStripArray = new List[n_levs];
 		labelScale = ((0.062 * (1.0 / scale_ratio)) * label_size);
 		this.nr = nr;
 		this.nc = nc;
@@ -4329,6 +4329,7 @@ class ContourStripSet {
 
 		for (int kk = 0; kk < n_levs; kk++) {
 			vecArray[kk] = new ArrayList<ContourStrip>();
+			closedStripArray[kk] = new ArrayList<ContourStrip>();
 		}
 
 		qSet = new ContourQuadSet[n_levs];
@@ -4406,6 +4407,7 @@ class ContourStripSet {
                 }
 
 		vec = vecArray[lev_idx];
+                closedStripList = closedStripArray[lev_idx];
 		int n_strip = vec.size();
 
 		if (n_strip == 0) {
@@ -4419,6 +4421,11 @@ class ContourStripSet {
 				if (c_strp.addPair(vx, vy, idx0, idx1)) {
 					found_array[found] = kk;
 					found++;
+                                        if (c_strp.closed) { // take off main list, add to closed (done) list.
+                                           vec.remove(c_strp);
+                                           closedStripList.add(c_strp);
+                                           break;
+                                        }
 					// exit loop if we hit threshold value
 					if (found == 3) break;
 				}
@@ -4476,14 +4483,24 @@ class ContourStripSet {
 			boolean sphericalDisplayCS, int lev_idx, boolean[] dashed)
 			throws VisADException {
 
+                // open strips (must end on grid boundary)
 		int n_strips = vecArray[lev_idx].size();
-
 		for (int kk = 0; kk < n_strips; kk++) {
 			ContourStrip cs = vecArray[lev_idx].get(kk);
 			cs.isDashed = dashed[lev_idx];
 			cs.getLabeledLineColorArray(vx, vy, colors, labelColor, labelFont,
 					labelAlign, sphericalDisplayCS);
 		}
+
+                // closed strips
+                n_strips = closedStripArray[lev_idx].size();
+                for (int kk = 0; kk < n_strips; kk++) {
+                        ContourStrip cs = closedStripArray[lev_idx].get(kk);
+                        cs.isDashed = dashed[lev_idx];
+                        cs.getLabeledLineColorArray(vx, vy, colors, labelColor, labelFont,
+                                        labelAlign, sphericalDisplayCS);
+                }
+
 
 	}
 
@@ -4512,7 +4529,9 @@ class ContourStripSet {
 			boolean sphericalDisplayCS, boolean[] dashFlags)
 			throws VisADException {
               
+                /* Don't use the tiling logic for now.
 		makeContourStrips(vx, vy);
+                */
 
 		// set the line and color arrays for each level
 		for (int kk = 0; kk < n_levs; kk++) {
@@ -4653,6 +4672,8 @@ class ContourStrip {
 	/**           */
 	ContourStripSet css;
 
+        boolean closed = false;
+
 	/**
 	 * 
 	 * @param lev_idx
@@ -4685,10 +4706,7 @@ class ContourStrip {
 	boolean addPair(float[] vx, float[] vy, int idx0, int idx1) {
 
 		// test for closed strip, bail out early if found
-		if ((idxs.numIndices > 2) && 
-			(vx[idxs.first.idx0] == vx[idxs.last.idx1]) && (vy[idxs.first.idx0] == vy[idxs.last.idx1])) {
-		     return false;
-		} 
+                if (closed) return false;
  
                 float delta = 0.001f;
 		   
@@ -4704,12 +4722,14 @@ class ContourStrip {
                 float dely = vy0 - vy_s;
                 if ((delx > -delta && delx < delta) && (dely > -delta && dely < delta)) {
 			idxs.addFirst(idx1, idx0);
+                        setIsClosed(vx, vy);
 			return true;
 		}
                 delx = vx1 - vx_s;
                 dely = vy1 - vy_s;
                 if ((delx > -delta && delx < delta) && (dely > -delta && dely < delta)) {
 			idxs.addFirst(idx0, idx1);
+                        setIsClosed(vx, vy);
 			return true;
 		}
 
@@ -4719,17 +4739,29 @@ class ContourStrip {
                 dely = vy0 - vy_s;
                 if ((delx > -delta && delx < delta) && (dely > -delta && dely < delta)) {
 			idxs.addLast(idx0, idx1);
+                        setIsClosed(vx, vy);
 			return true;
 		}
                 delx = vx1 - vx_s;
                 dely = vy1 - vy_s;
                 if ((delx > -delta && delx < delta) && (dely > -delta && dely < delta)) {
 			idxs.addLast(idx1, idx0);
+                        setIsClosed(vx, vy);
 			return true;
 		}
 
 		return false;
 	}
+
+        /** Check if endpoints are equal and set the closed flag.
+         */
+        void setIsClosed(float[] vx, float[] vy) {
+           float delta = 0.001f;
+           float delx = vx[idxs.first.idx0] - vx[idxs.last.idx1];
+           float dely = vy[idxs.first.idx0] - vy[idxs.last.idx1];
+           closed = ((idxs.numIndices > 2) && (delx > -delta && delx < delta) && (dely > -delta && dely < delta));
+        }
+
 
 	/**
 	 * 
