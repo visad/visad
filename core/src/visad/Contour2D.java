@@ -5044,7 +5044,7 @@ class ContourStrip {
 		if (start_break >= 4 && stop_break <= totalPts * 2 - 3)
 			doLabel = true;
 
-		if (doLabel && ((lev_idx & 1) == 1)) {
+		if (doLabel && ((lev_idx & 1) == 1) || (css.n_levs == 1)) {
 
 			/*-------LABEL START --------------------*/
 			float[] ctr_u = null;
