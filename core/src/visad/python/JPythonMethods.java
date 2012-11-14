@@ -3805,6 +3805,51 @@ public static void plot(final String name, final float[][] data)
   */
   public static int[] findWithinRange(FieldImpl f, double vmin, double vmax)
              throws VisADException, RemoteException {
+    return findByRange(f, vmin, vmax, true);
+  }
+
+
+  /**
+  * Get a list of points where values fall outside the given range
+  *
+  * @param f  VisAD data object (usually FlatField) as source
+  * @param vmin The minimum value for the range
+  * @param vmax  The maximum value for the range
+  *
+  * @return an int[] containing the sampling indecies where
+  * the values fall within the range (value < vmin or value > vmax )
+  *
+  * Example:  b = findOutsideRange(a, 100, 200)
+  * if 'a' is an image, 'b' will be a list of indecies in
+  * 'a' where the values are less than 'vmin' or greater than 'vmax'
+  *
+  * @throws VisADException 
+  * @throws RemoteException 
+  *
+  */
+  public static int[] findOutsideRange(FieldImpl f, double vmin, double vmax)
+             throws VisADException, RemoteException {
+    return findByRange(f, vmin, vmax, false);
+  }
+
+  /**
+  * Get a list of point that are inside or outside the given range
+  *
+  * @param f the VisAD Object
+  * @param vmin The minimum value for the range
+  * @param vmax  The maximum value for the range
+  * @param doWith  Set to true to do within the range; false otherwise
+  *
+  * @return an int[] containing the sampling indecies where
+  * the values fall within the range (that is, vmin > value > vmax )
+  * the values fall outside the range (value < vmin or value > vmax )
+  *
+  * @throws VisADException 
+  * @throws RemoteException 
+  *
+  */
+  private static int[] findByRange(FieldImpl f, double vmin, double vmax, boolean doWithin) 
+             throws VisADException, RemoteException {
     float[][] dv;
     if (f instanceof FlatField) {
       dv = ((FlatField)f).getFloats(false);
@@ -3815,7 +3860,11 @@ public static void plot(final String name, final float[][] data)
 
     for (int i=0; i<1; i++) {
       for (int k=0; k<dv[i].length; k++) {
-        if (dv[i][k] > vmin && dv[i][k] < vmax) zz.add(Integer.valueOf(k));
+        if (doWithin) {
+          if (dv[i][k] > vmin && dv[i][k] < vmax) zz.add(Integer.valueOf(k));
+        } else {
+          if (dv[i][k] < vmin || dv[i][k] > vmax) zz.add(Integer.valueOf(k));
+        }
       }
     }
 
@@ -3826,8 +3875,6 @@ public static void plot(final String name, final float[][] data)
     }
     return rv;
   }
-
-
 
   /** resample the data field into the defined domain set
   *
