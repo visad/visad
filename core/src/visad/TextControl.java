@@ -110,12 +110,19 @@ public class TextControl extends Control {
     MouseBehavior mouse = dr.getMouseBehavior();
     ProjectionControl pc = display.getProjectionControl();
     if (auto) {
-      pcl = new ProjectionControlListener(mouse, this, pc);
-      pc.addControlListener(pcl);
+      if (pcl == null) {
+        pcl = new ProjectionControlListener(mouse, this, pc);
+        pc.addControlListener(pcl);
+      }
     }
+    if (pcl != null) {
+      pcl.setActive(auto);
+    }
+    /*
     else {
       pc.removeControlListener(pcl);
     }
+    */
     autoSize = auto;
     try {
       changeControl(true);
@@ -600,6 +607,7 @@ public class TextControl extends Control {
     private double base_scale = 1.0;
     private float last_cscale = 1.0f;
     private double base_size = 1.0;
+    private boolean active = false;
 
     ProjectionControlListener(MouseBehavior m, TextControl t,
                               ProjectionControl p) {
@@ -607,9 +615,14 @@ public class TextControl extends Control {
       text_control = t;
       pcontrol = p;
     }
+    
+    public void setActive(boolean onoroff) {
+      active = onoroff;
+    }
 
     public void controlChanged(ControlEvent e)
            throws VisADException, RemoteException {
+      if (!active) return;
       double[] matrix = pcontrol.getMatrix();
       double[] rot = new double[3];
       double[] scale = new double[3];
