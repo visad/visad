@@ -1679,8 +1679,10 @@ class LabelTransform {
     Vector3f trans_vec = new Vector3f(f_scale * anchr_vertex[0], f_scale
         * anchr_vertex[1], f_scale * anchr_vertex[2]);
 
-    t3d.set((float) factor, trans_vec);
-
-    trans.setTransform(t3d);
+    //  These can't all be zero: non-affine transform
+    if (!(factor == 0.0 && (trans_vec.x == 0.0 && trans_vec.y == 0.0 && trans_vec.z == 0.0))) {
+      t3d.set((float) factor, trans_vec);
+      trans.setTransform(t3d);
+    }
   }
 }
