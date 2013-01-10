@@ -108,7 +108,8 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
   //- Ghansham (New variables introduced to preserve scaled values and colorTables)
   private byte scaled_Bytes[][];  //scaled byte values 
   private float scaled_Floats[][];  //scaled Float Values
-  private float rset_scalarmap_lookup[][]; //GHANSHAM:30AUG2011 create a lookup for rset FlatField range values
+  //private float rset_scalarmap_lookup[][]; //GHANSHAM:30AUG2011 create a lookup for rset FlatField range values
+  private int rset_scalarmap_lookup[][]; //GHANSHAM:12NOV2012 create a lookup for rset FlatField range values on integer values
 
   private byte[][] itable; //For single band
   private byte[][] fast_table; //For fast_lookup
@@ -283,7 +284,9 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                 		app.setTransparencyAttributes(transp_attribs);
             		} 
 			//Set transparency value = (1.0f - constant_alpha) for GreyScale textures and constant_alpha for Colored textures
-			transp_attribs.setTransparency((new_image_type == BufferedImage.TYPE_BYTE_GRAY)? (1.0f - constant_alpha): constant_alpha);
+			//12NOV12: GHANSHAM Use inverse alpha logic for 3 byte images too
+                        boolean inversed_alpha = new_image_type == BufferedImage.TYPE_3BYTE_BGR || new_image_type == BufferedImage.TYPE_BYTE_GRAY;
+			transp_attribs.setTransparency(inversed_alpha? (1.0f - constant_alpha): constant_alpha);
 		}
         }
     }
@@ -553,13 +556,30 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                 BaseColorControl bcc = (BaseColorControl) cmap.getControl();
                 float[][] color_table = bcc.getTable();
                 if (null != color_table) {
-                        if (isColorTableGrey(color_table)) {
+			//12NOV2012:  New Logic->truncate 4-byte buffered image to 3-byte buffered image if alpha is constant
+			//Save some more space. (1-byte per pixel for constant alpha imagery
+			if (isAlphaConstant(color_table)) {
+                                if (isColorTableGrey(color_table)) {
+                                        imageType = BufferedImage.TYPE_BYTE_GRAY;
+                                        color_length = 1;
+                                        if (hasAlpha) { //In case alpha channel is present
+                                                constant_alpha = color_table[3][0];
+                                        }
+                                } else {
+                                        imageType = BufferedImage.TYPE_3BYTE_BGR;
+                                        color_length = 3;
+                                        if (hasAlpha) { //In case alpha channel is present
+                                                constant_alpha = color_table[3][0];
+                                        }
+                                }
+                        }
+                        /*if (isColorTableGrey(color_table)) {
                                 imageType = BufferedImage.TYPE_BYTE_GRAY;
                                 color_length = 1;
                                 if (hasAlpha) { //In case alpha channel is present
                                         constant_alpha = color_table[3][0];
                                 }
-                        }
+                        }*/
                 }
         }
 	//GHANSHAM: 01MAR2012 GreyScale Texture Support (ends here)
@@ -838,11 +858,13 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                       		data_width, data_height, imageType, tile,  0);
 		}
 	        if (regen_geom) { //REUSE: REGEN GEOM regenerate 
+			//12NOV2012:Modified buildCurvedTexture
           		buildCurvedTexture(bgImages, domain_set, dataUnits, domain_units, default_values, DomainComponents,
                              valueArrayLength, inherited_values, valueToScalar, mode, constant_alpha,
                              value_array, constant_color, display, curved_size, Domain,
                              dataCoordinateSystem, renderer, adaptedShadowType, new int[] {0,0},
-                             domain_lens[0], domain_lens[1], null, domain_lens[0], domain_lens[1], tile);
+                             //domain_lens[0], domain_lens[1], null, domain_lens[0], domain_lens[1], tile);
+                             domain_lens[0], domain_lens[1], domain_lens[0], domain_lens[1], tile);
 		} else { //REUSE Reuse the branch fully along with geometry. Just apply the colorbytes(Buffered Image)
 			BranchGroup Branch_L1 = (BranchGroup) bgImages.getChild(0);
                     	Shape3D shape = (Shape3D) Branch_L1.getChild(0);
@@ -851,7 +873,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
         }
         else
         {
-          float[][] samples = ((GriddedSet)domain_set).getSamples(false);
 
 	  BranchGroup branch = null;
 	if (!reuseImages || (regen_colbytes && regen_geom)) {  //REUSE: Make a fresh branch
@@ -864,6 +885,10 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 		branch = (BranchGroup) bgImages.getChild(0);
           } 
 	  int branch_tile_indx = 0; //REUSE: to get the branch for a tile in case of multi-tile rendering
+	  /*float[][] samples = null;
+	  if (regen_geom) {
+		samples = ((GriddedSet)domain_set).getSamples(false);
+	  }*/
           for (Iterator iter = imgNode.getTileIterator(); iter.hasNext();) {
              VisADImageTile tile = (VisADImageTile) iter.next();
 		if (regen_colbytes) { //REUSE COLBYTES: regenerate only if required
@@ -884,12 +909,14 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 				branch1 = (BranchGroup) branch.getChild(branch_tile_indx);
 			}
 			
-             		buildCurvedTexture(branch1, null, dataUnits, domain_units, default_values, DomainComponents,
+			//12NOV2012:Modified buildCurvedTexture
+             		buildCurvedTexture(branch1, domain_set, dataUnits, domain_units, default_values, DomainComponents,
                                 valueArrayLength, inherited_values, valueToScalar, mode, constant_alpha,
                                 value_array, constant_color, display, curved_size, Domain,
                                 dataCoordinateSystem, renderer, adaptedShadowType, 
                                 new int[] {tile.xStart,tile.yStart}, tile.width, tile.height,
-                                samples, domain_lens[0], domain_lens[1], tile);
+                                //samples, domain_lens[0], domain_lens[1], tile);
+                                domain_lens[0], domain_lens[1], tile);
 
 			if (!reuseImages || (regen_colbytes && regen_geom)) { //REUSE: Add newly created branch 
                               branch.addChild(branch1);
@@ -976,6 +1003,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 //GHANSHAM: 01MAR2012 GreyScale Texture New Function
 //This function decides whether colortable is grey scale or not
 //It also ensures that alpha value is constant for an RGBA ColorTable float[4][]
+//12NOV2012: Removed Alpha constant Logic from here
 private boolean isColorTableGrey(float[][] color_table) {
         boolean rgb_same = true;
         for (int i = 0; i < color_table[0].length; i++) {
@@ -984,7 +1012,7 @@ private boolean isColorTableGrey(float[][] color_table) {
                         break;
                 }
         }
-        boolean alpha_same = true;
+        /*boolean alpha_same = true;
         if (4 == color_table.length) {  //check alpha value is constant through out the look up table
                 float first_alpha = color_table[3][0];
                 for (int i =1; i < color_table[3].length; i++) {
@@ -993,9 +1021,27 @@ private boolean isColorTableGrey(float[][] color_table) {
                                 break;
                         }
                 }
-        }
-        return (rgb_same && alpha_same);
+        }*/
+        //return (rgb_same && alpha_same);
+	return rgb_same;
 }
+
+//12NOV2012: Separate Function to test if alpha is constant in lookup table
+private boolean isAlphaConstant(float[][] color_table) {
+        boolean alpha_same = true;
+        if (4 == color_table.length) {  //check alpha value is constant through out the look up table
+		int table_len = color_table[3].length;
+                float first_alpha = color_table[3][0];
+                for (int i =1; i < table_len; i++) {
+                        if (first_alpha != color_table[3][i]) {
+                                alpha_same = false;
+                                break;
+                        }
+                }
+        }
+        return alpha_same;
+}
+
 
 // This function calls makeColorBytes function (Ghansham)
 public void makeColorBytesDriver(Data imgFlatField, ScalarMap cmap, ScalarMap[] cmaps, float constant_alpha,
@@ -1032,7 +1078,7 @@ public void makeColorBytesDriver(Data imgFlatField, ScalarMap cmap, ScalarMap[] 
        DataBuffer db = raster.getDataBuffer();
        byteData = ((DataBufferByte)db).getData();
        java.util.Arrays.fill(byteData, (byte)0);
-       	makeColorBytes(imgFlatField, cmap, cmaps, constant_alpha, RangeComponents, color_length, domain_length, permute,
+       makeColorBytes(imgFlatField, cmap, cmaps, constant_alpha, RangeComponents, color_length, domain_length, permute,
                     byteData,
                     data_width, data_height, tile_width, tile_height, xStart, yStart, texture_width, texture_height);
 }
@@ -1124,19 +1170,19 @@ throws VisADException, RemoteException {
 						int j = bytes0[i] & 0xff; // unsigned
 						// clip to table
 						int ndx = j < 0 ? 0 : (j > tblEnd ? tblEnd : j);
-						if (color_length == 4) {
+						//12NOV2012: Changed the order to 1, 3, 4 from 4, 3 1 and also put else-if. No need to check other if's if it is executed
+						//Reason: According to the probabilities. Grey Scale, 3-band RGB, 4-band only used in rare cases like: volume rendering
+						if (color_length == 1) {
+							byteData[k] = itable[ndx][0];
+						} else if (color_length == 3) {
+							byteData[k] = itable[ndx][2];
+							byteData[k+1] = itable[ndx][1];
+							byteData[k+2] = itable[ndx][0];
+						} else if (color_length == 4) {
 							byteData[k] = itable[ndx][3];
 							byteData[k+1] = itable[ndx][2];
 							byteData[k+2] = itable[ndx][1];
 							byteData[k+3] = itable[ndx][0];
-						}
-						if (color_length == 3) {
-							byteData[k] = itable[ndx][2];
-							byteData[k+1] = itable[ndx][1];
-							byteData[k+2] = itable[ndx][0];
-						}
-						if (color_length == 1) {
-							byteData[k] = itable[ndx][0];
 						}
 						k += color_length;
 					}
@@ -1175,29 +1221,35 @@ throws VisADException, RemoteException {
 				byte[] bytes0 = scaled_Bytes[0];
 
 				int k = 0;
-				int color_length_times_texture_width = texture_width*color_length;
+				//int color_length_times_texture_width = texture_width*color_length;
+				int image_col_offset = yStart*data_width + xStart;
+				int image_col_factor = image_col_offset;
+                                int pot_texture_offset = color_length*(texture_width-tile_width);
+				//Strength Reduction: Replacing multiplications with Addition 12NOV2012
 				for (int y=0; y<tile_height; y++) {
-					int image_col_factor = (y+yStart)*data_width + xStart;
-					k = y*color_length_times_texture_width;
+					/*int image_col_factor = (y+yStart)*data_width + xStart;
+					k = y*color_length_times_texture_width;*/
 					for (int x=0; x<tile_width; x++) {
 						int i = x + image_col_factor;
 						int ndx = ((int) bytes0[i]) - MISSING1;
-						if (color_length == 4) {
+						//12NOV2012: Changed the order to 1, 3, 4 from 4, 3 1 and also put else-if. No need to check other if's if it is executed
+						//Reason: According to the probabilities. Grey Scale, 3-band RGB, 4-band only used in rare cases like: volume rendering
+						if (color_length == 1) {
+							byteData[k] = itable[ndx][0];
+						} else if (color_length == 3) {
+							byteData[k] = itable[ndx][2];
+							byteData[k+1] = itable[ndx][1];
+							byteData[k+2] = itable[ndx][0];
+						} else if (color_length == 4) {
 							byteData[k] = itable[ndx][3];
 							byteData[k+1] = itable[ndx][2];
 							byteData[k+2] = itable[ndx][1];
 							byteData[k+3] = itable[ndx][0];
 						}
-						if (color_length == 3) {
-							byteData[k] = itable[ndx][2];
-							byteData[k+1] = itable[ndx][1];
-							byteData[k+2] = itable[ndx][0];
-						}
-						if (color_length == 1) {
-							byteData[k] = itable[ndx][0];
-						}
 						k+=color_length;
 					}
+					k += pot_texture_offset;
+                                        image_col_factor += data_width;
 				}
 			} else {
 				// medium speed way to build texture colors
@@ -1206,11 +1258,27 @@ throws VisADException, RemoteException {
 					scaled_Floats = ((Field) data).getFloats(false);
 					//GHANSHAM:30AUG2011 If rset can be used to create a lookup for range values, create them
 					if (rset instanceof Integer1DSet) {
-						rset_scalarmap_lookup = new float[1][rset.getLength()];
+						//12NOV2012: NEW LOGIC for Range Set map Lookup (starts here)
+						//This logic stores indices of lookup table from where color values will be picked up
+						//Earlier it was scaled 0...1 values. 
+						int rset_len = rset.getLength();
+						float temp_lookup[] = new float[rset_len];
+						for (int i = 0; i < rset_len; i++) {	
+							temp_lookup[i] = i;
+						}
+						temp_lookup = cmap.scaleValues(temp_lookup, false);
+						rset_scalarmap_lookup = new int[1][rset_len];
+						for (int i = 0; i < rset_len; i++) {
+							rset_scalarmap_lookup[0][i] = (int)(table_scale*temp_lookup[i]);
+						}
+						temp_lookup = null;
+						//12NOV2012: NEW LOGIC for  Range Set map Lookup (ends here)
+
+						/*rset_scalarmap_lookup = new float[1][rset.getLength()];
 						for (int i = 0; i < rset_scalarmap_lookup[0].length; i++) {
 							rset_scalarmap_lookup[0][i] = i;
 						}
-						rset_scalarmap_lookup[0] = cmap.scaleValues(rset_scalarmap_lookup[0], false);
+						rset_scalarmap_lookup[0] = cmap.scaleValues(rset_scalarmap_lookup[0], false);*/
 					} else {
 						scaled_Floats[0] = cmap.scaleValues(scaled_Floats[0]);
 					}
@@ -1218,41 +1286,53 @@ throws VisADException, RemoteException {
 				// now do fast lookup from byte values to color bytes
 				float[] values0 = scaled_Floats[0];
 				int k = 0;
-				int color_length_times_texture_width = texture_width*color_length;
+				//int color_length_times_texture_width = texture_width*color_length;
 				int image_col_offset = yStart*data_width + xStart;
 				int image_col_factor = 0;
+				int pot_texture_offset;
+				boolean use_lookup = null != rset_scalarmap_lookup && null != rset_scalarmap_lookup[0];
+				image_col_factor = image_col_offset; 
+				pot_texture_offset = color_length*(texture_width-tile_width);
+				//Strength Reduction: Replacing multiplications with Addition 12NOV2012
 				for (int y=0; y<tile_height; y++) {
-					image_col_factor = y*data_width+image_col_offset;
-					k = y*color_length_times_texture_width;
+					//image_col_factor = y*data_width+image_col_offset;
+					//k = y*color_length_times_texture_width;
 					for (int x=0; x<tile_width; x++) {
 						int i = x + image_col_factor;
 						if (!Float.isNaN(values0[i])) { // not missing
 							int j = 0;
-						//GHANSHAM:30AUG2011 Use the rset lookup to find scaled Range Values
-						if (null != rset_scalarmap_lookup && null != rset_scalarmap_lookup[0]) {
-							j = (int) (table_scale*rset_scalarmap_lookup[0][(int)values0[i]]);
-						} else {
-							j = (int) (table_scale*values0[i]);
-						}
-						// clip to table
-						int ndx = j < 0 ? 0 : (j > tblEnd ? tblEnd : j);
-						if (color_length == 4) {
-							byteData[k] = itable[ndx][3];
-							byteData[k+1] = itable[ndx][2];
-							byteData[k+2] = itable[ndx][1];
-							byteData[k+3] = itable[ndx][0];
-						}
-						if (color_length == 3) {
-							byteData[k] = itable[ndx][2];
-							byteData[k+1] = itable[ndx][1];
-							byteData[k+2] = itable[ndx][0];
-						}
-						if (color_length == 1) {
-							byteData[k] = itable[ndx][0];
-						}
+							//GHANSHAM:30AUG2011 Use the rset lookup to find scaled Range Values
+							if (use_lookup) {
+								//12NOV2012: NEW LOGIC for Range Set map Lookup
+								//It simply finds index from lookup created above. 
+								//It does away with the multiplication of scaled value with lookup table length.
+								//The indices have been calculated once and for all. Usable for count data only.
+								//j = (int) (table_scale*rset_scalarmap_lookup[0][(int)values0[i]]);
+								j = (int) rset_scalarmap_lookup[0][(int)values0[i]];
+							} else {
+								j = (int) (table_scale*values0[i]);
+							}
+							// clip to table
+							int ndx = j < 0 ? 0 : (j > tblEnd ? tblEnd : j);
+							//12NOV2012: Changed the order to 1, 3, 4 from 4, 3 1 and also put else-if. No need to check other if's if it is executed
+							//Reason: According to the probabilities. Grey Scale, 3-band RGB, 4-band only used in rare cases like: volume rendering
+							if (color_length == 1) {
+								byteData[k] = itable[ndx][0];
+							} else if (color_length == 3) {
+								byteData[k] = itable[ndx][2];
+								byteData[k+1] = itable[ndx][1];
+								byteData[k+2] = itable[ndx][0];
+							} else if (color_length == 4) {
+								byteData[k] = itable[ndx][3];
+								byteData[k+1] = itable[ndx][2];
+								byteData[k+2] = itable[ndx][1];
+								byteData[k+3] = itable[ndx][0];
+							}
 						}
 						k+=color_length;
 					}
+					k += pot_texture_offset;
+					image_col_factor += data_width;
 				}
 			}
 		} else { // if (table == null)
@@ -1272,42 +1352,47 @@ throws VisADException, RemoteException {
 			int c = (int) (255.0 * (1.0f - constant_alpha));
 			int a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
 			int k = 0;
-			int color_length_times_texture_width = texture_width*color_length;
+			//int color_length_times_texture_width = texture_width*color_length;
 			int image_col_offset = yStart*data_width + xStart;
-			int image_col_factor = 0;
+			//int image_col_factor = 0;
+			int image_col_factor = image_col_offset;
+                        int pot_texture_offset = color_length*(texture_width-tile_width);
+			//Strength Reduction: Replacing multiplications with Addition 12NOV2012
 			for (int y=0; y<tile_height; y++) {
-				image_col_factor = y*data_width+image_col_offset;
-				k = y*color_length_times_texture_width;
+				/*image_col_factor = y*data_width+image_col_offset;
+				k = y*color_length_times_texture_width;*/
 				for (int x=0; x<tile_width; x++) {
 					int i = x + image_col_factor;
 					if (!Float.isNaN(scaled_Floats[0][i])) { // not missing
 						c = (int) (255.0 * color_values[0][i]);
-					r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-					c = (int) (255.0 * color_values[1][i]);
-					g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-					c = (int) (255.0 * color_values[2][i]);
-					b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-					if (color_length == 4) {
-						c = (int) (255.0 * color_values[3][i]);
-						a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
-					}
-					if (color_length == 4) {
-						byteData[k] = (byte) a;
-						byteData[k+1] = (byte) b;
-						byteData[k+2] = (byte) g;
-						byteData[k+3] = (byte) r;
-					}
-					if (color_length == 3) {
-						byteData[k] = (byte) b;
-						byteData[k+1] = (byte) g;
-						byteData[k+2] = (byte) r;
-					}
-					if (color_length == 1) {
-						byteData[k] = (byte) b;
-					}	
+						r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+						c = (int) (255.0 * color_values[1][i]);
+						g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+						c = (int) (255.0 * color_values[2][i]);
+						b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+						if (color_length == 4) {
+							c = (int) (255.0 * color_values[3][i]);
+							a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
+						}
+						//12NOV2012: Changed the order to 1, 3, 4 from 4, 3 1 and also put else-if. No need to check other if's if it is executed
+						//Reason: According to the probabilities. Grey Scale, 3-band RGB, 4-band only used in rare cases like: volume rendering
+						if (color_length == 1) {
+							byteData[k] = (byte) b;
+						} else if (color_length == 3) {
+							byteData[k] = (byte) b;
+							byteData[k+1] = (byte) g;
+							byteData[k+2] = (byte) r;
+						} else if (color_length == 4) {
+							byteData[k] = (byte) a;
+							byteData[k+1] = (byte) b;
+							byteData[k+2] = (byte) g;
+							byteData[k+3] = (byte) r;
+						}
 					}
 					k+=color_length;
 				}
+				k += pot_texture_offset;
+				image_col_factor += data_width;
 			}
 		}
 	} else if (cmaps != null) {
@@ -1388,38 +1473,51 @@ throws VisADException, RemoteException {
 
 				}
 			} else { //Inserted by Ghansham (Ends here)
-			int data_indx = 0;
-			int texture_index = 0;
-			c = 0;
-			if (color_length == 4) {
-				c = (int) (255.0 * (1.0f - constant_alpha));
-			}
-			//IFF:with (Red,Green,Blue) or (Red,Green,Blue,Alpha) as mapping
-			int color_length_times_texture_width = color_length*texture_width;
-			int image_col_offset = yStart*data_width + xStart;
-			int image_col_factor = 0;
-			for (int y=0; y<tile_height; y++) {
-				image_col_factor = y*data_width + image_col_offset;
-				texture_index = y*color_length_times_texture_width;
-				for (int x=0; x<tile_width; x++) {
-					data_indx = x + image_col_factor;
-					if (color_length == 4) {
-						byteData[texture_index] =   (byte)c; //a
-						byteData[texture_index+1] = scaled_Bytes[2][data_indx]; //b
-						byteData[texture_index+2] = scaled_Bytes[1][data_indx]; //g
-						byteData[texture_index+3] = scaled_Bytes[0][data_indx]; //r
-
-					} else {
-						byteData[texture_index] = scaled_Bytes[2][data_indx]; //b
-						byteData[texture_index+1] = scaled_Bytes[1][data_indx]; //g
-						byteData[texture_index+2] = scaled_Bytes[0][data_indx]; //r
+				int data_indx = 0;
+				int texture_index = 0;
+				c = 0;
+				if (color_length == 4) {
+					c = (int) (255.0 * (1.0f - constant_alpha));
+				}
+				//IFF:with (Red,Green,Blue) or (Red,Green,Blue,Alpha) as mapping
+				//int color_length_times_texture_width = color_length*texture_width;
+				int image_col_offset = yStart*data_width + xStart;
+				//int image_col_factor = 0;
+				int image_col_factor = image_col_offset;
+				int pot_texture_offset = color_length*(texture_width-data_width);
+				//Strength Reduction: Replacing multiplications with Addition 12NOV2012
+				for (int y=0; y<tile_height; y++) {
+					/*image_col_factor = y*data_width + image_col_offset;
+					texture_index = y*color_length_times_texture_width;*/
+					for (int x=0; x<tile_width; x++) {
+						data_indx = x + image_col_factor;
+						//12NOV2012: We expect 3-Byte RGB to be more common case than 4-byte RGB
+						if (color_length == 3) {
+							byteData[texture_index] = scaled_Bytes[2][data_indx]; //b
+							byteData[texture_index+1] = scaled_Bytes[1][data_indx]; //g
+							byteData[texture_index+2] = scaled_Bytes[0][data_indx]; //r
+						} else {
+							byteData[texture_index] =   (byte)c; //a
+							byteData[texture_index+1] = scaled_Bytes[2][data_indx]; //b
+							byteData[texture_index+2] = scaled_Bytes[1][data_indx]; //g
+							byteData[texture_index+3] = scaled_Bytes[0][data_indx]; //r
+						}
+						texture_index += color_length;
 					}
-					texture_index += color_length;
+					texture_index += pot_texture_offset;
+					image_col_factor += data_width;
 				}
 			}
-
-			}
 		} else {
+			int RGB_tableEnd[] = null;;
+			//GHANSHAM:30AUG2011 Create tableLengths for each of the tables separately rather than single table_length. More safe
+                        if  (isRGBRGBRGB) {
+                                RGB_tableEnd = new int[threeD_itable.length];
+                                for (int indx = 0; indx < threeD_itable.length; indx++) {
+                                        RGB_tableEnd[indx]= threeD_itable[permute[indx]].length - 1;
+                                }
+                        }
+
 			if (first_time) {
 				float[][] values = ((Field) data).getFloats(false);
 				scaled_Floats = new float[3][];
@@ -1427,14 +1525,34 @@ throws VisADException, RemoteException {
 					//GHANSHAM:30AUG2011 Use the rset lookup to find scaled Range Values	
 					if (rsets != null) {
 						if (rsets[permute[i]] instanceof Integer1DSet) {
+							//12NOV2012: NEW LOGIC for Range Set map Lookup (starts here)
+							//This logic stores indices of lookup table from where color values will be picked up
+							//Earlier it was scaled 0...1 values. 
 							if (null == rset_scalarmap_lookup) {
-								rset_scalarmap_lookup = new float[3][];
+								//rset_scalarmap_lookup = new float[3][];
+								rset_scalarmap_lookup = new int[3][];
 							}
-							rset_scalarmap_lookup[i] = new float[rsets[permute[i]].getLength()];
+							int rset_len = rsets[permute[i]].getLength();
+							float temp_lookup[] = new float[rset_len];
+							for (int j = 0; j < rset_len; j++) {
+                                                                temp_lookup[j] = j;
+                                                        }
+							temp_lookup = cmaps[permute[i]].scaleValues(temp_lookup, false);
+							int table_scale = 0;
+							if (isRGBRGBRGB) {
+								table_scale = RGB_tableEnd[i];
+							} else {
+								table_scale = 255;
+							}
+							for (int j = 0; j < rset_len; j++) {
+								rset_scalarmap_lookup[i][j] = (int)(table_scale*temp_lookup[j]);
+							}
+							temp_lookup = null;
+							/*rset_scalarmap_lookup[i] = new float[rsets[permute[i]].getLength()];
 							for (int j = 0; j < rset_scalarmap_lookup[i].length; j++) {
 								rset_scalarmap_lookup[i][j] = j;
 							}
-							rset_scalarmap_lookup[i] = cmaps[permute[i]].scaleValues(rset_scalarmap_lookup[i], false);
+							rset_scalarmap_lookup[i] = cmaps[permute[i]].scaleValues(rset_scalarmap_lookup[i], false);*/
 							scaled_Floats[i] = values[permute[i]];
 						} else {
 							scaled_Floats[i] = cmaps[permute[i]].scaleValues(values[permute[i]]);
@@ -1447,91 +1565,98 @@ throws VisADException, RemoteException {
 			c = (int) (255.0 * (1.0f - constant_alpha));
 			int a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
 			int m = 0;
-			//GHANSHAM:30AUG2011 Create tableLengths for each of the tables separately rather than single table_length. More safe
-			int RGB_tableEnd[] = null;;
-			if  (isRGBRGBRGB) {
-				RGB_tableEnd = new int[threeD_itable.length];
-				for (int indx = 0; indx < threeD_itable.length; indx++) {
-					RGB_tableEnd[indx]= threeD_itable[indx].length - 1;
-				}
-			}
 			int k = 0;
-			int color_length_times_texture_width = color_length*texture_width;
+			//int color_length_times_texture_width = color_length*texture_width;
 			int image_col_offset = yStart*data_width + xStart;
-			int image_col_factor = 0;
+			//int image_col_factor = 0;
+			int image_col_factor = image_col_offset;
+			int pot_texture_offset = color_length*(texture_width-tile_width);
+			//12NOV2012: Evaluate boolean variables once and use them within the loop.
+			//No need to evaluate them in the loop. Compiler Optimization: Loop Invariant Code Motion.
+			boolean use_lookup_red = (rset_scalarmap_lookup != null && rset_scalarmap_lookup[0] != null);
+			boolean use_lookup_grn = (rset_scalarmap_lookup != null && rset_scalarmap_lookup[1] != null);
+			boolean use_lookup_blu = (rset_scalarmap_lookup != null && rset_scalarmap_lookup[2] != null);
+			//12NOV2012: NEW LOGIC for Range Set map Lookup
+			//It simply finds index from lookup created above. 
+			//It does away with the multiplication of scaled value with lookup table length.
+			//The indices have been calculated once and for all. Usable for count data only.
+			//See how indx variable is calculated when rset_map_lookup is used.
 			for (int y=0; y<tile_height; y++) {
-				image_col_factor = y*data_width + image_col_offset;
-				k = y*color_length_times_texture_width;
+				//Strength Reduction: Replacing multiplications with Addition 12NOV2012
+				/*image_col_factor = y*data_width + image_col_offset;
+				k = y*color_length_times_texture_width;*/
 				for (int x=0; x<tile_width; x++) {
 					int i = x + image_col_factor;
 					if (!Float.isNaN(scaled_Floats[0][i]) && !Float.isNaN(scaled_Floats[1][i]) && !Float.isNaN(scaled_Floats[2][i])) { // not missing
 						r=0;g=0;b=0;
 						if (isRGBRGBRGB) { //Inserted by Ghansham (start here)
-						int indx = -1;
-						//GHANSHAM:30AUG2011 Use the rset_scalarmap lookup to find scaled Range Values
-						if (rset_scalarmap_lookup != null && rset_scalarmap_lookup[0] != null) {
-							indx = (int)(RGB_tableEnd[0] * rset_scalarmap_lookup[0][(int)scaled_Floats[0][i]]);
-						} else{
-							indx = (int)(RGB_tableEnd[0] * scaled_Floats[0][i]);
-						}
-						indx = (indx < 0) ? 0 : ((indx > RGB_tableEnd[0]) ? RGB_tableEnd[0] : indx);
-						r = threeD_itable[0][indx][0];
-						//GHANSHAM:30AUG2011 Use the rset_scalarmap lookup to find scaled Range Values
-						if (rset_scalarmap_lookup != null && rset_scalarmap_lookup[1] != null) {
-							indx = (int)(RGB_tableEnd[1] * rset_scalarmap_lookup[1][(int)scaled_Floats[1][i]]);
-						} else{
-							indx = (int)(RGB_tableEnd[1] * scaled_Floats[1][i]);
-						}
-						indx = (indx < 0) ? 0 : ((indx > RGB_tableEnd[1]) ? RGB_tableEnd[1] : indx);
-						g = threeD_itable[1][indx][1];
-						//GHANSHAM:30AUG2011 Use the rset_scalarmap lookup to find scaled Range Values
-						if (rset_scalarmap_lookup != null && rset_scalarmap_lookup[2] != null) {
-							indx = (int)(RGB_tableEnd[2] * rset_scalarmap_lookup[2][(int)scaled_Floats[2][i]]);
-						} else {
-							indx = (int)(RGB_tableEnd[2] * scaled_Floats[2][i]);
-						}
-
-						indx = (indx < 0) ? 0 : ((indx > RGB_tableEnd[2]) ? RGB_tableEnd[2] : indx);
-						b = threeD_itable[2][indx][2];
+							int indx = -1;
+							//GHANSHAM:30AUG2011 Use the rset_scalarmap lookup to find scaled Range Values
+							if (use_lookup_red) {
+								indx = rset_scalarmap_lookup[0][(int)scaled_Floats[0][i]];
+							} else{
+								indx = (int)(RGB_tableEnd[0] * scaled_Floats[0][i]);
+							}
+							indx = (indx < 0) ? 0 : ((indx > RGB_tableEnd[0]) ? RGB_tableEnd[0] : indx);
+							r = threeD_itable[0][indx][0];
+							//GHANSHAM:30AUG2011 Use the rset_scalarmap lookup to find scaled Range Values
+							if (use_lookup_grn) {
+								indx = rset_scalarmap_lookup[1][(int)scaled_Floats[1][i]];
+							} else{
+								indx = (int)(RGB_tableEnd[1] * scaled_Floats[1][i]);
+							}
+							indx = (indx < 0) ? 0 : ((indx > RGB_tableEnd[1]) ? RGB_tableEnd[1] : indx);
+							g = threeD_itable[1][indx][1];
+							//GHANSHAM:30AUG2011 Use the rset_scalarmap lookup to find scaled Range Values
+							if (use_lookup_blu) {
+								indx = rset_scalarmap_lookup[2][(int)scaled_Floats[2][i]];
+							} else {
+								indx = (int)(RGB_tableEnd[2] * scaled_Floats[2][i]);
+							}
+							indx = (indx < 0) ? 0 : ((indx > RGB_tableEnd[2]) ? RGB_tableEnd[2] : indx);
+							b = threeD_itable[2][indx][2];
 						} else { //Inserted by Ghansham (ends here)
 							//GHANSHAM:30AUG2011 Use the rset_scalarmap lookup to find scaled Range Values
-							if (rset_scalarmap_lookup != null && rset_scalarmap_lookup[0] != null) {
-								c=(int) (255.0 * rset_scalarmap_lookup[0][(int)scaled_Floats[0][i]]);
+							if (use_lookup_red) {
+								c = rset_scalarmap_lookup[0][(int)scaled_Floats[0][i]];
 							} else {
 								c = (int) (255.0 * scaled_Floats[0][i]);
 							}
 							r = (c < 0) ? 0 : ((c > 255) ? 255 : c);
 							//GHANSHAM:30AUG2011 Use the rset_scalarmap lookup to find scaled Range Values
-							if (rset_scalarmap_lookup != null && rset_scalarmap_lookup[1] != null) {
-								c=(int) (255.0 * rset_scalarmap_lookup[1][(int)scaled_Floats[1][i]]);
+							if (use_lookup_grn) {
+								c= rset_scalarmap_lookup[1][(int)scaled_Floats[1][i]];
 							} else {
 								c = (int) (255.0 * scaled_Floats[1][i]);
 							}
 							g = (c < 0) ? 0 : ((c > 255) ? 255 : c);
 							//GHANSHAM:30AUG2011 Use the rset_scalarmap lookup to find scaled Range Values
-							if (rset_scalarmap_lookup != null && rset_scalarmap_lookup[2] != null) {
-								c=(int) (255.0 * rset_scalarmap_lookup[2][(int)scaled_Floats[2][i]]);
+							if (use_lookup_blu) {
+								c= rset_scalarmap_lookup[1][(int)scaled_Floats[2][i]];
 							} else {
 								c = (int) (255.0 * scaled_Floats[2][i]);
 							}
 							b = (c < 0) ? 0 : ((c > 255) ? 255 : c);
 						}
-						if (color_length == 4) {
+						//12NOV2012: Changed the order to 1, 3, 4 from 4, 3 1 and also put else-if. No need to check other if's if it is executed
+						//Reason: According to the probabilities. Grey Scale, 3-band RGB, 4-band only used in rare cases like: volume rendering
+						if (color_length == 1) {
+							byteData[k] = (byte) b;
+						} else if (color_length == 3) {
+							byteData[k] = (byte) b;
+							byteData[k+1] = (byte) g;
+							byteData[k+2] = (byte) r;
+						} else if (color_length == 4) {
 							byteData[k] = (byte) a;
 							byteData[k+1] = (byte) b;
 							byteData[k+2] = (byte) g;
 							byteData[k+3] = (byte) r;
-						} if (color_length == 3) {
-							byteData[k] = (byte) b;
-							byteData[k+1] = (byte) g;
-							byteData[k+2] = (byte) r;
-						}
-						if (color_length == 1) {
-							byteData[k] = (byte) b;
 						}
 					}
 					k+=color_length;
 				}
+				k += pot_texture_offset;
+				image_col_factor += data_width;
 			}
 			RGB_tableEnd = null;
 		}
@@ -1548,7 +1673,8 @@ throws VisADException, RemoteException {
                                  float[] constant_color, DisplayImpl display,
                                  int curved_size, ShadowRealTupleType Domain, CoordinateSystem dataCoordinateSystem,
                                  DataRenderer renderer, ShadowFunctionOrSetType adaptedShadowType,
-                                 int[] start, int lenX, int lenY, float[][] samples, int bigX, int bigY,
+                                 //int[] start, int lenX, int lenY, float[][] samples, int bigX, int bigY,
+                                 int[] start, int lenX, int lenY, int bigX, int bigY, //Changed the signature 12NOV2012
                                  VisADImageTile tile)
          throws VisADException, DisplayException {
     float[] coordinates = null;
@@ -1557,15 +1683,15 @@ throws VisADException, RemoteException {
     int data_height = 0;
     int texture_width = 1;
     int texture_height = 1;
-
-    int[] lengths = null;
+    //12NOV12: Unused variable for the new logic
+    //int[] lengths = null;
 
     if (dataCoordinateSystem instanceof CachingCoordinateSystem) {
         dataCoordinateSystem = ((CachingCoordinateSystem)dataCoordinateSystem).getCachedCoordinateSystem();
     }
-                                                                                                                     
+    //12NOV12: Not required now                                                                                                                 
     // get domain_set sizes
-    if (domain_set != null) {
+    /*if (domain_set != null) {
       lengths = ((GriddedSet) domain_set).getLengths();
     }
     else {
@@ -1573,7 +1699,10 @@ throws VisADException, RemoteException {
     }
 
     data_width = lengths[0];
-    data_height = lengths[1];
+    data_height = lengths[1];*/
+	//12NOV12:Get their values from lenX and lenY
+	data_width = lenX;
+        data_height = lenY;
 
     // texture sizes must be powers of two on older graphics cards.
     texture_width = textureWidth(data_width);
@@ -1671,6 +1800,7 @@ throws VisADException, RemoteException {
       	renderer.setEarthSpatialDisplay(coord, spatial_tuple, display,
                spatial_value_indices, default_values, null);
     }
+
     if (useLinearTexture) {
     	float scaleX = (float) scale[0];
       	float scaleY = (float) scale[1];
@@ -1678,7 +1808,20 @@ throws VisADException, RemoteException {
       	float offsetY = (float) offset[1];
 
       	float[][] xyCoords = null;
-      	if (domain_set != null) {
+	//12NOV2012: GHANSHAM Just adding a general a way to create tile corner coordinates (starts here)
+        int indices[] = new int[4];
+        indices[0] = (start[0] ) + (start[1])*bigX;
+        indices[1] = (start[0]) + (start[1] + lenY-1)*bigX;
+        indices[2] = (start[0] + lenX -1) + (start[1]+ lenY - 1)*bigX;
+        indices[3] = (start[0] + lenX -1) + (start[1])*bigX;
+        xyCoords = domain_set.indexToValue(indices);
+        indices = null;
+        for (int i = 0; i < 4; i++) {
+                xyCoords[0][i] = (xyCoords[0][i] - offsetX)/scaleX;
+                xyCoords[1][i] = (xyCoords[1][i] - offsetY)/scaleY;
+        }
+	//12NOV12: Not rquired now
+      	/*if (domain_set != null) {
         	xyCoords = getBounds(domain_set, data_width, data_height, scaleX, offsetX, scaleY, offsetY);
       	} else {
                 //If there is tiling in linear texture domain set is coming null if number of tiles is greater than 1
@@ -1710,7 +1853,7 @@ throws VisADException, RemoteException {
                 xyCoords[0][3] = (x3 - offsetX)/scaleX;
                 xyCoords[1][3] = (y3 - offsetY)/scaleY;
                 //Code inserted by Ghansham (Ends here)
-      	}
+      	}*/
 
 
       // create VisADQuadArray that texture is mapped onto
@@ -1738,9 +1881,22 @@ throws VisADException, RemoteException {
       texCoords = new float[8];
       float ratiow = ((float) data_width) / ((float) texture_width);
       float ratioh = ((float) data_height) / ((float) texture_height);
+      float half_width = 0.5f/texture_width;
+      float half_height = 0.5f/texture_height;
 
-      boolean yUp = true;
-      setTexCoords(texCoords, ratiow, ratioh, yUp);
+      // corner 0
+      texCoords[0] = 0.0f + half_width;
+      texCoords[1] = 0.0f + half_height;
+      // corner 1
+      texCoords[2] = 0.0f + half_width;
+      texCoords[3] = ratioh - half_height;
+      // corner 2
+      texCoords[4] = ratiow - half_width;
+      texCoords[5] = ratioh - half_height;
+      // corner 3
+      texCoords[6] = ratiow - half_width;
+      texCoords[7] = 0.0f + half_height;
+
 
       VisADQuadArray qarray = new VisADQuadArray();
       qarray.vertexCount = 4;
@@ -1777,6 +1933,7 @@ throws VisADException, RemoteException {
       // compute size of triangle array to map texture onto
       int size = (data_width + data_height) / 2;
       curved_size = Math.max(1, Math.min(curved_size, size / 32));
+      curved_size = 2;
       int nwidth = 2 + (data_width - 1) / curved_size;
       int nheight = 2 + (data_height - 1) / curved_size;
 
@@ -1784,19 +1941,44 @@ throws VisADException, RemoteException {
       int nn = nwidth * nheight;
       int[] is = new int[nwidth];
       int[] js = new int[nheight];
-
-      for (int i=0; i<nwidth; i++) {
+	//12NOV12: Applying Strength Reduction, replacing multiplication/Min functions with additions
+	int ival = 0, jval = 0;
+	for (int i = 0; i < nwidth-1; i++) {
+		is[i] = ival;
+		ival += curved_size;
+	}
+	is[nwidth-1] = data_width -1;
+	for (int j = 0; j < nheight-1; j++) {
+		js[j] = jval;
+		jval += curved_size;
+	}
+	js[nheight-1] = data_height -1;
+      /*for (int i=0; i<nwidth; i++) {
         is[i] = Math.min(i * curved_size, data_width - 1);
       }
       for (int j=0; j<nheight; j++) {
         js[j] = Math.min(j * curved_size, data_height - 1);
-      }
+      }*/
 	
 
       // get spatial coordinates at triangle vertices
       int k = 0;
       float[][] spline_domain = null;
-      if (domain_set == null) {
+	//12NOV2012: GHANSHAM More general way to get triangle corner coordinates
+        //Enhanced version of single tile case. Extended for multi-tile case
+        int[] indices = new int[nn];
+        int col_factor = 0;
+        for (int j=0; j<nheight; j++) {
+                col_factor = (start[1] + js[j]) * bigX;
+                for (int i=0; i<nwidth; i++) {
+                        indices[k] = (start[0] + is[i]) + col_factor;
+                        k++;
+                }
+        }
+        spline_domain = domain_set.indexToValue(indices);
+        indices = null;
+
+      /*if (domain_set == null) {
 	//Ghansham: We generate the indices for the samples directly from 'is' and 'js' array
 	spline_domain = new float[2][nn];
 	int kk = 0;
@@ -1825,7 +2007,7 @@ throws VisADException, RemoteException {
       	}
         spline_domain = domain_set.indexToValue(indices);
 	indices = null;
-      }
+      }*/
 
       spline_domain = Unit.convertTuple(spline_domain, dataUnits, domain_units, false);
 
