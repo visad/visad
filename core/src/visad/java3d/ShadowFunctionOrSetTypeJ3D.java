@@ -544,8 +544,11 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       c_alpha = null;
     }
     else if (constant_alpha == constant_alpha) {
-      c_alpha = new TransparencyAttributes(TransparencyAttributes.BLENDED,
-                                (image.getType() == BufferedImage.TYPE_BYTE_GRAY)? (1.0f - constant_alpha): constant_alpha);
+      	//12NOV2012: GHANSHAM Use inversed alpha for 3 byte buffered images too
+        int image_type = image.getType();
+        boolean inversed_alpha = (image_type == BufferedImage.TYPE_3BYTE_BGR) || (image_type == BufferedImage.TYPE_BYTE_GRAY);
+      	c_alpha = new TransparencyAttributes(TransparencyAttributes.BLENDED,
+                                (inversed_alpha)? (1.0f - constant_alpha): constant_alpha);
       c_alpha.setCapability(TransparencyAttributes.ALLOW_VALUE_WRITE); //REUSE GEOMETRY/COLORBYTE REQUIREMENT
     }
     else {
