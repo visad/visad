@@ -142,10 +142,17 @@ public class MetUnits {
     else if (in.equalsIgnoreCase("kg m-2"))  { out = "mm"; }
     else if (in.equalsIgnoreCase("kg.m-2"))  { out = "mm"; }
     else if (in.equalsIgnoreCase("kg/m**2/s"))  { out = "mm/s"; }
+    else if (in.equalsIgnoreCase("kg/m**2s"))  { out = "mm/s"; }
     else if (in.equalsIgnoreCase("kg/m2/s"))  { out = "mm/s"; }
+    else if (in.equalsIgnoreCase("kg/m2s"))  { out = "mm/s"; }
     else if (in.equalsIgnoreCase("kg/m^2/s"))  { out = "mm/s"; }
+    else if (in.equalsIgnoreCase("kg/m^2s"))  { out = "mm/s"; }
     else if (in.equalsIgnoreCase("kg m-2 s-1"))  { out = "mm/s"; }
     else if (in.equalsIgnoreCase("kg.m-2.s-1"))  { out = "mm/s"; }
+
+    // and a few more
+    else if (in.equalsIgnoreCase("W/m**2"))  { out = "W/m^2"; }
+    else if (in.equalsIgnoreCase("W/m**2s"))  { out = "W/m^2/s"; }
 
     return out;
     
