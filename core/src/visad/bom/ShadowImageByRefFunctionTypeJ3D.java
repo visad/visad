@@ -1189,18 +1189,18 @@ throws VisADException, RemoteException {
 						int ndx = ((int) bytes0[i]) - MISSING1;
 						//12NOV2012: Changed the order to 1, 3, 4 from 4, 3 1 and also put else-if. No need to check other if's if it is executed
 						//Reason: According to the probabilities. Grey Scale, 3-band RGB, 4-band only used in rare cases like: volume rendering
-						if (color_length == 1) {
-							byteData[k] = itable[ndx][0];
-						} else if (color_length == 3) {
-							byteData[k] = itable[ndx][2];
-							byteData[k+1] = itable[ndx][1];
-							byteData[k+2] = itable[ndx][0];
-						} else if (color_length == 4) {
-							byteData[k] = itable[ndx][3];
-							byteData[k+1] = itable[ndx][2];
-							byteData[k+2] = itable[ndx][1];
-							byteData[k+3] = itable[ndx][0];
-						}
+                                                if (color_length == 1) {
+                                                        byteData[k]   = fast_table[ndx][0];
+                                                } else if (color_length == 3) {
+                                                        byteData[k]   = fast_table[ndx][2];
+                                                        byteData[k+1] = fast_table[ndx][1];
+                                                        byteData[k+2] = fast_table[ndx][0];
+                                                } else if (color_length == 4) {
+                                                        byteData[k]   = fast_table[ndx][3];
+                                                        byteData[k+1] = fast_table[ndx][2];
+                                                        byteData[k+2] = fast_table[ndx][1];
+                                                        byteData[k+3] = fast_table[ndx][0];
+                                                }
 						k+=color_length;
 					}
 					k += pot_texture_offset;
