@@ -108,7 +108,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
   //- Ghansham (New variables introduced to preserve scaled values and colorTables)
   private byte scaled_Bytes[][];  //scaled byte values 
   private float scaled_Floats[][];  //scaled Float Values
-  //private float rset_scalarmap_lookup[][]; //GHANSHAM:30AUG2011 create a lookup for rset FlatField range values
   private int rset_scalarmap_lookup[][]; //GHANSHAM:12NOV2012 create a lookup for rset FlatField range values on integer values
 
   private byte[][] itable; //For single band
@@ -345,15 +344,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                         boolean alpha_changed = (Float.compare(constant_alpha, last_alpha_value) != 0);
                         boolean radiancemap_colcontrol_check_ticks = findRadianceMapColorControlCheckTicks(cmap, cmaps, imgRenderer, link);
 			boolean projection_seam_changed = (current_adjust_projection_seam != last_adjust_projection_seam); //27FEB2012: Projection Seam Change Bug Fix
-                        /*if  (spatial_maps_check_ticks ||  zaxis_value_changed || curve_texture_value_change || projection_seam_changed) { //change in geometry 27FEB2012: Projection Seam Change Bug Fix
-                                regen_geom = true;
-                        } else if (alpha_changed) { //change in alpha value
-                                apply_alpha = true;
-			} else if (radiancemap_colcontrol_check_ticks) { //change in Radiance ScalarMaps or ColorTable
-                                regen_colbytes = true;
-                        } else { //Assuming that ff.setSamples() has been called.
-                                regen_colbytes = true;
-                        }*/
 			//GHANSHAM: 01MAR2012 Some change is the reuse decision logic. Use of hasAlpha variable. (starts here)
 			if  (spatial_maps_check_ticks ||  zaxis_value_changed || curve_texture_value_change || projection_seam_changed) { //change in geometry 27FEB2012: Projection Seam Change Bug Fix
                                 regen_geom = true;
@@ -573,13 +563,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                                         }
                                 }
                         }
-                        /*if (isColorTableGrey(color_table)) {
-                                imageType = BufferedImage.TYPE_BYTE_GRAY;
-                                color_length = 1;
-                                if (hasAlpha) { //In case alpha channel is present
-                                        constant_alpha = color_table[3][0];
-                                }
-                        }*/
                 }
         }
 	//GHANSHAM: 01MAR2012 GreyScale Texture Support (ends here)
@@ -590,9 +573,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 	regen_colbytes = false;
   	regen_geom = false;
   	apply_alpha = false; 
-	//initRegenFlags((ImageRendererJ3D)renderer, adaptedShadowType, constant_alpha, cmap, cmaps, data, display, default_values, value_array, valueToScalar, valueArrayLength, link, curved_size);
-	//GHANSHAM: 01MAR2012 GreyScale Texture Support
-	//Changed signature of initRegenFlags, passed hasAlpha variable
 	initRegenFlags((ImageRendererJ3D)renderer, adaptedShadowType, constant_alpha, cmap, cmaps, data, display, default_values, value_array, valueToScalar, valueArrayLength, link, curved_size, hasAlpha);
 	if(!reuseImages) {
 		regen_geom = true;
@@ -858,12 +838,10 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                       		data_width, data_height, imageType, tile,  0);
 		}
 	        if (regen_geom) { //REUSE: REGEN GEOM regenerate 
-			//12NOV2012:Modified buildCurvedTexture
           		buildCurvedTexture(bgImages, domain_set, dataUnits, domain_units, default_values, DomainComponents,
                              valueArrayLength, inherited_values, valueToScalar, mode, constant_alpha,
                              value_array, constant_color, display, curved_size, Domain,
                              dataCoordinateSystem, renderer, adaptedShadowType, new int[] {0,0},
-                             //domain_lens[0], domain_lens[1], null, domain_lens[0], domain_lens[1], tile);
                              domain_lens[0], domain_lens[1], domain_lens[0], domain_lens[1], tile);
 		} else { //REUSE Reuse the branch fully along with geometry. Just apply the colorbytes(Buffered Image)
 			BranchGroup Branch_L1 = (BranchGroup) bgImages.getChild(0);
@@ -885,10 +863,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 		branch = (BranchGroup) bgImages.getChild(0);
           } 
 	  int branch_tile_indx = 0; //REUSE: to get the branch for a tile in case of multi-tile rendering
-	  /*float[][] samples = null;
-	  if (regen_geom) {
-		samples = ((GriddedSet)domain_set).getSamples(false);
-	  }*/
           for (Iterator iter = imgNode.getTileIterator(); iter.hasNext();) {
              VisADImageTile tile = (VisADImageTile) iter.next();
 		if (regen_colbytes) { //REUSE COLBYTES: regenerate only if required
@@ -909,13 +883,11 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 				branch1 = (BranchGroup) branch.getChild(branch_tile_indx);
 			}
 			
-			//12NOV2012:Modified buildCurvedTexture
              		buildCurvedTexture(branch1, domain_set, dataUnits, domain_units, default_values, DomainComponents,
                                 valueArrayLength, inherited_values, valueToScalar, mode, constant_alpha,
                                 value_array, constant_color, display, curved_size, Domain,
                                 dataCoordinateSystem, renderer, adaptedShadowType, 
                                 new int[] {tile.xStart,tile.yStart}, tile.width, tile.height,
-                                //samples, domain_lens[0], domain_lens[1], tile);
                                 domain_lens[0], domain_lens[1], tile);
 
 			if (!reuseImages || (regen_colbytes && regen_geom)) { //REUSE: Add newly created branch 
@@ -981,7 +953,6 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                 	data_width, data_height, imageType, tile, k);
            	first_time = false;
 	  }
-          //image.bytesChanged(byteData);
         }
       }
 
@@ -1012,17 +983,6 @@ private boolean isColorTableGrey(float[][] color_table) {
                         break;
                 }
         }
-        /*boolean alpha_same = true;
-        if (4 == color_table.length) {  //check alpha value is constant through out the look up table
-                float first_alpha = color_table[3][0];
-                for (int i =1; i < color_table[3].length; i++) {
-                        if (first_alpha != color_table[3][i]) {
-                                alpha_same = false;
-                                break;
-                        }
-                }
-        }*/
-        //return (rgb_same && alpha_same);
 	return rgb_same;
 }
 
@@ -1064,14 +1024,13 @@ public void makeColorBytesDriver(Data imgFlatField, ScalarMap cmap, ScalarMap[] 
          //image = (CachedBufferedByteImage) tile.getImage(0);
          image = (BufferedImage) tile.getImage(image_index);
 	 //GHANSHAM: 01MAR2012 GreyScale Texture (starts here) 
-	//If the incoming ImageType is not the same as the existing imageType, we will have to recreate the image.
-	//THIS HAPPENS when a single band GreyScale Image (GreyScale LUT applied) gets converted Color image(Colored LUT applied) and vice versa
+	 //If the incoming ImageType is not the same as the existing imageType, we will have to recreate the image.
+         //THIS HAPPENS when a single band GreyScale Image (GreyScale LUT applied) gets converted Color image(Colored LUT applied) and vice versa
 	 if (image.getType() != imageType) {
                         image = createImageByRef(texture_width, texture_height, imageType);
                         tile.setImage(image_index, image);
          }
 	//GHANSHAM: 01MAR2012 GreyScale Texture (ends here)
-
        }
 
        java.awt.image.Raster raster = image.getRaster();
@@ -1103,7 +1062,6 @@ throws VisADException, RemoteException {
 		if (data instanceof FlatField) {
 			// for fast byte color lookup, need:
 				// 1. range data values are packed in bytes
-			//bytes = ((FlatField) data).grabBytes();
 			if (first_time) {
 				scaled_Bytes = ((FlatField) data).grabBytes();
 			}
@@ -1221,14 +1179,11 @@ throws VisADException, RemoteException {
 				byte[] bytes0 = scaled_Bytes[0];
 
 				int k = 0;
-				//int color_length_times_texture_width = texture_width*color_length;
 				int image_col_offset = yStart*data_width + xStart;
 				int image_col_factor = image_col_offset;
                                 int pot_texture_offset = color_length*(texture_width-tile_width);
 				//Strength Reduction: Replacing multiplications with Addition 12NOV2012
 				for (int y=0; y<tile_height; y++) {
-					/*int image_col_factor = (y+yStart)*data_width + xStart;
-					k = y*color_length_times_texture_width;*/
 					for (int x=0; x<tile_width; x++) {
 						int i = x + image_col_factor;
 						int ndx = ((int) bytes0[i]) - MISSING1;
@@ -1274,11 +1229,6 @@ throws VisADException, RemoteException {
 						temp_lookup = null;
 						//12NOV2012: NEW LOGIC for  Range Set map Lookup (ends here)
 
-						/*rset_scalarmap_lookup = new float[1][rset.getLength()];
-						for (int i = 0; i < rset_scalarmap_lookup[0].length; i++) {
-							rset_scalarmap_lookup[0][i] = i;
-						}
-						rset_scalarmap_lookup[0] = cmap.scaleValues(rset_scalarmap_lookup[0], false);*/
 					} else {
 						scaled_Floats[0] = cmap.scaleValues(scaled_Floats[0]);
 					}
@@ -1295,8 +1245,6 @@ throws VisADException, RemoteException {
 				pot_texture_offset = color_length*(texture_width-tile_width);
 				//Strength Reduction: Replacing multiplications with Addition 12NOV2012
 				for (int y=0; y<tile_height; y++) {
-					//image_col_factor = y*data_width+image_col_offset;
-					//k = y*color_length_times_texture_width;
 					for (int x=0; x<tile_width; x++) {
 						int i = x + image_col_factor;
 						if (!Float.isNaN(values0[i])) { // not missing
@@ -1352,15 +1300,11 @@ throws VisADException, RemoteException {
 			int c = (int) (255.0 * (1.0f - constant_alpha));
 			int a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
 			int k = 0;
-			//int color_length_times_texture_width = texture_width*color_length;
 			int image_col_offset = yStart*data_width + xStart;
-			//int image_col_factor = 0;
 			int image_col_factor = image_col_offset;
                         int pot_texture_offset = color_length*(texture_width-tile_width);
 			//Strength Reduction: Replacing multiplications with Addition 12NOV2012
 			for (int y=0; y<tile_height; y++) {
-				/*image_col_factor = y*data_width+image_col_offset;
-				k = y*color_length_times_texture_width;*/
 				for (int x=0; x<tile_width; x++) {
 					int i = x + image_col_factor;
 					if (!Float.isNaN(scaled_Floats[0][i])) { // not missing
@@ -1480,15 +1424,11 @@ throws VisADException, RemoteException {
 					c = (int) (255.0 * (1.0f - constant_alpha));
 				}
 				//IFF:with (Red,Green,Blue) or (Red,Green,Blue,Alpha) as mapping
-				//int color_length_times_texture_width = color_length*texture_width;
 				int image_col_offset = yStart*data_width + xStart;
-				//int image_col_factor = 0;
 				int image_col_factor = image_col_offset;
 				int pot_texture_offset = color_length*(texture_width-data_width);
 				//Strength Reduction: Replacing multiplications with Addition 12NOV2012
 				for (int y=0; y<tile_height; y++) {
-					/*image_col_factor = y*data_width + image_col_offset;
-					texture_index = y*color_length_times_texture_width;*/
 					for (int x=0; x<tile_width; x++) {
 						data_indx = x + image_col_factor;
 						//12NOV2012: We expect 3-Byte RGB to be more common case than 4-byte RGB
@@ -1529,7 +1469,6 @@ throws VisADException, RemoteException {
 							//This logic stores indices of lookup table from where color values will be picked up
 							//Earlier it was scaled 0...1 values. 
 							if (null == rset_scalarmap_lookup) {
-								//rset_scalarmap_lookup = new float[3][];
 								rset_scalarmap_lookup = new int[3][];
 							}
 							int rset_len = rsets[permute[i]].getLength();
@@ -1548,11 +1487,6 @@ throws VisADException, RemoteException {
 								rset_scalarmap_lookup[i][j] = (int)(table_scale*temp_lookup[j]);
 							}
 							temp_lookup = null;
-							/*rset_scalarmap_lookup[i] = new float[rsets[permute[i]].getLength()];
-							for (int j = 0; j < rset_scalarmap_lookup[i].length; j++) {
-								rset_scalarmap_lookup[i][j] = j;
-							}
-							rset_scalarmap_lookup[i] = cmaps[permute[i]].scaleValues(rset_scalarmap_lookup[i], false);*/
 							scaled_Floats[i] = values[permute[i]];
 						} else {
 							scaled_Floats[i] = cmaps[permute[i]].scaleValues(values[permute[i]]);
@@ -1566,9 +1500,7 @@ throws VisADException, RemoteException {
 			int a = (c < 0) ? 0 : ((c > 255) ? 255 : c);
 			int m = 0;
 			int k = 0;
-			//int color_length_times_texture_width = color_length*texture_width;
 			int image_col_offset = yStart*data_width + xStart;
-			//int image_col_factor = 0;
 			int image_col_factor = image_col_offset;
 			int pot_texture_offset = color_length*(texture_width-tile_width);
 			//12NOV2012: Evaluate boolean variables once and use them within the loop.
@@ -1583,8 +1515,6 @@ throws VisADException, RemoteException {
 			//See how indx variable is calculated when rset_map_lookup is used.
 			for (int y=0; y<tile_height; y++) {
 				//Strength Reduction: Replacing multiplications with Addition 12NOV2012
-				/*image_col_factor = y*data_width + image_col_offset;
-				k = y*color_length_times_texture_width;*/
 				for (int x=0; x<tile_width; x++) {
 					int i = x + image_col_factor;
 					if (!Float.isNaN(scaled_Floats[0][i]) && !Float.isNaN(scaled_Floats[1][i]) && !Float.isNaN(scaled_Floats[2][i])) { // not missing
@@ -1673,8 +1603,7 @@ throws VisADException, RemoteException {
                                  float[] constant_color, DisplayImpl display,
                                  int curved_size, ShadowRealTupleType Domain, CoordinateSystem dataCoordinateSystem,
                                  DataRenderer renderer, ShadowFunctionOrSetType adaptedShadowType,
-                                 //int[] start, int lenX, int lenY, float[][] samples, int bigX, int bigY,
-                                 int[] start, int lenX, int lenY, int bigX, int bigY, //Changed the signature 12NOV2012
+                                 int[] start, int lenX, int lenY, int bigX, int bigY,
                                  VisADImageTile tile)
          throws VisADException, DisplayException {
     float[] coordinates = null;
@@ -1683,24 +1612,10 @@ throws VisADException, RemoteException {
     int data_height = 0;
     int texture_width = 1;
     int texture_height = 1;
-    //12NOV12: Unused variable for the new logic
-    //int[] lengths = null;
 
     if (dataCoordinateSystem instanceof CachingCoordinateSystem) {
         dataCoordinateSystem = ((CachingCoordinateSystem)dataCoordinateSystem).getCachedCoordinateSystem();
     }
-    //12NOV12: Not required now                                                                                                                 
-    // get domain_set sizes
-    /*if (domain_set != null) {
-      lengths = ((GriddedSet) domain_set).getLengths();
-    }
-    else {
-      lengths = new int[] {lenX, lenY};
-    }
-
-    data_width = lengths[0];
-    data_height = lengths[1];*/
-	//12NOV12:Get their values from lenX and lenY
 	data_width = lenX;
         data_height = lenY;
 
@@ -1820,40 +1735,6 @@ throws VisADException, RemoteException {
                 xyCoords[0][i] = (xyCoords[0][i] - offsetX)/scaleX;
                 xyCoords[1][i] = (xyCoords[1][i] - offsetY)/scaleY;
         }
-	//12NOV12: Not rquired now
-      	/*if (domain_set != null) {
-        	xyCoords = getBounds(domain_set, data_width, data_height, scaleX, offsetX, scaleY, offsetY);
-      	} else {
-                //If there is tiling in linear texture domain set is coming null if number of tiles is greater than 1
-                //Code inserted by Ghansham (starts here)
-                int indx0 = (start[0]) + (start[1])*bigX;
-                int indx1 = (start[0]) + (start[1] + lenY-1)*bigX;
-                int indx2 = (start[0] + lenX -1) + (start[1] + lenY - 1)*bigX;
-                int indx3 = (start[0] + lenX -1 ) + (start[1])*bigX;
-
-                float x0 = samples[0][indx0];
-                float y0 = samples[1][indx0];
-                float x1 = samples[0][indx1];
-                float y1 = samples[1][indx1];
-                float x2 = samples[0][indx2];
-                float y2 = samples[1][indx2];
-                float x3 = samples[0][indx3];
-                float y3 = samples[1][indx3];
-
-                xyCoords = new float[2][4];
-                xyCoords[0][0] = (x0 - offsetX)/scaleX;
-                xyCoords[1][0] = (y0 - offsetY)/scaleY;
-
-                xyCoords[0][1] = (x1 - offsetX)/scaleX;
-                xyCoords[1][1] = (y1 - offsetY)/scaleY;
-
-                xyCoords[0][2] = (x2 - offsetX)/scaleX;
-                xyCoords[1][2] = (y2 - offsetY)/scaleY;
-
-                xyCoords[0][3] = (x3 - offsetX)/scaleX;
-                xyCoords[1][3] = (y3 - offsetY)/scaleY;
-                //Code inserted by Ghansham (Ends here)
-      	}*/
 
 
       // create VisADQuadArray that texture is mapped onto
@@ -1953,12 +1834,6 @@ throws VisADException, RemoteException {
 		jval += curved_size;
 	}
 	js[nheight-1] = data_height -1;
-      /*for (int i=0; i<nwidth; i++) {
-        is[i] = Math.min(i * curved_size, data_width - 1);
-      }
-      for (int j=0; j<nheight; j++) {
-        js[j] = Math.min(j * curved_size, data_height - 1);
-      }*/
 	
 
       // get spatial coordinates at triangle vertices
@@ -1978,36 +1853,6 @@ throws VisADException, RemoteException {
         spline_domain = domain_set.indexToValue(indices);
         indices = null;
 
-      /*if (domain_set == null) {
-	//Ghansham: We generate the indices for the samples directly from 'is' and 'js' array
-	spline_domain = new float[2][nn];
-	int kk = 0;
-	int ndx = 0;
-	int col_factor = 0;
-	for (int j = 0; j < nheight; j++) {
-            col_factor = (start[1] + js[j]) * bigX;
-            for (int i = 0; i < nwidth; i++) {
-                ndx = (start[0] + is[i]) + col_factor;
-		spline_domain[0][kk] = samples[0][ndx];
-		spline_domain[1][kk] = samples[1][ndx];
-                kk++;
-            }
-        }
-      }
-      else {
-	int[] indices = new int[nn]; //Ghansham:Calculate indices only if there is a single tile in the full image
-      	k=0;
-	int col_factor;
-      	for (int j=0; j<nheight; j++) {
-        	col_factor = data_width * js[j];
-        	for (int i=0; i<nwidth; i++) {
-          		indices[k] = is[i] + col_factor;
-          		k++;
-        	} 
-      	}
-        spline_domain = domain_set.indexToValue(indices);
-	indices = null;
-      }*/
 
       spline_domain = Unit.convertTuple(spline_domain, dataUnits, domain_units, false);
 
@@ -2138,7 +1983,6 @@ throws VisADException, RemoteException {
         When both regen_geom or regen_colbytes are true then if part gets executed. 
     */                                                                                                               
     // add texture as sub-node of group in scene graph
-    	//if (!reuse) 
     	if (!reuseImages || (regen_colbytes && regen_geom)) { //REUSE GEOM/COLORBYTES: Earlier reuse variable was used. Replaced it with reuseImages and regeom_colbytes and regen_geom
        		BufferedImage image = tile.getImage(0);
        		textureToGroup(group, tarray, image, mode, constant_alpha, constant_color, texture_width, texture_height, true, true, tile);
