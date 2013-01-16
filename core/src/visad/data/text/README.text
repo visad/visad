@@ -1,7 +1,7 @@
                           The VisAD TextAdapter
                              January, 2001
 
-                         updated: December, 2004
+                         updated: December, 2012
 
 Contents.
 
@@ -180,7 +180,6 @@ you should use a blank-separated sequence of phrases in the form
      interval either 'true' or 'false' to indicate that this parameter
               is an _interval_, like a difference (default = false)
 
-           ** The following is _not_ implemented in this release:
      pos      column-oriented location of the data values in the form
               first:last (if present for one item, this MUST be supplied
               for all items!)
@@ -190,23 +189,27 @@ you should use a blank-separated sequence of phrases in the form
               Commas should also be avoided in the format pattern, 
               especially if comma is used as the header column delimiter
 
-     value   a value that is used for this field. When a value is defined there 
-             should not be a correspoding value for this field in the data lines.
-             i.e., if you had 5 parameters defined in Line 2 (e.g., p1,p2,p3,p4,p5)
-             and one of them (e.g., p3) had a value attribute then the data lines
-             would only contain the values for the other parameters, e.g.:
-             p1,p2,p4,p5
-             p1,p2,p4,p5
-             ...
+     colspan  a value that indicates the number of columns (positions)
+              spanned by this parameter.
+             
+     value    a value that is used for this field. When a value is defined there 
+              should not be a correspoding value for this field in the data lines.
+              i.e., if you had 5 parameters defined in Line 2 (e.g., p1,p2,p3,p4,p5)
+              and one of them (e.g., p3) had a value attribute then the data lines
+              would only contain the values for the other parameters, e.g.:
+              p1,p2,p4,p5
+              p1,p2,p4,p5
+              ...
 
-             When using the value attribute you can also include in any subsequent lines a:
-             name=value
-             Where name is one of the parameter names. This allows you to reset the fixed value
-             that is used.
+              When using the value attribute you can also include in any subsequent lines a:
+              name=value
+              Where name is one of the parameter names. This allows you to reset the fixed value
+              that is used.
 
-             For example, this facility could be used if you had a set of observations from
-             a single station:
-             (index) -> (Longitude,Latitude,Time,T)
+              For example, this facility could be used if you had a set of observations from
+              a single station:
+
+              (index) -> (Longitude,Latitude,Time,T)
               Longitude[unit="degrees west" value="110"],Latitude[unit="deg" value="40"],Time[fmt="yyyy-MM-dd HH:mm:ss z"],T[unit="celsius"]
               2007-02-20 11:00:00 MST,13.3
               2007-02-20 11:00:00 MST,-2.0
@@ -216,7 +219,7 @@ you should use a blank-separated sequence of phrases in the form
               ...
  
               Note: You don't have to have the value attribute in Line 2. You can just do:
-             (index) -> (Longitude,Latitude,Time,T)
+              (index) -> (Longitude,Latitude,Time,T)
               Longitude[unit="degrees west" ],Latitude[unit="deg"],Time[fmt="yyyy-MM-dd HH:mm:ss z"],T[unit="celsius"]
               Longitude=110
               Latitude=40
