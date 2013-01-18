@@ -1803,10 +1803,6 @@ throws VisADException, RemoteException {
                 	Shape3D shape = (Shape3D) branch1.getChild(0);
                 	shape.setGeometry(((DisplayImplJ3D) display).makeGeometry(qarray));
         	}
- 
-        	if (animControl == null) {
-          		imgNode.setCurrent(0);
-        	}
       	}
 
     }
@@ -1993,9 +1989,6 @@ throws VisADException, RemoteException {
                 	shape.setGeometry(((DisplayImplJ3D) display).makeGeometry(tarray));
 			
         	} 
-      		if (animControl == null) {
-        		imgNode.setCurrent(0);
-      		}
     	}
 
    }
@@ -2153,9 +2146,6 @@ throws VisADException, RemoteException {
                 Shape3D shape = (Shape3D) branch1.getChild(0);
                 shape.setGeometry(((DisplayImplJ3D) display).makeGeometry(qarray));
         }
-      if (animControl == null) {
-        imgNode.setCurrent(0);
-      }
     }
 
   }
