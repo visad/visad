@@ -1762,21 +1762,38 @@ throws VisADException, RemoteException {
       texCoords = new float[8];
       float ratiow = ((float) data_width) / ((float) texture_width);
       float ratioh = ((float) data_height) / ((float) texture_height);
-      float half_width = 0.5f/texture_width;
-      float half_height = 0.5f/texture_height;
+
+      /*   Assumes texels are squeezed into texture coordinate space (0.0 to 1.0)
+       *   so that the leftmost edge of the first texel is 0.0 and the rightmost
+       *   edge of the last texel is 1.0. The same is true for the height dimension
+       *   if yUp=true which is the case here (byReference).
+       */
+
+      float width = 1.0f / ((float)texture_width);         // Texel width
+      float height = 1.0f / ((float)texture_height);       // Texel height
+      float half_width = 0.5f / ((float) texture_width);   // half texel width
+      float half_height = 0.5f / ((float) texture_height); // half texel height
+
+      /*   Map the data point spatial coordinates to the center of the texels by
+       *   by starting at center of the first texel (texel width) and accumulating
+       *   a full texel width for each data point (the data location is the center
+       *   of the display pixel).  The equations are for yUp=true only (byReference).
+       *   Note: the form of these equations implicitly deal with the case NPOT=false
+       *   wherein the texture_width will be greater than or equal to the data_width.
+       */
 
       // corner 0
-      texCoords[0] = 0.0f + half_width;
-      texCoords[1] = 0.0f + half_height;
+      texCoords[0] = half_width;
+      texCoords[1] = half_height;
       // corner 1
-      texCoords[2] = 0.0f + half_width;
-      texCoords[3] = ratioh - half_height;
+      texCoords[2] = half_width;
+      texCoords[3] = half_height + (data_height-1)*height;
       // corner 2
-      texCoords[4] = ratiow - half_width;
-      texCoords[5] = ratioh - half_height;
+      texCoords[4] = half_width + (data_width-1)*width;
+      texCoords[5] = half_height + (data_height-1)*height;
       // corner 3
-      texCoords[6] = ratiow - half_width;
-      texCoords[7] = 0.0f + half_height;
+      texCoords[6] = half_width + (data_width-1)*width;
+      texCoords[7] = half_height;
 
 
       VisADQuadArray qarray = new VisADQuadArray();
@@ -1790,7 +1807,7 @@ throws VisADException, RemoteException {
         Now else part gets executed when reuse is true and either regen_geom or regen_colbytes is true.
         It just applies geometry to the already available texture.
         When both are true then if part gets executed. 
-    */
+      */
       	//if (!reuse) 
       	if (!reuseImages || (regen_colbytes && regen_geom)) {	//REUSE GEOM/COLORBYTES: Earlier reuse variable was used. Replaced it with reuseImages and regeom_colbytes and regen_geom
         	BufferedImage image = tile.getImage(0);
@@ -1905,7 +1922,15 @@ throws VisADException, RemoteException {
            }
        }
 
-
+    /*   Assumes texels are squeezed into texture coordinate space (0.0 to 1.0)
+     *   so that the leftmost edge of the first texel is 0.0 and the rightmost
+     *   edge of the last texel is 1.0. The same is true for the height dimension
+     *   if yUp=true which is the case here (byReference).
+     */
+    float width = 1.0f / ((float)texture_width);         // Texel width
+    float height = 1.0f / ((float)texture_height);       // Texel height
+    float half_width = 0.5f / ((float) texture_width);   // half texel width
+    float half_height = 0.5f / ((float) texture_height); // half texel height
                                                                                                                    
     VisADTriangleStripArray tarray = new VisADTriangleStripArray();
     tarray.stripVertexCounts = new int[nheight - 1];
@@ -1920,17 +1945,25 @@ throws VisADException, RemoteException {
     k = 0;
     int kt = 0;
 
-    	float y_coord = 0f; 
-	float y_coord2 = 0f;
-	float  x_coord = 0f;
+    /*   Map the data point spatial coordinates to the center of the texels by
+     *   by starting at center of the first texel (texel width) and accumulating
+     *   a full texel width for each data point (the data location is the center
+     *   of the display pixel).  The equations are for yUp=true only (byReference).
+     *   Note: the form of these equations implicitly deal with the case NPOT=false
+     *   wherein the texture_width will be greater than or equal to the data_width.
+     */
+    float y_coord = 0f;
+    float y_coord2 = 0f;
+    float x_coord = 0f;
+
     for (int j=0; j<nheight-1; j++) {
-	if (0 ==j){
-		y_coord = (0.5f + js[j])/texture_height;
+	if (0==j){
+		y_coord = half_height + ((float)js[j])*height;
 	} else {
 		y_coord = y_coord2;
 	}
-	y_coord2 = (0.5f + js[j+1])/texture_height;
-      for (int i=0; i<nwidth; i++) {
+	y_coord2 = half_height + ((float)js[j+1])*height;
+        for (int i=0; i<nwidth; i++) {
 	
 		tarray.coordinates[k++] = spatial_values[0][m];
 		tarray.coordinates[k++] = spatial_values[1][m];
@@ -1939,26 +1972,25 @@ throws VisADException, RemoteException {
 		tarray.coordinates[k++] = spatial_values[1][m+nwidth];
 		tarray.coordinates[k++] = isSpherical? spatial_values[2][m+nwidth] : value2; //02JUN2012: Set coords from spatial values if spherical coordsys
 
-
-		x_coord = (0.5f + is[i])/texture_width;
+		x_coord = half_width + ((float)is[i])*width;
         	tarray.texCoords[kt++] = x_coord;
         	tarray.texCoords[kt++] = y_coord;
         	tarray.texCoords[kt++] = x_coord;
         	tarray.texCoords[kt++] = y_coord2;
-	
-                                                                                                                   
-	m += 1;
-      }
+
+                m += 1;
+       }
     }
-	is = null;
-	js = null;
-	spatial_values[0] = null;
-	spatial_values[1] = null;
-	spatial_values[2] = null;
-	spatial_values = null;
-	spline_domain[0] = null;
-	spline_domain[1] = null;
-	spline_domain = null;
+
+    is = null;
+    js = null;
+    spatial_values[0] = null;
+    spatial_values[1] = null;
+    spatial_values[2] = null;
+    spatial_values = null;
+    spline_domain[0] = null;
+    spline_domain[1] = null;
+    spline_domain = null;
     // do surgery to remove any missing spatial coordinates in texture
     if (!spatial_all_select) {
       tarray = (VisADTriangleStripArray) tarray.removeMissing();
@@ -2030,22 +2062,10 @@ throws VisADException, RemoteException {
     // get domain_set sizes
     data_width = X.getLength();
     data_height = Y.getLength();
-    // texture sizes must be powers of two on older graphics cards
+    // texture sizes may need to be powers-of-two on older graphics cards
     texture_width = textureWidth(data_width);
     texture_height = textureHeight(data_height);
-                                                                                                                       
-                                                                                                                       
-    // WLH 27 Jan 2003
-    float half_width = 0.5f / ((float) (data_width - 1));
-    float half_height = 0.5f / ((float) (data_height - 1));
-    half_width = (limits[0][1] - limits[0][0]) * half_width;
-    half_height = (limits[1][1] - limits[1][0]) * half_height;
-    limits[0][0] -= half_width;
-    limits[0][1] += half_width;
-    limits[1][0] -= half_height;
-    limits[1][1] += half_height;
-                                                                                                                       
-                                                                                                                       
+
     // convert values to default units (used in display)
     limits = Unit.convertTuple(limits, dataUnits, domain_units);
 
@@ -2054,7 +2074,7 @@ throws VisADException, RemoteException {
       throw new DisplayException("texture domain dimension != 2:" +
                                  "ShadowFunctionOrSetType.doTransform");
     }
-                                                                                                                       
+
     // find the spatial ScalarMaps
     for (int i=0; i<DomainComponents.length; i++) {
       Enumeration maps = DomainComponents[i].getSelectedMapVector().elements();
@@ -2114,13 +2134,41 @@ throws VisADException, RemoteException {
     // move image back in Java3D 2-D mode
     adjustZ(coordinates);
                                                                                                                        
-    texCoords = new float[8];
-    float ratiow = ((float) data_width) / ((float) texture_width);
-    float ratioh = ((float) data_height) / ((float) texture_height);
 
-    boolean yUp = true;
-    setTexCoords(texCoords, ratiow, ratioh, yUp);
-                                                                                                                       
+    /*   Assumes texels are squeezed into texture coordinate space (0.0 to 1.0)
+     *   so that the leftmost edge of the first texel is 0.0 and the rightmost
+     *   edge of the last texel is 1.0. The same is true for the height dimension
+     *   if yUp=true which is the case here (byReference).
+     */
+
+    float width = 1.0f / ((float)texture_width);         // Texel width
+    float height = 1.0f / ((float)texture_height);       // Texel height
+    float half_width = 0.5f / ((float) texture_width);   // half texel width
+    float half_height = 0.5f / ((float) texture_height); // half texel height
+
+    texCoords = new float[8];
+
+    /*   Map the data point spatial coordinates to the center of the texels by
+     *   by starting at center of the first texel (texel width) and accumulating
+     *   a full texel width for each data point (the data location is the center
+     *   of the display pixel).  The equations are for yUp=true only (byReference).
+     *   Note: the form of these equations implicitly deal with the case NPOT=false
+     *   wherein the texture_width will be greater than or equal to the data_width.
+     */
+
+    // corner 0
+    texCoords[0] = half_width;
+    texCoords[1] = half_height;
+    // corner 1
+    texCoords[2] = half_width;
+    texCoords[3] = half_height + (data_height-1)*height;
+    // corner 2
+    texCoords[4] = half_width + (data_width-1)*width;
+    texCoords[5] = half_height + (data_height-1)*height;
+    // corner 3
+    texCoords[6] = half_width + (data_width-1)*width;
+    texCoords[7] = half_height;
+
     VisADQuadArray qarray = new VisADQuadArray();
     qarray.vertexCount = 4;
     qarray.coordinates = coordinates;
