@@ -401,6 +401,16 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 
     	DisplayImpl display = getDisplay();
 
+        // TDR (25JAN2012) First check display GMC. ConstantMap->MissingTransparent takes precedence
+        boolean anyMissing = true; // must be assumed true for now.
+        boolean missingTransparent = display.getGraphicsModeControl().getMissingTransparent();
+        float flag = default_values[display.getDisplayScalarIndex(Display.MissingTransparent)];
+        if (flag >= 0f) {
+           missingTransparent = (flag == 1f);
+        }
+        missingTransparent = (missingTransparent && anyMissing);
+      
+
     	int cMapCurveSize = (int) default_values[display.getDisplayScalarIndex(Display.CurvedSize)];
 
     	int curved_size = (cMapCurveSize > 0) ? cMapCurveSize : display.getGraphicsModeControl().getCurvedSize();
@@ -548,7 +558,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                 if (null != color_table) {
 			//12NOV2012:  New Logic->truncate 4-byte buffered image to 3-byte buffered image if alpha is constant
 			//Save some more space. (1-byte per pixel for constant alpha imagery
-			if (isAlphaConstant(color_table)) {
+			if (isAlphaConstant(color_table) && !missingTransparent) { //TDR (25JAN2012) If missingTransparent=true, lock this out.
                                 if (isColorTableGrey(color_table)) {
                                         imageType = BufferedImage.TYPE_BYTE_GRAY;
                                         color_length = 1;
@@ -566,6 +576,13 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
                 }
         }
 	//GHANSHAM: 01MAR2012 GreyScale Texture Support (ends here)
+      
+        //TDR (25JAN2012) For Color composite, must use ABGR if missingTransparent=true
+        if (cmaps != null && missingTransparent) {
+           color_length = 4;
+           imageType = BufferedImage.TYPE_4BYTE_ABGR;
+           constant_alpha = Float.NaN;
+        }
 
 
 
@@ -1519,6 +1536,7 @@ throws VisADException, RemoteException {
 					int i = x + image_col_factor;
 					if (!Float.isNaN(scaled_Floats[0][i]) && !Float.isNaN(scaled_Floats[1][i]) && !Float.isNaN(scaled_Floats[2][i])) { // not missing
 						r=0;g=0;b=0;
+                                                a = 255; //TDR (25JAN2012) init to opaque, can't get alpha from the three RGB tables
 						if (isRGBRGBRGB) { //Inserted by Ghansham (start here)
 							int indx = -1;
 							//GHANSHAM:30AUG2011 Use the rset_scalarmap lookup to find scaled Range Values
