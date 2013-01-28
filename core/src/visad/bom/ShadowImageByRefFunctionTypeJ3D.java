@@ -274,6 +274,7 @@ public class ShadowImageByRefFunctionTypeJ3D extends ShadowFunctionTypeJ3D {
 		if (constant_alpha == 1.0) { //If constant_alpha=1.0, nullify the transparency_attributes
                         app.setTransparencyAttributes(null); //Idea taken fromtextureToGroup function in visad.java3d.ShadowFunctionOrSetTypeJ3D
                 } else {
+                        if ( Float.isNaN(constant_alpha) ) constant_alpha = 0f;
 
             		if (null == transp_attribs) {
                 		transp_attribs = new TransparencyAttributes();
