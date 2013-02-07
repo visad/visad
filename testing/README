@@ -1,1 +1,65 @@
-On a Windows machine, do "runall" and follow the instructions....
+    Test Procedure for a VisAD Release to the ftp Server
+
+1. on local machine, in the visad-build directory:
+  
+  svn update
+  ant clean
+  ant build
+  ant jar.examples
+
+2. cd testing
+
+3. runall.bat
+
+4. if successful, close the RMI Registery window and then proceed:
+
+   cd \visad-build
+   ant dist
+   ant jar.source
+
+5. cd \visad-build
+   type DATE  // note the last release date
+   copy core\build\DATE .
+
+6. svn log -v > log.txt
+     and then edit to remove all lines since last release
+
+7. ftp ftp.ssec.wisc.edu
+   
+   cd /pub/visad
+   put DATE
+   bin
+   put visad_examples.jar
+   put visad_doc.jar
+   put visad_src.jar
+   put visad.jar
+   mkdir <svn version>
+   cd <svn version>
+   put DATE
+   put visad_examples.jar
+   put visad_doc.jar
+   put visad_src.jar
+   put visad.jar
+
+8. check the sizes....
+
+9. ssh 'www' & cd /var/apache/www/htdocs/visad-docs
+   ftp ftp and bin, get "visad_doc.jar"
+   cd javadoc
+   unzip ../visad_doc.jar  -- replace All
+   cd ..
+   rm visad_doc.jar
+
+9. clip < log.txt
+
+10. send out an email to "visad-list@unidata.ucar.edu"
+
+11. browser to https://mcidasv.ssec.wisc.edu and log in
+11a. go to: https://mcidasv.ssec.wisc.edu/projects/visad/news and
+click "Add news"
+11b. put in title "VisAD library update <date>"
+11c. past log.txt with a lead-in line ("changes since last update on
+<date>)
+
+11. you are done!!
+
