@@ -4641,7 +4641,10 @@ class ContourStripSet {
 
 class ContourStrip {
 
-	/** Minimum number of points for which to perform label algm */
+  /** Default label Font */
+	private static final HersheyFont TIMESR_FONT = new HersheyFont("timesr");
+
+  /** Minimum number of points for which to perform label algm */
 	static final int LBL_ALGM_THRESHHOLD = 20;
 
 	/**
@@ -4934,14 +4937,14 @@ class ContourStrip {
 						TextControl.Justification.CENTER, 0.0, css.labelScale,
 						null);
 			} else if (labelFont == null) {
-				label = PlotText.render_font(numStr, new HersheyFont("timesr"),
+				label = PlotText.render_font(numStr, TIMESR_FONT,
 						new double[] { vv[0][loc], vv[1][loc], vv[2][loc] },
 						new double[] { 1.0, 0.0, 0.0 }, new double[] { 0.0,
 								1.0, 0.0 }, TextControl.Justification.CENTER,
 						TextControl.Justification.CENTER, 0.0, css.labelScale,
 						null);
 			} else {
-				label = PlotText.render_font(numStr, new HersheyFont("timesr"),
+				label = PlotText.render_font(numStr, TIMESR_FONT,
 						new double[] { vv[0][loc], vv[1][loc], vv[2][loc] },
 						new double[] { 1.0, 0.0, 0.0 }, new double[] { 0.0,
 								1.0, 0.0 }, TextControl.Justification.CENTER,
@@ -5234,7 +5237,7 @@ class ContourStrip {
 								css.labelScale, null);
 			} else if (labelFont == null) {
 				label = PlotText
-						.render_font(numStr, new HersheyFont("timesr"),
+						.render_font(numStr, TIMESR_FONT,
 								new double[] { vv[0][loc], vv[1][loc],
 										vv[2][loc] }, new double[] {
 										labelBase[0], labelBase[1],
@@ -5245,7 +5248,7 @@ class ContourStrip {
 								css.labelScale, null);
 			} else {
 				label = PlotText
-						.render_font(numStr, new HersheyFont("timesr"),
+						.render_font(numStr, TIMESR_FONT,
 								new double[] { vv[0][loc], vv[1][loc],
 										vv[2][loc] }, new double[] {
 										labelBase[0], labelBase[1],
@@ -6031,3 +6034,5 @@ class IndexPairList {
                 return idxs;
         }
 }
+
+
