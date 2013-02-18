@@ -118,17 +118,27 @@
 		</rmic>
 	</target>
 
-
-	<target name="jar">
+    <target name="dist.revision" description="Store git revision in ${repository.version}" if="git.present">
+        <exec executable="git" outputproperty="git.revision" failifexecutionfails="false" errorproperty="">
+            <arg value="rev-list"/>
+            <arg value="HEAD"/>
+            <arg value="--count"/>
+        </exec>
+        <condition property="repository.version" value="r${git.revision}" else="unknown">
+            <and>
+                <isset property="git.revision"/>
+                <length string="r${git.revision}" trim="yes" length="0" when="greater"/>
+            </and>
+        </condition>
+        <echo>git rev: ${repository.version}</echo>
+    </target>
+    
+	<target name="jar" depends="dist.revision">
 		<tstamp>
 			<format property="date.value" pattern="EEE MMM dd HH:mm:ss zzz yyyy" />
 		</tstamp>
 
-    <typedef resource="org/tigris/subversion/svnant/svnantlib.xml" classpathref="build.classpath" />
-    <svn>
-       <info target="${basedir}"/>
-    </svn> 
-		<echo message="${date.value}  Rev:${svn.info.rev}" file="${build.dir}/${date.file}" />
+ 	<echo message="${date.value}  Rev:${repository.version}" file="${build.dir}/${date.file}" />
 		<unzip src="${deps.jarfile}" dest="${build.dir}" />
 		<copy todir="${build.dir}">
 			<fileset dir="${src.dir}">
