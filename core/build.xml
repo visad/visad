@@ -151,6 +151,9 @@
 		<jar destfile="${visad.jarfile}" basedir="${build.dir}" filesonly="true">
 			<manifest>
 				<attribute name="Main-Class" value="visad.ss.SpreadSheet" />
+				<attribute name="Implementation-Title" value="VisAD" />
+				<attribute name="Implementation-Version" value="${date.value} ${repository.version}" />
+				<attribute name="Implementation-Vendor" value="UW/SSEC" />
 			</manifest>
 		</jar>
 	</target>
