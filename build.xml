@@ -82,11 +82,16 @@
                                  dist.revision"
             description="make the VisAD distribution including project jar file with dependencies and jars for examples and docs">
 
+        <tstamp>
+          <format property="date.value" pattern="EEE MMM dd HH:mm:ss zzz yyyy" />
+        </tstamp>
         <jar update="true" destfile="${basedir}/visad.jar">
             <manifest>
                 <attribute name="Built-By" value="${user.name}"/>
                 <attribute name="Main-Class" value="visad.ss.SpreadSheet"/>
-                <attribute name="Revision" value="$repository.version}"/>
+				        <attribute name="Implementation-Title" value="VisAD" />
+				        <attribute name="Implementation-Version" value="${date.value} ${repository.version}" />
+				        <attribute name="Implementation-Vendor" value="UW/SSEC" />
             </manifest>
         </jar>
     </target>
