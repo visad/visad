@@ -2,7 +2,8 @@
 
 1. on local machine, in the visad-build directory:
   
-  svn update
+  cd <base of visad-nightly -- a clone of the fork of the visad/visad repo>
+  git pull origin
   ant clean
   ant build
   ant jar.examples
@@ -13,15 +14,15 @@
 
 4. if successful, close the RMI Registery window and then proceed:
 
-   cd \visad-build
+   cd \visad-nightly   # or the base directory
    ant dist
    ant jar.source
 
-5. cd \visad-build
+5. cd \visad-nightly   # or the base directory
    type DATE  // note the last release date
    copy core\build\DATE .
 
-6. svn log -v > log.txt
+6. nightly\makelog.bat > log.txt
      and then edit to remove all lines since last release
 
 7. ftp ftp.ssec.wisc.edu
@@ -33,15 +34,15 @@
    put visad_doc.jar
    put visad_src.jar
    put visad.jar
-   mkdir <svn version>
-   cd <svn version>
+   mkdir <revision number, e.g. r5998>
+   cd <revision number>
    put DATE
    put visad_examples.jar
    put visad_doc.jar
    put visad_src.jar
    put visad.jar
 
-8. check the sizes....
+8. verify the sizes....
 
 9. ssh 'www' & cd /var/apache/www/htdocs/visad-docs
    ftp ftp and bin, get "visad_doc.jar"
@@ -50,15 +51,15 @@
    cd ..
    rm visad_doc.jar
 
-9. clip < log.txt
+9. clip log.txt
 
 10. send out an email to "visad-list@unidata.ucar.edu"
 
-11. browser to https://mcidasv.ssec.wisc.edu and log in
-11a. go to: https://mcidasv.ssec.wisc.edu/projects/visad/news and
+11. update Redmine:  point browser to https://mcidasv.ssec.wisc.edu and log in
+12. go to: https://mcidasv.ssec.wisc.edu/projects/visad/news and
 click "Add news"
-11b. put in title "VisAD library update <date>"
-11c. past log.txt with a lead-in line ("changes since last update on
+13. put in title "VisAD library update <date>"
+14. past log.txt with a lead-in line ("changes since last update on
 <date>)
 
 11. you are done!!
