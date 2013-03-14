@@ -1,10 +1,6 @@
-//
-// ThreadPool.java
-//
-
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2011 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2013 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -22,622 +18,241 @@ You should have received a copy of the GNU Library General Public
 License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
-*/
+ */
 
 package visad.util;
 
+import java.util.Collection;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 
-import java.util.ListIterator;
-import java.util.Vector;
-
-
-/** A pool of threads (with minimum and maximum limits on the number
- *  of threads) which can be used to execute any Runnable tasks.
+/**
+ * A pool of threads which can be used to execute any Runnable tasks. Internally
+ * this class uses a java.util.concurrent.ThreadPoolExecutor, but originally it
+ * did not because the original class predates java.util.concurrent. As the
+ * internals of this class have evolved, an effort has been made to preserve the
+ * original API. Note that a java.util.concurrent.ThreadPoolExecutor does not
+ * support the notion of minimum and maximum threads so minimum threads is
+ * ignored, and maximum threads is simply the size of the thread pool.
  */
 public class ThreadPool {
 
-  /**           */
-  private static final String DEFAULT_PREFIX = "Minnow";
+	/** Default prefix */
+	private static final String DEFAULT_PREFIX = ThreadPool.class.toString();
 
-/* WLH 11 April 2001
-there's a deadlock possibility here, if running ActionImpls are
-waiting for other ActionImpls to run
-*/
+	/** Thread pool from core Java */
+	private final ThreadPoolExecutor exec;
 
-  /**           */
-  private static final int DEFAULT_MIN_THREADS = 5; // WLH 11 April 2001
+	/**
+	 * We just need a thread-safe, lock-free, high-performance bag. It does not
+	 * matter that it is a queue.
+	 */
+	private final Collection<Future<?>> bagOfFutures = new ConcurrentLinkedQueue<Future<?>>();
 
-  /**           */
-  private static final int DEFAULT_MAX_THREADS = 10;
+	/** waitForTasks requires that we lock this class for a moment */
+	private final Object mutex = new Object();
 
-  // maximum number of tasks which can be queued before a new thread is created
+	/**
+	 * The available processors on the system. Java Concurrency in Practice, 8.2
+	 * has more information on tuning this number
+	 */
+	private static final int PROCESSORS = Runtime.getRuntime()
+			.availableProcessors() + 1;
 
-  /**           */
-  private int maxQueuedTasks = 3;
+	/** The prefix for this thread pool. */
+	private final String prefix;
 
-  // minimum and maximum number of threads to create
+	/**
+	 * Build a thread pool with the default thread name prefix and the default
+	 * minimum and maximum numbers of threads.
+	 * 
+	 * @throws Exception
+	 */
+	public ThreadPool() throws Exception {
+		this(DEFAULT_PREFIX, 0, PROCESSORS);
+	}
 
-  /**           */
-  private int minThreads;
+	/**
+	 * Build a thread pool with the specified thread name prefix, and the default
+	 * minimum and maximum numbers of threads
+	 * 
+	 * @param prefix
+	 * 
+	 * @throws Exception
+	 */
+	public ThreadPool(String prefix) throws Exception {
+		this(prefix, 0, PROCESSORS);
+	}
 
-  /**           */
-  private int maxThreads;
+	/**
+	 * Build a thread pool with the specified maximum number of threads, and the
+	 * default thread name prefix and minimum number of threads
+	 * 
+	 * @param max
+	 * 
+	 * @throws Exception
+	 */
+	public ThreadPool(int max) throws Exception {
+		this(DEFAULT_PREFIX, 0, max);
+	}
 
-  // generic lock object
+	/**
+	 * Build a thread pool with the specified minimum and maximum numbers of
+	 * threads, and the default thread name prefix.
+	 * 
+	 * @param min
+	 * @param max
+	 * 
+	 * @throws Exception
+	 */
+	public ThreadPool(int min, int max) throws Exception {
+		this(DEFAULT_PREFIX, min, max);
+	}
 
-  /**           */
-  private Object threadLock = new Object();
+	/**
+	 * Build a thread pool with the specified thread name prefix and minimum and
+	 * maximum numbers of threads
+	 * 
+	 * @param prefix
+	 * @param min
+	 * @param max
+	 * 
+	 * @throws Exception
+	 */
+	public ThreadPool(String prefix, int min, int max) throws Exception {
+		this.prefix = prefix;
 
-  // object used to signal task completion
-  //jeffmc: 2009-11-24: now use tasks instead of doneLock
-  //  private Object doneLock = new Object();
+		// Tom & Don TODO:
+		// I would say it is never advisable to go below PROCESSORS constant. The
+		// test I ran assume this. But I also want to keep the API as it stands now.
+		// I'll let you make the final call here.
 
-  // 'true' if all threads should exit
+		// Could check for this: exec = (ThreadPoolExecutor) Executors.newFixedThreadPool(max < PROCESSORS ? PROCESSORS : max);
+		exec = (ThreadPoolExecutor) Executors.newFixedThreadPool(max);
+	}
 
-  /**           */
-  private boolean terminateThread = false;
+	/**
+	 * Return the number of tasks in the queue that are running. Note this
+	 * number is constantly changing so check than act is not really recommended.
+	 * 
+	 * @return a rough number of queued and active tasks
+	 */
+	public int getTaskCount() {
+		synchronized (mutex) {
+			for (Future<?> f : bagOfFutures) {
+				if (f.isDone()) {
+					bagOfFutures.remove(f);
+				}
+			}
+			return bagOfFutures.size();
+		}
+	}
 
-  // list of threads in the pool
+	// WLH 17 Dec 2001
 
-  /**           */
-  private Vector threads = new Vector();
+	/**
+	 * Remove this task from the tread pool.
+	 * 
+	 * @param r
+	 *          the runnable to remove from the queue
+	 */
+	public void remove(Runnable r) {
+		exec.remove(r);
+	}
 
-  // list of queued tasks
+	/**
+	 * Has the thread pool been closed?
+	 * 
+	 * @return <tt>true</tt> if the pool has been terminated.
+	 */
+	public boolean isTerminated() {
+		return exec.isTerminated();
+	}
 
-  /**           */
-  private Vector tasks = new Vector();
+	/**
+	 * Utility method to print out the tasks
+	 */
 
-  // WLH 20 Feb 2001
-  // list of busy tasks - to prevent more than one Thread
-  // from running the same ActionImpl
+	public void printPool() {
+		System.err.println("Busy Tasks:");
+		for (Future<?> f : bagOfFutures) {
+			if (!f.isDone()) {
+				System.out.println(f.toString());
+			}
+		}
+		System.err.println("Completed Tasks:");
+		for (Future<?> f : bagOfFutures) {
+			if (f.isDone()) {
+				System.out.println(f.toString());
+			}
+		}
+	}
 
-  /**           */
-  private Vector busy_tasks = new Vector();
+	/**
+	 * Add a task to the queue; tasks are executed as soon as a thread is
+	 * available, in the order in which they are submitted
+	 * 
+	 * @param r
+	 *          the runnable that will be executed by this thread pool.
+	 */
+	public void queue(Runnable r) {
+		Future<?> submit = exec.submit(r);
+		bagOfFutures.add(submit);
 
-  // variables used to name threads
+		// While we are at it, clean out the bag of completed tasks.
+		for (Future<?> f : bagOfFutures) {
+			if (f.isDone()) {
+				bagOfFutures.remove(f);
+			}
+		}
+	}
 
-  /**           */
-  private String prefix;
+	/**
+	 * Wait for currently-running tasks to finish. Blocks while the internal queue
+	 * of tasks is completed.
+	 * 
+	 * @return true
+	 */
+	public boolean waitForTasks() {
+		// Lock the thread pool and drain all pending task.
+		synchronized (mutex) {
+			for (Future<?> f : bagOfFutures) {
+				try {
+					f.get();
+					// Tom & Don TODO: handle the exception in whatever way you think is
+					// best. The TheadPool previously just swallowed exceptions so that is 
+					// how I am leaving it, but in principle, this is not advisable.
+				} catch (InterruptedException e) {
+					// http://www.ibm.com/developerworks/java/library/j-jtp05236/index.html
+					Thread.currentThread().interrupt();
+				} catch (ExecutionException e) {
+					// The runnable threw exception.
+					//e.printStackTrace();
+				}
+			}
+			// We are now clear of futures.
+			bagOfFutures.clear();
+		}
+		return true;
+	}
 
-  /**           */
-  private int nextID = 0;
+	/**
+	 * Set the maximum number of pooled threads
+	 * 
+	 * @param num
+	 *          the number of threads
+	 * 
+	 * @throws Exception
+	 */
+	public void setThreadMaximum(int num) throws Exception {
+		exec.setCorePoolSize(num);
+	}
 
-  private class ThreadMinnow extends Thread {
-
-    /**           */
-    boolean waitingOnThreadLock = false;
-
-    /**           */
-    boolean active = false;
-
-    /**           */
-    private ThreadPool parent = null;
-
-    /**
-     * 
-     *
-     * @param p 
-     */
-    public ThreadMinnow(ThreadPool p) {
-      parent = p;
-      start();
-    }
-
-    /**
-     * 
-     */
-    public void run() {
-      active = true;
-      while(true) {
-        // try to find something to do...
-        Runnable r = parent.getTask();
-        if (r != null) {
-          try {
-            r.run();
-          }
-          catch (Throwable t) {
-            t.printStackTrace();
-          }
-
-          parent.releaseTask(r); // WLH 20 Feb 2001
-
-          // wake-up another ThreadMinnow after releaseTask() in case
-          // the only task in the queue equaled the one this ThreadMinnow
-          // was running
-          synchronized (threadLock) { // WLH 21 Feb 2001
-            threadLock.notify();
-          }
-
-          //jeffmc:  2009-11-24:instead of notifying on doneLock we now notify on tasks
-          //          synchronized (doneLock) {
-          //            doneLock.notifyAll();
-          //          }
-          synchronized (tasks) {
-            tasks.notifyAll();
-          }
-
-        }
-        else {
-
-          // if we're supposed to stop, break out of the infinite loop
-          if (terminateThread) {
-            active = false;
-            return;
-          }
-
-          // NOTE:
-          //   the 'terminateThread' check only happens when there's no
-          //   work to be done.  This is to ensure that all outstanding
-          //   tasks are completed.
-
-          /**
-           *  jeffmc: If this thread gets to this point (after the terminate thread
-           *  but before the threadLock.wait() and then  this thread pauses while
-           *  the main pool thread gets to the  point marked "jeffmc:starvation" in
-           *  stopThreads then  starvation occurs
-           */
-
-          // wait until there's work to be done
-          try {
-            synchronized (threadLock) {
-              if (terminateThread) {
-                active = false;
-                return;
-              }
-              waitingOnThreadLock = true;
-              if (terminateThread) {
-                active = false;
-                return;
-              }
-              threadLock.wait();
-              if (terminateThread) {
-                active = false;
-                return;
-              }
-              waitingOnThreadLock = false;
-            }
-          }
-          catch (InterruptedException e) {
-            // ignore interrupts ...
-          }
-          if (terminateThread) {
-            active = false;
-            return;
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * Build a thread pool with the default thread name prefix
-   *  and the default minimum and maximum numbers of threads
-   *
-   * @throws Exception 
-   */
-  public ThreadPool() throws Exception {
-    this(DEFAULT_PREFIX, DEFAULT_MIN_THREADS, DEFAULT_MAX_THREADS);
-  }
-
-  /**
-   * Build a thread pool with the specified thread name prefix, and
-   *  the default minimum and maximum numbers of threads
-   *
-   * @param prefix 
-   *
-   * @throws Exception 
-   */
-  public ThreadPool(String prefix) throws Exception {
-    this(prefix, DEFAULT_MIN_THREADS, DEFAULT_MAX_THREADS);
-  }
-
-  /**
-   * Build a thread pool with the specified maximum number of
-   *  threads, and the default thread name prefix and minimum number
-   *  of threads
-   *
-   * @param max 
-   *
-   * @throws Exception 
-   */
-  public ThreadPool(int max) throws Exception {
-    this(DEFAULT_MIN_THREADS, max);
-  }
-
-  /**
-   * Build a thread pool with the specified minimum and maximum
-   *  numbers of threads, and the default thread name prefix
-   *
-   * @param min 
-   * @param max 
-   *
-   * @throws Exception 
-   */
-  public ThreadPool(int min, int max) throws Exception {
-    this(DEFAULT_PREFIX, min, max);
-  }
-
-  /**
-   * Build a thread pool with the specified thread name prefix and
-   *  minimum and maximum numbers of threads
-   *
-   * @param prefix 
-   * @param min 
-   * @param max 
-   *
-   * @throws Exception 
-   */
-  public ThreadPool(String prefix, int min, int max) throws Exception {
-    minThreads = min;
-    maxThreads = max;
-
-    if (minThreads > maxThreads) {
-      throw new Exception("Maximum number of threads (" + maxThreads +
-                          ") is less than minimum number of threads (" +
-                          minThreads + ")");
-    }
-
-    this.prefix = prefix;
-
-    for (int i = 0; i < minThreads; i++) {
-      ThreadMinnow minnow = new ThreadMinnow(this);
-      minnow.setName(prefix + "-" + nextID++);
-      threads.addElement(minnow);
-    }
-  }
-
-
-
-  /**
-   * return the number of tasks in the queue and that are running
-   * @return number of queued and active tasks
-   */
-  public int getTaskCount() {
-    int count = 0;
-    if (tasks != null) count += tasks.size();
-    if (busy_tasks != null) count += busy_tasks.size();
-    return count;
-  }
-
-  // WLH 17 Dec 2001
-
-  /**
-   * 
-   *
-   * @param r 
-   */
-  public void remove(Runnable r) {
-    synchronized (tasks) {
-      tasks.removeElement(r);
-      busy_tasks.removeElement(r);
-    }
-  }
-
-  /**
-   * Has the thread pool been closed?
-   *
-   * @return <tt>true</tt> if the pool has been terminated.
-   */
-  public boolean isTerminated() {
-    return terminateThread;
-  }
-
-  /**
-   * Utility method to print out the tasks 
-   */
-  public void printPool() {
-    synchronized (tasks) {
-      int n = tasks.size();
-      System.err.println("Tasks:");
-      for (int i = 0; i < n; i++) {
-        visad.ActionImpl a = (visad.ActionImpl)tasks.elementAt(i);
-        System.out.println("\t" + i + " = " + a.getName());
-      }
-      System.err.println("Busy Tasks:");
-      for (int i = 0; i < busy_tasks.size(); i++) {
-        visad.ActionImpl a = (visad.ActionImpl)busy_tasks.elementAt(i);
-        System.out.println("\t" + i + " = " + a.getName());
-      }
-    }
-
-  }
-
-/** Add a task to the queue; tasks are executed as soon as a thread
-   *  is available, in the order in which they are submitted
- *
- * @param r 
-   */
-  public void queue(Runnable r) {
-    // don't queue new tasks after the pool has been shut down
-    if (terminateThread) {
-      throw new Error("Task queued after threads stopped");
-    }
-
-    // add this task to the queue
-    int numTasks = 0;
-    synchronized (tasks) {
-      if (!tasks.contains(r)) { // WLH 20 Feb 2001
-/*
-System.out.println("queue new r " + ((ActionImpl) r).getName());
-int n = tasks.size();
-for (int i=0; i<n; i++) {
-  ActionImpl a = (ActionImpl) tasks.elementAt(i);
-  System.out.println("  " + i + " = " + a.getName());
+	/** Shut down this thread pool. */
+	public void stopThreads() {
+		exec.shutdown();
+	}
 }
-*/
-        tasks.addElement(r);
-        numTasks = tasks.size();
-      }
-      else {
-// System.out.println("queue already contains r");
-      }
-    }
-
-    // make sure one or more threads are told to deal with the new task
-    synchronized (threadLock) {
-      // if all the threads appear to be busy...
-      if (numTasks > maxQueuedTasks) {
-
-        // ...and we haven't created too many threads...
-        if (threads != null && threads.size() < maxThreads) {
-
-          // ...spawn a new thread and tell it to deal with this
-          try {
-            Thread t = new ThreadMinnow(this);
-            t.setName(prefix + "-" + nextID++);
-            threads.addElement(t);
-            threadLock.notify();
-          }
-          catch (SecurityException e) {
-            // can't spawn a thread from this ThreadGroup...
-            // wait until something's queued from the main thread
-          }
-        }
-        else {
-
-          // try to wake up all waiting threads to deal with the backlog
-          threadLock.notifyAll();
-        }
-      }
-      else {
-
-        // not all threads are busy; notify one of the waiting threads
-        threadLock.notify();
-      }
-    }
-  }
-
-  /**
-   * Get the next task on the queue.<BR>
-   *  This method is intended only for the use of client threads and
-   *  should never be called by external objects.
-   *
-   * @return 
-   */
-  Runnable getTask() {
-    Runnable thisTask = null;
-
-    synchronized (tasks) {
-/*
-int n = tasks.size();
-for (int i=0; i<n; i++) {
-  ActionImpl a = (ActionImpl) tasks.elementAt(i);
-  System.out.println("  getTask " + i + " = " + a.getName());
-}
-*/
-
-/* WLH 20 Feb 2001
-      if (tasks.size() > 0) {
-        thisTask = (Runnable )tasks.elementAt(0);
-        tasks.removeElementAt(0);
-      }
-*/
-      int n = tasks.size();
-      for (int i = 0; i < n; i++) {
-        thisTask = (Runnable)tasks.elementAt(i);
-        if (busy_tasks.contains(thisTask)) {
-          thisTask = null;
-        }
-        else {
-          tasks.removeElementAt(i);
-          busy_tasks.addElement(thisTask);
-          break;
-        }
-      }
-
-    } // end synchronized (tasks)
-
-    return thisTask;
-  }
-
-  // WLH 20 Feb 2001
-
-  /**
-   * 
-   *
-   * @param r 
-   */
-  void releaseTask(Runnable r) {
-    synchronized (tasks) {
-      busy_tasks.removeElement(r);
-    }
-  }
-
-  /**
-   * wait for currently-running tasks to finish 
-   *
-   * @return 
-   */
-  public boolean waitForTasks() {
-    // give all the current tasks a chance to finish
-    int timeout = tasks.size();
-    // don't allow thread to wait for itself
-    if (Thread.currentThread() instanceof ThreadMinnow) {
-      //Only do this if the calling thread is one of this pool's threads
-      if (threads.contains(Thread.currentThread())) {
-        try {
-          Thread.sleep(15000);
-        }
-        catch (InterruptedException ie) {
-        }
-        return false;
-      }
-    }
-
-
-    int numTasks;
-    while(true) {
-      try {
-        //jeffmc:  2009-11-24:  We used to do done doneLock.wait(); here but we now wait on the tasks to prevent starvation
-        synchronized (tasks) {
-          if (tasks.size() == 0) break;
-          tasks.wait();
-        }
-      }
-      catch (InterruptedException e) {
-        // ignore interrupts ...
-      }
-
-      if (timeout-- == 0) {
-        break;
-      }
-    }
-    return (timeout > 0);
-  }
-
-  /**
-   * increase the maximum number of pooled threads 
-   *
-   * @param num 
-   *
-   * @throws Exception 
-   */
-  public void setThreadMaximum(int num) throws Exception {
-    if (num < maxThreads) {
-      throw new Exception("Cannot decrease maximum number of threads");
-    }
-    maxThreads = num;
-  }
-
-  /** Stop all threads as soon as all queued tasks are completed */
-  public void stopThreads() {
-    if (terminateThread) {
-      return;
-    }
-
-    /**
-     * jeffmc:starvation
-     * If the minnow pauses at just the wrong time it will miss
-     * the notifyAll an then go into its threadLock.wait()
-     * and never gets the notify
-     */
-
-    terminateThread = true;
-    synchronized (threadLock) {
-      threadLock.notifyAll();
-    }
-
-
-    Vector oldthreads;
-    ListIterator i;
-    synchronized (threads) {
-      oldthreads = threads;
-      threads = null;
-      i = oldthreads.listIterator();
-    }
-
-    while(i.hasNext()) {
-      ThreadMinnow t = (ThreadMinnow)i.next();
-      //This prevents the starvation scenario above
-      if (t.waitingOnThreadLock) {
-        synchronized (threadLock) {
-          threadLock.notifyAll();
-        }
-        //We don't have to join this thread because after it gets the notify
-        //it quits and is no longer active
-        continue;
-      }
-      if (!t.active) continue;
-
-      while(true) {
-        synchronized (oldthreads) {
-          oldthreads.notifyAll();
-        }
-        try {
-          t.join();
-          break;
-        }
-        catch (InterruptedException e) {
-        }
-      }
-      i.remove();
-    }
-  }
-}
-
-/*
- * Here's a simple test program for the ThreadPool code.  Save it to
- * 'SimpleTask.java':
- *
- * import java.util.Random;
- *
- * import visad.util.ThreadPool;
- *
- * public class SimpleTask implements Runnable {
- *   private static Random rand = new Random();
- *
- *   private int count = 0;
- *
- *   public SimpleTask() { }
- *
- *   public void run()
- *   {
- *     count++;
- *     try { Thread.sleep((rand.nextInt() % 10), 0); } catch (Throwable t) { }
- *   }
- *
- *   public int getCount() { return count; }
- *
- *   public static void main(String[] args)
- *   {
- *     ThreadPool pool;
- *     try {
- *       pool = new ThreadPool();
- *     } catch (Exception e) {
- *       System.err.println("Couldn't build ThreadPool: " + e.getMessage());
- *       System.exit(1);
- *       return;
- *     }
- *
- *     // give threads a chance to start up
- *     try { Thread.sleep(100, 0); } catch (Throwable t) { }
- *
- *     SimpleTask[] task = new SimpleTask[4];
- *     for (int i = 0; i < task.length; i++) {
- *       task[i] = new SimpleTask();
- *     }
- *
- *     for (int i = 0; i < 10; i++) {
- *       for (int j = 0; j < task.length; j++) {
- *         pool.queue(task[j]);
- *       }
- *       try { Thread.sleep(10, 0); } catch (Throwable t) { }
- *     }
- *
- *     pool.stopThreads();
- *
- *     boolean success = true;
- *     for (int i = 0; i < task.length; i++) {
- *       int c = task[i].getCount();
- *       if (c != 10) {
- *         System.err.println("Got " + c + " for task#" + i + ", expected 10");
- *         success = false;
- *       }
- *     }
- *
- *     if (success) System.out.println("Success!");
- *   }
- * }
- *
- */
-
