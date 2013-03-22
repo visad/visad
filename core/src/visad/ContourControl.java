@@ -756,7 +756,7 @@ public class ContourControl extends Control {
   public void setLabelSize(double factor)
   throws VisADException, RemoteException {
 	  synchronized (this) {
-		  labelSizeFactor *= factor;
+		  labelSizeFactor = factor;
 	  }
 	  changeControl(true);
   }
