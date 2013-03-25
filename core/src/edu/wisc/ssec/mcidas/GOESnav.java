@@ -166,6 +166,7 @@ public final class GOESnav extends AREAnav
         
         for (int n = 6; n < 12; n++)
         {
+            if (n == 10 || n == 8) continue;
             if (iarr[n] <= 0)
                throw new IllegalArgumentException("Invalid orbital parameters");
         }

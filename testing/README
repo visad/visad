@@ -22,7 +22,7 @@
    type DATE  // note the last release date
    copy core\build\DATE .
 
-6. nightly\makelog.bat > log.txt
+6. testing\makelog.bat > log.txt
      and then edit to remove all lines since last release
 
 7. ftp ftp.ssec.wisc.edu
