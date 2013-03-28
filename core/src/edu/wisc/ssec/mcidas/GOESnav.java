@@ -864,8 +864,7 @@ public final class GOESnav extends AREAnav
     private void epoch(int ietimy, int ietimh, double semima,
                        double oeccen, double xmeana)
     {
-        double PI = 3.14159265;
-        double RDPDG = PI/180.;
+        double RDPDG = Math.PI/180.;
         double RE = 6378.388;
         double GRACON = 0.07436574;
 
@@ -994,11 +993,9 @@ C VECTOR EARTH-CENTER-TO-SAT (FUNC OF TIME)
         if (iold != 1)
         {
             iold = 1;
-            double PI = 3.14159265;
-            double rdpdg = PI/180.0;
+            double rdpdg = Math.PI/180.0;
             double re = 6378.388;
             double gracon = .07436574;
-            double solsid = 1.00273791;
             double sha = 100.26467;
             sha = rdpdg*sha;
             int irayd = 74001;

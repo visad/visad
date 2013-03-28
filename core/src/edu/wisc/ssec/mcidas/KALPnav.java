@@ -76,7 +76,6 @@ public class KALPnav extends AREAnav {
   private int ic;
   private double h, a, rp, re, cdr, crd, lpsi2, deltax, deltay;
   private double sublat, sublon, cenlin, cenele, altitude;
-  private double PI;
 
   private boolean isEastPositive = true;
 
@@ -99,9 +98,8 @@ public class KALPnav extends AREAnav {
     re=6378.155;
     a=1./297.;
     rp=re/(1.+a);
-    PI=3.141592653;
-    cdr=PI/180.;
-    crd=180./PI;
+    cdr=Math.PI/180.;
+    crd=180./Math.PI;
     lpsi2=1.0;
 
 //        DELTAX=18.03674/1408.
