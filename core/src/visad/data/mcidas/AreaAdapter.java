@@ -287,6 +287,12 @@ public class AreaAdapter {
   
   private AreaFile af;
 
+  /** Get the instance of the AreaFile used herein.  Do NOT attempt
+    * to then use the AreaFile.getData() method!!  Use this AreaAdapter's 
+    * getData() method to fetch the FlatField containing the data values.
+    *
+    * @return the instance of the AreaFile
+    */
   public AreaFile getAreaFile() {
        return af;
    }
