@@ -48,7 +48,6 @@ public class GEOSnav extends AREAnav {
 
   private static final long serialVersionUID = 1L;
   final int loff, coff, lfac, cfac, plon;
-  final double PI = 3.1415926535;
   final double radpol = 6356.5838;
   final double radeq = 6378.1690;
   final double X42 = 42164.0;
@@ -93,9 +92,9 @@ public class GEOSnav extends AREAnav {
       // --- Doc No: CGMS 03
 
       // --- Coordinates are converted to Radians
-      lat   = xlat*PI/180.;
-      lon   = xlon*PI/180.0;
-      splon = plon/10. * PI/180.0;
+      lat   = xlat*Math.PI/180.;
+      lon   = xlon*Math.PI/180.0;
+      splon = plon/10. * Math.PI/180.0;
 
       // --- Intermediate data
       c_lat=Math.atan(0.993243*Math.tan(lat));
@@ -119,8 +118,8 @@ public class GEOSnav extends AREAnav {
       // ------- Intermediate coordinates
         x = Math.atan(-r2/r1);
         y = Math.asin(-r3/rn);
-        x = x * 180./PI;
-        y = y * 180./PI;
+        x = x * 180./Math.PI;
+        y = y * 180./Math.PI;
 
         xele = coff/10. + x / Math.pow(2,16) * cfac/10.;
         xlin = loff/10. + y / Math.pow(2,16) * lfac/10.;
@@ -164,8 +163,8 @@ public class GEOSnav extends AREAnav {
       // --- Intermediate coordinates
       x = (xele - coff/10.) * Math.pow(2,16) / (cfac/10.);
       y = (xlin - loff/10.) * Math.pow(2,16) / (lfac/10.);
-      x = x * PI/180.;
-      y = y * PI/180.;
+      x = x * Math.PI/180.;
+      y = y * Math.PI/180.;
 
       //c --- Intermediate data
       cosx=Math.cos(x);
@@ -190,8 +189,8 @@ public class GEOSnav extends AREAnav {
  
         // --- Computation
         xlon = Math.atan(s2/s1);
-        xlon = xlon * 180./PI + plon/10.;
-        xlat = Math.atan(1.006803*s3/sxy)* 180./PI;
+        xlon = xlon * 180./Math.PI + plon/10.;
+        xlat = Math.atan(1.006803*s3/sxy)* 180./Math.PI;
  
         // --- Longitudes in [-180,180]
         if(xlon >  180.0) xlon = xlon - 360.;
