@@ -2660,16 +2660,33 @@ public static void plot(final String name, final float[][] data)
   /**
    * Return the lengths of the components of the sampling set 
    * 
-   * @param data is the VisAD data object
+   * @param data is the VisAD data object (Field or Set or Tuple; Scalars return 1.
    * 
-   * @return an int[] of the lengths
+   * @return an int[] of the length(s)
    * 
    * @throws  VisADException  unable to construct field
    * @throws  RemoteException part of data and display APIs, shouldn't occur
    */
   public static int[] getDomainSizes(Data data)
              throws VisADException, RemoteException {
-    return ((GriddedSet) ((Field)data).getDomainSet()).getLengths();
+    if (data instanceof Field) {
+      Set set = ((Field)data).getDomainSet();
+      if (set instanceof GriddedSet) {
+        return ((GriddedSet)set).getLengths();
+      } else {
+        return new int[]{set.getLength()};
+      }
+    } else if (data instanceof GriddedSet) {
+      return ((GriddedSet)data).getLengths();
+    } else if (data instanceof Set) {
+        return new int[]{((Set)data).getLength()};
+    } else if (data instanceof Tuple) {
+        return new int[]{((Tuple)data).getLength()};
+    } else if (data instanceof Scalar) {
+        return new int[]{1};
+    } else {
+      throw new VisADException("Cannot get domain sizes for this data.");
+    }
   }
 
   /**

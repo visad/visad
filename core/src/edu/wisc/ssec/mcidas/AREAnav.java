@@ -639,7 +639,7 @@ public abstract class AREAnav
     }
     catch (IllegalArgumentException excp)
     {
-        throw new McIDASException( "Wrong nav block passed to AREAnav module");
+        throw new McIDASException( "Wrong nav block passed to AREAnav module:"+excp);
     }
     return anav;
   }
