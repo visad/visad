@@ -69,6 +69,7 @@ public class HRITAdapter {
   private static final int CAL_OFFS = 72;
   
   private static final int SPACECRAFT_ID_MSG2 = 322;
+  private static final int SPACECRAFT_ID_MSG3 = 323;
 
   /**
    * Create a VisAD FlatField from local HRIT file(s).  This constructor 
@@ -166,18 +167,21 @@ public class HRITAdapter {
 		  byte [] primaryHeader = new byte[PRIMARY_HEADER_LENGTH];
 		  int bytesRead = fis.read(primaryHeader);
 		  if ((bytesRead < 0) || (bytesRead != PRIMARY_HEADER_LENGTH)) {
+			  fis.close();
 			  throw new IOException("File " + filenames[i] + " is not an HRIT file");
 		  }
 		  
 		  // validate primary header contents
 		  int headerSize = bytesToShort(primaryHeader, 1);
 		  if (headerSize != PRIMARY_HEADER_LENGTH) {
+			  fis.close();
 			  throw new IOException("File " + filenames[i] + " is not a valid HRIT file");
 		  }
 		  
 		  // make sure file is at least as long as the claimed length of all headers
 		  lengthAllHeaders[i] = bytesToInt(primaryHeader, 4);
 		  if (f.length() < lengthAllHeaders[i]) {
+			  fis.close();
 			  throw new IOException("File " + filenames[i] + " is not a valid HRIT file");
 		  }
 		  
@@ -330,7 +334,7 @@ public class HRITAdapter {
 			  int numRead = fis.read(tenBitInputArray, 0, tenBitInputArray.length - 2);
 			  // System.out.println("Count wanted: " + (tenBitInputArray.length - 2) + " , count got: " + numRead);
 			  if (numRead == tenBitInputArray.length - 2) {
-				int convert = tenBitToTwoByte(tenBitInputArray, tenBitOutputArray);
+				int convert = Util.tenBitToTwoByte(tenBitInputArray, tenBitOutputArray);
 				if (convert == 0) {
 				// System.out.println("10 bit to 16 bit conversion successful!");
 					  int idx = 0;
@@ -367,10 +371,13 @@ public class HRITAdapter {
 	  double [][] msgCal = new double[12][6];
 	  double [] waveNumMSG1  = new double[12];
 	  double [] waveNumMSG2  = new double[12];
+	  double [] waveNumMSG3  = new double[12];
 	  double [] alphaMSG1    = new double[12];
 	  double [] alphaMSG2    = new double[12];
+	  double [] alphaMSG3    = new double[12];
 	  double [] betaMSG1     = new double[12];
 	  double [] betaMSG2     = new double[12];
+	  double [] betaMSG3     = new double[12];
 	  double [] gain     = new double[12];
 	  double [] offset   = new double[12];
 
@@ -402,6 +409,19 @@ public class HRITAdapter {
 	  waveNumMSG2[9] = 836.445d;
 	  waveNumMSG2[10] = 751.792d;
 	  waveNumMSG2[11] = 0.0d;
+	  
+	  waveNumMSG3[0] = 0.0d;
+	  waveNumMSG3[1] = 0.0d;
+	  waveNumMSG3[2] = 0.0d;
+	  waveNumMSG3[3] = 2547.771d;
+	  waveNumMSG3[4] = 1595.621d;
+	  waveNumMSG3[5] = 1360.377d;
+	  waveNumMSG3[6] = 1148.130d;
+	  waveNumMSG3[7] = 1034.715d;
+	  waveNumMSG3[8] = 929.842d;
+	  waveNumMSG3[9] = 838.659d;
+	  waveNumMSG3[10] = 751.792d;
+	  waveNumMSG3[11] = 0.0d;
 
 	  alphaMSG1[0] = 0.0d;
 	  alphaMSG1[1] = 0.0d;
@@ -428,6 +448,19 @@ public class HRITAdapter {
 	  alphaMSG2[9] = 0.9988d;
 	  alphaMSG2[10] = 0.9981d;
 	  alphaMSG2[11] = 0.0d;
+	  
+	  alphaMSG3[0] = 0.0d;
+	  alphaMSG3[1] = 0.0d;
+	  alphaMSG3[2] = 0.0d;
+	  alphaMSG3[3] = 0.9915d;
+	  alphaMSG3[4] = 0.9960d;
+	  alphaMSG3[5] = 0.9991d;
+	  alphaMSG3[6] = 0.9996d;
+	  alphaMSG3[7] = 0.9999d;
+	  alphaMSG3[8] = 0.9983d;
+	  alphaMSG3[9] = 0.9988d;
+	  alphaMSG3[10] = 0.9982d;
+	  alphaMSG3[11] = 0.0d;
 
 	  betaMSG1[0] = 0.0d;
 	  betaMSG1[1] = 0.0d;
@@ -454,6 +487,19 @@ public class HRITAdapter {
 	  betaMSG2[9] = 0.408d;
 	  betaMSG2[10] = 0.561d;
 	  betaMSG2[11] = 0.0d;
+	  
+	  betaMSG3[0] = 0.0d;
+	  betaMSG3[1] = 0.0d;
+	  betaMSG3[2] = 0.0d;
+	  betaMSG3[3] = 2.9002d;
+	  betaMSG3[4] = 2.0337d;
+	  betaMSG3[5] = 0.4340d;
+	  betaMSG3[6] = 0.1714d;
+	  betaMSG3[7] = 0.0527d;
+	  betaMSG3[8] = 0.6084d;
+	  betaMSG3[9] = 0.3882d;
+	  betaMSG3[10] = 0.5390d;
+	  betaMSG3[11] = 0.0d;
 	  
 	  // initialize with approximate values - this will get you a
 	  // pretty picture but should not be considered accurate
@@ -494,68 +540,75 @@ public class HRITAdapter {
 	  String plFileName = s.replaceFirst("......___-0000\\d\\d___", "_________-PRO______");
 	  File f = new File(plFileName);
 	  try {
-		  
+
 		  FileInputStream fis = new FileInputStream(f);
-          // try to pull out the primary header
-          byte [] primaryHeader = new byte[PRIMARY_HEADER_LENGTH];
-          int bytesRead = fis.read(primaryHeader);
-          if ((bytesRead < 0) || (bytesRead != PRIMARY_HEADER_LENGTH)) {
-                  throw new IOException("File " + s + " is not an HRIT file");
-          }
-          // validate primary header contents
-          int headerSize = bytesToShort(primaryHeader, 1);
-          if (headerSize != PRIMARY_HEADER_LENGTH) {
-                  throw new IOException("File " + s + " is not a valid HRIT file");
-          }
-          // make sure file is at least as long as the claimed length of all headers
-          int lengthAllHeaders = -1;
-          lengthAllHeaders = bytesToInt(primaryHeader, 4);
-          if (f.length() < lengthAllHeaders) {
-                  throw new IOException("File " + s + " is not a valid HRIT file");
-          }
-          // ok, we got the primary header, moving along to the other headers...
-          int headerBytesConsumed = PRIMARY_HEADER_LENGTH;
-          byte [] headerType = new byte[1];
-          byte [] headerLength = new byte[2];
-          while (headerBytesConsumed < lengthAllHeaders) {
-                  bytesRead = fis.read(headerType);
-                  headerBytesConsumed += bytesRead;
-                  bytesRead = fis.read(headerLength);
-                  headerBytesConsumed += bytesRead;
-                  headerSize = bytesToShort(headerLength, 0);
-                  byte [] header = new byte[headerSize - 3];
-                  bytesRead = fis.read(header);
-                  headerBytesConsumed += bytesRead;
-          }
-          // two-byte utility array for pulling out shorts
-          byte [] b2 = new byte[2];
-          // spacecraft id - will be used to further improve cal, as time permits
-          fis.read(b2);
-          scId = bytesToShort(b2, 0);
-          long n = fis.skip((SAT_STAT_LEN - 2) + IMG_ACQ_LEN + CEL_EVENTS_LEN + IMG_DESC_LEN + CAL_OFFS);
-          if (n != (SAT_STAT_LEN - 2) + IMG_ACQ_LEN + CEL_EVENTS_LEN + IMG_DESC_LEN + CAL_OFFS) {
-              throw new IOException("Failed to read calibration coefficients, corrupt file?");
-          }
-          for (int i = 0; i < 12; i++) {
-              byte [] d1 = new byte[8];
-              byte [] d2 = new byte[8];
-              int count = fis.read(d1);
-              if (count != 8) {
-                  throw new IOException("Failed to read calibration coefficients, corrupt file?");
-              }
-              count = fis.read(d2);
-              if (count != 8) {
-                  throw new IOException("Failed to read calibration coefficients, corrupt file?");
-              }
-              long l1 = bytesToLong(d1, 0);
-              long l2 = bytesToLong(d2, 0);
-              gain[i] = Double.longBitsToDouble(l1);
-              offset[i] = Double.longBitsToDouble(l2);
-              // TODO: should probably add a sanity check on gain/offset values,
-              // to make sure we found and will be using reasonable numbers.
-           }
-           // if we got this far, assume we have accurate calibration coefficients
-           accurateCal = true;
+		  // try to pull out the primary header
+		  byte [] primaryHeader = new byte[PRIMARY_HEADER_LENGTH];
+		  int bytesRead = fis.read(primaryHeader);
+		  if ((bytesRead < 0) || (bytesRead != PRIMARY_HEADER_LENGTH)) {
+			  fis.close();
+			  throw new IOException("File " + s + " is not an HRIT file");
+		  }
+		  // validate primary header contents
+		  int headerSize = bytesToShort(primaryHeader, 1);
+		  if (headerSize != PRIMARY_HEADER_LENGTH) {
+			  fis.close();
+			  throw new IOException("File " + s + " is not a valid HRIT file");
+		  }
+		  // make sure file is at least as long as the claimed length of all headers
+		  int lengthAllHeaders = -1;
+		  lengthAllHeaders = bytesToInt(primaryHeader, 4);
+		  if (f.length() < lengthAllHeaders) {
+			  fis.close();
+			  throw new IOException("File " + s + " is not a valid HRIT file");
+		  }
+		  // ok, we got the primary header, moving along to the other headers...
+		  int headerBytesConsumed = PRIMARY_HEADER_LENGTH;
+		  byte [] headerType = new byte[1];
+		  byte [] headerLength = new byte[2];
+		  while (headerBytesConsumed < lengthAllHeaders) {
+			  bytesRead = fis.read(headerType);
+			  headerBytesConsumed += bytesRead;
+			  bytesRead = fis.read(headerLength);
+			  headerBytesConsumed += bytesRead;
+			  headerSize = bytesToShort(headerLength, 0);
+			  byte [] header = new byte[headerSize - 3];
+			  bytesRead = fis.read(header);
+			  headerBytesConsumed += bytesRead;
+		  }
+		  // two-byte utility array for pulling out shorts
+		  byte [] b2 = new byte[2];
+		  // spacecraft id - will be used to further improve cal, as time permits
+		  fis.read(b2);
+		  scId = bytesToShort(b2, 0);
+		  long n = fis.skip((SAT_STAT_LEN - 2) + IMG_ACQ_LEN + CEL_EVENTS_LEN + IMG_DESC_LEN + CAL_OFFS);
+		  if (n != (SAT_STAT_LEN - 2) + IMG_ACQ_LEN + CEL_EVENTS_LEN + IMG_DESC_LEN + CAL_OFFS) {
+			  fis.close();
+			  throw new IOException("Failed to read calibration coefficients, corrupt file?");
+		  }
+		  for (int i = 0; i < 12; i++) {
+			  byte [] d1 = new byte[8];
+			  byte [] d2 = new byte[8];
+			  int count = fis.read(d1);
+			  if (count != 8) {
+				  fis.close();
+				  throw new IOException("Failed to read calibration coefficients, corrupt file?");
+			  }
+			  count = fis.read(d2);
+			  if (count != 8) {
+				  fis.close();
+				  throw new IOException("Failed to read calibration coefficients, corrupt file?");
+			  }
+			  long l1 = bytesToLong(d1, 0);
+			  long l2 = bytesToLong(d2, 0);
+			  gain[i] = Double.longBitsToDouble(l1);
+			  offset[i] = Double.longBitsToDouble(l2);
+			  // TODO: should probably add a sanity check on gain/offset values,
+			  // to make sure we found and will be using reasonable numbers.
+		  }
+		  // if we got this far, assume we have accurate calibration coefficients
+		  accurateCal = true;
+		  fis.close();
 
 	  } catch (FileNotFoundException e) {
 		  // Do nothing - we just won't have accurate calibration
@@ -580,6 +633,10 @@ public class HRITAdapter {
 			  w  = 1.0E2 * waveNumMSG2[band];
 			  msgCal[band][2] = alphaMSG2[band];
 			  msgCal[band][3] = betaMSG2[band];
+		  } else if (scId == SPACECRAFT_ID_MSG3) {
+			  w  = 1.0E2 * waveNumMSG3[band];
+			  msgCal[band][2] = alphaMSG3[band];
+			  msgCal[band][3] = betaMSG3[band];
 		  } else {
 		      w  = 1.0E2 * waveNumMSG1[band];
 		      msgCal[band][2] = alphaMSG1[band];
@@ -660,84 +717,6 @@ public class HRITAdapter {
           i += Util.unsignedByteToInt(data[offset]) << 8;
           i += Util.unsignedByteToInt(data[offset + 1]);
           return i;
-  }
-  
-  /**
-   * Convert 10-bit data to 2-byte data
-   * @param input
-   * @param output
-   * @return 0 if no errors
-   */
-  public static int tenBitToTwoByte(byte [] input, short [] output) {
-
-	  int total = output.length;
-	  int index = 0;
-	  int temp = 0;
-	  int skip = 0;
-	  int outputIndex = 0;
-
-	  index = skip / 8;
-	  skip = skip % 8;
-	  //input = (unsigned char *) inp;
-
-	  while (total > 0)
-	  {
-		  total--;
-
-		  /*
-		   * enumerated to avoid the more general need
-		   * to always access 3 bytes
-		   * which in reality is needed only for case 7
-		   */
-		  switch (skip)
-		  {
-		  case 0:
-			  temp = 4 * (int) (input[index] & 0xFF) +  (int) (input[index + 1] & 0xFF) / 64;
-			  break;
-		  case 1:
-			  temp = 8 * (int) (input[index] & 0xFF) +  (int) (input[index + 1] & 0xFF) / 32;
-			  break;
-		  case 2:
-			  temp = 16 * (int) (input[index] & 0xFF) +  (int) (input[index + 1] & 0xFF) / 16;
-			  break;
-		  case 3:
-			  temp = 32 * (int) (input[index] & 0xFF) +  (int) (input[index + 1] & 0xFF) / 8;
-			  break;
-		  case 4:
-			  temp = 64 * (int) (input[index] & 0xFF) +  (int) (input[index + 1] & 0xFF) / 4;
-			  break;
-		  case 5:
-			  temp = 128 * (int) (input[index] & 0xFF) +  (int) (input[index + 1] & 0xFF) / 2;
-			  break;
-		  case 6:
-			  temp = 256 * (int) (input[index] & 0xFF) +  (int) (input[index + 1] & 0xFF);
-			  break;
-		  case 7:
-			  temp = 512 *(1& (int) (input[index] & 0xFF)) + 2 * (int) (input[index + 1] & 0xFF)
-			                                        + ( (int) (input[index + 2] & 0xFF) > 127 ? 1 : 0);
-			  break;
-		  }
-
-		  output[outputIndex] = (short) (temp & 0x3ff);
-		  outputIndex++;
-
-		  /*
-		   * these two statements together increment 10 bits on the input
-		   */
-		  index++;
-		  skip += 2;
-
-		  /*
-		   * now normalize skip
-		   */
-		  if (skip > 7)
-		  {
-			  index++;
-			  skip -= 8;
-		  }
-	  }
-
-	  return 0;
   }
   
 }
