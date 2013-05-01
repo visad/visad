@@ -1174,7 +1174,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
   }
 
   public Object makeSwitch() {
-    Switch swit = new Switch();
+    Switch swit = new Switch(Switch.CHILD_MASK);
     swit.setCapability(Switch.ALLOW_SWITCH_READ);
     swit.setCapability(Switch.ALLOW_SWITCH_WRITE);
     swit.setCapability(BranchGroup.ALLOW_DETACH);

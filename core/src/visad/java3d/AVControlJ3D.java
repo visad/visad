@@ -162,6 +162,16 @@ DisplayImpl.printStack("selectSwitches: ss.swit.setWhichChild(" +
 System.out.println("ss.swit.numChildren() = " + ss.swit.numChildren());
 }
 */
+       System.out.println("anim index: "+indices[0]);
+       java.util.BitSet bits = new java.util.BitSet(ss.swit.numChildren());
+       int k = indices[0];
+       int k_a = k - 2;
+       int k_b = k - 1;
+       if (k_a >= 0) bits.set(k_a);
+       if (k_b >= 0) bits.set(k_b);
+       bits.set(k);
+       System.out.println(bits);
+       //ss.swit.setChildMask(bits);
       }
       else {
         ss.swit.setWhichChild(Switch.CHILD_NONE);
