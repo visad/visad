@@ -279,7 +279,7 @@ public class AreaFile implements java.io.Serializable {
   int[] aux = null;
 
   /** the data */
-  int[][][] data;
+  public int[][][] data;
 
   /** the AreaDirectory representing this image */
   private AreaDirectory areaDirectory;
