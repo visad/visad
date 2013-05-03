@@ -4815,6 +4815,12 @@ class ContourStrip {
 		}
 		int labelCount = linArrLen / labelRepeat;
 		int labelRemain = linArrLen % labelRepeat;
+
+                if (labelRemain <= 4 && labelRemain > 0 && labelCount > 0) {
+                   labelCount -= 1;
+                   labelRemain += labelRepeat;
+                }
+
 		int labelsDone = 0;
 
 		for (int i = 0; i < labelCount; i++) {

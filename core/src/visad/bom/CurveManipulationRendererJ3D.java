@@ -46,6 +46,7 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
   private int mouseModifiersMask = 0;
   private int mouseModifiersValue = 0;
   private boolean only_one = false;
+  private boolean greedy = true; // default
 
   /** 
    * Construct a DataRenderer that supports direct manipulation of
@@ -355,7 +356,12 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
       float r = findRayManifoldIntersection(true, origin, direction, tuple,
                                             otherindex, othervalue);
       if (r == r) {
-        return 0.0f;
+        if (greedy) {
+          return 0.0f;
+        }
+        else {
+          return getDisplayRenderer().getPickThreshhold() - 0.001f;
+        }
       }
       else {
         return Float.MAX_VALUE;
@@ -364,6 +370,10 @@ public class CurveManipulationRendererJ3D extends DirectManipulationRendererJ3D 
     catch (VisADException ex) {
       return Float.MAX_VALUE;
     }
+  }
+
+  public void setGreedy(boolean greedy) {
+    this.greedy = greedy;
   }
 
   /** 
