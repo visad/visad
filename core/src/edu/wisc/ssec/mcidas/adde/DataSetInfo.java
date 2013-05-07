@@ -32,9 +32,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.List;
 
 /** 
  * DataSetInfo interface for McIDAS ADDE data sets.   Simulates a
@@ -91,7 +93,13 @@ public class DataSetInfo
     private char[] data;                  // data returned from server
     private Hashtable descriptorTable;
     private boolean debug = false;        // debug
-    
+
+    /** Descriptors returned from server. */
+    private List<String> descriptorList;
+
+    /** Comments returned from server. */
+    private List<String> commentList;
+
     /**
      * creates a DataSetInfo object that allows reading
      *
@@ -110,7 +118,7 @@ public class DataSetInfo
         throws AddeURLException
     {
    
-        URLConnection urlc;           
+        URLConnection urlc;
         BufferedReader reader;
         debug = debug || request.indexOf("debug=true") >= 0;
         try 
@@ -160,13 +168,15 @@ public class DataSetInfo
             }
             int numNames = data.length/80;
             descriptorTable = new Hashtable(numNames);
+            descriptorList = new ArrayList<String>(numNames);
+            commentList = new ArrayList<String>(numNames);
             if (debug) 
                 System.out.println("Number of descriptors = " + numNames);
             for (int i = 0; i < numNames; i++)
             {
                 String temp = new String(data, i*80, 80);
                 if (debug) System.out.println("Parsing: >"+temp+"<");
-                if (temp.trim().equals("")) continue;
+                if (temp.trim().isEmpty()) continue;
                 String descriptor = temp.substring(0,12).trim();
                 if (debug) System.out.println("Descriptor = " + descriptor);
                 String comment = descriptor;
@@ -175,12 +185,36 @@ public class DataSetInfo
                 if (pos >= 23)   
                 {
                     comment = temp.substring(pos + 1).trim();
-                    if (comment.equals("")) comment = descriptor;
+                    if (comment.isEmpty()) comment = descriptor;
                 }
                 if (debug) System.out.println("Comment = " + comment);
                 descriptorTable.put(comment, descriptor);
+                descriptorList.add(descriptor);
+                commentList.add(comment);
             }
         } 
+    }
+
+    /**
+     * Returns the list of descriptors.
+     * 
+     * @return Either an {@link ArrayList} or {@code null}. Note that if an
+     * {@code ArrayList} is returned, it should have the same number of 
+     * elements as the results of {@link #getCommenttList()}.
+     */
+    public List<String> getDescriptorList() {
+        return descriptorList;
+    }
+
+    /**
+     * Returns the list of descriptor contents.
+     * 
+     * @return Either an {@link ArrayList} or {@code null}. Note that if an
+     * {@code ArrayList} is returned, it should have the same number of 
+     * elements as the results of {@link #getDescriptorList()}.
+     */
+    public List<String> getCommentList() {
+        return commentList;
     }
 
     /**
