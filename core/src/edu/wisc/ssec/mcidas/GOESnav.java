@@ -163,14 +163,14 @@ public final class GOESnav extends AREAnav
 
         // INITIALIZE NAVCOM
         navday = jday%100000;
-        
-        // Removed this fix for GMS-5 older data
-        /*for (int n = 6; n < 12; n++)
+         
+        //Changed
+        for (int n = 6; n < 12; n++)
         {
             if (n == 10 || n == 8) continue;
             if (iarr[n] <= 0)
                throw new IllegalArgumentException("Invalid orbital parameters");
-        }*/
+        }
         ietimy = icon1(iarr[4]);
         ietimh = 100*(iarr[5]/100) + Math.round(.6f*(iarr[5]%100));
         semima = (float) (iarr[6])/100.0;
