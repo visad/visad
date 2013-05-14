@@ -1,4 +1,8 @@
+# The end results of building VisAD.
 visad.jar
+visad_doc.jar
+visad_examples.jar
+
 core/build
 examples/build
 
