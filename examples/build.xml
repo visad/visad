@@ -22,9 +22,6 @@
 
     <!-- shared classpath -->
     <path id="project.classpath">
-        <fileset dir="${lib.dir}">
-            <include name="*.jar"/>
-        </fileset>
         <pathelement path="${visad.class.dir}"/>
         <pathelement path="${visad.jarfile}"/>
     </path>
