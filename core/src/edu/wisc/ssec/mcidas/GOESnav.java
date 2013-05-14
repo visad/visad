@@ -1058,4 +1058,51 @@ C VECTOR EARTH-CENTER-TO-SAT (FUNC OF TIME)
         double x = xomega*px + yomega*qx;
         return new double[] {x, y, z};
     }
+    
+    /** Get the lat,lon of the subpoint if available
+    *
+    * @return double[2] {lat, lon}
+    *
+    */
+    
+    public double[] getSubpoint() {
+    	double samtim;
+    	double[] xyzsat;
+    	double ct;
+    	double st;
+    	double x;
+    	double y;
+    	double z;
+    	double x1;
+    	double y1;
+    	double ssp_lat;
+    	double ssp_lon;
+    	
+    	samtim = time1;
+        xyzsat = satvec(samtim);
+        
+//        double xsat = xyzsat[0];
+//        double ysat = xyzsat[1];
+//        double zsat = xyzsat[2];
+//        System.out.format("samtim: %f xsat, ysat, zsat: %f, %f, %f %n",samtim, xsat, ysat, zsat);
+//        double a 	= Math.atan(zsat/(Math.sqrt(xsat*xsat + ysat*ysat)));
+//        double xlat	= Math.atan2(asq*Math.sin(a), (bsq*Math.cos(a)))  /rdpdg;
+//        double xlon = -1* Math.atan2(ysat, xsat)/rdpdg;
+//        System.out.format("GOES nav lat, lon, a: %f, %f, %a %n",xlat, xlon, a);
+        ct = Math.cos(emega*samtim+xref);
+        st = Math.sin(emega*samtim+xref);
+        x = xyzsat[0];
+        y = xyzsat[1];
+        z = xyzsat[2];
+        x1 = ct*x + st*y;
+        y1 = -st*x + ct*y;
+        double ll[] = nxyzll(x1, y1, z);
+        
+        ssp_lat = ll[0];
+        ssp_lon = ll[1];
+        
+//        System.out.format("Emega x1, y1, z: %f, %f, %f %n",x1, y1, z);
+//        System.out.format("ll from nxyzll from emega corrected, lat, lon: %f, %f %n",ll[0], ll[1]);
+        return new double[] {ssp_lat, ssp_lon};
+      }
 }
