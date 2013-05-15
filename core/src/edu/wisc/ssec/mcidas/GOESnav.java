@@ -1096,10 +1096,11 @@ C VECTOR EARTH-CENTER-TO-SAT (FUNC OF TIME)
         z = xyzsat[2];
         x1 = ct*x + st*y;
         y1 = -st*x + ct*y;
+        
         double ll[] = nxyzll(x1, y1, z);
         
         ssp_lat = ll[0];
-        ssp_lon = ll[1];
+        ssp_lon = (isEastPositive) ? -ll[1] : ll[1];
         
 //        System.out.format("Emega x1, y1, z: %f, %f, %f %n",x1, y1, z);
 //        System.out.format("ll from nxyzll from emega corrected, lat, lon: %f, %f %n",ll[0], ll[1]);
