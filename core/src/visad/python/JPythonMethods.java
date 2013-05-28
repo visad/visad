@@ -2741,6 +2741,112 @@ public static void plot(final String name, final float[][] data)
   }
 
   /**
+  * Return a mask for points with navigation (1) or not (0)
+  *
+  * @param f is the input FieldImpl -- if not a FlatField, then try to
+  *    get one!
+  * @return 
+  * @throws VisADException 
+  * @throws RemoteException 
+  */
+  public static FlatField maskMissingNoNavigation(FieldImpl f) 
+             throws VisADException, RemoteException {
+    FlatField ff;
+    if (f instanceof FlatField) {
+      try {
+      ff = (FlatField)f.clone();
+      } catch (CloneNotSupportedException cns) {
+        throw new VisADException ("Cannot clone field object");
+      }
+     
+    } else {
+      ff = (FlatField)((FlatField)f.getSample(0)).clone();
+    }
+
+    GriddedSet ds = null;
+    if (f instanceof FlatField) {
+      ds = (GriddedSet)((FlatField)f).getDomainSet();
+    } else {
+      ds = (GriddedSet)( (FlatField)(f.getSample(0))).getDomainSet();
+    }
+
+    float[][] latlon;
+    try {
+      latlon = getLatLons(ds);
+    } catch (VisADException noll) {
+      latlon = null;
+    }
+
+    float [][] dv = ff.getFloats(false);  // lazy way to dimension
+
+    for (int k=0; k<dv[0].length; k++) {
+      if ( (latlon == null) || (latlon[0][k] != latlon[0][k]) ) {
+          dv[0][k] = 0.f;
+      } else {
+          dv[0][k] = 1.f;
+      }
+    }
+
+    ff.setSamples(dv,false);
+    return ff;
+    
+  }
+  /**
+  * For all non-navigatable points in the given FlatField, replace the
+  *   FF's values with missing (Float.NaN).
+  *
+  * This is useful when an AREA file is off the planet, since there is
+  * no explicit "missing" value in AREA files, and it only indicated
+  * by "missing" navigation (lat/lon) information.
+  *
+  * @param f is the input FieldImpl -- if not a FlatField, then try to
+  *    get one!
+  * @return 
+  * @throws VisADException 
+  * @throws RemoteException 
+  */
+  public static FlatField setMissingNoNavigation(FieldImpl f) 
+             throws VisADException, RemoteException {
+    FlatField ff;
+    if (f instanceof FlatField) {
+      try {
+      ff = (FlatField)f.clone();
+      } catch (CloneNotSupportedException cns) {
+        throw new VisADException ("Cannot clone field object");
+      }
+     
+    } else {
+      ff = (FlatField)((FlatField)f.getSample(0)).clone();
+    }
+
+    GriddedSet ds = null;
+    if (f instanceof FlatField) {
+      ds = (GriddedSet)((FlatField)f).getDomainSet();
+    } else {
+      ds = (GriddedSet)( (FlatField)(f.getSample(0))).getDomainSet();
+    }
+
+    float[][] latlon;
+    try {
+      latlon = getLatLons(ds);
+    } catch (VisADException noll) {
+      latlon = null;
+    }
+
+    float [][] dv = ff.getFloats(false);
+
+    for (int k=0; k<dv[0].length; k++) {
+      if ( (latlon == null) || (latlon[0][k] != latlon[0][k]) ) {
+          dv[0][k] = Float.NaN;
+      }
+    }
+
+    ff.setSamples(dv,false);
+    return ff;
+    
+  }
+
+  /**
   * Replaces all the given values in a FlatField with the missing value (Float.NaN);
   *
   * @param f is the input FlatField
