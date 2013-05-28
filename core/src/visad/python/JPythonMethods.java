@@ -2749,7 +2749,7 @@ public static void plot(final String name, final float[][] data)
   * @throws VisADException 
   * @throws RemoteException 
   */
-  public static FlatField maskMissingNoNavigation(FieldImpl f) 
+  public static FlatField maskNoNavigation(FieldImpl f) 
              throws VisADException, RemoteException {
     FlatField ff;
     if (f instanceof FlatField) {
