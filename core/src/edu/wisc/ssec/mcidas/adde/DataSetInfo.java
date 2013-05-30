@@ -198,7 +198,7 @@ public class DataSetInfo
     /**
      * Returns the list of descriptors.
      * 
-     * @return Either an {@link ArrayList} or {@code null}. Note that if an
+     * @return Either an ArrayList or {@code null}. Note that if an
      * {@code ArrayList} is returned, it should have the same number of 
      * elements as the results of {@link #getCommenttList()}.
      */

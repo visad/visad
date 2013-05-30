@@ -412,7 +412,7 @@ public final class AreaFileFactory {
    * @param band the 1-based band number for the subset, which must be present
    *             in the directory blocks band map or -1 for the first band
    *
-   * @return
+   * @return the AreaFile instance
    *
    * @throws AreaFileException
    */

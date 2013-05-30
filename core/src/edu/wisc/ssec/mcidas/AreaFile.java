@@ -223,7 +223,7 @@ public class AreaFile implements java.io.Serializable {
   /**
    *
    *
-   * @return
+   * @return status 
    */
   public static boolean isURLHandlerLoaded() {
     return handlerLoaded;
@@ -1078,7 +1078,7 @@ public class AreaFile implements java.io.Serializable {
    *
    * @param s
    *
-   * @return
+   * @return flipped value
    */
   private int flipShort(short s) {
     return (int)(((s >> 8) & 0xff) | ((s << 8) & 0xff00));
@@ -1089,7 +1089,7 @@ public class AreaFile implements java.io.Serializable {
    *
    * @param i
    *
-   * @return
+   * @return flipped value
    */
   private int flipInt(int i) {
     return ((i >>> 24) & 0xff) | ((i >>> 8) & 0xff00) | ((i & 0xff) << 24)
@@ -1362,9 +1362,9 @@ public class AreaFile implements java.io.Serializable {
   }
 
   /**
-   * Get a String representation of this image
+   * Get a String representation of this image metadata/information
    *
-   * @return
+   * @return string of metadata
    */
   public String toString() {
     AreaDirectory dir = getAreaDirectory();

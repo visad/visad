@@ -171,7 +171,7 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
   /**
    * 
    *
-   * @return 
+   * @return samples
    */
   protected float[][] getMySamples() {
     if (cacheId != null) {
@@ -342,7 +342,7 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
   /**
    * 
    *
-   * @return 
+   * @return true or false
    */
   public boolean isMissing() {
     return (getMySamples() == null);
@@ -391,7 +391,7 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
    * @param type 
    * @param shadow 
    *
-   * @return 
+   * @return DataShadow
    *
    * @throws VisADException 
    */
@@ -410,7 +410,7 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
    * @param ranges 
    * @param domain 
    *
-   * @return 
+   * @return DataShadow
    *
    * @throws VisADException 
    */
@@ -487,7 +487,7 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
    *
    * @param color_values 
    *
-   * @return 
+   * @return new VisADGeometryArray
    *
    * @throws VisADException 
    */
@@ -531,7 +531,7 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
    *
    * @param color_values 
    *
-   * @return 
+   * @return arrays of VisADGeometryArray
    *
    * @throws VisADException 
    */
@@ -552,7 +552,7 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
    *
    * @param color_values 
    *
-   * @return 
+   * @return VisADGeometryArray
    *
    * @throws VisADException 
    */
@@ -662,7 +662,7 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
   /**
    * 
    *
-   * @return 
+   * @return array of low values
    */
   public float[] getLow() {
     float[] low = new float[Low.length];
@@ -674,7 +674,7 @@ public abstract class SampledSet extends SimpleSet implements SampledSetIface {
   /**
    * 
    *
-   * @return 
+   * @return array of hi values
    */
   public float[] getHi() {
     float[] hi = new float[Hi.length];
