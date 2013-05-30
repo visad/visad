@@ -736,8 +736,8 @@ public abstract class Unit implements Serializable {
      * @param power
      *            The power to raise this unit by.
      * @return The resulting unit.
-     * @require The unit is not an offset unit.
-     * @promise The unit has not been modified.
+     * require: The unit is not an offset unit.
+     * promise: The unit has not been modified.
      * @exception UnitException
      *                It's meaningless to raise this unit by a power.
      */
@@ -750,8 +750,8 @@ public abstract class Unit implements Serializable {
      *            The root to take (e.g. 2 means square root). Must not be zero.
      * @return The unit corresponding to the <code>root</code>-th root of this
      *         unit.
-     * @require The unit is not an offset unit.
-     * @promise The unit has not been modified.
+     * require: The unit is not an offset unit.
+     * promise: The unit has not been modified.
      * @exception UnitException
      *                It's meaningless to raise this unit by a power.
      * @throws IllegalArgumentException
@@ -766,7 +766,7 @@ public abstract class Unit implements Serializable {
      * {@link #root(int root)} with a value of <code>2</code>.
      * 
      * @return The unit corresponding to the square-root of this unit.
-     * @promise This unit has not been modified.
+     * promise: This unit has not been modified.
      * @throws IllegalArgumentException
      *             The resulting unit would have a non-integral unit dimension.
      * @throws UnitException
@@ -788,7 +788,7 @@ public abstract class Unit implements Serializable {
      * @throws IllegalArgumentException
      *             This unit is not dimensionless and <code>power</code> has a
      *             non-integral value.
-     * @promise The unit has not been modified.
+     * promise: The unit has not been modified.
      */
     public abstract Unit pow(double power) throws UnitException,
             IllegalArgumentException;
@@ -852,7 +852,7 @@ public abstract class Unit implements Serializable {
      * @param that
      *            The unit to divide into this unit.
      * @return The quotient of the two units.
-     * @promise Neither unit has been modified.
+     * promise: Neither unit has been modified.
      * @throws UnitException
      *             It's meaningless to divide these units.
      */
@@ -877,8 +877,8 @@ public abstract class Unit implements Serializable {
      * @param that
      *            The other unit.
      * @return The value converted from the other unit to this unit.
-     * @require The units are convertible.
-     * @promise Neither unit has been modified.
+     * require: The units are convertible.
+     * promise: Neither unit has been modified.
      * @exception UnitException
      *                The units are not convertible.
      */
@@ -895,8 +895,8 @@ public abstract class Unit implements Serializable {
      * @param that
      *            The other unit.
      * @return Values in this unit.
-     * @require The units are convertible.
-     * @promise Neither unit has been modified.
+     * require: The units are convertible.
+     * promise: Neither unit has been modified.
      * @exception UnitException
      *                The units are not convertible.
      */
@@ -911,8 +911,8 @@ public abstract class Unit implements Serializable {
      * @param that
      *            The other unit.
      * @return Values in this unit.
-     * @require The units are convertible.
-     * @promise Neither unit has been modified.
+     * require: The units are convertible.
+     * promise: Neither unit has been modified.
      * @exception UnitException
      *                The units are not convertible.
      */
@@ -930,8 +930,8 @@ public abstract class Unit implements Serializable {
      *            true to make a copy if units are not equal. Ignored in this
      *            class.
      * @return Values in this unit.
-     * @require The units are convertible.
-     * @promise Neither unit has been modified.
+     * require: The units are convertible.
+     * promise: Neither unit has been modified.
      * @exception UnitException
      *                The units are not convertible.
      */
@@ -951,8 +951,8 @@ public abstract class Unit implements Serializable {
      *            true to make a copy if units are not equal. Ignored in this
      *            class.
      * @return Values in this unit.
-     * @require The units are convertible.
-     * @promise Neither unit has been modified.
+     * require: The units are convertible.
+     * promise: Neither unit has been modified.
      * @exception UnitException
      *                The units are not convertible.
      */
@@ -969,8 +969,8 @@ public abstract class Unit implements Serializable {
      * @param that
      *            The other unit.
      * @return The value in units of the other unit.
-     * @require The units are convertible.
-     * @promise Neither unit has been modified.
+     * require: The units are convertible.
+     * promise: Neither unit has been modified.
      * @exception UnitException
      *                The units are not convertible.
      */
@@ -987,8 +987,8 @@ public abstract class Unit implements Serializable {
      * @param that
      *            The other unit.
      * @return Values converted to the other unit from this unit.
-     * @require The units are convertible.
-     * @promise Neither unit has been modified.
+     * require: The units are convertible.
+     * promise: Neither unit has been modified.
      * @exception UnitException
      *                The units are not convertible.
      */
@@ -1003,8 +1003,8 @@ public abstract class Unit implements Serializable {
      * @param that
      *            The other unit.
      * @return Values converted to the other unit from this unit.
-     * @require The units are convertible.
-     * @promise Neither unit has been modified.
+     * require: The units are convertible.
+     * promise: Neither unit has been modified.
      * @exception UnitException
      *                The units are not convertible.
      */
@@ -1022,8 +1022,8 @@ public abstract class Unit implements Serializable {
      *            true to make a copy if units are not equal. Ignored in this
      *            class.
      * @return Values converted to the other unit from this unit.
-     * @require The units are convertible.
-     * @promise Neither unit has been modified.
+     * require: The units are convertible.
+     * promise: Neither unit has been modified.
      * @exception UnitException
      *                The units are not convertible.
      */
@@ -1043,8 +1043,8 @@ public abstract class Unit implements Serializable {
      *            true to make a copy if units are not equal. Ignored in this
      *            class.
      * @return Values converted to the other unit from this unit.
-     * @require The units are convertible.
-     * @promise Neither unit has been modified.
+     * require: The units are convertible.
+     * promise: Neither unit has been modified.
      * @exception UnitException
      *                The units are not convertible.
      */
