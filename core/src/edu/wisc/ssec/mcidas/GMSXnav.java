@@ -535,11 +535,10 @@ public class GMSXnav extends AREAnav
 
   /**
    *
-   * subLatLon descr
+   * set the sub-point Latitude and Longitude
    *
-   * @param 
+   * @param ll is the [latitude,longitude] of the sub-point
    *
-   * @return 
    *
    */
 

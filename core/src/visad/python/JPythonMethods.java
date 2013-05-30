@@ -85,7 +85,7 @@ public abstract class JPythonMethods {
    * 
    * @param location 
    * 
-   * @return 
+   * @return DataImpl for the specified location/type
    * 
    * @throws VisADException 
    */
@@ -873,7 +873,7 @@ public static void plot(final String name, final float[][] data)
    *
    * @param   data            VisAD data object
    * 
-   * @return 
+   * @return Point-wise arctangent in degrees
    * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
@@ -947,7 +947,7 @@ public static void plot(final String name, final float[][] data)
    *
    * @param   data            VisAD data object
    * 
-   * @return 
+   * @return Point-wise floor of {@code data}
    * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
@@ -961,7 +961,7 @@ public static void plot(final String name, final float[][] data)
    *
    * @param   data            VisAD data object
    * 
-   * @return 
+   * @return Point-wise log of {@code data}
    * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
@@ -977,6 +977,8 @@ public static void plot(final String name, final float[][] data)
    *
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
+   *
+   * @return Point-wise rint of {@code data}
    */
   public static Data rint(Data data) throws VisADException, RemoteException {
     return data.rint();
@@ -1286,7 +1288,7 @@ public static void plot(final String name, final float[][] data)
    * @param   data1           double value
    * @param   data2           VisAD data object
    * 
-   * @return 
+   * @return Point-wise arctangent of {@code data1 / data2}
    *
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote data
@@ -1338,7 +1340,7 @@ public static void plot(final String name, final float[][] data)
    * 
    * @param   field           VisAD Field data object
    * 
-   * @return 
+   * @return Backward Fourier transform of {@code field}
    * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote field
@@ -1355,7 +1357,7 @@ public static void plot(final String name, final float[][] data)
    * @param   data1           VisAD FlatField data object
    * @param   data2           VisAD FlatField data object
    * 
-   * @return 
+   * @return Matrix multiply of {@code data1 x data2}
    * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -1379,7 +1381,7 @@ public static void plot(final String name, final float[][] data)
    * @param   data1           VisAD FlatField data object
    * @param   data2           VisAD FlatField data object
    * 
-   * @return 
+   * @return Matrix solution {@code X of: data1 * X = data2}
    * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -1401,7 +1403,7 @@ public static void plot(final String name, final float[][] data)
    * 
    * @param   data            VisAD FlatField data object
    * 
-   * @return 
+   * @return Matrix inverse of {@code data}
    * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -1422,7 +1424,7 @@ public static void plot(final String name, final float[][] data)
    *
    * @param   data            VisAD FlatField data object
    * 
-   * @return 
+   * @return Matrix transpose of {@code data}
    * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -1443,7 +1445,7 @@ public static void plot(final String name, final float[][] data)
    *
    * @param   data            VisAD FlatField data object
    * 
-   * @return 
+   * @return Matrix determinant of {@code data}
    * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -1464,7 +1466,7 @@ public static void plot(final String name, final float[][] data)
    *
    * @param   data            VisAD FlatField data object
    * 
-   * @return 
+   * @return Matrix one norm of {@code data}
    * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -1485,7 +1487,7 @@ public static void plot(final String name, final float[][] data)
    * 
    * @param   data            VisAD FlatField data object
    * 
-   * @return 
+   * @return Matrix two norm of {@code data}
    * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -1506,7 +1508,7 @@ public static void plot(final String name, final float[][] data)
    * 
    * @param   data            VisAD FlatField data object
    * 
-   * @return 
+   * @return matrix infiinity norm of {@code data}
    * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -1527,7 +1529,7 @@ public static void plot(final String name, final float[][] data)
    * 
    * @param   data            VisAD FlatField data object
    * 
-   * @return 
+   * @return Matrix Frobenius norm of {@code data}
    * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -1548,7 +1550,7 @@ public static void plot(final String name, final float[][] data)
    * 
    * @param   data            VisAD FlatField data object
    * 
-   * @return 
+   * @return matrix effective numerical rank of {@code data}
    * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -1569,7 +1571,7 @@ public static void plot(final String name, final float[][] data)
    *
    * @param   data            VisAD FlatField data object
    * 
-   * @return 
+   * @return matrix condition of {@code data}
    * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -1590,7 +1592,7 @@ public static void plot(final String name, final float[][] data)
    * 
    * @param   data            VisAD FlatField data object
    * 
-   * @return 
+   * @return matrix trace of {@code data}
    * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -1612,7 +1614,7 @@ public static void plot(final String name, final float[][] data)
    * 
    * @param   data            VisAD FlatField data object
    * 
-   * @return 
+   * @return Matrix Cholesky decomponsition of {@code data}
    * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -1635,7 +1637,7 @@ public static void plot(final String name, final float[][] data)
    * 
    * @param   data            VisAD FlatField data object
    * 
-   * @return 
+   * @return matrix Eigenvalue decomposition of {@code data}
    * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -1658,7 +1660,7 @@ public static void plot(final String name, final float[][] data)
    * 
    * @param   data            VisAD FlatField data object
    * 
-   * @return 
+   * @return Matrix LU decomposition of {@code data}
    * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -1680,7 +1682,7 @@ public static void plot(final String name, final float[][] data)
    * 
    * @param   data            VisAD FlatField data object
    * 
-   * @return 
+   * @return matrix QR decomposition of {@code data}
    * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -1702,7 +1704,7 @@ public static void plot(final String name, final float[][] data)
    * 
    * @param   data            VisAD FlatField data object
    * 
-   * @return 
+   * @return matrix singular value decomposition of {@code data}
    * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -1726,7 +1728,7 @@ public static void plot(final String name, final float[][] data)
    * @param   set             VisAD Set data object that defines dimension
    *                          and bin sampling for histogram
    * 
-   * @return 
+   * @return histogram of range values of {@code field}
    * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote field
@@ -1747,7 +1749,7 @@ public static void plot(final String name, final float[][] data)
    *                          the range Tuple of field, selecting range
    *                          components as dimensions of the histogram
    * 
-   * @return 
+   * @return histogram of range values of {@code field}
    * 
    * @throws  VisADException  invalid data 
    * @throws  RemoteException unable to access remote field
@@ -1776,7 +1778,7 @@ public static void plot(final String name, final float[][] data)
    * @param   sizes           int[] array whose elements are numbers of
    *                          equally spaced bins for each dimension
    * 
-   * @return 
+   * @return histogram of range value of {@code field}
    * 
    * @throws  VisADException  invalid data
    * @throws  RemoteException unable to access remote field
@@ -1863,7 +1865,7 @@ public static void plot(final String name, final float[][] data)
    *
    * @param   values          float[] array defining range values of field
    * 
-   * @return 
+   * @return the new FlatField
    * 
    * @throws  VisADException  unable to construct field
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -1880,7 +1882,7 @@ public static void plot(final String name, final float[][] data)
    * @param   name            String defining range RealType name
    * @param   values          float[] array defining range values of field
    * 
-   * @return 
+   * @return the new FlatField
    * 
    * @throws  VisADException  unable to construct field
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -1898,7 +1900,7 @@ public static void plot(final String name, final float[][] data)
    * @param   name            String defining range RealType name
    * @param   values          float[] array defining range values of field
    * 
-   * @return 
+   * @return the new FlatField
    * 
    * @throws  VisADException  unable to construct field
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -1920,7 +1922,7 @@ public static void plot(final String name, final float[][] data)
    * @param   name            String defining range RealType name 
    * @param   values          float[] array defining range values of field
    * 
-   * @return 
+   * @return the new FlatField
    *  
    * @throws  VisADException  unable to construct field
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -1963,7 +1965,7 @@ public static void plot(final String name, final float[][] data)
    *
    * @param   values          float[][] array defining range values of field
    * 
-   * @return 
+   * @return the new FlatField
    * 
    * @throws  VisADException  unable to construct field
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -1980,7 +1982,7 @@ public static void plot(final String name, final float[][] data)
    * @param   name            String defining range RealType name
    * @param   values          float[][] array defining range values of field
    * 
-   * @return 
+   * @return the new FlatField
    * 
    * @throws  VisADException  unable to construct field
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -1999,7 +2001,7 @@ public static void plot(final String name, final float[][] data)
    * @param   rng             String defining range RealType name
    * @param   values          float[][] array defining range values of field
    * 
-   * @return 
+   * @return the new FlatField
    * 
    * @throws  VisADException  unable to construct field
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -2025,7 +2027,7 @@ public static void plot(final String name, final float[][] data)
    * @param   name            String defining range RealType name 
    * @param   values          float[][] array defining range values of field
    * 
-   * @return 
+   * @return the new FlatField
    * 
    * @throws  VisADException  unable to construct field
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -2076,11 +2078,11 @@ public static void plot(final String name, final float[][] data)
   }
 
   /**
-   * 
+   * Get the lengths of the values of the input array
    * 
    * @param values
    * 
-   * @return
+   * @return the array of lengths (sizes)
    * 
    * @throws VisADException
    */
@@ -2122,11 +2124,11 @@ public static void plot(final String name, final float[][] data)
   }
 
   /**
-   * 
+   * Get the domain dimension of the Data object
    * 
    * @param data
    * 
-   * @return 
+   * @return the domain dimension
    * 
    * @throws VisADException
    * @throws RemoteException
@@ -2173,11 +2175,11 @@ public static void plot(final String name, final float[][] data)
 
 
   /** 
-   * Get the domain Type for the field
+   * Get the domain Type for the Data object
    * 
    * @param  data is the field to get the domain Type for
    * 
-   * @return the domain
+   * @return the domain type of the {@code data}
    * 
    * @throws  VisADException  unable to construct field
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -2188,11 +2190,11 @@ public static void plot(final String name, final float[][] data)
   }
 
   /** 
-   * Get the domain Type for the field
+   * Get the domain Type for the Data object
    * 
    * @param data is the field to get the domain Type for
    * 
-   * @return the domain
+    * @return the domain type of the {@code data}
    * 
    * @throws  VisADException  unable to construct field
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -2207,7 +2209,7 @@ public static void plot(final String name, final float[][] data)
    * 
    * @param type is the FunctionType
    * 
-   * @return the domain type
+   * @return the domain type 
    * 
    * @throws  VisADException  unable to construct field
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -2222,7 +2224,7 @@ public static void plot(final String name, final float[][] data)
    *
    * @param data is the field to get the range Type for
    *
-   * @return the range
+   * @return the range type
    *
    * @throws  VisADException  unable to construct field
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -2236,7 +2238,7 @@ public static void plot(final String name, final float[][] data)
   *
   * @param data is the field to get the range Type for
   *
-  * @return the range
+  * @return the range type
   *
   * @throws  VisADException  unable to construct field
   * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -2267,7 +2269,7 @@ public static void plot(final String name, final float[][] data)
    * @param   data            VisAD Data object
    * @param   comp            the domain component index (0...)
    * 
-   * @return Name of the RealType
+   * @return Name of the Type of the selected domain component
    *
    * @throws  VisADException  unable to construct field
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -2285,7 +2287,7 @@ public static void plot(final String name, final float[][] data)
    * @param   data            VisAD Data object
    * @param   comp            the component index (0...)
    * 
-   * @return the name of the RealType
+   * @return the name of the RealType of the range component
    *
    * @throws  VisADException  unable to construct field
    * @throws  RemoteException part of data and display APIs, shouldn't occur
@@ -2304,7 +2306,7 @@ public static void plot(final String name, final float[][] data)
    * 
    * @param   name            name of unit desired (degC, etc)
    * 
-   * @return the Unit corresponding to the name
+   * @return the Unit object corresponding to the name
    * 
    * @throws visad.data.units.NoSuchUnitException 
    * @throws visad.data.units.ParseException 
@@ -2696,7 +2698,7 @@ public static void plot(final String name, final float[][] data)
   * @param list is the int[] list of indecies into f to replace
   * @param v is the value to insert into f.
   * 
-  * @return 
+  * @return a new FlatField 
   * 
   * @throws RemoteException 
   * @throws VisADException 
@@ -2712,7 +2714,7 @@ public static void plot(final String name, final float[][] data)
   * @param f is the input FlatField
   * @param list is the int[] list of indecies into f to replace
   * @param v is the value to insert into f.
-   * @return 
+   * @return the new FlatField
    * @throws VisADException 
    * @throws RemoteException 
   */
@@ -2745,7 +2747,7 @@ public static void plot(final String name, final float[][] data)
   *
   * @param f is the input FieldImpl -- if not a FlatField, then try to
   *    get one!
-  * @return 
+  * @return the FlatField of mask values
   * @throws VisADException 
   * @throws RemoteException 
   */
@@ -2801,7 +2803,7 @@ public static void plot(final String name, final float[][] data)
   *
   * @param f is the input FieldImpl -- if not a FlatField, then try to
   *    get one!
-  * @return 
+  * @return the FlatField with missing values where there is no navigation
   * @throws VisADException 
   * @throws RemoteException 
   */
@@ -2851,7 +2853,7 @@ public static void plot(final String name, final float[][] data)
   *
   * @param f is the input FlatField
   * @param v is the value to replace with NaN.
-   * @return 
+   * @return the new FlatField
    * @throws VisADException 
    * @throws RemoteException 
   */
@@ -2883,7 +2885,7 @@ public static void plot(final String name, final float[][] data)
   *
   * @param f is the input FlatField
   * @param v is the value to insert into f.
-   * @return 
+   * @return the new FlatField
    * @throws VisADException 
    * @throws RemoteException 
   */
@@ -2915,7 +2917,7 @@ public static void plot(final String name, final float[][] data)
   *
   * @param f is the input FlatField
   * @param v is the value to insert into f.
-   * @return 
+   * @return the new FlatField
    * @throws VisADException 
    * @throws RemoteException 
   */
@@ -2979,11 +2981,11 @@ public static void plot(final String name, final float[][] data)
   *
   * @param f the FlatField (or FieldImpl - for a sequence)
   *
-  * return double[2].  double[0] = min, double[1] = max
+  * @return double[2].  double[0] = min, double[1] = max
   *   if the fields are all missing, then return min = max = Double.NaN
-   * @return 
-   * @throws VisADException 
-   * @throws RemoteException 
+  *
+  * @throws VisADException 
+  * @throws RemoteException 
   */
 
   public static double[] getMinMax(FieldImpl f)
@@ -3045,10 +3047,9 @@ public static void plot(final String name, final float[][] data)
   * If input FieldImpl is a sequence, then all items in sequence are done
   * but the "min" and "max" are computed from all members of the sequence! 
   *
-  * return new FieldImpl
-   * @return 
-   * @throws VisADException 
-   * @throws RemoteException 
+  * @return new FieldImpl
+  * @throws VisADException 
+  * @throws RemoteException 
   *
   */
   public static FieldImpl rescale(FieldImpl f, double outlo, double outhi)
@@ -3073,10 +3074,9 @@ public static void plot(final String name, final float[][] data)
   *
   * If input FieldImpl is a sequence, then all items in sequence are done
   *
-  * Values returned in a new FieldImpl
-   * @return 
-   * @throws VisADException 
-   * @throws RemoteException 
+  * @return values in new FieldImpl
+  * @throws VisADException 
+  * @throws RemoteException 
   */
 
   public static FieldImpl rescale(FieldImpl f, 
@@ -3143,7 +3143,7 @@ public static void plot(final String name, final float[][] data)
    * If the domain is not in lat/lon order then reset the order so
    * that result[0] is the latitudes, result[1] is the longitudes
    *
-   * @author Don Murray
+   * by Don Murray
    *
    * @param domain  the domain set
    * @param index is the (optional) array of indecies to get points at
@@ -3177,7 +3177,7 @@ public static void plot(final String name, final float[][] data)
    * If the domain is not in lat/lon order then reset the order so
    * that result[0] is the latitudes, result[1] is the longitudes
    *
-   * @author Don Murray
+   * by Don Murray
    *
    * @param domain  the domain set
    *
@@ -3195,7 +3195,7 @@ public static void plot(final String name, final float[][] data)
    * If the domain is not in lat/lon order then reset the order so
    * that result[0] is the latitudes, result[1] is the longitudes
    *
-   * @author Tom Whittaker
+   * by Tom Whittaker
    *
    * @param domain  the domain set
    *
@@ -3237,7 +3237,7 @@ public static void plot(final String name, final float[][] data)
    *
    * @throws VisADException  problem converting points
    *
-   * @author Don Murray
+   * by Don Murray
    */
   public static float[][] getEarthLocationPoints(GriddedSet domain)
           throws VisADException {
@@ -3266,7 +3266,7 @@ public static void plot(final String name, final float[][] data)
    *
    * @throws VisADException   can't get at VisAD objects
    *
-   * @author Don Murray
+   * by Don Murray
    */
 
   public static boolean isLatLonOrder(SampledSet spatialSet)
@@ -3444,7 +3444,7 @@ public static void plot(final String name, final float[][] data)
   * @param f  VisAD data object (FlatField or FieldImpl) as source
   * @param op  Comparison operator as string ('gt','le',...)
   * @param v  Numeric operand for comparison
-  * @param useNan  if true, then NaN is used instead of zero for result. 
+  * @param useNaN  if true, then NaN is used instead of zero for result. 
   *
   * @return a FieldImpl with values of either 0 (did not meet
   * criterion) or 1 (met criteron).
@@ -3465,10 +3465,11 @@ public static void plot(final String name, final float[][] data)
   /**
    *  Mask out values outside testing limits...
    * 
-   * @param f
-   * @param op
-   * @param v
-   * @return
+   * @param f  VisAD data object (FlatField or FieldImpl) as source
+   * @param op  Comparison operator as string ('gt','le',...)
+   * @param v  Numeric operand for comparison
+   * @return a FieldImpl with values of either 0 (did not meet
+   * criterion) or 1 (met criteron).
    * @throws VisADException
    * @throws RemoteException
    */
@@ -4019,7 +4020,7 @@ public static void plot(final String name, final float[][] data)
   *
   * @param r is the Real
   *
-  * @return value of the Real
+  * @return double value of the Real
   *
   */
   public static double getValue(Real r) {
@@ -4163,7 +4164,7 @@ public static void plot(final String name, final float[][] data)
    * 
    * @param data is the field
    * @param domain is the Real domain where the field should be evaluated
-   * @return 
+   * @return the Data object for the evaluated point
    * @throws VisADException 
    * @throws RemoteException 
    */
@@ -4175,9 +4176,9 @@ public static void plot(final String name, final float[][] data)
   /**
    * 
    * 
-   * @param data
-   * @param domain
-   * @return
+   * @param data is the field
+   * @param domain is the Real domain where the field should be evaluated
+   * @return the Data object for the evaluated point
    * @throws VisADException
    * @throws RemoteException
    */
@@ -4240,18 +4241,20 @@ public static void plot(final String name, final float[][] data)
    * make one and return it.
    * 
    * @param name is the name of the RealType type.
-   * @return 
+   * @return the RealType for the given name
    */
   public static RealType makeRealType(String name) {
     return (visad.RealType.getRealType(name));
   }
 
   /**
-   * TODO
    * 
-   * @param name
+   * Make or get the RealType corresponding to the name; if none exists, 
+   * make one and return it.
    * 
-   * @return
+   * @param name is the name of the RealType type.
+   * @return the RealType for the given name
+   * 
    */
   public static RealType getRealType(String name) {
     return (visad.RealType.getRealType(name));
@@ -4264,7 +4267,7 @@ public static void plot(final String name, final float[][] data)
    * @param name is the name of the RealType type.
    * @param unit is the new Unit to associate with this (must
    * be compatible with any existing Unit)
-   * @return 
+   * @return the RealType
    */
   public static RealType makeRealType(String name, Unit unit) {
     return (visad.RealType.getRealType(name, unit));
@@ -4272,10 +4275,14 @@ public static void plot(final String name, final float[][] data)
 
   /**
    * 
+   * Make or get the RealType corresponding to the name; if none exists, make
+   * one and return it.
    * 
-   * @param name
-   * @param unit
-   * @return
+   * @param name is the name of the RealType type.
+   * @param unit is the new Unit to associate with this (must
+   * be compatible with any existing Unit)
+   * @return the RealType
+   * 
    */
   public static RealType getRealType(String name, Unit unit) {
     return (visad.RealType.getRealType(name, unit));
@@ -4285,7 +4292,7 @@ public static void plot(final String name, final float[][] data)
    * Get the MathType of the named VisAD data object
    * 
    * @param data is the VisAD Data object
-   * @return 
+   * @return the MathType
    * @throws VisADException 
    * @throws RemoteException 
    */
@@ -4348,11 +4355,12 @@ public static void plot(final String name, final float[][] data)
    }
 
    /**
+   * Construct a UnionSet of the given MathType for the pairs of 
+   * points given
    * 
-   * 
-   * @param mt
-   * @param points
-   * @return
+   * @param mt the MathType for the UnionSet
+   * @param points the point paris to use
+   * @return the UnionSet
    * @throws VisADException
    * @throws RemoteException
    */
@@ -4412,7 +4420,7 @@ public static void plot(final String name, final float[][] data)
   *   to a ByteArrayOutputStream which is returned.
   *
   * @param d is the Data object
-   * @return 
+   * @return the printable ByteArrayOutputStream
    * @throws VisADException 
    * @throws RemoteException 
   *
@@ -4444,7 +4452,7 @@ public static void plot(final String name, final float[][] data)
   * a ByteArrayOutputStream which is returned.
   *
   * @param d is the Data object
-   * @return 
+   * @return the printable ByteArrayOutputStream
    * @throws VisADException 
    * @throws RemoteException 
   *
@@ -4459,10 +4467,10 @@ public static void plot(final String name, final float[][] data)
   }
 
   /**
-   * 
+   * Get a PointDataAdapter for the given string (file, url, etc)
    * 
    * @param request
-   * @return
+   * @return the new PointDataAdapter
    * @throws VisADException
    * @throws RemoteException
    */
@@ -4477,7 +4485,7 @@ public static void plot(final String name, final float[][] data)
    * 
    * @param filename 
    * 
-   * @return 
+   * @return the Data object
    * @throws VisADException 
    * @throws RemoteException 
    * @throws IOException 
@@ -4488,11 +4496,11 @@ public static void plot(final String name, final float[][] data)
   }
 
   /**
-   * 
+   * Try to create a Data object from a NetCDF file
    * 
    * @param filename
    * @param factor
-   * @return 
+   * @return the Data object
    * @throws VisADException
    * @throws RemoteException
    * @throws IOException
@@ -4513,9 +4521,12 @@ public static void plot(final String name, final float[][] data)
   /**
    * Helper method for {@link visad.ScalarMap#getScale(double[], double[], double[])}.
    * 
-   * @param smap 
+   * @param smap the ScalarMap to get the values from
    * 
-   * @return 
+   * @return get the getScale() results:
+   *  so = scale and offset
+   *  data = the data range
+   *  display = the display range
    */
   public static double[][] getScale(ScalarMap smap) {
     double[] so      = new double[2];

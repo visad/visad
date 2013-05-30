@@ -233,7 +233,7 @@ public final class ScaledUnit extends Unit implements Serializable {
      * @return The unit resulting from raising this unit to <code>power</code>.
      * @throws UnitException
      *             if the underlying unit can't be raised to the given power.
-     * @promise This unit has not been modified.
+     * promise: This unit has not been modified.
      */
     @Override
     public Unit pow(final int power) throws UnitException {
@@ -252,7 +252,7 @@ public final class ScaledUnit extends Unit implements Serializable {
      *             non-integral value.
      * @throws UnitException
      *             if the underlying unit can't be raised to the given power.
-     * @promise The unit has not been modified.
+     * promise: The unit has not been modified.
      */
     @Override
     public Unit pow(final double power) throws IllegalArgumentException,
@@ -272,7 +272,7 @@ public final class ScaledUnit extends Unit implements Serializable {
      *             non-integral unit dimension.
      * @throws UnitException
      *             if the underlying unit given can't have the given root taken.
-     * @promise This unit has not been modified.
+     * promise: This unit has not been modified.
      */
     @Override
     public Unit root(final int root) throws IllegalArgumentException,
@@ -327,7 +327,7 @@ public final class ScaledUnit extends Unit implements Serializable {
      * @param that
      *            The unit with which to multiply this unit.
      * @return The product of the two units.
-     * @promise Neither unit has been modified.
+     * promise: Neither unit has been modified.
      * @throws UnitException
      *             Meaningless operation.
      */
@@ -342,7 +342,7 @@ public final class ScaledUnit extends Unit implements Serializable {
      * @param that
      *            The unit to divide into this unit.
      * @return The quotient of the two units.
-     * @promise Neither unit has been modified.
+     * promise: Neither unit has been modified.
      * @throws UnitException
      *             Meaningless operation.
      */
@@ -357,7 +357,7 @@ public final class ScaledUnit extends Unit implements Serializable {
      * @param that
      *            The unit to be divided by this unit.
      * @return The quotient of the two units.
-     * @promise Neither unit has been modified.
+     * promise: Neither unit has been modified.
      * @throws UnitException
      *             Meaningless operation.
      */
@@ -374,8 +374,8 @@ public final class ScaledUnit extends Unit implements Serializable {
      * @param that
      *            The unit of <code>values</code>.
      * @return The converted values in units of this unit.
-     * @require The units are convertible.
-     * @promise Neither unit has been modified.
+     * require: The units are convertible.
+     * promise: Neither unit has been modified.
      * @throws UnitException
      *             The units are not convertible.
      */
@@ -393,8 +393,8 @@ public final class ScaledUnit extends Unit implements Serializable {
      * @param that
      *            The unit of <code>values</code>.
      * @return The converted values in units of this unit.
-     * @require The units are convertible.
-     * @promise Neither unit has been modified.
+     * require: The units are convertible.
+     * promise: Neither unit has been modified.
      * @throws UnitException
      *             The units are not convertible.
      */
@@ -415,8 +415,8 @@ public final class ScaledUnit extends Unit implements Serializable {
      *            if false and <code>that</code> equals this, return
      *            <code>values</code>, else return a new array
      * @return The converted values in units of this unit.
-     * @require The units are convertible.
-     * @promise Neither unit has been modified.
+     * require: The units are convertible.
+     * promise: Neither unit has been modified.
      * @throws UnitException
      *             The units are not convertible.
      */
@@ -451,8 +451,8 @@ public final class ScaledUnit extends Unit implements Serializable {
      *            if false and <code>that</code> equals this, return
      *            <code>values</code>, else return a new array
      * @return The converted values in units of this unit.
-     * @require The units are convertible.
-     * @promise Neither unit has been modified.
+     * require: The units are convertible.
+     * promise: Neither unit has been modified.
      * @throws UnitException
      *             The units are not convertible.
      */
@@ -484,8 +484,8 @@ public final class ScaledUnit extends Unit implements Serializable {
      * @param that
      *            The unit to which to convert the values.
      * @return The converted values.
-     * @require The units are identical.
-     * @promise Neither unit has been modified.
+     * require: The units are identical.
+     * promise: Neither unit has been modified.
      * @throws UnitException
      *             The units are not convertible.
      */
@@ -503,8 +503,8 @@ public final class ScaledUnit extends Unit implements Serializable {
      * @param that
      *            The unit to which to convert the values.
      * @return The converted values.
-     * @require The units are identical.
-     * @promise Neither unit has been modified.
+     * require: The units are identical.
+     * promise: Neither unit has been modified.
      * @throws UnitException
      *             The units are not convertible.
      */
@@ -525,8 +525,8 @@ public final class ScaledUnit extends Unit implements Serializable {
      *            if false and <code>that</code> equals this, return
      *            <code>values</code>, else return a new array
      * @return The converted values.
-     * @require The units are convertible.
-     * @promise Neither unit has been modified.
+     * require: The units are convertible.
+     * promise: Neither unit has been modified.
      * @throws UnitException
      *             The units are not convertible.
      */
@@ -556,8 +556,8 @@ public final class ScaledUnit extends Unit implements Serializable {
      *            if false and <code>that</code> equals this, return
      *            <code>values</code>, else return a new array
      * @return The converted values.
-     * @require The units are convertible.
-     * @promise Neither unit has been modified.
+     * require: The units are convertible.
+     * promise: Neither unit has been modified.
      * @throws UnitException
      *             The units are not convertible.
      */
