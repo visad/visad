@@ -173,6 +173,7 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
     Shape3D box = new Shape3D(box_geometry, box_appearance);
     box.setCapability(Shape3D.ALLOW_GEOMETRY_READ); // WLH 24 Nov 2000
     box.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
+    box.setCapability(Shape3D.ALLOW_APPEARANCE_WRITE);
     BranchGroup box_on = getBoxOnBranch();
     box_on.addChild(box);
 
