@@ -5,10 +5,12 @@ import java.util.logging.Logger;
 /**
  * Growable data structure for float tuples.   
  */
+
 public interface FloatTupleArray {
 
   public static class Factory {
-    private static Logger log = Logger.getLogger(Factory.class.getName());
+	  
+    private static Logger logger = Logger.getLogger(Factory.class.getName());
 
     /**
      * Create a new instance. 
@@ -73,13 +75,14 @@ public interface FloatTupleArray {
 
   /**
    * Get array size.
-   * @return
+   * @return size of array
    */
+  
   public int size();
 
   /**
    * Get array tuple dimension.
-   * @return
+   * @return The array tuple dimension
    */
   public int dim();
 }
