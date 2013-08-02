@@ -11,8 +11,19 @@
 
 package dods.dap.Server;
 
-import dods.dap.*;
-import gnu.regexp.*;
+import gnu.regexp.RE;
+import gnu.regexp.REException;
+import dods.dap.BaseType;
+import dods.dap.DBoolean;
+import dods.dap.DByte;
+import dods.dap.DFloat32;
+import dods.dap.DFloat64;
+import dods.dap.DInt16;
+import dods.dap.DInt32;
+import dods.dap.DString;
+import dods.dap.DUInt16;
+import dods.dap.DUInt32;
+import dods.dap.DURL;
 import dods.dap.parser.ExprParserConstants;
 
 /** This class contains the code for performing relative
@@ -44,7 +55,7 @@ public class Operator implements ExprParserConstants {
     *
     * @param rop A BaseType to be used as the right operand.
     *
-    * @returns True is the operation evaluates as true, flase otherwise.
+    * @return True is the operation evaluates as true, flase otherwise.
     *
     * @exception dods.dap.Server.InvalidOperatorException
     * @exception dods.dap.Server.RegExpException

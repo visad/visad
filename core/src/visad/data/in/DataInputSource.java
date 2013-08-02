@@ -40,12 +40,11 @@ public interface DataInputSource
      * Opens an existing dataset.
      *
      * @param spec		The specification of the existing dataset.
-     * @return			The VisAD data object corresponding to the
-     *				specified dataset.
      * @throws BadFormException	The DODS dataset is corrupt.
      * @throws VisADException	VisAD failure.
      * @throws RemoteException	Java RMI failure.
      */
+	
     void open(String spec)
 	throws BadFormException, RemoteException, VisADException;
 }

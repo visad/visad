@@ -26,13 +26,12 @@ MA 02111-1307, USA
 
 package visad;
 
+import java.rmi.RemoteException;
 
-import java.util.*;
-
-import java.rmi.*;
+import java.util.Enumeration;
+import java.util.Vector;
 
 import visad.util.ThreadPool;
-
 
 /*
 Action - ThingReference event logic
@@ -349,8 +348,9 @@ public abstract class ActionImpl implements Action, Runnable {
    * return Thread currently active in run() method of this
    * ActionImpl, or null is run() is not active
    *
-   * @return 
+   * @return currently active thread or null
    */
+  
   public Thread getCurrentActionThread() {
     return currentActionThread;
   }
@@ -492,10 +492,11 @@ public abstract class ActionImpl implements Action, Runnable {
    * in this ActionImpl
    * @param e ThingChangedEvent for change to ThingReference
    *
-   * @return 
+   * @return true if the ThingReference changed
    * @throws VisADException a VisAD error occurred
    * @throws RemoteException an RMI error occurred
    */
+  
   public boolean thingChanged(ThingChangedEvent e)
           throws VisADException, RemoteException {
     long id = e.getId();

@@ -26,7 +26,7 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.rmi.*;
+import java.rmi.RemoteException;
 import java.util.Vector;
 
 /**
@@ -220,19 +220,19 @@ public class Tuple extends DataImpl implements TupleIface {
       return getComponents(true);
   }
 
-
+  public static int cloneCnt = 0;
 
   /** 
    * Returns the components that constitute this instance.  If this instance
    * has no components, then <code>null</code> is returned.  IF copy==true a returned array
    * may be modified without affecting the behavior of this instance. Else, the returned array is the
-   * actual  component array
-   * @param copy  if true then return a copy of the tuple array. Else retun the actual array
+   * actual component array
+   * @param copy  if true then return a copy of the tuple array. Else return the actual array
    *
    * @return                    The components of this instance or <code>
    *                            null</code>.
    */
-    public static int cloneCnt = 0;
+    
   public Data[] getComponents(boolean copy) {
       if(!copy) return tupleComponents;
       else if(tupleComponents == null)

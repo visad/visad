@@ -191,8 +191,9 @@ public class ThreadManager {
   /**
    * 
    *
-   * @return 
+   * @return count of Runnables
    */
+  
   public int getNumRunnables() {
     return runnables.size();
   }

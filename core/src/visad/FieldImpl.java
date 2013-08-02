@@ -26,8 +26,11 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.util.*;
-import java.rmi.*;
+import java.rmi.RemoteException;
+
+import java.util.Enumeration;
+import java.util.NoSuchElementException;
+import java.util.Vector;
 
 /**
    FieldImpl is the VisAD class for finite samplings of functions
@@ -635,11 +638,12 @@ public class FieldImpl extends FunctionImpl implements Field {
    * <p>Get the range value at the index-th sample.  The actual range value
    * is returned -- not a copy.</p>
    *
-   * </p>This implementation uses {@link getSample(int, boolean)}.</p>
+   * <p>This implementation uses {@link getSample(int, boolean)}.</p>
    *
    * @param index index of requested range sample
-   * @return 
+   * @return range value at sample index
    */
+  
   public Data getSample(int index)
          throws VisADException, RemoteException {
     return getSample(index, false);

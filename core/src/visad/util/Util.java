@@ -206,8 +206,9 @@ public class Util {
   /**
    * Return a string representation of VisAD's build date and time.
    *
-   * @return 
+   * @return VisAD build date and time
    */
+  
   public static String getVersionDate() {
     try {
       InputStream is = Util.class.getResourceAsStream("/DATE");
@@ -435,8 +436,9 @@ public class Util {
   /**
    * Return a string representation of the current date and time.
    *
-   * @return 
+   * @return string timestamp for current time
    */
+  
   public static String getTimestamp() {
     StringBuffer sb = new StringBuffer();
     Calendar cal = Calendar.getInstance();
@@ -473,8 +475,9 @@ public class Util {
   /**
    * Return a JFileChooser that recognizes supported VisAD file types.
    *
-   * @return 
+   * @return file chooser which recognizes supported VisAD file types
    */
+  
   public static JFileChooser getVisADFileChooser() {
     JFileChooser dialog = new JFileChooser(System.getProperty("user.dir"));
     Vector filters = new Vector();
@@ -788,8 +791,9 @@ public class Util {
    * @param o1 
    * @param o2 
    *
-   * @return 
+   * @return true if the arrays are equal
    */
+  
   public static boolean arraysEqual(Object[] o1, Object[] o2) {
     // test for null
     if (o1 == null && o2 == null) return true;
@@ -814,12 +818,11 @@ public class Util {
   /**
    * Create a string representation of the given array
    *
-   *
    * @param prefix 
    * @param array  array to print
    *
-   * @return  array as a String
    */
+  
   public static void printArray(String prefix, Object[] array) {
     StringBuffer buf = new StringBuffer();
     buf.append(prefix);
@@ -998,8 +1001,9 @@ public class Util {
    *
    * @param verbosity 
    *
-   * @return 
+   * @return logging level
    */
+  
   public static Level configureLogging(int verbosity) {
     return configureLogging(verbosity, "visad");
   }

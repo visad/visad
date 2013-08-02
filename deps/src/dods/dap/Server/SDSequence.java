@@ -29,12 +29,17 @@
 
 package dods.dap.Server;
 
-import java.io.*;
-import java.util.Vector;
+import java.io.DataOutputStream;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Enumeration;
+import java.util.Vector;
 
-import dods.dap.*;
-import dods.dap.Server.SBHException;
+import dods.dap.BaseType;
+import dods.dap.DDS;
+import dods.dap.DSequence;
+import dods.dap.NoSuchVariableException;
 
 /**
  * Holds a DODS Server <code>Sequence</code> value.
@@ -71,18 +76,16 @@ public abstract class SDSequence extends DSequence implements  ServerMethods, Re
         ReadMe = false;
     }
 
-
-
     /**
-    * Get the row vector for into which to read a row os data for this sequence.
-    * When serving sequence data to clients the prefered method is to read one row 
-    * of the sequence at a time in to this vector, evaluate the constraint expression
-    * clauses on the current data, and then send it to the client if it satisfies
-    * the constraint. The NOT recomended way is to read the ENTIRE sequence into memory
-    * prior to sending it (that would be most inefficient).
-    *
-    * @returns The base (row 0) row vector for this sequence.
-    */
+     * Get the row vector for into which to read a row of data for this sequence.
+     * When serving sequence data to clients the preferred method is to read one row 
+     * of the sequence at a time in to this vector, evaluate the constraint expression
+     * clauses on the current data, and then send it to the client if it satisfies
+     * the constraint. The NOT recommended way is to read the ENTIRE sequence into memory
+     * prior to sending it (that would be most inefficient).
+     *
+     * @return The base (row 0) row vector for this sequence.
+     */
 
     public Vector getRowVector() throws NoSuchVariableException {
     
