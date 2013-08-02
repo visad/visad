@@ -26,13 +26,11 @@ MA 02111-1307, USA
 
 package visad.data;
 
-
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
 import visad.util.Util;
-
 
 /**
  * This class is used by the CachingCoordinateSystem to do the actual caching mapping one array to another one
@@ -94,8 +92,9 @@ public class ArrayCache {
    * @param key The key (e.g., "toReference", "fromReference")
    * @param input  The input
    *
-   * @return
+   * @return value for supplied key
    */
+   
   public FloatResult get(String key, float[][] input) {
     if (!shouldHandle(input)) {
         return new FloatResult(false);
@@ -134,8 +133,9 @@ public class ArrayCache {
    * @param key The key (e.g., "toReference", "fromReference")
    * @param input  The input
    *
-   * @return
+   * @return value for the supplied key
    */
+   
   public DoubleResult get(String key, double[][] input) {
       if (!shouldHandle(input)) {
          return new DoubleResult(false);

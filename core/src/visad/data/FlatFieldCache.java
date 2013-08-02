@@ -114,8 +114,9 @@ public class FlatFieldCache {
    * 
    * @param owner
    * @param fileAccessor
-   * @return
+   * @return cache data array
    */
+  
   protected synchronized float[][] getData(AreaImageCacheAdapter owner, FlatFieldCacheAccessor fileAccessor) {
     
     // if owner array is null,

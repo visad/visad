@@ -40,10 +40,12 @@ import visad.Gridded2DSet;
  *
  * @author  Don Murray
  */
+
 public final class LALOnav extends AREAnav 
 {
 
-    int rows, cols, latres, lonres, latpoint, lonpoint, numPoints;
+	private static final long serialVersionUID = 1L;
+	int rows, cols, latres, lonres, latpoint, lonpoint, numPoints;
     int ulline, ulelem, aux_size, lat_aux_offset, lon_aux_offset;
     int lrlin, lrele;
     double minlat, maxlat, minlon, maxlon;
@@ -427,23 +429,20 @@ public final class LALOnav extends AREAnav
 
     }
 
-    /**
-     * toLinEle converts lat/long to satellite line/element
-     *
-     * @param  latlon[][] array of lat/long pairs. Where latlon[indexLat][]
-     *                    are latitudes and latlon[indexLon][] are longitudes.
-     *
-     * @return linele[][] array of line/element pairs.  Where
-     *                    linele[indexLine][] is a line and linele[indexEle][]
-     *                    is an element.  These are in 'file' coordinates
-     *                    (not "image" coordinates);
-     */
-  private int gx = -1;
-  private int gy = -1;
-  boolean Pos;
+  /**
+   * toLinEle converts lat/long to satellite line/element
+   * transform an array of values in R^DomainDimension to an array
+   * of non-integer grid coordinates
+   *
+   * @param  latlon[][] array of lat/long pairs. Where latlon[indexLat][]
+   *                    are latitudes and latlon[indexLon][] are longitudes.
+   *
+   * @return linele[][] array of line/element pairs.  Where
+   *                    linele[indexLine][] is a line and linele[indexEle][]
+   *                    is an element.  These are in 'file' coordinates
+   *                    (not "image" coordinates);
+   */
 
-  /** transform an array of values in R^DomainDimension to an array
-      of non-integer grid coordinates */
   public float[][] toLinEle(float[][] latlon) {
     try {
       float[][] ll = new float[2][latlon[0].length];
