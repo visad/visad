@@ -26,9 +26,15 @@ MA 02111-1307, USA
 
 package visad.java2d;
 
-import visad.*;
+import java.lang.reflect.Constructor;
 
-import java.lang.reflect.*;
+import visad.Display;
+import visad.DisplayException;
+import visad.DisplayRealType;
+import visad.VisADAppearance;
+import visad.VisADError;
+import visad.VisADGroup;
+import visad.VisADLineArray;
 
 /**
  * <CODE>DefaultDisplayRendererJ2D</CODE> is the VisAD class for
@@ -75,8 +81,9 @@ public class DefaultDisplayRendererJ2D extends DisplayRendererJ2D {
   }
 
   /**
-   * @param mbClass - sub Class of MouseBehaviorJ2D
-  */
+   * @param mbj2dClass - sub Class of MouseBehaviorJ2D
+   */
+  
   public DefaultDisplayRendererJ2D (Class mbj2dClass) {
     super();
     mouseBehaviorJ2DClass = mbj2dClass;

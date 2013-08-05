@@ -434,8 +434,8 @@ public final class LALOnav extends AREAnav
    * transform an array of values in R^DomainDimension to an array
    * of non-integer grid coordinates
    *
-   * @param  latlon[][] array of lat/long pairs. Where latlon[indexLat][]
-   *                    are latitudes and latlon[indexLon][] are longitudes.
+   * @param  latlon array of lat/long pairs. Where latlon[indexLat][]
+   *                are latitudes and latlon[indexLon][] are longitudes.
    *
    * @return linele[][] array of line/element pairs.  Where
    *                    linele[indexLine][] is a line and linele[indexEle][]

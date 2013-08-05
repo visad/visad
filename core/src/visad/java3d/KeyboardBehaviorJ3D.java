@@ -26,14 +26,28 @@ MA 02111-1307, USA
 
 package visad.java3d;
 
-import java.awt.event.*;
 import java.awt.AWTEvent;
-import java.util.Enumeration;
-import javax.media.j3d.*;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.rmi.RemoteException;
-import javax.vecmath.*;
-import visad.*;
+import java.util.Enumeration;
 
+import javax.media.j3d.Behavior;
+import javax.media.j3d.BoundingSphere;
+import javax.media.j3d.Bounds;
+import javax.media.j3d.WakeupCondition;
+import javax.media.j3d.WakeupCriterion;
+import javax.media.j3d.WakeupOnAWTEvent;
+import javax.media.j3d.WakeupOr;
+import javax.vecmath.Point3d;
+
+import visad.DisplayEvent;
+import visad.DisplayImpl;
+import visad.DisplayRenderer;
+import visad.KeyboardBehavior;
+import visad.MouseBehavior;
+import visad.ProjectionControl;
+import visad.VisADException;
 
 /**
  *  KeyboardBehaviorJ3D is the VisAD class for keyboard control of
@@ -245,8 +259,9 @@ public class KeyboardBehaviorJ3D extends Behavior
 
   /**
    *  Process a key event.  Determines whether a meaningful key was pressed.
-   *  @param  even  KeyEvent stimulus
+   *  @param  event  KeyEvent stimulus
    */
+  
   public void processKeyEvent(KeyEvent event) {
     int id = event.getID();
 

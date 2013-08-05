@@ -277,8 +277,9 @@ public abstract class DisplayRendererJ3D
 
   /**
    * Capture the display rendition as an image.
-   * @param  image of the display.
+   * @return  image of the display.
    */
+  
   public BufferedImage getImage() {
     if (not_destroyed == null) return null;
     BufferedImage image = null;
@@ -1417,8 +1418,9 @@ public abstract class DisplayRendererJ3D
 
   /**
    * Remove a particular scale being rendered.
-   * @param scale  AxisScale to remove
+   * @param axisScale  AxisScale to remove
    */
+  
   public void clearScale(AxisScale axisScale) {
     if (not_destroyed == null) return;
     // eliminate any non-screen-based scale for this AxisScale

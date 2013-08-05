@@ -111,21 +111,23 @@ public class CEEvaluator {
 	    return _dds;
     }
 
-    /** Parse a constraint expression. Variables in the projection are marked
-	as such in the CEEvaluator's ServerDDS instance. The selection
-	subexpression is then parsed and a list of Clause objects is built.
-	<p>
-	The parser is located in dods.dap.parser.ExprParser.
-	
-	@param expression The constraint expression to parse.
-	@param btf A BaseTypeFactor used to instantiate the variables.
-	@exception ParseException
-	@exception NoSuchVariableException
-	@exception NoSuchFunctionException
-	@exception InvalidOperatorException
-	@exception InvalidParameterException
-	@exception SBHException
-    */
+	/**
+	 * Parse a constraint expression. Variables in the projection are marked as
+	 * such in the CEEvaluator's ServerDDS instance. The selection subexpression
+	 * is then parsed and a list of Clause objects is built.
+	 * <p>
+	 * The parser is located in dods.dap.parser.ExprParser.
+	 * 
+	 * @param expression
+	 *            The constraint expression to parse.
+	 * @exception ParseException
+	 * @exception NoSuchVariableException
+	 * @exception NoSuchFunctionException
+	 * @exception InvalidOperatorException
+	 * @exception InvalidParameterException
+	 * @exception SBHException
+	 */
+    
     public void parseConstraint(String expression) 
 	throws ParseException, DODSException, NoSuchVariableException, 
 	       NoSuchFunctionException, InvalidOperatorException, 
@@ -200,21 +202,24 @@ public class CEEvaluator {
     public final Enumeration getClauses() {		
 	return _cv.elements();
     }
-    
-    
-    
 
-    /** This function sends the variables described in the constrained DDS to
-    the output described by <code>sink</code>. This function calls
-    <code>parse_constraint()</code>, <code>BaseType::read()</code>, and
-    <code>ServerIO::serialize()</code>.
-    @param dataset The name of the dataset to send.
-    @param sink A pointer to the output buffer for the data.
-    @param compressed If true, send compressed data.
-    @see #parseConstraint(String)
-    @see ServerMethods#serialize(String, DataOutputStream, 
-			  CEEvaluator, Object) ServerMethods.serialize()
-    */
+	/**
+	 * This function sends the variables described in the constrained DDS to the
+	 * output described by <code>sink</code>. This function calls
+	 * <code>parse_constraint()</code>, <code>BaseType::read()</code>, and
+	 * <code>ServerIO::serialize()</code>.
+	 * 
+	 * @param dataset
+	 *            The name of the dataset to send.
+	 * @param sink
+	 *            A pointer to the output buffer for the data.
+	 * @param specialO
+	 *            Not sure - special object?
+	 * @see #parseConstraint(String)
+	 * @see ServerMethods#serialize(String, DataOutputStream, CEEvaluator,
+	 *      Object) ServerMethods.serialize()
+	 */
+    
     public void send(String dataset, OutputStream sink, Object specialO) 
                                             throws NoSuchVariableException, SDODSException, IOException {
         Enumeration e = _dds.getVariables();
