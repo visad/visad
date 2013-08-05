@@ -104,6 +104,9 @@ public abstract class DisplayRendererJ3D
   private double back_clip = 0.0;
   private double front_clip = 0.0;
 
+  /** KeyboardBehaviorJ3D */
+  private KeyboardBehaviorJ3D keyboard = null;
+
   /** color of box and cursor */
   private ColoringAttributes box_color = null;
   private ColoringAttributes cursor_color = null;
@@ -798,6 +801,16 @@ public abstract class DisplayRendererJ3D
    */
   public MouseBehavior getMouseBehavior() {
     return mouse;
+  }
+
+  /**
+   * Get the <CODE>KeyboardBehavior</CODE> associated with this renderer.
+   * 
+   * @return the <CODE>KeyboardBehavior</CODE> used by this renderer to handle
+   *         mouse events.
+   */
+  public KeyboardBehavior getKeyboardBehavior() {
+    return keyboard;
   }
 
   public void addSceneGraphComponent(Group group) {
