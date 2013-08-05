@@ -74,6 +74,7 @@ import visad.Flow1Control;
 import visad.Flow2Control;
 import visad.GraphicsModeControl;
 import visad.MouseBehavior;
+import visad.KeyboardBehavior;
 import visad.PlotText;
 import visad.ProjectionControl;
 import visad.RangeControl;
