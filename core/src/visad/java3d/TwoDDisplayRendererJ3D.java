@@ -26,12 +26,27 @@ MA 02111-1307, USA
 
 package visad.java3d;
 
-import visad.*;
+import java.lang.reflect.Constructor;
 
-import java.lang.reflect.*;
+import javax.media.j3d.AmbientLight;
+import javax.media.j3d.Appearance;
+import javax.media.j3d.BoundingSphere;
+import javax.media.j3d.BranchGroup;
+import javax.media.j3d.ColoringAttributes;
+import javax.media.j3d.DirectionalLight;
+import javax.media.j3d.GeometryArray;
+import javax.media.j3d.LineArray;
+import javax.media.j3d.LineAttributes;
+import javax.media.j3d.Shape3D;
+import javax.media.j3d.TransformGroup;
+import javax.media.j3d.View;
+import javax.vecmath.Color3f;
+import javax.vecmath.Point3d;
+import javax.vecmath.Vector3f;
 
-import javax.media.j3d.*;
-import javax.vecmath.*;
+import visad.Display;
+import visad.DisplayRealType;
+import visad.VisADError;
 
 /**
  * <CODE>TwoDDisplayRendererJ3D</CODE> is the VisAD class for 2-D background
@@ -69,8 +84,9 @@ public class TwoDDisplayRendererJ3D extends DisplayRendererJ3D {
   }
 
   /**
-   * @param mbClass - sub Class of MouseBehaviorJ3D
-  */
+   * @param mbj3dClass - sub Class of MouseBehaviorJ3D
+   */
+  
   public TwoDDisplayRendererJ3D (Class mbj3dClass) {
     super();
     mouseBehaviorJ3DClass = mbj3dClass;
