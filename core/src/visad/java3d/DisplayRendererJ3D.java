@@ -74,6 +74,7 @@ import visad.Flow1Control;
 import visad.Flow2Control;
 import visad.GraphicsModeControl;
 import visad.MouseBehavior;
+import visad.KeyboardBehavior;
 import visad.PlotText;
 import visad.ProjectionControl;
 import visad.RangeControl;
@@ -149,6 +150,9 @@ public abstract class DisplayRendererJ3D
 
   /** MouseBehaviorJ3D */
   private MouseBehaviorJ3D mouse = null;
+
+  /** KeyboardBehaviorJ3D */
+  private KeyboardBehaviorJ3D keyboard = null;
 
   /** color of box and cursor */
   private ColoringAttributes box_color = null;
@@ -840,6 +844,16 @@ public abstract class DisplayRendererJ3D
    */
   public MouseBehavior getMouseBehavior() {
     return mouse;
+  }
+
+  /**
+   * Get the <CODE>KeyboardBehavior</CODE> associated with this renderer.
+   * 
+   * @return the <CODE>KeyboardBehavior</CODE> used by this renderer to handle
+   *         mouse events.
+   */
+  public KeyboardBehavior getKeyboardBehavior() {
+    return keyboard;
   }
 
   public void addSceneGraphComponent(Group group) {

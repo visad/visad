@@ -653,6 +653,7 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     appearance.setCapability(Appearance.ALLOW_TEXGEN_READ);
     appearance.setCapability(Appearance.ALLOW_TEXTURE_ATTRIBUTES_READ);
     appearance.setCapability(Appearance.ALLOW_TEXTURE_READ);
+    appearance.setCapability (Appearance.ALLOW_RENDERING_ATTRIBUTES_WRITE);
     // appearance.setCapability(Appearance.ALLOW_TEXTURE_UNIT_STATE_READ);
     appearance.setCapability(Appearance.ALLOW_TRANSPARENCY_ATTRIBUTES_READ);
 
@@ -705,12 +706,13 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     rendering.setCapability(RenderingAttributes.ALLOW_ALPHA_TEST_FUNCTION_READ);
     rendering.setCapability(RenderingAttributes.ALLOW_ALPHA_TEST_VALUE_READ);
     rendering.setCapability(RenderingAttributes.ALLOW_DEPTH_ENABLE_READ);
+    rendering.setCapability (RenderingAttributes.ALLOW_VISIBLE_WRITE);
 
     //rendering.setCapability(RenderingAttributes.ALLOW_IGNORE_VERTEX_COLORS_READ
     // );
     // rendering.setCapability(RenderingAttributes.ALLOW_RASTER_OP_READ);
     // rendering.setCapability(RenderingAttributes.ALLOW_VISIBLE_READ);
-    rendering.setDepthBufferEnable(true);
+    rendering.setDepthBufferEnable(((GraphicsModeControlJ3D)mode).getDepthBufferEnable());
     appearance.setRenderingAttributes(rendering);
 
     if (constant_color != null) {
