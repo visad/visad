@@ -11,19 +11,21 @@
 
 package dods.dap.Server;
 
-import java.util.*;
-import java.io.*;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.StringReader;
+import java.util.Enumeration;
+import java.util.Vector;
 
-import dods.dap.parser.*;
 import dods.dap.BaseType;
 import dods.dap.DArrayDimension;
-import dods.dap.ClientIO;
-import dods.dap.DConstructor;
-import dods.dap.BaseTypeFactory;
-import dods.dap.NoSuchVariableException;
-import dods.dap.NoSuchFunctionException;
 import dods.dap.DODSException;
-import dods.dap.Server.WrongTypeException;
+import dods.dap.NoSuchFunctionException;
+import dods.dap.NoSuchVariableException;
+import dods.dap.parser.ExprParser;
+import dods.dap.parser.ParseException;
+import dods.dap.parser.TokenMgrError;
 
 /**
    This class is used to parse and evaluate a constraint expression. When
@@ -109,21 +111,23 @@ public class CEEvaluator {
 	    return _dds;
     }
 
-    /** Parse a constraint expression. Variables in the projection are marked
-	as such in the CEEvaluator's ServerDDS instance. The selection
-	subexpression is then parsed and a list of Clause objects is built.
-	<p>
-	The parser is located in dods.dap.parser.ExprParser.
-	
-	@param expression The constraint expression to parse.
-	@param btf A BaseTypeFactor used to instantiate the variables.
-	@exception ParseException
-	@exception NoSuchVariableException
-	@exception NoSuchFunctionException
-	@exception InvalidOperatorException
-	@exception InvalidParameterException
-	@exception SBHException
-    */
+	/**
+	 * Parse a constraint expression. Variables in the projection are marked as
+	 * such in the CEEvaluator's ServerDDS instance. The selection subexpression
+	 * is then parsed and a list of Clause objects is built.
+	 * <p>
+	 * The parser is located in dods.dap.parser.ExprParser.
+	 * 
+	 * @param expression
+	 *            The constraint expression to parse.
+	 * @exception ParseException
+	 * @exception NoSuchVariableException
+	 * @exception NoSuchFunctionException
+	 * @exception InvalidOperatorException
+	 * @exception InvalidParameterException
+	 * @exception SBHException
+	 */
+    
     public void parseConstraint(String expression) 
 	throws ParseException, DODSException, NoSuchVariableException, 
 	       NoSuchFunctionException, InvalidOperatorException, 
@@ -171,22 +175,24 @@ public class CEEvaluator {
 	}
     }
 
-    /** Remove a clause from the constraint expression. This will
-      * will remove the first occurence of the passed clause from 
-      * the constraint expression. This is done be reference, so if 
-      * the passed Clause object is NOT already in the constraint
-      * expression then nothing happens. And, if it should appear
-      * more than once (which I <b>don't</b> think is possible) only
-      * the first occurence will be removed.
-      *	@param c The Clause to append. 
-      * @returns True if constraint expression contained the passed Clause
-      * object and it was successfully removed.
-    */
+    /** 
+     * Remove a clause from the constraint expression. This will
+     * will remove the first occurrence of the passed clause from 
+     * the constraint expression. This is done be reference, so if 
+     * the passed Clause object is NOT already in the constraint
+     * expression then nothing happens. And, if it should appear
+     * more than once (which I <b>don't</b> think is possible) only
+     * the first occurrence will be removed.
+     * @param c The Clause to append. 
+     * @return True if constraint expression contained the passed Clause
+     * object and it was successfully removed.
+     */
+    
     public boolean removeClause(Clause c) {	
-        if (c != null) {
-	    return(_cv.remove(c));
-	}
-	return(false);
+    	if (c != null) {
+    		return(_cv.remove(c));
+    	}
+    	return(false);
     }
 
     /** Get access to the list of clauses built by parsing the selection part
@@ -196,21 +202,24 @@ public class CEEvaluator {
     public final Enumeration getClauses() {		
 	return _cv.elements();
     }
-    
-    
-    
 
-    /** This function sends the variables described in the constrained DDS to
-    the output described by <code>sink</code>. This function calls
-    <code>parse_constraint()</code>, <code>BaseType::read()</code>, and
-    <code>ServerIO::serialize()</code>.
-    @param dataset The name of the dataset to send.
-    @param sink A pointer to the output buffer for the data.
-    @param compressed If true, send compressed data.
-    @see #parseConstraint(String)
-    @see ServerMethods#serialize(String, DataOutputStream, 
-			  CEEvaluator, Object) ServerMethods.serialize()
-    */
+	/**
+	 * This function sends the variables described in the constrained DDS to the
+	 * output described by <code>sink</code>. This function calls
+	 * <code>parse_constraint()</code>, <code>BaseType::read()</code>, and
+	 * <code>ServerIO::serialize()</code>.
+	 * 
+	 * @param dataset
+	 *            The name of the dataset to send.
+	 * @param sink
+	 *            A pointer to the output buffer for the data.
+	 * @param specialO
+	 *            Not sure - special object?
+	 * @see #parseConstraint(String)
+	 * @see ServerMethods#serialize(String, DataOutputStream, CEEvaluator,
+	 *      Object) ServerMethods.serialize()
+	 */
+    
     public void send(String dataset, OutputStream sink, Object specialO) 
                                             throws NoSuchVariableException, SDODSException, IOException {
         Enumeration e = _dds.getVariables();
@@ -236,16 +245,13 @@ public class CEEvaluator {
         }
     }
 
-
-
-
-
-
-    /** Evaluate all of the Clauses in the Clause vector. 
-    * @param specialO That special Object that can be passed down 
-    * through the <code>DDS.send()</code> method.
-    * @returns True if all the Clauses evaluate to true, false otherwise.
-    */
+    /** 
+     * Evaluate all of the Clauses in the Clause vector. 
+     * @param specialO That special Object that can be passed down 
+     * through the <code>DDS.send()</code> method.
+     * @return True if all the Clauses evaluate to true, false otherwise.
+     */
+    
     public boolean evalClauses(Object specialO) throws NoSuchVariableException, SDODSException, IOException {
 
         boolean result = true;	

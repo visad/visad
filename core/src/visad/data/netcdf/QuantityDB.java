@@ -145,23 +145,18 @@ QuantityDB
     add(String name, Quantity quantity)
 	throws VisADException;
 
-
     /**
      * Adds a given Quantity to the database.
      *
      * @param quantity		The quantity to be added.  The quantity will
      *				be added under it own name.
-     * @return			The database resulting from the addition.  May
-     *				or may not be the original object.
      * @throws VisADException	Couldn't create necessary VisAD object.
      */
-    public void
-    add(Quantity quantity)
-	throws VisADException
+    
+    public void add(Quantity quantity) throws VisADException
     {
-	add(quantity.getName(), quantity);
+    	add(quantity.getName(), quantity);
     }
-
 
     /**
      * Returns an iterator of the quantities in the database.

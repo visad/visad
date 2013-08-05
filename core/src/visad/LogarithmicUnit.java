@@ -326,8 +326,8 @@ public final class LogarithmicUnit extends Unit implements Serializable {
      * @param that
      *            The unit of <code>values</code>.
      * @return The converted values in units of this unit.
-     * @require The units are convertible.
-     * @promise Neither unit has been modified.
+     * require: The units are convertible.
+     * promise: Neither unit has been modified.
      * @throws UnitException
      *             The units are not convertible.
      */
@@ -345,8 +345,8 @@ public final class LogarithmicUnit extends Unit implements Serializable {
      * @param that
      *            The unit of <code>values</code>.
      * @return The converted values in units of this unit.
-     * @require The units are convertible.
-     * @promise Neither unit has been modified.
+     * require: The units are convertible.
+     * promise: Neither unit has been modified.
      * @throws UnitException
      *             The units are not convertible.
      */
@@ -367,8 +367,8 @@ public final class LogarithmicUnit extends Unit implements Serializable {
      *            if false and <code>that</code> equals this, return
      *            <code>values</code>, else return a new array
      * @return The converted values in units of this unit.
-     * @require The units are convertible.
-     * @promise Neither unit has been modified.
+     * require: The units are convertible.
+     * promise: Neither unit has been modified.
      * @throws UnitException
      *             The units are not convertible.
      */
@@ -400,8 +400,8 @@ public final class LogarithmicUnit extends Unit implements Serializable {
      * @param copy
      *            if false, convert values in place.
      * @return The converted values in units of this unit.
-     * @require The units are convertible.
-     * @promise Neither unit has been modified.
+     * require: The units are convertible.
+     * promise: Neither unit has been modified.
      * @throws UnitException
      *             The units are not convertible.
      */
@@ -431,8 +431,8 @@ public final class LogarithmicUnit extends Unit implements Serializable {
      * @param that
      *            The unit to which to convert the values.
      * @return The converted values.
-     * @require The units are convertible.
-     * @promise Neither unit has been modified.
+     * require: The units are convertible.
+     * promise: Neither unit has been modified.
      * @throws UnitException
      *             The units are not convertible.
      */
@@ -450,8 +450,8 @@ public final class LogarithmicUnit extends Unit implements Serializable {
      * @param that
      *            The unit to which to convert the values.
      * @return The converted values.
-     * @require The units are convertible.
-     * @promise Neither unit has been modified.
+     * require: The units are convertible.
+     * promise: Neither unit has been modified.
      * @throws UnitException
      *             The units are not convertible.
      */
@@ -472,8 +472,8 @@ public final class LogarithmicUnit extends Unit implements Serializable {
      *            if false and <code>that</code> equals this, return a
      *            <code>values</code>, else return a new array
      * @return The converted values.
-     * @require The units are convertible.
-     * @promise Neither unit has been modified.
+     * require: The units are convertible.
+     * promise: Neither unit has been modified.
      * @throws UnitException
      *             The units are not convertible.
      */
@@ -503,8 +503,8 @@ public final class LogarithmicUnit extends Unit implements Serializable {
      *            if false and <code>that</code> equals this, return a
      *            <code>values</code>, else return a new array
      * @return The converted values.
-     * @require The units are convertible.
-     * @promise Neither unit has been modified.
+     * require: The units are convertible.
+     * promise: Neither unit has been modified.
      * @throws UnitException
      *             The units are not convertible.
      */

@@ -163,13 +163,12 @@ public final class GOESnav extends AREAnav
 
         // INITIALIZE NAVCOM
         navday = jday%100000;
-        
-        for (int n = 6; n < 12; n++)
-        {
-            if (n == 10 || n == 8) continue;
-            if (iarr[n] <= 0)
+         
+        if ( iarr[6] <= 0 && iarr[7] <= 0 && iarr[8] <= 0 && iarr[9] <= 0 &&
+        		iarr[10] <= 0 && iarr[11] <= 0 ) {
                throw new IllegalArgumentException("Invalid orbital parameters");
         }
+        
         ietimy = icon1(iarr[4]);
         ietimh = 100*(iarr[5]/100) + Math.round(.6f*(iarr[5]%100));
         semima = (float) (iarr[6])/100.0;
@@ -1057,4 +1056,42 @@ C VECTOR EARTH-CENTER-TO-SAT (FUNC OF TIME)
         double x = xomega*px + yomega*qx;
         return new double[] {x, y, z};
     }
+    
+    /** Get the lat,lon of the subpoint if available
+    *
+    * @return double[2] {lat, lon}
+    *
+    */
+    
+    public double[] getSubpoint() {
+    	double samtim;
+    	double[] xyzsat;
+    	double ct;
+    	double st;
+    	double x;
+    	double y;
+    	double z;
+    	double x1;
+    	double y1;
+    	double ssp_lat;
+    	double ssp_lon;
+    	
+    	samtim = time1;
+        xyzsat = satvec(samtim);
+        
+        ct = Math.cos(emega*samtim+xref);
+        st = Math.sin(emega*samtim+xref);
+        x = xyzsat[0];
+        y = xyzsat[1];
+        z = xyzsat[2];
+        x1 = ct*x + st*y;
+        y1 = -st*x + ct*y;
+        
+        double ll[] = nxyzll(x1, y1, z);
+        
+        ssp_lat = ll[0];
+        ssp_lon = (isEastPositive) ? -ll[1] : ll[1];
+
+        return new double[] {ssp_lat, ssp_lon};
+      }
 }

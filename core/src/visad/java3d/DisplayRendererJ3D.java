@@ -26,19 +26,67 @@ MA 02111-1307, USA
 
 package visad.java3d;
 
-import visad.*;
-
-import java.awt.*;
+import java.awt.Dimension;
 import java.awt.image.BufferedImage;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.rmi.RemoteException;
+import java.util.Enumeration;
+import java.util.Vector;
 
-import java.rmi.*;
-import java.util.*;
+import javax.media.j3d.Appearance;
+import javax.media.j3d.Background;
+import javax.media.j3d.BoundingSphere;
+import javax.media.j3d.BranchGroup;
+import javax.media.j3d.Canvas3D;
+import javax.media.j3d.ColoringAttributes;
+import javax.media.j3d.GeometryArray;
+import javax.media.j3d.GraphicsContext3D;
+import javax.media.j3d.Group;
+import javax.media.j3d.Node;
+import javax.media.j3d.OrderedGroup;
+import javax.media.j3d.PolygonAttributes;
+import javax.media.j3d.SceneGraphObject;
+import javax.media.j3d.Shape3D;
+import javax.media.j3d.Switch;
+import javax.media.j3d.Transform3D;
+import javax.media.j3d.TransformGroup;
+import javax.media.j3d.View;
+import javax.vecmath.Color3f;
+import javax.vecmath.Point3d;
+import javax.vecmath.Vector3f;
+import javax.vecmath.Vector4d;
 
-import java.lang.reflect.*;
-
-import javax.media.j3d.*;
-import javax.vecmath.*;
-
+import visad.AxisScale;
+import visad.ColorAlphaControl;
+import visad.ColorControl;
+import visad.ContourControl;
+import visad.Control;
+import visad.ControlEvent;
+import visad.DataRenderer;
+import visad.Display;
+import visad.DisplayException;
+import visad.DisplayImpl;
+import visad.DisplayRealType;
+import visad.DisplayRenderer;
+import visad.Flow1Control;
+import visad.Flow2Control;
+import visad.GraphicsModeControl;
+import visad.MouseBehavior;
+import visad.PlotText;
+import visad.ProjectionControl;
+import visad.RangeControl;
+import visad.RealType;
+import visad.RendererControl;
+import visad.RendererSourceListener;
+import visad.ScalarMap;
+import visad.ShapeControl;
+import visad.TextControl;
+import visad.VisADException;
+import visad.VisADLineArray;
+import visad.VisADRay;
+import visad.VisADTriangleArray;
 import visad.util.Util;
 
 /**
@@ -101,8 +149,6 @@ public abstract class DisplayRendererJ3D
 
   /** MouseBehaviorJ3D */
   private MouseBehaviorJ3D mouse = null;
-  private double back_clip = 0.0;
-  private double front_clip = 0.0;
 
   /** KeyboardBehaviorJ3D */
   private KeyboardBehaviorJ3D keyboard = null;
@@ -234,8 +280,9 @@ public abstract class DisplayRendererJ3D
 
   /**
    * Capture the display rendition as an image.
-   * @param  image of the display.
+   * @return  image of the display.
    */
+  
   public BufferedImage getImage() {
     if (not_destroyed == null) return null;
     BufferedImage image = null;
@@ -521,11 +568,6 @@ public abstract class DisplayRendererJ3D
     vpTrans = vpt;
     box_color = bc;
     cursor_color = cc;
-    back_clip = view.getBackClipDistance();
-    front_clip = view.getFrontClipDistance();
-//  System.out.println("back_clip = " + back_clip +
-//                     " front_clip = " + front_clip);
-    // back_clip = 10.0 front_clip = 0.1
 
     // WLH 14 April 98
     v.setDepthBufferFreezeTransparent(false);
@@ -952,9 +994,11 @@ public abstract class DisplayRendererJ3D
    * display Strings in cursorStringVector.
    * @param canvas
    */
+  
   public void drawCursorStringVector(VisADCanvasJ3D canvas) {
-    if (not_destroyed == null) return;
-    // clipOff(); doesn't work
+    
+	if (not_destroyed == null) return;
+
     GraphicsContext3D graphics = canvas.getGraphicsContext3D();
     // graphics.setModelClip(null);
     // causes NullPointerException at GraphicsContext3D.java:689
@@ -1020,18 +1064,20 @@ public abstract class DisplayRendererJ3D
                       (double) (position3.y - position1.y),
                       (double) (position3.z - position1.z)};
     if (cursorOn || directOn) {
-      Enumeration strings = getCursorStringVector().elements();
-      while(strings.hasMoreElements()) {
-        String string = (String) strings.nextElement();
-        try {
-          VisADLineArray array =
-            PlotText.render_label(string, start, base, up, false);
-          graphics.draw(((DisplayImplJ3D) getDisplay()).makeGeometry(array));
-          start[1] -= 1.2 * up[1];
-        }
-        catch (VisADException e) {
-        }
-      }
+    	Enumeration strings = getCursorStringVector().elements();
+    	while (strings.hasMoreElements()) {
+    		String string = (String) strings.nextElement();
+    		if ((string != null) && (! string.trim().isEmpty())) {
+    			try {
+    				VisADLineArray array =
+    						PlotText.render_label(string, start, base, up, false);
+    				graphics.draw(((DisplayImplJ3D) getDisplay()).makeGeometry(array));
+    				start[1] -= 1.2 * up[1];
+    			}
+    			catch (VisADException e) {
+    			}
+    		}
+    	}
     }
 
     // draw Exception strings in lower left corner of screen
@@ -1385,8 +1431,9 @@ public abstract class DisplayRendererJ3D
 
   /**
    * Remove a particular scale being rendered.
-   * @param scale  AxisScale to remove
+   * @param axisScale  AxisScale to remove
    */
+  
   public void clearScale(AxisScale axisScale) {
     if (not_destroyed == null) return;
     // eliminate any non-screen-based scale for this AxisScale

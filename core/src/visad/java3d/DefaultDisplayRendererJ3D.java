@@ -26,12 +26,26 @@ MA 02111-1307, USA
 
 package visad.java3d;
 
-import visad.*;
+import java.lang.reflect.Constructor;
 
-import java.lang.reflect.*;
+import javax.media.j3d.AmbientLight;
+import javax.media.j3d.Appearance;
+import javax.media.j3d.BoundingSphere;
+import javax.media.j3d.BranchGroup;
+import javax.media.j3d.ColoringAttributes;
+import javax.media.j3d.DirectionalLight;
+import javax.media.j3d.GeometryArray;
+import javax.media.j3d.Light;
+import javax.media.j3d.LineArray;
+import javax.media.j3d.LineAttributes;
+import javax.media.j3d.Shape3D;
+import javax.media.j3d.TransformGroup;
+import javax.media.j3d.View;
+import javax.vecmath.Color3f;
+import javax.vecmath.Point3d;
+import javax.vecmath.Vector3f;
 
-import javax.media.j3d.*;
-import javax.vecmath.*;
+import visad.VisADError;
 
 /**
  * <CODE>DefaultDisplayRendererJ3D</CODE> is the VisAD class for the
@@ -84,8 +98,9 @@ public class DefaultDisplayRendererJ3D extends DisplayRendererJ3D {
   }
 
   /**
-   * @param mbClass - sub Class of MouseBehaviorJ3D
-  */
+   * @param mbj3dClass - sub Class of MouseBehaviorJ3D
+   */
+  
   public DefaultDisplayRendererJ3D (Class mbj3dClass) {
     super();
     mouseBehaviorJ3DClass = mbj3dClass;
