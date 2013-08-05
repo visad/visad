@@ -26,10 +26,13 @@ MA 02111-1307, USA
 
 package visad.java2d;
 
-import java.rmi.*;
+import java.rmi.RemoteException;
 
-import visad.*;
-
+import visad.Control;
+import visad.DisplayException;
+import visad.DisplayImpl;
+import visad.GraphicsModeControl;
+import visad.VisADException;
 import visad.util.Util;
 
 /**
@@ -427,11 +430,12 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
   /**
    * Sets the polygon offset and updates the display.  
    *
-   * @param  mode   the polygon offset to be used
+   * @param  polygonOffset  the polygon offset to be used
    *
    * @throws  VisADException   bad offset 
    * @throws  RemoteException  can't change offset on remote display
    */
+  
   public void setPolygonOffset(float polygonOffset)
          throws VisADException, RemoteException {
     if (polygonOffset == 0 || Float.isNaN(polygonOffset)) {
@@ -447,9 +451,10 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
   /**
    * Sets the polygon offset. 
    *
-   * @param  mode   the polygon offset to be used
+   * @param  polygonOffset  the polygon offset to be used
    * @param  noChange   dummy variable
    */
+  
   public void setPolygonOffset(float polygonOffset, boolean noChange) {
     if (polygonOffset == 0 || Float.isNaN(polygonOffset)) {
       this.polygonOffset = polygonOffset;
@@ -488,12 +493,13 @@ public class GraphicsModeControlJ2D extends GraphicsModeControl {
   /**
    * Sets the polygon offset factor.  
    *
-   * @param  mode   the polygon offset factor to be used
+   * @param  polygonOffsetFactor   the polygon offset factor to be used
    * @param  noChange   dummy variable
    *
    * @throws  VisADException   bad offset factor with change
    * @throws  RemoteException  can't change offset on remote display
    */
+  
   public void setPolygonOffsetFactor(float polygonOffsetFactor, boolean noChange) {
     if (polygonOffsetFactor == 0) {
       this.polygonOffsetFactor = polygonOffsetFactor;

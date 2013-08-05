@@ -25,9 +25,17 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.jmet;
 
-import visad.*;
-import visad.data.hdfeos.*;
 import java.awt.geom.Rectangle2D;
+
+import visad.CoordinateSystem;
+import visad.CoordinateSystemException;
+import visad.Data;
+import visad.RealTupleType;
+import visad.RealType;
+import visad.Unit;
+import visad.VisADException;
+import visad.data.hdfeos.LambertConformalConic;
+import visad.data.hdfeos.PolarStereographic;
 
 public class GRIBCoordinateSystem extends visad.georef.MapProjection {
 
@@ -101,10 +109,11 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
    * @param  DxDy            ?
    * @param  Latin1          first intersecting latitude (degrees)
    * @param  Latin2          second intersecting latitude (degrees)
-   * @param  lov             orientation of the grid (degrees)
+   * @param  Lov             orientation of the grid (degrees)
    *
    * @exception VisADException  couldn't create the necessary VisAD object
    */
+  
   public GRIBCoordinateSystem(RealTupleType ref, int gridTypeCode,
     double La1, double Lo1, double DxDy,
     double Latin1, double Latin2, double Lov)
@@ -124,10 +133,11 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
    * @param  DxDy            ?
    * @param  Latin1          first intersecting latitude (degrees)
    * @param  Latin2          second intersecting latitude (degrees)
-   * @param  lov             orientation of the grid (degrees)
+   * @param  Lov             orientation of the grid (degrees)
    *
    * @exception VisADException  couldn't create the necessary VisAD object
    */
+  
   public GRIBCoordinateSystem(int gridTypeCode,
     double La1, double Lo1, double DxDy,
     double Latin1, double Latin2, double Lov)
@@ -140,7 +150,7 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
    * Constructor for a latitude-longitude (GRIB type code = 0) with
    * RealTupleType.LatitudeLongitudeTuple as a reference.
    *
-   * @param  gridTypeNumber  GRIB-1 grid type
+   * @param  gridTypeCode    GRIB-1 grid type
    * @param  Ni              number of points (W-E) along a latitude circle
    * @param  Nj              number of points (N-S) along a longitude circle
    * @param  La1             latitude of first grid point (degrees)
@@ -152,6 +162,7 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
    *
    * @exception VisADException  couldn't create the necessary VisAD object
    */
+  
   public GRIBCoordinateSystem(int gridTypeCode,
     int Ni, int Nj, double La1, double Lo1, double La2, double Lo2,
     double Di, double Dj) throws VisADException {
@@ -167,7 +178,7 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
    * [this is overloaded to also handle LambertConformal (above, type = 3)]
    *
    * @param  ref             reference RealTupleType (should be lat/lon)
-   * @param  gridTypeNumber  GRIB-1 grid type
+   * @param  gridTypeCode    GRIB-1 grid type
    * @param  Ni              number of points (W-E) along a latitude circle
    * @param  Nj              number of points (N-S) along a longitude circle
    * @param  La1             latitude of first grid point (degrees)
@@ -182,8 +193,8 @@ public class GRIBCoordinateSystem extends visad.georef.MapProjection {
    * When type=3, then the parameters are (see construtor for 3):
    * ref = ref, Ni = Ni, Nj = Nj, La1 = La1, Lo1 = Lo1, La2 = DxDy,
    * Lo2 = Latin1, Di = Latin2, Dj = lov 
-   * 
    */
+  
   public GRIBCoordinateSystem(RealTupleType ref, int gridTypeCode,
     int Ni, int Nj, double La1, double Lo1, double La2, double Lo2,
     double Di, double Dj) throws VisADException {

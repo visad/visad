@@ -27,8 +27,8 @@
 //         Jake.Hamby@jpl.nasa.gov
 /////////////////////////////////////////////////////////////////////////////
 
-
 package dods.dap.Server;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.EOFException;
@@ -111,18 +111,23 @@ public interface ServerMethods  {
     */
     public boolean isRead();
     
-    /** Read a value from the named dataset for this variable. 
-	@param datasetName String identifying the file or other data store
-	from which to read a vaue for this variable.
-	@param o Object this is a goody that is used by Server implementations
-	to deliver important, and as yet unknown, stuff to the read method. If you
-	don't need it, make it a <code>null</code>.
-	@return <code>true</code> if more data remains to be read, otehrwise
-	<code>false</code>. 
-	@exception NoSuchVariableException
-	@exception IOException
-	@exception EOFException 
-    */
+	/**
+	 * Read a value from the named dataset for this variable.
+	 * 
+	 * @param datasetName
+	 *            String identifying the file or other data store from which to
+	 *            read a value for this variable.
+	 * @param specialO
+	 *            Object this is a goody that is used by Server implementations
+	 *            to deliver important, and as yet unknown, stuff to the read
+	 *            method. If you don't need it, make it a <code>null</code>.
+	 * @return <code>true</code> if more data remains to be read, otherwise
+	 *         <code>false</code>.
+	 * @exception NoSuchVariableException
+	 * @exception IOException
+	 * @exception EOFException
+	 */
+    
     public boolean read(String datasetName, Object specialO) 
 	            throws NoSuchVariableException, IOException, EOFException;
     
