@@ -2369,7 +2369,6 @@ public class Gridded3DSet extends GriddedSet {
       float[][] samples = getSamples(false);
       grd_normals = new float[nc][nr][3];
       // calculate normals
-      int k = 0;
       int k3 = 0;
       int ki, kj;
       for (int i = 0; i < LengthY; i++) {
@@ -2411,7 +2410,6 @@ public class Gridded3DSet extends GriddedSet {
           grd_normals[i][j][0] = n0 / n;
           grd_normals[i][j][1] = n1 / n;
           grd_normals[i][j][2] = n2 / n;
-          k += 3;
           k3++;
         }
       }
@@ -2455,10 +2453,11 @@ public class Gridded3DSet extends GriddedSet {
     byte[] labelColor = ctrl.getLabelColor();
     Object labelFont = ctrl.getLabelFont();
     int labelFreq = ctrl.getLabelFreq();
+    int labelLineSkip = ctrl.getEveryNth();
 
     Contour2D.ContourOutput contour = Contour2D.contour(g, nr, nc, intervals,
         lowlimit, highlimit, base, dash, color_values, swap, fill, grd_normals,
-        interval_colors, scale, scale_ratio, labelFreq,
+        interval_colors, scale, scale_ratio, labelFreq, labelLineSkip,
         label_size, labelAlign, labelColor, labelFont, sphericalDisplayCS, this);
     if (contour == null) return null;
 
