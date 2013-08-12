@@ -205,9 +205,14 @@
 				<include name="ncsa/hdf/hdf5lib/*" />
 			</packageset>
 
+			<tag name="promise" scope="all" description="Promise:" />
+			<tag name="precondition" scope="all" description="Precondition:" />
+			<tag name="postcondition" scope="all" description="Postcondition:" />
+			<tag name="require" scope="all" description="Requirements:" />
+
 			<link href="http://download.java.net/media/java3d/javadoc/1.5.0" />
-			<link href="http://java.sun.com/j2se/1.5.0/docs/api" />
-			<link href="http://logging.apache.org/log4j/docs/api" />
+			<link href="http://docs.oracle.com/javase/6/docs/api/" />
+			<link href="http://logging.apache.org/log4j/1.2/apidocs/" />
 
 			<arg value="-J-Xmx512m" />
 
