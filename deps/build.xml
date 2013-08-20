@@ -14,8 +14,8 @@
 	<property name="deps.jar" location="${basedir}/visaddeps.jar"/>
 
 	<!-- compiler options -->
-	<property name="source.ver" value="1.5"/>
-	<property name="target.ver" value="1.5"/>
+	<property name="source.ver" value="1.6"/>
+	<property name="target.ver" value="1.6"/>
 	<property name="debug.flag" value="true"/>
 	<property name="deprecation.flag" value="off"/>
 	<property name="fail.flag" value="true"/>
