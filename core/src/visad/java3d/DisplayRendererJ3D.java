@@ -1068,7 +1068,7 @@ public abstract class DisplayRendererJ3D
     	Enumeration strings = getCursorStringVector().elements();
     	while (strings.hasMoreElements()) {
     		String string = (String) strings.nextElement();
-    		if ((string != null) && (! string.trim().isEmpty())) {
+    		if ((string != null) && (! (string.length() == 0))) {
     			try {
     				VisADLineArray array =
     						PlotText.render_label(string, start, base, up, false);
