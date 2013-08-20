@@ -1,5 +1,5 @@
 @echo Run all VisAD Tests
-@set JAVA=c:\jdk1.5.0
+@set JAVA=c:\jdk1.6.0_29
 @set path=%JAVA%\jre\bin;%JAVA%\bin;%path%
 @set CLASSPATH=..\visad_examples.jar;..\visad.jar;.\
 @echo Starting rmiregistry
