@@ -34,6 +34,7 @@ import java.lang.reflect.Method;
 import java.rmi.RemoteException;
 import java.util.Enumeration;
 import java.util.Vector;
+import java.util.ArrayList;
 
 import javax.media.j3d.Appearance;
 import javax.media.j3d.Background;
@@ -205,6 +206,8 @@ public abstract class DisplayRendererJ3D
   private Object modelClip = null;
   private boolean[] modelClipEnables =
     {false, false, false, false, false, false};
+
+  private ArrayList<GroupWrap> groupList = new ArrayList<GroupWrap>();
 
   public DisplayRendererJ3D () {
     super();
@@ -858,7 +861,22 @@ public abstract class DisplayRendererJ3D
 
   public void addSceneGraphComponent(Group group) {
     if (not_destroyed == null) return;
-    non_direct.addChild(group);
+    //non_direct.addChild(group);
+    addSceneGraphComponent(group, 0);
+  }
+
+  public void addSceneGraphComponent(Group group, int renderOrder) {
+    if (not_destroyed == null) return;
+
+    int index = 0;
+    for (int k=0; k<groupList.size(); k++) {
+       if (renderOrder < groupList.get(k).renderOrder) {
+          index = k;
+          break;
+       }
+    }
+   
+    non_direct.insertChild(group, index);
   }
 
   public void addLockedSceneGraphComponent(Group group) {
@@ -1644,5 +1662,15 @@ public abstract class DisplayRendererJ3D
     return VisADCanvasJ3D.getTextureWidthMax();
   }
 
+}
+
+class GroupWrap {
+   Group group;
+   int renderOrder;
+
+   GroupWrap(Group group, int renderOrder) {
+     this.group = group;
+     this.renderOrder = renderOrder;
+   }
 }
 

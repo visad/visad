@@ -152,6 +152,11 @@ public class DefaultRendererJ3D extends RendererJ3D {
     displayRenderer.addSceneGraphComponent(branch);
   }
 
+  public void addSwitch(DisplayRendererJ3D displayRenderer,
+                        BranchGroup branch, int depthPriority) {
+    displayRenderer.addSceneGraphComponent(branch, depthPriority);
+  }
+
   public DataDisplayLink getLink() {
     return link;
   }

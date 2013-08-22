@@ -65,6 +65,11 @@ public abstract class RendererJ3D extends DataRenderer {
 
   public void setLinks(DataDisplayLink[] links, DisplayImpl d)
        throws VisADException {
+    setLinks(links, d, 0);
+  }
+
+  public void setLinks(DataDisplayLink[] links, DisplayImpl d, int depthPriority)
+       throws VisADException {
     if (getDisplay() != null || getLinks() != null) {
       throw new DisplayException("RendererJ3D.setLinks: already set\n" +
                                  "you are probably re-using a DataRenderer");
@@ -150,6 +155,9 @@ System.out.println("setLinks: sw.setWhichChild(" + currentIndex + ")");
 
   abstract void addSwitch(DisplayRendererJ3D displayRenderer,
                           BranchGroup branch);
+
+  abstract void addSwitch(DisplayRendererJ3D displayRenderer,
+                          BranchGroup branch, int depthPriority);
 
   /** re-transform if needed;
       return false if not done */
