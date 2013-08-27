@@ -63,12 +63,8 @@ public abstract class RendererJ3D extends DataRenderer {
     super();
   }
 
-  public void setLinks(DataDisplayLink[] links, DisplayImpl d)
-       throws VisADException {
-    setLinks(links, d, 0);
-  }
 
-  public void setLinks(DataDisplayLink[] links, DisplayImpl d, int depthPriority)
+  public void setLinks(DataDisplayLink[] links, DisplayImpl d)
        throws VisADException {
     if (getDisplay() != null || getLinks() != null) {
       throw new DisplayException("RendererJ3D.setLinks: already set\n" +
@@ -80,6 +76,16 @@ public abstract class RendererJ3D extends DataRenderer {
     setDisplay(d);
     setDisplayRenderer(d.getDisplayRenderer());
     setLinks(links);
+
+    double renderOrderPriority = 10.0;
+    Vector constMaps = links[0].getConstantMaps();
+    for (int k=0; k<constMaps.size(); k++) {
+      ConstantMap cmap = (ConstantMap) constMaps.get(k);
+      if (cmap.getDisplayScalar().equals(Display.RenderOrderPriority)) {
+        renderOrderPriority = cmap.getConstant();
+        break;
+      }
+    }
 
     // set up switch logic for clean BranchGroup replacement
     Switch swt = new Switch(); // J3D
@@ -94,7 +100,7 @@ public abstract class RendererJ3D extends DataRenderer {
     swParent.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
     swParent.addChild(swt);
     // make it 'live'
-    addSwitch((DisplayRendererJ3D) getDisplayRenderer(), swParent);
+    addSwitch((DisplayRendererJ3D) getDisplayRenderer(), swParent, renderOrderPriority);
 
     branches = new BranchGroup[3];
     for (int i=0; i<3; i++) {
@@ -157,7 +163,7 @@ System.out.println("setLinks: sw.setWhichChild(" + currentIndex + ")");
                           BranchGroup branch);
 
   abstract void addSwitch(DisplayRendererJ3D displayRenderer,
-                          BranchGroup branch, int depthPriority);
+                          BranchGroup branch, double depthPriority);
 
   /** re-transform if needed;
       return false if not done */
