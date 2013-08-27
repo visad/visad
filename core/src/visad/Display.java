@@ -334,6 +334,10 @@ public interface Display extends Action {
   DisplayRealType PointMode =
     new DisplayRealType("PointMode", true, -1.0, true);
 
+  /** render order priority - ConstantMap only */
+  DisplayRealType RenderOrderPriority =
+    new DisplayRealType("RenderOrderPriority", true, 10.0, true);
+
   /** array of system intrinsic DisplayRealTypes */
   DisplayRealType[] DisplayRealArray =
     {XAxis, YAxis, ZAxis, Latitude, Longitude, Radius, List, Red, Green, Blue,
