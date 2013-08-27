@@ -1071,7 +1071,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
    *
    * @see <a href="http://www.ssec.wisc.edu/~billh/guide.html#6.1">Section 6.1 of the Developer's Guide</a>
    */
-  public void addReference(DataReference ref, ConstantMap[] constant_maps, int depthPriority)
+  public void addReference(DataReference ref, ConstantMap[] constant_maps)
           throws VisADException, RemoteException {
     if (!(ref instanceof DataReferenceImpl)) {
       throw new RemoteVisADException("DisplayImpl.addReference: requires " +
@@ -1085,7 +1085,7 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     DataDisplayLink[] links = {new DataDisplayLink(ref, this, this,
                                 constant_maps, renderer, getLinkId())};
     addLink(links[0]);
-    renderer.setLinks(links, this, depthPriority);
+    renderer.setLinks(links, this);
     synchronized (mapslock) {
       RendererVector.addElement(renderer);
     }
@@ -1096,10 +1096,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     notifyAction();
   }
 
-  public void addReference(DataReference ref, ConstantMap[] constant_maps)
-          throws VisADException, RemoteException {
-    addReference(ref, constant_maps, 0);
-  }
 
   /**
    * Replace remote reference with local reference.
