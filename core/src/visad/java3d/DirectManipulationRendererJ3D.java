@@ -193,7 +193,7 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
     displayRenderer.addDirectManipulationSceneGraphComponent(branch, this);
   }
 
-  void addSwitch(DisplayRendererJ3D displayRenderer, BranchGroup branch, int depthPriority) {
+  void addSwitch(DisplayRendererJ3D displayRenderer, BranchGroup branch, double depthPriority) {
     displayRenderer.addDirectManipulationSceneGraphComponent(branch, this);
   }
 
