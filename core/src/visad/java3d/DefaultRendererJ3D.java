@@ -153,7 +153,7 @@ public class DefaultRendererJ3D extends RendererJ3D {
   }
 
   public void addSwitch(DisplayRendererJ3D displayRenderer,
-                        BranchGroup branch, int depthPriority) {
+                        BranchGroup branch, double depthPriority) {
     displayRenderer.addSceneGraphComponent(branch, depthPriority);
   }
 
