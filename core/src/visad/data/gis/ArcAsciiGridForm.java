@@ -26,17 +26,26 @@ MA 02111-1307, USA
 
 package visad.data.gis;
 
-import visad.*;
-import visad.data.*;
 import java.io.IOException;
-import java.rmi.RemoteException;
 import java.net.URL;
+import java.rmi.RemoteException;
+
+import visad.Data;
+import visad.DataImpl;
+import visad.MathType;
+import visad.UnimplementedException;
+import visad.VisADException;
+import visad.data.BadFormException;
+import visad.data.Form;
+import visad.data.FormFileInformer;
+import visad.data.FormNode;
 
 /**
  * ArcAsciiGridForm is the ARC/INFO ASCIIGRID data format adapter for
  * serialized visad.Data objects.
- * @see http://www.climatesource.com/format/arc_asciigrid.html for more info
+ * See http://www.climatesource.com/format/arc_asciigrid.html for more info
  */
+
 public class ArcAsciiGridForm extends Form implements FormFileInformer {
 
   /** counter @serialized*/

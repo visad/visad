@@ -165,7 +165,7 @@ public final class LogarithmicUnit extends Unit implements Serializable {
      * 
      * @param power
      *            The power to raise this unit by. The only meaningful values
-     *            are {@cocde 0} and {@code 1}.
+     *            are {@code 0} and {@code 1}.
      * @return The result of raising this unit to the given power.
      * @throws IllegalArgumentException
      *             if {@code power} isn't {@code 0} or {@code 1}.

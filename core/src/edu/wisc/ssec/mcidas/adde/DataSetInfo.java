@@ -28,14 +28,13 @@ package edu.wisc.ssec.mcidas.adde;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.List;
 
 /** 
@@ -200,7 +199,7 @@ public class DataSetInfo
      * 
      * @return Either an ArrayList or {@code null}. Note that if an
      * {@code ArrayList} is returned, it should have the same number of 
-     * elements as the results of {@link #getCommenttList()}.
+     * elements as the results of {@link #getCommentList()}.
      */
     public List<String> getDescriptorList() {
         return descriptorList;

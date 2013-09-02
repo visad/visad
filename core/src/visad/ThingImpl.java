@@ -26,8 +26,9 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.util.*;
-import java.rmi.*;
+import java.rmi.RemoteException;
+import java.util.Enumeration;
+import java.util.Vector;
 
 /**
    ThingImpl is the abstract superclass of the VisAD objects that send
@@ -195,7 +196,7 @@ public class ThingImpl
    * <code>clone() </code> method -- subclasses should not test for equality of
    * the set of listeners in any <code>equals(Object)</code> method.</p>
    *
-   * <p>This implementation never throws {@link CloneNotSupportException}.</p>
+   * <p>This implementation never throws {@link CloneNotSupportedException}.</p>
    *
    * @return                            A clone of this instance.
    * @throws CloneNotSupportedException if cloning isn't supported.

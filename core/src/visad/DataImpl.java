@@ -26,8 +26,9 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.util.*;
-import java.rmi.*;
+import java.rmi.RemoteException;
+import java.util.Vector;
+
 import visad.java2d.DisplayImplJ2D;
 
 /**
@@ -51,6 +52,8 @@ import visad.java2d.DisplayImplJ2D;
 */
 public abstract class DataImpl extends ThingImpl
        implements Data {
+
+  private static final long serialVersionUID = 1L;
 
   /** each VisAD data object has a VisAD mathematical type */
   MathType Type;
@@ -1211,7 +1214,7 @@ public abstract class DataImpl extends ThingImpl
   /**
    * compute ranges of values in this of given RealTypes, using
    * a dummy DisplayImplJ2D
-   * @params reals array of RealTypes whose value ranges to compute
+   * @param reals array of RealTypes whose value ranges to compute
    * @return double[reals.length][2] giving the low and high value
    *         in this for each RealType in reals
    * @throws VisADException a VisAD error occurred

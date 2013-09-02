@@ -26,7 +26,7 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.rmi.*;
+import java.rmi.RemoteException;
 
 /**
    RemoteDataImpl is the VisAD remote adapter for DataImpl.<P>
@@ -1119,7 +1119,7 @@ public class RemoteDataImpl extends RemoteThingImpl
   /**
    * compute ranges of values in this of given RealTypes, using
    * a dummy DisplayImplJ2D
-   * @params reals array of RealTypes whose value ranges to compute
+   * @param reals array of RealTypes whose value ranges to compute
    * @return double[reals.length][2] giving the low and high value
    *         in this for each RealType in reals
    * @throws VisADException a VisAD error occurred

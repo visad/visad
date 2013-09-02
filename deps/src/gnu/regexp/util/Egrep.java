@@ -26,7 +26,7 @@ import gnu.regexp.RESyntax;
  *
  * @author <A HREF="mailto:wes@cacas.org">Wes Biggs</A>
  * @version 1.01
- * @use gnu.getopt
+ * Uses gnu.getopt
  */
 public class Egrep {
   private Egrep() { }
