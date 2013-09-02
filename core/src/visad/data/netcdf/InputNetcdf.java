@@ -63,11 +63,11 @@ InputNetcdf
     /**
      * Set the quantity database property.  The quantity database is used
      * to transform the incoming netCDF variables into their canonical
-     * {@link RealType}s.  If no transformation is desired, then use {@link
-     * QuantityDB#emptyDB}.  A {@link PropertyChangeEvent} for <code>quantityDB
+     * {@link visad.RealType}s.  If no transformation is desired, then use {@link
+     * QuantityDB#emptyDB}.  A {@link java.beans.PropertyChangeEvent} for <code>quantityDB
      * </code> will be fired, if appropriate.  If the pathname property is
      * non-<code>null</code>, then the netCDF database will be read and a {@link
-     * PropertyChangeEvent} for the data property will be fired, if appropriate.
+     * java.beans.PropertyChangeEvent} for the data property will be fired, if appropriate.
      *
      * @param db                    The new quantity database.
      * @throws NullPointerException if the argument is <code>null</code>.
@@ -109,7 +109,7 @@ InputNetcdf
     /**
      * Sets the dataset name property.  If the name is <code>null</code>,
      * then the data property will be set to <code>null</code>; otherwise,
-     * the dataset will be read. {@link PropertyChangeEvent}s for the
+     * the dataset will be read. {@link java.beans.PropertyChangeEvent}s for the
      * pathname and data properties will be fired when appropriate.
      *
      * @param name                  The new name of the dataset or 

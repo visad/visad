@@ -228,7 +228,7 @@ public abstract class AREAnav
     /**
      * toLinEle converts lat/long to satellite line/element
      * This implementation converts the input array to doubles
-     * and calls the double signature of {@link #toLineEle(double[][])}.
+     * and calls the double signature of {@link #toLinEle(double[][])}.
      * Subclasses should implement a real float version for better
      * performance.
      *

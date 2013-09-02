@@ -10,34 +10,51 @@ Copyright (C) 2011 Bureau of Meteorology
 
 package visad.bom;
 
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
-import java.util.*;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
 import java.rmi.RemoteException;
-import visad.*;
-import visad.java3d.*;
+
+import javax.swing.JFrame;
+
+import visad.CommonUnit;
+import visad.DataReference;
+import visad.DataReferenceImpl;
+import visad.Display;
+import visad.FlatField;
+import visad.FunctionType;
+import visad.GraphicsModeControl;
+import visad.Gridded3DSet;
+import visad.Integer2DSet;
+import visad.Integer3DSet;
+import visad.QuickSort;
+import visad.RealTupleType;
+import visad.RealType;
+import visad.ScalarMap;
+import visad.VisADException;
+import visad.java3d.DisplayImplJ3D;
 
 /**
  * RadarAdapter
- *
- * @authors - James Kelly : J.Kelly@bom.gov.au
- *          - Bill Hibbard (mainly, while working at BOM August 1999)
- *
- *
+ * 
+ * @author - James Kelly : J.Kelly@bom.gov.au - Bill Hibbard (mainly, while
+ *         working at BOM August 1999)
+ * 
+ * 
  */
+
 public class RadarAdapter {
+	
   public RadarFile rf;
   public class PolarData {
     public double azimuth;
     public double range;
   }
-  private Vector pvector = new Vector();
-  private PolarData pdata;
+
   public PolarData[] polar;
   public int numVectors;
-	private static int objCount = 0;
 
   FlatField radar;
 
@@ -120,7 +137,6 @@ public class RadarAdapter {
     }
     // System.out.println(" ");
 
-    RealTupleType ref = null;
     Radar2DCoordinateSystem rcs2d = null;
     Radar3DCoordinateSystem rcs3d = null;
     float elevlow = 0.5f; // degrees
@@ -256,8 +272,6 @@ public class RadarAdapter {
     FunctionType radar_image = (FunctionType) radar.getType();
     RealTupleType radaz = radar_image.getDomain();
     RealType reflection = (RealType) radar_image.getRange();
-    RealType azimuth = (RealType) radaz.getComponent(1); // bug jk: was (0)
-    RealType range = (RealType) radaz.getComponent(0);
 
     DisplayImplJ3D display = new DisplayImplJ3D("radar");
     ScalarMap lonmap = new ScalarMap(RealType.Longitude, Display.XAxis);

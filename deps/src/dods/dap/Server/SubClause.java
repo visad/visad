@@ -18,10 +18,9 @@ import dods.dap.BaseType;
  *  in the ClauseFactory interface.
  *
  * @see TopLevelClause for more about the parsing of clauses.
- * @see CEEValuator for an explanation of how Clauses are evaluated on 
+ * @see CEEvaluator for an explanation of how Clauses are evaluated on 
  *    data.
  * @see ClauseFactory
-
  * @author joew */
 public interface SubClause 
     extends Clause {

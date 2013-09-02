@@ -26,15 +26,57 @@ MA 02111-1307, USA
 
 package visad.bom;
 
-import visad.*;
-import visad.util.*;
-import visad.java3d.*;
-
-import java.awt.event.*;
-import javax.swing.*;
-import java.util.Vector;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.rmi.RemoteException;
 import java.util.Enumeration;
-import java.rmi.*;
+import java.util.Vector;
+
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+import visad.AnimationControl;
+import visad.CellImpl;
+import visad.ConstantMap;
+import visad.ControlEvent;
+import visad.ControlListener;
+import visad.Data;
+import visad.DataReferenceImpl;
+import visad.DataRenderer;
+import visad.DateTime;
+import visad.Display;
+import visad.DisplayException;
+import visad.DisplayRealType;
+import visad.FieldImpl;
+import visad.FlatField;
+import visad.FunctionType;
+import visad.Integer1DSet;
+import visad.Linear1DSet;
+import visad.ProjectionControl;
+import visad.Real;
+import visad.RealTuple;
+import visad.RealTupleType;
+import visad.RealType;
+import visad.ScalarMap;
+import visad.Set;
+import visad.ShapeControl;
+import visad.Tuple;
+import visad.TupleType;
+import visad.VisADException;
+import visad.VisADGeometryArray;
+import visad.VisADLineArray;
+import visad.VisADRay;
+import visad.VisADTriangleArray;
+import visad.java3d.DirectManipulationRendererJ3D;
+import visad.java3d.DisplayImplJ3D;
+import visad.java3d.MouseBehaviorJ3D;
+import visad.java3d.TwoDDisplayRendererJ3D;
+import visad.util.AnimationWidget;
 
 /**
    FlexibleTrackManipulation is the VisAD class for
@@ -121,8 +163,6 @@ public class FlexibleTrackManipulation extends Object {
 
   /**
    * Construct the FTM stuff
-   *
-   * @author 30/07/2001 modified by abcd
    *
    * @param tr A DataReferenceImpl, The visad data for the cyclone track
    *	tr.getData() should have MathType: *    (Time -> tuple))
