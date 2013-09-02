@@ -34,7 +34,7 @@ package visad;
  * instead.</P>
  *
  * <p>When you call an {@link Irregular2DSet} constructor without a {@link
- * Delaunay} argument, the constructor uses the {@link Delaunay#factory()}
+ * Delaunay} argument, the constructor uses the {@link Delaunay#factory(float[][], boolean)}
  * method to implictly compute a Delaunay triangulation. 3000 points is the
  * current break-point from Watson's algorithm to Clarkson's algorithm. So,
  * currently, at 3001 points you start using Clarkson's algorithm, which rounds

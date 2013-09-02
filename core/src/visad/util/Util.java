@@ -228,7 +228,7 @@ public class Util {
    * @param canvas The Canvas3D to get properties from. If null Canvas3D
    *  properties are skipped.
    *
-   * @see {@link #printJ3DProperties(Canvas3D)}
+   * @see #printJ3DProperties(Canvas3D)
    */
   public static void printJ3DProperties(PrintStream str, Canvas3D canvas) {
     Map map = VirtualUniverse.getProperties();
@@ -251,8 +251,8 @@ public class Util {
    * @param canvas The Canvas3D to get properties from. If null Canvas3D
    *  properties are skipped.
    *
-   * @see {@link javax.media.j3d.VirtualUniverse#getProperties()}
-   * @see {@link javax.media.j3d.Canvas3D#queryProperties()}
+   * @see javax.media.j3d.VirtualUniverse#getProperties()
+   * @see javax.media.j3d.Canvas3D#queryProperties()
    */
   public static void printJ3DProperties(Canvas3D canvas) {
     printJ3DProperties(System.err, canvas);
@@ -918,8 +918,7 @@ public class Util {
 
   /**
    * Create a ConstantMap array of colors for use with
-   * @{link Display.addReference(DataReference, ConstantMap[])
-   *   Display.addReference()}
+   * {@link Display#addReference(DataReference, ConstantMap[])}
    *
    * @param color color to encode
    *
@@ -951,8 +950,8 @@ public class Util {
 
   /**
    * Configure basic logging for the visad package. In a production
-   * envirionment the prefered way to configure logging is using the
-   * logging.properties file. This is intended only as a convienience method
+   * environment the preferred way to configure logging is using the
+   * logging.properties file. This is intended only as a convenience method
    * for configuring console logging for the purposes of testing.
    *
    * @param verbosity 0 is <code>Level.WARNING</code> and progresses to a
@@ -997,7 +996,7 @@ public class Util {
   }
 
   /**
-   * @see {@link #configureLogging(int, java.lang.String)}
+   * @see #configureLogging(int, java.lang.String)
    *
    * @param verbosity 
    *

@@ -10,19 +10,26 @@ Copyright (C) 2011 Bureau of Meteorology
 
 package visad.bom;
 
-import java.io.*;
-import java.util.*;
-import visad.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.SimpleTimeZone;
+import java.util.TimeZone;
+import java.util.Vector;
+
+import visad.DateTime;
+import visad.VisADException;
 
 /**
  * RadarFile
- *
- * @authors - James Kelly : J.Kelly@bom.gov.au
- *            converted from Phil Purdam's radl_cnvt.c
- *
- *
+ * 
+ * @author - James Kelly : J.Kelly@bom.gov.au converted from Phil Purdam's
+ *         radl_cnvt.c
+ * 
+ * 
  */
-
 
 public class RadarFile {
 
@@ -34,9 +41,7 @@ public class RadarFile {
   public float elev = 0.0f;        // Elevation of radar beam
   // public float center_latitiude = -30.0f;
   // public float center_longitiude = 160.0f;
-  private boolean fileok;
   private BufferedReader rf;
-  private int size;
   private int az;
   // public int azimuth[];
   public byte radial[][];
@@ -72,10 +77,7 @@ public class RadarFile {
     // try as a disk file first
     // try {
     rf = new BufferedReader( new FileReader (radarSource));
-    fileok=true;
-    size = 0;
     az=0;
-    int iradial = 0;
     while (rf != null) {
       readRadial();
       pbdata = new PolarByteData((double) az, bdata);
@@ -90,7 +92,7 @@ public class RadarFile {
  /**
    * Retrieves the time of the radar image as a double.
    *
-   * @ returns image time
+   * @return image time
    */
   public double getTime()
 	{
@@ -112,7 +114,7 @@ public class RadarFile {
  /**
    * Retrieves the time of the radar image as a VisAD DateTime.
    *
-   * @ returns image time
+   * @return image time
    */
   public DateTime getRadarTime()
   {
@@ -129,7 +131,6 @@ public class RadarFile {
     int hours;
     int mins;
     int secs;
-		Date date;
 		String[] ids = TimeZone.getAvailableIDs(0);
 		TimeZone timeZone = new SimpleTimeZone(0, ids[0]);
 		Calendar cal = new GregorianCalendar(timeZone);
@@ -154,9 +155,7 @@ public class RadarFile {
 
   public void readHeader(char[] cbuff ) {
   	String radarTime;
-  	String timeStamp;
 		String thisLine = new String(cbuff);
-		String label;
 		// System.out.println("line = " + thisLine);
 		if (thisLine.startsWith("COUNTRY:")) {
 			System.out.println("line = " + thisLine);
@@ -278,12 +277,10 @@ NOISETHRESH: 14
   public void readRadial() throws IOException {
 
     int pos = 0;
-    int numChars, skipBytes;
     boolean done = false;
     int  rptCount;
     int sizeBuff;
 
-    double dval = 0.0;
     char[] cbuff;
     char thisChar;
     StringBuffer sbuff;

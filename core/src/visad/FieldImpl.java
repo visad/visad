@@ -43,6 +43,8 @@ import java.util.Vector;
 */
 public class FieldImpl extends FunctionImpl implements Field {
 
+  private static final long serialVersionUID = 1L;
+
   /** the sampling of the function domain R^n */
   Set DomainSet;
 
@@ -638,7 +640,7 @@ public class FieldImpl extends FunctionImpl implements Field {
    * <p>Get the range value at the index-th sample.  The actual range value
    * is returned -- not a copy.</p>
    *
-   * <p>This implementation uses {@link getSample(int, boolean)}.</p>
+   * <p>This implementation uses {@link #getSample(int, boolean)}.</p>
    *
    * @param index index of requested range sample
    * @return range value at sample index
@@ -3574,7 +3576,7 @@ public class FieldImpl extends FunctionImpl implements Field {
   }
 
   /**
-   * <p>Clones this instance.  The {@link MathType}, domain {@link Set), and
+   * <p>Clones this instance.  The {@link MathType}, domain {@link Set}, and
    * {@link CoordinateSystem} are shallow copied.  Each range value, however,
    * has its <code>clone()</code> method invoked.</p>
    *

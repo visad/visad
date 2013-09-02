@@ -68,7 +68,7 @@ public class Vis5DVerticalSystem
    * @param vert_args array of vertical level values
    * @throws VisADException  unknown vert_sys or problem creating VisAD
    *                         objects.
-   * @see visad.data.vis5d.V5DStruct.VertArgs for explanation of vertical
+   * @see visad.data.vis5d.V5DStruct#VertArgs for explanation of vertical
    *      coordinates.
    */
   public Vis5DVerticalSystem( int vert_sys,

@@ -56,7 +56,7 @@ public class JavaFile
   private int major, minor;
 
   /**
-   * @see java.io.File(String)
+   * @see java.io.File#File(String)
    */
   public JavaFile(String path)
   {
@@ -64,7 +64,7 @@ public class JavaFile
   }
 
   /**
-   * @see java.io.File(File)
+   * @see java.io.File#File(String)
    */
   public JavaFile(File path)
   {
@@ -72,7 +72,7 @@ public class JavaFile
   }
 
   /**
-   * @see java.io.File(String, String)
+   * @see java.io.File#File(String, String)
    */
   public JavaFile(String parent, String child)
   {
@@ -80,7 +80,7 @@ public class JavaFile
   }
 
   /**
-   * @see java.io.File(File, String)
+   * @see java.io.File#File(File, String)
    */
   public JavaFile(File path, String name)
   {

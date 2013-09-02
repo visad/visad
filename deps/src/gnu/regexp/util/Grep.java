@@ -19,8 +19,6 @@
 
 package gnu.regexp.util;
 
-import gnu.getopt.Getopt;
-import gnu.getopt.LongOpt;
 import gnu.regexp.RE;
 import gnu.regexp.REException;
 import gnu.regexp.REMatch;
@@ -40,7 +38,7 @@ import java.io.PrintStream;
  *
  * @author <A HREF="mailto:wes@cacas.org">Wes Biggs</A>
  * @version 1.01
- * @use gnu.getopt
+ * Uses gnu.getopt
  */
 public class Grep {
   private static final int BYTE_OFFSET = 0;

@@ -682,7 +682,7 @@ public class AreaAdapter {
    * McIDAS Programmer's Manual</a>
    * @see #getImageStartTime()
    *
-   * @ returns  nominal image time
+   * @return  nominal image time
    */
   public DateTime getNominalTime()
       throws VisADException
@@ -697,7 +697,7 @@ public class AreaAdapter {
    * McIDAS Programmer's Manual</a>
    * @see #getNominalTime()
    *
-   * @ returns  time of the start of the image scan
+   * @return  time of the start of the image scan
    */
   public DateTime getImageStartTime()
       throws VisADException
