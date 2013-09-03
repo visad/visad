@@ -17,9 +17,8 @@ import dods.dap.*;
     implementation. The function `length' is implemented in class
     `dods.dap.functions.Length' which has one method called main which takes
     an array of BaseType objects and returns its value in a BaseType object.
+    See: CEEvaluator and FunctionClause code.
     @author jhrg
-    @see CEEValuator
-    @see FunctionClause 
     @version $Revision: 1.3 $
 */
 public class Length {
