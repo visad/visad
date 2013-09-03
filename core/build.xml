@@ -189,6 +189,7 @@
 				<include name="dods/dap/*" />
 				<include name="dods/dap/parser/*" />
 				<include name="dods/dap/Server/*" />
+				<include name="dods/dap/functions/*" />
 				<include name="dods/util/*" />
 				<include name="gnu/regexp/*" />
 				<include name="loci/formats/*" />
