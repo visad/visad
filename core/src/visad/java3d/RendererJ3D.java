@@ -59,6 +59,8 @@ public abstract class RendererJ3D extends DataRenderer {
   boolean[] switchFlags = {false, false, false};
   boolean[] branchNonEmpty = {false, false, false};
 
+  protected double renderOrderPriority = 10.0;
+
   public RendererJ3D() {
     super();
   }
@@ -77,7 +79,6 @@ public abstract class RendererJ3D extends DataRenderer {
     setDisplayRenderer(d.getDisplayRenderer());
     setLinks(links);
 
-    double renderOrderPriority = 10.0;
     Vector constMaps = links[0].getConstantMaps();
     for (int k=0; k<constMaps.size(); k++) {
       ConstantMap cmap = (ConstantMap) constMaps.get(k);
@@ -100,7 +101,7 @@ public abstract class RendererJ3D extends DataRenderer {
     swParent.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
     swParent.addChild(swt);
     // make it 'live'
-    addSwitch((DisplayRendererJ3D) getDisplayRenderer(), swParent, renderOrderPriority);
+    addSwitch((DisplayRendererJ3D) getDisplayRenderer(), swParent, this, renderOrderPriority);
 
     branches = new BranchGroup[3];
     for (int i=0; i<3; i++) {
@@ -116,6 +117,19 @@ System.out.println("setLinks: sw.setWhichChild(" + currentIndex + ")");
     swt.setWhichChild(currentIndex);
     sw = swt; // avoid IndexOutOfBoundsException in toggle()
     toggle(getEnabled());
+  }
+
+  public double checkRenderOrderPriority() {
+    DataDisplayLink[] links = getLinks();
+    Vector constMaps = links[0].getConstantMaps();
+    for (int k=0; k<constMaps.size(); k++) {
+      ConstantMap cmap = (ConstantMap) constMaps.get(k);
+      if (cmap.getDisplayScalar().equals(Display.RenderOrderPriority)) {
+        renderOrderPriority = cmap.getConstant();
+        break;
+      }
+    }
+    return renderOrderPriority;
   }
 
   public void toggle(boolean on) {
@@ -159,11 +173,9 @@ System.out.println("setLinks: sw.setWhichChild(" + currentIndex + ")");
     return new ShadowTupleTypeJ3D(type, link, parent);
   }
 
-  abstract void addSwitch(DisplayRendererJ3D displayRenderer,
-                          BranchGroup branch);
 
   abstract void addSwitch(DisplayRendererJ3D displayRenderer,
-                          BranchGroup branch, double depthPriority);
+                          BranchGroup branch, DataRenderer renderer, double depthPriority);
 
   /** re-transform if needed;
       return false if not done */

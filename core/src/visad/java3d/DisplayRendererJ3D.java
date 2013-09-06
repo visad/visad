@@ -207,8 +207,9 @@ public abstract class DisplayRendererJ3D
   private boolean[] modelClipEnables =
     {false, false, false, false, false, false};
 
-  //private ArrayList<GroupWrap> groupList = new ArrayList<GroupWrap>();
-  private Vector<GroupWrap> groupList = new Vector<GroupWrap>();
+  private Vector<DataRenderer> priorityOrderedList = new Vector<DataRenderer>();
+
+  private Vector<DataRenderer> localRendererVector = new Vector<DataRenderer>();
 
   public DisplayRendererJ3D () {
     super();
@@ -862,16 +863,21 @@ public abstract class DisplayRendererJ3D
 
   public void addSceneGraphComponent(Group group) {
     if (not_destroyed == null) return;
-    //non_direct.addChild(group);
-    addSceneGraphComponent(group, 10.0);
+    non_direct.addChild(group);
   }
 
-  public void addSceneGraphComponent(Group group, double renderOrder) {
+  public void addSceneGraphComponent(Group group, DataRenderer renderer, double renderOrder) {
     if (not_destroyed == null) return;
 
+    addToSceneGraph(group, renderer, renderOrder);
+  }
+
+  private synchronized void addToSceneGraph(Group group, DataRenderer renderer, double renderOrder) {
+    localRendererVector.add(renderer);
+
     int index = 0;
-    for (int k=0; k<groupList.size(); k++) {
-      if (renderOrder < groupList.get(k).renderOrder) {
+    for (int k=0; k<priorityOrderedList.size(); k++) {
+      if (renderOrder < ((RendererJ3D)priorityOrderedList.get(k)).renderOrderPriority) {
         index = k;
         break;
       }
@@ -880,16 +886,32 @@ public abstract class DisplayRendererJ3D
       }
     }
 
-    GroupWrap wrap = new GroupWrap(group, renderOrder);
     if (non_direct.numChildren() == 0) {
-      groupList.add(wrap);
+      priorityOrderedList.add(renderer);
       non_direct.addChild(group);
     }
     else {
-      groupList.insertElementAt(wrap, index);
+      priorityOrderedList.insertElementAt(renderer, index);
       non_direct.insertChild(group, index);
     }
+  }
 
+  public synchronized void reorderRenderers(DataRenderer[] renderers, int[] order) {
+    int[] chldIdxOrder = new int[renderers.length];
+    for (int k=0; k<renderers.length; k++) {
+      int idx = priorityOrderedList.indexOf(renderers[k]);
+      chldIdxOrder[idx] = order[k];
+    }
+    non_direct.setChildIndexOrder(chldIdxOrder);
+  }
+
+  public synchronized void resetRendererOrder() {
+    int numRenderers = priorityOrderedList.size();
+    int[] chldIdxOrder = new int[numRenderers];
+    for (int k=0; k<numRenderers; k++) {
+      chldIdxOrder[k] = k;
+    }
+    non_direct.setChildIndexOrder(chldIdxOrder);
   }
 
   public void addLockedSceneGraphComponent(Group group) {
@@ -914,44 +936,20 @@ public abstract class DisplayRendererJ3D
   }
 
   public void addDirectManipulationSceneGraphComponent(Group group,
-                         DirectManipulationRendererJ3D renderer) {
-    addDirectManipulationSceneGraphComponent(group, renderer, 10.0);
-  }
-
-  public void addDirectManipulationSceneGraphComponent(Group group,
                          DirectManipulationRendererJ3D renderer, double renderOrder) {
     if (not_destroyed == null) return;
     // WLH 13 March 2000
     // direct.addChild(group);
 
-    int index = 0;
-    for (int k=0; k<groupList.size(); k++) {
-      if (renderOrder < groupList.get(k).renderOrder) {
-        index = k;
-        break;
-      }
-      else {
-        index = k+1;
-      }
-    }
-
-    GroupWrap wrap = new GroupWrap(group, renderOrder);
-    if (non_direct.numChildren() == 0) {
-      groupList.add(wrap);
-      non_direct.addChild(group);
-    }
-    else {
-      groupList.insertElementAt(wrap, index);
-      non_direct.insertChild(group, index);
-    }
-
-    /*non_direct.addChild(group)*/;
+    addToSceneGraph(group, renderer, renderOrder);
     directs.addElement(renderer);
   }
 
 
   public void clearScene(DataRenderer renderer) {
     if (not_destroyed == null) return;
+    priorityOrderedList.removeElement(renderer);
+    localRendererVector.removeElement(renderer);
     directs.removeElement(renderer);
   }
 
@@ -1702,14 +1700,3 @@ public abstract class DisplayRendererJ3D
   }
 
 }
-
-class GroupWrap {
-   Group group;
-   double renderOrder;
-
-   GroupWrap(Group group, double renderOrder) {
-     this.group = group;
-     this.renderOrder = renderOrder;
-   }
-}
-
