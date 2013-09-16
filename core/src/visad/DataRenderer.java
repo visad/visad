@@ -71,7 +71,6 @@ public abstract class DataRenderer extends Object implements Cloneable {
   /** flag for visibility of Data depictions */
   protected boolean enabled = true;
 
-  boolean onlyTransformForThis = false;
 
   /**
    * construct a DataRenderer
@@ -162,7 +161,7 @@ public abstract class DataRenderer extends Object implements Cloneable {
   public abstract void setLinks(DataDisplayLink[] links, DisplayImpl d)
            throws VisADException;
 
-  public void setLinks(DataDisplayLink[] links, DisplayImpl d, int depthPriority) 
+  public void setLinks(DataDisplayLink[] links, DisplayImpl d, int orderPriority) 
        throws VisADException {
   }
 
@@ -241,9 +240,6 @@ public abstract class DataRenderer extends Object implements Cloneable {
     displayRenderer = r;
   }
 
-  public void setOnlyTransformForThis() {
-    onlyTransformForThis = true;
-  }
 
   /**
    * @return flag indicating whether there is any pending need
@@ -296,10 +292,6 @@ public abstract class DataRenderer extends Object implements Cloneable {
       // test for changed Controls that require doTransform
 
       boolean do_prepare = Links[i].checkTicks() || !feasible[i] || go;
-      onlyTransformForThis = true;
-      if (onlyTransformForThis) { //TDR
-        do_prepare = Links[i].checkTicks() || !feasible[i];
-      }
       if (feasible[i] && !do_prepare) {
         // check if this Data includes any changed Controls
         Enumeration maps = Links[i].getSelectedMapVector().elements();
