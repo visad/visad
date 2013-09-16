@@ -175,7 +175,7 @@ System.out.println("setLinks: sw.setWhichChild(" + currentIndex + ")");
 
 
   abstract void addSwitch(DisplayRendererJ3D displayRenderer,
-                          BranchGroup branch, DataRenderer renderer, double depthPriority);
+                          BranchGroup branch, DataRenderer renderer, double orderPriority);
 
   /** re-transform if needed;
       return false if not done */

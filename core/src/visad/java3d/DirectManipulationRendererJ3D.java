@@ -189,8 +189,8 @@ public class DirectManipulationRendererJ3D extends RendererJ3D {
     branch = b;
   }
 
-  void addSwitch(DisplayRendererJ3D displayRenderer, BranchGroup branch, DataRenderer renderer, double depthPriority) {
-    displayRenderer.addDirectManipulationSceneGraphComponent(branch, this, depthPriority);
+  void addSwitch(DisplayRendererJ3D displayRenderer, BranchGroup branch, DataRenderer renderer, double orderPriority) {
+    displayRenderer.addDirectManipulationSceneGraphComponent(branch, this, orderPriority);
   }
 
   public boolean isLegalTextureMap() {
