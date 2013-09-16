@@ -179,13 +179,14 @@ public abstract class ScalarType extends MathType implements Comparable {
     return Name;
   }
 
-  /**
-   * Returns the alias of this instance or <code>null</code> if this instance
-   * has no alias.  This method returns the alias set by the most recent {@link
-   * alias(String)} invocation.
-   *
-   * @return                      The alias or <code>null</code>.
-   */
+	/**
+	 * Returns the alias of this instance or <code>null</code> if this instance
+	 * has no alias. This method returns the alias set by the most recent
+	 * {@link #alias(String)} invocation.
+	 * 
+	 * @return The alias or <code>null</code>.
+	 */
+  
   public final String getAlias() {
     synchronized(getClass()) {
       return (String)ReverseTranslations.get(Name);

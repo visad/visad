@@ -27,7 +27,7 @@ import visad.data.netcdf.*;
  * <em>visad.data.netcdf.in.Strategy</em>.  If that property is set, then its
  * values is used as the name of the initial {@link Strategy} class to use.
  * If that property is not set, then the initial strategy is {@link
- * Strategy#DEFAULT}.  See, however, {@link setDefaultStrategy(Strategy)}.</p>
+ * Strategy#DEFAULT}.  See, however, {@link #setDefaultStrategy(Strategy)}.</p>
  *
  * @author Steven R. Emmerson
  */

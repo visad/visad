@@ -318,7 +318,7 @@ public abstract class View
     }
 
     /**
-     * <p>Returns the VisAD {@link MathType} of the domain corresponding to a
+     * <p>Returns the VisAD {@link visad.MathType} of the domain corresponding to a
      * netCDF dimension.</p>
      *
      * <p>This implementation supports coordinate variables and uses {@link
@@ -328,7 +328,7 @@ public abstract class View
      * @param dim               A netCDF dimension.
      * @return                  The VisAD MathType of the domain corresponding
      *                          to <code>dim</code>. Won't be <code>null</code>.
-     * @throws TypeException    if a corresponding {@link RealType} needed
+     * @throws TypeException    if a corresponding {@link visad.RealType} needed
      *                          to be created but couldn't.
      */
     protected RealType getRealType(Dimension dim)
@@ -408,7 +408,7 @@ public abstract class View
      * attribute.</p>
      *
      * <p>This implementation first checks if the variable has a
-     * <code>long_name</code> attribute via {@link #getLongName(Varaible)},
+     * <code>long_name</code> attribute via {@link #getLongName(Variable)},
      * if it doesn't, then <code>null</code> is returned; otherwise, the
      * long name is used to query the quantity database.  If the quantity
      * database doesn't contain a match, then <code>null</code> is returned;
@@ -417,7 +417,7 @@ public abstract class View
      * doesn't exist, then the {@link RealType} is returned; otherwise, the unit
      * attribute is compared against the default unit of the {@link RealType}.
      * If the two are convertible, then the {@link RealType} is returned;
-     * othwerwise, an attempt is made to create a new {@link RealType} with a
+     * otherwise, an attempt is made to create a new {@link RealType} with a
      * slightly different name than the variable's but with the same unit as the
      * variable's and that {@link RealType} is returned.</p>
      *
@@ -476,7 +476,7 @@ public abstract class View
      * the variable's unit is checked.  If it's <code>null</code>, then
      * the value of {@link RealType#getRealType(String)} -- when given the
      * variable's name -- is returned; otherwise, the return value of {@link
-     * RealType#getRealType(String, Unit) -- when invoked with the variable's
+     * RealType#getRealType(String, Unit)} -- when invoked with the variable's
      * name and unit -- is checked.  If it's non-<code>null</code>, then that
      * {@link RealType} is returned; otherwise, a new {@link RealType} is
      * created that has a slightly different name than the variable's but with
@@ -686,7 +686,7 @@ public abstract class View
      * attribute exists but is not string-valued, then an error message is
      * printed to {@link System#err} and <code>null</code> is returned.</p>
      *
-     * <p>This implementation uses {@link getAttributeString(Variable, String)}.
+     * <p>This implementation uses {@link #getAttributeString(Variable, String)}.
      * </p>
      *
      * @param name              The name of the attribute.
@@ -772,7 +772,7 @@ public abstract class View
      * or invalid.  If a unit specification exists but can't be decoded, then
      * a warning message is printed to {@link System#err}.</p>
      *
-     * <p>This method uses {@link getUnitString(Variable)}.</p>
+     * <p>This method uses {@link #getUnitString(Variable)}.</p>
      *
      * @param var               A netCDF variable.
      * @return                  The unit of the values of <code>var</code> or
@@ -835,7 +835,7 @@ public abstract class View
      * #getUnitFromAttribute(Variable)}. </p>
      *
      * @param dim               A netCDF dimension.
-     * @return                  The VisAD {@link GriddedSet} corresponding to
+     * @return                  The VisAD {@link visad.GriddedSet} corresponding to
      *                          the dimension.
      * @throws VisADException   if a VisAD object couldn't be created.
      * @throws IOException      if a netCDF read-error occurs.

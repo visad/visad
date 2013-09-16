@@ -26,8 +26,9 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.util.*;
-import java.rmi.*;
+import java.rmi.RemoteException;
+import java.util.Arrays;
+import java.util.Random;
 
 /**
    FlatField is the VisAD class for finite samplings of functions whose
@@ -1091,7 +1092,7 @@ public class FlatField extends FieldImpl implements FlatFieldIface {
    * @param copy            Whether or not to return a copy.
    * @throws SetException   if an element of {@link #RangeMode} contains an
    *                        unknown value.
-   * @throws VisADException if {@link Set.indexToValue(int)} on a range set
+   * @throws VisADException if {@link Set#indexToValue(int [])} on a range set
    *                        fails.
    */
     protected double[][] unpackValues(boolean copy)

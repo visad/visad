@@ -97,7 +97,7 @@ public class CEEvaluator {
 	custom clause objects.
 	@param dds DDS object describing the dataset targeted by this
 	constraint. 
-	@author Joe Wielgosz (joew@cola.iges.org)
+	author Joe Wielgosz (joew@cola.iges.org)
     */
     public CEEvaluator(ServerDDS dds, ClauseFactory clauseFactory) {
 	    _dds = dds;
