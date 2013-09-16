@@ -209,8 +209,6 @@ public abstract class DisplayRendererJ3D
 
   private Vector<DataRenderer> priorityOrderedList = new Vector<DataRenderer>();
 
-  private Vector<DataRenderer> localRendererVector = new Vector<DataRenderer>();
-
   public DisplayRendererJ3D () {
     super();
   }
@@ -873,7 +871,6 @@ public abstract class DisplayRendererJ3D
   }
 
   private synchronized void addToSceneGraph(Group group, DataRenderer renderer, double renderOrder) {
-    localRendererVector.add(renderer);
 
     int index = 0;
     for (int k=0; k<priorityOrderedList.size(); k++) {
@@ -896,10 +893,16 @@ public abstract class DisplayRendererJ3D
     }
   }
 
-  public synchronized void reorderRenderers(DataRenderer[] renderers, int[] order) {
+  public synchronized void reorderRenderers(DataRenderer[] renderers, int[] order) throws VisADException {
+    if (renderers.length != priorityOrderedList.size()) {
+      throw new VisADException("number of renderers must match number in Display");
+    }
     int[] chldIdxOrder = new int[renderers.length];
     for (int k=0; k<renderers.length; k++) {
       int idx = priorityOrderedList.indexOf(renderers[k]);
+      if (idx == -1) {
+        throw new VisADException("an element of renderers not found in Display");
+      }
       chldIdxOrder[idx] = order[k];
     }
     non_direct.setChildIndexOrder(chldIdxOrder);
@@ -949,7 +952,6 @@ public abstract class DisplayRendererJ3D
   public void clearScene(DataRenderer renderer) {
     if (not_destroyed == null) return;
     priorityOrderedList.removeElement(renderer);
-    localRendererVector.removeElement(renderer);
     directs.removeElement(renderer);
   }
 

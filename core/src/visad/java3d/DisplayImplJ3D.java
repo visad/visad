@@ -732,7 +732,7 @@ public class DisplayImplJ3D extends DisplayImpl {
     return format;
   }
 
-  public void reorderRenderers(DataRenderer[] renderers, int[] order) {
+  public void reorderRenderers(DataRenderer[] renderers, int[] order) throws VisADException {
     ((DisplayRendererJ3D)getDisplayRenderer()).reorderRenderers(renderers, order);
   }
 
