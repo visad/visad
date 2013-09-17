@@ -119,19 +119,6 @@ System.out.println("setLinks: sw.setWhichChild(" + currentIndex + ")");
     toggle(getEnabled());
   }
 
-  public double checkRenderOrderPriority() {
-    DataDisplayLink[] links = getLinks();
-    Vector constMaps = links[0].getConstantMaps();
-    for (int k=0; k<constMaps.size(); k++) {
-      ConstantMap cmap = (ConstantMap) constMaps.get(k);
-      if (cmap.getDisplayScalar().equals(Display.RenderOrderPriority)) {
-        renderOrderPriority = cmap.getConstant();
-        break;
-      }
-    }
-    return renderOrderPriority;
-  }
-
   public void toggle(boolean on) {
     if (sw != null) sw.setWhichChild(on ? currentIndex : ((currentIndex+1)%3));
     super.toggle(on);
