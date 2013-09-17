@@ -34,7 +34,6 @@ import java.lang.reflect.Method;
 import java.rmi.RemoteException;
 import java.util.Enumeration;
 import java.util.Vector;
-import java.util.ArrayList;
 
 import javax.media.j3d.Appearance;
 import javax.media.j3d.Background;
