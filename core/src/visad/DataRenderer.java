@@ -160,10 +160,6 @@ public abstract class DataRenderer extends Object implements Cloneable {
   public abstract void setLinks(DataDisplayLink[] links, DisplayImpl d)
            throws VisADException;
 
-  public void setLinks(DataDisplayLink[] links, DisplayImpl d, int orderPriority) 
-       throws VisADException {
-  }
-
   /**
    * Sets the visibility of the data being rendered by this instance.
    *
