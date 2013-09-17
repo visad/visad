@@ -334,7 +334,27 @@ public interface Display extends Action {
   DisplayRealType PointMode =
     new DisplayRealType("PointMode", true, -1.0, true);
 
-  /** render order priority - ConstantMap only */
+  /** 
+   *  render order priority - ConstantMap only
+   *
+   *  Higher priority here means visibility precedence so renders with higher
+   *  values of this display type are placed after (rendered later) those with
+   *  lower values in the DisplayRenderer scene
+   *
+   *  If values are equal the order works as before - last added has precendence
+   *
+   *  This can be useful for 3D as 2D displays, or Globe type displays, where
+   *  an invented mapping to Display.ZAxis may not desired
+   *
+   *  Note: If applications don't use this (they don't have to) everything will
+   *  work as before
+   *
+   *  Note: the default value of 10 was chosen so applications don't have to
+   *  retrofit all addReference calls with the idea that 0 would be the lowest
+   *  value, but it can be negative and fractional it's up to the application
+   *  to manage this.
+   *
+   */
   DisplayRealType RenderOrderPriority =
     new DisplayRealType("RenderOrderPriority", true, 10.0, true);
 
