@@ -736,6 +736,10 @@ public class DisplayImplJ3D extends DisplayImpl {
     ((DisplayRendererJ3D)getDisplayRenderer()).reorderRenderers(renderers, order);
   }
 
+  public void resetRendererOrder() {
+    ((DisplayRendererJ3D)getDisplayRenderer()).resetRendererOrder();
+  }
+
   public void destroyUniverse() {
     if (universe != null) universe.destroy();
     universe = null;
