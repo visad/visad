@@ -78,12 +78,19 @@ public class Test69
     TupleType text_tuple = new TupleType(mtypes);
     FunctionType text_function = new FunctionType(RealType.Time, text_tuple);
 
-    String[] names = new String[] {"a b c d e f g h i j k l m",
-                                   "nopqrstuvwxyz",
-                                   "A B C D E F G H I J K L M",
-                                   "NOPQRSTUVWXYZ",
-                                   "0123456789  - + = / [ ] ( ) { }",
-                                   "á é í ó ú ñ Á É Í Ó Ú Ñ"};
+		String[] names = new String[] {
+				"a b c d e f g h i j k l m",
+				"nopqrstuvwxyz",
+				"A B C D E F G H I J K L M",
+				"NOPQRSTUVWXYZ",
+				"0123456789  - + = / [ ] ( ) { }",
+				// for this last one concatenate a bunch of odd Unicode chars
+				// lower case vowels with acute, small n with tilde,
+				// upper case vowels with acute, capital N with tilde
+				"\u00e1" + "\u00e9" + "\u00ed" + "\u00f3" + "\u00fa" + "\u00f1"
+						+ "\u00c1" + "\u00c9" + "\u00cd" + "\u00d3" + "\u00da"
+						+ "\u00d1" };
+		
     if (sphere) {
       names = new String[] {"", "", "a b c d e f g h i j k l m n o p q " +
                             "r s t u v w x y z A B C D E F G H I J K L " +
