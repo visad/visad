@@ -1096,7 +1096,6 @@ public abstract class DisplayImpl extends ActionImpl implements LocalDisplay {
     notifyAction();
   }
 
-
   /**
    * Replace remote reference with local reference.
    *

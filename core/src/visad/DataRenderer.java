@@ -71,7 +71,6 @@ public abstract class DataRenderer extends Object implements Cloneable {
   /** flag for visibility of Data depictions */
   protected boolean enabled = true;
 
-
   /**
    * construct a DataRenderer
    */
@@ -239,7 +238,6 @@ public abstract class DataRenderer extends Object implements Cloneable {
   public void setDisplayRenderer(DisplayRenderer r) {
     displayRenderer = r;
   }
-
 
   /**
    * @return flag indicating whether there is any pending need
