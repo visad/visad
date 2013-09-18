@@ -371,7 +371,8 @@ public interface Display extends Action {
      PolygonMode, CurvedSize, ColorMode, 
      PolygonOffset, PolygonOffsetFactor, 
      AdjustProjectionSeam, Texture3DMode,
-     CacheAppearances, MergeGeometries, PointMode
+     CacheAppearances, MergeGeometries, PointMode,
+     RenderOrderPriority
      };
 
   // system intrinsic DisplayTupleType objects
