@@ -337,8 +337,8 @@ public interface Display extends Action {
   /** 
    *  render order priority - ConstantMap only
    *
-   *  Higher priority here means visibility precedence so renders with higher
-   *  values of this display type are placed after (rendered later) those with
+   *  Higher priority here means visibility precedence so renderers with higher
+   *  values of this display type are placed after (rendered later) than those with
    *  lower values in the DisplayRenderer scene
    *
    *  If values are equal the order works as before - last added has precendence
