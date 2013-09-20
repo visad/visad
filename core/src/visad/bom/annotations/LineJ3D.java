@@ -202,7 +202,7 @@ public class LineJ3D implements ScreenAnnotation
   }
 
   /**
-   *  Make the LineJ3D into a {@link Shape3D}.
+   *  Make the LineJ3D into a {@link javax.media.j3d.Shape3D}.
    *
    *  @param display  the VisAD display for this Line.
    *

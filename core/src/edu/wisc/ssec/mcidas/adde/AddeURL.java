@@ -583,7 +583,7 @@ public class AddeURL implements Cloneable {
   /**
    * Clones this instance.
    *
-   * <p>This implementation never throws {@link CloneNotSupportException}.</p>
+   * <p>This implementation never throws CloneNotSupportException</p>
    *
    * @return                            A clone of this instance.
    * @throws CloneNotSupportedException if cloning isn't supported.

@@ -26,12 +26,29 @@ MA 02111-1307, USA
 
 package visad.matrix;
 
-import java.lang.reflect.*;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.rmi.RemoteException;
 import java.text.NumberFormat;
 
-import visad.*;
+import visad.CoordinateSystem;
+import visad.FlatField;
+import visad.FunctionType;
+import visad.Gridded1DSet;
+import visad.Gridded2DSet;
+import visad.GriddedSet;
+import visad.Integer2DSet;
+import visad.RealTupleType;
+import visad.RealType;
+import visad.Set;
+import visad.SetType;
+import visad.TupleType;
+import visad.Unit;
+import visad.VisADException;
 
 /**
  * JamaMatrix is a VisAD wrapper for JAMA matrices. This class requires the
@@ -717,11 +734,12 @@ public class JamaMatrix extends FlatField {
   /**
    * Get a submatrix.
    * @param r    Array of row indices
-   * @param i0   Initial column index
-   * @param i1   Final column index
+   * @param j0   Initial column index
+   * @param j1   Final column index
    * @return     A(r(:),j0:j1)
    * @exception  ArrayIndexOutOfBoundsException Submatrix indices
    */
+  
   public JamaMatrix getMatrix(int[] r, int j0, int j1)
          throws VisADException, IllegalAccessException,
                 InstantiationException, InvocationTargetException {

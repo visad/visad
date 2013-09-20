@@ -26,7 +26,6 @@ MA 02111-1307, USA
 
 package visad.util;
 
-
 import visad.VisADException;
 
 import java.util.ArrayList;
@@ -36,7 +35,6 @@ import java.rmi.RemoteException;
 import java.util.Hashtable;
 import java.util.Enumeration;
 import java.util.List;
-
 
 /**
  * This class provides support for running a collection of Runnables
@@ -95,10 +93,11 @@ public class ThreadManager {
   }
 
   /**
-   * 
+   * Constructor with name specified
    *
-   * @param name 
+   * @param theName 
    */
+  
   public ThreadManager(String theName) {
     this.name = theName;
     if (maxThreads <= 0) {
@@ -191,8 +190,9 @@ public class ThreadManager {
   /**
    * 
    *
-   * @return 
+   * @return count of Runnables
    */
+  
   public int getNumRunnables() {
     return runnables.size();
   }

@@ -15,20 +15,23 @@ public interface ServerSideFunction {
      */
     public String getName();
 
-    /** Checks that the arguments given are acceptable arguments for this 
+    /** 
+     * Checks that the arguments given are acceptable arguments for this 
      * function. This method should only use those attributes of a SubClause
      * which do not change over its lifetime - whether it is constant,
      * what class of SubClause it is, what class of BaseType it returns, etc.
      * Thus, the method should not look at the actual value of an argument 
      * unless the argument is flagged as constant.
      * 
+     * The function should return normally if the arguments appear
+     * acceptable, and throw an exception describing the problem otherwise.
+     * 
      * @param args A list of SubClauses that the caller is considering passing
      *             to the evaluate() method of the function.
      * @exception InvalidParameterException Thrown if the function will not
      * evaluate successfully using these arguments.
-     * @return The function should return normally if the arguments appear
-     * acceptable, and throw an exception describing the problem otherwise.
      */
+    
     public void checkArgs(List args)
 	throws InvalidParameterException;
 }

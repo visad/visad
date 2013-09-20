@@ -26,7 +26,7 @@ MA 02111-1307, USA
 
 package visad;
 
-import java.rmi.*;
+import java.rmi.RemoteException;
 
 /**
    Action is the VisAD interface for runnable threads that need to be
@@ -58,8 +58,6 @@ public interface Action extends ThingChangedListener {
 
   /**
    * <p>Removes a link to a ThingReference.</p>
-   *
-   * <p>This implementation invokes {@link #findReference(ThingReference)}.</p>
    *
    * @param ref                   The reference to be removed.
    * @throws RemoteVisADException if the reference isn't a {@link

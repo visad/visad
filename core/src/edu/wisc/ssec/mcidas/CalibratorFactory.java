@@ -125,7 +125,8 @@ public final class CalibratorFactory {
    * <a href="http://www.ssec.wisc.edu/mcidas/doc/users_guide/current/app_c-1.html">Appendix C</a>
    * @return True if there is an implemented <code>Calibrator</code>, false
    *         otherwise.
-   * @see The McIDAS Users Guide 
+   *
+   * see The McIDAS Users Guide 
    */
   public final static boolean hasCalibrator(int id) {
     switch (id) {

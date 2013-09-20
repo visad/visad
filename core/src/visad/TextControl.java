@@ -27,10 +27,10 @@ MA 02111-1307, USA
 package visad;
 
 import java.awt.Font;
-import visad.util.HersheyFont;
-import java.text.*;
-import java.rmi.*;
+import java.rmi.RemoteException;
+import java.text.NumberFormat;
 
+import visad.util.HersheyFont;
 import visad.util.Util;
 
 /**
@@ -241,8 +241,7 @@ public class TextControl extends Control {
    *
    * Possible values are TextControl.Justification.TOP,
    * TextControl.Justification.CENTER and TextControl.Justification.BOTTOM
-   *
-   * @author abcd 19 March 2003
+   * 
    */
   public void setVerticalJustification(Justification newJustification)
          throws VisADException, RemoteException
@@ -257,7 +256,6 @@ public class TextControl extends Control {
   /**
    * Return the vertical justification value
    *
-   * @author abcd 19 March 2003
    */
   public Justification getVerticalJustification()
   {

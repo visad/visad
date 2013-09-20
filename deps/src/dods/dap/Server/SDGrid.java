@@ -28,12 +28,20 @@
 /////////////////////////////////////////////////////////////////////////////
 
 package dods.dap.Server;
-import java.util.Vector;
+
+import java.io.DataOutputStream;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Enumeration;
-import java.io.*;
-import dods.dap.*;
-import dods.dap.Server.ServerMethods;
-import dods.dap.Server.SBHException;
+import java.util.Vector;
+
+import dods.dap.BaseType;
+import dods.dap.DArray;
+import dods.dap.DArrayDimension;
+import dods.dap.DDS;
+import dods.dap.DGrid;
+import dods.dap.NoSuchVariableException;
 
 /**
  * Holds a DODS Server <code>Grid</code> value.
@@ -68,11 +76,12 @@ public abstract class SDGrid extends DGrid implements ServerArrayMethods, RelOps
     }
 
 
-    /** When projected (using whatever the current constraint provides in the way
-    *   of a projection) am I still a Grid?
-    *
-    * @returns True if projected grid is still a grid. False otherwise.
-    */
+    /** 
+     * When projected (using whatever the current constraint provides in the way
+     * of a projection) am I still a Grid?
+     *
+     * @return True if projected grid is still a grid. False otherwise.
+     */
     
     public boolean projectionYieldsGrid() {
 
@@ -130,9 +139,10 @@ public abstract class SDGrid extends DGrid implements ServerArrayMethods, RelOps
     }
 
     /**
-    * How many prohected components of this Grid object?
-    * @returns The number of projected components.
-    */
+     * How many prohected components of this Grid object?
+     * @return The number of projected components.
+     */
+    
     public int projectedComponents(boolean constrained) {
         int comp;
 

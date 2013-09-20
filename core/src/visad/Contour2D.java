@@ -139,7 +139,8 @@ public class Contour2D {
 			boolean[] swap, boolean fill, float[][][] grd_normals,
 			byte[][] interval_colors, float[][][][] lbl_vv,
 			byte[][][][] lbl_cc, float[][][] lbl_loc, double[] scale, double scale_ratio,
-			int label_freq, double label_size, boolean labelAlign, byte[] labelColor,
+			int label_freq, int label_line_skip,
+			double label_size, boolean labelAlign, byte[] labelColor,
 			Object labelFont, boolean sphericalDisplayCS,
 			Gridded3DSet spatial_set) throws VisADException {
 		boolean[] dashes = { false };
@@ -149,7 +150,8 @@ public class Contour2D {
 
 		contour(g, nr, nc, intervals, lowlimit, highlimit, base, dash,
 				auxValues, swap, fill, grd_normals, interval_colors, scale,
-				scale_ratio, label_freq, label_size, labelAlign, labelColor, labelFont,
+				scale_ratio, label_freq, label_line_skip,
+				label_size, labelAlign, labelColor, labelFont,
 				sphericalDisplayCS, spatial_set);
 	}
 
@@ -231,7 +233,8 @@ public class Contour2D {
 			float[] values, float lowlimit, float highlimit, float base,
 			boolean dash, byte[][] auxValues, boolean[] swap, boolean fill,
 			float[][][] grd_normals, byte[][] interval_colors, double[] scale,
-			double scale_ratio, int label_freq, double label_size, boolean labelAlign,
+			double scale_ratio, int label_freq, int label_line_skip,
+			double label_size, boolean labelAlign,
 			byte[] labelColor, Object labelFont, boolean sphericalDisplayCS,
 			Gridded3DSet spatial_set) throws VisADException {
 
@@ -302,8 +305,6 @@ public class Contour2D {
 					break;
 				}
 				minIdx = i;
-				// System.err.println(
-				// "min:" + minValue + " " + myvals[i] + " " + minIdx);
 			}
 			for (int i = myvals.length - 1; i >= 0; i--) {
 				if (maxValue >= myvals[i]) {
@@ -466,7 +467,7 @@ public class Contour2D {
 		}
 
 		ContourStripSet ctrSet = new ContourStripSet(myvals, swap,
-				scale_ratio, label_freq, label_size, nr, nc, spatial_set);
+				scale_ratio, label_freq, label_line_skip, label_size, nr, nc, spatial_set);
 
 		visad.util.Trace.call1("Contour2d.loop", " nrm=" + nrm + " ncm=" + ncm
 				+ " naux=" + naux + " myvals.length=" + myvals.length);
@@ -4297,6 +4298,8 @@ class ContourStripSet {
 
 	double labelScale;
 
+	public int labelLineSkip = ContourControl.EVERY_NTH_DEFAULT;
+
 	/**
 	 * 
 	 * @param levels
@@ -4312,13 +4315,16 @@ class ContourStripSet {
 	 */
 
 	ContourStripSet(float[] levels, boolean[] swap, double scale_ratio,
-			int label_freq, double label_size, int nr, int nc,
+			int label_freq, int label_line_skip, double label_size, int nr, int nc,
 			Gridded3DSet spatial_set) throws VisADException {
 
 		this.levels = levels;
 		n_levs = levels.length;
 		labelIndexes = new int[n_levs][];
+		
 		labelFreq = label_freq;
+		labelLineSkip = label_line_skip;
+		
 		vecArray = new List[n_levs];
                 closedStripArray = new List[n_levs];
 		labelScale = ((0.062 * (1.0 / scale_ratio)) * label_size);
@@ -4666,6 +4672,9 @@ class ContourStrip {
 
 	/** Number of labels on this strip. */
 	int numLabels;
+	
+	/** Label every Nth line */
+	int numSkipLines;
 
 	boolean isDashed = false;
 
@@ -4675,7 +4684,7 @@ class ContourStrip {
 	/**           */
 	ContourStripSet css;
 
-        boolean closed = false;
+    boolean closed = false;
 
 	/**
 	 * 
@@ -4694,6 +4703,7 @@ class ContourStrip {
 
 		this.css = css;
 		numLabels = css.labelFreq;
+		numSkipLines = css.labelLineSkip;
 	}
 
 	/**
@@ -4815,6 +4825,12 @@ class ContourStrip {
 		}
 		int labelCount = linArrLen / labelRepeat;
 		int labelRemain = linArrLen % labelRepeat;
+
+                if (labelRemain <= 4 && labelRemain > 0 && labelCount > 0) {
+                   labelCount -= 1;
+                   labelRemain += labelRepeat;
+                }
+
 		int labelsDone = 0;
 
 		for (int i = 0; i < labelCount; i++) {
@@ -4891,9 +4907,15 @@ class ContourStrip {
 		String numStr = numFormat.format((double) css.levels[lev_idx]);
 
 		float lbl_half = 0.1f;
+		isLabeled = false;
+		boolean labelThisLine = false;
 
-                isLabeled = false;
-		if (totalPts > LBL_ALGM_THRESHHOLD && ((lev_idx & 1) == 1 || css.n_levs == 1)) {
+		// label every Nth line, user can adjust this
+		if ((lev_idx % css.labelLineSkip) == 0) {
+			labelThisLine = true;
+		}
+                
+		if ((totalPts > LBL_ALGM_THRESHHOLD) && (labelThisLine)) {
 			isLabeled = true;
 			loc = (vv[0].length) / 2; // - start at half-way pt.
 			int n_pairs_b = 1;
@@ -5048,8 +5070,10 @@ class ContourStrip {
 		if (start_break >= 4 && stop_break <= totalPts * 2 - 3)
 			doLabel = true;
 
-		if (doLabel && isLabeled && ((lev_idx & 1) == 1 || css.n_levs == 1)) {
+		if (doLabel && isLabeled) {
 
+			
+			
 			/*-------LABEL START --------------------*/
 			float[] ctr_u = null;
 			float[] norm_x_ctr = null;

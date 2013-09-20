@@ -26,16 +26,43 @@ MA 02111-1307, USA
 
 package visad.bom;
 
-import visad.*;
-import visad.java3d.*;
-
-import java.awt.event.*;
-import javax.swing.*;
-import java.util.Vector;
+import java.awt.event.InputEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.rmi.RemoteException;
 import java.util.Enumeration;
-import java.rmi.*;
+import java.util.Vector;
 
-import javax.media.j3d.*;
+import javax.media.j3d.BranchGroup;
+import javax.media.j3d.Group;
+import javax.swing.BoxLayout;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+
+import visad.BadDirectManipulationException;
+import visad.CellImpl;
+import visad.CoordinateSystem;
+import visad.DataDisplayLink;
+import visad.DataReference;
+import visad.DataReferenceImpl;
+import visad.Display;
+import visad.DisplayImpl;
+import visad.DisplayRealType;
+import visad.DisplayTupleType;
+import visad.FlatField;
+import visad.FunctionType;
+import visad.Integer2DSet;
+import visad.Real;
+import visad.RealTuple;
+import visad.RealTupleType;
+import visad.RealType;
+import visad.ScalarMap;
+import visad.ScalarType;
+import visad.Unit;
+import visad.VisADException;
+import visad.VisADRay;
+import visad.java3d.DirectManipulationRendererJ3D;
+import visad.java3d.DisplayImplJ3D;
 
 /**
    PointManipulationRendererJ3D is the VisAD class for direct
@@ -63,14 +90,20 @@ public class PointManipulationRendererJ3D extends DirectManipulationRendererJ3D 
     this(xarg, yarg, 0, 0);
   }
 
-  /** xarg and yarg determine spatial ScalarMaps;
-      mmm and mmv determine whehter SHIFT or CTRL keys are required -
-      this is needed since this is a greedy DirectManipulationRenderer
-      that will grab any right mouse click (that intersects its 2-D
-      sub-manifold)
-      @arg mmm - "Mouse Modifier Mask", matches the modifiers we want plus all that we don't want
-      @arg mmv - "Mouse Modifier Value", equals the subset of mask that we want to match
- */
+	/**
+	 * xarg and yarg determine spatial ScalarMaps; mmm and mmv determine whether
+	 * SHIFT or CTRL keys are required - this is needed since this is a greedy
+	 * DirectManipulationRenderer that will grab any right mouse click (that
+	 * intersects its 2-D sub-manifold)
+	 * 
+	 * @param mmm
+	 *            - "Mouse Modifier Mask", matches the modifiers we want plus
+	 *            all that we don't want
+	 * @param mmv
+	 *            - "Mouse Modifier Value", equals the subset of mask that we
+	 *            want to match
+	 */
+  
   public PointManipulationRendererJ3D (RealType xarg, RealType yarg, int mmm, int mmv) {
     super();
     x = xarg;
@@ -110,7 +143,6 @@ public class PointManipulationRendererJ3D extends DirectManipulationRendererJ3D 
   /** arrays of length one for inverseScaleValues */
   private float[] f = new float[1];
   private float[] d = new float[1];
-  private float[] value = new float[2];
 
   /** information calculated by checkDirect */
   /** explanation for invalid use of DirectManipulationRenderer */
@@ -127,22 +159,13 @@ public class PointManipulationRendererJ3D extends DirectManipulationRendererJ3D 
   private int yindex = -1;
   private int otherindex = -1;
   private float othervalue;
-
-  private byte red, green, blue; // default colors
-
   private float[][] first_x;
-  private float[][] last_x;
-  private float[][] clast_x;
-  private float cum_lon;
 
   /** possible values for whyNotDirect */
   private final static String xandyNotMatch =
     "x and y spatial domains don't match";
   private final static String xandyNotSpatial =
     "x and y must be mapped to spatial";
-
-
-  private boolean stop = false;
 
   public void checkDirect() throws VisADException, RemoteException {
     setIsDirectManipulation(false);
@@ -232,10 +255,6 @@ public class PointManipulationRendererJ3D extends DirectManipulationRendererJ3D 
     setIsDirectManipulation(true);
   }
 
-  private int getDirectManifoldDimension() {
-    return directManifoldDimension;
-  }
-
   public String getWhyNotDirect() {
     return whyNotDirect;
   }
@@ -280,12 +299,7 @@ public class PointManipulationRendererJ3D extends DirectManipulationRendererJ3D 
   }
 
   public void stop_direct() {
-    stop = true;
   }
-
-  private static final int EDGE = 20;
-
-  private static final float EPS = 0.005f;
 
   public synchronized void drag_direct(VisADRay ray, boolean first,
                                        int mouseModifiers) {
@@ -309,9 +323,6 @@ public class PointManipulationRendererJ3D extends DirectManipulationRendererJ3D 
       if (tuple != null) xx = tuplecs.fromReference(xx);
 
       first_x = xx;
-      cum_lon = 0.0f;
-
-      clast_x = xx;
 
       Vector vect = new Vector();
       f[0] = xx[xindex][0];

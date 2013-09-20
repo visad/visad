@@ -22,8 +22,8 @@
 	<property name="date.file" value="DATE" />
 
 	<!-- compiler options -->
-	<property name="source.ver" value="1.5" />
-	<property name="target.ver" value="1.5" />
+	<property name="source.ver" value="1.6" />
+	<property name="target.ver" value="1.6" />
 	<property name="debug.flag" value="true" />
 	<property name="deprecation.flag" value="off" />
 	<property name="fail.flag" value="true" />
@@ -189,6 +189,7 @@
 				<include name="dods/dap/*" />
 				<include name="dods/dap/parser/*" />
 				<include name="dods/dap/Server/*" />
+				<include name="dods/dap/functions/*" />
 				<include name="dods/util/*" />
 				<include name="gnu/regexp/*" />
 				<include name="loci/formats/*" />
@@ -205,9 +206,14 @@
 				<include name="ncsa/hdf/hdf5lib/*" />
 			</packageset>
 
+			<tag name="promise" scope="all" description="Promise:" />
+			<tag name="precondition" scope="all" description="Precondition:" />
+			<tag name="postcondition" scope="all" description="Postcondition:" />
+			<tag name="require" scope="all" description="Requirements:" />
+
 			<link href="http://download.java.net/media/java3d/javadoc/1.5.0" />
-			<link href="http://java.sun.com/j2se/1.5.0/docs/api" />
-			<link href="http://logging.apache.org/log4j/docs/api" />
+			<link href="http://docs.oracle.com/javase/6/docs/api/" />
+			<link href="http://logging.apache.org/log4j/1.2/apidocs/" />
 
 			<arg value="-J-Xmx512m" />
 

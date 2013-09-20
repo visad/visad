@@ -13,8 +13,8 @@
     <property name="visad.class.dir" location="${visad.dir}/build"/>
 
 	<!-- compiler options -->
-	<property name="source.ver" value="1.5"/>
-	<property name="target.ver" value="1.5"/>
+	<property name="source.ver" value="1.6"/>
+	<property name="target.ver" value="1.6"/>
 	<property name="debug.flag" value="true"/>
 	<property name="deprecation.flag" value="off"/>
 	<property name="fail.flag" value="true"/>
@@ -22,9 +22,6 @@
 
     <!-- shared classpath -->
     <path id="project.classpath">
-        <fileset dir="${lib.dir}">
-            <include name="*.jar"/>
-        </fileset>
         <pathelement path="${visad.class.dir}"/>
         <pathelement path="${visad.jarfile}"/>
     </path>

@@ -26,11 +26,32 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 package visad.jmet;
 
-import java.io.*;
-import java.util.*;
-import ucar.netcdf.*;
-import visad.*;
+import java.io.File;
+import java.util.Iterator;
+import java.util.TreeMap;
+import java.util.Vector;
+
+import ucar.netcdf.Attribute;
+import ucar.netcdf.AttributeSet;
+import ucar.netcdf.DimensionIterator;
+import ucar.netcdf.DimensionSet;
+import ucar.netcdf.NetcdfFile;
+import ucar.netcdf.Variable;
+import ucar.netcdf.VariableIterator;
+import visad.CoordinateSystem;
+import visad.Data;
+import visad.DateTime;
+import visad.FieldImpl;
+import visad.FlatField;
+import visad.FunctionType;
+import visad.Gridded1DDoubleSet;
+import visad.Integer2DSet;
+import visad.Real;
+import visad.RealTupleType;
+import visad.RealType;
 import visad.Set;
+import visad.Tuple;
+import visad.Unit;
 import visad.data.units.Parser;
 
 /**
@@ -216,7 +237,6 @@ public class NetcdfGrids {
   * @param level level dimension
   * @param time_type forecast valid time
   * @param pres MathType of vertical coordinate in display
-  * @param x X-coordinate
   */
 
   public void setRealTypes(RealType x, RealType y, RealType level,

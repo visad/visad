@@ -15,20 +15,27 @@ import visad.*;
 import visad.data.BadFormException;
 import visad.data.netcdf.*;
 
-
 /**
- * <p>Provides support for importing netCDF datasets using the strategy of
- * employing {@link FileFlatField}s wherever possible, but merging the data so
- * as to keep the number of {@link FileFlatField}s to a minimum.</p>
- *
- * <p>This class may be subclassed in order to use a different data merger
- * tactic -- one that maximizes the number of {@link FileFlatField}s, for
- * example (see {@link #getMerger()}).</p>
- *
- * <p>Instances are immutable.</p>
- *
+ * <p>
+ * Provides support for importing netCDF datasets using the strategy of
+ * employing {@link visad.data.FileFlatField}s wherever possible, but merging
+ * the data so as to keep the number of {@link visad.data.FileFlatField}s to a
+ * minimum.
+ * </p>
+ * 
+ * <p>
+ * This class may be subclassed in order to use a different data merger tactic
+ * -- one that maximizes the number of {@link visad.data.FileFlatField}s, for
+ * example (see {@link #getMerger()}).
+ * </p>
+ * 
+ * <p>
+ * Instances are immutable.
+ * </p>
+ * 
  * @author Steven R. Emmerson
  */
+
 public class FileStrategy
     extends     Strategy
 {

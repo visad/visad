@@ -1,22 +1,24 @@
 package dods.dap.Server;
 
-/** Represents a top-level clause in the selection portion of a
- *  constraint expression (CE). <p>
- *
- *  A top-level clause is a boolean expression 
- *  preceded by "&" in the CE, such as "lat>10.0", or "function(var1,var2)". 
- *  The top-level clause may contain sub-clauses which can be evaluated 
- *  individually. 
- *
- *  The parser supports several kinds of top-level clause. These are described
- *  in the ClauseFactory interface.
- *
+/**
+ * Represents a top-level clause in the selection portion of a constraint
+ * expression (CE).
+ * <p>
+ * 
+ * A top-level clause is a boolean expression preceded by "&" in the CE, such as
+ * "lat>10.0", or "function(var1,var2)". The top-level clause may contain
+ * sub-clauses which can be evaluated individually.
+ * 
+ * The parser supports several kinds of top-level clause. These are described in
+ * the ClauseFactory interface.
+ * 
  * @see SubClause for more about sub-clauses.
- * @see CEEValuator for an explanation of how Clauses are evaluated on 
- *    data.
+ * @see CEEvaluator for an explanation of how Clauses are evaluated on data.
  * @see ClauseFactory
- *
- * @author joew */
+ * 
+ * @author joew
+ */
+
 public interface TopLevelClause 
     extends Clause {
 

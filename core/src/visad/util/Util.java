@@ -206,8 +206,9 @@ public class Util {
   /**
    * Return a string representation of VisAD's build date and time.
    *
-   * @return 
+   * @return VisAD build date and time
    */
+  
   public static String getVersionDate() {
     try {
       InputStream is = Util.class.getResourceAsStream("/DATE");
@@ -227,7 +228,7 @@ public class Util {
    * @param canvas The Canvas3D to get properties from. If null Canvas3D
    *  properties are skipped.
    *
-   * @see {@link #printJ3DProperties(Canvas3D)}
+   * @see #printJ3DProperties(Canvas3D)
    */
   public static void printJ3DProperties(PrintStream str, Canvas3D canvas) {
     Map map = VirtualUniverse.getProperties();
@@ -250,8 +251,8 @@ public class Util {
    * @param canvas The Canvas3D to get properties from. If null Canvas3D
    *  properties are skipped.
    *
-   * @see {@link javax.media.j3d.VirtualUniverse#getProperties()}
-   * @see {@link javax.media.j3d.Canvas3D#queryProperties()}
+   * @see javax.media.j3d.VirtualUniverse#getProperties()
+   * @see javax.media.j3d.Canvas3D#queryProperties()
    */
   public static void printJ3DProperties(Canvas3D canvas) {
     printJ3DProperties(System.err, canvas);
@@ -435,8 +436,9 @@ public class Util {
   /**
    * Return a string representation of the current date and time.
    *
-   * @return 
+   * @return string timestamp for current time
    */
+  
   public static String getTimestamp() {
     StringBuffer sb = new StringBuffer();
     Calendar cal = Calendar.getInstance();
@@ -473,8 +475,9 @@ public class Util {
   /**
    * Return a JFileChooser that recognizes supported VisAD file types.
    *
-   * @return 
+   * @return file chooser which recognizes supported VisAD file types
    */
+  
   public static JFileChooser getVisADFileChooser() {
     JFileChooser dialog = new JFileChooser(System.getProperty("user.dir"));
     Vector filters = new Vector();
@@ -788,8 +791,9 @@ public class Util {
    * @param o1 
    * @param o2 
    *
-   * @return 
+   * @return true if the arrays are equal
    */
+  
   public static boolean arraysEqual(Object[] o1, Object[] o2) {
     // test for null
     if (o1 == null && o2 == null) return true;
@@ -814,12 +818,11 @@ public class Util {
   /**
    * Create a string representation of the given array
    *
-   *
    * @param prefix 
    * @param array  array to print
    *
-   * @return  array as a String
    */
+  
   public static void printArray(String prefix, Object[] array) {
     StringBuffer buf = new StringBuffer();
     buf.append(prefix);
@@ -915,8 +918,7 @@ public class Util {
 
   /**
    * Create a ConstantMap array of colors for use with
-   * @{link Display.addReference(DataReference, ConstantMap[])
-   *   Display.addReference()}
+   * {@link Display#addReference(DataReference, ConstantMap[])}
    *
    * @param color color to encode
    *
@@ -948,8 +950,8 @@ public class Util {
 
   /**
    * Configure basic logging for the visad package. In a production
-   * envirionment the prefered way to configure logging is using the
-   * logging.properties file. This is intended only as a convienience method
+   * environment the preferred way to configure logging is using the
+   * logging.properties file. This is intended only as a convenience method
    * for configuring console logging for the purposes of testing.
    *
    * @param verbosity 0 is <code>Level.WARNING</code> and progresses to a
@@ -994,12 +996,13 @@ public class Util {
   }
 
   /**
-   * @see {@link #configureLogging(int, java.lang.String)}
+   * @see #configureLogging(int, java.lang.String)
    *
    * @param verbosity 
    *
-   * @return 
+   * @return logging level
    */
+  
   public static Level configureLogging(int verbosity) {
     return configureLogging(verbosity, "visad");
   }
