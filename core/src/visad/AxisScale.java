@@ -92,6 +92,9 @@ public class AxisScale implements java.io.Serializable
   private int tickOrient = PRIMARY;
   private static final double TICKSIZE = .5;  // major ticks are 1/2 char ht.
   private NumberFormat labelFormat = null;
+  
+  /** Is the label angled away from the axis or is it "flat"*/
+  private boolean labelRelief = true;
 
   /**
    * Construct a new AxisScale for the given ScalarMap
@@ -616,6 +619,10 @@ public class AxisScale implements java.io.Serializable
         up[2] = 0.0;
         startn[2] = 0.0;
         startp[2] = 0.0;
+      }
+      
+      if (!labelRelief ) {
+        up[2] = 0.0;        
       }
   
       // VisADLineArray coordinates have three entries for (x, y, z) of each point
@@ -1726,6 +1733,24 @@ public class AxisScale implements java.io.Serializable
           : PlotText.shortString(value);
     }
     return label;
+  }
+
+  /**
+   * Checks if is label has relief.
+   *
+   * @return true, if is label has relief
+   */
+  public boolean isLabelRelief() {
+    return labelRelief;
+  }
+
+  /**
+   * Sets the label relief.
+   *
+   * @param labelRelief the new label relief
+   */
+  public void setLabelRelief(boolean labelRelief) {
+    this.labelRelief = labelRelief;
   }
 
 }
