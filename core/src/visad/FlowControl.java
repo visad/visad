@@ -71,6 +71,10 @@ public abstract class FlowControl extends Control {
   int     n_pass;
   float   reduction;
 
+  /** Trajectory flags
+  --------------------------------*/
+  boolean trajectoryEnabled = true;
+
   // WLH  need Vertical*Slice location parameters
 
   /**
@@ -100,6 +104,8 @@ public abstract class FlowControl extends Control {
     reduction          = 1f;
     adjustFlowToEarth  = true;  
     autoScale          = false;
+
+    trajectoryEnabled  = true;
   }
 
   /** 
@@ -179,8 +185,28 @@ public abstract class FlowControl extends Control {
   public void enableStreamlines(boolean flag)
          throws VisADException, RemoteException {
     streamlinesEnabled = flag;
+    if (trajectoryEnabled && streamlinesEnabled) {
+      trajectoryEnabled = false;
+    }
     changeControl(true);
   }
+
+  /**
+   * Enable/disable showing vectors as trajectories
+   *
+   * @param flag  true to display as trajectories
+   * @throws VisADException  problem enabling the trajectories
+   * @throws RemoteException  problem enabling the trajectories on remote system
+   */
+  public void enableTrajectory(boolean flag)
+         throws VisADException, RemoteException {
+    trajectoryEnabled = flag;
+    if (trajectoryEnabled && streamlinesEnabled) {
+      streamlinesEnabled = false;
+    }
+    changeControl(true);
+  }
+
 
   /**
    * Set the streamline density
@@ -265,6 +291,15 @@ public abstract class FlowControl extends Control {
   }
 
   /**
+   * Get the status of streamlines
+   * @return  true if streamlines are enabled.
+   */
+  public boolean trajectoryEnabled() {
+    return trajectoryEnabled;
+  }
+
+
+  /**
    * Get the streamline density factor.
    * @return  the streamline density factor.
    */
@@ -321,6 +356,7 @@ public abstract class FlowControl extends Control {
            getFlowScale() + " " + 
            getBarbOrientation() + " " +
            streamlinesEnabled() + " " +
+           trajectoryEnabled() + " " +
            getStreamlineDensity() + " " +
            getArrowScale() + " " +
            getStepFactor() + " " +
@@ -344,6 +380,7 @@ public abstract class FlowControl extends Control {
     float scale = Convert.getFloat(st.nextToken());
     int orientation = Convert.getInt(st.nextToken());
     boolean es = st.hasMoreTokens() ? Convert.getBoolean(st.nextToken()) : streamlinesEnabled();
+    boolean tes = st.hasMoreTokens() ? Convert.getBoolean(st.nextToken()) : trajectoryEnabled();
     float sd = st.hasMoreTokens() ? Convert.getFloat(st.nextToken()) : getStreamlineDensity();
     float as = st.hasMoreTokens() ? Convert.getFloat(st.nextToken()) : getArrowScale();
     float sf = st.hasMoreTokens() ? Convert.getFloat(st.nextToken()) : getStepFactor();
@@ -357,6 +394,7 @@ public abstract class FlowControl extends Control {
     flowScale = scale;
     barbOrientation = orientation;
     streamlinesEnabled = es;
+    trajectoryEnabled = tes;
     streamlineDensity = sd;
     arrowScale = as;
     stepFactor = sf;
@@ -450,6 +488,11 @@ public abstract class FlowControl extends Control {
     if (streamlinesEnabled != fc.streamlinesEnabled) {
       changed = true;
       streamlinesEnabled = fc.streamlinesEnabled;
+    }
+
+    if (trajectoryEnabled != fc.trajectoryEnabled) {
+      changed = true;
+      trajectoryEnabled = fc.trajectoryEnabled;
     }
 
     if (!Util.isApproximatelyEqual(streamlineDensity, fc.streamlineDensity)) {
@@ -611,6 +654,9 @@ public abstract class FlowControl extends Control {
     }
 
     if (streamlinesEnabled != fc.streamlinesEnabled) {
+      return false;
+    }
+    if (trajectoryEnabled != fc.trajectoryEnabled) {
       return false;
     }
     if (!Util.isApproximatelyEqual(streamlineDensity, fc.streamlineDensity))

@@ -51,6 +51,9 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
 
   private Vector AccumulationVector = new Vector();
 
+  boolean doTrajectory = false;
+  boolean checkTrajectory = false;
+
   public ShadowFunctionOrSetTypeJ3D(MathType t, DataDisplayLink link,
                                     ShadowType parent)
       throws VisADException, RemoteException {
@@ -108,6 +111,22 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
     DataDisplayLink[] link_s = renderer.getLinks();
     DataDisplayLink link = link_s[0];
     Vector scalarMaps = link.getSelectedMapVector();
+
+    if (!checkTrajectory) {
+      for (int kk=0; kk<scalarMaps.size(); kk++) {
+        ScalarMap scalarMap = (ScalarMap) scalarMaps.elementAt(kk);
+        DisplayRealType dspType = scalarMap.getDisplayScalar();
+        if (dspType.equals(Display.Flow1X) || dspType.equals(Display.Flow1Y) || dspType.equals(Display.Flow1Z) ||
+            dspType.equals(Display.Flow2X) || dspType.equals(Display.Flow2Y) || dspType.equals(Display.Flow2Z)) {
+          FlowControl flwCntrl = (FlowControl) scalarMap.getControl();
+          if (flwCntrl.trajectoryEnabled()) {
+            doTrajectory = true;
+            break;
+          }
+        }
+      }
+      checkTrajectory = true;
+    }
     
     // only determine if it's an animation if non-terminal. isTerminal will
     // only be determined if there are scalar maps - defaults to false
@@ -180,12 +199,30 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
                   public void run()  throws Exception {
                       recurseRange(branch, sample,
                                    value_array, default_values, renderer);
-                      node.addChild(branch);          
+                      if (!doTrajectory) {
+                        node.addChild(branch);          
+                      }
                   }
               });
       }
 
-      threadManager.runInParallel();
+      if (doTrajectory) {
+        threadManager.runSequentially();
+      }
+      else {
+        threadManager.runInParallel();
+      }
+
+      if (doTrajectory) {
+        for (int i=0; i<domainLength; i++) {
+          final BranchGroup branch = (BranchGroup) branches.get(i);
+          final BranchGroup node = (BranchGroup) swit.getChild(i);
+          FlowInfo info = Range.getAdaptedShadowType().flowInfoList.get(i);
+          addToGroup(branch, info.arrays[0], info.mode, info.constant_alpha, info.constant_color);
+          node.addChild(branch);
+        }
+      }
+      
     } 
     else {
       ShadowFunctionOrSetType shadow = (ShadowFunctionOrSetType)adaptedShadowType;

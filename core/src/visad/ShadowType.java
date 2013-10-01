@@ -31,6 +31,7 @@ import java.awt.image.BufferedImage;
 import java.rmi.RemoteException;
 import java.util.Enumeration;
 import java.util.Vector;
+import java.util.ArrayList;
 
 import visad.util.HersheyFont;
 
@@ -168,6 +169,11 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
   float reduction1;
   float reduction2;
   // ---------------------
+
+  /** trajectory flags */
+  public boolean trajectory1 = false;
+  public boolean trajectory2 = false;
+  public ArrayList<FlowInfo> flowInfoList = new ArrayList<FlowInfo>();
 
   /** makeContour, manifoldDimension == 2 */
   int[] cnt = { 0 };
@@ -2136,6 +2142,7 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
               cntrWeight1 = pp[0];
               n_pass1 = (int) pp[1];
               reduction1 = control.getStreamlineReduction();
+              trajectory1 = control.trajectoryEnabled();
             }
             if (k == 1) {
               streamline2 = control.streamlinesEnabled();
@@ -2147,6 +2154,7 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
               cntrWeight2 = pp[0];
               n_pass2 = (int) pp[1];
               reduction2 = control.getStreamlineReduction();
+              trajectory2 = control.trajectoryEnabled();
             }
           }
         }

@@ -2116,6 +2116,25 @@ if (range_select[0] != null) {
               }
             }
           }
+          else if (trajectory1) {
+            // for testing only, trajectory just need the values
+            arrays = shadow_api.makeFlow(0, flow1_values, flowScale[0],
+                              spatial_values, color_values, range_select);
+
+            FlowInfo flwInfo = new FlowInfo();
+            flwInfo.flow_values = flow1_values;
+            flwInfo.flowScale = flowScale[0];
+            flwInfo.spatial_values = spatial_values;
+            flwInfo.spatial_set = spatial_set;
+            flwInfo.spatialManifoldDimension = spatialManifoldDimension;
+            flwInfo.color_values = color_values;
+            flwInfo.range_select = range_select;
+            flwInfo.mode = mode;
+            flwInfo.constant_alpha = constant_alpha;
+            flwInfo.constant_color = constant_color;
+            flwInfo.arrays = arrays;
+            flowInfoList.add(flwInfo);
+          }
           else {
             visad.util.Trace.call1("ShadowFunctionOrSetType:makeFlow flow1");
             arrays = shadow_api.makeFlow(0, flow1_values, flowScale[0],
@@ -2129,6 +2148,7 @@ if (range_select[0] != null) {
                 }
               }
             }
+            
             visad.util.Trace.call2("ShadowFunctionOrSetType:makeFlow flow1");
           }
           anyFlowCreated = true;
@@ -2149,6 +2169,25 @@ if (range_select[0] != null) {
                 arrays[i] = null;
               }
             }
+          }
+          else if (trajectory2) {
+            // for testing only, trajectory just need the values
+            arrays = shadow_api.makeFlow(1, flow2_values, flowScale[1],
+                              spatial_values, color_values, range_select);
+
+            FlowInfo flwInfo = new FlowInfo();
+            flwInfo.flow_values = flow1_values;
+            flwInfo.flowScale = flowScale[1];
+            flwInfo.spatial_values = spatial_values;
+            flwInfo.spatial_set = spatial_set;
+            flwInfo.spatialManifoldDimension = spatialManifoldDimension;
+            flwInfo.color_values = color_values;
+            flwInfo.range_select = range_select;
+            flwInfo.mode = mode;
+            flwInfo.constant_alpha = constant_alpha;
+            flwInfo.constant_color = constant_color;
+            flwInfo.arrays = arrays;
+            flowInfoList.add(flwInfo);
           }
           else {
             visad.util.Trace.call1("ShadowFunctionOrSetType:makeFlow flow2");
