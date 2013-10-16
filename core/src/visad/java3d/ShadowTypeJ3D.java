@@ -653,7 +653,9 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     appearance.setCapability(Appearance.ALLOW_TEXGEN_READ);
     appearance.setCapability(Appearance.ALLOW_TEXTURE_ATTRIBUTES_READ);
     appearance.setCapability(Appearance.ALLOW_TEXTURE_READ);
-    appearance.setCapability (Appearance.ALLOW_RENDERING_ATTRIBUTES_WRITE);
+    /* TDR (2013-10-16): Can possibly cause problems on ATI graphics
+    appearance.setCapability(Appearance.ALLOW_RENDERING_ATTRIBUTES_WRITE);
+    */
     // appearance.setCapability(Appearance.ALLOW_TEXTURE_UNIT_STATE_READ);
     appearance.setCapability(Appearance.ALLOW_TRANSPARENCY_ATTRIBUTES_READ);
 
@@ -706,7 +708,9 @@ public abstract class ShadowTypeJ3D extends ShadowType {
     rendering.setCapability(RenderingAttributes.ALLOW_ALPHA_TEST_FUNCTION_READ);
     rendering.setCapability(RenderingAttributes.ALLOW_ALPHA_TEST_VALUE_READ);
     rendering.setCapability(RenderingAttributes.ALLOW_DEPTH_ENABLE_READ);
+    /* TDR (2013-10-16): Can possibly cause problems on ATI graphics
     rendering.setCapability (RenderingAttributes.ALLOW_VISIBLE_WRITE);
+    */
 
     //rendering.setCapability(RenderingAttributes.ALLOW_IGNORE_VERTEX_COLORS_READ
     // );
