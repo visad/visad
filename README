@@ -1,4 +1,3 @@
-
 Repository Layout
 =================
 :core: Everything in the `visad.*` and `edu.ssec.wisc.mcidas.*` namespace.
@@ -45,14 +44,13 @@ for each ant file for more information.
 
 Building the Distribution
 -------------------------
-Check out https://svn.ssec.wisc.edu/repos/visad
-Run `ant dist`
+Run the following commands:
+	git clone https://github.com/visad/visad.git
+	cd visad
+	ant dist
 
 Building the Core
 ----------------------
-You can either work from the entire SVN tree (https://svn.ssec.wisc.edu/repos/visad/trunk)
-or check out only the core (https://svn.ssec.wisc.edu/repos/visad/trunk/core).
-
 From your working copy you can simply run any of the commands listed by `ant -p`.
 
 If you jar the core it will extract `lib/visaddeps.jar` and include the class files
@@ -60,16 +58,13 @@ in the generated visad.jar.
 
 Building the Examples
 ---------------------
-You can either work from the entire SVN tree (https://svn.ssec.wisc.edu/repos/visad/trunk)
-or check out only the core (https://svn.ssec.wisc.edu/repos/visad/trunk/).
-
-The examples project build file check to see if VisAD is available as either a jar file
+The examples project build file checks to see if VisAD is available as either a jar file
 in the exmples project lib directory or in ../core (assuming you checked out all of 
-visad/trunk). If it cannot find VisAD it attempts to call ../core/build.xml to build
-it before compiling the examples.  If you have VisAD in another location you can compile
-the examples as follows::
+visad). If it cannot find VisAD it attempts to call ../core/build.xml to build it before 
+compiling the examples.  If you have VisAD in another location you can compile
+the examples as follows:
 
-    ant -Dvisad.dir=<YOUR VISAD DIR> build
+	ant -Dvisad.dir=<YOUR VISAD DIR> build
 
 
 VisAD and Eclipse
@@ -84,42 +79,19 @@ Java Developers."
 :Note: These instructions were written from a Mac, so you may have to adjust 
        slightly for your platform.
 
-Install Subclipse
------------------
-Unfortunately, at this time Eclipse does not by default come with SVN 
-capabilities, so you have to install the Subclipse SVN Plugin 
-(http://subclipse.tigris.org). 
-
-	* Open Eclipse
-	* Select a workspace (where all your project will be saved)
-	* Start the `Install New Software` wizard. (`Help > Install New Software`)
-	* Put this URL in the `Work with` box: http://subclipse.tigris.org/update_1.6.x
-	  and click `Add`.
-	* Give your new software update site a name and click `OK`.
-	* Check all boxes in the software list and click `Next`.
-	* Complete the install process by reviewing the install details, accepting
-	  the license, and restarting Eclipse.
-	
-	* Ensure you have a valid SVN client selected
-		- Open the preferences and select `Team > SVN`
-		- Under `SVN Interface` select `SVNKit` and click `OK`
-
 Create and Checkout Projects
 ----------------------------
 
-	* From the menubar select `File > New > Other`
-	* In the new dialog select `SVN > Check Projects from SVN` and click `Next`
-	* Select `Create a new repository location` and click next.
-	* Enter https://svn.ssec.wisc.edu/repos/visad as the url (http*s* not http),
-	  and click `Next`
-	* Select `trunk > core` and click `Finish`
-	
-	* (optional) Do the same for `deps` and `examples` if desired.
+	* From the menubar select `File > Import...`.
+	* In the new dialog select `Git > Git Repository` and click `Next`.
+	* Copy `https://github.com/visad/visad.git` and paste into the `URI` field.
+	* (optional) Click `Next` and configure the details of the cloned repository.
+	* If you skipped the previous step, simply click `Finish`.
 
 Building from Eclipse
 ---------------------
 
-	* From the menubar select `Window > Show View > Ant`
-	* In the `Ant` view tab, right-click and select `Add Buildfiles`
-	* Select the build file for each sub-project created above and click `OK`
-	* In the `Ant` view tab, expand a project and select the build target to run
+	* From the menubar select `Window > Show View > Ant`.
+	* In the `Ant` view tab, right-click and select `Add Buildfiles`.
+	* Select the build file for each sub-project created above and click `OK`.
+	* In the `Ant` view tab, expand a project and select the build target to run.
