@@ -47,6 +47,7 @@ public class ContourControl extends Control {
   public static final int LABEL_FREQ_HI = 9;
   
   // default and (somewhat arbitrary) values for labeling every Nth line
+  public static final int EVERY_NTH_MIN = 0;
   public static final int EVERY_NTH_DEFAULT = 2;
   public static final int EVERY_NTH_MAX = 100;
   
