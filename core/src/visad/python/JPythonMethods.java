@@ -4013,7 +4013,24 @@ public static void plot(final String name, final float[][] data)
   */
   public static Field resample(Field data, Set s) 
              throws VisADException, RemoteException {
-    return data.resample(s,0,0);
+    return data.resample(s,Data.NEAREST_NEIGHBOR,Data.NO_ERRORS);
+  }
+
+  /** resample the data field into the defined domain set
+  *
+  * @param data is the input Field
+  * @param s is the Set which must have a domain MathType identical
+  *   to data's original
+  * @param mode is the sampling mode (e.g. Data.NEAREST_NEIGHBOR)
+  *
+  * @return the new Field
+   * @throws VisADException 
+   * @throws RemoteException 
+  *
+  */
+  public static Field resample(Field data, Set s, int mode) 
+             throws VisADException, RemoteException {
+    return data.resample(s,mode,Data.NO_ERRORS);
   }
 
   /** returns the double value of a Real value.

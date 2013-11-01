@@ -487,8 +487,11 @@ public class DisplayImplJ3D extends DisplayImpl {
     array.setCapability(GeometryArray.ALLOW_FORMAT_READ);
     array.setCapability(GeometryArray.ALLOW_NORMAL_READ);
     array.setCapability(GeometryArray.ALLOW_TEXCOORD_READ);
+    /* TDR (2013-10-12): Should only be used in conjunction with GeometryArray.updateData 
+       which is not currently implemented
     array.setCapability(GeometryArray.ALLOW_REF_DATA_WRITE);
-    
+    */
+
     // only used when using BY_REFERENCE, so just set it anyways
     //array.setCapability(GeometryArray.ALLOW_REF_DATA_READ);
   }
