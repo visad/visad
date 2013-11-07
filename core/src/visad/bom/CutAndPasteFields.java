@@ -78,7 +78,7 @@ import java.rmi.*;
 */
 public class CutAndPasteFields extends Object implements ActionListener {
 
-  private boolean debug = true;
+  private boolean debug = false;
 
   private Field grids = null;
   private DisplayImpl display = null;
@@ -389,7 +389,7 @@ public class CutAndPasteFields extends Object implements ActionListener {
           }
   
           if (!getIndices(true)) {
-            System.out.println("bad box");
+            if (debug) System.out.println("bad box");
             return;
           }
           getRect();
@@ -567,7 +567,7 @@ public class CutAndPasteFields extends Object implements ActionListener {
     }
 
     if (!getIndices(false)) {
-      System.out.println("bad box");
+      if (debug) System.out.println("bad box");
       return;
     }
 
