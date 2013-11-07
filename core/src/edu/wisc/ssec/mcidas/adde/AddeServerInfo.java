@@ -71,7 +71,7 @@ public class AddeServerInfo extends Object {
   private String userproj = null;
   private String DATEFORMAT = "yyyy-MM-dd / HH:mm:ss";
   
-  private boolean debug = true;
+  private boolean debug = false;
 
   private boolean isArchive = false;
   private String archiveDate = null;
@@ -108,8 +108,8 @@ public class AddeServerInfo extends Object {
     if (list == null) {
       list = new String[] {
     		  "adde.unidata.ucar.edu",
-    		  "peter.ssec.wisc.edu",
-    		  "motherlode.ucar.edu",
+    		  "adde.ssec.wisc.edu",
+    		  "unidata2.ssec.wisc.edu",
     		  "uwamrc.ssec.wisc.edu"
     		 };
     }
@@ -496,7 +496,7 @@ public class AddeServerInfo extends Object {
          match = g.equals(selectedGroup);
        }
        if (match) {
-    	   System.out.println("VECTOR SIZE: " + v.size());
+    	   if (debug) System.out.println("VECTOR SIZE: " + v.size());
     	   if (v.size() >= 4) {
     		   Vector ffv = (Vector) v.elementAt(3);
     		   String ff = (String) ffv.elementAt(0);
@@ -621,8 +621,8 @@ public class AddeServerInfo extends Object {
     
     // NOTE!
     // if you are testing this class, edit below with your server info!
-    asi.setUserIDandProjString("user=SOSE&proj=1250");
-    int sstat = asi.setSelectedServer("noaaport.ssec.wisc.edu", "image");
+    asi.setUserIDandProjString("user=ZZZZ&proj=YYYY");
+    int sstat = asi.setSelectedServer("some-server.ssec.wisc.edu", "image");
 
     System.out.println("Status = " + asi.getStatus() + " code=" + sstat);
     String[] a = asi.getGroupList();

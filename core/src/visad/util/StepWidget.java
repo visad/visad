@@ -40,7 +40,7 @@ public class StepWidget extends JPanel
   implements ActionListener, ChangeListener
 {
 
-  protected static final boolean DEBUG = true;
+  protected static final boolean DEBUG = false;
   private static final int BUTTON_WIDTH = 25;
   private static final int BUTTON_HEIGHT = 25;
   private static final int GAP = 5;
