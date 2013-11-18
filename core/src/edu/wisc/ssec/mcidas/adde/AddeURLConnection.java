@@ -234,7 +234,7 @@ public class AddeURLConnection extends URLConnection
   private DataOutputStream dos = null;
   private URL url;
 
-  private static final Logger logger =
+  private static final Logger LOGGER =
     Logger.getLogger(AddeURLConnection.class.getName());
 
   /**
@@ -382,9 +382,9 @@ public class AddeURLConnection extends URLConnection
     String query = url.getQuery();
     debug = debug || request.indexOf("debug=true") >= 0;
 
-    if (logger.isLoggable(Level.FINEST)) {
-      logger.finest("host from URL: " + url.getHost());
-      logger.finest("file from URL: " + url.getFile());
+    if (LOGGER.isLoggable(Level.FINEST)) {
+      LOGGER.finest("host from URL: " + url.getHost());
+      LOGGER.finest("file from URL: " + url.getFile());
     }
 
     if (!path.startsWith("image") && 
@@ -457,16 +457,16 @@ public class AddeURLConnection extends URLConnection
           "Invalid or unsupported ADDE service= "+svc.toString() );
     }
 
-    if (logger.isLoggable(Level.FINEST)) {
-      logger.finest("Service = " + new String(svc));
+    if (LOGGER.isLoggable(Level.FINEST)) {
+      LOGGER.finest("Service = " + new String(svc));
     }
 
     // prep for real thing - get cmd from file part of URL
     int test = requestOriginal.indexOf("?");
     //String uCmd = (test >=0) ? requestOriginal.substring(test+1) : requestOriginal;
     String uCmd = (query == null) ? requestOriginal : query;
-    if (logger.isLoggable(Level.FINEST)) {
-      logger.finest("uCmd="+uCmd);
+    if (LOGGER.isLoggable(Level.FINEST)) {
+      LOGGER.finest("uCmd="+uCmd);
     }
 
     // build the command string
@@ -513,8 +513,8 @@ public class AddeURLConnection extends URLConnection
       new Boolean(
         getValue(uCmd, "auto-upcase=", "false")).booleanValue();
     String cmd = (a || b) ? sb.toString().toUpperCase() : sb.toString();
-    if (logger.isLoggable(Level.FINEST)) {
-      logger.finest(cmd);
+    if (LOGGER.isLoggable(Level.FINEST)) {
+      LOGGER.finest(cmd);
     }
     byte [] ob = cmd.getBytes();
 
@@ -523,16 +523,16 @@ public class AddeURLConnection extends URLConnection
     // user initials - pass on what client supplied in user= keyword
     byte [] usr; 
     String testStr = getValue(uCmd, "user=", DEFAULT_USER);
-    if (logger.isLoggable(Level.FINEST)) {
-      logger.finest("user = " + testStr);
+    if (LOGGER.isLoggable(Level.FINEST)) {
+      LOGGER.finest("user = " + testStr);
     }
     usr = testStr.getBytes();
 
     // project number - we won't validate, but make sure it's there
     int proj = 0;
     testStr = getValue(uCmd, "proj=", ""+DEFAULT_PROJ);
-    if (logger.isLoggable(Level.FINEST)) {
-      logger.finest("proj = " + testStr);
+    if (LOGGER.isLoggable(Level.FINEST)) {
+      LOGGER.finest("proj = " + testStr);
     }
     try {
       proj = Integer.parseInt(testStr);
@@ -550,7 +550,7 @@ public class AddeURLConnection extends URLConnection
           portToUse = Integer.parseInt(testStr);
         } catch (NumberFormatException e) {
           // just use default
-          logger.severe(
+          LOGGER.severe(
             "Warning: Invalid port number \"" + testStr + 
             "\" specified;  using default port " + portToUse + " instead");
         }
@@ -594,7 +594,7 @@ public class AddeURLConnection extends URLConnection
         Class c = Class.forName("HTTPClient.UncompressInputStream");
         compressionType = COMPRESS;
       } catch (ClassNotFoundException cnfe) {
-        logger.severe(
+        LOGGER.severe(
           "Uncompression code not found, turning compression off");
       }
 
@@ -602,8 +602,8 @@ public class AddeURLConnection extends URLConnection
         compressionType = NO_COMPRESS;
     }
 
-    if (logger.isLoggable(Level.FINEST)) {
-      logger.finest("compression = " + testStr);
+    if (LOGGER.isLoggable(Level.FINEST)) {
+      LOGGER.finest("compression = " + testStr);
     }
 
     // zero by default, for newer mcservs (1,2,3)
@@ -630,8 +630,8 @@ public class AddeURLConnection extends URLConnection
       compressionType = NO_COMPRESS;
     }
 
-    if (logger.isLoggable(Level.FINEST))  {
-      logger.finest("connecting on port " + portToUse + " using " +
+    if (LOGGER.isLoggable(Level.FINEST))  {
+      LOGGER.finest("connecting on port " + portToUse + " using " +
                          (compressionType == GZIP
                              ? "gzip"
                              : compressionType == COMPRESS
@@ -718,8 +718,8 @@ public class AddeURLConnection extends URLConnection
 
     if (ob.length > REQUEST_SIZE)
     {
-      if (logger.isLoggable(Level.FINEST)) {
-        logger.finest("numBinaryBytes= " + numBinaryBytes);
+      if (LOGGER.isLoggable(Level.FINEST)) {
+        LOGGER.finest("numBinaryBytes= " + numBinaryBytes);
       }
       dos.writeInt(ob.length + numBinaryBytes); // number of additional bytes
       dos.writeInt(ob.length);                  // number of bytes in request
@@ -728,8 +728,8 @@ public class AddeURLConnection extends URLConnection
       }
       dos.write(ob,0,ob.length);
     } else {
-      if (logger.isLoggable(Level.FINEST)) {
-        logger.finest("numBinaryBytes= " + numBinaryBytes);
+      if (LOGGER.isLoggable(Level.FINEST)) {
+        LOGGER.finest("numBinaryBytes= " + numBinaryBytes);
       }
       dos.writeInt(numBinaryBytes);
       dos.write(ob, 0, ob.length);
@@ -747,8 +747,8 @@ public class AddeURLConnection extends URLConnection
             : t.getInputStream();
     dis = new DataInputStream(is);
 
-    if (logger.isLoggable(Level.FINEST) && (compressionType != portToUse) ) {
-      logger.finest("Compression is turned "+
+    if (LOGGER.isLoggable(Level.FINEST) && (compressionType != portToUse) ) {
+      LOGGER.finest("Compression is turned "+
         ((compressionType == NO_COMPRESS)?"OFF":("ON using " +
                             ((compressionType == GZIP)?"GZIP":"compress"))));
     }
@@ -757,8 +757,8 @@ public class AddeURLConnection extends URLConnection
 
     if(!rawStream) {
       numBytes = dis.readInt();
-      if (logger.isLoggable(Level.FINEST)) {
-        logger.finest("server is sending: " + numBytes + " bytes");
+      if (LOGGER.isLoggable(Level.FINEST)) {
+        LOGGER.finest("server is sending: " + numBytes + " bytes");
       }
 
       // if server returns zero, there was an error so read trailer and exit
@@ -781,7 +781,7 @@ public class AddeURLConnection extends URLConnection
    * Search for a value in the string and return the value or the default
    * @param stringToSearch    String to search for the value
    * @param key               key to search for (includes '=' to disambiguate);
-   * @param default           default value
+   * @param deflt             default value
    * @return value in string
    */
   private String getValue(String stringToSearch, String key, String deflt) {
@@ -1380,8 +1380,8 @@ public class AddeURLConnection extends URLConnection
           subBuf.append((skip == null) ? "1 1" : skip);
           subBuf.append(" LATLON");
           subsetString = subBuf.toString();
-          if (logger.isLoggable(Level.FINEST)) {
-            logger.finest(subsetString);
+          if (LOGGER.isLoggable(Level.FINEST)) {
+            LOGGER.finest(subsetString);
           }
       }
       else if (rowString != null && colString != null)
@@ -1395,8 +1395,8 @@ public class AddeURLConnection extends URLConnection
           subBuf.append((skip == null) ? "1 1" : skip);
           subBuf.append(" ROWCOL");
           subsetString = subBuf.toString();
-          if (logger.isLoggable(Level.FINEST)) {
-            logger.finest(subsetString);
+          if (LOGGER.isLoggable(Level.FINEST)) {
+            LOGGER.finest(subsetString);
           }
       }
       else if (skip != null) {  // only skip specified
@@ -1406,8 +1406,8 @@ public class AddeURLConnection extends URLConnection
           subBuf.append(skip);
           subBuf.append(" ROWCOL");
           subsetString = subBuf.toString();
-          if (logger.isLoggable(Level.FINEST)) {
-            logger.finest(subsetString);
+          if (LOGGER.isLoggable(Level.FINEST)) {
+            LOGGER.finest(subsetString);
           }
       }
 
@@ -2065,8 +2065,8 @@ public class AddeURLConnection extends URLConnection
                     testString.substring(testString.indexOf("=") + 1) ;
                 parmString = 
                    "PARM=" + justTheParametersString;
-                if (logger.isLoggable(Level.FINEST)) {
-                  logger.finest("paramString = " + parmString);
+                if (LOGGER.isLoggable(Level.FINEST)) {
+                  LOGGER.finest("paramString = " + parmString);
                 }
                 sBinaryData =   
                     new String(decodePARAMString(justTheParametersString));
@@ -2081,8 +2081,8 @@ public class AddeURLConnection extends URLConnection
                 selectString = 
                    "SELECT=" + new String(
                        decodeSELECTString(justTheSelectString));
-                if (logger.isLoggable(Level.FINEST)) {
-                  logger.finest("Server selectString = " + selectString);
+                if (LOGGER.isLoggable(Level.FINEST)) {
+                  LOGGER.finest("Server selectString = " + selectString);
                 }
             }
             else
@@ -2135,8 +2135,8 @@ public class AddeURLConnection extends URLConnection
         posParams.append(" ");
         posParams.append(maxString.toUpperCase());
 
-        if (logger.isLoggable(Level.FINEST)) {
-          logger.finest("String passed to server = " + posParams);
+        if (LOGGER.isLoggable(Level.FINEST)) {
+          LOGGER.finest("String passed to server = " + posParams);
         }
         return posParams;
 
@@ -2175,8 +2175,8 @@ public class AddeURLConnection extends URLConnection
             // note that the units are ignored by the server
             // it is the client's responsibility to do unit conversion
                 thisUnit = (thisParamToken.nextToken()).trim();
-                if (logger.isLoggable(Level.FINEST)) {
-                  logger.finest("This Unit = " + thisUnit);
+                if (LOGGER.isLoggable(Level.FINEST)) {
+                  LOGGER.finest("This Unit = " + thisUnit);
                 }
             }
         }
@@ -2217,8 +2217,8 @@ public class AddeURLConnection extends URLConnection
         while (selectTokens.hasMoreTokens())
         {
             thisSelect = (selectTokens.nextToken()).trim();
-            if (logger.isLoggable(Level.FINEST)) {
-              logger.finest(" this Select = " + thisSelect);
+            if (LOGGER.isLoggable(Level.FINEST)) {
+              LOGGER.finest(" this Select = " + thisSelect);
             }
             //
             // Break into individual clauses eg:
@@ -2228,8 +2228,8 @@ public class AddeURLConnection extends URLConnection
                 new StringTokenizer(thisSelect, " ");
             int tokenCount = thisSelectToken.countTokens();
             thisSelect = new String(thisSelectToken.nextToken());
-            if (logger.isLoggable(Level.FINEST)) {
-              logger.finest("this Select = " + thisSelect);
+            if (LOGGER.isLoggable(Level.FINEST)) {
+              LOGGER.finest("this Select = " + thisSelect);
             }
 
             //
@@ -2258,8 +2258,8 @@ public class AddeURLConnection extends URLConnection
            //
            if (thisSelectToken.hasMoreTokens()) {
                 thisSelect = thisSelectToken.nextToken();
-                if (logger.isLoggable(Level.FINEST)) {
-                  logger.finest("this Select = " + thisSelect);
+                if (LOGGER.isLoggable(Level.FINEST)) {
+                  LOGGER.finest("this Select = " + thisSelect);
                 }
                 buf.append(" " + thisSelect);
            }
@@ -2273,8 +2273,8 @@ public class AddeURLConnection extends URLConnection
                 // server requires TO for a range of values eg:
                 // 20 to 30
                 buf.append(" TO " + thisSelect);
-                if (logger.isLoggable(Level.FINEST)) {
-                  logger.finest("this Select = " + thisSelect);
+                if (LOGGER.isLoggable(Level.FINEST)) {
+                  LOGGER.finest("this Select = " + thisSelect);
                 }
            }
 
@@ -2329,7 +2329,7 @@ public class AddeURLConnection extends URLConnection
 
     /**
      * Negate a longitude.  McIDAS convention is positive west.
-     * @param eastLongitude  eastLongitude to negate
+     * @param eastLong  eastLongitude to negate
      */
     private String negateLongitude(String eastLong)
     {
@@ -2363,8 +2363,8 @@ public class AddeURLConnection extends URLConnection
         for (int i=0; i<replaceString.length; i++) {
           int pos = -1;
           while ((pos = x.indexOf(replaceString[i])) >=0) {
-            if (logger.isLoggable(Level.FINEST)) {
-              logger.finest("found " + replaceString[i] + " at " + pos);
+            if (LOGGER.isLoggable(Level.FINEST)) {
+              LOGGER.finest("found " + replaceString[i] + " at " + pos);
             }
             StringBuffer buf = new StringBuffer(x);
             buf.replace(pos, pos+(replaceString[i].length()), replaceWith[i]);
@@ -2372,8 +2372,8 @@ public class AddeURLConnection extends URLConnection
           }
         }
       }
-      if (logger.isLoggable(Level.FINEST)) {
-        logger.finest("normalized url = " + x);
+      if (LOGGER.isLoggable(Level.FINEST)) {
+        LOGGER.finest("normalized url = " + x);
       }
       try {
           return new URL(x);
