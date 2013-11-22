@@ -112,21 +112,6 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
     DataDisplayLink link = link_s[0];
     Vector scalarMaps = link.getSelectedMapVector();
 
-    if (!checkTrajectory) {
-      for (int kk=0; kk<scalarMaps.size(); kk++) {
-        ScalarMap scalarMap = (ScalarMap) scalarMaps.elementAt(kk);
-        DisplayRealType dspType = scalarMap.getDisplayScalar();
-        if (dspType.equals(Display.Flow1X) || dspType.equals(Display.Flow1Y) || dspType.equals(Display.Flow1Z) ||
-            dspType.equals(Display.Flow2X) || dspType.equals(Display.Flow2Y) || dspType.equals(Display.Flow2Z)) {
-          FlowControl flwCntrl = (FlowControl) scalarMap.getControl();
-          if (flwCntrl.trajectoryEnabled()) {
-            doTrajectory = true;
-            break;
-          }
-        }
-      }
-      checkTrajectory = true;
-    }
     
     // only determine if it's an animation if non-terminal. isTerminal will
     // only be determined if there are scalar maps - defaults to false
@@ -151,6 +136,22 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
         // animation domain
         timeMap = (ScalarMap) scalarMaps.elementAt(ani_map_idx);
       }
+
+      // check for trajectory
+      for (int kk=0; kk<scalarMaps.size(); kk++) {
+        ScalarMap scalarMap = (ScalarMap) scalarMaps.elementAt(kk);
+        DisplayRealType dspType = scalarMap.getDisplayScalar();
+        if (dspType.equals(Display.Flow1X) || dspType.equals(Display.Flow1Y) || dspType.equals(Display.Flow1Z) ||
+            dspType.equals(Display.Flow2X) || dspType.equals(Display.Flow2Y) || dspType.equals(Display.Flow2Z)) {
+          FlowControl flwCntrl = (FlowControl) scalarMap.getControl();
+          if (flwCntrl.trajectoryEnabled()) {
+            doTrajectory = true;
+            break;
+          }
+        }
+      }
+
+
     }
     // animation logic
     if (isAnimation1d){
