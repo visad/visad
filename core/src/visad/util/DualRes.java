@@ -39,7 +39,7 @@ import visad.*;
 public class DualRes {
 
   /** Debugging flag. */
-  public static boolean DEBUG = true;
+  public static boolean DEBUG = false;
 
   /** High-resolution data reference. */
   protected DataReferenceImpl hi_ref;
