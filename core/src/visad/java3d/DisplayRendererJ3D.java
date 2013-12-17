@@ -206,6 +206,8 @@ public abstract class DisplayRendererJ3D
   private boolean[] modelClipEnables =
     {false, false, false, false, false, false};
 
+  private Vector<DataRenderer> priorityOrderedList = new Vector<DataRenderer>();
+
   public DisplayRendererJ3D () {
     super();
   }
@@ -861,6 +863,66 @@ public abstract class DisplayRendererJ3D
     non_direct.addChild(group);
   }
 
+  public void addSceneGraphComponent(Group group, DataRenderer renderer, double renderOrder) {
+    if (not_destroyed == null) return;
+
+    addToSceneGraph(group, renderer, renderOrder);
+  }
+
+  private synchronized void addToSceneGraph(Group group, DataRenderer renderer, double renderOrder) {
+
+    int index = 0;
+    for (int k=0; k<priorityOrderedList.size(); k++) {
+      if (renderOrder < ((RendererJ3D)priorityOrderedList.get(k)).getRenderOrderPriority()) {
+        index = k;
+        break;
+      }
+      else {
+        index = k+1;
+      }
+    }
+
+    if (non_direct.numChildren() == 0) {
+      priorityOrderedList.add(renderer);
+      non_direct.addChild(group);
+    }
+    else {
+      priorityOrderedList.insertElementAt(renderer, index);
+      non_direct.insertChild(group, index);
+    }
+  }
+
+  /**
+   * Dynamically reorder DataRenderer position in the DisplayRenderer OrderedGroup scene
+   * @param renderers  The renderers to reorder.  Must match renderers in the Display.
+   * @param order      The new order in the scene.
+   * @throws VisADException  Renderers must match those in Display.
+   */
+  public synchronized void reorderRenderers(DataRenderer[] renderers, int[] order) throws VisADException {
+    if (renderers.length != priorityOrderedList.size()) {
+      throw new VisADException("number of renderers must match number in Display");
+    }
+    int[] chldIdxOrder = new int[renderers.length];
+    for (int k=0; k<renderers.length; k++) {
+      int idx = priorityOrderedList.indexOf(renderers[k]);
+      if (idx == -1) {
+        throw new VisADException("an element of renderers not found in Display");
+      }
+      chldIdxOrder[idx] = order[k];
+    }
+    non_direct.setChildIndexOrder(chldIdxOrder);
+  }
+
+  /** resets the indirection specified in reorderRenderers */
+  public synchronized void resetRendererOrder() {
+    int numRenderers = priorityOrderedList.size();
+    int[] chldIdxOrder = new int[numRenderers];
+    for (int k=0; k<numRenderers; k++) {
+      chldIdxOrder[k] = k;
+    }
+    non_direct.setChildIndexOrder(chldIdxOrder);
+  }
+
   public void addLockedSceneGraphComponent(Group group) {
     if (not_destroyed == null || screen_locked == null) return;
     screen_locked.addChild(group);
@@ -882,7 +944,6 @@ public abstract class DisplayRendererJ3D
     }
   }
 
-
   public void addDirectManipulationSceneGraphComponent(Group group,
                          DirectManipulationRendererJ3D renderer) {
     if (not_destroyed == null) return;
@@ -892,9 +953,18 @@ public abstract class DisplayRendererJ3D
     directs.addElement(renderer);
   }
 
+  public void addDirectManipulationSceneGraphComponent(Group group,
+                         DirectManipulationRendererJ3D renderer, double renderOrder) {
+    if (not_destroyed == null) return;
+
+    addToSceneGraph(group, renderer, renderOrder);
+    directs.addElement(renderer);
+  }
+
 
   public void clearScene(DataRenderer renderer) {
     if (not_destroyed == null) return;
+    priorityOrderedList.removeElement(renderer);
     directs.removeElement(renderer);
   }
 
@@ -1645,4 +1715,3 @@ public abstract class DisplayRendererJ3D
   }
 
 }
-

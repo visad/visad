@@ -59,9 +59,12 @@ public abstract class RendererJ3D extends DataRenderer {
   boolean[] switchFlags = {false, false, false};
   boolean[] branchNonEmpty = {false, false, false};
 
+  private double renderOrderPriority = 10.0;
+
   public RendererJ3D() {
     super();
   }
+
 
   public void setLinks(DataDisplayLink[] links, DisplayImpl d)
        throws VisADException {
@@ -76,6 +79,16 @@ public abstract class RendererJ3D extends DataRenderer {
     setDisplayRenderer(d.getDisplayRenderer());
     setLinks(links);
 
+    renderOrderPriority = Display.RenderOrderPriority.getDefaultValue();
+    Vector constMaps = links[0].getConstantMaps();
+    for (int k=0; k<constMaps.size(); k++) {
+      ConstantMap cmap = (ConstantMap) constMaps.get(k);
+      if (cmap.getDisplayScalar().equals(Display.RenderOrderPriority)) {
+        renderOrderPriority = cmap.getConstant();
+        break;
+      }
+    }
+
     // set up switch logic for clean BranchGroup replacement
     Switch swt = new Switch(); // J3D
     swt.setCapability(Group.ALLOW_CHILDREN_READ);
@@ -89,7 +102,7 @@ public abstract class RendererJ3D extends DataRenderer {
     swParent.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
     swParent.addChild(swt);
     // make it 'live'
-    addSwitch((DisplayRendererJ3D) getDisplayRenderer(), swParent);
+    addSwitch((DisplayRendererJ3D) getDisplayRenderer(), swParent, this, renderOrderPriority);
 
     branches = new BranchGroup[3];
     for (int i=0; i<3; i++) {
@@ -148,8 +161,15 @@ System.out.println("setLinks: sw.setWhichChild(" + currentIndex + ")");
     return new ShadowTupleTypeJ3D(type, link, parent);
   }
 
+  public double getRenderOrderPriority() {
+    return renderOrderPriority;
+  }
+
   abstract void addSwitch(DisplayRendererJ3D displayRenderer,
                           BranchGroup branch);
+
+  abstract void addSwitch(DisplayRendererJ3D displayRenderer,
+                          BranchGroup branch, DataRenderer renderer, double orderPriority);
 
   /** re-transform if needed;
       return false if not done */

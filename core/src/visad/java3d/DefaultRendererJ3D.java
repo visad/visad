@@ -38,6 +38,7 @@ import javax.swing.JPanel;
 import visad.AnimationControl;
 import visad.ContourControl;
 import visad.Data;
+import visad.DataRenderer;
 import visad.DataDisplayLink;
 import visad.DataReferenceImpl;
 import visad.Display;
@@ -150,6 +151,11 @@ public class DefaultRendererJ3D extends RendererJ3D {
   public void addSwitch(DisplayRendererJ3D displayRenderer,
                         BranchGroup branch) {
     displayRenderer.addSceneGraphComponent(branch);
+  }
+
+  public void addSwitch(DisplayRendererJ3D displayRenderer,
+                        BranchGroup branch, DataRenderer renderer, double orderPriority) {
+    displayRenderer.addSceneGraphComponent(branch, renderer, orderPriority);
   }
 
   public DataDisplayLink getLink() {

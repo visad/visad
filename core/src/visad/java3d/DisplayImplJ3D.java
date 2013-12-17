@@ -735,6 +735,21 @@ public class DisplayImplJ3D extends DisplayImpl {
     return format;
   }
 
+  /**
+   * Dynamically reorder DataRenderer position in the DisplayRenderer OrderedGroup scene
+   * @param renderers  The renderers to reorder.  Must match renderers in the Display.
+   * @param order      The new order in the scene.
+   * @throws VisADException  Renderers must match those in Display.
+   */
+  public void reorderRenderers(DataRenderer[] renderers, int[] order) throws VisADException {
+    ((DisplayRendererJ3D)getDisplayRenderer()).reorderRenderers(renderers, order);
+  }
+
+  /** resets the indirection specified in reorderRenderers */
+  public void resetRendererOrder() {
+    ((DisplayRendererJ3D)getDisplayRenderer()).resetRendererOrder();
+  }
+
   public void destroyUniverse() {
     if (universe != null) universe.destroy();
     universe = null;
