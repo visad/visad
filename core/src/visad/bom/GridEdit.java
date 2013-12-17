@@ -71,7 +71,7 @@ import java.rmi.*;
 */
 public class GridEdit extends Object implements ActionListener {
 
-  private boolean debug = true;
+  private boolean debug = false;
 
   private Field grids = null;
   private DisplayImpl display = null;

@@ -46,7 +46,7 @@ import java.util.List;
 public class ThreadManager {
 
   /**           */
-  private String name = "TreadManager";
+  private String name = "ThreadManager";
 
   /**           */
   private static int maxThreads = 1;

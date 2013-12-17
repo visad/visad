@@ -52,7 +52,7 @@ Shapes
 */
 public class FrontDrawer extends Object implements ControlListener {
 
-  private static boolean debug = true;
+  private static boolean debug = false;
 
   private Object data_lock = new Object();
 
@@ -644,7 +644,7 @@ public class FrontDrawer extends Object implements ControlListener {
       initColormaps(d);
     }
     catch (VisADException e) {
-      // if (debug) System.out.println("caught " + e.toString());
+      if (debug) System.out.println("caught " + e.toString());
     }
     ccs = cs;
     ffs = fs;
@@ -947,7 +947,7 @@ public class FrontDrawer extends Object implements ControlListener {
       }
       if (acontrol.getOn()) return;
       current_time_step = acontrol.getCurrent();
-      // System.out.println("ReleaseCell " + current_time_step + " " + ntimes);
+      if(debug) System.out.println("ReleaseCell " + current_time_step + " " + ntimes);
       if (current_time_step < 0 || current_time_step >= ntimes) return;
 
       synchronized (data_lock) {
@@ -1089,7 +1089,7 @@ public class FrontDrawer extends Object implements ControlListener {
         if (tries > 8) fw = 2 * fw;
         // if (debug) System.out.println("retry filter window = " + fw + " " + e);
         if (tries == 9) {
-          System.out.println("cannot smooth curve");
+          if(debug)System.out.println("cannot smooth curve");
           front = null;
         }
       }
@@ -1544,7 +1544,6 @@ public class FrontDrawer extends Object implements ControlListener {
 
 class FrontActionListener implements ActionListener {
   private FrontDrawer fd;
-  private static boolean debug = true;
   private JButton end;
   private DisplayImplJ3D display;
   private int front_kind;
