@@ -59,7 +59,7 @@ public abstract class RendererJ3D extends DataRenderer {
   boolean[] switchFlags = {false, false, false};
   boolean[] branchNonEmpty = {false, false, false};
 
-  protected double renderOrderPriority = 10.0;
+  private double renderOrderPriority = 10.0;
 
   public RendererJ3D() {
     super();
@@ -79,6 +79,7 @@ public abstract class RendererJ3D extends DataRenderer {
     setDisplayRenderer(d.getDisplayRenderer());
     setLinks(links);
 
+    renderOrderPriority = Display.RenderOrderPriority.getDefaultValue();
     Vector constMaps = links[0].getConstantMaps();
     for (int k=0; k<constMaps.size(); k++) {
       ConstantMap cmap = (ConstantMap) constMaps.get(k);
@@ -160,6 +161,12 @@ System.out.println("setLinks: sw.setWhichChild(" + currentIndex + ")");
     return new ShadowTupleTypeJ3D(type, link, parent);
   }
 
+  public double getRenderOrderPriority() {
+    return renderOrderPriority;
+  }
+
+  abstract void addSwitch(DisplayRendererJ3D displayRenderer,
+                          BranchGroup branch);
 
   abstract void addSwitch(DisplayRendererJ3D displayRenderer,
                           BranchGroup branch, DataRenderer renderer, double orderPriority);

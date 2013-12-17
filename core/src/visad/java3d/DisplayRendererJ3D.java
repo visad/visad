@@ -873,7 +873,7 @@ public abstract class DisplayRendererJ3D
 
     int index = 0;
     for (int k=0; k<priorityOrderedList.size(); k++) {
-      if (renderOrder < ((RendererJ3D)priorityOrderedList.get(k)).renderOrderPriority) {
+      if (renderOrder < ((RendererJ3D)priorityOrderedList.get(k)).getRenderOrderPriority()) {
         index = k;
         break;
       }
@@ -945,10 +945,17 @@ public abstract class DisplayRendererJ3D
   }
 
   public void addDirectManipulationSceneGraphComponent(Group group,
-                         DirectManipulationRendererJ3D renderer, double renderOrder) {
+                         DirectManipulationRendererJ3D renderer) {
     if (not_destroyed == null) return;
     // WLH 13 March 2000
     // direct.addChild(group);
+    non_direct.addChild(group);
+    directs.addElement(renderer);
+  }
+
+  public void addDirectManipulationSceneGraphComponent(Group group,
+                         DirectManipulationRendererJ3D renderer, double renderOrder) {
+    if (not_destroyed == null) return;
 
     addToSceneGraph(group, renderer, renderOrder);
     directs.addElement(renderer);
