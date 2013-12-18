@@ -2176,7 +2176,7 @@ if (range_select[0] != null) {
                               spatial_values, color_values, range_select);
 
             FlowInfo flwInfo = new FlowInfo();
-            flwInfo.flow_values = flow1_values;
+            flwInfo.flow_values = flow2_values;
             flwInfo.flowScale = flowScale[1];
             flwInfo.spatial_values = spatial_values;
             flwInfo.spatial_set = spatial_set;
