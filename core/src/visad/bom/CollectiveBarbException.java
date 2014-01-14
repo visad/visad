@@ -26,15 +26,51 @@ MA 02111-1307, USA
 
 package visad.bom;
 
-import visad.*;
+import visad.VisADException;
 
 /**
-   CollectiveBarbException is an exception for an error with a VisAD display.<P>
-*/
+ * {@code CollectiveBarbException} is an exception for an error with a VisAD
+ * display.
+ */
 public class CollectiveBarbException extends VisADException {
 
-  public CollectiveBarbException() { super(); }
-  public CollectiveBarbException(String s) { super(s); }
+  /**
+   * Constructs a {@code CollectiveBarbException} with no specified detail 
+   * message.
+   */
+  public CollectiveBarbException() {
+    super();
+  }
 
-}
+  /**
+   * Constructs a {@code CollectiveBarbException} with the specified detail 
+   * message.
+   *
+   * @param message Detail message.
+   */
+  public CollectiveBarbException(String message) {
+    super(message);
+  }
+
+  /**
+   * Constructs a {@code CollectiveBarbException} with the specified detail 
+   * message and cause.
+   *
+   * @param message Detail message.
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public CollectiveBarbException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  /**
+   * Constructs a {@code CollectiveBarbException} with the specified cause.
+   *
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public CollectiveBarbException(Throwable cause) {
+    super(cause);
+  }}
 

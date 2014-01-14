@@ -52,9 +52,37 @@ public class ParseException extends Exception {
     specialConstructor = false;
   }
 
-  /** Constructor with message. */
+    /**
+     * Constructs a {@code ParseException} with the specified detail message.
+     *
+     * @param message Detail message.
+     */
   public ParseException(String message) {
     super(message);
+    specialConstructor = false;
+  }
+
+  /**
+   * Constructs a {@code ParseException} with the specified detail message
+   * and cause.
+   *
+   * @param message Detail message.
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public ParseException(String message, Throwable cause) {
+    super(message, cause);
+    specialConstructor = false;
+  }
+
+  /**
+   * Constructs a {@code ParseException} with the specified cause.
+   *
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public ParseException(Throwable cause) {
+    super(cause);
     specialConstructor = false;
   }
 

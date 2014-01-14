@@ -26,16 +26,49 @@ MA 02111-1307, USA
 
 package visad.data.hdfeos;
 
-/**
-   HdfeosException is the superclass of all exceptions defined within the
-   hdfeos package.<P>
-*/
-
 import visad.VisADException;
 
+/**
+ * {@code HdfeosException} is the superclass of all exceptions defined within the
+ * hdfeos package.
+ */
 public class HdfeosException extends VisADException {
 
-  public HdfeosException() { super(); }
-  public HdfeosException(String s) { super(s); }
+  /**
+   * Constructs a {@code HdfeosException} with no specified detail message.
+   */
+  public HdfeosException() {
+    super();
+  }
 
+  /**
+   * Constructs a {@code HdfeosException} with the specified detail message.
+   *
+   * @param message Detail message.
+   */
+  public HdfeosException(String message) {
+    super(message);
+  }
+
+  /**
+   * Constructs a {@code HdfeosException} with the specified detail message
+   * and cause.
+   *
+   * @param message Detail message.
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public HdfeosException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  /**
+   * Constructs a {@code HdfeosException} with the specified cause.
+   *
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public HdfeosException(Throwable cause) {
+    super(cause);
+  }
 }

@@ -33,22 +33,43 @@ package visad;
  * This is part of Steve Emmerson's Unit package that has been
  * incorporated into VisAD.
  */
-public class UnitException
-    extends VisADException    // change by Bill Hibbard for VisAD
-{
-    /**
-     * Create an exception with no detail message.
-     */
-    public UnitException()
-    {
-	super();
-    }
+public class UnitException extends VisADException { // change by Bill Hibbard for VisAD
 
-    /**
-     * Create an exception with a detail message.
-     */
-    public UnitException(String msg)
-    {
-	super(msg);
-    }
+  /**
+   * Constructs a {@code UnitException} with no specified detail message.
+   */
+  public UnitException() {
+    super();
+  }
+
+  /**
+   * Constructs a {@code UnitException} with the specified detail message.
+   *
+   * @param message Detail message.
+   */
+  public UnitException(String message) {
+    super(message);
+  }
+
+  /**
+   * Constructs a {@code UnitException} with the specified detail message
+   * and cause.
+   *
+   * @param message Detail message.
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public UnitException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  /**
+   * Constructs a {@code UnitException} with the specified cause.
+   *
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public UnitException(Throwable cause) {
+    super(cause);
+  }
 }

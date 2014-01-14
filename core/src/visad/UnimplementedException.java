@@ -27,12 +27,25 @@ MA 02111-1307, USA
 package visad;
 
 /**
-   UnimplementedException is an exception for a VisAD method not yet implemented.<P>
-*/
+ * UnimplementedException is an exception for a VisAD method not yet
+ * implemented.
+ */
 public class UnimplementedException extends VisADException {
 
-  public UnimplementedException() { super(); }
-  public UnimplementedException(String s) { super(s); }
+  public UnimplementedException() { 
+    super(); 
+  }
 
+  public UnimplementedException(String message) { 
+    super(message); 
+  }
+  
+  public UnimplementedException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  public UnimplementedException(Throwable cause) {
+    super(cause);
+  }
 }
 

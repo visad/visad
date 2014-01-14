@@ -26,10 +26,49 @@ MA 02111-1307, USA
 
 package visad.formula;
 
-/** The type of exception thrown by the formula package.<P> */
-public class FormulaException extends visad.VisADException {
-  public FormulaException(String s) {
-    super(s);
+import visad.VisADException;
+
+/** 
+ * The type of exception thrown by the formula package.<P> 
+ */
+public class FormulaException extends VisADException {
+
+  /**
+   * Constructs a {@code FormulaException} with no specified detail message.
+   */
+  public FormulaException() {
+    super();
+  }
+
+  /**
+   * Constructs a {@code FormulaException} with the specified detail message.
+   *
+   * @param message Detail message.
+   */
+  public FormulaException(String message) {
+    super(message);
+  }
+
+  /**
+   * Constructs a {@code FormulaException} with the specified detail message
+   * and cause.
+   *
+   * @param message Detail message.
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public FormulaException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  /**
+   * Constructs a {@code FormulaException} with the specified cause.
+   *
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public FormulaException(Throwable cause) {
+    super(cause);
   }
 }
 

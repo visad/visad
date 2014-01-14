@@ -37,6 +37,42 @@ package visad.data.hdf5;
 import visad.VisADException;
 
 public class HDF5AdapterException extends VisADException {
-	public HDF5AdapterException() { super(); }
-	public HDF5AdapterException(String s) { super(s); }
+
+  /**
+   * Constructs a {@code HDF5AdapterException} with no specified detail message.
+   */
+  public HDF5AdapterException() {
+    super();
+  }
+
+  /**
+   * Constructs a {@code HDF5AdapterException} with the specified detail message.
+   *
+   * @param message Detail message.
+   */
+  public HDF5AdapterException(String message) {
+    super(message);
+  }
+
+  /**
+   * Constructs a {@code HDF5AdapterException} with the specified detail message
+   * and cause.
+   *
+   * @param message Detail message.
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public HDF5AdapterException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  /**
+   * Constructs a {@code HDF5AdapterException} with the specified cause.
+   *
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public HDF5AdapterException(Throwable cause) {
+    super(cause);
+  }
 }

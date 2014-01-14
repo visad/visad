@@ -27,12 +27,46 @@ MA 02111-1307, USA
 package visad;
 
 /**
-   SetException is an exception for an error with a VisAD sampling.<P>
-*/
+ * {@code SetException} is an exception for an error with a VisAD sampling.
+ */
 public class SetException extends VisADException {
 
-  public SetException() { super(); }
-  public SetException(String s) { super(s); }
+  /**
+   * Constructs a {@code SetException} with no specified detail message.
+   */
+  public SetException() { 
+    super(); 
+  }
 
+  /**
+   * Constructs a {@code SetException} with the specified detail message.
+   *
+   * @param message Detail message.
+   */
+  public SetException(String message) { 
+    super(message); 
+  }
+
+  /**
+   * Constructs a {@code SetException} with the specified detail message
+   * and cause.
+   *
+   * @param message Detail message.
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public SetException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  /**
+   * Constructs a {@code SetException} with the specified cause.
+   *
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public SetException(Throwable cause) {
+    super(cause);
+  }
 }
 

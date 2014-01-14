@@ -27,21 +27,47 @@ MA 02111-1307, USA
 package visad;
 
 /**
-   BadMappingException is an exception for an error with
-   ScalarMaps in a VisAD display.<P>
-*/
+ * {@code BadMappingException} is an exception for an error with
+ * {@link ScalarMap ScalarMaps} in a VisAD display.
+ */
 public class BadMappingException extends DisplayException {
 
   /**
-   * construct a BadMappingException with no message
+   * Constructs a {@code BadMappingException} with no specified detail message.
    */
-  public BadMappingException() { super(); }
+  public BadMappingException() { 
+    super(); 
+  }
 
   /**
-   * construct a BadMappingException with given message
-   * @param s - message String
+   * Constructs a {@code BadMappingException} with the specified detail message.
+   *
+   * @param message Detail message.
    */
-  public BadMappingException(String s) { super(s); }
+  public BadMappingException(String message) { 
+    super(message); 
+  }
 
+  /**
+   * Constructs a {@code BadMappingException} with the specified detail message
+   * and cause.
+   *
+   * @param message Detail message.
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public BadMappingException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  /**
+   * Constructs a {@code BadMappingException} with the specified cause.
+   *
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public BadMappingException(Throwable cause) {
+    super(cause);
+  }
 }
 

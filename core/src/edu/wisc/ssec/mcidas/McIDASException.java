@@ -27,24 +27,48 @@ MA 02111-1307, USA
 package edu.wisc.ssec.mcidas;
 
 /**
- * McIDASException class is to handle exceptions when dealing
- * with McIDAS files or data.
+ * {@code McIDASException} class is to handle exceptions when dealing with 
+ * McIDAS files or data.
  *
  * @author Don Murray - Unidata
  */
-
 public class McIDASException extends Exception {
 
   /**
-   * Constructs a McIDASException with no specified detail message.
+   * Constructs a {@code McIDASException} with no specified detail message.
    */
-  public McIDASException() {super(); }
+  public McIDASException() {
+    super();
+  }
 
   /**
-   * Constructs a McIDASException with the specified detail message.
+   * Constructs a {@code McIDASException} with the specified detail message.
    *
-   * @param  s  the detail message.
+   * @param message Detail message.
    */
-  public McIDASException(String s) {super(s); }
+  public McIDASException(String message) {
+    super(message);
+  }
 
+  /**
+   * Constructs a {@code McIDASException} with the specified detail message
+   * and cause.
+   *
+   * @param message Detail message.
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public McIDASException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  /**
+   * Constructs a {@code McIDASException} with the specified cause.
+   *
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public McIDASException(Throwable cause) {
+    super(cause);
+  }
 }

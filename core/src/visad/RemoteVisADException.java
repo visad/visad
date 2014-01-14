@@ -23,17 +23,28 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
-
 package visad;
 
 /**
-   RemoteVisADException is an exception for an error with a
-   VisAD Remote class.<P>
-*/
+ * RemoteVisADException is an exception for an error with a VisAD Remote class.
+ */
 public class RemoteVisADException extends VisADException {
 
-  public RemoteVisADException() { super(); }
-  public RemoteVisADException(String s) { super(s); }
+  public RemoteVisADException() { 
+    super(); 
+  }
+
+  public RemoteVisADException(String message) { 
+    super(message); 
+  }
+
+  public RemoteVisADException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  public RemoteVisADException(Throwable cause) {
+    super(cause);
+  }
 
 }
 

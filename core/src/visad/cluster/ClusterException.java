@@ -26,15 +26,49 @@ MA 02111-1307, USA
 
 package visad.cluster;
 
-import visad.*;
+import visad.VisADException;
 
 /**
-   ClusterException is an exception for VisAD cluster errors.<P>
-*/
+ * {@code ClusterException} is an exception for VisAD cluster errors.
+ */
 public class ClusterException extends VisADException {
 
-  public ClusterException() { super(); }
-  public ClusterException(String s) { super(s); }
+  /**
+   * Constructs a {@code ClusterException} with no specified detail message.
+   */
+  public ClusterException() {
+    super();
+  }
 
+  /**
+   * Constructs a {@code ClusterException} with the specified detail message.
+   *
+   * @param message Detail message.
+   */
+  public ClusterException(String message) {
+    super(message);
+  }
+
+  /**
+   * Constructs a {@code ClusterException} with the specified detail message
+   * and cause.
+   *
+   * @param message Detail message.
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public ClusterException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  /**
+   * Constructs a {@code ClusterException} with the specified cause.
+   *
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public ClusterException(Throwable cause) {
+    super(cause);
+  }
 }
 
