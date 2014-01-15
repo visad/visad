@@ -595,7 +595,7 @@ public class AddeURL implements Cloneable {
       clone = super.clone();
     }
     catch (CloneNotSupportedException ex) {
-      throw new Error("Assertion failure"); // can't happen
+      throw new Error("Assertion failure", ex); // can't happen
     }
     return clone;
   }

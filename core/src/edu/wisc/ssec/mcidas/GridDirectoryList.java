@@ -96,7 +96,7 @@ public class GridDirectoryList
     } 
     catch (IOException e) 
     {
-      throw new McIDASException("Error opening URL for grids:"+e);
+      throw new McIDASException("Error opening URL for grids", e);
     }
     readDirectory();
   }
@@ -122,7 +122,7 @@ public class GridDirectoryList
     } 
     catch (IOException e) 
     {
-      throw new McIDASException("Error opening URL for grids:"+e);
+      throw new McIDASException("Error opening URL for grids", e);
     }
     readDirectory();
   }
@@ -205,7 +205,7 @@ public class GridDirectoryList
     catch (IOException e) 
     {
       status = -1;
-      throw new McIDASException("Error reading grid directory:" + e);
+      throw new McIDASException("Error reading grid directory", e);
     }
     status = 1;
     numDirs++;

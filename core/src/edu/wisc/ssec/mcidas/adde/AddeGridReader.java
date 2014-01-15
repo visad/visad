@@ -160,10 +160,10 @@ public class AddeGridReader {
             InputStream is = urlc.getInputStream();
             dis = new DataInputStream(new BufferedInputStream(is));
         } catch (AddeURLException ae) {
-            throw new AddeURLException("Dataset not found: "+ae);
+            throw new AddeURLException("Dataset not found", ae);
         }
         catch (Exception e) {
-            throw new AddeURLException("Error opening connection: " + e);
+            throw new AddeURLException("Error opening connection", e);
         }
 
         int numBytes = ((AddeURLConnection) urlc).getInitialRecordSize();
@@ -246,10 +246,10 @@ public class AddeGridReader {
             InputStream is = urlc.getInputStream();
             dis = new DataInputStream(new BufferedInputStream(is));
         } catch (AddeURLException ae) {
-            throw new AddeURLException("Dataset not found: "+ae);
+            throw new AddeURLException("Dataset not found", ae);
         }
         catch (Exception e) {
-            throw new AddeURLException("Error opening connection: " + e);
+            throw new AddeURLException("Error opening connection", e);
         }
 
         int numBytes = ((AddeURLConnection) urlc).getInitialRecordSize();

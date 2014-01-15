@@ -77,7 +77,7 @@ public class GRIDCoordinateSystem
     }
     catch (McIDASException excp)
     {
-      throw new VisADException( "Grid cannot be navigated");
+      throw new VisADException("Grid cannot be navigated", excp);
     }
     this.dirBlock = dirBlock;
   }

@@ -110,7 +110,7 @@ public class PointDataAdapter {
     }
     catch (AddeException excp)
     {
-      throw new VisADException("Problem accessing data");
+      throw new VisADException("Problem accessing data", excp);
     }
     makeField();
   }
@@ -137,7 +137,7 @@ public class PointDataAdapter {
     }
     catch (AddeException ae)
     {
-      throw new VisADException("Error retrieving data info");
+      throw new VisADException("Error retrieving data info", ae);
     }
              
     //int numObs = data[0].length;

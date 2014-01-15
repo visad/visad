@@ -538,7 +538,7 @@ public class AddeURLConnection extends URLConnection
       proj = Integer.parseInt(testStr);
     } catch (NumberFormatException e) {
       // TODO: Should we really throw an exception or just let it default to 0?
-      throw new AddeURLException("Invalid project number: " + testStr);
+      throw new AddeURLException("Invalid project number: " + testStr, e);
     }
 
     // Figure out the port.  
@@ -643,7 +643,7 @@ public class AddeURLConnection extends URLConnection
     try {
       t = new Socket(url.getHost(), portToUse);   // DRM 03-Mar-2001
     } catch (UnknownHostException e) {
-      throw new AddeURLException(e.toString());
+      throw new AddeURLException("Could not connect to host", e);
     }
 
     dos = new DataOutputStream ( t.getOutputStream() );
@@ -2349,7 +2349,7 @@ public class AddeURLConnection extends URLConnection
         x = URLDecoder.decode(url.toString(), "UTF-8");
       }
       catch (java.lang.Exception e) {
-        throw new RuntimeException(e.toString());
+        throw new RuntimeException("URL decoding failed", e);
       }
       // common case no replacement
       boolean ok = true;

@@ -282,7 +282,7 @@ public final class AreaFileFactory {
           query = url.toURI().getQuery(); // URI queries are decoded
         }
         catch (URISyntaxException e) {
-          throw new AddeURLException(e.getMessage());
+          throw new AddeURLException("URL decoding failed", e);
         }
       }
       if (query != null) {
