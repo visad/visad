@@ -52,7 +52,11 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   private Vector AccumulationVector = new Vector();
 
   boolean doTrajectory = false;
-  boolean checkTrajectory = false;
+  boolean isAnimation1d = false;
+  int domainLength = 0;
+  boolean post = false;
+
+  Switch swit = null;
 
   public ShadowFunctionOrSetTypeJ3D(MathType t, DataDisplayLink link,
                                     ShadowType parent)
@@ -103,8 +107,8 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
                              final float[] default_values, final DataRenderer renderer)
          throws VisADException, RemoteException {
 
-    boolean post = true; // FIXME what value for animation?
-    boolean isAnimation1d = false;
+    //boolean post = true; // FIXME what value for animation?
+    //boolean isAnimation1d = false;
     boolean isTerminal = adaptedShadowType.getIsTerminal();
     
     ScalarMap timeMap = null; // used in the animation case to get control
@@ -144,15 +148,26 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
         if (dspType.equals(Display.Flow1X) || dspType.equals(Display.Flow1Y) || dspType.equals(Display.Flow1Z) ||
             dspType.equals(Display.Flow2X) || dspType.equals(Display.Flow2Y) || dspType.equals(Display.Flow2Z)) {
           FlowControl flwCntrl = (FlowControl) scalarMap.getControl();
+          /* eventually
           if (flwCntrl.trajectoryEnabled()) {
             doTrajectory = true;
             break;
           }
+          */
+          if (dspType.equals(Display.Flow1X) || dspType.equals(Display.Flow1Y)) { // For testing ONLY
+            doTrajectory = false;
+            Range.trajectory1 = false; // FIXME
+            break;
+          }
+          if (dspType.equals(Display.Flow2X) || dspType.equals(Display.Flow2Y)) { // For testing ONLY
+            doTrajectory = true;
+            Range.trajectory2 = true; // FIXME
+            break;
+          }
         }
       }
-
-
     }
+
     // animation logic
     if (isAnimation1d){
       
@@ -160,8 +175,8 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       Set domainSet = ((Field) data).getDomainSet();
       
       // create and add switch with nodes for animation images
-      int domainLength = domainSet.getLength(); // num of domain nodes
-      Switch swit = (Switch) makeSwitch(domainLength);
+      domainLength = domainSet.getLength(); // num of domain nodes
+      swit = (Switch) makeSwitch(domainLength);
       AnimationControlJ3D control = (AnimationControlJ3D)timeMap.getControl();
       
       addSwitch(group, swit, control, domainSet, renderer);
@@ -208,23 +223,14 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       }
 
       if (doTrajectory) {
+        post = false;
         threadManager.runSequentially();
       }
       else {
+        post = false;
         threadManager.runInParallel();
       }
-
-      if (doTrajectory) {
-        for (int i=0; i<domainLength; i++) {
-          final BranchGroup branch = (BranchGroup) branches.get(i);
-          final BranchGroup node = (BranchGroup) swit.getChild(i);
-          FlowInfo info = Range.getAdaptedShadowType().flowInfoList.get(i);
-          addToGroup(branch, info.arrays[0], info.mode, info.constant_alpha, info.constant_color);
-          node.addChild(branch);
-        }
-      }
-      
-    } 
+    }
     else {
       ShadowFunctionOrSetType shadow = (ShadowFunctionOrSetType)adaptedShadowType;
       post = shadow.doTransform(group, data, value_array, default_values, renderer, this); 
@@ -1294,6 +1300,19 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     return false;
   }
 
+  public void postProcessTraj(Object group) throws VisADException {
+    int numChildren = swit.numChildren();
+    System.out.println("numChildren: "+numChildren);
+
+    for (int k=0; k<numChildren; k++) {
+      BranchGroup branch = (BranchGroup) makeBranch();
+      BranchGroup node = (BranchGroup) swit.getChild(k);
+      FlowInfo info = Range.getAdaptedShadowType().flowInfoList.get(k);
+
+      addToGroup(branch, info.arrays[0], info.mode, info.constant_alpha, info.constant_color);
+      node.addChild(branch);
+    }
+  }
 
   /** render accumulated Vector of value_array-s to
       and add to group; then clear AccumulationVector */
@@ -1316,6 +1335,115 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     }
     AccumulationVector.removeAllElements();
   }
+
+/**
+  private void doTrajectory() {
+        float[][] startPts = null;
+        float[][] stopPts = null;
+        int numStartPts = 0;
+
+        for (int i=0; i<domainLength; i++) {
+          System.out.println("time step idx: "+i);
+          final BranchGroup branch = (BranchGroup) branches.get(i);
+          final BranchGroup node = (BranchGroup) swit.getChild(i);
+          FlowInfo info = Range.getAdaptedShadowType().flowInfoList.get(i);
+
+          // compute trajectory
+          float[][] flow_values = info.flow_values;
+          Gridded3DSet spatial_set = (Gridded3DSet) info.spatial_set;
+
+          if (i == 0) {
+            startPts = spatial_set.getSamples(false);
+            numStartPts = startPts[0].length;
+            stopPts = new float[3][numStartPts];
+            for (int k=0; k<numStartPts; k++) {
+              stopPts[0][k] = startPts[0][k] + flow_values[0][k];
+              stopPts[1][k] = startPts[1][k] + flow_values[1][k];
+              stopPts[2][k] = startPts[2][k] + flow_values[2][k];
+            }
+          }
+          else {
+            int[][] indices = new int[stopPts[0].length][];
+            float[][] weights = new float[stopPts[0].length][];
+            spatial_set.valueToInterp(stopPts, indices, weights);
+
+            float[][] intrpFlow = new float[3][numStartPts];
+            for (int k=0; k<numStartPts; k++) {
+              if (indices[k] != null) {
+                for (int j=0; i<indices[k].length; j++) {
+                  intrpFlow[0][k] += weights[k][j]*flow_values[0][k];
+                  intrpFlow[1][k] += weights[k][j]*flow_values[1][k];
+                  intrpFlow[2][k] += weights[k][j]*flow_values[2][k];
+                }
+              }
+              else {
+                intrpFlow[0][k] = Float.NaN;
+                intrpFlow[1][k] = Float.NaN;
+                intrpFlow[2][k] = Float.NaN;
+              }
+            }
+            startPts = stopPts;
+
+            for (int k=0; k<numStartPts; k++) {
+              stopPts[0][k] = startPts[0][k] + intrpFlow[0][k];
+              stopPts[1][k] = startPts[1][k] + intrpFlow[1][k];
+              stopPts[2][k] = startPts[2][k] + intrpFlow[2][k];
+            }
+          }
+          System.out.println("building array");
+          System.out.println("color_values: "+info.color_values);
+
+          VisADLineArray array = new VisADLineArray();
+          array.vertexCount = 2*numStartPts;
+          System.out.println("vertextCount: "+array.vertexCount);
+          float[] coordinates = new float[3*array.vertexCount];
+          int m=0;
+          for (int t=0; t<array.vertexCount; t++) {
+            coordinates[m++] = startPts[0][t];
+            coordinates[m++] = startPts[1][t];
+            coordinates[m++] = startPts[2][t];
+            coordinates[m++] =  stopPts[0][t];
+            coordinates[m++] =  stopPts[1][t];
+            coordinates[m++] =  stopPts[2][t];
+          }
+          array.coordinates = coordinates;
+
+          if (info.color_values != null) {
+            byte[][] color_values = info.color_values;
+            int c_len = color_values.length;
+            byte[] colors = new byte[c_len * array.vertexCount];
+            m = 0;
+            for (int t=0; t<array.vertexCount; t++) {
+               //colors[m++] = color_values[0][t];
+               //colors[m++] = color_values[1][t];
+               //colors[m++] = color_values[2][t];
+               colors[m++] = (byte)255;
+               colors[m++] = (byte)255;
+               colors[m++] = (byte)255;
+               if (c_len == 4)
+                 //colors[m++] = color_values[3][t];
+                 colors[m++] = (byte)255;
+
+               //colors[m++] = color_values[0][t];
+               //colors[m++] = color_values[1][t];
+               //colors[m++] = color_values[0][t];
+               colors[m++] = (byte)255;
+               colors[m++] = (byte)255;
+               colors[m++] = (byte)255;
+               if (c_len == 4)
+                 //colors[m++] = color_values[3][t];
+                 colors[m++] = (byte)255;
+            }
+            array.colors = colors;
+          }
+
+          array = (VisADLineArray) array.removeMissing();
+
+          addToGroup(branch, array, info.mode, info.constant_alpha, info.constant_color);
+          node.addChild(branch);
+        } // domain length (time steps)
+  }
+  **/
 
 }
 

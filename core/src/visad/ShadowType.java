@@ -2142,13 +2142,11 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
               cntrWeight1 = pp[0];
               n_pass1 = (int) pp[1];
               reduction1 = control.getStreamlineReduction();
-              trajectory1 = control.trajectoryEnabled();
-              /*
+              //trajectory1 = control.trajectoryEnabled();
               if (trajectory1) {
                  ff_values[k][flow_index] = map.inverseScaleValues(ff_values[k][flow_index], true);
                  flowScale[k] = 1f;
               }
-              */
             }
             if (k == 1) {
               streamline2 = control.streamlinesEnabled();
@@ -2160,13 +2158,12 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
               cntrWeight2 = pp[0];
               n_pass2 = (int) pp[1];
               reduction2 = control.getStreamlineReduction();
-              trajectory2 = control.trajectoryEnabled();
-              /*
+              //trajectory2 = control.trajectoryEnabled();
+              trajectory2 = true;
               if (trajectory2) {
                  ff_values[k][flow_index] = map.inverseScaleValues(ff_values[k][flow_index], true);
                  flowScale[k] = 1f;
               }
-              */
             }
           }
         }
@@ -2256,13 +2253,15 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
 
   public static final float METERS_PER_DEGREE = 111137.0f;
 
-  public static float[][] adjustFlowToEarth(int which, float[][] flow_values,
+  //public static float[][] adjustFlowToEarth(int which, float[][] flow_values,
+  public float[][] adjustFlowToEarth(int which, float[][] flow_values,
       float[][] spatial_values, float flowScale, DataRenderer renderer)
       throws VisADException {
     return adjustFlowToEarth(which, flow_values, spatial_values, flowScale, renderer, false);
   }
 
-  public static float[][] adjustFlowToEarth(int which, float[][] flow_values,
+  //public static float[][] adjustFlowToEarth(int which, float[][] flow_values,
+  public float[][] adjustFlowToEarth(int which, float[][] flow_values,
       float[][] spatial_values, float flowScale, DataRenderer renderer, boolean force)
       throws VisADException {
     // System.out.println("adjustFlowToEarth " + renderer.getDisplay().getName()
@@ -2285,10 +2284,12 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
 
         if (which == 0) {
           fcontrol = (FlowControl) display.getControl(Flow1Control.class);
-          //isTraj = trajectory1;
+          isTraj = trajectory1;
+          System.out.println("setting isTraj1 to: "+isTraj);
         } else if (which == 1) {
           fcontrol = (FlowControl) display.getControl(Flow2Control.class);
-          //isTraj = trajectory2;
+          isTraj = trajectory2;
+          System.out.println("setting isTraj2 to: "+isTraj);
         }
         if (fcontrol == null) {
           throw new VisADException(
@@ -2703,6 +2704,39 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
         flow_values[2][i] = 0.0f;
       }
     }
+  }
+
+  public float[][] makeTrajFlow(int which, float[][] flow_values,
+      float flowScale, float[][] spatial_values, byte[][] color_values,
+      boolean[][] range_select) throws VisADException {
+
+    if (flow_values[0] == null)
+      return null;
+    if (spatial_values[0] == null)
+      return null;
+
+    VisADLineArray array = new VisADLineArray();
+
+    int len = spatial_values[0].length;
+    int flen = flow_values[0].length;
+    int rlen = 0; // number of non-missing values
+    if (range_select[0] == null) {
+      rlen = len;
+    } else {
+      for (int j = 0; j < range_select[0].length; j++) {
+        if (range_select[0][j])
+          rlen++;
+      }
+    }
+    if (rlen == 0)
+      return null;
+
+    DataRenderer renderer = getLink().getRenderer();
+
+    flow_values = adjustFlowToEarth(which, flow_values, spatial_values,
+        flowScale, renderer);
+
+    return flow_values;
   }
 
   private static final float BACK_SCALE = -0.15f;

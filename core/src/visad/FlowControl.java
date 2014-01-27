@@ -73,7 +73,7 @@ public abstract class FlowControl extends Control {
 
   /** Trajectory flags
   --------------------------------*/
-  boolean trajectoryEnabled = true;
+  boolean trajectoryEnabled = false;
 
   // WLH  need Vertical*Slice location parameters
 
@@ -105,7 +105,7 @@ public abstract class FlowControl extends Control {
     adjustFlowToEarth  = true;  
     autoScale          = false;
 
-    trajectoryEnabled  = true;
+    trajectoryEnabled  = false;
   }
 
   /** 

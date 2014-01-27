@@ -2119,6 +2119,7 @@ if (range_select[0] != null) {
           else if (trajectory1) {
             // for testing only, trajectory just need the values
             arrays = shadow_api.makeFlow(0, flow1_values, flowScale[0],
+            //flow1_values = shadow_api.makeTrajFlow(0, flow1_values, flowScale[0],
                               spatial_values, color_values, range_select);
 
             FlowInfo flwInfo = new FlowInfo();
@@ -2173,6 +2174,8 @@ if (range_select[0] != null) {
           else if (trajectory2) {
             // for testing only, trajectory just need the values
             arrays = shadow_api.makeFlow(1, flow2_values, flowScale[1],
+            //shadow_api.trajectory2 = true;
+            //flow2_values = shadow_api.makeTrajFlow(1, flow2_values, flowScale[1],
                               spatial_values, color_values, range_select);
 
             FlowInfo flwInfo = new FlowInfo();
