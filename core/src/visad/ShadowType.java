@@ -2780,7 +2780,7 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
     if (rlen == 0)
       return null;
 
-    /* for testing only.  This won't be done in makeFlow
+    /* for testing only.  This won't be done in makeFlow */
     boolean isTraj = false;
     if (which == 0) {
       isTraj = trajectory1;
@@ -2788,7 +2788,7 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
     else if (which == 1) {
       isTraj = trajectory2;
     }
-    */
+    //-------------------------
 
     DataRenderer renderer = getLink().getRenderer();
     flow_values = adjustFlowToEarth(which, flow_values, spatial_values,
