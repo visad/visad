@@ -2253,16 +2253,21 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
 
   public static final float METERS_PER_DEGREE = 111137.0f;
 
-  //public static float[][] adjustFlowToEarth(int which, float[][] flow_values,
-  public float[][] adjustFlowToEarth(int which, float[][] flow_values,
+  public static float[][] adjustFlowToEarth(int which, float[][] flow_values,
       float[][] spatial_values, float flowScale, DataRenderer renderer)
       throws VisADException {
     return adjustFlowToEarth(which, flow_values, spatial_values, flowScale, renderer, false);
   }
 
-  //public static float[][] adjustFlowToEarth(int which, float[][] flow_values,
-  public float[][] adjustFlowToEarth(int which, float[][] flow_values,
+  public static float[][] adjustFlowToEarth(int which, float[][] flow_values,
       float[][] spatial_values, float flowScale, DataRenderer renderer, boolean force)
+      throws VisADException {
+    return adjustFlowToEarth(which, flow_values, spatial_values, flowScale, renderer, force, false);
+  }
+
+
+  public static float[][] adjustFlowToEarth(int which, float[][] flow_values,
+      float[][] spatial_values, float flowScale, DataRenderer renderer, boolean force, boolean isTraj)
       throws VisADException {
     // System.out.println("adjustFlowToEarth " + renderer.getDisplay().getName()
     // + " " + renderer.getRealVectorTypes(which)); // IDV
@@ -2271,7 +2276,7 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
       // only do this for EarthVectorType
     //  return flow_values;
     //}
-    boolean isTraj = false;
+    //boolean isTraj = false;
 
 
     FlowControl fcontrol = null;
@@ -2284,12 +2289,12 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
 
         if (which == 0) {
           fcontrol = (FlowControl) display.getControl(Flow1Control.class);
-          isTraj = trajectory1;
-          System.out.println("setting isTraj1 to: "+isTraj);
+          //isTraj = trajectory1;
+          //System.out.println("setting isTraj1 to: "+isTraj);
         } else if (which == 1) {
           fcontrol = (FlowControl) display.getControl(Flow2Control.class);
-          isTraj = trajectory2;
-          System.out.println("setting isTraj2 to: "+isTraj);
+          //isTraj = trajectory2;
+          //System.out.println("setting isTraj2 to: "+isTraj);
         }
         if (fcontrol == null) {
           throw new VisADException(
@@ -2733,8 +2738,16 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
 
     DataRenderer renderer = getLink().getRenderer();
 
+    boolean isTraj = false;
+    if (which == 0) {
+      isTraj = trajectory1;
+    }
+    else if (which == 1) {
+      isTraj = trajectory2;
+    }
+    System.out.println("isTraj: "+isTraj);
     flow_values = adjustFlowToEarth(which, flow_values, spatial_values,
-        flowScale, renderer);
+        flowScale, renderer, isTraj);
 
     return flow_values;
   }
@@ -2767,9 +2780,20 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
     if (rlen == 0)
       return null;
 
+    /* for testing only.  This won't be done in makeFlow
+    boolean isTraj = false;
+    if (which == 0) {
+      isTraj = trajectory1;
+    }
+    else if (which == 1) {
+      isTraj = trajectory2;
+    }
+    */
+
     DataRenderer renderer = getLink().getRenderer();
     flow_values = adjustFlowToEarth(which, flow_values, spatial_values,
-        flowScale, renderer);
+        //flowScale, renderer);
+        flowScale, renderer, false, isTraj);
 
     array.vertexCount = 6 * rlen;
 
