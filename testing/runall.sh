@@ -8,8 +8,8 @@ CLASSPATH=$CLASSPATH:../visad_examples.jar
 CLASSPATH=$CLASSPATH:.
 echo 'CLASSPATH:' $CLASSPATH
 export CLASSPATH
-#echo Starting rmiregistry
-#start rmiregistry
+echo Starting rmiregistry
+rmiregistry &
 
 sleep 1
 echo 'test of VisADCanvasJ3D'
@@ -93,36 +93,36 @@ java DisplayTest 3
 echo ''
 echo 'java DisplayTest 4'
 echo ''
-echo 'Verify display of a bull's eye color image on the surface'
+echo 'Verify display of a bull'"'"'s eye color image on the surface'
 echo 'of a sphere'
 java DisplayTest 4
 echo ''
 echo 'java DisplayTest 5'
 echo ''
-echo 'Verify display of a contour bull's eye on a slanted plane;'
+echo 'Verify display of a contour bull'"'"'s eye on a slanted plane;'
 echo 'enable and verify labels'
 java DisplayTest 5
 echo ''
 echo 'java DisplayTest 5 1'
 echo ''
-echo 'Verify display of an unevenly-spaced contour bull\'s'
+echo 'Verify display of an unevenly-spaced contour bull'"'"'s'
 echo 'eye on a slanted plane, with labels'
 java DisplayTest 5 1
 echo ''
 echo 'java DisplayTest 6'
 echo ''
-echo 'Verify display of a contour bull\'s eye on a slanted plane'
+echo 'Verify display of a contour bull'"'"'s eye on a slanted plane'
 java DisplayTest 6
 echo ''
 echo 'java DisplayTest 6 1'
 echo ''
-echo 'Verify display of an unevenly-spaced contour bull\'s'
+echo 'Verify display of an unevenly-spaced contour bull'"'"'s'
 echo 'eye on a slanted plane'
 java DisplayTest 6 1
 echo ''
 echo 'java DisplayTest 7'
 echo ''
-echo 'Verify color bull\'s eye opaque at top gradually increasing'
+echo 'Verify color bull'"'"'s eye opaque at top gradually increasing'
 echo 'transparency down'
 java DisplayTest 7
 echo ''
@@ -145,7 +145,7 @@ java DisplayTest 10 bill.nc
 echo ''
 echo 'java DisplayTest 11'
 echo ''
-echo 'Verify bull\'s eye image warped in partial arc of circle'
+echo 'Verify bull'"'"'s eye image warped in partial arc of circle'
 java DisplayTest 11
 echo ''
 echo 'java DisplayTest 12'
@@ -180,20 +180,20 @@ sleep 1
 echo ''
 echo 'java DisplayTest 15'
 echo ''
-echo 'Now there should be displays for both the \'14\' and \'15\''
+echo 'Now there should be displays for both the 14 and 15'
 echo 'commands; in each display drag both points and the V-shaped'
 echo 'line and verify that they move in both displays; then shut'
-echo 'down both the \'14\' and \'15\' commands'
+echo 'down both the 14 and 15 commands'
 java DisplayTest 15 legato
 echo ''
 echo 'java DisplayTest 16'
 echo ''
-echo 'Verify an opaque color bull\'s eye image'
+echo 'Verify an opaque color bull'"'"'s eye image'
 java DisplayTest 16
 echo ''
 echo 'java DisplayTest 17'
 echo ''
-echo 'Verify a color bull\'s eye image with constant transparency'
+echo 'Verify a color bull'"'"'s eye image with constant transparency'
 java DisplayTest 17
 echo ''
 echo 'java DisplayTest 18'
@@ -237,13 +237,13 @@ java DisplayTest 23
 echo ''
 echo 'java DisplayTest 24'
 echo ''
-echo 'Verify correct coloring of image (color bull\'s eye from brown'
+echo 'Verify correct coloring of image (color bull'"'"'s eye from brown'
 echo 'through red to white inside)'
 java DisplayTest 24
 echo ''
 echo 'java DisplayTest 25'
 echo ''
-echo 'Verify correct coloring of image (color bull\'s eye from cyan'
+echo 'Verify correct coloring of image (color bull'"'"'s eye from cyan'
 echo 'through purple to yellow inside)'
 java DisplayTest 25
 echo ''
@@ -313,18 +313,18 @@ java DisplayTest 35
 echo ''
 echo 'java DisplayTest 36'
 echo ''
-echo 'Verify color bull\'s eye warped in arc of circle'
+echo 'Verify color bull'"'"'s eye warped in arc of circle'
 java DisplayTest 36
 echo ''
 echo 'java DisplayTest 37'
 echo ''
-echo 'Verify contour warped bull\'s eye; verify fill; verify labels'
+echo 'Verify contour warped bull'"'"'s eye; verify fill; verify labels'
 java DisplayTest 37
 echo ''
 echo ''
 echo 'java DisplayTest 38'
 echo ''
-echo 'Verify bull\'s eye contours'
+echo 'Verify bull'"'"'s eye contours'
 java DisplayTest 38
 echo ''
 echo ''
@@ -399,7 +399,7 @@ echo ''
 echo 'Verify green V-shaped line with breaks'
 java DisplayTest 49
 echo ''
-echo '' java DisplayTest 50'
+echo 'java DisplayTest 50'
 echo ''
 echo 'Move top frame, then pan bottom display and verify that top'
 echo 'frame tracks once per second'
@@ -413,7 +413,7 @@ java DisplayTest 51
 echo ''
 echo 'java DisplayTest 52'
 echo ''
-echo 'Verify color bull\'s eye'
+echo 'Verify color bull'"'"'s eye'
 java DisplayTest 52
 echo ''
 echo 'java DisplayTest 53'
@@ -432,16 +432,16 @@ echo 'java DisplayTest 55'
 echo ''
 echo 'Wait for the display to pop up with two points and a V-shaped'
 echo 'line, then in another window run (substitute the IP name of'
-echo 'your machine for 'demedici'):'
-start java DisplayTest 55
+echo 'your machine for demedici):'
+java DisplayTest 55
 sleep 1
 echo ''
 echo 'java DisplayTest 56 demedici'
 echo ''
-echo 'Now there should be displays for both the \'55\' and \'56\''
+echo 'Now there should be displays for both the 55 and 56'
 echo 'commands; in each display drag both points and the V-shaped'
 echo 'line and verify that they move in both displays; then shut'
-echo 'down both the \'55\' and \'56\' commands'
+echo 'down both the 55 and 56 commands'
 java DisplayTest 56 legato
 echo ''
 echo 'java DisplayTest 57'
@@ -461,7 +461,7 @@ java DisplayTest 59
 echo ''
 echo 'java DisplayTest 60'
 echo ''
-echo 'Verify irregular contour bull\'s eye'
+echo 'Verify irregular contour bull'"'"'s eye'
 java DisplayTest 60
 echo ''
 echo 'java DisplayTest 61'
@@ -478,7 +478,7 @@ echo 'verify volume color changes; drag xr, yr and zr ranges and'
 echo 'verify clipping of volume'
 java DisplayTest 61 1
 echo ''
-echo 'Some of Don\'s recommendations'
+echo 'Some of Don'"'"'s recommendations'
 echo ''
 java DisplayTest 61 t
 echo ''
@@ -493,8 +493,8 @@ echo 'java DisplayTest 63'
 echo ''
 echo 'Wait for the display to pop up with a cone, then in another'
 echo 'window run (substitute the IP name of your machine for'
-echo '\'demedici\'):'
-start java DisplayTest 63
+echo 'demedici):'
+java DisplayTest 63
 sleep 1
 echo ''
 echo 'java DisplayTest 64 host'
@@ -508,8 +508,8 @@ echo 'java DisplayTest 63 -2d'
 echo ''
 echo 'Wait for the display to pop up with a V-shaped line, then'
 echo 'in another window run (substitute the IP name of your'
-echo 'machine for \'demedici\'):'
-start java DisplayTest 63 -2d
+echo 'machine for demedici):'
+java DisplayTest 63 -2d
 sleep 1
 echo ''
 echo 'java DisplayTest 64 host'
@@ -551,7 +551,7 @@ echo ''
 echo 'java DisplayTest 68'
 echo ''
 echo 'Wait for the display to pop up with a conical contour'
-echo 'bull\'s eye, then in another window run:'
+echo 'bull'"'"'s eye, then in another window run:'
 echo ''
 echo ' cd ../browser'
 echo ' appletviewer viewer_applet.html'
