@@ -2262,12 +2262,13 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
   public static float[][] adjustFlowToEarth(int which, float[][] flow_values,
       float[][] spatial_values, float flowScale, DataRenderer renderer, boolean force)
       throws VisADException {
-    return adjustFlowToEarth(which, flow_values, spatial_values, flowScale, renderer, force, false);
+    return adjustFlowToEarth(which, flow_values, spatial_values, flowScale, renderer, force, false, 3600f);
   }
 
 
   public static float[][] adjustFlowToEarth(int which, float[][] flow_values,
-      float[][] spatial_values, float flowScale, DataRenderer renderer, boolean force, boolean isTraj)
+      float[][] spatial_values, float flowScale, DataRenderer renderer, boolean force, 
+          boolean isTraj, float timeStep)
       throws VisADException {
     // System.out.println("adjustFlowToEarth " + renderer.getDisplay().getName()
     // + " " + renderer.getRealVectorTypes(which)); // IDV
@@ -2276,7 +2277,6 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
       // only do this for EarthVectorType
     //  return flow_values;
     //}
-    //boolean isTraj = false;
 
 
     FlowControl fcontrol = null;
@@ -2289,19 +2289,14 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
 
         if (which == 0) {
           fcontrol = (FlowControl) display.getControl(Flow1Control.class);
-          //isTraj = trajectory1;
-          //System.out.println("setting isTraj1 to: "+isTraj);
         } else if (which == 1) {
           fcontrol = (FlowControl) display.getControl(Flow2Control.class);
-          //isTraj = trajectory2;
-          //System.out.println("setting isTraj2 to: "+isTraj);
         }
         if (fcontrol == null) {
           throw new VisADException(
               "adjustFlowToEarth: Unable to get FlowControl");
         }
         shouldAdjust = fcontrol.getAdjustFlowToEarth();
-        System.out.println("shouldAdjust "+shouldAdjust);
         // add one more check
         Vector maps = link.getSelectedMapVector();
         boolean haveSpeedDir = false;
@@ -2323,7 +2318,7 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
         }
       }
     }
-    System.out.println("should adjust: "+shouldAdjust);
+
     if (!shouldAdjust)
       return flow_values;
 
@@ -2342,7 +2337,6 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
         scale = (float) Math.abs(flow_values[2][j]);
       }
     }
-    System.out.println("adjustFlowToEarth, scale: "+scale);
     float inv_scale = 1.0f / scale;
     if (inv_scale != inv_scale)
       inv_scale = 1.0f;
@@ -2388,21 +2382,21 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
       float factor_lat = (float) (inv_scale * 1000.0f * Data.DEGREES_TO_RADIANS / METERS_PER_DEGREE);
       float factor_vert = inv_scale * 1000.0f;
       if (!isTraj) {
-      for (int j = 0; j < flen; j++) {
-        earth_locs[2][j] += factor_vert * flow_values[2][j];
-        earth_locs[1][j] += factor_lat * flow_values[0][j]
-            / ((float) Math.cos(earth_locs[0][j]));
-        earth_locs[0][j] += factor_lat * flow_values[1][j];
-      }
+        for (int j = 0; j < flen; j++) {
+          earth_locs[2][j] += factor_vert * flow_values[2][j];
+          earth_locs[1][j] += factor_lat * flow_values[0][j]
+              / ((float) Math.cos(earth_locs[0][j]));
+          earth_locs[0][j] += factor_lat * flow_values[1][j];
+        }
       }
       else {
-      for (int j = 0; j < flen; j++) {
-        earth_locs[2][j] += flow_values[2][j] * 3600;
+        for (int j = 0; j < flen; j++) {
+          earth_locs[2][j] += flow_values[2][j] * timeStep;
 
-        earth_locs[1][j] += ((flow_values[0][j] * 3600 * (1f/METERS_PER_DEGREE)) / ((float)Math.cos(earth_locs[0][j])) ) * Data.DEGREES_TO_RADIANS;
+          earth_locs[1][j] += ((flow_values[0][j] * timeStep * (1f/METERS_PER_DEGREE)) / ((float)Math.cos(earth_locs[0][j])) ) * Data.DEGREES_TO_RADIANS;
 
-        earth_locs[0][j] += flow_values[1][j] * 3600 * (1f/METERS_PER_DEGREE) * Data.DEGREES_TO_RADIANS;
-      }
+          earth_locs[0][j] += flow_values[1][j] * timeStep * (1f/METERS_PER_DEGREE) * Data.DEGREES_TO_RADIANS;
+        }
       }
     } else {
       float factor_lat = 0.00001f * inv_scale
@@ -2477,14 +2471,14 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
           * earth_locs[2][j]);
       float ratio = mag / new_mag;
       if (!isTraj) {
-      flow_values[0][j] = ratio * earth_locs[0][j];
-      flow_values[1][j] = ratio * earth_locs[1][j];
-      flow_values[2][j] = ratio * earth_locs[2][j];
+        flow_values[0][j] = ratio * earth_locs[0][j];
+        flow_values[1][j] = ratio * earth_locs[1][j];
+        flow_values[2][j] = ratio * earth_locs[2][j];
       }
       else {
-      flow_values[0][j] = earth_locs[0][j];
-      flow_values[1][j] = earth_locs[1][j];
-      flow_values[2][j] = earth_locs[2][j];
+        flow_values[0][j] = earth_locs[0][j];
+        flow_values[1][j] = earth_locs[1][j];
+        flow_values[2][j] = earth_locs[2][j];
       }
     }
 /*
@@ -2711,6 +2705,7 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
     }
   }
 
+  /* pretty much a no-op for now, but leaving in place */
   public float[][] makeTrajFlow(int which, float[][] flow_values,
       float flowScale, float[][] spatial_values, byte[][] color_values,
       boolean[][] range_select) throws VisADException {
@@ -2738,16 +2733,12 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
 
     DataRenderer renderer = getLink().getRenderer();
 
-    boolean isTraj = false;
-    if (which == 0) {
-      isTraj = trajectory1;
-    }
-    else if (which == 1) {
-      isTraj = trajectory2;
-    }
-    System.out.println("isTraj: "+isTraj);
+    /* This probably needs to be done later, so makeTrajFlow probably not needed.
+     * Leave in place for now.
+     *
     flow_values = adjustFlowToEarth(which, flow_values, spatial_values,
-        flowScale, renderer, isTraj);
+        flowScale, renderer, false, true);
+    */
 
     return flow_values;
   }
@@ -2780,20 +2771,10 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
     if (rlen == 0)
       return null;
 
-    /* for testing only.  This won't be done in makeFlow */
-    boolean isTraj = false;
-    if (which == 0) {
-      isTraj = trajectory1;
-    }
-    else if (which == 1) {
-      isTraj = trajectory2;
-    }
-    //-------------------------
 
     DataRenderer renderer = getLink().getRenderer();
     flow_values = adjustFlowToEarth(which, flow_values, spatial_values,
-        //flowScale, renderer);
-        flowScale, renderer, false, isTraj);
+        flowScale, renderer);
 
     array.vertexCount = 6 * rlen;
 

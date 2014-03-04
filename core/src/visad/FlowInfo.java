@@ -14,6 +14,8 @@ public class FlowInfo {
   public GraphicsModeControl mode;
   public float constant_alpha;
   public float[] constant_color;
+  public DataRenderer renderer;
+  public int which;
   public VisADGeometryArray[] arrays;
 
   public FlowInfo() {

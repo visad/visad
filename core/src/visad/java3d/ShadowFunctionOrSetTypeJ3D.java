@@ -56,6 +56,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   int domainLength = 0;
   boolean post = false;
 
+  List<BranchGroup> branches = null;
   Switch swit = null;
 
   public ShadowFunctionOrSetTypeJ3D(MathType t, DataDisplayLink link,
@@ -162,6 +163,8 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
           if (dspType.equals(Display.Flow2X) || dspType.equals(Display.Flow2Y)) { // For testing ONLY
             doTrajectory = true;
             Range.trajectory2 = true; // FIXME
+            renderer.multipleVisible = true;
+            renderer.whichVisible = new int[] {-4, -3, -2, -1, 0};
             break;
           }
         }
@@ -199,7 +202,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       ****/
 
       //jeffmc:First construct the branches
-      List<BranchGroup> branches = new ArrayList<BranchGroup>();
+      branches = new ArrayList<BranchGroup>();
       for (int i=0; i<domainLength; i++) {
           BranchGroup node = (BranchGroup) swit.getChild(i);
           BranchGroup branch = (BranchGroup) makeBranch();
@@ -1302,15 +1305,10 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
   public void postProcessTraj(Object group) throws VisADException {
     int numChildren = swit.numChildren();
-    System.out.println("numChildren: "+numChildren);
-
-    for (int k=0; k<numChildren; k++) {
-      BranchGroup branch = (BranchGroup) makeBranch();
-      BranchGroup node = (BranchGroup) swit.getChild(k);
-      FlowInfo info = Range.getAdaptedShadowType().flowInfoList.get(k);
-
-      addToGroup(branch, info.arrays[0], info.mode, info.constant_alpha, info.constant_color);
-      node.addChild(branch);
+    try {
+       doTrajectory();
+    } catch (Exception e) {
+       e.printStackTrace();
     }
   }
 
@@ -1336,114 +1334,260 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     AccumulationVector.removeAllElements();
   }
 
-/**
-  private void doTrajectory() {
-        float[][] startPts = null;
-        float[][] stopPts = null;
-        int numStartPts = 0;
+  private void doTrajectory() throws VisADException {
+     /* get start points, use first spatial_set locs for now. Eventually want to include a time for start */
+     FlowInfo info = Range.getAdaptedShadowType().flowInfoList.get(0);
+     float[][] startPts = ((Gridded3DSet)info.spatial_set).getSamples(false);
 
-        for (int i=0; i<domainLength; i++) {
-          System.out.println("time step idx: "+i);
+     int numTrajectories = startPts[0].length;
+     Trajectory[] trajectories = new Trajectory[numTrajectories];
+     int clrDim = info.color_values.length;
+     for (int t=0; t<numTrajectories; t++) {
+       float startX = startPts[0][t];
+       float startY = startPts[1][t];
+       float startZ = startPts[2][t];
+
+       byte[] startColor = new byte[clrDim];
+       startColor[0] = info.color_values[0][t];
+       startColor[1] = info.color_values[1][t];
+       startColor[2] = info.color_values[2][t];
+       if (clrDim == 4) {
+          startColor[3] = info.color_values[3][t];
+       }
+       trajectories[t] = new Trajectory(startX, startY, startZ, startColor);
+     }
+    
+        Interpolation uInterp = new Interpolation();
+        Interpolation vInterp = new Interpolation();
+
+        float[][] values0_last = null;
+
+        for (int i=0; i<domainLength-3; i++) { // outer time dimension
           final BranchGroup branch = (BranchGroup) branches.get(i);
           final BranchGroup node = (BranchGroup) swit.getChild(i);
-          FlowInfo info = Range.getAdaptedShadowType().flowInfoList.get(i);
 
-          // compute trajectory
-          float[][] flow_values = info.flow_values;
+          info = Range.getAdaptedShadowType().flowInfoList.get(i);
+          byte[][] color_values = info.color_values;
           Gridded3DSet spatial_set = (Gridded3DSet) info.spatial_set;
+          int[] lens = spatial_set.getLengths();
+          float[][] setLocs = spatial_set.getSamples(false);
+          Gridded2DSet spatial_set2D = new Gridded2DSet(RealTupleType.SpatialCartesian2DTuple, 
+                  new float[][] {setLocs[0], setLocs[1]}, lens[0], lens[1]);
 
-          if (i == 0) {
-            startPts = spatial_set.getSamples(false);
-            numStartPts = startPts[0].length;
-            stopPts = new float[3][numStartPts];
-            for (int k=0; k<numStartPts; k++) {
-              stopPts[0][k] = startPts[0][k] + flow_values[0][k];
-              stopPts[1][k] = startPts[1][k] + flow_values[1][k];
-              stopPts[2][k] = startPts[2][k] + flow_values[2][k];
-            }
-          }
-          else {
-            int[][] indices = new int[stopPts[0].length][];
-            float[][] weights = new float[stopPts[0].length][];
-            spatial_set.valueToInterp(stopPts, indices, weights);
-
-            float[][] intrpFlow = new float[3][numStartPts];
-            for (int k=0; k<numStartPts; k++) {
-              if (indices[k] != null) {
-                for (int j=0; i<indices[k].length; j++) {
-                  intrpFlow[0][k] += weights[k][j]*flow_values[0][k];
-                  intrpFlow[1][k] += weights[k][j]*flow_values[1][k];
-                  intrpFlow[2][k] += weights[k][j]*flow_values[2][k];
-                }
-              }
-              else {
-                intrpFlow[0][k] = Float.NaN;
-                intrpFlow[1][k] = Float.NaN;
-                intrpFlow[2][k] = Float.NaN;
-              }
-            }
-            startPts = stopPts;
-
-            for (int k=0; k<numStartPts; k++) {
-              stopPts[0][k] = startPts[0][k] + intrpFlow[0][k];
-              stopPts[1][k] = startPts[1][k] + intrpFlow[1][k];
-              stopPts[2][k] = startPts[2][k] + intrpFlow[2][k];
-            }
-          }
-          System.out.println("building array");
-          System.out.println("color_values: "+info.color_values);
-
+          // must increase these if adding interpolated times
           VisADLineArray array = new VisADLineArray();
-          array.vertexCount = 2*numStartPts;
-          System.out.println("vertextCount: "+array.vertexCount);
-          float[] coordinates = new float[3*array.vertexCount];
-          int m=0;
-          for (int t=0; t<array.vertexCount; t++) {
-            coordinates[m++] = startPts[0][t];
-            coordinates[m++] = startPts[1][t];
-            coordinates[m++] = startPts[2][t];
-            coordinates[m++] =  stopPts[0][t];
-            coordinates[m++] =  stopPts[1][t];
-            coordinates[m++] =  stopPts[2][t];
-          }
-          array.coordinates = coordinates;
+          array.vertexCount = 2*numTrajectories*6;
+          array.coordinates = new float[3*array.vertexCount];
+          array.colors = new byte[clrDim * array.vertexCount];
 
-          if (info.color_values != null) {
-            byte[][] color_values = info.color_values;
-            int c_len = color_values.length;
-            byte[] colors = new byte[c_len * array.vertexCount];
-            m = 0;
-            for (int t=0; t<array.vertexCount; t++) {
-               //colors[m++] = color_values[0][t];
-               //colors[m++] = color_values[1][t];
-               //colors[m++] = color_values[2][t];
-               colors[m++] = (byte)255;
-               colors[m++] = (byte)255;
-               colors[m++] = (byte)255;
-               if (c_len == 4)
-                 //colors[m++] = color_values[3][t];
-                 colors[m++] = (byte)255;
+          Trajectory.reset();
 
-               //colors[m++] = color_values[0][t];
-               //colors[m++] = color_values[1][t];
-               //colors[m++] = color_values[0][t];
-               colors[m++] = (byte)255;
-               colors[m++] = (byte)255;
-               colors[m++] = (byte)255;
-               if (c_len == 4)
-                 //colors[m++] = color_values[3][t];
-                 colors[m++] = (byte)255;
+          double x0 = (double) i;
+          double x1 = (double) (i+1);
+          double x2 = (double) (i+2);
+
+          if ((i % 2) == 0) { 
+            float[][] values0 = Range.getAdaptedShadowType().flowInfoList.get(i).flow_values;
+            float[][] values1 = Range.getAdaptedShadowType().flowInfoList.get(i+1).flow_values;
+            float[][] values2 = Range.getAdaptedShadowType().flowInfoList.get(i+2).flow_values;
+
+            // smoothing done here
+            float[][] values3 = Range.getAdaptedShadowType().flowInfoList.get(i+3).flow_values;
+            if (values0_last != null) {
+              values0 = Trajectory.smooth(values0_last, values0, values1);
             }
-            array.colors = colors;
+            values1 = Trajectory.smooth(values0, values1, values2);
+            values2 = Trajectory.smooth(values1, values2, values3);
+            // end smoothing
+
+            uInterp.next(x0, x1, x2, values0[0], values1[0], values2[0]);
+            vInterp.next(x0, x1, x2, values0[1], values1[1], values2[1]);
+            
+            values0_last = values0;
           }
 
+          for (int ti=0; ti<6; ti++) { // additional points per domain time step
+            double dst = (x1 - x0)/6;
+            double xt = x0 + dst;
+            float[] intrpU = new float[uInterp.numSpatialPts];
+            float[] intrpV = new float[uInterp.numSpatialPts];
+            float[] intrpZ = new float[uInterp.numSpatialPts];
+            uInterp.interpolate(xt, intrpU);
+            vInterp.interpolate(xt, intrpV);
+
+            float[][] flow_values = Trajectory.adjustFlow(info, new float[][] {intrpU, intrpV, intrpZ}, 600f);
+
+            //float[][] flow_values = info.flow_values;
+            //flow_values = Trajectory.adjustFlow(info, flow_values, 3600f);
+
+            for (int t=0; t<numTrajectories; t++) {
+              trajectories[t].forward(flow_values, color_values, spatial_set2D, array);
+            }
+          }
+
+          // something weird with this, everything being removed
           array = (VisADLineArray) array.removeMissing();
 
           addToGroup(branch, array, info.mode, info.constant_alpha, info.constant_color);
           node.addChild(branch);
         } // domain length (time steps)
+     }
   }
-  **/
 
-}
+  class Trajectory {
+     float startX;
+     float startY;
+     float startZ;
 
+     float[] startPts = new float[3];
+     float[]  stopPts = new float[3];
+
+     byte[] startColor;
+     byte[] stopColor;
+
+     float[][] startPts2D = new float[2][1];
+
+     static int coordCnt = 0;
+     static int colorCnt = 0;
+
+     int clrDim;
+     
+     public Trajectory(float startX, float startY, float startZ, byte[] startColor) {
+        this.startX = startX;
+        this.startY = startY;
+        this.startZ = startZ;
+        startPts[0] = startX;
+        startPts[1] = startY;
+        startPts[2] = startZ;
+
+        clrDim = startColor.length;
+        stopColor = new byte[clrDim];
+
+        this.startColor = startColor;
+     }
+
+     public static void reset() {
+        coordCnt = 0;
+        colorCnt = 0;
+     }
+
+     public void forward(float[][] flow_values, byte[][] color_values, GriddedSet spatial_set2D, VisADLineArray array) 
+           throws VisADException {
+        int[][] indices = new int[1][];
+        float[][] weights = new float[1][];
+        float[] intrpFlow = new float[3];
+        
+        startPts2D[0][0] = startPts[0];
+        startPts2D[1][0] = startPts[1];
+        
+        spatial_set2D.valueToInterp(startPts2D, indices, weights);
+
+        int clrDim = color_values.length;
+        float[] intrpClr = new float[clrDim];
+
+        intrpFlow[0] = 0f;
+        intrpFlow[1] = 0f;
+        intrpFlow[2] = 0f;
+
+        intrpClr[0] = 0f;
+        intrpClr[1] = 0f;
+        intrpClr[2] = 0f;
+        if (clrDim == 4) {
+          intrpClr[3] = 0f;
+        }
+
+        if (indices[0] != null) {
+           for (int j=0; j<indices[0].length; j++) {
+              int idx = indices[0][j];
+              intrpFlow[0] += weights[0][j]*flow_values[0][idx];
+              intrpFlow[1] += weights[0][j]*flow_values[1][idx];
+              intrpFlow[2] += weights[0][j]*flow_values[2][idx];
+
+              intrpClr[0] += weights[0][j]*color_values[0][idx];
+              intrpClr[1] += weights[0][j]*color_values[1][idx];
+              intrpClr[2] += weights[0][j]*color_values[2][idx];
+              if (clrDim == 4) {
+                intrpClr[3] += weights[0][j]*color_values[3][idx];
+              }
+           }
+
+           stopPts[0] = startPts[0] + intrpFlow[0];
+           stopPts[1] = startPts[1] + intrpFlow[1];
+           stopPts[2] = startPts[2] + intrpFlow[2];
+
+           stopColor[0] = (byte) intrpClr[0];
+           stopColor[1] = (byte) intrpClr[1];
+           stopColor[2] = (byte) intrpClr[2];
+           if (clrDim == 4) {
+             stopColor[3] = (byte) intrpClr[3];
+           }
+
+           addPair(startPts, stopPts, startColor, stopColor, array);
+
+           startPts[0] = stopPts[0];
+           startPts[1] = stopPts[1];
+           startPts[2] = stopPts[2];
+          
+           startColor[0] = stopColor[0];
+           startColor[1] = stopColor[1];
+           startColor[2] = stopColor[2];
+           if (clrDim == 4) {
+             startColor[3] = stopColor[3];
+           }
+        }
+        else {
+           intrpFlow[0] = Float.NaN;
+           intrpFlow[1] = Float.NaN;
+           intrpFlow[2] = Float.NaN;
+        }
+
+     }
+
+     private void addPair(float[] startPt, float[] stopPt, byte[] startColor, byte[] stopColor, VisADLineArray array) {
+        array.coordinates[coordCnt++] = startPt[0];
+        array.coordinates[coordCnt++] = startPt[1];
+        array.coordinates[coordCnt++] = startPt[2];
+
+        array.coordinates[coordCnt++] =  stopPt[0];
+        array.coordinates[coordCnt++] =  stopPt[1];
+        array.coordinates[coordCnt++] =  stopPt[2];
+
+        int clrDim = startColor.length;
+
+        array.colors[colorCnt++] = startColor[0];
+        array.colors[colorCnt++] = startColor[1];
+        array.colors[colorCnt++] = startColor[2];
+        if (clrDim == 4) {
+          array.colors[colorCnt++] = startColor[3];
+        }
+
+        array.colors[colorCnt++] = stopColor[0];
+        array.colors[colorCnt++] = stopColor[1];
+        array.colors[colorCnt++] = stopColor[2];
+        if (clrDim == 4) {
+          array.colors[colorCnt++] = stopColor[3];
+        }
+     }
+
+     public static float[][] adjustFlow(FlowInfo info, float[][] flow_values, float timeStep) throws VisADException {
+        return ShadowType.adjustFlowToEarth(info.which, flow_values, info.spatial_values, info.flowScale,
+                               info.renderer, false, true, timeStep);
+     }
+
+     public static float[][] smooth(float[][] values0, float[][] values1, float[][] values2) {
+       float w0 = 0.20f;
+       float w1 = 0.60f;
+       float w2 = 0.20f;
+
+       int numPts = values0[0].length;
+       float[][] new_values = new float[3][numPts];
+
+       for (int k=0; k<numPts; k++) {
+         new_values[0][k] = w0*values0[0][k] + w1*values1[0][k] + w2*values2[0][k];
+         new_values[1][k] = w0*values0[1][k] + w1*values1[1][k] + w2*values2[1][k];
+         new_values[2][k] = w0*values0[2][k] + w1*values1[2][k] + w2*values2[2][k];
+       }
+
+       return new_values;
+     }
+  }

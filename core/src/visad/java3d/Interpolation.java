@@ -50,7 +50,6 @@ public class Interpolation {
          }
       }
 
-
       public void next(double x0, double x1, double x2, float[] values0, float[] values1, float[] values2) {
          this.x0 = x0;
          this.x1 = x1;

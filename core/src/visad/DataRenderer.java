@@ -71,6 +71,13 @@ public abstract class DataRenderer extends Object implements Cloneable {
   /** flag for visibility of Data depictions */
   protected boolean enabled = true;
 
+  /** TODO: make better.  How to do this exactly? */
+  /** flag for multiple visible */
+  public boolean multipleVisible = false;
+
+  public int[] whichVisible = null;
+  // end multiple visible
+
   /**
    * construct a DataRenderer
    */
