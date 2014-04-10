@@ -54,6 +54,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   boolean doTrajectory = false;
   boolean isAnimation1d = false;
   int domainLength = 0;
+  Set anim1DdomainSet;
   boolean post = false;
 
   List<BranchGroup> branches = null;
@@ -164,7 +165,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
             doTrajectory = true;
             Range.trajectory2 = true; // FIXME
             renderer.multipleVisible = true;
-            renderer.whichVisible = new int[] {-4, -3, -2, -1, 0};
+            renderer.whichVisible = new int[] {-3, -2, -1, 0};
             break;
           }
         }
@@ -176,6 +177,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       
       // analyze data's domain (its a Field)
       Set domainSet = ((Field) data).getDomainSet();
+      anim1DdomainSet = domainSet;
       
       // create and add switch with nodes for animation images
       domainLength = domainSet.getLength(); // num of domain nodes
@@ -1336,7 +1338,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
   private void doTrajectory() throws VisADException {
      /* get start points, use first spatial_set locs for now. Eventually want to include a time for start */
-     FlowInfo info = Range.getAdaptedShadowType().flowInfoList.get(0);
+     ArrayList<FlowInfo> flowInfoList = Range.getAdaptedShadowType().flowInfoList;
+     FlowInfo info = flowInfoList.get(0);
      float[][] startPts = ((Gridded3DSet)info.spatial_set).getSamples(false);
 
      int numTrajectories = startPts[0].length;
@@ -1362,6 +1365,10 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
         float[][] values0_last = null;
 
+        int numIntrpPts = 6;
+
+        double[] timeSteps = Trajectory.getTimeSteps((Gridded1DSet)anim1DdomainSet);
+
         for (int i=0; i<domainLength-3; i++) { // outer time dimension
           final BranchGroup branch = (BranchGroup) branches.get(i);
           final BranchGroup node = (BranchGroup) swit.getChild(i);
@@ -1374,9 +1381,12 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           Gridded2DSet spatial_set2D = new Gridded2DSet(RealTupleType.SpatialCartesian2DTuple, 
                   new float[][] {setLocs[0], setLocs[1]}, lens[0], lens[1]);
 
+          float timeStep = (float) timeSteps[i]/numIntrpPts;
+
+
           // must increase these if adding interpolated times
           VisADLineArray array = new VisADLineArray();
-          array.vertexCount = 2*numTrajectories*6;
+          array.vertexCount = 2*numTrajectories*numIntrpPts;
           array.coordinates = new float[3*array.vertexCount];
           array.colors = new byte[clrDim * array.vertexCount];
 
@@ -1386,13 +1396,32 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           double x1 = (double) (i+1);
           double x2 = (double) (i+2);
 
+          float[][] values0 = null;
+          float[][] values1 = null;
+          float[][] values2 = null;
+
           if ((i % 2) == 0) { 
-            float[][] values0 = Range.getAdaptedShadowType().flowInfoList.get(i).flow_values;
-            float[][] values1 = Range.getAdaptedShadowType().flowInfoList.get(i+1).flow_values;
-            float[][] values2 = Range.getAdaptedShadowType().flowInfoList.get(i+2).flow_values;
+            FlowInfo flwInfo = flowInfoList.get(i);
+            values0 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
+
+            flwInfo = flowInfoList.get(i+1);
+            values1 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
+
+            flwInfo = flowInfoList.get(i+2);
+            values2 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
+
+            /*
+            values0 = flowInfoList.get(i).flow_values;
+            values1 = flowInfoList.get(i+1).flow_values;
+            values2 = flowInfoList.get(i+2).flow_values;
+            */
+
 
             // smoothing done here
-            float[][] values3 = Range.getAdaptedShadowType().flowInfoList.get(i+3).flow_values;
+            //float[][] values3 = Range.getAdaptedShadowType().flowInfoList.get(i+3).flow_values;
+            flwInfo = flowInfoList.get(i+3);
+            float[][] values3 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
+            
             if (values0_last != null) {
               values0 = Trajectory.smooth(values0_last, values0, values1);
             }
@@ -1400,45 +1429,46 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             values2 = Trajectory.smooth(values1, values2, values3);
             // end smoothing
 
+
             uInterp.next(x0, x1, x2, values0[0], values1[0], values2[0]);
             vInterp.next(x0, x1, x2, values0[1], values1[1], values2[1]);
             
             values0_last = values0;
           }
 
-          for (int ti=0; ti<6; ti++) { // additional points per domain time step
-            double dst = (x1 - x0)/6;
-            double xt = x0 + dst;
+
+          for (int ti=0; ti<numIntrpPts; ti++) { // additional points per domain time step
+            double dst = (x1 - x0)/numIntrpPts;
+            double xt = x0 + dst*ti;
+             
             float[] intrpU = new float[uInterp.numSpatialPts];
             float[] intrpV = new float[uInterp.numSpatialPts];
             float[] intrpZ = new float[uInterp.numSpatialPts];
             uInterp.interpolate(xt, intrpU);
             vInterp.interpolate(xt, intrpV);
-
-            float[][] flow_values = Trajectory.adjustFlow(info, new float[][] {intrpU, intrpV, intrpZ}, 600f);
+            float[][] flow_values = Trajectory.adjustFlow(info, new float[][] {intrpU, intrpV, intrpZ}, timeStep);
 
             //float[][] flow_values = info.flow_values;
             //flow_values = Trajectory.adjustFlow(info, flow_values, 3600f);
 
+
             for (int t=0; t<numTrajectories; t++) {
               trajectories[t].forward(flow_values, color_values, spatial_set2D, array);
             }
-          }
+          } // inner time loop (time interpolation)
 
-          // something weird with this, everything being removed
+
+          // something weird with this, everything being removed ?
           array = (VisADLineArray) array.removeMissing();
 
           addToGroup(branch, array, info.mode, info.constant_alpha, info.constant_color);
           node.addChild(branch);
-        } // domain length (time steps)
+
+        } // domain length (time steps) outer time loop
      }
   }
 
   class Trajectory {
-     float startX;
-     float startY;
-     float startZ;
-
      float[] startPts = new float[3];
      float[]  stopPts = new float[3];
 
@@ -1453,9 +1483,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
      int clrDim;
      
      public Trajectory(float startX, float startY, float startZ, byte[] startColor) {
-        this.startX = startX;
-        this.startY = startY;
-        this.startZ = startZ;
         startPts[0] = startX;
         startPts[1] = startY;
         startPts[2] = startZ;
@@ -1522,18 +1549,21 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
              stopColor[3] = (byte) intrpClr[3];
            }
 
-           addPair(startPts, stopPts, startColor, stopColor, array);
+           //addPair(startPts, stopPts, startColor, stopColor, array); // Just use first color for now.
+           addPair(startPts, stopPts, startColor, startColor, array);
 
            startPts[0] = stopPts[0];
            startPts[1] = stopPts[1];
            startPts[2] = stopPts[2];
           
+           /* problem with colors.  Just use first color for now
            startColor[0] = stopColor[0];
            startColor[1] = stopColor[1];
            startColor[2] = stopColor[2];
            if (clrDim == 4) {
              startColor[3] = stopColor[3];
            }
+           */
         }
         else {
            intrpFlow[0] = Float.NaN;
@@ -1575,9 +1605,9 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
      }
 
      public static float[][] smooth(float[][] values0, float[][] values1, float[][] values2) {
-       float w0 = 0.20f;
-       float w1 = 0.60f;
-       float w2 = 0.20f;
+       float w0 = 0.16f;
+       float w1 = 0.68f;
+       float w2 = 0.16f;
 
        int numPts = values0[0].length;
        float[][] new_values = new float[3][numPts];
@@ -1589,5 +1619,38 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
        }
 
        return new_values;
+     }
+
+     public static double[] getTimeSteps(Gridded1DSet timeSet) throws VisADException {
+        double[] timePts;
+        if (timeSet instanceof Gridded1DDoubleSet) {
+           timePts = (timeSet.getDoubles())[0];
+        }
+        else {
+           timePts = (Set.floatToDouble(timeSet.getSamples()))[0];
+        }
+
+        double[] timeSteps = new double[timePts.length - 1];
+        Unit[] setUnits = timeSet.getSetUnits();
+        timePts = CommonUnit.secondsSinceTheEpoch.toThis(timePts, setUnits[0]);
+        for (int t=0; t<timePts.length-1; t++) { 
+           timeSteps[t] = timePts[t+1]-timePts[t];
+        }
+        return timeSteps;
+     }
+
+     public static float[][] convertFlowUnit(float[][] values, Unit[] units) throws VisADException {
+
+       float[] valsX = values[0];
+       if (!CommonUnit.meterPerSecond.equals(units[0])) {
+         valsX = CommonUnit.meterPerSecond.toThis(values[0], units[0]);
+       }
+
+       float[] valsY = values[1];
+       if (!CommonUnit.meterPerSecond.equals(units[1])) {
+         valsY = CommonUnit.meterPerSecond.toThis(values[1], units[1]);
+       }
+
+       return new float[][] {valsX, valsY, values[2]};
      }
   }

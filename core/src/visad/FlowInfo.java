@@ -5,6 +5,7 @@ import visad.*;
 public class FlowInfo {
 
   public float[][] flow_values;
+  public Unit[] flow_units;
   public float flowScale;
   public float[][] spatial_values;
   public Set spatial_set;

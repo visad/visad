@@ -2705,10 +2705,11 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
     }
   }
 
-  /* pretty much a no-op for now, but leaving in place */
   public float[][] makeTrajFlow(int which, float[][] flow_values,
+      Unit[][] dataUnits, Unit[] flowUnits,
       float flowScale, float[][] spatial_values, byte[][] color_values,
-      boolean[][] range_select) throws VisADException {
+      boolean[][] range_select, int valueArrayLength, int[] valueToMap,
+      Vector MapVector) throws VisADException {
 
     if (flow_values[0] == null)
       return null;
@@ -2733,12 +2734,35 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
 
     DataRenderer renderer = getLink().getRenderer();
 
-    /* This probably needs to be done later, so makeTrajFlow probably not needed.
-     * Leave in place for now.
-     *
-    flow_values = adjustFlowToEarth(which, flow_values, spatial_values,
-        flowScale, renderer, false, true);
-    */
+    FunctionType ftype = (FunctionType) Type;
+    RealTupleType rtt = ftype.getFlatRange();
+    RealType[] range_reals = rtt.getRealComponents();
+
+    for (int k = 0; k < range_reals.length; k++) {
+      for (int i = 0; i < valueArrayLength; i++) {
+        ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
+        DisplayRealType dreal = map.getDisplayScalar();
+        ScalarType scalar = map.getScalar();
+        if (!scalar.equals(range_reals[k]))
+          continue;
+
+        if ( dreal.equals(Display.Flow1Elevation) || dreal.equals(Display.Flow2Elevation) ||
+             dreal.equals(Display.Flow1Azimuth) || dreal.equals(Display.Flow2Azimuth) ||
+             dreal.equals(Display.Flow1Radial) || dreal.equals(Display.Flow2Radial) )  {
+           throw new VisADException("Elevation, Azimuth, Radial not supported for Trajectory");
+        }
+
+        if (dreal.equals(Display.Flow1X) || dreal.equals(Display.Flow2X)) {
+          flowUnits[0] = dataUnits[k][0];
+        }
+        if (dreal.equals(Display.Flow1Y) || dreal.equals(Display.Flow2Y)) {
+          flowUnits[1] = dataUnits[k][0];
+        }
+        if (dreal.equals(Display.Flow1Z) || dreal.equals(Display.Flow2Z)) {
+          flowUnits[2] = dataUnits[k][0];
+        }
+      }
+    }
 
     return flow_values;
   }
