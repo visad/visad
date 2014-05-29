@@ -169,12 +169,6 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
           if (dspType.equals(Display.Flow2X) || dspType.equals(Display.Flow2Y)) { // For testing ONLY
             doTrajectory = true;
             Range.trajectory2 = true; // FIXME
-            
-            // now we want to get whichVisible from the FlowControl
-            renderer.multipleVisible = false;
-            // this is like the visibility time length window of the trajectories
-            renderer.whichVisible = new int[] {-2, -1, 0};
-            //renderer.whichVisible = new int[] {-8, -7, -6, -5, -4, -3, -2, -1, 0};
             break;
           }
         }
@@ -197,7 +191,11 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
         addSwitch(group, swit, control, domainSet, renderer);
       }
       else {
-        switListen = new SwitchListener(swit, domainLength, renderer.whichVisible);
+        // This is like the visibility time length window of the trajectories.
+        // Should be computed from user defined parameters accesible from the FlowControl
+        int[] whichVisible = new int[] {-2, -1, 0};
+
+        switListen = new SwitchListener(swit, domainLength, whichVisible);
         ((AVControlJ3D) control).addPair((Switch) switListen, domainSet, renderer);
         ((AVControlJ3D) control).init();
         BranchGroup branch = new BranchGroup();
