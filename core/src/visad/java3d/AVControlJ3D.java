@@ -149,8 +149,9 @@ values[0][0]);
       }
 
 // System.out.println("indices = " + indices[0] + " value = " + value);
+// System.out.println("numChildren = " + ss.swit.numChildren());
       if (0 <= indices[0] && indices[0] < ss.swit.numChildren()) {
-        //ss.swit.setWhichChild(indices[0]);
+        ss.swit.setWhichChild(indices[0]);
 // DisplayImpl.printStack("child " + indices[0]);
 /*
 if (animation_set == null) {
@@ -161,24 +162,9 @@ DisplayImpl.printStack("selectSwitches: ss.swit.setWhichChild(" +
 System.out.println("ss.swit.numChildren() = " + ss.swit.numChildren());
 }
 */
-       java.util.BitSet bits = new java.util.BitSet(ss.swit.numChildren());
-       int k = indices[0];
-       if (ss.renderer.multipleVisible) {
-         for (int t=0; t<ss.renderer.whichVisible.length; t++) {
-           int k_set = k+ss.renderer.whichVisible[t];
-           if (k_set >= 0) {
-             bits.set(k_set);
-           }
-         }
-       }
-       else {
-         bits.set(k);
-       }
-       ss.swit.setChildMask(bits);
       }
       else {
-        //ss.swit.setWhichChild(Switch.CHILD_NONE);
-        ss.swit.setChildMask(new java.util.BitSet(ss.swit.numChildren()));
+        ss.swit.setWhichChild(Switch.CHILD_NONE);
         // DisplayImpl.printStack("CHILD_NONE");
 /*
 if (animation_set == null) {
