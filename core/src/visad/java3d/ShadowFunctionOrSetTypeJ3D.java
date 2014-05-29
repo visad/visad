@@ -32,6 +32,7 @@ import visad.util.ThreadManager;
 import javax.media.j3d.*;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
 
@@ -59,6 +60,10 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
 
   List<BranchGroup> branches = null;
   Switch swit = null;
+
+  Switch switB = null;
+
+  SwitchListener switListen = null;
 
   public ShadowFunctionOrSetTypeJ3D(MathType t, DataDisplayLink link,
                                     ShadowType parent)
@@ -164,8 +169,12 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
           if (dspType.equals(Display.Flow2X) || dspType.equals(Display.Flow2Y)) { // For testing ONLY
             doTrajectory = true;
             Range.trajectory2 = true; // FIXME
-            renderer.multipleVisible = true;
-            renderer.whichVisible = new int[] {-3, -2, -1, 0};
+            
+            // now we want to get whichVisible from the FlowControl
+            renderer.multipleVisible = false;
+            // this is like the visibility time length window of the trajectories
+            renderer.whichVisible = new int[] {-2, -1, 0};
+            //renderer.whichVisible = new int[] {-8, -7, -6, -5, -4, -3, -2, -1, 0};
             break;
           }
         }
@@ -173,19 +182,35 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
     }
 
     // animation logic
-    if (isAnimation1d){
+    if (isAnimation1d) {
       
       // analyze data's domain (its a Field)
       Set domainSet = ((Field) data).getDomainSet();
       anim1DdomainSet = domainSet;
-      
+
       // create and add switch with nodes for animation images
       domainLength = domainSet.getLength(); // num of domain nodes
       swit = (Switch) makeSwitch(domainLength);
       AnimationControlJ3D control = (AnimationControlJ3D)timeMap.getControl();
       
-      addSwitch(group, swit, control, domainSet, renderer);
+      if (!doTrajectory) {
+        addSwitch(group, swit, control, domainSet, renderer);
+      }
+      else {
+        switListen = new SwitchListener(swit, domainLength, renderer.whichVisible);
+        ((AVControlJ3D) control).addPair((Switch) switListen, domainSet, renderer);
+        ((AVControlJ3D) control).init();
+        BranchGroup branch = new BranchGroup();
+        branch.setCapability(BranchGroup.ALLOW_DETACH);
+        branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+        branch.addChild((Switch) swit);
+        ((Group) group).addChild(branch);
 
+        // this node holds the trajectory lead marker point
+        switB = (Switch) makeSwitch(domainLength);
+        addSwitch(group, switB, control, domainSet, renderer);
+      }
+      
 
       /***
           Old code:
@@ -1336,36 +1361,39 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
     AccumulationVector.removeAllElements();
   }
 
-  private void doTrajectory() throws VisADException {
-     /* get start points, use first spatial_set locs for now. Eventually want to include a time for start */
+  private void doTrajectory() throws VisADException, RemoteException {
+     /* Get start points, use first spatial_set locs for now. 
+        Eventually want to include a time for start */
+
      ArrayList<FlowInfo> flowInfoList = Range.getAdaptedShadowType().flowInfoList;
      FlowInfo info = flowInfoList.get(0);
+     Gridded3DSet spatial_set0 = (Gridded3DSet) info.spatial_set;
+     int[] lens = spatial_set0.getLengths();
+     float[][] setLocs = spatial_set0.getSamples(false);
+     Gridded2DSet spatial_set2D = new Gridded2DSet(RealTupleType.SpatialCartesian2DTuple,
+                new float[][] {setLocs[0], setLocs[1]}, lens[0], lens[1]);
+
+     Trajectory.markGrid = new boolean[spatial_set0.getLength()];
+     Trajectory.markGridTime = new int[spatial_set0.getLength()];
+     java.util.Arrays.fill(Trajectory.markGrid, false);
+     java.util.Arrays.fill(Trajectory.markGridTime, 0);
+
      float[][] startPts = ((Gridded3DSet)info.spatial_set).getSamples(false);
 
      int numTrajectories = startPts[0].length;
-     Trajectory[] trajectories = new Trajectory[numTrajectories];
+     ArrayList<Trajectory> trajectories = new ArrayList<Trajectory>();
      int clrDim = info.color_values.length;
-     for (int t=0; t<numTrajectories; t++) {
-       float startX = startPts[0][t];
-       float startY = startPts[1][t];
-       float startZ = startPts[2][t];
 
-       byte[] startColor = new byte[clrDim];
-       startColor[0] = info.color_values[0][t];
-       startColor[1] = info.color_values[1][t];
-       startColor[2] = info.color_values[2][t];
-       if (clrDim == 4) {
-          startColor[3] = info.color_values[3][t];
-       }
-       trajectories[t] = new Trajectory(startX, startY, startZ, startColor);
-     }
+     Trajectory.smoothParams = Trajectory.SmoothParams.MEDIUM;
     
         Interpolation uInterp = new Interpolation();
         Interpolation vInterp = new Interpolation();
+        Interpolation wInterp = new Interpolation();
 
         float[][] values0_last = null;
 
-        int numIntrpPts = 6;
+        //int numIntrpPts = 6;
+        int numIntrpPts = 16;
 
         double[] timeSteps = Trajectory.getTimeSteps((Gridded1DSet)anim1DdomainSet);
 
@@ -1376,21 +1404,33 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           info = Range.getAdaptedShadowType().flowInfoList.get(i);
           byte[][] color_values = info.color_values;
           Gridded3DSet spatial_set = (Gridded3DSet) info.spatial_set;
-          int[] lens = spatial_set.getLengths();
-          float[][] setLocs = spatial_set.getSamples(false);
-          Gridded2DSet spatial_set2D = new Gridded2DSet(RealTupleType.SpatialCartesian2DTuple, 
+          lens = spatial_set.getLengths();
+          setLocs = spatial_set.getSamples(false);
+          spatial_set2D = new Gridded2DSet(RealTupleType.SpatialCartesian2DTuple, 
                   new float[][] {setLocs[0], setLocs[1]}, lens[0], lens[1]);
 
           float timeStep = (float) timeSteps[i]/numIntrpPts;
 
+          if ((i % 6) == 0) { // for non steady state trajectories (refresh frequency)
+             trajectories = new ArrayList<Trajectory>();
+             java.util.Arrays.fill(Trajectory.markGrid, false);
+             switListen.allOffBelow.add(i);
+             Trajectory.makeTrajectories(i, trajectories, 4, color_values, setLocs, lens);
+          }
+          // commented out when not really using markGrid logic for starting/ending trajs
+          //Trajectory.makeTrajectories(i, trajectories, 6, color_values, setLocs, lens);
+
+          /*
+          Trajectory.checkTime(i); // for steady-state only
+          if ((i % 4) == 0) { // use for steady-state wind field
+            Trajectory.makeTrajectories(i, trajectories, 4, color_values, setLocs, lens);
+          }
+          */
 
           // must increase these if adding interpolated times
-          VisADLineArray array = new VisADLineArray();
-          array.vertexCount = 2*numTrajectories*numIntrpPts;
-          array.coordinates = new float[3*array.vertexCount];
-          array.colors = new byte[clrDim * array.vertexCount];
+          numTrajectories = trajectories.size();
 
-          Trajectory.reset();
+          Trajectory.reset(2*numTrajectories*numIntrpPts, clrDim);
 
           double x0 = (double) i;
           double x1 = (double) (i+1);
@@ -1401,24 +1441,20 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           float[][] values2 = null;
 
           if ((i % 2) == 0) { 
+            //FlowInfo flwInfo = flowInfoList.get(0);
             FlowInfo flwInfo = flowInfoList.get(i);
             values0 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
 
+            //flwInfo = flowInfoList.get(0);
             flwInfo = flowInfoList.get(i+1);
             values1 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
 
+            //flwInfo = flowInfoList.get(0);
             flwInfo = flowInfoList.get(i+2);
             values2 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
 
-            /*
-            values0 = flowInfoList.get(i).flow_values;
-            values1 = flowInfoList.get(i+1).flow_values;
-            values2 = flowInfoList.get(i+2).flow_values;
-            */
-
-
             // smoothing done here
-            //float[][] values3 = Range.getAdaptedShadowType().flowInfoList.get(i+3).flow_values;
+            //flwInfo = flowInfoList.get(0);
             flwInfo = flowInfoList.get(i+3);
             float[][] values3 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
             
@@ -1448,18 +1484,30 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             vInterp.interpolate(xt, intrpV);
             float[][] flow_values = Trajectory.adjustFlow(info, new float[][] {intrpU, intrpV, intrpZ}, timeStep);
 
-            //float[][] flow_values = info.flow_values;
-            //flow_values = Trajectory.adjustFlow(info, flow_values, 3600f);
-
-
             for (int t=0; t<numTrajectories; t++) {
-              trajectories[t].forward(flow_values, color_values, spatial_set2D, array);
+              Trajectory traj = trajectories.get(t);
+              traj.currentTimeIndex = i;
+              traj.forward(flow_values, color_values, spatial_set2D);
             }
+
           } // inner time loop (time interpolation)
 
 
+          VisADLineArray array = Trajectory.makeGeometry();
+          trajectories = Trajectory.clean(trajectories);
+          
           // something weird with this, everything being removed ?
-          array = (VisADLineArray) array.removeMissing();
+          //array = (VisADLineArray) array.removeMissing();
+
+          VisADPointArray p_array = Trajectory.makePointGeometry(trajectories);
+          GraphicsModeControl mode = (GraphicsModeControl) info.mode.clone();
+          mode.setPointSize(4f, false); //make sure to use false or lest we fall into event loop
+          BranchGroup branchB = new BranchGroup();
+          branch.setCapability(BranchGroup.ALLOW_DETACH);
+          branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+          addToGroup(branchB, p_array, mode, info.constant_alpha, info.constant_color);
+          ((BranchGroup)switB.getChild(i)).addChild(branchB);
+
 
           addToGroup(branch, array, info.mode, info.constant_alpha, info.constant_color);
           node.addChild(branch);
@@ -1476,12 +1524,50 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
      byte[] stopColor;
 
      float[][] startPts2D = new float[2][1];
+     float[][] startPts3D = new float[3][1];
 
      static int coordCnt = 0;
      static int colorCnt = 0;
+     static int vertCnt = 0;
 
      int clrDim;
+
+     boolean offGrid = false;
+
+     private static float[] coordinates = null;
+     private static byte[] colors = null;
      
+     public static boolean[] markGrid;
+     public static int[] markGridTime;
+
+     public static int cnt=0;
+     //public static int[] o_j = new int[] {-1, -1, -1, 0, 0, 0, 1, 1, 1}; 
+     //public static int[] o_i = new int[] {-1, 0, 1, -1, 0, 1, -1, 0, 1}; 
+     public static int[] o_j = new int[] {0, 0, 1, 1}; 
+     public static int[] o_i = new int[] {0, 1, 0, 1}; 
+
+     public int initialTimeIndex = 0;
+     public int currentTimeIndex = 0;
+
+     public static enum SmoothParams {
+        LIGHT (0.1f, 0.8f, 0.1f),
+        MEDIUM (0.22f, 0.56f, 0.22f),
+        HEAVY (0.3f, 0.4f, 0.3f),
+        NONE (0.0f, 1.0f, 0.0f);
+     
+        private float w0;
+        private float w1;
+        private float w2;
+
+        SmoothParams(float w0, float w1, float w2) {
+          this.w0 = w0;
+          this.w1 = w1;
+          this.w2 = w2;
+        }
+     }
+
+     public static SmoothParams smoothParams = SmoothParams.MEDIUM;
+
      public Trajectory(float startX, float startY, float startZ, byte[] startColor) {
         startPts[0] = startX;
         startPts[1] = startY;
@@ -1493,21 +1579,139 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         this.startColor = startColor;
      }
 
-     public static void reset() {
-        coordCnt = 0;
-        colorCnt = 0;
+     public static void makeTrajectories(int tIdx, ArrayList<Trajectory> trajectories, int skip, byte[][] color_values, float[][] setLocs, int[] setLens) {
+        int lenX = setLens[0];
+        int lenY = setLens[1];
+
+        int clrDim = color_values.length;
+        int m = cnt % 4;
+        cnt++;
+
+        for (int j=1+o_j[m]*(skip/2); j<lenY-skip; j+=skip) {
+          for (int i=1+o_i[m]*(skip/2); i<lenX-skip; i+=skip) {
+
+            int k = j*lenX + i;
+
+            if (!markGrid[k]) {
+              // initialize a new trajectory
+              float startX = setLocs[0][k];
+              float startY = setLocs[1][k];
+              float startZ = setLocs[2][k];
+
+              byte[] startColor = new byte[clrDim];
+              startColor[0] = color_values[0][k];
+              startColor[1] = color_values[1][k];
+              startColor[2] = color_values[2][k];
+              if (clrDim == 4) {
+                startColor[3] = color_values[3][k];
+              }
+
+              Trajectory traj = new Trajectory(startX, startY, startZ, startColor);
+              traj.initialTimeIndex = tIdx;
+              trajectories.add(traj);
+            }
+
+          }
+        }
+
+        /*
+        for (int k=0; k<markGrid.length; k++) {
+           markGrid[k] = false;
+        }
+        */
      }
 
-     public void forward(float[][] flow_values, byte[][] color_values, GriddedSet spatial_set2D, VisADLineArray array) 
+     public static void checkTime(int timeIdx) {
+       for (int k=0; k<markGridTime.length; k++) {
+         if ((timeIdx - markGridTime[k]) > 4) {
+           markGridTime[k] = timeIdx;
+           markGrid[k] = false;
+         }
+       }
+     }
+
+     public static ArrayList<Trajectory> clean(ArrayList<Trajectory> trajectories) {
+       ArrayList<Trajectory> newList = new ArrayList<Trajectory>();
+       Iterator<Trajectory> iter = trajectories.iterator();
+       while (iter.hasNext() ) {
+         Trajectory traj = iter.next();
+         //if (!traj.offGrid) {
+         if (!traj.offGrid && ((traj.currentTimeIndex - traj.initialTimeIndex) < 10)) {
+           newList.add(traj);
+         }
+       }
+       return newList;
+     }
+
+     public static void reset(int maxNumVerts, int clrDim) {
+        coordCnt = 0; 
+        colorCnt = 0;
+        vertCnt = 0;
+        coordinates = new float[3*maxNumVerts];
+        colors = new byte[clrDim*maxNumVerts];
+        java.util.Arrays.fill(coordinates, Float.NaN);
+     }
+
+     public static VisADLineArray makeGeometry() {
+       VisADLineArray array = new VisADLineArray();
+       float[] newCoords = new float[coordCnt];
+       byte[] newColors = new byte[colorCnt];
+       System.arraycopy(coordinates, 0, newCoords, 0, newCoords.length);
+       System.arraycopy(colors, 0, newColors, 0, newColors.length);
+       array.coordinates = newCoords;
+       array.colors = newColors;
+       array.vertexCount = vertCnt;
+
+       return array;
+     }
+
+     public static VisADPointArray makePointGeometry(ArrayList<Trajectory> trajectories) {
+       VisADPointArray array = new VisADPointArray();
+       int numPts = trajectories.size();
+       float[] coords =  new float[3*numPts];
+       byte[] colors = new byte[3*numPts];
+      
+       for (int k=0; k<numPts; k++) {
+         Trajectory traj = trajectories.get(k);
+         coords[k*3] = traj.startPts[0];
+         coords[k*3 + 1] = traj.startPts[1];
+         coords[k*3 + 2] = traj.startPts[2];
+         
+         colors[k*3] = traj.startColor[0];
+         colors[k*3 + 1] = traj.startColor[1];
+         colors[k*3 + 2] = traj.startColor[2];
+       }
+       
+       array.vertexCount = numPts;
+       array.coordinates = coords;
+       array.colors = colors;
+   
+       return array;
+     }
+ 
+
+     public void forward(float[][] flow_values, byte[][] color_values, GriddedSet spatial_set) 
            throws VisADException {
+        if (offGrid) return;
+
         int[][] indices = new int[1][];
         float[][] weights = new float[1][];
         float[] intrpFlow = new float[3];
-        
-        startPts2D[0][0] = startPts[0];
-        startPts2D[1][0] = startPts[1];
-        
-        spatial_set2D.valueToInterp(startPts2D, indices, weights);
+
+        int manifoldDimension = spatial_set.getManifoldDimension();
+
+        if (manifoldDimension == 2) {
+          startPts2D[0][0] = startPts[0];
+          startPts2D[1][0] = startPts[1];
+          spatial_set.valueToInterp(startPts2D, indices, weights);
+        }
+        else if (manifoldDimension == 3) {
+          startPts3D[0][0] = startPts[0];
+          startPts3D[1][0] = startPts[1];
+          startPts3D[2][0] = startPts[2];
+          spatial_set.valueToInterp(startPts3D, indices, weights);
+        }
+
 
         int clrDim = color_values.length;
         float[] intrpClr = new float[clrDim];
@@ -1536,6 +1740,9 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
               if (clrDim == 4) {
                 intrpClr[3] += weights[0][j]*color_values[3][idx];
               }
+              
+              //markGrid[idx] = true;
+              markGridTime[idx] = currentTimeIndex;
            }
 
            stopPts[0] = startPts[0] + intrpFlow[0];
@@ -1549,8 +1756,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
              stopColor[3] = (byte) intrpClr[3];
            }
 
-           //addPair(startPts, stopPts, startColor, stopColor, array); // Just use first color for now.
-           addPair(startPts, stopPts, startColor, startColor, array);
+           //addPair(startPts, stopPts, startColor, stopColor); // Just use first color for now.
+           addPair(startPts, stopPts, startColor, startColor);
 
            startPts[0] = stopPts[0];
            startPts[1] = stopPts[1];
@@ -1569,33 +1776,35 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
            intrpFlow[0] = Float.NaN;
            intrpFlow[1] = Float.NaN;
            intrpFlow[2] = Float.NaN;
+           offGrid = true;
         }
-
      }
 
-     private void addPair(float[] startPt, float[] stopPt, byte[] startColor, byte[] stopColor, VisADLineArray array) {
-        array.coordinates[coordCnt++] = startPt[0];
-        array.coordinates[coordCnt++] = startPt[1];
-        array.coordinates[coordCnt++] = startPt[2];
+     private void addPair(float[] startPt, float[] stopPt, byte[] startColor, byte[] stopColor) {
+        coordinates[coordCnt++] = startPt[0];
+        coordinates[coordCnt++] = startPt[1];
+        coordinates[coordCnt++] = startPt[2];
+        vertCnt++;
 
-        array.coordinates[coordCnt++] =  stopPt[0];
-        array.coordinates[coordCnt++] =  stopPt[1];
-        array.coordinates[coordCnt++] =  stopPt[2];
+        coordinates[coordCnt++] =  stopPt[0];
+        coordinates[coordCnt++] =  stopPt[1];
+        coordinates[coordCnt++] =  stopPt[2];
+        vertCnt++;
 
         int clrDim = startColor.length;
 
-        array.colors[colorCnt++] = startColor[0];
-        array.colors[colorCnt++] = startColor[1];
-        array.colors[colorCnt++] = startColor[2];
+        colors[colorCnt++] = startColor[0];
+        colors[colorCnt++] = startColor[1];
+        colors[colorCnt++] = startColor[2];
         if (clrDim == 4) {
-          array.colors[colorCnt++] = startColor[3];
+          colors[colorCnt++] = startColor[3];
         }
 
-        array.colors[colorCnt++] = stopColor[0];
-        array.colors[colorCnt++] = stopColor[1];
-        array.colors[colorCnt++] = stopColor[2];
+        colors[colorCnt++] = stopColor[0];
+        colors[colorCnt++] = stopColor[1];
+        colors[colorCnt++] = stopColor[2];
         if (clrDim == 4) {
-          array.colors[colorCnt++] = stopColor[3];
+          colors[colorCnt++] = stopColor[3];
         }
      }
 
@@ -1605,9 +1814,10 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
      }
 
      public static float[][] smooth(float[][] values0, float[][] values1, float[][] values2) {
-       float w0 = 0.16f;
-       float w1 = 0.68f;
-       float w2 = 0.16f;
+
+       float w0 = smoothParams.w0;
+       float w1 = smoothParams.w1;
+       float w2 = smoothParams.w2;
 
        int numPts = values0[0].length;
        float[][] new_values = new float[3][numPts];
@@ -1651,6 +1861,66 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
          valsY = CommonUnit.meterPerSecond.toThis(values[1], units[1]);
        }
 
+      /* 
+       * FlowZ will have to be meters/second: Application will have to convert
+       * or supply, maybe through a RangeCoordinateSystem, a transform to do this.
+       *
+       */
+
        return new float[][] {valsX, valsY, values[2]};
      }
+  }
+
+  class SwitchListener extends Switch {
+    int numChildren;
+    int[] whichVisible;
+    Switch swit;
+    java.util.BitSet bits;
+
+    ArrayList<Integer> allOffBelow = new ArrayList<Integer>();
+
+    SwitchListener(Switch swit, int numChildren, int[] whichVisible) {
+      super();
+      this.numChildren = numChildren;
+      this.bits = new java.util.BitSet(numChildren);
+      this.swit = swit;
+      this.whichVisible = whichVisible;
+    }
+
+    public int numChildren() {
+      return numChildren;
+    }
+
+    public void setWhichChild(int index) {
+      if (index == Switch.CHILD_NONE) {
+        bits.clear();
+        swit.setWhichChild(Switch.CHILD_NONE);
+      }
+      else if (index >= 0) {
+        bits.clear();
+        for (int t=0; t<whichVisible.length; t++) {
+          int k_set = index + whichVisible[t];
+          if (k_set >= 0) {
+            bits.set(k_set);
+          }
+        }
+
+        int offBelow = 0;
+        for (int k=0; k<allOffBelow.size(); k++) {
+          int idx = allOffBelow.get(k).intValue();
+          if (index >= idx) {
+            offBelow = idx;
+          }
+        }
+        if (offBelow > 0) {
+          bits.clear(0, offBelow);
+        }
+
+        swit.setChildMask(bits);
+      }
+    }
+
+    public void setChildMask(java.util.BitSet bits) {
+      swit.setChildMask(bits);
+    }
   }
