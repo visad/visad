@@ -1425,10 +1425,10 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           }
           */
 
-          // must increase these if adding interpolated times
           numTrajectories = trajectories.size();
 
-          Trajectory.reset(2*numTrajectories*numIntrpPts, clrDim);
+          //Trajectory.reset(2*numTrajectories*numIntrpPts, clrDim);
+          Trajectory.reset(numTrajectories*numIntrpPts, clrDim);
 
           double x0 = (double) i;
           double x1 = (double) (i+1);
@@ -1628,12 +1628,15 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
        }
      }
 
+     /* Remove trajectories:
+          (1) That have left the grid (marked offGrid).
+          (2) That have time length (duration) greater than some threshold.
+      */
      public static ArrayList<Trajectory> clean(ArrayList<Trajectory> trajectories) {
        ArrayList<Trajectory> newList = new ArrayList<Trajectory>();
        Iterator<Trajectory> iter = trajectories.iterator();
        while (iter.hasNext() ) {
          Trajectory traj = iter.next();
-         //if (!traj.offGrid) {
          if (!traj.offGrid && ((traj.currentTimeIndex - traj.initialTimeIndex) < 10)) {
            newList.add(traj);
          }
@@ -1641,10 +1644,12 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
        return newList;
      }
 
+     /* Set internal counters to zero. Replace internal arrays and initialize to NaN. */
      public static void reset(int maxNumVerts, int clrDim) {
         coordCnt = 0; 
         colorCnt = 0;
         vertCnt = 0;
+        maxNumVerts *= 2; // one each for start and stop
         coordinates = new float[3*maxNumVerts];
         colors = new byte[clrDim*maxNumVerts];
         java.util.Arrays.fill(coordinates, Float.NaN);
