@@ -56,6 +56,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   boolean isAnimation1d = false;
   int domainLength = 0;
   Set anim1DdomainSet;
+  Set domainSet;
   boolean post = false;
 
   List<BranchGroup> branches = null;
@@ -179,7 +180,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
     if (isAnimation1d) {
       
       // analyze data's domain (its a Field)
-      Set domainSet = ((Field) data).getDomainSet();
+      domainSet = ((Field) data).getDomainSet();
       anim1DdomainSet = domainSet;
 
       // create and add switch with nodes for animation images
@@ -1395,9 +1396,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
         double[] timeSteps = Trajectory.getTimeSteps((Gridded1DSet)anim1DdomainSet);
 
-        for (int i=0; i<domainLength-3; i++) { // outer time dimension
-          final BranchGroup branch = (BranchGroup) branches.get(i);
-          final BranchGroup node = (BranchGroup) swit.getChild(i);
+        for (int i=0; i<domainLength-3; i++) { // outer time dimension (data domain)
 
           info = Range.getAdaptedShadowType().flowInfoList.get(i);
           byte[][] color_values = info.color_values;
@@ -1424,11 +1423,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             Trajectory.makeTrajectories(i, trajectories, 4, color_values, setLocs, lens);
           }
           */
-
-          numTrajectories = trajectories.size();
-
-          //Trajectory.reset(2*numTrajectories*numIntrpPts, clrDim);
-          Trajectory.reset(numTrajectories*numIntrpPts, clrDim);
 
           double x0 = (double) i;
           double x1 = (double) (i+1);
@@ -1470,6 +1464,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             values0_last = values0;
           }
 
+          numTrajectories = trajectories.size();
+          Trajectory.reset(numTrajectories*numIntrpPts, clrDim);
 
           for (int ti=0; ti<numIntrpPts; ti++) { // additional points per domain time step
             double dst = (x1 - x0)/numIntrpPts;
@@ -1496,6 +1492,9 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           
           // something weird with this, everything being removed ?
           //array = (VisADLineArray) array.removeMissing();
+
+          final BranchGroup branch = (BranchGroup) branches.get(i);
+          final BranchGroup node = (BranchGroup) swit.getChild(i);
 
           VisADPointArray p_array = Trajectory.makePointGeometry(trajectories);
           GraphicsModeControl mode = (GraphicsModeControl) info.mode.clone();
