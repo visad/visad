@@ -55,9 +55,14 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   boolean doTrajectory = false;
   boolean isAnimation1d = false;
   int domainLength = 0;
+  int dataDomainLength = 0;
   Set anim1DdomainSet;
   Set domainSet;
   boolean post = false;
+
+  double trajVisibilityTimeWindow;
+  double trajRefreshInterval;
+  double trajLifetime;
 
   List<BranchGroup> branches = null;
   Switch swit = null;
@@ -169,7 +174,11 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
           }
           if (dspType.equals(Display.Flow2X) || dspType.equals(Display.Flow2Y)) { // For testing ONLY
             doTrajectory = true;
+            // Parameters to get and/or derive from the FlowControl
             Range.trajectory2 = true; // FIXME
+            trajVisibilityTimeWindow = 4*21600.0;
+            trajRefreshInterval = 2*43200.0;
+            trajLifetime = 2*trajVisibilityTimeWindow; //default
             break;
           }
         }
@@ -185,6 +194,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
 
       // create and add switch with nodes for animation images
       domainLength = domainSet.getLength(); // num of domain nodes
+      dataDomainLength = domainLength;
       swit = (Switch) makeSwitch(domainLength);
       AnimationControlJ3D control = (AnimationControlJ3D)timeMap.getControl();
       
@@ -192,9 +202,15 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
         addSwitch(group, swit, control, domainSet, renderer);
       }
       else {
+        double[] times = Trajectory.getTimes((Gridded1DSet)anim1DdomainSet);
+        java.util.Arrays.sort(times);
+        int len = times.length;
+        double avgTimeStep = (times[len-1] - times[0])/(len-1);
+        int numNodes = (int) (trajVisibilityTimeWindow/avgTimeStep);
         // This is like the visibility time length window of the trajectories.
         // Should be computed from user defined parameters accesible from the FlowControl
-        int[] whichVisible = new int[] {-2, -1, 0};
+        int[] whichVisible = new int[numNodes];
+        for (int i=0; i<numNodes; i++) whichVisible[i] = -((numNodes-1) - i);
 
         switListen = new SwitchListener(swit, domainLength, whichVisible);
         ((AVControlJ3D) control).addPair((Switch) switListen, domainSet, renderer);
@@ -1363,7 +1379,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
   private void doTrajectory() throws VisADException, RemoteException {
      /* Get start points, use first spatial_set locs for now. 
         Eventually want to include a time for start */
-
      ArrayList<FlowInfo> flowInfoList = Range.getAdaptedShadowType().flowInfoList;
      FlowInfo info = flowInfoList.get(0);
      Gridded3DSet spatial_set0 = (Gridded3DSet) info.spatial_set;
@@ -1391,12 +1406,13 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
         float[][] values0_last = null;
 
-        //int numIntrpPts = 6;
-        int numIntrpPts = 16;
+        int numIntrpPts = 6;
 
+        double[] times = Trajectory.getTimes((Gridded1DSet)anim1DdomainSet);
         double[] timeSteps = Trajectory.getTimeSteps((Gridded1DSet)anim1DdomainSet);
+        double timeAccum = 0;
 
-        for (int i=0; i<domainLength-3; i++) { // outer time dimension (data domain)
+        for (int i=0; i<dataDomainLength-3; i++) { // outer time dimension (data domain)
 
           info = Range.getAdaptedShadowType().flowInfoList.get(i);
           byte[][] color_values = info.color_values;
@@ -1408,14 +1424,16 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
           float timeStep = (float) timeSteps[i]/numIntrpPts;
 
-          if ((i % 6) == 0) { // for non steady state trajectories (refresh frequency)
+          if ((i==0) || (timeAccum >= trajRefreshInterval)) { // for non steady state trajectories (refresh frequency)
              trajectories = new ArrayList<Trajectory>();
              java.util.Arrays.fill(Trajectory.markGrid, false);
              switListen.allOffBelow.add(i);
-             Trajectory.makeTrajectories(i, trajectories, 4, color_values, setLocs, lens);
+             Trajectory.makeTrajectories(times[i], trajectories, 2, color_values, setLocs, lens);
+             timeAccum = 0.0;
           }
+          timeAccum += timeSteps[i];
           // commented out when not really using markGrid logic for starting/ending trajs
-          //Trajectory.makeTrajectories(i, trajectories, 6, color_values, setLocs, lens);
+          //Trajectory.makeTrajectories(times[i], trajectories, 6, color_values, setLocs, lens);
 
           /*
           Trajectory.checkTime(i); // for steady-state only
@@ -1481,6 +1499,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             for (int t=0; t<numTrajectories; t++) {
               Trajectory traj = trajectories.get(t);
               traj.currentTimeIndex = i;
+              traj.currentTime = times[i];
               traj.forward(flow_values, color_values, spatial_set2D);
             }
 
@@ -1488,7 +1507,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
 
           VisADLineArray array = Trajectory.makeGeometry();
-          trajectories = Trajectory.clean(trajectories);
+          trajectories = Trajectory.clean(trajectories, trajLifetime);
           
           // something weird with this, everything being removed ?
           //array = (VisADLineArray) array.removeMissing();
@@ -1545,10 +1564,13 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
      public int initialTimeIndex = 0;
      public int currentTimeIndex = 0;
+ 
+     public double initialTime = 0;
+     public double currentTime = 0;
 
      public static enum SmoothParams {
-        LIGHT (0.1f, 0.8f, 0.1f),
-        MEDIUM (0.22f, 0.56f, 0.22f),
+        LIGHT (0.05f, 0.9f, 0.05f),
+        MEDIUM (0.1f, 0.8f, 0.1f),
         HEAVY (0.3f, 0.4f, 0.3f),
         NONE (0.0f, 1.0f, 0.0f);
      
@@ -1576,7 +1598,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         this.startColor = startColor;
      }
 
-     public static void makeTrajectories(int tIdx, ArrayList<Trajectory> trajectories, int skip, byte[][] color_values, float[][] setLocs, int[] setLens) {
+     public static void makeTrajectories(double time, ArrayList<Trajectory> trajectories, int skip, byte[][] color_values, float[][] setLocs, int[] setLens) {
         int lenX = setLens[0];
         int lenY = setLens[1];
 
@@ -1604,7 +1626,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
               }
 
               Trajectory traj = new Trajectory(startX, startY, startZ, startColor);
-              traj.initialTimeIndex = tIdx;
+              //traj.initialTimeIndex = tIdx;
+              traj.initialTime = time;
               trajectories.add(traj);
             }
 
@@ -1627,20 +1650,24 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
        }
      }
 
-     /* Remove trajectories:
+     /* Remove trajectories from list:
           (1) That have left the grid (marked offGrid).
           (2) That have time length (duration) greater than some threshold.
       */
-     public static ArrayList<Trajectory> clean(ArrayList<Trajectory> trajectories) {
+     public static ArrayList<Trajectory> clean(ArrayList<Trajectory> trajectories, double threshold) {
        ArrayList<Trajectory> newList = new ArrayList<Trajectory>();
        Iterator<Trajectory> iter = trajectories.iterator();
        while (iter.hasNext() ) {
          Trajectory traj = iter.next();
-         if (!traj.offGrid && ((traj.currentTimeIndex - traj.initialTimeIndex) < 10)) {
+         if (!traj.offGrid && ((traj.currentTime - traj.initialTime) < threshold)) {
            newList.add(traj);
          }
        }
        return newList;
+     }
+
+     public static ArrayList<Trajectory> clean(ArrayList<Trajectory> trajectories) {
+        return Trajectory.clean(trajectories, -1.0);
      }
 
      /* Set internal counters to zero. Replace internal arrays and initialize to NaN. */
@@ -1850,6 +1877,21 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         }
         return timeSteps;
      }
+
+     public static double[] getTimes(Gridded1DSet timeSet) throws VisADException {
+        double[] timePts;
+        if (timeSet instanceof Gridded1DDoubleSet) {
+           timePts = (timeSet.getDoubles())[0];
+        }
+        else {
+           timePts = (Set.floatToDouble(timeSet.getSamples()))[0];
+        }
+
+        Unit[] setUnits = timeSet.getSetUnits();
+        timePts = CommonUnit.secondsSinceTheEpoch.toThis(timePts, setUnits[0]);
+        return timePts;
+     }
+
 
      public static float[][] convertFlowUnit(float[][] values, Unit[] units) throws VisADException {
 
