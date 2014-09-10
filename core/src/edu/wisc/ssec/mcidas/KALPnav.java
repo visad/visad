@@ -26,8 +26,10 @@ MA 02111-1307, USA
 
 package edu.wisc.ssec.mcidas;
 
-import java.util.*;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
 
 /**
  * The KALPnav class creates the ability to navigate KALP
@@ -72,8 +74,10 @@ import java.io.*;
  * @author Tom Whittaker
  * 
  */
+
 public class KALPnav extends AREAnav {
-  private int ic;
+
+  private static final long serialVersionUID = 1L;
   private double h, a, rp, re, cdr, crd, lpsi2, deltax, deltay;
   private double sublat, sublon, cenlin, cenele, altitude;
 
