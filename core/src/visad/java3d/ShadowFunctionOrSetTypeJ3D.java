@@ -63,6 +63,9 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   double trajVisibilityTimeWindow;
   double trajRefreshInterval;
   double trajLifetime;
+  int numIntrpPts;
+  int trajSkip;
+  TrajectoryParams.SmoothParams smoothParams;
 
   List<BranchGroup> branches = null;
   Switch swit = null;
@@ -160,27 +163,23 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
         DisplayRealType dspType = scalarMap.getDisplayScalar();
         if (dspType.equals(Display.Flow1X) || dspType.equals(Display.Flow1Y) || dspType.equals(Display.Flow1Z) ||
             dspType.equals(Display.Flow2X) || dspType.equals(Display.Flow2Y) || dspType.equals(Display.Flow2Z)) {
+
           FlowControl flwCntrl = (FlowControl) scalarMap.getControl();
-          /* eventually
           if (flwCntrl.trajectoryEnabled()) {
             doTrajectory = true;
+            TrajectoryParams trajParams = flwCntrl.getTrajectoryParams();
+            trajVisibilityTimeWindow = trajParams.getTrajVisibilityTimeWindow();
+            trajRefreshInterval = trajVisibilityTimeWindow; // Default
+            trajLifetime = trajRefreshInterval; // Default. Should be greater than or equal to refresh interval
+            numIntrpPts = trajParams.getNumIntrpPts();
+            trajSkip = trajParams.getStartSkip();
+            smoothParams = trajParams.getSmoothParams();
             break;
           }
-          */
-          if (dspType.equals(Display.Flow1X) || dspType.equals(Display.Flow1Y)) { // For testing ONLY
+          else {
             doTrajectory = false;
-            Range.trajectory1 = false; // FIXME
-            break;
           }
-          if (dspType.equals(Display.Flow2X) || dspType.equals(Display.Flow2Y)) { // For testing ONLY
-            doTrajectory = true;
-            // Parameters to get and/or derive from the FlowControl
-            Range.trajectory2 = true; // FIXME
-            trajVisibilityTimeWindow = 4*21600.0;
-            trajRefreshInterval = 2*43200.0;
-            trajLifetime = 2*trajVisibilityTimeWindow; //default
-            break;
-          }
+
         }
       }
     }
@@ -207,8 +206,6 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
         int len = times.length;
         double avgTimeStep = (times[len-1] - times[0])/(len-1);
         int numNodes = (int) (trajVisibilityTimeWindow/avgTimeStep);
-        // This is like the visibility time length window of the trajectories.
-        // Should be computed from user defined parameters accesible from the FlowControl
         int[] whichVisible = new int[numNodes];
         for (int i=0; i<numNodes; i++) whichVisible[i] = -((numNodes-1) - i);
 
@@ -1398,15 +1395,12 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
      ArrayList<Trajectory> trajectories = new ArrayList<Trajectory>();
      int clrDim = info.color_values.length;
 
-     Trajectory.smoothParams = Trajectory.SmoothParams.MEDIUM;
     
         Interpolation uInterp = new Interpolation();
         Interpolation vInterp = new Interpolation();
         Interpolation wInterp = new Interpolation();
 
         float[][] values0_last = null;
-
-        int numIntrpPts = 6;
 
         double[] times = Trajectory.getTimes((Gridded1DSet)anim1DdomainSet);
         double[] timeSteps = Trajectory.getTimeSteps((Gridded1DSet)anim1DdomainSet);
@@ -1428,7 +1422,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
              trajectories = new ArrayList<Trajectory>();
              java.util.Arrays.fill(Trajectory.markGrid, false);
              switListen.allOffBelow.add(i);
-             Trajectory.makeTrajectories(times[i], trajectories, 2, color_values, setLocs, lens);
+             Trajectory.makeTrajectories(times[i], trajectories, trajSkip, color_values, setLocs, lens);
              timeAccum = 0.0;
           }
           timeAccum += timeSteps[i];
@@ -1469,10 +1463,10 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             float[][] values3 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
             
             if (values0_last != null) {
-              values0 = Trajectory.smooth(values0_last, values0, values1);
+              values0 = Trajectory.smooth(values0_last, values0, values1, smoothParams);
             }
-            values1 = Trajectory.smooth(values0, values1, values2);
-            values2 = Trajectory.smooth(values1, values2, values3);
+            values1 = Trajectory.smooth(values0, values1, values2, smoothParams);
+            values2 = Trajectory.smooth(values1, values2, values3, smoothParams);
             // end smoothing
 
 
@@ -1570,7 +1564,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
      public static enum SmoothParams {
         LIGHT (0.05f, 0.9f, 0.05f),
-        MEDIUM (0.1f, 0.8f, 0.1f),
+        MEDIUM (0.15f, 0.7f, 0.15f),
         HEAVY (0.3f, 0.4f, 0.3f),
         NONE (0.0f, 1.0f, 0.0f);
      
@@ -1584,8 +1578,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           this.w2 = w2;
         }
      }
-
-     public static SmoothParams smoothParams = SmoothParams.MEDIUM;
 
      public Trajectory(float startX, float startY, float startZ, byte[] startColor) {
         startPts[0] = startX;
@@ -1842,7 +1834,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
                                info.renderer, false, true, timeStep);
      }
 
-     public static float[][] smooth(float[][] values0, float[][] values1, float[][] values2) {
+     public static float[][] smooth(float[][] values0, float[][] values1, float[][] values2, TrajectoryParams.SmoothParams smoothParams) {
 
        float w0 = smoothParams.w0;
        float w1 = smoothParams.w1;

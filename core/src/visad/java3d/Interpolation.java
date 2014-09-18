@@ -67,7 +67,11 @@ public class Interpolation {
             double y1 = values1[k];
             double y2 = values2[k];
 
-            if (firstTime) {
+            // TODO: for now always initialize first derivative at first point with estimate from
+            // the first two data pts instead of using derivative from cubic polynomial fit at the
+            // last point.  This works pretty well, but can be improved. So set this to "true".
+            //if (firstTime) {
+            if (true) {
                double D1 = (y1 - y0)/(x1 - x0);
                double[] sol = getSolution(y0, y1, y2, D1);
                solution[0][k] = sol[0];

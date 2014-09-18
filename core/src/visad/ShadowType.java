@@ -2142,7 +2142,7 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
               cntrWeight1 = pp[0];
               n_pass1 = (int) pp[1];
               reduction1 = control.getStreamlineReduction();
-              //trajectory1 = control.trajectoryEnabled();
+              trajectory1 = control.trajectoryEnabled();
               if (trajectory1) {
                  ff_values[k][flow_index] = map.inverseScaleValues(ff_values[k][flow_index], true);
                  flowScale[k] = 1f;
@@ -2158,8 +2158,7 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
               cntrWeight2 = pp[0];
               n_pass2 = (int) pp[1];
               reduction2 = control.getStreamlineReduction();
-              //trajectory2 = control.trajectoryEnabled();
-              trajectory2 = true;
+              trajectory2 = control.trajectoryEnabled();
               if (trajectory2) {
                  ff_values[k][flow_index] = map.inverseScaleValues(ff_values[k][flow_index], true);
                  flowScale[k] = 1f;
