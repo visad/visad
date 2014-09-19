@@ -66,6 +66,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   int numIntrpPts;
   int trajSkip;
   TrajectoryParams.SmoothParams smoothParams;
+  int direction;
 
   List<BranchGroup> branches = null;
   Switch swit = null;
@@ -174,6 +175,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
             numIntrpPts = trajParams.getNumIntrpPts();
             trajSkip = trajParams.getStartSkip();
             smoothParams = trajParams.getSmoothParams();
+            direction = trajParams.getDirection();
             break;
           }
           else {
@@ -1445,20 +1447,16 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           float[][] values2 = null;
 
           if ((i % 2) == 0) { 
-            //FlowInfo flwInfo = flowInfoList.get(0);
             FlowInfo flwInfo = flowInfoList.get(i);
             values0 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
 
-            //flwInfo = flowInfoList.get(0);
             flwInfo = flowInfoList.get(i+1);
             values1 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
 
-            //flwInfo = flowInfoList.get(0);
             flwInfo = flowInfoList.get(i+2);
             values2 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
 
             // smoothing done here
-            //flwInfo = flowInfoList.get(0);
             flwInfo = flowInfoList.get(i+3);
             float[][] values3 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
             
