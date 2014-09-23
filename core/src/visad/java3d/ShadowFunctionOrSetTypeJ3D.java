@@ -1428,7 +1428,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
              timeAccum = 0.0;
           }
           timeAccum += timeSteps[i];
-          // commented out when not really using markGrid logic for starting/ending trajs
+          // commented out when not using markGrid logic for starting/ending trajs
           //Trajectory.makeTrajectories(times[i], trajectories, 6, color_values, setLocs, lens);
 
           /*
@@ -1568,23 +1568,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
  
      public double initialTime = 0;
      public double currentTime = 0;
-
-     public static enum SmoothParams {
-        LIGHT (0.05f, 0.9f, 0.05f),
-        MEDIUM (0.15f, 0.7f, 0.15f),
-        HEAVY (0.3f, 0.4f, 0.3f),
-        NONE (0.0f, 1.0f, 0.0f);
-     
-        private float w0;
-        private float w1;
-        private float w2;
-
-        SmoothParams(float w0, float w1, float w2) {
-          this.w0 = w0;
-          this.w1 = w1;
-          this.w2 = w2;
-        }
-     }
 
      public Trajectory(float startX, float startY, float startZ, byte[] startColor) {
         startPts[0] = startX;
