@@ -1445,20 +1445,27 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           float[][] values0 = null;
           float[][] values1 = null;
           float[][] values2 = null;
+          float[][] values3 = null;
 
           if ((i % 2) == 0) { 
-            FlowInfo flwInfo = flowInfoList.get(i);
-            values0 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
+            FlowInfo flwInfo;
 
-            flwInfo = flowInfoList.get(i+1);
-            values1 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
+            if (values0 == null) {
+              flwInfo = flowInfoList.get(i);
+              values0 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
+            }
+
+            if (values1 == null) {
+              flwInfo = flowInfoList.get(i+1);
+              values1 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
+            }
 
             flwInfo = flowInfoList.get(i+2);
             values2 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
 
             // smoothing done here
             flwInfo = flowInfoList.get(i+3);
-            float[][] values3 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
+            values3 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
             
             if (values0_last != null) {
               values0 = Trajectory.smooth(values0_last, values0, values1, smoothParams);
@@ -1467,11 +1474,13 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             values2 = Trajectory.smooth(values1, values2, values3, smoothParams);
             // end smoothing
 
-
             uInterp.next(x0, x1, x2, values0[0], values1[0], values2[0]);
             vInterp.next(x0, x1, x2, values0[1], values1[1], values2[1]);
-            
-            values0_last = values0;
+          }
+          else {
+            values0_last = values1;
+            values0 = values2;
+            values1 = values3;
           }
 
           numTrajectories = trajectories.size();
