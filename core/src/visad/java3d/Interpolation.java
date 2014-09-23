@@ -9,9 +9,9 @@ public class Interpolation {
 
       double[][] solution = null;
 
-      double x0;
-      double x1;
-      double x2;
+      double x0 = 0;
+      double x1 = 0;
+      double x2 = 0;
 
       boolean firstTime = true;
 
@@ -51,11 +51,12 @@ public class Interpolation {
       }
 
       public void next(double x0, double x1, double x2, float[] values0, float[] values1, float[] values2) {
-         this.x0 = x0;
-         this.x1 = x1;
-         this.x2 = x2;
-
-         buildSolver();
+         if (!(this.x0 == x0 && this.x1 == x1 && this.x2 == x2)) {
+           this.x0 = x0;
+           this.x1 = x1;
+           this.x2 = x2;
+           buildSolver();
+         }
 
          if (firstTime) {
             numSpatialPts = values0.length;
