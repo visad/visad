@@ -1597,7 +1597,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         this.startColor = startColor;
      }
 
-     public static void makeTrajectories(double time, ArrayList<Trajectory> trajectories, int skip, byte[][] color_values, float[][] setLocs, int[] setLens) {
+     public static void makeTrajectories(double time, ArrayList<Trajectory> trajectories, int skip, byte[][] color_values, float[][] startPts, int[] setLens) {
         int lenX = setLens[0];
         int lenY = setLens[1];
 
@@ -1612,9 +1612,9 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
             if (!markGrid[k]) {
               // initialize a new trajectory
-              float startX = setLocs[0][k];
-              float startY = setLocs[1][k];
-              float startZ = setLocs[2][k];
+              float startX = startPts[0][k];
+              float startY = startPts[1][k];
+              float startZ = startPts[2][k];
 
               byte[] startColor = new byte[clrDim];
               startColor[0] = color_values[0][k];
@@ -1639,6 +1639,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         */
      }
 
+     /* For steady-state trajectories (animated streamlines) only */
      public static void checkTime(int timeIdx) {
        for (int k=0; k<markGridTime.length; k++) {
          if ((timeIdx - markGridTime[k]) > 4) {
