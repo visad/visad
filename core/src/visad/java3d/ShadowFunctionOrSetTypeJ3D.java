@@ -67,6 +67,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   int trajSkip;
   TrajectoryParams.SmoothParams smoothParams;
   int direction;
+  float[][] startPts = null;
 
   List<BranchGroup> branches = null;
   Switch swit = null;
@@ -176,6 +177,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
             trajSkip = trajParams.getStartSkip();
             smoothParams = trajParams.getSmoothParams();
             direction = trajParams.getDirection();
+            startPts = trajParams.getStartPoints();
             break;
           }
           else {
@@ -220,7 +222,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
         branch.addChild((Switch) swit);
         ((Group) group).addChild(branch);
 
-        // this node holds the trajectory lead marker point
+        // this node holds the trajectory tracer display geometry
         switB = (Switch) makeSwitch(domainLength);
         addSwitch(group, switB, control, domainSet, renderer);
       }
@@ -1386,16 +1388,43 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
      Gridded2DSet spatial_set2D = new Gridded2DSet(RealTupleType.SpatialCartesian2DTuple,
                 new float[][] {setLocs[0], setLocs[1]}, lens[0], lens[1]);
 
+     byte[][] color_values = info.color_values;
+     int clrDim = color_values.length;
+
      Trajectory.markGrid = new boolean[spatial_set0.getLength()];
      Trajectory.markGridTime = new int[spatial_set0.getLength()];
      java.util.Arrays.fill(Trajectory.markGrid, false);
      java.util.Arrays.fill(Trajectory.markGridTime, 0);
 
-     float[][] startPts = ((Gridded3DSet)info.spatial_set).getSamples(false);
+     byte[][] startClrs = new byte[color_values.length][];
+     if (startPts == null) { //get from domain set
+       startPts = new float[3][];
+       Trajectory.getStartPointsFromDomain(trajSkip, spatial_set0, color_values, startPts, startClrs);
+     }
+     else {
+       /* TODO: assuming earth navigated display coordinate system*/
+       CoordinateSystem dspCoordSys = getLink().getRenderer().getDisplayCoordinateSystem();
+       float[][] fltVals = new float[startPts.length][startPts[0].length];
+       for (int i=0; i<fltVals.length; i++) System.arraycopy(startPts[i], 0, fltVals[i], 0, fltVals[i].length);
+       startPts = dspCoordSys.toReference(fltVals);
+
+       int[] clrIdxs = spatial_set2D.valueToIndex(new float[][] {startPts[0], startPts[1]});
+       int num = clrIdxs.length;
+       startClrs[0] = new byte[num];
+       startClrs[1] = new byte[num];
+       startClrs[2] = new byte[num];
+       if (clrDim == 4) startClrs[3] = new byte[num];
+       for (int i=0; i<num; i++) {
+         int clrIdx = clrIdxs[i];
+         startClrs[0][i] = color_values[0][clrIdx];
+         startClrs[1][i] = color_values[1][clrIdx];
+         startClrs[2][i] = color_values[2][clrIdx];
+         if (clrDim == 4) startClrs[3][i] = color_values[3][clrIdx];
+       }
+     }
 
      int numTrajectories = startPts[0].length;
      ArrayList<Trajectory> trajectories = new ArrayList<Trajectory>();
-     int clrDim = info.color_values.length;
 
     
         Interpolation uInterp = new Interpolation();
@@ -1416,12 +1445,13 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
 
           info = Range.getAdaptedShadowType().flowInfoList.get(i);
-          byte[][] color_values = info.color_values;
+          color_values = info.color_values;
           Gridded3DSet spatial_set = (Gridded3DSet) info.spatial_set;
           lens = spatial_set.getLengths();
           setLocs = spatial_set.getSamples(false);
           spatial_set2D = new Gridded2DSet(RealTupleType.SpatialCartesian2DTuple, 
                   new float[][] {setLocs[0], setLocs[1]}, lens[0], lens[1]);
+
 
           float timeStep = (float) timeSteps[i]/numIntrpPts;
 
@@ -1430,7 +1460,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
              java.util.Arrays.fill(Trajectory.markGrid, false);
              if (direction > 0) {
                switListen.allOffBelow.add(i);
-               Trajectory.makeTrajectories(direction*times[i], trajectories, trajSkip, color_values, setLocs, lens);
+               Trajectory.makeTrajectories(direction*times[i], trajectories, startPts, startClrs);
              }
              else { //TODO: make this work eventually
                //switListen.allOffAbove.add(i);
@@ -1454,7 +1484,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           double x2 = (double) direction*(i+direction*2);
 
 
-          if ((k % 2) == 0) { 
+          if ((k % 2) == 0) {
             FlowInfo flwInfo;
 
             if (values0 == null) {
@@ -1525,7 +1555,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           final BranchGroup branch = (BranchGroup) branches.get(i);
           final BranchGroup node = (BranchGroup) swit.getChild(i);
 
-          VisADPointArray p_array = Trajectory.makePointGeometry(trajectories, direction);
+          VisADGeometryArray p_array = Trajectory.makeTracerGeometry(trajectories, direction);
           GraphicsModeControl mode = (GraphicsModeControl) info.mode.clone();
           mode.setPointSize(4f, false); //make sure to use false or lest we fall into event loop
           BranchGroup branchB = new BranchGroup();
@@ -1571,8 +1601,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
      public static int[] markGridTime;
 
      public static int cnt=0;
-     //public static int[] o_j = new int[] {-1, -1, -1, 0, 0, 0, 1, 1, 1}; 
-     //public static int[] o_i = new int[] {-1, 0, 1, -1, 0, 1, -1, 0, 1}; 
      public static int[] o_j = new int[] {0, 0, 1, 1}; 
      public static int[] o_i = new int[] {0, 1, 0, 1}; 
 
@@ -1595,6 +1623,91 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         stopColor = new byte[clrDim];
 
         this.startColor = startColor;
+     }
+
+     public static void makeTrajectories(double time, ArrayList<Trajectory> trajectories, float[][] startPts, byte[][] color_values) {
+        int num = startPts[0].length;
+        int clrDim = color_values.length;
+
+        for (int k=0; k<num; k++) {
+           // initialize a new trajectory
+           float startX = startPts[0][k];
+           float startY = startPts[1][k];
+           float startZ = startPts[2][k];
+
+           byte[] startColor = new byte[clrDim];
+           startColor[0] = color_values[0][k];
+           startColor[1] = color_values[1][k];
+           startColor[2] = color_values[2][k];
+           if (clrDim == 4) {
+              startColor[3] = color_values[3][k];
+           }
+
+           Trajectory traj = new Trajectory(startX, startY, startZ, startColor);
+           traj.initialTime = time;
+           trajectories.add(traj);
+        }
+     }
+
+     public static void getStartPointsFromDomain(int skip, Gridded3DSet spatial_set, byte[][] color_values, float[][] startPts, byte[][] startClrs) throws VisADException {
+        int[] lens = spatial_set.getLengths();
+        int lenX = lens[0];
+        int lenY = lens[1];
+
+        float[][] setLocs = spatial_set.getSamples(false);
+
+        int clrDim = color_values.length;
+        int m = cnt % 4;
+        cnt++;
+
+        int jA = 1+o_j[m]*(skip/2);
+        int jB = lenY-skip;
+        int iA = 1+o_i[m]*(skip/2);
+        int iB = lenX-skip;
+
+        int numJ = 1 + ((jB-1)-jA)/skip;
+        int numI = 1 + ((iB-1)-iA)/skip;
+        int num = numJ*numI;
+
+        startPts[0] = new float[num];
+        startPts[1] = new float[num];
+        startPts[2] = new float[num];
+
+        startClrs[0] = new byte[num];
+        startClrs[1] = new byte[num];
+        startClrs[2] = new byte[num];
+        if (clrDim == 4) {
+           startClrs[3] = new byte[num];
+        }
+
+        num = 0;
+        for (int j=1+o_j[m]*(skip/2); j<lenY-skip; j+=skip) {
+          for (int i=1+o_i[m]*(skip/2); i<lenX-skip; i+=skip) {
+
+            int k = j*lenX + i;
+
+            if (!markGrid[k]) {
+              startPts[0][num] = setLocs[0][k];
+              startPts[1][num] = setLocs[1][k];
+              startPts[2][num] = setLocs[2][k];
+
+              startClrs[0][num] = color_values[0][k];
+              startClrs[1][num] = color_values[1][k];
+              startClrs[2][num] = color_values[2][k];
+              if (clrDim == 4) {
+                startClrs[3][num] = color_values[3][k];
+              }
+            }
+          
+            num++;
+          }
+        }
+
+        /*
+        for (int k=0; k<markGrid.length; k++) {
+           markGrid[k] = false;
+        }
+        */
      }
 
      public static void makeTrajectories(double time, ArrayList<Trajectory> trajectories, int skip, byte[][] color_values, float[][] startPts, int[] setLens) {
@@ -1693,7 +1806,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
        return array;
      }
 
-     public static VisADPointArray makePointGeometry(ArrayList<Trajectory> trajectories, int direction) {
+     public static VisADGeometryArray makeTracerGeometry(ArrayList<Trajectory> trajectories, int direction) {
+       // default: just a point
        VisADPointArray array = new VisADPointArray();
        int numPts = trajectories.size();
        float[] coords =  new float[3*numPts];
