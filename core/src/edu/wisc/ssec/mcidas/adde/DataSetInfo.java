@@ -4,7 +4,7 @@
 
 /*
 This source file is part of the edu.wisc.ssec.mcidas package and is
-Copyright (C) 1998 - 2011 by Tom Whittaker, Tommy Jasmin, Tom Rink,
+Copyright (C) 1998 - 2014 by Tom Whittaker, Tommy Jasmin, Tom Rink,
 Don Murray, James Kelly, Bill Hibbard, Dave Glowacki, Curtis Rueden
 and others.
  
@@ -132,12 +132,12 @@ public class DataSetInfo
         catch (AddeURLException ae) 
         {
             status = -1;
-            throw new AddeURLException("No datasets found");
+            throw new AddeURLException("No datasets found", ae);
         }
         catch (Exception e) 
         {
             status = -1;
-            throw new AddeURLException("Error opening connection: " + e);
+            throw new AddeURLException("Error opening connection", e);
         }
         int numBytes = ((AddeURLConnection) urlc).getInitialRecordSize();
         if (debug) System.out.println("DataSetInfo: numBytes = " + numBytes);
@@ -163,7 +163,7 @@ public class DataSetInfo
             catch (IOException e) 
             {
                 status = -1;
-                throw new AddeURLException("Error reading dataset info:" + e);
+                throw new AddeURLException("Error reading dataset info", e);
             }
             int numNames = data.length/80;
             descriptorTable = new Hashtable(numNames);

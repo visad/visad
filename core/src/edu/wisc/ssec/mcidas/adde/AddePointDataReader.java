@@ -4,7 +4,7 @@
 
 /*
 This source file is part of the edu.wisc.ssec.mcidas package and is
-Copyright (C) 1998 - 2011 by Tom Whittaker, Tommy Jasmin, Tom Rink,
+Copyright (C) 1998 - 2014 by Tom Whittaker, Tommy Jasmin, Tom Rink,
 Don Murray, James Kelly, Bill Hibbard, Dave Glowacki, Curtis Rueden
 and others.
  
@@ -158,11 +158,11 @@ public class AddePointDataReader {
         }
         catch (AddeURLException ae) 
         {
-            throw new AddeException("No datasets found " + ae);
+            throw new AddeException("No datasets found", ae);
         }
         catch (Exception e) 
         {
-            throw new AddeException("Error opening connection: " + e);
+            throw new AddeException("Error opening connection", e);
         }
         //
         //  first get number of bytes for Parameter Names
@@ -174,7 +174,7 @@ public class AddePointDataReader {
            try {
              numParamBytes = dataInputStream.readInt();
            }    catch (IOException e) {
-            throw new AddeException("Error reading data: " + e);
+            throw new AddeException("Error reading data", e);
            }
         }
         if (debug) System.out.println("numParamBytes = " + numParamBytes);
@@ -207,7 +207,7 @@ public class AddePointDataReader {
             catch (IOException e) 
             {
                 status = -1;
-                throw new AddeException("Error reading parameters:" + e);
+                throw new AddeException("Error reading parameters", e);
             }
         } 
         //
@@ -228,7 +228,7 @@ public class AddePointDataReader {
         catch (IOException e) 
         {
             status = -1;
-            throw new AddeException("Error reading units:" + e);
+            throw new AddeException("Error reading units", e);
         }
         //
         //  next get number of bytes for Scaling Factors
@@ -246,7 +246,7 @@ public class AddePointDataReader {
         catch (IOException e) 
         {
             status = -1;
-            throw new AddeException("Error reading scaling factors:" + e);
+            throw new AddeException("Error reading scaling factors", e);
         }
         //
         //  next get number of bytes for the actual data
@@ -270,7 +270,7 @@ public class AddePointDataReader {
         catch (IOException e) 
         {
             status = -1;
-            throw new AddeException("Error reading data:" + e);
+            throw new AddeException("Error reading data", e);
         }
     }
 

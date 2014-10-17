@@ -4,7 +4,7 @@
 
 /*
 This source file is part of the edu.wisc.ssec.mcidas package and is
-Copyright (C) 1998 - 2011 by Tom Whittaker, Tommy Jasmin, Tom Rink,
+Copyright (C) 1998 - 2014 by Tom Whittaker, Tommy Jasmin, Tom Rink,
 Don Murray, James Kelly, Bill Hibbard, Dave Glowacki, Curtis Rueden
 and others.
  
@@ -24,28 +24,53 @@ Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
 
-
 package edu.wisc.ssec.mcidas;
 
-
 /**
- * CalibratorException class is to handle exceptions when calibrating data.
+ * {@code CalibratorException} class is to handle exceptions when calibrating
+ * data.
  *
- * @version $Id: CalibratorException.java,v 1.4 2009-03-02 23:34:50 curtis Exp $
  * @author Bruce Flynn, SSEC
  */
 public class CalibratorException extends McIDASException {
 
   /**
-   * Constructs an CalibratorException with no specified detail message.
+   * Constructs a {@code CalibratorException} with no specified detail
+   * message.
    */
-  public CalibratorException() {super(); }
+  public CalibratorException() {
+    super();
+  }
 
   /**
-   * Constructs an CalibratorException with the specified detail message.
+   * Constructs a {@code CalibratorException} with the specified detail
+   * message.
    *
-   * @param  s  the detail message.
+   * @param message Detail message.
    */
-  public CalibratorException(String s) {super(s); }
+  public CalibratorException(String message) {
+    super(message);
+  }
 
+  /**
+   * Constructs a {@code CalibratorException} with the specified detail
+   * message
+   *
+   * @param message Detail message.
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public CalibratorException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  /**
+   * Constructs a {@code AddeURLException} with the specified cause.
+   *
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public CalibratorException(Throwable cause) {
+    super(cause);
+  }
 }

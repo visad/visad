@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2011 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2014 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -110,7 +110,7 @@ public class PointDataAdapter {
     }
     catch (AddeException excp)
     {
-      throw new VisADException("Problem accessing data");
+      throw new VisADException("Problem accessing data", excp);
     }
     makeField();
   }
@@ -137,7 +137,7 @@ public class PointDataAdapter {
     }
     catch (AddeException ae)
     {
-      throw new VisADException("Error retrieving data info");
+      throw new VisADException("Error retrieving data info", ae);
     }
              
     //int numObs = data[0].length;

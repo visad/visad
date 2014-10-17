@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2011 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2014 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -23,16 +23,50 @@ License along with this library; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 MA 02111-1307, USA
 */
-
 package visad;
 
 /**
-   FieldException is an exception for an error with a VisAD field.<P>
-*/
+ * {@code FieldException} is an exception for an error with a VisAD field.
+ */
 public class FieldException extends VisADException {
 
-  public FieldException() { super(); }
-  public FieldException(String s) { super(s); }
+  /**
+   * Constructs a {@code FieldException} with no specified detail message.
+   */
+  public FieldException() { 
+    super(); 
+  }
+
+  /**
+   * Constructs a {@code FieldException} with the specified detail message.
+   *
+   * @param message Detail message.
+   */
+  public FieldException(String message) { 
+    super(message); 
+  }
+
+  /**
+   * Constructs a {@code FieldException} with the specified detail message
+   * and cause.
+   *
+   * @param message Detail message.
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public FieldException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  /**
+   * Constructs a {@code FieldException} with the specified cause.
+   *
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public FieldException(Throwable cause) {
+    super(cause);
+  }
 
 }
 

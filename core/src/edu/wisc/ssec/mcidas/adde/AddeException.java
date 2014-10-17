@@ -4,7 +4,7 @@
 
 /*
 This source file is part of the edu.wisc.ssec.mcidas package and is
-Copyright (C) 1998 - 2011 by Tom Whittaker, Tommy Jasmin, Tom Rink,
+Copyright (C) 1998 - 2014 by Tom Whittaker, Tommy Jasmin, Tom Rink,
 Don Murray, James Kelly, Bill Hibbard, Dave Glowacki, Curtis Rueden
 and others.
  
@@ -34,7 +34,6 @@ import edu.wisc.ssec.mcidas.McIDASException;
  *
  * @author Don Murray - Unidata
  */
-
 public class AddeException extends McIDASException 
 {
   /** ADDE error code associated with this exception, if any. */
@@ -79,13 +78,68 @@ public class AddeException extends McIDASException
    * Constructs an {@code AddeException} with an ADDE error code and a detail
    * message.
    *
-   * @param errorCode ADDE error code;
+   * @param errorCode ADDE error code.
    * @param message Detail message.
    */
   public AddeException(int errorCode, String message) {
     super(message);
     hasAddeErrorCode = true;
     addeErrorCode = errorCode;
+  }
+
+    /**
+     * Constructs an {@code AddeException} with an ADDE error code and the
+     * cause of the exception.
+     *
+     * @param errorCode ADDE error code.
+     * @param cause Cause of the exception. {@code null} indicates that the
+     * cause is nonexistent or unknown.
+     */
+  public AddeException(int errorCode, Throwable cause) {
+    super(cause);
+    hasAddeErrorCode = true;
+    addeErrorCode = errorCode;
+  }
+
+  /**
+   * Constructs a {@code AddeException} with the specified detail message
+   * and cause.
+   *
+   * @param message Detail message.
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public AddeException(String message, Throwable cause) {
+    super(message, cause);
+    hasAddeErrorCode = false;
+    addeErrorCode = 0;
+  }
+
+    /**
+     * Constructs an {@code AddeException} with an ADDE error code, detail
+     * message, and cause.
+     *
+     * @param errorCode ADDE error code.
+     * @param message Detail message.
+     * @param cause Cause of the exception. {@code null} indicates that the
+     * cause is nonexistent or unknown.
+     */
+  public AddeException(int errorCode, String message, Throwable cause) {
+    super(message, cause);
+    hasAddeErrorCode = true;
+    addeErrorCode = errorCode;
+  }
+
+  /**
+   * Constructs an {@code AddeException} with the specified cause.
+   *
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public AddeException(Throwable cause) {
+    super(cause);
+    hasAddeErrorCode = false;
+    addeErrorCode = 0;
   }
 
   /**

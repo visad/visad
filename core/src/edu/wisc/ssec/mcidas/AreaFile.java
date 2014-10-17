@@ -4,7 +4,7 @@
 
 /*
 This source file is part of the edu.wisc.ssec.mcidas package and is
-Copyright (C) 1998 - 2011 by Tom Whittaker, Tommy Jasmin, Tom Rink,
+Copyright (C) 1998 - 2014 by Tom Whittaker, Tommy Jasmin, Tom Rink,
 Don Murray, James Kelly, Bill Hibbard, Dave Glowacki, Curtis Rueden
 and others.
 
@@ -48,6 +48,8 @@ import java.io.RandomAccessFile;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import edu.wisc.ssec.mcidas.adde.GetAreaGUI;
 
@@ -362,7 +364,7 @@ public class AreaFile implements java.io.Serializable {
       }
       catch (IOException e) {
         fileok = false;
-        throw new AreaFileException("Error opening AreaFile: " + e);
+        throw new AreaFileException("Error opening AreaFile", e);
       }
       isRemote = url.getProtocol().equalsIgnoreCase("adde");
     }
@@ -391,7 +393,7 @@ public class AreaFile implements java.io.Serializable {
     }
     catch (MalformedURLException e) {
       fileok = false;
-      throw new AreaFileException("Error opening URL for AreaFile:" + e);
+      throw new AreaFileException("Error opening URL for AreaFile", e);
     }
 
     try {
@@ -399,7 +401,7 @@ public class AreaFile implements java.io.Serializable {
     }
     catch (IOException e) {
       fileok = false;
-      throw new AreaFileException("Error opening AreaFile:" + e);
+      throw new AreaFileException("Error opening AreaFile", e);
     }
 
     isRemote = url.getProtocol().equalsIgnoreCase("adde");
@@ -409,7 +411,8 @@ public class AreaFile implements java.io.Serializable {
     readMetaData();
 
   }
-
+    private static final Logger LOGGER =
+        Logger.getLogger(AreaFile.class.getName());
   /**
    * create an <code>AreaFile</code> that allows reading of McIDAS 'area'
    * file format image data from a <code>URL</code> with a protocol of either
@@ -429,7 +432,8 @@ public class AreaFile implements java.io.Serializable {
     }
     catch (IOException e) {
       fileok = false;
-      throw new AreaFileException("Error opening URL for AreaFile:" + e);
+        LOGGER.log(Level.SEVERE, "UGH", e);
+      throw new AreaFileException("Error opening URL for AreaFile", e);
     }
 
     isRemote = url.getProtocol().equalsIgnoreCase("adde");
@@ -600,7 +604,7 @@ public class AreaFile implements java.io.Serializable {
         dir[i] = af.readInt();
       }
       catch (IOException e) {
-        throw new AreaFileException("Error reading AreaFile directory:" + e);
+        throw new AreaFileException("Error reading AreaFile directory", e);
       }
     }
     position += AD_DIRSIZE * 4;
@@ -669,7 +673,7 @@ public class AreaFile implements java.io.Serializable {
         af.skipBytes(skipByteCount);
       }
       catch (IOException e) {
-        throw new AreaFileException("Error skipping AreaFile bytes: " + e);
+        throw new AreaFileException("Error skipping AreaFile bytes", e);
       }
 
       for (i = 0; i < navbytes / 4; i++) {
@@ -677,8 +681,7 @@ public class AreaFile implements java.io.Serializable {
           nav[i] = af.readInt();
         }
         catch (IOException e) {
-          throw new AreaFileException("Error reading AreaFile navigation:" +
-                                      e);
+          throw new AreaFileException("Error reading AreaFile navigation", e);
         }
       }
       if (flipwords) flipnav(nav);
@@ -698,7 +701,7 @@ public class AreaFile implements java.io.Serializable {
         af.skipBytes(skipByteCount);
       }
       catch (IOException e) {
-        throw new AreaFileException("Error skipping AreaFile bytes: " + e);
+        throw new AreaFileException("Error skipping AreaFile bytes", e);
       }
 
       for (i = 0; i < calbytes / 4; i++) {
@@ -706,8 +709,7 @@ public class AreaFile implements java.io.Serializable {
           cal[i] = af.readInt();
         }
         catch (IOException e) {
-          throw new AreaFileException("Error reading AreaFile calibration:" +
-                                      e);
+          throw new AreaFileException("Error reading AreaFile calibration", e);
         }
       }
       // if (flipwords) flipcal(cal);
@@ -724,15 +726,14 @@ public class AreaFile implements java.io.Serializable {
         af.skipBytes(skipByteCount);
       }
       catch (IOException e) {
-        throw new AreaFileException("Error skipping AreaFile bytes: " + e);
+        throw new AreaFileException("Error skipping AreaFile bytes", e);
       }
       for (i = 0; i < auxbytes / 4; i++) {
         try {
           aux[i] = af.readInt();
         }
         catch (IOException e) {
-          throw new AreaFileException("Error reading AreaFile aux block:" +
-                                      e);
+          throw new AreaFileException("Error reading AreaFile aux block", e);
         }
       }
       position = auxLoc + auxbytes;
@@ -1157,7 +1158,7 @@ public class AreaFile implements java.io.Serializable {
       }
     }
     catch (IOException ioe) {
-      throw new AreaFileException("Error getting input stream for data");
+      throw new AreaFileException("Error getting input stream for data", ioe);
 
     }
 
@@ -1165,7 +1166,7 @@ public class AreaFile implements java.io.Serializable {
       af.skipBytes(startLoc);
     }
     catch (IOException e) {
-      throw new AreaFileException("Error skipping to start of data");
+      throw new AreaFileException("Error skipping to start of data", e);
     }
 
     for (int i = 0; i < numLines; i++) {
@@ -1202,7 +1203,7 @@ public class AreaFile implements java.io.Serializable {
         }
         catch (IOException e) {
           throw new AreaFileException("Error reading element " + i +
-                                      " in line " + j);
+                                      " in line " + j, e);
         }
       }
 
@@ -1211,7 +1212,7 @@ public class AreaFile implements java.io.Serializable {
         af.skipBytes(nextReadSkip);
       }
       catch (IOException e) {
-        throw new AreaFileException("Error skipping to next line");
+        throw new AreaFileException("Error skipping to next line", e);
       }
 
     }
@@ -1240,7 +1241,7 @@ public class AreaFile implements java.io.Serializable {
       }
     }
     catch (IOException ioe) {
-      throw new AreaFileException("Error getting input stream for data");
+      throw new AreaFileException("Error getting input stream for data", ioe);
 
     }
     
@@ -1669,7 +1670,7 @@ public class AreaFile implements java.io.Serializable {
       raf.close();
     }
     catch (Exception we) {
-      throw new AreaFileException("Unable to save file " + we.getMessage());
+      throw new AreaFileException("Unable to save file", we);
     }
     if (verbose)
       System.out.println("Completed. Data saved to: " + outputFile);

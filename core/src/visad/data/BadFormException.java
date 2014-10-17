@@ -1,6 +1,6 @@
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2011 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2014 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -24,15 +24,48 @@ $Id: BadFormException.java,v 1.11 2009-03-02 23:35:46 curtis Exp $
 
 package visad.data;
 
-
 import visad.VisADException;
 
-
-/** Exception thrown when the form that the data is in is incorrect. */
+/** 
+ * Exception thrown when the form that the data is in is incorrect. 
+ */
 public class BadFormException extends VisADException {
 
-  public BadFormException(String msg) { super(msg); }
-  public BadFormException(String msg, Throwable cause) { super(msg, cause); }
-  public BadFormException(Throwable cause) { super(cause); }
+  /**
+   * Constructs a {@code BadFormException} with no specified detail message.
+   */
+  public BadFormException() {
+    super();
+  }
 
+  /**
+   * Constructs a {@code BadFormException} with the specified detail message.
+   *
+   * @param message Detail message.
+   */
+  public BadFormException(String message) {
+    super(message);
+  }
+
+  /**
+   * Constructs a {@code BadFormException} with the specified detail message
+   * and cause.
+   *
+   * @param message Detail message.
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public BadFormException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  /**
+   * Constructs a {@code BadFormException} with the specified cause.
+   *
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public BadFormException(Throwable cause) {
+    super(cause);
+  }
 }

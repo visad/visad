@@ -4,7 +4,7 @@
 
 /*
 This source file is part of the edu.wisc.ssec.mcidas package and is
-Copyright (C) 1998 - 2011 by Tom Whittaker, Tommy Jasmin, Tom Rink,
+Copyright (C) 1998 - 2014 by Tom Whittaker, Tommy Jasmin, Tom Rink,
 Don Murray, James Kelly, Bill Hibbard, Dave Glowacki, Curtis Rueden
 and others.
  
@@ -35,14 +35,43 @@ package edu.wisc.ssec.mcidas.adde;
 import java.io.IOException;
 
 public class AddeURLException extends IOException {
- 
+
+  /**
+   * Constructs a {@code AddeURLException} with no specified detail message.
+   */
   public AddeURLException() {
     super(); 
   }
 
-  public AddeURLException(String s) {
-    super(s); 
+  /**
+   * Constructs a {@code AddeURLException} with the specified detail message.
+   *
+   * @param message Detail message.
+   */
+  public AddeURLException(String message) {
+    super(message);
   }
- 
+
+  /**
+   * Constructs a {@code AddeURLException} with the specified detail message
+   * and cause.
+   *
+   * @param message Detail message.
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public AddeURLException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  /**
+   * Constructs a {@code AddeURLException} with the specified cause.
+   *
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public AddeURLException(Throwable cause) {
+    super(cause);
+  }
 }
 

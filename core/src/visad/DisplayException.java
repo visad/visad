@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2011 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2014 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -27,20 +27,46 @@ MA 02111-1307, USA
 package visad;
 
 /**
-   DisplayException is an exception for an error with a VisAD display.<P>
-*/
+ * {@code DisplayException} is an exception for an error with a VisAD display.
+ */
 public class DisplayException extends VisADException {
 
   /**
-   * construct a DisplayException with null message String
+   * Constructs a {@code DisplayException} with no specified detail message.
    */
-  public DisplayException() { super(); }
+  public DisplayException() {
+    super();
+  }
 
   /** 
-   * construct a DisplayException with given message String
-   * @param s message String
+   * Construct a {@code DisplayException} with the specified detail message.
+   *
+   * @param message Detail message.
    */
-  public DisplayException(String s) { super(s); }
+  public DisplayException(String message) {
+    super(message);
+  }
 
+  /**
+   * Constructs a {@code DisplayException} with the specified detail message
+   * and cause.
+   *
+   * @param message Detail message.
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public DisplayException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  /**
+   * Constructs a {@code DisplayException} with the specified cause.
+   *
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public DisplayException(Throwable cause) {
+    super(cause);
+  }
 }
 

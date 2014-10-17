@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2011 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2014 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -27,33 +27,75 @@ MA 02111-1307, USA
 package visad;
 
 /**
-   CoordinateSystemException is an exception for a bad VisAD CoordinateSystem.<P>
-*/
+ * {@code CoordinateSystemException} is an exception for a bad VisAD 
+ * CoordinateSystem.
+ */
 public class CoordinateSystemException extends VisADException {
 
   /**
-   * construct a CoordinateSystemException with no message
+   * Constructs a {@code CoordinateSystemException} with no specified detail message.
    */
-  public CoordinateSystemException() { super(); }
+  public CoordinateSystemException() {
+    super();
+  }
 
   /**
-   * construct a CoordinateSystemException with given message
-   * @param s - message String
+   * Constructs a {@code CoordinateSystemException} with the specified detail message.
+   *
+   * @param message Detail message.
    */
-  public CoordinateSystemException(String s) { super(s); }
+  public CoordinateSystemException(String message) {
+    super(message);
+  }
 
   /**
-   * construct a CoordinateSystemException for unequal
-   * CoordinateSystems
-   * @param cs1 - first CoordinateSystem
-   * @param cs2 - second CoordinateSystem
+   * Constructs a {@code CoordinateSystemException} with the specified detail message
+   * and cause.
+   *
+   * @param message Detail message.
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public CoordinateSystemException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  /**
+   * Constructs a {@code CoordinateSystemException} with the specified cause.
+   *
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public CoordinateSystemException(Throwable cause) {
+    super(cause);
+  }
+
+  /**
+   * Construct a {@code CoordinateSystemException} for unequal 
+   * CoordinateSystems.
+   * 
+   * @param cs1 First coordinate system. {@code null} is allowed.
+   * @param cs2 Second coordinate system. {@code null} is allowed.
    */
   public CoordinateSystemException(CoordinateSystem cs1, CoordinateSystem cs2) {
-
     this("Coordinate system mismatch: " +
       (cs1 == null ? "null" : cs1.getReference().toString()) + " != " +
       (cs2 == null ? "null" : cs2.getReference().toString()));
   }
 
+  /**
+   * Construct a {@code CoordinateSystemException} for unequal 
+   * CoordinateSystems.
+   * 
+   * @param cs1 First coordinate system. {@code null} is allowed.
+   * @param cs2 Second coordinate system. {@code null} is allowed.
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public CoordinateSystemException(CoordinateSystem cs1, CoordinateSystem cs2, Throwable cause) {
+    this("Coordinate system mismatch: " +
+      (cs1 == null ? "null" : cs1.getReference().toString()) + " != " +
+      (cs2 == null ? "null" : cs2.getReference().toString()), cause);
+  }
 }
 

@@ -4,7 +4,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2011 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2014 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
@@ -30,7 +30,41 @@ import visad.VisADException;
 
 public class GctpException extends VisADException {
 
-  public GctpException() { super(); }
-  public GctpException(String s) { super(s); }
+  /**
+   * Constructs a {@code GctpException} with no specified detail message.
+   */
+  public GctpException() {
+    super();
+  }
 
+  /**
+   * Constructs a {@code GctpException} with the specified detail message.
+   *
+   * @param message Detail message.
+   */
+  public GctpException(String message) {
+    super(message);
+  }
+
+  /**
+   * Constructs a {@code GctpException} with the specified detail message
+   * and cause.
+   *
+   * @param message Detail message.
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public GctpException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  /**
+   * Constructs a {@code GctpException} with the specified cause.
+   *
+   * @param cause Cause of the exception. {@code null} indicates that the
+   * cause is nonexistent or unknown.
+   */
+  public GctpException(Throwable cause) {
+    super(cause);
+  }
 }

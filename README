@@ -59,7 +59,7 @@ in the generated visad.jar.
 Building the Examples
 ---------------------
 The examples project build file checks to see if VisAD is available as either a jar file
-in the exmples project lib directory or in ../core (assuming you checked out all of 
+in the examples project lib directory or in ../core (assuming you checked out all of 
 visad). If it cannot find VisAD it attempts to call ../core/build.xml to build it before 
 compiling the examples.  If you have VisAD in another location you can compile
 the examples as follows:
