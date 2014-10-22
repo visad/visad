@@ -56,7 +56,8 @@ public class TrajectoryParams {
   int direction = 1;  //1: forward, -1: backward
 
   // these are endPoints if direction is backward
-  float[][] startPoints = new float[][] {{25.0f, 26.0f, 24.2f, 25.5f}, {-83.5f, -83.0f, -81.0f, -80.0f}, {0f, 0f, 0f, 0f}};
+  //float[][] startPoints = new float[][] {{25.0f, 26.0f, 24.2f, 25.5f}, {-83.5f, -83.0f, -81.0f, -80.0f}, {0f, 0f, 0f, 0f}};
+  float[][] startPoints = null;
   RealTupleType startType = null;
 
   public TrajectoryParams() {

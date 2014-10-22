@@ -1390,6 +1390,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
      byte[][] color_values = info.color_values;
      int clrDim = color_values.length;
+     if (info.trajColors != null) color_values = info.trajColors;
 
      Trajectory.markGrid = new boolean[spatial_set0.getLength()];
      Trajectory.markGridTime = new int[spatial_set0.getLength()];

@@ -2123,6 +2123,10 @@ if (range_select[0] != null) {
                                spatial_values, color_values, range_select, valueArrayLength,
                                    valueToMap, MapVector);
 
+            float[][] rangeValues = ((Field)data).getFloats(false);
+            byte[][] trajColors = shadow_api.makeTrajColor(rangeValues, valueArrayLength,
+                                   valueToMap, MapVector);
+
             FlowInfo flwInfo = new FlowInfo();
             flwInfo.flow_values = flow1_values;
             flwInfo.flow_units = flowUnits;
@@ -2135,7 +2139,9 @@ if (range_select[0] != null) {
             flwInfo.mode = mode;
             flwInfo.constant_alpha = constant_alpha;
             flwInfo.constant_color = constant_color;
-            flwInfo.arrays = arrays;
+            flwInfo.renderer = getLink().getRenderer();
+            flwInfo.which = 0;
+            flwInfo.trajColors = trajColors;
             flowInfoList.add(flwInfo);
           }
           else {
@@ -2180,6 +2186,11 @@ if (range_select[0] != null) {
                               spatial_values, color_values, range_select, valueArrayLength,
                                   valueToMap, MapVector);
 
+            float[][] rangeValues = ((Field)data).getFloats(false);
+            byte[][] trajColors = shadow_api.makeTrajColor(rangeValues, valueArrayLength,
+                                   valueToMap, MapVector);
+
+
             FlowInfo flwInfo = new FlowInfo();
             flwInfo.flow_values = flow2_values;
             flwInfo.flow_units = flowUnits;
@@ -2194,7 +2205,7 @@ if (range_select[0] != null) {
             flwInfo.constant_color = constant_color;
             flwInfo.renderer = getLink().getRenderer();
             flwInfo.which = 1;
-            flwInfo.arrays = arrays;
+            flwInfo.trajColors = trajColors;
             flowInfoList.add(flwInfo);
           }
           else {

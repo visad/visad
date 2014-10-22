@@ -2766,6 +2766,51 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
     return flow_values;
   }
 
+  /* TODO: How, or should this be integrated with assembleColor? */
+  public byte[][] makeTrajColor(float[][] rangeValues, int valueArrayLength, int[] valueToMap,
+      Vector MapVector) throws VisADException, RemoteException {
+
+    FunctionType ftype = (FunctionType) Type;
+    RealTupleType rtt = ftype.getFlatRange();
+    RealType[] range_reals = rtt.getRealComponents();
+
+    ScalarMap colorMap = null;
+    int rngIdxClr = -1;
+
+    int cnt = 0;
+    for (int k = 0; k < range_reals.length; k++) {
+      for (int i = 0; i < valueArrayLength; i++) {
+        ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
+        DisplayRealType dreal = map.getDisplayScalar();
+        ScalarType scalar = map.getScalar();
+        if (!scalar.equals(range_reals[k]))
+          continue;
+
+        if (dreal.equals(Display.RGB) || dreal.equals(Display.RGBA)) {
+           colorMap = map;
+           rngIdxClr = k;
+           cnt++;
+        }
+      }
+    }
+
+    byte[][] color_values = null;
+
+    if (colorMap == null) {
+      return null;
+    }
+    float[] dspVals = colorMap.scaleValues(rangeValues[rngIdxClr]);
+    float[][] fltClrs = ((BaseColorControl)colorMap.getControl()).lookupValues(dspVals);
+    int clrDim = fltClrs.length;
+    color_values = new byte[clrDim][fltClrs[0].length];
+    for (int d=0; d<clrDim; d++) {
+      for (int t=0; t<color_values[0].length; t++) {
+        color_values[d][t] = (byte) (fltClrs[d][t]*255.0);
+      }
+    }
+    return color_values;
+  }
+
   private static final float BACK_SCALE = -0.15f;
   private static final float PERP_SCALE = 0.15f;
 

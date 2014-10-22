@@ -17,7 +17,7 @@ public class FlowInfo {
   public float[] constant_color;
   public DataRenderer renderer;
   public int which;
-  public VisADGeometryArray[] arrays;
+  public byte[][] trajColors;
 
   public FlowInfo() {
   }
