@@ -41,7 +41,7 @@ package is to support simple scripts.
 
 To run VisAD Python scripts, you nee to install:
 
-  VisAD from http://www.ssec.wisc.edu/~billh/visad.html
+  VisAD from http://visad.ssec.wisc.edu/
 
   Jython from http://jython.sourceforge.net/
 
@@ -81,9 +81,9 @@ for its Python language.  See:
   
 for more information about it.  And see:
 
-  http://www.python.org/doc/current/tut/tut.html
+  https://www.python.org/
 
-for a tutorial on the Python language.
+to get started learning about the Python language.
 
 
 4.1 Using VisAD data in Python scripts
