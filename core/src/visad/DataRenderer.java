@@ -71,6 +71,7 @@ public abstract class DataRenderer extends Object implements Cloneable {
   /** flag for visibility of Data depictions */
   protected boolean enabled = true;
 
+
   /**
    * construct a DataRenderer
    */

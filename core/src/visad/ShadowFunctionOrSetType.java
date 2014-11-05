@@ -2116,6 +2116,34 @@ if (range_select[0] != null) {
               }
             }
           }
+          else if (trajectory1) {
+            Unit[] flowUnits = new Unit[3];
+            Unit[][] rngUnits = ((FlatField)data).getRangeUnits();
+            flow1_values = shadow_api.makeTrajFlow(0, flow1_values, rngUnits, flowUnits, flowScale[0],
+                               spatial_values, color_values, range_select, valueArrayLength,
+                                   valueToMap, MapVector);
+
+            float[][] rangeValues = ((Field)data).getFloats(false);
+            byte[][] trajColors = shadow_api.makeTrajColor(rangeValues, valueArrayLength,
+                                   valueToMap, MapVector);
+
+            FlowInfo flwInfo = new FlowInfo();
+            flwInfo.flow_values = flow1_values;
+            flwInfo.flow_units = flowUnits;
+            flwInfo.flowScale = flowScale[0];
+            flwInfo.spatial_values = spatial_values;
+            flwInfo.spatial_set = spatial_set;
+            flwInfo.spatialManifoldDimension = spatialManifoldDimension;
+            flwInfo.color_values = color_values;
+            flwInfo.range_select = range_select;
+            flwInfo.mode = mode;
+            flwInfo.constant_alpha = constant_alpha;
+            flwInfo.constant_color = constant_color;
+            flwInfo.renderer = getLink().getRenderer();
+            flwInfo.which = 0;
+            flwInfo.trajColors = trajColors;
+            flowInfoList.add(flwInfo);
+          }
           else {
             visad.util.Trace.call1("ShadowFunctionOrSetType:makeFlow flow1");
             arrays = shadow_api.makeFlow(0, flow1_values, flowScale[0],
@@ -2129,6 +2157,7 @@ if (range_select[0] != null) {
                 }
               }
             }
+            
             visad.util.Trace.call2("ShadowFunctionOrSetType:makeFlow flow1");
           }
           anyFlowCreated = true;
@@ -2149,6 +2178,35 @@ if (range_select[0] != null) {
                 arrays[i] = null;
               }
             }
+          }
+          else if (trajectory2) {
+            Unit[] flowUnits = new Unit[3];
+            Unit[][] rngUnits = ((FlatField)data).getRangeUnits();
+            flow2_values = shadow_api.makeTrajFlow(1, flow2_values, rngUnits, flowUnits, flowScale[1],
+                              spatial_values, color_values, range_select, valueArrayLength,
+                                  valueToMap, MapVector);
+
+            float[][] rangeValues = ((Field)data).getFloats(false);
+            byte[][] trajColors = shadow_api.makeTrajColor(rangeValues, valueArrayLength,
+                                   valueToMap, MapVector);
+
+
+            FlowInfo flwInfo = new FlowInfo();
+            flwInfo.flow_values = flow2_values;
+            flwInfo.flow_units = flowUnits;
+            flwInfo.flowScale = flowScale[1];
+            flwInfo.spatial_values = spatial_values;
+            flwInfo.spatial_set = spatial_set;
+            flwInfo.spatialManifoldDimension = spatialManifoldDimension;
+            flwInfo.color_values = color_values;
+            flwInfo.range_select = range_select;
+            flwInfo.mode = mode;
+            flwInfo.constant_alpha = constant_alpha;
+            flwInfo.constant_color = constant_color;
+            flwInfo.renderer = getLink().getRenderer();
+            flwInfo.which = 1;
+            flwInfo.trajColors = trajColors;
+            flowInfoList.add(flwInfo);
           }
           else {
             visad.util.Trace.call1("ShadowFunctionOrSetType:makeFlow flow2");

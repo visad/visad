@@ -52,7 +52,6 @@ public abstract class FlowControl extends Control {
   boolean VerticalVectorSlice;
   boolean HorizontalStreamSlice;
   boolean VerticalStreamSlice;
-  boolean[] TrajectorySet;
 
   double HorizontalVectorSliceHeight;
   double HorizontalStreamSliceHeight;
@@ -71,6 +70,11 @@ public abstract class FlowControl extends Control {
   int     n_pass;
   float   reduction;
 
+  /** Trajectory flags
+  --------------------------------*/
+  boolean trajectoryEnabled = false;
+  TrajectoryParams trajParams = new TrajectoryParams();
+
   // WLH  need Vertical*Slice location parameters
 
   /**
@@ -85,7 +89,6 @@ public abstract class FlowControl extends Control {
     HorizontalStreamSlice = false;
     VerticalStreamSlice = false;
     barbOrientation = SH_ORIENTATION;    // DRM 9-Sept-1999
-    TrajectorySet = null;
 
     HorizontalVectorSliceHeight = 0.0;
     HorizontalStreamSliceHeight = 0.0;
@@ -100,6 +103,8 @@ public abstract class FlowControl extends Control {
     reduction          = 1f;
     adjustFlowToEarth  = true;  
     autoScale          = false;
+
+    trajectoryEnabled  = false;
   }
 
   /** 
@@ -179,8 +184,28 @@ public abstract class FlowControl extends Control {
   public void enableStreamlines(boolean flag)
          throws VisADException, RemoteException {
     streamlinesEnabled = flag;
+    if (trajectoryEnabled && streamlinesEnabled) {
+      trajectoryEnabled = false;
+    }
     changeControl(true);
   }
+
+  /**
+   * Enable/disable showing vectors as trajectories
+   *
+   * @param flag  true to display as trajectories
+   * @throws VisADException  problem enabling the trajectories
+   * @throws RemoteException  problem enabling the trajectories on remote system
+   */
+  public void enableTrajectory(boolean flag)
+         throws VisADException, RemoteException {
+    trajectoryEnabled = flag;
+    if (trajectoryEnabled && streamlinesEnabled) {
+      streamlinesEnabled = false;
+    }
+    changeControl(true);
+  }
+
 
   /**
    * Set the streamline density
@@ -265,6 +290,18 @@ public abstract class FlowControl extends Control {
   }
 
   /**
+   * Get the status of streamlines
+   * @return  true if streamlines are enabled.
+   */
+  public boolean trajectoryEnabled() {
+    return trajectoryEnabled;
+  }
+
+  public TrajectoryParams getTrajectoryParams() {
+    return trajParams;
+  }
+
+  /**
    * Get the streamline density factor.
    * @return  the streamline density factor.
    */
@@ -321,6 +358,7 @@ public abstract class FlowControl extends Control {
            getFlowScale() + " " + 
            getBarbOrientation() + " " +
            streamlinesEnabled() + " " +
+           trajectoryEnabled() + " " +
            getStreamlineDensity() + " " +
            getArrowScale() + " " +
            getStepFactor() + " " +
@@ -344,6 +382,7 @@ public abstract class FlowControl extends Control {
     float scale = Convert.getFloat(st.nextToken());
     int orientation = Convert.getInt(st.nextToken());
     boolean es = st.hasMoreTokens() ? Convert.getBoolean(st.nextToken()) : streamlinesEnabled();
+    boolean tes = st.hasMoreTokens() ? Convert.getBoolean(st.nextToken()) : trajectoryEnabled();
     float sd = st.hasMoreTokens() ? Convert.getFloat(st.nextToken()) : getStreamlineDensity();
     float as = st.hasMoreTokens() ? Convert.getFloat(st.nextToken()) : getArrowScale();
     float sf = st.hasMoreTokens() ? Convert.getFloat(st.nextToken()) : getStepFactor();
@@ -357,6 +396,7 @@ public abstract class FlowControl extends Control {
     flowScale = scale;
     barbOrientation = orientation;
     streamlinesEnabled = es;
+    trajectoryEnabled = tes;
     streamlineDensity = sd;
     arrowScale = as;
     stepFactor = sf;
@@ -414,26 +454,6 @@ public abstract class FlowControl extends Control {
       changed = true;
       VerticalStreamSlice = fc.VerticalStreamSlice;
     }
-    if (TrajectorySet == null) {
-      if (fc.TrajectorySet != null) {
-        changed = true;
-        TrajectorySet = fc.TrajectorySet;
-      }
-    } else if (fc.TrajectorySet == null) {
-      changed = true;
-      TrajectorySet = null;
-    } else if (TrajectorySet.length != fc.TrajectorySet.length) {
-      changed = true;
-      TrajectorySet = fc.TrajectorySet;
-    } else {
-      for (int i = 0; i < TrajectorySet.length; i++) {
-        if (TrajectorySet[i] != fc.TrajectorySet[i]) {
-          changed = true;
-          TrajectorySet[i] = fc.TrajectorySet[i];
-        }
-      }
-    }
-
     if (!Util.isApproximatelyEqual(HorizontalVectorSliceHeight,
                                    fc.HorizontalVectorSliceHeight))
     {
@@ -450,6 +470,11 @@ public abstract class FlowControl extends Control {
     if (streamlinesEnabled != fc.streamlinesEnabled) {
       changed = true;
       streamlinesEnabled = fc.streamlinesEnabled;
+    }
+
+    if (trajectoryEnabled != fc.trajectoryEnabled) {
+      changed = true;
+      trajectoryEnabled = fc.trajectoryEnabled;
     }
 
     if (!Util.isApproximatelyEqual(streamlineDensity, fc.streamlineDensity)) {
@@ -490,6 +515,11 @@ public abstract class FlowControl extends Control {
     if (autoScale != fc.autoScale) {
       // changed = true;
       setAutoScale(fc.autoScale);
+    }
+
+    if (!trajParams.equals(fc.trajParams)) {
+      changed = true;
+      trajParams = fc.trajParams;
     }
 
 
@@ -583,22 +613,6 @@ public abstract class FlowControl extends Control {
     if (VerticalStreamSlice != fc.VerticalStreamSlice) {
       return false;
     }
-    if (TrajectorySet == null) {
-      if (fc.TrajectorySet != null) {
-        return false;
-      }
-    } else if (fc.TrajectorySet == null) {
-      return false;
-    } else if (TrajectorySet.length != fc.TrajectorySet.length) {
-      return false;
-    } else {
-      for (int i = 0; i < TrajectorySet.length; i++) {
-        if (TrajectorySet[i] != fc.TrajectorySet[i]) {
-          return false;
-        }
-      }
-    }
-
     if (!Util.isApproximatelyEqual(HorizontalVectorSliceHeight,
                                    fc.HorizontalVectorSliceHeight))
     {
@@ -611,6 +625,9 @@ public abstract class FlowControl extends Control {
     }
 
     if (streamlinesEnabled != fc.streamlinesEnabled) {
+      return false;
+    }
+    if (trajectoryEnabled != fc.trajectoryEnabled) {
       return false;
     }
     if (!Util.isApproximatelyEqual(streamlineDensity, fc.streamlineDensity))
@@ -644,6 +661,9 @@ public abstract class FlowControl extends Control {
     if (autoScale != fc.autoScale) {
       return false;
     }
+    if (!trajParams.equals(fc.trajParams)) {
+      return false;
+    }
 
     return true;
   }
@@ -655,9 +675,6 @@ public abstract class FlowControl extends Control {
   public Object clone()
   {
     FlowControl fc = (FlowControl )super.clone();
-    if (TrajectorySet != null) {
-      fc.TrajectorySet = (boolean[] )TrajectorySet.clone();
-    }
 
     return fc;
   }
