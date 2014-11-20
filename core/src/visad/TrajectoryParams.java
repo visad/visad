@@ -56,7 +56,6 @@ public class TrajectoryParams {
   int direction = 1;  //1: forward, -1: backward
 
   // these are endPoints if direction is backward
-  //float[][] startPoints = new float[][] {{25.0f, 26.0f, 24.2f, 25.5f}, {-83.5f, -83.0f, -81.0f, -80.0f}, {0f, 0f, 0f, 0f}};
   float[][] startPoints = null;
   RealTupleType startType = null;
 
@@ -72,6 +71,15 @@ public class TrajectoryParams {
 
   public TrajectoryParams(double trajVisibilityTimeWindow, int numIntrpPts, int startSkip) {
      this(trajVisibilityTimeWindow, numIntrpPts, startSkip, SmoothParams.MEDIUM);
+  }
+
+  public TrajectoryParams(double trajVisibilityTimeWindow) {
+    this.trajVisibilityTimeWindow = trajVisibilityTimeWindow;
+  }
+
+  public TrajectoryParams(double trajVisibilityTimeWindow, int startSkip) {
+    this.trajVisibilityTimeWindow = trajVisibilityTimeWindow;
+    this.startSkip = startSkip;
   }
 
   public double getTrajVisibilityTimeWindow() {
