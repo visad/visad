@@ -301,6 +301,12 @@ public abstract class FlowControl extends Control {
     return trajParams;
   }
 
+  public void setTrajectoryParams(TrajectoryParams trajParams)
+         throws VisADException, RemoteException {
+    this.trajParams = trajParams;
+    changeControl(true);
+  }
+
   /**
    * Get the streamline density factor.
    * @return  the streamline density factor.
