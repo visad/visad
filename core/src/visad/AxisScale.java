@@ -27,10 +27,15 @@ MA 02111-1307, USA
 package visad;
 
 import java.awt.Color;
-import java.util.*;
 import java.awt.Font;
+import java.text.NumberFormat;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.Vector;
+
 import visad.util.HersheyFont;
-import java.text.*;
 
 /**
  * Class which defines the scales displayed along the spatial axes
