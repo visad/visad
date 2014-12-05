@@ -50,6 +50,7 @@ public class TrajectoryParams {
 
 
   double trajVisibilityTimeWindow = 86400.0;
+  double trajRefreshInterval = 86400.0;
   int numIntrpPts = 6;
   int startSkip = 2;
   SmoothParams smoothParams = SmoothParams.MEDIUM;
@@ -62,8 +63,17 @@ public class TrajectoryParams {
   public TrajectoryParams() {
   }
 
+  public TrajectoryParams(double trajVisibilityTimeWindow, double trajRefreshInterval, int numIntrpPts, int startSkip, SmoothParams smoothParams) {
+    this.trajVisibilityTimeWindow = trajVisibilityTimeWindow;
+    this.trajRefreshInterval = trajRefreshInterval;
+    this.numIntrpPts = numIntrpPts;
+    this.startSkip = startSkip;
+    this.smoothParams = smoothParams;
+  }
+
   public TrajectoryParams(double trajVisibilityTimeWindow, int numIntrpPts, int startSkip, SmoothParams smoothParams) {
     this.trajVisibilityTimeWindow = trajVisibilityTimeWindow;
+    this.trajRefreshInterval = trajVisibilityTimeWindow;
     this.numIntrpPts = numIntrpPts;
     this.startSkip = startSkip;
     this.smoothParams = smoothParams;
@@ -73,17 +83,34 @@ public class TrajectoryParams {
      this(trajVisibilityTimeWindow, numIntrpPts, startSkip, SmoothParams.MEDIUM);
   }
 
+  public TrajectoryParams(double trajVisibilityTimeWindow, double trajRefreshInterval) {
+    this.trajVisibilityTimeWindow = trajVisibilityTimeWindow;
+    this.trajRefreshInterval = trajRefreshInterval;
+  }
+
   public TrajectoryParams(double trajVisibilityTimeWindow) {
     this.trajVisibilityTimeWindow = trajVisibilityTimeWindow;
+    this.trajRefreshInterval = trajVisibilityTimeWindow;
+  }
+
+  public TrajectoryParams(double trajVisibilityTimeWindow, double trajRefreshInterval, int startSkip) {
+    this.trajVisibilityTimeWindow = trajVisibilityTimeWindow;
+    this.trajRefreshInterval = trajRefreshInterval;
+    this.startSkip = startSkip;
   }
 
   public TrajectoryParams(double trajVisibilityTimeWindow, int startSkip) {
     this.trajVisibilityTimeWindow = trajVisibilityTimeWindow;
+    this.trajRefreshInterval = trajVisibilityTimeWindow;
     this.startSkip = startSkip;
   }
 
   public double getTrajVisibilityTimeWindow() {
     return trajVisibilityTimeWindow;
+  }
+
+  public double getTrajRefreshInterval() {
+    return trajRefreshInterval;
   }
 
   public int getNumIntrpPts() {
@@ -122,6 +149,9 @@ public class TrajectoryParams {
     else {
       TrajectoryParams trajParams = (TrajectoryParams) obj;
       if (this.trajVisibilityTimeWindow != trajParams.trajVisibilityTimeWindow) {
+        return false;
+      }
+      else if (this.trajRefreshInterval != trajParams.trajRefreshInterval) {
         return false;
       }
       else if (this.numIntrpPts != trajParams.numIntrpPts) {
