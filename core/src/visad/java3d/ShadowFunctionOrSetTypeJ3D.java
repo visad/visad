@@ -171,7 +171,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
             doTrajectory = true;
             TrajectoryParams trajParams = flwCntrl.getTrajectoryParams();
             trajVisibilityTimeWindow = trajParams.getTrajVisibilityTimeWindow();
-            trajRefreshInterval = trajVisibilityTimeWindow; // Default
+            trajRefreshInterval = trajParams.getTrajRefreshInterval();
             trajLifetime = trajRefreshInterval; // Default. Should be greater than or equal to refresh interval
             numIntrpPts = trajParams.getNumIntrpPts();
             trajSkip = trajParams.getStartSkip();
