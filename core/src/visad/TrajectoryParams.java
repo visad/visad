@@ -105,6 +105,14 @@ public class TrajectoryParams {
     this.startSkip = startSkip;
   }
 
+  public void setTrajVisibilityTimeWindow(double trajVisibilityTimeWindow) {
+    this.trajVisibilityTimeWindow = trajVisibilityTimeWindow;
+  }
+
+  public void setTrajRefreshInterval(double trajRefreshInterval) {
+    this.trajRefreshInterval = trajRefreshInterval;
+  }
+
   public double getTrajVisibilityTimeWindow() {
     return trajVisibilityTimeWindow;
   }
