@@ -13,11 +13,20 @@ public class Interpolation {
       double x1 = 0;
       double x2 = 0;
 
+      float[] values0 = null;
+      float[] values1 = null;
+
       boolean firstTime = true;
 
       int numSpatialPts = 1;
 
+      boolean doIntrp = true;
+
       public Interpolation() {
+      }
+
+      public Interpolation(boolean doIntrp) {
+         this.doIntrp = doIntrp;
       }
 
       void buildSolver() {
@@ -45,12 +54,30 @@ public class Interpolation {
       }
 
       public void interpolate(double xt, float[] interpValues) {
+         if (!doIntrp) {
+            if (xt == x0) {
+               System.arraycopy(values0, 0, interpValues, 0, numSpatialPts);
+            }
+            else if (xt == x1) {
+               System.arraycopy(values1, 0, interpValues, 0, numSpatialPts);
+            }
+            return;
+         }
          for (int k=0; k<numSpatialPts; k++) {
             interpValues[k] = (float) cubic_poly(xt, solution[0][k], solution[1][k], solution[2][k], solution[3][k]);
          }
       }
 
       public void next(double x0, double x1, double x2, float[] values0, float[] values1, float[] values2) {
+         if (!doIntrp) {
+           this.x0 = x0;
+           this.x1 = x1;
+           this.values0 = values0;
+           this.values1 = values1;
+           numSpatialPts = values0.length;
+           return;
+         }
+
          if (!(this.x0 == x0 && this.x1 == x1 && this.x2 == x2)) {
            this.x0 = x0;
            this.x1 = x1;
