@@ -55,6 +55,7 @@ public class TrajectoryParams {
   int startSkip = 2;
   SmoothParams smoothParams = SmoothParams.MEDIUM;
   int direction = 1;  //1: forward, -1: backward
+  boolean doIntrp = false;
 
   // these are endPoints if direction is backward
   float[][] startPoints = null;
@@ -113,6 +114,10 @@ public class TrajectoryParams {
     this.trajRefreshInterval = trajRefreshInterval;
   }
 
+  public void setDoIntrp(boolean yesno) {
+    this.doIntrp = yesno;
+  }
+
   public double getTrajVisibilityTimeWindow() {
     return trajVisibilityTimeWindow;
   }
@@ -135,6 +140,10 @@ public class TrajectoryParams {
 
   public int getDirection() {
     return direction;
+  }
+
+  public boolean getDoIntrp() {
+    return this.doIntrp;
   }
 
   public void setStartPoints(RealTupleType startType, float[][] startPts) {

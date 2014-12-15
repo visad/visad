@@ -68,6 +68,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   TrajectoryParams.SmoothParams smoothParams;
   int direction;
   float[][] startPts = null;
+  boolean trajDoIntrp = true;
 
   List<BranchGroup> branches = null;
   Switch swit = null;
@@ -178,6 +179,10 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
             smoothParams = trajParams.getSmoothParams();
             direction = trajParams.getDirection();
             startPts = trajParams.getStartPoints();
+            trajDoIntrp = trajParams.getDoIntrp();
+            if (!trajDoIntrp) {
+              numIntrpPts = 1;
+            }
             break;
           }
           else {
@@ -1428,9 +1433,9 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
      ArrayList<Trajectory> trajectories = new ArrayList<Trajectory>();
 
     
-        Interpolation uInterp = new Interpolation();
-        Interpolation vInterp = new Interpolation();
-        Interpolation wInterp = new Interpolation();
+        Interpolation uInterp = new Interpolation(trajDoIntrp);
+        Interpolation vInterp = new Interpolation(trajDoIntrp);
+        Interpolation wInterp = new Interpolation(trajDoIntrp);
 
         float[][] values0 = null;
         float[][] values1 = null;
