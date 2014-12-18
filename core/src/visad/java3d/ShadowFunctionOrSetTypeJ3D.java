@@ -1616,6 +1616,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
      public double initialTime = 0;
      public double currentTime = 0;
 
+     float[] uVecPath = new float[] {Float.NaN, Float.NaN, Float.NaN};
+
      public Trajectory(float startX, float startY, float startZ, byte[] startColor) {
         this.startX = startX;
         this.startY = startY;
@@ -1813,14 +1815,126 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
      }
 
      public static VisADGeometryArray makeTracerGeometry(ArrayList<Trajectory> trajectories, int direction) {
-       // default: just a point
-       VisADPointArray array = new VisADPointArray();
-       int numPts = trajectories.size();
+       int numTrajs = trajectories.size();
+       VisADGeometryArray array = null;
+
+       // make simple arrow -----------------------
+       array = new VisADLineArray();
+       int numPts = 4*numTrajs;
        float[] coords =  new float[3*numPts];
        byte[] colors = new byte[3*numPts];
 
-      
-       for (int k=0; k<numPts; k++) {
+       double barblen = 0.034;
+
+       float[] norm = new float[] {0, 0, 1f};
+       float[] trj_u = new float[3];
+
+       for (int k=0; k<numTrajs; k++) {
+         Trajectory traj = trajectories.get(k);
+         trj_u[0] = traj.uVecPath[0];
+         trj_u[1] = traj.uVecPath[1];
+         trj_u[2] = traj.uVecPath[2];
+
+         float[] endPt = new float[3];
+         endPt[0] = traj.startPts[0];
+         endPt[1] = traj.startPts[1];
+         endPt[2] = traj.startPts[2];
+
+         float[] norm_x_trj = new float[] {
+                    norm[1] * trj_u[2] - norm[2] * trj_u[1],
+                  -(norm[0] * trj_u[2] - norm[2] * trj_u[0]),
+                    norm[0] * trj_u[1] - norm[1] * trj_u[0] };
+
+         float mag = (float) Math.sqrt(norm_x_trj[0] * norm_x_trj[0] +
+                                       norm_x_trj[1] * norm_x_trj[1] +
+		                       norm_x_trj[2] * norm_x_trj[2]);
+
+	 // - normalize vector
+         norm_x_trj[0] /= mag;
+         norm_x_trj[1] /= mag;
+         norm_x_trj[2] /= mag;
+        
+         float[] ptOnPath = new float[3];
+         
+         float len = (float) (barblen*Math.cos(Data.DEGREES_TO_RADIANS*22.0));
+         ptOnPath[0] = -len*trj_u[0];
+         ptOnPath[1] = -len*trj_u[1];
+         ptOnPath[2] = -len*trj_u[2];
+         
+         ptOnPath[0] += endPt[0];
+         ptOnPath[1] += endPt[1];
+         ptOnPath[2] += endPt[2];
+         
+         float[] barbPtA = new float[3];
+         float[] barbPtB = new float[3];
+         len = (float) (barblen*Math.sin(Data.DEGREES_TO_RADIANS*22.0));
+         
+         barbPtA[0] = len*norm_x_trj[0];
+         barbPtA[1] = len*norm_x_trj[1];
+         barbPtA[2] = len*norm_x_trj[2];
+         
+         barbPtB[0] = -len*norm_x_trj[0];
+         barbPtB[1] = -len*norm_x_trj[1];
+         barbPtB[2] = -len*norm_x_trj[2];
+         
+         barbPtA[0] += ptOnPath[0];
+         barbPtA[1] += ptOnPath[1]; 
+         barbPtA[2] += ptOnPath[2]; 
+         
+         barbPtB[0] += ptOnPath[0];
+         barbPtB[1] += ptOnPath[1];
+         barbPtB[2] += ptOnPath[2];
+         
+         	  
+         int t = k*12;
+         int c = k*12;
+         if (direction > 0) {
+           coords[t] = traj.startPts[0];
+           coords[t+=1] = traj.startPts[1];
+           coords[t+=1] = traj.startPts[2];
+         	     
+           coords[t+=1] = barbPtA[0];
+           coords[t+=1] = barbPtA[1];
+           coords[t+=1] = barbPtA[2];
+         
+           coords[t+=1] = traj.startPts[0];
+           coords[t+=1] = traj.startPts[1];
+           coords[t+=1] = traj.startPts[2];
+         
+           coords[t+=1] = barbPtB[0];
+           coords[t+=1] = barbPtB[1];
+           coords[t+=1] = barbPtB[2];
+         }
+         else {// TODO: finish this
+           coords[k*3] = traj.startX;
+           coords[k*3 + 1] = traj.startY;
+           coords[k*3 + 2] = traj.startZ;
+         }
+         
+         colors[c] = traj.startColor[0];
+         colors[c+=1] = traj.startColor[1];
+         colors[c+=1] = traj.startColor[2];
+         
+         colors[c+=1] = traj.startColor[0];
+         colors[c+=1] = traj.startColor[1];
+         colors[c+=1] = traj.startColor[2];
+
+         colors[c+=1] = traj.startColor[0];
+         colors[c+=1] = traj.startColor[1];
+         colors[c+=1] = traj.startColor[2];
+         
+         colors[c+=1] = traj.startColor[0];
+         colors[c+=1] = traj.startColor[1];
+         colors[c+=1] = traj.startColor[2];
+       }
+
+       /*  point marker -----------------------------
+       array = new VisADPointArray();
+       numPts = numTrajs;
+       float[] coords =  new float[3*numPts];
+       byte[] colors = new byte[3*numPts];
+	
+       for (int k=0; k<numTrajs; k++) {
          Trajectory traj = trajectories.get(k);
          if (direction > 0) {
            coords[k*3] = traj.startPts[0];
@@ -1837,6 +1951,11 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
          colors[k*3 + 1] = traj.startColor[1];
          colors[k*3 + 2] = traj.startColor[2];
        }
+       -------------------------------------------*/
+
+       array.vertexCount = numPts;
+       array.coordinates = coords;
+       array.colors = colors;
 
        for (int k=0; k<trajectories.size(); k++) {
          Trajectory traj = trajectories.get(k);
@@ -1845,11 +1964,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
          traj.startZ = traj.startPts[2];
        }
 
-       
-       array.vertexCount = numPts;
-       array.coordinates = coords;
-       array.colors = colors;
-   
        return array;
      }
  
@@ -1922,6 +2036,15 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
            //addPair(startPts, stopPts, startColor, stopColor); // Just use first color for now.
            addPair(startPts, stopPts, startColor, startColor);
+
+           uVecPath[0] = stopPts[0] - startPts[0];
+           uVecPath[1] = stopPts[1] - startPts[1];
+           uVecPath[2] = stopPts[2] - startPts[2];
+
+           float mag = (float) Math.sqrt(uVecPath[0]*uVecPath[0] + uVecPath[1]*uVecPath[1] + uVecPath[2]*uVecPath[2]);
+           uVecPath[0] /= mag;
+           uVecPath[1] /= mag;
+           uVecPath[2] /= mag;
 
            startPts[0] = stopPts[0];
            startPts[1] = stopPts[1];

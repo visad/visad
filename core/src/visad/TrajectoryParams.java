@@ -55,7 +55,7 @@ public class TrajectoryParams {
   int startSkip = 2;
   SmoothParams smoothParams = SmoothParams.MEDIUM;
   int direction = 1;  //1: forward, -1: backward
-  boolean doIntrp = false;
+  boolean doIntrp = true;
 
   // these are endPoints if direction is backward
   float[][] startPoints = null;
