@@ -56,6 +56,7 @@ public class TrajectoryParams {
   SmoothParams smoothParams = SmoothParams.MEDIUM;
   int direction = 1;  //1: forward, -1: backward
   boolean doIntrp = true;
+  float markerSize = 1f;
 
   // these are endPoints if direction is backward
   float[][] startPoints = null;
@@ -118,6 +119,10 @@ public class TrajectoryParams {
     this.doIntrp = yesno;
   }
 
+  public void setMarkerSize(float size) {
+    this.markerSize = size;
+  }
+
   public double getTrajVisibilityTimeWindow() {
     return trajVisibilityTimeWindow;
   }
@@ -145,6 +150,11 @@ public class TrajectoryParams {
   public boolean getDoIntrp() {
     return this.doIntrp;
   }
+
+  public float getMarkerSize() {
+    return this.markerSize;
+  }
+
 
   public void setStartPoints(RealTupleType startType, float[][] startPts) {
     this.startType = startType;
