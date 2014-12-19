@@ -69,6 +69,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   int direction;
   float[][] startPts = null;
   boolean trajDoIntrp = true;
+  float trcrSize = 1f;
 
   List<BranchGroup> branches = null;
   Switch swit = null;
@@ -180,6 +181,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
             direction = trajParams.getDirection();
             startPts = trajParams.getStartPoints();
             trajDoIntrp = trajParams.getDoIntrp();
+            trcrSize = trajParams.getMarkerSize();
             if (!trajDoIntrp) {
               numIntrpPts = 1;
             }
@@ -1561,7 +1563,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           final BranchGroup branch = (BranchGroup) branches.get(i);
           final BranchGroup node = (BranchGroup) swit.getChild(i);
 
-          VisADGeometryArray p_array = Trajectory.makeTracerGeometry(trajectories, direction);
+          VisADGeometryArray p_array = Trajectory.makeTracerGeometry(trajectories, direction, trcrSize);
           GraphicsModeControl mode = (GraphicsModeControl) info.mode.clone();
           mode.setPointSize(4f, false); //make sure to use false or lest we fall into event loop
           BranchGroup branchB = new BranchGroup();
@@ -1814,7 +1816,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
        return array;
      }
 
-     public static VisADGeometryArray makeTracerGeometry(ArrayList<Trajectory> trajectories, int direction) {
+     public static VisADGeometryArray makeTracerGeometry(ArrayList<Trajectory> trajectories, int direction, float trcrSize) {
        int numTrajs = trajectories.size();
        VisADGeometryArray array = null;
 
@@ -1824,7 +1826,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
        float[] coords =  new float[3*numPts];
        byte[] colors = new byte[3*numPts];
 
-       double barblen = 0.034;
+       double barblen = trcrSize*0.034;
 
        float[] norm = new float[] {0, 0, 1f};
        float[] trj_u = new float[3];
