@@ -4,7 +4,7 @@
 
     <property name="type.lib.dir" location="${basedir}/lib"/>
 
-	<!-- overrides locations in sub-projects -->
+    <!-- overrides locations in sub-projects -->
     <property name="visad.jarfile" location="${basedir}/visad.jar" />
     <property name="examples.jarfile" location="${basedir}/visad_examples.jar" />
     <property name="docs.jarfile" location="${basedir}/visad_doc.jar" />
@@ -42,7 +42,7 @@
     </target>
     
     <target name="jar.javadoc" description="jar the javadoc">
-		<ant dir="${basedir}/core" target="jar.javadoc"/>
+        <ant dir="${basedir}/core" target="jar.javadoc"/>
     </target>
 
     <target name="jar.native" depends="dist.revision" description="jar the native code">
@@ -74,15 +74,16 @@
 
     <target name="dist" depends="clean,
                                  build.visad, 
-    							 jar.visad,
+                                 jar.visad,
                                  build.examples,
-    							 jar.examples,
-    							 clean,
+                                 jar.examples,
+                                 clean,
                                  build.javadoc,
-    							 jar.javadoc,
+                                 jar.javadoc,
+                                 jar.source,
                                  dist.revision"
             description="make the VisAD distribution including project jar file with dependencies and jars for examples and docs">
-
+        
         <tstamp>
           <format property="date.value" pattern="EEE MMM dd HH:mm:ss zzz yyyy" />
         </tstamp>
@@ -90,9 +91,9 @@
             <manifest>
                 <attribute name="Built-By" value="${user.name}"/>
                 <attribute name="Main-Class" value="visad.ss.SpreadSheet"/>
-				        <attribute name="Implementation-Title" value="VisAD" />
-				        <attribute name="Implementation-Version" value="${date.value} ${repository.version}" />
-				        <attribute name="Implementation-Vendor" value="UW/SSEC" />
+                <attribute name="Implementation-Title" value="VisAD" />
+                <attribute name="Implementation-Version" value="${date.value} ${repository.version}" />
+                <attribute name="Implementation-Vendor" value="UW/SSEC" />
             </manifest>
         </jar>
     </target>
