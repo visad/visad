@@ -1544,6 +1544,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
                 // update interpolator 
                 uInterp.next(x0, x1, x2, values0[0], values1[0], values2[0]);
                 vInterp.next(x0, x1, x2, values0[1], values1[1], values2[1]);
+                //wInterp.next(x0, x1, x2, values0[2], values1[2], values2[2]);
             }
           }
           else {
@@ -1561,10 +1562,11 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
              
             float[] intrpU = new float[uInterp.numSpatialPts];
             float[] intrpV = new float[uInterp.numSpatialPts];
-            float[] intrpZ = new float[uInterp.numSpatialPts];
+            float[] intrpW = new float[uInterp.numSpatialPts];
             uInterp.interpolate(xt, intrpU);
             vInterp.interpolate(xt, intrpV);
-            float[][] flow_values = Trajectory.adjustFlow(info, new float[][] {intrpU, intrpV, intrpZ}, timeStep);
+            //wInterp.interpolate(xt, intrpW);
+            float[][] flow_values = Trajectory.adjustFlow(info, new float[][] {intrpU, intrpV, intrpW}, timeStep);
 
             for (int t=0; t<numTrajectories; t++) {
               Trajectory traj = trajectories.get(t);
