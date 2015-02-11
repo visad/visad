@@ -2,7 +2,7 @@
 
 /*
 VisAD system for interactive analysis and visualization of numerical
-data.  Copyright (C) 1996 - 2014 Bill Hibbard, Curtis Rueden, Tom
+data.  Copyright (C) 1996 - 2015 Bill Hibbard, Curtis Rueden, Tom
 Rink, Dave Glowacki, Steve Emmerson, Tom Whittaker, Don Murray, and
 Tommy Jasmin.
 
