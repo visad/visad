@@ -1449,7 +1449,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         double[] timeSteps = Trajectory.getTimeSteps((Gridded1DSet)anim1DdomainSet);
         double timeAccum = 0;
 
-        for (int k=0; k<dataDomainLength-3; k++) {
+        for (int k=0; k<dataDomainLength-1; k++) {
           int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
 
           info = Range.getAdaptedShadowType().flowInfoList.get(i);
@@ -1492,6 +1492,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           double x2 = (double) direction*(i+direction*2);
 
 
+          // Even time steps: access fields, update interpolator and compute.
+          // Odd time steps: just compute for second half of 3 point (2 gap) interval.
           if ((k % 2) == 0) {
             FlowInfo flwInfo;
 
@@ -1505,24 +1507,27 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
               values1 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
             }
 
-            flwInfo = flowInfoList.get(i+direction*2);
-            values2 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
+            // make sure we don't access more data than we have, but keep iterating and 
+            // computing to the end to use the data we've already pulled in.
+            if (k < dataDomainLength-3) {
+                flwInfo = flowInfoList.get(i+direction*2);
+                values2 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
 
-            // smoothing done here
-            flwInfo = flowInfoList.get(i+direction*3);
-            values3 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
-            
-            if (values0_last != null) {
-              values0 = Trajectory.smooth(values0_last, values0, values1, smoothParams);
+                // smoothing done here -----------------------
+                flwInfo = flowInfoList.get(i+direction*3);
+                values3 = Trajectory.convertFlowUnit(flwInfo.flow_values, flwInfo.flow_units);
+
+                if (values0_last != null) {
+                  values0 = Trajectory.smooth(values0_last, values0, values1, smoothParams);
+                }
+                values1 = Trajectory.smooth(values0, values1, values2, smoothParams);
+                values2 = Trajectory.smooth(values1, values2, values3, smoothParams);
+                // ------- end smoothing
+
+                // update interpolator 
+                uInterp.next(x0, x1, x2, values0[0], values1[0], values2[0]);
+                vInterp.next(x0, x1, x2, values0[1], values1[1], values2[1]);
             }
-            values1 = Trajectory.smooth(values0, values1, values2, smoothParams);
-            values2 = Trajectory.smooth(values1, values2, values3, smoothParams);
-            // end smoothing
-
-            values0_last = values0;
-
-            uInterp.next(x0, x1, x2, values0[0], values1[0], values2[0]);
-            vInterp.next(x0, x1, x2, values0[1], values1[1], values2[1]);
           }
           else {
             values0_last = values1;
