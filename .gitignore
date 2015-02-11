@@ -5,6 +5,7 @@
 visad.jar
 visad_doc.jar
 visad_examples.jar
+visad_src.jar
 
 core/build
 examples/build
