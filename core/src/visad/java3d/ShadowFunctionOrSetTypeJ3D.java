@@ -1387,7 +1387,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
   private void doTrajectory() throws VisADException, RemoteException {
      /* Get start points, use first spatial_set locs for now. 
         Eventually want to include a time for start */
-     ArrayList<FlowInfo> flowInfoList = Range.getAdaptedShadowType().flowInfoList;
+     ArrayList<FlowInfo> flowInfoList = Range.getAdaptedShadowType().getFlowInfo();
      FlowInfo info = flowInfoList.get(0);
      Gridded3DSet spatial_set0 = (Gridded3DSet) info.spatial_set;
      int manifoldDim = spatial_set0.getManifoldDimension();
@@ -1463,7 +1463,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         for (int k=0; k<dataDomainLength-1; k++) {
           int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
 
-          info = Range.getAdaptedShadowType().flowInfoList.get(i);
+          info = Range.getAdaptedShadowType().getFlowInfo().get(i);
           color_values = info.color_values;
           Gridded3DSet spatial_set = (Gridded3DSet) info.spatial_set;
           manifoldDim = spatial_set.getManifoldDimension();

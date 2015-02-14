@@ -173,7 +173,7 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
   /** trajectory flags */
   public boolean trajectory1 = false;
   public boolean trajectory2 = false;
-  public ArrayList<FlowInfo> flowInfoList = new ArrayList<FlowInfo>();
+  protected ArrayList<FlowInfo> flowInfoList = new ArrayList<FlowInfo>();
 
   /** makeContour, manifoldDimension == 2 */
   int[] cnt = { 0 };
@@ -1071,6 +1071,10 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
     for (int i = 0; i < ValueIndices.length; i++)
       ii[i] = ValueIndices[i];
     return ii;
+  }
+  
+  public ArrayList<FlowInfo> getFlowInfo() {
+      return this.flowInfoList;
   }
 
   /**
@@ -2704,16 +2708,20 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
     }
   }
 
-  public float[][] makeTrajFlow(int which, float[][] flow_values,
-      Unit[][] dataUnits, Unit[] flowUnits,
-      float flowScale, float[][] spatial_values, byte[][] color_values,
-      boolean[][] range_select, int valueArrayLength, int[] valueToMap,
-      Vector MapVector) throws VisADException {
+  public void makeTrajFlow(int which, float[][] flow_values, Data data,
+      float flowScale, float[][] spatial_values, Set spatial_set, int spatialManifoldDimension, byte[][] color_values,
+      boolean[][] range_select, GraphicsModeControl mode, float constant_alpha, float[] constant_color,
+      int valueArrayLength, int[] valueToMap,
+      Vector MapVector, ArrayList flowInfoList) throws VisADException, RemoteException {
 
+    Unit[] flowUnits = new Unit[3];
+    Unit[][] dataUnits = ((FlatField)data).getRangeUnits();
+    float[][] rangeValues = ((Field)data).getFloats(false);
+    
     if (flow_values[0] == null)
-      return null;
+      return;
     if (spatial_values[0] == null)
-      return null;
+      return;
 
     VisADLineArray array = new VisADLineArray();
 
@@ -2729,7 +2737,7 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
       }
     }
     if (rlen == 0)
-      return null;
+      return;
 
     DataRenderer renderer = getLink().getRenderer();
 
@@ -2762,8 +2770,28 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
         }
       }
     }
+    
+    byte[][] trajColors = makeTrajColor(rangeValues, valueArrayLength,
+                                   valueToMap, MapVector);
 
-    return flow_values;
+    FlowInfo flwInfo = new FlowInfo();
+    flwInfo.flow_values = flow_values;
+    flwInfo.flow_units = flowUnits;
+    flwInfo.flowScale = flowScale;
+    flwInfo.spatial_values = spatial_values;
+    flwInfo.spatial_set = spatial_set;
+    flwInfo.spatialManifoldDimension = spatialManifoldDimension;
+    flwInfo.color_values = color_values;
+    flwInfo.range_select = range_select;
+    flwInfo.mode = mode;
+    flwInfo.constant_alpha = constant_alpha;
+    flwInfo.constant_color = constant_color;
+    flwInfo.renderer = renderer;
+    flwInfo.which = 0;
+    flwInfo.trajColors = trajColors;
+    flowInfoList.add(flwInfo);
+
+    return;
   }
 
   /* TODO: How, or should this be integrated with assembleColor? */
