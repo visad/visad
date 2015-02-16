@@ -1387,13 +1387,19 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
   private void doTrajectory() throws VisADException, RemoteException {
      /* Get start points, use first spatial_set locs for now. 
         Eventually want to include a time for start */
-     ArrayList<FlowInfo> flowInfoList = Range.getAdaptedShadowType().flowInfoList;
+     ArrayList<FlowInfo> flowInfoList = Range.getAdaptedShadowType().getFlowInfo();
      FlowInfo info = flowInfoList.get(0);
      Gridded3DSet spatial_set0 = (Gridded3DSet) info.spatial_set;
+     int manifoldDim = spatial_set0.getManifoldDimension();
      int[] lens = spatial_set0.getLengths();
      float[][] setLocs = spatial_set0.getSamples(false);
-     Gridded2DSet spatial_set2D = new Gridded2DSet(RealTupleType.SpatialCartesian2DTuple,
+     GriddedSet spatialSetTraj = null;
+     if (manifoldDim == 2) {
+         spatialSetTraj = new Gridded2DSet(RealTupleType.SpatialCartesian2DTuple,
                 new float[][] {setLocs[0], setLocs[1]}, lens[0], lens[1]);
+     } else {
+         spatialSetTraj = spatial_set0;
+     }
 
      byte[][] color_values = info.color_values;
      int clrDim = color_values.length;
@@ -1415,8 +1421,13 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
        float[][] fltVals = new float[startPts.length][startPts[0].length];
        for (int i=0; i<fltVals.length; i++) System.arraycopy(startPts[i], 0, fltVals[i], 0, fltVals[i].length);
        startPts = dspCoordSys.toReference(fltVals);
-
-       int[] clrIdxs = spatial_set2D.valueToIndex(new float[][] {startPts[0], startPts[1]});
+       
+       int[] clrIdxs = null;
+       if (manifoldDim == 2) {
+           clrIdxs = spatialSetTraj.valueToIndex(new float[][] {startPts[0], startPts[1]});
+       } else {
+           clrIdxs = spatialSetTraj.valueToIndex(startPts);
+       }
        int num = clrIdxs.length;
        startClrs[0] = new byte[num];
        startClrs[1] = new byte[num];
@@ -1452,15 +1463,21 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         for (int k=0; k<dataDomainLength-1; k++) {
           int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
 
-          info = Range.getAdaptedShadowType().flowInfoList.get(i);
+          info = Range.getAdaptedShadowType().getFlowInfo().get(i);
           color_values = info.color_values;
           Gridded3DSet spatial_set = (Gridded3DSet) info.spatial_set;
+          manifoldDim = spatial_set.getManifoldDimension();
           lens = spatial_set.getLengths();
           setLocs = spatial_set.getSamples(false);
-          spatial_set2D = new Gridded2DSet(RealTupleType.SpatialCartesian2DTuple, 
-                  new float[][] {setLocs[0], setLocs[1]}, lens[0], lens[1]);
+          if (manifoldDim == 2) {
+              spatialSetTraj = new Gridded2DSet(RealTupleType.SpatialCartesian2DTuple, 
+                    new float[][] {setLocs[0], setLocs[1]}, lens[0], lens[1]);
+          }
+          else {
+              spatialSetTraj = spatial_set;
+          }
 
-
+          
           float timeStep = (float) timeSteps[i]/numIntrpPts;
 
           if ((k==0) || (timeAccum >= trajRefreshInterval)) { // for non steady state trajectories (refresh frequency)
@@ -1527,6 +1544,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
                 // update interpolator 
                 uInterp.next(x0, x1, x2, values0[0], values1[0], values2[0]);
                 vInterp.next(x0, x1, x2, values0[1], values1[1], values2[1]);
+                //wInterp.next(x0, x1, x2, values0[2], values1[2], values2[2]);
             }
           }
           else {
@@ -1544,16 +1562,17 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
              
             float[] intrpU = new float[uInterp.numSpatialPts];
             float[] intrpV = new float[uInterp.numSpatialPts];
-            float[] intrpZ = new float[uInterp.numSpatialPts];
+            float[] intrpW = new float[uInterp.numSpatialPts];
             uInterp.interpolate(xt, intrpU);
             vInterp.interpolate(xt, intrpV);
-            float[][] flow_values = Trajectory.adjustFlow(info, new float[][] {intrpU, intrpV, intrpZ}, timeStep);
+            //wInterp.interpolate(xt, intrpW);
+            float[][] flow_values = Trajectory.adjustFlow(info, new float[][] {intrpU, intrpV, intrpW}, timeStep);
 
             for (int t=0; t<numTrajectories; t++) {
               Trajectory traj = trajectories.get(t);
               traj.currentTimeIndex = direction*i;
               traj.currentTime = direction*times[i];
-              traj.forward(flow_values, color_values, spatial_set2D, direction);
+              traj.forward(flow_values, color_values, spatialSetTraj, direction);
             }
 
           } // inner time loop (time interpolation)
