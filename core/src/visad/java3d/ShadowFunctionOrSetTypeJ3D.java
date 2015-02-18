@@ -1460,7 +1460,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         double[] timeSteps = Trajectory.getTimeSteps((Gridded1DSet)anim1DdomainSet);
         double timeAccum = 0;
 
-        for (int k=0; k<dataDomainLength-1; k++) {
+        for (int k=0; k<dataDomainLength; k++) {
           int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
 
           info = Range.getAdaptedShadowType().getFlowInfo().get(i);
