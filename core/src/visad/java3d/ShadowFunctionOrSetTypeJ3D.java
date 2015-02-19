@@ -1460,7 +1460,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         double[] timeSteps = Trajectory.getTimeSteps((Gridded1DSet)anim1DdomainSet);
         double timeAccum = 0;
 
-        for (int k=0; k<dataDomainLength; k++) {
+        for (int k=0; k<dataDomainLength-1; k++) {
           int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
 
           info = Range.getAdaptedShadowType().getFlowInfo().get(i);
@@ -1546,11 +1546,23 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
                 vInterp.next(x0, x1, x2, values0[1], values1[1], values2[1]);
                 //wInterp.next(x0, x1, x2, values0[2], values1[2], values2[2]);
             }
+            
+            if (k == dataDomainLength-3) { // make sure we smoothly handle the last three time steps
+                uInterp.next(x0, x1, x2, values0[0], values1[0], values2[0]);
+                vInterp.next(x0, x1, x2, values0[1], values1[1], values2[1]);
+                //wInterp.next(x0, x1, x2, values0[2], values1[2], values2[2]);
+            }
           }
           else {
             values0_last = values1;
             values0 = values2;
             values1 = values3;
+            
+            if (k == dataDomainLength-3) { // make sure we smootly handle the last three time steps
+                uInterp.next(x0, x1, x2, values0[0], values1[0], values2[0]);
+                vInterp.next(x0, x1, x2, values0[1], values1[1], values2[1]);
+                //wInterp.next(x0, x1, x2, values0[2], values1[2], values2[2]);
+            }
           }
 
           numTrajectories = trajectories.size();
