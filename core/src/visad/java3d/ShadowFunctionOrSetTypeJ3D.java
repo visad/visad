@@ -1459,6 +1459,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         double[] times = Trajectory.getTimes((Gridded1DSet)anim1DdomainSet);
         double[] timeSteps = Trajectory.getTimeSteps((Gridded1DSet)anim1DdomainSet);
         double timeAccum = 0;
+        
+        VisADGeometryArray trcrArray = null;
 
         for (int k=0; k<dataDomainLength-1; k++) {
           int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
@@ -1600,6 +1602,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           final BranchGroup node = (BranchGroup) swit.getChild(i);
 
           VisADGeometryArray p_array = Trajectory.makeTracerGeometry(trajectories, direction, trcrSize);
+          trcrArray = p_array;
           GraphicsModeControl mode = (GraphicsModeControl) info.mode.clone();
           mode.setPointSize(4f, false); //make sure to use false or lest we fall into event loop
           BranchGroup branchB = new BranchGroup();
@@ -1613,6 +1616,20 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           node.addChild(branch);
 
         } // domain length (time steps) outer time loop
+        
+        if (switListen.whichVisible.length > 1) { //keep last tracer visible at the end if num visibility nodes > 1
+            int idx = dataDomainLength-1;
+            final BranchGroup branch = (BranchGroup) branches.get(idx);
+            final BranchGroup node = (BranchGroup) swit.getChild(idx);
+            FlowInfo finfo = flowInfoList.get(idx);
+            GraphicsModeControl mode = (GraphicsModeControl) finfo.mode.clone();
+            mode.setPointSize(4f, false); //make sure to use false or lest we fall into event loop
+            BranchGroup branchB = new BranchGroup();
+            branch.setCapability(BranchGroup.ALLOW_DETACH);
+            branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+            addToGroup(branchB, trcrArray, mode, finfo.constant_alpha, finfo.constant_color);
+            ((BranchGroup)switB.getChild(idx)).addChild(branchB);
+        }
      }
   }
 
