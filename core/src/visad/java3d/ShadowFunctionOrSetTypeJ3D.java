@@ -1601,16 +1601,13 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           final BranchGroup branch = (BranchGroup) branches.get(i);
           final BranchGroup node = (BranchGroup) swit.getChild(i);
 
-          VisADGeometryArray p_array = Trajectory.makeTracerGeometry(trajectories, direction, trcrSize);
-          trcrArray = p_array;
+          trcrArray = Trajectory.makeTracerGeometry(trajectories, direction, trcrSize);
+          
           GraphicsModeControl mode = (GraphicsModeControl) info.mode.clone();
           mode.setPointSize(4f, false); //make sure to use false or lest we fall into event loop
-          BranchGroup branchB = new BranchGroup();
-          branch.setCapability(BranchGroup.ALLOW_DETACH);
-          branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
-          addToGroup(branchB, p_array, mode, info.constant_alpha, info.constant_color);
+          BranchGroup branchB = (BranchGroup) makeBranch();
+          addToGroup(branchB, trcrArray, mode, info.constant_alpha, info.constant_color);
           ((BranchGroup)switB.getChild(i)).addChild(branchB);
-
 
           addToGroup(branch, array, info.mode, info.constant_alpha, info.constant_color);
           node.addChild(branch);
@@ -1624,9 +1621,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             FlowInfo finfo = flowInfoList.get(idx);
             GraphicsModeControl mode = (GraphicsModeControl) finfo.mode.clone();
             mode.setPointSize(4f, false); //make sure to use false or lest we fall into event loop
-            BranchGroup branchB = new BranchGroup();
-            branch.setCapability(BranchGroup.ALLOW_DETACH);
-            branch.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+            BranchGroup branchB = (BranchGroup) makeBranch();
             addToGroup(branchB, trcrArray, mode, finfo.constant_alpha, finfo.constant_color);
             ((BranchGroup)switB.getChild(idx)).addChild(branchB);
         }
