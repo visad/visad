@@ -2281,7 +2281,7 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
     //  return flow_values;
     //}
 
-
+      
     FlowControl fcontrol = null;
     DisplayImpl display = null;
     boolean shouldAdjust = true;
