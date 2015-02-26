@@ -143,8 +143,8 @@ public class DefaultRendererJ3D extends RendererJ3D {
       }
       if (post_process) type.postProcess(branch);
 
-      if ( ((ShadowFunctionOrSetTypeJ3D)type).doTrajectory ) {
-        ((ShadowFunctionOrSetTypeJ3D)type).postProcessTraj(branch);
+      if (type instanceof ShadowFunctionOrSetTypeJ3D) {
+          ((ShadowFunctionOrSetTypeJ3D)type).postProcessTraj(branch);
       }
     }
     link.clearData();
