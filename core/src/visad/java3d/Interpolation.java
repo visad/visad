@@ -16,8 +16,6 @@ public class Interpolation {
       float[] values0 = null;
       float[] values1 = null;
 
-      boolean firstTime = true;
-
       int numSpatialPts = 1;
 
       boolean doIntrp = true;
@@ -25,8 +23,10 @@ public class Interpolation {
       public Interpolation() {
       }
 
-      public Interpolation(boolean doIntrp) {
+      public Interpolation(boolean doIntrp, int numSpatialPts) {
          this.doIntrp = doIntrp;
+         this.numSpatialPts = numSpatialPts;
+         this.solution = new double[4][numSpatialPts];
       }
 
       void buildSolver() {
@@ -74,7 +74,6 @@ public class Interpolation {
            this.x1 = x1;
            this.values0 = values0;
            this.values1 = values1;
-           numSpatialPts = values0.length;
            return;
          }
 
@@ -85,10 +84,6 @@ public class Interpolation {
            buildSolver();
          }
 
-         if (firstTime) {
-            numSpatialPts = values0.length;
-            solution = new double[4][numSpatialPts];
-         }
 
          for (int k=0; k<numSpatialPts; k++) {
             double y0 = values0[k];
@@ -98,7 +93,6 @@ public class Interpolation {
             // TODO: for now always initialize first derivative at first point with estimate from
             // the first two data pts instead of using derivative from cubic polynomial fit at the
             // last point.  This works pretty well, but can be improved. So set this to "true".
-            //if (firstTime) {
             if (true) {
                double D1 = (y1 - y0)/(x1 - x0);
                double[] sol = getSolution(y0, y1, y2, D1);
@@ -116,8 +110,6 @@ public class Interpolation {
                solution[3][k] = sol[3];
             }
          }
-
-         if (firstTime) firstTime = false;
       }
 
       public double[] getSolution(double y0, double y1, double y2, double D1) {
