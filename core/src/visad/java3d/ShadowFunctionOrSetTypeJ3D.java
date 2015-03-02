@@ -127,8 +127,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
                              final float[] default_values, final DataRenderer renderer)
          throws VisADException, RemoteException {
 
-    //boolean post = true; // FIXME what value for animation?
-    //boolean isAnimation1d = false;
+      
     boolean isTerminal = adaptedShadowType.getIsTerminal();
     
     ScalarMap timeMap = null; // used in the animation case to get control
@@ -276,7 +275,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
       }
 
       if (doTrajectory) {
-        post = false;
+        post = true;
         threadManager.runSequentially();
       }
       else {
@@ -1354,9 +1353,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
   }
 
   public void postProcessTraj(Object group) throws VisADException {
-    if (!doTrajectory) {
-        return;
-    }
     int numChildren = swit.numChildren();
     try {
        doTrajectory();
@@ -1368,6 +1364,11 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
   /** render accumulated Vector of value_array-s to
       and add to group; then clear AccumulationVector */
   public void postProcess(Object group) throws VisADException {
+    if (doTrajectory) {
+      postProcessTraj(group);
+      return;
+    }
+    
     if (((ShadowFunctionOrSetType) adaptedShadowType).getFlat()) {
       int LevelOfDifficulty = getLevelOfDifficulty();
       if (LevelOfDifficulty == LEGAL) {
