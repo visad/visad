@@ -1495,7 +1495,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
              java.util.Arrays.fill(Trajectory.markGrid, false);
              if (direction > 0) {
                switListen.allOffBelow.add(i);
-               Trajectory.makeTrajectories(direction*times[i], trajectories, startPts, startClrs);
+               Trajectory.makeTrajectories(direction*times[i], trajectories, startPts, startClrs, spatialSetTraj);
              }
              else { //TODO: make this work eventually
                //switListen.allOffAbove.add(i);
@@ -1582,6 +1582,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             double dst = (x1 - x0)/numIntrpPts;
             double xt = x0 + dst*ti;
              
+            Trajectory.updateInterpolators(trajectories, numSpatialPts, uInterp, vInterp, wInterp);
+            
             uInterp.interpolate(xt, intrpU);
             vInterp.interpolate(xt, intrpV);
             //wInterp.interpolate(xt, intrpW);
@@ -1595,6 +1597,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             }
 
           } // inner time loop (time interpolation)
+          System.out.println("-----------------"+numTrajectories);
 
 
           VisADLineArray array = Trajectory.makeGeometry();
@@ -1618,6 +1621,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           node.addChild(branch);
 
         } // domain length (time steps) outer time loop
+        System.out.println(uInterp.totalA+", "+uInterp.totalB);
         
         if (switListen.whichVisible.length > 1) { //keep last tracer visible at the end if num visibility nodes > 1
             int idx = dataDomainLength-1;
@@ -1640,6 +1644,9 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
      float[] startPts = new float[3];
      float[]  stopPts = new float[3];
+     
+     int[] startCell;
+     float[] cellWeights;
 
      byte[] startColor;
      byte[] stopColor;
@@ -1673,7 +1680,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
      float[] uVecPath = new float[] {Float.NaN, Float.NaN, Float.NaN};
 
-     public Trajectory(float startX, float startY, float startZ, byte[] startColor) {
+     public Trajectory(float startX, float startY, float startZ, int[] startCell, float[] cellWeights, byte[] startColor) {
         this.startX = startX;
         this.startY = startY;
         this.startZ = startZ;
@@ -1681,6 +1688,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         startPts[0] = startX;
         startPts[1] = startY;
         startPts[2] = startZ;
+        this.startCell = startCell;
+        this.cellWeights = cellWeights;
 
         clrDim = startColor.length;
         stopColor = new byte[clrDim];
@@ -1688,9 +1697,13 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         this.startColor = startColor;
      }
 
-     public static void makeTrajectories(double time, ArrayList<Trajectory> trajectories, float[][] startPts, byte[][] color_values) {
+     public static void makeTrajectories(double time, ArrayList<Trajectory> trajectories, float[][] startPts, byte[][] color_values, GriddedSet spatial_set) throws VisADException  {
         int num = startPts[0].length;
         int clrDim = color_values.length;
+        
+        int[][] indices = new int[num][];
+        float[][] weights = new float[num][];
+        spatial_set.valueToInterp(new float[][] {startPts[0], startPts[1]}, indices, weights);
 
         for (int k=0; k<num; k++) {
            // initialize a new trajectory
@@ -1705,8 +1718,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
            if (clrDim == 4) {
               startColor[3] = color_values[3][k];
            }
-
-           Trajectory traj = new Trajectory(startX, startY, startZ, startColor);
+           
+           Trajectory traj = new Trajectory(startX, startY, startZ, indices[k], weights[k], startColor);
            traj.initialTime = time;
            trajectories.add(traj);
         }
@@ -1800,9 +1813,11 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
                 startColor[3] = color_values[3][k];
               }
 
+              /*
               Trajectory traj = new Trajectory(startX, startY, startZ, startColor);
               traj.initialTime = time;
               trajectories.add(traj);
+              */
             }
 
           }
@@ -2030,9 +2045,12 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         int[][] indices = new int[1][];
         float[][] weights = new float[1][];
         float[] intrpFlow = new float[3];
+        int clrDim = color_values.length;
+        float[] intrpClr = new float[clrDim];
 
         int manifoldDimension = spatial_set.getManifoldDimension();
 
+        /*
         if (manifoldDimension == 2) {
           startPts2D[0][0] = startPts[0];
           startPts2D[1][0] = startPts[1];
@@ -2044,23 +2062,13 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           startPts3D[2][0] = startPts[2];
           spatial_set.valueToInterp(startPts3D, indices, weights);
         }
-
-
-        int clrDim = color_values.length;
-        float[] intrpClr = new float[clrDim];
-
-        intrpFlow[0] = 0f;
-        intrpFlow[1] = 0f;
-        intrpFlow[2] = 0f;
-
-        intrpClr[0] = 0f;
-        intrpClr[1] = 0f;
-        intrpClr[2] = 0f;
-        if (clrDim == 4) {
-          intrpClr[3] = 0f;
-        }
+        */
+        indices[0] = startCell;
+        weights[0] = cellWeights;
 
         if (indices[0] != null) {
+           java.util.Arrays.fill(intrpFlow, 0f);
+           java.util.Arrays.fill(intrpClr, 0);
            for (int j=0; j<indices[0].length; j++) {
               int idx = indices[0][j];
               intrpFlow[0] += weights[0][j]*(direction)*flow_values[0][idx];
@@ -2113,6 +2121,29 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
              startColor[3] = stopColor[3];
            }
            */
+        //---------------------------------  test--------
+        if (manifoldDimension == 2) {
+          startPts2D[0][0] = startPts[0];
+          startPts2D[1][0] = startPts[1];
+          spatial_set.valueToInterp(startPts2D, indices, weights);
+        }
+        else if (manifoldDimension == 3) {
+          startPts3D[0][0] = startPts[0];
+          startPts3D[1][0] = startPts[1];
+          startPts3D[2][0] = startPts[2];
+          spatial_set.valueToInterp(startPts3D, indices, weights);
+        }
+        if (indices[0] != null){
+        startCell = indices[0];
+        cellWeights = weights[0];
+        }
+        else {
+           intrpFlow[0] = Float.NaN;
+           intrpFlow[1] = Float.NaN;
+           intrpFlow[2] = Float.NaN;
+           offGrid = true;
+        }
+        //------------------------------------
         }
         else {
            intrpFlow[0] = Float.NaN;
@@ -2226,6 +2257,20 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
        */
 
        return new float[][] {valsX, valsY, values[2]};
+     }
+     
+     public static void updateInterpolators(ArrayList<Trajectory>trajectories, int numSpatialPts, Interpolation uInterp, Interpolation vInterp, Interpolation wInterp) {
+         boolean[] needed = new boolean[numSpatialPts];
+         java.util.Arrays.fill(needed, false);
+         for (int k=0; k<trajectories.size(); k++) {
+             int[] cell = trajectories.get(k).startCell;
+             for (int t=0; t<cell.length; t++) {
+                 needed[cell[t]] = true;
+             }
+         }
+         uInterp.update(needed);
+         vInterp.update(needed);
+         //wInterp.update(needed);
      }
   }
 

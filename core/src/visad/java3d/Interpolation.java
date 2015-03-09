@@ -2,6 +2,7 @@ package visad.java3d;
 
 import Jama.Matrix;
 import Jama.LUDecomposition;
+import java.util.Arrays;
 
 public class Interpolation {
 
@@ -15,10 +16,17 @@ public class Interpolation {
 
       float[] values0 = null;
       float[] values1 = null;
+      float[] values2 = null;
 
       int numSpatialPts = 1;
 
       boolean doIntrp = true;
+      
+      boolean[] needed = null;
+      boolean[] computed = null;
+      
+      int totalA = 0;
+      int totalB = 0;
 
       public Interpolation() {
       }
@@ -27,6 +35,10 @@ public class Interpolation {
          this.doIntrp = doIntrp;
          this.numSpatialPts = numSpatialPts;
          this.solution = new double[4][numSpatialPts];
+         this.needed = new boolean[numSpatialPts];
+         this.computed = new boolean[numSpatialPts];
+         Arrays.fill(needed, false);
+         Arrays.fill(computed, false);
       }
 
       void buildSolver() {
@@ -69,23 +81,42 @@ public class Interpolation {
       }
 
       public void next(double x0, double x1, double x2, float[] values0, float[] values1, float[] values2) {
+         this.x0 = x0;
+         this.x1 = x1;
+         this.x2 = x2;
+         this.values0 = values0;
+         this.values1 = values1;
+         this.values2 = values2;
+         Arrays.fill(computed, false);
+         
          if (!doIntrp) {
-           this.x0 = x0;
-           this.x1 = x1;
-           this.values0 = values0;
-           this.values1 = values1;
            return;
          }
-
-         if (!(this.x0 == x0 && this.x1 == x1 && this.x2 == x2)) {
-           this.x0 = x0;
-           this.x1 = x1;
-           this.x2 = x2;
-           buildSolver();
-         }
-
-
+         
+         buildSolver();
+         totalA += numSpatialPts;
+      }
+      
+      public void update(boolean[] needed) {
+          java.util.Arrays.fill(this.needed, false);
+          int cnt = 0;
+          for (int k=0; k<numSpatialPts; k++) {
+              if (needed[k]) {
+                  if (!computed[k]) {
+                      this.needed[k] = true;
+                      cnt++;
+                  }
+              }
+          }
+          totalB += cnt;
+          getSolution();
+      }
+      
+      public void getSolution() {
          for (int k=0; k<numSpatialPts; k++) {
+            if (!this.needed[k]) {
+                continue;
+            }
             double y0 = values0[k];
             double y1 = values1[k];
             double y2 = values2[k];
@@ -109,6 +140,7 @@ public class Interpolation {
                solution[2][k] = sol[2];
                solution[3][k] = sol[3];
             }
+            computed[k] = true;
          }
       }
 
