@@ -25,9 +25,6 @@ public class Interpolation {
       boolean[] needed = null;
       boolean[] computed = null;
       
-      int totalA = 0;
-      int totalB = 0;
-
       public Interpolation() {
       }
 
@@ -94,7 +91,6 @@ public class Interpolation {
          }
          
          buildSolver();
-         totalA += numSpatialPts;
       }
       
       public void update(boolean[] needed) {
@@ -108,7 +104,6 @@ public class Interpolation {
                   }
               }
           }
-          totalB += cnt;
           getSolution();
       }
       
