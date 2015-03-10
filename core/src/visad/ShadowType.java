@@ -2745,7 +2745,9 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
     RealTupleType rtt = ftype.getFlatRange();
     RealType[] range_reals = rtt.getRealComponents();
 
+    boolean allFlow = true;
     for (int k = 0; k < range_reals.length; k++) {
+      boolean isFlow = false;
       for (int i = 0; i < valueArrayLength; i++) {
         ScalarMap map = (ScalarMap) MapVector.elementAt(valueToMap[i]);
         DisplayRealType dreal = map.getDisplayScalar();
@@ -2761,14 +2763,21 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
 
         if (dreal.equals(Display.Flow1X) || dreal.equals(Display.Flow2X)) {
           flowUnits[0] = dataUnits[k][0];
+          isFlow = true;
         }
         if (dreal.equals(Display.Flow1Y) || dreal.equals(Display.Flow2Y)) {
           flowUnits[1] = dataUnits[k][0];
+          isFlow = true;
         }
         if (dreal.equals(Display.Flow1Z) || dreal.equals(Display.Flow2Z)) {
           flowUnits[2] = dataUnits[k][0];
+          isFlow = true;
         }
       }
+      allFlow = allFlow && isFlow;
+    }
+    if (!allFlow) {
+        throw new VisADException("Trajectory: Only range types for Flow allowed");
     }
     
     byte[][] trajColors = makeTrajColor(rangeValues, valueArrayLength,
