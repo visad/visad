@@ -2787,7 +2787,7 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
     flwInfo.constant_alpha = constant_alpha;
     flwInfo.constant_color = constant_color;
     flwInfo.renderer = renderer;
-    flwInfo.which = 0;
+    flwInfo.which = which;
     flwInfo.trajColors = trajColors;
     flowInfoList.add(flwInfo);
 

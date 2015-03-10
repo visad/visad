@@ -1409,10 +1409,14 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
      int clrDim = color_values.length;
      if (info.trajColors != null) color_values = info.trajColors;
 
-     Trajectory.markGrid = new boolean[spatial_set0.getLength()];
-     Trajectory.markGridTime = new int[spatial_set0.getLength()];
+     int numSpatialPts = spatial_set0.getLength();
+     Trajectory.markGrid = new boolean[numSpatialPts];
+     Trajectory.markGridTime = new int[numSpatialPts];
      java.util.Arrays.fill(Trajectory.markGrid, false);
      java.util.Arrays.fill(Trajectory.markGridTime, 0);
+     float[] intrpU = new float[numSpatialPts];
+     float[] intrpV = new float[numSpatialPts];
+     float[] intrpW = new float[numSpatialPts];
 
      byte[][] startClrs = new byte[color_values.length][];
      if (startPts == null) { //get from domain set
@@ -1450,9 +1454,9 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
      ArrayList<Trajectory> trajectories = new ArrayList<Trajectory>();
 
     
-        Interpolation uInterp = new Interpolation(trajDoIntrp);
-        Interpolation vInterp = new Interpolation(trajDoIntrp);
-        Interpolation wInterp = new Interpolation(trajDoIntrp);
+        Interpolation uInterp = new Interpolation(trajDoIntrp, numSpatialPts);
+        Interpolation vInterp = new Interpolation(trajDoIntrp, numSpatialPts);
+        Interpolation wInterp = new Interpolation(trajDoIntrp, numSpatialPts);
 
         float[][] values0 = null;
         float[][] values1 = null;
@@ -1578,9 +1582,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             double dst = (x1 - x0)/numIntrpPts;
             double xt = x0 + dst*ti;
              
-            float[] intrpU = new float[uInterp.numSpatialPts];
-            float[] intrpV = new float[uInterp.numSpatialPts];
-            float[] intrpW = new float[uInterp.numSpatialPts];
             uInterp.interpolate(xt, intrpU);
             vInterp.interpolate(xt, intrpV);
             //wInterp.interpolate(xt, intrpW);
