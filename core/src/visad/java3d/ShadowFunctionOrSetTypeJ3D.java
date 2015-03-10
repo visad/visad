@@ -1597,7 +1597,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             }
 
           } // inner time loop (time interpolation)
-          System.out.println("-----------------"+numTrajectories);
 
 
           VisADLineArray array = Trajectory.makeGeometry();
@@ -1621,7 +1620,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           node.addChild(branch);
 
         } // domain length (time steps) outer time loop
-        System.out.println(uInterp.totalA+", "+uInterp.totalB);
         
         if (switListen.whichVisible.length > 1) { //keep last tracer visible at the end if num visibility nodes > 1
             int idx = dataDomainLength-1;
