@@ -56,12 +56,6 @@ public class Interpolation {
          solver = new Jama.LUDecomposition(coeffs);
       }
 
-      public void interpolate(double xt, double[] interpValues) {
-         for (int k=0; k<numSpatialPts; k++) {
-            interpValues[k] = cubic_poly(xt, solution[0][k], solution[1][k], solution[2][k], solution[3][k]);
-         }
-      }
-
       public void interpolate(double xt, float[] interpValues) {
          if (!doIntrp) {
             if (xt == x0) {
@@ -95,12 +89,10 @@ public class Interpolation {
       
       public void update(boolean[] needed) {
           java.util.Arrays.fill(this.needed, false);
-          int cnt = 0;
           for (int k=0; k<numSpatialPts; k++) {
               if (needed[k]) {
                   if (!computed[k]) {
                       this.needed[k] = true;
-                      cnt++;
                   }
               }
           }
