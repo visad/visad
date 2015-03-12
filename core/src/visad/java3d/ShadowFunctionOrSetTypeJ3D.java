@@ -1699,9 +1699,17 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         int num = startPts[0].length;
         int clrDim = color_values.length;
         
+        // determine grid relative positions of start points
+        int manifoldDimension = spatial_set.getManifoldDimension();
         int[][] indices = new int[num][];
         float[][] weights = new float[num][];
-        spatial_set.valueToInterp(new float[][] {startPts[0], startPts[1]}, indices, weights);
+        
+        if (manifoldDimension == 2) {
+          spatial_set.valueToInterp(new float[][] {startPts[0], startPts[1]}, indices, weights);
+        }
+        else if (manifoldDimension == 3) {
+          spatial_set.valueToInterp(new float[][] {startPts[0], startPts[1], startPts[2]}, indices, weights);
+        }
 
         for (int k=0; k<num; k++) {
            // initialize a new trajectory
@@ -2048,19 +2056,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
         int manifoldDimension = spatial_set.getManifoldDimension();
 
-        /*
-        if (manifoldDimension == 2) {
-          startPts2D[0][0] = startPts[0];
-          startPts2D[1][0] = startPts[1];
-          spatial_set.valueToInterp(startPts2D, indices, weights);
-        }
-        else if (manifoldDimension == 3) {
-          startPts3D[0][0] = startPts[0];
-          startPts3D[1][0] = startPts[1];
-          startPts3D[2][0] = startPts[2];
-          spatial_set.valueToInterp(startPts3D, indices, weights);
-        }
-        */
         indices[0] = startCell;
         weights[0] = cellWeights;
 
@@ -2095,7 +2090,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
              stopColor[3] = (byte) intrpClr[3];
            }
 
-           //addPair(startPts, stopPts, startColor, stopColor); // Just use first color for now.
+           // interpolated color not working yet. Use constant color from the start
            addPair(startPts, stopPts, startColor, startColor);
 
            uVecPath[0] = stopPts[0] - startPts[0];
@@ -2111,44 +2106,26 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
            startPts[1] = stopPts[1];
            startPts[2] = stopPts[2];
           
-           /* problem with colors.  Just use first color for now
-           startColor[0] = stopColor[0];
-           startColor[1] = stopColor[1];
-           startColor[2] = stopColor[2];
-           if (clrDim == 4) {
-             startColor[3] = stopColor[3];
+
+           if (manifoldDimension == 2) {
+              startPts2D[0][0] = startPts[0];
+              startPts2D[1][0] = startPts[1];
+              spatial_set.valueToInterp(startPts2D, indices, weights);
            }
-           */
-        //---------------------------------  test--------
-        if (manifoldDimension == 2) {
-          startPts2D[0][0] = startPts[0];
-          startPts2D[1][0] = startPts[1];
-          spatial_set.valueToInterp(startPts2D, indices, weights);
+           else if (manifoldDimension == 3) {
+              startPts3D[0][0] = startPts[0];
+              startPts3D[1][0] = startPts[1];
+              startPts3D[2][0] = startPts[2];
+              spatial_set.valueToInterp(startPts3D, indices, weights);
+           }
+           
+           startCell = indices[0];
+           cellWeights = weights[0];
+           if (indices[0] == null) {
+              offGrid = true;
+           }
         }
-        else if (manifoldDimension == 3) {
-          startPts3D[0][0] = startPts[0];
-          startPts3D[1][0] = startPts[1];
-          startPts3D[2][0] = startPts[2];
-          spatial_set.valueToInterp(startPts3D, indices, weights);
-        }
-        if (indices[0] != null){
-        startCell = indices[0];
-        cellWeights = weights[0];
-        }
-        else {
-           intrpFlow[0] = Float.NaN;
-           intrpFlow[1] = Float.NaN;
-           intrpFlow[2] = Float.NaN;
-           offGrid = true;
-        }
-        //------------------------------------
-        }
-        else {
-           intrpFlow[0] = Float.NaN;
-           intrpFlow[1] = Float.NaN;
-           intrpFlow[2] = Float.NaN;
-           offGrid = true;
-        }
+
      }
 
      private void addPair(float[] startPt, float[] stopPt, byte[] startColor, byte[] stopColor) {
@@ -2261,9 +2238,12 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
          boolean[] needed = new boolean[numSpatialPts];
          java.util.Arrays.fill(needed, false);
          for (int k=0; k<trajectories.size(); k++) {
-             int[] cell = trajectories.get(k).startCell;
-             for (int t=0; t<cell.length; t++) {
-                 needed[cell[t]] = true;
+             Trajectory traj = trajectories.get(k);
+             if (!traj.offGrid) {
+                int[] cell = traj.startCell;
+                for (int t=0; t<cell.length; t++) {
+                   needed[cell[t]] = true;
+                }
              }
          }
          uInterp.update(needed);
