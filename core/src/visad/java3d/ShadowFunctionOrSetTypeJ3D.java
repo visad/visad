@@ -1943,28 +1943,22 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
          	  
          int t = k*12;
          int c = k*12;
-         if (direction > 0) {
-           coords[t] = traj.startPts[0];
-           coords[t+=1] = traj.startPts[1];
-           coords[t+=1] = traj.startPts[2];
+         
+         coords[t] = traj.startPts[0];
+         coords[t+=1] = traj.startPts[1];
+         coords[t+=1] = traj.startPts[2];
          	     
-           coords[t+=1] = barbPtA[0];
-           coords[t+=1] = barbPtA[1];
-           coords[t+=1] = barbPtA[2];
+         coords[t+=1] = barbPtA[0];
+         coords[t+=1] = barbPtA[1];
+         coords[t+=1] = barbPtA[2];
          
-           coords[t+=1] = traj.startPts[0];
-           coords[t+=1] = traj.startPts[1];
-           coords[t+=1] = traj.startPts[2];
+         coords[t+=1] = traj.startPts[0];
+         coords[t+=1] = traj.startPts[1];
+         coords[t+=1] = traj.startPts[2];
          
-           coords[t+=1] = barbPtB[0];
-           coords[t+=1] = barbPtB[1];
-           coords[t+=1] = barbPtB[2];
-         }
-         else {// TODO: finish this
-           coords[k*3] = traj.startX;
-           coords[k*3 + 1] = traj.startY;
-           coords[k*3 + 2] = traj.startZ;
-         }
+         coords[t+=1] = barbPtB[0];
+         coords[t+=1] = barbPtB[1];
+         coords[t+=1] = barbPtB[2];
          
          colors[c] = traj.startColor[0];
          colors[c+=1] = traj.startColor[1];
@@ -1982,31 +1976,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
          colors[c+=1] = traj.startColor[1];
          colors[c+=1] = traj.startColor[2];
        }
-
-       /*  point marker -----------------------------
-       array = new VisADPointArray();
-       numPts = numTrajs;
-       float[] coords =  new float[3*numPts];
-       byte[] colors = new byte[3*numPts];
-	
-       for (int k=0; k<numTrajs; k++) {
-         Trajectory traj = trajectories.get(k);
-         if (direction > 0) {
-           coords[k*3] = traj.startPts[0];
-           coords[k*3 + 1] = traj.startPts[1];
-           coords[k*3 + 2] = traj.startPts[2];
-         }
-         else {
-           coords[k*3] = traj.startX;
-           coords[k*3 + 1] = traj.startY;
-           coords[k*3 + 2] = traj.startZ;
-         }
-         
-         colors[k*3] = traj.startColor[0];
-         colors[k*3 + 1] = traj.startColor[1];
-         colors[k*3 + 2] = traj.startColor[2];
-       }
-       -------------------------------------------*/
 
        array.vertexCount = numPts;
        array.coordinates = coords;
