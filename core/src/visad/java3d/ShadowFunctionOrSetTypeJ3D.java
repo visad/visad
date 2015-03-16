@@ -70,6 +70,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   float[][] startPts = null;
   boolean trajDoIntrp = true;
   float trcrSize = 1f;
+  double[] dspScale = new double[3];
 
   List<BranchGroup> branches = null;
   Switch swit = null;
@@ -159,7 +160,10 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
         // animation domain
         timeMap = (ScalarMap) scalarMaps.elementAt(ani_map_idx);
       }
-
+      
+      double[] mat = renderer.getDisplay().getProjectionControl().getMatrix();
+      MouseBehaviorJ3D.unmake_matrix(new double[3], dspScale, new double[3], mat);
+      
       // check for trajectory
       for (int kk=0; kk<scalarMaps.size(); kk++) {
         ScalarMap scalarMap = (ScalarMap) scalarMaps.elementAt(kk);
@@ -1495,7 +1499,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
              java.util.Arrays.fill(Trajectory.markGrid, false);
              if (direction > 0) {
                switListen.allOffBelow.add(i);
-               Trajectory.makeTrajectories(direction*times[i], trajectories, startPts, startClrs);
+               Trajectory.makeTrajectories(direction*times[i], trajectories, startPts, startClrs, spatialSetTraj);
              }
              else { //TODO: make this work eventually
                //switListen.allOffAbove.add(i);
@@ -1582,6 +1586,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             double dst = (x1 - x0)/numIntrpPts;
             double xt = x0 + dst*ti;
              
+            Trajectory.updateInterpolators(trajectories, numSpatialPts, uInterp, vInterp, wInterp);
+            
             uInterp.interpolate(xt, intrpU);
             vInterp.interpolate(xt, intrpV);
             //wInterp.interpolate(xt, intrpW);
@@ -1606,7 +1612,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           final BranchGroup branch = (BranchGroup) branches.get(i);
           final BranchGroup node = (BranchGroup) swit.getChild(i);
 
-          trcrArray = Trajectory.makeTracerGeometry(trajectories, direction, trcrSize);
+          trcrArray = Trajectory.makeTracerGeometry(trajectories, direction, trcrSize, dspScale, true);
           
           GraphicsModeControl mode = (GraphicsModeControl) info.mode.clone();
           mode.setPointSize(4f, false); //make sure to use false or lest we fall into event loop
@@ -1640,6 +1646,9 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
      float[] startPts = new float[3];
      float[]  stopPts = new float[3];
+     
+     int[] startCell;
+     float[] cellWeights;
 
      byte[] startColor;
      byte[] stopColor;
@@ -1673,7 +1682,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
      float[] uVecPath = new float[] {Float.NaN, Float.NaN, Float.NaN};
 
-     public Trajectory(float startX, float startY, float startZ, byte[] startColor) {
+     public Trajectory(float startX, float startY, float startZ, int[] startCell, float[] cellWeights, byte[] startColor) {
         this.startX = startX;
         this.startY = startY;
         this.startZ = startZ;
@@ -1681,6 +1690,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         startPts[0] = startX;
         startPts[1] = startY;
         startPts[2] = startZ;
+        this.startCell = startCell;
+        this.cellWeights = cellWeights;
 
         clrDim = startColor.length;
         stopColor = new byte[clrDim];
@@ -1688,9 +1699,21 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         this.startColor = startColor;
      }
 
-     public static void makeTrajectories(double time, ArrayList<Trajectory> trajectories, float[][] startPts, byte[][] color_values) {
+     public static void makeTrajectories(double time, ArrayList<Trajectory> trajectories, float[][] startPts, byte[][] color_values, GriddedSet spatial_set) throws VisADException  {
         int num = startPts[0].length;
         int clrDim = color_values.length;
+        
+        // determine grid relative positions of start points
+        int manifoldDimension = spatial_set.getManifoldDimension();
+        int[][] indices = new int[num][];
+        float[][] weights = new float[num][];
+        
+        if (manifoldDimension == 2) {
+          spatial_set.valueToInterp(new float[][] {startPts[0], startPts[1]}, indices, weights);
+        }
+        else if (manifoldDimension == 3) {
+          spatial_set.valueToInterp(new float[][] {startPts[0], startPts[1], startPts[2]}, indices, weights);
+        }
 
         for (int k=0; k<num; k++) {
            // initialize a new trajectory
@@ -1705,8 +1728,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
            if (clrDim == 4) {
               startColor[3] = color_values[3][k];
            }
-
-           Trajectory traj = new Trajectory(startX, startY, startZ, startColor);
+           
+           Trajectory traj = new Trajectory(startX, startY, startZ, indices[k], weights[k], startColor);
            traj.initialTime = time;
            trajectories.add(traj);
         }
@@ -1800,9 +1823,11 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
                 startColor[3] = color_values[3][k];
               }
 
+              /*
               Trajectory traj = new Trajectory(startX, startY, startZ, startColor);
               traj.initialTime = time;
               trajectories.add(traj);
+              */
             }
 
           }
@@ -1855,6 +1880,13 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         colors = new byte[clrDim*maxNumVerts];
         java.util.Arrays.fill(coordinates, Float.NaN);
      }
+     
+     public static void reset(ArrayList<Trajectory> trajectories, int numIntrpPts, int clrDim) {
+        for (int k=0; k<trajectories.size(); k++) {
+            Trajectory traj = trajectories.get(k);
+             //traj.reset();
+        }
+     }
 
      public static VisADLineArray makeGeometry() {
        VisADLineArray array = new VisADLineArray();
@@ -1868,16 +1900,36 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
        return array;
      }
+     
+     public static VisADGeometryArray makeGeometry(ArrayList<Trajectory> trajectories) {
+         return null;
+     }
 
-     public static VisADGeometryArray makeTracerGeometry(ArrayList<Trajectory> trajectories, int direction, float trcrSize) {
+     public static VisADGeometryArray makeTracerGeometry(ArrayList<Trajectory> trajectories, int direction, float trcrSize, double[] scale, boolean fill) {
        int numTrajs = trajectories.size();
        VisADGeometryArray array = null;
+       float[] coords = null;
+       byte[] colors = null;
+       float[] normals = null;
+       int numPts;
+       int numVerts;
 
-       // make simple arrow -----------------------
-       array = new VisADLineArray();
-       int numPts = 4*numTrajs;
-       float[] coords =  new float[3*numPts];
-       byte[] colors = new byte[3*numPts];
+       if (!fill) { // make simple arrow ---------
+         numPts = 2*4;
+         numVerts = numPts*numTrajs;
+         coords =  new float[3*numVerts];
+         colors = new byte[3*numVerts];
+         array = new VisADLineArray();
+       }
+       else { // filled arrow head -------------
+         numPts = 2*6;
+         numVerts = numPts*numTrajs;
+         coords = new float[3*numVerts];
+         colors = new byte[3*numVerts];
+         //normals = new float[3*numVerts];
+         array = new VisADTriangleArray();
+       }    
+       
 
        double barblen = trcrSize*0.034;
 
@@ -1908,6 +1960,19 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
          norm_x_trj[0] /= mag;
          norm_x_trj[1] /= mag;
          norm_x_trj[2] /= mag;
+         
+         float[] norm_x_trj_x_trj = new float[] {
+                    norm_x_trj[1] * trj_u[2] - norm_x_trj[2] * trj_u[1],
+                  -(norm_x_trj[0] * trj_u[2] - norm_x_trj[2] * trj_u[0]),
+                    norm_x_trj[0] * trj_u[1] - norm_x_trj[1] * trj_u[0] };
+       
+         mag = (float) Math.sqrt(norm_x_trj_x_trj[0] * norm_x_trj_x_trj[0] +
+                                       norm_x_trj_x_trj[1] * norm_x_trj_x_trj[1] +
+		                       norm_x_trj_x_trj[2] * norm_x_trj_x_trj[2]);
+         
+         norm_x_trj_x_trj[0] /= mag;
+         norm_x_trj_x_trj[1] /= mag;
+         norm_x_trj_x_trj[2] /= mag;
         
          float[] ptOnPath = new float[3];
          
@@ -1922,6 +1987,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
          
          float[] barbPtA = new float[3];
          float[] barbPtB = new float[3];
+         float[] barbPtC = new float[3];
+         float[] barbPtD = new float[3];
          len = (float) (barblen*Math.sin(Data.DEGREES_TO_RADIANS*22.0));
          
          barbPtA[0] = len*norm_x_trj[0];
@@ -1940,13 +2007,35 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
          barbPtB[1] += ptOnPath[1];
          barbPtB[2] += ptOnPath[2];
          
+         len *= scale[0]/scale[2]; // simple adjust for anistropic display scale
+         
+         barbPtC[0] = len*norm_x_trj_x_trj[0];
+         barbPtC[1] = len*norm_x_trj_x_trj[1];
+         barbPtC[2] = len*norm_x_trj_x_trj[2];
+         
+         barbPtD[0] = -len*norm_x_trj_x_trj[0];
+         barbPtD[1] = -len*norm_x_trj_x_trj[1];
+         barbPtD[2] = -len*norm_x_trj_x_trj[2];
+         
+         barbPtC[0] += ptOnPath[0];
+         barbPtC[1] += ptOnPath[1]; 
+         barbPtC[2] += ptOnPath[2]; 
+         
+         barbPtD[0] += ptOnPath[0];
+         barbPtD[1] += ptOnPath[1];
+         barbPtD[2] += ptOnPath[2];
          	  
-         int t = k*12;
-         int c = k*12;
+
+         int t = k*3*numPts;
+         int c = k*3*numPts;
          
          coords[t] = traj.startPts[0];
          coords[t+=1] = traj.startPts[1];
          coords[t+=1] = traj.startPts[2];
+         
+         colors[c] = traj.startColor[0];
+         colors[c+=1] = traj.startColor[1];
+         colors[c+=1] = traj.startColor[2];
          	     
          coords[t+=1] = barbPtA[0];
          coords[t+=1] = barbPtA[1];
@@ -1960,33 +2049,104 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
          coords[t+=1] = barbPtB[1];
          coords[t+=1] = barbPtB[2];
          
-         colors[c] = traj.startColor[0];
+         colors[c+=1] = traj.startColor[0];
          colors[c+=1] = traj.startColor[1];
          colors[c+=1] = traj.startColor[2];
+         
+         if (fill) {
+           coords[t+=1] = ptOnPath[0];
+           coords[t+=1] = ptOnPath[1];
+           coords[t+=1] = ptOnPath[2];
+           
+           colors[c+=1] = traj.startColor[0];
+           colors[c+=1] = traj.startColor[1];
+           colors[c+=1] = traj.startColor[2];
+         }
+         
+         coords[t+=1] = traj.startPts[0];
+         coords[t+=1] = traj.startPts[1];
+         coords[t+=1] = traj.startPts[2];
+         
+         colors[c+=1] = traj.startColor[0];
+         colors[c+=1] = traj.startColor[1];
+         colors[c+=1] = traj.startColor[2];
+         
+         coords[t+=1] = barbPtB[0];
+         coords[t+=1] = barbPtB[1];
+         coords[t+=1] = barbPtB[2];
+         
+         colors[c+=1] = traj.startColor[0];
+         colors[c+=1] = traj.startColor[1];
+         colors[c+=1] = traj.startColor[2];
+         
+         if (fill) {
+           coords[t+=1] = ptOnPath[0];
+           coords[t+=1] = ptOnPath[1];
+           coords[t+=1] = ptOnPath[2];
+           
+           colors[c+=1] = traj.startColor[0];
+           colors[c+=1] = traj.startColor[1];
+           colors[c+=1] = traj.startColor[2];
+         }
+         
+         coords[t+=1] = traj.startPts[0];
+         coords[t+=1] = traj.startPts[1];
+         coords[t+=1] = traj.startPts[2];
+         
+         colors[c+=1] = traj.startColor[0];
+         colors[c+=1] = traj.startColor[1];
+         colors[c+=1] = traj.startColor[2];
+         	     
+         coords[t+=1] = barbPtC[0];
+         coords[t+=1] = barbPtC[1];
+         coords[t+=1] = barbPtC[2];
          
          colors[c+=1] = traj.startColor[0];
          colors[c+=1] = traj.startColor[1];
          colors[c+=1] = traj.startColor[2];
 
-         colors[c+=1] = traj.startColor[0];
-         colors[c+=1] = traj.startColor[1];
-         colors[c+=1] = traj.startColor[2];
+         
+         if (fill) {
+           coords[t+=1] = ptOnPath[0];
+           coords[t+=1] = ptOnPath[1];
+           coords[t+=1] = ptOnPath[2];
+           
+           colors[c+=1] = traj.startColor[0];
+           colors[c+=1] = traj.startColor[1];
+           colors[c+=1] = traj.startColor[2];
+         }
+         
+         coords[t+=1] = traj.startPts[0];
+         coords[t+=1] = traj.startPts[1];
+         coords[t+=1] = traj.startPts[2];
          
          colors[c+=1] = traj.startColor[0];
          colors[c+=1] = traj.startColor[1];
          colors[c+=1] = traj.startColor[2];
+         
+         coords[t+=1] = barbPtD[0];
+         coords[t+=1] = barbPtD[1];
+         coords[t+=1] = barbPtD[2];
+         
+         colors[c+=1] = traj.startColor[0];
+         colors[c+=1] = traj.startColor[1];
+         colors[c+=1] = traj.startColor[2];
+         
+         if (fill) {
+           coords[t+=1] = ptOnPath[0];
+           coords[t+=1] = ptOnPath[1];
+           coords[t+=1] = ptOnPath[2];
+           
+           colors[c+=1] = traj.startColor[0];
+           colors[c+=1] = traj.startColor[1];
+           colors[c+=1] = traj.startColor[2];
+         }
+         
        }
 
-       array.vertexCount = numPts;
+       array.vertexCount = numVerts;
        array.coordinates = coords;
        array.colors = colors;
-
-       for (int k=0; k<trajectories.size(); k++) {
-         Trajectory traj = trajectories.get(k);
-         traj.startX = traj.startPts[0];
-         traj.startY = traj.startPts[1];
-         traj.startZ = traj.startPts[2];
-       }
 
        return array;
      }
@@ -1999,37 +2159,17 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         int[][] indices = new int[1][];
         float[][] weights = new float[1][];
         float[] intrpFlow = new float[3];
-
-        int manifoldDimension = spatial_set.getManifoldDimension();
-
-        if (manifoldDimension == 2) {
-          startPts2D[0][0] = startPts[0];
-          startPts2D[1][0] = startPts[1];
-          spatial_set.valueToInterp(startPts2D, indices, weights);
-        }
-        else if (manifoldDimension == 3) {
-          startPts3D[0][0] = startPts[0];
-          startPts3D[1][0] = startPts[1];
-          startPts3D[2][0] = startPts[2];
-          spatial_set.valueToInterp(startPts3D, indices, weights);
-        }
-
-
         int clrDim = color_values.length;
         float[] intrpClr = new float[clrDim];
 
-        intrpFlow[0] = 0f;
-        intrpFlow[1] = 0f;
-        intrpFlow[2] = 0f;
+        int manifoldDimension = spatial_set.getManifoldDimension();
 
-        intrpClr[0] = 0f;
-        intrpClr[1] = 0f;
-        intrpClr[2] = 0f;
-        if (clrDim == 4) {
-          intrpClr[3] = 0f;
-        }
+        indices[0] = startCell;
+        weights[0] = cellWeights;
 
         if (indices[0] != null) {
+           java.util.Arrays.fill(intrpFlow, 0f);
+           java.util.Arrays.fill(intrpClr, 0);
            for (int j=0; j<indices[0].length; j++) {
               int idx = indices[0][j];
               intrpFlow[0] += weights[0][j]*(direction)*flow_values[0][idx];
@@ -2058,7 +2198,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
              stopColor[3] = (byte) intrpClr[3];
            }
 
-           //addPair(startPts, stopPts, startColor, stopColor); // Just use first color for now.
+           // interpolated color not working yet. Use constant color from the start
            addPair(startPts, stopPts, startColor, startColor);
 
            uVecPath[0] = stopPts[0] - startPts[0];
@@ -2074,21 +2214,26 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
            startPts[1] = stopPts[1];
            startPts[2] = stopPts[2];
           
-           /* problem with colors.  Just use first color for now
-           startColor[0] = stopColor[0];
-           startColor[1] = stopColor[1];
-           startColor[2] = stopColor[2];
-           if (clrDim == 4) {
-             startColor[3] = stopColor[3];
+
+           if (manifoldDimension == 2) {
+              startPts2D[0][0] = startPts[0];
+              startPts2D[1][0] = startPts[1];
+              spatial_set.valueToInterp(startPts2D, indices, weights);
            }
-           */
+           else if (manifoldDimension == 3) {
+              startPts3D[0][0] = startPts[0];
+              startPts3D[1][0] = startPts[1];
+              startPts3D[2][0] = startPts[2];
+              spatial_set.valueToInterp(startPts3D, indices, weights);
+           }
+           
+           startCell = indices[0];
+           cellWeights = weights[0];
+           if (indices[0] == null) {
+              offGrid = true;
+           }
         }
-        else {
-           intrpFlow[0] = Float.NaN;
-           intrpFlow[1] = Float.NaN;
-           intrpFlow[2] = Float.NaN;
-           offGrid = true;
-        }
+
      }
 
      private void addPair(float[] startPt, float[] stopPt, byte[] startColor, byte[] stopColor) {
@@ -2195,6 +2340,23 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
        */
 
        return new float[][] {valsX, valsY, values[2]};
+     }
+     
+     public static void updateInterpolators(ArrayList<Trajectory>trajectories, int numSpatialPts, Interpolation uInterp, Interpolation vInterp, Interpolation wInterp) {
+         boolean[] needed = new boolean[numSpatialPts];
+         java.util.Arrays.fill(needed, false);
+         for (int k=0; k<trajectories.size(); k++) {
+             Trajectory traj = trajectories.get(k);
+             if (!traj.offGrid) {
+                int[] cell = traj.startCell;
+                for (int t=0; t<cell.length; t++) {
+                   needed[cell[t]] = true;
+                }
+             }
+         }
+         uInterp.update(needed);
+         vInterp.update(needed);
+         //wInterp.update(needed);
      }
   }
 
