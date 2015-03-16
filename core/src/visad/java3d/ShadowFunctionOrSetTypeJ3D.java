@@ -70,6 +70,7 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
   float[][] startPts = null;
   boolean trajDoIntrp = true;
   float trcrSize = 1f;
+  double[] dspScale = new double[3];
 
   List<BranchGroup> branches = null;
   Switch swit = null;
@@ -159,7 +160,10 @@ public class ShadowFunctionOrSetTypeJ3D extends ShadowTypeJ3D {
         // animation domain
         timeMap = (ScalarMap) scalarMaps.elementAt(ani_map_idx);
       }
-
+      
+      double[] mat = renderer.getDisplay().getProjectionControl().getMatrix();
+      MouseBehaviorJ3D.unmake_matrix(new double[3], dspScale, new double[3], mat);
+      
       // check for trajectory
       for (int kk=0; kk<scalarMaps.size(); kk++) {
         ScalarMap scalarMap = (ScalarMap) scalarMaps.elementAt(kk);
@@ -1608,7 +1612,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           final BranchGroup branch = (BranchGroup) branches.get(i);
           final BranchGroup node = (BranchGroup) swit.getChild(i);
 
-          trcrArray = Trajectory.makeTracerGeometry(trajectories, direction, trcrSize);
+          trcrArray = Trajectory.makeTracerGeometry(trajectories, direction, trcrSize, dspScale, true);
           
           GraphicsModeControl mode = (GraphicsModeControl) info.mode.clone();
           mode.setPointSize(4f, false); //make sure to use false or lest we fall into event loop
@@ -1876,6 +1880,13 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         colors = new byte[clrDim*maxNumVerts];
         java.util.Arrays.fill(coordinates, Float.NaN);
      }
+     
+     public static void reset(ArrayList<Trajectory> trajectories, int numIntrpPts, int clrDim) {
+        for (int k=0; k<trajectories.size(); k++) {
+            Trajectory traj = trajectories.get(k);
+             //traj.reset();
+        }
+     }
 
      public static VisADLineArray makeGeometry() {
        VisADLineArray array = new VisADLineArray();
@@ -1889,22 +1900,36 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
 
        return array;
      }
+     
+     public static VisADGeometryArray makeGeometry(ArrayList<Trajectory> trajectories) {
+         return null;
+     }
 
-     public static VisADGeometryArray makeTracerGeometry(ArrayList<Trajectory> trajectories, int direction, float trcrSize) {
+     public static VisADGeometryArray makeTracerGeometry(ArrayList<Trajectory> trajectories, int direction, float trcrSize, double[] scale, boolean fill) {
        int numTrajs = trajectories.size();
        VisADGeometryArray array = null;
+       float[] coords = null;
+       byte[] colors = null;
+       float[] normals = null;
+       int numPts;
+       int numVerts;
 
-       // make simple arrow -----------------------
-       array = new VisADLineArray();
-       int numPts = 4*numTrajs;
-       float[] coords =  new float[3*numPts];
-       byte[] colors = new byte[3*numPts];
-       boolean fill = false;
-       // filled arrow head
-//       array = new VisADTriangleArray();
-//       int numPts = numTrajs*2*3;
-//       float[] coords = new float[3*numPts];
-//       byte[] colors = new byte[3*numPts];
+       if (!fill) { // make simple arrow ---------
+         numPts = 2*4;
+         numVerts = numPts*numTrajs;
+         coords =  new float[3*numVerts];
+         colors = new byte[3*numVerts];
+         array = new VisADLineArray();
+       }
+       else { // filled arrow head -------------
+         numPts = 2*6;
+         numVerts = numPts*numTrajs;
+         coords = new float[3*numVerts];
+         colors = new byte[3*numVerts];
+         //normals = new float[3*numVerts];
+         array = new VisADTriangleArray();
+       }    
+       
 
        double barblen = trcrSize*0.034;
 
@@ -1935,6 +1960,19 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
          norm_x_trj[0] /= mag;
          norm_x_trj[1] /= mag;
          norm_x_trj[2] /= mag;
+         
+         float[] norm_x_trj_x_trj = new float[] {
+                    norm_x_trj[1] * trj_u[2] - norm_x_trj[2] * trj_u[1],
+                  -(norm_x_trj[0] * trj_u[2] - norm_x_trj[2] * trj_u[0]),
+                    norm_x_trj[0] * trj_u[1] - norm_x_trj[1] * trj_u[0] };
+       
+         mag = (float) Math.sqrt(norm_x_trj_x_trj[0] * norm_x_trj_x_trj[0] +
+                                       norm_x_trj_x_trj[1] * norm_x_trj_x_trj[1] +
+		                       norm_x_trj_x_trj[2] * norm_x_trj_x_trj[2]);
+         
+         norm_x_trj_x_trj[0] /= mag;
+         norm_x_trj_x_trj[1] /= mag;
+         norm_x_trj_x_trj[2] /= mag;
         
          float[] ptOnPath = new float[3];
          
@@ -1949,6 +1987,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
          
          float[] barbPtA = new float[3];
          float[] barbPtB = new float[3];
+         float[] barbPtC = new float[3];
+         float[] barbPtD = new float[3];
          len = (float) (barblen*Math.sin(Data.DEGREES_TO_RADIANS*22.0));
          
          barbPtA[0] = len*norm_x_trj[0];
@@ -1967,52 +2007,136 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
          barbPtB[1] += ptOnPath[1];
          barbPtB[2] += ptOnPath[2];
          
+         len *= scale[0]/scale[2]; // simple adjust for anistropic display scale
+         
+         barbPtC[0] = len*norm_x_trj_x_trj[0];
+         barbPtC[1] = len*norm_x_trj_x_trj[1];
+         barbPtC[2] = len*norm_x_trj_x_trj[2];
+         
+         barbPtD[0] = -len*norm_x_trj_x_trj[0];
+         barbPtD[1] = -len*norm_x_trj_x_trj[1];
+         barbPtD[2] = -len*norm_x_trj_x_trj[2];
+         
+         barbPtC[0] += ptOnPath[0];
+         barbPtC[1] += ptOnPath[1]; 
+         barbPtC[2] += ptOnPath[2]; 
+         
+         barbPtD[0] += ptOnPath[0];
+         barbPtD[1] += ptOnPath[1];
+         barbPtD[2] += ptOnPath[2];
          	  
-         int t = k*12;
-         int c = k*12;
+         int t = k*3*numPts;
+         int c = k*3*numPts;
+         
          coords[t] = traj.startPts[0];
          coords[t+=1] = traj.startPts[1];
          coords[t+=1] = traj.startPts[2];
+         
+         colors[c] = traj.startColor[0];
+         colors[c+=1] = traj.startColor[1];
+         colors[c+=1] = traj.startColor[2];
          	     
          coords[t+=1] = barbPtA[0];
          coords[t+=1] = barbPtA[1];
          coords[t+=1] = barbPtA[2];
          
+         colors[c+=1] = traj.startColor[0];
+         colors[c+=1] = traj.startColor[1];
+         colors[c+=1] = traj.startColor[2];
+         
+         if (fill) {
+           coords[t+=1] = ptOnPath[0];
+           coords[t+=1] = ptOnPath[1];
+           coords[t+=1] = ptOnPath[2];
+           
+           colors[c+=1] = traj.startColor[0];
+           colors[c+=1] = traj.startColor[1];
+           colors[c+=1] = traj.startColor[2];
+         }
+         
          coords[t+=1] = traj.startPts[0];
          coords[t+=1] = traj.startPts[1];
          coords[t+=1] = traj.startPts[2];
+         
+         colors[c+=1] = traj.startColor[0];
+         colors[c+=1] = traj.startColor[1];
+         colors[c+=1] = traj.startColor[2];
          
          coords[t+=1] = barbPtB[0];
          coords[t+=1] = barbPtB[1];
          coords[t+=1] = barbPtB[2];
          
-         colors[c] = traj.startColor[0];
-         colors[c+=1] = traj.startColor[1];
-         colors[c+=1] = traj.startColor[2];
-         
-         colors[c+=1] = traj.startColor[0];
-         colors[c+=1] = traj.startColor[1];
-         colors[c+=1] = traj.startColor[2];
-
          colors[c+=1] = traj.startColor[0];
          colors[c+=1] = traj.startColor[1];
          colors[c+=1] = traj.startColor[2];
          
+         if (fill) {
+           coords[t+=1] = ptOnPath[0];
+           coords[t+=1] = ptOnPath[1];
+           coords[t+=1] = ptOnPath[2];
+           
+           colors[c+=1] = traj.startColor[0];
+           colors[c+=1] = traj.startColor[1];
+           colors[c+=1] = traj.startColor[2];
+         }
+         
+         coords[t+=1] = traj.startPts[0];
+         coords[t+=1] = traj.startPts[1];
+         coords[t+=1] = traj.startPts[2];
+         
          colors[c+=1] = traj.startColor[0];
          colors[c+=1] = traj.startColor[1];
          colors[c+=1] = traj.startColor[2];
+         	     
+         coords[t+=1] = barbPtC[0];
+         coords[t+=1] = barbPtC[1];
+         coords[t+=1] = barbPtC[2];
+         
+         colors[c+=1] = traj.startColor[0];
+         colors[c+=1] = traj.startColor[1];
+         colors[c+=1] = traj.startColor[2];
+         
+         if (fill) {
+           coords[t+=1] = ptOnPath[0];
+           coords[t+=1] = ptOnPath[1];
+           coords[t+=1] = ptOnPath[2];
+           
+           colors[c+=1] = traj.startColor[0];
+           colors[c+=1] = traj.startColor[1];
+           colors[c+=1] = traj.startColor[2];
+         }
+         
+         coords[t+=1] = traj.startPts[0];
+         coords[t+=1] = traj.startPts[1];
+         coords[t+=1] = traj.startPts[2];
+         
+         colors[c+=1] = traj.startColor[0];
+         colors[c+=1] = traj.startColor[1];
+         colors[c+=1] = traj.startColor[2];
+         
+         coords[t+=1] = barbPtD[0];
+         coords[t+=1] = barbPtD[1];
+         coords[t+=1] = barbPtD[2];
+         
+         colors[c+=1] = traj.startColor[0];
+         colors[c+=1] = traj.startColor[1];
+         colors[c+=1] = traj.startColor[2];
+         
+         if (fill) {
+           coords[t+=1] = ptOnPath[0];
+           coords[t+=1] = ptOnPath[1];
+           coords[t+=1] = ptOnPath[2];
+           
+           colors[c+=1] = traj.startColor[0];
+           colors[c+=1] = traj.startColor[1];
+           colors[c+=1] = traj.startColor[2];
+         }
+         
        }
 
-       array.vertexCount = numPts;
+       array.vertexCount = numVerts;
        array.coordinates = coords;
        array.colors = colors;
-
-       for (int k=0; k<trajectories.size(); k++) {
-         Trajectory traj = trajectories.get(k);
-         traj.startX = traj.startPts[0];
-         traj.startY = traj.startPts[1];
-         traj.startZ = traj.startPts[2];
-       }
 
        return array;
      }
