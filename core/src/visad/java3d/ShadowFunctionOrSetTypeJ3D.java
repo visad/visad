@@ -2025,7 +2025,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
          barbPtD[1] += ptOnPath[1];
          barbPtD[2] += ptOnPath[2];
          	  
-
          int t = k*3*numPts;
          int c = k*3*numPts;
          
@@ -2040,14 +2039,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
          coords[t+=1] = barbPtA[0];
          coords[t+=1] = barbPtA[1];
          coords[t+=1] = barbPtA[2];
-         
-         coords[t+=1] = traj.startPts[0];
-         coords[t+=1] = traj.startPts[1];
-         coords[t+=1] = traj.startPts[2];
-         
-         coords[t+=1] = barbPtB[0];
-         coords[t+=1] = barbPtB[1];
-         coords[t+=1] = barbPtB[2];
          
          colors[c+=1] = traj.startColor[0];
          colors[c+=1] = traj.startColor[1];
@@ -2104,7 +2095,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
          colors[c+=1] = traj.startColor[0];
          colors[c+=1] = traj.startColor[1];
          colors[c+=1] = traj.startColor[2];
-
          
          if (fill) {
            coords[t+=1] = ptOnPath[0];
