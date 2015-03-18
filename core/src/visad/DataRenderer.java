@@ -70,6 +70,9 @@ public abstract class DataRenderer extends Object implements Cloneable {
 
   /** flag for visibility of Data depictions */
   protected boolean enabled = true;
+  
+  /** place to hold ProjectionControl Listeners created by this renderer */
+  private ArrayList<ControlListener> projCntrlListeners = new ArrayList<ControlListener>();
 
 
   /**
@@ -177,6 +180,17 @@ public abstract class DataRenderer extends Object implements Cloneable {
    */
   public boolean getEnabled() {
     return enabled;
+  }
+  
+  /**
+   * Returns the list of ProjectionControl listeners created by this.
+   * Provides a way to remove listeners from the Control that may only
+   * be needed per doTransform.
+   * 
+   * @return
+   */
+  public ArrayList<ControlListener> getProjectionControlListeners() {
+      return projCntrlListeners;
   }
 
   /**
@@ -460,6 +474,7 @@ if (map.badRange()) {
     displayRenderer = null;
     Links = null;
     exceptionVector.removeAllElements();
+    projCntrlListeners.clear();
 
 // clear flow rendering and direct manipulation variables
     shadow_data_out = null;
