@@ -1473,6 +1473,18 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         double timeAccum = 0;
         
         VisADGeometryArray trcrArray = null;
+        ArrayList<VisADGeometryArray> trcrArrays = null;
+        ArrayList<float[]> achrArrays = null;
+        
+        RendererJ3D renderer = (RendererJ3D) getLink().getRenderer();
+        ProjectionControl pCntrl = renderer.getDisplay().getProjectionControl();
+        FixedSizeListener listener = new FixedSizeListener(pCntrl);
+        
+        Iterator<ControlListener> iter = renderer.getProjectionControlListeners().iterator();
+        while (iter.hasNext()) {
+            pCntrl.removeControlListener(iter.next());
+        }
+        pCntrl.addControlListener(listener);
 
         for (int k=0; k<dataDomainLength-1; k++) {
           int i = (direction < 0) ? ((dataDomainLength-1) - k) : k;
@@ -1612,12 +1624,24 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
           final BranchGroup branch = (BranchGroup) branches.get(i);
           final BranchGroup node = (BranchGroup) swit.getChild(i);
 
-          trcrArray = Trajectory.makeTracerGeometry(trajectories, direction, trcrSize, dspScale, true);
+          trcrArrays = new ArrayList<VisADGeometryArray>();
+          achrArrays = new ArrayList<float[]>();
+          trcrArray = Trajectory.makeTracerGeometry(trajectories, trcrArrays, achrArrays, direction, trcrSize, dspScale, true);
           
           GraphicsModeControl mode = (GraphicsModeControl) info.mode.clone();
           mode.setPointSize(4f, false); //make sure to use false or lest we fall into event loop
+          
           BranchGroup branchB = (BranchGroup) makeBranch();
-          addToGroup(branchB, trcrArray, mode, info.constant_alpha, info.constant_color);
+          for (int t=0; t<trcrArrays.size(); t++) {
+             TransformGroup tGroup = new TransformGroup();
+             tGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+             tGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+             tGroup.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
+             listener.add(new FixedSizeTransform(tGroup, pCntrl, achrArrays.get(t)));
+             
+             addToGroup(tGroup, trcrArrays.get(t), mode, info.constant_alpha, info.constant_color);
+             branchB.addChild(tGroup);
+          }
           ((BranchGroup)switB.getChild(i)).addChild(branchB);
 
           addToGroup(branch, array, info.mode, info.constant_alpha, info.constant_color);
@@ -1627,13 +1651,20 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
         
         if (switListen.whichVisible.length > 1) { //keep last tracer visible at the end if num visibility nodes > 1
             int idx = dataDomainLength-1;
-            final BranchGroup branch = (BranchGroup) branches.get(idx);
-            final BranchGroup node = (BranchGroup) swit.getChild(idx);
             FlowInfo finfo = flowInfoList.get(idx);
             GraphicsModeControl mode = (GraphicsModeControl) finfo.mode.clone();
-            mode.setPointSize(4f, false); //make sure to use false or lest we fall into event loop
+            
             BranchGroup branchB = (BranchGroup) makeBranch();
-            addToGroup(branchB, trcrArray, mode, finfo.constant_alpha, finfo.constant_color);
+            for (int t=0; t<trcrArrays.size(); t++) {
+              TransformGroup tGroup = new TransformGroup();
+              tGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+              tGroup.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+              tGroup.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
+              listener.FSTarray.add(new FixedSizeTransform(tGroup, pCntrl, achrArrays.get(t)));
+             
+              addToGroup(tGroup, trcrArrays.get(t), mode, info.constant_alpha, info.constant_color);
+              branchB.addChild(tGroup);
+            }
             ((BranchGroup)switB.getChild(idx)).addChild(branchB);
         }
      }
@@ -1905,7 +1936,8 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
          return null;
      }
 
-     public static VisADGeometryArray makeTracerGeometry(ArrayList<Trajectory> trajectories, int direction, float trcrSize, double[] scale, boolean fill) {
+     public static VisADGeometryArray makeTracerGeometry(ArrayList<Trajectory> trajectories, 
+             ArrayList<VisADGeometryArray> arrays, ArrayList<float[]> anchors, int direction, float trcrSize, double[] scale, boolean fill) {
        int numTrajs = trajectories.size();
        VisADGeometryArray array = null;
        float[] coords = null;
@@ -1914,6 +1946,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
        int numPts;
        int numVerts;
 
+       /*
        if (!fill) { // make simple arrow ---------
          numPts = 2*4;
          numVerts = numPts*numTrajs;
@@ -1929,14 +1962,40 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
          //normals = new float[3*numVerts];
          array = new VisADTriangleArray();
        }    
+       */
        
 
-       double barblen = trcrSize*0.034;
+       double barblen = (0.7/scale[0])*trcrSize*0.034;
 
        float[] norm = new float[] {0, 0, 1f};
        float[] trj_u = new float[3];
 
        for (int k=0; k<numTrajs; k++) {
+           
+         if (!fill) { // make simple arrow ---------
+           numPts = 2*4;
+           numVerts = numPts*1;
+           coords =  new float[3*numVerts];
+           colors = new byte[3*numVerts];
+           array = new VisADLineArray();
+         }
+         else { // filled arrow head -------------
+           numPts = 2*6;
+           numVerts = numPts*1;
+           coords = new float[3*numVerts];
+           colors = new byte[3*numVerts];
+           //normals = new float[3*numVerts];
+           array = new VisADTriangleArray();
+         }              
+           
+           
+           
+           
+           
+           
+           
+           
+           
          Trajectory traj = trajectories.get(k);
          trj_u[0] = traj.uVecPath[0];
          trj_u[1] = traj.uVecPath[1];
@@ -2025,8 +2084,10 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
          barbPtD[1] += ptOnPath[1];
          barbPtD[2] += ptOnPath[2];
          	  
-         int t = k*3*numPts;
-         int c = k*3*numPts;
+         //int t = k*3*numPts;
+         //int c = k*3*numPts;
+         int t = 0;
+         int c = 0;
          
          coords[t] = traj.startPts[0];
          coords[t+=1] = traj.startPts[1];
@@ -2132,11 +2193,13 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
            colors[c+=1] = traj.startColor[2];
          }
          
+         array.vertexCount = numVerts;
+         array.coordinates = coords;
+         array.colors = colors;   
+         arrays.add(array);
+         float[] anchrPts = new float[] {traj.startPts[0], traj.startPts[1], traj.startPts[2]};
+         anchors.add(anchrPts);
        }
-
-       array.vertexCount = numVerts;
-       array.coordinates = coords;
-       array.colors = colors;
 
        return array;
      }
