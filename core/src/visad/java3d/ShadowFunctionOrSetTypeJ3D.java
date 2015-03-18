@@ -1946,25 +1946,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
        int numPts;
        int numVerts;
 
-       /*
-       if (!fill) { // make simple arrow ---------
-         numPts = 2*4;
-         numVerts = numPts*numTrajs;
-         coords =  new float[3*numVerts];
-         colors = new byte[3*numVerts];
-         array = new VisADLineArray();
-       }
-       else { // filled arrow head -------------
-         numPts = 2*6;
-         numVerts = numPts*numTrajs;
-         coords = new float[3*numVerts];
-         colors = new byte[3*numVerts];
-         //normals = new float[3*numVerts];
-         array = new VisADTriangleArray();
-       }    
-       */
-       
-
        double barblen = (0.7/scale[0])*trcrSize*0.034;
 
        float[] norm = new float[] {0, 0, 1f};
@@ -1987,14 +1968,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
            //normals = new float[3*numVerts];
            array = new VisADTriangleArray();
          }              
-           
-           
-           
-           
-           
-           
-           
-           
+
            
          Trajectory traj = trajectories.get(k);
          trj_u[0] = traj.uVecPath[0];
