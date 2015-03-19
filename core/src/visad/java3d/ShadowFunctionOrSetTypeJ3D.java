@@ -39,6 +39,7 @@ import java.util.Vector;
 import java.rmi.*;
 
 import java.awt.image.*;
+import java.util.Arrays;
 
 
 /**
@@ -1570,13 +1571,13 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
                 // update interpolator 
                 uInterp.next(x0, x1, x2, values0[0], values1[0], values2[0]);
                 vInterp.next(x0, x1, x2, values0[1], values1[1], values2[1]);
-                //wInterp.next(x0, x1, x2, values0[2], values1[2], values2[2]);
+                wInterp.next(x0, x1, x2, values0[2], values1[2], values2[2]);
             }
             
             if (k == dataDomainLength-3) { // make sure we smoothly handle the last three time steps
                 uInterp.next(x0, x1, x2, values0[0], values1[0], values2[0]);
                 vInterp.next(x0, x1, x2, values0[1], values1[1], values2[1]);
-                //wInterp.next(x0, x1, x2, values0[2], values1[2], values2[2]);
+                wInterp.next(x0, x1, x2, values0[2], values1[2], values2[2]);
             }
           }
           else {
@@ -1587,7 +1588,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             if (k == dataDomainLength-3) { // make sure we smootly handle the last three time steps
                 uInterp.next(x0, x1, x2, values0[0], values1[0], values2[0]);
                 vInterp.next(x0, x1, x2, values0[1], values1[1], values2[1]);
-                //wInterp.next(x0, x1, x2, values0[2], values1[2], values2[2]);
+                wInterp.next(x0, x1, x2, values0[2], values1[2], values2[2]);
             }
           }
 
@@ -1602,7 +1603,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
             
             uInterp.interpolate(xt, intrpU);
             vInterp.interpolate(xt, intrpV);
-            //wInterp.interpolate(xt, intrpW);
+            wInterp.interpolate(xt, intrpW);
             float[][] flow_values = Trajectory.adjustFlow(info, new float[][] {intrpU, intrpV, intrpW}, timeStep);
 
             for (int t=0; t<numTrajectories; t++) {
@@ -2058,8 +2059,6 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
          barbPtD[1] += ptOnPath[1];
          barbPtD[2] += ptOnPath[2];
          	  
-         //int t = k*3*numPts;
-         //int c = k*3*numPts;
          int t = 0;
          int c = 0;
          
@@ -2383,7 +2382,7 @@ System.out.println("Texture.BASE_LEVEL_LINEAR = " + Texture.BASE_LEVEL_LINEAR); 
          }
          uInterp.update(needed);
          vInterp.update(needed);
-         //wInterp.update(needed);
+         wInterp.update(needed);
      }
   }
 
