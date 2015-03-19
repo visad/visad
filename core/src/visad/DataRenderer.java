@@ -470,6 +470,15 @@ if (map.badRange()) {
    */
   public void clearScene() {
 // test for display == null in methods
+      
+    // remove any ProjectionControl listeners this renderer may have added
+    // to the display.
+    ProjectionControl pCntrl = display.getProjectionControl();
+    Iterator<ControlListener> iter = projCntrlListeners.iterator();
+    while (iter.hasNext()) {
+      pCntrl.removeControlListener(iter.next());
+    }
+    
     display = null;
     displayRenderer = null;
     Links = null;
