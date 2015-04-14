@@ -2816,7 +2816,9 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
 
         if (dreal.equals(Display.RGB) || dreal.equals(Display.RGBA)) {
            colorMap = map;
-           rngIdxClr = k;
+           if (rngIdxClr < 0) {
+             rngIdxClr = k;
+           }
            cnt++;
         }
       }
@@ -2827,7 +2829,9 @@ System.out.println("adjusted flow values = " + flow_values[0][0] + " " +
     if (colorMap == null) {
       return null;
     }
-    System.out.println("range Color Index: "+rngIdxClr);
+    if (cnt > 1) {
+      System.out.println("Trajectory: more than one range type for color. Can only use the first found");
+    }
     float[] dspVals = colorMap.scaleValues(rangeValues[rngIdxClr]);
     float[][] fltClrs = ((BaseColorControl)colorMap.getControl()).lookupValues(dspVals);
     int clrDim = fltClrs.length;
