@@ -96,7 +96,9 @@ public class Interpolation {
                   }
               }
           }
-          getSolution();
+          if (doIntrp) {
+             getSolution();
+          }
       }
       
       public void getSolution() {
