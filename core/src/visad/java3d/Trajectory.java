@@ -114,14 +114,82 @@ public class Trajectory {
            trajectories.add(traj);
         }
      }
-
+     
      public static void getStartPointsFromDomain(int skip, Gridded3DSet spatial_set, byte[][] color_values, float[][] startPts, byte[][] startClrs) throws VisADException {
-        int[] lens = spatial_set.getLengths();
-        int lenX = lens[0];
-        int lenY = lens[1];
+         int manifoldDim = spatial_set.getManifoldDimension();
+         int[] lens = spatial_set.getLengths();
+         int lenX = lens[0];
+         int lenY = lens[1];
+         int lenZ;
+         if (manifoldDim == 3) {
+             lenZ = lens[2];
+             getStartPointsFromDomain3D(skip, spatial_set.getSamples(false), lenX, lenY, lenZ, color_values, startPts, startClrs);
+         }
+         else if (manifoldDim == 2) {
+             getStartPointsFromDomain2D(skip, spatial_set.getSamples(false), lenX, lenY, color_values, startPts, startClrs);
+         }
+     }
+     
+     public static void getStartPointsFromDomain3D(int skip, float[][] locs, int lenX, int lenY, int lenZ, byte[][] color_values, float[][] startPts, byte[][] startClrs) throws VisADException {
+         int len2D = lenX*lenY;
+         
+         float[][] locs2D = new float[3][len2D];
+         float[][] pts = new float[3][];
+         byte[][] clrs = new byte[startClrs.length][];
+         
+         int lenA = 0;
+         
+         for (int k=0; k<lenZ-skip*2; k+=skip*2) {
+             System.arraycopy(locs[0], k*len2D, locs2D[0], 0, len2D);
+             System.arraycopy(locs[1], k*len2D, locs2D[1], 0, len2D);
+             System.arraycopy(locs[2], k*len2D, locs2D[2], 0, len2D);
+             
+             getStartPointsFromDomain2D(skip, locs2D, lenX, lenY, color_values, pts, clrs);
+             
+             int lenB = pts[0].length;
+             float[][] tmpPts = new float[3][lenA+lenB];
+             byte[][] tmpClrs = new byte[clrs.length][lenA+lenB];
+            
+             if (lenA > 0) {
+                System.arraycopy(startPts[0], 0, tmpPts[0], 0, lenA);
+                System.arraycopy(startClrs[0], 0, tmpClrs[0], 0, lenA);
+             }
+             System.arraycopy(pts[0], 0, tmpPts[0], lenA, lenB);
+             System.arraycopy(clrs[0], 0, tmpClrs[0], lenA, lenB);
+             startPts[0] = tmpPts[0];
+             startClrs[0] = tmpClrs[0];
 
-        float[][] setLocs = spatial_set.getSamples(false);
+             if (lenA > 0) {
+                System.arraycopy(startPts[1], 0, tmpPts[1], 0, lenA);
+                System.arraycopy(startClrs[1], 0, tmpClrs[1], 0, lenA);
+             }
+             System.arraycopy(pts[1], 0, tmpPts[1], lenA, lenB);
+             System.arraycopy(clrs[1], 0, tmpClrs[1], lenA, lenB);
+             startPts[1] = tmpPts[1];
+             startClrs[1] = tmpClrs[1];
+             
+             if (lenA > 0) {
+                System.arraycopy(startPts[2], 0, tmpPts[2], 0, lenA);
+                System.arraycopy(startClrs[2], 0, tmpClrs[2], 0, lenA);
+             }
+             System.arraycopy(pts[2], 0, tmpPts[2], lenA, lenB);
+             System.arraycopy(clrs[2], 0, tmpClrs[2], lenA, lenB);
+             startPts[2] = tmpPts[2];
+             startClrs[2] = tmpClrs[2];
+             
+             if (lenA > 0) {
+                 if (startClrs.length == 4) {
+                     System.arraycopy(startClrs[3], 0, tmpClrs[3], 0, lenA);
+                     System.arraycopy(clrs[3], 0, tmpClrs[3], lenA, lenB);
+                     startClrs[3] = tmpClrs[3];
+                 }
+             }
+             
+             lenA = startPts[0].length;
+         }
+     }
 
+     public static void getStartPointsFromDomain2D(int skip, float[][] setLocs, int lenX, int lenY, byte[][] color_values, float[][] startPts, byte[][] startClrs) throws VisADException {
         int clrDim = color_values.length;
         int m = cnt % 4;
         cnt++;
