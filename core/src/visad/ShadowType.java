@@ -2445,8 +2445,7 @@ public abstract class ShadowType extends Object implements java.io.Serializable 
       for (int i=0; i<earth_locs.length; i++) {
         if (earth_locs[i] == null) {
           earth_locs[i] = new float[flen];
-          for (int j = 0; j < flen; j++)
-            earth_locs[i][j] = spatial_values[i][j];
+            System.arraycopy(spatial_values[i], 0, earth_locs[i], 0, flen);
         }
       }
     }
